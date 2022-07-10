@@ -101,7 +101,7 @@ export const createSubscriptionManager = (): SubscriptionManager => {
   };
 
   const tryGetLocal = (obj: any) => {
-    assertEqual(getProxyTarget(obj), undefined);
+    assertEqual(getProxyTarget(obj), undefined, 'object can not be be a proxy');
     return objToSubs.get(obj);
   };
 
@@ -116,7 +116,7 @@ export const createSubscriptionManager = (): SubscriptionManager => {
   const getLocal = (obj: any, initialMap?: SubscriberMap) => {
     let local = tryGetLocal(obj);
     if (local) {
-      assertEqual(initialMap, undefined);
+      assertEqual(initialMap, undefined, 'subscription map can not be set to an existing object');
     } else {
       const map = !initialMap ? (new Map() as SubscriberMap) : initialMap;
       map.forEach((_, key) => {

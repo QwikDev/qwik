@@ -93,10 +93,13 @@ export const notifyChange = (subscriber: Subscriber) => {
  * @public
  */
 const notifyRender = (hostElement: Element): void => {
-  assertDefined(directGetAttribute(hostElement, QHostAttr));
+  assertDefined(
+    directGetAttribute(hostElement, QHostAttr),
+    'render: notified element must be a component'
+  );
 
-  const containerEl = getContainer(hostElement)!;
-  assertDefined(containerEl);
+  const containerEl = getContainer(hostElement);
+  assertDefined(containerEl, 'render: host element need to be inside a q:container');
 
   const state = getContainerState(containerEl);
   if (
@@ -111,7 +114,7 @@ const notifyRender = (hostElement: Element): void => {
   resumeIfNeeded(containerEl);
 
   const ctx = getContext(hostElement);
-  assertDefined(ctx.$renderQrl$);
+  assertDefined(ctx.$renderQrl$, `render: notified host element must have a defined $renderQrl$`);
 
   if (ctx.$dirty$) {
     return;
@@ -119,7 +122,10 @@ const notifyRender = (hostElement: Element): void => {
   ctx.$dirty$ = true;
   const activeRendering = state.$hostsRendering$ !== undefined;
   if (activeRendering) {
-    assertDefined(state.$renderPromise$);
+    assertDefined(
+      state.$renderPromise$,
+      'render: while rendering, $renderPromise$ must be defined'
+    );
     state.$hostsStaging$.add(hostElement);
   } else {
     state.$hostsNext$.add(hostElement);
@@ -137,7 +143,10 @@ const notifyWatch = (watch: SubscriberDescriptor) => {
   const state = getContainerState(containerEl);
   const activeRendering = state.$hostsRendering$ !== undefined;
   if (activeRendering) {
-    assertDefined(state.$renderPromise$);
+    assertDefined(
+      state.$renderPromise$,
+      'render: while rendering, $renderPromise$ must be defined'
+    );
     state.$watchStaging$.add(watch);
   } else {
     state.$watchNext$.add(watch);

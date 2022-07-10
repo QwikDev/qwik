@@ -23,6 +23,9 @@ export const QError_immutableJsxProps = 19;
 export const QError_useInvokeContext = 20;
 export const QError_containerAlreadyPaused = 21;
 export const QError_canNotMountUseServerMount = 22;
+export const QError_rootNodeMustBeHTML = 23;
+export const QError_strictHTMLChildren = 24;
+export const QError_invalidJsxNodeType = 25;
 
 export const qError = (code: number, ...parts: any[]): Error => {
   const text = codeToText(code);
@@ -57,6 +60,9 @@ export const codeToText = (code: number): string => {
       'use- method must be called only at the root level of a component$()',
       'Container is already paused. Skipping',
       'Components using useServerMount() can only be mounted in the server, if you need your component to be mounted in the client, use "useMount$()" instead',
+      'When rendering directly on top of Document, the root node must be a <html>',
+      'A <html> node must have 2 children. The first one <head> and the second one a <body>',
+      'Invalid JSXNode type. It must be either a function or a string. Found:',
     ];
     return `Code(${code}): ${MAP[code] ?? ''}`;
   } else {

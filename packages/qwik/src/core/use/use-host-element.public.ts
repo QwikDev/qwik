@@ -1,4 +1,3 @@
-import { assertDefined } from '../assert/assert';
 import { useInvokeContext } from './use-core';
 
 // <docs markdown="../readme.md#useHostElement">
@@ -29,7 +28,5 @@ import { useInvokeContext } from './use-core';
 // </docs>
 export const useHostElement = (): Element => {
   const ctx = useInvokeContext();
-  const element = ctx.$hostElement$!;
-  assertDefined(element);
-  return element;
+  return ctx.$hostElement$;
 };

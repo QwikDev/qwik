@@ -1,4 +1,4 @@
-import { assertDefined, assertEqual } from '../assert/assert';
+import { assertDefined, assertTrue } from '../assert/assert';
 import { parseQRL, QRLSerializeOptions, stringifyQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
 import { getContext, tryGetContext } from '../props/props';
@@ -105,7 +105,7 @@ export const resumeContainer = (containerEl: Element) => {
 
   Object.entries(meta.ctx).forEach(([elementID, ctxMeta]) => {
     const el = getObject(elementID) as Element;
-    assertDefined(el);
+    assertDefined(el, `resume: cant find dom node for id: ${elementID}`);
     const ctx = getContext(el);
 
     const qobj = ctxMeta.r;
@@ -136,8 +136,8 @@ export const resumeContainer = (containerEl: Element) => {
     // Restore sequence scoping
     if (host) {
       const [props, renderQrl] = host.split(' ');
-      assertDefined(props);
-      assertDefined(renderQrl);
+      assertDefined(props, `resume: props missing in q:host attribute: ${host}`);
+      assertDefined(renderQrl, `resume: renderQRL missing in q:host attribute: ${host}`);
       ctx.$props$ = getObject(props);
       ctx.$renderQrl$ = getObject(renderQrl);
     }
@@ -301,8 +301,8 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
   };
 
   const mustGetObjId = (obj: any): string => {
-    const id = getObjId(obj)!;
-    assertDefined(id);
+    const id = getObjId(obj);
+    assertDefined(id, `pause: missing ID for value ${obj}`);
     return id;
   };
 
@@ -376,8 +376,8 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
 
   // Write back to the dom
   elements.forEach((node) => {
-    const ctx = getContext(node)!;
-    assertDefined(ctx);
+    const ctx = tryGetContext(node);
+    assertDefined(ctx, `pause: missing context for dom node`);
 
     const ref = ctx.$refMap$;
     const props = ctx.$props$;
@@ -442,7 +442,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
 
     if (add) {
       const elementID = getElementID(node)!;
-      assertDefined(elementID);
+      assertDefined(elementID, `pause: can not generate ID for dom node`);
       meta[elementID] = metaValue;
     }
 
@@ -623,11 +623,11 @@ const getObjectImpl = (
   containerState: ContainerState
 ) => {
   if (id.startsWith(ELEMENT_ID_PREFIX)) {
-    assertEqual(elements.has(id), true);
+    assertTrue(elements.has(id), `missing element for id: ${id}`);
     return elements.get(id);
   }
   const index = strToInt(id);
-  assertEqual(objs.length > index, true);
+  assertTrue(objs.length > index, 'resume: index is out of bounds');
   let obj = objs[index];
   for (let i = id.length - 1; i >= 0; i--) {
     const code = id[i];
@@ -765,7 +765,7 @@ const resolvePromise = (promise: Promise<any>) => {
 };
 
 const getPromiseValue = (promise: Promise<any>) => {
-  assertEqual(PROMISE_VALUE in promise, true);
+  assertTrue(PROMISE_VALUE in promise, 'pause: promise was not resolved previously');
   return (promise as any)[PROMISE_VALUE];
 };
 

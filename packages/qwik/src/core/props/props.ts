@@ -20,7 +20,7 @@ import { qDev } from '../util/qdev';
 import { logError } from '../util/log';
 import { isQrl, QRLInternal } from '../import/qrl-class';
 import { directGetAttribute } from '../render/fast-calls';
-import { assertDefined, assertEqual } from '../assert/assert';
+import { assertDefined, assertTrue } from '../assert/assert';
 import { codeToText, QError_immutableJsxProps } from '../error/error';
 import { isArray } from '../util/types';
 
@@ -131,7 +131,7 @@ export const normalizeOnProp = (prop: string) => {
 };
 
 export const setEvent = (rctx: RenderContext, ctx: QContext, prop: string, value: any) => {
-  assertEqual(prop.endsWith('$'), true);
+  assertTrue(prop.endsWith('$'), 'render: event property does not end with $');
   const qrl = isArray(value) ? value.map(ensureQrl) : ensureQrl(value);
   qPropWriteQRL(rctx, ctx, normalizeOnProp(prop.slice(0, -1)), qrl);
 };
@@ -150,7 +150,7 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
     ctx.$props$ = props = createProps({}, containerState);
   }
   const target = getProxyTarget(props);
-  assertDefined(target);
+  assertDefined(target, `props have to be a proxy, but it is not: ${props}`);
   const manager = containerState.$subsManager$.$getLocal$(target);
 
   return {

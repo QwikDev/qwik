@@ -23,7 +23,9 @@ import {
   codeToText,
   qError,
   QError_hostCanOnlyBeAtRoot,
+  QError_rootNodeMustBeHTML,
   QError_setProperty,
+  QError_strictHTMLChildren,
   QError_stringifyClassOrStyle,
 } from '../error/error';
 import { fromCamelToKebabCase } from '../util/case';
@@ -98,12 +100,13 @@ export const smartUpdateChildren = (
   const oldCh = getChildren(elm, mode);
   if (qDev) {
     if (elm.nodeType === 9) {
-      assertEqual(ch.length, 1);
-      assertEqual(ch[0].$type$, 'html');
+      if (ch.length !== 1 || ch[0].$type$ !== 'html') {
+        throw qError(QError_rootNodeMustBeHTML, ch);
+      }
     } else if (elm.nodeName === 'HTML') {
-      assertEqual(ch.length, 2);
-      assertEqual(ch[0].$type$, 'head');
-      assertEqual(ch[1].$type$, 'body');
+      if (ch.length !== 2 || ch[0].$type$ !== 'head' || ch[1].$type$ !== 'body') {
+        throw qError(QError_strictHTMLChildren, ch);
+      }
     }
   }
   if (oldCh.length > 0 && ch.length > 0) {
@@ -372,7 +375,7 @@ const addVnodes = (
   const promises = [];
   for (; startIdx <= endIdx; ++startIdx) {
     const ch = vnodes[startIdx];
-    assertDefined(ch);
+    assertDefined(ch, 'render: node must be defined');
     promises.push(createElm(ctx, ch, isSvg));
   }
   return then(promiseAll(promises), (children) => {
@@ -937,7 +940,11 @@ export const executeContextWithSlots = (ctx: RenderContext) => {
   executeContext(ctx);
 
   const after = ctx.$roots$.map((elm) => getSlots(undefined, elm));
-  assertEqual(before.length, after.length);
+  assertEqual(
+    before.length,
+    after.length,
+    'render: number of q:slots changed during render context execution'
+  );
 
   for (let i = 0; i < before.length; i++) {
     resolveSlotProjection(ctx, ctx.$roots$[i], before[i], after[i]);

@@ -17,10 +17,13 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
 
   const hostElement = ctx.$element$;
   const onRenderQRL = ctx.$renderQrl$!;
-  assertDefined(onRenderQRL);
+  assertDefined(
+    onRenderQRL,
+    `render: host element to render must has a $renderQrl$: ${hostElement}`
+  );
 
   const props = ctx.$props$;
-  assertDefined(props);
+  assertDefined(props, `render: host element to render must has defined props: ${hostElement}`);
 
   // Component is not dirty any more
   rctx.$containerState$.$hostsStaging$.delete(hostElement);

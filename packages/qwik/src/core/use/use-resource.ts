@@ -47,7 +47,7 @@ export const useResourceQrl = <T>(qrl: QRL<ResourceFn<T>>): Resource<T> => {
   const previousWait = Promise.all(ctx.$waitOn$.slice());
   runResource(watch, containerState, previousWait);
   getContext(el).$watches$.push(watch);
-  assertDefined(result.promise);
+  assertDefined(result.promise, `useResource: resource.promise must be defined ${result}`);
   set(resource);
 
   return resource;
@@ -62,7 +62,7 @@ export const useResource$ = <T>(generatorFn: ResourceFn<T>): Resource<T> => {
 
 export const useIsServer = () => {
   const ctx = getInvokeContext();
-  assertDefined(ctx.$doc$);
+  assertDefined(ctx.$doc$, 'doc must be defined');
   return getPlatform(ctx.$doc$).isServer;
 };
 

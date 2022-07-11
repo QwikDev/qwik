@@ -1143,6 +1143,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
 "#
         .to_string(),
         entry_strategy: EntryStrategy::Inline,
+        dev: false,
         ..TestInput::default()
     });
 }

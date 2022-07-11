@@ -7,6 +7,7 @@ import { logWarn } from '../../util/log';
 import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
 import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises';
 import { InvokeContext, useInvoke } from '../../use/use-core';
+import { qError, QError_invalidJsxNodeType } from '../../error/error';
 
 /**
  * @public
@@ -59,6 +60,8 @@ export const processNode = (
     return processData(res, invocationContext);
   } else if (isString(node.type)) {
     textType = node.type;
+  } else {
+    throw qError(QError_invalidJsxNodeType, node.type);
   }
   let children: ProcessedJSXNode[] = EMPTY_ARRAY;
   if (node.props) {
@@ -106,8 +109,9 @@ export const isJSXNode = (n: any): n is JSXNode<unknown> => {
     if (n instanceof JSXNodeImpl) {
       return true;
     }
-    if (isObject(n) && n.constructor.name === JSXNodeImpl.name) {
-      throw new Error(`Duplicate implementations of "JSXNodeImpl" found`);
+    if (isObject(n) && 'key' in n && 'props' in n && 'type' in n) {
+      logWarn(`Duplicate implementations of "JSXNode" found`);
+      return true;
     }
     return false;
   } else {

@@ -36,6 +36,7 @@ export const Toggle = component$(() => {
 export const ToggleShell = component$(() => {
   const store = useStore({
     cond: false,
+    a: 2,
     logs: '',
   });
 

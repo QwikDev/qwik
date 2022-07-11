@@ -27,6 +27,7 @@ import {
   qError,
   QError_cannotSerializeNode,
   QError_containerAlreadyPaused,
+  QError_verifySerializable,
 } from '../error/error';
 import { isArray, isObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
@@ -91,7 +92,8 @@ export const resumeContainer = (containerEl: Element) => {
   };
 
   getNodesInScope(containerEl, hasQId).forEach((el) => {
-    const id = directGetAttribute(el, ELEMENT_ID)!;
+    const id = directGetAttribute(el, ELEMENT_ID);
+    assertDefined(id, `resume: element missed q:id: ${el}`);
     elements.set(ELEMENT_ID_PREFIX + id, el);
   });
 
@@ -505,6 +507,9 @@ export const getQwikJSON = (parentElm: Element): HTMLScriptElement | undefined =
 
 export const getNodesInScope = (parent: Element, predicate: (el: Element) => boolean) => {
   const nodes: Element[] = [];
+  if (predicate(parent)) {
+    nodes.push(parent);
+  }
   walkNodes(nodes, parent, predicate);
   return nodes;
 };
@@ -641,20 +646,10 @@ const getObjectImpl = (
 };
 
 const normalizeObj = (obj: any, doc: Document) => {
-  if (obj === doc) {
-    return DOCUMENT_PREFIX;
-  }
   if (obj === undefined || !shouldSerialize(obj)) {
     return UNDEFINED_PREFIX;
   }
   return getProxyTarget(obj) ?? obj;
-};
-
-const collectValue = async (obj: any, collector: Collector) => {
-  const handled = await collectQObjects(obj, collector);
-  if (!handled) {
-    collector.$objSet$.add(normalizeObj(obj, collector.$doc$));
-  }
 };
 
 const collectProps = async (el: Element, props: any, collector: Collector) => {
@@ -689,10 +684,10 @@ const createCollector = (doc: Document, containerState: ContainerState): Collect
 
 const collectQrl = async (obj: QRLInternal, collector: Collector) => {
   if (collector.$seen$.has(obj)) {
-    return true;
+    return;
   }
   collector.$seen$.add(obj);
-  collector.$objSet$.add(normalizeObj(obj, collector.$doc$));
+  collector.$objSet$.add(obj);
   if (obj.$captureRef$) {
     for (const item of obj.$captureRef$) {
       await collectValue(item, collector);
@@ -769,29 +764,37 @@ const getPromiseValue = (promise: Promise<any>) => {
   return (promise as any)[PROMISE_VALUE];
 };
 
-const collectQObjects = async (input: any, collector: Collector) => {
+const collectValue = async (input: any, collector: Collector) => {
   let obj = input;
+  if (!shouldSerialize(obj)) {
+    collector.$objSet$.add(UNDEFINED_PREFIX);
+    return;
+  }
   if (obj != null) {
     if (isQrl(obj)) {
       await collectQrl(obj, collector);
-      return true;
+      return;
     }
     if (typeof obj === 'object') {
       if (isPromise(obj)) {
         if (collector.$seen$.has(obj)) {
-          return true;
+          return;
         }
         collector.$seen$.add(obj);
         obj = await resolvePromise(obj);
         await collectValue(obj, collector);
-        return true;
+        return;
       }
       const target = getProxyTarget(obj);
       if (!target && isNode(obj)) {
-        if (obj.nodeType === 1) {
-          return true;
+        if (obj === collector.$doc$) {
+          collector.$objSet$.add(DOCUMENT_PREFIX);
+          return;
+        } else if (obj.nodeType === 1) {
+          return;
+        } else {
+          throw qError(QError_verifySerializable, obj);
         }
-        return false;
       }
       const subs = collector.$containerState$.$subsManager$.$tryGetLocal$(target)?.$subs$;
       if (subs) {
@@ -801,30 +804,32 @@ const collectQObjects = async (input: any, collector: Collector) => {
     }
     if (typeof obj === 'object') {
       if (collector.$seen$.has(obj)) {
-        return true;
+        return;
       }
       collector.$seen$.add(obj);
-      collector.$objSet$.add(obj);
 
       if (isArray(obj)) {
+        collector.$objSet$.add(obj);
         for (let i = 0; i < obj.length; i++) {
-          await collectQObjects(input[i], collector);
+          await collectValue(input[i], collector);
         }
-      } else {
+        return;
+      } else if (Object.getPrototypeOf(obj) === Object.prototype) {
+        collector.$objSet$.add(obj);
         for (const key in obj) {
           if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            await collectQObjects(input[key], collector);
+            await collectValue(input[key], collector);
           }
         }
+        return;
       }
-      return true;
-    }
-    if (isString(obj)) {
-      collector.$objSet$.add(obj);
-      return true;
     }
   }
-  return false;
+  if (obj == null || isString(obj) || typeof obj === 'number' || typeof obj == 'boolean') {
+    collector.$objSet$.add(obj);
+    return;
+  }
+  throw qError(QError_verifySerializable, obj);
 };
 
 export const isContainer = (el: Element) => {

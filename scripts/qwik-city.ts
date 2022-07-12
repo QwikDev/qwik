@@ -17,6 +17,7 @@ export async function buildQwikCity(config: BuildConfig) {
     buildVite(config, input, output),
     buildCloudflarePages(config, input, output),
     buildExpress(config, input, output),
+    buildNetlifyEdge(config, input, output),
   ]);
 
   await buildRuntime(config, input);
@@ -38,6 +39,9 @@ export async function buildQwikCity(config: BuildConfig) {
       './middleware/express': {
         import: './middleware/express/index.mjs',
         require: './middleware/express/index.cjs',
+      },
+      './middleware/netlify-edge': {
+        import: './middleware/netlify-edge/index.mjs',
       },
       './vite': {
         import: './vite/index.mjs',
@@ -128,6 +132,19 @@ async function buildExpress(config: BuildConfig, input: string, output: string) 
     platform: 'node',
     format: 'cjs',
     external,
+    watch: watcher(config),
+  });
+}
+
+async function buildNetlifyEdge(config: BuildConfig, input: string, output: string) {
+  const entryPoints = [join(input, 'middleware', 'netlify-edge', 'index.ts')];
+
+  await build({
+    entryPoints,
+    outfile: join(output, 'middleware', 'netlify-edge', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    format: 'esm',
     watch: watcher(config),
   });
 }

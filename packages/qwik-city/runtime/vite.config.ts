@@ -2,9 +2,11 @@ import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import { qwikCity } from '@builder.io/qwik-city/vite';
 
+
 export default defineConfig(() => {
   return {
     build: {
+      target: 'es2020',
       outDir: '../lib',
       lib: {
         entry: './src/index.ts',

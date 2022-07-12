@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import Fastify from 'fastify';
 import staticPlugin from '@fastify/static';
 import { join } from 'path';

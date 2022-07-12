@@ -1,4 +1,4 @@
-import { assertEqual } from '../assert/assert';
+import { assertEqual, assertTrue } from '../assert/assert';
 import {
   qError,
   QError_immutableProps,
@@ -45,8 +45,8 @@ export const createProxy = <T extends object>(
   flags: number,
   subs?: Map<Element, Set<string>>
 ): T => {
-  assertEqual(unwrapProxy(target), target, 'Unexpected proxy at this location');
-  assertEqual(containerState.$proxyMap$.has(target), false, 'Proxy was already created');
+  assertEqual(unwrapProxy(target), target, 'Unexpected proxy at this location', target);
+  assertTrue(!containerState.$proxyMap$.has(target), 'Proxy was already created', target);
 
   if (!isObject(target)) {
     throw qError(QError_onlyObjectWrapped, target);
@@ -101,7 +101,7 @@ export const createSubscriptionManager = (): SubscriptionManager => {
   };
 
   const tryGetLocal = (obj: any) => {
-    assertEqual(getProxyTarget(obj), undefined, 'object can not be be a proxy');
+    assertEqual(getProxyTarget(obj), undefined, 'object can not be be a proxy', obj);
     return objToSubs.get(obj);
   };
 
@@ -116,7 +116,12 @@ export const createSubscriptionManager = (): SubscriptionManager => {
   const getLocal = (obj: any, initialMap?: SubscriberMap) => {
     let local = tryGetLocal(obj);
     if (local) {
-      assertEqual(initialMap, undefined, 'subscription map can not be set to an existing object');
+      assertEqual(
+        initialMap,
+        undefined,
+        'subscription map can not be set to an existing object',
+        local
+      );
     } else {
       const map = !initialMap ? (new Map() as SubscriberMap) : initialMap;
       map.forEach((_, key) => {

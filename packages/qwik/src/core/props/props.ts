@@ -131,7 +131,7 @@ export const normalizeOnProp = (prop: string) => {
 };
 
 export const setEvent = (rctx: RenderContext, ctx: QContext, prop: string, value: any) => {
-  assertTrue(prop.endsWith('$'), 'render: event property does not end with $');
+  assertTrue(prop.endsWith('$'), 'render: event property does not end with $', prop);
   const qrl = isArray(value) ? value.map(ensureQrl) : ensureQrl(value);
   qPropWriteQRL(rctx, ctx, normalizeOnProp(prop.slice(0, -1)), qrl);
 };
@@ -150,7 +150,7 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
     ctx.$props$ = props = createProps({}, containerState);
   }
   const target = getProxyTarget(props);
-  assertDefined(target, `props have to be a proxy, but it is not: ${props}`);
+  assertDefined(target, `props have to be a proxy, but it is not`, props);
   const manager = containerState.$subsManager$.$getLocal$(target);
 
   return {

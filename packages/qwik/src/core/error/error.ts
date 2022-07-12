@@ -1,3 +1,4 @@
+import { logErrorAndStop } from '../util/log';
 import { qDev } from '../util/qdev';
 
 export const QError_stringifyClassOrStyle = 0;
@@ -26,12 +27,12 @@ export const QError_canNotMountUseServerMount = 22;
 export const QError_rootNodeMustBeHTML = 23;
 export const QError_strictHTMLChildren = 24;
 export const QError_invalidJsxNodeType = 25;
+export const QError_trackUseStore = 26;
+export const QError_missingObjectId = 27;
 
 export const qError = (code: number, ...parts: any[]): Error => {
   const text = codeToText(code);
-  const error = `${text} ${parts.join(' ')}`;
-  debugger; // eslint-disable-line no-debugger
-  return new Error(error);
+  return logErrorAndStop(text, ...parts);
 };
 
 export const codeToText = (code: number): string => {
@@ -63,6 +64,8 @@ export const codeToText = (code: number): string => {
       'When rendering directly on top of Document, the root node must be a <html>',
       'A <html> node must have 2 children. The first one <head> and the second one a <body>',
       'Invalid JSXNode type. It must be either a function or a string. Found:',
+      'Tracking value changes can only be done to useStore() objects and component props',
+      'Missing Object ID for captured object',
     ];
     return `Code(${code}): ${MAP[code] ?? ''}`;
   } else {

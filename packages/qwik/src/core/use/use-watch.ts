@@ -1,7 +1,7 @@
-import { getProxyTarget, noSerialize, NoSerialize } from '../object/q-object';
+import { getProxyTarget, noSerialize, NoSerialize, unwrapProxy } from '../object/q-object';
 import { getContext } from '../props/props';
 import { newInvokeContext, useInvoke } from './use-core';
-import { logError } from '../util/log';
+import { logError, logErrorAndStop } from '../util/log';
 import { safeCall, then } from '../util/promises';
 import { useSequentialScope } from './use-store.public';
 import { getDocument } from '../util/dom';
@@ -13,7 +13,12 @@ import { implicit$FirstArg } from '../util/implicit_dollar';
 import { assertDefined, assertEqual } from '../assert/assert';
 import type { QRL } from '../import/qrl.public';
 import { assertQrl, createQrl, QRLInternal } from '../import/qrl-class';
-import { qError, QError_canNotMountUseServerMount } from '../error/error';
+import {
+  codeToText,
+  qError,
+  QError_canNotMountUseServerMount,
+  QError_trackUseStore,
+} from '../error/error';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;
@@ -566,7 +571,7 @@ export const runSubscriber = async (
   watch: SubscriberDescriptor,
   containerState: ContainerState
 ) => {
-  assertEqual(!!(watch.f & WatchFlagsIsDirty), true, 'Resource is not dirty');
+  assertEqual(!!(watch.f & WatchFlagsIsDirty), true, 'Resource is not dirty', watch);
   if ('r' in watch) {
     await runResource(watch, containerState);
   } else {
@@ -592,13 +597,20 @@ export const runResource = <T>(
 
   const cleanups: (() => void)[] = [];
   const resource = watch.r;
-  assertDefined(resource, 'useResource: when running a resource, "watch.r" must be a defined.');
+  assertDefined(
+    resource,
+    'useResource: when running a resource, "watch.r" must be a defined.',
+    watch
+  );
 
   const track: Tracker = (obj: any, prop?: string) => {
     const target = getProxyTarget(obj);
-    assertDefined(target, 'Expected a Proxy object to track');
-    const manager = subsManager.$getLocal$(target);
-    manager.$addSub$(watch, prop);
+    if (target) {
+      const manager = subsManager.$getLocal$(target);
+      manager.$addSub$(watch, prop);
+    } else {
+      logErrorAndStop(codeToText(QError_trackUseStore), obj);
+    }
     if (prop) {
       return obj[prop];
     } else {
@@ -610,7 +622,7 @@ export const runResource = <T>(
     cleanup(callback) {
       cleanups.push(callback);
     },
-    previous: resource.resolved,
+    previous: unwrapProxy(resource).resolved,
   };
 
   let resolve: (v: T) => void;
@@ -666,9 +678,12 @@ export const runWatch = (
   });
   const track: Tracker = (obj: any, prop?: string) => {
     const target = getProxyTarget(obj);
-    assertDefined(target, 'Expected a Proxy object to track');
-    const manager = subsManager.$getLocal$(target);
-    manager.$addSub$(watch, prop);
+    if (target) {
+      const manager = subsManager.$getLocal$(target);
+      manager.$addSub$(watch, prop);
+    } else {
+      logErrorAndStop(codeToText(QError_trackUseStore), obj);
+    }
     if (prop) {
       return obj[prop];
     } else {

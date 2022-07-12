@@ -1,4 +1,4 @@
-import { component$, $, useStore, mutable } from '@builder.io/qwik';
+import { component$, $, useStore, mutable, noSerialize } from '@builder.io/qwik';
 
 export const LexicalScope = component$(() => {
   return <LexicalScopeChild message={mutable('mutable message')}></LexicalScopeChild>;
@@ -25,13 +25,15 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
     f: null,
     g: undefined,
     h: [1, 'string', false, { hola: 1 }, ['hello']],
+    i: noSerialize(() => console.warn()),
     promise,
   };
   const d = undefined;
   const e = null;
-  const f = [1, 2, 'hola', {}];
   const g = true;
   const h = false;
+  const i = noSerialize(() => console.error());
+  const f = [1, 2, 'hola', i, {}];
 
   const onclick = $(async () => {
     promise.then((promiseValue) => {
@@ -44,6 +46,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
         f,
         g,
         h,
+        i,
         props.message,
         promiseValue,
       ]);
@@ -62,6 +65,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
         <p>{JSON.stringify(f)}</p>
         <p>{JSON.stringify(g)}</p>
         <p>{JSON.stringify(h)}</p>
+        <p>{String(i)}</p>
         <p>{props.message}</p>
         <p>{promise}</p>
       </div>

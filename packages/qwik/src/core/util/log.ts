@@ -15,9 +15,10 @@ export const logError = (message?: any, ...optionalParams: any[]) => {
 };
 
 export const logErrorAndStop = (message?: any, ...optionalParams: any[]) => {
-  logError(message, ...optionalParams);
+  const err = logError(message, ...optionalParams);
   // eslint-disable-next-line no-debugger
   debugger;
+  return err;
 };
 
 export const logWarn = (message?: any, ...optionalParams: any[]) => {

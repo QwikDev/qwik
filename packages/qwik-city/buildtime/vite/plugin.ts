@@ -78,7 +78,20 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
               if (match) {
                 if (route.type === 'endpoint') {
                   const params = getRouteParams(route.paramNames, match);
-                  const request = new Request(url.href, { method: req.method });
+
+                  let body: ArrayBuffer | undefined = undefined;
+                  if (!(req.method === 'GET' || req.method === 'HEAD')) {
+                    const bytes: string[] = [];
+                    await new Promise((resolve) => {
+                      req.setEncoding('utf-8');
+                      req.on('data', (bts) => bytes.push(bts));
+                      req.on('end', resolve);
+                    });
+                    body = new TextEncoder().encode(bytes.join('')).buffer;
+                  }
+                  const headers = new Headers(Object.entries(req.headers as Record<string, any>));
+
+                  const request = new Request(url.href, { body, headers, method: req.method });
                   const requestEv: RequestEvent = {
                     method: request.method,
                     request,

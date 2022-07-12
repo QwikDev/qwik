@@ -3,14 +3,15 @@ import type { PlaywrightTestConfig } from '@playwright/test';
 const config: PlaywrightTestConfig = {
   use: {
     viewport: {
-      width: 520,
-      height: 600,
+      width: 1200,
+      height: 800,
     },
   },
-  workers: 1,
-  retries: 3,
+  timeout: 5000,
+  // workers: 1,
+  // retries: 3,
   webServer: {
-    command: 'node runtime/server/entry.express.js',
+    command: 'node server/entry.express.js',
     port: 3000,
     reuseExistingServer: !process.env.CI,
   },

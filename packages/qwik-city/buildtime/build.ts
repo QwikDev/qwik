@@ -42,7 +42,7 @@ async function loadRoutes(ctx: BuildContext, routesDir: string, dir: string, dir
           if (isTestFileName(itemName)) {
             addError(
               ctx,
-              `Test directory or file "${itemPath}" should not be includes within the routes directory. Please move test files to a different location.`
+              `Test directory or file "${itemPath}" should not be included within the routes directory. Please move test files to a different location.`
             );
           } else if (isLayoutFileName(dirName, itemName)) {
             const layout = createLayout(ctx, routesDir, itemPath);

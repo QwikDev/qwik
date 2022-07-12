@@ -10,7 +10,7 @@ export default component$(
 
     return (
       <Host>
-        <section>
+        <section class="logo">
           <a href="/">Qwik City 🏙</a>
         </section>
         <nav>

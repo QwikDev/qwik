@@ -18,6 +18,9 @@
       "import": "./lib/middleware/express/index.mjs",
       "require": "./lib/middleware/express/index.cjs"
     },
+    "./middleware/netlify-edge": {
+      "import": "./lib/middleware/netlify-edge/index.mjs"
+    },
     "./vite": {
       "import": "./lib/vite/index.mjs",
       "require": "./lib/vite/index.cjs"

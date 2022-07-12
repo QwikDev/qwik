@@ -31,6 +31,9 @@
         "packages/qwik-city/middleware/cloudflare-pages"
       ],
       "@builder.io/qwik-city/middleware/express": ["packages/qwik-city/middleware/express"],
+      "@builder.io/qwik-city/middleware/netlify-edge": [
+        "packages/qwik-city/middleware/netlify-edge"
+      ],
       "@builder.io/qwik-city/vite": ["packages/qwik-city/buildtime/vite/index"],
       "@examples-data": ["packages/docs/src/layouts/examples/examples-data.ts"],
       "@playground-data": ["packages/docs/src/layouts/playground/playground-data.ts"],

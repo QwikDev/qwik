@@ -38,6 +38,7 @@ export default defineConfig(() => {
         '@builder.io/qwik-city',
         '@builder.io/qwik-city/middleware/cloudflare-pages',
         '@builder.io/qwik-city/middleware/express',
+        '@builder.io/qwik-city/middleware/netlify-edge',
         '@builder.io/qwik-city/vite',
       ],
     },

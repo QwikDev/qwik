@@ -56,7 +56,7 @@ export function testAppSuite(title: string) {
       buildCtx = ctx;
       Object.assign(testCtx, ctx);
 
-      testCtx.getPage = (p) => {
+      testCtx.assertPage = (p) => {
         const pageRoutes = ctx.routes.filter((r) => r.type === 'page');
         const r = pageRoutes.find((r) => r.pathname === p);
         if (!r) {
@@ -66,7 +66,7 @@ export function testAppSuite(title: string) {
         return r as any;
       };
 
-      testCtx.getEndpoint = (p) => {
+      testCtx.assertEndpoint = (p) => {
         const endPointRoutes = ctx.routes.filter((r) => r.type === 'endpoint');
         const r = endPointRoutes.find((r) => r.pathname === p);
         if (!r) {
@@ -76,7 +76,7 @@ export function testAppSuite(title: string) {
         return r as any;
       };
 
-      testCtx.getLayout = (id) => {
+      testCtx.assertLayout = (id) => {
         const l = ctx.layouts.find((r) => r.id === id);
         if (!l) {
           console.log(ctx.layouts);
@@ -91,9 +91,9 @@ export function testAppSuite(title: string) {
 }
 
 export interface TestAppBuildContext extends BuildContext {
-  getPage: (pathname: string) => PageRoute;
-  getEndpoint: (pathname: string) => EndpointRoute;
-  getLayout: (id: string) => BuildLayout;
+  assertPage: (pathname: string) => PageRoute;
+  assertEndpoint: (pathname: string) => EndpointRoute;
+  assertLayout: (id: string) => BuildLayout;
 }
 
 export interface TestContext {

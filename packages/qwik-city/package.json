@@ -34,7 +34,7 @@
     "serve.debug": "node --inspect-brk runtime/server/entry.express.js",
     "test": "yarn test.unit",
     "test.unit": "node ../../node_modules/.bin/uvu -r tsm . \"(unit)\"",
-    "test.e2e": "node ../../node_modules/.bin/playwright"
+    "test.e2e": "node ../../node_modules/.bin/playwright --config src/playwright.config.ts"
   },
   "dependencies": {
     "@mdx-js/mdx": "2.1.2",

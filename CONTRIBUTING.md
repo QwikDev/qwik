@@ -82,7 +82,6 @@ yarn commit
 
 You'll be asked guiding questions which will eventually create a descriptive commit message and necessary to generate meaningful release notes / CHANGELOG automatically.
 
-
 ## Releasing `@builder.io/qwik`
 
 1. Run `yarn release.prepare`, which will test, lint and build.

@@ -12,6 +12,7 @@
     "build.validate": "yarn node scripts --tsc --build --api --eslint --platform-binding --wasm --validate",
     "build.cli": "yarn node scripts --cli --dev",
     "build.cli.prod": "yarn node scripts --cli",
+    "commit": "git-cz",
     "cli": "yarn build.cli && node packages/create-qwik/dist/create-qwik",
     "cli.validate": "yarn node -r esbuild-register scripts/validate-cli.ts",
     "build.watch": "yarn node scripts --build --watch --dev --platform-binding",
@@ -65,9 +66,12 @@
     "@typescript-eslint/eslint-plugin": "5.30.6",
     "@typescript-eslint/parser": "5.30.6",
     "@typescript-eslint/utils": "5.30.6",
+    "all-contributors-cli": "^6.20.0",
     "brotli": "1.3.3",
+    "commitizen": "4.2.4",
     "concurrently": "7.2.2",
     "cross-spawn": "7.0.3",
+    "cz-conventional-changelog": "3.3.0",
     "esbuild": "0.14.48",
     "esbuild-register": "3.3.3",
     "eslint": "8.19.0",
@@ -119,6 +123,11 @@
   "packageManager": "yarn@3.2.0",
   "engines": {
     "node": ">=14"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   },
   "jest": {
     "preset": "ts-jest",

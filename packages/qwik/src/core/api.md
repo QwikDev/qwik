@@ -374,7 +374,7 @@ export namespace QwikJSX {
 // @alpha (undocumented)
 export interface Ref<T> {
     // (undocumented)
-    current?: T;
+    current: T | undefined;
 }
 
 // @alpha
@@ -541,7 +541,7 @@ export const useOnWindow: (event: string, eventQrl: QRL<(ev: Event) => void>) =>
 // Warning: (ae-incompatible-release-tags) The symbol "useRef" is marked as @public, but its signature references "Ref" which is marked as @alpha
 //
 // @public
-export const useRef: <T = Element>(current?: T | undefined) => Ref<T>;
+export const useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;
 
 // Warning: (ae-forgotten-export) The symbol "ResourceFn" needs to be exported by the entry point index.d.ts
 //

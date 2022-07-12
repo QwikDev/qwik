@@ -1,10 +1,10 @@
 import { assertDefined, assertTrue } from '../assert/assert';
 import { parseQRL, QRLSerializeOptions, stringifyQRL } from '../import/qrl';
-import { isQrl, QRLInternal } from '../import/qrl-class';
+import { isQrl } from '../import/qrl-class';
 import { getContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
 import { isDocument, isElement, isNode } from '../util/element';
-import { logDebug, logErrorAndStop, logWarn } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr } from '../util/markers';
 import { qDev } from '../util/qdev';
 import {
@@ -23,10 +23,10 @@ import type { QRL } from '../import/qrl.public';
 import { emitEvent } from '../util/event';
 import { ContainerState, getContainerState } from '../render/notify-render';
 import {
-  codeToText,
   qError,
-  QError_cannotSerializeNode,
   QError_containerAlreadyPaused,
+  QError_missingObjectId,
+  QError_verifySerializable,
 } from '../error/error';
 import { isArray, isObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
@@ -91,7 +91,8 @@ export const resumeContainer = (containerEl: Element) => {
   };
 
   getNodesInScope(containerEl, hasQId).forEach((el) => {
-    const id = directGetAttribute(el, ELEMENT_ID)!;
+    const id = directGetAttribute(el, ELEMENT_ID);
+    assertDefined(id, `resume: element missed q:id`, el);
     elements.set(ELEMENT_ID_PREFIX + id, el);
   });
 
@@ -105,7 +106,7 @@ export const resumeContainer = (containerEl: Element) => {
 
   Object.entries(meta.ctx).forEach(([elementID, ctxMeta]) => {
     const el = getObject(elementID) as Element;
-    assertDefined(el, `resume: cant find dom node for id: ${elementID}`);
+    assertDefined(el, `resume: cant find dom node for id`, elementID);
     const ctx = getContext(el);
 
     const qobj = ctxMeta.r;
@@ -136,8 +137,8 @@ export const resumeContainer = (containerEl: Element) => {
     // Restore sequence scoping
     if (host) {
       const [props, renderQrl] = host.split(' ');
-      assertDefined(props, `resume: props missing in q:host attribute: ${host}`);
-      assertDefined(renderQrl, `resume: renderQRL missing in q:host attribute: ${host}`);
+      assertDefined(props, `resume: props missing in q:host attribute`, host);
+      assertDefined(renderQrl, `resume: renderQRL missing in q:host attribute`, host);
       ctx.$props$ = getObject(props);
       ctx.$renderQrl$ = getObject(renderQrl);
     }
@@ -231,7 +232,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
   }
 
   // Convert objSet to array
-  const objs = Array.from(collector.$objSet$);
+  const objs = Array.from(new Set(collector.$objMap$.values()));
 
   const objToId = new Map<any, number>();
 
@@ -268,55 +269,49 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
       obj = obj.v;
       suffix = '%';
     }
+    if (isPromise(obj)) {
+      obj = getPromiseValue(obj);
+      suffix += '~';
+    }
     if (isObject(obj)) {
-      if (isPromise(obj)) {
-        obj = getPromiseValue(obj);
-        suffix += '~';
-      }
       const target = getProxyTarget(obj);
       if (target) {
         suffix += '!';
+        obj = target;
       }
-      const id = objToId.get(normalizeObj(target ?? obj, doc));
-      if (id !== undefined) {
-        return intToStr(id) + suffix;
-      }
-      if (!target && isNode(obj)) {
-        if (obj.nodeType === 1) {
-          const elID = getElementID(obj as Element);
-          if (elID) {
-            return elID + suffix;
-          }
+
+      if (!target && isElement(obj)) {
+        const elID = getElementID(obj as Element);
+        if (elID) {
+          return elID + suffix;
         }
-        logErrorAndStop(codeToText(QError_cannotSerializeNode), obj);
         return null;
       }
-    } else {
-      const id = objToId.get(normalizeObj(obj, doc));
-      if (id !== undefined) {
-        return intToStr(id) + suffix;
-      }
+    }
+    if (collector.$objMap$.has(obj)) {
+      const value = collector.$objMap$.get(obj);
+      const id = objToId.get(value);
+      assertTrue(typeof id === 'number', 'Can not find ID for object');
+      return intToStr(id as any) + suffix;
     }
     return null;
   };
 
   const mustGetObjId = (obj: any): string => {
-    const id = getObjId(obj);
-    assertDefined(id, `pause: missing ID for value ${obj}`);
-    return id;
+    const key = getObjId(obj);
+    if (key === null) {
+      throw qError(QError_missingObjectId, obj);
+    }
+    return key;
   };
 
-  const serialize = (value: any) => {
-    return getObjId(value) ?? value;
-  };
-
-  let count = 0;
   objs.sort((a, b) => {
     const isProxyA = hasSubscriptions(a) ? 0 : 1;
     const isProxyB = hasSubscriptions(b) ? 0 : 1;
     return isProxyA - isProxyB;
   });
 
+  let count = 0;
   for (const obj of objs) {
     objToId.set(obj, count);
     count++;
@@ -354,20 +349,39 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
   };
 
   const convertedObjs = objs.map((obj) => {
-    if (isQrl(obj)) {
-      return QRL_PREFIX + stringifyQRL(obj, qrlSerializeOptions);
+    switch (typeof obj) {
+      case 'undefined':
+        return UNDEFINED_PREFIX;
+
+      case 'function':
+        if (isQrl(obj)) {
+          return QRL_PREFIX + stringifyQRL(obj, qrlSerializeOptions);
+        }
+        break;
+      case 'object':
+        if (obj === null) {
+          return null;
+        }
+        if (obj === doc) {
+          return DOCUMENT_PREFIX;
+        }
+        if (isArray(obj)) {
+          return obj.map(mustGetObjId);
+        }
+        if (Object.getPrototypeOf(obj) === Object.prototype) {
+          const output: Record<string, any> = {};
+          Object.entries(obj).forEach(([key, value]) => {
+            output[key] = mustGetObjId(value);
+          });
+          return output;
+        }
+        break;
+      case 'string':
+      case 'number':
+      case 'boolean':
+        return obj;
     }
-    if (isObject(obj)) {
-      if (isArray(obj)) {
-        return obj.map(serialize);
-      }
-      const output: Record<string, any> = {};
-      Object.entries(obj).forEach(([key, value]) => {
-        output[key] = serialize(value);
-      });
-      return output;
-    }
-    return obj;
+    throw qError(QError_verifySerializable, obj);
   });
 
   const listeners: SnapshotListener[] = [];
@@ -377,7 +391,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
   // Write back to the dom
   elements.forEach((node) => {
     const ctx = tryGetContext(node);
-    assertDefined(ctx, `pause: missing context for dom node`);
+    assertDefined(ctx, `pause: missing context for dom node`, node);
 
     const ref = ctx.$refMap$;
     const props = ctx.$props$;
@@ -390,7 +404,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
 
     let add = false;
     if (ref.$array$.length > 0) {
-      const value = ref.$array$.map((obj) => mustGetObjId(obj)).join(' ');
+      const value = ref.$array$.map(mustGetObjId).join(' ');
       if (value) {
         metaValue.r = value;
         add = true;
@@ -402,7 +416,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
       if (renderQrl) {
         objs.push(renderQrl);
       }
-      const value = objs.map((obj) => mustGetObjId(obj)).join(' ');
+      const value = objs.map(mustGetObjId).join(' ');
       if (value) {
         metaValue.h = value;
         add = true;
@@ -410,10 +424,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     }
 
     if (watches.length > 0) {
-      const value = watches
-        .map((watch) => getObjId(watch))
-        .filter(isNotNullable)
-        .join(' ');
+      const value = watches.map(getObjId).filter(isNotNullable).join(' ');
       if (value) {
         metaValue.w = value;
         add = true;
@@ -421,7 +432,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     }
 
     if (elementCaptured && seq.length > 0) {
-      const value = seq.map((obj) => mustGetObjId(obj)).join(' ');
+      const value = seq.map(mustGetObjId).join(' ');
       if (value) {
         metaValue.s = value;
         add = true;
@@ -441,8 +452,8 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     }
 
     if (add) {
-      const elementID = getElementID(node)!;
-      assertDefined(elementID, `pause: can not generate ID for dom node`);
+      const elementID = getElementID(node);
+      assertDefined(elementID, `pause: can not generate ID for dom node`, node);
       meta[elementID] = metaValue;
     }
 
@@ -505,6 +516,9 @@ export const getQwikJSON = (parentElm: Element): HTMLScriptElement | undefined =
 
 export const getNodesInScope = (parent: Element, predicate: (el: Element) => boolean) => {
   const nodes: Element[] = [];
+  if (predicate(parent)) {
+    nodes.push(parent);
+  }
   walkNodes(nodes, parent, predicate);
   return nodes;
 };
@@ -623,11 +637,11 @@ const getObjectImpl = (
   containerState: ContainerState
 ) => {
   if (id.startsWith(ELEMENT_ID_PREFIX)) {
-    assertTrue(elements.has(id), `missing element for id: ${id}`);
+    assertTrue(elements.has(id), `missing element for id:`, id);
     return elements.get(id);
   }
   const index = strToInt(id);
-  assertTrue(objs.length > index, 'resume: index is out of bounds');
+  assertTrue(objs.length > index, 'resume: index is out of bounds', id);
   let obj = objs[index];
   for (let i = id.length - 1; i >= 0; i--) {
     const code = id[i];
@@ -638,23 +652,6 @@ const getObjectImpl = (
     obj = transform(obj, containerState);
   }
   return obj;
-};
-
-const normalizeObj = (obj: any, doc: Document) => {
-  if (obj === doc) {
-    return DOCUMENT_PREFIX;
-  }
-  if (obj === undefined || !shouldSerialize(obj)) {
-    return UNDEFINED_PREFIX;
-  }
-  return getProxyTarget(obj) ?? obj;
-};
-
-const collectValue = async (obj: any, collector: Collector) => {
-  const handled = await collectQObjects(obj, collector);
-  if (!handled) {
-    collector.$objSet$.add(normalizeObj(obj, collector.$doc$));
-  }
 };
 
 const collectProps = async (el: Element, props: any, collector: Collector) => {
@@ -669,7 +666,7 @@ const collectProps = async (el: Element, props: any, collector: Collector) => {
 
 export interface Collector {
   $seen$: Set<any>;
-  $objSet$: Set<any>;
+  $objMap$: Map<any, any>;
   $elements$: Element[];
   $watches$: SubscriberDescriptor[];
   $containerState$: ContainerState;
@@ -679,7 +676,7 @@ export interface Collector {
 const createCollector = (doc: Document, containerState: ContainerState): Collector => {
   return {
     $seen$: new Set(),
-    $objSet$: new Set(),
+    $objMap$: new Map(),
     $elements$: [],
     $watches$: [],
     $containerState$: containerState,
@@ -687,24 +684,10 @@ const createCollector = (doc: Document, containerState: ContainerState): Collect
   };
 };
 
-const collectQrl = async (obj: QRLInternal, collector: Collector) => {
-  if (collector.$seen$.has(obj)) {
-    return true;
-  }
-  collector.$seen$.add(obj);
-  collector.$objSet$.add(normalizeObj(obj, collector.$doc$));
-  if (obj.$captureRef$) {
-    for (const item of obj.$captureRef$) {
-      await collectValue(item, collector);
-    }
-  }
-};
-
 const collectElement = async (el: Element, collector: Collector) => {
-  if (collector.$seen$.has(el)) {
+  if (collector.$elements$.includes(el)) {
     return;
   }
-  collector.$seen$.add(el);
   const ctx = tryGetContext(el);
   if (ctx) {
     collector.$elements$.push(el);
@@ -765,66 +748,85 @@ const resolvePromise = (promise: Promise<any>) => {
 };
 
 const getPromiseValue = (promise: Promise<any>) => {
-  assertTrue(PROMISE_VALUE in promise, 'pause: promise was not resolved previously');
+  assertTrue(PROMISE_VALUE in promise, 'pause: promise was not resolved previously', promise);
   return (promise as any)[PROMISE_VALUE];
 };
 
-const collectQObjects = async (input: any, collector: Collector) => {
-  let obj = input;
+const collectValue = async (obj: any, collector: Collector) => {
+  const input = obj;
+  if (collector.$seen$.has(obj)) {
+    return;
+  }
+  collector.$seen$.add(obj);
+
+  if (!shouldSerialize(obj) || obj === undefined) {
+    collector.$objMap$.set(obj, undefined);
+    return;
+  }
+
   if (obj != null) {
+    // Handle QRL
     if (isQrl(obj)) {
-      await collectQrl(obj, collector);
-      return true;
+      collector.$objMap$.set(obj, obj);
+      if (obj.$captureRef$) {
+        for (const item of obj.$captureRef$) {
+          await collectValue(item, collector);
+        }
+      }
+      return;
     }
+
+    // Handle Objets
     if (typeof obj === 'object') {
+      // Handle promises
       if (isPromise(obj)) {
+        const resolved = await resolvePromise(obj);
+        await collectValue(resolved, collector);
+        return;
+      }
+
+      const target = getProxyTarget(obj);
+
+      // Handle dom nodes
+      if (!target && isNode(obj)) {
+        if (obj.nodeType === 9) {
+          assertTrue(obj === collector.$doc$, 'Document reference is not from the same page', obj);
+          collector.$objMap$.set(obj, DOCUMENT_PREFIX);
+        } else if (obj.nodeType !== 1) {
+          throw qError(QError_verifySerializable, obj);
+        }
+        return;
+      }
+
+      // If proxy collect subscriptions
+      if (target) {
+        const subs = collector.$containerState$.$subsManager$.$tryGetLocal$(target)?.$subs$;
+        if (subs) {
+          await collectSubscriptions(subs, collector);
+        }
+        obj = target;
         if (collector.$seen$.has(obj)) {
-          return true;
+          return;
         }
         collector.$seen$.add(obj);
-        obj = await resolvePromise(obj);
-        await collectValue(obj, collector);
-        return true;
       }
-      const target = getProxyTarget(obj);
-      if (!target && isNode(obj)) {
-        if (obj.nodeType === 1) {
-          return true;
-        }
-        return false;
-      }
-      const subs = collector.$containerState$.$subsManager$.$tryGetLocal$(target)?.$subs$;
-      if (subs) {
-        await collectSubscriptions(subs, collector);
-      }
-      obj = normalizeObj(obj, collector.$doc$);
-    }
-    if (typeof obj === 'object') {
-      if (collector.$seen$.has(obj)) {
-        return true;
-      }
-      collector.$seen$.add(obj);
-      collector.$objSet$.add(obj);
 
+      collector.$objMap$.set(obj, obj);
       if (isArray(obj)) {
         for (let i = 0; i < obj.length; i++) {
-          await collectQObjects(input[i], collector);
+          await collectValue(input[i], collector);
         }
       } else {
         for (const key in obj) {
           if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            await collectQObjects(input[key], collector);
+            await collectValue(input[key], collector);
           }
         }
       }
-      return true;
-    }
-    if (isString(obj)) {
-      collector.$objSet$.add(obj);
-      return true;
+      return;
     }
   }
-  return false;
+  collector.$objMap$.set(obj, obj);
 };
 
 export const isContainer = (el: Element) => {

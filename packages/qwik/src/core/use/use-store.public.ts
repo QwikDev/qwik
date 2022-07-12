@@ -1,7 +1,8 @@
-import { createProxy, QObjectRecursive } from '../object/q-object';
+import { createProxy, QObjectRecursive, verifySerializable } from '../object/q-object';
 import { RenderInvokeContext, useInvokeContext } from './use-core';
 import { getContext } from '../props/props';
 import { isFunction } from '../util/types';
+import { qDev } from '../util/qdev';
 
 export interface UseStoreOptions {
   recursive?: boolean;
@@ -91,7 +92,7 @@ export const useStore = <STATE extends object>(
  * @alpha
  */
 export interface Ref<T> {
-  current?: T;
+  current: T | undefined;
 }
 
 // <docs markdown="../readme.md#useRef">
@@ -130,7 +131,7 @@ export interface Ref<T> {
  * @public
  */
 // </docs>
-export const useRef = <T = Element>(current?: T): Ref<T> => {
+export const useRef = <T extends Element = Element>(current?: T): Ref<T> => {
   return useStore({ current });
 };
 
@@ -151,6 +152,9 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
   const elementCtx = getContext(hostElement);
   ctx.$seq$++;
   const set = (value: T) => {
+    if (qDev) {
+      verifySerializable(value);
+    }
     elementCtx.$seq$[i] = value;
   };
   return {

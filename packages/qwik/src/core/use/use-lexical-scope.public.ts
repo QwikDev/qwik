@@ -26,11 +26,15 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
 
   if (qrl.$captureRef$ == null) {
     const el = context.$element$;
-    assertDefined(el, 'invoke: element must be defined inside useLexicalScope()');
-    assertDefined(qrl.$capture$, 'invoke: qrl capture must be defined inside useLexicalScope()');
+    assertDefined(el, 'invoke: element must be defined inside useLexicalScope()', context);
+    assertDefined(
+      qrl.$capture$,
+      'invoke: qrl capture must be defined inside useLexicalScope()',
+      qrl
+    );
 
     const container = getContainer(el);
-    assertDefined(container, `invoke: cant find parent q:container of: ${el}`);
+    assertDefined(container, `invoke: cant find parent q:container of`, el);
 
     resumeIfNeeded(container);
     const ctx = getContext(el);
@@ -47,6 +51,6 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
 const qInflate = (ref: string, hostCtx: QContext) => {
   const int = parseInt(ref, 10);
   const obj = hostCtx.$refMap$.$get$(int);
-  assertTrue(hostCtx.$refMap$.$array$.length > int, 'out of bounds infrate access');
+  assertTrue(hostCtx.$refMap$.$array$.length > int, 'out of bounds infrate access', ref);
   return obj;
 };

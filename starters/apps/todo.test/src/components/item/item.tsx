@@ -14,7 +14,9 @@ export interface ItemProps {
 
 export const Item = component$(
   (props: ItemProps) => {
-    const state = useStore({ editing: false });
+    const state = useStore({
+      editing: false,
+    });
     const editInput = useRef<HTMLInputElement>();
     const todos = useContext(TODOS);
 

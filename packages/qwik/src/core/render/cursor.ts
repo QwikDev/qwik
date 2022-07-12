@@ -375,7 +375,7 @@ const addVnodes = (
   const promises = [];
   for (; startIdx <= endIdx; ++startIdx) {
     const ch = vnodes[startIdx];
-    assertDefined(ch, 'render: node must be defined');
+    assertDefined(ch, 'render: node must be defined at index', startIdx, vnodes);
     promises.push(createElm(ctx, ch, isSvg));
   }
   return then(promiseAll(promises), (children) => {
@@ -943,7 +943,9 @@ export const executeContextWithSlots = (ctx: RenderContext) => {
   assertEqual(
     before.length,
     after.length,
-    'render: number of q:slots changed during render context execution'
+    'render: number of q:slots changed during render context execution',
+    before,
+    after
   );
 
   for (let i = 0; i < before.length; i++) {

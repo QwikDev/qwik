@@ -50,10 +50,7 @@ export const tryGetInvokeContext = (): InvokeContext | undefined => {
     if (isArray(context)) {
       const element = context[0];
       const hostElement = getHostElement(element);
-      assertDefined(
-        hostElement,
-        `invoke: can not find hostElement from active element: ${element}`
-      );
+      assertDefined(hostElement, `invoke: can not find hostElement from active element`, element);
       return (document.__q_context__ = newInvokeContext(
         getDocument(element),
         hostElement,
@@ -80,11 +77,11 @@ export const useInvokeContext = (): RenderInvokeContext => {
   if (ctx.$event$ !== RenderEvent) {
     throw qError(QError_useInvokeContext);
   }
-  assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`);
-  assertDefined(ctx.$waitOn$, `invoke: $waitOn$ must be defined`);
-  assertDefined(ctx.$renderCtx$, `invoke: $renderCtx$ must be defined`);
-  assertDefined(ctx.$doc$, `invoke: $doc$ must be defined`);
-  assertDefined(ctx.$subscriber$, `invoke: $subscriber$ must be defined`);
+  assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`, ctx);
+  assertDefined(ctx.$waitOn$, `invoke: $waitOn$ must be defined`, ctx);
+  assertDefined(ctx.$renderCtx$, `invoke: $renderCtx$ must be defined`, ctx);
+  assertDefined(ctx.$doc$, `invoke: $doc$ must be defined`, ctx);
+  assertDefined(ctx.$subscriber$, `invoke: $subscriber$ must be defined`, ctx);
 
   return ctx as any;
 };

@@ -4,6 +4,8 @@ import { fromCamelToKebabCase } from '../util/case';
 import { getContext } from '../props/props';
 import { QCtxAttr } from '../util/markers';
 import { qError, QError_notFoundContext } from '../error/error';
+import { verifySerializable } from '../object/q-object';
+import { qDev } from '../util/qdev';
 
 // <docs markdown="./use-context.docs.md#Context">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -194,6 +196,9 @@ export const useContextProvider = <STATE extends object>(
   let contexts = hostCtx.$contexts$;
   if (!contexts) {
     hostCtx.$contexts$ = contexts = new Map();
+  }
+  if (qDev) {
+    verifySerializable(newValue);
   }
   contexts.set(context.id, newValue);
 

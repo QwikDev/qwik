@@ -13,6 +13,9 @@ export default defineConfig(() => {
           return format === 'es' ? `index.qwik.mjs` : `index.qwik.cjs`;
         },
       },
+      rollupOptions: {
+        external: ['@qwik-city-plan'],
+      },
     },
     resolve: {
       alias: {
@@ -25,19 +28,6 @@ export default defineConfig(() => {
       }),
       qwikVite(),
     ],
-    optimizeDeps: {
-      exclude: [
-        '@builder.io/qwik',
-        '@builder.io/qwik/jsx-runtime',
-        '@builder.io/qwik/jsx-dev-runtime',
-        '@builder.io/qwik/optimizer',
-        '@builder.io/qwik/server',
-        '@builder.io/qwik-city',
-        '@builder.io/qwik-city/middleware/cloudflare-pages',
-        '@builder.io/qwik-city/middleware/express',
-        '@builder.io/qwik-city/vite',
-      ],
-    },
     clearScreen: false,
     server: {
       force: true,

@@ -11,13 +11,7 @@ import {
 } from '@builder.io/qwik';
 import type { HTMLAttributes } from '@builder.io/qwik';
 import { loadRoute, matchRoute } from './routing';
-import type {
-  ContentState,
-  PageModule,
-  QwikCityPlan,
-  QwikCityRenderDocument,
-  RouteLocation,
-} from './types';
+import type { ContentState, PageModule, QwikCityRenderDocument, RouteLocation } from './types';
 import {
   ContentContext,
   ContentMenusContext,
@@ -26,12 +20,13 @@ import {
 } from './constants';
 import { createDocumentHead, resolveHead } from './head';
 import { loadEndpointResponse } from './use-endpoint';
+import cityPlan from '@qwik-city-plan';
 
 /**
  * @public
  */
 export const Html = component$<HtmlProps>(
-  ({ cityPlan }) => {
+  () => {
     const { get, set } = useSequentialScope();
     if (get) {
       return jsx(SkipRerender, {});
@@ -98,6 +93,4 @@ export const Html = component$<HtmlProps>(
   { tagName: 'html' }
 );
 
-export interface HtmlProps extends HTMLAttributes<HTMLHtmlElement> {
-  cityPlan: QwikCityPlan;
-}
+export interface HtmlProps extends HTMLAttributes<HTMLHtmlElement> {}

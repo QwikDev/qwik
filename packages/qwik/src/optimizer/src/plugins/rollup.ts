@@ -1,4 +1,5 @@
 import type { OutputOptions, Plugin as RollupPlugin, RollupError } from 'rollup';
+
 import type {
   Diagnostic,
   EntryStrategy,

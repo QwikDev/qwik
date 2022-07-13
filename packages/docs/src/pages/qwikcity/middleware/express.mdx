@@ -1,0 +1,31 @@
+---
+title: Qwik City - Express Middleware
+---
+
+# Qwik City - Express Middleware
+
+Qwik City express middleware allows you to connect Qwik City to an express server. (This should already be done for you as part of the Qwik starter, but it is included for completeness.) 
+
+
+```typescript
+import express from 'express';
+import cityPlan from '@qwik-city-plan';
+import { qwikCity } from '@builder.io/qwik-city/adaptors/express';
+import { join } from 'path';
+import { render } from './entry.ssr';
+
+
+const app = express();
+
+app.use(
+  qwikCity(render, {
+    ...cityPlan,
+    staticDir: join(__dirname, '..', 'dist'),
+  })
+);
+
+app.listen(3000, () => {
+  /* eslint-disable */
+  console.log(`http://localhost:3000/`);
+});
+```

@@ -1,0 +1,60 @@
+---
+title: Qwik City - Head Title
+---
+
+#  Qwik City - Head Title
+
+HTML places the `<head>` tag right after the start of `<body>`. The `<head>` section is not something that your route component renders directly, yet you still need to control its content. This can be achieved by exporting a `head` property (or function.) from your component.
+
+
+Assume this file layout.
+```
+- src/
+  - routes/
+    - product/
+      - [skuId]/
+        - details.js     # http://server/product/1234/details
+```
+
+If all we need to do is set the title of the page, we can do it in the `head` (and optional `meta`, `links` and `styles`) export of the component like so:
+```typescript
+// File: src/routes/product/[skuId]/details.js
+import {component$} from '@builder.io/qwik';
+import {DocumentHead} from '@builder.io/qwik-city';
+
+export default component$(() => {...});
+
+export const head: DocumentHead = {
+  title: 'Product Details',
+  meta: [...],
+  links: [...],
+  styles: [...],
+};
+```
+
+The above case works for simple situations where we just want to set the title of the page to a static value. In a case where we need to set the title dynamically, for example, to include the product title, we can use a function:
+
+```typescript
+// File: src/routes/product/[skuId]/details.js
+import {component$} from '@builder.io/qwik';
+import {DocumentHead} from '@builder.io/qwik-city';
+
+type EndpointData = ProductData | null;
+
+interface ProductData {
+  skuId: string;
+  price: number;
+  description: string;
+}
+export const onGet: EndpointHandler<EndpointData> = async ({ params }) => { ... };
+
+export default component$(() => {...});
+
+export const head: DocumentHead = (props: DocumentHeadProps<EndpointData>): ResolvedDocumentHead => {
+  return {
+    title: `Product - ` + props.data.description
+  };
+};
+```
+
+The second case is a bit more complicated but it showcases how we can set the title of the page with the value that is retrieved from the `doGet` endpoint. (See [endpoint documentation](/qwikcity/endpoint/data) for retrieving data.) The Qwik City invokes `doGet` to retrieve the data for the route and then passes the data to the `head` function allowing it to create a custom title.

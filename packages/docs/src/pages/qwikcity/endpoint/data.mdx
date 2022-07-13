@@ -1,0 +1,94 @@
+---
+title: Qwik City - Retrieving Data
+---
+
+# Qwik City - Retrieving Data
+
+Let's implement `http://server/product/abc123/details` so that we can retrieve the details of a product.
+
+## File layout
+
+The first step is to layout out the files so that we can accept `http://server/product/abc123/details`.
+
+```
+- src/
+  - routes/
+    - product/
+      - [skuId]/
+        - details.js     # http://server/product/1234/details
+```
+
+## Implement Endpoint
+
+An endpoint is a `doGet` function that retrieves data (typically from a database, or other stores.) The retrieved data can be returned directly as JSON or used as an input to the component to render HTML. The `doGet` function receives the `params` to extract the parameters used to do data lookup.
+
+The `doGet` function returns an object that contains:
+- `status`: HTTP status code
+- `headers`: HTTP headers to control caches etc...
+- `body`: The body of the response to be returned as JSON or to be used as input to the HTML.
+
+```typescript
+// File: src/routes/product/[skuId]/details.js
+import { EndpointHandler } from '@builder.io/qwik-city';
+
+type EndpointData = ProductData | null;
+
+interface ProductData {
+  skuId: string;
+  price: number;
+  description: string;
+}
+export const onGet: EndpointHandler<EndpointData> = async ({ params }) => {
+  // put your DB access here, wer are hard coding response for simplicity of this tutorial.
+  return {
+    status: 200,
+    body: {
+      skuId: params.skuId,
+      price: 123.45,
+      description: `Description for ${params.skuId}`,
+    },
+    headers: {
+      'Cache-Control': 'no-cache, no-store',
+    },
+  };
+};
+```
+
+## Using Endpoint in Component
+
+An endpoint `doGet` function retrieves data and makes it available as JSON. The next step is to convert the JSON to HTML. This is done with a standard component as described [Components](/qwikcity/content/component). What is new is `useEndpoint()` to retrieve the data from the `doGet` function.
+  
+```typescript
+import { Resource, component$, Host, useStore } from '@builder.io/qwik';
+import { EndpointHandler } from '@builder.io/qwik-city';
+
+type EndpointData = ProductData | null;
+interface ProductData { ... }
+export const onGet: EndpointHandler<EndpointData> = async ({ params }) => { ... };
+
+export default component$(() => {
+  const resource = useEndpoint<EndpointData>();
+  return (
+    <Resource 
+      resource={resource}
+      onPending={() => <div>Loading...</div>}
+      onError={() => <div>Error</div>}
+      onResolved={() => (
+        <>
+          <h1>Product: {product.productId}</h1>
+          <p>Price: {product.price}</p>
+          <p>{product.description}</p>
+        </>
+      )}
+    />
+  );
+});
+```
+
+1. Notice that the data endpoint and the component are defined in the same file. The data endpoint is serviced by the `doGet` function and the component is by the modules default export.
+2. The component uses `useEndpoint()` function to retrieve the data. The `useEndpoint()` function invokes `doGet` function directly on the server but using `fetch()` on the client. Your component does not need to think about server/client differences when using data. The `useEndpoint()` function returns an object of type `Resource`. `Resource`s are promise-like objects that can be serialized by Qwik. 
+3. The `doGet` function is invoked before the component. This allows the `doGet` to return 404 or redirect in case the data is not available. 
+4. Notice the use of `<Resource>` JSX element. The purpose of `Resource` is to allow the client to render different states of the `useEndpoint()` resource. 
+5. On the server the `<Resource>` element will pause rendering until the `Resource` is resolved or rejected. This is because we don't want the server to render `loading...`. (The server needs to know when the component is ready for serialization into HTML.)
+
+All of the above is done to abstract the data access from the component in a way that results in correct behavior on both the server and the client.

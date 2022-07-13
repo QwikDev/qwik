@@ -1,0 +1,69 @@
+---
+title: Qwik City - Non-200 Response
+---
+
+# Qwik City - Non-200 Response
+
+At times it is necessary to respond with HTTP status codes other than 200. In such cases, data endpoint is the place to determine what status code should be returned.
+
+Assume this file layout.
+```
+- src/
+  - routes/
+    - product/
+      - [skuId]/
+        - details.js     # http://server/product/1234/details
+```
+
+Let's say that a user does a request to an invalid `skuId` such as `http://server/product/999/details`. In this case, we would like to return a 404 HTTP status code and render a 404 page. The place where we determine if the request is valid or not is the data endpoint by looking into the database. Even if the response is non-200, the component still gets a chance to render a page (Except in the redirect case.)
+
+```typescript
+// File: src/routes/product/[skuId]/details.js
+import {component$} from '@builder.io/qwik';
+import {DocumentHead} from '@builder.io/qwik-city';
+
+type EndpointData = ProductData | null;
+
+interface ProductData {
+  skuId: string;
+  price: number;
+  description: string;
+}
+export const onGet: EndpointHandler<EndpointData> = async ({ params }) => {
+  const product = await loadProductFromDatabase(params.skuId);
+
+  if (!product) {
+    // Product data not found
+    // but the data is still given to the renderer to decide what to do
+    return {
+      status: 404,
+      body: null,
+    };
+  } else {
+    ...
+  }
+};
+
+export default component$(() => {
+  const resource = useEndpoint<EndpointData>();
+  // Early return for 404
+  if (resource.state=='resolved' && !resource.resolved) {
+    return <div>404: Product not found!!!</div>
+  }
+  // Normal rendering
+  return (
+    <Resource 
+      resource={resource}
+      onPending={() => <div>Loading...</div>}
+      onError={() => <div>Error</div>}
+      onResolved={() => (
+        <>
+          <h1>Product: {product.productId}</h1>
+          <p>Price: {product.price}</p>
+          <p>{product.description}</p>
+        </>
+      )}
+    />
+  );
+});
+```

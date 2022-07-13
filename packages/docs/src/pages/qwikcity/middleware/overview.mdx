@@ -1,0 +1,14 @@
+---
+title: Qwik City - Middleware
+---
+
+# Qwik City - Middleware
+
+Qwik City middleware is a glue code that connects server rendering framework (such as express, cloudflare-pages, etc.) with the Qwik City framework. Qwik City provides a generic `requestHandler()` function that can be used to handle requests. This function can be further wrapped to provide specific middleware for specific server frameworks. 
+
+Qwik City comes pre-bundle with:
+- generic [`requestHandler()`](https://github.com/BuilderIO/qwik/blob/main/packages/qwik-city/middleware/request-handler/) function.
+- [`express`](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/express) middleware
+- [`cloudflare-pages`](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages) middleware
+
+In the future, we may add other middleware glue-code. However, even if the glue code is not provided it should be relatively easy to write your own glue code based on the `requestHandler()` function.

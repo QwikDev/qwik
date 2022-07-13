@@ -21,9 +21,9 @@ const Tutorial = component$(() => {
   useScopedStyles$(styles);
   useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
 
-  const loc = useLocation();
+  const location = useLocation();
   const store = useStore<TutorialStore>(() => {
-    const p = loc.pathname.split('/');
+    const p = location.pathname.split('/');
     const appId = `${p[2]}/${p[3]}`;
     const t = getTutorial(appId)!;
 

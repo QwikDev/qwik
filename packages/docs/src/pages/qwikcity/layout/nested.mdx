@@ -1,0 +1,73 @@
+---
+title: Qwik City - Nested Layout
+---
+
+# Qwik City - Nested Layout
+
+At times it is desirable to nest layouts into each other.
+
+The developer could extract all of these into common components, but that is error-prone and repetitive. Instead, we can use layouts to automatically reuse common parts.
+
+
+We can define the above with these files.
+```
+- src/
+  - routes/
+    - _layout.tsx            # Parent layout
+    - home/
+      - _layout.tsx          # Child layout
+      - overview.tsx         # http://server/home/overview
+```
+
+In the above example, there are two layouts that apply themselves to the output. 
+1. `src/routes/_layout.tsx`
+2. `src/routes/home/_layout.tsx`
+
+In the above case, the layouts will nest each other.
+
+```
++--------------------------------------------------+
+|       src/routes/_layout.tsx                     |
+|  +--------------------------------------------+  |
+|  |    src/routes/home/_layout.tsx             |  | 
+|  |  +--------------------------------------+  |  |
+|  |  | src/routes/home/overview.tsx         |  |  |
+|  |  |                                      |  |  |
+|  |  +--------------------------------------+  |  |
+|  |                                            |  |
+|  +--------------------------------------------+  |
+|                                                  |
++--------------------------------------------------+
+```
+
+```typescript
+// File: src/routes/_layout.tsx
+export default component$(() => {
+  return (
+    <>
+      src/routes/_layout.tsx
+      <Slot />{/* <== Child layout/route inserted here */}
+    </>
+  );
+});
+```
+
+```typescript
+// File: src/routes/home/_layout.tsx
+export default component$(() => {
+  return (
+    <>
+      src/routes/home/_layout.tsx
+      <Slot />{/* <== Child layout/route inserted here */}
+    </>
+  );
+});
+```
+
+```typescript
+// File: src/routes/home/overview.tsx
+export default component$(() => {
+  return <>src/routes/home/overview.tsx</>;
+});
+```
+

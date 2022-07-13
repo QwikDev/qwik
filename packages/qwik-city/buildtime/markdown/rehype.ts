@@ -67,7 +67,7 @@ function exportContentHead(ctx: BuildContext, mdast: Root, sourcePath: string) {
       const parts = attr.split(':');
       if (parts.length > 1) {
         const attrName = parts.shift()!;
-        const attrValue = parts.join(':');
+        const attrValue = parts.join(':').trim();
 
         if (attrName === 'title') {
           head.title = attrValue;

@@ -5,6 +5,7 @@ export default component$(() => {
   return (
     <Host>
       <h1>Sign In</h1>
+
       <form action="/api/on-sign-in" method="post">
         <label>
           <span>Username</span>
@@ -14,7 +15,7 @@ export default component$(() => {
           <span>Password</span>
           <input name="password" type="password" />
         </label>
-        <button>Log In</button>
+        <button data-test-sign-in>Sign In</button>
       </form>
     </Host>
   );

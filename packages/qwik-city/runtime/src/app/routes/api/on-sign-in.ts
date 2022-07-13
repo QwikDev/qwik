@@ -17,11 +17,12 @@ export const STATUS: Record<AuthResult, { code: number; msg: string }> = {
   },
 };
 
-export const post: EndpointHandler = async (ev) => {
-  const cookie = parseCookie(ev.request.headers.get('cookie'));
-  const formdata = await ev.request.formData();
+export const onPost: EndpointHandler = async ({ request }) => {
+  const cookie = parseCookie(request.headers.get('cookie'));
+  const formdata = await request.formData();
   const result = handleAuth(formdata, cookie);
   const status = STATUS[result];
+
   return {
     status: status.code,
     headers:

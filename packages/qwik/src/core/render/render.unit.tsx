@@ -14,6 +14,7 @@ import { notifyChange } from './notify-render';
 import { render } from './render.public';
 import { useScopedStyles$ } from '../use/use-styles';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { equal, ok, match } from 'uvu/assert';
 import { suite } from 'uvu';
 import { Host } from './jsx/host.public';
@@ -33,6 +34,9 @@ renderSuite('should render basic content', async () => {
 =======
 import type { JSXTagName } from './jsx/host.public';
 >>>>>>> Unit Tests
+=======
+import type { JSXTagName } from './jsx/types/jsx-qwik-attributes';
+>>>>>>> ❤️
 
 renderSuite('should only render string/number', async () => {
   const fixture = new ElementFixture();

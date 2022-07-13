@@ -72,6 +72,16 @@ yarn build
 The build output will be written to `packages/qwik/dist`, which will be the directory that is published
 to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
 
+## Committing using "Commitizen":
+
+Instead of using `git commit` please use the following command:
+
+```shell
+yarn commit
+```
+
+You'll be asked guiding questions which will eventually create a descriptive commit message and necessary to generate meaningful release notes / CHANGELOG automatically.
+
 ## Releasing `@builder.io/qwik`
 
 1. Run `yarn release.prepare`, which will test, lint and build.

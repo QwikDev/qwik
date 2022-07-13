@@ -464,7 +464,7 @@ __metadata:
     vfile: 5.3.4
     vite: 2.9.14
   peerDependencies:
-    "@builder.io/qwik": "workspace:*"
+    "@builder.io/qwik": ">=0.0.34"
   languageName: unknown
   linkType: soft
 

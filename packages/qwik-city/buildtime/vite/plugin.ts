@@ -32,6 +32,7 @@ import {
   ScriptTarget,
   SyntaxKind,
 } from 'typescript';
+import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
 
 /**
  * @alpha
@@ -108,7 +109,9 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
                   }
                 }
 
-                const endpointModule = await server.ssrLoadModule(route.filePath);
+                const endpointModule = await server.ssrLoadModule(route.filePath, {
+                  fixStacktrace: true,
+                });
 
                 const endpointResponse = await getEndpointResponse(
                   request,
@@ -151,12 +154,10 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
                   }
                 }
 
-                try {
-                  const userContext = getQwikCityUserContext(endpointResponse);
-                  res.setHeader('X-Qwik-Dev-User-Context', JSON.stringify(userContext));
-                } catch (e) {
-                  console.error(e);
-                }
+                (res as QwikViteDevResponse)._qwikUserCtx = {
+                  ...(res as QwikViteDevResponse)._qwikUserCtx,
+                  ...getQwikCityUserContext(url, params, method, endpointResponse),
+                };
               }
             }
           }

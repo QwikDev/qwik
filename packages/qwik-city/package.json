@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.0.16",
+  "version": "0.0.18",
   "description": "Static Site Generator for Qwik",
   "main": "./lib/index.qwik.cjs",
   "module": "./lib/index.qwik.mjs",
@@ -46,7 +46,7 @@
     "vfile": "5.3.4"
   },
   "peerDependencies": {
-    "@builder.io/qwik": "workspace:*"
+    "@builder.io/qwik": ">=0.0.34"
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",

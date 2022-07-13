@@ -1,6 +1,6 @@
 import { createMdxTransformer, MdxTransform } from '../markdown/mdx';
 import { basename, extname, join, resolve } from 'path';
-import type { Plugin, UserConfig } from 'vite';
+import type { Plugin } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-runtime';
 import type { BuildContext } from '../types';
 import { createBuildContext, resetBuildContext } from '../utils/context';
@@ -48,9 +48,12 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     enforce: 'pre',
 
     config() {
-      const updatedViteConfig: UserConfig = {
+      const updatedViteConfig: any = {
         optimizeDeps: {
-          exclude: [QWIK_CITY_PLAN_ID],
+          exclude: ['@builder.io/qwik-city', QWIK_CITY],
+        },
+        ssr: {
+          noExternal: [QWIK_CITY_PLAN_ID, QWIK_CITY],
         },
       };
       return updatedViteConfig;
@@ -260,5 +263,6 @@ function removeServerFns(code: string, id: string) {
 }
 
 const QWIK_CITY_PLAN_ID = '@qwik-city-plan';
+const QWIK_CITY = '@builder.io/qwik-city';
 
 const SERVER_FNS = ['onGet', 'onPost', 'onRequest'];

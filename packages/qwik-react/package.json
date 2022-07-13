@@ -31,7 +31,7 @@
     "vite": "2.9.14"
   },
   "peerDependencies": {
-    "@builder.io/qwik": ">=0.0.34",
+    "@builder.io/qwik": ">=0.0.35",
     "@emotion/react": ">=11.9.0",
     "@emotion/server": ">=11.4.0",
     "@emotion/styled": ">=11.9.3",
@@ -45,8 +45,8 @@
   },
   "exports": {
     ".": {
-      "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs"
+      "import": "./lib/index.es.qwik.js",
+      "require": "./lib/index.cjs.qwik.js"
     }
   },
   "files": [
@@ -62,8 +62,8 @@
   "bugs": {
     "url": "https://github.com/BuilderIO/qwik/issues"
   },
-  "main": "./lib/index.qwik.cjs",
-  "module": "./lib/index.qwik.mjs",
-  "qwik": "./lib/index.qwik.mjs",
+  "main": "./lib/index.cjs.qwik.js",
+  "module": "./lib/index.es.qwik.js",
+  "qwik": "./lib/index.es.qwik.js",
   "types": "./lib/types/index.d.ts"
 }

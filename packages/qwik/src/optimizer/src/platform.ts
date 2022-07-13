@@ -102,7 +102,7 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
           filePaths.map(async (filePath) => {
             const input: TransformModuleInput = {
               code: await fs.promises.readFile(filePath, 'utf8'),
-              path: sys.path.relative(rootDir, filePath),
+              path: filePath,
             };
             return input;
           })
@@ -263,6 +263,7 @@ const extensions: { [ext: string]: boolean } = {
   '.ts': true,
   '.tsx': true,
   '.jsx': true,
+  '.mjs': true,
 };
 
 declare const globalThis: { IS_CJS: boolean; IS_ESM: boolean };

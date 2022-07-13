@@ -64,6 +64,9 @@ const transformFsAsync = async (
       const rootFiles = await getInputFiles(root);
       input.push(...rootFiles);
     }
+    input.forEach((file) => {
+      file.path = sys.path.relative(fsOpts.srcDir, file.path);
+    });
     const modulesOpts: TransformModulesOptions = {
       srcDir: fsOpts.srcDir,
       entryStrategy: fsOpts.entryStrategy,

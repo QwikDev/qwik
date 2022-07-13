@@ -19,6 +19,7 @@ export const Menu = component$(
                   {item.items?.map((item) => (
                     <li>
                       <a
+                        data-test-menu-link={item.href}
                         href={item.href}
                         class={{
                           'is-active': loc.pathname === item.href,

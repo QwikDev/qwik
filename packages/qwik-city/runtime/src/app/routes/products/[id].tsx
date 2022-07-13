@@ -51,16 +51,22 @@ export default component$(() => {
 
       <ul>
         <li>
-          <a href="/products/shirt">T-Shirt (Redirect to /products/tshirt)</a>
-        </li>
-        <li>
-          <a href="/products/hoodie">Hoodie (404 Not Found)</a>
+          <a href="/products/jacket" data-test-link="products-jacket">
+            Jacket
+          </a>
         </li>
         <li>
           <a href="/products/hat">Hat</a>
         </li>
         <li>
-          <a href="/products/jacket">Jacket</a>
+          <a href="/products/shirt" data-test-link="products-shirt">
+            T-Shirt (Redirect to /products/tshirt)
+          </a>
+        </li>
+        <li>
+          <a href="/products/hoodie" data-test-link="products-hoodie">
+            Hoodie (404 Not Found)
+          </a>
         </li>
       </ul>
     </Host>

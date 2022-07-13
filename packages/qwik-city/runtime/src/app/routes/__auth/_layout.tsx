@@ -5,7 +5,7 @@ export default component$(() => {
   useScopedStyles$(styles);
 
   return (
-    <Host class="auth">
+    <Host class="auth" data-test-layout="auth">
       <section class="auth-content">
         <Slot />
       </section>

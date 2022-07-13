@@ -183,6 +183,11 @@ interface CSSProperties {
 /**
  * @public
  */
+type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
+
+/**
+ * @public
+ */
 export interface ComponentBaseProps {
   class?: string | { [className: string]: boolean };
   className?: string | undefined;
@@ -190,6 +195,7 @@ export interface ComponentBaseProps {
   key?: string | number;
   id?: string | undefined;
   ref?: Ref<Element>;
+  as?: JSXTagName //keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
 
   'q:slot'?: string;
 
@@ -209,7 +215,7 @@ export interface ComponentBaseProps {
 
   children?: JSXChildren;
 }
-export interface QwikAttributes extends QwikProps, QwikEvents {}
+export interface QwikAttributes extends QwikProps, QwikEvents { }
 
 export type JSXChildren =
   | string

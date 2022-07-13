@@ -23,6 +23,11 @@ export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer 
   : never;
 
 /**
+ * @public
+ */
+type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
+
+/**
  * Declarative component options.
  *
  * @public
@@ -42,7 +47,7 @@ export interface ComponentOptions {
    * of host element requires that the parent component needs to know the tag name of the child
    * component synchronously.
    */
-  tagName?: string;
+  tagName?: JSXTagName
 }
 
 /**
@@ -80,7 +85,7 @@ export type MutableProps<PROPS extends {}> = {
  */
 export type EventHandler<T> = QRL<(value: T) => any>;
 
-const ELEMENTS_SKIP_KEY = ['html', 'body', 'head'];
+const ELEMENTS_SKIP_KEY: (keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>)[] = ['html', 'body', 'head'];
 
 // <docs markdown="../readme.md#component">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -146,7 +151,7 @@ export const componentQrl = <PROPS extends {}>(
   // Return a QComponent Factory function.
   return function QSimpleComponent(props, key): JSXNode<PROPS> {
     const finalKey = skipKey ? undefined : onRenderQrl.getHash() + ':' + (key ? key : '');
-    return jsx(tagName, { [OnRenderProp]: onRenderQrl, ...props }, finalKey) as any;
+    return jsx((props.as || tagName) as string, { [OnRenderProp]: onRenderQrl, ...props }, finalKey) as any;
   };
 };
 

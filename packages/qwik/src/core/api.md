@@ -169,13 +169,7 @@ export const handleWatch: () => void;
 // Warning: (ae-forgotten-export) The symbol "HostAttributes" needs to be exported by the entry point index.d.ts
 //
 // @public
-<<<<<<< HEAD
 export const Host: FunctionComponent<HostAttributes>;
-=======
-export const Host: FunctionComponent<HTMLAttributes<HTMLElement> & {
-    tagName?: JSXTagName_3;
-}>;
->>>>>>> Expose tagName on Host component and host:tagName
 
 // @public (undocumented)
 export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {

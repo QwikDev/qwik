@@ -13,6 +13,7 @@ import { Slot } from './jsx/slot.public';
 import { notifyChange } from './notify-render';
 import { render } from './render.public';
 import { useScopedStyles$ } from '../use/use-styles';
+<<<<<<< HEAD
 import { equal, ok, match } from 'uvu/assert';
 import { suite } from 'uvu';
 import { Host } from './jsx/host.public';
@@ -29,6 +30,9 @@ renderSuite('should render basic content', async () => {
   await pauseContainer(fixture.host);
   equal(fixture.host.getAttribute('q:container'), 'paused');
 });
+=======
+import type { JSXTagName } from './jsx/host.public';
+>>>>>>> Unit Tests
 
 renderSuite('should only render string/number', async () => {
   const fixture = new ElementFixture();
@@ -54,6 +58,7 @@ renderSuite('should only render string/number', async () => {
   );
 });
 
+<<<<<<< HEAD
 renderSuite('should serialize events correctly', async () => {
   const fixture = new ElementFixture();
   await render(
@@ -349,6 +354,125 @@ renderSuite('should project un-named slot component', async () => {
     </Project>
   );
 });
+=======
+  describe('component', () => {
+    it('should render a component', async () => {
+      await render(fixture.host, <HelloWorld name="World" preventdefault:click />);
+      await expectRendered(
+        <hello-world preventdefault:click>
+          <span>
+            {'Hello'} {'World'}
+          </span>
+        </hello-world>
+      );
+    });
+
+    it('should render component external props', async () => {
+      await render(
+        fixture.host,
+        <RenderProps
+          thing="World"
+          class="foo"
+          id="123"
+          q:slot="start"
+          aria-hidden="true"
+          data-value="hello world"
+          key={'special'}
+          host:title="Custom title"
+          host:onClick$={() => {}}
+          host:on-ClicK$={() => {}}
+          document:onLoad$={() => {}}
+          window:onScroll$={() => {}}
+          preventDefault:click
+        />
+      );
+      await expectRendered(
+        <render-props
+          q:host=""
+          q:slot="start"
+          q:key="s1:special"
+          class="foo"
+          id="123"
+          aria-hidden="true"
+          data-value="hello world"
+          title="Custom title"
+          on:click="/runtimeQRL#*"
+          on:-clic-k="/runtimeQRL#*"
+          on-window:load="/runtimeQRL#*"
+          on-window:scroll="/runtimeQRL#*"
+          preventdefault:click
+        >
+          <span>{'{"thing":"World"}'}</span>
+        </render-props>
+      );
+    });
+
+    it('should render a blank component', async () => {
+      await render(fixture.host, <InnerHTMLComponent />);
+      await expectRendered(
+        <div>
+          <div>
+            <span>WORKS</span>
+          </div>
+        </div>
+      );
+      notifyChange(getFirstNode(fixture.host));
+      await getTestPlatform(fixture.document).flush();
+      await expectRendered(
+        <div>
+          <div>
+            <span>WORKS</span>
+          </div>
+        </div>
+      );
+    });
+
+    it('should render a div then a component', async () => {
+      await render(fixture.host, <ToggleRootComponent />);
+      await expectRendered(
+        <div q:host="" aria-hidden="false">
+          <div class="normal">Normal div</div>
+          <button>toggle</button>
+        </div>
+      );
+      await trigger(fixture.host, 'button', 'click');
+      await expectRendered(
+        <div q:host="" aria-hidden="true">
+          <div q:host="">
+            <div>this is ToggleChild</div>
+          </div>
+          <button>toggle</button>
+        </div>
+      );
+    });
+
+    it('should render host:tagName then a component', async () => {
+      await render(fixture.host, <HelloWorld host:tagName={"article"}/>);
+      expectFirstTag("article");
+    });
+
+    describe('handlers', () => {
+      it('should process clicks', async () => {
+        await render(fixture.host, <Counter step={5} />);
+        await expectRendered(
+          <div>
+            <button>-</button>
+            <span>0</span>
+            <button>+</button>
+          </div>
+        );
+        await trigger(fixture.host, 'button.increment', 'click');
+        await expectRendered(
+          <div>
+            <button>-</button>
+            <span>5</span>
+            <button>+</button>
+          </div>
+        );
+      });
+    });
+  });
+>>>>>>> Unit Tests
 
 renderSuite('should project named slot component', async () => {
   const fixture = new ElementFixture();
@@ -431,6 +555,7 @@ renderSuite('should not destroy projection when <Project> reruns', async () => {
         <q:slot>
           <q:fallback>..default..</q:fallback>
           <span>PROJECTION</span>
+<<<<<<< HEAD
         </q:slot>
       </section>
     </project>
@@ -449,6 +574,69 @@ renderSuite('should not destroy projection when <Project> reruns', async () => {
     </project>
   );
 });
+=======
+        </SimpleProject>
+      );
+      await expectRendered(
+        <project>
+          <section>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+              <span>PROJECTION</span>
+            </q:slot>
+          </section>
+        </project>
+      );
+      notifyChange(getFirstNode(fixture.host));
+      await getTestPlatform(fixture.document).flush();
+      await expectRendered(
+        <project>
+          <section>
+            <q:slot>
+              <q:fallback>..default..</q:fallback>
+              <span>PROJECTION</span>
+            </q:slot>
+          </section>
+        </project>
+      );
+    });
+  });
+  describe('<Host>', () => {
+    it('should render into host component', async () => {
+      await render(
+        fixture.host,
+        <HostFixture
+          hostAttrs={JSON.stringify({
+            id: 'TEST',
+            class: { thing: true },
+            name: 'NAME',
+          })}
+          content="CONTENT"
+        />
+      );
+      await expectRendered(
+        <host-fixture id="TEST" name="NAME" class="thing">
+          CONTENT
+        </host-fixture>
+      );
+    });
+
+    it('should accept and render tagName', async () => {
+      await render(
+        fixture.host,
+        <HostFixture
+          hostAttrs={JSON.stringify({
+            id: 'TEST',
+            class: { thing: true },
+          })}
+          as="h1"
+          content={'CONTENT'}
+        ></HostFixture>
+      );
+      await expectFirstTag('h1');
+    });
+  });
+>>>>>>> Unit Tests
 
 renderSuite('should render into host component', async () => {
   const fixture = new ElementFixture();
@@ -680,6 +868,7 @@ renderSuite('should render foreignObject properly', async () => {
               <div class="is-html">Still outside svg</div>
             </foreignObject>
           </svg>
+<<<<<<< HEAD
           <fegaussianblur class="is-html">bye</fegaussianblur>
         </foreignObject>
         <text class="is-svg">Hello</text>
@@ -688,6 +877,22 @@ renderSuite('should render foreignObject properly', async () => {
       <text class="is-html">end</text>
     </div>
   );
+=======
+          <text class="is-html">end</text>
+        </div>
+      );
+    });
+  });
+
+  async function expectRendered(expected: h.JSX.Element, expectedErrors: string[] = []) {
+    const firstNode = getFirstNode(fixture.host);
+    return await expectDOM(firstNode, expected, expectedErrors);
+  }
+  async function expectFirstTag(expected: string) {
+    const firstNode = getFirstNode(fixture.host);
+    expect(firstNode.tagName === expected);
+  }
+>>>>>>> Unit Tests
 });
 
 async function expectRendered(
@@ -799,8 +1004,12 @@ export const SimpleProject = component$(
 // HostFixture
 //////////////////////////////////////////////////////////////////////////////////////////
 export const HostFixture = component$(
-  (props: { hostAttrs?: string; content?: string }) => {
-    return <Host {...JSON.parse(props.hostAttrs || '{}')}>{props.content}</Host>;
+  (props: { hostAttrs?: string; content?: string; as?: JSXTagName }) => {
+    return (
+      <Host {...JSON.parse(props.hostAttrs || '{}')} tagName={props.as}>
+        {props.content}
+      </Host>
+    );
   },
   {
     tagName: 'host-fixture',

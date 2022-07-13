@@ -24,13 +24,7 @@ export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLEl
  * servers that purpose.
  * @public
  */
-<<<<<<< HEAD
 export const Host: FunctionComponent<HostAttributes> = { __brand__: 'host' } as any;
-=======
-export const Host: FunctionComponent<HTMLAttributes<HTMLElement> & { tagName?: JSXTagName }> = {
-  __brand__: 'host',
-} as any;
->>>>>>> Expose tagName on Host component and host:tagName
 
 /**
  * @public

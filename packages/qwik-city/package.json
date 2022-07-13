@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.0.16",
+  "version": "0.0.18",
   "description": "Static Site Generator for Qwik",
   "main": "./lib/index.qwik.cjs",
   "module": "./lib/index.qwik.mjs",
@@ -36,7 +36,8 @@
     "serve": "node runtime/server/entry.express.js",
     "serve.debug": "node --inspect-brk runtime/server/entry.express.js",
     "test": "yarn test.unit",
-    "test.unit": "uvu -r tsm . \"(unit)\""
+    "test.unit": "node ../../node_modules/.bin/uvu -r tsm . \"(unit)\"",
+    "test.e2e": "node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts"
   },
   "dependencies": {
     "@mdx-js/mdx": "2.1.2",
@@ -49,7 +50,7 @@
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",
-    "@microsoft/api-extractor": "7.28.2",
+    "@microsoft/api-extractor": "7.28.4",
     "@types/github-slugger": "1.3.0",
     "@types/marked": "4.0.3",
     "@types/node": "latest",
@@ -58,7 +59,7 @@
     "github-slugger": "1.4.0",
     "hast-util-heading-rank": "2.1.0",
     "hast-util-to-string": "2.0.0",
-    "marked": "4.0.17",
+    "marked": "4.0.18",
     "refractor": "4.7.0",
     "rehype-autolink-headings": "6.1.1",
     "remark-frontmatter": "4.0.1",
@@ -67,8 +68,8 @@
     "typescript": "4.7.4",
     "unified": "10.1.2",
     "unist-util-visit": "4.1.0",
-    "uvu": "0.5.4",
-    "vite": "2.9.13"
+    "uvu": "0.5.6",
+    "vite": "2.9.14"
   },
   "license": "MIT",
   "homepage": "https://qwik.builder.io/",

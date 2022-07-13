@@ -1,42 +1,27 @@
 import type { EndpointHandler } from '~qwik-city-runtime';
 import os from 'os';
 
-export const get: EndpointHandler = ({ request, params }) => {
-  const data = {
-    timestamp: Date.now(),
-    method: request.method,
-    url: request.url,
-    params,
-    os: os.platform(),
-    arch: os.arch(),
-    node: process.versions.node,
-  };
-
-  const res = new Response(JSON.stringify(data, null, 2), {
-    headers: {
-      'Content-Type': 'application/json',
+export const onGet: EndpointHandler = ({ request, params }) => {
+  return {
+    status: 200,
+    body: {
+      timestamp: Date.now(),
+      method: request.method,
+      url: request.url,
+      params,
+      os: os.platform(),
+      arch: os.arch(),
+      node: process.versions.node,
     },
-  });
-
-  return res;
+  };
 };
 
-export const post: EndpointHandler = async ({ request, params }) => {
-  const data = {
-    timestamp: Date.now(),
-    method: request.method,
-    url: request.url,
-    params,
-    os: os.platform(),
-    arch: os.arch(),
-    node: process.versions.node,
-  };
-
-  const res = new Response(JSON.stringify(data, null, 2), {
+export const onPost: EndpointHandler = async ({ method }) => {
+  return {
+    status: 200,
+    body: `Platform: ${os.platform()}, Node: ${process.versions.node}, HTTP Method: ${method}`,
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
     },
-  });
-
-  return res;
+  };
 };

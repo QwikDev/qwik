@@ -101,6 +101,8 @@ export interface RenderToStringOptions extends SerializeDocumentOptions {
    * Defaults to `undefined`
    */
   fragmentTagName?: string;
+
+  userContext?: Record<string, any>;
 }
 
 /**
@@ -112,3 +114,7 @@ export interface RenderOptions extends RenderToStringOptions {}
  * @public
  */
 export type Render = (opts: RenderOptions) => Promise<RenderToStringResult>;
+
+export interface RenderDocument extends Document {
+  __qwikUserCtx?: Record<string, any>;
+}

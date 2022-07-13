@@ -13,7 +13,7 @@ export function createPageRoute(
   const pageRoute: PageRoute = {
     type: 'page',
     id: createFileId(ctx, routesDir, filePath),
-    filePath,
+    filePath: normalizePath(filePath),
     pathname: getPathnameFromFilePath(ctx.opts, filePath),
     pattern: undefined as any,
     paramNames: undefined as any,

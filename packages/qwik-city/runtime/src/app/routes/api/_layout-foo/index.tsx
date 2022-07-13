@@ -1,5 +1,5 @@
 import { component$, Host, Slot, useScopedStyles$ } from '@builder.io/qwik';
-import type { HeadComponent } from '~qwik-city-runtime';
+import type { DocumentHead } from '~qwik-city-runtime';
 import Footer from '../../../components/footer/footer';
 import Header from '../../../components/header/header';
 import styles from './api.css?inline';
@@ -9,7 +9,7 @@ export default component$(() => {
 
   return (
     <Host>
-      <Header fullWidth={true} />
+      <Header />
       <main class="api">
         <aside class="api-menu">
           <h2>API</h2>
@@ -31,10 +31,8 @@ export default component$(() => {
   );
 });
 
-export const head: HeadComponent = ({ location }) => {
-  return (
-    <>
-      <title>API: {location.pathname}</title>
-    </>
-  );
+export const head: DocumentHead = ({ pathname }) => {
+  return {
+    title: `API: ${pathname}`,
+  };
 };

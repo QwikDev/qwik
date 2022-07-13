@@ -66,6 +66,7 @@
     "**/lib",
     // "starters/servers",
     // "starters/apps",
+    "starters/**/root.tsx",
     "starters/**/entry.netlify.ts",
     "starters/**/entry.cloudflare.tsx",
     "starters/**/entry.express.tsx",

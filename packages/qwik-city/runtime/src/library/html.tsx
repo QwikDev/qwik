@@ -11,7 +11,7 @@ import {
 } from '@builder.io/qwik';
 import type { HTMLAttributes } from '@builder.io/qwik';
 import { loadRoute, matchRoute } from './routing';
-import type { ContentState, DocumentHead, PageModule, QwikCityPlan, RouteLocation } from './types';
+import type { ContentState, PageModule, QwikCityRenderDocument, RouteLocation } from './types';
 import {
   ContentContext,
   ContentMenusContext,
@@ -19,12 +19,14 @@ import {
   RouteLocationContext,
 } from './constants';
 import { createDocumentHead, resolveHead } from './head';
+import { loadEndpointResponse } from './use-endpoint';
+import cityPlan from '@qwik-city-plan';
 
 /**
  * @public
  */
 export const Html = component$<HtmlProps>(
-  ({ cityPlan }) => {
+  () => {
     const { get, set } = useSequentialScope();
     if (get) {
       return jsx(SkipRerender, {});
@@ -37,24 +39,20 @@ export const Html = component$<HtmlProps>(
       modules: [],
     });
 
-    const doc = useDocument();
-    const documentHead = useStore<DocumentHead>(() => createDocumentHead());
+    const doc = useDocument() as QwikCityRenderDocument;
+    const documentHead = useStore(() => createDocumentHead());
 
     const routeLocation = useStore<RouteLocation>(() => {
       const docLocation = new URL(doc.defaultView!.location as any);
       const matchedRoute = matchRoute(cityPlan.routes, docLocation.pathname);
       const loc: RouteLocation = {
         hash: docLocation.hash,
-        host: docLocation.host,
         hostname: docLocation.hostname,
         href: docLocation.href,
-        origin: docLocation.origin,
-        pathname: docLocation.pathname,
-        port: docLocation.port,
-        protocol: docLocation.protocol,
         params: { ...matchedRoute?.params },
-        search: docLocation.search,
+        pathname: docLocation.pathname,
         query: {},
+        search: docLocation.search,
       };
       docLocation.searchParams.forEach((value, key) => (loc.query[key] = value));
       return loc;
@@ -69,20 +67,22 @@ export const Html = component$<HtmlProps>(
       loadRoute(cityPlan.routes, routeLocation.pathname)
         .then((loadedRoute) => {
           if (loadedRoute) {
-            const contentModules = loadedRoute.modules;
-            const pageModule = contentModules[contentModules.length - 1] as PageModule;
-            const resolvedHead = resolveHead(routeLocation, contentModules);
+            loadEndpointResponse(doc, routeLocation.pathname).then((endpointResponse) => {
+              const contentModules = loadedRoute.modules;
+              const pageModule = contentModules[contentModules.length - 1] as PageModule;
+              const resolvedHead = resolveHead(endpointResponse, routeLocation, contentModules);
 
-            documentHead.links = resolvedHead.links;
-            documentHead.meta = resolvedHead.meta;
-            documentHead.styles = resolvedHead.styles;
-            documentHead.title = resolvedHead.title;
+              documentHead.links = resolvedHead.links;
+              documentHead.meta = resolvedHead.meta;
+              documentHead.styles = resolvedHead.styles;
+              documentHead.title = resolvedHead.title;
 
-            content.breadcrumbs = pageModule.breadcrumbs;
-            content.headings = pageModule.headings;
-            content.modules = noSerialize<any>(contentModules);
+              content.breadcrumbs = pageModule.breadcrumbs;
+              content.headings = pageModule.headings;
+              content.modules = noSerialize<any>(contentModules);
 
-            routeLocation.params = { ...loadedRoute.params };
+              routeLocation.params = { ...loadedRoute.params };
+            });
           }
         })
         .catch((e) => console.error(e))
@@ -93,6 +93,4 @@ export const Html = component$<HtmlProps>(
   { tagName: 'html' }
 );
 
-export interface HtmlProps extends HTMLAttributes<HTMLHtmlElement> {
-  cityPlan: QwikCityPlan;
-}
+export interface HtmlProps extends HTMLAttributes<HTMLHtmlElement> {}

@@ -1,62 +1,125 @@
 import type {
   EndpointHandler,
   EndpointModule,
+  EndpointResponse,
+  HttpMethod,
   RequestEvent,
+  RouteParams,
 } from '../../runtime/src/library/types';
 
-export function endpointHandler(requestEv: RequestEvent, endpointModule: EndpointModule) {
-  try {
-    let reqHandler: EndpointHandler | undefined = undefined;
+export async function getEndpointResponse(
+  request: Request,
+  method: HttpMethod,
+  url: URL,
+  params: RouteParams,
+  endpointModule: EndpointModule
+) {
+  let reqHandler: EndpointHandler | undefined = undefined;
 
-    switch (requestEv.method) {
-      case 'GET': {
-        reqHandler = endpointModule.get;
-        break;
+  switch (method) {
+    case 'GET': {
+      reqHandler = endpointModule.onGet;
+      break;
+    }
+    case 'POST': {
+      reqHandler = endpointModule.onPost;
+      break;
+    }
+    case 'PUT': {
+      reqHandler = endpointModule.onPut;
+      break;
+    }
+    case 'PATCH': {
+      reqHandler = endpointModule.onPatch;
+      break;
+    }
+    case 'OPTIONS': {
+      reqHandler = endpointModule.onOptions;
+      break;
+    }
+    case 'HEAD': {
+      reqHandler = endpointModule.onHead;
+      break;
+    }
+    case 'DELETE': {
+      reqHandler = endpointModule.onDelete;
+      break;
+    }
+  }
+
+  reqHandler = reqHandler || endpointModule.onRequest;
+
+  if (typeof reqHandler === 'function') {
+    const requestEv: RequestEvent = { method, request, url, params };
+    const endpointResponse = await reqHandler(requestEv);
+    return endpointResponse;
+  }
+
+  return null;
+}
+
+export function endpointHandler(method: HttpMethod, endpointResponse: EndpointResponse | null) {
+  if (endpointResponse) {
+    let status = 200;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json; charset=utf-8',
+    };
+
+    if (endpointResponse.headers) {
+      for (const [key, value] of Object.entries(endpointResponse.headers)) {
+        if (value) {
+          const normalizedKey = key.toLocaleLowerCase();
+          if (normalizedKey === 'content-type') {
+            headers['Content-Type'] = value;
+          } else {
+            headers[key] = value;
+          }
+        }
       }
-      case 'POST': {
-        reqHandler = endpointModule.post;
-        break;
-      }
-      case 'PUT': {
-        reqHandler = endpointModule.put;
-        break;
-      }
-      case 'PATCH': {
-        reqHandler = endpointModule.patch;
-        break;
-      }
-      case 'OPTIONS': {
-        reqHandler = endpointModule.options;
-        break;
-      }
-      case 'HEAD': {
-        reqHandler = endpointModule.head;
-        break;
-      }
-      case 'DELETE': {
-        reqHandler = endpointModule.del;
-        break;
+      if (typeof endpointResponse.status === 'number') {
+        if (endpointResponse.status >= 100 && endpointResponse.status <= 599) {
+          status = endpointResponse.status;
+        }
       }
     }
 
-    reqHandler = reqHandler || endpointModule.all;
-
-    if (typeof reqHandler === 'function') {
-      return reqHandler(requestEv);
+    if (headers['Content-Type'].startsWith('application/json')) {
+      // JSON response
+      return new Response(JSON.stringify(endpointResponse.body), {
+        status,
+        headers,
+      });
     }
 
-    return new Response(`Bad Request: ${requestEv.method} not supported for endpoint`, {
-      status: 400,
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-      },
-    });
-  } catch (e) {
-    return new Response(`Error: ${String(e)}`, {
+    if (endpointResponse.body == null) {
+      // null || undefined response
+      return new Response(endpointResponse.body as any, {
+        status,
+        headers,
+      });
+    }
+
+    const type = typeof endpointResponse.body;
+    // string response
+    if (type === 'string' || type === 'number' || type === 'boolean') {
+      return new Response(String(endpointResponse.body), {
+        status,
+        headers,
+      });
+    }
+
+    return new Response(`Unsupport response body type: ${JSON.stringify(endpointResponse.body)}`, {
       status: 500,
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
       },
     });
   }
+
+  return new Response(`Method Not Allowed: ${method}`, {
+    status: 405,
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+    },
+  });
 }

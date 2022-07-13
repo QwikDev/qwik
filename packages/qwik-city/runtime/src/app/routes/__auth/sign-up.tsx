@@ -1,5 +1,5 @@
 import { component$, Host } from '@builder.io/qwik';
-import type { HeadComponent } from '~qwik-city-runtime';
+import type { DocumentHead } from '~qwik-city-runtime';
 
 export default component$(() => {
   return (
@@ -24,10 +24,6 @@ export default component$(() => {
   );
 });
 
-export const head: HeadComponent = () => {
-  return (
-    <>
-      <title>Sign Up</title>
-    </>
-  );
+export const head: DocumentHead = {
+  title: 'Sign Up',
 };

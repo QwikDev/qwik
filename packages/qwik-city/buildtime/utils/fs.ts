@@ -106,3 +106,43 @@ export function isEndpointFileName(fileName: string) {
   const ext = getExtension(fileName);
   return ENDPOINT_EXT[ext] && !fileName.endsWith('.d.ts');
 }
+
+export function isTestFileName(fileName: string) {
+  return (
+    fileName === '__test__' ||
+    fileName === '__tests__' ||
+    fileName.includes('.spec.') ||
+    fileName.includes('.unit.') ||
+    fileName.includes('.e2e.') ||
+    fileName.includes('.test.')
+  );
+}
+
+/** File and directory names we already know we can just skip over */
+export const IGNORE_NAMES: { [key: string]: boolean } = {
+  build: true,
+  dist: true,
+  node_modules: true,
+  target: true,
+  LICENSE: true,
+  'LICENSE.md': true,
+  README: true,
+  'README.md': true,
+  Dockerfile: true,
+  Makefile: true,
+  WORKSPACE: true,
+  '.devcontainer': true,
+  '.gitignore': true,
+  '.gitattributese': true,
+  '.gitkeep': true,
+  '.github': true,
+  '.husky': true,
+  '.npmrc': true,
+  '.nvmrc': true,
+  '.prettierignore': true,
+  '.history': true,
+  '.vscode': true,
+  '.yarn': true,
+  '.DS_Store': true,
+  'thumbs.db': true,
+};

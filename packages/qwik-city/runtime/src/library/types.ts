@@ -1,14 +1,25 @@
-import type { FunctionComponent } from '@builder.io/qwik';
+import type { RenderDocument } from '../../../../qwik/src/server/types';
 import type { ROUTE_TYPE_ENDPOINT } from './constants';
 
-export interface PageModule {
+export interface EndpointModule<BODY = unknown> {
+  onDelete?: EndpointHandler<BODY>;
+  onGet?: EndpointHandler<BODY>;
+  onHead?: EndpointHandler<BODY>;
+  onOptions?: EndpointHandler<BODY>;
+  onPatch?: EndpointHandler<BODY>;
+  onPost?: EndpointHandler<BODY>;
+  onPut?: EndpointHandler<BODY>;
+  onRequest?: EndpointHandler<BODY>;
+}
+
+export interface PageModule extends EndpointModule {
   readonly default: any;
   readonly breadcrumbs?: ContentBreadcrumb[];
   readonly head?: ContentModuleHead;
   readonly headings?: ContentHeading[];
 }
 
-export interface LayoutModule {
+export interface LayoutModule extends EndpointModule {
   readonly default: any;
   readonly head?: ContentModuleHead;
 }
@@ -18,14 +29,10 @@ export interface LayoutModule {
  */
 export interface RouteLocation {
   hash: string;
-  host: string;
   hostname: string;
   href: string;
-  origin: string;
   params: RouteParams;
   pathname: string;
-  port: string;
-  protocol: string;
   search: string;
   query: Record<string, string>;
 }
@@ -33,25 +40,11 @@ export interface RouteLocation {
 /**
  * @public
  */
-export interface EndpointModule {
-  all?: EndpointHandler;
-  del?: EndpointHandler;
-  get?: EndpointHandler;
-  head?: EndpointHandler;
-  options?: EndpointHandler;
-  patch?: EndpointHandler;
-  post?: EndpointHandler;
-  put?: EndpointHandler;
-}
-
-/**
- * @public
- */
-export interface DocumentHead {
-  title: string;
-  meta: DocumentMeta[];
-  links: DocumentLink[];
-  styles: DocumentStyle[];
+export interface ResolvedDocumentHead {
+  title?: string;
+  meta?: DocumentMeta[];
+  links?: DocumentLink[];
+  styles?: DocumentStyle[];
 }
 
 /**
@@ -100,15 +93,17 @@ export interface DocumentStyle {
 /**
  * @public
  */
-export interface HeadComponentProps {
-  resolved: DocumentHead;
-  location: RouteLocation;
+export interface DocumentHeadProps<T = unknown> extends RouteLocation {
+  data: T | null;
+  head: Required<ResolvedDocumentHead>;
 }
 
 /**
  * @public
  */
-export type HeadComponent = FunctionComponent<HeadComponentProps>;
+export type DocumentHead<T = unknown> =
+  | ResolvedDocumentHead
+  | ((props: DocumentHeadProps<T>) => ResolvedDocumentHead);
 
 /**
  * @public
@@ -188,13 +183,13 @@ export interface LoadedContent extends LoadedRoute {
 
 export type ContentModule = PageModule | LayoutModule;
 
-export type ContentModuleHead = HeadComponent | DocumentHead;
+export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
 
 /**
  * @public
  */
 export interface RequestEvent {
-  method: string;
+  method: HttpMethod;
   request: Request;
   params: RouteParams;
   url: URL;
@@ -203,9 +198,50 @@ export interface RequestEvent {
 /**
  * @public
  */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
+export type HttpMethod =
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'PATCH'
+  | 'DELETE'
+  | 'HEAD'
+  | 'OPTIONS'
+  | 'CONNECT'
+  | 'TRACE';
 
 /**
  * @public
  */
-export type EndpointHandler = (ev: RequestEvent) => Response | Promise<Response>;
+export type EndpointHandler<BODY = unknown> = (
+  ev: RequestEvent
+) => EndpointResponse<BODY> | Promise<EndpointResponse<BODY>>;
+
+export interface EndpointResponse<BODY = unknown> {
+  body?: BODY | null | undefined;
+  /**
+   * HTTP Headers. The "Content-Type" header is used to determine how to serialize the `body` for the
+   * HTTP Response.  For example, a "Content-Type" including `application/json` will serialize the `body`
+   * with `JSON.stringify(body)`. If the "Content-Type" header is not provided, the response
+   * will default to include the header `"Content-Type": "application/json; charset=utf-8"`.
+   */
+  headers?: Record<string, string | undefined>;
+  /**
+   * HTTP Status code. The status code is import to determine if the data can be public
+   * facing or not. Setting a value of `200` will allow the endpoint to be fetched using
+   * an `"accept": "application/json"` request header. If the data from the API
+   * should not allowed to be requested, the status should be set to one of the Client Error
+   * response status codes. An example would be `401` for "Unauthorized", or `403` for
+   * "Forbidden".
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#client_error_responses
+   */
+  status: number;
+}
+
+export interface QwikCityRenderDocument extends RenderDocument {
+  __qwikUserCtx?: {
+    qwikCity?: {
+      endpointResponse?: EndpointResponse;
+    };
+  };
+}

@@ -7,7 +7,13 @@ import { addError } from './utils/format';
 import { createEndpointRoute } from './routing/endpoint';
 import { sortRoutes } from './routing/sort-routes';
 import { createLayout, isLayoutFileName } from './routing/layout';
-import { isEndpointFileName, isMarkdownFileName, isPageFileName } from './utils/fs';
+import {
+  IGNORE_NAMES,
+  isEndpointFileName,
+  isMarkdownFileName,
+  isPageFileName,
+  isTestFileName,
+} from './utils/fs';
 
 export async function build(ctx: BuildContext) {
   try {
@@ -33,7 +39,12 @@ async function loadRoutes(ctx: BuildContext, routesDir: string, dir: string, dir
           const dirName = basename(dir);
           const itemPath = join(dir, itemName);
 
-          if (isLayoutFileName(dirName, itemName)) {
+          if (isTestFileName(itemName)) {
+            addError(
+              ctx,
+              `Test directory or file "${itemPath}" should not be included within the routes directory. Please move test files to a different location.`
+            );
+          } else if (isLayoutFileName(dirName, itemName)) {
             const layout = createLayout(ctx, routesDir, itemPath);
             ctx.layouts.push(layout);
           } else if (isMenuFileName(itemName)) {
@@ -103,32 +114,3 @@ function validateBuild(ctx: BuildContext) {
     }
   }
 }
-
-/** File and directory names we already know we can just skip over */
-const IGNORE_NAMES: { [key: string]: boolean } = {
-  build: true,
-  dist: true,
-  node_modules: true,
-  target: true,
-  LICENSE: true,
-  'LICENSE.md': true,
-  README: true,
-  'README.md': true,
-  Dockerfile: true,
-  Makefile: true,
-  WORKSPACE: true,
-  '.devcontainer': true,
-  '.gitignore': true,
-  '.gitattributese': true,
-  '.gitkeep': true,
-  '.github': true,
-  '.husky': true,
-  '.npmrc': true,
-  '.nvmrc': true,
-  '.prettierignore': true,
-  '.history': true,
-  '.vscode': true,
-  '.yarn': true,
-  '.DS_Store': true,
-  'thumbs.db': true,
-};

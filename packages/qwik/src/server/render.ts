@@ -3,7 +3,12 @@ import { pauseContainer, render } from '@builder.io/qwik';
 import type { SnapshotResult } from '@builder.io/qwik';
 import { setServerPlatform } from './platform';
 import { serializeDocument } from './serialize';
-import type { QwikManifest, RenderToStringOptions, RenderToStringResult } from './types';
+import type {
+  QwikManifest,
+  RenderDocument,
+  RenderToStringOptions,
+  RenderToStringResult,
+} from './types';
 import { getElement } from '../core/render/render.public';
 import { getQwikLoaderScript } from './scripts';
 import { applyPrefetchImplementation } from './prefetch-implementation';
@@ -21,10 +26,11 @@ import { logWarn } from '../core/util/log';
  */
 export async function renderToString(rootNode: any, opts: RenderToStringOptions = {}) {
   const createDocTimer = createTimer();
-  const doc = _createDocument(opts) as Document;
+  const doc = _createDocument(opts) as RenderDocument;
   const createDocTime = createDocTimer();
   const renderDocTimer = createTimer();
   let root: Element | Document = doc;
+
   if (typeof opts.fragmentTagName === 'string') {
     if (opts.qwikLoader) {
       if (opts.qwikLoader.include === undefined) {
@@ -40,9 +46,12 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
   if (!opts.manifest) {
     logWarn('Missing client manifest, loading symbols in the client might 404');
   }
+
   const isFullDocument = isDocument(root);
   const mapper = computeSymbolMapper(opts.manifest);
   await setServerPlatform(doc, opts, mapper);
+
+  doc.__qwikUserCtx = opts.userContext;
 
   await render(root, rootNode, false);
 
@@ -80,6 +89,8 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
       parentElm.insertBefore(scriptElm, parentElm.firstChild);
     }
   }
+
+  (doc as any).__qwikUserCtx = undefined;
 
   const docToStringTimer = createTimer();
 

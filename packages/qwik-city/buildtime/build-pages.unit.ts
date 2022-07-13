@@ -4,8 +4,8 @@ import { testAppSuite } from './utils/test-suite';
 
 const test = testAppSuite('Build Pages');
 
-test('pathless directory', ({ getPage }) => {
-  const r = getPage('/sign-in');
+test('pathless directory', ({ assertPage }) => {
+  const r = assertPage('/sign-in');
   assert.equal(r.id, 'AuthSignin');
   assert.equal(r.source, 'module');
   assert.equal(r.type, 'page');
@@ -17,8 +17,8 @@ test('pathless directory', ({ getPage }) => {
   assert.equal(r.layouts[1].id, 'AuthLayout');
 });
 
-test('index file w/ named layout, in directory w/ named layout', ({ getPage, layouts }) => {
-  const r = getPage('/api');
+test('index file w/ named layout, in directory w/ named layout', ({ assertPage, layouts }) => {
+  const r = assertPage('/api');
   assert.equal(r.id, 'ApiIndexfoo');
   assert.equal(r.type, 'page');
   assert.equal(r.pattern, /^\/api\/?$/);
@@ -27,8 +27,8 @@ test('index file w/ named layout, in directory w/ named layout', ({ getPage, lay
   assert.equal(r.layouts[0].id, 'ApiLayoutfooIndex');
 });
 
-test('file w/out named layout, in directory w/ named layout', ({ getPage }) => {
-  const r = getPage('/dashboard');
+test('file w/out named layout, in directory w/ named layout', ({ assertPage }) => {
+  const r = assertPage('/dashboard');
   assert.equal(r.id, 'DashboardIndex');
   assert.equal(r.type, 'page');
   assert.equal(r.pattern, /^\/dashboard\/?$/);
@@ -37,8 +37,8 @@ test('file w/out named layout, in directory w/ named layout', ({ getPage }) => {
   assert.equal(r.layouts[0].id, 'Layout');
 });
 
-test('file w/ named layout, in directory w/ named layout', ({ getPage }) => {
-  const r = getPage('/dashboard/profile');
+test('file w/ named layout, in directory w/ named layout', ({ assertPage }) => {
+  const r = assertPage('/dashboard/profile');
   assert.equal(r.id, 'DashboardProfiledashboard');
   assert.equal(r.type, 'page');
   assert.equal(r.pattern, /^\/dashboard\/profile\/?$/);
@@ -47,8 +47,8 @@ test('file w/ named layout, in directory w/ named layout', ({ getPage }) => {
   assert.equal(r.layouts[0].id, 'DashboardLayoutdashboard');
 });
 
-test('index file w/ named layout, in directory w/ named layout', ({ getPage }) => {
-  const r = getPage('/dashboard/settings');
+test('index file w/ named layout, in directory w/ named layout', ({ assertPage }) => {
+  const r = assertPage('/dashboard/settings');
   assert.equal(r.id, 'DashboardSettingsIndexdashboard');
   assert.equal(r.type, 'page');
   assert.equal(r.pattern, /^\/dashboard\/settings\/?$/);
@@ -59,9 +59,9 @@ test('index file w/ named layout, in directory w/ named layout', ({ getPage }) =
 });
 
 test('params route, index file w/out named layout, in directory w/ layout directory', ({
-  getPage,
+  assertPage,
 }) => {
-  const r = getPage('/docs/[category]/[id]');
+  const r = assertPage('/docs/[category]/[id]');
   assert.equal(r.id, 'DocsCategoryIdIndex');
   assert.equal(r.type, 'page');
   assert.equal(r.source, 'module');
@@ -74,8 +74,10 @@ test('params route, index file w/out named layout, in directory w/ layout direct
   assert.equal(r.layouts[1].id, 'DocsLayoutIndex');
 });
 
-test('markdown index file w/out named layout, in directory w/ layout directory', ({ getPage }) => {
-  const r = getPage('/docs/overview');
+test('markdown index file w/out named layout, in directory w/ layout directory', ({
+  assertPage,
+}) => {
+  const r = assertPage('/docs/overview');
   assert.equal(r.id, 'DocsOverviewIndex');
   assert.equal(r.type, 'page');
   assert.equal(r.source, 'markdown');
@@ -86,8 +88,8 @@ test('markdown index file w/out named layout, in directory w/ layout directory',
   assert.equal(r.layouts[1].id, 'DocsLayoutIndex');
 });
 
-test('markdown file w/out named layout, in directory w/ layout directory', ({ getPage }) => {
-  const r = getPage('/docs/getting-started');
+test('markdown file w/out named layout, in directory w/ layout directory', ({ assertPage }) => {
+  const r = assertPage('/docs/getting-started');
   assert.equal(r.id, 'DocsGettingstarted');
   assert.equal(r.type, 'page');
   assert.equal(r.source, 'markdown');
@@ -98,8 +100,8 @@ test('markdown file w/out named layout, in directory w/ layout directory', ({ ge
   assert.equal(r.layouts[1].id, 'DocsLayoutIndex');
 });
 
-test('index file w/out named layout, in directory w/ layout directory', ({ getPage }) => {
-  const r = getPage('/docs');
+test('index file w/out named layout, in directory w/ layout directory', ({ assertPage }) => {
+  const r = assertPage('/docs');
   assert.equal(r.id, 'DocsIndex');
   assert.equal(r.type, 'page');
   assert.equal(r.source, 'module');
@@ -110,8 +112,8 @@ test('index file w/out named layout, in directory w/ layout directory', ({ getPa
   assert.equal(r.layouts[1].id, 'DocsLayoutIndex');
 });
 
-test('index file w/out named layout, in directory w/ layout directory', ({ getPage }) => {
-  const r = getPage('/about-us');
+test('index file w/out named layout, in directory w/ layout directory', ({ assertPage }) => {
+  const r = assertPage('/about-us');
   assert.equal(r.id, 'Aboutus');
   assert.equal(r.type, 'page');
   assert.equal(r.source, 'module');
@@ -122,38 +124,21 @@ test('index file w/out named layout, in directory w/ layout directory', ({ getPa
   assert.equal(r.layouts[0].type, 'nested');
 });
 
-// const aboutUs = getPageRoute('/about-us');
-// assert.equal(aboutUs.id, 'Aboutus');
-// assert.equal(aboutUs.type, 'page');
-// assert.equal(aboutUs.pattern, /^\/about-us\/?$/);
-// assert.equal(aboutUs.paramNames.length, 0);
+test('named tsx file', ({ assertPage }) => {
+  const r = assertPage('/about-us');
+  assert.equal(r.id, 'Aboutus');
+  assert.equal(r.type, 'page');
+  assert.equal(r.pattern, /^\/about-us\/?$/);
+  assert.equal(r.paramNames.length, 0);
+});
 
-// const index = getPageRoute('/');
-// assert.equal(index.id, 'Index');
-// assert.equal(index.type, 'page');
-// assert.equal(index.pattern, /^\/$/);
-// assert.equal(index.paramNames.length, 0);
-// assert.equal(index.paramNames.length, 0);
-
-// const layouts = ctx.layouts;
-// assert.is(layouts.length, 4, 'total layouts');
-// const blogLayout = layouts.find((r) => r.id === 'BlogLayout')!;
-// assert.ok(blogLayout, 'found blog layout');
-// assert.is(blogLayout.type, 'nested');
-// assert.is(blogLayout.name, '');
-
-// const dashboardLayout = layouts.find((r) => r.id === 'DashboardLayout')!;
-// assert.ok(dashboardLayout, 'found dashboard layout');
-// assert.is(dashboardLayout.type, 'nested');
-// assert.is(dashboardLayout.name, '');
-
-// const docsLayout = layouts.find((r) => r.id === 'DocsLayoutdocsIndex')!;
-// assert.ok(docsLayout, 'found docs layout');
-// assert.is(docsLayout.type, 'top');
-// assert.is(dashboardLayout.name, 'docs');
-
-// const rootLayout = layouts.find((r) => r.id === 'Layoutnested')!;
-// assert.ok(rootLayout, 'found top layout');
-// assert.is(rootLayout.type, 'nested');
+test('root index', ({ assertPage }) => {
+  const r = assertPage('/');
+  assert.equal(r.id, 'Index');
+  assert.equal(r.type, 'page');
+  assert.equal(r.pattern, /^\/$/);
+  assert.equal(r.paramNames.length, 0);
+  assert.equal(r.paramNames.length, 0);
+});
 
 test.run();

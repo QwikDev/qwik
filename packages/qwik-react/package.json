@@ -18,17 +18,17 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@builder.io/qwik": "0.0.34",
+    "@builder.io/qwik": "workspace:*",
     "@emotion/react": "11.9.3",
     "@emotion/server": "11.4.0",
     "@emotion/styled": "11.9.3",
-    "@mui/material": "5.8.6",
-    "@types/react": "18.0.14",
-    "@types/react-dom": "18.0.5",
+    "@mui/material": "5.9.0",
+    "@types/react": "18.0.15",
+    "@types/react-dom": "18.0.6",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "typescript": "4.7.4",
-    "vite": "2.9.13"
+    "vite": "2.9.14"
   },
   "peerDependencies": {
     "@builder.io/qwik": ">=0.0.34",

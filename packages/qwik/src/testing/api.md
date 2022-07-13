@@ -141,6 +141,8 @@ export interface RenderToStringOptions extends SerializeDocumentOptions {
         include?: boolean | 'top' | 'bottom';
     };
     snapshot?: boolean;
+    // (undocumented)
+    userContext?: Record<string, any>;
 }
 
 // @public (undocumented)

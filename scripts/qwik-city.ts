@@ -24,14 +24,14 @@ export async function buildQwikCity(config: BuildConfig) {
 
   const loaderPkg = {
     ...(await readPackageJson(input)),
-    main: './index.qwik.cjs',
-    module: './index.qwik.mjs',
-    qwik: './index.qwik.mjs',
+    main: './index.cjs.qwik.js',
+    module: './index.es.qwik.js',
+    qwik: './index.es.qwik.js',
     types: './index.d.ts',
     exports: {
       '.': {
-        import: './index.qwik.mjs',
-        require: './index.qwik.cjs',
+        import: './index.es.qwik.js',
+        require: './index.cjs.qwik.js',
       },
       './middleware/cloudflare-pages': {
         import: './middleware/cloudflare-pages/index.mjs',
@@ -52,7 +52,14 @@ export async function buildQwikCity(config: BuildConfig) {
     publishConfig: {
       access: 'public',
     },
-    files: ['index.d.ts', 'index.qwik.mjs', 'index.qwik.cjs', 'modules.d.ts', 'middleware', 'vite'],
+    files: [
+      'index.d.ts',
+      'index.es.qwik.js',
+      'index.cjs.qwik.js',
+      'modules.d.ts',
+      'middleware',
+      'vite',
+    ],
     devDependencies: undefined,
     scripts: undefined,
   };

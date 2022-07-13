@@ -464,7 +464,7 @@ __metadata:
     vfile: 5.3.4
     vite: 2.9.14
   peerDependencies:
-    "@builder.io/qwik": "workspace:*"
+    "@builder.io/qwik": ">=0.0.35"
   languageName: unknown
   linkType: soft
 
@@ -491,7 +491,7 @@ __metadata:
     typescript: 4.7.4
     vite: 2.9.14
   peerDependencies:
-    "@builder.io/qwik": ">=0.0.34"
+    "@builder.io/qwik": ">=0.0.35"
     "@emotion/react": ">=11.9.0"
     "@emotion/server": ">=11.4.0"
     "@emotion/styled": ">=11.9.3"

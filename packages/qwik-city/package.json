@@ -28,16 +28,17 @@
   },
   "scripts": {
     "start": "cd runtime && vite",
-    "dev.ssr": "cd runtime && vite --mode ssr",
+    "dev.ssr": "cd runtime && node --inspect ../../../node_modules/vite/bin/vite.js --mode ssr",
     "build": "yarn build.client && yarn build.ssr",
     "build.client": "cd runtime && vite build --config vite-app.config.ts",
     "build.ssr": "cd runtime && vite build --config vite-app.config.ts --ssr src/entry.express.tsx",
     "build.runtime": "cd runtime && vite build --mode lib",
-    "serve": "node runtime/server/entry.express.js",
+    "serve": "node --inspect runtime/server/entry.express.js",
     "serve.debug": "node --inspect-brk runtime/server/entry.express.js",
-    "test": "yarn test.unit",
+    "test": "yarn test.unit && yarn test.e2e",
     "test.unit": "node ../../node_modules/.bin/uvu -r tsm . \"(unit)\"",
-    "test.e2e": "node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts"
+    "test.e2e": "node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts",
+    "test.e2e.no-js": "DISABLE_JS=true node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts"
   },
   "dependencies": {
     "@mdx-js/mdx": "2.1.2",
@@ -46,7 +47,7 @@
     "vfile": "5.3.4"
   },
   "peerDependencies": {
-    "@builder.io/qwik": ">=0.0.34"
+    "@builder.io/qwik": "workspace:*"
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",

@@ -9,7 +9,7 @@
     ]
   },
   "devDependencies": {
-    "@builder.io/qwik-city": "0.0.18",
+    "@builder.io/qwik-city": "0.0.20",
     "vite-tsconfig-paths": "3.5.0"
   }
 }

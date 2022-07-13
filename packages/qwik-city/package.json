@@ -1,15 +1,15 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.0.18",
+  "version": "0.0.20",
   "description": "Static Site Generator for Qwik",
-  "main": "./lib/index.qwik.cjs",
-  "module": "./lib/index.qwik.mjs",
-  "qwik": "./lib/index.qwik.mjs",
+  "main": "./lib/index.cjs.qwik.js",
+  "module": "./lib/index.es.qwik.js",
+  "qwik": "./lib/index.cjs.qwik.js",
   "types": "./lib/index.d.ts",
   "exports": {
     ".": {
-      "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs"
+      "import": "./lib/index.es.qwik.js",
+      "require": "./lib/index.cjs.qwik.js"
     },
     "./middleware/cloudflare-pages": {
       "import": "./lib/middleware/cloudflare-pages/index.mjs"
@@ -47,7 +47,7 @@
     "vfile": "5.3.4"
   },
   "peerDependencies": {
-    "@builder.io/qwik": "workspace:*"
+    "@builder.io/qwik": ">=0.0.35"
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",

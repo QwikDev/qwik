@@ -3,14 +3,18 @@ title: Qwik Tutorial - SSR
 layout: tutorial
 ---
 
-In the previous tutorial, we added `useWatch$` to update the list of GitHub repositories on organization change. In that example, we made sure that the `useWatch$` does not execute on the server by adding an early return to it when executing on the server. Let's dive into the reasoning behind this.
+In the previous tutorial, `useWatch$` is used to update the list of GitHub repositories as the organization value changes. In that example, `useWatch$` features an early return when executing on the server to ensure it only runs on the client. Let's dive into why this behavior is important.
 
-When doing SSR, the server needs to know when it should take the snapshot (the rendering is completed) of the application and send it to the client. This is tricky because the server may need to fetch data that is then used in the response. The basic problem is that the server needs to know how long to delay the rendering of the component until the data is ready.
+When doing server-side rendering (SSR), the server needs to know when to take the snapshot of the application and send it to the client. Snapshots are taken when rendering is complete. Deciding when to take a snapshot is tricky as the server may need to fetch data used in the response. The problem is that the server needs to know how long to delay the rendering of the component until the data is ready.
 
-The semantic of `useWatch$` is to run before rendering. This is good from the point of SSR as it allows the component to execute fetch before the component renders. The problem is that `useWatch$` can't block the rendering of the component. So if `useWatch$` is asynchronous, there is no way to delay the execution of component rendering. If we removed the early return for the server, the server would execute `useWatch$()`, that in turn will cause data to fetch. Because `useWatch$()` can't delay the rendering of the component, the Qwik would perform the rendering before the data returns and serialize the application into HTML without the response. The result would be that the application would say `loading...`. It also means that the server did unnecessary fetch because it did not wait for the response. So `useWatch$` has the wrong semantics for what we want to achieve.
+Qwik's way to solve this problem is to ensure `useWatch$` is run before rendering the application. On the server, required data is fetched before a component is rendered. The problem is that `useWatch$` can't block component rendering. So if `useWatch$` is asynchronous, there is no way to delay execution of component rendering. 
 
-For this reason, Qwik has `useServerMount$()`. The purpose of `useServerMount$()` is to execute before rendering and block the rendering until `useServerMount$()` completes. This allows `useServerMount$()` to fetch data and delay the rendering until the data is returned.
+If the server's early is return removed, the server would execute `useWatch$()`. Since `useWatch$()` can't delay the rendering, the component would render before it had data. Rendering a before data is available results in a component stuck displaying a loading message. So `useWatch$` is the wrong tool for this job, but Qwik has the `useServerMount$()` function for just this purpose.
+
+The `useServerMount$()` function executes before rendering and blocks rendering until processing is complete. This delay allows `useServerMount$()` to fetch data and hold off on rendering the component until the requested data is available.
 
 Your goal is to use `useServerMount$()` to fetch the data on the server.
 
-To help you understand the order of operations, we have added `console.log` statements to the code. Notice that `create JSX` is called twice, but only the second JSX response is used for rendering the component. There is a `console.info` from server `QWIK Dropping render. State changed during render.` This message indicates that the Qwik recognized that the initial JSX response has now become invalidated after the `useServerMount$()` has resolved, and so the second invocation of component is needed to rebuild the JSX and finally render the component.
+To help you understand the order of operations, the code features a series of `console.log` statements to help you see what's happening.
+
+Notice that `create JSX` is called twice, but only the second JSX response is used for rendering the component. There is a `console.info` from server `QWIK Dropping render. State changed during render.` This message indicates that the Qwik recognized that the initial JSX response is invalidated after `useServerMount$()` has resolved, and so the second invocation of component is needed to rebuild the JSX and finally render the component.

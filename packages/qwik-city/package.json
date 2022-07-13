@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.0.16",
+  "version": "0.0.18",
   "description": "Static Site Generator for Qwik",
   "main": "./lib/index.qwik.cjs",
   "module": "./lib/index.qwik.mjs",
@@ -17,6 +17,9 @@
     "./middleware/express": {
       "import": "./lib/middleware/express/index.mjs",
       "require": "./lib/middleware/express/index.cjs"
+    },
+    "./middleware/netlify-edge": {
+      "import": "./lib/middleware/netlify-edge/index.mjs"
     },
     "./vite": {
       "import": "./lib/vite/index.mjs",

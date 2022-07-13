@@ -212,8 +212,7 @@ export interface ComponentBaseProps {
   [key: `preventDefault:${string}`]: boolean;
   [key: `preventdefault:${string}`]: boolean;
 
-  [key: `host:tagName${string}`]: JSXTagName;
-
+  'host:tagName'?: JSXTagName;
   children?: JSXChildren;
 }
 export interface QwikAttributes extends QwikProps, QwikEvents {}

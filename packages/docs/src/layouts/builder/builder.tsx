@@ -5,8 +5,8 @@ import styles from './builder.css?inline';
 
 export const Builder = component$(() => {
   useStyles$(styles);
-  const loc = useLocation();
-  const promise = fetchQwikBuilderContent(loc.pathname);
+  const location = useLocation();
+  const promise = fetchQwikBuilderContent(location.pathname);
   return (
     <Host>
       <Header />

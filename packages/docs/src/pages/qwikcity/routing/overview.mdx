@@ -1,0 +1,58 @@
+---
+title: Qwik City - Routing
+---
+
+# Qwik City - Routing
+
+Routing is a way to map public URLs for a site to specific components declared in your application. Qwik City uses a file-based router. This means that the directory/file structure drives the public-facing URLs that the user will see for your application.
+
+## Basic routing
+
+In its simplest form, the URL the user sees `http://server/some/path`, will be mapped to the `some/path` component in the `src/routes` folder. 
+
+```
+- src/
+  - routes/
+    - some/           
+      - path.tsx       # http://server/some/path
+```
+
+## Implementing a Component
+
+To return HTML for a specific route you will need to implement a component. For `.tsx` file the component must be exported as `default`. (Alternatively, you can use `.mdx` extension discussed [later](/qwikcity/content/mdx).)
+
+
+```typescript
+export default component$(() => {
+  return (
+    <H1>
+      Hello World!
+    </H1>
+  );
+});
+```
+
+### `_` prefix
+
+From time to time, there is a need to place files into the `src/routes` folder without them showing up on any route. In such a case use the `_` prefix to let Qwik City knows that the file is private and should not be exposed on any route.
+
+## `@qwik-city-plan`
+
+The route information is stored in files. This is great for developer ergonomics but not useful for creating bundles and chunks. In addition, in some environments, such as edge functions, there is no file system that can be accessed. For this reason, it is necessary to serialize the route information into a single file. This is done through the `@qwik-city-plan` import.
+
+```typescript
+import cityPlan from '@qwik-city-plan';
+```
+
+The `@qwik-city-plan` import is synthetic, meaning that it is created as part of the build step. It contains all of the information in the `/src/routes` folder in JavaScript format. The synthetic import is provided by the `qwikCity()` vite plugin available from `@builder.io/qwik-city/vite`.
+
+## Advanced routing
+
+Qwik City also supports:
+- [`index.tsx`](/qwikcity/routing/default-index)
+- [Slugs](/qwikcity/routing/slugs)
+- [Pathless URLs](/qwikcity/routing/pathless)
+- [Nested layouts](/qwikcity/layout/overview)
+- [Menus](/qwikcity/content/menu)
+
+These are discussed later.

@@ -1,0 +1,40 @@
+---
+title: Qwik City - Named Layout
+---
+
+# Qwik City - Named Layout
+
+At times related routes need to have drastically different layouts from their siblings. It is possible to define multiple layouts for different sibling routes. A single default layout and any number of named layouts. The child route can then request a specific named-layout.
+Qwik City defines the convention that layouts start with `_layout`. That's why the default layout is namend `_layout.tsx`. A named layout also starts with `_layout` followed by its unique name: `_layout-narrow.tsx`
+
+```
+- src/
+  - routes/
+    - _layout.tsx         # Default layout implementation
+    - _layout-narrow.tsx  # Default named layout implementation
+    - home.tsx            # http://server/home (Layout used: _layout.tsx)
+    - contact@narrow.tsx  # http://server/contact (Layout used: _layout-narrow.tsx)
+```
+
+- `http://server/home`
+  ```
+  +--------------------------------------------------+
+  |       src/routes/_layout.tsx                     |
+  |  +--------------------------------------------+  |
+  |  |    src/routes/home.tsx                     |  | 
+  |  |                                            |  |
+  |  +--------------------------------------------+  |
+  |                                                  |
+  +--------------------------------------------------+
+  ```
+- `http://server/contact`
+  ```
+  +--------------------------------------------------+
+  |       src/routes/_layout-narrow.tsx              |
+  |  +--------------------------------------------+  |
+  |  |    src/routes/contact@narrow.tsx           |  | 
+  |  |                                            |  |
+  |  +--------------------------------------------+  |
+  |                                                  |
+  +--------------------------------------------------+
+  ```

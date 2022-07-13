@@ -1,0 +1,23 @@
+---
+title: Qwik City - Default Index
+---
+
+# Qwik City - Default Index 
+### `index.tsx` / `index.mdx`
+
+Sometimes the route component gets too complex, and placing the whole implementation into a single file becomes impractical. In such a case, there is an alternative way to declare the same path.
+
+```
+- src/
+  - routes/
+    - index.tsx                 # http://server/
+    - some/           
+      - index.tsx                # http://server/some
+      - path/
+        - index.tsx              # http://server/some/path
+        - _other_component.tsx   # this file is ignored and not mapped to any URL.
+```
+
+### `_` prefix
+
+From time to time, there is a need to place files into the `src/routes` folder without them showing up on any route. In such a case use the `_` prefix to let Qwik City knows that the file is private and should not be exposed on any route.

@@ -1,0 +1,117 @@
+---
+title: Qwik City - Menu
+---
+
+# Qwik City - Menu
+
+Menus allow you to describe the site navigation structure in a simple declarative way. Menus come in two parts:
+1. A `_menu.md` file that contains the menu structure.
+2. A `useMenu()` function that can be used to retrieve the menu structure in a template to be used for rendering.
+
+## File Structure
+
+First layout files as follows:
+
+```
+- src/
+  - routes/
+    - some/   
+      - _menu.md
+      - _layout.tsx
+      - path.tsx       # http://server/some/path
+```
+
+Navigating to `http://server/some/path` activates:
+- `src/routes/some/path.tsx`: This component will be used for rendering the page content.
+- `src/routes/some/_layout.tsx`: This layout will be used to provide content around the `src/routes/some/path.tsx`. Internally the layout will use `src/routes/some/_menu.md` to render the menus.
+- `src/routes/some/_menu.md`: This file will be used to declare the menu structure which will be rendered by `src/routes/some/_layout.tsx`.
+
+## Declaring Menu Structure
+
+Use `_menu.md` to declare the menu structure. 
+- Use the headings (`#`, `##`, etc..) to define menu depth
+- Use the bulleted list (`-`) to define menu items.
+
+```markdown
+<!-- File: src/routes/some/_menu.md -->
+# Docs
+
+## Getting Started
+
+- [Introduction](introduction/index.md)
+
+## Components
+
+- [Basics](/docs/components/basics)
+```
+
+## Retrieving Menu Structure
+
+At runtime any component can retrieve the menu with `useContentMenu()` hook. The type returned is `ContentMenu`.
+
+The example above will return:
+```javascript
+{
+  text: "Docs",
+  items: [
+    {
+      text: "Getting Started",
+      items: [
+        { 
+          text: "Introduction", 
+          href: "/docs/introduction" 
+        }
+      ],
+    },
+    {
+      text: "Components",
+      items: [
+        { 
+          text: "Basics", 
+          href: "/docs/components/basics" 
+        }
+      ],
+    },
+  ],
+}
+```
+
+## Using `ContentMenu` in a layout
+
+While `useContentMenu()` can be invoked from any component that is part of the current route. It is typically used in a layout component (or a component used by layout) to render the menu. An example usage is shown here:
+
+```typescript
+export default component$(
+  () => {
+    const menu = useContentMenu();
+    const location = useLocation();
+
+    return (
+      <Host class="menu">
+        {menu
+          ? menu.items?.map((item) => (
+              <>
+                <h5>{item.text}</h5>
+                <ul>
+                  {item.items?.map((item) => (
+                    <li>
+                      <a
+                        href={item.href}
+                        class={{
+                          "is-active": location.pathname === item.href,
+                        }}
+                      >
+                        {item.text}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ))
+          : null}
+      </Host>
+    );
+  }
+);
+
+```

@@ -13,7 +13,7 @@ app.use(
   })
 );
 
-app.listen(8080, () => {
+app.listen(3000, () => {
   /* eslint-disable */
-  console.log(`http://localhost:8080/`);
+  console.log(`http://localhost:3000/`);
 });

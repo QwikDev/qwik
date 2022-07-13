@@ -3,16 +3,16 @@ import { testAppSuite } from './utils/test-suite';
 
 const test = testAppSuite('Build Endpoints');
 
-test('endpoint', (ctx) => {
-  const r = ctx.getEndpoint('/api/data.json');
+test('endpoint', ({ assertEndpoint }) => {
+  const r = assertEndpoint('/api/data.json');
   assert.equal(r.id, 'ApiDatajson');
   assert.equal(r.type, 'endpoint');
   assert.equal(r.pattern, /^\/api\/data\.json$/);
   assert.equal(r.paramNames.length, 0);
 });
 
-test('endpoint w/ params', (ctx) => {
-  const r = ctx.getEndpoint('/api/[org]/[user].json');
+test('endpoint w/ params', ({ assertEndpoint }) => {
+  const r = assertEndpoint('/api/[org]/[user].json');
   assert.equal(r.id, 'ApiOrgUserIndex');
   assert.equal(r.type, 'endpoint');
   assert.equal(r.pattern, /^\/api\/([^/]+?)\/([^/]+?)\.json$/);

@@ -6,11 +6,11 @@ import {
   RouteLocationContext,
 } from './constants';
 import type {
-  DocumentHead,
   ContentMenu,
   ContentHeading,
   ContentBreadcrumb,
   RouteLocation,
+  ResolvedDocumentHead,
 } from './types';
 
 /**
@@ -28,7 +28,8 @@ export const useContentHeadings = (): ContentHeading[] | undefined =>
 /**
  * @public
  */
-export const useDocumentHead = (): DocumentHead => useContext(DocumentHeadContext);
+export const useDocumentHead = (): Required<ResolvedDocumentHead> =>
+  useContext(DocumentHeadContext);
 
 /**
  * @public

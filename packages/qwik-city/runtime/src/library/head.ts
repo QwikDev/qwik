@@ -1,32 +1,43 @@
-import { parseHeadJsx } from './jsx';
-import type { ContentModule, HeadComponentProps, DocumentHead, RouteLocation } from './types';
+import type {
+  ContentModule,
+  RouteLocation,
+  EndpointResponse,
+  ResolvedDocumentHead,
+  DocumentHeadProps,
+} from './types';
 
-export const resolveHead = (routeLocation: RouteLocation, contentModules: ContentModule[]) => {
-  const headProps: HeadComponentProps = {
-    resolved: createDocumentHead(),
-    location: JSON.parse(JSON.stringify(routeLocation)),
+export const resolveHead = (
+  endpoint: EndpointResponse | null,
+  routeLocation: RouteLocation,
+  contentModules: ContentModule[]
+) => {
+  const headProps: DocumentHeadProps = {
+    data: endpoint ? endpoint.body : null,
+    head: createDocumentHead(),
+    ...routeLocation,
   };
 
   for (let i = contentModules.length - 1; i >= 0; i--) {
     resolveContentHead(headProps, contentModules[i]);
   }
 
-  return headProps.resolved;
+  return headProps.head;
 };
 
-const resolveContentHead = (headProps: HeadComponentProps, contentModule: ContentModule) => {
+const resolveContentHead = (headProps: DocumentHeadProps, contentModule: ContentModule) => {
   if (contentModule && typeof contentModule.head != null) {
     if (typeof contentModule.head === 'function') {
-      const parsedHeadJsxData = createDocumentHead();
-      parseHeadJsx(parsedHeadJsxData, contentModule.head(headProps));
-      resolveDocumentHead(headProps.resolved, parsedHeadJsxData);
+      resolveDocumentHead(headProps.head, contentModule.head(headProps));
     } else if (typeof contentModule.head === 'object') {
-      resolveDocumentHead(headProps.resolved, contentModule.head);
+      resolveDocumentHead(headProps.head, contentModule.head);
     }
   }
 };
 
-const resolveDocumentHead = (resolvedHead: DocumentHead, updatedHead: DocumentHead) => {
+const resolveDocumentHead = (
+  resolvedHead: Required<ResolvedDocumentHead>,
+  updatedHead: ResolvedDocumentHead
+) => {
   if (typeof updatedHead.title === 'string') {
     resolvedHead.title = updatedHead.title;
   }
@@ -35,7 +46,7 @@ const resolveDocumentHead = (resolvedHead: DocumentHead, updatedHead: DocumentHe
   mergeArray(resolvedHead.styles, updatedHead.styles);
 };
 
-const mergeArray = (existingArr: { key?: string }[], newArr: { key?: string }[]) => {
+const mergeArray = (existingArr: { key?: string }[], newArr: { key?: string }[] | undefined) => {
   if (Array.isArray(newArr)) {
     for (const newItem of newArr) {
       if (typeof newItem.key === 'string') {
@@ -50,7 +61,7 @@ const mergeArray = (existingArr: { key?: string }[], newArr: { key?: string }[])
   }
 };
 
-export const createDocumentHead = (): DocumentHead => ({
+export const createDocumentHead = (): Required<ResolvedDocumentHead> => ({
   title: '',
   meta: [],
   links: [],

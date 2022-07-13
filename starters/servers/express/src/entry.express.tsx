@@ -1,7 +1,7 @@
 import express from 'express';
 import { join } from 'path';
 import cityPlan from '@qwik-city-plan';
-import { qwikCity } from '@builder.io/qwik-city/adaptors/express';
+import { qwikCity } from '@builder.io/qwik-city/middleware/express';
 import { render } from './entry.ssr';
 
 const app = express();

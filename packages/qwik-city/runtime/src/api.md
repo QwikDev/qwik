@@ -5,8 +5,8 @@
 ```ts
 
 import { Component } from '@builder.io/qwik';
-import type { FunctionComponent } from '@builder.io/qwik';
 import type { HTMLAttributes } from '@builder.io/qwik';
+import { Resource } from '@builder.io/qwik';
 
 // @public (undocumented)
 export const Content: Component<    {}>;
@@ -39,17 +39,10 @@ export interface ContentMenu {
     text: string;
 }
 
+// Warning: (ae-forgotten-export) The symbol "DocumentHeadProps" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export interface DocumentHead {
-    // (undocumented)
-    links: DocumentLink[];
-    // (undocumented)
-    meta: DocumentMeta[];
-    // (undocumented)
-    styles: DocumentStyle[];
-    // (undocumented)
-    title: string;
-}
+export type DocumentHead<T = unknown> = ResolvedDocumentHead | ((props: DocumentHeadProps<T>) => ResolvedDocumentHead);
 
 // @public (undocumented)
 export interface DocumentLink {
@@ -116,20 +109,10 @@ export interface DocumentStyle {
 }
 
 // Warning: (ae-forgotten-export) The symbol "RequestEvent" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "EndpointResponse" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type EndpointHandler = (ev: RequestEvent) => Response | Promise<Response>;
-
-// @public (undocumented)
-export type HeadComponent = FunctionComponent<HeadComponentProps>;
-
-// @public (undocumented)
-export interface HeadComponentProps {
-    // (undocumented)
-    location: RouteLocation;
-    // (undocumented)
-    resolved: DocumentHead;
-}
+export type EndpointHandler<BODY = unknown> = (ev: RequestEvent) => EndpointResponse<BODY> | Promise<EndpointResponse<BODY>>;
 
 // Warning: (ae-forgotten-export) The symbol "HtmlProps" needs to be exported by the entry point index.d.ts
 //
@@ -146,6 +129,18 @@ export interface QwikCityPlan {
     routes: RouteData[];
     // (undocumented)
     trailingSlash?: boolean;
+}
+
+// @public (undocumented)
+export interface ResolvedDocumentHead {
+    // (undocumented)
+    links?: DocumentLink[];
+    // (undocumented)
+    meta?: DocumentMeta[];
+    // (undocumented)
+    styles?: DocumentStyle[];
+    // (undocumented)
+    title?: string;
 }
 
 // Warning: (ae-forgotten-export) The symbol "ContentModuleLoader" needs to be exported by the entry point index.d.ts
@@ -165,23 +160,15 @@ export interface RouteLocation {
     // (undocumented)
     hash: string;
     // (undocumented)
-    host: string;
-    // (undocumented)
     hostname: string;
     // (undocumented)
     href: string;
-    // (undocumented)
-    origin: string;
     // Warning: (ae-forgotten-export) The symbol "RouteParams" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     params: RouteParams;
     // (undocumented)
     pathname: string;
-    // (undocumented)
-    port: string;
-    // (undocumented)
-    protocol: string;
     // (undocumented)
     query: Record<string, string>;
     // (undocumented)
@@ -198,7 +185,10 @@ export const useContentHeadings: () => ContentHeading[] | undefined;
 export const useContentMenu: () => ContentMenu | undefined;
 
 // @public (undocumented)
-export const useDocumentHead: () => DocumentHead;
+export const useDocumentHead: () => Required<ResolvedDocumentHead>;
+
+// @public (undocumented)
+export const useEndpoint: <T = unknown>() => Resource<T>;
 
 // @public (undocumented)
 export const useLocation: () => RouteLocation;

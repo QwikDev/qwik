@@ -7,9 +7,8 @@ export type {
   DocumentMeta,
   DocumentStyle,
   EndpointHandler,
-  HeadComponent,
-  HeadComponentProps,
   QwikCityPlan,
+  ResolvedDocumentHead,
   RouteData,
   RouteLocation,
 } from './library/types';
@@ -24,3 +23,4 @@ export {
   useContentHeadings,
   useContentMenu,
 } from './library/use-functions';
+export { useEndpoint } from './library/use-endpoint';

@@ -1,5 +1,5 @@
 import { component$, Host, Slot, useScopedStyles$ } from '@builder.io/qwik';
-import styles from './_layout.css';
+import styles from './_layout.css?inline';
 
 export default component$(() => {
   useScopedStyles$(styles);

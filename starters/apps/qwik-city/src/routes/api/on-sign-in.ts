@@ -22,7 +22,7 @@ export const post: EndpointHandler = async (ev: any) => {
   const formdata = await ev.request.formData();
   const result = handleAuth(formdata, cookie);
   const status = STATUS[result];
-  return new Response(status.msg, {
+  return {
     status: status.code,
     headers:
       result == 'New Login'
@@ -32,7 +32,7 @@ export const post: EndpointHandler = async (ev: any) => {
             }`,
           }
         : {},
-  });
+  };
 };
 
 const AUTHTOKEN_NAME = 'qwikcity-auth-token';

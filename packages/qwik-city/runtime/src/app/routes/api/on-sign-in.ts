@@ -1,4 +1,4 @@
-import type { EndpointHandler } from '../../../library/types';
+import type { EndpointHandler } from '~qwik-city-runtime';
 
 export type Cookie = Record<string, string>;
 export type AuthResult = 'New Login' | 'Already Logged In' | 'Invalid Credentials';
@@ -22,7 +22,7 @@ export const post: EndpointHandler = async (ev) => {
   const formdata = await ev.request.formData();
   const result = handleAuth(formdata, cookie);
   const status = STATUS[result];
-  return new Response(status.msg, {
+  return {
     status: status.code,
     headers:
       result == 'New Login'
@@ -32,7 +32,7 @@ export const post: EndpointHandler = async (ev) => {
             }`,
           }
         : {},
-  });
+  };
 };
 
 const AUTHTOKEN_NAME = 'qwikcity-auth-token';

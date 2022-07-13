@@ -70,59 +70,57 @@ export const ResourceApp = component$(() => {
     return count * 2;
   });
 
-  const resource2 = useResource$<number>(async ({ track }) => {
-    logs.content += '[RESOURCE] 2 before\n';
-    const count = track(state, 'countDoubleDouble');
-    await delay(2000);
+  // const resource2 = useResource$<number>(async ({ track }) => {
+  //   logs.content += '[RESOURCE] 2 before\n';
+  //   const count = track(state, 'countDoubleDouble');
+  //   await delay(2000);
 
-    logs.content += '[RESOURCE] 2 after\n';
-    return count * 4;
-  });
+  //   logs.content += '[RESOURCE] 2 after\n';
+  //   return count * 4;
+  // });
 
   return (
     <Host>
       <button type="button" onClick$={() => state.count++}>
         Increment
       </button>
-      <Results result={resource} result2={resource2} />
+      <Results result={resource} />
     </Host>
   );
 });
 
-export const Results = component$(
-  (props: { result: Resource<number>; result2: Resource<number> }) => {
-    useStyles$(`
+export const Results = component$((props: { result: Resource<number> }) => {
+  useStyles$(`
     .logs {
       white-space: pre;
     }`);
-    const logs = useContext(LOGS);
-    logs.content += '[RENDER] <Results>\n\n\n';
+  const logs = useContext(LOGS);
+  logs.content += '[RENDER] <Results>\n\n\n';
 
-    return (
-      <Host>
-        <Async
-          resource={props.result}
-          onPending={() => <div class="resource1">loading resource 1...</div>}
-          onRejected={(reason) => <div class="resource1">error {reason}</div>}
-          onResolved={(number) => {
-            return <div class="resource1">resource 1 is {number}</div>;
-          }}
-        />
+  return (
+    <Host>
+      <Async
+        resource={props.result}
+        onPending={() => <div class="resource1">loading resource 1...</div>}
+        onRejected={(reason) => <div class="resource1">error {reason}</div>}
+        onResolved={(number) => {
+          return <div class="resource1">resource 1 is {number}</div>;
+        }}
+      />
 
-        <Async
+      {/* <Async
           resource={props.result2}
           onPending={() => <div class="resource2">loading resource 2...</div>}
           onRejected={(reason) => <div class="resource2">error {reason}</div>}
           onResolved={(number) => {
             return <div class="resource2">resource 2 is {number}</div>;
           }}
-        />
+        /> */}
 
-        <div class="logs">{logs.content}</div>
-      </Host>
-    );
-  }
-);
+      <div class="logs">{logs.content}</div>
+    </Host>
+  );
+});
 
 export function delay(nu: number) {
   return new Promise((resolve) => {

@@ -22,7 +22,7 @@ export function toTitleCase(str: string) {
 export function addError(ctx: BuildContext, e: any) {
   ctx.diagnostics.push({
     type: 'error',
-    message: String(e.stack || e),
+    message: e ? String(e.stack || e) : 'Error',
   });
 }
 

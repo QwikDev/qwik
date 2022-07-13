@@ -25,9 +25,13 @@ export function qwikCity(render: Render, opts: QwikCityPlanCloudflarePages) {
 
       const response = await requestHandler(render, requestOpts);
       if (response) {
-        if (response.ok) {
+        if (response.ok && request.method === 'GET' && !response.url.includes('localhost')) {
           const cacheControl = response.headers.get('Cache-Control') || '';
-          if (!cacheControl.includes('no-store')) {
+          if (
+            !cacheControl.includes('no-cache') &&
+            !cacheControl.includes('no-store') &&
+            !cacheControl.includes('private')
+          ) {
             waitUntil(cache.put(request, response.clone()));
           }
         }

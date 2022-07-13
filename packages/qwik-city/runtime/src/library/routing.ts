@@ -1,5 +1,5 @@
 import { MODULE_CACHE } from './constants';
-import type { LoadedRoute, MatchedRoute, RouteData, RouteParams } from './types';
+import type { ContentModule, LoadedRoute, MatchedRoute, RouteData, RouteParams } from './types';
 
 export const matchRoute = (
   routes: RouteData[] | undefined,
@@ -27,7 +27,7 @@ export const loadRoute = async (
 
   if (matchedRoute) {
     const moduleLoaders = matchedRoute.loaders;
-    const modules = new Array(moduleLoaders.length);
+    const modules: ContentModule[] = new Array(moduleLoaders.length);
     const pendingLoads: Promise<any>[] = [];
 
     moduleLoaders.forEach((moduleLoader, i) => {

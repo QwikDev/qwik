@@ -3,7 +3,7 @@
   "name": "qwik-monorepo",
   "version": "0.0.35",
   "scripts": {
-    "build": "yarn node scripts --tsc --build --api --platform-binding-wasm-copy",
+    "build": "yarn node scripts --tsc --build --qwikcity --api --platform-binding-wasm-copy",
     "build.full": "yarn node scripts --tsc --build --api --eslint --qwikcity --qwikreact --platform-binding --wasm",
     "build.platform": "yarn node scripts --platform-binding",
     "build.platform.copy": "yarn node scripts --platform-binding-wasm-copy",
@@ -74,7 +74,6 @@
     "eslint-plugin-no-only-tests": "2.6.0",
     "execa": "6.1.0",
     "express": "4.18.1",
-    "headers-polyfill": "^3.0.9",
     "jest": "27.5.1",
     "mri": "1.2.0",
     "node-fetch": "2.6.7",

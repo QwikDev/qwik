@@ -32,6 +32,7 @@ import {
   ScriptTarget,
   SyntaxKind,
 } from 'typescript';
+import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
 
 /**
  * @alpha
@@ -96,18 +97,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
               const match = route.pattern.exec(pathname);
               if (match) {
                 const method: HttpMethod = req.method as any;
-                let body: ArrayBuffer | undefined = undefined;
-                if (!(req.method === 'GET' || req.method === 'HEAD')) {
-                  const bytes: string[] = [];
-                  await new Promise((resolve) => {
-                    req.setEncoding('utf-8');
-                    req.on('data', (bts) => bytes.push(bts));
-                    req.on('end', resolve);
-                  });
-                  body = new TextEncoder().encode(bytes.join('')).buffer;
-                }
-                const headers = new Headers(Object.entries(req.headers as Record<string, any>));
-                const request = new Request(url.href, { method, headers, body });
+                const request = new Request(url.href, { method, headers: req.headers as any });
                 const params = getRouteParams(route.paramNames, match);
 
                 if (route.type !== 'endpoint') {
@@ -119,7 +109,9 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
                   }
                 }
 
-                const endpointModule = await server.ssrLoadModule(route.filePath);
+                const endpointModule = await server.ssrLoadModule(route.filePath, {
+                  fixStacktrace: true,
+                });
 
                 const endpointResponse = await getEndpointResponse(
                   request,
@@ -162,12 +154,10 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
                   }
                 }
 
-                try {
-                  const userContext = getQwikCityUserContext(endpointResponse);
-                  res.setHeader('X-Qwik-Dev-User-Context', JSON.stringify(userContext));
-                } catch (e) {
-                  console.error(e);
-                }
+                (res as QwikViteDevResponse)._qwikUserCtx = {
+                  ...(res as QwikViteDevResponse)._qwikUserCtx,
+                  ...getQwikCityUserContext(url, params, method, endpointResponse),
+                };
               }
             }
           }

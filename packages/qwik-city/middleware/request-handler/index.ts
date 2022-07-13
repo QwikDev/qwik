@@ -60,7 +60,7 @@ export async function requestHandler(
             return endpointHandler(method, endpointResponse);
           }
 
-          const pageResponse = await pageHandler(render, url, endpointResponse);
+          const pageResponse = await pageHandler(render, url, params, method, endpointResponse);
           return pageResponse;
         }
       }

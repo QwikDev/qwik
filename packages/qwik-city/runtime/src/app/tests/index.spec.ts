@@ -1,6 +1,8 @@
+/* eslint-disable */
 import { test, expect } from '@playwright/test';
 
-test('ssr /', async ({ page }) => {
+test('Qwik City', async ({ page, javaScriptEnabled }) => {
+  console.log('javaScriptEnabled', javaScriptEnabled);
   page.on('pageerror', (err) => expect(err).toEqual(undefined));
 
   const rsp = (await page.goto('/'))!;
@@ -32,6 +34,10 @@ test('ssr /', async ({ page }) => {
   const header = rootLayout.locator('header');
   const logo = header.locator('.logo a');
   expect(await logo.innerText()).toBe('Qwik City 🏙');
+
+  const footer = rootLayout.locator('footer');
+  const footerHomeLink = footer.locator('a.footer-home');
+  expect(await footerHomeLink.innerText()).toBe('Home');
 
   const main = rootLayout.locator('main');
   const h1 = main.locator('h1');

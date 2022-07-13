@@ -1,15 +1,16 @@
 import type { PlaywrightTestConfig } from '@playwright/test';
 
+const javaScriptEnabled = process.env.DISABLE_JS !== 'true';
+
 const config: PlaywrightTestConfig = {
   use: {
     viewport: {
       width: 1200,
       height: 800,
     },
+    javaScriptEnabled,
   },
   timeout: 5000,
-  // workers: 1,
-  // retries: 3,
   webServer: {
     command: 'node server/entry.express.js',
     port: 3000,

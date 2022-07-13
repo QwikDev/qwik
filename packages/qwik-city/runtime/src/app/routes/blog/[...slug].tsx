@@ -6,8 +6,8 @@ export default component$(() => {
 
   return (
     <Host>
-      <h1>Blog {pathname}</h1>
-      <p>Slug: {params.slug}</p>
+      <h1>Blog: {params.slug}</h1>
+      <p>Pathname: {pathname}</p>
     </Host>
   );
 });

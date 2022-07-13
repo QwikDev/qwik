@@ -8,7 +8,7 @@ export default component$(() => {
   useStyles$(styles);
 
   return (
-    <Host class="docs">
+    <Host class="docs" data-test-layout="docs">
       <Menu />
       <section class="docs-content">
         <Breadcrumbs />

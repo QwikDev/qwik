@@ -4,7 +4,7 @@ import Header from '../components/header/header';
 
 export default component$(() => {
   return (
-    <Host class="root-layout">
+    <Host data-test-layout="root">
       <Header />
       <main>
         <Slot />

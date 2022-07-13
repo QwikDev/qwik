@@ -37,8 +37,8 @@
     "serve.debug": "node --inspect-brk runtime/server/entry.express.js",
     "test": "yarn test.unit && yarn test.e2e",
     "test.unit": "node ../../node_modules/.bin/uvu -r tsm . \"(unit)\"",
-    "test.e2e": "node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts",
-    "test.e2e.no-js": "DISABLE_JS=true node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts"
+    "test.e2e": "DISABLE_JS=true node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts",
+    "test.e2e.client": "node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts"
   },
   "dependencies": {
     "@mdx-js/mdx": "2.1.2",

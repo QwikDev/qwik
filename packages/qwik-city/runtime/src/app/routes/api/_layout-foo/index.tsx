@@ -8,17 +8,21 @@ export default component$(() => {
   useScopedStyles$(styles);
 
   return (
-    <Host>
+    <Host data-test-layout="api">
       <Header />
       <main class="api">
         <aside class="api-menu">
           <h2>API</h2>
           <ul>
             <li>
-              <a href="/api/builder.io/oss.json">Org/User</a>
+              <a href="/api/builder.io/oss.json" data-test-link="api-org-user">
+                Org/User
+              </a>
             </li>
             <li>
-              <a href="/api/data.json">Data</a>
+              <a href="/api/data.json" data-test-link="api-data">
+                Data
+              </a>
             </li>
           </ul>
         </aside>

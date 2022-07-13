@@ -2,17 +2,21 @@ import { component$, Host, Slot } from '@builder.io/qwik';
 
 export default component$(() => {
   return (
-    <Host>
+    <Host data-test-layout="blog">
       <section class="blog-content">
         <Slot />
       </section>
       <aside class="blog-menu">
         <ul>
           <li>
-            <a href="/blog/how-to-use-a-toaster">How to use a toaster</a>
+            <a href="/blog/what-is-resumability" data-test-link="blog-resumability">
+              What Is Resumability?
+            </a>
           </li>
           <li>
-            <a href="/blog/how-to-crack-an-egg">How to crack an egg</a>
+            <a href="/blog/serializing-props" data-test-link="blog-serializing-props">
+              Serializing Props
+            </a>
           </li>
         </ul>
       </aside>

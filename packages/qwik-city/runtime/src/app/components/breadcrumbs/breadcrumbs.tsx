@@ -9,7 +9,7 @@ export const Breadcrumbs = component$(
     const breadcrumbs = useContentBreadcrumbs();
 
     return (
-      <Host class="breadcrumbs">
+      <Host class="breadcrumbs" data-test-breadcrumbs>
         {breadcrumbs
           ? breadcrumbs.map((b) => <span>{b.href ? <a href={b.href}>{b.text}</a> : b.text}</span>)
           : null}

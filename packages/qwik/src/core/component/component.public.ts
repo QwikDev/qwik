@@ -154,11 +154,7 @@ export const componentQrl = <PROPS extends {}>(
   // Return a QComponent Factory function.
   return function QSimpleComponent(props, key): JSXNode<PROPS> {
     const finalKey = skipKey ? undefined : onRenderQrl.getHash() + ':' + (key ? key : '');
-    return jsx(
-      (props.as || tagName) as string,
-      { [OnRenderProp]: onRenderQrl, ...props },
-      finalKey
-    ) as any;
+    return jsx(tagName as string, { [OnRenderProp]: onRenderQrl, ...props }, finalKey) as any;
   };
 };
 

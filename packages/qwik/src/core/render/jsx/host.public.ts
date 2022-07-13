@@ -5,6 +5,11 @@ export interface HostAttributes extends HTMLAttributes<HTMLElement> {
   [key: string]: any;
 }
 /**
+ * @public
+ */
+export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
+
+/**
  * Place at the root of the component View to allow binding of attributes on the Host element.
  *
  * ```
@@ -19,7 +24,13 @@ export interface HostAttributes extends HTMLAttributes<HTMLElement> {
  * servers that purpose.
  * @public
  */
+<<<<<<< HEAD
 export const Host: FunctionComponent<HostAttributes> = { __brand__: 'host' } as any;
+=======
+export const Host: FunctionComponent<HTMLAttributes<HTMLElement> & { tagName?: JSXTagName }> = {
+  __brand__: 'host',
+} as any;
+>>>>>>> Expose tagName on Host component and host:tagName
 
 /**
  * @public

@@ -195,7 +195,6 @@ export interface ComponentBaseProps {
   key?: string | number;
   id?: string | undefined;
   ref?: Ref<Element>;
-  as?: JSXTagName;
 
   'q:slot'?: string;
 
@@ -212,6 +211,8 @@ export interface ComponentBaseProps {
 
   [key: `preventDefault:${string}`]: boolean;
   [key: `preventdefault:${string}`]: boolean;
+
+  [key: `host:tagName${string}`]: JSXTagName;
 
   children?: JSXChildren;
 }

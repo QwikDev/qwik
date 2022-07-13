@@ -169,7 +169,13 @@ export const handleWatch: () => void;
 // Warning: (ae-forgotten-export) The symbol "HostAttributes" needs to be exported by the entry point index.d.ts
 //
 // @public
+<<<<<<< HEAD
 export const Host: FunctionComponent<HostAttributes>;
+=======
+export const Host: FunctionComponent<HTMLAttributes<HTMLElement> & {
+    tagName?: JSXTagName_3;
+}>;
+>>>>>>> Expose tagName on Host component and host:tagName
 
 // @public (undocumented)
 export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
@@ -619,6 +625,10 @@ export const version: string;
 
 // @alpha (undocumented)
 export type WatchFn = (track: Tracker) => ValueOrPromise<void | (() => void)>;
+
+// Warnings were encountered during analysis:
+//
+// /workspaces/qwik/dist-dev/dts-out/packages/qwik/src/core/render/jsx/host.public.d.ts:23:5 - (ae-forgotten-export) The symbol "JSXTagName" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

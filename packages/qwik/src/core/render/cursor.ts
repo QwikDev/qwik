@@ -812,9 +812,10 @@ export const classlistAdd = (ctx: RenderContext, el: Element, hostStyleTag: stri
 };
 
 const setProperty = (ctx: RenderContext, node: any, key: string, value: any) => {
+  const normalizedKey = key === 'tagName' ? '_tagName' : key;
   const fn = () => {
     try {
-      node[key] = value;
+      node[normalizedKey] = value;
     } catch (err) {
       logError(codeToText(QError_setProperty), { node, key, value }, err);
     }

@@ -299,6 +299,22 @@ export const CmpInline = component$(() => {
 };
 
 () => {
+  const Heading = component$((props: { as: 'h1' | 'h2' | 'h3' }) => {
+    const styles = {
+      h1: 'font-size: 3rem',
+      h2: 'font-size: 2.5rem',
+      h3: 'font-size: 2rem',
+    };
+    return (
+      <Host tagName={props.as} style={styles[props.as]}>
+        <Slot />
+      </Host>
+    );
+  });
+  return Heading;
+};
+
+() => {
   // <docs anchor="use-store">
   const Stores = component$(() => {
     const counter = useCounter(1);
@@ -421,6 +437,7 @@ function doExtraStuff() {
 
 // <docs anchor="qrl-capturing-rules">
 import { importedFn } from './import/example';
+import { Slot } from './render/jsx/slot.public';
 
 export const greet = () => console.log('greet');
 function topLevelFn() {}

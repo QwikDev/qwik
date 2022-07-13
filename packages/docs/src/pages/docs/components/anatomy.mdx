@@ -100,7 +100,7 @@ Will result in:
 
 Qwik host elements are marked with `q:host` attribute.
 
-As you can see, `component$` will always create an extra element, by default is `div`, but that can be changed with `component$` options argument:
+As you can see, `component$` will always create an extra element, by default is `div`, but that can be changed with `component$` options argument or the `tagName` attribute:
 
 ```tsx
 const MyArticle = component$(() => (
@@ -110,7 +110,17 @@ const MyArticle = component$(() => (
 });
 ```
 
-Will result in:
+and:
+
+```tsx
+const MyArticle = component$(() => (
+  <span>My article</span>
+));
+
+<MyArticle tagName="article"/>
+```
+
+Will both result in:
 
 ```html
 <article q:host>
@@ -120,14 +130,13 @@ Will result in:
 </article>
 ```
 
+To control the tag name from inside of a `component$` use the [the Host tag](#host)
+
 ### `useHostElement()`
 
 Since the host element is implicitly created by `component$`, it is not possible to access it directly. Instead, you can use `useHostElement()` to get the host element.
 
  Qwik uses host elements in various ways. For example when using `useHostElement()` function which retrieves it. It is also used to attach props to the components for serialization.
-
-
-
 
 ## Host Element Attributes & Styling
 
@@ -230,6 +239,43 @@ will result in:
 </div>
 ```
 
+You can also use the `<Host/>` component to set the tag name of the wrapper element generate by Qwik. This is very useful when building design systems.
+
+```tsx
+const Heading = component$((props: {as: 'h1' | 'h2' | 'h3'}) => {
+  const styles = {
+    h1: "font-size: 3rem",
+    h2: "font-size: 2rem",
+    h3: "font-size: 1.5rem",
+  };
+  return (
+    <Host tagName={props.as} style={styles[props.as]}>
+      <span>Hello World</span>
+    </Host>
+  );
+});
+```
+using the component like so:
+
+```tsx
+<Heading as="h1" />
+<Heading as="h2" />
+<Heading as="h3" />
+```
+
+will result in:
+
+```html
+<h1 q:host>
+  <span>Hello World</span>
+</h1>
+<h2 q:host>
+  <span>Hello World</span>
+</h2>
+<h3 q:host>
+  <span>Hello World</span>
+</h3>
+```
 
 ## Lazy Loading
 

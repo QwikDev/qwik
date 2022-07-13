@@ -447,8 +447,8 @@ renderSuite('should project un-named slot component', async () => {
     });
 
     it('should render host:tagName then a component', async () => {
-      await render(fixture.host, <HelloWorld host:tagName={"article"}/>);
-      expectFirstTag("article");
+      await render(fixture.host, <HelloWorld host:tagName={'article'} />);
+      expectFirstTag('article');
     });
 
     describe('handlers', () => {

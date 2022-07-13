@@ -80,10 +80,7 @@ export type MutableProps<PROPS extends {}> = {
  */
 export type EventHandler<T> = QRL<(value: T) => any>;
 
-const ELEMENTS_SKIP_KEY: (
-  | keyof HTMLElementTagNameMap
-  | Omit<string, keyof HTMLElementTagNameMap>
-)[] = ['html', 'body', 'head'];
+const ELEMENTS_SKIP_KEY: JSXTagName[] = ['html', 'body', 'head'];
 
 // <docs markdown="../readme.md#component">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

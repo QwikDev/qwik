@@ -183,7 +183,7 @@ interface CSSProperties {
 /**
  * @public
  */
-type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
+export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
 
 /**
  * @public

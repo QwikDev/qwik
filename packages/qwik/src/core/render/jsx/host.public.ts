@@ -1,5 +1,6 @@
 import type { HTMLAttributes } from './types/jsx-generated';
 import type { FunctionComponent } from './types/jsx-node';
+<<<<<<< HEAD
 
 export interface HostAttributes extends HTMLAttributes<HTMLElement> {
   [key: string]: any;
@@ -8,6 +9,9 @@ export interface HostAttributes extends HTMLAttributes<HTMLElement> {
  * @public
  */
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
+=======
+import type { JSXTagName } from './types/jsx-qwik-attributes';
+>>>>>>> Remove duplicated type definitions
 
 /**
  * Place at the root of the component View to allow binding of attributes on the Host element.

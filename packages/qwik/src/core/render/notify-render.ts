@@ -46,6 +46,8 @@ export interface ContainerState {
   $hostsStaging$: Set<Element>;
   $hostsRendering$: Set<Element> | undefined;
   $renderPromise$: Promise<RenderContext> | undefined;
+
+  $userContext$: Record<string, any>;
 }
 
 const CONTAINER_STATE = Symbol('ContainerState');
@@ -54,6 +56,7 @@ export const getContainerState = (containerEl: Element): ContainerState => {
   let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
   if (!set) {
     (containerEl as any)[CONTAINER_STATE] = set = {
+
       $proxyMap$: new WeakMap(),
       $subsManager$: createSubscriptionManager(),
       $platform$: getPlatform(containerEl),
@@ -65,6 +68,8 @@ export const getContainerState = (containerEl: Element): ContainerState => {
       $hostsStaging$: new Set(),
       $renderPromise$: undefined,
       $hostsRendering$: undefined,
+
+      $userContext$: {},
     };
   }
   return set;

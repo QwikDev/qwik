@@ -29,6 +29,8 @@ export const QError_strictHTMLChildren = 24;
 export const QError_invalidJsxNodeType = 25;
 export const QError_trackUseStore = 26;
 export const QError_missingObjectId = 27;
+export const QError_canNotMountUseServerContext = 28;
+export const QError_canNotFindServerContext = 29;
 
 export const qError = (code: number, ...parts: any[]): Error => {
   const text = codeToText(code);
@@ -66,6 +68,8 @@ export const codeToText = (code: number): string => {
       'Invalid JSXNode type. It must be either a function or a string. Found:',
       'Tracking value changes can only be done to useStore() objects and component props',
       'Missing Object ID for captured object',
+      'Components using useServerContext() can only be mounted in the server.',
+      'Missing value for useServerContext() with key'
     ];
     return `Code(${code}): ${MAP[code] ?? ''}`;
   } else {

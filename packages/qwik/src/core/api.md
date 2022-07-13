@@ -377,8 +377,10 @@ export interface Ref<T> {
     current: T | undefined;
 }
 
+// Warning: (ae-forgotten-export) The symbol "RenderOptions" needs to be exported by the entry point index.d.ts
+//
 // @alpha
-export const render: (parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>, allowRerender?: boolean) => Promise<void>;
+export const render: (parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>, opts?: RenderOptions) => Promise<void>;
 
 // @alpha (undocumented)
 export type Resource<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;

@@ -239,9 +239,4 @@ export interface EndpointResponse<BODY = unknown> {
 }
 
 export interface QwikCityRenderDocument extends RenderDocument {
-  __qwikUserCtx?: {
-    qwikCity?: {
-      endpointResponse?: EndpointResponse;
-    };
-  };
 }

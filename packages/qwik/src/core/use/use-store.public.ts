@@ -137,7 +137,7 @@ export const useRef = <T extends Element = Element>(current?: T): Ref<T> => {
 
 export interface SequentialScope<T> {
   readonly get: T | undefined;
-  readonly set: (v: T) => void;
+  readonly set: (v: T) => T;
   readonly i: number;
   readonly ctx: RenderInvokeContext;
 }
@@ -155,7 +155,7 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
     if (qDev) {
       verifySerializable(value);
     }
-    elementCtx.$seq$[i] = value;
+    return elementCtx.$seq$[i] = value;
   };
   return {
     get: elementCtx.$seq$[i],

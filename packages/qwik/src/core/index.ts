@@ -77,6 +77,8 @@ export { useLexicalScope } from './use/use-lexical-scope.public';
 export { useStore, useRef, useSequentialScope } from './use/use-store.public';
 export { useContext, useContextProvider, createContext } from './use/use-context';
 export { useWaitOn } from './use/use-core';
+export { useServerContext as useUserContext } from './use/use-server-context';
+
 export { useStylesQrl, useStyles$, useScopedStylesQrl, useScopedStyles$ } from './use/use-styles';
 export {
   useCleanupQrl,

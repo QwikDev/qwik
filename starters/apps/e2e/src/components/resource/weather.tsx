@@ -6,7 +6,7 @@ import {
   useResource$,
   Resource,
   useWatch$,
-  Async,
+  ResourceReturn,
 } from '@builder.io/qwik';
 
 export interface WeatherData {
@@ -66,7 +66,7 @@ export const Weather = component$(() => {
   );
 });
 
-export const WeatherResults = component$((props: { weather: Resource<WeatherData> }) => {
+export const WeatherResults = component$((props: { weather: ResourceReturn<WeatherData> }) => {
   console.log('rerender');
   return (
     <Host>
@@ -88,11 +88,11 @@ export const WeatherResults = component$((props: { weather: Resource<WeatherData
 });
 
 export const WeatherResults2 = component$(
-  (props: { weather: Resource<WeatherData | undefined> }) => {
+  (props: { weather: ResourceReturn<WeatherData | undefined> }) => {
     console.log('rerender');
     return (
       <Host>
-        <Async
+        <Resource
           resource={props.weather}
           onPending={() => <div>loading data...</div>}
           onRejected={(reason) => <div>error {reason}</div>}

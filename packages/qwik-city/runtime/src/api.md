@@ -6,7 +6,7 @@
 
 import { Component } from '@builder.io/qwik';
 import type { HTMLAttributes } from '@builder.io/qwik';
-import { Resource } from '@builder.io/qwik';
+import { ResourceReturn } from '@builder.io/qwik';
 
 // @public (undocumented)
 export const Content: Component<    {}>;
@@ -188,7 +188,7 @@ export const useContentMenu: () => ContentMenu | undefined;
 export const useDocumentHead: () => Required<ResolvedDocumentHead>;
 
 // @public (undocumented)
-export const useEndpoint: <T = unknown>() => Resource<T>;
+export const useEndpoint: <T = unknown>() => ResourceReturn<T>;
 
 // @public (undocumented)
 export const useLocation: () => RouteLocation;

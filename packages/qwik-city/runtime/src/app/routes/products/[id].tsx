@@ -1,4 +1,4 @@
-import { Async, component$, Host, useStore } from '@builder.io/qwik';
+import { Resource, component$, Host, useStore } from '@builder.io/qwik';
 import { useEndpoint, useLocation, EndpointHandler, DocumentHead } from '~qwik-city-runtime';
 import os from 'os';
 
@@ -10,7 +10,7 @@ export default component$(() => {
 
   return (
     <Host>
-      <Async
+      <Resource
         resource={resource}
         onPending={() => <p>Loading</p>}
         onResolved={(product) => {

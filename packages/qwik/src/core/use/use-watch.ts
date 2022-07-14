@@ -49,7 +49,7 @@ export type MountFn<T> = () => ValueOrPromise<T>;
 /**
  * @alpha
  */
-export type Resource<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
+export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
 /**
  * @alpha
@@ -109,7 +109,7 @@ export type WatchDescriptor = DescriptorBase<WatchFn>;
  * @alpha
  */
 export interface ResourceDescriptor<T> extends DescriptorBase<ResourceFn<T>> {
-  r: Resource<T>;
+  r: ResourceReturn<T>;
 }
 
 /**
@@ -408,8 +408,8 @@ export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useClientEffectQ
  * @public
  */
 // </docs>
-export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): Resource<T> => {
-  const { get, set, ctx } = useSequentialScope<Resource<T>>();
+export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): ResourceReturn<T> => {
+  const { get, set, ctx } = useSequentialScope<ResourceReturn<T>>();
   if (get) {
     return get;
   }
@@ -500,8 +500,8 @@ export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl
  * @public
  */
 // </docs>
-export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): Resource<T> => {
-  const { get, set, ctx } = useSequentialScope<Resource<T>>();
+export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): ResourceReturn<T> => {
+  const { get, set, ctx } = useSequentialScope<ResourceReturn<T>>();
   if (get) {
     return get;
   }
@@ -511,8 +511,8 @@ export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): Resource<T> => {
   return resource;
 };
 
-const createResourceFromPromise = <T>(promise: Promise<T>): Resource<T> => {
-  const resource: Resource<T> = {
+const createResourceFromPromise = <T>(promise: Promise<T>): ResourceReturn<T> => {
+  const resource: ResourceReturn<T> = {
     state: 'pending',
     error: undefined,
     resolved: undefined,

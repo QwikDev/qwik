@@ -3,9 +3,16 @@ title: Light Component
 layout: tutorial
 ---
 
-Qwik components are lazy-loadable, which lies at the heart of what makes Qwik different from most other frameworks.
+One of Qwik's super powers lies in its lazy-loading features. 
 
-You can mark a component as lazy-loadable by using the `component$()` method. When you see a `$` in Qwik code, you're encountering a lazy-loading boundary.
+Qwik lazy-loads:
+
+- **Independent of DOM presence**: Components can load before and after they are added to the DOM.
+- **Independent of hierarchy**: Components can be loaded out of order. For example, the script for a child component can load before its parent script.
+- **Based on interaction**: Script loading is deferred until a user interacts with a component.
+- **More than just components**: Qwik lazy-loads any closure including components, event listeners, effects, and behaviors.
+
+You can mark a component as lazy-loadable by using the `component$()` method. When you see a `$` in Qwik code, you're crossing a lazy-loading boundary.
 
 If you want to ensure a component loads with another component, you create an inline component. Inline components load as a part of the parent component and are equivalent to how most other frameworks deal with components.
 

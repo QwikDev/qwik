@@ -127,6 +127,8 @@ export interface OptimizerSystem {
     os: string;
     // (undocumented)
     path: Path;
+    // (undocumented)
+    strictDynamicImport: (path: string) => Promise<any>;
 }
 
 // @alpha (undocumented)

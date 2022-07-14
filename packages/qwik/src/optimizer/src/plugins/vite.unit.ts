@@ -52,7 +52,7 @@ describe('vite  plugin', () => {
       expect(c.optimizeDeps?.exclude).toEqual(excludeDeps);
 
       expect(c.esbuild).toEqual(undefined);
-      expect((c as any).ssr).toBeUndefined();
+      expect(c.ssr).toBeUndefined();
     });
 
     it('command: serve, mode: production', async () => {
@@ -81,7 +81,7 @@ describe('vite  plugin', () => {
       expect(c.optimizeDeps?.include).toEqual(includeDeps);
       expect(c.optimizeDeps?.exclude).toEqual(excludeDeps);
       expect(c.esbuild).toEqual(undefined);
-      expect((c as any).ssr).toBeUndefined();
+      expect(c.ssr).toBeUndefined();
     });
     it('command: build, mode: development', async () => {
       const plugin: VitePlugin = qwikVite(initOpts);
@@ -109,7 +109,7 @@ describe('vite  plugin', () => {
       expect(c.optimizeDeps?.include).toEqual(includeDeps);
       expect(c.optimizeDeps?.exclude).toEqual(excludeDeps);
       expect(c.esbuild).toEqual(undefined);
-      expect((c as any).ssr).toBeUndefined();
+      expect(c.ssr).toBeUndefined();
     });
 
     it('command: build, mode: production', async () => {
@@ -139,7 +139,7 @@ describe('vite  plugin', () => {
       expect(c.optimizeDeps?.include).toEqual(includeDeps);
       expect(c.optimizeDeps?.exclude).toEqual(excludeDeps);
       expect(c.esbuild).toEqual(undefined);
-      expect((c as any).ssr).toBeUndefined();
+      expect(c.ssr).toBeUndefined();
     });
 
     it('command: build, --mode production (client)', async () => {
@@ -218,6 +218,7 @@ describe('vite  plugin', () => {
         env: 'node',
         os: process.platform,
         dynamicImport: async (path) => require(path),
+        strictDynamicImport: async (path) => import(path),
         path: require('path'),
       },
       binding: { mockBinding: true },

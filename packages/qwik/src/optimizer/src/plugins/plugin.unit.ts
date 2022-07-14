@@ -188,6 +188,7 @@ describe('qwik plugin', () => {
         env: 'node',
         os: process.platform,
         dynamicImport: async (path) => require(path),
+        strictDynamicImport: async (path) => import(path),
         path: require('path'),
       },
       binding: { mockBinding: true },

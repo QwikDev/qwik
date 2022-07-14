@@ -44,6 +44,7 @@ export interface OptimizerSystem {
   env: SystemEnvironment;
   os: string;
   dynamicImport: (path: string) => Promise<any>;
+  strictDynamicImport: (path: string) => Promise<any>;
   getInputFiles?: (rootDir: string) => Promise<TransformModuleInput[]>;
   path: Path;
 }

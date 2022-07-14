@@ -52,7 +52,6 @@ describe('vite  plugin', () => {
       expect(c.optimizeDeps?.exclude).toEqual(excludeDeps);
 
       expect(c.esbuild).toEqual(undefined);
-      c.ssr;
       expect(c.ssr).toBeUndefined();
     });
 

@@ -6,6 +6,7 @@ export default defineConfig(() => {
   return {
     /* VITE_CONFIG */
     build: {
+      target: 'es2020',
       lib: {
         entry: './src/index.ts',
         formats: ['es', 'cjs'],

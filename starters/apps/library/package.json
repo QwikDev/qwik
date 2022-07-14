@@ -28,6 +28,9 @@
     "priority": -1,
     "featureOptions": [
       "prettier"
+    ],
+    "featureEnabled": [
+      "prettier"
     ]
   }
 }

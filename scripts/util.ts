@@ -323,7 +323,8 @@ export interface PackageJSON {
   private?: boolean;
   __qwik__?: {
     priority: number;
-    featureOptions: string[];
+    featureOptions?: string[];
+    featureEnabled?: string[];
     selectServer?: boolean;
     vite?: {
       VITE_IMPORTS?: string;

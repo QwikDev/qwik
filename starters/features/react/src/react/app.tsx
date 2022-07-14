@@ -11,4 +11,4 @@ export function ReactCmp() {
   );
 }
 
-export const ReactRoot = qwikify$(ReactCmp);
+export const ReactRoot = /*#__PURE__*/ qwikify$(ReactCmp);

@@ -61,14 +61,52 @@ function generateUserStarter(
     throw new Error(`Unable to find base app.`);
   }
 
+  const viteReplacements = {
+    VITE_IMPORTS: [] as string[],
+    VITE_CONFIG: [] as string[],
+    VITE_QWIK: [] as string[],
+    VITE_PLUGINS: [] as string[],
+  };
+
   if (starterServer) {
     const serverPkgJson = readPackageJson(starterServer.dir);
     const vite = serverPkgJson.__qwik__?.vite;
-    replacements.push([/\/\* VITE_IMPORTS \*\//g, vite?.VITE_IMPORTS ?? '']);
-    replacements.push([/\/\* VITE_CONFIG \*\//g, vite?.VITE_CONFIG ?? '']);
-    replacements.push([/\/\* VITE_QWIK \*\//g, vite?.VITE_QWIK ?? '']);
-    replacements.push([/\/\* VITE_PLUGINS \*\//g, vite?.VITE_PLUGINS ?? '']);
+    if (vite?.VITE_IMPORTS) {
+      viteReplacements.VITE_IMPORTS.push(vite.VITE_IMPORTS);
+    }
+    if (vite?.VITE_CONFIG) {
+      viteReplacements.VITE_CONFIG.push(vite.VITE_CONFIG);
+    }
+    if (vite?.VITE_QWIK) {
+      viteReplacements.VITE_QWIK.push(vite.VITE_QWIK);
+    }
+    if (vite?.VITE_PLUGINS) {
+      viteReplacements.VITE_PLUGINS.push(vite.VITE_PLUGINS);
+    }
   }
+
+  for (const feature of features) {
+    cp(feature.dir, result.outDir, replacements);
+    const featurerPkgJson = readPackageJson(feature.dir);
+    const vite = featurerPkgJson.__qwik__?.vite;
+    if (vite?.VITE_IMPORTS) {
+      viteReplacements.VITE_IMPORTS.push(vite.VITE_IMPORTS);
+    }
+    if (vite?.VITE_CONFIG) {
+      viteReplacements.VITE_CONFIG.push(vite.VITE_CONFIG);
+    }
+    if (vite?.VITE_QWIK) {
+      viteReplacements.VITE_QWIK.push(vite.VITE_QWIK);
+    }
+    if (vite?.VITE_PLUGINS) {
+      viteReplacements.VITE_PLUGINS.push(vite.VITE_PLUGINS);
+    }
+  }
+
+  replacements.push([/\/\* VITE_IMPORTS \*\//g, viteReplacements.VITE_IMPORTS.join('\n')]);
+  replacements.push([/\/\* VITE_CONFIG \*\//g, viteReplacements.VITE_CONFIG.join('\n')]);
+  replacements.push([/\/\* VITE_QWIK \*\//g, viteReplacements.VITE_QWIK.join('\n')]);
+  replacements.push([/\/\* VITE_PLUGINS \*\//g, viteReplacements.VITE_PLUGINS.join('\n')]);
 
   cp(baseApp.dir, result.outDir, replacements);
   cp(starterApp.dir, result.outDir, replacements);

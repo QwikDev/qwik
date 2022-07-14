@@ -28,4 +28,5 @@ export interface StarterData {
   selectServer: boolean;
   priority: number;
   featureOptions: string[];
+  featureEnabled: string[];
 }

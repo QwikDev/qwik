@@ -1,11 +1,11 @@
 {
-  "description": "Prettier code formatter.",
+  "description": "Use React components into your Qwik app",
   "scripts": {
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check ."
   },
   "devDependencies": {
-    "@builder.io/qwik-react": "0.0.4",
+    "@builder.io/qwik-react": "0.0.7",
     "@emotion/react": "11.9.3",
     "@emotion/server": "11.4.0",
     "@emotion/styled": "11.9.3",

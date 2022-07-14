@@ -1,5 +1,5 @@
 import { createMdxTransformer, MdxTransform } from '../markdown/mdx';
-import { basename, extname, join, resolve } from 'path';
+import { extname, join, resolve } from 'path';
 import type { Plugin } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-runtime';
 import type { BuildContext } from '../types';
@@ -7,20 +7,7 @@ import { createBuildContext, resetBuildContext } from '../utils/context';
 import { isMarkdownFileName, normalizePath } from '../utils/fs';
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityVitePluginOptions } from './types';
-import {
-  endpointHandler,
-  getEndpointResponse,
-} from '../../middleware/request-handler/endpoint-handler';
-import { getRouteParams } from '../../runtime/src/library/routing';
 import { build } from '../build';
-import { isMenuFileName } from '../markdown/menu';
-import type { HttpMethod } from '../../runtime/src/library/types';
-import { checkRedirect } from '../../middleware/request-handler/redirect-handler';
-import {
-  checkEndpointRedirect,
-  getQwikCityUserContext,
-  isAcceptJsonOnly,
-} from '../../middleware/request-handler/utils';
 import {
   createPrinter,
   createSourceFile,
@@ -32,7 +19,7 @@ import {
   ScriptTarget,
   SyntaxKind,
 } from 'typescript';
-import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
+import { configureDevServer } from './dev-server';
 
 /**
  * @alpha
@@ -72,104 +59,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     },
 
     configureServer(server) {
-      if (ctx) {
-        const routesDirWatcher = server.watcher.add(ctx.opts.routesDir);
-        routesDirWatcher.on('all', (ev, path) => {
-          if (ev === 'add' || ev === 'addDir' || ev === 'unlink' || ev === 'unlinkDir') {
-            server.restart();
-          } else if (ev === 'change') {
-            const fileName = basename(path);
-            if (isMenuFileName(fileName)) {
-              server.restart();
-            }
-          }
-        });
-      }
-
-      server.middlewares.use(async (req, res, next) => {
-        try {
-          if (ctx) {
-            if (ctx.dirty) {
-              await build(ctx);
-            }
-
-            const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
-            const pathname = url.pathname;
-
-            for (const route of ctx.routes) {
-              const match = route.pattern.exec(pathname);
-              if (match) {
-                const method: HttpMethod = req.method as any;
-                const request = new Request(url.href, { method, headers: req.headers as any });
-                const params = getRouteParams(route.paramNames, match);
-
-                if (route.type !== 'endpoint') {
-                  const redirectResponse = checkRedirect(url, ctx.opts.trailingSlash);
-                  if (redirectResponse) {
-                    res.statusCode = redirectResponse.status;
-                    redirectResponse.headers.forEach((value, key) => res.setHeader(key, value));
-                    return;
-                  }
-                }
-
-                const endpointModule = await server.ssrLoadModule(route.filePath, {
-                  fixStacktrace: true,
-                });
-
-                const endpointResponse = await getEndpointResponse(
-                  request,
-                  method,
-                  url,
-                  params,
-                  endpointModule
-                );
-
-                const endpointRedirectResponse = checkEndpointRedirect(endpointResponse);
-                if (endpointRedirectResponse) {
-                  res.statusCode = endpointRedirectResponse.status;
-                  endpointRedirectResponse.headers.forEach((value, key) =>
-                    res.setHeader(key, value)
-                  );
-                  res.end();
-                  return;
-                }
-
-                if (route.type === 'endpoint' || isAcceptJsonOnly(request)) {
-                  const response = endpointHandler(method, endpointResponse);
-                  res.statusCode = response.status;
-                  response.headers.forEach((value, key) => res.setHeader(key, value));
-                  res.write(response.body);
-                  res.end();
-                  return;
-                }
-
-                if (endpointResponse) {
-                  // modify the response, but do not end()
-                  if (typeof endpointResponse.status === 'number') {
-                    res.statusCode = endpointResponse.status;
-                  }
-                  if (endpointResponse.headers) {
-                    for (const [key, value] of Object.entries(endpointResponse.headers)) {
-                      if (value) {
-                        res.setHeader(key, value);
-                      }
-                    }
-                  }
-                }
-
-                (res as QwikViteDevResponse)._qwikUserCtx = {
-                  ...(res as QwikViteDevResponse)._qwikUserCtx,
-                  ...getQwikCityUserContext(url, params, method, endpointResponse),
-                };
-              }
-            }
-          }
-
-          next();
-        } catch (e) {
-          next(e);
-        }
-      });
+      configureDevServer(ctx, server);
     },
 
     buildStart() {

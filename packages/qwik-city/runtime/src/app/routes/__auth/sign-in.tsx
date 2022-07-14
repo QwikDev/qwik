@@ -5,6 +5,7 @@
 import { component$, Host } from '@builder.io/qwik';
 import type { DocumentHead, EndpointHandler } from '~qwik-city-runtime';
 import { signIn, isUserAuthenticated } from '../../auth/auth';
+import { HTTPStatus } from '../../../library/types';
 
 export default component$(() => {
   return (
@@ -51,7 +52,7 @@ export const onPost: EndpointHandler<EndpointData> = async ({ request }) => {
 
   if (result.status === 'invalid') {
     return {
-      status: 403,
+      status: HTTPStatus.Forbidden,
     };
   }
 };

@@ -2,6 +2,7 @@ import type { QwikCityRequestOptions } from '../request-handler/types';
 import { requestHandler } from '../request-handler';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
+import { HTTPStatus } from 'packages/qwik-city/runtime/src/library/types';
 
 // @builder.io/qwik-city/middleware/netlify-edge
 
@@ -23,7 +24,7 @@ export function qwikCity(render: Render, opts: QwikCityPlanNetlifyEdge) {
         return next();
       }
     } catch (e: any) {
-      return new Response(String(e.stack || e), { status: 500 });
+      return new Response(String(e.stack || e), { status: HTTPStatus.Internal_Server_Error });
     }
   }
 

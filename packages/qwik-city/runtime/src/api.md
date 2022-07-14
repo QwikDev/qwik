@@ -112,7 +112,7 @@ export interface DocumentStyle {
 // Warning: (ae-forgotten-export) The symbol "EndpointResponse" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type EndpointHandler<BODY = unknown> = (ev: RequestEvent) => EndpointResponse<BODY> | Promise<EndpointResponse<BODY>>;
+export type EndpointHandler<BODY = unknown> = (ev: RequestEvent) => EndpointResponse<BODY> | undefined | null | Promise<EndpointResponse<BODY> | undefined | null>;
 
 // Warning: (ae-forgotten-export) The symbol "HtmlProps" needs to be exported by the entry point index.d.ts
 //

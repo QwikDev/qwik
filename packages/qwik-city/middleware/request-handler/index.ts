@@ -1,12 +1,12 @@
 import { ROUTE_TYPE_ENDPOINT } from '../../runtime/src/library/constants';
 import { getRouteParams } from '../../runtime/src/library/routing';
 import { endpointHandler, getEndpointResponse } from './endpoint-handler';
-import { checkRedirect } from './redirect-handler';
+import { checkEndpointRedirect, checkPageRedirect } from './redirect-handler';
 import type { QwikCityRequestOptions } from './types';
 import type { Render } from '@builder.io/qwik/server';
 import type { HttpMethod } from '../../runtime/src/library/types';
 import { pageHandler } from './page-handler';
-import { checkEndpointRedirect, isAcceptJsonOnly } from './utils';
+import { isAcceptJsonOnly } from './utils';
 
 /**
  * @public
@@ -29,7 +29,7 @@ export async function requestHandler(
           const routeType = route[3];
 
           if (routeType !== ROUTE_TYPE_ENDPOINT) {
-            const redirectResponse = checkRedirect(url, opts.trailingSlash);
+            const redirectResponse = checkPageRedirect(url, request.headers, opts.trailingSlash);
             if (redirectResponse) {
               // add or remove the trailing slash depending on the option
               return redirectResponse;

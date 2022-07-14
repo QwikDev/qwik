@@ -189,7 +189,6 @@ export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
  * @public
  */
 export interface RequestEvent {
-  method: HttpMethod;
   request: Request;
   params: RouteParams;
   url: URL;
@@ -214,7 +213,7 @@ export type HttpMethod =
  */
 export type EndpointHandler<BODY = unknown> = (
   ev: RequestEvent
-) => EndpointResponse<BODY> | Promise<EndpointResponse<BODY>>;
+) => EndpointResponse<BODY> | undefined | null | Promise<EndpointResponse<BODY> | undefined | null>;
 
 export interface EndpointResponse<BODY = unknown> {
   body?: BODY | null | undefined;
@@ -225,6 +224,7 @@ export interface EndpointResponse<BODY = unknown> {
    * will default to include the header `"Content-Type": "application/json; charset=utf-8"`.
    */
   headers?: Record<string, string | undefined>;
+
   /**
    * HTTP Status code. The status code is import to determine if the data can be public
    * facing or not. Setting a value of `200` will allow the endpoint to be fetched using
@@ -233,8 +233,22 @@ export interface EndpointResponse<BODY = unknown> {
    * response status codes. An example would be `401` for "Unauthorized", or `403` for
    * "Forbidden".
    *
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#client_error_responses
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
    */
+  status?: number;
+
+  /**
+   * URL to redirect to. The `redirect` property is for convenience rather
+   * than manually setting the redirect status code and the `location` header.
+   * Defaults to use the `307` response status code, but can be overwritten
+   * by manually setting the `status` property.
+   */
+  redirect?: string;
+}
+
+export interface NormalizedEndpointResponse {
+  body: any;
+  headers: Record<string, string>;
   status: number;
 }
 
@@ -247,5 +261,5 @@ export interface QwikCityUserContext {
   qcRequest: {
     method: HttpMethod;
   };
-  qcResponse: EndpointResponse | null;
+  qcResponse: NormalizedEndpointResponse | null;
 }

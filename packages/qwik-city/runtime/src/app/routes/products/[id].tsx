@@ -119,7 +119,6 @@ export const onGet: EndpointHandler<EndpointData> = async ({ params }) => {
     // Found the product data
     // This same data is passed to the head() function
     // and in the component$() it can be access with useEndpoint()
-    status: 200,
     body: {
       productId: params.id,
       price: productPrice,

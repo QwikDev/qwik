@@ -5,6 +5,7 @@ import express from 'express';
 import { join } from 'path';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
+import { convertNodeRequest, convertNodeResponse } from './utils';
 
 // @builder.io/qwik-city/middleware/express
 
@@ -24,13 +25,10 @@ export function qwikCity(render: Render, opts: QwikCityPlanExpress) {
 
   router.use(express.static(staticDir, { index: false }));
 
-  router.use(async (req, res, next) => {
+  router.use(async (nodeReq, nodeRes, next) => {
     try {
-      const url = new URL(req.url, `${req.protocol}://${req.headers.host}`);
-      const request = new Request(url.href, {
-        method: req.method,
-        headers: req.headers as any,
-      });
+      const url = new URL(nodeReq.url, `${nodeReq.protocol}://${nodeReq.headers.host}`);
+      const request = await convertNodeRequest(url, nodeReq);
 
       const requestOpts: QwikCityRequestOptions = {
         ...opts,
@@ -39,9 +37,7 @@ export function qwikCity(render: Render, opts: QwikCityPlanExpress) {
 
       const response = await requestHandler(render, requestOpts);
       if (response) {
-        res.status(response.status);
-        response.headers.forEach((value, key) => res.setHeader(key, value));
-        res.send(response.body);
+        convertNodeResponse(response, nodeRes);
       } else {
         next();
       }

@@ -8,6 +8,9 @@
     "featureOptions": [
       "prettier",
       "tailwindcss"
+    ],
+    "featureEnabled": [
+      "prettier"
     ]
   }
 }

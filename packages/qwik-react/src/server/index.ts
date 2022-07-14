@@ -12,7 +12,7 @@ export async function renderToString(
   const mod = await import('../react/server');
   const result = await mod.renderToString(rootNode, opts);
   const styles = mod.getGlobalStyleTag(result.html);
-  const finalHtml = styles + result.html;
+  const finalHtml = result.html.replace('</head>', styles + '</head>');
   return {
     ...result,
     html: finalHtml,

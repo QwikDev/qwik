@@ -84,9 +84,11 @@ export async function runInteractive() {
       choices: () => {
         const starter = starters.apps.find((a) => a.id === opts.appId);
         const featureOptions = [...starter!.featureOptions];
+        const featureEnabled = [...starter!.featureEnabled];
+
         return featureOptions.map((featureId) => {
           const f = starters.features.find((f) => f.id === featureId)!;
-          const selected = f.id !== 'tailwindcss';
+          const selected = featureEnabled.includes(f.id);
           return { title: f.name, value: f.id, description: f.description, selected };
         });
       },

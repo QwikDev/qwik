@@ -1,5 +1,5 @@
 import { useDocument, useResource$ } from '@builder.io/qwik';
-import type { EndpointResponse, QwikCityRenderDocument } from './types';
+import type { QwikCityRenderDocument } from './types';
 import { useLocation } from './use-functions';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 
@@ -30,16 +30,8 @@ export const useEndpoint = <T = unknown>() => {
         signal: controller && controller.signal,
       });
 
-      const clientEndpointResponse: EndpointResponse = {
-        status: clientResponse.status,
-        body: await clientResponse.json(),
-        headers: {},
-      };
-      clientResponse.headers.forEach(([key, value]) => {
-        clientEndpointResponse.headers![key] = value;
-      });
-
-      return clientEndpointResponse.body as T;
+      const body = await clientResponse.json();
+      return body as T;
     }
     return null as any;
   });

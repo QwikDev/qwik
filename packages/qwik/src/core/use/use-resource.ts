@@ -4,7 +4,7 @@ import { useSequentialScope } from './use-store.public';
 import { $, QRL } from '../import/qrl.public';
 import { assertQrl } from '../import/qrl-class';
 import {
-  Resource,
+  ResourceReturn,
   ResourceDescriptor,
   ResourceFn,
   runResource,
@@ -21,15 +21,15 @@ import { getInvokeContext } from './use-core';
 /**
  * @alpha
  */
-export const useResourceQrl = <T>(qrl: QRL<ResourceFn<T>>): Resource<T> => {
-  const { get, set, i, ctx } = useSequentialScope<Resource<T>>();
+export const useResourceQrl = <T>(qrl: QRL<ResourceFn<T>>): ResourceReturn<T> => {
+  const { get, set, i, ctx } = useSequentialScope<ResourceReturn<T>>();
   if (get != null) {
     return get;
   }
   assertQrl(qrl);
 
   const containerState = ctx.$renderCtx$.$containerState$;
-  const result: Resource<T> = {
+  const result: ResourceReturn<T> = {
     promise: undefined as never,
     resolved: undefined as never,
     error: undefined as never,
@@ -56,7 +56,7 @@ export const useResourceQrl = <T>(qrl: QRL<ResourceFn<T>>): Resource<T> => {
 /**
  * @alpha
  */
-export const useResource$ = <T>(generatorFn: ResourceFn<T>): Resource<T> => {
+export const useResource$ = <T>(generatorFn: ResourceFn<T>): ResourceReturn<T> => {
   return useResourceQrl<T>($(generatorFn));
 };
 
@@ -70,7 +70,7 @@ export const useIsServer = () => {
  * @alpha
  */
 export interface AsyncProps<T> {
-  resource: Resource<T>;
+  resource: ResourceReturn<T>;
   onResolved: (value: T) => JSXNode;
   onPending?: () => JSXNode;
   onRejected?: (reason: any) => JSXNode;
@@ -79,7 +79,7 @@ export interface AsyncProps<T> {
 /**
  * @alpha
  */
-export const Async = <T>(props: AsyncProps<T>): JSXNode => {
+export const Resource = <T>(props: AsyncProps<T>): JSXNode => {
   const isBrowser = !qDev || !useIsServer();
   if (isBrowser) {
     if (props.onRejected) {

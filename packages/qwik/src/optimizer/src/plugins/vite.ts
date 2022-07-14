@@ -236,9 +236,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         updatedViteConfig.build!.ssr = true;
 
         if (viteCommand === 'serve') {
-          (updatedViteConfig as any).ssr = {
+          updatedViteConfig.ssr = {
             noExternal: vendorIds,
-          } as any;
+          };
         } else {
           updatedViteConfig.publicDir = false;
         }
@@ -617,7 +617,7 @@ const findQwikRoots = async (
 ): Promise<QwikPackages[]> => {
   if (sys.env === 'node') {
     const fs: typeof import('fs') = await sys.dynamicImport('fs');
-    const { resolvePackageData }: typeof import('vite') = await sys.dynamicImport('vite');
+    const { resolvePackageData }: typeof import('vite') = await sys.strictDynamicImport('vite');
 
     try {
       const data = await fs.promises.readFile(packageJsonPath, { encoding: 'utf-8' });

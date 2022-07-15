@@ -81,11 +81,11 @@ export const Greeter = component$(() => {
 ### Eagerly Executing Code
 
 ```tsx
-import {component$, useStore, useClientEffet} from "@builder.io/qwik";
+import {component$, useStore, useClientEffect$} from "@builder.io/qwik";
 
 export const Greeter = component$(() => {
   const store = useStore<{list: null|string[]}>({list: null});
-  useClientEffet$(async () => {
+  useClientEffect$(async () => {
     store.list = await doSomethingToFetchDataOnServer();
   });
   

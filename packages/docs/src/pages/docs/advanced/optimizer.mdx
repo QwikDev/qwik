@@ -257,11 +257,20 @@ The ability for the Optimizer (and Qwik runtime) to capture lexically scoped con
 
 # Optimizer Rules
 
-The Optimizer can break up large applications into lots of small lazy-loadable chunks. In addition, the Optimizer can lazy-load function closure, which lexically captures variables. However, there are limits to what can be achieved, and therefore the Optimizer comes with a set of rules. Not all valid JavaScript is valid Optimizer code. This section describes the rules that developer needs to follow for successful Optimizer transformation.
+The Optimizer's job is to break up large applications into many small lazy-loadable chunks.
+
+The Optimizer can lazy-load a function closure, which lexically captures variables. However, there are limits to what can be achieved, and therefore the Optimizer comes with a set of rules.
+
+Since not all valid JavaScript is valid Optimizer code, keep in mind the following rules:
+
+* All captured variables must be declared as a `const`.
+* All captured variables must be either:
+  - serializable
+  - importable (either `import` or `export` in this file)
 
 The `$` is not only a marker for the Optimizer but also a marker for the developer to follow these rules.
 
-NOTE: There are plans for a linter that will be able to enforce these rules eagerly.
+> **NOTE**: There are plans for a linter that will be able to enforce these rules eagerly.
 
 ## Imports
 

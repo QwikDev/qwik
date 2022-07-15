@@ -109,13 +109,3 @@ export function isTestFileName(fileName: string) {
 export function isTestDirName(fileName: string) {
   return fileName === '__test__' || fileName === '__tests__';
 }
-
-/** File and directory names we already know we can just skip over */
-export const IGNORE_FS_NAMES: { [key: string]: boolean } = {
-  node_modules: true,
-  '.gitignore': true,
-  '.gitattributese': true,
-  '.gitkeep': true,
-  '.DS_Store': true,
-  'thumbs.db': true,
-};

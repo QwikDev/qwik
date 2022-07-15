@@ -2,7 +2,7 @@ import { dirname } from 'path';
 import type { BuildContext, BuildLayout, PageRoute } from '../types';
 import { createFileId, normalizePath } from '../utils/fs';
 import { getPathnameFromFilePath } from '../utils/pathname';
-import { parsePathname } from './parse-pathname';
+import { parseRoutePathname } from './parse-pathname';
 
 export function createPageRoute(
   ctx: BuildContext,
@@ -60,7 +60,7 @@ export function updatePageRoute(routesDir: string, pageRoute: PageRoute, layouts
 
   pageRoute.layouts = pageLayouts.reverse();
 
-  const route = parsePathname(pageRoute.pathname);
+  const route = parseRoutePathname(pageRoute.pathname);
   pageRoute.pattern = route.pattern;
   pageRoute.paramNames = route.paramNames;
   pageRoute.paramTypes = route.paramTypes;

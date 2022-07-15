@@ -1,6 +1,7 @@
 import { Resource, component$, Host, useStore } from '@builder.io/qwik';
 import { useEndpoint, useLocation, EndpointHandler, DocumentHead } from '~qwik-city-runtime';
 import os from 'os';
+import { HTTPStatus } from '../../../library/types';
 
 export default component$(() => {
   const { params, pathname } = useLocation();
@@ -97,7 +98,7 @@ export const onGet: EndpointHandler<EndpointData> = async ({ params }) => {
   if (params.id === 'shirt') {
     // Redirect, which will skip any rendering and the server will immediately redirect
     return {
-      status: 307,
+      status: HTTPStatus.Temporary_Redirect,
       headers: {
         location: '/products/tshirt',
       },
@@ -110,7 +111,7 @@ export const onGet: EndpointHandler<EndpointData> = async ({ params }) => {
     // Product data not found
     // but the data is still given to the renderer to decide what to do
     return {
-      status: 404,
+      status: HTTPStatus.Not_Found,
       body: null,
     };
   }

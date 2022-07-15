@@ -1,32 +1,34 @@
-import { basename, dirname } from 'path';
+import { dirname } from 'path';
 import type { BuildContext, BuildLayout } from '../types';
 import {
   createFileId,
   isPageFileName,
   isPageIndexFileName,
+  getExtensionLessBasename,
   normalizePath,
-  removeExtension,
 } from '../utils/fs';
 
-export function createLayout(ctx: BuildContext, routesDir: string, filePath: string) {
-  let dirPath = dirname(filePath);
-  const dirName = basename(dirPath);
-  const fileName = removeExtension(basename(filePath));
+export function createLayout(
+  ctx: BuildContext,
+  dirPath: string,
+  dirName: string,
+  filePath: string
+) {
   let layoutName = '';
 
   if (dirName.startsWith('_layout')) {
     layoutName = parseLayoutName(dirName);
-    dirPath = dirname(dirPath);
+    dirPath = normalizePath(dirname(dirPath));
   } else {
-    layoutName = parseLayoutName(fileName);
+    layoutName = parseLayoutName(getExtensionLessBasename(filePath));
   }
 
   const type = layoutName !== '' ? 'top' : 'nested';
 
   const layout: BuildLayout = {
-    id: createFileId(ctx, routesDir, filePath),
-    filePath: normalizePath(filePath),
-    dir: normalizePath(dirPath),
+    id: createFileId(ctx, filePath),
+    filePath: filePath,
+    dir: dirPath,
     type,
     name: layoutName,
   };

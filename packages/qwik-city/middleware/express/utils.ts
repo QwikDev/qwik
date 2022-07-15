@@ -1,4 +1,6 @@
-export async function convertNodeRequest(url: URL, nodeReq: NodeRequest) {
+import { Readable } from 'stream';
+
+export async function fromNodeRequest(url: URL, nodeReq: NodeRequest) {
   const headers = new URLSearchParams();
   const nodeHeaders = nodeReq.headers;
   if (nodeHeaders) {
@@ -46,13 +48,22 @@ export async function convertNodeRequest(url: URL, nodeReq: NodeRequest) {
   return request;
 }
 
-export function convertNodeResponse(response: Response, nodeRes: NodeResponse) {
+export async function toNodeResponse(response: Response, nodeRes: NodeResponse) {
   nodeRes.statusCode = response.status;
   response.headers.forEach((value, key) => nodeRes.setHeader(key, value));
   if ((response.status < 300 || response.status >= 400) && response.body) {
-    nodeRes.write(response.body);
+    if (
+      typeof response.body === 'string' ||
+      response.body instanceof Buffer ||
+      response.body instanceof Uint8Array
+    ) {
+      nodeRes.write(response.body);
+    } else if (response.body instanceof Readable) {
+      for await (const chunk of response.body) {
+        nodeRes.write(chunk);
+      }
+    }
   }
-  nodeRes.end();
 }
 
 export interface NodeRequest {

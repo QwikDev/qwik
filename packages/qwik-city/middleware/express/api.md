@@ -16,7 +16,7 @@ export interface QwikCityPlanExpress extends QwikCityPlan {
     // (undocumented)
     buildDir?: string;
     // (undocumented)
-    staticDir: string;
+    staticDir?: string;
 }
 
 // (No @packageDocumentation comment for this package)

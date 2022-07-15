@@ -2,10 +2,11 @@ import type { QwikCityRequestOptions } from '../request-handler/types';
 import { requestHandler } from '../request-handler';
 import { patchGlobalFetch } from '../request-handler/node-fetch';
 import express from 'express';
-import { join } from 'path';
+import { dirname, isAbsolute, join, resolve } from 'path';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
-import { convertNodeRequest, convertNodeResponse } from './utils';
+import { fromNodeRequest, toNodeResponse } from './utils';
+import { fileURLToPath } from 'url';
 
 // @builder.io/qwik-city/middleware/express
 
@@ -17,18 +18,28 @@ export function qwikCity(render: Render, opts: QwikCityPlanExpress) {
 
   const router = express.Router();
 
-  const staticDir = opts.staticDir;
+  let staticDir = opts.staticDir;
+  if (typeof staticDir === 'string') {
+    const __dirname = dirname(fileURLToPath(import.meta.url));
 
-  const buildDir = opts.buildDir || join(staticDir, 'build');
+    if (!isAbsolute(staticDir)) {
+      staticDir = resolve(__dirname, staticDir);
+    }
 
-  router.use(`/build`, express.static(buildDir, { immutable: true, maxAge: '1y', index: false }));
+    let buildDir = opts.buildDir || join(staticDir, 'build');
+    if (!isAbsolute(buildDir)) {
+      buildDir = resolve(__dirname, buildDir);
+    }
 
-  router.use(express.static(staticDir, { index: false }));
+    router.use(`/build`, express.static(buildDir, { immutable: true, maxAge: '1y', index: false }));
+
+    router.use(express.static(staticDir, { index: false }));
+  }
 
   router.use(async (nodeReq, nodeRes, next) => {
     try {
       const url = new URL(nodeReq.url, `${nodeReq.protocol}://${nodeReq.headers.host}`);
-      const request = await convertNodeRequest(url, nodeReq);
+      const request = await fromNodeRequest(url, nodeReq);
 
       const requestOpts: QwikCityRequestOptions = {
         ...opts,
@@ -37,13 +48,16 @@ export function qwikCity(render: Render, opts: QwikCityPlanExpress) {
 
       const response = await requestHandler(render, requestOpts);
       if (response) {
-        convertNodeResponse(response, nodeRes);
-      } else {
-        next();
+        await toNodeResponse(response, nodeRes);
+        nodeRes.end();
+        return;
       }
     } catch (e) {
       next(e);
+      return;
     }
+
+    next();
   });
 
   return router;
@@ -53,6 +67,6 @@ export function qwikCity(render: Render, opts: QwikCityPlanExpress) {
  * @public
  */
 export interface QwikCityPlanExpress extends QwikCityPlan {
-  staticDir: string;
+  staticDir?: string;
   buildDir?: string;
 }

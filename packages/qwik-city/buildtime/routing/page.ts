@@ -2,18 +2,17 @@ import { dirname } from 'path';
 import type { BuildContext, BuildLayout, PageRoute } from '../types';
 import { createFileId, normalizePath } from '../utils/fs';
 import { getPathnameFromFilePath } from '../utils/pathname';
-import { parsePathname } from './parse-route';
+import { parseRoutePathname } from './parse-pathname';
 
 export function createPageRoute(
   ctx: BuildContext,
-  routesDir: string,
   filePath: string,
   source: 'markdown' | 'module'
 ) {
   const pageRoute: PageRoute = {
     type: 'page',
-    id: createFileId(ctx, routesDir, filePath),
-    filePath: normalizePath(filePath),
+    id: createFileId(ctx, filePath),
+    filePath,
     pathname: getPathnameFromFilePath(ctx.opts, filePath),
     pattern: undefined as any,
     paramNames: undefined as any,
@@ -61,7 +60,7 @@ export function updatePageRoute(routesDir: string, pageRoute: PageRoute, layouts
 
   pageRoute.layouts = pageLayouts.reverse();
 
-  const route = parsePathname(pageRoute.pathname);
+  const route = parseRoutePathname(pageRoute.pathname);
   pageRoute.pattern = route.pattern;
   pageRoute.paramNames = route.paramNames;
   pageRoute.paramTypes = route.paramTypes;

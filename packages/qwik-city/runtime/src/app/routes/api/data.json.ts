@@ -1,9 +1,10 @@
 import type { EndpointHandler } from '~qwik-city-runtime';
 import os from 'os';
+import { HTTPStatus } from '../../../library/types';
 
 export const onGet: EndpointHandler = ({ request }) => {
   return {
-    status: 200,
+    status: HTTPStatus.Ok,
     body: {
       timestamp: Date.now(),
       method: request.method,

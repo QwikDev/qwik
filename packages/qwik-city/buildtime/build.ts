@@ -5,7 +5,7 @@ import { updatePageRoute } from './routing/page';
 import { addError } from './utils/format';
 import { sortRoutes } from './routing/sort-routes';
 import { normalizePath } from './utils/fs';
-import { parseFsRoute } from './routing/parse-fs-route';
+import { parseFileSystem } from './routing/parse-file-system';
 import { updateMenu } from './markdown/menu';
 
 export async function build(ctx: BuildContext) {
@@ -46,7 +46,7 @@ async function loadRoutes(ctx: BuildContext, dirPath: string, dirName: string) {
     dirItems.map(async (itemName) => {
       try {
         const itemPath = normalizePath(join(dirPath, itemName));
-        const wasHandled = parseFsRoute(ctx, dirPath, dirName, itemPath, itemName);
+        const wasHandled = parseFileSystem(ctx, dirPath, dirName, itemPath, itemName);
 
         if (!wasHandled) {
           await loadRoutes(ctx, itemPath, itemName);

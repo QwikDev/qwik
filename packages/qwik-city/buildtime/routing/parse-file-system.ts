@@ -2,7 +2,6 @@ import { createMenu, isMenuFileName } from '../markdown/menu';
 import type { BuildContext } from '../types';
 import { addError } from '../utils/format';
 import {
-  IGNORE_FS_NAMES,
   isEndpointFileName,
   isMarkdownFileName,
   isPageFileName,
@@ -13,7 +12,7 @@ import { createEndpointRoute } from './endpoint';
 import { createLayout, isLayoutFileName } from './layout';
 import { createPageRoute } from './page';
 
-export function parseFsRoute(
+export function parseFileSystem(
   ctx: BuildContext,
   dirPath: string,
   dirName: string,
@@ -24,7 +23,7 @@ export function parseFsRoute(
     return true;
   }
 
-  if (isTestDirName(fileName)) {
+  if (isTestDirName(dirName)) {
     addError(
       ctx,
       `Test directory "${filePath}" should not be included within the routes directory. Please move test directories to a different location.`
@@ -36,6 +35,14 @@ export function parseFsRoute(
     addError(
       ctx,
       `Test file "${filePath}" should not be included within the routes directory. Please move test files to a different location.`
+    );
+    return true;
+  }
+
+  if (dirName.includes('@')) {
+    addError(
+      ctx,
+      `Route directories cannot have a named layout. Please change the named layout from the directory "${dirPath}" to a file.`
     );
     return true;
   }
@@ -72,3 +79,13 @@ export function parseFsRoute(
 
   return false;
 }
+
+/** File and directory names we already know we can just skip over */
+const IGNORE_FS_NAMES: { [key: string]: boolean } = {
+  node_modules: true,
+  '.gitignore': true,
+  '.gitattributes': true,
+  '.gitkeep': true,
+  '.DS_Store': true,
+  'thumbs.db': true,
+};

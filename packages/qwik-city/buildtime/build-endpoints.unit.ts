@@ -13,7 +13,7 @@ test('endpoint', ({ assertEndpoint }) => {
 
 test('endpoint w/ params', ({ assertEndpoint }) => {
   const r = assertEndpoint('/api/[org]/[user].json');
-  assert.equal(r.id, 'ApiOrgUserIndex');
+  assert.equal(r.id, 'ApiOrgUserjsonIndex');
   assert.equal(r.type, 'endpoint');
   assert.equal(r.pattern, /^\/api\/([^/]+?)\/([^/]+?)\.json$/);
   assert.equal(r.paramNames.length, 2);

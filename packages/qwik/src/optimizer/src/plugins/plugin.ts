@@ -32,7 +32,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const opts: NormalizedQwikPluginOptions = {
     target: 'client',
     buildMode: 'development',
-    format: 'es',
     debug: false,
     rootDir: null as any,
     input: null as any,
@@ -663,7 +662,6 @@ export interface QwikPluginOptions {
   manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
   manifestInput?: QwikManifest | null;
   input?: string[] | string;
-  format?: 'es' | 'cjs';
   outDir?: string;
   srcDir?: string | null;
   scope?: string | null;

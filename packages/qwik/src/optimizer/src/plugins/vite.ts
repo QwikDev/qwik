@@ -233,14 +233,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       if (opts.target === 'ssr') {
         // SSR Build
-        updatedViteConfig.build!.ssr = true;
-
         if (viteCommand === 'serve') {
           updatedViteConfig.ssr = {
             noExternal: vendorIds,
           };
         } else {
           updatedViteConfig.publicDir = false;
+          updatedViteConfig.build!.ssr = true;
         }
       } else if (opts.target === 'client') {
         if (buildMode === 'production') {

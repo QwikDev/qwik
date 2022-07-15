@@ -205,6 +205,7 @@ describe('vite  plugin', () => {
 
       expect(opts.target).toBe('ssr');
       expect(opts.buildMode).toBe('development');
+      expect(build.ssr).toBe(false);
       expect(rollupOptions.input).toEqual([resolve(cwd, 'src', 'renderz.tsx')]);
       expect(c.build.outDir).toEqual(resolve(cwd, 'ssr-dist'));
       expect(c.publicDir).toBe(undefined);

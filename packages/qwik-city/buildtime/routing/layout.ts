@@ -5,6 +5,7 @@ import {
   isPageFileName,
   isPageIndexFileName,
   getExtensionLessBasename,
+  normalizePath,
 } from '../utils/fs';
 
 export function createLayout(
@@ -17,7 +18,7 @@ export function createLayout(
 
   if (dirName.startsWith('_layout')) {
     layoutName = parseLayoutName(dirName);
-    dirPath = dirname(dirPath);
+    dirPath = normalizePath(dirname(dirPath));
   } else {
     layoutName = parseLayoutName(getExtensionLessBasename(filePath));
   }

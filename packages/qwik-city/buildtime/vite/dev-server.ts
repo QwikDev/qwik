@@ -15,7 +15,7 @@ import {
 } from '../../middleware/request-handler/redirect-handler';
 import { getQwikCityUserContext, isAcceptJsonOnly } from '../../middleware/request-handler/utils';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
-import { convertNodeRequest, convertNodeResponse } from '../../middleware/express/utils';
+import { fromNodeRequest, toNodeResponse } from '../../middleware/express/utils';
 
 export function configureDevServer(ctx: BuildContext | null, server: ViteDevServer) {
   if (ctx) {
@@ -45,7 +45,7 @@ export function configureDevServer(ctx: BuildContext | null, server: ViteDevServ
         for (const route of ctx.routes) {
           const match = route.pattern.exec(pathname);
           if (match) {
-            const request = await convertNodeRequest(url, nodeReq);
+            const request = await fromNodeRequest(url, nodeReq);
             const method = request.method as HttpMethod;
             const params = getRouteParams(route.paramNames, match);
 
@@ -56,7 +56,8 @@ export function configureDevServer(ctx: BuildContext | null, server: ViteDevServ
                 ctx.opts.trailingSlash
               );
               if (pageRedirectResponse) {
-                convertNodeResponse(pageRedirectResponse, nodeRes);
+                await toNodeResponse(pageRedirectResponse, nodeRes);
+                nodeRes.end();
                 return;
               }
             }
@@ -75,13 +76,15 @@ export function configureDevServer(ctx: BuildContext | null, server: ViteDevServ
 
             const endpointRedirectResponse = checkEndpointRedirect(endpointResponse);
             if (endpointRedirectResponse) {
-              convertNodeResponse(endpointRedirectResponse, nodeRes);
+              await toNodeResponse(endpointRedirectResponse, nodeRes);
+              nodeRes.end();
               return;
             }
 
             if (route.type === 'endpoint' || isAcceptJsonOnly(request)) {
               const response = endpointHandler(method, endpointResponse);
-              convertNodeResponse(response, nodeRes);
+              await toNodeResponse(response, nodeRes);
+              nodeRes.end();
               return;
             }
 

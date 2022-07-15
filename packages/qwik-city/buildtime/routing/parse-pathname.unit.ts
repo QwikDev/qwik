@@ -1,6 +1,6 @@
 import { test } from 'uvu';
 import * as assert from 'uvu/assert';
-import { parsePathname } from './parse-route';
+import { parsePathname } from './parse-pathname';
 
 /**
  * Adopted from SvelteKit

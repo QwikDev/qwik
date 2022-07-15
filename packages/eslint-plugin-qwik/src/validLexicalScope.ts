@@ -167,7 +167,12 @@ export const validLexicalScope = createRule({
   },
 });
 
-function canCapture(checker: ts.TypeChecker, node: ts.Node, ident: Identifier, opts: DetectorOptions) {
+function canCapture(
+  checker: ts.TypeChecker,
+  node: ts.Node,
+  ident: Identifier,
+  opts: DetectorOptions
+) {
   const type = checker.getTypeAtLocation(node);
   return isTypeCapturable(checker, type, node, ident, opts);
 }

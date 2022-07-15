@@ -25,12 +25,11 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     enforce: 'pre',
 
     config() {
-      const updatedViteConfig: UserConfig = {
+      const updatedViteConfig: any = {
         optimizeDeps: {
           exclude: ['@builder.io/qwik-city', QWIK_CITY],
         },
         ssr: {
-          optimizeDeps: {disabled: true},
           noExternal: [QWIK_CITY_PLAN_ID, QWIK_CITY],
         },
       };

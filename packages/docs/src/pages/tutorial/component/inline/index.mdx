@@ -7,12 +7,15 @@ One of Qwik's super powers lies in its lazy-loading features.
 
 Qwik lazy-loads:
 
-- **Independent of DOM presence**: Components can load before and after they are added to the DOM.
-- **Independent of hierarchy**: Components can be loaded out of order. For example, the script for a child component can load before its parent script.
-- **Based on interaction**: Script loading is deferred until a user interacts with a component.
+- **Independent of hierarchy**: Components can be loaded out of order. For example, the code for a child component can load before its parent code.
+- **Based on interaction**: Code loading is deferred until a user interacts with a component.
 - **More than just components**: Qwik lazy-loads any closure including components, event listeners, effects, and behaviors.
 
-You can mark a component as lazy-loadable by using the `component$()` method. When you see a `$` in Qwik code, you're crossing a lazy-loading boundary.
+`$` marks a closure as lazy-loadable. For example `component$()` method makes the component lazy-loadable. When you see a `$` in Qwik code, you're crossing a lazy-loading boundary and have to be aware of special rules:
+- any lexically scoped variables must be declared as `const`
+- a captured variable/symbol must be either:
+  - serializable 
+  - importable (Either from a different file as `import` or from this file using `export`)
 
 If you want to ensure a component loads with another component, you create an inline component. Inline components load as a part of the parent component and are equivalent to how most other frameworks deal with components.
 

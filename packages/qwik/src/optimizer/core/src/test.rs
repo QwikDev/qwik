@@ -1421,7 +1421,7 @@ async function renderToString(rootNode, opts) {
 export { qwikify$, qwikifyQrl, renderToString };
         "#
         .to_string(),
-        filename: "../node_modules/@builder.io/qwik-react/index.qwik.js".to_string(),
+        filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
         entry_strategy: EntryStrategy::Hook,
         ..TestInput::default()
     });
@@ -1481,7 +1481,7 @@ export const Local = component$(() => {
         input: vec![
             TransformModuleInput {
                 code: dep.into(),
-                path: "../../node_modules/dep/dist/lib.js".into(),
+                path: "../../node_modules/dep/dist/lib.mjs".into(),
             },
             TransformModuleInput {
                 code: code.into(),

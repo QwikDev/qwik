@@ -1,6 +1,6 @@
 import { createMdxTransformer, MdxTransform } from '../markdown/mdx';
 import { extname, join, resolve } from 'path';
-import type { Plugin, UserConfig } from 'vite';
+import type { Plugin } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-runtime';
 import type { BuildContext } from '../types';
 import { createBuildContext, resetBuildContext } from '../utils/context';

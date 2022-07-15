@@ -26,9 +26,6 @@ export default defineConfig(() => {
           'react-dom/client',
           'react-dom/server',
         ],
-        output: {
-          chunkFileNames: '[name]-[hash].js',
-        },
       },
     },
     plugins: [

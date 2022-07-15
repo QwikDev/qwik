@@ -24,14 +24,15 @@ export async function buildQwikCity(config: BuildConfig) {
 
   const loaderPkg = {
     ...(await readPackageJson(input)),
-    main: './index.cjs.qwik.js',
-    module: './index.es.qwik.js',
-    qwik: './index.es.qwik.js',
+    main: './index.qwik.cjs',
+    module: './index.qwik.mjs',
+    qwik: './index.qwik.mjs',
     types: './index.d.ts',
+    type: 'module',
     exports: {
       '.': {
-        import: './index.es.qwik.js',
-        require: './index.cjs.qwik.js',
+        import: './index.qwik.mjs',
+        require: './index.qwik.cjs',
       },
       './middleware/cloudflare-pages': {
         import: './middleware/cloudflare-pages/index.mjs',
@@ -54,8 +55,8 @@ export async function buildQwikCity(config: BuildConfig) {
     },
     files: [
       'index.d.ts',
-      'index.es.qwik.js',
-      'index.cjs.qwik.js',
+      'index.qwik.mjs',
+      'index.qwik.cjs',
       'modules.d.ts',
       'middleware',
       'vite',
@@ -123,7 +124,7 @@ async function buildCloudflarePages(config: BuildConfig, input: string, output: 
 async function buildExpress(config: BuildConfig, input: string, output: string) {
   const entryPoints = [join(input, 'middleware', 'express', 'index.ts')];
 
-  const external = ['express', 'path', 'node-fetch'];
+  const external = ['express', 'path'];
 
   await build({
     entryPoints,

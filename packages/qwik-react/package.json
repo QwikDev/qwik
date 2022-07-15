@@ -45,8 +45,8 @@
   },
   "exports": {
     ".": {
-      "import": "./lib/index.es.qwik.js",
-      "require": "./lib/index.cjs.qwik.js"
+      "import": "./lib/index.qwik.mjs",
+      "require": "./lib/index.qwik.cjs"
     }
   },
   "files": [
@@ -63,8 +63,8 @@
     "url": "https://github.com/BuilderIO/qwik/issues"
   },
   "type": "module",
-  "main": "./lib/index.cjs.qwik.js",
-  "module": "./lib/index.es.qwik.js",
-  "qwik": "./lib/index.es.qwik.js",
+  "main": "./lib/index.qwik.cjs",
+  "module": "./lib/index.qwik.mjs",
+  "qwik": "./lib/index.qwik.mjs",
   "types": "./lib/types/index.d.ts"
 }

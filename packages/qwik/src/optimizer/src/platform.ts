@@ -18,11 +18,6 @@ export async function getSystem() {
         `Qwik Optimizer sys.dynamicImport() not implemented, trying to import: "${path}"`
       );
     },
-    strictDynamicImport: (path) => {
-      throw new Error(
-        `Qwik Optimizer sys.strictDynamicImport() not implemented, trying to import: "${path}"`
-      );
-    },
     path: null as any,
     cwd: () => '/',
     os: 'unknown',
@@ -32,7 +27,7 @@ export async function getSystem() {
   sys.path = createPath(sys);
 
   if (globalThis.IS_ESM) {
-    sys.strictDynamicImport = sys.dynamicImport = (path) => import(path);
+    sys.dynamicImport = (path) => import(path);
   }
 
   if (globalThis.IS_CJS) {
@@ -40,7 +35,6 @@ export async function getSystem() {
       // using this api object as a way to ensure bundlers
       // do not try to inline or rewrite require()
       sys.dynamicImport = (path) => require(path);
-      sys.strictDynamicImport = (path) => import(path);
 
       if (typeof TextEncoder === 'undefined') {
         // TextEncoder/TextDecoder needs to be on the global scope for the WASM file
@@ -50,7 +44,6 @@ export async function getSystem() {
         global.TextDecoder = nodeUtil.TextDecoder;
       }
     } else if (sysEnv === 'webworker' || sysEnv === 'browsermain') {
-      sys.strictDynamicImport = (path) => import(path);
       sys.dynamicImport = async (path: string) => {
         const cjsRsp = await fetch(path);
         const cjsCode = await cjsRsp.text();

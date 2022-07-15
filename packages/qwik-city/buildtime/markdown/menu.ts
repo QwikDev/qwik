@@ -1,23 +1,11 @@
 import type { BuildContext, ParsedMenu, ParsedMenuItem } from '../types';
 import { marked } from 'marked';
 import { getMenuPathname, getMenuLinkHref } from '../utils/pathname';
-import { createFileId, normalizePath } from '../utils/fs';
+import { createFileId } from '../utils/fs';
 import fs from 'fs';
 
-export async function createMenu(ctx: BuildContext, routesDir: string, filePath: string) {
-  const content = await fs.promises.readFile(filePath, 'utf-8');
-  return createMenuFromMarkdown(ctx, routesDir, filePath, content);
-}
-
-export function createMenuFromMarkdown(
-  ctx: BuildContext,
-  routesDir: string,
-  filePath: string,
-  content: string
-) {
-  filePath = normalizePath(filePath);
-  const id = createFileId(ctx, routesDir, filePath);
-
+export function createMenu(ctx: BuildContext, filePath: string) {
+  const id = createFileId(ctx, filePath);
   const menu: ParsedMenu = {
     pathname: getMenuPathname(ctx.opts, filePath),
     filePath,
@@ -25,7 +13,16 @@ export function createMenuFromMarkdown(
     items: [],
     id,
   };
+  return menu;
+}
 
+export async function updateMenu(ctx: BuildContext, menu: ParsedMenu) {
+  const content = await fs.promises.readFile(menu.filePath, 'utf-8');
+  updateMenuFromMarkdown(ctx, menu, content);
+}
+
+export function updateMenuFromMarkdown(ctx: BuildContext, menu: ParsedMenu, content: string) {
+  const filePath = menu.filePath;
   const tokens = marked.lexer(content, {});
   let hasH1 = false;
   let h2: ParsedMenuItem | null = null;

@@ -1,27 +1,28 @@
-import type { BuildContext, BuildLayout, BuildRoute } from './types';
+import type { BuildContext } from './types';
 import fs from 'fs';
-import { basename, join } from 'path';
-import { isMenuFileName, createMenu } from './markdown/menu';
-import { createPageRoute, updatePageRoute } from './routing/page';
+import { dirname, join } from 'path';
+import { updatePageRoute } from './routing/page';
 import { addError } from './utils/format';
-import { createEndpointRoute } from './routing/endpoint';
 import { sortRoutes } from './routing/sort-routes';
-import { createLayout, isLayoutFileName } from './routing/layout';
-import {
-  IGNORE_NAMES,
-  isEndpointFileName,
-  isMarkdownFileName,
-  isPageFileName,
-  isTestFileName,
-} from './utils/fs';
+import { normalizePath } from './utils/fs';
+import { parseFsRoute } from './routing/parse-fs-route';
+import { updateMenu } from './markdown/menu';
 
 export async function build(ctx: BuildContext) {
   try {
     if (ctx.dirty) {
-      const routesDirItems = await fs.promises.readdir(ctx.opts.routesDir);
-      await loadRoutes(ctx, ctx.opts.routesDir, ctx.opts.routesDir, routesDirItems);
+      const routesDir = ctx.opts.routesDir;
 
-      updateRoutes(ctx.opts.routesDir, ctx.routes, ctx.layouts);
+      await loadRoutes(ctx, routesDir, dirname(routesDir));
+
+      for (const route of ctx.routes) {
+        if (route.type === 'page') {
+          updatePageRoute(routesDir, route, ctx.layouts);
+        }
+      }
+
+      await Promise.all(ctx.menus.map((m) => updateMenu(ctx, m)));
+
       sort(ctx);
       validateBuild(ctx);
       ctx.dirty = false;
@@ -31,45 +32,27 @@ export async function build(ctx: BuildContext) {
   }
 }
 
-async function loadRoutes(ctx: BuildContext, routesDir: string, dir: string, dirItems: string[]) {
+async function loadRoutes(ctx: BuildContext, dirPath: string, dirName: string) {
+  let dirItems: string[];
+  try {
+    dirItems = await fs.promises.readdir(dirPath);
+  } catch (e) {
+    // if it error'd then it must not be a directory so let's ignore
+    // top routes dir already validated it exists
+    return;
+  }
+
   await Promise.all(
     dirItems.map(async (itemName) => {
-      if (!IGNORE_NAMES[itemName]) {
-        try {
-          const dirName = basename(dir);
-          const itemPath = join(dir, itemName);
+      try {
+        const itemPath = normalizePath(join(dirPath, itemName));
+        const wasHandled = parseFsRoute(ctx, dirPath, dirName, itemPath, itemName);
 
-          if (isTestFileName(itemName)) {
-            addError(
-              ctx,
-              `Test directory or file "${itemPath}" should not be included within the routes directory. Please move test files to a different location.`
-            );
-          } else if (isLayoutFileName(dirName, itemName)) {
-            const layout = createLayout(ctx, routesDir, itemPath);
-            ctx.layouts.push(layout);
-          } else if (isMenuFileName(itemName)) {
-            const menu = await createMenu(ctx, routesDir, itemPath);
-            ctx.menus.push(menu);
-          } else if (isEndpointFileName(itemName)) {
-            const endpointRoute = createEndpointRoute(ctx, routesDir, itemPath);
-            ctx.routes.push(endpointRoute);
-          } else if (isMarkdownFileName(itemName)) {
-            const markdownRoute = createPageRoute(ctx, routesDir, itemPath, 'markdown');
-            ctx.routes.push(markdownRoute);
-          } else if (isPageFileName(itemName)) {
-            const pageRoute = createPageRoute(ctx, routesDir, itemPath, 'module');
-            ctx.routes.push(pageRoute);
-          } else {
-            try {
-              const childDirItems = await fs.promises.readdir(itemPath);
-              await loadRoutes(ctx, routesDir, itemPath, childDirItems);
-            } catch (e) {
-              // if it error'd then it must not be a directory so let's ignore
-            }
-          }
-        } catch (e) {
-          addError(ctx, e);
+        if (!wasHandled) {
+          await loadRoutes(ctx, itemPath, itemName);
         }
+      } catch (e) {
+        addError(ctx, e);
       }
     })
   );
@@ -89,14 +72,6 @@ function sort(ctx: BuildContext) {
     if (a.pathname > b.pathname) return 1;
     return 0;
   });
-}
-
-function updateRoutes(routesDir: string, routes: BuildRoute[], layouts: BuildLayout[]) {
-  for (const route of routes) {
-    if (route.type === 'page') {
-      updatePageRoute(routesDir, route, layouts);
-    }
-  }
 }
 
 function validateBuild(ctx: BuildContext) {

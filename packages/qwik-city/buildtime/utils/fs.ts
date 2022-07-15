@@ -6,21 +6,12 @@ export function getExtension(fileName: string) {
   return extname(fileName).toLowerCase();
 }
 
-export function removeExtension(path: string) {
-  const parts = path.split('.');
+export function getExtensionLessBasename(path: string) {
+  const parts = basename(path).split('.');
   if (parts.length > 1) {
     parts.pop();
-    return parts.join('.');
   }
-  return path;
-}
-
-export function getExtensionLessBasename(path: string) {
-  const ext = getExtension(path);
-  if (PAGE_EXT[ext] || MARKDOWN_EXT[ext] || ENDPOINT_EXT[ext]) {
-    return basename(path, ext);
-  }
-  return basename(path);
+  return parts.join('.');
 }
 
 export function normalizePath(path: string) {
@@ -38,11 +29,11 @@ export function normalizePath(path: string) {
   return path.replace(/\\/g, '/');
 }
 
-export function createFileId(ctx: BuildContext, routesDir: string, path: string) {
+export function createFileId(ctx: BuildContext, path: string) {
   const segments: string[] = [];
 
   for (let i = 0; i < 25; i++) {
-    let baseName = removeExtension(basename(path));
+    let baseName = i === 0 ? getExtensionLessBasename(path) : basename(path);
 
     baseName = baseName.replace(/[\W_]+/g, '');
     if (baseName === '') {
@@ -52,7 +43,8 @@ export function createFileId(ctx: BuildContext, routesDir: string, path: string)
     segments.push(baseName);
 
     path = normalizePath(dirname(path));
-    if (path === routesDir) {
+
+    if (path === ctx.opts.routesDir) {
       break;
     }
   }
@@ -76,8 +68,7 @@ export const MARKDOWN_EXT: { [ext: string]: boolean } = {
 };
 
 export function isMarkdownFileName(fileName: string) {
-  const ext = getExtension(fileName);
-  return MARKDOWN_EXT[ext];
+  return MARKDOWN_EXT[getExtension(fileName)];
 }
 
 const PAGE_EXT: { [ext: string]: boolean } = {
@@ -86,8 +77,7 @@ const PAGE_EXT: { [ext: string]: boolean } = {
 };
 
 export function isPageFileName(fileName: string) {
-  const ext = getExtension(fileName);
-  return PAGE_EXT[ext];
+  return PAGE_EXT[getExtension(fileName)];
 }
 
 export function isPageIndexFileName(fileName: string) {
@@ -109,8 +99,6 @@ export function isEndpointFileName(fileName: string) {
 
 export function isTestFileName(fileName: string) {
   return (
-    fileName === '__test__' ||
-    fileName === '__tests__' ||
     fileName.includes('.spec.') ||
     fileName.includes('.unit.') ||
     fileName.includes('.e2e.') ||
@@ -118,31 +106,16 @@ export function isTestFileName(fileName: string) {
   );
 }
 
+export function isTestDirName(fileName: string) {
+  return fileName === '__test__' || fileName === '__tests__';
+}
+
 /** File and directory names we already know we can just skip over */
-export const IGNORE_NAMES: { [key: string]: boolean } = {
-  build: true,
-  dist: true,
+export const IGNORE_FS_NAMES: { [key: string]: boolean } = {
   node_modules: true,
-  target: true,
-  LICENSE: true,
-  'LICENSE.md': true,
-  README: true,
-  'README.md': true,
-  Dockerfile: true,
-  Makefile: true,
-  WORKSPACE: true,
-  '.devcontainer': true,
   '.gitignore': true,
   '.gitattributese': true,
   '.gitkeep': true,
-  '.github': true,
-  '.husky': true,
-  '.npmrc': true,
-  '.nvmrc': true,
-  '.prettierignore': true,
-  '.history': true,
-  '.vscode': true,
-  '.yarn': true,
   '.DS_Store': true,
   'thumbs.db': true,
 };

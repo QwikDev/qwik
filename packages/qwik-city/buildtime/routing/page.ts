@@ -2,18 +2,17 @@ import { dirname } from 'path';
 import type { BuildContext, BuildLayout, PageRoute } from '../types';
 import { createFileId, normalizePath } from '../utils/fs';
 import { getPathnameFromFilePath } from '../utils/pathname';
-import { parsePathname } from './parse-route';
+import { parsePathname } from './parse-pathname';
 
 export function createPageRoute(
   ctx: BuildContext,
-  routesDir: string,
   filePath: string,
   source: 'markdown' | 'module'
 ) {
   const pageRoute: PageRoute = {
     type: 'page',
-    id: createFileId(ctx, routesDir, filePath),
-    filePath: normalizePath(filePath),
+    id: createFileId(ctx, filePath),
+    filePath,
     pathname: getPathnameFromFilePath(ctx.opts, filePath),
     pattern: undefined as any,
     paramNames: undefined as any,

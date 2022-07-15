@@ -1,4 +1,4 @@
-import { BuildConfig, panic, run, watcher } from './util';
+import { BuildConfig, nodeTarget, panic, run, watcher } from './util';
 import { build } from 'esbuild';
 import { join } from 'path';
 import { readPackageJson, writePackageJson } from './package-json';
@@ -88,6 +88,7 @@ async function buildVite(config: BuildConfig, input: string, output: string) {
     outfile: join(output, 'vite', 'index.mjs'),
     bundle: true,
     platform: 'node',
+    target: nodeTarget,
     format: 'esm',
     external,
     watch: watcher(config),
@@ -98,6 +99,7 @@ async function buildVite(config: BuildConfig, input: string, output: string) {
     outfile: join(output, 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
+    target: nodeTarget,
     format: 'cjs',
     external,
     watch: watcher(config),
@@ -112,6 +114,7 @@ async function buildCloudflarePages(config: BuildConfig, input: string, output: 
     outfile: join(output, 'middleware', 'cloudflare-pages', 'index.mjs'),
     bundle: true,
     platform: 'node',
+    target: nodeTarget,
     format: 'esm',
     watch: watcher(config),
   });
@@ -120,13 +123,14 @@ async function buildCloudflarePages(config: BuildConfig, input: string, output: 
 async function buildExpress(config: BuildConfig, input: string, output: string) {
   const entryPoints = [join(input, 'middleware', 'express', 'index.ts')];
 
-  const external = ['express', 'path'];
+  const external = ['express', 'path', 'node-fetch'];
 
   await build({
     entryPoints,
     outfile: join(output, 'middleware', 'express', 'index.mjs'),
     bundle: true,
     platform: 'node',
+    target: nodeTarget,
     format: 'esm',
     external,
     watch: watcher(config),
@@ -137,6 +141,7 @@ async function buildExpress(config: BuildConfig, input: string, output: string) 
     outfile: join(output, 'middleware', 'express', 'index.cjs'),
     bundle: true,
     platform: 'node',
+    target: nodeTarget,
     format: 'cjs',
     external,
     watch: watcher(config),
@@ -151,6 +156,7 @@ async function buildNetlifyEdge(config: BuildConfig, input: string, output: stri
     outfile: join(output, 'middleware', 'netlify-edge', 'index.mjs'),
     bundle: true,
     platform: 'node',
+    target: nodeTarget,
     format: 'esm',
     watch: watcher(config),
   });

@@ -62,6 +62,7 @@
   "bugs": {
     "url": "https://github.com/BuilderIO/qwik/issues"
   },
+  "type": "module",
   "main": "./lib/index.cjs.qwik.js",
   "module": "./lib/index.es.qwik.js",
   "qwik": "./lib/index.es.qwik.js",

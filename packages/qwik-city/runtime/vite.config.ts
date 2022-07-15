@@ -28,8 +28,11 @@ export default defineConfig(() => {
       qwikVite(),
     ],
     clearScreen: false,
-    server: {
+    optimizeDeps: {
       force: true,
+    },
+    server: {
+      port: 3000,
     },
   };
 });

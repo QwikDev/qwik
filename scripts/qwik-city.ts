@@ -53,14 +53,7 @@ export async function buildQwikCity(config: BuildConfig) {
     publishConfig: {
       access: 'public',
     },
-    files: [
-      'index.d.ts',
-      'index.qwik.mjs',
-      'index.qwik.cjs',
-      'modules.d.ts',
-      'middleware',
-      'vite',
-    ],
+    files: ['index.d.ts', 'index.qwik.mjs', 'index.qwik.cjs', 'modules.d.ts', 'middleware', 'vite'],
     devDependencies: undefined,
     scripts: undefined,
   };
@@ -124,7 +117,7 @@ async function buildCloudflarePages(config: BuildConfig, input: string, output: 
 async function buildExpress(config: BuildConfig, input: string, output: string) {
   const entryPoints = [join(input, 'middleware', 'express', 'index.ts')];
 
-  const external = ['express', 'path'];
+  const external = ['express', 'node-fetch', 'path'];
 
   await build({
     entryPoints,

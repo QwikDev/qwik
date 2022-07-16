@@ -1,4 +1,5 @@
 import express from 'express';
+import { fileURLToPath } from 'url';
 import { join } from 'path';
 import cityPlan from '@qwik-city-plan';
 import { qwikCity } from '@builder.io/qwik-city/middleware/express';
@@ -9,7 +10,7 @@ const app = express();
 app.use(
   qwikCity(render, {
     ...cityPlan,
-    staticDir: join(__dirname, '..', 'dist'),
+    staticDir: join(fileURLToPath(import.meta.url), '..', '..', 'dist'),
   })
 );
 

@@ -26,18 +26,21 @@ fn find_files(dir: &std::path::Path, files: &mut Vec<std::path::PathBuf>) -> std
                         find_files(&path, files)?;
                     }
                 }
-            } else {
-                let ext = path.extension().and_then(|p| p.to_str());
-                if let Some("ts" | "tsx" | "js" | "jsx") = ext {
-                    files.push(path);
-                }
+            } else if should_capture_file(&path) {
+                files.push(path);
             }
         }
-    } else {
-        let ext = dir.extension().and_then(|p| p.to_str());
-        if let Some("ts" | "tsx" | "js" | "jsx") = ext {
-            files.push(dir.to_path_buf());
-        }
+    } else if should_capture_file(dir) {
+        files.push(dir.to_path_buf());
     }
     Ok(())
+}
+
+#[cfg(feature = "fs")]
+fn should_capture_file(path: &std::path::Path) -> bool {
+    let ext = path.extension().and_then(|p| p.to_str());
+    matches!(
+        ext,
+        Some("ts" | "tsx" | "js" | "jsx" | "mjs" | "mts" | "mtsx" | "mjsx")
+    )
 }

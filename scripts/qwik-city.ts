@@ -1,4 +1,4 @@
-import { BuildConfig, panic, run, watcher } from './util';
+import { BuildConfig, nodeTarget, panic, run, watcher } from './util';
 import { build } from 'esbuild';
 import { join } from 'path';
 import { readPackageJson, writePackageJson } from './package-json';
@@ -24,14 +24,15 @@ export async function buildQwikCity(config: BuildConfig) {
 
   const loaderPkg = {
     ...(await readPackageJson(input)),
-    main: './index.cjs.qwik.js',
-    module: './index.es.qwik.js',
-    qwik: './index.es.qwik.js',
+    main: './index.qwik.cjs',
+    module: './index.qwik.mjs',
+    qwik: './index.qwik.mjs',
     types: './index.d.ts',
+    type: 'module',
     exports: {
       '.': {
-        import: './index.es.qwik.js',
-        require: './index.cjs.qwik.js',
+        import: './index.qwik.mjs',
+        require: './index.qwik.cjs',
       },
       './middleware/cloudflare-pages': {
         import: './middleware/cloudflare-pages/index.mjs',
@@ -52,14 +53,7 @@ export async function buildQwikCity(config: BuildConfig) {
     publishConfig: {
       access: 'public',
     },
-    files: [
-      'index.d.ts',
-      'index.es.qwik.js',
-      'index.cjs.qwik.js',
-      'modules.d.ts',
-      'middleware',
-      'vite',
-    ],
+    files: ['index.d.ts', 'index.qwik.mjs', 'index.qwik.cjs', 'modules.d.ts', 'middleware', 'vite'],
     devDependencies: undefined,
     scripts: undefined,
   };
@@ -88,6 +82,7 @@ async function buildVite(config: BuildConfig, input: string, output: string) {
     outfile: join(output, 'vite', 'index.mjs'),
     bundle: true,
     platform: 'node',
+    target: nodeTarget,
     format: 'esm',
     external,
     watch: watcher(config),
@@ -98,6 +93,7 @@ async function buildVite(config: BuildConfig, input: string, output: string) {
     outfile: join(output, 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
+    target: nodeTarget,
     format: 'cjs',
     external,
     watch: watcher(config),
@@ -112,6 +108,7 @@ async function buildCloudflarePages(config: BuildConfig, input: string, output: 
     outfile: join(output, 'middleware', 'cloudflare-pages', 'index.mjs'),
     bundle: true,
     platform: 'node',
+    target: nodeTarget,
     format: 'esm',
     watch: watcher(config),
   });
@@ -120,13 +117,14 @@ async function buildCloudflarePages(config: BuildConfig, input: string, output: 
 async function buildExpress(config: BuildConfig, input: string, output: string) {
   const entryPoints = [join(input, 'middleware', 'express', 'index.ts')];
 
-  const external = ['express', 'path'];
+  const external = ['express', 'node-fetch', 'path'];
 
   await build({
     entryPoints,
     outfile: join(output, 'middleware', 'express', 'index.mjs'),
     bundle: true,
     platform: 'node',
+    target: nodeTarget,
     format: 'esm',
     external,
     watch: watcher(config),
@@ -137,6 +135,7 @@ async function buildExpress(config: BuildConfig, input: string, output: string) 
     outfile: join(output, 'middleware', 'express', 'index.cjs'),
     bundle: true,
     platform: 'node',
+    target: nodeTarget,
     format: 'cjs',
     external,
     watch: watcher(config),
@@ -151,6 +150,7 @@ async function buildNetlifyEdge(config: BuildConfig, input: string, output: stri
     outfile: join(output, 'middleware', 'netlify-edge', 'index.mjs'),
     bundle: true,
     platform: 'node',
+    target: nodeTarget,
     format: 'esm',
     watch: watcher(config),
   });

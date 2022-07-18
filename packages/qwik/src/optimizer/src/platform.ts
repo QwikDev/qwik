@@ -139,6 +139,13 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
         for (const triple of triples) {
           // NodeJS - Native Binding
           try {
+            if (globalThis.IS_ESM) {
+              const module = await sys.dynamicImport('module');
+              const mod = module.default.createRequire(import.meta.url)(
+                `./bindings/${triple.platformArchABI}`
+              );
+              return mod;
+            }
             const mod = await sys.dynamicImport(`./bindings/${triple.platformArchABI}`);
             return mod;
           } catch (e) {

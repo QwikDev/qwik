@@ -1,3 +1,4 @@
+import { expect, describe, it } from '@jest/globals';
 import { Host } from './host.public';
 import { jsx, isJSXNode, Fragment, processNode } from './jsx-runtime';
 import type { FunctionComponent, ProcessedJSXNode } from './types/jsx-node';

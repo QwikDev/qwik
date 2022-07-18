@@ -1,6 +1,7 @@
 import { parseQRL, stringifyQRL } from './qrl';
 import { createQrl } from './qrl-class';
 import { qrl } from './qrl';
+import { expect, describe, it } from '@jest/globals';
 
 describe('QRL', () => {
   describe('serialization', () => {

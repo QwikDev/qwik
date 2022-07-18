@@ -93,7 +93,7 @@ async function renderToString(rootNode, opts) {
 
 export { qwikify$, qwikifyQrl, renderToString };
         
-============================= qwikifyqrl_component_usewatch_x04jc5xep1u.js (ENTRY POINT)==
+============================= qwikifyqrl_component_usewatch_x04jc5xep1u.mjs (ENTRY POINT)==
 
 import { filterProps } from "../node_modules/@builder.io/qwik-react/index.qwik";
 import { isBrowser } from "@builder.io/qwik/build";
@@ -129,13 +129,13 @@ export { hW as handleWatch };
 
 /*
 {
-  "origin": "../node_modules/@builder.io/qwik-react/index.qwik.js",
+  "origin": "../node_modules/@builder.io/qwik-react/index.qwik.mjs",
   "name": "qwikifyQrl_component_useWatch_x04JC5xeP1U",
   "entry": null,
   "displayName": "qwikifyQrl_component_useWatch",
   "hash": "x04JC5xeP1U",
   "canonicalFilename": "qwikifyqrl_component_usewatch_x04jc5xep1u",
-  "extension": "js",
+  "extension": "mjs",
   "parent": "qwikifyQrl_component_zH94hIe0Ick",
   "ctxKind": "function",
   "ctxName": "useWatch$",
@@ -146,7 +146,7 @@ export { hW as handleWatch };
   ]
 }
 */
-============================= qwikifyqrl_component_zh94hie0ick.js (ENTRY POINT)==
+============================= qwikifyqrl_component_zh94hie0ick.mjs (ENTRY POINT)==
 
 import { Fragment } from "@builder.io/qwik/jsx-runtime";
 import { Host } from "@builder.io/qwik";
@@ -196,13 +196,13 @@ export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
 
 /*
 {
-  "origin": "../node_modules/@builder.io/qwik-react/index.qwik.js",
+  "origin": "../node_modules/@builder.io/qwik-react/index.qwik.mjs",
   "name": "qwikifyQrl_component_zH94hIe0Ick",
   "entry": null,
   "displayName": "qwikifyQrl_component",
   "hash": "zH94hIe0Ick",
   "canonicalFilename": "qwikifyqrl_component_zh94hie0ick",
-  "extension": "js",
+  "extension": "mjs",
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
@@ -213,7 +213,7 @@ export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
   ]
 }
 */
-============================= ../node_modules/@builder.io/qwik-react/index.qwik.js ==
+============================= ../node_modules/@builder.io/qwik-react/index.qwik.mjs ==
 
 import { qrl } from "@builder.io/qwik";
 import { componentQrl, implicit$FirstArg } from '@builder.io/qwik';

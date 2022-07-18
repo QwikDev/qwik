@@ -12,7 +12,7 @@ const config: PlaywrightTestConfig = {
   },
   timeout: 5000,
   webServer: {
-    command: 'node server/entry.express.js',
+    command: 'node server/entry.express',
     port: 3000,
     reuseExistingServer: !process.env.CI,
   },

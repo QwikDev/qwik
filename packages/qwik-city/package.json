@@ -2,14 +2,15 @@
   "name": "@builder.io/qwik-city",
   "version": "0.0.20",
   "description": "Static Site Generator for Qwik",
-  "main": "./lib/index.cjs.qwik.js",
-  "module": "./lib/index.es.qwik.js",
-  "qwik": "./lib/index.cjs.qwik.js",
+  "main": "./lib/index.qwik.cjs",
+  "module": "./lib/index.qwik.mjs",
+  "qwik": "./lib/index.qwik.cjs",
   "types": "./lib/index.d.ts",
+  "type": "module",
   "exports": {
     ".": {
-      "import": "./lib/index.es.qwik.js",
-      "require": "./lib/index.cjs.qwik.js"
+      "import": "./lib/index.qwik.mjs",
+      "require": "./lib/index.qwik.cjs"
     },
     "./middleware/cloudflare-pages": {
       "import": "./lib/middleware/cloudflare-pages/index.mjs"
@@ -33,8 +34,8 @@
     "build.client": "cd runtime && vite build --config vite-app.config.ts",
     "build.ssr": "cd runtime && vite build --config vite-app.config.ts --ssr src/entry.express.tsx",
     "build.runtime": "cd runtime && vite build --mode lib",
-    "serve": "node --inspect runtime/server/entry.express.js",
-    "serve.debug": "node --inspect-brk runtime/server/entry.express.js",
+    "serve": "node --inspect runtime/server/entry.express",
+    "serve.debug": "node --inspect-brk runtime/server/entry.express",
     "test": "yarn test.unit && yarn test.e2e",
     "test.unit": "node ../../node_modules/.bin/uvu -r tsm . \"(unit)\"",
     "test.e2e": "DISABLE_JS=true node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts",
@@ -70,7 +71,7 @@
     "unified": "10.1.2",
     "unist-util-visit": "4.1.0",
     "uvu": "0.5.6",
-    "vite": "3.0.0"
+    "vite": "3.0.1"
   },
   "license": "MIT",
   "homepage": "https://qwik.builder.io/",

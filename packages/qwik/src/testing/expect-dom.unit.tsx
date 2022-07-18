@@ -1,3 +1,4 @@
+import { expect, describe, it } from '@jest/globals';
 import type { QwikJSX } from '@builder.io/qwik';
 import qwikDom from '@builder.io/qwik-dom';
 import { isJSXNode, isProcessedJSXNode, processNode } from '../core/render/jsx/jsx-runtime';

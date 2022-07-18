@@ -44,7 +44,7 @@
       "@repl-server-url": ["packages/docs/src/components/repl/worker/repl-server.ts"],
       "create-qwik": ["packages/create-qwik/api/index.ts"]
     },
-    "types": ["jest", "node", "vite/client"],
+    "types": ["node", "vite/client"],
     "esModuleInterop": true,
     "sourceRoot": ".",
     "inlineSourceMap": true,

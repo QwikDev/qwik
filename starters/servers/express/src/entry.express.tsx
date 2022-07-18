@@ -1,6 +1,4 @@
 import express from 'express';
-import { fileURLToPath } from 'url';
-import { join } from 'path';
 import cityPlan from '@qwik-city-plan';
 import { qwikCity } from '@builder.io/qwik-city/middleware/express';
 import { render } from './entry.ssr';

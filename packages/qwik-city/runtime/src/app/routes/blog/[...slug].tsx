@@ -1,17 +1,38 @@
-import { component$, Host } from '@builder.io/qwik';
-import { useLocation, DocumentHead } from '~qwik-city-runtime';
+import { component$, Host, Resource } from '@builder.io/qwik';
+import { useEndpoint, DocumentHead, EndpointHandler } from '~qwik-city-runtime';
 
 export default component$(() => {
-  const { pathname, params } = useLocation();
+  const resource = useEndpoint<EndpointData>();
 
   return (
     <Host>
-      <h1>Blog: {params.slug}</h1>
-      <p>Pathname: {pathname}</p>
+      <Resource
+        resource={resource}
+        onResolved={(blog) => (
+          <>
+            <h1>{blog.blogTitle}</h1>
+            <p>{blog.blogContent}</p>
+          </>
+        )}
+      />
     </Host>
   );
 });
 
-export const head: DocumentHead = ({ params }) => {
-  return { title: `Blog: ${params.slug}` };
+export const onGet: EndpointHandler<EndpointData> = async ({ params, request }) => {
+  return {
+    body: {
+      blogTitle: `Blog: ${params.slug}`,
+      blogContent: `${params.slug}, ${request.url}`,
+    },
+  };
 };
+
+export const head: DocumentHead<EndpointData> = ({ data }) => {
+  return { title: data?.blogTitle };
+};
+
+export interface EndpointData {
+  blogTitle: string;
+  blogContent: string;
+}

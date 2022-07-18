@@ -1,3 +1,4 @@
+import { expect, describe, it } from '@jest/globals';
 import { createWindow } from './document';
 import { pathToFileURL } from 'url';
 

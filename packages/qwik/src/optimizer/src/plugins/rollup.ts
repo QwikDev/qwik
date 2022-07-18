@@ -184,16 +184,6 @@ export function normalizeRollupOutputOptions(
 
   if (opts.target === 'ssr') {
     // ssr output
-    if (!outputOpts.entryFileNames) {
-      outputOpts.entryFileNames = '[name].js';
-    }
-    if (!outputOpts.assetFileNames) {
-      outputOpts.assetFileNames = '[name].[ext]';
-    }
-    if (!outputOpts.chunkFileNames) {
-      outputOpts.chunkFileNames = '[name].js';
-    }
-
     outputOpts.inlineDynamicImports = true;
   } else if (opts.target === 'client') {
     // client output

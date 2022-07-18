@@ -28,7 +28,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "typescript": "4.7.4",
-    "vite": "3.0.0"
+    "vite": "3.0.1"
   },
   "peerDependencies": {
     "@builder.io/qwik": ">=0.0.35",
@@ -45,8 +45,8 @@
   },
   "exports": {
     ".": {
-      "import": "./lib/index.es.qwik.js",
-      "require": "./lib/index.cjs.qwik.js"
+      "import": "./lib/index.qwik.mjs",
+      "require": "./lib/index.qwik.cjs"
     }
   },
   "files": [
@@ -62,8 +62,9 @@
   "bugs": {
     "url": "https://github.com/BuilderIO/qwik/issues"
   },
-  "main": "./lib/index.cjs.qwik.js",
-  "module": "./lib/index.es.qwik.js",
-  "qwik": "./lib/index.es.qwik.js",
+  "type": "module",
+  "main": "./lib/index.qwik.cjs",
+  "module": "./lib/index.qwik.mjs",
+  "qwik": "./lib/index.qwik.mjs",
   "types": "./lib/types/index.d.ts"
 }

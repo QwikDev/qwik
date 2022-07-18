@@ -13,7 +13,7 @@ export const App_component_div_p_button_onClick_8dWUa0cJAr4 = ()=>{
 
 /*
 {
-  "origin": "../../node_modules/dep/dist/lib.js",
+  "origin": "../../node_modules/dep/dist/lib.mjs",
   "name": "App_component_div_p_button_onClick_8dWUa0cJAr4",
   "entry": null,
   "displayName": "App_component_div_p_button_onClick",
@@ -61,7 +61,7 @@ export const App_component_AkbU84a8zes = ()=>{
 
 /*
 {
-  "origin": "../../node_modules/dep/dist/lib.js",
+  "origin": "../../node_modules/dep/dist/lib.mjs",
   "name": "App_component_AkbU84a8zes",
   "entry": null,
   "displayName": "App_component",
@@ -78,7 +78,7 @@ export const App_component_AkbU84a8zes = ()=>{
   ]
 }
 */
-============================= ../../node_modules/dep/dist/lib.js ==
+============================= ../../node_modules/dep/dist/lib.mjs ==
 
 import { qrl } from "@builder.io/qwik";
 import { componentQrl, useStore } from "@builder.io/qwik";

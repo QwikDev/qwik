@@ -8,17 +8,7 @@ import { isMarkdownFileName, normalizePath } from '../utils/fs';
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityVitePluginOptions } from './types';
 import { build } from '../build';
-import {
-  createPrinter,
-  createSourceFile,
-  factory,
-  isIdentifier,
-  isVariableDeclaration,
-  isVariableStatement,
-  NewLineKind,
-  ScriptTarget,
-  SyntaxKind,
-} from 'typescript';
+import ts from 'typescript';
 import { configureDevServer } from './dev-server';
 
 /**
@@ -115,38 +105,38 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
 
 function removeServerFns(code: string, id: string) {
   let didModify = false;
-  const sourceFile = createSourceFile(id, code, ScriptTarget.Latest);
+  const sourceFile = ts.createSourceFile(id, code, ts.ScriptTarget.Latest);
 
   for (const s of sourceFile.statements) {
-    if (!isVariableStatement(s)) {
+    if (!ts.isVariableStatement(s)) {
       continue;
     }
 
-    if (!s.modifiers?.some((m) => m.kind === SyntaxKind.ExportKeyword)) {
+    if (!s.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)) {
       continue;
     }
 
     const decs = s.declarationList.declarations;
 
     for (const d of decs) {
-      if (!isVariableDeclaration(d)) {
+      if (!ts.isVariableDeclaration(d)) {
         continue;
       }
       const identifier = d.name;
-      if (!isIdentifier(identifier)) {
+      if (!ts.isIdentifier(identifier)) {
         continue;
       }
       if (!SERVER_FNS.some((fn) => identifier.escapedText === fn)) {
         continue;
       }
 
-      (d as any).initializer = factory.createNull();
+      (d as any).initializer = ts.factory.createNull();
       didModify = true;
     }
   }
 
   if (didModify) {
-    const printer = createPrinter({ newLine: NewLineKind.LineFeed });
+    const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
     return printer.printFile(sourceFile);
   }
   return null;

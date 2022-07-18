@@ -1,3 +1,4 @@
+import { expect, describe, beforeEach, it } from '@jest/globals';
 import { h, Host, useStore } from '@builder.io/qwik';
 import { useCleanup$, useClientEffect$, useWatch$ } from '../../core';
 import { ElementFixture, trigger } from '../../testing/element-fixture';
@@ -17,7 +18,7 @@ import { useScopedStyles$ } from '../use/use-styles';
 
 describe('render', () => {
   let fixture: ElementFixture;
-  beforeEach(() => (fixture = new ElementFixture()));
+  beforeEach(async () => (fixture = new ElementFixture()));
   describe('basic JSX', () => {
     it('should render basic content', async () => {
       await render(fixture.host, <div></div>);

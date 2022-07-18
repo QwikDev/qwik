@@ -1,3 +1,4 @@
+import { expect, describe, it } from '@jest/globals';
 import { fromCamelToKebabCase } from './case';
 
 describe('case', () => {

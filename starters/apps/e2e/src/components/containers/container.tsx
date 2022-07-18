@@ -43,7 +43,6 @@ export const Container = component$((props: ContainerProps) => {
   useWatch$(async (track) => {
     track(props, 'url');
     const url = `http://localhost:3300${props.url}?fragment&loader=false`;
-    const { default: fetch } = await import('node-fetch');
     const res = await fetch(url);
     state.url = await res.text();
     state.html = await res.text();

@@ -1,3 +1,4 @@
+import { expect, describe, it } from '@jest/globals';
 import { createDocument, createWindow } from '@builder.io/qwik/testing';
 import { normalizeUrl } from './utils';
 import { ensureGlobals } from './document';

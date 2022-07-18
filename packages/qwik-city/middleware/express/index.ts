@@ -2,11 +2,10 @@ import type { QwikCityRequestOptions } from '../request-handler/types';
 import { requestHandler } from '../request-handler';
 import { patchGlobalFetch } from '../request-handler/node-fetch';
 import express from 'express';
-import { dirname, isAbsolute, join, resolve } from 'path';
+import { join, resolve } from 'path';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 import { fromNodeRequest, toNodeResponse } from './utils';
-import { fileURLToPath } from 'url';
 
 // @builder.io/qwik-city/middleware/express
 
@@ -20,15 +19,13 @@ export function qwikCity(render: Render, opts: QwikCityPlanExpress) {
 
   let staticDir = opts.staticDir;
   if (typeof staticDir === 'string') {
-    const __dirname = dirname(fileURLToPath(import.meta.url));
+    staticDir = resolve(staticDir);
 
-    if (!isAbsolute(staticDir)) {
-      staticDir = resolve(__dirname, staticDir);
-    }
-
-    let buildDir = opts.buildDir || join(staticDir, 'build');
-    if (!isAbsolute(buildDir)) {
-      buildDir = resolve(__dirname, buildDir);
+    let buildDir = opts.buildDir;
+    if (typeof buildDir === 'string') {
+      buildDir = resolve(buildDir);
+    } else {
+      buildDir = join(staticDir, 'build');
     }
 
     router.use(`/build`, express.static(buildDir, { immutable: true, maxAge: '1y', index: false }));

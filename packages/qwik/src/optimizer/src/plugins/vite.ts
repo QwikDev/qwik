@@ -233,14 +233,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       if (opts.target === 'ssr') {
         // SSR Build
-        updatedViteConfig.build!.ssr = true;
-
         if (viteCommand === 'serve') {
           updatedViteConfig.ssr = {
             noExternal: vendorIds,
           };
         } else {
           updatedViteConfig.publicDir = false;
+          updatedViteConfig.build!.ssr = true;
         }
       } else if (opts.target === 'client') {
         if (buildMode === 'production') {
@@ -400,11 +399,16 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // polyfill fetch() when not available in NodeJS
         qwikPlugin.log(`configureServer(), patch fetch()`);
 
-        const nodeFetch = await sys.dynamicImport('node-fetch');
-        global.fetch = nodeFetch;
-        global.Headers = nodeFetch.Headers;
-        global.Request = nodeFetch.Request;
-        global.Response = nodeFetch.Response;
+        try {
+          const nodeFetch = await sys.strictDynamicImport('node-fetch');
+          global.fetch = nodeFetch;
+          global.Headers = nodeFetch.Headers;
+          global.Request = nodeFetch.Request;
+          global.Response = nodeFetch.Response;
+        } catch {
+          console.warn('Global fetch() was not installed');
+          // Nothing
+        }
       }
 
       server.middlewares.use(async (req, res, next) => {

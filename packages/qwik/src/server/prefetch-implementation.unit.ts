@@ -1,3 +1,4 @@
+import { expect, describe, it } from '@jest/globals';
 import { flattenPrefetchResources } from './prefetch-implementation';
 import type { PrefetchResource } from './types';
 

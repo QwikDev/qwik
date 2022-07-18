@@ -1,6 +1,7 @@
 import { createDocument } from '@builder.io/qwik/testing';
 import type { LoaderWindow } from './qwikloader';
 import { qwikLoader } from './qwikloader';
+import { jest, expect, describe, beforeEach, afterEach, it } from '@jest/globals';
 
 describe('qwikloader', () => {
   let doc: Document;

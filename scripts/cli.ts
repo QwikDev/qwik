@@ -3,6 +3,7 @@ import { build } from 'esbuild';
 import { basename, join } from 'path';
 import { getBanner, readdir, watcher, run } from './util';
 import { readPackageJson, writePackageJson } from './package-json';
+import { existsSync } from 'fs';
 
 const PACKAGE = 'create-qwik';
 
@@ -11,18 +12,7 @@ export async function buildCli(config: BuildConfig) {
   const distCliDir = join(srcCliDir, 'dist');
 
   await bundleCli(config, srcCliDir, distCliDir);
-
-  const distStartersDir = join(distCliDir, 'starters');
-  await mkdir(distStartersDir);
-
-  const copyDirs = ['apps', 'servers', 'features'];
-  await Promise.all(
-    copyDirs.map(async (dirName) => {
-      const srcDir = join(config.startersDir, dirName);
-      const distDir = join(distStartersDir, dirName);
-      await copyDir(config, srcDir, distDir);
-    })
-  );
+  await copyStartersDir(config, distCliDir);
 
   await copyFile(join(srcCliDir, 'package.json'), join(distCliDir, 'package.json'));
   await copyFile(join(srcCliDir, 'README.md'), join(distCliDir, 'README.md'));
@@ -111,6 +101,30 @@ export async function publishStarterCli(
   );
 }
 
+async function copyStartersDir(config: BuildConfig, distCliDir: string) {
+  const distStartersDir = join(distCliDir, 'starters');
+  await mkdir(distStartersDir);
+
+  const copyDirs = ['apps', 'servers', 'features'];
+  await Promise.all(
+    copyDirs.map(async (dirName) => {
+      const srcDir = join(config.startersDir, dirName);
+      const distDir = join(distStartersDir, dirName);
+      await copyDir(config, srcDir, distDir);
+
+      const distStartersDirs = await readdir(distDir);
+      await Promise.all(
+        distStartersDirs.map(async (distStartersDir) => {
+          const pkgJsonPath = join(distDir, distStartersDir, 'package.json');
+          if (!existsSync(pkgJsonPath)) {
+            throw new Error(`CLI starter missing package.json: ${pkgJsonPath}`);
+          }
+        })
+      );
+    })
+  );
+}
+
 async function copyDir(config: BuildConfig, srcDir: string, destDir: string) {
   await mkdir(destDir);
   const items = await readdir(srcDir);
@@ -156,6 +170,7 @@ async function updatePackageJson(config: BuildConfig, destDir: string) {
   setVersionFromRoot('eslint');
   setVersionFromRoot('prettier');
   setVersionFromRoot('typescript');
+  setVersionFromRoot('node-fetch');
   setVersionFromRoot('vite');
 
   await writePackageJson(destDir, pkgJson);

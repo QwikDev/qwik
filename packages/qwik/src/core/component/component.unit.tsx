@@ -5,6 +5,7 @@ import { runtimeQrl } from '../import/qrl';
 import { render } from '../render/render.public';
 import { useStylesQrl } from '../use/use-styles';
 import { PropsOf, component$ } from './component.public';
+import { describe, it } from '@jest/globals';
 
 describe('q-component', () => {
   it('should declare and render basic component', async () => {

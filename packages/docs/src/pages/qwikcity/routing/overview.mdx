@@ -8,18 +8,18 @@ Routing is a way to map public URLs for a site to specific components declared i
 
 ## Basic routing
 
-In its simplest form, the URL the user sees `http://server/some/path`, will be mapped to the `some/path` component in the `src/routes` folder. 
+In the Qwik City router, folders map to paths. For example, if the user sees `https://example.com/some/path`, the component exported at `src/routes/some/path` (either `.mdx` or `.tsx`) will be shown. 
 
 ```
 - src/
   - routes/
     - some/           
-      - path.tsx       # http://server/some/path
+      - path.tsx       # https://example.com/some/path
 ```
 
 ## Implementing a Component
 
-To return HTML for a specific route you will need to implement a component. For `.tsx` file the component must be exported as `default`. (Alternatively, you can use `.mdx` extension discussed [later](/qwikcity/content/mdx).)
+To return HTML for a specific route you will need to implement a component. For `.tsx` files the component must be exported as `default`. Alternatively, you can use `.mdx` extension discussed [later](/qwikcity/content/mdx).
 
 
 ```typescript
@@ -34,11 +34,11 @@ export default component$(() => {
 
 ### `_` prefix
 
-From time to time, there is a need to place files into the `src/routes` folder without them showing up on any route. In such a case use the `_` prefix to let Qwik City knows that the file is private and should not be exposed on any route.
+Occasionally, there is a need to place files into the `src/routes` folder without them showing up on any route. In this case, use the `_` prefix to let Qwik City know that the file is private and should not be exposed.
 
 ## `@qwik-city-plan`
 
-The route information is stored in files. This is great for developer ergonomics but not useful for creating bundles and chunks. In addition, in some environments, such as edge functions, there is no file system that can be accessed. For this reason, it is necessary to serialize the route information into a single file. This is done through the `@qwik-city-plan` import.
+Qwik City stores route information in files on disk. This is great for developer ergonomics but not useful for creating bundles and chunks. Additionally, in some environments - such as edge functions - there is no file system that can be accessed. For this reason, it is necessary to serialize the route information into a single file. This is done through the `@qwik-city-plan` import.
 
 ```typescript
 import cityPlan from '@qwik-city-plan';

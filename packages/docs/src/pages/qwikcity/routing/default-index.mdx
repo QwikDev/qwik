@@ -10,14 +10,14 @@ Sometimes the route component gets too complex, and placing the whole implementa
 ```
 - src/
   - routes/
-    - index.tsx                 # http://server/
+    - index.tsx                 # https://example.com/
     - some/           
-      - index.tsx                # http://server/some
+      - index.tsx                # https://server/some
       - path/
-        - index.tsx              # http://server/some/path
-        - _other_component.tsx   # this file is ignored and not mapped to any URL.
+        - index.tsx              # https://example.com/some/path
+        - _other_component.tsx   # this file is ignored and not mapped to any URL because of the leading underscore.
 ```
 
 ### `_` prefix
 
-From time to time, there is a need to place files into the `src/routes` folder without them showing up on any route. In such a case use the `_` prefix to let Qwik City knows that the file is private and should not be exposed on any route.
+Occasionally, there is a need to place files into the `src/routes` folder without them showing up on any route. In this case, use the `_` prefix to let Qwik City know that the file is private and should not be exposed.

@@ -1,12 +1,12 @@
 ---
-title: Qwik City - Path Parameters
+title: Qwik City - Route Parameters
 ---
 
-# Qwik City - Path Parameters 
+# Qwik City - Route Parameters 
 
-Path Parameters are parts of the URLs that are extracted into parameters. 
+Route Parameters are parts of the URLs that are extracted into parameters. 
 
-Imagine that you have a page with the following URLs where `[skuId]` can be any of the thousands of products that you have in your database. It would be impractical to create a route for each product. Instead, we need to define a Path Parameter (a part of the URL) that will be used to extract the `[skuId]`.
+Imagine that you have a page with the following URLs where `[skuId]` can be any of the thousands of products that you have in your database. It would be impractical to create a route for each product. Instead, we need to define a Route Parameter (a part of the URL) that will be used to extract the `[skuId]`.
 
 - `https://example.com/sku/[skuId]` 
   - Will match: `https://example.com/sku/1234` 
@@ -24,7 +24,7 @@ Imagine that you have a page with the following URLs where `[skuId]` can be any 
 ```
 
 
-## Retrieving the Path Parameter from the URL
+## Retrieving the Route Parameter from the URL
 
 Once we have `[skuId]` in the URL, we need a way to retrieve it. This can be done by using `useLocation()` API.
 

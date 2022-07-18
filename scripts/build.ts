@@ -126,6 +126,6 @@ export async function build(config: BuildConfig) {
       console.log('👀 watching...');
     }
   } catch (e: any) {
-    panic(String(e.stack || e));
+    panic(String(e ? e.stack || e : 'Error'));
   }
 }

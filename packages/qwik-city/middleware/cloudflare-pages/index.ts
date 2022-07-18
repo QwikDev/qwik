@@ -40,7 +40,7 @@ export function qwikCity(render: Render, opts: QwikCityPlanCloudflarePages) {
         return next();
       }
     } catch (e: any) {
-      return new Response(String(e.stack || e), { status: 500 });
+      return new Response(String(e ? e.stack || e : 'Error'), { status: 500 });
     }
   }
 

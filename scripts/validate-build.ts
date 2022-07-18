@@ -146,7 +146,9 @@ async function validatePackageJson(config: BuildConfig, pkg: PackageJSON, errors
       await access(join(config.distPkgDir, path));
     } catch (e: any) {
       errors.push(
-        `Error loading file "${path}" referenced in package.json: ${String(e.stack || e)}`
+        `Error loading file "${path}" referenced in package.json: ${String(
+          e ? e.stack || e : 'Error'
+        )}`
       );
     }
   }

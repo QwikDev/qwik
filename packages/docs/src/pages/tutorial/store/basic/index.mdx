@@ -7,7 +7,7 @@ Qwik tracks application state for two reasons:
 
 1. To serialize data when the application pauses, and deserialize as the application resumes.
 
-1. To create subscriptions on stores so that knows which components to re-render. If Qwik didn't track subscriptions, it would have to re-render the whole application which would defeat the purpose of lazy-loading.
+1. To create subscriptions on stores so that Qwik knows which components to re-render. If Qwik didn't track subscriptions, it would have to re-render the whole application - which would defeat the purpose of lazy-loading.
 
 The component on the right doesn't work yet because `counter` is just a plain object with no subscriptions. As a result, Qwik doesn't know when `counter.count` changes, and therefore doesn't know to re-render the `<App>` component. 
 

@@ -11,7 +11,7 @@ At times components get so complex that using `index.ts` is not enough, and they
   - routes/
     - some/           
       - path/
-        - _complex-component/      # Notice the `_` prefix
-          - index.tsx              # http://server/some/path  (`_complex-component` is not used.)
-          - _other_component.tsx   # this file is ignored and not mapped to any URL.
+        - _complex-component/      # Notice the underscore prefix
+          - index.tsx              # https://example.com/some/path  (the _complex-component folder is ignored)
+          - _other_component.tsx   # this file is ignored and not mapped to any URL because of the leading underscore.
 ```

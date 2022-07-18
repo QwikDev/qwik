@@ -170,6 +170,7 @@ async function updatePackageJson(config: BuildConfig, destDir: string) {
   setVersionFromRoot('eslint');
   setVersionFromRoot('prettier');
   setVersionFromRoot('typescript');
+  setVersionFromRoot('node-fetch');
   setVersionFromRoot('vite');
 
   await writePackageJson(destDir, pkgJson);

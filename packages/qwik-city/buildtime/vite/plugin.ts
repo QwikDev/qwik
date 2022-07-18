@@ -9,7 +9,7 @@ import { validatePlugin } from './validate-plugin';
 import type { QwikCityVitePluginOptions } from './types';
 import { build } from '../build';
 import { configureDevServer } from './dev-server';
-import { SERVER_ENDPOINT_FNS, stripServerEndpoints } from '../strip-server-endpoints';
+import { SERVER_ENDPOINT_FNS, stripServerEndpoints } from '../utils/strip-server-endpoints';
 import { transformMenu } from '../markdown/menu';
 
 /**

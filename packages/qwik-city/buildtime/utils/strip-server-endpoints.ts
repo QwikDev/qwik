@@ -23,7 +23,7 @@ export function stripServerEndpoints(code: string, id: string) {
       if (!ts.isIdentifier(identifier)) {
         continue;
       }
-      if (!SERVER_ENDPOINT_FNS.some((fnName) => identifier.escapedText === fnName)) {
+      if (!SERVER_ENDPOINT_FNS.some((fn) => identifier.escapedText === fn)) {
         continue;
       }
 

@@ -1,3 +1,5 @@
+import { expect, describe, beforeEach, it } from '@jest/globals';
+
 import {
   createSubscriptionManager,
   getOrCreateProxy,

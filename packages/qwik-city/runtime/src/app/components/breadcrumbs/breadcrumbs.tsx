@@ -12,9 +12,9 @@ export const Breadcrumbs = component$(
     const breadcrumbs = createBreadcrumbs(menu, loc.pathname);
 
     return (
-      <Host class="breadcrumbs" data-test-breadcrumbs>
-        {breadcrumbs.map((b) => (
-          <span>{b.href ? <a href={b.href}>{b.text}</a> : b.text}</span>
+      <Host class="breadcrumbs">
+        {breadcrumbs.map((b, i) => (
+          <span data-test-breadcrumb={i}>{b.href ? <a href={b.href}>{b.text}</a> : b.text}</span>
         ))}
       </Host>
     );

@@ -1,5 +1,14 @@
 import { MODULE_CACHE } from './constants';
-import type { ContentModule, LoadedRoute, MatchedRoute, RouteData, RouteParams } from './types';
+import type {
+  ContentMenu,
+  ContentModule,
+  LoadedRoute,
+  MatchedRoute,
+  MenuData,
+  MenuModule,
+  RouteData,
+  RouteParams,
+} from './types';
 
 export const matchRoute = (
   routes: RouteData[] | undefined,
@@ -21,39 +30,81 @@ export const matchRoute = (
 
 export const loadRoute = async (
   routes: RouteData[] | undefined,
+  menus: MenuData[] | undefined,
+  cacheModules: boolean | undefined,
   pathname: string
 ): Promise<LoadedRoute | null> => {
   const matchedRoute = matchRoute(routes, pathname);
 
   if (matchedRoute) {
-    const moduleLoaders = matchedRoute.loaders;
-    const modules: ContentModule[] = new Array(moduleLoaders.length);
+    const contentLoaders = matchedRoute.loaders;
+    const contents: ContentModule[] = new Array(contentLoaders.length);
     const pendingLoads: Promise<any>[] = [];
+    const menuLoader = getMenuLoader(menus, pathname);
+    let menu: ContentMenu | undefined = undefined;
 
-    moduleLoaders.forEach((moduleLoader, i) => {
-      let mod = MODULE_CACHE.get(moduleLoader);
-      if (!mod) {
-        mod = moduleLoader();
-        if (typeof mod.then === 'function') {
-          pendingLoads.push(
-            mod.then((loadedModule: any) => {
-              modules[i] = loadedModule;
-              MODULE_CACHE.set(moduleLoader, loadedModule);
-            })
-          );
-        }
-      }
-      modules[i] = mod;
+    contentLoaders.forEach((contentLoader, i) => {
+      loadModule<ContentModule>(
+        contentLoader,
+        pendingLoads,
+        (contentModule) => (contents[i] = contentModule),
+        cacheModules
+      );
     });
+
+    loadModule<MenuModule>(
+      menuLoader,
+      pendingLoads,
+      (menuModule) => (menu = menuModule?.default),
+      cacheModules
+    );
 
     if (pendingLoads.length > 0) {
       await Promise.all(pendingLoads);
     }
 
-    return { ...matchedRoute, modules };
+    return { ...matchedRoute, contents, menu };
   }
 
   return null;
+};
+
+const loadModule = <T>(
+  loaderFn: (() => Promise<any>) | undefined,
+  pendingLoads: Promise<any>[],
+  moduleSetter: (loadedModule: T) => void,
+  cacheModules: boolean | undefined
+) => {
+  if (typeof loaderFn === 'function') {
+    const loadedModule = MODULE_CACHE.get(loaderFn);
+    if (loadedModule) {
+      moduleSetter(loadedModule);
+    } else {
+      const l: any = loaderFn();
+      if (typeof l.then === 'function') {
+        pendingLoads.push(
+          l.then((loadedModule: any) => {
+            if (cacheModules !== false) {
+              MODULE_CACHE.set(loaderFn, loadedModule);
+            }
+            moduleSetter(loadedModule);
+          })
+        );
+      } else if (l) {
+        moduleSetter(l);
+      }
+    }
+  }
+};
+
+const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) => {
+  if (menus) {
+    const menu = menus.find((m) => m[0] === pathname || pathname.startsWith(m[0] + '/'));
+    if (menu) {
+      return menu[1];
+    }
+  }
+  return undefined;
 };
 
 export const getRouteParams = (paramNames: string[] | undefined, match: RegExpExecArray | null) => {

@@ -1,0 +1,45 @@
+---
+title: Qwik City - Route Parameters
+---
+
+# Qwik City - Route Parameters 
+
+Route Parameters are parts of the URLs that are extracted into parameters. 
+
+Imagine that you have a page with the following URLs where `[skuId]` can be any of the thousands of products that you have in your database. It would be impractical to create a route for each product. Instead, we need to define a Route Parameter (a part of the URL) that will be used to extract the `[skuId]`.
+
+- `https://example.com/sku/[skuId]` 
+  - Will match: `https://example.com/sku/1234` 
+  - Will match: `https://example.com/sku/xyz-567`
+- `http://example.com/sku/[skuId]/details` 
+  - Will match: `https://example.com/sku/1234/details`
+
+```
+- src/
+  - routes/
+    - sku/
+      - [skuId]/
+        - index.js       # https://example.com/sku/1234
+        - details.js     # https://example.com/sku/1234/details
+```
+
+
+## Retrieving the Route Parameter from the URL
+
+Once we have `[skuId]` in the URL, we need a way to retrieve it. This can be done by using `useLocation()` API.
+
+```typescript
+import { useLocation } from '@builder.io/qwik-city';
+
+export default component$(() => {
+  const location = useLocation();
+
+  return (
+    <Host>
+      <h1>SKU</h1>
+      <p>Pathname: {location.pathname}</p>
+      <p>Sku Id: {location.params.skuId}</p>
+    </Host>
+  );
+});
+```

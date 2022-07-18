@@ -18,10 +18,10 @@ First layout files as follows:
     - some/   
       - _menu.md
       - _layout.tsx
-      - path.tsx       # http://server/some/path
+      - path.tsx       # https://example.com/some/path
 ```
 
-Navigating to `http://server/some/path` activates:
+Navigating to `https://example.com/some/path` activates:
 - `src/routes/some/path.tsx`: This component will be used for rendering the page content.
 - `src/routes/some/_layout.tsx`: This layout will be used to provide content around the `src/routes/some/path.tsx`. Internally the layout will use `src/routes/some/_menu.md` to render the menus.
 - `src/routes/some/_menu.md`: This file will be used to declare the menu structure which will be rendered by `src/routes/some/_layout.tsx`.

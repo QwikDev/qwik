@@ -12,10 +12,10 @@ Assume this file layout.
   - routes/
     - product/
       - [skuId]/
-        - details.js     # http://server/product/1234/details
+        - details.js     # https://example.com/product/1234/details
 ```
 
-Let's say that a user does a request to an invalid `skuId` such as `http://server/product/999/details`. In this case, we would like to return a 404 HTTP status code and render a 404 page. The place where we determine if the request is valid or not is the data endpoint by looking into the database. Even if the response is non-200, the component still gets a chance to render a page (Except in the redirect case.)
+Let's say that a user does a request to an invalid `skuId` such as `https://example.com/product/999/details`. In this case, we would like to return a 404 HTTP status code and render a 404 page. The place where we determine if the request is valid or not is the data endpoint by looking into the database. Even if the response is non-200, the component still gets a chance to render a page (Except in the redirect case.)
 
 ```typescript
 // File: src/routes/product/[skuId]/details.js

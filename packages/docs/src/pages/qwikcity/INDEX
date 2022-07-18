@@ -10,7 +10,7 @@
 
 - [Overview](routing/overview.mdx)
 - [Index](routing/default-index.mdx)
-- [Slugs](routing/slugs.mdx)
+- [Route Parameters](routing/route-parameters.mdx)
 - [Pathless Dirs](routing/pathless.mdx)
 
 ## Layout

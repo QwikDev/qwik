@@ -92,16 +92,23 @@ export function isMenuFileName(fileName: string) {
   return fileName === '_menu.md';
 }
 
+export function isLayoutName(fileName: string) {
+  return fileName.startsWith('_layout');
+}
+
 export function isLayoutFileName(dirName: string, fileName: string, ext: string) {
-  if (fileName.startsWith('_layout') && isPageExt(ext)) {
-    // _layout.tsx
-    // _layout-name.tsx
-    return true;
-  }
-  if (dirName.startsWith('_layout') && isPageIndexFileName(fileName, ext)) {
-    // _layout/index.tsx
-    // _layout-name/index.tsx
-    return true;
+  if (isLayoutName(fileName)) {
+    if (isPageExt(ext)) {
+      // _layout.tsx
+      // _layout-name.tsx
+      return true;
+    }
+  } else if (isLayoutName(dirName)) {
+    if (isPageIndexFileName(fileName, ext)) {
+      // _layout/index.tsx
+      // _layout-name/index.tsx
+      return true;
+    }
   }
   return false;
 }

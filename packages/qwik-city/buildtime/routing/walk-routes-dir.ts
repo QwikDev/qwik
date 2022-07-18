@@ -1,7 +1,8 @@
 import fs from 'fs';
 import { basename, join } from 'path';
 import type { RouteSourceFile } from '../types';
-import { normalizePath } from '../utils/fs';
+import { isLayoutName, normalizePath } from '../utils/fs';
+import { isDynamicSegment, isPathlessSegment } from '../utils/pathname';
 import { getSourceFile } from './source-file';
 
 export async function walkRoutes(routesDir: string) {
@@ -54,7 +55,7 @@ async function walkRouteDirWithPathname(
   if (dirItems !== null) {
     const segmentName = segments[index];
     index++;
-    const continueDrill = index <= segments.length;
+    const continueWalk = index <= segments.length;
 
     await Promise.all(
       dirItems.map(async (itemName) => {
@@ -66,17 +67,13 @@ async function walkRouteDirWithPathname(
         }
 
         const sameSegmentName = itemName === segmentName;
-        const isDynamicPath = itemName.includes('[') && itemName.includes(']');
-        const isPathlessDir = itemName.startsWith('__');
-        const isLayout = itemName.startsWith('_layout');
 
         if (
+          continueWalk ||
           sameSegmentName ||
-          sourceFile ||
-          isDynamicPath ||
-          isPathlessDir ||
-          continueDrill ||
-          isLayout
+          isDynamicSegment(itemName) ||
+          isPathlessSegment(itemName) ||
+          isLayoutName(itemName)
         ) {
           await walkRouteDirWithPathname(sourceFiles, segments, index, itemPath, itemName);
         }

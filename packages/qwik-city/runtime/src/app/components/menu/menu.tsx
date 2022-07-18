@@ -12,9 +12,9 @@ export const Menu = component$(
     return (
       <Host class="menu">
         {menu
-          ? menu.items?.map((item) => (
+          ? menu.items?.map((item, i) => (
               <>
-                <h5>{item.text}</h5>
+                <h5 data-test-menu-header={i}>{item.text}</h5>
                 <ul>
                   {item.items?.map((item) => (
                     <li>

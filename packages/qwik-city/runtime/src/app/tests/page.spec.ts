@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { assertPage, linkNavigate, load, locator } from './util';
+import { assertPage, linkNavigate, load, locator } from './util.js';
 
 test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
   const ctx = await load(context, javaScriptEnabled, '/');
@@ -27,7 +27,7 @@ test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
   await linkNavigate(ctx, '[data-test-link="blog-resumability"]');
   await assertPage(ctx, {
     pathname: '/blog/what-is-resumability',
-    title: 'Qwik' /****** TODO *****/,
+    title: 'Blog: what-is-resumability - Qwik',
     layoutHierarchy: ['root', 'blog'],
     h1: 'Blog: what-is-resumability',
     activeHeaderLink: 'Blog',
@@ -37,7 +37,7 @@ test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
   await linkNavigate(ctx, '[data-test-link="blog-serializing-props"]');
   await assertPage(ctx, {
     pathname: '/blog/serializing-props',
-    title: 'Qwik' /****** TODO *****/,
+    title: 'Blog: serializing-props - Qwik',
     layoutHierarchy: ['root', 'blog'],
     h1: 'Blog: serializing-props',
     activeHeaderLink: 'Blog',
@@ -60,36 +60,6 @@ test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
     title: 'Docs: Overview - Qwik',
     layoutHierarchy: ['root', 'docs'],
     h1: 'Overview',
-    activeHeaderLink: 'Docs',
-  });
-
-  /***********  Docs: getting-started  ***********/
-  await linkNavigate(ctx, '[data-test-menu-link="/docs/getting-started"]');
-  await assertPage(ctx, {
-    pathname: '/docs/getting-started',
-    title: 'Docs: Getting Started - Qwik',
-    layoutHierarchy: ['root', 'docs'],
-    h1: 'Getting Started',
-    activeHeaderLink: 'Docs',
-  });
-
-  /***********  Docs: components/basics  ***********/
-  await linkNavigate(ctx, '[data-test-menu-link="/docs/components/basics"]');
-  await assertPage(ctx, {
-    pathname: '/docs/components/basics',
-    title: 'Docs: components basics - Qwik',
-    layoutHierarchy: ['root', 'docs'],
-    h1: 'Docs: components basics',
-    activeHeaderLink: 'Docs',
-  });
-
-  /***********  Docs: components/listeners  ***********/
-  await linkNavigate(ctx, '[data-test-menu-link="/docs/components/listeners"]');
-  await assertPage(ctx, {
-    pathname: '/docs/components/listeners',
-    title: 'Docs: components listeners - Qwik',
-    layoutHierarchy: ['root', 'docs'],
-    h1: 'Docs: components listeners',
     activeHeaderLink: 'Docs',
   });
 

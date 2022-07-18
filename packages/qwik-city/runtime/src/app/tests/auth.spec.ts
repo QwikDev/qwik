@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { assertPage, getPage, linkNavigate, load } from './util';
+import { assertPage, getPage, linkNavigate, load } from './util.js';
 
 test('Qwik City Auth', async ({ context, javaScriptEnabled }) => {
   const ctx = await load(context, javaScriptEnabled, '/sign-in');

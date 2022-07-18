@@ -1,33 +1,25 @@
-import type { ContentMenu } from '../../runtime/src/library/types';
-import type { BuildContext, ParsedMenuItem } from '../types';
+import type { BuildContext } from '../types';
+import { createFileId } from '../utils/fs';
+import { getImportPath } from './utils';
 
-export function createMenus(ctx: BuildContext, c: string[]) {
-  const totalMenus = ctx.menus.length;
+export function createMenus(ctx: BuildContext, c: string[], esmImports: string[]) {
+  if (ctx.menus.length > 0) {
+    const dynamicImports = ctx.target === 'client';
 
-  if (totalMenus > 0) {
-    c.push(`\n/** Qwik City Menus (${totalMenus}) */`);
-    c.push(`const menus = {`);
-    for (const parsedMenu of ctx.menus) {
-      const menu = createRuntimeMenu(parsedMenu);
-      c.push(`  ${JSON.stringify(parsedMenu.pathname)}: ${JSON.stringify(menu)},`);
+    c.push(`\n/** Qwik City Menus (${ctx.menus.length}) */`);
+    c.push(`const menus = [`);
+    for (const m of ctx.menus) {
+      const importPath = JSON.stringify(getImportPath(m.filePath));
+      if (dynamicImports) {
+        c.push(`  [${JSON.stringify(m.pathname)}, ()=>import(${importPath})],`);
+      } else {
+        const id = createFileId(ctx.opts.routesDir, m.filePath);
+        esmImports.push(`import * as ${id} from ${importPath};`);
+        c.push(`  [${JSON.stringify(m.pathname)}, ()=>${id}],`);
+      }
     }
-    c.push(`};`);
+    c.push(`];`);
   }
 
-  return totalMenus;
-}
-
-function createRuntimeMenu(parsedMenu: ParsedMenuItem) {
-  const runtimeMenu: ContentMenu = {
-    text: parsedMenu.text,
-  };
-
-  if (typeof parsedMenu.href === 'string') {
-    runtimeMenu.href = parsedMenu.href;
-  }
-  if (Array.isArray(parsedMenu.items)) {
-    runtimeMenu.items = parsedMenu.items.map(createRuntimeMenu);
-  }
-
-  return runtimeMenu;
+  return ctx.menus.length;
 }

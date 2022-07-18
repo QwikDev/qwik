@@ -12,12 +12,7 @@ import {
 import type { HTMLAttributes } from '@builder.io/qwik';
 import { loadRoute } from './routing';
 import type { ContentState, PageModule, QwikCityRenderDocument } from './types';
-import {
-  ContentContext,
-  ContentMenusContext,
-  DocumentHeadContext,
-  RouteLocationContext,
-} from './constants';
+import { ContentContext, DocumentHeadContext, RouteLocationContext } from './constants';
 import { createDocumentHead, resolveHead } from './head';
 import { getSsrEndpointResponse } from './use-endpoint';
 import cityPlan from '@qwik-city-plan';
@@ -45,21 +40,20 @@ export const Html = component$<HtmlProps>(
 
     const documentHead = useStore(createDocumentHead);
     const content = useStore<ContentState>({
-      breadcrumbs: undefined,
+      contents: [],
       headings: undefined,
-      modules: [],
+      menu: undefined,
     });
 
     useContextProvider(ContentContext, content);
-    useContextProvider(ContentMenusContext, cityPlan.menus || {});
     useContextProvider(DocumentHeadContext, documentHead);
     useContextProvider(RouteLocationContext, routeLocation);
 
     useWaitOn(
-      loadRoute(cityPlan.routes, routeLocation.pathname)
+      loadRoute(cityPlan.routes, cityPlan.menus, cityPlan.cacheModules, routeLocation.pathname)
         .then((loadedRoute) => {
           if (loadedRoute) {
-            const contentModules = loadedRoute.modules;
+            const contentModules = loadedRoute.contents;
             const pageModule = contentModules[contentModules.length - 1] as PageModule;
             const endpointResponse = getSsrEndpointResponse(doc);
             const resolvedHead = resolveHead(endpointResponse, routeLocation, contentModules);
@@ -69,9 +63,9 @@ export const Html = component$<HtmlProps>(
             documentHead.styles = resolvedHead.styles;
             documentHead.title = resolvedHead.title;
 
-            content.breadcrumbs = pageModule.breadcrumbs;
             content.headings = pageModule.headings;
-            content.modules = noSerialize<any>(contentModules);
+            content.menu = loadedRoute.menu;
+            content.contents = noSerialize<any>(contentModules);
 
             routeLocation.params = { ...loadedRoute.params };
           }

@@ -14,7 +14,6 @@ export interface EndpointModule<BODY = unknown> {
 
 export interface PageModule extends EndpointModule {
   readonly default: any;
-  readonly breadcrumbs?: ContentBreadcrumb[];
   readonly head?: ContentModuleHead;
   readonly headings?: ContentHeading[];
 }
@@ -22,6 +21,10 @@ export interface PageModule extends EndpointModule {
 export interface LayoutModule extends EndpointModule {
   readonly default: any;
   readonly head?: ContentModuleHead;
+}
+
+export interface MenuModule {
+  readonly default: ContentMenu;
 }
 
 /**
@@ -105,18 +108,10 @@ export type DocumentHead<T = unknown> =
   | ResolvedDocumentHead
   | ((props: DocumentHeadProps<T>) => ResolvedDocumentHead);
 
-/**
- * @public
- */
-export interface ContentBreadcrumb {
-  text: string;
-  href?: string;
-}
-
 export interface ContentState {
-  breadcrumbs: ContentBreadcrumb[] | undefined;
   headings: ContentHeading[] | undefined;
-  modules: ContentModule[];
+  contents: ContentModule[];
+  menu: ContentMenu | undefined;
 }
 
 /**
@@ -139,6 +134,7 @@ export interface ContentHeading {
 
 export type ContentModuleLoader = () => Promise<ContentModule>;
 export type EndpointModuleLoader = () => Promise<EndpointModule>;
+export type MenuModuleLoader = () => Promise<MenuModule>;
 export type ModuleLoader = ContentModuleLoader | EndpointModuleLoader;
 
 /**
@@ -154,13 +150,16 @@ export type RouteData =
       routeType: typeof ROUTE_TYPE_ENDPOINT
     ];
 
+export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
+
 /**
  * @public
  */
 export interface QwikCityPlan {
   routes: RouteData[];
-  menus?: { [pathName: string]: ContentMenu };
+  menus?: MenuData[];
   trailingSlash?: boolean;
+  cacheModules?: boolean;
 }
 
 /**
@@ -174,7 +173,8 @@ export interface MatchedRoute {
 }
 
 export interface LoadedRoute extends MatchedRoute {
-  modules: ContentModule[];
+  contents: ContentModule[];
+  menu: ContentMenu | undefined;
 }
 
 export interface LoadedContent extends LoadedRoute {

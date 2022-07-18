@@ -406,7 +406,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           global.Request = nodeFetch.Request;
           global.Response = nodeFetch.Response;
         } catch {
-          console.warn('Global fetch() was not installed')
+          console.warn('Global fetch() was not installed');
           // Nothing
         }
       }

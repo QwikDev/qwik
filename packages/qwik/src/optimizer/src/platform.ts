@@ -141,7 +141,9 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
           try {
             if (globalThis.IS_ESM) {
               const module = await sys.dynamicImport('module');
-              const mod = module.default.createRequire(import.meta.url)(`./bindings/${triple.platformArchABI}`);
+              const mod = module.default.createRequire(import.meta.url)(
+                `./bindings/${triple.platformArchABI}`
+              );
               return mod;
             }
             const mod = await sys.dynamicImport(`./bindings/${triple.platformArchABI}`);

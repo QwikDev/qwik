@@ -10,7 +10,7 @@ const app = express();
 app.use(
   qwikCity(render, {
     ...cityPlan,
-    staticDir: join(fileURLToPath(import.meta.url), '..', '..', 'dist'),
+    staticDir: './dist',
   })
 );
 

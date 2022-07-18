@@ -122,9 +122,11 @@ export const Html: Component<HtmlProps>;
 // @public (undocumented)
 export interface QwikCityPlan {
     // (undocumented)
-    menus?: {
-        [pathName: string]: ContentMenu;
-    };
+    cacheModules?: boolean;
+    // Warning: (ae-forgotten-export) The symbol "MenuData" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    menus?: MenuData;
     // (undocumented)
     routes: RouteData[];
     // (undocumented)

@@ -3,12 +3,11 @@ export interface BuildContext {
   opts: NormalizedPluginOptions;
   routes: BuildRoute[];
   layouts: BuildLayout[];
+  menus: Menu[];
   frontmatter: Map<string, string[]>;
-  menus: ParsedMenu[];
   diagnostics: Diagnostic[];
-  ids: Set<string>;
   target: 'ssr' | 'client';
-  dirty: boolean;
+  isDevServerBuild: boolean;
 }
 
 export interface Diagnostic {
@@ -17,6 +16,15 @@ export interface Diagnostic {
 }
 
 export type BuildRoute = PageRoute | EndpointRoute;
+
+export interface RouteSourceFile {
+  type: 'page' | 'endpoint' | 'layout' | 'menu';
+  dirPath: string;
+  dirName: string;
+  filePath: string;
+  fileName: string;
+  ext: string;
+}
 
 interface BaseRoute {
   type: 'page' | 'endpoint';
@@ -34,12 +42,10 @@ interface BaseRoute {
   pathname: string;
   pattern: RegExp;
   paramNames: string[];
-  paramTypes: string[];
 }
 
 export interface PageRoute extends BaseRoute {
   type: 'page';
-  source: 'markdown' | 'module';
   layouts: BuildLayout[];
 }
 
@@ -49,16 +55,15 @@ export interface EndpointRoute extends BaseRoute {
 
 export interface BuildLayout {
   filePath: string;
-  dir: string;
+  dirPath: string;
   id: string;
   type: 'top' | 'nested';
-  name: string;
+  layoutName: string;
 }
 
-export interface ParsedMenu extends ParsedMenuItem {
+export interface Menu {
   pathname: string;
   filePath: string;
-  id: string;
 }
 
 export interface ParsedMenuItem {

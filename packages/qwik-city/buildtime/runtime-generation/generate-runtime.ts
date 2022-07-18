@@ -26,6 +26,10 @@ export function generateQwikCityPlan(ctx: BuildContext) {
     c.push(`  trailingSlash: true,`);
   }
 
+  if (ctx.isDevServerBuild) {
+    c.push(`  cacheModules: false,`);
+  }
+
   c.push(`};`);
 
   c.push(`export default qwikCityPlan;\n`);

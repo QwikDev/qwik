@@ -1,33 +1,29 @@
-import type { ContentMenu } from '../../runtime/src/library/types';
-import type { BuildContext, ParsedMenuItem } from '../types';
+import type { BuildContext } from '../types';
 
 export function createMenus(ctx: BuildContext, c: string[]) {
-  const totalMenus = ctx.menus.length;
-
-  if (totalMenus > 0) {
-    c.push(`\n/** Qwik City Menus (${totalMenus}) */`);
+  if (ctx.menus.length > 0) {
+    c.push(`\n/** Qwik City Menus (${ctx.menus.length}) */`);
     c.push(`const menus = {`);
-    for (const parsedMenu of ctx.menus) {
-      const menu = createRuntimeMenu(parsedMenu);
-      c.push(`  ${JSON.stringify(parsedMenu.pathname)}: ${JSON.stringify(menu)},`);
+    for (const m of ctx.menus) {
+      c.push(`  ${JSON.stringify(m.pathname)}: () => import(${JSON.stringify(m.filePath)}),`);
     }
     c.push(`};`);
   }
 
-  return totalMenus;
+  return ctx.menus.length;
 }
 
-function createRuntimeMenu(parsedMenu: ParsedMenuItem) {
-  const runtimeMenu: ContentMenu = {
-    text: parsedMenu.text,
-  };
+// function createRuntimeMenu(parsedMenu: ParsedMenuItem) {
+//   const runtimeMenu: ContentMenu = {
+//     text: parsedMenu.text,
+//   };
 
-  if (typeof parsedMenu.href === 'string') {
-    runtimeMenu.href = parsedMenu.href;
-  }
-  if (Array.isArray(parsedMenu.items)) {
-    runtimeMenu.items = parsedMenu.items.map(createRuntimeMenu);
-  }
+//   if (typeof parsedMenu.href === 'string') {
+//     runtimeMenu.href = parsedMenu.href;
+//   }
+//   if (Array.isArray(parsedMenu.items)) {
+//     runtimeMenu.items = parsedMenu.items.map(createRuntimeMenu);
+//   }
 
-  return runtimeMenu;
-}
+//   return runtimeMenu;
+// }

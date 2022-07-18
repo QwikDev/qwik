@@ -1,6 +1,6 @@
-import { relative, dirname, join } from 'path';
+import { relative, dirname, join, extname } from 'path';
 import type { NormalizedPluginOptions } from '../types';
-import { getExtensionLessBasename, isMarkdownFileName, normalizePath } from './fs';
+import { getExtensionLessBasename, isMarkdownExt, normalizePath } from './fs';
 
 export function getPathnameFromFilePath(opts: NormalizedPluginOptions, filePath: string) {
   // get relative file system path
@@ -10,31 +10,36 @@ export function getPathnameFromFilePath(opts: NormalizedPluginOptions, filePath:
   let pathname = normalizePath(relFilePath);
 
   // remove pathless segments (directories starting with "__")
-  pathname = removePathlessSegments(pathname);
+  pathname = pathname
+    .split('/')
+    .filter((segment) => !segment.startsWith('__'))
+    .join('/');
 
-  const fileName = getExtensionLessBasename(pathname);
   const dirName = normalizePath(dirname(pathname));
+
+  let fileName = getExtensionLessBasename(pathname);
+  let layoutName = '';
+
+  const namedLayoutParts = fileName.split('@');
+  if (namedLayoutParts.length === 2) {
+    fileName = namedLayoutParts[0];
+    layoutName = namedLayoutParts[1];
+  }
 
   if (fileName === 'index') {
     if (dirName === '.') {
-      return '/';
+      pathname = `/`;
+    } else {
+      pathname = `/${dirName}`;
     }
-    pathname = `/${dirName}`;
   } else {
     pathname = `/${dirName}/${fileName}`;
   }
 
-  return normalizePathname(opts, pathname);
-}
-
-/**
- * Remove pathless segments (directories starting with "__")
- */
-export function removePathlessSegments(pathname: string) {
-  return pathname
-    .split('/')
-    .filter((segment) => !segment.startsWith('__'))
-    .join('/');
+  return {
+    pathname: normalizePathname(opts, pathname),
+    layoutName,
+  };
 }
 
 export function getMenuPathname(opts: NormalizedPluginOptions, filePath: string) {
@@ -43,11 +48,17 @@ export function getMenuPathname(opts: NormalizedPluginOptions, filePath: string)
   return normalizePathname(opts, pathname);
 }
 
-function normalizePathname(opts: NormalizedPluginOptions, pathname: string) {
+export function normalizePathname(opts: NormalizedPluginOptions, pathname: string) {
   pathname = new URL(pathname, 'https://qwik.builder.io/').pathname;
 
-  if (opts.trailingSlash && !pathname.endsWith('/')) {
-    pathname += '/';
+  if (pathname !== '/') {
+    if (opts.trailingSlash) {
+      if (!pathname.endsWith('/')) {
+        pathname += '/';
+      }
+    } else if (pathname.endsWith('/')) {
+      pathname = pathname.slice(0, pathname.length - 1);
+    }
   }
   return pathname;
 }
@@ -67,7 +78,7 @@ export function getMenuLinkHref(opts: NormalizedPluginOptions, menuFilePath: str
   const hashSplit = href.split('#');
   href = href.split('?')[0].split('#')[0];
 
-  if (!isMarkdownFileName(href)) {
+  if (!isMarkdownExt(extname(href))) {
     return href;
   }
 
@@ -77,7 +88,7 @@ export function getMenuLinkHref(opts: NormalizedPluginOptions, menuFilePath: str
     .filter((p) => p.length > 0);
   const filePath = join(indexDir, ...parts);
 
-  let pathname = getPathnameFromFilePath(opts, filePath);
+  let { pathname } = getPathnameFromFilePath(opts, filePath);
   if (querySplit.length > 1) {
     pathname += '?' + querySplit[1];
   } else if (hashSplit.length > 1) {

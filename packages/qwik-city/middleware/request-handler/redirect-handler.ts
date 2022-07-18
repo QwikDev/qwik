@@ -1,4 +1,4 @@
-import { HTTPStatus, NormalizedEndpointResponse } from '../../runtime/src/library/types';
+import type { NormalizedEndpointResponse } from '../../runtime/src/library/types';
 
 export function checkPageRedirect(
   current: URL,
@@ -28,7 +28,7 @@ function createRedirect(current: URL, headers: Headers, updatedPathname: string)
   if (updatedPathname !== current.pathname) {
     headers.set('location', updatedPathname + current.search);
     return new Response(null, {
-      status: HTTPStatus.Permanent_Redirect,
+      status: 308,
       headers,
     });
   }

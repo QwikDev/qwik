@@ -4,7 +4,7 @@ import { endpointHandler, getEndpointResponse } from './endpoint-handler';
 import { checkEndpointRedirect, checkPageRedirect } from './redirect-handler';
 import type { QwikCityRequestOptions } from './types';
 import type { Render } from '@builder.io/qwik/server';
-import { HttpMethod, HTTPStatus } from '../../runtime/src/library/types';
+import type { HttpMethod } from '../../runtime/src/library/types';
 import { pageHandler } from './page-handler';
 import { isAcceptJsonOnly } from './utils';
 
@@ -66,7 +66,7 @@ export async function requestHandler(
       }
     } catch (e) {
       return new Response(`Error: ${String(e)}`, {
-        status: HTTPStatus.Internal_Server_Error,
+        status: 500,
         headers: {
           'Content-Type': 'text/plain; charset=utf-8',
         },

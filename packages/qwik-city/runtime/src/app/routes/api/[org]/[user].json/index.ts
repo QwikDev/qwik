@@ -1,10 +1,9 @@
 import type { EndpointHandler } from '~qwik-city-runtime';
 import os from 'os';
-import { HTTPStatus } from 'packages/qwik-city/runtime/src/library/types';
 
 export const onGet: EndpointHandler = ({ request, params }) => {
   return {
-    status: HTTPStatus.Ok,
+    status: 200,
     body: {
       timestamp: Date.now(),
       method: request.method,
@@ -19,7 +18,7 @@ export const onGet: EndpointHandler = ({ request, params }) => {
 
 export const onPost: EndpointHandler = async ({ request }) => {
   return {
-    status: HTTPStatus.Ok,
+    status: 200,
     body: `Platform: ${os.platform()}, Node: ${process.versions.node}, HTTP Method: ${
       request.method
     }`,

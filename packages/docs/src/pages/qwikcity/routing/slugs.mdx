@@ -2,29 +2,29 @@
 title: Qwik City - Routing
 ---
 
-# Qwik City - Slugs 
+# Qwik City - Path Parameters 
 
-Slugs are parts of the URLs that are extracted into parameters. 
+Path Parameters are parts of the URLs that are extracted into parameters. 
 
-Imagine that you have a page with the following URLs where `[skuId]` can be any of the thousands of products that you have in your database. It would be impractical to create a route for each product. Instead, we need to define a slug (a part of the URL) that will be used to extract the `[skuId]`.
+Imagine that you have a page with the following URLs where `[skuId]` can be any of the thousands of products that you have in your database. It would be impractical to create a route for each product. Instead, we need to define a Path Parameter (a part of the URL) that will be used to extract the `[skuId]`.
 
-- `http://server/sku/[skuId]` 
-  - Example: `http://server/sku/1234` 
-  - Example: `http://server/sku/xyz-567`
-- `http://server/sku/[skuId]/details` 
-  - Example: `http://server/sku/1234/details`
+- `https://example.com/sku/[skuId]` 
+  - Will match: `https://example.com/sku/1234` 
+  - Will match: `https://example.com/sku/xyz-567`
+- `http://example.com/sku/[skuId]/details` 
+  - Will match: `https://example.com/sku/1234/details`
 
 ```
 - src/
   - routes/
     - sku/
       - [skuId]/
-        - index.js       # http://server/sku/1234
-        - details.js     # http://server/sku/1234/details
+        - index.js       # https://example.com/sku/1234
+        - details.js     # https://example.com/sku/1234/details
 ```
 
 
-## Retrieving the slug from the URL
+## Retrieving the Path Parameter from the URL
 
 Once we have `[skuId]` in the URL, we need a way to retrieve it. This can be done by using `useLocation()` API.
 
@@ -37,8 +37,8 @@ export default component$(() => {
   return (
     <Host>
       <h1>SKU</h1>
-      <p>pathname: {location.pathname}</p>
-      <p>skuId: {location.params.skuId}</p>
+      <p>Pathname: {location.pathname}</p>
+      <p>Sku Id: {location.params.skuId}</p>
     </Host>
   );
 });

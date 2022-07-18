@@ -40,10 +40,9 @@ export const Html = component$<HtmlProps>(
 
     const documentHead = useStore(createDocumentHead);
     const content = useStore<ContentState>({
-      breadcrumbs: undefined,
+      contents: [],
       headings: undefined,
       menu: undefined,
-      contents: [],
     });
 
     useContextProvider(ContentContext, content);
@@ -64,7 +63,6 @@ export const Html = component$<HtmlProps>(
             documentHead.styles = resolvedHead.styles;
             documentHead.title = resolvedHead.title;
 
-            // content.breadcrumbs = pageModule.breadcrumbs;
             content.headings = pageModule.headings;
             content.menu = loadedRoute.menu;
             content.contents = noSerialize<any>(contentModules);

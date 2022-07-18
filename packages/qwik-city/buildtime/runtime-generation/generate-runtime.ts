@@ -11,7 +11,7 @@ export function generateQwikCityPlan(ctx: BuildContext) {
 
   createRoutes(ctx, c, esmImports);
 
-  const totalMenus = createMenus(ctx, c);
+  const totalMenus = createMenus(ctx, c, esmImports);
 
   c.push(`\n/** Qwik City Plan */`);
   c.push(`const qwikCityPlan = {`);

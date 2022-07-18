@@ -1,17 +1,6 @@
 import { useContext } from '@builder.io/qwik';
 import { ContentContext, DocumentHeadContext, RouteLocationContext } from './constants';
-import type {
-  ContentHeading,
-  ContentBreadcrumb,
-  RouteLocation,
-  ResolvedDocumentHead,
-} from './types';
-
-/**
- * @public
- */
-export const useContentBreadcrumbs = (): ContentBreadcrumb[] | undefined =>
-  useContext(ContentContext).breadcrumbs;
+import type { ContentHeading, RouteLocation, ResolvedDocumentHead } from './types';
 
 /**
  * @public

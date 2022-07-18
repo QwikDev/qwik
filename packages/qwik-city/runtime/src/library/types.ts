@@ -108,16 +108,7 @@ export type DocumentHead<T = unknown> =
   | ResolvedDocumentHead
   | ((props: DocumentHeadProps<T>) => ResolvedDocumentHead);
 
-/**
- * @public
- */
-export interface ContentBreadcrumb {
-  text: string;
-  href?: string;
-}
-
 export interface ContentState {
-  breadcrumbs: ContentBreadcrumb[] | undefined;
   headings: ContentHeading[] | undefined;
   contents: ContentModule[];
   menu: ContentMenu | undefined;
@@ -159,14 +150,14 @@ export type RouteData =
       routeType: typeof ROUTE_TYPE_ENDPOINT
     ];
 
-export type MenuData = { [pathName: string]: MenuModuleLoader };
+export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 
 /**
  * @public
  */
 export interface QwikCityPlan {
   routes: RouteData[];
-  menus?: MenuData;
+  menus?: MenuData[];
   trailingSlash?: boolean;
   cacheModules?: boolean;
 }

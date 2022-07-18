@@ -30,7 +30,7 @@ export const matchRoute = (
 
 export const loadRoute = async (
   routes: RouteData[] | undefined,
-  menus: MenuData | undefined,
+  menus: MenuData[] | undefined,
   cacheModules: boolean | undefined,
   pathname: string
 ): Promise<LoadedRoute | null> => {
@@ -40,7 +40,7 @@ export const loadRoute = async (
     const contentLoaders = matchedRoute.loaders;
     const contents: ContentModule[] = new Array(contentLoaders.length);
     const pendingLoads: Promise<any>[] = [];
-    const menuLoader = menus && menus[pathname];
+    const menuLoader = getMenuLoader(menus, pathname);
     let menu: ContentMenu | undefined = undefined;
 
     contentLoaders.forEach((contentLoader, i) => {
@@ -95,6 +95,16 @@ const loadModule = <T>(
       }
     }
   }
+};
+
+const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) => {
+  if (menus) {
+    const menu = menus.find((m) => m[0] === pathname || pathname.startsWith(m[0] + '/'));
+    if (menu) {
+      return menu[1];
+    }
+  }
+  return undefined;
 };
 
 export const getRouteParams = (paramNames: string[] | undefined, match: RegExpExecArray | null) => {

@@ -12,14 +12,6 @@ import { ResourceReturn } from '@builder.io/qwik';
 export const Content: Component<    {}>;
 
 // @public (undocumented)
-export interface ContentBreadcrumb {
-    // (undocumented)
-    href?: string;
-    // (undocumented)
-    text: string;
-}
-
-// @public (undocumented)
 export interface ContentHeading {
     // (undocumented)
     id: string;
@@ -126,7 +118,7 @@ export interface QwikCityPlan {
     // Warning: (ae-forgotten-export) The symbol "MenuData" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    menus?: MenuData;
+    menus?: MenuData[];
     // (undocumented)
     routes: RouteData[];
     // (undocumented)
@@ -176,9 +168,6 @@ export interface RouteLocation {
     // (undocumented)
     search: string;
 }
-
-// @public (undocumented)
-export const useContentBreadcrumbs: () => ContentBreadcrumb[] | undefined;
 
 // @public (undocumented)
 export const useContentHeadings: () => ContentHeading[] | undefined;

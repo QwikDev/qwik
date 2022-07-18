@@ -12,11 +12,11 @@ Qwik City defines the convention that layouts start with `_layout`. That's why t
   - routes/
     - _layout.tsx         # Default layout implementation
     - _layout-narrow.tsx  # Default named layout implementation
-    - home.tsx            # http://server/home (Layout used: _layout.tsx)
-    - contact@narrow.tsx  # http://server/contact (Layout used: _layout-narrow.tsx)
+    - home.tsx            # https://example.com/home (Layout used: _layout.tsx)
+    - contact@narrow.tsx  # https://example.com/contact (Layout used: _layout-narrow.tsx)
 ```
 
-- `http://server/home`
+- `https://example.com/home`
   ```
   +--------------------------------------------------+
   |       src/routes/_layout.tsx                     |
@@ -27,7 +27,7 @@ Qwik City defines the convention that layouts start with `_layout`. That's why t
   |                                                  |
   +--------------------------------------------------+
   ```
-- `http://server/contact`
+- `https://example.com/contact`
   ```
   +--------------------------------------------------+
   |       src/routes/_layout-narrow.tsx              |

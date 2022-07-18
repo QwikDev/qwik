@@ -1,5 +1,4 @@
 export type {
-  ContentBreadcrumb,
   ContentHeading,
   ContentMenu,
   DocumentHead,
@@ -19,7 +18,6 @@ export { Html } from './library/html';
 export {
   useDocumentHead,
   useLocation,
-  useContentBreadcrumbs,
   useContentHeadings,
   useContentMenu,
 } from './library/use-functions';

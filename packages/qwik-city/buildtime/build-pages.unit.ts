@@ -7,7 +7,6 @@ const test = testAppSuite('Build Pages');
 test('pathless directory', ({ assertPage }) => {
   const r = assertPage('/sign-in');
   assert.equal(r.id, 'AuthSignin');
-  assert.equal(r.source, 'module');
   assert.equal(r.type, 'page');
   assert.equal(basename(dirname(r.filePath)), '__auth');
   assert.equal(r.pattern, /^\/sign-in\/?$/);
@@ -64,7 +63,6 @@ test('params route, index file w/out named layout, in directory w/ layout direct
   const r = assertPage('/docs/[category]/[id]');
   assert.equal(r.id, 'DocsCategoryIdIndex');
   assert.equal(r.type, 'page');
-  assert.equal(r.source, 'module');
   assert.equal(r.pattern, /^\/docs\/([^/]+?)\/([^/]+?)\/?$/);
   assert.equal(r.paramNames.length, 2);
   assert.equal(r.paramNames[0], 'category');
@@ -80,7 +78,6 @@ test('markdown index file w/out named layout, in directory w/ layout directory',
   const r = assertPage('/docs/overview');
   assert.equal(r.id, 'DocsOverviewIndex');
   assert.equal(r.type, 'page');
-  assert.equal(r.source, 'markdown');
   assert.equal(r.pattern, /^\/docs\/overview\/?$/);
   assert.equal(r.paramNames.length, 0);
   assert.equal(r.layouts.length, 2);
@@ -92,7 +89,6 @@ test('markdown file w/out named layout, in directory w/ layout directory', ({ as
   const r = assertPage('/docs/getting-started');
   assert.equal(r.id, 'DocsGettingstarted');
   assert.equal(r.type, 'page');
-  assert.equal(r.source, 'markdown');
   assert.equal(r.pattern, /^\/docs\/getting-started\/?$/);
   assert.equal(r.paramNames.length, 0);
   assert.equal(r.layouts.length, 2);
@@ -104,7 +100,6 @@ test('index file w/out named layout, in directory w/ layout directory', ({ asser
   const r = assertPage('/docs');
   assert.equal(r.id, 'DocsIndex');
   assert.equal(r.type, 'page');
-  assert.equal(r.source, 'module');
   assert.equal(r.pattern, /^\/docs\/?$/);
   assert.equal(r.paramNames.length, 0);
   assert.equal(r.layouts.length, 2);
@@ -116,7 +111,6 @@ test('index file w/out named layout, in directory w/ layout directory', ({ asser
   const r = assertPage('/about-us');
   assert.equal(r.id, 'Aboutus');
   assert.equal(r.type, 'page');
-  assert.equal(r.source, 'module');
   assert.equal(r.pattern, /^\/about-us\/?$/);
   assert.equal(r.paramNames.length, 0);
   assert.equal(r.layouts.length, 1);

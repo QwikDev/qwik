@@ -8,11 +8,9 @@ test('menus found', ({ menus }) => {
 });
 
 test('docs menu', ({ menus }) => {
-  const docsMenu = menus.find((r) => r.id === 'DocsMenu')!;
+  const docsMenu = menus.find((r) => r.pathname === '/docs')!;
   assert.ok(docsMenu, 'found docs menu');
   assert.is(docsMenu.pathname, '/docs');
-  assert.is(docsMenu.text, 'Docs');
-  assert.is(docsMenu.items?.length, 2);
 });
 
 test.run();

@@ -11,7 +11,7 @@ export function generateQwikCityPlan(ctx: BuildContext) {
 
   createRoutes(ctx, c, esmImports);
 
-  const totalMenus = createMenus(ctx, c);
+  const totalMenus = createMenus(ctx, c, esmImports);
 
   c.push(`\n/** Qwik City Plan */`);
   c.push(`const qwikCityPlan = {`);
@@ -24,6 +24,10 @@ export function generateQwikCityPlan(ctx: BuildContext) {
 
   if (ctx.opts.trailingSlash) {
     c.push(`  trailingSlash: true,`);
+  }
+
+  if (ctx.isDevServerBuild) {
+    c.push(`  cacheModules: false,`);
   }
 
   c.push(`};`);

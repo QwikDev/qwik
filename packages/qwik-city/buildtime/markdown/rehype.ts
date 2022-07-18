@@ -9,10 +9,8 @@ import { visit } from 'unist-util-visit';
 import type { ContentHeading, DocumentMeta, ResolvedDocumentHead } from '../../runtime/src';
 import { dirname, resolve } from 'path';
 import type { BuildContext } from '../types';
-import { getPathnameFromFilePath } from '../utils/pathname';
 import { existsSync } from 'fs';
 import { normalizePath } from '../utils/fs';
-import { createBreadcrumbs } from './breadcrumbs';
 
 export function rehypePage(ctx: BuildContext): Transformer {
   return (ast, vfile) => {
@@ -22,7 +20,6 @@ export function rehypePage(ctx: BuildContext): Transformer {
     updateContentLinks(mdast, sourcePath);
     exportContentHead(ctx, mdast, sourcePath);
     exportContentHeadings(mdast);
-    exportBreadcrumbs(ctx, mdast, sourcePath);
   };
 }
 
@@ -107,36 +104,6 @@ function exportContentHeadings(mdast: Root) {
   if (headings.length > 0) {
     createExport(mdast, 'headings', headings);
   }
-}
-
-function exportBreadcrumbs(ctx: BuildContext, mdast: Root, sourcePath: string) {
-  const pathname = getPathnameFromFilePath(ctx.opts, sourcePath);
-  const menuPathname = getMenuPathname(ctx, pathname);
-  if (menuPathname) {
-    const breadcrumbs = createBreadcrumbs(ctx, pathname, menuPathname);
-    if (breadcrumbs.length > 0) {
-      createExport(mdast, 'breadcrumbs', breadcrumbs);
-    }
-  }
-}
-
-function getMenuPathname(ctx: BuildContext, pathname: string) {
-  for (let i = 0; i < 9; i++) {
-    const index = ctx.menus.find((i) => i.pathname === pathname);
-    if (index) {
-      return pathname;
-    }
-
-    const parts = pathname.split('/');
-    parts.pop();
-
-    pathname = parts.join('/');
-    if (pathname === '/') {
-      break;
-    }
-  }
-
-  return undefined;
 }
 
 function createExport(mdast: Root, identifierName: string, val: any) {

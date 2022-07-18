@@ -33,7 +33,7 @@ export function parseRoutePathname(pathname: string) {
         return (
           '/' +
           segment
-            .split(/\[(.+?)\]/)
+            .split(DYNAMIC_SEGMENT)
             .map((content, i) => {
               if (i % 2) {
                 const rg = PARAM_PATTERN.exec(content);
@@ -77,3 +77,5 @@ export function parseRoutePathname(pathname: string) {
 }
 
 const PARAM_PATTERN = /^(\.\.\.)?(\w+)(?:=(\w+))?$/;
+
+export const DYNAMIC_SEGMENT = /\[(.+?)\]/;

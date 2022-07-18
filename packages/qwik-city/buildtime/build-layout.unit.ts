@@ -12,7 +12,7 @@ test('filename layout', ({ assertLayout }) => {
   const l = assertLayout('AuthLayout');
   assert.is(basename(l.filePath), '_layout.tsx');
   assert.is(l.type, 'nested');
-  assert.is(l.name, '');
+  assert.is(l.layoutName, '');
 });
 
 test('directory layout', ({ assertLayout }) => {
@@ -20,14 +20,14 @@ test('directory layout', ({ assertLayout }) => {
   assert.is(basename(dirname(l.filePath)), '_layout');
   assert.is(basename(l.filePath), 'index.tsx');
   assert.is(l.type, 'nested');
-  assert.is(l.name, '');
+  assert.is(l.layoutName, '');
 });
 
 test('named filename layout', ({ assertLayout }) => {
   const l = assertLayout('DashboardLayoutdashboard');
   assert.is(basename(l.filePath), '_layout-dashboard.tsx');
   assert.is(l.type, 'top');
-  assert.is(l.name, 'dashboard');
+  assert.is(l.layoutName, 'dashboard');
 });
 
 test('nested directory layout', ({ assertLayout }) => {
@@ -35,7 +35,7 @@ test('nested directory layout', ({ assertLayout }) => {
   assert.is(basename(dirname(l.filePath)), '_layout');
   assert.is(basename(l.filePath), 'index.tsx');
   assert.is(l.type, 'nested');
-  assert.is(l.name, '');
+  assert.is(l.layoutName, '');
 });
 
 test('named directory layout', ({ assertLayout }) => {
@@ -43,7 +43,7 @@ test('named directory layout', ({ assertLayout }) => {
   assert.is(basename(dirname(l.filePath)), '_layout-foo');
   assert.is(basename(l.filePath), 'index.tsx');
   assert.is(l.type, 'top');
-  assert.is(l.name, 'foo');
+  assert.is(l.layoutName, 'foo');
 });
 
 test.run();

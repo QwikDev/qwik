@@ -7,147 +7,283 @@ const test = suite();
 
 test('pathname from index.tsx', ({ opts }) => {
   const filePath = join(opts.routesDir, 'index.tsx');
-  const p = utils.getPathnameFromFilePath(opts, filePath);
-  assert.is(p, '/');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/');
+  assert.is(layoutName, '');
+});
+
+test('pathname from index@layout.tsx', ({ opts }) => {
+  const filePath = join(opts.routesDir, 'index@layout.tsx');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/');
+  assert.is(layoutName, 'layout');
 });
 
 test('pathname from index.mdx', ({ opts }) => {
   const filePath = join(opts.routesDir, 'index.mdx');
-  const p = utils.getPathnameFromFilePath(opts, filePath);
-  assert.is(p, '/');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/');
+  assert.is(layoutName, '');
+});
+
+test('pathname from index@layout.mdx', ({ opts }) => {
+  const filePath = join(opts.routesDir, 'index@layout.mdx');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/');
+  assert.is(layoutName, 'layout');
 });
 
 test('pathname from index.mdx, trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, 'index.mdx');
-  const p = utils.getPathnameFromFilePath(opts, filePath);
-  assert.is(p, '/');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/');
+  assert.is(layoutName, '');
+});
+
+test('pathname from index@layout.mdx, trailingSlash', ({ opts }) => {
+  opts.trailingSlash = true;
+  const filePath = join(opts.routesDir, 'index@layout.mdx');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/');
+  assert.is(layoutName, 'layout');
 });
 
 test('pathname from index.tsx, trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, 'index.tsx');
-  const p = utils.getPathnameFromFilePath(opts, filePath);
-  assert.is(p, '/');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/');
+  assert.is(layoutName, '');
+});
+
+test('pathname from index@layout.tsx, trailingSlash', ({ opts }) => {
+  opts.trailingSlash = true;
+  const filePath = join(opts.routesDir, 'index@layout.tsx');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/');
+  assert.is(layoutName, 'layout');
 });
 
 test('pathname from index.md', ({ opts }) => {
   const filePath = join(opts.routesDir, 'index.md');
-  const p = utils.getPathnameFromFilePath(opts, filePath);
-  assert.is(p, '/');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/');
+  assert.is(layoutName, '');
 });
 
 test('index in subdirectory, trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, 'dir', 'index.md');
-  const p = utils.getPathnameFromFilePath(opts, filePath);
-  assert.is(p, '/dir/');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/dir/');
+  assert.is(layoutName, '');
+});
+
+test('index in subdirectory, trailingSlash', ({ opts }) => {
+  opts.trailingSlash = true;
+  const filePath = join(opts.routesDir, 'dir', 'index@layout.md');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/dir/');
+  assert.is(layoutName, 'layout');
 });
 
 test('index in subdirectory', ({ opts }) => {
   const filePath = join(opts.routesDir, 'dir', 'index.md');
-  const p = utils.getPathnameFromFilePath(opts, filePath);
-  assert.is(p, '/dir');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/dir');
+  assert.is(layoutName, '');
+});
+
+test('index in subdirectory', ({ opts }) => {
+  const filePath = join(opts.routesDir, 'dir', 'index@layout.md');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/dir');
+  assert.is(layoutName, 'layout');
+});
+
+test('pathname from page@layout.mdx', ({ opts }) => {
+  const filePath = join(opts.routesDir, 'page@layout.mdx');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/page');
+  assert.is(layoutName, 'layout');
 });
 
 test('pathname from page.mdx', ({ opts }) => {
   const filePath = join(opts.routesDir, 'page.mdx');
-  const p = utils.getPathnameFromFilePath(opts, filePath);
-  assert.is(p, '/page');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/page');
+  assert.is(layoutName, '');
+});
+
+test('pathname from page@layout.mdx', ({ opts }) => {
+  const filePath = join(opts.routesDir, 'page@layout.mdx');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/page');
+  assert.is(layoutName, 'layout');
 });
 
 test('pathname from page.mdx, trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, 'page.mdx');
-  const p = utils.getPathnameFromFilePath(opts, filePath);
-  assert.is(p, '/page/');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/page/');
+  assert.is(layoutName, '');
+});
+
+test('pathname from page@layout.mdx, trailingSlash', ({ opts }) => {
+  opts.trailingSlash = true;
+  const filePath = join(opts.routesDir, 'page@layout.mdx');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/page/');
+  assert.is(layoutName, 'layout');
 });
 
 test('pathname from dir/page.mdx', ({ opts }) => {
   const filePath = join(opts.routesDir, 'dir', 'page.mdx');
-  const p = utils.getPathnameFromFilePath(opts, filePath);
-  assert.is(p, '/dir/page');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/dir/page');
+  assert.is(layoutName, '');
+});
+
+test('pathname from dir/page@layout.mdx', ({ opts }) => {
+  const filePath = join(opts.routesDir, 'dir', 'page@layout.mdx');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/dir/page');
+  assert.is(layoutName, 'layout');
 });
 
 test('pathname from dir/page.mdx, trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, 'dir', 'page.mdx');
-  const p = utils.getPathnameFromFilePath(opts, filePath);
-  assert.is(p, '/dir/page/');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/dir/page/');
+  assert.is(layoutName, '');
+});
+
+test('pathname from dir/page@layout.mdx, trailingSlash', ({ opts }) => {
+  opts.trailingSlash = true;
+  const filePath = join(opts.routesDir, 'dir', 'page@layout.mdx');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/dir/page/');
+  assert.is(layoutName, 'layout');
 });
 
 test('pathname with pathless directories', ({ opts }) => {
   const filePath = join(opts.routesDir, '__pathless', 'account', '__route', 'sign-up.mdx');
-  const p = utils.getPathnameFromFilePath(opts, filePath);
-  assert.is(p, '/account/sign-up');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/account/sign-up');
+  assert.is(layoutName, '');
 });
 
-test('pathname with pathless directories,trailingSlash', ({ opts }) => {
+test('pathname with pathless directories, trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, '__pathless', 'account', '__route', 'sign-up.mdx');
-  const p = utils.getPathnameFromFilePath(opts, filePath);
-  assert.is(p, '/account/sign-up/');
+  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/account/sign-up/');
+  assert.is(layoutName, '');
 });
 
 test('menu pathname from guide/menu.md', ({ opts }) => {
   const filePath = join(opts.routesDir, 'guide', 'menu.md');
-  const p = utils.getMenuPathname(opts, filePath);
-  assert.is(p, '/guide');
+  const pathname = utils.getMenuPathname(opts, filePath);
+  assert.is(pathname, '/guide');
 });
 
 test('menu pathname from a/b/c/menu.md', ({ opts }) => {
   const filePath = join(opts.routesDir, 'a', 'b', 'c', 'menu.md');
-  const p = utils.getMenuPathname(opts, filePath);
-  assert.is(p, '/a/b/c');
+  const pathname = utils.getMenuPathname(opts, filePath);
+  assert.is(pathname, '/a/b/c');
 });
 
 test('menu pathname from guide/menu.md, trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, 'guide', 'menu.md');
-  const p = utils.getMenuPathname(opts, filePath);
-  assert.is(p, '/guide/');
+  const pathname = utils.getMenuPathname(opts, filePath);
+  assert.is(pathname, '/guide/');
 });
 
 test('index href guides/getting-started.mdx', ({ opts }) => {
   const href = './getting-started.mdx';
   const indexFilePath = join(opts.routesDir, 'guide', 'README.md');
-  const p = utils.getMenuLinkHref(opts, indexFilePath, href);
-  assert.is(p, '/guide/getting-started');
+  const pathname = utils.getMenuLinkHref(opts, indexFilePath, href);
+  assert.is(pathname, '/guide/getting-started');
 });
 
 test('index href guides/getting-started.mdx?intro', ({ opts }) => {
   const href = './getting-started.mdx?intro';
   const indexFilePath = join(opts.routesDir, 'guide', 'components', 'README.md');
-  const p = utils.getMenuLinkHref(opts, indexFilePath, href);
-  assert.is(p, '/guide/components/getting-started?intro');
+  const pathname = utils.getMenuLinkHref(opts, indexFilePath, href);
+  assert.is(pathname, '/guide/components/getting-started?intro');
 });
 
 test('index href guides/getting-started.mdx#intro', ({ opts }) => {
   const href = './getting-started.mdx#intro';
   const indexFilePath = join(opts.routesDir, 'guide', 'components', 'README.md');
-  const p = utils.getMenuLinkHref(opts, indexFilePath, href);
-  assert.is(p, '/guide/components/getting-started#intro');
+  const pathname = utils.getMenuLinkHref(opts, indexFilePath, href);
+  assert.is(pathname, '/guide/components/getting-started#intro');
 });
 
 test('index href /link', ({ opts }) => {
   const href = '/link';
   const indexFilePath = join(opts.routesDir, 'guide', 'README.md');
-  const p = utils.getMenuLinkHref(opts, indexFilePath, href);
-  assert.is(p, '/link');
+  const pathname = utils.getMenuLinkHref(opts, indexFilePath, href);
+  assert.is(pathname, '/link');
 });
 
 test('index href http://builder.io/', ({ opts }) => {
   const href = 'http://builder.io/';
   const indexFilePath = join(opts.routesDir, 'guide', 'README.md');
-  const p = utils.getMenuLinkHref(opts, indexFilePath, href);
-  assert.is(p, 'http://builder.io/');
+  const pathname = utils.getMenuLinkHref(opts, indexFilePath, href);
+  assert.is(pathname, 'http://builder.io/');
 });
 
 test('index href ./getting-started.txt', ({ opts }) => {
   const href = './getting-started.txt';
   const indexFilePath = join(opts.routesDir, 'guide', 'README.md');
-  const p = utils.getMenuLinkHref(opts, indexFilePath, href);
-  assert.is(p, './getting-started.txt');
+  const pathname = utils.getMenuLinkHref(opts, indexFilePath, href);
+  assert.is(pathname, './getting-started.txt');
+});
+
+test('normalizePathname /, trailing slash', ({ opts }) => {
+  opts.trailingSlash = true;
+  const pathname = utils.normalizePathname(opts, '/');
+  assert.is(pathname, '/');
+});
+
+test('normalizePathname /, no trailing slash', ({ opts }) => {
+  opts.trailingSlash = false;
+  const pathname = utils.normalizePathname(opts, '/');
+  assert.is(pathname, '/');
+});
+
+test('normalizePathname /name, trailing slash', ({ opts }) => {
+  opts.trailingSlash = true;
+  const pathname = utils.normalizePathname(opts, '/name');
+  assert.is(pathname, '/name/');
+});
+
+test('normalizePathname /name, no trailing slash', ({ opts }) => {
+  opts.trailingSlash = false;
+  const pathname = utils.normalizePathname(opts, '/name');
+  assert.is(pathname, '/name');
+});
+
+test('normalizePathname /name/, trailing slash', ({ opts }) => {
+  opts.trailingSlash = true;
+  const pathname = utils.normalizePathname(opts, '/name/');
+  assert.is(pathname, '/name/');
+});
+
+test('normalizePathname /name/, no trailing slash', ({ opts }) => {
+  opts.trailingSlash = false;
+  const pathname = utils.normalizePathname(opts, '/name/');
+  assert.is(pathname, '/name');
+});
+
+test('normalizePathname encoded', ({ opts }) => {
+  const pathname = utils.normalizePathname(opts, '/plz no spaces');
+  assert.is(pathname, '/plz%20no%20spaces');
 });
 
 test.run();

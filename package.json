@@ -5,6 +5,7 @@
   "scripts": {
     "build": "yarn node scripts --tsc --build --qwikcity --api --platform-binding-wasm-copy",
     "build.full": "yarn node scripts --tsc --build --api --eslint --qwikcity --qwikreact --platform-binding --wasm",
+    "build.qwik-city": "yarn node scripts --tsc --qwikcity",
     "build.platform": "yarn node scripts --platform-binding",
     "build.platform.copy": "yarn node scripts --platform-binding-wasm-copy",
     "build.only_javascript": "yarn node scripts --tsc --build --api",

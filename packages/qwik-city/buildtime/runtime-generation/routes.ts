@@ -9,11 +9,11 @@ export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[
   if (ctx.layouts.length > 0) {
     c.push(`\n/** Qwik City Layouts (${ctx.layouts.length}) */`);
     for (const layout of ctx.layouts) {
-      const importPath = getImportPath(layout.filePath);
+      const importPath = JSON.stringify(getImportPath(layout.filePath));
       if (dynamicImports) {
-        c.push(`const ${layout.id} = ()=>import(${JSON.stringify(importPath)});`);
+        c.push(`const ${layout.id} = ()=>import(${importPath});`);
       } else {
-        esmImports.push(`import * as ${layout.id}_ from ${JSON.stringify(importPath)};`);
+        esmImports.push(`import * as ${layout.id}_ from ${importPath};`);
         c.push(`const ${layout.id} = ()=>${layout.id}_;`);
       }
     }

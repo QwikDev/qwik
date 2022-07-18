@@ -1,49 +1,23 @@
 import { dirname } from 'path';
-import type { BuildContext, BuildLayout, PageRoute } from '../types';
+import type { BuildLayout, NormalizedPluginOptions, PageRoute, RouteSourceFile } from '../types';
 import { createFileId, normalizePath } from '../utils/fs';
 import { getPathnameFromFilePath } from '../utils/pathname';
 import { parseRoutePathname } from './parse-pathname';
 
-export function createPageRoute(
-  ctx: BuildContext,
-  filePath: string,
-  source: 'markdown' | 'module'
+export function resolvePageModuleRoute(
+  opts: NormalizedPluginOptions,
+  pageSourceFile: RouteSourceFile,
+  layouts: BuildLayout[]
 ) {
-  const pageRoute: PageRoute = {
-    type: 'page',
-    id: createFileId(ctx, filePath),
-    filePath,
-    pathname: getPathnameFromFilePath(ctx.opts, filePath),
-    pattern: undefined as any,
-    paramNames: undefined as any,
-    paramTypes: undefined as any,
-    source,
-    layouts: [],
-  };
-  return pageRoute;
-}
+  const filePath = pageSourceFile.filePath;
+  const { pathname, layoutName } = getPathnameFromFilePath(opts, filePath);
 
-export function updatePageRoute(routesDir: string, pageRoute: PageRoute, layouts: BuildLayout[]) {
-  const segments = pageRoute.pathname.split('/');
-  const fileName = segments[segments.length - 1];
   const pageLayouts: BuildLayout[] = [];
 
-  let layoutName = '';
-
-  const parts = fileName.split('@');
-  if (parts.length > 1) {
-    layoutName = parts.pop()!;
-    segments[segments.length - 1] = parts.join('.');
-    if (segments[segments.length - 1] === 'index') {
-      segments.pop();
-    }
-    pageRoute.pathname = segments.join('/');
-  }
-
-  let routeDir = normalizePath(dirname(pageRoute.filePath));
+  let currentDir = normalizePath(dirname(filePath));
 
   for (let i = 0; i < 20; i++) {
-    const layout = layouts.find((l) => l.dir === routeDir && l.name === layoutName);
+    const layout = layouts.find((l) => l.dirPath === currentDir && l.layoutName === layoutName);
     if (layout) {
       pageLayouts.push(layout);
       if (layout.type === 'top') {
@@ -51,17 +25,24 @@ export function updatePageRoute(routesDir: string, pageRoute: PageRoute, layouts
       }
     }
 
-    if (routeDir === routesDir) {
+    if (currentDir === opts.routesDir) {
       break;
     }
 
-    routeDir = normalizePath(dirname(routeDir));
+    currentDir = normalizePath(dirname(currentDir));
   }
 
-  pageRoute.layouts = pageLayouts.reverse();
+  const route = parseRoutePathname(pathname);
 
-  const route = parseRoutePathname(pageRoute.pathname);
-  pageRoute.pattern = route.pattern;
-  pageRoute.paramNames = route.paramNames;
-  pageRoute.paramTypes = route.paramTypes;
+  const pageRoute: PageRoute = {
+    type: 'page',
+    id: createFileId(opts.routesDir, filePath),
+    filePath,
+    pathname,
+    pattern: route.pattern,
+    paramNames: route.paramNames,
+    layouts: pageLayouts.reverse(),
+  };
+
+  return pageRoute;
 }

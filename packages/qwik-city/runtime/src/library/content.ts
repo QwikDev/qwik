@@ -5,14 +5,14 @@ import { ContentContext } from './constants';
  * @public
  */
 export const Content = component$(() => {
-  const modules = useContext(ContentContext).modules;
-  const modulesLen = modules.length;
+  const contents = useContext(ContentContext).contents;
+  const contentsLen = contents.length;
 
-  if (modulesLen > 0) {
-    let cmp: any = jsx(modules[modulesLen - 1].default, {});
+  if (contentsLen > 0) {
+    let cmp: any = jsx(contents[contentsLen - 1].default, {});
 
-    for (let i = modulesLen - 2; i >= 0; i--) {
-      cmp = jsx(modules[i].default, {
+    for (let i = contentsLen - 2; i >= 0; i--) {
+      cmp = jsx(contents[i].default, {
         children: cmp,
       });
     }

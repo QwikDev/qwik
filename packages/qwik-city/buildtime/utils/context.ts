@@ -15,9 +15,8 @@ export function createBuildContext(
     menus: [],
     diagnostics: [],
     frontmatter: new Map(),
-    ids: new Set(),
     target: target || 'ssr',
-    dirty: true,
+    isDevServerBuild: false,
   };
   return ctx;
 }
@@ -29,8 +28,6 @@ export function resetBuildContext(ctx: BuildContext | null) {
     ctx.menus.length = 0;
     ctx.diagnostics.length = 0;
     ctx.frontmatter.clear();
-    ctx.ids.clear();
-    ctx.dirty = true;
   }
 }
 

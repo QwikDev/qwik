@@ -1,11 +1,10 @@
-import {
+import type {
   EndpointHandler,
   EndpointModule,
   HttpMethod,
   NormalizedEndpointResponse,
   RequestEvent,
   RouteParams,
-  HTTPStatus,
 } from '../../runtime/src/library/types';
 import { getStatus } from './utils';
 
@@ -78,8 +77,8 @@ export async function getEndpointResponse(
 
       const status =
         typeof headers['location'] === 'string'
-          ? getStatus(userEndpointResponse.status, 300, 399, HTTPStatus.Temporary_Redirect)
-          : getStatus(userEndpointResponse.status, 100, 599, HTTPStatus.Ok);
+          ? getStatus(userEndpointResponse.status, 300, 399, 307)
+          : getStatus(userEndpointResponse.status, 100, 599, 200);
 
       const endpointResponse: NormalizedEndpointResponse = {
         status,
@@ -108,7 +107,7 @@ export function endpointHandler(
     if (headers['content-type'].startsWith('application/json')) {
       // JSON response
       return new Response(JSON.stringify(endpointResponse.body), {
-        status: status,
+        status,
         headers,
       });
     }
@@ -116,7 +115,7 @@ export function endpointHandler(
     if (endpointResponse.body == null) {
       // null || undefined response
       return new Response(endpointResponse.body as any, {
-        status: status,
+        status,
         headers,
       });
     }
@@ -125,13 +124,13 @@ export function endpointHandler(
     // string response
     if (type === 'string' || type === 'number' || type === 'boolean') {
       return new Response(String(endpointResponse.body), {
-        status: status,
+        status,
         headers,
       });
     }
 
     return new Response(`Unsupport response body type: ${JSON.stringify(endpointResponse.body)}`, {
-      status: HTTPStatus.Internal_Server_Error,
+      status: 500,
       headers: {
         'content-type': 'text/plain; charset=utf-8',
       },
@@ -139,7 +138,7 @@ export function endpointHandler(
   }
 
   return new Response(`Method Not Allowed: ${method}`, {
-    status: HTTPStatus.Method_Not_Allowed,
+    status: 405,
     headers: {
       'content-type': 'text/plain; charset=utf-8',
     },

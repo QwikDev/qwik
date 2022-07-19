@@ -48,6 +48,7 @@ export type {
   ResourceResolved,
 } from './use/use-watch';
 export { useWatch$, useWatchQrl } from './use/use-watch';
+export type { ResourceProps } from './use/use-resource';
 export { useResource$, useResourceQrl, Resource } from './use/use-resource';
 export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
 export { useServerMount$, useServerMountQrl } from './use/use-watch';

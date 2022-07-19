@@ -1,5 +1,5 @@
 import { component$, jsx, SkipRerender, useContext } from '@builder.io/qwik';
-import { ContentContext } from './constants';
+import { ContentContext } from './contexts';
 
 /**
  * @public

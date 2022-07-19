@@ -375,10 +375,8 @@ export interface Ref<T> {
 // @alpha
 export const render: (parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>, allowRerender?: boolean) => Promise<void>;
 
-// Warning: (ae-forgotten-export) The symbol "AsyncProps" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
-export const Resource: <T>(props: AsyncProps<T>) => JSXNode;
+export const Resource: <T>(props: ResourceProps<T>) => JSXNode;
 
 // @alpha (undocumented)
 export interface ResourceCtx<T> {
@@ -400,6 +398,18 @@ export interface ResourcePending<T> {
     resolved: undefined;
     // (undocumented)
     state: 'pending';
+}
+
+// @alpha (undocumented)
+export interface ResourceProps<T> {
+    // (undocumented)
+    onPending?: () => JSXNode;
+    // (undocumented)
+    onRejected?: (reason: any) => JSXNode;
+    // (undocumented)
+    onResolved: (value: T) => JSXNode;
+    // (undocumented)
+    resource: ResourceReturn<T>;
 }
 
 // @alpha (undocumented)

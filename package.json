@@ -23,7 +23,6 @@
     "tsc.trace": "tsc -p tsconfig.json --traceResolution > tsc.log",
     "start": "concurrently \"npm:build.watch\" \"npm:test.watch\" \"npm:tsc.watch\" -n build,test,tsc -c green,magenta,cyan",
     "release.prepare": "yarn lint && yarn test.unit && yarn node scripts --tsc --build --api --eslint --platform-binding --wasm --prepare-release",
-    "release.prepare.qwik-city": "cd packages/qwik-city && yarn test && yarn build && yarn node -r esbuild-register scripts/prepare-release.ts",
     "test": "yarn build.full && yarn test.unit && yarn test.e2e",
     "test.unit": "jest && yarn test.uvu",
     "test.uvu": "uvu -r tsm packages test.ts",

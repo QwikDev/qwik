@@ -1,4 +1,4 @@
-import { createDocument, createWindow } from '@builder.io/qwik/testing';
+import { createDocument, createWindow } from '../testing/index';
 import { normalizeUrl } from './utils';
 import { ensureGlobals } from './document';
 import { suite } from 'uvu';

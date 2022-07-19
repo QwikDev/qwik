@@ -1,4 +1,4 @@
-import { createDocument } from '@builder.io/qwik/testing';
+import { createDocument } from './testing/index';
 import { qwikLoader } from './qwikloader';
 import { equal, throws } from 'uvu/assert';
 import { suite } from 'uvu';

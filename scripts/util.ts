@@ -1,5 +1,5 @@
 import type { Plugin, WatchMode } from 'esbuild';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import mri from 'mri';
 import {
   access as fsAccess,
@@ -21,6 +21,7 @@ import { promisify } from 'util';
 import { minify, MinifyOptions } from 'terser';
 import type { Plugin as RollupPlugin } from 'rollup';
 import { execa, Options } from 'execa';
+import { fileURLToPath } from 'url';
 
 /**
  * Contains information about the build we're generating by parsing
@@ -70,6 +71,7 @@ export interface BuildConfig {
  */
 export function loadConfig(args: string[] = []) {
   const config: BuildConfig = mri(args) as any;
+  const __dirname = dirname(fileURLToPath(import.meta.url));
 
   config.rootDir = join(__dirname, '..');
   config.packagesDir = join(config.rootDir, 'packages');
@@ -217,9 +219,9 @@ export function rollupOnWarn(warning: any, warn: any) {
  */
 export async function fileSize(filePath: string) {
   const text = await readFile(filePath);
-  const compress = require('brotli/compress');
+  const { default: compress } = await import('brotli/compress.js');
 
-  const data: Buffer = compress(text, {
+  const data = compress(text, {
     mode: 1,
     quality: 11,
   });

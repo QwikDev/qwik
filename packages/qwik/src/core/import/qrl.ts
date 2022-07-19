@@ -1,6 +1,6 @@
 import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QRL } from './qrl.public';
-import { assertQrl, createQrl, QRLInternal } from './qrl-class';
+import { assertQrl, createQRL, QRLInternal } from './qrl-class';
 import { isFunction, isString } from '../util/types';
 import type { CorePlatform } from '../platform/types';
 import { getDocument } from '../util/dom';
@@ -78,7 +78,7 @@ export const qrl = <T = any>(
   }
 
   // Unwrap subscribers
-  const qrl = createQrl<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture, null);
+  const qrl = createQRL<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture, null);
   const ctx = tryGetInvokeContext();
   if (ctx && ctx.$element$) {
     qrl.$setContainer$(ctx.$element$);
@@ -90,7 +90,7 @@ export const runtimeQrl = <T>(
   symbol: T,
   lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRLInternal<T> => {
-  return createQrl<T>(
+  return createQRL<T>(
     RUNTIME_QRL,
     's' + runtimeSymbolId++,
     symbol,
@@ -110,7 +110,7 @@ export const inlinedQrl = <T>(
   lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> => {
   // Unwrap subscribers
-  return createQrl<T>(INLINED_QRL, symbolName, symbol, null, null, lexicalScopeCapture, null);
+  return createQRL<T>(INLINED_QRL, symbolName, symbol, null, null, lexicalScopeCapture, null);
 };
 
 export interface QRLSerializeOptions {
@@ -187,7 +187,7 @@ export const parseQRL = (qrl: string, el?: Element): QRLInternal => {
   if (chunk === RUNTIME_QRL) {
     logError(codeToText(QError_runtimeQrlNoElement), qrl);
   }
-  const iQrl = createQrl<any>(chunk, symbol, null, null, capture, null, null);
+  const iQrl = createQRL<any>(chunk, symbol, null, null, capture, null, null);
   if (el) {
     iQrl.$setContainer$(el);
   }

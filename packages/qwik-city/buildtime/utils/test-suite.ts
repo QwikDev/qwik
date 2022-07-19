@@ -1,6 +1,6 @@
 /* eslint-disable */
 import * as assert from 'uvu/assert';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import { suite as uvuSuite } from 'uvu';
 import type {
   BuildContext,
@@ -14,6 +14,7 @@ import { createBuildContext } from './context';
 import { tmpdir } from 'os';
 import { normalizePath } from './fs';
 import { build } from '../build';
+import { fileURLToPath } from 'url';
 
 export function suite(title?: string) {
   const s = uvuSuite<TestContext>(title);
@@ -41,6 +42,7 @@ export function testAppSuite(title: string) {
 
   s.before.each(async (testCtx) => {
     if (!buildCtx) {
+      const __dirname = dirname(fileURLToPath(import.meta.url));
       const testAppRootDir = join(__dirname, '..', '..', 'runtime', 'src');
       const ctx = createBuildContext(testAppRootDir, {
         routesDir: join(testAppRootDir, 'app', 'routes'),

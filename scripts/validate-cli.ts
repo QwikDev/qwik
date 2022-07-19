@@ -9,8 +9,10 @@ import {
   copyFileSync,
 } from 'fs';
 import assert from 'assert';
-import { join } from 'path';
-import { pathToFileURL } from 'url';
+import { dirname, join } from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 async function validateCreateQwikCli() {
   console.log(`👾 validating create-qwik...`);

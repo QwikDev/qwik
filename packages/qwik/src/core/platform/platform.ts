@@ -107,7 +107,7 @@ export const getPlatform = (docOrNode: Document | Node) => {
   return doc[DocumentPlatform] || (doc[DocumentPlatform] = createPlatform(doc));
 };
 
-const DocumentPlatform = /*#__PURE__*/ Symbol();
+const DocumentPlatform = ':platform:';
 
 interface PlatformDocument extends Document {
   [DocumentPlatform]?: CorePlatform;

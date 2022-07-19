@@ -1,90 +1,90 @@
-import { useLexicalScope, useStore } from '@builder.io/qwik';
 import { ElementFixture, trigger } from '../../testing/element-fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { runtimeQrl } from '../import/qrl';
 import { render } from '../render/render.public';
 import { useStylesQrl } from '../use/use-styles';
 import { PropsOf, component$ } from './component.public';
-import { describe, it } from '@jest/globals';
+import { suite } from 'uvu';
+import { useStore } from '../use/use-store.public';
+import { useLexicalScope } from '../use/use-lexical-scope.public';
 
-describe('q-component', () => {
-  it('should declare and render basic component', async () => {
-    const fixture = new ElementFixture();
-    await render(fixture.host, <HelloWorld></HelloWorld>);
-    const Div = 'div' as any;
-    await expectDOM(
-      fixture.host,
-      <host>
-        <Div q:host="">
-          <span>Hello World</span>
-        </Div>
-      </host>
-    );
-  });
+const qComponent = suite('q-component');
+qComponent('should declare and render basic component', async () => {
+  const fixture = new ElementFixture();
+  await render(fixture.host, <HelloWorld></HelloWorld>);
+  const Div = 'div' as any;
+  await expectDOM(
+    fixture.host,
+    <host>
+      <Div q:host="">
+        <span>Hello World</span>
+      </Div>
+    </host>
+  );
+});
 
-  it('should render Counter and accept events', async () => {
-    const fixture = new ElementFixture();
-    await render(fixture.host, <MyCounter step={5} value={15} />);
-    await expectDOM(
-      fixture.host,
-      <host>
-        <my-counter>
-          <div>
-            <button>-</button>
-            <span>15</span>
-            <button>+</button>
-          </div>
-        </my-counter>
-      </host>
-    );
-    await trigger(fixture.host, 'button.decrement', 'click');
-    await expectDOM(
-      fixture.host,
-      <host>
-        <my-counter>
-          <div>
-            <button>-</button>
-            <span>10</span>
-            <button>+</button>
-          </div>
-        </my-counter>
-      </host>
-    );
-  });
+qComponent('should render Counter and accept events', async () => {
+  const fixture = new ElementFixture();
+  await render(fixture.host, <MyCounter step={5} value={15} />);
+  await expectDOM(
+    fixture.host,
+    <host>
+      <my-counter>
+        <div>
+          <button>-</button>
+          <span>15</span>
+          <button>+</button>
+        </div>
+      </my-counter>
+    </host>
+  );
+  await trigger(fixture.host, 'button.decrement', 'click');
+  await expectDOM(
+    fixture.host,
+    <host>
+      <my-counter>
+        <div>
+          <button>-</button>
+          <span>10</span>
+          <button>+</button>
+        </div>
+      </my-counter>
+    </host>
+  );
+});
 
-  it('should render a collection of todo items', async () => {
-    const host = new ElementFixture().host;
-    const items = {
-      items: [
-        {
-          done: true,
-          title: 'Task 1',
-        },
-        {
-          done: false,
-          title: 'Task 2',
-        },
-      ],
-    };
-    await render(host, <Items items={items} />);
-    await delay(0);
-    await expectDOM(
-      host,
-      <host>
-        <items>
-          <item-detail>
-            <input type="checkbox" checked />
-            <span>Task 1</span>
-          </item-detail>
-          <item-detail>
-            <input type="checkbox" />
-            <span>Task 2</span>
-          </item-detail>
-          Total: {'2'}
-        </items>
-      </host>
-    );
-  });
+qComponent('should render a collection of todo items', async () => {
+  const host = new ElementFixture().host;
+  const items = {
+    items: [
+      {
+        done: true,
+        title: 'Task 1',
+      },
+      {
+        done: false,
+        title: 'Task 2',
+      },
+    ],
+  };
+  await render(host, <Items items={items} />);
+  await delay(0);
+  await expectDOM(
+    host,
+    <host>
+      <items>
+        <item-detail>
+          <input type="checkbox" checked />
+          <span>Task 1</span>
+        </item-detail>
+        <item-detail>
+          <input type="checkbox" />
+          <span>Task 2</span>
+        </item-detail>
+        Total: {'2'}
+      </items>
+    </host>
+  );
 });
 
 /////////////////////////////////////////////////////////////////////////////
@@ -196,3 +196,5 @@ export const Items = component$(
 function delay(miliseconds: number): Promise<void> {
   return new Promise((res) => setTimeout(res, miliseconds));
 }
+
+qComponent.run();

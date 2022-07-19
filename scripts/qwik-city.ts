@@ -1,13 +1,15 @@
 import { BuildConfig, nodeTarget, panic, run, watcher } from './util';
 import { build } from 'esbuild';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import { readPackageJson, writePackageJson } from './package-json';
 import { checkExistingNpmVersion, releaseVersionPrompt } from './release';
 import semver from 'semver';
 import mri from 'mri';
 import { execa } from 'execa';
+import { fileURLToPath } from 'url';
 
 const PACKAGE = 'qwik-city';
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export async function buildQwikCity(config: BuildConfig) {
   const input = join(config.packagesDir, PACKAGE);

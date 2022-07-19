@@ -69,7 +69,7 @@ export const useIsServer = () => {
 /**
  * @alpha
  */
-export interface AsyncProps<T> {
+export interface ResourceProps<T> {
   resource: ResourceReturn<T>;
   onResolved: (value: T) => JSXNode;
   onPending?: () => JSXNode;
@@ -79,7 +79,7 @@ export interface AsyncProps<T> {
 /**
  * @alpha
  */
-export const Resource = <T>(props: AsyncProps<T>): JSXNode => {
+export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
   const isBrowser = !qDev || !useIsServer();
   if (isBrowser) {
     if (props.onRejected) {
@@ -98,7 +98,7 @@ export const Resource = <T>(props: AsyncProps<T>): JSXNode => {
     }
   }
 
-  // Async path
+  // Resource path
   return jsx(Fragment, {
     children: props.resource.promise.then(props.onResolved, props.onRejected),
   });

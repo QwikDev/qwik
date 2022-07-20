@@ -1,5 +1,5 @@
 import type { Plugin, WatchMode } from 'esbuild';
-import { dirname, join } from 'path';
+import { join } from 'path';
 import mri from 'mri';
 import {
   access as fsAccess,
@@ -71,7 +71,7 @@ export interface BuildConfig {
  */
 export function loadConfig(args: string[] = []) {
   const config: BuildConfig = mri(args) as any;
-  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
   config.rootDir = join(__dirname, '..');
   config.packagesDir = join(config.rootDir, 'packages');

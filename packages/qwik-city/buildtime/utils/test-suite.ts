@@ -1,6 +1,6 @@
 /* eslint-disable */
 import * as assert from 'uvu/assert';
-import { dirname, join } from 'path';
+import { join } from 'path';
 import { suite as uvuSuite } from 'uvu';
 import type {
   BuildContext,
@@ -42,7 +42,7 @@ export function testAppSuite(title: string) {
 
   s.before.each(async (testCtx) => {
     if (!buildCtx) {
-      const __dirname = dirname(fileURLToPath(import.meta.url));
+      const __dirname = fileURLToPath(new URL('.', import.meta.url));
       const testAppRootDir = join(__dirname, '..', '..', 'runtime', 'src');
       const ctx = createBuildContext(testAppRootDir, {
         routesDir: join(testAppRootDir, 'app', 'routes'),

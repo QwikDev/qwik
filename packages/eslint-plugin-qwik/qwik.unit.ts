@@ -1,7 +1,6 @@
 /* eslint-disable */
 // @ts-ignore
 import Utils from '@typescript-eslint/utils';
-import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { test } from 'uvu';
 import { rules } from './index';
@@ -14,7 +13,7 @@ const testConfig = {
     es6: true,
   },
   parserOptions: {
-    tsconfigRootDir: dirname(fileURLToPath(import.meta.url)),
+    tsconfigRootDir: fileURLToPath(new URL('.', import.meta.url)),
     project: ['./tsconfig-tests.json'],
     ecmaFeatures: {
       jsx: true,

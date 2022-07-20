@@ -9,11 +9,12 @@ import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync } from 'fs';
 import { Plugin, rollup } from 'rollup';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { RenderOptions, RenderToStringResult } from '@builder.io/qwik/server';
+import { fileURLToPath } from 'url';
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
 const address = `http://localhost:${port}/`;
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const startersDir = __dirname;
 const startersAppsDir = join(startersDir, 'apps');
 const appNames = readdirSync(startersAppsDir).filter(
@@ -257,7 +258,6 @@ function startersHomepage(_: Request, res: Response) {
 }
 
 import nodeFetch, { Headers, Request as R, Response as RE } from 'node-fetch';
-import { fileURLToPath } from 'url';
 
 (global as any).fetch = nodeFetch;
 (global as any).Headers = Headers;

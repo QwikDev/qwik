@@ -1,13 +1,13 @@
 import {
   component$,
+  Host,
   jsx,
   noSerialize,
   SkipRerender,
   useContextProvider,
   useDocument,
-  useSequentialScope,
   useStore,
-  useWaitOn,
+  useWatch$,
 } from '@builder.io/qwik';
 import type { HTMLAttributes } from '@builder.io/qwik';
 import { loadRoute } from './routing';
@@ -16,18 +16,33 @@ import { ContentContext, DocumentHeadContext, RouteLocationContext } from './con
 import { createDocumentHead, resolveHead } from './head';
 import { getSsrEndpointResponse } from './use-endpoint';
 import cityPlan from '@qwik-city-plan';
+import { useLocation } from './use-functions';
+
+export interface LinkProps {
+  href: string;
+}
+
+export const Link = component$(
+  (props: LinkProps) => {
+    const loc = useLocation();
+
+    return (
+      <Host
+        preventdefault:click
+        onClick$={() => {
+          loc.pathname = props.href;
+        }}
+      ></Host>
+    );
+  },
+  { tagName: 'a' }
+);
 
 /**
  * @public
  */
 export const Html = component$<HtmlProps>(
-  () => {
-    const { get, set } = useSequentialScope();
-    if (get) {
-      return jsx(SkipRerender, {});
-    }
-    set(true);
-
+  (props) => {
     const doc = useDocument() as QwikCityRenderDocument;
 
     const routeLocation = useStore(() => {
@@ -49,29 +64,32 @@ export const Html = component$<HtmlProps>(
     useContextProvider(DocumentHeadContext, documentHead);
     useContextProvider(RouteLocationContext, routeLocation);
 
-    useWaitOn(
-      loadRoute(cityPlan.routes, cityPlan.menus, cityPlan.cacheModules, routeLocation.pathname)
-        .then((loadedRoute) => {
-          if (loadedRoute) {
-            const contentModules = loadedRoute.contents;
-            const pageModule = contentModules[contentModules.length - 1] as PageModule;
-            const endpointResponse = getSsrEndpointResponse(doc);
-            const resolvedHead = resolveHead(endpointResponse, routeLocation, contentModules);
+    useWatch$(async (track) => {
+      const pathname = track(routeLocation, 'pathname');
+      const loadedRoute = await loadRoute(
+        cityPlan.routes,
+        cityPlan.menus,
+        cityPlan.cacheModules,
+        pathname
+      );
+      if (loadedRoute) {
+        const contentModules = loadedRoute.contents;
+        const pageModule = contentModules[contentModules.length - 1] as PageModule;
+        const endpointResponse = getSsrEndpointResponse(doc);
+        const resolvedHead = resolveHead(endpointResponse, routeLocation, contentModules);
 
-            documentHead.links = resolvedHead.links;
-            documentHead.meta = resolvedHead.meta;
-            documentHead.styles = resolvedHead.styles;
-            documentHead.title = resolvedHead.title;
+        documentHead.links = resolvedHead.links;
+        documentHead.meta = resolvedHead.meta;
+        documentHead.styles = resolvedHead.styles;
+        documentHead.title = resolvedHead.title;
 
-            content.headings = pageModule.headings;
-            content.menu = loadedRoute.menu;
-            content.contents = noSerialize<any>(contentModules);
+        content.headings = pageModule.headings;
+        content.menu = loadedRoute.menu;
+        content.contents = noSerialize<any>(contentModules);
 
-            routeLocation.params = { ...loadedRoute.params };
-          }
-        })
-        .catch((e) => console.error(e))
-    );
+        routeLocation.params = { ...loadedRoute.params };
+      }
+    });
 
     return () => jsx(SkipRerender, {});
   },

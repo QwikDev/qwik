@@ -35,7 +35,7 @@ export interface RouteLocation {
   readonly hostname: string;
   readonly href: string;
   readonly params: RouteParams;
-  readonly pathname: string;
+  pathname: string;
   readonly search: string;
   readonly query: Record<string, string>;
 }

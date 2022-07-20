@@ -16,7 +16,6 @@ import {
   isMutable,
   mutable,
   shouldSerialize,
-  SubscriberMap,
 } from './q-object';
 import { destroyWatch, SubscriberDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
@@ -31,6 +30,7 @@ import {
 import { isArray, isObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
+import type { Subscriber } from '../use/use-subscriber';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -108,7 +108,6 @@ export const resumeContainer = (containerEl: Element) => {
     const el = getObject(elementID) as Element;
     assertDefined(el, `resume: cant find dom node for id`, elementID);
     const ctx = getContext(el);
-
     const qobj = ctxMeta.r;
     const seq = ctxMeta.s;
     const host = ctxMeta.h;
@@ -206,7 +205,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
 
     if (ctx.$contexts$) {
       for (const item of ctx.$contexts$.values()) {
-        await collectValue(item, collector);
+        await collectValue(item, collector, false);
       }
     }
 
@@ -216,7 +215,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
           const captured = l.$captureRef$;
           if (captured) {
             for (const obj of captured) {
-              await collectValue(obj, collector);
+              await collectValue(obj, collector, true);
             }
           }
         }
@@ -227,7 +226,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     }
 
     for (const obj of ctx.$refMap$.$array$) {
-      await collectValue(obj, collector);
+      await collectValue(obj, collector, true);
     }
   }
 
@@ -235,18 +234,6 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
   const objs = Array.from(new Set(collector.$objMap$.values()));
 
   const objToId = new Map<any, number>();
-
-  const hasSubscriptions = (a: any) => {
-    const flags = getProxyFlags(containerState.$proxyMap$.get(a));
-    if (typeof flags === 'number' && flags > 0) {
-      return true;
-    }
-    const manager = containerState.$subsManager$.$tryGetLocal$(a);
-    if (manager) {
-      return manager.$subs$.size > 0;
-    }
-    return false;
-  };
 
   const getElementID = (el: Element): string | null => {
     let id = elementToIndex.get(el);
@@ -305,9 +292,45 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     return key;
   };
 
+  // Compute subscriptions
+  const subsMap = new Map<
+    any,
+    { subscriber: Subscriber | '$'; data: string[] | number | null }[]
+  >();
+  objs.forEach((obj) => {
+    const flags = getProxyFlags(containerState.$proxyMap$.get(obj));
+    if (flags === undefined) {
+      return;
+    }
+    const subsObj: { subscriber: Subscriber | '$'; data: string[] | number | null }[] = [];
+    if (flags > 0) {
+      subsObj.push({
+        subscriber: '$',
+        data: flags,
+      });
+    }
+    const subs = containerState.$subsManager$.$tryGetLocal$(obj)?.$subs$;
+    if (subs) {
+      subs.forEach((set, key) => {
+        if (isElement(key)) {
+          if (!collector.$elements$.includes(key)) {
+            return;
+          }
+        }
+        subsObj.push({
+          subscriber: key,
+          data: set ? Array.from(set) : null,
+        });
+      });
+    }
+    if (subsObj.length > 0) {
+      subsMap.set(obj, subsObj);
+    }
+  });
+
   objs.sort((a, b) => {
-    const isProxyA = hasSubscriptions(a) ? 0 : 1;
-    const isProxyB = hasSubscriptions(b) ? 0 : 1;
+    const isProxyA = subsMap.has(a) ? 0 : 1;
+    const isProxyB = subsMap.has(b) ? 0 : 1;
     return isProxyA - isProxyB;
   });
 
@@ -319,27 +342,22 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
 
   const subs = objs
     .map((obj) => {
-      const flags = getProxyFlags(containerState.$proxyMap$.get(obj));
-      if (flags === undefined) {
+      const sub = subsMap.get(obj);
+      if (!sub) {
         return null;
       }
-      const subs = containerState.$subsManager$.$tryGetLocal$(obj)?.$subs$;
-      if ((subs && subs.size > 0) || flags !== 0) {
-        const subsObj: Record<string, string[] | number | null> = {};
-        if (flags > 0) {
-          subsObj['$'] = flags;
+      const subsObj: Record<string, string[] | number | null> = {};
+      sub.forEach(({ subscriber, data }) => {
+        if (subscriber === '$') {
+          subsObj[subscriber] = data;
+        } else {
+          const id = getObjId(subscriber);
+          if (id !== null) {
+            subsObj[id] = data;
+          }
         }
-        subs &&
-          subs.forEach((set, key) => {
-            const id = getObjId(key);
-            if (id !== null) {
-              subsObj[id] = set ? Array.from(set) : null;
-            }
-          });
-        return subsObj;
-      } else {
-        return null;
-      }
+      });
+      return subsObj;
     })
     .filter(isNotNullable);
 
@@ -491,6 +509,17 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
         logWarn('unconnected element', el.tagName, '\n');
       }
     });
+  }
+  if (listeners.length === 0) {
+    return {
+      state: {
+        ctx: {},
+        objs: [],
+        subs: [],
+      },
+      objs: [],
+      listeners,
+    };
   }
   return {
     state: {
@@ -666,6 +695,7 @@ const collectProps = async (el: Element, props: any, collector: Collector) => {
 
 export interface Collector {
   $seen$: Set<any>;
+  $seenLeaks$: Set<any>;
   $objMap$: Map<any, any>;
   $elements$: Element[];
   $watches$: SubscriberDescriptor[];
@@ -676,6 +706,7 @@ export interface Collector {
 const createCollector = (doc: Document, containerState: ContainerState): Collector => {
   return {
     $seen$: new Set(),
+    $seenLeaks$: new Set(),
     $objMap$: new Map(),
     $elements$: [],
     $watches$: [],
@@ -692,26 +723,26 @@ const collectElement = async (el: Element, collector: Collector) => {
   if (ctx) {
     collector.$elements$.push(el);
     if (ctx.$props$) {
-      await collectValue(ctx.$props$, collector);
+      await collectValue(ctx.$props$, collector, false);
     }
     if (ctx.$renderQrl$) {
-      await collectValue(ctx.$renderQrl$, collector);
+      await collectValue(ctx.$renderQrl$, collector, false);
     }
     for (const obj of ctx.$seq$) {
-      await collectValue(obj, collector);
+      await collectValue(obj, collector, false);
     }
 
     for (const obj of ctx.$refMap$.$array$) {
-      await collectValue(obj, collector);
+      await collectValue(obj, collector, false);
     }
 
     for (const obj of ctx.$watches$) {
-      await collectValue(obj, collector);
+      await collectValue(obj, collector, false);
     }
 
     if (ctx.$contexts$) {
       for (const obj of ctx.$contexts$.values()) {
-        await collectValue(obj, collector);
+        await collectValue(obj, collector, false);
       }
     }
   }
@@ -725,16 +756,19 @@ export const unescapeText = (str: string) => {
   return str.replace(/\\x3C(\/?script)/g, '<$1');
 };
 
-const collectSubscriptions = async (subs: SubscriberMap, collector: Collector) => {
-  if (collector.$seen$.has(subs)) {
-    return;
-  }
-  collector.$seen$.add(subs);
-  for (const key of Array.from(subs.keys())) {
-    if (isElement(key)) {
-      await collectElement(key, collector);
-    } else {
-      await collectValue(key, collector);
+const collectSubscriptions = async (target: any, collector: Collector) => {
+  const subs = collector.$containerState$.$subsManager$.$tryGetLocal$(target)?.$subs$;
+  if (subs) {
+    if (collector.$seen$.has(subs)) {
+      return;
+    }
+    collector.$seen$.add(subs);
+    for (const key of Array.from(subs.keys())) {
+      if (isElement(key)) {
+        await collectElement(key, collector);
+      } else {
+        await collectValue(key, collector, true);
+      }
     }
   }
 };
@@ -752,12 +786,13 @@ const getPromiseValue = (promise: Promise<any>) => {
   return (promise as any)[PROMISE_VALUE];
 };
 
-const collectValue = async (obj: any, collector: Collector) => {
+const collectValue = async (obj: any, collector: Collector, leaks: boolean) => {
   const input = obj;
-  if (collector.$seen$.has(obj)) {
+  const seen = leaks ? collector.$seenLeaks$ : collector.$seen$;
+  if (seen.has(obj)) {
     return;
   }
-  collector.$seen$.add(obj);
+  seen.add(obj);
 
   if (!shouldSerialize(obj) || obj === undefined) {
     collector.$objMap$.set(obj, undefined);
@@ -770,7 +805,7 @@ const collectValue = async (obj: any, collector: Collector) => {
       collector.$objMap$.set(obj, obj);
       if (obj.$captureRef$) {
         for (const item of obj.$captureRef$) {
-          await collectValue(item, collector);
+          await collectValue(item, collector, leaks);
         }
       }
       return;
@@ -781,7 +816,7 @@ const collectValue = async (obj: any, collector: Collector) => {
       // Handle promises
       if (isPromise(obj)) {
         const resolved = await resolvePromise(obj);
-        await collectValue(resolved, collector);
+        await collectValue(resolved, collector, leaks);
         return;
       }
 
@@ -800,26 +835,25 @@ const collectValue = async (obj: any, collector: Collector) => {
 
       // If proxy collect subscriptions
       if (target) {
-        const subs = collector.$containerState$.$subsManager$.$tryGetLocal$(target)?.$subs$;
-        if (subs) {
-          await collectSubscriptions(subs, collector);
+        if (leaks) {
+          await collectSubscriptions(target, collector);
         }
         obj = target;
-        if (collector.$seen$.has(obj)) {
+        if (seen.has(obj)) {
           return;
         }
-        collector.$seen$.add(obj);
+        seen.add(obj);
       }
 
       collector.$objMap$.set(obj, obj);
       if (isArray(obj)) {
         for (let i = 0; i < obj.length; i++) {
-          await collectValue(input[i], collector);
+          await collectValue(input[i], collector, leaks);
         }
       } else {
         for (const key in obj) {
           if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            await collectValue(input[key], collector);
+            await collectValue(input[key], collector, leaks);
           }
         }
       }

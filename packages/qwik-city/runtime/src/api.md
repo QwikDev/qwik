@@ -154,7 +154,7 @@ export interface RouteLocation {
     // (undocumented)
     readonly params: RouteParams;
     // (undocumented)
-    readonly pathname: string;
+    pathname: string;
     // (undocumented)
     readonly query: Record<string, string>;
     // (undocumented)

@@ -1,6 +1,5 @@
 import {
   component$,
-  Host,
   jsx,
   noSerialize,
   SkipRerender,
@@ -11,41 +10,33 @@ import {
 } from '@builder.io/qwik';
 import type { HTMLAttributes } from '@builder.io/qwik';
 import { loadRoute } from './routing';
-import type { ContentState, PageModule, QwikCityRenderDocument } from './types';
-import { ContentContext, DocumentHeadContext, RouteLocationContext } from './contexts';
+import type {
+  ContentState,
+  ContentStateInternal,
+  MutableRouteLocation,
+  PageModule,
+  QwikCityRenderDocument,
+  RouteNavigate,
+} from './types';
+import {
+  ContentContext,
+  ContentInternalContext,
+  DocumentHeadContext,
+  RouteLocationContext,
+  RouteNavigateContext,
+} from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { getSsrEndpointResponse } from './use-endpoint';
-import cityPlan from '@qwik-city-plan';
-import { useLocation } from './use-functions';
-
-export interface LinkProps {
-  href: string;
-}
-
-export const Link = component$(
-  (props: LinkProps) => {
-    const loc = useLocation();
-
-    return (
-      <Host
-        preventdefault:click
-        onClick$={() => {
-          loc.pathname = props.href;
-        }}
-      ></Host>
-    );
-  },
-  { tagName: 'a' }
-);
+import { isBrowser } from '@builder.io/qwik/build';
 
 /**
  * @public
  */
 export const Html = component$<HtmlProps>(
-  (props) => {
+  () => {
     const doc = useDocument() as QwikCityRenderDocument;
 
-    const routeLocation = useStore(() => {
+    const routeLocation = useStore<MutableRouteLocation>(() => {
       const initRouteLocation = doc?._qwikUserCtx?.qcRoute;
       if (!initRouteLocation) {
         throw new Error(`Missing Qwik City User Context`);
@@ -53,19 +44,35 @@ export const Html = component$<HtmlProps>(
       return initRouteLocation;
     });
 
+    const routeNavigate = useStore<RouteNavigate>(() => {
+      const initRouteLocation = doc?._qwikUserCtx?.qcRoute;
+      if (!initRouteLocation) {
+        throw new Error(`Missing Qwik City User Context`);
+      }
+      return {
+        pathname: initRouteLocation.pathname,
+      };
+    });
+
     const documentHead = useStore(createDocumentHead);
     const content = useStore<ContentState>({
-      contents: [],
       headings: undefined,
       menu: undefined,
     });
 
+    const contentInternal = useStore<ContentStateInternal>({
+      contents: [],
+    });
+
     useContextProvider(ContentContext, content);
+    useContextProvider(ContentInternalContext, contentInternal);
     useContextProvider(DocumentHeadContext, documentHead);
     useContextProvider(RouteLocationContext, routeLocation);
+    useContextProvider(RouteNavigateContext, routeNavigate);
 
     useWatch$(async (track) => {
-      const pathname = track(routeLocation, 'pathname');
+      const { default: cityPlan } = await import('@qwik-city-plan');
+      const pathname = track(routeNavigate, 'pathname');
       const loadedRoute = await loadRoute(
         cityPlan.routes,
         cityPlan.menus,
@@ -78,16 +85,25 @@ export const Html = component$<HtmlProps>(
         const endpointResponse = getSsrEndpointResponse(doc);
         const resolvedHead = resolveHead(endpointResponse, routeLocation, contentModules);
 
+        // Update document head
         documentHead.links = resolvedHead.links;
         documentHead.meta = resolvedHead.meta;
         documentHead.styles = resolvedHead.styles;
         documentHead.title = resolvedHead.title;
 
+        // Update content
         content.headings = pageModule.headings;
         content.menu = loadedRoute.menu;
-        content.contents = noSerialize<any>(contentModules);
+        contentInternal.contents = noSerialize<any>(contentModules);
 
+        // Update route location
+        routeLocation.href = new URL(pathname, routeLocation.href).href;
+        routeLocation.pathname = pathname;
         routeLocation.params = { ...loadedRoute.params };
+
+        if (isBrowser) {
+          window.history.pushState(null, '', pathname);
+        }
       }
     });
 

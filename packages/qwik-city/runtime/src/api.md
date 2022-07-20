@@ -112,6 +112,11 @@ export type EndpointHandler<BODY = unknown> = (ev: RequestEvent) => EndpointResp
 // @public (undocumented)
 export const Html: Component<HtmlProps>;
 
+// Warning: (ae-forgotten-export) The symbol "LinkProps" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const Link: Component<LinkProps>;
+
 // @public (undocumented)
 export interface QwikCityPlan {
     // (undocumented)
@@ -144,28 +149,19 @@ routeType: typeof ROUTE_TYPE_ENDPOINT
 // @public (undocumented)
 export interface RouteLocation {
     // (undocumented)
-    readonly hash: string;
-    // (undocumented)
-    readonly hostname: string;
-    // (undocumented)
     readonly href: string;
     // Warning: (ae-forgotten-export) The symbol "RouteParams" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     readonly params: RouteParams;
     // (undocumented)
-    pathname: string;
-    // (undocumented)
-    readonly query: Record<string, string>;
-    // (undocumented)
-    readonly search: string;
+    readonly pathname: string;
 }
 
+// Warning: (ae-forgotten-export) The symbol "ContentState" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export const useContentHeadings: () => ContentHeading[] | undefined;
-
-// @public (undocumented)
-export const useContentMenu: () => ContentMenu | undefined;
+export const useContent: () => ContentState;
 
 // @public (undocumented)
 export const useDocumentHead: () => Required<ResolvedDocumentHead>;

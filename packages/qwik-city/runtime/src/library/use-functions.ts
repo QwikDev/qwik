@@ -1,17 +1,16 @@
 import { useContext } from '@builder.io/qwik';
-import { ContentContext, DocumentHeadContext, RouteLocationContext } from './contexts';
-import type { ContentHeading, RouteLocation, ResolvedDocumentHead } from './types';
+import {
+  ContentContext,
+  DocumentHeadContext,
+  RouteLocationContext,
+  RouteNavigateContext,
+} from './contexts';
+import type { RouteLocation, ResolvedDocumentHead, RouteNavigate } from './types';
 
 /**
  * @public
  */
-export const useContentHeadings = (): ContentHeading[] | undefined =>
-  useContext(ContentContext).headings;
-
-/**
- * @public
- */
-export const useContentMenu = () => useContext(ContentContext).menu;
+export const useContent = () => useContext(ContentContext);
 
 /**
  * @public
@@ -23,3 +22,8 @@ export const useDocumentHead = (): Required<ResolvedDocumentHead> =>
  * @public
  */
 export const useLocation = (): RouteLocation => useContext(RouteLocationContext);
+
+/**
+ * @public
+ */
+export const useNavigate = (): RouteNavigate => useContext(RouteNavigateContext);

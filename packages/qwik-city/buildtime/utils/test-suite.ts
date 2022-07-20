@@ -5,10 +5,9 @@ import { suite as uvuSuite } from 'uvu';
 import type {
   BuildContext,
   BuildLayout,
-  EndpointRoute,
+  BuildRoute,
   MarkdownAttributes,
   NormalizedPluginOptions,
-  PageRoute,
 } from '../types';
 import { createBuildContext } from './context';
 import { tmpdir } from 'os';
@@ -91,8 +90,8 @@ export function testAppSuite(title: string) {
 }
 
 export interface TestAppBuildContext extends BuildContext {
-  assertPage: (pathname: string) => PageRoute;
-  assertEndpoint: (pathname: string) => EndpointRoute;
+  assertPage: (pathname: string) => BuildRoute;
+  assertEndpoint: (pathname: string) => BuildRoute;
   assertLayout: (id: string) => BuildLayout;
 }
 

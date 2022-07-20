@@ -49,11 +49,9 @@ export const onPost: EndpointHandler<EndpointData> = async ({ request }) => {
     };
   }
 
-  if (result.status === 'invalid') {
-    return {
-      status: 403,
-    };
-  }
+  return {
+    status: 403,
+  };
 };
 
 export const head: DocumentHead = {

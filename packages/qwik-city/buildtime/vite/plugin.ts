@@ -4,7 +4,7 @@ import type { Plugin } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-runtime';
 import type { BuildContext } from '../types';
 import { createBuildContext, resetBuildContext } from '../utils/context';
-import { isMarkdownExt, isMenuFileName, normalizePath } from '../utils/fs';
+import { isLayoutName, isMarkdownExt, isMenuFileName, normalizePath } from '../utils/fs';
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityVitePluginOptions } from './types';
 import { build } from '../build';
@@ -97,7 +97,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
         }
 
         if (ctx.target === 'client') {
-          if (ext === '.js' && !id.includes('_layout')) {
+          if (ext === '.js' && !isLayoutName(fileName)) {
             id = normalizePath(id);
             if (id.startsWith(ctx.opts.routesDir)) {
               if (SERVER_ENDPOINT_FNS.some((fnName) => code.includes(fnName))) {

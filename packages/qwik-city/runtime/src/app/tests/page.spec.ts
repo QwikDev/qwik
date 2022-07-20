@@ -48,7 +48,7 @@ test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
   await assertPage(ctx, {
     pathname: '/docs',
     title: 'Docs: Welcome! - Qwik',
-    layoutHierarchy: ['root', 'docs'],
+    layoutHierarchy: ['docs'],
     h1: 'Welcome to the Docs!',
     activeHeaderLink: 'Docs',
   });
@@ -58,7 +58,7 @@ test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
   await assertPage(ctx, {
     pathname: '/docs/overview',
     title: 'Docs: Overview - Qwik',
-    layoutHierarchy: ['root', 'docs'],
+    layoutHierarchy: ['docs'],
     h1: 'Overview',
     activeHeaderLink: 'Docs',
   });

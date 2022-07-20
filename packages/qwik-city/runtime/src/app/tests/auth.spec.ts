@@ -37,7 +37,7 @@ test('Qwik City Auth', async ({ context, javaScriptEnabled }) => {
 
   await assertPage(ctx, {
     pathname: '/dashboard',
-    title: 'Qwik',
+    title: 'Dashboard - Qwik',
     layoutHierarchy: ['root'],
     h1: 'Dashboard',
   });
@@ -45,7 +45,7 @@ test('Qwik City Auth', async ({ context, javaScriptEnabled }) => {
   /***********  Go to Dashboard again, shouldn't redirect if signed in  ***********/
   await assertPage(ctx, {
     pathname: '/dashboard',
-    title: 'Qwik',
+    title: 'Dashboard - Qwik',
     layoutHierarchy: ['root'],
     h1: 'Dashboard',
   });

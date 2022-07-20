@@ -10,6 +10,9 @@ export const Breadcrumbs = component$(
     const loc = useLocation();
 
     const breadcrumbs = createBreadcrumbs(menu, loc.pathname);
+    if (breadcrumbs.length === 0) {
+      return null;
+    }
 
     return (
       <Host class="breadcrumbs">

@@ -3,17 +3,22 @@ title: Programmatic Listeners
 layout: tutorial
 ---
 
-There are times when a listener needs to be added conditionally, the listener name is not known, or a use method needs to set up a listener. Qwik provides a programmatic way of setting up listeners.
+There are times when your app needs to add a conditional listener. Sometimes a listener name is unknown, or you need to use an imperative approach to set up a listener.
 
-Qwik provides these functions:
-- `useOn()` Add event on specific event on current host element.
-- `useOnDocument()` Add event on specific event on document.
-- `useOnWindow()`: Add event on specific event on window.
-- `useVisible$()`: Invoked when component becomes visible.
-- `useResume$()`: Invoked on eagerly on application loading.
+Qwik provides the following functions to attach a listener:
 
-Set up a click listener on the component which will `alert('Hello world!')`.
+| Function | Description |
+|--|--|
+| `useOn()` | Add an event on specific event on current host element. |
+| `useOnDocument()` | Add an event on specific event on document. |
+| `useOnWindow()` | Add an event on specific event on window. |
+| `useVisible$()` | Invoked when component becomes visible. |
+| `useResume$()` | Invoked eagerly as the application loads. |
+
+> **Your task**: Set up a click listener on the component to call `alert('Hello world!')`.
 
 ## Understanding the `$`
 
-`$` means lazy load this reference. When we are setting up a listener with `useOn` the second argument to `useOn` is a `QRL`. `QRL`s are lazy loadable references to your code. (More on QRLs later.) If `useOn` would take function directly (rather than QRL) it would have to be eagerly executed so that the JavaScript can allocate the listener closure. By converting it to QRL (using the `$` function) we can lazy load the closer only when `click` listener is triggered.
+The `$` function signals Qwik to lazy load a reference. When setting up a listener with `useOn`, the second argument is a [Qwik URL](https://qwik.builder.io/docs/advanced/qrl).
+
+Qwik URLs (QRL) are lazy-loadable references to your code. If `useOn` took a function directly rather than QRL, it would have to eagerly execute to allocate the listener closure. By using a QRL via the `$` function, Qwik can lazy load the closure only as `click` listener is triggered.

@@ -408,9 +408,6 @@ jobs:
           - host: macos-latest
             browser: webkit
             node: 16.x
-          - host: windows-latest
-            browser: firefox
-            node: 16.x
 
     runs-on: ${{ matrix.settings.host }}
 

@@ -102,7 +102,17 @@ export const Html = component$<HtmlProps>(
         routeLocation.params = { ...loadedRoute.params };
 
         if (isBrowser) {
-          window.history.pushState(null, '', pathname);
+          const pop = (window as any)._qwikcity_pop;
+          if (pop !== 2) {
+            window.history.pushState(null, '', pathname);
+          }
+          if (!pop) {
+            window.addEventListener('popstate', () => {
+              routeNavigate.pathname = window.location.pathname;
+              (window as any)._qwikcity_pop = 2;
+            });
+          }
+          (window as any)._qwikcity_pop = 1;
         }
       }
     });

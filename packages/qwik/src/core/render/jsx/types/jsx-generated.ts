@@ -471,7 +471,7 @@ export interface FieldsetHTMLAttributes<T> extends HTMLAttributes<T> {
 export interface FormHTMLAttributes<T> extends HTMLAttributes<T> {
   acceptCharset?: string | undefined;
   action?: string | undefined;
-  autoComplete?: string | undefined;
+  autoComplete?: 'on' | 'off' | Omit<'on' | 'off', string> | undefined;
   encType?: string | undefined;
   method?: string | undefined;
   name?: string | undefined;
@@ -541,10 +541,63 @@ export type HTMLInputTypeAttribute =
   | 'week'
   | (string & {});
 
+export type HTMLInputAutocompleteAttribute =
+  | 'on'
+  | 'off'
+  | 'billing'
+  | 'shipping'
+  | 'name'
+  | 'honorific-prefix'
+  | 'given-name'
+  | 'additional-name'
+  | 'family-name'
+  | 'honorific-suffix'
+  | 'nickname'
+  | 'username'
+  | 'new-password'
+  | 'current-password'
+  | 'one-time-code'
+  | 'organization-title'
+  | 'organization'
+  | 'street-address'
+  | 'address-line1'
+  | 'address-line2'
+  | 'address-line3'
+  | 'address-level4'
+  | 'address-level3'
+  | 'address-level2'
+  | 'address-level1'
+  | 'country'
+  | 'country-name'
+  | 'postal-code'
+  | 'cc-name'
+  | 'cc-given-name'
+  | 'cc-additional-name'
+  | 'cc-family-name'
+  | 'cc-number'
+  | 'cc-exp'
+  | 'cc-exp-month'
+  | 'cc-exp-year'
+  | 'cc-csc'
+  | 'cc-type'
+  | 'transaction-currency'
+  | 'transaction-amount'
+  | 'language'
+  | 'bday'
+  | 'bday-day'
+  | 'bday-month'
+  | 'bday-year'
+  | 'sex'
+  | 'url'
+  | 'photo';
+
 export interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
   accept?: string | undefined;
   alt?: string | undefined;
-  autoComplete?: string | undefined;
+  autoComplete?:
+    | HTMLInputAutocompleteAttribute
+    | Omit<HTMLInputAutocompleteAttribute, string>
+    | undefined;
   autoFocus?: boolean | undefined;
   capture?: boolean | 'user' | 'environment' | undefined; // https://www.w3.org/TR/html-media-capture/#the-capture-attribute
   checked?: boolean | undefined;
@@ -691,7 +744,10 @@ export interface ScriptHTMLAttributes<T> extends HTMLAttributes<T> {
   type?: string | undefined;
 }
 export interface SelectHTMLAttributes<T> extends HTMLAttributes<T> {
-  autoComplete?: string | undefined;
+  autoComplete?:
+    | HTMLInputAutocompleteAttribute
+    | Omit<HTMLInputAutocompleteAttribute, string>
+    | undefined;
   autoFocus?: boolean | undefined;
   disabled?: boolean | undefined;
   form?: string | undefined;
@@ -734,7 +790,10 @@ export interface TdHTMLAttributes<T> extends HTMLAttributes<T> {
   valign?: 'top' | 'middle' | 'bottom' | 'baseline' | undefined;
 }
 export interface TextareaHTMLAttributes<T> extends HTMLAttributes<T> {
-  autoComplete?: string | undefined;
+  autoComplete?:
+    | HTMLInputAutocompleteAttribute
+    | Omit<HTMLInputAutocompleteAttribute, string>
+    | undefined;
   autoFocus?: boolean | undefined;
   cols?: number | undefined;
   dirName?: string | undefined;

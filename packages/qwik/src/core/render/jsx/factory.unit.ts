@@ -1,134 +1,126 @@
-import { expect, describe, it } from '@jest/globals';
 import { Host } from './host.public';
 import { h } from './factory';
 import { isJSXNode, Fragment, processNode } from './jsx-runtime';
 import type { FunctionComponent, ProcessedJSXNode } from './types/jsx-node';
+import { equal } from 'uvu/assert';
+import { suite } from 'uvu';
 
-describe('classic jsx factory h()', () => {
-  describe('children', () => {
-    it('map multiple nodes, flatten', () => {
-      // <parent>
-      //   a
-      //   {[1, 2].map((n) => (
-      //     <child>{n}</child>
-      //   ))}
-      //   b
-      // </parent>;
-      const v = processNode(
-        h(
-          'parent',
-          null,
-          'a',
-          [1, 2].map((n) => h('child', null, n)),
-          'b'
-        )
-      ) as ProcessedJSXNode;
-      expect(v.$children$).toHaveLength(4);
-      expect(v.$children$[0].$text$).toEqual('a');
-      expect(v.$children$[1].$type$).toEqual('child');
-      expect(v.$children$[1].$children$).toHaveLength(1);
-      expect(v.$children$[2].$type$).toEqual('child');
-      expect(v.$children$[2].$children$).toHaveLength(1);
-      expect(v.$children$[3].$text$).toEqual('b');
-    });
-
-    it('one child node', () => {
-      // <parent><child></child></parent>
-      const v = processNode(h('parent', null, h('child', null))) as ProcessedJSXNode;
-      expect(v.$children$).toHaveLength(1);
-      expect(v.$children$[0].$type$).toEqual('child');
-      expect(v.$children$[0].$props$).toEqual({ children: [] });
-      expect(v.$children$[0].$children$).toEqual([]);
-    });
-
-    it('text w/ expression', () => {
-      // <div>1 {2} 3</div>
-      const v = processNode(h('div', null, '1 ', 2, ' 3')) as ProcessedJSXNode;
-      expect(v.$children$[0].$type$).toEqual('#text');
-      expect(v.$children$[0].$text$).toEqual('1 ');
-      expect(v.$children$[0].$key$).toEqual(null);
-
-      expect(v.$children$[1].$type$).toEqual('#text');
-      expect(v.$children$[1].$text$).toEqual('2');
-      expect(v.$children$[1].$key$).toEqual(null);
-
-      expect(v.$children$[2].$type$).toEqual('#text');
-      expect(v.$children$[2].$text$).toEqual(' 3');
-      expect(v.$children$[2].$key$).toEqual(null);
-    });
-
-    it('text child', () => {
-      // <div>text</div>
-      const v = processNode(h('div', null, 'text')) as ProcessedJSXNode;
-      expect(v.$children$[0].$type$).toEqual('#text');
-      expect(v.$children$[0].$text$).toEqual('text');
-      expect(v.$children$[0].$key$).toEqual(null);
-    });
-
-    it('no children', () => {
-      // <div/>
-      const v = processNode(h('div', null)) as ProcessedJSXNode;
-      expect(v.$children$).toEqual([]);
-    });
-  });
-
-  describe('props', () => {
-    it('key', () => {
-      // <div key="val"/>
-      const v = h('div', { key: 'val' });
-      expect(v.props).toEqual({ children: [] });
-      expect(v.key).toEqual('val');
-    });
-
-    it('name/value props', () => {
-      // <div id="val"/>
-      const v = h('div', { id: 'val' });
-      expect(v.props).toEqual({ id: 'val', children: [] });
-    });
-
-    it('boolean props', () => {
-      // <input checked/>
-      const v = h('input', { checked: true });
-      expect(v.props).toEqual({ checked: true, children: [] });
-    });
-
-    it('no props', () => {
-      // <div/>
-      const v = h('div', null);
-      expect(v.props).toEqual({ children: [] });
-      expect(v.key).toBeNull();
-    });
-  });
-
-  describe('type', () => {
-    it('tag', () => {
-      const v = h('div', null);
-      expect(v.type).toBe('div');
-    });
-
-    it('Function Component', () => {
-      const Cmp: FunctionComponent<any> = () => h('fn-cmp', null);
-      const v = h(Cmp, {});
-      expect(v.type).toBe(Cmp);
-    });
-
-    it('Host', () => {
-      const v = h(Host, null);
-      expect(v.type).toBe(Host);
-    });
-
-    it('Fragment', () => {
-      // <><div/></>
-      const v = h(Fragment, null, h('div', null));
-      expect(v.type).toBe(Fragment);
-    });
-  });
-
-  describe('isJSXNode', () => {
-    it('valid JSXNode', () => {
-      // <div/>
-      const v = h('div', null);
-      expect(isJSXNode(v)).toBe(true);
-    });
-  });
+const jsxSuite = suite('classic jsx factory h()');
+jsxSuite('map multiple nodes, flatten', () => {
+  // <parent>
+  //   a
+  //   {[1, 2].map((n) => (
+  //     <child>{n}</child>
+  //   ))}
+  //   b
+  // </parent>;
+  const v = processNode(
+    h(
+      'parent',
+      null,
+      'a',
+      [1, 2].map((n) => h('child', null, n)),
+      'b'
+    )
+  ) as ProcessedJSXNode;
+  equal(v.$children$.length, 4);
+  equal(v.$children$[0].$text$, 'a');
+  equal(v.$children$[1].$type$, 'child');
+  equal(v.$children$[1].$children$.length, 1);
+  equal(v.$children$[2].$type$, 'child');
+  equal(v.$children$[2].$children$.length, 1);
+  equal(v.$children$[3].$text$, 'b');
 });
+
+jsxSuite('one child node', () => {
+  // <parent><child></child></parent>
+  const v = processNode(h('parent', null, h('child', null))) as ProcessedJSXNode;
+  equal(v.$children$.length, 1);
+  equal(v.$children$[0].$type$, 'child');
+  equal(v.$children$[0].$props$, { children: [] });
+  equal(v.$children$[0].$children$, []);
+});
+
+jsxSuite('text w/ expression', () => {
+  // <div>1 {2} 3</div>
+  const v = processNode(h('div', null, '1 ', 2, ' 3')) as ProcessedJSXNode;
+  equal(v.$children$[0].$type$, '#text');
+  equal(v.$children$[0].$text$, '1 ');
+  equal(v.$children$[0].$key$, null);
+
+  equal(v.$children$[1].$type$, '#text');
+  equal(v.$children$[1].$text$, '2');
+  equal(v.$children$[1].$key$, null);
+
+  equal(v.$children$[2].$type$, '#text');
+  equal(v.$children$[2].$text$, ' 3');
+  equal(v.$children$[2].$key$, null);
+});
+
+jsxSuite('text child', () => {
+  // <div>text</div>
+  const v = processNode(h('div', null, 'text')) as ProcessedJSXNode;
+  equal(v.$children$[0].$type$, '#text');
+  equal(v.$children$[0].$text$, 'text');
+  equal(v.$children$[0].$key$, null);
+});
+
+jsxSuite('no children', () => {
+  // <div/>
+  const v = processNode(h('div', null)) as ProcessedJSXNode;
+  equal(v.$children$, []);
+});
+
+jsxSuite('key', () => {
+  // <div key="val"/>
+  const v = h('div', { key: 'val' });
+  equal(v.props, { children: [] });
+  equal(v.key, 'val');
+});
+
+jsxSuite('name/value props', () => {
+  // <div id="val"/>
+  const v = h('div', { id: 'val' });
+  equal(v.props, { id: 'val', children: [] });
+});
+
+jsxSuite('boolean props', () => {
+  // <input checked/>
+  const v = h('input', { checked: true });
+  equal(v.props, { checked: true, children: [] });
+});
+
+jsxSuite('no props', () => {
+  // <div/>
+  const v = h('div', null);
+  equal(v.props, { children: [] });
+  equal(v.key, null);
+});
+
+jsxSuite('tag', () => {
+  const v = h('div', null);
+  equal(v.type, 'div');
+});
+
+jsxSuite('Function Component', () => {
+  const Cmp: FunctionComponent<any> = () => h('fn-cmp', null);
+  const v = h(Cmp, {});
+  equal(v.type, Cmp);
+});
+
+jsxSuite('Host', () => {
+  const v = h(Host, null);
+  equal(v.type, Host);
+});
+
+jsxSuite('Fragment', () => {
+  // <><div/></>
+  const v = h(Fragment, null, h('div', null));
+  equal(v.type, Fragment);
+});
+jsxSuite('valid JSXNode', () => {
+  // <div/>
+  const v = h('div', null);
+  equal(isJSXNode(v), true);
+});
+jsxSuite.run();

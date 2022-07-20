@@ -9,10 +9,12 @@ import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync } from 'fs';
 import { Plugin, rollup } from 'rollup';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { RenderOptions, RenderToStringResult } from '@builder.io/qwik/server';
+import { fileURLToPath } from 'url';
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
 const address = `http://localhost:${port}/`;
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const startersDir = __dirname;
 const startersAppsDir = join(startersDir, 'apps');
 const appNames = readdirSync(startersAppsDir).filter(
@@ -22,7 +24,7 @@ const appNames = readdirSync(startersAppsDir).filter(
 const qwikDistDir = join(__dirname, '..', 'packages', 'qwik', 'dist');
 const qwikDistCorePath = join(qwikDistDir, 'core.mjs');
 const qwikDistServerPath = join(qwikDistDir, 'server.mjs');
-const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.cjs');
+const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.mjs');
 const qwikDistJsxRuntimePath = join(qwikDistDir, 'jsx-runtime.mjs');
 Error.stackTraceLimit = 1000;
 
@@ -64,21 +66,18 @@ function devPlugin(opts: { isServer: boolean }): Plugin {
     name: 'devPlugin',
     resolveId(id, importee) {
       if (id === '@builder.io/qwik') {
-        delete require.cache[qwikDistCorePath];
         return qwikDistCorePath;
       }
       if (id === '@qwik-client-manifest') {
         return id;
       }
       if (id === '@builder.io/qwik/server') {
-        delete require.cache[qwikDistServerPath];
         return qwikDistServerPath;
       }
       if (id === '@builder.io/qwik/build') {
         return id;
       }
       if (id === '@builder.io/qwik/jsx-runtime') {
-        delete require.cache[qwikDistJsxRuntimePath];
         return qwikDistJsxRuntimePath;
       }
       if (!id.startsWith('.') && !isAbsolute(id)) {
@@ -119,8 +118,9 @@ export const isBrowser = ${String(!opts.isServer)};
 }
 
 async function buildApp(appDir: string) {
-  const optimizer: typeof import('@builder.io/qwik/optimizer') =
-    requireUncached(qwikDistOptimizerPath);
+  const optimizer: typeof import('@builder.io/qwik/optimizer') = await import(
+    qwikDistOptimizerPath
+  );
   const appSrcDir = join(appDir, 'src');
   const appDistDir = join(appDir, 'dist');
   const appServerDir = join(appDir, 'server');
@@ -215,9 +215,7 @@ function removeDir(dir: string) {
 
 async function ssrApp(req: Request, appName: string, appDir: string, manifest: QwikManifest) {
   const ssrPath = join(appDir, 'server', 'entry.ssr.js');
-
-  // require the build's server index (avoiding nodejs require cache)
-  const { render } = requireUncached(ssrPath);
+  const { render } = await import(ssrPath);
 
   // ssr the document
   const base = `/${appName}/build/`;
@@ -231,11 +229,6 @@ async function ssrApp(req: Request, appName: string, appDir: string, manifest: Q
 
   const result: RenderToStringResult = await render(opts);
   return result.html;
-}
-
-function requireUncached(module: string) {
-  delete require.cache[require.resolve(module)];
-  return require(module);
 }
 
 function startersHomepage(_: Request, res: Response) {

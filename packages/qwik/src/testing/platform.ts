@@ -1,4 +1,4 @@
-import { getPlatform, setPlatform } from '@builder.io/qwik';
+import { getPlatform, setPlatform } from '../core/platform/platform';
 import type { TestPlatform } from './types';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';

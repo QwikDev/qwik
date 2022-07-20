@@ -6,8 +6,10 @@ import { checkExistingNpmVersion, releaseVersionPrompt } from './release';
 import semver from 'semver';
 import mri from 'mri';
 import { execa } from 'execa';
+import { fileURLToPath } from 'url';
 
 const PACKAGE = 'qwik-city';
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 export async function buildQwikCity(config: BuildConfig) {
   const input = join(config.packagesDir, PACKAGE);

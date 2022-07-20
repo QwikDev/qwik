@@ -1,6 +1,8 @@
 import { execa } from 'execa';
 import { mkdir } from 'fs/promises';
+import { fileURLToPath } from 'url';
 
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const token = process.env.API_TOKEN_GITHUB;
 const repo = `https://${token}:x-oauth-basic@github.com/BuilderIO/qwik-build.git`;
 const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';

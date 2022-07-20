@@ -12,7 +12,7 @@ import {
 import type { HTMLAttributes } from '@builder.io/qwik';
 import { loadRoute } from './routing';
 import type { ContentState, PageModule, QwikCityRenderDocument } from './types';
-import { ContentContext, DocumentHeadContext, RouteLocationContext } from './constants';
+import { ContentContext, DocumentHeadContext, RouteLocationContext } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { getSsrEndpointResponse } from './use-endpoint';
 import cityPlan from '@qwik-city-plan';

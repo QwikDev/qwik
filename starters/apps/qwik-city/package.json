@@ -12,8 +12,9 @@
       "prettier"
     ]
   },
+  "type": "module",
   "devDependencies": {
-    "@builder.io/qwik-city": "0.0.20",
+    "@builder.io/qwik-city": "0.0.22",
     "vite-tsconfig-paths": "3.5.0"
   }
 }

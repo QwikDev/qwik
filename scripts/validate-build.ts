@@ -2,6 +2,7 @@ import { BuildConfig, PackageJSON, panic } from './util';
 import { access, readFile } from './util';
 import { extname, join } from 'path';
 import { pathToFileURL } from 'url';
+import { createRequire } from 'module';
 import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import ts from 'typescript';
 
@@ -15,6 +16,7 @@ export async function validateBuild(config: BuildConfig) {
   const pkgPath = join(config.distPkgDir, 'package.json');
   const pkg: PackageJSON = JSON.parse(await readFile(pkgPath, 'utf-8'));
   const errors: string[] = [];
+  const require = createRequire(import.meta.url);
 
   // triple checks these package files all exist and parse
   const pkgFiles = [...pkg.files!, 'LICENSE', 'README.md', 'package.json'];

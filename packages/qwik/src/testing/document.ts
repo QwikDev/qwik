@@ -1,4 +1,4 @@
-import { _createDocument } from '@builder.io/qwik/server';
+import { _createDocument } from '../server/document';
 import { setTestPlatform } from './platform';
 import type { MockDocumentOptions, MockWindowOptions, MockDocument, MockWindow } from './types';
 

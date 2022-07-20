@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "Static Site Generator for Qwik",
   "main": "./lib/index.qwik.cjs",
   "module": "./lib/index.qwik.mjs",

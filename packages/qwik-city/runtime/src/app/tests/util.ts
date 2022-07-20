@@ -4,6 +4,7 @@ import { expect } from '@playwright/test';
 
 export async function assertPage(ctx: TestContext, test: AssertPage) {
   const page = getPage(ctx);
+  const pageUrl = new URL(page.url());
   const html = page.locator('html');
 
   expect(await html.getAttribute('q:version')).toBeDefined();
@@ -15,7 +16,6 @@ export async function assertPage(ctx: TestContext, test: AssertPage) {
   expect(await head.getAttribute('q:id')).toBeDefined();
 
   if (test.pathname) {
-    const pageUrl = new URL(page.url());
     expect(pageUrl.pathname).toBe(test.pathname);
 
     const canonical = head.locator('link[rel="canonical"]');
@@ -29,9 +29,6 @@ export async function assertPage(ctx: TestContext, test: AssertPage) {
     expect(await title.innerText()).toBe(test.title);
   }
 
-  const twitterTitle = head.locator('meta[name="twitter:title"]');
-  expect(await twitterTitle.getAttribute('content')).toBe('Qwik');
-
   let parentLocator = page.locator('body');
   if (test.layoutHierarchy) {
     for (const layoutName of test.layoutHierarchy) {
@@ -39,7 +36,7 @@ export async function assertPage(ctx: TestContext, test: AssertPage) {
       parentLocator = parentLocator.locator(selector);
       expect(
         await parentLocator.isVisible(),
-        `Incorrect layout hierarchy, did not find "${selector}"`
+        `Incorrect layout hierarchy, did not find "${selector}", pathname: ${pageUrl.pathname}`
       ).toBe(true);
     }
 
@@ -48,7 +45,7 @@ export async function assertPage(ctx: TestContext, test: AssertPage) {
       const layoutName = await noFindChildLayout.getAttribute('data-test-layout')!;
       expect(
         layoutName,
-        `Should not be another nested layout, but found [data-test-layout="${layoutName}"]`
+        `Should not be another nested layout, but found [data-test-layout="${layoutName}"], pathname: ${pageUrl.pathname}`
       ).toBe(null);
     }
   }

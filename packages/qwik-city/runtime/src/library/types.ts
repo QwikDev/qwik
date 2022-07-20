@@ -31,24 +31,47 @@ export interface MenuModule {
  * @public
  */
 export interface RouteLocation {
-  hash: string;
-  hostname: string;
-  href: string;
-  params: RouteParams;
-  pathname: string;
-  search: string;
-  query: Record<string, string>;
+  readonly hash: string;
+  readonly hostname: string;
+  readonly href: string;
+  readonly params: RouteParams;
+  readonly pathname: string;
+  readonly search: string;
+  readonly query: Record<string, string>;
+}
+
+export type MutableRouteLocation = Mutable<RouteLocation>;
+
+type Mutable<T> = { -readonly [K in keyof T]: T[K] };
+
+/**
+ * @public
+ */
+export interface DocumentHeadValue {
+  /**
+   * Sets `document.title`.
+   */
+  title?: string;
+  /**
+   * Used to manually set meta tags in the head. Additionally, the `data`
+   * property could be used to set arbitrary data which the `<head>` component
+   * could later use to generate `<meta>` tags.
+   */
+  meta?: DocumentMeta[];
+  /**
+   * Used to manually append `<link>` elements to the `<head>`.
+   */
+  links?: DocumentLink[];
+  /**
+   * Used to manually append `<style>` elements to the `<head>`.
+   */
+  styles?: DocumentStyle[];
 }
 
 /**
  * @public
  */
-export interface ResolvedDocumentHead {
-  title?: string;
-  meta?: DocumentMeta[];
-  links?: DocumentLink[];
-  styles?: DocumentStyle[];
-}
+export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
 /**
  * @public
@@ -98,15 +121,15 @@ export interface DocumentStyle {
  */
 export interface DocumentHeadProps<T = unknown> extends RouteLocation {
   data: T | null;
-  head: Required<ResolvedDocumentHead>;
+  head: ResolvedDocumentHead;
 }
 
 /**
  * @public
  */
 export type DocumentHead<T = unknown> =
-  | ResolvedDocumentHead
-  | ((props: DocumentHeadProps<T>) => ResolvedDocumentHead);
+  | DocumentHeadValue
+  | ((props: DocumentHeadProps<T>) => DocumentHeadValue);
 
 export interface ContentState {
   headings: ContentHeading[] | undefined;
@@ -257,7 +280,7 @@ export interface QwikCityRenderDocument extends RenderDocument {
 }
 
 export interface QwikCityUserContext {
-  qcRoute: RouteLocation;
+  qcRoute: MutableRouteLocation;
   qcRequest: {
     method: HttpMethod;
   };

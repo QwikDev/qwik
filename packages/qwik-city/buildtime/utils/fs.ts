@@ -1,16 +1,22 @@
 import { basename, dirname, extname, normalize } from 'path';
+import type { ParsedLayoutId } from '../types';
 import { toTitleCase } from './format';
 
 export function getExtension(fileName: string) {
   return extname(fileName).toLowerCase();
 }
 
-export function getExtensionLessBasename(path: string) {
-  const parts = basename(path).split('.');
+export function removeExtension(fileName: string) {
+  const parts = fileName.split('.');
   if (parts.length > 1) {
     parts.pop();
+    return parts.join('.');
   }
-  return parts.join('.');
+  return fileName;
+}
+
+export function getExtensionLessBasename(filePath: string) {
+  return removeExtension(basename(filePath));
 }
 
 export function normalizePath(path: string) {
@@ -92,8 +98,39 @@ export function isMenuFileName(fileName: string) {
   return fileName === '_menu.md';
 }
 
+const LAYOUT_ID = '_layout';
+const LAYOUT_NAMED_PREFIX = LAYOUT_ID + '-';
+const LAYOUT_TOP_SUFFIX = '!';
+
 export function isLayoutName(fileName: string) {
-  return fileName.startsWith('_layout');
+  return fileName.startsWith(LAYOUT_ID);
+}
+
+export function isLayoutTop(fileName: string) {
+  return fileName.endsWith(LAYOUT_TOP_SUFFIX);
+}
+
+export function parseLayoutId(fileName: string): ParsedLayoutId {
+  let layoutName = '';
+  let layoutType: 'nested' | 'top';
+
+  fileName = removeExtension(fileName);
+
+  if (fileName.endsWith(LAYOUT_TOP_SUFFIX)) {
+    layoutType = 'top';
+    fileName = fileName.slice(0, fileName.length - 1);
+  } else {
+    layoutType = 'nested';
+  }
+
+  if (fileName.startsWith(LAYOUT_NAMED_PREFIX)) {
+    layoutName = fileName.slice(LAYOUT_NAMED_PREFIX.length);
+  }
+
+  return {
+    layoutName,
+    layoutType,
+  };
 }
 
 export function isLayoutFileName(dirName: string, fileName: string, ext: string) {

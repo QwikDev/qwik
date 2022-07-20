@@ -11,9 +11,7 @@ import {
   isTestDirName,
   isTestFileName,
 } from '../utils/fs';
-import { resolveEndpointRoute } from './endpoint';
-import { resolveLayout } from './layout';
-import { resolvePageModuleRoute } from './page';
+import { resolveLayout, resolveRoute } from './resolve-source-file';
 import { sortRoutes } from './sort-routes';
 
 export async function resolveSourceFiles(
@@ -31,13 +29,10 @@ export async function resolveSourceFiles(
       return 0;
     });
 
-  const pageRoutes = sourceFiles
-    .filter((s) => s.type === 'page')
-    .map((p) => resolvePageModuleRoute(opts, p, layouts));
-
-  const endpointRoutes = sourceFiles
-    .filter((s) => s.type === 'endpoint')
-    .map((p) => resolveEndpointRoute(opts, p));
+  const routes = sourceFiles
+    .filter((s) => s.type === 'page' || s.type === 'endpoint')
+    .map((s) => resolveRoute(opts, layouts, s))
+    .sort(sortRoutes);
 
   const menus = sourceFiles
     .filter((s) => s.type === 'menu')
@@ -47,8 +42,6 @@ export async function resolveSourceFiles(
       if (a.pathname > b.pathname) return 1;
       return 0;
     });
-
-  const routes = [...pageRoutes, ...endpointRoutes].sort(sortRoutes);
 
   return { layouts, routes, menus };
 }

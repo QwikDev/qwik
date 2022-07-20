@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { assertPage, linkNavigate, load, locator } from './util.js';
 
-test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
+test('Qwik City Menu', async ({ context, javaScriptEnabled }) => {
   const ctx = await load(context, javaScriptEnabled, '/');
 
   /***********  Docs: home  ***********/
@@ -9,7 +9,7 @@ test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
   await assertPage(ctx, {
     pathname: '/docs',
     title: 'Docs: Welcome! - Qwik',
-    layoutHierarchy: ['root', 'docs'],
+    layoutHierarchy: ['docs'],
     h1: 'Welcome to the Docs!',
     activeHeaderLink: 'Docs',
   });
@@ -27,7 +27,7 @@ test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
   await assertPage(ctx, {
     pathname: '/docs/overview',
     title: 'Docs: Overview - Qwik',
-    layoutHierarchy: ['root', 'docs'],
+    layoutHierarchy: ['docs'],
     h1: 'Overview',
     activeHeaderLink: 'Docs',
   });
@@ -46,7 +46,7 @@ test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
   await assertPage(ctx, {
     pathname: '/docs/getting-started',
     title: 'Docs: Getting Started - Qwik',
-    layoutHierarchy: ['root', 'docs'],
+    layoutHierarchy: ['docs'],
     h1: 'Getting Started',
     activeHeaderLink: 'Docs',
   });
@@ -65,7 +65,7 @@ test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
   await assertPage(ctx, {
     pathname: '/docs/components/basics',
     title: 'Docs: components basics - Qwik',
-    layoutHierarchy: ['root', 'docs'],
+    layoutHierarchy: ['docs'],
     h1: 'Docs: components basics',
     activeHeaderLink: 'Docs',
   });
@@ -84,7 +84,7 @@ test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
   await assertPage(ctx, {
     pathname: '/docs/components/listeners',
     title: 'Docs: components listeners - Qwik',
-    layoutHierarchy: ['root', 'docs'],
+    layoutHierarchy: ['docs'],
     h1: 'Docs: components listeners',
     activeHeaderLink: 'Docs',
   });

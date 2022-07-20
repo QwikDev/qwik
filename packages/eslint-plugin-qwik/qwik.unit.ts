@@ -201,6 +201,26 @@ test('valid-lexical-scope', () => {
               console.log(a);
             }}></Host>;
           });`,
+
+      `
+  export interface PropFnInterface<ARGS extends any[], RET> {
+    (...args: ARGS): Promise<RET>
+  }
+
+  export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET
+    ? PropFnInterface<ARGS, RET>
+    : never;
+
+  export interface Props {
+    method$: PropFunction<() => void>;
+  }
+
+  export const HelloWorld = component$((props: Props) => {
+    return <Host onClick$={async () => {
+      await props.method$();
+    }}></Host>;
+  });
+      `,
     ],
     invalid: [
       {
@@ -351,6 +371,20 @@ test('valid-lexical-scope', () => {
         });`,
         errors: [
           'Identifier ("state") can not be captured inside the scope (useWatch$) because "state.value" is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+        ],
+      },
+      {
+        code: `
+        import { component$ } from 'stuff';
+        export const HelloWorld = component$(() => {
+          const click = () => console.log();
+          return (
+            <button onClick$={click}>
+            </button>
+          );
+        });`,
+        errors: [
+          'JSX attributes that end with $ can only take an inlined arrow function of a QRL identifier. Make sure the value is created using $()',
         ],
       },
     ],

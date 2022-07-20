@@ -83,7 +83,7 @@ export const qrl = <T = any>(
   if (ctx && ctx.$element$) {
     qrl.$setContainer$(ctx.$element$);
   }
-  return qrl;
+  return qrl as any;
 };
 
 export const runtimeQrl = <T>(

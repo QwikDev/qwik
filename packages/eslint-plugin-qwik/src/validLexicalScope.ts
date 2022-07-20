@@ -40,6 +40,8 @@ export const validLexicalScope = createRule({
     messages: {
       referencesOutside:
         'Identifier ("{{varName}}") can not be captured inside the scope ({{dollarName}}) because {{reason}}. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+      unvalidJsxDollar:
+        'JSX attributes that end with $ can only take an inlined arrow function of a QRL identifier. Make sure the value is created using $()',
     },
   },
   create(context) {
@@ -152,6 +154,16 @@ export const validLexicalScope = createRule({
             const scope = scopeManager.acquire(firstArg.expression);
             if (scope) {
               relevantScopes.set(scope, name);
+            } else if (firstArg.expression.type === AST_NODE_TYPES.Identifier) {
+              console.log(firstArg.expression);
+              const tsNode = esTreeNodeToTSNodeMap.get(firstArg.expression);
+              const type = typeChecker.getTypeAtLocation(tsNode);
+              if (!isTypeQRL(type)) {
+                context.report({
+                  messageId: 'unvalidJsxDollar',
+                  node: firstArg.expression,
+                });
+              }
             }
           }
         }
@@ -263,14 +275,23 @@ function _isTypeCapturable(
       reason: 'is an enum, use an string or a number instead',
     };
   }
+  if (isTypeQRL(type)) {
+    return;
+  }
+
   const canBeCalled = type.getCallSignatures().length > 0;
   if (canBeCalled) {
+    const symbolName = type.symbol.name;
+    if (symbolName === 'PropFnInterface') {
+      return;
+    }
     return {
       type,
       typeStr: checker.typeToString(type),
       reason: 'is a function, which is not serializable',
     };
   }
+
   if (type.isUnion()) {
     for (const subType of type.types) {
       const result = _isTypeCapturable(checker, subType, node, opts, level + 1);
@@ -295,10 +316,6 @@ function _isTypeCapturable(
     }
     // Document is ok
     if (type.getProperty('activeElement')) {
-      return;
-    }
-    // QRL is ok
-    if (type.getProperty('__brand__QRL__')) {
       return;
     }
     if (symbolName === 'Promise') {
@@ -357,4 +374,8 @@ function isSymbolCapturable(
 
 function getElementTypeOfArrayType(type: ts.Type, checker: ts.TypeChecker): ts.Type | undefined {
   return (checker as any).getElementTypeOfArrayType(type);
+}
+
+function isTypeQRL(type: ts.Type): boolean {
+  return !!type.getProperty('__brand__QRL__');
 }

@@ -299,8 +299,10 @@ export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null | (() => J
 // @alpha
 export const pauseContainer: (elmOrDoc: Element | Document) => Promise<SnapshotResult>;
 
+// Warning: (ae-forgotten-export) The symbol "PropFnInterface" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET ? (...args: ARGS) => Promise<RET> : never;
+export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;
 
 // @public (undocumented)
 export type Props<T extends {} = {}> = Record<string, any> & T;
@@ -316,6 +318,8 @@ export type PublicProps<PROPS extends {}> = MutableProps<PROPS> & ComponentBaseP
 
 // @public
 export interface QRL<TYPE = any> {
+    // (undocumented)
+    __brand__QRL__: TYPE;
     (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
     // (undocumented)
     getHash(): string;

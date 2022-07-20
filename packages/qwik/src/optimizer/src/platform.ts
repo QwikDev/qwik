@@ -130,6 +130,7 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
 export async function loadPlatformBinding(sys: OptimizerSystem) {
   const sysEnv = getEnv();
 
+  // Try native build
   if (sysEnv === 'node') {
     // NodeJS
     const platform = (QWIK_BINDING_MAP as any)[process.platform];
@@ -219,10 +220,31 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
   }
 
   if (globalThis.IS_ESM) {
-    // ESM WASM
-    const module = await sys.dynamicImport(`./bindings/qwik.wasm.mjs`);
-    await module.default();
-    return module;
+    if (sysEnv === 'node') {
+      // CJS WASM NodeJS
+      const url: typeof import('url') = await sys.dynamicImport('url');
+      const __dirname = sys.path.dirname(url.fileURLToPath(import.meta.url));
+      const wasmPath = sys.path.join(__dirname, 'bindings', 'qwik_wasm_bg.wasm');
+      const mod = await sys.dynamicImport(`./bindings/qwik.wasm.mjs`);
+      const fs: typeof import('fs') = await sys.dynamicImport('fs');
+
+      return new Promise<Buffer>((resolve, reject) => {
+        fs.readFile(wasmPath, (err, buf) => {
+          if (err != null) {
+            reject(err);
+          } else {
+            resolve(buf);
+          }
+        });
+      })
+        .then((buf) => WebAssembly.compile(buf))
+        .then((wasm) => mod.default(wasm))
+        .then(() => mod);
+    } else {
+      const module = await sys.dynamicImport(`./bindings/qwik.wasm.mjs`);
+      await module.default();
+      return module;
+    }
   }
 
   throw new Error(`Platform not supported`);

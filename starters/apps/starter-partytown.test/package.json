@@ -3,6 +3,7 @@
   "dependencies": {
     "@builder.io/partytown": "latest"
   },
+  "type": "module",
   "__qwik__": {
     "priority": 0,
     "featureOptions": [

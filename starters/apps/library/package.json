@@ -6,6 +6,7 @@
   "qwik": "./lib/index.qwik.mjs",
   "module": "./lib/index.qwik.mjs",
   "types": "./lib/types/index.d.ts",
+  "type": "module",
   "exports": {
     ".": {
       "import": "./lib/index.qwik.mjs",

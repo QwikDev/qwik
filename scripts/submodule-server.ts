@@ -23,7 +23,7 @@ export async function submoduleServer(config: BuildConfig) {
   const submodule = 'server';
 
   const qwikDomPlugin = await bundleQwikDom(config);
-  const qwikDomVersion = await getQwikDomVersion();
+  const qwikDomVersion = await getQwikDomVersion(config);
 
   const opts: BuildOptions = {
     entryPoints: [join(config.srcDir, submodule, 'index.ts')],
@@ -117,9 +117,8 @@ async function bundleQwikDom(config: BuildConfig) {
   return qwikDomPlugin;
 }
 
-async function getQwikDomVersion() {
-  const indexPath = require.resolve('@builder.io/qwik-dom');
-  const pkgJsonPath = join(indexPath, '..', '..');
+async function getQwikDomVersion(config: BuildConfig) {
+  const pkgJsonPath = join(config.packagesDir, 'qwik-dom');
   const pkgJson = await readPackageJson(pkgJsonPath);
   return pkgJson.version;
 }

@@ -27,5 +27,6 @@ module.exports = {
     'no-console': ['error', { allow: ['warn', 'error'] }],
     'no-only-tests/no-only-tests': 'error',
     '@typescript-eslint/no-unused-vars': 'off',
+    '@typescript-eslint/no-var-requires': 'off',
   },
 };

@@ -1,5 +1,6 @@
 {
   "description": "Qwik implementation of TodoMVC: https://todomvc.com/.",
+  "type": "module",
   "__qwik__": {
     "priority": -2,
     "featureOptions": []

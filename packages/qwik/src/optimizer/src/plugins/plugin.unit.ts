@@ -1,4 +1,4 @@
-import { resolve } from 'path';
+import path, { resolve } from 'path';
 import { suite } from 'uvu';
 import type { QwikManifest } from '../types';
 import { createPlugin } from './plugin';
@@ -184,9 +184,9 @@ async function mockPlugin() {
       cwd: () => process.cwd(),
       env: 'node',
       os: process.platform,
-      dynamicImport: async (path) => require(path),
+      dynamicImport: async (path) => import(path),
       strictDynamicImport: async (path) => import(path),
-      path: require('path'),
+      path: path as any,
     },
     binding: { mockBinding: true },
   });

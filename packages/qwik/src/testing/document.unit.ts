@@ -1,13 +1,12 @@
-import { expect, describe, it } from '@jest/globals';
 import { createWindow } from './document';
 import { pathToFileURL } from 'url';
+import { test } from 'uvu';
+import { match } from 'uvu/assert';
 
-describe('window', () => {
-  it('should create document', () => {
-    const win = createWindow({
-      url: pathToFileURL(__filename),
-    });
-    expect(win.document.baseURI).toContain('file://');
-    expect(win.document.baseURI).toContain('document.unit.ts');
+test('should create document', () => {
+  const win = createWindow({
+    url: pathToFileURL(__filename),
   });
+  match(win.document.baseURI, 'file://');
+  match(win.document.baseURI, 'document.unit.ts');
 });

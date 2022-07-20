@@ -10,7 +10,9 @@ import {
 } from 'fs';
 import assert from 'assert';
 import { join } from 'path';
-import { pathToFileURL } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 async function validateCreateQwikCli() {
   console.log(`👾 validating create-qwik...`);

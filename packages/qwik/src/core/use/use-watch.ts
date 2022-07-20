@@ -12,7 +12,7 @@ import { useResumeQrl, useVisibleQrl } from './use-on';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { assertDefined, assertEqual } from '../assert/assert';
 import type { QRL } from '../import/qrl.public';
-import { assertQrl, createQrl, QRLInternal } from '../import/qrl-class';
+import { assertQrl, createQRL, QRLInternal } from '../import/qrl-class';
 import {
   codeToText,
   qError,
@@ -779,7 +779,7 @@ const useRunWatch = (watch: SubscriberDescriptor, run: UseEffectRunOptions | und
 
 const getWatchHandlerQrl = (watch: SubscriberDescriptor) => {
   const watchQrl = watch.qrl;
-  const watchHandler = createQrl(
+  const watchHandler = createQRL(
     watchQrl.$chunk$,
     'handleWatch',
     handleWatch,

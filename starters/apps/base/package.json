@@ -26,6 +26,7 @@
     "typescript": "latest",
     "vite": "latest"
   },
+  "type": "module",
   "homepage": "https://qwik.builder.io/",
   "private": true,
   "engines": {

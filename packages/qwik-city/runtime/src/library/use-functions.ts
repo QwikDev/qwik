@@ -1,5 +1,5 @@
 import { useContext } from '@builder.io/qwik';
-import { ContentContext, DocumentHeadContext, RouteLocationContext } from './constants';
+import { ContentContext, DocumentHeadContext, RouteLocationContext } from './contexts';
 import type { ContentHeading, RouteLocation, ResolvedDocumentHead } from './types';
 
 /**

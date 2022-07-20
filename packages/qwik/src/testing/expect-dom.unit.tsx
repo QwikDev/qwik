@@ -1,4 +1,3 @@
-import { expect, describe, it } from '@jest/globals';
 import type { QwikJSX } from '@builder.io/qwik';
 import qwikDom from '@builder.io/qwik-dom';
 import { isJSXNode, isProcessedJSXNode, processNode } from '../core/render/jsx/jsx-runtime';
@@ -6,6 +5,8 @@ import type { ProcessedJSXNode } from '../core/render/jsx/types/jsx-node';
 import { isComment, isElement, isText } from '../core/util/element';
 import { QHostAttr, QSlot } from '../core/util/markers';
 import { isHtmlElement } from '../core/util/types';
+import { equal } from 'uvu/assert';
+import { suite } from 'uvu';
 
 /**
  * Returns true if the `node` is `Element` and of the right `tagName`.
@@ -50,7 +51,7 @@ export async function expectDOM(
   const result = await processNode(expected);
   const node = Array.isArray(result) ? result[0] : result;
   expectMatchElement('', diffs, actual, node!);
-  expect(diffs).toEqual(expectedErrors);
+  equal(diffs, expectedErrors);
 }
 
 function expectMatchElement(
@@ -166,34 +167,26 @@ function toHTML(node: any) {
   }
 }
 
-describe('expect-dom', () => {
-  it('should match element', async () => {
-    await expectDOM(toDOM('<span></span>'), <span></span>);
-  });
-  it('should match attributes element', async () => {
-    await expectDOM(
-      toDOM('<span title="abc" id="bar"></span>'),
-      <span id="bar" title="abc"></span>
-    );
-  });
+const expectDom = suite('expect-dom');
+expectDom('should match element', async () => {
+  await expectDOM(toDOM('<span></span>'), <span></span>);
+});
+expectDom('should match attributes element', async () => {
+  await expectDOM(toDOM('<span title="abc" id="bar"></span>'), <span id="bar" title="abc"></span>);
+});
 
-  describe('errors', () => {
-    it('should detect missing attrs', async () => {
-      await expectDOM(toDOM('<span></span>'), <span id="bar"></span>, [
-        "span: expected '<span id=\"bar\">', was '<span>'.",
-      ]);
-    });
-    it('should detect different tag attrs', async () => {
-      await expectDOM(toDOM('<span></span>'), <div></div>, [
-        "span: expected '<div>', was '<span>'.",
-      ]);
-    });
-    it('should detect different text', async () => {
-      await expectDOM(toDOM('<span>TEXT</span>'), <span>OTHER</span>, [
-        'span: expected content "OTHER", was "TEXT"',
-      ]);
-    });
-  });
+expectDom('should detect missing attrs', async () => {
+  await expectDOM(toDOM('<span></span>'), <span id="bar"></span>, [
+    "span: expected '<span id=\"bar\">', was '<span>'.",
+  ]);
+});
+expectDom('should detect different tag attrs', async () => {
+  await expectDOM(toDOM('<span></span>'), <div></div>, ["span: expected '<div>', was '<span>'."]);
+});
+expectDom('should detect different text', async () => {
+  await expectDOM(toDOM('<span>TEXT</span>'), <span>OTHER</span>, [
+    'span: expected content "OTHER", was "TEXT"',
+  ]);
 });
 
 function toDOM(html: string): HTMLElement {
@@ -202,3 +195,5 @@ function toDOM(html: string): HTMLElement {
   host.innerHTML = html;
   return host.firstElementChild! as HTMLElement;
 }
+
+expectDom.run();

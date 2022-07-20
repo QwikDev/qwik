@@ -40,7 +40,7 @@ export const createQRL = <TYPE>(
   capture: null | string[],
   captureRef: any[] | null,
   refSymbol: string | null
-) => {
+): QRLInternal<TYPE> => {
   if (qDev) {
     verifySerializable(captureRef);
   }
@@ -135,7 +135,7 @@ export const createQRL = <TYPE>(
       return stringifyQRL(QRL, options);
     },
   };
-  return Object.assign(invoke, methods);
+  return Object.assign(invoke, methods) as any;
 };
 
 export const getSymbolHash = (symbolName: string) => {

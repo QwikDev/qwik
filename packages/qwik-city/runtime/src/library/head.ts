@@ -4,6 +4,7 @@ import type {
   EndpointResponse,
   ResolvedDocumentHead,
   DocumentHeadProps,
+  DocumentHeadValue,
 } from './types';
 
 export const resolveHead = (
@@ -35,8 +36,8 @@ const resolveContentHead = (headProps: DocumentHeadProps, contentModule: Content
 };
 
 const resolveDocumentHead = (
-  resolvedHead: Required<ResolvedDocumentHead>,
-  updatedHead: ResolvedDocumentHead
+  resolvedHead: ResolvedDocumentHead,
+  updatedHead: DocumentHeadValue
 ) => {
   if (typeof updatedHead.title === 'string') {
     resolvedHead.title = updatedHead.title;
@@ -61,7 +62,7 @@ const mergeArray = (existingArr: { key?: string }[], newArr: { key?: string }[] 
   }
 };
 
-export const createDocumentHead = (): Required<ResolvedDocumentHead> => ({
+export const createDocumentHead = (): ResolvedDocumentHead => ({
   title: '',
   meta: [],
   links: [],

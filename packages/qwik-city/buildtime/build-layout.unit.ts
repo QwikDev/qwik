@@ -8,41 +8,41 @@ test('total layouts', ({ layouts }) => {
   assert.is(layouts.length, 6, JSON.stringify(layouts, null, 2));
 });
 
-test('filename layout', ({ assertLayout }) => {
+test('filename nested layout', ({ assertLayout }) => {
   const l = assertLayout('AuthLayout');
   assert.is(basename(l.filePath), '_layout.tsx');
-  assert.is(l.type, 'nested');
+  assert.is(l.layoutType, 'nested');
   assert.is(l.layoutName, '');
 });
 
-test('directory layout', ({ assertLayout }) => {
+test('directory/index nested layout', ({ assertLayout }) => {
   const l = assertLayout('BlogLayoutIndex');
   assert.is(basename(dirname(l.filePath)), '_layout');
   assert.is(basename(l.filePath), 'index.tsx');
-  assert.is(l.type, 'nested');
+  assert.is(l.layoutType, 'nested');
   assert.is(l.layoutName, '');
 });
 
-test('named filename layout', ({ assertLayout }) => {
+test('named filename nested layout', ({ assertLayout }) => {
   const l = assertLayout('DashboardLayoutdashboard');
   assert.is(basename(l.filePath), '_layout-dashboard.tsx');
-  assert.is(l.type, 'top');
+  assert.is(l.layoutType, 'nested');
   assert.is(l.layoutName, 'dashboard');
 });
 
-test('nested directory layout', ({ assertLayout }) => {
+test('directory/index top layout', ({ assertLayout }) => {
   const l = assertLayout('DocsLayoutIndex');
-  assert.is(basename(dirname(l.filePath)), '_layout');
+  assert.is(basename(dirname(l.filePath)), '_layout!');
   assert.is(basename(l.filePath), 'index.tsx');
-  assert.is(l.type, 'nested');
+  assert.is(l.layoutType, 'top');
   assert.is(l.layoutName, '');
 });
 
-test('named directory layout', ({ assertLayout }) => {
+test('named directory/index nested layout', ({ assertLayout }) => {
   const l = assertLayout('ApiLayoutfooIndex');
   assert.is(basename(dirname(l.filePath)), '_layout-foo');
   assert.is(basename(l.filePath), 'index.tsx');
-  assert.is(l.type, 'top');
+  assert.is(l.layoutType, 'nested');
   assert.is(l.layoutName, 'foo');
 });
 

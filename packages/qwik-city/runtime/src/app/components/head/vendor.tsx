@@ -1,13 +1,13 @@
 import type { RouteLocation } from '~qwik-city-runtime';
 
-interface AnalyticsProps {
-  loc: RouteLocation;
-}
-
-export const Analytics = ({ loc }: AnalyticsProps) => {
+export const Vendor = ({ loc }: VendorProps) => {
   return (
     <>
       <script dangerouslySetInnerHTML={`console.log("🧨 Analytics! ${loc.pathname}");`} />
     </>
   );
 };
+
+interface VendorProps {
+  loc: RouteLocation;
+}

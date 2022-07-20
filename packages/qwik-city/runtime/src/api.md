@@ -31,10 +31,11 @@ export interface ContentMenu {
     text: string;
 }
 
+// Warning: (ae-forgotten-export) The symbol "DocumentHeadValue" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "DocumentHeadProps" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type DocumentHead<T = unknown> = ResolvedDocumentHead | ((props: DocumentHeadProps<T>) => ResolvedDocumentHead);
+export type DocumentHead<T = unknown> = DocumentHeadValue | ((props: DocumentHeadProps<T>) => DocumentHeadValue);
 
 // @public (undocumented)
 export interface DocumentLink {
@@ -126,16 +127,7 @@ export interface QwikCityPlan {
 }
 
 // @public (undocumented)
-export interface ResolvedDocumentHead {
-    // (undocumented)
-    links?: DocumentLink[];
-    // (undocumented)
-    meta?: DocumentMeta[];
-    // (undocumented)
-    styles?: DocumentStyle[];
-    // (undocumented)
-    title?: string;
-}
+export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
 // Warning: (ae-forgotten-export) The symbol "ContentModuleLoader" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "EndpointModuleLoader" needs to be exported by the entry point index.d.ts
@@ -152,21 +144,21 @@ routeType: typeof ROUTE_TYPE_ENDPOINT
 // @public (undocumented)
 export interface RouteLocation {
     // (undocumented)
-    hash: string;
+    readonly hash: string;
     // (undocumented)
-    hostname: string;
+    readonly hostname: string;
     // (undocumented)
-    href: string;
+    readonly href: string;
     // Warning: (ae-forgotten-export) The symbol "RouteParams" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    params: RouteParams;
+    readonly params: RouteParams;
     // (undocumented)
-    pathname: string;
+    readonly pathname: string;
     // (undocumented)
-    query: Record<string, string>;
+    readonly query: Record<string, string>;
     // (undocumented)
-    search: string;
+    readonly search: string;
 }
 
 // @public (undocumented)

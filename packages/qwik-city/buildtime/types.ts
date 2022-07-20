@@ -15,8 +15,6 @@ export interface Diagnostic {
   message: string;
 }
 
-export type BuildRoute = PageRoute | EndpointRoute;
-
 export interface RouteSourceFile {
   type: 'page' | 'endpoint' | 'layout' | 'menu';
   dirPath: string;
@@ -26,7 +24,7 @@ export interface RouteSourceFile {
   ext: string;
 }
 
-interface BaseRoute {
+export interface BuildRoute {
   type: 'page' | 'endpoint';
   /**
    * Unique id built from its relative file system path
@@ -42,23 +40,18 @@ interface BaseRoute {
   pathname: string;
   pattern: RegExp;
   paramNames: string[];
-}
-
-export interface PageRoute extends BaseRoute {
-  type: 'page';
   layouts: BuildLayout[];
 }
 
-export interface EndpointRoute extends BaseRoute {
-  type: 'endpoint';
+export interface ParsedLayoutId {
+  layoutType: 'top' | 'nested';
+  layoutName: string;
 }
 
-export interface BuildLayout {
+export interface BuildLayout extends ParsedLayoutId {
   filePath: string;
   dirPath: string;
   id: string;
-  type: 'top' | 'nested';
-  layoutName: string;
 }
 
 export interface Menu {

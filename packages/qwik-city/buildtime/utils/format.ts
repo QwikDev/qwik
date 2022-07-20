@@ -1,17 +1,4 @@
-import type { BuildContext, MarkdownAttributes } from '../types';
-import { getExtensionLessBasename } from './fs';
-
-export function getPageTitle(filePath: string, attrs: MarkdownAttributes) {
-  let title = '';
-  if (typeof attrs.title === 'string') {
-    title = attrs.title!.trim();
-  }
-  if (title === '') {
-    title = getExtensionLessBasename(filePath);
-    title = toTitleCase(title.replace(/-/g, ' '));
-  }
-  return title.trim();
-}
+import type { BuildContext } from '../types';
 
 export function toTitleCase(str: string) {
   return str.replace(/\w\S*/g, (txt) => {

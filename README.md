@@ -27,7 +27,7 @@ npm init qwik@latest
 
 ## Docs
 
-- [Official Docs](https://qwik.builder.io)
+- [Official Docs](https://qwik.builder.io/)
 
 ## Blog Posts
 
@@ -43,8 +43,13 @@ npm init qwik@latest
 ## Community
 
 - Ping us at [@QwikDev](https://twitter.com/QwikDev)
-- Join our [Discord](https://qwik.builder.io/chat) community.
-- Join our [weekly office hours](https://calendar.google.com/calendar/u/0?cid=Y180ZG91YjR2NTZ1cW43YmgzbW1oZGJ2M3R2c0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t)
+- Join our [Discord](https://qwik.builder.io/chat) community
+
+## Related
+
+- [Partytown](https://partytown.builder.io/): Relocate resource intensive third-party scripts off of the main thread and into a web worker 🎉.
+- [Mitosis](https://github.com/BuilderIO/mitosis): Write components once, run everywhere. Compiles to Vue, React, Solid, Angular, Svelte, and more.
+- [Builder](https://github.com/BuilderIO/builder): Drag and drop page builder and CMS for React, Vue, Angular, and more.
 
 ---
 

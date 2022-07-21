@@ -1,8 +1,17 @@
 header {
+  background-color: #0093ee;
+}
+
+header .header-inner {
   display: grid;
   grid-template-columns: 1fr auto auto;
   padding: 10px;
-  background-color: #0093ee;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.full-screen header .header-inner {
+  max-width: 100%;
 }
 
 header a {

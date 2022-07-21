@@ -191,6 +191,7 @@ renderSuite('should render component external props', async () => {
       aria-hidden="true"
       data-value="hello world"
       key={'special'}
+      href="/path"
       host:title="Custom title"
       host:onClick$={() => {}}
       host:on-ClicK$={() => {}}
@@ -206,6 +207,7 @@ renderSuite('should render component external props', async () => {
       q:slot="start"
       class="foo"
       id="123"
+      href="/path"
       aria-hidden="true"
       data-value="hello world"
       title="Custom title"
@@ -217,7 +219,7 @@ renderSuite('should render component external props', async () => {
         'on:-clic-k': '/runtimeQRL#*',
       }}
     >
-      <span>{'{"thing":"World"}'}</span>
+      <span>{'{"thing":"World","href":"/path"}'}</span>
     </render-props>
   );
 });
@@ -726,9 +728,9 @@ export const HelloWorld = component$(
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////
 export const RenderProps = component$(
-  (props: { thing?: string }) => {
+  (props: { thing?: string; href?: string }) => {
     return (
-      <Host>
+      <Host href={props.href}>
         <span>{JSON.stringify(props)}</span>
       </Host>
     );

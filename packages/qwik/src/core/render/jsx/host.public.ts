@@ -1,6 +1,9 @@
 import type { HTMLAttributes } from './types/jsx-generated';
 import type { FunctionComponent } from './types/jsx-node';
 
+export interface HostAttributes extends HTMLAttributes<HTMLElement> {
+  [key: string]: any;
+}
 /**
  * Place at the root of the component View to allow binding of attributes on the Host element.
  *
@@ -16,7 +19,7 @@ import type { FunctionComponent } from './types/jsx-node';
  * servers that purpose.
  * @public
  */
-export const Host: FunctionComponent<HTMLAttributes<HTMLElement>> = { __brand__: 'host' } as any;
+export const Host: FunctionComponent<HostAttributes> = { __brand__: 'host' } as any;
 
 /**
  * @public

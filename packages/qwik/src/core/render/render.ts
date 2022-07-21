@@ -17,7 +17,7 @@ export const visitJsxNode = (
   if (isArray(jsxNode)) {
     return smartUpdateChildren(ctx, elm, jsxNode.flat(), 'root', isSvg);
   } else if (jsxNode.$type$ === HOST_TYPE) {
-    updateProperties(ctx, getContext(elm), jsxNode.$props$, isSvg);
+    updateProperties(ctx, getContext(elm), jsxNode.$props$, isSvg, true);
     return smartUpdateChildren(ctx, elm, jsxNode.$children$ || [], 'root', isSvg);
   } else {
     return smartUpdateChildren(ctx, elm, [jsxNode], 'root', isSvg);

@@ -162,8 +162,10 @@ export namespace h {
 // @alpha
 export const handleWatch: () => void;
 
+// Warning: (ae-forgotten-export) The symbol "HostAttributes" needs to be exported by the entry point index.d.ts
+//
 // @public
-export const Host: FunctionComponent<HTMLAttributes<HTMLElement>>;
+export const Host: FunctionComponent<HostAttributes>;
 
 // @public (undocumented)
 export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {

@@ -9,7 +9,7 @@
     "dev": "npm run dev.ssr",
     "dev.client": "vite",
     "dev.ssr": "node --inspect node_modules/vite/bin/vite.js --mode ssr",
-    "dev.debug": "node --inspect-brk node_modules/vite/bin/vite.js --mode ssr",
+    "dev.debug": "node --inspect-brk node_modules/vite/bin/vite.js --force --mode ssr",
     "start": "npm run dev",
     "lint": "eslint \"src/**/*.ts*\"",
     "typecheck": "tsc --incremental --noEmit"

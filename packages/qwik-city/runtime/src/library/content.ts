@@ -1,11 +1,11 @@
 import { component$, jsx, SkipRerender, useContext } from '@builder.io/qwik';
-import { ContentContext } from './contexts';
+import { ContentInternalContext } from './contexts';
 
 /**
  * @public
  */
 export const Content = component$(() => {
-  const contents = useContext(ContentContext).contents;
+  const { contents } = useContext(ContentInternalContext);
   const contentsLen = contents.length;
 
   if (contentsLen > 0) {

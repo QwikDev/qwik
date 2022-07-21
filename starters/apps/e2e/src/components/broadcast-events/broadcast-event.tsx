@@ -9,12 +9,18 @@ export function useDocumentMouse() {
       mousePosition.y = (event as MouseEvent).clientY;
     })
   );
-  useOnDocument('mouseenter', $(() => {
-    mousePosition.inside = 'true';
-  }));
-  useOnDocument('mouseleave', $(() => {
-    mousePosition.inside = 'false';
-  }));
+  useOnDocument(
+    'mouseenter',
+    $(() => {
+      mousePosition.inside = 'true';
+    })
+  );
+  useOnDocument(
+    'mouseleave',
+    $(() => {
+      mousePosition.inside = 'false';
+    })
+  );
   return mousePosition;
 }
 
@@ -27,12 +33,18 @@ export function useWindowMouse() {
       mousePosition.y = (event as MouseEvent).clientY;
     })
   );
-  useOnWindow('mouseenter', $(() => {
-    mousePosition.inside = 'true';
-  }));
-  useOnWindow('mouseleave', $(() => {
-    mousePosition.inside = 'false';
-  }));
+  useOnWindow(
+    'mouseenter',
+    $(() => {
+      mousePosition.inside = 'true';
+    })
+  );
+  useOnWindow(
+    'mouseleave',
+    $(() => {
+      mousePosition.inside = 'false';
+    })
+  );
   return mousePosition;
 }
 
@@ -45,12 +57,18 @@ export function useSelfMouse() {
       mousePosition.y = (event as MouseEvent).clientY;
     })
   );
-  useOn('mouseenter', $(() => {
-    mousePosition.inside = 'true';
-  }));
-  useOn('mouseleave', $(() => {
-    mousePosition.inside = 'false';
-  }));
+  useOn(
+    'mouseenter',
+    $(() => {
+      mousePosition.inside = 'true';
+    })
+  );
+  useOn(
+    'mouseleave',
+    $(() => {
+      mousePosition.inside = 'false';
+    })
+  );
   return mousePosition;
 }
 

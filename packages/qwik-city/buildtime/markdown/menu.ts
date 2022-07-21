@@ -21,7 +21,7 @@ export async function transformMenu(
   content: string
 ) {
   const parsedMenu = parseMenu(opts, filePath, content);
-  const id = createFileId(opts.routesDir, filePath);
+  const id = createFileId(filePath);
   const code = `const ${id} = ${JSON.stringify(parsedMenu, null, 2)};`;
   return `${code} export default ${id}`;
 }

@@ -13,7 +13,7 @@ export function createMenus(ctx: BuildContext, c: string[], esmImports: string[]
       if (dynamicImports) {
         c.push(`  [${JSON.stringify(m.pathname)}, ()=>import(${importPath})],`);
       } else {
-        const id = createFileId(ctx.opts.routesDir, m.filePath);
+        const id = createFileId(m.filePath);
         esmImports.push(`import * as ${id} from ${importPath};`);
         c.push(`  [${JSON.stringify(m.pathname)}, ()=>${id}],`);
       }

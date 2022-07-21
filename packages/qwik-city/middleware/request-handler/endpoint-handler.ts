@@ -1,105 +1,141 @@
 import type {
   EndpointHandler,
   EndpointModule,
+  EndpointResponse,
   HttpMethod,
-  NormalizedEndpointResponse,
   RequestEvent,
   RouteParams,
 } from '../../runtime/src/library/types';
-import { getStatus } from './utils';
 
 export async function getEndpointResponse(
   request: Request,
   method: HttpMethod,
   url: URL,
   params: RouteParams,
-  endpointModule: EndpointModule
+  endpointModules: EndpointModule[]
 ) {
-  let reqHandler: EndpointHandler | undefined = undefined;
+  const endpointResponse: EndpointResponse = {
+    body: null,
+    status: 200,
+    headers: {},
+    hasHandler: false,
+  };
 
-  switch (method) {
-    case 'GET': {
-      reqHandler = endpointModule.onGet;
-      break;
-    }
-    case 'POST': {
-      reqHandler = endpointModule.onPost;
-      break;
-    }
-    case 'PUT': {
-      reqHandler = endpointModule.onPut;
-      break;
-    }
-    case 'PATCH': {
-      reqHandler = endpointModule.onPatch;
-      break;
-    }
-    case 'OPTIONS': {
-      reqHandler = endpointModule.onOptions;
-      break;
-    }
-    case 'HEAD': {
-      reqHandler = endpointModule.onHead;
-      break;
-    }
-    case 'DELETE': {
-      reqHandler = endpointModule.onDelete;
-      break;
-    }
-  }
+  const status = (statusCode: number) => {
+    endpointResponse.status = statusCode;
+  };
 
-  reqHandler = reqHandler || endpointModule.onRequest;
-
-  if (typeof reqHandler === 'function') {
-    const requestEv: RequestEvent = { request, url, params };
-    const userEndpointResponse = await reqHandler(requestEv);
-
-    if (userEndpointResponse) {
-      const headers: Record<string, string> = {};
-      const userHeaders = userEndpointResponse.headers;
-
-      if (userHeaders && typeof userHeaders === 'object') {
-        for (const [key, value] of Object.entries(userHeaders)) {
-          if (
-            typeof value === 'string' ||
-            typeof value === 'number' ||
-            typeof value === 'boolean'
-          ) {
-            headers[key.toLocaleLowerCase()] = String(value);
-          }
+  const headers = (userHeaders: Record<string, string | undefined>) => {
+    if (userHeaders && typeof userHeaders === 'object') {
+      for (const [key, value] of Object.entries(userHeaders)) {
+        if (
+          typeof value === 'string' ||
+          typeof value === 'number' ||
+          typeof value === 'boolean' ||
+          value === null ||
+          value === undefined
+        ) {
+          endpointResponse.headers[key.toLocaleLowerCase()] = String(value);
         }
       }
-
-      const redirectLocation = userEndpointResponse.redirect;
-      if (typeof redirectLocation === 'string') {
-        headers['location'] = redirectLocation;
-      }
-
-      const status =
-        typeof headers['location'] === 'string'
-          ? getStatus(userEndpointResponse.status, 300, 399, 307)
-          : getStatus(userEndpointResponse.status, 100, 599, 200);
-
-      const endpointResponse: NormalizedEndpointResponse = {
-        status,
-        body: userEndpointResponse.body,
-        headers,
-      };
-
-      return endpointResponse;
     }
+  };
+
+  const redirect = (url: string, statusCode?: number) => {
+    if (typeof statusCode === 'number') {
+      endpointResponse.status = statusCode;
+    }
+    if (
+      typeof endpointResponse.status !== 'number' ||
+      endpointResponse.status < 300 ||
+      endpointResponse.status > 399
+    ) {
+      endpointResponse.status = 307;
+    }
+    headers({ location: url });
+  };
+
+  let i = 0;
+  let ended = false;
+
+  const next = async () => {
+    if (!ended) {
+      try {
+        const endpointModule = endpointModules[i];
+        let reqHandler: EndpointHandler | undefined = undefined;
+
+        switch (method) {
+          case 'GET': {
+            reqHandler = endpointModule.onGet;
+            break;
+          }
+          case 'POST': {
+            reqHandler = endpointModule.onPost;
+            break;
+          }
+          case 'PUT': {
+            reqHandler = endpointModule.onPut;
+            break;
+          }
+          case 'PATCH': {
+            reqHandler = endpointModule.onPatch;
+            break;
+          }
+          case 'OPTIONS': {
+            reqHandler = endpointModule.onOptions;
+            break;
+          }
+          case 'HEAD': {
+            reqHandler = endpointModule.onHead;
+            break;
+          }
+          case 'DELETE': {
+            reqHandler = endpointModule.onDelete;
+            break;
+          }
+        }
+
+        reqHandler = reqHandler || endpointModule.onRequest;
+
+        if (typeof reqHandler === 'function') {
+          endpointResponse.hasHandler = true;
+
+          const body = await reqHandler(requestEv);
+          if (body !== undefined) {
+            endpointResponse.body = body;
+            ended = true;
+          }
+        }
+
+        i++;
+      } catch (e: any) {
+        ended = true;
+        endpointResponse.body = String(e ? e.stack : e || 'Endpoint Error');
+        endpointResponse.status = 500;
+        endpointResponse.headers = { 'content-type': 'text/plain; charset=utf-8' };
+      }
+    }
+
+    return {
+      status: endpointResponse.status,
+      headers: { ...endpointResponse.headers },
+      body: endpointResponse.body,
+    };
+  };
+
+  const requestEv: RequestEvent = { request, url, params, status, headers, redirect, next };
+
+  while (!ended) {
+    await next();
   }
 
-  return null;
+  return endpointResponse;
 }
 
-export function endpointHandler(
-  method: HttpMethod,
-  endpointResponse: NormalizedEndpointResponse | null
-) {
-  if (endpointResponse) {
-    const { status, headers } = endpointResponse;
+export function endpointHandler(method: HttpMethod, endpointResponse: EndpointResponse) {
+  const { status, headers, hasHandler } = endpointResponse;
 
+  if (hasHandler) {
     if (typeof headers['content-type'] !== 'string') {
       headers['content-type'] = 'application/json; charset=utf-8';
     }
@@ -114,7 +150,7 @@ export function endpointHandler(
 
     if (endpointResponse.body == null) {
       // null || undefined response
-      return new Response(endpointResponse.body as any, {
+      return new Response(endpointResponse.body, {
         status,
         headers,
       });
@@ -129,7 +165,7 @@ export function endpointHandler(
       });
     }
 
-    return new Response(`Unsupport response body type: ${JSON.stringify(endpointResponse.body)}`, {
+    return new Response(`Unsupport response body type`, {
       status: 500,
       headers: {
         'content-type': 'text/plain; charset=utf-8',

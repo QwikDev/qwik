@@ -157,18 +157,18 @@ export interface ContentHeading {
 
 export type ContentModuleLoader = () => Promise<ContentModule>;
 export type EndpointModuleLoader = () => Promise<EndpointModule>;
-export type MenuModuleLoader = () => Promise<MenuModule>;
 export type ModuleLoader = ContentModuleLoader | EndpointModuleLoader;
+export type MenuModuleLoader = () => Promise<MenuModule>;
 
 /**
  * @public
  */
 export type RouteData =
-  | [pattern: RegExp, pageLoaders: ContentModuleLoader[]]
-  | [pattern: RegExp, pageLoaders: ContentModuleLoader[], paramNames: string[]]
+  | [pattern: RegExp, loaders: ModuleLoader[]]
+  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]]
   | [
       pattern: RegExp,
-      endpointLoaders: EndpointModuleLoader[],
+      loaders: ModuleLoader[],
       paramNames: string[],
       routeType: typeof ROUTE_TYPE_ENDPOINT
     ];
@@ -190,63 +190,31 @@ export interface QwikCityPlan {
  */
 export type RouteParams = Record<string, string>;
 
-export interface MatchedRoute {
-  loaders: ModuleLoader[];
-  params: RouteParams;
-}
+export type ContentModule = PageModule | LayoutModule;
 
-export interface LoadedRoute extends MatchedRoute {
-  contents: ContentModule[];
+export type RouteModule = ContentModule | EndpointModule;
+
+export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
+
+export interface LoadedRoute {
+  route: RouteData;
+  params: RouteParams;
+  mods: RouteModule[];
   menu: ContentMenu | undefined;
 }
 
 export interface LoadedContent extends LoadedRoute {
   pageModule: PageModule;
 }
-
-export type ContentModule = PageModule | LayoutModule;
-
-export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
-
 /**
  * @public
  */
 export interface RequestEvent {
   request: Request;
-  params: RouteParams;
   url: URL;
-}
 
-/**
- * @public
- */
-export type HttpMethod =
-  | 'GET'
-  | 'POST'
-  | 'PUT'
-  | 'PATCH'
-  | 'DELETE'
-  | 'HEAD'
-  | 'OPTIONS'
-  | 'CONNECT'
-  | 'TRACE';
-
-/**
- * @public
- */
-export type EndpointHandler<BODY = unknown> = (
-  ev: RequestEvent
-) => EndpointResponse<BODY> | undefined | null | Promise<EndpointResponse<BODY> | undefined | null>;
-
-export interface EndpointResponse<BODY = unknown> {
-  body?: BODY | null | undefined;
-  /**
-   * HTTP Headers. The "Content-Type" header is used to determine how to serialize the `body` for the
-   * HTTP Response.  For example, a "Content-Type" including `application/json` will serialize the `body`
-   * with `JSON.stringify(body)`. If the "Content-Type" header is not provided, the response
-   * will default to include the header `"Content-Type": "application/json; charset=utf-8"`.
-   */
-  headers?: Record<string, string | undefined>;
+  /** URL Route params which have been parsed from the current url pathname. */
+  params: RouteParams;
 
   /**
    * HTTP Status code. The status code is import to determine if the data can be public
@@ -258,7 +226,15 @@ export interface EndpointResponse<BODY = unknown> {
    *
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
    */
-  status?: number;
+  status: (statusCode: number) => void;
+
+  /**
+   * Used to set the HTTP Response Headers. The "Content-Type" header is used to determine how to
+   * serialize the data for the HTTP Response. For example, a "Content-Type" including `application/json`
+   * will serialize the returned data with `JSON.stringify(data)`. If the "Content-Type" header is not
+   * provided, the response will default to include the header `"Content-Type": "application/json; charset=utf-8"`.
+   */
+  headers: (headers: Record<string, string | undefined>) => void;
 
   /**
    * URL to redirect to. The `redirect` property is for convenience rather
@@ -266,13 +242,52 @@ export interface EndpointResponse<BODY = unknown> {
    * Defaults to use the `307` response status code, but can be overwritten
    * by manually setting the `status` property.
    */
-  redirect?: string;
+  redirect: (url: string, statusCode?: number) => void;
+
+  next: () => Promise<{ status: number; headers: Record<string, string>; body: any }>;
 }
 
-export interface NormalizedEndpointResponse {
+/**
+ * @public
+ */
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
+
+/**
+ * @public
+ */
+export type EndpointHandler<BODY = unknown> = (
+  ev: RequestEvent
+) => BODY | undefined | null | Promise<BODY | undefined | null>;
+
+// export interface EndpointResponse<BODY = unknown> {
+//   body?: BODY | null | undefined;
+//   /**
+//    * HTTP Headers. The "Content-Type" header is used to determine how to serialize the `body` for the
+//    * HTTP Response.  For example, a "Content-Type" including `application/json` will serialize the `body`
+//    * with `JSON.stringify(body)`. If the "Content-Type" header is not provided, the response
+//    * will default to include the header `"Content-Type": "application/json; charset=utf-8"`.
+//    */
+//   headers?: Record<string, string | undefined>;
+
+//   /**
+//    * HTTP Status code. The status code is import to determine if the data can be public
+//    * facing or not. Setting a value of `200` will allow the endpoint to be fetched using
+//    * an `"accept": "application/json"` request header. If the data from the API
+//    * should not allowed to be requested, the status should be set to one of the Client Error
+//    * response status codes. An example would be `401` for "Unauthorized", or `403` for
+//    * "Forbidden".
+//    *
+//    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+//    */
+//   status?: number;
+
+// }
+
+export interface EndpointResponse {
   body: any;
-  headers: Record<string, string>;
   status: number;
+  headers: Record<string, string>;
+  hasHandler: boolean;
 }
 
 export interface QwikCityRenderDocument extends RenderDocument {
@@ -284,5 +299,5 @@ export interface QwikCityUserContext {
   qcRequest: {
     method: HttpMethod;
   };
-  qcResponse: NormalizedEndpointResponse | null;
+  qcResponse: EndpointResponse;
 }

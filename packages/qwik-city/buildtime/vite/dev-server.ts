@@ -1,6 +1,6 @@
 import type { ViteDevServer } from 'vite';
 import type { BuildContext } from '../types';
-import type { HttpMethod } from '../../runtime/src/library/types';
+import type { EndpointModule, HttpMethod } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
 import {
   endpointHandler,
@@ -44,16 +44,24 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
           }
         }
 
+        const endpointModules: EndpointModule[] = [];
+        for (const layout of route.layouts) {
+          const layoutModule = await server.ssrLoadModule(layout.filePath, {
+            fixStacktrace: true,
+          });
+          endpointModules.push(layoutModule);
+        }
         const endpointModule = await server.ssrLoadModule(route.filePath, {
           fixStacktrace: true,
         });
+        endpointModules.push(endpointModule);
 
         const endpointResponse = await getEndpointResponse(
           request,
           method,
           url,
           params,
-          endpointModule
+          endpointModules
         );
 
         const endpointRedirectResponse = checkEndpointRedirect(endpointResponse);

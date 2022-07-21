@@ -21,10 +21,8 @@ export default component$(() => {
 
 export const onGet: EndpointHandler<EndpointData> = async ({ params, request }) => {
   return {
-    body: {
-      blogTitle: `Blog: ${params.slug}`,
-      blogContent: `${params.slug}, ${request.url}`,
-    },
+    blogTitle: `Blog: ${params.slug}`,
+    blogContent: `${params.slug}, ${request.url}`,
   };
 };
 

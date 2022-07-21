@@ -11,7 +11,7 @@ import {
 } from '@builder.io/qwik';
 import type { HTMLAttributes } from '@builder.io/qwik';
 import { loadRoute } from './routing';
-import type { ContentState, PageModule, QwikCityRenderDocument } from './types';
+import type { ContentModule, ContentState, PageModule, QwikCityRenderDocument } from './types';
 import { ContentContext, DocumentHeadContext, RouteLocationContext } from './constants';
 import { createDocumentHead, resolveHead } from './head';
 import { getSsrEndpointResponse } from './use-endpoint';
@@ -53,10 +53,14 @@ export const Html = component$<HtmlProps>(
       loadRoute(cityPlan.routes, cityPlan.menus, cityPlan.cacheModules, routeLocation.pathname)
         .then((loadedRoute) => {
           if (loadedRoute) {
-            const contentModules = loadedRoute.contents;
+            const contentModules = loadedRoute.mods;
             const pageModule = contentModules[contentModules.length - 1] as PageModule;
             const endpointResponse = getSsrEndpointResponse(doc);
-            const resolvedHead = resolveHead(endpointResponse, routeLocation, contentModules);
+            const resolvedHead = resolveHead(
+              endpointResponse,
+              routeLocation,
+              contentModules as ContentModule[]
+            );
 
             documentHead.links = resolvedHead.links;
             documentHead.meta = resolvedHead.meta;

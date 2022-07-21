@@ -37,6 +37,7 @@ import { getDocument } from '../util/dom';
 import { directGetAttribute, directSetAttribute } from './fast-calls';
 import { HOST_TYPE, SKIP_RENDER_TYPE } from './jsx/jsx-runtime';
 import { assertQrl } from '../import/qrl-class';
+import { isElement } from '../util/element';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -60,7 +61,7 @@ export interface RenderOperation {
   $fn$: () => void;
 }
 
-export type ChildrenMode = 'root' | 'slot' | 'fallback' | 'default';
+export type ChildrenMode = 'root' | 'slot' | 'fallback' | 'default' | 'head';
 
 /**
  * @alpha
@@ -97,6 +98,10 @@ export const smartUpdateChildren = (
     }
     ch = ch[0].$children$;
   }
+  const isHead = elm.nodeName === 'HEAD';
+  if (isHead) {
+    mode = 'head';
+  }
   const oldCh = getChildren(elm, mode);
   if (qDev) {
     if (elm.nodeType === 9) {
@@ -110,9 +115,9 @@ export const smartUpdateChildren = (
     }
   }
   if (oldCh.length > 0 && ch.length > 0) {
-    return updateChildren(ctx, elm, oldCh, ch, isSvg);
+    return updateChildren(ctx, elm, oldCh, ch, isSvg, isHead);
   } else if (ch.length > 0) {
-    return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, isSvg);
+    return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, isSvg, isHead);
   } else if (oldCh.length > 0) {
     return removeVnodes(ctx, oldCh, 0, oldCh.length - 1);
   }
@@ -123,7 +128,8 @@ export const updateChildren = (
   parentElm: Node,
   oldCh: Node[],
   newCh: ProcessedJSXNode[],
-  isSvg: boolean
+  isSvg: boolean,
+  isHead: boolean
 ): ValueOrPromise<void> => {
   let oldStartIdx = 0;
   let newStartIdx = 0;
@@ -176,7 +182,7 @@ export const updateChildren = (
       idxInOld = oldKeyToIdx[newStartVnode.$key$ as string];
       if (idxInOld === undefined) {
         // New element
-        const newElm = createElm(ctx, newStartVnode, isSvg);
+        const newElm = createElm(ctx, newStartVnode, isSvg, isHead);
         results.push(
           then(newElm, (newElm) => {
             insertBefore(ctx, parentElm, newElm, oldStartVnode);
@@ -185,7 +191,7 @@ export const updateChildren = (
       } else {
         elmToMove = oldCh[idxInOld];
         if (!isTagName(elmToMove, newStartVnode.$type$)) {
-          const newElm = createElm(ctx, newStartVnode, isSvg);
+          const newElm = createElm(ctx, newStartVnode, isSvg, isHead);
           results.push(
             then(newElm, (newElm) => {
               insertBefore(ctx, parentElm, newElm, oldStartVnode);
@@ -203,7 +209,7 @@ export const updateChildren = (
 
   if (newStartIdx <= newEndIdx) {
     const before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].$elm$;
-    results.push(addVnodes(ctx, parentElm, before, newCh, newStartIdx, newEndIdx, isSvg));
+    results.push(addVnodes(ctx, parentElm, before, newCh, newStartIdx, newEndIdx, isSvg, isHead));
   }
 
   let wait = promiseAll(results) as any;
@@ -236,6 +242,8 @@ export const getChildren = (elm: Node, mode: ChildrenMode): Node[] => {
       return getCh(elm, isChildComponent);
     case 'fallback':
       return getCh(elm, isFallback);
+    case 'head':
+      return getCh(elm, isHeadChildren);
   }
 };
 export const isNode = (elm: Node): boolean => {
@@ -245,6 +253,10 @@ export const isNode = (elm: Node): boolean => {
 
 const isFallback = (node: Node): boolean => {
   return node.nodeName === 'Q:FALLBACK';
+};
+
+const isHeadChildren = (node: Node): boolean => {
+  return isElement(node) && (node.hasAttribute('q:head') || node.nodeName === 'TITLE');
 };
 
 const isChildSlot = (node: Node): boolean => {
@@ -370,13 +382,14 @@ const addVnodes = (
   vnodes: ProcessedJSXNode[],
   startIdx: number,
   endIdx: number,
-  isSvg: boolean
+  isSvg: boolean,
+  isHead: boolean
 ): ValueOrPromise<void> => {
   const promises = [];
   for (; startIdx <= endIdx; ++startIdx) {
     const ch = vnodes[startIdx];
     assertDefined(ch, 'render: node must be defined at index', startIdx, vnodes);
-    promises.push(createElm(ctx, ch, isSvg));
+    promises.push(createElm(ctx, ch, isSvg, isHead));
   }
   return then(promiseAll(promises), (children) => {
     for (const child of children) {
@@ -501,7 +514,8 @@ const getSlotName = (node: ProcessedJSXNode): string => {
 const createElm = (
   rctx: RenderContext,
   vnode: ProcessedJSXNode,
-  isSvg: boolean
+  isSvg: boolean,
+  isHead: boolean
 ): ValueOrPromise<Node> => {
   rctx.$perf$.$visited$++;
   const tag = vnode.$type$;
@@ -523,6 +537,9 @@ const createElm = (
   const ctx = getContext(elm);
   setKey(elm, vnode.$key$);
   updateProperties(rctx, ctx, props, isSvg, false);
+  if (isHead) {
+    directSetAttribute(elm as Element, 'q:head', '');
+  }
 
   if (isSvg && tag === 'foreignObject') {
     isSvg = false;
@@ -565,7 +582,7 @@ const createElm = (
       const slotRctx = copyRenderContext(rctx);
       slotRctx.$contexts$.push(ctx);
       const slotMap = isComponent ? getSlots(ctx.$component$, elm) : undefined;
-      const promises = children.map((ch) => createElm(slotRctx, ch, isSvg));
+      const promises = children.map((ch) => createElm(slotRctx, ch, isSvg, false));
       return then(promiseAll(promises), () => {
         let parent = elm;
         for (const node of children) {
@@ -845,12 +862,15 @@ const insertBefore = <T extends Node>(
 export const appendStyle = (ctx: RenderContext, hostElement: Element, styleTask: StyleAppend) => {
   const fn = () => {
     const containerEl = ctx.$containerEl$;
-    const stylesParent =
-      ctx.$doc$.documentElement === containerEl ? ctx.$doc$.head ?? containerEl : containerEl;
+    const isDoc = ctx.$doc$.documentElement === containerEl && !!ctx.$doc$.head;
     const style = ctx.$doc$.createElement('style');
     directSetAttribute(style, 'q:style', styleTask.styleId);
     style.textContent = styleTask.content;
-    stylesParent.insertBefore(style, stylesParent.firstChild);
+    if (isDoc) {
+      ctx.$doc$.head.appendChild(style);
+    } else {
+      containerEl.insertBefore(style, containerEl.firstChild);
+    }
   };
   ctx.$operations$.push({
     $el$: hostElement,

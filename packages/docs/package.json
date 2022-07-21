@@ -11,7 +11,7 @@
     "build.qwikcity": "cd ../qwik-city && yarn build",
     "dev": "vite --force",
     "dev.ssr": "vite --mode ssr",
-    "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr",
+    "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr --force",
     "serve": "wrangler pages dev ./dist",
     "start": "yarn dev",
     "fmt": "prettier --write .",

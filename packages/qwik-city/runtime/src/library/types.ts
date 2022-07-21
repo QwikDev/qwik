@@ -31,13 +31,13 @@ export interface MenuModule {
  * @public
  */
 export interface RouteLocation {
-  readonly hash: string;
-  readonly hostname: string;
-  readonly href: string;
   readonly params: RouteParams;
+  readonly href: string;
   readonly pathname: string;
-  readonly search: string;
-  readonly query: Record<string, string>;
+}
+
+export interface RouteNavigate {
+  pathname: string;
 }
 
 export type MutableRouteLocation = Mutable<RouteLocation>;
@@ -131,9 +131,12 @@ export type DocumentHead<T = unknown> =
   | DocumentHeadValue
   | ((props: DocumentHeadProps<T>) => DocumentHeadValue);
 
+export interface ContentStateInternal {
+  contents: ContentModule[];
+}
+
 export interface ContentState {
   headings: ContentHeading[] | undefined;
-  contents: ContentModule[];
   menu: ContentMenu | undefined;
 }
 

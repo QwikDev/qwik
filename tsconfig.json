@@ -65,7 +65,6 @@
     "packages/create-qwik/dist",
     "**/lib",
     // "starters/servers",
-    // "starters/apps",
     "starters/**/entry.netlify.ts",
     "starters/**/entry.cloudflare.tsx",
     "starters/**/entry.express.tsx",

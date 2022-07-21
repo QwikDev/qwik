@@ -136,10 +136,8 @@ export interface RenderToStringOptions extends SerializeDocumentOptions {
     //
     // (undocumented)
     prefetchStrategy?: PrefetchStrategy | null;
-    qwikLoader?: {
-        events?: string[];
-        include?: boolean | 'top' | 'bottom';
-    };
+    // Warning: (ae-forgotten-export) The symbol "QwikLoaderOptions" needs to be exported by the entry point index.d.ts
+    qwikLoader?: QwikLoaderOptions;
     snapshot?: boolean;
     // (undocumented)
     userContext?: Record<string, any>;
@@ -177,6 +175,8 @@ export interface SnapshotResult {
     //
     // (undocumented)
     listeners: SnapshotListener[];
+    // (undocumented)
+    mode: 'render' | 'listeners' | 'static';
     // (undocumented)
     objs: any[];
     // Warning: (ae-forgotten-export) The symbol "SnapshotState" needs to be exported by the entry point index.d.ts

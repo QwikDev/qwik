@@ -17,6 +17,7 @@ import { Styles } from './components/styles/styles';
 import { BroadcastEvents } from './components/broadcast-events/broadcast-event';
 import { Weather } from './components/resource/weather';
 import { ResourceApp } from './components/resource/resource';
+import { TreeshakingApp } from './components/treeshaking/treeshaking';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -44,6 +45,7 @@ export function render(opts: RenderOptions) {
     '/e2e/broadcast-events': () => <BroadcastEvents />,
     '/e2e/weather': () => <Weather />,
     '/e2e/resource': () => <ResourceApp />,
+    '/e2e/treeshaking': () => <TreeshakingApp />,
   };
   const Test = tests[url.pathname];
 
@@ -57,7 +59,7 @@ export function render(opts: RenderOptions) {
         debug: true,
         fragmentTagName: 'container',
         qwikLoader: {
-          include: url.searchParams.get('loader') !== 'false',
+          include: url.searchParams.get('loader') === 'false' ? 'never' : 'auto',
           events: ['click'],
         },
         ...opts,
@@ -75,6 +77,6 @@ export function render(opts: RenderOptions) {
         <Test />
       </body>
     </html>,
-    { debug: true, qwikLoader: { include: true }, ...opts }
+    { debug: true, ...opts }
   );
 }

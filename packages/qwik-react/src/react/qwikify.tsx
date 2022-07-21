@@ -9,7 +9,7 @@ import {
   useHostElement,
   useWatch$,
   useStore,
-  UseEffectRunOptions,
+  EagernessOptions,
 } from '@builder.io/qwik';
 
 import { isBrowser, isServer } from '@builder.io/qwik/build';
@@ -48,11 +48,11 @@ export function qwikifyQrl<PROPS extends {}>(
       const hostElement = useHostElement();
       const store = useStore<QwikifyCmp<PROPS>>({});
       const clientOnly = !!(props['client:only'] || opts?.clientOnly);
-      let run: UseEffectRunOptions | undefined;
+      let eagerness: EagernessOptions | undefined;
       if (props['client:visible'] || opts?.eagerness === 'visible') {
-        run = 'visible';
+        eagerness = 'visible';
       } else if (props['client:load'] || clientOnly || opts?.eagerness === 'load') {
-        run = 'load';
+        eagerness = 'load';
       }
 
       useWatch$(
@@ -83,7 +83,7 @@ export function qwikifyQrl<PROPS extends {}>(
             }
           }
         },
-        { run }
+        { eagerness }
       );
 
       if (isServer && !clientOnly) {

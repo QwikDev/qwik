@@ -120,9 +120,6 @@ export const newInvokeContext = (
   };
 };
 
-/**
- * @alpha
- */
 export const useWaitOn = (promise: ValueOrPromise<any>): void => {
   const ctx = useInvokeContext();
   ctx.$waitOn$.push(promise);

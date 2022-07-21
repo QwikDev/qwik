@@ -1,13 +1,5 @@
 import type { HTMLAttributes } from './types/jsx-generated';
 import type { FunctionComponent } from './types/jsx-node';
-import type { JSXTagName } from './types/jsx-qwik-attributes';
-
-/**
- * @public
- */
-export interface HostProps extends HTMLAttributes<HTMLElement> {
-  tagName?: JSXTagName;
-}
 
 /**
  * Place at the root of the component View to allow binding of attributes on the Host element.

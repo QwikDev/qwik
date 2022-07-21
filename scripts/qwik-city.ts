@@ -7,25 +7,26 @@ import semver from 'semver';
 import mri from 'mri';
 import { execa } from 'execa';
 import { fileURLToPath } from 'url';
+import { copyFile } from 'fs/promises';
 
 const PACKAGE = 'qwik-city';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 export async function buildQwikCity(config: BuildConfig) {
-  const input = join(config.packagesDir, PACKAGE);
-  const output = join(input, 'lib');
+  const inputDir = join(config.packagesDir, PACKAGE);
+  const outputDir = join(inputDir, 'lib');
 
   await Promise.all([
-    buildVite(config, input, output),
-    buildCloudflarePages(config, input, output),
-    buildExpress(config, input, output),
-    buildNetlifyEdge(config, input, output),
+    buildVite(config, inputDir, outputDir),
+    buildCloudflarePages(config, inputDir, outputDir),
+    buildExpress(config, inputDir, outputDir),
+    buildNetlifyEdge(config, inputDir, outputDir),
   ]);
 
-  await buildRuntime(config, input);
+  await buildRuntime(inputDir);
 
   const loaderPkg = {
-    ...(await readPackageJson(input)),
+    ...(await readPackageJson(inputDir)),
     main: './index.qwik.cjs',
     module: './index.qwik.mjs',
     qwik: './index.qwik.mjs',
@@ -59,12 +60,16 @@ export async function buildQwikCity(config: BuildConfig) {
     devDependencies: undefined,
     scripts: undefined,
   };
-  await writePackageJson(output, loaderPkg);
+  await writePackageJson(outputDir, loaderPkg);
+
+  const srcReadmePath = join(inputDir, 'README.md');
+  const distReadmePath = join(outputDir, 'README.md');
+  await copyFile(srcReadmePath, distReadmePath);
 
   console.log(`🏙  ${PACKAGE}`);
 }
 
-async function buildRuntime(config: BuildConfig, input: string) {
+async function buildRuntime(input: string) {
   const result = await execa('yarn', ['build.runtime'], {
     stdout: 'inherit',
     cwd: input,
@@ -74,14 +79,14 @@ async function buildRuntime(config: BuildConfig, input: string) {
   }
 }
 
-async function buildVite(config: BuildConfig, input: string, output: string) {
-  const entryPoints = [join(input, 'buildtime', 'vite', 'index.ts')];
+async function buildVite(config: BuildConfig, inputDir: string, outputDir: string) {
+  const entryPoints = [join(inputDir, 'buildtime', 'vite', 'index.ts')];
 
   const external = ['source-map', 'vfile', '@mdx-js/mdx', 'typescript'];
 
   await build({
     entryPoints,
-    outfile: join(output, 'vite', 'index.mjs'),
+    outfile: join(outputDir, 'vite', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -92,7 +97,7 @@ async function buildVite(config: BuildConfig, input: string, output: string) {
 
   await build({
     entryPoints,
-    outfile: join(output, 'vite', 'index.cjs'),
+    outfile: join(outputDir, 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -102,12 +107,12 @@ async function buildVite(config: BuildConfig, input: string, output: string) {
   });
 }
 
-async function buildCloudflarePages(config: BuildConfig, input: string, output: string) {
-  const entryPoints = [join(input, 'middleware', 'cloudflare-pages', 'index.ts')];
+async function buildCloudflarePages(config: BuildConfig, inputDir: string, outputDir: string) {
+  const entryPoints = [join(inputDir, 'middleware', 'cloudflare-pages', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(output, 'middleware', 'cloudflare-pages', 'index.mjs'),
+    outfile: join(outputDir, 'middleware', 'cloudflare-pages', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -116,14 +121,14 @@ async function buildCloudflarePages(config: BuildConfig, input: string, output: 
   });
 }
 
-async function buildExpress(config: BuildConfig, input: string, output: string) {
-  const entryPoints = [join(input, 'middleware', 'express', 'index.ts')];
+async function buildExpress(config: BuildConfig, inputDir: string, outputDir: string) {
+  const entryPoints = [join(inputDir, 'middleware', 'express', 'index.ts')];
 
   const external = ['express', 'node-fetch', 'path'];
 
   await build({
     entryPoints,
-    outfile: join(output, 'middleware', 'express', 'index.mjs'),
+    outfile: join(outputDir, 'middleware', 'express', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -134,7 +139,7 @@ async function buildExpress(config: BuildConfig, input: string, output: string) 
 
   await build({
     entryPoints,
-    outfile: join(output, 'middleware', 'express', 'index.cjs'),
+    outfile: join(outputDir, 'middleware', 'express', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -144,12 +149,12 @@ async function buildExpress(config: BuildConfig, input: string, output: string) 
   });
 }
 
-async function buildNetlifyEdge(config: BuildConfig, input: string, output: string) {
-  const entryPoints = [join(input, 'middleware', 'netlify-edge', 'index.ts')];
+async function buildNetlifyEdge(config: BuildConfig, inputDir: string, outputDir: string) {
+  const entryPoints = [join(inputDir, 'middleware', 'netlify-edge', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(output, 'middleware', 'netlify-edge', 'index.mjs'),
+    outfile: join(outputDir, 'middleware', 'netlify-edge', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,

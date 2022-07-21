@@ -107,6 +107,9 @@ export interface DOMAttributes<T> extends QwikProps, QwikEvents {
     key?: string | number;
 }
 
+// @alpha (undocumented)
+export type EagernessOptions = 'visible' | 'load';
+
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
     children?: any;
@@ -278,6 +281,9 @@ export interface JSXNode<T = any> {
     type: T;
 }
 
+// @alpha (undocumented)
+export type MountFn<T> = () => ValueOrPromise<T>;
+
 // @alpha
 export const mutable: <T>(v: T) => MutableWrapper<T>;
 
@@ -445,9 +451,6 @@ export interface ResourceResolved<T> {
 // @alpha (undocumented)
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
-// @alpha (undocumented)
-export type ServerFn<T> = () => ValueOrPromise<T>;
-
 // @alpha
 export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
 
@@ -523,11 +526,8 @@ export const useDocument: () => Document;
 
 // @alpha (undocumented)
 export interface UseEffectOptions {
-    run?: UseEffectRunOptions;
+    eagerness?: EagernessOptions;
 }
-
-// @alpha (undocumented)
-export type UseEffectRunOptions = 'visible' | 'load';
 
 // @public
 export const useHostElement: () => Element;
@@ -539,13 +539,13 @@ export const useLexicalScope: <VARS extends any[]>() => VARS;
 // Warning: (ae-incompatible-release-tags) The symbol "useMount$" is marked as @public, but its signature references "ResourceReturn" which is marked as @alpha
 //
 // @public
-export const useMount$: <T>(first: ServerFn<T>) => ResourceReturn<T>;
+export const useMount$: <T>(first: MountFn<T>) => ResourceReturn<T>;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useMountQrl" is marked as @public, but its signature references "MountFn" which is marked as @alpha
 // Warning: (ae-incompatible-release-tags) The symbol "useMountQrl" is marked as @public, but its signature references "ResourceReturn" which is marked as @alpha
 //
 // @public
-export const useMountQrl: <T>(mountQrl: QRL<ServerFn<T>>) => ResourceReturn<T>;
+export const useMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => ResourceReturn<T>;
 
 // @alpha
 export const useOn: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
@@ -569,36 +569,23 @@ export const useResource$: <T>(generatorFn: ResourceFn<T>) => ResourceReturn<T>;
 // @alpha (undocumented)
 export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>) => ResourceReturn<T>;
 
-// Warning: (ae-forgotten-export) The symbol "UseResumeOptions" needs to be exported by the entry point index.d.ts
-//
-// @alpha
-export const useResume$: (first: () => void, options?: UseResumeOptions | undefined) => void;
-
-// @alpha
-export const useResumeQrl: (resumeFn: QRL<() => void>, options?: UseResumeOptions) => void;
-
 // @alpha (undocumented)
 export const useScopedStyles$: (first: string) => void;
 
 // @alpha (undocumented)
 export const useScopedStylesQrl: (styles: QRL<string>) => void;
 
-// Warning: (ae-forgotten-export) The symbol "SequentialScope" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export const useSequentialScope: <T>() => SequentialScope<T>;
-
 // Warning: (ae-incompatible-release-tags) The symbol "useServerMount$" is marked as @public, but its signature references "MountFn" which is marked as @alpha
 // Warning: (ae-incompatible-release-tags) The symbol "useServerMount$" is marked as @public, but its signature references "ResourceReturn" which is marked as @alpha
 //
 // @public
-export const useServerMount$: <T>(first: ServerFn<T>) => ResourceReturn<T>;
+export const useServerMount$: <T>(first: MountFn<T>) => ResourceReturn<T>;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useServerMountQrl" is marked as @public, but its signature references "MountFn" which is marked as @alpha
 // Warning: (ae-incompatible-release-tags) The symbol "useServerMountQrl" is marked as @public, but its signature references "ResourceReturn" which is marked as @alpha
 //
 // @public
-export const useServerMountQrl: <T>(mountQrl: QRL<ServerFn<T>>) => ResourceReturn<T>;
+export const useServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => ResourceReturn<T>;
 
 // Warning: (ae-forgotten-export) The symbol "UseStoreOptions" needs to be exported by the entry point index.d.ts
 //
@@ -610,9 +597,6 @@ export const useStyles$: (first: string) => void;
 
 // @public
 export const useStylesQrl: (styles: QRL<string>) => void;
-
-// @alpha (undocumented)
-export const useWaitOn: (promise: ValueOrPromise<any>) => void;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "WatchFn" which is marked as @alpha
 // Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "UseEffectOptions" which is marked as @alpha

@@ -11,14 +11,7 @@ import { qrl } from './import/qrl';
 import { $, QRL } from './import/qrl.public';
 import { Host } from './render/jsx/host.public';
 import { useHostElement } from './use/use-host-element.public';
-import {
-  useCleanup$,
-  useOn,
-  useOnDocument,
-  useOnWindow,
-  useResume$,
-  useVisible$,
-} from './use/use-on';
+import { useCleanup$, useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useRef, useStore } from './use/use-store.public';
 import { useStyles$ } from './use/use-styles';
 import { useClientEffect$, useMount$, useServerMount$, useWatch$ } from './use/use-watch';
@@ -66,40 +59,6 @@ export const OtherComponent = component$(() => {
       console.log('component is destroyed');
     });
     return <div>Hello world</div>;
-  });
-  // </docs>
-  //
-  return Cmp;
-};
-
-() => {
-  //
-  // <docs anchor="use-resume">
-  const Cmp = component$(() => {
-    useResume$(() => {
-      // Eagerly invoked when the application resumes on the client
-      console.log('called once in client');
-    });
-    return <div>Hello world</div>;
-  });
-  // </docs>
-  //
-  return Cmp;
-};
-
-() => {
-  //
-  // <docs anchor="use-visible">
-  const Cmp = component$(() => {
-    const store = useStore({
-      isVisible: false,
-    });
-    useVisible$(() => {
-      // Invoked once when the component is visible in the browser's viewport
-      console.log('called once in client when visible');
-      store.isVisible = true;
-    });
-    return <div>{store.isVisible}</div>;
   });
   // </docs>
   //

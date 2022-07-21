@@ -269,13 +269,6 @@
         "enableSsrOutput": false
       },
       {
-        "id": "use-wait-on",
-        "title": "useWaitOn()",
-        "enableHtmlOutput": false,
-        "enableClientOutput": false,
-        "enableSsrOutput": false
-      },
-      {
         "id": "use-ref",
         "title": "useRef()",
         "enableHtmlOutput": false,
@@ -295,13 +288,6 @@
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
-      },
-      {
-        "id": "use-resume",
-        "title": "useResume$()",
-        "enableHtmlOutput": true,
-        "enableClientOutput": true,
-        "enableSsrOutput": true
       },
       {
         "id": "use-on",

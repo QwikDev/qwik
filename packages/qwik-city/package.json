@@ -38,7 +38,7 @@
     "serve": "node --inspect runtime/server/entry.express",
     "serve.debug": "node --inspect-brk runtime/server/entry.express",
     "test": "yarn test.unit && yarn test.e2e",
-    "test.unit": "node ../../node_modules/.bin/uvu -r tsm . \"(unit)\"",
+    "test.unit": "tsm ../../node_modules/.bin/uvu . unit.ts --tsmconfig tsm.cjs",
     "test.e2e": "DISABLE_JS=true node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts",
     "test.e2e.client": "node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts"
   },

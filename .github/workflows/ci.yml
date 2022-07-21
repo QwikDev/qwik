@@ -481,7 +481,7 @@ jobs:
       - name: Install NPM Dependencies
         run: yarn install --immutable --network-timeout 300000
 
-      - name: Jest Unit Tests
+      - name: Unit Tests
         run: yarn run test.unit
 
   ########### VALIDATE RUST ############

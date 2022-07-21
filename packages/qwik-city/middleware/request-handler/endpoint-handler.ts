@@ -121,6 +121,7 @@ export async function getEndpointResponse(
   } catch (e: any) {
     endpointResponse.body = String(e ? e.stack : e || 'Endpoint Error');
     endpointResponse.status = 500;
+    endpointResponse.headers.forEach((_, key) => endpointResponse.headers.delete(key));
     endpointResponse.headers.set('Content-Type', 'text/plain; charset=utf-8');
     endpointResponse.immediateCommitToNetwork = true;
   }

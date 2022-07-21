@@ -1,6 +1,6 @@
-import { basename, extname, normalize } from 'path';
+import { basename, dirname, extname, normalize } from 'path';
 import type { ParsedLayoutId } from '../types';
-import { createHash } from 'crypto';
+import { toTitleCase } from './format';
 
 export function getExtension(fileName: string) {
   return extname(fileName).toLowerCase();
@@ -38,14 +38,26 @@ export function normalizePath(path: string) {
   return path;
 }
 
-export function createFileId(path: string) {
-  const hash = createHash('sha256');
-  hash.update(path);
-  let id = hash.digest('hex');
-  while (!isNaN(id.charAt(0) as any)) {
-    id = id.slice(1);
+export function createFileId(routesDir: string, path: string) {
+  const ids: string[] = [];
+
+  for (let i = 0; i < 25; i++) {
+    let baseName = i === 0 ? getExtensionLessBasename(path) : basename(path);
+
+    baseName = baseName.replace(/[\W_]+/g, '');
+    if (baseName === '') {
+      baseName = 'Q' + i;
+    }
+    ids.push(toTitleCase(baseName));
+
+    path = normalizePath(dirname(path));
+
+    if (path === routesDir) {
+      break;
+    }
   }
-  return id.slice(0, 6);
+
+  return ids.reverse().join('');
 }
 
 export const MARKDOWN_EXT: { [ext: string]: boolean } = {

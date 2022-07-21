@@ -20,7 +20,7 @@ export async function resolveSourceFiles(
 ) {
   const layouts = sourceFiles
     .filter((s) => s.type === 'layout')
-    .map((s) => resolveLayout(s))
+    .map((s) => resolveLayout(opts, s))
     .sort((a, b) => {
       if (a.id < b.id) return -1;
       if (a.id > b.id) return 1;

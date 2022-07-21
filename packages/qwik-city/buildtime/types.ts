@@ -3,7 +3,7 @@ export interface BuildContext {
   opts: NormalizedPluginOptions;
   routes: BuildRoute[];
   layouts: BuildLayout[];
-  menus: Menu[];
+  menus: BuildMenu[];
   frontmatter: Map<string, string[]>;
   diagnostics: Diagnostic[];
   target: 'ssr' | 'client';
@@ -54,7 +54,7 @@ export interface BuildLayout extends ParsedLayoutId {
   id: string;
 }
 
-export interface Menu {
+export interface BuildMenu {
   pathname: string;
   filePath: string;
 }

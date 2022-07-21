@@ -91,13 +91,13 @@ export const onGet: EndpointHandler<EndpointData> = async ({ params, response })
   // On the client, this same data can be requested with fetch() at the same URL, but also
   // requires the "accept: application/json" request header.
 
+  // artificial slow response
+  await new Promise<void>((resolve) => setTimeout(resolve, 200));
+
   if (params.id === 'shirt') {
     // Redirect, which will skip any rendering and the server will immediately redirect
     return response.redirect('/products/tshirt');
   }
-
-  // artificial slow response
-  await new Promise<void>((resolve) => setTimeout(resolve, 200));
 
   const productPrice = PRODUCT_DB[params.id];
 

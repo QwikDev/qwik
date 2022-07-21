@@ -1,168 +1,189 @@
-import { createDocument } from '@builder.io/qwik/testing';
-import type { LoaderWindow } from './qwikloader';
+import { createDocument } from './testing/index';
 import { qwikLoader } from './qwikloader';
-import { jest, expect, describe, beforeEach, afterEach, it } from '@jest/globals';
+import { equal, throws } from 'uvu/assert';
+import { suite } from 'uvu';
+import { snoop } from 'snoop';
 
-describe('qwikloader', () => {
-  let doc: Document;
-  let loaderWindow: LoaderWindow;
+const loaderWindow = {
+  BuildEvents: false,
+  qEvents: [],
+};
+(global as any).window = loaderWindow;
 
-  beforeEach(() => {
-    doc = createDocument();
-    loaderWindow = {
-      BuildEvents: false,
-      qEvents: [],
-    };
-    (global as any).window = loaderWindow;
-  });
+const qwikLoaderSuite = suite('qwikloader');
+// let doc: Document;
+// let loaderWindow: LoaderWindow;
 
-  describe('getModuleExport', () => {
-    it('should throw error if missing named export', () => {
-      expect(() => {
-        const loader = qwikLoader(doc);
-        const url = new URL('http://qwik.dev/event.js#someExport');
-        const module = {};
-        loader.getModuleExport(url, module);
-      }).toThrowError(`QWIK http://qwik.dev/event.js#someExport does not export someExport`);
-    });
+// beforeEach(() => {
+//   doc = createDocument();
+//   loaderWindow = {
+//     BuildEvents: false,
+//     qEvents: [],
+//   };
+//   (global as any).window = loaderWindow;
+// });
 
-    it('should get named export w/ ?', () => {
-      const loader = qwikLoader(doc);
-      const url = new URL('http://qwik.dev/event.js#someExport?');
-      const module = {
-        someExport: () => {},
-      };
-      const handler = loader.getModuleExport(url, module);
-      expect(handler).toBe(module.someExport);
-    });
+qwikLoaderSuite('getModuleExport, should throw error if missing named export', () => {
+  throws(() => {
+    const doc = createDocument();
+    const loader = qwikLoader(doc);
+    const url = new URL('http://qwik.dev/event.js#someExport');
+    const module = {};
+    loader.getModuleExport(url, module);
+  }, `QWIK http://qwik.dev/event.js#someExport does not export someExport`);
+});
 
-    it('should get named export', () => {
-      const loader = qwikLoader(doc);
-      const url = new URL('http://qwik.dev/event.js#someExport');
-      const module = {
-        someExport: () => {},
-      };
-      const handler = loader.getModuleExport(url, module);
-      expect(handler).toBe(module.someExport);
-    });
+qwikLoaderSuite('should get named export w/ ?', () => {
+  const doc = createDocument();
+  const loader = qwikLoader(doc);
+  const url = new URL('http://qwik.dev/event.js#someExport?');
+  const module = {
+    someExport: () => {},
+  };
+  const handler = loader.getModuleExport(url, module);
+  equal(handler, module.someExport);
+});
 
-    it('should get default export w/  empty hash and ?', () => {
-      const loader = qwikLoader(doc);
-      const url = new URL('http://qwik.dev/event.js#?');
-      const module = {
-        default: () => {},
-      };
-      const handler = loader.getModuleExport(url, module);
-      expect(handler).toBe(module.default);
-    });
+qwikLoaderSuite('should get named export', () => {
+  const doc = createDocument();
+  const loader = qwikLoader(doc);
+  const url = new URL('http://qwik.dev/event.js#someExport');
+  const module = {
+    someExport: () => {},
+  };
+  const handler = loader.getModuleExport(url, module);
+  equal(handler, module.someExport);
+});
 
-    it('should get default export w/ ?', () => {
-      const loader = qwikLoader(doc);
-      const url = new URL('http://qwik.dev/event.js?');
-      const module = {
-        default: () => {},
-      };
-      const handler = loader.getModuleExport(url, module);
-      expect(handler).toBe(module.default);
-    });
+qwikLoaderSuite('should get default export w/  empty hash and ?', () => {
+  const doc = createDocument();
+  const loader = qwikLoader(doc);
+  const url = new URL('http://qwik.dev/event.js#?');
+  const module = {
+    default: () => {},
+  };
+  const handler = loader.getModuleExport(url, module);
+  equal(handler, module.default);
+});
 
-    it('should get default export w/ empty hash', () => {
-      const loader = qwikLoader(doc);
-      const url = new URL('http://qwik.dev/event.js#');
-      const module = {
-        default: () => {},
-      };
-      const handler = loader.getModuleExport(url, module);
-      expect(handler).toBe(module.default);
-    });
+qwikLoaderSuite('should get default export w/ ?', () => {
+  const doc = createDocument();
+  const loader = qwikLoader(doc);
+  const url = new URL('http://qwik.dev/event.js?');
+  const module = {
+    default: () => {},
+  };
+  const handler = loader.getModuleExport(url, module);
+  equal(handler, module.default);
+});
 
-    it('should get default export, no hash', () => {
-      const loader = qwikLoader(doc);
-      const url = new URL('http://qwik.dev/event.js');
-      const module = {
-        default: () => {},
-      };
-      const handler = loader.getModuleExport(url, module);
-      expect(handler).toBe(module.default);
-    });
+qwikLoaderSuite('should get default export w/ empty hash', () => {
+  const doc = createDocument();
+  const loader = qwikLoader(doc);
+  const url = new URL('http://qwik.dev/event.js#');
+  const module = {
+    default: () => {},
+  };
+  const handler = loader.getModuleExport(url, module);
+  equal(handler, module.default);
+});
 
-    it('should throw error if missing default export', () => {
-      expect(() => {
-        const loader = qwikLoader(doc);
-        const url = new URL('http://qwik.dev/event.js');
-        const module = {};
-        loader.getModuleExport(url, module);
-      }).toThrowError(`QWIK http://qwik.dev/event.js does not export default`);
-    });
-  });
+qwikLoaderSuite('should get default export, no hash', () => {
+  const doc = createDocument();
+  const loader = qwikLoader(doc);
+  const url = new URL('http://qwik.dev/event.js');
+  const module = {
+    default: () => {},
+  };
+  const handler = loader.getModuleExport(url, module);
+  equal(handler, module.default);
+});
 
-  describe('qrlResolver', () => {
-    it('should resolve full URL', () => {
-      const loader = qwikLoader(doc);
-      const div = doc.createElement('div');
-      expect(String(loader.qrlResolver(div, 'http://foo.bar/baz'))).toEqual('http://foo.bar/baz');
-    });
+qwikLoaderSuite('should throw error if missing default export', () => {
+  const doc = createDocument();
+  throws(() => {
+    const loader = qwikLoader(doc);
+    const url = new URL('http://qwik.dev/event.js');
+    const module = {};
+    loader.getModuleExport(url, module);
+  }, `QWIK http://qwik.dev/event.js does not export default`);
+});
 
-    it('should resolve relative URL against base', () => {
-      const loader = qwikLoader(doc);
-      const div = doc.createElement('div');
-      const resolvedQrl = loader.qrlResolver(div, './bar');
-      expect(resolvedQrl.href).toEqual('http://document.qwik.dev/bar');
-    });
+qwikLoaderSuite('should resolve full URL', () => {
+  const doc = createDocument();
+  const loader = qwikLoader(doc);
+  const div = doc.createElement('div');
+  equal(String(loader.qrlResolver(div, 'http://foo.bar/baz')), 'http://foo.bar/baz');
+});
 
-    it('should resolve relative URL against q:base', () => {
-      const loader = qwikLoader(doc);
-      const div = doc.createElement('div');
-      div.setAttribute('q:container', '');
-      div.setAttribute('q:base', '/baz/');
-      const resolvedQrl = loader.qrlResolver(div, './bar');
-      expect(resolvedQrl.href).toEqual('http://document.qwik.dev/baz/bar');
-    });
+qwikLoaderSuite('should resolve relative URL against base', () => {
+  const doc = createDocument();
+  const loader = qwikLoader(doc);
+  const div = doc.createElement('div');
+  const resolvedQrl = loader.qrlResolver(div, './bar');
+  equal(resolvedQrl.href, 'http://document.qwik.dev/bar');
+});
 
-    it('should resolve relative URL against nested q:base', () => {
-      const loader = qwikLoader(doc);
-      const div = doc.createElement('div');
-      const parent = doc.createElement('parent');
-      doc.body.appendChild(parent);
-      parent.appendChild(div);
-      parent.setAttribute('q:container', '');
-      parent.setAttribute('q:base', './parent/');
-      const resolvedQrl = loader.qrlResolver(div, './bar');
-      expect(resolvedQrl.href).toEqual('http://document.qwik.dev/parent/bar');
-    });
-  });
+qwikLoaderSuite('should resolve relative URL against q:base', () => {
+  const doc = createDocument();
+  const loader = qwikLoader(doc);
+  const div = doc.createElement('div');
+  div.setAttribute('q:container', '');
+  div.setAttribute('q:base', '/baz/');
+  const resolvedQrl = loader.qrlResolver(div, './bar');
+  equal(resolvedQrl.href, 'http://document.qwik.dev/baz/bar');
+});
 
-  describe('readystate', () => {
-    let doc: any;
-    beforeEach(() => {
-      doc = createReadyStateTestDocument();
-      (global as any).CustomEvent = class {};
-    });
-    afterEach(() => {
-      delete (global as any).CustomEvent;
-    });
+qwikLoaderSuite('should resolve relative URL against nested q:base', () => {
+  const doc = createDocument();
+  const loader = qwikLoader(doc);
+  const div = doc.createElement('div');
+  const parent = doc.createElement('parent');
+  doc.body.appendChild(parent);
+  parent.appendChild(div);
+  parent.setAttribute('q:container', '');
+  parent.setAttribute('q:base', './parent/');
+  const resolvedQrl = loader.qrlResolver(div, './bar');
+  equal(resolvedQrl.href, 'http://document.qwik.dev/parent/bar');
+});
 
-    it('should query on:qinit document complete', () => {
-      doc.readyState = 'complete';
-      const spy = jest.spyOn(doc, 'querySelectorAll');
-      qwikLoader(doc);
-      expect(spy).toHaveBeenCalledWith('[on\\:qinit]');
-    });
+const readystate = suite('readystate');
+readystate.before(() => {
+  (global as any).CustomEvent = class {};
+});
+readystate.after(() => {
+  delete (global as any).CustomEvent;
+});
 
-    it('should query on:qinit if document interactive', () => {
-      doc.readyState = 'interactive';
-      const spy = jest.spyOn(doc, 'querySelectorAll');
-      qwikLoader(doc);
-      expect(spy).toHaveBeenCalledWith('[on\\:qinit]');
-    });
+readystate('should query on:qinit document complete', () => {
+  const doc = createReadyStateTestDocument();
+  doc.readyState = 'complete';
 
-    it('should not query on:qinit if document loading', () => {
-      doc.readyState = 'loading';
-      const spy = jest.spyOn(doc, 'querySelectorAll');
-      qwikLoader(doc);
-      expect(spy).not.toHaveBeenCalled();
-    });
-  });
+  const spy = snoop(doc.querySelectorAll);
+  doc.querySelectorAll = spy.fn;
+
+  qwikLoader(doc as any);
+  equal(spy.lastCall.arguments, ['[on\\:qinit]']);
+});
+
+readystate('should query on:qinit if document interactive', () => {
+  const doc = createReadyStateTestDocument();
+  doc.readyState = 'interactive';
+  const spy = snoop(doc.querySelectorAll);
+  doc.querySelectorAll = spy.fn;
+
+  qwikLoader(doc as any);
+  equal(spy.lastCall.arguments, ['[on\\:qinit]']);
+});
+
+readystate('should not query on:qinit if document loading', () => {
+  const doc = createReadyStateTestDocument();
+  doc.readyState = 'loading';
+  const spy = snoop(doc.querySelectorAll);
+  doc.querySelectorAll = spy.fn;
+
+  qwikLoader(doc as any);
+  equal(spy.called, false);
 });
 
 function createReadyStateTestDocument() {
@@ -174,3 +195,6 @@ function createReadyStateTestDocument() {
   };
   return doc;
 }
+
+qwikLoaderSuite.run();
+readystate.run();

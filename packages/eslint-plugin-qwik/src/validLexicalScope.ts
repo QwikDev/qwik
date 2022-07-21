@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { AST_NODE_TYPES, ESLintUtils } from '@typescript-eslint/utils';
 import type { Scope } from '@typescript-eslint/utils/dist/ts-eslint-scope';
-import { TypeChecker, Node, TypeFlags, Type, Symbol } from 'typescript';
+import ts from 'typescript';
 import type { Identifier } from 'estree';
 
 const createRule = ESLintUtils.RuleCreator((name) => `https://typescript-eslint.io/rules/${name}`);
@@ -40,6 +40,8 @@ export const validLexicalScope = createRule({
     messages: {
       referencesOutside:
         'Identifier ("{{varName}}") can not be captured inside the scope ({{dollarName}}) because {{reason}}. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+      unvalidJsxDollar:
+        'JSX attributes that end with $ can only take an inlined arrow function of a QRL identifier. Make sure the value is created using $()',
     },
   },
   create(context) {
@@ -52,7 +54,7 @@ export const validLexicalScope = createRule({
     const esTreeNodeToTSNodeMap = services.esTreeNodeToTSNodeMap;
     const typeChecker = services.program.getTypeChecker();
     const relevantScopes: Map<any, string> = new Map();
-    let exports: Symbol[] = [];
+    let exports: ts.Symbol[] = [];
 
     function walkScope(scope: Scope) {
       scope.references.forEach((ref) => {
@@ -152,6 +154,16 @@ export const validLexicalScope = createRule({
             const scope = scopeManager.acquire(firstArg.expression);
             if (scope) {
               relevantScopes.set(scope, name);
+            } else if (firstArg.expression.type === AST_NODE_TYPES.Identifier) {
+              console.log(firstArg.expression);
+              const tsNode = esTreeNodeToTSNodeMap.get(firstArg.expression);
+              const type = typeChecker.getTypeAtLocation(tsNode);
+              if (!isTypeQRL(type)) {
+                context.report({
+                  messageId: 'unvalidJsxDollar',
+                  node: firstArg.expression,
+                });
+              }
             }
           }
         }
@@ -167,13 +179,18 @@ export const validLexicalScope = createRule({
   },
 });
 
-function canCapture(checker: TypeChecker, node: Node, ident: Identifier, opts: DetectorOptions) {
+function canCapture(
+  checker: ts.TypeChecker,
+  node: ts.Node,
+  ident: Identifier,
+  opts: DetectorOptions
+) {
   const type = checker.getTypeAtLocation(node);
   return isTypeCapturable(checker, type, node, ident, opts);
 }
 
 interface TypeReason {
-  type: Type;
+  type: ts.Type;
   typeStr: string;
   location?: string;
   reason: string;
@@ -191,9 +208,9 @@ function humanizeTypeReason(reason: TypeReason) {
 }
 
 function isTypeCapturable(
-  checker: TypeChecker,
-  type: Type,
-  tsnode: Node,
+  checker: ts.TypeChecker,
+  type: ts.Type,
+  tsnode: ts.Node,
   ident: Identifier,
   opts: DetectorOptions
 ): TypeReason | undefined {
@@ -208,9 +225,9 @@ function isTypeCapturable(
   return result;
 }
 function _isTypeCapturable(
-  checker: TypeChecker,
-  type: Type,
-  node: Node,
+  checker: ts.TypeChecker,
+  type: ts.Type,
+  node: ts.Node,
   opts: DetectorOptions,
   level: number
 ): TypeReason | undefined {
@@ -218,7 +235,7 @@ function _isTypeCapturable(
   if (type.getProperty('__no_serialize__')) {
     return;
   }
-  const isUnknown = type.flags & TypeFlags.Unknown;
+  const isUnknown = type.flags & ts.TypeFlags.Unknown;
   if (isUnknown) {
     return {
       type,
@@ -226,7 +243,7 @@ function _isTypeCapturable(
       reason: 'is unknown, which is not serializable',
     };
   }
-  const isAny = type.flags & TypeFlags.Any;
+  const isAny = type.flags & ts.TypeFlags.Any;
   if (!opts.allowAny && isAny) {
     return {
       type,
@@ -234,7 +251,7 @@ function _isTypeCapturable(
       reason: 'is any, which is not serializable',
     };
   }
-  const isBigInt = type.flags & TypeFlags.BigIntLike;
+  const isBigInt = type.flags & ts.TypeFlags.BigIntLike;
   if (isBigInt) {
     return {
       type,
@@ -242,7 +259,7 @@ function _isTypeCapturable(
       reason: 'is BigInt and it is not supported yet, use a number instead',
     };
   }
-  const isSymbol = type.flags & TypeFlags.ESSymbolLike;
+  const isSymbol = type.flags & ts.TypeFlags.ESSymbolLike;
   if (isSymbol) {
     return {
       type,
@@ -250,7 +267,7 @@ function _isTypeCapturable(
       reason: 'is Symbol, which is not serializable',
     };
   }
-  const isEnum = type.flags & TypeFlags.EnumLike;
+  const isEnum = type.flags & ts.TypeFlags.EnumLike;
   if (isEnum) {
     return {
       type,
@@ -258,14 +275,23 @@ function _isTypeCapturable(
       reason: 'is an enum, use an string or a number instead',
     };
   }
+  if (isTypeQRL(type)) {
+    return;
+  }
+
   const canBeCalled = type.getCallSignatures().length > 0;
   if (canBeCalled) {
+    const symbolName = type.symbol.name;
+    if (symbolName === 'PropFnInterface') {
+      return;
+    }
     return {
       type,
       typeStr: checker.typeToString(type),
       reason: 'is a function, which is not serializable',
     };
   }
+
   if (type.isUnion()) {
     for (const subType of type.types) {
       const result = _isTypeCapturable(checker, subType, node, opts, level + 1);
@@ -275,7 +301,7 @@ function _isTypeCapturable(
     }
     return;
   }
-  const isObject = (type.flags & TypeFlags.Object) !== 0;
+  const isObject = (type.flags & ts.TypeFlags.Object) !== 0;
   if (isObject) {
     const symbolName = type.symbol.name;
 
@@ -290,10 +316,6 @@ function _isTypeCapturable(
     }
     // Document is ok
     if (type.getProperty('activeElement')) {
-      return;
-    }
-    // QRL is ok
-    if (type.getProperty('__brand__QRL__')) {
       return;
     }
     if (symbolName === 'Promise') {
@@ -340,9 +362,9 @@ function _isTypeCapturable(
 }
 
 function isSymbolCapturable(
-  checker: TypeChecker,
-  symbol: Symbol,
-  node: Node,
+  checker: ts.TypeChecker,
+  symbol: ts.Symbol,
+  node: ts.Node,
   opts: DetectorOptions,
   level: number
 ) {
@@ -350,6 +372,10 @@ function isSymbolCapturable(
   return _isTypeCapturable(checker, type, node, opts, level);
 }
 
-function getElementTypeOfArrayType(type: Type, checker: TypeChecker): Type | undefined {
+function getElementTypeOfArrayType(type: ts.Type, checker: ts.TypeChecker): ts.Type | undefined {
   return (checker as any).getElementTypeOfArrayType(type);
+}
+
+function isTypeQRL(type: ts.Type): boolean {
+  return !!type.getProperty('__brand__QRL__');
 }

@@ -17,15 +17,10 @@ export function getQwikCityUserContext(
   endpointResponse: EndpointResponse
 ): QwikCityUserContext {
   const qcRoute: RouteLocation = {
-    hash: url.hash,
-    hostname: url.hostname,
     href: url.href,
     params: { ...params },
     pathname: url.pathname,
-    query: {},
-    search: url.search,
   };
-  url.searchParams.forEach((value, key) => (qcRoute.query[key] = value));
 
   return {
     qcRoute,

@@ -1,4 +1,3 @@
-import { expect, describe, beforeEach, it } from '@jest/globals';
 import { createDocument } from '../../testing/document';
 import { useStore } from '../use/use-store.public';
 import { render } from '../render/render.public';
@@ -12,27 +11,71 @@ import { runtimeQrl } from '../import/qrl';
 import { pauseContainer } from '../object/store';
 import { useDocument } from '../use/use-document.public';
 import { useHostElement } from '../use/use-host-element.public';
+import { suite } from 'uvu';
+import { equal } from 'uvu/assert';
 
-describe('store', () => {
-  let document: Document;
-  let div: HTMLElement;
+const storeSuite = suite('store');
 
-  beforeEach(() => {
-    document = createDocument();
-    div = document.createElement('div');
-    document.body.appendChild(div);
-  });
+storeSuite('should serialize content', async () => {
+  const document = createDocument();
+  const div = document.createElement('div');
+  document.body.appendChild(div);
 
-  it('should serialize content', async () => {
-    await render(
-      document.body,
-      <div>
-        <LexicalScope />
-      </div>
-    );
-    await pauseContainer(document.body);
-    const script = getQwikJSON(document.body)!;
-    expect(JSON.parse(script.textContent!)).toMatchSnapshot();
+  await render(
+    document.body,
+    <div>
+      <LexicalScope />
+    </div>
+  );
+  await pauseContainer(document.body);
+  const script = getQwikJSON(document.body)!;
+
+  equal(JSON.parse(script.textContent!), {
+    ctx: {
+      '#1': {
+        r: '0 1 2 l 8 e 7 6 h! l j #0 k',
+      },
+    },
+    objs: [
+      1,
+      'hola',
+      {
+        a: '3',
+        b: '1',
+        c: '5',
+        d: '6',
+        e: '7',
+        f: '8',
+        g: 'l',
+        h: '9',
+      },
+      {
+        thing: '4',
+      },
+      12,
+      123,
+      false,
+      true,
+      null,
+      ['0', 'a', '6', 'b', 'c'],
+      'string',
+      {
+        hola: '0',
+      },
+      ['d'],
+      'hello',
+      ['0', 'f', '1', 'g'],
+      2,
+      {},
+      {
+        count: 'i',
+      },
+      0,
+      '\u0011/runtimeQRL#s21',
+      '\u0012',
+      '\u0010',
+    ],
+    subs: [],
   });
 });
 
@@ -96,3 +139,5 @@ export const LexicalScope = component$(() => {
   ]);
   return <div onClick$={thing}></div>;
 });
+
+storeSuite.run();

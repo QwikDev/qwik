@@ -1,12 +1,12 @@
-import { expect, describe, it } from '@jest/globals';
+import { suite } from 'uvu';
+import { equal } from 'uvu/assert';
 import { fromCamelToKebabCase } from './case';
 
-describe('case', () => {
-  describe('fromCamelToKebabCase', () => {
-    it('should convert to kebab', () => {
-      expect(fromCamelToKebabCase('HelloWorld')).toEqual('-hello-world');
-      expect(fromCamelToKebabCase('on:ClicK')).toEqual('on:-clic-k');
-      expect(fromCamelToKebabCase('a:b')).toEqual('a:b');
-    });
-  });
+const caseSuite = suite('case');
+caseSuite('should convert to kebab', () => {
+  equal(fromCamelToKebabCase('HelloWorld'), '-hello-world');
+  equal(fromCamelToKebabCase('on:ClicK'), 'on:-clic-k');
+  equal(fromCamelToKebabCase('a:b'), 'a:b');
 });
+
+caseSuite.run();

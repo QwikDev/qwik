@@ -120,11 +120,6 @@ export const newInvokeContext = (
   };
 };
 
-export const useWaitOn = (promise: ValueOrPromise<any>): void => {
-  const ctx = useInvokeContext();
-  ctx.$waitOn$.push(promise);
-};
-
 export const getHostElement = (el: Element): Element | null => {
   let foundSlot = false;
   let node: Element | null = el;

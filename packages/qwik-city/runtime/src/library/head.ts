@@ -12,27 +12,25 @@ export const resolveHead = (
   routeLocation: RouteLocation,
   contentModules: ContentModule[]
 ) => {
+  const head = createDocumentHead();
   const headProps: DocumentHeadProps = {
     data: endpoint ? endpoint.body : null,
-    head: createDocumentHead(),
+    head,
     ...routeLocation,
   };
 
   for (let i = contentModules.length - 1; i >= 0; i--) {
-    resolveContentHead(headProps, contentModules[i]);
+    const contentModuleHead = contentModules[i] && contentModules[i].head;
+    if (contentModuleHead) {
+      if (typeof contentModuleHead === 'function') {
+        resolveDocumentHead(head, contentModuleHead(headProps));
+      } else if (typeof contentModuleHead === 'object') {
+        resolveDocumentHead(head, contentModuleHead);
+      }
+    }
   }
 
   return headProps.head;
-};
-
-const resolveContentHead = (headProps: DocumentHeadProps, contentModule: ContentModule) => {
-  if (contentModule && typeof contentModule.head != null) {
-    if (typeof contentModule.head === 'function') {
-      resolveDocumentHead(headProps.head, contentModule.head(headProps));
-    } else if (typeof contentModule.head === 'object') {
-      resolveDocumentHead(headProps.head, contentModule.head);
-    }
-  }
 };
 
 const resolveDocumentHead = (

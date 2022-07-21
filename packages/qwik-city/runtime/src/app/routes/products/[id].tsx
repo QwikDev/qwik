@@ -85,36 +85,30 @@ export const head: DocumentHead<ProductData | null> = ({ data }) => {
   };
 };
 
-export const onGet: EndpointHandler<EndpointData> = async ({
-  params,
-  status,
-  headers,
-  redirect,
-}) => {
+export const onGet: EndpointHandler<EndpointData> = async ({ params, response }) => {
   // Serverside Endpoint
   // During SSR, this method is called directly on the server and returns the data object
   // On the client, this same data can be requested with fetch() at the same URL, but also
   // requires the "accept: application/json" request header.
 
-  // artificial slow response
-  await new Promise<void>((resolve) => setTimeout(resolve, 200));
-
   if (params.id === 'shirt') {
     // Redirect, which will skip any rendering and the server will immediately redirect
-    redirect('/products/tshirt');
-    return null;
+    return response.redirect('/products/tshirt');
   }
+
+  // artificial slow response
+  await new Promise<void>((resolve) => setTimeout(resolve, 200));
 
   const productPrice = PRODUCT_DB[params.id];
 
   if (!productPrice) {
     // Product data not found
     // but the data is still given to the renderer to decide what to do
-    status(404);
+    response.status(404);
     return null;
   }
 
-  headers({ 'Cache-Control': 'no-cache, no-store, no-fun' });
+  response.headers.set('Cache-Control', 'no-cache, no-store, no-fun');
   return {
     // Found the product data
     // This same data is passed to the head() function

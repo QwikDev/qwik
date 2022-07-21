@@ -209,45 +209,55 @@ export interface LoadedRoute {
 export interface LoadedContent extends LoadedRoute {
   pageModule: PageModule;
 }
-/**
- * @public
- */
-export interface RequestEvent {
-  request: Request;
-  url: URL;
 
-  /** URL Route params which have been parsed from the current url pathname. */
-  params: RouteParams;
-
+export interface ResponseContext {
   /**
-   * HTTP Status code. The status code is import to determine if the data can be public
-   * facing or not. Setting a value of `200` will allow the endpoint to be fetched using
-   * an `"accept": "application/json"` request header. If the data from the API
-   * should not allowed to be requested, the status should be set to one of the Client Error
-   * response status codes. An example would be `401` for "Unauthorized", or `403` for
-   * "Forbidden".
+   * Set method for the HTTP response status code.
    *
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
    */
   status: (statusCode: number) => void;
 
   /**
-   * Used to set the HTTP Response Headers. The "Content-Type" header is used to determine how to
-   * serialize the data for the HTTP Response. For example, a "Content-Type" including `application/json`
-   * will serialize the returned data with `JSON.stringify(data)`. If the "Content-Type" header is not
-   * provided, the response will default to include the header `"Content-Type": "application/json; charset=utf-8"`.
+   * Used to set HTTP response headers.
+   *
+   * https://developer.mozilla.org/en-US/docs/Glossary/Response_header
    */
-  headers: (headers: Record<string, string | undefined>) => void;
+  headers: Headers;
 
   /**
-   * URL to redirect to. The `redirect` property is for convenience rather
-   * than manually setting the redirect status code and the `location` header.
-   * Defaults to use the `307` response status code, but can be overwritten
-   * by manually setting the `status` property.
+   * URL to redirect to. Defaults to use the `307` response status code,
+   * but can be overridden by setting the `statusCode` argument.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
    */
   redirect: (url: string, statusCode?: number) => void;
 
-  next: () => Promise<{ status: number; headers: Record<string, string>; body: any }>;
+  /**
+   * Read-only value of the HTTP status code.
+   * Please use the `status()` method to set the response status code.
+   */
+  readonly statusCode: number;
+
+  /**
+   * Read-only value if the response was already aborted.
+   */
+  readonly aborted: boolean;
+}
+
+/**
+ * @public
+ */
+export interface RequestEvent {
+  request: Request;
+  response: ResponseContext;
+  url: URL;
+
+  /** URL Route params which have been parsed from the current url pathname. */
+  params: RouteParams;
+
+  next: () => Promise<void>;
+  abort: () => void;
 }
 
 /**
@@ -260,37 +270,14 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 
  */
 export type EndpointHandler<BODY = unknown> = (
   ev: RequestEvent
-) => BODY | undefined | null | Promise<BODY | undefined | null>;
-
-// export interface EndpointResponse<BODY = unknown> {
-//   body?: BODY | null | undefined;
-//   /**
-//    * HTTP Headers. The "Content-Type" header is used to determine how to serialize the `body` for the
-//    * HTTP Response.  For example, a "Content-Type" including `application/json` will serialize the `body`
-//    * with `JSON.stringify(body)`. If the "Content-Type" header is not provided, the response
-//    * will default to include the header `"Content-Type": "application/json; charset=utf-8"`.
-//    */
-//   headers?: Record<string, string | undefined>;
-
-//   /**
-//    * HTTP Status code. The status code is import to determine if the data can be public
-//    * facing or not. Setting a value of `200` will allow the endpoint to be fetched using
-//    * an `"accept": "application/json"` request header. If the data from the API
-//    * should not allowed to be requested, the status should be set to one of the Client Error
-//    * response status codes. An example would be `401` for "Unauthorized", or `403` for
-//    * "Forbidden".
-//    *
-//    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-//    */
-//   status?: number;
-
-// }
+) => BODY | undefined | null | void | Promise<BODY | undefined | null | void>;
 
 export interface EndpointResponse {
   body: any;
   status: number;
-  headers: Record<string, string>;
-  hasHandler: boolean;
+  headers: Headers;
+  hasEndpointHandler: boolean;
+  immediateCommitToNetwork: boolean;
 }
 
 export interface QwikCityRenderDocument extends RenderDocument {

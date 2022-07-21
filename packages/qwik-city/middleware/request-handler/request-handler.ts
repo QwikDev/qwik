@@ -1,6 +1,6 @@
 import { loadRoute } from '../../runtime/src/library/routing';
 import { endpointHandler, getEndpointResponse } from './endpoint-handler';
-import { checkEndpointRedirect, checkPageRedirect } from './redirect-handler';
+import { checkPageRedirect } from './redirect-handler';
 import type { QwikCityRequestOptions } from './types';
 import type { Render } from '@builder.io/qwik/server';
 import type { HttpMethod } from '../../runtime/src/library/types';
@@ -35,13 +35,16 @@ export async function requestHandler(
         }
       }
 
-      // build endpoint response from each module
+      // build endpoint response from each module in the hierarchy
       const endpointResponse = await getEndpointResponse(request, method, url, params, mods);
 
-      // check if the endpoint response is a redirect
-      const endpointRedirectResponse = checkEndpointRedirect(endpointResponse);
-      if (endpointRedirectResponse) {
-        return endpointRedirectResponse;
+      if (endpointResponse.immediateCommitToNetwork) {
+        // do not continue and immediately commit the response to the network
+        // could be a redirect or error
+        return new Response(endpointResponse.body, {
+          status: endpointResponse.status,
+          headers: endpointResponse.headers,
+        });
       }
 
       if (isEndpoint || isAcceptJsonOnly(request)) {

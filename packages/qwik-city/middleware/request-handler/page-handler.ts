@@ -11,8 +11,8 @@ export async function pageHandler(
 ) {
   const { status, headers } = endpointResponse;
 
-  if (typeof headers['content-type'] !== 'string') {
-    headers['content-type'] = 'text/html; charset=utf-8';
+  if (!headers.has('Content-Type')) {
+    headers.set('Content-Type', 'text/html; charset=utf-8');
   }
 
   const result = await render({

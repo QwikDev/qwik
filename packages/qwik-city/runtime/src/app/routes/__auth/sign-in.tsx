@@ -27,24 +27,22 @@ export default component$(() => {
   );
 });
 
-export const onGet: EndpointHandler = async ({ request, redirect }) => {
+export const onGet: EndpointHandler = async ({ request, response }) => {
   const isAuthenticated = await isUserAuthenticated(request.headers.get('cookie'));
   if (isAuthenticated) {
-    redirect('/dashboard');
+    response.redirect('/dashboard');
   }
 };
 
-export const onPost: EndpointHandler = async ({ request, headers, redirect, status }) => {
+export const onPost: EndpointHandler = async ({ request, response }) => {
   const formdata = await request.formData();
   const result = await signIn(formdata);
 
   if (result.status === 'signed-in') {
-    headers({
-      'Set-Cookie': result.cookie,
-    });
-    redirect('/dashboard');
+    response.headers.set('Set-Cookie', result.cookie);
+    response.redirect('/dashboard');
   } else {
-    status(403);
+    response.status(403);
   }
 };
 

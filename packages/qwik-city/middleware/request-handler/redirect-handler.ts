@@ -1,5 +1,3 @@
-import type { EndpointResponse } from '../../runtime/src/library/types';
-
 export function checkPageRedirect(current: URL, headers: Headers, trailingSlash?: boolean) {
   const pathname = current.pathname;
   if (pathname !== '/') {
@@ -25,17 +23,6 @@ function createPageRedirect(current: URL, headers: Headers, updatedPathname: str
     headers.set('location', updatedPathname + current.search);
     return new Response(null, {
       status: 308,
-      headers,
-    });
-  }
-  return null;
-}
-
-export function checkEndpointRedirect(endpointResponse: EndpointResponse) {
-  const { status, headers } = endpointResponse;
-  if (status >= 300 && status <= 399 && headers['location']) {
-    return new Response(null, {
-      status,
       headers,
     });
   }

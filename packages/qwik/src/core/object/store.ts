@@ -1,6 +1,6 @@
 import { assertDefined, assertTrue } from '../assert/assert';
 import { parseQRL, QRLSerializeOptions, stringifyQRL } from '../import/qrl';
-import { isQrl } from '../import/qrl-class';
+import { assertQrl, isQrl } from '../import/qrl-class';
 import { getContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
 import { isDocument, isElement, isNode } from '../util/element';
@@ -176,6 +176,7 @@ export interface SnapshotState {
 export interface SnapshotListener {
   key: string;
   qrl: QRL<any>;
+  el: Element;
 }
 
 /**
@@ -185,6 +186,7 @@ export interface SnapshotResult {
   state: SnapshotState;
   listeners: SnapshotListener[];
   objs: any[];
+  mode: 'render' | 'listeners' | 'static';
 }
 
 const hasContext = (el: Element) => {
@@ -199,34 +201,68 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
 
   // Collect all qObjected around the DOM
   const elements = getNodesInScope(containerEl, hasContext);
+
+  // Collect all listeners
+  const listeners: SnapshotListener[] = [];
   for (const node of elements) {
     const ctx = tryGetContext(node)!;
-    await collectProps(node, ctx.$props$, collector);
-
-    if (ctx.$contexts$) {
-      for (const item of ctx.$contexts$.values()) {
-        await collectValue(item, collector, false);
-      }
-    }
-
     if (ctx.$listeners$) {
-      for (const listeners of ctx.$listeners$.values()) {
-        for (const l of listeners) {
-          const captured = l.$captureRef$;
-          if (captured) {
-            for (const obj of captured) {
-              await collectValue(obj, collector, true);
-            }
-          }
-        }
-      }
+      ctx.$listeners$.forEach((qrls, key) => {
+        qrls.forEach((qrl) => {
+          listeners.push({
+            key,
+            qrl,
+            el: node,
+          });
+        });
+      });
     }
     for (const watch of ctx.$watches$) {
       collector.$watches$.push(watch);
     }
+  }
 
+  // No listeners implies static page
+  if (listeners.length === 0) {
+    return {
+      state: {
+        ctx: {},
+        objs: [],
+        subs: [],
+      },
+      objs: [],
+      listeners: [],
+      mode: 'static',
+    };
+  }
+
+  // Listeners becomes the app roots
+  for (const listener of listeners) {
+    assertQrl(listener.qrl);
+    const captured = listener.qrl.$captureRef$;
+    if (captured) {
+      for (const obj of captured) {
+        await collectValue(obj, collector, true);
+      }
+    }
+    const ctx = tryGetContext(listener.el)!;
     for (const obj of ctx.$refMap$.$array$) {
       await collectValue(obj, collector, true);
+    }
+  }
+
+  // If at this point any component can render, we need to capture Context and Props
+  const canRender = collector.$elements$.length > 0;
+  if (canRender) {
+    for (const node of elements) {
+      const ctx = tryGetContext(node)!;
+      await collectProps(node, ctx.$props$, collector);
+
+      if (ctx.$contexts$) {
+        for (const item of ctx.$contexts$.values()) {
+          await collectValue(item, collector, false);
+        }
+      }
     }
   }
 
@@ -328,18 +364,21 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     }
   });
 
+  // Sort objects: the ones with subscriptions go first
   objs.sort((a, b) => {
     const isProxyA = subsMap.has(a) ? 0 : 1;
     const isProxyB = subsMap.has(b) ? 0 : 1;
     return isProxyA - isProxyB;
   });
 
+  // Generate object ID by using a monotonic counter
   let count = 0;
   for (const obj of objs) {
     objToId.set(obj, count);
     count++;
   }
 
+  // Serialize object subscriptions
   const subs = objs
     .map((obj) => {
       const sub = subsMap.get(obj);
@@ -366,6 +405,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     $getObjId$: getObjId,
   };
 
+  // Serialize objects
   const convertedObjs = objs.map((obj) => {
     switch (typeof obj) {
       case 'undefined':
@@ -402,8 +442,6 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     throw qError(QError_verifySerializable, obj);
   });
 
-  const listeners: SnapshotListener[] = [];
-
   const meta: SnapshotMeta = {};
 
   // Write back to the dom
@@ -429,43 +467,45 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
       }
     }
 
-    if (elementCaptured && props) {
-      const objs = [props];
-      if (renderQrl) {
-        objs.push(renderQrl);
+    if (canRender) {
+      if (elementCaptured && props) {
+        const objs = [props];
+        if (renderQrl) {
+          objs.push(renderQrl);
+        }
+        const value = objs.map(mustGetObjId).join(' ');
+        if (value) {
+          metaValue.h = value;
+          add = true;
+        }
       }
-      const value = objs.map(mustGetObjId).join(' ');
-      if (value) {
-        metaValue.h = value;
-        add = true;
-      }
-    }
 
-    if (watches.length > 0) {
-      const value = watches.map(getObjId).filter(isNotNullable).join(' ');
-      if (value) {
-        metaValue.w = value;
-        add = true;
+      if (watches.length > 0) {
+        const value = watches.map(getObjId).filter(isNotNullable).join(' ');
+        if (value) {
+          metaValue.w = value;
+          add = true;
+        }
       }
-    }
 
-    if (elementCaptured && seq.length > 0) {
-      const value = seq.map(mustGetObjId).join(' ');
-      if (value) {
-        metaValue.s = value;
-        add = true;
+      if (elementCaptured && seq.length > 0) {
+        const value = seq.map(mustGetObjId).join(' ');
+        if (value) {
+          metaValue.s = value;
+          add = true;
+        }
       }
-    }
 
-    if (contexts) {
-      const serializedContexts: string[] = [];
-      contexts.forEach((value, key) => {
-        serializedContexts.push(`${key}=${mustGetObjId(value)}`);
-      });
-      const value = serializedContexts.join(' ');
-      if (value) {
-        metaValue.c = value;
-        add = true;
+      if (contexts) {
+        const serializedContexts: string[] = [];
+        contexts.forEach((value, key) => {
+          serializedContexts.push(`${key}=${mustGetObjId(value)}`);
+        });
+        const value = serializedContexts.join(' ');
+        if (value) {
+          metaValue.c = value;
+          add = true;
+        }
       }
     }
 
@@ -473,17 +513,6 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
       const elementID = getElementID(node);
       assertDefined(elementID, `pause: can not generate ID for dom node`, node);
       meta[elementID] = metaValue;
-    }
-
-    if (ctx.$listeners$) {
-      ctx.$listeners$.forEach((qrls, key) => {
-        qrls.forEach((qrl) => {
-          listeners.push({
-            key,
-            qrl,
-          });
-        });
-      });
     }
   });
 
@@ -510,17 +539,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
       }
     });
   }
-  if (listeners.length === 0) {
-    return {
-      state: {
-        ctx: {},
-        objs: [],
-        subs: [],
-      },
-      objs: [],
-      listeners,
-    };
-  }
+
   return {
     state: {
       ctx: meta,
@@ -529,6 +548,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     },
     objs,
     listeners,
+    mode: canRender ? 'render' : 'listeners',
   };
 };
 

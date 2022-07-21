@@ -76,9 +76,9 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
     applyPrefetchImplementation(doc, parentElm, opts, prefetchResources);
   }
 
-  const hasListeners = !snapshotResult || snapshotResult.listeners.length > 0;
+  const needLoader = !snapshotResult || snapshotResult.mode !== 'static';
   const includeMode = opts.qwikLoader?.include ?? 'auto';
-  const includeLoader = includeMode === 'always' || (includeMode === 'auto' && hasListeners);
+  const includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
   if (includeLoader) {
     const qwikPosition = opts.qwikLoader?.position ?? 'bottom';
     const qwikLoaderScript = getQwikLoaderScript({

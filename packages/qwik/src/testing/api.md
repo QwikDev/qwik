@@ -176,6 +176,8 @@ export interface SnapshotResult {
     // (undocumented)
     listeners: SnapshotListener[];
     // (undocumented)
+    mode: 'render' | 'listeners' | 'static';
+    // (undocumented)
     objs: any[];
     // Warning: (ae-forgotten-export) The symbol "SnapshotState" needs to be exported by the entry point index.d.ts
     //

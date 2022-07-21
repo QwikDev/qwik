@@ -59,7 +59,7 @@ export function render(opts: RenderOptions) {
         debug: true,
         fragmentTagName: 'container',
         qwikLoader: {
-          include: url.searchParams.get('loader') !== 'false',
+          include: url.searchParams.get('loader') === 'false' ? 'never' : 'auto',
           events: ['click'],
         },
         ...opts,
@@ -77,6 +77,6 @@ export function render(opts: RenderOptions) {
         <Test />
       </body>
     </html>,
-    { debug: true, qwikLoader: { include: true }, ...opts }
+    { debug: true, ...opts }
   );
 }

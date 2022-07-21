@@ -90,11 +90,15 @@ const renderRoot = async (
 };
 export const injectQwikSlotCSS = (docOrElm: Document | Element) => {
   const doc = getDocument(docOrElm);
-  const element = isDocument(docOrElm) ? docOrElm.head : docOrElm;
+  const isDoc = isDocument(docOrElm);
   const style = doc.createElement('style');
   directSetAttribute(style, 'id', 'qwik/base-styles');
   style.textContent = `q\\:slot{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}`;
-  element.insertBefore(style, element.firstChild);
+  if (isDoc) {
+    docOrElm.head.appendChild(style);
+  } else {
+    docOrElm.insertBefore(style, docOrElm.firstChild);
+  }
 };
 
 export const getElement = (docOrElm: Document | Element): Element => {

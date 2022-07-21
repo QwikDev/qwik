@@ -38,9 +38,9 @@ export type { CorePlatform } from './platform/types';
 export type {
   Tracker,
   WatchFn,
-  MountFn as ServerFn,
+  MountFn,
   UseEffectOptions,
-  UseEffectRunOptions,
+  EagernessOptions,
   ResourceReturn,
   ResourceCtx,
   ResourcePending,
@@ -75,19 +75,10 @@ export { handleWatch } from './render/notify-render';
 export { useHostElement } from './use/use-host-element.public';
 export { useDocument } from './use/use-document.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
-export { useStore, useRef, useSequentialScope } from './use/use-store.public';
+export { useStore, useRef } from './use/use-store.public';
 export { useContext, useContextProvider, createContext } from './use/use-context';
-export { useWaitOn } from './use/use-core';
 export { useStylesQrl, useStyles$, useScopedStylesQrl, useScopedStyles$ } from './use/use-styles';
-export {
-  useCleanupQrl,
-  useCleanup$,
-  useResumeQrl,
-  useResume$,
-  useOn,
-  useOnDocument,
-  useOnWindow,
-} from './use/use-on';
+export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
 export type { Context } from './use/use-context';
 export type { Ref } from './use/use-store.public';
 

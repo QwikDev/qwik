@@ -3,9 +3,8 @@ title: useClientEffect$()
 layout: tutorial
 ---
 
-Use `useClientEffect$()` to execute code after the component is resumed. This is useful for setting up timers or streams on the client when the application is resumed. 
+Use `useClientEffect$()` to execute code after the component is resumed. This is useful for setting up timers or streams on the client when the application is resumed.
 
-NOTE: `useClientEffect$()` is similar to `useResume$()` but `useClientEffect$()` can be invoked multiple times. `useClientEffect$()` can be re-triggered as port of the `track` of store.
 
 ## `track()` and `useClientEffect$()`
 
@@ -27,7 +26,7 @@ Client effect code is executed after the component is resumed. The `useClientEff
 
 ## Example
 
-The example shows a clock component that is rendered below the fold. Use the `useClientEffect$()` to make the clock update the current time every second to make it work on the client. We have provided the utility function `updateClock` to aid your implementation. 
+The example shows a clock component that is rendered below the fold. Use the `useClientEffect$()` to make the clock update the current time every second to make it work on the client. We have provided the utility function `updateClock` to aid your implementation.
 
 Keep in mind that `useClientEffect$()` should return a cleanup function that releases the `setInterval` timer so that the timer can be properly cleaned up when the component is unmounted/destroyed.
 

@@ -9,8 +9,6 @@ export default component$(() => {
   );
 });
 
-export const head: DocumentHead = () => {
-  return {
-    title: 'Welcome!',
-  };
+export const head: DocumentHead = {
+  title: 'Welcome!',
 };

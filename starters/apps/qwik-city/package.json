@@ -14,7 +14,7 @@
   },
   "type": "module",
   "devDependencies": {
-    "@builder.io/qwik-city": "0.0.23",
+    "@builder.io/qwik-city": "0.0.24",
     "vite-tsconfig-paths": "3.5.0"
   }
 }

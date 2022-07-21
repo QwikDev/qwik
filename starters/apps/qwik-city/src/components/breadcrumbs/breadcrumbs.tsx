@@ -17,7 +17,7 @@ export const Breadcrumbs = component$(
     return (
       <Host class="breadcrumbs">
         {breadcrumbs.map((b, i) => (
-          <span data-test-breadcrumb={i}>{b.href ? <a href={b.href}>{b.text}</a> : b.text}</span>
+          <span>{b.href ? <a href={b.href}>{b.text}</a> : b.text}</span>
         ))}
       </Host>
     );

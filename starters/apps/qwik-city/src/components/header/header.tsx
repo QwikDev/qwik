@@ -12,44 +12,22 @@ export default component$(
       <Host>
         <div class="header-inner">
           <section class="logo">
-            <a href="/" data-test-link="header-home">
-              Qwik City 🏙
-            </a>
+            <a href="/">Qwik City 🏙</a>
           </section>
-          <nav data-test-header-links>
-            <a
-              href="/blog"
-              class={{ active: pathname.startsWith('/blog') }}
-              data-test-link="blog-home"
-            >
+          <nav>
+            <a href="/blog" class={{ active: pathname.startsWith('/blog') }}>
               Blog
             </a>
-            <a
-              href="/docs"
-              class={{ active: pathname.startsWith('/docs') }}
-              data-test-link="docs-home"
-            >
+            <a href="/docs" class={{ active: pathname.startsWith('/docs') }}>
               Docs
             </a>
-            <a
-              href="/api"
-              class={{ active: pathname.startsWith('/api') }}
-              data-test-link="api-home"
-            >
+            <a href="/api" class={{ active: pathname.startsWith('/api') }}>
               API
             </a>
-            <a
-              href="/products/hat"
-              class={{ active: pathname.startsWith('/products') }}
-              data-test-link="products-hat"
-            >
+            <a href="/products/hat" class={{ active: pathname.startsWith('/products') }}>
               Products
             </a>
-            <a
-              href="/about-us"
-              class={{ active: pathname.startsWith('/about-us') }}
-              data-test-link="about-us"
-            >
+            <a href="/about-us" class={{ active: pathname.startsWith('/about-us') }}>
               About Us
             </a>
           </nav>

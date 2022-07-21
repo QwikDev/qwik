@@ -10,7 +10,7 @@ export default component$(() => {
   useStyles$(styles);
 
   return (
-    <Host class="docs full-screen" data-test-layout="docs">
+    <Host class="docs full-screen">
       <Header />
       <main>
         <Menu />

@@ -14,12 +14,11 @@ export const Menu = component$(
         {menu
           ? menu.items?.map((item, i) => (
               <>
-                <h5 data-test-menu-header={i}>{item.text}</h5>
+                <h5>{item.text}</h5>
                 <ul>
                   {item.items?.map((item) => (
                     <li>
                       <Link
-                        data-test-menu-link={item.href}
                         href={item.href}
                         class={{
                           'is-active': loc.pathname === item.href,

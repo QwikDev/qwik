@@ -29,7 +29,7 @@ export default component$(() => {
 
       <p>Timestamp: {store.timestamp}</p>
       <p>
-        Node: <span data-test-api-node>{store.node}</span>
+        Node: <span>{store.node}</span>
       </p>
       <p>
         OS: <span>{store.os}</span>

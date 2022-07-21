@@ -16,17 +16,14 @@ export const onGet: EndpointHandler = ({ request, params }) => {
   };
 };
 
-export const onPost: EndpointHandler = async ({ request, params }) => {
+export const onPost: EndpointHandler = async ({ request }) => {
   return {
     status: 200,
-    body: {
-      timestamp: Date.now(),
-      method: request.method,
-      url: request.url,
-      params,
-      os: os.platform(),
-      arch: os.arch(),
-      node: process.versions.node,
+    body: `Platform: ${os.platform()}, Node: ${process.versions.node}, HTTP Method: ${
+      request.method
+    }`,
+    headers: {
+      'Content-Type': 'text/plain',
     },
   };
 };

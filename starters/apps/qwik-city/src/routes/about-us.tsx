@@ -12,8 +12,6 @@ export default component$(() => {
   );
 });
 
-export const head: DocumentHead = () => {
-  return {
-    title: 'About US',
-  };
+export const head: DocumentHead = {
+  title: 'About Us',
 };

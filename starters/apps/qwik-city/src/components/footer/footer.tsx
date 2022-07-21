@@ -21,7 +21,9 @@ export default component$(
             <a href="/sign-in">Sign In</a>
           </li>
           <li>
-            <a href="/">Home</a>
+            <a class="footer-home" href="/">
+              Home
+            </a>
           </li>
         </ul>
       </Host>

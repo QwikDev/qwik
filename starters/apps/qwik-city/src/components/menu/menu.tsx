@@ -1,5 +1,5 @@
 import { component$, Host, useScopedStyles$ } from '@builder.io/qwik';
-import { useContent, useLocation } from '@builder.io/qwik-city';
+import { useContent, Link, useLocation } from '@builder.io/qwik-city';
 import styles from './menu.css?inline';
 
 export const Menu = component$(
@@ -12,20 +12,20 @@ export const Menu = component$(
     return (
       <Host class="menu">
         {menu
-          ? menu.items?.map((item) => (
+          ? menu.items?.map((item, i) => (
               <>
                 <h5>{item.text}</h5>
                 <ul>
                   {item.items?.map((item) => (
                     <li>
-                      <a
+                      <Link
                         href={item.href}
                         class={{
                           'is-active': loc.pathname === item.href,
                         }}
                       >
                         {item.text}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>

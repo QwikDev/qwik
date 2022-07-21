@@ -16,7 +16,7 @@ export const Breadcrumbs = component$(
 
     return (
       <Host class="breadcrumbs">
-        {breadcrumbs.map((b, i) => (
+        {breadcrumbs.map((b) => (
           <span>{b.href ? <a href={b.href}>{b.text}</a> : b.text}</span>
         ))}
       </Host>

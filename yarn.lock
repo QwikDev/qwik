@@ -4867,6 +4867,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"headers-polyfill@npm:^3.0.10":
+  version: 3.0.10
+  resolution: "headers-polyfill@npm:3.0.10"
+  checksum: 9bb7e7056278f2da8f72a614475dcfed6e7299a1f84bff1763ac8c297d3b3e43f47e181950da249e7c922c26c552506a429123eac1f06e9e4c7d71779784c7ab
+  languageName: node
+  linkType: hard
+
 "hoist-non-react-statics@npm:^3.3.1":
   version: 3.3.2
   resolution: "hoist-non-react-statics@npm:3.3.2"
@@ -7454,6 +7461,7 @@ __metadata:
     eslint-plugin-no-only-tests: 2.6.0
     execa: 6.1.0
     express: 4.18.1
+    headers-polyfill: ^3.0.10
     mri: 1.2.0
     node-fetch: 3.2.9
     path-browserify: 1.0.1

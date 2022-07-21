@@ -10,7 +10,7 @@ import { createFileId, isLayoutName, normalizePath, parseLayoutId } from '../uti
 import { getPathnameFromFilePath } from '../utils/pathname';
 import { parseRoutePathname } from './parse-pathname';
 
-export function resolveLayout(routesDir: string, layoutSourceFile: RouteSourceFile) {
+export function resolveLayout(opts: NormalizedPluginOptions, layoutSourceFile: RouteSourceFile) {
   const dirName = layoutSourceFile.dirName;
   const filePath = layoutSourceFile.filePath;
   let dirPath = layoutSourceFile.dirPath;
@@ -25,7 +25,7 @@ export function resolveLayout(routesDir: string, layoutSourceFile: RouteSourceFi
   }
 
   const layout: BuildLayout = {
-    id: createFileId(routesDir, filePath),
+    id: createFileId(opts.routesDir, filePath),
     filePath,
     dirPath,
     ...layoutId,
@@ -76,7 +76,7 @@ export function resolveRoute(
 
   const buildRoute: BuildRoute = {
     type: sourceFile.type as any,
-    id: createFileId(routesDir, filePath),
+    id: createFileId(opts.routesDir, filePath),
     filePath,
     pathname,
     layouts: layouts.reverse(),

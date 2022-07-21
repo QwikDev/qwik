@@ -102,10 +102,9 @@ export interface DocumentStyle {
 }
 
 // Warning: (ae-forgotten-export) The symbol "RequestEvent" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "EndpointResponse" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type EndpointHandler<BODY = unknown> = (ev: RequestEvent) => EndpointResponse<BODY> | undefined | null | Promise<EndpointResponse<BODY> | undefined | null>;
+export type EndpointHandler<BODY = unknown> = (ev: RequestEvent) => BODY | undefined | null | void | Promise<BODY | undefined | null | void>;
 
 // Warning: (ae-forgotten-export) The symbol "HtmlProps" needs to be exported by the entry point index.d.ts
 //
@@ -134,14 +133,13 @@ export interface QwikCityPlan {
 // @public (undocumented)
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
-// Warning: (ae-forgotten-export) The symbol "ContentModuleLoader" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "EndpointModuleLoader" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ROUTE_TYPE_ENDPOINT" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type RouteData = [pattern: RegExp, pageLoaders: ContentModuleLoader[]] | [pattern: RegExp, pageLoaders: ContentModuleLoader[], paramNames: string[]] | [
+export type RouteData = [pattern: RegExp, loaders: ModuleLoader[]] | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]] | [
 pattern: RegExp,
-endpointLoaders: EndpointModuleLoader[],
+loaders: ModuleLoader[],
 paramNames: string[],
 routeType: typeof ROUTE_TYPE_ENDPOINT
 ];

@@ -6,14 +6,6 @@ import { suite } from './test-suite';
 
 const test = suite();
 
-test('createFileId, Page index.tsx', () => {
-  const rootDir = tmpdir();
-  const routesDir = utils.normalizePath(join(rootDir, 'src', 'routes'));
-  const path = utils.normalizePath(join(routesDir, 'index.tsx'));
-  const p = utils.createFileId(routesDir, path);
-  assert.is(p, 'Index');
-});
-
 test('createFileId, Page dir/index.tsx', () => {
   const rootDir = tmpdir();
   const routesDir = utils.normalizePath(join(rootDir, 'src', 'routes'));

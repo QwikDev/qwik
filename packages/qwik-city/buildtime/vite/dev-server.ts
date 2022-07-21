@@ -1,15 +1,12 @@
 import type { ViteDevServer } from 'vite';
 import type { BuildContext } from '../types';
-import type { HttpMethod } from '../../runtime/src/library/types';
+import type { EndpointModule, HttpMethod } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
 import {
   endpointHandler,
   getEndpointResponse,
 } from '../../middleware/request-handler/endpoint-handler';
-import {
-  checkEndpointRedirect,
-  checkPageRedirect,
-} from '../../middleware/request-handler/redirect-handler';
+import { checkPageRedirect } from '../../middleware/request-handler/redirect-handler';
 import { getQwikCityUserContext, isAcceptJsonOnly } from '../../middleware/request-handler/utils';
 import { fromNodeRequest, toNodeResponse } from '../../middleware/express/utils';
 import { buildFromUrlPathname } from '../build';
@@ -44,21 +41,32 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
           }
         }
 
+        const endpointModules: EndpointModule[] = [];
+        for (const layout of route.layouts) {
+          const layoutModule = await server.ssrLoadModule(layout.filePath, {
+            fixStacktrace: true,
+          });
+          endpointModules.push(layoutModule);
+        }
         const endpointModule = await server.ssrLoadModule(route.filePath, {
           fixStacktrace: true,
         });
+        endpointModules.push(endpointModule);
 
         const endpointResponse = await getEndpointResponse(
           request,
           method,
           url,
           params,
-          endpointModule
+          endpointModules
         );
 
-        const endpointRedirectResponse = checkEndpointRedirect(endpointResponse);
-        if (endpointRedirectResponse) {
-          await toNodeResponse(endpointRedirectResponse, nodeRes);
+        if (endpointResponse.immediateCommitToNetwork) {
+          const response = new Response(endpointResponse.body, {
+            status: endpointResponse.status,
+            headers: endpointResponse.headers,
+          });
+          await toNodeResponse(response, nodeRes);
           nodeRes.end();
           return;
         }

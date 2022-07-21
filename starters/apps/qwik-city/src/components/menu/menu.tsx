@@ -12,7 +12,7 @@ export const Menu = component$(
     return (
       <Host class="menu">
         {menu
-          ? menu.items?.map((item, i) => (
+          ? menu.items?.map((item) => (
               <>
                 <h5>{item.text}</h5>
                 <ul>

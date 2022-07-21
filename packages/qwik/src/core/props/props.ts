@@ -111,7 +111,7 @@ export const cleanupContext = (ctx: QContext, subsManager: SubscriptionManager) 
 };
 
 const PREFIXES = ['document:on', 'window:on', 'on'];
-const SCOPED = ['on-window', 'on-window', 'on'];
+const SCOPED = ['on-document', 'on-window', 'on'];
 
 export const normalizeOnProp = (prop: string) => {
   let scope = 'on';

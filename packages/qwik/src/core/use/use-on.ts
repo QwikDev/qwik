@@ -263,7 +263,7 @@ export const useOn = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
  */
 // </docs>
 export const useOnDocument = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
-  _useOn(`on-window:${event}`, eventQrl);
+  _useOn(`on-document:${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnWindow">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

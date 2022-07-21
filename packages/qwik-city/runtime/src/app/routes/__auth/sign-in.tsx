@@ -27,37 +27,25 @@ export default component$(() => {
   );
 });
 
-export const onGet: EndpointHandler<EndpointData> = async ({ request }) => {
+export const onGet: EndpointHandler = async ({ request, response }) => {
   const isAuthenticated = await isUserAuthenticated(request.headers.get('cookie'));
   if (isAuthenticated) {
-    return {
-      redirect: '/dashboard',
-    };
+    response.redirect('/dashboard');
   }
 };
 
-export const onPost: EndpointHandler<EndpointData> = async ({ request }) => {
+export const onPost: EndpointHandler = async ({ request, response }) => {
   const formdata = await request.formData();
   const result = await signIn(formdata);
 
   if (result.status === 'signed-in') {
-    return {
-      headers: {
-        'Set-Cookie': result.cookie,
-      },
-      redirect: '/dashboard',
-    };
+    response.headers.set('Set-Cookie', result.cookie);
+    response.redirect('/dashboard');
+  } else {
+    response.status(403);
   }
-
-  return {
-    status: 403,
-  };
 };
 
 export const head: DocumentHead = {
   title: 'Sign In',
 };
-
-export interface EndpointData {
-  isAuthenticated: boolean;
-}

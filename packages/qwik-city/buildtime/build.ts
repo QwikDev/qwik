@@ -30,13 +30,13 @@ export async function buildFromUrlPathname(
 
   if (sourceFiles.length > 0) {
     const resolved = await resolveSourceFiles(ctx.opts, sourceFiles);
-    ctx.layouts = resolved.layouts;
-    ctx.routes = resolved.routes;
-    ctx.menus = resolved.menus;
 
     for (const route of resolved.routes) {
       const match = route.pattern.exec(pathname);
       if (match) {
+        ctx.layouts = resolved.layouts;
+        ctx.routes = resolved.routes;
+        ctx.menus = resolved.menus;
         return {
           route,
           params: getRouteParams(route.paramNames, match),

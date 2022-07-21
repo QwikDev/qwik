@@ -11,6 +11,7 @@ import {
 import type { HTMLAttributes } from '@builder.io/qwik';
 import { loadRoute } from './routing';
 import type {
+  ContentModule,
   ContentState,
   ContentStateInternal,
   MutableRouteLocation,
@@ -80,7 +81,7 @@ export const Html = component$<HtmlProps>(
         pathname
       );
       if (loadedRoute) {
-        const contentModules = loadedRoute.contents;
+        const contentModules = loadedRoute.mods as ContentModule[];
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
         const endpointResponse = getSsrEndpointResponse(doc);
         const resolvedHead = resolveHead(endpointResponse, routeLocation, contentModules);

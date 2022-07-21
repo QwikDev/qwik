@@ -79,12 +79,12 @@ renderSuite('should serialize events correctly', async () => {
       on:keyup="/runtimeQRL#*"
       on:dblclick="/runtimeQRL#*"
       on:qvisible="/runtimeQRL#*"
-      on-window:load="/runtimeQRL#*"
-      on-window:thing="/runtimeQRL#*"
+      on-document:load="/runtimeQRL#*"
+      on-document:thing="/runtimeQRL#*"
       on-window:scroll="/runtimeQRL#*"
       {...{
         'on:-dbl-click': '/runtimeQRL#*',
-        'on-window:-thing': '/runtimeQRL#*',
+        'on-document:-thing': '/runtimeQRL#*',
         'on-window:-scroll': '/runtimeQRL#*',
       }}
     ></Div>
@@ -212,7 +212,7 @@ renderSuite('should render component external props', async () => {
       data-value="hello world"
       title="Custom title"
       on:click="/runtimeQRL#*"
-      on-window:load="/runtimeQRL#*"
+      on-document:load="/runtimeQRL#*"
       on-window:scroll="/runtimeQRL#*"
       preventdefault:click
       {...{

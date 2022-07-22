@@ -70,7 +70,8 @@ export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
 
 // @public
 export interface ComponentOptions {
-    tagName?: string;
+    // Warning: (ae-forgotten-export) The symbol "JSXTagName" needs to be exported by the entry point index.d.ts
+    tagName?: JSXTagName;
 }
 
 // @public

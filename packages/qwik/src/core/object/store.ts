@@ -17,7 +17,13 @@ import {
   mutable,
   shouldSerialize,
 } from './q-object';
-import { destroyWatch, isResourceWatch, ResourceReturnInternal, SubscriberDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
+import {
+  destroyWatch,
+  isResourceWatch,
+  ResourceReturnInternal,
+  SubscriberDescriptor,
+  WatchFlagsIsDirty,
+} from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
 import { emitEvent } from '../util/event';
 import { ContainerState, getContainerState } from '../render/notify-render';
@@ -31,7 +37,12 @@ import { isArray, isObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
 import type { Subscriber } from '../use/use-subscriber';
-import { getInternalResource, isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
+import {
+  getInternalResource,
+  isResourceReturn,
+  parseResourceReturn,
+  serializeResource,
+} from '../use/use-resource';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -40,7 +51,6 @@ export const UNDEFINED_PREFIX = '\u0010';
 export const QRL_PREFIX = '\u0011';
 export const DOCUMENT_PREFIX = '\u0012';
 export const RESOURCE_PREFIX = '\u0013';
-
 
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -51,14 +61,18 @@ export const RESOURCE_PREFIX = '\u0013';
  * @alpha
  */
 // </docs>
-export const pauseContainer = async (elmOrDoc: Element | Document, defaultParentJSON?: Element): Promise<SnapshotResult> => {
+export const pauseContainer = async (
+  elmOrDoc: Element | Document,
+  defaultParentJSON?: Element
+): Promise<SnapshotResult> => {
   const doc = getDocument(elmOrDoc);
   const documentElement = doc.documentElement;
   const containerEl = isDocument(elmOrDoc) ? documentElement : elmOrDoc;
   if (directGetAttribute(containerEl, QContainerAttr) === 'paused') {
     throw qError(QError_containerAlreadyPaused);
   }
-  const parentJSON = defaultParentJSON ?? containerEl === doc.documentElement ? doc.body : containerEl;
+  const parentJSON =
+    defaultParentJSON ?? containerEl === doc.documentElement ? doc.body : containerEl;
   const data = await pauseState(containerEl);
   const script = doc.createElement('script');
   directSetAttribute(script, 'type', 'qwik/json');

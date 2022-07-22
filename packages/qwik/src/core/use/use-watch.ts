@@ -51,7 +51,6 @@ export type MountFn<T> = () => ValueOrPromise<T>;
  */
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
-
 export type ResourceReturnInternal<T = any> = ResourceReturn<T> & { dirty: boolean };
 
 /**
@@ -520,19 +519,26 @@ export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): ResourceReturn<T> => 
   return resource;
 };
 
-const createResourceFromPromise = <T>(promise: Promise<T>, containerState: ContainerState): ResourceReturn<T> => {
-  const resource = createResourceReturn<T>(containerState, undefined, promise.then(
-    (value) => {
-      resource.state = 'resolved';
-      resource.resolved = value as any;
-      return value;
-    },
-    (reason) => {
-      resource.state = 'rejected';
-      resource.error = reason;
-      throw reason;
-    }
-  ));
+const createResourceFromPromise = <T>(
+  promise: Promise<T>,
+  containerState: ContainerState
+): ResourceReturn<T> => {
+  const resource = createResourceReturn<T>(
+    containerState,
+    undefined,
+    promise.then(
+      (value) => {
+        resource.state = 'resolved';
+        resource.resolved = value as any;
+        return value;
+      },
+      (reason) => {
+        resource.state = 'rejected';
+        resource.error = reason;
+        throw reason;
+      }
+    )
+  );
   return resource;
 };
 
@@ -573,7 +579,7 @@ export const useMount$ = /*#__PURE__*/ implicit$FirstArg(useMountQrl);
 
 export const isResourceWatch = (watch: SubscriberDescriptor): watch is ResourceDescriptor<any> => {
   return 'r' in watch;
-}
+};
 
 export const runSubscriber = async (
   watch: SubscriberDescriptor,
@@ -690,8 +696,8 @@ export const runResource = <T>(
           cleanupWatch(watch);
           reject('timeout');
         }
-      })
-    ])
+      }),
+    ]);
   }
   return promise;
 };

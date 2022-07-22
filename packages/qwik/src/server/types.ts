@@ -59,12 +59,10 @@ export interface PrefetchResource {
 
 export { QwikManifest, QwikBundle, QwikSymbol, GlobalInjections };
 
-
 /**
  * @public
  */
-export interface RenderToStreamResult extends RenderResult {
-}
+export interface RenderToStreamResult extends RenderResult {}
 
 /**
  * @public
@@ -133,7 +131,6 @@ export interface RenderOptions extends SerializeDocumentOptions {
  */
 export interface RenderToStringOptions extends RenderOptions {}
 
-
 /**
  * @public
  */
@@ -144,7 +141,7 @@ export interface RenderToStreamOptions extends RenderOptions {
 /**
  * @public
  */
-export type StreamWriter = { write: (v: string) => void } | WritableStreamDefaultWriter
+export type StreamWriter = { write: (v: string) => void } | WritableStreamDefaultWriter;
 
 /**
  * @public
@@ -155,7 +152,6 @@ export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToSt
  * @public
  */
 export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
-
 
 /**
  * @public

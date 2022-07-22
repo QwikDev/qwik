@@ -45,7 +45,7 @@ export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
 };
 
 export const delay = (timeout: number) => {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     setTimeout(resolve, timeout);
-  })
-}
+  });
+};

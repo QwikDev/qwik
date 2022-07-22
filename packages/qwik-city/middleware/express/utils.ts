@@ -61,7 +61,7 @@ export function toNodeResponse(response: Response, nodeRes: ServerResponse): Ser
     ) {
       nodeRes.write(response.body);
     } else if (response.body instanceof Readable) {
-      return response.body.pipe(nodeRes, {end: true});
+      return response.body.pipe(nodeRes, { end: true });
     }
   }
   return nodeRes;

@@ -14,7 +14,7 @@ import { ROUTE_TYPE_ENDPOINT } from '../../runtime/src/library/constants';
 export async function requestHandler(
   render: Render,
   stream: StreamWriter,
-  opts: QwikCityRequestOptions,
+  opts: QwikCityRequestOptions
 ): Promise<Response | null> {
   try {
     const { request, routes, menus, cacheModules, trailingSlash } = opts;

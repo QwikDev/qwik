@@ -24,8 +24,7 @@ import { delay } from '../util/promises';
 import { isObject } from '../util/types';
 import type { GetObjID } from '../object/store';
 
-
-export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn<T>  => {
+export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn<T> => {
   const resource: ResourceReturn<T> = {
     __brand: 'resource',
     promise: undefined as never,
@@ -35,16 +34,20 @@ export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn
     timeout: opts?.timeout,
   };
   return resource;
-}
+};
 
-export const createResourceReturn = <T>(containerState: ContainerState, opts?: ResourceOptions, initialPromise?: Promise<T>): ResourceReturn<T>  => {
+export const createResourceReturn = <T>(
+  containerState: ContainerState,
+  opts?: ResourceOptions,
+  initialPromise?: Promise<T>
+): ResourceReturn<T> => {
   const result = _createResourceReturn<T>(opts);
   result.promise = initialPromise as any;
   const resource = createProxy(result, containerState, 0, undefined);
   return resource;
-}
+};
 
-export const parseResourceReturn =  <T>(data: string): ResourceReturn<T>  => {
+export const parseResourceReturn = <T>(data: string): ResourceReturn<T> => {
   const [first, id] = data.split(' ');
   const result = _createResourceReturn<T>(undefined);
   result.promise = Promise.resolve() as any;
@@ -59,7 +62,7 @@ export const parseResourceReturn =  <T>(data: string): ResourceReturn<T>  => {
     result.promise = Promise.reject();
   }
   return result;
-}
+};
 
 /**
  * @alpha
@@ -73,7 +76,10 @@ export interface ResourceOptions {
 /**
  * @alpha
  */
-export const useResourceQrl = <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions): ResourceReturn<T> => {
+export const useResourceQrl = <T>(
+  qrl: QRL<ResourceFn<T>>,
+  opts?: ResourceOptions
+): ResourceReturn<T> => {
   const { get, set, i, ctx } = useSequentialScope<ResourceReturn<T>>();
   if (get != null) {
     return get;
@@ -98,11 +104,9 @@ export const useResourceQrl = <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOption
   return resource;
 };
 
-
-
 export const isResourceReturn = (obj: any): obj is ResourceReturn<any> => {
   return isObject(obj) && obj.__brand === 'resource';
-}
+};
 
 export const serializeResource = (resource: ResourceReturn<any>, getObjId: GetObjID) => {
   const state = resource.state;
@@ -113,7 +117,7 @@ export const serializeResource = (resource: ResourceReturn<any>, getObjId: GetOb
   } else {
     return `2`;
   }
-}
+};
 /**
  * @alpha
  */
@@ -140,7 +144,7 @@ export interface ResourceProps<T> {
 
 export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceReturnInternal<T> => {
   return getProxyTarget(resource) as any;
-}
+};
 
 /**
  * @alpha
@@ -164,14 +168,14 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
     }
   }
 
-  let promise: any = props.resource.promise.then(props.onResolved, props.onRejected)
+  let promise: any = props.resource.promise.then(props.onResolved, props.onRejected);
   if (isServer) {
     const onPending = props.onPending;
     if (props.ssrWait && onPending) {
       promise = Promise.race([
         delay(props.ssrWait).then(() => {
           getInternalResource(props.resource).dirty = true;
-          return onPending()
+          return onPending();
         }),
         promise,
       ]);

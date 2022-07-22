@@ -32,9 +32,10 @@ export function serializeDocument(docOrEl: Document | Element, opts?: SerializeD
   return DOCTYPE + docOrEl.documentElement.outerHTML;
 }
 
-
-export function splitDocument(docOrEl: Document | Element, opts?: SerializeDocumentOptions): [string, string] {
-
+export function splitDocument(
+  docOrEl: Document | Element,
+  opts?: SerializeDocumentOptions
+): [string, string] {
   const html = serializeDocument(docOrEl, opts);
   let start = 0;
   let end = html.length;
@@ -50,10 +51,7 @@ export function splitDocument(docOrEl: Document | Element, opts?: SerializeDocum
       end = lastClosingTag;
     }
   }
-  return [
-    html.slice(start, end),
-    html.slice(end)
-  ];
+  return [html.slice(start, end), html.slice(end)];
 }
 
 const DOCTYPE = '<!DOCTYPE html>';

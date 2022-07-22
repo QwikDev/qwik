@@ -1,15 +1,15 @@
 import {
   component$,
   Host,
+  NoSerialize,
+  PropFunction,
+  useClientEffect$,
   useHostElement,
   useStore,
-  NoSerialize,
-  useClientEffect$,
-  QRL,
   useWatch$,
 } from '@builder.io/qwik';
-import { addQwikLibs, ICodeEditorViewState, initMonacoEditor, updateMonacoEditor } from './monaco';
 import type { IStandaloneCodeEditor } from './monaco';
+import { addQwikLibs, ICodeEditorViewState, initMonacoEditor, updateMonacoEditor } from './monaco';
 import type { ReplAppInput, ReplStore } from './types';
 
 export const Editor = component$((props: EditorProps) => {
@@ -60,7 +60,7 @@ export interface EditorProps {
   input: ReplAppInput;
   ariaLabel: string;
   lineNumbers: 'on' | 'off';
-  onChangeQrl?: QRL<(path: string, code: string) => void>;
+  onChange$: PropFunction<(path: string, code: string) => void>;
   wordWrap: 'on' | 'off';
   store: ReplStore;
 }

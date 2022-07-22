@@ -1,17 +1,25 @@
-import { component$, Host, QRL, Slot, useStore } from '@builder.io/qwik';
+import { component$, Host, PropFunction, Slot, useStore } from '@builder.io/qwik';
 
 export const App = component$(() => {
   const store = useStore({ count: 0 });
-  return <MyButton onClick$={() => store.count++}>{store.count}</MyButton>;
+  return (
+    <MyButton
+      onClick$={async () => {
+        store.count++;
+      }}
+    >
+      {store.count}
+    </MyButton>
+  );
 });
 
 interface MyButtonProps {
-  onClickQrl?: QRL<(event: Event) => void>;
+  onClick$: PropFunction<(event: Event) => void>;
 }
 export const MyButton = component$(
   (props: MyButtonProps) => {
     return (
-      <Host onClickQrl={props.onClickQrl} style={{ backgroundColor: 'lightpink', padding: '1em' }}>
+      <Host onClick$={props.onClick$} style={{ backgroundColor: 'lightpink', padding: '1em' }}>
         <Slot />
       </Host>
     );

@@ -97,10 +97,10 @@ const Playground = component$(() => {
 
       <div
         class="repl-col-resize-bar"
-        onPointerDownQrl={pointerDown}
-        onPointerMoveQrl={pointerMove}
-        onPointerUpQrl={pointerUp}
-        onPointerOutQrl={pointerUp}
+        onPointerDown$={pointerDown}
+        onPointerMove$={pointerMove}
+        onPointerUp$={pointerUp}
+        onPointerOut$={pointerUp}
         style={{
           left: `calc(${store.colLeft}% - 6px)`,
         }}

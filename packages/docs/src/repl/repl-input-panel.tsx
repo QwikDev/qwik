@@ -45,7 +45,7 @@ export const ReplInputPanel = ({
       <div class="repl-tab">
         <Editor
           input={input}
-          onChangeQrl={onInputChangeQrl}
+          onChange$={onInputChangeQrl}
           store={store}
           ariaLabel="File Input"
           lineNumbers="on"

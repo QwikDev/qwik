@@ -1,4 +1,4 @@
-import type { ReplModuleInput } from '../../components/repl/types';
+import type { ReplModuleInput } from '../../repl/types';
 
 export interface ExampleSection {
   id: string;

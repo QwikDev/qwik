@@ -262,14 +262,14 @@ const executeWatchesBefore = async (containerState: ContainerState) => {
   const resourcesPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
   const watchPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
   const isWatch = (watch: SubscriberDescriptor) => (watch.f & WatchFlagsIsWatch) !== 0;
-  const isResource = (watch: SubscriberDescriptor) => (watch.f & WatchFlagsIsResource) !== 0;
+  const isResourceWatch = (watch: SubscriberDescriptor) => (watch.f & WatchFlagsIsResource) !== 0;
 
   containerState.$watchNext$.forEach((watch) => {
     if (isWatch(watch)) {
       watchPromises.push(then(watch.qrl.$resolveLazy$(watch.el), () => watch));
       containerState.$watchNext$.delete(watch);
     }
-    if (isResource(watch)) {
+    if (isResourceWatch(watch)) {
       resourcesPromises.push(then(watch.qrl.$resolveLazy$(watch.el), () => watch));
       containerState.$watchNext$.delete(watch);
     }
@@ -279,7 +279,7 @@ const executeWatchesBefore = async (containerState: ContainerState) => {
     containerState.$watchStaging$.forEach((watch) => {
       if (isWatch(watch)) {
         watchPromises.push(then(watch.qrl.$resolveLazy$(watch.el), () => watch));
-      } else if (isResource(watch)) {
+      } else if (isResourceWatch(watch)) {
         resourcesPromises.push(then(watch.qrl.$resolveLazy$(watch.el), () => watch));
       } else {
         containerState.$watchNext$.add(watch);

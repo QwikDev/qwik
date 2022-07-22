@@ -45,8 +45,7 @@ export function qwikCity(render: Render, opts: QwikCityPlanExpress) {
 
       const response = await requestHandler(render, requestOpts);
       if (response) {
-        await toNodeResponse(response, nodeRes);
-        nodeRes.end();
+        toNodeResponse(response, nodeRes);
         return;
       }
     } catch (e) {

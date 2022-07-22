@@ -59,13 +59,26 @@ export interface PrefetchResource {
 
 export { QwikManifest, QwikBundle, QwikSymbol, GlobalInjections };
 
+
 /**
  * @public
  */
-export interface RenderToStringResult {
+export interface RenderToStreamResult extends RenderResult {
+}
+
+/**
+ * @public
+ */
+export interface RenderToStringResult extends RenderResult {
+  html: string;
+}
+
+/**
+ * @public
+ */
+export interface RenderResult {
   prefetchResources: PrefetchResource[];
   snapshotResult: SnapshotResult | null;
-  html: string;
   timing: {
     createDocument: number;
     render: number;
@@ -87,7 +100,7 @@ export interface QwikLoaderOptions {
 /**
  * @public
  */
-export interface RenderToStringOptions extends SerializeDocumentOptions {
+export interface RenderOptions extends SerializeDocumentOptions {
   /**
    * Defaults to `true`
    */
@@ -105,6 +118,7 @@ export interface RenderToStringOptions extends SerializeDocumentOptions {
   qwikLoader?: QwikLoaderOptions;
 
   prefetchStrategy?: PrefetchStrategy | null;
+
   /**
    * When set, the app is serialized into a fragment. And the returned html is not a complete document.
    * Defaults to `undefined`
@@ -117,12 +131,36 @@ export interface RenderToStringOptions extends SerializeDocumentOptions {
 /**
  * @public
  */
-export interface RenderOptions extends RenderToStringOptions {}
+export interface RenderToStringOptions extends RenderOptions {}
+
 
 /**
  * @public
  */
-export type Render = (opts: RenderOptions) => Promise<RenderToStringResult>;
+export interface RenderToStreamOptions extends RenderOptions {
+  stream: StreamWriter;
+}
+
+/**
+ * @public
+ */
+export type StreamWriter = { write: (v: string) => void } | WritableStreamDefaultWriter
+
+/**
+ * @public
+ */
+export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
+
+/**
+ * @public
+ */
+export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
+
+
+/**
+ * @public
+ */
+export type Render = RenderToString | RenderToStream;
 
 export interface RenderDocument extends Document, RenderDocumentUserContext {}
 

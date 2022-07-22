@@ -9,7 +9,6 @@ import type { SerializeDocumentOptions } from './types';
  */
 export function serializeDocument(docOrEl: Document | Element, opts?: SerializeDocumentOptions) {
   if (!isDocument(docOrEl)) {
-    // TODO: move head styles
     return docOrEl.outerHTML;
   }
 
@@ -30,5 +29,31 @@ export function serializeDocument(docOrEl: Document | Element, opts?: SerializeD
     }
   }
 
-  return '<!DOCTYPE html>' + docOrEl.documentElement.outerHTML;
+  return DOCTYPE + docOrEl.documentElement.outerHTML;
 }
+
+
+export function splitDocument(docOrEl: Document | Element, opts?: SerializeDocumentOptions): [string, string] {
+
+  const html = serializeDocument(docOrEl, opts);
+  let start = 0;
+  let end = html.length;
+  if (html.startsWith(DOCTYPE)) {
+    start = DOCTYPE.length;
+  }
+  const bodyIndex = html.lastIndexOf('</body>');
+  if (bodyIndex >= 0) {
+    end = bodyIndex;
+  } else {
+    const lastClosingTag = html.lastIndexOf('</');
+    if (lastClosingTag >= 0) {
+      end = lastClosingTag;
+    }
+  }
+  return [
+    html.slice(start, end),
+    html.slice(end)
+  ];
+}
+
+const DOCTYPE = '<!DOCTYPE html>';

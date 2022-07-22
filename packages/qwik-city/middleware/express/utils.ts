@@ -1,4 +1,5 @@
 import { Readable } from 'stream';
+import type { ServerResponse } from 'http';
 
 export async function fromNodeRequest(url: URL, nodeReq: NodeRequest) {
   const headers = new URLSearchParams();
@@ -48,9 +49,10 @@ export async function fromNodeRequest(url: URL, nodeReq: NodeRequest) {
   return request;
 }
 
-export async function toNodeResponse(response: Response, nodeRes: NodeResponse) {
+export function toNodeResponse(response: Response, nodeRes: ServerResponse): ServerResponse {
   nodeRes.statusCode = response.status;
   response.headers.forEach((value, key) => nodeRes.setHeader(key, value));
+
   if ((response.status < 300 || response.status >= 400) && response.body) {
     if (
       typeof response.body === 'string' ||
@@ -59,11 +61,10 @@ export async function toNodeResponse(response: Response, nodeRes: NodeResponse) 
     ) {
       nodeRes.write(response.body);
     } else if (response.body instanceof Readable) {
-      for await (const chunk of response.body) {
-        nodeRes.write(chunk);
-      }
+      return response.body.pipe(nodeRes, {end: true});
     }
   }
+  return nodeRes;
 }
 
 export interface NodeRequest {
@@ -71,11 +72,4 @@ export interface NodeRequest {
   protocol?: string;
   headers?: Record<string, string | string[] | undefined>;
   method?: string;
-}
-
-export interface NodeResponse {
-  statusCode: number;
-  setHeader(key: string, value: string): void;
-  write(chunk: any): boolean;
-  end(): void;
 }

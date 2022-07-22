@@ -35,8 +35,7 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
             ctx.opts.trailingSlash
           );
           if (pageRedirectResponse) {
-            await toNodeResponse(pageRedirectResponse, nodeRes);
-            nodeRes.end();
+            toNodeResponse(pageRedirectResponse, nodeRes);
             return;
           }
         }
@@ -66,15 +65,13 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
             status: endpointResponse.status,
             headers: endpointResponse.headers,
           });
-          await toNodeResponse(response, nodeRes);
-          nodeRes.end();
+          toNodeResponse(response, nodeRes);
           return;
         }
 
         if (route.type === 'endpoint' || isAcceptJsonOnly(request)) {
           const response = endpointHandler(method, endpointResponse);
-          await toNodeResponse(response, nodeRes);
-          nodeRes.end();
+          toNodeResponse(response, nodeRes);
           return;
         }
 

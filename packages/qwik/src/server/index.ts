@@ -11,8 +11,13 @@ export type {
   SnapshotResult,
   Render,
   RenderOptions,
+  RenderResult,
+  RenderToStreamOptions,
+  RenderToStreamResult,
+  QwikLoaderOptions,
+  StreamWriter,
 } from './types';
-export { renderToString } from './render';
+export { renderToString, renderToStream } from './render';
 export { createTimer, versions } from './utils';
 export { getQwikLoaderScript } from './scripts';
 export { serializeDocument } from './serialize';

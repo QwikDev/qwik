@@ -17,7 +17,7 @@ import {
   mutable,
   shouldSerialize,
 } from './q-object';
-import { destroyWatch, SubscriberDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
+import { destroyWatch, isResourceWatch, ResourceReturnInternal, SubscriberDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
 import { emitEvent } from '../util/event';
 import { ContainerState, getContainerState } from '../render/notify-render';
@@ -31,6 +31,7 @@ import { isArray, isObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
 import type { Subscriber } from '../use/use-subscriber';
+import { getInternalResource, isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -38,6 +39,8 @@ export type GetObjID = (obj: any) => string | null;
 export const UNDEFINED_PREFIX = '\u0010';
 export const QRL_PREFIX = '\u0011';
 export const DOCUMENT_PREFIX = '\u0012';
+export const RESOURCE_PREFIX = '\u0013';
+
 
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -48,14 +51,14 @@ export const DOCUMENT_PREFIX = '\u0012';
  * @alpha
  */
 // </docs>
-export const pauseContainer = async (elmOrDoc: Element | Document): Promise<SnapshotResult> => {
+export const pauseContainer = async (elmOrDoc: Element | Document, defaultParentJSON?: Element): Promise<SnapshotResult> => {
   const doc = getDocument(elmOrDoc);
   const documentElement = doc.documentElement;
   const containerEl = isDocument(elmOrDoc) ? documentElement : elmOrDoc;
   if (directGetAttribute(containerEl, QContainerAttr) === 'paused') {
     throw qError(QError_containerAlreadyPaused);
   }
-  const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
+  const parentJSON = defaultParentJSON ?? containerEl === doc.documentElement ? doc.body : containerEl;
   const data = await pauseState(containerEl);
   const script = doc.createElement('script');
   directSetAttribute(script, 'type', 'qwik/json');
@@ -187,6 +190,7 @@ export interface SnapshotResult {
   listeners: SnapshotListener[];
   objs: any[];
   mode: 'render' | 'listeners' | 'static';
+  pendingContent: Promise<string>[];
 }
 
 const hasContext = (el: Element) => {
@@ -232,6 +236,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
       },
       objs: [],
       listeners: [],
+      pendingContent: [],
       mode: 'static',
     };
   }
@@ -423,6 +428,9 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
         if (obj === doc) {
           return DOCUMENT_PREFIX;
         }
+        if (isResourceReturn(obj)) {
+          return RESOURCE_PREFIX + serializeResource(obj, getObjId);
+        }
         if (isArray(obj)) {
           return obj.map(mustGetObjId);
         }
@@ -516,8 +524,18 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     }
   });
 
+  async function additionalChunk(obj: any) {
+    const localCollector = createCollector(doc, containerState);
+    localCollector.$seen$ = collector.$seen$;
+    localCollector.$seenLeaks$ = collector.$seenLeaks$;
+
+    await collectValue(obj, collector, false);
+
+    return '';
+  }
+
+  const pendingResources: Promise<string>[] = [];
   for (const watch of collector.$watches$) {
-    destroyWatch(watch);
     if (qDev) {
       if (watch.f & WatchFlagsIsDirty) {
         logWarn('Serializing dirty watch. Looks like an internal error.');
@@ -525,6 +543,14 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
       if (!isConnected(watch)) {
         logWarn('Serializing disconneted watch. Looks like an internal error.');
       }
+    }
+    if (isResourceWatch(watch)) {
+      const resource = getInternalResource(watch.r);
+      if (resource.dirty) {
+        pendingResources.push(resource.promise.then(additionalChunk));
+      }
+    } else {
+      destroyWatch(watch);
     }
   }
 
@@ -546,6 +572,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
       objs: convertedObjs,
       subs,
     },
+    pendingContent: [],
     objs,
     listeners,
     mode: canRender ? 'render' : 'listeners',
@@ -605,6 +632,8 @@ const reviveValues = (
         objs[i] = getDocument(containerEl);
       } else if (value.startsWith(QRL_PREFIX)) {
         objs[i] = parseQRL(value.slice(1), containerEl);
+      } else if (value.startsWith(RESOURCE_PREFIX)) {
+        objs[i] = parseResourceReturn(value.slice(1));
       }
     } else {
       const sub = subs[i];
@@ -643,6 +672,13 @@ const reviveNestedObjects = (obj: any, getObject: GetObject) => {
     return;
   }
   if (obj && typeof obj == 'object') {
+    if (isResourceReturn(obj)) {
+      if (obj.state === 'resolved') {
+        obj.resolved = getObject(obj.resolved);
+        obj.promise = Promise.resolve(obj.resolved);
+      }
+      return;
+    }
     if (isArray(obj)) {
       for (let i = 0; i < obj.length; i++) {
         const value = obj[i];
@@ -863,6 +899,13 @@ const collectValue = async (obj: any, collector: Collector, leaks: boolean) => {
           return;
         }
         seen.add(obj);
+
+        if (isResourceReturn(obj)) {
+          collector.$objMap$.set(target, target);
+          await collectValue(obj.promise, collector, leaks);
+          await collectValue(obj.resolved, collector, leaks);
+          return;
+        }
       }
 
       collector.$objMap$.set(obj, obj);

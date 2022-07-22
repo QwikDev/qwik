@@ -306,7 +306,7 @@ export const noSerialize: <T extends {}>(input: T) => NoSerialize<T>;
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null | (() => JSXNode<any>);
 
 // @alpha
-export const pauseContainer: (elmOrDoc: Element | Document) => Promise<SnapshotResult>;
+export const pauseContainer: (elmOrDoc: Element | Document, defaultParentJSON?: Element) => Promise<SnapshotResult>;
 
 // Warning: (ae-forgotten-export) The symbol "PropFnInterface" needs to be exported by the entry point index.d.ts
 //

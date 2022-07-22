@@ -2,7 +2,7 @@ import { loadRoute } from '../../runtime/src/library/routing';
 import { endpointHandler, getEndpointResponse } from './endpoint-handler';
 import { checkPageRedirect } from './redirect-handler';
 import type { QwikCityRequestOptions } from './types';
-import type { Render } from '@builder.io/qwik/server';
+import type { Render, StreamWriter } from '@builder.io/qwik/server';
 import type { HttpMethod } from '../../runtime/src/library/types';
 import { pageHandler } from './page-handler';
 import { isAcceptJsonOnly } from './utils';
@@ -13,7 +13,8 @@ import { ROUTE_TYPE_ENDPOINT } from '../../runtime/src/library/constants';
  */
 export async function requestHandler(
   render: Render,
-  opts: QwikCityRequestOptions
+  stream: StreamWriter,
+  opts: QwikCityRequestOptions,
 ): Promise<Response | null> {
   try {
     const { request, routes, menus, cacheModules, trailingSlash } = opts;
@@ -53,8 +54,10 @@ export async function requestHandler(
       }
 
       // render the page
-      const pageResponse = await pageHandler(render, url, params, method, endpointResponse);
-      return pageResponse;
+      if (!endpointResponse.headers.has('Content-Type')) {
+        endpointResponse.headers.set('Content-Type', 'text/html; charset=utf-8');
+      }
+      await pageHandler(render, url, params, method, endpointResponse, stream);
     }
   } catch (e: any) {
     return new Response(String(e ? e.stack || e : 'Request Handler Error'), {

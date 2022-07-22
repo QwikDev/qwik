@@ -1,7 +1,7 @@
 import { $, QRL } from '../import/qrl.public';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { OnRenderProp } from '../util/markers';
-import type { ComponentBaseProps } from '../render/jsx/types/jsx-qwik-attributes';
+import type { ComponentBaseProps, JSXTagName } from '../render/jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
 import type { MutableWrapper } from '../object/q-object';
@@ -42,7 +42,7 @@ export interface ComponentOptions {
    * of host element requires that the parent component needs to know the tag name of the child
    * component synchronously.
    */
-  tagName?: string;
+  tagName?: JSXTagName;
 }
 
 /**
@@ -80,7 +80,7 @@ export type MutableProps<PROPS extends {}> = {
  */
 export type EventHandler<T> = QRL<(value: T) => any>;
 
-const ELEMENTS_SKIP_KEY = ['html', 'body', 'head'];
+const ELEMENTS_SKIP_KEY: JSXTagName[] = ['html', 'body', 'head'];
 
 // <docs markdown="../readme.md#component">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -145,8 +145,9 @@ export const componentQrl = <PROPS extends {}>(
 
   // Return a QComponent Factory function.
   return function QSimpleComponent(props, key): JSXNode<PROPS> {
+    const finalTag = props['host:tagName'] ?? tagName;
     const finalKey = skipKey ? undefined : onRenderQrl.getHash() + ':' + (key ? key : '');
-    return jsx(tagName, { [OnRenderProp]: onRenderQrl, ...props }, finalKey) as any;
+    return jsx(finalTag as string, { [OnRenderProp]: onRenderQrl, ...props }, finalKey) as any;
   };
 };
 

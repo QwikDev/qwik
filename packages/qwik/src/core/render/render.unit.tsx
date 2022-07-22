@@ -90,7 +90,6 @@ renderSuite('should serialize events correctly', async () => {
     ></Div>
   );
 });
-
 renderSuite('should serialize boolean attributes correctly', async () => {
   const fixture = new ElementFixture();
   await render(fixture.host, <input required={true} disabled={false}></input>);
@@ -107,7 +106,12 @@ renderSuite('should render into a document', async () => {
   );
   equal(fixture.document.body.innerHTML, 'WORKS');
 });
-
+renderSuite('should accept and render host:tagName', async () => {
+  const fixture = new ElementFixture();
+  const tag: keyof HTMLElementTagNameMap = 'article';
+  await render(fixture.host, <HelloWorld host:tagName={tag} />);
+  equal(getFirstNode(fixture.host).tagName, tag.toUpperCase());
+});
 renderSuite('should render attributes', async () => {
   const fixture = new ElementFixture();
   await render(fixture.host, <div id="abc" title="bar" preventdefault:click></div>);

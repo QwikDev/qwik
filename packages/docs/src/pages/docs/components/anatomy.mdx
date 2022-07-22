@@ -100,7 +100,7 @@ Will result in:
 
 Qwik host elements are marked with `q:host` attribute.
 
-As you can see, `component$` will always create an extra element, by default is `div`, but that can be changed with `component$` options argument:
+As you can see, `component$` will always create an extra element, by default is `div`, but that can be changed with `component$` options argument or the `host:tagName` attribute:
 
 ```tsx
 const MyArticle = component$(() => (
@@ -110,7 +110,17 @@ const MyArticle = component$(() => (
 });
 ```
 
-Will result in:
+and:
+
+```tsx
+const MyArticle = component$(() => (
+  <span>My article</span>
+));
+
+<MyArticle host:tagName="article"/>
+```
+
+Will both result in:
 
 ```html
 <article q:host>
@@ -125,9 +135,6 @@ Will result in:
 Since the host element is implicitly created by `component$`, it is not possible to access it directly. Instead, you can use `useHostElement()` to get the host element.
 
  Qwik uses host elements in various ways. For example when using `useHostElement()` function which retrieves it. It is also used to attach props to the components for serialization.
-
-
-
 
 ## Host Element Attributes & Styling
 
@@ -229,7 +236,6 @@ will result in:
   <span>Hello World</span>
 </div>
 ```
-
 
 ## Lazy Loading
 

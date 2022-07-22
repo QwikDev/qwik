@@ -87,7 +87,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/partytown@npm:0.6.2, @builder.io/partytown@npm:^0.6.1":
+"@builder.io/partytown@npm:0.6.2, @builder.io/partytown@npm:^0.6.2":
   version: 0.6.2
   resolution: "@builder.io/partytown@npm:0.6.2"
   bin:
@@ -96,21 +96,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/qwik-city@npm:0.0.13":
-  version: 0.0.13
-  resolution: "@builder.io/qwik-city@npm:0.0.13"
-  dependencies:
-    "@mdx-js/mdx": ^2.1.1
-    "@types/mdx": 2.0.2
-    front-matter: ^4.0.2
-    source-map: ^0.7.3
-  peerDependencies:
-    "@builder.io/qwik": ">=0.0.30"
-  checksum: cf42c198b79cf2985814d2b187152633463d1b4d7462815c3a5ee74737583d6d0eb82d8fe4d8c55f41e9a2b4bf891037d9b84c4e06692df2bfe8dd43db816d5e
-  languageName: node
-  linkType: hard
-
-"@builder.io/qwik-city@workspace:packages/qwik-city":
+"@builder.io/qwik-city@0.0.25, @builder.io/qwik-city@workspace:packages/qwik-city":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik-city@workspace:packages/qwik-city"
   dependencies:
@@ -178,10 +164,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/qwik@npm:0.0.33":
-  version: 0.0.33
-  resolution: "@builder.io/qwik@npm:0.0.33"
-  checksum: 49cdef6c0926480ac23698ac6537c310fb459e7d514dd6bbe738dab9c8993e0fc6ec43fca50c3645f5e2f564a4dcca0a436a53171c911acb05d38a8413ee942a
+"@builder.io/qwik@npm:0.0.38":
+  version: 0.0.38
+  resolution: "@builder.io/qwik@npm:0.0.38"
+  checksum: eb4ecc81ddb3e0e5a23eb8c5b38ee04ed0c39b0bc1efa2f6389612d68fb63882b222663410028faaf127fa3a04eb008d7c613b9d00259ec1d7688f90ff972c33
   languageName: node
   linkType: hard
 
@@ -568,7 +554,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mdx-js/mdx@npm:2.1.2, @mdx-js/mdx@npm:^2.1.1":
+"@mdx-js/mdx@npm:2.1.2":
   version: 2.1.2
   resolution: "@mdx-js/mdx@npm:2.1.2"
   dependencies:
@@ -1511,6 +1497,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/prettier@npm:^2.6.3":
+  version: 2.6.3
+  resolution: "@types/prettier@npm:2.6.3"
+  checksum: e1836699ca189fff6d2a73dc22e028b6a6f693ed1180d5998ac29fa197caf8f85aa92cb38db642e4a370e616b451cb5722ad2395dab11c78e025a1455f37d1f0
+  languageName: node
+  linkType: hard
+
 "@types/prismjs@npm:*, @types/prismjs@npm:^1.0.0":
   version: 1.26.0
   resolution: "@types/prismjs@npm:1.26.0"
@@ -2000,19 +1993,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"argparse@npm:^1.0.7, argparse@npm:~1.0.9":
+"argparse@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "argparse@npm:2.0.1"
+  checksum: 83644b56493e89a254bae05702abf3a1101b4fa4d0ca31df1c9985275a5a5bd47b3c27b7fa0b71098d41114d8ca000e6ed90cad764b306f8a503665e4d517ced
+  languageName: node
+  linkType: hard
+
+"argparse@npm:~1.0.9":
   version: 1.0.10
   resolution: "argparse@npm:1.0.10"
   dependencies:
     sprintf-js: ~1.0.2
   checksum: 7ca6e45583a28de7258e39e13d81e925cfa25d7d4aacbf806a382d3c02fcb13403a07fb8aeef949f10a7cfe4a62da0e2e807b348a5980554cc28ee573ef95945
-  languageName: node
-  linkType: hard
-
-"argparse@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "argparse@npm:2.0.1"
-  checksum: 83644b56493e89a254bae05702abf3a1101b4fa4d0ca31df1c9985275a5a5bd47b3c27b7fa0b71098d41114d8ca000e6ed90cad764b306f8a503665e4d517ced
   languageName: node
   linkType: hard
 
@@ -4444,15 +4437,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"front-matter@npm:^4.0.2":
-  version: 4.0.2
-  resolution: "front-matter@npm:4.0.2"
-  dependencies:
-    js-yaml: ^3.13.1
-  checksum: a5b4c36d75a820301ebf31db0f677332d189c4561903ab6853eaa0504b43634f98557dbf87752e09043dbd2c9dcc14b4bcf9151cb319c8ad7e26edb203c0cd23
-  languageName: node
-  linkType: hard
-
 "fs-extra@npm:8.1.0, fs-extra@npm:^8.1.0":
   version: 8.1.0
   resolution: "fs-extra@npm:8.1.0"
@@ -5366,18 +5350,6 @@ __metadata:
   version: 4.0.0
   resolution: "js-tokens@npm:4.0.0"
   checksum: 8a95213a5a77deb6cbe94d86340e8d9ace2b93bc367790b260101d2f36a2eaf4e4e22d9fa9cf459b38af3a32fb4190e638024cf82ec95ef708680e405ea7cc78
-  languageName: node
-  linkType: hard
-
-"js-yaml@npm:^3.13.1":
-  version: 3.14.1
-  resolution: "js-yaml@npm:3.14.1"
-  dependencies:
-    argparse: ^1.0.7
-    esprima: ^4.0.0
-  bin:
-    js-yaml: bin/js-yaml.js
-  checksum: bef146085f472d44dee30ec34e5cf36bf89164f5d585435a3d3da89e52622dff0b188a580e4ad091c3341889e14cb88cac6e4deb16dc5b1e9623bb0601fc255c
   languageName: node
   linkType: hard
 
@@ -6612,6 +6584,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"monaco-editor@npm:^0.33.0":
+  version: 0.33.0
+  resolution: "monaco-editor@npm:0.33.0"
+  checksum: f88fd1c9be0d6845436aa92ee7f7bcc49f9e9bf452f73bb5efbbe52e50678d1c2aec4d612a943310f5e2282c1d9fcc41b792b65a5b9008e6054908e7e10311ea
+  languageName: node
+  linkType: hard
+
 "mri@npm:1.2.0, mri@npm:^1.1.0":
   version: 1.2.0
   resolution: "mri@npm:1.2.0"
@@ -7409,9 +7388,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "qwik-docs@workspace:packages/docs"
   dependencies:
-    "@builder.io/partytown": ^0.6.1
-    "@builder.io/qwik": 0.0.33
-    "@builder.io/qwik-city": 0.0.13
+    "@builder.io/partytown": ^0.6.2
+    "@builder.io/qwik": 0.0.38
+    "@builder.io/qwik-city": 0.0.25
     "@cloudflare/kv-asset-handler": 0.2.0
     autoprefixer: 10.4.7
     fflate: ^0.7.3
@@ -7446,6 +7425,7 @@ __metadata:
     "@types/node": latest
     "@types/node-fetch": 2.6.2
     "@types/path-browserify": 1.0.0
+    "@types/prettier": ^2.6.3
     "@types/semver": 7.3.10
     "@typescript-eslint/eslint-plugin": 5.30.7
     "@typescript-eslint/parser": 5.30.7
@@ -7462,6 +7442,7 @@ __metadata:
     execa: 6.1.0
     express: 4.18.1
     headers-polyfill: ^3.0.10
+    monaco-editor: ^0.33.0
     mri: 1.2.0
     node-fetch: 3.2.9
     path-browserify: 1.0.1
@@ -8248,13 +8229,6 @@ __metadata:
   version: 0.6.1
   resolution: "source-map@npm:0.6.1"
   checksum: 59ce8640cf3f3124f64ac289012c2b8bd377c238e316fb323ea22fbfe83da07d81e000071d7242cad7a23cd91c7de98e4df8830ec3f133cb6133a5f6e9f67bc2
-  languageName: node
-  linkType: hard
-
-"source-map@npm:^0.7.3":
-  version: 0.7.3
-  resolution: "source-map@npm:0.7.3"
-  checksum: cd24efb3b8fa69b64bf28e3c1b1a500de77e84260c5b7f2b873f88284df17974157cc88d386ee9b6d081f08fdd8242f3fc05c953685a6ad81aad94c7393dedea
   languageName: node
   linkType: hard
 

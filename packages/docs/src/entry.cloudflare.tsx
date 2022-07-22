@@ -1,5 +1,5 @@
 import { render } from './entry.ssr';
-import replServerHtml from '@repl-server-html';
+// import replServerHtml from 'packages/docs/src/repl/worker/repl-server';
 
 export const onRequestGet = async ({ request, next, waitUntil }: any) => {
   try {
@@ -25,14 +25,14 @@ export const onRequestGet = async ({ request, next, waitUntil }: any) => {
       return Response.redirect('https://discord.gg/bNVSQmPzqy');
     }
 
-    if (url.pathname.includes('/repl/~repl-server-')) {
-      return new Response(replServerHtml, {
-        headers: {
-          'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable',
-        },
-      });
-    }
+    // if (url.pathname.includes('/repl/~repl-server-')) {
+    //   return new Response(replServerHtml, {
+    //     headers: {
+    //       'Content-Type': 'text/html; charset=utf-8',
+    //       'Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable',
+    //     },
+    //   });
+    // }
 
     // Handle static assets
     if (/\.\w+$/.test(url.pathname)) {

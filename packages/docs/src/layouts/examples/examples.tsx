@@ -1,22 +1,12 @@
-import {
-  component$,
-  Host,
-  useScopedStyles$,
-  useWatch$,
-  useStore,
-  useStyles$,
-} from '@builder.io/qwik';
-import { Repl } from '../../components/repl/repl';
+import { component$, Host, useScopedStyles$, useWatch$, useStore } from '@builder.io/qwik';
+import { Repl } from '../../repl/repl';
 import styles from './examples.css?inline';
 import { Header } from '../../components/header/header';
-import { useHeadMeta } from '@builder.io/qwik-city';
 import exampleSections, { ExampleApp } from '@examples-data';
-import type { ReplAppInput } from '../../components/repl/types';
+import type { ReplAppInput } from '../../repl/types';
 
 const Examples = component$((props: ExamplesProps) => {
-  useHeadMeta({ title: `Qwik Examples` });
   useScopedStyles$(styles);
-  useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
 
   const store = useStore<ExamplesStore>(() => {
     const app = getExampleApp(props.appId);

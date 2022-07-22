@@ -7,23 +7,23 @@ import {
   useStyles$,
   useWatch$,
 } from '@builder.io/qwik';
-import { Repl } from '../../components/repl/repl';
+import { useLocation } from '@builder.io/qwik-city';
+import { Repl } from '../../repl/repl';
 import styles from './tutorial.css?inline';
 import { TutorialContentFooter } from './tutorial-content-footer';
 import { TutorialContentHeader } from './tutorial-content-header';
 import tutorialSections, { TutorialApp } from '@tutorial-data';
 import { Header } from '../../components/header/header';
-import type { ReplAppInput, ReplModuleInput } from '../../components/repl/types';
+import type { ReplAppInput, ReplModuleInput } from '../../repl/types';
 import { EditIcon } from '../../components/svgs/edit-icon';
-import { useLocation } from '../../utils/useLocation';
 
 const Tutorial = component$(() => {
   useScopedStyles$(styles);
   useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
 
-  const location = useLocation();
+  const { pathname } = useLocation();
   const store = useStore<TutorialStore>(() => {
-    const p = location.pathname.split('/');
+    const p = pathname.split('/');
     const appId = `${p[2]}/${p[3]}`;
     const t = getTutorial(appId)!;
 

@@ -59,7 +59,7 @@ export const Repl = component$((props: ReplProps) => {
     }
   });
 
-  const onInputChange = $((path: string, code: string) => {
+  const onInputChange$ = $((path: string, code: string) => {
     const file = input.files.find((i) => i.path === path);
     if (file) {
       file.code = code;
@@ -67,7 +67,7 @@ export const Repl = component$((props: ReplProps) => {
     }
   });
 
-  const onInputDelete = $((path: string) => {
+  const onInputDelete$ = $((path: string) => {
     input.files = input.files.filter((i) => i.path !== path);
     if (store.selectedInputPath === path) {
       if (input.files.length > 0) {
@@ -108,8 +108,8 @@ export const Repl = component$((props: ReplProps) => {
       <ReplInputPanel
         input={input}
         store={store}
-        onInputChangeQrl={onInputChange}
-        onInputDeleteQrl={onInputDelete}
+        onInputChange$={onInputChange$}
+        onInputDelete$={onInputDelete$}
         enableCopyToPlayground={props.enableCopyToPlayground}
         enableDownload={props.enableDownload}
       />

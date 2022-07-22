@@ -32,7 +32,7 @@ const Counter = component(qrl('./chunk-a.js', 'Counter_onMount'));
 export const Counter_onMount = () => {
   const store = useStore({ count: 0 });
   return (
-    <button onClickQrl={qrl('./chunk-b.js', 'Counter_onClick', [store])}>
+    <button onClick$={qrl('./chunk-b.js', 'Counter_onClick', [store])}>
       {store.count}
     </button>
   );
@@ -48,7 +48,7 @@ const Counter_onClick = () => {
 };
 ```
 
-Notice that every occurence of `$` results in a new lazy loadable symbol.
+Notice that every occurrence of `$` results in a new lazy loadable symbol.
 
 
 # `$` and Optimizer Rules
@@ -59,7 +59,7 @@ Optimizer runs as part of the bundling step of building the application. The pur
 
 The Optimizer needs to know which expression should be extracted into a new file. Extracting a symbol is complicated because the reference to the symbol changes from direct to asynchronous loading. This means that Optimizer needs to cooperate with the runtime to know which symbols can be extracted and how the runtime can then load them.
 
-Let's look at hypothetical problem of performing an action on scroll. You may be tempted to write the code like so:
+Let's look at the hypothetical problem of acting on scroll. You may be tempted to write the code like so:
 
 ```tsx
 function onScroll(fn: () => void) {

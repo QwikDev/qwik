@@ -7,7 +7,7 @@ title: Components
 ## Declaration
 
 ```tsx
-import {component$, useStore} from "@builder.io/qwik";
+import { component$, useStore } from '@builder.io/qwik';
 
 export const Greeter = component$(() => {
   return <span>Hello World!</span>;
@@ -17,7 +17,7 @@ export const Greeter = component$(() => {
 ## Props
 
 ```tsx
-import {component$, useStore} from "@builder.io/qwik";
+import { component$, useStore } from '@builder.io/qwik';
 
 interface GreeterProps {
   salutation?: string;
@@ -26,30 +26,30 @@ interface GreeterProps {
 export const Greeter = component$((props: GreeterProps) => {
   const salutation = props.salutation || 'Hello';
   const name = props.name || 'World';
-  return <span>{salutation} {name}!</span>;
+  return (
+    <span>
+      {salutation} {name}!
+    </span>
+  );
 });
 ```
 
 ### Event Props
 
-Component props must be serializable, and therefore can not directly reffer to functions.
+Component props must be serializable, and therefore can not directly refer to functions.
 
 ```tsx
-import {component$, useStore, Qrl} from "@builder.io/qwik";
+import { component$, useStore, PropFunction } from '@builder.io/qwik';
 
 export const Parent = component$(() => {
-  return (
-    <MyButton doSomething$={() => console.log('Hello')}>
-      click
-    </MyButton>
-  );
+  return <MyButton doSomething$={() => console.log('Hello')}>click</MyButton>;
 });
 
 interface MyButtonProps {
-  doSomethingQrl: QRL<() => void>
+  doSomething$: PropFunction<() => void>;
 }
 export const MyButton = component$((props: MyButtonProps) => {
-  return <button onClickQrl={props.doSomethingQrl}>click</button>;
+  return <button onClick$={props.doSomething$}>click</button>;
 });
 ```
 
@@ -58,41 +58,35 @@ export const MyButton = component$((props: MyButtonProps) => {
 ## Watching for Changes
 
 ## Server
+
 ### Fetching Data
 
 ```tsx
-import {component$, useStore, useServerMount$} from "@builder.io/qwik";
+import { component$, useStore, useServerMount$ } from '@builder.io/qwik';
 
 export const Greeter = component$(() => {
-  const store = useStore<{list: null|string[]}>({list: null});
+  const store = useStore<{ list: null | string[] }>({ list: null });
   useServerMount$(async () => {
     store.list = await doSomethingToFetchDataOnServer();
   });
-  
-  return (
-    <ul>
-      {store.list && store.list.map((item) => <li>{item}</li>)}
-    </ul>
-  );
+
+  return <ul>{store.list && store.list.map((item) => <li>{item}</li>)}</ul>;
 });
 ```
 
 ## Client
+
 ### Eagerly Executing Code
 
 ```tsx
-import {component$, useStore, useClientEffect$} from "@builder.io/qwik";
+import { component$, useStore, useClientEffect$ } from '@builder.io/qwik';
 
 export const Greeter = component$(() => {
-  const store = useStore<{list: null|string[]}>({list: null});
+  const store = useStore<{ list: null | string[] }>({ list: null });
   useClientEffect$(async () => {
     store.list = await doSomethingToFetchDataOnServer();
   });
-  
-  return (
-    <ul>
-      {store.list && store.list.map((item) => <li>{item}</li>)}
-    </ul>
-  );
+
+  return <ul>{store.list && store.list.map((item) => <li>{item}</li>)}</ul>;
 });
 ```

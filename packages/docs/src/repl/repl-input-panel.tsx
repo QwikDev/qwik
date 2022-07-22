@@ -1,15 +1,15 @@
-import type { QRL } from '@builder.io/qwik';
+import type { PropFunction } from '@builder.io/qwik';
 import { Editor } from './editor';
 import { ReplCommands } from './repl-commands';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
-import type { ReplStore, ReplAppInput } from './types';
+import type { ReplAppInput, ReplStore } from './types';
 
 export const ReplInputPanel = ({
   input,
   store,
-  onInputChangeQrl,
-  onInputDeleteQrl,
+  onInputChange$,
+  onInputDelete$,
   enableCopyToPlayground,
   enableDownload,
   enableInputDelete,
@@ -22,13 +22,13 @@ export const ReplInputPanel = ({
             <ReplTabButton
               text={formatFilePath(f.path)}
               isActive={store.selectedInputPath === f.path}
-              onClick$={() => {
+              onClick$={async () => {
                 store.selectedInputPath = f.path;
               }}
-              onClose$={() => {
+              onClose$={async () => {
                 const shouldDelete = confirm(`Are you sure you want to delete "${f.path}"?`);
                 if (shouldDelete) {
-                  onInputDeleteQrl(f.path);
+                  onInputDelete$(f.path);
                 }
               }}
               enableInputDelete={enableInputDelete}
@@ -45,7 +45,7 @@ export const ReplInputPanel = ({
       <div class="repl-tab">
         <Editor
           input={input}
-          onChange$={onInputChangeQrl}
+          onChange$={onInputChange$}
           store={store}
           ariaLabel="File Input"
           lineNumbers="on"
@@ -64,8 +64,8 @@ const formatFilePath = (path: string) => {
 interface ReplInputPanelProps {
   input: ReplAppInput;
   store: ReplStore;
-  onInputChangeQrl: QRL<(path: string, code: string) => void>;
-  onInputDeleteQrl: QRL<(path: string) => void>;
+  onInputChange$: PropFunction<(path: string, code: string) => void>;
+  onInputDelete$: PropFunction<(path: string) => void>;
   enableDownload?: boolean;
   enableCopyToPlayground?: boolean;
   enableInputDelete?: boolean;

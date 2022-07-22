@@ -1,3 +1,4 @@
+import type { PropFunction } from '@builder.io/qwik';
 import { CloseIcon } from '../components/svgs/close-icon';
 
 export const ReplTabButton = (props: ReplTabButtonProps) => {
@@ -8,16 +9,16 @@ export const ReplTabButton = (props: ReplTabButtonProps) => {
     >
       <button
         class="repl-tab-button-select"
-        onClick$={props.onClickQrl}
+        onClick$={props.onClick$}
         type="button"
         preventDefault:click
       >
         {props.text}
       </button>
-      {props.onCloseQrl && props.enableInputDelete ? (
+      {props.onClose$ && props.enableInputDelete ? (
         <button
           class="repl-tab-button-close"
-          onClick$={props.onCloseQrl}
+          onClick$={props.onClose$}
           type="button"
           preventDefault:click
         >
@@ -31,10 +32,8 @@ export const ReplTabButton = (props: ReplTabButtonProps) => {
 interface ReplTabButtonProps {
   text: string;
   isActive: boolean;
-  onClick$: () => void;
-  onClickQrl?: any;
-  onClose$?: () => void;
-  onCloseQrl?: any;
+  onClick$: PropFunction<() => void>;
+  onClose$?: PropFunction<() => void>;
   cssClass?: Record<string, boolean>;
   enableInputDelete?: boolean;
 }

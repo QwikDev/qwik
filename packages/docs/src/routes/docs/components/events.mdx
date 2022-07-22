@@ -10,13 +10,7 @@ For a web application to be interactive, there needs to be a way to respond to u
 const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
-  return (
-    <button
-      onClick$={() => store.count++}
-    >
-      {store.count}
-    </button>
-  );
+  return <button onClick$={() => store.count++}>{store.count}</button>;
 });
 ```
 
@@ -25,7 +19,6 @@ In the above example, the `onClick$` attribute of the `<button>` element is used
 Notice that `onClick$` ends with `$`. This is a hint to both the Qwik Optimizer and the developer that a special transformation occurs at this location. The presence of the `$` suffix implies a lazy-loaded boundary here. The code associated with the `click` handler will not download until the user triggers the `click` event. See [Optimizer Rules](../advanced/optimizer.mdx) for more details.
 
 In the above example, the `click` listener is trivial in implementation. But in real applications, the listener may refer to complex code. By creating a lazy-loaded boundary, Qwik can tree-shake all of the code behind the click listener and delay its loading until the user clicks the button.
-
 
 ## Events and Components
 
@@ -121,28 +114,27 @@ The purpose of the `onWindow`/`onDocument` is to register the event at a current
 1. The events can be registered declaratively in your JSX
 2. The events get automatically cleaned up when the component is destroyed. (No explicit bookkeeping and cleanup is needed.)
 
-
 ## Declaring Custom Component Events
 
 So far, we have ignored the implementation detail of `<CmpButton>` because we wanted to talk about its usage only. Now let's look at how one declares a child component that can be used with events.
 
 ```tsx
 interface CmpButtonProps {
-  onClickQrl?: QRL<() => void>;
+  onClick$: QRL<() => void>;
 }
 
 const CmpButton = component$((props: CmpButtonProps) => {
   return (
-    <button onDblclickQrl={props.onClickQrl}>
+    <button onDblclick$={props.onClick$}>
       <Slot />
     </button>
   );
 });
 ```
 
-As far as Qwik is concerned, passing events to a component is equivalent to passing props. In our example, we declare all props in `CmpButtonProps` interface. Specifically, notice `onClickQrl?: QRL<() => void>` declaration.
+As far as Qwik is concerned, passing events to a component is equivalent to passing props. In our example, we declare all props in `CmpButtonProps` interface. Specifically, notice `onClick$: QRL<() => void>` declaration.
 
-`<CmpButton>` would like to receive an `onClick` closure which it invokes at some later point in time. Qwik mandates that all props to a component need to be serializable. For this reason, we can't ask for `onClick?: () => void`. Instead, we need to ask for a serializable and lazy loadable version of the closure in the form of `onClickQrl?: QRL<() => void>`. `QRL<() => void>` can be read as lazy-loadable reference to a `() => void` closure.
+`<CmpButton>` would like to receive an `onClick` closure which it invokes at some later point in time. Qwik mandates that all props to a component need to be serializable. For this reason, we can't ask for `onClick?: () => void`. Instead, we need to ask for a serializable and lazy loadable version of the closure in the form of `onClick$: PropFunction<() => void>`. `PropFunction<() => void>` can be read as lazy-loadable reference to a `() => void` closure.
 
 On the usage side, when referring to the `<CmpButton>`, it would be a lot more convenient to pass in a closure rather than `QRL` of the closure. The translation from closure to`QRL` closure is what Qwik Optimizer performs for us. For this reason, the usage is in the format where the closure is inlined like so:
 
@@ -150,10 +142,10 @@ On the usage side, when referring to the `<CmpButton>`, it would be a lot more c
 <CmpButton onClick$={() => store.cmpCount++}>{store.cmpCount}</CmpButton>
 ```
 
-Here the prop is `onClick$` rather than `onClickQrl`. We rely on the Qwik Optimizer to perform the translation. The above is roughly translated to:
+The above is roughly translated to:
 
 ```tsx
-<CmpButton onClickQrl={qrl('./chunk-a.js', 'Counter_onRender_CmpButton_onClick', [state]}>
+<CmpButton onClick$={qrl('./chunk-a.js', 'Counter_onRender_CmpButton_onClick', [state]}>
   {store.cmpCount}
 </CmpButton>
 ```
@@ -169,37 +161,25 @@ export const Counter_onRender_CmpButton_onClick = () => {
 
 Notice that:
 
-- `onClick$` was translated to `onClickQrl`.
 - The closure `() => store.cmpCount++` was replaced by `qrl('./chunk-a.js', 'Counter_onRender_CmpButton_onClick', [state]`.
 - The closure was exported as `Counter_onRender_CmpButton_onClick`.
 - A `const [store] = useLexicalScope();` was generated to restore closure state.
 
-Also, what is not immediately apparent is that TypeScript generates this interface for `<CmpButton>` that allows usage of both properties depending on convenience:
-
-```tsx
-interface CmpButtonProps {
-  onClickQrl?: QRL<() => void>;
-  onClick$?: () => void;
-}
-```
-
-Notice that TypeScript automatically creates a correct prop with `$` suffix, which generates the parameterized `T` of `QRL<T>`. In our case `T` is `() => void`. This type information makes sure that you correctly pass `QRL` to `on<event>Qrl` suffix and closures to `on<event>$` suffix.
-
 ## Working with QRLs
 
-Let's look at a variation of `<CmpButton>` implementation. In this example, we would like to demonstrate working with `<prop>Qrl` vs `<prop>$`. For this reason, we have created an additional listener `onClick$`
+Let's look at a variation of `<CmpButton>` implementation. In this example, we would like to demonstrate the passing of callbacks to components. For this reason, we have created an additional listener `onClick$`
 
 ```tsx
 interface CmpButtonProps {
-  onClickQrl?: QRL<() => void>;
+  onClick$?: PropFunction<() => void>;
 }
 
 const CmpButton = component$((props: CmpButtonProps) => {
   return (
     <button
-      onDblclickQrl={props.onClickQrl}
+      onDblclick$={props.onClick$}
       onClick$={async () => {
-        await (props.onClickQrl && props.onClickQrl.invoke());
+        await (props.onClick$ && props.onClick$());
         console.log('clicked');
       }}
     >
@@ -209,14 +189,11 @@ const CmpButton = component$((props: CmpButtonProps) => {
 });
 ```
 
-Notice that we can pass the `props.onClickQrl` directly to the `onDblclickQrl` as seen on `<button>`. (see attribute `onDblclickQrl={props.onClickQrl}`.) This is because both the inputting prop `onClickQrl` as well as JSX prop `onDblclickQrl` are of type `QRL<?>` (and both have `Qrl` suffix.)
+Notice that we can pass the `props.onClick$` directly to the `onDblclick$` as seen on `<button>`. (see attribute `onDblclick$={props.onClick$}`.) This is because both the inputting prop `onClick$` as well as JSX prop `onDblclick` are of type `PropFunction<?>` (and both have `$` suffix.)
 
-However, it is not possible to pass `props.onClickQrl` to `onClick$` because the types don't match. (This would result in type error: `onClick$={props.onClickQrl}`.) Instead, the `$` is reserved for inlined closures. In our example, we would like to print the `console.log("clicked")` after we process the `props.onClickQrl` callback. We can do so with the `props.onClickQrl.invoke()` method. This 1) lazy-loads the code, 2) restores the closure state, and 3) invokes the closure. The operation is asynchronous and therefore returns a promise, which we can resolve using the `await` statement.
-
-
+However, it is not possible to pass `props.onClick$` to `onClick$` because the types don't match. (This would result in type error: `onClick$={props.onClick$}`.) Instead, the `$` is reserved for inlined closures. In our example, we would like to print the `console.log("clicked")` after we process the `props.onClick` callback. We can do so with the `props.onClick$()` method. This 1) lazy-loads the code, 2) restores the closure state, and 3) invokes the closure. The operation is asynchronous and therefore returns a promise, which we can resolve using the `await` statement.
 
 ## Advanced: Events and qwikloader
-
 
 In the above example, the `onClick$` is placed on `<button>`. This means that the listener needs to be registered with the DOM. The registration of the listener creates two problems in the context of the SSR/SSG that Qwik needs to solve. (For context, remember that Qwik is resumable, that is, it can continue executing the application from where the server paused without being forced to download and execute code eagerly.)
 
@@ -239,7 +216,6 @@ The critical thing to notice is that Qwik generated an `on:click` attribute, con
 
 For the browser to understand the `on:click` attribute syntax, a small JavaScript known as Qwikloader is needed. The Qwikloader is small (about 1kb) and fast (about 5ms) to execute. The Qwikloader is inlined into the HTML so that it can be executed quickly.
 When a user interacts with the application, the browser fires relevant events that bubble up the DOM. At the root of the DOM, Qwikloader listens for the events and then tries to locate the corresponding `on:<event>` attribute. If such an attribute is found, then the value of the attribute is used to resolve the location where code can be downloaded from and then executed.
-
 
 ## State recovery
 
@@ -280,5 +256,3 @@ Dynamic `import()`:
 - Is relative to the file that contains it. This works great for `file-a.js` trying to load `file-b.js` as `import('./file-b.js')`. However, when the `./file-a.js` gets serialized into HTML then we lose its relative nature. It is the framework that reads the `./file-b.js` from HTML and performs the `import()`. This means that all imports now become relative to the framework, which is incorrect.
 - Requires that the developer writes `import('./file-a.js')`, which means the developer is in charge of deciding where the lazy-loaded boundaries are. This limits our ability of the tooling to move code around in an automated way.
 - Supports import of top-level functions only which don't capture the state. This is the biggest difference. Qwik allows the imported symbol to be a closure that carries all of its state with it.
-
-

@@ -11,14 +11,14 @@ export const ReplDetailPanel = ({ input, store }: ReplDetailPanelProps) => {
         <ReplTabButton
           text="Console"
           isActive={store.selectedOutputDetail === 'console'}
-          onClick$={() => {
+          onClick$={async () => {
             store.selectedOutputDetail = 'console';
           }}
         />
         <ReplTabButton
           text="Options"
           isActive={store.selectedOutputDetail === 'options'}
-          onClick$={() => {
+          onClick$={async () => {
             store.selectedOutputDetail = 'options';
           }}
         />

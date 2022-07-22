@@ -15,7 +15,7 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
         <ReplTabButton
           text="App"
           isActive={store.selectedOutputPanel === 'app'}
-          onClick$={() => {
+          onClick$={async () => {
             store.selectedOutputPanel = 'app';
           }}
         />
@@ -24,7 +24,7 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
           <ReplTabButton
             text="HTML"
             isActive={store.selectedOutputPanel === 'html'}
-            onClick$={() => {
+            onClick$={async () => {
               store.selectedOutputPanel = 'html';
             }}
           />
@@ -34,7 +34,7 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
           <ReplTabButton
             text="Symbols"
             isActive={store.selectedOutputPanel === 'symbols'}
-            onClick$={() => {
+            onClick$={async () => {
               store.selectedOutputPanel = 'symbols';
             }}
           />
@@ -44,7 +44,7 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
           <ReplTabButton
             text="Client Bundles"
             isActive={store.selectedOutputPanel === 'clientBundles'}
-            onClick$={() => {
+            onClick$={async () => {
               store.selectedOutputPanel = 'clientBundles';
             }}
           />
@@ -54,7 +54,7 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
           <ReplTabButton
             text="SSR Module"
             isActive={store.selectedOutputPanel === 'serverModules'}
-            onClick$={() => {
+            onClick$={async () => {
               store.selectedOutputPanel = 'serverModules';
             }}
           />
@@ -64,7 +64,7 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
           text={`Diagnostics${diagnosticsLen > 0 ? ` (${diagnosticsLen})` : ``}`}
           cssClass={{ 'repl-tab-diagnostics': true }}
           isActive={store.selectedOutputPanel === 'diagnostics'}
-          onClick$={() => {
+          onClick$={async () => {
             store.selectedOutputPanel = 'diagnostics';
           }}
         />

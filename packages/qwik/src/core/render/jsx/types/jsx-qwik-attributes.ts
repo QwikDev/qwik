@@ -160,16 +160,9 @@ export interface QwikEvents {
   onTransitionEndCapture$?: NativeEventHandler<TransitionEvent>;
 
   'document:onLoad$'?: (event: Event, el: Element) => any;
-  'document:onLoadQrl'?: QRL<(event: Event, el: Element) => any>;
-
   'document:onScroll$'?: (event: Event, el: Element) => any;
-  'document:onScrollQrl'?: QRL<(event: Event, el: Element) => any>;
-
   'document:onVisible$'?: (event: Event, el: Element) => any;
-  'document:onVisible'?: QRL<(event: Event, el: Element) => any>;
-
   'document:onVisibilityChange$'?: (event: Event, el: Element) => any;
-  'document:onVisibilityChangeQrl'?: QRL<(event: Event, el: Element) => any>;
 
   [key: `on${string}$`]: NativeEventHandler<any> | undefined;
   [key: `document:on${string}$`]: NativeEventHandler<any> | undefined;

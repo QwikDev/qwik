@@ -10,7 +10,7 @@ Rendering is the process of updating the DOM based on 1) changes in the state of
 
 - **Asynchronously**: this means that Qwik's` render` function understands that it may need to download child components, and therefore the rendering operation is asynchronous.
 
-Simple counter example:
+Simple counter-example:
 
 ```tsx
 const Counter = component$(() => {
@@ -24,7 +24,7 @@ Once rendered, the HTML fragment may look something like this:
 
 ```html
 <div q:host>
-  <button q:obj="123" onClickQrl="./chunk-a.js#Counter_button_click[0]">0</button>
+  <button q:obj="123" on:click="./chunk-a.js#Counter_button_click[0]">0</button>
 </div>
 ```
 
@@ -33,7 +33,7 @@ Note:
 - For explanation of `$` see [`$` and optimizer rules](../advanced/optimizer.mdx).
 - For explanation of `q:host` see [host element](../components/anatomy.mdx).
 - For explanation of `q:obj` see [serialization](../concepts/resumable.mdx).
-- For explanation of `onClickQrl` see [qwikloader](../advanced/qwikloader.mdx).
+- For explanation of `on:click` see [qwikloader](../advanced/qwikloader.mdx).
 
 ## JSX
 
@@ -74,4 +74,4 @@ Most current-generation frameworks have synchronous `render()` process. Synchron
 
 ## DOM update buffering
 
-The asynchronous nature of `render()` means that users may see an intermediate rendering of the UI as components download. Seeing intermediate state is undesirable; therefore, Qwik will buffer all DOM updates and only flush the DOM operations once all of the components have been downloaded and their JSX functions executed. The result is that the UI will update as an atomic operation, and the user will not see the intermediate steps.
+The asynchronous nature of `render()` means that users may see an intermediate rendering of the UI as components download. Seeing an intermediate state is undesirable; therefore, Qwik will buffer all DOM updates and only flush the DOM operations once all of the components have been downloaded and their JSX functions executed. The result is that the UI will update as an atomic operation, and the user will not see the intermediate steps.

@@ -3,10 +3,9 @@ title: Resumable
 fetch: https://hackmd.io/@mhevery/rkYkHhCxq
 ---
 
-
 # Resumable vs. Hydration
 
-A key concept of Qwik applications is that they are resumable from server-side-rendered state. The best way to explain resumability is to understand how the current generation of frameworks are replayable (hydration).
+A key concept of Qwik applications is that they are resumable from a server-side-rendered state. The best way to explain resumability is to understand how the current generation of frameworks are replayable (hydration).
 
 When an SSR/SSG application boots up on a client, it requires that the framework on the client restore two pieces of information:
 
@@ -27,14 +26,13 @@ Qwik is different because it does not require hydration to resume an application
 
 All other frameworks' hydration **replays** all the application logic in the client. Qwik instead pauses execution in the server, and resumes execution in the client,
 
-
 # Introducing Resumability
 
-Resumability is about pausing execution in the server, and resuming execution in the client without having to replay and download all of the application logic.
+Resumability is about pausing execution in the server and resuming execution in the client without having to replay and download all of the application logic.
 
 A good mental model is that Qwik applications at any point in their lifecycle can be serialized and moved to a different VM instance. (Server to browser). There, the application simply resumes where the serialization stopped. No hydration is required. This is why we say that Qwik applications don't hydrate; they resume.
 
-In order to achieve this, qwik needs to solve the 3 problems (listeners, component tree, application state) in a way that is compatible with a no-code startup.
+In order to achieve this, Qwik needs to solve the 3 problems (listeners, component tree, application state) in a way that is compatible with a no-code startup.
 
 ## Listeners
 
@@ -51,10 +49,10 @@ The above approach does not scale. As the application becomes more complicated, 
 Qwik solves the above issue by serializing the event listens into DOM like so:
 
 ```html
-<button onClickQrl="./chunk.js#handler_symbol">click me</button>
+<button on:click="./chunk.js#handler_symbol">click me</button>
 ```
 
-Qwik still needs to collect the listener information, but this step is done as part of the SSR/SSG. The results of SSR/SSG are then serialized into HTML so that the browser does not need to do anything to resume the execution. Notice that the `onClickQrl` attribute contains all of the information to resume the application without doing anything eagerly.
+Qwik still needs to collect the listener information, but this step is done as part of the SSR/SSG. The results of SSR/SSG are then serialized into HTML so that the browser does not need to do anything to resume the execution. Notice that the `on:click` attribute contains all of the information to resume the application without doing anything eagerly.
 
 1. Qwikloader sets up a single global listener instead of many individual listeners per DOM element. This step can be done with no application code present.
 2. The HTML contains a URL to the chunk and symbol name. The attribute tells Qwikloader which code chunk to download and which symbol to retrieve from the chunk.
@@ -91,13 +89,11 @@ Limitations of JSON that Qwik does not solve:
 - Serialization of classes (`instanceof` and prototype)
 - Serialization of `Promise`s, Streams, etc...
 
-
 ## Writing applications with serializability in mind
 
 The resumability property of the framework must extend to resumability of the application as well. This means that the framework must provide mechanisms for the developer to express Components and Entities of the applications in a way which can be serialized and then resumed (without re-bootstrapping). This necessitates that applications are written with resumability constraints in mind. It is simply not possible for developers to continue to write applications in a heap-centric way and expect that a better framework can somehow make up for this sub-optimal approach.
 
 Developers must write their applications in a DOM-centric way. This will require a change of behavior and retooling of web-developers' skills. Frameworks need to provide guidance and APIs to make it easy for developers to write the applications in this way.
-
 
 ## Other benefits of resumability
 
@@ -110,4 +106,3 @@ The most obvious benefit of using resumability is for server-side-rendering. How
 - Progressive interactivity of existing static websites
 
 Reactivity is a key component of Qwik. Reactivity allows Qwik to track which components are subscribed to which state. This information enables Qwik to invalidate only the relevant component on state change, which minimizes the number of components that need to be rerendered. Without reactivity, a state change would require rerendering from the root component, which would force the whole component tree to be eagerly downloaded.
-

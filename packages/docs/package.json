@@ -20,7 +20,7 @@
   "devDependencies": {
     "@builder.io/partytown": "^0.6.2",
     "@builder.io/qwik": "0.0.38",
-    "@builder.io/qwik-city": "0.0.25",
+    "@builder.io/qwik-city": "workspace:*",
     "@cloudflare/kv-asset-handler": "0.2.0",
     "autoprefixer": "10.4.7",
     "fflate": "^0.7.3",
@@ -30,7 +30,7 @@
     "prismjs": "^1.28.0",
     "tailwindcss": "3.1.6",
     "uvu": "0.5.6",
-    "vite": "2.9.14",
+    "vite": "3.0.2",
     "wrangler": "beta"
   },
   "author": "Builder.io Team",

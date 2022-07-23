@@ -23,7 +23,7 @@ From this example, `<Counter>` never re-renders because the value `123` never ch
 
 If Qwik assumes the properties are dynamic by default, then runtime must serialize component props at all times. However, Qwik's priority is to minimize the amount of HTML sent to the client. If the runtime assumes props are static, then Qwik only needs to serialize the props as data changes.
 
-So if the runtime defaults to viewing all props as static, how how do you mark some data as dynamic? Props with changing data are wrapped with the `mutable()` binding function to provide the necessary runtime information to Qwik.
+So if the runtime defaults to viewing all props as static, how do you mark some data as dynamic? Props with changing data are wrapped with the `mutable()` binding function to provide the necessary runtime information to Qwik.
 
 > **Your task**: First, import the `mutable` function, then change `<Display count={ store.count } />` to `<Display count={mutable(store.count)} />`.
 

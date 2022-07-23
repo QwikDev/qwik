@@ -16,7 +16,7 @@ import type { ReplStore, ReplUpdateMessage, ReplMessage, ReplAppInput } from './
 import { ReplDetailPanel } from './repl-detail-panel';
 import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
-import replServerUrl from 'packages/docs/src/repl/worker/repl-server';
+import replServerUrl from '@repl-server-url';
 
 export const Repl = component$((props: ReplProps) => {
   useScopedStyles$(styles);

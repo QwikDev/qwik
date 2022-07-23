@@ -2,9 +2,9 @@ import type { Plugin } from 'vite';
 import type { TransformModuleInput } from '@builder.io/qwik/optimizer';
 import { join, basename } from 'path';
 import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
-import type { ExampleSection } from './src/layouts/examples/examples-data';
-import type { PlaygroundApp } from './src/layouts/playground/playground-data';
-import type { TutorialSection } from './src/layouts/tutorial/tutorial-data';
+import type { ExampleSection } from './src/repl/apps/examples/examples-data';
+import type { PlaygroundApp } from './src/repl/apps/playground/playground-data';
+import type { TutorialSection } from './src/repl/apps/tutorial/tutorial-data';
 import type { PluginContext } from 'rollup';
 import type { ReplModuleInput } from './src/repl/types';
 

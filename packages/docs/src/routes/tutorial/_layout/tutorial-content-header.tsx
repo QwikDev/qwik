@@ -1,6 +1,6 @@
 import tutorialSections from '@tutorial-data';
 import { component$, useHostElement } from '@builder.io/qwik';
-import type { TutorialStore } from './tutorial';
+import type { TutorialStore } from '.';
 
 export const TutorialContentHeader = component$(({ store }: TutorialContentHeaderProps) => {
   const host = useHostElement();

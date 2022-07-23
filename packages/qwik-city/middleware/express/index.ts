@@ -1,6 +1,6 @@
 import type { QwikCityRequestOptions } from '../request-handler/types';
 import { requestHandler } from '../request-handler';
-import { patchGlobalFetch } from '../request-handler/node-fetch';
+import { patchGlobalFetch } from './node-fetch';
 import express from 'express';
 import { join, resolve } from 'path';
 import type { QwikCityPlan } from '@builder.io/qwik-city';

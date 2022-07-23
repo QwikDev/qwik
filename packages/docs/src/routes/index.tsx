@@ -1,10 +1,7 @@
-import { component$, Resource, useStyles$ } from '@builder.io/qwik';
+import { component$, Resource } from '@builder.io/qwik';
 import { EndpointHandler, useEndpoint } from '@builder.io/qwik-city';
-import styles from './builder.css?inline';
 
 export default component$(() => {
-  useStyles$(styles);
-
   const resource = useEndpoint<EndpointData>();
 
   return (
@@ -13,22 +10,22 @@ export default component$(() => {
       onResolved={(builderContent) => {
         return <main class="builder" dangerouslySetInnerHTML={builderContent.html} />;
       }}
-      onRejected={() => {
-        return <div>Unable to load content</div>;
+      onRejected={(r) => {
+        return <div>Unable to load content </div>;
       }}
     />
   );
 });
 
-export const onRequest: EndpointHandler<EndpointData> = async ({ request }) => {
+export const onRequest: EndpointHandler<EndpointData> = async ({ url }) => {
   const qwikUrl = new URL('https://cdn.builder.io/api/v1/qwik/content-page');
   qwikUrl.searchParams.set('apiKey', 'fe30f73e01ef40558cd69a9493eba2a2');
-  qwikUrl.searchParams.set('userAttributes.urlPath', request.url);
+  qwikUrl.searchParams.set('userAttributes.urlPath', url.pathname);
 
-  const response = await fetch(String(qwikUrl));
+  const response = await fetch(qwikUrl);
   if (response.ok) {
-    const { html } = await response.json();
-    return html;
+    return { html: 'builder content' };
+    // TODO!!!!! return await response.json();
   }
   throw new Error('Unable to load content');
 };

@@ -11,6 +11,7 @@ import { build } from '../build';
 import { configureDevServer } from './dev-server';
 import { SERVER_ENDPOINT_FNS, stripServerEndpoints } from '../utils/strip-server-endpoints';
 import { transformMenu } from '../markdown/menu';
+import { patchGlobalFetch } from '../../middleware/express/node-fetch';
 
 /**
  * @alpha
@@ -19,6 +20,8 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
   let ctx: BuildContext | null = null;
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;
+
+  patchGlobalFetch();
 
   const plugin: Plugin = {
     name: 'vite-plugin-qwik-city',

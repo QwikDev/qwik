@@ -1,4 +1,4 @@
-import { render } from './entry.ssr';
+import render from './entry.ssr';
 import replServerHtml from '@repl-server-html';
 
 export const onRequestGet = async ({ request, next, waitUntil }: any) => {

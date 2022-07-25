@@ -1,5 +1,5 @@
 import { useResource$ } from '@builder.io/qwik';
-import { useLocation, useQwikCityUseContext } from './use-functions';
+import { useLocation, useQwikCityContext } from './use-functions';
 import { isServer } from '@builder.io/qwik/build';
 
 /**
@@ -7,7 +7,7 @@ import { isServer } from '@builder.io/qwik/build';
  */
 export const useEndpoint = <T = unknown>() => {
   const loc = useLocation();
-  const ctx = useQwikCityUseContext();
+  const ctx = useQwikCityContext();
   return useResource$<T>(async ({ track, cleanup }) => {
     const pathname = track(loc, 'pathname');
 

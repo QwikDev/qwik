@@ -67,6 +67,7 @@ export type { FunctionComponent, JSXNode } from './render/jsx/types/jsx-node';
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
 export { render } from './render/render.public';
+export type { RenderOptions } from './render/render.public';
 export { handleWatch } from './render/notify-render';
 
 //////////////////////////////////////////////////////////////////////////////////////////

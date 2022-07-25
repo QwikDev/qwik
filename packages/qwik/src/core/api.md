@@ -382,10 +382,16 @@ export interface Ref<T> {
     current: T | undefined;
 }
 
-// Warning: (ae-forgotten-export) The symbol "RenderOptions" needs to be exported by the entry point index.d.ts
-//
 // @alpha
 export const render: (parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>, opts?: RenderOptions) => Promise<void>;
+
+// @alpha (undocumented)
+export interface RenderOptions {
+    // (undocumented)
+    allowRerender?: boolean;
+    // (undocumented)
+    userContext?: Record<string, any>;
+}
 
 // @alpha (undocumented)
 export const Resource: <T>(props: ResourceProps<T>) => JSXNode;

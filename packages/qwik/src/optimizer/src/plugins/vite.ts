@@ -458,7 +458,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               fixStacktrace: true,
             });
 
-            const render: Render = ssrModule.render;
+            const render: Render = ssrModule.default ?? ssrModule.render;
 
             if (typeof render === 'function') {
               const manifest: QwikManifest = {
@@ -560,7 +560,7 @@ function getViteDevIndexHtml(entryUrl: string, userContext: Record<string, any>)
   <body>
     <script type="module">
 
-import { render } from "${entryUrl}?${VITE_DEV_CLIENT_QS}=";
+import render from "${entryUrl}?${VITE_DEV_CLIENT_QS}=";
 const userContext = JSON.parse(${JSON.stringify(JSON.stringify(userContext))})
 render({
   userContext,
@@ -583,14 +583,9 @@ function getViteDevModule(opts: NormalizedQwikPluginOptions) {
   return `// Qwik Vite Dev Module
 import { render as qwikRender } from '@builder.io/qwik';
 
-export function render(document, rootNode) {
-  const headNodes = [];
-  document.head.childNodes.forEach(n => headNodes.push(n));
-  document.head.textContent = '';
+export async function render(document, rootNode, opts) {
 
-  qwikRender(document, rootNode);
-
-  headNodes.forEach(n => document.head.appendChild(n));
+  await qwikRender(document, rootNode, opts);
 
   let qwikLoader = document.getElementById('qwikloader');
   if (!qwikLoader) {

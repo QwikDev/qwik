@@ -25,14 +25,14 @@ import {
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { isBrowser } from '@builder.io/qwik/build';
-import { useQwikCityUseContext } from './use-functions';
+import { useQwikCityContext } from './use-functions';
 
 /**
  * @public
  */
 export const Html = component$<HtmlProps>(
   () => {
-    const ctx = useQwikCityUseContext();
+    const ctx = useQwikCityContext();
 
     const routeLocation = useStore<MutableRouteLocation>(() => {
       const initRouteLocation = ctx?.route;

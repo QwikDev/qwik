@@ -30,6 +30,6 @@ export const useLocation = (): RouteLocation => useContext(RouteLocationContext)
 
 export const useNavigate = (): RouteNavigate => useContext(RouteNavigateContext);
 
-export const useQwikCityUseContext = () => {
+export const useQwikCityContext = () => {
   return noSerialize(useUserContext<QwikCityUserContext>('qwikcity'));
 };

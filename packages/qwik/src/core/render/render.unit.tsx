@@ -42,7 +42,7 @@ renderSuite('should only render string/number', async () => {
       {null}
       {undefined}
       {[]}
-      {function () {}}
+      {function () { }}
     </div>
   );
   await expectRendered(
@@ -59,16 +59,16 @@ renderSuite('should serialize events correctly', async () => {
   await render(
     fixture.host,
     <div
-      onMouseDown$={() => {}}
-      onKeyUp$={() => {}}
-      onDblClick$={() => {}}
-      on-DblClick$={() => {}}
-      onQVisible$={() => {}}
-      document:onLoad$={() => {}}
-      document:onThing$={() => {}}
-      document:on-Thing$={() => {}}
-      window:onScroll$={() => {}}
-      window:on-Scroll$={() => {}}
+      onMouseDown$={() => { }}
+      onKeyUp$={() => { }}
+      onDblClick$={() => { }}
+      on-DblClick$={() => { }}
+      onQVisible$={() => { }}
+      document:onLoad$={() => { }}
+      document:onThing$={() => { }}
+      document:on-Thing$={() => { }}
+      window:onScroll$={() => { }}
+      window:on-Scroll$={() => { }}
     ></div>
   );
   const Div = 'div' as any;
@@ -197,10 +197,10 @@ renderSuite('should render component external props', async () => {
       key={'special'}
       href="/path"
       host:title="Custom title"
-      host:onClick$={() => {}}
-      host:on-ClicK$={() => {}}
-      document:onLoad$={() => {}}
-      window:onScroll$={() => {}}
+      host:onClick$={() => { }}
+      host:on-ClicK$={() => { }}
+      document:onLoad$={() => { }}
+      window:onScroll$={() => { }}
       preventDefault:click
     />
   );

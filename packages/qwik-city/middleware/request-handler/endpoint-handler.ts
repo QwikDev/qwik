@@ -1,9 +1,10 @@
-import HeadersPolyfill from 'headers-polyfill/lib/Headers';
+import { Headers as HeadersPolyfill } from 'headers-polyfill';
 import type {
   EndpointHandler,
   EndpointModule,
   RequestContext,
   RequestEvent,
+  ResponseContext,
   RouteParams,
 } from '../../runtime/src/library/types';
 import type { UserResponseContext } from './types';
@@ -35,6 +36,17 @@ export async function loadEndpointResponse(
     userResponseContext.status = typeof status === 'number' ? status : 307;
     userResponseContext.headers.set('Location', url);
     userResponseContext.handler = 'redirect';
+  };
+
+  const response: ResponseContext = {
+    get status() {
+      return userResponseContext.status;
+    },
+    set status(code) {
+      userResponseContext.status = code;
+    },
+    headers: userResponseContext.headers,
+    redirect,
   };
 
   const next = async () => {
@@ -86,16 +98,7 @@ export async function loadEndpointResponse(
           request,
           url,
           params,
-          response: {
-            get status() {
-              return userResponseContext.status;
-            },
-            set status(code) {
-              userResponseContext.status = code;
-            },
-            headers: userResponseContext.headers,
-            redirect,
-          },
+          response,
           next,
           abort,
         };

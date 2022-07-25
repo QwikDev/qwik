@@ -3,8 +3,6 @@ import type { ServerResponse } from 'http';
 import type { ServerRequestEvent } from '../request-handler/types';
 
 export function fromNodeHttp(url: URL, nodeReq: NodeRequest, nodeRes: ServerResponse) {
-  nodeRes.statusCode = 200;
-
   const requestHeaders = new HeadersPolyfill();
   const nodeRequestHeaders = nodeReq.headers;
   if (nodeRequestHeaders) {
@@ -26,44 +24,6 @@ export function fromNodeHttp(url: URL, nodeReq: NodeRequest, nodeRes: ServerResp
       buffers.push(chunk);
     }
     return Buffer.concat(buffers).toString();
-  };
-
-  const getResponseHeader = (key: string) => {
-    const value = nodeRes.getHeader(key);
-    if (typeof value === 'string') {
-      return value;
-    }
-    if (typeof value === 'number') {
-      return String(value);
-    }
-    if (Array.isArray(value)) {
-      return value.join(', ');
-    }
-    return null;
-  };
-
-  const responseHeaders: Headers = {
-    append(key, value) {
-      const existingValue = getResponseHeader(key);
-      nodeRes.setHeader(key, existingValue !== null ? `${existingValue}, ${value}` : value);
-    },
-    delete(key) {
-      nodeRes.removeHeader(key);
-    },
-    forEach(cb) {
-      const keys = nodeRes.getHeaderNames();
-      for (const key of keys) {
-        const value = getResponseHeader(key)!;
-        cb(value, key, responseHeaders);
-      }
-    },
-    get: getResponseHeader,
-    has(key) {
-      return nodeRes.hasHeader(key);
-    },
-    set(key, value) {
-      nodeRes.setHeader(key, value);
-    },
   };
 
   const serverRequestEv: ServerRequestEvent = {

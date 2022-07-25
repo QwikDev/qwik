@@ -70,7 +70,6 @@ export const parseResourceReturn = <T>(data: string): ResourceReturn<T> => {
 export interface ResourceOptions {
   // Timeout in milliseconds
   timeout?: number;
-  ssrWait?: number;
 }
 
 /**

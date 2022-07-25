@@ -10,7 +10,7 @@ export async function pageHandler(
   endpointResponse: EndpointResponse,
   stream: StreamWriter
 ) {
-  render({
+  return render({
     stream,
     url: url.href,
     userContext: getQwikCityUserContext(url, params, method, endpointResponse),

@@ -402,7 +402,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         try {
           if (!globalThis.fetch) {
             const nodeFetch = await sys.strictDynamicImport('node-fetch');
-            global.fetch = nodeFetch;
+            global.fetch = nodeFetch.default;
             global.Headers = nodeFetch.Headers;
             global.Request = nodeFetch.Request;
             global.Response = nodeFetch.Response;
@@ -449,6 +449,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               res.setHeader('Access-Control-Allow-Origin', '*');
               res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
               res.writeHead(status);
+
               res.end(html);
               return;
             }

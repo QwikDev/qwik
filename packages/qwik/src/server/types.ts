@@ -80,6 +80,7 @@ export interface RenderResult {
   timing: {
     createDocument: number;
     render: number;
+    snapshot: number;
     toString: number;
   };
 }
@@ -141,7 +142,7 @@ export interface RenderToStreamOptions extends RenderOptions {
 /**
  * @public
  */
-export type StreamWriter = { write: (v: string) => void } | WritableStreamDefaultWriter;
+export type StreamWriter = { write: (v: string) => void };
 
 /**
  * @public

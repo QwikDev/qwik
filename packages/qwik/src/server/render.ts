@@ -2,7 +2,7 @@ import { createTimer, getBuildBase } from './utils';
 import { pauseContainer, render } from '@builder.io/qwik';
 import type { SnapshotResult } from '@builder.io/qwik';
 import { setServerPlatform } from './platform';
-import { serializeDocument, splitDocument } from './serialize';
+import { splitDocument } from './serialize';
 import type {
   QwikManifest,
   RenderDocument,
@@ -18,8 +18,9 @@ import { getPrefetchResources } from './prefetch-strategy';
 import { _createDocument } from './document';
 import type { SymbolMapper } from '../optimizer/src/types';
 import { getSymbolHash } from '../core/import/qrl-class';
-import { isDocument } from '../core/util/element';
 import { logWarn } from '../core/util/log';
+
+const DOCTYPE = '<!DOCTYPE html>';
 
 /**
  * Creates a server-side `document`, renders to root node to the document,
@@ -33,13 +34,9 @@ export async function renderToStream(
   const stream = opts.stream;
   const enqueue = (str: string) => stream.write(str);
 
-  // Send doctype
-  enqueue('<!DOCTYPE html>');
-
   const createDocTimer = createTimer();
   const doc = _createDocument(opts) as RenderDocument;
   const createDocTime = createDocTimer();
-  const renderDocTimer = createTimer();
   let root: Element | Document = doc;
 
   if (typeof opts.fragmentTagName === 'string') {
@@ -58,6 +55,8 @@ export async function renderToStream(
 
     root = doc.createElement(opts.fragmentTagName);
     doc.body.appendChild(root);
+  } else {
+    enqueue(DOCTYPE);
   }
   if (!opts.manifest) {
     logWarn('Missing client manifest, loading symbols in the client might 404');
@@ -68,21 +67,27 @@ export async function renderToStream(
 
   doc._qwikUserCtx = opts.userContext;
 
+  const renderDocTimer = createTimer();
   await render(root, rootNode, false);
 
   const [before, after] = splitDocument(doc, opts);
+  const renderDocTime = renderDocTimer();
+
   enqueue(before);
 
   const restDiv = doc.createElement('div');
-  const renderDocTime = renderDocTimer();
   const buildBase = getBuildBase(opts);
   const containerEl = getElement(root);
   containerEl.setAttribute('q:base', buildBase);
 
   let snapshotResult: SnapshotResult | null = null;
+  const snapshotTimer = createTimer();
+
   if (opts.snapshot !== false) {
     snapshotResult = await pauseContainer(root, restDiv);
   }
+
+  const snapshotTime = snapshotTimer();
   const prefetchResources = getPrefetchResources(snapshotResult, opts, mapper);
   if (prefetchResources.length > 0) {
     applyPrefetchImplementation(doc, restDiv, opts, prefetchResources);
@@ -125,6 +130,7 @@ export async function renderToStream(
     timing: {
       createDocument: createDocTime,
       render: renderDocTime,
+      snapshot: snapshotTime,
       toString: docToStringTimer(),
     },
   };
@@ -142,7 +148,9 @@ export async function renderToString(
   opts: RenderToStringOptions = {}
 ): Promise<RenderToStringResult> {
   const chunks: string[] = [];
-  const stream = { write: (str: string) => chunks.push(str) };
+  const stream = {
+    write: (str: string) => chunks.push(str)
+  };
   const result = await renderToStream(rootNode, {
     ...opts,
     stream,

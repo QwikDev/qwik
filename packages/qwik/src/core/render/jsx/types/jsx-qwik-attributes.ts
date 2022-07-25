@@ -194,19 +194,12 @@ export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLEl
 
 export interface ComponentCustomEvents {
   [key: `${'host'}on:${string}$`]: NativeEventHandler<any>;
-  [key: `${'host'}on:${string}Qrl`]: QrlEvent<any> | QrlEvent<any>[];
   [key: `${'window' | 'document'}:on${string}$`]: NativeEventHandler<any> | undefined;
-  [key: `${'window' | 'document'}:on${string}Qrl`]: QrlEvent<any> | QrlEvent<any>[] | undefined;
 }
-export type ComponentKnownEvents$ = {
+export type ComponentKnownEvents = {
   [K in keyof QwikEventMap as `${'host' | 'window' | 'document'}:on${K}$`]?: NativeEventHandler<
     QwikEventMap[K]
   >;
-};
-export type ComponentKnownEventsQrl = {
-  [K in keyof QwikEventMap as `${'host' | 'window' | 'document'}:on${K}Qrl`]?:
-    | QrlEvent<QwikEventMap[K]>
-    | QrlEvent<QwikEventMap[K]>[];
 };
 
 /**
@@ -215,8 +208,7 @@ export type ComponentKnownEventsQrl = {
 export interface ComponentBaseProps
   extends PreventDefault,
     ComponentCustomEvents,
-    ComponentKnownEvents$,
-    ComponentKnownEventsQrl {
+    ComponentKnownEvents {
   class?: string | { [className: string]: boolean };
   className?: string | undefined;
   style?: CSSProperties | string | undefined;

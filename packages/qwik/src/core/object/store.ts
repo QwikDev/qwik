@@ -61,7 +61,7 @@ export const pauseContainer = async (
     throw qError(QError_containerAlreadyPaused);
   }
   const parentJSON =
-    defaultParentJSON ?? containerEl === doc.documentElement ? doc.body : containerEl;
+    defaultParentJSON ?? (containerEl === doc.documentElement ? doc.body : containerEl);
   const data = await pauseState(containerEl);
   const script = doc.createElement('script');
   directSetAttribute(script, 'type', 'qwik/json');

@@ -38,20 +38,16 @@ export async function requestHandler<T = any>(requestCtx: QwikCityRequestContext
       );
 
       if (userResponseContext.handler === 'page') {
-        return response(
-          userResponseContext.status,
-          userResponseContext.headers,
-          async (stream: StreamWriter) => {
-            const result = await render({
-              stream,
-              url: url.href,
-              userContext: getQwikCityUserContext(userResponseContext),
-            });
-            if (result && (typeof result as any as RenderToStringResult).html === 'string') {
-              stream.write((result as any as RenderToStringResult).html);
-            }
+        return response(userResponseContext.status, userResponseContext.headers, async (stream) => {
+          const result = await render({
+            stream,
+            url: url.href,
+            userContext: getQwikCityUserContext(userResponseContext),
+          });
+          if (result && (typeof result as any as RenderToStringResult).html === 'string') {
+            stream.write((result as any as RenderToStringResult).html);
           }
-        );
+        });
       }
 
       if (userResponseContext.handler === 'endpoint') {

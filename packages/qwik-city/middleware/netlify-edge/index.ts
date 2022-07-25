@@ -16,10 +16,14 @@ export function qwikCity(render: Render, opts: QwikCityPlanNetlifyEdge) {
         render,
         url: new URL(request.url),
         request,
-        response: (status, headers, writer) => {
+        response: (status, headers, body) => {
           const { readable, writable } = new TransformStream();
           const stream = writable.getWriter();
-          writer(stream).finally(stream.close);
+          body({
+            write: (chunk) => stream.write(chunk),
+          }).finally(() => {
+            stream.close();
+          });
           return new Response(readable, { status, headers });
         },
         next,

@@ -17,6 +17,12 @@ export interface ServerRequestEvent<T = any> {
   url: URL;
 }
 
+export type ResponseHandler<T = any> = (
+  status: number,
+  headers: Headers,
+  body: (stream: StreamWriter) => Promise<void>
+) => T;
+
 export interface UserResponseContext {
   url: URL;
   params: RouteParams;
@@ -25,9 +31,3 @@ export interface UserResponseContext {
   body: any;
   handler: 'page' | 'endpoint' | 'redirect' | null;
 }
-
-export type ResponseHandler<T = any> = (
-  status: number,
-  headers: Headers,
-  writer: (stream: StreamWriter) => Promise<void>
-) => T;

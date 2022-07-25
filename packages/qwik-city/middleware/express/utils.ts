@@ -39,10 +39,14 @@ export function fromNodeHttp(url: URL, nodeReq: NodeRequest, nodeRes: ServerResp
       text: getRequestBody,
       url: url.href,
     },
-    response: (status, headers, writer) => {
+    response: (status, headers, body) => {
       nodeRes.statusCode = status;
       headers.forEach((value, key) => nodeRes.setHeader(key, value));
-      writer(nodeRes).finally(nodeRes.end);
+      body({
+        write: (chunk) => nodeRes.write(chunk),
+      }).finally(() => {
+        nodeRes.end();
+      });
       return nodeRes;
     },
     url,

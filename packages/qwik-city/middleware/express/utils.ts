@@ -19,8 +19,8 @@ export async function fromNodeHttp(url: URL, nodeReq: NodeRequest, nodeRes: Serv
   }
 
   let requestBody: string | undefined = undefined;
-  const contentType = requestHeaders.get('Content-Type');
-  if (contentType === 'application/x-www-form-urlencoded') {
+  const requestContentType = requestHeaders.get('Content-Type');
+  if (requestContentType === 'application/x-www-form-urlencoded') {
     try {
       const buffers = [];
       for await (const chunk of nodeReq as any) {
@@ -30,9 +30,47 @@ export async function fromNodeHttp(url: URL, nodeReq: NodeRequest, nodeRes: Serv
         requestBody = Buffer.concat(buffers).toString();
       }
     } catch (e) {
-      console.error('convertNodeRequest', e);
+      console.error('convertNodeRequestHeaders', e);
     }
   }
+
+  const getResponseHeader = (key: string) => {
+    const value = nodeRes.getHeader(key);
+    if (typeof value === 'string') {
+      return value;
+    }
+    if (typeof value === 'number') {
+      return String(value);
+    }
+    if (Array.isArray(value)) {
+      return value.join(', ');
+    }
+    return null;
+  };
+
+  const responseHeaders: Headers = {
+    append(key, value) {
+      const existingValue = getResponseHeader(key);
+      nodeRes.setHeader(key, existingValue !== null ? `${existingValue}, ${value}` : value);
+    },
+    delete(key) {
+      nodeRes.removeHeader(key);
+    },
+    forEach(cb) {
+      const keys = nodeRes.getHeaderNames();
+      for (const key of keys) {
+        const value = getResponseHeader(key)!;
+        cb(value, key, responseHeaders);
+      }
+    },
+    get: getResponseHeader,
+    has(key) {
+      return nodeRes.hasHeader(key);
+    },
+    set(key, value) {
+      nodeRes.setHeader(key, value);
+    },
+  };
 
   const serverRequestEv: ServerRequestEvent = {
     request: new Request(url, {
@@ -41,7 +79,7 @@ export async function fromNodeHttp(url: URL, nodeReq: NodeRequest, nodeRes: Serv
       body: requestBody,
     }),
     response: {
-      headers: new HeadersPolyfill(),
+      headers: responseHeaders,
       status(code) {
         nodeRes.statusCode = code;
       },

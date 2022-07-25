@@ -142,7 +142,7 @@ export interface RenderToStreamOptions extends RenderOptions {
 /**
  * @public
  */
-export type StreamWriter = { write: (v: string) => void };
+export type StreamWriter = { write: (chunk: string) => void };
 
 /**
  * @public

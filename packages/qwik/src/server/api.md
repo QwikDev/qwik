@@ -219,7 +219,7 @@ export interface SnapshotResult {
 
 // @public (undocumented)
 export type StreamWriter = {
-    write: (v: string) => void;
+    write: (chunk: string) => void;
 };
 
 // @public (undocumented)

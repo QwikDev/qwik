@@ -1,29 +1,19 @@
-import type {
-  QwikCityUserContext,
-  RouteLocation,
-  RouteParams,
-} from '../../runtime/src/library/types';
-import type { ServerResponseContext } from './types';
+import type { QwikCityUserContext } from '../../runtime/src/library/types';
+import type { UserResponseContext } from './types';
 
 export function getQwikCityUserContext(
-  url: URL,
-  params: RouteParams,
-  endpointResponse: ServerResponseContext
-): { qwikcity: QwikCityUserContext } {
-  const route: RouteLocation = {
-    href: url.href,
-    params: { ...params },
-    pathname: url.pathname,
-    query: Object.fromEntries(url.searchParams.entries()),
-  };
-
+  userResponseContext: UserResponseContext
+): QwikCityUserContext {
   return {
-    qwikcity: {
-      route,
-      response: {
-        body: endpointResponse.body,
-        status: endpointResponse.statusCode
-      },
+    route: {
+      href: userResponseContext.url.href,
+      pathname: userResponseContext.url.pathname,
+      params: { ...userResponseContext.params },
+      query: Object.fromEntries(userResponseContext.url.searchParams.entries()),
+    },
+    response: {
+      body: userResponseContext.body,
+      status: userResponseContext.status,
     },
   };
 }

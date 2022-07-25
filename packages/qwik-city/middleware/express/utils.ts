@@ -2,12 +2,14 @@ import { Headers as HeadersPolyfill } from 'headers-polyfill';
 import type { ServerResponse } from 'http';
 import type { ServerRequestEvent } from '../request-handler/types';
 
-export async function fromNodeHttp(url: URL, nodeReq: NodeRequest, nodeRes: ServerResponse) {
+export function fromNodeHttp(url: URL, nodeReq: NodeRequest, nodeRes: ServerResponse) {
+  nodeRes.statusCode = 200;
+
   const requestHeaders = new HeadersPolyfill();
-  const nodeHeaders = nodeReq.headers;
-  if (nodeHeaders) {
-    for (const key in nodeHeaders) {
-      const value = nodeHeaders[key];
+  const nodeRequestHeaders = nodeReq.headers;
+  if (nodeRequestHeaders) {
+    for (const key in nodeRequestHeaders) {
+      const value = nodeRequestHeaders[key];
       if (typeof value === 'string') {
         requestHeaders.set(key, value);
       } else if (Array.isArray(value)) {
@@ -18,21 +20,13 @@ export async function fromNodeHttp(url: URL, nodeReq: NodeRequest, nodeRes: Serv
     }
   }
 
-  let requestBody: string | undefined = undefined;
-  const requestContentType = requestHeaders.get('Content-Type');
-  if (requestContentType === 'application/x-www-form-urlencoded') {
-    try {
-      const buffers = [];
-      for await (const chunk of nodeReq as any) {
-        buffers.push(chunk);
-      }
-      if (buffers.length > 0) {
-        requestBody = Buffer.concat(buffers).toString();
-      }
-    } catch (e) {
-      console.error('convertNodeRequestHeaders', e);
+  const getRequestBody = async () => {
+    const buffers = [];
+    for await (const chunk of nodeReq as any) {
+      buffers.push(chunk);
     }
-  }
+    return Buffer.concat(buffers).toString();
+  };
 
   const getResponseHeader = (key: string) => {
     const value = nodeRes.getHeader(key);
@@ -73,39 +67,26 @@ export async function fromNodeHttp(url: URL, nodeReq: NodeRequest, nodeRes: Serv
   };
 
   const serverRequestEv: ServerRequestEvent = {
-    request: new Request(url, {
-      method: nodeReq.method,
+    request: {
       headers: requestHeaders,
-      body: requestBody,
-    }),
-    response: {
-      headers: responseHeaders,
-      status(code) {
-        nodeRes.statusCode = code;
+      formData: async () => {
+        return new URLSearchParams(await getRequestBody());
       },
-      get statusCode() {
-        return nodeRes.statusCode;
+      json: async () => {
+        return JSON.parse(await getRequestBody()!);
       },
-      redirect(url, statusCode) {
-        nodeRes.statusCode = typeof statusCode === 'number' ? statusCode : 307;
-        nodeRes.setHeader('Location', url);
-        serverRequestEv.response.handled = true;
-      },
-      write(chunk) {
-        nodeRes.write(chunk);
-      },
-      body: undefined,
-      handled: false,
+      method: nodeReq.method || 'GET',
+      text: getRequestBody,
+      url: url.href,
+    },
+    response: (status, headers, writer) => {
+      nodeRes.statusCode = status;
+      headers.forEach((value, key) => nodeRes.setHeader(key, value));
+      writer(nodeRes).finally(nodeRes.end);
+      return nodeRes;
     },
     url,
   };
-
-  if (typeof serverRequestEv.request.formData !== 'function') {
-    serverRequestEv.request.formData = async function formData() {
-      const formData: FormData = new URLSearchParams(requestBody);
-      return formData;
-    };
-  }
 
   return serverRequestEv;
 }

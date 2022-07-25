@@ -36,25 +36,19 @@ export function qwikCity(render: Render, opts: QwikCityPlanExpress) {
   router.use(async (nodeReq, nodeRes, next) => {
     try {
       const url = new URL(nodeReq.url, `${nodeReq.protocol}://${nodeReq.headers.host}`);
-      const serverRequestEv = await fromNodeHttp(url, nodeReq, nodeRes);
+      const serverRequestEv = fromNodeHttp(url, nodeReq, nodeRes);
 
       const requestCtx: QwikCityRequestContext = {
         ...opts,
         ...serverRequestEv,
         render,
+        next,
       };
 
       await requestHandler(requestCtx);
-
-      if (requestCtx.response.handled) {
-        return;
-      }
     } catch (e) {
       next(e);
-      return;
     }
-
-    next();
   });
 
   return router;

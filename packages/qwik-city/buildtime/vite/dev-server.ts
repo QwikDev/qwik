@@ -22,16 +22,15 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
       const result = await buildFromUrlPathname(ctx, pathname);
       if (result) {
         const { route, params } = result;
-        const { request, response } = await fromNodeHttp(url, nodeReq, nodeRes);
+        const { request, response } = fromNodeHttp(url, nodeReq, nodeRes);
         const isEndpointOnly = route.type === 'endpoint';
 
         if (!isEndpointOnly) {
           // content page, so check if the trailing slash should be redirected
-          checkPageRedirect(url, response, ctx.opts.trailingSlash);
-          if (response.handled) {
+          const redirectResponse = checkPageRedirect(url, ctx.opts.trailingSlash, response);
+          if (redirectResponse) {
             // page redirect will add or remove the trailing slash depending on the option
-            nodeRes.end();
-            return;
+            return redirectResponse;
           }
         }
 
@@ -48,25 +47,26 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         });
         endpointModules.push(endpointModule);
 
-        await loadEndpointResponse(request, response, url, params, endpointModules, isEndpointOnly);
+        const userResponseContext = await loadEndpointResponse(
+          request,
+          url,
+          params,
+          endpointModules,
+          isEndpointOnly
+        );
 
-        if (response.handled) {
-          nodeRes.end();
+        if (userResponseContext.handler === 'endpoint') {
+          response(
+            userResponseContext.status,
+            userResponseContext.headers,
+            () => userResponseContext.body
+          );
           return;
         }
 
-        // modify the response, but do not end()
-        // the qwik vite plugin will handle dev page rendering
-        nodeRes.statusCode = response.statusCode;
-        response.headers.forEach((value, key) => {
-          if (value) {
-            nodeRes.setHeader(key, value);
-          }
-        });
-
         (nodeRes as QwikViteDevResponse)._qwikUserCtx = {
           ...(nodeRes as QwikViteDevResponse)._qwikUserCtx,
-          ...getQwikCityUserContext(url, params, response),
+          ...getQwikCityUserContext(userResponseContext),
         };
       }
     } catch (e) {

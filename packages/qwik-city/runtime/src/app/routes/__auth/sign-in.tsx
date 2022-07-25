@@ -42,7 +42,7 @@ export const onPost: EndpointHandler = async ({ request, response }) => {
     response.headers.set('Set-Cookie', result.cookie);
     response.redirect('/dashboard');
   } else {
-    response.status(403);
+    response.status = 403;
   }
 };
 

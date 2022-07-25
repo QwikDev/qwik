@@ -18,47 +18,22 @@ export function qwikCity(render: Render, opts: QwikCityPlanCloudflarePages) {
         return cachedResponse;
       }
 
-      const responseInit: ResponseInit = {
-        status: 200,
-        headers: new Headers(),
-      };
-
-      const { readable, writable } = new TransformStream();
-      const writer = writable.getWriter();
-
-      const requestCtx: QwikCityRequestContext = {
+      const requestCtx: QwikCityRequestContext<Response> = {
         ...opts,
-        request,
-        response: {
-          status(code) {
-            responseInit.status = code;
-          },
-          get statusCode() {
-            return responseInit.status as number;
-          },
-          headers: responseInit.headers as Headers,
-          redirect(url, code) {
-            responseInit.status = typeof code === 'number' ? code : 307;
-            responseInit.headers = {
-              Location: url,
-            };
-            requestCtx.response.handled = true;
-          },
-          write: writer.write,
-          body: undefined,
-          handled: false,
-        },
-        url: new URL(request.url),
         render,
+        url: new URL(request.url),
+        request,
+        response: (status, headers, writer) => {
+          const { readable, writable } = new TransformStream();
+          const stream = writable.getWriter();
+          writer(stream).finally(stream.close);
+          return new Response(readable, { status, headers });
+        },
+        next,
       };
 
-      await requestHandler(requestCtx);
-
-      if (requestCtx.response.handled) {
-        return new Response(readable, responseInit);
-      }
-
-      return next();
+      const response = await requestHandler<Response>(requestCtx);
+      return response;
     } catch (e: any) {
       return new Response(String(e ? e.stack || e : 'Error'), {
         status: 500,

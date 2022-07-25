@@ -1,9 +1,9 @@
-import type { ServerResponseContext } from './types';
+import type { ResponseHandler } from './types';
 
 export function checkPageRedirect(
   current: URL,
-  response: ServerResponseContext,
-  trailingSlash: boolean | undefined
+  trailingSlash: boolean | undefined,
+  responseHander: ResponseHandler
 ) {
   const pathname = current.pathname;
   if (pathname !== '/') {
@@ -11,24 +11,29 @@ export function checkPageRedirect(
       // must have a trailing slash
       if (!pathname.endsWith('/')) {
         // add slash to existing pathname
-        createPageRedirect(current, response, pathname + '/');
+        return createPageRedirect(current, pathname + '/', responseHander);
       }
     } else {
       // should not have a trailing slash
       if (pathname.endsWith('/')) {
         // remove slash from existing pathname
-        createPageRedirect(current, response, pathname.slice(0, pathname.length - 1));
+        return createPageRedirect(current, pathname.slice(0, pathname.length - 1), responseHander);
       }
     }
   }
+  return null;
 }
 
 function createPageRedirect(
   current: URL,
-  response: ServerResponseContext,
-  updatedPathname: string
+  updatedPathname: string,
+  responseHander: ResponseHandler
 ) {
   if (updatedPathname !== current.pathname) {
-    response.redirect(updatedPathname + current.search, 308);
+    const headers = new URLSearchParams({
+      Location: updatedPathname + current.search,
+    });
+    return responseHander(308, headers, Promise.resolve);
   }
+  return null;
 }

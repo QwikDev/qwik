@@ -10,6 +10,7 @@ import type {
   RenderToStreamResult,
   RenderToStringOptions,
   RenderToStringResult,
+  StreamWriter,
 } from './types';
 import { getElement } from '../core/render/render.public';
 import { getQwikLoaderScript } from './scripts';
@@ -148,8 +149,10 @@ export async function renderToString(
   opts: RenderToStringOptions = {}
 ): Promise<RenderToStringResult> {
   const chunks: string[] = [];
-  const stream = {
-    write: (str: string) => chunks.push(str),
+  const stream: StreamWriter = {
+    write: (chunk) => {
+      chunks.push(chunk);
+    },
   };
   const result = await renderToStream(rootNode, {
     ...opts,

@@ -56,7 +56,6 @@ export const getContainerState = (containerEl: Element): ContainerState => {
   let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
   if (!set) {
     (containerEl as any)[CONTAINER_STATE] = set = {
-
       $proxyMap$: new WeakMap(),
       $subsManager$: createSubscriptionManager(),
       $platform$: getPlatform(containerEl),

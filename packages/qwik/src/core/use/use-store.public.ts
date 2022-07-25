@@ -161,7 +161,7 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
     if (qDev) {
       verifySerializable(value);
     }
-    return elementCtx.$seq$[i] = value;
+    return (elementCtx.$seq$[i] = value);
   };
   return {
     get: elementCtx.$seq$[i],

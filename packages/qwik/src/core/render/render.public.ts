@@ -36,7 +36,7 @@ export interface RenderOptions {
 export const render = async (
   parent: Element | Document,
   jsxNode: JSXNode<unknown> | FunctionComponent<any>,
-  opts?: RenderOptions,
+  opts?: RenderOptions
 ): Promise<void> => {
   // If input is not JSX, convert it
   if (!isJSXNode(jsxNode)) {
@@ -52,7 +52,7 @@ export const render = async (
   const containerState = getContainerState(containerEl);
   const userContext = opts?.userContext;
   if (userContext) {
-    containerState.$userContext$ = userContext;
+    Object.assign(containerState.$userContext$, userContext);
   }
   containerState.$hostsRendering$ = new Set();
   containerState.$renderPromise$ = renderRoot(parent, jsxNode, doc, containerState, containerEl);

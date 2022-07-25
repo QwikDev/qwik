@@ -15,18 +15,21 @@ export function getQwikCityUserContext(
   params: RouteParams,
   method: HttpMethod,
   endpointResponse: EndpointResponse
-): QwikCityUserContext {
-  const qcRoute: RouteLocation = {
+): { qwikcity: QwikCityUserContext } {
+  const route: RouteLocation = {
     href: url.href,
     params: { ...params },
     pathname: url.pathname,
+    query: Object.fromEntries(url.searchParams.entries()),
   };
 
   return {
-    qcRoute,
-    qcRequest: {
-      method,
+    qwikcity: {
+      route,
+      request: {
+        method,
+      },
+      response: endpointResponse,
     },
-    qcResponse: endpointResponse,
   };
 }

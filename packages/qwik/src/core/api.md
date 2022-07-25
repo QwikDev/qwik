@@ -258,9 +258,6 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
 }
 
 // @alpha
-export const immutable: <T extends {}>(input: T) => Readonly<T>;
-
-// @alpha
 export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET;
 
 // @alpha (undocumented)
@@ -300,7 +297,7 @@ export type NoSerialize<T> = (T & {
 }) | undefined;
 
 // @alpha
-export const noSerialize: <T extends {}>(input: T) => NoSerialize<T>;
+export const noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 
 // @public (undocumented)
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null | (() => JSXNode<any>);
@@ -600,6 +597,12 @@ export const useStyles$: (first: string) => void;
 
 // @public
 export const useStylesQrl: (styles: QRL<string>) => void;
+
+// @alpha (undocumented)
+export function useUserContext<T>(key: string): T | undefined;
+
+// @alpha (undocumented)
+export function useUserContext<T, B = T>(key: string, defaultValue: B): T | B;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "WatchFn" which is marked as @alpha
 // Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "UseEffectOptions" which is marked as @alpha

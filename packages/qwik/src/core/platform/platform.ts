@@ -109,7 +109,7 @@ export const getPlatform = (docOrNode: Document | Node) => {
 
 export const isServer = (doc: Document) => {
   return getPlatform(doc).isServer;
-}
+};
 
 const DocumentPlatform = ':platform:';
 

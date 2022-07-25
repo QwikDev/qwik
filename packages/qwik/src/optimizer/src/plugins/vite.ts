@@ -25,7 +25,6 @@ import {
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import { versions } from '../versions';
-import type { RenderDocumentUserContext } from '../../../server/types';
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID];
 
@@ -554,20 +553,19 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 }
 
 function getViteDevIndexHtml(entryUrl: string, userContext: Record<string, any>) {
-  const doc: RenderDocumentUserContext = {
-    _qwikUserCtx: userContext,
-  };
-
-  return `<!-- Qwik Vite Dev Mode -->
-<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html>
   <head>
-    <script>
-      Object.assign(document, ${JSON.stringify(doc, null, 2)});
-    </script>
   </head>
   <body>
-    <script type="module" src="${entryUrl}?${VITE_DEV_CLIENT_QS}="></script>
+    <script type="module">
+
+import { render } from "${entryUrl}?${VITE_DEV_CLIENT_QS}=";
+const userContext = JSON.parse(${JSON.stringify(JSON.stringify(userContext))})
+render({
+  userContext,
+});
+    </script>
   </body>
 </html>`;
 }

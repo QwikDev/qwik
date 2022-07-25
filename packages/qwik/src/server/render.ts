@@ -58,7 +58,7 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
 
   await render(root, rootNode, {
     allowRerender: false,
-    userContext: opts.userContext
+    userContext: opts.userContext,
   });
 
   const renderDocTime = renderDocTimer();

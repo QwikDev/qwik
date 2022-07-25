@@ -1,14 +1,11 @@
 import type { ViteDevServer } from 'vite';
 import type { BuildContext } from '../types';
-import type { EndpointModule, HttpMethod } from '../../runtime/src/library/types';
+import type { EndpointModule } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
-import {
-  endpointHandler,
-  getEndpointResponse,
-} from '../../middleware/request-handler/endpoint-handler';
+import { loadEndpointResponse } from '../../middleware/request-handler/endpoint-handler';
 import { checkPageRedirect } from '../../middleware/request-handler/redirect-handler';
-import { getQwikCityUserContext, isAcceptJsonOnly } from '../../middleware/request-handler/utils';
-import { fromNodeRequest, toNodeResponse } from '../../middleware/express/utils';
+import { getQwikCityUserContext } from '../../middleware/request-handler/utils';
+import { fromNodeHttp } from '../../middleware/express/utils';
 import { buildFromUrlPathname } from '../build';
 
 export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
@@ -25,21 +22,20 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
       const result = await buildFromUrlPathname(ctx, pathname);
       if (result) {
         const { route, params } = result;
-        const request = await fromNodeRequest(url, nodeReq);
-        const method = request.method as HttpMethod;
+        const { request, response } = await fromNodeHttp(url, nodeReq, nodeRes);
+        const isEndpointOnly = route.type === 'endpoint';
 
-        if (route.type !== 'endpoint') {
-          const pageRedirectResponse = checkPageRedirect(
-            url,
-            request.headers,
-            ctx.opts.trailingSlash
-          );
-          if (pageRedirectResponse) {
-            toNodeResponse(pageRedirectResponse, nodeRes);
+        if (!isEndpointOnly) {
+          // content page, so check if the trailing slash should be redirected
+          checkPageRedirect(url, response, ctx.opts.trailingSlash);
+          if (response.handled) {
+            // page redirect will add or remove the trailing slash depending on the option
+            nodeRes.end();
             return;
           }
         }
 
+        // use vite to dynamically load each layout/page module in this route's hierarchy
         const endpointModules: EndpointModule[] = [];
         for (const layout of route.layouts) {
           const layoutModule = await server.ssrLoadModule(layout.filePath, {
@@ -52,46 +48,25 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         });
         endpointModules.push(endpointModule);
 
-        const endpointResponse = await getEndpointResponse(
-          request,
-          method,
-          url,
-          params,
-          endpointModules
-        );
+        await loadEndpointResponse(request, response, url, params, endpointModules, isEndpointOnly);
 
-        if (endpointResponse.immediateCommitToNetwork) {
-          const response = new Response(endpointResponse.body, {
-            status: endpointResponse.status,
-            headers: endpointResponse.headers,
-          });
-          toNodeResponse(response, nodeRes);
+        if (response.handled) {
+          nodeRes.end();
           return;
         }
 
-        if (route.type === 'endpoint' || isAcceptJsonOnly(request)) {
-          const response = endpointHandler(method, endpointResponse);
-          toNodeResponse(response, nodeRes);
-          return;
-        }
-
-        if (endpointResponse) {
-          // modify the response, but do not end()
-          if (typeof endpointResponse.status === 'number') {
-            nodeRes.statusCode = endpointResponse.status;
-          }
-          if (endpointResponse.headers) {
-            for (const [key, value] of Object.entries(endpointResponse.headers)) {
-              if (value) {
-                nodeRes.setHeader(key, value);
-              }
-            }
+        // modify the response, but do not end()
+        // the qwik vite plugin will handle dev page rendering
+        nodeRes.statusCode = response.statusCode;
+        for (const [key, value] of Object.entries(response.headers)) {
+          if (value) {
+            nodeRes.setHeader(key, value);
           }
         }
 
         (nodeRes as QwikViteDevResponse)._qwikUserCtx = {
           ...(nodeRes as QwikViteDevResponse)._qwikUserCtx,
-          ...getQwikCityUserContext(url, params, method, endpointResponse),
+          ...getQwikCityUserContext(url, params, response),
         };
       }
     } catch (e) {

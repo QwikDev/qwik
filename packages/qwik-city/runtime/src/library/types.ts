@@ -238,11 +238,6 @@ export interface ResponseContext {
    * Please use the `status()` method to set the response status code.
    */
   readonly statusCode: number;
-
-  /**
-   * Read-only value if the response was already aborted.
-   */
-  readonly aborted: boolean;
 }
 
 /**
@@ -275,9 +270,6 @@ export type EndpointHandler<BODY = unknown> = (
 export interface EndpointResponse {
   body: any;
   status: number;
-  headers: Headers;
-  hasEndpointHandler: boolean;
-  immediateCommitToNetwork: boolean;
 }
 
 export interface QwikCityRenderDocument extends RenderDocument {
@@ -286,8 +278,5 @@ export interface QwikCityRenderDocument extends RenderDocument {
 
 export interface QwikCityUserContext {
   qcRoute: MutableRouteLocation;
-  qcRequest: {
-    method: HttpMethod;
-  };
   qcResponse: EndpointResponse;
 }

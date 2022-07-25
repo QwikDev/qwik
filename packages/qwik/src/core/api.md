@@ -404,6 +404,8 @@ export interface ResourceCtx<T> {
 // @alpha (undocumented)
 export interface ResourcePending<T> {
     // (undocumented)
+    __brand: 'resource';
+    // (undocumented)
     error: undefined;
     // (undocumented)
     promise: Promise<T>;
@@ -411,6 +413,8 @@ export interface ResourcePending<T> {
     resolved: undefined;
     // (undocumented)
     state: 'pending';
+    // (undocumented)
+    timeout?: number;
 }
 
 // @alpha (undocumented)
@@ -423,10 +427,14 @@ export interface ResourceProps<T> {
     onResolved: (value: T) => JSXNode;
     // (undocumented)
     resource: ResourceReturn<T>;
+    // (undocumented)
+    ssrWait?: number;
 }
 
 // @alpha (undocumented)
 export interface ResourceRejected<T> {
+    // (undocumented)
+    __brand: 'resource';
     // (undocumented)
     error: NoSerialize<any>;
     // (undocumented)
@@ -435,10 +443,14 @@ export interface ResourceRejected<T> {
     resolved: undefined;
     // (undocumented)
     state: 'rejected';
+    // (undocumented)
+    timeout?: number;
 }
 
 // @alpha (undocumented)
 export interface ResourceResolved<T> {
+    // (undocumented)
+    __brand: 'resource';
     // (undocumented)
     error: undefined;
     // (undocumented)
@@ -447,6 +459,8 @@ export interface ResourceResolved<T> {
     resolved: T;
     // (undocumented)
     state: 'resolved';
+    // (undocumented)
+    timeout?: number;
 }
 
 // @alpha (undocumented)
@@ -474,6 +488,8 @@ export interface SnapshotResult {
     mode: 'render' | 'listeners' | 'static';
     // (undocumented)
     objs: any[];
+    // (undocumented)
+    pendingContent: Promise<string>[];
     // (undocumented)
     state: SnapshotState;
 }
@@ -567,8 +583,10 @@ export const useRef: <T extends Element = Element>(current?: T | undefined) => R
 // @alpha (undocumented)
 export const useResource$: <T>(generatorFn: ResourceFn<T>) => ResourceReturn<T>;
 
+// Warning: (ae-forgotten-export) The symbol "ResourceOptions" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>) => ResourceReturn<T>;
+export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) => ResourceReturn<T>;
 
 // @alpha (undocumented)
 export const useScopedStyles$: (first: string) => void;

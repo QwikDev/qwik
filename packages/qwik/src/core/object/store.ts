@@ -20,7 +20,6 @@ import {
 import {
   destroyWatch,
   isResourceWatch,
-  ResourceReturnInternal,
   SubscriberDescriptor,
   WatchFlagsIsDirty,
 } from '../use/use-watch';

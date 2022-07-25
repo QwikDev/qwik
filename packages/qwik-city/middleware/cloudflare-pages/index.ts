@@ -1,4 +1,4 @@
-import type { QwikCityRequestOptions } from '../request-handler/types';
+import type { QwikCityRequestContext } from '../request-handler/types';
 import { requestHandler } from '../request-handler';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
@@ -9,7 +9,7 @@ import type { Render } from '@builder.io/qwik/server';
  * @public
  */
 export function qwikCity(render: Render, opts: QwikCityPlanCloudflarePages) {
-  async function onRequest({ request, next, waitUntil }: EventPluginContext) {
+  async function onRequest({ request, next }: EventPluginContext) {
     try {
       // early return from cache
       const cache = await caches.open('custom:qwikcity');
@@ -18,29 +18,52 @@ export function qwikCity(render: Render, opts: QwikCityPlanCloudflarePages) {
         return cachedResponse;
       }
 
-      const requestOpts: QwikCityRequestOptions = {
-        ...opts,
-        request,
+      const responseInit: ResponseInit = {
+        status: 200,
+        headers: new Headers(),
       };
 
-      const response = await requestHandler(render, requestOpts);
-      if (response) {
-        if (response.ok && request.method === 'GET' && !response.url.includes('localhost')) {
-          const cacheControl = response.headers.get('Cache-Control') || '';
-          if (
-            !cacheControl.includes('no-cache') &&
-            !cacheControl.includes('no-store') &&
-            !cacheControl.includes('private')
-          ) {
-            waitUntil(cache.put(request, response.clone()));
-          }
-        }
-        return response;
-      } else {
-        return next();
+      const { readable, writable } = new TransformStream();
+      const writer = writable.getWriter();
+
+      const requestCtx: QwikCityRequestContext = {
+        ...opts,
+        request,
+        response: {
+          status(code) {
+            responseInit.status = code;
+          },
+          get statusCode() {
+            return responseInit.status as number;
+          },
+          headers: responseInit.headers as Headers,
+          redirect(url, code) {
+            responseInit.status = typeof code === 'number' ? code : 307;
+            responseInit.headers = {
+              Location: url,
+            };
+            requestCtx.response.handled = true;
+          },
+          write: writer.write,
+          body: undefined,
+          handled: false,
+        },
+        url: new URL(request.url),
+        render,
+      };
+
+      await requestHandler(requestCtx);
+
+      if (requestCtx.response.handled) {
+        return new Response(readable, responseInit);
       }
+
+      return next();
     } catch (e: any) {
-      return new Response(String(e ? e.stack || e : 'Error'), { status: 500 });
+      return new Response(String(e ? e.stack || e : 'Error'), {
+        status: 500,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      });
     }
   }
 

@@ -1,62 +1,21 @@
 import type {
   EndpointHandler,
   EndpointModule,
-  EndpointResponse,
-  HttpMethod,
-  ResponseContext,
+  RequestEvent,
   RouteParams,
 } from '../../runtime/src/library/types';
-import { Headers as HeadersPolyfill } from 'headers-polyfill';
+import type { ServerResponseContext } from './types';
 
-export async function getEndpointResponse(
+export async function loadEndpointResponse(
   request: Request,
-  method: HttpMethod,
+  serverResponse: ServerResponseContext,
   url: URL,
   params: RouteParams,
-  endpointModules: EndpointModule[]
+  endpointModules: EndpointModule[],
+  isEndpointOnly: boolean
 ) {
   let middlewareIndex = -1;
-
-  const headers = new HeadersPolyfill();
-
-  const endpointResponse: EndpointResponse = {
-    body: null,
-    status: 200,
-    headers,
-    hasEndpointHandler: false,
-    immediateCommitToNetwork: false,
-  };
-
-  const status = (statusCode: number) => {
-    endpointResponse.status = statusCode;
-  };
-
-  const redirect = (url: string, statusCode?: number) => {
-    if (typeof statusCode === 'number') {
-      endpointResponse.status = statusCode;
-    }
-    if (
-      typeof endpointResponse.status !== 'number' ||
-      endpointResponse.status < 300 ||
-      endpointResponse.status > 399
-    ) {
-      endpointResponse.status = 307;
-    }
-    headers.set('Location', url);
-    endpointResponse.immediateCommitToNetwork = true;
-  };
-
-  const response: ResponseContext = {
-    status,
-    headers,
-    redirect,
-    get statusCode() {
-      return endpointResponse.status;
-    },
-    get aborted() {
-      return middlewareIndex >= ABORT_INDEX;
-    },
-  };
+  let hasRequestHandler = false;
 
   const abort = () => {
     middlewareIndex = ABORT_INDEX;
@@ -70,7 +29,7 @@ export async function getEndpointResponse(
 
       let reqHandler: EndpointHandler | undefined = undefined;
 
-      switch (method) {
+      switch (request.method) {
         case 'GET': {
           reqHandler = endpointModule.onGet;
           break;
@@ -104,12 +63,27 @@ export async function getEndpointResponse(
       reqHandler = reqHandler || endpointModule.onRequest;
 
       if (typeof reqHandler === 'function') {
-        endpointResponse.hasEndpointHandler = true;
+        hasRequestHandler = true;
 
-        const body = await reqHandler({ request, url, params, response, next, abort });
-        if (body !== undefined) {
-          endpointResponse.body = body;
-        }
+        // create user request event, which is a narrowed down request context
+        const requstEv: RequestEvent = {
+          request,
+          url,
+          params,
+          response: {
+            status: serverResponse.status,
+            get statusCode() {
+              return serverResponse.statusCode;
+            },
+            headers: serverResponse.headers,
+            redirect: serverResponse.redirect,
+          },
+          next,
+          abort,
+        };
+
+        // get the user's endpoint return data
+        serverResponse.body = await reqHandler(requstEv);
       }
 
       middlewareIndex++;
@@ -118,64 +92,57 @@ export async function getEndpointResponse(
 
   try {
     await next();
-  } catch (e: any) {
-    endpointResponse.body = String(e ? e.stack : e || 'Endpoint Error');
-    endpointResponse.status = 500;
-    endpointResponse.headers.forEach((_, key) => endpointResponse.headers.delete(key));
-    endpointResponse.headers.set('Content-Type', 'text/plain; charset=utf-8');
-    endpointResponse.immediateCommitToNetwork = true;
-  }
 
-  return endpointResponse;
+    if (isEndpointOnly || isAcceptJsonOnly(request)) {
+      // this can only be an endpoint response and not a content page render/response
+
+      if (!hasRequestHandler) {
+        // can only be an endpoint but there wasn't a handler for this method
+        serverResponse.status(405);
+        serverResponse.headers.set('Content-Type', 'text/plain; charset=utf-8');
+        serverResponse.write(`Method Not Allowed: ${request.method}`);
+        serverResponse.handled = true;
+        return;
+      }
+
+      if (!serverResponse.headers.has('Content-Type')) {
+        // default to use a application/json content type response
+        serverResponse.headers.set('Content-Type', 'application/json; charset=utf-8');
+      }
+
+      // the data from each layout/page endpoint is already completed in "body"
+      if (serverResponse.headers.get('Content-Type')!.startsWith('application/json')) {
+        // JSON response, stringify the body
+        serverResponse.write(JSON.stringify(serverResponse.body));
+        serverResponse.handled = true;
+      } else if (serverResponse.body == null) {
+        // null || undefined response
+        serverResponse.handled = true;
+      } else {
+        const type = typeof serverResponse.body;
+        // serialize for a string response
+        if (type === 'string' || type === 'number' || type === 'boolean') {
+          serverResponse.write(String(serverResponse.body));
+          serverResponse.handled = true;
+        } else {
+          // don't know how to serialize this object for the response
+          serverResponse.status(500);
+          serverResponse.headers.set('Content-Type', 'text/plain; charset=utf-8');
+          serverResponse.write('Unsupport response body type');
+          serverResponse.handled = true;
+        }
+      }
+    }
+  } catch (e: any) {
+    serverResponse.status(500);
+    serverResponse.headers.set('Content-Type', 'text/plain; charset=utf-8');
+    serverResponse.write(String(e ? e.stack : e || 'Endpoint Error'));
+    serverResponse.handled = true;
+  }
 }
 
-export function endpointHandler(method: HttpMethod, endpointResponse: EndpointResponse) {
-  const { status, headers, hasEndpointHandler } = endpointResponse;
-
-  if (hasEndpointHandler) {
-    if (!headers.has('Content-Type')) {
-      headers.set('Content-Type', 'application/json; charset=utf-8');
-    }
-
-    if (headers.get('Content-Type')!.startsWith('application/json')) {
-      // JSON response
-      return new Response(JSON.stringify(endpointResponse.body), {
-        status,
-        headers,
-      });
-    }
-
-    if (endpointResponse.body == null) {
-      // null || undefined response
-      return new Response(endpointResponse.body, {
-        status,
-        headers,
-      });
-    }
-
-    const type = typeof endpointResponse.body;
-    // string response
-    if (type === 'string' || type === 'number' || type === 'boolean') {
-      return new Response(String(endpointResponse.body), {
-        status,
-        headers,
-      });
-    }
-
-    return new Response(`Unsupport response body type`, {
-      status: 500,
-      headers: {
-        'content-type': 'text/plain; charset=utf-8',
-      },
-    });
-  }
-
-  return new Response(`Method Not Allowed: ${method}`, {
-    status: 405,
-    headers: {
-      'content-type': 'text/plain; charset=utf-8',
-    },
-  });
+function isAcceptJsonOnly(request: Request) {
+  return request.headers.get('Accept') === 'application/json';
 }
 
 const ABORT_INDEX = 999999999;

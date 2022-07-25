@@ -1,24 +1,25 @@
-import { Readable } from 'stream';
+import { Headers as HeadersPolyfill } from 'headers-polyfill';
 import type { ServerResponse } from 'http';
+import type { ServerRequestEvent } from '../request-handler/types';
 
-export async function fromNodeRequest(url: URL, nodeReq: NodeRequest) {
-  const headers = new URLSearchParams();
+export async function fromNodeHttp(url: URL, nodeReq: NodeRequest, nodeRes: ServerResponse) {
+  const requestHeaders = new HeadersPolyfill();
   const nodeHeaders = nodeReq.headers;
   if (nodeHeaders) {
     for (const key in nodeHeaders) {
       const value = nodeHeaders[key];
       if (typeof value === 'string') {
-        headers.set(key.toLocaleLowerCase(), value);
+        requestHeaders.set(key, value);
       } else if (Array.isArray(value)) {
         for (const v of value) {
-          headers.append(key.toLocaleLowerCase(), v);
+          requestHeaders.append(key, v);
         }
       }
     }
   }
 
-  let body: string | undefined = undefined;
-  const contentType = headers.get('content-type');
+  let requestBody: string | undefined = undefined;
+  const contentType = requestHeaders.get('Content-Type');
   if (contentType === 'application/x-www-form-urlencoded') {
     try {
       const buffers = [];
@@ -26,45 +27,49 @@ export async function fromNodeRequest(url: URL, nodeReq: NodeRequest) {
         buffers.push(chunk);
       }
       if (buffers.length > 0) {
-        body = Buffer.concat(buffers).toString();
+        requestBody = Buffer.concat(buffers).toString();
       }
     } catch (e) {
       console.error('convertNodeRequest', e);
     }
   }
 
-  const request = new Request(url, {
-    method: nodeReq.method,
-    headers,
-    body,
-  });
+  const serverRequestEv: ServerRequestEvent = {
+    request: new Request(url, {
+      method: nodeReq.method,
+      headers: requestHeaders,
+      body: requestBody,
+    }),
+    response: {
+      headers: new HeadersPolyfill(),
+      status(code) {
+        nodeRes.statusCode = code;
+      },
+      get statusCode() {
+        return nodeRes.statusCode;
+      },
+      redirect(url, statusCode) {
+        nodeRes.statusCode = typeof statusCode === 'number' ? statusCode : 307;
+        nodeRes.setHeader('Location', url);
+        serverRequestEv.response.handled = true;
+      },
+      write(chunk) {
+        nodeRes.write(chunk);
+      },
+      body: undefined,
+      handled: false,
+    },
+    url,
+  };
 
-  if (typeof request.formData !== 'function') {
-    request.formData = async function formData() {
-      const formData: FormData = new URLSearchParams(body);
+  if (typeof serverRequestEv.request.formData !== 'function') {
+    serverRequestEv.request.formData = async function formData() {
+      const formData: FormData = new URLSearchParams(requestBody);
       return formData;
     };
   }
 
-  return request;
-}
-
-export function toNodeResponse(response: Response, nodeRes: ServerResponse): ServerResponse {
-  nodeRes.statusCode = response.status;
-  response.headers.forEach((value, key) => nodeRes.setHeader(key, value));
-
-  if ((response.status < 300 || response.status >= 400) && response.body) {
-    if (
-      typeof response.body === 'string' ||
-      response.body instanceof Buffer ||
-      response.body instanceof Uint8Array
-    ) {
-      nodeRes.write(response.body);
-    } else if (response.body instanceof Readable) {
-      return response.body.pipe(nodeRes, { end: true });
-    }
-  }
-  return nodeRes;
+  return serverRequestEv;
 }
 
 export interface NodeRequest {

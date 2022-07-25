@@ -1,30 +1,34 @@
-export function checkPageRedirect(current: URL, headers: Headers, trailingSlash?: boolean) {
+import type { ServerResponseContext } from './types';
+
+export function checkPageRedirect(
+  current: URL,
+  response: ServerResponseContext,
+  trailingSlash: boolean | undefined
+) {
   const pathname = current.pathname;
   if (pathname !== '/') {
     if (trailingSlash) {
       // must have a trailing slash
       if (!pathname.endsWith('/')) {
         // add slash to existing pathname
-        return createPageRedirect(current, headers, pathname + '/');
+        createPageRedirect(current, response, pathname + '/');
       }
     } else {
       // should not have a trailing slash
       if (pathname.endsWith('/')) {
         // remove slash from existing pathname
-        return createPageRedirect(current, headers, pathname.slice(0, pathname.length - 1));
+        createPageRedirect(current, response, pathname.slice(0, pathname.length - 1));
       }
     }
   }
-  return null;
 }
 
-function createPageRedirect(current: URL, headers: Headers, updatedPathname: string) {
+function createPageRedirect(
+  current: URL,
+  response: ServerResponseContext,
+  updatedPathname: string
+) {
   if (updatedPathname !== current.pathname) {
-    headers.set('location', updatedPathname + current.search);
-    return new Response(null, {
-      status: 308,
-      headers,
-    });
+    response.redirect(updatedPathname + current.search, 308);
   }
-  return null;
 }

@@ -170,9 +170,7 @@ export function renderToStream(rootNode: any, opts: RenderToStreamOptions): Prom
 // @public (undocumented)
 export interface RenderToStreamOptions extends RenderOptions {
     // (undocumented)
-    stream: {
-        write: (v: string) => void;
-    } | WritableStream;
+    stream: StreamWriter;
 }
 
 // @public (undocumented)
@@ -210,11 +208,18 @@ export interface SnapshotResult {
     mode: 'render' | 'listeners' | 'static';
     // (undocumented)
     objs: any[];
+    // (undocumented)
+    pendingContent: Promise<string>[];
     // Warning: (ae-forgotten-export) The symbol "SnapshotState" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     state: SnapshotState;
 }
+
+// @public (undocumented)
+export type StreamWriter = {
+    write: (v: string) => void;
+} | WritableStreamDefaultWriter;
 
 // @public (undocumented)
 export const versions: {

@@ -1,10 +1,23 @@
-import type { QwikCityPlan } from '../../runtime/src/library/types';
+import type { Render } from '@builder.io/qwik/server';
+import type { QwikCityPlan, ResponseContext } from '../../runtime/src/library/types';
 
-export interface QwikCityRequestOptions extends QwikCityPlan {
-  request: Request;
+export interface QwikCityRequestContext extends QwikCityPlan, ServerRequestEvent {
+  render: Render;
   trailingSlash?: boolean;
 }
 
-export interface QwikCityDevRequestOptions extends QwikCityRequestOptions {
+export interface QwikCityDevRequestContext extends QwikCityRequestContext {
   routesDir: string;
+}
+
+export interface ServerRequestEvent {
+  request: Request;
+  response: ServerResponseContext;
+  url: URL;
+}
+
+export interface ServerResponseContext extends ResponseContext {
+  body: any;
+  write: (chunk: any) => void;
+  handled: boolean;
 }

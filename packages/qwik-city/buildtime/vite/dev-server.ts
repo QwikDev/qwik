@@ -56,14 +56,15 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         );
 
         if (userResponseContext.handler === 'endpoint') {
-          response(
-            userResponseContext.status,
-            userResponseContext.headers,
-            () => userResponseContext.body
-          );
+          // dev server endpoint handler
+          response(userResponseContext.status, userResponseContext.headers, async (stream) => {
+            stream.write(userResponseContext.body);
+          });
           return;
         }
 
+        // qwik city vite plugin should handle dev ssr rendering
+        // but add the qwik city user context to the response object
         (nodeRes as QwikViteDevResponse)._qwikUserCtx = {
           ...(nodeRes as QwikViteDevResponse)._qwikUserCtx,
           ...getQwikCityUserContext(userResponseContext),

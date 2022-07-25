@@ -51,13 +51,9 @@ export async function requestHandler<T = any>(requestCtx: QwikCityRequestContext
       }
 
       if (userResponseContext.handler === 'endpoint') {
-        return response(
-          userResponseContext.status,
-          userResponseContext.headers,
-          async (stream: StreamWriter) => {
-            stream.write(userResponseContext.body);
-          }
-        );
+        return response(userResponseContext.status, userResponseContext.headers, async (stream) => {
+          stream.write(userResponseContext.body);
+        });
       }
     }
   } catch (e: any) {

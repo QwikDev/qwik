@@ -14,6 +14,14 @@ import { qError, QError_cannotRenderOverExistingContainer } from '../error/error
 import { directSetAttribute } from './fast-calls';
 
 /**
+ * @alpha
+ */
+export interface RenderOptions {
+  allowRerender?: boolean;
+  userContext?: Record<string, any>;
+}
+
+/**
  * Render JSX.
  *
  * Use this method to render JSX. This function does reconciling which means
@@ -28,7 +36,7 @@ import { directSetAttribute } from './fast-calls';
 export const render = async (
   parent: Element | Document,
   jsxNode: JSXNode<unknown> | FunctionComponent<any>,
-  allowRerender = true
+  opts?: RenderOptions
 ): Promise<void> => {
   // If input is not JSX, convert it
   if (!isJSXNode(jsxNode)) {
@@ -42,11 +50,15 @@ export const render = async (
   injectQContainer(containerEl);
 
   const containerState = getContainerState(containerEl);
+  const userContext = opts?.userContext;
+  if (userContext) {
+    Object.assign(containerState.$userContext$, userContext);
+  }
   containerState.$hostsRendering$ = new Set();
   containerState.$renderPromise$ = renderRoot(parent, jsxNode, doc, containerState, containerEl);
 
   const renderCtx = await containerState.$renderPromise$;
-
+  const allowRerender = opts?.allowRerender ?? true;
   if (allowRerender) {
     await postRendering(containerEl, containerState, renderCtx);
   } else {

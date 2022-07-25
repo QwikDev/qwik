@@ -1,23 +1,22 @@
-import { useDocument, useResource$ } from '@builder.io/qwik';
-import type { QwikCityRenderDocument } from './types';
-import { useLocation } from './use-functions';
-import { isBrowser, isServer } from '@builder.io/qwik/build';
+import { useResource$ } from '@builder.io/qwik';
+import { useLocation, useQwikCityContext } from './use-functions';
+import { isServer } from '@builder.io/qwik/build';
 
 /**
  * @public
  */
 export const useEndpoint = <T = unknown>() => {
   const loc = useLocation();
-  const doc = useDocument() as QwikCityRenderDocument;
-
+  const ctx = useQwikCityContext();
   return useResource$<T>(async ({ track, cleanup }) => {
     const pathname = track(loc, 'pathname');
 
     if (isServer) {
-      return getSsrEndpointResponse(doc)?.body;
-    }
-
-    if (isBrowser) {
+      if (!ctx) {
+        throw new Error('Endpoint response body is missing');
+      }
+      return ctx.response.body;
+    } else {
       // fetch() for new data when the pathname has changed
       const controller = typeof AbortController === 'function' ? new AbortController() : undefined;
       cleanup(() => controller && controller.abort());
@@ -33,9 +32,5 @@ export const useEndpoint = <T = unknown>() => {
       const body = await clientResponse.json();
       return body as T;
     }
-    return null as any;
   });
 };
-
-export const getSsrEndpointResponse = (doc: QwikCityRenderDocument) =>
-  doc?._qwikUserCtx?.qcResponse || null;

@@ -6,7 +6,7 @@ import { safeCall, then } from '../util/promises';
 import { useSequentialScope } from './use-store.public';
 import { getDocument } from '../util/dom';
 import { isFunction, isObject, ValueOrPromise } from '../util/types';
-import { getPlatform } from '../platform/platform';
+import { isServer } from '../platform/platform';
 import { ContainerState, handleWatch } from '../render/notify-render';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { assertDefined, assertEqual } from '../assert/assert';
@@ -412,8 +412,7 @@ export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): ResourceReturn<
   if (get) {
     return get;
   }
-  const isServer = getPlatform(ctx.$doc$).isServer;
-  if (isServer) {
+  if (isServer(ctx.$doc$)) {
     const resource = createResourceFromPromise(mountQrl());
     ctx.$waitOn$.push(resource.promise);
     set(resource);

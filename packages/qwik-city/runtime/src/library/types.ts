@@ -34,10 +34,11 @@ export interface RouteLocation {
   readonly params: RouteParams;
   readonly href: string;
   readonly pathname: string;
+  readonly query: Record<string, string>;
 }
 
 export interface RouteNavigate {
-  pathname: string;
+  path: string;
 }
 
 export type MutableRouteLocation = Mutable<RouteLocation>;
@@ -280,14 +281,12 @@ export interface EndpointResponse {
   immediateCommitToNetwork: boolean;
 }
 
-export interface QwikCityRenderDocument extends RenderDocument {
-  _qwikUserCtx?: QwikCityUserContext;
-}
+export interface QwikCityRenderDocument extends RenderDocument {}
 
 export interface QwikCityUserContext {
-  qcRoute: MutableRouteLocation;
-  qcRequest: {
+  route: MutableRouteLocation;
+  request: {
     method: HttpMethod;
   };
-  qcResponse: EndpointResponse;
+  response: EndpointResponse;
 }

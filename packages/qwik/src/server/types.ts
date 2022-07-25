@@ -124,7 +124,7 @@ export interface RenderOptions extends RenderToStringOptions {}
  */
 export type Render = (opts: RenderOptions) => Promise<RenderToStringResult>;
 
-export interface RenderDocument extends Document, RenderDocumentUserContext {}
+export interface RenderDocument extends Document {}
 
 export interface RenderDocumentUserContext {
   _qwikUserCtx?: Record<string, any>;

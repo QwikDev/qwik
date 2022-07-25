@@ -56,9 +56,10 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
   const mapper = computeSymbolMapper(opts.manifest);
   await setServerPlatform(doc, opts, mapper);
 
-  doc._qwikUserCtx = opts.userContext;
-
-  await render(root, rootNode, false);
+  await render(root, rootNode, {
+    allowRerender: false,
+    userContext: opts.userContext,
+  });
 
   const renderDocTime = renderDocTimer();
 
@@ -96,8 +97,6 @@ export async function renderToString(rootNode: any, opts: RenderToStringOptions 
       parentElm.insertBefore(scriptElm, parentElm.firstChild);
     }
   }
-
-  doc._qwikUserCtx = undefined;
 
   const docToStringTimer = createTimer();
 

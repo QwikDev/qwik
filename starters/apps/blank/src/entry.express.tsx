@@ -1,6 +1,6 @@
 import express from 'express';
 import { join } from 'path';
-import { render } from './entry.ssr';
+import render from './entry.ssr';
 
 /**
  * Create an express server

@@ -215,7 +215,8 @@ function removeDir(dir: string) {
 
 async function ssrApp(req: Request, appName: string, appDir: string, manifest: QwikManifest) {
   const ssrPath = join(appDir, 'server', 'entry.ssr.js');
-  const { render } = await import(ssrPath);
+  const mod = await import(ssrPath);
+  const render = mod.default ?? mod.render;
 
   // ssr the document
   const base = `/${appName}/build/`;

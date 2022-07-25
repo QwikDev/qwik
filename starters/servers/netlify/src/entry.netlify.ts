@@ -1,4 +1,4 @@
-import { render } from './entry.ssr';
+import render from './entry.ssr';
 
 const handler = async (request: Request) => {
   try {

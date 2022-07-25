@@ -25,7 +25,6 @@ import {
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import { versions } from '../versions';
-import type { RenderDocumentUserContext } from '../../../server/types';
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID];
 
@@ -459,7 +458,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               fixStacktrace: true,
             });
 
-            const render: Render = ssrModule.render;
+            const render: Render = ssrModule.default ?? ssrModule.render;
 
             if (typeof render === 'function') {
               const manifest: QwikManifest = {
@@ -554,20 +553,23 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 }
 
 function getViteDevIndexHtml(entryUrl: string, userContext: Record<string, any>) {
-  const doc: RenderDocumentUserContext = {
-    _qwikUserCtx: userContext,
-  };
-
-  return `<!-- Qwik Vite Dev Mode -->
-<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html>
   <head>
-    <script>
-      Object.assign(document, ${JSON.stringify(doc, null, 2)});
-    </script>
   </head>
   <body>
-    <script type="module" src="${entryUrl}?${VITE_DEV_CLIENT_QS}="></script>
+    <script type="module">
+    async function main() {
+      const mod = await import("${entryUrl}?${VITE_DEV_CLIENT_QS}=");
+      if (mod.default) {
+        const userContext = JSON.parse(${JSON.stringify(JSON.stringify(userContext))})
+        mod.default({
+          userContext,
+        });
+      }
+    }
+    main();
+    </script>
   </body>
 </html>`;
 }
@@ -585,14 +587,9 @@ function getViteDevModule(opts: NormalizedQwikPluginOptions) {
   return `// Qwik Vite Dev Module
 import { render as qwikRender } from '@builder.io/qwik';
 
-export function render(document, rootNode) {
-  const headNodes = [];
-  document.head.childNodes.forEach(n => headNodes.push(n));
-  document.head.textContent = '';
+export async function render(document, rootNode, opts) {
 
-  qwikRender(document, rootNode);
-
-  headNodes.forEach(n => document.head.appendChild(n));
+  await qwikRender(document, rootNode, opts);
 
   let qwikLoader = document.getElementById('qwikloader');
   if (!qwikLoader) {

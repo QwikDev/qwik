@@ -18,7 +18,7 @@ export const Link = component$(
         href={props.href}
         onClick$={() => {
           if (props.href) {
-            nav.pathname = props.href;
+            nav.path = props.href;
           }
         }}
       >

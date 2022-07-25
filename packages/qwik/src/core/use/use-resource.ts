@@ -15,7 +15,7 @@ import { assertDefined } from '../assert/assert';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { qDev } from '../util/qdev';
-import { getPlatform } from '../platform/platform';
+import { isServer } from '../platform/platform';
 import { getInvokeContext } from './use-core';
 
 /**
@@ -63,7 +63,7 @@ export const useResource$ = <T>(generatorFn: ResourceFn<T>): ResourceReturn<T> =
 export const useIsServer = () => {
   const ctx = getInvokeContext();
   assertDefined(ctx.$doc$, 'doc must be defined', ctx);
-  return getPlatform(ctx.$doc$).isServer;
+  return isServer(ctx.$doc$);
 };
 
 /**

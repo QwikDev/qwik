@@ -24,7 +24,7 @@ import { TreeshakingApp } from './components/treeshaking/treeshaking';
  *
  * @returns a promise when all of the rendering is completed.
  */
-export function render(opts: RenderOptions) {
+export default function (opts: RenderOptions) {
   const url = typeof opts.url === 'string' ? new URL(opts.url) : opts.url!;
 
   const tests: Record<string, FunctionComponent> = {

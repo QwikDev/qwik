@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import { join } from 'path';
 import cityPlan from '@qwik-city-plan';
 import { qwikCity } from '../../middleware/express';
-import { render } from './entry.ssr';
+import render from './entry.ssr';
 
 const app = express();
 

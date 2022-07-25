@@ -1,4 +1,5 @@
-import { render } from '@builder.io/qwik';
+import { render, RenderOptions } from '@builder.io/qwik';
+
 import Root from './root';
 
 /**
@@ -10,4 +11,6 @@ import Root from './root';
  * - More code is transferred to the browser than in SSR mode.
  * - Optimizer/Serialization/Deserialization code is not exercised!
  */
-render(document, <Root />);
+export default function (opts: RenderOptions) {
+  return render(document, <Root />, opts);
+}

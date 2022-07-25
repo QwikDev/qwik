@@ -1,10 +1,8 @@
 import {
   component$,
-  jsx,
   noSerialize,
   SkipRerender,
   useContextProvider,
-  useDocument,
   useStore,
   useWatch$,
 } from '@builder.io/qwik';
@@ -16,7 +14,6 @@ import type {
   ContentStateInternal,
   MutableRouteLocation,
   PageModule,
-  QwikCityRenderDocument,
   RouteNavigate,
 } from './types';
 import {
@@ -27,18 +24,18 @@ import {
   RouteNavigateContext,
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
-import { getSsrEndpointResponse } from './use-endpoint';
 import { isBrowser } from '@builder.io/qwik/build';
+import { useQwikCityContext } from './use-functions';
 
 /**
  * @public
  */
 export const Html = component$<HtmlProps>(
   () => {
-    const doc = useDocument() as QwikCityRenderDocument;
+    const ctx = useQwikCityContext();
 
     const routeLocation = useStore<MutableRouteLocation>(() => {
-      const initRouteLocation = doc?._qwikUserCtx?.qcRoute;
+      const initRouteLocation = ctx?.route;
       if (!initRouteLocation) {
         throw new Error(`Missing Qwik City User Context`);
       }
@@ -46,12 +43,14 @@ export const Html = component$<HtmlProps>(
     });
 
     const routeNavigate = useStore<RouteNavigate>(() => {
-      const initRouteLocation = doc?._qwikUserCtx?.qcRoute;
+      const initRouteLocation = ctx?.route;
       if (!initRouteLocation) {
         throw new Error(`Missing Qwik City User Context`);
       }
+      const url = new URL(initRouteLocation.href);
+
       return {
-        pathname: initRouteLocation.pathname,
+        path: url.pathname + url.search,
       };
     });
 
@@ -73,18 +72,18 @@ export const Html = component$<HtmlProps>(
 
     useWatch$(async (track) => {
       const { default: cityPlan } = await import('@qwik-city-plan');
-      const pathname = track(routeNavigate, 'pathname');
+      const fullPath = track(routeNavigate, 'path');
+      const url = new URL(fullPath, routeLocation.href);
       const loadedRoute = await loadRoute(
         cityPlan.routes,
         cityPlan.menus,
         cityPlan.cacheModules,
-        pathname
+        url.pathname
       );
       if (loadedRoute) {
         const contentModules = loadedRoute.mods as ContentModule[];
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
-        const endpointResponse = getSsrEndpointResponse(doc);
-        const resolvedHead = resolveHead(endpointResponse, routeLocation, contentModules);
+        const resolvedHead = resolveHead(ctx?.response, routeLocation, contentModules);
 
         // Update document head
         documentHead.links = resolvedHead.links;
@@ -98,18 +97,19 @@ export const Html = component$<HtmlProps>(
         contentInternal.contents = noSerialize<any>(contentModules);
 
         // Update route location
-        routeLocation.href = new URL(pathname, routeLocation.href).href;
-        routeLocation.pathname = pathname;
+        routeLocation.href = url.href;
+        routeLocation.pathname = url.pathname;
         routeLocation.params = { ...loadedRoute.params };
+        routeLocation.query = Object.fromEntries(url.searchParams.entries());
 
         if (isBrowser) {
           const pop = (window as any)._qwikcity_pop;
           if (pop !== 2) {
-            window.history.pushState(null, '', pathname);
+            window.history.pushState(null, '', fullPath);
           }
           if (!pop) {
             window.addEventListener('popstate', () => {
-              routeNavigate.pathname = window.location.pathname;
+              routeNavigate.path = window.location.href;
               (window as any)._qwikcity_pop = 2;
             });
           }
@@ -118,7 +118,7 @@ export const Html = component$<HtmlProps>(
       }
     });
 
-    return () => jsx(SkipRerender, {});
+    return <SkipRerender />;
   },
   { tagName: 'html' }
 );

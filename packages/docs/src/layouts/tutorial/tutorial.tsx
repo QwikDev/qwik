@@ -133,7 +133,7 @@ export const DEFAULT_ENTRY_SERVER = `
 import { renderToString, RenderOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
 
-export function render(opts: RenderOptions) {
+export default function(opts: RenderOptions) {
   return renderToString(<Root />, opts);
 }
 `;

@@ -65,10 +65,12 @@ export async function renderToStream(
   const mapper = computeSymbolMapper(opts.manifest);
   await setServerPlatform(doc, opts, mapper);
 
-  doc._qwikUserCtx = opts.userContext;
-
   const renderDocTimer = createTimer();
-  await render(root, rootNode, false);
+
+  await render(root, rootNode, {
+    allowRerender: false,
+    userContext: opts.userContext,
+  });
 
   const [before, after] = splitDocument(doc, opts);
   const renderDocTime = renderDocTimer();
@@ -119,8 +121,6 @@ export async function renderToStream(
     );
   }
   enqueue(after);
-
-  doc._qwikUserCtx = undefined;
 
   const docToStringTimer = createTimer();
 

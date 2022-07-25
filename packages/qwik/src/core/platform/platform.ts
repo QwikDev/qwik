@@ -107,6 +107,10 @@ export const getPlatform = (docOrNode: Document | Node) => {
   return doc[DocumentPlatform] || (doc[DocumentPlatform] = createPlatform(doc));
 };
 
+export const isServer = (doc: Document) => {
+  return getPlatform(doc).isServer;
+};
+
 const DocumentPlatform = ':platform:';
 
 interface PlatformDocument extends Document {

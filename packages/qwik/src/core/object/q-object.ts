@@ -363,8 +363,10 @@ export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
  * @alpha
  */
 // </docs>
-export const noSerialize = <T extends {}>(input: T): NoSerialize<T> => {
-  noSerializeSet.add(input);
+export const noSerialize = <T extends object | undefined>(input: T): NoSerialize<T> => {
+  if (input != null) {
+    noSerializeSet.add(input);
+  }
   return input as any;
 };
 

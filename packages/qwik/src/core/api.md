@@ -427,8 +427,6 @@ export interface ResourceProps<T> {
     onResolved: (value: T) => JSXNode;
     // (undocumented)
     resource: ResourceReturn<T>;
-    // (undocumented)
-    ssrWait?: number;
 }
 
 // @alpha (undocumented)

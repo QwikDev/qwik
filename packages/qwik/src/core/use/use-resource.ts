@@ -19,8 +19,7 @@ import { qDev } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
 import { getInvokeContext } from './use-core';
 import type { ContainerState } from '../render/notify-render';
-import { isServer } from '@builder.io/qwik/build';
-import { delay } from '../util/promises';
+
 import { isObject } from '../util/types';
 import type { GetObjID } from '../object/store';
 
@@ -138,7 +137,6 @@ export interface ResourceProps<T> {
   onResolved: (value: T) => JSXNode;
   onPending?: () => JSXNode;
   onRejected?: (reason: any) => JSXNode;
-  ssrWait?: number;
 }
 
 export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceReturnInternal<T> => {
@@ -167,19 +165,19 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
     }
   }
 
-  let promise: any = props.resource.promise.then(props.onResolved, props.onRejected);
-  if (isServer) {
-    const onPending = props.onPending;
-    if (props.ssrWait && onPending) {
-      promise = Promise.race([
-        delay(props.ssrWait).then(() => {
-          getInternalResource(props.resource).dirty = true;
-          return onPending();
-        }),
-        promise,
-      ]);
-    }
-  }
+  const promise: any = props.resource.promise.then(props.onResolved, props.onRejected);
+  // if (isServer) {
+  //   const onPending = props.onPending;
+  //   if (props.ssrWait && onPending) {
+  //     promise = Promise.race([
+  //       delay(props.ssrWait).then(() => {
+  //         getInternalResource(props.resource).dirty = true;
+  //         return onPending();
+  //       }),
+  //       promise,
+  //     ]);
+  //   }
+  // }
 
   // Resource path
   return jsx(Fragment, {

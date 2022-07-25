@@ -160,6 +160,7 @@ export interface RenderResult {
     timing: {
         createDocument: number;
         render: number;
+        snapshot: number;
         toString: number;
     };
 }
@@ -219,7 +220,7 @@ export interface SnapshotResult {
 // @public (undocumented)
 export type StreamWriter = {
     write: (v: string) => void;
-} | WritableStreamDefaultWriter;
+};
 
 // @public (undocumented)
 export const versions: {

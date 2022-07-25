@@ -17,12 +17,7 @@ import {
   mutable,
   shouldSerialize,
 } from './q-object';
-import {
-  destroyWatch,
-  isResourceWatch,
-  SubscriberDescriptor,
-  WatchFlagsIsDirty,
-} from '../use/use-watch';
+import { destroyWatch, SubscriberDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
 import { emitEvent } from '../util/event';
 import { ContainerState, getContainerState } from '../render/notify-render';
@@ -36,12 +31,7 @@ import { isArray, isObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
 import type { Subscriber } from '../use/use-subscriber';
-import {
-  getInternalResource,
-  isResourceReturn,
-  parseResourceReturn,
-  serializeResource,
-} from '../use/use-resource';
+import { isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -537,17 +527,17 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     }
   });
 
-  async function additionalChunk(obj: any) {
-    const localCollector = createCollector(doc, containerState);
-    localCollector.$seen$ = collector.$seen$;
-    localCollector.$seenLeaks$ = collector.$seenLeaks$;
+  // async function additionalChunk(obj: any) {
+  //   const localCollector = createCollector(doc, containerState);
+  //   localCollector.$seen$ = collector.$seen$;
+  //   localCollector.$seenLeaks$ = collector.$seenLeaks$;
 
-    await collectValue(obj, collector, false);
+  //   await collectValue(obj, collector, false);
 
-    return '';
-  }
+  //   return '';
+  // }
 
-  const pendingResources: Promise<string>[] = [];
+  const pendingContent: Promise<string>[] = [];
   for (const watch of collector.$watches$) {
     if (qDev) {
       if (watch.f & WatchFlagsIsDirty) {
@@ -557,14 +547,16 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
         logWarn('Serializing disconneted watch. Looks like an internal error.');
       }
     }
-    if (isResourceWatch(watch)) {
-      const resource = getInternalResource(watch.r);
-      if (resource.dirty) {
-        pendingResources.push(resource.promise.then(additionalChunk));
-      }
-    } else {
-      destroyWatch(watch);
-    }
+    destroyWatch(watch);
+
+    // if (isResourceWatch(watch)) {
+    //   const resource = getInternalResource(watch.r);
+    //   if (resource.dirty) {
+    //     pendingResources.push(resource.promise.then(additionalChunk));
+    //   }
+    // } else {
+    //   destroyWatch(watch);
+    // }
   }
 
   // Sanity check of serialized element
@@ -585,7 +577,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
       objs: convertedObjs,
       subs,
     },
-    pendingContent: [],
+    pendingContent,
     objs,
     listeners,
     mode: canRender ? 'render' : 'listeners',

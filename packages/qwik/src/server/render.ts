@@ -149,7 +149,7 @@ export async function renderToString(
 ): Promise<RenderToStringResult> {
   const chunks: string[] = [];
   const stream = {
-    write: (str: string) => chunks.push(str)
+    write: (str: string) => chunks.push(str),
   };
   const result = await renderToStream(rootNode, {
     ...opts,

@@ -171,16 +171,12 @@ export type QwikKnownEvents = {
  */
 export interface QwikEvents extends QwikKnownEvents, QwikCustomEvents {
   'document:onLoad$'?: (event: Event, el: Element) => any;
-  'document:onLoadQrl'?: QRL<(event: Event, el: Element) => any>;
 
   'document:onScroll$'?: (event: Event, el: Element) => any;
-  'document:onScrollQrl'?: QRL<(event: Event, el: Element) => any>;
 
   'document:onVisible$'?: (event: Event, el: Element) => any;
-  'document:onVisible'?: QRL<(event: Event, el: Element) => any>;
 
   'document:onVisibilityChange$'?: (event: Event, el: Element) => any;
-  'document:onVisibilityChangeQrl'?: QRL<(event: Event, el: Element) => any>;
 }
 
 interface CSSProperties {

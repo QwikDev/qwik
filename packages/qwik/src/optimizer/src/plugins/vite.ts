@@ -559,12 +559,16 @@ function getViteDevIndexHtml(entryUrl: string, userContext: Record<string, any>)
   </head>
   <body>
     <script type="module">
-
-import render from "${entryUrl}?${VITE_DEV_CLIENT_QS}=";
-const userContext = JSON.parse(${JSON.stringify(JSON.stringify(userContext))})
-render({
-  userContext,
-});
+    async function main() {
+      const mod = await import("${entryUrl}?${VITE_DEV_CLIENT_QS}=");
+      if (mod.default) {
+        const userContext = JSON.parse(${JSON.stringify(JSON.stringify(userContext))})
+        mod.default({
+          userContext,
+        });
+      }
+    }
+    main();
     </script>
   </body>
 </html>`;

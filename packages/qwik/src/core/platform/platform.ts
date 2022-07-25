@@ -111,7 +111,7 @@ export const isServer = (doc: Document) => {
   return getPlatform(doc).isServer;
 }
 
-const DocumentPlatform = /*#__PURE__*/ Symbol();
+const DocumentPlatform = ':platform:';
 
 interface PlatformDocument extends Document {
   [DocumentPlatform]?: CorePlatform;

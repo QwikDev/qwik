@@ -62,11 +62,6 @@ export interface AriaAttributes {
     'aria-valuetext'?: string | undefined;
 }
 
-// Warning: (ae-forgotten-export) The symbol "AsyncProps" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export const Async: <T>(props: AsyncProps<T>) => JSXNode;
-
 // @public
 export const component$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>, options?: ComponentOptions) => Component<PROPS>;
 
@@ -75,7 +70,8 @@ export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
 
 // @public
 export interface ComponentOptions {
-    tagName?: string;
+    // Warning: (ae-forgotten-export) The symbol "JSXTagName" needs to be exported by the entry point index.d.ts
+    tagName?: JSXTagName;
 }
 
 // @public
@@ -111,6 +107,9 @@ export interface DOMAttributes<T> extends QwikProps, QwikEvents {
     // (undocumented)
     key?: string | number;
 }
+
+// @alpha (undocumented)
+export type EagernessOptions = 'visible' | 'load';
 
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
@@ -167,8 +166,10 @@ export namespace h {
 // @alpha
 export const handleWatch: () => void;
 
+// Warning: (ae-forgotten-export) The symbol "HostAttributes" needs to be exported by the entry point index.d.ts
+//
 // @public
-export const Host: FunctionComponent<HTMLAttributes<HTMLElement>>;
+export const Host: FunctionComponent<HostAttributes>;
 
 // @public (undocumented)
 export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
@@ -281,6 +282,9 @@ export interface JSXNode<T = any> {
     type: T;
 }
 
+// @alpha (undocumented)
+export type MountFn<T> = () => ValueOrPromise<T>;
+
 // @alpha
 export const mutable: <T>(v: T) => MutableWrapper<T>;
 
@@ -304,8 +308,10 @@ export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null | (() => J
 // @alpha
 export const pauseContainer: (elmOrDoc: Element | Document) => Promise<SnapshotResult>;
 
+// Warning: (ae-forgotten-export) The symbol "PropFnInterface" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET ? (...args: ARGS) => Promise<RET> : never;
+export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;
 
 // @public (undocumented)
 export type Props<T extends {} = {}> = Record<string, any> & T;
@@ -321,6 +327,8 @@ export type PublicProps<PROPS extends {}> = MutableProps<PROPS> & ComponentBaseP
 
 // @public
 export interface QRL<TYPE = any> {
+    // (undocumented)
+    __brand__QRL__: TYPE;
     (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): Promise<TYPE extends (...args: any[]) => infer RETURN ? Awaited<RETURN> : never>;
     // (undocumented)
     getHash(): string;
@@ -383,7 +391,7 @@ export interface Ref<T> {
 export const render: (parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>, opts?: RenderOptions) => Promise<void>;
 
 // @alpha (undocumented)
-export type Resource<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
+export const Resource: <T>(props: ResourceProps<T>) => JSXNode;
 
 // @alpha (undocumented)
 export interface ResourceCtx<T> {
@@ -405,6 +413,18 @@ export interface ResourcePending<T> {
     resolved: undefined;
     // (undocumented)
     state: 'pending';
+}
+
+// @alpha (undocumented)
+export interface ResourceProps<T> {
+    // (undocumented)
+    onPending?: () => JSXNode;
+    // (undocumented)
+    onRejected?: (reason: any) => JSXNode;
+    // (undocumented)
+    onResolved: (value: T) => JSXNode;
+    // (undocumented)
+    resource: ResourceReturn<T>;
 }
 
 // @alpha (undocumented)
@@ -432,7 +452,7 @@ export interface ResourceResolved<T> {
 }
 
 // @alpha (undocumented)
-export type ServerFn<T> = () => ValueOrPromise<T>;
+export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
 // @alpha
 export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
@@ -452,6 +472,8 @@ export interface SnapshotResult {
     //
     // (undocumented)
     listeners: SnapshotListener[];
+    // (undocumented)
+    mode: 'render' | 'listeners' | 'static';
     // (undocumented)
     objs: any[];
     // (undocumented)
@@ -507,11 +529,8 @@ export const useDocument: () => Document;
 
 // @alpha (undocumented)
 export interface UseEffectOptions {
-    run?: UseEffectRunOptions;
+    eagerness?: EagernessOptions;
 }
-
-// @alpha (undocumented)
-export type UseEffectRunOptions = 'visible' | 'load';
 
 // @public
 export const useHostElement: () => Element;
@@ -520,16 +539,16 @@ export const useHostElement: () => Element;
 export const useLexicalScope: <VARS extends any[]>() => VARS;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useMount$" is marked as @public, but its signature references "MountFn" which is marked as @alpha
-// Warning: (ae-incompatible-release-tags) The symbol "useMount$" is marked as @public, but its signature references "Resource" which is marked as @alpha
+// Warning: (ae-incompatible-release-tags) The symbol "useMount$" is marked as @public, but its signature references "ResourceReturn" which is marked as @alpha
 //
 // @public
-export const useMount$: <T>(first: ServerFn<T>) => Resource<T>;
+export const useMount$: <T>(first: MountFn<T>) => ResourceReturn<T>;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useMountQrl" is marked as @public, but its signature references "MountFn" which is marked as @alpha
-// Warning: (ae-incompatible-release-tags) The symbol "useMountQrl" is marked as @public, but its signature references "Resource" which is marked as @alpha
+// Warning: (ae-incompatible-release-tags) The symbol "useMountQrl" is marked as @public, but its signature references "ResourceReturn" which is marked as @alpha
 //
 // @public
-export const useMountQrl: <T>(mountQrl: QRL<ServerFn<T>>) => Resource<T>;
+export const useMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => ResourceReturn<T>;
 
 // @alpha
 export const useOn: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
@@ -548,18 +567,10 @@ export const useRef: <T extends Element = Element>(current?: T | undefined) => R
 // Warning: (ae-forgotten-export) The symbol "ResourceFn" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export const useResource$: <T>(generatorFn: ResourceFn<T>) => Resource<T>;
+export const useResource$: <T>(generatorFn: ResourceFn<T>) => ResourceReturn<T>;
 
 // @alpha (undocumented)
-export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>) => Resource<T>;
-
-// Warning: (ae-forgotten-export) The symbol "UseResumeOptions" needs to be exported by the entry point index.d.ts
-//
-// @alpha
-export const useResume$: (first: () => void, options?: UseResumeOptions | undefined) => void;
-
-// @alpha
-export const useResumeQrl: (resumeFn: QRL<() => void>, options?: UseResumeOptions) => void;
+export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>) => ResourceReturn<T>;
 
 // @alpha (undocumented)
 export const useScopedStyles$: (first: string) => void;
@@ -567,22 +578,17 @@ export const useScopedStyles$: (first: string) => void;
 // @alpha (undocumented)
 export const useScopedStylesQrl: (styles: QRL<string>) => void;
 
-// Warning: (ae-forgotten-export) The symbol "SequentialScope" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export const useSequentialScope: <T>() => SequentialScope<T>;
-
 // Warning: (ae-incompatible-release-tags) The symbol "useServerMount$" is marked as @public, but its signature references "MountFn" which is marked as @alpha
-// Warning: (ae-incompatible-release-tags) The symbol "useServerMount$" is marked as @public, but its signature references "Resource" which is marked as @alpha
+// Warning: (ae-incompatible-release-tags) The symbol "useServerMount$" is marked as @public, but its signature references "ResourceReturn" which is marked as @alpha
 //
 // @public
-export const useServerMount$: <T>(first: ServerFn<T>) => Resource<T>;
+export const useServerMount$: <T>(first: MountFn<T>) => ResourceReturn<T>;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useServerMountQrl" is marked as @public, but its signature references "MountFn" which is marked as @alpha
-// Warning: (ae-incompatible-release-tags) The symbol "useServerMountQrl" is marked as @public, but its signature references "Resource" which is marked as @alpha
+// Warning: (ae-incompatible-release-tags) The symbol "useServerMountQrl" is marked as @public, but its signature references "ResourceReturn" which is marked as @alpha
 //
 // @public
-export const useServerMountQrl: <T>(mountQrl: QRL<ServerFn<T>>) => Resource<T>;
+export const useServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => ResourceReturn<T>;
 
 // Warning: (ae-forgotten-export) The symbol "UseStoreOptions" needs to be exported by the entry point index.d.ts
 //
@@ -594,9 +600,6 @@ export const useStyles$: (first: string) => void;
 
 // @public
 export const useStylesQrl: (styles: QRL<string>) => void;
-
-// @alpha (undocumented)
-export const useWaitOn: (promise: ValueOrPromise<any>) => void;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "WatchFn" which is marked as @alpha
 // Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "UseEffectOptions" which is marked as @alpha

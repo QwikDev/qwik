@@ -9,7 +9,7 @@ import {
   useHostElement,
   useWatch$,
   useStore,
-  UseEffectRunOptions,
+  EagernessOptions,
 } from '@builder.io/qwik';
 
 import { isBrowser, isServer } from '@builder.io/qwik/build';
@@ -33,16 +33,26 @@ export type QwikifyProps<PROPS extends {}> = PROPS & {
   'client:only'?: boolean;
 };
 
-export function qwikifyQrl<PROPS extends {}>(reactCmpQrl: QRL<FunctionComponent<PROPS>>) {
+export interface QwikifyOptions {
+  tagName?: string;
+  eagerness?: 'load' | 'visible';
+  clientOnly?: boolean;
+}
+
+export function qwikifyQrl<PROPS extends {}>(
+  reactCmpQrl: QRL<FunctionComponent<PROPS>>,
+  opts?: QwikifyOptions
+) {
   return component$<QwikifyProps<PROPS>>(
     (props) => {
       const hostElement = useHostElement();
       const store = useStore<QwikifyCmp<PROPS>>({});
-      let run: UseEffectRunOptions | undefined;
-      if (props['client:visible']) {
-        run = 'visible';
-      } else if (props['client:load'] || props['client:only']) {
-        run = 'load';
+      const clientOnly = !!(props['client:only'] || opts?.clientOnly);
+      let eagerness: EagernessOptions | undefined;
+      if (props['client:visible'] || opts?.eagerness === 'visible') {
+        eagerness = 'visible';
+      } else if (props['client:load'] || clientOnly || opts?.eagerness === 'load') {
+        eagerness = 'load';
       }
 
       useWatch$(
@@ -73,10 +83,10 @@ export function qwikifyQrl<PROPS extends {}>(reactCmpQrl: QRL<FunctionComponent<
             }
           }
         },
-        { run }
+        { eagerness }
       );
 
-      if (isServer && !props['client:only']) {
+      if (isServer && !clientOnly) {
         const jsx = Promise.all([reactCmpQrl.resolve(), import('./server')]).then(
           ([Cmp, server]) => {
             const html = server.render(Cmp, filterProps(props));
@@ -93,7 +103,7 @@ export function qwikifyQrl<PROPS extends {}>(reactCmpQrl: QRL<FunctionComponent<
       );
     },
     {
-      tagName: 'qwik-wrap',
+      tagName: opts?.tagName ?? 'qwik-wrap',
     }
   );
 }
@@ -108,4 +118,4 @@ export const filterProps = (props: Record<string, any>): Record<string, any> => 
   return obj;
 };
 
-export const qwikify$ = implicit$FirstArg(qwikifyQrl);
+export const qwikify$ = /*#__PURE__*/ implicit$FirstArg(qwikifyQrl);

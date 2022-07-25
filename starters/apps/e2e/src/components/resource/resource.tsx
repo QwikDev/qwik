@@ -6,11 +6,11 @@ import {
   useResource$,
   Resource,
   useWatch$,
-  Async,
   createContext,
   useContextProvider,
   useContext,
   useStyles$,
+  ResourceReturn,
 } from '@builder.io/qwik';
 
 export interface WeatherData {
@@ -89,7 +89,7 @@ export const ResourceApp = component$(() => {
   );
 });
 
-export const Results = component$((props: { result: Resource<number> }) => {
+export const Results = component$((props: { result: ResourceReturn<number> }) => {
   useStyles$(`
     .logs {
       white-space: pre;
@@ -99,7 +99,7 @@ export const Results = component$((props: { result: Resource<number> }) => {
 
   return (
     <Host>
-      <Async
+      <Resource
         resource={props.result}
         onPending={() => <div class="resource1">loading resource 1...</div>}
         onRejected={(reason) => <div class="resource1">error {reason}</div>}

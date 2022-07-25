@@ -5,7 +5,6 @@ import { visit } from 'unist-util-visit';
 
 export function parseFrontmatter(ctx: BuildContext): Transformer {
   return (mdast, vfile) => {
-    const filePath = normalizePath(vfile.path);
     const attrs: string[] = [];
 
     visit(mdast, 'yaml', (node: any) => {
@@ -15,7 +14,7 @@ export function parseFrontmatter(ctx: BuildContext): Transformer {
     });
 
     if (attrs.length > 0) {
-      ctx.frontmatter.set(filePath, attrs);
+      ctx.frontmatter.set(normalizePath(vfile.path), attrs);
     }
   };
 }

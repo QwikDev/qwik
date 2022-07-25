@@ -3,5 +3,6 @@
   "__qwik__": {
     "priority": 0,
     "featureOptions": []
-  }
+  },
+  "type": "module"
 }

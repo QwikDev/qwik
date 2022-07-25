@@ -14,7 +14,6 @@ export interface EndpointModule<BODY = unknown> {
 
 export interface PageModule extends EndpointModule {
   readonly default: any;
-  readonly breadcrumbs?: ContentBreadcrumb[];
   readonly head?: ContentModuleHead;
   readonly headings?: ContentHeading[];
 }
@@ -24,28 +23,55 @@ export interface LayoutModule extends EndpointModule {
   readonly head?: ContentModuleHead;
 }
 
-/**
- * @public
- */
-export interface RouteLocation {
-  hash: string;
-  hostname: string;
-  href: string;
-  params: RouteParams;
-  pathname: string;
-  search: string;
-  query: Record<string, string>;
+export interface MenuModule {
+  readonly default: ContentMenu;
 }
 
 /**
  * @public
  */
-export interface ResolvedDocumentHead {
+export interface RouteLocation {
+  readonly params: RouteParams;
+  readonly href: string;
+  readonly pathname: string;
+}
+
+export interface RouteNavigate {
+  pathname: string;
+}
+
+export type MutableRouteLocation = Mutable<RouteLocation>;
+
+type Mutable<T> = { -readonly [K in keyof T]: T[K] };
+
+/**
+ * @public
+ */
+export interface DocumentHeadValue {
+  /**
+   * Sets `document.title`.
+   */
   title?: string;
+  /**
+   * Used to manually set meta tags in the head. Additionally, the `data`
+   * property could be used to set arbitrary data which the `<head>` component
+   * could later use to generate `<meta>` tags.
+   */
   meta?: DocumentMeta[];
+  /**
+   * Used to manually append `<link>` elements to the `<head>`.
+   */
   links?: DocumentLink[];
+  /**
+   * Used to manually append `<style>` elements to the `<head>`.
+   */
   styles?: DocumentStyle[];
 }
+
+/**
+ * @public
+ */
+export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
 /**
  * @public
@@ -95,28 +121,23 @@ export interface DocumentStyle {
  */
 export interface DocumentHeadProps<T = unknown> extends RouteLocation {
   data: T | null;
-  head: Required<ResolvedDocumentHead>;
+  head: ResolvedDocumentHead;
 }
 
 /**
  * @public
  */
 export type DocumentHead<T = unknown> =
-  | ResolvedDocumentHead
-  | ((props: DocumentHeadProps<T>) => ResolvedDocumentHead);
+  | DocumentHeadValue
+  | ((props: DocumentHeadProps<T>) => DocumentHeadValue);
 
-/**
- * @public
- */
-export interface ContentBreadcrumb {
-  text: string;
-  href?: string;
+export interface ContentStateInternal {
+  contents: ContentModule[];
 }
 
 export interface ContentState {
-  breadcrumbs: ContentBreadcrumb[] | undefined;
   headings: ContentHeading[] | undefined;
-  modules: ContentModule[];
+  menu: ContentMenu | undefined;
 }
 
 /**
@@ -140,27 +161,31 @@ export interface ContentHeading {
 export type ContentModuleLoader = () => Promise<ContentModule>;
 export type EndpointModuleLoader = () => Promise<EndpointModule>;
 export type ModuleLoader = ContentModuleLoader | EndpointModuleLoader;
+export type MenuModuleLoader = () => Promise<MenuModule>;
 
 /**
  * @public
  */
 export type RouteData =
-  | [pattern: RegExp, pageLoaders: ContentModuleLoader[]]
-  | [pattern: RegExp, pageLoaders: ContentModuleLoader[], paramNames: string[]]
+  | [pattern: RegExp, loaders: ModuleLoader[]]
+  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]]
   | [
       pattern: RegExp,
-      endpointLoaders: EndpointModuleLoader[],
+      loaders: ModuleLoader[],
       paramNames: string[],
       routeType: typeof ROUTE_TYPE_ENDPOINT
     ];
+
+export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 
 /**
  * @public
  */
 export interface QwikCityPlan {
   routes: RouteData[];
-  menus?: { [pathName: string]: ContentMenu };
+  menus?: MenuData[];
   trailingSlash?: boolean;
+  cacheModules?: boolean;
 }
 
 /**
@@ -168,75 +193,100 @@ export interface QwikCityPlan {
  */
 export type RouteParams = Record<string, string>;
 
-export interface MatchedRoute {
-  loaders: ModuleLoader[];
-  params: RouteParams;
-}
+export type ContentModule = PageModule | LayoutModule;
 
-export interface LoadedRoute extends MatchedRoute {
-  modules: ContentModule[];
+export type RouteModule = ContentModule | EndpointModule;
+
+export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
+
+export interface LoadedRoute {
+  route: RouteData;
+  params: RouteParams;
+  mods: RouteModule[];
+  menu: ContentMenu | undefined;
 }
 
 export interface LoadedContent extends LoadedRoute {
   pageModule: PageModule;
 }
 
-export type ContentModule = PageModule | LayoutModule;
+export interface ResponseContext {
+  /**
+   * Set method for the HTTP response status code.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+   */
+  status: (statusCode: number) => void;
 
-export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
+  /**
+   * Used to set HTTP response headers.
+   *
+   * https://developer.mozilla.org/en-US/docs/Glossary/Response_header
+   */
+  headers: Headers;
 
-/**
- * @public
- */
-export interface RequestEvent {
-  method: HttpMethod;
-  request: Request;
-  params: RouteParams;
-  url: URL;
+  /**
+   * URL to redirect to. Defaults to use the `307` response status code,
+   * but can be overridden by setting the `statusCode` argument.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
+   */
+  redirect: (url: string, statusCode?: number) => void;
+
+  /**
+   * Read-only value of the HTTP status code.
+   * Please use the `status()` method to set the response status code.
+   */
+  readonly statusCode: number;
+
+  /**
+   * Read-only value if the response was already aborted.
+   */
+  readonly aborted: boolean;
 }
 
 /**
  * @public
  */
-export type HttpMethod =
-  | 'GET'
-  | 'POST'
-  | 'PUT'
-  | 'PATCH'
-  | 'DELETE'
-  | 'HEAD'
-  | 'OPTIONS'
-  | 'CONNECT'
-  | 'TRACE';
+export interface RequestEvent {
+  request: Request;
+  response: ResponseContext;
+  url: URL;
+
+  /** URL Route params which have been parsed from the current url pathname. */
+  params: RouteParams;
+
+  next: () => Promise<void>;
+  abort: () => void;
+}
+
+/**
+ * @public
+ */
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 
 /**
  * @public
  */
 export type EndpointHandler<BODY = unknown> = (
   ev: RequestEvent
-) => EndpointResponse<BODY> | Promise<EndpointResponse<BODY>>;
+) => BODY | undefined | null | void | Promise<BODY | undefined | null | void>;
 
-export interface EndpointResponse<BODY = unknown> {
-  body?: BODY | null | undefined;
-  /**
-   * HTTP Headers. The "Content-Type" header is used to determine how to serialize the `body` for the
-   * HTTP Response.  For example, a "Content-Type" including `application/json` will serialize the `body`
-   * with `JSON.stringify(body)`. If the "Content-Type" header is not provided, the response
-   * will default to include the header `"Content-Type": "application/json; charset=utf-8"`.
-   */
-  headers?: Record<string, string | undefined>;
-  /**
-   * HTTP Status code. The status code is import to determine if the data can be public
-   * facing or not. Setting a value of `200` will allow the endpoint to be fetched using
-   * an `"accept": "application/json"` request header. If the data from the API
-   * should not allowed to be requested, the status should be set to one of the Client Error
-   * response status codes. An example would be `401` for "Unauthorized", or `403` for
-   * "Forbidden".
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#client_error_responses
-   */
+export interface EndpointResponse {
+  body: any;
   status: number;
+  headers: Headers;
+  hasEndpointHandler: boolean;
+  immediateCommitToNetwork: boolean;
 }
 
 export interface QwikCityRenderDocument extends RenderDocument {
+}
+
+export interface QwikCityUserContext {
+  qcRoute: MutableRouteLocation;
+  qcRequest: {
+    method: HttpMethod;
+  };
+  qcResponse: EndpointResponse;
 }

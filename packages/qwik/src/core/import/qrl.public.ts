@@ -126,6 +126,8 @@ import { runtimeQrl } from './qrl';
  */
 // </docs>
 export interface QRL<TYPE = any> {
+  __brand__QRL__: TYPE;
+
   /**
    * Resolve the QRL of closure and invoke it.
    * @param args - Clousure arguments.
@@ -147,8 +149,15 @@ export interface QRL<TYPE = any> {
 /**
  * @public
  */
+export interface PropFnInterface<ARGS extends any[], RET> {
+  (...args: ARGS): Promise<RET>;
+}
+
+/**
+ * @public
+ */
 export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET
-  ? (...args: ARGS) => Promise<RET>
+  ? PropFnInterface<ARGS, RET>
   : never;
 
 // <docs markdown="../readme.md#$">

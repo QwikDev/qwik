@@ -443,9 +443,11 @@ test.describe('e2e', () => {
     test('should load', async ({ page }) => {
       const counter = await page.locator('#counter');
       const msg = await page.locator('#msg');
+      const msgEager = await page.locator('#eager-msg');
 
       await expect(counter).toHaveText('0');
       await expect(msg).toHaveText('empty');
+      await expect(msgEager).toHaveText('run');
 
       await counter.scrollIntoViewIfNeeded();
       await page.waitForTimeout(100);

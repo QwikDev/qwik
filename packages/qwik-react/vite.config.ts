@@ -6,12 +6,12 @@ export default defineConfig(() => {
   return {
     /* VITE_CONFIG */
     build: {
+      minify: false,
+      target: 'es2020',
       lib: {
         entry: './src/index.ts',
         formats: ['es', 'cjs'],
-        fileName: (format) => {
-          return format === 'es' ? `index.qwik.mjs` : `index.qwik.cjs`;
-        },
+        fileName: (format) => `index.qwik.${format === 'es' ? 'mjs' : 'cjs'}`,
       },
       rollupOptions: {
         external: [
@@ -26,9 +26,6 @@ export default defineConfig(() => {
           'react-dom/client',
           'react-dom/server',
         ],
-        output: {
-          chunkFileNames: '[name]-[hash].js',
-        },
       },
     },
     plugins: [

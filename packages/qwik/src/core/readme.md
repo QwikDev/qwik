@@ -155,36 +155,6 @@ It can be used to release resources, abort network requests, stop timers...
 
 @alpha
 
-# `useResume`
-
-A lazy-loadable reference to a component's on resume hook.
-
-The hook is eagerly invoked when the application resumes on the client. Because it is called eagerly, this allows the component to resume even if no user interaction has taken place.
-
-Only called in the client.
-Only called once.
-
-<docs code="./examples.tsx#use-resume"/>
-
-@see `useVisible`, `useClientEffect`
-
-@alpha
-
-# `useVisible`
-
-A lazy-loadable reference to a component's on the visible hook.
-
-The hook is lazily invoked when the component becomes visible in the browser viewport.
-
-Only called in the client.
-Only called once.
-
-@see `useResume`, `useClientEffect`
-
-<docs code="./examples.tsx#use-visible"/>
-
-@alpha
-
 # `useOn`
 
 Register a listener on the current component's host element.

@@ -7,6 +7,12 @@ body {
 
 main {
   padding: 10px 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.full-screen main {
+  max-width: 100%;
 }
 
 a {

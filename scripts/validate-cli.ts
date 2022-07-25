@@ -10,7 +10,9 @@ import {
 } from 'fs';
 import assert from 'assert';
 import { join } from 'path';
-import { pathToFileURL } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 async function validateCreateQwikCli() {
   console.log(`👾 validating create-qwik...`);
@@ -140,8 +142,8 @@ async function validateStarter(
     }
   } else {
     accessSync(join(appDir, 'lib', 'types'));
-    accessSync(join(appDir, 'lib', 'index.es.qwik.js'));
-    accessSync(join(appDir, 'lib', 'index.cjs.qwik.js'));
+    accessSync(join(appDir, 'lib', 'index.qwik.mjs'));
+    accessSync(join(appDir, 'lib', 'index.qwik.cjs'));
   }
   accessSync(join(appDir, 'README.md'));
   accessSync(join(appDir, 'tsconfig.json'));

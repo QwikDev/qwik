@@ -1,12 +1,12 @@
 import { component$, Host, useScopedStyles$ } from '@builder.io/qwik';
-import { useContentMenu, useLocation } from '@builder.io/qwik-city';
+import { useContent, Link, useLocation } from '@builder.io/qwik-city';
 import styles from './menu.css?inline';
 
 export const Menu = component$(
   () => {
     useScopedStyles$(styles);
 
-    const menu = useContentMenu();
+    const { menu } = useContent();
     const loc = useLocation();
 
     return (
@@ -18,14 +18,14 @@ export const Menu = component$(
                 <ul>
                   {item.items?.map((item) => (
                     <li>
-                      <a
+                      <Link
                         href={item.href}
                         class={{
                           'is-active': loc.pathname === item.href,
                         }}
                       >
                         {item.text}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>

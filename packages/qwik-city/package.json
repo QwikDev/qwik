@@ -1,11 +1,12 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.0.18",
+  "version": "0.0.25",
   "description": "Static Site Generator for Qwik",
   "main": "./lib/index.qwik.cjs",
   "module": "./lib/index.qwik.mjs",
-  "qwik": "./lib/index.qwik.mjs",
+  "qwik": "./lib/index.qwik.cjs",
   "types": "./lib/index.d.ts",
+  "type": "module",
   "exports": {
     ".": {
       "import": "./lib/index.qwik.mjs",
@@ -28,16 +29,18 @@
   },
   "scripts": {
     "start": "cd runtime && vite",
-    "dev.ssr": "cd runtime && vite --mode ssr",
+    "dev.ssr": "cd runtime && node --inspect ../../../node_modules/vite/bin/vite.js --mode ssr",
+    "dev.debug": "cd runtime && node --inspect-brk ../../../node_modules/vite/bin/vite.js --mode ssr --force",
     "build": "yarn build.client && yarn build.ssr",
     "build.client": "cd runtime && vite build --config vite-app.config.ts",
     "build.ssr": "cd runtime && vite build --config vite-app.config.ts --ssr src/entry.express.tsx",
     "build.runtime": "cd runtime && vite build --mode lib",
-    "serve": "node runtime/server/entry.express.js",
-    "serve.debug": "node --inspect-brk runtime/server/entry.express.js",
-    "test": "yarn test.unit",
-    "test.unit": "node ../../node_modules/.bin/uvu -r tsm . \"(unit)\"",
-    "test.e2e": "node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts"
+    "serve": "node --inspect runtime/server/entry.express",
+    "serve.debug": "node --inspect-brk runtime/server/entry.express",
+    "test": "yarn test.unit && yarn test.e2e",
+    "test.unit": "tsm ../../node_modules/.bin/uvu . unit.ts --tsmconfig tsm.cjs",
+    "test.e2e": "DISABLE_JS=true node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts",
+    "test.e2e.client": "node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts"
   },
   "dependencies": {
     "@mdx-js/mdx": "2.1.2",
@@ -46,11 +49,11 @@
     "vfile": "5.3.4"
   },
   "peerDependencies": {
-    "@builder.io/qwik": ">=0.0.34"
+    "@builder.io/qwik": ">=0.0.38"
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",
-    "@microsoft/api-extractor": "7.28.4",
+    "@microsoft/api-extractor": "7.28.5",
     "@types/github-slugger": "1.3.0",
     "@types/marked": "4.0.3",
     "@types/node": "latest",
@@ -64,12 +67,12 @@
     "rehype-autolink-headings": "6.1.1",
     "remark-frontmatter": "4.0.1",
     "remark-gfm": "3.0.1",
-    "tsm": "2.2.1",
+    "tsm": "2.2.2",
     "typescript": "4.7.4",
     "unified": "10.1.2",
     "unist-util-visit": "4.1.0",
     "uvu": "0.5.6",
-    "vite": "2.9.14"
+    "vite": "3.0.2"
   },
   "license": "MIT",
   "homepage": "https://qwik.builder.io/",

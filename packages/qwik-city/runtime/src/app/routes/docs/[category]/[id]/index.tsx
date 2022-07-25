@@ -1,15 +1,23 @@
 import { component$, Host } from '@builder.io/qwik';
-import { useLocation } from '~qwik-city-runtime';
+import { useLocation, DocumentHead } from '~qwik-city-runtime';
 
 export default component$(() => {
-  const loc = useLocation();
+  const { pathname, params } = useLocation();
 
   return (
     <Host>
-      <h1>Docs</h1>
-      <p>pathname: {loc.pathname}</p>
-      <p>category: {loc.params.category}</p>
-      <p>id: {loc.params.id}</p>
+      <h1>
+        Docs: {params.category} {params.id}
+      </h1>
+      <p>pathname: {pathname}</p>
+      <p>category: {params.category}</p>
+      <p>id: {params.id}</p>
     </Host>
   );
 });
+
+export const head: DocumentHead = ({ params }) => {
+  return {
+    title: `${params.category} ${params.id}`,
+  };
+};

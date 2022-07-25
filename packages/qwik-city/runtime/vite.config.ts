@@ -10,9 +10,7 @@ export default defineConfig(() => {
       lib: {
         entry: './src/index.ts',
         formats: ['es', 'cjs'],
-        fileName: (format) => {
-          return format === 'es' ? `index.qwik.mjs` : `index.qwik.cjs`;
-        },
+        fileName: (format) => `index.qwik.${format === 'es' ? 'mjs' : 'cjs'}`,
       },
       rollupOptions: {
         external: ['@qwik-city-plan'],
@@ -30,8 +28,11 @@ export default defineConfig(() => {
       qwikVite(),
     ],
     clearScreen: false,
-    server: {
+    optimizeDeps: {
       force: true,
+    },
+    server: {
+      port: 3000,
     },
   };
 });

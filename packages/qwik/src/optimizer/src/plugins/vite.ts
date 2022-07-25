@@ -25,6 +25,7 @@ import {
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import { versions } from '../versions';
+import type { RenderDocumentUserContext } from '../../../server/types';
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID];
 
@@ -232,14 +233,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       if (opts.target === 'ssr') {
         // SSR Build
-        updatedViteConfig.build!.ssr = true;
-
         if (viteCommand === 'serve') {
-          (updatedViteConfig as any).ssr = {
+          updatedViteConfig.ssr = {
             noExternal: vendorIds,
-          } as any;
+          };
         } else {
           updatedViteConfig.publicDir = false;
+          updatedViteConfig.build!.ssr = true;
         }
       } else if (opts.target === 'client') {
         if (buildMode === 'production') {
@@ -399,11 +399,18 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // polyfill fetch() when not available in NodeJS
         qwikPlugin.log(`configureServer(), patch fetch()`);
 
-        const nodeFetch = await sys.dynamicImport('node-fetch');
-        global.fetch = nodeFetch;
-        global.Headers = nodeFetch.Headers;
-        global.Request = nodeFetch.Request;
-        global.Response = nodeFetch.Response;
+        try {
+          if (!globalThis.fetch) {
+            const nodeFetch = await sys.strictDynamicImport('node-fetch');
+            global.fetch = nodeFetch.default;
+            global.Headers = nodeFetch.Headers;
+            global.Request = nodeFetch.Request;
+            global.Response = nodeFetch.Response;
+          }
+        } catch {
+          console.warn('Global fetch() was not installed');
+          // Nothing
+        }
       }
 
       server.middlewares.use(async (req, res, next) => {
@@ -423,6 +430,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
         try {
           if (req.headers.accept && req.headers.accept.includes('text/html')) {
+            const userContext: Record<string, any> = {
+              ...(res as QwikViteDevResponse)._qwikUserCtx,
+            };
+
             const status = typeof res.statusCode === 'number' ? res.statusCode : 200;
             if (isClientDevOnly) {
               qwikPlugin.log(`handleClientEntry("${url}")`);
@@ -430,7 +441,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               const relPath = path.relative(opts.rootDir, clientDevInput!);
               const entryUrl = '/' + qwikPlugin.normalizePath(relPath);
 
-              let html = getViteDevIndexHtml(entryUrl);
+              let html = getViteDevIndexHtml(entryUrl, userContext);
               html = await server.transformIndexHtml(pathname, html);
 
               res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -485,17 +496,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               });
 
               qwikPlugin.log(`handleSSR()`, 'symbols', manifest);
-
-              const userContext: any = {};
-              try {
-                const userContextStr = res.getHeader('X-Qwik-Dev-User-Context');
-                if (typeof userContextStr === 'string') {
-                  Object.assign(userContext, JSON.parse(userContextStr));
-                  res.removeHeader('X-Qwik-Dev-User-Context');
-                }
-              } catch (e) {
-                console.error(e);
-              }
 
               const renderToStringOpts: RenderOptions = {
                 url: url.href,
@@ -553,11 +553,19 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   return vitePlugin;
 }
 
-function getViteDevIndexHtml(entryUrl: string) {
+function getViteDevIndexHtml(entryUrl: string, userContext: Record<string, any>) {
+  const doc: RenderDocumentUserContext = {
+    _qwikUserCtx: userContext,
+  };
+
   return `<!-- Qwik Vite Dev Mode -->
 <!DOCTYPE html>
 <html>
-  <head></head>
+  <head>
+    <script>
+      Object.assign(document, ${JSON.stringify(doc, null, 2)});
+    </script>
+  </head>
   <body>
     <script type="module" src="${entryUrl}?${VITE_DEV_CLIENT_QS}="></script>
   </body>
@@ -615,7 +623,7 @@ const findQwikRoots = async (
 ): Promise<QwikPackages[]> => {
   if (sys.env === 'node') {
     const fs: typeof import('fs') = await sys.dynamicImport('fs');
-    const { resolvePackageData }: typeof import('vite') = await sys.dynamicImport('vite');
+    const { resolvePackageData }: typeof import('vite') = await sys.strictDynamicImport('vite');
 
     try {
       const data = await fs.promises.readFile(packageJsonPath, { encoding: 'utf-8' });
@@ -744,4 +752,8 @@ export interface QwikVitePluginOptions {
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
+}
+
+export interface QwikViteDevResponse {
+  _qwikUserCtx?: Record<string, any>;
 }

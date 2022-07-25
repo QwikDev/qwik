@@ -23,6 +23,7 @@ export const EffectClient = component$(() => {
       <div class="box" />
 
       <Timer />
+      <Eager></Eager>
     </div>
   );
 });
@@ -55,6 +56,30 @@ export const Timer = component$(() => {
     <Host>
       <div id="counter">{state.count}</div>
       <div id="msg">{state.msg}</div>
+    </Host>
+  );
+});
+
+export const Eager = component$(() => {
+  console.log('<Timer> renders');
+
+  const state = useStore({
+    msg: 'empty',
+  });
+
+  // Double count watch
+  useClientEffect$(
+    () => {
+      state.msg = 'run';
+    },
+    {
+      eagerness: 'load',
+    }
+  );
+
+  return (
+    <Host>
+      <div id="eager-msg">{state.msg}</div>
     </Host>
   );
 });

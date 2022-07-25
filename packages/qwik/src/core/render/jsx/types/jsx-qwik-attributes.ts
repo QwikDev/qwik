@@ -183,6 +183,11 @@ interface CSSProperties {
 /**
  * @public
  */
+export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
+
+/**
+ * @public
+ */
 export interface ComponentBaseProps {
   class?: string | { [className: string]: boolean };
   className?: string | undefined;
@@ -207,6 +212,7 @@ export interface ComponentBaseProps {
   [key: `preventDefault:${string}`]: boolean;
   [key: `preventdefault:${string}`]: boolean;
 
+  'host:tagName'?: JSXTagName;
   children?: JSXChildren;
 }
 export interface QwikAttributes extends QwikProps, QwikEvents {}

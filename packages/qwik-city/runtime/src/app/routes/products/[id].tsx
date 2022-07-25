@@ -1,4 +1,4 @@
-import { Async, component$, Host, useStore } from '@builder.io/qwik';
+import { Resource, component$, Host, useStore } from '@builder.io/qwik';
 import { useEndpoint, useLocation, EndpointHandler, DocumentHead } from '~qwik-city-runtime';
 import os from 'os';
 
@@ -10,7 +10,7 @@ export default component$(() => {
 
   return (
     <Host>
-      <Async
+      <Resource
         resource={resource}
         onPending={() => <p>Loading</p>}
         onResolved={(product) => {
@@ -51,16 +51,22 @@ export default component$(() => {
 
       <ul>
         <li>
-          <a href="/products/shirt">T-Shirt (Redirect to /products/tshirt)</a>
-        </li>
-        <li>
-          <a href="/products/hoodie">Hoodie (404 Not Found)</a>
+          <a href="/products/jacket" data-test-link="products-jacket">
+            Jacket
+          </a>
         </li>
         <li>
           <a href="/products/hat">Hat</a>
         </li>
         <li>
-          <a href="/products/jacket">Jacket</a>
+          <a href="/products/shirt" data-test-link="products-shirt">
+            T-Shirt (Redirect to /products/tshirt)
+          </a>
+        </li>
+        <li>
+          <a href="/products/hoodie" data-test-link="products-hoodie">
+            Hoodie (404 Not Found)
+          </a>
         </li>
       </ul>
     </Host>
@@ -79,23 +85,18 @@ export const head: DocumentHead<ProductData | null> = ({ data }) => {
   };
 };
 
-export const onGet: EndpointHandler<EndpointData> = async ({ params }) => {
+export const onGet: EndpointHandler<EndpointData> = async ({ params, response }) => {
   // Serverside Endpoint
   // During SSR, this method is called directly on the server and returns the data object
   // On the client, this same data can be requested with fetch() at the same URL, but also
   // requires the "accept: application/json" request header.
 
   // artificial slow response
-  await new Promise<void>((resolve) => setTimeout(resolve, 250));
+  await new Promise<void>((resolve) => setTimeout(resolve, 200));
 
   if (params.id === 'shirt') {
     // Redirect, which will skip any rendering and the server will immediately redirect
-    return {
-      status: 307,
-      headers: {
-        location: '/products/tshirt',
-      },
-    };
+    return response.redirect('/products/tshirt');
   }
 
   const productPrice = PRODUCT_DB[params.id];
@@ -103,27 +104,20 @@ export const onGet: EndpointHandler<EndpointData> = async ({ params }) => {
   if (!productPrice) {
     // Product data not found
     // but the data is still given to the renderer to decide what to do
-    return {
-      status: 404,
-      body: null,
-    };
+    response.status(404);
+    return null;
   }
 
+  response.headers.set('Cache-Control', 'no-cache, no-store, no-fun');
   return {
     // Found the product data
     // This same data is passed to the head() function
     // and in the component$() it can be access with useEndpoint()
-    status: 200,
-    body: {
-      productId: params.id,
-      price: productPrice,
-      description: `Node ${process.versions.node} ${os.platform()} ${os.arch()} ${
-        os.cpus()[0].model
-      }`,
-    },
-    headers: {
-      'Cache-Control': 'no-cache, no-store, no-fun',
-    },
+    productId: params.id,
+    price: productPrice,
+    description: `Node ${process.versions.node} ${os.platform()} ${os.arch()} ${
+      os.cpus()[0].model
+    }`,
   };
 };
 

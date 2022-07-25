@@ -32,7 +32,7 @@ export interface QRLInternalMethods<TYPE> {
 
 export interface QRLInternal<TYPE = any> extends QRL<TYPE>, QRLInternalMethods<TYPE> {}
 
-export const createQrl = <TYPE>(
+export const createQRL = <TYPE>(
   chunk: string,
   symbol: string,
   symbolRef: null | ValueOrPromise<TYPE>,
@@ -40,7 +40,7 @@ export const createQrl = <TYPE>(
   capture: null | string[],
   captureRef: any[] | null,
   refSymbol: string | null
-) => {
+): QRLInternal<TYPE> => {
   if (qDev) {
     verifySerializable(captureRef);
   }
@@ -129,13 +129,13 @@ export const createQrl = <TYPE>(
     },
     $invokeFn$: invokeFn,
     $copy$(): QRLInternal<TYPE> {
-      return createQrl<TYPE>(chunk, symbol, symbolRef, symbolFn, null, captureRef, refSymbol);
+      return createQRL<TYPE>(chunk, symbol, symbolRef, symbolFn, null, captureRef, refSymbol);
     },
     $serialize$(options?: QRLSerializeOptions) {
       return stringifyQRL(QRL, options);
     },
   };
-  return Object.assign(invoke, methods);
+  return Object.assign(invoke, methods) as any;
 };
 
 export const getSymbolHash = (symbolName: string) => {

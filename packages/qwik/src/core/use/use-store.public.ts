@@ -6,6 +6,7 @@ import { qDev } from '../util/qdev';
 
 export interface UseStoreOptions {
   recursive?: boolean;
+  reactive?: boolean;
 }
 
 // <docs markdown="../readme.md#useStore">
@@ -79,13 +80,18 @@ export const useStore = <STATE extends object>(
   if (get != null) {
     return get;
   }
-  const containerState = ctx.$renderCtx$.$containerState$;
   const value = isFunction(initialState) ? (initialState as Function)() : initialState;
-  const recursive = opts?.recursive ?? false;
-  const flags = recursive ? QObjectRecursive : 0;
-  const newStore = createProxy(value, containerState, flags, undefined);
-  set(newStore);
-  return newStore;
+  if (opts?.reactive === false) {
+    set(value);
+    return value;
+  } else {
+    const containerState = ctx.$renderCtx$.$containerState$;
+    const recursive = opts?.recursive ?? false;
+    const flags = recursive ? QObjectRecursive : 0;
+    const newStore = createProxy(value, containerState, flags, undefined);
+    set(newStore);
+    return newStore;
+  }
 };
 
 /**

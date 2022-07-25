@@ -3,87 +3,141 @@ import type {
   EndpointModule,
   EndpointResponse,
   HttpMethod,
-  RequestEvent,
+  ResponseContext,
   RouteParams,
 } from '../../runtime/src/library/types';
+import { Headers as HeadersPolyfill } from 'headers-polyfill';
 
 export async function getEndpointResponse(
   request: Request,
   method: HttpMethod,
   url: URL,
   params: RouteParams,
-  endpointModule: EndpointModule
+  endpointModules: EndpointModule[]
 ) {
-  let reqHandler: EndpointHandler | undefined = undefined;
+  let middlewareIndex = -1;
 
-  switch (method) {
-    case 'GET': {
-      reqHandler = endpointModule.onGet;
-      break;
+  const headers = new HeadersPolyfill();
+
+  const endpointResponse: EndpointResponse = {
+    body: null,
+    status: 200,
+    headers,
+    hasEndpointHandler: false,
+    immediateCommitToNetwork: false,
+  };
+
+  const status = (statusCode: number) => {
+    endpointResponse.status = statusCode;
+  };
+
+  const redirect = (url: string, statusCode?: number) => {
+    if (typeof statusCode === 'number') {
+      endpointResponse.status = statusCode;
     }
-    case 'POST': {
-      reqHandler = endpointModule.onPost;
-      break;
+    if (
+      typeof endpointResponse.status !== 'number' ||
+      endpointResponse.status < 300 ||
+      endpointResponse.status > 399
+    ) {
+      endpointResponse.status = 307;
     }
-    case 'PUT': {
-      reqHandler = endpointModule.onPut;
-      break;
+    headers.set('Location', url);
+    endpointResponse.immediateCommitToNetwork = true;
+  };
+
+  const response: ResponseContext = {
+    status,
+    headers,
+    redirect,
+    get statusCode() {
+      return endpointResponse.status;
+    },
+    get aborted() {
+      return middlewareIndex >= ABORT_INDEX;
+    },
+  };
+
+  const abort = () => {
+    middlewareIndex = ABORT_INDEX;
+  };
+
+  const next = async () => {
+    middlewareIndex++;
+
+    while (middlewareIndex < endpointModules.length) {
+      const endpointModule = endpointModules[middlewareIndex];
+
+      let reqHandler: EndpointHandler | undefined = undefined;
+
+      switch (method) {
+        case 'GET': {
+          reqHandler = endpointModule.onGet;
+          break;
+        }
+        case 'POST': {
+          reqHandler = endpointModule.onPost;
+          break;
+        }
+        case 'PUT': {
+          reqHandler = endpointModule.onPut;
+          break;
+        }
+        case 'PATCH': {
+          reqHandler = endpointModule.onPatch;
+          break;
+        }
+        case 'OPTIONS': {
+          reqHandler = endpointModule.onOptions;
+          break;
+        }
+        case 'HEAD': {
+          reqHandler = endpointModule.onHead;
+          break;
+        }
+        case 'DELETE': {
+          reqHandler = endpointModule.onDelete;
+          break;
+        }
+      }
+
+      reqHandler = reqHandler || endpointModule.onRequest;
+
+      if (typeof reqHandler === 'function') {
+        endpointResponse.hasEndpointHandler = true;
+
+        const body = await reqHandler({ request, url, params, response, next, abort });
+        if (body !== undefined) {
+          endpointResponse.body = body;
+        }
+      }
+
+      middlewareIndex++;
     }
-    case 'PATCH': {
-      reqHandler = endpointModule.onPatch;
-      break;
-    }
-    case 'OPTIONS': {
-      reqHandler = endpointModule.onOptions;
-      break;
-    }
-    case 'HEAD': {
-      reqHandler = endpointModule.onHead;
-      break;
-    }
-    case 'DELETE': {
-      reqHandler = endpointModule.onDelete;
-      break;
-    }
+  };
+
+  try {
+    await next();
+  } catch (e: any) {
+    endpointResponse.body = String(e ? e.stack : e || 'Endpoint Error');
+    endpointResponse.status = 500;
+    endpointResponse.headers.forEach((_, key) => endpointResponse.headers.delete(key));
+    endpointResponse.headers.set('Content-Type', 'text/plain; charset=utf-8');
+    endpointResponse.immediateCommitToNetwork = true;
   }
 
-  reqHandler = reqHandler || endpointModule.onRequest;
-
-  if (typeof reqHandler === 'function') {
-    const requestEv: RequestEvent = { method, request, url, params };
-    const endpointResponse = await reqHandler(requestEv);
-    return endpointResponse;
-  }
-
-  return null;
+  return endpointResponse;
 }
 
-export function endpointHandler(method: HttpMethod, endpointResponse: EndpointResponse | null) {
-  if (endpointResponse) {
-    let status = 200;
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json; charset=utf-8',
-    };
+export function endpointHandler(method: HttpMethod, endpointResponse: EndpointResponse) {
+  const { status, headers, hasEndpointHandler } = endpointResponse;
 
-    if (endpointResponse.headers) {
-      for (const [key, value] of Object.entries(endpointResponse.headers)) {
-        if (value) {
-          const normalizedKey = key.toLocaleLowerCase();
-          if (normalizedKey === 'content-type') {
-            headers['Content-Type'] = value;
-          } else {
-            headers[key] = value;
-          }
-        }
-      }
-      if (typeof endpointResponse.status === 'number') {
-        if (endpointResponse.status >= 100 && endpointResponse.status <= 599) {
-          status = endpointResponse.status;
-        }
-      }
+  if (hasEndpointHandler) {
+    if (!headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json; charset=utf-8');
     }
 
-    if (headers['Content-Type'].startsWith('application/json')) {
+    if (headers.get('Content-Type')!.startsWith('application/json')) {
       // JSON response
       return new Response(JSON.stringify(endpointResponse.body), {
         status,
@@ -93,7 +147,7 @@ export function endpointHandler(method: HttpMethod, endpointResponse: EndpointRe
 
     if (endpointResponse.body == null) {
       // null || undefined response
-      return new Response(endpointResponse.body as any, {
+      return new Response(endpointResponse.body, {
         status,
         headers,
       });
@@ -108,10 +162,10 @@ export function endpointHandler(method: HttpMethod, endpointResponse: EndpointRe
       });
     }
 
-    return new Response(`Unsupport response body type: ${JSON.stringify(endpointResponse.body)}`, {
+    return new Response(`Unsupport response body type`, {
       status: 500,
       headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
+        'content-type': 'text/plain; charset=utf-8',
       },
     });
   }
@@ -119,7 +173,9 @@ export function endpointHandler(method: HttpMethod, endpointResponse: EndpointRe
   return new Response(`Method Not Allowed: ${method}`, {
     status: 405,
     headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
+      'content-type': 'text/plain; charset=utf-8',
     },
   });
 }
+
+const ABORT_INDEX = 999999999;

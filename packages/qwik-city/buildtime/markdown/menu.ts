@@ -1,29 +1,34 @@
-import type { BuildContext, ParsedMenu, ParsedMenuItem } from '../types';
+import type { NormalizedPluginOptions, BuildMenu, ParsedMenuItem, RouteSourceFile } from '../types';
 import { marked } from 'marked';
 import { getMenuPathname, getMenuLinkHref } from '../utils/pathname';
-import { createFileId, normalizePath } from '../utils/fs';
-import fs from 'fs';
+import { createFileId } from '../utils/fs';
 
-export async function createMenu(ctx: BuildContext, routesDir: string, filePath: string) {
-  const content = await fs.promises.readFile(filePath, 'utf-8');
-  return createMenuFromMarkdown(ctx, routesDir, filePath, content);
+export function createMenu(opts: NormalizedPluginOptions, filePath: string) {
+  const menu: BuildMenu = {
+    pathname: getMenuPathname(opts, filePath),
+    filePath,
+  };
+  return menu;
 }
 
-export function createMenuFromMarkdown(
-  ctx: BuildContext,
-  routesDir: string,
+export function resolveMenu(opts: NormalizedPluginOptions, menuSourceFile: RouteSourceFile) {
+  return createMenu(opts, menuSourceFile.filePath);
+}
+
+export async function transformMenu(
+  opts: NormalizedPluginOptions,
   filePath: string,
   content: string
 ) {
-  filePath = normalizePath(filePath);
-  const id = createFileId(ctx, routesDir, filePath);
+  const parsedMenu = parseMenu(opts, filePath, content);
+  const id = createFileId(opts.routesDir, filePath);
+  const code = `const ${id} = ${JSON.stringify(parsedMenu, null, 2)};`;
+  return `${code} export default ${id}`;
+}
 
-  const menu: ParsedMenu = {
-    pathname: getMenuPathname(ctx.opts, filePath),
-    filePath,
+export function parseMenu(opts: NormalizedPluginOptions, filePath: string, content: string) {
+  const parsedMenu: ParsedMenuItem = {
     text: '',
-    items: [],
-    id,
   };
 
   const tokens = marked.lexer(content, {});
@@ -34,7 +39,7 @@ export function createMenuFromMarkdown(
     if (t.type === 'heading') {
       if (t.depth === 1) {
         if (!hasH1) {
-          menu.text = t.text;
+          parsedMenu.text = t.text;
           hasH1 = true;
         } else {
           throw new Error(`Only one h1 can be used in the menu: ${filePath}`);
@@ -48,14 +53,14 @@ export function createMenuFromMarkdown(
             h2 = {
               text: h2Token.text,
             };
-            menu.items = menu.items || [];
-            menu.items!.push(h2);
+            parsedMenu.items = parsedMenu.items || [];
+            parsedMenu.items!.push(h2);
           } else if (h2Token.type === 'link') {
             h2 = {
               text: h2Token.text,
-              href: getMenuLinkHref(ctx.opts, filePath, h2Token.href),
+              href: getMenuLinkHref(opts, filePath, h2Token.href),
             };
-            menu.items!.push(h2);
+            parsedMenu.items!.push(h2);
           } else {
             `Headings can only be a text or link. Received "${h2Token.type}", value "${h2Token.raw}", in menu: ${filePath}`;
           }
@@ -78,7 +83,7 @@ export function createMenuFromMarkdown(
                 } else if (liItem.type === 'link') {
                   h2.items.push({
                     text: liItem.text,
-                    href: getMenuLinkHref(ctx.opts, filePath, liItem.href),
+                    href: getMenuLinkHref(opts, filePath, liItem.href),
                   });
                 } else {
                   throw new Error(
@@ -89,7 +94,7 @@ export function createMenuFromMarkdown(
             } else if (liToken.type === 'link') {
               h2.items.push({
                 text: liToken.text,
-                href: getMenuLinkHref(ctx.opts, filePath, liToken.href),
+                href: getMenuLinkHref(opts, filePath, liToken.href),
               });
             } else {
               throw new Error(
@@ -112,9 +117,5 @@ export function createMenuFromMarkdown(
     }
   }
 
-  return menu;
-}
-
-export function isMenuFileName(fileName: string) {
-  return fileName === '_menu.md';
+  return parsedMenu;
 }

@@ -5,15 +5,15 @@ import { suite as uvuSuite } from 'uvu';
 import type {
   BuildContext,
   BuildLayout,
-  EndpointRoute,
+  BuildRoute,
   MarkdownAttributes,
   NormalizedPluginOptions,
-  PageRoute,
 } from '../types';
 import { createBuildContext } from './context';
 import { tmpdir } from 'os';
 import { normalizePath } from './fs';
 import { build } from '../build';
+import { fileURLToPath } from 'url';
 
 export function suite(title?: string) {
   const s = uvuSuite<TestContext>(title);
@@ -41,6 +41,7 @@ export function testAppSuite(title: string) {
 
   s.before.each(async (testCtx) => {
     if (!buildCtx) {
+      const __dirname = fileURLToPath(new URL('.', import.meta.url));
       const testAppRootDir = join(__dirname, '..', '..', 'runtime', 'src');
       const ctx = createBuildContext(testAppRootDir, {
         routesDir: join(testAppRootDir, 'app', 'routes'),
@@ -91,8 +92,8 @@ export function testAppSuite(title: string) {
 }
 
 export interface TestAppBuildContext extends BuildContext {
-  assertPage: (pathname: string) => PageRoute;
-  assertEndpoint: (pathname: string) => EndpointRoute;
+  assertPage: (pathname: string) => BuildRoute;
+  assertEndpoint: (pathname: string) => BuildRoute;
   assertLayout: (id: string) => BuildLayout;
 }
 

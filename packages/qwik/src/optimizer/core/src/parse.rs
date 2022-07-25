@@ -216,8 +216,11 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         let mut visitor = StripExportsVisitor::new(strip_exports);
                         main_module.visit_mut_with(&mut visitor);
                     }
+
+                    let mut did_transform = false;
                     // Transpile JSX
                     if transpile && is_type_script {
+                        did_transform = true;
                         main_module = if is_jsx {
                             main_module.fold_with(&mut typescript::strip_with_jsx(
                                 Lrc::clone(&source_map),
@@ -236,6 +239,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
                     // Transpile JSX
                     if transpile && is_jsx {
+                        did_transform = true;
                         let mut react_options = react::Options::default();
                         if is_jsx {
                             react_options.throw_if_namespace = Some(false);
@@ -349,7 +353,11 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
                     let path = path_data
                         .rel_dir
-                        .join([&path_data.file_stem, ".", &extension].concat())
+                        .join(if did_transform {
+                            [&path_data.file_stem, ".", &extension].concat()
+                        } else {
+                            path_data.file_name
+                        })
                         .to_slash_lossy();
 
                     let mut hasher = DefaultHasher::new();
@@ -429,8 +437,14 @@ fn parse(
 fn parse_filename(path_data: &PathData) -> (bool, bool) {
     match path_data.extension.as_str() {
         "ts" => (true, false),
+        "mts" => (true, false),
+        "mtsx" => (true, true),
         "js" => (false, false),
+        "mjs" => (false, false),
+        "cjs" => (false, false),
         "jsx" => (false, true),
+        "mjsx" => (false, true),
+        "cjsx" => (false, true),
         _ => (true, true),
     }
 }

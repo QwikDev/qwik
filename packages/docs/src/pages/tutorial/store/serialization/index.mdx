@@ -3,12 +3,14 @@ title: Serialization Graph
 layout: tutorial
 ---
 
-Stores are serializable on application pause. There are no restrictions on stores to be a directed acyclic graph. It is perfectly valid for stores to have cycles in them, and Qwik will correctly serialize it.
+Stores are serializable as the application is paused on the server and resumed on the client.
 
-Stores can also store QRLs. QRLs will be discussed later.
+Data in a store isn't required to be free of nested references. Qwik is perfectly happy serializing stores that feature data [cycles](https://wikipedia.org/wiki/Directed_acyclic_graph).
 
-There is no limit to how many stores can be created per component and where they are passed to. While it is a good practice to have top-down data flows, there is no such requirement from the Qwik framework.
+Stores can also include [Qwik URLs (QRLs)](https://qwik.builder.io/docs/advanced/qrl).
 
-For this example insert a few items into `parent.children` that will create a circular reference between parent and child stores.
+There is no limit to how many stores can be created per component, nor to where they are passed. While the best practice is to implement top-down data flows, Qwik doesn't require this design philosophy.
 
-This example also shows how you can attach closures to a store through the use of `$` and `QRL` and how to invoke them.
+> **Your task**: Insert a few items into `parent.children` to create a circular reference between the parent and child stores.
+
+This example also shows how to attach and invoke closures to a store using `$` and `QRL`.

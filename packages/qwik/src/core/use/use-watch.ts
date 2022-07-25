@@ -8,24 +8,23 @@ import { getDocument } from '../util/dom';
 import { isFunction, isObject, ValueOrPromise } from '../util/types';
 import { isServer } from '../platform/platform';
 import { ContainerState, handleWatch } from '../render/notify-render';
-import { useResumeQrl, useVisibleQrl } from './use-on';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { assertDefined, assertEqual } from '../assert/assert';
 import type { QRL } from '../import/qrl.public';
-import { assertQrl, createQrl, QRLInternal } from '../import/qrl-class';
+import { assertQrl, createQRL, QRLInternal } from '../import/qrl-class';
 import {
   codeToText,
   qError,
   QError_canNotMountUseServerMount,
   QError_trackUseStore,
 } from '../error/error';
+import { useOn } from './use-on';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;
 export const WatchFlagsIsDirty = 1 << 2;
 export const WatchFlagsIsCleanup = 1 << 3;
 export const WatchFlagsIsResource = 1 << 4;
-export const WatchFlagsIsBeforeRender = WatchFlagsIsResource | WatchFlagsIsWatch;
 
 /**
  * @alpha
@@ -49,7 +48,7 @@ export type MountFn<T> = () => ValueOrPromise<T>;
 /**
  * @alpha
  */
-export type Resource<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
+export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
 /**
  * @alpha
@@ -109,7 +108,7 @@ export type WatchDescriptor = DescriptorBase<WatchFn>;
  * @alpha
  */
 export interface ResourceDescriptor<T> extends DescriptorBase<ResourceFn<T>> {
-  r: Resource<T>;
+  r: ResourceReturn<T>;
 }
 
 /**
@@ -128,7 +127,7 @@ export const isWatchCleanup = (obj: any): obj is WatchDescriptor => {
 /**
  * @alpha
  */
-export type UseEffectRunOptions = 'visible' | 'load';
+export type EagernessOptions = 'visible' | 'load';
 
 /**
  * @alpha
@@ -138,7 +137,7 @@ export interface UseEffectOptions {
    * - `visible`: run the effect when the element is visible.
    * - `load`: eagerly run the effect when the application resumes.
    */
-  run?: UseEffectRunOptions;
+  eagerness?: EagernessOptions;
 }
 
 // <docs markdown="../readme.md#useWatch">
@@ -221,7 +220,7 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void =>
     ctx.$waitOn$.push(Promise.all(previousWait).then(() => runSubscriber(watch, containerState)));
     const isServer = containerState.$platform$.isServer;
     if (isServer) {
-      useRunWatch(watch, opts?.run);
+      useRunWatch(watch, opts?.eagerness);
     }
   }
 };
@@ -330,7 +329,7 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
     };
     set(true);
     getContext(el).$watches$.push(watch);
-    useRunWatch(watch, opts?.run ?? 'visible');
+    useRunWatch(watch, opts?.eagerness ?? 'visible');
     const doc = ctx.$doc$ as any;
     if (doc['qO']) {
       doc['qO'].observe(el);
@@ -408,8 +407,8 @@ export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useClientEffectQ
  * @public
  */
 // </docs>
-export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): Resource<T> => {
-  const { get, set, ctx } = useSequentialScope<Resource<T>>();
+export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): ResourceReturn<T> => {
+  const { get, set, ctx } = useSequentialScope<ResourceReturn<T>>();
   if (get) {
     return get;
   }
@@ -499,8 +498,8 @@ export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl
  * @public
  */
 // </docs>
-export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): Resource<T> => {
-  const { get, set, ctx } = useSequentialScope<Resource<T>>();
+export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): ResourceReturn<T> => {
+  const { get, set, ctx } = useSequentialScope<ResourceReturn<T>>();
   if (get) {
     return get;
   }
@@ -510,8 +509,8 @@ export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): Resource<T> => {
   return resource;
 };
 
-const createResourceFromPromise = <T>(promise: Promise<T>): Resource<T> => {
-  const resource: Resource<T> = {
+const createResourceFromPromise = <T>(promise: Promise<T>): ResourceReturn<T> => {
+  const resource: ResourceReturn<T> = {
     state: 'pending',
     error: undefined,
     resolved: undefined,
@@ -768,17 +767,17 @@ export interface Tracker {
   <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
 }
 
-const useRunWatch = (watch: SubscriberDescriptor, run: UseEffectRunOptions | undefined) => {
-  if (run === 'load') {
-    useResumeQrl(getWatchHandlerQrl(watch));
-  } else if (run === 'visible') {
-    useVisibleQrl(getWatchHandlerQrl(watch));
+const useRunWatch = (watch: SubscriberDescriptor, eagerness: EagernessOptions | undefined) => {
+  if (eagerness === 'load') {
+    useOn('qinit', getWatchHandlerQrl(watch));
+  } else if (eagerness === 'visible') {
+    useOn('qvisible', getWatchHandlerQrl(watch));
   }
 };
 
 const getWatchHandlerQrl = (watch: SubscriberDescriptor) => {
   const watchQrl = watch.qrl;
-  const watchHandler = createQrl(
+  const watchHandler = createQRL(
     watchQrl.$chunk$,
     'handleWatch',
     handleWatch,

@@ -1,18 +1,23 @@
 import type { Render } from '@builder.io/qwik/server';
-import type { EndpointResponse } from '../../runtime/src/library/types';
-import { createPageHeaders, getQwikCityUserContext, getStatus } from './utils';
+import type { EndpointResponse, HttpMethod, RouteParams } from '../../runtime/src/library/types';
+import { getQwikCityUserContext } from './utils';
 
 export async function pageHandler(
   render: Render,
   url: URL,
-  endpointResponse: EndpointResponse | null
+  params: RouteParams,
+  method: HttpMethod,
+  endpointResponse: EndpointResponse
 ) {
-  const status = getStatus(endpointResponse?.status, 200, 599, 200);
-  const headers = createPageHeaders(endpointResponse?.headers);
+  const { status, headers } = endpointResponse;
+
+  if (!headers.has('Content-Type')) {
+    headers.set('Content-Type', 'text/html; charset=utf-8');
+  }
 
   const result = await render({
     url: url.href,
-    userContext: getQwikCityUserContext(endpointResponse),
+    userContext: getQwikCityUserContext(url, params, method, endpointResponse),
   });
 
   return new Response(result.html, {

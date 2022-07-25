@@ -6,10 +6,11 @@ export default defineConfig(() => {
   return {
     /* VITE_CONFIG */
     build: {
+      target: 'es2020',
       lib: {
         entry: './src/index.ts',
         formats: ['es', 'cjs'],
-        fileName: (format) => `index.${format}.qwik.js`,
+        fileName: (format) => `index.qwik.${format === 'es' ? 'mjs' : 'cjs'}`,
       },
     },
     plugins: [

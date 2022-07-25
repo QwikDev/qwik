@@ -3,12 +3,11 @@ export interface BuildContext {
   opts: NormalizedPluginOptions;
   routes: BuildRoute[];
   layouts: BuildLayout[];
+  menus: BuildMenu[];
   frontmatter: Map<string, string[]>;
-  menus: ParsedMenu[];
   diagnostics: Diagnostic[];
-  ids: Set<string>;
   target: 'ssr' | 'client';
-  dirty: boolean;
+  isDevServerBuild: boolean;
 }
 
 export interface Diagnostic {
@@ -16,9 +15,16 @@ export interface Diagnostic {
   message: string;
 }
 
-export type BuildRoute = PageRoute | EndpointRoute;
+export interface RouteSourceFile {
+  type: 'page' | 'endpoint' | 'layout' | 'menu';
+  dirPath: string;
+  dirName: string;
+  filePath: string;
+  fileName: string;
+  ext: string;
+}
 
-interface BaseRoute {
+export interface BuildRoute {
   type: 'page' | 'endpoint';
   /**
    * Unique id built from its relative file system path
@@ -34,31 +40,23 @@ interface BaseRoute {
   pathname: string;
   pattern: RegExp;
   paramNames: string[];
-  paramTypes: string[];
-}
-
-export interface PageRoute extends BaseRoute {
-  type: 'page';
-  source: 'markdown' | 'module';
   layouts: BuildLayout[];
 }
 
-export interface EndpointRoute extends BaseRoute {
-  type: 'endpoint';
+export interface ParsedLayoutId {
+  layoutType: 'top' | 'nested';
+  layoutName: string;
 }
 
-export interface BuildLayout {
+export interface BuildLayout extends ParsedLayoutId {
   filePath: string;
-  dir: string;
+  dirPath: string;
   id: string;
-  type: 'top' | 'nested';
-  name: string;
 }
 
-export interface ParsedMenu extends ParsedMenuItem {
+export interface BuildMenu {
   pathname: string;
   filePath: string;
-  id: string;
 }
 
 export interface ParsedMenuItem {

@@ -10,7 +10,7 @@ QRL (Qwik URL) is a particular form of URL that Qwik uses to lazy load content.
 QRLs are:
 
 - Specially formatted URLs that are left as attributes in the HTML to tell Qwik where the handlers for the code should be loaded from.
-- URLs that point to Javascript chunk to be lazy-loaded.
+- URLs that point to JavaScript chunk to be lazy-loaded.
 - Contain symbol name which needs to be retrieved from the chunk
 - May contain lexically scoped object references. (Captured variables from closures.)
 - If relative use `q:base` for resolution.
@@ -110,7 +110,7 @@ Assume: `http://localhost/index.html`
 
 The main thing to note is the `onClickQrl` attribute. This attribute gets read by the Qwikloader when the user clicks on the button.
 
-1. HTML is loaded in the browser, and Qwikloader registers global `click` listener. No other Javascript is loaded/executed at this point.
+1. HTML is loaded in the browser, and Qwikloader registers global `click` listener. No other JavaScript is loaded/executed at this point.
 2. User clicks on the `<button>`. This fires a `click` event which bubbles up and is handled by the Qwikloader.
 3. Qwikloader retraces the event bubble path and looks for `onClickQrl` attribute, which it finds on `<button>`.
 4. Qwikloader now tries to load the corresponding chunk. To do that, the Qwikloader needs to resolve the relative path of `./chunk-c.js`. It uses these values to build an absolute path starting at `<button>` and walking towards the document.

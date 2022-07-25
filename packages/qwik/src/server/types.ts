@@ -78,6 +78,15 @@ export { SnapshotResult };
 /**
  * @public
  */
+export interface QwikLoaderOptions {
+  events?: string[];
+  include?: 'always' | 'never' | 'auto';
+  position?: 'top' | 'bottom';
+}
+
+/**
+ * @public
+ */
 export interface RenderToStringOptions extends SerializeDocumentOptions {
   /**
    * Defaults to `true`
@@ -93,7 +102,7 @@ export interface RenderToStringOptions extends SerializeDocumentOptions {
   /**
    * Specifies if the Qwik Loader script is added to the document or not. Defaults to `{ include: true }`.
    */
-  qwikLoader?: { events?: string[]; include?: boolean | 'top' | 'bottom' };
+  qwikLoader?: QwikLoaderOptions;
 
   prefetchStrategy?: PrefetchStrategy | null;
   /**

@@ -28,7 +28,7 @@ function createPlatform(
           const hash = getSymbolHash(symbolName);
           const result = mapper[hash];
           if (!result) {
-            logError('Cannot resolved symbol', symbolName, 'in', mapper);
+            logError('Cannot resolve symbol', symbolName, 'in', mapper);
           }
           return result;
         }

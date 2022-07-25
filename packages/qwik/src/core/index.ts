@@ -38,17 +38,18 @@ export type { CorePlatform } from './platform/types';
 export type {
   Tracker,
   WatchFn,
-  MountFn as ServerFn,
+  MountFn,
   UseEffectOptions,
-  UseEffectRunOptions,
-  Resource,
+  EagernessOptions,
+  ResourceReturn,
   ResourceCtx,
   ResourcePending,
   ResourceRejected,
   ResourceResolved,
 } from './use/use-watch';
 export { useWatch$, useWatchQrl } from './use/use-watch';
-export { useResource$, useResourceQrl, Async } from './use/use-resource';
+export type { ResourceProps } from './use/use-resource';
+export { useResource$, useResourceQrl, Resource } from './use/use-resource';
 export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
 export { useServerMount$, useServerMountQrl } from './use/use-watch';
 export { useMount$, useMountQrl } from './use/use-watch';
@@ -74,21 +75,11 @@ export { handleWatch } from './render/notify-render';
 export { useHostElement } from './use/use-host-element.public';
 export { useDocument } from './use/use-document.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
-export { useStore, useRef, useSequentialScope } from './use/use-store.public';
+export { useStore, useRef } from './use/use-store.public';
 export { useContext, useContextProvider, createContext } from './use/use-context';
-export { useWaitOn } from './use/use-core';
-export { useServerContext as useUserContext } from './use/use-server-context';
-
+export { useServerContext } from './use/use-server-context';
 export { useStylesQrl, useStyles$, useScopedStylesQrl, useScopedStyles$ } from './use/use-styles';
-export {
-  useCleanupQrl,
-  useCleanup$,
-  useResumeQrl,
-  useResume$,
-  useOn,
-  useOnDocument,
-  useOnWindow,
-} from './use/use-on';
+export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
 export type { Context } from './use/use-context';
 export type { Ref } from './use/use-store.public';
 

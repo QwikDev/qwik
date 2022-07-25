@@ -58,11 +58,11 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         // modify the response, but do not end()
         // the qwik vite plugin will handle dev page rendering
         nodeRes.statusCode = response.statusCode;
-        for (const [key, value] of Object.entries(response.headers)) {
+        response.headers.forEach((value, key) => {
           if (value) {
             nodeRes.setHeader(key, value);
           }
-        }
+        });
 
         (nodeRes as QwikViteDevResponse)._qwikUserCtx = {
           ...(nodeRes as QwikViteDevResponse)._qwikUserCtx,

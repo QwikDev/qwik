@@ -146,20 +146,26 @@ export interface QwikProps extends PreventDefault {
   'q:container'?: '';
 }
 
-/**
- * @public
- */
-export type NativeEventHandler<T = Event> =
-  | ((ev: T, element: Element) => any)
-  | ((ev: T, element: Element) => any)[];
+// Allows for Event Handlers to by typed as QwikEventMap[Key] or Event
+// https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
+export type BivariantEventHandler<T extends Event> = {
+  bivarianceHack(event: T, element: Element): any
+}['bivarianceHack']
 
 /**
  * @public
  */
-export type QrlEvent<Type = Event> = QRL<NativeEventHandler<Type>>;
+export type NativeEventHandler<T extends Event = Event> =
+  | BivariantEventHandler<T>
+  | BivariantEventHandler<T>[];
+
+/**
+ * @public
+ */
+export type QrlEvent<Type extends Event = Event> = QRL<NativeEventHandler<Type>>;
 
 export interface QwikCustomEvents {
-  [key: `${'document:' | 'window:' | ''}on${string}$`]: NativeEventHandler<any> | undefined;
+  [key: `${'document:' | 'window:' | ''}on${string}$`]: NativeEventHandler<Event> | undefined;
 }
 export type QwikKnownEvents = {
   [K in keyof QwikEventMap as `${'document:' | 'window:' | ''}on${K}$`]?: NativeEventHandler<
@@ -170,13 +176,13 @@ export type QwikKnownEvents = {
  * @public
  */
 export interface QwikEvents extends QwikKnownEvents, QwikCustomEvents {
-  'document:onLoad$'?: (event: Event, el: Element) => any;
+  'document:onLoad$'?: BivariantEventHandler<Event>;
 
-  'document:onScroll$'?: (event: Event, el: Element) => any;
+  'document:onScroll$'?: BivariantEventHandler<Event>;
 
-  'document:onVisible$'?: (event: Event, el: Element) => any;
+  'document:onVisible$'?: BivariantEventHandler<Event>;
 
-  'document:onVisibilityChange$'?: (event: Event, el: Element) => any;
+  'document:onVisibilityChange$'?: BivariantEventHandler<Event>;
 }
 
 interface CSSProperties {
@@ -189,8 +195,8 @@ interface CSSProperties {
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
 
 export interface ComponentCustomEvents {
-  [key: `${'host'}on:${string}$`]: NativeEventHandler<any>;
-  [key: `${'window' | 'document'}:on${string}$`]: NativeEventHandler<any> | undefined;
+  [key: `${'host'}on:${string}$`]: NativeEventHandler<Event>;
+  [key: `${'window' | 'document'}:on${string}$`]: NativeEventHandler<Event> | undefined;
 }
 export type ComponentKnownEvents = {
   [K in keyof QwikEventMap as `${'host' | 'window' | 'document'}:on${K}$`]?: NativeEventHandler<

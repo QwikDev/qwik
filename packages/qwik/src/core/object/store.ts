@@ -633,6 +633,7 @@ const reviveValues = (
 ) => {
   for (let i = 0; i < objs.length; i++) {
     const value = objs[i];
+    const sub = subs[i];
     if (isString(value)) {
       if (value === UNDEFINED_PREFIX) {
         objs[i] = undefined;
@@ -643,30 +644,28 @@ const reviveValues = (
       } else if (value.startsWith(RESOURCE_PREFIX)) {
         objs[i] = parseResourceReturn(value.slice(1));
       }
-    } else {
-      const sub = subs[i];
-      if (sub) {
-        const converted = new Map();
-        let flags = 0;
-        Object.entries(sub).forEach((entry) => {
-          if (entry[0] === '$') {
-            flags = entry[1] as number;
-            return;
-          }
-          const el = getObject(entry[0]);
-          if (!el) {
-            logWarn(
-              'QWIK can not revive subscriptions because of missing element ID',
-              entry,
-              value
-            );
-            return;
-          }
-          const set = entry[1] === null ? null : (new Set(entry[1] as any) as Set<string>);
-          converted.set(el, set);
-        });
-        createProxy(value, containerState, flags, converted);
-      }
+    }
+    if (sub) {
+      const converted = new Map();
+      let flags = 0;
+      Object.entries(sub).forEach((entry) => {
+        if (entry[0] === '$') {
+          flags = entry[1] as number;
+          return;
+        }
+        const el = getObject(entry[0]);
+        if (!el) {
+          logWarn(
+            'QWIK can not revive subscriptions because of missing element ID',
+            entry,
+            objs[i]
+          );
+          return;
+        }
+        const set = entry[1] === null ? null : (new Set(entry[1] as any) as Set<string>);
+        converted.set(el, set);
+      });
+      createProxy(objs[i], containerState, flags, converted);
     }
   }
 };

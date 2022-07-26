@@ -11,6 +11,7 @@ import {
   WatchFlagsIsDirty,
   WatchFlagsIsResource,
   ResourceReturnInternal,
+  Watch,
 } from './use-watch';
 import { assertDefined } from '../assert/assert';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
@@ -70,14 +71,13 @@ export const useResourceQrl = <T>(
   const containerState = ctx.$renderCtx$.$containerState$;
   const resource = createResourceReturn<T>(containerState, opts);
   const el = ctx.$hostElement$;
-  const watch: ResourceDescriptor<T> = {
-    __brand: 'watch',
-    $qrl$: qrl,
-    $el$: el,
-    $flags$: WatchFlagsIsDirty | WatchFlagsIsResource,
-    $index$: i,
-    r: resource,
-  };
+  const watch = new Watch(
+    WatchFlagsIsDirty | WatchFlagsIsResource,
+    i,
+    el,
+    qrl,
+    resource
+  ) as ResourceDescriptor<any>;
   const previousWait = Promise.all(ctx.$waitOn$.slice());
   runResource(watch, containerState, previousWait);
   getContext(el).$watches$.push(watch);

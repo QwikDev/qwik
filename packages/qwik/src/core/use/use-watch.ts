@@ -101,13 +101,13 @@ export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
 /**
  * @alpha
  */
-export interface DescriptorBase<T = any> {
-  __brand: 'watch';
+export interface DescriptorBase<T = any, B = undefined> {
   $qrl$: QRLInternal<T>;
   $el$: Element;
   $flags$: number;
   $index$: number;
   $destroy$?: NoSerialize<() => void>;
+  $resource$: B;
 }
 
 /**
@@ -118,9 +118,7 @@ export type WatchDescriptor = DescriptorBase<WatchFn>;
 /**
  * @alpha
  */
-export interface ResourceDescriptor<T> extends DescriptorBase<ResourceFn<T>> {
-  r: ResourceReturn<T>;
-}
+export interface ResourceDescriptor<T> extends DescriptorBase<ResourceFn<T>, ResourceReturn<T>> {}
 
 /**
  * @alpha
@@ -211,13 +209,7 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void =>
     assertQrl(qrl);
     const el = ctx.$hostElement$;
     const containerState = ctx.$renderCtx$.$containerState$;
-    const watch: WatchDescriptor = {
-      __brand: 'watch',
-      $qrl$: qrl,
-      $el$: el,
-      $flags$: WatchFlagsIsDirty | WatchFlagsIsWatch,
-      $index$: i,
-    };
+    const watch = new Watch(WatchFlagsIsDirty | WatchFlagsIsWatch, i, el, qrl, undefined);
     set(true);
     getContext(el).$watches$.push(watch);
     const previousWait = ctx.$waitOn$.slice();
@@ -325,13 +317,7 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
   if (!get) {
     assertQrl(qrl);
     const el = ctx.$hostElement$;
-    const watch: WatchDescriptor = {
-      __brand: 'watch',
-      $qrl$: qrl,
-      $el$: el,
-      $flags$: WatchFlagsIsEffect,
-      $index$: i,
-    };
+    const watch = new Watch(WatchFlagsIsEffect, i, el, qrl, undefined);
     set(true);
     getContext(el).$watches$.push(watch);
     useRunWatch(watch, opts?.eagerness ?? 'visible');
@@ -573,7 +559,7 @@ const createResourceFromPromise = <T>(
 export const useMount$ = /*#__PURE__*/ implicit$FirstArg(useMountQrl);
 
 export const isResourceWatch = (watch: SubscriberDescriptor): watch is ResourceDescriptor<any> => {
-  return 'r' in watch;
+  return !!watch.$resource$;
 };
 
 export const runSubscriber = async (
@@ -605,7 +591,7 @@ export const runResource = <T>(
   });
 
   const cleanups: (() => void)[] = [];
-  const resource = watch.r;
+  const resource = watch.$resource$;
   assertDefined(
     resource,
     'useResource: when running a resource, "watch.r" must be a defined.',
@@ -831,27 +817,30 @@ export const isWatchCleanup = (obj: any): obj is WatchDescriptor => {
 };
 
 export const isSubscriberDescriptor = (obj: any): obj is SubscriberDescriptor => {
-  return isObject(obj) && obj.__brand === 'watch';
+  return isObject(obj) && obj instanceof Watch;
 };
 
 export const serializeWatch = (watch: SubscriberDescriptor, getObjId: GetObjID) => {
   let value = `${intToStr(watch.$flags$)} ${intToStr(watch.$index$)} ${getObjId(
     watch.$qrl$
   )} ${getObjId(watch.$el$)}`;
-  if ('r' in watch) {
-    value += ` ${getObjId(watch.r)}`;
+  if (isResourceWatch(watch)) {
+    value += ` ${getObjId(watch.$resource$)}`;
   }
   return value;
 };
 
 export const parseWatch = (data: string) => {
   const [flags, index, qrl, el, resource] = data.split(' ');
-  return {
-    __brand: 'watch',
-    flags: strToInt(flags),
-    index: strToInt(index),
-    $el$: el,
-    $qrl$: qrl,
-    r: resource,
-  };
+  return new Watch(strToInt(flags), strToInt(index), el as any, qrl as any, resource as any);
 };
+
+export class Watch implements DescriptorBase<any, any> {
+  constructor(
+    public $flags$: number,
+    public $index$: number,
+    public $el$: Element,
+    public $qrl$: QRLInternal<any>,
+    public $resource$: ResourceReturn<any> | undefined
+  ) {}
+}

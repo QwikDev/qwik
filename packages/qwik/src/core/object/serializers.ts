@@ -81,15 +81,14 @@ const ResourceSerializer: Serializer<ResourceReturn<any>> = {
 const WatchSerializer: Serializer<SubscriberDescriptor> = {
   prefix: WATCH_PREFIX,
   predicate: (v) => isSubscriberDescriptor(v),
-  serialize: (obj, getObjId) => {
-    return serializeWatch(obj, getObjId);
-  },
-  prepare: (data) => {
-    return parseWatch(data) as any;
-  },
+  serialize: (obj, getObjId) => serializeWatch(obj, getObjId),
+  prepare: (data) => parseWatch(data) as any,
   fill: (watch, getObject) => {
     watch.$el$ = getObject(watch.$el$ as any);
     watch.$qrl$ = getObject(watch.$qrl$ as any);
+    if (watch.$resource$) {
+      watch.$resource$ = getObject(watch.$resource$ as any);
+    }
   },
 };
 

@@ -615,10 +615,13 @@ const reviveValues = (
 ) => {
   for (let i = 0; i < objs.length; i++) {
     const value = objs[i];
-    const sub = subs[i];
     if (isString(value)) {
       objs[i] = parser.prepare(value);
     }
+  }
+  for (let i = 0; i < subs.length; i++) {
+    const value = objs[i];
+    const sub = subs[i];
     if (sub) {
       const converted = new Map();
       let flags = 0;
@@ -632,14 +635,14 @@ const reviveValues = (
           logWarn(
             'QWIK can not revive subscriptions because of missing element ID',
             entry,
-            objs[i]
+            value
           );
           return;
         }
         const set = entry[1] === null ? null : (new Set(entry[1] as any) as Set<string>);
         converted.set(el, set);
       });
-      createProxy(objs[i], containerState, flags, converted);
+      createProxy(value, containerState, flags, converted);
     }
   }
 };

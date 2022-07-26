@@ -35,6 +35,8 @@ import { isElement } from '../util/element';
  * @alpha
  */
 export interface ContainerState {
+  $containerEl$: Element;
+
   $proxyMap$: ObjToProxyMap;
   $subsManager$: SubscriptionManager;
   $platform$: CorePlatform;
@@ -57,6 +59,8 @@ export const getContainerState = (containerEl: Element): ContainerState => {
   let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
   if (!set) {
     (containerEl as any)[CONTAINER_STATE] = set = {
+      $containerEl$: containerEl,
+
       $proxyMap$: new WeakMap(),
       $subsManager$: createSubscriptionManager(),
       $platform$: getPlatform(containerEl),
@@ -146,12 +150,12 @@ const notifyRender = (hostElement: Element): void => {
 };
 
 const notifyWatch = (watch: SubscriberDescriptor) => {
-  if (watch.f & WatchFlagsIsDirty) {
+  if (watch.$flags$ & WatchFlagsIsDirty) {
     return;
   }
-  watch.f |= WatchFlagsIsDirty;
+  watch.$flags$ |= WatchFlagsIsDirty;
 
-  const containerEl = getContainer(watch.el)!;
+  const containerEl = getContainer(watch.$el$)!;
   const state = getContainerState(containerEl);
   const activeRendering = state.$hostsRendering$ !== undefined;
   if (activeRendering) {
@@ -241,11 +245,11 @@ export const postRendering = async (
   ctx: RenderContext
 ) => {
   await executeWatchesAfter(containerState, (watch, stage) => {
-    if ((watch.f & WatchFlagsIsEffect) === 0) {
+    if ((watch.$flags$ & WatchFlagsIsEffect) === 0) {
       return false;
     }
     if (stage) {
-      return ctx.$hostElements$.has(watch.el);
+      return ctx.$hostElements$.has(watch.$el$);
     }
     return true;
   });
@@ -267,16 +271,17 @@ export const postRendering = async (
 const executeWatchesBefore = async (containerState: ContainerState) => {
   const resourcesPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
   const watchPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
-  const isWatch = (watch: SubscriberDescriptor) => (watch.f & WatchFlagsIsWatch) !== 0;
-  const isResourceWatch = (watch: SubscriberDescriptor) => (watch.f & WatchFlagsIsResource) !== 0;
+  const isWatch = (watch: SubscriberDescriptor) => (watch.$flags$ & WatchFlagsIsWatch) !== 0;
+  const isResourceWatch = (watch: SubscriberDescriptor) =>
+    (watch.$flags$ & WatchFlagsIsResource) !== 0;
 
   containerState.$watchNext$.forEach((watch) => {
     if (isWatch(watch)) {
-      watchPromises.push(then(watch.qrl.$resolveLazy$(watch.el), () => watch));
+      watchPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
       containerState.$watchNext$.delete(watch);
     }
     if (isResourceWatch(watch)) {
-      resourcesPromises.push(then(watch.qrl.$resolveLazy$(watch.el), () => watch));
+      resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
       containerState.$watchNext$.delete(watch);
     }
   });
@@ -284,9 +289,9 @@ const executeWatchesBefore = async (containerState: ContainerState) => {
     // Run staging effected
     containerState.$watchStaging$.forEach((watch) => {
       if (isWatch(watch)) {
-        watchPromises.push(then(watch.qrl.$resolveLazy$(watch.el), () => watch));
+        watchPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
       } else if (isResourceWatch(watch)) {
-        resourcesPromises.push(then(watch.qrl.$resolveLazy$(watch.el), () => watch));
+        resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
       } else {
         containerState.$watchNext$.add(watch);
       }
@@ -322,7 +327,7 @@ const executeWatchesAfter = async (
 
   containerState.$watchNext$.forEach((watch) => {
     if (watchPred(watch, false)) {
-      watchPromises.push(then(watch.qrl.$resolveLazy$(watch.el), () => watch));
+      watchPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
       containerState.$watchNext$.delete(watch);
     }
   });
@@ -330,7 +335,7 @@ const executeWatchesAfter = async (
     // Run staging effected
     containerState.$watchStaging$.forEach((watch) => {
       if (watchPred(watch, true)) {
-        watchPromises.push(then(watch.qrl.$resolveLazy$(watch.el), () => watch));
+        watchPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
       } else {
         containerState.$watchNext$.add(watch);
       }
@@ -357,9 +362,9 @@ const sortNodes = (elements: Element[]) => {
 
 const sortWatches = (watches: SubscriberDescriptor[]) => {
   watches.sort((a, b) => {
-    if (a.el === b.el) {
-      return a.i < b.i ? -1 : 1;
+    if (a.$el$ === b.$el$) {
+      return a.$index$ < b.$index$ ? -1 : 1;
     }
-    return (a.el.compareDocumentPosition(b.el) & 2) !== 0 ? 1 : -1;
+    return (a.$el$.compareDocumentPosition(b.$el$) & 2) !== 0 ? 1 : -1;
   });
 };

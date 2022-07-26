@@ -38,10 +38,11 @@ export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
     assertQrl(unmountFn);
     const el = ctx.$hostElement$;
     const watch: WatchDescriptor = {
-      qrl: unmountFn,
-      el,
-      f: WatchFlagsIsCleanup,
-      i,
+      __brand: 'watch',
+      $qrl$: unmountFn,
+      $el$: el,
+      $flags$: WatchFlagsIsCleanup,
+      $index$: i,
     };
     set(true);
     getContext(el).$watches$.push(watch);

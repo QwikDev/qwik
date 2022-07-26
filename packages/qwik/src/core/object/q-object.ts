@@ -423,7 +423,7 @@ export const isConnected = (sub: Subscriber): boolean => {
   if (isElement(sub)) {
     return !!tryGetContext(sub) || sub.isConnected;
   } else {
-    return isConnected(sub.el);
+    return isConnected(sub.$el$);
   }
 };
 

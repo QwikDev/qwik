@@ -20,6 +20,7 @@ import {
 } from '../error/error';
 import { useOn } from './use-on';
 import { createResourceReturn } from './use-resource';
+import { GetObjID, intToStr, strToInt } from '../object/store';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;
@@ -101,11 +102,12 @@ export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
  * @alpha
  */
 export interface DescriptorBase<T = any> {
-  qrl: QRLInternal<T>;
-  el: Element;
-  f: number;
-  i: number;
-  destroy?: NoSerialize<() => void>;
+  __brand: 'watch';
+  $qrl$: QRLInternal<T>;
+  $el$: Element;
+  $flags$: number;
+  $index$: number;
+  $destroy$?: NoSerialize<() => void>;
 }
 
 /**
@@ -124,14 +126,6 @@ export interface ResourceDescriptor<T> extends DescriptorBase<ResourceFn<T>> {
  * @alpha
  */
 export type SubscriberDescriptor = WatchDescriptor | ResourceDescriptor<any>;
-
-export const isSubscriberDescriptor = (obj: any): obj is SubscriberDescriptor => {
-  return isObject(obj) && 'qrl' in obj && 'f' in obj;
-};
-
-export const isWatchCleanup = (obj: any): obj is WatchDescriptor => {
-  return isSubscriberDescriptor(obj) && !!(obj.f & WatchFlagsIsCleanup);
-};
 
 /**
  * @alpha
@@ -218,10 +212,11 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void =>
     const el = ctx.$hostElement$;
     const containerState = ctx.$renderCtx$.$containerState$;
     const watch: WatchDescriptor = {
-      qrl,
-      el,
-      f: WatchFlagsIsDirty | WatchFlagsIsWatch,
-      i,
+      __brand: 'watch',
+      $qrl$: qrl,
+      $el$: el,
+      $flags$: WatchFlagsIsDirty | WatchFlagsIsWatch,
+      $index$: i,
     };
     set(true);
     getContext(el).$watches$.push(watch);
@@ -331,10 +326,11 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
     assertQrl(qrl);
     const el = ctx.$hostElement$;
     const watch: WatchDescriptor = {
-      qrl,
-      el,
-      f: WatchFlagsIsEffect,
-      i,
+      __brand: 'watch',
+      $qrl$: qrl,
+      $el$: el,
+      $flags$: WatchFlagsIsEffect,
+      $index$: i,
     };
     set(true);
     getContext(el).$watches$.push(watch);
@@ -584,7 +580,7 @@ export const runSubscriber = async (
   watch: SubscriberDescriptor,
   containerState: ContainerState
 ) => {
-  assertEqual(!!(watch.f & WatchFlagsIsDirty), true, 'Resource is not dirty', watch);
+  assertEqual(!!(watch.$flags$ & WatchFlagsIsDirty), true, 'Resource is not dirty', watch);
   if (isResourceWatch(watch)) {
     await runResource(watch, containerState);
   } else {
@@ -597,14 +593,14 @@ export const runResource = <T>(
   containerState: ContainerState,
   waitOn?: Promise<any>
 ): ValueOrPromise<void> => {
-  watch.f &= ~WatchFlagsIsDirty;
+  watch.$flags$ &= ~WatchFlagsIsDirty;
   cleanupWatch(watch);
 
-  const el = watch.el;
+  const el = watch.$el$;
   const doc = getDocument(el);
   const invokationContext = newInvokeContext(doc, el, el, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
-  const watchFn = watch.qrl.$invokeFn$(el, invokationContext, () => {
+  const watchFn = watch.$qrl$.$invokeFn$(el, invokationContext, () => {
     subsManager.$clearSub$(watch);
   });
 
@@ -652,7 +648,7 @@ export const runResource = <T>(
     });
   });
 
-  watch.destroy = noSerialize(() => {
+  watch.$destroy$ = noSerialize(() => {
     cleanups.forEach((fn) => fn());
     reject('cancelled');
   });
@@ -705,14 +701,14 @@ export const runWatch = (
   watch: WatchDescriptor,
   containerState: ContainerState
 ): ValueOrPromise<void> => {
-  watch.f &= ~WatchFlagsIsDirty;
+  watch.$flags$ &= ~WatchFlagsIsDirty;
 
   cleanupWatch(watch);
-  const el = watch.el;
+  const el = watch.$el$;
   const doc = getDocument(el);
   const invokationContext = newInvokeContext(doc, el, el, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
-  const watchFn = watch.qrl.$invokeFn$(el, invokationContext, () => {
+  const watchFn = watch.$qrl$.$invokeFn$(el, invokationContext, () => {
     subsManager.$clearSub$(watch);
   });
   const track: Tracker = (obj: any, prop?: string) => {
@@ -734,7 +730,7 @@ export const runWatch = (
     () => watchFn(track),
     (returnValue) => {
       if (isFunction(returnValue)) {
-        watch.destroy = noSerialize(returnValue);
+        watch.$destroy$ = noSerialize(returnValue);
       }
     },
     (reason) => {
@@ -744,9 +740,9 @@ export const runWatch = (
 };
 
 export const cleanupWatch = (watch: SubscriberDescriptor) => {
-  const destroy = watch.destroy;
+  const destroy = watch.$destroy$;
   if (destroy) {
-    watch.destroy = undefined;
+    watch.$destroy$ = undefined;
     try {
       destroy();
     } catch (err) {
@@ -756,9 +752,9 @@ export const cleanupWatch = (watch: SubscriberDescriptor) => {
 };
 
 export const destroyWatch = (watch: SubscriberDescriptor) => {
-  if (watch.f & WatchFlagsIsCleanup) {
-    watch.f &= ~WatchFlagsIsCleanup;
-    const cleanup = watch.qrl.$invokeFn$(watch.el);
+  if (watch.$flags$ & WatchFlagsIsCleanup) {
+    watch.$flags$ &= ~WatchFlagsIsCleanup;
+    const cleanup = watch.$qrl$.$invokeFn$(watch.$el$);
     (cleanup as any)();
   } else {
     cleanupWatch(watch);
@@ -817,7 +813,7 @@ const useRunWatch = (watch: SubscriberDescriptor, eagerness: EagernessOptions | 
 };
 
 const getWatchHandlerQrl = (watch: SubscriberDescriptor) => {
-  const watchQrl = watch.qrl;
+  const watchQrl = watch.$qrl$;
   const watchHandler = createQRL(
     watchQrl.$chunk$,
     'handleWatch',
@@ -828,4 +824,34 @@ const getWatchHandlerQrl = (watch: SubscriberDescriptor) => {
     watchQrl.$symbol$
   );
   return watchHandler;
+};
+
+export const isWatchCleanup = (obj: any): obj is WatchDescriptor => {
+  return isSubscriberDescriptor(obj) && !!(obj.$flags$ & WatchFlagsIsCleanup);
+};
+
+export const isSubscriberDescriptor = (obj: any): obj is SubscriberDescriptor => {
+  return isObject(obj) && obj.__brand === 'watch';
+};
+
+export const serializeWatch = (watch: SubscriberDescriptor, getObjId: GetObjID) => {
+  let value = `${intToStr(watch.$flags$)} ${intToStr(watch.$index$)} ${getObjId(
+    watch.$qrl$
+  )} ${getObjId(watch.$el$)}`;
+  if ('r' in watch) {
+    value += ` ${getObjId(watch.r)}`;
+  }
+  return value;
+};
+
+export const parseWatch = (data: string) => {
+  const [flags, index, qrl, el, resource] = data.split(' ');
+  return {
+    __brand: 'watch',
+    flags: strToInt(flags),
+    index: strToInt(index),
+    $el$: el,
+    $qrl$: qrl,
+    r: resource,
+  };
 };

@@ -1,5 +1,4 @@
 import { assertDefined, assertTrue } from '../assert/assert';
-import { parseQRL, QRLSerializeOptions, stringifyQRL } from '../import/qrl';
 import { assertQrl, isQrl } from '../import/qrl-class';
 import { getContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
@@ -31,15 +30,11 @@ import { isArray, isObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
 import type { Subscriber } from '../use/use-subscriber';
-import { isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
+import { isResourceReturn } from '../use/use-resource';
+import { createParser, Parser, serializeValue } from './serializers';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
-
-export const UNDEFINED_PREFIX = '\u0010';
-export const QRL_PREFIX = '\u0011';
-export const DOCUMENT_PREFIX = '\u0012';
-export const RESOURCE_PREFIX = '\u0013';
 
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -102,12 +97,14 @@ export const resumeContainer = (containerEl: Element) => {
     elements.set(ELEMENT_ID_PREFIX + id, el);
   });
 
+  const parser = createParser(getObject, containerState);
+
   // Revive proxies with subscriptions into the proxymap
-  reviveValues(meta.objs, meta.subs, getObject, containerState, parentJSON);
+  reviveValues(meta.objs, meta.subs, getObject, containerState, parser);
 
   // Rebuild target objects
   for (const obj of meta.objs) {
-    reviveNestedObjects(obj, getObject);
+    reviveNestedObjects(obj, getObject, parser);
   }
 
   Object.entries(meta.ctx).forEach(([elementID, ctxMeta]) => {
@@ -411,31 +408,16 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     })
     .filter(isNotNullable);
 
-  const qrlSerializeOptions: QRLSerializeOptions = {
-    $platform$: containerState.$platform$,
-    $getObjId$: getObjId,
-  };
-
   // Serialize objects
   const convertedObjs = objs.map((obj) => {
+    const value = serializeValue(obj, getObjId, containerState);
+    if (value !== undefined) {
+      return value;
+    }
     switch (typeof obj) {
-      case 'undefined':
-        return UNDEFINED_PREFIX;
-
-      case 'function':
-        if (isQrl(obj)) {
-          return QRL_PREFIX + stringifyQRL(obj, qrlSerializeOptions);
-        }
-        break;
       case 'object':
         if (obj === null) {
           return null;
-        }
-        if (obj === doc) {
-          return DOCUMENT_PREFIX;
-        }
-        if (isResourceReturn(obj)) {
-          return RESOURCE_PREFIX + serializeResource(obj, getObjId);
         }
         if (isArray(obj)) {
           return obj.map(mustGetObjId);
@@ -543,7 +525,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
   const pendingContent: Promise<string>[] = [];
   for (const watch of collector.$watches$) {
     if (qDev) {
-      if (watch.f & WatchFlagsIsDirty) {
+      if (watch.$flags$ & WatchFlagsIsDirty) {
         logWarn('Serializing dirty watch. Looks like an internal error.');
       }
       if (!isConnected(watch)) {
@@ -629,21 +611,13 @@ const reviveValues = (
   subs: any[],
   getObject: GetObject,
   containerState: ContainerState,
-  containerEl: Element
+  parser: Parser
 ) => {
   for (let i = 0; i < objs.length; i++) {
     const value = objs[i];
     const sub = subs[i];
     if (isString(value)) {
-      if (value === UNDEFINED_PREFIX) {
-        objs[i] = undefined;
-      } else if (value === DOCUMENT_PREFIX) {
-        objs[i] = getDocument(containerEl);
-      } else if (value.startsWith(QRL_PREFIX)) {
-        objs[i] = parseQRL(value.slice(1), containerEl);
-      } else if (value.startsWith(RESOURCE_PREFIX)) {
-        objs[i] = parseResourceReturn(value.slice(1));
-      }
+      objs[i] = parser.prepare(value);
     }
     if (sub) {
       const converted = new Map();
@@ -670,29 +644,19 @@ const reviveValues = (
   }
 };
 
-const reviveNestedObjects = (obj: any, getObject: GetObject) => {
-  if (isQrl(obj)) {
-    if (obj.$capture$ && obj.$capture$.length > 0) {
-      obj.$captureRef$ = obj.$capture$.map(getObject);
-      obj.$capture$ = null;
-    }
+const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => {
+  if (parser.fill(obj)) {
     return;
   }
+
   if (obj && typeof obj == 'object') {
-    if (isResourceReturn(obj)) {
-      if (obj.state === 'resolved') {
-        obj.resolved = getObject(obj.resolved);
-        obj.promise = Promise.resolve(obj.resolved);
-      }
-      return;
-    }
     if (isArray(obj)) {
       for (let i = 0; i < obj.length; i++) {
         const value = obj[i];
         if (typeof value == 'string') {
           obj[i] = getObject(value);
         } else {
-          reviveNestedObjects(value, getObject);
+          reviveNestedObjects(value, getObject, parser);
         }
       }
     } else if (Object.getPrototypeOf(obj) === Object.prototype) {
@@ -702,7 +666,7 @@ const reviveNestedObjects = (obj: any, getObject: GetObject) => {
           if (typeof value == 'string') {
             obj[key] = getObject(value);
           } else {
-            reviveNestedObjects(value, getObject);
+            reviveNestedObjects(value, getObject, parser);
           }
         }
       }
@@ -889,7 +853,7 @@ const collectValue = async (obj: any, collector: Collector, leaks: boolean) => {
       if (!target && isNode(obj)) {
         if (obj.nodeType === 9) {
           assertTrue(obj === collector.$doc$, 'Document reference is not from the same page', obj);
-          collector.$objMap$.set(obj, DOCUMENT_PREFIX);
+          collector.$objMap$.set(obj, obj);
         } else if (obj.nodeType !== 1) {
           throw qError(QError_verifySerializable, obj);
         }

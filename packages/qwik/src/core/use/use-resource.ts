@@ -46,23 +46,6 @@ export const createResourceReturn = <T>(
   return resource;
 };
 
-export const parseResourceReturn = <T>(data: string): ResourceReturn<T> => {
-  const [first, id] = data.split(' ');
-  const result = _createResourceReturn<T>(undefined);
-  result.promise = Promise.resolve() as any;
-  if (first === '0') {
-    result.state = 'resolved';
-    result.resolved = id as any;
-  } else if (first === '1') {
-    result.state = 'pending';
-    result.promise = new Promise(() => {});
-  } else if (first === '2') {
-    result.state = 'rejected';
-    result.promise = Promise.reject();
-  }
-  return result;
-};
-
 /**
  * @alpha
  */
@@ -88,10 +71,11 @@ export const useResourceQrl = <T>(
   const resource = createResourceReturn<T>(containerState, opts);
   const el = ctx.$hostElement$;
   const watch: ResourceDescriptor<T> = {
-    qrl,
-    el,
-    f: WatchFlagsIsDirty | WatchFlagsIsResource,
-    i,
+    __brand: 'watch',
+    $qrl$: qrl,
+    $el$: el,
+    $flags$: WatchFlagsIsDirty | WatchFlagsIsResource,
+    $index$: i,
     r: resource,
   };
   const previousWait = Promise.all(ctx.$waitOn$.slice());
@@ -102,20 +86,6 @@ export const useResourceQrl = <T>(
   return resource;
 };
 
-export const isResourceReturn = (obj: any): obj is ResourceReturn<any> => {
-  return isObject(obj) && obj.__brand === 'resource';
-};
-
-export const serializeResource = (resource: ResourceReturn<any>, getObjId: GetObjID) => {
-  const state = resource.state;
-  if (state === 'resolved') {
-    return `0 ${getObjId(resource.resolved)}`;
-  } else if (state === 'pending') {
-    return `1`;
-  } else {
-    return `2`;
-  }
-};
 /**
  * @alpha
  */
@@ -183,4 +153,36 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
   return jsx(Fragment, {
     children: promise,
   });
+};
+
+export const isResourceReturn = (obj: any): obj is ResourceReturn<any> => {
+  return isObject(obj) && obj.__brand === 'resource';
+};
+
+export const serializeResource = (resource: ResourceReturn<any>, getObjId: GetObjID) => {
+  const state = resource.state;
+  if (state === 'resolved') {
+    return `0 ${getObjId(resource.resolved)}`;
+  } else if (state === 'pending') {
+    return `1`;
+  } else {
+    return `2`;
+  }
+};
+
+export const parseResourceReturn = <T>(data: string): ResourceReturn<T> => {
+  const [first, id] = data.split(' ');
+  const result = _createResourceReturn<T>(undefined);
+  result.promise = Promise.resolve() as any;
+  if (first === '0') {
+    result.state = 'resolved';
+    result.resolved = id as any;
+  } else if (first === '1') {
+    result.state = 'pending';
+    result.promise = new Promise(() => {});
+  } else if (first === '2') {
+    result.state = 'rejected';
+    result.promise = Promise.reject();
+  }
+  return result;
 };

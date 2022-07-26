@@ -321,6 +321,15 @@ function _isTypeCapturable(
     if (symbolName === 'Promise') {
       return;
     }
+    if (symbolName === 'URL') {
+      return;
+    }
+    if (symbolName === 'RegExp') {
+      return;
+    }
+    if (symbolName === 'Date') {
+      return;
+    }
     if (type.isClass()) {
       return {
         type,

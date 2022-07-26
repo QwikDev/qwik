@@ -17,7 +17,7 @@ import { tryGetContext } from '../props/props';
 import { RenderEvent } from '../util/markers';
 import { isArray, isFunction, isObject } from '../util/types';
 import { isPromise } from '../util/promises';
-import { isSubscriberDescriptor } from '../use/use-watch';
+import { canSerialize } from './serializers';
 
 export type ObjToProxyMap = WeakMap<any, any>;
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
@@ -300,14 +300,11 @@ const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
       return value;
     }
     seen.add(unwrapped);
-    if (isQrl(unwrapped)) {
+    if (canSerialize(unwrapped)) {
       return value;
     }
     switch (typeof unwrapped) {
       case 'object':
-        if (isSubscriberDescriptor(unwrapped)) {
-          return value;
-        }
         if (isArray(unwrapped)) {
           for (const item of unwrapped) {
             _verifySerializable(item, seen);

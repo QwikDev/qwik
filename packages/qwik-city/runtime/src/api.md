@@ -154,6 +154,8 @@ export interface RouteLocation {
     readonly params: RouteParams;
     // (undocumented)
     readonly pathname: string;
+    // (undocumented)
+    readonly query: Record<string, string>;
 }
 
 // Warning: (ae-forgotten-export) The symbol "ContentState" needs to be exported by the entry point index.d.ts

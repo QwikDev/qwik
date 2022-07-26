@@ -5,7 +5,7 @@ import Root from './root';
 /**
  * Qwik server-side render function.
  */
-export function render(opts: RenderOptions) {
+export default function (opts: RenderOptions) {
   return renderToString(<Root />, {
     manifest,
     qwikLoader: {

@@ -305,8 +305,12 @@ export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null | (() => J
 // @alpha
 export const pauseContainer: (elmOrDoc: Element | Document, defaultParentJSON?: Element) => Promise<SnapshotResult>;
 
-// Warning: (ae-forgotten-export) The symbol "PropFnInterface" needs to be exported by the entry point index.d.ts
-//
+// @public (undocumented)
+export interface PropFnInterface<ARGS extends any[], RET> {
+    // (undocumented)
+    (...args: ARGS): Promise<RET>;
+}
+
 // @public (undocumented)
 export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;
 

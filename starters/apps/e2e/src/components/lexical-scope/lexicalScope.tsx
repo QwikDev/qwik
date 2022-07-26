@@ -34,6 +34,9 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   const h = false;
   const i = noSerialize(() => console.error());
   const f = [1, 2, 'hola', i, {}];
+  const url = new URL('http://qwik.builder.com/docs?query=true');
+  const date = new Date('2022-07-26T17:40:30.255Z');
+  const regex = /hola()\//gi;
 
   const onclick = $(async () => {
     promise.then((promiseValue) => {
@@ -49,6 +52,9 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
         i,
         props.message,
         promiseValue,
+        url.href,
+        date.toISOString(),
+        `${regex.source} ${regex.flags}`,
       ]);
       state.count++;
     });

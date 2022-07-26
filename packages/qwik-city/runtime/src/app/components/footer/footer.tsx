@@ -21,6 +21,11 @@ export default component$(
             <a href="/sign-in">Sign In</a>
           </li>
           <li>
+            <a href="/mit" data-test-link="mit">
+              MIT
+            </a>
+          </li>
+          <li>
             <a class="footer-home" href="/">
               Home
             </a>

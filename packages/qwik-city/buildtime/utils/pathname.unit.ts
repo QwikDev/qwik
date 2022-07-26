@@ -5,71 +5,88 @@ import { suite } from './test-suite';
 
 const test = suite();
 
-test('pathname from index.tsx', ({ opts }) => {
-  const filePath = join(opts.routesDir, 'index.tsx');
-  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+test('layoutStop pathname from index!.tsx', ({ opts }) => {
+  const filePath = join(opts.routesDir, 'index!.tsx');
+  const { pathname, layoutName, layoutStop } = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(pathname, '/');
   assert.is(layoutName, '');
+  assert.is(layoutStop, true);
+});
+
+test('pathname from index.tsx', ({ opts }) => {
+  const filePath = join(opts.routesDir, 'index.tsx');
+  const { pathname, layoutName, layoutStop } = utils.getPathnameFromFilePath(opts, filePath);
+  assert.is(pathname, '/');
+  assert.is(layoutName, '');
+  assert.is(layoutStop, false);
 });
 
 test('pathname from index@layout.tsx', ({ opts }) => {
   const filePath = join(opts.routesDir, 'index@layout.tsx');
-  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  const { pathname, layoutName, layoutStop } = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(pathname, '/');
   assert.is(layoutName, 'layout');
+  assert.is(layoutStop, false);
 });
 
 test('pathname from index.mdx', ({ opts }) => {
   const filePath = join(opts.routesDir, 'index.mdx');
-  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  const { pathname, layoutName, layoutStop } = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(pathname, '/');
   assert.is(layoutName, '');
+  assert.is(layoutStop, false);
 });
 
 test('pathname from index@layout.mdx', ({ opts }) => {
   const filePath = join(opts.routesDir, 'index@layout.mdx');
-  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  const { pathname, layoutName, layoutStop } = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(pathname, '/');
   assert.is(layoutName, 'layout');
+  assert.is(layoutStop, false);
 });
 
 test('pathname from index.mdx, trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, 'index.mdx');
-  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  const { pathname, layoutName, layoutStop } = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(pathname, '/');
+  assert.is(layoutStop, false);
   assert.is(layoutName, '');
 });
 
 test('pathname from index@layout.mdx, trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, 'index@layout.mdx');
-  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  const { pathname, layoutName, layoutStop } = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(pathname, '/');
   assert.is(layoutName, 'layout');
+  assert.is(layoutStop, false);
 });
 
 test('pathname from index.tsx, trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, 'index.tsx');
-  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  const { pathname, layoutName, layoutStop } = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(pathname, '/');
   assert.is(layoutName, '');
+  assert.is(layoutStop, false);
 });
 
 test('pathname from index@layout.tsx, trailingSlash', ({ opts }) => {
   opts.trailingSlash = true;
   const filePath = join(opts.routesDir, 'index@layout.tsx');
-  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  const { pathname, layoutName, layoutStop } = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(pathname, '/');
   assert.is(layoutName, 'layout');
+  assert.is(layoutStop, false);
 });
 
 test('pathname from index.md', ({ opts }) => {
   const filePath = join(opts.routesDir, 'index.md');
-  const { pathname, layoutName } = utils.getPathnameFromFilePath(opts, filePath);
+  const { pathname, layoutName, layoutStop } = utils.getPathnameFromFilePath(opts, filePath);
   assert.is(pathname, '/');
   assert.is(layoutName, '');
+  assert.is(layoutStop, false);
 });
 
 test('index in subdirectory, trailingSlash', ({ opts }) => {

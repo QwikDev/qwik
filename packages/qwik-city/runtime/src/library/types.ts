@@ -211,46 +211,44 @@ export interface LoadedContent extends LoadedRoute {
   pageModule: PageModule;
 }
 
+export interface RequestContext {
+  formData(): Promise<FormData>;
+  headers: Headers;
+  json(): Promise<any>;
+  method: string;
+  text(): Promise<string>;
+  url: string;
+}
+
 export interface ResponseContext {
   /**
-   * Set method for the HTTP response status code.
+   * HTTP response status code.
    *
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
    */
-  status: (statusCode: number) => void;
+  status: number;
 
   /**
-   * Used to set HTTP response headers.
+   * HTTP response headers.
    *
    * https://developer.mozilla.org/en-US/docs/Glossary/Response_header
    */
-  headers: Headers;
+  readonly headers: Headers;
 
   /**
    * URL to redirect to. Defaults to use the `307` response status code,
-   * but can be overridden by setting the `statusCode` argument.
+   * but can be overridden by setting the `status` argument.
    *
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
    */
-  redirect: (url: string, statusCode?: number) => void;
-
-  /**
-   * Read-only value of the HTTP status code.
-   * Please use the `status()` method to set the response status code.
-   */
-  readonly statusCode: number;
-
-  /**
-   * Read-only value if the response was already aborted.
-   */
-  readonly aborted: boolean;
+  readonly redirect: (url: string, status?: number) => void;
 }
 
 /**
  * @public
  */
 export interface RequestEvent {
-  request: Request;
+  request: RequestContext;
   response: ResponseContext;
   url: URL;
 
@@ -276,17 +274,11 @@ export type EndpointHandler<BODY = unknown> = (
 export interface EndpointResponse {
   body: any;
   status: number;
-  headers: Headers;
-  hasEndpointHandler: boolean;
-  immediateCommitToNetwork: boolean;
 }
 
 export interface QwikCityRenderDocument extends RenderDocument {}
 
 export interface QwikCityUserContext {
   route: MutableRouteLocation;
-  request: {
-    method: HttpMethod;
-  };
   response: EndpointResponse;
 }

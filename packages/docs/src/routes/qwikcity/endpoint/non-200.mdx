@@ -45,7 +45,7 @@ export const onGet: EndpointHandler<EndpointData> = async ({ params }) => {
 };
 
 export default component$(() => {
-  const resource = useEndpoint<EndpointData>();
+  const resource = useEndpoint<typeof onGet>(); //equivalent to useEndpoint<EndpointData>
   // Early return for 404
   if (resource.state=='resolved' && !resource.resolved) {
     return <div>404: Product not found!!!</div>

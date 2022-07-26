@@ -18,7 +18,7 @@ export interface EventPluginContext {
 }
 
 // @public (undocumented)
-export function qwikCity(render: Render, opts: QwikCityPlanCloudflarePages): ({ request, next, waitUntil }: EventPluginContext) => Promise<Response>;
+export function qwikCity(render: Render, opts: QwikCityPlanCloudflarePages): ({ request, next }: EventPluginContext) => Promise<Response>;
 
 // @public (undocumented)
 export interface QwikCityPlanCloudflarePages extends QwikCityPlan {

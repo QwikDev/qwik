@@ -6,7 +6,7 @@ export default component$(() => {
   const { params, pathname } = useLocation();
   const store = useStore({ productFetchData: '' });
 
-  const resource = useEndpoint<EndpointData>();
+  const resource = useEndpoint<typeof onGet>();
 
   return (
     <Host>
@@ -104,7 +104,7 @@ export const onGet: EndpointHandler<EndpointData> = async ({ params, response })
   if (!productPrice) {
     // Product data not found
     // but the data is still given to the renderer to decide what to do
-    response.status(404);
+    response.status = 404;
     return null;
   }
 

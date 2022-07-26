@@ -1,4 +1,4 @@
-import { OnRenderProp, QHostAttr, QSlot } from '../util/markers';
+import { ELEMENT_ID, OnRenderProp, QHostAttr, QSlot } from '../util/markers';
 import {
   cleanupContext,
   ComponentCtx,
@@ -325,6 +325,8 @@ export const patchVnode = (
   if (isComponent) {
     if (!dirty && !ctx.$renderQrl$ && !ctx.$element$.hasAttribute(QHostAttr)) {
       setAttribute(rctx, ctx.$element$, QHostAttr, '');
+      setAttribute(rctx, ctx.$element$, ELEMENT_ID, getNextIndex(rctx));
+
       ctx.$renderQrl$ = props![OnRenderProp];
       assertQrl(ctx.$renderQrl$ as any);
       dirty = true;
@@ -556,6 +558,11 @@ const createElm = (
     }
   }
 
+  const hasRef = props && 'ref' in props;
+  if (isComponent || ctx.$listeners$ || hasRef) {
+    directSetAttribute(ctx.$element$, ELEMENT_ID, getNextIndex(rctx));
+  }
+
   let wait: ValueOrPromise<void>;
   if (isComponent) {
     // Run mount hook
@@ -601,6 +608,10 @@ interface SlotMaps {
   slots: Record<string, Element | undefined>;
   templates: Record<string, Element | undefined>;
 }
+
+const getNextIndex = (ctx: RenderContext) => {
+  return intToStr(ctx.$containerState$.$elementIndex$++);
+};
 
 const getSlots = (componentCtx: ComponentCtx | undefined, hostElm: Element): SlotMaps => {
   if (hostElm.localName === 'html') {

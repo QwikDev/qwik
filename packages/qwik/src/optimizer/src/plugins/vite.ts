@@ -7,7 +7,7 @@ import type {
   QwikManifest,
   TransformModule,
 } from '../types';
-import type { Render, RenderOptions } from '../../../server';
+import type { Render, RenderToStreamOptions } from '../../../server';
 import {
   createPlugin,
   NormalizedQwikPluginOptions,
@@ -448,6 +448,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               res.setHeader('Access-Control-Allow-Origin', '*');
               res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
               res.writeHead(status);
+
               res.end(html);
               return;
             }
@@ -496,9 +497,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
               qwikPlugin.log(`handleSSR()`, 'symbols', manifest);
 
-              const renderToStringOpts: RenderOptions = {
+              const renderOpts: RenderToStreamOptions = {
                 url: url.href,
                 debug: true,
+                stream: res,
                 snapshot: !isClientDevOnly,
                 manifest: isClientDevOnly ? undefined : manifest,
                 symbolMapper: isClientDevOnly
@@ -513,16 +515,19 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                 userContext,
               };
 
-              const result = await render(renderToStringOpts);
-
-              const html = await server.transformIndexHtml(pathname, result.html, req.originalUrl);
-
               res.setHeader('Content-Type', 'text/html; charset=utf-8');
               res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0');
               res.setHeader('Access-Control-Allow-Origin', '*');
               res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
               res.writeHead(status);
-              res.end(html);
+
+              const result = await render(renderOpts);
+              // const html = await server.transformIndexHtml(pathname, result.html, req.originalUrl);
+              if ('html' in result) {
+                res.end((result as any).html);
+              } else {
+                res.end();
+              }
             } else {
               next();
             }

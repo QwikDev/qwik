@@ -18,24 +18,25 @@ export const QRL_PREFIX = '\u0011';
 export const DOCUMENT_PREFIX = '\u0012';
 export const RESOURCE_PREFIX = '\u0013';
 export const WATCH_PREFIX = '\u0014';
+export const URL_PREFIX = '\u0015';
 
 export interface Serializer<T> {
   prefix: string;
-  predicate: (obj: any) => boolean;
-  prepare: (data: string, containerState: ContainerState) => T;
+  test: (obj: any) => boolean;
   serialize?: (obj: T, getObjID: GetObjID, containerState: ContainerState) => string;
+  prepare: (data: string, containerState: ContainerState) => T;
   fill?: (obj: T, getObject: GetObject, containerState: ContainerState) => void;
 }
 
 const UndefinedSerializer: Serializer<undefined> = {
   prefix: UNDEFINED_PREFIX,
-  predicate: (obj) => obj === undefined,
+  test: (obj) => obj === undefined,
   prepare: () => undefined,
 };
 
 const QRLSerializer: Serializer<QRLInternal> = {
   prefix: QRL_PREFIX,
-  predicate: (v) => isQrl(v),
+  test: (v) => isQrl(v),
   serialize: (obj, getObjId, containerState) => {
     return stringifyQRL(obj, {
       $platform$: containerState.$platform$,
@@ -55,7 +56,7 @@ const QRLSerializer: Serializer<QRLInternal> = {
 
 const DocumentSerializer: Serializer<Document> = {
   prefix: DOCUMENT_PREFIX,
-  predicate: (v) => isDocument(v),
+  test: (v) => isDocument(v),
   prepare: (_, containerState) => {
     return getDocument(containerState.$containerEl$);
   },
@@ -63,7 +64,7 @@ const DocumentSerializer: Serializer<Document> = {
 
 const ResourceSerializer: Serializer<ResourceReturn<any>> = {
   prefix: RESOURCE_PREFIX,
-  predicate: (v) => isResourceReturn(v),
+  test: (v) => isResourceReturn(v),
   serialize: (obj, getObjId) => {
     return serializeResource(obj, getObjId);
   },
@@ -80,7 +81,7 @@ const ResourceSerializer: Serializer<ResourceReturn<any>> = {
 
 const WatchSerializer: Serializer<SubscriberDescriptor> = {
   prefix: WATCH_PREFIX,
-  predicate: (v) => isSubscriberDescriptor(v),
+  test: (v) => isSubscriberDescriptor(v),
   serialize: (obj, getObjId) => serializeWatch(obj, getObjId),
   prepare: (data) => parseWatch(data) as any,
   fill: (watch, getObject) => {
@@ -102,7 +103,7 @@ const serializers: Serializer<any>[] = [
 
 export const serializeValue = (obj: any, getObjID: GetObjID, containerState: ContainerState) => {
   for (const s of serializers) {
-    if (s.predicate(obj)) {
+    if (s.test(obj)) {
       let value = s.prefix;
       if (s.serialize) {
         value += s.serialize(obj, getObjID, containerState);

@@ -1,5 +1,5 @@
 import type { FunctionComponent } from '@builder.io/qwik';
-import { renderToStream, RenderOptions } from '@builder.io/qwik/server';
+import { renderToStream, RenderToStreamOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
 import { SlotParent } from './components/slot/slot';
@@ -24,7 +24,7 @@ import { TreeshakingApp } from './components/treeshaking/treeshaking';
  *
  * @returns a promise when all of the rendering is completed.
  */
-export default function (opts: RenderOptions) {
+export default function (opts: RenderToStreamOptions) {
   const url = typeof opts.url === 'string' ? new URL(opts.url) : opts.url!;
 
   const tests: Record<string, FunctionComponent> = {

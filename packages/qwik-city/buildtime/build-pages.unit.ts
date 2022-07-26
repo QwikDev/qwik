@@ -4,6 +4,15 @@ import { testAppSuite } from './utils/test-suite';
 
 const test = testAppSuite('Build Pages');
 
+test('layoutStop file', ({ assertPage }) => {
+  const r = assertPage('/mit');
+  assert.equal(r.id, 'Mit');
+  assert.equal(r.type, 'page');
+  assert.equal(r.pattern, /^\/mit\/?$/);
+  assert.equal(r.paramNames.length, 0);
+  assert.equal(r.layouts.length, 0);
+});
+
 test('pathless directory', ({ assertPage }) => {
   const r = assertPage('/sign-in');
   assert.equal(r.id, 'AuthSignin');

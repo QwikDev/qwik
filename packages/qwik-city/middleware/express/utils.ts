@@ -3,7 +3,7 @@ import type { ServerResponse } from 'http';
 import type { ServerRequestEvent } from '../request-handler/types';
 
 export function fromNodeHttp(url: URL, nodeReq: NodeRequest, nodeRes: ServerResponse) {
-  const requestHeaders = new HeadersPolyfill();
+  const requestHeaders = new (typeof Headers === 'function' ? Headers : HeadersPolyfill)();
   const nodeRequestHeaders = nodeReq.headers;
   if (nodeRequestHeaders) {
     for (const key in nodeRequestHeaders) {

@@ -632,11 +632,7 @@ const reviveValues = (
         }
         const el = getObject(entry[0]);
         if (!el) {
-          logWarn(
-            'QWIK can not revive subscriptions because of missing element ID',
-            entry,
-            value
-          );
+          logWarn('QWIK can not revive subscriptions because of missing element ID', entry, value);
           return;
         }
         const set = entry[1] === null ? null : (new Set(entry[1] as any) as Set<string>);

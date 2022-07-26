@@ -7,6 +7,14 @@ import { createBuildContext } from '../utils/context';
 import { normalizePath } from '../utils/fs';
 import { getSourceFile, resolveSourceFiles, validateSourceFiles } from './source-file';
 
+test(`layoutStop pathname`, async () => {
+  const ctx = await getFsDirTest('/src/routes/dirname', 'file!.tsx');
+  assert.equal(ctx.diagnostics.length, 0);
+  assert.equal(ctx.routes.length, 1);
+  assert.equal(ctx.routes[0].id, 'DirnameFile');
+  assert.equal(ctx.routes[0].pathname, '/dirname/file');
+});
+
 test(`error dirname@layoutname dir`, async () => {
   const ctx = await getFsDirTest('/src/routes/dirname@layoutname', 'file.tsx');
   assert.equal(ctx.diagnostics.length, 1);

@@ -1,5 +1,5 @@
 import type { FunctionComponent } from '@builder.io/qwik';
-import { renderToString, RenderOptions } from '@builder.io/qwik/server';
+import { renderToStream, RenderOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
 import { SlotParent } from './components/slot/slot';
@@ -51,7 +51,7 @@ export default function (opts: RenderOptions) {
 
   // Render segment instead
   if (url.searchParams.has('fragment')) {
-    return renderToString(
+    return renderToStream(
       <>
         <Test />
       </>,
@@ -67,7 +67,7 @@ export default function (opts: RenderOptions) {
     );
   }
 
-  return renderToString(
+  return renderToStream(
     <html>
       <head>
         <meta charSet="utf-8" />

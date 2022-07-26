@@ -65,6 +65,7 @@ export async function renderToStream(
   }
 
   const containerEl = getElement(root);
+  const buildBase = getBuildBase(opts);
   const mapper = computeSymbolMapper(opts.manifest);
   await setServerPlatform(doc, opts, mapper);
 
@@ -77,14 +78,13 @@ export async function renderToStream(
 
   // Serialize
   directSetAttribute(containerEl, QContainerAttr, 'paused');
+  directSetAttribute(containerEl, 'q:base', buildBase);
   const [before, after] = serializeDocument(doc, opts);
   directSetAttribute(containerEl, QContainerAttr, 'resumed');
   write(before);
   const renderDocTime = renderDocTimer();
 
   const restDiv = doc.createElement('div');
-  const buildBase = getBuildBase(opts);
-  containerEl.setAttribute('q:base', buildBase);
 
   let snapshotResult: SnapshotResult | null = null;
   const snapshotTimer = createTimer();

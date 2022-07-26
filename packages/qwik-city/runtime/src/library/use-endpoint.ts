@@ -8,10 +8,10 @@ type GetEndpointData<T> = T extends EndpointHandler<infer U> ? U : T;
 /**
  * @public
  */
-export const useEndpoint = <T = unknown, _R = GetEndpointData<T>>() => {
+export const useEndpoint = <T = unknown>() => {
   const loc = useLocation();
   const ctx = useQwikCityContext();
-  return useResource$<_R>(async ({ track, cleanup }) => {
+  return useResource$<GetEndpointData<T>>(async ({ track, cleanup }) => {
     const pathname = track(loc, 'pathname');
 
     if (isServer) {

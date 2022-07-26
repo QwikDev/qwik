@@ -32,9 +32,12 @@ export default defineConfig(() => {
       tutorialData(replAppsDir),
       replServiceWorker(),
     ],
-    optimizeDeps: {
-      include: ['@builder.io/qwik'],
-    },
     clearScreen: false,
+    optimizeDeps: {
+      force: true,
+    },
+    server: {
+      port: 3000,
+    },
   };
 });

@@ -5,7 +5,7 @@ import { Header } from '../../components/header/header';
 import exampleSections, { ExampleApp } from '@examples-data';
 import type { ReplAppInput } from '../../repl/types';
 
-const Examples = component$((props: ExamplesProps) => {
+export default component$((props: ExamplesProps) => {
   useScopedStyles$(styles);
 
   const store = useStore<ExamplesStore>(() => {
@@ -132,5 +132,3 @@ interface ExamplesStore extends ReplAppInput {
 }
 
 type ActivePanel = 'Examples' | 'Input' | 'Output' | 'Console';
-
-export default Examples;

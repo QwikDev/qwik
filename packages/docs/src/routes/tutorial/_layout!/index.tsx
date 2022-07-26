@@ -17,7 +17,7 @@ import { Header } from '../../../components/header/header';
 import type { ReplAppInput, ReplModuleInput } from '../../../repl/types';
 import { EditIcon } from '../../../components/svgs/edit-icon';
 
-const Tutorial = component$(() => {
+export default component$(() => {
   useScopedStyles$(styles);
   useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
 
@@ -161,5 +161,3 @@ export interface TutorialStore extends ReplAppInput {
   prev: TutorialApp | undefined;
   next: TutorialApp | undefined;
 }
-
-export default Tutorial;

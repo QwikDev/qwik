@@ -13,7 +13,7 @@ import playgroundApp from '@playground-data';
 import type { ReplAppInput } from '../../repl/types';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/repl-share-url';
 
-const Playground = component$(() => {
+export default component$(() => {
   useScopedStyles$(styles);
 
   const store = useStore<PlaygroundStore>(() => {
@@ -114,5 +114,3 @@ export interface PlaygroundStore extends ReplAppInput {
   colLeft: number;
   shareUrlTmr: any;
 }
-
-export default Playground;

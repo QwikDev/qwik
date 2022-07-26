@@ -127,6 +127,8 @@ export interface OptimizerSystem {
     os: string;
     // (undocumented)
     path: Path;
+    // (undocumented)
+    strictDynamicImport: (path: string) => Promise<any>;
 }
 
 // @alpha (undocumented)
@@ -325,6 +327,8 @@ export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 
 //
 // @alpha (undocumented)
 export interface TransformFsOptions extends TransformOptions {
+    // (undocumented)
+    vendorRoots: string[];
 }
 
 // @alpha (undocumented)

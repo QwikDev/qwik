@@ -1,98 +1,32 @@
-import { logError } from '../util/log';
+import { logErrorAndStop } from '../util/log';
 import { qDev } from '../util/qdev';
 
-export function assertDefined(value: any, text?: string) {
+export function assertDefined<T>(
+  value: T,
+  text: string,
+  ...parts: any[]
+): asserts value is NonNullable<T> {
   if (qDev) {
     if (value != null) return;
-    throw newError(text || 'Expected defined value');
+    throw logErrorAndStop(text, ...parts);
   }
 }
 
-export function assertNotPromise(value: any, text?: string) {
-  if (qDev) {
-    if (!(value instanceof Promise)) return;
-    throw newError(text || 'Expected defined value.');
-  }
-}
-
-export function assertDefinedAndNotPromise(value: any, text?: string) {
-  if (qDev) {
-    assertDefined(value, text);
-    assertNotPromise(value, text);
-  }
-}
-
-export function assertInstanceOf(value: any, type: any, text?: string) {
-  if (qDev) {
-    if (value instanceof type) return;
-    throw newError(
-      text || `Expected value '${value}' to be instance of '${type}' but was '${typeOf(value)}'.`
-    );
-  }
-}
-
-export function assertString(value: any, text?: string) {
-  if (qDev) {
-    if (typeof value === 'string') return;
-    throw newError(text || `Expected value '${value}' to be 'string' but was '${typeOf(value)}'.`);
-  }
-}
-
-export function assertNotEqual(value1: any, value2: any, text?: string) {
-  if (qDev) {
-    if (value1 !== value2) return;
-    throw newError(text || `Expected '${value1}' !== '${value2}'.`);
-  }
-}
-
-export function assertEqual(value1: any, value2: any, text?: string) {
+export function assertEqual(
+  value1: any,
+  value2: any,
+  text: string,
+  ...parts: any[]
+): asserts value1 is typeof value2 {
   if (qDev) {
     if (value1 === value2) return;
-    throw newError(text || `Expected '${value1}' === '${value2}'.`);
+    throw logErrorAndStop(text, ...parts);
   }
 }
 
-export function assertLessOrEqual(value1: any, value2: any, text?: string) {
+export function assertTrue(value1: any, text: string, ...parts: any[]): asserts value1 is true {
   if (qDev) {
-    if (value1 <= value2) return;
-    throw newError(text || `Expected '${value1}' <= '${value2}'.`);
+    if (value1 === true) return;
+    throw logErrorAndStop(text, ...parts);
   }
-}
-
-export function assertLess(value1: any, value2: any, text?: string) {
-  if (qDev) {
-    if (value1 < value2) return;
-    throw newError(text || `Expected '${value1}' < '${value2}'.`);
-  }
-}
-
-export function assertGreaterOrEqual(value1: any, value2: any, text?: string) {
-  if (qDev) {
-    if (value1 >= value2) return;
-    throw newError(text || `Expected '${value1}' >= '${value2}'.`);
-  }
-}
-
-export function assertGreater(value1: any, value2: any, text?: string) {
-  if (qDev) {
-    if (value1 > value2) return;
-    throw newError(text || `Expected '${value1}' > '${value2}'.`);
-  }
-}
-
-function typeOf(value: any) {
-  if (value === null) return 'null';
-  const type = typeof value;
-  if (type === 'object') {
-    return value?.constructor?.name || '<unknown>';
-  } else {
-    return type;
-  }
-}
-
-function newError(text: string) {
-  debugger; // eslint-disable-line no-debugger
-  const error = new Error(text);
-  logError(error); // eslint-disable-line no-console
-  return error;
 }

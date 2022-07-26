@@ -1,5 +1,6 @@
 import type { SnapshotResult } from '../core/object/store';
 import type { QwikManifest, QwikBundle, QwikSymbol, GlobalInjections } from '../optimizer/src';
+import type { SymbolMapperFn } from '../optimizer/src/types';
 
 /**
  * Partial Document used by Qwik Framework.
@@ -14,6 +15,7 @@ export interface QwikDocument extends Document {}
  */
 export interface SerializeDocumentOptions {
   manifest?: QwikManifest;
+  symbolMapper?: SymbolMapperFn;
   url?: URL | string;
   html?: string;
   debug?: boolean;
@@ -60,13 +62,25 @@ export { QwikManifest, QwikBundle, QwikSymbol, GlobalInjections };
 /**
  * @public
  */
-export interface RenderToStringResult {
+export interface RenderToStreamResult extends RenderResult {}
+
+/**
+ * @public
+ */
+export interface RenderToStringResult extends RenderResult {
+  html: string;
+}
+
+/**
+ * @public
+ */
+export interface RenderResult {
   prefetchResources: PrefetchResource[];
   snapshotResult: SnapshotResult | null;
-  html: string;
   timing: {
     createDocument: number;
     render: number;
+    snapshot: number;
     toString: number;
   };
 }
@@ -76,7 +90,16 @@ export { SnapshotResult };
 /**
  * @public
  */
-export interface RenderToStringOptions extends SerializeDocumentOptions {
+export interface QwikLoaderOptions {
+  events?: string[];
+  include?: 'always' | 'never' | 'auto';
+  position?: 'top' | 'bottom';
+}
+
+/**
+ * @public
+ */
+export interface RenderOptions extends SerializeDocumentOptions {
   /**
    * Defaults to `true`
    */
@@ -91,17 +114,53 @@ export interface RenderToStringOptions extends SerializeDocumentOptions {
   /**
    * Specifies if the Qwik Loader script is added to the document or not. Defaults to `{ include: true }`.
    */
-  qwikLoader?: { events?: string[]; include?: boolean | 'body' | 'head' };
+  qwikLoader?: QwikLoaderOptions;
 
   prefetchStrategy?: PrefetchStrategy | null;
+
   /**
    * When set, the app is serialized into a fragment. And the returned html is not a complete document.
    * Defaults to `undefined`
    */
   fragmentTagName?: string;
+
+  userContext?: Record<string, any>;
 }
 
 /**
  * @public
  */
+export interface RenderToStringOptions extends RenderOptions {}
+
+/**
+ * @public
+ */
+export interface RenderToStreamOptions extends RenderOptions {
+  stream: StreamWriter;
+}
+
+/**
+ * @public
+ */
+export type StreamWriter = { write: (chunk: string) => void };
+
+/**
+ * @public
+ */
 export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
+
+/**
+ * @public
+ */
+export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
+
+/**
+ * @public
+ */
+export type Render = RenderToString | RenderToStream;
+
+export interface RenderDocument extends Document {}
+
+export interface RenderDocumentUserContext {
+  _qwikUserCtx?: Record<string, any>;
+}

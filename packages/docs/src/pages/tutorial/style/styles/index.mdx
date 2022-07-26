@@ -1,0 +1,38 @@
+---
+title: Styling
+layout: tutorial
+---
+
+Styling is an important part of the design of a web application. Qwik is responsible for loading the style information when a component is mounted.  Use `useStyles$()` to tell Qwik which style should be loaded.
+
+## Why not inline styles?
+
+A naive way to ensure that a component has the correct styles loaded is to inline the style information into a component like so.
+
+```typescript
+export const MyComponent = () => {
+  return (
+    <>
+    <style>.my-class { color: red; }</style>
+      My Component
+    </>
+  );
+}
+```
+
+The problem with this approach is that we will load styles twice. 
+1. The styles are inserted into the HTML as part of the SSR.
+2. Then when the component is invalidated and needs to be re-rendered, the styles are loaded again because they are inlined.
+
+What is needed is to load the styles independently from the component. This is what `useStyles$()` is for. There are two scenarios:
+1. The component is rendered on the server and the styles are inserted into `<head>` as part of the SSR.
+   - Adding a new instance of a component to the application does not require that we load the styles as they are already included as part of SSR.
+2. The component is rendered on the client for the first time. In that case, the new component does not have styles in the `<head>` as the component was not part of SSR.
+   - Adding a new component that was not part of SSR requires that styles are loaded and inserted into `<head>`.
+
+
+  ## Example
+  
+  This example contains two components:
+  1. `<Sibling>`: The `<Sibling>` component is pre-rendered on the server. Because it is pre-rendered, it has styles in the `<head>` as it was part of SSR. Adding additional `<Sibling>` components does not require any styles to be loaded.
+  2. `<Child>`: The `<Child>` component can be added by clicking the `toggle` button. Because it was not part of the SSR pre-rendered, it does not have styles in the `<head>`. Toggling `<Child>` requires that styles are loaded.

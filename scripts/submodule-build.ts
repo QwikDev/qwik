@@ -5,7 +5,6 @@ import { writePackageJson } from './package-json';
 
 export async function submoduleBuild(config: BuildConfig) {
   const submodule = 'build';
-  const buildSrcDir = join(config.tscDir, 'packages', 'qwik', 'src', submodule);
   const buildSrcDtsDir = join(config.dtsDir, 'packages', 'qwik', 'src', submodule);
   const buildDestDir = join(config.distPkgDir, submodule);
 
@@ -36,7 +35,7 @@ export async function submoduleBuild(config: BuildConfig) {
 
   await Promise.all([esm, cjs]);
 
-  console.log('🐮', submodule);
+  console.log('🐨', submodule);
 
   await copyFile(join(buildSrcDtsDir, 'index.d.ts'), join(buildDestDir, 'index.d.ts'));
 

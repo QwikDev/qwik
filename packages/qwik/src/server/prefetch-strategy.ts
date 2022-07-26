@@ -12,10 +12,10 @@ import type { SymbolMapper } from '../optimizer/src/types';
 export function getPrefetchResources(
   snapshotResult: SnapshotResult | null,
   opts: RenderToStringOptions,
-  mapper: SymbolMapper
+  mapper: SymbolMapper | undefined
 ): PrefetchResource[] {
   const manifest = getValidManifest(opts.manifest);
-  if (manifest) {
+  if (manifest && mapper) {
     const prefetchStrategy = opts.prefetchStrategy;
     const buildBase = getBuildBase(opts);
 
@@ -64,7 +64,7 @@ function getAutoPrefetch(
     // manifest already prioritized the symbols at build time
     for (const prioritizedSymbolName in mapper) {
       const hasSymbol = listeners.some((l) => {
-        return l.qrl.getCanonicalSymbol() === prioritizedSymbolName;
+        return l.qrl.getHash() === prioritizedSymbolName;
       });
 
       if (hasSymbol) {
@@ -76,9 +76,11 @@ function getAutoPrefetch(
   if (Array.isArray(stateObjs)) {
     for (const obj of stateObjs) {
       if (isQrl(obj)) {
-        const qrlSymbolName = obj.getCanonicalSymbol();
-        // TODO, imporove symbol to bundle lookup
-        addBundle(manifest, urls, prefetchResources, buildBase, mapper[qrlSymbolName][0]);
+        const qrlSymbolName = obj.getHash();
+        const resolvedSymbol = mapper[qrlSymbolName];
+        if (resolvedSymbol) {
+          addBundle(manifest, urls, prefetchResources, buildBase, resolvedSymbol[0]);
+        }
       }
     }
   }

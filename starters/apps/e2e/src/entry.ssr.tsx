@@ -1,5 +1,5 @@
 import type { FunctionComponent } from '@builder.io/qwik';
-import { renderToString, RenderToStringOptions } from '@builder.io/qwik/server';
+import { renderToStream, RenderToStreamOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
 import { SlotParent } from './components/slot/slot';
@@ -12,13 +12,19 @@ import { Factory } from './components/factory/factory';
 import { Watch } from './components/watch/watch';
 import { EffectClient } from './components/effect-client/effect-client';
 import { ContextRoot } from './components/context/context';
+import { Toggle } from './components/toggle/toggle';
+import { Styles } from './components/styles/styles';
+import { BroadcastEvents } from './components/broadcast-events/broadcast-event';
+import { Weather } from './components/resource/weather';
+import { ResourceApp } from './components/resource/resource';
+import { TreeshakingApp } from './components/treeshaking/treeshaking';
 
 /**
  * Entry point for server-side pre-rendering.
  *
  * @returns a promise when all of the rendering is completed.
  */
-export function render(opts: RenderToStringOptions) {
+export default function (opts: RenderToStreamOptions) {
   const url = typeof opts.url === 'string' ? new URL(opts.url) : opts.url!;
 
   const tests: Record<string, FunctionComponent> = {
@@ -34,20 +40,26 @@ export function render(opts: RenderToStringOptions) {
     '/e2e/watch': () => <Watch />,
     '/e2e/effect-client': () => <EffectClient />,
     '/e2e/context': () => <ContextRoot />,
+    '/e2e/toggle': () => <Toggle />,
+    '/e2e/styles': () => <Styles />,
+    '/e2e/broadcast-events': () => <BroadcastEvents />,
+    '/e2e/weather': () => <Weather />,
+    '/e2e/resource': () => <ResourceApp />,
+    '/e2e/treeshaking': () => <TreeshakingApp />,
   };
   const Test = tests[url.pathname];
 
   // Render segment instead
   if (url.searchParams.has('fragment')) {
-    return renderToString(
+    return renderToStream(
       <>
         <Test />
       </>,
       {
         debug: true,
-        fragmentTagName: 'div',
+        fragmentTagName: 'container',
         qwikLoader: {
-          include: url.searchParams.get('loader') !== 'false',
+          include: url.searchParams.get('loader') === 'false' ? 'never' : 'auto',
           events: ['click'],
         },
         ...opts,
@@ -55,7 +67,7 @@ export function render(opts: RenderToStringOptions) {
     );
   }
 
-  return renderToString(
+  return renderToStream(
     <html>
       <head>
         <meta charSet="utf-8" />
@@ -65,6 +77,6 @@ export function render(opts: RenderToStringOptions) {
         <Test />
       </body>
     </html>,
-    { debug: true, qwikLoader: { include: true, events: ['click'] }, ...opts }
+    { debug: true, ...opts }
   );
 }

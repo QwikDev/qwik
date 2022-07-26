@@ -4,9 +4,15 @@
   <img alt="Qwik Logo" width="400" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F667ab6c2283d4c4d878fb9083aacc10f" />
 </p>
 
+<a href="https://youtu.be/0dC11DMR3fU?t=154">
+  <img width="1229" alt="WWC22 - Qwik + Partytown: How to remove 99% of JavaScript from main thread" src=".github/assets/Qwik-video-thumbnail.png">
+</a>
+
 # The HTML-first framework
 
-Qwik is designed for the fastest possible page load time, by delivering pure HTML with near 0 javascript for your pages to become interactive, regardless of how complex your site or app is. It achieves this via [resumability](https://github.com/BuilderIO/qwik/blob/main/packages/docs/pages/docs/concepts/resumable.mdx) of HTML and [ultra fine-grained lazy-loading](https://github.com/BuilderIO/qwik/blob/main/packages/docs/pages/docs/concepts/progressive.mdx) of code.
+Qwik offers the fastest possible page load times - regardless of the complexity of your website. Qwik is so fast because it allows fully interactive sites to load with almost no JavaScript and [pickup from where the server left off](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/pages/docs/concepts/resumable.mdx).
+
+As users interact with the site, only the necesary parts of the site load on-demand. This [precision lazy-loading](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/pages/docs/concepts/progressive.mdx) is what makes Qwik so quick.
 
 ## Getting Started
 
@@ -16,8 +22,12 @@ Try out our starter:
 npm init qwik@latest
 ```
 
-- Understand the difference between [resumable and replayable](https://github.com/BuilderIO/qwik/blob/main/packages/docs/pages/docs/concepts/resumable.mdx) applications.
-- Learn about Qwik's high level [mental model](https://github.com/BuilderIO/qwik/blob/main/packages/docs/pages/docs/think-qwik.mdx).
+- Understand the difference between [resumable and replayable](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/pages/docs/concepts/resumable.mdx) applications.
+- Learn about Qwik's high level [mental model](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/pages/docs/think-qwik.mdx).
+
+## Docs
+
+- [Official Docs](https://qwik.builder.io/)
 
 ## Blog Posts
 
@@ -33,8 +43,13 @@ npm init qwik@latest
 ## Community
 
 - Ping us at [@QwikDev](https://twitter.com/QwikDev)
-- Join our [Discord](https://qwik.builder.io/chat) community.
-- Join our [weekly office hours](https://calendar.google.com/calendar/u/0?cid=Y180ZG91YjR2NTZ1cW43YmgzbW1oZGJ2M3R2c0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t)
+- Join our [Discord](https://qwik.builder.io/chat) community
+
+## Related
+
+- [Partytown](https://partytown.builder.io/): Relocate resource intensive third-party scripts off of the main thread and into a web worker 🎉.
+- [Mitosis](https://github.com/BuilderIO/mitosis): Write components once, run everywhere. Compiles to Vue, React, Solid, Angular, Svelte, and more.
+- [Builder](https://github.com/BuilderIO/builder): Drag and drop page builder and CMS for React, Vue, Angular, and more.
 
 ---
 

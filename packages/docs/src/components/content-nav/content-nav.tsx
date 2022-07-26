@@ -3,7 +3,7 @@ import { component$, Host, useScopedStyles$ } from '@builder.io/qwik';
 import styles from './content-nav.css?inline';
 
 export const ContentNav = component$(
-  async () => {
+  () => {
     useScopedStyles$(styles);
 
     const page = usePage();

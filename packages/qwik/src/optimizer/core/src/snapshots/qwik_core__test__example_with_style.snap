@@ -18,11 +18,7 @@ export const Foo = component$(() => {
 
 ============================= foo_component_usestyles_pv9tscbihw8.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 export const Foo_component_useStyles_pV9TSCBIhw8 = '.class {}';
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -45,16 +41,13 @@ export { hW as handleWatch };
 */
 ============================= foo_component_htdrsvublie.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = ()=>{
-    useStylesQrl(qwik.qrl(()=>import("./foo_component_usestyles_pv9tscbihw8")
+    useStylesQrl(qrl(()=>import("./foo_component_usestyles_pv9tscbihw8")
     , "Foo_component_useStyles_pV9TSCBIhw8"));
     return <div class="class"/>;
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -77,9 +70,9 @@ export { hW as handleWatch };
 */
 ============================= test.tsx ==
 
-import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./foo_component_htdrsvublie")
+import { qrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie")
 , "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });

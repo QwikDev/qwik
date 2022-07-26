@@ -65,6 +65,16 @@ export interface QwikBundle {
     symbols: string[];
 }
 
+// @public (undocumented)
+export interface QwikLoaderOptions {
+    // (undocumented)
+    events?: string[];
+    // (undocumented)
+    include?: 'always' | 'never' | 'auto';
+    // (undocumented)
+    position?: 'top' | 'bottom';
+}
+
 // @alpha (undocumented)
 export interface QwikManifest {
     // (undocumented)
@@ -118,28 +128,28 @@ export interface QwikSymbol {
     parent: string | null;
 }
 
-// @public
-export function renderToString(rootNode: any, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
+// Warning: (ae-forgotten-export) The symbol "RenderToString" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "RenderToStream" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type Render = RenderToString | RenderToStream;
 
 // @public (undocumented)
-export interface RenderToStringOptions extends SerializeDocumentOptions {
+export interface RenderOptions extends SerializeDocumentOptions {
     base?: string;
     fragmentTagName?: string;
     // Warning: (ae-incompatible-release-tags) The symbol "prefetchStrategy" is marked as @public, but its signature references "PrefetchStrategy" which is marked as @alpha
     //
     // (undocumented)
     prefetchStrategy?: PrefetchStrategy | null;
-    qwikLoader?: {
-        events?: string[];
-        include?: boolean | 'body' | 'head';
-    };
+    qwikLoader?: QwikLoaderOptions;
     snapshot?: boolean;
+    // (undocumented)
+    userContext?: Record<string, any>;
 }
 
 // @public (undocumented)
-export interface RenderToStringResult {
-    // (undocumented)
-    html: string;
+export interface RenderResult {
     // Warning: (ae-incompatible-release-tags) The symbol "prefetchResources" is marked as @public, but its signature references "PrefetchResource" which is marked as @alpha
     //
     // (undocumented)
@@ -150,17 +160,41 @@ export interface RenderToStringResult {
     timing: {
         createDocument: number;
         render: number;
+        snapshot: number;
         toString: number;
     };
 }
 
 // @public
-export function serializeDocument(docOrEl: Document | Element, opts?: SerializeDocumentOptions): string;
+export function renderToStream(rootNode: any, opts: RenderToStreamOptions): Promise<RenderToStreamResult>;
+
+// @public (undocumented)
+export interface RenderToStreamOptions extends RenderOptions {
+    // (undocumented)
+    stream: StreamWriter;
+}
+
+// @public (undocumented)
+export interface RenderToStreamResult extends RenderResult {
+}
+
+// @public
+export function renderToString(rootNode: any, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
+
+// @public (undocumented)
+export interface RenderToStringOptions extends RenderOptions {
+}
+
+// @public (undocumented)
+export interface RenderToStringResult extends RenderResult {
+    // (undocumented)
+    html: string;
+}
 
 // Warning: (ae-forgotten-export) The symbol "SymbolMapper" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function setServerPlatform(document: any, opts: SerializeDocumentOptions, mapper: SymbolMapper): Promise<void>;
+export function setServerPlatform(document: any, opts: SerializeDocumentOptions, mapper: SymbolMapper | undefined): Promise<void>;
 
 // @public (undocumented)
 export interface SnapshotResult {
@@ -169,12 +203,21 @@ export interface SnapshotResult {
     // (undocumented)
     listeners: SnapshotListener[];
     // (undocumented)
+    mode: 'render' | 'listeners' | 'static';
+    // (undocumented)
     objs: any[];
+    // (undocumented)
+    pendingContent: Promise<string>[];
     // Warning: (ae-forgotten-export) The symbol "SnapshotState" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     state: SnapshotState;
 }
+
+// @public (undocumented)
+export type StreamWriter = {
+    write: (chunk: string) => void;
+};
 
 // @public (undocumented)
 export const versions: {

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "introduction",
+    "title": "Introduction",
+    "apps": [
+      {
+        "id": "hello-world",
+        "title": "Hello World",
+        "description": "The simplest Qwik app.",
+        "icon": "🌎"
+      }
+    ]
+  },
+  {
+    "id": "reactivity",
+    "title": "Reactivity",
+    "apps": [
+      {
+        "id": "watch",
+        "title": "Simple useWatch()",
+        "description": "Learn how to react to changes in variables.",
+        "icon": "👀"
+      },
+      {
+        "id": "counter",
+        "title": "Counter",
+        "description": "A simple standard counter example.",
+        "icon": "⏲"
+      },
+      {
+        "id": "auto-complete",
+        "title": "Auto-complete",
+        "description": "Auto-complete searching for Star Wars characters using the SWAPI API",
+        "icon": "🎬"
+      }
+    ]
+  },
+  {
+    "id": "visibility",
+    "title": "Visibility",
+    "apps": [
+      {
+        "id": "clock",
+        "title": "Below the fold Clock",
+        "description": "Component which requires lazy initialization when it comes into view.",
+        "icon": "⏰"
+      }
+    ]
+  },
+  {
+    "id": "partial",
+    "title": "Partial",
+    "apps": [
+      {
+        "id": "hackernews-index",
+        "title": "HackerNews",
+        "description": "HackerNews landing page.",
+        "icon": "📰"
+      }
+    ]
+  }
+]

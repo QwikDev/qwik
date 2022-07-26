@@ -2,12 +2,13 @@ use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::hash::Hasher;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 use std::str;
 
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
 use crate::entry_strategy::EntryPolicy;
+use crate::filter_exports::StripExportsVisitor;
 use crate::jsx_transform::JSXTransform;
 use crate::transform::{HookKind, QwikTransform, QwikTransformOptions};
 
@@ -66,18 +67,20 @@ pub enum JSXMode {
 }
 
 pub struct TransformCodeOptions<'a> {
-    pub path: &'a str,
+    pub relative_path: &'a str,
+    pub src_dir: &'a Path,
     pub source_maps: bool,
     pub minify: MinifyMode,
     pub transpile_ts: bool,
     pub transpile_jsx: JSXMode,
-    pub print_ast: bool,
-    pub explicity_extensions: bool,
+    pub explicit_extensions: bool,
     pub code: &'a str,
     pub entry_policy: &'a dyn EntryPolicy,
     pub dev: bool,
     pub scope: Option<&'a String>,
     pub is_inline: bool,
+
+    pub strip_exports: Option<&'a [JsWord]>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -193,12 +196,9 @@ impl Emitter for ErrorBuffer {
 
 pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, anyhow::Error> {
     let source_map = Lrc::new(SourceMap::default());
-
-    let path_data = parse_path(config.path)?;
+    let path_data = parse_path(config.relative_path, config.src_dir)?;
     let module = parse(config.code, &path_data, Lrc::clone(&source_map));
-    if config.print_ast {
-        dbg!(&module);
-    }
+    // dbg!(&module);
     let transpile = config.transpile_ts;
     let transpile_jsx = config.transpile_jsx;
 
@@ -207,7 +207,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
     } else {
         JsWord::from(path_data.extension.clone())
     };
-    let origin: JsWord = path_data.path.to_slash_lossy().into();
+    let origin: JsWord = path_data.rel_path.to_slash_lossy().into();
 
     match module {
         Ok((main_module, comments, is_type_script, is_jsx)) => {
@@ -225,8 +225,15 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
                     let mut main_module = main_module;
 
+                    if let Some(strip_exports) = config.strip_exports {
+                        let mut visitor = StripExportsVisitor::new(strip_exports);
+                        main_module.visit_mut_with(&mut visitor);
+                    }
+
+                    let mut did_transform = false;
                     // Transpile JSX
                     if transpile && is_type_script {
+                        did_transform = true;
                         main_module = if is_jsx {
                             main_module.fold_with(&mut typescript::strip_with_jsx(
                                 Lrc::clone(&source_map),
@@ -282,7 +289,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     let mut qwik_transform = QwikTransform::new(QwikTransformOptions {
                         path_data: &path_data,
                         entry_policy: config.entry_policy,
-                        explicity_extensions: config.explicity_extensions,
+                        explicit_extensions: config.explicit_extensions,
                         extension: extension.clone(),
                         comments: Some(&comments),
                         global_collect: collect,
@@ -310,16 +317,18 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     for h in hooks.into_iter() {
                         let is_entry = h.entry == None;
                         let hook_path = [&h.canonical_filename, ".", &h.data.extension].concat();
+                        let need_handle_watch =
+                            might_need_handle_watch(&h.data.ctx_kind, &h.data.ctx_name) && is_entry;
 
                         let (mut hook_module, comments) = new_module(NewModuleCtx {
                             expr: h.expr,
                             path: &path_data,
                             name: &h.name,
-                            origin: &h.data.origin,
                             local_idents: &h.data.local_idents,
                             scoped_idents: &h.data.scoped_idents,
+                            need_transform: h.data.need_transform,
                             global: &qwik_transform.options.global_collect,
-                            qwik_ident: &qwik_transform.qwik_ident,
+                            need_handle_watch,
                             is_entry,
                             leading_comments: comments_maps.0.clone(),
                             trailing_comments: comments_maps.1.clone(),
@@ -365,9 +374,15 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         config.source_maps,
                     )?;
 
-                    let path = Path::new(&path_data.dir)
-                        .join([&path_data.file_stem, ".", &extension].concat())
+                    let path = path_data
+                        .rel_dir
+                        .join(if did_transform {
+                            [&path_data.file_stem, ".", &extension].concat()
+                        } else {
+                            path_data.file_name
+                        })
                         .to_slash_lossy();
+
                     let mut hasher = DefaultHasher::new();
                     hasher.write(path.as_bytes());
 
@@ -411,7 +426,7 @@ fn parse(
     source_map: Lrc<SourceMap>,
 ) -> PResult<(ast::Module, SingleThreadedComments, bool, bool)> {
     let source_file =
-        source_map.new_source_file(FileName::Real(path_data.path.clone()), code.into());
+        source_map.new_source_file(FileName::Real(path_data.rel_path.clone()), code.into());
 
     let comments = SingleThreadedComments::default();
     let (is_type_script, is_jsx) = parse_filename(path_data);
@@ -445,8 +460,14 @@ fn parse(
 fn parse_filename(path_data: &PathData) -> (bool, bool) {
     match path_data.extension.as_str() {
         "ts" => (true, false),
+        "mts" => (true, false),
+        "mtsx" => (true, true),
         "js" => (false, false),
+        "mjs" => (false, false),
+        "cjs" => (false, false),
         "jsx" => (false, true),
+        "mjsx" => (false, true),
+        "cjsx" => (false, true),
         _ => (true, true),
     }
 }
@@ -558,15 +579,17 @@ fn handle_error(
 }
 
 pub struct PathData {
-    pub path: PathBuf,
-    pub dir: String,
+    pub rel_path: PathBuf,
+    pub base_dir: PathBuf,
+    pub abs_dir: PathBuf,
+    pub rel_dir: PathBuf,
     pub file_stem: String,
     pub extension: String,
     pub file_name: String,
     pub file_prefix: String,
 }
 
-pub fn parse_path(src: &str) -> Result<PathData, Error> {
+pub fn parse_path(src: &str, base_dir: &Path) -> Result<PathData, Error> {
     let path = Path::new(src);
     let file_stem = path
         .file_stem()
@@ -574,8 +597,8 @@ pub fn parse_path(src: &str) -> Result<PathData, Error> {
         .map(Into::into)
         .with_context(|| format!("Computing file stem for {}", path.to_string_lossy()))?;
 
-    let dir = path.parent().and_then(Path::to_str).unwrap_or("");
-    let extension = path.extension().and_then(OsStr::to_str).unwrap_or("");
+    let rel_dir = path.parent().unwrap().to_path_buf();
+    let extension = path.extension().and_then(OsStr::to_str).unwrap();
     let file_name = path
         .file_name()
         .and_then(OsStr::to_str)
@@ -585,12 +608,44 @@ pub fn parse_path(src: &str) -> Result<PathData, Error> {
         .last()
         .with_context(|| format!("Computing file_prefix for {}", path.to_string_lossy()))?;
 
+    let abs_dir = normalize_path(base_dir.join(path).parent().unwrap());
+
     Ok(PathData {
-        path: path.into(),
-        dir: dir.into(),
-        file_stem,
+        base_dir: base_dir.to_path_buf(),
+        rel_path: path.into(),
+        abs_dir,
+        rel_dir,
         extension: extension.into(),
         file_name: file_name.into(),
         file_prefix: file_prefix.into(),
+        file_stem,
     })
+}
+
+pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
+    let ends_with_slash = path.as_ref().to_str().map_or(false, |s| s.ends_with('/'));
+    let mut normalized = PathBuf::new();
+    for component in path.as_ref().components() {
+        match &component {
+            Component::ParentDir => {
+                if !normalized.pop() {
+                    normalized.push(component);
+                }
+            }
+            _ => {
+                normalized.push(component);
+            }
+        }
+    }
+    if ends_with_slash {
+        normalized.push("");
+    }
+    normalized
+}
+
+pub fn might_need_handle_watch(ctx_kind: &HookKind, ctx_name: &str) -> bool {
+    if matches!(ctx_kind, HookKind::Event) {
+        return false;
+    }
+    matches!(ctx_name, "useWatch$" | "useClientEffect$" | "$")
 }

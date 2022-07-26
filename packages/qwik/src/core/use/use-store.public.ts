@@ -1,24 +1,26 @@
-import { useDocument } from '../use/use-document.public';
-import { getProxyMap, qObject } from '../object/q-object';
-import { getInvokeContext } from './use-core';
-import { useHostElement } from './use-host-element.public';
+import { createProxy, QObjectRecursive, verifySerializable } from '../object/q-object';
+import { RenderInvokeContext, useInvokeContext } from './use-core';
 import { getContext } from '../props/props';
-import { wrapSubscriber } from './use-subscriber';
-import { assertEqual } from '../assert/assert';
-import { RenderEvent } from '../util/markers';
+import { isFunction } from '../util/types';
+import { qDev } from '../util/qdev';
+
+export interface UseStoreOptions {
+  recursive?: boolean;
+  reactive?: boolean;
+}
 
 // <docs markdown="../readme.md#useStore">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useStore instead)
 /**
- * Creates a object that Qwik can track across serializations.
+ * Creates an object that Qwik can track across serializations.
  *
- * Use `useStore` to create state for your application. The return object is a proxy which has a
- * unique ID. The ID of the object is used in the `QRL`s to refer to the store.
+ * Use `useStore` to create a state for your application. The returned object is a proxy that has
+ * a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
  *
  * ## Example
  *
- * Example showing how `useStore` is used in Counter example to keep track of count.
+ * Example showing how `useStore` is used in Counter example to keep track of the count.
  *
  * ```tsx
  * const Stores = component$(() => {
@@ -70,30 +72,40 @@ import { RenderEvent } from '../util/markers';
  * @public
  */
 // </docs>
-export function useStore<STATE extends object>(initialState: STATE | (() => STATE)): STATE {
-  const [store, setStore] = useSequentialScope();
-  const hostElement = useHostElement();
-  if (store != null) {
-    return wrapSubscriber(store, hostElement);
+export const useStore = <STATE extends object>(
+  initialState: STATE | (() => STATE),
+  opts?: UseStoreOptions
+): STATE => {
+  const { get, set, ctx } = useSequentialScope<STATE>();
+  if (get != null) {
+    return get;
   }
-  const value = typeof initialState === 'function' ? (initialState as Function)() : initialState;
-  const newStore = qObject(value, getProxyMap(useDocument()));
-  setStore(newStore);
-  return wrapSubscriber(newStore, hostElement);
-}
+  const value = isFunction(initialState) ? (initialState as Function)() : initialState;
+  if (opts?.reactive === false) {
+    set(value);
+    return value;
+  } else {
+    const containerState = ctx.$renderCtx$.$containerState$;
+    const recursive = opts?.recursive ?? false;
+    const flags = recursive ? QObjectRecursive : 0;
+    const newStore = createProxy(value, containerState, flags, undefined);
+    set(newStore);
+    return newStore;
+  }
+};
 
 /**
  * @alpha
  */
 export interface Ref<T> {
-  current?: T;
+  current: T | undefined;
 }
 
 // <docs markdown="../readme.md#useRef">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useRef instead)
 /**
- * It's a very thin wrapper around `useStore()` including the proper type signature to be passed
+ * It's a very thin wrapper around `useStore()`, including the proper type signature to be passed
  * to the `ref` property in JSX.
  *
  * ```tsx
@@ -125,23 +137,36 @@ export interface Ref<T> {
  * @public
  */
 // </docs>
-export function useRef<T = Element>(current?: T): Ref<T> {
+export const useRef = <T extends Element = Element>(current?: T): Ref<T> => {
   return useStore({ current });
+};
+
+export interface SequentialScope<T> {
+  readonly get: T | undefined;
+  readonly set: (v: T) => T;
+  readonly i: number;
+  readonly ctx: RenderInvokeContext;
 }
 
-export function useSequentialScope(): [any, (prop: any) => void] {
-  const ctx = getInvokeContext();
-  assertEqual(ctx.event, RenderEvent);
-  const index = ctx.seq;
-  const hostElement = useHostElement();
+/**
+ * @alpha
+ */
+export const useSequentialScope = <T>(): SequentialScope<T> => {
+  const ctx = useInvokeContext();
+  const i = ctx.$seq$;
+  const hostElement = ctx.$hostElement$;
   const elementCtx = getContext(hostElement);
-  ctx.seq++;
-  const updateFn = (value: any) => {
-    elementCtx.seq[index] = elementCtx.refMap.add(value);
+  ctx.$seq$++;
+  const set = (value: T) => {
+    if (qDev) {
+      verifySerializable(value);
+    }
+    return (elementCtx.$seq$[i] = value);
   };
-  const seqIndex = elementCtx.seq[index];
-  if (typeof seqIndex === 'number') {
-    return [elementCtx.refMap.get(seqIndex), updateFn];
-  }
-  return [undefined, updateFn];
-}
+  return {
+    get: elementCtx.$seq$[i],
+    set,
+    i,
+    ctx,
+  };
+};

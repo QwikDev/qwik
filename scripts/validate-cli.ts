@@ -10,7 +10,9 @@ import {
 } from 'fs';
 import assert from 'assert';
 import { join } from 'path';
-import { pathToFileURL } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 async function validateCreateQwikCli() {
   console.log(`👾 validating create-qwik...`);
@@ -47,10 +49,9 @@ async function validateCreateQwikCli() {
   assert.ok(starters.features.length > 0);
 
   const tmpDir = join(__dirname, '..', 'dist-dev');
-  await validateStarter(api, tmpDir, 'starter', 'express');
-  await validateStarter(api, tmpDir, 'starter-builder', 'cloudflare-pages');
-  await validateStarter(api, tmpDir, 'starter-partytown', 'express');
-  await validateStarter(api, tmpDir, 'todo', 'cloudflare-pages');
+  await validateStarter(api, tmpDir, 'blank', '', true);
+  await validateStarter(api, tmpDir, 'library', '', false);
+  await validateStarter(api, tmpDir, 'qwik-city', 'express', true);
 
   console.log(`👽 create-qwik validated\n`);
 }
@@ -59,7 +60,8 @@ async function validateStarter(
   api: typeof import('create-qwik'),
   distDir: string,
   appId: string,
-  serverId: string
+  serverId: string,
+  app: boolean
 ) {
   const projectName = `${appId}-${serverId}`;
   const appDir = join(distDir, 'app-' + projectName);
@@ -100,36 +102,52 @@ async function validateStarter(
   console.log(`🌟 ${projectName}: copy @builder.io/qwik distribution`);
   const qwikNodeModule = join(appDir, 'node_modules', '@builder.io', 'qwik');
   rmSync(qwikNodeModule, { force: true, recursive: true });
-
   const distQwik = join(__dirname, '..', 'packages', 'qwik', 'dist');
   cpSync(distQwik, qwikNodeModule);
+
+  console.log(`🌟 ${projectName}: copy eslint-plugin-qwik distribution`);
+  const eslintNodeModule = join(appDir, 'node_modules', 'eslint-plugin-qwik');
+  rmSync(eslintNodeModule, { force: true, recursive: true });
+  const distEslintQwik = join(__dirname, '..', 'packages', 'eslint-plugin-qwik', 'dist');
+  cpSync(distEslintQwik, eslintNodeModule);
 
   console.log(`🌈 ${projectName}: npm run build`);
   await execa('npm', ['run', 'build'], { cwd: appDir, stdout: 'inherit' });
 
+  console.log(`🌈 ${projectName}: npm run lint`);
+  await execa('npm', ['run', 'lint'], { cwd: appDir, stdout: 'inherit' });
+
   accessSync(join(appDir, '.vscode'));
-  accessSync(join(appDir, 'dist', 'favicon.ico'));
-  accessSync(join(appDir, 'dist', 'q-manifest.json'));
-  accessSync(join(appDir, 'dist', 'build'));
+  if (app) {
+    accessSync(join(appDir, 'dist', 'favicon.ico'));
+    accessSync(join(appDir, 'dist', 'q-manifest.json'));
+    accessSync(join(appDir, 'dist', 'build'));
+    const serverDir = join(appDir, 'server');
+    accessSync(serverDir);
+
+    let hasEntryServer = false;
+    const serverOutput = readdirSync(serverDir);
+    for (const serverFileName of serverOutput) {
+      if (serverFileName.startsWith('entry.')) {
+        hasEntryServer = true;
+        break;
+      }
+    }
+
+    if (!hasEntryServer) {
+      throw new Error(`"${projectName}", ${appDir} did not generate server output`);
+    }
+    if (!serverOutput) {
+      throw new Error(`"${projectName}", ${appDir} did not generate server output`);
+    }
+  } else {
+    accessSync(join(appDir, 'lib', 'types'));
+    accessSync(join(appDir, 'lib', 'index.qwik.mjs'));
+    accessSync(join(appDir, 'lib', 'index.qwik.cjs'));
+  }
   accessSync(join(appDir, 'README.md'));
   accessSync(join(appDir, 'tsconfig.json'));
   accessSync(join(appDir, 'tsconfig.tsbuildinfo'));
-
-  const starters = await api.getStarters();
-  const serverDir = join(appDir, 'server');
-  accessSync(serverDir);
-
-  let hasEntryServer = false;
-  const serverOutput = readdirSync(serverDir);
-  for (const serverFileName of serverOutput) {
-    if (serverFileName.startsWith('entry.')) {
-      hasEntryServer = true;
-      break;
-    }
-  }
-  if (!serverOutput) {
-    throw new Error(`"${projectName}", ${appDir} did not generate server output`);
-  }
 
   console.log(`⭐️ ${projectName} validated\n`);
 }

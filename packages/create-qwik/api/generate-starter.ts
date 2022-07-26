@@ -61,12 +61,74 @@ function generateUserStarter(
     throw new Error(`Unable to find base app.`);
   }
 
+  const viteReplacements = {
+    VITE_IMPORTS: [] as string[],
+    VITE_CONFIG: [] as string[],
+    VITE_QWIK: [] as string[],
+    VITE_PLUGINS: [] as string[],
+  };
+
+  if (starterServer) {
+    const serverPkgJson = readPackageJson(starterServer.dir);
+    const vite = serverPkgJson.__qwik__?.vite;
+    if (vite?.VITE_IMPORTS) {
+      viteReplacements.VITE_IMPORTS.push(vite.VITE_IMPORTS);
+    }
+    if (vite?.VITE_CONFIG) {
+      viteReplacements.VITE_CONFIG.push(vite.VITE_CONFIG);
+    }
+    if (vite?.VITE_QWIK) {
+      viteReplacements.VITE_QWIK.push(vite.VITE_QWIK);
+    }
+    if (vite?.VITE_PLUGINS) {
+      viteReplacements.VITE_PLUGINS.push(vite.VITE_PLUGINS);
+    }
+  }
+
+  for (const feature of features) {
+    cp(feature.dir, result.outDir, replacements);
+    const featurerPkgJson = readPackageJson(feature.dir);
+    const vite = featurerPkgJson.__qwik__?.vite;
+    if (vite?.VITE_IMPORTS) {
+      viteReplacements.VITE_IMPORTS.push(vite.VITE_IMPORTS);
+    }
+    if (vite?.VITE_CONFIG) {
+      viteReplacements.VITE_CONFIG.push(vite.VITE_CONFIG);
+    }
+    if (vite?.VITE_QWIK) {
+      viteReplacements.VITE_QWIK.push(vite.VITE_QWIK);
+    }
+    if (vite?.VITE_PLUGINS) {
+      viteReplacements.VITE_PLUGINS.push(vite.VITE_PLUGINS);
+    }
+  }
+
+  replacements.push([/\/\* VITE_IMPORTS \*\//g, viteReplacements.VITE_IMPORTS.join('\n')]);
+  replacements.push([/\/\* VITE_CONFIG \*\//g, viteReplacements.VITE_CONFIG.join('\n')]);
+  replacements.push([/\/\* VITE_QWIK \*\//g, viteReplacements.VITE_QWIK.join('\n')]);
+  replacements.push([/\/\* VITE_PLUGINS \*\//g, viteReplacements.VITE_PLUGINS.join('\n')]);
+
   cp(baseApp.dir, result.outDir, replacements);
   cp(starterApp.dir, result.outDir, replacements);
 
   const pkgJson = readPackageJson(baseApp.dir);
-  const starterPkgJson = readPackageJson(baseApp.dir);
+  const starterPkgJson = readPackageJson(starterApp.dir);
   mergePackageJSONs(pkgJson, starterPkgJson);
+  const replaceProps = [
+    'version',
+    'private',
+    'main',
+    'module',
+    'qwik',
+    'types',
+    'exports',
+    'files',
+  ];
+  for (const prop of replaceProps) {
+    if (starterPkgJson[prop] !== undefined) {
+      pkgJson[prop] = starterPkgJson[prop];
+    }
+  }
 
   let readmeContent = baseApp.readme!.trim() + '\n\n';
 
@@ -155,7 +217,7 @@ function cleanPackageJson(srcPkg: PackageJSON) {
   Object.keys(cleanedPkg).forEach((prop) => {
     delete (srcPkg as any)[prop];
   });
-  delete srcPkg.qwik;
+  delete srcPkg.__qwik__;
 
   const sortedKeys = Object.keys(srcPkg).sort();
   for (const key of sortedKeys) {

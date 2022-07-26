@@ -1,15 +1,15 @@
 import { render } from './entry.ssr';
 import replServerHtml from '@repl-server-html';
 
-export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) => {
+export const onRequestGet = async ({ request, next, waitUntil }: any) => {
   try {
     const url = new URL(request.url);
-    if (url.hostname === 'qwik.builder.io' && url.pathname === '/') {
-      // temporarily redirect homepage to the overview page
-      return Response.redirect(new URL('/docs/overview', url), 302);
-    }
 
     if (url.pathname === '/docs') {
+      return Response.redirect(new URL('/docs/overview', url));
+    }
+
+    if (url.pathname.startsWith('/guide')) {
       return Response.redirect(new URL('/docs/overview', url));
     }
 
@@ -18,17 +18,18 @@ export const onRequestGet: PagesFunction = async ({ request, next, waitUntil }) 
     }
 
     if (url.pathname === '/tutorial') {
-      return Response.redirect(new URL('/tutorial/introduction/basics', url));
+      return Response.redirect(new URL('/tutorial/welcome/overview', url));
     }
 
     if (url.pathname === '/chat') {
       return Response.redirect('https://discord.gg/bNVSQmPzqy');
     }
 
-    if (url.pathname.endsWith('/repl-server.html')) {
+    if (url.pathname.includes('/repl/~repl-server-')) {
       return new Response(replServerHtml, {
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable',
         },
       });
     }

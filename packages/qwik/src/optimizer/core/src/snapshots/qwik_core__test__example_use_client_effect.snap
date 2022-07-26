@@ -32,15 +32,15 @@ export const Child = component$(() => {
 
 ============================= test.js ==
 
-import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Child = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./child_component_9gyf01gdkqw")
+import { qrl } from "@builder.io/qwik";
+export const Child = /*#__PURE__*/ componentQrl(qrl(()=>import("./child_component_9gyf01gdkqw")
 , "Child_component_9GyF01GDKqw"));
 
 ============================= child_component_9gyf01gdkqw.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { qrl } from "@builder.io/qwik";
 import { useClientEffectQrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 export const Child_component_9GyF01GDKqw = ()=>{
@@ -48,7 +48,7 @@ export const Child_component_9GyF01GDKqw = ()=>{
         count: 0
     });
     // Double count watch
-    useClientEffectQrl(qwik.qrl(()=>import("./child_component_useclienteffect_kyrt1iert9g")
+    useClientEffectQrl(qrl(()=>import("./child_component_useclienteffect_kyrt1iert9g")
     , "Child_component_useClientEffect_kYRT1iERt9g", [
         state
     ]));
@@ -56,9 +56,6 @@ export const Child_component_9GyF01GDKqw = ()=>{
         children: state.count
     });
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -81,9 +78,9 @@ export { hW as handleWatch };
 */
 ============================= child_component_useclienteffect_kyrt1iert9g.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
+import { useLexicalScope } from "@builder.io/qwik";
 export const Child_component_useClientEffect_kYRT1iERt9g = ()=>{
-    const [state] = qwik.useLexicalScope();
+    const [state] = useLexicalScope();
     const timer = setInterval(()=>{
         state.count++;
     }, 1000);
@@ -92,7 +89,7 @@ export const Child_component_useClientEffect_kYRT1iERt9g = ()=>{
     };
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*

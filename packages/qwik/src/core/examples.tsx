@@ -6,27 +6,16 @@
 // it to the desired comment location
 //
 
-import { component$, qrl, useStore } from '@builder.io/qwik';
-import {
-  useCleanup$,
-  useOn,
-  useOnDocument,
-  useOnWindow,
-  useResume$,
-  useStyles$,
-  useVisible$,
-} from './component/component.public';
+import { component$ } from './component/component.public';
+import { qrl } from './import/qrl';
+import { $, QRL } from './import/qrl.public';
 import { Host } from './render/jsx/host.public';
-import { $, implicit$FirstArg, QRL } from './import/qrl.public';
-import {
-  useClientEffect$,
-  useServerMount$,
-  useClientMount$,
-  useMount$,
-  useWatch$,
-} from './watch/watch.public';
 import { useHostElement } from './use/use-host-element.public';
-import { useRef } from './use/use-store.public';
+import { useCleanup$, useOn, useOnDocument, useOnWindow } from './use/use-on';
+import { useRef, useStore } from './use/use-store.public';
+import { useStyles$ } from './use/use-styles';
+import { useClientEffect$, useMount$, useServerMount$, useWatch$ } from './use/use-watch';
+import { implicit$FirstArg } from './util/implicit_dollar';
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -76,40 +65,6 @@ export const OtherComponent = component$(() => {
   return Cmp;
 };
 
-() => {
-  //
-  // <docs anchor="use-resume">
-  const Cmp = component$(() => {
-    useResume$(() => {
-      // Eagerly invoked when the application resumes on the client
-      console.log('called once in client');
-    });
-    return <div>Hello world</div>;
-  });
-  // </docs>
-  //
-  return Cmp;
-};
-
-() => {
-  //
-  // <docs anchor="use-visible">
-  const Cmp = component$(() => {
-    const store = useStore({
-      isVisible: false,
-    });
-    useVisible$(() => {
-      // Invoked once when the component is visible in the browser's viewport
-      console.log('called once in client when visible');
-      store.isVisible = true;
-    });
-    return <div>{store.isVisible}</div>;
-  });
-  // </docs>
-  //
-  return Cmp;
-};
-
 // <docs anchor="use-styles">
 import styles from './code-block.css?inline';
 
@@ -134,8 +89,8 @@ export const CmpInline = component$(() => {
   function useClick() {
     useOn(
       'click',
-      $(() => {
-        console.log('clicked host element');
+      $((event) => {
+        console.log('clicked host element', event);
       })
     );
   }
@@ -153,8 +108,8 @@ export const CmpInline = component$(() => {
   function useScroll() {
     useOnDocument(
       'scroll',
-      $(() => {
-        console.log('body scrolled');
+      $((event) => {
+        console.log('body scrolled', event);
       })
     );
   }
@@ -172,8 +127,8 @@ export const CmpInline = component$(() => {
   function useAnalytics() {
     useOnWindow(
       'popstate',
-      $(() => {
-        console.log('navigation happened');
+      $((event) => {
+        console.log('navigation happened', event);
         // report to analytics
       })
     );
@@ -275,28 +230,6 @@ export const CmpInline = component$(() => {
   function User(props: { user: User }) {
     return <div>Name: {props.user.name}</div>;
   }
-  // </docs>
-  return Cmp;
-};
-
-() => {
-  // <docs anchor="use-client-mount">
-  const Cmp = component$(() => {
-    const store = useStore({
-      hash: '',
-    });
-
-    useClientMount$(async () => {
-      // This code will ONLY run once in the client, when the component is mounted
-      store.hash = document.location.hash;
-    });
-
-    return (
-      <Host>
-        <p>The url hash is: ${store.hash}</p>
-      </Host>
-    );
-  });
   // </docs>
   return Cmp;
 };
@@ -448,7 +381,7 @@ export const CmpInline = component$(() => {
 // <docs anchor="qrl-usage-$">
 useOnDocument(
   'mousemove',
-  $(() => console.log('mousemove'))
+  $((event) => console.log('mousemove', event))
 );
 // </docs>
 
@@ -474,13 +407,12 @@ function doExtraStuff() {
 }
 
 (async function () {
-  const element: Element = null!;
   // <docs anchor="qrl-usage-import">
   // Assume you have QRL reference to a greet function
   const lazyGreet: QRL<() => void> = $(() => console.log('Hello World!'));
 
   // Use `qrlImport` to load / resolve the reference.
-  const greet: () => void = await lazyGreet.resolve(element);
+  const greet: () => void = await lazyGreet.resolve();
 
   //  Invoke it
   greet();

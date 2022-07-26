@@ -12,7 +12,7 @@ export const OnRenderProp = 'q:renderFn';
 /**
  * State factory of the component.
  */
-export const OnRenderSelector = '[q\\:host]';
+export const QHostSelector = '[q\\:host]';
 
 /**
  * State factory of the component.
@@ -53,27 +53,14 @@ export const EventPrefix = 'on:';
  * Attribute used to mark that an event listener is attached.
  */
 export const EventAny = 'on:.';
-
-/**
- * Tag name used for projection.
- */
-export const QSlot = 'Q:SLOT';
-export const QSlotSelector = 'Q\\:SLOT';
-
 /**
  * `<some-element q:slot="...">`
  */
-export const QSlotAttr = 'q:slot';
-
-export const QObjAttr = 'q:obj';
-
-export const QSeqAttr = 'q:seq';
+export const QSlot = 'q:slot';
 
 export const QCtxAttr = 'q:ctx';
 
 export const QContainerAttr = 'q:container';
-
-export const QObjSelector = '[q\\:obj]';
 
 export const QContainerSelector = '[q\\:container]';
 

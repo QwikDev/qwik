@@ -8,7 +8,7 @@ test.describe('e2e', () => {
     });
 
     test('should support two QRLs on event', async ({ page }) => {
-      const button = page.locator('button.two-listeners');
+      const button = page.locator('.two-listeners');
       await button.click();
       await expect(button).toContainText('2 / 2');
     });
@@ -21,12 +21,17 @@ test.describe('e2e', () => {
     });
 
     test('should rerender without changes', async ({ page }) => {
-      const SNAPSHOT = `<p>1</p><p>"&lt;/script&gt;"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]]}</p><p>undefined</p><p>null</p><p>[1,2,"hola",{}]</p><p>true</p><p>false</p>`;
-      const RESULT = `[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]]},"undefined","null",[1,2,"hola",{}],true,false]`;
+      const SNAPSHOT =
+        '<p>1</p><p>"&lt;/script&gt;"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}}</p><p>undefined</p><p>null</p><p>[1,2,"hola",null,{}]</p><p>true</p><p>false</p><p>()=&gt;console.error()</p><p>mutable message</p><p>from a promise</p>';
+      const RESULT =
+        '[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}},"undefined","null",[1,2,"hola",null,{}],true,false,null,"mutable message","from a promise"]';
 
+      function normalizeSnapshot(str: string) {
+        return str.replace(' =&gt; ', '=&gt;');
+      }
       const result = await page.locator('#result');
       const content = await page.locator('#static');
-      expect(await content.innerHTML()).toEqual(SNAPSHOT);
+      expect(normalizeSnapshot(await content.innerHTML())).toEqual(SNAPSHOT);
       const btn = await page.locator('#rerender');
       expect(await btn.textContent()).toEqual('Rerender 0');
       expect(await result.textContent()).toEqual('');
@@ -35,7 +40,7 @@ test.describe('e2e', () => {
       await btn.click();
       await page.waitForTimeout(100);
 
-      expect(await content.innerHTML()).toEqual(SNAPSHOT);
+      expect(normalizeSnapshot(await content.innerHTML())).toEqual(SNAPSHOT);
       expect(await btn.textContent()).toEqual('Rerender 1');
       expect(await result.textContent()).toEqual(RESULT);
 
@@ -43,7 +48,7 @@ test.describe('e2e', () => {
       await btn.click();
       await page.waitForTimeout(100);
 
-      expect(await content.innerHTML()).toEqual(SNAPSHOT);
+      expect(normalizeSnapshot(await content.innerHTML())).toEqual(SNAPSHOT);
       expect(await btn.textContent()).toEqual('Rerender 2');
       expect(await result.textContent()).toEqual(RESULT);
     });
@@ -224,7 +229,6 @@ test.describe('e2e', () => {
 
       const btnToggleButtons = await page.locator('#btn-toggle-buttons');
       const btnToggleContent = await page.locator('#btn-toggle-content');
-      const btnCount = await page.locator('#btn-count');
 
       // btnToggleButtons
       await btnToggleButtons.click();
@@ -260,6 +264,29 @@ test.describe('e2e', () => {
       expect((await content2.innerText()).trim()).toEqual('START 1');
       expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 1');
     });
+
+    test('should not lose q context', async ({ page }) => {
+      const content3 = await page.locator('#btn3');
+      const projected = await page.locator('#projected');
+      const btnToggleThing = await page.locator('#btn-toggle-thing');
+      const btnCount = await page.locator('#btn-count');
+
+      await btnCount.click();
+      await page.waitForTimeout(100);
+      expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 1');
+
+      // btnToggleButtons
+      await btnToggleThing.click();
+      await page.waitForTimeout(100);
+      await btnToggleThing.click();
+      await page.waitForTimeout(100);
+
+      // Click projected
+      await projected.click();
+      await page.waitForTimeout(100);
+
+      expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 0');
+    });
   });
 
   test.describe('factory', () => {
@@ -288,33 +315,33 @@ test.describe('e2e', () => {
       const debounced = await page.locator('#debounced');
       const addButton = page.locator('#add');
 
-      expect(await server.textContent()).toEqual('comes from server');
-      expect(await parent.textContent()).toEqual('2 / 4');
-      expect(await child.textContent()).toEqual('2 / 4');
-      expect(await debounced.textContent()).toEqual('Debounced: 0');
+      await expect(server).toHaveText('comes from server');
+      await expect(parent).toHaveText('2');
+      await expect(child).toHaveText('2 / 4');
+      await expect(debounced).toHaveText('Debounced: 0');
 
       await addButton.click();
       await page.waitForTimeout(100);
 
-      expect(await server.textContent()).toEqual('comes from server');
-      expect(await parent.textContent()).toEqual('3 / 6');
-      expect(await child.textContent()).toEqual('3 / 6');
-      expect(await debounced.textContent()).toEqual('Debounced: 0');
+      await expect(server).toHaveText('comes from server');
+      await expect(parent).toHaveText('3');
+      await expect(child).toHaveText('3 / 6');
+      await expect(debounced).toHaveText('Debounced: 0');
 
       await addButton.click();
       await page.waitForTimeout(100);
 
-      expect(await server.textContent()).toEqual('comes from server');
-      expect(await parent.textContent()).toEqual('4 / 8');
-      expect(await child.textContent()).toEqual('4 / 8');
-      expect(await debounced.textContent()).toEqual('Debounced: 0');
+      await expect(server).toHaveText('comes from server');
+      await expect(parent).toHaveText('4');
+      await expect(child).toHaveText('4 / 8');
+      await expect(debounced).toHaveText('Debounced: 0');
 
       // Wait for debouncer
       await page.waitForTimeout(2000);
-      expect(await server.textContent()).toEqual('comes from server');
-      expect(await parent.textContent()).toEqual('4 / 8');
-      expect(await child.textContent()).toEqual('4 / 8');
-      expect(await debounced.textContent()).toEqual('Debounced: 8');
+      await expect(server).toHaveText('comes from server');
+      await expect(parent).toHaveText('4');
+      await expect(child).toHaveText('4 / 8');
+      await expect(debounced).toHaveText('Debounced: 8');
     });
   });
 
@@ -327,6 +354,7 @@ test.describe('e2e', () => {
     test('should load', async ({ page }) => {
       const level2State1 = await page.locator('.level2-state1');
       const level2State2 = await page.locator('.level2-state2');
+      const level2SSlot = await page.locator('.level2-slot');
 
       const btnRootIncrement1 = await page.locator('.root-increment1');
       const btnRootIncrement2 = await page.locator('.root-increment2');
@@ -341,6 +369,7 @@ test.describe('e2e', () => {
         'ROOT / state2 = 0',
         'ROOT / state2 = 0',
       ]);
+      expect(await level2SSlot.allTextContents()).toEqual(['bar = 0', 'bar = 0']);
 
       await btnRootIncrement1.click();
       await page.waitForTimeout(100);
@@ -353,7 +382,7 @@ test.describe('e2e', () => {
         'ROOT / state2 = 0',
         'ROOT / state2 = 0',
       ]);
-
+      expect(await level2SSlot.allTextContents()).toEqual(['bar = 0', 'bar = 0']);
       await btnRootIncrement2.click();
       await page.waitForTimeout(100);
 
@@ -365,7 +394,7 @@ test.describe('e2e', () => {
         'ROOT / state2 = 1',
         'ROOT / state2 = 1',
       ]);
-
+      expect(await level2SSlot.allTextContents()).toEqual(['bar = 0', 'bar = 0']);
       await btnLevel2Increment.click();
       await btnLevel2Increment.click();
       await btnLevel2Increment2.click();
@@ -374,6 +403,7 @@ test.describe('e2e', () => {
       const level3State1 = await page.locator('.level3-state1');
       const level3State2 = await page.locator('.level3-state2');
       const level3State3 = await page.locator('.level3-state3');
+      const level3Slot = await page.locator('.level3-slot');
 
       expect(await level2State1.allTextContents()).toEqual([
         'ROOT / state1 = 1',
@@ -383,6 +413,7 @@ test.describe('e2e', () => {
         'ROOT / state2 = 1',
         'ROOT / state2 = 1',
       ]);
+      expect(await level2SSlot.allTextContents()).toEqual(['bar = 0', 'bar = 0']);
 
       expect(await level3State1.allTextContents()).toEqual([
         'Level2 / state1 = 0',
@@ -399,6 +430,7 @@ test.describe('e2e', () => {
         'Level2 / state3 = 2',
         'Level2 / state3 = 1',
       ]);
+      expect(await level3Slot.allTextContents()).toEqual(['bar = 0', 'bar = 0', 'bar = 0']);
     });
   });
 
@@ -411,9 +443,11 @@ test.describe('e2e', () => {
     test('should load', async ({ page }) => {
       const counter = await page.locator('#counter');
       const msg = await page.locator('#msg');
+      const msgEager = await page.locator('#eager-msg');
 
       await expect(counter).toHaveText('0');
       await expect(msg).toHaveText('empty');
+      await expect(msgEager).toHaveText('run');
 
       await counter.scrollIntoViewIfNeeded();
       await page.waitForTimeout(100);
@@ -424,6 +458,126 @@ test.describe('e2e', () => {
       await page.waitForTimeout(500);
       await expect(counter).toHaveText('11');
       await expect(msg).toHaveText('run');
+    });
+  });
+
+  test.describe('toggle', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/toggle');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should load', async ({ page }) => {
+      const title = await page.locator('h1');
+      const mount = await page.locator('#mount');
+      const root = await page.locator('#root');
+      const logs = await page.locator('#logs');
+      const btnToggle = await page.locator('button#toggle');
+      const btnIncrement = await page.locator('button#increment');
+
+      let logsStr = 'Logs: Log(0)';
+      await expect(title).toHaveText('ToggleA');
+      await expect(mount).toHaveText('mounted in server');
+      await expect(root).toHaveText('hello from root (0/0)');
+      await expect(logs).toHaveText(logsStr);
+
+      // ToggleA
+      await btnToggle.click();
+      logsStr += 'Child(0)Child(0)ToggleA()';
+
+      await expect(title).toHaveText('ToggleB');
+      await expect(mount).toHaveText('mounted in client');
+      await expect(root).toHaveText('hello from root (0/0)');
+      await expect(logs).toHaveText(logsStr);
+
+      // Increment
+      await btnIncrement.click();
+      logsStr += 'Log(1)Child(1)';
+
+      await expect(title).toHaveText('ToggleB');
+      await expect(mount).toHaveText('mounted in client');
+      await expect(root).toHaveText('hello from root (1/1)');
+      await expect(logs).toHaveText(logsStr);
+
+      // ToggleB
+      await btnToggle.click();
+      logsStr += 'Child(1)ToggleB()';
+
+      await expect(title).toHaveText('ToggleA');
+      await expect(mount).toHaveText('mounted in client');
+      await expect(root).toHaveText('hello from root (1/1)');
+      await expect(logs).toHaveText(logsStr);
+
+      // Increment
+      await btnIncrement.click();
+      logsStr += 'Log(2)Child(2)';
+
+      await expect(title).toHaveText('ToggleA');
+      await expect(mount).toHaveText('mounted in client');
+      await expect(root).toHaveText('hello from root (2/2)');
+      await expect(logs).toHaveText(logsStr);
+
+      // ToggleA + increment
+      await btnToggle.click();
+      await btnIncrement.click();
+      logsStr += 'Child(2)ToggleA()Log(3)Child(3)';
+
+      await expect(title).toHaveText('ToggleB');
+      await expect(mount).toHaveText('mounted in client');
+      await expect(root).toHaveText('hello from root (3/3)');
+      await expect(logs).toHaveText(logsStr);
+    });
+  });
+
+  test.describe('render', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/render');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should load', async ({ page }) => {
+      const button = await page.locator('button');
+
+      await expect(button).toHaveText('Rerender 0');
+      await button.click();
+      await expect(button).toHaveText('Rerender 1');
+    });
+  });
+
+  test.describe('resource', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/resource');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should load', async ({ page }) => {
+      const resource1 = await page.locator('.resource1');
+      // const resource2 = await page.locator('.resource2');
+      const logs = await page.locator('.logs');
+      const increment = await page.locator('button');
+      let logsContent =
+        '[RENDER] <ResourceApp>\n[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n[RENDER] <Results>\n\n\n';
+      await expect(resource1).toHaveText('resource 1 is 80');
+      // await expect(resource2).toHaveText('resource 2 is 160');
+      await expect(logs).toHaveText(logsContent);
+
+      // Increment
+      await increment.click();
+      await page.waitForTimeout(400);
+
+      logsContent +=
+        '[RESOURCE] 1 after\n\n[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n[RENDER] <Results>\n\n\n';
+      await expect(resource1).toHaveText('loading resource 1...');
+      // await expect(resource2).toHaveText('loading resource 2...');
+      await expect(logs).toHaveText(logsContent);
+
+      // Wait until finish loading
+      await page.waitForTimeout(1000);
+
+      logsContent += '[RESOURCE] 1 after\n[RENDER] <Results>\n\n\n';
+      await expect(resource1).toHaveText('resource 1 is 88');
+      // await expect(resource2).toHaveText('resource 2 is 176');
+      await expect(logs).toHaveText(logsContent);
     });
   });
 });

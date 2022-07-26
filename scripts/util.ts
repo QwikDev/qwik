@@ -18,10 +18,10 @@ import {
   mkdir as fsMkdir,
 } from 'fs';
 import { promisify } from 'util';
-import gzipSize from 'gzip-size';
 import { minify, MinifyOptions } from 'terser';
 import type { Plugin as RollupPlugin } from 'rollup';
 import { execa, Options } from 'execa';
+import { fileURLToPath } from 'url';
 
 /**
  * Contains information about the build we're generating by parsing
@@ -46,6 +46,8 @@ export interface BuildConfig {
 
   api?: boolean;
   build?: boolean;
+  qwikcity?: boolean;
+  qwikreact?: boolean;
   cli?: boolean;
   eslint?: boolean;
   commit?: boolean;
@@ -69,6 +71,7 @@ export interface BuildConfig {
  */
 export function loadConfig(args: string[] = []) {
   const config: BuildConfig = mri(args) as any;
+  const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
   config.rootDir = join(__dirname, '..');
   config.packagesDir = join(config.rootDir, 'packages');
@@ -160,9 +163,9 @@ export const getBanner = (moduleName: string) => {
  * The JavaScript target we're going for. Reusing a constant just to make sure
  * all the builds are using the same target.
  */
-export const target = 'es2018';
+export const target = 'es2020';
 
-export const nodeTarget = 'node10';
+export const nodeTarget = 'node14';
 
 /**
  * Helper just to know which NodeJS modules that should stay external.
@@ -216,11 +219,16 @@ export function rollupOnWarn(warning: any, warn: any) {
  */
 export async function fileSize(filePath: string) {
   const text = await readFile(filePath);
-  const gzipBytes = await gzipSize(text);
+  const { default: compress } = await import('brotli/compress.js');
 
-  const size = formatFileSize(text.length);
-  const gzip = formatFileSize(gzipBytes);
-  return `${size} (${gzip} gz)`;
+  const data = compress(text, {
+    mode: 1,
+    quality: 11,
+  });
+  return {
+    original: formatFileSize(text.length),
+    brotli: formatFileSize(data.byteLength),
+  };
 }
 
 function formatFileSize(bytes: number) {
@@ -303,11 +311,11 @@ export interface PackageJSON {
   scripts?: { [scriptName: string]: string };
   license?: string;
   main: string;
-  module: string;
+  module?: string;
   types: string;
   type?: string;
   files?: string[];
-  exports?: { [key: string]: string | { [key: string]: string } };
+  exports?: { [key: string]: any };
   contributors?: { [key: string]: string }[];
   homepage?: string;
   repository?: { [key: string]: string };
@@ -315,8 +323,48 @@ export interface PackageJSON {
   keywords?: string[];
   engines?: { [key: string]: string };
   private?: boolean;
-  qwik?: {
+  __qwik__?: {
     priority: number;
-    featureOptions: string[];
+    featureOptions?: string[];
+    featureEnabled?: string[];
+    selectServer?: boolean;
+    vite?: {
+      VITE_IMPORTS?: string;
+      VITE_CONFIG?: string;
+      VITE_QWIK?: string;
+      VITE_PLUGINS?: string;
+    };
   };
+  [key: string]: any;
 }
+
+export async function copyDir(config: BuildConfig, srcDir: string, destDir: string) {
+  await mkdir(destDir);
+  const items = await readdir(srcDir);
+  await Promise.all(
+    items.map(async (itemName) => {
+      if (!IGNORE[itemName] && !itemName.includes('.test')) {
+        const srcPath = join(srcDir, itemName);
+        const destPath = join(destDir, itemName);
+        const itemStat = await stat(srcPath);
+        if (itemStat.isDirectory()) {
+          await copyDir(config, srcPath, destPath);
+        } else if (itemStat.isFile()) {
+          await copyFile(srcPath, destPath);
+        }
+      }
+    })
+  );
+}
+
+const IGNORE: { [path: string]: boolean } = {
+  '.rollup.cache': true,
+  build: true,
+  server: true,
+  e2e: true,
+  node_modules: true,
+  'package-lock.json': true,
+  'starter.tsconfig.json': true,
+  'tsconfig.tsbuildinfo': true,
+  'yarn.lock': true,
+};

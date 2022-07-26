@@ -1,0 +1,14 @@
+---
+title: Named Slots
+layout: tutorial
+---
+
+In simple cases, projection allows content from the parent component to be projected into the child component. In more complex cases there may be more than one content slot that needs to be projected. Having multiple content slots is achieved by naming them.
+
+## Example
+
+In this example, we have created `<Collapsable>` component that toggles between open and closed states. Currently, when the `<Collapsable>` is closed it does not show any content. Add additional `<Slot>` to project the `q:slot="closed"` content. 
+
+## Unprojected Slots
+
+We have added console statements to show when individual components re-render. Notice that the `<App>` component never re-renders on the client. Also notice that the `<Collapsable>` projects only one content at a time. This means that when `<App>` renders on the server it has to produce both default as well as `closed` content that Qwik must serialize. The benefit is that when `<Collapsable>` toggles between open and closed states, it does not need to re-render the `<App>` component to recover the content that was projected into it.

@@ -1,0 +1,129 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
+
+export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+    const store = useStore({
+        count: 0
+    });
+    return /*#__PURE__*/ jsxs("div", {
+        children: [
+            /*#__PURE__*/ jsxs("p", {
+                children: [
+                    "Count: ",
+                    store.count
+                ]
+            }),
+            /*#__PURE__*/ jsx("p", {
+                children: /*#__PURE__*/ jsx("button", {
+                    onClick$: inlinedQrl(()=>{
+                        const [store] = useLexicalScope();
+                        return store.count++;
+                    }, "App_component_div_p_button_onClick_odz7eidI4GM", [
+                        store
+                    ]),
+                    children: "Click"
+                })
+            })
+        ]
+    });
+}, "App_component_Fh88JClhbC0"));
+
+
+============================= s_odz7eidi4gm.tsx ==
+
+import { useLexicalScope } from "@builder.io/qwik";
+export const s_odz7eidI4GM = ()=>{
+    const [store] = useLexicalScope();
+    return store.count++;
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_odz7eidI4GM",
+  "entry": "entry_hooks",
+  "displayName": "App_component_div_p_button_onClick",
+  "hash": "odz7eidI4GM",
+  "canonicalFilename": "s_odz7eidi4gm",
+  "extension": "tsx",
+  "parent": "s_Fh88JClhbC0",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    575,
+    707
+  ]
+}
+*/
+============================= s_fh88jclhbc0.tsx ==
+
+import { jsx } from "@builder.io/qwik";
+import { jsxs } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
+export const s_Fh88JClhbC0 = ()=>{
+    const store = useStore({
+        count: 0
+    });
+    return /*#__PURE__*/ jsxs("div", {
+        children: [
+            /*#__PURE__*/ jsxs("p", {
+                children: [
+                    "Count: ",
+                    store.count
+                ]
+            }),
+            /*#__PURE__*/ jsx("p", {
+                children: /*#__PURE__*/ jsx("button", {
+                    onClick$: qrl(()=>import("./entry_hooks")
+                    , "s_odz7eidI4GM", [
+                        store
+                    ]),
+                    children: "Click"
+                })
+            })
+        ]
+    });
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_Fh88JClhbC0",
+  "entry": "entry_hooks",
+  "displayName": "App_component",
+  "hash": "Fh88JClhbC0",
+  "canonicalFilename": "s_fh88jclhbc0",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    159,
+    906
+  ]
+}
+*/
+============================= test.tsx ==
+
+import { qrl } from "@builder.io/qwik";
+import { componentQrl } from '@builder.io/qwik';
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_hooks")
+, "s_Fh88JClhbC0"));
+
+============================= entry_hooks.js (ENTRY POINT)==
+
+export { s_odz7eidI4GM } from "./s_odz7eidi4gm";
+export { s_Fh88JClhbC0 } from "./s_fh88jclhbc0";
+
+== DIAGNOSTICS ==
+
+[]

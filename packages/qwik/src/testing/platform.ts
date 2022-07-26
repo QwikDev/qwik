@@ -1,4 +1,4 @@
-import { getPlatform, setPlatform } from '@builder.io/qwik';
+import { getPlatform, setPlatform } from '../core/platform/platform';
 import type { TestPlatform } from './types';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -118,7 +118,7 @@ function toPath(url: URL) {
   throw new Error(`Unable to find path for import "${url}"`);
 }
 
-export function getTestPlatform(document: any) {
+export function getTestPlatform(document: any): TestPlatform {
   const testPlatform: TestPlatform = getPlatform(document) as any;
   if (!testPlatform) {
     throw new Error(`Test platform was not applied to the document`);

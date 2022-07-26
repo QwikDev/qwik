@@ -1,4 +1,5 @@
 import type { OutputOptions, Plugin as RollupPlugin, RollupError } from 'rollup';
+
 import type {
   Diagnostic,
   EntryStrategy,
@@ -47,12 +48,13 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         target: qwikRollupOpts.target,
         buildMode: qwikRollupOpts.buildMode,
         debug: qwikRollupOpts.debug,
-        forceFullBuild: qwikRollupOpts.forceFullBuild,
+        forceFullBuild: qwikRollupOpts.forceFullBuild ?? true,
         entryStrategy: qwikRollupOpts.entryStrategy,
         rootDir: qwikRollupOpts.rootDir,
         srcDir: qwikRollupOpts.srcDir,
         srcInputs: qwikRollupOpts.srcInputs,
         input: inputOpts.input as string,
+        resolveQwikBuild: true,
         manifestOutput: qwikRollupOpts.manifestOutput,
         manifestInput: qwikRollupOpts.manifestInput,
         transformedModuleOutput: qwikRollupOpts.transformedModuleOutput,
@@ -143,10 +145,13 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         const manifest = await outputAnalyzer.generateManifest();
         manifest.platform = {
           ...versions,
-          rollup: '',
+          rollup: this.meta?.rollupVersion || '',
           env: optimizer.sys.env,
           os: optimizer.sys.os,
         };
+        if (optimizer.sys.env === 'node') {
+          manifest.platform.node = process.versions.node;
+        }
 
         if (typeof opts.manifestOutput === 'function') {
           await opts.manifestOutput(manifest);
@@ -174,22 +179,11 @@ export function normalizeRollupOutputOptions(
   rollupOutputOpts: OutputOptions
 ) {
   const outputOpts: OutputOptions = {
-    minifyInternalExports: false,
     ...rollupOutputOpts,
   };
 
   if (opts.target === 'ssr') {
     // ssr output
-    if (!outputOpts.entryFileNames) {
-      outputOpts.entryFileNames = '[name].js';
-    }
-    if (!outputOpts.assetFileNames) {
-      outputOpts.assetFileNames = '[name].[ext]';
-    }
-    if (!outputOpts.chunkFileNames) {
-      outputOpts.chunkFileNames = '[name].js';
-    }
-
     outputOpts.inlineDynamicImports = true;
   } else if (opts.target === 'client') {
     // client output

@@ -1,15 +1,92 @@
 import { assertDefined } from '../assert/assert';
-import { QHostAttr } from '../util/markers';
-import { executeContextWithSlots, printRenderStats, RenderContext } from './cursor';
+import { QContainerAttr, QHostAttr } from '../util/markers';
+import {
+  createRenderContext,
+  executeContextWithSlots,
+  printRenderStats,
+  RenderContext,
+} from './cursor';
 import { getContext, resumeIfNeeded } from '../props/props';
-import { qDev } from '../util/qdev';
+import { qDev, qTest } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
 import { getDocument } from '../util/dom';
-import { renderComponent } from '../component/component-ctx';
-import { logDebug, logError } from '../util/log';
+import { renderComponent } from './render-component';
+import { logError, logWarn } from '../util/log';
 import { getContainer } from '../use/use-core';
-import { runWatch, WatchDescriptor } from '../watch/watch.public';
-import { waitForWatches } from '../object/q-object';
+import {
+  runSubscriber,
+  SubscriberDescriptor,
+  WatchFlagsIsDirty,
+  WatchFlagsIsEffect,
+  WatchFlagsIsResource,
+  WatchFlagsIsWatch,
+} from '../use/use-watch';
+import { createSubscriptionManager, ObjToProxyMap, SubscriptionManager } from '../object/q-object';
+import { then } from '../util/promises';
+import type { ValueOrPromise } from '../util/types';
+import type { CorePlatform } from '../platform/types';
+import { codeToText, QError_errorWhileRendering } from '../error/error';
+import { directGetAttribute } from './fast-calls';
+import { useLexicalScope } from '../use/use-lexical-scope.public';
+import type { Subscriber } from '../use/use-subscriber';
+import { isElement } from '../util/element';
+
+/**
+ * @alpha
+ */
+export interface ContainerState {
+  $containerEl$: Element;
+
+  $proxyMap$: ObjToProxyMap;
+  $subsManager$: SubscriptionManager;
+  $platform$: CorePlatform;
+
+  $watchNext$: Set<SubscriberDescriptor>;
+  $watchStaging$: Set<SubscriberDescriptor>;
+
+  $hostsNext$: Set<Element>;
+  $hostsStaging$: Set<Element>;
+  $hostsRendering$: Set<Element> | undefined;
+  $renderPromise$: Promise<RenderContext> | undefined;
+
+  $userContext$: Record<string, any>;
+  $elementIndex$: number;
+}
+
+const CONTAINER_STATE = Symbol('ContainerState');
+
+export const getContainerState = (containerEl: Element): ContainerState => {
+  let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
+  if (!set) {
+    (containerEl as any)[CONTAINER_STATE] = set = {
+      $containerEl$: containerEl,
+
+      $proxyMap$: new WeakMap(),
+      $subsManager$: createSubscriptionManager(),
+      $platform$: getPlatform(containerEl),
+
+      $watchNext$: new Set(),
+      $watchStaging$: new Set(),
+
+      $hostsNext$: new Set(),
+      $hostsStaging$: new Set(),
+      $renderPromise$: undefined,
+      $hostsRendering$: undefined,
+
+      $userContext$: {},
+      $elementIndex$: 0,
+    };
+  }
+  return set;
+};
+
+export const notifyChange = (subscriber: Subscriber) => {
+  if (isElement(subscriber)) {
+    notifyRender(subscriber);
+  } else {
+    notifyWatch(subscriber);
+  }
+};
 
 /**
  * Mark component for rendering.
@@ -25,181 +102,269 @@ import { waitForWatches } from '../object/q-object';
  * @returns A promise which is resolved when the component has been rendered.
  * @public
  */
-export function notifyRender(hostElement: Element): Promise<RenderContext> {
-  assertDefined(hostElement.getAttribute(QHostAttr));
+const notifyRender = (hostElement: Element): void => {
+  assertDefined(
+    directGetAttribute(hostElement, QHostAttr),
+    'render: notified element must be a component',
+    hostElement
+  );
 
-  const containerEl = getContainer(hostElement)!;
-  assertDefined(containerEl);
+  const containerEl = getContainer(hostElement);
+  assertDefined(containerEl, 'render: host element need to be inside a q:container', hostElement);
+
+  const state = getContainerState(containerEl);
+  if (
+    qDev &&
+    !qTest &&
+    state.$platform$.isServer &&
+    directGetAttribute(containerEl, QContainerAttr) === 'paused'
+  ) {
+    logWarn('Can not rerender in server platform');
+    return undefined;
+  }
   resumeIfNeeded(containerEl);
 
   const ctx = getContext(hostElement);
-  const state = getRenderingState(containerEl);
-  if (ctx.dirty) {
-    // TODO
-    return state.renderPromise!;
+  assertDefined(
+    ctx.$renderQrl$,
+    `render: notified host element must have a defined $renderQrl$`,
+    ctx
+  );
+
+  if (ctx.$dirty$) {
+    return;
   }
-  ctx.dirty = true;
-  const activeRendering = state.hostsRendering !== undefined;
+  ctx.$dirty$ = true;
+  const activeRendering = state.$hostsRendering$ !== undefined;
   if (activeRendering) {
-    state.hostsStaging.add(hostElement);
-    return state.renderPromise!.then((ctx) => {
-      if (state.hostsNext.has(hostElement)) {
-        // TODO
-        return state.renderPromise!;
-      } else {
-        return ctx;
-      }
-    });
+    assertDefined(
+      state.$renderPromise$,
+      'render: while rendering, $renderPromise$ must be defined',
+      state
+    );
+    state.$hostsStaging$.add(hostElement);
   } else {
-    state.hostsNext.add(hostElement);
-    return scheduleFrame(containerEl, state);
+    state.$hostsNext$.add(hostElement);
+    scheduleFrame(containerEl, state);
   }
-}
+};
 
-export function scheduleFrame(containerEl: Element, state: RenderingState): Promise<RenderContext> {
-  if (state.renderPromise === undefined) {
-    state.renderPromise = getPlatform(containerEl).nextTick(() => renderMarked(containerEl, state));
+const notifyWatch = (watch: SubscriberDescriptor) => {
+  if (watch.$flags$ & WatchFlagsIsDirty) {
+    return;
   }
-  return state.renderPromise;
-}
+  watch.$flags$ |= WatchFlagsIsDirty;
 
-const SCHEDULE = Symbol('Render state');
+  const containerEl = getContainer(watch.$el$)!;
+  const state = getContainerState(containerEl);
+  const activeRendering = state.$hostsRendering$ !== undefined;
+  if (activeRendering) {
+    assertDefined(
+      state.$renderPromise$,
+      'render: while rendering, $renderPromise$ must be defined',
+      state
+    );
+    state.$watchStaging$.add(watch);
+  } else {
+    state.$watchNext$.add(watch);
+    scheduleFrame(containerEl, state);
+  }
+};
+
+const scheduleFrame = (
+  containerEl: Element,
+  containerState: ContainerState
+): Promise<RenderContext> => {
+  if (containerState.$renderPromise$ === undefined) {
+    containerState.$renderPromise$ = containerState.$platform$.nextTick(() =>
+      renderMarked(containerEl, containerState)
+    );
+  }
+  return containerState.$renderPromise$;
+};
 
 /**
+ * Low-level API used by the Optimizer to process `useWatch$()` API. This method
+ * is not intended to be used by developers.
  * @alpha
  */
-export interface RenderingState {
-  watchRunning: Set<Promise<WatchDescriptor>>;
-  watchNext: Set<WatchDescriptor>;
-  watchStaging: Set<WatchDescriptor>;
+export const handleWatch = () => {
+  const [watch] = useLexicalScope();
+  notifyWatch(watch);
+};
 
-  hostsNext: Set<Element>;
-  hostsStaging: Set<Element>;
-  hostsRendering: Set<Element> | undefined;
-  renderPromise: Promise<RenderContext> | undefined;
-}
-
-export function getRenderingState(containerEl: Element): RenderingState {
-  let set = (containerEl as any)[SCHEDULE] as RenderingState;
-  if (!set) {
-    (containerEl as any)[SCHEDULE] = set = {
-      watchNext: new Set(),
-      watchStaging: new Set(),
-      watchRunning: new Set(),
-
-      hostsNext: new Set(),
-      hostsStaging: new Set(),
-      renderPromise: undefined,
-      hostsRendering: undefined,
-    };
-  }
-  return set;
-}
-
-export async function renderMarked(
+const renderMarked = async (
   containerEl: Element,
-  state: RenderingState
-): Promise<RenderContext> {
-  await waitForWatches(state);
+  containerState: ContainerState
+): Promise<RenderContext> => {
+  const hostsRendering = (containerState.$hostsRendering$ = new Set(containerState.$hostsNext$));
+  containerState.$hostsNext$.clear();
+  await executeWatchesBefore(containerState);
 
-  state.hostsRendering = new Set(state.hostsNext);
-  state.hostsNext.clear();
+  containerState.$hostsStaging$.forEach((host) => {
+    hostsRendering.add(host);
+  });
+  containerState.$hostsStaging$.clear();
 
   const doc = getDocument(containerEl);
-  const platform = getPlatform(containerEl);
-  const renderingQueue = Array.from(state.hostsRendering);
+  const platform = containerState.$platform$;
+  const renderingQueue = Array.from(hostsRendering);
   sortNodes(renderingQueue);
 
-  const ctx: RenderContext = {
-    doc,
-    globalState: state,
-    hostElements: new Set(),
-    operations: [],
-    roots: [],
-    containerEl,
-    components: [],
-    perf: {
-      visited: 0,
-      timing: [],
-    },
-  };
+  const ctx = createRenderContext(doc, containerState, containerEl);
 
   for (const el of renderingQueue) {
-    if (!ctx.hostElements.has(el)) {
-      ctx.roots.push(el);
+    if (!ctx.$hostElements$.has(el)) {
+      ctx.$roots$.push(el);
       try {
         await renderComponent(ctx, getContext(el));
       } catch (e) {
-        logError('Render failed', e, el);
+        logError(codeToText(QError_errorWhileRendering), e);
       }
     }
   }
 
   // Early exist, no dom operations
-  if (ctx.operations.length === 0) {
-    if (qDev) {
-      if (typeof window !== 'undefined' && window.document != null) {
-        logDebug('Render stats. No operations.');
-        printRenderStats(ctx);
-      }
-    }
-    postRendering(containerEl, state, ctx);
+  if (ctx.$operations$.length === 0) {
+    printRenderStats(ctx);
+    postRendering(containerEl, containerState, ctx);
     return ctx;
   }
 
   return platform.raf(() => {
     executeContextWithSlots(ctx);
-    if (qDev) {
-      if (typeof window !== 'undefined' && window.document != null) {
-        printRenderStats(ctx);
-      }
-    }
-    postRendering(containerEl, state, ctx);
+    printRenderStats(ctx);
+    postRendering(containerEl, containerState, ctx);
     return ctx;
   });
-}
+};
 
-async function postRendering(containerEl: Element, state: RenderingState, ctx: RenderContext) {
-  // Run useEffect() watch
-  const promises: Promise<WatchDescriptor>[] = [];
-  state.watchNext.forEach((watch) => {
-    promises.push(runWatch(watch));
+export const postRendering = async (
+  containerEl: Element,
+  containerState: ContainerState,
+  ctx: RenderContext
+) => {
+  await executeWatchesAfter(containerState, (watch, stage) => {
+    if ((watch.$flags$ & WatchFlagsIsEffect) === 0) {
+      return false;
+    }
+    if (stage) {
+      return ctx.$hostElements$.has(watch.$el$);
+    }
+    return true;
   });
-  state.watchNext.clear();
 
-  // Run staging effected
-  state.watchStaging.forEach((watch) => {
-    if (ctx.hostElements.has(watch.el)) {
-      promises.push(runWatch(watch));
-    } else {
-      state.watchNext.add(watch);
+  // Clear staging
+  containerState.$hostsStaging$.forEach((el) => {
+    containerState.$hostsNext$.add(el);
+  });
+  containerState.$hostsStaging$.clear();
+
+  containerState.$hostsRendering$ = undefined;
+  containerState.$renderPromise$ = undefined;
+
+  if (containerState.$hostsNext$.size + containerState.$watchNext$.size > 0) {
+    scheduleFrame(containerEl, containerState);
+  }
+};
+
+const executeWatchesBefore = async (containerState: ContainerState) => {
+  const resourcesPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
+  const watchPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
+  const isWatch = (watch: SubscriberDescriptor) => (watch.$flags$ & WatchFlagsIsWatch) !== 0;
+  const isResourceWatch = (watch: SubscriberDescriptor) =>
+    (watch.$flags$ & WatchFlagsIsResource) !== 0;
+
+  containerState.$watchNext$.forEach((watch) => {
+    if (isWatch(watch)) {
+      watchPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
+      containerState.$watchNext$.delete(watch);
+    }
+    if (isResourceWatch(watch)) {
+      resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
+      containerState.$watchNext$.delete(watch);
     }
   });
-  state.watchStaging.clear();
+  do {
+    // Run staging effected
+    containerState.$watchStaging$.forEach((watch) => {
+      if (isWatch(watch)) {
+        watchPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
+      } else if (isResourceWatch(watch)) {
+        resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
+      } else {
+        containerState.$watchNext$.add(watch);
+      }
+    });
 
-  // Wait for all promises
-  await Promise.all(promises);
+    containerState.$watchStaging$.clear();
 
-  // Clear staging
-  state.hostsStaging.forEach((el) => {
-    state.hostsNext.add(el);
-  });
-  state.hostsStaging.clear();
+    // Wait for all promises
+    if (watchPromises.length > 0) {
+      const watches = await Promise.all(watchPromises);
+      sortWatches(watches);
+      await Promise.all(
+        watches.map((watch) => {
+          return runSubscriber(watch, containerState);
+        })
+      );
+      watchPromises.length = 0;
+    }
+  } while (containerState.$watchStaging$.size > 0);
 
-  // Clear staging
-  state.watchStaging.forEach((watch) => {
-    state.watchNext.add(watch);
-  });
-  state.watchStaging.clear();
-
-  state.hostsRendering = undefined;
-  state.renderPromise = undefined;
-
-  if (state.hostsNext.size + state.watchNext.size > 0) {
-    scheduleFrame(containerEl, state);
+  if (resourcesPromises.length > 0) {
+    const resources = await Promise.all(resourcesPromises);
+    sortWatches(resources);
+    resources.forEach((watch) => runSubscriber(watch, containerState));
   }
-}
+};
 
-function sortNodes(elements: Element[]) {
+const executeWatchesAfter = async (
+  containerState: ContainerState,
+  watchPred: (watch: SubscriberDescriptor, staging: boolean) => boolean
+) => {
+  const watchPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
+
+  containerState.$watchNext$.forEach((watch) => {
+    if (watchPred(watch, false)) {
+      watchPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
+      containerState.$watchNext$.delete(watch);
+    }
+  });
+  do {
+    // Run staging effected
+    containerState.$watchStaging$.forEach((watch) => {
+      if (watchPred(watch, true)) {
+        watchPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
+      } else {
+        containerState.$watchNext$.add(watch);
+      }
+    });
+    containerState.$watchStaging$.clear();
+
+    // Wait for all promises
+    if (watchPromises.length > 0) {
+      const watches = await Promise.all(watchPromises);
+      sortWatches(watches);
+      await Promise.all(
+        watches.map((watch) => {
+          return runSubscriber(watch, containerState);
+        })
+      );
+      watchPromises.length = 0;
+    }
+  } while (containerState.$watchStaging$.size > 0);
+};
+
+const sortNodes = (elements: Element[]) => {
   elements.sort((a, b) => (a.compareDocumentPosition(b) & 2 ? 1 : -1));
-}
+};
+
+const sortWatches = (watches: SubscriberDescriptor[]) => {
+  watches.sort((a, b) => {
+    if (a.$el$ === b.$el$) {
+      return a.$index$ < b.$index$ ? -1 : 1;
+    }
+    return (a.$el$.compareDocumentPosition(b.$el$) & 2) !== 0 ? 1 : -1;
+  });
+};

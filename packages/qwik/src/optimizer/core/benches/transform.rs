@@ -184,19 +184,20 @@ fn transform_todo_app(b: &mut Bencher) {
         });
       "#;
       transform_modules(TransformModulesOptions {
-          root_dir: "/user/qwik/src/".into(),
+        src_dir: "/user/qwik/src/".into(),
           input: vec![TransformModuleInput {
               code: code.into(),
               path: "file.tsx".into(),
           }],
           source_maps: false,
-          explicity_extensions: false,
+          explicit_extensions: false,
           minify: MinifyMode::Simplify,
           transpile_ts: true,
           transpile_jsx: JSXMode::Vdom,
           entry_strategy: EntryStrategy::Single,
           dev: true,
           scope: None,
+          strip_exports: None,
       })
   });
 }

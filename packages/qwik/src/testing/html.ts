@@ -1,4 +1,7 @@
-import { isTemplate } from './jsx';
+export function isTemplate(node: Node | null | undefined): node is HTMLTemplateElement {
+  const tagName = (node && (node as Element).tagName) || '';
+  return tagName.toUpperCase() == 'TEMPLATE';
+}
 
 export function prettyHtml(element: HTMLElement, prefix: string = ''): any {
   const lines = [];
@@ -23,7 +26,7 @@ export function prettyHtml(element: HTMLElement, prefix: string = ''): any {
 }
 
 export function isElement(value: any): value is HTMLElement {
-  return isNode(value) && value.nodeType == 1 /* NodeType.ELEMENT_NODE */;
+  return isNode(value) && value.nodeType == 1;
 }
 
 export function isNode(value: any): value is Node {

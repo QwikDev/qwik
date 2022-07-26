@@ -25,6 +25,8 @@ export interface StarterData {
   description: string;
   readme: string | null;
   dir: string;
+  selectServer: boolean;
   priority: number;
   featureOptions: string[];
+  featureEnabled: string[];
 }

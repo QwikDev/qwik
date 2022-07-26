@@ -1,0 +1,27 @@
+---
+title: Prefetching
+---
+
+# Prefetching
+
+**QUESTION**: *Is lazy loading on user events slow because the user must wait for the code to download?*
+
+Yes, that would create a noticeable delay, especially on slow 3G networks. This is why code pre-fetching is an important part of Qwik applications.
+
+Prefetching code ensures that all of the necessary code for running the application is fetched immediately on navigating to the page. This way, when the user performs an action, the code for that action comes from the pre-fetch cache rather than the network. The result is that the code execution is instant. 
+
+Open this page in DevTools and scroll to the button of `<body>` element. Notice presence of `<link href="..." rel="prefetch" as="script">` elements. These elements direct the browser to prefetch the code for the page.
+
+**QUESTION**: *Doesn't code prefetch results in the same behavior as existing frameworks that download and execute all of the code eagerly?*
+
+No, for several reasons:
+- Existing frameworks must download and execute all of the code (hydration) before the application can be interactive. Typically the download of the code is a smaller time cost than the execution of the code.
+- Qwik code prefetch only downloads but does not execute the code. Therefore even if Qwik prefetches the same amount of code as the existing frameworks, the result is significant time cost savings.
+- Qwik prefetches only the code which is needed for the current page. Qwik never downloads code associated with components that are static. In the worst case, Qwik prefetches the same amount of code as the existing frameworks' best case. In most cases, Qwik prefetches a small fraction of code compared to the existing frameworks.
+- Prefetching of code can happen on other threads than the main thread. Many browsers can even pre-parse the AST of the code off the main thread. 
+- If the user interaction happens before the prefetch is completed, the browser will automatically prioritize the interaction chunk before the remaining prefetch chunks.
+- Qwik can break up the application into many small chunks, and these chunks can be downloaded in the order of probability that the user will interact with them. Existing frameworks have trouble breaking up applications into small chunks, and there is no easy way to prioritize the chunk download order because hydration requires a single "main" entry point to the application.
+
+**QUESTION**: *Who is responsible for knowing what code to prefetch?*
+
+Qwik can automatically generate the prefetch instructions as part of the SSR rendering. By executing the application, Qwik has runtime knowledge of which components are visible, which events the users can trigger and what code will need to be downloaded. The result is that the prefetch is an ideal set of files for this page. No action on the developers' part is required other than configuring the `renderToString()` with prefetching strategy.

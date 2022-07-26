@@ -1,6 +1,13 @@
 import type { Plugin as VitePlugin, UserConfig, ViteDevServer } from 'vite';
-import type { EntryStrategy, OptimizerOptions, QwikManifest, TransformModule } from '../types';
-import type { RenderToStringOptions, RenderToStringResult } from '../../../server';
+import type {
+  EntryStrategy,
+  GlobalInjections,
+  OptimizerOptions,
+  OptimizerSystem,
+  QwikManifest,
+  TransformModule,
+} from '../types';
+import type { Render, RenderToStreamOptions } from '../../../server';
 import {
   createPlugin,
   NormalizedQwikPluginOptions,
@@ -9,13 +16,17 @@ import {
   QwikPluginOptions,
   QwikBuildTarget,
   QWIK_CORE_ID,
-  QWIK_JSX_RUNTIME_ID,
   Q_MANIFEST_FILENAME,
   QWIK_CLIENT_MANIFEST_ID,
+  QWIK_BUILD_ID,
+  QwikPackages,
+  QWIK_JSX_RUNTIME_ID,
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import { versions } from '../versions';
+
+const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID];
 
 /**
  * @alpha
@@ -24,7 +35,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let isClientDevOnly = false;
   let clientDevInput: undefined | string = undefined;
   let tmpClientManifestPath: undefined | string = undefined;
-  let viteCommand: string = 'serve';
+  let viteCommand: 'build' | 'serve' = 'serve';
+  const injections: GlobalInjections[] = [];
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
   const vitePlugin: VitePlugin = {
@@ -51,12 +63,18 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       let target: QwikBuildTarget;
       if (viteConfig.build?.ssr || viteEnv.mode === 'ssr') {
         target = 'ssr';
+      } else if (viteEnv.mode === 'lib') {
+        target = 'lib';
       } else {
         target = 'client';
       }
 
       let buildMode: QwikBuildMode;
-      if (viteEnv.command === 'build' && viteEnv.mode !== 'development') {
+      if (viteEnv.mode === 'production') {
+        buildMode = 'production';
+      } else if (viteEnv.mode === 'development') {
+        buildMode = 'development';
+      } else if (viteEnv.command === 'build' && target === 'client') {
         // build (production)
         buildMode = 'production';
       } else {
@@ -64,19 +82,33 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         buildMode = 'development';
       }
 
-      if (buildMode === 'development') {
+      let forceFullBuild = true;
+      if (viteEnv.command === 'serve') {
         qwikViteOpts.entryStrategy = { type: 'hook' };
+        forceFullBuild = false;
+      } else {
+        forceFullBuild = true;
       }
 
+      const shouldFindVendors = target === 'client' || viteCommand === 'serve';
+      const vendorRoots = shouldFindVendors
+        ? await findQwikRoots(sys, path.join(sys.cwd(), 'package.json'))
+        : [];
       const pluginOpts: QwikPluginOptions = {
         target,
         buildMode,
         debug: qwikViteOpts.debug,
         entryStrategy: qwikViteOpts.entryStrategy,
         rootDir: viteConfig.root,
+        resolveQwikBuild: viteEnv.command === 'build',
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
+        forceFullBuild,
+        vendorRoots: vendorRoots.map((v) => v.path),
       };
 
+      if (viteEnv.command === 'serve') {
+        qwikViteOpts.entryStrategy = { type: 'hook' };
+      }
       if (target === 'ssr') {
         // ssr
         if (typeof viteConfig.build?.ssr === 'string') {
@@ -90,14 +122,39 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
         pluginOpts.outDir = qwikViteOpts.ssr?.outDir;
         pluginOpts.manifestInput = qwikViteOpts.ssr?.manifestInput;
-      } else {
+      } else if (target === 'client') {
         // client
         pluginOpts.input = qwikViteOpts.client?.input;
         pluginOpts.outDir = qwikViteOpts.client?.outDir;
         pluginOpts.manifestOutput = qwikViteOpts.client?.manifestOutput;
+      } else {
+        if (typeof viteConfig.build?.lib === 'object') {
+          pluginOpts.input = viteConfig.build?.lib.entry;
+        }
+        pluginOpts.outDir = viteConfig.build?.outDir;
       }
 
       if (sys.env === 'node') {
+        const fs: typeof import('fs') = await sys.dynamicImport('fs');
+
+        try {
+          const rootDir = pluginOpts.rootDir ?? sys.cwd();
+          const packageJsonPath = sys.path.join(rootDir, 'package.json');
+          const pkgString = await fs.promises.readFile(packageJsonPath, 'utf-8');
+
+          try {
+            const data = JSON.parse(pkgString);
+
+            if (typeof data.name === 'string') {
+              pluginOpts.scope = data.name;
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        } catch (e) {
+          // error reading package.json from nodejs fs, ok to ignore
+        }
+
         // In a NodeJs environment, create a path to a q-manifest.json file within the
         // OS tmp directory. This path should always be the same for both client and ssr.
         // Client build will write to this path, and SSR will read from it. For this reason,
@@ -108,7 +165,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         if (target === 'ssr' && !pluginOpts.manifestInput) {
           // This is a SSR build so we should load the client build's manifest
           // so it can be used as the manifestInput of the SSR build
-          const fs: typeof import('fs') = await sys.dynamicImport('fs');
           try {
             const clientManifestStr = await fs.promises.readFile(tmpClientManifestPath, 'utf-8');
             pluginOpts.manifestInput = JSON.parse(clientManifestStr);
@@ -131,11 +187,22 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
       clientDevInput = qwikPlugin.normalizePath(clientDevInput);
 
+      const vendorIds = vendorRoots.map((v) => v.id);
       const updatedViteConfig: UserConfig = {
-        esbuild: { include: /\.js$/ },
+        resolve: {
+          dedupe: [...DEDUPE, ...vendorIds],
+          conditions: [],
+        },
         optimizeDeps: {
-          include: [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID],
-          exclude: ['@vite/client', '@vite/env'],
+          exclude: [
+            '@vite/client',
+            '@vite/env',
+            QWIK_CORE_ID,
+            QWIK_JSX_RUNTIME_ID,
+            QWIK_BUILD_ID,
+            QWIK_CLIENT_MANIFEST_ID,
+            ...vendorIds,
+          ],
         },
         build: {
           outDir: opts.outDir,
@@ -143,6 +210,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             input: opts.input,
             preserveEntrySignatures: 'exports-only',
             output: normalizeRollupOutputOptions(path, opts, {}),
+            treeshake: {
+              moduleSideEffects: false,
+            },
             onwarn: (warning, warn) => {
               if (
                 warning.plugin === 'typescript' &&
@@ -162,9 +232,18 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       if (opts.target === 'ssr') {
         // SSR Build
-        updatedViteConfig.build!.ssr = true;
-        updatedViteConfig.publicDir = false;
+        if (viteCommand === 'serve') {
+          updatedViteConfig.ssr = {
+            noExternal: vendorIds,
+          };
+        } else {
+          updatedViteConfig.publicDir = false;
+          updatedViteConfig.build!.ssr = true;
+        }
       } else if (opts.target === 'client') {
+        if (buildMode === 'production') {
+          updatedViteConfig.resolve!.conditions = ['min'];
+        }
         // Client Build
         if (isClientDevOnly) {
           updatedViteConfig.build!.rollupOptions!.input = clientDevInput;
@@ -215,7 +294,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (isClientDevOnly && id === VITE_CLIENT_MODULE) {
         return getViteDevModule(opts);
       }
-      if (viteCommand === 'server' && id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
+      if (viteCommand === 'serve' && id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
         return {
           code: 'export const manifest = undefined;',
         };
@@ -253,7 +332,22 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               dynamicImports: b.dynamicImports,
               size: b.code.length,
             });
+          } else {
+            if (fileName.endsWith('.css')) {
+              injections.push({
+                tag: 'link',
+                location: 'head',
+                attributes: {
+                  rel: 'stylesheet',
+                  href: `/${fileName}`,
+                },
+              });
+            }
           }
+        }
+
+        for (const i of injections) {
+          outputAnalyzer.addInjection(i);
         }
 
         const optimizer = qwikPlugin.getOptimizer();
@@ -261,9 +355,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         manifest.platform = {
           ...versions,
           vite: '',
+          rollup: this.meta?.rollupVersion || '',
           env: optimizer.sys.env,
           os: optimizer.sys.os,
         };
+        if (optimizer.sys.env === 'node') {
+          manifest.platform.node = process.versions.node;
+        }
 
         const clientManifestStr = JSON.stringify(manifest, null, 2);
         this.emitFile({
@@ -300,11 +398,18 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // polyfill fetch() when not available in NodeJS
         qwikPlugin.log(`configureServer(), patch fetch()`);
 
-        const nodeFetch = await sys.dynamicImport('node-fetch');
-        global.fetch = nodeFetch;
-        global.Headers = nodeFetch.Headers;
-        global.Request = nodeFetch.Request;
-        global.Response = nodeFetch.Response;
+        try {
+          if (!globalThis.fetch) {
+            const nodeFetch = await sys.strictDynamicImport('node-fetch');
+            global.fetch = nodeFetch.default;
+            global.Headers = nodeFetch.Headers;
+            global.Request = nodeFetch.Request;
+            global.Response = nodeFetch.Response;
+          }
+        } catch {
+          console.warn('Global fetch() was not installed');
+          // Nothing
+        }
       }
 
       server.middlewares.use(async (req, res, next) => {
@@ -323,90 +428,113 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         }
 
         try {
-          if (isClientDevOnly) {
-            qwikPlugin.log(`handleClientEntry("${url}")`);
-
-            const relPath = path.relative(opts.rootDir, clientDevInput!);
-            const entryUrl = '/' + qwikPlugin.normalizePath(relPath);
-
-            let html = getViteDevIndexHtml(entryUrl);
-            html = await server.transformIndexHtml(pathname, html);
-
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            res.setHeader('Cache-Control', 'no-cache');
-            res.setHeader('Access-Control-Allow-Origin', '*');
-            res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
-            res.writeHead(200);
-            res.end(html);
-            return;
-          }
-
-          qwikPlugin.log(`handleSSR("${url}"), ssr input: ${opts.input[0]}`);
-          const { render } = await server.ssrLoadModule(opts.input[0], {
-            fixStacktrace: true,
-          });
-          if (render) {
-            const manifest: QwikManifest = {
-              symbols: {},
-              mapping: {},
-              bundles: {},
-              injections: [],
-              version: '1',
+          if (req.headers.accept && req.headers.accept.includes('text/html')) {
+            const userContext: Record<string, any> = {
+              ...(res as QwikViteDevResponse)._qwikUserCtx,
             };
 
-            Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
-              entry[1].forEach((v) => {
-                const hook = v.info?.meta?.hook;
-                if (hook) {
+            const status = typeof res.statusCode === 'number' ? res.statusCode : 200;
+            if (isClientDevOnly) {
+              qwikPlugin.log(`handleClientEntry("${url}")`);
+
+              const relPath = path.relative(opts.rootDir, clientDevInput!);
+              const entryUrl = '/' + qwikPlugin.normalizePath(relPath);
+
+              let html = getViteDevIndexHtml(entryUrl, userContext);
+              html = await server.transformIndexHtml(pathname, html);
+
+              res.setHeader('Content-Type', 'text/html; charset=utf-8');
+              res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0');
+              res.setHeader('Access-Control-Allow-Origin', '*');
+              res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
+              res.writeHead(status);
+
+              res.end(html);
+              return;
+            }
+
+            qwikPlugin.log(`handleSSR("${url}"), ssr input: ${opts.input[0]}`);
+
+            const ssrModule = await server.ssrLoadModule(opts.input[0], {
+              fixStacktrace: true,
+            });
+
+            const render: Render = ssrModule.default ?? ssrModule.render;
+
+            if (typeof render === 'function') {
+              const manifest: QwikManifest = {
+                symbols: {},
+                mapping: {},
+                bundles: {},
+                injections: [],
+                version: '1',
+              };
+
+              Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
+                entry[1].forEach((v) => {
+                  const hook = v.info?.meta?.hook;
                   let url = v.url;
                   if (v.lastHMRTimestamp) {
                     url += `?t=${v.lastHMRTimestamp}`;
                   }
-                  manifest.mapping[hook.name] = url;
-                }
+                  if (hook) {
+                    manifest.mapping[hook.name] = url;
+                  }
+
+                  const { pathId, query } = parseId(v.url);
+                  if (query === '' && pathId.endsWith('.css')) {
+                    manifest.injections!.push({
+                      tag: 'link',
+                      location: 'head',
+                      attributes: {
+                        rel: 'stylesheet',
+                        href: url,
+                      },
+                    });
+                  }
+                });
               });
-            });
 
-            qwikPlugin.log(`handleSSR()`, 'symbols', manifest);
+              qwikPlugin.log(`handleSSR()`, 'symbols', manifest);
 
-            const renderInputModule = await server.moduleGraph.getModuleByUrl(opts.input[0]!);
-            if (renderInputModule) {
-              renderInputModule.importedModules.forEach((moduleNode) => {
-                if (moduleNode.url.endsWith('.css')) {
-                  manifest.injections!.push({
-                    tag: 'link',
-                    location: 'head',
-                    attributes: {
-                      rel: 'stylesheet',
-                      href: moduleNode.url,
+              const renderOpts: RenderToStreamOptions = {
+                url: url.href,
+                debug: true,
+                stream: res,
+                snapshot: !isClientDevOnly,
+                manifest: isClientDevOnly ? undefined : manifest,
+                symbolMapper: isClientDevOnly
+                  ? undefined
+                  : (symbolName, mapper) => {
+                      if (mapper) {
+                        const hash = getSymbolHash(symbolName);
+                        return mapper[hash];
+                      }
                     },
-                  });
-                }
-              });
+                prefetchStrategy: null,
+                userContext,
+              };
+
+              res.setHeader('Content-Type', 'text/html; charset=utf-8');
+              res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0');
+              res.setHeader('Access-Control-Allow-Origin', '*');
+              res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
+              res.writeHead(status);
+
+              const result = await render(renderOpts);
+              // const html = await server.transformIndexHtml(pathname, result.html, req.originalUrl);
+              if ('html' in result) {
+                res.end((result as any).html);
+              } else {
+                res.end();
+              }
+            } else {
+              next();
             }
-
-            const renderToStringOpts: RenderToStringOptions = {
-              url: url.href,
-              debug: true,
-              manifest: isClientDevOnly ? undefined : manifest,
-              snapshot: !isClientDevOnly,
-              prefetchStrategy: null,
-            };
-
-            const result: RenderToStringResult = await render(renderToStringOpts);
-            const html = await server.transformIndexHtml(pathname, result.html, req.originalUrl);
-
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            res.setHeader('Cache-Control', 'no-cache');
-            res.setHeader('Access-Control-Allow-Origin', '*');
-            res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
-            res.writeHead(200);
-            res.end(html);
           } else {
             next();
           }
         } catch (e: any) {
-          server.ssrFixStacktrace(e);
           next(e);
         }
       });
@@ -429,13 +557,24 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   return vitePlugin;
 }
 
-function getViteDevIndexHtml(entryUrl: string) {
-  return `<!-- Qwik Vite Dev Mode -->
-<!DOCTYPE html>
+function getViteDevIndexHtml(entryUrl: string, userContext: Record<string, any>) {
+  return `<!DOCTYPE html>
 <html>
-  <head></head>
+  <head>
+  </head>
   <body>
-    <script type="module" src="${entryUrl}?${VITE_DEV_CLIENT_QS}="></script>
+    <script type="module">
+    async function main() {
+      const mod = await import("${entryUrl}?${VITE_DEV_CLIENT_QS}=");
+      if (mod.default) {
+        const userContext = JSON.parse(${JSON.stringify(JSON.stringify(userContext))})
+        mod.default({
+          userContext,
+        });
+      }
+    }
+    main();
+    </script>
   </body>
 </html>`;
 }
@@ -453,14 +592,9 @@ function getViteDevModule(opts: NormalizedQwikPluginOptions) {
   return `// Qwik Vite Dev Module
 import { render as qwikRender } from '@builder.io/qwik';
 
-export function render(document, rootNode) {
-  const headNodes = [];
-  document.head.childNodes.forEach(n => headNodes.push(n));
-  document.head.textContent = '';
+export async function render(document, rootNode, opts) {
 
-  qwikRender(document, rootNode);
-
-  headNodes.forEach(n => document.head.appendChild(n));
+  await qwikRender(document, rootNode, opts);
 
   let qwikLoader = document.getElementById('qwikloader');
   if (!qwikLoader) {
@@ -476,6 +610,68 @@ export function render(document, rootNode) {
   }
 }`;
 }
+
+const getSymbolHash = (symbolName: string) => {
+  const index = symbolName.lastIndexOf('_');
+  if (index > -1) {
+    return symbolName.slice(index + 1);
+  }
+  return symbolName;
+};
+
+const findQwikRoots = async (
+  sys: OptimizerSystem,
+  packageJsonPath: string
+): Promise<QwikPackages[]> => {
+  if (sys.env === 'node') {
+    const fs: typeof import('fs') = await sys.dynamicImport('fs');
+    const { resolvePackageData }: typeof import('vite') = await sys.strictDynamicImport('vite');
+
+    try {
+      const data = await fs.promises.readFile(packageJsonPath, { encoding: 'utf-8' });
+
+      try {
+        const packageJson = JSON.parse(data);
+        const dependencies = packageJson['dependencies'];
+        const devDependencies = packageJson['devDependencies'];
+
+        const packages: string[] = [];
+        if (typeof dependencies === 'object') {
+          packages.push(...Object.keys(dependencies));
+        }
+        if (typeof devDependencies === 'object') {
+          packages.push(...Object.keys(devDependencies));
+        }
+
+        const basedir = sys.cwd();
+        const qwikDirs = packages
+          .map((id) => {
+            const pkgData = resolvePackageData(id, basedir);
+            if (pkgData) {
+              const qwikPath = pkgData.data['qwik'];
+              if (qwikPath) {
+                return {
+                  id,
+                  path: sys.path.resolve(pkgData.dir, qwikPath),
+                };
+              }
+            }
+          })
+          .filter(isNotNullable);
+        return qwikDirs;
+      } catch (e) {
+        console.error(e);
+      }
+    } catch (e) {
+      // ignore errors if root package.json not found
+    }
+  }
+  return [];
+};
+
+export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
+  return v != null;
+};
 
 const VITE_CLIENT_MODULE = `@builder.io/qwik/vite-client`;
 const VITE_DEV_CLIENT_QS = `qwik-vite-dev-client`;
@@ -558,4 +754,8 @@ export interface QwikVitePluginOptions {
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
+}
+
+export interface QwikViteDevResponse {
+  _qwikUserCtx?: Record<string, any>;
 }

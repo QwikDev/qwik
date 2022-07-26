@@ -58,7 +58,7 @@ export const Item = component$(
             ref={editInput}
             value={props.item.title}
             onBlur$={() => (state.editing = false)}
-            onKeyup$={(event: any) => {
+            onKeyUp$={(event: any) => {
               const inputValue = (event.target as HTMLInputElement).value;
               props.item.title = inputValue;
               if (event.key === 'Enter') {

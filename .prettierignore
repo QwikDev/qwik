@@ -9,6 +9,7 @@
 .mf
 dist
 dist-dev
+lib
 etc
 external
 node_modules
@@ -22,6 +23,6 @@ build
 build
 node_modules
 tsconfig.tsbuildinfo
-packages/docs/pages/**/*.mdx
+packages/docs/src/pages/**/*.mdx
 packages/docs/server/
 starters/**/*.js

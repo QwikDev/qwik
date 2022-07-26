@@ -1,8 +1,9 @@
-import { BuildConfig, copyFile, emptyDir, importPath, mkdir, stat } from './util';
+import { BuildConfig, copyFile, emptyDir, importPath, mkdir, nodeTarget, stat } from './util';
 import { build } from 'esbuild';
 import { basename, join } from 'path';
 import { getBanner, readdir, watcher, run } from './util';
 import { readPackageJson, writePackageJson } from './package-json';
+import { existsSync } from 'fs';
 
 const PACKAGE = 'create-qwik';
 
@@ -11,18 +12,7 @@ export async function buildCli(config: BuildConfig) {
   const distCliDir = join(srcCliDir, 'dist');
 
   await bundleCli(config, srcCliDir, distCliDir);
-
-  const distStartersDir = join(distCliDir, 'starters');
-  await mkdir(distStartersDir);
-
-  const copyDirs = ['apps', 'servers', 'features'];
-  await Promise.all(
-    copyDirs.map(async (dirName) => {
-      const srcDir = join(config.startersDir, dirName);
-      const distDir = join(distStartersDir, dirName);
-      await copyDir(config, srcDir, distDir);
-    })
-  );
+  await copyStartersDir(config, distCliDir);
 
   await copyFile(join(srcCliDir, 'package.json'), join(distCliDir, 'package.json'));
   await copyFile(join(srcCliDir, 'README.md'), join(distCliDir, 'README.md'));
@@ -38,12 +28,12 @@ async function bundleCli(config: BuildConfig, srcCliDir: string, distCliDir: str
     outfile: join(distCliDir, PACKAGE),
     bundle: true,
     sourcemap: false,
-    target: 'node10',
+    target: nodeTarget,
     platform: 'node',
     minify: !config.dev,
     plugins: [importPath(/api$/, './index.js')],
     banner: {
-      js: `#! /usr/bin/env node\n${getBanner(PACKAGE)}`,
+      js: `${getBanner(PACKAGE)}`,
     },
     watch: watcher(config),
   });
@@ -53,7 +43,7 @@ async function bundleCli(config: BuildConfig, srcCliDir: string, distCliDir: str
     outfile: join(distCliDir, 'index.js'),
     bundle: true,
     sourcemap: false,
-    target: 'node10',
+    target: 'node14',
     platform: 'node',
     minify: !config.dev,
     banner: {
@@ -84,6 +74,7 @@ export async function publishStarterCli(
 
   console.log(`   update devDependencies["@builder.io/qwik"] = "${version}"`);
   baseAppPkg.devDependencies['@builder.io/qwik'] = version;
+  baseAppPkg.devDependencies['eslint-plugin-qwik'] = version;
 
   const rootPkg = await readPackageJson(config.rootDir);
   const typescriptDepVersion = rootPkg.devDependencies!.typescript;
@@ -107,6 +98,30 @@ export async function publishStarterCli(
   console.log(
     `🐳 published version "${version}" of ${cliPkg.name} with dist-tag "${distTag}" to npm`,
     isDryRun ? '(dry-run)' : ''
+  );
+}
+
+async function copyStartersDir(config: BuildConfig, distCliDir: string) {
+  const distStartersDir = join(distCliDir, 'starters');
+  await mkdir(distStartersDir);
+
+  const copyDirs = ['apps', 'servers', 'features'];
+  await Promise.all(
+    copyDirs.map(async (dirName) => {
+      const srcDir = join(config.startersDir, dirName);
+      const distDir = join(distStartersDir, dirName);
+      await copyDir(config, srcDir, distDir);
+
+      const distStartersDirs = await readdir(distDir);
+      await Promise.all(
+        distStartersDirs.map(async (distStartersDir) => {
+          const pkgJsonPath = join(distDir, distStartersDir, 'package.json');
+          if (!existsSync(pkgJsonPath)) {
+            throw new Error(`CLI starter missing package.json: ${pkgJsonPath}`);
+          }
+        })
+      );
+    })
   );
 }
 
@@ -155,6 +170,7 @@ async function updatePackageJson(config: BuildConfig, destDir: string) {
   setVersionFromRoot('eslint');
   setVersionFromRoot('prettier');
   setVersionFromRoot('typescript');
+  setVersionFromRoot('node-fetch');
   setVersionFromRoot('vite');
 
   await writePackageJson(destDir, pkgJson);

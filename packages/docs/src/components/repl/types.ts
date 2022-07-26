@@ -1,4 +1,9 @@
-import type { Diagnostic, QwikManifest, QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
+import type {
+  Diagnostic,
+  QwikManifest,
+  QwikRollupPluginOptions,
+  TransformModule,
+} from '@builder.io/qwik/optimizer';
 import type { NoSerialize } from '@builder.io/qwik';
 
 export interface ReplAppInput {
@@ -9,35 +14,35 @@ export interface ReplAppInput {
   entryStrategy: string;
 }
 
-export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir' | 'minify'> {
+export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir'> {
   buildId: number;
   srcInputs: ReplModuleInput[];
   version: string;
   buildMode: 'development' | 'production';
+  serverUrl: string;
 }
 
 export interface ReplStore {
   clientId: string;
   html: string;
-  clientModules: ReplModuleOutput[];
+  transformedModules: TransformModule[];
+  clientBundles: ReplModuleOutput[];
   ssrModules: ReplModuleOutput[];
   diagnostics: Diagnostic[];
   monacoDiagnostics: Diagnostic[];
   selectedInputPath: string;
   selectedOutputPanel: OutputPanel;
   selectedOutputDetail: OutputDetail;
-  selectedClientModule: string;
-  selectedSsrModule: string;
   enableHtmlOutput: boolean;
   enableClientOutput: boolean;
   enableSsrOutput: boolean;
-  enableConsole: boolean;
   ssrBuild: boolean;
   debug: boolean;
   serverUrl: string;
   serverWindow: NoSerialize<MessageEventSource> | null;
   versions: string[];
   events: ReplEvent[];
+  isLoading: boolean;
 }
 
 export interface ReplModuleInput {
@@ -48,9 +53,8 @@ export interface ReplModuleInput {
 
 export interface ReplModuleOutput {
   path: string;
-  isEntry: boolean;
   code: string;
-  size: string;
+  size?: string;
 }
 
 export interface ReplMessageBase {
@@ -58,7 +62,12 @@ export interface ReplMessageBase {
   clientId: string;
 }
 
-export type ReplMessage = ReplUpdateMessage | ReplEventMessage | ReplReadyMessage | ReplResult;
+export type ReplMessage =
+  | ReplUpdateMessage
+  | ReplEventMessage
+  | ReplReadyMessage
+  | ReplAppLoadedMessage
+  | ReplResult;
 
 export interface ReplUpdateMessage extends ReplMessageBase {
   type: 'update';
@@ -72,6 +81,10 @@ export interface ReplEventMessage extends ReplMessageBase {
 
 export interface ReplReadyMessage extends ReplMessageBase {
   type: 'replready';
+}
+
+export interface ReplAppLoadedMessage extends ReplMessageBase {
+  type: 'apploaded';
 }
 
 export interface ReplEvent {
@@ -96,13 +109,20 @@ export interface ReplResult extends ReplMessageBase {
   type: 'result';
   buildId: number;
   html: string;
-  clientModules: ReplModuleOutput[];
+  transformedModules: TransformModule[];
+  clientBundles: ReplModuleOutput[];
   ssrModules: ReplModuleOutput[];
   manifest: QwikManifest | undefined;
   diagnostics: Diagnostic[];
   events: ReplEvent[];
 }
 
-export type OutputPanel = 'app' | 'html' | 'clientModules' | 'serverModules' | 'diagnostics';
+export type OutputPanel =
+  | 'app'
+  | 'html'
+  | 'symbols'
+  | 'clientBundles'
+  | 'serverModules'
+  | 'diagnostics';
 
 export type OutputDetail = 'options' | 'console';

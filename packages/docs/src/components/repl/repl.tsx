@@ -16,35 +16,37 @@ import type { ReplStore, ReplUpdateMessage, ReplMessage, ReplAppInput } from './
 import { ReplDetailPanel } from './repl-detail-panel';
 import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
+import replServerUrl from '@repl-server-url';
 
-export const Repl = component$(async (props: ReplProps) => {
+export const Repl = component$((props: ReplProps) => {
   useScopedStyles$(styles);
 
   const input = props.input;
 
   const store = useStore(() => {
     const initStore: ReplStore = {
-      clientId: Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36),
+      clientId: Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
+        .toString(36)
+        .toLowerCase(),
       html: '',
-      clientModules: [],
+      transformedModules: [],
+      clientBundles: [],
       ssrModules: [],
       diagnostics: [],
       monacoDiagnostics: [],
       enableClientOutput: props.enableClientOutput !== false,
       enableHtmlOutput: props.enableHtmlOutput !== false,
       enableSsrOutput: props.enableSsrOutput !== false,
-      enableConsole: true,
       selectedInputPath: '',
       selectedOutputPanel: 'app',
       selectedOutputDetail: 'console',
-      selectedClientModule: '',
-      selectedSsrModule: '',
       ssrBuild: true,
       debug: false,
       serverUrl: 'about:blank',
       serverWindow: null,
       versions: [],
       events: [],
+      isLoading: true,
     };
     return initStore;
   });
@@ -79,11 +81,10 @@ export const Repl = component$(async (props: ReplProps) => {
   useClientEffect$(async () => {
     // only run on the client
     const v = await getReplVersion(input.version);
-
     if (v.version) {
       store.versions = v.versions;
       input.version = v.version;
-      store.serverUrl = `/repl/repl-server.html#${store.clientId}`;
+      store.serverUrl = new URL(replServerUrl + '#' + store.clientId, origin).href;
 
       window.addEventListener('message', (ev) => receiveMessageFromReplServer(ev, store));
     } else {
@@ -109,6 +110,8 @@ export const Repl = component$(async (props: ReplProps) => {
         store={store}
         onInputChangeQrl={onInputChange}
         onInputDeleteQrl={onInputDelete}
+        enableCopyToPlayground={props.enableCopyToPlayground}
+        enableDownload={props.enableDownload}
       />
       <ReplOutputPanel input={input} store={store} />
       <ReplDetailPanel input={input} store={store} />
@@ -129,7 +132,9 @@ export const receiveMessageFromReplServer = (ev: MessageEvent, store: ReplStore)
       updateReplOutput(store, msg);
     } else if (type === 'event') {
       // received an event from the user's app
-      store.events.push(msg.event);
+      store.events = [...store.events, msg.event];
+    } else if (type === 'apploaded') {
+      store.isLoading = false;
     }
   }
 };
@@ -148,6 +153,7 @@ export const sendUserUpdateToReplServer = (input: ReplAppInput, store: ReplStore
           type: input.entryStrategy as any,
         },
         version: input.version,
+        serverUrl: store.serverUrl,
       },
     };
 
@@ -164,4 +170,7 @@ export interface ReplProps {
   enableHtmlOutput?: boolean;
   enableClientOutput?: boolean;
   enableSsrOutput?: boolean;
+  enableInputDelete?: boolean;
+  enableDownload?: boolean;
+  enableCopyToPlayground?: boolean;
 }

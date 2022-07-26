@@ -22,15 +22,15 @@ export const Header = component$(
     });
 
     return (
-      <Host className="fixed top-0 z-40 w-full h-[56px]">
+      <Host>
         <div class="header-inner">
-          <div className="header-logo">
+          <div class="header-logo">
             <a href="/">
               <span className="sr-only">Qwik Homepage</span>
               <QwikLogo width={110} height={50} />
             </a>
           </div>
-          <button onClickQrl={toggleMenu} class="p-3 md:hidden fixed right-0" type="button">
+          <button onClickQrl={toggleMenu} class="mobile-menu" type="button">
             <span class="more-icon">
               <MoreIcon width={30} height={30} />
             </span>
@@ -45,15 +45,20 @@ export const Header = component$(
               </a>
             </li>
             <li>
+              <a href="/qwikcity/overview" onClickQrl={closeMenu}>
+                <span>Qwik City</span>
+              </a>
+            </li>
+            <li>
               <a href="/examples/introduction/hello-world" onClickQrl={closeMenu}>
                 <span>Examples</span>
               </a>
             </li>
-            {/* <li>
-              <a href="/tutorial/introduction/basics" onClickQrl={closeMenu}>
+            <li>
+              <a href="/tutorial/welcome/overview" onClickQrl={closeMenu}>
                 <span>Tutorial</span>
               </a>
-            </li> */}
+            </li>
             <li>
               <a href="/playground" onClickQrl={closeMenu}>
                 <span>Playground</span>

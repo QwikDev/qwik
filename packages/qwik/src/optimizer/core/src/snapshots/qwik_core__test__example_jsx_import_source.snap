@@ -19,27 +19,23 @@ export const App2 = qwikify$(() => (
 
 ============================= test.js ==
 
-import * as qwik from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 import { qwikifyQrl } from "./qwikfy";
 import { jsx as _jsx } from "react/jsx-runtime";
 export const App = ()=>/*#__PURE__*/ _jsx("div", {
         onClick$: ()=>console.log('App')
     })
 ;
-export const App2 = qwikifyQrl(qwik.qrl(()=>import("./app2_qwikify_rkjw7ocmds4.js")
+export const App2 = qwikifyQrl(qrl(()=>import("./app2_qwikify_rkjw7ocmds4.js")
 , "App2_qwikify_RKJW7oCMdS4"));
 
 ============================= app2_qwikify_rkjw7ocmds4.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "react/jsx-runtime";
 export const App2_qwikify_RKJW7oCMdS4 = ()=>/*#__PURE__*/ _jsx("div", {
         onClick$: ()=>console.log('App2')
     })
 ;
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {

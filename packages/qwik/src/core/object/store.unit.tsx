@@ -1,8 +1,5 @@
 import { createDocument } from '../../testing/document';
 import { useStore } from '../use/use-store.public';
-import { getContext, getProps } from '../props/props';
-import type { Props } from '../props/props.public';
-import { newInvokeContext, useInvoke } from '../use/use-core';
 import { render } from '../render/render.public';
 import { getQwikJSON } from './store';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
@@ -11,51 +8,74 @@ import { noSerialize } from './q-object';
 import { $ } from '../import/qrl.public';
 import { logDebug } from '../util/log';
 import { runtimeQrl } from '../import/qrl';
-import { pauseContainer } from '../object/store.public';
-import { RenderEvent } from '../util/markers';
+import { pauseContainer } from '../object/store';
 import { useDocument } from '../use/use-document.public';
 import { useHostElement } from '../use/use-host-element.public';
+import { suite } from 'uvu';
+import { equal } from 'uvu/assert';
 
-describe('store', () => {
-  let document: Document;
-  let div: HTMLElement;
-  let qDiv: Props;
+const storeSuite = suite('store');
 
-  beforeEach(() => {
-    document = createDocument();
-    div = document.createElement('div');
-    document.body.appendChild(div);
-    qDiv = getProps(getContext(div));
-  });
+storeSuite('should serialize content', async () => {
+  const document = createDocument();
+  const div = document.createElement('div');
+  document.body.appendChild(div);
 
-  it('should serialize content', async () => {
-    await render(
-      document.body,
-      <div>
-        <LexicalScope />
-      </div>
-    );
-    await pauseContainer(document.body);
-    const script = getQwikJSON(document.body)!;
-    expect(JSON.parse(script.textContent!)).toMatchSnapshot();
-  });
+  await render(
+    document.body,
+    <div>
+      <LexicalScope />
+    </div>
+  );
+  await pauseContainer(document.body);
+  const script = getQwikJSON(document.body)!;
 
-  it('should serialize cyclic graphs', () => {
-    useInvoke(newInvokeContext(document, div, div, RenderEvent), () => {
-      const foo = useStore({ mark: 'foo', bar: {} });
-      const bar = useStore({ mark: 'bar', foo: foo });
-      foo.bar = bar;
-      qDiv.foo = foo;
-
-      pauseContainer(document);
-
-      qDiv = getProps(getContext(div));
-      const foo2 = qDiv.foo;
-      const bar2 = foo2.bar;
-      expect(foo2.mark).toEqual('foo');
-      expect(bar2.mark).toEqual('bar');
-      expect(foo2.bar.foo).toStrictEqual(foo2);
-    });
+  equal(JSON.parse(script.textContent!), {
+    ctx: {
+      '#1': {
+        r: '0 1 2 l 8 e 7 6 h! l j #0 k',
+      },
+    },
+    objs: [
+      1,
+      'hola',
+      {
+        a: '3',
+        b: '1',
+        c: '5',
+        d: '6',
+        e: '7',
+        f: '8',
+        g: 'l',
+        h: '9',
+      },
+      {
+        thing: '4',
+      },
+      12,
+      123,
+      false,
+      true,
+      null,
+      ['0', 'a', '6', 'b', 'c'],
+      'string',
+      {
+        hola: '0',
+      },
+      ['d'],
+      'hello',
+      ['0', 'f', '1', 'g'],
+      2,
+      {},
+      {
+        count: 'i',
+      },
+      0,
+      '\u0011/runtimeQRL#s21',
+      '\u0012',
+      '\u0010',
+    ],
+    subs: [],
   });
 });
 
@@ -117,5 +137,7 @@ export const LexicalScope = component$(() => {
     el,
     doc,
   ]);
-  return <div onClickQrl={thing}></div>;
+  return <div onClick$={thing}></div>;
 });
+
+storeSuite.run();

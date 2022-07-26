@@ -1,0 +1,20 @@
+---
+title: Passing Stores
+layout: tutorial
+---
+
+In the previous tutorial, we have shown that Qwik assumes that all props are static for efficiency reasons. The previous example introduced you to `mutable()` which told Qwik that the props are mutable. 
+
+Besides the fact that typing `mutable()` is extra work, the previous example is also inefficient. When the user clicks on the `+1` it causes the `<App>` to be re-rendered so it can update the `<Display>` bindings. The re-rendering of `<App>` is needed to update the props of `<Display>` but there is no update to what the user sees, so it is a waste of resources.
+
+It would be more efficient to only re-render `<Display>` component. We can do that by passing in the `CountStore` rather than the `count` value. Because the store reference never changes the `<App>` component will not need to re-render.
+
+Change the code to pass in `store` rather than `store.count`.
+
+By making the above change we gain two benefits:
+- we remove `mutable()` from our component.
+- `<App>` does not need to be downloaded or re-rendered.
+
+## Best Practice
+
+It is considered best practice in Qwik to pass the store to the child component rather than pass the individual primitives which will require to be wrapped in `mutable()` to make the application work.

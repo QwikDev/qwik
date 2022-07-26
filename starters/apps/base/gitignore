@@ -1,6 +1,7 @@
 # Build
 build
 dist
+lib
 server
 functions/**/*.js
 
@@ -32,3 +33,7 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Yarn
+.yarn/*
+!.yarn/releases

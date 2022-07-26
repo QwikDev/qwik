@@ -10,11 +10,10 @@ export const sym1 = $((ctx) => console.log("1"));
 
 ============================= sym1_axurpxx5lak.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 export const sym1_aXUrPXX5Lak = (ctx)=>console.log("1")
 ;
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*
@@ -38,8 +37,8 @@ export { hW as handleWatch };
 */
 ============================= test.tsx ==
 
-import * as qwik from "@builder.io/qwik";
-export const sym1 = qwik.qrl(()=>import("./sym1_axurpxx5lak")
+import { qrl } from "@builder.io/qwik";
+export const sym1 = qrl(()=>import("./sym1_axurpxx5lak")
 , "sym1_aXUrPXX5Lak");
 
 == DIAGNOSTICS ==

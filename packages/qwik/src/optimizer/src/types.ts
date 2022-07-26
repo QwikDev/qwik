@@ -44,6 +44,7 @@ export interface OptimizerSystem {
   env: SystemEnvironment;
   os: string;
   dynamicImport: (path: string) => Promise<any>;
+  strictDynamicImport: (path: string) => Promise<any>;
   getInputFiles?: (rootDir: string) => Promise<TransformModuleInput[]>;
   path: Path;
 }
@@ -69,12 +70,12 @@ export type TranspileOption = boolean | undefined | null;
  * @alpha
  */
 export interface TransformOptions {
-  rootDir: string;
+  srcDir: string;
   entryStrategy?: EntryStrategy;
   minify?: MinifyMode;
   sourceMaps?: boolean;
   transpile?: boolean;
-  explicityExtensions?: boolean;
+  explicitExtensions?: boolean;
   dev?: boolean;
   scope?: string;
 }
@@ -89,7 +90,9 @@ export interface TransformModulesOptions extends TransformOptions {
 /**
  * @alpha
  */
-export interface TransformFsOptions extends TransformOptions {}
+export interface TransformFsOptions extends TransformOptions {
+  vendorRoots: string[];
+}
 
 // OPTION INPUTS ***************
 
@@ -255,6 +258,14 @@ export interface QwikManifest {
 }
 
 export type SymbolMapper = Record<string, [symbol: string, chunk: string]>;
+
+/**
+ * @alpha
+ */
+export type SymbolMapperFn = (
+  symbolName: string,
+  mapper: SymbolMapper | undefined
+) => [symbol: string, chunk: string] | undefined;
 
 /**
  * @alpha

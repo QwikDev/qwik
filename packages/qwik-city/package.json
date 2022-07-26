@@ -1,63 +1,79 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.0.7",
+  "version": "0.0.26",
   "description": "Static Site Generator for Qwik",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
-  "scripts": {
-    "build": "yarn node -r esbuild-register scripts/build.ts && npm run build.api",
-    "build.api": "tsc && api-extractor run -c src/runtime/api-extractor.json --local && api-extractor run -c src/vite/api-extractor.json --local",
-    "test": "uvu -r tsm src/vite/tests"
-  },
-  "dependencies": {
-    "@mdx-js/mdx": "^2.1.1",
-    "@types/mdx": "2.0.2"
-  },
-  "devDependencies": {
-    "@builder.io/qwik": "0.0.21-0",
-    "@microsoft/api-extractor": "7.24.0",
-    "@types/github-slugger": "^1.3.0",
-    "@types/marked": "^4.0.3",
-    "@types/refractor": "^3.0.2",
-    "estree-util-value-to-estree": "^1.3.0",
-    "front-matter": "^4.0.2",
-    "github-slugger": "^1.4.0",
-    "hast-util-heading-rank": "^2.1.0",
-    "hast-util-to-string": "^2.0.0",
-    "history": "^5.3.0",
-    "marked": "^4.0.16",
-    "monaco-editor": "^0.33.0",
-    "refractor": "^4.7.0",
-    "rehype-autolink-headings": "^6.1.1",
-    "remark-frontmatter": "^4.0.1",
-    "remark-gfm": "^3.0.1",
-    "slugify": "^1.6.5",
-    "source-map": "^0.7.3",
-    "tsm": "^2.2.1",
-    "typescript": "4.6.4",
-    "unified": "^10.1.2",
-    "unist-util-visit": "^4.1.0",
-    "uvu": "^0.5.3",
-    "vfile": "^5.3.2"
-  },
+  "main": "./lib/index.qwik.cjs",
+  "module": "./lib/index.qwik.mjs",
+  "qwik": "./lib/index.qwik.cjs",
+  "types": "./lib/index.d.ts",
+  "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "import": "./lib/index.qwik.mjs",
+      "require": "./lib/index.qwik.cjs"
+    },
+    "./middleware/cloudflare-pages": {
+      "import": "./lib/middleware/cloudflare-pages/index.mjs"
+    },
+    "./middleware/express": {
+      "import": "./lib/middleware/express/index.mjs",
+      "require": "./lib/middleware/express/index.cjs"
+    },
+    "./middleware/netlify-edge": {
+      "import": "./lib/middleware/netlify-edge/index.mjs"
     },
     "./vite": {
-      "import": "./dist/vite/index.mjs",
-      "require": "./dist/vite/index.cjs"
-    },
-    "./build": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "import": "./lib/vite/index.mjs",
+      "require": "./lib/vite/index.cjs"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "scripts": {
+    "start": "cd runtime && node --inspect ../../../node_modules/vite/bin/vite.js",
+    "dev.ssr": "cd runtime && node --inspect ../../../node_modules/vite/bin/vite.js --mode ssr",
+    "dev.debug": "cd runtime && node --inspect-brk ../../../node_modules/vite/bin/vite.js --mode ssr --force",
+    "build": "yarn build.client && yarn build.ssr",
+    "build.client": "cd runtime && vite build --config vite-app.config.ts",
+    "build.ssr": "cd runtime && vite build --config vite-app.config.ts --ssr src/entry.express.tsx",
+    "build.runtime": "cd runtime && vite build --mode lib",
+    "serve": "node --inspect runtime/server/entry.express",
+    "serve.debug": "node --inspect-brk runtime/server/entry.express",
+    "test": "yarn test.unit && yarn test.e2e",
+    "test.unit": "tsm ../../node_modules/.bin/uvu . unit.ts --tsmconfig tsm.cjs",
+    "test.e2e": "DISABLE_JS=true node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts",
+    "test.e2e.client": "node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts"
+  },
+  "dependencies": {
+    "@mdx-js/mdx": "2.1.2",
+    "@types/mdx": "2.0.2",
+    "source-map": "0.7.4",
+    "vfile": "5.3.4"
+  },
+  "peerDependencies": {
+    "@builder.io/qwik": ">=0.0.38"
+  },
+  "devDependencies": {
+    "@builder.io/qwik": "workspace:*",
+    "@microsoft/api-extractor": "7.28.5",
+    "@types/github-slugger": "1.3.0",
+    "@types/marked": "4.0.3",
+    "@types/node": "latest",
+    "@types/refractor": "3.0.2",
+    "estree-util-value-to-estree": "1.3.0",
+    "github-slugger": "1.4.0",
+    "hast-util-heading-rank": "2.1.0",
+    "hast-util-to-string": "2.0.0",
+    "marked": "4.0.18",
+    "refractor": "4.7.0",
+    "rehype-autolink-headings": "6.1.1",
+    "remark-frontmatter": "4.0.1",
+    "remark-gfm": "3.0.1",
+    "tsm": "2.2.2",
+    "typescript": "4.7.4",
+    "unified": "10.1.2",
+    "unist-util-visit": "4.1.0",
+    "uvu": "0.5.6",
+    "vite": "3.0.2"
+  },
   "license": "MIT",
   "homepage": "https://qwik.builder.io/",
   "repository": {

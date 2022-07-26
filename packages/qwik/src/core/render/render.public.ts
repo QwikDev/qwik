@@ -1,60 +1,93 @@
 import { isDocument } from '../util/element';
-import { executeContext, printRenderStats, RenderContext } from './cursor';
-import { isJSXNode, jsx, processNode } from './jsx/jsx-runtime';
+import { createRenderContext, executeContext, printRenderStats } from './cursor';
+import { isJSXNode, jsx, processData } from './jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from './jsx/types/jsx-node';
 import { visitJsxNode } from './render';
-import { getRenderingState } from './notify-render';
+import { ContainerState, getContainerState, postRendering } from './notify-render';
 import { getDocument } from '../util/dom';
 import { qDev, qTest } from '../util/qdev';
 import { version } from '../version';
 import { QContainerAttr } from '../util/markers';
-import { logError } from '../util/log';
-import { isWatchDescriptor, runWatch, WatchDescriptor, WatchFlags } from '../watch/watch.public';
-import { appendQwikDevTools, getContext } from '../props/props';
+import { logWarn } from '../util/log';
+import { appendQwikDevTools } from '../props/props';
+import { qError, QError_cannotRenderOverExistingContainer } from '../error/error';
+import { directSetAttribute } from './fast-calls';
+
+/**
+ * @alpha
+ */
+export interface RenderOptions {
+  allowRerender?: boolean;
+  userContext?: Record<string, any>;
+}
 
 /**
  * Render JSX.
  *
  * Use this method to render JSX. This function does reconciling which means
  * it always tries to reuse what is already in the DOM (rather then destroy and
- * recrate content.)
+ * recreate content.)
  *
  * @param parent - Element which will act as a parent to `jsxNode`. When
  *     possible the rendering will try to reuse existing nodes.
  * @param jsxNode - JSX to render
  * @alpha
  */
-export async function render(
+export const render = async (
   parent: Element | Document,
-  jsxNode: JSXNode<unknown> | FunctionComponent<any>
-): Promise<RenderContext | undefined> {
+  jsxNode: JSXNode<unknown> | FunctionComponent<any>,
+  opts?: RenderOptions
+): Promise<void> => {
   // If input is not JSX, convert it
   if (!isJSXNode(jsxNode)) {
     jsxNode = jsx(jsxNode, null);
   }
   const doc = getDocument(parent);
   const containerEl = getElement(parent);
-  if (qDev && containerEl.hasAttribute('q:container')) {
-    logError('You can render over a existing q:container. Skipping render().');
-    return;
+  if (qDev && containerEl.hasAttribute(QContainerAttr)) {
+    throw qError(QError_cannotRenderOverExistingContainer, containerEl);
   }
   injectQContainer(containerEl);
 
-  const ctx: RenderContext = {
-    doc,
-    globalState: getRenderingState(containerEl),
-    hostElements: new Set(),
-    operations: [],
-    roots: [parent as Element],
-    components: [],
-    containerEl,
-    perf: {
-      visited: 0,
-      timing: [],
-    },
-  };
+  const containerState = getContainerState(containerEl);
+  const userContext = opts?.userContext;
+  if (userContext) {
+    Object.assign(containerState.$userContext$, userContext);
+  }
+  containerState.$hostsRendering$ = new Set();
+  containerState.$renderPromise$ = renderRoot(parent, jsxNode, doc, containerState, containerEl);
 
-  await visitJsxNode(ctx, parent as Element, processNode(jsxNode), false);
+  const renderCtx = await containerState.$renderPromise$;
+  const allowRerender = opts?.allowRerender ?? true;
+  if (allowRerender) {
+    await postRendering(containerEl, containerState, renderCtx);
+  } else {
+    containerState.$hostsRendering$ = undefined;
+    containerState.$renderPromise$ = undefined;
+
+    const next =
+      containerState.$hostsNext$.size +
+      containerState.$hostsStaging$.size +
+      containerState.$watchNext$.size +
+      containerState.$watchStaging$.size;
+    if (next > 0) {
+      logWarn('State changed and a rerender is required, skipping');
+    }
+  }
+};
+
+const renderRoot = async (
+  parent: Element | Document,
+  jsxNode: JSXNode<unknown> | FunctionComponent<any>,
+  doc: Document,
+  containerState: ContainerState,
+  containerEl: Element
+) => {
+  const ctx = createRenderContext(doc, containerState, containerEl);
+  ctx.$roots$.push(parent as Element);
+
+  const processedNodes = await processData(jsxNode);
+  await visitJsxNode(ctx, parent as Element, processedNodes, false);
 
   executeContext(ctx);
   if (!qTest) {
@@ -63,37 +96,28 @@ export async function render(
 
   if (qDev) {
     appendQwikDevTools(containerEl);
-    if (typeof window !== 'undefined' && window.document != null) {
-      printRenderStats(ctx);
-    }
+    printRenderStats(ctx);
   }
-  const promises: Promise<WatchDescriptor>[] = [];
-  ctx.hostElements.forEach((host) => {
-    const elCtx = getContext(host);
-    elCtx.refMap.array.filter(isWatchDescriptor).forEach((watch) => {
-      if (watch.f & WatchFlags.IsDirty) {
-        promises.push(runWatch(watch));
-      }
-    });
-  });
-  await Promise.all(promises);
   return ctx;
-}
-
-export function injectQwikSlotCSS(docOrElm: Document | Element) {
+};
+export const injectQwikSlotCSS = (docOrElm: Document | Element) => {
   const doc = getDocument(docOrElm);
-  const element = isDocument(docOrElm) ? docOrElm.head : docOrElm;
+  const isDoc = isDocument(docOrElm);
   const style = doc.createElement('style');
-  style.setAttribute('id', 'qwik/base-styles');
-  style.textContent = `q\\:slot{display:contents}q\\:fallback{display:none}q\\:fallback:last-child{display:contents}`;
-  element.insertBefore(style, element.firstChild);
-}
+  directSetAttribute(style, 'id', 'qwik/base-styles');
+  style.textContent = `q\\:slot{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}`;
+  if (isDoc) {
+    docOrElm.head.appendChild(style);
+  } else {
+    docOrElm.insertBefore(style, docOrElm.firstChild);
+  }
+};
 
-export function getElement(docOrElm: Document | Element): Element {
+export const getElement = (docOrElm: Document | Element): Element => {
   return isDocument(docOrElm) ? docOrElm.documentElement : docOrElm;
-}
+};
 
-export function injectQContainer(containerEl: Element) {
-  containerEl.setAttribute('q:version', version || '');
-  containerEl.setAttribute(QContainerAttr, 'resumed');
-}
+export const injectQContainer = (containerEl: Element) => {
+  directSetAttribute(containerEl, 'q:version', version || '');
+  directSetAttribute(containerEl, QContainerAttr, 'resumed');
+};

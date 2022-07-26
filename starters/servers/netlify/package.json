@@ -1,0 +1,19 @@
+{
+  "description": "Netlify Edge Functions.",
+  "scripts": {
+    "serve": "netlify dev",
+    "build.ssr": "vite build --ssr src/entry.netlify.ts"
+  },
+  "devDependencies": {
+    "@netlify/vite-plugin-netlify-edge": "1.1.0"
+  },
+  "__qwik__": {
+    "priority": -1,
+    "vite": {
+      "VITE_IMPORTS": "import netlifyEdge from '@netlify/vite-plugin-netlify-edge';",
+      "VITE_CONFIG": "",
+      "VITE_QWIK": "{ ssr: { outDir: '.netlify/edge-functions/entry.netlify' } }",
+      "VITE_PLUGINS": "netlifyEdge({ functionName: 'entry.netlify' }),"
+    }
+  }
+}

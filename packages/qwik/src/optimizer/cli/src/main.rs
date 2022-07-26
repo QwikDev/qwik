@@ -17,7 +17,7 @@ struct OptimizerInput {
     transpile: bool,
     minify: MinifyMode,
     sourcemaps: bool,
-    explicity_extensions: bool,
+    explicit_extensions: bool,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -99,7 +99,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             glob: None,
             strategy,
             minify,
-            explicity_extensions: matches.is_present("extensions"),
+            explicit_extensions: matches.is_present("extensions"),
             transpile: !matches.is_present("no-transpile"),
             sourcemaps: matches.is_present("sourcemaps"),
         })?;
@@ -111,10 +111,11 @@ fn optimize(
     optimizer_input: OptimizerInput,
 ) -> Result<qwik_core::TransformOutput, Box<dyn std::error::Error>> {
     let current_dir = std::env::current_dir()?;
-    let root_dir = current_dir.join(optimizer_input.src).canonicalize()?;
+    let src_dir = current_dir.join(optimizer_input.src).canonicalize()?;
 
     let result = transform_fs(TransformFsOptions {
-        root_dir: root_dir.to_string_lossy().to_string(),
+        src_dir: src_dir.to_string_lossy().to_string(),
+        vendor_roots: vec![],
         glob: optimizer_input.glob,
         source_maps: optimizer_input.sourcemaps,
         minify: optimizer_input.minify,
@@ -125,9 +126,11 @@ fn optimize(
             JSXMode::Preserve
         },
         entry_strategy: optimizer_input.strategy,
-        explicity_extensions: optimizer_input.explicity_extensions,
+        explicit_extensions: optimizer_input.explicit_extensions,
         dev: true,
         scope: None,
+
+        strip_exports: None,
     })?;
 
     result.write_to_fs(

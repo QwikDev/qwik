@@ -8,11 +8,13 @@ import { isAbsolute, join, resolve, dirname } from 'path';
 import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync } from 'fs';
 import { Plugin, rollup } from 'rollup';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import type { RenderToStringOptions, RenderToStringResult } from '@builder.io/qwik/server';
+import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
+import { fileURLToPath } from 'url';
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
 const address = `http://localhost:${port}/`;
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const startersDir = __dirname;
 const startersAppsDir = join(startersDir, 'apps');
 const appNames = readdirSync(startersAppsDir).filter(
@@ -22,7 +24,7 @@ const appNames = readdirSync(startersAppsDir).filter(
 const qwikDistDir = join(__dirname, '..', 'packages', 'qwik', 'dist');
 const qwikDistCorePath = join(qwikDistDir, 'core.mjs');
 const qwikDistServerPath = join(qwikDistDir, 'server.mjs');
-const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.cjs');
+const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.mjs');
 const qwikDistJsxRuntimePath = join(qwikDistDir, 'jsx-runtime.mjs');
 Error.stackTraceLimit = 1000;
 
@@ -59,20 +61,23 @@ async function handleApp(req: Request, res: Response) {
   }
 }
 
-function devPlugin(): Plugin {
+function devPlugin(opts: { isServer: boolean }): Plugin {
   return {
     name: 'devPlugin',
     resolveId(id, importee) {
       if (id === '@builder.io/qwik') {
-        delete require.cache[qwikDistCorePath];
         return qwikDistCorePath;
       }
+      if (id === '@qwik-client-manifest') {
+        return id;
+      }
       if (id === '@builder.io/qwik/server') {
-        delete require.cache[qwikDistServerPath];
         return qwikDistServerPath;
       }
+      if (id === '@builder.io/qwik/build') {
+        return id;
+      }
       if (id === '@builder.io/qwik/jsx-runtime') {
-        delete require.cache[qwikDistJsxRuntimePath];
         return qwikDistJsxRuntimePath;
       }
       if (!id.startsWith('.') && !isAbsolute(id)) {
@@ -83,6 +88,18 @@ function devPlugin(): Plugin {
         if (fileId.endsWith('.css')) {
           return resolve(dirname(importee), fileId);
         }
+      }
+      return null;
+    },
+    load(id) {
+      if (id === '@builder.io/qwik/build') {
+        return `
+export const isServer = ${String(opts.isServer)};
+export const isBrowser = ${String(!opts.isServer)};
+        `;
+      }
+      if (id === '@qwik-client-manifest') {
+        return 'export const manifest = undefined;';
       }
       return null;
     },
@@ -101,8 +118,9 @@ function devPlugin(): Plugin {
 }
 
 async function buildApp(appDir: string) {
-  const optimizer: typeof import('@builder.io/qwik/optimizer') =
-    requireUncached(qwikDistOptimizerPath);
+  const optimizer: typeof import('@builder.io/qwik/optimizer') = await import(
+    qwikDistOptimizerPath
+  );
   const appSrcDir = join(appDir, 'src');
   const appDistDir = join(appDir, 'dist');
   const appServerDir = join(appDir, 'server');
@@ -116,14 +134,14 @@ async function buildApp(appDir: string) {
   const clientBuild = await rollup({
     input: getSrcInput(appSrcDir),
     plugins: [
-      devPlugin(),
+      devPlugin({ isServer: false }),
       optimizer.qwikRollup({
         target: 'client',
         buildMode: 'development',
         debug: true,
         srcDir: appSrcDir,
         forceFullBuild: true,
-        entryStrategy: { type: 'single' },
+        entryStrategy: { type: 'hook' },
         manifestOutput: (m) => {
           clientManifest = m;
         },
@@ -137,7 +155,7 @@ async function buildApp(appDir: string) {
   const ssrBuild = await rollup({
     input: join(appSrcDir, 'entry.ssr.tsx'),
     plugins: [
-      devPlugin(),
+      devPlugin({ isServer: true }),
       optimizer.qwikRollup({
         target: 'ssr',
         buildMode: 'production',
@@ -168,7 +186,7 @@ function getSrcInput(appSrcDir: string) {
       const s = statSync(itemPath);
       if (s.isDirectory()) {
         readDir(itemPath);
-      } else if (item.endsWith('.tsx')) {
+      } else if (item.endsWith('.tsx') && !item.endsWith('entry.express.tsx')) {
         srcInputs.push(itemPath);
       }
     }
@@ -197,32 +215,32 @@ function removeDir(dir: string) {
 
 async function ssrApp(req: Request, appName: string, appDir: string, manifest: QwikManifest) {
   const ssrPath = join(appDir, 'server', 'entry.ssr.js');
-
-  // require the build's server index (avoiding nodejs require cache)
-  const { render } = requireUncached(ssrPath);
+  const mod = await import(ssrPath);
+  const render = (mod.default ?? mod.render) as Render;
 
   // ssr the document
   const base = `/${appName}/build/`;
   console.log('req.url', req.url);
-  const opts: RenderToStringOptions = {
+  const chunks: string[] = [];
+  const opts: RenderToStreamOptions = {
+    stream: {
+      write(chunk) {
+        chunks.push(chunk);
+      },
+    },
     manifest,
     url: new URL(`${req.protocol}://${req.hostname}${req.url}`),
     debug: true,
-    base: base,
+    base,
   };
+  await render(opts);
 
-  const result: RenderToStringResult = await render(opts);
-  return result.html;
-}
-
-function requireUncached(module: string) {
-  delete require.cache[require.resolve(module)];
-  return require(module);
+  return chunks.join('');
 }
 
 function startersHomepage(_: Request, res: Response) {
   res.set('Content-Type', 'text/html; charset=utf-8');
-  res.send(`<!DOCTYPE html>
+  res.send(`<!-- Some comment --><!DOCTYPE html>
   <html>
     <head>
       <title>Starters Dev Server</title>
@@ -245,6 +263,13 @@ function startersHomepage(_: Request, res: Response) {
   </html>
   `);
 }
+
+import nodeFetch, { Headers, Request as R, Response as RE } from 'node-fetch';
+
+(global as any).fetch = nodeFetch;
+(global as any).Headers = Headers;
+(global as any).Request = R;
+(global as any).Response = RE;
 
 function favicon(_: Request, res: Response) {
   const path = join(startersAppsDir, 'base', 'public', 'favicon.ico');

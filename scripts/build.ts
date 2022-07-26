@@ -23,6 +23,8 @@ import { validateBuild } from './validate-build';
 import { buildCli } from './cli';
 import { submoduleBuild } from './submodule-build';
 import { buildEslint } from './eslint';
+import { buildQwikCity } from './qwik-city';
+import { buildQwikReact } from './qwik-react';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in
@@ -92,6 +94,14 @@ export async function build(config: BuildConfig) {
       await buildWasmBinding(config);
     }
 
+    if (config.qwikcity) {
+      await buildQwikCity(config);
+    }
+
+    if (config.qwikreact) {
+      await buildQwikReact(config);
+    }
+
     if (config.api) {
       apiExtractor(config);
     }
@@ -116,6 +126,6 @@ export async function build(config: BuildConfig) {
       console.log('👀 watching...');
     }
   } catch (e: any) {
-    panic(String(e.stack || e));
+    panic(String(e ? e.stack || e : 'Error'));
   }
 }

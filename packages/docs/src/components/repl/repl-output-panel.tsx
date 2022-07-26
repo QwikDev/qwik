@@ -1,5 +1,7 @@
+import { mutable } from '@builder.io/qwik';
 import { CodeBlock } from '../code-block/code-block';
 import { ReplOutputModules } from './repl-output-modules';
+import { ReplOutputSymbols } from './repl-output-symbols';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
 import type { ReplAppInput, ReplStore } from './types';
@@ -30,10 +32,20 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
 
         {store.enableClientOutput ? (
           <ReplTabButton
-            text="Client Modules"
-            isActive={store.selectedOutputPanel === 'clientModules'}
+            text="Symbols"
+            isActive={store.selectedOutputPanel === 'symbols'}
             onClick$={() => {
-              store.selectedOutputPanel = 'clientModules';
+              store.selectedOutputPanel = 'symbols';
+            }}
+          />
+        ) : null}
+
+        {store.enableClientOutput ? (
+          <ReplTabButton
+            text="Client Bundles"
+            isActive={store.selectedOutputPanel === 'clientBundles'}
+            onClick$={() => {
+              store.selectedOutputPanel = 'clientBundles';
             }}
           />
         ) : null}
@@ -72,28 +84,47 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
             'output-app-active': store.selectedOutputPanel === 'app',
           }}
         >
+          {store.isLoading ? (
+            <svg class="repl-spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+              <circle
+                cx="50"
+                cy="50"
+                r="24"
+                stroke-width="4"
+                stroke-dasharray="37.69911184307752 37.69911184307752"
+                fill="none"
+                stroke-linecap="round"
+              />
+            </svg>
+          ) : null}
           <iframe class="repl-server" src={store.serverUrl} />
         </div>
 
         {store.selectedOutputPanel === 'html' ? (
           <div class="output-result output-html">
-            <CodeBlock language="markup" code={store.html} theme="light" />
+            <CodeBlock language="markup" code={mutable(store.html)} theme="light" />
           </div>
         ) : null}
 
-        {store.selectedOutputPanel === 'clientModules' ? (
-          <ReplOutputModules buildPath="/build/" outputs={store.clientModules} />
+        {store.selectedOutputPanel === 'symbols' ? (
+          <ReplOutputSymbols outputs={store.transformedModules} />
+        ) : null}
+
+        {store.selectedOutputPanel === 'clientBundles' ? (
+          <ReplOutputModules headerText="/build/" outputs={store.clientBundles} />
         ) : null}
 
         {store.selectedOutputPanel === 'serverModules' ? (
-          <ReplOutputModules buildPath="/server/" outputs={store.ssrModules} />
+          <ReplOutputModules headerText="/server/" outputs={store.ssrModules} />
         ) : null}
 
         {store.selectedOutputPanel === 'diagnostics' ? (
           <div class="output-result output-diagnostics">
-            {[...store.diagnostics, ...store.monacoDiagnostics].map((d) => (
-              <p>{d.message}</p>
-            ))}
+            {diagnosticsLen === 0 ? (
+              <p class="no-diagnostics">- No Reported Diagnostics -</p>
+            ) : (
+              [...store.diagnostics, ...store.monacoDiagnostics].map((d) => <p>{d.message}</p>)
+            )}
           </div>
         ) : null}
       </div>

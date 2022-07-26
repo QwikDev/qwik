@@ -38,6 +38,21 @@ export const Root = component$(() => {
       <p>
         <a href="/e2e/context">Context</a>
       </p>
+      <p>
+        <a href="/e2e/toggle">Toggle</a>
+      </p>
+      <p>
+        <a href="/e2e/styles">Styles</a>
+      </p>
+      <p>
+        <a href="/e2e/broadcast-events">Broadcast events</a>
+      </p>
+      <p>
+        <a href="/e2e/weather">Weather app</a>
+      </p>
+      <p>
+        <a href="/e2e/resource">Resource</a>
+      </p>
     </section>
   );
 });

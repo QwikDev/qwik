@@ -1,0 +1,102 @@
+---
+title: Getting Started
+fetch: https://hackmd.io/@mhevery/S1_pV3Cl9
+---
+
+<img class="mb-5" src='/banner.svg'/>
+
+# Getting Started Qwikly
+
+Qwik is a new kind of framework that is [resumable](./concepts/resumable.mdx) (No JS and no hydration), built for the edge and familiar for React developers.
+
+- [Stackblitz Qwik + Vite](https://stackblitz.com/edit/qwik-vite-todoapp?file=index.html)
+- [Examples playground](/examples/reactivity/counter)
+
+
+## Prerequisites
+
+- `node.js` v14 or higher (with `npm`)
+- Your favorite IDE (vscode recommended)
+- Start to [think qwik](./think-qwik.mdx)
+
+## Creating an app using the CLI
+
+The first step is to create an application. Qwik comes with a CLI that allows you to create a basic working skeleton of an application. We will use the CLI to create a Todo sample app, and we will use that application to do a walk-through of Qwik so that you can familiarize yourself with it.
+
+### Run the Qwik CLI in your shell
+
+```shell
+$ npm init qwik@latest
+```
+
+The CLI will guide you through an interactive menu to set the project-name and select one of the starters:
+
+<script id="asciicast-493911" src="https://asciinema.org/a/493911.js" async></script>
+
+After your new app is created, you will see an output like the following in your terminal:
+
+```shell
+💫 Let's create a Qwik project 💫
+
+✔ Project name … qwik-todo
+✔ Select a starter › Todo
+✔ Select a server › Express
+
+⭐️ Success! Project saved in qwik-todo directory
+
+📟 Next steps:
+   cd qwik-todo
+   npm install
+   npm start
+```
+
+At this point, you will have `qwik-todo` directory, that contains the starter app.
+
+## Running in development
+
+Once the application is download.
+
+1. Change into the directory created by the `npm create qwik@latest`.
+
+```shell
+cd qwik-todo
+```
+
+2. Install NPM modules:
+
+```shell
+npm install
+```
+
+3. Invoke the dev server
+
+```shell
+npm start
+```
+
+4. You should see a server running with your To-do application
+
+```shell
+  vite v2.8.6 dev server running at:
+
+  > Local: http://localhost:3000/
+  > Network: use `--host` to expose
+
+  ready in 157ms.
+```
+
+5. Visit http://localhost:3000/ to explore the To-do app.
+
+![](https://i.imgur.com/O72rnhe.png)
+
+The application is running in development mode using [Vite](https://vitejs.dev/). This is a special mode that supports Hot-Module-Reloading (HMR.)
+
+While HMR is great for development, Qwik runs like a traditional framework, where all of the work is done in the browser. If you look into the network tab of the dev-tools, you will see that all of the code is eagerly downloaded into the browser and executed. To understand how Qwik is different, we need to run in production mode to see the magic happen.
+
+## Commands
+
+- `npm start`: alias to `npm run dev`
+- `npm run dev`: starts the dev server in client bootstrap mode
+- `npm run dev.ssr`: starts the dev server with SSR
+- `npm run build`: builds the application for production
+

@@ -26,8 +26,8 @@ export const getReplVersion = async (version: string | undefined) => {
       if (v === version) {
         return true;
       }
-      if (npmData?.tags.latest === v || npmData?.tags.next === v) {
-        // always include "latest" and "next" tags
+      if (npmData?.tags.latest === v) {
+        // always include "latest"
         return true;
       }
       if (v.includes('-')) {
@@ -45,23 +45,19 @@ export const getReplVersion = async (version: string | undefined) => {
       }
       // mini-semver check, must be >= than 0.0.20
       if (parts[0] === '0' && parts[1] === '0') {
-        if (parseInt(parts[2], 10) < 20) {
+        if (parseInt(parts[2], 10) < 21) {
           return false;
         }
       }
       return true;
     });
 
-    if (!version || !versions.includes(version)) {
-      if (versions.includes(npmData.tags.latest)) {
-        // if we haven't filtered it out, default to "latest"
-        version = npmData.tags.latest;
-      } else if (versions.includes(npmData.tags.next)) {
-        // fallback to "next" if "latset" isn't valid
-        version = npmData.tags.next;
-      } else {
-        version = versions[0];
-      }
+    if (versions.length > 25) {
+      versions = versions.slice(0, 25);
+    }
+
+    if (!version || !npmData.versions.includes(version)) {
+      version = npmData.tags.latest;
     }
   }
 

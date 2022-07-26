@@ -9,7 +9,7 @@ import { logResult } from './log';
 export async function runInteractive() {
   console.clear();
 
-  console.log(`💫 ${color.cyan(`Let's create a Qwik project`)} 💫`);
+  console.log(`💫 ${color.cyan(`Let's create a Qwik app`)} 💫`);
   console.log(``);
 
   const starters = await getStarters();
@@ -51,7 +51,10 @@ export async function runInteractive() {
       },
     },
     {
-      type: 'select',
+      type: () => {
+        const selected = starters.apps.find((a) => a.id === opts.appId);
+        return selected?.selectServer ? 'select' : null;
+      },
       name: 'serverId',
       message: 'Select a server',
       choices: () => {
@@ -81,9 +84,12 @@ export async function runInteractive() {
       choices: () => {
         const starter = starters.apps.find((a) => a.id === opts.appId);
         const featureOptions = [...starter!.featureOptions];
+        const featureEnabled = [...starter!.featureEnabled];
+
         return featureOptions.map((featureId) => {
           const f = starters.features.find((f) => f.id === featureId)!;
-          return { title: f.name, value: f.id, description: f.description, selected: true };
+          const selected = featureEnabled.includes(f.id);
+          return { title: f.name, value: f.id, description: f.description, selected };
         });
       },
       format: (featureIds: string[]) => {

@@ -6,8 +6,12 @@ use serde_json::to_string_pretty;
 macro_rules! test_input {
     ($input: expr) => {
         let input = $input;
+        let strip_exports: Option<Vec<JsWord>> = input
+            .strip_exports
+            .map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+
         let res = transform_modules(TransformModulesOptions {
-            root_dir: input.root_dir,
+            src_dir: input.src_dir,
             input: vec![TransformModuleInput {
                 code: input.code.clone(),
                 path: input.filename,
@@ -16,44 +20,52 @@ macro_rules! test_input {
             minify: input.minify,
             transpile_ts: input.transpile_ts,
             transpile_jsx: input.transpile_jsx,
-            explicity_extensions: input.explicity_extensions,
+            explicit_extensions: input.explicit_extensions,
             entry_strategy: input.entry_strategy,
             dev: input.dev,
             scope: input.scope,
+            strip_exports,
         });
         if input.snapshot {
-            match &res {
-                Ok(v) => {
-                    let input = input.code.to_string();
-                    let mut output = format!("==INPUT==\n\n{}", input);
-
-                    for module in &v.modules {
-                        let is_entry = if module.is_entry { "(ENTRY POINT)" } else { "" };
-                        output += format!(
-                            "\n============================= {} {}==\n\n{}",
-                            module.path, is_entry, module.code
-                        )
-                        .as_str();
-                        if let Some(hook) = &module.hook {
-                            let hook = to_string_pretty(&hook).unwrap();
-                            output += &format!("\n/*\n{}\n*/", hook);
-                        }
-                        // let map = if let Some(map) = s.map { map } else { "".to_string() };
-                        // output += format!("\n== MAP ==\n{}", map).as_str();
-                    }
-                    output += format!(
-                        "\n== DIAGNOSTICS ==\n\n{}",
-                        to_string_pretty(&v.diagnostics).unwrap()
-                    )
-                    .as_str();
-                    insta::assert_display_snapshot!(output);
-                }
-                Err(err) => {
-                    insta::assert_display_snapshot!(err);
-                }
-            }
+            let input = input.code.to_string();
+            let output = format!("==INPUT==\n\n{}", input);
+            snapshot_res!(&res, output);
         }
         drop(res)
+    };
+}
+
+macro_rules! snapshot_res {
+    ($res: expr, $prefix: expr) => {
+        match $res {
+            Ok(v) => {
+                let mut output: String = $prefix;
+
+                for module in &v.modules {
+                    let is_entry = if module.is_entry { "(ENTRY POINT)" } else { "" };
+                    output += format!(
+                        "\n============================= {} {}==\n\n{}",
+                        module.path, is_entry, module.code
+                    )
+                    .as_str();
+                    if let Some(hook) = &module.hook {
+                        let hook = to_string_pretty(&hook).unwrap();
+                        output += &format!("\n/*\n{}\n*/", hook);
+                    }
+                    // let map = if let Some(map) = s.map { map } else { "".to_string() };
+                    // output += format!("\n== MAP ==\n{}", map).as_str();
+                }
+                output += format!(
+                    "\n== DIAGNOSTICS ==\n\n{}",
+                    to_string_pretty(&v.diagnostics).unwrap()
+                )
+                .as_str();
+                insta::assert_display_snapshot!(output);
+            }
+            Err(err) => {
+                insta::assert_display_snapshot!(err);
+            }
+        }
     };
 }
 
@@ -737,9 +749,9 @@ export const Foo = component$(() => {
                 host:onDocumentScroll$={()=>console.log('host:onDocument:scroll')}
                 host:onDocumentScroll$={()=>console.log('host:onWindow:scroll')}
 
-                onKeyup={handler}
-                onDocument:keyup={handler}
-                onWindow:keyup={handler}
+                onKeyup$={handler}
+                onDocument:keyup$={handler}
+                onWindow:keyup$={handler}
 
                 custom$={()=>console.log('custom')}
             />
@@ -761,21 +773,22 @@ fn example_qwik_conflict() {
     test_input!(TestInput {
         code: r#"
 import { $, component$, useStyles } from '@builder.io/qwik';
+import { qrl } from '@builder.io/qwik/what';
 
 export const hW = 12;
 export const handleWatch = 42;
 
-const componentQrl = () => console.log('not this');
+const componentQrl = () => console.log('not this', qrl());
+
 componentQrl();
 export const Foo = component$(() => {
     useStyles$('thing');
     const qwik = hW + handleWatch;
     console.log(qwik);
-    return $(() => {
-        return (
-            <div/>
-        )
-    });
+    const qrl = 23;
+    return (
+        <div onClick$={()=> console.log(qrl)}/>
+    )
 }, {
     tagName: "my-foo",
 });
@@ -794,6 +807,33 @@ export const Root = component$(() => {
         .to_string(),
         transpile_ts: true,
         transpile_jsx: JSXMode::VDom,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_fix_dynamic_import() {
+    test_input!(TestInput {
+        filename: "project/folder/test.tsx".to_string(),
+        code: r#"
+import { $, component$ } from '@builder.io/qwik';
+import thing from "../state";
+
+export function foo() {
+    return import("../state")
+}
+
+export const Header = component$(() => {
+    return (
+        <Host>
+            {import("../state")}
+            {thing}
+        </Host>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Single,
         ..TestInput::default()
     });
 }
@@ -899,7 +939,7 @@ export const App = component$((props) => {
         .to_string(),
         transpile_ts: true,
         transpile_jsx: JSXMode::VDom,
-        explicity_extensions: true,
+        explicit_extensions: true,
         ..TestInput::default()
     });
 }
@@ -918,7 +958,7 @@ export const App = component$((props) => {
 });
 "#
         .to_string(),
-        explicity_extensions: true,
+        explicit_extensions: true,
         entry_strategy: EntryStrategy::Single,
         ..TestInput::default()
     });
@@ -943,7 +983,7 @@ export const App2 = qwikify$(() => (
         .to_string(),
         transpile_ts: true,
         transpile_jsx: JSXMode::VDom,
-        explicity_extensions: true,
+        explicit_extensions: true,
         ..TestInput::default()
     });
 }
@@ -1011,7 +1051,7 @@ fn example_inlined_entry_strategy() {
     test_input!(TestInput {
         code: r#"
 import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
-import { thing } from 'dependency';
+import { thing } from './sibling';
 import mongodb from 'mongodb';
 
 export const Child = component$(() => {
@@ -1023,7 +1063,7 @@ export const Child = component$(() => {
 
     // Double count watch
     useClientEffect$(() => {
-        state.count = thing.doStuff();
+        state.count = thing.doStuff() + import("./sibling");
     });
 
     return (
@@ -1035,6 +1075,93 @@ export const Child = component$(() => {
 "#
         .to_string(),
         entry_strategy: EntryStrategy::Inline,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_default_export() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+import { sibling } from './sibling';
+
+export default component$(() => {
+    return (
+        <div onClick$={() => console.log(mongodb, sibling)}>
+        </div>
+    );
+});
+
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
+        filename: "src/routes/_repl/[id]/[[...slug]].tsx".into(),
+        entry_strategy: EntryStrategy::Smart,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_default_export_index() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+    return (
+        <div onClick$={() => console.log(mongodb)}>
+        </div>
+    );
+});
+
+"#
+        .to_string(),
+        filename: "src/components/mongo/index.tsx".into(),
+        entry_strategy: EntryStrategy::Inline,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_parsed_inlined_qrls() {
+    test_input!(TestInput {
+        code: r#"
+import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
+
+export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+    const store = useStore({
+        count: 0
+    });
+    return /*#__PURE__*/ jsxs("div", {
+        children: [
+            /*#__PURE__*/ jsxs("p", {
+                children: [
+                    "Count: ",
+                    store.count
+                ]
+            }),
+            /*#__PURE__*/ jsx("p", {
+                children: /*#__PURE__*/ jsx("button", {
+                    onClick$: inlinedQrl(()=>{
+                        const [store] = useLexicalScope();
+                        return store.count++;
+                    }, "App_component_div_p_button_onClick_odz7eidI4GM", [
+                        store
+                    ]),
+                    children: "Click"
+                })
+            })
+        ]
+    });
+}, "App_component_Fh88JClhbC0"));
+
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        dev: false,
         ..TestInput::default()
     });
 }
@@ -1151,6 +1278,60 @@ console.log(stuff, static);
     });
 }
 
+fn example_strip_exports_unused() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+import mongodb from 'mongodb';
+
+export const onGet = () => {
+    const data = mongodb.collection.whatever;
+    return {
+        body: {
+        data
+        }
+    }
+};
+
+export default component$(()=> {
+    return <div>cmp</div>
+});
+"#
+        .to_string(),
+        strip_exports: Some(vec!["onGet".into()]),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_strip_exports_used() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useResource$ } from '@builder.io/qwik';
+import mongodb from 'mongodb';
+
+export const onGet = () => {
+    const data = mongodb.collection.whatever;
+    return {
+        body: {
+        data
+        }
+    }
+};
+
+export default component$(()=> {
+    useResource$(() => {
+        return onGet();
+    })
+    return <div>cmp</div>
+});
+"#
+        .to_string(),
+        strip_exports: Some(vec!["onGet".into()]),
+        ..TestInput::default()
+    });
+}
+
 #[test]
 fn issue_150() {
     test_input!(TestInput {
@@ -1179,7 +1360,7 @@ const d = $(()=>console.log('thing'));
 fn issue_188() {
     let res = test_input!({
         filename: r"components\apps\apps.tsx".to_string(),
-        root_dir: r"C:\users\apps".to_string(),
+        src_dir: r"C:\users\apps".to_string(),
         code: r#"
 import { component$, $ } from '@builder.io/qwik';
 
@@ -1228,6 +1409,178 @@ export const Root = () => {
 }
 
 #[test]
+fn example_qwik_react() {
+    test_input!(TestInput {
+        code: r#"
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useWatchQrl, noSerialize, Host, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
+import { jsx, Fragment } from '@builder.io/qwik/jsx-runtime';
+import { isBrowser, isServer } from '@builder.io/qwik/build';
+
+function qwikifyQrl(reactCmpQrl) {
+    return /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
+        const [reactCmpQrl] = useLexicalScope();
+        const hostElement = useHostElement();
+        const store = useStore({});
+        let run;
+        if (props['client:visible']) run = 'visible';
+        else if (props['client:load'] || props['client:only']) run = 'load';
+        useWatchQrl(inlinedQrl(async (track)=>{
+            const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
+            track(props);
+            if (isBrowser) {
+                if (store.data) store.data.root.render(store.data.client.Main(store.data.cmp, filterProps(props)));
+                else {
+                    const [Cmp, client] = await Promise.all([
+                        reactCmpQrl.resolve(),
+                        import('./client-f762f78c.js')
+                    ]);
+                    let root;
+                    if (hostElement.childElementCount > 0) root = client.hydrateRoot(hostElement, client.Main(Cmp, filterProps(props), store.event));
+                    else {
+                        root = client.createRoot(hostElement);
+                        root.render(client.Main(Cmp, filterProps(props)));
+                    }
+                    store.data = noSerialize({
+                        client,
+                        cmp: Cmp,
+                        root
+                    });
+                }
+            }
+        }, "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
+            hostElement,
+            props,
+            reactCmpQrl,
+            store
+        ]), {
+            run
+        });
+        if (isServer && !props['client:only']) {
+            const jsx$1 = Promise.all([
+                reactCmpQrl.resolve(),
+                import('./server-9ac6caad.js')
+            ]).then(([Cmp, server])=>{
+                const html = server.render(Cmp, filterProps(props));
+                return /*#__PURE__*/ jsx(Host, {
+                    dangerouslySetInnerHTML: html
+                });
+            });
+            return /*#__PURE__*/ jsx(Fragment, {
+                children: jsx$1
+            });
+        }
+        return /*#__PURE__*/ jsx(Host, {
+            children: /*#__PURE__*/ jsx(SkipRerender, {})
+        });
+    }, "qwikifyQrl_component_zH94hIe0Ick", [
+        reactCmpQrl
+    ]), {
+        tagName: 'qwik-wrap'
+    });
+}
+const filterProps = (props)=>{
+    const obj = {};
+    Object.keys(props).forEach((key)=>{
+        if (!key.startsWith('client:')) obj[key] = props[key];
+    });
+    return obj;
+};
+const qwikify$ = implicit$FirstArg(qwikifyQrl);
+
+async function renderToString(rootNode, opts) {
+    const mod = await import('./server-9ac6caad.js');
+    const result = await mod.renderToString(rootNode, opts);
+    const styles = mod.getGlobalStyleTag(result.html);
+    const finalHtml = styles + result.html;
+    return {
+        ...result,
+        html: finalHtml
+    };
+}
+
+export { qwikify$, qwikifyQrl, renderToString };
+        "#
+        .to_string(),
+        filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
+        entry_strategy: EntryStrategy::Hook,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn relative_paths() {
+    let dep = r#"
+import { componentQrl, inlinedQrl, Host, useStore, useLexicalScope } from "@builder.io/qwik";
+import { jsx, jsxs } from "@builder.io/qwik/jsx-runtime";
+import { state } from './sibling';
+
+const useData = () => {
+    return useStore({
+        count: 0
+    });
+}
+
+export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+    const store = useData();
+    return /*#__PURE__*/ jsxs("div", {
+        children: [
+            /*#__PURE__*/ jsxs("p", {
+                children: [
+                    "Count: ",
+                    store.count
+                ]
+            }),
+            /*#__PURE__*/ jsx("p", {
+                children: /*#__PURE__*/ jsx("button", {
+                    onClick$: inlinedQrl(()=>{
+                        const [store] = useLexicalScope();
+                        return store.count++;
+                    }, "App_component_div_p_button_onClick_8dWUa0cJAr4", [
+                        store
+                    ]),
+                    children: "Click"
+                })
+            })
+        ]
+    });
+}, "App_component_AkbU84a8zes"));
+
+"#;
+    let code = r#"
+import { component$, $ } from '@builder.io/qwik';
+import { state } from './sibling';
+
+export const Local = component$(() => {
+    return (
+        <div>{state}</div>
+    )
+});
+"#;
+    let res = transform_modules(TransformModulesOptions {
+        src_dir: "/path/to/app/src/thing".into(),
+        input: vec![
+            TransformModuleInput {
+                code: dep.into(),
+                path: "../../node_modules/dep/dist/lib.mjs".into(),
+            },
+            TransformModuleInput {
+                code: code.into(),
+                path: "components/main.tsx".into(),
+            },
+        ],
+        source_maps: true,
+        minify: MinifyMode::Simplify,
+        explicit_extensions: true,
+        dev: true,
+        entry_strategy: EntryStrategy::Hook,
+        transpile_ts: true,
+        transpile_jsx: JSXMode::VDom,
+        scope: None,
+        strip_exports: None,
+    });
+    snapshot_res!(&res, "".into());
+}
+#[test]
 fn consistent_hashes() {
     let code = r#"
 import { component$, $ } from '@builder.io/qwik';
@@ -1263,7 +1616,7 @@ export const Greeter = component$(() => {
     ];
 
     let res = transform_modules(TransformModulesOptions {
-        root_dir: "./thing".into(),
+        src_dir: "./thing".into(),
         input: vec![
             TransformModuleInput {
                 code: code.into(),
@@ -1276,12 +1629,13 @@ export const Greeter = component$(() => {
         ],
         source_maps: true,
         minify: MinifyMode::Simplify,
-        explicity_extensions: true,
+        explicit_extensions: true,
         dev: true,
         entry_strategy: EntryStrategy::Hook,
         transpile_ts: true,
         transpile_jsx: JSXMode::VDom,
         scope: None,
+        strip_exports: None,
     });
     let ref_hooks: Vec<_> = res
         .unwrap()
@@ -1292,7 +1646,7 @@ export const Greeter = component$(() => {
 
     for (i, option) in options.into_iter().enumerate() {
         let res = transform_modules(TransformModulesOptions {
-            root_dir: "./thing".into(),
+            src_dir: "./thing".into(),
             input: vec![
                 TransformModuleInput {
                     code: code.into(),
@@ -1305,7 +1659,7 @@ export const Greeter = component$(() => {
             ],
             source_maps: false,
             minify: MinifyMode::Simplify,
-            explicity_extensions: true,
+            explicit_extensions: true,
             dev: option.0,
             entry_strategy: option.1,
             transpile_ts: option.2,
@@ -1315,6 +1669,7 @@ export const Greeter = component$(() => {
                 JSXMode::Preserve
             },
             scope: None,
+            strip_exports: None,
         });
 
         let hooks: Vec<_> = res
@@ -1348,31 +1703,33 @@ fn get_hash(name: &str) -> String {
 struct TestInput {
     pub code: String,
     pub filename: String,
-    pub root_dir: String,
+    pub src_dir: String,
     pub entry_strategy: EntryStrategy,
     pub minify: MinifyMode,
     pub transpile_ts: bool,
     pub transpile_jsx: JSXMode,
-    pub explicity_extensions: bool,
+    pub explicit_extensions: bool,
     pub snapshot: bool,
     pub dev: bool,
     pub scope: Option<String>,
+    pub strip_exports: Option<Vec<String>>,
 }
 
 impl TestInput {
     pub fn default() -> Self {
         Self {
             filename: "test.tsx".to_string(),
-            root_dir: "/user/qwik/src/".to_string(),
+            src_dir: "/user/qwik/src/".to_string(),
             code: "/user/qwik/src/".to_string(),
             entry_strategy: EntryStrategy::Hook,
             minify: MinifyMode::Simplify,
             transpile_ts: false,
             transpile_jsx: JSXMode::Preserve,
-            explicity_extensions: false,
+            explicit_extensions: false,
             snapshot: true,
             dev: true,
             scope: None,
+            strip_exports: None,
         }
     }
 }

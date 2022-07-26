@@ -1,0 +1,22 @@
+---
+title: Projection
+layout: tutorial
+---
+
+Projection is a way of passing content to a child component that in turn controls where the content is rendered. Projection is a collaboration between the parent and child component. The parent component decides what is the content that needs to be rendered, child component decides where and if the content should be rendered.
+
+In our example, the content of the `<Panel>` element (inside the `<App>`) is the content that needs to be projected. The `<Panel>` component wraps the content in a `<div>` tag and should project it using the `<Slot>` element.
+
+## Why `<Slot>`?
+
+Why is Qwik opting to use `<Slot/>` rather than `children` property? The use of `<Slot>` is a strategic choice to enable the rendering of components out of order. (Meaning that a component should be capable of re-rendering even if the parent component is not yet resumed.) There are two issues with using `children` in Qwik.
+1. If Qwik would use the `children` property for projection the `children` property would need to be serializable. This is because when the child component renders it needs the `children` to insert someplace.
+2. A child component could modify the contents of the `children` before passing and inserting it into the render tree. This would prevent the parent component from rendering independently from the child. If a child would modify the children, then every time the parent component would change the `children` Qwik would have to re-run the child component to see what kind of modifications it would make to the `children` before inserting them into the render tree.
+
+For Qwik, the `<Slot>` approach is preferable because it declaratively controls the content and location of the projection. This allows the parent component to change the projection content, without forcing the child component to re-render.
+
+## Example
+
+Change the `<Panel>` component to project the `<App>` content using the `<Slot>` element.
+
+Notice that the `<App>` is re-render on button click, but the `<Panel>` is not re-rendered on interaction. This is because `<Slot/>` is declarative and allows Qwik to know where the content should be projected even if `<Panel>` is not loaded.

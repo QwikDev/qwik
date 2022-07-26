@@ -5,10 +5,14 @@
     "serve": "wrangler pages dev ./dist"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "3.9.0",
     "wrangler": "beta"
   },
-  "qwik": {
-    "priority": -1
+  "__qwik__": {
+    "priority": -1,
+    "vite": {
+      "VITE_IMPORTS": "",
+      "VITE_CONFIG": "ssr: {target: 'webworker', noExternal: true},",
+      "VITE_PLUGINS": ""
+    }
   }
 }

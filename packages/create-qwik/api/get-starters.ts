@@ -46,8 +46,10 @@ function loadStarterData(startersDir: string, dirName: string) {
         description: pkgJson.description ?? '',
         readme,
         dir: dataDir,
-        priority: pkgJson?.qwik?.priority ?? 0,
-        featureOptions: pkgJson?.qwik?.featureOptions ?? [],
+        selectServer: pkgJson?.__qwik__?.selectServer ?? false,
+        priority: pkgJson?.__qwik__?.priority ?? 0,
+        featureOptions: pkgJson?.__qwik__?.featureOptions ?? [],
+        featureEnabled: pkgJson?.__qwik__?.featureEnabled ?? [],
       };
       return data;
     })

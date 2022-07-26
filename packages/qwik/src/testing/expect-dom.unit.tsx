@@ -1,36 +1,76 @@
 import type { QwikJSX } from '@builder.io/qwik';
 import qwikDom from '@builder.io/qwik-dom';
-import { isJSXNode } from '../core/render/jsx/jsx-runtime';
+import { isJSXNode, isProcessedJSXNode, processNode } from '../core/render/jsx/jsx-runtime';
+import type { ProcessedJSXNode } from '../core/render/jsx/types/jsx-node';
 import { isComment, isElement, isText } from '../core/util/element';
-import { isTemplateElement } from '../core/util/types';
+import { QHostAttr, QSlot } from '../core/util/markers';
+import { isHtmlElement } from '../core/util/types';
+import { equal } from 'uvu/assert';
+import { suite } from 'uvu';
 
-export function expectDOM(
+/**
+ * Returns true if the `node` is `Element` and of the right `tagName`.
+ *
+ * @param node
+ * @private
+ */
+export function isDomElementWithTagName(
+  node: Node | null | undefined,
+  tagName: string
+): node is Element {
+  return isHtmlElement(node) && node.tagName.toUpperCase() == tagName.toUpperCase();
+}
+
+/**
+ * @private
+ */
+export function isTemplateElement(node: Node | null | undefined): node is HTMLTemplateElement {
+  return isDomElementWithTagName(node, 'template');
+}
+
+/**
+ * @private
+ */
+export function isQSLotTemplateElement(node: Node | null | undefined): node is HTMLTemplateElement {
+  return isTemplateElement(node) && node.hasAttribute(QSlot);
+}
+
+/**
+ * @private
+ */
+export function isComponentElement(node: Node | null | undefined): node is HTMLElement {
+  return isHtmlElement(node) && node.hasAttribute(QHostAttr);
+}
+
+export async function expectDOM(
   actual: Element,
   expected: QwikJSX.Element,
   expectedErrors: string[] = []
 ) {
   const diffs: string[] = [];
-  expectMatchElement('', diffs, actual, expected);
-  expect(diffs).toEqual(expectedErrors);
+  const result = await processNode(expected);
+  const node = Array.isArray(result) ? result[0] : result;
+  expectMatchElement('', diffs, actual, node!);
+  equal(diffs, expectedErrors);
 }
 
 function expectMatchElement(
   path: string,
   diffs: string[],
   actual: Element,
-  expected: QwikJSX.Element,
+  expected: ProcessedJSXNode,
   keepStyles = false
 ) {
   if (actual) {
     const actualTag = actual.localName ? actual.localName : '#text';
     path += actualTag;
-    if (actualTag !== expected.type) {
+    if (actualTag !== expected.$type$) {
       diffs.push(`${path}: expected '${toHTML(expected)}', was '${toHTML(actual)}'.`);
     }
-    if (expected.props) {
-      Object.keys(expected.props).forEach((key) => {
+    if (expected.$props$) {
+      Object.keys(expected.$props$).forEach((key) => {
         if (key !== 'children') {
-          const expectedValue = expected.props![key] as any;
+          const expectedValue = expected.$props$![key] as any;
           let actualValue = actual.getAttribute ? actual.getAttribute(key) : '';
           if (actualValue?.startsWith('/runtimeQRL#')) {
             actualValue = '/runtimeQRL#*';
@@ -50,28 +90,28 @@ function expectMatchElement(
       actualChildNodes = actualChildNodes.filter((el) => el.nodeName !== 'STYLE');
     }
 
-    (expected.children || []).forEach((expectedChild, index) => {
+    expected.$children$.forEach((expectedChild, index) => {
       const actualChild = actualChildNodes[index];
-      if (expectedChild.text === undefined) {
+      if (expectedChild.$type$ === '#text') {
+        // We are a text node.
+        const text = actualChild?.textContent || '';
+        if (expectedChild.$text$ !== text) {
+          diffs.push(
+            `${path}: expected content "${expectedChild.$text$}", was "${
+              (actualChild as HTMLElement)?.outerHTML || actualChild?.textContent
+            }"`
+          );
+        }
+      } else {
         expectMatchElement(
           path + `.[${index}]`,
           diffs,
           actualChild as HTMLElement,
           expectedChild as any
         );
-      } else {
-        // We are a text node.
-        const text = actualChild?.textContent || '';
-        if (expectedChild.text !== text) {
-          diffs.push(
-            `${path}: expected content "${expectedChild.text}", was "${
-              (actualChild as HTMLElement)?.outerHTML || actualChild?.textContent
-            }"`
-          );
-        }
       }
     });
-    for (let i = expected.children!.length; i < actualChildNodes.length; i++) {
+    for (let i = expected.$children$!.length; i < actualChildNodes.length; i++) {
       const childNode = actualChildNodes[i];
       diffs.push(`${path}[${i}]: extra node '${toHTML(childNode)}'`);
     }
@@ -92,6 +132,18 @@ function toAttrs(jsxNode: QwikJSX.Element): string[] {
   return attrs;
 }
 
+function toAttrsProcessed(jsxNode: ProcessedJSXNode): string[] {
+  const attrs: string[] = [];
+  if (jsxNode.$props$) {
+    Object.keys(jsxNode.$props$ || {}).forEach((key) => {
+      if (key !== 'children') {
+        attrs.push(key + '=' + JSON.stringify(jsxNode.$props$![key]));
+      }
+    });
+  }
+  return attrs;
+}
+
 function toHTML(node: any) {
   if (isElement(node)) {
     const attrs: string[] = [];
@@ -105,6 +157,9 @@ function toHTML(node: any) {
   } else if (isJSXNode(node)) {
     const attrs = toAttrs(node);
     return `<${node.type}${attrs.length ? ' ' + attrs.join(' ') : ''}>`;
+  } else if (isProcessedJSXNode(node)) {
+    const attrs = toAttrsProcessed(node);
+    return `<${node.$type$}${attrs.length ? ' ' + attrs.join(' ') : ''}>`;
   } else if (isComment(node)) {
     return `<!--${node.textContent}-->`;
   } else {
@@ -112,29 +167,26 @@ function toHTML(node: any) {
   }
 }
 
-describe('expect-dom', () => {
-  it('should match element', () => {
-    expectDOM(toDOM('<span></span>'), <span></span>);
-  });
-  it('should match attributes element', () => {
-    expectDOM(toDOM('<span title="abc" id="bar"></span>'), <span id="bar" title="abc"></span>);
-  });
+const expectDom = suite('expect-dom');
+expectDom('should match element', async () => {
+  await expectDOM(toDOM('<span></span>'), <span></span>);
+});
+expectDom('should match attributes element', async () => {
+  await expectDOM(toDOM('<span title="abc" id="bar"></span>'), <span id="bar" title="abc"></span>);
+});
 
-  describe('errors', () => {
-    it('should detect missing attrs', () => {
-      expectDOM(toDOM('<span></span>'), <span id="bar"></span>, [
-        "span: expected '<span id=\"bar\">', was '<span>'.",
-      ]);
-    });
-    it('should detect different tag attrs', () => {
-      expectDOM(toDOM('<span></span>'), <div></div>, ["span: expected '<div>', was '<span>'."]);
-    });
-    it('should detect different text', () => {
-      expectDOM(toDOM('<span>TEXT</span>'), <span>OTHER</span>, [
-        'span: expected content "OTHER", was "TEXT"',
-      ]);
-    });
-  });
+expectDom('should detect missing attrs', async () => {
+  await expectDOM(toDOM('<span></span>'), <span id="bar"></span>, [
+    "span: expected '<span id=\"bar\">', was '<span>'.",
+  ]);
+});
+expectDom('should detect different tag attrs', async () => {
+  await expectDOM(toDOM('<span></span>'), <div></div>, ["span: expected '<div>', was '<span>'."]);
+});
+expectDom('should detect different text', async () => {
+  await expectDOM(toDOM('<span>TEXT</span>'), <span>OTHER</span>, [
+    'span: expected content "OTHER", was "TEXT"',
+  ]);
 });
 
 function toDOM(html: string): HTMLElement {
@@ -143,3 +195,5 @@ function toDOM(html: string): HTMLElement {
   host.innerHTML = html;
   return host.firstElementChild! as HTMLElement;
 }
+
+expectDom.run();

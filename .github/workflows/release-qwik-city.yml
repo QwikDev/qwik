@@ -40,6 +40,6 @@ jobs:
         run: cd packages/qwik-city && yarn build
 
       - name: Publish Qwik City
-        run: cd packages/qwik-city && yarn node -r esbuild-register scripts/release.ts --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: cd packages/qwik-city && yarn tsm scripts/release.ts --set-dist-tag="${{ github.event.inputs.disttag }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,18 +1,31 @@
 /* eslint-disable */
-import { flattenArray } from '../../util/array';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { JSXNodeImpl } from './jsx-runtime';
 import type { QwikJSX } from './types/jsx-qwik';
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
+import { isArray } from '../../util/types';
+
+export const flattenArray = <T>(array: (T | T[])[], dst?: T[]): T[] => {
+  // Yes this function is just Array.flat, but we need to run on old versions of Node.
+  if (!dst) dst = [];
+  for (const item of array) {
+    if (isArray(item)) {
+      flattenArray(item, dst);
+    } else {
+      dst.push(item);
+    }
+  }
+  return dst;
+};
 
 /**
  * @public
  */
-export function h<PROPS extends {} = {}>(
-  type: string | FunctionComponent<PROPS>,
+export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(
+  type: TYPE,
   props: PROPS | null,
   ...children: any[]
-): JSXNode {
+): JSXNode<TYPE> {
   // Using legacy h() jsx transform and morphing it
   // so it can use the modern vdom structure
   // https://reactjs.org/blog/2020/09/22/introducing-the-new-jsx-transform.html

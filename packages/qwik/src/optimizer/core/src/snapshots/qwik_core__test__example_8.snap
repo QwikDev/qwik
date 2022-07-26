@@ -20,14 +20,11 @@ export const Header = component$(() => {
 
 ============================= header_component_j4uyihabnr4.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 export const Header_component_J4uyIhaBNR4 = ()=>{
-    return qwik.qrl(()=>import("./header_component_1_2b8d0oh9zwc")
+    return qrl(()=>import("./header_component_1_2b8d0oh9zwc")
     , "Header_component_1_2B8d0oH9ZWc");
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -50,7 +47,6 @@ export { hW as handleWatch };
 */
 ============================= header_component_1_2b8d0oh9zwc.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 import { Header } from "./test";
 export const Header_component_1_2B8d0oH9ZWc = (hola)=>{
     const hola = this;
@@ -59,7 +55,7 @@ export const Header_component_1_2B8d0oH9ZWc = (hola)=>{
     return <Header />;
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*
@@ -83,9 +79,9 @@ export { hW as handleWatch };
 */
 ============================= test.tsx ==
 
-import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./header_component_j4uyihabnr4")
+import { qrl } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("./header_component_j4uyihabnr4")
 , "Header_component_J4uyIhaBNR4"));
 
 == DIAGNOSTICS ==

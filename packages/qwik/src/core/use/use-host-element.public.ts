@@ -1,5 +1,4 @@
-import { assertDefined } from '../assert/assert';
-import { getInvokeContext } from './use-core';
+import { useInvokeContext } from './use-core';
 
 // <docs markdown="../readme.md#useHostElement">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -27,8 +26,7 @@ import { getInvokeContext } from './use-core';
  * @public
  */
 // </docs>
-export function useHostElement(): Element {
-  const element = getInvokeContext().hostElement!;
-  assertDefined(element);
-  return element;
-}
+export const useHostElement = (): Element => {
+  const ctx = useInvokeContext();
+  return ctx.$hostElement$;
+};

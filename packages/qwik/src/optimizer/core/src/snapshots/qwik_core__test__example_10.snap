@@ -27,7 +27,6 @@ const Header = $((decl1, {decl2}, [decl3]) => {
 
 ============================= header_wlr3xni6u38.tsx (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 export const Header_WlR3xnI6u38 = (decl1, { decl2  }, [decl3])=>{
     const hola = ident1.no;
     ident2;
@@ -50,7 +49,7 @@ export const Header_WlR3xnI6u38 = (decl1, { decl2  }, [decl3])=>{
     } required={false}/>;
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*
@@ -74,8 +73,8 @@ export { hW as handleWatch };
 */
 ============================= project/test.tsx ==
 
-import * as qwik from "@builder.io/qwik";
-qwik.qrl(()=>import("../header_wlr3xni6u38")
+import { qrl } from "@builder.io/qwik";
+qrl(()=>import("../header_wlr3xni6u38")
 , "Header_WlR3xnI6u38");
 
 == DIAGNOSTICS ==

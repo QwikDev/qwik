@@ -1,0 +1,22 @@
+footer {
+  border-top: 1px solid #ddd;
+  margin-top: 40px;
+  padding: 20px;
+}
+
+footer a {
+  color: #949494;
+  font-size: 12px;
+}
+
+footer ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+footer li {
+  display: inline-block;
+  padding: 4px 12px;
+}

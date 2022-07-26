@@ -1,16 +1,15 @@
-import type { ValueOrPromise } from '../util/types';
+import { isArray, isObject, ValueOrPromise } from '../util/types';
 import type { Props } from '../props/props.public';
 import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
-import { QContainerSelector, QHostAttr } from '../util/markers';
+import { QContainerSelector, QHostAttr, RenderEvent } from '../util/markers';
 import { getDocument } from '../util/dom';
 import type { QRL } from '../import/qrl.public';
 import type { Subscriber } from './use-subscriber';
 import type { RenderContext } from '../render/cursor';
+import { qError, QError_useInvokeContext, QError_useMethodOutsideContext } from '../error/error';
 
 declare const document: QwikDocument;
-
-export const CONTAINER = Symbol('container');
 
 export interface StyleAppend {
   type: 'style';
@@ -18,39 +17,40 @@ export interface StyleAppend {
   content: string;
 }
 
-export function isStyleTask(obj: any): obj is StyleAppend {
-  return obj && typeof obj === 'object' && obj.type === 'style';
+export interface InvokeContext {
+  $url$: URL | null;
+  $seq$: number;
+  $doc$?: Document;
+  $hostElement$?: Element;
+  $element$?: Element;
+  $event$: any;
+  $qrl$?: QRL<any>;
+  $waitOn$?: ValueOrPromise<any>[];
+  $props$?: Props;
+  $subscriber$?: Subscriber | null;
+  $renderCtx$?: RenderContext;
 }
 
-/**
- * @public
- */
-export interface InvokeContext {
-  url: URL | null;
-  seq: number;
-  doc?: Document;
-  hostElement?: Element;
-  element?: Element;
-  event: any;
-  qrl?: QRL<any>;
-  waitOn?: ValueOrPromise<any>[];
-  props?: Props;
-  subscriber?: Subscriber | null;
-  renderCtx?: RenderContext;
-}
+export type RenderInvokeContext = Required<InvokeContext>;
 
 let _context: InvokeContext | undefined;
 
-export function tryGetInvokeContext(): InvokeContext | undefined {
+export const CONTAINER = Symbol('container');
+
+export const isStyleTask = (obj: any): obj is StyleAppend => {
+  return isObject(obj) && obj.type === 'style';
+};
+
+export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
     const context = typeof document !== 'undefined' && document && document.__q_context__;
     if (!context) {
       return undefined;
     }
-    if (Array.isArray(context)) {
+    if (isArray(context)) {
       const element = context[0];
-      const hostElement = getHostElement(element)!;
-      assertDefined(element);
+      const hostElement = getHostElement(element);
+      assertDefined(hostElement, `invoke: can not find hostElement from active element`, element);
       return (document.__q_context__ = newInvokeContext(
         getDocument(element),
         hostElement,
@@ -62,63 +62,65 @@ export function tryGetInvokeContext(): InvokeContext | undefined {
     return context as InvokeContext;
   }
   return _context;
-}
+};
 
-export function getInvokeContext(): InvokeContext {
+export const getInvokeContext = (): InvokeContext => {
   const ctx = tryGetInvokeContext();
   if (!ctx) {
-    throw new Error("Q-ERROR: invoking 'use*()' method outside of invocation context.");
+    throw qError(QError_useMethodOutsideContext);
   }
   return ctx;
-}
+};
 
-export function useInvoke<ARGS extends any[] = any[], RET = any>(
+export const useInvokeContext = (): RenderInvokeContext => {
+  const ctx = getInvokeContext();
+  if (ctx.$event$ !== RenderEvent) {
+    throw qError(QError_useInvokeContext);
+  }
+  assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`, ctx);
+  assertDefined(ctx.$waitOn$, `invoke: $waitOn$ must be defined`, ctx);
+  assertDefined(ctx.$renderCtx$, `invoke: $renderCtx$ must be defined`, ctx);
+  assertDefined(ctx.$doc$, `invoke: $doc$ must be defined`, ctx);
+  assertDefined(ctx.$subscriber$, `invoke: $subscriber$ must be defined`, ctx);
+
+  return ctx as any;
+};
+
+export const useInvoke = <ARGS extends any[] = any[], RET = any>(
   context: InvokeContext,
   fn: (...args: ARGS) => RET,
   ...args: ARGS
-): ValueOrPromise<RET> {
+): RET => {
   const previousContext = _context;
   let returnValue: RET;
   try {
     _context = context;
     returnValue = fn.apply(null, args);
   } finally {
-    const currentCtx = _context!;
     _context = previousContext;
-    if (currentCtx.waitOn && currentCtx.waitOn.length > 0) {
-      // eslint-disable-next-line no-unsafe-finally
-      return Promise.all(currentCtx.waitOn).then(() => returnValue);
-    }
   }
   return returnValue;
-}
-export function newInvokeContext(
+};
+
+export const newInvokeContext = (
   doc?: Document,
   hostElement?: Element,
   element?: Element,
   event?: any,
   url?: URL
-): InvokeContext {
+): InvokeContext => {
   return {
-    seq: 0,
-    doc,
-    hostElement,
-    element,
-    event: event,
-    url: url || null,
-    qrl: undefined,
+    $seq$: 0,
+    $doc$: doc,
+    $hostElement$: hostElement,
+    $element$: element,
+    $event$: event,
+    $url$: url || null,
+    $qrl$: undefined,
   };
-}
+};
 
-/**
- * @alpha
- */
-export function useWaitOn(promise: ValueOrPromise<any>): void {
-  const ctx = getInvokeContext();
-  (ctx.waitOn || (ctx.waitOn = [])).push(promise);
-}
-
-export function getHostElement(el: Element): Element | null {
+export const getHostElement = (el: Element): Element | null => {
   let foundSlot = false;
   let node: Element | null = el;
   while (node) {
@@ -137,13 +139,13 @@ export function getHostElement(el: Element): Element | null {
     node = node.parentElement;
   }
   return node;
-}
+};
 
-export function getContainer(el: Element): Element | null {
+export const getContainer = (el: Element): Element | null => {
   let container = (el as any)[CONTAINER];
   if (!container) {
     container = el.closest(QContainerSelector);
     (el as any)[CONTAINER] = container;
   }
   return container;
-}
+};

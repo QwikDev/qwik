@@ -5,7 +5,6 @@ import { qGlobal } from '../core/util/qdev';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
-import { applyDocumentConfig } from './util';
 import { getDocument } from '../core/util/dom';
 import { getDomListeners } from '../core/props/props-on';
 
@@ -19,8 +18,6 @@ import { getDomListeners } from '../core/props/props-on';
  *   <child></child>
  * </host>
  * ```
- *
- * It also sets up `injector` which points to `child`.
  *
  */
 export class ElementFixture {
@@ -42,15 +39,11 @@ export class ElementFixture {
     this.parent.appendChild(this.host);
     this.host.appendChild(this.child);
     this.document.body.appendChild(this.superParent);
-
-    applyDocumentConfig(this.document, options);
   }
 }
 
 export interface ElementFixtureOptions {
   tagName?: string;
-  baseURI?: string;
-  protocol?: { [protocol: string]: string };
 }
 
 /**
@@ -103,13 +96,15 @@ export function getEvent(ctx: QContext, prop: string): any {
 }
 
 export function qPropReadQRL(ctx: QContext, prop: string): ((event: Event) => void) | null {
-  const listeners = !ctx.listeners ? (ctx.listeners = getDomListeners(ctx.element)) : ctx.listeners;
+  const listeners = !ctx.$listeners$
+    ? (ctx.$listeners$ = getDomListeners(ctx.$element$))
+    : ctx.$listeners$;
 
   return async (event) => {
     const qrls = listeners.get(prop) || [];
     await Promise.all(
       qrls.map((qrl) => {
-        const fn = qrl.invokeFn(ctx.element);
+        const fn = qrl.$invokeFn$(ctx.$element$);
         return fn(event);
       })
     );

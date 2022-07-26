@@ -50,14 +50,18 @@ export const initMonacoEditor = async (
   ts.typescriptDefaults.setEagerModelSync(true);
 
   if (typeof props.onChangeQrl === 'object') {
-    let tmrId: any = null;
+    let debounceTmrId: any = null;
+    let diagnosticsTmrId: any = null;
 
     editorStore.onChangeSubscription = noSerialize(
       editor.onDidChangeModelContent(async () => {
-        props.onChangeQrl?.invoke(props.selectedPath, editor.getValue());
+        clearTimeout(debounceTmrId);
+        debounceTmrId = setTimeout(() => {
+          props.onChangeQrl?.invoke(props.store.selectedInputPath, editor.getValue());
+        }, 200);
 
-        clearTimeout(tmrId);
-        tmrId = setTimeout(() => {
+        clearTimeout(diagnosticsTmrId);
+        diagnosticsTmrId = setTimeout(() => {
           checkDiagnostics(monaco, editor, replStore);
         }, 50);
       })
@@ -70,11 +74,18 @@ export const initMonacoEditor = async (
 export const updateMonacoEditor = async (props: EditorProps, editorStore: EditorStore) => {
   const monaco = await getMonaco();
 
-  const fsPaths = props.inputs.map((i) => getUri(monaco, i.path).fsPath);
+  const selectedPath = props.store.selectedInputPath;
+  const inputs = props.input.files;
   const existingModels = monaco.editor.getModels();
+
   for (const existingModel of existingModels) {
     try {
-      if (!fsPaths.some((fsPath) => existingModel.uri.fsPath === fsPath)) {
+      const input = inputs.find((i) => getUri(monaco, i.path).fsPath === existingModel.uri.fsPath);
+      if (input) {
+        if (input.code !== existingModel.getValue()) {
+          existingModel.setValue(input.code);
+        }
+      } else {
         existingModel.dispose();
       }
     } catch (e) {
@@ -82,7 +93,7 @@ export const updateMonacoEditor = async (props: EditorProps, editorStore: Editor
     }
   }
 
-  for (const input of props.inputs) {
+  for (const input of inputs) {
     try {
       const uri = getUri(monaco, input.path);
       const existingModel = monaco.editor.getModel(uri);
@@ -95,7 +106,7 @@ export const updateMonacoEditor = async (props: EditorProps, editorStore: Editor
   }
 
   if (editorStore.editor) {
-    const selectedFsPath = getUri(monaco, props.selectedPath).fsPath;
+    const selectedFsPath = getUri(monaco, selectedPath).fsPath;
     const previousSelectedModel = editorStore.editor.getModel();
     if (previousSelectedModel) {
       const viewState = editorStore.editor.saveViewState();
@@ -209,7 +220,15 @@ const loadDeps = async (qwikVersion: string) => {
       pkgPath: '/server.d.ts',
       path: '/node_modules/@types/builder.io__qwik/server.d.ts',
     },
+    {
+      pkgName: '@builder.io/qwik',
+      pkgVersion: qwikVersion,
+      pkgPath: '/build/index.d.ts',
+      path: '/node_modules/@types/builder.io__qwik/build/index.d.ts',
+    },
   ];
+
+  const cache = await caches.open('QwikReplResults');
 
   await Promise.all(
     deps.map(async (dep) => {
@@ -227,12 +246,9 @@ const loadDeps = async (qwikVersion: string) => {
         monacoCtx.deps.push(storedDep);
 
         storedDep.promise = new Promise<void>((resolve, reject) => {
-          const url = getCdnUrl(dep.pkgName, dep.pkgVersion, dep.pkgPath);
-          fetch(url).then((rsp) => {
-            rsp.text().then((code) => {
-              storedDep!.code = code;
-              resolve();
-            }, reject);
+          fetchDep(cache, dep).then((code) => {
+            storedDep!.code = code;
+            resolve();
           }, reject);
         });
       }
@@ -241,6 +257,23 @@ const loadDeps = async (qwikVersion: string) => {
   );
 
   return monacoCtx.deps;
+};
+
+const fetchDep = async (cache: Cache, dep: NodeModuleDep) => {
+  const url = getCdnUrl(dep.pkgName, dep.pkgVersion, dep.pkgPath);
+  const req = new Request(url);
+  const cachedRes = await cache.match(req);
+  if (cachedRes) {
+    return cachedRes.clone().text();
+  }
+  const fetchRes = await fetch(req);
+  if (fetchRes.ok) {
+    if (!req.url.includes('localhost')) {
+      await cache.put(req, fetchRes.clone());
+    }
+    return fetchRes.clone().text();
+  }
+  throw new Error(`Unable to fetch: ${url}`);
 };
 
 const getMonaco = async (): Promise<Monaco> => {

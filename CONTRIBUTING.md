@@ -1,9 +1,9 @@
 # CONTRIBUTING
 
-To build Qwik for local development, first [npm](https://docs.npmjs.com/) (or [yarn](https://yarnpkg.com/)) install the dev dependencies:
+To build Qwik for local development, first install the dev dependencies using [yarn](https://yarnpkg.com/)):
 
 ```
-yarn install
+yarn
 ```
 
 Next the `start` command will:
@@ -71,6 +71,16 @@ yarn build
 
 The build output will be written to `packages/qwik/dist`, which will be the directory that is published
 to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
+
+## Committing using "Commitizen":
+
+Instead of using `git commit` please use the following command:
+
+```shell
+yarn commit
+```
+
+You'll be asked guiding questions which will eventually create a descriptive commit message and necessary to generate meaningful release notes / CHANGELOG automatically.
 
 ## Releasing `@builder.io/qwik`
 

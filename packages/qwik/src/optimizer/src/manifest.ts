@@ -8,7 +8,6 @@ import type {
   QwikManifest,
   QwikSymbol,
 } from './types';
-import { versions } from './versions';
 
 // This is just the initial prioritization of the symbols and entries
 // at build time so there's less work during each SSR. However, SSR should
@@ -211,10 +210,6 @@ function updateSortAndPriorities(manifest: QwikManifest) {
   manifest.symbols = prioritorizedSymbols;
   manifest.mapping = prioritorizedMapping;
   manifest.bundles = sortedBundles;
-
-  if (Array.isArray(manifest.injections)) {
-    manifest.injections.sort();
-  }
 
   return manifest;
 }

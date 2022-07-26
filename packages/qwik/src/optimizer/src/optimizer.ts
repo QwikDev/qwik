@@ -59,10 +59,16 @@ const transformFsAsync = async (
   const getInputFiles = await getPlatformInputFiles(sys);
 
   if (getInputFiles) {
-    const input = await getInputFiles(fsOpts.rootDir);
-
+    const input = await getInputFiles(fsOpts.srcDir);
+    for (const root of fsOpts.vendorRoots) {
+      const rootFiles = await getInputFiles(root);
+      input.push(...rootFiles);
+    }
+    input.forEach((file) => {
+      file.path = sys.path.relative(fsOpts.srcDir, file.path);
+    });
     const modulesOpts: TransformModulesOptions = {
-      rootDir: fsOpts.rootDir,
+      srcDir: fsOpts.srcDir,
       entryStrategy: fsOpts.entryStrategy,
       minify: fsOpts.minify,
       sourceMaps: fsOpts.sourceMaps,
@@ -83,9 +89,10 @@ const convertOptions = (opts: any) => {
     minify: 'simplify',
     sourceMaps: false,
     transpile: false,
-    explicityExtensions: false,
+    explicitExtensions: false,
     dev: true,
     scope: undefined,
+    stripExports: undefined,
   };
   Object.entries(opts).forEach(([key, value]) => {
     if (value != null) {

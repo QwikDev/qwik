@@ -1,0 +1,88 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@builder.io/qwik';
+import { sibling } from './sibling';
+
+export default component$(() => {
+    return (
+        <div onClick$={() => console.log(mongodb, sibling)}>
+        </div>
+    );
+});
+
+
+============================= src/routes/_repl/[id]/[[...slug]].js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export default /*#__PURE__*/ componentQrl(qrl(()=>import("../../../../entry______slug__.js")
+, "_____slug___component_vgk6N3QaQd4"));
+
+============================= _____slug___component_div_onclick_oesymv0so3o.js ==
+
+import { sibling } from "./src/routes/_repl/[id]/sibling";
+export const _____slug___component_div_onClick_OesyMV0SO3o = ()=>console.log(mongodb, sibling)
+;
+
+/*
+{
+  "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
+  "name": "_____slug___component_div_onClick_OesyMV0SO3o",
+  "entry": "entry______slug__",
+  "displayName": "_____slug___component_div_onClick",
+  "hash": "OesyMV0SO3o",
+  "canonicalFilename": "_____slug___component_div_onclick_oesymv0so3o",
+  "extension": "js",
+  "parent": "_____slug___component_vgk6N3QaQd4",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    157,
+    192
+  ]
+}
+*/
+============================= _____slug___component_vgk6n3qaqd4.js ==
+
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { qrl } from "@builder.io/qwik";
+export const _____slug___component_vgk6N3QaQd4 = ()=>{
+    return /*#__PURE__*/ _jsx("div", {
+        onClick$: qrl(()=>import("./entry______slug__.js")
+        , "_____slug___component_div_onClick_OesyMV0SO3o")
+    });
+};
+
+/*
+{
+  "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
+  "name": "_____slug___component_vgk6N3QaQd4",
+  "entry": "entry______slug__",
+  "displayName": "_____slug___component",
+  "hash": "vgk6N3QaQd4",
+  "canonicalFilename": "_____slug___component_vgk6n3qaqd4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    113,
+    218
+  ]
+}
+*/
+============================= entry______slug__.js (ENTRY POINT)==
+
+export { _____slug___component_div_onClick_OesyMV0SO3o } from "./_____slug___component_div_onclick_oesymv0so3o.js";
+export { _____slug___component_vgk6N3QaQd4 } from "./_____slug___component_vgk6n3qaqd4.js";
+
+== DIAGNOSTICS ==
+
+[]

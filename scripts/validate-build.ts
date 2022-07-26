@@ -2,6 +2,7 @@ import { BuildConfig, PackageJSON, panic } from './util';
 import { access, readFile } from './util';
 import { extname, join } from 'path';
 import { pathToFileURL } from 'url';
+import { createRequire } from 'module';
 import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import ts from 'typescript';
 
@@ -15,6 +16,7 @@ export async function validateBuild(config: BuildConfig) {
   const pkgPath = join(config.distPkgDir, 'package.json');
   const pkg: PackageJSON = JSON.parse(await readFile(pkgPath, 'utf-8'));
   const errors: string[] = [];
+  const require = createRequire(import.meta.url);
 
   // triple checks these package files all exist and parse
   const pkgFiles = [...pkg.files!, 'LICENSE', 'README.md', 'package.json'];
@@ -146,26 +148,29 @@ async function validatePackageJson(config: BuildConfig, pkg: PackageJSON, errors
       await access(join(config.distPkgDir, path));
     } catch (e: any) {
       errors.push(
-        `Error loading file "${path}" referenced in package.json: ${String(e.stack || e)}`
+        `Error loading file "${path}" referenced in package.json: ${String(
+          e ? e.stack || e : 'Error'
+        )}`
       );
     }
   }
 
-  await Promise.all([validatePath(pkg.main), validatePath(pkg.module), validatePath(pkg.types)]);
+  await Promise.all([validatePath(pkg.main), validatePath(pkg.types)]);
 
-  const exportKeys = Object.keys(pkg.exports!);
+  async function validateExports(exports: Record<string, any>) {
+    const exportKeys = Object.keys(exports);
 
-  await Promise.all(
-    exportKeys.map(async (exportKey) => {
-      const val = pkg.exports![exportKey];
-      if (typeof val === 'string') {
-        await validatePath(val);
-      } else {
-        const exportKeys = Object.keys(val);
-        for (const key of exportKeys) {
-          await validatePath(val[key]);
+    await Promise.all(
+      exportKeys.map(async (exportKey) => {
+        const val = exports[exportKey];
+        if (typeof val === 'string') {
+          await validatePath(val);
+        } else {
+          await validateExports(val);
         }
-      }
-    })
-  );
+      })
+    );
+  }
+
+  validateExports(pkg.exports!);
 }

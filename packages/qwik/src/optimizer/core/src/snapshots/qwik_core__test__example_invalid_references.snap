@@ -24,24 +24,21 @@ export const App = component$(({count}) => {
 
 ============================= test.js ==
 
-import * as qwik from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 const [I2, { I3 , v1: [I4] , I5 =v2 , ...I6 }, I7 = v3, ...I8] = obj;
-export const App = /*#__PURE__*/ componentQrl(qwik.qrl(()=>import("./app_component_ckepmxzlub0")
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0")
 , "App_component_ckEPmXZlub0"));
 
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ({ count  })=>{
     console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
     console.log(itsok, v1, v2, v3, obj);
-    return qwik.qrl(()=>import("./app_component_1_w0t0o3qmovu")
+    return qrl(()=>import("./app_component_1_w0t0o3qmovu")
     , "App_component_1_w0t0o3QMovU");
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
-export { hW as handleWatch };
 
 /*
 {
@@ -64,13 +61,12 @@ export { hW as handleWatch };
 */
 ============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
 
-import * as qwik from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const App_component_1_w0t0o3QMovU = ()=>{
     return /*#__PURE__*/ _jsx(I10, {});
 };
 import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue456 && hW.issue123();
+hW.issue123 && hW.issue123();
 export { hW as handleWatch };
 
 /*
@@ -97,9 +93,9 @@ export { hW as handleWatch };
 [
   {
     "category": "error",
-    "code": "root-level-reference",
+    "code": "C01",
     "file": "test.tsx",
-    "message": "Reference to root level identifier needs to be exported: I10",
+    "message": "Reference to identifier declared at the root 'I10'. It needs to be exported in order to be used inside a Qrl($) scope.",
     "highlights": [
       {
         "lo": 153,
@@ -115,9 +111,9 @@ export { hW as handleWatch };
   },
   {
     "category": "error",
-    "code": "root-level-reference",
+    "code": "C01",
     "file": "test.tsx",
-    "message": "Reference to root level identifier needs to be exported: I1",
+    "message": "Reference to identifier declared at the root 'I1'. It needs to be exported in order to be used inside a Qrl($) scope.",
     "highlights": [
       {
         "lo": 59,
@@ -133,9 +129,9 @@ export { hW as handleWatch };
   },
   {
     "category": "error",
-    "code": "root-level-reference",
+    "code": "C01",
     "file": "test.tsx",
-    "message": "Reference to root level identifier needs to be exported: I2",
+    "message": "Reference to identifier declared at the root 'I2'. It needs to be exported in order to be used inside a Qrl($) scope.",
     "highlights": [
       {
         "lo": 75,
@@ -151,9 +147,9 @@ export { hW as handleWatch };
   },
   {
     "category": "error",
-    "code": "root-level-reference",
+    "code": "C01",
     "file": "test.tsx",
-    "message": "Reference to root level identifier needs to be exported: I3",
+    "message": "Reference to identifier declared at the root 'I3'. It needs to be exported in order to be used inside a Qrl($) scope.",
     "highlights": [
       {
         "lo": 80,
@@ -169,9 +165,9 @@ export { hW as handleWatch };
   },
   {
     "category": "error",
-    "code": "root-level-reference",
+    "code": "C01",
     "file": "test.tsx",
-    "message": "Reference to root level identifier needs to be exported: I4",
+    "message": "Reference to identifier declared at the root 'I4'. It needs to be exported in order to be used inside a Qrl($) scope.",
     "highlights": [
       {
         "lo": 89,
@@ -187,9 +183,9 @@ export { hW as handleWatch };
   },
   {
     "category": "error",
-    "code": "root-level-reference",
+    "code": "C01",
     "file": "test.tsx",
-    "message": "Reference to root level identifier needs to be exported: I5",
+    "message": "Reference to identifier declared at the root 'I5'. It needs to be exported in order to be used inside a Qrl($) scope.",
     "highlights": [
       {
         "lo": 94,
@@ -205,9 +201,9 @@ export { hW as handleWatch };
   },
   {
     "category": "error",
-    "code": "root-level-reference",
+    "code": "C01",
     "file": "test.tsx",
-    "message": "Reference to root level identifier needs to be exported: I6",
+    "message": "Reference to identifier declared at the root 'I6'. It needs to be exported in order to be used inside a Qrl($) scope.",
     "highlights": [
       {
         "lo": 104,
@@ -223,9 +219,9 @@ export { hW as handleWatch };
   },
   {
     "category": "error",
-    "code": "root-level-reference",
+    "code": "C01",
     "file": "test.tsx",
-    "message": "Reference to root level identifier needs to be exported: I7",
+    "message": "Reference to identifier declared at the root 'I7'. It needs to be exported in order to be used inside a Qrl($) scope.",
     "highlights": [
       {
         "lo": 109,
@@ -241,9 +237,9 @@ export { hW as handleWatch };
   },
   {
     "category": "error",
-    "code": "root-level-reference",
+    "code": "C01",
     "file": "test.tsx",
-    "message": "Reference to root level identifier needs to be exported: I8",
+    "message": "Reference to identifier declared at the root 'I8'. It needs to be exported in order to be used inside a Qrl($) scope.",
     "highlights": [
       {
         "lo": 119,
@@ -259,9 +255,9 @@ export { hW as handleWatch };
   },
   {
     "category": "error",
-    "code": "root-level-reference",
+    "code": "C01",
     "file": "test.tsx",
-    "message": "Reference to root level identifier needs to be exported: I9",
+    "message": "Reference to identifier declared at the root 'I9'. It needs to be exported in order to be used inside a Qrl($) scope.",
     "highlights": [
       {
         "lo": 139,

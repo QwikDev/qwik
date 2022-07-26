@@ -130,4 +130,13 @@ test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
     // no useClientEffect()
     expect(await nodeVersion.innerText()).toBe('');
   }
+
+  /***********  MIT  ***********/
+  await linkNavigate(ctx, '[data-test-link="mit"]');
+  await assertPage(ctx, {
+    pathname: '/mit',
+    title: 'MIT License - Qwik',
+    layoutHierarchy: [],
+    h1: 'MIT License',
+  });
 });

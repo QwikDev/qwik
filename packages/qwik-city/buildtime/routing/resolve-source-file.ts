@@ -42,36 +42,38 @@ export function resolveRoute(
   const filePath = sourceFile.filePath;
   const layouts: BuildLayout[] = [];
   const routesDir = opts.routesDir;
-  const { pathname, layoutName } = getPathnameFromFilePath(opts, filePath);
-  const hasNamedLayout = layoutName !== '';
+  const { pathname, layoutName, layoutStop } = getPathnameFromFilePath(opts, filePath);
 
-  let currentDir = normalizePath(dirname(filePath));
-  let hasFoundNamedLayout = false;
+  if (!layoutStop) {
+    let currentDir = normalizePath(dirname(filePath));
+    let hasFoundNamedLayout = false;
+    const hasNamedLayout = layoutName !== '';
 
-  for (let i = 0; i < 20; i++) {
-    let layout: BuildLayout | undefined = undefined;
+    for (let i = 0; i < 20; i++) {
+      let layout: BuildLayout | undefined = undefined;
 
-    if (hasNamedLayout && !hasFoundNamedLayout) {
-      layout = appLayouts.find((l) => l.dirPath === currentDir && l.layoutName === layoutName);
-      if (layout) {
-        hasFoundNamedLayout = true;
+      if (hasNamedLayout && !hasFoundNamedLayout) {
+        layout = appLayouts.find((l) => l.dirPath === currentDir && l.layoutName === layoutName);
+        if (layout) {
+          hasFoundNamedLayout = true;
+        }
+      } else {
+        layout = appLayouts.find((l) => l.dirPath === currentDir && l.layoutName === '');
       }
-    } else {
-      layout = appLayouts.find((l) => l.dirPath === currentDir && l.layoutName === '');
-    }
 
-    if (layout) {
-      layouts.push(layout);
-      if (layout.layoutType === 'top') {
+      if (layout) {
+        layouts.push(layout);
+        if (layout.layoutType === 'top') {
+          break;
+        }
+      }
+
+      if (currentDir === routesDir) {
         break;
       }
-    }
 
-    if (currentDir === routesDir) {
-      break;
+      currentDir = normalizePath(dirname(currentDir));
     }
-
-    currentDir = normalizePath(dirname(currentDir));
   }
 
   const buildRoute: BuildRoute = {

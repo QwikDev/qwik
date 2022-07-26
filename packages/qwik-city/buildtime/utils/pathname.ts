@@ -17,11 +17,17 @@ export function getPathnameFromFilePath(opts: NormalizedPluginOptions, filePath:
 
   let fileName = getExtensionLessBasename(pathname);
   let layoutName = '';
+  let layoutStop = false;
 
   const namedLayoutParts = fileName.split('@');
   if (namedLayoutParts.length === 2) {
     fileName = namedLayoutParts[0];
     layoutName = namedLayoutParts[1];
+  }
+
+  if (fileName.endsWith('!')) {
+    layoutStop = true;
+    fileName = fileName.substring(0, fileName.length - 1);
   }
 
   if (fileName === 'index') {
@@ -37,6 +43,7 @@ export function getPathnameFromFilePath(opts: NormalizedPluginOptions, filePath:
   return {
     pathname: normalizePathname(opts, pathname),
     layoutName,
+    layoutStop,
   };
 }
 

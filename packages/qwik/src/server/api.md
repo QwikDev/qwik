@@ -191,9 +191,6 @@ export interface RenderToStringResult extends RenderResult {
     html: string;
 }
 
-// @public
-export function serializeDocument(docOrEl: Document | Element, opts?: SerializeDocumentOptions): string;
-
 // Warning: (ae-forgotten-export) The symbol "SymbolMapper" needs to be exported by the entry point index.d.ts
 //
 // @public

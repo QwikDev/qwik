@@ -2,12 +2,7 @@ import { isDocument } from '../core/util/element';
 import { getValidManifest } from '../optimizer/src/manifest';
 import type { SerializeDocumentOptions } from './types';
 
-/**
- * Serializes the given `document` to a string. Additionally, will serialize the
- * Qwik component state and optionally add Qwik protocols to the document.
- * @public
- */
-export function serializeDocument(docOrEl: Document | Element, opts?: SerializeDocumentOptions) {
+function _serializeDocument(docOrEl: Document | Element, opts?: SerializeDocumentOptions) {
   if (!isDocument(docOrEl)) {
     return docOrEl.outerHTML;
   }
@@ -32,11 +27,15 @@ export function serializeDocument(docOrEl: Document | Element, opts?: SerializeD
   return docOrEl.documentElement.outerHTML;
 }
 
-export function splitDocument(
+/**
+ * Serializes the given `document` to a string. Additionally, will serialize the
+ * Qwik component state and optionally add Qwik protocols to the document.
+ */
+export function serializeDocument(
   docOrEl: Document | Element,
   opts?: SerializeDocumentOptions
 ): [string, string] {
-  const html = serializeDocument(docOrEl, opts);
+  const html = _serializeDocument(docOrEl, opts);
   let end = html.length;
   const bodyIndex = html.lastIndexOf('</body>');
   if (bodyIndex >= 0) {

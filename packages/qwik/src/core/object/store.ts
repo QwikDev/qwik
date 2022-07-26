@@ -283,9 +283,12 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     let id = elementToIndex.get(el);
     if (id === undefined) {
       if (el.isConnected) {
-        id = intToStr(elementToIndex.size);
-        directSetAttribute(el, ELEMENT_ID, id);
-        id = ELEMENT_ID_PREFIX + id;
+        id = directGetAttribute(el, ELEMENT_ID);
+        if (!id) {
+          console.warn('Missing ID');
+        } else {
+          id = ELEMENT_ID_PREFIX + id;
+        }
       } else {
         id = null;
       }

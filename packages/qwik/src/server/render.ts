@@ -2,7 +2,7 @@ import { createTimer, getBuildBase } from './utils';
 import { pauseContainer, render } from '@builder.io/qwik';
 import type { SnapshotResult } from '@builder.io/qwik';
 import { setServerPlatform } from './platform';
-import { splitDocument } from './serialize';
+import { serializeDocument } from './serialize';
 import type {
   QwikManifest,
   RenderDocument,
@@ -20,6 +20,8 @@ import { _createDocument } from './document';
 import type { SymbolMapper } from '../optimizer/src/types';
 import { getSymbolHash } from '../core/import/qrl-class';
 import { logWarn } from '../core/util/log';
+import { directSetAttribute } from '../core/render/fast-calls';
+import { QContainerAttr } from '../core/util/markers';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -32,14 +34,13 @@ export async function renderToStream(
   rootNode: any,
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> {
-  const stream = opts.stream;
-  const enqueue = (str: string) => stream.write(str);
+  const write = opts.stream.write.bind(opts.stream);
 
   const createDocTimer = createTimer();
   const doc = _createDocument(opts) as RenderDocument;
   const createDocTime = createDocTimer();
-  let root: Element | Document = doc;
 
+  let root: Element | Document = doc;
   if (typeof opts.fragmentTagName === 'string') {
     if (opts.qwikLoader) {
       if (opts.qwikLoader.include === undefined) {
@@ -57,30 +58,32 @@ export async function renderToStream(
     root = doc.createElement(opts.fragmentTagName);
     doc.body.appendChild(root);
   } else {
-    enqueue(DOCTYPE);
+    write(DOCTYPE);
   }
   if (!opts.manifest) {
     logWarn('Missing client manifest, loading symbols in the client might 404');
   }
 
+  const containerEl = getElement(root);
   const mapper = computeSymbolMapper(opts.manifest);
   await setServerPlatform(doc, opts, mapper);
 
+  // Render
   const renderDocTimer = createTimer();
-
   await render(root, rootNode, {
     allowRerender: false,
     userContext: opts.userContext,
   });
 
-  const [before, after] = splitDocument(doc, opts);
+  // Serialize
+  directSetAttribute(containerEl, QContainerAttr, 'paused');
+  const [before, after] = serializeDocument(doc, opts);
+  directSetAttribute(containerEl, QContainerAttr, 'resumed');
+  write(before);
   const renderDocTime = renderDocTimer();
-
-  enqueue(before);
 
   const restDiv = doc.createElement('div');
   const buildBase = getBuildBase(opts);
-  const containerEl = getElement(root);
   containerEl.setAttribute('q:base', buildBase);
 
   let snapshotResult: SnapshotResult | null = null;
@@ -110,18 +113,18 @@ export async function renderToStream(
     restDiv.appendChild(scriptElm);
   }
 
-  enqueue(restDiv.innerHTML);
+  write(restDiv.innerHTML);
 
   if (snapshotResult?.pendingContent) {
     await Promise.allSettled(
       snapshotResult.pendingContent.map((promise) => {
         return promise.then((resolved) => {
-          enqueue(`<script type="qwik/chunk">${resolved}</script>`);
+          write(`<script type="qwik/chunk">${resolved}</script>`);
         });
       })
     );
   }
-  enqueue(after);
+  write(after);
 
   const docToStringTimer = createTimer();
 

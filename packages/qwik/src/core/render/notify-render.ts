@@ -48,6 +48,7 @@ export interface ContainerState {
   $renderPromise$: Promise<RenderContext> | undefined;
 
   $userContext$: Record<string, any>;
+  $elementIndex$: number;
 }
 
 const CONTAINER_STATE = Symbol('ContainerState');
@@ -69,6 +70,7 @@ export const getContainerState = (containerEl: Element): ContainerState => {
       $hostsRendering$: undefined,
 
       $userContext$: {},
+      $elementIndex$: 0,
     };
   }
   return set;

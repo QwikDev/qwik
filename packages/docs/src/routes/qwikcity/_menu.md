@@ -24,7 +24,6 @@
 - [Components](content/component.mdx)
 - [MDX](content/mdx.mdx)
 - [Menu](content/menu.mdx)
-- [Breadcrumbs](content/breadcrumbs.mdx)
 
 ## Data Endpoints
 
@@ -39,9 +38,7 @@
 
 ## APIs
 
-- [useContentBreadcrumbs()](api/use-content-breadcrumbs.mdx)
-- [useContentHeadings()](api/use-content-headings.mdx)
-- [useContentMenu()](api/use-content-menu.mdx)
+- [useContent()](api/use-content.mdx)
 - [useDocumentHead()](api/use-document-head.mdx)
 - [useLocation()](api/use-location.mdx)
 

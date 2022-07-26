@@ -149,8 +149,8 @@ export interface QwikProps extends PreventDefault {
 // Allows for Event Handlers to by typed as QwikEventMap[Key] or Event
 // https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
 export type BivariantEventHandler<T extends Event> = {
-  bivarianceHack(event: T, element: Element): any
-}['bivarianceHack']
+  bivarianceHack(event: T, element: Element): any;
+}['bivarianceHack'];
 
 /**
  * @public

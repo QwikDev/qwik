@@ -6,7 +6,7 @@ export default component$(() => {
   const { params, pathname } = useLocation();
   const store = useStore({ productFetchData: '' });
 
-  const resource = useEndpoint<EndpointData>();
+  const resource = useEndpoint<typeof onGet>();
 
   return (
     <Host>

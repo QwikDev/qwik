@@ -29,5 +29,5 @@ export interface UserResponseContext {
   status: number;
   headers: Headers;
   body: any;
-  handler: 'page' | 'endpoint' | 'redirect' | null;
+  type: 'page' | 'endpoint';
 }

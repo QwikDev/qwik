@@ -2,8 +2,7 @@ import type { ViteDevServer } from 'vite';
 import type { BuildContext } from '../types';
 import type { EndpointModule } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
-import { loadEndpointResponse } from '../../middleware/request-handler/endpoint-handler';
-import { checkPageRedirect } from '../../middleware/request-handler/redirect-handler';
+import { loadUserResponse } from '../../middleware/request-handler/user-response';
 import { getQwikCityUserContext } from '../../middleware/request-handler/utils';
 import { fromNodeHttp } from '../../middleware/express/utils';
 import { buildFromUrlPathname } from '../build';
@@ -25,15 +24,6 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         const { request, response } = fromNodeHttp(url, nodeReq, nodeRes);
         const isEndpointOnly = route.type === 'endpoint';
 
-        if (!isEndpointOnly) {
-          // content page, so check if the trailing slash should be redirected
-          const redirectResponse = checkPageRedirect(url, ctx.opts.trailingSlash, response);
-          if (redirectResponse) {
-            // page redirect will add or remove the trailing slash depending on the option
-            return redirectResponse;
-          }
-        }
-
         // use vite to dynamically load each layout/page module in this route's hierarchy
         const endpointModules: EndpointModule[] = [];
         for (const layout of route.layouts) {
@@ -47,28 +37,33 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         });
         endpointModules.push(endpointModule);
 
-        const userResponseContext = await loadEndpointResponse(
+        const userResponse = await loadUserResponse(
           request,
           url,
           params,
           endpointModules,
+          ctx.opts.trailingSlash,
           isEndpointOnly
         );
 
-        if (userResponseContext.handler === 'endpoint') {
+        if (userResponse.type === 'endpoint') {
           // dev server endpoint handler
-          response(userResponseContext.status, userResponseContext.headers, async (stream) => {
-            stream.write(userResponseContext.body);
+          response(userResponse.status, userResponse.headers, async (stream) => {
+            stream.write(userResponse.body);
           });
           return;
         }
 
-        // qwik city vite plugin should handle dev ssr rendering
-        // but add the qwik city user context to the response object
-        (nodeRes as QwikViteDevResponse)._qwikUserCtx = {
-          ...(nodeRes as QwikViteDevResponse)._qwikUserCtx,
-          ...getQwikCityUserContext(userResponseContext),
-        };
+        if (userResponse.type === 'page') {
+          // qwik city vite plugin should handle dev ssr rendering
+          // but add the qwik city user context to the response object
+          (nodeRes as QwikViteDevResponse)._qwikUserCtx = {
+            ...(nodeRes as QwikViteDevResponse)._qwikUserCtx,
+            ...getQwikCityUserContext(userResponse),
+          };
+          next();
+          return;
+        }
       }
     } catch (e) {
       next(e);

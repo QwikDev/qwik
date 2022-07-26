@@ -179,6 +179,9 @@ test('valid-lexical-scope', () => {
               stuff: 12,
               b: false,
               n: null,
+              stuff: new Date(),
+              url: new URL(),
+              regex: new RegExp("dfdf"),
               u: undefined,
               manu: 'string',
               complex: {
@@ -294,29 +297,6 @@ test('valid-lexical-scope', () => {
 
         errors: [
           'Identifier ("stuff") can not be captured inside the scope (useWatch$) because it is an instance of the "Stuff" class, which is not serializable. Use a simple object literal instead. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
-        ],
-      },
-      {
-        code: `
-          export const HelloWorld = component$(() => {
-            const obj = {
-              stuff: new Date(),
-              b: false,
-              n: null,
-              u: undefined,
-              manu: 'string',
-              complex: {
-                s: true,
-              }
-            };
-            useWatch$(() => {
-              console.log(obj, stuff, useMethod);
-            });
-            return <Host></Host>;
-          });`,
-
-        errors: [
-          'Identifier ("obj") can not be captured inside the scope (useWatch$) because "obj.stuff" is an instance of the "Date" class, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
         ],
       },
       {

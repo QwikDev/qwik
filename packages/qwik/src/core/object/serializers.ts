@@ -13,15 +13,7 @@ import { getDocument } from '../util/dom';
 import { isDocument } from '../util/element';
 import type { GetObject, GetObjID } from './store';
 
-export const UNDEFINED_PREFIX = '\u0010';
-export const QRL_PREFIX = '\u0011';
-export const DOCUMENT_PREFIX = '\u0012';
-export const RESOURCE_PREFIX = '\u0013';
-export const WATCH_PREFIX = '\u0014';
-export const URL_PREFIX = '\u0015';
-
 export interface Serializer<T> {
-  prefix: string;
   test: (obj: any) => boolean;
   serialize?: (obj: T, getObjID: GetObjID, containerState: ContainerState) => string;
   prepare: (data: string, containerState: ContainerState) => T;
@@ -29,13 +21,11 @@ export interface Serializer<T> {
 }
 
 const UndefinedSerializer: Serializer<undefined> = {
-  prefix: UNDEFINED_PREFIX,
   test: (obj) => obj === undefined,
   prepare: () => undefined,
 };
 
 const QRLSerializer: Serializer<QRLInternal> = {
-  prefix: QRL_PREFIX,
   test: (v) => isQrl(v),
   serialize: (obj, getObjId, containerState) => {
     return stringifyQRL(obj, {
@@ -55,7 +45,6 @@ const QRLSerializer: Serializer<QRLInternal> = {
 };
 
 const DocumentSerializer: Serializer<Document> = {
-  prefix: DOCUMENT_PREFIX,
   test: (v) => isDocument(v),
   prepare: (_, containerState) => {
     return getDocument(containerState.$containerEl$);
@@ -63,7 +52,6 @@ const DocumentSerializer: Serializer<Document> = {
 };
 
 const ResourceSerializer: Serializer<ResourceReturn<any>> = {
-  prefix: RESOURCE_PREFIX,
   test: (v) => isResourceReturn(v),
   serialize: (obj, getObjId) => {
     return serializeResource(obj, getObjId);
@@ -80,7 +68,6 @@ const ResourceSerializer: Serializer<ResourceReturn<any>> = {
 };
 
 const WatchSerializer: Serializer<SubscriberDescriptor> = {
-  prefix: WATCH_PREFIX,
   test: (v) => isSubscriberDescriptor(v),
   serialize: (obj, getObjId) => serializeWatch(obj, getObjId),
   prepare: (data) => parseWatch(data) as any,
@@ -93,18 +80,54 @@ const WatchSerializer: Serializer<SubscriberDescriptor> = {
   },
 };
 
+const URLSerializer: Serializer<URL> = {
+  test: (v) => v instanceof URL,
+  serialize: (obj) => obj.href,
+  prepare: (data) => new URL(data),
+};
+
+const DateSerializer: Serializer<Date> = {
+  test: (v) => v instanceof Date,
+  serialize: (obj) => obj.toISOString(),
+  prepare: (data) => new Date(data),
+};
+
+const RegexSerializer: Serializer<RegExp> = {
+  test: (v) => v instanceof RegExp,
+  serialize: (obj) => `${obj.flags} ${obj.source}`,
+  prepare: (data) => {
+    const space = data.indexOf(' ');
+    const source = data.slice(space + 1);
+    const flags = data.slice(0, space);
+    return new RegExp(source, flags);
+  },
+};
+
 const serializers: Serializer<any>[] = [
   UndefinedSerializer,
   QRLSerializer,
   DocumentSerializer,
   ResourceSerializer,
   WatchSerializer,
+  URLSerializer,
+  RegexSerializer,
+  DateSerializer,
 ];
 
-export const serializeValue = (obj: any, getObjID: GetObjID, containerState: ContainerState) => {
+export const canSerialize = (obj: any): boolean => {
   for (const s of serializers) {
     if (s.test(obj)) {
-      let value = s.prefix;
+      return true;
+    }
+  }
+  return false;
+};
+
+export const serializeValue = (obj: any, getObjID: GetObjID, containerState: ContainerState) => {
+  for (let i = 0; i < serializers.length; i++) {
+    const s = serializers[i];
+    if (s.test(obj)) {
+      let value = String.fromCharCode(i);
       if (s.serialize) {
         value += s.serialize(obj, getObjID, containerState);
       }
@@ -123,9 +146,11 @@ export const createParser = (getObject: GetObject, containerState: ContainerStat
   const map = new Map<any, Serializer<any>>();
   return {
     prepare(data: string) {
-      for (const s of serializers) {
-        if (data.startsWith(s.prefix)) {
-          const value = s.prepare(data.slice(s.prefix.length), containerState);
+      for (let i = 0; i < serializers.length; i++) {
+        const s = serializers[i];
+        const prefix = String.fromCodePoint(i);
+        if (data.startsWith(prefix)) {
+          const value = s.prepare(data.slice(prefix.length), containerState);
           if (s.fill) {
             map.set(value, s);
           }

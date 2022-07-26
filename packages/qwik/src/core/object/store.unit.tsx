@@ -71,9 +71,9 @@ storeSuite('should serialize content', async () => {
         count: 'i',
       },
       0,
-      '\u0011/runtimeQRL#s21',
-      '\u0012',
-      '\u0010',
+      '\u0001/runtimeQRL#s21',
+      '\u0002',
+      '\u0000',
     ],
     subs: [],
   });

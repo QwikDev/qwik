@@ -43,7 +43,7 @@ export async function requestHandler<T = any>(requestCtx: QwikCityRequestContext
             url: url.href,
             userContext: getQwikCityUserContext(userResponse),
           });
-          if (result && (typeof result as any as RenderToStringResult).html === 'string') {
+          if ((typeof result as any as RenderToStringResult).html === 'string') {
             stream.write((result as any as RenderToStringResult).html);
           }
         });

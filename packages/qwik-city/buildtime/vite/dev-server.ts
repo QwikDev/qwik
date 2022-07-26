@@ -49,7 +49,9 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         if (userResponse.type === 'endpoint') {
           // dev server endpoint handler
           response(userResponse.status, userResponse.headers, async (stream) => {
-            stream.write(userResponse.body);
+            if (typeof userResponse.body === 'string') {
+              stream.write(userResponse.body);
+            }
           });
           return;
         }

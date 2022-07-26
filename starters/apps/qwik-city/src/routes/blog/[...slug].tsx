@@ -2,7 +2,7 @@ import { component$, Host, Resource } from '@builder.io/qwik';
 import { useEndpoint, DocumentHead, EndpointHandler } from '@builder.io/qwik-city';
 
 export default component$(() => {
-  const resource = useEndpoint<EndpointData>();
+  const resource = useEndpoint<typeof onGet>();
 
   return (
     <Host>

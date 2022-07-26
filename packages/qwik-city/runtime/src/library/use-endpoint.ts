@@ -1,6 +1,9 @@
 import { useResource$ } from '@builder.io/qwik';
 import { useLocation, useQwikCityContext } from './use-functions';
 import { isServer } from '@builder.io/qwik/build';
+import type { EndpointHandler } from './types';
+
+type GetEndpointData<T> = T extends EndpointHandler<infer U> ? U : T;
 
 /**
  * @public
@@ -8,7 +11,7 @@ import { isServer } from '@builder.io/qwik/build';
 export const useEndpoint = <T = unknown>() => {
   const loc = useLocation();
   const ctx = useQwikCityContext();
-  return useResource$<T>(async ({ track, cleanup }) => {
+  return useResource$<GetEndpointData<T>>(async ({ track, cleanup }) => {
     const pathname = track(loc, 'pathname');
 
     if (isServer) {

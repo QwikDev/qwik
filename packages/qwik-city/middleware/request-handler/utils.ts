@@ -1,35 +1,21 @@
-import type {
-  HttpMethod,
-  EndpointResponse,
-  QwikCityUserContext,
-  RouteLocation,
-  RouteParams,
-} from '../../runtime/src/library/types';
+import type { QwikCityUserContext } from '../../runtime/src/library/types';
+import type { UserResponseContext } from './types';
 
-export function isAcceptJsonOnly(request: Request) {
-  return request.headers.get('accept') === 'application/json';
-}
-
-export function getQwikCityUserContext(
-  url: URL,
-  params: RouteParams,
-  method: HttpMethod,
-  endpointResponse: EndpointResponse
-): { qwikcity: QwikCityUserContext } {
-  const route: RouteLocation = {
-    href: url.href,
-    params: { ...params },
-    pathname: url.pathname,
-    query: Object.fromEntries(url.searchParams.entries()),
-  };
-
+export function getQwikCityUserContext(userResponseContext: UserResponseContext): {
+  qwikcity: QwikCityUserContext;
+} {
   return {
     qwikcity: {
-      route,
-      request: {
-        method,
+      route: {
+        href: userResponseContext.url.href,
+        pathname: userResponseContext.url.pathname,
+        params: { ...userResponseContext.params },
+        query: Object.fromEntries(userResponseContext.url.searchParams.entries()),
       },
-      response: endpointResponse,
+      response: {
+        body: userResponseContext.body,
+        status: userResponseContext.status,
+      },
     },
   };
 }

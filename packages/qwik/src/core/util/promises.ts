@@ -43,3 +43,9 @@ export const promiseAll = <T extends readonly unknown[] | []>(
 export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
   return v != null;
 };
+
+export const delay = (timeout: number) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, timeout);
+  });
+};

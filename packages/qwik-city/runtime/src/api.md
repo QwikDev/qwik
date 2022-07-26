@@ -169,7 +169,7 @@ export const useDocumentHead: () => Required<ResolvedDocumentHead>;
 // Warning: (ae-forgotten-export) The symbol "GetEndpointData" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export const useEndpoint: <T = unknown, _R = GetEndpointData<T>>() => ResourceReturn<_R>;
+export const useEndpoint: <T = unknown>() => ResourceReturn<GetEndpointData<T>>;
 
 // @public (undocumented)
 export const useLocation: () => RouteLocation;

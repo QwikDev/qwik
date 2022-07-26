@@ -63,6 +63,10 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
             ...(nodeRes as QwikViteDevResponse)._qwikUserCtx,
             ...getQwikCityUserContext(userResponse),
           };
+          // update node response with status and headers
+          // but do not end() it, call next() so qwik plugin handles rendering
+          nodeRes.statusCode = userResponse.status;
+          userResponse.headers.forEach((value, key) => nodeRes.setHeader(key, value));
           next();
           return;
         }

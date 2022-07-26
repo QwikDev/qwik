@@ -1,69 +1,58 @@
-import { Readable } from 'stream';
+import { Headers as HeadersPolyfill } from 'headers-polyfill';
+import type { ServerResponse } from 'http';
+import type { ServerRequestEvent } from '../request-handler/types';
 
-export async function fromNodeRequest(url: URL, nodeReq: NodeRequest) {
-  const headers = new URLSearchParams();
-  const nodeHeaders = nodeReq.headers;
-  if (nodeHeaders) {
-    for (const key in nodeHeaders) {
-      const value = nodeHeaders[key];
+export function fromNodeHttp(url: URL, nodeReq: NodeRequest, nodeRes: ServerResponse) {
+  const requestHeaders = new (typeof Headers === 'function' ? Headers : HeadersPolyfill)();
+  const nodeRequestHeaders = nodeReq.headers;
+  if (nodeRequestHeaders) {
+    for (const key in nodeRequestHeaders) {
+      const value = nodeRequestHeaders[key];
       if (typeof value === 'string') {
-        headers.set(key.toLocaleLowerCase(), value);
+        requestHeaders.set(key, value);
       } else if (Array.isArray(value)) {
         for (const v of value) {
-          headers.append(key.toLocaleLowerCase(), v);
+          requestHeaders.append(key, v);
         }
       }
     }
   }
 
-  let body: string | undefined = undefined;
-  const contentType = headers.get('content-type');
-  if (contentType === 'application/x-www-form-urlencoded') {
-    try {
-      const buffers = [];
-      for await (const chunk of nodeReq as any) {
-        buffers.push(chunk);
-      }
-      if (buffers.length > 0) {
-        body = Buffer.concat(buffers).toString();
-      }
-    } catch (e) {
-      console.error('convertNodeRequest', e);
+  const getRequestBody = async () => {
+    const buffers = [];
+    for await (const chunk of nodeReq as any) {
+      buffers.push(chunk);
     }
-  }
+    return Buffer.concat(buffers).toString();
+  };
 
-  const request = new Request(url, {
-    method: nodeReq.method,
-    headers,
-    body,
-  });
+  const serverRequestEv: ServerRequestEvent = {
+    request: {
+      headers: requestHeaders,
+      formData: async () => {
+        return new URLSearchParams(await getRequestBody());
+      },
+      json: async () => {
+        return JSON.parse(await getRequestBody()!);
+      },
+      method: nodeReq.method || 'GET',
+      text: getRequestBody,
+      url: url.href,
+    },
+    response: (status, headers, body) => {
+      nodeRes.statusCode = status;
+      headers.forEach((value, key) => nodeRes.setHeader(key, value));
+      body({
+        write: (chunk) => nodeRes.write(chunk),
+      }).finally(() => {
+        nodeRes.end();
+      });
+      return nodeRes;
+    },
+    url,
+  };
 
-  if (typeof request.formData !== 'function') {
-    request.formData = async function formData() {
-      const formData: FormData = new URLSearchParams(body);
-      return formData;
-    };
-  }
-
-  return request;
-}
-
-export async function toNodeResponse(response: Response, nodeRes: NodeResponse) {
-  nodeRes.statusCode = response.status;
-  response.headers.forEach((value, key) => nodeRes.setHeader(key, value));
-  if ((response.status < 300 || response.status >= 400) && response.body) {
-    if (
-      typeof response.body === 'string' ||
-      response.body instanceof Buffer ||
-      response.body instanceof Uint8Array
-    ) {
-      nodeRes.write(response.body);
-    } else if (response.body instanceof Readable) {
-      for await (const chunk of response.body) {
-        nodeRes.write(chunk);
-      }
-    }
-  }
+  return serverRequestEv;
 }
 
 export interface NodeRequest {
@@ -71,11 +60,4 @@ export interface NodeRequest {
   protocol?: string;
   headers?: Record<string, string | string[] | undefined>;
   method?: string;
-}
-
-export interface NodeResponse {
-  statusCode: number;
-  setHeader(key: string, value: string): void;
-  write(chunk: any): boolean;
-  end(): void;
 }

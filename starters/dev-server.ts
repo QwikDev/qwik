@@ -8,7 +8,7 @@ import { isAbsolute, join, resolve, dirname } from 'path';
 import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync } from 'fs';
 import { Plugin, rollup } from 'rollup';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import type { RenderOptions, RenderToStringResult } from '@builder.io/qwik/server';
+import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
 import { fileURLToPath } from 'url';
 
 const app = express();
@@ -216,20 +216,26 @@ function removeDir(dir: string) {
 async function ssrApp(req: Request, appName: string, appDir: string, manifest: QwikManifest) {
   const ssrPath = join(appDir, 'server', 'entry.ssr.js');
   const mod = await import(ssrPath);
-  const render = mod.default ?? mod.render;
+  const render = (mod.default ?? mod.render) as Render;
 
   // ssr the document
   const base = `/${appName}/build/`;
   console.log('req.url', req.url);
-  const opts: RenderOptions = {
+  const chunks: string[] = [];
+  const opts: RenderToStreamOptions = {
+    stream: {
+      write(chunk) {
+        chunks.push(chunk);
+      },
+    },
     manifest,
     url: new URL(`${req.protocol}://${req.hostname}${req.url}`),
     debug: true,
-    base: base,
+    base,
   };
+  await render(opts);
 
-  const result: RenderToStringResult = await render(opts);
-  return result.html;
+  return chunks.join('');
 }
 
 function startersHomepage(_: Request, res: Response) {

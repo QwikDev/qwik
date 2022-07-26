@@ -1,69 +1,63 @@
 import { loadRoute } from '../../runtime/src/library/routing';
-import { endpointHandler, getEndpointResponse } from './endpoint-handler';
-import { checkPageRedirect } from './redirect-handler';
-import type { QwikCityRequestOptions } from './types';
-import type { Render } from '@builder.io/qwik/server';
-import type { HttpMethod } from '../../runtime/src/library/types';
-import { pageHandler } from './page-handler';
-import { isAcceptJsonOnly } from './utils';
+import { loadUserResponse } from './user-response';
+import type { QwikCityRequestContext } from './types';
 import { ROUTE_TYPE_ENDPOINT } from '../../runtime/src/library/constants';
+import type { RenderToStringResult, StreamWriter } from '@builder.io/qwik/server';
+import { getQwikCityUserContext } from './utils';
 
 /**
  * @public
  */
-export async function requestHandler(
-  render: Render,
-  opts: QwikCityRequestOptions
-): Promise<Response | null> {
+export async function requestHandler<T = any>(requestCtx: QwikCityRequestContext): Promise<T> {
+  const { routes, menus, cacheModules, trailingSlash, request, response, url, render } = requestCtx;
+
   try {
-    const { request, routes, menus, cacheModules, trailingSlash } = opts;
-    const url = new URL(request.url);
-    const method: HttpMethod = request.method as any;
-    const pathname = url.pathname;
-
-    const loadedRoute = await loadRoute(routes, menus, cacheModules, pathname);
+    const loadedRoute = await loadRoute(routes, menus, cacheModules, url.pathname);
     if (loadedRoute) {
+      // found and loaded the route for this pathname
       const { mods, params, route } = loadedRoute;
-      const isEndpoint = route[3] === ROUTE_TYPE_ENDPOINT;
-
-      if (!isEndpoint) {
-        // content page, so check if the trailing slash should be fixed
-        const redirectResponse = checkPageRedirect(url, request.headers, trailingSlash);
-        if (redirectResponse) {
-          // add or remove the trailing slash depending on the option
-          return redirectResponse;
-        }
-      }
+      const isEndpointOnly = route[3] === ROUTE_TYPE_ENDPOINT;
 
       // build endpoint response from each module in the hierarchy
-      const endpointResponse = await getEndpointResponse(request, method, url, params, mods);
+      const userResponse = await loadUserResponse(
+        request,
+        url,
+        params,
+        mods,
+        trailingSlash,
+        isEndpointOnly
+      );
 
-      if (endpointResponse.immediateCommitToNetwork) {
-        // do not continue and immediately commit the response to the network
-        // could be a redirect or error
-        return new Response(endpointResponse.body, {
-          status: endpointResponse.status,
-          headers: endpointResponse.headers,
+      if (userResponse.type === 'endpoint') {
+        return response(userResponse.status, userResponse.headers, async (stream) => {
+          if (typeof userResponse.body === 'string') {
+            stream.write(userResponse.body);
+          }
         });
       }
 
-      if (isEndpoint || isAcceptJsonOnly(request)) {
-        // this can only be an endpoint response and not a page
-        return endpointHandler(method, endpointResponse);
+      if (userResponse.type === 'page') {
+        return response(userResponse.status, userResponse.headers, async (stream) => {
+          const result = await render({
+            stream,
+            url: url.href,
+            userContext: getQwikCityUserContext(userResponse),
+          });
+          if ((typeof result as any as RenderToStringResult).html === 'string') {
+            stream.write((result as any as RenderToStringResult).html);
+          }
+        });
       }
-
-      // render the page
-      const pageResponse = await pageHandler(render, url, params, method, endpointResponse);
-      return pageResponse;
     }
   } catch (e: any) {
-    return new Response(String(e ? e.stack || e : 'Request Handler Error'), {
-      status: 500,
-      headers: {
-        'content-Type': 'text/plain; charset=utf-8',
-      },
-    });
+    return response(
+      500,
+      new URLSearchParams({ 'Content-Type': 'text/plain; charset=utf-8' }),
+      async (stream: StreamWriter) => {
+        stream.write(String(e ? e.stack || e : 'Request Handler Error'));
+      }
+    );
   }
 
-  return null;
+  return requestCtx.next();
 }

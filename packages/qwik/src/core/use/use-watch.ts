@@ -2,7 +2,7 @@ import { getProxyTarget, noSerialize, NoSerialize, unwrapProxy } from '../object
 import { getContext } from '../props/props';
 import { newInvokeContext, useInvoke } from './use-core';
 import { logError, logErrorAndStop } from '../util/log';
-import { safeCall, then } from '../util/promises';
+import { delay, safeCall, then } from '../util/promises';
 import { useSequentialScope } from './use-store.public';
 import { getDocument } from '../util/dom';
 import { isFunction, isObject, ValueOrPromise } from '../util/types';
@@ -19,6 +19,8 @@ import {
   QError_trackUseStore,
 } from '../error/error';
 import { useOn } from './use-on';
+import { createResourceReturn } from './use-resource';
+import { GetObjID, intToStr, strToInt } from '../object/store';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;
@@ -50,37 +52,45 @@ export type MountFn<T> = () => ValueOrPromise<T>;
  */
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
+export type ResourceReturnInternal<T = any> = ResourceReturn<T> & { dirty: boolean };
+
 /**
  * @alpha
  */
 export interface ResourcePending<T> {
+  __brand: 'resource';
   state: 'pending';
 
   promise: Promise<T>;
   resolved: undefined;
   error: undefined;
+  timeout?: number;
 }
 
 /**
  * @alpha
  */
 export interface ResourceResolved<T> {
+  __brand: 'resource';
   state: 'resolved';
 
   promise: Promise<T>;
   resolved: T;
   error: undefined;
+  timeout?: number;
 }
 
 /**
  * @alpha
  */
 export interface ResourceRejected<T> {
+  __brand: 'resource';
   state: 'rejected';
 
   promise: Promise<T>;
   resolved: undefined;
   error: NoSerialize<any>;
+  timeout?: number;
 }
 
 /**
@@ -91,12 +101,13 @@ export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
 /**
  * @alpha
  */
-export interface DescriptorBase<T = any> {
-  qrl: QRLInternal<T>;
-  el: Element;
-  f: number;
-  i: number;
-  destroy?: NoSerialize<() => void>;
+export interface DescriptorBase<T = any, B = undefined> {
+  $qrl$: QRLInternal<T>;
+  $el$: Element;
+  $flags$: number;
+  $index$: number;
+  $destroy$?: NoSerialize<() => void>;
+  $resource$: B;
 }
 
 /**
@@ -107,22 +118,12 @@ export type WatchDescriptor = DescriptorBase<WatchFn>;
 /**
  * @alpha
  */
-export interface ResourceDescriptor<T> extends DescriptorBase<ResourceFn<T>> {
-  r: ResourceReturn<T>;
-}
+export interface ResourceDescriptor<T> extends DescriptorBase<ResourceFn<T>, ResourceReturn<T>> {}
 
 /**
  * @alpha
  */
 export type SubscriberDescriptor = WatchDescriptor | ResourceDescriptor<any>;
-
-export const isSubscriberDescriptor = (obj: any): obj is SubscriberDescriptor => {
-  return isObject(obj) && 'qrl' in obj && 'f' in obj;
-};
-
-export const isWatchCleanup = (obj: any): obj is WatchDescriptor => {
-  return isSubscriberDescriptor(obj) && !!(obj.f & WatchFlagsIsCleanup);
-};
 
 /**
  * @alpha
@@ -208,12 +209,7 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void =>
     assertQrl(qrl);
     const el = ctx.$hostElement$;
     const containerState = ctx.$renderCtx$.$containerState$;
-    const watch: WatchDescriptor = {
-      qrl,
-      el,
-      f: WatchFlagsIsDirty | WatchFlagsIsWatch,
-      i,
-    };
+    const watch = new Watch(WatchFlagsIsDirty | WatchFlagsIsWatch, i, el, qrl, undefined);
     set(true);
     getContext(el).$watches$.push(watch);
     const previousWait = ctx.$waitOn$.slice();
@@ -321,12 +317,7 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
   if (!get) {
     assertQrl(qrl);
     const el = ctx.$hostElement$;
-    const watch: WatchDescriptor = {
-      qrl,
-      el,
-      f: WatchFlagsIsEffect,
-      i,
-    };
+    const watch = new Watch(WatchFlagsIsEffect, i, el, qrl, undefined);
     set(true);
     getContext(el).$watches$.push(watch);
     useRunWatch(watch, opts?.eagerness ?? 'visible');
@@ -413,7 +404,7 @@ export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): ResourceReturn<
     return get;
   }
   if (isServer(ctx.$doc$)) {
-    const resource = createResourceFromPromise(mountQrl());
+    const resource = createResourceFromPromise(mountQrl(), ctx.$renderCtx$.$containerState$);
     ctx.$waitOn$.push(resource.promise);
     set(resource);
     return resource;
@@ -503,18 +494,20 @@ export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): ResourceReturn<T> => 
   if (get) {
     return get;
   }
-  const resource = createResourceFromPromise(mountQrl());
+  const resource = createResourceFromPromise(mountQrl(), ctx.$renderCtx$.$containerState$);
   ctx.$waitOn$.push(resource.promise);
   set(resource);
   return resource;
 };
 
-const createResourceFromPromise = <T>(promise: Promise<T>): ResourceReturn<T> => {
-  const resource: ResourceReturn<T> = {
-    state: 'pending',
-    error: undefined,
-    resolved: undefined,
-    promise: promise.then(
+const createResourceFromPromise = <T>(
+  promise: Promise<T>,
+  containerState: ContainerState
+): ResourceReturn<T> => {
+  const resource = createResourceReturn<T>(
+    containerState,
+    undefined,
+    promise.then(
       (value) => {
         resource.state = 'resolved';
         resource.resolved = value as any;
@@ -525,8 +518,8 @@ const createResourceFromPromise = <T>(promise: Promise<T>): ResourceReturn<T> =>
         resource.error = reason;
         throw reason;
       }
-    ),
-  };
+    )
+  );
   return resource;
 };
 
@@ -565,12 +558,16 @@ const createResourceFromPromise = <T>(promise: Promise<T>): ResourceReturn<T> =>
 // </docs>
 export const useMount$ = /*#__PURE__*/ implicit$FirstArg(useMountQrl);
 
+export const isResourceWatch = (watch: SubscriberDescriptor): watch is ResourceDescriptor<any> => {
+  return !!watch.$resource$;
+};
+
 export const runSubscriber = async (
   watch: SubscriberDescriptor,
   containerState: ContainerState
 ) => {
-  assertEqual(!!(watch.f & WatchFlagsIsDirty), true, 'Resource is not dirty', watch);
-  if ('r' in watch) {
+  assertEqual(!!(watch.$flags$ & WatchFlagsIsDirty), true, 'Resource is not dirty', watch);
+  if (isResourceWatch(watch)) {
     await runResource(watch, containerState);
   } else {
     await runWatch(watch, containerState);
@@ -582,19 +579,19 @@ export const runResource = <T>(
   containerState: ContainerState,
   waitOn?: Promise<any>
 ): ValueOrPromise<void> => {
-  watch.f &= ~WatchFlagsIsDirty;
+  watch.$flags$ &= ~WatchFlagsIsDirty;
   cleanupWatch(watch);
 
-  const el = watch.el;
+  const el = watch.$el$;
   const doc = getDocument(el);
   const invokationContext = newInvokeContext(doc, el, el, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
-  const watchFn = watch.qrl.$invokeFn$(el, invokationContext, () => {
+  const watchFn = watch.$qrl$.$invokeFn$(el, invokationContext, () => {
     subsManager.$clearSub$(watch);
   });
 
   const cleanups: (() => void)[] = [];
-  const resource = watch.r;
+  const resource = watch.$resource$;
   assertDefined(
     resource,
     'useResource: when running a resource, "watch.r" must be a defined.',
@@ -615,12 +612,13 @@ export const runResource = <T>(
       return obj;
     }
   };
+  const resourceTarget = unwrapProxy(resource);
   const opts: ResourceCtx<T> = {
     track,
     cleanup(callback) {
       cleanups.push(callback);
     },
-    previous: unwrapProxy(resource).resolved,
+    previous: resourceTarget.resolved,
   };
 
   let resolve: (v: T) => void;
@@ -636,42 +634,67 @@ export const runResource = <T>(
     });
   });
 
-  watch.destroy = noSerialize(() => {
+  watch.$destroy$ = noSerialize(() => {
     cleanups.forEach((fn) => fn());
     reject('cancelled');
   });
 
-  return safeCall(
+  let done = false;
+  const promise = safeCall(
     () => then(waitOn, () => watchFn(opts)),
     (value) => {
-      resource.state = 'resolved';
-      resource.resolved = value;
-      resource.error = undefined;
-      resolve(value);
+      if (!done) {
+        done = true;
+        resource.state = 'resolved';
+        resource.resolved = value;
+        resource.error = undefined;
+        resolve(value);
+      }
       return;
     },
     (reason) => {
-      resource.state = 'rejected';
-      resource.resolved = undefined as any;
-      resource.error = noSerialize(reason);
-      reject(reason);
+      if (!done) {
+        done = true;
+        resource.state = 'rejected';
+        resource.resolved = undefined as any;
+        resource.error = noSerialize(reason);
+        reject(reason);
+      }
       return;
     }
   );
+
+  const timeout = resourceTarget.timeout;
+  if (timeout) {
+    return Promise.race([
+      promise,
+      delay(timeout).then(() => {
+        if (!done) {
+          done = true;
+          resource.state = 'rejected';
+          resource.resolved = undefined as any;
+          resource.error = 'timeout';
+          cleanupWatch(watch);
+          reject('timeout');
+        }
+      }),
+    ]);
+  }
+  return promise;
 };
 
 export const runWatch = (
   watch: WatchDescriptor,
   containerState: ContainerState
 ): ValueOrPromise<void> => {
-  watch.f &= ~WatchFlagsIsDirty;
+  watch.$flags$ &= ~WatchFlagsIsDirty;
 
   cleanupWatch(watch);
-  const el = watch.el;
+  const el = watch.$el$;
   const doc = getDocument(el);
   const invokationContext = newInvokeContext(doc, el, el, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
-  const watchFn = watch.qrl.$invokeFn$(el, invokationContext, () => {
+  const watchFn = watch.$qrl$.$invokeFn$(el, invokationContext, () => {
     subsManager.$clearSub$(watch);
   });
   const track: Tracker = (obj: any, prop?: string) => {
@@ -693,7 +716,7 @@ export const runWatch = (
     () => watchFn(track),
     (returnValue) => {
       if (isFunction(returnValue)) {
-        watch.destroy = noSerialize(returnValue);
+        watch.$destroy$ = noSerialize(returnValue);
       }
     },
     (reason) => {
@@ -703,9 +726,9 @@ export const runWatch = (
 };
 
 export const cleanupWatch = (watch: SubscriberDescriptor) => {
-  const destroy = watch.destroy;
+  const destroy = watch.$destroy$;
   if (destroy) {
-    watch.destroy = undefined;
+    watch.$destroy$ = undefined;
     try {
       destroy();
     } catch (err) {
@@ -715,9 +738,9 @@ export const cleanupWatch = (watch: SubscriberDescriptor) => {
 };
 
 export const destroyWatch = (watch: SubscriberDescriptor) => {
-  if (watch.f & WatchFlagsIsCleanup) {
-    watch.f &= ~WatchFlagsIsCleanup;
-    const cleanup = watch.qrl.$invokeFn$(watch.el);
+  if (watch.$flags$ & WatchFlagsIsCleanup) {
+    watch.$flags$ &= ~WatchFlagsIsCleanup;
+    const cleanup = watch.$qrl$.$invokeFn$(watch.$el$);
     (cleanup as any)();
   } else {
     cleanupWatch(watch);
@@ -776,7 +799,7 @@ const useRunWatch = (watch: SubscriberDescriptor, eagerness: EagernessOptions | 
 };
 
 const getWatchHandlerQrl = (watch: SubscriberDescriptor) => {
-  const watchQrl = watch.qrl;
+  const watchQrl = watch.$qrl$;
   const watchHandler = createQRL(
     watchQrl.$chunk$,
     'handleWatch',
@@ -788,3 +811,36 @@ const getWatchHandlerQrl = (watch: SubscriberDescriptor) => {
   );
   return watchHandler;
 };
+
+export const isWatchCleanup = (obj: any): obj is WatchDescriptor => {
+  return isSubscriberDescriptor(obj) && !!(obj.$flags$ & WatchFlagsIsCleanup);
+};
+
+export const isSubscriberDescriptor = (obj: any): obj is SubscriberDescriptor => {
+  return isObject(obj) && obj instanceof Watch;
+};
+
+export const serializeWatch = (watch: SubscriberDescriptor, getObjId: GetObjID) => {
+  let value = `${intToStr(watch.$flags$)} ${intToStr(watch.$index$)} ${getObjId(
+    watch.$qrl$
+  )} ${getObjId(watch.$el$)}`;
+  if (isResourceWatch(watch)) {
+    value += ` ${getObjId(watch.$resource$)}`;
+  }
+  return value;
+};
+
+export const parseWatch = (data: string) => {
+  const [flags, index, qrl, el, resource] = data.split(' ');
+  return new Watch(strToInt(flags), strToInt(index), el as any, qrl as any, resource as any);
+};
+
+export class Watch implements DescriptorBase<any, any> {
+  constructor(
+    public $flags$: number,
+    public $index$: number,
+    public $el$: Element,
+    public $qrl$: QRLInternal<any>,
+    public $resource$: ResourceReturn<any> | undefined
+  ) {}
+}

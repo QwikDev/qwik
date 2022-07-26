@@ -1,11 +1,11 @@
-import type { QwikCityRequestOptions } from '../request-handler/types';
+import type { QwikCityRequestContext } from '../request-handler/types';
 import { requestHandler } from '../request-handler';
 import { patchGlobalFetch } from '../request-handler/node-fetch';
 import express from 'express';
 import { join, resolve } from 'path';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
-import { fromNodeRequest, toNodeResponse } from './utils';
+import { fromNodeHttp } from './utils';
 
 // @builder.io/qwik-city/middleware/express
 
@@ -36,25 +36,19 @@ export function qwikCity(render: Render, opts: QwikCityPlanExpress) {
   router.use(async (nodeReq, nodeRes, next) => {
     try {
       const url = new URL(nodeReq.url, `${nodeReq.protocol}://${nodeReq.headers.host}`);
-      const request = await fromNodeRequest(url, nodeReq);
+      const serverRequestEv = fromNodeHttp(url, nodeReq, nodeRes);
 
-      const requestOpts: QwikCityRequestOptions = {
+      const requestCtx: QwikCityRequestContext = {
         ...opts,
-        request,
+        ...serverRequestEv,
+        render,
+        next,
       };
 
-      const response = await requestHandler(render, requestOpts);
-      if (response) {
-        await toNodeResponse(response, nodeRes);
-        nodeRes.end();
-        return;
-      }
+      await requestHandler(requestCtx);
     } catch (e) {
       next(e);
-      return;
     }
-
-    next();
   });
 
   return router;

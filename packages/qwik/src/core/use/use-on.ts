@@ -5,7 +5,7 @@ import { qPropWriteQRL } from '../props/props-on';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { useInvokeContext } from './use-core';
 import { useSequentialScope } from './use-store.public';
-import { WatchDescriptor, WatchFlagsIsCleanup } from './use-watch';
+import { Watch, WatchFlagsIsCleanup } from './use-watch';
 
 // <docs markdown="../readme.md#useCleanup">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -37,12 +37,7 @@ export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
   if (!get) {
     assertQrl(unmountFn);
     const el = ctx.$hostElement$;
-    const watch: WatchDescriptor = {
-      qrl: unmountFn,
-      el,
-      f: WatchFlagsIsCleanup,
-      i,
-    };
+    const watch = new Watch(WatchFlagsIsCleanup, i, el, unmountFn, undefined);
     set(true);
     getContext(el).$watches$.push(watch);
   }

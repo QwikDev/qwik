@@ -1,14 +1,10 @@
 import type { ViteDevServer } from 'vite';
 import type { BuildContext } from '../types';
-import type { EndpointModule, HttpMethod } from '../../runtime/src/library/types';
+import type { EndpointModule } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
-import {
-  endpointHandler,
-  getEndpointResponse,
-} from '../../middleware/request-handler/endpoint-handler';
-import { checkPageRedirect } from '../../middleware/request-handler/redirect-handler';
-import { getQwikCityUserContext, isAcceptJsonOnly } from '../../middleware/request-handler/utils';
-import { fromNodeRequest, toNodeResponse } from '../../middleware/express/utils';
+import { loadUserResponse } from '../../middleware/request-handler/user-response';
+import { getQwikCityUserContext } from '../../middleware/request-handler/utils';
+import { fromNodeHttp } from '../../middleware/express/utils';
 import { buildFromUrlPathname } from '../build';
 
 export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
@@ -25,22 +21,10 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
       const result = await buildFromUrlPathname(ctx, pathname);
       if (result) {
         const { route, params } = result;
-        const request = await fromNodeRequest(url, nodeReq);
-        const method = request.method as HttpMethod;
+        const { request, response } = fromNodeHttp(url, nodeReq, nodeRes);
+        const isEndpointOnly = route.type === 'endpoint';
 
-        if (route.type !== 'endpoint') {
-          const pageRedirectResponse = checkPageRedirect(
-            url,
-            request.headers,
-            ctx.opts.trailingSlash
-          );
-          if (pageRedirectResponse) {
-            await toNodeResponse(pageRedirectResponse, nodeRes);
-            nodeRes.end();
-            return;
-          }
-        }
-
+        // use vite to dynamically load each layout/page module in this route's hierarchy
         const endpointModules: EndpointModule[] = [];
         for (const layout of route.layouts) {
           const layoutModule = await server.ssrLoadModule(layout.filePath, {
@@ -53,49 +37,39 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         });
         endpointModules.push(endpointModule);
 
-        const endpointResponse = await getEndpointResponse(
+        const userResponse = await loadUserResponse(
           request,
-          method,
           url,
           params,
-          endpointModules
+          endpointModules,
+          ctx.opts.trailingSlash,
+          isEndpointOnly
         );
 
-        if (endpointResponse.immediateCommitToNetwork) {
-          const response = new Response(endpointResponse.body, {
-            status: endpointResponse.status,
-            headers: endpointResponse.headers,
-          });
-          await toNodeResponse(response, nodeRes);
-          nodeRes.end();
-          return;
-        }
-
-        if (route.type === 'endpoint' || isAcceptJsonOnly(request)) {
-          const response = endpointHandler(method, endpointResponse);
-          await toNodeResponse(response, nodeRes);
-          nodeRes.end();
-          return;
-        }
-
-        if (endpointResponse) {
-          // modify the response, but do not end()
-          if (typeof endpointResponse.status === 'number') {
-            nodeRes.statusCode = endpointResponse.status;
-          }
-          if (endpointResponse.headers) {
-            for (const [key, value] of Object.entries(endpointResponse.headers)) {
-              if (value) {
-                nodeRes.setHeader(key, value);
-              }
+        if (userResponse.type === 'endpoint') {
+          // dev server endpoint handler
+          response(userResponse.status, userResponse.headers, async (stream) => {
+            if (typeof userResponse.body === 'string') {
+              stream.write(userResponse.body);
             }
-          }
+          });
+          return;
         }
 
-        (nodeRes as QwikViteDevResponse)._qwikUserCtx = {
-          ...(nodeRes as QwikViteDevResponse)._qwikUserCtx,
-          ...getQwikCityUserContext(url, params, method, endpointResponse),
-        };
+        if (userResponse.type === 'page') {
+          // qwik city vite plugin should handle dev ssr rendering
+          // but add the qwik city user context to the response object
+          (nodeRes as QwikViteDevResponse)._qwikUserCtx = {
+            ...(nodeRes as QwikViteDevResponse)._qwikUserCtx,
+            ...getQwikCityUserContext(userResponse),
+          };
+          // update node response with status and headers
+          // but do not end() it, call next() so qwik plugin handles rendering
+          nodeRes.statusCode = userResponse.status;
+          userResponse.headers.forEach((value, key) => nodeRes.setHeader(key, value));
+          next();
+          return;
+        }
       }
     } catch (e) {
       next(e);

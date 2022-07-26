@@ -26,6 +26,7 @@ import {
 import { createDocumentHead, resolveHead } from './head';
 import { isBrowser } from '@builder.io/qwik/build';
 import { useQwikCityContext } from './use-functions';
+import { clientNavigate, normalizePath } from './client-history';
 
 /**
  * @public
@@ -47,10 +48,8 @@ export const Html = component$<HtmlProps>(
       if (!initRouteLocation) {
         throw new Error(`Missing Qwik City User Context`);
       }
-      const url = new URL(initRouteLocation.href);
-
       return {
-        path: url.pathname + url.search,
+        path: normalizePath(new URL(initRouteLocation.href)),
       };
     });
 
@@ -72,8 +71,8 @@ export const Html = component$<HtmlProps>(
 
     useWatch$(async (track) => {
       const { default: cityPlan } = await import('@qwik-city-plan');
-      const fullPath = track(routeNavigate, 'path');
-      const url = new URL(fullPath, routeLocation.href);
+      const path = track(routeNavigate, 'path');
+      const url = new URL(path, routeLocation.href);
       const loadedRoute = await loadRoute(
         cityPlan.routes,
         cityPlan.menus,
@@ -103,17 +102,7 @@ export const Html = component$<HtmlProps>(
         routeLocation.query = Object.fromEntries(url.searchParams.entries());
 
         if (isBrowser) {
-          const pop = (window as any)._qwikcity_pop;
-          if (pop !== 2) {
-            window.history.pushState(null, '', fullPath);
-          }
-          if (!pop) {
-            window.addEventListener('popstate', () => {
-              routeNavigate.path = window.location.href;
-              (window as any)._qwikcity_pop = 2;
-            });
-          }
-          (window as any)._qwikcity_pop = 1;
+          clientNavigate(window, routeNavigate);
         }
       }
     });

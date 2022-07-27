@@ -1,7 +1,7 @@
 import { assertDefined } from '../assert/assert';
 import { copyRenderContext, RenderContext } from './cursor';
 import { visitJsxNode } from './render';
-import { ComponentScopedStyles, RenderEvent } from '../util/markers';
+import { RenderEvent } from '../util/markers';
 import { promiseAll, safeCall, then } from '../util/promises';
 import { styleContent, styleHost } from '../component/qrl-styles';
 import { newInvokeContext } from '../use/use-core';
@@ -9,10 +9,35 @@ import { processData } from './jsx/jsx-runtime';
 import { logError } from '../util/log';
 import { isFunction, ValueOrPromise } from '../util/types';
 import type { QContext } from '../props/props';
-import { directGetAttribute } from './fast-calls';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 
+
+export interface ExecuteComponentOutput {
+  node: JSXNode,
+  rctx: RenderContext;
+}
+
 export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {
+  return then(executeComponent(rctx, ctx), (res) => {
+    if (res) {
+      const hostElement = ctx.$element$;
+      const newCtx = res.rctx;
+      const invocatinContext = newInvokeContext(rctx.$doc$, hostElement, hostElement);
+      invocatinContext.$subscriber$ = hostElement;
+      invocatinContext.$renderCtx$ = newCtx;
+      if (ctx.$component$?.$styleHostClass$) {
+        hostElement.classList.add(ctx.$component$.$styleHostClass$);
+      }
+
+      const processedJSXNode = processData(res.node, invocatinContext);
+      return then(processedJSXNode, (processedJSXNode) => {
+        return visitJsxNode(newCtx, hostElement, processedJSXNode, false);
+      });
+    }
+  });
+}
+
+export const executeComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<ExecuteComponentOutput | void> => {
   ctx.$dirty$ = false;
 
   const hostElement = ctx.$element$;
@@ -49,36 +74,27 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
           ctx.$dirty$ = false;
           jsxNode = jsxNode();
         } else if (ctx.$dirty$) {
-          return renderComponent(rctx, ctx);
+          return executeComponent(rctx, ctx);
         }
 
         let componentCtx = ctx.$component$;
         if (!componentCtx) {
+          const scopedStyleId = ctx.$scopeId$;
           componentCtx = ctx.$component$ = {
             $hostElement$: hostElement,
             $slots$: [],
-            $styleHostClass$: undefined,
-            $styleClass$: undefined,
-            $styleId$: undefined,
+            $styleHostClass$: scopedStyleId && styleHost(scopedStyleId),
+            $styleClass$: scopedStyleId && styleContent(scopedStyleId),
+            $styleId$: scopedStyleId,
           };
-          const scopedStyleId = directGetAttribute(hostElement, ComponentScopedStyles) ?? undefined;
-          if (scopedStyleId) {
-            componentCtx.$styleId$ = scopedStyleId;
-            componentCtx.$styleHostClass$ = styleHost(scopedStyleId);
-            componentCtx.$styleClass$ = styleContent(scopedStyleId);
-            hostElement.classList.add(componentCtx.$styleHostClass$);
-          }
         }
         componentCtx.$slots$ = [];
         newCtx.$contexts$.push(ctx);
         newCtx.$currentComponent$ = componentCtx;
-        const invocatinContext = newInvokeContext(rctx.$doc$, hostElement, hostElement);
-        invocatinContext.$subscriber$ = hostElement;
-        invocatinContext.$renderCtx$ = newCtx;
-        const processedJSXNode = processData(jsxNode, invocatinContext);
-        return then(processedJSXNode, (processedJSXNode) => {
-          return visitJsxNode(newCtx, hostElement, processedJSXNode, false);
-        });
+        return {
+          node: jsxNode as JSXNode,
+          rctx: newCtx
+        };
       });
     },
     (err) => {

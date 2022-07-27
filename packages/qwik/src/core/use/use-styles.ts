@@ -1,10 +1,9 @@
 import { styleKey } from '../component/qrl-styles';
 import type { QRL } from '../import/qrl.public';
 import { appendStyle, hasStyle } from '../render/cursor';
-import { directSetAttribute } from '../render/fast-calls';
-import { ComponentScopedStyles } from '../util/markers';
 import { useSequentialScope } from './use-store.public';
 import { implicit$FirstArg } from '../util/implicit_dollar';
+import { getContext } from '../props/props';
 
 // <docs markdown="../readme.md#useStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -94,7 +93,8 @@ const _useStyles = (styleQrl: QRL<string>, scoped: boolean) => {
   const styleId = styleKey(styleQrl, i);
   const hostElement = ctx.$hostElement$;
   if (scoped) {
-    directSetAttribute(hostElement, ComponentScopedStyles, styleId);
+    const hostCtx = getContext(ctx.$hostElement$);
+    hostCtx.$scopeId$ = styleId;
   }
 
   if (!hasStyle(renderCtx, styleId)) {

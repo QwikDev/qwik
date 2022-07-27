@@ -6,7 +6,7 @@ import {
   printRenderStats,
   RenderContext,
 } from './cursor';
-import { getContext, resumeIfNeeded } from '../props/props';
+import { getContext, QContext, resumeIfNeeded } from '../props/props';
 import { qDev, qTest } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
 import { getDocument } from '../util/dom';
@@ -51,6 +51,8 @@ export interface ContainerState {
 
   $userContext$: Record<string, any>;
   $elementIndex$: number;
+
+  $contexts$: QContext[];
 }
 
 const CONTAINER_STATE = Symbol('ContainerState');
@@ -75,6 +77,8 @@ export const getContainerState = (containerEl: Element): ContainerState => {
 
       $userContext$: {},
       $elementIndex$: 0,
+
+      $contexts$: [],
     };
   }
   return set;
@@ -145,7 +149,7 @@ const notifyRender = (hostElement: Element): void => {
     state.$hostsStaging$.add(hostElement);
   } else {
     state.$hostsNext$.add(hostElement);
-    scheduleFrame(containerEl, state);
+    scheduleFrame(state);
   }
 };
 
@@ -167,17 +171,16 @@ const notifyWatch = (watch: SubscriberDescriptor) => {
     state.$watchStaging$.add(watch);
   } else {
     state.$watchNext$.add(watch);
-    scheduleFrame(containerEl, state);
+    scheduleFrame(state);
   }
 };
 
 const scheduleFrame = (
-  containerEl: Element,
   containerState: ContainerState
 ): Promise<RenderContext> => {
   if (containerState.$renderPromise$ === undefined) {
     containerState.$renderPromise$ = containerState.$platform$.nextTick(() =>
-      renderMarked(containerEl, containerState)
+      renderMarked(containerState)
     );
   }
   return containerState.$renderPromise$;
@@ -194,7 +197,6 @@ export const handleWatch = () => {
 };
 
 const renderMarked = async (
-  containerEl: Element,
   containerState: ContainerState
 ): Promise<RenderContext> => {
   const hostsRendering = (containerState.$hostsRendering$ = new Set(containerState.$hostsNext$));
@@ -206,12 +208,12 @@ const renderMarked = async (
   });
   containerState.$hostsStaging$.clear();
 
-  const doc = getDocument(containerEl);
+  const doc = getDocument(containerState.$containerEl$);
   const platform = containerState.$platform$;
   const renderingQueue = Array.from(hostsRendering);
   sortNodes(renderingQueue);
 
-  const ctx = createRenderContext(doc, containerState, containerEl);
+  const ctx = createRenderContext(doc, containerState);
 
   for (const el of renderingQueue) {
     if (!ctx.$hostElements$.has(el)) {
@@ -227,20 +229,19 @@ const renderMarked = async (
   // Early exist, no dom operations
   if (ctx.$operations$.length === 0) {
     printRenderStats(ctx);
-    postRendering(containerEl, containerState, ctx);
+    postRendering(containerState, ctx);
     return ctx;
   }
 
   return platform.raf(() => {
     executeContextWithSlots(ctx);
     printRenderStats(ctx);
-    postRendering(containerEl, containerState, ctx);
+    postRendering(containerState, ctx);
     return ctx;
   });
 };
 
 export const postRendering = async (
-  containerEl: Element,
   containerState: ContainerState,
   ctx: RenderContext
 ) => {
@@ -264,7 +265,7 @@ export const postRendering = async (
   containerState.$renderPromise$ = undefined;
 
   if (containerState.$hostsNext$.size + containerState.$watchNext$.size > 0) {
-    scheduleFrame(containerEl, containerState);
+    scheduleFrame(containerState);
   }
 };
 

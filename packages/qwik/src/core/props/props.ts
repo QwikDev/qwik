@@ -67,6 +67,8 @@ export interface QContext {
   $seq$: any[];
   $watches$: SubscriberDescriptor[];
   $contexts$?: Map<string, any>;
+  $scopeId$?: string;
+
 }
 
 export const tryGetContext = (element: Element): QContext | undefined => {

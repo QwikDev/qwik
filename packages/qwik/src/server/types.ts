@@ -159,8 +159,6 @@ export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToSt
  */
 export type Render = RenderToString | RenderToStream;
 
-export interface RenderDocument extends Document {}
-
 export interface RenderDocumentUserContext {
   _qwikUserCtx?: Record<string, any>;
 }

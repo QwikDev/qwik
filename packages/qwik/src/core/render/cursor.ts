@@ -271,7 +271,7 @@ const isChildComponent = (node: Node): boolean => {
   return isNode(node) && node.nodeName !== 'Q:TEMPLATE';
 };
 
-const splitBy = <T>(input: T[], condition: (item: T) => string): Record<string, T[]> => {
+export const splitBy = <T>(input: T[], condition: (item: T) => string): Record<string, T[]> => {
   const output: Record<string, T[]> = {};
   for (const item of input) {
     const key = condition(item);
@@ -671,7 +671,7 @@ const setInnerHTML: PropHandler = (ctx, elm, _, newValue) => {
   return true;
 };
 
-const PROP_HANDLER_MAP: Record<string, PropHandler> = {
+export const PROP_HANDLER_MAP: Record<string, PropHandler> = {
   style: handleStyle,
   class: handleClass,
   className: handleClass,
@@ -680,9 +680,9 @@ const PROP_HANDLER_MAP: Record<string, PropHandler> = {
   [dangerouslySetInnerHTML]: setInnerHTML,
 };
 
-const ALLOWS_PROPS = ['class', 'className', 'style', 'id', QSlot];
-const HOST_PREFIX = 'host:';
-const SCOPE_PREFIX = /^(host|window|document|prevent(d|D)efault):/;
+export const ALLOWS_PROPS = ['class', 'className', 'style', 'id', QSlot];
+export const HOST_PREFIX = 'host:';
+export const SCOPE_PREFIX = /^(host|window|document|prevent(d|D)efault):/;
 
 export const updateProperties = (
   rctx: RenderContext,
@@ -767,12 +767,11 @@ export const updateProperties = (
 export const createRenderContext = (
   doc: Document,
   containerState: ContainerState,
-  containerEl: Element
 ): RenderContext => {
   const ctx: RenderContext = {
     $doc$: doc,
     $containerState$: containerState,
-    $containerEl$: containerEl,
+    $containerEl$: containerState.$containerEl$,
     $hostElements$: new Set(),
     $operations$: [],
     $roots$: [],

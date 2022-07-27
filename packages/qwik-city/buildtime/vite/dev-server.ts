@@ -6,6 +6,7 @@ import { loadUserResponse } from '../../middleware/request-handler/user-response
 import { getQwikCityUserContext } from '../../middleware/request-handler/utils';
 import { fromNodeHttp } from '../../middleware/express/utils';
 import { buildFromUrlPathname } from '../build';
+import { notFoundResponse } from '../../middleware/request-handler/fallback-handler';
 
 export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
   server.middlewares.use(async (nodeReq, nodeRes, next) => {
@@ -18,10 +19,10 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         return;
       }
 
+      const { request, response } = fromNodeHttp(url, nodeReq, nodeRes);
       const result = await buildFromUrlPathname(ctx, pathname);
       if (result) {
         const { route, params } = result;
-        const { request, response } = fromNodeHttp(url, nodeReq, nodeRes);
         const isEndpointOnly = route.type === 'endpoint';
 
         // use vite to dynamically load each layout/page module in this route's hierarchy
@@ -71,12 +72,10 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
           return;
         }
       }
+      notFoundResponse(response);
     } catch (e) {
       next(e);
-      return;
     }
-
-    next();
   });
 }
 

@@ -15,7 +15,8 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
   run(mod, mod.exports, noopRequire);
 
   const server: ServerModule = mod.exports;
-  if (typeof server.render !== 'function') {
+  const render = typeof server === 'function' ? server : server.default ?? server.render;
+  if (typeof render !== 'function') {
     throw new Error(`Server module "${ssrModule.path}" does not export render()`);
   }
 
@@ -65,7 +66,7 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
 
   const appUrl = `/repl/` + result.clientId + `/`;
   const baseUrl = appUrl + `build/`;
-  const ssrResult = await server.render({
+  const ssrResult = await render({
     base: baseUrl,
     manifest: result.manifest,
     prefetchStrategy: null as any,
@@ -115,6 +116,7 @@ const noopRequire = (path: string) => {
 
 interface ServerModule {
   render: (opts: RenderOptions) => Promise<RenderToStringResult>;
+  default?: (opts: RenderOptions) => Promise<RenderToStringResult>;
 }
 
 declare const self: QwikWorkerGlobal;

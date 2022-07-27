@@ -401,7 +401,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         try {
           if (!globalThis.fetch) {
             const nodeFetch = await sys.strictDynamicImport('node-fetch');
-            global.fetch = nodeFetch.default;
+            global.fetch = nodeFetch;
             global.Headers = nodeFetch.Headers;
             global.Request = nodeFetch.Request;
             global.Response = nodeFetch.Response;

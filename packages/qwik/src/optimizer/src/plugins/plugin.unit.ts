@@ -158,7 +158,7 @@ test('input array', async () => {
   });
   equal(opts.input, [
     normalizePath(resolve(cwd, 'src', 'cmps', 'a.tsx')),
-    normalizePath(resolve(cwd, 'src', 'cmps', 'b.tsx'))
+    normalizePath(resolve(cwd, 'src', 'cmps', 'b.tsx')),
   ]);
 });
 
@@ -170,7 +170,7 @@ test('outDir', async () => {
 
 test('manifestOutput', async () => {
   const plugin = await mockPlugin();
-  const manifestOutput = () => { };
+  const manifestOutput = () => {};
   const opts = plugin.normalizeOptions({ manifestOutput });
   equal(opts.manifestOutput, manifestOutput);
 });

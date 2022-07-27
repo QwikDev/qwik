@@ -3,7 +3,7 @@
 Make sure you have installed [Rust](https://www.rust-lang.org/it/tools/install).
 
 > On Windows, Rust requires [C++ build tools](https://visualstudio.microsoft.com/it/visual-cpp-build-tools/). You can also select _Desktop development with C++_
-while installing Visual Studio.
+> while installing Visual Studio.
 
 To build Qwik for local development, first install the dev dependencies using [yarn](https://yarnpkg.com/):
 

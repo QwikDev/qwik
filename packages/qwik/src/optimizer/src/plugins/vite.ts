@@ -506,11 +506,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                 symbolMapper: isClientDevOnly
                   ? undefined
                   : (symbolName, mapper) => {
-                    if (mapper) {
-                      const hash = getSymbolHash(symbolName);
-                      return mapper[hash];
-                    }
-                  },
+                      if (mapper) {
+                        const hash = getSymbolHash(symbolName);
+                        return mapper[hash];
+                      }
+                    },
                 prefetchStrategy: null,
                 userContext,
               };
@@ -752,8 +752,8 @@ export interface QwikVitePluginOptions {
    * modules that were used before bundling.
    */
   transformedModuleOutput?:
-  | ((transformedModules: TransformModule[]) => Promise<void> | void)
-  | null;
+    | ((transformedModules: TransformModule[]) => Promise<void> | void)
+    | null;
 }
 
 export interface QwikViteDevResponse {

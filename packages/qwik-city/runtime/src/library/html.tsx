@@ -1,12 +1,12 @@
 import {
   component$,
   noSerialize,
+  QwikIntrinsicElements,
   SkipRerender,
   useContextProvider,
   useStore,
   useWatch$,
 } from '@builder.io/qwik';
-import type { HTMLAttributes } from '@builder.io/qwik';
 import { loadRoute } from './routing';
 import type {
   ContentModule,
@@ -102,7 +102,7 @@ export const Html = component$<HtmlProps>(
         routeLocation.query = Object.fromEntries(url.searchParams.entries());
 
         if (isBrowser) {
-          clientNavigate(window, routeNavigate);
+          clientNavigate(window, document, routeNavigate);
         }
       }
     });
@@ -112,4 +112,9 @@ export const Html = component$<HtmlProps>(
   { tagName: 'html' }
 );
 
-export interface HtmlProps extends HTMLAttributes<HTMLHtmlElement> {}
+type RootHtmlAttributes = QwikIntrinsicElements['html'];
+
+/**
+ * @public
+ */
+export interface HtmlProps extends RootHtmlAttributes {}

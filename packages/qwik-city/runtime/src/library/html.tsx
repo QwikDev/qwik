@@ -108,7 +108,11 @@ export const Html = component$<HtmlProps>(
       }
     });
 
-    return <Host {...props}><SkipRerender /></Host>;
+    return (
+      <Host {...props}>
+        <SkipRerender />
+      </Host>
+    );
   },
   { tagName: 'html' }
 );

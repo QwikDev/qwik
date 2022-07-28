@@ -29,7 +29,7 @@ export const normalizePath = (url: URL | Location) => url.pathname + url.search 
 export const getClientNavigatePath = (href: string | undefined | null) => {
   if (typeof href === 'string') {
     try {
-      const url = new URL(href, location as any);
+      const url = new URL(href, location.href);
       if (url.origin === origin) {
         return normalizePath(url);
       }

@@ -38,6 +38,11 @@ export async function requestHandler<T = any>(requestCtx: QwikCityRequestContext
         });
       }
 
+      // User-assigned 404 response
+      if (userResponse.status === 404) {
+        return notFoundResponse(response, userResponse.headers);
+      }
+
       // page response
       return response(userResponse.status, userResponse.headers, async (stream) => {
         const result = await render({
@@ -51,6 +56,7 @@ export async function requestHandler<T = any>(requestCtx: QwikCityRequestContext
       });
     }
 
+    // Route not found 404
     return notFoundResponse(response);
   } catch (e: any) {
     return errorResponse(e, response);

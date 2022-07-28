@@ -7,6 +7,20 @@ import { createBuildContext } from '../utils/context';
 import { normalizePath } from '../utils/fs';
 import { getSourceFile, resolveSourceFiles, validateSourceFiles } from './source-file';
 
+test(`_404.tsx`, async () => {
+  const ctx = await getFsDirTest('/src/routes', '_404.tsx');
+  assert.equal(ctx.fallbackRoutes[0].pathname, '/');
+  assert.equal(ctx.fallbackRoutes[0].status, '404');
+  assert.equal(ctx.fallbackRoutes[0].paramNames.length, 0);
+});
+
+test(`_500.tsx`, async () => {
+  const ctx = await getFsDirTest('/src/routes', '_500.tsx');
+  assert.equal(ctx.fallbackRoutes[0].pathname, '/');
+  assert.equal(ctx.fallbackRoutes[0].status, '500');
+  assert.equal(ctx.fallbackRoutes[0].paramNames.length, 0);
+});
+
 test(`layoutStop pathname`, async () => {
   const ctx = await getFsDirTest('/src/routes/dirname', 'file!.tsx');
   assert.equal(ctx.diagnostics.length, 0);
@@ -76,6 +90,7 @@ async function getFsDirTest(dirPath: string, itemName: string) {
   ctx.layouts = resolved.layouts;
   ctx.routes = resolved.routes;
   ctx.menus = resolved.menus;
+  ctx.fallbackRoutes = resolved.fallbackRoutes;
   validateSourceFiles(ctx, sourceFiles);
   return ctx;
 }

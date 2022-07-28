@@ -98,6 +98,22 @@ export function isMenuFileName(fileName: string) {
   return fileName === '_menu.md';
 }
 
+export function is404Name(fileName: string) {
+  return fileName.startsWith('_404');
+}
+
+export function is500Name(fileName: string) {
+  return fileName.startsWith('_500');
+}
+
+export function is404FileName(fileName: string, ext: string) {
+  return is404Name(fileName) && (PAGE_EXT[ext] || ENDPOINT_EXT[ext]);
+}
+
+export function is500FileName(fileName: string, ext: string) {
+  return is500Name(fileName) && (PAGE_EXT[ext] || ENDPOINT_EXT[ext]);
+}
+
 const LAYOUT_ID = '_layout';
 const LAYOUT_NAMED_PREFIX = LAYOUT_ID + '-';
 const LAYOUT_TOP_SUFFIX = '!';

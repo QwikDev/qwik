@@ -1,5 +1,6 @@
 import { dirname } from 'path';
 import type {
+  BuildFallbackRoute,
   BuildLayout,
   BuildRoute,
   NormalizedPluginOptions,
@@ -86,4 +87,17 @@ export function resolveRoute(
   };
 
   return buildRoute;
+}
+
+export function resolveFallbackRoute(
+  opts: NormalizedPluginOptions,
+  appLayouts: BuildLayout[],
+  sourceFile: RouteSourceFile
+) {
+  const buildFallbackRoute: BuildFallbackRoute = {
+    status: sourceFile.type === '500' ? '500' : '404',
+    ...resolveRoute(opts, appLayouts, sourceFile),
+  };
+
+  return buildFallbackRoute;
 }

@@ -58,6 +58,11 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         }
 
         if (userResponse.type === 'page') {
+          if (userResponse.status === 404) {
+            notFoundResponse(response, userResponse.headers);
+            return;
+          }
+
           // qwik city vite plugin should handle dev ssr rendering
           // but add the qwik city user context to the response object
           (nodeRes as QwikViteDevResponse)._qwikUserCtx = {

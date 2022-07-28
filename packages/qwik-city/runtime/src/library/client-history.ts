@@ -26,6 +26,20 @@ export const clientNavigate = (win: ClientHistoryWindow, routeNavigate: RouteNav
 
 export const normalizePath = (url: URL | Location) => url.pathname + url.search + url.hash;
 
+export const getClientNavigatePath = (href: string | undefined | null) => {
+  if (typeof href === 'string') {
+    try {
+      const url = new URL(href, location.href);
+      if (url.origin === origin) {
+        return normalizePath(url);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  return null;
+};
+
 const CLIENT_HISTORY_INITIALIZED = /* @__PURE__ */ Symbol();
 
 interface ClientHistoryWindow extends Window {

@@ -1,19 +1,18 @@
-import { component$, Host, HTMLAttributes, Slot } from '@builder.io/qwik';
+import { component$, Host, Slot, QwikIntrinsicElements } from '@builder.io/qwik';
 import { getClientNavigatePath } from './client-history';
 import { useNavigate } from './use-functions';
 
 /**
  * @public
  */
-export const Link = component$(
-  (props: LinkProps) => {
+export const Link = component$<LinkProps>(
+  (props) => {
     const nav = useNavigate();
-    const A = Host as any;
     return (
-      <A
+      <Host
         preventdefault:click
         onClick$={() => {
-          const clientPath = getClientNavigatePath(props.href);
+          const clientPath = getClientNavigatePath(props.href, location);
           if (clientPath) {
             nav.path = clientPath;
           }
@@ -21,15 +20,15 @@ export const Link = component$(
         {...props}
       >
         <Slot />
-      </A>
+      </Host>
     );
   },
   { tagName: 'a' }
 );
 
+type AnchorAttributes = QwikIntrinsicElements['a'];
+
 /**
  * @public
  */
-export interface LinkProps extends HTMLAttributes<HTMLAnchorElement> {
-  href?: string;
-}
+export interface LinkProps extends AnchorAttributes {}

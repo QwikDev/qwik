@@ -86,7 +86,7 @@ export const appBundleClient = async (
         const rsp = new Response(b.code, {
           headers: {
             'Content-Type': 'application/javascript; charset=utf-8',
-            'Cache-Control': 'no-store',
+            'Cache-Control': 'no-store, no-cache, max-age=0',
             'X-Qwik-REPL-App': 'ssr-result',
           },
         });

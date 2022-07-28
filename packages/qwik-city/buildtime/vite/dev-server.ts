@@ -7,6 +7,8 @@ import { getQwikCityUserContext } from '../../middleware/request-handler/utils';
 import { fromNodeHttp } from '../../middleware/express/utils';
 import { buildFromUrlPathname } from '../build';
 import { notFoundResponse } from '../../middleware/request-handler/fallback-handler';
+import fs from 'fs';
+import { join } from 'path';
 
 export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
   server.middlewares.use(async (nodeReq, nodeRes, next) => {
@@ -72,7 +74,27 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
           return;
         }
       }
-      notFoundResponse(response);
+
+      // see if this path is a static file in one of these directories which vite will serve
+      const publicDirs = ['dist', 'public'].map((dir) => join(server.config.root, dir));
+      publicDirs.push(server.config.build.outDir);
+
+      for (const publicDir of publicDirs) {
+        try {
+          // check for public path static asset
+          await fs.promises.access(join(publicDir, pathname));
+
+          // use vite's static file server
+          next();
+          return;
+        } catch (e) {
+          //
+        }
+      }
+
+      // static file does not exist, 404
+      await notFoundResponse(response);
+      nodeRes.end();
     } catch (e) {
       next(e);
     }
@@ -83,8 +105,10 @@ function isVitePathname(pathname: string) {
   return (
     pathname.startsWith('/@fs/') ||
     pathname.startsWith('/@id/') ||
-    pathname.startsWith('/@qwik-city-plan') ||
     pathname.startsWith('/@vite/') ||
+    pathname.startsWith('/__vite_ping') ||
+    pathname.startsWith('/__open-in-editor') ||
+    pathname.startsWith('/@qwik-city-plan') ||
     pathname.startsWith('/src/') ||
     pathname.startsWith('/favicon.ico')
   );

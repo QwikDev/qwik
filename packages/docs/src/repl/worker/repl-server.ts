@@ -136,7 +136,8 @@ const init = (clientId: string) => {
             err
           );
         }
-      );
+      )
+      .catch((e) => console.error(e));
 
     document.title += ': ' + clientId;
     window.addEventListener('message', receiveMessageFromMainApp);

@@ -15,47 +15,51 @@ export const requestHandler = async (ev: any) => {
   }
 
   return ev.respondWith(
-    caches.open(QWIK_REPL_RESULT_CACHE).then(async (cache) => {
-      const rsp = await cache.match(ev.request);
-      if (rsp) {
-        if (rsp.headers.get('Content-Type')?.includes('text/html')) {
-          // app document
-          const html = injectDevHtml(clientId, await rsp.clone().text());
-          const htmlRsp = new Response(html, {
-            headers: {
-              'Content-Type': 'text/html; charset=utf-8',
-              'Cache-Control': 'no-store',
-              'X-Qwik-REPL-App': 'ssr-result',
+    caches
+      .open(QWIK_REPL_RESULT_CACHE)
+      .then(async (cache) => {
+        const rsp = await cache.match(ev.request);
+        if (rsp) {
+          if (rsp.headers.get('Content-Type')?.includes('text/html')) {
+            // app document
+            const html = injectDevHtml(clientId, await rsp.clone().text());
+            const htmlRsp = new Response(html, {
+              headers: {
+                'Content-Type': 'text/html; charset=utf-8',
+                'Cache-Control': 'no-store,no-cache,max-age=0',
+                'X-Qwik-REPL-App': 'ssr-result',
+              },
+            });
+            return htmlRsp;
+          }
+
+          // app client modules
+          const replEvent: ReplEventMessage = {
+            type: 'event',
+            clientId,
+            event: {
+              kind: 'client-module',
+              scope: 'network',
+              message: [reqUrl.pathname + reqUrl.search],
+              start: performance.now(),
             },
-          });
-          return htmlRsp;
+          };
+
+          sendMessageToReplServer(replEvent);
+
+          return rsp;
         }
 
-        // app client modules
-        const replEvent: ReplEventMessage = {
-          type: 'event',
-          clientId,
-          event: {
-            kind: 'client-module',
-            scope: 'network',
-            message: [reqUrl.pathname + reqUrl.search],
-            start: performance.now(),
+        return new Response('404 - ' + ev.request.url, {
+          headers: {
+            'Content-Type': 'text/plain; charset=utf-8',
+            'Cache-Control': 'no-store, no-cache, max-age=0',
+            'X-Qwik-REPL-App': 'Not-Found',
           },
-        };
-
-        sendMessageToReplServer(replEvent);
-
-        return rsp;
-      }
-
-      return new Response('404 - ' + ev.request.url, {
-        headers: {
-          'Cache-Control': 'no-store',
-          'X-Qwik-REPL-App': 'Not-Found',
-        },
-        status: 404,
-      });
-    })
+          status: 404,
+        });
+      })
+      .catch((e) => console.error(e))
   );
 };
 

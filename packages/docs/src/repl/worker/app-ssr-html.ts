@@ -25,7 +25,7 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
   const error = console.error;
   const debug = console.debug;
 
-  console.log = (...args) => {
+  console.log = (...args: any[]) => {
     result.events.push({
       kind: 'console-log',
       scope: 'ssr',
@@ -35,7 +35,7 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
     log(...args);
   };
 
-  console.warn = (...args) => {
+  console.warn = (...args: any[]) => {
     result.events.push({
       kind: 'console-warn',
       scope: 'ssr',
@@ -45,7 +45,7 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
     warn(...args);
   };
 
-  console.error = (...args) => {
+  console.error = (...args: any[]) => {
     result.events.push({
       kind: 'console-error',
       scope: 'ssr',
@@ -54,7 +54,7 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
     });
   };
 
-  console.debug = (...args) => {
+  console.debug = (...args: any[]) => {
     result.events.push({
       kind: 'console-debug',
       scope: 'ssr',

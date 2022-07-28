@@ -1,6 +1,5 @@
-import type { QwikCityRequestContext } from '../request-handler/types';
+import type { QwikCityRequestOptions, QwikCityRequestContext } from '../request-handler/types';
 import { requestHandler } from '../request-handler';
-import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 
 // @builder.io/qwik-city/middleware/netlify-edge
@@ -8,12 +7,10 @@ import type { Render } from '@builder.io/qwik/server';
 /**
  * @public
  */
-export function qwikCity(render: Render, opts: QwikCityPlanNetlifyEdge) {
+export function qwikCity(render: Render, opts: QwikCityNetlifyOptions) {
   async function onRequest(request: Request, { next }: EventPluginContext) {
     try {
       const requestCtx: QwikCityRequestContext<Response> = {
-        ...opts,
-        render,
         url: new URL(request.url),
         request,
         response: (status, headers, body) => {
@@ -29,7 +26,7 @@ export function qwikCity(render: Render, opts: QwikCityPlanNetlifyEdge) {
         next,
       };
 
-      const response = await requestHandler<Response>(requestCtx);
+      const response = await requestHandler<Response>(requestCtx, render, opts);
       return response;
     } catch (e: any) {
       return new Response(String(e ? e.stack || e : 'Error'), {
@@ -45,7 +42,7 @@ export function qwikCity(render: Render, opts: QwikCityPlanNetlifyEdge) {
 /**
  * @public
  */
-export interface QwikCityPlanNetlifyEdge extends QwikCityPlan {}
+export interface QwikCityNetlifyOptions extends QwikCityRequestOptions {}
 
 /**
  * @public

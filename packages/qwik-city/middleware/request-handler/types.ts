@@ -1,9 +1,7 @@
-import type { Render, StreamWriter } from '@builder.io/qwik/server';
+import type { RenderOptions, StreamWriter } from '@builder.io/qwik/server';
 import type { QwikCityPlan, RequestContext, RouteParams } from '../../runtime/src/library/types';
 
-export interface QwikCityRequestContext<T = any> extends QwikCityPlan, ServerRequestEvent<T> {
-  trailingSlash?: boolean;
-  render: Render;
+export interface QwikCityRequestContext<T = any> extends ServerRequestEvent<T> {
   next: () => any;
 }
 
@@ -31,3 +29,5 @@ export interface UserResponseContext {
   body: any;
   type: 'page' | 'endpoint';
 }
+
+export interface QwikCityRequestOptions extends QwikCityPlan, RenderOptions {}

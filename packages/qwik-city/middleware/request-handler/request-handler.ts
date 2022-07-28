@@ -1,18 +1,23 @@
 import { loadRoute } from '../../runtime/src/library/routing';
 import { loadUserResponse } from './user-response';
-import type { QwikCityRequestContext } from './types';
+import type { QwikCityRequestContext, QwikCityRequestOptions } from './types';
 import { ROUTE_TYPE_ENDPOINT } from '../../runtime/src/library/constants';
-import type { RenderToStringResult } from '@builder.io/qwik/server';
+import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import { getQwikCityUserContext } from './utils';
 import { errorResponse, notFoundResponse } from './fallback-handler';
 
 /**
  * @public
  */
-export async function requestHandler<T = any>(requestCtx: QwikCityRequestContext): Promise<T> {
-  const { routes, menus, cacheModules, trailingSlash, request, response, url, render } = requestCtx;
+export async function requestHandler<T = any>(
+  requestCtx: QwikCityRequestContext,
+  render: Render,
+  opts: QwikCityRequestOptions
+): Promise<T> {
+  const { request, response, url } = requestCtx;
 
   try {
+    const { routes, menus, cacheModules, trailingSlash } = opts;
     const loadedRoute = await loadRoute(routes, menus, cacheModules, url.pathname);
     if (loadedRoute) {
       // found and loaded the route for this pathname
@@ -44,6 +49,7 @@ export async function requestHandler<T = any>(requestCtx: QwikCityRequestContext
           stream,
           url: url.href,
           userContext: getQwikCityUserContext(userResponse),
+          ...opts,
         });
         if ((typeof result as any as RenderToStringResult).html === 'string') {
           stream.write((result as any as RenderToStringResult).html);

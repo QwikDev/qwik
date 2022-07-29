@@ -1,6 +1,5 @@
-import type { QwikCityRequestContext } from '../request-handler/types';
-import { requestHandler } from '../request-handler';
-import type { QwikCityPlan } from '@builder.io/qwik-city';
+import type { QwikCityRequestOptions, QwikCityRequestContext } from '../request-handler/types';
+import { notFoundHandler, requestHandler } from '../request-handler';
 import type { Render } from '@builder.io/qwik/server';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
@@ -8,7 +7,7 @@ import type { Render } from '@builder.io/qwik/server';
 /**
  * @public
  */
-export function qwikCity(render: Render, opts: QwikCityPlanCloudflarePages) {
+export function qwikCity(render: Render, opts: QwikCityCloudflarePagesOptions) {
   async function onRequest({ request, next }: EventPluginContext) {
     try {
       // early return from cache
@@ -19,27 +18,41 @@ export function qwikCity(render: Render, opts: QwikCityPlanCloudflarePages) {
       }
 
       const requestCtx: QwikCityRequestContext<Response> = {
-        ...opts,
-        render,
         url: new URL(request.url),
         request,
         response: (status, headers, body) => {
           const { readable, writable } = new TransformStream();
-          const stream = writable.getWriter();
+          const writer = writable.getWriter();
+
           body({
-            write: (chunk) => stream.write(chunk),
+            write: async (chunk) => {
+              const encoder = new TextEncoder();
+              const encoded = encoder.encode(chunk);
+              await writer.write(encoded);
+            },
           }).finally(() => {
-            stream.close();
+            writer.close();
           });
+
           return new Response(readable, { status, headers });
         },
         next,
       };
 
-      const response = await requestHandler<Response>(requestCtx);
-      return response;
+      const handledResponse = await requestHandler<Response>(requestCtx, render, opts);
+      if (handledResponse) {
+        return handledResponse;
+      }
+
+      const nextResponse = await next();
+      if (nextResponse.status === 404) {
+        const notFoundResponse = await notFoundHandler<Response>(requestCtx);
+        return notFoundResponse;
+      }
+
+      return nextResponse;
     } catch (e: any) {
-      return new Response(String(e ? e.stack || e : 'Error'), {
+      return new Response(String(e || 'Error'), {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
       });
@@ -52,7 +65,7 @@ export function qwikCity(render: Render, opts: QwikCityPlanCloudflarePages) {
 /**
  * @public
  */
-export interface QwikCityPlanCloudflarePages extends QwikCityPlan {}
+export interface QwikCityCloudflarePagesOptions extends QwikCityRequestOptions {}
 
 /**
  * @public

@@ -18,11 +18,14 @@ import { configureDevServer } from './dev-server';
 import { SERVER_ENDPOINT_FNS, stripServerEndpoints } from '../utils/strip-server-endpoints';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/entries';
+import { patchGlobalFetch } from '../../middleware/express/node-fetch';
 
 /**
  * @alpha
  */
 export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
+  patchGlobalFetch();
+
   let ctx: BuildContext | null = null;
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;

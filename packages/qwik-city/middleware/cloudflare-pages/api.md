@@ -4,8 +4,8 @@
 
 ```ts
 
-import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
+import type { RenderOptions } from '@builder.io/qwik/server';
 
 // @public (undocumented)
 export interface EventPluginContext {
@@ -18,10 +18,12 @@ export interface EventPluginContext {
 }
 
 // @public (undocumented)
-export function qwikCity(render: Render, opts: QwikCityPlanCloudflarePages): ({ request, next }: EventPluginContext) => Promise<Response>;
+export function qwikCity(render: Render, opts: QwikCityCloudflarePagesOptions): ({ request, next }: EventPluginContext) => Promise<Response>;
 
+// Warning: (ae-forgotten-export) The symbol "QwikCityRequestOptions" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export interface QwikCityPlanCloudflarePages extends QwikCityPlan {
+export interface QwikCityCloudflarePagesOptions extends QwikCityRequestOptions {
 }
 
 // (No @packageDocumentation comment for this package)

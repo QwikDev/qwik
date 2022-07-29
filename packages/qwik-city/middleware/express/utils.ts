@@ -43,7 +43,17 @@ export function fromNodeHttp(url: URL, nodeReq: NodeRequest, nodeRes: ServerResp
       nodeRes.statusCode = status;
       headers.forEach((value, key) => nodeRes.setHeader(key, value));
       body({
-        write: (chunk) => nodeRes.write(chunk),
+        write: (chunk) => {
+          return new Promise<void>((resolve, reject) => {
+            nodeRes.write(chunk, (err) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve();
+              }
+            });
+          });
+        },
       }).finally(() => {
         nodeRes.end();
       });

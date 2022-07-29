@@ -5,7 +5,15 @@ import * as assert from 'uvu/assert';
 import type { RouteSourceFile } from '../types';
 import { createBuildContext } from '../utils/context';
 import { normalizePath } from '../utils/fs';
-import { getSourceFile, resolveSourceFiles, validateSourceFiles } from './source-file';
+import { resolveSourceFiles } from './resolve-source-file';
+import { getSourceFile, validateSourceFiles } from './source-file';
+
+test(`entry`, async () => {
+  const ctx = await getFsDirTest('/src/routes/dir/sw', 'entry.ts');
+  assert.equal(ctx.diagnostics.length, 0);
+  assert.equal(ctx.entries.length, 1);
+  assert.equal(ctx.entries[0].chunkFileName, 'dir/sw.js');
+});
 
 test(`layoutStop pathname`, async () => {
   const ctx = await getFsDirTest('/src/routes/dirname', 'file!.tsx');
@@ -75,6 +83,7 @@ async function getFsDirTest(dirPath: string, itemName: string) {
 
   ctx.layouts = resolved.layouts;
   ctx.routes = resolved.routes;
+  ctx.entries = resolved.entries;
   ctx.menus = resolved.menus;
   validateSourceFiles(ctx, sourceFiles);
   return ctx;

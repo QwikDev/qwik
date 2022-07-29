@@ -19,11 +19,7 @@ export default defineConfig(() => {
     },
     plugins: [
       qwikCity(),
-      qwikVite({
-        client: {
-          input: [resolve('src', 'repl', 'worker', 'repl-service-worker.ts')],
-        },
-      }),
+      qwikVite(),
       partytownVite({
         dest: resolve('dist', '~partytown'),
       }),

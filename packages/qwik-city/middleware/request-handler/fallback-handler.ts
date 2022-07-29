@@ -1,41 +1,89 @@
 import type { ResponseHandler } from './types';
 
-export function notFoundResponse(response: ResponseHandler) {
-  const headers = new URLSearchParams({
-    'Content-Type': 'text/html; charset=utf-8',
-  });
-
-  return response(404, headers, async (stream) => {
-    stream.write(NOT_FOUND_HTML);
-  });
+export function notFoundResponse(response: ResponseHandler, headers?: Headers) {
+  return fallbackResponse(404, headers, 'Not Found', null, response);
 }
 
-export function errorResponse(e: any, response: ResponseHandler) {
-  return response(
-    500,
-    new URLSearchParams({ 'Content-Type': 'text/plain; charset=utf-8' }),
-    async (stream) => {
-      stream.write(String(e ? e.stack || e : 'Request Handler Error'));
+export function errorResponse(response: ResponseHandler, e: any, headers?: Headers) {
+  let text = 'Server Error';
+  let message: string | null = null;
+
+  if (e) {
+    if (e instanceof Error) {
+      if (typeof e.message === 'string') {
+        text = e.message;
+      }
+      if (typeof e.stack === 'string') {
+        message = e.stack;
+      }
+    } else {
+      message = String(e);
     }
-  );
+  }
+
+  return fallbackResponse(500, headers, text, message, response);
 }
 
-const NOT_FOUND_HTML = `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>404 Not Found</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <style>
-      body { background-color: rgb(250, 250, 250); color: #006eb3; padding: 20px; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif; }
-      p { max-width: 220px; margin: 80px auto; padding: 15px 30px; background-color: white; border-radius: 10px; box-shadow: 0px 0px 50px -20px #5249d9; }
-      strong { padding-right: 20px; }
-    </style>
-  </head>
-  <body>
-    <p>
-      <strong id="qwik-city-response-status">404</strong>
-      <span>Not Found</span>
-    </p>
-  </body>
-</html>`;
+function fallbackResponse(
+  status: number,
+  headers: Headers | undefined,
+  text: string,
+  message: string | null,
+  response: ResponseHandler
+) {
+  headers = headers || new URLSearchParams();
+  headers.set('Content-Type', 'text/html; charset=utf-8');
+
+  const html = `<!DOCTYPE html>
+<html data-qwik-city-status="${status}">
+<head>
+  <meta charset="utf-8" />
+  <title>${status} ${text}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body {
+      --color: #5249d9;
+      color: var(--color);
+      background-color: rgb(250, 250, 250);
+      padding: 20px;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        Roboto, "Helvetica Neue", sans-serif;
+    }
+    p {
+      max-width: ${message ? `600px` : `400px`};
+      margin: 60px auto 30px auto;
+      background-color: white;
+      border-radius: 5px;
+      box-shadow: 0px 0px 50px -20px var(--color);
+      overflow: hidden;
+    }
+    strong {
+      display: inline-block;
+      padding: 15px;
+      background-color: var(--color);
+      color: white;
+    }
+    span {
+      display: inline-block;
+      padding: 15px;
+    }
+    pre {
+      max-width: 580px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <p>
+    <strong>${status}</strong>
+    <span>${text}</span>
+  </p>
+  ${message ? `<pre><code>${message}</code></pre>` : ``}
+</body>
+</html>
+`;
+
+  return response(status, headers, async (stream) => {
+    stream.write(html);
+  });
+}

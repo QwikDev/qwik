@@ -12,6 +12,7 @@ export function createBuildContext(
     opts: normalizeOptions(rootDir, userOpts),
     routes: [],
     layouts: [],
+    entries: [],
     menus: [],
     diagnostics: [],
     frontmatter: new Map(),
@@ -25,6 +26,7 @@ export function resetBuildContext(ctx: BuildContext | null) {
   if (ctx) {
     ctx.routes.length = 0;
     ctx.layouts.length = 0;
+    ctx.entries.length = 0;
     ctx.menus.length = 0;
     ctx.diagnostics.length = 0;
     ctx.frontmatter.clear();

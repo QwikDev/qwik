@@ -98,6 +98,10 @@ export function isMenuFileName(fileName: string) {
   return fileName === '_menu.md';
 }
 
+export function isEntryFileName(fileName: string, ext: string) {
+  return fileName.startsWith('entry') && ENDPOINT_EXT[ext];
+}
+
 const LAYOUT_ID = '_layout';
 const LAYOUT_NAMED_PREFIX = LAYOUT_ID + '-';
 const LAYOUT_TOP_SUFFIX = '!';

@@ -1,4 +1,5 @@
 import type { BuildContext } from '../types';
+import { createEntries } from './entries';
 import { createMenus } from './menus';
 import { createRoutes } from './routes';
 
@@ -31,6 +32,8 @@ export function generateQwikCityPlan(ctx: BuildContext) {
   }
 
   c.push(`};`);
+
+  createEntries(ctx, c, esmImports);
 
   c.push(`export default qwikCityPlan;\n`);
 

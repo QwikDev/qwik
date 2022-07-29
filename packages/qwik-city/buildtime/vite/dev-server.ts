@@ -6,7 +6,7 @@ import { loadUserResponse } from '../../middleware/request-handler/user-response
 import { getQwikCityUserContext } from '../../middleware/request-handler/utils';
 import { fromNodeHttp } from '../../middleware/express/utils';
 import { buildFromUrlPathname } from '../build';
-import { notFoundResponse } from '../../middleware/request-handler/fallback-handler';
+import { notFoundHandler } from '../../middleware/request-handler/fallback-handler';
 import fs from 'fs';
 import { join } from 'path';
 
@@ -20,8 +20,8 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         next();
         return;
       }
-
-      const { request, response } = fromNodeHttp(url, nodeReq, nodeRes);
+      const serverRequestEv = fromNodeHttp(url, nodeReq, nodeRes);
+      const { request, response } = serverRequestEv;
       const result = await buildFromUrlPathname(ctx, pathname);
       if (result) {
         const { route, params } = result;
@@ -61,7 +61,7 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
 
         if (userResponse.type === 'page') {
           if (userResponse.status === 404) {
-            notFoundResponse(response, userResponse.headers);
+            await notFoundHandler(serverRequestEv);
             return;
           }
 
@@ -98,8 +98,7 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
       }
 
       // static file does not exist, 404
-      await notFoundResponse(response);
-      nodeRes.end();
+      notFoundHandler(serverRequestEv);
     } catch (e) {
       next(e);
     }

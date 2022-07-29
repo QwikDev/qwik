@@ -4,7 +4,7 @@ import type { QwikCityRequestContext, QwikCityRequestOptions } from './types';
 import { ROUTE_TYPE_ENDPOINT } from '../../runtime/src/library/constants';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import { getQwikCityUserContext } from './utils';
-import { errorResponse, notFoundResponse } from './fallback-handler';
+import { errorHandler } from './fallback-handler';
 
 /**
  * @public
@@ -13,10 +13,9 @@ export async function requestHandler<T = any>(
   requestCtx: QwikCityRequestContext,
   render: Render,
   opts: QwikCityRequestOptions
-): Promise<T> {
-  const { request, response, url } = requestCtx;
-
+): Promise<T | null> {
   try {
+    const { request, response, url } = requestCtx;
     const { routes, menus, cacheModules, trailingSlash } = opts;
     const loadedRoute = await loadRoute(routes, menus, cacheModules, url.pathname);
     if (loadedRoute) {
@@ -34,6 +33,11 @@ export async function requestHandler<T = any>(
         isEndpointOnly
       );
 
+      // user-assigned 404 response
+      if (userResponse.status === 404) {
+        return null;
+      }
+
       if (userResponse.type === 'endpoint') {
         // endpoint response
         return response(userResponse.status, userResponse.headers, async (stream) => {
@@ -41,11 +45,6 @@ export async function requestHandler<T = any>(
             stream.write(userResponse.body);
           }
         });
-      }
-
-      // User-assigned 404 response
-      if (userResponse.status === 404) {
-        return notFoundResponse(response, userResponse.headers);
       }
 
       // page response
@@ -61,10 +60,10 @@ export async function requestHandler<T = any>(
         }
       });
     }
-
-    // Route not found 404
-    return notFoundResponse(response);
   } catch (e: any) {
-    return errorResponse(e, response);
+    return errorHandler(requestCtx, e);
   }
+
+  // route not found
+  return null;
 }

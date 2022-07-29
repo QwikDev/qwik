@@ -1,76 +1,71 @@
-import type { ResponseHandler } from './types';
+import type { ServerRequestEvent } from './types';
 
-export function notFoundResponse(response: ResponseHandler, headers?: Headers) {
-  return fallbackResponse(404, headers, 'Not Found', null, response);
+export function notFoundHandler(serverRequestEv: ServerRequestEvent) {
+  const { response } = serverRequestEv;
+
+  const status = 404;
+  const text = 'Not Found';
+
+  const html = fallbackResponse(status, text, null, COLOR_404, '300px');
+
+  const headers = new URLSearchParams();
+  headers.set('Content-Type', 'text/html; charset=utf-8');
+
+  return response(status, headers, async (stream) => {
+    stream.write(html);
+  });
 }
 
-export function errorResponse(response: ResponseHandler, e: any, headers?: Headers) {
+export function errorHandler(serverRequestEv: ServerRequestEvent, err: any) {
+  const { response } = serverRequestEv;
+
+  const status = 500;
+
   let text = 'Server Error';
   let message: string | null = null;
 
-  if (e) {
-    if (e instanceof Error) {
-      if (typeof e.message === 'string') {
-        text = e.message;
+  if (err) {
+    if (typeof err === 'object') {
+      if (typeof err.message === 'string') {
+        text = err.message;
       }
-      if (typeof e.stack === 'string') {
-        message = e.stack;
+      if (typeof err.stack === 'string') {
+        message = err.stack;
       }
     } else {
-      message = String(e);
+      message = String(err);
     }
   }
 
-  return fallbackResponse(500, headers, text, message, response);
+  const html = fallbackResponse(status, text, message, COLOR_500, '600px');
+
+  const headers = new URLSearchParams();
+  headers.set('Content-Type', 'text/html; charset=utf-8');
+
+  return response(status, headers, async (stream) => {
+    stream.write(html);
+  });
 }
 
 function fallbackResponse(
   status: number,
-  headers: Headers | undefined,
   text: string,
   message: string | null,
-  response: ResponseHandler
+  color: string,
+  width: string
 ) {
-  headers = headers || new URLSearchParams();
-  headers.set('Content-Type', 'text/html; charset=utf-8');
-
-  const html = `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html data-qwik-city-status="${status}">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
   <title>${status} ${text}</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
-    body {
-      --color: #5249d9;
-      color: var(--color);
-      background-color: rgb(250, 250, 250);
-      padding: 20px;
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-        Roboto, "Helvetica Neue", sans-serif;
-    }
-    p {
-      max-width: ${message ? `600px` : `400px`};
-      margin: 60px auto 30px auto;
-      background-color: white;
-      border-radius: 5px;
-      box-shadow: 0px 0px 50px -20px var(--color);
-      overflow: hidden;
-    }
-    strong {
-      display: inline-block;
-      padding: 15px;
-      background-color: var(--color);
-      color: white;
-    }
-    span {
-      display: inline-block;
-      padding: 15px;
-    }
-    pre {
-      max-width: 580px;
-      margin: 0 auto;
-    }
+    body { color: ${color}; background-color: #fafafa; padding: 20px; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
+    p { max-width: ${width}; margin: 60px auto 30px auto; background: white; border-radius: 5px; box-shadow: 0px 0px 50px -20px ${color}; overflow: hidden; }
+    strong { display: inline-block; padding: 15px; background: ${color}; color: white; }
+    span { display: inline-block; padding: 15px; }
+    pre { max-width: 580px; margin: 0 auto; }
   </style>
 </head>
 <body>
@@ -82,8 +77,7 @@ function fallbackResponse(
 </body>
 </html>
 `;
-
-  return response(status, headers, async (stream) => {
-    stream.write(html);
-  });
 }
+
+const COLOR_404 = '#5249d9';
+const COLOR_500 = '#bd16bd';

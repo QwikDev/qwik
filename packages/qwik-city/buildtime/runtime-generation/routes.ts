@@ -51,8 +51,10 @@ export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[
     c.push(`  ${createRoute(route, loaders)},`);
   }
 
+  c.push(`];`);
+
   if (isSsr) {
-    c.push(`\n/** Qwik City Fallback Routes (${routes.length}) */`);
+    c.push(`\n/** Qwik City Fallback Routes (${ctx.fallbackRoutes.length}) */`);
     c.push(`const fallbackRoutes = [`);
 
     for (const fallbackRoute of ctx.fallbackRoutes) {
@@ -69,8 +71,6 @@ export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[
 
     c.push(`];`);
   }
-
-  c.push(`];`);
 }
 
 function createRoute(r: BuildRoute, loaders: string[]) {

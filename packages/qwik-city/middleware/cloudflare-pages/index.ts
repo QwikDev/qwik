@@ -46,7 +46,8 @@ export function qwikCity(render: Render, opts: QwikCityCloudflarePagesOptions) {
 
       const nextResponse = await next();
       if (nextResponse.status === 404) {
-        return notFoundHandler(requestCtx);
+        const notFoundResponse = await notFoundHandler<Response>(requestCtx);
+        return notFoundResponse;
       }
 
       return nextResponse;

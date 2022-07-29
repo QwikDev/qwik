@@ -98,7 +98,7 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
       }
 
       // static file does not exist, 404
-      notFoundHandler(serverRequestEv);
+      await notFoundHandler(serverRequestEv);
     } catch (e) {
       next(e);
     }

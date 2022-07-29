@@ -1,5 +1,5 @@
 import type { QwikCityRequestOptions, QwikCityRequestContext } from '../request-handler/types';
-import { requestHandler } from '../request-handler';
+import { notFoundHandler, requestHandler } from '../request-handler';
 import type { Render } from '@builder.io/qwik/server';
 
 // @builder.io/qwik-city/middleware/netlify-edge
@@ -26,10 +26,20 @@ export function qwikCity(render: Render, opts: QwikCityNetlifyOptions) {
         next,
       };
 
-      const response = await requestHandler<Response>(requestCtx, render, opts);
-      return response;
+      const handledResponse = await requestHandler<Response>(requestCtx, render, opts);
+      if (handledResponse) {
+        return handledResponse;
+      }
+
+      const nextResponse = await next();
+      if (nextResponse.status === 404) {
+        const notFoundResponse = await notFoundHandler<Response>(requestCtx);
+        return notFoundResponse;
+      }
+
+      return nextResponse;
     } catch (e: any) {
-      return new Response(String(e ? e.stack || e : 'Error'), {
+      return new Response(String(e || 'Error'), {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
       });

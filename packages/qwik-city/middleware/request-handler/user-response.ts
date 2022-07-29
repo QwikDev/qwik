@@ -30,6 +30,11 @@ export async function loadUserResponse(
     isEndpointOnly = request.headers.get('Accept') === 'application/json';
   }
   const { pathname } = url;
+
+  if (!isEndpointOnly) {
+    isEndpointOnly = request.headers.get('Accept') === 'application/json';
+  }
+
   if (!isEndpointOnly && pathname !== '/') {
     // only check for slash redirect on pages
     if (trailingSlash) {

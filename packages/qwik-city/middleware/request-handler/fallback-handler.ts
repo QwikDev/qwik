@@ -1,6 +1,6 @@
 import type { ServerRequestEvent } from './types';
 
-export function notFoundHandler(serverRequestEv: ServerRequestEvent) {
+export function notFoundHandler<T = any>(serverRequestEv: ServerRequestEvent): Promise<T> {
   const { response } = serverRequestEv;
 
   const status = 404;

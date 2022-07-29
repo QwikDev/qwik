@@ -3,6 +3,7 @@ export interface BuildContext {
   opts: NormalizedPluginOptions;
   routes: BuildRoute[];
   layouts: BuildLayout[];
+  entries: BuildEntry[];
   menus: BuildMenu[];
   frontmatter: Map<string, string[]>;
   diagnostics: Diagnostic[];
@@ -16,7 +17,7 @@ export interface Diagnostic {
 }
 
 export interface RouteSourceFile {
-  type: 'page' | 'endpoint' | 'layout' | 'menu';
+  type: 'page' | 'endpoint' | 'layout' | 'entry' | 'menu';
   dirPath: string;
   dirName: string;
   filePath: string;
@@ -52,6 +53,11 @@ export interface BuildLayout extends ParsedLayoutId {
   filePath: string;
   dirPath: string;
   id: string;
+}
+
+export interface BuildEntry {
+  chunkFileName: string;
+  filePath: string;
 }
 
 export interface BuildMenu {

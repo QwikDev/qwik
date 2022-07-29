@@ -141,7 +141,11 @@ export interface Parser {
   fill(obj: any): boolean;
 }
 
-export const createParser = (getObject: GetObject, containerState: ContainerState, doc: Document): Parser => {
+export const createParser = (
+  getObject: GetObject,
+  containerState: ContainerState,
+  doc: Document
+): Parser => {
   const map = new Map<any, Serializer<any>>();
   return {
     prepare(data: string) {

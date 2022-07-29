@@ -53,6 +53,7 @@ export interface ContainerState {
   $elementIndex$: number;
 
   $contexts$: QContext[];
+  $stylesIds$: Set<string>;
 }
 
 const CONTAINER_STATE = Symbol('ContainerState');
@@ -79,6 +80,7 @@ export const getContainerState = (containerEl: Element): ContainerState => {
       $elementIndex$: 0,
 
       $contexts$: [],
+      $stylesIds$: new Set(),
     };
   }
   return set;
@@ -175,9 +177,7 @@ const notifyWatch = (watch: SubscriberDescriptor) => {
   }
 };
 
-const scheduleFrame = (
-  containerState: ContainerState
-): Promise<RenderContext> => {
+const scheduleFrame = (containerState: ContainerState): Promise<RenderContext> => {
   if (containerState.$renderPromise$ === undefined) {
     containerState.$renderPromise$ = containerState.$platform$.nextTick(() =>
       renderMarked(containerState)
@@ -196,9 +196,7 @@ export const handleWatch = () => {
   notifyWatch(watch);
 };
 
-const renderMarked = async (
-  containerState: ContainerState
-): Promise<RenderContext> => {
+const renderMarked = async (containerState: ContainerState): Promise<RenderContext> => {
   const hostsRendering = (containerState.$hostsRendering$ = new Set(containerState.$hostsNext$));
   containerState.$hostsNext$.clear();
   await executeWatchesBefore(containerState);
@@ -241,10 +239,7 @@ const renderMarked = async (
   });
 };
 
-export const postRendering = async (
-  containerState: ContainerState,
-  ctx: RenderContext
-) => {
+export const postRendering = async (containerState: ContainerState, ctx: RenderContext) => {
   await executeWatchesAfter(containerState, (watch, stage) => {
     if ((watch.$flags$ & WatchFlagsIsEffect) === 0) {
       return false;

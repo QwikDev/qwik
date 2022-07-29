@@ -66,7 +66,7 @@ export type { DOMAttributes } from './render/jsx/types/jsx-qwik-attributes';
 export type { FunctionComponent, JSXNode } from './render/jsx/types/jsx-node';
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
-export { render} from './render/render.public';
+export { render } from './render/render.public';
 export { renderSSR } from './render/render-ssr';
 
 export type { RenderOptions } from './render/render.public';
@@ -81,7 +81,7 @@ export { useLexicalScope } from './use/use-lexical-scope.public';
 export { useStore, useRef } from './use/use-store.public';
 export { useContext, useContextProvider, createContext } from './use/use-context';
 export { useUserContext } from './use/use-user-context';
-export { useStylesQrl, useStyles$, useScopedStylesQrl, useScopedStyles$ } from './use/use-styles';
+export { useStylesQrl, useStyles$ } from './use/use-styles';
 export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
 export type { Context } from './use/use-context';
 export type { Ref } from './use/use-store.public';

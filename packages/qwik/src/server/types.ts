@@ -16,8 +16,6 @@ export interface QwikDocument extends Document {}
 export interface SerializeDocumentOptions {
   manifest?: QwikManifest;
   symbolMapper?: SymbolMapperFn;
-  url?: URL | string;
-  html?: string;
   debug?: boolean;
 }
 

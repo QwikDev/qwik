@@ -118,7 +118,7 @@ export const resumeContainer = (containerEl: Element) => {
     const watches = ctxMeta.w;
 
     if (qobj) {
-      ctx.$refMap$.$array$.push(...qobj.split(' ').map((part) => getObject(part)));
+      ctx.$refMap$.push(...qobj.split(' ').map((part) => getObject(part)));
     }
     if (seq) {
       ctx.$seq$ = seq.split(' ').map((part) => getObject(part));
@@ -201,9 +201,12 @@ export const pauseFromContainer = async (containerEl: Element): Promise<Snapshot
   const containerState = getContainerState(containerEl);
   const contexts = getNodesInScope(containerEl, hasContext).map(tryGetContext) as QContext[];
   return pauseFromContexts(contexts, containerState);
-}
+};
 
-export const pauseFromContexts = async (elements: QContext[], containerState: ContainerState): Promise<SnapshotResult> => {
+export const pauseFromContexts = async (
+  elements: QContext[],
+  containerState: ContainerState
+): Promise<SnapshotResult> => {
   const elementToIndex = new Map<Element, string | null>();
   const collector = createCollector(containerState);
   const listeners: SnapshotListener[] = [];
@@ -249,7 +252,7 @@ export const pauseFromContexts = async (elements: QContext[], containerState: Co
       }
     }
     const ctx = tryGetContext(listener.el)!;
-    for (const obj of ctx.$refMap$.$array$) {
+    for (const obj of ctx.$refMap$) {
       await collectValue(obj, collector, true);
     }
   }
@@ -452,8 +455,8 @@ export const pauseFromContexts = async (elements: QContext[], containerState: Co
     const elementCaptured = collector.$elements$.includes(node);
 
     let add = false;
-    if (ref.$array$.length > 0) {
-      const value = ref.$array$.map(mustGetObjId).join(' ');
+    if (ref.length > 0) {
+      const value = ref.map(mustGetObjId).join(' ');
       if (value) {
         metaValue.r = value;
         add = true;
@@ -731,7 +734,7 @@ const collectElement = async (el: Element, collector: Collector) => {
       await collectValue(obj, collector, false);
     }
 
-    for (const obj of ctx.$refMap$.$array$) {
+    for (const obj of ctx.$refMap$) {
       await collectValue(obj, collector, false);
     }
 

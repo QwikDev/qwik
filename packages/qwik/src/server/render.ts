@@ -18,7 +18,6 @@ import { createSimpleDocument } from './document';
 import type { SymbolMapper } from '../optimizer/src/types';
 import { getSymbolHash } from '../core/import/qrl-class';
 import { logWarn } from '../core/util/log';
-import { directSetAttribute } from '../core/render/fast-calls';
 import { Fragment, jsx } from '../core/render/jsx/jsx-runtime';
 import { escapeText, pauseFromContexts } from '../core/object/store';
 import { qDev } from '../core/util/qdev';
@@ -71,15 +70,15 @@ export async function renderToStream(
     root: opts.fragmentTagName,
     base: buildBase,
     beforeClose: async (containerState) => {
-      snapshotResult = await pauseFromContexts(containerState.$contexts$, containerState)
+      snapshotResult = await pauseFromContexts(containerState.$contexts$, containerState);
       prefetchResources = getPrefetchResources(snapshotResult, opts, mapper);
-      const script = doc.createElement('script');
-      directSetAttribute(script, 'type', 'qwik/json');
       const children: (JSXNode | null)[] = [
         jsx('script', {
           type: 'qwik/json',
-          children: escapeText(JSON.stringify(snapshotResult.state, undefined, qDev ? '  ' : undefined))
-        })
+          children: escapeText(
+            JSON.stringify(snapshotResult.state, undefined, qDev ? '  ' : undefined)
+          ),
+        }),
       ];
       if (prefetchResources.length > 0) {
         children.push(applyPrefetchImplementation(opts, prefetchResources));
@@ -92,10 +91,12 @@ export async function renderToStream(
           events: opts.qwikLoader?.events,
           debug: opts.debug,
         });
-        children.push(jsx('script', {
-          id: 'qwikloader',
-          children: qwikLoaderScript
-        }));
+        children.push(
+          jsx('script', {
+            id: 'qwikloader',
+            children: qwikLoaderScript,
+          })
+        );
       }
       // if (snapshotResult?.pendingContent) {
       //   await Promise.allSettled(
@@ -106,8 +107,8 @@ export async function renderToStream(
       //     })
       //   );
       // }
-      return jsx(Fragment, {children});
-    }
+      return jsx(Fragment, { children });
+    },
   });
 
   const docToStringTimer = createTimer();
@@ -122,7 +123,6 @@ export async function renderToStream(
       toString: docToStringTimer(),
     },
   };
-
   return result;
 }
 

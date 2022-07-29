@@ -24,8 +24,7 @@
     "start": "concurrently \"npm:build.watch\" \"npm:test.watch\" \"npm:tsc.watch\" -n build,test,tsc -c green,magenta,cyan",
     "release.prepare": "yarn lint && yarn test.unit && tsm scripts/index.ts --tsc --build --api --eslint --platform-binding --wasm --prepare-release",
     "test": "yarn build.full && yarn test.unit && yarn test.e2e",
-    "test.unit": "tsm node_modules/uvu/bin.js packages render-ssr.unit.tsx --tsmconfig tsm.cjs",
-
+    "test.unit": "tsm node_modules/uvu/bin.js packages unit.ts --tsmconfig tsm.cjs",
     "test.unit.debug": "tsm --inspect-brk node_modules/uvu/bin.js packages unit.ts --tsmconfig tsm.cjs",
     "test.rust": "make test",
     "test.e2e": "yarn test.e2e.chromium && yarn test.e2e.firefox && yarn test.e2e.webkit",

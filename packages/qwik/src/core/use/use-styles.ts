@@ -92,15 +92,16 @@ const _useStyles = (styleQrl: QRL<string>, scoped: boolean) => {
   const renderCtx = ctx.$renderCtx$;
   const styleId = styleKey(styleQrl, i);
   const hostElement = ctx.$hostElement$;
+  const containerState = renderCtx.$containerState$;
   if (scoped) {
     const hostCtx = getContext(ctx.$hostElement$);
     hostCtx.$scopeId$ = styleId;
   }
 
-  if (!hasStyle(renderCtx, styleId)) {
+  if (!hasStyle(containerState, styleId)) {
     ctx.$waitOn$.push(
       styleQrl.resolve(hostElement).then((styleText) => {
-        if (!hasStyle(renderCtx, styleId)) {
+        if (!hasStyle(containerState, styleId)) {
           appendStyle(renderCtx, hostElement, {
             type: 'style',
             styleId,

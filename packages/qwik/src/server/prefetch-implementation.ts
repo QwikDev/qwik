@@ -1,10 +1,5 @@
 import { Fragment, jsx, JSXNode } from '@builder.io/qwik/jsx-runtime';
-import type {
-  PrefetchImplementation,
-  PrefetchResource,
-  QwikDocument,
-  RenderToStringOptions,
-} from './types';
+import type { PrefetchImplementation, PrefetchResource, RenderToStringOptions } from './types';
 
 export function applyPrefetchImplementation(
   opts: RenderToStringOptions,
@@ -100,12 +95,10 @@ function linkJsImplementation(
   s += workerFetchScript();
   s += `}`;
 
-  return (
-    jsx('script', {
-      'type': 'module',
-      innerHTML: s
-    })
-  );
+  return jsx('script', {
+    type: 'module',
+    innerHTML: s,
+  });
 }
 
 function workerFetchScript() {
@@ -124,19 +117,14 @@ function workerFetchScript() {
   return s;
 }
 
-function workerFetchImplementation(
-  prefetchResources: PrefetchResource[]
-) {
+function workerFetchImplementation(prefetchResources: PrefetchResource[]) {
   let s = `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`;
   s += workerFetchScript();
 
-  return (
-    jsx('script',
-    {
-      type: 'module',
-      innerHTML: s
-    })
-  );
+  return jsx('script', {
+    type: 'module',
+    innerHTML: s,
+  });
 }
 
 export function flattenPrefetchResources(prefetchResources: PrefetchResource[]) {

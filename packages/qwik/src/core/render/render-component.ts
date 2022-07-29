@@ -1,7 +1,7 @@
 import { assertDefined } from '../assert/assert';
-import { copyRenderContext, RenderContext } from './cursor';
+import { copyRenderContext, RenderContext, setAttribute } from './cursor';
 import { visitJsxNode } from './render';
-import { RenderEvent } from '../util/markers';
+import { ComponentScopedStyles, QCtxAttr, RenderEvent } from '../util/markers';
 import { promiseAll, safeCall, then } from '../util/promises';
 import { styleContent, styleHost } from '../component/qrl-styles';
 import { newInvokeContext } from '../use/use-core';
@@ -10,14 +10,19 @@ import { logError } from '../util/log';
 import { isFunction, ValueOrPromise } from '../util/types';
 import type { QContext } from '../props/props';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
-
+import { serializeInlineContexts } from '../use/use-context';
+import { getDomListeners } from '../props/props-on';
 
 export interface ExecuteComponentOutput {
-  node: JSXNode,
+  node: JSXNode;
   rctx: RenderContext;
 }
 
 export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {
+  const mounted = !ctx.$mounted$;
+  if (!ctx.$listeners$) {
+    ctx.$listeners$ = getDomListeners(ctx.$element$);
+  }
   return then(executeComponent(rctx, ctx), (res) => {
     if (res) {
       const hostElement = ctx.$element$;
@@ -25,20 +30,31 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
       const invocatinContext = newInvokeContext(rctx.$doc$, hostElement, hostElement);
       invocatinContext.$subscriber$ = hostElement;
       invocatinContext.$renderCtx$ = newCtx;
-      if (ctx.$component$?.$styleHostClass$) {
-        hostElement.classList.add(ctx.$component$.$styleHostClass$);
+      if (mounted) {
+        if (ctx.$component$?.$styleHostClass$) {
+          hostElement.classList.add(ctx.$component$.$styleHostClass$);
+        }
+        if (ctx.$contexts$) {
+          setAttribute(newCtx, hostElement, QCtxAttr, serializeInlineContexts(ctx.$contexts$));
+        }
+        if (ctx.$scopeId$) {
+          setAttribute(newCtx, hostElement, ComponentScopedStyles, ctx.$scopeId$);
+        }
       }
-
       const processedJSXNode = processData(res.node, invocatinContext);
       return then(processedJSXNode, (processedJSXNode) => {
         return visitJsxNode(newCtx, hostElement, processedJSXNode, false);
       });
     }
   });
-}
+};
 
-export const executeComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<ExecuteComponentOutput | void> => {
+export const executeComponent = (
+  rctx: RenderContext,
+  ctx: QContext
+): ValueOrPromise<ExecuteComponentOutput | void> => {
   ctx.$dirty$ = false;
+  ctx.$mounted$ = true;
 
   const hostElement = ctx.$element$;
   const onRenderQRL = ctx.$renderQrl$!;
@@ -83,7 +99,7 @@ export const executeComponent = (rctx: RenderContext, ctx: QContext): ValueOrPro
           componentCtx = ctx.$component$ = {
             $hostElement$: hostElement,
             $slots$: [],
-            $styleHostClass$: scopedStyleId && styleHost(scopedStyleId),
+            $styleHostClass$: styleHost(scopedStyleId),
             $styleClass$: scopedStyleId && styleContent(scopedStyleId),
             $styleId$: scopedStyleId,
           };
@@ -93,7 +109,7 @@ export const executeComponent = (rctx: RenderContext, ctx: QContext): ValueOrPro
         newCtx.$currentComponent$ = componentCtx;
         return {
           node: jsxNode as JSXNode,
-          rctx: newCtx
+          rctx: newCtx,
         };
       });
     },

@@ -114,6 +114,10 @@ export function is500FileName(fileName: string, ext: string) {
   return is500Name(fileName) && (PAGE_EXT[ext] || ENDPOINT_EXT[ext]);
 }
 
+export function isEntryFileName(fileName: string, ext: string) {
+  return fileName.startsWith('entry') && ENDPOINT_EXT[ext];
+}
+
 const LAYOUT_ID = '_layout';
 const LAYOUT_NAMED_PREFIX = LAYOUT_ID + '-';
 const LAYOUT_TOP_SUFFIX = '!';

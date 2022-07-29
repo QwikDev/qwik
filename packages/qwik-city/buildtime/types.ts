@@ -4,6 +4,7 @@ export interface BuildContext {
   routes: BuildRoute[];
   fallbackRoutes: BuildFallbackRoute[];
   layouts: BuildLayout[];
+  entries: BuildEntry[];
   menus: BuildMenu[];
   frontmatter: Map<string, string[]>;
   diagnostics: Diagnostic[];
@@ -17,7 +18,7 @@ export interface Diagnostic {
 }
 
 export interface RouteSourceFile {
-  type: 'page' | 'endpoint' | 'layout' | 'menu' | '404' | '500';
+  type: 'page' | 'endpoint' | 'layout' | 'entry' | 'menu' | '404' | '500';
   dirPath: string;
   dirName: string;
   filePath: string;
@@ -57,6 +58,11 @@ export interface BuildLayout extends ParsedLayoutId {
   filePath: string;
   dirPath: string;
   id: string;
+}
+
+export interface BuildEntry {
+  chunkFileName: string;
+  filePath: string;
 }
 
 export interface BuildMenu {

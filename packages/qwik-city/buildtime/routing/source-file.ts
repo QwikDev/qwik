@@ -1,11 +1,11 @@
 import { extname } from 'path';
-import { resolveMenu } from '../markdown/menu';
-import type { BuildContext, NormalizedPluginOptions, RouteSourceFile } from '../types';
+import type { BuildContext, RouteSourceFile } from '../types';
 import { addError } from '../utils/format';
 import {
   is404FileName,
   is500FileName,
   isEndpointFileName,
+  isEntryFileName,
   isLayoutFileName,
   isMarkdownExt,
   isMenuFileName,
@@ -13,8 +13,6 @@ import {
   isTestDirName,
   isTestFileName,
 } from '../utils/fs';
-import { resolveFallbackRoute, resolveLayout, resolveRoute } from './resolve-source-file';
-import { sortRoutes } from './sort-routes';
 
 export function getSourceFile(
   dirPath: string,
@@ -32,6 +30,8 @@ export function getSourceFile(
     ? '404'
     : is500FileName(fileName, ext)
     ? '500'
+    : isEntryFileName(fileName, ext)
+    ? 'entry'
     : isEndpointFileName(fileName, ext)
     ? 'endpoint'
     : isMarkdownExt(ext) || isPageExt(ext)
@@ -51,41 +51,6 @@ export function getSourceFile(
   }
 
   return null;
-}
-
-export async function resolveSourceFiles(
-  opts: NormalizedPluginOptions,
-  sourceFiles: RouteSourceFile[]
-) {
-  const layouts = sourceFiles
-    .filter((s) => s.type === 'layout')
-    .map((s) => resolveLayout(opts, s))
-    .sort((a, b) => {
-      if (a.id < b.id) return -1;
-      if (a.id > b.id) return 1;
-      return 0;
-    });
-
-  const routes = sourceFiles
-    .filter((s) => s.type === 'page' || s.type === 'endpoint')
-    .map((s) => resolveRoute(opts, layouts, s))
-    .sort(sortRoutes);
-
-  const fallbackRoutes = sourceFiles
-    .filter((s) => s.type === '404' || s.type === '500')
-    .map((s) => resolveFallbackRoute(opts, layouts, s))
-    .sort(sortRoutes);
-
-  const menus = sourceFiles
-    .filter((s) => s.type === 'menu')
-    .map((p) => resolveMenu(opts, p))
-    .sort((a, b) => {
-      if (a.pathname < b.pathname) return -1;
-      if (a.pathname > b.pathname) return 1;
-      return 0;
-    });
-
-  return { layouts, routes, fallbackRoutes, menus };
 }
 
 export function validateSourceFiles(ctx: BuildContext, sourceFiles: RouteSourceFile[]) {

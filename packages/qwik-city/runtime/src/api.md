@@ -5,7 +5,7 @@
 ```ts
 
 import { Component } from '@builder.io/qwik';
-import type { HTMLAttributes } from '@builder.io/qwik';
+import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { ResourceReturn } from '@builder.io/qwik';
 
 // @public (undocumented)
@@ -106,15 +106,23 @@ export interface DocumentStyle {
 // @public (undocumented)
 export type EndpointHandler<BODY = unknown> = (ev: RequestEvent) => BODY | undefined | null | void | Promise<BODY | undefined | null | void>;
 
-// Warning: (ae-forgotten-export) The symbol "HtmlProps" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export const Html: Component<HtmlProps>;
 
-// Warning: (ae-forgotten-export) The symbol "LinkProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "RootHtmlAttributes" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
+export interface HtmlProps extends RootHtmlAttributes {
+}
+
+// @public (undocumented)
 export const Link: Component<LinkProps>;
+
+// Warning: (ae-forgotten-export) The symbol "AnchorAttributes" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export interface LinkProps extends AnchorAttributes {
+}
 
 // @public (undocumented)
 export interface QwikCityPlan {

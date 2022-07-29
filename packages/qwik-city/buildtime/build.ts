@@ -1,9 +1,10 @@
 import type { BuildContext, BuildRoute, RouteSourceFile } from './types';
 import { addError } from './utils/format';
-import { resolveSourceFiles, validateSourceFiles } from './routing/source-file';
+import { validateSourceFiles } from './routing/source-file';
 import { walkRoutes, walkRoutesWithPathname } from './routing/walk-routes-dir';
 import { getRouteParams } from '../runtime/src/library/routing';
 import type { RouteParams } from '../runtime/src/library/types';
+import { resolveSourceFiles } from './routing/resolve-source-file';
 
 export async function build(ctx: BuildContext) {
   try {
@@ -16,6 +17,7 @@ export async function build(ctx: BuildContext) {
     ctx.layouts = resolved.layouts;
     ctx.routes = resolved.routes;
     ctx.fallbackRoutes = resolved.fallbackRoutes;
+    ctx.entries = resolved.entries;
     ctx.menus = resolved.menus;
 
     validateBuild(ctx, sourceFiles);
@@ -38,6 +40,7 @@ export async function buildFromUrlPathname(
         ctx.layouts = resolved.layouts;
         ctx.routes = resolved.routes;
         ctx.fallbackRoutes = resolved.fallbackRoutes;
+        ctx.entries = resolved.entries;
         ctx.menus = resolved.menus;
         return {
           route,

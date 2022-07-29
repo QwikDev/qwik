@@ -12,8 +12,6 @@ export function qwikCity(render: Render, opts: QwikCityPlanNetlifyEdge) {
   async function onRequest(request: Request, { next }: EventPluginContext) {
     try {
       const requestCtx: QwikCityRequestContext<Response> = {
-        ...opts,
-        render,
         url: new URL(request.url),
         request,
         response: (status, headers, body) => {
@@ -29,7 +27,7 @@ export function qwikCity(render: Render, opts: QwikCityPlanNetlifyEdge) {
         next,
       };
 
-      const response = await requestHandler<Response>(requestCtx);
+      const response = await requestHandler<Response>(requestCtx, render, opts);
       return response;
     } catch (e: any) {
       return new Response(String(e ? e.stack || e : 'Error'), {

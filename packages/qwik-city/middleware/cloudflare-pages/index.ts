@@ -19,8 +19,6 @@ export function qwikCity(render: Render, opts: QwikCityPlanCloudflarePages) {
       }
 
       const requestCtx: QwikCityRequestContext<Response> = {
-        ...opts,
-        render,
         url: new URL(request.url),
         request,
         response: (status, headers, body) => {
@@ -36,7 +34,7 @@ export function qwikCity(render: Render, opts: QwikCityPlanCloudflarePages) {
         next,
       };
 
-      const response = await requestHandler<Response>(requestCtx);
+      const response = await requestHandler<Response>(requestCtx, render, opts);
       return response;
     } catch (e: any) {
       return new Response(String(e ? e.stack || e : 'Error'), {

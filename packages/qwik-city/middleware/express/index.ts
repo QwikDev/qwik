@@ -39,13 +39,11 @@ export function qwikCity(render: Render, opts: QwikCityPlanExpress) {
       const serverRequestEv = fromNodeHttp(url, nodeReq, nodeRes);
 
       const requestCtx: QwikCityRequestContext = {
-        ...opts,
         ...serverRequestEv,
-        render,
         next,
       };
 
-      await requestHandler(requestCtx);
+      await requestHandler(requestCtx, render, opts);
     } catch (e) {
       next(e);
     }

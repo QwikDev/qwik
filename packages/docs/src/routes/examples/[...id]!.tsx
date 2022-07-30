@@ -1,18 +1,21 @@
-import { component$, Host, useScopedStyles$, useWatch$, useStore } from '@builder.io/qwik';
+import { component$, Host, useStyles$, useWatch$, useStore } from '@builder.io/qwik';
 import { Repl } from '../../repl/repl';
 import styles from './examples.css?inline';
 import { Header } from '../../components/header/header';
 import exampleSections, { ExampleApp } from '@examples-data';
 import type { ReplAppInput } from '../../repl/types';
+import { useLocation } from '@builder.io/qwik-city';
 
-export default component$((props: ExamplesProps) => {
-  useScopedStyles$(styles);
+export default component$(() => {
+  useStyles$(styles);
+
+  const { params } = useLocation();
 
   const store = useStore<ExamplesStore>(() => {
-    const app = getExampleApp(props.appId);
+    const app = getExampleApp(params.id);
 
     const initStore: ExamplesStore = {
-      appId: props.appId,
+      appId: params.id,
       buildId: 0,
       buildMode: 'development',
       entryStrategy: 'hook',
@@ -121,10 +124,6 @@ export const getExampleApp = (id: string): ExampleApp | undefined => {
 };
 
 export const PANELS: ActivePanel[] = ['Examples', 'Input', 'Output', 'Console'];
-
-interface ExamplesProps {
-  appId: string;
-}
 
 interface ExamplesStore extends ReplAppInput {
   appId: string;

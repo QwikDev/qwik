@@ -18,7 +18,8 @@ export function createBuildContext(
     diagnostics: [],
     frontmatter: new Map(),
     target: target || 'ssr',
-    isDevServerBuild: false,
+    isDevServer: false,
+    isDevServerClientOnly: false,
   };
   return ctx;
 }

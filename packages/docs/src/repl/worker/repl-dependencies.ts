@@ -128,11 +128,6 @@ const getNpmCdnRequest = (pkgName: string, pkgVersion: string, pkgPath: string) 
 };
 
 const getNpmCdnUrl = (pkgName: string, pkgVersion: string, pkgPath: string) => {
-  if (pkgName === QWIK_PKG_NAME && location.hostname === 'localhost') {
-    // use the local versions during development
-    // vite dev server in vite.config.ts is wired-up looking for this path
-    return `/${pkgName}${pkgPath}`;
-  }
   return `https://cdn.jsdelivr.net/npm/${pkgName}${pkgVersion ? '@' + pkgVersion : ''}${pkgPath}`;
 };
 

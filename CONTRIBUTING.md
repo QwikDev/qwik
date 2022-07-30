@@ -1,6 +1,11 @@
 # CONTRIBUTING
 
-To build Qwik for local development, first install the dev dependencies using [yarn](https://yarnpkg.com/)):
+Make sure you have installed [Rust](https://www.rust-lang.org/it/tools/install).
+
+> On Windows, Rust requires [C++ build tools](https://visualstudio.microsoft.com/it/visual-cpp-build-tools/). You can also select _Desktop development with C++_
+> while installing Visual Studio.
+
+To build Qwik for local development, first install the dev dependencies using [yarn](https://yarnpkg.com/):
 
 ```
 yarn
@@ -11,7 +16,7 @@ Next the `start` command will:
 - Build the source files
 - Begin the watch process so any changes will rebuild
 - Run the type checking watch process with [tsc](https://www.typescriptlang.org/docs/handbook/compiler-options.html)
-- Run the unit test (Jest) watch process
+- Run the unit test watch process
 
 ```
 yarn start
@@ -19,7 +24,7 @@ yarn start
 
 ## Running All Tests
 
-To run all Unit tests ([Jest](https://jestjs.io/)) and E2E tests [Playwright](https://playwright.dev/), run:
+To run all Unit tests ([uvu](https://github.com/lukeed/uvu)) and E2E tests ([Playwright](https://playwright.dev/)), run:
 
 ```
 yarn test
@@ -29,19 +34,19 @@ The `test` command will also ensure a build was completed.
 
 ### Unit Tests Only
 
-Unit tests use [Jest](https://jestjs.io/).
+Unit tests use [uvu](https://github.com/lukeed/uvu)
 
 ```
 yarn test.unit
 ```
 
-To keep Jest open with the watch mode, run:
+To keep _uvu_ open with the watch mode, run:
 
 ```
 yarn test.watch
 ```
 
-> Note that the `test.watch` command isn't necessary if you're running the `npm start` command, since `start` will also concurrently run the Jest watch process.
+> Note that the `test.watch` command isn't necessary if you're running the `yarn start` command, since `start` will also concurrently run the _uvu_ watch process.
 
 ### E2E Tests Only
 
@@ -55,7 +60,7 @@ yarn test.e2e
 
 ## Production Build
 
-The `npm start` command will run development builds, type check, watch unit tests, and watch the files for changes.
+The `yarn start` command will run development builds, type check, watch unit tests, and watch the files for changes.
 
 A full production build will:
 

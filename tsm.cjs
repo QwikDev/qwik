@@ -1,6 +1,7 @@
 const { join } = require('path');
+const { pathToFileURL } = require('url');
 
-const corePath = join(__dirname, 'packages', 'qwik', 'src', 'core', 'index.ts');
+const corePath = pathToFileURL(join(__dirname, 'packages', 'qwik', 'src', 'core', 'index.ts'));
 
 module.exports = {
   common: {

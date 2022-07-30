@@ -1,3 +1,4 @@
+import { normalize } from 'path';
 import { pathToFileURL } from 'url';
 import { isPromise } from '../core/util/promises';
 
@@ -6,6 +7,25 @@ export function toFileUrl(filePath: string) {
 }
 
 export { isPromise };
+
+export function normalizePath(path: string) {
+  path = normalize(path);
+
+  // MIT https://github.com/sindresorhus/slash/blob/main/license
+  // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
+  const isExtendedLengthPath = /^\\\\\?\\/.test(path);
+  const hasNonAscii = /[^\u0000-\u0080]+/.test(path); // eslint-disable-line no-control-regex
+
+  if (isExtendedLengthPath || hasNonAscii) {
+    return path;
+  }
+
+  path = path.replace(/\\/g, '/');
+  if (path.endsWith('/')) {
+    path = path.slice(0, path.length - 1);
+  }
+  return path;
+}
 
 /**
  * Walks the object graph and replaces any DOM Nodes with their string representation.

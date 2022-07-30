@@ -2,9 +2,10 @@ import path, { resolve } from 'path';
 import { suite } from 'uvu';
 import type { QwikManifest } from '../types';
 import { createPlugin } from './plugin';
-const cwd = process.cwd();
 import { equal } from 'uvu/assert';
+import { normalizePath } from '../../../testing/util';
 
+const cwd = process.cwd();
 const test = suite('normalizeOptions');
 
 test('defaults', async () => {
@@ -15,12 +16,12 @@ test('defaults', async () => {
   equal(opts.entryStrategy, { type: 'hook' });
   equal(opts.forceFullBuild, false);
   equal(opts.debug, false);
-  equal(opts.rootDir, cwd);
-  equal(opts.input, [resolve(cwd, 'src', 'root.tsx')]);
-  equal(opts.outDir, resolve(cwd, 'dist'));
+  equal(opts.rootDir, normalizePath(cwd));
+  equal(opts.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
+  equal(opts.outDir, normalizePath(resolve(cwd, 'dist')));
   equal(opts.manifestInput, null);
   equal(opts.manifestOutput, null);
-  equal(opts.srcDir, resolve(cwd, 'src'));
+  equal(opts.srcDir, normalizePath(resolve(cwd, 'src')));
   equal(opts.srcInputs, null);
 });
 
@@ -32,12 +33,12 @@ test('defaults (buildMode: production)', async () => {
   equal(opts.entryStrategy, { type: 'smart' });
   equal(opts.forceFullBuild, true);
   equal(opts.debug, false);
-  equal(opts.rootDir, cwd);
-  equal(opts.input, [resolve(cwd, 'src', 'root.tsx')]);
-  equal(opts.outDir, resolve(cwd, 'dist'));
+  equal(opts.rootDir, normalizePath(cwd));
+  equal(opts.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
+  equal(opts.outDir, normalizePath(resolve(cwd, 'dist')));
   equal(opts.manifestInput, null);
   equal(opts.manifestOutput, null);
-  equal(opts.srcDir, resolve(cwd, 'src'));
+  equal(opts.srcDir, normalizePath(resolve(cwd, 'src')));
   equal(opts.srcInputs, null);
   equal(opts.entryStrategy, { type: 'smart' });
 });
@@ -50,12 +51,12 @@ test('defaults (target: ssr)', async () => {
   equal(opts.entryStrategy, { type: 'inline' });
   equal(opts.forceFullBuild, false);
   equal(opts.debug, false);
-  equal(opts.rootDir, cwd);
-  equal(opts.input, [resolve(cwd, 'src', 'entry.ssr.tsx')]);
-  equal(opts.outDir, resolve(cwd, 'server'));
+  equal(opts.rootDir, normalizePath(cwd));
+  equal(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr.tsx'))]);
+  equal(opts.outDir, normalizePath(resolve(cwd, 'server')));
   equal(opts.manifestInput, null);
   equal(opts.manifestOutput, null);
-  equal(opts.srcDir, resolve(cwd, 'src'));
+  equal(opts.srcDir, normalizePath(resolve(cwd, 'src')));
   equal(opts.srcInputs, null);
 });
 
@@ -67,12 +68,12 @@ test('defaults (buildMode: production, target: ssr)', async () => {
   equal(opts.entryStrategy, { type: 'inline' });
   equal(opts.forceFullBuild, false);
   equal(opts.debug, false);
-  equal(opts.rootDir, cwd);
-  equal(opts.input, [resolve(cwd, 'src', 'entry.ssr.tsx')]);
-  equal(opts.outDir, resolve(cwd, 'server'));
+  equal(opts.rootDir, normalizePath(cwd));
+  equal(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr.tsx'))]);
+  equal(opts.outDir, normalizePath(resolve(cwd, 'server')));
   equal(opts.manifestInput, null);
   equal(opts.manifestOutput, null);
-  equal(opts.srcDir, resolve(cwd, 'src'));
+  equal(opts.srcDir, normalizePath(resolve(cwd, 'src')));
   equal(opts.srcInputs, null);
 });
 
@@ -132,7 +133,7 @@ test('entryStrategy, forceFullBuild true', async () => {
 
 test('rootDir, abs path', async () => {
   const plugin = await mockPlugin();
-  const customRoot = resolve(cwd, 'abs-path');
+  const customRoot = normalizePath(resolve(cwd, 'abs-path'));
   const opts = plugin.normalizeOptions({ rootDir: customRoot });
   equal(opts.rootDir, customRoot);
 });
@@ -141,13 +142,13 @@ test('rootDir, rel path', async () => {
   const plugin = await mockPlugin();
   const customRoot = 'rel-path';
   const opts = plugin.normalizeOptions({ rootDir: customRoot });
-  equal(opts.rootDir, resolve(cwd, customRoot));
+  equal(opts.rootDir, normalizePath(resolve(cwd, customRoot)));
 });
 
 test('input string', async () => {
   const plugin = await mockPlugin();
   const opts = plugin.normalizeOptions({ input: 'src/cmps/main.tsx' });
-  equal(opts.input, [resolve(cwd, 'src', 'cmps', 'main.tsx')]);
+  equal(opts.input, [normalizePath(resolve(cwd, 'src', 'cmps', 'main.tsx'))]);
 });
 
 test('input array', async () => {
@@ -155,13 +156,16 @@ test('input array', async () => {
   const opts = plugin.normalizeOptions({
     input: ['src/cmps/a.tsx', 'src/cmps/b.tsx'],
   });
-  equal(opts.input, [resolve(cwd, 'src', 'cmps', 'a.tsx'), resolve(cwd, 'src', 'cmps', 'b.tsx')]);
+  equal(opts.input, [
+    normalizePath(resolve(cwd, 'src', 'cmps', 'a.tsx')),
+    normalizePath(resolve(cwd, 'src', 'cmps', 'b.tsx')),
+  ]);
 });
 
 test('outDir', async () => {
   const plugin = await mockPlugin();
   const opts = plugin.normalizeOptions({ outDir: 'out' });
-  equal(opts.outDir, resolve(cwd, 'out'));
+  equal(opts.outDir, normalizePath(resolve(cwd, 'out')));
 });
 
 test('manifestOutput', async () => {

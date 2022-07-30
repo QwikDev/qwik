@@ -1,18 +1,14 @@
 import type { RenderOptions, StreamWriter } from '@builder.io/qwik/server';
 import type { QwikCityPlan, RequestContext, RouteParams } from '../../runtime/src/library/types';
 
-export interface QwikCityRequestContext<T = any> extends ServerRequestEvent<T> {
-  next: () => any;
+export interface QwikCityRequestContext<T = any> {
+  request: RequestContext;
+  response: ResponseHandler<T>;
+  url: URL;
 }
 
 export interface QwikCityDevRequestContext extends QwikCityRequestContext {
   routesDir: string;
-}
-
-export interface ServerRequestEvent<T = any> {
-  request: RequestContext;
-  response: ResponseHandler<T>;
-  url: URL;
 }
 
 export type ResponseHandler<T = any> = (

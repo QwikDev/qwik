@@ -1,7 +1,7 @@
-import type { ServerRequestEvent } from './types';
+import type { QwikCityRequestContext } from './types';
 
-export function notFoundHandler<T = any>(serverRequestEv: ServerRequestEvent): Promise<T> {
-  const { response } = serverRequestEv;
+export function notFoundHandler<T = any>(requestCtx: QwikCityRequestContext): Promise<T> {
+  const { response } = requestCtx;
 
   const status = 404;
   const text = 'Not Found';
@@ -16,8 +16,8 @@ export function notFoundHandler<T = any>(serverRequestEv: ServerRequestEvent): P
   });
 }
 
-export function errorHandler(serverRequestEv: ServerRequestEvent, err: any) {
-  const { response } = serverRequestEv;
+export function errorHandler(requestCtx: QwikCityRequestContext, err: any) {
+  const { response } = requestCtx;
 
   const status = 500;
 

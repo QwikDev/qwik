@@ -1,26 +1,29 @@
-import type { ViteDevServer } from 'vite';
+import type { ViteDevServer, Connect } from 'vite';
+import type { ServerResponse } from 'http';
+import fs from 'fs';
+import { join } from 'path';
+import { Headers as HeadersPolyfill } from 'headers-polyfill';
 import type { BuildContext } from '../types';
 import type { EndpointModule } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
 import { loadUserResponse } from '../../middleware/request-handler/user-response';
 import { getQwikCityUserContext } from '../../middleware/request-handler/utils';
-import { fromNodeHttp } from '../../middleware/express/utils';
 import { buildFromUrlPathname } from '../build';
 import { notFoundHandler } from '../../middleware/request-handler/fallback-handler';
-import fs from 'fs';
-import { join } from 'path';
+import type { QwikCityRequestContext } from '../../middleware/request-handler/types';
 
 export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
-  server.middlewares.use(async (nodeReq, nodeRes, next) => {
+  server.middlewares.use(async (req, res, next) => {
     try {
-      const url = new URL(nodeReq.originalUrl!, `http://${nodeReq.headers.host}`);
+      const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
       const pathname = url.pathname;
 
       if (isVitePathname(pathname)) {
         next();
         return;
       }
-      const serverRequestEv = fromNodeHttp(url, nodeReq, nodeRes);
+
+      const serverRequestEv = fromDevServerHttp(url, req, res);
       const { request, response } = serverRequestEv;
       const result = await buildFromUrlPathname(ctx, pathname);
       if (result) {
@@ -67,14 +70,14 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
 
           // qwik city vite plugin should handle dev ssr rendering
           // but add the qwik city user context to the response object
-          (nodeRes as QwikViteDevResponse)._qwikUserCtx = {
-            ...(nodeRes as QwikViteDevResponse)._qwikUserCtx,
+          (res as QwikViteDevResponse)._qwikUserCtx = {
+            ...(res as QwikViteDevResponse)._qwikUserCtx,
             ...getQwikCityUserContext(userResponse),
           };
           // update node response with status and headers
           // but do not end() it, call next() so qwik plugin handles rendering
-          nodeRes.statusCode = userResponse.status;
-          userResponse.headers.forEach((value, key) => nodeRes.setHeader(key, value));
+          res.statusCode = userResponse.status;
+          userResponse.headers.forEach((value, key) => res.setHeader(key, value));
           next();
           return;
         }
@@ -116,4 +119,65 @@ function isVitePathname(pathname: string) {
     pathname.startsWith('/src/') ||
     pathname.startsWith('/favicon.ico')
   );
+}
+
+function fromDevServerHttp(url: URL, req: Connect.IncomingMessage, res: ServerResponse) {
+  const requestHeaders = new (typeof Headers === 'function' ? Headers : HeadersPolyfill)();
+  const nodeRequestHeaders = req.headers;
+  for (const key in nodeRequestHeaders) {
+    const value = nodeRequestHeaders[key];
+    if (typeof value === 'string') {
+      requestHeaders.set(key, value);
+    } else if (Array.isArray(value)) {
+      for (const v of value) {
+        requestHeaders.append(key, v);
+      }
+    }
+  }
+
+  const getRequestBody = async () => {
+    const buffers = [];
+    for await (const chunk of req) {
+      buffers.push(chunk);
+    }
+    return Buffer.concat(buffers).toString();
+  };
+
+  const requestCtx: QwikCityRequestContext = {
+    request: {
+      headers: requestHeaders,
+      formData: async () => {
+        return new URLSearchParams(await getRequestBody());
+      },
+      json: async () => {
+        return JSON.parse(await getRequestBody()!);
+      },
+      method: req.method || 'GET',
+      text: getRequestBody,
+      url: url.href,
+    },
+    response: (status, headers, body) => {
+      res.statusCode = status;
+      headers.forEach((value, key) => res.setHeader(key, value));
+      body({
+        write: (chunk) => {
+          return new Promise<void>((resolve, reject) => {
+            res.write(chunk, (err) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve();
+              }
+            });
+          });
+        },
+      }).finally(() => {
+        res.end();
+      });
+      return res;
+    },
+    url,
+  };
+
+  return requestCtx;
 }

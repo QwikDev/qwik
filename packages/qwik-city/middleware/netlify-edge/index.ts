@@ -23,7 +23,6 @@ export function qwikCity(render: Render, opts: QwikCityNetlifyOptions) {
           });
           return new Response(readable, { status, headers });
         },
-        next,
       };
 
       const handledResponse = await requestHandler<Response>(requestCtx, render, opts);

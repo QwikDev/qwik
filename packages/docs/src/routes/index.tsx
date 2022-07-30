@@ -11,7 +11,11 @@ export default component$(() => {
         return <main class="builder" dangerouslySetInnerHTML={builderContent.html} />;
       }}
       onRejected={(r) => {
-        return <div>Unable to load content </div>;
+        return (
+          <div>
+            Unable to load content <span hidden>{r}</span>
+          </div>
+        );
       }}
     />
   );

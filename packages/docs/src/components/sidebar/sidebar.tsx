@@ -1,4 +1,4 @@
-import { component$, Host, useContext, useScopedStyles$ } from '@builder.io/qwik';
+import { component$, Host, useContext, useStyles$ } from '@builder.io/qwik';
 import { ContentMenu, useContent, useLocation } from '@builder.io/qwik-city';
 import { GlobalStore } from '../../context';
 import { CloseIcon } from '../svgs/close-icon';
@@ -6,7 +6,7 @@ import styles from './sidebar.css?inline';
 
 export const SideBar = component$(
   () => {
-    useScopedStyles$(styles);
+    useStyles$(styles);
 
     const globalStore = useContext(GlobalStore);
     const { menu } = useContent();

@@ -1,5 +1,5 @@
 import { useContent } from '@builder.io/qwik-city';
-import { component$, Host, useScopedStyles$ } from '@builder.io/qwik';
+import { component$, Host, useStyles$ } from '@builder.io/qwik';
 import { ChatIcon } from '../svgs/chat-icon';
 import { GithubLogo } from '../svgs/github-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
@@ -7,7 +7,7 @@ import styles from './on-this-page.css?inline';
 
 export const OnThisPage = component$(
   () => {
-    useScopedStyles$(styles);
+    useStyles$(styles);
 
     const { headings } = useContent();
     const contentHeadings = headings?.filter((h) => h.level === 2 || h.level === 3) || [];

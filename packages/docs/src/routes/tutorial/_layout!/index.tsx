@@ -1,12 +1,4 @@
-import {
-  component$,
-  Host,
-  Slot,
-  useScopedStyles$,
-  useStore,
-  useStyles$,
-  useWatch$,
-} from '@builder.io/qwik';
+import { component$, Host, Slot, useStore, useStyles$, useWatch$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
 import { Repl } from '../../../repl/repl';
 import styles from './tutorial.css?inline';
@@ -18,7 +10,7 @@ import type { ReplAppInput, ReplModuleInput } from '../../../repl/types';
 import { EditIcon } from '../../../components/svgs/edit-icon';
 
 export default component$(() => {
-  useScopedStyles$(styles);
+  useStyles$(styles);
   useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
 
   const { pathname } = useLocation();

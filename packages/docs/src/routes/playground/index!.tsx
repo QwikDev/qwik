@@ -1,11 +1,4 @@
-import {
-  $,
-  component$,
-  Host,
-  useScopedStyles$,
-  useStore,
-  useClientEffect$,
-} from '@builder.io/qwik';
+import { $, component$, Host, useStyles$, useStore, useClientEffect$ } from '@builder.io/qwik';
 import { Repl } from '../../repl/repl';
 import { Header } from '../../components/header/header';
 import styles from './playground.css?inline';
@@ -14,7 +7,7 @@ import type { ReplAppInput } from '../../repl/types';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/repl-share-url';
 
 export default component$(() => {
-  useScopedStyles$(styles);
+  useStyles$(styles);
 
   const store = useStore<PlaygroundStore>(() => {
     const initStore: PlaygroundStore = {

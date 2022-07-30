@@ -15,12 +15,18 @@ export function qwikCity(render: Render, opts: QwikCityNetlifyOptions) {
         request,
         response: (status, headers, body) => {
           const { readable, writable } = new TransformStream();
-          const stream = writable.getWriter();
+          const writer = writable.getWriter();
+
           body({
-            write: (chunk) => stream.write(chunk),
+            write: async (chunk) => {
+              const encoder = new TextEncoder();
+              const encoded = encoder.encode(chunk);
+              await writer.write(encoded);
+            },
           }).finally(() => {
-            stream.close();
+            writer.close();
           });
+
           return new Response(readable, { status, headers });
         },
       };

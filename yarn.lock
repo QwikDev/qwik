@@ -6612,7 +6612,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mri@npm:1.2.0, mri@npm:^1.1.0":
+"mri@npm:1.2.0, mri@npm:^1.1.0, mri@npm:^1.1.5":
   version: 1.2.0
   resolution: "mri@npm:1.2.0"
   checksum: 83f515abbcff60150873e424894a2f65d68037e5a7fcde8a9e2b285ee9c13ac581b63cfc1e6826c4732de3aeb84902f7c1e16b7aff46cd3f897a0f757a894e85
@@ -7479,6 +7479,7 @@ __metadata:
     vite: 3.0.2
     vite-tsconfig-paths: 3.5.0
     wasm-pack: 0.10.3
+    watchlist: ^0.3.1
   languageName: unknown
   linkType: soft
 
@@ -9209,6 +9210,17 @@ __metadata:
   bin:
     wasm-pack: run.js
   checksum: b980b33fc8adcd208556a1f5c4656b02d1ae584792259874f09ab5647dd52d0cdd3179d970ba99eed72ac1a422445c3c81122a3e9d7c05ebb2a3ff83bd7ec7db
+  languageName: node
+  linkType: hard
+
+"watchlist@npm:^0.3.1":
+  version: 0.3.1
+  resolution: "watchlist@npm:0.3.1"
+  dependencies:
+    mri: ^1.1.5
+  bin:
+    watchlist: bin.js
+  checksum: dd37609744ff890d025bbc9e34990ae48f986c7254b50e0ae163326bab81d578802194f7e601e621d826bdd75d684efbc678901df1af6601448c9d56ab387552
   languageName: node
   linkType: hard
 

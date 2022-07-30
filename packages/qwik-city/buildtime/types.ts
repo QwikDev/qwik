@@ -8,7 +8,8 @@ export interface BuildContext {
   frontmatter: Map<string, string[]>;
   diagnostics: Diagnostic[];
   target: 'ssr' | 'client';
-  isDevServerBuild: boolean;
+  isDevServer: boolean;
+  isDevServerClientOnly: boolean;
 }
 
 export interface Diagnostic {

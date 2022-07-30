@@ -52,6 +52,11 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
           isEndpointOnly
         );
 
+        if (userResponse.status === 404) {
+          await notFoundHandler(serverRequestEv);
+          return;
+        }
+
         if (userResponse.type === 'endpoint') {
           // dev server endpoint handler
           response(userResponse.status, userResponse.headers, async (stream) => {
@@ -63,17 +68,21 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         }
 
         if (userResponse.type === 'page') {
-          if (userResponse.status === 404) {
-            await notFoundHandler(serverRequestEv);
-            return;
-          }
-
           // qwik city vite plugin should handle dev ssr rendering
           // but add the qwik city user context to the response object
+          const userContext = getQwikCityUserContext(userResponse);
+          if (ctx.isDevServerClientOnly) {
+            // because we stringify this content for the client only
+            // dev server, there's some potential stringify issues
+            // client only dev server will re-fetch anyways, so reset
+            userContext.qwikcity.response.body = undefined;
+          }
+
           (res as QwikViteDevResponse)._qwikUserCtx = {
             ...(res as QwikViteDevResponse)._qwikUserCtx,
-            ...getQwikCityUserContext(userResponse),
+            ...userContext,
           };
+
           // update node response with status and headers
           // but do not end() it, call next() so qwik plugin handles rendering
           res.statusCode = userResponse.status;

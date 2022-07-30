@@ -54,6 +54,9 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
 
       ctx = createBuildContext(rootDir!, userOpts, target);
 
+      ctx.isDevServer = config.command === 'serve';
+      ctx.isDevServerClientOnly = ctx.isDevServer && config.mode !== 'ssr';
+
       await validatePlugin(ctx.opts);
 
       mdxTransform = await createMdxTransformer(ctx);
@@ -61,7 +64,6 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
 
     configureServer(server) {
       if (ctx) {
-        ctx.isDevServerBuild = true;
         configureDevServer(ctx, server);
       }
     },
@@ -81,7 +83,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
       if (ctx) {
         if (id.endsWith(QWIK_CITY_PLAN_ID)) {
           // @qwik-city-plan
-          if (!ctx.isDevServerBuild) {
+          if (!ctx.isDevServer) {
             await build(ctx);
             ctx.diagnostics.forEach((d) => {
               this.warn(d.message);

@@ -6,10 +6,6 @@ const init = (clientId: string) => {
   let swRegistration: ServiceWorkerRegistration | null = null;
   let loadTmr: any = null;
 
-  const hasValidClientId = () => {
-    return typeof clientId === 'string' && /^[a-z0-9]+$/.test(clientId);
-  };
-
   const updateApp = (result: ReplResult) => {
     const iframe = document.createElement('iframe');
     iframe.classList.add('loading');
@@ -84,9 +80,7 @@ const init = (clientId: string) => {
     sendMessageToMain({ type: 'replready', clientId: clientId! });
   };
 
-  if (!hasValidClientId()) {
-    console.error('Qwik REPL server missing valid client id');
-  } else if (window.parent === window) {
+  if (window.parent === window) {
     console.error(`Qwik REPL server "` + clientId + `" is not an iframe window`);
   } else {
     loadTmr = setTimeout(() => {
@@ -144,7 +138,12 @@ const init = (clientId: string) => {
   }
 };
 
-init(location.hash.slice(1));
+const hashClientId = location.hash.slice(1);
+if (/^[a-z0-9]+$/.test(hashClientId)) {
+  init(hashClientId);
+} else {
+  console.error('Qwik REPL server missing valid client id');
+}
 
 const s = '';
 export default s;

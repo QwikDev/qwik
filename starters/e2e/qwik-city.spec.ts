@@ -1,4 +1,16 @@
-// import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+
+test.describe('renderered', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/qwik-city');
+    page.on('pageerror', (err) => expect(err).toEqual(undefined));
+  });
+  test('html tag has attributes', async ({ page }) => {
+    const lang = await page.getAttribute('html', 'lang');
+    const dir = await page.getAttribute('html', 'dir');
+    expect(lang === 'en' && dir === 'ltr');
+  });
+});
 
 // test.describe('API Route Form Submssion', () => {
 //   test.beforeEach(async ({ page }) => {
@@ -34,4 +46,4 @@
 //   });
 // });
 
-export {};
+// export {};

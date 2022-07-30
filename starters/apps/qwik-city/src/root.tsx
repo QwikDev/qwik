@@ -6,7 +6,7 @@ import './global.css';
 
 export default () => {
   return (
-    <Html lang="en">
+    <Html lang="en" dir="ltr">
       <Head />
       <Body />
     </Html>

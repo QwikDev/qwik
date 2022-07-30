@@ -194,7 +194,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
     datatype?: string | undefined;
     // (undocumented)
-    dir?: string | undefined;
+    dir?: 'ltr' | 'rtl' | 'auto' | undefined;
     // (undocumented)
     draggable?: Booleanish | undefined;
     // (undocumented)

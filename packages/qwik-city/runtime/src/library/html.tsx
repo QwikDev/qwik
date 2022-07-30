@@ -1,5 +1,6 @@
 import {
   component$,
+  Host,
   noSerialize,
   QwikIntrinsicElements,
   SkipRerender,
@@ -32,7 +33,7 @@ import { clientNavigate, normalizePath } from './client-history';
  * @public
  */
 export const Html = component$<HtmlProps>(
-  () => {
+  (props) => {
     const ctx = useQwikCityContext();
 
     const routeLocation = useStore<MutableRouteLocation>(() => {
@@ -107,7 +108,11 @@ export const Html = component$<HtmlProps>(
       }
     });
 
-    return <SkipRerender />;
+    return (
+      <Host {...props}>
+        <SkipRerender />
+      </Host>
+    );
   },
   { tagName: 'html' }
 );

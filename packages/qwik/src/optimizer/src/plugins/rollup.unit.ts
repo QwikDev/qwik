@@ -5,6 +5,7 @@ import type { OptimizerOptions } from '../types';
 import type { NormalizedQwikPluginOptions } from './plugin';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
+import { normalizePath } from '../../../testing/util';
 
 const rollup = suite('rollup');
 const cwd = process.cwd();
@@ -31,7 +32,7 @@ rollup('rollup default input options, client', async () => {
   const rollupInputOpts: InputOptions = await plugin.options!({});
 
   equal(typeof rollupInputOpts.onwarn, 'function');
-  equal(rollupInputOpts.input, [resolve(cwd, 'src', 'root.tsx')]);
+  equal(rollupInputOpts.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
 });
 
 rollup('rollup default input options, ssr', async () => {
@@ -45,8 +46,8 @@ rollup('rollup default input options, ssr', async () => {
 
   equal(typeof rollupInputOpts.onwarn, 'function');
   equal(rollupInputOpts.treeshake, false);
-  equal(rollupInputOpts.input, [resolve(cwd, 'src', 'entry.ssr.tsx')]);
-  equal(opts.input, [resolve(cwd, 'src', 'entry.ssr.tsx')]);
+  equal(rollupInputOpts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr.tsx'))]);
+  equal(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr.tsx'))]);
 });
 
 rollup('rollup default set input options, ssr', async () => {
@@ -56,14 +57,14 @@ rollup('rollup default set input options, ssr', async () => {
   } as any;
   const plugin = qwikRollup(initOpts);
   const rollupInputOpts: InputOptions = await plugin.options!({
-    input: resolve(cwd, 'src', 'my.ssr.tsx'),
+    input: normalizePath(resolve(cwd, 'src', 'my.ssr.tsx')),
   });
   const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
 
   equal(typeof rollupInputOpts.onwarn, 'function');
   equal(rollupInputOpts.treeshake, false);
-  equal(rollupInputOpts.input, resolve(cwd, 'src', 'my.ssr.tsx'));
-  equal(opts.input, [resolve(cwd, 'src', 'my.ssr.tsx')]);
+  equal(rollupInputOpts.input, normalizePath(resolve(cwd, 'src', 'my.ssr.tsx')));
+  equal(opts.input, [normalizePath(resolve(cwd, 'src', 'my.ssr.tsx'))]);
 });
 
 rollup('rollup default output options, client', async () => {
@@ -74,7 +75,7 @@ rollup('rollup default output options, client', async () => {
   await plugin.options!({});
   const rollupOutputOpts: OutputOptions = await plugin.outputOptions!({});
 
-  equal(rollupOutputOpts.dir, resolve(cwd, 'dist'));
+  equal(rollupOutputOpts.dir, normalizePath(resolve(cwd, 'dist')));
   equal(rollupOutputOpts.format, 'es');
 });
 
@@ -89,7 +90,7 @@ rollup('rollup default output options, ssr', async () => {
     format: 'cjs',
   });
 
-  equal(rollupOutputOpts.dir, resolve(cwd, 'server'));
+  equal(rollupOutputOpts.dir, normalizePath(resolve(cwd, 'server')));
   equal(rollupOutputOpts.exports, 'auto');
 });
 
@@ -105,8 +106,8 @@ rollup('rollup input, default', async () => {
   equal(opts.buildMode, 'development');
   equal(opts.entryStrategy, { type: 'hook' });
   equal(opts.forceFullBuild, true);
-  equal(opts.rootDir, cwd);
-  equal(opts.srcDir, resolve(cwd, 'src'));
+  equal(opts.rootDir, normalizePath(cwd));
+  equal(opts.srcDir, normalizePath(resolve(cwd, 'src')));
 });
 
 rollup('rollup input, client default', async () => {

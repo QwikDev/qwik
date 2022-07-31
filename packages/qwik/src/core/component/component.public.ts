@@ -5,6 +5,7 @@ import type { ComponentBaseProps, JSXTagName } from '../render/jsx/types/jsx-qwi
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
 import type { MutableWrapper } from '../object/q-object';
+import { SERIALIZABLE_STATE } from '../object/serializers';
 
 /**
  * Infers `Props` from the component.
@@ -144,11 +145,17 @@ export const componentQrl = <PROPS extends {}>(
   const skipKey = ELEMENTS_SKIP_KEY.includes(tagName);
 
   // Return a QComponent Factory function.
-  return function QSimpleComponent(props, key): JSXNode<PROPS> {
+  function QwikComponent(props: PublicProps<PROPS>, key?: string): JSXNode<PROPS> {
     const finalTag = props['host:tagName'] ?? tagName;
     const finalKey = skipKey ? undefined : onRenderQrl.getHash() + ':' + (key ? key : '');
     return jsx(finalTag as string, { [OnRenderProp]: onRenderQrl, ...props }, finalKey) as any;
-  };
+  }
+  (QwikComponent as any)[SERIALIZABLE_STATE] = [onRenderQrl, options];
+  return QwikComponent;
+};
+
+export const isQwikComponent = (component: any): component is Component<any> => {
+  return typeof component == 'function' && component[SERIALIZABLE_STATE] !== undefined;
 };
 
 // <docs markdown="../readme.md#component">

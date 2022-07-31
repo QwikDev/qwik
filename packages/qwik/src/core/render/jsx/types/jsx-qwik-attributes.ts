@@ -5,81 +5,73 @@ import type { Ref } from '../../../use/use-ref';
 import type { JSXNode } from './jsx-node';
 
 export type PascalCaseEventNames =
-  | "Copy"
-  | "Cut"
-  | "Paste"
-  | "CompositionEnd"
-  | "CompositionStart"
-  | "CompositionUpdate"
-  | "Focus"
-  | "FocusIn"
-  | "FocusOut"
-  | "Blur"
-  | "Change"
-  | "Input"
-  | "Reset"
-  | "Submit"
-  | "Invalid"
-  | "Load"
-  | "Error"
-  | "KeyDown"
-  | "KeyPress"
-  | "KeyUp"
-  | "AuxClick"
-  | "Click"
-  | "ContextMenu"
-  | "DblClick"
-  | "Drag"
-  | "DragEnd"
-  | "DragEnter"
-  | "DragExit"
-  | "DragLeave"
-  | "DragOver"
-  | "DragStart"
-  | "Drop"
-  | "MouseDown"
-  | "MouseEnter"
-  | "MouseLeave"
-  | "MouseMove"
-  | "MouseOut"
-  | "MouseOver"
-  | "MouseUp"
-  | "TouchCancel"
-  | "TouchEnd"
-  | "TouchMove"
-  | "TouchStart"
-  | "PointerDown"
-  | "PointerMove"
-  | "PointerUp"
-  | "PointerCancel"
-  | "PointerEnter"
-  | "PointerLeave"
-  | "PointerOver"
-  | "PointerOut"
-  | "GotPointer"
-  | "LostPointer"
-  | "Scroll"
-  | "Wheel"
-  | "AnimationStart"
-  | "AnimationEnd"
-  | "AnimationIteration"
-  | "TransitionEnd"
+  | 'Copy'
+  | 'Cut'
+  | 'Paste'
+  | 'CompositionEnd'
+  | 'CompositionStart'
+  | 'CompositionUpdate'
+  | 'Focus'
+  | 'FocusIn'
+  | 'FocusOut'
+  | 'Blur'
+  | 'Change'
+  | 'Input'
+  | 'Reset'
+  | 'Submit'
+  | 'Invalid'
+  | 'Load'
+  | 'Error'
+  | 'KeyDown'
+  | 'KeyPress'
+  | 'KeyUp'
+  | 'AuxClick'
+  | 'Click'
+  | 'ContextMenu'
+  | 'DblClick'
+  | 'Drag'
+  | 'DragEnd'
+  | 'DragEnter'
+  | 'DragExit'
+  | 'DragLeave'
+  | 'DragOver'
+  | 'DragStart'
+  | 'Drop'
+  | 'MouseDown'
+  | 'MouseEnter'
+  | 'MouseLeave'
+  | 'MouseMove'
+  | 'MouseOut'
+  | 'MouseOver'
+  | 'MouseUp'
+  | 'TouchCancel'
+  | 'TouchEnd'
+  | 'TouchMove'
+  | 'TouchStart'
+  | 'PointerDown'
+  | 'PointerMove'
+  | 'PointerUp'
+  | 'PointerCancel'
+  | 'PointerEnter'
+  | 'PointerLeave'
+  | 'PointerOver'
+  | 'PointerOut'
+  | 'GotPointer'
+  | 'LostPointer'
+  | 'Scroll'
+  | 'Wheel'
+  | 'AnimationStart'
+  | 'AnimationEnd'
+  | 'AnimationIteration'
+  | 'TransitionEnd';
 
 export type GetEvent<K extends string> = Lowercase<K> extends keyof HTMLElementEventMap
   ? HTMLElementEventMap[Lowercase<K>]
-  : Event
+  : Event;
 
-export type QwikCaptureEventMap = {
-  [K in PascalCaseEventNames as `${K}Capture`]: GetEvent<K>
-}
-
-export type QwikDomEventMap = {
-  [K in PascalCaseEventNames]: Lowercase<K> extends keyof HTMLElementEventMap
-  ? HTMLElementEventMap[Lowercase<K>]
-  : Event
+type QwikEventMap = {
+  [K in PascalCaseEventNames as `${K}${'' | 'Capture'}`]: GetEvent<K>;
 };
-
-interface QwikEventMap extends QwikDomEventMap, QwikCaptureEventMap { }
 
 export type PreventDefault = {
   [K in keyof QwikEventMap as `prevent${'default' | 'Default'}:${Lowercase<K>}`]?: boolean;
@@ -161,8 +153,8 @@ export type ComponentKnownEvents = {
  */
 export interface ComponentBaseProps
   extends PreventDefault,
-  ComponentCustomEvents,
-  ComponentKnownEvents {
+    ComponentCustomEvents,
+    ComponentKnownEvents {
   class?: string | { [className: string]: boolean };
   className?: string | undefined;
   style?: Record<string, string | number> | string | undefined;
@@ -177,7 +169,7 @@ export interface ComponentBaseProps
   'host:tagName'?: JSXTagName;
   children?: JSXChildren;
 }
-export interface QwikAttributes extends QwikProps, QwikEvents { }
+export interface QwikAttributes extends QwikProps, QwikEvents {}
 
 /**
  * @public

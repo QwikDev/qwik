@@ -5,6 +5,7 @@ import { directSetAttribute } from '../render/fast-calls';
 import { ComponentScopedStyles } from '../util/markers';
 import { useSequentialScope } from './use-store.public';
 import { implicit$FirstArg } from '../util/implicit_dollar';
+import { scopeStylesheet } from '../style/scoped-stylesheet';
 
 // <docs markdown="../readme.md#useStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -104,7 +105,7 @@ const _useStyles = (styleQrl: QRL<string>, scoped: boolean) => {
           appendStyle(renderCtx, hostElement, {
             type: 'style',
             styleId,
-            content: scoped ? styleText.replace(/�/g, styleId) : styleText,
+            content: scoped ? scopeStylesheet(styleText, styleId) : styleText,
           });
         }
       })

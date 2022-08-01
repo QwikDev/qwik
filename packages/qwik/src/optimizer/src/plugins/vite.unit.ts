@@ -84,6 +84,7 @@ vite('command: serve, mode: production', async () => {
   equal(opts.entryStrategy, { type: 'hook' });
   equal(opts.debug, false);
   equal(opts.forceFullBuild, false);
+  equal(opts.resolveQwikBuild, false);
 
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
   equal(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev.tsx')));
@@ -99,6 +100,7 @@ vite('command: serve, mode: production', async () => {
   equal(c.esbuild, undefined);
   equal(c.ssr, undefined);
 });
+
 vite('command: build, mode: development', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
@@ -115,6 +117,7 @@ vite('command: build, mode: development', async () => {
   equal(opts.entryStrategy, { type: 'hook' });
   equal(opts.debug, false);
   equal(opts.forceFullBuild, true);
+  equal(opts.resolveQwikBuild, true);
 
   equal(plugin.enforce, 'pre');
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
@@ -147,6 +150,7 @@ vite('command: build, mode: production', async () => {
   equal(opts.entryStrategy, { type: 'smart' });
   equal(opts.debug, false);
   equal(opts.forceFullBuild, true);
+  equal(opts.resolveQwikBuild, true);
 
   equal(plugin.enforce, 'pre');
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
@@ -178,6 +182,7 @@ vite('command: build, --mode production (client)', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
+  equal(opts.resolveQwikBuild, true);
 
   equal(opts.target, 'client');
   equal(opts.buildMode, 'production');
@@ -204,6 +209,7 @@ vite('command: build, --ssr entry.express.tsx', async () => {
   equal(opts.entryStrategy, { type: 'inline' });
   equal(opts.debug, false);
   equal(opts.forceFullBuild, true);
+  equal(opts.resolveQwikBuild, true);
 
   equal(plugin.enforce, 'pre');
   equal(build.outDir, normalizePath(resolve(cwd, 'server')));
@@ -241,6 +247,7 @@ vite('command: serve, --mode ssr', async () => {
   equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'renderz.tsx'))]);
   equal(c.build.outDir, normalizePath(resolve(cwd, 'ssr-dist')));
   equal(c.publicDir, undefined);
+  equal(opts.resolveQwikBuild, false);
 });
 
 vite.run();

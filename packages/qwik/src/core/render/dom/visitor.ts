@@ -1,4 +1,4 @@
-import { ELEMENT_ID, OnRenderProp, QHostAttr, QSlot } from '../util/markers';
+import { ELEMENT_ID, OnRenderProp, QSlot } from '../../util/markers';
 import {
   cleanupContext,
   ComponentCtx,
@@ -7,18 +7,14 @@ import {
   normalizeOnProp,
   QContext,
   tryGetContext,
-} from '../props/props';
-import { addQRLListener, getDomListeners, isOnProp } from '../props/props-on';
-import { isArray, isString, ValueOrPromise } from '../util/types';
-import type { ProcessedJSXNode } from '../render/jsx/types/jsx-node';
-import { renderComponent } from './render-component';
-import { promiseAll, then } from '../util/promises';
-import type { ContainerState } from './notify-render';
-import { assertDefined, assertEqual, assertTrue } from '../assert/assert';
-import { intToStr } from '../object/store';
-import { EMPTY_ARRAY } from '../util/flyweight';
-import { logDebug, logError, logWarn } from '../util/log';
-import { qDev } from '../util/qdev';
+} from '../../props/props';
+import { addQRLListener, getDomListeners, isOnProp } from '../../props/props-on';
+import { isArray, isString, ValueOrPromise } from '../../util/types';
+import { promiseAll, then } from '../../util/promises';
+import { assertDefined, assertEqual, assertTrue } from '../../assert/assert';
+import { EMPTY_ARRAY } from '../../util/flyweight';
+import { logDebug, logError, logWarn } from '../../util/log';
+import { qDev } from '../../util/qdev';
 import {
   codeToText,
   qError,
@@ -26,18 +22,27 @@ import {
   QError_rootNodeMustBeHTML,
   QError_setProperty,
   QError_strictHTMLChildren,
-  QError_stringifyClassOrStyle,
-} from '../error/error';
-import { fromCamelToKebabCase } from '../util/case';
-import type { OnRenderFn } from '../component/component.public';
-import { CONTAINER, StyleAppend } from '../use/use-core';
-import type { Ref } from '../use/use-store.public';
-import type { SubscriptionManager } from '../object/q-object';
-import { directGetAttribute, directSetAttribute } from './fast-calls';
-import { HOST_TYPE, SKIP_RENDER_TYPE } from './jsx/jsx-runtime';
-import { assertQrl } from '../import/qrl-class';
-import { isElement } from '../util/element';
-import { serializeQRLs } from '../import/qrl';
+} from '../../error/error';
+import { fromCamelToKebabCase } from '../../util/case';
+import type { OnRenderFn } from '../../component/component.public';
+import { CONTAINER, StyleAppend } from '../../use/use-core';
+import type { Ref } from '../../use/use-store.public';
+import { directGetAttribute, directSetAttribute } from '../fast-calls';
+import { HOST_TYPE, SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
+import { assertQrl } from '../../import/qrl-class';
+import { isElement } from '../../util/element';
+import { serializeQRLs } from '../../import/qrl';
+import { ProcessedJSXNode, renderComponent } from './render-dom';
+import type { RenderContext } from '../types';
+import {
+  ALLOWS_PROPS,
+  copyRenderContext,
+  getNextIndex,
+  HOST_PREFIX,
+  SCOPE_PREFIX,
+  stringifyClassOrStyle,
+} from '../execute-component';
+import type { SubscriptionManager } from '../container';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -51,39 +56,26 @@ type PropHandler = (
   oldValue: any
 ) => boolean;
 
-/**
- * @alpha
- */
-export interface RenderOperation {
-  $el$: Node;
-  $operation$: string;
-  $args$: any[];
-  $fn$: () => void;
-}
-
 export type ChildrenMode = 'root' | 'slot' | 'fallback' | 'default' | 'head';
 
-/**
- * @alpha
- */
-export interface RenderPerf {
-  $visited$: number;
-}
-
-/**
- * @alpha
- */
-export interface RenderContext {
-  $doc$: Document;
-  $roots$: Element[];
-  $hostElements$: Set<Element>;
-  $operations$: RenderOperation[];
-  $contexts$: QContext[];
-  $currentComponent$: ComponentCtx | undefined;
-  $containerState$: ContainerState;
-  $containerEl$: Element;
-  $perf$: RenderPerf;
-}
+export const visitJsxNode = (
+  ctx: RenderContext,
+  elm: Element,
+  jsxNode: ProcessedJSXNode | ProcessedJSXNode[] | undefined,
+  isSvg: boolean
+): ValueOrPromise<void> => {
+  if (jsxNode === undefined) {
+    return smartUpdateChildren(ctx, elm, [], 'root', isSvg);
+  }
+  if (isArray(jsxNode)) {
+    return smartUpdateChildren(ctx, elm, jsxNode.flat(), 'root', isSvg);
+  } else if (jsxNode.$type$ === HOST_TYPE) {
+    updateProperties(ctx, getContext(elm), jsxNode.$props$, isSvg, true);
+    return smartUpdateChildren(ctx, elm, jsxNode.$children$ || [], 'root', isSvg);
+  } else {
+    return smartUpdateChildren(ctx, elm, [jsxNode], 'root', isSvg);
+  }
+};
 
 export const smartUpdateChildren = (
   ctx: RenderContext,
@@ -323,8 +315,7 @@ export const patchVnode = (
   const isComponent = isComponentNode(vnode);
   const ch = vnode.$children$;
   if (isComponent) {
-    if (!dirty && !ctx.$renderQrl$ && !ctx.$element$.hasAttribute(QHostAttr)) {
-      setAttribute(rctx, ctx.$element$, QHostAttr, '');
+    if (!dirty && !ctx.$renderQrl$ && !ctx.$element$.hasAttribute(ELEMENT_ID)) {
       setAttribute(rctx, ctx.$element$, ELEMENT_ID, getNextIndex(rctx));
 
       ctx.$renderQrl$ = props![OnRenderProp];
@@ -535,10 +526,6 @@ const createElm = (
   }
   const currentComponent = rctx.$currentComponent$;
   if (currentComponent) {
-    const styleTag = currentComponent.$styleClass$;
-    if (styleTag) {
-      classlistAdd(rctx, elm, styleTag);
-    }
     if (tag === QSlot || tag === 'html') {
       currentComponent.$slots$.push(vnode);
     }
@@ -555,7 +542,6 @@ const createElm = (
     const renderQRL = props![OnRenderProp];
     assertQrl<OnRenderFn<any>>(renderQRL);
     ctx.$renderQrl$ = renderQRL;
-    directSetAttribute(ctx.$element$, QHostAttr, '');
     wait = renderComponent(rctx, ctx);
   } else {
     const setsInnerHTML = checkInnerHTML(props);
@@ -594,10 +580,6 @@ interface SlotMaps {
   slots: Record<string, Element | undefined>;
   templates: Record<string, Element | undefined>;
 }
-
-export const getNextIndex = (ctx: RenderContext) => {
-  return intToStr(ctx.$containerState$.$elementIndex$++);
-};
 
 const getSlots = (componentCtx: ComponentCtx | null, hostElm: Element): SlotMaps => {
   if (hostElm.localName === 'html') {
@@ -665,10 +647,6 @@ export const PROP_HANDLER_MAP: Record<string, PropHandler> = {
   checked: checkBeforeAssign,
   [dangerouslySetInnerHTML]: setInnerHTML,
 };
-
-export const ALLOWS_PROPS = ['class', 'className', 'style', 'id', QSlot];
-export const HOST_PREFIX = 'host:';
-export const SCOPE_PREFIX = /^(host|window|document|prevent(d|D)efault):/;
 
 export const updateProperties = (
   rctx: RenderContext,
@@ -762,40 +740,12 @@ export const updateProperties = (
   return ctx.$dirty$;
 };
 
-export const createRenderContext = (
-  doc: Document,
-  containerState: ContainerState
-): RenderContext => {
-  const ctx: RenderContext = {
-    $doc$: doc,
-    $containerState$: containerState,
-    $containerEl$: containerState.$containerEl$,
-    $hostElements$: new Set(),
-    $operations$: [],
-    $roots$: [],
-    $contexts$: [],
-    $currentComponent$: undefined,
-    $perf$: {
-      $visited$: 0,
-    },
-  };
-  return ctx;
-};
-
 const setEvent = (ctx: QContext, prop: string, value: any) => {
   assertTrue(prop.endsWith('$'), 'render: event property does not end with $', prop);
   if (!ctx.$listeners$) {
     ctx.$listeners$ = getDomListeners(ctx.$element$);
   }
   addQRLListener(ctx, normalizeOnProp(prop.slice(0, -1)), value);
-};
-
-export const copyRenderContext = (ctx: RenderContext): RenderContext => {
-  const newCtx: RenderContext = {
-    ...ctx,
-    $contexts$: [...ctx.$contexts$],
-  };
-  return newCtx;
 };
 
 export const setAttribute = (ctx: RenderContext, el: Element, prop: string, value: any) => {
@@ -811,18 +761,6 @@ export const setAttribute = (ctx: RenderContext, el: Element, prop: string, valu
     $el$: el,
     $operation$: 'set-attribute',
     $args$: [prop, value],
-    $fn$: fn,
-  });
-};
-
-export const classlistAdd = (ctx: RenderContext, el: Element, hostStyleTag: string) => {
-  const fn = () => {
-    el.classList.add(hostStyleTag);
-  };
-  ctx.$operations$.push({
-    $el$: el,
-    $operation$: 'classlist-add',
-    $args$: [hostStyleTag],
     $fn$: fn,
   });
 };
@@ -875,7 +813,11 @@ const insertBefore = <T extends Node>(
   return newChild;
 };
 
-export const appendStyle = (ctx: RenderContext, hostElement: Element, styleTask: StyleAppend) => {
+export const appendHeadStyle = (
+  ctx: RenderContext,
+  hostElement: Element,
+  styleTask: StyleAppend
+) => {
   const fn = () => {
     const containerEl = ctx.$containerEl$;
     const isDoc = ctx.$doc$.documentElement === containerEl && !!ctx.$doc$.head;
@@ -895,10 +837,6 @@ export const appendStyle = (ctx: RenderContext, hostElement: Element, styleTask:
     $args$: [styleTask],
     $fn$: fn,
   });
-};
-
-export const hasStyle = (containerState: ContainerState, styleId: string) => {
-  return containerState.$stylesIds$.has(styleId);
 };
 
 const prepend = (ctx: RenderContext, parent: Element, newChild: Node) => {
@@ -937,9 +875,7 @@ export const cleanupTree = (parent: Element, subsManager: SubscriptionManager) =
   if (parent.nodeName === 'Q:SLOT') {
     return;
   }
-  if (parent.hasAttribute(QHostAttr)) {
-    cleanupElement(parent, subsManager);
-  }
+  cleanupElement(parent, subsManager);
   let child = parent.firstElementChild;
   while (child) {
     cleanupTree(child, subsManager);
@@ -1058,38 +994,4 @@ const isTagName = (elm: Node, tagName: string): boolean => {
 
 const checkInnerHTML = (props: Record<string, any> | undefined | null) => {
   return props && ('innerHTML' in props || dangerouslySetInnerHTML in props);
-};
-
-export const stringifyClassOrStyle = (obj: any, isClass: boolean): string => {
-  if (obj == null) return '';
-  if (typeof obj == 'object') {
-    let text = '';
-    let sep = '';
-    if (isArray(obj)) {
-      if (!isClass) {
-        throw qError(QError_stringifyClassOrStyle, obj, 'style');
-      }
-      for (let i = 0; i < obj.length; i++) {
-        text += sep + obj[i];
-        sep = ' ';
-      }
-    } else {
-      for (const key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-          const value = obj[key];
-
-          if (value) {
-            text += isClass
-              ? value
-                ? sep + key
-                : ''
-              : sep + fromCamelToKebabCase(key) + ':' + value;
-            sep = isClass ? ' ' : ';';
-          }
-        }
-      }
-    }
-    return text;
-  }
-  return String(obj);
 };

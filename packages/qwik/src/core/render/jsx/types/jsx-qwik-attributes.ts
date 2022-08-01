@@ -140,8 +140,6 @@ export interface QwikProps extends PreventDefault {
   /**
    * URL against which relative QRLs should be resolved to.
    */
-  'q:obj'?: string;
-  'q:host'?: string;
   'q:version'?: string;
   'q:container'?: '';
 }

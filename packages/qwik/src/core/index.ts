@@ -14,7 +14,7 @@ export type {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { pauseContainer } from './object/store';
+export { pauseFromContexts } from './object/store';
 export type { SnapshotState, SnapshotResult } from './object/store';
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -66,11 +66,11 @@ export type { DOMAttributes } from './render/jsx/types/jsx-qwik-attributes';
 export type { FunctionComponent, JSXNode } from './render/jsx/types/jsx-node';
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
-export { render } from './render/render.public';
-export { renderSSR } from './render/render-ssr';
+export { render } from './render/dom/render.public';
+export { renderSSR } from './render/ssr/render-ssr';
 
-export type { RenderOptions } from './render/render.public';
-export { handleWatch } from './render/notify-render';
+export type { RenderOptions } from './render/dom/render.public';
+export { handleWatch } from './render/dom/notify-render';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API

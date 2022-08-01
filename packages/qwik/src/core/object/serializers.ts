@@ -1,6 +1,6 @@
 import { parseQRL, stringifyQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
-import type { ContainerState } from '../render/notify-render';
+import type { ContainerState } from '../render/container';
 import { isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
 import {
   isSubscriberDescriptor,

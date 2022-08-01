@@ -1,4 +1,4 @@
-import { Fragment, jsx, JSXNode } from '@builder.io/qwik/jsx-runtime';
+import { Fragment, jsx, JSXNode } from '@builder.io/qwik';
 import type { PrefetchImplementation, PrefetchResource, RenderToStringOptions } from './types';
 
 export function applyPrefetchImplementation(

@@ -13,12 +13,3 @@ export interface JSXNode<T = any> {
   props: Record<string, any>;
   key: string | number | null;
 }
-
-export interface ProcessedJSXNode {
-  $type$: string;
-  $props$: Record<string, any> | null;
-  $children$: ProcessedJSXNode[];
-  $key$: string | null;
-  $elm$: Node | null;
-  $text$: string;
-}

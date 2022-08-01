@@ -1,7 +1,7 @@
 import { createTimer, getBuildBase } from './utils';
-import { JSXNode, renderSSR } from '@builder.io/qwik';
+import { JSXNode, renderSSR, Fragment, jsx, pauseFromContexts } from '@builder.io/qwik';
 import type { SnapshotResult } from '@builder.io/qwik';
-import { setServerPlatform } from './platform';
+import { getSymbolHash, setServerPlatform } from './platform';
 import type {
   QwikManifest,
   RenderToStreamOptions,
@@ -16,11 +16,7 @@ import { applyPrefetchImplementation } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
 import { createSimpleDocument } from './document';
 import type { SymbolMapper } from '../optimizer/src/types';
-import { getSymbolHash } from '../core/import/qrl-class';
-import { logWarn } from '../core/util/log';
-import { Fragment, jsx } from '../core/render/jsx/jsx-runtime';
-import { escapeText, pauseFromContexts } from '../core/object/store';
-import { qDev } from '../core/util/qdev';
+// import { logWarn } from '../core/util/log';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -54,7 +50,7 @@ export async function renderToStream(
   }
 
   if (!opts.manifest) {
-    logWarn('Missing client manifest, loading symbols in the client might 404');
+    console.warn('Missing client manifest, loading symbols in the client might 404');
   }
 
   const buildBase = getBuildBase(opts);
@@ -75,9 +71,7 @@ export async function renderToStream(
       const children: (JSXNode | null)[] = [
         jsx('script', {
           type: 'qwik/json',
-          children: escapeText(
-            JSON.stringify(snapshotResult.state, undefined, qDev ? '  ' : undefined)
-          ),
+          innerHTML: escapeText(JSON.stringify(snapshotResult.state)),
         }),
       ];
       if (prefetchResources.length > 0) {
@@ -94,7 +88,7 @@ export async function renderToStream(
         children.push(
           jsx('script', {
             id: 'qwikloader',
-            children: qwikLoaderScript,
+            innerHTML: qwikLoaderScript,
           })
         );
       }
@@ -161,3 +155,7 @@ function computeSymbolMapper(manifest: QwikManifest | undefined): SymbolMapper |
   }
   return undefined;
 }
+
+const escapeText = (str: string) => {
+  return str.replace(/<(\/?script)/g, '\\x3C$1');
+};

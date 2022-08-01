@@ -1,9 +1,12 @@
 export function createEl(tagName: string, doc: Document) {
   return {
     nodeType: 1,
-    nodeName: tagName.toUpperCase,
+    nodeName: tagName.toUpperCase(),
     localName: tagName,
     ownerDocument: doc,
+    isConnected: true,
+    ['__ctx__']: null,
+    ['q:id']: null,
   };
 }
 

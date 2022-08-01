@@ -50,10 +50,10 @@ async function handleApp(req: Request, res: Response) {
       cache.set(appDir, clientManifest);
     }
 
-    const html = await ssrApp(req, appName, appDir, clientManifest);
-
     res.set('Content-Type', 'text/html');
-    res.send(html);
+    await ssrApp(req, res, appName, appDir, clientManifest);
+
+    res.end();
   } catch (e: any) {
     console.error(e);
     res.set('Content-Type', 'text/plain; charset=utf-8');
@@ -138,7 +138,6 @@ async function buildApp(appDir: string) {
       optimizer.qwikRollup({
         target: 'client',
         buildMode: 'development',
-        debug: true,
         srcDir: appSrcDir,
         forceFullBuild: true,
         entryStrategy: { type: 'hook' },
@@ -213,24 +212,31 @@ function removeDir(dir: string) {
   }
 }
 
-async function ssrApp(req: Request, appName: string, appDir: string, manifest: QwikManifest) {
+async function ssrApp(
+  req: Request,
+  res: Response,
+  appName: string,
+  appDir: string,
+  manifest: QwikManifest
+) {
   const ssrPath = join(appDir, 'server', 'entry.ssr.js');
   const mod = await import(ssrPath);
   const render = (mod.default ?? mod.render) as Render;
 
   // ssr the document
   const base = `/${appName}/build/`;
+  const url = new URL(req.url, address);
+
   console.log('req.url', req.url);
   const chunks: string[] = [];
   const opts: RenderToStreamOptions = {
-    stream: {
-      write(chunk) {
-        chunks.push(chunk);
-      },
-    },
+    stream: res,
     manifest,
     debug: true,
     base,
+    userContext: {
+      url: url.href,
+    },
   };
   await render(opts);
 

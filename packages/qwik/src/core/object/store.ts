@@ -19,7 +19,6 @@ import {
 import { destroyWatch, SubscriberDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
 import { emitEvent } from '../util/event';
-import { ContainerState, getContainerState } from '../render/notify-render';
 import {
   qError,
   QError_containerAlreadyPaused,
@@ -32,6 +31,7 @@ import { isNotNullable, isPromise } from '../util/promises';
 import type { Subscriber } from '../use/use-subscriber';
 import { isResourceReturn } from '../use/use-resource';
 import { createParser, Parser, serializeValue } from './serializers';
+import { ContainerState, getContainerState } from '../render/container';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -139,8 +139,8 @@ export const resumeContainer = (containerEl: Element) => {
     // Restore sequence scoping
     if (host) {
       const [props, renderQrl] = host.split(' ');
-      assertDefined(props, `resume: props missing in q:host attribute`, host);
-      assertDefined(renderQrl, `resume: renderQRL missing in q:host attribute`, host);
+      assertDefined(props, `resume: props missing in host metadata`, host);
+      assertDefined(renderQrl, `resume: renderQRL missing in host metadata`, host);
       ctx.$props$ = getObject(props);
       ctx.$renderQrl$ = getObject(renderQrl);
     }
@@ -203,6 +203,9 @@ export const pauseFromContainer = async (containerEl: Element): Promise<Snapshot
   return pauseFromContexts(contexts, containerState);
 };
 
+/**
+ * @alpha
+ */
 export const pauseFromContexts = async (
   elements: QContext[],
   containerState: ContainerState
@@ -280,9 +283,9 @@ export const pauseFromContexts = async (
     let id = elementToIndex.get(el);
     if (id === undefined) {
       if (el.isConnected) {
-        id = directGetAttribute(el, ELEMENT_ID);
+        id = getQId(el);
         if (!id) {
-          console.warn('Missing ID');
+          console.warn('Missing ID', el);
         } else {
           id = ELEMENT_ID_PREFIX + id;
         }
@@ -783,6 +786,13 @@ const resolvePromise = (promise: Promise<any>) => {
   });
 };
 
+const getQId = (el: Element): string | null => {
+  const id = (el as any)[ELEMENT_ID];
+  if (typeof id === 'string') {
+    return id;
+  }
+  return directGetAttribute(el, ELEMENT_ID);
+};
 const getPromiseValue = (promise: Promise<any>) => {
   assertTrue(PROMISE_VALUE in promise, 'pause: promise was not resolved previously', promise);
   return (promise as any)[PROMISE_VALUE];

@@ -302,8 +302,11 @@ export const noSerialize: <T extends object | undefined>(input: T) => NoSerializ
 // @public (undocumented)
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null | (() => JSXNode<any>);
 
-// @alpha
-export const pauseContainer: (elmOrDoc: Element | Document, defaultParentJSON?: Element) => Promise<SnapshotResult>;
+// Warning: (ae-forgotten-export) The symbol "QContext" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const pauseFromContexts: (elements: QContext[], containerState: ContainerState) => Promise<SnapshotResult>;
 
 // @public (undocumented)
 export interface PropFnInterface<ARGS extends any[], RET> {

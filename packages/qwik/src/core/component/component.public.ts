@@ -132,7 +132,7 @@ const ELEMENTS_SKIP_KEY: JSXTagName[] = ['html', 'body', 'head'];
  * ```
  *
  * See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`,
- * `useOnWindow`, `useStyles`, `useScopedStyles`
+ * `useOnWindow`, `useStyles`
  *
  * @public
  */
@@ -202,7 +202,7 @@ export const componentQrl = <PROPS extends {}>(
  * ```
  *
  * See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`,
- * `useOnWindow`, `useStyles`, `useScopedStyles`
+ * `useOnWindow`, `useStyles`
  *
  * @public
  */

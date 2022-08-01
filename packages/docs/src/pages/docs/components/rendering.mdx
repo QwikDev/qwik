@@ -23,17 +23,15 @@ const Counter = component$(() => {
 Once rendered, the HTML fragment may look something like this:
 
 ```html
-<div q:host>
-  <button q:obj="123" onClickQrl="./chunk-a.js#Counter_button_click[0]">0</button>
+<div>
+  <button q:obj="123" on:click="./chunk-a.js#Counter_button_click[0]">0</button>
 </div>
 ```
 
 Note:
 
 - For explanation of `$` see [`$` and optimizer rules](../advanced/optimizer.mdx).
-- For explanation of `q:host` see [host element](../components/anatomy.mdx).
-- For explanation of `q:obj` see [serialization](../concepts/resumable.mdx).
-- For explanation of `onClickQrl` see [qwikloader](../advanced/qwikloader.mdx).
+- For explanation of `on:click` see [qwikloader](../advanced/qwikloader.mdx).
 
 ## JSX
 

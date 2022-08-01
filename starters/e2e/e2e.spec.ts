@@ -101,7 +101,7 @@ test.describe('e2e', () => {
     });
   });
 
-  test.describe('slot', () => {
+  test.describe.skip('slot', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/e2e/slot');
       page.on('pageerror', (err) => expect(err).toEqual(undefined));

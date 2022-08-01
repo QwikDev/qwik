@@ -1,17 +1,9 @@
-import type { ProcessedJSXNode } from '../render/jsx/types/jsx-node';
-import {
-  createProxy,
-  getProxyTarget,
-  isMutable,
-  QObjectImmutable,
-  SubscriptionManager,
-} from '../object/q-object';
+import { createProxy, getProxyTarget, isMutable, QObjectImmutable } from '../object/q-object';
 import { resumeContainer } from '../object/store';
 import { QContainerAttr } from '../util/markers';
 import type { OnRenderFn } from '../component/component.public';
 import { destroyWatch, SubscriberDescriptor } from '../use/use-watch';
 import { pauseContainer } from '../object/store';
-import { ContainerState, getContainerState } from '../render/notify-render';
 import { qDev } from '../util/qdev';
 import { logError } from '../util/log';
 import { isQrl, QRLInternal } from '../import/qrl-class';
@@ -19,6 +11,9 @@ import { directGetAttribute } from '../render/fast-calls';
 import { assertDefined } from '../assert/assert';
 import { codeToText, QError_immutableJsxProps } from '../error/error';
 import type { QRL } from '../import/qrl.public';
+import type { StyleAppend } from '../use/use-core';
+import { ContainerState, getContainerState, SubscriptionManager } from '../render/container';
+import type { ProcessedJSXNode } from '../render/dom/render-dom';
 
 const Q_CTX = '__ctx__';
 
@@ -45,9 +40,6 @@ export interface QContextEvents {
 
 export interface ComponentCtx {
   $hostElement$: Element;
-  $styleId$: string | null;
-  $styleClass$: string | null;
-  $styleHostClass$: string | null;
   $slots$: ProcessedJSXNode[];
 }
 
@@ -64,7 +56,7 @@ export interface QContext {
   $seq$: any[];
   $watches$: SubscriberDescriptor[];
   $contexts$: Map<string, any> | null;
-  $scopeId$: string | null;
+  $styles$: StyleAppend[];
 }
 
 export const tryGetContext = (element: Element): QContext | undefined => {
@@ -82,8 +74,8 @@ export const getContext = (element: Element): QContext => {
       $refMap$: [],
       $seq$: [],
       $watches$: [],
+      $styles$: [],
       $props$: null,
-      $scopeId$: null,
       $renderQrl$: null,
       $component$: null,
       $listeners$: null,

@@ -1,9 +1,9 @@
 import { styleKey } from '../component/qrl-styles';
 import type { QRL } from '../import/qrl.public';
-import { appendStyle, hasStyle } from '../render/cursor';
 import { useSequentialScope } from './use-store.public';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { getContext } from '../props/props';
+import { hasStyle } from '../render/execute-component';
 
 // <docs markdown="../readme.md#useStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -23,9 +23,7 @@ import { getContext } from '../props/props';
  *   return <Host>Some text</Host>;
  * });
  * ```
- *
- * @see `useScopedStyles`.
- *
+ * *
  * @public
  */
 // </docs>
@@ -51,37 +49,11 @@ export const useStylesQrl = (styles: QRL<string>): void => {
  *   return <Host>Some text</Host>;
  * });
  * ```
- *
- * @see `useScopedStyles`.
- *
+ * *
  * @public
  */
 // </docs>
 export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
-
-// <docs markdown="../readme.md#useScopedStyles">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useScopedStyles instead)
-/**
- * @see `useStyles`.
- *
- * @alpha
- */
-// </docs>
-export const useScopedStylesQrl = (styles: QRL<string>): void => {
-  _useStyles(styles, true);
-};
-
-// <docs markdown="../readme.md#useScopedStyles">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useScopedStyles instead)
-/**
- * @see `useStyles`.
- *
- * @alpha
- */
-// </docs>
-export const useScopedStyles$ = /*#__PURE__*/ implicit$FirstArg(useScopedStylesQrl);
 
 const _useStyles = (styleQrl: QRL<string>, scoped: boolean) => {
   const { get, set, ctx, i } = useSequentialScope<boolean>();
@@ -93,21 +65,16 @@ const _useStyles = (styleQrl: QRL<string>, scoped: boolean) => {
   const styleId = styleKey(styleQrl, i);
   const hostElement = ctx.$hostElement$;
   const containerState = renderCtx.$containerState$;
-  if (scoped) {
-    const hostCtx = getContext(ctx.$hostElement$);
-    hostCtx.$scopeId$ = styleId;
-  }
-
+  const elCtx = getContext(ctx.$hostElement$);
   if (!hasStyle(containerState, styleId)) {
+    containerState.$stylesIds$.add(styleId);
     ctx.$waitOn$.push(
       styleQrl.resolve(hostElement).then((styleText) => {
-        if (!hasStyle(containerState, styleId)) {
-          appendStyle(renderCtx, hostElement, {
-            type: 'style',
-            styleId,
-            content: scoped ? styleText.replace(/�/g, styleId) : styleText,
-          });
-        }
+        elCtx.$styles$.push({
+          type: 'style',
+          styleId,
+          content: scoped ? styleText.replace(/�/g, styleId) : styleText,
+        });
       })
     );
   }

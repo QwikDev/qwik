@@ -168,7 +168,7 @@ export const serializeQRLs = (existingQRLs: QRLInternal<any>[], ctx: QContext): 
     $platform$: getPlatform(ctx.$element$),
     $element$: ctx.$element$,
   };
-  return existingQRLs.map((qrl) => stringifyQRL(qrl, opts)).join(' ');
+  return existingQRLs.map((qrl) => stringifyQRL(qrl, opts)).join('\n');
 };
 
 export const qrlToUrl = (element: Element, qrl: QRLInternal): URL => {

@@ -1,17 +1,20 @@
-import { isDocument } from '../util/element';
-import { createRenderContext, executeContext, printRenderStats } from './cursor';
-import { isJSXNode, jsx, processData } from './jsx/jsx-runtime';
-import type { JSXNode, FunctionComponent } from './jsx/types/jsx-node';
-import { visitJsxNode } from './render';
-import { ContainerState, getContainerState, postRendering } from './notify-render';
-import { getDocument } from '../util/dom';
-import { qDev, qTest } from '../util/qdev';
-import { version } from '../version';
-import { QContainerAttr } from '../util/markers';
-import { logWarn } from '../util/log';
-import { appendQwikDevTools } from '../props/props';
-import { qError, QError_cannotRenderOverExistingContainer } from '../error/error';
-import { directSetAttribute } from './fast-calls';
+import { isDocument } from '../../util/element';
+import { executeContext, printRenderStats } from './visitor';
+import { isJSXNode, jsx } from '../jsx/jsx-runtime';
+import type { JSXNode, FunctionComponent } from '../jsx/types/jsx-node';
+import { visitJsxNode } from './visitor';
+import { getDocument } from '../../util/dom';
+import { qDev, qTest } from '../../util/qdev';
+import { version } from '../../version';
+import { QContainerAttr } from '../../util/markers';
+import { logWarn } from '../../util/log';
+import { appendQwikDevTools } from '../../props/props';
+import { qError, QError_cannotRenderOverExistingContainer } from '../../error/error';
+import { directSetAttribute } from '../fast-calls';
+import { processData } from './render-dom';
+import { ContainerState, getContainerState } from '../container';
+import { postRendering } from './notify-render';
+import { createRenderContext } from '../execute-component';
 
 /**
  * @alpha

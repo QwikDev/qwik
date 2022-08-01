@@ -5,6 +5,7 @@ import { ROUTE_TYPE_ENDPOINT } from '../../runtime/src/library/constants';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import { getQwikCityUserContext } from './utils';
 import { errorHandler } from './fallback-handler';
+import cityPlan from '@qwik-city-plan';
 
 /**
  * @public
@@ -12,11 +13,11 @@ import { errorHandler } from './fallback-handler';
 export async function requestHandler<T = any>(
   requestCtx: QwikCityRequestContext,
   render: Render,
-  opts: QwikCityRequestOptions
+  opts?: QwikCityRequestOptions
 ): Promise<T | null> {
   try {
     const { request, response, url } = requestCtx;
-    const { routes, menus, cacheModules, trailingSlash } = opts;
+    const { routes, menus, cacheModules, trailingSlash } = { ...cityPlan, ...opts };
     const loadedRoute = await loadRoute(routes, menus, cacheModules, url.pathname);
     if (loadedRoute) {
       // found and loaded the route for this pathname

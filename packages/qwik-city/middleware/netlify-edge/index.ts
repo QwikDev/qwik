@@ -7,7 +7,7 @@ import type { Render } from '@builder.io/qwik/server';
 /**
  * @public
  */
-export function qwikCity(render: Render, opts: QwikCityNetlifyOptions) {
+export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions) {
   async function onRequest(request: Request, { next }: EventPluginContext) {
     try {
       const requestCtx: QwikCityRequestContext<Response> = {

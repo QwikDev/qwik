@@ -110,6 +110,8 @@ async function buildVite(config: BuildConfig, inputDir: string, outputDir: strin
 async function buildCloudflarePages(config: BuildConfig, inputDir: string, outputDir: string) {
   const entryPoints = [join(inputDir, 'middleware', 'cloudflare-pages', 'index.ts')];
 
+  const external = ['@qwik-city-plan'];
+
   await build({
     entryPoints,
     outfile: join(outputDir, 'middleware', 'cloudflare-pages', 'index.mjs'),
@@ -118,13 +120,14 @@ async function buildCloudflarePages(config: BuildConfig, inputDir: string, outpu
     target: nodeTarget,
     format: 'esm',
     watch: watcher(config),
+    external,
   });
 }
 
 async function buildExpress(config: BuildConfig, inputDir: string, outputDir: string) {
   const entryPoints = [join(inputDir, 'middleware', 'express', 'index.ts')];
 
-  const external = ['express', 'node-fetch', 'path'];
+  const external = ['express', 'node-fetch', 'path', '@qwik-city-plan'];
 
   await build({
     entryPoints,
@@ -152,6 +155,8 @@ async function buildExpress(config: BuildConfig, inputDir: string, outputDir: st
 async function buildNetlifyEdge(config: BuildConfig, inputDir: string, outputDir: string) {
   const entryPoints = [join(inputDir, 'middleware', 'netlify-edge', 'index.ts')];
 
+  const external = ['@qwik-city-plan'];
+
   await build({
     entryPoints,
     outfile: join(outputDir, 'middleware', 'netlify-edge', 'index.mjs'),
@@ -160,6 +165,7 @@ async function buildNetlifyEdge(config: BuildConfig, inputDir: string, outputDir
     target: nodeTarget,
     format: 'esm',
     watch: watcher(config),
+    external,
   });
 }
 

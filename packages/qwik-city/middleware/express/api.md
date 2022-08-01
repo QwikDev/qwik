@@ -4,16 +4,17 @@
 
 ```ts
 
+import type { NextFunction } from 'express';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { Request as Request_2 } from 'express';
 import type { Response as Response_2 } from 'express';
 
 // @public (undocumented)
-export function qwikCity(render: Render, opts: QwikCityExpressOptions): (req: Request_2, res: Response_2, next: (e: any) => void) => Promise<void>;
-
-// @public (undocumented)
-export function qwikCity404(): (req: Request_2, res: Response_2, next: (e: any) => void) => Promise<void>;
+export function qwikCity(render: Render, opts?: QwikCityExpressOptions): {
+    router: (req: Request_2, res: Response_2, next: NextFunction) => Promise<void>;
+    notFound: (req: Request_2, res: Response_2, next: (e: any) => void) => Promise<void>;
+};
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityRequestOptions" needs to be exported by the entry point index.d.ts
 //

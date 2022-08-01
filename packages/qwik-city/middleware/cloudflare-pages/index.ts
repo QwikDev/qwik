@@ -7,7 +7,7 @@ import type { Render } from '@builder.io/qwik/server';
 /**
  * @public
  */
-export function qwikCity(render: Render, opts: QwikCityCloudflarePagesOptions) {
+export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) {
   async function onRequest({ request, next }: EventPluginContext) {
     try {
       // early return from cache

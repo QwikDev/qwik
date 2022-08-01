@@ -1,7 +1,7 @@
 import type { BuildContext, BuildRoute, RouteSourceFile } from './types';
 import { addError } from './utils/format';
 import { validateSourceFiles } from './routing/source-file';
-import { walkRoutes, walkRoutesWithPathname } from './routing/walk-routes-dir';
+import { walkRoutes } from './routing/walk-routes-dir';
 import { getRouteParams } from '../runtime/src/library/routing';
 import type { RouteParams } from '../runtime/src/library/types';
 import { resolveSourceFiles } from './routing/resolve-source-file';
@@ -13,7 +13,7 @@ export async function build(ctx: BuildContext) {
 
     const sourceFiles = await walkRoutes(routesDir);
 
-    const resolved = await resolveSourceFiles(opts, sourceFiles);
+    const resolved = resolveSourceFiles(opts, sourceFiles);
     ctx.layouts = resolved.layouts;
     ctx.routes = resolved.routes;
     ctx.entries = resolved.entries;
@@ -24,14 +24,15 @@ export async function build(ctx: BuildContext) {
     addError(ctx, e);
   }
 }
+
 export async function buildFromUrlPathname(
   ctx: BuildContext,
   pathname: string
 ): Promise<{ route: BuildRoute; params: RouteParams } | null> {
-  const sourceFiles = await walkRoutesWithPathname(ctx.opts.routesDir, pathname);
+  const sourceFiles = await walkRoutes(ctx.opts.routesDir);
 
   if (sourceFiles.length > 0) {
-    const resolved = await resolveSourceFiles(ctx.opts, sourceFiles);
+    const resolved = resolveSourceFiles(ctx.opts, sourceFiles);
 
     for (const route of resolved.routes) {
       const match = route.pattern.exec(pathname);

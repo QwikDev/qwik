@@ -10,23 +10,24 @@ export const rules = {
   'no-use-function-outside-component': noUseFunctionOutsideComponent,
 } as const;
 
+type Rules = {
+  [ K in keyof typeof rules as `qwik/${K}`]: string
+}
+
+const QWIK_RULES: Rules = {
+  'qwik/no-use-after-await': 'error',
+  'qwik/valid-lexical-scope': 'error',
+  'qwik/no-use-function-inside-branch': 'error',
+  'qwik/no-use-function-outside-component': 'error',
+} 
+
 export const configs = {
   recommended: {
     plugins: ['qwik'],
-    rules: {
-      'qwik/no-use-after-await': 'error',
-      'qwik/valid-lexical-scope': 'error',
-      'qwik/no-use-function-inside-branch': 'error',
-      'qwik/no-use-outside-component': 'error',
-    },
+    rules: QWIK_RULES,
   },
   strict: {
     plugins: ['qwik'],
-    rules: {
-      'qwik/valid-lexical-scope': 'error',
-      'qwik/no-use-after-await': 'error',
-      'qwik/no-use-function-inside-branch': 'error',
-      'qwik/no-use-outside-component': 'error',
-    },
+    rules: QWIK_RULES,
   },
 };

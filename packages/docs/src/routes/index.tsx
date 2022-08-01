@@ -1,24 +1,28 @@
-import { component$, Resource } from '@builder.io/qwik';
-import { EndpointHandler, useEndpoint } from '@builder.io/qwik-city';
+import { component$, useUserContext } from '@builder.io/qwik';
+import type { EndpointHandler } from '@builder.io/qwik-city';
 
 export default component$(() => {
-  const resource = useEndpoint<typeof onRequest>();
+  // const resource = useEndpoint<typeof onRequest>();
 
-  return (
-    <Resource
-      resource={resource}
-      onResolved={(builderContent) => {
-        return <main class="builder" dangerouslySetInnerHTML={builderContent.html} />;
-      }}
-      onRejected={(r) => {
-        return (
-          <div>
-            Unable to load content <span hidden>{r}</span>
-          </div>
-        );
-      }}
-    />
-  );
+  const userCtx = useUserContext('qwikcity');
+
+  return <div>{JSON.stringify(userCtx)}</div>;
+
+  // return (
+  //   <Resource
+  //     resource={resource}
+  //     onResolved={(builderContent) => {
+  //       return <main class="builder" dangerouslySetInnerHTML={builderContent.html} />;
+  //     }}
+  //     onRejected={(r) => {
+  //       return (
+  //         <div>
+  //           Unable to load content <span hidden>{r}</span>
+  //         </div>
+  //       );
+  //     }}
+  //   />
+  // );
 });
 
 export const onRequest: EndpointHandler<BuilderContent> = async ({ url }) => {
@@ -36,7 +40,7 @@ export const onRequest: EndpointHandler<BuilderContent> = async ({ url }) => {
   //   const content: BuilderContent = await response.json();
   //   return content;
   // }
-  throw new Error('Unable to load content');
+  // throw new Error('Unable to load content');
 };
 
 interface BuilderContent {

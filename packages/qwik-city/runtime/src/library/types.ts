@@ -187,7 +187,7 @@ export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
  * @public
  */
 export interface QwikCityPlan {
-  routes: RouteData[];
+  routes?: RouteData[];
   fallbackRoutes?: FallbackRouteData[];
   menus?: MenuData[];
   trailingSlash?: boolean;
@@ -262,6 +262,8 @@ export interface RequestEvent {
 
   next: () => Promise<void>;
   abort: () => void;
+
+  setRenderBlocking: () => void;
 }
 
 /**

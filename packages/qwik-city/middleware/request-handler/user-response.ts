@@ -24,12 +24,18 @@ export async function loadUserResponse(
     headers: new (typeof Headers === 'function' ? Headers : HeadersPolyfill)(),
     body: undefined,
     type: 'endpoint',
+    isRenderBlocking: false,
   };
 
   if (!isEndpointOnly) {
     isEndpointOnly = request.headers.get('Accept') === 'application/json';
   }
   const { pathname } = url;
+
+  let resolve: (u: UserResponseContext) => void;
+  const promise = new Promise<UserResponseContext>((r) => {
+    resolve = r;
+  });
 
   if (!isEndpointOnly) {
     isEndpointOnly = request.headers.get('Accept') === 'application/json';
@@ -65,6 +71,10 @@ export async function loadUserResponse(
     abort();
   };
 
+  const setRenderBlocking = () => {
+    userResponse.isRenderBlocking = true;
+  };
+
   const response: ResponseContext = {
     get status() {
       return userResponse.status;
@@ -80,6 +90,7 @@ export async function loadUserResponse(
     middlewareIndex++;
 
     while (middlewareIndex < endpointModules.length) {
+      const isLastMiddleware = middlewareIndex === endpointModules.length - 1;
       const endpointModule = endpointModules[middlewareIndex];
 
       let reqHandler: EndpointHandler | undefined = undefined;
@@ -128,10 +139,19 @@ export async function loadUserResponse(
           response,
           next,
           abort,
+          setRenderBlocking,
         };
 
         // get the user's endpoint return data
-        userResponse.body = await reqHandler(requstEv);
+        userResponse.body = reqHandler(requstEv);
+
+        if (isLastMiddleware) {
+          resolve(userResponse);
+        }
+
+        await userResponse.body;
+      } else if (isLastMiddleware) {
+        resolve(userResponse);
       }
 
       middlewareIndex++;
@@ -185,7 +205,7 @@ export async function loadUserResponse(
     }
   }
 
-  return userResponse;
+  return promise;
 }
 
 function pageRedirect(userResponseContext: UserResponseContext, updatedPathname: string) {

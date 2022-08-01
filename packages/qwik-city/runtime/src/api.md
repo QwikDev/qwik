@@ -137,7 +137,7 @@ export interface QwikCityPlan {
     // (undocumented)
     menus?: MenuData[];
     // (undocumented)
-    routes: RouteData[];
+    routes?: RouteData[];
     // (undocumented)
     trailingSlash?: boolean;
 }

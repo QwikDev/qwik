@@ -24,6 +24,7 @@ export interface UserResponseContext {
   headers: Headers;
   body: any;
   type: 'page' | 'endpoint';
+  isRenderBlocking: boolean;
 }
 
 export interface QwikCityRequestOptions extends QwikCityPlan, RenderOptions {}

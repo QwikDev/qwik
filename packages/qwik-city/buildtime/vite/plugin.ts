@@ -1,6 +1,6 @@
 import { createMdxTransformer, MdxTransform } from '../markdown/mdx';
 import { basename, extname, join, resolve } from 'path';
-import type { Plugin } from 'vite';
+import type { Plugin, UserConfig } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-runtime';
 import type { BuildContext } from '../types';
 import { createBuildContext, resetBuildContext } from '../utils/context';
@@ -36,9 +36,9 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     enforce: 'pre',
 
     config() {
-      const updatedViteConfig: any = {
+      const updatedViteConfig: UserConfig = {
         optimizeDeps: {
-          exclude: ['@builder.io/qwik-city', QWIK_CITY],
+          exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID],
         },
         ssr: {
           noExternal: [QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY],

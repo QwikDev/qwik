@@ -1,4 +1,4 @@
-import { component$, Host } from '@builder.io/qwik';
+import { component$, Host, Resource, useResource$, useStyles$ } from '@builder.io/qwik';
 
 export function delay(time: number) {
   return new Promise<void>((resolve) => {
@@ -8,33 +8,34 @@ export function delay(time: number) {
 
 export const Streaming = component$(() => {
   return (
-    <Host class="my-app p-20">
+    <Host>
       <ul>
-        {/* <li>1</li>
-        <li>2</li>
-        <li>3</li>
-        <li>4</li>
-        <li>5</li>
-        <li>6</li> */}
-        {delay(0).then(() => (
-          <li>1</li>
-        ))}
-        {delay(1000).then(() => (
-          <li>2</li>
-        ))}
-        {delay(2000).then(() => (
-          <li>3</li>
-        ))}
-        {delay(3000).then(() => (
-          <li>4</li>
-        ))}
-        {delay(4000).then(() => (
-          <li>5</li>
-        ))}
-        {delay(5000).then(() => (
-          <li>6</li>
-        ))}
+        <Cmp text="this 1" delay={1000}></Cmp>
+        <Cmp text="this 2" delay={1100}></Cmp>
+        <Cmp text="this 3" delay={1200}></Cmp>
+        <Cmp text="this 4" delay={2000}></Cmp>
+        <Cmp text="this 5" delay={100}></Cmp>
       </ul>
+    </Host>
+  );
+});
+
+export const Cmp = component$((props: { text: string; delay: number }) => {
+  useStyles$(`.cmp {
+    background: blue;
+    color: white;
+    display: block;
+  }`);
+
+  const resource = useResource$<string>(async ({ track }) => {
+    track(props, 'text');
+    await delay(props.delay);
+    return props.text;
+  });
+
+  return (
+    <Host class="cmp">
+      <Resource resource={resource} onResolved={(value) => <span>{value}</span>} />
     </Host>
   );
 });

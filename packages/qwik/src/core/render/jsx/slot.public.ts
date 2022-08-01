@@ -10,7 +10,8 @@ export const Slot: FunctionComponent<{
   name?: string;
   children?: any;
 }> = (props) => {
-  const hasChildren = props.children || (isArray(props.children) && props.children.length > 0);
+  const hasChildren = isArray(props.children) ? props.children.length > 0 : props.children != null;
+
   const newChildrem = !hasChildren
     ? []
     : jsx('q:fallback', {
@@ -20,9 +21,8 @@ export const Slot: FunctionComponent<{
   return jsx(
     QSlot,
     {
-      name: props.name,
       children: newChildrem,
     },
-    props.name
+    props.name ?? ''
   );
 };

@@ -63,7 +63,7 @@ export async function renderToStream(
 
   await renderSSR(doc, rootNode, {
     stream,
-    root: opts.fragmentTagName,
+    fragmentTagName: opts.fragmentTagName,
     base: buildBase,
     beforeClose: async (containerState) => {
       snapshotResult = await pauseFromContexts(containerState.$contexts$, containerState);

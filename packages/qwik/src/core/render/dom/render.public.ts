@@ -14,7 +14,7 @@ import { directSetAttribute } from '../fast-calls';
 import { processData } from './render-dom';
 import { ContainerState, getContainerState } from '../container';
 import { postRendering } from './notify-render';
-import { createRenderContext } from '../execute-component';
+import { BASE_QWIK_STYLES, createRenderContext } from '../execute-component';
 
 /**
  * @alpha
@@ -108,7 +108,7 @@ export const injectQwikSlotCSS = (docOrElm: Document | Element) => {
   const isDoc = isDocument(docOrElm);
   const style = doc.createElement('style');
   directSetAttribute(style, 'id', 'qwik/base-styles');
-  style.textContent = `q\\:slot{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}`;
+  style.textContent = BASE_QWIK_STYLES;
   if (isDoc) {
     docOrElm.head.appendChild(style);
   } else {

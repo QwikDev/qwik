@@ -309,10 +309,10 @@ renderSuite('should project no content', async () => {
         <q:slot>
           <q:fallback>..default..</q:fallback>
         </q:slot>
-        <q:slot name="details">
+        <q:slot q:key="details">
           <q:fallback>..details..</q:fallback>
         </q:slot>
-        <q:slot name="description">
+        <q:slot q:key="description">
           <q:fallback>..description..</q:fallback>
         </q:slot>
       </section>
@@ -332,10 +332,10 @@ renderSuite('should project un-named slot text', async () => {
           <q:fallback>..default..</q:fallback>
           projection
         </q:slot>
-        <q:slot name="details">
+        <q:slot q:key="details">
           <q:fallback>..details..</q:fallback>
         </q:slot>
-        <q:slot name="description">
+        <q:slot q:key="description">
           <q:fallback>..description..</q:fallback>
         </q:slot>
       </section>
@@ -373,11 +373,11 @@ renderSuite('should project named slot component', async () => {
           <q:fallback>..default..</q:fallback>
           PROJECTION
         </q:slot>
-        <q:slot name="details">
+        <q:slot q:key="details">
           <q:fallback>..details..</q:fallback>
           <span q:slot="details">DETAILS</span>
         </q:slot>
-        <q:slot name="description">
+        <q:slot q:key="description">
           <q:fallback>..description..</q:fallback>
           <span q:slot="description">DESCRIPTION</span>
         </q:slot>
@@ -407,12 +407,12 @@ renderSuite('should project multiple slot with same name', async () => {
         <q:slot>
           <q:fallback>..default..</q:fallback>
         </q:slot>
-        <q:slot name="details">
+        <q:slot q:key="details">
           <q:fallback>..details..</q:fallback>
           <span q:slot="details">DETAILS1</span>
           <span q:slot="details">DETAILS2</span>
         </q:slot>
-        <q:slot name="description">
+        <q:slot q:key="description">
           <q:fallback>..description..</q:fallback>
         </q:slot>
       </section>

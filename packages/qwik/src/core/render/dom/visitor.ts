@@ -527,6 +527,7 @@ const createElm = (
   const currentComponent = rctx.$currentComponent$;
   if (currentComponent) {
     if (tag === QSlot || tag === 'html') {
+      setSlotRef(currentComponent.$hostElement$, elm);
       currentComponent.$slots$.push(vnode);
     }
   }
@@ -594,12 +595,12 @@ const getSlots = (componentCtx: ComponentCtx | null, hostElm: Element): SlotMaps
 
   // Map slots
   for (const elm of existingSlots) {
-    slots[directGetAttribute(elm, 'name') ?? ''] = elm;
+    slots[directGetAttribute(elm, 'q:key') ?? ''] = elm;
   }
 
   // Map virtual slots
   for (const vnode of newSlots) {
-    slots[vnode.$props$?.name ?? ''] = vnode.$elm$ as Element;
+    slots[vnode.$key$ ?? ''] = vnode.$elm$ as Element;
   }
 
   // Map templates
@@ -738,6 +739,12 @@ export const updateProperties = (
     });
   }
   return ctx.$dirty$;
+};
+
+const setSlotRef = (hostElm: Element, slotEl: Element) => {
+  const ref = directGetAttribute(hostElm, 'q:id');
+  assertDefined(ref, 'q:id missing for host element');
+  directSetAttribute(slotEl, 'q:sref', ref);
 };
 
 const setEvent = (ctx: QContext, prop: string, value: any) => {

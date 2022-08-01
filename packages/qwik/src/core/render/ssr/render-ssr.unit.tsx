@@ -3,13 +3,15 @@ import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
 import { createSimpleDocument } from '../../../server/document';
 
-import type { StreamWriter } from '../../../server/types';
+import type { RenderToStringOptions, StreamWriter } from '../../../server/types';
 import { component$ } from '../../component/component.public';
+import { inlinedQrl } from '../../import/qrl';
 import { $ } from '../../import/qrl.public';
 import { createContext, useContextProvider } from '../../use/use-context';
 import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
+import { Resource, useResource$ } from '../../use/use-resource';
 import { Ref, useRef } from '../../use/use-store.public';
-import { useStyles$ } from '../../use/use-styles';
+import { useStylesQrl } from '../../use/use-styles';
 import { useClientEffect$ } from '../../use/use-watch';
 import { delay } from '../../util/promises';
 import { Host } from '../jsx/host.public';
@@ -54,7 +56,7 @@ renderSSRSuite('render contentEditable', async () => {
     <html>
       <div contentEditable="true"></div>
     </html>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div contenteditable="true"></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr"><div contentEditable="true"></div></html>'
   );
 });
 
@@ -216,7 +218,6 @@ renderSSRSuite('using fragment', async () => {
     '<html q:container="paused" q:version="dev" q:render="ssr"><ul><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li><li>6</li><li>7</li><li>8</li></ul></html>'
   );
 });
-renderSSRSuite.run();
 
 renderSSRSuite('using promises', async () => {
   await testSSR(
@@ -275,6 +276,50 @@ renderSSRSuite('using promises', async () => {
   );
 });
 
+renderSSRSuite('DelayResource', async () => {
+  await testSSR(
+    <html>
+      <ul>
+        <DelayResource text="thing" delay={100} />
+        <DelayResource text="thing" delay={10} />
+      </ul>
+    </html>,
+    `<html q:container="paused" q:version="dev" q:render="ssr">
+    <ul>
+      <div q:key="sX:" class="cmp" q:id="1">
+        <style q:style="fio5tb-0">.cmp {background: blue}</style>
+        <span>thing</span>
+      </div>
+      <div q:key="sX:" class="cmp" q:id="0">
+        <span>thing</span>
+      </div>
+    </ul>
+  </html>`
+  );
+});
+
+renderSSRSuite('using promises with DelayResource', async () => {
+  await testSSR(
+    <html>
+      <ul>
+        {delay(10).then(() => (
+          <li>thing</li>
+        ))}
+        <DelayResource text="thing" delay={500} />
+      </ul>
+    </html>,
+    `<html q:container="paused" q:version="dev" q:render="ssr">
+      <ul>
+        <li>thing</li>
+        <div q:key="sX:" class="cmp" q:id="0">
+          <style q:style="fio5tb-0">.cmp {background: blue}</style>
+          <span>thing</span>
+        </div>
+      </ul>
+    </html>`
+  );
+});
+
 renderSSRSuite('using component', async () => {
   await testSSR(
     <html>
@@ -309,7 +354,7 @@ renderSSRSuite('using component project content', async () => {
         <div>slot</div>
       </MyCmp>
     </html>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><section q:key="sX:" class="my-cmp" q:id="0"><div>MyCmp{}</div><q:template><div>slot</div></q:template></section></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr"><section q:key="sX:" class="my-cmp" q:id="0"><div>MyCmp{}</div><q:template q:slot hidden aria-hidden="true"><div>slot</div></q:template></section></html>'
   );
 });
 
@@ -318,7 +363,7 @@ renderSSRSuite('using complex component', async () => {
     <html>
       <MyCmpComplex></MyCmpComplex>
     </html>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div q:key="sX:" q:id="0" on:click="/runtimeQRL#_"><div q:id="1"><button q:id="2" on:click="/runtimeQRL#_">Click</button><q:slot q:sref="0"><q:fallback></q:fallback></q:slot></div></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr"><div q:key="sX:" q:id="0" on:click="/runtimeQRL#_"><div q:id="1"><button q:id="2" on:click="/runtimeQRL#_">Click</button><q:slot q:sref="0" q:key></q:slot></div></div></html>'
   );
 });
 
@@ -327,7 +372,7 @@ renderSSRSuite('using complex component with slot', async () => {
     <html>
       <MyCmpComplex>Hola</MyCmpComplex>
     </html>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div q:key="sX:" q:id="0" on:click="/runtimeQRL#_"><div q:id="1"><button q:id="2" on:click="/runtimeQRL#_">Click</button><q:slot q:sref="0"><q:fallback></q:fallback>Hola</q:slot></div></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr"><div q:key="sX:" q:id="0" on:click="/runtimeQRL#_"><div q:id="1"><button q:id="2" on:click="/runtimeQRL#_">Click</button><q:slot q:sref="0" q:key>Hola</q:slot></div></div></html>'
   );
 });
 
@@ -352,8 +397,47 @@ renderSSRSuite('<head>', async () => {
       <div q:head>
         <p>hola</p>
       </div>
+      <style id="qwik/base-styles">
+        q\\:slot{display:contents}
+        q\\:fallback,q\\:template{display:none}
+        q\\:fallback:last-child{display:contents}
+      </style>
     </head>
   </html>`
+  );
+});
+
+renderSSRSuite('named slots', async () => {
+  await testSSR(
+    <html>
+      <NamedSlot>
+        Text
+        <div q:slot="start">START: 1</div>
+        <>
+          <div q:slot="end">END: 1</div>
+          from
+          <div q:slot="start">START: 2</div>
+        </>
+        <div q:slot="end">END: 2</div>
+        default
+      </NamedSlot>
+    </html>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr">
+      <div q:key="sX:" q:id="0">
+        <q:slot q:sref="0" q:key="start">
+          <div q:slot="start">START: 1</div><div q:slot="start">START: 2</div>
+        </q:slot>
+        <div>
+          <q:slot q:sref="0" q:key>
+            Textfromdefault
+          </q:slot>
+        </div>
+        <q:slot q:sref="0" q:key="end">
+          <div q:slot="end">END: 1</div><div q:slot="end">END: 2</div>
+        </q:slot>
+      </div>
+    </html>`
   );
 });
 
@@ -374,16 +458,13 @@ renderSSRSuite('nested slots', async () => {
 <html q:container="paused" q:version="dev" q:render="ssr">
   <div q:key="sX:" id="root" q:id="0">
     Before root
-    <q:slot q:sref="0">
-      <q:fallback></q:fallback>
+    <q:slot q:sref="0" q:key>
       <div q:key="sX:" id="level 1" q:id="1">
         Before level 1
-        <q:slot q:sref="1">
-          <q:fallback></q:fallback>
+        <q:slot q:sref="1" q:key>
           <div q:key="sX:" id="level 2" q:id="2">
             Before level 2
-            <q:slot q:sref="2">
-              <q:fallback></q:fallback>
+            <q:slot q:sref="2" q:key>
               BEFORE CONTENT
               <div>Content</div>
               AFTER CONTENT
@@ -425,7 +506,7 @@ renderSSRSuite('component useStyles()', async () => {
     </html>,
     `<html q:container="paused" q:version="dev" q:render="ssr">
       <div q:key="sX:" class="host" q:id="0">
-        <style q:style="2ek2-0">.host {color: red}</style>
+        <style q:style="17nc-0">.host {color: red}</style>
         Text
       </div>
     </html>`
@@ -456,6 +537,20 @@ renderSSRSuite('root html component', async () => {
   await testSSR(
     <HtmlCmp host:aria-hidden="true" />,
     `<html aria-hidden="true" q:container="paused" q:version="dev" q:render="ssr" prop="123" q:id="0" on:qvisible="/runtimeQRL#_[0]"><div>hola</div></html>`
+  );
+});
+
+renderSSRSuite('fragment name', async () => {
+  await testSSR(
+    <>
+      <Styles />
+      <UseClientEffect></UseClientEffect>
+    </>,
+    `<container q:container="paused" q:version="dev" q:render="ssr" q:base="/manu/folder"><style id="qwik/base-styles">q\\:slot{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}</style><div q:key="sX:" class="host" q:id="1"><style q:style="17nc-0">.host {color: red}</style>Text</div><div q:key="sX:" q:id="0" on:qvisible="/runtimeQRL#_[0]"></div></container>`,
+    {
+      fragmentTagName: 'container',
+      base: '/manu/folder',
+    }
   );
 });
 // TODO
@@ -508,6 +603,18 @@ export const SimpleSlot = component$((props: { name: string }) => {
   );
 });
 
+export const NamedSlot = component$(() => {
+  return (
+    <Host>
+      <Slot name="start" />
+      <div>
+        <Slot></Slot>
+      </div>
+      <Slot name="end" />
+    </Host>
+  );
+});
+
 export const Events = component$(() => {
   useOn(
     'click',
@@ -526,7 +633,7 @@ export const Events = component$(() => {
 });
 
 export const Styles = component$(() => {
-  useStyles$('.host {color: red}');
+  useStylesQrl(inlinedQrl('.host {color: red}', 'styles_987'));
 
   return <Host class="host">Text</Host>;
 });
@@ -563,7 +670,7 @@ export const HtmlCmp = component$(
   }
 );
 
-async function testSSR(node: JSXNode, expected: string | string[]) {
+async function testSSR(node: JSXNode, expected: string | string[], opts?: RenderToStringOptions) {
   const doc = createSimpleDocument() as Document;
   const chunks: string[] = [];
   const stream: StreamWriter = {
@@ -573,6 +680,7 @@ async function testSSR(node: JSXNode, expected: string | string[]) {
   };
   await renderSSR(doc, node, {
     stream,
+    ...opts,
   });
   if (typeof expected === 'string') {
     equal(chunks.join(''), expected.replace(/(\n|^)\s+/gm, ''));
@@ -580,3 +688,18 @@ async function testSSR(node: JSXNode, expected: string | string[]) {
     equal(chunks, expected);
   }
 }
+
+export const DelayResource = component$((props: { text: string; delay: number }) => {
+  useStylesQrl(inlinedQrl(`.cmp {background: blue}`, 'styles_DelayResource'));
+
+  const resource = useResource$<string>(async ({ track }) => {
+    track(props, 'text');
+    await delay(props.delay);
+    return props.text;
+  });
+  return (
+    <Host class="cmp">
+      <Resource resource={resource} onResolved={(value) => <span>{value}</span>} />
+    </Host>
+  );
+});

@@ -32,6 +32,7 @@ test('defaults (buildMode: production)', async () => {
   equal(opts.buildMode, 'production');
   equal(opts.entryStrategy, { type: 'smart' });
   equal(opts.forceFullBuild, true);
+  equal(opts.resolveQwikBuild, false);
   equal(opts.debug, false);
   equal(opts.rootDir, normalizePath(cwd));
   equal(opts.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
@@ -50,6 +51,7 @@ test('defaults (target: ssr)', async () => {
   equal(opts.buildMode, 'development');
   equal(opts.entryStrategy, { type: 'inline' });
   equal(opts.forceFullBuild, false);
+  equal(opts.resolveQwikBuild, false);
   equal(opts.debug, false);
   equal(opts.rootDir, normalizePath(cwd));
   equal(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr.tsx'))]);
@@ -67,6 +69,7 @@ test('defaults (buildMode: production, target: ssr)', async () => {
   equal(opts.buildMode, 'production');
   equal(opts.entryStrategy, { type: 'inline' });
   equal(opts.forceFullBuild, false);
+  equal(opts.resolveQwikBuild, false);
   equal(opts.debug, false);
   equal(opts.rootDir, normalizePath(cwd));
   equal(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr.tsx'))]);
@@ -175,11 +178,23 @@ test('manifestOutput', async () => {
   equal(opts.manifestOutput, manifestOutput);
 });
 
-test(' manifestInput', async () => {
+test('manifestInput', async () => {
   const plugin = await mockPlugin();
   const manifestInput: QwikManifest = { mapping: {}, symbols: {}, bundles: {}, version: '1' };
   const opts = plugin.normalizeOptions({ manifestInput });
   equal(opts.manifestInput, manifestInput);
+});
+
+test('resolveQwikBuild true', async () => {
+  const plugin = await mockPlugin();
+  const opts = plugin.normalizeOptions({ resolveQwikBuild: true });
+  equal(opts.resolveQwikBuild, true);
+});
+
+test('resolveQwikBuild false', async () => {
+  const plugin = await mockPlugin();
+  const opts = plugin.normalizeOptions({ resolveQwikBuild: false });
+  equal(opts.resolveQwikBuild, false);
 });
 
 async function mockPlugin() {

@@ -209,7 +209,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     opts.vendorRoots = updatedOpts.vendorRoots ? updatedOpts.vendorRoots : [];
     opts.scope = updatedOpts.scope ?? null;
-    opts.resolveQwikBuild = !!updatedOpts.resolveQwikBuild;
+
+    if (typeof updatedOpts.resolveQwikBuild === 'boolean') {
+      opts.resolveQwikBuild = updatedOpts.resolveQwikBuild;
+    }
 
     return { ...opts };
   };

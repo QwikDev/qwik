@@ -30,7 +30,7 @@ export const onRequest: EndpointHandler<BuilderContent> = async ({ url }) => {
 
   const response = await fetch(qwikUrl.href);
   if (response.ok) {
-    const content: BuilderContent = await response.json();
+    const content: BuilderContent = JSON.parse(await response.text());
     return content;
   }
   throw new Error('Unable to load Builder content');

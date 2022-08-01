@@ -38,7 +38,6 @@ export const noUseFunctionInsideBranch: Rule.RuleModule = {
               break;
             }
             if (parent.type === 'Identifier' && isUseFunction(parent.name)) {
-              console.log('check identifier');
               break;
             }
             parent = parent.parent;

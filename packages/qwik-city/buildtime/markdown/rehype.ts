@@ -6,11 +6,12 @@ import { valueToEstree } from 'estree-util-value-to-estree';
 import { headingRank } from 'hast-util-heading-rank';
 import { toString } from 'hast-util-to-string';
 import { visit } from 'unist-util-visit';
-import type { ContentHeading, DocumentMeta, ResolvedDocumentHead } from '../../runtime/src';
+import type { ContentHeading } from '../../runtime/src';
 import { dirname, resolve } from 'path';
 import type { BuildContext } from '../types';
 import { existsSync } from 'fs';
 import { normalizePath } from '../utils/fs';
+import { frontmatterAttrsToDocumentHead } from './frontmatter';
 
 export function rehypePage(ctx: BuildContext): Transformer {
   return (ast, vfile) => {
@@ -57,27 +58,8 @@ function updateContentLinks(mdast: Root, sourcePath: string) {
 
 function exportContentHead(ctx: BuildContext, mdast: Root, sourcePath: string) {
   const attrs = ctx.frontmatter.get(sourcePath);
-  if (Array.isArray(attrs) && attrs.length > 0) {
-    const head: Required<ResolvedDocumentHead> = { title: '', meta: [], styles: [], links: [] };
-
-    for (const attr of attrs) {
-      const parts = attr.split(':');
-      if (parts.length > 1) {
-        const attrName = parts.shift()!;
-        const attrValue = parts.join(':').trim();
-
-        if (attrName === 'title') {
-          head.title = attrValue;
-        } else {
-          const meta: DocumentMeta = {
-            [attrName.startsWith('og:') ? 'property' : 'name']: attrName,
-            content: attrValue,
-          };
-          head.meta.push(meta);
-        }
-      }
-    }
-
+  const head = frontmatterAttrsToDocumentHead(attrs);
+  if (head) {
     createExport(mdast, 'head', head);
   }
 }

@@ -5,11 +5,15 @@ export interface BuildContext {
   layouts: BuildLayout[];
   entries: BuildEntry[];
   menus: BuildMenu[];
-  frontmatter: Map<string, string[]>;
+  frontmatter: Map<string, FrontmatterAttrs>;
   diagnostics: Diagnostic[];
   target: 'ssr' | 'client';
   isDevServer: boolean;
   isDevServerClientOnly: boolean;
+}
+
+export interface FrontmatterAttrs {
+  [attrName: string]: string;
 }
 
 export interface Diagnostic {

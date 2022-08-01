@@ -79,7 +79,7 @@ async function getFsDirTest(dirPath: string, itemName: string) {
     sourceFiles.push(sourceFile);
   }
 
-  const resolved = await resolveSourceFiles(ctx.opts, sourceFiles);
+  const resolved = resolveSourceFiles(ctx.opts, sourceFiles);
 
   ctx.layouts = resolved.layouts;
   ctx.routes = resolved.routes;

@@ -3,21 +3,24 @@ import type { QwikCityRequestContext, QwikCityRequestOptions } from '../request-
 import { errorHandler, notFoundHandler, requestHandler } from '../request-handler';
 import { patchGlobalFetch } from './node-fetch';
 import { Headers as HeadersPolyfill } from 'headers-polyfill';
-import type { Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 
 // @builder.io/qwik-city/middleware/express
 
 /**
  * @public
  */
-export function qwikCity(render: Render, opts: QwikCityExpressOptions) {
+export function qwikCity(render: Render, opts?: QwikCityExpressOptions) {
   patchGlobalFetch();
 
-  return async function (req: Request, res: Response, next: (e: any) => void) {
+  const router = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const requestCtx = fromExpressHttp(req, res);
       try {
-        await requestHandler(requestCtx, render, opts);
+        const rsp = await requestHandler(requestCtx, render, opts);
+        if (!rsp) {
+          next();
+        }
       } catch (e) {
         await errorHandler(requestCtx, e);
       }
@@ -25,19 +28,19 @@ export function qwikCity(render: Render, opts: QwikCityExpressOptions) {
       next(e);
     }
   };
-}
 
-/**
- * @public
- */
-export function qwikCity404() {
-  return async function (req: Request, res: Response, next: (e: any) => void) {
+  const notFound = async (req: Request, res: Response, next: (e: any) => void) => {
     try {
       const requestCtx = fromExpressHttp(req, res);
       await notFoundHandler(requestCtx);
     } catch (e) {
       next(e);
     }
+  };
+
+  return {
+    router,
+    notFound,
   };
 }
 
@@ -88,15 +91,7 @@ function fromExpressHttp(req: Request, res: Response) {
       headers.forEach((value, key) => res.setHeader(key, value));
       body({
         write: (chunk) => {
-          return new Promise<void>((resolve, reject) => {
-            res.write(chunk, (err) => {
-              if (err) {
-                reject(err);
-              } else {
-                resolve();
-              }
-            });
-          });
+          res.write(chunk);
         },
       }).finally(() => {
         res.end();

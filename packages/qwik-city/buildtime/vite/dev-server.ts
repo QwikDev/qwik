@@ -23,6 +23,13 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         return;
       }
 
+      // see if this path is a static file in one of these directories which vite will serve
+      const isAsset = await isStaticAsset(server, pathname);
+      if (isAsset) {
+        next();
+        return;
+      }
+
       const serverRequestEv = fromDevServerHttp(url, req, res);
       const { request, response } = serverRequestEv;
       const result = await buildFromUrlPathname(ctx, pathname);
@@ -92,23 +99,6 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         }
       }
 
-      // see if this path is a static file in one of these directories which vite will serve
-      const publicDirs = ['dist', 'public'].map((dir) => join(server.config.root, dir));
-      publicDirs.push(server.config.build.outDir);
-
-      for (const publicDir of publicDirs) {
-        try {
-          // check for public path static asset
-          await fs.promises.access(join(publicDir, pathname));
-
-          // use vite's static file server
-          next();
-          return;
-        } catch (e) {
-          //
-        }
-      }
-
       // static file does not exist, 404
       await notFoundHandler(serverRequestEv);
     } catch (e) {
@@ -128,6 +118,26 @@ function isVitePathname(pathname: string) {
     pathname.startsWith('/src/') ||
     pathname.startsWith('/favicon.ico')
   );
+}
+
+async function isStaticAsset(server: ViteDevServer, pathname: string) {
+  const localPath = pathname.slice(1);
+  const publicDirs = ['dist', 'public'].map((dir) => join(server.config.root, dir));
+  publicDirs.push(server.config.build.outDir);
+
+  for (const publicDir of publicDirs) {
+    try {
+      // check for public path static file asset
+      const filePath = join(publicDir, localPath);
+      const s = await fs.promises.stat(filePath);
+      if (s.isFile()) {
+        return true;
+      }
+    } catch (e) {
+      //
+    }
+  }
+  return false;
 }
 
 function fromDevServerHttp(url: URL, req: Connect.IncomingMessage, res: ServerResponse) {

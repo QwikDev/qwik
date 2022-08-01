@@ -13,10 +13,7 @@ import { getPathnameFromFilePath } from '../utils/pathname';
 import { parseRoutePathname } from './parse-pathname';
 import { sortRoutes } from './sort-routes';
 
-export async function resolveSourceFiles(
-  opts: NormalizedPluginOptions,
-  sourceFiles: RouteSourceFile[]
-) {
+export function resolveSourceFiles(opts: NormalizedPluginOptions, sourceFiles: RouteSourceFile[]) {
   const layouts = sourceFiles
     .filter((s) => s.type === 'layout')
     .map((s) => resolveLayout(opts, s))

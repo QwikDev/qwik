@@ -37,7 +37,7 @@ export const noUseFunctionInsideBranch: Rule.RuleModule = {
               });
               break;
             }
-            if (parent.type === 'Identifier' && isUseFunction(parent.name)) {
+            if (parent.type === 'CallExpression' || parent.type === 'ArrowFunctionExpression') {
               break;
             }
             parent = parent.parent;

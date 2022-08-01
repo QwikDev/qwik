@@ -6,8 +6,8 @@ const useHooks$ = [
   'useCleanup$',
   'useStyles$',
   'useScopedStyles$',
-  'useResource$'
-]
+  'useResource$',
+];
 
 export const isUseFunction = (string: string) => {
   return useHooks$.includes(string);

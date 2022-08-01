@@ -375,66 +375,74 @@ test('valid-lexical-scope', () => {
 });
 
 test('no-use-outside-component', () => {
-  ruleTester.run('no-use-outside-component', rules['no-use-function-outside-component'] as any, {
-    valid: [
-      `
+  ruleTester.run(
+    'no-use-outside-component',
+    rules['no-use-function-outside-component-or-use'] as any,
+    {
+      valid: [
+        `
       export default component$(() => {
         const resource = useResource$(() => {});
       })
     `,
-      `
+        `
       export default component$(() => {
         const resource = useResource$(() => useServerMount$());
       })
     `,
-    ],
-    invalid: [
-      {
-        code: `const resource = useResource$(() => console.log('hello'))`,
-        errors: [USE_FUNCTION_OUTSIDE_VALID_SCOPE],
-      },
-      {
-        code: `const resource = () => useResource$(() => console.log('hello'))`,
-        errors: [USE_FUNCTION_OUTSIDE_VALID_SCOPE],
-      },
-    ],
-  });
+      ],
+      invalid: [
+        {
+          code: `const resource = useResource$(() => console.log('hello'))`,
+          errors: [USE_FUNCTION_OUTSIDE_VALID_SCOPE],
+        },
+        {
+          code: `const resource = () => useResource$(() => console.log('hello'))`,
+          errors: [USE_FUNCTION_OUTSIDE_VALID_SCOPE],
+        },
+      ],
+    }
+  );
 });
 
 test('no-use-function-inside-branch', () => {
-  ruleTester.run('no-use-function-inside-branch', rules['no-use-function-inside-branch'] as any, {
-    valid: [
-      `
+  ruleTester.run(
+    'no-use-function-inside-branch',
+    rules['no-use-function-outside-callback-root'] as any,
+    {
+      valid: [
+        `
       export default component$(() => {
         const resource = useResource$(() => {});
       })
     `,
-      `
+        `
       export default component$(() => {
         const resource = useResource$(() => useServerMount$());
       })
     `,
-    ],
-    invalid: [
-      {
-        code: `
+      ],
+      invalid: [
+        {
+          code: `
           export default component$(() => {
             const resource = true ? useResource$(() => {}) : false;
           })
         `,
-        errors: [USE_FUNCTION_OUTSIDE_ROOT],
-      },
-      {
-        code: `
+          errors: [USE_FUNCTION_OUTSIDE_ROOT],
+        },
+        {
+          code: `
           export default component$(() => {
             let resource; 
             if (true) {resource = useResource$(() => {})};
           })
         `,
-        errors: [USE_FUNCTION_OUTSIDE_ROOT],
-      },
-    ],
-  });
+          errors: [USE_FUNCTION_OUTSIDE_ROOT],
+        },
+      ],
+    }
+  );
 });
 
 test.run();

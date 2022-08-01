@@ -1,7 +1,7 @@
 import { validLexicalScope } from './src/validLexicalScope';
 import { noUseAfterAwait } from './src/noUseAfterAwait';
-import { noUseFunctionInsideBranch } from './src/noUseFunctionInsideBranch';
-import { noUseFunctionOutsideComponent } from './src/useFunctionOutsideValidContext';
+import { noUseFunctionInsideBranch } from './src/noUseInsideBranch';
+import { noUseFunctionOutsideComponent } from './src/noUseOutsideCompent';
 
 type Rules = {
   [K in keyof typeof rules as `qwik/${K}`]: string;
@@ -15,8 +15,8 @@ type Config = {
 export const rules = {
   'no-use-after-await': noUseAfterAwait,
   'valid-lexical-scope': validLexicalScope,
-  'no-use-function-inside-branch': noUseFunctionInsideBranch,
-  'no-use-function-outside-component': noUseFunctionOutsideComponent,
+  'no-use-function-outside-callback-root': noUseFunctionInsideBranch,
+  'no-use-function-outside-component-or-use': noUseFunctionOutsideComponent,
 } as const;
 
 export const configs: Record<string, Config> = {
@@ -25,8 +25,8 @@ export const configs: Record<string, Config> = {
     rules: {
       'qwik/no-use-after-await': 'error',
       'qwik/valid-lexical-scope': 'error',
-      'qwik/no-use-function-inside-branch': 'error',
-      'qwik/no-use-function-outside-component': 'error',
+      'qwik/no-use-function-outside-callback-root': 'error',
+      'qwik/no-use-function-outside-component-or-use': 'error',
     },
   },
   strict: {
@@ -34,8 +34,8 @@ export const configs: Record<string, Config> = {
     rules: {
       'qwik/no-use-after-await': 'error',
       'qwik/valid-lexical-scope': 'error',
-      'qwik/no-use-function-inside-branch': 'error',
-      'qwik/no-use-function-outside-component': 'error',
+      'qwik/no-use-function-outside-callback-root': 'error',
+      'qwik/no-use-function-outside-component-or-use': 'error',
     },
   },
 };

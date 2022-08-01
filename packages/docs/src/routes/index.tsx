@@ -26,11 +26,16 @@ export const onRequest: EndpointHandler<BuilderContent> = async ({ url }) => {
   qwikUrl.searchParams.set('apiKey', 'fe30f73e01ef40558cd69a9493eba2a2');
   qwikUrl.searchParams.set('userAttributes.urlPath', url.pathname);
 
-  const response = await fetch(qwikUrl);
-  if (response.ok) {
-    const content: BuilderContent = await response.json();
-    return content;
-  }
+  const content: BuilderContent = {
+    html: qwikUrl.href,
+  };
+  return content;
+
+  // const response = await fetch(qwikUrl.href);
+  // if (response.ok) {
+  //   const content: BuilderContent = await response.json();
+  //   return content;
+  // }
   throw new Error('Unable to load content');
 };
 

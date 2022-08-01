@@ -48,9 +48,6 @@
     "source-map": "0.7.4",
     "vfile": "5.3.4"
   },
-  "peerDependencies": {
-    "@builder.io/qwik": ">=0.0.38"
-  },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",
     "@microsoft/api-extractor": "7.28.5",

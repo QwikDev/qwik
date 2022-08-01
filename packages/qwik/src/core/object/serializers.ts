@@ -157,7 +157,9 @@ const PureFunctionSerializer: Serializer<Function> = {
     return obj.toString();
   },
   prepare: (data) => {
-    return new Function('return ' + data)();
+    const fn = new Function('return ' + data)();
+    fn.__qwik_serializable__ = true;
+    return fn;
   },
   fill: undefined,
 };

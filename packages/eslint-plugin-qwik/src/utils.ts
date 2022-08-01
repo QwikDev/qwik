@@ -1,3 +1,14 @@
+const useHooks$ = [
+  'useWatch$',
+  'useServerMount$',
+  'useMount$',
+  'useClientEffect$',
+  'useCleanup$',
+  'useStyles$',
+  'useScopedStyles$',
+  'useResource$'
+]
+
 export const isUseFunction = (string: string) => {
-  return string.startsWith('use') && string.endsWith('$');
+  return useHooks$.includes(string);
 };

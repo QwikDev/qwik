@@ -1,14 +1,11 @@
-import { component$, Host, Resource, useUserContext } from '@builder.io/qwik';
-import { EndpointHandler, useEndpoint } from '@builder.io/qwik-city';
+import { component$, Host, Resource } from '@builder.io/qwik';
+import { DocumentHead, EndpointHandler, useEndpoint } from '@builder.io/qwik-city';
 
 export default component$(() => {
   const resource = useEndpoint<typeof onRequest>();
 
-  const userCtx = useUserContext('qwikcity');
-
   return (
     <Host>
-      <div>{JSON.stringify(userCtx)}</div>
       <Resource
         resource={resource}
         onResolved={(builderContent) => {
@@ -42,3 +39,7 @@ export const onRequest: EndpointHandler<BuilderContent> = async ({ url }) => {
 interface BuilderContent {
   html: string;
 }
+
+export const head: DocumentHead = {
+  title: 'Framework reimagined for the edge!',
+};

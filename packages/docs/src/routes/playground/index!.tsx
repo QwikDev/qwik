@@ -5,6 +5,7 @@ import styles from './playground.css?inline';
 import playgroundApp from '@playground-data';
 import type { ReplAppInput } from '../../repl/types';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/repl-share-url';
+import type { DocumentHead } from '@builder.io/qwik-city';
 
 export default component$(() => {
   useStyles$(styles);
@@ -101,6 +102,10 @@ export default component$(() => {
     </Host>
   );
 });
+
+export const head: DocumentHead = {
+  title: 'Playground',
+};
 
 export interface PlaygroundStore extends ReplAppInput {
   colResizeActive: boolean;

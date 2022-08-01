@@ -4,7 +4,7 @@ import styles from './examples.css?inline';
 import { Header } from '../../components/header/header';
 import exampleSections, { ExampleApp } from '@examples-data';
 import type { ReplAppInput } from '../../repl/types';
-import { useLocation } from '@builder.io/qwik-city';
+import { DocumentHead, useLocation } from '@builder.io/qwik-city';
 
 export default component$(() => {
   useStyles$(styles);
@@ -30,6 +30,9 @@ export default component$(() => {
     const appId = track(store, 'appId');
     const app = getExampleApp(appId);
     store.files = app?.inputs || [];
+    if (typeof document !== 'undefined') {
+      document.title = `${app?.title} - Qwik`;
+    }
   });
 
   return (
@@ -121,6 +124,13 @@ export const getExampleApp = (id: string): ExampleApp | undefined => {
       }
     }
   }
+};
+
+export const head: DocumentHead = ({ params }) => {
+  const app = getExampleApp(params.id);
+  return {
+    title: app?.title || 'Example',
+  };
 };
 
 export const PANELS: ActivePanel[] = ['Examples', 'Input', 'Output', 'Console'];

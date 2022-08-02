@@ -570,6 +570,12 @@ export interface UseEffectOptions {
     eagerness?: EagernessOptions;
 }
 
+// @alpha (undocumented)
+export function useEnvData<T>(key: string): T | undefined;
+
+// @alpha (undocumented)
+export function useEnvData<T, B = T>(key: string, defaultValue: B): T | B;
+
 // @public
 export const useHostElement: () => Element;
 
@@ -640,12 +646,6 @@ export const useStyles$: (first: string) => void;
 
 // @public
 export const useStylesQrl: (styles: QRL<string>) => void;
-
-// @alpha (undocumented)
-export function useUserContext<T>(key: string): T | undefined;
-
-// @alpha (undocumented)
-export function useUserContext<T, B = T>(key: string, defaultValue: B): T | B;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "WatchFn" which is marked as @alpha
 // Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "UseEffectOptions" which is marked as @alpha

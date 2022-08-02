@@ -228,7 +228,7 @@ renderSuite('should render component external props', async () => {
   );
 });
 
-renderSuite('should render a blank component', async () => {
+renderSuite.skip('should render a blank component', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <InnerHTMLComponent />);

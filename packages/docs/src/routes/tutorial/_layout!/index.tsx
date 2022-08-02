@@ -60,12 +60,20 @@ export default component$(() => {
                 </p>
               ) : null}
               <p class="edit-tutorial">
+                <EditIcon width={16} height={16} />
+                <span>Edit:</span>
                 <a
-                  href={`https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/pages/tutorial/${store.appId}`}
+                  href={`https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/tutorial/${store.appId}/index.mdx`}
                   target="_blank"
                 >
-                  <EditIcon width={18} height={18} />
-                  <span>Edit this tutorial</span>
+                  <span>Tutorial content</span>
+                </a>
+                <span>|</span>
+                <a
+                  href={`https://github.com/BuilderIO/qwik/tree/main/packages/docs/src/repl/apps/tutorial/${store.appId}`}
+                  target="_blank"
+                >
+                  <span>Tutorial app</span>
                 </a>
               </p>
             </div>

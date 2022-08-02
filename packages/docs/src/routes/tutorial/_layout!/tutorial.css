@@ -239,15 +239,21 @@
   overflow: hidden;
 }
 
+.content-main p.edit-tutorial {
+  color: rgb(130, 130, 130);
+  font-size: 14px;
+}
+
 .edit-tutorial svg {
   display: inline-block;
-  margin: 0 4px 5px 0;
+  margin: 0 2px 5px 0;
 }
 
 .edit-tutorial a {
-  color: rgb(130, 130, 130);
-  font-size: 14px;
   text-decoration: none;
+  color: inherit;
+  font-size: inherit;
+  padding: 0 5px;
 }
 
 .edit-tutorial a:hover {

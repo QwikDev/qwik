@@ -186,6 +186,11 @@ export const useEndpoint: <T = unknown>() => ResourceReturn<GetEndpointData<T>>;
 // @public (undocumented)
 export const useLocation: () => RouteLocation;
 
+// Warning: (ae-forgotten-export) The symbol "RouteNavigate" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const useNavigate: () => RouteNavigate;
+
 // (No @packageDocumentation comment for this package)
 
 ```

@@ -5,6 +5,11 @@ export const isHtmlElement = (node: any): node is Element => {
   return node ? node.nodeType === 1 : false;
 };
 
+export const isSerializableObject = (v: any) => {
+  const proto = Object.getPrototypeOf(v);
+  return proto === Object.prototype || proto === null;
+};
+
 export const isObject = (v: any): v is any => {
   return v && typeof v === 'object';
 };

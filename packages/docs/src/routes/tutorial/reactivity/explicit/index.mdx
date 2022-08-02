@@ -1,6 +1,5 @@
 ---
 title: Explicit Reactivity
-layout: tutorial
 ---
 
 In addition to implicit reactivity created by the templates, Qwik supports explicit execution of code when a property changes. This is achieved through the `useWatch$()` hook. `useWatch$()` hooks execute before the component renders and can be asynchronous. The hook can also have a clean-up function that is invoked on the next hook execution or when the component is removed.

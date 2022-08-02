@@ -112,6 +112,7 @@ export async function renderToStream(
     stream,
     fragmentTagName: opts.fragmentTagName,
     userContext: opts.userContext,
+    url: opts.url instanceof URL ? opts.url.href : opts.url,
     base: buildBase,
     beforeContent,
     beforeClose: async (contexts, containerState) => {

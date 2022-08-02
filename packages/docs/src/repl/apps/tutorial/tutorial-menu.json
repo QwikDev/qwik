@@ -355,6 +355,13 @@
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
+      },
+      {
+        "id": "scoped",
+        "title": "useScopedStyles() - Scoped styles",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
       }
     ]
   },

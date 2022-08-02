@@ -225,18 +225,14 @@ async function ssrApp(
 
   // ssr the document
   const base = `/${appName}/build/`;
-  const url = new URL(req.url, address);
-
   console.log('req.url', req.url);
   const chunks: string[] = [];
   const opts: RenderToStreamOptions = {
     stream: res,
     manifest,
+    url: new URL(`${req.protocol}://${req.hostname}${req.url}`),
     debug: true,
     base,
-    userContext: {
-      url: url.href,
-    },
   };
   await render(opts);
 

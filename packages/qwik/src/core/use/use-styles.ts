@@ -49,11 +49,36 @@ export const useStylesQrl = (styles: QRL<string>): void => {
  *   return <Host>Some text</Host>;
  * });
  * ```
+ *
  * *
  * @public
  */
 // </docs>
 export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
+
+// <docs markdown="../readme.md#useScopedStyles">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#useScopedStyles instead)
+/**
+ * @see `useStyles`.
+ *
+ * @alpha
+ */
+// </docs>
+export const useScopedStylesQrl = (styles: QRL<string>): void => {
+  _useStyles(styles, true);
+};
+
+// <docs markdown="../readme.md#useScopedStyles">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#useScopedStyles instead)
+/**
+ * @see `useStyles`.
+ *
+ * @alpha
+ */
+// </docs>
+export const useScopedStyles$ = /*#__PURE__*/ implicit$FirstArg(useScopedStylesQrl);
 
 const _useStyles = (styleQrl: QRL<string>, scoped: boolean) => {
   const { get, set, ctx, i } = useSequentialScope<boolean>();

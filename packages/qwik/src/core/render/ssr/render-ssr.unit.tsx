@@ -3,7 +3,7 @@ import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
 import { createSimpleDocument } from '../../../server/document';
 
-import type { RenderToStringOptions, StreamWriter } from '../../../server/types';
+import type { StreamWriter } from '../../../server/types';
 import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../import/qrl';
 import { $ } from '../../import/qrl.public';
@@ -16,7 +16,7 @@ import { useClientEffect$ } from '../../use/use-watch';
 import { delay } from '../../util/promises';
 import { Host, SkipRerender, SSRFlush, SSRMark } from '../jsx/host.public';
 import { Slot } from '../jsx/slot.public';
-import { renderSSR } from './render-ssr';
+import { renderSSR, RenderSSROptions } from './render-ssr';
 
 const renderSSRSuite = suite('renderSSR');
 renderSSRSuite('render attributes', async () => {
@@ -752,7 +752,11 @@ export const HtmlContext = component$(
     tagName: 'html',
   }
 );
-async function testSSR(node: JSXNode, expected: string | string[], opts?: RenderToStringOptions) {
+async function testSSR(
+  node: JSXNode,
+  expected: string | string[],
+  opts?: Partial<RenderSSROptions>
+) {
   const doc = createSimpleDocument() as Document;
   const chunks: string[] = [];
   const stream: StreamWriter = {

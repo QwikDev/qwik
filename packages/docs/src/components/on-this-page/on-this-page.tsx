@@ -1,9 +1,10 @@
-import { useContent } from '@builder.io/qwik-city';
+import { useContent, useLocation } from '@builder.io/qwik-city';
 import { component$, Host, useStyles$ } from '@builder.io/qwik';
 import { ChatIcon } from '../svgs/chat-icon';
 import { GithubLogo } from '../svgs/github-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './on-this-page.css?inline';
+import { EditIcon } from '../svgs/edit-icon';
 
 export const OnThisPage = component$(
   () => {
@@ -12,10 +13,8 @@ export const OnThisPage = component$(
     const { headings } = useContent();
     const contentHeadings = headings?.filter((h) => h.level === 2 || h.level === 3) || [];
 
-    // const editUrl = new URL(
-    //   page.source.path,
-    //   'https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/pages/'
-    // );
+    const { pathname } = useLocation();
+    const editUrl = `https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes${pathname}.mdx`;
 
     return (
       <Host class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-45rem))] overflow-y-auto hidden xl:block xl:w-[18rem] xl:top-[5rem]">
@@ -42,18 +41,14 @@ export const OnThisPage = component$(
 
         <h6>More</h6>
         <ul>
-          {/* <li>
-            <a href={editUrl.href} target="_blank" rel="nofollow noopener">
+          <li>
+            <a href={editUrl} target="_blank">
               <EditIcon width={22} height={22} />
               <span>Edit this page</span>
             </a>
-          </li> */}
+          </li>
           <li>
-            <a
-              href="https://github.com/BuilderIO/qwik/issues/new/choose"
-              target="_blank"
-              rel="nofollow noopener"
-            >
+            <a href="https://github.com/BuilderIO/qwik/issues/new/choose" target="_blank">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="21"

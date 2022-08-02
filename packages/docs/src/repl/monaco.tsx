@@ -49,7 +49,7 @@ export const initMonacoEditor = async (
 
   ts.typescriptDefaults.setEagerModelSync(true);
 
-  if (typeof props.onChange$ === 'object') {
+  if (props.onChange$) {
     let debounceTmrId: any = null;
     let diagnosticsTmrId: any = null;
 

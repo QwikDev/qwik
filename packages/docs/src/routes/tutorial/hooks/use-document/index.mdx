@@ -1,6 +1,5 @@
 ---
 title: useDocument()
-layout: tutorial
 ---
 
 `useDocument()` returns the current `document`. In the browser `useDocument()` is identical to `document` (as browser only has one document). On the server, there is no global document; therefore, referring to `document` is `undefined`. Additionally, the server may be processing many different requests and therefore may have more than one `document` at a time. `useDocument()` on the server returns the document associated with the current application.

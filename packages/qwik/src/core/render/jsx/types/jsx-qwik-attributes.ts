@@ -128,7 +128,6 @@ export type PreventDefault = {
 
 export interface QwikProps extends PreventDefault {
   class?: string | { [className: string]: boolean };
-  innerHTML?: string;
   dangerouslySetInnerHTML?: string;
   ref?: Ref<Element>;
 

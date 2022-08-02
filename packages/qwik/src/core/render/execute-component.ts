@@ -14,7 +14,7 @@ import { intToStr } from '../object/store';
 import { directSetAttribute } from './fast-calls';
 
 export interface ExecuteComponentOutput {
-  node: JSXNode;
+  node: JSXNode | null;
   rctx: RenderContext;
 }
 

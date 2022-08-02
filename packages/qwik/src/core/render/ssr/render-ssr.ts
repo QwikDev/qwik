@@ -44,12 +44,15 @@ export interface SSRContext {
   hostId: string | undefined;
   invocationContext?: InvokeContext | undefined;
   $contexts$: QContext[];
+  headNodes: JSXNode[];
 }
 
 export interface RenderSSROptions {
   fragmentTagName?: string;
   stream: StreamWriter;
   base?: string;
+  userContext?: Record<string, any>;
+  beforeContent?: JSXNode[];
   beforeClose?: (contexts: QContext[], containerState: ContainerState) => Promise<JSXNode>;
 }
 
@@ -67,7 +70,13 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
     hostId: undefined,
     projectedChildren: undefined,
     invocationContext: undefined,
+    headNodes: [getBaseStyles()],
   };
+  const beforeContent = opts.beforeContent;
+  const beforeClose = opts.beforeClose;
+  if (beforeContent) {
+    ssrCtx.headNodes.push(...beforeContent);
+  }
   const containerAttributes: Record<string, string> = {
     'q:container': 'paused',
     'q:version': version ?? 'dev',
@@ -76,18 +85,22 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
   if (opts.base) {
     containerAttributes['q:base'] = opts.base;
   }
+  if (opts.userContext) {
+    Object.assign(containerState.$userContext$, opts.userContext);
+  }
+
   if (opts.fragmentTagName) {
     node = jsx(root, {
       ...containerAttributes,
-      children: [getBaseStyles(), node],
+      children: [...ssrCtx.headNodes, node],
     });
     await renderNode(node, ssrCtx, opts.stream, 0, () =>
-      opts.beforeClose?.(ssrCtx.$contexts$, containerState)
+      beforeClose?.(ssrCtx.$contexts$, containerState)
     );
   } else {
     const elCtx = getContext(containerEl);
     await renderRootNode(node, elCtx, containerAttributes, ssrCtx, opts.stream, 0, () =>
-      opts.beforeClose?.(ssrCtx.$contexts$, containerState)
+      beforeClose?.(ssrCtx.$contexts$, containerState)
     );
   }
 };
@@ -190,7 +203,7 @@ export const renderNodeElement = (
   }
   if (renderQrl) {
     elCtx.$renderQrl$ = renderQrl;
-    return renderSSRComponent(ssrCtx, stream, elCtx, node, attributes, flags);
+    return renderSSRComponent(ssrCtx, stream, elCtx, node, attributes, flags, beforeClose);
   }
   const slotName = props[QSlotName];
   const isSlot = typeof slotName === 'string';
@@ -219,8 +232,9 @@ export const renderNodeElement = (
   return then(promise, () => {
     // If head inject base styles
     if (textType === 'head') {
-      const globalStyles = getBaseStyles();
-      renderNodeElementSync(globalStyles.type, globalStyles.props, stream);
+      ssrCtx.headNodes.forEach((node) => {
+        renderNodeElementSync(node.type, node.props, stream);
+      });
     }
     // Fast path
     if (!isSlot && !beforeClose) {
@@ -259,7 +273,7 @@ export const renderNodeElementSync = (
 ): boolean => {
   stream.write(`<${tagName}`);
   Object.entries(attributes).forEach(([key, value]) => {
-    if (key !== 'innerHTML') {
+    if (key !== 'dangerouslySetInnerHTML') {
       const chunk = value === '' ? ` ${key}` : ` ${key}="${escapeAttr(value)}"`;
       stream.write(chunk);
     }
@@ -272,8 +286,9 @@ export const renderNodeElementSync = (
   }
 
   // Render innerHTML
-  if (attributes.innerHTML) {
-    stream.write(attributes.innerHTML);
+  const innerHTML = attributes.dangerouslySetInnerHTML;
+  if (innerHTML) {
+    stream.write(innerHTML);
     stream.write(`</${tagName}>`);
     return true;
   }
@@ -305,7 +320,8 @@ export const renderSSRComponent = (
   elCtx: QContext,
   node: JSXNode<string>,
   attributes: Record<string, string>,
-  flags: number
+  flags: number,
+  beforeClose?: () => ValueOrPromise<any>
 ): ValueOrPromise<void> => {
   return then(executeComponent(ssrCtx.rctx, elCtx), (res) => {
     if (res) {
@@ -334,13 +350,16 @@ export const renderSSRComponent = (
       const processedNode = jsx(node.type, {
         ...attributes,
       });
-      if (res.node.type === Host) {
-        processedNode.props = {
-          ...attributes,
-          ...res.node.props,
-        };
-      } else {
-        processedNode.props['children'] = res.node;
+
+      if (res.node) {
+        if (res.node.type === Host) {
+          processedNode.props = {
+            ...attributes,
+            ...res.node.props,
+          };
+        } else {
+          processedNode.props['children'] = res.node;
+        }
       }
       flags |= IS_HOST;
       const extraNodes = [];
@@ -348,7 +367,7 @@ export const renderSSRComponent = (
         extraNodes!.push(
           jsx('style', {
             [QStyle]: style.styleId,
-            innerHTML: style.content,
+            dangerouslySetInnerHTML: style.content,
           })
         );
       }
@@ -361,9 +380,10 @@ export const renderSSRComponent = (
         stream,
         flags,
         () => {
+          const beforeResult = beforeClose?.();
           const projectedChildren = newSSrContext.projectedChildren;
           if (projectedChildren) {
-            return Object.keys(projectedChildren).map((slotName) => {
+            const nodes = Object.keys(projectedChildren).map((slotName) => {
               const value = projectedChildren[slotName];
               if (value) {
                 return jsx('q:template', {
@@ -374,8 +394,12 @@ export const renderSSRComponent = (
                 });
               }
             });
+            if (beforeResult) {
+              nodes.push(beforeResult);
+            }
+            return nodes;
           }
-          return null;
+          return beforeResult;
         }
       );
     }
@@ -489,7 +513,7 @@ function walkChildren(
       return then(prevPromise, () => {
         currentIndex++;
         if (buffers.length > currentIndex) {
-          buffers[currentIndex].forEach(stream.write);
+          buffers[currentIndex].forEach((chunk) => stream.write(chunk));
         }
       });
     });
@@ -688,6 +712,6 @@ export const escapeAttr = (s: string) => {
 const getBaseStyles = () => {
   return jsx('style', {
     id: 'qwik/base-styles',
-    innerHTML: BASE_QWIK_STYLES,
+    dangerouslySetInnerHTML: BASE_QWIK_STYLES,
   });
 };

@@ -98,7 +98,7 @@ function linkJsImplementation(
 
   return jsx('script', {
     type: 'module',
-    innerHTML: s,
+    dangerouslySetInnerHTML: s,
   });
 }
 
@@ -108,6 +108,6 @@ function workerFetchImplementation(prefetchResources: PrefetchResource[]) {
 
   return jsx('script', {
     type: 'module',
-    innerHTML: s,
+    dangerouslySetInnerHTML: s,
   });
 }

@@ -10,11 +10,14 @@ export const Streaming = component$(() => {
   return (
     <Host>
       <ul>
+        {delay(100).then(() => (
+          <div>HELLO</div>
+        ))}
         <Cmp text="this 1" delay={1000}></Cmp>
-        <Cmp text="this 2" delay={1100}></Cmp>
-        <Cmp text="this 3" delay={1200}></Cmp>
-        <Cmp text="this 4" delay={2000}></Cmp>
-        <Cmp text="this 5" delay={100}></Cmp>
+        <Cmp text="this 2" delay={2000}></Cmp>
+        <Cmp text="this 3" delay={3000}></Cmp>
+        <Cmp text="this 4" delay={4000}></Cmp>
+        <Cmp text="this 5" delay={3000}></Cmp>
       </ul>
     </Host>
   );

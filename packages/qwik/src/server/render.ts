@@ -36,9 +36,9 @@ export async function renderToStream(
     buffering: 'none',
   };
   const buffer: string[] = [];
-  const nativeWrite = stream.write.bind(stream);
+  const nativeStream = stream;
   function flush() {
-    buffer.forEach(nativeWrite);
+    buffer.forEach((chunk) => nativeStream.write(chunk));
     buffer.length = 0;
   }
   switch (inOrderStreaming.buffering) {
@@ -103,17 +103,24 @@ export async function renderToStream(
   let prefetchResources: PrefetchResource[] = [];
   let snapshotResult: SnapshotResult | null = null;
 
+  const injections = opts.manifest?.injections;
+  const beforeContent = injections
+    ? injections.map((injection) => jsx(injection.tag, injection.attributes))
+    : undefined;
+
   await renderSSR(doc, rootNode, {
     stream,
     fragmentTagName: opts.fragmentTagName,
+    userContext: opts.userContext,
     base: buildBase,
+    beforeContent,
     beforeClose: async (contexts, containerState) => {
       snapshotResult = await pauseFromContexts(contexts, containerState);
       prefetchResources = getPrefetchResources(snapshotResult, opts, mapper);
       const children: (JSXNode | null)[] = [
         jsx('script', {
           type: 'qwik/json',
-          innerHTML: escapeText(JSON.stringify(snapshotResult.state)),
+          dangerouslySetInnerHTML: escapeText(JSON.stringify(snapshotResult.state)),
         }),
       ];
       if (prefetchResources.length > 0) {
@@ -130,7 +137,7 @@ export async function renderToStream(
         children.push(
           jsx('script', {
             id: 'qwikloader',
-            innerHTML: qwikLoaderScript,
+            dangerouslySetInnerHTML: qwikLoaderScript,
           })
         );
       }

@@ -58,7 +58,7 @@ export { useMount$, useMountQrl } from './use/use-watch';
 // JSX Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export { h } from './render/jsx/factory';
-export { Host, SkipRerender, SSRMark } from './render/jsx/host.public';
+export { Host, SkipRerender } from './render/jsx/host.public';
 export { Slot } from './render/jsx/slot.public';
 export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
 export type { HTMLAttributes, AriaAttributes } from './render/jsx/types/jsx-generated';
@@ -68,6 +68,7 @@ export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
 export { render } from './render/dom/render.public';
 export { renderSSR } from './render/ssr/render-ssr';
+export { SSRFlush, SSRMark } from './render/jsx/host.public';
 
 export type { RenderOptions } from './render/dom/render.public';
 export { handleWatch } from './render/dom/notify-render';

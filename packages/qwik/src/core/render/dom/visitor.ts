@@ -71,7 +71,13 @@ export const visitJsxNode = (
     return smartUpdateChildren(ctx, elm, jsxNode.flat(), 'root', isSvg);
   } else if (jsxNode.$type$ === HOST_TYPE) {
     const isSlot = QSlotName in jsxNode.$props$;
-    updateProperties(ctx, getContext(elm), jsxNode.$props$, isSvg, true);
+    const hostCtx = getContext(elm);
+    jsxNode.$elm$ = elm;
+    updateProperties(ctx, hostCtx, jsxNode.$props$, isSvg, true);
+    if (isSlot && hostCtx.$component$) {
+      directSetAttribute(elm, QSlotRef, hostCtx.$id$);
+      hostCtx.$component$.$slots$.push(jsxNode);
+    }
     return smartUpdateChildren(
       ctx,
       elm,
@@ -309,7 +315,8 @@ export const patchVnode = (
 
   const props = vnode.$props$;
   const ctx = getContext(elm as Element);
-  const isSlot = QSlotName in props;
+  const isComponent = isComponentNode(vnode);
+  const isSlot = !isComponent && QSlotName in props;
   let dirty = updateProperties(rctx, ctx, props, isSvg, false);
   if (isSvg && vnode.$type$ === 'foreignObject') {
     isSvg = false;
@@ -320,7 +327,6 @@ export const patchVnode = (
       currentComponent.$slots$.push(vnode);
     }
   }
-  const isComponent = isComponentNode(vnode);
   const ch = vnode.$children$;
   if (isComponent) {
     if (!dirty && !ctx.$renderQrl$ && !ctx.$element$.hasAttribute(ELEMENT_ID)) {
@@ -331,7 +337,8 @@ export const patchVnode = (
     }
     const promise = dirty ? renderComponent(rctx, ctx) : undefined;
     return then(promise, () => {
-      const slotMaps = getSlots(ctx.$component$, elm as Element);
+      const currentComponent = ctx.$component$;
+      const slotMaps = getSlots(currentComponent, elm as Element);
       const splittedChidren = splitBy(ch, getSlotName);
       const promises: ValueOrPromise<void>[] = [];
       const slotRctx = copyRenderContext(rctx);
@@ -539,7 +546,7 @@ const createElm = (
   }
 
   const currentComponent = rctx.$currentComponent$;
-  if (isSlot && currentComponent) {
+  if (isSlot && !isComponent && currentComponent) {
     directSetAttribute(elm, QSlotRef, currentComponent.$id$);
     currentComponent.$slots$.push(vnode);
   }
@@ -561,6 +568,7 @@ const createElm = (
     }
   }
   return then(wait, () => {
+    const currentComponent = ctx.$component$;
     let children = vnode.$children$;
     if (children.length > 0) {
       if (children.length === 1 && children[0].$type$ === SKIP_RENDER_TYPE) {
@@ -568,7 +576,7 @@ const createElm = (
       }
       const slotRctx = copyRenderContext(rctx);
       slotRctx.$contexts$.push(ctx);
-      const slotMap = isComponent ? getSlots(ctx.$component$, elm) : undefined;
+      const slotMap = isComponent ? getSlots(currentComponent, elm) : undefined;
       const promises = children.map((ch) => createElm(slotRctx, ch, isSvg, false));
       return then(promiseAll(promises), () => {
         let parent = elm;
@@ -608,7 +616,7 @@ const getSlots = (componentCtx: ComponentCtx | null, hostElm: Element): SlotMaps
 
   // Map virtual slots
   for (const vnode of newSlots) {
-    slots[vnode.$key$ ?? ''] = vnode.$elm$ as Element;
+    slots[vnode.$props$[QSlotName] ?? ''] = vnode.$elm$ as Element;
   }
 
   // Map templates
@@ -648,6 +656,10 @@ const setInnerHTML: PropHandler = (ctx, elm, _, newValue) => {
   return true;
 };
 
+const noop: PropHandler = () => {
+  return true;
+};
+
 export const PROP_HANDLER_MAP: Record<string, PropHandler> = {
   style: handleStyle,
   class: handleClass,
@@ -655,6 +667,7 @@ export const PROP_HANDLER_MAP: Record<string, PropHandler> = {
   value: checkBeforeAssign,
   checked: checkBeforeAssign,
   [dangerouslySetInnerHTML]: setInnerHTML,
+  innerHTML: noop,
 };
 
 export const updateProperties = (
@@ -878,7 +891,7 @@ const removeNode = (ctx: RenderContext, el: Node) => {
 };
 
 export const cleanupTree = (parent: Element, subsManager: SubscriptionManager) => {
-  if (parent.nodeName === 'Q:SLOT') {
+  if (parent.hasAttribute(QSlotName)) {
     return;
   }
   cleanupElement(parent, subsManager);
@@ -998,6 +1011,6 @@ const isTagName = (elm: Node, tagName: string): boolean => {
   return elm.nodeName === tagName;
 };
 
-const checkInnerHTML = (props: Record<string, any> | undefined | null) => {
-  return props && ('innerHTML' in props || dangerouslySetInnerHTML in props);
+const checkInnerHTML = (props: Record<string, any>) => {
+  return dangerouslySetInnerHTML in props;
 };

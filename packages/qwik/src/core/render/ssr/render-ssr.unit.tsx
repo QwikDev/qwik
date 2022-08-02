@@ -147,7 +147,7 @@ renderSSRSuite('ref', async () => {
 renderSSRSuite('innerHTML', async () => {
   await testSSR(
     <html>
-      <div innerHTML="<p>hola</p>"></div>
+      <div dangerouslySetInnerHTML="<p>hola</p>"></div>
     </html>,
     '<html q:container="paused" q:version="dev" q:render="ssr"><div><p>hola</p></div></html>'
   );
@@ -611,6 +611,15 @@ renderSSRSuite('html slot', async () => {
     }
   );
 });
+
+renderSSRSuite('null component', async () => {
+  await testSSR(
+    <html>
+      <NullCmp />
+    </html>,
+    `<html q:container="paused" q:version="dev" q:render="ssr"><div q:key="sX:" q:id="0"></div></html>`
+  );
+});
 // TODO
 // Merge props on host
 // - host events
@@ -775,4 +784,8 @@ export const DelayResource = component$((props: { text: string; delay: number })
       <Resource resource={resource} onResolved={(value) => <span>{value}</span>} />
     </Host>
   );
+});
+
+export const NullCmp = component$(() => {
+  return null;
 });

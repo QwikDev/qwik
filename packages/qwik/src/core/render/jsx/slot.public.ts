@@ -8,11 +8,13 @@ import type { FunctionComponent } from './types/jsx-node';
  */
 export const Slot: FunctionComponent<{
   name?: string;
+  as?: string;
   children?: any;
 }> = (props) => {
   const hasChildren = isArray(props.children) ? props.children.length > 0 : props.children != null;
 
   const name = props.name ?? '';
+  const tagName = props.as ?? QSlot;
   const newChildrem = !hasChildren
     ? []
     : jsx('q:fallback', {
@@ -20,7 +22,7 @@ export const Slot: FunctionComponent<{
       });
 
   return jsx(
-    QSlot,
+    tagName,
     {
       [QSlotName]: name,
       children: newChildrem,

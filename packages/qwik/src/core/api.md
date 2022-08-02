@@ -490,6 +490,7 @@ export const SkipRerender: FunctionComponent<{}>;
 // @public (undocumented)
 export const Slot: FunctionComponent<{
     name?: string;
+    as?: string;
     children?: any;
 }>;
 
@@ -520,6 +521,9 @@ export interface SnapshotState {
     // (undocumented)
     subs: any[];
 }
+
+// @public (undocumented)
+export const SSRFlush: FunctionComponent<{}>;
 
 // @public (undocumented)
 export const SSRMark: FunctionComponent<{

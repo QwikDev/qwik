@@ -60,6 +60,11 @@ export default function (opts: RenderToStreamOptions) {
       {
         debug: true,
         fragmentTagName: 'container',
+        // streaming: {
+        //   inOrder: {
+        //     buffering: 'marks',
+        //   },
+        // },
         qwikLoader: {
           include: url.searchParams.get('loader') === 'false' ? 'never' : 'auto',
           events: ['click'],
@@ -79,6 +84,14 @@ export default function (opts: RenderToStreamOptions) {
         <Test />
       </body>
     </html>,
-    { debug: true, ...opts }
+    {
+      debug: true,
+      ...opts,
+      streaming: {
+        inOrder: {
+          buffering: 'marks',
+        },
+      },
+    }
   );
 }

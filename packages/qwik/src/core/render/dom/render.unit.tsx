@@ -810,7 +810,7 @@ export const HostFixture = component$(
 export const InnerHTMLComponent = component$(() => {
   const html = '<span>WORKS</span>';
   return (
-    <div innerHTML={html}>
+    <div dangerouslySetInnerHTML={html}>
       <div>not rendered</div>
     </div>
   );

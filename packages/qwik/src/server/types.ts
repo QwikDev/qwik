@@ -130,11 +130,35 @@ export interface RenderOptions extends SerializeDocumentOptions {
  */
 export interface RenderToStringOptions extends RenderOptions {}
 
+export interface InOrderNone {
+  buffering: 'none';
+}
+
+export interface InOrderManual {
+  buffering: 'marks';
+}
+
+export interface InOrderSize {
+  buffering: 'size';
+  size: number;
+}
+
+export interface InOrderFull {
+  buffering: 'full';
+}
+
+export type InOrderStreaming = InOrderNone | InOrderManual | InOrderSize | InOrderFull;
+
+export interface StreamingOptions {
+  inOrder?: InOrderStreaming;
+}
+
 /**
  * @public
  */
 export interface RenderToStreamOptions extends RenderOptions {
   stream: StreamWriter;
+  streaming?: StreamingOptions;
 }
 
 /**

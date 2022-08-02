@@ -2,7 +2,6 @@ import { assertEqual } from '../assert/assert';
 import { getProxyTarget } from '../object/q-object';
 import { getPlatform } from '../platform/platform';
 import type { CorePlatform } from '../platform/types';
-import type { QContext } from '../props/props';
 import type { Subscriber } from '../use/use-subscriber';
 import type { SubscriberDescriptor } from '../use/use-watch';
 import { notifyChange } from './dom/notify-render';
@@ -46,7 +45,6 @@ export interface ContainerState {
   $userContext$: Record<string, any>;
   $elementIndex$: number;
 
-  $contexts$: QContext[];
   $stylesIds$: Set<string>;
 }
 
@@ -73,7 +71,6 @@ export const getContainerState = (containerEl: Element): ContainerState => {
       $userContext$: {},
       $elementIndex$: 0,
 
-      $contexts$: [],
       $stylesIds$: new Set(),
     };
     set.$subsManager$ = createSubscriptionManager(set);

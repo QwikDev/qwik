@@ -1,4 +1,4 @@
-import { QSlot } from '../../util/markers';
+import { QSlot, QSlotName } from '../../util/markers';
 import { isArray } from '../../util/types';
 import { jsx } from './jsx-runtime';
 import type { FunctionComponent } from './types/jsx-node';
@@ -12,6 +12,7 @@ export const Slot: FunctionComponent<{
 }> = (props) => {
   const hasChildren = isArray(props.children) ? props.children.length > 0 : props.children != null;
 
+  const name = props.name ?? '';
   const newChildrem = !hasChildren
     ? []
     : jsx('q:fallback', {
@@ -21,8 +22,9 @@ export const Slot: FunctionComponent<{
   return jsx(
     QSlot,
     {
+      [QSlotName]: name,
       children: newChildrem,
     },
-    props.name ?? ''
+    name
   );
 };

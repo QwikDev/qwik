@@ -169,6 +169,10 @@ export function renderToStream(rootNode: any, opts: RenderToStreamOptions): Prom
 export interface RenderToStreamOptions extends RenderOptions {
     // (undocumented)
     stream: StreamWriter;
+    // Warning: (ae-forgotten-export) The symbol "StreamingOptions" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    streaming?: StreamingOptions;
 }
 
 // @public (undocumented)

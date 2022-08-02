@@ -1,3 +1,4 @@
+import { jsx } from '../jsx/jsx-runtime';
 import type { HTMLAttributes } from './types/jsx-generated';
 import type { FunctionComponent } from './types/jsx-node';
 
@@ -20,9 +21,19 @@ export interface HostAttributes extends HTMLAttributes<HTMLElement> {
  * servers that purpose.
  * @public
  */
-export const Host: FunctionComponent<HostAttributes> = { __brand__: 'host' } as any;
+export const Host: FunctionComponent<HostAttributes> = ((props: any) => props.children) as any;
 
 /**
  * @public
  */
-export const SkipRerender: FunctionComponent<{}> = { __brand__: 'skip' } as any;
+export const SkipRerender: FunctionComponent<{}> = ((props: any) => props.children) as any;
+
+/**
+ * @public
+ */
+export const SSRMark: FunctionComponent<{ message: string }> = (() => null) as any;
+
+/**
+ * @public
+ */
+export const SSRFlush: FunctionComponent<{}> = () => jsx(SSRMark, { message: 'qkssr-f' });

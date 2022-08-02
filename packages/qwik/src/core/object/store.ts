@@ -4,7 +4,7 @@ import { getContext, QContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
 import { isDocument, isElement, isNode } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
-import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr } from '../util/markers';
+import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QStyle } from '../util/markers';
 import { qDev } from '../util/qdev';
 import {
   createProxy,
@@ -32,6 +32,7 @@ import type { Subscriber } from '../use/use-subscriber';
 import { isResourceReturn } from '../use/use-resource';
 import { createParser, Parser, serializeValue } from './serializers';
 import { ContainerState, getContainerState } from '../render/container';
+import { getQId } from '../render/execute-component';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -66,6 +67,14 @@ export const pauseContainer = async (
   return data;
 };
 
+export const moveStyles = (containerEl: Element, containerState: ContainerState) => {
+  const head = containerEl.ownerDocument.head;
+  containerEl.querySelectorAll('style[q\\:style]').forEach((el) => {
+    containerState.$stylesIds$.add(el.getAttribute(QStyle)!);
+    head.appendChild(el);
+  });
+};
+
 export const resumeContainer = (containerEl: Element) => {
   if (!isContainer(containerEl)) {
     logWarn('Skipping hydration because parent element is not q:container');
@@ -82,6 +91,7 @@ export const resumeContainer = (containerEl: Element) => {
   script.remove();
 
   const containerState = getContainerState(containerEl);
+  moveStyles(containerEl, containerState);
   const meta = JSON.parse(unescapeText(script.textContent || '{}')) as SnapshotState;
 
   // Collect all elements
@@ -91,11 +101,17 @@ export const resumeContainer = (containerEl: Element) => {
     return getObjectImpl(id, elements, meta.objs, containerState);
   };
 
+  let maxId = 0;
   getNodesInScope(containerEl, hasQId).forEach((el) => {
     const id = directGetAttribute(el, ELEMENT_ID);
     assertDefined(id, `resume: element missed q:id`, el);
+    const ctx = getContext(el);
+    ctx.$id$ = id;
+    ctx.$mounted$ = true;
     elements.set(ELEMENT_ID_PREFIX + id, el);
+    maxId = Math.max(maxId, strToInt(id));
   });
+  containerState.$elementIndex$ = ++maxId;
 
   const parser = createParser(getObject, containerState, doc);
 
@@ -786,13 +802,6 @@ const resolvePromise = (promise: Promise<any>) => {
   });
 };
 
-const getQId = (el: Element): string | null => {
-  const id = (el as any)[ELEMENT_ID];
-  if (typeof id === 'string') {
-    return id;
-  }
-  return directGetAttribute(el, ELEMENT_ID);
-};
 const getPromiseValue = (promise: Promise<any>) => {
   assertTrue(PROMISE_VALUE in promise, 'pause: promise was not resolved previously', promise);
   return (promise as any)[PROMISE_VALUE];

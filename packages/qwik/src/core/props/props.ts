@@ -41,12 +41,14 @@ export interface QContextEvents {
 export interface ComponentCtx {
   $hostElement$: Element;
   $slots$: ProcessedJSXNode[];
+  $id$: string;
 }
 
 export interface QContext {
   $element$: Element;
   $refMap$: any[];
   $dirty$: boolean;
+  $id$: string;
   $mounted$: boolean;
   $cache$: Map<string, any> | null;
   $props$: Record<string, any> | null;
@@ -69,6 +71,7 @@ export const getContext = (element: Element): QContext => {
     (element as any)[Q_CTX] = ctx = {
       $dirty$: false,
       $mounted$: false,
+      $id$: '',
       $element$: element,
       $cache$: null,
       $refMap$: [],

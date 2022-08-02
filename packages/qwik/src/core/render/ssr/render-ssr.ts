@@ -14,8 +14,16 @@ import {
   SCOPE_PREFIX,
   stringifyClassOrStyle,
 } from '../execute-component';
-import { ELEMENT_ID, OnRenderProp, QCtxAttr, QSlot } from '../../util/markers';
-import { Host } from '../jsx/host.public';
+import {
+  ELEMENT_ID,
+  OnRenderProp,
+  QCtxAttr,
+  QSlot,
+  QSlotName,
+  QSlotRef,
+  QStyle,
+} from '../../util/markers';
+import { Host, SSRMark } from '../jsx/host.public';
 import { qDev } from '../../util/qdev';
 import { logWarn } from '../../util/log';
 import { addQRLListener, isOnProp } from '../../props/props-on';
@@ -28,19 +36,21 @@ import { serializeQRLs } from '../../import/qrl';
 import { qError, QError_rootNodeMustBeHTML } from '../../error/error';
 import { ContainerState, getContainerState } from '../container';
 import type { RenderContext } from '../types';
+import { assertDefined } from '../../assert/assert';
 
 export interface SSRContext {
   rctx: RenderContext;
-  projectedChildren?: Record<string, any[] | undefined>;
-  hostId?: string;
-  invocationContext?: InvokeContext;
+  projectedChildren: Record<string, any[] | undefined> | undefined;
+  hostId: string | undefined;
+  invocationContext?: InvokeContext | undefined;
+  $contexts$: QContext[];
 }
 
 export interface RenderSSROptions {
   fragmentTagName?: string;
   stream: StreamWriter;
   base?: string;
-  beforeClose?: (containerState: ContainerState) => Promise<JSXNode>;
+  beforeClose?: (contexts: QContext[], containerState: ContainerState) => Promise<JSXNode>;
 }
 
 /**
@@ -53,6 +63,10 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
   const rctx = createRenderContext(doc, containerState);
   const ssrCtx: SSRContext = {
     rctx,
+    $contexts$: [],
+    hostId: undefined,
+    projectedChildren: undefined,
+    invocationContext: undefined,
   };
   const containerAttributes: Record<string, string> = {
     'q:container': 'paused',
@@ -67,11 +81,13 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
       ...containerAttributes,
       children: [getBaseStyles(), node],
     });
-    await renderNode(node, ssrCtx, opts.stream, 0, () => opts.beforeClose?.(containerState));
+    await renderNode(node, ssrCtx, opts.stream, 0, () =>
+      opts.beforeClose?.(ssrCtx.$contexts$, containerState)
+    );
   } else {
     const elCtx = getContext(containerEl);
     await renderRootNode(node, elCtx, containerAttributes, ssrCtx, opts.stream, 0, () =>
-      opts.beforeClose?.(containerState)
+      opts.beforeClose?.(ssrCtx.$contexts$, containerState)
     );
   }
 };
@@ -152,8 +168,8 @@ export const renderNodeElement = (
   if (isHost || hasRef || hasEvents) {
     const newID = getNextIndex(ssrCtx.rctx);
     attributes[ELEMENT_ID] = newID;
-    (elCtx.$element$ as any)[ELEMENT_ID] = newID;
-    ssrCtx.rctx.$containerState$.$contexts$.push(elCtx);
+    elCtx.$id$ = newID;
+    ssrCtx.$contexts$.push(elCtx);
   }
   if (insideHead) {
     attributes['q:head'] = '';
@@ -162,7 +178,7 @@ export const renderNodeElement = (
     Object.assign(attributes, extraAttributes);
   }
   if (isHost) {
-    ssrCtx.hostId = attributes[ELEMENT_ID];
+    ssrCtx.hostId = elCtx.$id$;
     if (elCtx.$contexts$) {
       attributes[QCtxAttr] = serializeInlineContexts(elCtx.$contexts$);
     }
@@ -175,6 +191,12 @@ export const renderNodeElement = (
   if (renderQrl) {
     elCtx.$renderQrl$ = renderQrl;
     return renderSSRComponent(ssrCtx, stream, elCtx, node, attributes, flags);
+  }
+  const slotName = props[QSlotName];
+  const isSlot = typeof slotName === 'string';
+  if (isSlot) {
+    assertDefined(ssrCtx.hostId, 'hostId must be defined for a slot');
+    attributes[QSlotRef] = ssrCtx.hostId;
   }
 
   if (renderNodeElementSync(textType, attributes, stream)) {
@@ -195,19 +217,38 @@ export const renderNodeElement = (
   }
   const promise = processData(props.children, ssrCtx, stream, flags);
   return then(promise, () => {
+    // If head inject base styles
     if (textType === 'head') {
       const globalStyles = getBaseStyles();
       renderNodeElementSync(globalStyles.type, globalStyles.props, stream);
     }
-    if (beforeClose) {
-      return then(beforeClose(), (jsx) => {
-        return then(processData(jsx, ssrCtx, stream, flags), () => {
-          stream.write(`</${textType}>`);
-        });
-      });
-    } else {
+    // Fast path
+    if (!isSlot && !beforeClose) {
       stream.write(`</${textType}>`);
+      return;
     }
+
+    let promise: ValueOrPromise<void>;
+    if (isSlot) {
+      const content = ssrCtx.projectedChildren?.[slotName];
+      if (content) {
+        ssrCtx.projectedChildren![slotName] = undefined;
+        promise = processData(content, ssrCtx, stream, flags);
+      }
+    }
+
+    // Inject before close
+    if (beforeClose) {
+      promise = then(promise, () =>
+        then(beforeClose(), (jsx) => {
+          return processData(jsx, ssrCtx, stream, flags);
+        })
+      );
+    }
+
+    return then(promise, () => {
+      stream.write(`</${textType}>`);
+    });
   });
 };
 
@@ -306,7 +347,7 @@ export const renderSSRComponent = (
       for (const style of elCtx.$styles$) {
         extraNodes!.push(
           jsx('style', {
-            'q:style': style.styleId,
+            [QStyle]: style.styleId,
             innerHTML: style.content,
           })
         );
@@ -351,7 +392,7 @@ const splitProjectedChildren = (children: any, ssrCtx: SSRContext) => {
   for (const child of flatChildren) {
     let slotName = '';
     if (isJSXNode(child)) {
-      slotName = child.props['q:slot'] ?? '';
+      slotName = child.props[QSlot] ?? '';
     }
     let array = slotMap[slotName];
     if (!array) {
@@ -361,30 +402,6 @@ const splitProjectedChildren = (children: any, ssrCtx: SSRContext) => {
   }
   return slotMap;
 };
-export const renderQSlot = (
-  node: JSXNode,
-  ssrCtx: SSRContext,
-  stream: StreamWriter,
-  flags: number
-) => {
-  const elCtx = getContext(ssrCtx.rctx.$doc$.createElement(node.type));
-  const slotName = String(node.key ?? '');
-  node = jsx(
-    node.type,
-    {
-      'q:sref': ssrCtx.hostId,
-      children: node.props.children,
-    },
-    slotName
-  );
-  return renderNodeElement(node, elCtx, undefined, undefined, ssrCtx, stream, flags, () => {
-    const content = ssrCtx.projectedChildren?.[slotName];
-    if (content) {
-      ssrCtx.projectedChildren![slotName] = undefined;
-      return content;
-    }
-  });
-};
 
 export const renderNode = (
   node: JSXNode<any>,
@@ -393,8 +410,8 @@ export const renderNode = (
   flags: number,
   beforeClose?: () => ValueOrPromise<any>
 ) => {
-  if (node.type === QSlot) {
-    return renderQSlot(node, ssrCtx, stream, flags);
+  if (node.type === SSRMark) {
+    stream.write(`<!--${node.props.message ?? ''}-->`);
   } else if (typeof node.type === 'string') {
     const elCtx = getContext(ssrCtx.rctx.$doc$.createElement(node.type));
     return renderNodeElement(
@@ -497,7 +514,7 @@ export const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => 
   }
   if (isArray(children)) {
     return children.flatMap((c) => _flatVirtualChildren(c, ssrCtx));
-  } else if (isJSXNode(children) && isFunction(children.type)) {
+  } else if (isJSXNode(children) && isFunction(children.type) && children.type !== SSRMark) {
     const fn = children.type;
     const res = ssrCtx.invocationContext
       ? useInvoke(ssrCtx.invocationContext, () => fn(children.props, children.key))

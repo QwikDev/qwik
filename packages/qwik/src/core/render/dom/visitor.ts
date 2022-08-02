@@ -1,4 +1,4 @@
-import { ELEMENT_ID, OnRenderProp, QSlot } from '../../util/markers';
+import { ELEMENT_ID, OnRenderProp, QSlot, QSlotName, QSlotRef, QStyle } from '../../util/markers';
 import {
   cleanupContext,
   ComponentCtx,
@@ -37,9 +37,9 @@ import type { RenderContext } from '../types';
 import {
   ALLOWS_PROPS,
   copyRenderContext,
-  getNextIndex,
   HOST_PREFIX,
   SCOPE_PREFIX,
+  setQId,
   stringifyClassOrStyle,
 } from '../execute-component';
 import type { SubscriptionManager } from '../container';
@@ -70,8 +70,15 @@ export const visitJsxNode = (
   if (isArray(jsxNode)) {
     return smartUpdateChildren(ctx, elm, jsxNode.flat(), 'root', isSvg);
   } else if (jsxNode.$type$ === HOST_TYPE) {
+    const isSlot = QSlotName in jsxNode.$props$;
     updateProperties(ctx, getContext(elm), jsxNode.$props$, isSvg, true);
-    return smartUpdateChildren(ctx, elm, jsxNode.$children$ || [], 'root', isSvg);
+    return smartUpdateChildren(
+      ctx,
+      elm,
+      jsxNode.$children$ || [],
+      isSlot ? 'fallback' : 'root',
+      isSvg
+    );
   } else {
     return smartUpdateChildren(ctx, elm, [jsxNode], 'root', isSvg);
   }
@@ -302,11 +309,12 @@ export const patchVnode = (
 
   const props = vnode.$props$;
   const ctx = getContext(elm as Element);
-  const isSlot = tag === QSlot;
+  const isSlot = QSlotName in props;
   let dirty = updateProperties(rctx, ctx, props, isSvg, false);
   if (isSvg && vnode.$type$ === 'foreignObject') {
     isSvg = false;
-  } else if (isSlot) {
+  }
+  if (isSlot) {
     const currentComponent = rctx.$currentComponent$;
     if (currentComponent) {
       currentComponent.$slots$.push(vnode);
@@ -316,9 +324,8 @@ export const patchVnode = (
   const ch = vnode.$children$;
   if (isComponent) {
     if (!dirty && !ctx.$renderQrl$ && !ctx.$element$.hasAttribute(ELEMENT_ID)) {
-      setAttribute(rctx, ctx.$element$, ELEMENT_ID, getNextIndex(rctx));
-
-      ctx.$renderQrl$ = props![OnRenderProp];
+      setQId(rctx, ctx);
+      ctx.$renderQrl$ = props[OnRenderProp];
       assertQrl(ctx.$renderQrl$ as any);
       dirty = true;
     }
@@ -512,9 +519,12 @@ const createElm = (
   }
 
   const props = vnode.$props$;
-  const elm = (vnode.$elm$ = createElement(rctx, tag, isSvg));
   const isComponent = isComponentNode(vnode);
+  const isSlot = !isComponent && QSlotName in props;
+  const elm = (vnode.$elm$ = createElement(rctx, tag, isSvg));
   const ctx = getContext(elm);
+  const hasRef = 'ref' in props;
+
   setKey(elm, vnode.$key$);
   updateProperties(rctx, ctx, props, isSvg, false);
   if (isHead) {
@@ -524,17 +534,14 @@ const createElm = (
   if (isSvg && tag === 'foreignObject') {
     isSvg = false;
   }
-  const currentComponent = rctx.$currentComponent$;
-  if (currentComponent) {
-    if (tag === QSlot || tag === 'html') {
-      setSlotRef(currentComponent.$hostElement$, elm);
-      currentComponent.$slots$.push(vnode);
-    }
+  if (isComponent || ctx.$listeners$ || hasRef) {
+    setQId(rctx, ctx);
   }
 
-  const hasRef = props && 'ref' in props;
-  if (isComponent || ctx.$listeners$ || hasRef) {
-    directSetAttribute(ctx.$element$, ELEMENT_ID, getNextIndex(rctx));
+  const currentComponent = rctx.$currentComponent$;
+  if (isSlot && currentComponent) {
+    directSetAttribute(elm, QSlotRef, currentComponent.$id$);
+    currentComponent.$slots$.push(vnode);
   }
 
   let wait: ValueOrPromise<void>;
@@ -583,19 +590,20 @@ interface SlotMaps {
 }
 
 const getSlots = (componentCtx: ComponentCtx | null, hostElm: Element): SlotMaps => {
-  if (hostElm.localName === 'html') {
-    return { slots: { '': hostElm }, templates: {} };
-  }
   const slots: Record<string, Element> = {};
   const templates: Record<string, HTMLTemplateElement> = {};
   const slotRef = directGetAttribute(hostElm, 'q:id');
-  const existingSlots = Array.from(hostElm.querySelectorAll(`q\\:slot[q\\:sref="${slotRef}"]`));
+  const query = `[q\\:sref="${slotRef}"]`;
+  const existingSlots = Array.from(hostElm.querySelectorAll(query));
+  if (hostElm.matches(query)) {
+    existingSlots.push(hostElm);
+  }
   const newSlots = componentCtx?.$slots$ ?? EMPTY_ARRAY;
   const t = Array.from(hostElm.children).filter(isSlotTemplate);
 
   // Map slots
   for (const elm of existingSlots) {
-    slots[directGetAttribute(elm, 'q:key') ?? ''] = elm;
+    slots[directGetAttribute(elm, QSlotName) ?? ''] = elm;
   }
 
   // Map virtual slots
@@ -652,13 +660,10 @@ export const PROP_HANDLER_MAP: Record<string, PropHandler> = {
 export const updateProperties = (
   rctx: RenderContext,
   ctx: QContext,
-  expectProps: Record<string, any> | null,
+  expectProps: Record<string, any>,
   isSvg: boolean,
   isHost: boolean
 ) => {
-  if (!expectProps) {
-    return false;
-  }
   const keys = Object.keys(expectProps);
   if (keys.length === 0) {
     return false;
@@ -739,12 +744,6 @@ export const updateProperties = (
     });
   }
   return ctx.$dirty$;
-};
-
-const setSlotRef = (hostElm: Element, slotEl: Element) => {
-  const ref = directGetAttribute(hostElm, 'q:id');
-  assertDefined(ref, 'q:id missing for host element');
-  directSetAttribute(slotEl, 'q:sref', ref);
 };
 
 const setEvent = (ctx: QContext, prop: string, value: any) => {
@@ -829,7 +828,7 @@ export const appendHeadStyle = (
     const containerEl = ctx.$containerEl$;
     const isDoc = ctx.$doc$.documentElement === containerEl && !!ctx.$doc$.head;
     const style = ctx.$doc$.createElement('style');
-    directSetAttribute(style, 'q:style', styleTask.styleId);
+    directSetAttribute(style, QStyle, styleTask.styleId);
     style.textContent = styleTask.content;
     if (isDoc) {
       ctx.$doc$.head.appendChild(style);

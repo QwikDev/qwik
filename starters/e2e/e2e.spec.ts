@@ -580,4 +580,61 @@ test.describe('e2e', () => {
       await expect(logs).toHaveText(logsContent);
     });
   });
+
+  test.describe('styles', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/styles');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should load', async ({ page }) => {
+      const parent = await page.locator('.parent');
+
+      const addChild = await page.locator('button');
+      await expect(parent).toHaveCSS('font-size', '200px');
+      const el = await page.$$('[q\\:style]');
+      await expect(el.length).toBe(3);
+
+      const ids = await page.$$('[q\\:id]');
+      expect(await Promise.all(ids.map((el) => el.getAttribute('q:id')))).toEqual([
+        '0',
+        '1',
+        'b',
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+        '7',
+        '8',
+        '9',
+        'a',
+      ]);
+
+      await addChild.click();
+      await page.waitForTimeout(100);
+
+      await expect(parent).toHaveCSS('font-size', '200px');
+
+      const el2 = await page.$$('[q\\:style]');
+      await expect(el2.length).toBe(3);
+
+      const ids2 = await page.$$('[q\\:id]');
+      expect(await Promise.all(ids2.map((el) => el.getAttribute('q:id')))).toEqual([
+        '0',
+        '1',
+        'b',
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+        '7',
+        '8',
+        '9',
+        'a',
+        'c',
+      ]);
+    });
+  });
 });

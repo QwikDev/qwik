@@ -29,8 +29,50 @@ export async function renderToStream(
   rootNode: any,
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> {
-  const stream = opts.stream;
+  let stream = opts.stream;
+  let bufferSize = 0;
   const doc = createSimpleDocument() as Document;
+  const inOrderStreaming = opts.streaming?.inOrder ?? {
+    buffering: 'none',
+  };
+  const buffer: string[] = [];
+  const nativeWrite = stream.write.bind(stream);
+  function flush() {
+    buffer.forEach(nativeWrite);
+    buffer.length = 0;
+  }
+  switch (inOrderStreaming.buffering) {
+    case 'full':
+      stream = {
+        write(chunk) {
+          buffer.push(chunk);
+          bufferSize += chunk.length;
+        },
+      };
+      break;
+    case 'size':
+      stream = {
+        write(chunk) {
+          buffer.push(chunk);
+          bufferSize += chunk.length;
+          if (bufferSize >= inOrderStreaming.size) {
+            flush();
+          }
+        },
+      };
+      break;
+    case 'marks':
+      stream = {
+        write(chunk) {
+          buffer.push(chunk);
+          bufferSize += chunk.length;
+          if (chunk === '<!--qkssr-f-->') {
+            flush();
+          }
+        },
+      };
+      break;
+  }
 
   if (typeof opts.fragmentTagName === 'string') {
     if (opts.qwikLoader) {
@@ -65,8 +107,8 @@ export async function renderToStream(
     stream,
     fragmentTagName: opts.fragmentTagName,
     base: buildBase,
-    beforeClose: async (containerState) => {
-      snapshotResult = await pauseFromContexts(containerState.$contexts$, containerState);
+    beforeClose: async (contexts, containerState) => {
+      snapshotResult = await pauseFromContexts(contexts, containerState);
       prefetchResources = getPrefetchResources(snapshotResult, opts, mapper);
       const children: (JSXNode | null)[] = [
         jsx('script', {
@@ -104,6 +146,9 @@ export async function renderToStream(
       return jsx(Fragment, { children });
     },
   });
+
+  // Flush remaining chunks in the buffer
+  flush();
 
   const docToStringTimer = createTimer();
 

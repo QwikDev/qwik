@@ -1,16 +1,17 @@
 import { assertDefined } from '../assert/assert';
-import { QSlot, RenderEvent } from '../util/markers';
+import { ELEMENT_ID, QSlot, RenderEvent } from '../util/markers';
 import { promiseAll, safeCall, then } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { logError } from '../util/log';
 import { isArray, isFunction, ValueOrPromise } from '../util/types';
-import type { QContext } from '../props/props';
+import { QContext, tryGetContext } from '../props/props';
 import type { JSXNode } from './jsx/types/jsx-node';
 import type { RenderContext } from './types';
 import type { ContainerState } from './container';
 import { fromCamelToKebabCase } from '../util/case';
 import { qError, QError_stringifyClassOrStyle } from '../error/error';
 import { intToStr } from '../object/store';
+import { directSetAttribute } from './fast-calls';
 
 export interface ExecuteComponentOutput {
   node: JSXNode;
@@ -66,6 +67,7 @@ export const executeComponent = (
           componentCtx = ctx.$component$ = {
             $hostElement$: hostElement,
             $slots$: [],
+            $id$: ctx.$id$,
           };
         }
         componentCtx.$slots$ = [];
@@ -147,6 +149,20 @@ export const stringifyClassOrStyle = (obj: any, isClass: boolean): string => {
 
 export const getNextIndex = (ctx: RenderContext) => {
   return intToStr(ctx.$containerState$.$elementIndex$++);
+};
+
+export const getQId = (el: Element): string | null => {
+  const ctx = tryGetContext(el);
+  if (ctx) {
+    return ctx.$id$;
+  }
+  return null;
+};
+
+export const setQId = (rctx: RenderContext, ctx: QContext) => {
+  const id = getNextIndex(rctx);
+  ctx.$id$ = id;
+  directSetAttribute(ctx.$element$, ELEMENT_ID, id);
 };
 
 export const hasStyle = (containerState: ContainerState, styleId: string) => {

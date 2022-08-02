@@ -521,6 +521,11 @@ export interface SnapshotState {
     subs: any[];
 }
 
+// @public (undocumented)
+export const SSRMark: FunctionComponent<{
+    message: string;
+}>;
+
 // @public
 export interface Tracker {
     // (undocumented)

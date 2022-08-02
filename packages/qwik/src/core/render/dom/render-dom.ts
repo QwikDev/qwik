@@ -3,7 +3,7 @@ import type { QContext } from '../../props/props';
 import { getDomListeners } from '../../props/props-on';
 import { serializeInlineContexts } from '../../use/use-context';
 import { InvokeContext, newInvokeContext, useInvoke } from '../../use/use-core';
-import { EMPTY_ARRAY } from '../../util/flyweight';
+import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
 import { QCtxAttr } from '../../util/markers';
 import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises';
@@ -50,7 +50,7 @@ export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
 
   constructor(
     public $type$: string,
-    public $props$: Record<string, any> | null,
+    public $props$: Record<string, any>,
     public $children$: ProcessedJSXNode[],
     public $key$: string | null
   ) {}
@@ -108,7 +108,7 @@ export const processData = (
     const output = promiseAll(node.flatMap((n) => processData(n, invocationContext)));
     return then(output, (array) => array.flat(100).filter(isNotNullable));
   } else if (isString(node) || typeof node === 'number') {
-    const newNode = new ProcessedJSXNodeImpl('#text', null, EMPTY_ARRAY, null);
+    const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, EMPTY_ARRAY, null);
     newNode.$text$ = String(node);
     return newNode;
   } else {
@@ -133,7 +133,7 @@ export const isProcessedJSXNode = (n: any): n is ProcessedJSXNode => {
 
 export interface ProcessedJSXNode {
   $type$: string;
-  $props$: Record<string, any> | null;
+  $props$: Record<string, any>;
   $children$: ProcessedJSXNode[];
   $key$: string | null;
   $elm$: Node | null;

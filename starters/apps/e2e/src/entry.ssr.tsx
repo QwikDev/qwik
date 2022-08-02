@@ -60,9 +60,6 @@ export default function (opts: RenderToStreamOptions) {
       {
         debug: true,
         fragmentTagName: 'container',
-        streaming: {
-          in
-        },
         qwikLoader: {
           include: url.searchParams.get('loader') === 'false' ? 'never' : 'auto',
           events: ['click'],

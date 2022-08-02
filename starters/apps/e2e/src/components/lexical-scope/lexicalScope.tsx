@@ -57,7 +57,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
         url.href,
         date.toISOString(),
         `${regex.source} ${regex.flags}`,
-        nullPrototype.value
+        nullPrototype.value,
       ]);
       state.count++;
     });

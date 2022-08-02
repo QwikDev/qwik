@@ -15,7 +15,7 @@ import { qDev } from '../util/qdev';
 import type { Subscriber } from '../use/use-subscriber';
 import { tryGetContext } from '../props/props';
 import { RenderEvent } from '../util/markers';
-import { isArray, isFunction, isObject } from '../util/types';
+import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
 import { isPromise } from '../util/promises';
 import { canSerialize } from './serializers';
 
@@ -311,7 +311,7 @@ const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
           }
           return value;
         }
-        if (Object.getPrototypeOf(unwrapped) === Object.prototype) {
+        if (isSerializableObject(unwrapped)) {
           for (const item of Object.values(unwrapped)) {
             _verifySerializable(item, seen);
           }

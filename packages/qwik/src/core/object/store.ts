@@ -26,7 +26,7 @@ import {
   QError_missingObjectId,
   QError_verifySerializable,
 } from '../error/error';
-import { isArray, isObject, isString } from '../util/types';
+import { isArray, isObject, isSerializableObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
 import type { Subscriber } from '../use/use-subscriber';
@@ -422,7 +422,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
         if (isArray(obj)) {
           return obj.map(mustGetObjId);
         }
-        if (Object.getPrototypeOf(obj) === Object.prototype) {
+        if (isSerializableObject(obj)) {
           const output: Record<string, any> = {};
           Object.entries(obj).forEach(([key, value]) => {
             output[key] = mustGetObjId(value);
@@ -658,7 +658,7 @@ const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => 
           reviveNestedObjects(value, getObject, parser);
         }
       }
-    } else if (Object.getPrototypeOf(obj) === Object.prototype) {
+    } else if (isSerializableObject(obj)) {
       for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           const value = obj[key];

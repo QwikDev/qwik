@@ -1,7 +1,7 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.0.26",
-  "description": "Static Site Generator for Qwik",
+  "version": "0.0.29",
+  "description": "The meta-framework for Qwik.",
   "main": "./lib/index.qwik.cjs",
   "module": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.cjs",
@@ -47,9 +47,6 @@
     "@types/mdx": "2.0.2",
     "source-map": "0.7.4",
     "vfile": "5.3.4"
-  },
-  "peerDependencies": {
-    "@builder.io/qwik": ">=0.0.38"
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",

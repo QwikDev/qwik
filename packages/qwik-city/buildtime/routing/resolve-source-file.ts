@@ -1,5 +1,8 @@
 import { dirname } from 'path';
+import { resolveMenu } from '../markdown/menu';
 import type {
+  BuildFallbackRoute,
+  BuildEntry,
   BuildLayout,
   BuildRoute,
   NormalizedPluginOptions,
@@ -9,6 +12,48 @@ import type {
 import { createFileId, isLayoutName, normalizePath, parseLayoutId } from '../utils/fs';
 import { getPathnameFromFilePath } from '../utils/pathname';
 import { parseRoutePathname } from './parse-pathname';
+import { sortRoutes } from './sort-routes';
+
+export function resolveSourceFiles(opts: NormalizedPluginOptions, sourceFiles: RouteSourceFile[]) {
+  const layouts = sourceFiles
+    .filter((s) => s.type === 'layout')
+    .map((s) => resolveLayout(opts, s))
+    .sort((a, b) => {
+      if (a.id < b.id) return -1;
+      if (a.id > b.id) return 1;
+      return 0;
+    });
+
+  const routes = sourceFiles
+    .filter((s) => s.type === 'page' || s.type === 'endpoint')
+    .map((s) => resolveRoute(opts, layouts, s))
+    .sort(sortRoutes);
+
+  const fallbackRoutes = sourceFiles
+    .filter((s) => s.type === '404' || s.type === '500')
+    .map((s) => resolveFallbackRoute(opts, layouts, s))
+    .sort(sortRoutes);
+
+  const entries = sourceFiles
+    .filter((s) => s.type === 'entry')
+    .map((s) => resolveEntry(opts, s))
+    .sort((a, b) => {
+      if (a.chunkFileName < b.chunkFileName) return -1;
+      if (a.chunkFileName > b.chunkFileName) return 1;
+      return 0;
+    });
+
+  const menus = sourceFiles
+    .filter((s) => s.type === 'menu')
+    .map((p) => resolveMenu(opts, p))
+    .sort((a, b) => {
+      if (a.pathname < b.pathname) return -1;
+      if (a.pathname > b.pathname) return 1;
+      return 0;
+    });
+
+  return { layouts, routes, fallbackRoutes, entries, menus };
+}
 
 export function resolveLayout(opts: NormalizedPluginOptions, layoutSourceFile: RouteSourceFile) {
   const dirName = layoutSourceFile.dirName;
@@ -86,4 +131,31 @@ export function resolveRoute(
   };
 
   return buildRoute;
+}
+
+export function resolveFallbackRoute(
+  opts: NormalizedPluginOptions,
+  appLayouts: BuildLayout[],
+  sourceFile: RouteSourceFile
+) {
+  const buildFallbackRoute: BuildFallbackRoute = {
+    status: sourceFile.type === '500' ? '500' : '404',
+    ...resolveRoute(opts, appLayouts, sourceFile),
+  };
+
+  return buildFallbackRoute;
+}
+
+function resolveEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {
+  const { pathname } = getPathnameFromFilePath(opts, sourceFile.filePath);
+
+  const entryTextIndex = pathname.lastIndexOf('/entry');
+  const chunkFileName = pathname.slice(1, entryTextIndex) + '.js';
+
+  const buildEntry: BuildEntry = {
+    filePath: sourceFile.filePath,
+    chunkFileName,
+  };
+
+  return buildEntry;
 }

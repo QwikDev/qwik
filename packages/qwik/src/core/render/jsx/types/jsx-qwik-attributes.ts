@@ -128,7 +128,6 @@ export type PreventDefault = {
 
 export interface QwikProps extends PreventDefault {
   class?: string | { [className: string]: boolean };
-  innerHTML?: string;
   dangerouslySetInnerHTML?: string;
   ref?: Ref<Element>;
 
@@ -140,8 +139,6 @@ export interface QwikProps extends PreventDefault {
   /**
    * URL against which relative QRLs should be resolved to.
    */
-  'q:obj'?: string;
-  'q:host'?: string;
   'q:version'?: string;
   'q:container'?: '';
 }

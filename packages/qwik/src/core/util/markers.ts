@@ -6,7 +6,6 @@ export const OnMount = 'on:qmount';
 /**
  * State factory of the component.
  */
-export const QHostAttr = 'q:host';
 export const OnRenderProp = 'q:renderFn';
 
 /**
@@ -57,6 +56,9 @@ export const EventAny = 'on:.';
  * `<some-element q:slot="...">`
  */
 export const QSlot = 'q:slot';
+export const QSlotRef = 'q:sref';
+export const QSlotName = 'q:sname';
+export const QStyle = 'q:style';
 
 export const QCtxAttr = 'q:ctx';
 
@@ -68,7 +70,6 @@ export const RenderEvent = 'qRender';
 /**
  * `<q:slot name="...">`
  */
-export const QSlotName = 'name';
 export const QSlotInertName = '\u0000';
 
 export const ELEMENT_ID = 'q:id';

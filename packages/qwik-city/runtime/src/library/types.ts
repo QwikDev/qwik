@@ -1,4 +1,3 @@
-import type { RenderDocument } from '../../../../qwik/src/server/types';
 import type { ROUTE_TYPE_ENDPOINT } from './constants';
 
 export interface EndpointModule<BODY = unknown> {
@@ -283,7 +282,7 @@ export interface EndpointResponse {
   status: number;
 }
 
-export interface QwikCityRenderDocument extends RenderDocument {}
+export interface QwikCityRenderDocument extends Document {}
 
 export interface QwikCityUserContext {
   route: MutableRouteLocation;

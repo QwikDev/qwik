@@ -109,7 +109,7 @@ export const Html = component$<HtmlProps>(
     });
 
     return (
-      <Host {...props}>
+      <Host {...props} q:sname="">
         <SkipRerender />
       </Host>
     );

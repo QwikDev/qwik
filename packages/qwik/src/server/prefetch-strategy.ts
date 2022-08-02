@@ -6,8 +6,9 @@ import type {
   RenderToStringOptions,
   SnapshotResult,
 } from './types';
-import { isQrl } from '../core/import/qrl-class';
+
 import type { SymbolMapper } from '../optimizer/src/types';
+import type { QRLInternal } from '../core/import/qrl-class';
 
 export function getPrefetchResources(
   snapshotResult: SnapshotResult | null,
@@ -116,3 +117,7 @@ function addBundle(
     }
   }
 }
+
+export const isQrl = (value: any): value is QRLInternal => {
+  return typeof value === 'function' && typeof value.getSymbol === 'function';
+};

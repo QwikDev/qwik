@@ -36,12 +36,13 @@ app.get('/*', async (req, res, next) => {
     // Render the Root component to a string
     const result = await render({
       stream: res,
-      url: req.url,
     });
 
     // respond with SSR'd HTML
     if ('html' in result) {
       res.send((result as any).html);
+    } else {
+      res.end();
     }
   } catch (e) {
     // Error while server-side rendering

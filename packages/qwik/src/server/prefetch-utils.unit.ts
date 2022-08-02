@@ -1,6 +1,6 @@
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
-import { flattenPrefetchResources } from './prefetch-implementation';
+import { flattenPrefetchResources } from './prefetch-utils';
 
 const prefetch = suite('prefetch implementation');
 

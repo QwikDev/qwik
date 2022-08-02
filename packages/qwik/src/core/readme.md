@@ -26,7 +26,7 @@ The above can then be used like so:
 
 <docs code="./examples.tsx#component-usage"/>
 
-See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`, `useOnWindow`, `useStyles`, `useScopedStyles`
+See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`, `useOnWindow`, `useStyles`
 
 @public
 
@@ -133,15 +133,7 @@ Component styles allow Qwik to lazy load the style information for the component
 
 <docs code="./examples.tsx#use-styles"/>
 
-@see `useScopedStyles`.
-
 @public
-
-# `useScopedStyles`
-
-@see `useStyles`.
-
-@alpha
 
 # `useCleanup`
 

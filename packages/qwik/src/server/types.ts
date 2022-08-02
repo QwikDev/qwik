@@ -17,7 +17,6 @@ export interface SerializeDocumentOptions {
   manifest?: QwikManifest;
   symbolMapper?: SymbolMapperFn;
   url?: URL | string;
-  html?: string;
   debug?: boolean;
 }
 
@@ -132,11 +131,35 @@ export interface RenderOptions extends SerializeDocumentOptions {
  */
 export interface RenderToStringOptions extends RenderOptions {}
 
+export interface InOrderNone {
+  buffering: 'none';
+}
+
+export interface InOrderManual {
+  buffering: 'marks';
+}
+
+export interface InOrderSize {
+  buffering: 'size';
+  size: number;
+}
+
+export interface InOrderFull {
+  buffering: 'full';
+}
+
+export type InOrderStreaming = InOrderNone | InOrderManual | InOrderSize | InOrderFull;
+
+export interface StreamingOptions {
+  inOrder?: InOrderStreaming;
+}
+
 /**
  * @public
  */
 export interface RenderToStreamOptions extends RenderOptions {
   stream: StreamWriter;
+  streaming?: StreamingOptions;
 }
 
 /**
@@ -160,8 +183,6 @@ export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToSt
  * @public
  */
 export type Render = RenderToString | RenderToStream;
-
-export interface RenderDocument extends Document {}
 
 export interface RenderDocumentUserContext {
   _qwikUserCtx?: Record<string, any>;

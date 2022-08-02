@@ -1,18 +1,10 @@
-import { assertDefined } from '../assert/assert';
-import { QContainerAttr, QHostAttr } from '../util/markers';
-import {
-  createRenderContext,
-  executeContextWithSlots,
-  printRenderStats,
-  RenderContext,
-} from './cursor';
-import { getContext, resumeIfNeeded } from '../props/props';
-import { qDev, qTest } from '../util/qdev';
-import { getPlatform } from '../platform/platform';
-import { getDocument } from '../util/dom';
-import { renderComponent } from './render-component';
-import { logError, logWarn } from '../util/log';
-import { getContainer } from '../use/use-core';
+import { assertDefined } from '../../assert/assert';
+import { executeContextWithSlots, printRenderStats } from './visitor';
+import { getContext, resumeIfNeeded } from '../../props/props';
+import { qDev, qTest } from '../../util/qdev';
+import { getDocument } from '../../util/dom';
+import { logError, logWarn } from '../../util/log';
+import { getContainer } from '../../use/use-core';
 import {
   runSubscriber,
   SubscriberDescriptor,
@@ -20,71 +12,23 @@ import {
   WatchFlagsIsEffect,
   WatchFlagsIsResource,
   WatchFlagsIsWatch,
-} from '../use/use-watch';
-import { createSubscriptionManager, ObjToProxyMap, SubscriptionManager } from '../object/q-object';
-import { then } from '../util/promises';
-import type { ValueOrPromise } from '../util/types';
-import type { CorePlatform } from '../platform/types';
-import { codeToText, QError_errorWhileRendering } from '../error/error';
-import { directGetAttribute } from './fast-calls';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
-import type { Subscriber } from '../use/use-subscriber';
-import { isElement } from '../util/element';
+} from '../../use/use-watch';
+import { then } from '../../util/promises';
+import type { ValueOrPromise } from '../../util/types';
+import { codeToText, QError_errorWhileRendering } from '../../error/error';
+import { useLexicalScope } from '../../use/use-lexical-scope.public';
+import type { Subscriber } from '../../use/use-subscriber';
+import { isElement } from '../../util/element';
+import { renderComponent } from './render-dom';
+import type { RenderContext } from '../types';
+import { ContainerState, getContainerState } from '../container';
+import { createRenderContext } from '../execute-component';
 
-/**
- * @alpha
- */
-export interface ContainerState {
-  $containerEl$: Element;
-
-  $proxyMap$: ObjToProxyMap;
-  $subsManager$: SubscriptionManager;
-  $platform$: CorePlatform;
-
-  $watchNext$: Set<SubscriberDescriptor>;
-  $watchStaging$: Set<SubscriberDescriptor>;
-
-  $hostsNext$: Set<Element>;
-  $hostsStaging$: Set<Element>;
-  $hostsRendering$: Set<Element> | undefined;
-  $renderPromise$: Promise<RenderContext> | undefined;
-
-  $userContext$: Record<string, any>;
-  $elementIndex$: number;
-}
-
-const CONTAINER_STATE = Symbol('ContainerState');
-
-export const getContainerState = (containerEl: Element): ContainerState => {
-  let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
-  if (!set) {
-    (containerEl as any)[CONTAINER_STATE] = set = {
-      $containerEl$: containerEl,
-
-      $proxyMap$: new WeakMap(),
-      $subsManager$: createSubscriptionManager(),
-      $platform$: getPlatform(containerEl),
-
-      $watchNext$: new Set(),
-      $watchStaging$: new Set(),
-
-      $hostsNext$: new Set(),
-      $hostsStaging$: new Set(),
-      $renderPromise$: undefined,
-      $hostsRendering$: undefined,
-
-      $userContext$: {},
-      $elementIndex$: 0,
-    };
-  }
-  return set;
-};
-
-export const notifyChange = (subscriber: Subscriber) => {
+export const notifyChange = (subscriber: Subscriber, containerState: ContainerState) => {
   if (isElement(subscriber)) {
-    notifyRender(subscriber);
+    notifyRender(subscriber, containerState);
   } else {
-    notifyWatch(subscriber);
+    notifyWatch(subscriber, containerState);
   }
 };
 
@@ -102,27 +46,12 @@ export const notifyChange = (subscriber: Subscriber) => {
  * @returns A promise which is resolved when the component has been rendered.
  * @public
  */
-const notifyRender = (hostElement: Element): void => {
-  assertDefined(
-    directGetAttribute(hostElement, QHostAttr),
-    'render: notified element must be a component',
-    hostElement
-  );
-
-  const containerEl = getContainer(hostElement);
-  assertDefined(containerEl, 'render: host element need to be inside a q:container', hostElement);
-
-  const state = getContainerState(containerEl);
-  if (
-    qDev &&
-    !qTest &&
-    state.$platform$.isServer &&
-    directGetAttribute(containerEl, QContainerAttr) === 'paused'
-  ) {
+const notifyRender = (hostElement: Element, containerState: ContainerState): void => {
+  if (qDev && !qTest && containerState.$platform$.isServer) {
     logWarn('Can not rerender in server platform');
     return undefined;
   }
-  resumeIfNeeded(containerEl);
+  resumeIfNeeded(containerState.$containerEl$);
 
   const ctx = getContext(hostElement);
   assertDefined(
@@ -135,49 +64,44 @@ const notifyRender = (hostElement: Element): void => {
     return;
   }
   ctx.$dirty$ = true;
-  const activeRendering = state.$hostsRendering$ !== undefined;
+  const activeRendering = containerState.$hostsRendering$ !== undefined;
   if (activeRendering) {
     assertDefined(
-      state.$renderPromise$,
+      containerState.$renderPromise$,
       'render: while rendering, $renderPromise$ must be defined',
-      state
+      containerState
     );
-    state.$hostsStaging$.add(hostElement);
+    containerState.$hostsStaging$.add(hostElement);
   } else {
-    state.$hostsNext$.add(hostElement);
-    scheduleFrame(containerEl, state);
+    containerState.$hostsNext$.add(hostElement);
+    scheduleFrame(containerState);
   }
 };
 
-const notifyWatch = (watch: SubscriberDescriptor) => {
+const notifyWatch = (watch: SubscriberDescriptor, containerState: ContainerState) => {
   if (watch.$flags$ & WatchFlagsIsDirty) {
     return;
   }
   watch.$flags$ |= WatchFlagsIsDirty;
 
-  const containerEl = getContainer(watch.$el$)!;
-  const state = getContainerState(containerEl);
-  const activeRendering = state.$hostsRendering$ !== undefined;
+  const activeRendering = containerState.$hostsRendering$ !== undefined;
   if (activeRendering) {
     assertDefined(
-      state.$renderPromise$,
+      containerState.$renderPromise$,
       'render: while rendering, $renderPromise$ must be defined',
-      state
+      containerState
     );
-    state.$watchStaging$.add(watch);
+    containerState.$watchStaging$.add(watch);
   } else {
-    state.$watchNext$.add(watch);
-    scheduleFrame(containerEl, state);
+    containerState.$watchNext$.add(watch);
+    scheduleFrame(containerState);
   }
 };
 
-const scheduleFrame = (
-  containerEl: Element,
-  containerState: ContainerState
-): Promise<RenderContext> => {
+const scheduleFrame = (containerState: ContainerState): Promise<RenderContext> => {
   if (containerState.$renderPromise$ === undefined) {
     containerState.$renderPromise$ = containerState.$platform$.nextTick(() =>
-      renderMarked(containerEl, containerState)
+      renderMarked(containerState)
     );
   }
   return containerState.$renderPromise$;
@@ -189,14 +113,11 @@ const scheduleFrame = (
  * @alpha
  */
 export const handleWatch = () => {
-  const [watch] = useLexicalScope();
-  notifyWatch(watch);
+  const [watch] = useLexicalScope<[SubscriberDescriptor]>();
+  notifyWatch(watch, getContainerState(getContainer(watch.$el$)!));
 };
 
-const renderMarked = async (
-  containerEl: Element,
-  containerState: ContainerState
-): Promise<RenderContext> => {
+const renderMarked = async (containerState: ContainerState): Promise<RenderContext> => {
   const hostsRendering = (containerState.$hostsRendering$ = new Set(containerState.$hostsNext$));
   containerState.$hostsNext$.clear();
   await executeWatchesBefore(containerState);
@@ -206,12 +127,12 @@ const renderMarked = async (
   });
   containerState.$hostsStaging$.clear();
 
-  const doc = getDocument(containerEl);
+  const doc = getDocument(containerState.$containerEl$);
   const platform = containerState.$platform$;
   const renderingQueue = Array.from(hostsRendering);
   sortNodes(renderingQueue);
 
-  const ctx = createRenderContext(doc, containerState, containerEl);
+  const ctx = createRenderContext(doc, containerState);
 
   for (const el of renderingQueue) {
     if (!ctx.$hostElements$.has(el)) {
@@ -227,23 +148,19 @@ const renderMarked = async (
   // Early exist, no dom operations
   if (ctx.$operations$.length === 0) {
     printRenderStats(ctx);
-    postRendering(containerEl, containerState, ctx);
+    postRendering(containerState, ctx);
     return ctx;
   }
 
   return platform.raf(() => {
     executeContextWithSlots(ctx);
     printRenderStats(ctx);
-    postRendering(containerEl, containerState, ctx);
+    postRendering(containerState, ctx);
     return ctx;
   });
 };
 
-export const postRendering = async (
-  containerEl: Element,
-  containerState: ContainerState,
-  ctx: RenderContext
-) => {
+export const postRendering = async (containerState: ContainerState, ctx: RenderContext) => {
   await executeWatchesAfter(containerState, (watch, stage) => {
     if ((watch.$flags$ & WatchFlagsIsEffect) === 0) {
       return false;
@@ -264,7 +181,7 @@ export const postRendering = async (
   containerState.$renderPromise$ = undefined;
 
   if (containerState.$hostsNext$.size + containerState.$watchNext$.size > 0) {
-    scheduleFrame(containerEl, containerState);
+    scheduleFrame(containerState);
   }
 };
 

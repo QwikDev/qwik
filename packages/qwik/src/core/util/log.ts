@@ -1,6 +1,5 @@
-import { isElement } from '../../testing/html';
 import { tryGetContext } from '../props/props';
-import { QHostAttr } from './markers';
+import { isElement } from './element';
 import { qDev } from './qdev';
 
 const STYLE = qDev
@@ -49,12 +48,10 @@ const printParams = (optionalParams: any[]) => {
 
 const printElement = (el: Element) => {
   const ctx = tryGetContext(el);
-  const isComponent = el.hasAttribute(QHostAttr);
   const isServer: boolean = /*#__PURE__*/ (() =>
     typeof process !== 'undefined' && !!process.versions && !!process.versions.node)();
 
   return {
-    isComponent,
     tagName: el.tagName,
     renderQRL: ctx?.$renderQrl$?.getSymbol(),
     element: isServer ? undefined : el,

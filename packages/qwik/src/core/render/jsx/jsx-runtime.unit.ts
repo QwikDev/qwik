@@ -1,8 +1,9 @@
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
+import { ProcessedJSXNode, processNode } from '../dom/render-dom';
 import { Host } from './host.public';
-import { jsx, isJSXNode, Fragment, processNode } from './jsx-runtime';
-import type { FunctionComponent, ProcessedJSXNode } from './types/jsx-node';
+import { jsx, isJSXNode, Fragment } from './jsx-runtime';
+import type { FunctionComponent } from './types/jsx-node';
 
 const jsxSuite = suite('jsx-runtime');
 jsxSuite('map multiple nodes', () => {

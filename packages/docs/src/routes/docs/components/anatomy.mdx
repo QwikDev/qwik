@@ -89,16 +89,14 @@ const Parent = component$(() => (
 Will result in:
 
 ```html
-<div q:host>
+<div>
   <section>
-    <div q:host>
+    <div>
       <span>child</span>
     </div>
   </section>
 </div>
 ```
-
-Qwik host elements are marked with `q:host` attribute.
 
 As you can see, `component$` will always create an extra element, by default is `div`, but that can be changed with `component$` options argument or the `host:tagName` attribute:
 
@@ -123,7 +121,7 @@ const MyArticle = component$(() => (
 Will both result in:
 
 ```html
-<article q:host>
+<article>
   <span>
     My article
   </span>
@@ -161,7 +159,7 @@ or
 In both above cases the rendered HTML would be:
 
 ```html
-<div q:host></div>
+<div></div>
 ```
 
 Because the host element is an actual element, there may be a desire to place HTML classes, styles, or attributes on the host element.
@@ -181,7 +179,7 @@ What if you wanted to add a `name` attribute to the host element? The issue is t
 would render as:
 
 ```html
-<div q:host name="abc" id="greeter" onClick$="..."></div>
+<div name="abc" id="greeter" onClick$="..."></div>
 ```
 
 Using a `host:` prefix allows the developer to control the component's host element attributes independently from the component's props.
@@ -195,7 +193,7 @@ One can use the same approach for `class` and `styles`.
 would render:
 
 ```html
-<div q:host class="greeter" style="background-color: red;"></div>
+<div class="greeter" style="background-color: red;"></div>
 ```
 
 However, for convenience `class` and `styles` are special, and they will automatically map to `host:class` and `host:styles`
@@ -212,7 +210,7 @@ when placed on the host element.
 would also render to the same output.
 
 ```html
-<div q:host class="greeter" style="background-color: red;"></div>
+<div class="greeter" style="background-color: red;"></div>
 ```
 
 ## `<Host/>`
@@ -232,7 +230,7 @@ const Greeter = component$(() => {
 will result in:
 
 ```html
-<div q:host class="padded" id="greeter">
+<div class="padded" id="greeter">
   <span>Hello World</span>
 </div>
 ```
@@ -288,14 +286,14 @@ Notice that after the optimizer transforms the code, the `Parent` no longer dire
 So what happens when the `Parent` component renders and `Child` component has not yet been downloaded? First, the `Parent` component renders its JSX like so.
 
 ```html
-<div q:host>
+<div>
   <section>
-    <div q:host></div>
+    <div></div>
   </section>
 </div>
 ```
 
-As you can see in the above example, the `<div q:host/>` acts as a marker where the `Child` component will be inserted once it is lazy-loaded.
+As you can see in the above example, the `<div/>` acts as a marker where the `Child` component will be inserted once it is lazy-loaded.
 
 ## Mental Model
 

@@ -12,7 +12,6 @@ export async function assertPage(ctx: TestContext, test: AssertPage) {
   expect(await html.getAttribute('q:id')).toBeDefined();
 
   const head = html.locator('head');
-  expect(await head.getAttribute('q:host')).toBeDefined();
   expect(await head.getAttribute('q:id')).toBeDefined();
 
   if (test.pathname) {

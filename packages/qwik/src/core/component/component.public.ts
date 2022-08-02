@@ -5,6 +5,7 @@ import type { ComponentBaseProps, JSXTagName } from '../render/jsx/types/jsx-qwi
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
 import type { MutableWrapper } from '../object/q-object';
+import { qTest } from '../util/qdev';
 
 /**
  * Infers `Props` from the component.
@@ -131,7 +132,7 @@ const ELEMENTS_SKIP_KEY: JSXTagName[] = ['html', 'body', 'head'];
  * ```
  *
  * See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`,
- * `useOnWindow`, `useStyles`, `useScopedStyles`
+ * `useOnWindow`, `useStyles`
  *
  * @public
  */
@@ -146,7 +147,8 @@ export const componentQrl = <PROPS extends {}>(
   // Return a QComponent Factory function.
   return function QSimpleComponent(props, key): JSXNode<PROPS> {
     const finalTag = props['host:tagName'] ?? tagName;
-    const finalKey = skipKey ? undefined : onRenderQrl.getHash() + ':' + (key ? key : '');
+    const hash = qTest ? 'sX' : onRenderQrl.getHash();
+    const finalKey = skipKey ? undefined : hash + ':' + (key ? key : '');
     return jsx(finalTag as string, { [OnRenderProp]: onRenderQrl, ...props }, finalKey) as any;
   };
 };
@@ -200,7 +202,7 @@ export const componentQrl = <PROPS extends {}>(
  * ```
  *
  * See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`,
- * `useOnWindow`, `useStyles`, `useScopedStyles`
+ * `useOnWindow`, `useStyles`
  *
  * @public
  */

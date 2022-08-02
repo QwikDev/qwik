@@ -1,12 +1,12 @@
 import type { QwikJSX } from '@builder.io/qwik';
 import qwikDom from '@builder.io/qwik-dom';
-import { isJSXNode, isProcessedJSXNode, processNode } from '../core/render/jsx/jsx-runtime';
-import type { ProcessedJSXNode } from '../core/render/jsx/types/jsx-node';
+import { isJSXNode } from '../core/render/jsx/jsx-runtime';
 import { isComment, isElement, isText } from '../core/util/element';
-import { QHostAttr, QSlot } from '../core/util/markers';
+import { QSlot } from '../core/util/markers';
 import { isHtmlElement } from '../core/util/types';
 import { equal } from 'uvu/assert';
 import { suite } from 'uvu';
+import { isProcessedJSXNode, ProcessedJSXNode, processNode } from '../core/render/dom/render-dom';
 
 /**
  * Returns true if the `node` is `Element` and of the right `tagName`.
@@ -33,13 +33,6 @@ export function isTemplateElement(node: Node | null | undefined): node is HTMLTe
  */
 export function isQSLotTemplateElement(node: Node | null | undefined): node is HTMLTemplateElement {
   return isTemplateElement(node) && node.hasAttribute(QSlot);
-}
-
-/**
- * @private
- */
-export function isComponentElement(node: Node | null | undefined): node is HTMLElement {
-  return isHtmlElement(node) && node.hasAttribute(QHostAttr);
 }
 
 export async function expectDOM(

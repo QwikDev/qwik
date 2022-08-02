@@ -7,7 +7,6 @@ import { useSequentialScope } from './use-store.public';
 import { getDocument } from '../util/dom';
 import { isFunction, isObject, ValueOrPromise } from '../util/types';
 import { isServer } from '../platform/platform';
-import { ContainerState, handleWatch } from '../render/notify-render';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { assertDefined, assertEqual } from '../assert/assert';
 import type { QRL } from '../import/qrl.public';
@@ -21,6 +20,8 @@ import {
 import { useOn } from './use-on';
 import { createResourceReturn } from './use-resource';
 import { GetObjID, intToStr, strToInt } from '../object/store';
+import type { ContainerState } from '../render/container';
+import { handleWatch } from '../render/dom/notify-render';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;

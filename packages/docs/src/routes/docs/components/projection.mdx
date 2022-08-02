@@ -46,7 +46,7 @@ The above example would render into this HTML if `isOpen===true`:
 ```html
 <my-app>
   <collapsible>
-    <q:slot name="title" has-content>
+    <q:slot q:key="title" has-content>
       <span q:slot="title" has-content>Title text</span>
     </q:slot>
     <q:slot>
@@ -88,7 +88,7 @@ Results in:
 <my-app>
   <project>
     <div>
-      <q:slot name="" has-content>
+      <q:slot q:key has-content>
         unwrapped text
         <span>wrapped text with no q:slot</span>
         <span q:slot="">wrapped text with default name</span>
@@ -136,7 +136,7 @@ Results in:
         <span q:slot="title">title text</span>
         <span q:slot="title">second title text</span>
       </div>
-      <q:slot name="" has-content>
+      <q:slot q:key="" has-content>
         unwrapped text
         <span>wrapped text with no q:slot</span>
       </q:slot>
@@ -201,7 +201,7 @@ Results in:
 ```html
 <my-app>
   <project>
-    <q:slot name="title">
+    <q:slot q:key="title">
       <q:slot-default>default title</q:slot-default>
     </q:slot>
     <q:slot has-content>

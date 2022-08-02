@@ -274,7 +274,7 @@ export interface JSXNode<T = any> {
     // (undocumented)
     key: string | number | null;
     // (undocumented)
-    props: Record<string, any> | null;
+    props: Record<string, any>;
     // (undocumented)
     type: T;
 }
@@ -302,8 +302,11 @@ export const noSerialize: <T extends object | undefined>(input: T) => NoSerializ
 // @public (undocumented)
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null | (() => JSXNode<any>);
 
-// @alpha
-export const pauseContainer: (elmOrDoc: Element | Document, defaultParentJSON?: Element) => Promise<SnapshotResult>;
+// Warning: (ae-forgotten-export) The symbol "QContext" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const pauseFromContexts: (elements: QContext[], containerState: ContainerState) => Promise<SnapshotResult>;
 
 // @public (undocumented)
 export interface PropFnInterface<ARGS extends any[], RET> {
@@ -397,6 +400,11 @@ export interface RenderOptions {
     userContext?: Record<string, any>;
 }
 
+// Warning: (ae-forgotten-export) The symbol "RenderSSROptions" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const renderSSR: (doc: Document, node: JSXNode, opts: RenderSSROptions) => Promise<void>;
+
 // @alpha (undocumented)
 export const Resource: <T>(props: ResourceProps<T>) => JSXNode;
 
@@ -482,6 +490,7 @@ export const SkipRerender: FunctionComponent<{}>;
 // @public (undocumented)
 export const Slot: FunctionComponent<{
     name?: string;
+    as?: string;
     children?: any;
 }>;
 
@@ -512,6 +521,14 @@ export interface SnapshotState {
     // (undocumented)
     subs: any[];
 }
+
+// @public (undocumented)
+export const SSRFlush: FunctionComponent<{}>;
+
+// @public (undocumented)
+export const SSRMark: FunctionComponent<{
+    message: string;
+}>;
 
 // @public
 export interface Tracker {

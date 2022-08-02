@@ -4,11 +4,6 @@
 
 ```ts
 
-// Warning: (ae-forgotten-export) The symbol "SerializeDocumentOptions" needs to be exported by the entry point index.d.ts
-//
-// @internal
-export function _createDocument(opts?: SerializeDocumentOptions): any;
-
 // @alpha
 export function createTimer(): () => number;
 
@@ -134,6 +129,8 @@ export interface QwikSymbol {
 // @public (undocumented)
 export type Render = RenderToString | RenderToStream;
 
+// Warning: (ae-forgotten-export) The symbol "SerializeDocumentOptions" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
 export interface RenderOptions extends SerializeDocumentOptions {
     base?: string;
@@ -172,6 +169,10 @@ export function renderToStream(rootNode: any, opts: RenderToStreamOptions): Prom
 export interface RenderToStreamOptions extends RenderOptions {
     // (undocumented)
     stream: StreamWriter;
+    // Warning: (ae-forgotten-export) The symbol "StreamingOptions" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    streaming?: StreamingOptions;
 }
 
 // @public (undocumented)

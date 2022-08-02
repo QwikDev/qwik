@@ -1,17 +1,20 @@
-import { isDocument } from '../util/element';
-import { createRenderContext, executeContext, printRenderStats } from './cursor';
-import { isJSXNode, jsx, processData } from './jsx/jsx-runtime';
-import type { JSXNode, FunctionComponent } from './jsx/types/jsx-node';
-import { visitJsxNode } from './render';
-import { ContainerState, getContainerState, postRendering } from './notify-render';
-import { getDocument } from '../util/dom';
-import { qDev, qTest } from '../util/qdev';
-import { version } from '../version';
-import { QContainerAttr } from '../util/markers';
-import { logWarn } from '../util/log';
-import { appendQwikDevTools } from '../props/props';
-import { qError, QError_cannotRenderOverExistingContainer } from '../error/error';
-import { directSetAttribute } from './fast-calls';
+import { isDocument } from '../../util/element';
+import { executeContext, printRenderStats } from './visitor';
+import { isJSXNode, jsx } from '../jsx/jsx-runtime';
+import type { JSXNode, FunctionComponent } from '../jsx/types/jsx-node';
+import { visitJsxNode } from './visitor';
+import { getDocument } from '../../util/dom';
+import { qDev, qTest } from '../../util/qdev';
+import { version } from '../../version';
+import { QContainerAttr } from '../../util/markers';
+import { logWarn } from '../../util/log';
+import { appendQwikDevTools } from '../../props/props';
+import { qError, QError_cannotRenderOverExistingContainer } from '../../error/error';
+import { directSetAttribute } from '../fast-calls';
+import { processData } from './render-dom';
+import { ContainerState, getContainerState } from '../container';
+import { postRendering } from './notify-render';
+import { BASE_QWIK_STYLES, createRenderContext } from '../execute-component';
 
 /**
  * @alpha
@@ -60,7 +63,7 @@ export const render = async (
   const renderCtx = await containerState.$renderPromise$;
   const allowRerender = opts?.allowRerender ?? true;
   if (allowRerender) {
-    await postRendering(containerEl, containerState, renderCtx);
+    await postRendering(containerState, renderCtx);
   } else {
     containerState.$hostsRendering$ = undefined;
     containerState.$renderPromise$ = undefined;
@@ -83,7 +86,7 @@ const renderRoot = async (
   containerState: ContainerState,
   containerEl: Element
 ) => {
-  const ctx = createRenderContext(doc, containerState, containerEl);
+  const ctx = createRenderContext(doc, containerState);
   ctx.$roots$.push(parent as Element);
 
   const processedNodes = await processData(jsxNode);
@@ -105,7 +108,7 @@ export const injectQwikSlotCSS = (docOrElm: Document | Element) => {
   const isDoc = isDocument(docOrElm);
   const style = doc.createElement('style');
   directSetAttribute(style, 'id', 'qwik/base-styles');
-  style.textContent = `q\\:slot{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}`;
+  style.textContent = BASE_QWIK_STYLES;
   if (isDoc) {
     docOrElm.head.appendChild(style);
   } else {

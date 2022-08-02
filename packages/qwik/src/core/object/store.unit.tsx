@@ -1,6 +1,5 @@
 import { createDocument } from '../../testing/document';
 import { useStore } from '../use/use-store.public';
-import { render } from '../render/render.public';
 import { getQwikJSON } from './store';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { component$ } from '../component/component.public';
@@ -13,6 +12,7 @@ import { useDocument } from '../use/use-document.public';
 import { useHostElement } from '../use/use-host-element.public';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
+import { render } from '../render/dom/render.public';
 
 const storeSuite = suite('store');
 
@@ -71,7 +71,7 @@ storeSuite('should serialize content', async () => {
         count: 'i',
       },
       0,
-      '\u0001/runtimeQRL#s21',
+      '\u0001/runtimeQRL#_',
       '\u0002',
       '\u0000',
     ],

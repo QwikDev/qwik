@@ -2,12 +2,12 @@ import { isArray, isObject, ValueOrPromise } from '../util/types';
 import type { Props } from '../props/props.public';
 import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
-import { QContainerSelector, QHostAttr, RenderEvent } from '../util/markers';
+import { QContainerSelector, RenderEvent } from '../util/markers';
 import { getDocument } from '../util/dom';
 import type { QRL } from '../import/qrl.public';
 import type { Subscriber } from './use-subscriber';
-import type { RenderContext } from '../render/cursor';
 import { qError, QError_useInvokeContext, QError_useMethodOutsideContext } from '../error/error';
+import type { RenderContext } from '../render/types';
 
 declare const document: QwikDocument;
 
@@ -49,11 +49,9 @@ export const tryGetInvokeContext = (): InvokeContext | undefined => {
     }
     if (isArray(context)) {
       const element = context[0];
-      const hostElement = getHostElement(element);
-      assertDefined(hostElement, `invoke: can not find hostElement from active element`, element);
       return (document.__q_context__ = newInvokeContext(
         getDocument(element),
-        hostElement,
+        undefined,
         element,
         context[1],
         context[2]
@@ -118,27 +116,6 @@ export const newInvokeContext = (
     $url$: url || null,
     $qrl$: undefined,
   };
-};
-
-export const getHostElement = (el: Element): Element | null => {
-  let foundSlot = false;
-  let node: Element | null = el;
-  while (node) {
-    const isHost = node.hasAttribute(QHostAttr);
-    const isSlot = node.tagName === 'Q:SLOT';
-    if (isHost) {
-      if (!foundSlot) {
-        break;
-      } else {
-        foundSlot = false;
-      }
-    }
-    if (isSlot) {
-      foundSlot = true;
-    }
-    node = node.parentElement;
-  }
-  return node;
 };
 
 export const getContainer = (el: Element): Element | null => {

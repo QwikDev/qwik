@@ -1,10 +1,10 @@
 import { assertDefined, assertTrue } from '../assert/assert';
 import { assertQrl, isQrl } from '../import/qrl-class';
-import { getContext, tryGetContext } from '../props/props';
+import { getContext, QContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
 import { isDocument, isElement, isNode } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
-import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr } from '../util/markers';
+import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QStyle } from '../util/markers';
 import { qDev } from '../util/qdev';
 import {
   createProxy,
@@ -19,7 +19,6 @@ import {
 import { destroyWatch, SubscriberDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
 import { emitEvent } from '../util/event';
-import { ContainerState, getContainerState } from '../render/notify-render';
 import {
   qError,
   QError_containerAlreadyPaused,
@@ -32,6 +31,8 @@ import { isNotNullable, isPromise } from '../util/promises';
 import type { Subscriber } from '../use/use-subscriber';
 import { isResourceReturn } from '../use/use-resource';
 import { createParser, Parser, serializeValue } from './serializers';
+import { ContainerState, getContainerState } from '../render/container';
+import { getQId } from '../render/execute-component';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -57,13 +58,21 @@ export const pauseContainer = async (
   }
   const parentJSON =
     defaultParentJSON ?? (containerEl === doc.documentElement ? doc.body : containerEl);
-  const data = await pauseState(containerEl);
+  const data = await pauseFromContainer(containerEl);
   const script = doc.createElement('script');
   directSetAttribute(script, 'type', 'qwik/json');
   script.textContent = escapeText(JSON.stringify(data.state, undefined, qDev ? '  ' : undefined));
   parentJSON.appendChild(script);
   directSetAttribute(containerEl, QContainerAttr, 'paused');
   return data;
+};
+
+export const moveStyles = (containerEl: Element, containerState: ContainerState) => {
+  const head = containerEl.ownerDocument.head;
+  containerEl.querySelectorAll('style[q\\:style]').forEach((el) => {
+    containerState.$stylesIds$.add(el.getAttribute(QStyle)!);
+    head.appendChild(el);
+  });
 };
 
 export const resumeContainer = (containerEl: Element) => {
@@ -82,6 +91,7 @@ export const resumeContainer = (containerEl: Element) => {
   script.remove();
 
   const containerState = getContainerState(containerEl);
+  moveStyles(containerEl, containerState);
   const meta = JSON.parse(unescapeText(script.textContent || '{}')) as SnapshotState;
 
   // Collect all elements
@@ -91,13 +101,19 @@ export const resumeContainer = (containerEl: Element) => {
     return getObjectImpl(id, elements, meta.objs, containerState);
   };
 
+  let maxId = 0;
   getNodesInScope(containerEl, hasQId).forEach((el) => {
     const id = directGetAttribute(el, ELEMENT_ID);
     assertDefined(id, `resume: element missed q:id`, el);
+    const ctx = getContext(el);
+    ctx.$id$ = id;
+    ctx.$mounted$ = true;
     elements.set(ELEMENT_ID_PREFIX + id, el);
+    maxId = Math.max(maxId, strToInt(id));
   });
+  containerState.$elementIndex$ = ++maxId;
 
-  const parser = createParser(getObject, containerState);
+  const parser = createParser(getObject, containerState, doc);
 
   // Revive proxies with subscriptions into the proxymap
   reviveValues(meta.objs, meta.subs, getObject, containerState, parser);
@@ -118,7 +134,7 @@ export const resumeContainer = (containerEl: Element) => {
     const watches = ctxMeta.w;
 
     if (qobj) {
-      ctx.$refMap$.$array$.push(...qobj.split(' ').map((part) => getObject(part)));
+      ctx.$refMap$.push(...qobj.split(' ').map((part) => getObject(part)));
     }
     if (seq) {
       ctx.$seq$ = seq.split(' ').map((part) => getObject(part));
@@ -139,8 +155,8 @@ export const resumeContainer = (containerEl: Element) => {
     // Restore sequence scoping
     if (host) {
       const [props, renderQrl] = host.split(' ');
-      assertDefined(props, `resume: props missing in q:host attribute`, host);
-      assertDefined(renderQrl, `resume: renderQRL missing in q:host attribute`, host);
+      assertDefined(props, `resume: props missing in host metadata`, host);
+      assertDefined(renderQrl, `resume: renderQRL missing in host metadata`, host);
       ctx.$props$ = getObject(props);
       ctx.$renderQrl$ = getObject(renderQrl);
     }
@@ -197,26 +213,30 @@ const hasContext = (el: Element) => {
   return !!tryGetContext(el);
 };
 
-export const pauseState = async (containerEl: Element): Promise<SnapshotResult> => {
+export const pauseFromContainer = async (containerEl: Element): Promise<SnapshotResult> => {
   const containerState = getContainerState(containerEl);
-  const doc = getDocument(containerEl);
+  const contexts = getNodesInScope(containerEl, hasContext).map(tryGetContext) as QContext[];
+  return pauseFromContexts(contexts, containerState);
+};
+
+/**
+ * @alpha
+ */
+export const pauseFromContexts = async (
+  elements: QContext[],
+  containerState: ContainerState
+): Promise<SnapshotResult> => {
   const elementToIndex = new Map<Element, string | null>();
-  const collector = createCollector(doc, containerState);
-
-  // Collect all qObjected around the DOM
-  const elements = getNodesInScope(containerEl, hasContext);
-
-  // Collect all listeners
+  const collector = createCollector(containerState);
   const listeners: SnapshotListener[] = [];
-  for (const node of elements) {
-    const ctx = tryGetContext(node)!;
+  for (const ctx of elements) {
     if (ctx.$listeners$) {
       ctx.$listeners$.forEach((qrls, key) => {
         qrls.forEach((qrl) => {
           listeners.push({
             key,
             qrl,
-            el: node,
+            el: ctx.$element$,
           });
         });
       });
@@ -251,7 +271,7 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
       }
     }
     const ctx = tryGetContext(listener.el)!;
-    for (const obj of ctx.$refMap$.$array$) {
+    for (const obj of ctx.$refMap$) {
       await collectValue(obj, collector, true);
     }
   }
@@ -259,9 +279,8 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
   // If at this point any component can render, we need to capture Context and Props
   const canRender = collector.$elements$.length > 0;
   if (canRender) {
-    for (const node of elements) {
-      const ctx = tryGetContext(node)!;
-      await collectProps(node, ctx.$props$, collector);
+    for (const ctx of elements) {
+      await collectProps(ctx.$element$, ctx.$props$, collector);
 
       if (ctx.$contexts$) {
         for (const item of ctx.$contexts$.values()) {
@@ -280,9 +299,9 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     let id = elementToIndex.get(el);
     if (id === undefined) {
       if (el.isConnected) {
-        id = directGetAttribute(el, ELEMENT_ID);
+        id = getQId(el);
         if (!id) {
-          console.warn('Missing ID');
+          console.warn('Missing ID', el);
         } else {
           id = ELEMENT_ID_PREFIX + id;
         }
@@ -441,8 +460,8 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
   const meta: SnapshotMeta = {};
 
   // Write back to the dom
-  elements.forEach((node) => {
-    const ctx = tryGetContext(node);
+  elements.forEach((ctx) => {
+    const node = ctx.$element$;
     assertDefined(ctx, `pause: missing context for dom node`, node);
 
     const ref = ctx.$refMap$;
@@ -455,8 +474,8 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     const elementCaptured = collector.$elements$.includes(node);
 
     let add = false;
-    if (ref.$array$.length > 0) {
-      const value = ref.$array$.map(mustGetObjId).join(' ');
+    if (ref.length > 0) {
+      const value = ref.map(mustGetObjId).join(' ');
       if (value) {
         metaValue.r = value;
         add = true;
@@ -512,16 +531,6 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
     }
   });
 
-  // async function additionalChunk(obj: any) {
-  //   const localCollector = createCollector(doc, containerState);
-  //   localCollector.$seen$ = collector.$seen$;
-  //   localCollector.$seenLeaks$ = collector.$seenLeaks$;
-
-  //   await collectValue(obj, collector, false);
-
-  //   return '';
-  // }
-
   const pendingContent: Promise<string>[] = [];
   for (const watch of collector.$watches$) {
     if (qDev) {
@@ -533,23 +542,11 @@ export const pauseState = async (containerEl: Element): Promise<SnapshotResult> 
       }
     }
     destroyWatch(watch);
-
-    // if (isResourceWatch(watch)) {
-    //   const resource = getInternalResource(watch.r);
-    //   if (resource.dirty) {
-    //     pendingResources.push(resource.promise.then(additionalChunk));
-    //   }
-    // } else {
-    //   destroyWatch(watch);
-    // }
   }
 
   // Sanity check of serialized element
   if (qDev) {
     elementToIndex.forEach((value, el) => {
-      if (getDocument(el) !== doc) {
-        logWarn('element from different document', value, el.tagName);
-      }
       if (!value) {
         logWarn('unconnected element', el.tagName, '\n');
       }
@@ -726,10 +723,9 @@ export interface Collector {
   $elements$: Element[];
   $watches$: SubscriberDescriptor[];
   $containerState$: ContainerState;
-  $doc$: Document;
 }
 
-const createCollector = (doc: Document, containerState: ContainerState): Collector => {
+const createCollector = (containerState: ContainerState): Collector => {
   return {
     $seen$: new Set(),
     $seenLeaks$: new Set(),
@@ -737,7 +733,6 @@ const createCollector = (doc: Document, containerState: ContainerState): Collect
     $elements$: [],
     $watches$: [],
     $containerState$: containerState,
-    $doc$: doc,
   };
 };
 
@@ -758,7 +753,7 @@ const collectElement = async (el: Element, collector: Collector) => {
       await collectValue(obj, collector, false);
     }
 
-    for (const obj of ctx.$refMap$.$array$) {
+    for (const obj of ctx.$refMap$) {
       await collectValue(obj, collector, false);
     }
 
@@ -851,7 +846,6 @@ const collectValue = async (obj: any, collector: Collector, leaks: boolean) => {
       // Handle dom nodes
       if (!target && isNode(obj)) {
         if (obj.nodeType === 9) {
-          assertTrue(obj === collector.$doc$, 'Document reference is not from the same page', obj);
           collector.$objMap$.set(obj, obj);
         } else if (obj.nodeType !== 1) {
           throw qError(QError_verifySerializable, obj);

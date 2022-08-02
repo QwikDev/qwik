@@ -7,7 +7,6 @@ import {
   QError_verifySerializable,
 } from '../error/error';
 import { isQrl } from '../import/qrl-class';
-import { ContainerState, notifyChange } from '../render/notify-render';
 import { tryGetInvokeContext } from '../use/use-core';
 import { isDocument, isElement, isNode } from '../util/element';
 import { logWarn } from '../util/log';
@@ -18,8 +17,8 @@ import { RenderEvent } from '../util/markers';
 import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
 import { isPromise } from '../util/promises';
 import { canSerialize } from './serializers';
+import type { ContainerState, LocalSubscriptionManager } from '../render/container';
 
-export type ObjToProxyMap = WeakMap<any, any>;
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
 export const QObjectRecursive = 1 << 0;
@@ -69,102 +68,6 @@ const QOjectTargetSymbol = Symbol();
 const QOjectFlagsSymbol = Symbol();
 
 export type TargetType = Record<string | symbol, any>;
-
-export type SubscriberMap = Map<Subscriber, Set<string> | null>;
-export type ObjToSubscriberMap = WeakMap<any, LocalSubscriptionManager>;
-export type SubscriberToSubscriberMap = Map<Subscriber, Set<SubscriberMap>>;
-
-export interface SubscriptionManager {
-  $tryGetLocal$(obj: any): LocalSubscriptionManager | undefined;
-  $getLocal$(obj: any, map?: SubscriberMap): LocalSubscriptionManager;
-  $clearSub$: (sub: Subscriber) => void;
-}
-
-export interface LocalSubscriptionManager {
-  $subs$: SubscriberMap;
-  $notifySubs$: (key?: string | undefined) => void;
-  $addSub$: (subscriber: Subscriber, key?: string) => void;
-}
-
-export const createSubscriptionManager = (): SubscriptionManager => {
-  const objToSubs: ObjToSubscriberMap = new Map();
-  const subsToObjs: SubscriberToSubscriberMap = new Map();
-
-  const clearSub = (sub: Subscriber) => {
-    const subs = subsToObjs.get(sub);
-    if (subs) {
-      subs.forEach((s) => {
-        s.delete(sub);
-      });
-      subsToObjs.delete(sub);
-      subs.clear();
-    }
-  };
-
-  const tryGetLocal = (obj: any) => {
-    assertEqual(getProxyTarget(obj), undefined, 'object can not be be a proxy', obj);
-    return objToSubs.get(obj);
-  };
-
-  const trackSubToObj = (subscriber: Subscriber, map: SubscriberMap) => {
-    let set = subsToObjs.get(subscriber);
-    if (!set) {
-      subsToObjs.set(subscriber, (set = new Set()));
-    }
-    set.add(map);
-  };
-
-  const getLocal = (obj: any, initialMap?: SubscriberMap) => {
-    let local = tryGetLocal(obj);
-    if (local) {
-      assertEqual(
-        initialMap,
-        undefined,
-        'subscription map can not be set to an existing object',
-        local
-      );
-    } else {
-      const map = !initialMap ? (new Map() as SubscriberMap) : initialMap;
-      map.forEach((_, key) => {
-        trackSubToObj(key, map);
-      });
-      objToSubs.set(
-        obj,
-        (local = {
-          $subs$: map,
-          $addSub$(subscriber: Subscriber, key?: string) {
-            if (key == null) {
-              map.set(subscriber, null);
-            } else {
-              let sub = map.get(subscriber);
-              if (sub === undefined) {
-                map.set(subscriber, (sub = new Set()));
-              }
-              if (sub) {
-                sub.add(key);
-              }
-            }
-            trackSubToObj(subscriber, map);
-          },
-          $notifySubs$(key?: string) {
-            map.forEach((value, subscriber) => {
-              if (value === null || !key || value.has(key)) {
-                notifyChange(subscriber);
-              }
-            });
-          },
-        })
-      );
-    }
-    return local;
-  };
-
-  return {
-    $tryGetLocal$: tryGetLocal,
-    $getLocal$: getLocal,
-    $clearSub$: clearSub,
-  };
-};
 
 class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   constructor(

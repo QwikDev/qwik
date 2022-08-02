@@ -1,12 +1,12 @@
 import { ElementFixture, trigger } from '../../testing/element-fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { runtimeQrl } from '../import/qrl';
-import { render } from '../render/render.public';
 import { useStylesQrl } from '../use/use-styles';
 import { PropsOf, component$ } from './component.public';
 import { suite } from 'uvu';
 import { useStore } from '../use/use-store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { render } from '../render/dom/render.public';
 
 const qComponent = suite('q-component');
 qComponent('should declare and render basic component', async () => {
@@ -16,7 +16,7 @@ qComponent('should declare and render basic component', async () => {
   await expectDOM(
     fixture.host,
     <host>
-      <Div q:host="">
+      <Div>
         <span>Hello World</span>
       </Div>
     </host>

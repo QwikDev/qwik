@@ -18,6 +18,7 @@ import { BroadcastEvents } from './components/broadcast-events/broadcast-event';
 import { Weather } from './components/resource/weather';
 import { ResourceApp } from './components/resource/resource';
 import { TreeshakingApp } from './components/treeshaking/treeshaking';
+import { Streaming } from './components/streaming/streaming';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -25,7 +26,7 @@ import { TreeshakingApp } from './components/treeshaking/treeshaking';
  * @returns a promise when all of the rendering is completed.
  */
 export default function (opts: RenderToStreamOptions) {
-  const url = typeof opts.url === 'string' ? new URL(opts.url) : opts.url!;
+  const url = new URL(opts.url);
 
   const tests: Record<string, FunctionComponent> = {
     '/e2e/': () => <Root />,
@@ -46,6 +47,7 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/weather': () => <Weather />,
     '/e2e/resource': () => <ResourceApp />,
     '/e2e/treeshaking': () => <TreeshakingApp />,
+    '/e2e/streaming': () => <Streaming />,
   };
   const Test = tests[url.pathname];
 
@@ -58,6 +60,11 @@ export default function (opts: RenderToStreamOptions) {
       {
         debug: true,
         fragmentTagName: 'container',
+        // streaming: {
+        //   inOrder: {
+        //     buffering: 'marks',
+        //   },
+        // },
         qwikLoader: {
           include: url.searchParams.get('loader') === 'false' ? 'never' : 'auto',
           events: ['click'],
@@ -77,6 +84,14 @@ export default function (opts: RenderToStreamOptions) {
         <Test />
       </body>
     </html>,
-    { debug: true, ...opts }
+    {
+      debug: true,
+      ...opts,
+      streaming: {
+        inOrder: {
+          buffering: 'marks',
+        },
+      },
+    }
   );
 }

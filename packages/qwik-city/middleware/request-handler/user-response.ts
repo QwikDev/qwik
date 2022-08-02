@@ -27,6 +27,9 @@ export async function loadUserResponse(
     isRenderBlocking: false,
   };
 
+  if (!isEndpointOnly) {
+    isEndpointOnly = request.headers.get('Accept') === 'application/json';
+  }
   const { pathname } = url;
 
   let resolve: (u: UserResponseContext) => void;

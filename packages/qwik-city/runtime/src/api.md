@@ -8,6 +8,9 @@ import { Component } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { ResourceReturn } from '@builder.io/qwik';
 
+// @public @deprecated (undocumented)
+export const Content: Component<    {}>;
+
 // @public (undocumented)
 export interface ContentHeading {
     // (undocumented)

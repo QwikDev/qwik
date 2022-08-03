@@ -23,3 +23,9 @@ export const RouterOutlet = component$(() => {
 
   return jsx(SkipRerender, {});
 });
+
+/**
+ * @deprecated Please use `RouterOutlet` instead.
+ * @public
+ */
+export const Content = RouterOutlet;

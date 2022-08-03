@@ -12,7 +12,7 @@ export type {
   RouteLocation,
 } from './library/types';
 
-export { RouterOutlet } from './library/router-outlet';
+export { RouterOutlet, Content } from './library/router-outlet';
 export { Html } from './library/html';
 export type { HtmlProps } from './library/html';
 export { Link } from './library/link';

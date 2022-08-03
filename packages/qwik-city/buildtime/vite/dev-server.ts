@@ -115,6 +115,7 @@ function isVitePathname(pathname: string) {
     pathname.startsWith('/__open-in-editor') ||
     pathname.startsWith('/@qwik-city-plan') ||
     pathname.startsWith('/src/') ||
+    pathname.startsWith('/node_modules/') ||
     pathname.startsWith('/favicon.ico')
   );
 }

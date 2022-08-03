@@ -342,7 +342,7 @@ export const patchVnode = (
       const splittedChidren = splitBy(ch, getSlotName);
       const promises: ValueOrPromise<void>[] = [];
       const slotRctx = copyRenderContext(rctx);
-      slotRctx.$contexts$.push(ctx);
+      slotRctx.$localStack$.push(ctx);
 
       // Mark empty slots and remove content
       Object.entries(slotMaps.slots).forEach(([key, slotEl]) => {
@@ -575,7 +575,7 @@ const createElm = (
         children = children[0].$children$;
       }
       const slotRctx = copyRenderContext(rctx);
-      slotRctx.$contexts$.push(ctx);
+      slotRctx.$localStack$.push(ctx);
       const slotMap = isComponent ? getSlots(currentComponent, elm) : undefined;
       const promises = children.map((ch) => createElm(slotRctx, ch, isSvg, false));
       return then(promiseAll(promises), () => {

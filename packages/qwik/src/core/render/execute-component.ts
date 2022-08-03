@@ -71,7 +71,7 @@ export const executeComponent = (
           };
         }
         componentCtx.$slots$ = [];
-        newCtx.$contexts$.push(ctx);
+        newCtx.$localStack$.push(ctx);
         newCtx.$currentComponent$ = componentCtx;
         return {
           node: jsxNode as JSXNode,
@@ -96,7 +96,7 @@ export const createRenderContext = (
     $hostElements$: new Set(),
     $operations$: [],
     $roots$: [],
-    $contexts$: [],
+    $localStack$: [],
     $currentComponent$: undefined,
     $perf$: {
       $visited$: 0,
@@ -108,7 +108,7 @@ export const createRenderContext = (
 export const copyRenderContext = (ctx: RenderContext): RenderContext => {
   const newCtx: RenderContext = {
     ...ctx,
-    $contexts$: [...ctx.$contexts$],
+    $localStack$: [...ctx.$localStack$],
   };
   return newCtx;
 };

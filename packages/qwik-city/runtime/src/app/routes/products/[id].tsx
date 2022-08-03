@@ -85,7 +85,13 @@ export const head: DocumentHead<ProductData | null> = ({ data }) => {
   };
 };
 
-export const onGet: EndpointHandler<EndpointData> = async ({ params, response }) => {
+export const onGet: EndpointHandler<EndpointData> = async ({
+  params,
+  response,
+  setRenderBlocking,
+}) => {
+  setRenderBlocking();
+
   // Serverside Endpoint
   // During SSR, this method is called directly on the server and returns the data object
   // On the client, this same data can be requested with fetch() at the same URL, but also

@@ -5,6 +5,7 @@ import type { OptimizerOptions } from '../types';
 import type { OutputOptions } from 'rollup';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
+import { normalizePath } from '../../../testing/util';
 
 const cwd = process.cwd();
 
@@ -51,8 +52,8 @@ vite('command: serve, mode: development', async () => {
   equal(opts.debug, false);
   equal(opts.forceFullBuild, false);
 
-  equal(build.outDir, resolve(cwd, 'dist'));
-  equal(rollupOptions.input, resolve(cwd, 'src', 'entry.dev.tsx'));
+  equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
+  equal(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev.tsx')));
   equal(outputOptions.assetFileNames, 'build/[name].[ext]');
   equal(outputOptions.chunkFileNames, 'build/[name].js');
   equal(outputOptions.entryFileNames, 'build/[name].js');
@@ -83,9 +84,10 @@ vite('command: serve, mode: production', async () => {
   equal(opts.entryStrategy, { type: 'hook' });
   equal(opts.debug, false);
   equal(opts.forceFullBuild, false);
+  equal(opts.resolveQwikBuild, false);
 
-  equal(build.outDir, resolve(cwd, 'dist'));
-  equal(rollupOptions.input, resolve(cwd, 'src', 'entry.dev.tsx'));
+  equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
+  equal(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev.tsx')));
   equal(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
   equal(outputOptions.chunkFileNames, 'build/q-[hash].js');
   equal(outputOptions.entryFileNames, 'build/q-[hash].js');
@@ -98,6 +100,7 @@ vite('command: serve, mode: production', async () => {
   equal(c.esbuild, undefined);
   equal(c.ssr, undefined);
 });
+
 vite('command: build, mode: development', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
@@ -114,10 +117,11 @@ vite('command: build, mode: development', async () => {
   equal(opts.entryStrategy, { type: 'hook' });
   equal(opts.debug, false);
   equal(opts.forceFullBuild, true);
+  equal(opts.resolveQwikBuild, true);
 
   equal(plugin.enforce, 'pre');
-  equal(build.outDir, resolve(cwd, 'dist'));
-  equal(rollupOptions.input, [resolve(cwd, 'src', 'root.tsx')]);
+  equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
+  equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
   equal(outputOptions.assetFileNames, 'build/[name].[ext]');
   equal(outputOptions.chunkFileNames, 'build/[name].js');
   equal(outputOptions.entryFileNames, 'build/[name].js');
@@ -146,14 +150,15 @@ vite('command: build, mode: production', async () => {
   equal(opts.entryStrategy, { type: 'smart' });
   equal(opts.debug, false);
   equal(opts.forceFullBuild, true);
+  equal(opts.resolveQwikBuild, true);
 
   equal(plugin.enforce, 'pre');
-  equal(build.outDir, resolve(cwd, 'dist'));
-  equal(rollupOptions.input, [resolve(cwd, 'src', 'root.tsx')]);
+  equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
+  equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
   equal(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
   equal(outputOptions.chunkFileNames, 'build/q-[hash].js');
   equal(outputOptions.entryFileNames, 'build/q-[hash].js');
-  equal(build.outDir, resolve(cwd, 'dist'));
+  equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
   equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, undefined);
@@ -177,11 +182,12 @@ vite('command: build, --mode production (client)', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
+  equal(opts.resolveQwikBuild, true);
 
   equal(opts.target, 'client');
   equal(opts.buildMode, 'production');
-  equal(rollupOptions.input, [resolve(cwd, 'src', 'root.tsx')]);
-  equal(build.outDir, resolve(cwd, 'client-dist'));
+  equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
+  equal(build.outDir, normalizePath(resolve(cwd, 'client-dist')));
 });
 
 vite('command: build, --ssr entry.express.tsx', async () => {
@@ -203,14 +209,15 @@ vite('command: build, --ssr entry.express.tsx', async () => {
   equal(opts.entryStrategy, { type: 'inline' });
   equal(opts.debug, false);
   equal(opts.forceFullBuild, true);
+  equal(opts.resolveQwikBuild, true);
 
   equal(plugin.enforce, 'pre');
-  equal(build.outDir, resolve(cwd, 'server'));
-  equal(rollupOptions.input, [resolve(cwd, 'src', 'entry.express.tsx')]);
+  equal(build.outDir, normalizePath(resolve(cwd, 'server')));
+  equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'entry.express.tsx'))]);
   equal(outputOptions.assetFileNames, undefined);
   equal(outputOptions.chunkFileNames, undefined);
   equal(outputOptions.entryFileNames, undefined);
-  equal(build.outDir, resolve(cwd, 'server'));
+  equal(build.outDir, normalizePath(resolve(cwd, 'server')));
   equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, true);
@@ -237,9 +244,10 @@ vite('command: serve, --mode ssr', async () => {
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'development');
   equal(build.ssr, undefined);
-  equal(rollupOptions.input, [resolve(cwd, 'src', 'renderz.tsx')]);
-  equal(c.build.outDir, resolve(cwd, 'ssr-dist'));
+  equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'renderz.tsx'))]);
+  equal(c.build.outDir, normalizePath(resolve(cwd, 'ssr-dist')));
   equal(c.publicDir, undefined);
+  equal(opts.resolveQwikBuild, false);
 });
 
 vite.run();

@@ -17,10 +17,6 @@ export async function loadUserResponse(
   trailingSlash: boolean | undefined,
   isEndpointOnly: boolean
 ) {
-  if (!isEndpointOnly) {
-    isEndpointOnly = request.headers.get('Accept') === 'application/json';
-  }
-
   const userResponse: UserResponseContext = {
     url,
     params,
@@ -28,9 +24,23 @@ export async function loadUserResponse(
     headers: new (typeof Headers === 'function' ? Headers : HeadersPolyfill)(),
     body: undefined,
     type: 'endpoint',
+    isRenderBlocking: false,
   };
 
+  if (!isEndpointOnly) {
+    isEndpointOnly = request.headers.get('Accept') === 'application/json';
+  }
   const { pathname } = url;
+
+  let resolve: (u: UserResponseContext) => void;
+  const promise = new Promise<UserResponseContext>((r) => {
+    resolve = r;
+  });
+
+  if (!isEndpointOnly) {
+    isEndpointOnly = request.headers.get('Accept') === 'application/json';
+  }
+
   if (!isEndpointOnly && pathname !== '/') {
     // only check for slash redirect on pages
     if (trailingSlash) {
@@ -61,6 +71,10 @@ export async function loadUserResponse(
     abort();
   };
 
+  const setRenderBlocking = () => {
+    userResponse.isRenderBlocking = true;
+  };
+
   const response: ResponseContext = {
     get status() {
       return userResponse.status;
@@ -76,6 +90,7 @@ export async function loadUserResponse(
     middlewareIndex++;
 
     while (middlewareIndex < endpointModules.length) {
+      const isLastMiddleware = middlewareIndex === endpointModules.length - 1;
       const endpointModule = endpointModules[middlewareIndex];
 
       let reqHandler: EndpointHandler | undefined = undefined;
@@ -124,72 +139,73 @@ export async function loadUserResponse(
           response,
           next,
           abort,
+          setRenderBlocking,
         };
 
         // get the user's endpoint return data
-        userResponse.body = await reqHandler(requstEv);
+        userResponse.body = reqHandler(requstEv);
+
+        if (isLastMiddleware) {
+          resolve(userResponse);
+        }
+
+        await userResponse.body;
+      } else if (isLastMiddleware) {
+        resolve(userResponse);
       }
 
       middlewareIndex++;
     }
   };
 
-  try {
-    await next();
+  await next();
 
-    if (userResponse.status >= 300 && userResponse.status <= 399) {
-      // already know it's a redirect, no need to continue
-      return userResponse;
-    }
-
-    if (isEndpointOnly) {
-      // this can only be an endpoint response and not a content page render/response
-
-      if (!hasRequestHandler) {
-        // can only be an endpoint but there wasn't a handler for this method
-        userResponse.status = 405;
-        userResponse.headers.set('Content-Type', 'text/plain; charset=utf-8');
-        userResponse.body = `Method Not Allowed: ${request.method}`;
-      } else {
-        if (!userResponse.headers.has('Content-Type')) {
-          // default to use a application/json content type response
-          userResponse.headers.set('Content-Type', 'application/json; charset=utf-8');
-        }
-
-        // the data from each layout/page endpoint is already completed in "body"
-        if (userResponse.headers.get('Content-Type')!.startsWith('application/json')) {
-          // JSON response, stringify the body
-          userResponse.body = JSON.stringify(userResponse.body);
-        } else if (userResponse.body != null) {
-          // serialize for a string response
-          const type = typeof userResponse.body;
-          if (type === 'string' || type === 'number' || type === 'boolean') {
-            userResponse.body = String(userResponse.body);
-          } else {
-            // don't know how to serialize this object for the response
-            userResponse.status = 500;
-            userResponse.headers.set('Content-Type', 'text/plain; charset=utf-8');
-            userResponse.body = 'Unsupport response body type';
-          }
-        }
-      }
-    } else {
-      // not an endpoint or a redirect only response
-      // but the route matched, so a content page response
-      userResponse.type = 'page';
-
-      // default to text/html content if it wasn't provided
-      if (!userResponse.headers.has('Content-Type')) {
-        userResponse.headers.set('Content-Type', 'text/html; charset=utf-8');
-      }
-    }
-  } catch (e: any) {
-    userResponse.status = 500;
-    userResponse.headers.set('Content-Type', 'text/plain; charset=utf-8');
-    userResponse.body = String(e ? e.stack : e || 'Endpoint Error');
+  if (userResponse.status >= 300 && userResponse.status <= 399) {
+    // already know it's a redirect, no need to continue
+    return userResponse;
   }
 
-  return userResponse;
+  if (isEndpointOnly) {
+    // this can only be an endpoint response and not a content page render/response
+
+    if (!hasRequestHandler) {
+      // can only be an endpoint but there wasn't a handler for this method
+      userResponse.status = 405;
+      userResponse.headers.set('Content-Type', 'text/plain; charset=utf-8');
+      userResponse.body = `Method Not Allowed: ${request.method}`;
+    } else {
+      if (!userResponse.headers.has('Content-Type')) {
+        // default to use a application/json content type response
+        userResponse.headers.set('Content-Type', 'application/json; charset=utf-8');
+      }
+
+      // the data from each layout/page endpoint is already completed in "body"
+      if (userResponse.headers.get('Content-Type')!.startsWith('application/json')) {
+        // JSON response, stringify the body
+        userResponse.body = JSON.stringify(userResponse.body);
+      } else if (userResponse.body != null) {
+        // serialize for a string response
+        const type = typeof userResponse.body;
+        if (type === 'string' || type === 'number' || type === 'boolean') {
+          userResponse.body = String(userResponse.body);
+        } else {
+          // don't know how to serialize this object for the response
+          throw new Error(`Unsupport response body type`);
+        }
+      }
+    }
+  } else {
+    // not an endpoint or a redirect only response
+    // but the route matched, so a content page response
+    userResponse.type = 'page';
+
+    // default to text/html content if it wasn't provided
+    if (!userResponse.headers.has('Content-Type')) {
+      userResponse.headers.set('Content-Type', 'text/html; charset=utf-8');
+    }
+  }
+
+  return promise;
 }
 
 function pageRedirect(userResponseContext: UserResponseContext, updatedPathname: string) {

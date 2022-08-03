@@ -24,7 +24,7 @@ test.describe('e2e', () => {
       const SNAPSHOT =
         '<p>1</p><p>"&lt;/script&gt;"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}}</p><p>undefined</p><p>null</p><p>[1,2,"hola",null,{}]</p><p>true</p><p>false</p><p>()=&gt;console.error()</p><p>mutable message</p><p>from a promise</p>';
       const RESULT =
-        '[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}},"undefined","null",[1,2,"hola",null,{}],true,false,null,"mutable message","from a promise","http://qwik.builder.com/docs?query=true","2022-07-26T17:40:30.255Z","hola()\\\\/ gi"]';
+        '[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}},"undefined","null",[1,2,"hola",null,{}],true,false,null,"mutable message","from a promise","http://qwik.builder.com/docs?query=true","2022-07-26T17:40:30.255Z","hola()\\\\/ gi",12]';
 
       function normalizeSnapshot(str: string) {
         return str.replace(' =&gt; ', '=&gt;');
@@ -578,6 +578,63 @@ test.describe('e2e', () => {
       await expect(resource1).toHaveText('resource 1 is 88');
       // await expect(resource2).toHaveText('resource 2 is 176');
       await expect(logs).toHaveText(logsContent);
+    });
+  });
+
+  test.describe('styles', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/styles');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should load', async ({ page }) => {
+      const parent = await page.locator('.parent');
+
+      const addChild = await page.locator('button');
+      await expect(parent).toHaveCSS('font-size', '200px');
+      const el = await page.$$('[q\\:style]');
+      await expect(el.length).toBe(3);
+
+      const ids = await page.$$('[q\\:id]');
+      expect(await Promise.all(ids.map((el) => el.getAttribute('q:id')))).toEqual([
+        '0',
+        '1',
+        'b',
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+        '7',
+        '8',
+        '9',
+        'a',
+      ]);
+
+      await addChild.click();
+      await page.waitForTimeout(100);
+
+      await expect(parent).toHaveCSS('font-size', '200px');
+
+      const el2 = await page.$$('[q\\:style]');
+      await expect(el2.length).toBe(3);
+
+      const ids2 = await page.$$('[q\\:id]');
+      expect(await Promise.all(ids2.map((el) => el.getAttribute('q:id')))).toEqual([
+        '0',
+        '1',
+        'b',
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+        '7',
+        '8',
+        '9',
+        'a',
+        'c',
+      ]);
     });
   });
 });

@@ -1,10 +1,7 @@
 import type { CorePlatform } from '@builder.io/qwik';
 import { setPlatform } from '@builder.io/qwik';
-import { getSymbolHash } from '../core/import/qrl-class';
-import { logError } from '../core/util/log';
 import type { SymbolMapper } from '../optimizer/src/types';
 import type { SerializeDocumentOptions } from './types';
-import { normalizeUrl } from './utils';
 
 declare const require: (module: string) => Record<string, any>;
 
@@ -16,11 +13,6 @@ function createPlatform(
   if (!document || (document as Document).nodeType !== 9) {
     throw new Error(`Invalid Document implementation`);
   }
-  const doc: Document = document;
-  if (opts?.url) {
-    doc.location.href = normalizeUrl(opts.url).href;
-  }
-
   const mapperFn = opts.symbolMapper
     ? opts.symbolMapper
     : (symbolName: string) => {
@@ -28,7 +20,7 @@ function createPlatform(
           const hash = getSymbolHash(symbolName);
           const result = mapper[hash];
           if (!result) {
-            logError('Cannot resolve symbol', symbolName, 'in', mapper);
+            console.error('Cannot resolve symbol', symbolName, 'in', mapper);
           }
           return result;
         }
@@ -49,7 +41,7 @@ function createPlatform(
       return symbol;
     },
     raf: () => {
-      logError('server can not rerender');
+      console.error('server can not rerender');
       return Promise.resolve();
     },
     nextTick: (fn) => {
@@ -80,3 +72,11 @@ export async function setServerPlatform(
   const platform = createPlatform(document, opts, mapper);
   setPlatform(document, platform);
 }
+
+export const getSymbolHash = (symbolName: string) => {
+  const index = symbolName.lastIndexOf('_');
+  if (index > -1) {
+    return symbolName.slice(index + 1);
+  }
+  return symbolName;
+};

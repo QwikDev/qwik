@@ -1,16 +1,21 @@
-import type { ViteDevServer } from 'vite';
+import type { ViteDevServer, Connect } from 'vite';
+import type { ServerResponse } from 'http';
+import fs from 'fs';
+import { join } from 'path';
+import { Headers as HeadersPolyfill } from 'headers-polyfill';
 import type { BuildContext } from '../types';
 import type { EndpointModule } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
 import { loadUserResponse } from '../../middleware/request-handler/user-response';
 import { getQwikCityUserContext } from '../../middleware/request-handler/utils';
-import { fromNodeHttp } from '../../middleware/express/utils';
 import { buildFromUrlPathname } from '../build';
+import { notFoundHandler } from '../../middleware/request-handler/fallback-handler';
+import type { QwikCityRequestContext } from '../../middleware/request-handler/types';
 
 export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
-  server.middlewares.use(async (nodeReq, nodeRes, next) => {
+  server.middlewares.use(async (req, res, next) => {
     try {
-      const url = new URL(nodeReq.originalUrl!, `http://${nodeReq.headers.host}`);
+      const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
       const pathname = url.pathname;
 
       if (isVitePathname(pathname)) {
@@ -18,10 +23,18 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         return;
       }
 
+      // see if this path is a static file in one of these directories which vite will serve
+      const isAsset = await isStaticAsset(server, pathname);
+      if (isAsset) {
+        next();
+        return;
+      }
+
+      const serverRequestEv = fromDevServerHttp(url, req, res);
+      const { request, response } = serverRequestEv;
       const result = await buildFromUrlPathname(ctx, pathname);
       if (result) {
         const { route, params } = result;
-        const { request, response } = fromNodeHttp(url, nodeReq, nodeRes);
         const isEndpointOnly = route.type === 'endpoint';
 
         // use vite to dynamically load each layout/page module in this route's hierarchy
@@ -46,6 +59,11 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
           isEndpointOnly
         );
 
+        if (userResponse.status === 404) {
+          await notFoundHandler(serverRequestEv);
+          return;
+        }
+
         if (userResponse.type === 'endpoint') {
           // dev server endpoint handler
           response(userResponse.status, userResponse.headers, async (stream) => {
@@ -59,24 +77,33 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         if (userResponse.type === 'page') {
           // qwik city vite plugin should handle dev ssr rendering
           // but add the qwik city user context to the response object
-          (nodeRes as QwikViteDevResponse)._qwikUserCtx = {
-            ...(nodeRes as QwikViteDevResponse)._qwikUserCtx,
-            ...getQwikCityUserContext(userResponse),
+          const userContext = getQwikCityUserContext(userResponse);
+          if (ctx.isDevServerClientOnly) {
+            // because we stringify this content for the client only
+            // dev server, there's some potential stringify issues
+            // client only dev server will re-fetch anyways, so reset
+            userContext.qwikcity.response.body = undefined;
+          }
+
+          (res as QwikViteDevResponse)._qwikUserCtx = {
+            ...(res as QwikViteDevResponse)._qwikUserCtx,
+            ...userContext,
           };
+
           // update node response with status and headers
           // but do not end() it, call next() so qwik plugin handles rendering
-          nodeRes.statusCode = userResponse.status;
-          userResponse.headers.forEach((value, key) => nodeRes.setHeader(key, value));
+          res.statusCode = userResponse.status;
+          userResponse.headers.forEach((value, key) => res.setHeader(key, value));
           next();
           return;
         }
       }
+
+      // static file does not exist, 404
+      await notFoundHandler(serverRequestEv);
     } catch (e) {
       next(e);
-      return;
     }
-
-    next();
   });
 }
 
@@ -84,9 +111,92 @@ function isVitePathname(pathname: string) {
   return (
     pathname.startsWith('/@fs/') ||
     pathname.startsWith('/@id/') ||
-    pathname.startsWith('/@qwik-city-plan') ||
     pathname.startsWith('/@vite/') ||
+    pathname.startsWith('/__vite_ping') ||
+    pathname.startsWith('/__open-in-editor') ||
+    pathname.startsWith('/@qwik-city-plan') ||
     pathname.startsWith('/src/') ||
     pathname.startsWith('/favicon.ico')
   );
+}
+
+async function isStaticAsset(server: ViteDevServer, pathname: string) {
+  const localPath = pathname.slice(1);
+  const publicDirs = ['dist', 'public'].map((dir) => join(server.config.root, dir));
+  publicDirs.push(server.config.build.outDir);
+
+  for (const publicDir of publicDirs) {
+    try {
+      // check for public path static file asset
+      const filePath = join(publicDir, localPath);
+      const s = await fs.promises.stat(filePath);
+      if (s.isFile()) {
+        return true;
+      }
+    } catch (e) {
+      //
+    }
+  }
+  return false;
+}
+
+function fromDevServerHttp(url: URL, req: Connect.IncomingMessage, res: ServerResponse) {
+  const requestHeaders = new (typeof Headers === 'function' ? Headers : HeadersPolyfill)();
+  const nodeRequestHeaders = req.headers;
+  for (const key in nodeRequestHeaders) {
+    const value = nodeRequestHeaders[key];
+    if (typeof value === 'string') {
+      requestHeaders.set(key, value);
+    } else if (Array.isArray(value)) {
+      for (const v of value) {
+        requestHeaders.append(key, v);
+      }
+    }
+  }
+
+  const getRequestBody = async () => {
+    const buffers = [];
+    for await (const chunk of req) {
+      buffers.push(chunk);
+    }
+    return Buffer.concat(buffers).toString();
+  };
+
+  const requestCtx: QwikCityRequestContext = {
+    request: {
+      headers: requestHeaders,
+      formData: async () => {
+        return new URLSearchParams(await getRequestBody());
+      },
+      json: async () => {
+        return JSON.parse(await getRequestBody()!);
+      },
+      method: req.method || 'GET',
+      text: getRequestBody,
+      url: url.href,
+    },
+    response: (status, headers, body) => {
+      res.statusCode = status;
+      headers.forEach((value, key) => res.setHeader(key, value));
+      body({
+        write: (chunk) => {
+          return new Promise<void>((resolve, reject) => {
+            res.write(chunk, (err) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve();
+              }
+            });
+          });
+        },
+      }).finally(() => {
+        res.end();
+      });
+      return res;
+    },
+    url,
+  };
+
+  return requestCtx;
 }

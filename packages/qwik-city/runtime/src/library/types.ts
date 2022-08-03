@@ -1,4 +1,3 @@
-import type { RenderDocument } from '../../../../qwik/src/server/types';
 import type { ROUTE_TYPE_ENDPOINT } from './constants';
 
 export interface EndpointModule<BODY = unknown> {
@@ -177,13 +176,18 @@ export type RouteData =
       routeType: typeof ROUTE_TYPE_ENDPOINT
     ];
 
+export type FallbackRouteData =
+  | [pattern: RegExp, loaders: ModuleLoader[]]
+  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]];
+
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 
 /**
  * @public
  */
 export interface QwikCityPlan {
-  routes: RouteData[];
+  routes?: RouteData[];
+  fallbackRoutes?: FallbackRouteData[];
   menus?: MenuData[];
   trailingSlash?: boolean;
   cacheModules?: boolean;
@@ -257,6 +261,8 @@ export interface RequestEvent {
 
   next: () => Promise<void>;
   abort: () => void;
+
+  setRenderBlocking: () => void;
 }
 
 /**
@@ -276,7 +282,7 @@ export interface EndpointResponse {
   status: number;
 }
 
-export interface QwikCityRenderDocument extends RenderDocument {}
+export interface QwikCityRenderDocument extends Document {}
 
 export interface QwikCityUserContext {
   route: MutableRouteLocation;

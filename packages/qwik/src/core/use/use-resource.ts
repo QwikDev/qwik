@@ -19,10 +19,10 @@ import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { qDev } from '../util/qdev';
 import { isServer } from '../platform/platform';
 import { getInvokeContext } from './use-core';
-import type { ContainerState } from '../render/notify-render';
 
 import { isObject } from '../util/types';
 import type { GetObjID } from '../object/store';
+import type { ContainerState } from '../render/container';
 
 export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn<T> => {
   const resource: ResourceReturn<T> = {

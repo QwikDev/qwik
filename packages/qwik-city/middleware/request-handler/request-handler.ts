@@ -1,17 +1,23 @@
 import { loadRoute } from '../../runtime/src/library/routing';
 import { loadUserResponse } from './user-response';
-import type { QwikCityRequestContext } from './types';
+import type { QwikCityRequestContext, QwikCityRequestOptions } from './types';
 import { ROUTE_TYPE_ENDPOINT } from '../../runtime/src/library/constants';
-import type { RenderToStringResult, StreamWriter } from '@builder.io/qwik/server';
+import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import { getQwikCityUserContext } from './utils';
+import { errorHandler } from './fallback-handler';
+import cityPlan from '@qwik-city-plan';
 
 /**
  * @public
  */
-export async function requestHandler<T = any>(requestCtx: QwikCityRequestContext): Promise<T> {
-  const { routes, menus, cacheModules, trailingSlash, request, response, url, render } = requestCtx;
-
+export async function requestHandler<T = any>(
+  requestCtx: QwikCityRequestContext,
+  render: Render,
+  opts?: QwikCityRequestOptions
+): Promise<T | null> {
   try {
+    const { request, response, url } = requestCtx;
+    const { routes, menus, cacheModules, trailingSlash } = { ...cityPlan, ...opts };
     const loadedRoute = await loadRoute(routes, menus, cacheModules, url.pathname);
     if (loadedRoute) {
       // found and loaded the route for this pathname
@@ -28,7 +34,13 @@ export async function requestHandler<T = any>(requestCtx: QwikCityRequestContext
         isEndpointOnly
       );
 
+      // user-assigned 404 response
+      if (userResponse.status === 404) {
+        return null;
+      }
+
       if (userResponse.type === 'endpoint') {
+        // endpoint response
         return response(userResponse.status, userResponse.headers, async (stream) => {
           if (typeof userResponse.body === 'string') {
             stream.write(userResponse.body);
@@ -36,28 +48,23 @@ export async function requestHandler<T = any>(requestCtx: QwikCityRequestContext
         });
       }
 
-      if (userResponse.type === 'page') {
-        return response(userResponse.status, userResponse.headers, async (stream) => {
-          const result = await render({
-            stream,
-            url: url.href,
-            userContext: getQwikCityUserContext(userResponse),
-          });
-          if ((typeof result as any as RenderToStringResult).html === 'string') {
-            stream.write((result as any as RenderToStringResult).html);
-          }
+      // page response
+      return response(userResponse.status, userResponse.headers, async (stream) => {
+        const result = await render({
+          stream,
+          url: url.href,
+          userContext: getQwikCityUserContext(userResponse),
+          ...opts,
         });
-      }
+        if ((typeof result as any as RenderToStringResult).html === 'string') {
+          stream.write((result as any as RenderToStringResult).html);
+        }
+      });
     }
   } catch (e: any) {
-    return response(
-      500,
-      new URLSearchParams({ 'Content-Type': 'text/plain; charset=utf-8' }),
-      async (stream: StreamWriter) => {
-        stream.write(String(e ? e.stack || e : 'Request Handler Error'));
-      }
-    );
+    return errorHandler(requestCtx, e);
   }
 
-  return requestCtx.next();
+  // route not found
+  return null;
 }

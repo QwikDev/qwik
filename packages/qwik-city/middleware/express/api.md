@@ -4,19 +4,22 @@
 
 ```ts
 
-import type { QwikCityPlan } from '@builder.io/qwik-city';
+import type { NextFunction } from 'express';
 import type { Render } from '@builder.io/qwik/server';
-import { Router } from 'express-serve-static-core';
+import type { RenderOptions } from '@builder.io/qwik/server';
+import type { Request as Request_2 } from 'express';
+import type { Response as Response_2 } from 'express';
 
 // @public (undocumented)
-export function qwikCity(render: Render, opts: QwikCityPlanExpress): Router;
+export function qwikCity(render: Render, opts?: QwikCityExpressOptions): {
+    router: (req: Request_2, res: Response_2, next: NextFunction) => Promise<void>;
+    notFound: (req: Request_2, res: Response_2, next: (e: any) => void) => Promise<void>;
+};
 
+// Warning: (ae-forgotten-export) The symbol "QwikCityRequestOptions" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export interface QwikCityPlanExpress extends QwikCityPlan {
-    // (undocumented)
-    buildDir?: string;
-    // (undocumented)
-    staticDir?: string;
+export interface QwikCityExpressOptions extends QwikCityRequestOptions {
 }
 
 // (No @packageDocumentation comment for this package)

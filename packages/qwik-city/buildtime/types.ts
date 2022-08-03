@@ -2,12 +2,19 @@ export interface BuildContext {
   rootDir: string;
   opts: NormalizedPluginOptions;
   routes: BuildRoute[];
+  fallbackRoutes: BuildFallbackRoute[];
   layouts: BuildLayout[];
+  entries: BuildEntry[];
   menus: BuildMenu[];
-  frontmatter: Map<string, string[]>;
+  frontmatter: Map<string, FrontmatterAttrs>;
   diagnostics: Diagnostic[];
   target: 'ssr' | 'client';
-  isDevServerBuild: boolean;
+  isDevServer: boolean;
+  isDevServerClientOnly: boolean;
+}
+
+export interface FrontmatterAttrs {
+  [attrName: string]: string;
 }
 
 export interface Diagnostic {
@@ -16,7 +23,7 @@ export interface Diagnostic {
 }
 
 export interface RouteSourceFile {
-  type: 'page' | 'endpoint' | 'layout' | 'menu';
+  type: 'page' | 'endpoint' | 'layout' | 'entry' | 'menu' | '404' | '500';
   dirPath: string;
   dirName: string;
   filePath: string;
@@ -43,6 +50,10 @@ export interface BuildRoute {
   layouts: BuildLayout[];
 }
 
+export interface BuildFallbackRoute extends BuildRoute {
+  status: '404' | '500';
+}
+
 export interface ParsedLayoutId {
   layoutType: 'top' | 'nested';
   layoutName: string;
@@ -52,6 +63,11 @@ export interface BuildLayout extends ParsedLayoutId {
   filePath: string;
   dirPath: string;
   id: string;
+}
+
+export interface BuildEntry {
+  chunkFileName: string;
+  filePath: string;
 }
 
 export interface BuildMenu {

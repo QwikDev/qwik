@@ -401,7 +401,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         try {
           if (!globalThis.fetch) {
             const nodeFetch = await sys.strictDynamicImport('node-fetch');
-            global.fetch = nodeFetch.default;
+            global.fetch = nodeFetch;
             global.Headers = nodeFetch.Headers;
             global.Request = nodeFetch.Request;
             global.Response = nodeFetch.Response;
@@ -431,6 +431,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           if (req.headers.accept && req.headers.accept.includes('text/html')) {
             const userContext: Record<string, any> = {
               ...(res as QwikViteDevResponse)._qwikUserCtx,
+              url: url.href,
             };
 
             const status = typeof res.statusCode === 'number' ? res.statusCode : 200;
@@ -522,10 +523,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               res.writeHead(status);
 
               const result = await render(renderOpts);
-              // const html = await server.transformIndexHtml(pathname, result.html, req.originalUrl);
               if ('html' in result) {
+                res.write('<script type="module" src="/@vite/client"></script>');
                 res.end((result as any).html);
               } else {
+                res.write('<script type="module" src="/@vite/client"></script>');
                 res.end();
               }
             } else {

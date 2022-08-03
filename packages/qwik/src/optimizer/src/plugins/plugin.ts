@@ -210,6 +210,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     opts.vendorRoots = updatedOpts.vendorRoots ? updatedOpts.vendorRoots : [];
     opts.scope = updatedOpts.scope ?? null;
 
+    if (typeof updatedOpts.resolveQwikBuild === 'boolean') {
+      opts.resolveQwikBuild = updatedOpts.resolveQwikBuild;
+    }
+
     return { ...opts };
   };
 

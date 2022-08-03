@@ -40,7 +40,7 @@ export async function submoduleServer(config: BuildConfig) {
     format: 'esm',
     banner: { js: getBanner('@builder.io/qwik/server') + injectGlobalPoly() },
     outExtension: { '.js': '.mjs' },
-    plugins: [importPath(/^@builder\.io\/qwik$/, './core.mjs'), qwikDomPlugin],
+    plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik'), qwikDomPlugin],
     watch: watcher(config, submodule),
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
@@ -69,7 +69,7 @@ export async function submoduleServer(config: BuildConfig) {
       js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
     },
     outExtension: { '.js': '.cjs' },
-    plugins: [importPath(/^@builder\.io\/qwik$/, './core.cjs'), qwikDomPlugin],
+    plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik'), qwikDomPlugin],
     watch: watcher(config),
     platform: 'node',
     target: nodeTarget,

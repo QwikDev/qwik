@@ -47,15 +47,15 @@ export interface AriaAttributes {
   'aria-controls'?: string | undefined;
   /** Indicates the element that represents the current item within a container or set of related elements. */
   'aria-current'?:
-  | boolean
-  | 'false'
-  | 'true'
-  | 'page'
-  | 'step'
-  | 'location'
-  | 'date'
-  | 'time'
-  | undefined;
+    | boolean
+    | 'false'
+    | 'true'
+    | 'page'
+    | 'step'
+    | 'location'
+    | 'date'
+    | 'time'
+    | undefined;
   /**
    * Identifies the element (or elements) that describes the object.
    * @see aria-labelledby
@@ -95,15 +95,15 @@ export interface AriaAttributes {
   'aria-grabbed'?: Booleanish | undefined;
   /** Indicates the availability and type of interactive popup element, such as menu or dialog, that can be triggered by an element. */
   'aria-haspopup'?:
-  | boolean
-  | 'false'
-  | 'true'
-  | 'menu'
-  | 'listbox'
-  | 'tree'
-  | 'grid'
-  | 'dialog'
-  | undefined;
+    | boolean
+    | 'false'
+    | 'true'
+    | 'menu'
+    | 'listbox'
+    | 'tree'
+    | 'grid'
+    | 'dialog'
+    | undefined;
   /**
    * Indicates whether the element is exposed to an accessibility API.
    * @see aria-disabled.
@@ -169,17 +169,17 @@ export interface AriaAttributes {
    * @see aria-atomic.
    */
   'aria-relevant'?:
-  | 'additions'
-  | 'additions removals'
-  | 'additions text'
-  | 'all'
-  | 'removals'
-  | 'removals additions'
-  | 'removals text'
-  | 'text'
-  | 'text additions'
-  | 'text removals'
-  | undefined;
+    | 'additions'
+    | 'additions removals'
+    | 'additions text'
+    | 'all'
+    | 'removals'
+    | 'removals additions'
+    | 'removals text'
+    | 'text'
+    | 'text additions'
+    | 'text removals'
+    | undefined;
   /** Indicates that user input is required on the element before a form may be submitted. */
   'aria-required'?: Booleanish | undefined;
   /** Defines a human-readable, author-localized description for the role of an element. */
@@ -351,15 +351,15 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
    * @see https://html.spec.whatwg.org/multipage/interaction.html#input-modalities:-the-inputmode-attribute
    */
   inputMode?:
-  | 'none'
-  | 'text'
-  | 'tel'
-  | 'url'
-  | 'email'
-  | 'numeric'
-  | 'decimal'
-  | 'search'
-  | undefined;
+    | 'none'
+    | 'text'
+    | 'tel'
+    | 'url'
+    | 'email'
+    | 'numeric'
+    | 'decimal'
+    | 'search'
+    | undefined;
   /**
    * Specify that a standard HTML element should behave like a defined custom built-in element
    * @see https://html.spec.whatwg.org/multipage/custom-elements.html#attr-is
@@ -412,7 +412,7 @@ export interface MediaHTMLAttributes<T> extends HTMLAttributes<T> {
   preload?: string | undefined;
   src?: string | undefined;
 }
-export interface AudioHTMLAttributes<T> extends MediaHTMLAttributes<T> { }
+export interface AudioHTMLAttributes<T> extends MediaHTMLAttributes<T> {}
 export interface BaseHTMLAttributes<T> extends HTMLAttributes<T> {
   href?: string | undefined;
   target?: string | undefined;
@@ -599,9 +599,9 @@ export interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
   accept?: string | undefined;
   alt?: string | undefined;
   autoComplete?:
-  | HTMLInputAutocompleteAttribute
-  | Omit<HTMLInputAutocompleteAttribute, string>
-  | undefined;
+    | HTMLInputAutocompleteAttribute
+    | Omit<HTMLInputAutocompleteAttribute, string>
+    | undefined;
   autoFocus?: boolean | undefined;
   capture?: boolean | 'user' | 'environment' | undefined; // https://www.w3.org/TR/html-media-capture/#the-capture-attribute
   checked?: boolean | undefined;
@@ -749,9 +749,9 @@ export interface ScriptHTMLAttributes<T> extends HTMLAttributes<T> {
 }
 export interface SelectHTMLAttributes<T> extends HTMLAttributes<T> {
   autoComplete?:
-  | HTMLInputAutocompleteAttribute
-  | Omit<HTMLInputAutocompleteAttribute, string>
-  | undefined;
+    | HTMLInputAutocompleteAttribute
+    | Omit<HTMLInputAutocompleteAttribute, string>
+    | undefined;
   autoFocus?: boolean | undefined;
   disabled?: boolean | undefined;
   form?: string | undefined;
@@ -795,9 +795,9 @@ export interface TdHTMLAttributes<T> extends HTMLAttributes<T> {
 }
 export interface TextareaHTMLAttributes<T> extends HTMLAttributes<T> {
   autoComplete?:
-  | HTMLInputAutocompleteAttribute
-  | Omit<HTMLInputAutocompleteAttribute, string>
-  | undefined;
+    | HTMLInputAutocompleteAttribute
+    | Omit<HTMLInputAutocompleteAttribute, string>
+    | undefined;
   autoFocus?: boolean | undefined;
   cols?: number | undefined;
   dirName?: string | undefined;
@@ -883,20 +883,20 @@ export interface SVGAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   accumulate?: 'none' | 'sum' | undefined;
   additive?: 'replace' | 'sum' | undefined;
   'alignment-baseline'?:
-  | 'auto'
-  | 'baseline'
-  | 'before-edge'
-  | 'text-before-edge'
-  | 'middle'
-  | 'central'
-  | 'after-edge'
-  | 'text-after-edge'
-  | 'ideographic'
-  | 'alphabetic'
-  | 'hanging'
-  | 'mathematical'
-  | 'inherit'
-  | undefined;
+    | 'auto'
+    | 'baseline'
+    | 'before-edge'
+    | 'text-before-edge'
+    | 'middle'
+    | 'central'
+    | 'after-edge'
+    | 'text-after-edge'
+    | 'ideographic'
+    | 'alphabetic'
+    | 'hanging'
+    | 'mathematical'
+    | 'inherit'
+    | undefined;
   allowReorder?: 'no' | 'yes' | undefined;
   alphabetic?: number | string | undefined;
   amplitude?: number | string | undefined;
@@ -1135,7 +1135,7 @@ export interface SVGAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   z?: number | string | undefined;
   zoomAndPan?: string | undefined;
 }
-export interface SVGProps<T> extends SVGAttributes<T>, ClassAttributes<T> { }
+export interface SVGProps<T> extends SVGAttributes<T>, ClassAttributes<T> {}
 export interface IntrinsicElements {
   a: AnchorHTMLAttributes<HTMLAnchorElement>;
   abbr: HTMLAttributes<HTMLElement>;

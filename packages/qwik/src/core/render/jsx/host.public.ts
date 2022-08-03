@@ -31,9 +31,15 @@ export const SkipRerender: FunctionComponent<{}> = ((props: any) => props.childr
 /**
  * @public
  */
-export const SSRMark: FunctionComponent<{ message: string }> = (() => null) as any;
+export const SSRComment: FunctionComponent<{ text: string }> = (() => null) as any;
 
 /**
  * @public
  */
-export const SSRFlush: FunctionComponent<{}> = () => jsx(SSRMark, { message: 'qkssr-f' });
+export const SSRStreamBlock: FunctionComponent<{ children?: any }> = (props) => {
+  return [
+    jsx(SSRComment, { text: 'qkssr-pu' }),
+    props.children,
+    jsx(SSRComment, { text: 'qkssr-po' }),
+  ] as any;
+};

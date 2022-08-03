@@ -70,7 +70,7 @@ export const pauseContainer = async (
 export const moveStyles = (containerEl: Element, containerState: ContainerState) => {
   const head = containerEl.ownerDocument.head;
   containerEl.querySelectorAll('style[q\\:style]').forEach((el) => {
-    containerState.$stylesIds$.add(el.getAttribute(QStyle)!);
+    containerState.$styleIds$.add(el.getAttribute(QStyle)!);
     head.appendChild(el);
   });
 };

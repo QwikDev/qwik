@@ -2,7 +2,8 @@ import type { FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev } from '../../util/qdev';
 import { logWarn } from '../../util/log';
-import { isObject } from '../../util/types';
+import { isFunction, isObject, isString } from '../../util/types';
+import { qError, QError_invalidJsxNodeType } from '../../error/error';
 
 /**
  * @public
@@ -12,6 +13,11 @@ export const jsx = <T extends string | FunctionComponent<PROPS>, PROPS>(
   props: PROPS,
   key?: string | number
 ): JSXNode<T> => {
+  if (qDev) {
+    if (!isString(type) && !isFunction(type)) {
+      throw qError(QError_invalidJsxNodeType, type);
+    }
+  }
   return new JSXNodeImpl<T>(type, props, key);
 };
 

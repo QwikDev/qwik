@@ -1,47 +1,36 @@
-import { Headers as HeadersPolyfill } from 'headers-polyfill';
+import { Headers } from './headers';
 import type {
   EndpointHandler,
   EndpointModule,
-  RequestContext,
   RequestEvent,
   ResponseContext,
   RouteParams,
 } from '../../runtime/src/library/types';
-import type { UserResponseContext } from './types';
+import type { QwikCityRequestContext, UserResponseContext } from './types';
+import { HttpStatus } from './http-status-codes';
 
 export async function loadUserResponse(
-  request: RequestContext,
-  url: URL,
+  requestCtx: QwikCityRequestContext,
   params: RouteParams,
   endpointModules: EndpointModule[],
-  trailingSlash: boolean | undefined,
-  isEndpointOnly: boolean
+  trailingSlash?: boolean,
+  isEndpointOnly?: boolean
 ) {
+  const { request, url } = requestCtx;
+  const { pathname } = url;
   const userResponse: UserResponseContext = {
     url,
     params,
-    status: 200,
-    headers: new (typeof Headers === 'function' ? Headers : HeadersPolyfill)(),
-    body: undefined,
-    type: 'endpoint',
-    isRenderBlocking: false,
+    status: HttpStatus.Ok,
+    headers: new Headers(),
+    resolvedBody: undefined,
+    pendingBody: undefined,
+    isEndpointOnly: isEndpointOnly || request.headers.get('Accept') === 'application/json',
   };
 
-  if (!isEndpointOnly) {
-    isEndpointOnly = request.headers.get('Accept') === 'application/json';
-  }
-  const { pathname } = url;
+  let hasRequestMethodHandler = false;
 
-  let resolve: (u: UserResponseContext) => void;
-  const promise = new Promise<UserResponseContext>((r) => {
-    resolve = r;
-  });
-
-  if (!isEndpointOnly) {
-    isEndpointOnly = request.headers.get('Accept') === 'application/json';
-  }
-
-  if (!isEndpointOnly && pathname !== '/') {
+  if (!userResponse.isEndpointOnly && pathname !== '/') {
     // only check for slash redirect on pages
     if (trailingSlash) {
       // must have a trailing slash
@@ -59,38 +48,21 @@ export async function loadUserResponse(
   }
 
   let middlewareIndex = -1;
-  let hasRequestHandler = false;
 
   const abort = () => {
     middlewareIndex = ABORT_INDEX;
   };
 
   const redirect = (url: string, status?: number) => {
-    userResponse.status = typeof status === 'number' ? status : 307;
+    userResponse.status = typeof status === 'number' ? status : HttpStatus.TemporaryRedirect;
     userResponse.headers.set('Location', url);
     abort();
-  };
-
-  const setRenderBlocking = () => {
-    userResponse.isRenderBlocking = true;
-  };
-
-  const response: ResponseContext = {
-    get status() {
-      return userResponse.status;
-    },
-    set status(code) {
-      userResponse.status = code;
-    },
-    headers: userResponse.headers,
-    redirect,
   };
 
   const next = async () => {
     middlewareIndex++;
 
     while (middlewareIndex < endpointModules.length) {
-      const isLastMiddleware = middlewareIndex === endpointModules.length - 1;
       const endpointModule = endpointModules[middlewareIndex];
 
       let reqHandler: EndpointHandler | undefined = undefined;
@@ -129,29 +101,55 @@ export async function loadUserResponse(
       reqHandler = reqHandler || endpointModule.onRequest;
 
       if (typeof reqHandler === 'function') {
-        hasRequestHandler = true;
+        hasRequestMethodHandler = true;
+
+        const response: ResponseContext = {
+          get status() {
+            return userResponse.status;
+          },
+          set status(code) {
+            userResponse.status = code;
+          },
+          get headers() {
+            return userResponse.headers;
+          },
+          redirect,
+        };
 
         // create user request event, which is a narrowed down request context
         const requstEv: RequestEvent = {
-          request,
-          url,
-          params,
+          request: { ...request },
+          url: new URL(url),
+          params: { ...params },
           response,
           next,
           abort,
-          setRenderBlocking,
         };
 
-        // get the user's endpoint return data
-        userResponse.body = reqHandler(requstEv);
+        // get the user's endpoint returned data
+        const syncData = reqHandler(requstEv) as any;
 
-        if (isLastMiddleware) {
-          resolve(userResponse);
+        if (typeof syncData === 'function') {
+          // sync returned function
+          userResponse.pendingBody = createPendingBody(syncData);
+        } else if (
+          syncData !== null &&
+          typeof syncData === 'object' &&
+          typeof syncData.then === 'function'
+        ) {
+          // async returned promise
+          const asyncResolved = await syncData;
+          if (typeof asyncResolved === 'function') {
+            // async resolved function
+            userResponse.pendingBody = createPendingBody(asyncResolved);
+          } else {
+            // async resolved data
+            userResponse.resolvedBody = asyncResolved;
+          }
+        } else {
+          // sync returned data
+          userResponse.resolvedBody = syncData;
         }
-
-        await userResponse.body;
-      } else if (isLastMiddleware) {
-        resolve(userResponse);
       }
 
       middlewareIndex++;
@@ -160,58 +158,42 @@ export async function loadUserResponse(
 
   await next();
 
-  if (userResponse.status >= 300 && userResponse.status <= 399) {
-    // already know it's a redirect, no need to continue
-    return userResponse;
+  if (
+    userResponse.status >= HttpStatus.MovedPermanently &&
+    userResponse.status <= HttpStatus.PermanentRedirect
+  ) {
+    userResponse.isEndpointOnly = true;
   }
 
-  if (isEndpointOnly) {
-    // this can only be an endpoint response and not a content page render/response
-
-    if (!hasRequestHandler) {
-      // can only be an endpoint but there wasn't a handler for this method
-      userResponse.status = 405;
-      userResponse.headers.set('Content-Type', 'text/plain; charset=utf-8');
-      userResponse.body = `Method Not Allowed: ${request.method}`;
-    } else {
-      if (!userResponse.headers.has('Content-Type')) {
-        // default to use a application/json content type response
-        userResponse.headers.set('Content-Type', 'application/json; charset=utf-8');
-      }
-
-      // the data from each layout/page endpoint is already completed in "body"
-      if (userResponse.headers.get('Content-Type')!.startsWith('application/json')) {
-        // JSON response, stringify the body
-        userResponse.body = JSON.stringify(userResponse.body);
-      } else if (userResponse.body != null) {
-        // serialize for a string response
-        const type = typeof userResponse.body;
-        if (type === 'string' || type === 'number' || type === 'boolean') {
-          userResponse.body = String(userResponse.body);
-        } else {
-          // don't know how to serialize this object for the response
-          throw new Error(`Unsupport response body type`);
-        }
-      }
-    }
-  } else {
-    // not an endpoint or a redirect only response
-    // but the route matched, so a content page response
-    userResponse.type = 'page';
-
-    // default to text/html content if it wasn't provided
-    if (!userResponse.headers.has('Content-Type')) {
-      userResponse.headers.set('Content-Type', 'text/html; charset=utf-8');
-    }
+  if (userResponse.isEndpointOnly && !hasRequestMethodHandler) {
+    userResponse.status = HttpStatus.MethodNotAllowed;
   }
 
-  return promise;
+  return userResponse;
 }
 
-function pageRedirect(userResponseContext: UserResponseContext, updatedPathname: string) {
-  userResponseContext.status = 308;
-  userResponseContext.headers.set('Location', updatedPathname + userResponseContext.url.search);
-  return userResponseContext;
+function createPendingBody(cb: () => any) {
+  return new Promise<any>((resolve, reject) => {
+    try {
+      const rtn = cb();
+      if (rtn !== null && typeof rtn === 'object' && typeof rtn.then === 'function') {
+        // callback return promise
+        rtn.then(resolve, reject);
+      } else {
+        // callback returned data
+        resolve(rtn);
+      }
+    } catch (e) {
+      // sync callback errored
+      reject(e);
+    }
+  });
+}
+
+function pageRedirect(userResponse: UserResponseContext, updatedPathname: string) {
+  userResponse.status = HttpStatus.PermanentRedirect;
+  userResponse.headers.set('Location', updatedPathname + userResponse.url.search);
+  return userResponse;
 }
 
 const ABORT_INDEX = 999999999;

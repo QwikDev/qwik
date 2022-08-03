@@ -18,10 +18,13 @@ export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions) {
           const writer = writable.getWriter();
 
           body({
-            write: async (chunk) => {
-              const encoder = new TextEncoder();
-              const encoded = encoder.encode(chunk);
-              await writer.write(encoded);
+            write: (chunk) => {
+              if (typeof chunk === 'string') {
+                const encoder = new TextEncoder();
+                writer.write(encoder.encode(chunk));
+              } else {
+                writer.write(chunk);
+              }
             },
           }).finally(() => {
             writer.close();

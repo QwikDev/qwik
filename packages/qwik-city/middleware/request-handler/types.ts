@@ -22,9 +22,9 @@ export interface UserResponseContext {
   params: RouteParams;
   status: number;
   headers: Headers;
-  body: any;
-  type: 'page' | 'endpoint';
-  isRenderBlocking: boolean;
+  resolvedBody: string | number | boolean | null | undefined;
+  pendingBody: Promise<string | number | boolean | null | undefined> | undefined;
+  isEndpointOnly: boolean;
 }
 
 export interface QwikCityRequestOptions extends QwikCityPlan, RenderOptions {}

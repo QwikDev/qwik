@@ -2,10 +2,12 @@ import { loadRoute } from '../../runtime/src/library/routing';
 import { loadUserResponse } from './user-response';
 import type { QwikCityRequestContext, QwikCityRequestOptions } from './types';
 import { ROUTE_TYPE_ENDPOINT } from '../../runtime/src/library/constants';
-import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
-import { getQwikCityUserContext } from './utils';
-import { errorHandler } from './fallback-handler';
+import type { Render } from '@builder.io/qwik/server';
+import { errorHandler } from './error-handler';
 import cityPlan from '@qwik-city-plan';
+import { endpointHandler } from './endpoint-handler';
+import { HttpStatus } from './http-status-codes';
+import { pageHandler } from './page-handler';
 
 /**
  * @public
@@ -16,9 +18,9 @@ export async function requestHandler<T = any>(
   opts?: QwikCityRequestOptions
 ): Promise<T | null> {
   try {
-    const { request, response, url } = requestCtx;
+    const pathname = requestCtx.url.pathname;
     const { routes, menus, cacheModules, trailingSlash } = { ...cityPlan, ...opts };
-    const loadedRoute = await loadRoute(routes, menus, cacheModules, url.pathname);
+    const loadedRoute = await loadRoute(routes, menus, cacheModules, pathname);
     if (loadedRoute) {
       // found and loaded the route for this pathname
       const { mods, params, route } = loadedRoute;
@@ -26,45 +28,33 @@ export async function requestHandler<T = any>(
 
       // build endpoint response from each module in the hierarchy
       const userResponse = await loadUserResponse(
-        request,
-        url,
+        requestCtx,
         params,
         mods,
         trailingSlash,
         isEndpointOnly
       );
 
-      // user-assigned 404 response
-      if (userResponse.status === 404) {
+      // status and headers should be immutable in at this point
+      // body may not have resolved yet
+
+      // user-assigned 404 response, return null so other server middlewares
+      // have the chance to handle this request
+      if (userResponse.status === HttpStatus.NotFound) {
         return null;
       }
 
-      if (userResponse.type === 'endpoint') {
-        // endpoint response
-        return response(userResponse.status, userResponse.headers, async (stream) => {
-          if (typeof userResponse.body === 'string') {
-            stream.write(userResponse.body);
-          }
-        });
+      if (userResponse.isEndpointOnly) {
+        return endpointHandler(requestCtx, userResponse);
       }
 
-      // page response
-      return response(userResponse.status, userResponse.headers, async (stream) => {
-        const result = await render({
-          stream,
-          url: url.href,
-          userContext: getQwikCityUserContext(userResponse),
-          ...opts,
-        });
-        if ((typeof result as any as RenderToStringResult).html === 'string') {
-          stream.write((result as any as RenderToStringResult).html);
-        }
-      });
+      return pageHandler(requestCtx, userResponse, render, opts);
     }
   } catch (e: any) {
     return errorHandler(requestCtx, e);
   }
 
-  // route not found
+  // route not found, return null so other server middlewares
+  // have the chance to handle this request
   return null;
 }

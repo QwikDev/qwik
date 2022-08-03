@@ -1,9 +1,10 @@
 import { useSequentialScope } from './use-store.public';
 import { fromCamelToKebabCase } from '../util/case';
 import { getContext } from '../props/props';
-import { qError, QError_notFoundContext } from '../error/error';
+import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
 import { verifySerializable } from '../object/q-object';
 import { qDev } from '../util/qdev';
+import { isObject } from '../util/types';
 
 // <docs markdown="./use-context.docs.md#Context">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -188,6 +189,9 @@ export const useContextProvider = <STATE extends object>(
   if (get) {
     return;
   }
+  if (qDev) {
+    validateContext(context);
+  }
   const hostElement = ctx.$hostElement$!;
   const hostCtx = getContext(hostElement);
   let contexts = hostCtx.$contexts$;
@@ -255,6 +259,9 @@ export const useContext = <STATE extends object>(context: Context<STATE>): STATE
   if (get) {
     return get;
   }
+  if (qDev) {
+    validateContext(context);
+  }
   let hostElement = ctx.$hostElement$;
   const contexts = ctx.$renderCtx$.$localStack$;
   for (let i = contexts.length - 1; i >= 0; i--) {
@@ -279,6 +286,12 @@ export const useContext = <STATE extends object>(context: Context<STATE>): STATE
     }
   }
   throw qError(QError_notFoundContext, context.id);
+};
+
+export const validateContext = (context: Context<any>) => {
+  if (!isObject(context) || typeof context.id !== 'string' || context.id.length === 0) {
+    throw qError(QError_invalidContext, context);
+  }
 };
 
 export const serializeInlineContexts = (contexts: Map<string, any>) => {

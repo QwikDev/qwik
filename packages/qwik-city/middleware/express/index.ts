@@ -50,8 +50,7 @@ export function qwikCity(render: Render, opts?: QwikCityExpressOptions) {
 export interface QwikCityExpressOptions extends QwikCityRequestOptions {}
 
 function fromExpressHttp(req: Request, res: Response) {
-  const url = new URL(req.path, `${req.protocol}://${req.hostname}`);
-
+  const url = new URL(req.path, `${req.protocol}://${req.headers.host}`);
   const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
   for (const key in nodeRequestHeaders) {

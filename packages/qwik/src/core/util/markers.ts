@@ -1,37 +1,7 @@
 /**
  * State factory of the component.
  */
-export const OnMount = 'on:qmount';
-
-/**
- * State factory of the component.
- */
 export const OnRenderProp = 'q:renderFn';
-
-/**
- * State factory of the component.
- */
-export const QHostSelector = '[q\\:host]';
-
-/**
- * State factory of the component.
- */
-export const OnUnmount = 'on:qunmount';
-
-/**
- * State factory of the component.
- */
-export const OnResume = 'on:qinit';
-
-/**
- * Component Styles.
- */
-export const ComponentScopedStyles = 'q:sstyle';
-
-/**
- * Unscoped Component Styles.
- */
-export const ComponentUnscopedStyles = 'q:ustyle';
 
 /**
  * Component style host prefix
@@ -59,7 +29,7 @@ export const QSlot = 'q:slot';
 export const QSlotRef = 'q:sref';
 export const QSlotName = 'q:sname';
 export const QStyle = 'q:style';
-
+export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';
 
 export const QContainerAttr = 'q:container';

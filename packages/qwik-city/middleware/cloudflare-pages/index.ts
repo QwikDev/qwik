@@ -8,33 +8,49 @@ import type { Render } from '@builder.io/qwik/server';
  * @public
  */
 export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) {
-  async function onRequest({ request, next }: EventPluginContext) {
+  async function onRequest({ request, next, waitUntil }: EventPluginContext) {
     try {
-      // early return from cache
-      const cache = await caches.open('custom:qwikcity');
-      const cachedResponse = await cache.match(request);
-      if (cachedResponse) {
-        return cachedResponse;
+      const url = new URL(request.url);
+
+      // https://developers.cloudflare.com/workers/runtime-apis/cache/
+      const useCache = url.hostname !== 'localhost' && request.method === 'GET';
+      const cacheKey = new Request(url.href, request);
+      const cache = useCache ? await caches.open('custom:qwikcity') : null;
+      if (cache) {
+        const cachedResponse = await cache.match(cacheKey);
+        if (cachedResponse) {
+          return cachedResponse;
+        }
       }
 
       const requestCtx: QwikCityRequestContext<Response> = {
-        url: new URL(request.url),
+        url,
         request,
         response: (status, headers, body) => {
           const { readable, writable } = new TransformStream();
           const writer = writable.getWriter();
 
           body({
-            write: async (chunk) => {
-              const encoder = new TextEncoder();
-              const encoded = encoder.encode(chunk);
-              await writer.write(encoded);
+            write: (chunk) => {
+              if (typeof chunk === 'string') {
+                const encoder = new TextEncoder();
+                writer.write(encoder.encode(chunk));
+              } else {
+                writer.write(chunk);
+              }
             },
           }).finally(() => {
             writer.close();
           });
 
-          return new Response(readable, { status, headers });
+          const response = new Response(readable, { status, headers });
+          if (response.ok && cache && response.headers.has('Cache-Control')) {
+            // Store the fetched response as cacheKey
+            // Use waitUntil so you can return the response without blocking on
+            // writing to cache
+            waitUntil(cache.put(cacheKey, response.clone()));
+          }
+          return response;
         },
       };
 

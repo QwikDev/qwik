@@ -39,9 +39,8 @@ export interface QContextEvents {
 }
 
 export interface ComponentCtx {
-  $hostElement$: Element;
+  $ctx$: QContext;
   $slots$: ProcessedJSXNode[];
-  $id$: string;
 }
 
 export interface QContext {
@@ -58,7 +57,8 @@ export interface QContext {
   $seq$: any[];
   $watches$: SubscriberDescriptor[];
   $contexts$: Map<string, any> | null;
-  $styles$: StyleAppend[];
+  $appendStyles$: StyleAppend[] | null;
+  $scopeIds$: string[] | null;
 }
 
 export const tryGetContext = (element: Element): QContext | undefined => {
@@ -77,7 +77,8 @@ export const getContext = (element: Element): QContext => {
       $refMap$: [],
       $seq$: [],
       $watches$: [],
-      $styles$: [],
+      $scopeIds$: null,
+      $appendStyles$: null,
       $props$: null,
       $renderQrl$: null,
       $component$: null,

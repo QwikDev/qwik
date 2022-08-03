@@ -7,14 +7,14 @@ import type { StreamWriter } from '../../../server/types';
 import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../import/qrl';
 import { $ } from '../../import/qrl.public';
-import { createContext, useContextProvider } from '../../use/use-context';
+import { createContext, useContext, useContextProvider } from '../../use/use-context';
 import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { Ref, useRef, useStore } from '../../use/use-store.public';
-import { useStylesQrl } from '../../use/use-styles';
+import { useScopedStylesQrl, useStylesQrl } from '../../use/use-styles';
 import { useClientEffect$ } from '../../use/use-watch';
 import { delay } from '../../util/promises';
-import { Host, SkipRerender, SSRFlush, SSRMark } from '../jsx/host.public';
+import { Host, SkipRerender, SSRComment } from '../jsx/host.public';
 import { Slot } from '../jsx/slot.public';
 import { renderSSR, RenderSSROptions } from './render-ssr';
 
@@ -188,6 +188,17 @@ renderSSRSuite('single multiple children', async () => {
       </ul>
     </html>,
     '<html q:container="paused" q:version="dev" q:render="ssr"><ul><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li><li>6</li><li>7</li><li>8</li></ul></html>'
+  );
+});
+
+renderSSRSuite('sanitazion', async () => {
+  await testSSR(
+    <html>
+      <style>{`.rule > thing{}`}</style>
+      <script>{`.rule > thing{}`}</script>
+      <div>{`.rule > thing{}`}</div>
+    </html>,
+    `<html q:container="paused" q:version="dev" q:render="ssr"><style>.rule > thing{}</style><script>.rule > thing{}</script><div>.rule &gt; thing{}</div></html>`
   );
 });
 
@@ -481,12 +492,43 @@ renderSSRSuite('nested slots', async () => {
   );
 });
 
+renderSSRSuite('mixes slots', async () => {
+  await testSSR(
+    <html>
+      <MixedSlot>Content</MixedSlot>
+    </html>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr">
+      <div q:key="sX:" q:id="0">
+        <div q:key="sX:" id="1" q:id="1">
+          Before 1
+          <q:slot q:sname q:key q:sref="1">
+            <q:slot q:sname q:key q:sref="0">
+              Content
+            </q:slot>
+          </q:slot>
+          After 1
+        </div>
+      </div>
+    </html>`
+  );
+});
+
 renderSSRSuite('component useContextProvider()', async () => {
   await testSSR(
     <html>
-      <Context />
+      <Context>
+        <ContextConsumer host:class="projected" />
+      </Context>
     </html>,
-    `<html q:container="paused" q:version="dev" q:render="ssr"><div q:key="sX:" q:id="0" q:ctx="internal qwikcity"></div></html>`
+    `<html q:container="paused" q:version="dev" q:render="ssr">
+      <div q:key="sX:" q:id="0" q:ctx="internal qwikcity">
+        <q:slot q:sname q:key q:sref="0">
+          <div class="projected" q:key="sX:" q:id="1">hello bye</div>
+        </q:slot>
+        <div q:key="sX:" q:id="2">hello bye</div>
+      </div>
+    </html>`
   );
 });
 
@@ -508,6 +550,41 @@ renderSSRSuite('component useStyles()', async () => {
       <div q:key="sX:" class="host" q:id="0">
         <style q:style="17nc-0">.host {color: red}</style>
         Text
+      </div>
+    </html>`
+  );
+});
+
+renderSSRSuite('component useScopedStyles()', async () => {
+  await testSSR(
+    <html>
+      <ScopedStyles1>
+        <div>projected</div>
+      </ScopedStyles1>
+    </html>,
+    `<html q:container="paused" q:version="dev" q:render="ssr">
+      <div q:key="sX:" q:sstyle="⭐️1d-0" class="⭐️1d-0 host" q:id="0">
+        <style q:style="1d-0">.host.⭐️1d-0 {color: red}</style>
+        <div class="⭐️1d-0">
+          Scoped1
+          <q:slot q:sname q:key class="⭐️1d-0" q:sref="0">
+            <div>projected</div>
+          </q:slot>
+          <p class="⭐️1d-0">Que tal?</p>
+        </div>
+        <div q:key="sX:" class="⭐️1d-0 ⭐️f0gmsw-0 host" q:sstyle="⭐️f0gmsw-0" q:id="2">
+          <style q:style="f0gmsw-0">.host.⭐️f0gmsw-0 {color: blue}</style>
+          <div class="⭐️f0gmsw-0">
+            Scoped2
+            <p class="⭐️f0gmsw-0">Bien</p>
+          </div>
+        </div>
+        <div q:key="sX:" class="⭐️1d-0 ⭐️f0gmsw-0 host" q:sstyle="⭐️f0gmsw-0" q:id="1">
+          <div class="⭐️f0gmsw-0">
+            Scoped2
+            <p class="⭐️f0gmsw-0">Bien</p>
+          </div>
+        </div>
       </div>
     </html>`
   );
@@ -546,10 +623,19 @@ renderSSRSuite('fragment name', async () => {
       <Styles />
       <UseClientEffect></UseClientEffect>
     </>,
-    `<container q:container="paused" q:version="dev" q:render="ssr" q:base="/manu/folder"><style id="qwik/base-styles">q\\:slot{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}</style><div q:key="sX:" class="host" q:id="1"><style q:style="17nc-0">.host {color: red}</style>Text</div><div q:key="sX:" q:id="0" on:qvisible="/runtimeQRL#_[0]"></div></container>`,
+    `<container q:container="paused" q:version="dev" q:render="ssr" q:base="/manu/folder">
+      <style id="qwik/base-styles">q\\:slot{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}</style>
+      <link rel="stylesheet" href="/global.css">
+      <div q:key="sX:" class="host" q:id="1">
+        <style q:style="17nc-0">.host {color: red}</style>
+        Text
+      </div>
+      <div q:key="sX:" q:id="0" on:qvisible="/runtimeQRL#_[0]"></div>
+    </container>`,
     {
       fragmentTagName: 'container',
       base: '/manu/folder',
+      beforeContent: [<link rel="stylesheet" href="/global.css" />],
     }
   );
 });
@@ -560,13 +646,12 @@ renderSSRSuite('ssr marks', async () => {
       {delay(100).then(() => (
         <li>1</li>
       ))}
-      <SSRFlush />
       {delay(10).then(() => (
         <li>2</li>
       ))}
-      <SSRMark message="here" />
+      <SSRComment data="here" />
       <div>
-        <SSRMark message="i am" />
+        <SSRComment data="i am" />
       </div>
       {delay(120).then(() => (
         <li>3</li>
@@ -574,7 +659,6 @@ renderSSRSuite('ssr marks', async () => {
     </html>,
     `<html q:container="paused" q:version="dev" q:render="ssr">
       <li>1</li>
-      <!--qkssr-f-->
       <li>2</li>
       <!--here-->
       <div>
@@ -601,12 +685,14 @@ renderSSRSuite('html slot', async () => {
         <meta charSet="utf-8" q:head>
         <title q:head>Qwik</title>
         <style id="qwik/base-styles">q\\:slot{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}</style>
+        <link rel="stylesheet" href="/global.css">
       </head>
       <body>
         <div></div>
       </body>
     </html>`,
     {
+      beforeContent: [<link rel="stylesheet" href="/global.css" />],
       base: '/manu/folder',
     }
   );
@@ -670,6 +756,14 @@ export const SimpleSlot = component$((props: { name: string }) => {
   );
 });
 
+export const MixedSlot = component$(() => {
+  return (
+    <SimpleSlot name="1">
+      <Slot />
+    </SimpleSlot>
+  );
+});
+
 export const NamedSlot = component$(() => {
   return (
     <Host>
@@ -705,13 +799,62 @@ export const Styles = component$(() => {
   return <Host class="host">Text</Host>;
 });
 
-const CTX_INTERNAL = createContext<{}>('internal');
-const CTX_QWIK_CITY = createContext<{}>('qwikcity');
+export const ScopedStyles1 = component$(() => {
+  useScopedStylesQrl(inlinedQrl('.host {color: red}', 'styles_scoped_1'));
+
+  return (
+    <Host class="host">
+      <div>
+        Scoped1
+        <Slot></Slot>
+        <p>Que tal?</p>
+      </div>
+      <ScopedStyles2 />
+      <ScopedStyles2 />
+    </Host>
+  );
+});
+
+export const ScopedStyles2 = component$(() => {
+  useScopedStylesQrl(inlinedQrl('.host {color: blue}', '20_styles_scoped'));
+
+  return (
+    <Host class="host">
+      <div>
+        Scoped2
+        <p>Bien</p>
+      </div>
+    </Host>
+  );
+});
+
+const CTX_INTERNAL = createContext<{ value: string }>('internal');
+const CTX_QWIK_CITY = createContext<{ value: string }>('qwikcity');
 
 export const Context = component$(() => {
-  useContextProvider(CTX_INTERNAL, {});
-  useContextProvider(CTX_QWIK_CITY, {});
-  return <Host></Host>;
+  useContextProvider(CTX_INTERNAL, {
+    value: 'hello',
+  });
+  useContextProvider(CTX_QWIK_CITY, {
+    value: 'bye',
+  });
+  return (
+    <Host>
+      <Slot />
+      <ContextConsumer />
+    </Host>
+  );
+});
+
+export const ContextConsumer = component$(() => {
+  const internal = useContext(CTX_INTERNAL);
+  const qwikCity = useContext(CTX_QWIK_CITY);
+
+  return (
+    <Host>
+      {internal.value} {qwikCity.value}
+    </Host>
+  );
 });
 
 export const UseClientEffect = component$(() => {

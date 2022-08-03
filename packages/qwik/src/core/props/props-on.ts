@@ -4,6 +4,7 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QContext } from './props';
 import { isArray } from '../util/types';
 import { $ } from '../import/qrl.public';
+import { QScopedStyle } from '../util/markers';
 
 const ON_PROP_REGEX = /^(window:|document:|)on([A-Z]|-.).*\$$/;
 
@@ -87,4 +88,12 @@ export const getDomListeners = (el: Element): Map<string, QRLInternal[]> => {
     }
   }
   return listeners;
+};
+
+export const getScopeIds = (el: Element): string[] => {
+  const scoped = el.getAttribute(QScopedStyle);
+  if (scoped) {
+    return scoped.split(' ');
+  }
+  return [];
 };

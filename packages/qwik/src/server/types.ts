@@ -166,7 +166,7 @@ export interface RenderToStreamOptions extends RenderOptions {
  * @public
  */
 export type StreamWriter = {
-  write: (chunk: string) => void | boolean | Promise<void> | Promise<boolean>;
+  write: (chunk: any) => void | boolean | Promise<void> | Promise<boolean>;
 };
 
 /**

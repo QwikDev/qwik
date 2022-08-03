@@ -1,4 +1,4 @@
-import { styleKey } from '../component/qrl-styles';
+import { styleContent, styleKey } from '../component/qrl-styles';
 import type { QRL } from '../import/qrl.public';
 import { useSequentialScope } from './use-store.public';
 import { implicit$FirstArg } from '../util/implicit_dollar';
@@ -29,7 +29,7 @@ import { hasStyle } from '../render/execute-component';
  */
 // </docs>
 export const useStylesQrl = (styles: QRL<string>): void => {
-  _useStyles(styles, false);
+  _useStyles(styles, (str) => str, false);
 };
 
 // <docs markdown="../readme.md#useStyles">
@@ -67,7 +67,7 @@ export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
  */
 // </docs>
 export const useScopedStylesQrl = (styles: QRL<string>): void => {
-  _useStyles(styles, true);
+  _useStyles(styles, scopeStylesheet, true);
 };
 
 // <docs markdown="../readme.md#useScopedStyles">
@@ -81,7 +81,11 @@ export const useScopedStylesQrl = (styles: QRL<string>): void => {
 // </docs>
 export const useScopedStyles$ = /*#__PURE__*/ implicit$FirstArg(useScopedStylesQrl);
 
-const _useStyles = (styleQrl: QRL<string>, scoped: boolean) => {
+const _useStyles = (
+  styleQrl: QRL<string>,
+  transform: (str: string, styleId: string) => string,
+  scoped: boolean
+) => {
   const { get, set, ctx, i } = useSequentialScope<boolean>();
   if (get === true) {
     return;
@@ -92,14 +96,22 @@ const _useStyles = (styleQrl: QRL<string>, scoped: boolean) => {
   const hostElement = ctx.$hostElement$;
   const containerState = renderCtx.$containerState$;
   const elCtx = getContext(ctx.$hostElement$);
+  if (!elCtx.$appendStyles$) {
+    elCtx.$appendStyles$ = [];
+  }
+  if (!elCtx.$scopeIds$) {
+    elCtx.$scopeIds$ = [];
+  }
+  if (scoped) {
+    elCtx.$scopeIds$.push(styleContent(styleId));
+  }
   if (!hasStyle(containerState, styleId)) {
-    containerState.$stylesIds$.add(styleId);
+    containerState.$styleIds$.add(styleId);
     ctx.$waitOn$.push(
       styleQrl.resolve(hostElement).then((styleText) => {
-        elCtx.$styles$.push({
-          type: 'style',
+        elCtx.$appendStyles$!.push({
           styleId,
-          content: scoped ? scopeStylesheet(styleText, styleId) : styleText,
+          content: transform(styleText, styleId),
         });
       })
     );

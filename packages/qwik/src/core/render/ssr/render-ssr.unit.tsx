@@ -11,10 +11,10 @@ import { createContext, useContext, useContextProvider } from '../../use/use-con
 import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { Ref, useRef, useStore } from '../../use/use-store.public';
-import { useStylesQrl } from '../../use/use-styles';
+import { useScopedStylesQrl, useStylesQrl } from '../../use/use-styles';
 import { useClientEffect$ } from '../../use/use-watch';
 import { delay } from '../../util/promises';
-import { Host, SkipRerender, SSRFlush, SSRMark } from '../jsx/host.public';
+import { Host, SkipRerender, SSRComment } from '../jsx/host.public';
 import { Slot } from '../jsx/slot.public';
 import { renderSSR, RenderSSROptions } from './render-ssr';
 
@@ -555,6 +555,41 @@ renderSSRSuite('component useStyles()', async () => {
   );
 });
 
+renderSSRSuite('component useScopedStyles()', async () => {
+  await testSSR(
+    <html>
+      <ScopedStyles1>
+        <div>projected</div>
+      </ScopedStyles1>
+    </html>,
+    `<html q:container="paused" q:version="dev" q:render="ssr">
+      <div q:key="sX:" q:sstyle="⭐️1d-0" class="⭐️1d-0 host" q:id="0">
+        <style q:style="1d-0">.host.⭐️1d-0 {color: red}</style>
+        <div class="⭐️1d-0">
+          Scoped1
+          <q:slot q:sname q:key class="⭐️1d-0" q:sref="0">
+            <div>projected</div>
+          </q:slot>
+          <p class="⭐️1d-0">Que tal?</p>
+        </div>
+        <div q:key="sX:" class="⭐️1d-0 ⭐️f0gmsw-0 host" q:sstyle="⭐️f0gmsw-0" q:id="2">
+          <style q:style="f0gmsw-0">.host.⭐️f0gmsw-0 {color: blue}</style>
+          <div class="⭐️f0gmsw-0">
+            Scoped2
+            <p class="⭐️f0gmsw-0">Bien</p>
+          </div>
+        </div>
+        <div q:key="sX:" class="⭐️1d-0 ⭐️f0gmsw-0 host" q:sstyle="⭐️f0gmsw-0" q:id="1">
+          <div class="⭐️f0gmsw-0">
+            Scoped2
+            <p class="⭐️f0gmsw-0">Bien</p>
+          </div>
+        </div>
+      </div>
+    </html>`
+  );
+});
+
 renderSSRSuite('component useClientEffect()', async () => {
   await testSSR(
     <html>
@@ -611,13 +646,12 @@ renderSSRSuite('ssr marks', async () => {
       {delay(100).then(() => (
         <li>1</li>
       ))}
-      <SSRFlush />
       {delay(10).then(() => (
         <li>2</li>
       ))}
-      <SSRMark message="here" />
+      <SSRComment data="here" />
       <div>
-        <SSRMark message="i am" />
+        <SSRComment data="i am" />
       </div>
       {delay(120).then(() => (
         <li>3</li>
@@ -625,7 +659,6 @@ renderSSRSuite('ssr marks', async () => {
     </html>,
     `<html q:container="paused" q:version="dev" q:render="ssr">
       <li>1</li>
-      <!--qkssr-f-->
       <li>2</li>
       <!--here-->
       <div>
@@ -764,6 +797,35 @@ export const Styles = component$(() => {
   useStylesQrl(inlinedQrl('.host {color: red}', 'styles_987'));
 
   return <Host class="host">Text</Host>;
+});
+
+export const ScopedStyles1 = component$(() => {
+  useScopedStylesQrl(inlinedQrl('.host {color: red}', 'styles_scoped_1'));
+
+  return (
+    <Host class="host">
+      <div>
+        Scoped1
+        <Slot></Slot>
+        <p>Que tal?</p>
+      </div>
+      <ScopedStyles2 />
+      <ScopedStyles2 />
+    </Host>
+  );
+});
+
+export const ScopedStyles2 = component$(() => {
+  useScopedStylesQrl(inlinedQrl('.host {color: blue}', '20_styles_scoped'));
+
+  return (
+    <Host class="host">
+      <div>
+        Scoped2
+        <p>Bien</p>
+      </div>
+    </Host>
+  );
 });
 
 const CTX_INTERNAL = createContext<{ value: string }>('internal');

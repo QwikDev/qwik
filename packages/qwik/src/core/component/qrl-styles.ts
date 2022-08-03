@@ -1,32 +1,23 @@
-import { ComponentStylesPrefixContent, ComponentStylesPrefixHost } from '../util/markers';
+import { ComponentStylesPrefixContent } from '../util/markers';
 import { hashCode } from '../util/hash_code';
 import type { QRL } from '../import/qrl.public';
 
-/**
- * @public
- */
 export const styleKey = (qStyles: QRL<string>, index: number): string => {
   return `${hashCode(qStyles.getHash())}-${index}`;
 };
 
-/**
- * @public
- */
-export const styleHost = (styleId: string | null): string | null => {
-  if (styleId !== null) {
-    return ComponentStylesPrefixHost + styleId;
-  } else {
-    return null;
-  }
+export const styleHost = (styleId: string): string => {
+  return styleId;
 };
 
-/**
- * @public
- */
-export const styleContent = (styleId: string): string | null => {
-  if (styleId !== null) {
-    return ComponentStylesPrefixContent + styleId;
-  } else {
-    return null;
+export const styleContent = (styleId: string): string => {
+  return ComponentStylesPrefixContent + styleId;
+};
+
+export const serializeSStyle = (scopeIds: string[]) => {
+  const value = scopeIds.join(' ');
+  if (value.length > 0) {
+    return value;
   }
+  return undefined;
 };

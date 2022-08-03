@@ -1,10 +1,10 @@
-import { component$, Host, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, Host, useScopedStyles$, useStore } from '@builder.io/qwik';
 import parent from './parent.css';
 import child from './child.css';
 import child2 from './child2.css';
 
 export const Styles = component$(() => {
-  useStyles$(parent);
+  useScopedStyles$(parent);
   const store = useStore({
     count: 10,
   });
@@ -22,8 +22,8 @@ export const Styles = component$(() => {
 });
 
 export const Child = component$(() => {
-  useStyles$(child);
-  useStyles$(child2);
+  useScopedStyles$(child);
+  useScopedStyles$(child2);
 
   return <Host class="child">Child</Host>;
 });

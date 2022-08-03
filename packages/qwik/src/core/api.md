@@ -523,11 +523,13 @@ export interface SnapshotState {
 }
 
 // @public (undocumented)
-export const SSRFlush: FunctionComponent<{}>;
+export const SSRComment: FunctionComponent<{
+    data: string;
+}>;
 
 // @public (undocumented)
-export const SSRMark: FunctionComponent<{
-    message: string;
+export const SSRStreamBlock: FunctionComponent<{
+    children?: any;
 }>;
 
 // @public

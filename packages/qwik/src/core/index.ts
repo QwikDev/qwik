@@ -68,7 +68,7 @@ export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
 export { render } from './render/dom/render.public';
 export { renderSSR } from './render/ssr/render-ssr';
-export { SSRFlush, SSRMark } from './render/jsx/host.public';
+export { SSRStreamBlock, SSRComment } from './render/jsx/host.public';
 
 export type { RenderOptions } from './render/dom/render.public';
 export { handleWatch } from './render/dom/notify-render';

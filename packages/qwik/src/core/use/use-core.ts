@@ -1,4 +1,4 @@
-import { isArray, isObject, ValueOrPromise } from '../util/types';
+import { isArray, ValueOrPromise } from '../util/types';
 import type { Props } from '../props/props.public';
 import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
@@ -12,9 +12,8 @@ import type { RenderContext } from '../render/types';
 declare const document: QwikDocument;
 
 export interface StyleAppend {
-  type: 'style';
   styleId: string;
-  content: string;
+  content: string | null;
 }
 
 export interface InvokeContext {
@@ -36,10 +35,6 @@ export type RenderInvokeContext = Required<InvokeContext>;
 let _context: InvokeContext | undefined;
 
 export const CONTAINER = Symbol('container');
-
-export const isStyleTask = (obj: any): obj is StyleAppend => {
-  return isObject(obj) && obj.type === 'style';
-};
 
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {

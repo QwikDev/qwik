@@ -1,25 +1,30 @@
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
 import type { QContext } from '../../props/props';
-import { getDomListeners } from '../../props/props-on';
+import { getDomListeners, getScopeIds } from '../../props/props-on';
 import { serializeInlineContexts } from '../../use/use-context';
 import { InvokeContext, newInvokeContext, useInvoke } from '../../use/use-core';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
-import { QCtxAttr } from '../../util/markers';
+import { QCtxAttr, QScopedStyle } from '../../util/markers';
 import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
-import { appendHeadStyle, setAttribute, visitJsxNode } from './visitor';
+import { appendHeadStyle, visitJsxNode } from './visitor';
 import { Host, SkipRerender } from '../jsx/host.public';
 import { HOST_TYPE, isJSXNode, SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
 import type { JSXNode } from '../jsx/types/jsx-node';
 import { executeComponent } from '../execute-component';
 import type { RenderContext } from '../types';
+import { serializeSStyle, styleHost } from '../../component/qrl-styles';
+import { directSetAttribute } from '../fast-calls';
 
 export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {
   const justMounted = !ctx.$mounted$;
   if (!ctx.$listeners$) {
     ctx.$listeners$ = getDomListeners(ctx.$element$);
+  }
+  if (!ctx.$scopeIds$) {
+    ctx.$scopeIds$ = getScopeIds(ctx.$element$);
   }
   return then(executeComponent(rctx, ctx), (res) => {
     if (res) {
@@ -30,10 +35,21 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
       invocatinContext.$renderCtx$ = newCtx;
       if (justMounted) {
         if (ctx.$contexts$) {
-          setAttribute(newCtx, hostElement, QCtxAttr, serializeInlineContexts(ctx.$contexts$));
+          directSetAttribute(hostElement, QCtxAttr, serializeInlineContexts(ctx.$contexts$));
         }
-        for (const style of ctx.$styles$) {
-          appendHeadStyle(rctx, hostElement, style);
+        if (ctx.$appendStyles$) {
+          for (const style of ctx.$appendStyles$) {
+            appendHeadStyle(rctx, hostElement, style);
+          }
+        }
+        if (ctx.$scopeIds$) {
+          const value = serializeSStyle(ctx.$scopeIds$);
+          if (value) {
+            directSetAttribute(hostElement, QScopedStyle, value);
+          }
+          for (const scope of ctx.$scopeIds$) {
+            hostElement.classList.add(styleHost(scope));
+          }
         }
       }
       const processedJSXNode = processData(res.node, invocatinContext);

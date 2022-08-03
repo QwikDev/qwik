@@ -18,7 +18,7 @@ export interface EventPluginContext {
 }
 
 // @public (undocumented)
-export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions): ({ request, next }: EventPluginContext) => Promise<Response>;
+export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions): ({ request, next, waitUntil }: EventPluginContext) => Promise<Response>;
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityRequestOptions" needs to be exported by the entry point index.d.ts
 //

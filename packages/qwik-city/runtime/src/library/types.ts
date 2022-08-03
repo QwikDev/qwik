@@ -261,8 +261,6 @@ export interface RequestEvent {
 
   next: () => Promise<void>;
   abort: () => void;
-
-  setRenderBlocking: () => void;
 }
 
 /**
@@ -273,9 +271,17 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 
 /**
  * @public
  */
-export type EndpointHandler<BODY = unknown> = (
-  ev: RequestEvent
-) => BODY | undefined | null | void | Promise<BODY | undefined | null | void>;
+export type EndpointHandler<BODY = unknown> = (ev: RequestEvent) => EndpointHandlerResult<BODY>;
+
+export type EndpointHandlerBody<BODY> = BODY | string | number | boolean | undefined | null | void;
+
+export type EndpointHandlerBodyFunction<BODY> = () =>
+  | EndpointHandlerBody<BODY>
+  | Promise<EndpointHandlerBody<BODY>>;
+
+export type EndpointHandlerResult<BODY> =
+  | (EndpointHandlerBody<BODY> | EndpointHandlerBodyFunction<BODY>)
+  | Promise<EndpointHandlerBody<BODY> | EndpointHandlerBodyFunction<BODY>>;
 
 export interface EndpointResponse {
   body: any;

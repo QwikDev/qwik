@@ -563,7 +563,7 @@ renderSSRSuite('component useScopedStyles()', async () => {
       </ScopedStyles1>
     </html>,
     `<html q:container="paused" q:version="dev" q:render="ssr">
-      <div q:key="sX:" class="💎⭐️1d-0 host" q:id="0">
+      <div q:key="sX:" q:sstyle="⭐️1d-0" class="⭐️1d-0 host" q:id="0">
         <style q:style="1d-0">.host.⭐️1d-0 {color: red}</style>
         <div class="⭐️1d-0">
           Scoped1
@@ -572,14 +572,14 @@ renderSSRSuite('component useScopedStyles()', async () => {
           </q:slot>
           <p class="⭐️1d-0">Que tal?</p>
         </div>
-        <div q:key="sX:" class="⭐️1d-0 💎⭐️f0gmsw-0 host" q:id="2">
+        <div q:key="sX:" class="⭐️1d-0 ⭐️f0gmsw-0 host" q:sstyle="⭐️f0gmsw-0" q:id="2">
           <style q:style="f0gmsw-0">.host.⭐️f0gmsw-0 {color: blue}</style>
           <div class="⭐️f0gmsw-0">
             Scoped2
             <p class="⭐️f0gmsw-0">Bien</p>
           </div>
         </div>
-        <div q:key="sX:" class="⭐️1d-0 💎⭐️f0gmsw-0 host" q:id="1">
+        <div q:key="sX:" class="⭐️1d-0 ⭐️f0gmsw-0 host" q:sstyle="⭐️f0gmsw-0" q:id="1">
           <div class="⭐️f0gmsw-0">
             Scoped2
             <p class="⭐️f0gmsw-0">Bien</p>
@@ -649,9 +649,9 @@ renderSSRSuite('ssr marks', async () => {
       {delay(10).then(() => (
         <li>2</li>
       ))}
-      <SSRComment text="here" />
+      <SSRComment data="here" />
       <div>
-        <SSRComment text="i am" />
+        <SSRComment data="i am" />
       </div>
       {delay(120).then(() => (
         <li>3</li>

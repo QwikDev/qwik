@@ -477,7 +477,7 @@ export const renderNode = (
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ) => {
   if (node.type === SSRComment) {
-    stream.write(`<!--${node.props.message ?? ''}-->`);
+    stream.write(`<!--${node.props.data ?? ''}-->`);
   } else if (typeof node.type === 'string') {
     const elCtx = getContext(ssrCtx.rctx.$doc$.createElement(node.type));
     return renderNodeElement(

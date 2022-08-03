@@ -29,18 +29,16 @@ interface ProductData {
   price: number;
   description: string;
 }
-export const onGet: EndpointHandler<EndpointData> = async ({ params }) => {
+export const onGet: EndpointHandler<EndpointData> = async ({ params, response }) => {
   const product = await loadProductFromDatabase(params.skuId);
 
   if (!product) {
     // Product data not found
     // but the data is still given to the renderer to decide what to do
-    return {
-      status: 404,
-      body: null,
-    };
+    response.status = 404
+    return null
   } else {
-    ...
+    // ...
   }
 };
 

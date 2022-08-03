@@ -7,7 +7,7 @@ import type { BuildContext } from '../types';
 import type { EndpointModule } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
 import { loadUserResponse } from '../../middleware/request-handler/user-response';
-import { getQwikCityUserContext } from '../../middleware/request-handler/utils';
+import { getQwikCityEnvData } from '../../middleware/request-handler/utils';
 import { buildFromUrlPathname } from '../build';
 import { notFoundHandler } from '../../middleware/request-handler/fallback-handler';
 import type { QwikCityRequestContext } from '../../middleware/request-handler/types';
@@ -77,17 +77,17 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         if (userResponse.type === 'page') {
           // qwik city vite plugin should handle dev ssr rendering
           // but add the qwik city user context to the response object
-          const userContext = getQwikCityUserContext(userResponse);
+          const envData = getQwikCityEnvData(userResponse);
           if (ctx.isDevServerClientOnly) {
             // because we stringify this content for the client only
             // dev server, there's some potential stringify issues
             // client only dev server will re-fetch anyways, so reset
-            userContext.qwikcity.response.body = undefined;
+            envData.qwikcity.response.body = undefined;
           }
 
-          (res as QwikViteDevResponse)._qwikUserCtx = {
-            ...(res as QwikViteDevResponse)._qwikUserCtx,
-            ...userContext,
+          (res as QwikViteDevResponse)._qwikEnvData = {
+            ...(res as QwikViteDevResponse)._qwikEnvData,
+            ...envData,
           };
 
           // update node response with status and headers

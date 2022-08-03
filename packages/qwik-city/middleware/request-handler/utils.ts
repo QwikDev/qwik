@@ -1,8 +1,8 @@
-import type { QwikCityUserContext } from '../../runtime/src/library/types';
+import type { QwikCityEnvData } from '../../runtime/src/library/types';
 import type { UserResponseContext } from './types';
 
-export function getQwikCityUserContext(userResponseContext: UserResponseContext): {
-  qwikcity: QwikCityUserContext;
+export function getQwikCityEnvData(userResponseContext: UserResponseContext): {
+  qwikcity: QwikCityEnvData;
 } {
   return {
     qwikcity: {

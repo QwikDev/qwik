@@ -15,5 +15,5 @@ export function useEnvData<T, B = T>(key: string, defaultValue: B): T | B;
  */
 export function useEnvData(key: string, defaultValue?: any) {
   const ctx = useInvokeContext();
-  return ctx.$renderCtx$.$containerState$.$userContext$[key] ?? defaultValue;
+  return ctx.$renderCtx$.$containerState$.$envData$[key] ?? defaultValue;
 }

@@ -397,7 +397,7 @@ export interface RenderOptions {
     // (undocumented)
     allowRerender?: boolean;
     // (undocumented)
-    userContext?: Record<string, any>;
+    envData?: Record<string, any>;
 }
 
 // Warning: (ae-forgotten-export) The symbol "RenderSSROptions" needs to be exported by the entry point index.d.ts

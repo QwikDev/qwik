@@ -3,7 +3,7 @@ import { loadUserResponse } from './user-response';
 import type { QwikCityRequestContext, QwikCityRequestOptions } from './types';
 import { ROUTE_TYPE_ENDPOINT } from '../../runtime/src/library/constants';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
-import { getQwikCityUserContext } from './utils';
+import { getQwikCityEnvData } from './utils';
 import { errorHandler } from './fallback-handler';
 import cityPlan from '@qwik-city-plan';
 
@@ -53,7 +53,7 @@ export async function requestHandler<T = any>(
         const result = await render({
           stream,
           url: url.href,
-          userContext: getQwikCityUserContext(userResponse),
+          envData: getQwikCityEnvData(userResponse),
           ...opts,
         });
         if ((typeof result as any as RenderToStringResult).html === 'string') {

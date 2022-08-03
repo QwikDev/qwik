@@ -65,7 +65,7 @@ storeSuite('should serialize content', async () => {
       },
       ['d'],
       'hello',
-      '\b/runtimeQRL#s5{"tagName":"lexical-scope"}',
+      '\b/runtimeQRL#_{"tagName":"lexical-scope"}',
       ['0', 'g', '1', 'h'],
       2,
       {},

@@ -40,7 +40,8 @@ import {
   HOST_PREFIX,
   SCOPE_PREFIX,
   setQId,
-  stringifyClassOrStyle,
+  stringifyClass,
+  stringifyStyle,
 } from '../execute-component';
 import type { SubscriptionManager } from '../container';
 
@@ -546,9 +547,17 @@ const createElm = (
   }
 
   const currentComponent = rctx.$currentComponent$;
-  if (isSlot && !isComponent && currentComponent) {
-    directSetAttribute(elm, QSlotRef, currentComponent.$id$);
-    currentComponent.$slots$.push(vnode);
+  if (currentComponent) {
+    const scopedIds = currentComponent.$ctx$.$scopeIds$;
+    if (scopedIds) {
+      scopedIds.forEach((styleId) => {
+        elm.classList.add(styleId);
+      });
+    }
+    if (isSlot && !isComponent) {
+      directSetAttribute(elm, QSlotRef, currentComponent.$ctx$.$id$);
+      currentComponent.$slots$.push(vnode);
+    }
   }
 
   let wait: ValueOrPromise<void>;
@@ -628,12 +637,15 @@ const getSlots = (componentCtx: ComponentCtx | null, hostElm: Element): SlotMaps
 };
 
 const handleStyle: PropHandler = (ctx, elm, _, newValue) => {
-  setAttribute(ctx, elm, 'style', stringifyClassOrStyle(newValue, false));
+  setAttribute(ctx, elm, 'style', stringifyStyle(newValue));
   return true;
 };
 
-const handleClass: PropHandler = (ctx, elm, _, newValue) => {
-  setAttribute(ctx, elm, 'class', stringifyClassOrStyle(newValue, true));
+const handleClass: PropHandler = (ctx, elm, _, newValue, oldValue) => {
+  if (!oldValue) {
+    oldValue = elm.className;
+  }
+  setAttribute(ctx, elm, 'class', stringifyClass(newValue, oldValue));
   return true;
 };
 
@@ -849,7 +861,7 @@ export const appendHeadStyle = (
       containerEl.insertBefore(style, containerEl.firstChild);
     }
   };
-  ctx.$containerState$.$stylesIds$.add(styleTask.styleId);
+  ctx.$containerState$.$styleIds$.add(styleTask.styleId);
   ctx.$operations$.push({
     $el$: hostElement,
     $operation$: 'append-style',

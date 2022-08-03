@@ -1,9 +1,9 @@
 import { assertDefined } from '../assert/assert';
-import { ELEMENT_ID, QSlot, RenderEvent } from '../util/markers';
+import { ComponentStylesPrefixContent, ELEMENT_ID, QSlot, RenderEvent } from '../util/markers';
 import { promiseAll, safeCall, then } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { logError } from '../util/log';
-import { isArray, isFunction, ValueOrPromise } from '../util/types';
+import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../util/types';
 import { QContext, tryGetContext } from '../props/props';
 import type { JSXNode } from './jsx/types/jsx-node';
 import type { RenderContext } from './types';
@@ -65,9 +65,8 @@ export const executeComponent = (
         let componentCtx = ctx.$component$;
         if (!componentCtx) {
           componentCtx = ctx.$component$ = {
-            $hostElement$: hostElement,
+            $ctx$: ctx,
             $slots$: [],
-            $id$: ctx.$id$,
           };
         }
         componentCtx.$slots$ = [];
@@ -113,36 +112,65 @@ export const copyRenderContext = (ctx: RenderContext): RenderContext => {
   return newCtx;
 };
 
-export const stringifyClassOrStyle = (obj: any, isClass: boolean): string => {
-  if (obj == null) return '';
-  if (typeof obj == 'object') {
-    let text = '';
-    let sep = '';
+export const stringifyClass = (obj: any, oldValue: string | undefined): string => {
+  const oldParsed = parseClassAny(oldValue);
+  const newParsed = parseClassAny(obj);
+  return [...oldParsed.filter((s) => s.includes(ComponentStylesPrefixContent)), ...newParsed].join(
+    ' '
+  );
+};
+
+export const joinClasses = (...input: any[]): string => {
+  const set = new Set();
+  input.forEach((value) => {
+    parseClassAny(value).forEach((v) => set.add(v));
+  });
+  return Array.from(set).join(' ');
+};
+
+export const parseClassAny = (obj: any): string[] => {
+  if (isString(obj)) {
+    return parseClassList(obj);
+  } else if (isObject(obj)) {
     if (isArray(obj)) {
-      if (!isClass) {
-        throw qError(QError_stringifyClassOrStyle, obj, 'style');
-      }
-      for (let i = 0; i < obj.length; i++) {
-        text += sep + obj[i];
-        sep = ' ';
-      }
+      return obj;
     } else {
+      const output: string[] = [];
       for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           const value = obj[key];
-
           if (value) {
-            text += isClass
-              ? value
-                ? sep + key
-                : ''
-              : sep + fromCamelToKebabCase(key) + ':' + value;
-            sep = isClass ? ' ' : ';';
+            output.push(key);
           }
         }
       }
+      return output;
     }
-    return text;
+  }
+  return [];
+};
+
+const parseClassListRegex = /\s/;
+const parseClassList = (value: string | undefined | null): string[] =>
+  !value ? [] : value.split(parseClassListRegex);
+
+export const stringifyStyle = (obj: any): string => {
+  if (obj == null) return '';
+  if (typeof obj == 'object') {
+    if (isArray(obj)) {
+      throw qError(QError_stringifyClassOrStyle, obj, 'style');
+    } else {
+      const chunks: string[] = [];
+      for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          const value = obj[key];
+          if (value) {
+            chunks.push(fromCamelToKebabCase(key) + ':' + value);
+          }
+        }
+      }
+      return chunks.join(';');
+    }
   }
   return String(obj);
 };
@@ -166,7 +194,7 @@ export const setQId = (rctx: RenderContext, ctx: QContext) => {
 };
 
 export const hasStyle = (containerState: ContainerState, styleId: string) => {
-  return containerState.$stylesIds$.has(styleId);
+  return containerState.$styleIds$.has(styleId);
 };
 
 export const ALLOWS_PROPS = ['class', 'className', 'style', 'id', QSlot];

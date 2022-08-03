@@ -81,7 +81,7 @@ export { useDocument } from './use/use-document.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { useStore, useRef } from './use/use-store.public';
 export { useContext, useContextProvider, createContext } from './use/use-context';
-export { useUserContext } from './use/use-user-context';
+export { useEnvData, useUserContext } from './use/use-env-data';
 export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
 export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
 export type { Context } from './use/use-context';

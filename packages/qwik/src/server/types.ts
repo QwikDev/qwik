@@ -123,7 +123,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
    */
   fragmentTagName?: string;
 
-  userContext?: Record<string, any>;
+  envData?: Record<string, any>;
 }
 
 /**
@@ -175,6 +175,6 @@ export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToSt
  */
 export type Render = RenderToString | RenderToStream;
 
-export interface RenderDocumentUserContext {
-  _qwikUserCtx?: Record<string, any>;
+export interface RenderDocumentEnvData {
+  _qwikEnvData?: Record<string, any>;
 }

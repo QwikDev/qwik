@@ -397,7 +397,7 @@ export interface RenderOptions {
     // (undocumented)
     allowRerender?: boolean;
     // (undocumented)
-    userContext?: Record<string, any>;
+    envData?: Record<string, any>;
 }
 
 // Warning: (ae-forgotten-export) The symbol "RenderSSROptions" needs to be exported by the entry point index.d.ts
@@ -572,6 +572,12 @@ export interface UseEffectOptions {
     eagerness?: EagernessOptions;
 }
 
+// @alpha (undocumented)
+export function useEnvData<T>(key: string): T | undefined;
+
+// @alpha (undocumented)
+export function useEnvData<T, B = T>(key: string, defaultValue: B): T | B;
+
 // @public
 export const useHostElement: () => Element;
 
@@ -639,11 +645,8 @@ export const useStylesScoped$: (first: string) => void;
 // @alpha (undocumented)
 export const useStylesScopedQrl: (styles: QRL<string>) => void;
 
-// @alpha (undocumented)
-export function useUserContext<T>(key: string): T | undefined;
-
-// @alpha (undocumented)
-export function useUserContext<T, B = T>(key: string, defaultValue: B): T | B;
+// @alpha @deprecated (undocumented)
+export const useUserContext: typeof useEnvData;
 
 // Warning: (ae-forgotten-export) The symbol "UseWatchOptions" needs to be exported by the entry point index.d.ts
 // Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "WatchFn" which is marked as @alpha

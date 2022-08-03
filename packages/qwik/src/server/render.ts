@@ -107,7 +107,7 @@ export async function renderToStream(
   await renderSSR(doc, rootNode, {
     stream,
     fragmentTagName: opts.fragmentTagName,
-    userContext: opts.userContext,
+    envData: opts.envData,
     url: opts.url instanceof URL ? opts.url.href : opts.url,
     base: buildBase,
     beforeContent,

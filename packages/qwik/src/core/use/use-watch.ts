@@ -18,7 +18,6 @@ import {
   QError_trackUseStore,
 } from '../error/error';
 import { useOn } from './use-on';
-import { createResourceReturn } from './use-resource';
 import { GetObjID, intToStr, strToInt } from '../object/store';
 import type { ContainerState } from '../render/container';
 import { handleWatch } from '../render/dom/notify-render';
@@ -32,7 +31,15 @@ export const WatchFlagsIsResource = 1 << 4;
 /**
  * @alpha
  */
-export type WatchFn = (track: Tracker) => ValueOrPromise<void | (() => void)>;
+export interface WatchCtx {
+  track: Tracker;
+  cleanup(callback: () => void): void;
+}
+
+/**
+ * @alpha
+ */
+export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
 
 /**
  * @alpha
@@ -142,6 +149,17 @@ export interface UseEffectOptions {
   eagerness?: EagernessOptions;
 }
 
+/**
+ * @alpha
+ */
+export interface UseWatchOptions {
+  /**
+   * - `visible`: run the effect when the element is visible.
+   * - `load`: eagerly run the effect when the application resumes.
+   */
+  eagerness?: EagernessOptions;
+}
+
 // <docs markdown="../readme.md#useWatch">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useWatch instead)
@@ -204,7 +222,7 @@ export interface UseEffectOptions {
  * @public
  */
 // </docs>
-export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void => {
+export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => {
   const { get, set, ctx, i } = useSequentialScope<boolean>();
   if (!get) {
     assertQrl(qrl);
@@ -399,16 +417,14 @@ export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useClientEffectQ
  * @public
  */
 // </docs>
-export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): ResourceReturn<T> => {
-  const { get, set, ctx } = useSequentialScope<ResourceReturn<T>>();
+export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
+  const { get, set, ctx } = useSequentialScope<boolean>();
   if (get) {
-    return get;
+    return;
   }
   if (isServer(ctx.$doc$)) {
-    const resource = createResourceFromPromise(mountQrl(), ctx.$renderCtx$.$containerState$);
-    ctx.$waitOn$.push(resource.promise);
-    set(resource);
-    return resource;
+    ctx.$waitOn$.push(mountQrl());
+    set(true);
   } else {
     throw qError(QError_canNotMountUseServerMount, ctx.$hostElement$);
   }
@@ -490,38 +506,13 @@ export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl
  * @public
  */
 // </docs>
-export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): ResourceReturn<T> => {
-  const { get, set, ctx } = useSequentialScope<ResourceReturn<T>>();
+export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
+  const { get, set, ctx } = useSequentialScope<boolean>();
   if (get) {
-    return get;
+    return;
   }
-  const resource = createResourceFromPromise(mountQrl(), ctx.$renderCtx$.$containerState$);
-  ctx.$waitOn$.push(resource.promise);
-  set(resource);
-  return resource;
-};
-
-const createResourceFromPromise = <T>(
-  promise: Promise<T>,
-  containerState: ContainerState
-): ResourceReturn<T> => {
-  const resource = createResourceReturn<T>(
-    containerState,
-    undefined,
-    promise.then(
-      (value) => {
-        resource.state = 'resolved';
-        resource.resolved = value as any;
-        return value;
-      },
-      (reason) => {
-        resource.state = 'rejected';
-        resource.error = reason;
-        throw reason;
-      }
-    )
-  );
-  return resource;
+  ctx.$waitOn$.push(mountQrl());
+  set(true);
 };
 
 // <docs markdown="../readme.md#useMount">
@@ -697,7 +688,7 @@ export const runWatch = (
   const { $subsManager$: subsManager } = containerState;
   const watchFn = watch.$qrl$.$invokeFn$(el, invokationContext, () => {
     subsManager.$clearSub$(watch);
-  });
+  }) as WatchFn;
   const track: Tracker = (obj: any, prop?: string) => {
     const target = getProxyTarget(obj);
     if (target) {
@@ -712,12 +703,22 @@ export const runWatch = (
       return obj;
     }
   };
+  const cleanups: (() => void)[] = [];
+  watch.$destroy$ = noSerialize(() => {
+    cleanups.forEach((fn) => fn());
+  });
 
+  const opts: WatchCtx = {
+    track,
+    cleanup(callback) {
+      cleanups.push(callback);
+    },
+  };
   return safeCall(
-    () => watchFn(track),
+    () => watchFn(opts),
     (returnValue) => {
       if (isFunction(returnValue)) {
-        watch.$destroy$ = noSerialize(returnValue);
+        cleanups.push(returnValue);
       }
     },
     (reason) => {

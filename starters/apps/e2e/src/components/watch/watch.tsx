@@ -22,13 +22,13 @@ export const Watch = component$(() => {
   });
 
   // Double count watch
-  useWatch$((track) => {
+  useWatch$(({ track }) => {
     const count = track(store, 'count');
     store.doubleCount = 2 * count;
   });
 
   // Debouncer watch
-  useWatch$((track) => {
+  useWatch$(({ track }) => {
     const doubleCount = track(store, 'doubleCount');
     const timer = setTimeout(() => {
       store.debounced = doubleCount;

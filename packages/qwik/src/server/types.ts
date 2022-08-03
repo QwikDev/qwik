@@ -131,24 +131,15 @@ export interface RenderOptions extends SerializeDocumentOptions {
  */
 export interface RenderToStringOptions extends RenderOptions {}
 
-export interface InOrderNone {
-  buffering: 'none';
+export interface InOrderAuto {
+  strategy: 'auto';
 }
 
-export interface InOrderManual {
-  buffering: 'marks';
+export interface InOrderDisabled {
+  strategy: 'disabled';
 }
 
-export interface InOrderSize {
-  buffering: 'size';
-  size: number;
-}
-
-export interface InOrderFull {
-  buffering: 'full';
-}
-
-export type InOrderStreaming = InOrderNone | InOrderManual | InOrderSize | InOrderFull;
+export type InOrderStreaming = InOrderAuto | InOrderDisabled;
 
 export interface StreamingOptions {
   inOrder?: InOrderStreaming;

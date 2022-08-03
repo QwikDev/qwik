@@ -579,16 +579,14 @@ export const useHostElement: () => Element;
 export const useLexicalScope: <VARS extends any[]>() => VARS;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useMount$" is marked as @public, but its signature references "MountFn" which is marked as @alpha
-// Warning: (ae-incompatible-release-tags) The symbol "useMount$" is marked as @public, but its signature references "ResourceReturn" which is marked as @alpha
 //
 // @public
-export const useMount$: <T>(first: MountFn<T>) => ResourceReturn<T>;
+export const useMount$: <T>(first: MountFn<T>) => void;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useMountQrl" is marked as @public, but its signature references "MountFn" which is marked as @alpha
-// Warning: (ae-incompatible-release-tags) The symbol "useMountQrl" is marked as @public, but its signature references "ResourceReturn" which is marked as @alpha
 //
 // @public
-export const useMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => ResourceReturn<T>;
+export const useMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
 
 // @alpha
 export const useOn: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
@@ -614,23 +612,15 @@ export const useResource$: <T>(generatorFn: ResourceFn<T>) => ResourceReturn<T>;
 // @alpha (undocumented)
 export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) => ResourceReturn<T>;
 
-// @alpha (undocumented)
-export const useScopedStyles$: (first: string) => void;
-
-// @alpha (undocumented)
-export const useScopedStylesQrl: (styles: QRL<string>) => void;
-
 // Warning: (ae-incompatible-release-tags) The symbol "useServerMount$" is marked as @public, but its signature references "MountFn" which is marked as @alpha
-// Warning: (ae-incompatible-release-tags) The symbol "useServerMount$" is marked as @public, but its signature references "ResourceReturn" which is marked as @alpha
 //
 // @public
-export const useServerMount$: <T>(first: MountFn<T>) => ResourceReturn<T>;
+export const useServerMount$: <T>(first: MountFn<T>) => void;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useServerMountQrl" is marked as @public, but its signature references "MountFn" which is marked as @alpha
-// Warning: (ae-incompatible-release-tags) The symbol "useServerMountQrl" is marked as @public, but its signature references "ResourceReturn" which is marked as @alpha
 //
 // @public
-export const useServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => ResourceReturn<T>;
+export const useServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
 
 // Warning: (ae-forgotten-export) The symbol "UseStoreOptions" needs to be exported by the entry point index.d.ts
 //
@@ -644,22 +634,27 @@ export const useStyles$: (first: string) => void;
 export const useStylesQrl: (styles: QRL<string>) => void;
 
 // @alpha (undocumented)
+export const useStylesScoped$: (first: string) => void;
+
+// @alpha (undocumented)
+export const useStylesScopedQrl: (styles: QRL<string>) => void;
+
+// @alpha (undocumented)
 export function useUserContext<T>(key: string): T | undefined;
 
 // @alpha (undocumented)
 export function useUserContext<T, B = T>(key: string, defaultValue: B): T | B;
 
+// Warning: (ae-forgotten-export) The symbol "UseWatchOptions" needs to be exported by the entry point index.d.ts
 // Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "WatchFn" which is marked as @alpha
-// Warning: (ae-incompatible-release-tags) The symbol "useWatch$" is marked as @public, but its signature references "UseEffectOptions" which is marked as @alpha
 //
 // @public
-export const useWatch$: (first: WatchFn, opts?: UseEffectOptions | undefined) => void;
+export const useWatch$: (first: WatchFn, opts?: UseWatchOptions | undefined) => void;
 
 // Warning: (ae-incompatible-release-tags) The symbol "useWatchQrl" is marked as @public, but its signature references "WatchFn" which is marked as @alpha
-// Warning: (ae-incompatible-release-tags) The symbol "useWatchQrl" is marked as @public, but its signature references "UseEffectOptions" which is marked as @alpha
 //
 // @public
-export const useWatchQrl: (qrl: QRL<WatchFn>, opts?: UseEffectOptions) => void;
+export const useWatchQrl: (qrl: QRL<WatchFn>, opts?: UseWatchOptions) => void;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;
@@ -667,8 +662,10 @@ export type ValueOrPromise<T> = T | Promise<T>;
 // @public
 export const version: string;
 
+// Warning: (ae-forgotten-export) The symbol "WatchCtx" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export type WatchFn = (track: Tracker) => ValueOrPromise<void | (() => void)>;
+export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
 
 // (No @packageDocumentation comment for this package)
 

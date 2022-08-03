@@ -5,25 +5,29 @@ export const SlotParent = component$(() => {
     disableButtons: false,
     disableNested: false,
     removeContent: false,
+    render: true,
     count: 0,
   });
   return (
     <section class="todoapp">
-      <Button state={state} id="btn1">
-        {!state.removeContent && <>DEFAULT {state.count}</>}
-        <span q:slot="ignore">IGNORE</span>
-      </Button>
+      {state.render && (
+        <>
+          <Projector state={state} id="btn1">
+            {!state.removeContent && <>DEFAULT {state.count}</>}
+            <span q:slot="ignore">IGNORE</span>
+          </Projector>
 
-      <Button state={state} id="btn2">
-        {!state.removeContent && <div q:slot="start">START {state.count}</div>}
-      </Button>
+          <Projector state={state} id="btn2">
+            {!state.removeContent && <div q:slot="start">START {state.count}</div>}
+          </Projector>
 
-      <Thing state={state} id="btn3">
-        <Button host:id="projected" state={state}>
-          {!state.removeContent && <>INSIDE THING {state.count}</>}
-        </Button>
-      </Thing>
-
+          <Thing state={state} id="btn3">
+            <Projector host:id="projected" state={state}>
+              {!state.removeContent && <>INSIDE THING {state.count}</>}
+            </Projector>
+          </Thing>
+        </>
+      )}
       <div>
         <button
           id="btn-toggle-content"
@@ -56,30 +60,48 @@ export const SlotParent = component$(() => {
           Count
         </button>
       </div>
+      <div>
+        <button
+          id="btn-toggle-render"
+          class="border border-cyan-600"
+          onClick$={() => (state.render = !state.render)}
+        >
+          Toogle render
+        </button>
+      </div>
     </section>
   );
 });
 
-export const Button = component$((props: { state: any }) => {
+export const Projector = component$((props: { state: any }) => {
   return (
     <Host
       onClick$={() => {
         props.state.count--;
       }}
     >
-      <button class="todoapp">
+      <Button>
         <Slot name="start">Placeholder Start</Slot>
 
         {!props.state.disableButtons && (
           <div>
-            <Slot />
+            <Slot as="article" />
           </div>
         )}
         <Slot name="end" />
-      </button>
+      </Button>
     </Host>
   );
 });
+
+export const Button = component$(
+  () => {
+    return <Host q:sname="" type="button"></Host>;
+  },
+  {
+    tagName: 'button',
+  }
+);
 
 export const Thing = component$((props: { state: any }) => {
   return <article class="todoapp">{!props.state.disableNested && <Slot />}</article>;

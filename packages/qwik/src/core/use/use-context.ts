@@ -256,7 +256,7 @@ export const useContext = <STATE extends object>(context: Context<STATE>): STATE
     return get;
   }
   let hostElement = ctx.$hostElement$;
-  const contexts = ctx.$renderCtx$.$contexts$;
+  const contexts = ctx.$renderCtx$.$localStack$;
   for (let i = contexts.length - 1; i >= 0; i--) {
     const ctx = contexts[i];
     hostElement = ctx.$element$;
@@ -268,12 +268,14 @@ export const useContext = <STATE extends object>(context: Context<STATE>): STATE
       }
     }
   }
-  const foundEl = hostElement.closest(`[q\\:ctx*="${context.id}"]`);
-  if (foundEl) {
-    const value = getContext(foundEl).$contexts$!.get(context.id);
-    if (value) {
-      set(value);
-      return value;
+  if (hostElement.closest) {
+    const foundEl = hostElement.closest(`[q\\:ctx*="${context.id}"]`);
+    if (foundEl) {
+      const value = getContext(foundEl).$contexts$!.get(context.id);
+      if (value) {
+        set(value);
+        return value;
+      }
     }
   }
   throw qError(QError_notFoundContext, context.id);

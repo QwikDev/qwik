@@ -26,7 +26,7 @@ export interface RenderContext {
   $roots$: Element[];
   $hostElements$: Set<Element>;
   $operations$: RenderOperation[];
-  $contexts$: QContext[];
+  $localStack$: QContext[];
   $currentComponent$: ComponentCtx | undefined;
   $containerState$: ContainerState;
   $containerEl$: Element;

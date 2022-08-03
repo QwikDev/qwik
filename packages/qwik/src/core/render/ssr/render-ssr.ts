@@ -7,6 +7,7 @@ import type { JSXNode } from '../jsx/types/jsx-node';
 import {
   ALLOWS_PROPS,
   BASE_QWIK_STYLES,
+  copyRenderContext,
   createRenderContext,
   executeComponent,
   getNextIndex,
@@ -41,6 +42,7 @@ import { assertDefined } from '../../assert/assert';
 export interface SSRContext {
   rctx: RenderContext;
   projectedChildren: Record<string, any[] | undefined> | undefined;
+  projectedContext: SSRContext | undefined;
   hostId: string | undefined;
   invocationContext?: InvokeContext | undefined;
   $contexts$: QContext[];
@@ -69,6 +71,7 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
     rctx,
     $contexts$: [],
     hostId: undefined,
+    projectedContext: undefined,
     projectedChildren: undefined,
     invocationContext: undefined,
     headNodes: [getBaseStyles()],
@@ -98,9 +101,12 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
       ...containerAttributes,
       children: [...ssrCtx.headNodes, node],
     });
-    await renderNode(node, ssrCtx, opts.stream, 0, () =>
-      beforeClose?.(ssrCtx.$contexts$, containerState)
-    );
+    await renderNode(node, ssrCtx, opts.stream, 0, (stream) => {
+      const result = beforeClose?.(ssrCtx.$contexts$, containerState);
+      if (result) {
+        return processData(result, ssrCtx, stream, 0, undefined);
+      }
+    });
   } else {
     const elCtx = getContext(containerEl);
     await renderRootNode(node, elCtx, containerAttributes, ssrCtx, opts.stream, 0, () =>
@@ -145,13 +151,14 @@ export const renderRootNode = (
 };
 const IS_HOST = 1 << 0;
 const IS_HEAD = 1 << 1;
+const IS_RAW_CONTENT = 1 << 2;
 
 export const renderNodeFunction = (
   node: JSXNode<any>,
   ssrCtx: SSRContext,
   stream: StreamWriter,
   flags: number,
-  beforeClose?: () => ValueOrPromise<any>
+  beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ) => {
   const res = ssrCtx.invocationContext
     ? useInvoke(ssrCtx.invocationContext, () => node.type(node.props, node.key))
@@ -167,7 +174,7 @@ export const renderNodeElement = (
   ssrCtx: SSRContext,
   stream: StreamWriter,
   flags: number,
-  beforeClose?: () => ValueOrPromise<any>
+  beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ): ValueOrPromise<void> => {
   const key = node.key != null ? String(node.key) : null;
   const props = node.props;
@@ -226,7 +233,9 @@ export const renderNodeElement = (
   if (textType === 'head') {
     flags |= IS_HEAD;
   }
-
+  if (hasRawContent[textType]) {
+    flags |= IS_RAW_CONTENT;
+  }
   if (extraNodes) {
     for (const node of extraNodes) {
       renderNodeElementSync(node.type, node.props, stream);
@@ -251,14 +260,14 @@ export const renderNodeElement = (
       const content = ssrCtx.projectedChildren?.[slotName];
       if (content) {
         ssrCtx.projectedChildren![slotName] = undefined;
-        promise = processData(content, ssrCtx, stream, flags);
+        promise = processData(content, ssrCtx.projectedContext!, stream, flags);
       }
     }
 
     // Inject before close
     if (beforeClose) {
       promise = then(promise, () =>
-        then(beforeClose(), (jsx) => {
+        then(beforeClose(stream), (jsx) => {
           return processData(jsx, ssrCtx, stream, flags);
         })
       );
@@ -277,7 +286,7 @@ export const renderNodeElementSync = (
 ): boolean => {
   stream.write(`<${tagName}`);
   Object.entries(attributes).forEach(([key, value]) => {
-    if (key !== 'dangerouslySetInnerHTML') {
+    if (key !== 'dangerouslySetInnerHTML' && key !== 'children') {
       const chunk = value === '' ? ` ${key}` : ` ${key}="${escapeAttr(value)}"`;
       stream.write(chunk);
     }
@@ -325,7 +334,7 @@ export const renderSSRComponent = (
   node: JSXNode<string>,
   attributes: Record<string, string>,
   flags: number,
-  beforeClose?: () => ValueOrPromise<any>
+  beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ): ValueOrPromise<void> => {
   return then(executeComponent(ssrCtx.rctx, elCtx), (res) => {
     if (res) {
@@ -344,9 +353,14 @@ export const renderSSRComponent = (
       const invocationContext = newInvokeContext(newCtx.$doc$, hostElement, hostElement);
       invocationContext.$subscriber$ = hostElement;
       invocationContext.$renderCtx$ = newCtx;
+      const projectedContext: SSRContext = {
+        ...ssrCtx,
+        rctx: copyRenderContext(newCtx),
+      };
       const newSSrContext: SSRContext = {
         ...ssrCtx,
         projectedChildren: splitProjectedChildren(children, ssrCtx),
+        projectedContext,
         rctx: newCtx,
         invocationContext,
       };
@@ -383,31 +397,32 @@ export const renderSSRComponent = (
         newSSrContext,
         stream,
         flags,
-        () => {
-          const beforeResult = beforeClose?.();
-          const projectedChildren = newSSrContext.projectedChildren;
-          if (projectedChildren) {
-            const nodes = Object.keys(projectedChildren).map((slotName) => {
-              const value = projectedChildren[slotName];
-              if (value) {
-                return jsx('q:template', {
-                  [QSlot]: slotName,
-                  hidden: '',
-                  'aria-hidden': 'true',
-                  children: value,
-                });
-              }
-            });
-            if (beforeResult) {
-              nodes.push(beforeResult);
-            }
-            return nodes;
-          }
-          return beforeResult;
+        (stream) => {
+          return then(renderQTemplates(newSSrContext, stream), () => {
+            return beforeClose?.(stream);
+          });
         }
       );
     }
   });
+};
+
+const renderQTemplates = (ssrContext: SSRContext, stream: StreamWriter) => {
+  const projectedChildren = ssrContext.projectedChildren;
+  if (projectedChildren) {
+    const nodes = Object.keys(projectedChildren).map((slotName) => {
+      const value = projectedChildren[slotName];
+      if (value) {
+        return jsx('q:template', {
+          [QSlot]: slotName,
+          hidden: '',
+          'aria-hidden': 'true',
+          children: value,
+        });
+      }
+    });
+    return processData(nodes, ssrContext, stream, 0, undefined);
+  }
 };
 
 const splitProjectedChildren = (children: any, ssrCtx: SSRContext) => {
@@ -436,7 +451,7 @@ export const renderNode = (
   ssrCtx: SSRContext,
   stream: StreamWriter,
   flags: number,
-  beforeClose?: () => ValueOrPromise<any>
+  beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ) => {
   if (node.type === SSRMark) {
     stream.write(`<!--${node.props.message ?? ''}-->`);
@@ -461,7 +476,7 @@ export const processData = (
   ssrCtx: SSRContext,
   stream: StreamWriter,
   flags: number,
-  beforeClose?: () => ValueOrPromise<any>
+  beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ): ValueOrPromise<void> => {
   if (node == null || typeof node === 'boolean') {
     return;
@@ -474,7 +489,11 @@ export const processData = (
     node = _flatVirtualChildren(node, ssrCtx);
     return walkChildren(node, ssrCtx, stream, flags);
   } else if (isString(node) || typeof node === 'number') {
-    stream.write(escape(String(node)));
+    if ((flags & IS_RAW_CONTENT) !== 0) {
+      stream.write(String(node));
+    } else {
+      stream.write(escape(String(node)));
+    }
   } else {
     logWarn('A unsupported value was passed to the JSX, skipping render. Value:', node);
   }
@@ -647,6 +666,11 @@ function processPropValue(prop: string, value: any): string | null {
   return String(value);
 }
 
+const hasRawContent: Record<string, true | undefined> = {
+  style: true,
+  script: true,
+};
+
 const emptyElements: Record<string, true | undefined> = {
   area: true,
   base: true,
@@ -676,7 +700,7 @@ export interface ServerDocument {
 }
 
 export const escape = (s: string) => {
-  return s.replace(/[&<>\u00A0]/g, function (c) {
+  return s.replace(/[&<>\u00A0]/g, (c) => {
     switch (c) {
       case '&':
         return '&amp;';

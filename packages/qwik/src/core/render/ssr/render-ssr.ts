@@ -151,6 +151,7 @@ export const renderRootNode = (
 };
 const IS_HOST = 1 << 0;
 const IS_HEAD = 1 << 1;
+const IS_RAW_CONTENT = 1 << 2;
 
 export const renderNodeFunction = (
   node: JSXNode<any>,
@@ -232,7 +233,9 @@ export const renderNodeElement = (
   if (textType === 'head') {
     flags |= IS_HEAD;
   }
-
+  if (hasRawContent[textType]) {
+    flags |= IS_RAW_CONTENT;
+  }
   if (extraNodes) {
     for (const node of extraNodes) {
       renderNodeElementSync(node.type, node.props, stream);
@@ -283,7 +286,7 @@ export const renderNodeElementSync = (
 ): boolean => {
   stream.write(`<${tagName}`);
   Object.entries(attributes).forEach(([key, value]) => {
-    if (key !== 'dangerouslySetInnerHTML') {
+    if (key !== 'dangerouslySetInnerHTML' && key !== 'children') {
       const chunk = value === '' ? ` ${key}` : ` ${key}="${escapeAttr(value)}"`;
       stream.write(chunk);
     }
@@ -420,7 +423,7 @@ const renderQTemplates = (ssrContext: SSRContext, stream: StreamWriter) => {
     });
     return processData(nodes, ssrContext, stream, 0, undefined);
   }
-}
+};
 
 const splitProjectedChildren = (children: any, ssrCtx: SSRContext) => {
   const flatChildren = flatVirtualChildren(children, ssrCtx);
@@ -486,7 +489,11 @@ export const processData = (
     node = _flatVirtualChildren(node, ssrCtx);
     return walkChildren(node, ssrCtx, stream, flags);
   } else if (isString(node) || typeof node === 'number') {
-    stream.write(escape(String(node)));
+    if ((flags & IS_RAW_CONTENT) !== 0) {
+      stream.write(String(node));
+    } else {
+      stream.write(escape(String(node)));
+    }
   } else {
     logWarn('A unsupported value was passed to the JSX, skipping render. Value:', node);
   }
@@ -659,6 +666,11 @@ function processPropValue(prop: string, value: any): string | null {
   return String(value);
 }
 
+const hasRawContent: Record<string, true | undefined> = {
+  style: true,
+  script: true,
+};
+
 const emptyElements: Record<string, true | undefined> = {
   area: true,
   base: true,
@@ -688,7 +700,7 @@ export interface ServerDocument {
 }
 
 export const escape = (s: string) => {
-  return s.replace(/[&<>\u00A0]/g, function (c) {
+  return s.replace(/[&<>\u00A0]/g, (c) => {
     switch (c) {
       case '&':
         return '&amp;';

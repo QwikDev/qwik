@@ -85,7 +85,7 @@ export const Projector = component$((props: { state: any }) => {
 
         {!props.state.disableButtons && (
           <div>
-            <Slot as="article"/>
+            <Slot as="article" />
           </div>
         )}
         <Slot name="end" />
@@ -94,15 +94,14 @@ export const Projector = component$((props: { state: any }) => {
   );
 });
 
-
-export const Button = component$(() => {
-  return (
-    <Host q:sname='' type="button">
-    </Host>
-  )
-}, {
-  tagName: 'button'
-});
+export const Button = component$(
+  () => {
+    return <Host q:sname="" type="button"></Host>;
+  },
+  {
+    tagName: 'button',
+  }
+);
 
 export const Thing = component$((props: { state: any }) => {
   return <article class="todoapp">{!props.state.disableNested && <Slot />}</article>;

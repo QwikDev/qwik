@@ -191,6 +191,17 @@ renderSSRSuite('single multiple children', async () => {
   );
 });
 
+renderSSRSuite('sanitazion', async () => {
+  await testSSR(
+    <html>
+      <style>{`.rule > thing{}`}</style>
+      <script>{`.rule > thing{}`}</script>
+      <div>{`.rule > thing{}`}</div>
+    </html>,
+    `<html q:container="paused" q:version="dev" q:render="ssr"><style>.rule > thing{}</style><script>.rule > thing{}</script><div>.rule &gt; thing{}</div></html>`
+  );
+});
+
 renderSSRSuite('using fragment', async () => {
   await testSSR(
     <html>
@@ -484,9 +495,7 @@ renderSSRSuite('nested slots', async () => {
 renderSSRSuite('mixes slots', async () => {
   await testSSR(
     <html>
-      <MixedSlot>
-        Content
-      </MixedSlot>
+      <MixedSlot>Content</MixedSlot>
     </html>,
     `
     <html q:container="paused" q:version="dev" q:render="ssr">
@@ -509,7 +518,7 @@ renderSSRSuite('component useContextProvider()', async () => {
   await testSSR(
     <html>
       <Context>
-        <ContextConsumer host:class='projected' />
+        <ContextConsumer host:class="projected" />
       </Context>
     </html>,
     `<html q:container="paused" q:version="dev" q:render="ssr">
@@ -579,10 +588,19 @@ renderSSRSuite('fragment name', async () => {
       <Styles />
       <UseClientEffect></UseClientEffect>
     </>,
-    `<container q:container="paused" q:version="dev" q:render="ssr" q:base="/manu/folder"><style id="qwik/base-styles">q\\:slot{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}</style><div q:key="sX:" class="host" q:id="1"><style q:style="17nc-0">.host {color: red}</style>Text</div><div q:key="sX:" q:id="0" on:qvisible="/runtimeQRL#_[0]"></div></container>`,
+    `<container q:container="paused" q:version="dev" q:render="ssr" q:base="/manu/folder">
+      <style id="qwik/base-styles">q\\:slot{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}</style>
+      <link rel="stylesheet" href="/global.css">
+      <div q:key="sX:" class="host" q:id="1">
+        <style q:style="17nc-0">.host {color: red}</style>
+        Text
+      </div>
+      <div q:key="sX:" q:id="0" on:qvisible="/runtimeQRL#_[0]"></div>
+    </container>`,
     {
       fragmentTagName: 'container',
       base: '/manu/folder',
+      beforeContent: [<link rel="stylesheet" href="/global.css" />],
     }
   );
 });
@@ -634,12 +652,14 @@ renderSSRSuite('html slot', async () => {
         <meta charSet="utf-8" q:head>
         <title q:head>Qwik</title>
         <style id="qwik/base-styles">q\\:slot{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}</style>
+        <link rel="stylesheet" href="/global.css">
       </head>
       <body>
         <div></div>
       </body>
     </html>`,
     {
+      beforeContent: [<link rel="stylesheet" href="/global.css" />],
       base: '/manu/folder',
     }
   );
@@ -705,11 +725,11 @@ export const SimpleSlot = component$((props: { name: string }) => {
 
 export const MixedSlot = component$(() => {
   return (
-    <SimpleSlot name='1'>
-      <Slot/>
+    <SimpleSlot name="1">
+      <Slot />
     </SimpleSlot>
-  )
-})
+  );
+});
 
 export const NamedSlot = component$(() => {
   return (
@@ -746,19 +766,19 @@ export const Styles = component$(() => {
   return <Host class="host">Text</Host>;
 });
 
-const CTX_INTERNAL = createContext<{value: string}>('internal');
-const CTX_QWIK_CITY = createContext<{value: string}>('qwikcity');
+const CTX_INTERNAL = createContext<{ value: string }>('internal');
+const CTX_QWIK_CITY = createContext<{ value: string }>('qwikcity');
 
 export const Context = component$(() => {
   useContextProvider(CTX_INTERNAL, {
-    value: 'hello'
+    value: 'hello',
   });
   useContextProvider(CTX_QWIK_CITY, {
-    value: 'bye'
+    value: 'bye',
   });
   return (
     <Host>
-      <Slot/>
+      <Slot />
       <ContextConsumer />
     </Host>
   );
@@ -772,8 +792,8 @@ export const ContextConsumer = component$(() => {
     <Host>
       {internal.value} {qwikCity.value}
     </Host>
-  )
-})
+  );
+});
 
 export const UseClientEffect = component$(() => {
   useClientEffect$(() => {

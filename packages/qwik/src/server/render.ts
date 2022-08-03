@@ -30,10 +30,9 @@ export async function renderToStream(
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> {
   let stream = opts.stream;
-  let bufferSize = 0;
   const doc = createSimpleDocument() as Document;
   const inOrderStreaming = opts.streaming?.inOrder ?? {
-    buffering: 'none',
+    strategy: 'auto',
   };
   const buffer: string[] = [];
   const nativeStream = stream;
@@ -41,33 +40,30 @@ export async function renderToStream(
     buffer.forEach((chunk) => nativeStream.write(chunk));
     buffer.length = 0;
   }
-  switch (inOrderStreaming.buffering) {
-    case 'full':
+  switch (inOrderStreaming.strategy) {
+    case 'disabled':
       stream = {
         write(chunk) {
           buffer.push(chunk);
-          bufferSize += chunk.length;
         },
       };
       break;
-    case 'size':
+    case 'auto':
+      let count = 0;
       stream = {
         write(chunk) {
-          buffer.push(chunk);
-          bufferSize += chunk.length;
-          if (bufferSize >= inOrderStreaming.size) {
-            flush();
+          if (chunk === '<!--qkssr-pu-->') {
+            count++;
+          } else if (count > 0 && chunk === '<!--qkssr-po-->') {
+            count--;
+            if (count === 0) {
+              flush();
+            }
           }
-        },
-      };
-      break;
-    case 'marks':
-      stream = {
-        write(chunk) {
-          buffer.push(chunk);
-          bufferSize += chunk.length;
-          if (chunk === '<!--qkssr-f-->') {
-            flush();
+          if (count === 0) {
+            nativeStream.write(chunk);
+          } else {
+            buffer.push(chunk);
           }
         },
       };

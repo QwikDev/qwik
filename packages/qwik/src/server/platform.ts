@@ -34,10 +34,10 @@ function createPlatform(
         modulePath += '.js';
       }
       const module = require(modulePath); // eslint-disable-line  @typescript-eslint/no-var-requires
-      const symbol = module[symbolName];
-      if (!symbol) {
+      if (!(symbolName in module)) {
         throw new Error(`Q-ERROR: missing symbol '${symbolName}' in module '${modulePath}'.`);
       }
+      const symbol = module[symbolName];
       return symbol;
     },
     raf: () => {

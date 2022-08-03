@@ -2,6 +2,7 @@ import { styleKey } from '../component/qrl-styles';
 import type { QRL } from '../import/qrl.public';
 import { useSequentialScope } from './use-store.public';
 import { implicit$FirstArg } from '../util/implicit_dollar';
+import { scopeStylesheet } from '../style/scoped-stylesheet';
 import { getContext } from '../props/props';
 import { hasStyle } from '../render/execute-component';
 
@@ -98,7 +99,7 @@ const _useStyles = (styleQrl: QRL<string>, scoped: boolean) => {
         elCtx.$styles$.push({
           type: 'style',
           styleId,
-          content: scoped ? styleText.replace(/�/g, styleId) : styleText,
+          content: scoped ? scopeStylesheet(styleText, styleId) : styleText,
         });
       })
     );

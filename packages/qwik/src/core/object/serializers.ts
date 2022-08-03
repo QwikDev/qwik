@@ -1,5 +1,12 @@
+import {
+  Component,
+  ComponentOptions,
+  componentQrl,
+  isQwikComponent,
+} from '../component/component.public';
 import { parseQRL, stringifyQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
+import type { QRL } from '../import/qrl.public';
 import type { ContainerState } from '../render/container';
 import { isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
 import {
@@ -13,9 +20,21 @@ import { isDocument } from '../util/element';
 import type { GetObject, GetObjID } from './store';
 
 export interface Serializer<T> {
+  /**
+   * Return true if this serializer can serialize the given object.
+   */
   test: (obj: any) => boolean;
+  /**
+   * Convert the object to a string.
+   */
   serialize?: (obj: T, getObjID: GetObjID, containerState: ContainerState) => string;
+  /**
+   * Deserialize the object.
+   */
   prepare: (data: string, containerState: ContainerState, doc: Document) => T;
+  /**
+   * Second pass to fill in the object.
+   */
   fill?: (obj: T, getObject: GetObject, containerState: ContainerState) => void;
 }
 
@@ -102,6 +121,48 @@ const RegexSerializer: Serializer<RegExp> = {
   },
 };
 
+export const SERIALIZABLE_STATE = Symbol('serializable-data');
+const ComponentSerializer: Serializer<Component<any>> = {
+  test: (obj) => isQwikComponent(obj),
+  serialize: (obj, getObjId, containerState) => {
+    const [qrl, options]: [QRLInternal, ComponentOptions] = (obj as any)[SERIALIZABLE_STATE];
+    const optionsJSON = JSON.stringify(options);
+    return (
+      stringifyQRL(qrl, {
+        $platform$: containerState.$platform$,
+        $getObjId$: getObjId,
+      }) + (optionsJSON === '{}' ? '' : optionsJSON)
+    );
+  },
+  prepare: (data, containerState) => {
+    const optionsIndex = data.indexOf('{');
+    const qrlString = optionsIndex == -1 ? data : data.slice(0, optionsIndex);
+    const options = optionsIndex == -1 ? {} : JSON.parse(data.slice(optionsIndex));
+    const qrl: QRL<any> = parseQRL(qrlString, containerState.$containerEl$);
+    return componentQrl(qrl, options);
+  },
+  fill: (component, getObject) => {
+    const [qrl]: [QRLInternal, ComponentOptions] = (component as any)[SERIALIZABLE_STATE];
+    if (qrl.$capture$ && qrl.$capture$.length > 0) {
+      qrl.$captureRef$ = qrl.$capture$.map(getObject);
+      qrl.$capture$ = null;
+    }
+  },
+};
+
+const PureFunctionSerializer: Serializer<Function> = {
+  test: (obj) => typeof obj === 'function' && obj.__qwik_serializable__ !== undefined,
+  serialize: (obj) => {
+    return obj.toString();
+  },
+  prepare: (data) => {
+    const fn = new Function('return ' + data)();
+    fn.__qwik_serializable__ = true;
+    return fn;
+  },
+  fill: undefined,
+};
+
 const serializers: Serializer<any>[] = [
   UndefinedSerializer,
   QRLSerializer,
@@ -111,6 +172,8 @@ const serializers: Serializer<any>[] = [
   URLSerializer,
   RegexSerializer,
   DateSerializer,
+  ComponentSerializer,
+  PureFunctionSerializer,
 ];
 
 export const canSerialize = (obj: any): boolean => {

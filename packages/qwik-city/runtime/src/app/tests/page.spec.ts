@@ -67,7 +67,7 @@ test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
   await linkNavigate(ctx, '[data-test-link="products-hat"]');
   await assertPage(ctx, {
     pathname: '/products/hat',
-    title: 'Product hat, $21.96 - Qwik',
+    title: 'Product hat - Qwik',
     layoutHierarchy: ['root'],
     h1: 'Product: hat',
     activeHeaderLink: 'Products',
@@ -77,7 +77,7 @@ test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
   await linkNavigate(ctx, '[data-test-link="products-jacket"]');
   await assertPage(ctx, {
     pathname: '/products/jacket',
-    title: 'Product jacket, $48.96 - Qwik',
+    title: 'Product jacket - Qwik',
     layoutHierarchy: ['root'],
     h1: 'Product: jacket',
     activeHeaderLink: 'Products',
@@ -87,7 +87,7 @@ test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
   await linkNavigate(ctx, '[data-test-link="products-shirt"]');
   await assertPage(ctx, {
     pathname: '/products/tshirt',
-    title: 'Product tshirt, $18.96 - Qwik',
+    title: 'Product tshirt - Qwik',
     layoutHierarchy: ['root'],
     h1: 'Product: tshirt',
     activeHeaderLink: 'Products',

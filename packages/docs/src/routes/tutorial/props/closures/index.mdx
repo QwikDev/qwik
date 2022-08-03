@@ -2,25 +2,36 @@
 title: Passing Closures
 ---
 
-Props must be serializable so that Qwik can resume and render each component independently from other components on the page. This possess a problem if we wish to pass a callback to a child component. Callbacks are functions and functions are not directly serializable, but they are serializable through the `$()` by converting them to QRLs first.
+Props are serializable so that Qwik can resume and render each component independently. There's a problem though. What if you want to include a callback to a child component? Callbacks are functions that are normally not serializable, but they are in Qwik.
+
+Qwik serializes functions via the `$()` function by first converting them to [Qwik URLs (QRLs)](/docs/advanced/qrl).
 
 ## QRLs
 
-Function passing across serializable boundaries must be done through QRLs. QRLs are serialized forms of a function. (See [QRL](/docs/advanced/qrl) in advanced section.)
+QRLs are serialized forms of a function that Qwik uses to pass functions across serializable boundaries. To help make serialization easy, Qwik features a set of convenience APIs which end in `$`. These convenience functions are equivalent to calling `$()` directly.
 
-Qwik has convenience APIs which end in `$` that are equivalent to calling `$()` directly. These two lines are equivalent:
+The following two lines are essentially the same:
 
-- inline: `useWatch$(() => {...}/>`
-- explicit: `const callbackQrl = $(() => {...}); useWatchQrl(callbackQrl)`
+- **inline**: `<button onClick$={() => alert('click')}/>`
+- **explicit**: `<button onClickQrl={$(() => alert('click'))}/>`
 
-Most of the time we use the first form as it allows us to inline our callbacks directly into the API. But at times it is necessary to use the second form so that we can separate where the function is declared and where it is used.
+The *inline* technique is the most common approach as callbacks are implemented directly on an element. However, sometimes you need to use the *explicit* form to separate where a function is declared from where it is used.
 
 ## Declaring callback props
 
-A component can declare a callback in its props by:
+A component can declare a callback in its props via property naming or type declaration.
 
-- Property that ends in `$` (as in `goodbye$`)
-- The type of the property is `PropFunction<T>` where `T` is the lazy reference type that the QRL points to (function signature).
+### Naming
+
+Having a property that ends in `$` signals to Qwik the property expects a callback. For example:
+
+```
+component.goodbye$
+```
+
+### Type declaration
+
+The type of the property is `PropFunction<T>` where `T` is the lazy reference type that the QRL points to (function signature).
 
 ```typescript
 interface MyComponentProps {

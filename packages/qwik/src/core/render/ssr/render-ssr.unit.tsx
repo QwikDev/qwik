@@ -11,7 +11,7 @@ import { createContext, useContext, useContextProvider } from '../../use/use-con
 import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { Ref, useRef, useStore } from '../../use/use-store.public';
-import { useScopedStylesQrl, useStylesQrl } from '../../use/use-styles';
+import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
 import { useClientEffect$ } from '../../use/use-watch';
 import { delay } from '../../util/promises';
 import { Host, SkipRerender, SSRComment } from '../jsx/host.public';
@@ -555,7 +555,7 @@ renderSSRSuite('component useStyles()', async () => {
   );
 });
 
-renderSSRSuite('component useScopedStyles()', async () => {
+renderSSRSuite('component useStylesScoped()', async () => {
   await testSSR(
     <html>
       <ScopedStyles1>
@@ -800,7 +800,7 @@ export const Styles = component$(() => {
 });
 
 export const ScopedStyles1 = component$(() => {
-  useScopedStylesQrl(inlinedQrl('.host {color: red}', 'styles_scoped_1'));
+  useStylesScopedQrl(inlinedQrl('.host {color: red}', 'styles_scoped_1'));
 
   return (
     <Host class="host">
@@ -816,7 +816,7 @@ export const ScopedStyles1 = component$(() => {
 });
 
 export const ScopedStyles2 = component$(() => {
-  useScopedStylesQrl(inlinedQrl('.host {color: blue}', '20_styles_scoped'));
+  useStylesScopedQrl(inlinedQrl('.host {color: blue}', '20_styles_scoped'));
 
   return (
     <Host class="host">

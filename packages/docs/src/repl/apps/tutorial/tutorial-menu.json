@@ -358,7 +358,7 @@
       },
       {
         "id": "scoped",
-        "title": "useScopedStyles() - Scoped styles",
+        "title": "useStylesScoped() - Scoped styles",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false

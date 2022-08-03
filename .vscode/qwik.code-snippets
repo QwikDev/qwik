@@ -66,7 +66,7 @@
 		"prefix": "useClientEffect",
 		"description": "useClientEffect$() function hook",
 		"body": [
-			"useClientEffect$((track) => {",
+			"useClientEffect$(({track}) => {",
 			"  $0",
 			"});",
 			""
@@ -77,7 +77,7 @@
 		"prefix": "useWatch",
 		"description": "useWatch$() function hook",
 		"body": [
-			"useWatch$((track) => {",
+			"useWatch$(({track}) => {",
 			"  track($1);",
 			"  $0",
 			"});",

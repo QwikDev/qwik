@@ -20,7 +20,7 @@ export const Item = component$(
     const editInput = useRef<HTMLInputElement>();
     const todos = useContext(TODOS);
 
-    useWatch$((track) => {
+    useWatch$(({ track }) => {
       const current = track(editInput, 'current');
       if (current) {
         current.focus();

@@ -56,7 +56,7 @@ export function qwikifyQrl<PROPS extends {}>(
       }
 
       useWatch$(
-        async (track) => {
+        async ({ track }) => {
           track(props);
 
           if (isBrowser) {

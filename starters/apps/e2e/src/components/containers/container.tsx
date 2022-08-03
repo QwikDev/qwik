@@ -40,7 +40,7 @@ export const Container = component$((props: ContainerProps) => {
     html: '',
   });
 
-  useWatch$(async (track) => {
+  useWatch$(async ({ track }) => {
     track(props, 'url');
     const url = `http://localhost:3300${props.url}?fragment&loader=false`;
     const res = await fetch(url);

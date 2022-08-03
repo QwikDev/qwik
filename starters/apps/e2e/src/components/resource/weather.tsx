@@ -29,7 +29,7 @@ export const Weather = component$(() => {
   });
 
   // Debounce city
-  useWatch$((track) => {
+  useWatch$(({ track }) => {
     const city = track(state, 'city');
     const timer = setTimeout(() => {
       state.debouncedCity = city;

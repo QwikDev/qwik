@@ -152,13 +152,13 @@ export const CmpInline = component$(() => {
     });
 
     // Double count watch
-    useWatch$((track) => {
+    useWatch$(({ track }) => {
       const count = track(store, 'count');
       store.doubleCount = 2 * count;
     });
 
     // Debouncer watch
-    useWatch$((track) => {
+    useWatch$(({ track }) => {
       const doubleCount = track(store, 'doubleCount');
       const timer = setTimeout(() => {
         store.debounced = doubleCount;
@@ -184,7 +184,7 @@ export const CmpInline = component$(() => {
   // <docs anchor="use-watch-simple">
   const Cmp = component$(() => {
     const store = useStore({ count: 0, doubleCount: 0 });
-    useWatch$((track) => {
+    useWatch$(({ track }) => {
       const count = track(store, 'count');
       store.doubleCount = 2 * count;
     });
@@ -361,7 +361,7 @@ export const CmpInline = component$(() => {
   const Cmp = component$(() => {
     const input = useRef<HTMLInputElement>();
 
-    useClientEffect$((track) => {
+    useClientEffect$(({ track }) => {
       const el = track(input, 'current')!;
       el.focus();
     });

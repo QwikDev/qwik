@@ -18,7 +18,7 @@ export const Item = component$(
     const state = useStore({ editing: false });
     const editInput = useRef<HTMLInputElement>();
 
-    useWatch$((track) => {
+    useWatch$(({ track }) => {
       const current = track(editInput, 'current');
       if (current) {
         current.focus();

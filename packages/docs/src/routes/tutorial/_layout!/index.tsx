@@ -33,7 +33,7 @@ export default component$(() => {
     return initStore;
   });
 
-  useWatch$((track) => {
+  useWatch$(({ track }) => {
     const appId = track(store, 'appId');
     const t = getTutorial(appId)!;
 

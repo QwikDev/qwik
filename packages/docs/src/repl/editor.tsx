@@ -33,7 +33,7 @@ export const Editor = component$((props: EditorProps) => {
     };
   });
 
-  useWatch$(async (track) => {
+  useWatch$(async ({ track }) => {
     track(props.input, 'version');
     track(store, 'editor');
 
@@ -42,7 +42,7 @@ export const Editor = component$((props: EditorProps) => {
     }
   });
 
-  useWatch$(async (track) => {
+  useWatch$(async ({ track }) => {
     track(store, 'editor');
     track(props.input, 'version');
     track(props.input, 'files');

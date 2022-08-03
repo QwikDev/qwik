@@ -35,7 +35,7 @@ export default component$(() => {
     }
   });
 
-  useClientEffect$((track) => {
+  useClientEffect$(({ track }) => {
     track(store, 'buildId');
     track(store, 'buildMode');
     track(store, 'entryStrategy');

@@ -1,2 +1,2 @@
-export { errorHandler, notFoundHandler } from './fallback-handler';
+export { errorHandler, notFoundHandler } from './error-handler';
 export { requestHandler } from './request-handler';

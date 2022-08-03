@@ -220,7 +220,7 @@ async function ssrApp(req: Request, appName: string, appDir: string, manifest: Q
 
   // ssr the document
   const base = `/${appName}/build/`;
-  console.log('req.url', req.url);
+
   const chunks: string[] = [];
   const opts: RenderToStreamOptions = {
     stream: {

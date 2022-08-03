@@ -2,14 +2,15 @@ import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'http';
 import fs from 'fs';
 import { join } from 'path';
-import { Headers as HeadersPolyfill } from 'headers-polyfill';
+import { Headers } from '../../middleware/request-handler/headers';
 import type { BuildContext } from '../types';
 import type { EndpointModule } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
 import { loadUserResponse } from '../../middleware/request-handler/user-response';
-import { getQwikCityUserContext } from '../../middleware/request-handler/utils';
+import { getQwikCityUserContext } from '../../middleware/request-handler/page-handler';
 import { buildFromUrlPathname } from '../build';
-import { notFoundHandler } from '../../middleware/request-handler/fallback-handler';
+import { endpointHandler } from '../../middleware/request-handler/endpoint-handler';
+import { notFoundHandler } from '../../middleware/request-handler/error-handler';
 import type { QwikCityRequestContext } from '../../middleware/request-handler/types';
 
 export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
@@ -30,8 +31,7 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         return;
       }
 
-      const serverRequestEv = fromDevServerHttp(url, req, res);
-      const { request, response } = serverRequestEv;
+      const requestCtx = fromDevServerHttp(url, req, res);
       const result = await buildFromUrlPathname(ctx, pathname);
       if (result) {
         const { route, params } = result;
@@ -51,8 +51,7 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         endpointModules.push(endpointModule);
 
         const userResponse = await loadUserResponse(
-          request,
-          url,
+          requestCtx,
           params,
           endpointModules,
           ctx.opts.trailingSlash,
@@ -60,47 +59,41 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         );
 
         if (userResponse.status === 404) {
-          await notFoundHandler(serverRequestEv);
+          await notFoundHandler(requestCtx);
           return;
         }
 
-        if (userResponse.type === 'endpoint') {
+        if (userResponse.isEndpointOnly) {
           // dev server endpoint handler
-          response(userResponse.status, userResponse.headers, async (stream) => {
-            if (typeof userResponse.body === 'string') {
-              stream.write(userResponse.body);
-            }
-          });
+          await endpointHandler(requestCtx, userResponse);
           return;
         }
 
-        if (userResponse.type === 'page') {
-          // qwik city vite plugin should handle dev ssr rendering
-          // but add the qwik city user context to the response object
-          const userContext = getQwikCityUserContext(userResponse);
-          if (ctx.isDevServerClientOnly) {
-            // because we stringify this content for the client only
-            // dev server, there's some potential stringify issues
-            // client only dev server will re-fetch anyways, so reset
-            userContext.qwikcity.response.body = undefined;
-          }
-
-          (res as QwikViteDevResponse)._qwikUserCtx = {
-            ...(res as QwikViteDevResponse)._qwikUserCtx,
-            ...userContext,
-          };
-
-          // update node response with status and headers
-          // but do not end() it, call next() so qwik plugin handles rendering
-          res.statusCode = userResponse.status;
-          userResponse.headers.forEach((value, key) => res.setHeader(key, value));
-          next();
-          return;
+        // qwik city vite plugin should handle dev ssr rendering
+        // but add the qwik city user context to the response object
+        const userContext = getQwikCityUserContext(userResponse);
+        if (ctx.isDevServerClientOnly) {
+          // because we stringify this content for the client only
+          // dev server, there's some potential stringify issues
+          // client only dev server will re-fetch anyways, so reset
+          userContext.qwikcity.response.body = undefined;
         }
+
+        (res as QwikViteDevResponse)._qwikUserCtx = {
+          ...(res as QwikViteDevResponse)._qwikUserCtx,
+          ...userContext,
+        };
+
+        // update node response with status and headers
+        // but do not end() it, call next() so qwik plugin handles rendering
+        res.statusCode = userResponse.status;
+        userResponse.headers.forEach((value, key) => res.setHeader(key, value));
+        next();
+        return;
       }
 
       // static file does not exist, 404
-      await notFoundHandler(serverRequestEv);
+      await notFoundHandler(requestCtx);
     } catch (e) {
       next(e);
     }
@@ -141,7 +134,7 @@ async function isStaticAsset(server: ViteDevServer, pathname: string) {
 }
 
 function fromDevServerHttp(url: URL, req: Connect.IncomingMessage, res: ServerResponse) {
-  const requestHeaders = new (typeof Headers === 'function' ? Headers : HeadersPolyfill)();
+  const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
   for (const key in nodeRequestHeaders) {
     const value = nodeRequestHeaders[key];
@@ -180,15 +173,7 @@ function fromDevServerHttp(url: URL, req: Connect.IncomingMessage, res: ServerRe
       headers.forEach((value, key) => res.setHeader(key, value));
       body({
         write: (chunk) => {
-          return new Promise<void>((resolve, reject) => {
-            res.write(chunk, (err) => {
-              if (err) {
-                reject(err);
-              } else {
-                resolve();
-              }
-            });
-          });
+          res.write(chunk);
         },
       }).finally(() => {
         res.end();

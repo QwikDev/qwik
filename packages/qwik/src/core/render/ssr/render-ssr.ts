@@ -390,7 +390,10 @@ export const renderSSRComponent = (
         for (const styleId of elCtx.$scopeIds$) {
           styleClasses.push(styleHost(styleId));
         }
-        attributes[QScopedStyle] = serializeSStyle(elCtx.$scopeIds$);
+        const value = serializeSStyle(elCtx.$scopeIds$);
+        if (value) {
+          attributes[QScopedStyle] = value;
+        }
       }
       const processedNode = jsx(node.type, {
         ...attributes,

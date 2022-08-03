@@ -43,7 +43,10 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
           }
         }
         if (ctx.$scopeIds$) {
-          directSetAttribute(hostElement, QScopedStyle, serializeSStyle(ctx.$scopeIds$));
+          const value = serializeSStyle(ctx.$scopeIds$);
+          if (value) {
+            directSetAttribute(hostElement, QScopedStyle, value);
+          }
           for (const scope of ctx.$scopeIds$) {
             hostElement.classList.add(styleHost(scope));
           }

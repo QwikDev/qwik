@@ -524,7 +524,7 @@ export interface SnapshotState {
 
 // @public (undocumented)
 export const SSRComment: FunctionComponent<{
-    text: string;
+    data: string;
 }>;
 
 // @public (undocumented)

@@ -120,7 +120,7 @@ export interface DocumentStyle {
  * @public
  */
 export interface DocumentHeadProps<T = unknown> extends RouteLocation {
-  data: T | null;
+  data: T;
   head: ResolvedDocumentHead;
 }
 

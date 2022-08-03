@@ -56,7 +56,7 @@ export interface RenderSSROptions {
   fragmentTagName?: string;
   stream: StreamWriter;
   base?: string;
-  userContext?: Record<string, any>;
+  envData?: Record<string, any>;
   url?: string;
   beforeContent?: JSXNode[];
   beforeClose?: (contexts: QContext[], containerState: ContainerState) => Promise<JSXNode>;
@@ -93,10 +93,10 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
     containerAttributes['q:base'] = opts.base;
   }
   if (opts.url) {
-    containerState.$userContext$['url'] = opts.url;
+    containerState.$envData$['url'] = opts.url;
   }
-  if (opts.userContext) {
-    Object.assign(containerState.$userContext$, opts.userContext);
+  if (opts.envData) {
+    Object.assign(containerState.$envData$, opts.envData);
   }
 
   if (opts.fragmentTagName) {

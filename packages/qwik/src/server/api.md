@@ -134,6 +134,8 @@ export type Render = RenderToString | RenderToStream;
 // @public (undocumented)
 export interface RenderOptions extends SerializeDocumentOptions {
     base?: string;
+    // (undocumented)
+    envData?: Record<string, any>;
     fragmentTagName?: string;
     // Warning: (ae-incompatible-release-tags) The symbol "prefetchStrategy" is marked as @public, but its signature references "PrefetchStrategy" which is marked as @alpha
     //
@@ -141,8 +143,6 @@ export interface RenderOptions extends SerializeDocumentOptions {
     prefetchStrategy?: PrefetchStrategy | null;
     qwikLoader?: QwikLoaderOptions;
     snapshot?: boolean;
-    // (undocumented)
-    userContext?: Record<string, any>;
 }
 
 // @public (undocumented)

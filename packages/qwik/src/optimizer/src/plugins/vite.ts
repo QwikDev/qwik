@@ -429,8 +429,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
         try {
           if (req.headers.accept && req.headers.accept.includes('text/html')) {
-            const userContext: Record<string, any> = {
-              ...(res as QwikViteDevResponse)._qwikUserCtx,
+            const envData: Record<string, any> = {
+              ...(res as QwikViteDevResponse)._qwikEnvData,
               url: url.href,
             };
 
@@ -441,7 +441,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               const relPath = path.relative(opts.rootDir, clientDevInput!);
               const entryUrl = '/' + qwikPlugin.normalizePath(relPath);
 
-              let html = getViteDevIndexHtml(entryUrl, userContext);
+              let html = getViteDevIndexHtml(entryUrl, envData);
               html = await server.transformIndexHtml(pathname, html);
 
               res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -513,7 +513,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                       }
                     },
                 prefetchStrategy: null,
-                userContext,
+                envData: envData,
               };
 
               res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -559,7 +559,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   return vitePlugin;
 }
 
-function getViteDevIndexHtml(entryUrl: string, userContext: Record<string, any>) {
+function getViteDevIndexHtml(entryUrl: string, envData: Record<string, any>) {
   return `<!DOCTYPE html>
 <html>
   <head>
@@ -569,9 +569,9 @@ function getViteDevIndexHtml(entryUrl: string, userContext: Record<string, any>)
     async function main() {
       const mod = await import("${entryUrl}?${VITE_DEV_CLIENT_QS}=");
       if (mod.default) {
-        const userContext = JSON.parse(${JSON.stringify(JSON.stringify(userContext))})
+        const envData = JSON.parse(${JSON.stringify(JSON.stringify(envData))})
         mod.default({
-          userContext,
+          envData,
         });
       }
     }
@@ -759,5 +759,5 @@ export interface QwikVitePluginOptions {
 }
 
 export interface QwikViteDevResponse {
-  _qwikUserCtx?: Record<string, any>;
+  _qwikEnvData?: Record<string, any>;
 }

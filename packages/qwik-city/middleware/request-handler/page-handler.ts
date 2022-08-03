@@ -1,5 +1,5 @@
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
-import type { QwikCityUserContext } from '../../runtime/src/library/types';
+import type { QwikCityEnvData } from '../../runtime/src/library/types';
 import type { QwikCityRequestContext, QwikCityRequestOptions, UserResponseContext } from './types';
 
 export function pageHandler<T = any>(
@@ -20,7 +20,7 @@ export function pageHandler<T = any>(
     const result = await render({
       stream,
       url: url.href,
-      userContext: getQwikCityUserContext(userResponse),
+      envData: getQwikCityEnvData(userResponse),
       ...opts,
     });
     if ((typeof result as any as RenderToStringResult).html === 'string') {
@@ -29,10 +29,10 @@ export function pageHandler<T = any>(
   });
 }
 
-export function getQwikCityUserContext(userResponseContext: UserResponseContext): {
-  qwikcity: QwikCityUserContext;
+export function getQwikCityEnvData(userResponse: UserResponseContext): {
+  qwikcity: QwikCityEnvData;
 } {
-  const { url, params, pendingBody, resolvedBody, status } = userResponseContext;
+  const { url, params, pendingBody, resolvedBody, status } = userResponse;
   return {
     qwikcity: {
       route: {

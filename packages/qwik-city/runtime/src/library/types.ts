@@ -290,7 +290,7 @@ export interface EndpointResponse {
 
 export interface QwikCityRenderDocument extends Document {}
 
-export interface QwikCityUserContext {
+export interface QwikCityEnvData {
   route: MutableRouteLocation;
   response: EndpointResponse;
 }

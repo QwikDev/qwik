@@ -42,7 +42,7 @@ export interface ContainerState {
   $hostsRendering$: Set<Element> | undefined;
   $renderPromise$: Promise<RenderContext> | undefined;
 
-  $userContext$: Record<string, any>;
+  $envData$: Record<string, any>;
   $elementIndex$: number;
 
   $styleIds$: Set<string>;
@@ -68,7 +68,7 @@ export const getContainerState = (containerEl: Element): ContainerState => {
       $renderPromise$: undefined,
       $hostsRendering$: undefined,
 
-      $userContext$: {},
+      $envData$: {},
       $elementIndex$: 0,
 
       $styleIds$: new Set(),

@@ -21,7 +21,7 @@ import { BASE_QWIK_STYLES, createRenderContext } from '../execute-component';
  */
 export interface RenderOptions {
   allowRerender?: boolean;
-  userContext?: Record<string, any>;
+  envData?: Record<string, any>;
 }
 
 /**
@@ -53,9 +53,9 @@ export const render = async (
   injectQContainer(containerEl);
 
   const containerState = getContainerState(containerEl);
-  const userContext = opts?.userContext;
-  if (userContext) {
-    Object.assign(containerState.$userContext$, userContext);
+  const envData = opts?.envData;
+  if (envData) {
+    Object.assign(containerState.$envData$, envData);
   }
   containerState.$hostsRendering$ = new Set();
   containerState.$renderPromise$ = renderRoot(parent, jsxNode, doc, containerState, containerEl);

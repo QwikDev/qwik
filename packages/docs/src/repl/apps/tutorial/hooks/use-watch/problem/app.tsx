@@ -5,7 +5,7 @@ export const App = component$(() => {
     value: '',
     debouncedValue: '',
   });
-  useWatch$((track) => {
+  useWatch$(({ track }) => {
     // rerun this function  when `value` property changes.
     track(store, 'value');
     // Set up timeout for debounced value.

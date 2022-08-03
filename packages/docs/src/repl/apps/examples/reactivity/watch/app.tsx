@@ -11,7 +11,7 @@ export const App = component$(() => {
     debounced: 0,
   });
 
-  useWatch$((track) => {
+  useWatch$(({ track }) => {
     // track changes in store.count
     track(store, 'count');
     console.log('count changed');

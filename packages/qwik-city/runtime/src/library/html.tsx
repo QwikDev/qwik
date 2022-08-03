@@ -70,7 +70,7 @@ export const Html = component$<HtmlProps>(
     useContextProvider(RouteLocationContext, routeLocation);
     useContextProvider(RouteNavigateContext, routeNavigate);
 
-    useWatch$(async (track) => {
+    useWatch$(async ({ track }) => {
       const { default: cityPlan } = await import('@qwik-city-plan');
       const path = track(routeNavigate, 'path');
       const url = new URL(path, routeLocation.href);

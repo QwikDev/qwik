@@ -17,3 +17,9 @@ export function useEnvData(key: string, defaultValue?: any) {
   const ctx = useInvokeContext();
   return ctx.$renderCtx$.$containerState$.$envData$[key] ?? defaultValue;
 }
+
+/**
+ * @alpha
+ * @deprecated Please use `useEnvData` instead.
+ */
+export const useUserContext = useEnvData;

@@ -57,29 +57,29 @@ export const useStylesQrl = (styles: QRL<string>): void => {
 // </docs>
 export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
 
-// <docs markdown="../readme.md#useScopedStyles">
+// <docs markdown="../readme.md#useStylesScoped">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useScopedStyles instead)
+// (edit ../readme.md#useStylesScoped instead)
 /**
  * @see `useStyles`.
  *
  * @alpha
  */
 // </docs>
-export const useScopedStylesQrl = (styles: QRL<string>): void => {
+export const useStylesScopedQrl = (styles: QRL<string>): void => {
   _useStyles(styles, scopeStylesheet, true);
 };
 
-// <docs markdown="../readme.md#useScopedStyles">
+// <docs markdown="../readme.md#useStylesScoped">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useScopedStyles instead)
+// (edit ../readme.md#useStylesScoped instead)
 /**
  * @see `useStyles`.
  *
  * @alpha
  */
 // </docs>
-export const useScopedStyles$ = /*#__PURE__*/ implicit$FirstArg(useScopedStylesQrl);
+export const useStylesScoped$ = /*#__PURE__*/ implicit$FirstArg(useStylesScopedQrl);
 
 const _useStyles = (
   styleQrl: QRL<string>,

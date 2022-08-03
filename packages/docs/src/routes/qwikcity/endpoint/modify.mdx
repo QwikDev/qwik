@@ -25,19 +25,16 @@ interface ProductData {
   price: number;
   description: string;
 }
-export const onPut: EndpointHandler<EndpointData> = async ({ params, request } ) => {
-  // put your DB access here, wer are hard coding response for simplicity of this tutorial.
+export const onPut: EndpointHandler<EndpointData> = async ({ params, request, response } ) => {
+  // put your DB access here, we are hard coding a response for the simplicity of this tutorial.
   request; // <- read data from request and porform DB update.
+  
+  response.headers.append('Cache-Control', 'no-cache, no-store');
+
   return {
-    status: 200,
-    body: {
-      skuId: params.skuId,
-      price: 123.45,
-      description: `Description for ${params.skuId}`,
-    },
-    headers: {
-      'Cache-Control': 'no-cache, no-store',
-    },
+    skuId: params.skuId,
+    price: 123.45,
+    description: `Description for ${params.skuId}`
   };
 };
 ```

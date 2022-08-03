@@ -1,10 +1,9 @@
-import { Resource, component$, Host, useStore } from '@builder.io/qwik';
+import { Resource, component$, Host } from '@builder.io/qwik';
 import { useEndpoint, useLocation, EndpointHandler, DocumentHead } from '@builder.io/qwik-city';
 import os from 'os';
 
 export default component$(() => {
-  const { params, pathname } = useLocation();
-  const store = useStore({ productFetchData: '' });
+  const { params } = useLocation();
 
   const resource = useEndpoint<typeof onGet>();
 
@@ -30,23 +29,6 @@ export default component$(() => {
 
       <p>(Artificial response delay of 250ms)</p>
 
-      <p>
-        <button
-          onClick$={async () => {
-            const rsp = await fetch(pathname, {
-              headers: { accept: 'application/json' },
-            });
-            store.productFetchData = JSON.stringify(await rsp.json(), null, 2);
-          }}
-        >
-          fetch("{pathname}") data
-        </button>
-      </p>
-
-      <pre>
-        <code>{store.productFetchData}</code>
-      </pre>
-
       <hr />
 
       <ul>
@@ -67,13 +49,7 @@ export default component$(() => {
   );
 });
 
-export const head: DocumentHead<ProductData | null> = ({ data }) => {
-  if (!data) {
-    return {
-      title: 'Product Not Found',
-    };
-  }
-
+export const head: DocumentHead<ProductData> = ({ data }) => {
   return {
     title: `Product ${data.productId}, ${data.price}`,
   };
@@ -85,35 +61,49 @@ export const onGet: EndpointHandler<EndpointData> = async ({ params, response })
   // On the client, this same data can be requested with fetch() at the same URL, but also
   // requires the "accept: application/json" request header.
 
-  // artificial slow response
-  await new Promise<void>((resolve) => setTimeout(resolve, 250));
-
   if (params.id === 'shirt') {
     // Redirect, which will skip any rendering and the server will immediately redirect
     response.redirect('/products/tshirt');
     return;
   }
 
-  const productPrice = PRODUCT_DB[params.id];
+  // artificial database call and slow response
+  const productData = await loadProduct(params.id);
 
-  if (!productPrice) {
+  if (!productData) {
     // Product data not found
     // but the data is still given to the renderer to decide what to do
     response.status = 404;
-    return null;
+    return;
   }
 
   // Found the product data
   // This same data is passed to the head() function
   // and in the component$() it can be access with useEndpoint()
   response.headers.set('Cache-Control', 'no-cache, no-store, no-fun');
-  return {
-    productId: params.id,
-    price: productPrice,
-    description: `Node ${process.versions.node} ${os.platform()} ${os.arch()} ${
-      os.cpus()[0].model
-    }`,
-  };
+  return productData;
+};
+
+// our pretty awesome function to load product data
+const loadProduct = (productId: string) => {
+  return new Promise<ProductData | null>((resolve) =>
+    setTimeout(() => {
+      const productPrice = PRODUCT_DB[productId];
+      if (!productPrice) {
+        return null;
+      }
+
+      const productData: ProductData = {
+        productId,
+        price: productPrice,
+        description: `Node ${process.versions.node} ${os.platform()} ${os.arch()} ${
+          os.cpus()[0].model
+        }`,
+      };
+
+      return productData;
+    }, 250)
+  );
 };
 
 // Our pretty awesome database of prices
@@ -123,7 +113,7 @@ const PRODUCT_DB: Record<string, string> = {
   tshirt: '$18.96',
 };
 
-type EndpointData = ProductData | null;
+type EndpointData = ProductData;
 
 interface ProductData {
   productId: string;

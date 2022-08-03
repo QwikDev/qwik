@@ -10,17 +10,15 @@ export default component$(() => {
 
   return (
     <Host>
+      <h1>Product: {params.id}</h1>
+
       <Resource
         resource={resource}
         onPending={() => <p>Loading</p>}
+        onRejected={(e) => <p>{e}</p>}
         onResolved={(product) => {
-          if (product == null) {
-            return <h1>Product "{params.id}" not found</h1>;
-          }
-
           return (
             <>
-              <h1>Product: {product.productId}</h1>
               <p>Price: {product.price}</p>
               <p>{product.description}</p>
             </>
@@ -28,7 +26,7 @@ export default component$(() => {
         }}
       />
 
-      <p>(Artificial response delay of 250ms)</p>
+      <p>(Artificial response delay of 200ms)</p>
 
       <p>
         <button
@@ -73,15 +71,9 @@ export default component$(() => {
   );
 });
 
-export const head: DocumentHead<ProductData | null> = ({ data }) => {
-  if (!data) {
-    return {
-      title: 'Product Not Found',
-    };
-  }
-
+export const head: DocumentHead<ProductData | null> = ({ params }) => {
   return {
-    title: `Product ${data.productId}, ${data.price}`,
+    title: `Product ${params.id}`,
   };
 };
 
@@ -96,11 +88,7 @@ export const onGet: EndpointHandler<EndpointData> = async ({ params, response })
     return response.redirect('/products/tshirt');
   }
 
-  // artificial slow response
-  await new Promise<void>((resolve) => setTimeout(resolve, 200));
-
   const productPrice = PRODUCT_DB[params.id];
-
   if (!productPrice) {
     // Product data not found
     // but the data is still given to the renderer to decide what to do
@@ -109,15 +97,20 @@ export const onGet: EndpointHandler<EndpointData> = async ({ params, response })
   }
 
   response.headers.set('Cache-Control', 'no-cache, no-store, no-fun');
-  return {
-    // Found the product data
-    // This same data is passed to the head() function
-    // and in the component$() it can be access with useEndpoint()
-    productId: params.id,
-    price: productPrice,
-    description: `Node ${process.versions.node} ${os.platform()} ${os.arch()} ${
-      os.cpus()[0].model
-    }`,
+
+  return async () => {
+    await new Promise<void>((resolve) => setTimeout(resolve, 200));
+
+    return {
+      // Found the product data
+      // This same data is passed to the head() function
+      // and in the component$() it can be access with useEndpoint()
+      productId: params.id,
+      price: productPrice,
+      description: `Node ${process.versions.node} ${os.platform()} ${os.arch()} ${
+        os.cpus()[0].model
+      }`,
+    };
   };
 };
 
@@ -128,7 +121,7 @@ const PRODUCT_DB: Record<string, string> = {
   tshirt: '$18.96',
 };
 
-type EndpointData = ProductData | null;
+type EndpointData = ProductData;
 
 interface ProductData {
   productId: string;

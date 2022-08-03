@@ -1,5 +1,5 @@
 import { component$, Host, useContextProvider, useStore } from '@builder.io/qwik';
-import { Content } from '@builder.io/qwik-city';
+import { RouterOutlet } from '@builder.io/qwik-city';
 import { GlobalStore, SiteStore } from '../../context';
 
 export const Body = component$(
@@ -17,7 +17,7 @@ export const Body = component$(
           'menu-open': store.sideMenuOpen,
         }}
       >
-        <Content />
+        <RouterOutlet />
       </Host>
     );
   },

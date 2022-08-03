@@ -9,9 +9,6 @@ import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { ResourceReturn } from '@builder.io/qwik';
 
 // @public (undocumented)
-export const Content: Component<    {}>;
-
-// @public (undocumented)
 export interface ContentHeading {
     // (undocumented)
     id: string;
@@ -170,6 +167,9 @@ export interface RouteLocation {
     // (undocumented)
     readonly query: Record<string, string>;
 }
+
+// @public (undocumented)
+export const RouterOutlet: Component<    {}>;
 
 // Warning: (ae-forgotten-export) The symbol "ContentState" needs to be exported by the entry point index.d.ts
 //

@@ -7,7 +7,7 @@ import type { StreamWriter } from '../../../server/types';
 import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../import/qrl';
 import { $ } from '../../import/qrl.public';
-import { createContext, useContextProvider } from '../../use/use-context';
+import { createContext, useContext, useContextProvider } from '../../use/use-context';
 import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { Ref, useRef, useStore } from '../../use/use-store.public';
@@ -481,12 +481,45 @@ renderSSRSuite('nested slots', async () => {
   );
 });
 
+renderSSRSuite('mixes slots', async () => {
+  await testSSR(
+    <html>
+      <MixedSlot>
+        Content
+      </MixedSlot>
+    </html>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr">
+      <div q:key="sX:" q:id="0">
+        <div q:key="sX:" id="1" q:id="1">
+          Before 1
+          <q:slot q:sname q:key q:sref="1">
+            <q:slot q:sname q:key q:sref="0">
+              Content
+            </q:slot>
+          </q:slot>
+          After 1
+        </div>
+      </div>
+    </html>`
+  );
+});
+
 renderSSRSuite('component useContextProvider()', async () => {
   await testSSR(
     <html>
-      <Context />
+      <Context>
+        <ContextConsumer host:class='projected' />
+      </Context>
     </html>,
-    `<html q:container="paused" q:version="dev" q:render="ssr"><div q:key="sX:" q:id="0" q:ctx="internal qwikcity"></div></html>`
+    `<html q:container="paused" q:version="dev" q:render="ssr">
+      <div q:key="sX:" q:id="0" q:ctx="internal qwikcity">
+        <q:slot q:sname q:key q:sref="0">
+          <div class="projected" q:key="sX:" q:id="1">hello bye</div>
+        </q:slot>
+        <div q:key="sX:" q:id="2">hello bye</div>
+      </div>
+    </html>`
   );
 });
 
@@ -670,6 +703,14 @@ export const SimpleSlot = component$((props: { name: string }) => {
   );
 });
 
+export const MixedSlot = component$(() => {
+  return (
+    <SimpleSlot name='1'>
+      <Slot/>
+    </SimpleSlot>
+  )
+})
+
 export const NamedSlot = component$(() => {
   return (
     <Host>
@@ -705,14 +746,34 @@ export const Styles = component$(() => {
   return <Host class="host">Text</Host>;
 });
 
-const CTX_INTERNAL = createContext<{}>('internal');
-const CTX_QWIK_CITY = createContext<{}>('qwikcity');
+const CTX_INTERNAL = createContext<{value: string}>('internal');
+const CTX_QWIK_CITY = createContext<{value: string}>('qwikcity');
 
 export const Context = component$(() => {
-  useContextProvider(CTX_INTERNAL, {});
-  useContextProvider(CTX_QWIK_CITY, {});
-  return <Host></Host>;
+  useContextProvider(CTX_INTERNAL, {
+    value: 'hello'
+  });
+  useContextProvider(CTX_QWIK_CITY, {
+    value: 'bye'
+  });
+  return (
+    <Host>
+      <Slot/>
+      <ContextConsumer />
+    </Host>
+  );
 });
+
+export const ContextConsumer = component$(() => {
+  const internal = useContext(CTX_INTERNAL);
+  const qwikCity = useContext(CTX_QWIK_CITY);
+
+  return (
+    <Host>
+      {internal.value} {qwikCity.value}
+    </Host>
+  )
+})
 
 export const UseClientEffect = component$(() => {
   useClientEffect$(() => {

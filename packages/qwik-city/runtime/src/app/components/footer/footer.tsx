@@ -1,4 +1,5 @@
 import { component$, Host, useStyles$ } from '@builder.io/qwik';
+import { Link } from '@builder.io/qwik-city';
 import styles from './footer.css?inline';
 
 export default component$(
@@ -21,9 +22,10 @@ export default component$(
             <a href="/sign-in">Sign In</a>
           </li>
           <li>
-            <a href="/mit" data-test-link="mit">
+            <Link href="/mit" target="_self" data-test-link="mit">
+              {/* Should not use include preventdefault:client */}
               MIT
-            </a>
+            </Link>
           </li>
           <li>
             <a class="footer-home" href="/">

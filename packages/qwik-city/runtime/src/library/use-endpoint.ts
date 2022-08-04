@@ -1,5 +1,5 @@
 import { useResource$ } from '@builder.io/qwik';
-import { useLocation, useQwikCityContext } from './use-functions';
+import { useLocation, useQwikCityEnv } from './use-functions';
 import { isServer } from '@builder.io/qwik/build';
 import type { EndpointHandler } from './types';
 
@@ -10,15 +10,16 @@ type GetEndpointData<T> = T extends EndpointHandler<infer U> ? U : T;
  */
 export const useEndpoint = <T = unknown>() => {
   const loc = useLocation();
-  const ctx = useQwikCityContext();
+  const env = useQwikCityEnv();
+
   return useResource$<GetEndpointData<T>>(async ({ track, cleanup }) => {
     const pathname = track(loc, 'pathname');
 
     if (isServer) {
-      if (!ctx) {
+      if (!env) {
         throw new Error('Endpoint response body is missing');
       }
-      return ctx.response.body;
+      return env.response.body;
     } else {
       // fetch() for new data when the pathname has changed
       const controller = typeof AbortController === 'function' ? new AbortController() : undefined;

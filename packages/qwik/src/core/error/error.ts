@@ -29,6 +29,7 @@ export const QError_strictHTMLChildren = 24;
 export const QError_invalidJsxNodeType = 25;
 export const QError_trackUseStore = 26;
 export const QError_missingObjectId = 27;
+export const QError_invalidContext = 28;
 
 export const qError = (code: number, ...parts: any[]): Error => {
   const text = codeToText(code);
@@ -58,14 +59,15 @@ export const codeToText = (code: number): string => {
       'props are inmutable', // 17
       '<Host> component can only be used at the root of a Qwik component$()', // 18
       'Props are immutable by default.', // 19
-      'use- method must be called only at the root level of a component$()',
-      'Container is already paused. Skipping',
-      'Components using useServerMount() can only be mounted in the server, if you need your component to be mounted in the client, use "useMount$()" instead',
-      'When rendering directly on top of Document, the root node must be a <html>',
-      'A <html> node must have 2 children. The first one <head> and the second one a <body>',
-      'Invalid JSXNode type. It must be either a function or a string. Found:',
-      'Tracking value changes can only be done to useStore() objects and component props',
-      'Missing Object ID for captured object',
+      'use- method must be called only at the root level of a component$()', // 20
+      'Container is already paused. Skipping', // 21
+      'Components using useServerMount() can only be mounted in the server, if you need your component to be mounted in the client, use "useMount$()" instead', // 22
+      'When rendering directly on top of Document, the root node must be a <html>', // 23
+      'A <html> node must have 2 children. The first one <head> and the second one a <body>', // 24
+      'Invalid JSXNode type. It must be either a function or a string. Found:', // 25
+      'Tracking value changes can only be done to useStore() objects and component props', // 26
+      'Missing Object ID for captured object', // 27
+      'The provided Context reference is not a valid context created by createContext()', // 27
     ];
     return `Code(${code}): ${MAP[code] ?? ''}`;
   } else {

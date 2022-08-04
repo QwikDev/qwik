@@ -208,6 +208,8 @@ export type PropFunction<T extends Function> = T extends (...args: infer ARGS) =
  *
  * ```tsx
  * import { importedFn } from './import/example';
+ * import { createContext, useContext, useContextProvider } from './use/use-context';
+ * import { useRef } from './use/use-ref';
  *
  * export const greet = () => console.log('greet');
  * function topLevelFn() {}

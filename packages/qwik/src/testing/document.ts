@@ -6,7 +6,9 @@ import { normalizeUrl } from './util';
 /**
  * Create emulated `Document` for server environment. Does not implement the full browser
  * `document` and `window` API. This api may be removed in the future.
- * @internal
+ *
+ * @alpha
+ *
  */
 export function createDocument(opts?: MockDocumentOptions) {
   const doc = qwikDom.createDocument(opts?.html);
@@ -17,6 +19,9 @@ export function createDocument(opts?: MockDocumentOptions) {
 
 /**
  * Create emulated `window` useful for testing.
+ *
+ * @alpha
+ *
  */
 export function createWindow(opts: MockDocumentOptions = {}): MockWindow {
   const win = createDocument(opts).defaultView!;

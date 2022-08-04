@@ -15,7 +15,7 @@ import { assertQrl } from '../import/qrl-class';
  * NOTE: `useLexicalScope` method can only be used in the synchronous portion of the callback
  * (before any `await` statements.)
  *
- * @public
+ * @internal
  */
 // </docs>
 export const useLexicalScope = <VARS extends any[]>(): VARS => {

@@ -94,9 +94,7 @@ export const Header_component_1_uWM1kg0IGO0 = ()=><Footer >
 
         </Footer>
 ;
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {

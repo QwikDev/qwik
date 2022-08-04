@@ -2,8 +2,7 @@ import { assertEqual } from '../assert/assert';
 import { getProxyTarget } from '../object/q-object';
 import { getPlatform } from '../platform/platform';
 import type { CorePlatform } from '../platform/types';
-import type { Subscriber } from '../use/use-subscriber';
-import type { SubscriberDescriptor } from '../use/use-watch';
+import type { Subscriber, SubscriberDescriptor } from '../use/use-watch';
 import { notifyChange } from './dom/notify-render';
 import type { RenderContext } from './types';
 

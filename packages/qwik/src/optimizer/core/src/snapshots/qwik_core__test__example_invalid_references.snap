@@ -65,9 +65,7 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const App_component_1_w0t0o3QMovU = ()=>{
     return /*#__PURE__*/ _jsx(I10, {});
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {

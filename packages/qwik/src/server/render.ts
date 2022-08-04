@@ -1,5 +1,5 @@
 import { createTimer, getBuildBase } from './utils';
-import { JSXNode, renderSSR, Fragment, jsx, pauseFromContexts } from '@builder.io/qwik';
+import { JSXNode, renderSSR, Fragment, jsx, _pauseFromContexts } from '@builder.io/qwik';
 import type { SnapshotResult } from '@builder.io/qwik';
 import { getSymbolHash, setServerPlatform } from './platform';
 import type {
@@ -8,8 +8,8 @@ import type {
   RenderToStreamResult,
   RenderToStringOptions,
   RenderToStringResult,
-  StreamWriter,
   PrefetchResource,
+  StreamWriter,
 } from './types';
 import { getQwikLoaderScript } from './scripts';
 import { applyPrefetchImplementation } from './prefetch-implementation';
@@ -23,7 +23,9 @@ const DOCTYPE = '<!DOCTYPE html>';
 /**
  * Creates a server-side `document`, renders to root node to the document,
  * then serializes the document to a string.
- * @public
+ *
+ * @alpha
+ *
  */
 export async function renderToStream(
   rootNode: any,
@@ -112,7 +114,7 @@ export async function renderToStream(
     base: buildBase,
     beforeContent,
     beforeClose: async (contexts, containerState) => {
-      snapshotResult = await pauseFromContexts(contexts, containerState);
+      snapshotResult = await _pauseFromContexts(contexts, containerState);
       prefetchResources = getPrefetchResources(snapshotResult, opts, mapper);
       const children: (JSXNode | null)[] = [
         jsx('script', {
@@ -172,7 +174,9 @@ export async function renderToStream(
 /**
  * Creates a server-side `document`, renders to root node to the document,
  * then serializes the document to a string.
- * @public
+ *
+ * @alpha
+ *
  */
 export async function renderToString(
   rootNode: any,

@@ -1,13 +1,14 @@
-import { useSequentialScope } from './use-store.public';
 import { fromCamelToKebabCase } from '../util/case';
 import { getContext } from '../props/props';
-import { qError, QError_notFoundContext } from '../error/error';
+import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
 import { verifySerializable } from '../object/q-object';
 import { qDev } from '../util/qdev';
+import { isObject } from '../util/types';
+import { useSequentialScope } from './use-sequential-scope';
 
-// <docs markdown="./use-context.docs.md#Context">
+// <docs markdown="../readme.md#Context">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ./use-context.docs.md#Context instead)
+// (edit ../readme.md#Context instead)
 /**
  * Context is a typesafe ID for your context.
  *
@@ -54,7 +55,7 @@ import { qDev } from '../util/qdev';
  * });
  *
  * ```
- * @alpha
+ * @public
  */
 // </docs>
 export interface Context<STATE extends object> {
@@ -68,9 +69,9 @@ export interface Context<STATE extends object> {
   readonly id: string;
 }
 
-// <docs markdown="./use-context.docs.md#createContext">
+// <docs markdown="../readme.md#createContext">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ./use-context.docs.md#createContext instead)
+// (edit ../readme.md#createContext instead)
 /**
  * Create a context ID to be used in your application.
  *
@@ -118,7 +119,7 @@ export interface Context<STATE extends object> {
  *
  * ```
  * @param name - The name of the context.
- * @alpha
+ * @public
  */
 // </docs>
 export const createContext = <STATE extends object>(name: string): Context<STATE> => {
@@ -127,9 +128,9 @@ export const createContext = <STATE extends object>(name: string): Context<STATE
   } as any);
 };
 
-// <docs markdown="./use-context.docs.md#useContextProvider">
+// <docs markdown="../readme.md#useContextProvider">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ./use-context.docs.md#useContextProvider instead)
+// (edit ../readme.md#useContextProvider instead)
 /**
  * Assign a value to a Context.
  *
@@ -177,7 +178,7 @@ export const createContext = <STATE extends object>(name: string): Context<STATE
  * ```
  * @param context - The context to assign a value to.
  * @param value - The value to assign to the context.
- * @alpha
+ * @public
  */
 // </docs>
 export const useContextProvider = <STATE extends object>(
@@ -187,6 +188,9 @@ export const useContextProvider = <STATE extends object>(
   const { get, set, ctx } = useSequentialScope<boolean>();
   if (get) {
     return;
+  }
+  if (qDev) {
+    validateContext(context);
   }
   const hostElement = ctx.$hostElement$!;
   const hostCtx = getContext(hostElement);
@@ -201,9 +205,9 @@ export const useContextProvider = <STATE extends object>(
   set(true);
 };
 
-// <docs markdown="./use-context.docs.md#useContext">
+// <docs markdown="../readme.md#useContext">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ./use-context.docs.md#useContext instead)
+// (edit ../readme.md#useContext instead)
 /**
  * Retrive Context value.
  *
@@ -247,13 +251,16 @@ export const useContextProvider = <STATE extends object>(
  *
  * ```
  * @param context - The context to retrieve a value from.
- * @alpha
+ * @public
  */
 // </docs>
 export const useContext = <STATE extends object>(context: Context<STATE>): STATE => {
   const { get, set, ctx } = useSequentialScope<STATE>();
   if (get) {
     return get;
+  }
+  if (qDev) {
+    validateContext(context);
   }
   let hostElement = ctx.$hostElement$;
   const contexts = ctx.$renderCtx$.$localStack$;
@@ -279,6 +286,12 @@ export const useContext = <STATE extends object>(context: Context<STATE>): STATE
     }
   }
   throw qError(QError_notFoundContext, context.id);
+};
+
+export const validateContext = (context: Context<any>) => {
+  if (!isObject(context) || typeof context.id !== 'string' || context.id.length === 0) {
+    throw qError(QError_invalidContext, context);
+  }
 };
 
 export const serializeInlineContexts = (contexts: Map<string, any>) => {

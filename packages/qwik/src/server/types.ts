@@ -1,17 +1,8 @@
-import type { SnapshotResult } from '../core/object/store';
-import type { QwikManifest, QwikBundle, QwikSymbol, GlobalInjections } from '../optimizer/src';
-import type { SymbolMapperFn } from '../optimizer/src/types';
+import type { SnapshotResult, StreamWriter } from '@builder.io/qwik';
+import type { QwikManifest, SymbolMapperFn, SymbolMapper } from '@builder.io/qwik/optimizer';
 
 /**
- * Partial Document used by Qwik Framework.
- *
- * A set of properties which the Qwik Framework expects to find on document.
- * @public
- */
-export interface QwikDocument extends Document {}
-
-/**
- * @public
+ * @alpha
  */
 export interface SerializeDocumentOptions {
   manifest?: QwikManifest;
@@ -56,22 +47,20 @@ export interface PrefetchResource {
   imports: PrefetchResource[];
 }
 
-export { QwikManifest, QwikBundle, QwikSymbol, GlobalInjections };
-
 /**
- * @public
+ * @alpha
  */
 export interface RenderToStreamResult extends RenderResult {}
 
 /**
- * @public
+ * @alpha
  */
 export interface RenderToStringResult extends RenderResult {
   html: string;
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface RenderResult {
   prefetchResources: PrefetchResource[];
@@ -84,10 +73,8 @@ export interface RenderResult {
   };
 }
 
-export { SnapshotResult };
-
 /**
- * @public
+ * @alpha
  */
 export interface QwikLoaderOptions {
   events?: string[];
@@ -96,7 +83,7 @@ export interface QwikLoaderOptions {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface RenderOptions extends SerializeDocumentOptions {
   /**
@@ -127,26 +114,38 @@ export interface RenderOptions extends SerializeDocumentOptions {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface RenderToStringOptions extends RenderOptions {}
 
+/**
+ * @alpha
+ */
 export interface InOrderAuto {
   strategy: 'auto';
 }
 
+/**
+ * @alpha
+ */
 export interface InOrderDisabled {
   strategy: 'disabled';
 }
 
+/**
+ * @alpha
+ */
 export type InOrderStreaming = InOrderAuto | InOrderDisabled;
 
+/**
+ * @alpha
+ */
 export interface StreamingOptions {
   inOrder?: InOrderStreaming;
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface RenderToStreamOptions extends RenderOptions {
   stream: StreamWriter;
@@ -154,27 +153,18 @@ export interface RenderToStreamOptions extends RenderOptions {
 }
 
 /**
- * @public
- */
-export type StreamWriter = {
-  write: (chunk: any) => void | boolean | Promise<void> | Promise<boolean>;
-};
-
-/**
- * @public
+ * @alpha
  */
 export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
 
 /**
- * @public
+ * @alpha
  */
 export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
 
 /**
- * @public
+ * @alpha
  */
 export type Render = RenderToString | RenderToStream;
 
-export interface RenderDocumentEnvData {
-  _qwikEnvData?: Record<string, any>;
-}
+export { SnapshotResult, SymbolMapper, QwikManifest, StreamWriter };

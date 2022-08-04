@@ -5,9 +5,9 @@ import type {
   QwikManifest,
   RenderToStringOptions,
   SnapshotResult,
+  SymbolMapper,
 } from './types';
 
-import type { SymbolMapper } from '../optimizer/src/types';
 import type { QRLInternal } from '../core/import/qrl-class';
 
 export function getPrefetchResources(

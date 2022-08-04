@@ -123,9 +123,7 @@ export const qwikifyQrl_component_useWatch_x04JC5xeP1U = async (track)=>{
         }
     }
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {

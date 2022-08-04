@@ -16,7 +16,12 @@ import {
   mutable,
   shouldSerialize,
 } from './q-object';
-import { destroyWatch, SubscriberDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
+import {
+  destroyWatch,
+  Subscriber,
+  SubscriberDescriptor,
+  WatchFlagsIsDirty,
+} from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
 import { emitEvent } from '../util/event';
 import {
@@ -28,7 +33,6 @@ import {
 import { isArray, isObject, isSerializableObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
-import type { Subscriber } from '../use/use-subscriber';
 import { isResourceReturn } from '../use/use-resource';
 import { createParser, Parser, serializeValue } from './serializers';
 import { ContainerState, getContainerState } from '../render/container';
@@ -168,7 +172,7 @@ export const resumeContainer = (containerEl: Element) => {
 };
 
 /**
- * @public
+ * @alpha
  */
 export interface SnapshotMetaValue {
   r?: string; // q:obj
@@ -178,10 +182,13 @@ export interface SnapshotMetaValue {
   c?: string; // q:context
 }
 
+/**
+ * @alpha
+ */
 export type SnapshotMeta = Record<string, SnapshotMetaValue>;
 
 /**
- * @public
+ * @alpha
  */
 export interface SnapshotState {
   ctx: SnapshotMeta;
@@ -190,7 +197,7 @@ export interface SnapshotState {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface SnapshotListener {
   key: string;
@@ -199,7 +206,7 @@ export interface SnapshotListener {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface SnapshotResult {
   state: SnapshotState;
@@ -216,13 +223,13 @@ const hasContext = (el: Element) => {
 export const pauseFromContainer = async (containerEl: Element): Promise<SnapshotResult> => {
   const containerState = getContainerState(containerEl);
   const contexts = getNodesInScope(containerEl, hasContext).map(tryGetContext) as QContext[];
-  return pauseFromContexts(contexts, containerState);
+  return _pauseFromContexts(contexts, containerState);
 };
 
 /**
- * @alpha
+ * @internal
  */
-export const pauseFromContexts = async (
+export const _pauseFromContexts = async (
   elements: QContext[],
   containerState: ContainerState
 ): Promise<SnapshotResult> => {

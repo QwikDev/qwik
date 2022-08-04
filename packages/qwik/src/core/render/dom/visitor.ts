@@ -26,7 +26,6 @@ import {
 import { fromCamelToKebabCase } from '../../util/case';
 import type { OnRenderFn } from '../../component/component.public';
 import { CONTAINER, StyleAppend } from '../../use/use-core';
-import type { Ref } from '../../use/use-store.public';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { HOST_TYPE, SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
 import { assertQrl } from '../../import/qrl-class';
@@ -44,6 +43,7 @@ import {
   stringifyStyle,
 } from '../execute-component';
 import type { SubscriptionManager } from '../container';
+import type { Ref } from '../../use/use-ref';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 

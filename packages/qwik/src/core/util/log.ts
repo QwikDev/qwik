@@ -9,7 +9,7 @@ const STYLE = qDev
 export const logError = (message?: any, ...optionalParams: any[]) => {
   const err = message instanceof Error ? message : new Error(message);
   // eslint-disable-next-line no-console
-  console.error('%cQWIK ERROR', STYLE, err, ...printParams(optionalParams));
+  console.error('%cQWIK ERROR', STYLE, err.message, ...printParams(optionalParams), err.stack);
   return err;
 };
 

@@ -34,8 +34,6 @@ export interface Diagnostic {
 // @alpha (undocumented)
 export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 
-// Warning: (ae-forgotten-export) The symbol "InlineEntryStrategy" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
 export type EntryStrategy = InlineEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy | ManualEntryStrategy;
 
@@ -83,6 +81,12 @@ export interface HookAnalysis {
 export interface HookEntryStrategy {
     // (undocumented)
     type: 'hook';
+}
+
+// @alpha (undocumented)
+export interface InlineEntryStrategy {
+    // (undocumented)
+    type: 'inline';
 }
 
 // @alpha (undocumented)
@@ -176,6 +180,12 @@ export interface Path {
 }
 
 // @alpha (undocumented)
+export type QwikBuildMode = 'production' | 'development';
+
+// @alpha (undocumented)
+export type QwikBuildTarget = 'client' | 'ssr' | 'lib';
+
+// @alpha (undocumented)
 export interface QwikBundle {
     // (undocumented)
     dynamicImports?: string[];
@@ -225,7 +235,6 @@ export function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;
 
 // @alpha (undocumented)
 export interface QwikRollupPluginOptions {
-    // Warning: (ae-forgotten-export) The symbol "QwikBuildMode" needs to be exported by the entry point index.d.ts
     buildMode?: QwikBuildMode;
     debug?: boolean;
     entryStrategy?: EntryStrategy;
@@ -238,7 +247,6 @@ export interface QwikRollupPluginOptions {
     rootDir?: string;
     srcDir?: string;
     srcInputs?: TransformModuleInput[] | null;
-    // Warning: (ae-forgotten-export) The symbol "QwikBuildTarget" needs to be exported by the entry point index.d.ts
     target?: QwikBuildTarget;
     transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
 }
@@ -321,10 +329,14 @@ export interface SourceLocation {
 export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 
 // @alpha (undocumented)
+export type SymbolMapper = Record<string, [symbol: string, chunk: string]>;
+
+// @alpha (undocumented)
+export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined) => [symbol: string, chunk: string] | undefined;
+
+// @alpha (undocumented)
 export type SystemEnvironment = 'node' | 'deno' | 'webworker' | 'browsermain' | 'unknown';
 
-// Warning: (ae-forgotten-export) The symbol "TransformOptions" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
 export interface TransformFsOptions extends TransformOptions {
     // (undocumented)
@@ -357,6 +369,26 @@ export interface TransformModuleInput {
 export interface TransformModulesOptions extends TransformOptions {
     // (undocumented)
     input: TransformModuleInput[];
+}
+
+// @alpha (undocumented)
+export interface TransformOptions {
+    // (undocumented)
+    dev?: boolean;
+    // (undocumented)
+    entryStrategy?: EntryStrategy;
+    // (undocumented)
+    explicitExtensions?: boolean;
+    // (undocumented)
+    minify?: MinifyMode;
+    // (undocumented)
+    scope?: string;
+    // (undocumented)
+    sourceMaps?: boolean;
+    // (undocumented)
+    srcDir: string;
+    // (undocumented)
+    transpile?: boolean;
 }
 
 // @alpha (undocumented)

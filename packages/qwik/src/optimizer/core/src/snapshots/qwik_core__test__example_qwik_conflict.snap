@@ -97,9 +97,7 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
 ============================= root_component_usestyles_u5dkuxgrgnu.js (ENTRY POINT)==
 
 export const Root_component_useStyles_u5DkUxGrGnU = 'thing';
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {
@@ -156,9 +154,7 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const Root_component_1_cBpQNYDUHI4 = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {

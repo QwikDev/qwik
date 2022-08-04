@@ -1,12 +1,12 @@
 import { normalize } from 'path';
 import { pathToFileURL } from 'url';
-import { isPromise } from '../core/util/promises';
 
+/**
+ * @alpha
+ */
 export function toFileUrl(filePath: string) {
   return pathToFileURL(filePath).href;
 }
-
-export { isPromise };
 
 export function normalizePath(path: string) {
   path = normalize(path);

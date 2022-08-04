@@ -4,7 +4,7 @@ import { getContext } from '../props/props';
 import { addQRLListener } from '../props/props-on';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { useInvokeContext } from './use-core';
-import { useSequentialScope } from './use-store.public';
+import { useSequentialScope } from './use-sequential-scope';
 import { Watch, WatchFlagsIsCleanup } from './use-watch';
 
 // <docs markdown="../readme.md#useCleanup">

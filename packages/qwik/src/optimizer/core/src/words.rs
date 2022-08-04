@@ -6,7 +6,7 @@ pub const LONG_SUFFIX: &str = "Qrl";
 
 lazy_static! {
     pub static ref CHILDREN: JsWord = JsWord::from("children");
-    pub static ref HANDLE_WATCH: JsWord = JsWord::from("handleWatch");
+    pub static ref HANDLE_WATCH: JsWord = JsWord::from("_hW");
     pub static ref QRL: JsWord = JsWord::from("qrl");
     pub static ref INLINED_QRL: JsWord = JsWord::from("inlinedQrl");
     pub static ref QHOOK: JsWord = JsWord::from("$");

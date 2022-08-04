@@ -29,10 +29,15 @@ export type {
   TransformModulesOptions,
   TranspileOption,
   TransformOutput,
+  SymbolMapper,
+  SymbolMapperFn,
+  InlineEntryStrategy,
+  TransformOptions,
 } from './types';
 
 export type { QwikRollupPluginOptions } from './plugins/rollup';
 export type { QwikVitePluginOptions } from './plugins/vite';
+export type { QwikBuildMode, QwikBuildTarget } from './plugins/plugin';
 
 export { qwikRollup } from './plugins/rollup';
 export { qwikVite } from './plugins/vite';

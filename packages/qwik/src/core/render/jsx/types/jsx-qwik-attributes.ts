@@ -1,7 +1,7 @@
 /* eslint-disable */
 
-import type { Ref } from '../../../use/use-store.public';
 import type { QRL } from '../../../import/qrl.public';
+import type { Ref } from '../../../use/use-ref';
 import type { JSXNode } from './jsx-node';
 
 export type QwikEventMap = {

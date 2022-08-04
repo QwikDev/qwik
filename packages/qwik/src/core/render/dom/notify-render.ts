@@ -7,6 +7,7 @@ import { logError, logWarn } from '../../util/log';
 import { getContainer } from '../../use/use-core';
 import {
   runSubscriber,
+  Subscriber,
   SubscriberDescriptor,
   WatchFlagsIsDirty,
   WatchFlagsIsEffect,
@@ -17,7 +18,6 @@ import { then } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { codeToText, QError_errorWhileRendering } from '../../error/error';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
-import type { Subscriber } from '../../use/use-subscriber';
 import { isElement } from '../../util/element';
 import { renderComponent } from './render-dom';
 import type { RenderContext } from '../types';

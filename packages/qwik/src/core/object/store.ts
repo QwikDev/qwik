@@ -16,7 +16,7 @@ import {
   mutable,
   shouldSerialize,
 } from './q-object';
-import { destroyWatch, SubscriberDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
+import { destroyWatch, Subscriber, SubscriberDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
 import { emitEvent } from '../util/event';
 import {
@@ -28,7 +28,6 @@ import {
 import { isArray, isObject, isSerializableObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
-import type { Subscriber } from '../use/use-subscriber';
 import { isResourceReturn } from '../use/use-resource';
 import { createParser, Parser, serializeValue } from './serializers';
 import { ContainerState, getContainerState } from '../render/container';

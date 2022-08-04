@@ -1,10 +1,10 @@
 import { styleContent, styleKey } from '../component/qrl-styles';
 import type { QRL } from '../import/qrl.public';
-import { useSequentialScope } from './use-store.public';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { scopeStylesheet } from '../style/scoped-stylesheet';
 import { getContext } from '../props/props';
 import { hasStyle } from '../render/execute-component';
+import { useSequentialScope } from './use-sequential-scope';
 
 // <docs markdown="../readme.md#useStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -24,7 +24,7 @@ import { hasStyle } from '../render/execute-component';
  *   return <Host>Some text</Host>;
  * });
  * ```
- * *
+ *
  * @public
  */
 // </docs>
@@ -51,7 +51,6 @@ export const useStylesQrl = (styles: QRL<string>): void => {
  * });
  * ```
  *
- * *
  * @public
  */
 // </docs>

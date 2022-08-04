@@ -11,13 +11,13 @@ import { tryGetInvokeContext } from '../use/use-core';
 import { isDocument, isElement, isNode } from '../util/element';
 import { logWarn } from '../util/log';
 import { qDev } from '../util/qdev';
-import type { Subscriber } from '../use/use-subscriber';
 import { tryGetContext } from '../props/props';
 import { RenderEvent } from '../util/markers';
 import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
 import { isPromise } from '../util/promises';
 import { canSerialize } from './serializers';
 import type { ContainerState, LocalSubscriptionManager } from '../render/container';
+import type { Subscriber } from '../use/use-watch';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 

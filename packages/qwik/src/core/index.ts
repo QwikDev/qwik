@@ -79,13 +79,14 @@ export { handleWatch } from './render/dom/notify-render';
 export { useHostElement } from './use/use-host-element.public';
 export { useDocument } from './use/use-document.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
-export { useStore, useRef } from './use/use-store.public';
+export { useStore } from './use/use-store.public';
+export { useRef } from './use/use-ref';
 export { useContext, useContextProvider, createContext } from './use/use-context';
 export { useEnvData, useUserContext } from './use/use-env-data';
 export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
 export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
 export type { Context } from './use/use-context';
-export type { Ref } from './use/use-store.public';
+export type { Ref } from './use/use-ref';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

@@ -12,7 +12,7 @@ import { $, QRL } from './import/qrl.public';
 import { Host } from './render/jsx/host.public';
 import { useHostElement } from './use/use-host-element.public';
 import { useCleanup$, useOn, useOnDocument, useOnWindow } from './use/use-on';
-import { useRef, useStore } from './use/use-store.public';
+import { useStore } from './use/use-store.public';
 import { useStyles$ } from './use/use-styles';
 import { useClientEffect$, useMount$, useServerMount$, useWatch$ } from './use/use-watch';
 import { implicit$FirstArg } from './util/implicit_dollar';
@@ -378,6 +378,44 @@ export const CmpInline = component$(() => {
   return Cmp;
 };
 
+//
+// <docs anchor="context">
+// Declare the Context type.
+interface TodosStore {
+  items: string[];
+}
+// Create a Context ID (no data is saved here.)
+// You will use this ID to both create and retrieve the Context.
+export const TodosContext = createContext<TodosStore>('Todos');
+
+// Example of providing context to child components.
+export const App = component$(() => {
+  useContextProvider(
+    TodosContext,
+    useStore<TodosStore>({
+      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],
+    })
+  );
+
+  return <Items />;
+});
+
+// Example of retrieving the context provided by a parent component.
+export const Items = component$(() => {
+  const todos = useContext(TodosContext);
+  return (
+    <ul>
+      {todos.items.map((item) => (
+        <li>{item}</li>
+      ))}
+    </ul>
+  );
+});
+
+// </docs>
+//
+
+
 // <docs anchor="qrl-usage-$">
 useOnDocument(
   'mousemove',
@@ -421,6 +459,8 @@ function doExtraStuff() {
 
 // <docs anchor="qrl-capturing-rules">
 import { importedFn } from './import/example';
+import { createContext, useContext, useContextProvider } from './use/use-context';
+import { useRef } from './use/use-ref';
 
 export const greet = () => console.log('greet');
 function topLevelFn() {}

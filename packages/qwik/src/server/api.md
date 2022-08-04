@@ -34,8 +34,8 @@ export interface InOrderDisabled {
 // @alpha (undocumented)
 export type InOrderStreaming = InOrderAuto | InOrderDisabled;
 
-// @alpha (undocumented)
-export type PrefetchImplementation = 'link-prefetch-html' | 'link-prefetch' | 'link-preload-html' | 'link-preload' | 'link-modulepreload-html' | 'link-modulepreload' | 'worker-fetch' | 'none';
+// @alpha
+export type PrefetchImplementation = 'link-prefetch-html' | 'link-prefetch-html-worker' | 'link-prefetch' | 'link-preload-html' | 'link-preload-html-worker' | 'link-preload' | 'link-modulepreload-html' | 'link-modulepreload-html-worker' | 'link-modulepreload' | 'worker-fetch' | 'none';
 
 // @alpha (undocumented)
 export interface PrefetchResource {

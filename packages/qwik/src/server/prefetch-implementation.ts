@@ -2,40 +2,74 @@ import { Fragment, jsx, JSXNode } from '@builder.io/qwik';
 import { flattenPrefetchResources, workerFetchScript } from './prefetch-utils';
 import type { PrefetchImplementation, PrefetchResource, RenderToStringOptions } from './types';
 
+const DEFAULT_PREFETCH_IMPLEMENTATION: PrefetchImplementation = 'link-prefetch-html-worker';
+
 export function applyPrefetchImplementation(
   opts: RenderToStringOptions,
   prefetchResources: PrefetchResource[]
 ): JSXNode | null {
-  const prefetchStrategy = opts.prefetchStrategy;
+  const { prefetchStrategy } = opts;
+
+  // skip prefetch implementation if prefetchStrategy === null
+  // if prefetchStrategy is undefined, use defaults
   if (prefetchStrategy !== null) {
-    const prefetchImpl = prefetchStrategy?.implementation || 'worker-fetch';
+    // set default if implementation wasn't provided
+    const prefetchImpl = prefetchStrategy?.implementation || DEFAULT_PREFETCH_IMPLEMENTATION;
 
     if (
       prefetchImpl === 'link-prefetch-html' ||
       prefetchImpl === 'link-preload-html' ||
       prefetchImpl === 'link-modulepreload-html'
     ) {
-      return linkHtmlImplementation(prefetchResources, prefetchImpl);
-    } else if (
+      // HTML <link> only
+      // No JS worker runtime
+      return linkHtmlImplementation(prefetchResources, prefetchImpl, false);
+    }
+
+    if (
+      prefetchImpl === 'link-prefetch-html-worker' ||
+      prefetchImpl === 'link-preload-html-worker' ||
+      prefetchImpl === 'link-modulepreload-html-worker'
+    ) {
+      // HTML <link>
+      // JS worker fetch
+      return linkHtmlImplementation(prefetchResources, prefetchImpl, true);
+    }
+
+    if (
       prefetchImpl === 'link-prefetch' ||
       prefetchImpl === 'link-preload' ||
       prefetchImpl === 'link-modulepreload'
     ) {
+      // JS runtime added <link>
+      // Only add JS worker fetch if <link> isn't supported
       return linkJsImplementation(prefetchResources, prefetchImpl);
-    } else if (prefetchImpl === 'worker-fetch') {
+    }
+
+    if (prefetchImpl === 'worker-fetch') {
+      // JS runtime worker fetch only
+      // No <link>
       return workerFetchImplementation(prefetchResources);
     }
   }
+
+  // do not add a prefech implementation
   return null;
 }
 
+/**
+ * Creates the `<link>` within the rendered html.
+ * Optionally add the JS worker fetch
+ */
 function linkHtmlImplementation(
   prefetchResources: PrefetchResource[],
-  prefetchImpl: PrefetchImplementation
+  prefetchImpl: PrefetchImplementation,
+  includeWorkerFetch: boolean
 ) {
   const urls = flattenPrefetchResources(prefetchResources);
 
-  const links: JSXNode[] = [];
+  const children: JSXNode[] = [];
+
   for (const url of urls) {
     const attributes: Record<string, string> = {};
     attributes['href'] = url;
@@ -53,11 +87,21 @@ function linkHtmlImplementation(
       }
     }
 
-    links.push(jsx('link', attributes, undefined));
+    children.push(jsx('link', attributes, undefined));
   }
-  return jsx(Fragment, { children: links });
+
+  if (includeWorkerFetch) {
+    children.push(workerFetchImplementation(prefetchResources));
+  }
+
+  return jsx(Fragment, { children: children });
 }
 
+/**
+ * Uses JS to add the `<link>` elements at runtime, and if the
+ * link prefetching isn't supported, it'll also add the
+ * web worker fetch.
+ */
 function linkJsImplementation(
   prefetchResources: PrefetchResource[],
   prefetchImpl: PrefetchImplementation

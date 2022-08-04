@@ -20,14 +20,39 @@ export interface PrefetchStrategy {
 }
 
 /**
+ * `link-prefetch-html`: Render link rel=prefetch within the html
+ *
+ * `link-prefetch-html-worker`: Render link rel=prefetch within the html, and add worker-fetch JS
+ *
+ * `link-prefetch-prefetch`: Use JS to add link rel=prefetch, add worker-fetch if not supported
+ *
+ * `link-preload-html`: Render link rel=preload within the html
+ *
+ * `link-preload-html-worker`: Render link rel=preload within the html, and add worker-fetch JS
+ *
+ * `link-preload-prefetch`: Use JS to add link rel=preload, add worker-fetch if not supported
+ *
+ * `link-modulepreload-html`: Render link rel=modulepreload within the html
+ *
+ * `link-modulepreload-html-worker`: Render link rel=modulepreload within the html, and add worker-fetch JS
+ *
+ * `link-modulepreload-prefetch`: Use JS to add link rel=modulepreload, add worker-fetch if not supported
+ *
+ * `worker-fetch`: Add worker-fetch JS
+ *
+ * `none`: Do not add any prefetch links
+ *
  * @alpha
  */
 export type PrefetchImplementation =
   | 'link-prefetch-html'
+  | 'link-prefetch-html-worker'
   | 'link-prefetch'
   | 'link-preload-html'
+  | 'link-preload-html-worker'
   | 'link-preload'
   | 'link-modulepreload-html'
+  | 'link-modulepreload-html-worker'
   | 'link-modulepreload'
   | 'worker-fetch'
   | 'none';

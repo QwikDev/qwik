@@ -100,6 +100,8 @@ export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
 export { useServerMount$, useServerMountQrl } from './use/use-watch';
 export { useMount$, useMountQrl } from './use/use-watch';
 
+export { _useMutableProps } from './props/props';
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////

@@ -1,4 +1,4 @@
-import { createProxy, getProxyTarget, isMutable, QObjectImmutable } from '../object/q-object';
+import { createProxy, getProxyTarget, isMutable, mutable, QObjectImmutable } from '../object/q-object';
 import { resumeContainer } from '../object/store';
 import { QContainerAttr } from '../util/markers';
 import type { OnRenderFn } from '../component/component.public';
@@ -11,7 +11,7 @@ import { directGetAttribute } from '../render/fast-calls';
 import { assertDefined } from '../assert/assert';
 import { codeToText, QError_immutableJsxProps } from '../error/error';
 import type { QRL } from '../import/qrl.public';
-import type { StyleAppend } from '../use/use-core';
+import { StyleAppend, useInvokeContext } from '../use/use-core';
 import { ContainerState, getContainerState, SubscriptionManager } from '../render/container';
 import type { ProcessedJSXNode } from '../render/dom/render-dom';
 
@@ -152,10 +152,20 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
       if (isMutable(oldValue)) {
         oldValue = oldValue.v;
       }
-      target[prop] = value;
-      if (isMutable(value)) {
-        value = value.v;
+      if (containerState.$mutableProps$) {
         mut = true;
+        if (isMutable(value)) {
+          value = value.v;
+          target[prop] = value;
+        } else {
+          target[prop] = mutable(value);
+        }
+      } else {
+        target[prop] = value;
+        if (isMutable(value)) {
+          value = value.v;
+          mut = true;
+        }
       }
       if (oldValue !== value) {
         if (qDev) {
@@ -180,3 +190,11 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
     },
   };
 };
+
+/**
+ * @internal
+ */
+export const _useMutableProps = (mutable: boolean) => {
+  const ctx = useInvokeContext();
+  ctx.$renderCtx$.$containerState$.$mutableProps$ = mutable;
+}

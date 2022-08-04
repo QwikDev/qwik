@@ -15,44 +15,59 @@ export interface SerializeDocumentOptions {
  * @alpha
  */
 export interface PrefetchStrategy {
-  implementation?: PrefetchImplementation;
+  implementation?: PrefetchImplementation | DeprecatedPrefetchImplementation;
   symbolsToPrefetch?: SymbolsToPrefetch;
+}
+
+/**
+ * @alpha
+ */
+export interface PrefetchImplementation {
+  /**
+   * `js-append`: Use JS runtime to create each `<link>` and append to the body.
+   *
+   * `html-append`: Render each `<link>` within html, appended at the end of the body.
+   */
+  linkInsert?: 'js-append' | 'html-append' | null;
+  /**
+   * Value of the `<link rel="...">` attribute when link is used.
+   * Defaults to `prefetch` if links are inserted.
+   */
+  linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
+  /**
+   * `always`: Always include the worker fetch JS runtime.
+   *
+   * `no-link-support`: Only include the worker fetch JS runtime when the browser doesn't support `<link>` prefetch/preload/modulepreload.
+   */
+  workerFetchInsert?: 'always' | 'no-link-support' | null;
 }
 
 /**
  * `link-prefetch-html`: Render link rel=prefetch within the html
  *
- * `link-prefetch-html-worker`: Render link rel=prefetch within the html, and add worker-fetch JS
- *
- * `link-prefetch-prefetch`: Use JS to add link rel=prefetch, add worker-fetch if not supported
+ * `link-prefetch`: Use JS to add link rel=prefetch, add worker-fetch if not supported
  *
  * `link-preload-html`: Render link rel=preload within the html
  *
- * `link-preload-html-worker`: Render link rel=preload within the html, and add worker-fetch JS
- *
- * `link-preload-prefetch`: Use JS to add link rel=preload, add worker-fetch if not supported
+ * `link-preload`: Use JS to add link rel=preload, add worker-fetch if not supported
  *
  * `link-modulepreload-html`: Render link rel=modulepreload within the html
  *
- * `link-modulepreload-html-worker`: Render link rel=modulepreload within the html, and add worker-fetch JS
- *
- * `link-modulepreload-prefetch`: Use JS to add link rel=modulepreload, add worker-fetch if not supported
+ * `link-modulepreload`: Use JS to add link rel=modulepreload, add worker-fetch if not supported
  *
  * `worker-fetch`: Add worker-fetch JS
  *
  * `none`: Do not add any prefetch links
  *
+ * @deprecated Use the `PrefetchImplementation` object options instead.
  * @alpha
  */
-export type PrefetchImplementation =
+export type DeprecatedPrefetchImplementation =
   | 'link-prefetch-html'
-  | 'link-prefetch-html-worker'
   | 'link-prefetch'
   | 'link-preload-html'
-  | 'link-preload-html-worker'
   | 'link-preload'
   | 'link-modulepreload-html'
-  | 'link-modulepreload-html-worker'
   | 'link-modulepreload'
   | 'worker-fetch'
   | 'none';

@@ -25,6 +25,8 @@
     "release.prepare": "yarn lint && yarn test.unit && tsm scripts/index.ts --tsc --build --api --eslint --platform-binding --wasm --prepare-release",
     "test": "yarn build.full && yarn test.unit && yarn test.e2e",
     "test.unit": "tsm node_modules/uvu/bin.js packages unit.ts --tsmconfig tsm.cjs",
+    "test.unit.styles": "tsm node_modules/uvu/bin.js packages scoped-stylesheet.unit.ts --tsmconfig tsm.cjs",
+    "test.unit.styles.debug": "tsm --inspect-brk node_modules/uvu/bin.js packages scoped-stylesheet.unit.ts --tsmconfig tsm.cjs",
     "test.unit.debug": "tsm --inspect-brk node_modules/uvu/bin.js packages unit.ts --tsmconfig tsm.cjs",
     "test.watch": "watchlist packages unit.ts -- yarn test.unit",
     "test.rust": "make test",

@@ -1,6 +1,6 @@
 import { component$, Host, Slot, QwikIntrinsicElements } from '@builder.io/qwik';
-import { getClientNavigatePath } from './client-history';
-import { useNavigate } from './use-functions';
+import { getClientNavPath } from './client-navigation';
+import { useLocation, useNavigate } from './use-functions';
 
 /**
  * @public
@@ -8,16 +8,21 @@ import { useNavigate } from './use-functions';
 export const Link = component$<LinkProps>(
   (props) => {
     const nav = useNavigate();
+    const loc = useLocation();
+    const linkProps = { ...props };
+    const clientNavPath = getClientNavPath(linkProps, loc);
+    if (clientNavPath) {
+      linkProps['preventdefault:click'] = true;
+      linkProps.href = clientNavPath;
+    }
     return (
       <Host
-        preventdefault:click
+        {...linkProps}
         onClick$={() => {
-          const clientPath = getClientNavigatePath(props.href, location);
-          if (clientPath) {
-            nav.path = clientPath;
+          if (clientNavPath) {
+            nav.path = linkProps.href!;
           }
         }}
-        {...props}
       >
         <Slot />
       </Host>

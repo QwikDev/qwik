@@ -26,18 +26,18 @@ import {
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { isBrowser } from '@builder.io/qwik/build';
-import { useQwikCityContext } from './use-functions';
-import { clientNavigate, normalizePath } from './client-history';
+import { useQwikCityEnv } from './use-functions';
+import { clientNavigate, toPath } from './client-navigation';
 
 /**
  * @public
  */
 export const Html = component$<HtmlProps>(
   (props) => {
-    const ctx = useQwikCityContext();
+    const env = useQwikCityEnv();
 
     const routeLocation = useStore<MutableRouteLocation>(() => {
-      const initRouteLocation = ctx?.route;
+      const initRouteLocation = env?.route;
       if (!initRouteLocation) {
         throw new Error(`Missing Qwik City User Context`);
       }
@@ -45,12 +45,9 @@ export const Html = component$<HtmlProps>(
     });
 
     const routeNavigate = useStore<RouteNavigate>(() => {
-      const initRouteLocation = ctx?.route;
-      if (!initRouteLocation) {
-        throw new Error(`Missing Qwik City User Context`);
-      }
+      const initRouteLocation = env?.route;
       return {
-        path: normalizePath(new URL(initRouteLocation.href)),
+        path: toPath(new URL(initRouteLocation!.href)),
       };
     });
 
@@ -83,7 +80,7 @@ export const Html = component$<HtmlProps>(
       if (loadedRoute) {
         const contentModules = loadedRoute.mods as ContentModule[];
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
-        const resolvedHead = resolveHead(ctx?.response, routeLocation, contentModules);
+        const resolvedHead = resolveHead(env?.response, routeLocation, contentModules);
 
         // Update document head
         documentHead.links = resolvedHead.links;
@@ -103,7 +100,7 @@ export const Html = component$<HtmlProps>(
         routeLocation.query = Object.fromEntries(url.searchParams.entries());
 
         if (isBrowser) {
-          clientNavigate(window, document, routeNavigate);
+          clientNavigate(window, routeNavigate);
         }
       }
     });

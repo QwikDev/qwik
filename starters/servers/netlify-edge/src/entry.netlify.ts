@@ -3,7 +3,7 @@ import { qwikCity } from '@builder.io/qwik-city/middleware/netlify-edge';
 
 const qwikCityHandler = qwikCity(render, {
   prefetchStrategy: {
-    implementation: 'link-prefetch',
+    implementation: 'worker-fetch',
   },
 });
 

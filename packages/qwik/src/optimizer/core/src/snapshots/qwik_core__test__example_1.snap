@@ -24,9 +24,7 @@ export const renderHeader_zBbHWn4e8Cg = ()=>{
     return <div onClick={qrl(()=>import("./renderheader_div_onclick_fv2uzal99u4")
     , "renderHeader_div_onClick_fV2uzAL99u4")}/>;
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {
@@ -53,9 +51,7 @@ export const renderHeader_component_U6Kkv07sbpQ = ()=>{
     console.log("mount");
     return render;
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {
@@ -89,9 +85,7 @@ component(qrl(()=>import("./renderheader_component_u6kkv07sbpq")
 
 export const renderHeader_div_onClick_fV2uzAL99u4 = (ctx)=>console.log(ctx)
 ;
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {

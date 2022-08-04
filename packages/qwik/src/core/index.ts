@@ -14,8 +14,8 @@ export type {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { pauseFromContexts } from './object/store';
-export type { SnapshotState, SnapshotResult } from './object/store';
+export { _pauseFromContexts } from './object/store';
+export type { SnapshotState, SnapshotResult, SnapshotMeta, SnapshotMetaValue, SnapshotListener } from './object/store';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
@@ -33,45 +33,29 @@ export { getPlatform, setPlatform } from './platform/platform';
 export type { CorePlatform } from './platform/types';
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Watch
-//////////////////////////////////////////////////////////////////////////////////////////
-export type {
-  Tracker,
-  WatchFn,
-  MountFn,
-  UseEffectOptions,
-  EagernessOptions,
-  ResourceReturn,
-  ResourceCtx,
-  ResourcePending,
-  ResourceRejected,
-  ResourceResolved,
-} from './use/use-watch';
-export { useWatch$, useWatchQrl } from './use/use-watch';
-export type { ResourceProps } from './use/use-resource';
-export { useResource$, useResourceQrl, Resource } from './use/use-resource';
-export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
-export { useServerMount$, useServerMountQrl } from './use/use-watch';
-export { useMount$, useMountQrl } from './use/use-watch';
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // JSX Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export { h } from './render/jsx/factory';
-export { Host, SkipRerender } from './render/jsx/host.public';
+export { Host, SkipRerender, SSRStreamBlock, SSRComment } from './render/jsx/host.public';
 export { Slot } from './render/jsx/slot.public';
 export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
-export type { HTMLAttributes, AriaAttributes } from './render/jsx/types/jsx-generated';
-export type { DOMAttributes } from './render/jsx/types/jsx-qwik-attributes';
+export type { HTMLAttributes, AriaAttributes, AriaRole } from './render/jsx/types/jsx-generated';
+export type {
+  DOMAttributes,
+  JSXTagName,
+  JSXChildren,
+  ComponentBaseProps,
+} from './render/jsx/types/jsx-qwik-attributes';
 export type { FunctionComponent, JSXNode } from './render/jsx/types/jsx-node';
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
+export type { HostAttributes } from './render/jsx/host.public';
 export { render } from './render/dom/render.public';
 export { renderSSR } from './render/ssr/render-ssr';
-export { SSRStreamBlock, SSRComment } from './render/jsx/host.public';
+export type { RenderSSROptions, StreamWriter } from './render/ssr/render-ssr';
 
 export type { RenderOptions } from './render/dom/render.public';
-export { handleWatch } from './render/dom/notify-render';
+export { _hW } from './render/dom/notify-render';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API
@@ -87,6 +71,28 @@ export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from '
 export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
 export type { Context } from './use/use-context';
 export type { Ref } from './use/use-ref';
+export type { UseStoreOptions } from './use/use-store.public';
+export type {
+  Tracker,
+  WatchFn,
+  MountFn,
+  UseEffectOptions,
+  EagernessOptions,
+  ResourceReturn,
+  ResourceCtx,
+  ResourcePending,
+  ResourceRejected,
+  ResourceResolved,
+  WatchCtx,
+  UseWatchOptions,
+  ResourceFn,
+} from './use/use-watch';
+export { useWatch$, useWatchQrl } from './use/use-watch';
+export type { ResourceProps, ResourceOptions } from './use/use-resource';
+export { useResource$, useResourceQrl, Resource } from './use/use-resource';
+export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
+export { useServerMount$, useServerMountQrl } from './use/use-watch';
+export { useMount$, useMountQrl } from './use/use-watch';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

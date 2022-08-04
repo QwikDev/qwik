@@ -243,7 +243,7 @@ export const shouldSerialize = (obj: any): boolean => {
 };
 
 /**
- * @alpha
+ * @public
  */
 export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
 
@@ -264,7 +264,7 @@ export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
  *
  * See: [noSerialize Tutorial](http://qwik.builder.io/tutorial/store/no-serialize)
  *
- * @alpha
+ * @public
  */
 // </docs>
 export const noSerialize = <T extends object | undefined>(input: T): NoSerialize<T> => {
@@ -274,19 +274,6 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
   return input as any;
 };
 
-// <docs markdown="../readme.md#immutable">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#immutable instead)
-/**
- * Mark an object as immutable, preventing Qwik from creating subscriptions on that object.
- *
- * Qwik automatically creates subscriptions on store objects created by `useStore()`. By marking
- * an object as `immutable`, it hints to Qwik that the properties of this object will not change,
- * and therefore there is no need to create subscriptions for those objects.
- *
- * @alpha
- */
-// </docs>
 export const immutable = <T extends {}>(input: T): Readonly<T> => {
   return Object.freeze(input);
 };

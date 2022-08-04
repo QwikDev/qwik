@@ -102,9 +102,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
 
             </div>;
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {
@@ -136,9 +134,7 @@ export const Bar_component_1_0xSyNSnVu3k = ()=>{
 
             </div>;
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {

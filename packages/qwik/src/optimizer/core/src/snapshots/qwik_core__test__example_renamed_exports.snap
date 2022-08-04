@@ -32,9 +32,7 @@ export const App_Component_1_A08tXHb9pEk = ()=>{
         children: state.thing
     });
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {

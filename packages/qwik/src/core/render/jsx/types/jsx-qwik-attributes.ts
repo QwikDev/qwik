@@ -182,10 +182,6 @@ export interface QwikEvents extends QwikKnownEvents, QwikCustomEvents {
   'document:onVisibilityChange$'?: BivariantEventHandler<Event>;
 }
 
-interface CSSProperties {
-  [key: string]: string | number;
-}
-
 /**
  * @public
  */
@@ -210,7 +206,7 @@ export interface ComponentBaseProps
     ComponentKnownEvents {
   class?: string | { [className: string]: boolean };
   className?: string | undefined;
-  style?: CSSProperties | string | undefined;
+  style?: Record<string, string | number> | string | undefined;
   key?: string | number;
   id?: string | undefined;
   ref?: Ref<Element>;
@@ -224,6 +220,9 @@ export interface ComponentBaseProps
 }
 export interface QwikAttributes extends QwikProps, QwikEvents {}
 
+/**
+ * @public
+ */
 export type JSXChildren =
   | string
   | number

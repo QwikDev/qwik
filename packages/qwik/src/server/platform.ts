@@ -1,7 +1,6 @@
+import type { SerializeDocumentOptions, SymbolMapper } from './types';
 import type { CorePlatform } from '@builder.io/qwik';
 import { setPlatform } from '@builder.io/qwik';
-import type { SymbolMapper } from '../optimizer/src/types';
-import type { SerializeDocumentOptions } from './types';
 
 declare const require: (module: string) => Record<string, any>;
 
@@ -62,7 +61,9 @@ function createPlatform(
 
 /**
  * Applies NodeJS specific platform APIs to the passed in document instance.
- * @public
+ *
+ * @alpha
+ *
  */
 export async function setServerPlatform(
   document: any,

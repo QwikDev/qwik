@@ -19,7 +19,7 @@ import {
 import { useOn } from './use-on';
 import { GetObjID, intToStr, strToInt } from '../object/store';
 import type { ContainerState } from '../render/container';
-import { handleWatch } from '../render/dom/notify-render';
+import { _hW } from '../render/dom/notify-render';
 import { useSequentialScope } from './use-sequential-scope';
 
 export const WatchFlagsIsEffect = 1 << 0;
@@ -798,8 +798,8 @@ const getWatchHandlerQrl = (watch: SubscriberDescriptor) => {
   const watchQrl = watch.$qrl$;
   const watchHandler = createQRL(
     watchQrl.$chunk$,
-    'handleWatch',
-    handleWatch,
+    '_hW',
+    _hW,
     null,
     null,
     [watch],

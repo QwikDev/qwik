@@ -90,9 +90,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 ============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
 
 export const App_component_1_w0t0o3QMovU = render;
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {

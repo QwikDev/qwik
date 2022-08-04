@@ -30,7 +30,6 @@ import { Host, SSRComment } from '../jsx/host.public';
 import { qDev } from '../../util/qdev';
 import { logWarn } from '../../util/log';
 import { addQRLListener, isOnProp } from '../../props/props-on';
-import type { StreamWriter } from '../../../server/types';
 import { version } from '../../version';
 import { serializeInlineContexts } from '../../use/use-context';
 import { fromCamelToKebabCase } from '../../util/case';
@@ -42,16 +41,16 @@ import { assertDefined } from '../../assert/assert';
 import { serializeSStyle, styleHost } from '../../component/qrl-styles';
 import type { Ref } from '../../use/use-ref';
 
-export interface SSRContext {
-  rctx: RenderContext;
-  projectedChildren: Record<string, any[] | undefined> | undefined;
-  projectedContext: SSRContext | undefined;
-  hostCtx: QContext | undefined;
-  invocationContext?: InvokeContext | undefined;
-  $contexts$: QContext[];
-  headNodes: JSXNode[];
-}
+/**
+ * @alpha
+ */
+export type StreamWriter = {
+  write: (chunk: any) => void | boolean | Promise<void> | Promise<boolean>;
+};
 
+/**
+ * @alpha
+ */
 export interface RenderSSROptions {
   fragmentTagName?: string;
   stream: StreamWriter;
@@ -60,6 +59,16 @@ export interface RenderSSROptions {
   url?: string;
   beforeContent?: JSXNode[];
   beforeClose?: (contexts: QContext[], containerState: ContainerState) => Promise<JSXNode>;
+}
+
+export interface SSRContext {
+  rctx: RenderContext;
+  projectedChildren: Record<string, any[] | undefined> | undefined;
+  projectedContext: SSRContext | undefined;
+  hostCtx: QContext | undefined;
+  invocationContext?: InvokeContext | undefined;
+  $contexts$: QContext[];
+  headNodes: JSXNode[];
 }
 
 /**

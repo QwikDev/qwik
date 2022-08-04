@@ -110,9 +110,11 @@ const scheduleFrame = (containerState: ContainerState): Promise<RenderContext> =
 /**
  * Low-level API used by the Optimizer to process `useWatch$()` API. This method
  * is not intended to be used by developers.
- * @alpha
+ *
+ * @internal
+ *
  */
-export const handleWatch = () => {
+export const _hW = () => {
   const [watch] = useLexicalScope<[SubscriberDescriptor]>();
   notifyWatch(watch, getContainerState(getContainer(watch.$el$)!));
 };

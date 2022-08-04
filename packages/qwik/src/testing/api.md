@@ -4,227 +4,70 @@
 
 ```ts
 
-// @alpha
-export function createTimer(): () => number;
+import type { CorePlatform } from '@builder.io/qwik';
 
 // @alpha
-export function getQwikLoaderScript(opts?: {
-    events?: string[];
-    debug?: boolean;
-}): string;
+export function createDocument(opts?: MockDocumentOptions): Document;
 
-// @alpha (undocumented)
-export interface GlobalInjections {
+// @alpha
+export function createWindow(opts?: MockDocumentOptions): MockWindow;
+
+// @alpha
+export class ElementFixture {
+    constructor(options?: ElementFixtureOptions);
     // (undocumented)
-    attributes?: {
-        [key: string]: string;
-    };
+    child: HTMLElement;
     // (undocumented)
-    children?: string;
+    document: MockDocument;
     // (undocumented)
-    location: 'head' | 'body';
+    host: HTMLElement;
     // (undocumented)
-    tag: string;
+    parent: HTMLElement;
+    // (undocumented)
+    superParent: HTMLElement;
+    // (undocumented)
+    window: MockWindow;
 }
 
 // @alpha (undocumented)
-export type PrefetchImplementation = 'link-prefetch-html' | 'link-prefetch' | 'link-preload-html' | 'link-preload' | 'link-modulepreload-html' | 'link-modulepreload' | 'worker-fetch' | 'none';
-
-// @alpha (undocumented)
-export interface PrefetchResource {
+export interface ElementFixtureOptions {
     // (undocumented)
-    imports: PrefetchResource[];
-    // (undocumented)
-    url: string;
+    tagName?: string;
 }
 
 // @alpha (undocumented)
-export interface PrefetchStrategy {
+export function getTestPlatform(document: any): TestPlatform;
+
+// @alpha (undocumented)
+export interface MockDocument extends Document {
+}
+
+// @alpha
+export interface MockDocumentOptions {
     // (undocumented)
-    implementation?: PrefetchImplementation;
-    // Warning: (ae-forgotten-export) The symbol "SymbolsToPrefetch" needs to be exported by the entry point index.d.ts
-    //
+    html?: string;
     // (undocumented)
-    symbolsToPrefetch?: SymbolsToPrefetch;
+    url?: URL | string;
 }
 
 // @alpha (undocumented)
-export interface QwikBundle {
+export interface MockWindow extends Window {
     // (undocumented)
-    dynamicImports?: string[];
-    // (undocumented)
-    imports?: string[];
-    // (undocumented)
-    size: number;
-    // (undocumented)
-    symbols: string[];
+    document: MockDocument;
 }
 
-// @public (undocumented)
-export interface QwikLoaderOptions {
-    // (undocumented)
-    events?: string[];
-    // (undocumented)
-    include?: 'always' | 'never' | 'auto';
-    // (undocumented)
-    position?: 'top' | 'bottom';
+// @alpha
+export interface MockWindowOptions extends MockDocumentOptions {
 }
 
 // @alpha (undocumented)
-export interface QwikManifest {
+export interface TestPlatform extends CorePlatform {
     // (undocumented)
-    bundles: {
-        [fileName: string]: QwikBundle;
-    };
-    // (undocumented)
-    injections?: GlobalInjections[];
-    // (undocumented)
-    mapping: {
-        [symbolName: string]: string;
-    };
-    // (undocumented)
-    options?: {
-        target?: string;
-        buildMode?: string;
-        forceFullBuild?: boolean;
-        entryStrategy?: {
-            [key: string]: any;
-        };
-    };
-    // (undocumented)
-    platform?: {
-        [name: string]: string;
-    };
-    // (undocumented)
-    symbols: {
-        [symbolName: string]: QwikSymbol;
-    };
-    // (undocumented)
-    version: string;
+    flush: () => Promise<void>;
 }
 
 // @alpha (undocumented)
-export interface QwikSymbol {
-    // (undocumented)
-    canonicalFilename: string;
-    // (undocumented)
-    captures: boolean;
-    // (undocumented)
-    ctxKind: 'function' | 'event';
-    // (undocumented)
-    ctxName: string;
-    // (undocumented)
-    displayName: string;
-    // (undocumented)
-    hash: string;
-    // (undocumented)
-    origin: string;
-    // (undocumented)
-    parent: string | null;
-}
-
-// Warning: (ae-forgotten-export) The symbol "RenderToString" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "RenderToStream" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export type Render = RenderToString | RenderToStream;
-
-// Warning: (ae-forgotten-export) The symbol "SerializeDocumentOptions" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export interface RenderOptions extends SerializeDocumentOptions {
-    base?: string;
-    // (undocumented)
-    envData?: Record<string, any>;
-    fragmentTagName?: string;
-    // Warning: (ae-incompatible-release-tags) The symbol "prefetchStrategy" is marked as @public, but its signature references "PrefetchStrategy" which is marked as @alpha
-    //
-    // (undocumented)
-    prefetchStrategy?: PrefetchStrategy | null;
-    qwikLoader?: QwikLoaderOptions;
-    snapshot?: boolean;
-}
-
-// @public (undocumented)
-export interface RenderResult {
-    // Warning: (ae-incompatible-release-tags) The symbol "prefetchResources" is marked as @public, but its signature references "PrefetchResource" which is marked as @alpha
-    //
-    // (undocumented)
-    prefetchResources: PrefetchResource[];
-    // (undocumented)
-    snapshotResult: SnapshotResult | null;
-    // (undocumented)
-    timing: {
-        createDocument: number;
-        render: number;
-        snapshot: number;
-        toString: number;
-    };
-}
-
-// @public
-export function renderToStream(rootNode: any, opts: RenderToStreamOptions): Promise<RenderToStreamResult>;
-
-// @public (undocumented)
-export interface RenderToStreamOptions extends RenderOptions {
-    // (undocumented)
-    stream: StreamWriter;
-    // Warning: (ae-forgotten-export) The symbol "StreamingOptions" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    streaming?: StreamingOptions;
-}
-
-// @public (undocumented)
-export interface RenderToStreamResult extends RenderResult {
-}
-
-// @public
-export function renderToString(rootNode: any, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
-
-// @public (undocumented)
-export interface RenderToStringOptions extends RenderOptions {
-}
-
-// @public (undocumented)
-export interface RenderToStringResult extends RenderResult {
-    // (undocumented)
-    html: string;
-}
-
-// Warning: (ae-forgotten-export) The symbol "SymbolMapper" needs to be exported by the entry point index.d.ts
-//
-// @public
-export function setServerPlatform(document: any, opts: SerializeDocumentOptions, mapper: SymbolMapper | undefined): Promise<void>;
-
-// @public (undocumented)
-export interface SnapshotResult {
-    // Warning: (ae-forgotten-export) The symbol "SnapshotListener" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    listeners: SnapshotListener[];
-    // (undocumented)
-    mode: 'render' | 'listeners' | 'static';
-    // (undocumented)
-    objs: any[];
-    // (undocumented)
-    pendingContent: Promise<string>[];
-    // Warning: (ae-forgotten-export) The symbol "SnapshotState" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    state: SnapshotState;
-}
-
-// @public (undocumented)
-export type StreamWriter = {
-    write: (chunk: any) => void | boolean | Promise<void> | Promise<boolean>;
-};
-
-// @public (undocumented)
-export const versions: {
-    readonly qwik: string;
-    readonly qwikDom: string;
-};
+export function toFileUrl(filePath: string): string;
 
 // (No @packageDocumentation comment for this package)
 

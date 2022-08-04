@@ -133,7 +133,21 @@ Component styles allow Qwik to lazy load the style information for the component
 
 <docs code="./examples.tsx#use-styles"/>
 
+@see `useStylesScoped`
+
 @public
+
+# `useStylesScoped`
+
+A lazy-loadable reference to a component's styles, that is scoped to the component.
+
+Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
+
+<docs code="./examples.tsx#use-styles-scoped"/>
+
+@see `useStyles`
+
+@alpha
 
 # `useCleanup`
 
@@ -201,7 +215,7 @@ You can use `noSerialize()` to mark a value as non-serializable. The value is pe
 
 See: [noSerialize Tutorial](http://qwik.builder.io/tutorial/store/no-serialize)
 
-@alpha
+@public
 
 # `useLexicalScope`
 
@@ -211,7 +225,7 @@ This method should not be present in the application source code.
 
 NOTE: `useLexicalScope` method can only be used in the synchronous portion of the callback (before any `await` statements.)
 
-@alpha
+@internal
 
 # `QRL`
 
@@ -355,7 +369,6 @@ Retrieves the document of the current element. It's important to use this method
 NOTE: `useDocument` method can only be used in the synchronous portion of the callback (before any `await` statements.)
 
 @alpha
-
 
 # `Context`
 

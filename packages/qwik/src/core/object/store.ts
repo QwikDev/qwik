@@ -167,7 +167,7 @@ export const resumeContainer = (containerEl: Element) => {
 };
 
 /**
- * @public
+ * @alpha
  */
 export interface SnapshotMetaValue {
   r?: string; // q:obj
@@ -177,10 +177,13 @@ export interface SnapshotMetaValue {
   c?: string; // q:context
 }
 
+/**
+ * @alpha
+ */
 export type SnapshotMeta = Record<string, SnapshotMetaValue>;
 
 /**
- * @public
+ * @alpha
  */
 export interface SnapshotState {
   ctx: SnapshotMeta;
@@ -189,7 +192,7 @@ export interface SnapshotState {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface SnapshotListener {
   key: string;
@@ -198,7 +201,7 @@ export interface SnapshotListener {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface SnapshotResult {
   state: SnapshotState;
@@ -215,13 +218,13 @@ const hasContext = (el: Element) => {
 export const pauseFromContainer = async (containerEl: Element): Promise<SnapshotResult> => {
   const containerState = getContainerState(containerEl);
   const contexts = getNodesInScope(containerEl, hasContext).map(tryGetContext) as QContext[];
-  return pauseFromContexts(contexts, containerState);
+  return _pauseFromContexts(contexts, containerState);
 };
 
 /**
- * @alpha
+ * @internal
  */
-export const pauseFromContexts = async (
+export const _pauseFromContexts = async (
   elements: QContext[],
   containerState: ContainerState
 ): Promise<SnapshotResult> => {

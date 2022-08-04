@@ -25,6 +25,8 @@ import { useSequentialScope } from './use-sequential-scope';
  * });
  * ```
  *
+ * @see `useStylesScoped`
+ *
  * @public
  */
 // </docs>
@@ -51,6 +53,8 @@ export const useStylesQrl = (styles: QRL<string>): void => {
  * });
  * ```
  *
+ * @see `useStylesScoped`
+ *
  * @public
  */
 // </docs>
@@ -60,7 +64,22 @@ export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useStylesScoped instead)
 /**
- * @see `useStyles`.
+ * A lazy-loadable reference to a component's styles, that is scoped to the component.
+ *
+ * Component styles allow Qwik to lazy load the style information for the component only when
+ * needed. (And avoid double loading it in case of SSR hydration.)
+ *
+ * ```tsx
+ * import scoped from './code-block.css?inline';
+ *
+ * export const CmpScopedStyles = component$(() => {
+ *   useStylesScoped$(scoped);
+ *
+ *   return <Host>Some text</Host>;
+ * });
+ * ```
+ *
+ * @see `useStyles`
  *
  * @alpha
  */
@@ -73,7 +92,22 @@ export const useStylesScopedQrl = (styles: QRL<string>): void => {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useStylesScoped instead)
 /**
- * @see `useStyles`.
+ * A lazy-loadable reference to a component's styles, that is scoped to the component.
+ *
+ * Component styles allow Qwik to lazy load the style information for the component only when
+ * needed. (And avoid double loading it in case of SSR hydration.)
+ *
+ * ```tsx
+ * import scoped from './code-block.css?inline';
+ *
+ * export const CmpScopedStyles = component$(() => {
+ *   useStylesScoped$(scoped);
+ *
+ *   return <Host>Some text</Host>;
+ * });
+ * ```
+ *
+ * @see `useStyles`
  *
  * @alpha
  */

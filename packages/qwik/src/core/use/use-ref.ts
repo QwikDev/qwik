@@ -1,7 +1,7 @@
 import { useStore } from "./use-store.public";
 
 /**
- * @alpha
+ * @public
  */
  export interface Ref<T> {
   current: T | undefined;

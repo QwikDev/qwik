@@ -13,7 +13,7 @@ import { Host } from './render/jsx/host.public';
 import { useHostElement } from './use/use-host-element.public';
 import { useCleanup$, useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
-import { useStyles$ } from './use/use-styles';
+import { useStyles$, useStylesScoped$ } from './use/use-styles';
 import { useClientEffect$, useMount$, useServerMount$, useWatch$ } from './use/use-watch';
 import { implicit$FirstArg } from './util/implicit_dollar';
 
@@ -70,6 +70,16 @@ import styles from './code-block.css?inline';
 
 export const CmpStyles = component$(() => {
   useStyles$(styles);
+
+  return <Host>Some text</Host>;
+});
+// </docs>
+
+// <docs anchor="use-styles-scoped">
+import scoped from './code-block.css?inline';
+
+export const CmpScopedStyles = component$(() => {
+  useStylesScoped$(scoped);
 
   return <Host>Some text</Host>;
 });

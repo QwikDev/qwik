@@ -154,9 +154,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
         , "Foo_component_div_custom_pyHnxab17ms")
     });
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {
@@ -349,9 +347,7 @@ export const Foo_component_div_onDocumentScroll_rwFFtFiVuKc = ()=>console.log('o
 
 export const Foo_component_handler_H10xZtD0e7w = ()=>console.log('reused')
 ;
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {

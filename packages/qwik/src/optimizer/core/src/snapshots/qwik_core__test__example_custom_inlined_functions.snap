@@ -145,9 +145,7 @@ export const App_component_1_w0t0o3QMovU = ()=>{
         children: state.count
     });
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {

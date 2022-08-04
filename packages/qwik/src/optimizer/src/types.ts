@@ -257,6 +257,9 @@ export interface QwikManifest {
   platform?: { [name: string]: string };
 }
 
+/**
+ * @alpha
+ */
 export type SymbolMapper = Record<string, [symbol: string, chunk: string]>;
 
 /**

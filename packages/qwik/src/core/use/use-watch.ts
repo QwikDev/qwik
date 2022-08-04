@@ -3,7 +3,6 @@ import { getContext } from '../props/props';
 import { newInvokeContext, useInvoke } from './use-core';
 import { logError, logErrorAndStop } from '../util/log';
 import { delay, safeCall, then } from '../util/promises';
-import { useSequentialScope } from './use-store.public';
 import { getDocument } from '../util/dom';
 import { isFunction, isObject, ValueOrPromise } from '../util/types';
 import { isServer } from '../platform/platform';
@@ -20,7 +19,8 @@ import {
 import { useOn } from './use-on';
 import { GetObjID, intToStr, strToInt } from '../object/store';
 import type { ContainerState } from '../render/container';
-import { handleWatch } from '../render/dom/notify-render';
+import { _hW } from '../render/dom/notify-render';
+import { useSequentialScope } from './use-sequential-scope';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;
@@ -28,8 +28,51 @@ export const WatchFlagsIsDirty = 1 << 2;
 export const WatchFlagsIsCleanup = 1 << 3;
 export const WatchFlagsIsResource = 1 << 4;
 
+// <docs markdown="../readme.md#Tracker">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#Tracker instead)
 /**
- * @alpha
+ * Used to signal to Qwik which state should be watched for changes.
+ *
+ * The `Tracker` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap
+ * state objects in a read proxy which signals to Qwik which properties should be watched for
+ * changes. A change to any of the properties causes the `watchFn` to rerun.
+ *
+ * ## Example
+ *
+ * The `obs` passed into the `watchFn` is used to mark `state.count` as a property of interest.
+ * Any changes to the `state.count` property will cause the `watchFn` to rerun.
+ *
+ * ```tsx
+ * const Cmp = component$(() => {
+ *   const store = useStore({ count: 0, doubleCount: 0 });
+ *   useWatch$(({ track }) => {
+ *     const count = track(store, 'count');
+ *     store.doubleCount = 2 * count;
+ *   });
+ *   return (
+ *     <div>
+ *       <span>
+ *         {store.count} / {store.doubleCount}
+ *       </span>
+ *       <button onClick$={() => store.count++}>+</button>
+ *     </div>
+ *   );
+ * });
+ * ```
+ *
+ * @see `useWatch`
+ *
+ * @public
+ */
+// </docs>
+export interface Tracker {
+  <T extends {}>(obj: T): T;
+  <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
+}
+
+/**
+ * @public
  */
 export interface WatchCtx {
   track: Tracker;
@@ -37,12 +80,7 @@ export interface WatchCtx {
 }
 
 /**
- * @alpha
- */
-export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
-
-/**
- * @alpha
+ * @public
  */
 export interface ResourceCtx<T> {
   track: Tracker;
@@ -51,19 +89,27 @@ export interface ResourceCtx<T> {
 }
 
 /**
- * @alpha
+ * @public
+ */
+export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
+
+/**
+ * @public
+ */
+export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
+
+/**
+ * @public
  */
 export type MountFn<T> = () => ValueOrPromise<T>;
 
 /**
- * @alpha
+ * @public
  */
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
-export type ResourceReturnInternal<T = any> = ResourceReturn<T> & { dirty: boolean };
-
 /**
- * @alpha
+ * @public
  */
 export interface ResourcePending<T> {
   __brand: 'resource';
@@ -76,7 +122,7 @@ export interface ResourcePending<T> {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ResourceResolved<T> {
   __brand: 'resource';
@@ -89,7 +135,7 @@ export interface ResourceResolved<T> {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface ResourceRejected<T> {
   __brand: 'resource';
@@ -104,11 +150,6 @@ export interface ResourceRejected<T> {
 /**
  * @alpha
  */
-export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
-
-/**
- * @alpha
- */
 export interface DescriptorBase<T = any, B = undefined> {
   $qrl$: QRLInternal<T>;
   $el$: Element;
@@ -119,27 +160,12 @@ export interface DescriptorBase<T = any, B = undefined> {
 }
 
 /**
- * @alpha
- */
-export type WatchDescriptor = DescriptorBase<WatchFn>;
-
-/**
- * @alpha
- */
-export interface ResourceDescriptor<T> extends DescriptorBase<ResourceFn<T>, ResourceReturn<T>> {}
-
-/**
- * @alpha
- */
-export type SubscriberDescriptor = WatchDescriptor | ResourceDescriptor<any>;
-
-/**
- * @alpha
+ * @public
  */
 export type EagernessOptions = 'visible' | 'load';
 
 /**
- * @alpha
+ * @public
  */
 export interface UseEffectOptions {
   /**
@@ -150,7 +176,7 @@ export interface UseEffectOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface UseWatchOptions {
   /**
@@ -192,13 +218,13 @@ export interface UseWatchOptions {
  *   });
  *
  *   // Double count watch
- *   useWatch$((track) => {
+ *   useWatch$(({ track }) => {
  *     const count = track(store, 'count');
  *     store.doubleCount = 2 * count;
  *   });
  *
  *   // Debouncer watch
- *   useWatch$((track) => {
+ *   useWatch$(({ track }) => {
  *     const doubleCount = track(store, 'doubleCount');
  *     const timer = setTimeout(() => {
  *       store.debounced = doubleCount;
@@ -272,13 +298,13 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
  *   });
  *
  *   // Double count watch
- *   useWatch$((track) => {
+ *   useWatch$(({ track }) => {
  *     const count = track(store, 'count');
  *     store.doubleCount = 2 * count;
  *   });
  *
  *   // Debouncer watch
- *   useWatch$((track) => {
+ *   useWatch$(({ track }) => {
  *     const doubleCount = track(store, 'doubleCount');
  *     const timer = setTimeout(() => {
  *       store.debounced = doubleCount;
@@ -550,6 +576,14 @@ export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
 // </docs>
 export const useMount$ = /*#__PURE__*/ implicit$FirstArg(useMountQrl);
 
+export type Subscriber = SubscriberDescriptor | Element;
+
+export type WatchDescriptor = DescriptorBase<WatchFn>;
+
+export interface ResourceDescriptor<T> extends DescriptorBase<ResourceFn<T>, ResourceReturn<T>> {}
+
+export type SubscriberDescriptor = WatchDescriptor | ResourceDescriptor<any>;
+
 export const isResourceWatch = (watch: SubscriberDescriptor): watch is ResourceDescriptor<any> => {
   return !!watch.$resource$;
 };
@@ -749,49 +783,6 @@ export const destroyWatch = (watch: SubscriberDescriptor) => {
   }
 };
 
-// <docs markdown="../readme.md#Tracker">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#Tracker instead)
-/**
- * Used to signal to Qwik which state should be watched for changes.
- *
- * The `Tracker` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap
- * state objects in a read proxy which signals to Qwik which properties should be watched for
- * changes. A change to any of the properties causes the `watchFn` to rerun.
- *
- * ## Example
- *
- * The `obs` passed into the `watchFn` is used to mark `state.count` as a property of interest.
- * Any changes to the `state.count` property will cause the `watchFn` to rerun.
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({ count: 0, doubleCount: 0 });
- *   useWatch$((track) => {
- *     const count = track(store, 'count');
- *     store.doubleCount = 2 * count;
- *   });
- *   return (
- *     <div>
- *       <span>
- *         {store.count} / {store.doubleCount}
- *       </span>
- *       <button onClick$={() => store.count++}>+</button>
- *     </div>
- *   );
- * });
- * ```
- *
- * @see `useWatch`
- *
- * @public
- */
-// </docs>
-export interface Tracker {
-  <T extends {}>(obj: T): T;
-  <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
-}
-
 const useRunWatch = (watch: SubscriberDescriptor, eagerness: EagernessOptions | undefined) => {
   if (eagerness === 'load') {
     useOn('qinit', getWatchHandlerQrl(watch));
@@ -804,8 +795,8 @@ const getWatchHandlerQrl = (watch: SubscriberDescriptor) => {
   const watchQrl = watch.$qrl$;
   const watchHandler = createQRL(
     watchQrl.$chunk$,
-    'handleWatch',
-    handleWatch,
+    '_hW',
+    _hW,
     null,
     null,
     [watch],
@@ -846,3 +837,5 @@ export class Watch implements DescriptorBase<any, any> {
     public $resource$: ResourceReturn<any> | undefined
   ) {}
 }
+
+export type ResourceReturnInternal<T = any> = ResourceReturn<T> & { dirty: boolean };

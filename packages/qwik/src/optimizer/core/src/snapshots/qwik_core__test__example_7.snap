@@ -87,9 +87,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 
 export const Header_component_div_onClick_i7ekvWH3674 = (ctx)=>console.log(ctx)
 ;
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {

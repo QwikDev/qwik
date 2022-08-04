@@ -7,6 +7,7 @@ import { logError, logWarn } from '../../util/log';
 import { getContainer } from '../../use/use-core';
 import {
   runSubscriber,
+  Subscriber,
   SubscriberDescriptor,
   WatchFlagsIsDirty,
   WatchFlagsIsEffect,
@@ -17,7 +18,6 @@ import { then } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { codeToText, QError_errorWhileRendering } from '../../error/error';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
-import type { Subscriber } from '../../use/use-subscriber';
 import { isElement } from '../../util/element';
 import { renderComponent } from './render-dom';
 import type { RenderContext } from '../types';
@@ -110,9 +110,11 @@ const scheduleFrame = (containerState: ContainerState): Promise<RenderContext> =
 /**
  * Low-level API used by the Optimizer to process `useWatch$()` API. This method
  * is not intended to be used by developers.
- * @alpha
+ *
+ * @internal
+ *
  */
-export const handleWatch = () => {
+export const _hW = () => {
   const [watch] = useLexicalScope<[SubscriberDescriptor]>();
   notifyWatch(watch, getContainerState(getContainer(watch.$el$)!));
 };

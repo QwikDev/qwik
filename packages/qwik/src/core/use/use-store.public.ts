@@ -1,9 +1,10 @@
-import { createProxy, QObjectRecursive, verifySerializable } from '../object/q-object';
-import { RenderInvokeContext, useInvokeContext } from './use-core';
-import { getContext } from '../props/props';
+import { createProxy, QObjectRecursive } from '../object/q-object';
 import { isFunction } from '../util/types';
-import { qDev } from '../util/qdev';
+import { useSequentialScope } from './use-sequential-scope';
 
+/**
+ * @public
+ */
 export interface UseStoreOptions {
   recursive?: boolean;
   reactive?: boolean;
@@ -92,81 +93,4 @@ export const useStore = <STATE extends object>(
     set(newStore);
     return newStore;
   }
-};
-
-/**
- * @alpha
- */
-export interface Ref<T> {
-  current: T | undefined;
-}
-
-// <docs markdown="../readme.md#useRef">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useRef instead)
-/**
- * It's a very thin wrapper around `useStore()`, including the proper type signature to be passed
- * to the `ref` property in JSX.
- *
- * ```tsx
- * export function useRef<T = Element>(current?: T): Ref<T> {
- *   return useStore({ current });
- * }
- * ```
- *
- * ## Example
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const input = useRef<HTMLInputElement>();
- *
- *   useClientEffect$((track) => {
- *     const el = track(input, 'current')!;
- *     el.focus();
- *   });
- *
- *   return (
- *     <Host>
- *       <input type="text" ref={input} />
- *     </Host>
- *   );
- * });
- *
- * ```
- *
- * @public
- */
-// </docs>
-export const useRef = <T extends Element = Element>(current?: T): Ref<T> => {
-  return useStore({ current });
-};
-
-export interface SequentialScope<T> {
-  readonly get: T | undefined;
-  readonly set: (v: T) => T;
-  readonly i: number;
-  readonly ctx: RenderInvokeContext;
-}
-
-/**
- * @alpha
- */
-export const useSequentialScope = <T>(): SequentialScope<T> => {
-  const ctx = useInvokeContext();
-  const i = ctx.$seq$;
-  const hostElement = ctx.$hostElement$;
-  const elementCtx = getContext(hostElement);
-  ctx.$seq$++;
-  const set = (value: T) => {
-    if (qDev) {
-      verifySerializable(value);
-    }
-    return (elementCtx.$seq$[i] = value);
-  };
-  return {
-    get: elementCtx.$seq$[i],
-    set,
-    i,
-    ctx,
-  };
 };

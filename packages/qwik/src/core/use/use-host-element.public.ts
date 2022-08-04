@@ -23,7 +23,7 @@ import { useInvokeContext } from './use-core';
  * );
  * ```
  *
- * @public
+ * @alpha
  */
 // </docs>
 export const useHostElement = (): Element => {

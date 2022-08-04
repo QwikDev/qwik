@@ -1,9 +1,6 @@
 /* eslint-disable */
 
 import type { DOMAttributes } from './jsx-qwik-attributes';
-interface CSSProperties {
-  [key: string]: string | number;
-}
 interface HTMLWebViewElement extends HTMLElement {}
 interface ClassAttributes<T> {}
 export type Booleanish = 'true' | 'false';
@@ -226,6 +223,10 @@ export interface AriaAttributes {
   /** Defines the human readable text alternative of aria-valuenow for a range widget. */
   'aria-valuetext'?: string | undefined;
 }
+
+/**
+ * @public
+ */
 export type AriaRole =
   | 'alert'
   | 'alertdialog'
@@ -314,7 +315,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   placeholder?: string | undefined;
   slot?: string | undefined;
   spellCheck?: Booleanish | undefined;
-  style?: CSSProperties | string | undefined;
+  style?: Record<string, string | number> | string | undefined;
   tabIndex?: number | undefined;
   title?: string | undefined;
   translate?: 'yes' | 'no' | undefined;
@@ -866,7 +867,7 @@ export interface SVGAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   method?: string | undefined;
   min?: number | string | undefined;
   name?: string | undefined;
-  style?: CSSProperties | string | undefined;
+  style?: Record<string, string | number> | string | undefined;
   target?: string | undefined;
   type?: string | undefined;
   width?: number | string | undefined;

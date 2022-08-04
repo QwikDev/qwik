@@ -1,6 +1,5 @@
 import { createProxy, getProxyTarget } from '../object/q-object';
 import { getContext } from '../props/props';
-import { useSequentialScope } from './use-store.public';
 import { $, QRL } from '../import/qrl.public';
 import { assertQrl } from '../import/qrl-class';
 import {
@@ -23,32 +22,10 @@ import { getInvokeContext } from './use-core';
 import { isObject } from '../util/types';
 import type { GetObjID } from '../object/store';
 import type { ContainerState } from '../render/container';
-
-export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn<T> => {
-  const resource: ResourceReturn<T> = {
-    __brand: 'resource',
-    promise: undefined as never,
-    resolved: undefined as never,
-    error: undefined as never,
-    state: 'pending',
-    timeout: opts?.timeout,
-  };
-  return resource;
-};
-
-export const createResourceReturn = <T>(
-  containerState: ContainerState,
-  opts?: ResourceOptions,
-  initialPromise?: Promise<T>
-): ResourceReturn<T> => {
-  const result = _createResourceReturn<T>(opts);
-  result.promise = initialPromise as any;
-  const resource = createProxy(result, containerState, 0, undefined);
-  return resource;
-};
+import { useSequentialScope } from './use-sequential-scope';
 
 /**
- * @alpha
+ * @public
  */
 export interface ResourceOptions {
   // Timeout in milliseconds
@@ -56,7 +33,7 @@ export interface ResourceOptions {
 }
 
 /**
- * @alpha
+ * @public
  */
 export const useResourceQrl = <T>(
   qrl: QRL<ResourceFn<T>>,
@@ -87,20 +64,14 @@ export const useResourceQrl = <T>(
 };
 
 /**
- * @alpha
+ * @public
  */
 export const useResource$ = <T>(generatorFn: ResourceFn<T>): ResourceReturn<T> => {
   return useResourceQrl<T>($(generatorFn));
 };
 
-export const useIsServer = () => {
-  const ctx = getInvokeContext();
-  assertDefined(ctx.$doc$, 'doc must be defined', ctx);
-  return isServer(ctx.$doc$);
-};
-
 /**
- * @alpha
+ * @public
  */
 export interface ResourceProps<T> {
   resource: ResourceReturn<T>;
@@ -109,12 +80,8 @@ export interface ResourceProps<T> {
   onRejected?: (reason: any) => JSXNode;
 }
 
-export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceReturnInternal<T> => {
-  return getProxyTarget(resource) as any;
-};
-
 /**
- * @alpha
+ * @public
  */
 export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
   const isBrowser = !qDev || !useIsServer();
@@ -153,6 +120,39 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
   return jsx(Fragment, {
     children: promise,
   });
+};
+
+export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn<T> => {
+  const resource: ResourceReturn<T> = {
+    __brand: 'resource',
+    promise: undefined as never,
+    resolved: undefined as never,
+    error: undefined as never,
+    state: 'pending',
+    timeout: opts?.timeout,
+  };
+  return resource;
+};
+
+export const createResourceReturn = <T>(
+  containerState: ContainerState,
+  opts?: ResourceOptions,
+  initialPromise?: Promise<T>
+): ResourceReturn<T> => {
+  const result = _createResourceReturn<T>(opts);
+  result.promise = initialPromise as any;
+  const resource = createProxy(result, containerState, 0, undefined);
+  return resource;
+};
+
+export const useIsServer = () => {
+  const ctx = getInvokeContext();
+  assertDefined(ctx.$doc$, 'doc must be defined', ctx);
+  return isServer(ctx.$doc$);
+};
+
+export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceReturnInternal<T> => {
+  return getProxyTarget(resource) as any;
 };
 
 export const isResourceReturn = (obj: any): obj is ResourceReturn<any> => {

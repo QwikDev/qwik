@@ -133,7 +133,21 @@ Component styles allow Qwik to lazy load the style information for the component
 
 <docs code="./examples.tsx#use-styles"/>
 
+@see `useStylesScoped`
+
 @public
+
+# `useStylesScoped`
+
+A lazy-loadable reference to a component's styles, that is scoped to the component.
+
+Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
+
+<docs code="./examples.tsx#use-styles-scoped"/>
+
+@see `useStyles`
+
+@alpha
 
 # `useCleanup`
 
@@ -189,7 +203,7 @@ NOTE: `useHostElement` method can only be used in the synchronous portion of the
 
 <docs code="./examples.tsx#use-host-element"/>
 
-@public
+@alpha
 
 # `noSerialize`
 
@@ -201,7 +215,7 @@ You can use `noSerialize()` to mark a value as non-serializable. The value is pe
 
 See: [noSerialize Tutorial](http://qwik.builder.io/tutorial/store/no-serialize)
 
-@alpha
+@public
 
 # `useLexicalScope`
 
@@ -211,7 +225,7 @@ This method should not be present in the application source code.
 
 NOTE: `useLexicalScope` method can only be used in the synchronous portion of the callback (before any `await` statements.)
 
-@public
+@internal
 
 # `QRL`
 
@@ -356,17 +370,63 @@ NOTE: `useDocument` method can only be used in the synchronous portion of the ca
 
 @alpha
 
+# `Context`
+
+Context is a typesafe ID for your context.
+
+Context is a way to pass stores to the child components without prop-drilling.
+
+Use `createContext()` to create a `Context`. `Context` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+
+## Example
+
+<docs code="./examples.tsx#context"/>
+@public
+
+# `createContext`
+
+Create a context ID to be used in your application.
+
+Context is a way to pass stores to the child components without prop-drilling.
+
+Use `createContext()` to create a `Context`. `Context` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
+
+## Example
+
+<docs code="./examples.tsx#context"/>
+@param name - The name of the context.
+@public
+
+# `useContextProvider`
+
+Assign a value to a Context.
+
+Use `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assign use `useContext()` in any child component to retrieve the value.
+
+Context is a way to pass stores to the child components without prop-drilling.
+
+## Example
+
+<docs code="./examples.tsx#context"/>
+@param context - The context to assign a value to.
+@param value - The value to assign to the context.
+@public
+
+# `useContext`
+
+Retrive Context value.
+
+Use `useContext()` to retrieve the value of context in a component. To retrieve a value a parent component needs to invoke `useContextProvider()` to assign a value.
+
+## Example
+
+<docs code="./examples.tsx#context"/>
+@param context - The context to retrieve a value from.
+@public
+
 # `pauseContainer`
 
 Serialize the current state of the application into DOM
-
-@alpha
-
-# `immutable`
-
-Mark an object as immutable, preventing Qwik from creating subscriptions on that object.
-
-Qwik automatically creates subscriptions on store objects created by `useStore()`. By marking an object as `immutable`, it hints to Qwik that the properties of this object will not change, and therefore there is no need to create subscriptions for those objects.
 
 @alpha
 

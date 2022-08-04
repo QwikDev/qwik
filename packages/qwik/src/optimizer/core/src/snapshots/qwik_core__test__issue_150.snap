@@ -30,9 +30,7 @@ qrl(()=>import("./d_wknfjeiqvua")
 
 export const d_wKNFJEIQVUA = ()=>console.log('thing')
 ;
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {
@@ -59,9 +57,7 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const Greeter_component_1_krCndSwhX4U = ()=>{
     return /*#__PURE__*/ _jsx("div", {});
 };
-import { handleWatch as hW } from "@builder.io/qwik";
-hW.issue123 && hW.issue123();
-export { hW as handleWatch };
+export { _hW } from "@builder.io/qwik";
 
 /*
 {

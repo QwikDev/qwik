@@ -5,9 +5,9 @@ import type { QwikDocument } from '../document';
 import { QContainerSelector, RenderEvent } from '../util/markers';
 import { getDocument } from '../util/dom';
 import type { QRL } from '../import/qrl.public';
-import type { Subscriber } from './use-subscriber';
 import { qError, QError_useInvokeContext, QError_useMethodOutsideContext } from '../error/error';
 import type { RenderContext } from '../render/types';
+import type { Subscriber } from './use-watch';
 
 declare const document: QwikDocument;
 

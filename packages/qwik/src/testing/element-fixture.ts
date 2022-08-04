@@ -19,6 +19,8 @@ import { getDomListeners } from '../core/props/props-on';
  * </host>
  * ```
  *
+ * @alpha
+ *
  */
 export class ElementFixture {
   window: MockWindow;
@@ -42,6 +44,9 @@ export class ElementFixture {
   }
 }
 
+/**
+ * @alpha
+ */
 export interface ElementFixtureOptions {
   tagName?: string;
 }

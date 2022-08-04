@@ -14,8 +14,14 @@ export type {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { pauseFromContexts } from './object/store';
-export type { SnapshotState, SnapshotResult } from './object/store';
+export { _pauseFromContexts } from './object/store';
+export type {
+  SnapshotState,
+  SnapshotResult,
+  SnapshotMeta,
+  SnapshotMetaValue,
+  SnapshotListener,
+} from './object/store';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
@@ -33,8 +39,45 @@ export { getPlatform, setPlatform } from './platform/platform';
 export type { CorePlatform } from './platform/types';
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Watch
+// JSX Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
+export { h } from './render/jsx/factory';
+export { Host, SkipRerender, SSRStreamBlock, SSRComment } from './render/jsx/host.public';
+export { Slot } from './render/jsx/slot.public';
+export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
+export type { HTMLAttributes, AriaAttributes, AriaRole } from './render/jsx/types/jsx-generated';
+export type {
+  DOMAttributes,
+  JSXTagName,
+  JSXChildren,
+  ComponentBaseProps,
+} from './render/jsx/types/jsx-qwik-attributes';
+export type { FunctionComponent, JSXNode } from './render/jsx/types/jsx-node';
+export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
+export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
+export type { HostAttributes } from './render/jsx/host.public';
+export { render } from './render/dom/render.public';
+export { renderSSR } from './render/ssr/render-ssr';
+export type { RenderSSROptions, StreamWriter } from './render/ssr/render-ssr';
+
+export type { RenderOptions } from './render/dom/render.public';
+export { _hW } from './render/dom/notify-render';
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// use API
+//////////////////////////////////////////////////////////////////////////////////////////
+export { useHostElement } from './use/use-host-element.public';
+export { useDocument } from './use/use-document.public';
+export { useLexicalScope } from './use/use-lexical-scope.public';
+export { useStore } from './use/use-store.public';
+export { useRef } from './use/use-ref';
+export { useContext, useContextProvider, createContext } from './use/use-context';
+export { useEnvData, useUserContext } from './use/use-env-data';
+export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
+export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
+export type { Context } from './use/use-context';
+export type { Ref } from './use/use-ref';
+export type { UseStoreOptions } from './use/use-store.public';
 export type {
   Tracker,
   WatchFn,
@@ -46,46 +89,16 @@ export type {
   ResourcePending,
   ResourceRejected,
   ResourceResolved,
+  WatchCtx,
+  UseWatchOptions,
+  ResourceFn,
 } from './use/use-watch';
 export { useWatch$, useWatchQrl } from './use/use-watch';
-export type { ResourceProps } from './use/use-resource';
+export type { ResourceProps, ResourceOptions } from './use/use-resource';
 export { useResource$, useResourceQrl, Resource } from './use/use-resource';
 export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
 export { useServerMount$, useServerMountQrl } from './use/use-watch';
 export { useMount$, useMountQrl } from './use/use-watch';
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// JSX Runtime
-//////////////////////////////////////////////////////////////////////////////////////////
-export { h } from './render/jsx/factory';
-export { Host, SkipRerender } from './render/jsx/host.public';
-export { Slot } from './render/jsx/slot.public';
-export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
-export type { HTMLAttributes, AriaAttributes } from './render/jsx/types/jsx-generated';
-export type { DOMAttributes } from './render/jsx/types/jsx-qwik-attributes';
-export type { FunctionComponent, JSXNode } from './render/jsx/types/jsx-node';
-export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
-export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
-export { render } from './render/dom/render.public';
-export { renderSSR } from './render/ssr/render-ssr';
-export { SSRStreamBlock, SSRComment } from './render/jsx/host.public';
-
-export type { RenderOptions } from './render/dom/render.public';
-export { handleWatch } from './render/dom/notify-render';
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// use API
-//////////////////////////////////////////////////////////////////////////////////////////
-export { useHostElement } from './use/use-host-element.public';
-export { useDocument } from './use/use-document.public';
-export { useLexicalScope } from './use/use-lexical-scope.public';
-export { useStore, useRef } from './use/use-store.public';
-export { useContext, useContextProvider, createContext } from './use/use-context';
-export { useEnvData, useUserContext } from './use/use-env-data';
-export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
-export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
-export type { Context } from './use/use-context';
-export type { Ref } from './use/use-store.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

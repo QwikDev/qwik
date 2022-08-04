@@ -5,7 +5,7 @@ import { component$ } from '../../component/component.public';
 import { runtimeQrl } from '../../import/qrl';
 import { pauseContainer } from '../../object/store';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
-import { useRef, useStore } from '../../use/use-store.public';
+import { useStore } from '../../use/use-store.public';
 import { useClientEffect$, useServerMount$, useWatch$ } from '../../use/use-watch';
 import { useCleanup$ } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
@@ -18,6 +18,7 @@ import { Host } from '../jsx/host.public';
 import type { h } from '../jsx/factory';
 import { getContainer } from '../../use/use-core';
 import { getContainerState } from '../container';
+import { useRef } from '../../use/use-ref';
 
 const renderSuite = suite('render');
 renderSuite('should render basic content', async () => {

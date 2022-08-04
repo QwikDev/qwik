@@ -118,6 +118,9 @@ function toPath(url: URL) {
   throw new Error(`Unable to find path for import "${url}"`);
 }
 
+/**
+ * @alpha
+ */
 export function getTestPlatform(document: any): TestPlatform {
   const testPlatform: TestPlatform = getPlatform(document) as any;
   if (!testPlatform) {

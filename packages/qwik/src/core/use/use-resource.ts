@@ -70,11 +70,10 @@ export const useResource$ = <T>(generatorFn: ResourceFn<T>): ResourceReturn<T> =
   return useResourceQrl<T>($(generatorFn));
 };
 
-
 /**
  * @public
  */
- export interface ResourceProps<T> {
+export interface ResourceProps<T> {
   resource: ResourceReturn<T>;
   onResolved: (value: T) => JSXNode;
   onPending?: () => JSXNode;
@@ -123,7 +122,6 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
   });
 };
 
-
 export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn<T> => {
   const resource: ResourceReturn<T> = {
     __brand: 'resource',
@@ -152,7 +150,6 @@ export const useIsServer = () => {
   assertDefined(ctx.$doc$, 'doc must be defined', ctx);
   return isServer(ctx.$doc$);
 };
-
 
 export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceReturnInternal<T> => {
   return getProxyTarget(resource) as any;

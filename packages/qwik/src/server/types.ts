@@ -1,9 +1,5 @@
-import type { SnapshotResult, StreamWriter, } from '@builder.io/qwik';
-import type {
-  QwikManifest,
-  SymbolMapperFn,
-  SymbolMapper
-} from '@builder.io/qwik/optimizer';
+import type { SnapshotResult, StreamWriter } from '@builder.io/qwik';
+import type { QwikManifest, SymbolMapperFn, SymbolMapper } from '@builder.io/qwik/optimizer';
 
 /**
  * @alpha

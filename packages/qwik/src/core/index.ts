@@ -15,7 +15,13 @@ export type {
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
 export { _pauseFromContexts } from './object/store';
-export type { SnapshotState, SnapshotResult, SnapshotMeta, SnapshotMetaValue, SnapshotListener } from './object/store';
+export type {
+  SnapshotState,
+  SnapshotResult,
+  SnapshotMeta,
+  SnapshotMetaValue,
+  SnapshotListener,
+} from './object/store';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime

@@ -91,7 +91,7 @@ export interface ResourceCtx<T> {
 /**
  * @public
  */
- export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
+export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
 
 /**
  * @public
@@ -576,7 +576,6 @@ export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
 // </docs>
 export const useMount$ = /*#__PURE__*/ implicit$FirstArg(useMountQrl);
 
-
 export type Subscriber = SubscriberDescriptor | Element;
 
 export type WatchDescriptor = DescriptorBase<WatchFn>;
@@ -584,7 +583,6 @@ export type WatchDescriptor = DescriptorBase<WatchFn>;
 export interface ResourceDescriptor<T> extends DescriptorBase<ResourceFn<T>, ResourceReturn<T>> {}
 
 export type SubscriberDescriptor = WatchDescriptor | ResourceDescriptor<any>;
-
 
 export const isResourceWatch = (watch: SubscriberDescriptor): watch is ResourceDescriptor<any> => {
   return !!watch.$resource$;
@@ -784,7 +782,6 @@ export const destroyWatch = (watch: SubscriberDescriptor) => {
     cleanupWatch(watch);
   }
 };
-
 
 const useRunWatch = (watch: SubscriberDescriptor, eagerness: EagernessOptions | undefined) => {
   if (eagerness === 'load') {

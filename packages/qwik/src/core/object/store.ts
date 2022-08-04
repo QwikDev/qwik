@@ -16,7 +16,12 @@ import {
   mutable,
   shouldSerialize,
 } from './q-object';
-import { destroyWatch, Subscriber, SubscriberDescriptor, WatchFlagsIsDirty } from '../use/use-watch';
+import {
+  destroyWatch,
+  Subscriber,
+  SubscriberDescriptor,
+  WatchFlagsIsDirty,
+} from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
 import { emitEvent } from '../util/event';
 import {

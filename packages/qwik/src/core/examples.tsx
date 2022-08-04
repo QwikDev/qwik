@@ -425,7 +425,6 @@ export const Items = component$(() => {
 // </docs>
 //
 
-
 // <docs anchor="qrl-usage-$">
 useOnDocument(
   'mousemove',

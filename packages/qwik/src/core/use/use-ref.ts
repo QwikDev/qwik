@@ -1,9 +1,9 @@
-import { useStore } from "./use-store.public";
+import { useStore } from './use-store.public';
 
 /**
  * @public
  */
- export interface Ref<T> {
+export interface Ref<T> {
   current: T | undefined;
 }
 

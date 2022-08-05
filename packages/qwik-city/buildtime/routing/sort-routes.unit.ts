@@ -34,6 +34,12 @@ test('routeSortCompare', () => {
   const routesReversed = [...pathnames].reverse().map((p) => route({ pathname: p }));
   const actualReversed = routesReversed.sort(routeSortCompare).map((r) => r.pathname);
   equal(actualReversed, pathnames);
+
+  const routesRandom = [...pathnames]
+    .sort(() => Math.random() - 0.5)
+    .map((p) => route({ pathname: p }));
+  const actualRandom = routesRandom.sort(routeSortCompare).map((r) => r.pathname);
+  equal(actualRandom, pathnames);
 });
 
 test(`endpoint > page`, async () => {

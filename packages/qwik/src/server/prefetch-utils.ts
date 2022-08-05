@@ -1,7 +1,7 @@
 import type { PrefetchResource } from './types';
 
 export function workerFetchScript() {
-  const fetch = `Promise.all(e.data.map(u=>fetch(u,{priority:"low"}))).finally(()=>{setTimeout(postMessage({}),999)})`;
+  const fetch = `Promise.all(e.data.map(u=>fetch(u))).finally(()=>{setTimeout(postMessage({}),9999)})`;
 
   const workerBody = `onmessage=(e)=>{${fetch}}`;
 
@@ -10,6 +10,8 @@ export function workerFetchScript() {
   const url = `URL.createObjectURL(${blob})`;
 
   let s = `const w=new Worker(${url});`;
+
+  // `u` variable must somehow get within this closure
   s += `w.postMessage(u.map(u=>new URL(u,origin)+''));`;
   s += `w.onmessage=()=>{w.terminate()};`;
 

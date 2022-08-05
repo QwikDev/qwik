@@ -31,7 +31,7 @@ export interface RouteSourceFile {
   ext: string;
 }
 
-export interface BuildRoute {
+export interface BuildRoute extends ParsedPathname {
   type: 'page' | 'endpoint';
   /**
    * Unique id built from its relative file system path
@@ -45,9 +45,21 @@ export interface BuildRoute {
    * URL Pathname
    */
   pathname: string;
+  layouts: BuildLayout[];
+}
+
+export interface ParsedPathname {
   pattern: RegExp;
   paramNames: string[];
-  layouts: BuildLayout[];
+  segments: PathnameSegment[];
+}
+
+export type PathnameSegment = PathnameSegmentPart[];
+
+export interface PathnameSegmentPart {
+  content: string;
+  dynamic: boolean;
+  rest: boolean;
 }
 
 export interface BuildFallbackRoute extends BuildRoute {

@@ -1,74 +1,50 @@
 import type { BuildRoute } from '../types';
 
-export function sortRoutes(a: BuildRoute, b: BuildRoute) {
-  const aSegments = a.pathname.split('/');
-  const bSegments = b.pathname.split('/');
+export function routeSortCompare(a: BuildRoute, b: BuildRoute) {
+  const maxSegments = Math.max(a.segments.length, b.segments.length);
 
-  const aSegmentsLen = aSegments.length;
-  const bSegmentsLen = bSegments.length;
+  for (let i = 0; i < maxSegments; i += 1) {
+    const sa = a.segments[i];
+    const sb = b.segments[i];
 
-  if (aSegmentsLen > bSegmentsLen) return -1;
-  if (aSegmentsLen < bSegmentsLen) return 1;
-
-  if (aSegmentsLen === bSegmentsLen) {
-    let aCatchalls = 0;
-    let bCatchalls = 0;
-    let aParams = 0;
-    let bParams = 0;
-    for (let i = 1; i < aSegmentsLen; i++) {
-      const aSegment = aSegments[i];
-      const bSegment = bSegments[i];
-
-      const aHasCatchall = aSegment.includes('[...');
-      const bHasCatchall = bSegment.includes('[...');
-      if (!aHasCatchall && bHasCatchall) {
-        return -1;
-      }
-      if (aHasCatchall && !bHasCatchall) {
-        return 1;
-      }
-
-      const aHasParam = aSegment.includes('[');
-      const bHasParam = bSegment.includes('[');
-      if (!aHasParam && bHasParam) {
-        return -1;
-      }
-      if (aHasParam && !bHasParam) {
-        return 1;
-      }
-
-      if (aHasCatchall) {
-        aCatchalls++;
-      }
-      if (bHasCatchall) {
-        bCatchalls++;
-      }
-      if (aHasParam) {
-        aParams++;
-      }
-      if (bHasParam) {
-        bParams++;
-      }
+    // /x < /x/y, but /[...x]/y < /[...x]
+    if (!sa) {
+      return a.id.includes('[...') ? 1 : -1;
     }
-    if (aCatchalls < bCatchalls) {
-      return -1;
+    if (!sb) {
+      return b.id.includes('[...') ? -1 : 1;
     }
-    if (aCatchalls > bCatchalls) {
-      return 1;
-    }
-    if (aParams < bParams) {
-      return -1;
-    }
-    if (aParams > bParams) {
-      return 1;
+
+    const maxParts = Math.max(sa.length, sb.length);
+    for (let i = 0; i < maxParts; i += 1) {
+      const pa = sa[i];
+      const pb = sb[i];
+
+      // xy < x[y], but [x].json < [x]
+      if (pa === undefined) {
+        return pb.dynamic ? -1 : 1;
+      }
+      if (pb === undefined) {
+        return pa.dynamic ? 1 : -1;
+      }
+
+      // x < [x]
+      if (pa.dynamic !== pb.dynamic) {
+        return pa.dynamic ? 1 : -1;
+      }
+
+      if (pa.dynamic) {
+        // [x] < [...x]
+        if (pa.rest !== pb.rest) {
+          return pa.rest ? 1 : -1;
+        }
+      }
     }
   }
 
-  if (a.type === 'endpoint' && b.type === 'page') return -1;
-  if (a.type === 'page' && b.type === 'endpoint') return 1;
+  if (a.type !== b.type) {
+    return a.type === 'endpoint' ? -1 : 1;
+  }
 
-  if (a.pathname.toLowerCase() < b.pathname.toLowerCase()) return -1;
-  if (a.pathname.toLowerCase() > b.pathname.toLowerCase()) return 1;
-
-  return 0;
+  return a.pathname < b.pathname ? -1 : 1;
 }

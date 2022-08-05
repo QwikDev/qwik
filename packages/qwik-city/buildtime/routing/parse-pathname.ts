@@ -1,30 +1,31 @@
+import type { ParsedPathname, PathnameSegmentPart } from '../types';
+
 /**
  * Adopted from SvelteKit
  * https://github.com/sveltejs/kit/blob/master/LICENSE
  */
-export function parseRoutePathname(pathname: string) {
-  const paramNames: string[] = [];
-  const paramTypes: string[] = [];
-
+export function parseRoutePathname(pathname: string): ParsedPathname {
   if (pathname === '/') {
-    return { pattern: /^\/$/, paramNames, paramTypes };
+    return {
+      pattern: /^\/$/,
+      paramNames: [],
+      segments: [[{ content: '', dynamic: false, rest: false }]],
+    };
   }
 
+  pathname = decodeURIComponent(pathname.slice(1));
+
+  const segments = pathname.split('/');
+  const paramNames: string[] = [];
   let addTrailingSlash = true;
 
-  pathname = pathname.slice(1);
-
-  pathname = decodeURIComponent(pathname);
-
   const pattern = new RegExp(
-    `^${pathname
-      .split('/')
+    `^${segments
       .map((segment, i, segments) => {
         // special case — /[...rest]/ could contain zero segments
-        const catchAll = /^\[\.\.\.(\w+)(?:=(\w+))?\]$/.exec(segment);
+        const catchAll = /^\[\.\.\.(\w+)?\]$/.exec(segment);
         if (catchAll) {
           paramNames.push(catchAll[1]);
-          paramTypes.push(catchAll[2]);
           return '(?:/(.*))?';
         }
 
@@ -38,9 +39,8 @@ export function parseRoutePathname(pathname: string) {
               if (i % 2) {
                 const rg = PARAM_PATTERN.exec(content);
                 if (rg) {
-                  const [, rest, name, type] = rg;
+                  const [, rest, name] = rg;
                   paramNames.push(name);
-                  paramTypes.push(type);
                   return rest ? '(.*?)' : '([^/]+?)';
                 }
               }
@@ -73,9 +73,25 @@ export function parseRoutePathname(pathname: string) {
       .join('')}${addTrailingSlash ? '/?' : ''}$`
   );
 
-  return { pattern, paramNames, paramTypes };
+  return {
+    pattern,
+    paramNames,
+    segments: segments.map((segment) => {
+      const parts: PathnameSegmentPart[] = [];
+      segment.split(/\[(.+?)\]/).map((content, i) => {
+        if (content) {
+          const dynamic = !!(i % 2);
+          parts.push({
+            content,
+            dynamic,
+            rest: dynamic && content.startsWith('...'),
+          });
+        }
+      });
+      return parts;
+    }),
+  };
 }
 
-const PARAM_PATTERN = /^(\.\.\.)?(\w+)(?:=(\w+))?$/;
-
-export const DYNAMIC_SEGMENT = /\[(.+?)\]/;
+const PARAM_PATTERN = /^(\.\.\.)?(\w+)?$/;
+const DYNAMIC_SEGMENT = /\[(.+?)\]/;

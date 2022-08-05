@@ -11,42 +11,30 @@ const tests = {
   '/': {
     pattern: /^\/$/,
     paramNames: [],
-    paramTypes: [],
   },
   '/blog': {
     pattern: /^\/blog\/?$/,
     paramNames: [],
-    paramTypes: [],
   },
   '/blog.json': {
     pattern: /^\/blog\.json$/,
     paramNames: [],
-    paramTypes: [],
   },
   '/blog/[slug]': {
     pattern: /^\/blog\/([^/]+?)\/?$/,
     paramNames: ['slug'],
-    paramTypes: [undefined],
   },
   '/blog/[slug].json': {
     pattern: /^\/blog\/([^/]+?)\.json$/,
     paramNames: ['slug'],
-    paramTypes: [undefined],
   },
   '/[...catchall]': {
     pattern: /^(?:\/(.*))?\/?$/,
     paramNames: ['catchall'],
-    paramTypes: [undefined],
   },
   '/foo/[...catchall]/bar': {
     pattern: /^\/foo(?:\/(.*))?\/bar\/?$/,
     paramNames: ['catchall'],
-    paramTypes: [undefined],
-  },
-  '/matched/[id=uuid]': {
-    pattern: /^\/matched\/([^/]+?)\/?$/,
-    paramNames: ['id'],
-    paramTypes: ['uuid'],
   },
 };
 
@@ -56,7 +44,6 @@ for (const [key, expected] of Object.entries(tests)) {
 
     assert.equal(actual.pattern.toString(), expected.pattern.toString());
     assert.equal(actual.paramNames, expected.paramNames);
-    assert.equal(actual.paramTypes, expected.paramTypes);
   });
 }
 

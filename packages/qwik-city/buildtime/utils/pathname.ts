@@ -1,5 +1,4 @@
 import { relative, dirname, join, extname } from 'path';
-import { DYNAMIC_SEGMENT } from '../routing/parse-pathname';
 import type { NormalizedPluginOptions } from '../types';
 import { getExtensionLessBasename, is404Name, is500Name, isMarkdownExt, normalizePath } from './fs';
 
@@ -56,10 +55,6 @@ export function removePathlessSegments(pathname: string) {
 
 export function isPathlessSegment(segment: string) {
   return segment.startsWith('__');
-}
-
-export function isDynamicSegment(segment: string) {
-  return DYNAMIC_SEGMENT.test(segment);
 }
 
 export function getMenuPathname(opts: NormalizedPluginOptions, filePath: string) {

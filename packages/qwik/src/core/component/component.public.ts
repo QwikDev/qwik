@@ -142,7 +142,7 @@ export const componentQrl = <PROPS extends {}>(
   onRenderQrl: QRL<OnRenderFn<PROPS>>,
   options: ComponentOptions = {}
 ): Component<PROPS> => {
-  const tagName = options.tagName ?? 'div';
+  const tagName = options.tagName ?? 'q:host';
   const skipKey = ELEMENTS_SKIP_KEY.includes(tagName);
 
   // Return a QComponent Factory function.

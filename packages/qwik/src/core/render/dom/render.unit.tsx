@@ -259,20 +259,20 @@ renderSuite('should render a div then a component', async () => {
   await render(fixture.host, <ToggleRootComponent />);
   await expectRendered(
     fixture,
-    <div aria-hidden="false">
+    <q:host aria-hidden="false">
       <div class="normal">Normal div</div>
       <button>toggle</button>
-    </div>
+    </q:host>
   );
   await trigger(fixture.host, 'button', 'click');
   await expectRendered(
     fixture,
-    <div aria-hidden="true">
-      <div>
+    <q:host aria-hidden="true">
+      <q:host>
         <div>this is ToggleChild</div>
-      </div>
+      </q:host>
       <button>toggle</button>
-    </div>
+    </q:host>
   );
 });
 
@@ -282,20 +282,20 @@ renderSuite('should process clicks', async () => {
   await render(fixture.host, <Counter step={5} />);
   await expectRendered(
     fixture,
-    <div>
+    <q:host>
       <button>-</button>
       <span>0</span>
       <button>+</button>
-    </div>
+    </q:host>
   );
   await trigger(fixture.host, 'button.increment', 'click');
   await expectRendered(
     fixture,
-    <div>
+    <q:host>
       <button>-</button>
       <span>5</span>
       <button>+</button>
-    </div>
+    </q:host>
   );
 });
 
@@ -489,7 +489,7 @@ renderSuite('should render a component with hooks', async () => {
   await render(fixture.host, <Hooks />);
   await expectRendered(
     fixture,
-    <div>
+    <q:host>
       <div id="effect"></div>
       <div id="effect-destroy"></div>
 
@@ -500,13 +500,13 @@ renderSuite('should render a component with hooks', async () => {
       <div id="cleanup"></div>
 
       <div id="reference">true</div>
-    </div>
+    </q:host>
   );
 
   await pauseContainer(fixture.host);
   await expectRendered(
     fixture,
-    <div>
+    <q:host>
       <div id="effect"></div>
       <div id="effect-destroy"></div>
 
@@ -517,7 +517,7 @@ renderSuite('should render a component with hooks', async () => {
       <div id="cleanup">true</div>
 
       <div id="reference">true</div>
-    </div>
+    </q:host>
   );
 });
 

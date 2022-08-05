@@ -12,7 +12,7 @@ import type {
 import { createFileId, isLayoutName, normalizePath, parseLayoutId } from '../utils/fs';
 import { getPathnameFromFilePath } from '../utils/pathname';
 import { parseRoutePathname } from './parse-pathname';
-import { sortRoutes } from './sort-routes';
+import { routeSortCompare } from './sort-routes';
 
 export function resolveSourceFiles(opts: NormalizedPluginOptions, sourceFiles: RouteSourceFile[]) {
   const layouts = sourceFiles
@@ -27,12 +27,12 @@ export function resolveSourceFiles(opts: NormalizedPluginOptions, sourceFiles: R
   const routes = sourceFiles
     .filter((s) => s.type === 'page' || s.type === 'endpoint')
     .map((s) => resolveRoute(opts, layouts, s))
-    .sort(sortRoutes);
+    .sort(routeSortCompare);
 
   const fallbackRoutes = sourceFiles
     .filter((s) => s.type === '404' || s.type === '500')
     .map((s) => resolveFallbackRoute(opts, layouts, s))
-    .sort(sortRoutes);
+    .sort(routeSortCompare);
 
   const entries = sourceFiles
     .filter((s) => s.type === 'entry')

@@ -67,7 +67,7 @@ export const onGet: EndpointHandler<EndpointData> = async ({ params, response })
     return;
   }
 
-  // artificial database call and slow response
+  // artificially slow database call
   const productData = await loadProduct(params.id);
 
   if (!productData) {
@@ -101,7 +101,7 @@ const loadProduct = (productId: string) => {
         }`,
       };
 
-      return productData;
+      resolve(productData);
     }, 250)
   );
 };

@@ -298,13 +298,13 @@ renderSSRSuite('DelayResource', async () => {
     </html>,
     `<html q:container="paused" q:version="dev" q:render="ssr">
     <ul>
-      <div q:key="sX:" class="cmp" q:id="1">
+      <q:host q:key="sX:" class="cmp" q:id="1">
         <style q:style="fio5tb-0">.cmp {background: blue}</style>
         <span>thing</span>
-      </div>
-      <div q:key="sX:" class="cmp" q:id="0">
+      </q:host>
+      <q:host q:key="sX:" class="cmp" q:id="0">
         <span>thing</span>
-      </div>
+      </q:host>
     </ul>
   </html>`
   );
@@ -323,10 +323,10 @@ renderSSRSuite('using promises with DelayResource', async () => {
     `<html q:container="paused" q:version="dev" q:render="ssr">
       <ul>
         <li>thing</li>
-        <div q:key="sX:" class="cmp" q:id="0">
+        <q:host q:key="sX:" class="cmp" q:id="0">
           <style q:style="fio5tb-0">.cmp {background: blue}</style>
           <span>thing</span>
-        </div>
+        </q:host>
       </ul>
     </html>`
   );
@@ -375,7 +375,7 @@ renderSSRSuite('using complex component', async () => {
     <html>
       <MyCmpComplex></MyCmpComplex>
     </html>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div q:key="sX:" q:id="0" on:click="/runtimeQRL#_"><div q:id="1"><button q:id="2" on:click="/runtimeQRL#_">Click</button><q:slot q:sname q:key q:sref="0"></q:slot></div></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr"><q:host q:key="sX:" q:id="0" on:click="/runtimeQRL#_"><div q:id="1"><button q:id="2" on:click="/runtimeQRL#_">Click</button><q:slot q:sname q:key q:sref="0"></q:slot></div></q:host></html>'
   );
 });
 
@@ -384,7 +384,7 @@ renderSSRSuite('using complex component with slot', async () => {
     <html>
       <MyCmpComplex>Hola</MyCmpComplex>
     </html>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div q:key="sX:" q:id="0" on:click="/runtimeQRL#_"><div q:id="1"><button q:id="2" on:click="/runtimeQRL#_">Click</button><q:slot q:sname q:key q:sref="0">Hola</q:slot></div></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr"><q:host q:key="sX:" q:id="0" on:click="/runtimeQRL#_"><div q:id="1"><button q:id="2" on:click="/runtimeQRL#_">Click</button><q:slot q:sname q:key q:sref="0">Hola</q:slot></div></q:host></html>'
   );
 });
 
@@ -410,7 +410,7 @@ renderSSRSuite('<head>', async () => {
         <p>hola</p>
       </div>
       <style id="qwik/base-styles">
-        q\\:slot{display:contents}
+        q\\:slot,q\\:host{display:contents}
         q\\:fallback,q\\:template{display:none}
         q\\:fallback:last-child{display:contents}
       </style>
@@ -436,7 +436,7 @@ renderSSRSuite('named slots', async () => {
     </html>,
     `
     <html q:container="paused" q:version="dev" q:render="ssr">
-      <div q:key="sX:" q:id="0">
+      <q:host q:key="sX:" q:id="0">
         <q:slot q:sname="start" q:key="start" q:sref="0">
           <div q:slot="start">START: 1</div><div q:slot="start">START: 2</div>
         </q:slot>
@@ -448,7 +448,7 @@ renderSSRSuite('named slots', async () => {
         <q:slot q:sname="end" q:key="end" q:sref="0">
           <div q:slot="end">END: 1</div><div q:slot="end">END: 2</div>
         </q:slot>
-      </div>
+      </q:host>
     </html>`
   );
 });
@@ -468,13 +468,13 @@ renderSSRSuite('nested slots', async () => {
     </html>,
     `
 <html q:container="paused" q:version="dev" q:render="ssr">
-  <div q:key="sX:" id="root" q:id="0">
+  <q:host q:key="sX:" id="root" q:id="0">
     Before root
     <q:slot q:sname q:key q:sref="0">
-      <div q:key="sX:" id="level 1" q:id="1">
+      <q:host q:key="sX:" id="level 1" q:id="1">
         Before level 1
         <q:slot q:sname q:key q:sref="1">
-          <div q:key="sX:" id="level 2" q:id="2">
+          <q:host q:key="sX:" id="level 2" q:id="2">
             Before level 2
             <q:slot q:sname q:key q:sref="2">
               BEFORE CONTENT
@@ -482,13 +482,13 @@ renderSSRSuite('nested slots', async () => {
               AFTER CONTENT
             </q:slot>
             After level 2
-          </div>
+          </q:host>
         </q:slot>
         After level 1
-      </div>
+      </q:host>
     </q:slot>
     After root
-  </div>
+  </q:host>
   </html>`
   );
 });
@@ -500,8 +500,8 @@ renderSSRSuite('mixes slots', async () => {
     </html>,
     `
     <html q:container="paused" q:version="dev" q:render="ssr">
-      <div q:key="sX:" q:id="0">
-        <div q:key="sX:" id="1" q:id="1">
+      <q:host q:key="sX:" q:id="0">
+        <q:host q:key="sX:" id="1" q:id="1">
           Before 1
           <q:slot q:sname q:key q:sref="1">
             <q:slot q:sname q:key q:sref="0">
@@ -509,8 +509,8 @@ renderSSRSuite('mixes slots', async () => {
             </q:slot>
           </q:slot>
           After 1
-        </div>
-      </div>
+        </q:host>
+      </q:host>
     </html>`
   );
 });
@@ -523,12 +523,12 @@ renderSSRSuite('component useContextProvider()', async () => {
       </Context>
     </html>,
     `<html q:container="paused" q:version="dev" q:render="ssr">
-      <div q:key="sX:" q:id="0" q:ctx="internal qwikcity">
+      <q:host q:key="sX:" q:id="0" q:ctx="internal qwikcity">
         <q:slot q:sname q:key q:sref="0">
-          <div class="projected" q:key="sX:" q:id="1">hello bye</div>
+          <q:host class="projected" q:key="sX:" q:id="1">hello bye</q:host>
         </q:slot>
-        <div q:key="sX:" q:id="2">hello bye</div>
-      </div>
+        <q:host q:key="sX:" q:id="2">hello bye</q:host>
+      </q:host>
     </html>`
   );
 });
@@ -538,7 +538,7 @@ renderSSRSuite('component useOn()', async () => {
     <html>
       <Events />
     </html>,
-    `<html q:container="paused" q:version="dev" q:render="ssr"><div q:key="sX:" q:id="0" on:click="/runtimeQRL#_\n/runtimeQRL#_" on-window:click="/runtimeQRL#_" on-document:click="/runtimeQRL#_"></div></html>`
+    `<html q:container="paused" q:version="dev" q:render="ssr"><q:host q:key="sX:" q:id="0" on:click="/runtimeQRL#_\n/runtimeQRL#_" on-window:click="/runtimeQRL#_" on-document:click="/runtimeQRL#_"></q:host></html>`
   );
 });
 
@@ -548,10 +548,10 @@ renderSSRSuite('component useStyles()', async () => {
       <Styles />
     </html>,
     `<html q:container="paused" q:version="dev" q:render="ssr">
-      <div q:key="sX:" class="host" q:id="0">
+      <q:host q:key="sX:" class="host" q:id="0">
         <style q:style="17nc-0">.host {color: red}</style>
         Text
-      </div>
+      </q:host>
     </html>`
   );
 });
@@ -564,7 +564,7 @@ renderSSRSuite('component useStylesScoped()', async () => {
       </ScopedStyles1>
     </html>,
     `<html q:container="paused" q:version="dev" q:render="ssr">
-      <div q:key="sX:" q:sstyle="⭐️1d-0" class="⭐️1d-0 host" q:id="0">
+      <q:host q:key="sX:" q:sstyle="⭐️1d-0" class="⭐️1d-0 host" q:id="0">
         <style q:style="1d-0">.host.⭐️1d-0 {color: red}</style>
         <div class="⭐️1d-0">
           Scoped1
@@ -573,20 +573,20 @@ renderSSRSuite('component useStylesScoped()', async () => {
           </q:slot>
           <p class="⭐️1d-0">Que tal?</p>
         </div>
-        <div q:key="sX:" class="⭐️1d-0 ⭐️f0gmsw-0 host" q:sstyle="⭐️f0gmsw-0" q:id="2">
+        <q:host q:key="sX:" class="⭐️1d-0 ⭐️f0gmsw-0 host" q:sstyle="⭐️f0gmsw-0" q:id="2">
           <style q:style="f0gmsw-0">.host.⭐️f0gmsw-0 {color: blue}</style>
           <div class="⭐️f0gmsw-0">
             Scoped2
             <p class="⭐️f0gmsw-0">Bien</p>
           </div>
-        </div>
-        <div q:key="sX:" class="⭐️1d-0 ⭐️f0gmsw-0 host" q:sstyle="⭐️f0gmsw-0" q:id="1">
+        </q:host>
+        <q:host q:key="sX:" class="⭐️1d-0 ⭐️f0gmsw-0 host" q:sstyle="⭐️f0gmsw-0" q:id="1">
           <div class="⭐️f0gmsw-0">
             Scoped2
             <p class="⭐️f0gmsw-0">Bien</p>
           </div>
-        </div>
-      </div>
+        </q:host>
+      </q:host>
     </html>`
   );
 });
@@ -596,7 +596,7 @@ renderSSRSuite('component useClientEffect()', async () => {
     <html>
       <UseClientEffect />
     </html>,
-    `<html q:container="paused" q:version="dev" q:render="ssr"><div q:key="sX:" q:id="0" on:qvisible="/runtimeQRL#_[0]"></div></html>`
+    `<html q:container="paused" q:version="dev" q:render="ssr"><q:host q:key="sX:" q:id="0" on:qvisible="/runtimeQRL#_[0]"></q:host></html>`
   );
 });
 
@@ -625,13 +625,13 @@ renderSSRSuite('fragment name', async () => {
       <UseClientEffect></UseClientEffect>
     </>,
     `<container q:container="paused" q:version="dev" q:render="ssr" q:base="/manu/folder">
-      <style id="qwik/base-styles">q\\:slot{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}</style>
+      <style id="qwik/base-styles">q\\:slot,q\\:host{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}</style>
       <link rel="stylesheet" href="/global.css">
-      <div q:key="sX:" class="host" q:id="1">
+      <q:host q:key="sX:" class="host" q:id="1">
         <style q:style="17nc-0">.host {color: red}</style>
         Text
-      </div>
-      <div q:key="sX:" q:id="0" on:qvisible="/runtimeQRL#_[0]"></div>
+      </q:host>
+      <q:host q:key="sX:" q:id="0" on:qvisible="/runtimeQRL#_[0]"></q:host>
     </container>`,
     {
       fragmentTagName: 'container',
@@ -685,7 +685,7 @@ renderSSRSuite('html slot', async () => {
       <head>
         <meta charSet="utf-8" q:head>
         <title q:head>Qwik</title>
-        <style id="qwik/base-styles">q\\:slot{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}</style>
+        <style id="qwik/base-styles">q\\:slot,q\\:host{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}</style>
         <link rel="stylesheet" href="/global.css">
       </head>
       <body>
@@ -704,7 +704,7 @@ renderSSRSuite('null component', async () => {
     <html>
       <NullCmp />
     </html>,
-    `<html q:container="paused" q:version="dev" q:render="ssr"><div q:key="sX:" q:id="0"></div></html>`
+    `<html q:container="paused" q:version="dev" q:render="ssr"><q:host q:key="sX:" q:id="0"></q:host></html>`
   );
 });
 // TODO

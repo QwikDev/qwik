@@ -73,26 +73,29 @@ export const SlotParent = component$(() => {
   );
 });
 
-export const Projector = component$((props: { state: any }) => {
-  return (
-    <Host
-      onClick$={() => {
-        props.state.count--;
-      }}
-    >
-      <Button>
-        <Slot name="start">Placeholder Start</Slot>
+export const Projector = component$(
+  (props: { state: any }) => {
+    return (
+      <Host
+        onClick$={() => {
+          props.state.count--;
+        }}
+      >
+        <Button>
+          <Slot name="start">Placeholder Start</Slot>
 
-        {!props.state.disableButtons && (
-          <div>
-            <Slot as="article" />
-          </div>
-        )}
-        <Slot name="end" />
-      </Button>
-    </Host>
-  );
-});
+          {!props.state.disableButtons && (
+            <div>
+              <Slot as="article" />
+            </div>
+          )}
+          <Slot name="end" />
+        </Button>
+      </Host>
+    );
+  },
+  { tagName: 'div' }
+);
 
 export const Button = component$(
   () => {

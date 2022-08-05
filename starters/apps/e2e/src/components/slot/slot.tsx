@@ -22,7 +22,7 @@ export const SlotParent = component$(() => {
           </Projector>
 
           <Thing state={state} id="btn3">
-            <Projector host:id="projected" state={state}>
+            <Projector host:id="projected" host:tagName='div' state={state}>
               {!state.removeContent && <>INSIDE THING {state.count}</>}
             </Projector>
           </Thing>

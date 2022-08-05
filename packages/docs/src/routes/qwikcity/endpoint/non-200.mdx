@@ -15,6 +15,8 @@ Assume this file layout.
         - details.js     # https://example.com/product/1234/details
 ```
 
+## 404 - Not Found
+
 Let's say that a user does a request to an invalid `skuId` such as `https://example.com/product/999/details`. In this case, we would like to return a 404 HTTP status code and render a 404 page. The place where we determine if the request is valid or not is the data endpoint by looking into the database. Even if the response is non-200, the component still gets a chance to render a page (Except in the redirect case.)
 
 ```typescript
@@ -65,3 +67,41 @@ export default component$(() => {
   );
 });
 ```
+
+## 3xx - Redirect
+
+Sometimes you want to redirect a user from the current page to another page.
+
+Let's say a user tries to go to a dashboard page, but has not logged in yet. We want them to be redirect to a log-in page so they can be authenticated.
+
+```typescript
+// File: src/routes/dashboard.js
+import {component$} from '@builder.io/qwik';
+import {DocumentHead} from '@builder.io/qwik-city';
+import {checkAuthorization} from '../utils' // Your authorization code
+import type {DashboardData} from '../types' // Your types
+
+export const onGet: EndpointHandler<DashboardData> = async ({ request, response }) => {
+	const isAuthorized = checkAuthorization(request.headers.get('cookie'));
+
+	if (!isAuthorized) {
+		// User is not authorized!
+		// Redirect to the log-in page
+		return response.redirect('/login')
+	} else {
+		// ...
+	}
+};
+```
+
+The `response.redirect` function takes a url and optionally a status code as the second argument. 
+
+```tsx
+return response.redirect('/login', 301) // Permanent redirect
+```
+
+Redirect status codes are between 300-399. 
+
+If you do not provide a status code, Qwik City will default to a 307 temporary redirect status.
+
+Read more about redirect status codes [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages). 

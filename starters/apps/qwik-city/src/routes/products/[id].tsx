@@ -1,6 +1,5 @@
 import { Resource, component$, Host } from '@builder.io/qwik';
 import { useEndpoint, useLocation, EndpointHandler, DocumentHead } from '@builder.io/qwik-city';
-import os from 'os';
 
 export default component$(() => {
   const { params } = useLocation();
@@ -96,9 +95,7 @@ const loadProduct = (productId: string) => {
       const productData: ProductData = {
         productId,
         price: productPrice,
-        description: `Node ${process.versions.node} ${os.platform()} ${os.arch()} ${
-          os.cpus()[0].model
-        }`,
+        description: `Product description here.`,
       };
 
       resolve(productData);

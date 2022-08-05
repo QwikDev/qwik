@@ -1,83 +1,65 @@
 import { test } from 'uvu';
 import { equal } from 'uvu/assert';
 import type { BuildRoute } from '../types';
-import { sortRoutes } from './sort-routes';
+import { parseRoutePathname } from './parse-pathname';
+import { routeSortCompare } from './sort-routes';
 
-test(`sort compare`, async () => {
-  const compare = [
-    { higher: '/x/[...p]', lower: '/[...p]' },
-
-    { higher: '/[p]/[p]', lower: '/[...p]/[...p]' },
-
-    { higher: '/[p]/[p]', lower: '/[...p]' },
-
-    { higher: '/[p]', lower: '/[...p]' },
-
-    { higher: '/x/y/[p]', lower: '/[p]/[p]/[p]' },
-
-    { higher: '/x/[p]/[p]', lower: '/[p]/[p]/[p]' },
-
-    { higher: '/x/y/z', lower: '/[p]/[p]/[p]' },
-
-    { higher: '/x/y/z', lower: '/x/[p]/[p]' },
-
-    { higher: '/x/y/z', lower: '/x/y/[p]' },
-
-    { higher: '/x/[p]/[p]/y', lower: '/x/[p]/y' },
-
-    { higher: '/x/[p]/z', lower: '/x/[p]' },
-
-    { higher: '/x/y/[p]', lower: '/x/[p]' },
-
-    { higher: '/x/[p]', lower: '/[p]/[p]' },
-
-    { higher: '/x/[p]', lower: '/[p]' },
-
-    { higher: '/x', lower: '/[p]' },
-
-    { higher: '/x/y/z', lower: '/x/y' },
-
-    { higher: '/x/y/[a]', lower: '/x/y/[z]' },
-
-    { higher: '/x/y', lower: '/x' },
-
-    { higher: '/abc', lower: '/xyz' },
+test('routeSortCompare', () => {
+  const pathnames = [
+    '/',
+    '/about',
+    '/blog',
+    '/blog/bar',
+    '/blog/foo',
+    '/blog/p[yyy].json',
+    '/blog/p[xxx]',
+    '/blog/p[yyy]',
+    '/blog/p[zzz]',
+    '/blog/[slug]',
+    '/[aaa]',
+    '/[bbb]',
+    '/[ccc]',
+    '/[...rest1]/lmn/[...deep_rest]/xyz',
+    '/[...rest1]/lmn/[...deep_rest]',
+    '/[...rest1]/abc',
+    '/[...rest1]/lmn',
+    '/[...rest2]',
+    '/[...rest]',
   ];
 
-  compare.forEach((c) => {
-    const higher = route({ pathname: c.higher });
-    const lower = route({ pathname: c.lower });
-    equal(
-      sortRoutes(higher, lower),
-      -1,
-      `${higher.pathname} is not higher than ${lower.pathname}, value -1`
-    );
-    equal(
-      sortRoutes(lower, higher),
-      1,
-      `${higher.pathname} is not higher than ${lower.pathname}, value 1`
-    );
-  });
+  const routesSame = [...pathnames].map((p) => route({ pathname: p }));
+  const actualSame = routesSame.sort(routeSortCompare).map((r) => r.pathname);
+  equal(actualSame, pathnames);
+
+  const routesReversed = [...pathnames].reverse().map((p) => route({ pathname: p }));
+  const actualReversed = routesReversed.sort(routeSortCompare).map((r) => r.pathname);
+  equal(actualReversed, pathnames);
+
+  const routesRandom = [...pathnames]
+    .sort(() => Math.random() - 0.5)
+    .map((p) => route({ pathname: p }));
+  const actualRandom = routesRandom.sort(routeSortCompare).map((r) => r.pathname);
+  equal(actualRandom, pathnames);
 });
 
 test(`endpoint > page`, async () => {
   const a = route({ type: 'endpoint' });
   const b = route({ type: 'page' });
-  equal(sortRoutes(a, b), -1);
-  equal(sortRoutes(b, a), 1);
+  equal(routeSortCompare(a, b), -1);
+  equal(routeSortCompare(b, a), 1);
 });
 
 function route(r: TestRoute) {
-  const br: BuildRoute = {
+  const pathname = r.pathname || '/';
+  const route: BuildRoute = {
     type: r.type || 'page',
-    id: '',
-    filePath: '',
-    paramNames: r.paramNames || [],
-    pathname: r.pathname || '/',
-    pattern: /bogus/,
+    id: pathname,
+    filePath: pathname,
+    pathname,
     layouts: [],
+    ...parseRoutePathname(pathname),
   };
-  return br;
+  return route;
 }
 
 interface TestRoute {

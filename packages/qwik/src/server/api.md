@@ -35,7 +35,11 @@ export interface InOrderDisabled {
 export type InOrderStreaming = InOrderAuto | InOrderDisabled;
 
 // @alpha (undocumented)
-export type PrefetchImplementation = 'link-prefetch-html' | 'link-prefetch' | 'link-preload-html' | 'link-preload' | 'link-modulepreload-html' | 'link-modulepreload' | 'worker-fetch' | 'none';
+export interface PrefetchImplementation {
+    linkInsert?: 'js-append' | 'html-append' | null;
+    linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
+    workerFetchInsert?: 'always' | 'no-link-support' | null;
+}
 
 // @alpha (undocumented)
 export interface PrefetchResource {
@@ -47,8 +51,10 @@ export interface PrefetchResource {
 
 // @alpha (undocumented)
 export interface PrefetchStrategy {
+    // Warning: (ae-forgotten-export) The symbol "DeprecatedPrefetchImplementation" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    implementation?: PrefetchImplementation;
+    implementation?: PrefetchImplementation | DeprecatedPrefetchImplementation;
     // (undocumented)
     symbolsToPrefetch?: SymbolsToPrefetch;
 }

@@ -1,7 +1,7 @@
 import { component$, Host, useClientEffect$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
-  const store = useStore({ timestamp: '', os: '', arch: '', node: '' });
+  const store = useStore({ timestamp: '' });
 
   useClientEffect$(async () => {
     const url = `/api/builder.io/oss.json`;
@@ -9,9 +9,6 @@ export default component$(() => {
     const data: any = await rsp.json();
 
     store.timestamp = data.timestamp;
-    store.os = data.os;
-    store.arch = data.arch;
-    store.node = data.node;
   });
 
   return (
@@ -28,12 +25,6 @@ export default component$(() => {
       </ul>
 
       <p>Timestamp: {store.timestamp}</p>
-      <p>
-        Node: <span>{store.node}</span>
-      </p>
-      <p>
-        OS: <span>{store.os}</span>
-      </p>
     </Host>
   );
 });

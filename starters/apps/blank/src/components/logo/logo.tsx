@@ -5,12 +5,7 @@ export const Logo = component$(() => {
   return (
     <Host style={{ 'text-align': 'center' }}>
       <a href="https://qwik.builder.io/">
-        <img
-          alt="Qwik Logo"
-          width={400}
-          height={147}
-          src={logoPng}
-        />
+        <img alt="Qwik Logo" width={400} height={147} src={logoPng} />
       </a>
     </Host>
   );

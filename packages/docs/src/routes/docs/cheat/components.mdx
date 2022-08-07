@@ -24,9 +24,7 @@ interface GreeterProps {
   name?: string;
 }
 
-export const Greeter = component$(({ salutation, name }: GreeterProps) => {
-  const salutation = salutation || 'Hello';
-  const name = name || 'World';
+export const Greeter = component$(({ salutation = 'Hello', name = 'World' }: GreeterProps) => {
   return (
     <span>
       {salutation} {name}!

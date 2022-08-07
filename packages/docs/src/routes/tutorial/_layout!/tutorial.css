@@ -110,7 +110,7 @@
   grid-area: content-footer;
   padding: 7px 15px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: auto auto;
   background-color: var(--repl-tab-bg-color);
 }
 

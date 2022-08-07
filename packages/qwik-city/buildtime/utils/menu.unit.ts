@@ -17,7 +17,7 @@ test('parse menu.md menu', ({ opts }) => {
 
   ## Section B
 
-  - [Link B1](link-b1.mdx)
+  - [Link B1](link-b1/index.mdx)
   - Text B1
 
   ## [Section C](http://section-c.com)

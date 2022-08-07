@@ -11,7 +11,7 @@ export function createBuildContext(
     rootDir: normalizePath(rootDir),
     opts: normalizeOptions(rootDir, userOpts),
     routes: [],
-    fallbackRoutes: [],
+    errors: [],
     layouts: [],
     entries: [],
     menus: [],
@@ -27,7 +27,7 @@ export function createBuildContext(
 export function resetBuildContext(ctx: BuildContext | null) {
   if (ctx) {
     ctx.routes.length = 0;
-    ctx.fallbackRoutes.length = 0;
+    ctx.errors.length = 0;
     ctx.layouts.length = 0;
     ctx.entries.length = 0;
     ctx.menus.length = 0;
@@ -45,6 +45,16 @@ function normalizeOptions(rootDir: string, userOpts: PluginOptions | undefined) 
     opts.routesDir = resolve(rootDir, opts.routesDir);
   }
   opts.routesDir = normalizePath(opts.routesDir);
+
+  if (typeof opts.baseUrl !== 'string') {
+    opts.baseUrl = '/';
+  } else {
+    const url = new URL(opts.baseUrl, 'https://qwik.builer.io/');
+    opts.baseUrl = url.pathname;
+    if (!opts.baseUrl.endsWith('/')) {
+      opts.baseUrl += '/';
+    }
+  }
 
   if (typeof opts.trailingSlash !== 'boolean') {
     opts.trailingSlash = false;

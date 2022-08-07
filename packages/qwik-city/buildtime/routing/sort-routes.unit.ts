@@ -42,20 +42,13 @@ test('routeSortCompare', () => {
   equal(actualRandom, pathnames);
 });
 
-test(`endpoint > page`, async () => {
-  const a = route({ type: 'endpoint' });
-  const b = route({ type: 'page' });
-  equal(routeSortCompare(a, b), -1);
-  equal(routeSortCompare(b, a), 1);
-});
-
 function route(r: TestRoute) {
   const pathname = r.pathname || '/';
   const route: BuildRoute = {
-    type: r.type || 'page',
     id: pathname,
     filePath: pathname,
     pathname,
+    ext: '.tsx',
     layouts: [],
     ...parseRoutePathname(pathname),
   };
@@ -63,7 +56,6 @@ function route(r: TestRoute) {
 }
 
 interface TestRoute {
-  type?: 'page' | 'endpoint';
   paramNames?: string[];
   pathname?: string;
 }

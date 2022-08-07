@@ -12,6 +12,7 @@ import { buildFromUrlPathname } from '../build';
 import { endpointHandler } from '../../middleware/request-handler/endpoint-handler';
 import { notFoundHandler } from '../../middleware/request-handler/error-handler';
 import type { QwikCityRequestContext } from '../../middleware/request-handler/types';
+import { isEndpointsModuleExt } from '../utils/fs';
 
 export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
   server.middlewares.use(async (req, res, next) => {
@@ -35,7 +36,7 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
       const result = await buildFromUrlPathname(ctx, pathname);
       if (result) {
         const { route, params } = result;
-        const isEndpointOnly = route.type === 'endpoint';
+        const isEndpointOnly = isEndpointsModuleExt(route.ext);
 
         // use vite to dynamically load each layout/page module in this route's hierarchy
         const endpointModules: EndpointModule[] = [];

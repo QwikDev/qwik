@@ -3,7 +3,7 @@
  */
 
 import type { EndpointHandler } from '~qwik-city-runtime';
-import { signOut } from '../../auth/auth';
+import { signOut } from '../../../auth/auth';
 
 export const onGet: EndpointHandler = async ({ response }) => {
   const result = await signOut();

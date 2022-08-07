@@ -1,5 +1,5 @@
 import { component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
-import styles from './_layout.css?inline';
+import styles from './layout.css?inline';
 
 export default component$(() => {
   useStyles$(styles);

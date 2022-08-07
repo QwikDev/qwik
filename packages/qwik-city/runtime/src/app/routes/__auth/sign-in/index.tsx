@@ -4,7 +4,7 @@
 
 import { component$, Host } from '@builder.io/qwik';
 import type { DocumentHead, EndpointHandler } from '~qwik-city-runtime';
-import { signIn, isUserAuthenticated } from '../../auth/auth';
+import { signIn, isUserAuthenticated } from '../../../auth/auth';
 
 export default component$(() => {
   return (

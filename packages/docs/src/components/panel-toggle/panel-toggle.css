@@ -1,5 +1,4 @@
 .panel-toggle {
-  grid-area: example-panel-toggle;
   position: -webkit-sticky;
   position: sticky;
   display: flex;

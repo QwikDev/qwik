@@ -1,4 +1,4 @@
-import { component$, $, Host, useStyles$, useWatch$, useStore } from '@builder.io/qwik';
+import { component$, Host, useStyles$, useWatch$, useStore } from '@builder.io/qwik';
 import { Repl } from '../../repl/repl';
 import styles from './examples.css?inline';
 import { Header } from '../../components/header/header';

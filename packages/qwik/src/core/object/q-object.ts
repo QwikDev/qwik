@@ -85,7 +85,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     let subscriber: Subscriber | undefined | null;
     const invokeCtx = tryGetInvokeContext();
     const recursive = (this.$flags$ & QObjectRecursive) !== 0;
-    const immutable = false && (this.$flags$ & QObjectImmutable) !== 0;
+    const immutable = (this.$flags$ & QObjectImmutable) !== 0;
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }

@@ -12,13 +12,13 @@ const qComponent = suite('q-component');
 qComponent('should declare and render basic component', async () => {
   const fixture = new ElementFixture();
   await render(fixture.host, <HelloWorld></HelloWorld>);
-  const Host = 'q:host' as any;
+  const Div = 'div' as any;
   await expectDOM(
     fixture.host,
     <host>
-      <Host>
+      <Div>
         <span>Hello World</span>
-      </Host>
+      </Div>
     </host>
   );
 });

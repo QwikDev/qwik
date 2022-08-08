@@ -200,4 +200,4 @@ export const hasStyle = (containerState: ContainerState, styleId: string) => {
 export const ALLOWS_PROPS = ['class', 'className', 'style', 'id', QSlot];
 export const HOST_PREFIX = 'host:';
 export const SCOPE_PREFIX = /^(host|window|document|prevent(d|D)efault):/;
-export const BASE_QWIK_STYLES = `q\\:slot,q\\:host{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}`;
+export const BASE_QWIK_STYLES = `q\\:slot{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}`;

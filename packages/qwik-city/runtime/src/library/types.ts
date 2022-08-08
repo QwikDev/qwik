@@ -285,6 +285,12 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 
  */
 export type RequestHandler<BODY = unknown> = (ev: RequestEvent) => RequestHandlerResult<BODY>;
 
+/**
+ * @public
+ * @deprecated Please use `RequestHandler` instead.
+ */
+export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
+
 export type RequestHandlerBody<BODY> = BODY | string | number | boolean | undefined | null | void;
 
 export type RequestHandlerBodyFunction<BODY> = () =>

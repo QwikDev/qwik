@@ -101,6 +101,9 @@ export interface DocumentStyle {
     style: string;
 }
 
+// @public @deprecated (undocumented)
+export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
+
 // @public (undocumented)
 export const Html: Component<HtmlProps>;
 

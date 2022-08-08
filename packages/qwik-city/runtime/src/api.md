@@ -101,7 +101,6 @@ export interface DocumentStyle {
     style: string;
 }
 
-// Warning: (ae-forgotten-export) The symbol "RequestEvent" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "EndpointHandlerResult" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -144,7 +143,45 @@ export interface QwikCityPlan {
 }
 
 // @public (undocumented)
+export interface RequestContext {
+    // (undocumented)
+    formData(): Promise<FormData>;
+    // (undocumented)
+    headers: Headers;
+    // (undocumented)
+    json(): Promise<any>;
+    // (undocumented)
+    method: string;
+    // (undocumented)
+    text(): Promise<string>;
+    // (undocumented)
+    url: string;
+}
+
+// @public (undocumented)
+export interface RequestEvent {
+    // (undocumented)
+    abort: () => void;
+    // (undocumented)
+    next: () => Promise<void>;
+    params: RouteParams;
+    // (undocumented)
+    request: RequestContext;
+    // (undocumented)
+    response: ResponseContext;
+    // (undocumented)
+    url: URL;
+}
+
+// @public (undocumented)
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
+
+// @public (undocumented)
+export interface ResponseContext {
+    readonly headers: Headers;
+    readonly redirect: (url: string, status?: number) => void;
+    status: number;
+}
 
 // Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ROUTE_TYPE_ENDPOINT" needs to be exported by the entry point index.d.ts
@@ -161,8 +198,6 @@ routeType: typeof ROUTE_TYPE_ENDPOINT
 export interface RouteLocation {
     // (undocumented)
     readonly href: string;
-    // Warning: (ae-forgotten-export) The symbol "RouteParams" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     readonly params: RouteParams;
     // (undocumented)
@@ -170,6 +205,9 @@ export interface RouteLocation {
     // (undocumented)
     readonly query: Record<string, string>;
 }
+
+// @public (undocumented)
+export type RouteParams = Record<string, string>;
 
 // @public (undocumented)
 export const RouterOutlet: Component<    {}>;

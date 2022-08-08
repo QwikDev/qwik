@@ -216,6 +216,9 @@ export interface LoadedContent extends LoadedRoute {
   pageModule: PageModule;
 }
 
+/**
+ * @public
+ */
 export interface RequestContext {
   formData(): Promise<FormData>;
   headers: Headers;
@@ -225,6 +228,9 @@ export interface RequestContext {
   url: string;
 }
 
+/**
+ * @public
+ */
 export interface ResponseContext {
   /**
    * HTTP response status code.

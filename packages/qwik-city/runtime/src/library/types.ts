@@ -5,14 +5,14 @@ import type {
 import type { NoSerialize } from '@builder.io/qwik';
 
 export interface RouteModule<BODY = unknown> {
-  onDelete?: EndpointHandler<BODY>;
-  onGet?: EndpointHandler<BODY>;
-  onHead?: EndpointHandler<BODY>;
-  onOptions?: EndpointHandler<BODY>;
-  onPatch?: EndpointHandler<BODY>;
-  onPost?: EndpointHandler<BODY>;
-  onPut?: EndpointHandler<BODY>;
-  onRequest?: EndpointHandler<BODY>;
+  onDelete?: RequestHandler<BODY>;
+  onGet?: RequestHandler<BODY>;
+  onHead?: RequestHandler<BODY>;
+  onOptions?: RequestHandler<BODY>;
+  onPatch?: RequestHandler<BODY>;
+  onPost?: RequestHandler<BODY>;
+  onPut?: RequestHandler<BODY>;
+  onRequest?: RequestHandler<BODY>;
 }
 
 export interface PageModule extends RouteModule {
@@ -277,17 +277,17 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 
 /**
  * @public
  */
-export type EndpointHandler<BODY = unknown> = (ev: RequestEvent) => EndpointHandlerResult<BODY>;
+export type RequestHandler<BODY = unknown> = (ev: RequestEvent) => RequestHandlerResult<BODY>;
 
-export type EndpointHandlerBody<BODY> = BODY | string | number | boolean | undefined | null | void;
+export type RequestHandlerBody<BODY> = BODY | string | number | boolean | undefined | null | void;
 
-export type EndpointHandlerBodyFunction<BODY> = () =>
-  | EndpointHandlerBody<BODY>
-  | Promise<EndpointHandlerBody<BODY>>;
+export type RequestHandlerBodyFunction<BODY> = () =>
+  | RequestHandlerBody<BODY>
+  | Promise<RequestHandlerBody<BODY>>;
 
-export type EndpointHandlerResult<BODY> =
-  | (EndpointHandlerBody<BODY> | EndpointHandlerBodyFunction<BODY>)
-  | Promise<EndpointHandlerBody<BODY> | EndpointHandlerBodyFunction<BODY>>;
+export type RequestHandlerResult<BODY> =
+  | (RequestHandlerBody<BODY> | RequestHandlerBodyFunction<BODY>)
+  | Promise<RequestHandlerBody<BODY> | RequestHandlerBodyFunction<BODY>>;
 
 export interface EndpointResponse {
   body: any;

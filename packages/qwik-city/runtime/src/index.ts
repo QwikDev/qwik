@@ -5,7 +5,7 @@ export type {
   DocumentLink,
   DocumentMeta,
   DocumentStyle,
-  EndpointHandler,
+  RequestHandler,
   QwikCityPlan,
   ResolvedDocumentHead,
   RouteData,

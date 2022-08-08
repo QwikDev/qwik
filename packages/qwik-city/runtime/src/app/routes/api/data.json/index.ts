@@ -1,7 +1,7 @@
-import type { EndpointHandler } from '~qwik-city-runtime';
+import type { RequestHandler } from '~qwik-city-runtime';
 import os from 'os';
 
-export const onGet: EndpointHandler = ({ request }) => {
+export const onGet: RequestHandler = ({ request }) => {
   return {
     timestamp: Date.now(),
     method: request.method,

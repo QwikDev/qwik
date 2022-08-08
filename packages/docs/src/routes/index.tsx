@@ -1,5 +1,5 @@
 import { component$, Host, Resource } from '@builder.io/qwik';
-import { DocumentHead, EndpointHandler, useEndpoint } from '@builder.io/qwik-city';
+import { DocumentHead, RequestHandler, useEndpoint } from '@builder.io/qwik-city';
 
 export default component$(() => {
   const resource = useEndpoint<typeof onRequest>();
@@ -23,7 +23,7 @@ export default component$(() => {
   );
 });
 
-export const onRequest: EndpointHandler<BuilderContent> = async ({ url }) => {
+export const onRequest: RequestHandler<BuilderContent> = async ({ url }) => {
   const qwikUrl = new URL('https://cdn.builder.io/api/v1/qwik/content-page');
   qwikUrl.searchParams.set('apiKey', 'fe30f73e01ef40558cd69a9493eba2a2');
   qwikUrl.searchParams.set('userAttributes.urlPath', url.pathname);

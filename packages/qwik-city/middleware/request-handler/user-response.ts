@@ -1,6 +1,6 @@
 import { createHeaders } from './headers';
 import type {
-  EndpointHandler,
+  RequestHandler,
   PageModule,
   RequestEvent,
   ResponseContext,
@@ -73,7 +73,7 @@ export async function loadUserResponse(
     while (middlewareIndex < routeModules.length) {
       const endpointModule = routeModules[middlewareIndex];
 
-      let reqHandler: EndpointHandler | undefined = undefined;
+      let reqHandler: RequestHandler | undefined = undefined;
 
       switch (request.method) {
         case 'GET': {

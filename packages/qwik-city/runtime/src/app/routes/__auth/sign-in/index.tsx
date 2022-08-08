@@ -3,7 +3,7 @@
  */
 
 import { component$, Host } from '@builder.io/qwik';
-import type { DocumentHead, EndpointHandler } from '~qwik-city-runtime';
+import type { DocumentHead, RequestHandler } from '~qwik-city-runtime';
 import { signIn, isUserAuthenticated } from '../../../auth/auth';
 
 export default component$(() => {
@@ -27,14 +27,14 @@ export default component$(() => {
   );
 });
 
-export const onGet: EndpointHandler = async ({ request, response }) => {
+export const onGet: RequestHandler = async ({ request, response }) => {
   const isAuthenticated = await isUserAuthenticated(request.headers.get('cookie'));
   if (isAuthenticated) {
     response.redirect('/dashboard');
   }
 };
 
-export const onPost: EndpointHandler = async ({ request, response }) => {
+export const onPost: RequestHandler = async ({ request, response }) => {
   const formdata = await request.formData();
   const result = await signIn(formdata);
 

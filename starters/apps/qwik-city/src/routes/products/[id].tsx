@@ -1,5 +1,5 @@
 import { Resource, component$, Host } from '@builder.io/qwik';
-import { useEndpoint, useLocation, EndpointHandler, DocumentHead } from '@builder.io/qwik-city';
+import { useEndpoint, useLocation, RequestHandler, DocumentHead } from '@builder.io/qwik-city';
 
 export default component$(() => {
   const { params } = useLocation();
@@ -54,7 +54,7 @@ export const head: DocumentHead<ProductData> = ({ data }) => {
   };
 };
 
-export const onGet: EndpointHandler<EndpointData> = async ({ params, response }) => {
+export const onGet: RequestHandler<EndpointData> = async ({ params, response }) => {
   // Serverside Endpoint
   // During SSR, this method is called directly on the server and returns the data object
   // On the client, this same data can be requested with fetch() at the same URL, but also

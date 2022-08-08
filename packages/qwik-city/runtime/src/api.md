@@ -101,12 +101,6 @@ export interface DocumentStyle {
     style: string;
 }
 
-// Warning: (ae-forgotten-export) The symbol "RequestEvent" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "EndpointHandlerResult" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export type EndpointHandler<BODY = unknown> = (ev: RequestEvent) => EndpointHandlerResult<BODY>;
-
 // @public (undocumented)
 export const Html: Component<HtmlProps>;
 
@@ -142,6 +136,12 @@ export interface QwikCityPlan {
     // (undocumented)
     trailingSlash?: boolean;
 }
+
+// Warning: (ae-forgotten-export) The symbol "RequestEvent" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "RequestHandlerResult" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type RequestHandler<BODY = unknown> = (ev: RequestEvent) => RequestHandlerResult<BODY>;
 
 // @public (undocumented)
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;

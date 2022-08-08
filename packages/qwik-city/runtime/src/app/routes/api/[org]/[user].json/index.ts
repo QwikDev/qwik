@@ -1,7 +1,7 @@
-import type { EndpointHandler } from '~qwik-city-runtime';
+import type { RequestHandler } from '~qwik-city-runtime';
 import os from 'os';
 
-export const onGet: EndpointHandler = ({ request, params }) => {
+export const onGet: RequestHandler = ({ request, params }) => {
   return {
     timestamp: Date.now(),
     method: request.method,
@@ -13,7 +13,7 @@ export const onGet: EndpointHandler = ({ request, params }) => {
   };
 };
 
-export const onPost: EndpointHandler = async ({ request, response }) => {
+export const onPost: RequestHandler = async ({ request, response }) => {
   response.headers.set('Content-Type', 'text/plain');
   return `Platform: ${os.platform()}, Node: ${process.versions.node}, HTTP Method: ${
     request.method

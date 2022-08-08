@@ -29,7 +29,7 @@ The `onGet` function returns an object that contains:
 
 ```typescript
 // File: src/routes/product/[skuId]/details.js
-import { EndpointHandler } from '@builder.io/qwik-city';
+import { RequestHandler } from '@builder.io/qwik-city';
 
 type EndpointData = ProductData | null;
 
@@ -38,7 +38,7 @@ interface ProductData {
   price: number;
   description: string;
 }
-export const onGet: EndpointHandler<EndpointData> = async ({ params, response }) => {
+export const onGet: RequestHandler<EndpointData> = async ({ params, response }) => {
   // put your DB access here, we are hard coding a response for the simplicity of this tutorial.
   
   response.headers.append('Cache-Control', 'no-cache, no-store');
@@ -57,11 +57,11 @@ An endpoint `onGet` function retrieves data and makes it available as JSON. The 
   
 ```typescript
 import { Resource, component$, Host, useStore } from '@builder.io/qwik';
-import { EndpointHandler } from '@builder.io/qwik-city';
+import { RequestHandler } from '@builder.io/qwik-city';
 
 type EndpointData = ProductData | null;
 interface ProductData { ... }
-export const onGet: EndpointHandler<EndpointData> = async ({ params }) => { ... };
+export const onGet: RequestHandler<EndpointData> = async ({ params }) => { ... };
 
 export default component$(() => {
   const resource = useEndpoint<typeof onGet>(); // equivalent to useEndpoint<EndpointData>

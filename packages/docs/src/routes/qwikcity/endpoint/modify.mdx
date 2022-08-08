@@ -16,7 +16,7 @@ Just like routes can define a way to fetch data, they can also define HTTP verbs
 
 ```typescript
 // File: src/routes/product/[skuId]/details.js
-import { EndpointHandler } from '@builder.io/qwik-city';
+import { RequestHandler } from '@builder.io/qwik-city';
 
 type EndpointData = ProductData | null;
 
@@ -25,7 +25,7 @@ interface ProductData {
   price: number;
   description: string;
 }
-export const onPut: EndpointHandler<EndpointData> = async ({ params, request, response } ) => {
+export const onPut: RequestHandler<EndpointData> = async ({ params, request, response } ) => {
   // put your DB access here, we are hard coding a response for the simplicity of this tutorial.
   request; // <- read data from request and porform DB update.
   

@@ -137,7 +137,37 @@ export interface QwikCityPlan {
     trailingSlash?: boolean;
 }
 
-// Warning: (ae-forgotten-export) The symbol "RequestEvent" needs to be exported by the entry point index.d.ts
+// @public (undocumented)
+export interface RequestContext {
+    // (undocumented)
+    formData(): Promise<FormData>;
+    // (undocumented)
+    headers: Headers;
+    // (undocumented)
+    json(): Promise<any>;
+    // (undocumented)
+    method: string;
+    // (undocumented)
+    text(): Promise<string>;
+    // (undocumented)
+    url: string;
+}
+
+// @public (undocumented)
+export interface RequestEvent {
+    // (undocumented)
+    abort: () => void;
+    // (undocumented)
+    next: () => Promise<void>;
+    params: RouteParams;
+    // (undocumented)
+    request: RequestContext;
+    // (undocumented)
+    response: ResponseContext;
+    // (undocumented)
+    url: URL;
+}
+
 // Warning: (ae-forgotten-export) The symbol "RequestHandlerResult" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -145,6 +175,16 @@ export type RequestHandler<BODY = unknown> = (ev: RequestEvent) => RequestHandle
 
 // @public (undocumented)
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
+
+// @public (undocumented)
+export interface ResponseContext {
+    // Warning: (ae-forgotten-export) The symbol "ErrorResponse" needs to be exported by the entry point index.d.ts
+    readonly error: (status: number) => ErrorResponse;
+    readonly headers: Headers;
+    // Warning: (ae-forgotten-export) The symbol "RedirectResponse" needs to be exported by the entry point index.d.ts
+    readonly redirect: (url: string, status?: number) => RedirectResponse;
+    status: number;
+}
 
 // Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
 //
@@ -155,8 +195,6 @@ export type RouteData = [pattern: RegExp, loaders: ModuleLoader[]] | [pattern: R
 export interface RouteLocation {
     // (undocumented)
     readonly href: string;
-    // Warning: (ae-forgotten-export) The symbol "RouteParams" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     readonly params: RouteParams;
     // (undocumented)
@@ -164,6 +202,9 @@ export interface RouteLocation {
     // (undocumented)
     readonly query: Record<string, string>;
 }
+
+// @public (undocumented)
+export type RouteParams = Record<string, string>;
 
 // @public (undocumented)
 export const RouterOutlet: Component<    {}>;

@@ -15,7 +15,7 @@ import {
 } from '../error/error';
 import { qTest } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
-import type { QContext } from '../props/props';
+import type { QwikElement } from '../render/dom/virtual-element';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';
@@ -118,7 +118,7 @@ export const inlinedQrl = <T>(
 
 export interface QRLSerializeOptions {
   $platform$?: CorePlatform;
-  $element$?: Element;
+  $element$?: QwikElement;
   $getObjId$?: (obj: any) => string | null;
 }
 
@@ -163,10 +163,10 @@ export const stringifyQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
   return qrlString;
 };
 
-export const serializeQRLs = (existingQRLs: QRLInternal<any>[], ctx: QContext): string => {
+export const serializeQRLs = (existingQRLs: QRLInternal<any>[], el: QwikElement): string => {
   const opts: QRLSerializeOptions = {
-    $platform$: getPlatform(ctx.$element$),
-    $element$: ctx.$element$,
+    $platform$: getPlatform(el),
+    $element$: el,
   };
   return existingQRLs.map((qrl) => stringifyQRL(qrl, opts)).join('\n');
 };
@@ -178,7 +178,7 @@ export const qrlToUrl = (element: Element, qrl: QRLInternal): URL => {
 /**
  * `./chunk#symbol[captures]
  */
-export const parseQRL = (qrl: string, el?: Element): QRLInternal => {
+export const parseQRL = (qrl: string, el?: QwikElement): QRLInternal => {
   const endIdx = qrl.length;
   const hashIdx = indexOf(qrl, 0, '#');
   const captureIdx = indexOf(qrl, hashIdx, '[');

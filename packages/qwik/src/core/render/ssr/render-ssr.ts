@@ -196,6 +196,7 @@ export const renderNodeElement = (
   const hasRef = 'ref' in props;
   const isHost = flags & IS_HOST;
   const insideHead = flags & IS_HEAD;
+  const element = elCtx.$element$;
   const attributes = updateProperties(ssrCtx.rctx, elCtx, props);
   const hasEvents = elCtx.$listeners$;
   if (key != null) {
@@ -224,7 +225,7 @@ export const renderNodeElement = (
   }
   if (elCtx.$listeners$) {
     elCtx.$listeners$.forEach((value, key) => {
-      attributes[fromCamelToKebabCase(key)] = serializeQRLs(value, elCtx);
+      attributes[fromCamelToKebabCase(key)] = serializeQRLs(value, element);
     });
   }
   if (renderQrl) {
@@ -368,7 +369,7 @@ export const renderSSRComponent = (
           children = [children];
         }
       }
-      const invocationContext = newInvokeContext(newCtx.$doc$, hostElement, hostElement);
+      const invocationContext = newInvokeContext(newCtx.$doc$, hostElement, undefined);
       invocationContext.$subscriber$ = hostElement;
       invocationContext.$renderCtx$ = newCtx;
       const projectedContext: SSRContext = {
@@ -628,7 +629,7 @@ const updateProperties = (
     }
     const newValue = expectProps[key];
     if (key === 'ref') {
-      (newValue as Ref<Element>).current = elm;
+      (newValue as Ref<Element>).current = elm as Element;
       continue;
     }
 

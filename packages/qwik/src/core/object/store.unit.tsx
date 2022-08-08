@@ -9,7 +9,6 @@ import { logDebug } from '../util/log';
 import { runtimeQrl } from '../import/qrl';
 import { pauseContainer } from '../object/store';
 import { useDocument } from '../use/use-document.public';
-import { useHostElement } from '../use/use-host-element.public';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
 import { render } from '../render/dom/render.public';
@@ -124,7 +123,6 @@ export const LexicalScope = component$(
     const boolTrue = true;
     const boolFalse = false;
     const qrl = $(() => logDebug('qrl'));
-    const el = useHostElement();
     const doc = useDocument();
     const thing = runtimeQrl(LexicalScope_render, [
       nu,
@@ -138,7 +136,6 @@ export const LexicalScope = component$(
       state,
       noserialize,
       qrl,
-      el,
       doc,
     ]);
     return <div onClick$={thing}></div>;

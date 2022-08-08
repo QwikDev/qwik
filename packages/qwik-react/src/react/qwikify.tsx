@@ -6,7 +6,6 @@ import {
   noSerialize,
   QRL,
   SkipRerender,
-  useHostElement,
   useWatch$,
   useStore,
   EagernessOptions,
@@ -45,7 +44,7 @@ export function qwikifyQrl<PROPS extends {}>(
 ) {
   return component$<QwikifyProps<PROPS>>(
     (props) => {
-      const hostElement = useHostElement();
+      const hostElement = {} as Element;
       const store = useStore<QwikifyCmp<PROPS>>({});
       const clientOnly = !!(props['client:only'] || opts?.clientOnly);
       let eagerness: EagernessOptions | undefined;

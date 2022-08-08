@@ -18,14 +18,15 @@ import { then } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { codeToText, QError_errorWhileRendering } from '../../error/error';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
-import { isElement } from '../../util/element';
+import { isQwikElement } from '../../util/element';
 import { renderComponent } from './render-dom';
 import type { RenderContext } from '../types';
 import { ContainerState, getContainerState } from '../container';
 import { createRenderContext } from '../execute-component';
+import { getRootNode, QwikElement } from './virtual-element';
 
 export const notifyChange = (subscriber: Subscriber, containerState: ContainerState) => {
-  if (isElement(subscriber)) {
+  if (isQwikElement(subscriber)) {
     notifyRender(subscriber, containerState);
   } else {
     notifyWatch(subscriber, containerState);
@@ -46,7 +47,7 @@ export const notifyChange = (subscriber: Subscriber, containerState: ContainerSt
  * @returns A promise which is resolved when the component has been rendered.
  * @public
  */
-const notifyRender = (hostElement: Element, containerState: ContainerState): void => {
+const notifyRender = (hostElement: QwikElement, containerState: ContainerState): void => {
   if (qDev && !qTest && containerState.$platform$.isServer) {
     logWarn('Can not rerender in server platform');
     return undefined;
@@ -275,8 +276,8 @@ const executeWatchesAfter = async (
   } while (containerState.$watchStaging$.size > 0);
 };
 
-const sortNodes = (elements: Element[]) => {
-  elements.sort((a, b) => (a.compareDocumentPosition(b) & 2 ? 1 : -1));
+const sortNodes = (elements: QwikElement[]) => {
+  elements.sort((a, b) => (a.compareDocumentPosition(getRootNode(b)) & 2 ? 1 : -1));
 };
 
 const sortWatches = (watches: SubscriberDescriptor[]) => {
@@ -284,6 +285,6 @@ const sortWatches = (watches: SubscriberDescriptor[]) => {
     if (a.$el$ === b.$el$) {
       return a.$index$ < b.$index$ ? -1 : 1;
     }
-    return (a.$el$.compareDocumentPosition(b.$el$) & 2) !== 0 ? 1 : -1;
+    return (a.$el$.compareDocumentPosition(getRootNode(b.$el$)) & 2) !== 0 ? 1 : -1;
   });
 };

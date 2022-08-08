@@ -12,6 +12,7 @@ import { fromCamelToKebabCase } from '../util/case';
 import { qError, QError_stringifyClassOrStyle } from '../error/error';
 import { intToStr } from '../object/store';
 import { directSetAttribute } from './fast-calls';
+import type { QwikElement } from './dom/virtual-element';
 
 export interface ExecuteComponentOutput {
   node: JSXNode | null;
@@ -38,7 +39,7 @@ export const executeComponent = (
   const newCtx = copyRenderContext(rctx);
 
   // Invoke render hook
-  const invocatinContext = newInvokeContext(rctx.$doc$, hostElement, hostElement, RenderEvent);
+  const invocatinContext = newInvokeContext(rctx.$doc$, hostElement, undefined, RenderEvent);
   invocatinContext.$subscriber$ = hostElement;
   invocatinContext.$renderCtx$ = newCtx;
   const waitOn = (invocatinContext.$waitOn$ = [] as any[]);
@@ -179,7 +180,7 @@ export const getNextIndex = (ctx: RenderContext) => {
   return intToStr(ctx.$containerState$.$elementIndex$++);
 };
 
-export const getQId = (el: Element): string | null => {
+export const getQId = (el: QwikElement): string | null => {
   const ctx = tryGetContext(el);
   if (ctx) {
     return ctx.$id$;

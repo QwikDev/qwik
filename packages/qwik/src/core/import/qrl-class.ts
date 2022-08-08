@@ -1,6 +1,7 @@
 import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { verifySerializable } from '../object/q-object';
 import { getPlatform } from '../platform/platform';
+import type { QwikElement } from '../render/dom/virtual-element';
 import { InvokeContext, newInvokeContext, useInvoke } from '../use/use-core';
 import { then } from '../util/promises';
 import { qDev } from '../util/qdev';
@@ -19,13 +20,13 @@ export interface QRLInternalMethods<TYPE> {
   $capture$: string[] | null;
   $captureRef$: any[] | null;
 
-  resolve(el?: Element): Promise<TYPE>;
+  resolve(el?: QwikElement): Promise<TYPE>;
   getSymbol(): string;
   getHash(): string;
 
-  $setContainer$(el: Element): void;
-  $resolveLazy$(el: Element): void;
-  $invokeFn$(el?: Element, currentCtx?: InvokeContext, beforeFn?: () => void): any;
+  $setContainer$(el: QwikElement): void;
+  $resolveLazy$(el: QwikElement): void;
+  $invokeFn$(el?: QwikElement, currentCtx?: InvokeContext, beforeFn?: () => void): any;
   $copy$(): QRLInternal<TYPE>;
   $serialize$(options?: QRLSerializeOptions): string;
 }
@@ -45,15 +46,15 @@ export const createQRL = <TYPE>(
     verifySerializable(captureRef);
   }
 
-  let cachedEl: Element | undefined;
+  let cachedEl: QwikElement | undefined;
 
-  const setContainer = (el: Element) => {
+  const setContainer = (el: QwikElement) => {
     if (!cachedEl) {
       cachedEl = el;
     }
   };
 
-  const resolve = async (el?: Element): Promise<TYPE> => {
+  const resolve = async (el?: QwikElement): Promise<TYPE> => {
     if (el) {
       setContainer(el);
     }
@@ -75,11 +76,11 @@ export const createQRL = <TYPE>(
     }
   };
 
-  const resolveLazy = (el?: Element): ValueOrPromise<TYPE> => {
+  const resolveLazy = (el?: QwikElement): ValueOrPromise<TYPE> => {
     return isFunction(symbolRef) ? symbolRef : resolve(el);
   };
 
-  const invokeFn = (el?: Element, currentCtx?: InvokeContext, beforeFn?: () => void) => {
+  const invokeFn = (el?: QwikElement, currentCtx?: InvokeContext, beforeFn?: () => void) => {
     return ((...args: any[]): any => {
       const fn = resolveLazy(el) as TYPE;
       return then(fn, (fn) => {

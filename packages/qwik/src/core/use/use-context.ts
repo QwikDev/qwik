@@ -5,6 +5,7 @@ import { verifySerializable } from '../object/q-object';
 import { qDev } from '../util/qdev';
 import { isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
+import type { QwikElement } from '../render/dom/virtual-element';
 
 // <docs markdown="../readme.md#Context">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -262,7 +263,8 @@ export const useContext = <STATE extends object>(context: Context<STATE>): STATE
   if (qDev) {
     validateContext(context);
   }
-  let hostElement = ctx.$hostElement$;
+
+  let hostElement: QwikElement = ctx.$hostElement$;
   const contexts = ctx.$renderCtx$.$localStack$;
   for (let i = contexts.length - 1; i >= 0; i--) {
     const ctx = contexts[i];
@@ -275,6 +277,9 @@ export const useContext = <STATE extends object>(context: Context<STATE>): STATE
       }
     }
   }
+
+
+  // TODO: rebuild
   if (hostElement.closest) {
     const foundEl = hostElement.closest(`[q\\:ctx*="${context.id}"]`);
     if (foundEl) {
@@ -287,6 +292,7 @@ export const useContext = <STATE extends object>(context: Context<STATE>): STATE
   }
   throw qError(QError_notFoundContext, context.id);
 };
+
 
 export const validateContext = (context: Context<any>) => {
   if (!isObject(context) || typeof context.id !== 'string' || context.id.length === 0) {

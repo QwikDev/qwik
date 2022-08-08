@@ -8,7 +8,7 @@ import {
 } from '../error/error';
 import { isQrl } from '../import/qrl-class';
 import { tryGetInvokeContext } from '../use/use-core';
-import { isDocument, isElement, isNode } from '../util/element';
+import { isDocument, isElement, isNode, isQwikElement } from '../util/element';
 import { logWarn } from '../util/log';
 import { qDev } from '../util/qdev';
 import { tryGetContext } from '../props/props';
@@ -311,7 +311,7 @@ export const mutable = <T>(v: T): MutableWrapper<T> => {
 };
 
 export const isConnected = (sub: Subscriber): boolean => {
-  if (isElement(sub)) {
+  if (isQwikElement(sub)) {
     return !!tryGetContext(sub) || sub.isConnected;
   } else {
     return isConnected(sub.$el$);

@@ -1,6 +1,4 @@
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
-import type { QContext } from '../../props/props';
-import { getDomListeners, getScopeIds } from '../../props/props-on';
 import { serializeInlineContexts } from '../../use/use-context';
 import { InvokeContext, newInvokeContext, useInvoke } from '../../use/use-core';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
@@ -10,27 +8,25 @@ import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises'
 import { qDev } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
 import { appendHeadStyle, visitJsxNode } from './visitor';
-import { Host, SkipRerender } from '../jsx/host.public';
-import { HOST_TYPE, isJSXNode, SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
+import { Host, SkipRerender, Virtual } from '../jsx/host.public';
+import { HOST_TYPE, isJSXNode, SKIP_RENDER_TYPE, VIRTUAL_TYPE } from '../jsx/jsx-runtime';
 import type { JSXNode } from '../jsx/types/jsx-node';
 import { executeComponent } from '../execute-component';
 import type { RenderContext } from '../types';
-import { serializeSStyle, styleHost } from '../../component/qrl-styles';
+import { serializeSStyle } from '../../component/qrl-styles';
 import { directSetAttribute } from '../fast-calls';
+import type { QContext } from '../../props/props';
+import type { VirtualElement } from './virtual-element';
 
 export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {
   const justMounted = !ctx.$mounted$;
-  if (!ctx.$listeners$) {
-    ctx.$listeners$ = getDomListeners(ctx.$element$);
-  }
-  if (!ctx.$scopeIds$) {
-    ctx.$scopeIds$ = getScopeIds(ctx.$element$);
-  }
+
+  // TODO, serialize scopeIds
   return then(executeComponent(rctx, ctx), (res) => {
     if (res) {
       const hostElement = ctx.$element$;
       const newCtx = res.rctx;
-      const invocatinContext = newInvokeContext(rctx.$doc$, hostElement, hostElement);
+      const invocatinContext = newInvokeContext(rctx.$doc$, hostElement);
       invocatinContext.$subscriber$ = hostElement;
       invocatinContext.$renderCtx$ = newCtx;
       if (justMounted) {
@@ -46,9 +42,6 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
           const value = serializeSStyle(ctx.$scopeIds$);
           if (value) {
             directSetAttribute(hostElement, QScopedStyle, value);
-          }
-          for (const scope of ctx.$scopeIds$) {
-            hostElement.classList.add(styleHost(scope));
           }
         }
       }
@@ -82,6 +75,8 @@ export const processNode = (
     textType = HOST_TYPE;
   } else if (node.type === SkipRerender) {
     textType = SKIP_RENDER_TYPE;
+  } else if (node.type === Virtual) {
+    textType = VIRTUAL_TYPE;
   } else if (isFunction(node.type)) {
     const res = invocationContext
       ? useInvoke(invocationContext, () => node.type(node.props, node.key))
@@ -152,6 +147,6 @@ export interface ProcessedJSXNode {
   $props$: Record<string, any>;
   $children$: ProcessedJSXNode[];
   $key$: string | null;
-  $elm$: Node | null;
+  $elm$: Node | VirtualElement | null;
   $text$: string;
 }

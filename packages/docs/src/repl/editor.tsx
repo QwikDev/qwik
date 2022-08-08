@@ -4,7 +4,6 @@ import {
   NoSerialize,
   PropFunction,
   useClientEffect$,
-  useHostElement,
   useStore,
   useWatch$,
 } from '@builder.io/qwik';
@@ -13,7 +12,7 @@ import { addQwikLibs, ICodeEditorViewState, initMonacoEditor, updateMonacoEditor
 import type { ReplAppInput, ReplStore } from './types';
 
 export const Editor = component$((props: EditorProps) => {
-  const hostElm = useHostElement() as HTMLElement;
+  const hostElm = {} as HTMLElement;
 
   const store = useStore<EditorStore>({
     editor: undefined,

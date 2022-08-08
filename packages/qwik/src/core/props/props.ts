@@ -14,6 +14,7 @@ import type { QRL } from '../import/qrl.public';
 import { StyleAppend, useInvokeContext } from '../use/use-core';
 import { ContainerState, getContainerState, SubscriptionManager } from '../render/container';
 import type { ProcessedJSXNode } from '../render/dom/render-dom';
+import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
 
 const Q_CTX = '__ctx__';
 
@@ -44,7 +45,7 @@ export interface ComponentCtx {
 }
 
 export interface QContext {
-  $element$: Element;
+  $element$: QwikElement;
   $refMap$: any[];
   $dirty$: boolean;
   $id$: string;
@@ -61,11 +62,11 @@ export interface QContext {
   $scopeIds$: string[] | null;
 }
 
-export const tryGetContext = (element: Element): QContext | undefined => {
+export const tryGetContext = (element: QwikElement): QContext | undefined => {
   return (element as any)[Q_CTX];
 };
 
-export const getContext = (element: Element): QContext => {
+export const getContext = (element: Element | VirtualElement): QContext => {
   let ctx = tryGetContext(element)!;
   if (!ctx) {
     (element as any)[Q_CTX] = ctx = {
@@ -98,16 +99,12 @@ export const cleanupContext = (ctx: QContext, subsManager: SubscriptionManager) 
   if (ctx.$renderQrl$) {
     subsManager.$clearSub$(el);
   }
-  if (ctx.$cache$) {
-    ctx.$cache$.clear();
-    ctx.$cache$ = null;
-  }
   ctx.$component$ = null;
   ctx.$renderQrl$ = null;
   ctx.$seq$.length = 0;
   ctx.$watches$.length = 0;
   ctx.$dirty$ = false;
-  ctx.$refMap$.length = 0;
+
   (el as any)[Q_CTX] = undefined;
 };
 

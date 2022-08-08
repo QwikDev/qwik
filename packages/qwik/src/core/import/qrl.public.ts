@@ -1,3 +1,4 @@
+import type { QwikElement } from '../render/dom/virtual-element';
 import { runtimeQrl } from './qrl';
 
 // <docs markdown="../readme.md#QRL">
@@ -140,7 +141,7 @@ export interface QRL<TYPE = any> {
   /**
    * Resolve the QRL and return the actual value.
    */
-  resolve(el?: Element): Promise<TYPE>;
+  resolve(el?: QwikElement): Promise<TYPE>;
 
   getSymbol(): string;
   getHash(): string;

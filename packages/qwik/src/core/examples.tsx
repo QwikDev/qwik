@@ -10,7 +10,6 @@ import { component$ } from './component/component.public';
 import { qrl } from './import/qrl';
 import { $, QRL } from './import/qrl.public';
 import { Host } from './render/jsx/host.public';
-import { useHostElement } from './use/use-host-element.public';
 import { useCleanup$, useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
@@ -289,23 +288,6 @@ export const CmpInline = component$(() => {
   });
   // </docs>
   return Timer;
-};
-
-() => {
-  // <docs anchor="use-host-element">
-  const Section = component$(
-    () => {
-      const hostElement = useHostElement();
-      console.log(hostElement); // hostElement is a HTMLSectionElement
-
-      return <Host>I am a section</Host>;
-    },
-    {
-      tagName: 'section',
-    }
-  );
-  // </docs>
-  return Section;
 };
 
 () => {

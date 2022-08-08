@@ -21,6 +21,7 @@ import { GetObjID, intToStr, strToInt } from '../object/store';
 import type { ContainerState } from '../render/container';
 import { _hW } from '../render/dom/notify-render';
 import { useSequentialScope } from './use-sequential-scope';
+import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;
@@ -152,7 +153,7 @@ export interface ResourceRejected<T> {
  */
 export interface DescriptorBase<T = any, B = undefined> {
   $qrl$: QRLInternal<T>;
-  $el$: Element;
+  $el$: QwikElement;
   $flags$: number;
   $index$: number;
   $destroy$?: NoSerialize<() => void>;
@@ -576,7 +577,7 @@ export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
 // </docs>
 export const useMount$ = /*#__PURE__*/ implicit$FirstArg(useMountQrl);
 
-export type Subscriber = SubscriberDescriptor | Element;
+export type Subscriber = SubscriberDescriptor | VirtualElement | Element;
 
 export type WatchDescriptor = DescriptorBase<WatchFn>;
 
@@ -610,7 +611,7 @@ export const runResource = <T>(
 
   const el = watch.$el$;
   const doc = getDocument(el);
-  const invokationContext = newInvokeContext(doc, el, el, 'WatchEvent');
+  const invokationContext = newInvokeContext(doc, el, undefined, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
   const watchFn = watch.$qrl$.$invokeFn$(el, invokationContext, () => {
     subsManager.$clearSub$(watch);
@@ -718,7 +719,7 @@ export const runWatch = (
   cleanupWatch(watch);
   const el = watch.$el$;
   const doc = getDocument(el);
-  const invokationContext = newInvokeContext(doc, el, el, 'WatchEvent');
+  const invokationContext = newInvokeContext(doc, el, undefined, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
   const watchFn = watch.$qrl$.$invokeFn$(el, invokationContext, () => {
     subsManager.$clearSub$(watch);
@@ -832,7 +833,7 @@ export class Watch implements DescriptorBase<any, any> {
   constructor(
     public $flags$: number,
     public $index$: number,
-    public $el$: Element,
+    public $el$: QwikElement,
     public $qrl$: QRLInternal<any>,
     public $resource$: ResourceReturn<any> | undefined
   ) {}

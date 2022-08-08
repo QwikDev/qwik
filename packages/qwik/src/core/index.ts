@@ -66,7 +66,6 @@ export { _hW } from './render/dom/notify-render';
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { useHostElement } from './use/use-host-element.public';
 export { useDocument } from './use/use-document.public';
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { useStore } from './use/use-store.public';

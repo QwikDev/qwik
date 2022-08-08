@@ -37,6 +37,13 @@ export const SkipRerender: FunctionComponent<{}> = ((props: any) => props.childr
  */
 export const SSRComment: FunctionComponent<{ data: string }> = (() => null) as any;
 
+
+/**
+ * @alpha
+ */
+export const Virtual: FunctionComponent<Record<string, any>> = ((props: any) => props.children) as any;
+
+
 /**
  * @alpha
  */

@@ -2,7 +2,7 @@ import { assertDefined, assertTrue } from '../assert/assert';
 import { assertQrl, isQrl } from '../import/qrl-class';
 import { getContext, QContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
-import { isDocument, isElement, isNode } from '../util/element';
+import { isDocument, isNode, isQwikElement, isVirtualElement } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
 import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QStyle } from '../util/markers';
 import { qDev } from '../util/qdev';
@@ -37,6 +37,7 @@ import { isResourceReturn } from '../use/use-resource';
 import { createParser, Parser, serializeValue } from './serializers';
 import { ContainerState, getContainerState } from '../render/container';
 import { getQId } from '../render/execute-component';
+import type { QwikElement } from '../render/dom/virtual-element';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -233,7 +234,7 @@ export const _pauseFromContexts = async (
   elements: QContext[],
   containerState: ContainerState
 ): Promise<SnapshotResult> => {
-  const elementToIndex = new Map<Element, string | null>();
+  const elementToIndex = new Map<QwikElement, string | null>();
   const collector = createCollector(containerState);
   const listeners: SnapshotListener[] = [];
   for (const ctx of elements) {
@@ -243,7 +244,7 @@ export const _pauseFromContexts = async (
           listeners.push({
             key,
             qrl,
-            el: ctx.$element$,
+            el: ctx.$element$ as Element,
           });
         });
       });
@@ -302,7 +303,7 @@ export const _pauseFromContexts = async (
 
   const objToId = new Map<any, number>();
 
-  const getElementID = (el: Element): string | null => {
+  const getElementID = (el: QwikElement): string | null => {
     let id = elementToIndex.get(el);
     if (id === undefined) {
       if (el.isConnected) {
@@ -337,7 +338,7 @@ export const _pauseFromContexts = async (
         obj = target;
       }
 
-      if (!target && isElement(obj)) {
+      if (!target && isQwikElement(obj)) {
         const elID = getElementID(obj as Element);
         if (elID) {
           return elID + suffix;
@@ -382,7 +383,7 @@ export const _pauseFromContexts = async (
     const subs = containerState.$subsManager$.$tryGetLocal$(obj)?.$subs$;
     if (subs) {
       subs.forEach((set, key) => {
-        if (isElement(key)) {
+        if (isQwikElement(key)) {
           if (!collector.$elements$.includes(key)) {
             return;
           }
@@ -555,7 +556,7 @@ export const _pauseFromContexts = async (
   if (qDev) {
     elementToIndex.forEach((value, el) => {
       if (!value) {
-        logWarn('unconnected element', el.tagName, '\n');
+        logWarn('unconnected element', el.nodeName, '\n');
       }
     });
   }
@@ -713,7 +714,7 @@ const getObjectImpl = (
   return obj;
 };
 
-const collectProps = async (el: Element, props: any, collector: Collector) => {
+const collectProps = async (el: QwikElement, props: any, collector: Collector) => {
   const subs = collector.$containerState$.$subsManager$.$tryGetLocal$(
     getProxyTarget(props)
   )?.$subs$;
@@ -727,7 +728,7 @@ export interface Collector {
   $seen$: Set<any>;
   $seenLeaks$: Set<any>;
   $objMap$: Map<any, any>;
-  $elements$: Element[];
+  $elements$: QwikElement[];
   $watches$: SubscriberDescriptor[];
   $containerState$: ContainerState;
 }
@@ -743,7 +744,7 @@ const createCollector = (containerState: ContainerState): Collector => {
   };
 };
 
-const collectElement = async (el: Element, collector: Collector) => {
+const collectElement = async (el: QwikElement, collector: Collector) => {
   if (collector.$elements$.includes(el)) {
     return;
   }
@@ -759,11 +760,6 @@ const collectElement = async (el: Element, collector: Collector) => {
     for (const obj of ctx.$seq$) {
       await collectValue(obj, collector, false);
     }
-
-    for (const obj of ctx.$refMap$) {
-      await collectValue(obj, collector, false);
-    }
-
     for (const obj of ctx.$watches$) {
       await collectValue(obj, collector, false);
     }
@@ -792,7 +788,7 @@ const collectSubscriptions = async (target: any, collector: Collector) => {
     }
     collector.$seen$.add(subs);
     for (const key of Array.from(subs.keys())) {
-      if (isElement(key)) {
+      if (isVirtualElement(key)) {
         await collectElement(key, collector);
       } else {
         await collectValue(key, collector, true);

@@ -1329,6 +1329,26 @@ export const Root = () => {
 }
 
 #[test]
+fn issue_964() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export const App = component$(() => {
+    console.log(function*(lo: any, t: any) {
+    console.log(yield (yield lo)(t.href).then((r) => r.json()));
+    });
+
+    return <p>Hello Qwik</p>;
+});
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_qwik_react() {
     test_input!(TestInput {
         code: r#"

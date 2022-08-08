@@ -10,8 +10,7 @@ export const sym1 = $((ctx) => console.log("1"));
 
 ============================= sym1_axurpxx5lak.tsx (ENTRY POINT)==
 
-export const sym1_aXUrPXX5Lak = (ctx)=>console.log("1")
-;
+export const sym1_aXUrPXX5Lak = (ctx)=>console.log("1");
 export { _hW } from "@builder.io/qwik";
 
 /*
@@ -36,8 +35,7 @@ export { _hW } from "@builder.io/qwik";
 ============================= test.tsx ==
 
 import { qrl } from "@builder.io/qwik";
-export const sym1 = qrl(()=>import("./sym1_axurpxx5lak")
-, "sym1_aXUrPXX5Lak");
+export const sym1 = qrl(()=>import("./sym1_axurpxx5lak"), "sym1_aXUrPXX5Lak");
 
 == DIAGNOSTICS ==
 

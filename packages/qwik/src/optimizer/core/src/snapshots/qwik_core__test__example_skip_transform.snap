@@ -1,8 +1,6 @@
 ---
-source: src/optimizer/core/src/test.rs
-assertion_line: 915
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
-
 ---
 ==INPUT==
 
@@ -21,14 +19,12 @@ export const App = component$((props) => {
 ============================= test.js ==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-export const handler = $(()=>console.log('hola')
-);
+export const handler = $(()=>console.log('hola'));
 export const App = component$((props)=>{
     useStyles$('hola');
     return $(()=>/*#__PURE__*/ _jsx("div", {
             children: state.thing
-        })
-    );
+        }));
 });
 
 == DIAGNOSTICS ==

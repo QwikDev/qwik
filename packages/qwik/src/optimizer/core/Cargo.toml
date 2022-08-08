@@ -13,21 +13,21 @@ categories = ["development-tools", "development-tools::cargo-plugins"]
 crate-type = ["rlib"]
 
 [dependencies]
-swc_ecmascript = { version = "0.156.0", features = ["parser", "transforms", "module", "typescript", "optimization", "minifier", "react", "utils", "visit", "codegen", "utils"] }
-swc_common = { version = "0.18.1", features = ["sourcemap"] }
-swc_atoms = "0.2.11"
-serde = "1.0.137"
-serde_bytes = "0.11.6"
-serde_json = "1.0.81"
+swc_ecmascript = { version = "0.188.0", features = ["parser", "transforms", "module", "typescript", "optimization", "minifier", "react", "utils", "visit", "codegen", "utils"] }
+swc_common = { version = "0.27.0", features = ["sourcemap"] }
+swc_atoms = "0.4.0"
+serde = "1.0.142"
+serde_bytes = "0.11.7"
+serde_json = "1.0.83"
 simple-error = "0.2.3"
 base64 = "0.13.0"
 pathdiff = "0.2.1"
-relative-path = "1.7.0"
+relative-path = "1.7.2"
 lazy_static = "1.4.0"
-anyhow = "1.0.57"
+anyhow = "1.0.60"
 derivative = "2.2.0"
-rayon = "1.5.1"
-path-slash="0.1.4"
+rayon = "1.5.3"
+path-slash="0.2.1"
 
 [dev-dependencies]
 insta = "1.14.0"

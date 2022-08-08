@@ -22,8 +22,7 @@ export const Foo = component$(() => {
 
 import { qrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = ()=>{
-    return qrl(()=>import("./foo_component_1_dvu6fitwgly")
-    , "Foo_component_1_DvU6FitWglY");
+    return qrl(()=>import("./foo_component_1_dvu6fitwgly"), "Foo_component_1_DvU6FitWglY");
 };
 
 /*
@@ -77,8 +76,7 @@ export { _hW } from "@builder.io/qwik";
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie")
-, "Foo_component_HTDRsvUbLiE"), {
+export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
 

@@ -21,15 +21,12 @@ const d = $(()=>console.log('thing'));
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Greeter = /*#__PURE__*/ componentQrl(qrl(()=>import("./greeter_component_n7hug2hhu0q")
-, "Greeter_component_n7HuG2hhU0Q"));
-qrl(()=>import("./d_wknfjeiqvua")
-, "d_wKNFJEIQVUA");
+export const Greeter = /*#__PURE__*/ componentQrl(qrl(()=>import("./greeter_component_n7hug2hhu0q"), "Greeter_component_n7HuG2hhU0Q"));
+qrl(()=>import("./d_wknfjeiqvua"), "d_wKNFJEIQVUA");
 
 ============================= d_wknfjeiqvua.js (ENTRY POINT)==
 
-export const d_wKNFJEIQVUA = ()=>console.log('thing')
-;
+export const d_wKNFJEIQVUA = ()=>console.log('thing');
 export { _hW } from "@builder.io/qwik";
 
 /*
@@ -82,8 +79,7 @@ export { _hW } from "@builder.io/qwik";
 
 import { qrl } from "@builder.io/qwik";
 export const Greeter_component_n7HuG2hhU0Q = ()=>{
-    return qrl(()=>import("./greeter_component_1_krcndswhx4u")
-    , "Greeter_component_1_krCndSwhX4U");
+    return qrl(()=>import("./greeter_component_1_krcndswhx4u"), "Greeter_component_1_krCndSwhX4U");
 };
 
 /*

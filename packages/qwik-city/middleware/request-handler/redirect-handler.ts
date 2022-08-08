@@ -1,4 +1,4 @@
-import { Headers } from './headers';
+import { createHeaders } from './headers';
 import { HttpStatus } from './http-status-codes';
 import type { QwikCityRequestContext } from './types';
 import type { RedirectResponse } from './user-response';
@@ -11,7 +11,7 @@ export function redirectResponse(
 
   const status = getRedirectStatus(responseRedirect.status);
 
-  const headers = responseRedirect.headers || new Headers();
+  const headers = responseRedirect.headers || createHeaders();
   headers.set('Location', responseRedirect.location);
 
   return response(status, headers, async () => {});

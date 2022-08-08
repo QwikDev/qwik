@@ -1,4 +1,4 @@
-import { Headers as QwikHeaders } from './headers';
+import { createHeaders } from './headers';
 import type {
   EndpointHandler,
   PageModule,
@@ -24,7 +24,7 @@ export async function loadUserResponse(
     url,
     params,
     status: HttpStatus.Ok,
-    headers: new QwikHeaders(),
+    headers: createHeaders(),
     resolvedBody: undefined,
     pendingBody: undefined,
   };

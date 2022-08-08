@@ -756,7 +756,7 @@ export const runWatch = (
       }
     },
     (reason) => {
-      throw logError(reason);
+      logError(reason);
     }
   );
 };

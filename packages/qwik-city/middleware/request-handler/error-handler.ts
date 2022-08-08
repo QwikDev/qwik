@@ -1,4 +1,4 @@
-import { Headers } from './headers';
+import { createHeaders } from './headers';
 import { HttpStatus } from './http-status-codes';
 import type { QwikCityRequestContext } from './types';
 import type { ErrorResponse } from './user-response';
@@ -67,7 +67,7 @@ function minimalHtmlResponse(
 </html>
 `;
 
-  const headers = new Headers();
+  const headers = createHeaders();
   headers.set('Content-Type', 'text/html; charset=utf-8');
 
   return response(status, headers, async (stream) => {

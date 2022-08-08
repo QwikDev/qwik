@@ -2,7 +2,7 @@ import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'http';
 import fs from 'fs';
 import { join } from 'path';
-import { Headers } from '../../middleware/request-handler/headers';
+import { createHeaders } from '../../middleware/request-handler/headers';
 import type { BuildContext } from '../types';
 import type { RouteModule } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
@@ -128,7 +128,7 @@ async function isStaticAsset(server: ViteDevServer, pathname: string) {
 }
 
 function fromDevServerHttp(url: URL, req: Connect.IncomingMessage, res: ServerResponse) {
-  const requestHeaders = new Headers();
+  const requestHeaders = createHeaders();
   const nodeRequestHeaders = req.headers;
   for (const key in nodeRequestHeaders) {
     const value = nodeRequestHeaders[key];

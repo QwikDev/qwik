@@ -50,8 +50,7 @@ export const Child = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
     }, "Child_component_useClientEffect_kYRT1iERt9g", [
         state
     ]));
-    return <div onClick$={inlinedQrl(()=>console.log(mongodb)
-    , "Child_component_div_onClick_elliVSnAiOQ")}>
+    return <div onClick$={inlinedQrl(()=>console.log(mongodb), "Child_component_div_onClick_elliVSnAiOQ")}>
 
         </div>;
 }, "Child_component_9GyF01GDKqw"));

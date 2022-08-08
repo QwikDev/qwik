@@ -25,8 +25,7 @@ const App = component$(() => {
 import { qrl } from "@builder.io/qwik";
 export const Header_component_J4uyIhaBNR4 = ()=>{
     console.log("mount");
-    return <div onClick={qrl(()=>import("./header_component_div_onclick_i7ekvwh3674")
-    , "Header_component_div_onClick_i7ekvWH3674")}/>;
+    return <div onClick={qrl(()=>import("./header_component_div_onclick_i7ekvwh3674"), "Header_component_div_onClick_i7ekvWH3674")}/>;
 };
 
 /*
@@ -52,10 +51,8 @@ export const Header_component_J4uyIhaBNR4 = ()=>{
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("./header_component_j4uyihabnr4")
-, "Header_component_J4uyIhaBNR4"));
-/*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0")
-, "App_component_ckEPmXZlub0"));
+export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("./header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
+/*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 ============================= app_component_ckepmxzlub0.tsx (ENTRY POINT)==
 
@@ -85,8 +82,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 */
 ============================= header_component_div_onclick_i7ekvwh3674.tsx (ENTRY POINT)==
 
-export const Header_component_div_onClick_i7ekvWH3674 = (ctx)=>console.log(ctx)
-;
+export const Header_component_div_onClick_i7ekvWH3674 = (ctx)=>console.log(ctx);
 export { _hW } from "@builder.io/qwik";
 
 /*

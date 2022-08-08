@@ -62,8 +62,7 @@ export const Lightweight = (props)=>{
         })
     });
 };
-export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie")
-, "Foo_component_HTDRsvUbLiE"), {
+export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
 
@@ -71,8 +70,7 @@ export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_ht
 
 import { qrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = (props)=>{
-    return qrl(()=>import("./foo_component_1_dvu6fitwgly")
-    , "Foo_component_1_DvU6FitWglY", [
+    return qrl(()=>import("./foo_component_1_dvu6fitwgly"), "Foo_component_1_DvU6FitWglY", [
         props
     ]);
 };

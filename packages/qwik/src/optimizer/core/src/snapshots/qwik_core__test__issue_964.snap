@@ -1,0 +1,57 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@builder.io/qwik';
+
+export const App = component$(() => {
+    console.log(function*(lo: any, t: any) {
+    console.log(yield (yield lo)(t.href).then((r) => r.json()));
+    });
+
+    return <p>Hello Qwik</p>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+
+============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+export const App_component_ckEPmXZlub0 = ()=>{
+    console.log(function*(lo, t) {
+        console.log((yield (yield lo)(t.href).then((r)=>r.json())));
+    });
+    return /*#__PURE__*/ _jsx("p", {
+        children: "Hello Qwik"
+    });
+};
+
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "app_component_ckepmxzlub0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    80,
+    238
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -20,14 +20,12 @@ export default component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export default /*#__PURE__*/ componentQrl(qrl(()=>import("../../../../entry______slug__.js")
-, "_____slug___component_vgk6N3QaQd4"));
+export default /*#__PURE__*/ componentQrl(qrl(()=>import("../../../../entry______slug__.js"), "_____slug___component_vgk6N3QaQd4"));
 
 ============================= _____slug___component_div_onclick_oesymv0so3o.js ==
 
 import { sibling } from "./src/routes/_repl/[id]/sibling";
-export const _____slug___component_div_onClick_OesyMV0SO3o = ()=>console.log(mongodb, sibling)
-;
+export const _____slug___component_div_onClick_OesyMV0SO3o = ()=>console.log(mongodb, sibling);
 
 /*
 {
@@ -54,8 +52,7 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { qrl } from "@builder.io/qwik";
 export const _____slug___component_vgk6N3QaQd4 = ()=>{
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: qrl(()=>import("./entry______slug__.js")
-        , "_____slug___component_div_onClick_OesyMV0SO3o")
+        onClick$: qrl(()=>import("./entry______slug__.js"), "_____slug___component_div_onClick_OesyMV0SO3o")
     });
 };
 

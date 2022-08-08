@@ -164,8 +164,7 @@ export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
     let run;
     if (props['client:visible']) run = 'visible';
     else if (props['client:load'] || props['client:only']) run = 'load';
-    useWatchQrl(qrl(()=>import("./qwikifyqrl_component_usewatch_x04jc5xep1u")
-    , "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
+    useWatchQrl(qrl(()=>import("./qwikifyqrl_component_usewatch_x04jc5xep1u"), "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
         hostElement,
         props,
         reactCmpQrl,
@@ -216,8 +215,7 @@ export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
 import { qrl } from "@builder.io/qwik";
 import { componentQrl, implicit$FirstArg } from '@builder.io/qwik';
 function qwikifyQrl(reactCmpQrl) {
-    return /*#__PURE__*/ componentQrl(qrl(()=>import("../../../src/qwikifyqrl_component_zh94hie0ick")
-    , "qwikifyQrl_component_zH94hIe0Ick", [
+    return /*#__PURE__*/ componentQrl(qrl(()=>import("../../../src/qwikifyqrl_component_zh94hie0ick"), "qwikifyQrl_component_zH94hIe0Ick", [
         reactCmpQrl
     ]), {
         tagName: 'qwik-wrap'

@@ -82,8 +82,7 @@ export const s_Fh88JClhbC0 = ()=>{
             }),
             /*#__PURE__*/ jsx("p", {
                 children: /*#__PURE__*/ jsx("button", {
-                    onClick$: qrl(()=>import("./entry_hooks")
-                    , "s_odz7eidI4GM", [
+                    onClick$: qrl(()=>import("./entry_hooks"), "s_odz7eidI4GM", [
                         store
                     ]),
                     children: "Click"
@@ -116,8 +115,7 @@ export const s_Fh88JClhbC0 = ()=>{
 
 import { qrl } from "@builder.io/qwik";
 import { componentQrl } from '@builder.io/qwik';
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_hooks")
-, "s_Fh88JClhbC0"));
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_hooks"), "s_Fh88JClhbC0"));
 
 ============================= entry_hooks.js (ENTRY POINT)==
 

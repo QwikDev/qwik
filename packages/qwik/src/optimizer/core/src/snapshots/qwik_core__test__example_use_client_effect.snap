@@ -34,8 +34,7 @@ export const Child = component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Child = /*#__PURE__*/ componentQrl(qrl(()=>import("./child_component_9gyf01gdkqw")
-, "Child_component_9GyF01GDKqw"));
+export const Child = /*#__PURE__*/ componentQrl(qrl(()=>import("./child_component_9gyf01gdkqw"), "Child_component_9GyF01GDKqw"));
 
 ============================= child_component_9gyf01gdkqw.js (ENTRY POINT)==
 
@@ -48,8 +47,7 @@ export const Child_component_9GyF01GDKqw = ()=>{
         count: 0
     });
     // Double count watch
-    useClientEffectQrl(qrl(()=>import("./child_component_useclienteffect_kyrt1iert9g")
-    , "Child_component_useClientEffect_kYRT1iERt9g", [
+    useClientEffectQrl(qrl(()=>import("./child_component_useclienteffect_kyrt1iert9g"), "Child_component_useClientEffect_kYRT1iERt9g", [
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {

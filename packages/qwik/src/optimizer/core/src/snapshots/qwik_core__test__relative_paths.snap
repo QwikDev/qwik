@@ -48,8 +48,7 @@ export const App_component_AkbU84a8zes = ()=>{
             }),
             /*#__PURE__*/ jsx("p", {
                 children: /*#__PURE__*/ jsx("button", {
-                    onClick$: qrl(()=>import("./app_component_div_p_button_onclick_8dwua0cjar4.js")
-                    , "App_component_div_p_button_onClick_8dWUa0cJAr4", [
+                    onClick$: qrl(()=>import("./app_component_div_p_button_onclick_8dwua0cjar4.js"), "App_component_div_p_button_onClick_8dWUa0cJAr4", [
                         store
                     ]),
                     children: "Click"
@@ -87,8 +86,7 @@ const useData = ()=>{
         count: 0
     });
 };
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("../../../src/thing/app_component_akbu84a8zes.js")
-, "App_component_AkbU84a8zes"));
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("../../../src/thing/app_component_akbu84a8zes.js"), "App_component_AkbU84a8zes"));
 export { useData };
 
 ============================= local_component_jj0v28bs0p8.js (ENTRY POINT)==
@@ -124,8 +122,7 @@ export const Local_component_jJ0v28bs0p8 = ()=>{
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Local = /*#__PURE__*/ componentQrl(qrl(()=>import("../local_component_jj0v28bs0p8.js")
-, "Local_component_jJ0v28bs0p8"));
+export const Local = /*#__PURE__*/ componentQrl(qrl(()=>import("../local_component_jj0v28bs0p8.js"), "Local_component_jJ0v28bs0p8"));
 
 == DIAGNOSTICS ==
 

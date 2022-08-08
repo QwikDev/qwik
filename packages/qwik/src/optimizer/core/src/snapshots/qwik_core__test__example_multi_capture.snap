@@ -34,8 +34,7 @@ export const Bar = component$(({bar}) => {
 import { qrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = ({ foo  })=>{
     const arg0 = 20;
-    return qrl(()=>import("./foo_component_1_dvu6fitwgly")
-    , "Foo_component_1_DvU6FitWglY", [
+    return qrl(()=>import("./foo_component_1_dvu6fitwgly"), "Foo_component_1_DvU6FitWglY", [
         arg0,
         foo
     ]);
@@ -64,8 +63,7 @@ export const Foo_component_HTDRsvUbLiE = ({ foo  })=>{
 
 import { qrl } from "@builder.io/qwik";
 export const Bar_component_L80pS8Hxf1Y = ({ bar  })=>{
-    return qrl(()=>import("./bar_component_1_0xsynsnvu3k")
-    , "Bar_component_1_0xSyNSnVu3k", [
+    return qrl(()=>import("./bar_component_1_0xsynsnvu3k"), "Bar_component_1_0xSyNSnVu3k", [
         bar
     ]);
 };
@@ -94,8 +92,7 @@ export const Bar_component_L80pS8Hxf1Y = ({ bar  })=>{
 import { useLexicalScope } from "@builder.io/qwik";
 export const Foo_component_1_DvU6FitWglY = ()=>{
     const [arg0, foo] = useLexicalScope();
-    const fn = ({ aaa  })=>aaa
-    ;
+    const fn = ({ aaa  })=>aaa;
     return <div >
 
               {foo}{fn()}{arg0}
@@ -159,10 +156,8 @@ export { _hW } from "@builder.io/qwik";
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie")
-, "Foo_component_HTDRsvUbLiE"));
-export const Bar = /*#__PURE__*/ componentQrl(qrl(()=>import("./bar_component_l80ps8hxf1y")
-, "Bar_component_L80pS8Hxf1Y"));
+export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"));
+export const Bar = /*#__PURE__*/ componentQrl(qrl(()=>import("./bar_component_l80ps8hxf1y"), "Bar_component_L80pS8Hxf1Y"));
 
 == DIAGNOSTICS ==
 

@@ -19,8 +19,7 @@ export const App = Component((props) => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_nuxfthrjvxe")
-, "App_Component_NuXFTHRjvXE"));
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_nuxfthrjvxe"), "App_Component_NuXFTHRjvXE"));
 
 ============================= app_component_1_a08txhb9pek.js (ENTRY POINT)==
 
@@ -61,8 +60,7 @@ export const App_Component_NuXFTHRjvXE = (props)=>{
     const state = useStore({
         thing: 0
     });
-    return qrl(()=>import("./app_component_1_a08txhb9pek")
-    , "App_Component_1_A08tXHb9pEk", [
+    return qrl(()=>import("./app_component_1_a08txhb9pek"), "App_Component_1_A08tXHb9pEk", [
         state
     ]);
 };

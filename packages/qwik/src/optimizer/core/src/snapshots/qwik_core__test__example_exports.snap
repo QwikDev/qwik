@@ -33,8 +33,7 @@ export const Footer = component$();
 
 import { qrl } from "@builder.io/qwik";
 export const Header_component_UVBJuFYfvDo = ()=>{
-    return qrl(()=>import("./header_component_1_uwm1kg0igo0")
-    , "Header_component_1_uWM1kg0IGO0");
+    return qrl(()=>import("./header_component_1_uwm1kg0igo0"), "Header_component_1_uWM1kg0IGO0");
 };
 
 /*
@@ -68,8 +67,7 @@ export function foo() {}
 export class bar {
 }
 export default function DefaultFn() {};
-export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("../header_component_uvbjufyfvdo")
-, "Header_component_UVBJuFYfvDo"));
+export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("../header_component_uvbjufyfvdo"), "Header_component_UVBJuFYfvDo"));
 export const Footer = /*#__PURE__*/ componentQrl();
 
 ============================= header_component_1_uwm1kg0igo0.tsx (ENTRY POINT)==
@@ -92,8 +90,7 @@ export const Header_component_1_uWM1kg0IGO0 = ()=><Footer >
 
             <div >{v1}{v2}{v3}{obj}</div>
 
-        </Footer>
-;
+        </Footer>;
 export { _hW } from "@builder.io/qwik";
 
 /*

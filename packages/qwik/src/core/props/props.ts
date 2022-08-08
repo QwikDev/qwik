@@ -1,4 +1,10 @@
-import { createProxy, getProxyTarget, isMutable, mutable, QObjectImmutable } from '../object/q-object';
+import {
+  createProxy,
+  getProxyTarget,
+  isMutable,
+  mutable,
+  QObjectImmutable,
+} from '../object/q-object';
 import { resumeContainer } from '../object/store';
 import { QContainerAttr } from '../util/markers';
 import type { OnRenderFn } from '../component/component.public';
@@ -11,7 +17,7 @@ import { directGetAttribute } from '../render/fast-calls';
 import { assertDefined } from '../assert/assert';
 import { codeToText, QError_immutableJsxProps } from '../error/error';
 import type { QRL } from '../import/qrl.public';
-import { StyleAppend, useInvokeContext } from '../use/use-core';
+import { getContainer, StyleAppend } from '../use/use-core';
 import { ContainerState, getContainerState, SubscriptionManager } from '../render/container';
 import type { ProcessedJSXNode } from '../render/dom/render-dom';
 
@@ -194,7 +200,7 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
 /**
  * @internal
  */
-export const _useMutableProps = (mutable: boolean) => {
-  const ctx = useInvokeContext();
-  ctx.$renderCtx$.$containerState$.$mutableProps$ = mutable;
-}
+export const _useMutableProps = (element: Element, mutable: boolean) => {
+  const ctx = getContainer(element);
+  getContainerState(ctx!).$mutableProps$ = mutable;
+};

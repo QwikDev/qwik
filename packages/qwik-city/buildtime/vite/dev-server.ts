@@ -4,7 +4,7 @@ import fs from 'fs';
 import { join } from 'path';
 import { Headers } from '../../middleware/request-handler/headers';
 import type { BuildContext } from '../types';
-import type { EndpointModule } from '../../runtime/src/library/types';
+import type { RouteModule } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
 import { loadUserResponse } from '../../middleware/request-handler/user-response';
 import { getQwikCityEnvData } from '../../middleware/request-handler/page-handler';
@@ -12,7 +12,6 @@ import { buildFromUrlPathname } from '../build';
 import { endpointHandler } from '../../middleware/request-handler/endpoint-handler';
 import { notFoundHandler } from '../../middleware/request-handler/error-handler';
 import type { QwikCityRequestContext } from '../../middleware/request-handler/types';
-import { isEndpointsModuleExt } from '../utils/fs';
 
 export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
   server.middlewares.use(async (req, res, next) => {
@@ -36,35 +35,28 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
       const result = await buildFromUrlPathname(ctx, pathname);
       if (result) {
         const { route, params } = result;
-        const isEndpointOnly = isEndpointsModuleExt(route.ext);
 
         // use vite to dynamically load each layout/page module in this route's hierarchy
-        const endpointModules: EndpointModule[] = [];
+        const routeModules: RouteModule[] = [];
         for (const layout of route.layouts) {
           const layoutModule = await server.ssrLoadModule(layout.filePath, {
             fixStacktrace: true,
           });
-          endpointModules.push(layoutModule);
+          routeModules.push(layoutModule);
         }
         const endpointModule = await server.ssrLoadModule(route.filePath, {
           fixStacktrace: true,
         });
-        endpointModules.push(endpointModule);
+        routeModules.push(endpointModule);
 
         const userResponse = await loadUserResponse(
           requestCtx,
           params,
-          endpointModules,
-          ctx.opts.trailingSlash,
-          isEndpointOnly
+          routeModules,
+          ctx.opts.trailingSlash
         );
 
-        if (userResponse.status === 404) {
-          await notFoundHandler(requestCtx);
-          return;
-        }
-
-        if (userResponse.isEndpointOnly) {
+        if (userResponse.type === 'endpoint') {
           // dev server endpoint handler
           await endpointHandler(requestCtx, userResponse);
           return;
@@ -79,12 +71,6 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
           // client only dev server will re-fetch anyways, so reset
           envData.qwikcity.response.body = undefined;
         }
-
-        // TODO: removed after @deprecation period
-        (res as any)._qwikUserCtx = {
-          ...(res as any)._qwikUserCtx,
-          ...envData,
-        };
 
         (res as QwikViteDevResponse)._qwikEnvData = {
           ...(res as QwikViteDevResponse)._qwikEnvData,

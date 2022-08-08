@@ -7,7 +7,7 @@ title: Components
 ## Declaration
 
 ```tsx
-import { component$, useStore } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 
 export const Greeter = component$(() => {
   return <span>Hello World!</span>;
@@ -17,15 +17,14 @@ export const Greeter = component$(() => {
 ## Props
 
 ```tsx
-import { component$, useStore } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 
 interface GreeterProps {
   salutation?: string;
   name?: string;
 }
-export const Greeter = component$((props: GreeterProps) => {
-  const salutation = props.salutation || 'Hello';
-  const name = props.name || 'World';
+
+export const Greeter = component$(({ salutation = 'Hello', name = 'World' }: GreeterProps) => {
   return (
     <span>
       {salutation} {name}!
@@ -39,7 +38,7 @@ export const Greeter = component$((props: GreeterProps) => {
 Component props must be serializable, and therefore can not directly refer to functions.
 
 ```tsx
-import { component$, useStore, PropFunction } from '@builder.io/qwik';
+import { component$, PropFunction } from '@builder.io/qwik';
 
 export const Parent = component$(() => {
   return <MyButton doSomething$={() => console.log('Hello')}>click</MyButton>;
@@ -48,8 +47,9 @@ export const Parent = component$(() => {
 interface MyButtonProps {
   doSomething$: PropFunction<() => void>;
 }
-export const MyButton = component$((props: MyButtonProps) => {
-  return <button onClick$={props.doSomething$}>click</button>;
+
+export const MyButton = component$(({ doSomething$ }: MyButtonProps) => {
+  return <button onClick$={doSomething$}>click</button>;
 });
 ```
 

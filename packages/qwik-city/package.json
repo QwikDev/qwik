@@ -4,7 +4,7 @@
   "description": "The meta-framework for Qwik.",
   "main": "./lib/index.qwik.cjs",
   "module": "./lib/index.qwik.mjs",
-  "qwik": "./lib/index.qwik.cjs",
+  "qwik": "./lib/index.qwik.mjs",
   "types": "./lib/index.d.ts",
   "type": "module",
   "exports": {

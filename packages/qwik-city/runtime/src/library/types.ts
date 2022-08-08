@@ -2,6 +2,7 @@ import type {
   ErrorResponse,
   RedirectResponse,
 } from '../../../middleware/request-handler/user-response';
+import type { NoSerialize } from '@builder.io/qwik';
 import type { ROUTE_TYPE_ENDPOINT } from './constants';
 
 export interface RouteModule<BODY = unknown> {
@@ -136,7 +137,7 @@ export type DocumentHead<T = unknown> =
   | ((props: DocumentHeadProps<T>) => DocumentHeadValue);
 
 export interface ContentStateInternal {
-  contents: ContentModule[];
+  contents: NoSerialize<ContentModule[]>;
 }
 
 export interface ContentState {

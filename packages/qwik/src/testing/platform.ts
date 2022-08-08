@@ -3,6 +3,7 @@ import type { TestPlatform } from './types';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { getContainer } from '../core/use/use-core';
+import type { QwikElement } from '../core/render/dom/virtual-element';
 
 function createPlatform(document: any) {
   if (!document || (document as Document).nodeType !== 9) {
@@ -96,7 +97,7 @@ export function setTestPlatform(document: any) {
  * @param url - relative URL
  * @returns fully qualified URL.
  */
-export function toUrl(doc: Document, element: Element, url: string | URL): URL {
+export function toUrl(doc: Document, element: QwikElement, url: string | URL): URL {
   const containerEl = getContainer(element);
   const base = new URL(containerEl?.getAttribute('q:base') ?? doc.baseURI, doc.baseURI);
   return new URL(url, base);

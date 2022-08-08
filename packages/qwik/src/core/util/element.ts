@@ -12,11 +12,11 @@ export const isElement = (value: any): value is Element => {
 };
 
 export const isQwikElement = (value: any): value is QwikElement => {
-  return isNode(value) && (value.nodeType === 1 || value.nodeType === 10);
+  return isNode(value) && (value.nodeType === 1 || value.nodeType === 111);
 };
 
 export const isVirtualElement = (value: any): value is VirtualElement => {
-  return isObject(value) && value.nodeType === 10;
+  return isObject(value) && value.nodeType === 111;
 };
 
 export const isText = (value: any): value is Text => {

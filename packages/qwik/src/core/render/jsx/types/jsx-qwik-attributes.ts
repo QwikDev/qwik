@@ -218,6 +218,7 @@ export interface ComponentBaseProps
   'host:tagName'?: JSXTagName;
   children?: JSXChildren;
 }
+
 export interface QwikAttributes extends QwikProps, QwikEvents {}
 
 /**

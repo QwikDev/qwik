@@ -118,7 +118,8 @@ export interface Context<STATE extends object> {
 // @alpha
 export interface CorePlatform {
     chunkForSymbol: (symbolName: string) => [symbol: string, chunk: string] | undefined;
-    importSymbol: (element: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
+    // Warning: (ae-forgotten-export) The symbol "QwikElement" needs to be exported by the entry point index.d.ts
+    importSymbol: (element: QwikElement, url: string | URL, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
     nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
@@ -153,7 +154,7 @@ export interface FunctionComponent<P = {}> {
 }
 
 // @alpha
-export const getPlatform: (docOrNode: Document | Node) => CorePlatform;
+export const getPlatform: (docOrNode: Document | QwikElement) => CorePlatform;
 
 // @public (undocumented)
 export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props: PROPS | null, ...children: any[]): JSXNode<TYPE>;
@@ -373,7 +374,7 @@ export interface QRL<TYPE = any> {
     getHash(): string;
     // (undocumented)
     getSymbol(): string;
-    resolve(el?: Element): Promise<TYPE>;
+    resolve(el?: QwikElement): Promise<TYPE>;
 }
 
 // @alpha
@@ -659,9 +660,6 @@ export function useEnvData<T>(key: string): T | undefined;
 
 // @alpha (undocumented)
 export function useEnvData<T, B = T>(key: string, defaultValue: B): T | B;
-
-// @alpha
-export const useHostElement: () => Element;
 
 // Warning: (ae-internal-missing-underscore) The name "useLexicalScope" should be prefixed with an underscore because the declaration is marked as @internal
 //

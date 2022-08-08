@@ -7,6 +7,7 @@ import { jsx } from '../render/jsx/jsx-runtime';
 import type { MutableWrapper } from '../object/q-object';
 import { SERIALIZABLE_STATE } from '../object/serializers';
 import { qTest } from '../util/qdev';
+import { Virtual } from '../render/jsx/host.public';
 
 /**
  * Infers `Props` from the component.
@@ -82,7 +83,7 @@ export type MutableProps<PROPS extends {}> = {
  */
 export type EventHandler<T> = QRL<(value: T) => any>;
 
-const ELEMENTS_SKIP_KEY: JSXTagName[] = ['html', 'body', 'head'];
+// const ELEMENTS_SKIP_KEY: JSXTagName[] = ['html', 'body', 'head'];
 
 // <docs markdown="../readme.md#component">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -142,15 +143,12 @@ export const componentQrl = <PROPS extends {}>(
   onRenderQrl: QRL<OnRenderFn<PROPS>>,
   options: ComponentOptions = {}
 ): Component<PROPS> => {
-  const tagName = options.tagName ?? 'q:host';
-  const skipKey = ELEMENTS_SKIP_KEY.includes(tagName);
 
   // Return a QComponent Factory function.
   function QwikComponent(props: PublicProps<PROPS>, key?: string): JSXNode<PROPS> {
-    const finalTag = props['host:tagName'] ?? tagName;
     const hash = qTest ? 'sX' : onRenderQrl.getHash();
-    const finalKey = skipKey ? undefined : hash + ':' + (key ? key : '');
-    return jsx(finalTag as string, { [OnRenderProp]: onRenderQrl, ...props }, finalKey) as any;
+    const finalKey = hash + ':' + (key ? key : '');
+    return jsx(Virtual, { [OnRenderProp]: onRenderQrl, ...props }, finalKey) as any;
   }
   (QwikComponent as any)[SERIALIZABLE_STATE] = [onRenderQrl, options];
   return QwikComponent;

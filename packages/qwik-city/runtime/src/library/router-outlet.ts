@@ -6,9 +6,8 @@ import { ContentInternalContext } from './contexts';
  */
 export const RouterOutlet = component$(() => {
   const { contents } = useContext(ContentInternalContext);
-  const contentsLen = contents.length;
-
-  if (contentsLen > 0) {
+  if (contents && contents.length > 0) {
+    const contentsLen = contents.length;
     let cmp: any = jsx(contents[contentsLen - 1].default, {});
     let i = contentsLen - 2;
 

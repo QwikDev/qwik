@@ -58,7 +58,7 @@ export const Html = component$<HtmlProps>(
     });
 
     const contentInternal = useStore<ContentStateInternal>({
-      contents: [],
+      contents: undefined,
     });
 
     useContextProvider(ContentContext, content);
@@ -91,7 +91,7 @@ export const Html = component$<HtmlProps>(
         // Update content
         content.headings = pageModule.headings;
         content.menu = loadedRoute.menu;
-        contentInternal.contents = noSerialize<any>(contentModules);
+        contentInternal.contents = noSerialize(contentModules);
 
         // Update route location
         routeLocation.href = url.href;

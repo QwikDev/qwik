@@ -45,8 +45,7 @@ export const Header_WlR3xnI6u38 = (decl1, { decl2  }, [decl3])=>{
             return ident10;
         }
     }
-    return <div onClick={(ident11)=>ident11 + ident12
-    } required={false}/>;
+    return <div onClick={(ident11)=>ident11 + ident12} required={false}/>;
 };
 export { _hW } from "@builder.io/qwik";
 
@@ -72,8 +71,7 @@ export { _hW } from "@builder.io/qwik";
 ============================= project/test.tsx ==
 
 import { qrl } from "@builder.io/qwik";
-qrl(()=>import("../header_wlr3xni6u38")
-, "Header_WlR3xnI6u38");
+qrl(()=>import("../header_wlr3xni6u38"), "Header_WlR3xnI6u38");
 
 == DIAGNOSTICS ==
 

@@ -23,14 +23,11 @@ import { qrl } from "@builder.io/qwik";
 export const s_HTDRsvUbLiE = ()=>{
     return <div >
 
-            <div onClick$={qrl(()=>import("./s_9dcjc0ujddo")
-    , "s_9DcJc0uJDDo")}/>
+            <div onClick$={qrl(()=>import("./s_9dcjc0ujddo"), "s_9DcJc0uJDDo")}/>
 
-            <div onClick$={qrl(()=>import("./s_rjqdy8i0mxc")
-    , "s_RjQdy8I0MXc")}/>
+            <div onClick$={qrl(()=>import("./s_rjqdy8i0mxc"), "s_RjQdy8I0MXc")}/>
 
-            <div onClick$={qrl(()=>import("./s_w9ptfrbvk1e")
-    , "s_w9ptFRBVK1E")}/>
+            <div onClick$={qrl(()=>import("./s_w9ptfrbvk1e"), "s_w9ptFRBVK1E")}/>
 
         </div>;
 };
@@ -56,8 +53,7 @@ export const s_HTDRsvUbLiE = ()=>{
 */
 ============================= s_9dcjc0ujddo.tsx (ENTRY POINT)==
 
-export const s_9DcJc0uJDDo = ()=>console.log('first')
-;
+export const s_9DcJc0uJDDo = ()=>console.log('first');
 
 /*
 {
@@ -80,8 +76,7 @@ export const s_9DcJc0uJDDo = ()=>console.log('first')
 */
 ============================= s_w9ptfrbvk1e.tsx (ENTRY POINT)==
 
-export const s_w9ptFRBVK1E = ()=>console.log('third')
-;
+export const s_w9ptFRBVK1E = ()=>console.log('third');
 
 /*
 {
@@ -104,8 +99,7 @@ export const s_w9ptFRBVK1E = ()=>console.log('third')
 */
 ============================= s_rjqdy8i0mxc.tsx (ENTRY POINT)==
 
-export const s_RjQdy8I0MXc = ()=>console.log('second')
-;
+export const s_RjQdy8I0MXc = ()=>console.log('second');
 
 /*
 {
@@ -130,8 +124,7 @@ export const s_RjQdy8I0MXc = ()=>console.log('second')
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./s_htdrsvublie")
-, "s_HTDRsvUbLiE"));
+export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./s_htdrsvublie"), "s_HTDRsvUbLiE"));
 
 == DIAGNOSTICS ==
 

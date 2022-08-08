@@ -39,20 +39,17 @@ export const Root = component$(() => {
 
 ============================= test.js ==
 
-import { componentQrl as componentQrl1 } from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { qrl as qrl1 } from '@builder.io/qwik/what';
 export const hW = 12;
 export const handleWatch = 42;
-const componentQrl = ()=>console.log('not this', qrl1())
-;
-componentQrl();
-export const Foo = /*#__PURE__*/ componentQrl1(qrl(()=>import("./foo_component_htdrsvublie")
-, "Foo_component_HTDRsvUbLiE"), {
+const componentQrl1 = ()=>console.log('not this', qrl1());
+componentQrl1();
+export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
-export const Root = /*#__PURE__*/ componentQrl1(qrl(()=>import("./root_component_royhjyacbye")
-, "Root_component_royhjYaCbYE"), {
+export const Root = /*#__PURE__*/ componentQrl(qrl(()=>import("./root_component_royhjyacbye"), "Root_component_royhjYaCbYE"), {
     tagName: "my-foo"
 });
 
@@ -68,8 +65,7 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
     console.log(qwik);
     const qrl1 = 23;
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw")
-        , "Foo_component_div_onClick_M48DYiidSJw", [
+        onClick$: qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw", [
             qrl1
         ])
     });
@@ -123,10 +119,8 @@ export { _hW } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { useStyles } from "@builder.io/qwik";
 export const Root_component_royhjYaCbYE = ()=>{
-    useStyles(qrl(()=>import("./root_component_usestyles_u5dkuxgrgnu")
-    , "Root_component_useStyles_u5DkUxGrGnU"));
-    return qrl(()=>import("./root_component_1_cbpqnyduhi4")
-    , "Root_component_1_cBpQNYDUHI4");
+    useStyles(qrl(()=>import("./root_component_usestyles_u5dkuxgrgnu"), "Root_component_useStyles_u5DkUxGrGnU"));
+    return qrl(()=>import("./root_component_1_cbpqnyduhi4"), "Root_component_1_cBpQNYDUHI4");
 };
 
 /*

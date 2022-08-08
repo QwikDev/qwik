@@ -46,7 +46,7 @@ interface ProductData {
   price: number;
   description: string;
 }
-export const onGet: EndpointHandler<EndpointData> = async ({ params }) => { ... };
+export const onGet: RequestHandler<EndpointData> = async ({ params }) => { ... };
 
 export default component$(() => {...});
 

@@ -1,5 +1,5 @@
 import { Resource, component$, Host, useStore } from '@builder.io/qwik';
-import { useEndpoint, useLocation, EndpointHandler, DocumentHead } from '~qwik-city-runtime';
+import { useEndpoint, useLocation, RequestHandler, DocumentHead } from '~qwik-city-runtime';
 import os from 'os';
 
 export default component$(() => {
@@ -17,6 +17,10 @@ export default component$(() => {
         onPending={() => <p>Loading</p>}
         onRejected={(e) => <p>{e}</p>}
         onResolved={(product) => {
+          if (product == null) {
+            return <p>Not Found</p>;
+          }
+
           return (
             <>
               <p>Price: {product.price}</p>
@@ -77,7 +81,7 @@ export const head: DocumentHead<ProductData | null> = ({ params }) => {
   };
 };
 
-export const onGet: EndpointHandler<EndpointData> = async ({ params, response }) => {
+export const onGet: RequestHandler<EndpointData> = async ({ params, response }) => {
   // Serverside Endpoint
   // During SSR, this method is called directly on the server and returns the data object
   // On the client, this same data can be requested with fetch() at the same URL, but also
@@ -85,13 +89,14 @@ export const onGet: EndpointHandler<EndpointData> = async ({ params, response })
 
   if (params.id === 'shirt') {
     // Redirect, which will skip any rendering and the server will immediately redirect
-    return response.redirect('/products/tshirt');
+    throw response.redirect('/products/tshirt');
   }
 
   const productPrice = PRODUCT_DB[params.id];
   if (!productPrice) {
-    // Product data not found
-    // but the data is still given to the renderer to decide what to do
+    // Product data not found, but purposely not throwing a response.error(404)
+    // instead the renderer will still run with the returned `null` data
+    // and the component will decide how to render it
     response.status = 404;
     return null;
   }
@@ -121,7 +126,7 @@ const PRODUCT_DB: Record<string, string> = {
   tshirt: '$18.96',
 };
 
-type EndpointData = ProductData;
+type EndpointData = ProductData | null;
 
 interface ProductData {
   productId: string;

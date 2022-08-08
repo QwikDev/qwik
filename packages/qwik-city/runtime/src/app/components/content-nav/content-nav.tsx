@@ -1,5 +1,5 @@
-import { ContentMenu, Link, useContent, useLocation } from '@builder.io/qwik-city';
-import { component$, Host, mutable, useStyles$ } from '@builder.io/qwik';
+import { ContentMenu, useContent, useLocation } from '@builder.io/qwik-city';
+import { component$, Host, useStyles$ } from '@builder.io/qwik';
 import styles from './content-nav.css?inline';
 
 export const ContentNav = component$(
@@ -16,8 +16,8 @@ export const ContentNav = component$(
 
     return (
       <Host class="content-nav">
-        <div class="prev">{prev ? <Link href={mutable(prev.href)}>{prev.text}</Link> : null}</div>
-        <div class="next">{next ? <Link href={mutable(next.href)}>{next.text}</Link> : null}</div>
+        <div class="prev">{prev ? <a href={prev.href}>{prev.text}</a> : null}</div>
+        <div class="next">{next ? <a href={next.href}>{next.text}</a> : null}</div>
       </Host>
     );
   },

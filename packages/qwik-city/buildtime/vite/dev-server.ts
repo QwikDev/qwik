@@ -2,9 +2,9 @@ import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'http';
 import fs from 'fs';
 import { join } from 'path';
-import { Headers } from '../../middleware/request-handler/headers';
+import { createHeaders } from '../../middleware/request-handler/headers';
 import type { BuildContext } from '../types';
-import type { EndpointModule } from '../../runtime/src/library/types';
+import type { RouteModule } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
 import { loadUserResponse } from '../../middleware/request-handler/user-response';
 import { getQwikCityEnvData } from '../../middleware/request-handler/page-handler';
@@ -35,35 +35,28 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
       const result = await buildFromUrlPathname(ctx, pathname);
       if (result) {
         const { route, params } = result;
-        const isEndpointOnly = route.type === 'endpoint';
 
         // use vite to dynamically load each layout/page module in this route's hierarchy
-        const endpointModules: EndpointModule[] = [];
+        const routeModules: RouteModule[] = [];
         for (const layout of route.layouts) {
           const layoutModule = await server.ssrLoadModule(layout.filePath, {
             fixStacktrace: true,
           });
-          endpointModules.push(layoutModule);
+          routeModules.push(layoutModule);
         }
         const endpointModule = await server.ssrLoadModule(route.filePath, {
           fixStacktrace: true,
         });
-        endpointModules.push(endpointModule);
+        routeModules.push(endpointModule);
 
         const userResponse = await loadUserResponse(
           requestCtx,
           params,
-          endpointModules,
-          ctx.opts.trailingSlash,
-          isEndpointOnly
+          routeModules,
+          ctx.opts.trailingSlash
         );
 
-        if (userResponse.status === 404) {
-          await notFoundHandler(requestCtx);
-          return;
-        }
-
-        if (userResponse.isEndpointOnly) {
+        if (userResponse.type === 'endpoint') {
           // dev server endpoint handler
           await endpointHandler(requestCtx, userResponse);
           return;
@@ -78,12 +71,6 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
           // client only dev server will re-fetch anyways, so reset
           envData.qwikcity.response.body = undefined;
         }
-
-        // TODO: removed after @deprecation period
-        (res as any)._qwikUserCtx = {
-          ...(res as any)._qwikUserCtx,
-          ...envData,
-        };
 
         (res as QwikViteDevResponse)._qwikEnvData = {
           ...(res as QwikViteDevResponse)._qwikEnvData,
@@ -141,7 +128,7 @@ async function isStaticAsset(server: ViteDevServer, pathname: string) {
 }
 
 function fromDevServerHttp(url: URL, req: Connect.IncomingMessage, res: ServerResponse) {
-  const requestHeaders = new Headers();
+  const requestHeaders = createHeaders();
   const nodeRequestHeaders = req.headers;
   for (const key in nodeRequestHeaders) {
     const value = nodeRequestHeaders[key];

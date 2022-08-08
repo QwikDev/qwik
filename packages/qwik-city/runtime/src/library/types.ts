@@ -1,24 +1,27 @@
+import type {
+  ErrorResponse,
+  RedirectResponse,
+} from '../../../middleware/request-handler/user-response';
 import type { NoSerialize } from '@builder.io/qwik';
-import type { ROUTE_TYPE_ENDPOINT } from './constants';
 
-export interface EndpointModule<BODY = unknown> {
-  onDelete?: EndpointHandler<BODY>;
-  onGet?: EndpointHandler<BODY>;
-  onHead?: EndpointHandler<BODY>;
-  onOptions?: EndpointHandler<BODY>;
-  onPatch?: EndpointHandler<BODY>;
-  onPost?: EndpointHandler<BODY>;
-  onPut?: EndpointHandler<BODY>;
-  onRequest?: EndpointHandler<BODY>;
+export interface RouteModule<BODY = unknown> {
+  onDelete?: RequestHandler<BODY>;
+  onGet?: RequestHandler<BODY>;
+  onHead?: RequestHandler<BODY>;
+  onOptions?: RequestHandler<BODY>;
+  onPatch?: RequestHandler<BODY>;
+  onPost?: RequestHandler<BODY>;
+  onPut?: RequestHandler<BODY>;
+  onRequest?: RequestHandler<BODY>;
 }
 
-export interface PageModule extends EndpointModule {
+export interface PageModule extends RouteModule {
   readonly default: any;
   readonly head?: ContentModuleHead;
   readonly headings?: ContentHeading[];
 }
 
-export interface LayoutModule extends EndpointModule {
+export interface LayoutModule extends RouteModule {
   readonly default: any;
   readonly head?: ContentModuleHead;
 }
@@ -160,7 +163,7 @@ export interface ContentHeading {
 }
 
 export type ContentModuleLoader = () => Promise<ContentModule>;
-export type EndpointModuleLoader = () => Promise<EndpointModule>;
+export type EndpointModuleLoader = () => Promise<RouteModule>;
 export type ModuleLoader = ContentModuleLoader | EndpointModuleLoader;
 export type MenuModuleLoader = () => Promise<MenuModule>;
 
@@ -169,13 +172,7 @@ export type MenuModuleLoader = () => Promise<MenuModule>;
  */
 export type RouteData =
   | [pattern: RegExp, loaders: ModuleLoader[]]
-  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]]
-  | [
-      pattern: RegExp,
-      loaders: ModuleLoader[],
-      paramNames: string[],
-      routeType: typeof ROUTE_TYPE_ENDPOINT
-    ];
+  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]];
 
 export type FallbackRouteData =
   | [pattern: RegExp, loaders: ModuleLoader[]]
@@ -201,14 +198,11 @@ export type RouteParams = Record<string, string>;
 
 export type ContentModule = PageModule | LayoutModule;
 
-export type RouteModule = ContentModule | EndpointModule;
-
 export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
 
 export interface LoadedRoute {
-  route: RouteData;
   params: RouteParams;
-  mods: RouteModule[];
+  mods: (RouteModule | ContentModule)[];
   menu: ContentMenu | undefined;
 }
 
@@ -247,12 +241,23 @@ export interface ResponseContext {
   readonly headers: Headers;
 
   /**
-   * URL to redirect to. Defaults to use the `307` response status code,
-   * but can be overridden by setting the `status` argument.
+   * URL to redirect to. When called, the response will immediately
+   * end with the correct redirect status and headers.
+   * Defaults to use the `307` response status code, but can be
+   * overridden by setting the `status` argument.
    *
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
    */
-  readonly redirect: (url: string, status?: number) => void;
+  readonly redirect: (url: string, status?: number) => RedirectResponse;
+
+  /**
+   * When called, the response will immediately end with the given
+   * status code. This could be useful to end a response with `404`,
+   * and use the 404 handler in the routes directory.
+   * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+   * for which status code should be used.
+   */
+  readonly error: (status: number) => ErrorResponse;
 }
 
 /**
@@ -278,17 +283,23 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 
 /**
  * @public
  */
-export type EndpointHandler<BODY = unknown> = (ev: RequestEvent) => EndpointHandlerResult<BODY>;
+export type RequestHandler<BODY = unknown> = (ev: RequestEvent) => RequestHandlerResult<BODY>;
 
-export type EndpointHandlerBody<BODY> = BODY | string | number | boolean | undefined | null | void;
+/**
+ * @public
+ * @deprecated Please use `RequestHandler` instead.
+ */
+export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
 
-export type EndpointHandlerBodyFunction<BODY> = () =>
-  | EndpointHandlerBody<BODY>
-  | Promise<EndpointHandlerBody<BODY>>;
+export type RequestHandlerBody<BODY> = BODY | string | number | boolean | undefined | null | void;
 
-export type EndpointHandlerResult<BODY> =
-  | (EndpointHandlerBody<BODY> | EndpointHandlerBodyFunction<BODY>)
-  | Promise<EndpointHandlerBody<BODY> | EndpointHandlerBodyFunction<BODY>>;
+export type RequestHandlerBodyFunction<BODY> = () =>
+  | RequestHandlerBody<BODY>
+  | Promise<RequestHandlerBody<BODY>>;
+
+export type RequestHandlerResult<BODY> =
+  | (RequestHandlerBody<BODY> | RequestHandlerBodyFunction<BODY>)
+  | Promise<RequestHandlerBody<BODY> | RequestHandlerBodyFunction<BODY>>;
 
 export interface EndpointResponse {
   body: any;

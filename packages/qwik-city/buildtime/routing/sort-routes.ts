@@ -42,8 +42,8 @@ export function routeSortCompare(a: BuildRoute, b: BuildRoute) {
     }
   }
 
-  if (a.type !== b.type) {
-    return a.type === 'endpoint' ? -1 : 1;
+  if (a.pathname === b.pathname) {
+    return a.ext > b.ext ? -1 : 1;
   }
 
   return a.pathname < b.pathname ? -1 : 1;

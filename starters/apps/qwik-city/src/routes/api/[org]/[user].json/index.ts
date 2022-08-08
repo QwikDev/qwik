@@ -1,6 +1,6 @@
-import type { EndpointHandler } from '@builder.io/qwik-city';
+import type { RequestHandler } from '@builder.io/qwik-city';
 
-export const onGet: EndpointHandler = ({ request, params }) => {
+export const onGet: RequestHandler = ({ request, params }) => {
   return {
     timestamp: Date.now(),
     method: request.method,
@@ -9,7 +9,7 @@ export const onGet: EndpointHandler = ({ request, params }) => {
   };
 };
 
-export const onPost: EndpointHandler = async ({ request, response }) => {
+export const onPost: RequestHandler = async ({ request, response }) => {
   response.headers.set('Content-Type', 'text/plain');
   return `HTTP Method: ${request.method}`;
 };

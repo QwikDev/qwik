@@ -2,7 +2,7 @@ import type { Render } from '@builder.io/qwik/server';
 import type { QwikCityRequestContext, QwikCityRequestOptions } from '../request-handler/types';
 import { errorHandler, notFoundHandler, requestHandler } from '../request-handler';
 import { patchGlobalFetch } from './node-fetch';
-import { Headers } from '../request-handler/headers';
+import { createHeaders } from '../request-handler/headers';
 import type { Request, Response, NextFunction } from 'express';
 
 // @builder.io/qwik-city/middleware/express
@@ -51,7 +51,7 @@ export interface QwikCityExpressOptions extends QwikCityRequestOptions {}
 
 function fromExpressHttp(req: Request, res: Response) {
   const url = new URL(req.path, `${req.protocol}://${req.headers.host}`);
-  const requestHeaders = new Headers();
+  const requestHeaders = createHeaders();
   const nodeRequestHeaders = req.headers;
   for (const key in nodeRequestHeaders) {
     const value = nodeRequestHeaders[key];

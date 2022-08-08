@@ -1,5 +1,5 @@
 import { component$, Host, Resource } from '@builder.io/qwik';
-import { useEndpoint, DocumentHead, EndpointHandler } from '~qwik-city-runtime';
+import { useEndpoint, DocumentHead, RequestHandler } from '~qwik-city-runtime';
 
 export default component$(() => {
   const resource = useEndpoint<typeof onGet>();
@@ -19,7 +19,7 @@ export default component$(() => {
   );
 });
 
-export const onGet: EndpointHandler<EndpointData> = async ({ params, request }) => {
+export const onGet: RequestHandler<EndpointData> = async ({ params, request }) => {
   return {
     blogTitle: `Blog: ${params.slug}`,
     blogContent: `${params.slug}, ${request.url}`,

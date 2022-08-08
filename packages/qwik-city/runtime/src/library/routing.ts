@@ -31,7 +31,7 @@ export const loadRoute = async (
           loadModule<RouteModule>(
             moduleLoader,
             pendingLoads,
-            (mod) => (mods[i] = mod),
+            (routeModule) => (mods[i] = routeModule),
             cacheModules
           );
         });
@@ -47,7 +47,7 @@ export const loadRoute = async (
           await Promise.all(pendingLoads);
         }
 
-        return { route, params, mods, menu };
+        return { params, mods, menu };
       }
     }
   }

@@ -12,11 +12,12 @@ export function pageHandler<T = any>(
   const { response, url } = requestCtx;
 
   if (!headers.has('Content-Type')) {
-    // default to text/html content if it wasn't provided
+    // default to text/html if Content-Type wasn't provided
     headers.set('Content-Type', 'text/html; charset=utf-8');
   }
 
   return response(status, headers, async (stream) => {
+    // begin http streaming the page content as it's rendering html
     const result = await render({
       stream,
       url: url.href,
@@ -24,6 +25,8 @@ export function pageHandler<T = any>(
       ...opts,
     });
     if ((typeof result as any as RenderToStringResult).html === 'string') {
+      // render result used renderToString(), so none of it was streamed
+      // write the already completed html to the stream
       stream.write((result as any as RenderToStringResult).html);
     }
   });

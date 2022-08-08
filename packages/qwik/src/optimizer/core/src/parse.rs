@@ -351,14 +351,12 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         config.source_maps,
                     )?;
 
-                    let path = path_data
-                        .rel_dir
-                        .join(if did_transform {
-                            [&path_data.file_stem, ".", &extension].concat()
-                        } else {
-                            path_data.file_name
-                        })
-                        .to_slash_lossy();
+                    let a = if did_transform {
+                        [&path_data.file_stem, ".", &extension].concat()
+                    } else {
+                        path_data.file_name
+                    };
+                    let path = path_data.rel_dir.join(a).to_string_lossy().to_string();
 
                     let mut hasher = DefaultHasher::new();
                     hasher.write(path.as_bytes());
@@ -468,7 +466,11 @@ pub fn emit_source_code(
                 None
             },
         ));
-        let config = swc_ecmascript::codegen::Config { minify: false };
+        let config = swc_ecmascript::codegen::Config {
+            minify: false,
+            target: ast::EsVersion::latest(),
+            ascii_only: false,
+        };
         let mut emitter = swc_ecmascript::codegen::Emitter {
             cfg: config,
             comments: Some(&comments),

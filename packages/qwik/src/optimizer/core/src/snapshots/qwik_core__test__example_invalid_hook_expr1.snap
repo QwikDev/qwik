@@ -24,8 +24,7 @@ export const App = component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0")
-, "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 ============================= app_component_usestyles_t35nsa5uv7u.js (ENTRY POINT)==
 
@@ -59,13 +58,11 @@ import { qrl } from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
     const style = `${css1}${css2}`;
-    useStylesQrl(qrl(()=>import("./app_component_usestyles_t35nsa5uv7u")
-    , "App_component_useStyles_t35nSa5UV7U"));
+    useStylesQrl(qrl(()=>import("./app_component_usestyles_t35nsa5uv7u"), "App_component_useStyles_t35nSa5UV7U"));
     const render = ()=>{
         return /*#__PURE__*/ _jsx("div", {});
     };
-    return qrl(()=>import("./app_component_1_w0t0o3qmovu")
-    , "App_component_1_w0t0o3QMovU");
+    return qrl(()=>import("./app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU");
 };
 
 /*

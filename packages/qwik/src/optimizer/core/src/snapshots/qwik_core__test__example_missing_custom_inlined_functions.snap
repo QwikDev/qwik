@@ -38,8 +38,7 @@ export const App = component$((props)=>{
     });
     return $(()=>/*#__PURE__*/ _jsx("div", {
             children: state.count
-        })
-    );
+        }));
 });
 
 == DIAGNOSTICS ==

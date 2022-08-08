@@ -675,7 +675,7 @@ export const useMount$: <T>(first: MountFn<T>) => void;
 export const useMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
 
 // @internal (undocumented)
-export const _useMutableProps: (mutable: boolean) => void;
+export const _useMutableProps: (element: Element, mutable: boolean) => void;
 
 // @alpha
 export const useOn: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;

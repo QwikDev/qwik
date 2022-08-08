@@ -2,9 +2,89 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { test } from 'uvu';
 import { equal } from 'uvu/assert';
-import { createFileId, normalizePath } from './fs';
+import {
+  createFileId,
+  isMarkdownExt,
+  isMenuFileName,
+  isModuleExt,
+  isPageExt,
+  isPageModuleExt,
+  normalizePath,
+} from './fs';
 
 const routesDir = normalizePath(join(tmpdir(), 'src', 'routes'));
+
+test('isPageExt', () => {
+  const t = [
+    { ext: '.tsx', expect: true },
+    { ext: '.ts', expect: false },
+    { ext: '.jsx', expect: true },
+    { ext: '.js', expect: false },
+    { ext: '.md', expect: true },
+    { ext: '.mdx', expect: true },
+    { ext: '.css', expect: false },
+  ];
+  t.forEach((c) => {
+    equal(isPageExt(c.ext), c.expect, c.ext);
+  });
+});
+
+test('isModuleExt', () => {
+  const t = [
+    { ext: '.tsx', expect: false },
+    { ext: '.ts', expect: true },
+    { ext: '.jsx', expect: false },
+    { ext: '.js', expect: true },
+    { ext: '.md', expect: false },
+    { ext: '.mdx', expect: false },
+    { ext: '.css', expect: false },
+  ];
+  t.forEach((c) => {
+    equal(isModuleExt(c.ext), c.expect, c.ext);
+  });
+});
+
+test('isPageModuleExt', () => {
+  const t = [
+    { ext: '.tsx', expect: true },
+    { ext: '.ts', expect: false },
+    { ext: '.jsx', expect: true },
+    { ext: '.js', expect: false },
+    { ext: '.md', expect: false },
+    { ext: '.mdx', expect: false },
+    { ext: '.css', expect: false },
+  ];
+  t.forEach((c) => {
+    equal(isPageModuleExt(c.ext), c.expect, c.ext);
+  });
+});
+
+test('isMarkdownExt', () => {
+  const t = [
+    { ext: '.tsx', expect: false },
+    { ext: '.ts', expect: false },
+    { ext: '.jsx', expect: false },
+    { ext: '.js', expect: false },
+    { ext: '.md', expect: true },
+    { ext: '.mdx', expect: true },
+    { ext: '.css', expect: false },
+  ];
+  t.forEach((c) => {
+    equal(isMarkdownExt(c.ext), c.expect, c.ext);
+  });
+});
+
+test('isMenuFileName', () => {
+  const t = [
+    { name: 'menu.md', expect: true },
+    { name: 'menu.msx', expect: false },
+    { name: 'menu.tsx', expect: false },
+    { name: 'menu.ts', expect: false },
+  ];
+  t.forEach((c) => {
+    equal(isMenuFileName(c.name), c.expect, c.name);
+  });
+});
 
 test('createFileId, Page dir/index.tsx', () => {
   const path = normalizePath(join(routesDir, 'docs', 'index.tsx'));

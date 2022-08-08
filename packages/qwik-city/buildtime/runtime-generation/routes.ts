@@ -1,6 +1,6 @@
-import { ROUTE_TYPE_ENDPOINT } from '../../runtime/src/library//constants';
 import type { BuildContext, BuildRoute } from '../types';
-import { isEndpointsModuleExt, isPageModuleExt } from '../utils/fs';
+import { addError } from '../utils/format';
+import { isModuleExt, isPageExt } from '../utils/fs';
 import { getImportPath } from './utils';
 
 export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[]) {
@@ -27,7 +27,8 @@ export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[
   for (const route of ctx.routes) {
     const loaders = [];
 
-    if (isPageModuleExt(route.ext)) {
+    if (isPageExt(route.ext)) {
+      // page module or markdown
       for (const layout of route.layouts) {
         loaders.push(layout.id);
       }
@@ -39,13 +40,18 @@ export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[
         esmImports.push(`import * as ${route.id} from ${JSON.stringify(importPath)};`);
         loaders.push(`()=>${route.id}`);
       }
-    } else if (includeEndpoints && isEndpointsModuleExt(route.ext)) {
+    } else if (includeEndpoints && isModuleExt(route.ext)) {
+      // include endpoints, and this is a module
       const importPath = getImportPath(route.filePath);
       esmImports.push(`import * as ${route.id} from ${JSON.stringify(importPath)};`);
       loaders.push(`()=>${route.id}`);
     }
 
-    c.push(`  ${createRoute(route, loaders)},`);
+    if (loaders.length > 0) {
+      c.push(`  ${createRoute(route, loaders)},`);
+    } else {
+      addError(ctx, `Route "${route.pathname}" does not have any modules.`);
+    }
   }
 
   c.push(`];`);
@@ -54,11 +60,6 @@ export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[
 function createRoute(r: BuildRoute, loaders: string[]) {
   const pattern = r.pattern.toString();
   const moduleLoaders = `[ ${loaders.join(', ')} ]`;
-
-  if (isEndpointsModuleExt(r.filePath)) {
-    const paramNames = JSON.stringify(r.paramNames);
-    return `[ ${pattern}, ${moduleLoaders}, ${paramNames}, ${ROUTE_TYPE_ENDPOINT} ]`;
-  }
 
   if (r.paramNames.length > 0) {
     const paramNames = JSON.stringify(r.paramNames);

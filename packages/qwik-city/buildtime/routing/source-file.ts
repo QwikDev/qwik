@@ -1,28 +1,36 @@
 import { basename, extname } from 'path';
 import type { BuildContext, RouteSourceFile, RouteSourceFileName, RouteSourceType } from '../types';
 import { addError } from '../utils/format';
-import { isEntryName, isErrorName, isMarkdownExt, isMenuFileName, isModuleExt } from '../utils/fs';
+import {
+  isModuleExt,
+  isEntryName,
+  isErrorName,
+  isMarkdownExt,
+  isMenuFileName,
+  isPageModuleExt,
+} from '../utils/fs';
 
 export function getSourceFile(fileName: string) {
   const ext = extname(fileName).toLowerCase();
   const extlessName = basename(fileName, ext);
+  const isPageModule = isPageModuleExt(ext);
   const isModule = isModuleExt(ext);
+  const isMarkdown = isMarkdownExt(ext);
   let type: RouteSourceType | null = null;
 
-  if (extlessName.startsWith('index') && (isModule || isMarkdownExt(ext))) {
-    // index@layoutname or index!
+  if (extlessName.startsWith('index') && (isPageModule || isModule || isMarkdown)) {
+    // route page or endpoint
+    // index@layoutname or index! - ts|tsx|js|jsx|md|mdx
     type = 'route';
-  } else if (isModule) {
-    if (extlessName.startsWith('layout')) {
-      // layout-name or layout!
-      type = 'layout';
-    } else if (isEntryName(extlessName)) {
-      // entry.ts
-      type = 'entry';
-    } else if (isErrorName(extlessName)) {
-      // 404 or 500
-      type = 'error';
-    }
+  } else if (extlessName.startsWith('layout') && (isPageModule || isModule)) {
+    // layout-name or layout! - ts|tsx|js|jsx
+    type = 'layout';
+  } else if (isEntryName(extlessName) && isModule) {
+    // entry module - ts|js
+    type = 'entry';
+  } else if (isErrorName(extlessName) && (isPageModule || isMarkdown)) {
+    // 404 or 500 - ts|tsx|js|jsx|md|mdx
+    type = 'error';
   } else if (isMenuFileName(fileName)) {
     // menu.md
     type = 'menu';

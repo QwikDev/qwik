@@ -24,6 +24,14 @@ export async function build(ctx: BuildContext) {
   } catch (e) {
     addError(ctx, e);
   }
+
+  for (const d of ctx.diagnostics) {
+    if (d.type === 'error') {
+      throw new Error(d.message);
+    } else {
+      console.warn(d.message);
+    }
+  }
 }
 
 export async function buildFromUrlPathname(
@@ -38,6 +46,14 @@ export async function buildFromUrlPathname(
   ctx.errors = resolved.errors;
   ctx.entries = resolved.entries;
   ctx.menus = resolved.menus;
+
+  for (const d of ctx.diagnostics) {
+    if (d.type === 'error') {
+      console.error(d.message);
+    } else {
+      console.warn(d.message);
+    }
+  }
 
   for (const route of resolved.routes) {
     const match = route.pattern.exec(pathname);

@@ -6,7 +6,11 @@ test(`getSourceFile`, () => {
   const t = [
     {
       fileName: '404.md',
-      expect: null,
+      expect: {
+        type: 'error',
+        extlessName: '404',
+        ext: '.md',
+      },
     },
     {
       fileName: '404.tsx',
@@ -17,11 +21,11 @@ test(`getSourceFile`, () => {
       },
     },
     {
-      fileName: '500.ts',
+      fileName: '500.tsx',
       expect: {
         type: 'error',
         extlessName: '500',
-        ext: '.ts',
+        ext: '.tsx',
       },
     },
     {

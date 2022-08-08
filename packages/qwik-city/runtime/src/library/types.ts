@@ -3,7 +3,6 @@ import type {
   RedirectResponse,
 } from '../../../middleware/request-handler/user-response';
 import type { NoSerialize } from '@builder.io/qwik';
-import type { ROUTE_TYPE_ENDPOINT } from './constants';
 
 export interface RouteModule<BODY = unknown> {
   onDelete?: EndpointHandler<BODY>;
@@ -173,13 +172,7 @@ export type MenuModuleLoader = () => Promise<MenuModule>;
  */
 export type RouteData =
   | [pattern: RegExp, loaders: ModuleLoader[]]
-  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]]
-  | [
-      pattern: RegExp,
-      loaders: ModuleLoader[],
-      paramNames: string[],
-      routeType: typeof ROUTE_TYPE_ENDPOINT
-    ];
+  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]];
 
 export type FallbackRouteData =
   | [pattern: RegExp, loaders: ModuleLoader[]]

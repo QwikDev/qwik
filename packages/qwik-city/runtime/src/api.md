@@ -147,15 +147,9 @@ export interface QwikCityPlan {
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
 // Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ROUTE_TYPE_ENDPOINT" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type RouteData = [pattern: RegExp, loaders: ModuleLoader[]] | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]] | [
-pattern: RegExp,
-loaders: ModuleLoader[],
-paramNames: string[],
-routeType: typeof ROUTE_TYPE_ENDPOINT
-];
+export type RouteData = [pattern: RegExp, loaders: ModuleLoader[]] | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]];
 
 // @public (undocumented)
 export interface RouteLocation {

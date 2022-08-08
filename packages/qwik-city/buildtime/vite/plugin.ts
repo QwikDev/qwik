@@ -102,7 +102,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
           return menuCode;
         }
 
-        const ext = extname(id);
+        const ext = extname(fileName).toLowerCase();
         if (isMarkdownExt(ext) && mdxTransform) {
           const mdxResult = await mdxTransform(code, id);
           return mdxResult;

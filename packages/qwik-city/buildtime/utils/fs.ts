@@ -62,14 +62,9 @@ const PAGE_MODULE_EXTS: { [type: string]: boolean } = {
   '.jsx': true,
 };
 
-const ENDPOINT_MODULE_EXTS: { [type: string]: boolean } = {
+const MODULE_EXTS: { [type: string]: boolean } = {
   '.ts': true,
   '.js': true,
-};
-
-const MODULE_EXTS: { [type: string]: boolean } = {
-  ...PAGE_MODULE_EXTS,
-  ...ENDPOINT_MODULE_EXTS,
 };
 
 const MARKDOWN_EXTS: { [type: string]: boolean } = {
@@ -77,20 +72,20 @@ const MARKDOWN_EXTS: { [type: string]: boolean } = {
   '.mdx': true,
 };
 
-export function isModuleExt(ext: string) {
-  return !!MODULE_EXTS[ext];
-}
-
 export function isPageModuleExt(ext: string) {
   return !!PAGE_MODULE_EXTS[ext];
 }
 
-export function isEndpointsModuleExt(ext: string) {
-  return !!ENDPOINT_MODULE_EXTS[ext];
+export function isModuleExt(ext: string) {
+  return !!MODULE_EXTS[ext];
 }
 
 export function isMarkdownExt(ext: string) {
   return !!MARKDOWN_EXTS[ext];
+}
+
+export function isPageExt(ext: string) {
+  return !!PAGE_MODULE_EXTS[ext] || !!MARKDOWN_EXTS[ext];
 }
 
 export function isMenuFileName(fileName: string) {

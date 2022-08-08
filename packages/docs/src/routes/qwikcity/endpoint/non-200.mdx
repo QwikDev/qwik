@@ -31,7 +31,7 @@ interface ProductData {
   price: number;
   description: string;
 }
-export const onGet: EndpointHandler<EndpointData> = async ({ params, response }) => {
+export const onGet: RequestHandler<EndpointData> = async ({ params, response }) => {
   const product = await loadProductFromDatabase(params.skuId);
 
   if (!product) {
@@ -81,7 +81,7 @@ import {DocumentHead} from '@builder.io/qwik-city';
 import {checkAuthorization} from '../utils' // Your authorization code
 import type {DashboardData} from '../types' // Your types
 
-export const onGet: EndpointHandler<DashboardData> = async ({ request, response }) => {
+export const onGet: RequestHandler<DashboardData> = async ({ request, response }) => {
 	const isAuthorized = checkAuthorization(request.headers.get('cookie'));
 
 	if (!isAuthorized) {

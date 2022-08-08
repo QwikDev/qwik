@@ -1,15 +1,14 @@
 import { test } from 'uvu';
-import * as assert from 'uvu/assert';
+import { equal, instance } from 'uvu/assert';
 import { mockRequestContext, wait } from './test-utils';
-import type { EndpointModule } from '../../runtime/src/library/types';
-import { loadUserResponse } from './user-response';
+import type { PageModule, RouteModule } from '../../runtime/src/library/types';
+import { ErrorResponse, loadUserResponse, RedirectResponse } from './user-response';
 
 test('sync endpoint, undefined body', async () => {
   const requestCtx = mockRequestContext();
   const trailingSlash = false;
-  const isEndpointOnly = true;
 
-  const endpoints: EndpointModule[] = [
+  const endpoints: RouteModule[] = [
     {
       onGet: ({ response }) => {
         response.status = 204;
@@ -18,19 +17,18 @@ test('sync endpoint, undefined body', async () => {
     },
   ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash, isEndpointOnly);
-  assert.equal(u.status, 204);
-  assert.equal(u.headers.get('name'), 'value');
-  assert.equal(u.pendingBody, undefined);
-  assert.equal(u.resolvedBody, undefined);
+  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+  equal(u.status, 204);
+  equal(u.headers.get('name'), 'value');
+  equal(u.pendingBody, undefined);
+  equal(u.resolvedBody, undefined);
 });
 
 test('async endpoint, resolved data, render blocking', async () => {
   const requestCtx = mockRequestContext();
   const trailingSlash = false;
-  const isEndpointOnly = false;
 
-  const endpoints: EndpointModule[] = [
+  const endpoints: RouteModule[] = [
     {
       onGet: async ({ response }) => {
         await wait();
@@ -41,22 +39,21 @@ test('async endpoint, resolved data, render blocking', async () => {
     },
   ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash, isEndpointOnly);
-  assert.equal(u.status, 204);
-  assert.equal(u.headers.get('name'), 'value');
-  assert.equal(u.pendingBody, undefined);
-  assert.equal(u.resolvedBody, { mph: 88 });
+  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+  equal(u.status, 204);
+  equal(u.headers.get('name'), 'value');
+  equal(u.pendingBody, undefined);
+  equal(u.resolvedBody, { mph: 88 });
 });
 
 test('onPost priority over onRequest, dont call onGet', async () => {
   const requestCtx = mockRequestContext({ method: 'POST' });
   const trailingSlash = false;
-  const isEndpointOnly = true;
 
   let calledOnGet = false;
   let calledOnPost = false;
   let calledOnRequest = false;
-  const endpoints: EndpointModule[] = [
+  const endpoints: RouteModule[] = [
     {
       onGet: async () => {
         await wait();
@@ -72,20 +69,19 @@ test('onPost priority over onRequest, dont call onGet', async () => {
     },
   ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash, isEndpointOnly);
-  assert.equal(u.status, 200);
-  assert.equal(calledOnGet, false);
-  assert.equal(calledOnPost, true);
-  assert.equal(calledOnRequest, false);
+  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+  equal(u.status, 200);
+  equal(calledOnGet, false);
+  equal(calledOnPost, true);
+  equal(calledOnRequest, false);
 });
 
 test('catchall onRequest', async () => {
   const requestCtx = mockRequestContext();
   const trailingSlash = false;
-  const isEndpointOnly = true;
 
   let calledOnRequest = false;
-  const endpoints: EndpointModule[] = [
+  const endpoints: RouteModule[] = [
     {
       onRequest: async () => {
         await wait();
@@ -94,79 +90,107 @@ test('catchall onRequest', async () => {
     },
   ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash, isEndpointOnly);
-  assert.equal(u.status, 200);
-  assert.equal(calledOnRequest, true);
+  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+  equal(u.status, 200);
+  equal(calledOnRequest, true);
 });
 
-test('user redirect', async () => {
-  const requestCtx = mockRequestContext();
-  const trailingSlash = false;
-  const isEndpointOnly = false;
+test('user manual redirect, PageModule', async () => {
+  try {
+    const requestCtx = mockRequestContext();
+    const trailingSlash = false;
 
-  const endpoints: EndpointModule[] = [
-    {
-      onRequest: async ({ response }) => {
-        await wait();
-        response.status = 307;
-        response.headers.set('Location', '/redirect');
+    const endpoints: PageModule[] = [
+      {
+        onRequest: async ({ response }) => {
+          await wait();
+          response.status = 307;
+          response.headers.set('Location', '/redirect');
+        },
+        default: () => {},
       },
-    },
-  ];
+    ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash, isEndpointOnly);
-  assert.equal(u.status, 307);
-  assert.equal(u.headers.get('Location'), '/redirect');
-  assert.equal(u.isEndpointOnly, true);
+    await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+    equal(true, false, 'Should have thrown');
+  } catch (e: any) {
+    instance(e, RedirectResponse);
+    equal(e.status, 307);
+    equal(e.location, '/redirect');
+    equal(e.headers.get('Location'), '/redirect');
+  }
 });
 
-test('redirect', async () => {
-  const requestCtx = mockRequestContext();
-  const trailingSlash = false;
-  const isEndpointOnly = true;
+test('throw redirect', async () => {
+  try {
+    const requestCtx = mockRequestContext();
+    const trailingSlash = false;
 
-  const endpoints: EndpointModule[] = [
-    {
-      onRequest: async ({ response }) => {
-        await wait();
-        response.redirect('/redirect');
+    const endpoints: RouteModule[] = [
+      {
+        onRequest: async ({ response }) => {
+          await wait();
+          throw response.redirect('/redirect');
+        },
       },
-    },
-  ];
+    ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash, isEndpointOnly);
-  assert.equal(u.status, 307);
-  assert.equal(u.headers.get('Location'), '/redirect');
-  assert.equal(u.isEndpointOnly, true);
+    await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+    equal(true, false, 'Should have thrown');
+  } catch (e: any) {
+    instance(e, RedirectResponse);
+    equal(e.status, 307);
+    equal(e.headers.get('Location'), '/redirect');
+  }
 });
 
 test('no handler for endpoint', async () => {
-  const requestCtx = mockRequestContext();
-  const trailingSlash = false;
-  const isEndpointOnly = true;
-  const endpointModules: EndpointModule[] = [{ onDelete: () => {} }, { onPost: () => {} }, {}];
-  const u = await loadUserResponse(requestCtx, {}, endpointModules, trailingSlash, isEndpointOnly);
-  assert.equal(u.status, 405);
+  try {
+    const requestCtx = mockRequestContext();
+    const trailingSlash = false;
+    const routeModules: RouteModule[] = [{ onDelete: () => {} }, { onPost: () => {} }, {}];
+    await loadUserResponse(requestCtx, {}, routeModules, trailingSlash);
+    equal(true, false, 'Should have thrown');
+  } catch (e: any) {
+    instance(e, ErrorResponse);
+    equal(e.status, 405);
+  }
 });
 
-test('remove trailing slash', async () => {
-  const requestCtx = mockRequestContext({ url: '/somepath/' });
-  const trailingSlash = false;
-  const isEndpointOnly = false;
-  const endpointModules: EndpointModule[] = [];
-  const u = await loadUserResponse(requestCtx, {}, endpointModules, trailingSlash, isEndpointOnly);
-  assert.equal(u.status, 308);
-  assert.equal(u.headers.get('Location'), '/somepath');
+test('remove trailing slash, PageModule', async () => {
+  try {
+    const requestCtx = mockRequestContext({ url: '/somepath/?qs=true' });
+    const trailingSlash = false;
+    const routeModules: PageModule[] = [
+      {
+        default: () => {},
+      },
+    ];
+    await loadUserResponse(requestCtx, {}, routeModules, trailingSlash);
+    equal(true, false, 'Should have thrown');
+  } catch (e: any) {
+    instance(e, RedirectResponse);
+    equal(e.status, 308);
+    equal(e.location, '/somepath?qs=true');
+  }
 });
 
-test('add trailing slash', async () => {
-  const requestCtx = mockRequestContext({ url: '/somepath?qs=true' });
-  const trailingSlash = true;
-  const isEndpointOnly = false;
-  const endpointModules: EndpointModule[] = [];
-  const u = await loadUserResponse(requestCtx, {}, endpointModules, trailingSlash, isEndpointOnly);
-  assert.equal(u.status, 308);
-  assert.equal(u.headers.get('Location'), '/somepath/?qs=true');
+test('add trailing slash, PageModule', async () => {
+  try {
+    const requestCtx = mockRequestContext({ url: '/somepath?qs=true' });
+    const trailingSlash = true;
+    const routeModules: PageModule[] = [
+      {
+        default: () => {},
+      },
+    ];
+    await loadUserResponse(requestCtx, {}, routeModules, trailingSlash);
+    equal(true, false, 'Should have thrown');
+  } catch (e: any) {
+    instance(e, RedirectResponse);
+    equal(e.status, 308);
+    equal(e.location, '/somepath/?qs=true');
+  }
 });
 
 test.run();

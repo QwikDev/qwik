@@ -1,6 +1,6 @@
 import type { BuildContext } from '../types';
 
-export function createEntries(ctx: BuildContext, c: string[], esmImports: string[]) {
+export function createEntries(ctx: BuildContext, c: string[]) {
   const isClient = ctx.target === 'client';
 
   if (isClient && ctx.entries.length > 0) {

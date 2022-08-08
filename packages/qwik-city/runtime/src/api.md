@@ -101,10 +101,8 @@ export interface DocumentStyle {
     style: string;
 }
 
-// Warning: (ae-forgotten-export) The symbol "EndpointHandlerResult" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export type EndpointHandler<BODY = unknown> = (ev: RequestEvent) => EndpointHandlerResult<BODY>;
+// @public @deprecated (undocumented)
+export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
 
 // @public (undocumented)
 export const Html: Component<HtmlProps>;
@@ -173,26 +171,28 @@ export interface RequestEvent {
     url: URL;
 }
 
+// Warning: (ae-forgotten-export) The symbol "RequestHandlerResult" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type RequestHandler<BODY = unknown> = (ev: RequestEvent) => RequestHandlerResult<BODY>;
+
 // @public (undocumented)
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
 // @public (undocumented)
 export interface ResponseContext {
+    // Warning: (ae-forgotten-export) The symbol "ErrorResponse" needs to be exported by the entry point index.d.ts
+    readonly error: (status: number) => ErrorResponse;
     readonly headers: Headers;
-    readonly redirect: (url: string, status?: number) => void;
+    // Warning: (ae-forgotten-export) The symbol "RedirectResponse" needs to be exported by the entry point index.d.ts
+    readonly redirect: (url: string, status?: number) => RedirectResponse;
     status: number;
 }
 
 // Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ROUTE_TYPE_ENDPOINT" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type RouteData = [pattern: RegExp, loaders: ModuleLoader[]] | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]] | [
-pattern: RegExp,
-loaders: ModuleLoader[],
-paramNames: string[],
-routeType: typeof ROUTE_TYPE_ENDPOINT
-];
+export type RouteData = [pattern: RegExp, loaders: ModuleLoader[]] | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]];
 
 // @public (undocumented)
 export interface RouteLocation {

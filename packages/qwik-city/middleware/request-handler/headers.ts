@@ -5,7 +5,7 @@
 
 const HEADERS: unique symbol = Symbol('headers');
 
-export class Headers {
+class HeadersPolyfill {
   // Normalized header {"name":"a, b"} storage.
   private [HEADERS]: Record<string, string> = {};
 
@@ -115,4 +115,10 @@ function normalizeHeaderName(name: string): string {
   }
 
   return name.toLowerCase();
+}
+
+export function createHeaders(): Headers {
+  // Remove polyfill when it's safe to use the nodejs Headers global
+  // https://nodejs.org/api/globals.html#class-headers
+  return new (typeof Headers === 'function' ? Headers : HeadersPolyfill)();
 }

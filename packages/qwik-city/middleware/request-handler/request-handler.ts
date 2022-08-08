@@ -1,13 +1,12 @@
 import { loadRoute } from '../../runtime/src/library/routing';
-import { loadUserResponse } from './user-response';
+import { loadUserResponse, ErrorResponse, RedirectResponse } from './user-response';
 import type { QwikCityRequestContext, QwikCityRequestOptions } from './types';
-import { ROUTE_TYPE_ENDPOINT } from '../../runtime/src/library/constants';
 import type { Render } from '@builder.io/qwik/server';
-import { errorHandler } from './error-handler';
+import { errorHandler, errorResponse } from './error-handler';
 import cityPlan from '@qwik-city-plan';
 import { endpointHandler } from './endpoint-handler';
-import { HttpStatus } from './http-status-codes';
 import { pageHandler } from './page-handler';
+import { redirectResponse } from './redirect-handler';
 
 /**
  * @public
@@ -23,34 +22,26 @@ export async function requestHandler<T = any>(
     const loadedRoute = await loadRoute(routes, menus, cacheModules, pathname);
     if (loadedRoute) {
       // found and loaded the route for this pathname
-      const { mods, params, route } = loadedRoute;
-      const isEndpointOnly = route[3] === ROUTE_TYPE_ENDPOINT;
+      const { mods, params } = loadedRoute;
 
       // build endpoint response from each module in the hierarchy
-      const userResponse = await loadUserResponse(
-        requestCtx,
-        params,
-        mods,
-        trailingSlash,
-        isEndpointOnly
-      );
+      const userResponse = await loadUserResponse(requestCtx, params, mods, trailingSlash);
 
       // status and headers should be immutable in at this point
       // body may not have resolved yet
-
-      // user-assigned 404 response, return null so other server middlewares
-      // have the chance to handle this request
-      if (userResponse.status === HttpStatus.NotFound) {
-        return null;
-      }
-
-      if (userResponse.isEndpointOnly) {
+      if (userResponse.type === 'endpoint') {
         return endpointHandler(requestCtx, userResponse);
       }
 
       return pageHandler(requestCtx, userResponse, render, opts);
     }
   } catch (e: any) {
+    if (e instanceof RedirectResponse) {
+      return redirectResponse(requestCtx, e);
+    }
+    if (e instanceof ErrorResponse) {
+      return errorResponse(requestCtx, e);
+    }
     return errorHandler(requestCtx, e);
   }
 

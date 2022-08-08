@@ -16,13 +16,21 @@ export async function build(ctx: BuildContext) {
     const resolved = resolveSourceFiles(opts, sourceFiles);
     ctx.layouts = resolved.layouts;
     ctx.routes = resolved.routes;
-    ctx.fallbackRoutes = resolved.fallbackRoutes;
+    ctx.errors = resolved.errors;
     ctx.entries = resolved.entries;
     ctx.menus = resolved.menus;
 
     validateBuild(ctx, sourceFiles);
   } catch (e) {
     addError(ctx, e);
+  }
+
+  for (const d of ctx.diagnostics) {
+    if (d.type === 'error') {
+      throw new Error(d.message);
+    } else {
+      console.warn(d.message);
+    }
   }
 }
 
@@ -32,22 +40,28 @@ export async function buildFromUrlPathname(
 ): Promise<{ route: BuildRoute; params: RouteParams } | null> {
   const sourceFiles = await walkRoutes(ctx.opts.routesDir);
 
-  if (sourceFiles.length > 0) {
-    const resolved = resolveSourceFiles(ctx.opts, sourceFiles);
+  const resolved = resolveSourceFiles(ctx.opts, sourceFiles);
+  ctx.layouts = resolved.layouts;
+  ctx.routes = resolved.routes;
+  ctx.errors = resolved.errors;
+  ctx.entries = resolved.entries;
+  ctx.menus = resolved.menus;
 
-    for (const route of resolved.routes) {
-      const match = route.pattern.exec(pathname);
-      if (match) {
-        ctx.layouts = resolved.layouts;
-        ctx.routes = resolved.routes;
-        ctx.fallbackRoutes = resolved.fallbackRoutes;
-        ctx.entries = resolved.entries;
-        ctx.menus = resolved.menus;
-        return {
-          route,
-          params: getRouteParams(route.paramNames, match),
-        };
-      }
+  for (const d of ctx.diagnostics) {
+    if (d.type === 'error') {
+      console.error(d.message);
+    } else {
+      console.warn(d.message);
+    }
+  }
+
+  for (const route of resolved.routes) {
+    const match = route.pattern.exec(pathname);
+    if (match) {
+      return {
+        route,
+        params: getRouteParams(route.paramNames, match),
+      };
     }
   }
 

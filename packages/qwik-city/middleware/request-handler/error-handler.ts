@@ -1,54 +1,53 @@
-import { Headers } from './headers';
+import { createHeaders } from './headers';
 import { HttpStatus } from './http-status-codes';
 import type { QwikCityRequestContext } from './types';
+import type { ErrorResponse } from './user-response';
 
 export function notFoundHandler<T = any>(requestCtx: QwikCityRequestContext): Promise<T> {
   const status = HttpStatus.NotFound;
-  const text = 'Not Found';
-  return minimalResponse(requestCtx, status, text, null, COLOR_400, '300px');
+  const message = 'Not Found';
+  return minimalHtmlResponse(requestCtx, status, message);
 }
 
-export function methodNotAllowedHandler<T = any>(requestCtx: QwikCityRequestContext): Promise<T> {
-  const status = HttpStatus.MethodNotAllowed;
-  const text = `Method Not Allowed: ${requestCtx.request.method}`;
-  return minimalResponse(requestCtx, status, text, null, COLOR_400, '300px');
-}
-
-export function errorHandler(requestCtx: QwikCityRequestContext, err: any) {
+export function errorHandler(requestCtx: QwikCityRequestContext, e: any) {
   const status = HttpStatus.InternalServerError;
-  let text = 'Server Error';
-  let message: string | null = null;
+  let message = 'Server Error';
+  let stack: string | undefined = undefined;
 
-  if (err) {
-    if (typeof err === 'object') {
-      if (typeof err.message === 'string') {
-        text = err.message;
+  if (e != null) {
+    if (typeof e === 'object') {
+      if (typeof e.message === 'string') {
+        message = e.message;
       }
-      if (typeof err.stack === 'string') {
-        message = err.stack;
+      if (e.stack != null) {
+        stack = String(e.stack);
       }
     } else {
-      message = String(err);
+      message = String(e);
     }
   }
 
-  return minimalResponse(requestCtx, status, text, message, COLOR_500, '600px');
+  return minimalHtmlResponse(requestCtx, status, message, stack);
 }
 
-function minimalResponse(
+export function errorResponse(requestCtx: QwikCityRequestContext, err: ErrorResponse) {
+  return minimalHtmlResponse(requestCtx, err.status, err.message, err.stack);
+}
+
+function minimalHtmlResponse(
   requestCtx: QwikCityRequestContext,
   status: number,
-  text: string,
-  message: string | null,
-  color: string,
-  width: string
+  message?: string,
+  stack?: string
 ) {
   const { response } = requestCtx;
+  const width = typeof message === 'string' ? '600px' : '300px';
+  const color = status >= 500 ? COLOR_500 : COLOR_400;
   const html = `<!DOCTYPE html>
 <html data-qwik-city-status="${status}">
 <head>
   <meta charset="utf-8">
-  <title>${status} ${text}</title>
+  <title>${status} ${message}</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
     body { color: ${color}; background-color: #fafafa; padding: 30px; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
@@ -61,14 +60,14 @@ function minimalResponse(
 <body>
   <p>
     <strong>${status}</strong>
-    <span>${text}</span>
+    <span>${message}</span>
   </p>
-  ${message ? `<pre><code>${message}</code></pre>` : ``}
+  ${stack ? `<pre><code>${stack}</code></pre>` : ``}
 </body>
 </html>
 `;
 
-  const headers = new Headers();
+  const headers = createHeaders();
   headers.set('Content-Type', 'text/html; charset=utf-8');
 
   return response(status, headers, async (stream) => {

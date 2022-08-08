@@ -1,5 +1,5 @@
 import { component$, Host } from '@builder.io/qwik';
-import type { DocumentHead } from '../../library/types';
+import type { DocumentHead } from '../../../library/types';
 
 export default component$(() => {
   const d = new Date();

@@ -33,7 +33,7 @@ export function generateQwikCityPlan(ctx: BuildContext) {
 
   c.push(`};`);
 
-  createEntries(ctx, c, esmImports);
+  createEntries(ctx, c);
 
   c.push(`export default qwikCityPlan;\n`);
 

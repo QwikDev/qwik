@@ -1,5 +1,3 @@
-import { errorHandler, methodNotAllowedHandler } from './error-handler';
-import { HttpStatus } from './http-status-codes';
 import type { QwikCityRequestContext, UserResponseContext } from './types';
 
 export function endpointHandler<T = any>(
@@ -8,21 +6,6 @@ export function endpointHandler<T = any>(
 ): Promise<T> {
   const { pendingBody, resolvedBody, status, headers } = userResponse;
   const { response } = requestCtx;
-
-  if (status === HttpStatus.InternalServerError) {
-    // redirect
-    return errorHandler(requestCtx, resolvedBody);
-  }
-
-  if (status === HttpStatus.MethodNotAllowed) {
-    // no handler for this request method
-    return methodNotAllowedHandler(requestCtx);
-  }
-
-  if (status >= HttpStatus.MovedPermanently && status <= HttpStatus.PermanentRedirect) {
-    // redirect
-    return response(status, headers, asyncNoop);
-  }
 
   if (pendingBody === undefined && resolvedBody === undefined) {
     // undefined body
@@ -34,16 +17,28 @@ export function endpointHandler<T = any>(
     headers.set('Content-Type', 'application/json; charset=utf-8');
   }
 
-  // check so we can know later on if we should stringify the data
+  // check so we can know later on if we should JSON.stringify the body
   const isJson = headers.get('Content-Type')!.includes('application/json');
 
   return response(status, headers, async ({ write }) => {
     const body = pendingBody !== undefined ? await pendingBody : resolvedBody;
     if (body !== undefined) {
       if (isJson) {
+        // we have body data and the response content type was set to json
         write(JSON.stringify(body));
       } else {
-        write(body);
+        // not a json response content type
+        const type = typeof body;
+        if (type === 'string') {
+          // string body
+          write(body);
+        } else if (type === 'number' || type === 'boolean') {
+          // convert to string body
+          write(String(body));
+        } else {
+          // unknown content type, do not assume how to serialize
+          write(body);
+        }
       }
     }
   });

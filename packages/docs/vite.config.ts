@@ -19,9 +19,7 @@ export default defineConfig(() => {
     },
     plugins: [
       qwikCity(),
-      qwikVite({
-        debug: true,
-      }),
+      qwikVite(),
       partytownVite({
         dest: resolve('dist', '~partytown'),
       }),

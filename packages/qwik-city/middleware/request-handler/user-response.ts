@@ -1,48 +1,53 @@
-import { Headers } from './headers';
+import { createHeaders } from './headers';
 import type {
-  EndpointHandler,
-  EndpointModule,
+  RequestHandler,
+  PageModule,
   RequestEvent,
   ResponseContext,
+  RouteModule,
   RouteParams,
 } from '../../runtime/src/library/types';
 import type { QwikCityRequestContext, UserResponseContext } from './types';
 import { HttpStatus } from './http-status-codes';
+import { getRedirectStatus, isRedirectStatus } from './redirect-handler';
 
 export async function loadUserResponse(
   requestCtx: QwikCityRequestContext,
   params: RouteParams,
-  endpointModules: EndpointModule[],
-  trailingSlash?: boolean,
-  isEndpointOnly?: boolean
+  routeModules: RouteModule[],
+  trailingSlash?: boolean
 ) {
   const { request, url } = requestCtx;
   const { pathname } = url;
   const userResponse: UserResponseContext = {
+    type: 'endpoint',
     url,
     params,
     status: HttpStatus.Ok,
-    headers: new Headers(),
+    headers: createHeaders(),
     resolvedBody: undefined,
     pendingBody: undefined,
-    isEndpointOnly: isEndpointOnly || request.headers.get('Accept') === 'application/json',
   };
 
   let hasRequestMethodHandler = false;
+  const hasPageRenderer = isLastModulePageRoute(routeModules);
 
-  if (!userResponse.isEndpointOnly && pathname !== '/') {
+  if (hasPageRenderer && pathname !== '/') {
     // only check for slash redirect on pages
     if (trailingSlash) {
       // must have a trailing slash
       if (!pathname.endsWith('/')) {
         // add slash to existing pathname
-        return pageRedirect(userResponse, pathname + '/');
+        throw new RedirectResponse(pathname + '/' + url.search, HttpStatus.PermanentRedirect);
       }
     } else {
       // should not have a trailing slash
       if (pathname.endsWith('/')) {
         // remove slash from existing pathname
-        return pageRedirect(userResponse, pathname.slice(0, pathname.length - 1));
+        throw new RedirectResponse(
+          pathname.slice(0, pathname.length - 1) + url.search,
+          HttpStatus.PermanentRedirect
+        );
       }
     }
   }
@@ -54,18 +59,21 @@ export async function loadUserResponse(
   };
 
   const redirect = (url: string, status?: number) => {
-    userResponse.status = typeof status === 'number' ? status : HttpStatus.TemporaryRedirect;
     userResponse.headers.set('Location', url);
-    abort();
+    return new RedirectResponse(url, getRedirectStatus(status), userResponse.headers);
+  };
+
+  const error = (status: number, message?: string) => {
+    return new ErrorResponse(status, message);
   };
 
   const next = async () => {
     middlewareIndex++;
 
-    while (middlewareIndex < endpointModules.length) {
-      const endpointModule = endpointModules[middlewareIndex];
+    while (middlewareIndex < routeModules.length) {
+      const endpointModule = routeModules[middlewareIndex];
 
-      let reqHandler: EndpointHandler | undefined = undefined;
+      let reqHandler: RequestHandler | undefined = undefined;
 
       switch (request.method) {
         case 'GET': {
@@ -114,6 +122,7 @@ export async function loadUserResponse(
             return userResponse.headers;
           },
           redirect,
+          error,
         };
 
         // create user request event, which is a narrowed down request context
@@ -158,15 +167,27 @@ export async function loadUserResponse(
 
   await next();
 
-  if (
-    userResponse.status >= HttpStatus.MovedPermanently &&
-    userResponse.status <= HttpStatus.PermanentRedirect
-  ) {
-    userResponse.isEndpointOnly = true;
+  if (isRedirectStatus(userResponse.status) && userResponse.headers.has('Location')) {
+    // user must have manually set redirect instead of throw response.redirect()
+    // never render the page if the user manually set the status to be a redirect
+    throw new RedirectResponse(
+      userResponse.headers.get('Location')!,
+      userResponse.status,
+      userResponse.headers
+    );
   }
 
-  if (userResponse.isEndpointOnly && !hasRequestMethodHandler) {
-    userResponse.status = HttpStatus.MethodNotAllowed;
+  if (hasPageRenderer && request.headers.get('Accept') !== 'application/json') {
+    // this is a page module
+    // user can force the respond to be an endpoint with Accept request header
+    // response should be a page
+    userResponse.type = 'page';
+  } else {
+    // this is only an endpoint, and not a page module
+    if (!hasRequestMethodHandler) {
+      // didn't find any handlers
+      throw new ErrorResponse(HttpStatus.MethodNotAllowed, `Method Not Allowed`);
+    }
   }
 
   return userResponse;
@@ -190,10 +211,19 @@ function createPendingBody(cb: () => any) {
   });
 }
 
-function pageRedirect(userResponse: UserResponseContext, updatedPathname: string) {
-  userResponse.status = HttpStatus.PermanentRedirect;
-  userResponse.headers.set('Location', updatedPathname + userResponse.url.search);
-  return userResponse;
+function isLastModulePageRoute(routeModules: RouteModule[]) {
+  const lastRouteModule = routeModules[routeModules.length - 1];
+  return lastRouteModule && typeof (lastRouteModule as PageModule).default === 'function';
 }
 
 const ABORT_INDEX = 999999999;
+
+export class ErrorResponse extends Error {
+  constructor(public status: number, message?: string) {
+    super(message);
+  }
+}
+
+export class RedirectResponse {
+  constructor(public location: string, public status?: number, public headers?: Headers) {}
+}

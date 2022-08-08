@@ -1,107 +1,181 @@
-import { tmpdir } from 'os';
-import { basename, join } from 'path';
 import { test } from 'uvu';
-import * as assert from 'uvu/assert';
-import type { RouteSourceFile } from '../types';
-import { createBuildContext } from '../utils/context';
-import { normalizePath } from '../utils/fs';
-import { resolveSourceFiles } from './resolve-source-file';
-import { getSourceFile, validateSourceFiles } from './source-file';
+import { equal } from 'uvu/assert';
+import { getSourceFile } from './source-file';
 
-test(`entry`, async () => {
-  const ctx = await getFsDirTest('/src/routes/dir/sw', 'entry.ts');
-  assert.equal(ctx.diagnostics.length, 0);
-  assert.equal(ctx.entries.length, 1);
-  assert.equal(ctx.entries[0].chunkFileName, 'dir/sw.js');
-});
+test(`getSourceFile`, () => {
+  const t = [
+    {
+      fileName: '404.md',
+      expect: {
+        type: 'error',
+        extlessName: '404',
+        ext: '.md',
+      },
+    },
+    {
+      fileName: '404.tsx',
+      expect: {
+        type: 'error',
+        extlessName: '404',
+        ext: '.tsx',
+      },
+    },
+    {
+      fileName: '500.tsx',
+      expect: {
+        type: 'error',
+        extlessName: '500',
+        ext: '.tsx',
+      },
+    },
+    {
+      fileName: 'entry.md',
+      expect: null,
+    },
+    {
+      fileName: 'entry.ts',
+      expect: {
+        type: 'entry',
+        extlessName: 'entry',
+        ext: '.ts',
+      },
+    },
+    {
+      fileName: 'menu.md',
+      expect: {
+        type: 'menu',
+        extlessName: 'menu',
+        ext: '.md',
+      },
+    },
+    {
+      fileName: 'menu.mdx',
+      expect: null,
+    },
+    {
+      fileName: 'menu.tsx',
+      expect: null,
+    },
+    {
+      fileName: 'layout-name!.jsx',
+      expect: {
+        type: 'layout',
+        extlessName: 'layout-name!',
+        ext: '.jsx',
+      },
+    },
+    {
+      fileName: 'layout-name.jsx',
+      expect: {
+        type: 'layout',
+        extlessName: 'layout-name',
+        ext: '.jsx',
+      },
+    },
+    {
+      fileName: 'layout.jsx',
+      expect: {
+        type: 'layout',
+        extlessName: 'layout',
+        ext: '.jsx',
+      },
+    },
+    {
+      fileName: 'layout!.js',
+      expect: {
+        type: 'layout',
+        extlessName: 'layout!',
+        ext: '.js',
+      },
+    },
+    {
+      fileName: 'layout.js',
+      expect: {
+        type: 'layout',
+        extlessName: 'layout',
+        ext: '.js',
+      },
+    },
+    {
+      fileName: 'layou.css',
+      expect: null,
+    },
+    {
+      fileName: 'index.css',
+      expect: null,
+    },
+    {
+      fileName: 'index.tsx.json',
+      expect: null,
+    },
+    {
+      fileName: 'index.mdx',
+      expect: {
+        type: 'route',
+        extlessName: 'index',
+        ext: '.mdx',
+      },
+    },
+    {
+      fileName: 'index.md',
+      expect: {
+        type: 'route',
+        extlessName: 'index',
+        ext: '.md',
+      },
+    },
+    {
+      fileName: 'index.ts',
+      expect: {
+        type: 'route',
+        extlessName: 'index',
+        ext: '.ts',
+      },
+    },
+    {
+      fileName: 'index@layoutname!.tsx',
+      expect: {
+        type: 'route',
+        extlessName: 'index@layoutname!',
+        ext: '.tsx',
+      },
+    },
+    {
+      fileName: 'index@layoutname.tsx',
+      expect: {
+        type: 'route',
+        extlessName: 'index@layoutname',
+        ext: '.tsx',
+      },
+    },
+    {
+      fileName: 'index!.tsx',
+      expect: {
+        type: 'route',
+        extlessName: 'index!',
+        ext: '.tsx',
+      },
+    },
+    {
+      fileName: 'index.tsx',
+      expect: {
+        type: 'route',
+        extlessName: 'index',
+        ext: '.tsx',
+      },
+    },
+  ];
 
-test(`_404.tsx`, async () => {
-  const ctx = await getFsDirTest('/src/routes', '_404.tsx');
-  assert.equal(ctx.fallbackRoutes[0].pathname, '/');
-  assert.equal(ctx.fallbackRoutes[0].status, '404');
-  assert.equal(ctx.fallbackRoutes[0].paramNames.length, 0);
-});
-
-test(`_500.tsx`, async () => {
-  const ctx = await getFsDirTest('/src/routes', '_500.tsx');
-  assert.equal(ctx.fallbackRoutes[0].pathname, '/');
-  assert.equal(ctx.fallbackRoutes[0].status, '500');
-  assert.equal(ctx.fallbackRoutes[0].paramNames.length, 0);
-});
-
-test(`layoutStop pathname`, async () => {
-  const ctx = await getFsDirTest('/src/routes/dirname', 'file!.tsx');
-  assert.equal(ctx.diagnostics.length, 0);
-  assert.equal(ctx.routes.length, 1);
-  assert.equal(ctx.routes[0].id, 'DirnameFile');
-  assert.equal(ctx.routes[0].pathname, '/dirname/file');
-});
-
-test(`error dirname@layoutname dir`, async () => {
-  const ctx = await getFsDirTest('/src/routes/dirname@layoutname', 'file.tsx');
-  assert.equal(ctx.diagnostics.length, 1);
-});
-
-test(`error .spec. file`, async () => {
-  const ctx = await getFsDirTest('/src/routes/dir', 'file.spec.tsx');
-  assert.equal(ctx.diagnostics.length, 1);
-});
-
-test(`error .e2e. file`, async () => {
-  const ctx = await getFsDirTest('/src/routes/dir', 'file.e2e.tsx');
-  assert.equal(ctx.diagnostics.length, 1);
-});
-
-test(`error .unit. file`, async () => {
-  const ctx = await getFsDirTest('/src/routes/dir', 'file.unit.tsx');
-  assert.equal(ctx.diagnostics.length, 1);
-});
-
-test(`error __test__ dir`, async () => {
-  const ctx = await getFsDirTest('/src/routes/__test__', 'file.tsx');
-  assert.equal(ctx.diagnostics.length, 1);
-});
-
-test(`error __tests__ dir`, async () => {
-  const ctx = await getFsDirTest('/src/routes/__tests__', 'file.tsx');
-  assert.equal(ctx.diagnostics.length, 1);
-});
-
-test(`ignore common files`, async () => {
-  const dotFiles = ['.gitignore', '.gitattributes', '.gitkeep', '.DS_Store', 'thumbs.db'];
-  for (const f of dotFiles) {
-    const ctx = await getFsDirTest('/src/routes/', f);
-    assert.equal(ctx.diagnostics.length, 0);
-    assert.equal(ctx.routes.length, 0);
-    assert.equal(ctx.layouts.length, 0);
-    assert.equal(ctx.menus.length, 0);
-  }
-});
-
-async function getFsDirTest(dirPath: string, itemName: string) {
-  const testAppRootDir = join(tmpdir(), 'test-app');
-  const ctx = createBuildContext(testAppRootDir, {
-    routesDir: join(testAppRootDir, 'src', 'routes'),
+  t.forEach((c) => {
+    const s = getSourceFile(c.fileName);
+    if (s == null || c.expect == null) {
+      equal(s, c.expect, c.fileName);
+    } else {
+      equal(s.type, c.expect.type, c.fileName);
+      equal(s.extlessName, c.expect.extlessName, c.fileName);
+      equal(s.ext, c.expect.ext, c.fileName);
+    }
   });
-  dirPath = join(testAppRootDir, '.' + dirPath);
-  dirPath = normalizePath(dirPath);
-  const dirName = basename(dirPath);
-  const filePath = normalizePath(join(dirPath, itemName));
-  const sourceFiles: RouteSourceFile[] = [];
-  const sourceFile = getSourceFile(dirPath, dirName, filePath, itemName);
-  if (sourceFile) {
-    sourceFiles.push(sourceFile);
-  }
-
-  const resolved = resolveSourceFiles(ctx.opts, sourceFiles);
-
-  ctx.layouts = resolved.layouts;
-  ctx.routes = resolved.routes;
-  ctx.entries = resolved.entries;
-  ctx.menus = resolved.menus;
-  ctx.fallbackRoutes = resolved.fallbackRoutes;
-  validateSourceFiles(ctx, sourceFiles);
-  return ctx;
-}
+});
 
 test.run();

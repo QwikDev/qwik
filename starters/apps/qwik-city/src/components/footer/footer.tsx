@@ -18,9 +18,6 @@ export default component$(
             <a href="/about-us">About Us</a>
           </li>
           <li>
-            <a href="/sign-in">Sign In</a>
-          </li>
-          <li>
             <a class="footer-home" href="/">
               Home
             </a>

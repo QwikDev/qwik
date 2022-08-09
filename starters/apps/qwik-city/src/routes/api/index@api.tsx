@@ -1,5 +1,9 @@
 import { component$, Host, useClientEffect$, useStore } from '@builder.io/qwik';
 
+/**
+ * Uses named layout `foo`
+ */
+
 export default component$(() => {
   const store = useStore({ timestamp: '' });
 

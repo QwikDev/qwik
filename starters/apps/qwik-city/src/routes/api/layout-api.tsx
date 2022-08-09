@@ -2,6 +2,11 @@ import { component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import styles from './api.css?inline';
 
+/**
+ * Named layout `foo`
+ * Any index files named `index@foo.tsx` will use this layout
+ */
+
 export default component$(() => {
   useStyles$(styles);
 

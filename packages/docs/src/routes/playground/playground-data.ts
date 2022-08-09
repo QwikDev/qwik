@@ -1,4 +1,4 @@
-import type { ReplModuleInput } from '../../types';
+import type { ReplModuleInput } from '../../repl/types';
 
 export interface PlaygroundApp {
   inputs: ReplModuleInput[];
@@ -6,7 +6,7 @@ export interface PlaygroundApp {
 
 /**
  * Generated at build-time.
- * See packages/docs/pages/playground/app
+ * packages/docs/src/routes/playground/app
  */
 const playgroundApp: PlaygroundApp = {} as any;
 export default playgroundApp;

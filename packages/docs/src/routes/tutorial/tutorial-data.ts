@@ -1,4 +1,4 @@
-import type { ReplModuleInput } from '../../types';
+import type { ReplModuleInput } from '../../repl/types';
 
 export interface TutorialSection {
   id: string;
@@ -18,7 +18,7 @@ export interface TutorialApp {
 
 /**
  * Generated at build-time.
- * See /docs/pages/tutorial/tutorial-menu.json
+ * See packages/docs/src/routes/tutorial/tutorial-menu.json
  */
 const tutorialSections: TutorialSection[] = [];
 export default tutorialSections;

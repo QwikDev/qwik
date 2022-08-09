@@ -77,7 +77,7 @@ export default component$(() => {
             </div>
           ))}
           <a
-            href="https://github.com/BuilderIO/qwik/tree/main/packages/docs/src/repl/apps/examples"
+            href="https://github.com/BuilderIO/qwik/tree/main/packages/docs/src/routes/examples/apps/"
             class="example-button-new"
             target="_blank"
           >

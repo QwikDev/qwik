@@ -1,4 +1,4 @@
-import type { ReplModuleInput } from '../../types';
+import type { ReplModuleInput } from '../../../repl/types';
 
 export interface ExampleSection {
   id: string;
@@ -16,7 +16,7 @@ export interface ExampleApp {
 
 /**
  * Generated at build-time.
- * See /docs/pages/examples/examples-menu.json
+ * See packages/docs/src/routes/examples/apps/examples-menu.json
  */
 const exampleSections: ExampleSection[] = [];
 export default exampleSections;

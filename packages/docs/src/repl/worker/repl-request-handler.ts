@@ -10,7 +10,7 @@ export const requestHandler = async (ev: any) => {
   const subDir = parts[1];
   const clientId = parts[2];
 
-  if (subDir !== 'repl' || pathname.includes('/~repl-server-')) {
+  if (subDir !== 'repl' || pathname.includes('/~repl-server-') || pathname === '/repl/repl-sw.js') {
     return;
   }
 

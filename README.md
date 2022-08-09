@@ -44,6 +44,7 @@ npm init qwik@latest
 
 - Ping us at [@QwikDev](https://twitter.com/QwikDev)
 - Join our [Discord](https://qwik.builder.io/chat) community
+- Join all the [other community groups](https://qwikcommunity.com)
 
 ## Related
 

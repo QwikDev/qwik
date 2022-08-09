@@ -2,6 +2,11 @@ import { QWIK_REPL_DEPS_CACHE, QWIK_REPL_RESULT_CACHE } from '../../../repl/work
 import { receiveMessageFromMain } from '../../../repl/worker/repl-messenger';
 import { requestHandler } from '../../../repl/worker/repl-request-handler';
 
+/**
+ * REPL Service Worker
+ * /repl/repl-sw.js
+ */
+
 self.onmessage = receiveMessageFromMain;
 
 self.onfetch = requestHandler;

@@ -8,9 +8,9 @@ test('total layouts', ({ layouts }) => {
 });
 
 test('nested named layout', ({ assertLayout }) => {
-  const l = assertLayout('ApiLayoutfoo');
+  const l = assertLayout('ApiLayoutapi');
   equal(l.layoutType, 'nested');
-  equal(l.layoutName, 'foo');
+  equal(l.layoutName, 'api');
 });
 
 test('nested layout', ({ assertLayout }) => {
@@ -19,16 +19,10 @@ test('nested layout', ({ assertLayout }) => {
   equal(l.layoutName, '');
 });
 
-test('named nested layout', ({ assertLayout }) => {
-  const l = assertLayout('DashboardLayoutdashboard');
-  equal(l.layoutType, 'nested');
-  equal(l.layoutName, 'dashboard');
-});
-
-test('named nested layout', ({ assertLayout }) => {
-  const l = assertLayout('DashboardLayoutdashboard');
-  equal(l.layoutType, 'nested');
-  equal(l.layoutName, 'dashboard');
+test('top layout', ({ assertLayout }) => {
+  const l = assertLayout('DashboardLayout');
+  equal(l.layoutType, 'top');
+  equal(l.layoutName, '');
 });
 
 test('top layout', ({ assertLayout }) => {

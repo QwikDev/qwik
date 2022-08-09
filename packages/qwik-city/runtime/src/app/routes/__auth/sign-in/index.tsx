@@ -27,10 +27,14 @@ export default component$(() => {
   );
 });
 
+export const head: DocumentHead = {
+  title: 'Sign In',
+};
+
 export const onGet: RequestHandler = async ({ request, response }) => {
   const isAuthenticated = await isUserAuthenticated(request.headers.get('cookie'));
   if (isAuthenticated) {
-    response.redirect('/dashboard');
+    throw response.redirect('/dashboard');
   }
 };
 
@@ -40,12 +44,8 @@ export const onPost: RequestHandler = async ({ request, response }) => {
 
   if (result.status === 'signed-in') {
     response.headers.set('Set-Cookie', result.cookie);
-    response.redirect('/dashboard');
-  } else {
-    response.status = 403;
+    throw response.redirect('/dashboard');
   }
-};
 
-export const head: DocumentHead = {
-  title: 'Sign In',
+  response.status = 403;
 };

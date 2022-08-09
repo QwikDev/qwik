@@ -1,24 +1,25 @@
 import { createHeaders } from './headers';
 import { HttpStatus } from './http-status-codes';
 import type { QwikCityRequestContext } from './types';
-import type { RedirectResponse } from './user-response';
+
+export class RedirectResponse {
+  public status: number;
+  public headers: Headers;
+  public location: string;
+
+  constructor(public url: string, status?: number, headers?: Headers) {
+    this.location = url;
+    this.status = isRedirectStatus(status) ? status : HttpStatus.TemporaryRedirect;
+    this.headers = headers || createHeaders();
+    this.headers.set('Location', this.location);
+  }
+}
 
 export function redirectResponse(
   requestCtx: QwikCityRequestContext,
   responseRedirect: RedirectResponse
 ) {
-  const { response } = requestCtx;
-
-  const status = getRedirectStatus(responseRedirect.status);
-
-  const headers = responseRedirect.headers || createHeaders();
-  headers.set('Location', responseRedirect.location);
-
-  return response(status, headers, async () => {});
-}
-
-export function getRedirectStatus(status: number | undefined | null) {
-  return isRedirectStatus(status) ? status : HttpStatus.TemporaryRedirect;
+  return requestCtx.response(responseRedirect.status, responseRedirect.headers, async () => {});
 }
 
 export function isRedirectStatus(status: number | undefined | null): status is number {

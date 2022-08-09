@@ -9,7 +9,8 @@ import type {
 } from '../../runtime/src/library/types';
 import type { QwikCityRequestContext, UserResponseContext } from './types';
 import { HttpStatus } from './http-status-codes';
-import { getRedirectStatus, isRedirectStatus } from './redirect-handler';
+import { isRedirectStatus, RedirectResponse } from './redirect-handler';
+import { ErrorResponse } from './error-handler';
 
 export async function loadUserResponse(
   requestCtx: QwikCityRequestContext,
@@ -59,8 +60,7 @@ export async function loadUserResponse(
   };
 
   const redirect = (url: string, status?: number) => {
-    userResponse.headers.set('Location', url);
-    return new RedirectResponse(url, getRedirectStatus(status), userResponse.headers);
+    return new RedirectResponse(url, status, userResponse.headers);
   };
 
   const error = (status: number, message?: string) => {
@@ -217,13 +217,3 @@ function isLastModulePageRoute(routeModules: RouteModule[]) {
 }
 
 const ABORT_INDEX = 999999999;
-
-export class ErrorResponse extends Error {
-  constructor(public status: number, message?: string) {
-    super(message);
-  }
-}
-
-export class RedirectResponse {
-  constructor(public location: string, public status?: number, public headers?: Headers) {}
-}

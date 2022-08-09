@@ -1,6 +1,8 @@
 export type {
   ContentHeading,
   ContentMenu,
+  DocumentHeadProps,
+  DocumentHeadValue,
   DocumentHead,
   DocumentLink,
   DocumentMeta,

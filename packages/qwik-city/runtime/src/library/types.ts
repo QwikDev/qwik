@@ -291,7 +291,7 @@ export type RequestHandler<BODY = unknown> = (ev: RequestEvent) => RequestHandle
  */
 export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
 
-export type RequestHandlerBody<BODY> = BODY | string | number | boolean | undefined | null | void;
+export type RequestHandlerBody<BODY> = BODY | RedirectResponse | string | number | boolean | undefined | null | void;
 
 export type RequestHandlerBodyFunction<BODY> = () =>
   | RequestHandlerBody<BODY>

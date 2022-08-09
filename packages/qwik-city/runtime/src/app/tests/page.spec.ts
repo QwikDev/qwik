@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { assertPage, getPage, linkNavigate, load, locator } from './util.js';
+import { assertPage, linkNavigate, load, locator } from './util.js';
 
 test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
   const ctx = await load(context, javaScriptEnabled, '/');
@@ -95,11 +95,13 @@ test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
 
   /***********  Products: hoodie (404)  ***********/
   await linkNavigate(ctx, '[data-test-link="products-hoodie"]', 404);
-  const page = getPage(ctx);
-  const html = page.locator('html');
-  expect(await html.getAttribute('data-qwik-city-status')).toBe('404');
-
-  await page.goBack();
+  await assertPage(ctx, {
+    pathname: '/products/hoodie',
+    title: 'Product hoodie - Qwik',
+    layoutHierarchy: ['root'],
+    h1: 'Product: hoodie',
+    activeHeaderLink: 'Products',
+  });
 
   /***********  About Us  ***********/
   await linkNavigate(ctx, '[data-test-link="about-us"]');

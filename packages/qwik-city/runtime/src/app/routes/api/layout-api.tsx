@@ -1,6 +1,6 @@
 import { component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
 import type { DocumentHead } from '~qwik-city-runtime';
-import styles from './layout-foo.css?inline';
+import styles from './layout-api.css?inline';
 
 export default component$(() => {
   useStyles$(styles);

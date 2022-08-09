@@ -3,7 +3,7 @@
 ## Introduction
 
 - [Overview](overview/index.md)
-- [Getting Started](getting-started.md)
+- [Getting Started](getting-started/index.md)
 
 ## Components
 

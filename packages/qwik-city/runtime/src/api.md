@@ -31,11 +31,24 @@ export interface ContentMenu {
     text: string;
 }
 
-// Warning: (ae-forgotten-export) The symbol "DocumentHeadValue" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "DocumentHeadProps" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export type DocumentHead<T = unknown> = DocumentHeadValue | ((props: DocumentHeadProps<T>) => DocumentHeadValue);
+
+// @public (undocumented)
+export interface DocumentHeadProps<T = unknown> extends RouteLocation {
+    // (undocumented)
+    data: T;
+    // (undocumented)
+    head: ResolvedDocumentHead;
+}
+
+// @public (undocumented)
+export interface DocumentHeadValue {
+    links?: DocumentLink[];
+    meta?: DocumentMeta[];
+    styles?: DocumentStyle[];
+    title?: string;
+}
 
 // @public (undocumented)
 export interface DocumentLink {

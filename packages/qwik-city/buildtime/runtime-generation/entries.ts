@@ -16,7 +16,7 @@ export function generateQwikCityEntries(ctx: BuildContext) {
   c.push(`\n/** Qwik City Entries (${ctx.entries.length}) */`);
   for (let i = 0; i < ctx.entries.length; i++) {
     const entry = ctx.entries[i];
-    c.push(`export const _${i} = () => import(${JSON.stringify(entry.filePath)});`);
+    c.push(`export const ${entry.id} = () => import(${JSON.stringify(entry.filePath)});`);
   }
 
   return c.join('\n') + '\n';

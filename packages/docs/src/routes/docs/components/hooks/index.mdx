@@ -72,7 +72,7 @@ export function useRef<T = Element>(current?: T): Ref<T> {
 ```tsx
 const Cmp = component$(() => {
   const input = useRef<HTMLInputElement>();
-  useClientEffect$((track) => {
+  useClientEffect$(({ track }) => {
     const el = track(input, 'current')!;
     el.focus();
   });
@@ -86,11 +86,11 @@ const Cmp = component$(() => {
 
 ## useWatch$()
 
-Reruns the `watchFn` when the observed inputs change.
+Reruns the `watchFn` when the tracked inputs change.
 
-Use `useWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when those inputs change.
+Use `useWatch` to track changes on a set of inputs, and then re-execute the `watchFn` when those inputs change.
 
-The `watchFn` only executes if the observed inputs change. To observe the inputs use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `watchFn` to re-run.
+The `watchFn` only executes if the tracked inputs change. To track the inputs use the `track` function to wrap property reads. This creates subscriptions that will trigger the `watchFn` to re-run.
 
 
 ### Example
@@ -105,12 +105,12 @@ const Cmp = component$(() => {
     debounced: 0
   });
   // Double count watch
-  useWatch$((track) => {
+  useWatch$(({ track }) => {
     const count = track(store, 'count');
     store.doubleCount = 2 * count;
   });
   // Debouncer watch
-  useWatch$((track) => {
+  useWatch$(({ track }) => {
     const doubleCount = track(store, 'doubleCount');
     const timer = setTimeout(() => {
       store.debounced = doubleCount;

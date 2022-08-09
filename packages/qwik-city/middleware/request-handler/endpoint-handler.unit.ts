@@ -2,8 +2,9 @@ import type { PageModule, RouteModule } from '../../runtime/src/library/types';
 import { test } from 'uvu';
 import { equal, instance } from 'uvu/assert';
 import { mockRequestContext, wait } from './test-utils';
-import { ErrorResponse, loadUserResponse } from './user-response';
+import { loadUserResponse } from './user-response';
 import { endpointHandler } from './endpoint-handler';
+import { ErrorResponse } from './error-handler';
 
 test('onRequest, async return callback, async callback data', async () => {
   const requestCtx = mockRequestContext();

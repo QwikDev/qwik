@@ -25,14 +25,14 @@ test('index file w/ nested named layout, in directory w/ nested named layout', (
   assertRoute,
 }) => {
   const r = assertRoute('/api');
-  assert.equal(r.id, 'ApiIndexfoo');
+  assert.equal(r.id, 'ApiIndexapi');
   assert.equal(r.pattern, /^\/api\/?$/);
   assert.equal(r.paramNames.length, 0);
   assert.equal(r.layouts[0].id, 'Layout');
   assert.equal(r.layouts[0].layoutName, '');
   assert.equal(r.layouts[0].layoutType, 'nested');
-  assert.equal(r.layouts[1].id, 'ApiLayoutfoo');
-  assert.equal(r.layouts[1].layoutName, 'foo');
+  assert.equal(r.layouts[1].id, 'ApiLayoutapi');
+  assert.equal(r.layouts[1].layoutName, 'api');
   assert.equal(r.layouts[1].layoutType, 'nested');
   assert.equal(r.layouts.length, 2);
 });
@@ -42,33 +42,29 @@ test('index file w/out named layout, in directory w/ named layout', ({ assertRou
   assert.equal(r.id, 'Dashboard');
   assert.equal(r.pattern, /^\/dashboard\/?$/);
   assert.equal(r.paramNames.length, 0);
-  assert.equal(r.layouts[0].id, 'Layout');
-  assert.equal(r.layouts[0].layoutType, 'nested');
+  assert.equal(r.layouts[0].id, 'DashboardLayout');
+  assert.equal(r.layouts[0].layoutType, 'top');
   assert.equal(r.layouts.length, 1);
 });
 
-test('file w/ named layout, in directory w/ nested named layout file', ({ assertRoute }) => {
+test('index file in directory w/ nested named layout file', ({ assertRoute }) => {
   const r = assertRoute('/dashboard/profile');
-  assert.equal(r.id, 'DashboardProfileIndexdashboard');
+  assert.equal(r.id, 'DashboardProfile');
   assert.equal(r.pattern, /^\/dashboard\/profile\/?$/);
   assert.equal(r.paramNames.length, 0);
-  assert.equal(r.layouts[0].id, 'Layout');
-  assert.equal(r.layouts[0].layoutType, 'nested');
-  assert.equal(r.layouts[1].id, 'DashboardLayoutdashboard');
-  assert.equal(r.layouts[1].layoutType, 'nested');
-  assert.equal(r.layouts.length, 2);
+  assert.equal(r.layouts[0].id, 'DashboardLayout');
+  assert.equal(r.layouts[0].layoutType, 'top');
+  assert.equal(r.layouts.length, 1);
 });
 
-test('index file w/ named layout, in directory w/ nested named layout file', ({ assertRoute }) => {
+test('index file in directory w/ top named layout file', ({ assertRoute }) => {
   const r = assertRoute('/dashboard/settings');
-  assert.equal(r.id, 'DashboardSettingsIndexdashboard');
+  assert.equal(r.id, 'DashboardSettings');
   assert.equal(r.pattern, /^\/dashboard\/settings\/?$/);
   assert.equal(r.paramNames.length, 0);
-  assert.equal(r.layouts[0].id, 'Layout');
-  assert.equal(r.layouts[0].layoutType, 'nested');
-  assert.equal(r.layouts[1].id, 'DashboardLayoutdashboard');
-  assert.equal(r.layouts[1].layoutType, 'nested');
-  assert.equal(r.layouts.length, 2);
+  assert.equal(r.layouts[0].id, 'DashboardLayout');
+  assert.equal(r.layouts[0].layoutType, 'top');
+  assert.equal(r.layouts.length, 1);
 });
 
 test('params route, index file w/out named layout, in directory w/ top layout directory', ({

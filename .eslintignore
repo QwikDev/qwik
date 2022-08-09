@@ -15,6 +15,7 @@ tsdoc-metadata.json
 **/.DS_Store
 *.mp4
 scripts/**/*
+**/server/**/*.js
 *.tsbuildinfo
 packages/docs/src/repl/apps/examples/**/*
 packages/docs/src/repl/apps/tutorial/**/*

@@ -32,7 +32,6 @@ export function playgroundData(routesDir: string): Plugin {
             return input;
           }),
         };
-        console.log(JSON.stringify(playgroundApp));
         return `const playgroundApp = ${JSON.stringify(
           playgroundApp
         )};export default playgroundApp;`;

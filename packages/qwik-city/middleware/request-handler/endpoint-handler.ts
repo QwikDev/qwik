@@ -18,7 +18,7 @@ export function endpointHandler<T = any>(
   }
 
   // check so we can know later on if we should JSON.stringify the body
-  const isJson = headers.get('Content-Type')!.includes('application/json');
+  const isJson = headers.get('Content-Type')!.includes('json');
 
   return response(status, headers, async ({ write }) => {
     const body = pendingBody !== undefined ? await pendingBody : resolvedBody;

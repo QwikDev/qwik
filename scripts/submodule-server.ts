@@ -127,7 +127,7 @@ const browserCjsRequireShim = `
 if (typeof require !== 'function' && typeof location !== 'undefined' && typeof navigator !== 'undefined') {
   // shim cjs require() for core.cjs within a browser
   globalThis.require = function(path) {
-    if (path === './core.cjs') {
+    if (path === './core.cjs' || path === '@builder.io/qwik') {
       if (!self.qwikCore) {
         throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a browser.');
       }

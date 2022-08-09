@@ -1,0 +1,103 @@
+---
+title: Getting Started
+fetch: https://hackmd.io/@mhevery/S1_pV3Cl9
+---
+
+<img class="mb-5" src='/banner.svg'/>
+
+# Getting Started Qwikly
+
+Qwik is a new kind of framework that is [resumable](../concepts/resumable/index.mdx) (No JS and no hydration), built for the edge and familiar for React developers.
+
+- [Stackblitz Qwik + Vite](https://stackblitz.com/edit/qwik-vite-todoapp?file=index.html)
+- [Examples playground](/examples/reactivity/counter)
+
+
+## Prerequisites
+
+- `node.js` v14 or higher (with `npm`)
+- Your favorite IDE (vscode recommended)
+- Start to [think qwik](../think-qwik/index.mdx)
+
+## Creating an app using the CLI
+
+The first step is to create an application. Qwik comes with a CLI that allows you to create a basic working skeleton of an application. We will use the CLI to create a blank starter so that you can quickly familiarize yourself with it.
+
+### Run the Qwik CLI in your shell
+
+```shell
+$ npm init qwik@latest
+```
+
+The CLI will guide you through an interactive menu to set the project-name and select one of the starters:
+
+<script id="asciicast-7Ielp9cJZfy0MglQvOxBLgUqF" src="https://asciinema.org/a/7Ielp9cJZfy0MglQvOxBLgUqF.js" async></script>
+
+After your new app is created, you will see an output like the following in your terminal:
+
+```shell
+💫 Let's create a Qwik app 💫
+
+✔ Project name … qwik-app
+✔ Select a starter › Blank
+✔ Features › Prettier
+
+⭐️ Success! Project saved in qwik-app directory
+
+🤖 Next steps:
+   cd qwik-app
+   npm install
+   npm start
+
+💬 Questions? Start the conversation at:
+   https://qwik.builder.io/chat
+   https://twitter.com/QwikDev
+```
+
+At this point, you will have `qwik-app` directory, that contains the starter app.
+
+## Running in development
+
+Once the application is download.
+
+1. Change into the directory created by the `npm init qwik@latest`.
+
+```shell
+cd qwik-app
+```
+
+2. Install NPM modules:
+
+```shell
+npm install
+```
+
+3. Invoke the dev server
+
+```shell
+npm start
+```
+
+4. You should see a server running with your To-do application
+
+```shell
+
+  VITE v3.0.2  ready in 140 ms
+
+  ➜  Local:   http://localhost:5174/
+  ➜  Network: use --host to expose
+
+
+```
+
+5. Visit http://localhost:5174/ to explore the app.
+
+## Commands
+
+Here are some useful commands to get you started. For a complete list please refer to `package.json`.
+
+- `npm start`: alias to `npm run dev` (this currently defaults to running dev.ssr)
+- `npm run dev.client`: starts the dev server in client bootstrap mode
+- `npm run dev.ssr`: starts the dev server with SSR
+- `npm run build`: builds the application for production
+

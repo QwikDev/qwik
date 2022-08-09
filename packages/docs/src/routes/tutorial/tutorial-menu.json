@@ -38,15 +38,8 @@
         "enableSsrOutput": false
       },
       {
-        "id": "watch",
-        "title": "Running side-effects on state changes",
-        "enableHtmlOutput": false,
-        "enableClientOutput": false,
-        "enableSsrOutput": false
-      },
-      {
-        "id": "ssr",
-        "title": "Prefetching data on SSR",
+        "id": "resource",
+        "title": "Fetching resource on state change",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
@@ -209,7 +202,14 @@
       },
       {
         "id": "explicit",
-        "title": "useWatch() - Explicit Reactivity",
+        "title": "useWatch$() - Explicit Reactivity",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
+        "id": "resource",
+        "title": "useResource$() - Explicit Reactivity",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
@@ -352,6 +352,13 @@
       {
         "id": "styles",
         "title": "useStyles() - Styles",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
+        "id": "scoped",
+        "title": "useStylesScoped() - Scoped styles",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false

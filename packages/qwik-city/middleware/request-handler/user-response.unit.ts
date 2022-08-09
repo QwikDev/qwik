@@ -2,7 +2,9 @@ import { test } from 'uvu';
 import { equal, instance } from 'uvu/assert';
 import { mockRequestContext, wait } from './test-utils';
 import type { PageModule, RouteModule } from '../../runtime/src/library/types';
-import { ErrorResponse, loadUserResponse, RedirectResponse } from './user-response';
+import { loadUserResponse } from './user-response';
+import { RedirectResponse } from './redirect-handler';
+import { ErrorResponse } from './error-handler';
 
 test('sync endpoint, undefined body', async () => {
   const requestCtx = mockRequestContext();

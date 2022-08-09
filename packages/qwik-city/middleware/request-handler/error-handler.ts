@@ -1,7 +1,12 @@
 import { createHeaders } from './headers';
 import { HttpStatus } from './http-status-codes';
 import type { QwikCityRequestContext } from './types';
-import type { ErrorResponse } from './user-response';
+
+export class ErrorResponse extends Error {
+  constructor(public status: number, message?: string) {
+    super(message);
+  }
+}
 
 export function notFoundHandler<T = any>(requestCtx: QwikCityRequestContext): Promise<T> {
   const status = HttpStatus.NotFound;
@@ -30,8 +35,13 @@ export function errorHandler(requestCtx: QwikCityRequestContext, e: any) {
   return minimalHtmlResponse(requestCtx, status, message, stack);
 }
 
-export function errorResponse(requestCtx: QwikCityRequestContext, err: ErrorResponse) {
-  return minimalHtmlResponse(requestCtx, err.status, err.message, err.stack);
+export function errorResponse(requestCtx: QwikCityRequestContext, errorResponse: ErrorResponse) {
+  return minimalHtmlResponse(
+    requestCtx,
+    errorResponse.status,
+    errorResponse.message,
+    errorResponse.stack
+  );
 }
 
 function minimalHtmlResponse(

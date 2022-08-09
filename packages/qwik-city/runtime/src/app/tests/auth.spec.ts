@@ -37,22 +37,42 @@ test('Qwik City Auth', async ({ context, javaScriptEnabled }) => {
 
   await assertPage(ctx, {
     pathname: '/dashboard',
-    title: 'Dashboard - Qwik',
-    layoutHierarchy: ['root'],
+    title: 'Dashboard Home - Qwik',
+    layoutHierarchy: ['dashboard'],
     h1: 'Dashboard',
   });
 
   /***********  Go to Dashboard again, shouldn't redirect if signed in  ***********/
   await assertPage(ctx, {
     pathname: '/dashboard',
-    title: 'Dashboard - Qwik',
-    layoutHierarchy: ['root'],
+    title: 'Dashboard Home - Qwik',
+    layoutHierarchy: ['dashboard'],
     h1: 'Dashboard',
   });
 
+  /***********  Go to Dashboard settings, shouldn't redirect if signed in  ***********/
+  await linkNavigate(ctx, '[data-test-link="dashboard-settings"]');
+  await assertPage(ctx, {
+    pathname: '/dashboard/settings',
+    title: 'Dashboard Settings - Qwik',
+    layoutHierarchy: ['dashboard'],
+    h1: 'Settings',
+  });
+
   /***********  Sign out  ***********/
-  await linkNavigate(ctx, '[data-test-link="sign-out"]');
+  await linkNavigate(ctx, '[data-test-link="dashboard-sign-out"]');
   await assertPage(ctx, {
     pathname: '/sign-in',
+  });
+
+  /***********  Dashboard not signed in, redirected to signed in  ***********/
+  page = getPage(ctx);
+  await page.goto('/dashboard');
+  await assertPage(ctx, {
+    pathname: '/sign-in',
+    title: 'Sign In - Qwik',
+    layoutHierarchy: ['root', 'auth'],
+    h1: 'Sign In',
+    activeHeaderLink: 'Sign In',
   });
 });

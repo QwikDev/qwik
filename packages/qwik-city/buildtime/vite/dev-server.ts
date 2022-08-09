@@ -10,8 +10,16 @@ import { loadUserResponse } from '../../middleware/request-handler/user-response
 import { getQwikCityEnvData } from '../../middleware/request-handler/page-handler';
 import { buildFromUrlPathname } from '../build';
 import { endpointHandler } from '../../middleware/request-handler/endpoint-handler';
-import { notFoundHandler } from '../../middleware/request-handler/error-handler';
+import {
+  errorResponse,
+  ErrorResponse,
+  notFoundHandler,
+} from '../../middleware/request-handler/error-handler';
 import type { QwikCityRequestContext } from '../../middleware/request-handler/types';
+import {
+  redirectResponse,
+  RedirectResponse,
+} from '../../middleware/request-handler/redirect-handler';
 
 export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
   server.middlewares.use(async (req, res, next) => {
@@ -49,40 +57,51 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
         });
         routeModules.push(endpointModule);
 
-        const userResponse = await loadUserResponse(
-          requestCtx,
-          params,
-          routeModules,
-          ctx.opts.trailingSlash
-        );
+        try {
+          const userResponse = await loadUserResponse(
+            requestCtx,
+            params,
+            routeModules,
+            ctx.opts.trailingSlash
+          );
 
-        if (userResponse.type === 'endpoint') {
-          // dev server endpoint handler
-          await endpointHandler(requestCtx, userResponse);
+          if (userResponse.type === 'endpoint') {
+            // dev server endpoint handler
+            await endpointHandler(requestCtx, userResponse);
+            return;
+          }
+
+          // qwik city vite plugin should handle dev ssr rendering
+          // but add the qwik city user context to the response object
+          const envData = getQwikCityEnvData(userResponse);
+          if (ctx.isDevServerClientOnly) {
+            // because we stringify this content for the client only
+            // dev server, there's some potential stringify issues
+            // client only dev server will re-fetch anyways, so reset
+            envData.qwikcity.response.body = undefined;
+          }
+
+          (res as QwikViteDevResponse)._qwikEnvData = {
+            ...(res as QwikViteDevResponse)._qwikEnvData,
+            ...envData,
+          };
+
+          // update node response with status and headers
+          // but do not end() it, call next() so qwik plugin handles rendering
+          res.statusCode = userResponse.status;
+          userResponse.headers.forEach((value, key) => res.setHeader(key, value));
+          next();
+          return;
+        } catch (e: any) {
+          if (e instanceof RedirectResponse) {
+            redirectResponse(requestCtx, e);
+          } else if (e instanceof ErrorResponse) {
+            errorResponse(requestCtx, e);
+          } else {
+            next(e);
+          }
           return;
         }
-
-        // qwik city vite plugin should handle dev ssr rendering
-        // but add the qwik city user context to the response object
-        const envData = getQwikCityEnvData(userResponse);
-        if (ctx.isDevServerClientOnly) {
-          // because we stringify this content for the client only
-          // dev server, there's some potential stringify issues
-          // client only dev server will re-fetch anyways, so reset
-          envData.qwikcity.response.body = undefined;
-        }
-
-        (res as QwikViteDevResponse)._qwikEnvData = {
-          ...(res as QwikViteDevResponse)._qwikEnvData,
-          ...envData,
-        };
-
-        // update node response with status and headers
-        // but do not end() it, call next() so qwik plugin handles rendering
-        res.statusCode = userResponse.status;
-        userResponse.headers.forEach((value, key) => res.setHeader(key, value));
-        next();
-        return;
       }
 
       // static file does not exist, 404

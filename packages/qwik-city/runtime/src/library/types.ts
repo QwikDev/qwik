@@ -1,7 +1,5 @@
-import type {
-  ErrorResponse,
-  RedirectResponse,
-} from '../../../middleware/request-handler/user-response';
+import type { ErrorResponse } from '../../../middleware/request-handler/error-handler';
+import type { RedirectResponse } from '../../../middleware/request-handler/redirect-handler';
 import type { NoSerialize } from '@builder.io/qwik';
 
 export interface RouteModule<BODY = unknown> {

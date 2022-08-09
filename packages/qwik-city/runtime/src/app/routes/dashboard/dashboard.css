@@ -1,0 +1,14 @@
+.dashboard {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  padding: 0;
+}
+
+.dashboard-menu {
+  background: #eee;
+  padding-left: 20px;
+}
+
+.dashboard-content {
+  padding-left: 20px;
+}

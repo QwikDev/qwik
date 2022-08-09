@@ -90,7 +90,7 @@ Reruns the `watchFn` when the observed inputs change.
 
 Use `useWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when those inputs change.
 
-The `watchFn` only executes if the observed inputs change. To observe the inputs use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `watchFn` to re-run.
+The `watchFn` only executes if the observed inputs change. To observe the inputs use the `track` function to wrap property reads. This creates subscriptions that will trigger the `watchFn` to re-run.
 
 
 ### Example

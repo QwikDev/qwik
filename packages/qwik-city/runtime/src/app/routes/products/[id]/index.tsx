@@ -98,10 +98,13 @@ export const onGet: RequestHandler<EndpointData> = async ({ params, response }) 
     // instead the renderer will still run with the returned `null` data
     // and the component will decide how to render it
     response.status = 404;
+    // never cache
+    response.headers.set('Cache-Control', 'no-cache, no-store, no-fun');
     return null;
   }
 
-  response.headers.set('Cache-Control', 'no-cache, no-store, no-fun');
+  // cache for a super long time of 15 seconds
+  response.headers.set('Cache-Control', 'max-age=15');
 
   return async () => {
     await new Promise<void>((resolve) => setTimeout(resolve, 200));

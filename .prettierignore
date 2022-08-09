@@ -24,7 +24,7 @@ build
 node_modules
 tsconfig.tsbuildinfo
 packages/docs/src/routes/**/*.mdx
-packages/docs/server/
+**/server/**/*.js
 starters/**/*.js
 
 # TODO: Figure out why this doesn't pass in CI

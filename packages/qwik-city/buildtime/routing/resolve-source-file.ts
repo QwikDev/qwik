@@ -167,9 +167,7 @@ export function resolveError(
 
 function resolveEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {
   const pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
-
-  const entryTextIndex = pathname.lastIndexOf('/entry');
-  const chunkFileName = pathname.slice(1, entryTextIndex) + '.js';
+  const chunkFileName = pathname.slice(1);
 
   const buildEntry: BuildEntry = {
     id: createFileId(opts.routesDir, sourceFile.filePath),

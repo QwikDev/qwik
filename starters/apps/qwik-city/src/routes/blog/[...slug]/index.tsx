@@ -19,10 +19,10 @@ export default component$(() => {
   );
 });
 
-export const onGet: RequestHandler<EndpointData> = async ({ params, request }) => {
+export const onGet: RequestHandler<EndpointData> = async ({ params, url }) => {
   return {
     blogTitle: `Blog: ${params.slug}`,
-    blogContent: `${params.slug}, ${request.url}`,
+    blogContent: `${params.slug}, ${url.pathname}`,
   };
 };
 

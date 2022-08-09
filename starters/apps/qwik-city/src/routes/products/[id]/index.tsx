@@ -48,7 +48,12 @@ export default component$(() => {
   );
 });
 
-export const head: DocumentHead<ProductData> = ({ data }) => {
+export const head: DocumentHead<EndpointData> = ({ data }) => {
+  if (!data) {
+    return {
+      title: `Product not found`,
+    };
+  }
   return {
     title: `Product ${data.productId}, ${data.price}`,
   };
@@ -62,18 +67,16 @@ export const onGet: RequestHandler<EndpointData> = async ({ params, response }) 
 
   if (params.id === 'shirt') {
     // Redirect, which will skip any rendering and the server will immediately redirect
-    response.redirect('/products/tshirt');
-    return;
+    throw response.redirect('/products/tshirt');
   }
 
   // artificially slow database call
   const productData = await loadProduct(params.id);
-
   if (!productData) {
-    // Product data not found
-    // but the data is still given to the renderer to decide what to do
+    // Product data not found, but the data is still
+    // given to the renderer to decide how to render
     response.status = 404;
-    return;
+    return productData;
   }
 
   // Found the product data
@@ -88,17 +91,18 @@ const loadProduct = (productId: string) => {
   return new Promise<ProductData | null>((resolve) =>
     setTimeout(() => {
       const productPrice = PRODUCT_DB[productId];
-      if (!productPrice) {
-        return null;
+      if (productPrice) {
+        // awesome product database found product data
+        const productData: ProductData = {
+          productId,
+          price: productPrice,
+          description: `Product description here.`,
+        };
+        resolve(productData);
+      } else {
+        // awesome product database did not find product data
+        resolve(null);
       }
-
-      const productData: ProductData = {
-        productId,
-        price: productPrice,
-        description: `Product description here.`,
-      };
-
-      resolve(productData);
     }, 250)
   );
 };
@@ -110,7 +114,7 @@ const PRODUCT_DB: Record<string, string> = {
   tshirt: '$18.96',
 };
 
-type EndpointData = ProductData;
+type EndpointData = ProductData | null;
 
 interface ProductData {
   productId: string;

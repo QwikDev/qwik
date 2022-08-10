@@ -28,7 +28,8 @@ export default component$(() => {
 
 ## Importing other components
 
-You can build complex views by composing multiple components within each other. To do that import other components like so: `import Heading from './path/to/component/heading';` to use it in the current component.
+You can build complex views by composing multiple components within each other. To do that import other components into your index.tsx file.
+
 ```
 - src/
   - components/
@@ -37,10 +38,10 @@ You can build complex views by composing multiple components within each other. 
     - some/           
       - path/
         - index.tsx              # https://example.com/some/path
-        - _sub_component.tsx
+        - sub_component.tsx
 ```
 
-Inside `index.tsx` you can create a component that is exported as `default` export. Content is created by writing a template with [JSX](https://reactjs.org/docs/introducing-jsx.html)-Syntax. Every component-Function returns the template that should be rendered on the screen. If you want to learn more about the component anatomy, please see [components documentation](/docs/components/overview).
+Inside `index.tsx` you can create a component that is exported as `default` export. Content is created by writing a template with [JSX](https://reactjs.org/docs/introducing-jsx.html)-Syntax. Every component-function returns the template that should be rendered on the screen. If you want to learn more about the component anatomy, please see [components documentation](/docs/components/overview).
 The following component will be rendered at `https://example.com/some/path` according to the directory-structure, we have set up above. 
 
 ```typescript

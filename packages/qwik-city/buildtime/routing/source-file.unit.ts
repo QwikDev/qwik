@@ -164,6 +164,10 @@ test(`getSourceFile`, () => {
         ext: '.tsx',
       },
     },
+    {
+      fileName: 'index.d.ts',
+      expect: null,
+    },
   ];
 
   t.forEach((c) => {

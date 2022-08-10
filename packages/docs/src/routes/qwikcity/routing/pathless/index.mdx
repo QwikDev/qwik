@@ -4,14 +4,14 @@ title: Qwik City - Pathless
 
 # Qwik City - Pathless
 
-At times components get so complex that using `index.ts` is not enough, and they need their own directory structure. In that case, Qwik City allows you to place the component into its own directory prefixed with `_`. Qwik City will then not use that directory name in the user URL.
+At times components get so complex that using `index.ts` is not enough, and they need their own directory structure. In that case, Qwik City allows you to place the component into its own directory prefixed with `__`. Qwik City will then not use that directory name in the user URL.
 
 ```
 - src/
   - routes/
     - some/           
       - path/
-        - _complex-component/      # Notice the underscore prefix
+        - __complex-component/      # Notice the double underscore prefix
           - index.tsx              # https://example.com/some/path  (the _complex-component folder is ignored)
-          - _other_component.tsx   # this file is ignored and not mapped to any URL because of the leading underscore.
+          - other_component.tsx   # this file is ignored and not mapped to any URL because of the leading underscore.
 ```

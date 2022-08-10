@@ -4,7 +4,16 @@ title: Qwik City - useLocation()
 
 # Qwik City - `useLocation()`
 
-Use `useLocation()` to retrieve the current location (URL).
+Use the `useLocation()` function to retrieve a `RouteLocation` object for the current location.
+
+```tsx
+export interface RouteLocation {
+  readonly params: RouteParams; // Record<string,string>
+  readonly href: string;
+  readonly pathname: string;
+  readonly query: Record<string, string>;
+}
+```
 
 The return value of `useLocation()` is similar to `document.location`, but it is safe to use on the server where there is no global `location` object.
 

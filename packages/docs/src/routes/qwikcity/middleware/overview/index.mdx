@@ -8,16 +8,16 @@ Qwik City middleware is a glue code that connects server rendering framework (su
 
 Qwik City comes pre-bundle with:
 
-- [`cloudflare-pages`](./cloudflare-pages/index.mdx)
-- [`express`](./express/index.mdx)
-- [`netlify-edge`](./netlify-edge/index.mdx)
+- [`cloudflare-pages`](../cloudflare-pages/index.mdx)
+- [`express`](../express/index.mdx)
+- [`netlify-edge`](../netlify-edge/index.mdx)
 
 ## Build
 
 Qwik City use vite cli `--ssr` to specify the SSR entry
 
 ```bash
-vite build --ssr src/entry.MIDDLEWARE.tsx
+vite build --ssr src/entry.MIDDLEWARE.ts
 ```
 
 default output dir is `./server` and it is configurable by setting `qwikVite` plugin option
@@ -32,7 +32,7 @@ export default defineConfig(() => {
       // ...other plugins
       qwikVite({
         ssr: {
-          outDir: "netlify/edge-functions",
+          outDir: "CUSTOM_DIR",
         },
       }),
     ],

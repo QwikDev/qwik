@@ -12,6 +12,7 @@ export class RedirectResponse {
     this.status = isRedirectStatus(status) ? status : HttpStatus.TemporaryRedirect;
     this.headers = headers || createHeaders();
     this.headers.set('Location', this.location);
+    this.headers.delete('Cache-Control');
   }
 }
 

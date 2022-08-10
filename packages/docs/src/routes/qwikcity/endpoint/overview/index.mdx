@@ -15,8 +15,8 @@ In both cases, you are retrieving using the same URL `https://example.com/produc
 - `Accept: application/json`: retrieves JSON for machine consumption
 - Perhaps some other serialization format in the future.
 
-In both cases, the logical content of the data retrieved is the same only the formatting is different. 
+In both cases, the logical content of the data retrieved is the same; only the formatting is different. 
 
-So far we have been talking about components that render static HTML. But what if the component needs data so that it can render it. How do we get the data? Additionally, when rendering on the server we would like to get the data directly, whereas when rendering on the client we would like to get the data from the server in JSON format. A different way to look at it is that the HTML internally retrieves the data from the JSON  and then formats it for human consumption. 
+So far, we have been talking about components that render static HTML. But what if the component needs data so that it can render it. How do we get the data? Additionally, when rendering on the server we would like to get the data directly, whereas when rendering on the client we would like to get the data from the server in JSON format. A different way to look at it is that the HTML internally retrieves the data from the JSON and then formats it for human consumption. 
 
 Endpoints solve the above problem. Endpoints are a way of structuring data retrieval so that it can be used for both servers as well as client rendering inside components. 

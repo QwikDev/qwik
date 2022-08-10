@@ -18,11 +18,11 @@ The first step is to structure the directories and files so that we can create t
         - index.tsx     # https://example.com/product/1234
 ```
 
-## Implement Endpoint
+## Implement onGet
 
-An endpoint is a `onGet` function that retrieves data (typically from a database, or other stores.) The retrieved data can be returned directly as JSON or used as an input to the component to render HTML. The `onGet` function receives the `params` to extract the parameters used to do data lookup. 
+In a "page" endpoint context, an `onGet` function retrieves data (typically from a database, or other stores). The retrieved data can be returned directly as JSON or used as an input to the component to render HTML. The `onGet` function receives the `params` to extract the parameters used to do data lookup. 
 
-The `onGet` function returns the product data.
+In this example the `onGet` function returns the product data that is used inside of our component with the `useEndpoint()` function.
 
 ```typescript
 // File: src/routes/product/[skuId]/details.js
@@ -44,7 +44,7 @@ export const onGet: RequestHandler<EndpointData> = async ({ params }) => {
 };
 ```
 
-## Using Endpoint in Component
+## Using onGet in a Component
 
 An endpoint `onGet` function retrieves data and makes it available to the component using `useEndpoint()`. 
   
@@ -83,3 +83,4 @@ export default component$(() => {
 6. You may use `typeof onGet` to keep your `onGet` function and `useEndpoint()` types in sync. Qwik City is smart enough to determine the types for you. 
 
 All of the above is done to abstract the data access from the component in a way that results in correct behavior on both the server and the client.
+

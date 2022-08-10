@@ -10,8 +10,12 @@
 
 - [Overview](routing/overview/index.mdx)
 - [Index](routing/default-index/index.mdx)
-- [Route Parameters](routing/route-parameters/index.mdx)
 - [Pathless Dirs](routing/pathless/index.mdx)
+- [Route Parameters](routing/route-parameters/index.mdx)
+- [Retrieving Data](endpoint/data/index.mdx)
+- [Modifying Data](endpoint/modify/index.mdx)
+- [Redirects](endpoint/redirects/index.mdx)
+- [Error Responses](endpoint/error-responses/index.mdx)
 
 ## Layout
 
@@ -25,13 +29,6 @@
 - [Components](content/component/index.mdx)
 - [MDX](content/mdx/index.mdx)
 - [Menu](content/menu/index.mdx)
-
-## Data Endpoints
-
-- [Overview](endpoint/overview/index.mdx)
-- [Retrieving Data](endpoint/data/index.mdx)
-- [Modifying Data](endpoint/modify/index.mdx)
-- [Non 200 Responses](endpoint/non-200/index.mdx)
 
 ## Head
 

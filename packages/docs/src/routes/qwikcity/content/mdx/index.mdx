@@ -7,6 +7,7 @@ title: Qwik City - MDX
 An alternative way to author content is using `.mdx` files ([Markdown JSX](https://mdxjs.com/)). These files are authored as Markdown, but they are compiled down to Qwik components. In addition to Markdown syntax, `.mdx` files can also refer to other components.
 
 Let's assume you have your routes set up like this:
+
 ```
 - src/
   - routes/
@@ -68,3 +69,7 @@ export const Counter = component$(() => {
   );
 });
 ```
+
+**Note**: A key difference with Qwik City and many current metaframeworks is directory-based routing. Every route needs to be defined as `a-directory/index.(tsx,ts,js,jsx,md,mdx)`.
+
+In other metaframeworks you're used to `about.mdx` will render a route `http://example.com/about`. However, this will not work in Qwik City. You must rename the file to `about/index.mdx` for Qwik City to know to render it.

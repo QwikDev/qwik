@@ -9,13 +9,12 @@
 ## Routing
 
 - [Overview](routing/overview/index.mdx)
-- [Index](routing/default-index/index.mdx)
-- [Pathless Dirs](routing/pathless/index.mdx)
 - [Route Parameters](routing/route-parameters/index.mdx)
 - [Retrieving Data](endpoint/data/index.mdx)
 - [Modifying Data](endpoint/modify/index.mdx)
 - [Redirects](endpoint/redirects/index.mdx)
 - [Error Responses](endpoint/error-responses/index.mdx)
+- [Pathless Dirs](routing/pathless/index.mdx)
 
 ## Layout
 

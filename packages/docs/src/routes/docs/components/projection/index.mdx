@@ -133,7 +133,7 @@ Results in:
   <project>
     <div>
       <div class="title">
-        <span q:slot="title">title text</span>
+        <span q:slot="title">first title text</span>
         <span q:slot="title">second title text</span>
       </div>
       <q:slot q:key="" has-content>
@@ -264,7 +264,7 @@ Qwik uses the declarative projection approach. The reason for this is that Qwik 
 For example, Let's go back to our `Collapsible` example from above:
 
 - The parent needs to be able to change the title and the text without forcing the `Collapsible` to rerender. Qwik needs to be able to redistribute the changes to the `MyApp` template without affecting the `Collapsible` component.
-- The child component needs to change what is projected without having the parent component rerender. In our case, `Collapsible` should be able to show/hide the default `q:slot` without downloading and rerendering the `MpApp` component.
+- The child component needs to change what is projected without having the parent component rerender. In our case, `Collapsible` should be able to show/hide the default `q:slot` without downloading and rerendering the `MyApp` component.
 
 In order for the two components to have an independent lifecycle, the projection needs to be declarative. In this way, either the parent or child can change what is projected or how it is projected without rerendering the other.
 

@@ -4,10 +4,13 @@ title: Qwik City - useDocumentHead()
 
 # Qwik City - `useDocumentHead()`
 
-Use `useDocumentHead()` to retrieve the document head metadata. `useDocumentHead()` retrieves `DocumentHead` object that will allow you to:
+Use `useDocumentHead()` to retrieve the document head metadata.
+
+`useDocumentHead()` retrieves `DocumentHead` object that will allow you to:
+
 - update the `title` in `<head>`.
 - update the `meta` tags in `<head>`.
 - update the `link` tags in `<head>`.
 - update the `style` tags in `<head>`.
 
-The `useDocumentHead()` is used by `<Head>` component to update the `<head>` tag.
+The `useDocumentHead()` function can be used within a Qwik component, such as `<Head>`, to create the inner elements within `document.head`.

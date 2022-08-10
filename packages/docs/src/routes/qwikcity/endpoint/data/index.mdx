@@ -4,45 +4,38 @@ title: Qwik City - Retrieving Data
 
 # Qwik City - Retrieving Data
 
-Let's implement `https://example.com/product/abc123/details` so that we can retrieve the details of a product.
+Let's implement `https://example.com/product/abc123` so that we can retrieve the details of a product.
 
 ## File layout
 
-The first step is to layout out the files so that we can accept `https://example.com/product/abc123/details`.
+The first step is to structure the directories and files so that we can create the `/product/abc123` route.
 
 ```
 - src/
   - routes/
     - product/
       - [skuId]/
-        - details.js     # https://example.com/product/1234/details
+        - index.tsx     # https://example.com/product/1234
 ```
 
 ## Implement Endpoint
 
-An endpoint is a `onGet` function that retrieves data (typically from a database, or other stores.) The retrieved data can be returned directly as JSON or used as an input to the component to render HTML. The `onGet` function receives the `params` to extract the parameters used to do data lookup.
+An endpoint is a `onGet` function that retrieves data (typically from a database, or other stores.) The retrieved data can be returned directly as JSON or used as an input to the component to render HTML. The `onGet` function receives the `params` to extract the parameters used to do data lookup. 
 
-The `onGet` function returns an object that contains:
-- `status`: HTTP status code
-- `headers`: HTTP headers to control caches etc...
-- `body`: The body of the response to be returned as JSON or to be used as input to the HTML.
+The `onGet` function returns the product data.
 
 ```typescript
 // File: src/routes/product/[skuId]/details.js
-import { RequestHandler } from '@builder.io/qwik-city';
-
-type EndpointData = ProductData | null;
+import type { RequestHandler } from '@builder.io/qwik-city';
 
 interface ProductData {
   skuId: string;
   price: number;
   description: string;
 }
-export const onGet: RequestHandler<EndpointData> = async ({ params, response }) => {
-  // put your DB access here, we are hard coding a response for the simplicity of this tutorial.
-  
-  response.headers.append('Cache-Control', 'no-cache, no-store');
-  
+
+export const onGet: RequestHandler<EndpointData> = async ({ params }) => {
+  // put your DB access here, we are hard coding a response for the simplicity
   return {
     skuId: params.skuId,
     price: 123.45,
@@ -53,11 +46,11 @@ export const onGet: RequestHandler<EndpointData> = async ({ params, response }) 
 
 ## Using Endpoint in Component
 
-An endpoint `onGet` function retrieves data and makes it available as JSON. The next step is to convert the JSON to HTML. This is done with a standard component as described [Components](/qwikcity/content/component). What is new is `useEndpoint()` to retrieve the data from the `onGet` function.
+An endpoint `onGet` function retrieves data and makes it available to the component using `useEndpoint()`. 
   
 ```typescript
 import { Resource, component$, Host, useStore } from '@builder.io/qwik';
-import { RequestHandler } from '@builder.io/qwik-city';
+import type { RequestHandler } from '@builder.io/qwik-city';
 
 type EndpointData = ProductData | null;
 interface ProductData { ... }

@@ -6,7 +6,7 @@ title: Qwik City - useLocation()
 
 Use `useLocation()` to retrieve the current location (URL).
 
-The return value of `useLocation()` is equivalent to `document.location`, but it is safe to use on the server where there is no global `document` object.
+The return value of `useLocation()` is similar to `document.location`, but it is safe to use on the server where there is no global `location` object.
 
 ## Path Route Parameters
 
@@ -20,14 +20,22 @@ Assume you have:
 
 ```typescript
 export default component$(() => {
-  const location = useLocation();
+  const { pathname, params } = useLocation();
 
   return (
-    <Host>
+    <>
       <h1>SKU</h1>
-      <p>pathname: {location.pathname}</p>
-      <p>skuId: {location.params.skuId}</p>
-    </Host>
+      <p>pathname: {pathname}</p>
+      <p>skuId: {params.skuId}</p>
+    </>
   );
 });
+```
+
+The above code would generate:
+
+```html
+<h1>SKU</h1>
+<p>pathname: /sku/1234</p>
+<p>skuId: 1234</p>
 ```

@@ -1,0 +1,25 @@
+---
+title: Endpoints
+---
+
+# Endpoints
+
+As we discussed previously, an endpoint in Qwik City is `folders + an index`.
+
+For `index.md` and `index.mdx` files ((more here)[/qwikcity/content/mdx]), these endpoints will just return HTML and nothing else. For this section, we will focus on index.ts and index.tsx endpoints.
+
+## Page & Data Endpoints
+
+In Qwik City, "Page" and "Data" endpoints are the same except for one difference: a page exports a default component$ to render html. To learn about defining a page component, you can (read more here)[qwikcity/content/component]. A quick example would look like this:
+
+```typescript
+// File: src/routes/some/path/index.tsx
+import { component$ } from '@builder.io/qwik';
+
+// Notice the default export
+export default component$(() => {
+  return <h1>Hello World!</h1>;
+});
+```
+
+In the following sections, we'll look at the other things we can do within endpoint files.

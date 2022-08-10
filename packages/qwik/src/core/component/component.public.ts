@@ -1,12 +1,13 @@
 import { $, QRL } from '../import/qrl.public';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { OnRenderProp } from '../util/markers';
-import type { ComponentBaseProps, JSXTagName } from '../render/jsx/types/jsx-qwik-attributes';
+import type { ComponentBaseProps } from '../render/jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
 import type { MutableWrapper } from '../object/q-object';
 import { SERIALIZABLE_STATE } from '../object/serializers';
 import { qTest } from '../util/qdev';
+import { Virtual } from '../render/jsx/host.public';
 
 /**
  * Infers `Props` from the component.
@@ -23,29 +24,6 @@ import { qTest } from '../util/qdev';
 export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS>
   ? NonNullable<PROPS>
   : never;
-
-/**
- * Declarative component options.
- *
- * @public
- */
-export interface ComponentOptions {
-  /**
-   * Tag the name of the component's host element.
-   *
-   * Default value fo `tagName` is `div`. Override this value in situations where you want to use
-   * a different tag name. Examples are:
-   * - It is desirable to have component names directly in the HTML (WebComponent style)
-   * - It is desirable to have a specific tag name for accessibility. For example, using `<button>`
-   *   for `<MyCustomButton>` component.
-   *
-   * When a component is inserted into the render tree, the host element needs to be inserted
-   * synchronously, while the component body is inserted asynchronously. The synchronous nature
-   * of host element requires that the parent component needs to know the tag name of the child
-   * component synchronously.
-   */
-  tagName?: JSXTagName;
-}
 
 /**
  * Type representing the Qwik component.
@@ -82,7 +60,7 @@ export type MutableProps<PROPS extends {}> = {
  */
 export type EventHandler<T> = QRL<(value: T) => any>;
 
-const ELEMENTS_SKIP_KEY: JSXTagName[] = ['html', 'body', 'head'];
+// const ELEMENTS_SKIP_KEY: JSXTagName[] = ['html', 'body', 'head'];
 
 // <docs markdown="../readme.md#component">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -139,20 +117,15 @@ const ELEMENTS_SKIP_KEY: JSXTagName[] = ['html', 'body', 'head'];
  */
 // </docs>
 export const componentQrl = <PROPS extends {}>(
-  onRenderQrl: QRL<OnRenderFn<PROPS>>,
-  options: ComponentOptions = {}
+  onRenderQrl: QRL<OnRenderFn<PROPS>>
 ): Component<PROPS> => {
-  const tagName = options.tagName ?? 'div';
-  const skipKey = ELEMENTS_SKIP_KEY.includes(tagName);
-
   // Return a QComponent Factory function.
   function QwikComponent(props: PublicProps<PROPS>, key?: string): JSXNode<PROPS> {
-    const finalTag = props['host:tagName'] ?? tagName;
     const hash = qTest ? 'sX' : onRenderQrl.getHash();
-    const finalKey = skipKey ? undefined : hash + ':' + (key ? key : '');
-    return jsx(finalTag as string, { [OnRenderProp]: onRenderQrl, ...props }, finalKey) as any;
+    const finalKey = hash + ':' + (key ? key : '');
+    return jsx(Virtual, { [OnRenderProp]: onRenderQrl, ...props }, finalKey) as any;
   }
-  (QwikComponent as any)[SERIALIZABLE_STATE] = [onRenderQrl, options];
+  (QwikComponent as any)[SERIALIZABLE_STATE] = [onRenderQrl];
   return QwikComponent;
 };
 
@@ -214,11 +187,8 @@ export const isQwikComponent = (component: any): component is Component<any> => 
  * @public
  */
 // </docs>
-export const component$ = <PROPS extends {}>(
-  onMount: OnRenderFn<PROPS>,
-  options?: ComponentOptions
-): Component<PROPS> => {
-  return componentQrl<PROPS>($(onMount), options);
+export const component$ = <PROPS extends {}>(onMount: OnRenderFn<PROPS>): Component<PROPS> => {
+  return componentQrl<PROPS>($(onMount));
 };
 
 /**

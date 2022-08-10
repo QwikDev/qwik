@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 import {
   component$,
-  Host,
   noSerialize,
   useStyles$,
   useStore,
@@ -104,7 +103,7 @@ export const Repl = component$((props: ReplProps) => {
   });
 
   return (
-    <Host class="repl">
+    <div class="repl">
       <ReplInputPanel
         input={input}
         store={store}
@@ -115,7 +114,7 @@ export const Repl = component$((props: ReplProps) => {
       />
       <ReplOutputPanel input={input} store={store} />
       <ReplDetailPanel input={input} store={store} />
-    </Host>
+    </div>
   );
 });
 

@@ -15,6 +15,7 @@ import {
 } from '../error/error';
 import { qTest } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
+import type { QwikElement } from '../render/dom/virtual-element';
 import type { QContext } from '../props/props';
 
 let runtimeSymbolId = 0;
@@ -118,8 +119,9 @@ export const inlinedQrl = <T>(
 
 export interface QRLSerializeOptions {
   $platform$?: CorePlatform;
-  $element$?: Element;
+  $element$?: QwikElement;
   $getObjId$?: (obj: any) => string | null;
+  $addRefMap$?: (obj: any) => number;
 }
 
 export const stringifyQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) => {
@@ -152,6 +154,11 @@ export const stringifyQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
       const capture = captureRef.map(opts.$getObjId$);
       parts.push(`[${capture.join(' ')}]`);
     }
+  } else if (opts.$addRefMap$) {
+    if (captureRef && captureRef.length) {
+      const capture = captureRef.map(opts.$addRefMap$);
+      parts.push(`[${capture.join(' ')}]`);
+    }
   } else if (capture && capture.length > 0) {
     parts.push(`[${capture.join(' ')}]`);
   }
@@ -167,6 +174,7 @@ export const serializeQRLs = (existingQRLs: QRLInternal<any>[], ctx: QContext): 
   const opts: QRLSerializeOptions = {
     $platform$: getPlatform(ctx.$element$),
     $element$: ctx.$element$,
+    $addRefMap$: (obj) => addToArray(ctx.$refMap$, obj),
   };
   return existingQRLs.map((qrl) => stringifyQRL(qrl, opts)).join('\n');
 };
@@ -178,7 +186,7 @@ export const qrlToUrl = (element: Element, qrl: QRLInternal): URL => {
 /**
  * `./chunk#symbol[captures]
  */
-export const parseQRL = (qrl: string, el?: Element): QRLInternal => {
+export const parseQRL = (qrl: string, el?: QwikElement): QRLInternal => {
   const endIdx = qrl.length;
   const hashIdx = indexOf(qrl, 0, '#');
   const captureIdx = indexOf(qrl, hashIdx, '[');
@@ -212,4 +220,13 @@ const indexOf = (text: string, startIdx: number, char: string) => {
   const endIdx = text.length;
   const charIdx = text.indexOf(char, startIdx == endIdx ? 0 : startIdx);
   return charIdx == -1 ? endIdx : charIdx;
+};
+
+const addToArray = (array: any[], obj: any) => {
+  const index = array.indexOf(obj);
+  if (index === -1) {
+    array.push(obj);
+    return array.length - 1;
+  }
+  return index;
 };

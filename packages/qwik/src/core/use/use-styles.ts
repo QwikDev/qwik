@@ -21,7 +21,7 @@ import { useSequentialScope } from './use-sequential-scope';
  * export const CmpStyles = component$(() => {
  *   useStyles$(styles);
  *
- *   return <Host>Some text</Host>;
+ *   return <div>Some text</div>;
  * });
  * ```
  *
@@ -49,7 +49,7 @@ export const useStylesQrl = (styles: QRL<string>): void => {
  * export const CmpStyles = component$(() => {
  *   useStyles$(styles);
  *
- *   return <Host>Some text</Host>;
+ *   return <div>Some text</div>;
  * });
  * ```
  *
@@ -75,7 +75,7 @@ export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
  * export const CmpScopedStyles = component$(() => {
  *   useStylesScoped$(scoped);
  *
- *   return <Host>Some text</Host>;
+ *   return <div>Some text</div>;
  * });
  * ```
  *
@@ -103,7 +103,7 @@ export const useStylesScopedQrl = (styles: QRL<string>): void => {
  * export const CmpScopedStyles = component$(() => {
  *   useStylesScoped$(scoped);
  *
- *   return <Host>Some text</Host>;
+ *   return <div>Some text</div>;
  * });
  * ```
  *
@@ -118,17 +118,18 @@ const _useStyles = (
   styleQrl: QRL<string>,
   transform: (str: string, styleId: string) => string,
   scoped: boolean
-) => {
-  const { get, set, ctx, i } = useSequentialScope<boolean>();
-  if (get === true) {
-    return;
+): string => {
+  const { get, set, ctx, i } = useSequentialScope<string>();
+  if (get) {
+    return get;
   }
-  set(true);
   const renderCtx = ctx.$renderCtx$;
   const styleId = styleKey(styleQrl, i);
   const hostElement = ctx.$hostElement$;
   const containerState = renderCtx.$containerState$;
   const elCtx = getContext(ctx.$hostElement$);
+  set(styleId);
+
   if (!elCtx.$appendStyles$) {
     elCtx.$appendStyles$ = [];
   }
@@ -149,4 +150,5 @@ const _useStyles = (
       })
     );
   }
+  return styleId;
 };

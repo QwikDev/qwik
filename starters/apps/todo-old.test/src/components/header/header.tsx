@@ -6,33 +6,28 @@ import type { Todos } from '../../state/state';
  *
  * This component only rerenders if the user interacts with it through the input.
  */
-export const Header = component$(
-  (props: { todos: Todos }) => {
-    const state = useStore({ text: '' });
-    return (
-      <>
-        <h1>todos</h1>
-        <input
-          class="new-todo"
-          placeholder="What needs to be done?"
-          autoFocus
-          value={state.text}
-          onKeyUp$={(event: any) => {
-            const inputValue = (event.target as HTMLInputElement).value;
-            state.text = inputValue;
-            if (event.key === 'Enter' && inputValue) {
-              props.todos.items.push({
-                completed: false,
-                title: state.text,
-              });
-              state.text = '';
-            }
-          }}
-        />
-      </>
-    );
-  },
-  {
-    tagName: 'header',
-  }
-);
+export const Header = component$((props: { todos: Todos }) => {
+  const state = useStore({ text: '' });
+  return (
+    <header>
+      <h1>todos</h1>
+      <input
+        class="new-todo"
+        placeholder="What needs to be done?"
+        autoFocus
+        value={state.text}
+        onKeyUp$={(event: any) => {
+          const inputValue = (event.target as HTMLInputElement).value;
+          state.text = inputValue;
+          if (event.key === 'Enter' && inputValue) {
+            props.todos.items.push({
+              completed: false,
+              title: state.text,
+            });
+            state.text = '';
+          }
+        }}
+      />
+    </header>
+  );
+});

@@ -21,7 +21,7 @@ export const MyCmp = component$(async (props: MyCmpProps) => {
 
   // Returns JSX
   return (
-    <Host>
+    <>
       <span>Hello, {props.name} {state.count}</span>
       <div>Times: {state.count}</div>
       <button onClick$={() => {
@@ -32,7 +32,7 @@ export const MyCmp = component$(async (props: MyCmpProps) => {
       >
         Increment
       </button>
-    </Host>
+    </>
   );
 });
 ```
@@ -168,9 +168,7 @@ What if you wanted to add a `name` attribute to the host element? The issue is t
 
 ```tsx
 <Greeter
-  host:name="abc"
-  host:id="greeter"
-  host:onClick$={() => {}}
+
 
   name="world"
 />
@@ -213,16 +211,16 @@ would also render to the same output.
 <div class="greeter" style="background-color: red;"></div>
 ```
 
-## `<Host/>`
+## `<div/>`
 
-It may also be desirable for a component to set `class`, `style` and `attributes` on the host element associated with the component itself. To do that, one can use `<Host>` tag.
+It may also be desirable for a component to set `class`, `style` and `attributes` on the host element associated with the component itself. To do that, one can use `<div>` tag.
 
 ```tsx
 const Greeter = component$(() => {
   return (
-    <Host class="padded" id="greeter">
+    <div class="padded" id="greeter">
       <span>Hello World</span>
-    </Host>
+    </div>
   );
 });
 ```

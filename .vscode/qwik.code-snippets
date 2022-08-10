@@ -14,11 +14,11 @@
 			"  });",
 			"  $0",
 			"  return (",
-			"    <Host>",
+			"    <div>",
 			"      <button onClick$={() => state.count += props.step}>",
 			"        {state.count}",
 			"      </button>",
-			"    </Host>",
+			"    </div>",
 			"  );",
 			"});"
 		]
@@ -30,11 +30,9 @@
 		"body": [
 			"export const ${1:MyCmp} = component$(() => {",
 			"  return (",
-			"    <Host>",
-			"      <div>",
-			"        ${1:MyCmp}",
-			"      </div>",
-			"    </Host>",
+			"    <div>",
+			"      ${1:MyCmp}",
+			"    </div>",
 			"  );",
 			"});"
 		]

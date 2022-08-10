@@ -45,10 +45,10 @@ export interface UseStoreOptions {
  *   });
  *
  *   return (
- *     <Host>
+ *     <div>
  *       <div>Counter: {counter.value}</div>
  *       <Child userData={userData} state={state} />
- *     </Host>
+ *     </div>
  *   );
  * });
  *

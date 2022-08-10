@@ -3,7 +3,6 @@ import {
   component$,
   createContext,
   useStore,
-  Host,
   useCleanup$,
   useContextProvider,
   useContext,
@@ -24,12 +23,12 @@ export const Toggle = component$(() => {
   });
   useContextProvider(CTX, store);
   return (
-    <Host>
+    <div>
       <button id="increment" type="button" onClick$={() => store.count++}>
         Root increment
       </button>
       <ToggleShell />
-    </Host>
+    </div>
   );
 });
 
@@ -44,13 +43,13 @@ export const ToggleShell = component$(() => {
 
   console.log('PARENT renders');
   return (
-    <Host>
+    <div>
       <Logs0 store={store} />
       {!store.cond ? <ToggleA root={store} /> : <ToggleB root={store} />}
       <button type="button" id="toggle" onClick$={() => (store.cond = !store.cond)}>
         Toggle
       </button>
-    </Host>
+    </div>
   );
 });
 
@@ -66,22 +65,22 @@ export const Logs0 = component$((props: Record<string, any>) => {
   console.log('created');
 
   return (
-    <Host>
+    <div>
       <Logs1 store={props.store} />
-    </Host>
+    </div>
   );
 });
 
 export const Logs1 = component$((props: Record<string, any>) => {
   return (
-    <Host>
+    <div>
       <Logs2 message={mutable(props.store.logs)} />
-    </Host>
+    </div>
   );
 });
 
 export const Logs2 = component$((props: Record<string, any>) => {
-  return <Host id="logs">Logs: {props.message}</Host>;
+  return <div id="logs">Logs: {props.message}</div>;
 });
 
 export const ToggleA = component$((props: { root: { logs: string } }) => {
@@ -115,14 +114,14 @@ export const ToggleA = component$((props: { root: { logs: string } }) => {
   });
 
   return (
-    <Host>
+    <div>
       <h1>ToggleA</h1>
       <div id="mount">{state.mount}</div>
       <div id="root">
         {rootState.message} ({rootState.count}/{state.copyCount})
       </div>
       <Child />
-    </Host>
+    </div>
   );
 });
 
@@ -158,14 +157,14 @@ export const ToggleB = component$((props: { root: { logs: string } }) => {
   });
 
   return (
-    <Host>
+    <div>
       <h1>ToggleB</h1>
       <div id="mount">{state.mount}</div>
       <div id="root">
         {rootState.message} ({rootState.count}/{state.copyCount})
       </div>
       <Child />
-    </Host>
+    </div>
   );
 });
 

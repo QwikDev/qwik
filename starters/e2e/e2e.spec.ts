@@ -109,23 +109,23 @@ test.describe('e2e', () => {
         const content3 = await page.locator('#btn3');
         const btnCount = await page.locator('#btn-count');
 
-        expect((await content1.innerText()).trim()).toEqual('Placeholder Start\nDEFAULT 0');
-        expect((await content2.innerText()).trim()).toEqual('START 0');
-        expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 0');
+        await expect(content1).toHaveText('DEFAULT 0');
+        await expect(content2).toHaveText('START 0');
+        await expect(content3).toHaveText('INSIDE THING 0');
 
         // Count
         await btnCount.click();
         await page.waitForTimeout(100);
-        expect((await content1.innerText()).trim()).toEqual('Placeholder Start\nDEFAULT 1');
-        expect((await content2.innerText()).trim()).toEqual('START 1');
-        expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 1');
+        await expect(content1).toHaveText('DEFAULT 1');
+        await expect(content2).toHaveText('START 1');
+        await expect(content3).toHaveText('INSIDE THING 1');
 
         // Count
         await btnCount.click();
         await page.waitForTimeout(100);
-        expect((await content1.innerText()).trim()).toEqual('Placeholder Start\nDEFAULT 2');
-        expect((await content2.innerText()).trim()).toEqual('START 2');
-        expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 2');
+        await expect(content1).toHaveText('DEFAULT 2');
+        await expect(content2).toHaveText('START 2');
+        await expect(content3).toHaveText('INSIDE THING 2');
       });
 
       test('should toggle buttons', async ({ page }) => {
@@ -136,18 +136,19 @@ test.describe('e2e', () => {
         const btnToggleButtons = await page.locator('#btn-toggle-buttons');
 
         // btnToggleButtons
+        await page.waitForTimeout(100);
         await btnToggleButtons.click();
         await page.waitForTimeout(100);
-        expect((await content1.innerText()).trim()).toEqual('Placeholder Start');
-        expect((await content2.innerText()).trim()).toEqual('START 0');
-        expect((await content3.innerText()).trim()).toEqual('Placeholder Start');
+        await expect(content1).toHaveText('', { useInnerText: true });
+        await expect(content2).toHaveText('START 0', { useInnerText: true });
+        await expect(content3).toHaveText('', { useInnerText: true });
 
         // btnToggleButtons
         await btnToggleButtons.click();
         await page.waitForTimeout(100);
-        expect((await content1.innerText()).trim()).toEqual('Placeholder Start\nDEFAULT 0');
-        expect((await content2.innerText()).trim()).toEqual('START 0');
-        expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 0');
+        await expect(content1).toHaveText('DEFAULT 0', { useInnerText: true });
+        await expect(content2).toHaveText('START 0', { useInnerText: true });
+        await expect(content3).toHaveText('INSIDE THING 0', { useInnerText: true });
       });
 
       test('should toggle buttons with count', async ({ page }) => {
@@ -161,37 +162,37 @@ test.describe('e2e', () => {
         // btnToggleButtons
         await btnToggleButtons.click();
         await page.waitForTimeout(100);
-        expect((await content1.innerText()).trim()).toEqual('Placeholder Start');
-        expect((await content2.innerText()).trim()).toEqual('START 0');
-        expect((await content3.innerText()).trim()).toEqual('Placeholder Start');
+        await expect(content1).toHaveText('', { useInnerText: true });
+        await expect(content2).toHaveText('START 0', { useInnerText: true });
+        await expect(content3).toHaveText('', { useInnerText: true });
 
         // btnToggleButtons
         await btnCount.click();
         await page.waitForTimeout(100);
-        expect((await content1.innerText()).trim()).toEqual('Placeholder Start');
-        expect((await content2.innerText()).trim()).toEqual('START 1');
-        expect((await content3.innerText()).trim()).toEqual('Placeholder Start');
+        await expect(content1).toHaveText('', { useInnerText: true });
+        await expect(content2).toHaveText('START 1', { useInnerText: true });
+        await expect(content3).toHaveText('', { useInnerText: true });
 
         // btnToggleButtons
         await btnToggleButtons.click();
         await page.waitForTimeout(100);
-        expect((await content1.innerText()).trim()).toEqual('Placeholder Start\nDEFAULT 1');
-        expect((await content2.innerText()).trim()).toEqual('START 1');
-        expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 1');
+        await expect(content1).toHaveText('DEFAULT 1', { useInnerText: true });
+        await expect(content2).toHaveText('START 1', { useInnerText: true });
+        await expect(content3).toHaveText('INSIDE THING 1', { useInnerText: true });
 
         // btnToggleButtons
         await btnToggleButtons.click();
         await page.waitForTimeout(100);
-        expect((await content1.innerText()).trim()).toEqual('Placeholder Start');
-        expect((await content2.innerText()).trim()).toEqual('START 1');
-        expect((await content3.innerText()).trim()).toEqual('Placeholder Start');
+        await expect(content1).toHaveText('', { useInnerText: true });
+        await expect(content2).toHaveText('START 1', { useInnerText: true });
+        await expect(content3).toHaveText('', { useInnerText: true });
 
         // btnToggleButtons
         await btnToggleButtons.click();
         await page.waitForTimeout(100);
-        expect((await content1.innerText()).trim()).toEqual('Placeholder Start\nDEFAULT 1');
-        expect((await content2.innerText()).trim()).toEqual('START 1');
-        expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 1');
+        await expect(content1).toHaveText('DEFAULT 1', { useInnerText: true });
+        await expect(content2).toHaveText('START 1', { useInnerText: true });
+        await expect(content3).toHaveText('INSIDE THING 1', { useInnerText: true });
       });
 
       test('should toggle content', async ({ page }) => {
@@ -205,17 +206,17 @@ test.describe('e2e', () => {
         // btnToggleButtons
         await btnToggleContent.click();
         await page.waitForTimeout(100);
-        expect((await content1.innerText()).trim()).toEqual('Placeholder Start');
-        expect((await content2.innerText()).trim()).toEqual('Placeholder Start');
-        expect((await content3.innerText()).trim()).toEqual('Placeholder Start');
+        await expect(content1).toHaveText('', { useInnerText: true });
+        await expect(content2).toHaveText('', { useInnerText: true });
+        await expect(content3).toHaveText('', { useInnerText: true });
 
         // btnToggleButtons
         await btnCount.click();
         await btnToggleContent.click();
         await page.waitForTimeout(100);
-        expect((await content1.innerText()).trim()).toEqual('Placeholder Start\nDEFAULT 1');
-        expect((await content2.innerText()).trim()).toEqual('START 1');
-        expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 1');
+        await expect(content1).toHaveText('DEFAULT 1', { useInnerText: true });
+        await expect(content2).toHaveText('START 1', { useInnerText: true });
+        await expect(content3).toHaveText('INSIDE THING 1', { useInnerText: true });
       });
 
       test('should toggle content and buttons', async ({ page }) => {
@@ -233,9 +234,9 @@ test.describe('e2e', () => {
         await page.waitForTimeout(100);
         await btnToggleButtons.click();
 
-        expect((await content1.innerText()).trim()).toEqual('Placeholder Start');
-        expect((await content2.innerText()).trim()).toEqual('Placeholder Start');
-        expect((await content3.innerText()).trim()).toEqual('Placeholder Start');
+        await expect(content1).toHaveText('', { useInnerText: true });
+        await expect(content2).toHaveText('', { useInnerText: true });
+        await expect(content3).toHaveText('', { useInnerText: true });
       });
 
       test('should toggle thing + count', async ({ page }) => {
@@ -250,15 +251,15 @@ test.describe('e2e', () => {
         await btnToggleThing.click();
         await btnCount.click();
         await page.waitForTimeout(100);
-        expect((await content1.innerText()).trim()).toEqual('Placeholder Start\nDEFAULT 1');
-        expect((await content2.innerText()).trim()).toEqual('START 1');
-        expect((await content3.innerText()).trim()).toEqual('');
+        await expect(content1).toHaveText('DEFAULT 1');
+        await expect(content2).toHaveText('START 1');
+        await expect(content3).toHaveText('');
 
         await btnToggleThing.click();
         await page.waitForTimeout(100);
-        expect((await content1.innerText()).trim()).toEqual('Placeholder Start\nDEFAULT 1');
-        expect((await content2.innerText()).trim()).toEqual('START 1');
-        expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 1');
+        await expect(content1).toHaveText('DEFAULT 1');
+        await expect(content2).toHaveText('START 1');
+        await expect(content3).toHaveText('INSIDE THING 1');
       });
 
       test('should not lose q context', async ({ page }) => {
@@ -269,7 +270,7 @@ test.describe('e2e', () => {
 
         await btnCount.click();
         await page.waitForTimeout(100);
-        expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 1');
+        await expect(content3).toHaveText('INSIDE THING 1', { useInnerText: true });
 
         // btnToggleButtons
         await btnToggleThing.click();
@@ -281,7 +282,7 @@ test.describe('e2e', () => {
         await projected.click();
         await page.waitForTimeout(100);
 
-        expect((await content3.innerText()).trim()).toEqual('Placeholder Start\nINSIDE THING 0');
+        await expect(content3).toHaveText('INSIDE THING 0', { useInnerText: true });
       });
     }
 
@@ -604,52 +605,24 @@ test.describe('e2e', () => {
 
     test('should load', async ({ page }) => {
       const parent = await page.locator('.parent');
+      const child1 = await page.locator('text=Child 2');
 
       const addChild = await page.locator('button');
       await expect(parent).toHaveCSS('font-size', '200px');
+      await expect(child1).toHaveCSS('font-size', '20px');
+
       const el = await page.$$('[q\\:style]');
       await expect(el.length).toBe(3);
-
-      const ids = await page.$$('[q\\:id]');
-      expect(await Promise.all(ids.map((el) => el.getAttribute('q:id')))).toEqual([
-        '0',
-        '1',
-        'b',
-        '2',
-        '3',
-        '4',
-        '5',
-        '6',
-        '7',
-        '8',
-        '9',
-        'a',
-      ]);
-
       await addChild.click();
       await page.waitForTimeout(100);
 
+      const child10 = await page.locator('text=Child 10');
       await expect(parent).toHaveCSS('font-size', '200px');
+      await expect(child1).toHaveCSS('font-size', '20px');
+      await expect(child10).toHaveCSS('font-size', '20px');
 
       const el2 = await page.$$('[q\\:style]');
       await expect(el2.length).toBe(3);
-
-      const ids2 = await page.$$('[q\\:id]');
-      expect(await Promise.all(ids2.map((el) => el.getAttribute('q:id')))).toEqual([
-        '0',
-        '1',
-        'b',
-        '2',
-        '3',
-        '4',
-        '5',
-        '6',
-        '7',
-        '8',
-        '9',
-        'a',
-        'c',
-      ]);
     });
   });
 });

@@ -57,7 +57,7 @@ export const codeToText = (code: number): string => {
       'Cant access renderCtx for existing context', // 15
       'Cant access document for existing context', // 16
       'props are inmutable', // 17
-      '<Host> component can only be used at the root of a Qwik component$()', // 18
+      '<div> component can only be used at the root of a Qwik component$()', // 18
       'Props are immutable by default.', // 19
       'use- method must be called only at the root level of a component$()', // 20
       'Container is already paused. Skipping', // 21

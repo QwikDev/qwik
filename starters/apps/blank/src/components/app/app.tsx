@@ -1,11 +1,11 @@
-import { useStore, component$, Host } from '@builder.io/qwik';
+import { useStore, component$ } from '@builder.io/qwik';
 import { Logo } from '../logo/logo';
 
 export const App = component$(() => {
   const state = useStore({ name: 'World' });
   return (
-    <Host class="my-app p-20">
-      <Logo class="mb-10" />
+    <div class="my-app p-20">
+      <Logo />
 
       <h1 class="text-3xl mb-2">Congratulations Qwik is working!</h1>
 
@@ -49,6 +49,6 @@ export const App = component$(() => {
           Builder.io
         </a>
       </p>
-    </Host>
+    </div>
   );
 });

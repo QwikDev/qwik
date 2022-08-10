@@ -4,6 +4,7 @@ import { getPlatform } from '../platform/platform';
 import type { CorePlatform } from '../platform/types';
 import type { Subscriber, SubscriberDescriptor } from '../use/use-watch';
 import { notifyChange } from './dom/notify-render';
+import type { QwikElement } from './dom/virtual-element';
 import type { RenderContext } from './types';
 
 export type ObjToProxyMap = WeakMap<any, any>;
@@ -36,9 +37,9 @@ export interface ContainerState {
   $watchNext$: Set<SubscriberDescriptor>;
   $watchStaging$: Set<SubscriberDescriptor>;
 
-  $hostsNext$: Set<Element>;
-  $hostsStaging$: Set<Element>;
-  $hostsRendering$: Set<Element> | undefined;
+  $hostsNext$: Set<QwikElement>;
+  $hostsStaging$: Set<QwikElement>;
+  $hostsRendering$: Set<QwikElement> | undefined;
   $renderPromise$: Promise<RenderContext> | undefined;
 
   $envData$: Record<string, any>;

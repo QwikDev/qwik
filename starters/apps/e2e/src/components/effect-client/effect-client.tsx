@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { component$, Host, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useClientEffect$, useStore, useStyles$ } from '@builder.io/qwik';
 
 export const EffectClient = component$(() => {
   useStyles$(`.box {
@@ -53,10 +53,10 @@ export const Timer = component$(() => {
   });
 
   return (
-    <Host>
+    <div>
       <div id="counter">{state.count}</div>
       <div id="msg">{state.msg}</div>
-    </Host>
+    </div>
   );
 });
 
@@ -78,8 +78,8 @@ export const Eager = component$(() => {
   );
 
   return (
-    <Host>
+    <div>
       <div id="eager-msg">{state.msg}</div>
-    </Host>
+    </div>
   );
 });

@@ -2,7 +2,6 @@
 import {
   component$,
   useStore,
-  Host,
   useResource$,
   Resource,
   useWatch$,
@@ -52,7 +51,7 @@ export const Weather = component$(() => {
   });
 
   return (
-    <Host>
+    <div>
       <input
         type="text"
         value={state.city}
@@ -62,14 +61,14 @@ export const Weather = component$(() => {
         onInput$={(ev) => (state.city = (ev.target as any).value)}
       />
       <WeatherResults2 weather={weather} />
-    </Host>
+    </div>
   );
 });
 
 export const WeatherResults = component$((props: { weather: ResourceReturn<WeatherData> }) => {
   console.log('rerender');
   return (
-    <Host>
+    <div>
       {props.weather.state === 'pending' && <div>loading data...</div>}
       {props.weather.state === 'rejected' && <div>error</div>}
       {props.weather.state === 'resolved' && (
@@ -83,7 +82,7 @@ export const WeatherResults = component$((props: { weather: ResourceReturn<Weath
           <li>visibility: {props.weather.resolved.visibility}</li>
         </ul>
       )}
-    </Host>
+    </div>
   );
 });
 
@@ -91,7 +90,7 @@ export const WeatherResults2 = component$(
   (props: { weather: ResourceReturn<WeatherData | undefined> }) => {
     console.log('rerender');
     return (
-      <Host>
+      <div>
         <Resource
           resource={props.weather}
           onPending={() => <div>loading data...</div>}
@@ -113,7 +112,7 @@ export const WeatherResults2 = component$(
             );
           }}
         />
-      </Host>
+      </div>
     );
   }
 );

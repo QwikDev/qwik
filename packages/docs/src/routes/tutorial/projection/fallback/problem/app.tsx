@@ -1,16 +1,16 @@
-import { component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
+import { component$, Slot, useStyles$ } from '@builder.io/qwik';
 
 export const Card = component$(() => {
   useStyles$(CSS);
   return (
-    <Host class="card">
+    <div class="card">
       <div class="title">
         <Slot name="title"></Slot>
       </div>
       <div class="body">
         <Slot></Slot>
       </div>
-    </Host>
+    </div>
   );
 });
 

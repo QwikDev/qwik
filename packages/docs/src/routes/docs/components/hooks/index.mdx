@@ -33,10 +33,10 @@ const Stores = component$(() => {
     }
   })
   return (
-    <Host>
+    <>
       <div>Counter: {counter.value}</div>
       <Child userData={userData} state={state}/>
-    </Host>
+    </>
   )
 });
 function useCounter(step: number) {
@@ -77,9 +77,9 @@ const Cmp = component$(() => {
     el.focus();
   });
   return (
-    <Host>
+    <>
       <input type="text" ref={input}/>
-    </Host>
+    </>
   )
 });
 ```
@@ -120,10 +120,10 @@ const Cmp = component$(() => {
     };
   });
   return (
-    <Host>
+    <>
       <div>{store.count} / {store.doubleCount}</div>
       <div>{store.debounced}</div>
-    </Host>
+    </>
   )
 });
 ```
@@ -145,9 +145,9 @@ const Timer = component$(() => {
     };
   });
   return (
-    <Host>
+    <>
       {store.count}
-    </Host>
+    </>
   )
 });
 ```
@@ -173,11 +173,11 @@ const Cmp = component$(() => {
     store.users = await db.requestUsers();
   });
   return (
-    <Host>
+    <>
       {store.users.map((user => (
         <User user={user}/>
       )))}
-    </Host>
+    </>
   )
 });
 
@@ -209,11 +209,11 @@ const Cmp = component$(() => {
     store.users = await db.requestUsers();
   });
   return (
-    <Host>
+    <>
       {store.users.map((user => (
         <User user={user}/>
       )))}
-    </Host>
+    </>
   )
 });
 
@@ -239,12 +239,10 @@ const Section = component$(() => {
   const hostElement = useHostElement();
   console.log(hostElement); // hostElement is a HTMLSectionElement
   return (
-    <Host>
+    <section>
       I am a section
-    </Host>
+    </section>
   )
-}, {
-  tagName: 'section'
 });
 ```
 
@@ -258,6 +256,6 @@ Component styles allow Qwik to lazy load the style information for the component
 import styles from './code-block.css?inline';
 export const CmpStyles = component$(() => {
   useStyles$(styles);
-  return <Host>Some text</Host>;
+  return <>Some text</>;
 });
 ```

@@ -1,4 +1,4 @@
-import { component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
+import { component$, Slot, useStyles$ } from '@builder.io/qwik';
 import type { DocumentHead } from '~qwik-city-runtime';
 import styles from './layout-api.css?inline';
 
@@ -6,7 +6,7 @@ export default component$(() => {
   useStyles$(styles);
 
   return (
-    <Host data-test-layout="api" class="api">
+    <div data-test-layout="api" class="api">
       <aside class="api-menu">
         <h2>API</h2>
         <ul>
@@ -25,7 +25,7 @@ export default component$(() => {
       <section class="api-content">
         <Slot />
       </section>
-    </Host>
+    </div>
   );
 });
 

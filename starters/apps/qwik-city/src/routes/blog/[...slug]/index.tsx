@@ -1,11 +1,11 @@
-import { component$, Host, Resource } from '@builder.io/qwik';
+import { component$, Resource } from '@builder.io/qwik';
 import { useEndpoint, DocumentHead, RequestHandler } from '@builder.io/qwik-city';
 
 export default component$(() => {
   const resource = useEndpoint<typeof onGet>();
 
   return (
-    <Host>
+    <div>
       <Resource
         resource={resource}
         onResolved={(blog) => (
@@ -15,7 +15,7 @@ export default component$(() => {
           </>
         )}
       />
-    </Host>
+    </div>
   );
 });
 

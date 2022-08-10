@@ -1,7 +1,6 @@
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
 import { ProcessedJSXNode, processNode } from '../dom/render-dom';
-import { Host } from './host.public';
 import { jsx, isJSXNode, Fragment } from './jsx-runtime';
 import type { FunctionComponent } from './types/jsx-node';
 
@@ -92,11 +91,6 @@ jsxSuite('Function Component', () => {
   const Cmp: FunctionComponent<any> = () => jsx('fn-cmp', {});
   const v = jsx(Cmp, {});
   equal(v.type, Cmp);
-});
-
-jsxSuite('Host', () => {
-  const v = jsx(Host, {});
-  equal(v.type, Host);
 });
 
 jsxSuite('Fragment', () => {

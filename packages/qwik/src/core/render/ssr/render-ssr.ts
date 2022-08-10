@@ -6,40 +6,34 @@ import { getContext, getPropsMutator, normalizeOnProp, QContext } from '../../pr
 import type { JSXNode } from '../jsx/types/jsx-node';
 import {
   ALLOWS_PROPS,
-  BASE_QWIK_STYLES,
   copyRenderContext,
   createRenderContext,
   executeComponent,
   getNextIndex,
-  HOST_PREFIX,
   joinClasses,
-  SCOPE_PREFIX,
   stringifyStyle,
 } from '../execute-component';
 import {
   ELEMENT_ID,
   OnRenderProp,
-  QCtxAttr,
   QScopedStyle,
   QSlot,
   QSlotName,
   QSlotRef,
   QStyle,
 } from '../../util/markers';
-import { Host, SSRComment } from '../jsx/host.public';
-import { qDev } from '../../util/qdev';
+import { SSRComment, Virtual } from '../jsx/host.public';
 import { logWarn } from '../../util/log';
 import { addQRLListener, isOnProp } from '../../props/props-on';
 import { version } from '../../version';
-import { serializeInlineContexts } from '../../use/use-context';
 import { fromCamelToKebabCase } from '../../util/case';
 import { serializeQRLs } from '../../import/qrl';
-import { qError, QError_rootNodeMustBeHTML } from '../../error/error';
 import { ContainerState, getContainerState } from '../container';
 import type { RenderContext } from '../types';
 import { assertDefined } from '../../assert/assert';
 import { serializeSStyle, styleHost } from '../../component/qrl-styles';
 import type { Ref } from '../../use/use-ref';
+import { serializeVirtualAttributes } from '../dom/virtual-element';
 
 /**
  * @alpha
@@ -71,6 +65,10 @@ export interface SSRContext {
   headNodes: JSXNode[];
 }
 
+const IS_HOST = 1 << 0;
+const IS_HEAD = 1 << 1;
+const IS_RAW_CONTENT = 1 << 2;
+
 /**
  * @alpha
  */
@@ -86,7 +84,7 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
     projectedContext: undefined,
     hostCtx: undefined,
     invocationContext: undefined,
-    headNodes: [getBaseStyles()],
+    headNodes: [],
   };
   const beforeContent = opts.beforeContent;
   const beforeClose = opts.beforeClose;
@@ -120,50 +118,18 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
       }
     });
   } else {
-    const elCtx = getContext(containerEl);
-    await renderRootNode(node, elCtx, containerAttributes, ssrCtx, opts.stream, 0, () =>
-      beforeClose?.(ssrCtx.$contexts$, containerState)
-    );
+    node = jsx(root, {
+      ...containerAttributes,
+      children: node,
+    });
+    await renderNode(node, ssrCtx, opts.stream, 0, (stream) => {
+      const result = beforeClose?.(ssrCtx.$contexts$, containerState);
+      if (result) {
+        return processData(result, ssrCtx, stream, 0, undefined);
+      }
+    });
   }
 };
-
-export const renderRootNode = (
-  node: JSXNode<any>,
-  elCtx: QContext,
-  containerAttributes: Record<string, string | undefined>,
-  ssrCtx: SSRContext,
-  stream: StreamWriter,
-  flags: number,
-  beforeClose?: () => ValueOrPromise<any>
-): ValueOrPromise<void> => {
-  if (isArray(node)) {
-    if (node.length !== 1) {
-      throw qError(QError_rootNodeMustBeHTML, node);
-    }
-    return renderRootNode(node[0], elCtx, containerAttributes, ssrCtx, stream, flags, beforeClose);
-  }
-  if (typeof node.type === 'string') {
-    if (node.type !== 'html') {
-      throw qError(QError_rootNodeMustBeHTML, node);
-    }
-    return renderNodeElement(
-      node,
-      elCtx,
-      containerAttributes,
-      undefined,
-      ssrCtx,
-      stream,
-      flags,
-      beforeClose
-    );
-  } else {
-    const result = node.type(node.props, node.key);
-    return renderRootNode(result, elCtx, containerAttributes, ssrCtx, stream, flags, beforeClose);
-  }
-};
-const IS_HOST = 1 << 0;
-const IS_HEAD = 1 << 1;
-const IS_RAW_CONTENT = 1 << 2;
 
 export const renderNodeFunction = (
   node: JSXNode<any>,
@@ -172,15 +138,87 @@ export const renderNodeFunction = (
   flags: number,
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ) => {
+  if (node.type === SSRComment) {
+    stream.write(`<!--${node.props.data ?? ''}-->`);
+    return;
+  }
+  if (node.type === Virtual) {
+    const elCtx = getContext(ssrCtx.rctx.$doc$.createElement(':virtual'));
+    return renderNodeVirtual(node, elCtx, undefined, ssrCtx, stream, flags, beforeClose);
+  }
   const res = ssrCtx.invocationContext
     ? useInvoke(ssrCtx.invocationContext, () => node.type(node.props, node.key))
     : node.type(node.props, node.key);
   return processData(res, ssrCtx, stream, flags, beforeClose);
 };
 
+export const renderNodeVirtual = (
+  node: JSXNode<typeof Virtual>,
+  elCtx: QContext,
+  extraNodes: JSXNode<string>[] | undefined,
+  ssrCtx: SSRContext,
+  stream: StreamWriter,
+  flags: number,
+  beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
+) => {
+  const props = node.props;
+  const renderQrl = props[OnRenderProp];
+  if (renderQrl) {
+    elCtx.$renderQrl$ = renderQrl;
+    return renderSSRComponent(ssrCtx, stream, elCtx, node, flags, beforeClose);
+  }
+  const { children, ...attributes } = node.props;
+
+  const slotName = props[QSlotName];
+  const isSlot = typeof slotName === 'string';
+  if (isSlot) {
+    assertDefined(ssrCtx.hostCtx?.$id$, 'hostId must be defined for a slot');
+    attributes[QSlotRef] = ssrCtx.hostCtx.$id$;
+  }
+
+  const key = node.key != null ? String(node.key) : null;
+  if (key != null) {
+    attributes['q:key'] = key;
+  }
+  const url = new Map(Object.entries(attributes));
+  stream.write(`<!--qv ${serializeVirtualAttributes(url)}-->`);
+
+  if (extraNodes) {
+    for (const node of extraNodes) {
+      renderNodeElementSync(node.type, node.props, stream);
+    }
+  }
+  const promise = processData(props.children, ssrCtx, stream, flags);
+  return then(promise, () => {
+    // Fast path
+    if (!isSlot && !beforeClose) {
+      stream.write(CLOSE_VIRTUAL);
+      return;
+    }
+
+    let promise: ValueOrPromise<void>;
+    if (isSlot) {
+      const content = ssrCtx.projectedChildren?.[slotName];
+      if (content) {
+        ssrCtx.projectedChildren![slotName] = undefined;
+        promise = processData(content, ssrCtx.projectedContext!, stream, flags);
+      }
+    }
+    // Inject before close
+    if (beforeClose) {
+      promise = then(promise, () => beforeClose(stream));
+    }
+
+    return then(promise, () => {
+      stream.write(CLOSE_VIRTUAL);
+    });
+  });
+};
+
+const CLOSE_VIRTUAL = `<!--/qv-->`;
+
 export const renderNodeElement = (
   node: JSXNode<string>,
-  elCtx: QContext,
   extraAttributes: Record<string, string | undefined> | undefined,
   extraNodes: JSXNode<string>[] | undefined,
   ssrCtx: SSRContext,
@@ -191,17 +229,27 @@ export const renderNodeElement = (
   const key = node.key != null ? String(node.key) : null;
   const props = node.props;
   const textType = node.type;
-  const renderQrl = props[OnRenderProp];
-
+  const elCtx = getContext(ssrCtx.rctx.$doc$.createElement(node.type));
   const hasRef = 'ref' in props;
-  const isHost = flags & IS_HOST;
   const insideHead = flags & IS_HEAD;
   const attributes = updateProperties(ssrCtx.rctx, elCtx, props);
+  const hostCtx = ssrCtx.hostCtx;
+  if (hostCtx) {
+    attributes['class'] = joinClasses(hostCtx.$scopeIds$, attributes['class']);
+    const cmp = hostCtx.$component$!;
+    if (!cmp.$attachedListeners$) {
+      cmp.$attachedListeners$ = true;
+      hostCtx.$listeners$?.forEach((qrl, eventName) => {
+        addQRLListener(elCtx, eventName, qrl);
+      });
+    }
+  }
+
   const hasEvents = elCtx.$listeners$;
   if (key != null) {
     attributes['q:key'] = key;
   }
-  if (isHost || hasRef || hasEvents) {
+  if (hasRef || hasEvents) {
     const newID = getNextIndex(ssrCtx.rctx);
     attributes[ELEMENT_ID] = newID;
     elCtx.$id$ = newID;
@@ -213,31 +261,11 @@ export const renderNodeElement = (
   if (extraAttributes) {
     Object.assign(attributes, extraAttributes);
   }
-  if (isHost) {
-    if (elCtx.$contexts$) {
-      attributes[QCtxAttr] = serializeInlineContexts(elCtx.$contexts$);
-    }
-  } else {
-    if (ssrCtx.hostCtx) {
-      attributes['class'] = joinClasses(ssrCtx.hostCtx.$scopeIds$, attributes['class']);
-    }
-  }
   if (elCtx.$listeners$) {
     elCtx.$listeners$.forEach((value, key) => {
       attributes[fromCamelToKebabCase(key)] = serializeQRLs(value, elCtx);
     });
   }
-  if (renderQrl) {
-    elCtx.$renderQrl$ = renderQrl;
-    return renderSSRComponent(ssrCtx, stream, elCtx, node, attributes, flags, beforeClose);
-  }
-  const slotName = props[QSlotName];
-  const isSlot = typeof slotName === 'string';
-  if (isSlot) {
-    assertDefined(ssrCtx.hostCtx?.$id$, 'hostId must be defined for a slot');
-    attributes[QSlotRef] = ssrCtx.hostCtx.$id$;
-  }
-
   if (renderNodeElementSync(textType, attributes, stream)) {
     return;
   }
@@ -265,30 +293,13 @@ export const renderNodeElement = (
       });
     }
     // Fast path
-    if (!isSlot && !beforeClose) {
+    if (!beforeClose) {
       stream.write(`</${textType}>`);
       return;
     }
 
-    let promise: ValueOrPromise<void>;
-    if (isSlot) {
-      const content = ssrCtx.projectedChildren?.[slotName];
-      if (content) {
-        ssrCtx.projectedChildren![slotName] = undefined;
-        promise = processData(content, ssrCtx.projectedContext!, stream, flags);
-      }
-    }
-
     // Inject before close
-    if (beforeClose) {
-      promise = then(promise, () =>
-        then(beforeClose(stream), (jsx) => {
-          return processData(jsx, ssrCtx, stream, flags);
-        })
-      );
-    }
-
-    return then(promise, () => {
+    return then(beforeClose(stream), () => {
       stream.write(`</${textType}>`);
     });
   });
@@ -349,96 +360,99 @@ export const renderSSRComponent = (
   ssrCtx: SSRContext,
   stream: StreamWriter,
   elCtx: QContext,
-  node: JSXNode<string>,
-  attributes: Record<string, string>,
+  node: JSXNode<typeof Virtual>,
   flags: number,
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ): ValueOrPromise<void> => {
+  const attributes: Record<string, string> = updateComponentProperties(
+    ssrCtx.rctx,
+    elCtx,
+    node.props
+  );
   return then(executeComponent(ssrCtx.rctx, elCtx), (res) => {
-    if (res) {
-      const hostElement = elCtx.$element$;
-      const newCtx = res.rctx;
-      let children = node.props.children;
-      if (children) {
-        if (isArray(children)) {
-          if (children.filter(isNotNullable).length === 0) {
-            children = undefined;
-          }
-        } else {
-          children = [children];
-        }
-      }
-      const invocationContext = newInvokeContext(newCtx.$doc$, hostElement, hostElement);
-      invocationContext.$subscriber$ = hostElement;
-      invocationContext.$renderCtx$ = newCtx;
-      const projectedContext: SSRContext = {
-        ...ssrCtx,
-        rctx: copyRenderContext(newCtx),
-      };
-      const newSSrContext: SSRContext = {
-        ...ssrCtx,
-        projectedChildren: splitProjectedChildren(children, ssrCtx),
-        projectedContext,
-        rctx: newCtx,
-        invocationContext,
-      };
-
-      const extraNodes = [];
-      const styleClasses = [];
-      if (elCtx.$appendStyles$) {
-        for (const style of elCtx.$appendStyles$) {
-          extraNodes!.push(
-            jsx('style', {
-              [QStyle]: style.styleId,
-              dangerouslySetInnerHTML: style.content,
-            })
-          );
-        }
-      }
-      if (elCtx.$scopeIds$) {
-        for (const styleId of elCtx.$scopeIds$) {
-          styleClasses.push(styleHost(styleId));
-        }
-        const value = serializeSStyle(elCtx.$scopeIds$);
-        if (value) {
-          attributes[QScopedStyle] = value;
-        }
-      }
-      const processedNode = jsx(node.type, {
-        ...attributes,
-        class: joinClasses(attributes['class'], styleClasses),
-      });
-
-      if (res.node) {
-        if (res.node.type === Host) {
-          processedNode.props = {
-            ...attributes,
-            ...res.node.props,
-            class: joinClasses(processedNode.props.class, res.node.props.class),
-          };
-        } else {
-          processedNode.props['children'] = res.node;
-        }
-      }
-
-      flags |= IS_HOST;
-      newSSrContext.hostCtx = elCtx;
-
-      return renderNodeElement(
-        processedNode,
-        elCtx,
-        undefined,
-        extraNodes,
-        newSSrContext,
-        stream,
-        flags,
-        (stream) => {
-          return then(renderQTemplates(newSSrContext, stream), () => {
-            return beforeClose?.(stream);
-          });
-        }
-      );
+    if (!res) {
+      console.error('not rendered');
+      return;
     }
+
+    const hostElement = elCtx.$element$;
+    const newCtx = res.rctx;
+    let children = node.props.children;
+    if (children) {
+      if (isArray(children)) {
+        if (children.filter(isNotNullable).length === 0) {
+          children = undefined;
+        }
+      } else {
+        children = [children];
+      }
+    }
+    const invocationContext = newInvokeContext(newCtx.$doc$, hostElement, undefined);
+    invocationContext.$subscriber$ = hostElement;
+    invocationContext.$renderCtx$ = newCtx;
+    const projectedContext: SSRContext = {
+      ...ssrCtx,
+      rctx: copyRenderContext(newCtx),
+    };
+    const newSSrContext: SSRContext = {
+      ...ssrCtx,
+      projectedChildren: splitProjectedChildren(children, ssrCtx),
+      projectedContext,
+      rctx: newCtx,
+      invocationContext,
+    };
+
+    const extraNodes = [];
+    const styleClasses = [];
+    if (elCtx.$appendStyles$) {
+      for (const style of elCtx.$appendStyles$) {
+        extraNodes!.push(
+          jsx('style', {
+            [QStyle]: style.styleId,
+            dangerouslySetInnerHTML: style.content,
+          })
+        );
+      }
+    }
+    if (elCtx.$scopeIds$) {
+      for (const styleId of elCtx.$scopeIds$) {
+        styleClasses.push(styleHost(styleId));
+      }
+      const value = serializeSStyle(elCtx.$scopeIds$);
+      if (value) {
+        attributes[QScopedStyle] = value;
+      }
+    }
+    const newID = getNextIndex(ssrCtx.rctx);
+    attributes[ELEMENT_ID] = newID;
+    elCtx.$id$ = newID;
+    ssrCtx.$contexts$.push(elCtx);
+
+    const processedNode = jsx(
+      node.type,
+      {
+        ...attributes,
+        children: res.node,
+      },
+      node.key
+    );
+
+    flags |= IS_HOST;
+    newSSrContext.hostCtx = elCtx;
+
+    return renderNodeVirtual(
+      processedNode,
+      elCtx,
+      extraNodes,
+      newSSrContext,
+      stream,
+      flags,
+      (stream) => {
+        return then(renderQTemplates(newSSrContext, stream), () => {
+          return beforeClose?.(stream);
+        });
+      }
+    );
   });
 };
 
@@ -488,20 +502,8 @@ export const renderNode = (
   flags: number,
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ) => {
-  if (node.type === SSRComment) {
-    stream.write(`<!--${node.props.data ?? ''}-->`);
-  } else if (typeof node.type === 'string') {
-    const elCtx = getContext(ssrCtx.rctx.$doc$.createElement(node.type));
-    return renderNodeElement(
-      node as any,
-      elCtx,
-      undefined,
-      undefined,
-      ssrCtx,
-      stream,
-      flags,
-      beforeClose
-    );
+  if (typeof node.type === 'string') {
+    return renderNodeElement(node as any, undefined, undefined, ssrCtx, stream, flags, beforeClose);
   } else {
     return renderNodeFunction(node, ssrCtx, stream, flags, beforeClose);
   }
@@ -596,7 +598,12 @@ export const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => 
   }
   if (isArray(children)) {
     return children.flatMap((c) => _flatVirtualChildren(c, ssrCtx));
-  } else if (isJSXNode(children) && isFunction(children.type) && children.type !== SSRComment) {
+  } else if (
+    isJSXNode(children) &&
+    isFunction(children.type) &&
+    children.type !== SSRComment &&
+    children.type !== Virtual
+  ) {
     const fn = children.type;
     const res = ssrCtx.invocationContext
       ? useInvoke(ssrCtx.invocationContext, () => fn(children.props, children.key))
@@ -620,15 +627,13 @@ const updateProperties = (
     return attributes;
   }
   const elm = ctx.$element$;
-  const isCmp = OnRenderProp in expectProps;
-  const qwikProps = isCmp ? getPropsMutator(ctx, rctx.$containerState$) : undefined;
-  for (let key of keys) {
+  for (const key of keys) {
     if (key === 'children' || key === OnRenderProp) {
       continue;
     }
     const newValue = expectProps[key];
     if (key === 'ref') {
-      (newValue as Ref<Element>).current = elm;
+      (newValue as Ref<Element>).current = elm as Element;
       continue;
     }
 
@@ -639,23 +644,6 @@ const updateProperties = (
       continue;
     }
 
-    if (qwikProps) {
-      const skipProperty = ALLOWS_PROPS.includes(key);
-      const hasPrefix = SCOPE_PREFIX.test(key);
-      if (!skipProperty && !hasPrefix) {
-        // Qwik props
-        qwikProps.set(key, newValue);
-        continue;
-      }
-      const hPrefixed = key.startsWith(HOST_PREFIX);
-      if (hPrefixed) {
-        key = key.slice(HOST_PREFIX.length);
-      }
-    } else if (qDev && key.startsWith(HOST_PREFIX)) {
-      logWarn(`${HOST_PREFIX} prefix can not be used in non components`);
-      continue;
-    }
-
     if (isOnProp(key)) {
       const attributeName = normalizeOnProp(key.slice(0, -1));
       addQRLListener(ctx, attributeName, newValue);
@@ -663,6 +651,37 @@ const updateProperties = (
     }
 
     // Check if its an exception
+    setProperty(attributes, key, newValue);
+  }
+  return attributes;
+};
+
+const updateComponentProperties = (
+  rctx: RenderContext,
+  ctx: QContext,
+  expectProps: Record<string, any> | null
+) => {
+  const attributes: Record<string, string> = {};
+  if (!expectProps) {
+    return attributes;
+  }
+  const keys = Object.keys(expectProps);
+  if (keys.length === 0) {
+    return attributes;
+  }
+  const qwikProps = getPropsMutator(ctx, rctx.$containerState$);
+  for (const key of keys) {
+    if (key === 'children' || key === OnRenderProp) {
+      continue;
+    }
+    const newValue = expectProps[key];
+
+    const skipProperty = ALLOWS_PROPS.includes(key);
+    if (!skipProperty) {
+      // Qwik props
+      qwikProps.set(key, newValue);
+      continue;
+    }
     setProperty(attributes, key, newValue);
   }
   return attributes;
@@ -771,11 +790,4 @@ export const escapeAttr = (s: string) => {
       }
     });
   }
-};
-
-const getBaseStyles = () => {
-  return jsx('style', {
-    id: 'qwik/base-styles',
-    dangerouslySetInnerHTML: BASE_QWIK_STYLES,
-  });
 };

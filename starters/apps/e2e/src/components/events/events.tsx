@@ -1,4 +1,4 @@
-import { component$, useStore, Host, PropFunction } from '@builder.io/qwik';
+import { component$, useStore, PropFunction } from '@builder.io/qwik';
 
 export const Events = component$(() => {
   const store = useStore({
@@ -8,7 +8,7 @@ export const Events = component$(() => {
   });
 
   return (
-    <Host>
+    <div>
       <Buttons
         onTransparentClick$={async () => {
           store.countTransparent++;
@@ -36,7 +36,7 @@ export const Events = component$(() => {
       <p id="count-transparent">countTransparent: {store.countTransparent}</p>
       <p id="count-wrapped">countWrapped: {store.countWrapped}</p>
       <p id="count-anchor">countAnchor: {store.countAnchor}</p>
-    </Host>
+    </div>
   );
 });
 
@@ -48,7 +48,7 @@ interface ButtonProps {
 export const Buttons = component$((props: ButtonProps) => {
   const store = useStore({ count: 0 });
   return (
-    <Host>
+    <div>
       <span>some</span>
       <button id="btn-transparent" onClick$={props.onTransparentClick$}>
         Transparent
@@ -62,6 +62,6 @@ export const Buttons = component$((props: ButtonProps) => {
       >
         Wrapped {store.count}
       </button>
-    </Host>
+    </div>
   );
 });

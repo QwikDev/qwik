@@ -1,4 +1,3 @@
-import { Host } from './host.public';
 import { h } from './factory';
 import { isJSXNode, Fragment } from './jsx-runtime';
 import type { FunctionComponent } from './types/jsx-node';
@@ -107,11 +106,6 @@ jsxSuite('Function Component', () => {
   const Cmp: FunctionComponent<any> = () => h('fn-cmp', null);
   const v = h(Cmp, {});
   equal(v.type, Cmp);
-});
-
-jsxSuite('Host', () => {
-  const v = h(Host, null);
-  equal(v.type, Host);
 });
 
 jsxSuite('Fragment', () => {

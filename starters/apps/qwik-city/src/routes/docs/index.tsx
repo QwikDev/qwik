@@ -1,11 +1,11 @@
-import { component$, Host } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
 
 export default component$(() => {
   return (
-    <Host>
+    <div>
       <h1>Welcome to the Docs!</h1>
-    </Host>
+    </div>
   );
 });
 

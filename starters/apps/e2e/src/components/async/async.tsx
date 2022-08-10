@@ -1,4 +1,4 @@
-import { useStore, component$, Host, mutable } from '@builder.io/qwik';
+import { useStore, component$, mutable } from '@builder.io/qwik';
 
 export function delay(time: number) {
   return new Promise<void>((resolve) => {
@@ -25,10 +25,10 @@ export const Async = component$(() => {
   }
 
   return (
-    <Host class="my-app p-20">
+    <div class="my-app p-20">
       {stuff()}
       <Inner value={mutable(state.count)} />
-    </Host>
+    </div>
   );
 });
 
@@ -43,14 +43,14 @@ export const Inner = component$((props: { value: number }) => {
     );
   }
   return (
-    <Host class="my-app p-20">
+    <div class="my-app p-20">
       Inner: {props.value}
       {resolve()}
-    </Host>
+    </div>
   );
 });
 
 export const Inner2 = component$((props: { value: number }) => {
   const value = props.value;
-  return <Host class="my-app p-20">Inner2: {delay(1000).then(() => value)}</Host>;
+  return <div class="my-app p-20">Inner2: {delay(1000).then(() => value)}</div>;
 });

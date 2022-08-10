@@ -1,8 +1,5 @@
-import { component$, Host } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 
-export const App = component$(
-  () => {
-    return <Host>Host element tag-name: {'print current document.location here'}</Host>;
-  },
-  { tagName: 'my-app' }
-);
+export const App = component$(() => {
+  return <my-app>Host element tag-name: {'print current document.location here'}</my-app>;
+});

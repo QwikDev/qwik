@@ -1,4 +1,4 @@
-import { component$, Host, useClientEffect$, useStore } from '@builder.io/qwik';
+import { component$, useClientEffect$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
   const store = useStore({ timestamp: '', os: '', arch: '', node: '' });
@@ -15,7 +15,7 @@ export default component$(() => {
   });
 
   return (
-    <Host>
+    <div>
       <h1>Qwik City Test API!</h1>
 
       <ul>
@@ -34,6 +34,6 @@ export default component$(() => {
       <p>
         OS: <span>{store.os}</span>
       </p>
-    </Host>
+    </div>
   );
 });

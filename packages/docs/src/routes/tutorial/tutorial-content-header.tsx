@@ -1,10 +1,8 @@
 import tutorialSections from '@tutorial-data';
-import { component$, useHostElement } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 import type { TutorialStore } from './layout!';
 
 export const TutorialContentHeader = component$(({ store }: TutorialContentHeaderProps) => {
-  const host = useHostElement();
-
   return (
     <div class="content-header">
       <svg width="20" height="20" viewBox="0 0 24 24">
@@ -19,10 +17,10 @@ export const TutorialContentHeader = component$(({ store }: TutorialContentHeade
 
       <select
         onChange$={(_, elm: any) => {
-          const loc = host.ownerDocument.location;
-          if (loc.pathname !== elm.value) {
-            loc.href = `/tutorial/${elm.value}`;
-          }
+          // const loc = host.ownerDocument.location;
+          // if (loc.pathname !== elm.value) {
+          //   loc.href = `/tutorial/${elm.value}`;
+          // }
         }}
       >
         {tutorialSections.map((s) => (

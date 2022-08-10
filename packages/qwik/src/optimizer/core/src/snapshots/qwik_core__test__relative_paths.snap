@@ -25,8 +25,8 @@ export const App_component_div_p_button_onClick_8dWUa0cJAr4 = ()=>{
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    712,
-    844
+    706,
+    838
   ]
 }
 */
@@ -72,8 +72,8 @@ export const App_component_AkbU84a8zes = ()=>{
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    321,
-    1043
+    315,
+    1037
   ]
 }
 */

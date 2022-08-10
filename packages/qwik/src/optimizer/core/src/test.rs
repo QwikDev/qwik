@@ -814,10 +814,10 @@ export function foo() {
 
 export const Header = component$(() => {
     return (
-        <Host>
+        <div>
             {import("../state")}
             {thing}
-        </Host>
+        </div>
     );
 });
 "#
@@ -1352,7 +1352,7 @@ export const App = component$(() => {
 fn example_qwik_react() {
     test_input!(TestInput {
         code: r#"
-import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useWatchQrl, noSerialize, Host, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useWatchQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
 import { jsx, Fragment } from '@builder.io/qwik/jsx-runtime';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 
@@ -1450,7 +1450,7 @@ export { qwikify$, qwikifyQrl, renderToString };
 #[test]
 fn relative_paths() {
     let dep = r#"
-import { componentQrl, inlinedQrl, Host, useStore, useLexicalScope } from "@builder.io/qwik";
+import { componentQrl, inlinedQrl, useStore, useLexicalScope } from "@builder.io/qwik";
 import { jsx, jsxs } from "@builder.io/qwik/jsx-runtime";
 import { state } from './sibling';
 

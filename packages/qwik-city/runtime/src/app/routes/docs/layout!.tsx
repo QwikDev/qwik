@@ -1,4 +1,4 @@
-import { component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
+import { component$, Slot, useStyles$ } from '@builder.io/qwik';
 import type { DocumentHead } from '~qwik-city-runtime';
 import { Breadcrumbs } from '../../components/breadcrumbs/breadcrumbs';
 import { ContentNav } from '../../components/content-nav/content-nav';
@@ -11,7 +11,7 @@ export default component$(() => {
   useStyles$(styles);
 
   return (
-    <Host class="docs full-screen" data-test-layout="docs">
+    <div class="docs full-screen" data-test-layout="docs">
       <Header />
       <main>
         <Menu />
@@ -22,7 +22,7 @@ export default component$(() => {
           <Footer />
         </section>
       </main>
-    </Host>
+    </div>
   );
 });
 

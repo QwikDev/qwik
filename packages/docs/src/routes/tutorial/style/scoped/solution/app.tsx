@@ -1,4 +1,4 @@
-import { component$, Host, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@builder.io/qwik';
 
 export const App = component$(() => {
   return (
@@ -15,9 +15,9 @@ export const ComponentA = component$(() => {
       background-color: red;
     }`);
   return (
-    <Host class="component">
+    <div class="component">
       <div>A</div>
-    </Host>
+    </div>
   );
 });
 
@@ -28,8 +28,8 @@ export const ComponentB = component$(() => {
     }`);
 
   return (
-    <Host class="component">
+    <div class="component">
       <div>B</div>
-    </Host>
+    </div>
   );
 });

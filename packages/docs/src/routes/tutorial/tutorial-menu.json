@@ -283,13 +283,6 @@
         "enableSsrOutput": false
       },
       {
-        "id": "use-host-element",
-        "title": "useHostElement()",
-        "enableHtmlOutput": false,
-        "enableClientOutput": false,
-        "enableSsrOutput": false
-      },
-      {
         "id": "use-on",
         "title": "useOn() / useOnDocument() / useOnWindow()",
         "enableHtmlOutput": false,

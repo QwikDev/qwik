@@ -1,4 +1,4 @@
-import { component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
+import { component$, Slot, useStyles$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
@@ -14,7 +14,7 @@ export default component$(() => {
   useStyles$(styles);
 
   return (
-    <Host>
+    <div>
       <Header />
       <main class="dashboard">
         <aside class="dashboard-menu">
@@ -33,7 +33,7 @@ export default component$(() => {
         </section>
       </main>
       <Footer />
-    </Host>
+    </div>
   );
 });
 

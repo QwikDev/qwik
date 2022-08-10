@@ -8,6 +8,7 @@ import type { QRL } from '../import/qrl.public';
 import { qError, QError_useInvokeContext, QError_useMethodOutsideContext } from '../error/error';
 import type { RenderContext } from '../render/types';
 import type { Subscriber } from './use-watch';
+import type { QwikElement } from '../render/dom/virtual-element';
 
 declare const document: QwikDocument;
 
@@ -20,7 +21,7 @@ export interface InvokeContext {
   $url$: URL | null;
   $seq$: number;
   $doc$?: Document;
-  $hostElement$?: Element;
+  $hostElement$?: QwikElement;
   $element$?: Element;
   $event$: any;
   $qrl$?: QRL<any>;
@@ -97,7 +98,7 @@ export const useInvoke = <ARGS extends any[] = any[], RET = any>(
 
 export const newInvokeContext = (
   doc?: Document,
-  hostElement?: Element,
+  hostElement?: QwikElement,
   element?: Element,
   event?: any,
   url?: URL
@@ -113,7 +114,7 @@ export const newInvokeContext = (
   };
 };
 
-export const getContainer = (el: Element): Element | null => {
+export const getContainer = (el: QwikElement): Element | null => {
   let container = (el as any)[CONTAINER];
   if (!container) {
     container = el.closest(QContainerSelector);

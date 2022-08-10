@@ -32,10 +32,10 @@ export const Parent = component$(() => {
   // Assign value (state) to the context (MyContext)
   useContextProvider(MyContext, state);
   return (
-    <Host>
+    <>
       <Child />
       <div>Count: {state.count}</div>
-    </Host>
+    </>
   );
 });
 
@@ -43,11 +43,11 @@ export const Child = component$(() => {
   // Get reference to state using MyContext
   const state = useContext(MyContext);
   return (
-    <Host>
+    <>
       <button onClick$={() => state.count++}>
         Increment
       </button>
-    </Host>
+    </>
   );
 });
 ```
@@ -88,9 +88,9 @@ export const Parent = component$(() => {
   useContextProvider(MyContextString, appName);
 
   return (
-    <Host>
+    <>
       <Children />
-    </Host>
+    </>
   );
 });
 ```
@@ -109,14 +109,14 @@ export const Children = component$(() => {
   const appName = useContext(MyContextString);
 
   return (
-    <Host>
+    <>
       <div>Child components can use any of the provided values, such as {appName}</div>
-    </Host>
+    </>
   );
 });
 ```
 
-## Typed contexts 
+## Typed contexts
 
 When a context is created using `createContext()` a type can be provided, in fact, it's very recommended to do so, in order to reduce errors and typos:
 
@@ -146,21 +146,21 @@ export const Parent = component$(() => {
 
   useContextProvider(MyContext, state); // type checker will ensure the second param is SharedState
   return (
-    <Host>
+    <>
       <Child />
       <div>Count: {state.count}</div>
-    </Host>
+    </>
   );
 });
 
 export const Child = component$(() => {
   const state = useContext(MyContext); // type of "state" will be `SharedState`
   return (
-    <Host>
+    <>
       <button onClick$={() => state.count++}>
         Increment
       </button>
-    </Host>
+    </>
   );
 });
 ```

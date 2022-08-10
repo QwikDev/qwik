@@ -1,9 +1,8 @@
 import {
   component$,
-  Host,
   noSerialize,
   QwikIntrinsicElements,
-  SkipRerender,
+  Slot,
   useContextProvider,
   useStore,
   useWatch$,
@@ -32,87 +31,80 @@ import { clientNavigate, toPath } from './client-navigation';
 /**
  * @public
  */
-export const Html = component$<HtmlProps>(
-  (props) => {
-    const env = useQwikCityEnv();
+export const Html = component$<HtmlProps>((props) => {
+  const env = useQwikCityEnv();
 
-    const routeLocation = useStore<MutableRouteLocation>(() => {
-      const initRouteLocation = env?.route;
-      if (!initRouteLocation) {
-        throw new Error(`Missing Qwik City User Context`);
-      }
-      return initRouteLocation;
-    });
+  const routeLocation = useStore<MutableRouteLocation>(() => {
+    const initRouteLocation = env?.route;
+    if (!initRouteLocation) {
+      throw new Error(`Missing Qwik City User Context`);
+    }
+    return initRouteLocation;
+  });
 
-    const routeNavigate = useStore<RouteNavigate>(() => {
-      const initRouteLocation = env?.route;
-      return {
-        path: toPath(new URL(initRouteLocation!.href)),
-      };
-    });
+  const routeNavigate = useStore<RouteNavigate>(() => {
+    const initRouteLocation = env?.route;
+    return {
+      path: toPath(new URL(initRouteLocation!.href)),
+    };
+  });
 
-    const documentHead = useStore(createDocumentHead);
-    const content = useStore<ContentState>({
-      headings: undefined,
-      menu: undefined,
-    });
+  const documentHead = useStore(createDocumentHead);
+  const content = useStore<ContentState>({
+    headings: undefined,
+    menu: undefined,
+  });
 
-    const contentInternal = useStore<ContentStateInternal>({
-      contents: undefined,
-    });
+  const contentInternal = useStore<ContentStateInternal>({
+    contents: undefined,
+  });
 
-    useContextProvider(ContentContext, content);
-    useContextProvider(ContentInternalContext, contentInternal);
-    useContextProvider(DocumentHeadContext, documentHead);
-    useContextProvider(RouteLocationContext, routeLocation);
-    useContextProvider(RouteNavigateContext, routeNavigate);
+  useContextProvider(ContentContext, content);
+  useContextProvider(ContentInternalContext, contentInternal);
+  useContextProvider(DocumentHeadContext, documentHead);
+  useContextProvider(RouteLocationContext, routeLocation);
+  useContextProvider(RouteNavigateContext, routeNavigate);
 
-    useWatch$(async ({ track }) => {
-      const { default: cityPlan } = await import('@qwik-city-plan');
-      const path = track(routeNavigate, 'path');
-      const url = new URL(path, routeLocation.href);
-      const loadedRoute = await loadRoute(
-        cityPlan.routes,
-        cityPlan.menus,
-        cityPlan.cacheModules,
-        url.pathname
-      );
-      if (loadedRoute) {
-        const contentModules = loadedRoute.mods as ContentModule[];
-        const pageModule = contentModules[contentModules.length - 1] as PageModule;
-        const resolvedHead = resolveHead(env?.response, routeLocation, contentModules);
-
-        // Update document head
-        documentHead.links = resolvedHead.links;
-        documentHead.meta = resolvedHead.meta;
-        documentHead.styles = resolvedHead.styles;
-        documentHead.title = resolvedHead.title;
-
-        // Update content
-        content.headings = pageModule.headings;
-        content.menu = loadedRoute.menu;
-        contentInternal.contents = noSerialize(contentModules);
-
-        // Update route location
-        routeLocation.href = url.href;
-        routeLocation.pathname = url.pathname;
-        routeLocation.params = { ...loadedRoute.params };
-        routeLocation.query = Object.fromEntries(url.searchParams.entries());
-
-        if (isBrowser) {
-          clientNavigate(window, routeNavigate);
-        }
-      }
-    });
-
-    return (
-      <Host {...props} q:sname="">
-        <SkipRerender />
-      </Host>
+  useWatch$(async ({ track }) => {
+    const { default: cityPlan } = await import('@qwik-city-plan');
+    const path = track(routeNavigate, 'path');
+    const url = new URL(path, routeLocation.href);
+    const loadedRoute = await loadRoute(
+      cityPlan.routes,
+      cityPlan.menus,
+      cityPlan.cacheModules,
+      url.pathname
     );
-  },
-  { tagName: 'html' }
-);
+    if (loadedRoute) {
+      const contentModules = loadedRoute.mods as ContentModule[];
+      const pageModule = contentModules[contentModules.length - 1] as PageModule;
+      const resolvedHead = resolveHead(env?.response, routeLocation, contentModules);
+
+      // Update document head
+      documentHead.links = resolvedHead.links;
+      documentHead.meta = resolvedHead.meta;
+      documentHead.styles = resolvedHead.styles;
+      documentHead.title = resolvedHead.title;
+
+      // Update content
+      content.headings = pageModule.headings;
+      content.menu = loadedRoute.menu;
+      contentInternal.contents = noSerialize(contentModules);
+
+      // Update route location
+      routeLocation.href = url.href;
+      routeLocation.pathname = url.pathname;
+      routeLocation.params = { ...loadedRoute.params };
+      routeLocation.query = Object.fromEntries(url.searchParams.entries());
+
+      if (isBrowser) {
+        clientNavigate(window, routeNavigate);
+      }
+    }
+  });
+
+  return <Slot />;
+});
 
 type RootHtmlAttributes = QwikIntrinsicElements['html'];
 

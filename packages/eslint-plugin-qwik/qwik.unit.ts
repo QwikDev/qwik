@@ -32,7 +32,7 @@ test('no-use-after-await', () => {
           useMethod();
           await something();
           return $(() => {
-            return <Host></Host>
+            return <div></div>
           });
         });
         const A = () => { console.log('A') };
@@ -46,7 +46,7 @@ test('no-use-after-await', () => {
           await stuff();
           return $(() => {
             useHostElement();
-            return <Host></Host>
+            return <div></div>
           });
         });`,
     ],
@@ -57,9 +57,9 @@ test('no-use-after-await', () => {
             useMethod();
             return $(() => {
               return (
-                <Host>
+                <div>
                   {prop}
-                </Host>
+                </div>
               );
             });
           });`,
@@ -73,9 +73,9 @@ test('no-use-after-await', () => {
             useMethod();
             return $(() => {
               return (
-                <Host>
+                <div>
                   {prop}
-                </Host>
+                </div>
               );
             });
           });`,
@@ -103,7 +103,7 @@ test('valid-lexical-scope', () => {
         useWatch$(() => {
           console.log(state.value);
         });
-        return <Host></Host>
+        return <div></div>
       });`,
       `
         import { useMethod, component$ } from 'stuff';
@@ -118,7 +118,7 @@ test('valid-lexical-scope', () => {
           const a: Value = {value: 12};
           const b: NullValue = null;
           useMethod(foo, bar);
-          return <Host></Host>
+          return <div></div>
         });`,
       `export const HelloWorld = component$(() => {
           const getMethod = () => {
@@ -128,7 +128,7 @@ test('valid-lexical-scope', () => {
           useWatch$(() => {
             console.log(useMethod);
           });
-          return <Host></Host>;
+          return <div></div>;
         });`,
 
       `export const HelloWorld = component$(() => {
@@ -146,7 +146,7 @@ test('valid-lexical-scope', () => {
           useWatch$(() => {
             console.log(useMethod);
           });
-          return <Host></Host>;
+          return <div></div>;
         });`,
       `
         export const useMethod = () => {
@@ -155,7 +155,7 @@ test('valid-lexical-scope', () => {
         export const HelloWorld = component$(() => {
           const foo = 'bar';
           useMethod(foo);
-          return <Host></Host>
+          return <div></div>
         });`,
       `
           import { useWatch$ } from '@builder.io/qwik';
@@ -167,7 +167,7 @@ test('valid-lexical-scope', () => {
             useWatch$(() => {
               console.log(a);
             });
-            return <Host></Host>;
+            return <div></div>;
           });`,
       `
           export const HelloWorld = component$(() => {
@@ -191,7 +191,7 @@ test('valid-lexical-scope', () => {
             useWatch$(() => {
               console.log(useMethod, obj);
             });
-            return <Host></Host>;
+            return <div></div>;
           });`,
       `
           import { useWatch$ } from '@builder.io/qwik';
@@ -200,9 +200,9 @@ test('valid-lexical-scope', () => {
               return 'ffg';
             }
             const a = getValue();
-            return <Host onClick$={() => {
+            return <div onClick$={() => {
               console.log(a);
-            }}></Host>;
+            }}></div>;
           });`,
 
       `
@@ -219,9 +219,9 @@ test('valid-lexical-scope', () => {
   }
 
   export const HelloWorld = component$((props: Props) => {
-    return <Host onClick$={async () => {
+    return <div onClick$={async () => {
       await props.method$();
-    }}></Host>;
+    }}></div>;
   });
       `,
     ],
@@ -232,7 +232,7 @@ test('valid-lexical-scope', () => {
           export const HelloWorld = component$(() => {
             const foo = 'bar';
             useMethod(foo);
-            return <Host></Host>
+            return <div></div>
           });`,
         errors: [
           'Identifier ("useMethod") can not be captured inside the scope (component$) because it\'s declared at the root of the module and it is not exported. Add export. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
@@ -248,7 +248,7 @@ test('valid-lexical-scope', () => {
             useWatch$(() => {
               console.log(useMethod);
             });
-            return <Host></Host>;
+            return <div></div>;
           });`,
         errors: [
           'Identifier ("useMethod") can not be captured inside the scope (useWatch$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
@@ -263,7 +263,7 @@ test('valid-lexical-scope', () => {
             useWatch$(() => {
               console.log(useMethod);
             });
-            return <Host></Host>;
+            return <div></div>;
           });`,
 
         errors: [
@@ -277,7 +277,7 @@ test('valid-lexical-scope', () => {
             useWatch$(() => {
               console.log(new Stuff(), useMethod);
             });
-            return <Host></Host>;
+            return <div></div>;
           });`,
 
         errors: [
@@ -292,7 +292,7 @@ test('valid-lexical-scope', () => {
             useWatch$(() => {
               console.log(stuff, useMethod);
             });
-            return <Host></Host>;
+            return <div></div>;
           });`,
 
         errors: [
@@ -307,7 +307,7 @@ test('valid-lexical-scope', () => {
             useWatch$(() => {
               console.log(a);
             });
-            return <Host></Host>;
+            return <div></div>;
           });`,
 
         errors: [
@@ -329,7 +329,7 @@ test('valid-lexical-scope', () => {
             useWatch$(() => {
               console.log(a);
             });
-            return <Host></Host>;
+            return <div></div>;
           });`,
 
         errors: [
@@ -347,7 +347,7 @@ test('valid-lexical-scope', () => {
           useWatch$(() => {
             console.log(state.value);
           });
-          return <Host></Host>
+          return <div></div>
         });`,
         errors: [
           'Identifier ("state") can not be captured inside the scope (useWatch$) because "state.value" is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',

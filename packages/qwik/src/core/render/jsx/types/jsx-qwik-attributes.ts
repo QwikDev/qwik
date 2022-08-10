@@ -200,24 +200,12 @@ export type ComponentKnownEvents = {
 /**
  * @public
  */
-export interface ComponentBaseProps
-  extends PreventDefault,
-    ComponentCustomEvents,
-    ComponentKnownEvents {
-  class?: string | { [className: string]: boolean };
-  className?: string | undefined;
-  style?: Record<string, string | number> | string | undefined;
+export interface ComponentBaseProps {
   key?: string | number;
-  id?: string | undefined;
-  ref?: Ref<Element>;
-
   'q:slot'?: string;
-
-  [key: `host:${string}`]: any;
-
-  'host:tagName'?: JSXTagName;
   children?: JSXChildren;
 }
+
 export interface QwikAttributes extends QwikProps, QwikEvents {}
 
 /**

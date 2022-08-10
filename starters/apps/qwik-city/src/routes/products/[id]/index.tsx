@@ -1,4 +1,4 @@
-import { Resource, component$, Host } from '@builder.io/qwik';
+import { Resource, component$ } from '@builder.io/qwik';
 import { useEndpoint, useLocation, RequestHandler, DocumentHead } from '@builder.io/qwik-city';
 
 export default component$(() => {
@@ -7,7 +7,7 @@ export default component$(() => {
   const resource = useEndpoint<typeof onGet>();
 
   return (
-    <Host>
+    <>
       <Resource
         resource={resource}
         onPending={() => <p>Loading</p>}
@@ -44,7 +44,7 @@ export default component$(() => {
           <a href="/products/hoodie">Hoodie (404 Not Found)</a>
         </li>
       </ul>
-    </Host>
+    </>
   );
 });
 

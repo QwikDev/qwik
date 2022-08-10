@@ -1,4 +1,4 @@
-import { component$, Host, useStyles$, useStore, useWatch$ } from '@builder.io/qwik';
+import { component$, useStyles$, useStore, useWatch$ } from '@builder.io/qwik';
 
 interface ContainerProps {
   url: string;
@@ -6,12 +6,12 @@ interface ContainerProps {
 
 export const Containers = component$(() => {
   return (
-    <Host class="my-app p-20">
+    <div class="my-app p-20">
       <Container url="/e2e/slot"></Container>
       <Container url="/e2e/two-listeners"></Container>
       <Container url="/e2e/lexical-scope"></Container>
       <Container url="/e2e/await"></Container>
-    </Host>
+    </div>
   );
 });
 
@@ -49,9 +49,9 @@ export const Container = component$((props: ContainerProps) => {
   });
 
   return (
-    <Host class="container">
+    <div class="container">
       <div class="url">{state.url}</div>
       <div class="frame" dangerouslySetInnerHTML={state.html} />
-    </Host>
+    </div>
   );
 });

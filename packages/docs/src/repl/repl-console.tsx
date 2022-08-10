@@ -1,4 +1,4 @@
-import { component$, Host, jsx } from '@builder.io/qwik';
+import { component$, jsx } from '@builder.io/qwik';
 import type { ReplEvent, ReplStore } from './types';
 
 export interface ReplConsoleProps {
@@ -6,11 +6,11 @@ export interface ReplConsoleProps {
 }
 export const ReplConsole = component$(({ store }: ReplConsoleProps) => {
   return (
-    <Host class="detail-logs">
+    <div class="detail-logs">
       {store.events.map((ev) => (
         <ReplLog log={ev} />
       ))}
-    </Host>
+    </div>
   );
 });
 

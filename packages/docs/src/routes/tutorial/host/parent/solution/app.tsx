@@ -1,24 +1,14 @@
-import { component$, Host, Slot, useStore } from '@builder.io/qwik';
+import { component$, Slot, useStore } from '@builder.io/qwik';
 
 export const App = component$(() => {
   const store = useStore({ count: 0 });
-  return (
-    <MyButton
-      host:onClick$={() => store.count++}
-      host:style={{ backgroundColor: 'lightpink', padding: '1em' }}
-    >
-      {store.count}
-    </MyButton>
-  );
+  return <MyButton>{store.count}</MyButton>;
 });
 
-export const MyButton = component$(
-  () => {
-    return (
-      <Host>
-        <Slot />
-      </Host>
-    );
-  },
-  { tagName: 'button' }
-);
+export const MyButton = component$(() => {
+  return (
+    <button>
+      <Slot />
+    </button>
+  );
+});

@@ -1,6 +1,5 @@
 import { parseQRL } from '../import/qrl';
 import { isQrl, isSameQRL, QRLInternal } from '../import/qrl-class';
-import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QContext } from './props';
 import { isArray } from '../util/types';
 import { $ } from '../import/qrl.public';
@@ -34,16 +33,6 @@ export const addQRLListener = (
     const cp = value.$copy$();
     cp.$setContainer$(ctx.$element$);
 
-    const capture = cp.$capture$;
-    if (capture == null) {
-      // we need to serialize the lexical scope references
-      const captureRef = cp.$captureRef$;
-      cp.$capture$ =
-        captureRef && captureRef.length
-          ? captureRef.map((ref) => String(addToArray(ctx.$refMap$, ref)))
-          : EMPTY_ARRAY;
-    }
-
     // Important we modify the array as it is cached.
     for (let i = 0; i < existingListeners.length; i++) {
       const qrl = existingListeners[i];
@@ -55,15 +44,6 @@ export const addQRLListener = (
     existingListeners.push(cp);
   }
   return existingListeners;
-};
-
-const addToArray = (array: any[], obj: any) => {
-  const index = array.indexOf(obj);
-  if (index === -1) {
-    array.push(obj);
-    return array.length - 1;
-  }
-  return index;
 };
 
 const ensureQrl = (value: any) => {

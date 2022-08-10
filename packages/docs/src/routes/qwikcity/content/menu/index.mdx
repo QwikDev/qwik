@@ -5,8 +5,9 @@ title: Qwik City - Menu
 # Qwik City - Menu
 
 Menus allow you to describe the site navigation structure in a simple declarative way. Menus come in two parts:
-1. A `_menu.md` file that contains the menu structure.
-2. A `useContentMenu()` function that can be used to retrieve the menu structure in a template to be used for rendering.
+
+1. A `menu.md` file that contains the menu structure for the directory it's in.
+2. A `useContent()` function that can be used to retrieve the menu structure in a template to be used for rendering.
 
 ## File Structure
 
@@ -16,24 +17,26 @@ First layout files as follows:
 - src/
   - routes/
     - some/   
-      - _menu.md
-      - _layout.tsx
-      - path.tsx       # https://example.com/some/path
+      - menu.md
+      - layout.tsx
+      - path/
+        - index.tsx  # https://example.com/some/path
 ```
 
 Navigating to `https://example.com/some/path` activates:
-- `src/routes/some/path.tsx`: This component will be used for rendering the page content.
-- `src/routes/some/_layout.tsx`: This layout will be used to provide content around the `src/routes/some/path.tsx`. Internally the layout will use `src/routes/some/_menu.md` to render the menus.
-- `src/routes/some/_menu.md`: This file will be used to declare the menu structure which will be rendered by `src/routes/some/_layout.tsx`.
+
+- `src/routes/some/path/index.tsx`: This component will be used for rendering the page content.
+- `src/routes/some/layout.tsx`: This layout will be used to provide content around the `src/routes/some/path/index.tsx`. Internally the layout can use `src/routes/some/menu.md` to render the menus.
+- `src/routes/some/menu.md`: This file will be used to declare the menu structure which will be rendered by `src/routes/some/layout.tsx`.
 
 ## Declaring Menu Structure
 
-Use `_menu.md` to declare the menu structure. 
+Use `menu.md` to declare the menu structure. 
 - Use the headings (`#`, `##`, etc..) to define menu depth
 - Use the bulleted list (`-`) to define menu items.
 
 ```markdown
-<!-- File: src/routes/some/_menu.md -->
+<!-- File: src/routes/some/menu.md -->
 # Docs
 
 ## Getting Started
@@ -47,7 +50,7 @@ Use `_menu.md` to declare the menu structure.
 
 ## Retrieving Menu Structure
 
-At runtime any component can retrieve the menu with `useContentMenu()` hook. The type returned is `ContentMenu`.
+At runtime any component can retrieve the menu with `useContent()` hook. The type returned is `ContentMenu`.
 
 The example above will return:
 ```javascript
@@ -78,13 +81,13 @@ The example above will return:
 
 ## Using `ContentMenu` in a layout
 
-While `useContentMenu()` can be invoked from any component that is part of the current route. It is typically used in a layout component (or a component used by layout) to render the menu. An example usage is shown here:
+While `useContent()` can be invoked from any component that is part of the current route. It is typically used in a layout component (or a component used by layout) to render the menu. An example usage is shown here:
 
 ```typescript
 export default component$(
   () => {
-    const menu = useContentMenu();
-    const location = useLocation();
+    const { menu } = useContent();
+    const { pathname } = useLocation();
 
     return (
       <Host class="menu">
@@ -98,7 +101,7 @@ export default component$(
                       <a
                         href={item.href}
                         class={{
-                          "is-active": location.pathname === item.href,
+                          "is-active": pathname === item.href,
                         }}
                       >
                         {item.text}
@@ -113,5 +116,4 @@ export default component$(
     );
   }
 );
-
 ```

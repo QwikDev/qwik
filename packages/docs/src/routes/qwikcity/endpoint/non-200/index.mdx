@@ -4,7 +4,7 @@ title: Qwik City - Non-200 Response
 
 # Qwik City - Non-200 Response
 
-At times it is necessary to respond with HTTP status codes other than 200. In such cases, data endpoint is the place to determine what status code should be returned.
+At times it is necessary to respond with HTTP status codes other than 200. In such cases, response handler is the place to determine what status code should be returned.
 
 Assume this file layout.
 ```
@@ -12,17 +12,16 @@ Assume this file layout.
   - routes/
     - product/
       - [skuId]/
-        - details.js     # https://example.com/product/1234/details
+        - index.tsx     # https://example.com/product/1234
 ```
 
 ## 404 - Not Found
 
-Let's say that a user does a request to an invalid `skuId` such as `https://example.com/product/999/details`. In this case, we would like to return a 404 HTTP status code and render a 404 page. The place where we determine if the request is valid or not is the data endpoint by looking into the database. Even if the response is non-200, the component still gets a chance to render a page (Except in the redirect case.)
+Let's say that a user does a request to an invalid `skuId` such as `https://example.com/product/999`. In this case, we would like to return a 404 HTTP status code and render a 404 page. The place where we determine if the request is valid or not is in the request handler by looking into the database. Even if the response is non-200, the component still gets a chance to render a page (Except in the redirect case.)
 
 ```typescript
-// File: src/routes/product/[skuId]/details.js
-import {component$} from '@builder.io/qwik';
-import {DocumentHead} from '@builder.io/qwik-city';
+// File: src/routes/product/[skuId]/index.tsx
+import { component$ } from '@builder.io/qwik';
 
 type EndpointData = ProductData | null;
 
@@ -46,10 +45,12 @@ export const onGet: RequestHandler<EndpointData> = async ({ params, response }) 
 
 export default component$(() => {
   const resource = useEndpoint<typeof onGet>(); //equivalent to useEndpoint<EndpointData>
-  // Early return for 404
+
   if (resource.state=='resolved' && !resource.resolved) {
+    // Early return for 404
     return <div>404: Product not found!!!</div>
   }
+
   // Normal rendering
   return (
     <Resource 
@@ -76,32 +77,35 @@ Let's say a user tries to go to a dashboard page, but has not logged in yet. We 
 
 ```typescript
 // File: src/routes/dashboard.js
-import {component$} from '@builder.io/qwik';
-import {DocumentHead} from '@builder.io/qwik-city';
-import {checkAuthorization} from '../utils' // Your authorization code
-import type {DashboardData} from '../types' // Your types
+import { component$ } from '@builder.io/qwik';
+import { checkAuthorization } from '../auth' // Your authorization code
+import type { DashboardData } from '../types' // Your types
 
 export const onGet: RequestHandler<DashboardData> = async ({ request, response }) => {
 	const isAuthorized = checkAuthorization(request.headers.get('cookie'));
 
 	if (!isAuthorized) {
 		// User is not authorized!
-		// Redirect to the log-in page
-		return response.redirect('/login')
+		// throw the redirect response to 
+    // relocate the user to the log-in page
+		throw response.redirect('/login');
 	} else {
 		// ...
 	}
 };
 ```
 
-The `response.redirect` function takes a url and optionally a status code as the second argument. 
+The `response.redirect()` function takes a url and optionally a status code as the second argument. 
 
 ```tsx
-return response.redirect('/login', 301) // Permanent redirect
+throw response.redirect('/login', 301) // Permanent redirect
 ```
 
-Redirect status codes are between 300-399. 
+[Common redirect status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages):
 
-If you do not provide a status code, Qwik City will default to a 307 temporary redirect status.
+- `307`: Temporary Redirect. The server sends this response to direct the client to get the requested resource at another URI with same method that was used in the prior request. This has the same semantics as the 302 Found HTTP response code, with the exception that the user agent must not change the HTTP method used: if a POST was used in the first request, a POST must be used in the second request.
+- `308`: Permanent Redirect. This means that the resource is now permanently located at another URI, specified by the `Location` HTTP Response header. This has the same semantics as the 301 Moved Permanently HTTP response code, with the exception that the user agent must not change the HTTP method used: if a POST was used in the first request, a POST must be used in the second request.
+
+If you do not provide a status code, Qwik City will default to a `307` Temporary Redirect status.
 
 Read more about redirect status codes [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages). 

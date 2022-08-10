@@ -1,7 +1,7 @@
+import { qwikCity } from '@builder.io/qwik-city/middleware/express';
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { join } from 'path';
-import { qwikCity } from '@builder.io/qwik-city/middleware/express';
 import render from './entry.ssr';
 
 // directories where the static assets are located

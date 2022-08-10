@@ -46,4 +46,6 @@
 ## Middleware
 
 - [Overview](middleware/overview/index.mdx)
+- [Cloudflare Pages](middleware/cloudflare-pages/index.mdx)
 - [Express](middleware/express/index.mdx)
+- [Netlify Edge](middleware/netlify-edge/index.mdx)

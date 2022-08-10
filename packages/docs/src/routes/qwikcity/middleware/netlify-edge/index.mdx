@@ -6,7 +6,9 @@ title: Qwik City - Netlify Edge Middleware
 
 Qwik City Netlify Edge middleware allows you to connect Qwik City to [Netlify Edge](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/).
 
-Below is an example of using the built-in middleware within a user's app.
+## Get started
+
+create file `src/entry.netlify.ts` using the built-in middleware within a user's app.
 
 ```typescript
 import { qwikCity } from '@builder.io/qwik-city/middleware/netlify-edge';
@@ -16,5 +18,51 @@ const qwikCityHandler = qwikCity(render);
 
 export default qwikCityHandler;
 ```
+
+`vite.config.ts`
+
+```typescript
+import { defineConfig } from "vite";
+import { qwikVite } from "@builder.io/qwik/optimizer";
+import { qwikCity } from "@builder.io/qwik-city/vite";
+import tsconfigPaths from "vite-tsconfig-paths";
++import netlifyEdge from "@netlify/vite-plugin-netlify-edge";
+
+export default defineConfig(() => {
+  return {
+    plugins: [
+      qwikCity(),
+      qwikVite({
++        ssr: {
++          outDir: "netlify/edge-functions",
++        },
+      }),
+      tsconfigPaths(),
++      netlifyEdge({
++        functionName: "entry.netlify",
++      }),
+    ],
+  };
+});
+```
+
+configure `netlify.toml`
+
+```toml
+[[edge_functions]]
+path = "/*"
+function = "entry.netlify"
+```
+
+## Usage
+
+Along with client build, run vite command to performing SSR build
+
+```bash
+vite build --ssr src/entry.netlify.ts
+```
+
+Now you can use Netlify CLI to preview or deploy. [Read full guide here](https://github.com/BuilderIO/qwik/blob/main/starters/servers/netlify-edge/README.md)
+
 
 - [`Netlify Edge Middleware Source`](https://github.com/BuilderIO/qwik/blob/main/packages/qwik-city/middleware/netlify-edge/index.ts)

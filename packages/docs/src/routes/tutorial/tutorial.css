@@ -58,7 +58,7 @@
 @media (max-width: 768px) {
   .tutorial main {
     width: 300%;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 33.33% 66.66%;
   }
 
   .tutorial .tutorial-panel-input {
@@ -71,7 +71,7 @@
 
   .tutorial .repl {
     grid-template-rows: 100%;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 50% 50%;
     grid-template-areas: 'repl-input-panel repl-output-panel';
   }
 }

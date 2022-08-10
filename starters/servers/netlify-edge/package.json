@@ -12,7 +12,7 @@
     "vite": {
       "VITE_IMPORTS": "import netlifyEdge from '@netlify/vite-plugin-netlify-edge';",
       "VITE_CONFIG": "",
-      "VITE_QWIK": "{ ssr: { outDir: '.netlify/edge-functions/entry.netlify' } }",
+      "VITE_QWIK": "{ ssr: { outDir: 'netlify/edge-functions/entry.netlify' } }",
       "VITE_PLUGINS": "netlifyEdge({ functionName: 'entry.netlify' }),"
     }
   }

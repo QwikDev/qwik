@@ -61,7 +61,7 @@
   .playground .repl {
     width: 300vw;
     grid-template-rows: 100%;
-    grid-template-columns: 1fr 1fr 1fr !important;
+    grid-template-columns: 33.33% 33.33% 33.33% !important;
     grid-template-areas: 'repl-input-panel repl-output-panel repl-detail-panel';
     transition: transform 500ms;
   }

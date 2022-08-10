@@ -127,7 +127,10 @@ export async function loadUserResponse(
 
         // create user request event, which is a narrowed down request context
         const requstEv: RequestEvent = {
-          request: { ...request },
+          request: {
+            ...request,
+            headers: new Headers(request.headers)
+          },
           url: new URL(url),
           params: { ...params },
           response,

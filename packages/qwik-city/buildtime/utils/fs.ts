@@ -1,13 +1,27 @@
 import { basename, dirname, normalize } from 'path';
 import { toTitleCase } from './format';
 
-export function removeExtension(fileName: string) {
-  const parts = fileName.split('.');
-  if (parts.length > 1) {
-    parts.pop();
-    return parts.join('.');
+export function getExtension(fileName: string) {
+  if (typeof fileName === 'string') {
+    const parts = fileName.trim().toLowerCase().split('.');
+    if (parts.length > 1) {
+      const ext = parts.pop()!;
+      if (ext === 'ts' && parts.pop() === 'd') {
+        return '.d.ts';
+      }
+      return '.' + ext;
+    }
   }
-  return fileName;
+  return '';
+}
+
+export function removeExtension(fileName: string) {
+  if (typeof fileName === 'string') {
+    fileName = fileName.trim();
+    const ext = getExtension(fileName);
+    return fileName.slice(0, fileName.length - ext.length);
+  }
+  return '';
 }
 
 export function normalizePath(path: string) {

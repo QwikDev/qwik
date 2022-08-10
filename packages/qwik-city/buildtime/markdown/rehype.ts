@@ -7,50 +7,39 @@ import { headingRank } from 'hast-util-heading-rank';
 import { toString } from 'hast-util-to-string';
 import { visit } from 'unist-util-visit';
 import type { ContentHeading } from '../../runtime/src';
-import { dirname, resolve } from 'path';
-import type { BuildContext } from '../types';
-import { existsSync } from 'fs';
-import { normalizePath } from '../utils/fs';
+import type { BuildContext, NormalizedPluginOptions } from '../types';
+import { getExtension, isMarkdownExt, normalizePath } from '../utils/fs';
 import { frontmatterAttrsToDocumentHead } from './frontmatter';
+import { getMarkdownRelativeUrl, isSameOriginUrl } from '../routing/pathname';
 
 export function rehypePage(ctx: BuildContext): Transformer {
   return (ast, vfile) => {
     const mdast = ast as Root;
     const sourcePath = normalizePath(vfile.path);
 
-    updateContentLinks(mdast, sourcePath);
+    updateContentLinks(mdast, ctx.opts, sourcePath);
     exportContentHead(ctx, mdast, sourcePath);
     exportContentHeadings(mdast);
   };
 }
 
-function updateContentLinks(mdast: Root, sourcePath: string) {
+function updateContentLinks(mdast: Root, opts: NormalizedPluginOptions, sourcePath: string) {
   visit(mdast, 'element', (node: any) => {
     const tagName = node && node.type === 'element' && node.tagName.toLowerCase();
-    if (tagName !== 'a') {
-      return;
-    }
+    if (tagName === 'a') {
+      const href = ((node.properties && node.properties.href) || '').trim();
 
-    const href = ((node.properties && node.properties.href) || '').trim();
-    if (!isLocalHref(href)) {
-      return;
-    }
+      if (isSameOriginUrl(href)) {
+        const ext = getExtension(href);
 
-    const lowerHref = href.toLowerCase();
-    if (lowerHref.endsWith('.mdx') || lowerHref.endsWith('.md')) {
-      const mdxPath = resolve(dirname(sourcePath), href);
-      const mdxExists = existsSync(mdxPath);
-      if (!mdxExists) {
-        console.warn(
-          `\nThe link "${href}", found within "${sourcePath}", does not have a matching source file.\n`
-        );
-        return;
-      }
-
-      if (lowerHref.endsWith('.mdx')) {
-        node.properties.href = node.properties.href.substring(0, href.length - 4);
-      } else if (lowerHref.endsWith('.md')) {
-        node.properties.href = node.properties.href.substring(0, href.length - 3);
+        if (isMarkdownExt(ext)) {
+          node.properties.href = getMarkdownRelativeUrl(
+            opts,
+            sourcePath,
+            node.properties.href,
+            true
+          );
+        }
       }
     }
   });
@@ -118,17 +107,6 @@ function createExport(mdast: Root, identifierName: string, val: any) {
     },
   };
   mdast.children.unshift(mdxjsEsm);
-}
-
-function isLocalHref(href: string) {
-  href = href.toLowerCase();
-  return !(
-    href === '' ||
-    href.startsWith('#') ||
-    href.startsWith('https://') ||
-    href.startsWith('http://') ||
-    href.startsWith('about:')
-  );
 }
 
 const own = {}.hasOwnProperty;

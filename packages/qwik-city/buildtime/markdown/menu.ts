@@ -1,6 +1,6 @@
 import type { NormalizedPluginOptions, BuildMenu, ParsedMenuItem, RouteSourceFile } from '../types';
 import { marked } from 'marked';
-import { getMenuPathname, getMenuLinkHref } from '../routing/pathname';
+import { getMenuPathname, getMarkdownRelativeUrl } from '../routing/pathname';
 import { createFileId } from '../utils/fs';
 
 export function createMenu(opts: NormalizedPluginOptions, filePath: string) {
@@ -58,7 +58,7 @@ export function parseMenu(opts: NormalizedPluginOptions, filePath: string, conte
           } else if (h2Token.type === 'link') {
             h2 = {
               text: h2Token.text,
-              href: getMenuLinkHref(opts, filePath, h2Token.href),
+              href: getMarkdownRelativeUrl(opts, filePath, h2Token.href, true),
             };
             parsedMenu.items!.push(h2);
           } else {
@@ -83,7 +83,7 @@ export function parseMenu(opts: NormalizedPluginOptions, filePath: string, conte
                 } else if (liItem.type === 'link') {
                   h2.items.push({
                     text: liItem.text,
-                    href: getMenuLinkHref(opts, filePath, liItem.href),
+                    href: getMarkdownRelativeUrl(opts, filePath, liItem.href, true),
                   });
                 } else {
                   throw new Error(
@@ -94,7 +94,7 @@ export function parseMenu(opts: NormalizedPluginOptions, filePath: string, conte
             } else if (liToken.type === 'link') {
               h2.items.push({
                 text: liToken.text,
-                href: getMenuLinkHref(opts, filePath, liToken.href),
+                href: getMarkdownRelativeUrl(opts, filePath, liToken.href, true),
               });
             } else {
               throw new Error(

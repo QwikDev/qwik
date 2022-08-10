@@ -4,12 +4,14 @@ import { test } from 'uvu';
 import { equal } from 'uvu/assert';
 import {
   createFileId,
+  getExtension,
   isMarkdownExt,
   isMenuFileName,
   isModuleExt,
   isPageExt,
   isPageModuleExt,
   normalizePath,
+  removeExtension,
 } from './fs';
 
 const routesDir = normalizePath(join(tmpdir(), 'src', 'routes'));
@@ -83,6 +85,42 @@ test('isMenuFileName', () => {
   ];
   t.forEach((c) => {
     equal(isMenuFileName(c.name), c.expect, c.name);
+  });
+});
+
+test('getExtension', () => {
+  const t = [
+    { name: 'file.dot.dot.PnG ', expect: '.png' },
+    { name: 'file.JSX', expect: '.jsx' },
+    { name: 'file.d.ts', expect: '.d.ts' },
+    { name: 'file.ts', expect: '.ts' },
+    { name: 'C:\\path\\to\\file.tsx', expect: '.tsx' },
+    { name: 'http://qwik.builder.io/index.mdx', expect: '.mdx' },
+    { name: 'file', expect: '' },
+    { name: '', expect: '' },
+    { name: null, expect: '' },
+    { name: undefined, expect: '' },
+  ];
+  t.forEach((c) => {
+    equal(getExtension(c.name!), c.expect, c.name!);
+  });
+});
+
+test('removeExtension', () => {
+  const t = [
+    { name: 'file.dot.dot.PnG ', expect: 'file.dot.dot' },
+    { name: 'file.JSX', expect: 'file' },
+    { name: 'file.d.ts', expect: 'file' },
+    { name: 'file.ts', expect: 'file' },
+    { name: 'C:\\path\\to\\file.tsx', expect: 'C:\\path\\to\\file' },
+    { name: 'http://qwik.builder.io/index.mdx', expect: 'http://qwik.builder.io/index' },
+    { name: 'file', expect: 'file' },
+    { name: '', expect: '' },
+    { name: null, expect: '' },
+    { name: undefined, expect: '' },
+  ];
+  t.forEach((c) => {
+    equal(removeExtension(c.name!), c.expect, c.name!);
   });
 });
 

@@ -8,7 +8,7 @@ Qwik City Netlify Edge middleware allows you to connect Qwik City to [Netlify Ed
 
 ## Get started
 
-create file `src/entry.netlify.ts` using the built-in middleware within a user's app.
+Create `src/entry.netlify.ts` using the built-in middleware within a user's app.
 
 ```typescript
 import { qwikCity } from '@builder.io/qwik-city/middleware/netlify-edge';
@@ -46,7 +46,7 @@ export default defineConfig(() => {
 });
 ```
 
-configure `netlify.toml`
+Configure `netlify.toml`
 
 ```toml
 [[edge_functions]]
@@ -65,4 +65,4 @@ vite build --ssr src/entry.netlify.ts
 Now you can use Netlify CLI to preview or deploy. [Read full guide here](https://github.com/BuilderIO/qwik/blob/main/starters/servers/netlify-edge/README.md)
 
 
-- [`Netlify Edge Middleware Source`](https://github.com/BuilderIO/qwik/blob/main/packages/qwik-city/middleware/netlify-edge/index.ts)
+- [Netlify Edge Middleware Source](https://github.com/BuilderIO/qwik/blob/main/packages/qwik-city/middleware/netlify-edge/index.ts)

@@ -35,11 +35,11 @@ export default component$(() => {
   const location = useLocation();
 
   return (
-    <Host>
+    <main>
       <h1>SKU</h1>
       <p>Pathname: {location.pathname}</p>
       <p>Sku Id: {location.params.skuId}</p>
-    </Host>
+    </main>
   );
 });
 ```

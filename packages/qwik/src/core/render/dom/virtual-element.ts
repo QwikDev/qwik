@@ -72,7 +72,7 @@ export const serializeVirtualAttributes = (map: Map<string, string>) => {
   return attributes.join(' ');
 };
 
-const SHOW_COMMENT = 256;
+const SHOW_COMMENT = 128;
 const FILTER_ACCEPT = 1;
 const FILTER_REJECT = 2;
 

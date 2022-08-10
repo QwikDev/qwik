@@ -55,7 +55,6 @@ export const pauseContainer = async (
   elmOrDoc: Element | Document,
   defaultParentJSON?: Element
 ): Promise<SnapshotResult> => {
-  debugger;
   const doc = getDocument(elmOrDoc);
   const documentElement = doc.documentElement;
   const containerEl = isDocument(elmOrDoc) ? documentElement : elmOrDoc;
@@ -221,7 +220,6 @@ export interface SnapshotResult {
 export const pauseFromContainer = async (containerEl: Element): Promise<SnapshotResult> => {
   const containerState = getContainerState(containerEl);
   const contexts = getNodesInScope(containerEl, hasQId).map(tryGetContext) as QContext[];
-  console.log(contexts);
   return _pauseFromContexts(contexts, containerState);
 };
 

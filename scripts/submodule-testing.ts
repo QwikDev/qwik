@@ -22,7 +22,7 @@ export async function submoduleTesting(config: BuildConfig) {
   const esm = build({
     ...opts,
     format: 'esm',
-    banner: { js: getBanner('@builder.io/qwik/testing') },
+    banner: { js: getBanner('@builder.io/qwik/testing', config.distVersion) },
     outExtension: { '.js': '.mjs' },
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.mjs'),
@@ -40,7 +40,9 @@ export async function submoduleTesting(config: BuildConfig) {
     ...opts,
     format: 'cjs',
     outExtension: { '.js': '.cjs' },
-    banner: { js: getBanner('@builder.io/qwik/testing') + injectGlobalThisPoly() },
+    banner: {
+      js: getBanner('@builder.io/qwik/testing', config.distVersion) + injectGlobalThisPoly(),
+    },
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.cjs'),
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.cjs'),

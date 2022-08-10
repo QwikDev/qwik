@@ -6,7 +6,7 @@ title: Qwik City - Layout
 
 When implementing routes, different routes usually share a common header, footer, and menu system. We call the common parts a layout.
 
-The developer could extract all of these into `<Header>`, `<Footer>`, and `<Menu>` components and manually build up each page's wrapping components, but that is repetitive and error-prone. Instead, we can use layouts to automatically reuse common parts.
+The developer could extract all of these into `<Header>`, `<Footer>`, and `<Menu>` components and manually add them to each page component, but that is repetitive and error-prone. Instead, we can use layouts to automatically reuse common parts.
 
 ## Example
 
@@ -36,8 +36,10 @@ We can define the above with these files.
     - menu.tsx       # Menu component implementation
   - routes/
     - layout.tsx     # Layout implementation using: <Header>, <Footer>, and <Menu>
-    - about.tsx      # https://example.com/about
-    - index.tsx      # https://example.com/
+    - about/
+      - index.tsx      # https://example.com/about
+    - index/
+      - index.tsx      # https://example.com/
 ```
 
 ### Component implementations

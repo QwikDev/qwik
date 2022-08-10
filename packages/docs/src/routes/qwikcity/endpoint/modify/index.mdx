@@ -2,21 +2,15 @@
 title: Qwik City - Modify Data
 ---
 
-
 # Qwik City - Modify Data
-
-
----
-NOTE: Not yet implemented.
-
----
-
-
+ 
+> NOTE: Not yet implemented.
+ 
 Just like routes can define a way to fetch data, they can also define HTTP verbs to modify data. These are `GET`, `POST`, `PUT`, `PATCH`, `DELETE`. We have already discussed the `GET` verb in the previous section. Each of these verbs has a corresponding `on___` method such as `onGet`, `onPost`, `onPut`, `onPatch`, and `onDelete`.
 
 ```typescript
-// File: src/routes/product/[skuId]/details.js
-import { RequestHandler } from '@builder.io/qwik-city';
+// File: src/routes/product/[skuId]/index.tsx
+import type { RequestHandler } from '@builder.io/qwik-city';
 
 type EndpointData = ProductData | null;
 
@@ -25,12 +19,18 @@ interface ProductData {
   price: number;
   description: string;
 }
-export const onPut: RequestHandler<EndpointData> = async ({ params, request, response } ) => {
-  // put your DB access here, we are hard coding a response for the simplicity of this tutorial.
-  request; // <- read data from request and porform DB update.
+export const onPut: RequestHandler<EndpointData> = async ({ url, params, request, response } ) => {
+  // put your DB access here (hard coding a response for the simplicity)
   
-  response.headers.append('Cache-Control', 'no-cache, no-store');
+  // read data from request and perform DB update.
+  // console.log(params.skuId);
+  // console.log(request.method);
+  // console.log(url.pathname);
+  
+  // set response headers
+  response.headers.append('Cache-Control', ' public, max-age=86400');
 
+  // return data to be access from `useEndpoint()`
   return {
     skuId: params.skuId,
     price: 123.45,

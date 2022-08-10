@@ -35,9 +35,9 @@ qComponent('should render Counter and accept events', async () => {
     `          <host q:version="" q:container="resumed">
     <!--qv q:key=sX: q:id=0-->
     <my-counter>
-      <button class="decrement" on:click="/runtimeQRL#_[0 1 2]">-</button>
+      <button q:id="1" class="decrement" on:click="/runtimeQRL#_[0 1 2]">-</button>
       <span>15</span>
-      <button class="increment" on:click="/runtimeQRL#_[0 1 2]">+</button>
+      <button q:id="2" class="increment" on:click="/runtimeQRL#_[0 1 2]">+</button>
     </my-counter>
     <!--/qv-->
   </host>`
@@ -50,6 +50,7 @@ qComponent('should render Counter and accept events', async () => {
   <!--qv q:key=sX: q:id=0-->
   <my-counter>
     <button
+      q:id="1"
       class="decrement"
       on:click="/runtimeQRL#_[0 1 2]
 /runtimeQRL#_[0 1 3]"
@@ -58,6 +59,7 @@ qComponent('should render Counter and accept events', async () => {
     </button>
     <span>10</span>
     <button
+      q:id="2"
       class="increment"
       on:click="/runtimeQRL#_[0 1 2]
 /runtimeQRL#_[0 1 3]"
@@ -89,19 +91,25 @@ qComponent('should render a collection of todo items', async () => {
   await expectDOM(
     host,
     `
-              <host q:version="" q:container="resumed">
-            <!--qv q:key=sX: q:id=0-->
-            <!--qv q:key=sX: q:id=1-->
-            <input type="checkbox" checked="" />
-            <span>Task 1</span>
-            <!--/qv-->
-            <!--qv q:key=sX: q:id=2-->
-            <input type="checkbox" />
-            <span>Task 2</span>
-            <!--/qv-->
-            Total: 2
-            <!--/qv-->
-          </host>
+    <host q:version="" q:container="resumed">
+      <!--qv q:key=sX: q:id=0-->
+      <items>
+        <!--qv q:key=sX: q:id=1-->
+        <item-detail>
+          <input type="checkbox" checked="" />
+          <span>Task 1</span>
+        </item-detail>
+        <!--/qv-->
+        <!--qv q:key=sX: q:id=2-->
+        <item-detail>
+          <input type="checkbox" />
+          <span>Task 2</span>
+        </item-detail>
+        <!--/qv-->
+        Total: 2
+      </items>
+      <!--/qv-->
+    </host>
     `
   );
 });

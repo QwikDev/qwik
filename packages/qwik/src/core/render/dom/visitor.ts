@@ -546,9 +546,6 @@ const createElm = (
     isSvg = false;
     flags &= ~IS_SVG;
   }
-  if (isComponent || ctx.$listeners$ || hasRef) {
-    setQId(rctx, ctx);
-  }
 
   const currentComponent = rctx.$currentComponent$;
   if (currentComponent) {
@@ -570,6 +567,10 @@ const createElm = (
     updateComponentProperties(ctx, rctx, props);
   } else {
     updateProperties(ctx, rctx, props, isSvg);
+  }
+
+  if (isComponent || ctx.$listeners$ || hasRef) {
+    setQId(rctx, ctx);
   }
 
   let wait: ValueOrPromise<void>;

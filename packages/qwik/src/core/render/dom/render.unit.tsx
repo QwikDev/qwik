@@ -65,6 +65,7 @@ renderSuite('should serialize events correctly', async () => {
     fixture,
     `
       <div
+        q:id="0"
         on:mousedown="/runtimeQRL#_"
         on:keyup="/runtimeQRL#_"
         on:dblclick="/runtimeQRL#_"
@@ -180,7 +181,7 @@ renderSuite('should render a div then a component', async () => {
     `
     <div aria-hidden="false">
       <div class="normal">Normal div</div>
-      <button on:click="/runtimeQRL#_">toggle</button>
+      <button q:id="1" on:click="/runtimeQRL#_">toggle</button>
     </div>`
   );
   await trigger(fixture.host, 'button', 'click');
@@ -188,10 +189,11 @@ renderSuite('should render a div then a component', async () => {
     fixture,
     `
     <div aria-hidden="true">
-      <!--qv q:key=sX: q:id=1-->
+      <!--qv q:key=sX: q:id=2-->
       <div><div>this is ToggleChild</div></div>
       <!--/qv-->
       <button
+        q:id="1"
         on:click="/runtimeQRL#_
 /runtimeQRL#_"
       >
@@ -207,13 +209,14 @@ renderSuite('should process clicks', async () => {
   await render(fixture.host, <Counter step={5} />);
   await expectRendered(
     fixture,
-    '<button class="decrement" on:click="/runtimeQRL#_[0 1]">-</button>'
+    '<button q:id="1" class="decrement" on:click="/runtimeQRL#_[0 1]">-</button>'
   );
   await trigger(fixture.host, 'button.increment', 'click');
   await expectRendered(
     fixture,
     `
       <button
+        q:id="1"
         class="decrement"
         on:click="/runtimeQRL#_[0 1]
 /runtimeQRL#_[0 2]"
@@ -395,9 +398,9 @@ renderSuite('should render a component with hooks', async () => {
         <div q:id="1" id="effect"></div>
         <div q:id="2" id="effect-destroy"></div>
         <div id="watch">true</div>
-        <div q:id="3" id="watch-destroy"></div>
+        <div q:id="3" id="watch-destroy">true</div>
         <div id="server-mount">true</div>
-        <div q:id="4" id="cleanup"></div>
+        <div q:id="4" id="cleanup">true</div>
         <div id="reference">true</div>
       </div>`
   );

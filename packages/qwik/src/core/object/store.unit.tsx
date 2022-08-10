@@ -12,6 +12,7 @@ import { useDocument } from '../use/use-document.public';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
 import { render } from '../render/dom/render.public';
+import { expectDOM } from '../../testing/expect-dom.unit';
 
 const storeSuite = suite('store');
 
@@ -26,13 +27,24 @@ storeSuite('should serialize content', async () => {
       <LexicalScope />
     </div>
   );
+  await expectDOM(
+    document.body,
+    `
+  <body q:version="" q:container="resumed">
+    <div>
+      <!--qv q:key=sX: q:id=0-->
+      <div q:id="1" on:click="/runtimeQRL#_[0 1 2 3 4 5 6 7 8 9 10 11]"></div>
+      <!--/qv-->
+    </div>
+  </body>`
+  );
   await pauseContainer(document.body);
   const script = getQwikJSON(document.body)!;
 
   equal(JSON.parse(script.textContent!), {
     ctx: {
       '#1': {
-        r: '0 1 2 m 8 f 7 6 i! m k #0 l',
+        r: '0 1 2 m 8 f 7 6 i! m k l',
       },
     },
     objs: [
@@ -64,7 +76,7 @@ storeSuite('should serialize content', async () => {
       },
       ['d'],
       'hello',
-      '\b/runtimeQRL#_{"tagName":"lexical-scope"}',
+      '\b/runtimeQRL#_',
       ['0', 'g', '1', 'h'],
       2,
       {},

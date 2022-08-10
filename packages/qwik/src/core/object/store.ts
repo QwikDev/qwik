@@ -55,6 +55,7 @@ export const pauseContainer = async (
   elmOrDoc: Element | Document,
   defaultParentJSON?: Element
 ): Promise<SnapshotResult> => {
+  debugger;
   const doc = getDocument(elmOrDoc);
   const documentElement = doc.documentElement;
   const containerEl = isDocument(elmOrDoc) ? documentElement : elmOrDoc;
@@ -220,6 +221,7 @@ export interface SnapshotResult {
 export const pauseFromContainer = async (containerEl: Element): Promise<SnapshotResult> => {
   const containerState = getContainerState(containerEl);
   const contexts = getNodesInScope(containerEl, hasQId).map(tryGetContext) as QContext[];
+  console.log(contexts);
   return _pauseFromContexts(contexts, containerState);
 };
 
@@ -582,7 +584,7 @@ export const getQwikJSON = (parentElm: Element): HTMLScriptElement | undefined =
 };
 
 const SHOW_ELEMENT = 1;
-const SHOW_COMMENT = 256;
+const SHOW_COMMENT = 128;
 const FILTER_ACCEPT = 1;
 const FILTER_REJECT = 2;
 const FILTER_SKIP = 3;

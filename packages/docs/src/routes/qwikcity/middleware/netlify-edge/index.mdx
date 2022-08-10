@@ -1,0 +1,20 @@
+---
+title: Qwik City - Netlify Edge Middleware
+---
+
+# Qwik City - Netlify Edge Middleware
+
+Qwik City Netlify Edge middleware allows you to connect Qwik City to [Netlify Edge](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/).
+
+Below is an example of using the built-in middleware within a user's app.
+
+```typescript
+import { qwikCity } from '@builder.io/qwik-city/middleware/netlify-edge';
+import render from './entry.ssr';
+
+const qwikCityHandler = qwikCity(render);
+
+export default qwikCityHandler;
+```
+
+- [`Netlify Edge Middleware Source`](https://github.com/BuilderIO/qwik/blob/main/packages/qwik-city/middleware/netlify-edge/index.ts)

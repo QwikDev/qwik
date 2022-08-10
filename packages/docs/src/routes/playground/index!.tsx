@@ -7,6 +7,7 @@ import playgroundApp from '@playground-data';
 import type { ReplAppInput } from '../../repl/types';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/repl-share-url';
 import type { DocumentHead } from '@builder.io/qwik-city';
+import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
 
 export default component$(() => {
   useStyles$(styles);
@@ -24,6 +25,11 @@ export default component$(() => {
     };
     return initStore;
   });
+
+  const panelStore = useStore(() => ({
+    active: 'Input',
+    list: ['Input', 'Output', 'Console'],
+  }));
 
   useClientEffect$(() => {
     // run once on the client
@@ -85,6 +91,12 @@ export default component$(() => {
         style={{
           gridTemplateColumns: `${store.colLeft}% ${100 - store.colLeft}%`,
         }}
+        class={{
+          'repl-panel-output': panelStore.active === 'Output',
+          'repl-panel-console': panelStore.active === 'Console',
+          // might be removed ?
+          repl: true,
+        }}
         enableCopyToPlayground={false}
         enableDownload={true}
         enableInputDelete={true}
@@ -100,6 +112,7 @@ export default component$(() => {
           left: `calc(${store.colLeft}% - 6px)`,
         }}
       />
+      <PanelToggle panelStore={panelStore} />
     </Host>
   );
 });

@@ -6,6 +6,7 @@ import styles from './tutorial.css?inline';
 import { TutorialContentFooter } from './tutorial-content-footer';
 import { TutorialContentHeader } from './tutorial-content-header';
 import tutorialSections, { TutorialApp } from '@tutorial-data';
+import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
 import { Header } from '../../components/header/header';
 import type { ReplAppInput, ReplModuleInput } from '../../repl/types';
 import { EditIcon } from '../../components/svgs/edit-icon';
@@ -15,6 +16,10 @@ export default component$(() => {
   useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
 
   const { pathname } = useLocation();
+  const panelStore = useStore(() => ({
+    active: 'Tutorial',
+    list: PANELS,
+  }));
   const store = useStore<TutorialStore>(() => {
     const p = pathname.split('/');
     const appId = `${p[2]}/${p[3]}`;
@@ -46,7 +51,12 @@ export default component$(() => {
   return (
     <Host class="tutorial full-width fixed-header">
       <Header />
-      <main>
+      <main
+        class={{
+          'tutorial-panel-input': panelStore.active === 'Input',
+          'tutorial-panel-output': panelStore.active === 'Output',
+        }}
+      >
         <div class="tutorial-content-panel">
           <TutorialContentHeader store={store} />
 
@@ -87,6 +97,7 @@ export default component$(() => {
           <div class="tutorial-repl-footer" />
         </div>
       </main>
+      <PanelToggle panelStore={panelStore} />
     </Host>
   );
 });
@@ -155,6 +166,7 @@ export interface TutorialStore extends ReplAppInput {
   next: TutorialApp | undefined;
 }
 
+export const PANELS = ['Tutorial', 'Input', 'Output'];
 export const onGet: RequestHandler = ({ response }) => {
   response.headers.set(
     'Cache-Control',

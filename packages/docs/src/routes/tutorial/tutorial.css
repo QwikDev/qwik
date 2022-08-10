@@ -31,7 +31,9 @@
   display: grid;
   grid-template-columns: minmax(450px, 45%) auto;
   grid-template-areas: 'tutorial-content-panel tutorial-repl-panel';
-  height: 100%;
+  grid-template-rows: 100%;
+  height: calc(100% - var(--panel-toggle-height));
+  transition: transform 500ms;
 }
 
 .tutorial-repl-panel {
@@ -51,7 +53,27 @@
     'content-header'
     'content-main'
     'content-footer';
-  height: calc(100vh - var(--header-height));
+}
+
+@media (max-width: 768px) {
+  .tutorial main {
+    width: 300%;
+    grid-template-columns: 1fr 2fr;
+  }
+
+  .tutorial .tutorial-panel-input {
+    transform: translateX(-33.33%);
+  }
+
+  .tutorial .tutorial-panel-output {
+    transform: translateX(-66.66%);
+  }
+
+  .tutorial .repl {
+    grid-template-rows: 100%;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: 'repl-input-panel repl-output-panel';
+  }
 }
 
 .content-header {
@@ -88,7 +110,7 @@
   grid-area: content-footer;
   padding: 7px 15px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: auto auto;
   background-color: var(--repl-tab-bg-color);
 }
 

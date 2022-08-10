@@ -1,4 +1,5 @@
 import { component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
+import type { RequestHandler } from '@builder.io/qwik-city';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
@@ -24,3 +25,11 @@ export default component$(() => {
     </Host>
   );
 });
+
+export const onGet: RequestHandler = ({ response }) => {
+  // cache for pages using this layout
+  response.headers.set(
+    'Cache-Control',
+    'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
+  );
+};

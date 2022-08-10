@@ -1,4 +1,5 @@
 import { $, component$, Host, useStyles$, useStore, useClientEffect$ } from '@builder.io/qwik';
+import type { RequestHandler } from '@builder.io/qwik-city';
 import { Repl } from '../../repl/repl';
 import { Header } from '../../components/header/header';
 import styles from './playground.css?inline';
@@ -112,3 +113,10 @@ export interface PlaygroundStore extends ReplAppInput {
   colLeft: number;
   shareUrlTmr: any;
 }
+
+export const onGet: RequestHandler = ({ response }) => {
+  response.headers.set(
+    'Cache-Control',
+    'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
+  );
+};

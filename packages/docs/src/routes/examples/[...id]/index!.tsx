@@ -1,4 +1,5 @@
 import { component$, Host, useStyles$, useWatch$, useStore } from '@builder.io/qwik';
+import type { RequestHandler } from '@builder.io/qwik-city';
 import { Repl } from '../../../repl/repl';
 import styles from './examples.css?inline';
 import { Header } from '../../../components/header/header';
@@ -141,3 +142,10 @@ interface ExamplesStore extends ReplAppInput {
 }
 
 type ActivePanel = 'Examples' | 'Input' | 'Output' | 'Console';
+
+export const onGet: RequestHandler = ({ response }) => {
+  response.headers.set(
+    'Cache-Control',
+    'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
+  );
+};

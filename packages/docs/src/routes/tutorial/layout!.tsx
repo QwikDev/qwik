@@ -1,4 +1,5 @@
 import { component$, Host, Slot, useStore, useStyles$, useWatch$ } from '@builder.io/qwik';
+import type { RequestHandler } from '@builder.io/qwik-city';
 import { useLocation } from '@builder.io/qwik-city';
 import { Repl } from '../../repl/repl';
 import styles from './tutorial.css?inline';
@@ -153,3 +154,10 @@ export interface TutorialStore extends ReplAppInput {
   prev: TutorialApp | undefined;
   next: TutorialApp | undefined;
 }
+
+export const onGet: RequestHandler = ({ response }) => {
+  response.headers.set(
+    'Cache-Control',
+    'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
+  );
+};

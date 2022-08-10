@@ -1,5 +1,9 @@
 # CONTRIBUTING
 
+If you are using VSCode, you can install the [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension. Once installed you will be prompted to reopen the folder in a container. All required dependencies will be installed in the container for you. If you're not prompted, you can run the `Remote-Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
+
+If you're not abled to use the dev container, follow these instructions:
+
 Make sure you have installed [Rust](https://www.rust-lang.org/it/tools/install).
 
 > On Windows, Rust requires [C++ build tools](https://visualstudio.microsoft.com/it/visual-cpp-build-tools/). You can also select _Desktop development with C++_

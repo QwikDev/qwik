@@ -12,6 +12,34 @@ Qwik City comes pre-bundle with:
 - [`express`](../express/index.mdx)
 - [`netlify-edge`](../netlify-edge/index.mdx)
 
+## Build
+
+Qwik City use vite cli `--ssr` to specify the SSR entry
+
+```bash
+vite build --ssr src/entry.MIDDLEWARE.ts
+```
+
+default output dir is `./server` and it is configurable by setting `qwikVite` plugin option
+
+```typescript
+// file vite.config.ts
+import { qwikVite } from "@builder.io/qwik/optimizer";
+
+export default defineConfig(() => {
+  return {
+    plugins: [
+      // ...other plugins
+      qwikVite({
+        ssr: {
+          outDir: "CUSTOM_DIR",
+        },
+      }),
+    ],
+  };
+});
+```
+
 ## Advanced
 
 The `requestHandler()` utility is what each of the above middleware bundles uses in order to translate their request/response to a standard format for Qwik City to use. This function can be used to provide middleware for specific server frameworks.

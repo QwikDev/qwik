@@ -129,7 +129,7 @@ export async function loadUserResponse(
         const requstEv: RequestEvent = {
           request: {
             ...request,
-            headers: new Headers(request.headers)
+            headers: new Headers(request.headers),
           },
           url: new URL(url),
           params: { ...params },

@@ -4,70 +4,76 @@ title: Qwik City - Nested Layout
 
 # Qwik City - Nested Layout
 
-At times it is desirable to nest layouts into each other.
+Most times it is desirable to nest layouts into each other. A page's can be nested in numerous wrapping layouts, which is determined by the directory structure.
 
-The developer could extract all of these into common components, but that is error-prone and repetitive. Instead, we can use layouts to automatically reuse common parts.
-
-
-We can define the above with these files.
 ```
 - src/
   - routes/
-    - _layout.tsx            # Parent layout
-    - home/
-      - _layout.tsx          # Child layout
-      - overview.tsx         # https://example.com/home/overview
+    - layout.tsx         # Parent layout
+    - about/
+      - layout.tsx       # Child layout
+      - index.tsx        # https://example.com/about
 ```
 
-In the above example, there are two layouts that apply themselves to the output. 
-1. `src/routes/_layout.tsx`
-2. `src/routes/home/_layout.tsx`
+In the above example, there are two layouts that apply themselves around the `/about` page component. 
 
-In the above case, the layouts will nest each other.
+1. `src/routes/layout.tsx`
+2. `src/routes/about/layout.tsx`
+
+In this case, the layouts will nest each other with the page within each of them.
 
 ```
-+--------------------------------------------------+
-|       src/routes/_layout.tsx                     |
-|  +--------------------------------------------+  |
-|  |    src/routes/home/_layout.tsx             |  | 
-|  |  +--------------------------------------+  |  |
-|  |  | src/routes/home/overview.tsx         |  |  |
-|  |  |                                      |  |  |
-|  |  +--------------------------------------+  |  |
-|  |                                            |  |
-|  +--------------------------------------------+  |
-|                                                  |
-+--------------------------------------------------+
++------------------------------------------------+
+|       src/routes/layout.tsx                    |
+|  +------------------------------------------+  |
+|  |    src/routes/about/layout.tsx           |  | 
+|  |  +------------------------------------+  |  |
+|  |  | src/routes/about/index.tsx         |  |  |
+|  |  |                                    |  |  |
+|  |  +------------------------------------+  |  |
+|  |                                          |  |
+|  +------------------------------------------+  |
+|                                                |
++------------------------------------------------+
 ```
 
 ```typescript
-// File: src/routes/_layout.tsx
+// File: src/routes/layout.tsx
 export default component$(() => {
   return (
-    <>
-      src/routes/_layout.tsx
+    <main>
       <Slot />{/* <== Child layout/route inserted here */}
-    </>
+    </main>
   );
 });
 ```
 
 ```typescript
-// File: src/routes/home/_layout.tsx
+// File: src/routes/about/layout.tsx
 export default component$(() => {
   return (
-    <>
-      src/routes/home/_layout.tsx
+    <section>
       <Slot />{/* <== Child layout/route inserted here */}
-    </>
+    </section>
   );
 });
 ```
 
 ```typescript
-// File: src/routes/home/overview.tsx
+// File: src/routes/about/index.tsx
 export default component$(() => {
-  return <>src/routes/home/overview.tsx</>;
+  return <h1>About</h1>;
 });
 ```
 
+The above example would render the html:
+
+```html
+<main>
+  <section>
+    <h1>About</h1>
+  </section>
+</main>
+```
+
+The default is that a page will create it's layout stack by climbing up each directory until it gets to the `src/routes` directory. If at any point it should stop climbing up the directories you can use the [top layout](../top/index.mdx) feature.

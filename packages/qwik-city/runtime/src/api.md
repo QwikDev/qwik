@@ -31,11 +31,24 @@ export interface ContentMenu {
     text: string;
 }
 
-// Warning: (ae-forgotten-export) The symbol "DocumentHeadValue" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "DocumentHeadProps" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export type DocumentHead<T = unknown> = DocumentHeadValue | ((props: DocumentHeadProps<T>) => DocumentHeadValue);
+
+// @public (undocumented)
+export interface DocumentHeadProps<T = unknown> extends RouteLocation {
+    // (undocumented)
+    data: T;
+    // (undocumented)
+    head: ResolvedDocumentHead;
+}
+
+// @public (undocumented)
+export interface DocumentHeadValue {
+    links?: DocumentLink[];
+    meta?: DocumentMeta[];
+    styles?: DocumentStyle[];
+    title?: string;
+}
 
 // @public (undocumented)
 export interface DocumentLink {
@@ -101,11 +114,8 @@ export interface DocumentStyle {
     style: string;
 }
 
-// Warning: (ae-forgotten-export) The symbol "RequestEvent" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "EndpointHandlerResult" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export type EndpointHandler<BODY = unknown> = (ev: RequestEvent) => EndpointHandlerResult<BODY>;
+// @public @deprecated (undocumented)
+export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
 
 // @public (undocumented)
 export const Html: Component<HtmlProps>;
@@ -144,25 +154,63 @@ export interface QwikCityPlan {
 }
 
 // @public (undocumented)
-export type ResolvedDocumentHead = Required<DocumentHeadValue>;
+export interface RequestContext {
+    // (undocumented)
+    formData(): Promise<FormData>;
+    // (undocumented)
+    headers: Headers;
+    // (undocumented)
+    json(): Promise<any>;
+    // (undocumented)
+    method: string;
+    // (undocumented)
+    text(): Promise<string>;
+    // (undocumented)
+    url: string;
+}
 
-// Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ROUTE_TYPE_ENDPOINT" needs to be exported by the entry point index.d.ts
+// @public (undocumented)
+export interface RequestEvent {
+    // (undocumented)
+    abort: () => void;
+    // (undocumented)
+    next: () => Promise<void>;
+    params: RouteParams;
+    // (undocumented)
+    request: RequestContext;
+    // (undocumented)
+    response: ResponseContext;
+    // (undocumented)
+    url: URL;
+}
+
+// Warning: (ae-forgotten-export) The symbol "RequestHandlerResult" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type RouteData = [pattern: RegExp, loaders: ModuleLoader[]] | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]] | [
-pattern: RegExp,
-loaders: ModuleLoader[],
-paramNames: string[],
-routeType: typeof ROUTE_TYPE_ENDPOINT
-];
+export type RequestHandler<BODY = unknown> = (ev: RequestEvent) => RequestHandlerResult<BODY>;
+
+// @public (undocumented)
+export type ResolvedDocumentHead = Required<DocumentHeadValue>;
+
+// @public (undocumented)
+export interface ResponseContext {
+    // Warning: (ae-forgotten-export) The symbol "ErrorResponse" needs to be exported by the entry point index.d.ts
+    readonly error: (status: number) => ErrorResponse;
+    readonly headers: Headers;
+    // Warning: (ae-forgotten-export) The symbol "RedirectResponse" needs to be exported by the entry point index.d.ts
+    readonly redirect: (url: string, status?: number) => RedirectResponse;
+    status: number;
+}
+
+// Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type RouteData = [pattern: RegExp, loaders: ModuleLoader[]] | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]];
 
 // @public (undocumented)
 export interface RouteLocation {
     // (undocumented)
     readonly href: string;
-    // Warning: (ae-forgotten-export) The symbol "RouteParams" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     readonly params: RouteParams;
     // (undocumented)
@@ -170,6 +218,9 @@ export interface RouteLocation {
     // (undocumented)
     readonly query: Record<string, string>;
 }
+
+// @public (undocumented)
+export type RouteParams = Record<string, string>;
 
 // @public (undocumented)
 export const RouterOutlet: Component<    {}>;

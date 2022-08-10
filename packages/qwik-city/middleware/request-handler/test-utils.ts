@@ -1,5 +1,5 @@
 import type { RequestContext } from '../../runtime/src/library/types';
-import { Headers } from './headers';
+import { createHeaders } from './headers';
 import type { ResponseHandler } from './types';
 
 export function mockRequestContext(opts?: { method?: string; url?: string | URL }) {
@@ -8,12 +8,12 @@ export function mockRequestContext(opts?: { method?: string; url?: string | URL 
   const request: RequestContext = {
     method: opts?.method || 'GET',
     url,
-    headers: new Headers(),
+    headers: createHeaders(),
   } as any;
 
   const responseData: { status: number; headers: Headers; body: Promise<string> } = {
     status: 200,
-    headers: new Headers(),
+    headers: createHeaders(),
     body: null as any,
   };
 

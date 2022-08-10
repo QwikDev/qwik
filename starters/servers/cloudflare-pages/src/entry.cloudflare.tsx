@@ -1,5 +1,5 @@
-import render from './entry.ssr';
 import { qwikCity } from '@builder.io/qwik-city/middleware/cloudflare-pages';
+import render from './entry.ssr';
 
 const qwikCityMiddleware = qwikCity(render);
 

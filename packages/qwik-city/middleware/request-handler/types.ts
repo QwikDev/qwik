@@ -19,13 +19,13 @@ export type ResponseHandler<T = any> = (
 ) => T;
 
 export interface UserResponseContext {
+  type: 'endpoint' | 'page';
   url: URL;
   params: RouteParams;
   status: number;
   headers: Headers;
   resolvedBody: string | number | boolean | null | undefined;
   pendingBody: Promise<string | number | boolean | null | undefined> | undefined;
-  isEndpointOnly: boolean;
 }
 
 export interface QwikCityRequestOptions extends QwikCityPlan, RenderOptions {}

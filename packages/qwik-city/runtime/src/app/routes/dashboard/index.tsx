@@ -6,14 +6,12 @@ export default component$(() => {
     <div>
       <h1>Dashboard</h1>
       <p>
-        <a href="/sign-out" data-test-link="sign-out">
-          Sign Out
-        </a>
+        <a href="/sign-out">Sign Out</a>
       </p>
     </div>
   );
 });
 
 export const head: DocumentHead = {
-  title: 'Dashboard',
+  title: 'Home',
 };

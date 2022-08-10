@@ -60,8 +60,7 @@ import { qrl } from "@builder.io/qwik";
 export function foo() {
     return import("../state");
 }
-export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("../../entry_hooks")
-, "Header_component_RGgm7Ks9QWI"));
+export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("../../entry_hooks"), "Header_component_RGgm7Ks9QWI"));
 
 ============================= entry_hooks.js (ENTRY POINT)==
 

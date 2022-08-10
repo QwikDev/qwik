@@ -28,6 +28,13 @@ html {
   --header-height: 56px;
   --repl-tab-height: 56px;
   --repl-tab-bg-color: var(--qwik-light-blue);
+  --panel-toggle-height: 0px;
+}
+
+@media (max-width: 768px) {
+  html {
+    --panel-toggle-height: 56px;
+  }
 }
 
 a,

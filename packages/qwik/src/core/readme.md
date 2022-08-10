@@ -195,16 +195,6 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 
 @alpha
 
-# `useHostElement`
-
-Retrieves the Host Element of the current component.
-
-NOTE: `useHostElement` method can only be used in the synchronous portion of the callback (before any `await` statements.)
-
-<docs code="./examples.tsx#use-host-element"/>
-
-@alpha
-
 # `noSerialize`
 
 Marks a property on a store as non-serializable.

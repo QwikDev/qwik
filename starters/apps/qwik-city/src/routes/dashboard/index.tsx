@@ -5,13 +5,11 @@ export default component$(() => {
   return (
     <div>
       <h1>Dashboard</h1>
-      <p>
-        <a href="/sign-out">Sign Out</a>
-      </p>
+      <p>Welcome to the dashboard.</p>
     </div>
   );
 });
 
 export const head: DocumentHead = {
-  title: 'Dashboard',
+  title: 'Home',
 };

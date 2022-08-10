@@ -38,7 +38,7 @@ export async function submoduleServer(config: BuildConfig) {
   const esm = build({
     ...opts,
     format: 'esm',
-    banner: { js: getBanner('@builder.io/qwik/server') + injectGlobalPoly() },
+    banner: { js: getBanner('@builder.io/qwik/server', config.distVersion) + injectGlobalPoly() },
     outExtension: { '.js': '.mjs' },
     plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik'), qwikDomPlugin],
     watch: watcher(config, submodule),
@@ -52,7 +52,7 @@ export async function submoduleServer(config: BuildConfig) {
   });
 
   const cjsBanner = [
-    getBanner('@builder.io/qwik/server'),
+    getBanner('@builder.io/qwik/server', config.distVersion),
     injectGlobalThisPoly(),
     injectGlobalPoly(),
     `globalThis.qwikServer = (function (module) {`,
@@ -127,7 +127,7 @@ const browserCjsRequireShim = `
 if (typeof require !== 'function' && typeof location !== 'undefined' && typeof navigator !== 'undefined') {
   // shim cjs require() for core.cjs within a browser
   globalThis.require = function(path) {
-    if (path === './core.cjs') {
+    if (path === './core.cjs' || path === '@builder.io/qwik') {
       if (!self.qwikCore) {
         throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a browser.');
       }

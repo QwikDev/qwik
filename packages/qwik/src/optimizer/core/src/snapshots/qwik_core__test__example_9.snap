@@ -55,8 +55,7 @@ export { _hW } from "@builder.io/qwik";
 ============================= test.tsx ==
 
 import { qrl } from "@builder.io/qwik";
-qrl(()=>import("./header_wjuauqn7oxg")
-, "Header_WjUaUQN7Oxg");
+qrl(()=>import("./header_wjuauqn7oxg"), "Header_WjUaUQN7Oxg");
 
 == DIAGNOSTICS ==
 

@@ -5,7 +5,7 @@ export default component$(() => {
   useStyles$(styles);
 
   return (
-    <footer>
+    <div>
       <ul>
         <li>
           <a href="/blog">Blog</a>
@@ -17,14 +17,11 @@ export default component$(() => {
           <a href="/about-us">About Us</a>
         </li>
         <li>
-          <a href="/sign-in">Sign In</a>
-        </li>
-        <li>
           <a class="footer-home" href="/">
             Home
           </a>
         </li>
       </ul>
-    </footer>
+    </div>
   );
 });

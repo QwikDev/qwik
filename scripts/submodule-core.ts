@@ -46,7 +46,7 @@ async function submoduleCoreProd(config: BuildConfig) {
     format: 'es',
     entryFileNames: 'core.mjs',
     sourcemap: true,
-    banner: getBanner('@builder.io/qwik'),
+    banner: getBanner('@builder.io/qwik', config.distVersion),
   };
 
   const cjsIntro = [
@@ -64,7 +64,7 @@ async function submoduleCoreProd(config: BuildConfig) {
     name: 'qwikCore',
     entryFileNames: 'core.cjs',
     sourcemap: true,
-    banner: getBanner('@builder.io/qwik'),
+    banner: getBanner('@builder.io/qwik', config.distVersion),
     intro: cjsIntro,
   };
 
@@ -98,7 +98,7 @@ async function submoduleCoreProd(config: BuildConfig) {
     format: {
       comments: /__PURE__/,
       preserve_annotations: true,
-      preamble: getBanner('@builder.io/qwik'),
+      preamble: getBanner('@builder.io/qwik', config.distVersion),
       ecma: 2020,
     },
   });

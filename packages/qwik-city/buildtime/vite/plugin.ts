@@ -1,11 +1,11 @@
 import { createMdxTransformer, MdxTransform } from '../markdown/mdx';
-import { basename, extname, join, resolve } from 'path';
+import { basename, join, resolve } from 'path';
 import type { Plugin, UserConfig } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-runtime';
 import type { BuildContext } from '../types';
 import { createBuildContext, resetBuildContext } from '../utils/context';
 import {
-  isLayoutName,
+  getExtension,
   isMarkdownExt,
   isMenuFileName,
   normalizePath,
@@ -108,14 +108,14 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
           return menuCode;
         }
 
-        const ext = extname(id);
+        const ext = getExtension(fileName);
         if (isMarkdownExt(ext) && mdxTransform) {
           const mdxResult = await mdxTransform(code, id);
           return mdxResult;
         }
 
         if (ctx.target === 'client') {
-          if (ext === '.js' && !isLayoutName(fileName)) {
+          if (ext === '.js') {
             id = normalizePath(id);
             if (id.startsWith(ctx.opts.routesDir)) {
               if (SERVER_ENDPOINT_FNS.some((fnName) => code.includes(fnName))) {

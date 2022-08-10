@@ -57,22 +57,11 @@ export function testAppSuite(title: string) {
       buildCtx = ctx;
       Object.assign(testCtx, ctx);
 
-      testCtx.assertPage = (p) => {
-        const pageRoutes = ctx.routes.filter((r) => r.type === 'page');
-        const r = pageRoutes.find((r) => r.pathname === p);
+      testCtx.assertRoute = (p) => {
+        const r = ctx.routes.find((r) => r.pathname === p);
         if (!r) {
-          console.log(pageRoutes);
+          console.log(ctx.routes);
           assert.ok(r, `did not find page route "${p}"`);
-        }
-        return r as any;
-      };
-
-      testCtx.assertEndpoint = (p) => {
-        const endPointRoutes = ctx.routes.filter((r) => r.type === 'endpoint');
-        const r = endPointRoutes.find((r) => r.pathname === p);
-        if (!r) {
-          console.log(endPointRoutes);
-          assert.ok(r, `did not find endpoint route "${p}"`);
         }
         return r as any;
       };
@@ -92,8 +81,7 @@ export function testAppSuite(title: string) {
 }
 
 export interface TestAppBuildContext extends BuildContext {
-  assertPage: (pathname: string) => BuildRoute;
-  assertEndpoint: (pathname: string) => BuildRoute;
+  assertRoute: (pathname: string) => BuildRoute;
   assertLayout: (id: string) => BuildLayout;
 }
 

@@ -39,8 +39,7 @@ export const Foo = component$(() => {
 
 ============================= foo_component_div_host_ondocumentscroll_zip7mifsjry.js (ENTRY POINT)==
 
-export const Foo_component_div_host_onDocumentScroll_Zip7mifsjRY = ()=>console.log('host:onDocument:scroll')
-;
+export const Foo_component_div_host_onDocumentScroll_Zip7mifsjRY = ()=>console.log('host:onDocument:scroll');
 
 /*
 {
@@ -65,8 +64,7 @@ export const Foo_component_div_host_onDocumentScroll_Zip7mifsjRY = ()=>console.l
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie")
-, "Foo_component_HTDRsvUbLiE"), {
+export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
 
@@ -74,8 +72,7 @@ export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_ht
 
 import { qrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = ()=>{
-    return qrl(()=>import("./foo_component_1_dvu6fitwgly")
-    , "Foo_component_1_DvU6FitWglY");
+    return qrl(()=>import("./foo_component_1_dvu6fitwgly"), "Foo_component_1_DvU6FitWglY");
 };
 
 /*
@@ -99,8 +96,7 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
 */
 ============================= foo_component_div_host_onclick_cpeh970jbey.js (ENTRY POINT)==
 
-export const Foo_component_div_host_onClick_cPEH970JbEY = ()=>console.log('host:onClick$')
-;
+export const Foo_component_div_host_onClick_cPEH970JbEY = ()=>console.log('host:onClick$');
 
 /*
 {
@@ -126,32 +122,21 @@ export const Foo_component_div_host_onClick_cPEH970JbEY = ()=>console.log('host:
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { qrl } from "@builder.io/qwik";
 export const Foo_component_1_DvU6FitWglY = ()=>{
-    const handler = qrl(()=>import("./foo_component_handler_h10xztd0e7w")
-    , "Foo_component_handler_H10xZtD0e7w");
+    const handler = qrl(()=>import("./foo_component_handler_h10xztd0e7w"), "Foo_component_handler_H10xZtD0e7w");
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw")
-        , "Foo_component_div_onClick_M48DYiidSJw"),
-        onDocumentScroll$: qrl(()=>import("./foo_component_div_ondocumentscroll_rwfftfivukc")
-        , "Foo_component_div_onDocumentScroll_rwFFtFiVuKc"),
-        onDocumentScroll$: qrl(()=>import("./foo_component_div_ondocumentscroll_1_cwneogpmtzi")
-        , "Foo_component_div_onDocumentScroll_1_CwneoGpmTZI"),
-        "on-cLick$": qrl(()=>import("./foo_component_div_on_click_ioasjw8vyjc")
-        , "Foo_component_div_on_cLick_IoAsJW8vYJc"),
-        "onDocument-sCroll$": qrl(()=>import("./foo_component_div_ondocument_scroll_5vnik61pzom")
-        , "Foo_component_div_onDocument_sCroll_5VNik61PZOM"),
-        "onDocument-scroLL$": qrl(()=>import("./foo_component_div_ondocument_scroll_1q0sgr8te3g")
-        , "Foo_component_div_onDocument_scroLL_1q0Sgr8te3g"),
-        "host:onClick$": qrl(()=>import("./foo_component_div_host_onclick_cpeh970jbey")
-        , "Foo_component_div_host_onClick_cPEH970JbEY"),
-        "host:onDocumentScroll$": qrl(()=>import("./foo_component_div_host_ondocumentscroll_zip7mifsjry")
-        , "Foo_component_div_host_onDocumentScroll_Zip7mifsjRY"),
-        "host:onDocumentScroll$": qrl(()=>import("./foo_component_div_host_ondocumentscroll_1_em1lspk7jvg")
-        , "Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg"),
+        onClick$: qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw"),
+        onDocumentScroll$: qrl(()=>import("./foo_component_div_ondocumentscroll_rwfftfivukc"), "Foo_component_div_onDocumentScroll_rwFFtFiVuKc"),
+        onDocumentScroll$: qrl(()=>import("./foo_component_div_ondocumentscroll_1_cwneogpmtzi"), "Foo_component_div_onDocumentScroll_1_CwneoGpmTZI"),
+        "on-cLick$": qrl(()=>import("./foo_component_div_on_click_ioasjw8vyjc"), "Foo_component_div_on_cLick_IoAsJW8vYJc"),
+        "onDocument-sCroll$": qrl(()=>import("./foo_component_div_ondocument_scroll_5vnik61pzom"), "Foo_component_div_onDocument_sCroll_5VNik61PZOM"),
+        "onDocument-scroLL$": qrl(()=>import("./foo_component_div_ondocument_scroll_1q0sgr8te3g"), "Foo_component_div_onDocument_scroLL_1q0Sgr8te3g"),
+        "host:onClick$": qrl(()=>import("./foo_component_div_host_onclick_cpeh970jbey"), "Foo_component_div_host_onClick_cPEH970JbEY"),
+        "host:onDocumentScroll$": qrl(()=>import("./foo_component_div_host_ondocumentscroll_zip7mifsjry"), "Foo_component_div_host_onDocumentScroll_Zip7mifsjRY"),
+        "host:onDocumentScroll$": qrl(()=>import("./foo_component_div_host_ondocumentscroll_1_em1lspk7jvg"), "Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg"),
         onKeyup$: handler,
         "onDocument:keyup$": handler,
         "onWindow:keyup$": handler,
-        custom$: qrl(()=>import("./foo_component_div_custom_pyhnxab17ms")
-        , "Foo_component_div_custom_pyHnxab17ms")
+        custom$: qrl(()=>import("./foo_component_div_custom_pyhnxab17ms"), "Foo_component_div_custom_pyHnxab17ms")
     });
 };
 export { _hW } from "@builder.io/qwik";
@@ -177,8 +162,7 @@ export { _hW } from "@builder.io/qwik";
 */
 ============================= foo_component_div_host_ondocumentscroll_1_em1lspk7jvg.js (ENTRY POINT)==
 
-export const Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg = ()=>console.log('host:onWindow:scroll')
-;
+export const Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg = ()=>console.log('host:onWindow:scroll');
 
 /*
 {
@@ -201,8 +185,7 @@ export const Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg = ()=>console
 */
 ============================= foo_component_div_custom_pyhnxab17ms.js (ENTRY POINT)==
 
-export const Foo_component_div_custom_pyHnxab17ms = ()=>console.log('custom')
-;
+export const Foo_component_div_custom_pyHnxab17ms = ()=>console.log('custom');
 
 /*
 {
@@ -225,8 +208,7 @@ export const Foo_component_div_custom_pyHnxab17ms = ()=>console.log('custom')
 */
 ============================= foo_component_div_ondocument_scroll_1q0sgr8te3g.js (ENTRY POINT)==
 
-export const Foo_component_div_onDocument_scroLL_1q0Sgr8te3g = ()=>console.log('onDocument-scroLL')
-;
+export const Foo_component_div_onDocument_scroLL_1q0Sgr8te3g = ()=>console.log('onDocument-scroLL');
 
 /*
 {
@@ -249,8 +231,7 @@ export const Foo_component_div_onDocument_scroLL_1q0Sgr8te3g = ()=>console.log('
 */
 ============================= foo_component_div_ondocumentscroll_1_cwneogpmtzi.js (ENTRY POINT)==
 
-export const Foo_component_div_onDocumentScroll_1_CwneoGpmTZI = ()=>console.log('onWindowScroll')
-;
+export const Foo_component_div_onDocumentScroll_1_CwneoGpmTZI = ()=>console.log('onWindowScroll');
 
 /*
 {
@@ -273,8 +254,7 @@ export const Foo_component_div_onDocumentScroll_1_CwneoGpmTZI = ()=>console.log(
 */
 ============================= foo_component_div_on_click_ioasjw8vyjc.js (ENTRY POINT)==
 
-export const Foo_component_div_on_cLick_IoAsJW8vYJc = ()=>console.log('on-cLick$')
-;
+export const Foo_component_div_on_cLick_IoAsJW8vYJc = ()=>console.log('on-cLick$');
 
 /*
 {
@@ -297,8 +277,7 @@ export const Foo_component_div_on_cLick_IoAsJW8vYJc = ()=>console.log('on-cLick$
 */
 ============================= foo_component_div_onclick_m48dyiidsjw.js (ENTRY POINT)==
 
-export const Foo_component_div_onClick_M48DYiidSJw = ()=>console.log('onClick$')
-;
+export const Foo_component_div_onClick_M48DYiidSJw = ()=>console.log('onClick$');
 
 /*
 {
@@ -321,8 +300,7 @@ export const Foo_component_div_onClick_M48DYiidSJw = ()=>console.log('onClick$')
 */
 ============================= foo_component_div_ondocumentscroll_rwfftfivukc.js (ENTRY POINT)==
 
-export const Foo_component_div_onDocumentScroll_rwFFtFiVuKc = ()=>console.log('onDocumentScroll')
-;
+export const Foo_component_div_onDocumentScroll_rwFFtFiVuKc = ()=>console.log('onDocumentScroll');
 
 /*
 {
@@ -345,8 +323,7 @@ export const Foo_component_div_onDocumentScroll_rwFFtFiVuKc = ()=>console.log('o
 */
 ============================= foo_component_handler_h10xztd0e7w.js (ENTRY POINT)==
 
-export const Foo_component_handler_H10xZtD0e7w = ()=>console.log('reused')
-;
+export const Foo_component_handler_H10xZtD0e7w = ()=>console.log('reused');
 export { _hW } from "@builder.io/qwik";
 
 /*
@@ -370,8 +347,7 @@ export { _hW } from "@builder.io/qwik";
 */
 ============================= foo_component_div_ondocument_scroll_5vnik61pzom.js (ENTRY POINT)==
 
-export const Foo_component_div_onDocument_sCroll_5VNik61PZOM = ()=>console.log('onDocument-sCroll')
-;
+export const Foo_component_div_onDocument_sCroll_5VNik61PZOM = ()=>console.log('onDocument-sCroll');
 
 /*
 {

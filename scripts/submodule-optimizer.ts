@@ -45,7 +45,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
     const esmBuild = build({
       ...opts,
       format: 'esm',
-      banner: { js: getBanner('@builder.io/qwik/optimizer') },
+      banner: { js: getBanner('@builder.io/qwik/optimizer', config.distVersion) },
       outExtension: { '.js': '.mjs' },
       define: {
         'globalThis.IS_CJS': 'false',
@@ -112,7 +112,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
               braces: true,
               beautify: true,
               indent_level: 2,
-              preamble: getBanner('@builder.io/qwik/optimizer'),
+              preamble: getBanner('@builder.io/qwik/optimizer', config.distVersion),
             },
             mangle: false,
           });

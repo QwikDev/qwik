@@ -5,9 +5,9 @@
 ```tsx
 export const Component = component$(() => {
   return (
-    <Host>
+    <>
       <div>Hello world</div>
-    </Host>
+    </>
   );
 });
 ```
@@ -31,11 +31,11 @@ export function Component() {
 ```tsx
 export const Component = component$(() => {
   return (
-    <Host>
+    <>
       <button onClick$={() => console.log('click')}>
         Click me
       </button>
-    </Host>
+    </>
   )
 })
 ```
@@ -62,9 +62,9 @@ export const Component = component$(() => {
     value: 0,
   });
   return (
-    <Host>
+    <>
       <div>Value is: ${state.value}</div>
-    </Host>
+    </>
   );
 });
 ```
@@ -92,10 +92,10 @@ export const Counter = component$(() => {
     count: 0,
   });
   return (
-    <Host>
+    <>
       <div>Value is: ${state.count}</div>
       <button onClick$={() => state.count++}>Increment</button>
-    </Host>
+    </>
   );
 });
 ```
@@ -135,9 +135,9 @@ export const Clock = component$(() => {
   });
 
   return (
-    <Host>
+    <>
       <div>Seconds: ${state.seconds}</div>
-    </Host>
+    </>
   );
 });
 ```
@@ -180,10 +180,10 @@ export const Fetch = component$(() => {
   });
 
   return (
-    <Host>
+    <>
       <div>${state.responseJson.name}</div>
       <input name="url" onInput$={(ev) => (state.url = ev.target.value)} />
-    </Host>
+    </>
   );
 });
 ```
@@ -220,18 +220,18 @@ export const Parent = component$(() => {
   });
   useContextProvider(MyContext, state);
   return (
-    <Host>
+    <>
       <Child />
-    </Host>
+    </>
   );
 });
 
 export const Child = component$(() => {
   const state = useContext(MyContext);
   return (
-    <Host>
+    <>
       <span>{state.message}</span>
-    </Host>
+    </>
   );
 });
 ```
@@ -254,10 +254,10 @@ export const DebouncedInput = component$(() => {
     return () => clearTimeout(debounced);
   });
   return (
-    <Host>
+    <>
       <input value={state.value} onInput$={(e) => (state.value = e.target.value)} />
       <span>{state.debouncedValue}</span>
-    </Host>
+    </>
   );
 });
 ```
@@ -274,7 +274,7 @@ export const DynamicBackground = component$(() => {
     blue: 0,
   });
   return (
-    <Host style={
+    <div style={
       'background': `rgb(${state.red}, ${state.green}, ${state.blue})`
     }>
     <>
@@ -285,7 +285,7 @@ export const DynamicBackground = component$(() => {
       }}>
         Change background
       </button>
-    </Host>
+    </div>
   )
 });
 ```
@@ -344,7 +344,7 @@ export const Presidents = component$(() => {
     { name: 'Grover Cleveland', years: '1885-1889' },
   ];
   return (
-    <Host>
+    <>
       <ul>
         $
         {presidents.map((president) => (
@@ -353,7 +353,7 @@ export const Presidents = component$(() => {
           </li>
         ))}
       </ul>
-    </Host>
+    </>
   );
 });
 ```

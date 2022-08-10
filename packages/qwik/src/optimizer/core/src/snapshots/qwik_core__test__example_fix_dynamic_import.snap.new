@@ -1,5 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 805
 expression: output
 ---
 ==INPUT==
@@ -49,7 +50,7 @@ export const Header_component_RGgm7Ks9QWI = ()=>{
   "captures": false,
   "loc": [
     173,
-    286
+    284
   ]
 }
 */

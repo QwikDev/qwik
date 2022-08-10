@@ -1,4 +1,4 @@
-import { component$, Host, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@builder.io/qwik';
 import { useContent, Link, useLocation } from '~qwik-city-runtime';
 import styles from './menu.css?inline';
 
@@ -10,7 +10,7 @@ export const Menu = component$(
     const { pathname } = useLocation();
 
     return (
-      <Host class="menu">
+      <div class="menu">
         {menu
           ? menu.items?.map((item, i) => (
               <>
@@ -33,7 +33,7 @@ export const Menu = component$(
               </>
             ))
           : null}
-      </Host>
+      </div>
     );
   },
   { tagName: 'aside' }

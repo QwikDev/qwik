@@ -1,5 +1,5 @@
-import type { QwikElement, VirtualElement } from "../render/dom/virtual-element";
-import { isObject } from "./types";
+import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
+import { isObject } from './types';
 
 export const isNode = (value: any): value is Node => {
   return value && typeof value.nodeType == 'number';

@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { component$, useStore, Host, createContext, useContextProvider } from '@builder.io/qwik';
+import { component$, useStore, createContext, useContextProvider } from '@builder.io/qwik';
 
 export const LOGS = createContext<{ content: string }>('qwik.logs.resource');
 
@@ -13,9 +13,9 @@ export const TreeshakingApp = component$(() => {
     text: 'text',
   });
   return (
-    <Host>
+    <div>
       <Child text={state} />
-    </Host>
+    </div>
   );
 });
 
@@ -25,9 +25,9 @@ export const Child = component$((props: { text: { text: string } }) => {
   });
 
   return (
-    <Host>
+    <div>
       <span onClick$={() => console.log('hola')}>Text: {props.text.text}</span>
       <span>Child: {state.text}</span>
-    </Host>
+    </div>
   );
 });

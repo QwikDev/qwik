@@ -1,4 +1,4 @@
-import { component$, Host, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@builder.io/qwik';
 import { Link } from '@builder.io/qwik-city';
 import styles from './footer.css?inline';
 
@@ -7,7 +7,7 @@ export default component$(
     useStyles$(styles);
 
     return (
-      <Host>
+      <div>
         <ul>
           <li>
             <a href="/blog">Blog</a>
@@ -33,7 +33,7 @@ export default component$(
             </a>
           </li>
         </ul>
-      </Host>
+      </div>
     );
   },
   {

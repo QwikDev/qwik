@@ -1,6 +1,5 @@
 import {
   component$,
-  Host,
   implicit$FirstArg,
   NoSerialize,
   noSerialize,
@@ -88,15 +87,15 @@ export function qwikifyQrl<PROPS extends {}>(
       if (isServer && !clientOnly) {
         const jsx = Promise.all([reactCmp$.resolve(), import('./server')]).then(([Cmp, server]) => {
           const html = server.render(Cmp, filterProps(props));
-          return <Host dangerouslySetInnerHTML={html}></Host>;
+          return <div dangerouslySetInnerHTML={html}></div>;
         });
         return <>{jsx}</>;
       }
 
       return (
-        <Host>
+        <div>
           <SkipRerender />
-        </Host>
+        </div>
       );
     },
     {

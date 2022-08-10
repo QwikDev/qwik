@@ -11,7 +11,7 @@ import { qError, QError_invalidJsxNodeType } from '../../error/error';
 export const jsx = <T extends string | FunctionComponent<PROPS>, PROPS>(
   type: T,
   props: PROPS,
-  key?: string | number
+  key?: string | number | null
 ): JSXNode<T> => {
   if (qDev) {
     if (!isString(type) && !isFunction(type)) {

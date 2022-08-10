@@ -19,9 +19,7 @@ import {
   codeToText,
   qError,
   QError_hostCanOnlyBeAtRoot,
-  QError_rootNodeMustBeHTML,
   QError_setProperty,
-  QError_strictHTMLChildren,
 } from '../../error/error';
 import { fromCamelToKebabCase } from '../../util/case';
 import type { OnRenderFn } from '../../component/component.public';
@@ -29,24 +27,32 @@ import { CONTAINER, StyleAppend } from '../../use/use-core';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { HOST_TYPE, SKIP_RENDER_TYPE, VIRTUAL_TYPE } from '../jsx/jsx-runtime';
 import { assertQrl } from '../../import/qrl-class';
-import { isElement, isQwikElement, isVirtualElement } from '../../util/element';
+import { isQwikElement, isVirtualElement } from '../../util/element';
 import { serializeQRLs } from '../../import/qrl';
 import { ProcessedJSXNode, renderComponent } from './render-dom';
 import type { RenderContext } from '../types';
 import {
-  ALLOWS_PROPS,
   copyRenderContext,
-  HOST_PREFIX,
-  SCOPE_PREFIX,
   setQId,
+  SKIPS_PROPS,
   stringifyClass,
   stringifyStyle,
 } from '../execute-component';
 import type { SubscriptionManager } from '../container';
 import type { Ref } from '../../use/use-ref';
-import { getRootNode, newVirtualElement, processVirtualNodes, QwikElement, VirtualElement } from './virtual-element';
+import {
+  getRootNode,
+  newVirtualElement,
+  processVirtualNodes,
+  queryAllVirtualByAttribute,
+  QwikElement,
+  VirtualElement,
+} from './virtual-element';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
+
+export const IS_SVG = 1 << 0;
+export const IS_HEAD = 1 << 1;
 
 type KeyToIndexMap = { [key: string]: number };
 
@@ -58,21 +64,21 @@ type PropHandler = (
   oldValue: any
 ) => boolean;
 
-export type ChildrenMode = 'root' | 'slot' | 'fallback' | 'default' | 'head';
+export type ChildrenMode = 'root' | 'default' | 'head' | 'elements';
 
 export const visitJsxNode = (
   ctx: RenderContext,
   elm: QwikElement,
   jsxNode: ProcessedJSXNode | ProcessedJSXNode[] | undefined,
-  isSvg: boolean
+  flags: number
 ): ValueOrPromise<void> => {
   if (jsxNode === undefined) {
-    return smartUpdateChildren(ctx, elm, [], 'root', isSvg);
+    return smartUpdateChildren(ctx, elm, [], 'root', flags);
   }
   if (isArray(jsxNode)) {
-    return smartUpdateChildren(ctx, elm, jsxNode.flat(), 'root', isSvg);
+    return smartUpdateChildren(ctx, elm, jsxNode.flat(), 'root', flags);
   } else {
-    return smartUpdateChildren(ctx, elm, [jsxNode], 'root', isSvg);
+    return smartUpdateChildren(ctx, elm, [jsxNode], 'root', flags);
   }
 };
 
@@ -81,7 +87,7 @@ export const smartUpdateChildren = (
   elm: QwikElement,
   ch: ProcessedJSXNode[],
   mode: ChildrenMode,
-  isSvg: boolean
+  flags: number
 ) => {
   if (ch.length === 1 && ch[0].$type$ === SKIP_RENDER_TYPE) {
     if (elm.firstChild !== null) {
@@ -92,23 +98,15 @@ export const smartUpdateChildren = (
   const isHead = elm.nodeName === 'HEAD';
   if (isHead) {
     mode = 'head';
+    flags |= IS_HEAD;
+  } else {
+    flags &= ~IS_HEAD;
   }
   const oldCh = getChildren(elm, mode);
-  if (qDev) {
-    if (elm.nodeType === 9) {
-      if (ch.length !== 1 || ch[0].$type$ !== 'html') {
-        throw qError(QError_rootNodeMustBeHTML, ch);
-      }
-    } else if (elm.nodeName === 'HTML') {
-      if (ch.length !== 2 || ch[0].$type$ !== 'head' || ch[1].$type$ !== 'body') {
-        throw qError(QError_strictHTMLChildren, ch);
-      }
-    }
-  }
   if (oldCh.length > 0 && ch.length > 0) {
-    return updateChildren(ctx, elm, oldCh, ch, isSvg, isHead);
+    return updateChildren(ctx, elm, oldCh, ch, flags);
   } else if (ch.length > 0) {
-    return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, isSvg, isHead);
+    return addVnodes(ctx, elm, null, ch, 0, ch.length - 1, flags);
   } else if (oldCh.length > 0) {
     return removeVnodes(ctx, oldCh, 0, oldCh.length - 1);
   }
@@ -119,8 +117,7 @@ export const updateChildren = (
   parentElm: QwikElement,
   oldCh: (Node | VirtualElement)[],
   newCh: ProcessedJSXNode[],
-  isSvg: boolean,
-  isHead: boolean
+  flags: number
 ): ValueOrPromise<void> => {
   let oldStartIdx = 0;
   let newStartIdx = 0;
@@ -145,23 +142,23 @@ export const updateChildren = (
     } else if (newEndVnode == null) {
       newEndVnode = newCh[--newEndIdx];
     } else if (sameVnode(oldStartVnode, newStartVnode)) {
-      results.push(patchVnode(ctx, oldStartVnode, newStartVnode, isSvg));
+      results.push(patchVnode(ctx, oldStartVnode, newStartVnode, flags));
       oldStartVnode = oldCh[++oldStartIdx];
       newStartVnode = newCh[++newStartIdx];
     } else if (sameVnode(oldEndVnode, newEndVnode)) {
-      results.push(patchVnode(ctx, oldEndVnode, newEndVnode, isSvg));
+      results.push(patchVnode(ctx, oldEndVnode, newEndVnode, flags));
       oldEndVnode = oldCh[--oldEndIdx];
       newEndVnode = newCh[--newEndIdx];
     } else if (sameVnode(oldStartVnode, newEndVnode)) {
       // Vnode moved right
-      results.push(patchVnode(ctx, oldStartVnode, newEndVnode, isSvg));
+      results.push(patchVnode(ctx, oldStartVnode, newEndVnode, flags));
 
       insertBefore(ctx, parentElm, oldStartVnode, oldEndVnode.nextSibling);
       oldStartVnode = oldCh[++oldStartIdx];
       newEndVnode = newCh[--newEndIdx];
     } else if (sameVnode(oldEndVnode, newStartVnode)) {
       // Vnode moved left
-      results.push(patchVnode(ctx, oldEndVnode, newStartVnode, isSvg));
+      results.push(patchVnode(ctx, oldEndVnode, newStartVnode, flags));
 
       insertBefore(ctx, parentElm, oldEndVnode, oldStartVnode);
       oldEndVnode = oldCh[--oldEndIdx];
@@ -173,7 +170,7 @@ export const updateChildren = (
       idxInOld = oldKeyToIdx[newStartVnode.$key$ as string];
       if (idxInOld === undefined) {
         // New element
-        const newElm = createElm(ctx, newStartVnode, isSvg, isHead);
+        const newElm = createElm(ctx, newStartVnode, flags);
         results.push(
           then(newElm, (newElm) => {
             insertBefore(ctx, parentElm, newElm, oldStartVnode);
@@ -182,14 +179,14 @@ export const updateChildren = (
       } else {
         elmToMove = oldCh[idxInOld];
         if (!isTagName(elmToMove, newStartVnode.$type$)) {
-          const newElm = createElm(ctx, newStartVnode, isSvg, isHead);
+          const newElm = createElm(ctx, newStartVnode, flags);
           results.push(
             then(newElm, (newElm) => {
               insertBefore(ctx, parentElm, newElm, oldStartVnode);
             })
           );
         } else {
-          results.push(patchVnode(ctx, elmToMove, newStartVnode, isSvg));
+          results.push(patchVnode(ctx, elmToMove, newStartVnode, flags));
           oldCh[idxInOld] = undefined as any;
           insertBefore(ctx, parentElm, elmToMove, oldStartVnode);
         }
@@ -200,7 +197,7 @@ export const updateChildren = (
 
   if (newStartIdx <= newEndIdx) {
     const before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].$elm$;
-    results.push(addVnodes(ctx, parentElm, before, newCh, newStartIdx, newEndIdx, isSvg, isHead));
+    results.push(addVnodes(ctx, parentElm, before, newCh, newStartIdx, newEndIdx, flags));
   }
 
   let wait = promiseAll(results) as any;
@@ -220,14 +217,18 @@ const isComponentNode = (node: ProcessedJSXNode) => {
 };
 
 const getCh = (elm: QwikElement, filter: (el: Node | VirtualElement) => boolean) => {
+  const end = isVirtualElement(elm) ? elm.close : null;
+
   const nodes: (Node | VirtualElement)[] = [];
-  let child: VirtualElement | Node | null = elm.firstChild;
-  while(child) {
-    child = processVirtualNodes(child)!;
-    if (filter(child)) {
-      nodes.push(child);
+  let node: Node | null | VirtualElement = elm.firstChild;
+  while ((node = processVirtualNodes(node))) {
+    if (filter(node)) {
+      nodes.push(node);
     }
-    child = child.nextSibling;
+    node = node.nextSibling;
+    if (node === end) {
+      break;
+    }
   }
   return nodes;
 };
@@ -236,34 +237,22 @@ export const getChildren = (elm: QwikElement, mode: ChildrenMode): (Node | Virtu
   switch (mode) {
     case 'default':
       return getCh(elm, isNode);
-    case 'slot':
-      return getCh(elm, isChildSlot);
     case 'root':
       return getCh(elm, isChildComponent);
-    case 'fallback':
-      return getCh(elm, isFallback);
     case 'head':
       return getCh(elm, isHeadChildren);
+    case 'elements':
+      return getCh(elm, isQwikElement);
   }
 };
-
-
 
 export const isNode = (elm: Node | VirtualElement): boolean => {
   const type = elm.nodeType;
   return type === 1 || type === 3 || type === 111;
 };
 
-const isFallback = (node: Node | VirtualElement): boolean => {
-  return node.nodeName === 'Q:FALLBACK';
-};
-
 const isHeadChildren = (node: Node | VirtualElement): boolean => {
   return isQwikElement(node) && (node.hasAttribute('q:head') || node.nodeName === 'TITLE');
-};
-
-const isChildSlot = (node: Node | VirtualElement): boolean => {
-  return isNode(node) && node.nodeName !== 'Q:FALLBACK' && node.nodeName !== 'Q:TEMPLATE';
 };
 
 const isSlotTemplate = (node: Node | VirtualElement): node is HTMLTemplateElement => {
@@ -288,7 +277,7 @@ export const patchVnode = (
   rctx: RenderContext,
   elm: Node | VirtualElement,
   vnode: ProcessedJSXNode,
-  isSvg: boolean
+  flags: number
 ): ValueOrPromise<void> => {
   vnode.$elm$ = elm;
   const tag = vnode.$type$;
@@ -307,16 +296,23 @@ export const patchVnode = (
     return;
   }
 
-  if (!isSvg) {
-    isSvg = tag === 'svg';
+  let isSvg = !!(flags & IS_SVG);
+
+  if (!isSvg && tag === 'svg') {
+    flags |= IS_SVG;
+    isSvg = true;
   }
 
   const props = vnode.$props$;
   const ctx = getContext(elm as Element);
   const isComponent = isComponentNode(vnode);
   const isSlot = !isComponent && QSlotName in props;
-  let dirty = updateProperties(rctx, ctx, props, isSvg, false);
+  let dirty = isComponent
+    ? updateComponentProperties(ctx, rctx, props)
+    : updateProperties(ctx, rctx, props, isSvg);
+
   if (isSvg && vnode.$type$ === 'foreignObject') {
+    flags &= ~IS_SVG;
     isSvg = false;
   }
   if (isSlot) {
@@ -333,7 +329,7 @@ export const patchVnode = (
       assertQrl(ctx.$renderQrl$ as any);
       dirty = true;
     }
-    const promise = dirty ? renderComponent(rctx, ctx) : undefined;
+    const promise = dirty ? renderComponent(rctx, ctx, flags) : undefined;
     return then(promise, () => {
       const currentComponent = ctx.$component$;
       const slotMaps = getSlots(currentComponent, elm as Element);
@@ -345,7 +341,7 @@ export const patchVnode = (
       // Mark empty slots and remove content
       Object.entries(slotMaps.slots).forEach(([key, slotEl]) => {
         if (slotEl && !splittedChidren[key]) {
-          const oldCh = getChildren(slotEl, 'slot');
+          const oldCh = getChildren(slotEl, 'root');
           if (oldCh.length > 0) {
             removeVnodes(slotRctx, oldCh, 0, oldCh.length - 1);
           }
@@ -362,7 +358,7 @@ export const patchVnode = (
       // Render into slots
       Object.entries(splittedChidren).forEach(([key, ch]) => {
         const slotElm = getSlotElement(slotRctx, slotMaps, elm as Element, key);
-        promises.push(smartUpdateChildren(slotRctx, slotElm, ch, 'slot', isSvg));
+        promises.push(smartUpdateChildren(slotRctx, slotElm, ch, 'root', flags));
       });
       return then(promiseAll(promises), () => {
         removeTemplates(slotRctx, slotMaps);
@@ -377,8 +373,9 @@ export const patchVnode = (
     return;
   }
 
-  const mode = isSlot ? 'fallback' : 'default';
-  return smartUpdateChildren(rctx, elm as Element, ch, mode, isSvg);
+  if (!isSlot) {
+    return smartUpdateChildren(rctx, elm as Element, ch, 'default', flags);
+  }
 };
 
 const addVnodes = (
@@ -388,14 +385,13 @@ const addVnodes = (
   vnodes: ProcessedJSXNode[],
   startIdx: number,
   endIdx: number,
-  isSvg: boolean,
-  isHead: boolean
+  flags: number
 ): ValueOrPromise<void> => {
   const promises = [];
   for (; startIdx <= endIdx; ++startIdx) {
     const ch = vnodes[startIdx];
     assertDefined(ch, 'render: node must be defined at index', startIdx, vnodes);
-    promises.push(createElm(ctx, ch, isSvg, isHead));
+    promises.push(createElm(ctx, ch, flags));
   }
   return then(promiseAll(promises), (children) => {
     for (const child of children) {
@@ -468,7 +464,7 @@ export const resolveSlotProjection = (
       // Slot removed
       // Move slot to template
       const template = createTemplate(ctx, key);
-      const slotChildren = getChildren(slotEl, 'slot');
+      const slotChildren = getChildren(slotEl, 'root');
       for (const child of slotChildren) {
         directAppendChild(template, child);
       }
@@ -490,7 +486,7 @@ export const resolveSlotProjection = (
       const template = before.templates[key];
       if (template) {
         const children = getChildren(template, 'default');
-        children.forEach(child => {
+        children.forEach((child) => {
           directAppendChild(slotEl, child);
         });
         template.remove();
@@ -512,8 +508,7 @@ const getSlotName = (node: ProcessedJSXNode): string => {
 const createElm = (
   rctx: RenderContext,
   vnode: ProcessedJSXNode,
-  isSvg: boolean,
-  isHead: boolean
+  flags: number
 ): ValueOrPromise<Node | VirtualElement> => {
   rctx.$perf$.$visited$++;
   const tag = vnode.$type$;
@@ -525,49 +520,56 @@ const createElm = (
     throw qError(QError_hostCanOnlyBeAtRoot);
   }
 
-  const elm = (tag === VIRTUAL_TYPE)
-    ? newVirtualElement(rctx.$doc$)
-    : createElement(rctx, tag, isSvg);
-
-
-  if (!isSvg) {
-    isSvg = tag === 'svg';
+  let isSvg = !!(flags & IS_SVG);
+  if (!isSvg && tag === 'svg') {
+    flags |= IS_SVG;
+    isSvg = true;
   }
+  const isHead = !!(flags & IS_HEAD);
+  const isVirtual = tag === VIRTUAL_TYPE;
+  const elm = isVirtual ? newVirtualElement(rctx.$doc$) : createElement(rctx, tag, isSvg);
 
   vnode.$elm$ = elm;
   const props = vnode.$props$;
   const isComponent = isComponentNode(vnode);
-  const isSlot = !isComponent && QSlotName in props;
+  const isSlot = isVirtual && QSlotName in props;
+  const hasRef = !isVirtual && 'ref' in props;
   const ctx = getContext(elm);
-  const hasRef = 'ref' in props;
 
   setKey(elm, vnode.$key$);
-  updateProperties(rctx, ctx, props, isSvg, false);
+
   if (isHead) {
     directSetAttribute(elm as Element, 'q:head', '');
   }
 
   if (isSvg && tag === 'foreignObject') {
     isSvg = false;
+    flags &= ~IS_SVG;
   }
   if (isComponent || ctx.$listeners$ || hasRef) {
     setQId(rctx, ctx);
   }
 
   const currentComponent = rctx.$currentComponent$;
-  if (isElement(elm)) {
-    if (currentComponent) {
+  if (currentComponent) {
+    if (!isVirtual) {
       const scopedIds = currentComponent.$ctx$.$scopeIds$;
       if (scopedIds) {
         scopedIds.forEach((styleId) => {
-          elm.classList.add(styleId);
+          (elm as Element).classList.add(styleId);
         });
       }
-      if (isSlot && !isComponent) {
-        directSetAttribute(elm, QSlotRef, currentComponent.$ctx$.$id$);
-        currentComponent.$slots$.push(vnode);
-      }
     }
+    if (isSlot) {
+      directSetAttribute(elm, QSlotRef, currentComponent.$ctx$.$id$);
+      currentComponent.$slots$.push(vnode);
+    }
+  }
+
+  if (isComponent) {
+    updateComponentProperties(ctx, rctx, props);
+  } else {
+    updateProperties(ctx, rctx, props, isSvg);
   }
 
   let wait: ValueOrPromise<void>;
@@ -576,7 +578,7 @@ const createElm = (
     const renderQRL = props![OnRenderProp];
     assertQrl<OnRenderFn<any>>(renderQRL);
     ctx.$renderQrl$ = renderQRL;
-    wait = renderComponent(rctx, ctx);
+    wait = renderComponent(rctx, ctx, flags);
   } else {
     const setsInnerHTML = checkInnerHTML(props);
     if (setsInnerHTML) {
@@ -596,7 +598,7 @@ const createElm = (
       const slotRctx = copyRenderContext(rctx);
       slotRctx.$localStack$.push(ctx);
       const slotMap = isComponent ? getSlots(currentComponent, elm) : undefined;
-      const promises = children.map((ch) => createElm(slotRctx, ch, isSvg, false));
+      const promises = children.map((ch) => createElm(slotRctx, ch, flags));
       return then(promiseAll(promises), () => {
         let parent = elm;
         for (const node of children) {
@@ -619,19 +621,18 @@ interface SlotMaps {
 const getSlots = (componentCtx: ComponentCtx | null, hostElm: QwikElement): SlotMaps => {
   const slots: Record<string, QwikElement> = {};
   const templates: Record<string, HTMLTemplateElement> = {};
-  const slotRef = directGetAttribute(hostElm, 'q:id');
-  const query = `[q\\:sref="${slotRef}"]`;
-  const existingSlots = Array.from(hostElm.querySelectorAll(query));
-  if (hostElm.matches(query)) {
-    existingSlots.push(hostElm);
+  const parent = hostElm.parentElement;
+  if (parent) {
+    const slotRef = directGetAttribute(hostElm, 'q:id')!;
+    const existingSlots = queryAllVirtualByAttribute(parent, 'q:sref', slotRef);
+
+    // Map slots
+    for (const elm of existingSlots) {
+      slots[directGetAttribute(elm, QSlotName) ?? ''] = elm;
+    }
   }
   const newSlots = componentCtx?.$slots$ ?? EMPTY_ARRAY;
   const t = Array.from(hostElm.childNodes).filter(isSlotTemplate);
-
-  // Map slots
-  for (const elm of existingSlots) {
-    slots[directGetAttribute(elm, QSlotName) ?? ''] = elm;
-  }
 
   // Map virtual slots
   for (const vnode of newSlots) {
@@ -693,11 +694,10 @@ export const PROP_HANDLER_MAP: Record<string, PropHandler> = {
 };
 
 export const updateProperties = (
-  rctx: RenderContext,
   ctx: QContext,
+  rctx: RenderContext,
   expectProps: Record<string, any>,
-  isSvg: boolean,
-  isHost: boolean
+  isSvg: boolean
 ) => {
   const keys = Object.keys(expectProps);
   if (keys.length === 0) {
@@ -705,10 +705,8 @@ export const updateProperties = (
   }
   let cache = ctx.$cache$;
   const elm = ctx.$element$;
-  const isCmp = OnRenderProp in expectProps;
-  const qwikProps = isCmp ? getPropsMutator(ctx, rctx.$containerState$) : undefined;
-  for (let key of keys) {
-    if (key === 'children' || key === OnRenderProp) {
+  for (const key of keys) {
+    if (key === 'children') {
       continue;
     }
     const newValue = expectProps[key];
@@ -718,7 +716,7 @@ export const updateProperties = (
     }
 
     // Early exit if value didnt change
-    const cacheKey = isHost ? `_host:${key}` : `_:${key}`;
+    const cacheKey = key;
     if (!cache) {
       cache = ctx.$cache$ = new Map();
     }
@@ -731,23 +729,6 @@ export const updateProperties = (
     // Check of data- or aria-
     if (key.startsWith('data-') || key.startsWith('aria-')) {
       setAttribute(rctx, elm, key, newValue);
-      continue;
-    }
-
-    if (qwikProps) {
-      const skipProperty = ALLOWS_PROPS.includes(key);
-      const hasPrefix = SCOPE_PREFIX.test(key);
-      if (!skipProperty && !hasPrefix) {
-        // Qwik props
-        qwikProps.set(key, newValue);
-        continue;
-      }
-      const hPrefixed = key.startsWith(HOST_PREFIX);
-      if (hPrefixed) {
-        key = key.slice(HOST_PREFIX.length);
-      }
-    } else if (qDev && key.startsWith(HOST_PREFIX)) {
-      logWarn(`${HOST_PREFIX} prefix can not be used in non components`);
       continue;
     }
 
@@ -775,8 +756,27 @@ export const updateProperties = (
   }
   if (ctx.$listeners$) {
     ctx.$listeners$.forEach((value, key) => {
-      setAttribute(rctx, elm, fromCamelToKebabCase(key), serializeQRLs(value, elm));
+      setAttribute(rctx, elm, fromCamelToKebabCase(key), serializeQRLs(value, ctx));
     });
+  }
+  return false;
+};
+
+export const updateComponentProperties = (
+  ctx: QContext,
+  rctx: RenderContext,
+  expectProps: Record<string, any>
+) => {
+  const keys = Object.keys(expectProps);
+  if (keys.length === 0) {
+    return false;
+  }
+  const qwikProps = getPropsMutator(ctx, rctx.$containerState$);
+  for (const key of keys) {
+    if (SKIPS_PROPS.includes(key)) {
+      continue;
+    }
+    qwikProps.set(key, expectProps[key]);
   }
   return ctx.$dirty$;
 };
@@ -897,7 +897,7 @@ const removeNode = (ctx: RenderContext, el: Node | VirtualElement) => {
   const fn = () => {
     const parent = el.parentElement;
     if (parent) {
-      if (el.nodeType === 1) {
+      if (el.nodeType === 1 || el.nodeType === 111) {
         cleanupTree(el as Element, ctx.$containerState$.$subsManager$);
       }
       directRemoveChild(parent, el);
@@ -913,19 +913,18 @@ const removeNode = (ctx: RenderContext, el: Node | VirtualElement) => {
   });
 };
 
-export const cleanupTree = (parent: Element, subsManager: SubscriptionManager) => {
+export const cleanupTree = (parent: QwikElement, subsManager: SubscriptionManager) => {
   if (parent.hasAttribute(QSlotName)) {
     return;
   }
   cleanupElement(parent, subsManager);
-  let child = parent.firstElementChild;
-  while (child) {
-    cleanupTree(child, subsManager);
-    child = child.nextElementSibling;
+  const ch = getChildren(parent, 'elements');
+  for (const child of ch) {
+    cleanupTree(child as QwikElement, subsManager);
   }
 };
 
-const cleanupElement = (el: Element, subsManager: SubscriptionManager) => {
+const cleanupElement = (el: QwikElement, subsManager: SubscriptionManager) => {
   const ctx = tryGetContext(el);
   if (ctx) {
     cleanupContext(ctx, subsManager);
@@ -967,7 +966,7 @@ export const directAppendChild = (parent: QwikElement, child: Node | VirtualElem
   } else {
     parent.appendChild(child);
   }
-}
+};
 
 export const directRemoveChild = (parent: QwikElement, child: Node | VirtualElement) => {
   if (isVirtualElement(child)) {
@@ -975,16 +974,19 @@ export const directRemoveChild = (parent: QwikElement, child: Node | VirtualElem
   } else {
     parent.removeChild(child);
   }
-}
+};
 
-export const directInsertBefore = (parent: QwikElement, child: Node | VirtualElement, ref: Node | VirtualElement | null) => {
+export const directInsertBefore = (
+  parent: QwikElement,
+  child: Node | VirtualElement,
+  ref: Node | VirtualElement | null
+) => {
   if (isVirtualElement(child)) {
-    child.insertBeforeTo(parent, getRootNode(ref))
+    child.insertBeforeTo(parent, getRootNode(ref));
   } else {
     parent.insertBefore(child, getRootNode(ref));
   }
-}
-
+};
 
 export const printRenderStats = (ctx: RenderContext) => {
   if (qDev) {
@@ -1008,7 +1010,11 @@ export const printRenderStats = (ctx: RenderContext) => {
   }
 };
 
-const createKeyToOldIdx = (children: (Node | VirtualElement)[], beginIdx: number, endIdx: number): KeyToIndexMap => {
+const createKeyToOldIdx = (
+  children: (Node | VirtualElement)[],
+  beginIdx: number,
+  endIdx: number
+): KeyToIndexMap => {
   const map: KeyToIndexMap = {};
   for (let i = beginIdx; i <= endIdx; ++i) {
     const child = children[i];
@@ -1040,7 +1046,7 @@ const setKey = (el: QwikElement, key: string | null) => {
 };
 
 const sameVnode = (elm: Node | VirtualElement, vnode2: ProcessedJSXNode): boolean => {
-  const isElement = elm.nodeType === 1;
+  const isElement = elm.nodeType === 1 || elm.nodeType === 111;
   const type = vnode2.$type$;
   if (isElement) {
     const isSameSel = (elm as Element).localName === type;

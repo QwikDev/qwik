@@ -2,7 +2,7 @@ import { assertDefined, assertTrue } from '../assert/assert';
 import { assertQrl, isQrl } from '../import/qrl-class';
 import { getContext, QContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
-import { isDocument, isNode, isQwikElement, isVirtualElement } from '../util/element';
+import { isDocument, isElement, isNode, isQwikElement, isVirtualElement } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
 import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QStyle } from '../util/markers';
 import { qDev } from '../util/qdev';
@@ -37,7 +37,7 @@ import { isResourceReturn } from '../use/use-resource';
 import { createParser, Parser, serializeValue } from './serializers';
 import { ContainerState, getContainerState } from '../render/container';
 import { getQId } from '../render/execute-component';
-import type { QwikElement } from '../render/dom/virtual-element';
+import { processVirtualNodes, QwikElement } from '../render/dom/virtual-element';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -100,7 +100,7 @@ export const resumeContainer = (containerEl: Element) => {
   const meta = JSON.parse(unescapeText(script.textContent || '{}')) as SnapshotState;
 
   // Collect all elements
-  const elements = new Map<string, Element>();
+  const elements = new Map<string, QwikElement>();
 
   const getObject: GetObject = (id) => {
     return getObjectImpl(id, elements, meta.objs, containerState);
@@ -217,13 +217,9 @@ export interface SnapshotResult {
   pendingContent: Promise<string>[];
 }
 
-const hasContext = (el: Element) => {
-  return !!tryGetContext(el);
-};
-
 export const pauseFromContainer = async (containerEl: Element): Promise<SnapshotResult> => {
   const containerState = getContainerState(containerEl);
-  const contexts = getNodesInScope(containerEl, hasContext).map(tryGetContext) as QContext[];
+  const contexts = getNodesInScope(containerEl, hasQId).map(tryGetContext) as QContext[];
   return _pauseFromContexts(contexts, containerState);
 };
 
@@ -585,30 +581,31 @@ export const getQwikJSON = (parentElm: Element): HTMLScriptElement | undefined =
   return undefined;
 };
 
-export const getNodesInScope = (parent: Element, predicate: (el: Element) => boolean) => {
+const SHOW_ELEMENT = 1;
+const SHOW_COMMENT = 256;
+const FILTER_ACCEPT = 1;
+const FILTER_REJECT = 2;
+const FILTER_SKIP = 3;
+
+export const getNodesInScope = (parent: Element, predicate: (el: Node) => boolean) => {
   const nodes: Element[] = [];
   if (predicate(parent)) {
     nodes.push(parent);
   }
-  walkNodes(nodes, parent, predicate);
-  return nodes;
-};
-
-export const walkNodes = (
-  nodes: Element[],
-  parent: Element,
-  predicate: (el: Element) => boolean
-) => {
-  let child = parent.firstElementChild;
-  while (child) {
-    if (!isContainer(child)) {
-      if (predicate(child)) {
-        nodes.push(child);
+  const walker = parent.ownerDocument.createTreeWalker(parent, SHOW_ELEMENT | SHOW_COMMENT, {
+    acceptNode(node) {
+      if (isContainer(node)) {
+        return FILTER_REJECT;
       }
-      walkNodes(nodes, child, predicate);
-    }
-    child = child.nextElementSibling;
+      return predicate(node) ? FILTER_ACCEPT : FILTER_SKIP;
+    },
+  });
+  const pars: QwikElement[] = [];
+  let currentNode: Node | null = null;
+  while ((currentNode = walker.nextNode())) {
+    pars.push(processVirtualNodes(currentNode) as Element);
   }
+  return pars;
 };
 
 const reviveValues = (
@@ -692,7 +689,7 @@ const OBJECT_TRANSFORMS: Record<string, (obj: any, containerState: ContainerStat
 
 const getObjectImpl = (
   id: string,
-  elements: Map<string, Element>,
+  elements: Map<string, QwikElement>,
   objs: any[],
   containerState: ContainerState
 ) => {
@@ -848,9 +845,9 @@ const collectValue = async (obj: any, collector: Collector, leaks: boolean) => {
 
       // Handle dom nodes
       if (!target && isNode(obj)) {
-        if (obj.nodeType === 9) {
+        if (isDocument(obj)) {
           collector.$objMap$.set(obj, obj);
-        } else if (obj.nodeType !== 1) {
+        } else if (!isQwikElement(obj)) {
           throw qError(QError_verifySerializable, obj);
         }
         return;
@@ -893,12 +890,16 @@ const collectValue = async (obj: any, collector: Collector, leaks: boolean) => {
   collector.$objMap$.set(obj, obj);
 };
 
-export const isContainer = (el: Element) => {
-  return el.hasAttribute(QContainerAttr);
+export const isContainer = (el: Node) => {
+  return isElement(el) && el.hasAttribute(QContainerAttr);
 };
 
-const hasQId = (el: Element) => {
-  return el.hasAttribute(ELEMENT_ID);
+const hasQId = (el: Node) => {
+  const node = processVirtualNodes(el);
+  if (isQwikElement(node)) {
+    return node.hasAttribute(ELEMENT_ID);
+  }
+  return false;
 };
 
 export const intToStr = (nu: number) => {

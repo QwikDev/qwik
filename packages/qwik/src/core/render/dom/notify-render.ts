@@ -1,5 +1,5 @@
 import { assertDefined } from '../../assert/assert';
-import { executeContextWithSlots, printRenderStats } from './visitor';
+import { executeContextWithSlots, IS_HEAD, IS_SVG, printRenderStats, SVG_NS } from './visitor';
 import { getContext, resumeIfNeeded } from '../../props/props';
 import { qDev, qTest } from '../../util/qdev';
 import { getDocument } from '../../util/dom';
@@ -141,7 +141,7 @@ const renderMarked = async (containerState: ContainerState): Promise<RenderConte
     if (!ctx.$hostElements$.has(el)) {
       ctx.$roots$.push(el);
       try {
-        await renderComponent(ctx, getContext(el));
+        await renderComponent(ctx, getContext(el), getFlags(el.parentElement));
       } catch (e) {
         logError(codeToText(QError_errorWhileRendering), e);
       }
@@ -161,6 +161,19 @@ const renderMarked = async (containerState: ContainerState): Promise<RenderConte
     postRendering(containerState, ctx);
     return ctx;
   });
+};
+
+const getFlags = (el: Element | null) => {
+  let flags = 0;
+  if (el) {
+    if (el.namespaceURI === SVG_NS) {
+      flags |= IS_SVG;
+    }
+    if (el.tagName === 'HEAD') {
+      flags |= IS_HEAD;
+    }
+  }
+  return flags;
 };
 
 export const postRendering = async (containerState: ContainerState, ctx: RenderContext) => {

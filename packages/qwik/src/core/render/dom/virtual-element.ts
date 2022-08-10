@@ -1,7 +1,7 @@
-import { assertEqual, assertTrue } from "../../assert/assert";
-import { isQwikElement, isVirtualElement } from "../../util/element";
-import { qDev } from "../../util/qdev";
-import { directRemoveChild } from "./visitor";
+import { assertEqual, assertTrue } from '../../assert/assert';
+import { isElement, isQwikElement, isVirtualElement } from '../../util/element';
+import { qDev } from '../../util/qdev';
+import { getChildren } from './visitor';
 
 const VIRTUAL_SYMBOL = '__virtual';
 
@@ -16,10 +16,11 @@ export interface VirtualElement {
   readonly nodeType: 111;
   readonly childNodes: Node[];
   readonly firstChild: Node | null;
+  readonly previousSibling: Node | null;
   readonly nextSibling: Node | null;
   readonly remove: () => void;
   readonly closest: (query: string) => Element | null;
-  readonly hasAttribute: (prop: string) => boolean,
+  readonly hasAttribute: (prop: string) => boolean;
   readonly getAttribute: (prop: string) => string | null;
   readonly removeAttribute: (prop: string) => void;
   readonly querySelector: (query: string) => QwikElement | null;
@@ -30,8 +31,8 @@ export interface VirtualElement {
   readonly removeChild: (node: Node) => void;
   readonly localName: string;
   readonly nodeName: string;
-  isConnected: boolean;
-  parentElement: QwikElement | null;
+  readonly isConnected: boolean;
+  readonly parentElement: Element | null;
 }
 
 export type QwikElement = Element | VirtualElement;
@@ -40,13 +41,87 @@ export const newVirtualElement = (doc: Document): VirtualElement => {
   const open = doc.createComment('qv ');
   const close = doc.createComment('/qv');
   return createVirtualElement(open, close);
-}
+};
+
+export const parseVirtualAttributes = (str: string) => {
+  if (!str) {
+    return new Map();
+  }
+  const attributes = str.split(' ');
+  return new Map(
+    attributes.map((attr) => {
+      const index = attr.indexOf('=');
+      if (index >= 0) {
+        return [attr.slice(0, index), unescape(attr.slice(index + 1))];
+      } else {
+        return [attr, ''];
+      }
+    })
+  );
+};
+
+export const serializeVirtualAttributes = (map: Map<string, string>) => {
+  const attributes: string[] = [];
+  map.forEach((value, key) => {
+    if (!value) {
+      attributes.push(`${key}`);
+    } else {
+      attributes.push(`${key}=${escape(value)}`);
+    }
+  });
+  return attributes.join(' ');
+};
+
+const SHOW_COMMENT = 256;
+const FILTER_ACCEPT = 1;
+const FILTER_REJECT = 2;
+
+export const walkerVirtualByAttribute = (el: Element, prop: string, value: string) => {
+  return el.ownerDocument.createTreeWalker(el, SHOW_COMMENT, {
+    acceptNode(c) {
+      const virtual = getVirtualElement(c as Comment);
+      if (virtual) {
+        return virtual.getAttribute(prop) === value ? FILTER_ACCEPT : FILTER_REJECT;
+      }
+      return FILTER_REJECT;
+    },
+  });
+};
+
+export const queryVirtualByAttribute = (el: Element, prop: string, value: string) => {
+  const walker = walkerVirtualByAttribute(el, prop, value);
+  const open = walker.firstChild();
+  if (open) {
+    return getVirtualElement(open as Comment);
+  }
+  return null;
+};
+
+export const queryAllVirtualByAttribute = (el: Element, prop: string, value: string) => {
+  const walker = walkerVirtualByAttribute(el, prop, value);
+  const pars: VirtualElement[] = [];
+  let currentNode: Node | null = null;
+  while ((currentNode = walker.nextNode())) {
+    pars.push(getVirtualElement(currentNode as Comment)!);
+  }
+  return pars;
+};
+
+export const escape = (s: string) => {
+  return s.replace(/ /g, '+');
+};
+
+export const unescape = (s: string) => {
+  return s.replace(/\+/g, ' ');
+};
 
 export const createVirtualElement = (open: Comment, close: Comment): VirtualElement => {
-  const children: Node[] = [];
+  // const children: Node[] = [];
+  const doc = open.ownerDocument;
+  const template = doc.createElement('template');
   assertTrue(open.data.startsWith('qv '), 'comment is not a qv');
 
-  const attributes = new URLSearchParams(open.data.slice(3));
+  const attributes = parseVirtualAttributes(open.data.slice(3));
   const insertBefore = <T extends Node>(node: T, ref: Node | null): T => {
     // if (qDev && child) {
     //   if (!children.includes(child)) {
@@ -58,60 +133,49 @@ export const createVirtualElement = (open: Comment, close: Comment): VirtualElem
       const ref2 = ref ? ref : close;
       parent.insertBefore(node, ref2);
     } else {
-      if (ref) {
-        const index = children.indexOf(ref);
-        if (index >= 0) {
-          children.splice(index, 0, node);
-          return node;
-        }
-      }
-      children.push(node);
+      template.insertBefore(node, ref);
     }
     return node;
   };
 
   const remove = () => {
     const parent = virtual.parentElement;
-
     if (parent) {
-      const ch = virtual.childNodes;
-      assertEqual(children.length, 0, 'children should be empty');
-      children.push(...ch);
+      const ch = Array.from(virtual.childNodes);
+      assertEqual(template.childElementCount, 0, 'children should be empty');
       parent.removeChild(open);
-      children.forEach(child => directRemoveChild(parent, child));
-      parent.removeChild(open);
+      template.append(...ch);
+      parent.removeChild(close);
     }
   };
 
   const appendChild = <T extends Node>(node: T): T => {
-    return insertBefore(node, null)
+    return insertBefore(node, null);
   };
 
   const insertBeforeTo = (newParent: QwikElement, child: Node | null) => {
     if (qDev) {
       checkIfChildren(child);
     }
-    const ch = virtual.childNodes;
+    const ch = Array.from(virtual.childNodes);
     if (virtual.parentElement) {
       console.warn('already attached');
     }
-    virtual.parentElement = newParent;
-    virtual.isConnected = true;
     newParent.insertBefore(open, child);
     for (const c of ch) {
       newParent.insertBefore(c, child);
     }
     newParent.insertBefore(close, child);
-    children.length = 0;
-  }
+    assertEqual(template.childElementCount, 0, 'children should be empty');
+  };
 
   const appendTo = (newParent: QwikElement) => {
     insertBeforeTo(newParent, null);
   };
 
   const updateComment = () => {
-    open.data = `qv ${attributes.toString()}`;
-  }
+    open.data = `qv ${serializeVirtualAttributes(attributes)}`;
+  };
 
   const removeChild = (child: Node) => {
     if (qDev) {
@@ -120,42 +184,37 @@ export const createVirtualElement = (open: Comment, close: Comment): VirtualElem
     if (virtual.parentElement) {
       virtual.parentElement.removeChild(child);
     } else {
-      const index = children.indexOf(child);
-      if (index >= 0) {
-        children.splice(index, 1);
-      }
+      template.removeChild(child);
     }
-  }
-
-  const checkIfChildren = (_child: Node | null) => {
-
   };
 
+  const checkIfChildren = (_child: Node | null) => {};
+
   const getAttribute = (prop: string) => {
-    return attributes.get(prop);
-  }
+    return attributes.get(prop) ?? null;
+  };
 
   const hasAttribute = (prop: string) => {
     return attributes.has(prop);
-  }
+  };
 
   const setAttribute = (prop: string, value: string) => {
     attributes.set(prop, value);
     updateComment();
-  }
+  };
 
   const removeAttribute = (prop: string) => {
     attributes.delete(prop);
     updateComment();
-  }
+  };
 
   const matches = (_: string) => {
     return false;
-  }
+  };
 
   const compareDocumentPosition = (other: Node) => {
     return open.compareDocumentPosition(other);
-  }
+  };
 
   const closest = (query: string) => {
     const parent = virtual.parentElement;
@@ -163,11 +222,12 @@ export const createVirtualElement = (open: Comment, close: Comment): VirtualElem
       return parent.closest(query);
     }
     return null;
-  }
+  };
 
   const querySelectorAll = (query: string) => {
     const result: QwikElement[] = [];
-    virtual.childNodes.forEach((el) => {
+    const ch = getChildren(virtual, 'elements');
+    ch.forEach((el) => {
       if (isQwikElement(el)) {
         if (el.matches(query)) {
           result.push(el);
@@ -176,10 +236,10 @@ export const createVirtualElement = (open: Comment, close: Comment): VirtualElem
       }
     });
     return result;
-  }
+  };
   const querySelector = (query: string) => {
     for (const el of virtual.childNodes) {
-      if (isQwikElement(el)) {
+      if (isElement(el)) {
         if (el.matches(query)) {
           return el;
         }
@@ -190,7 +250,7 @@ export const createVirtualElement = (open: Comment, close: Comment): VirtualElem
       }
     }
     return null;
-  }
+  };
 
   const virtual: VirtualElement = {
     open,
@@ -215,29 +275,43 @@ export const createVirtualElement = (open: Comment, close: Comment): VirtualElem
     nodeName: ':virtual',
     removeAttribute,
     get firstChild() {
-      return open.nextSibling;
+      if (virtual.parentElement) {
+        const first = open.nextSibling;
+        if (first === close) {
+          return null;
+        }
+        return first;
+      } else {
+        return template.firstChild;
+      }
     },
     get nextSibling() {
       return close.nextSibling;
     },
+    get previousSibling() {
+      return open.previousSibling;
+    },
     get childNodes() {
       if (!virtual.parentElement) {
-        return children;
+        return template.childNodes as any;
       }
       const nodes: Node[] = [];
-      let node = open.nextSibling;
-      while (node) {
+      let node: Node | null = open;
+      while ((node = node.nextSibling)) {
         if (node !== close) {
           nodes.push(node);
         } else {
           break;
         }
-        node = node.nextSibling;
       }
       return nodes;
     },
-    parentElement: null,
-    isConnected: false,
+    get isConnected() {
+      return open.isConnected;
+    },
+    get parentElement() {
+      return open.parentElement;
+    },
   };
   (open as any)[VIRTUAL_SYMBOL] = virtual;
 
@@ -248,22 +322,32 @@ export const processVirtualNodes = (node: Node | null): Node | QwikElement | nul
   if (node == null) {
     return null;
   }
-  const virtual = (node as any)[VIRTUAL_SYMBOL];
+
+  if (isComment(node)) {
+    const virtual = getVirtualElement(node);
+    if (virtual) {
+      return virtual;
+    }
+  }
+  return node;
+};
+
+export const getVirtualElement = (open: Comment): VirtualElement | null => {
+  const virtual = (open as any)[VIRTUAL_SYMBOL];
   if (virtual) {
     return virtual;
   }
-  if (isComment(node) && node.data.startsWith('qv ')) {
-    const close = findClose(node);
-    return createVirtualElement(node, close);
+  if (open.data.startsWith('qv ')) {
+    const close = findClose(open);
+    return createVirtualElement(open, close);
   }
-  return node;
-}
-
+  return null;
+};
 
 const findClose = (open: Comment): Comment => {
   let node = open.nextSibling;
   let stack = 1;
-  while(node) {
+  while (node) {
     if (isComment(node)) {
       if (node.data.startsWith('qv ')) {
         stack++;
@@ -277,13 +361,13 @@ const findClose = (open: Comment): Comment => {
     node = node.nextSibling;
   }
   throw new Error('close not found');
-}
+};
 
 export const isComment = (node: Node): node is Comment => {
   return node.nodeType === 8;
-}
+};
 
-export const getRootNode = (node: Node | VirtualElement | null): Node=> {
+export const getRootNode = (node: Node | VirtualElement | null): Node => {
   if (node == null) {
     return null as any; // TODO
   }
@@ -292,4 +376,4 @@ export const getRootNode = (node: Node | VirtualElement | null): Node=> {
   } else {
     return node;
   }
-}
+};

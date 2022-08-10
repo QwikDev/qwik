@@ -1,4 +1,4 @@
-import { component$, Host, useStyles$, useWatch$, useStore } from '@builder.io/qwik';
+import { component$, useStyles$, useWatch$, useStore } from '@builder.io/qwik';
 import { Repl } from '../../repl/repl';
 import styles from './examples.css?inline';
 import { Header } from '../../components/header/header';
@@ -36,7 +36,7 @@ export default component$(() => {
   });
 
   return (
-    <Host class="examples full-width fixed-header">
+    <div class="examples full-width fixed-header">
       <Header />
 
       <div
@@ -112,7 +112,7 @@ export default component$(() => {
           </button>
         ))}
       </div>
-    </Host>
+    </div>
   );
 });
 

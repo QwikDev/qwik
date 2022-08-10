@@ -1,29 +1,26 @@
-import { component$, Host, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@builder.io/qwik';
 import { useContent, useLocation, ContentMenu } from '@builder.io/qwik-city';
 import styles from './breadcrumbs.css?inline';
 
-export const Breadcrumbs = component$(
-  () => {
-    useStyles$(styles);
+export const Breadcrumbs = component$(() => {
+  useStyles$(styles);
 
-    const { menu } = useContent();
-    const loc = useLocation();
+  const { menu } = useContent();
+  const loc = useLocation();
 
-    const breadcrumbs = createBreadcrumbs(menu, loc.pathname);
-    if (breadcrumbs.length === 0) {
-      return null;
-    }
+  const breadcrumbs = createBreadcrumbs(menu, loc.pathname);
+  if (breadcrumbs.length === 0) {
+    return null;
+  }
 
-    return (
-      <Host class="breadcrumbs">
-        {breadcrumbs.map((b) => (
-          <span>{b.href ? <a href={b.href}>{b.text}</a> : b.text}</span>
-        ))}
-      </Host>
-    );
-  },
-  { tagName: 'nav' }
-);
+  return (
+    <nav class="breadcrumbs">
+      {breadcrumbs.map((b) => (
+        <span>{b.href ? <a href={b.href}>{b.text}</a> : b.text}</span>
+      ))}
+    </nav>
+  );
+});
 
 export function createBreadcrumbs(menu: ContentMenu | undefined, pathname: string) {
   if (menu?.items) {

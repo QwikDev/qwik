@@ -1,4 +1,4 @@
-import { component$, Host, Slot, useStore, useStyles$, useWatch$ } from '@builder.io/qwik';
+import { component$, Slot, useStore, useStyles$, useWatch$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
 import { Repl } from '../../../repl/repl';
 import styles from './tutorial.css?inline';
@@ -43,7 +43,7 @@ export default component$(() => {
   });
 
   return (
-    <Host class="tutorial full-width fixed-header">
+    <div class="tutorial full-width fixed-header">
       <Header />
       <main>
         <div class="tutorial-content-panel">
@@ -94,7 +94,7 @@ export default component$(() => {
           <div class="tutorial-repl-footer" />
         </div>
       </main>
-    </Host>
+    </div>
   );
 });
 

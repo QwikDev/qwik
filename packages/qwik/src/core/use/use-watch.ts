@@ -235,12 +235,12 @@ export interface UseWatchOptions {
  *     };
  *   });
  *   return (
- *     <Host>
+ *     <div>
  *       <div>
  *         {store.count} / {store.doubleCount}
  *       </div>
  *       <div>{store.debounced}</div>
- *     </Host>
+ *     </div>
  *   );
  * });
  * ```
@@ -315,12 +315,12 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
  *     };
  *   });
  *   return (
- *     <Host>
+ *     <div>
  *       <div>
  *         {store.count} / {store.doubleCount}
  *       </div>
  *       <div>{store.debounced}</div>
- *     </Host>
+ *     </div>
  *   );
  * });
  * ```
@@ -351,7 +351,7 @@ export const useWatch$ = /*#__PURE__*/ implicit$FirstArg(useWatchQrl);
  *     };
  *   });
  *
- *   return <Host>{store.count}</Host>;
+ *   return <div>{store.count}</div>;
  * });
  * ```
  *
@@ -394,7 +394,7 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
  *     };
  *   });
  *
- *   return <Host>{store.count}</Host>;
+ *   return <div>{store.count}</div>;
  * });
  * ```
  *
@@ -424,11 +424,11 @@ export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useClientEffectQ
  *   });
  *
  *   return (
- *     <Host>
+ *     <div>
  *       {store.users.map((user) => (
  *         <User user={user} />
  *       ))}
- *     </Host>
+ *     </div>
  *   );
  * });
  *
@@ -478,11 +478,11 @@ export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
  *   });
  *
  *   return (
- *     <Host>
+ *     <div>
  *       {store.users.map((user) => (
  *         <User user={user} />
  *       ))}
- *     </Host>
+ *     </div>
  *   );
  * });
  *
@@ -522,9 +522,9 @@ export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl
  *   });
  *
  *   return (
- *     <Host>
+ *     <div>
  *       <p>The temperature is: ${store.temp}</p>
- *     </Host>
+ *     </div>
  *   );
  * });
  * ```
@@ -564,9 +564,9 @@ export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
  *   });
  *
  *   return (
- *     <Host>
+ *     <div>
  *       <p>The temperature is: ${store.temp}</p>
- *     </Host>
+ *     </div>
  *   );
  * });
  * ```

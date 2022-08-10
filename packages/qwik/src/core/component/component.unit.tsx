@@ -12,14 +12,18 @@ const qComponent = suite('q-component');
 qComponent('should declare and render basic component', async () => {
   const fixture = new ElementFixture();
   await render(fixture.host, <HelloWorld></HelloWorld>);
-  const Host = 'q:host' as any;
   await expectDOM(
     fixture.host,
-    <host>
-      <Host>
+    `
+    <host q:version="" q:container="resumed">
+        <style q:style="2ej4-0">
+           {
+          }
+        </style>
+        <!--qv q:key=sX: q:id=0-->
         <span>Hello World</span>
-      </Host>
-    </host>
+        <!--/qv-->
+      </host>`
   );
 });
 
@@ -28,28 +32,41 @@ qComponent('should render Counter and accept events', async () => {
   await render(fixture.host, <MyCounter step={5} value={15} />);
   await expectDOM(
     fixture.host,
-    <host>
-      <my-counter>
-        <div>
-          <button>-</button>
-          <span>15</span>
-          <button>+</button>
-        </div>
-      </my-counter>
-    </host>
+    `          <host q:version="" q:container="resumed">
+    <!--qv q:key=sX: q:id=0-->
+    <my-counter>
+      <button class="decrement" on:click="/runtimeQRL#_[0 1 2]">-</button>
+      <span>15</span>
+      <button class="increment" on:click="/runtimeQRL#_[0 1 2]">+</button>
+    </my-counter>
+    <!--/qv-->
+  </host>`
   );
   await trigger(fixture.host, 'button.decrement', 'click');
   await expectDOM(
     fixture.host,
-    <host>
-      <my-counter>
-        <div>
-          <button>-</button>
-          <span>10</span>
-          <button>+</button>
-        </div>
-      </my-counter>
-    </host>
+    `
+<host q:version="" q:container="resumed">
+  <!--qv q:key=sX: q:id=0-->
+  <my-counter>
+    <button
+      class="decrement"
+      on:click="/runtimeQRL#_[0 1 2]
+/runtimeQRL#_[0 1 3]"
+    >
+      -
+    </button>
+    <span>10</span>
+    <button
+      class="increment"
+      on:click="/runtimeQRL#_[0 1 2]
+/runtimeQRL#_[0 1 3]"
+    >
+      +
+    </button>
+  </my-counter>
+  <!--/qv-->
+</host>`
   );
 });
 
@@ -71,19 +88,21 @@ qComponent('should render a collection of todo items', async () => {
   await delay(0);
   await expectDOM(
     host,
-    <host>
-      <items>
-        <item-detail>
-          <input type="checkbox" checked />
-          <span>Task 1</span>
-        </item-detail>
-        <item-detail>
-          <input type="checkbox" />
-          <span>Task 2</span>
-        </item-detail>
-        Total: {'2'}
-      </items>
-    </host>
+    `
+              <host q:version="" q:container="resumed">
+            <!--qv q:key=sX: q:id=0-->
+            <!--qv q:key=sX: q:id=1-->
+            <input type="checkbox" checked="" />
+            <span>Task 1</span>
+            <!--/qv-->
+            <!--qv q:key=sX: q:id=2-->
+            <input type="checkbox" />
+            <span>Task 2</span>
+            <!--/qv-->
+            Total: 2
+            <!--/qv-->
+          </host>
+    `
   );
 });
 
@@ -117,31 +136,26 @@ export const MyCounter_update = () => {
 };
 
 // Finally tie it all together into a component.
-export const MyCounter = component$(
-  (props: { step?: number; value?: number }) => {
-    const state = useStore({ count: props.value || 0 });
-    return (
-      <div>
-        <button
-          class="decrement"
-          onClick$={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
-        >
-          -
-        </button>
-        <span>{state.count}</span>
-        <button
-          class="increment"
-          onClick$={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
-        >
-          +
-        </button>
-      </div>
-    );
-  },
-  {
-    tagName: 'my-counter',
-  }
-);
+export const MyCounter = component$((props: { step?: number; value?: number }) => {
+  const state = useStore({ count: props.value || 0 });
+  return (
+    <my-counter>
+      <button
+        class="decrement"
+        onClick$={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
+      >
+        -
+      </button>
+      <span>{state.count}</span>
+      <button
+        class="increment"
+        onClick$={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
+      >
+        +
+      </button>
+    </my-counter>
+  );
+});
 
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////

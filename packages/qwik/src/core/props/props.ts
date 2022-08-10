@@ -42,6 +42,7 @@ export interface QContextEvents {
 export interface ComponentCtx {
   $ctx$: QContext;
   $slots$: ProcessedJSXNode[];
+  $attachedListeners$: boolean;
 }
 
 export interface QContext {

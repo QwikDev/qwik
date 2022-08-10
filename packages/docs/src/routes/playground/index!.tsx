@@ -1,4 +1,4 @@
-import { $, component$, Host, useStyles$, useStore, useClientEffect$ } from '@builder.io/qwik';
+import { $, component$, useStyles$, useStore, useClientEffect$ } from '@builder.io/qwik';
 import { Repl } from '../../repl/repl';
 import { Header } from '../../components/header/header';
 import styles from './playground.css?inline';
@@ -69,7 +69,7 @@ export default component$(() => {
   });
 
   return (
-    <Host
+    <div
       class={{
         playground: true,
         'full-width': true,
@@ -81,9 +81,6 @@ export default component$(() => {
 
       <Repl
         input={store}
-        style={{
-          gridTemplateColumns: `${store.colLeft}% ${100 - store.colLeft}%`,
-        }}
         enableCopyToPlayground={false}
         enableDownload={true}
         enableInputDelete={true}
@@ -99,7 +96,7 @@ export default component$(() => {
           left: `calc(${store.colLeft}% - 6px)`,
         }}
       />
-    </Host>
+    </div>
   );
 });
 

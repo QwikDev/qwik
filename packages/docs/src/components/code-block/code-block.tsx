@@ -1,4 +1,4 @@
-import { component$, Host, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@builder.io/qwik';
 import { highlight, languages } from 'prismjs';
 import styles from './code-block.css?inline';
 
@@ -9,33 +9,30 @@ interface CodeBlockProps {
   code: string;
 }
 
-export const CodeBlock = component$(
-  (props: CodeBlockProps) => {
-    useStyles$(styles);
+export const CodeBlock = component$((props: CodeBlockProps) => {
+  useStyles$(styles);
 
-    let language = props.language;
-    if (!language && props.path && props.code) {
-      const ext = props.path.split('.').pop();
-      language =
-        ext === 'js' || ext === 'json'
-          ? 'javascript'
-          : ext === 'html'
-          ? 'markup'
-          : ext === 'css'
-          ? 'css'
-          : undefined;
-    }
+  let language = props.language;
+  if (!language && props.path && props.code) {
+    const ext = props.path.split('.').pop();
+    language =
+      ext === 'js' || ext === 'json'
+        ? 'javascript'
+        : ext === 'html'
+        ? 'markup'
+        : ext === 'css'
+        ? 'css'
+        : undefined;
+  }
 
-    if (language && languages[language]) {
-      const highlighted = highlight(props.code, languages[language], language);
-      const className = `language-${language}${props.theme ? ' theme-' + props.theme : ''}`;
-      return (
-        <Host class={className}>
-          <code class={className} dangerouslySetInnerHTML={highlighted} />
-        </Host>
-      );
-    }
-    return null;
-  },
-  { tagName: 'pre' }
-);
+  if (language && languages[language]) {
+    const highlighted = highlight(props.code, languages[language], language);
+    const className = `language-${language}${props.theme ? ' theme-' + props.theme : ''}`;
+    return (
+      <pre class={className}>
+        <code class={className} dangerouslySetInnerHTML={highlighted} />
+      </pre>
+    );
+  }
+  return null;
+});

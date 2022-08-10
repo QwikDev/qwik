@@ -42,7 +42,7 @@ export type { CorePlatform } from './platform/types';
 // JSX Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export { h } from './render/jsx/factory';
-export { Host, SkipRerender, SSRStreamBlock, SSRComment } from './render/jsx/host.public';
+export { SkipRerender, SSRStreamBlock, SSRComment } from './render/jsx/host.public';
 export { Slot } from './render/jsx/slot.public';
 export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
 export type { HTMLAttributes, AriaAttributes, AriaRole } from './render/jsx/types/jsx-generated';
@@ -55,7 +55,6 @@ export type {
 export type { FunctionComponent, JSXNode } from './render/jsx/types/jsx-node';
 export type { QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
-export type { HostAttributes } from './render/jsx/host.public';
 export { render } from './render/dom/render.public';
 export { renderSSR } from './render/ssr/render-ssr';
 export type { RenderSSROptions, StreamWriter } from './render/ssr/render-ssr';

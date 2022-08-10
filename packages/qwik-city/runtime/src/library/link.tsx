@@ -1,4 +1,4 @@
-import { component$, Host, Slot, QwikIntrinsicElements } from '@builder.io/qwik';
+import { component$, Slot, QwikIntrinsicElements } from '@builder.io/qwik';
 import { getClientNavPath } from './client-navigation';
 import { useLocation, useNavigate } from './use-functions';
 
@@ -16,7 +16,7 @@ export const Link = component$<LinkProps>(
       linkProps.href = clientNavPath;
     }
     return (
-      <Host
+      <div
         {...linkProps}
         onClick$={() => {
           if (clientNavPath) {
@@ -25,7 +25,7 @@ export const Link = component$<LinkProps>(
         }}
       >
         <Slot />
-      </Host>
+      </div>
     );
   },
   { tagName: 'a' }

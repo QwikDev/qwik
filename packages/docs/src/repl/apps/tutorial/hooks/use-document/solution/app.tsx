@@ -1,9 +1,6 @@
-import { component$, Host, useDocument } from '@builder.io/qwik';
+import { component$, useDocument } from '@builder.io/qwik';
 
-export const App = component$(
-  () => {
-    const doc = useDocument();
-    return <Host>Host element tag-name: {doc.location.toString()}</Host>;
-  },
-  { tagName: 'my-app' }
-);
+export const App = component$(() => {
+  const doc = useDocument();
+  return <my-app>Host element tag-name: {doc.location.toString()}</my-app>;
+});

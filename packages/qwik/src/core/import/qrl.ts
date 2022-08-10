@@ -16,6 +16,7 @@ import {
 import { qTest } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
 import type { QwikElement } from '../render/dom/virtual-element';
+import type { QContext } from '../props/props';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';
@@ -120,6 +121,7 @@ export interface QRLSerializeOptions {
   $platform$?: CorePlatform;
   $element$?: QwikElement;
   $getObjId$?: (obj: any) => string | null;
+  $addRefMap$?: (obj: any) => number;
 }
 
 export const stringifyQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) => {
@@ -152,6 +154,11 @@ export const stringifyQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
       const capture = captureRef.map(opts.$getObjId$);
       parts.push(`[${capture.join(' ')}]`);
     }
+  } else if (opts.$addRefMap$) {
+    if (captureRef && captureRef.length) {
+      const capture = captureRef.map(opts.$addRefMap$);
+      parts.push(`[${capture.join(' ')}]`);
+    }
   } else if (capture && capture.length > 0) {
     parts.push(`[${capture.join(' ')}]`);
   }
@@ -163,10 +170,11 @@ export const stringifyQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
   return qrlString;
 };
 
-export const serializeQRLs = (existingQRLs: QRLInternal<any>[], el: QwikElement): string => {
+export const serializeQRLs = (existingQRLs: QRLInternal<any>[], ctx: QContext): string => {
   const opts: QRLSerializeOptions = {
-    $platform$: getPlatform(el),
-    $element$: el,
+    $platform$: getPlatform(ctx.$element$),
+    $element$: ctx.$element$,
+    $addRefMap$: (obj) => addToArray(ctx.$refMap$, obj),
   };
   return existingQRLs.map((qrl) => stringifyQRL(qrl, opts)).join('\n');
 };
@@ -212,4 +220,13 @@ const indexOf = (text: string, startIdx: number, char: string) => {
   const endIdx = text.length;
   const charIdx = text.indexOf(char, startIdx == endIdx ? 0 : startIdx);
   return charIdx == -1 ? endIdx : charIdx;
+};
+
+const addToArray = (array: any[], obj: any) => {
+  const index = array.indexOf(obj);
+  if (index === -1) {
+    array.push(obj);
+    return array.length - 1;
+  }
+  return index;
 };

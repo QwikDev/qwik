@@ -1,15 +1,14 @@
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
-import { serializeInlineContexts } from '../../use/use-context';
 import { InvokeContext, newInvokeContext, useInvoke } from '../../use/use-core';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
-import { QCtxAttr, QScopedStyle } from '../../util/markers';
+import { QScopedStyle } from '../../util/markers';
 import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
 import { appendHeadStyle, visitJsxNode } from './visitor';
-import { Host, SkipRerender, Virtual } from '../jsx/host.public';
-import { HOST_TYPE, isJSXNode, SKIP_RENDER_TYPE, VIRTUAL_TYPE } from '../jsx/jsx-runtime';
+import { SkipRerender, Virtual } from '../jsx/host.public';
+import { isJSXNode, SKIP_RENDER_TYPE, VIRTUAL_TYPE } from '../jsx/jsx-runtime';
 import type { JSXNode } from '../jsx/types/jsx-node';
 import { executeComponent } from '../execute-component';
 import type { RenderContext } from '../types';
@@ -18,7 +17,11 @@ import { directSetAttribute } from '../fast-calls';
 import type { QContext } from '../../props/props';
 import type { VirtualElement } from './virtual-element';
 
-export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrPromise<void> => {
+export const renderComponent = (
+  rctx: RenderContext,
+  ctx: QContext,
+  flags: number
+): ValueOrPromise<void> => {
   const justMounted = !ctx.$mounted$;
 
   // TODO, serialize scopeIds
@@ -30,9 +33,6 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
       invocatinContext.$subscriber$ = hostElement;
       invocatinContext.$renderCtx$ = newCtx;
       if (justMounted) {
-        if (ctx.$contexts$) {
-          directSetAttribute(hostElement, QCtxAttr, serializeInlineContexts(ctx.$contexts$));
-        }
         if (ctx.$appendStyles$) {
           for (const style of ctx.$appendStyles$) {
             appendHeadStyle(rctx, hostElement, style);
@@ -47,7 +47,7 @@ export const renderComponent = (rctx: RenderContext, ctx: QContext): ValueOrProm
       }
       const processedJSXNode = processData(res.node, invocatinContext);
       return then(processedJSXNode, (processedJSXNode) => {
-        return visitJsxNode(newCtx, hostElement, processedJSXNode, false);
+        return visitJsxNode(newCtx, hostElement, processedJSXNode, flags);
       });
     }
   });
@@ -71,9 +71,7 @@ export const processNode = (
 ): ValueOrPromise<ProcessedJSXNode | ProcessedJSXNode[] | undefined> => {
   const key = node.key != null ? String(node.key) : null;
   let textType = '';
-  if (node.type === Host) {
-    textType = HOST_TYPE;
-  } else if (node.type === SkipRerender) {
+  if (node.type === SkipRerender) {
     textType = SKIP_RENDER_TYPE;
   } else if (node.type === Virtual) {
     textType = VIRTUAL_TYPE;

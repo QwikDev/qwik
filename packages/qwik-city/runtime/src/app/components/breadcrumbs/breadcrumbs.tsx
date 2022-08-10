@@ -1,4 +1,4 @@
-import { component$, Host, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@builder.io/qwik';
 import { useContent, useLocation, ContentMenu } from '~qwik-city-runtime';
 import styles from './breadcrumbs.css?inline';
 
@@ -15,11 +15,11 @@ export const Breadcrumbs = component$(
     }
 
     return (
-      <Host class="breadcrumbs">
+      <div class="breadcrumbs">
         {breadcrumbs.map((b, i) => (
           <span data-test-breadcrumb={i}>{b.href ? <a href={b.href}>{b.text}</a> : b.text}</span>
         ))}
-      </Host>
+      </div>
     );
   },
   { tagName: 'nav' }

@@ -9,7 +9,6 @@
 import { component$ } from './component/component.public';
 import { qrl } from './import/qrl';
 import { $, QRL } from './import/qrl.public';
-import { Host } from './render/jsx/host.public';
 import { useCleanup$, useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
@@ -70,7 +69,7 @@ import styles from './code-block.css?inline';
 export const CmpStyles = component$(() => {
   useStyles$(styles);
 
-  return <Host>Some text</Host>;
+  return <div>Some text</div>;
 });
 // </docs>
 
@@ -80,7 +79,7 @@ import scoped from './code-block.css?inline';
 export const CmpScopedStyles = component$(() => {
   useStylesScoped$(scoped);
 
-  return <Host>Some text</Host>;
+  return <div>Some text</div>;
 });
 // </docs>
 
@@ -89,6 +88,7 @@ export const CmpInline = component$(() => {
   useStyles$(`.my-button {
     font-size: 20px;
   }`);
+
   return <button class="my-button">Profit!</button>;
 });
 // </docs>
@@ -106,7 +106,7 @@ export const CmpInline = component$(() => {
 
   const Cmp = component$(() => {
     useClick();
-    return <Host>Profit!</Host>;
+    return <div>Profit!</div>;
   });
   // </docs>
   return Cmp;
@@ -125,7 +125,7 @@ export const CmpInline = component$(() => {
 
   const Cmp = component$(() => {
     useScroll();
-    return <Host>Profit!</Host>;
+    return <div>Profit!</div>;
   });
   // </docs>
   return Cmp;
@@ -145,7 +145,7 @@ export const CmpInline = component$(() => {
 
   const Cmp = component$(() => {
     useAnalytics();
-    return <Host>Profit!</Host>;
+    return <div>Profit!</div>;
   });
   // </docs>
   return Cmp;
@@ -177,12 +177,12 @@ export const CmpInline = component$(() => {
       };
     });
     return (
-      <Host>
+      <>
         <div>
           {store.count} / {store.doubleCount}
         </div>
         <div>{store.debounced}</div>
-      </Host>
+      </>
     );
   });
   // </docs>
@@ -225,11 +225,11 @@ export const CmpInline = component$(() => {
     });
 
     return (
-      <Host>
+      <div>
         {store.users.map((user) => (
           <User user={user} />
         ))}
-      </Host>
+      </div>
     );
   });
 
@@ -258,9 +258,9 @@ export const CmpInline = component$(() => {
     });
 
     return (
-      <Host>
+      <div>
         <p>The temperature is: ${store.temp}</p>
-      </Host>
+      </div>
     );
   });
   // </docs>
@@ -284,7 +284,7 @@ export const CmpInline = component$(() => {
       };
     });
 
-    return <Host>{store.count}</Host>;
+    return <div>{store.count}</div>;
   });
   // </docs>
   return Timer;
@@ -313,10 +313,10 @@ export const CmpInline = component$(() => {
     });
 
     return (
-      <Host>
+      <>
         <div>Counter: {counter.value}</div>
         <Child userData={userData} state={state} />
-      </Host>
+      </>
     );
   });
 
@@ -359,9 +359,9 @@ export const CmpInline = component$(() => {
     });
 
     return (
-      <Host>
+      <>
         <input type="text" ref={input} />
-      </Host>
+      </>
     );
   });
 

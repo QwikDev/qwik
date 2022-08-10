@@ -143,7 +143,6 @@ export const componentQrl = <PROPS extends {}>(
   onRenderQrl: QRL<OnRenderFn<PROPS>>,
   options: ComponentOptions = {}
 ): Component<PROPS> => {
-
   // Return a QComponent Factory function.
   function QwikComponent(props: PublicProps<PROPS>, key?: string): JSXNode<PROPS> {
     const hash = qTest ? 'sX' : onRenderQrl.getHash();

@@ -71,34 +71,14 @@ export const component$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>, options?
 // @public
 export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
 
-// Warning: (ae-forgotten-export) The symbol "PreventDefault" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ComponentCustomEvents" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ComponentKnownEvents" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface ComponentBaseProps extends PreventDefault, ComponentCustomEvents, ComponentKnownEvents {
-    // (undocumented)
-    'host:tagName'?: JSXTagName;
+export interface ComponentBaseProps {
     // (undocumented)
     'q:slot'?: string;
     // (undocumented)
-    [key: `host:${string}`]: any;
-    // (undocumented)
     children?: JSXChildren;
     // (undocumented)
-    class?: string | {
-        [className: string]: boolean;
-    };
-    // (undocumented)
-    className?: string | undefined;
-    // (undocumented)
-    id?: string | undefined;
-    // (undocumented)
     key?: string | number;
-    // (undocumented)
-    ref?: Ref<Element>;
-    // (undocumented)
-    style?: Record<string, string | number> | string | undefined;
 }
 
 // @public
@@ -194,15 +174,6 @@ export namespace h {
     }
 }
 
-// @public
-export const Host: FunctionComponent<HostAttributes>;
-
-// @public (undocumented)
-export interface HostAttributes extends HTMLAttributes<HTMLElement> {
-    // (undocumented)
-    [key: string]: any;
-}
-
 // @public (undocumented)
 export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
@@ -295,7 +266,7 @@ export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL
 export const inlinedQrl: <T>(symbol: T, symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public (undocumented)
-const jsx: <T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string | number) => JSXNode<T>;
+const jsx: <T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string | number | null) => JSXNode<T>;
 export { jsx }
 export { jsx as jsxDEV }
 export { jsx as jsxs }
@@ -551,8 +522,6 @@ export const SkipRerender: FunctionComponent<{}>;
 // @public (undocumented)
 export const Slot: FunctionComponent<{
     name?: string;
-    as?: string;
-    children?: any;
 }>;
 
 // @alpha (undocumented)

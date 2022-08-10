@@ -1,9 +1,8 @@
 import {
   component$,
-  Host,
   noSerialize,
   QwikIntrinsicElements,
-  SkipRerender,
+  Slot,
   useContextProvider,
   useStore,
   useWatch$,
@@ -106,9 +105,9 @@ export const Html = component$<HtmlProps>(
     });
 
     return (
-      <Host {...props} q:sname="">
-        <SkipRerender />
-      </Host>
+      <div {...props}>
+        <Slot />
+      </div>
     );
   },
   { tagName: 'html' }

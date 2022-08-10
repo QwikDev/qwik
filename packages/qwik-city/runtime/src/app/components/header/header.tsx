@@ -1,4 +1,4 @@
-import { component$, Host, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@builder.io/qwik';
 import { useLocation } from '~qwik-city-runtime';
 import styles from './header.css?inline';
 
@@ -9,7 +9,7 @@ export default component$(
     const pathname = useLocation().pathname;
 
     return (
-      <Host>
+      <div>
         <div class="header-inner">
           <section class="logo">
             <a href="/" data-test-link="header-home">
@@ -61,7 +61,7 @@ export default component$(
             </a>
           </nav>
         </div>
-      </Host>
+      </div>
     );
   },
   {

@@ -3,7 +3,6 @@ import { component$ } from '@builder.io/qwik';
 import type { TutorialStore } from '.';
 
 export const TutorialContentHeader = component$(({ store }: TutorialContentHeaderProps) => {
-
   return (
     <div class="content-header">
       <svg width="20" height="20" viewBox="0 0 24 24">

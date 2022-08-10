@@ -116,27 +116,20 @@ export const createQRL = <TYPE>(
     $chunk$: chunk,
     $symbol$: symbol,
     $refSymbol$: refSymbol,
-    get $capture$() {
-      return capture;
-    },
-    set $capture$(v) {
-      capture = v;
-    },
-    get $captureRef$() {
-      return captureRef;
-    },
-    set $captureRef$(v) {
-      captureRef = v;
-    },
     $invokeFn$: invokeFn,
+
+    $capture$: capture,
+    $captureRef$: captureRef,
+
     $copy$(): QRLInternal<TYPE> {
-      return createQRL<TYPE>(chunk, symbol, symbolRef, symbolFn, null, captureRef, refSymbol);
+      return createQRL<TYPE>(chunk, symbol, symbolRef, symbolFn, null, qrl.$captureRef$, refSymbol);
     },
     $serialize$(options?: QRLSerializeOptions) {
       return stringifyQRL(QRL, options);
     },
   };
-  return Object.assign(invoke, methods) as any;
+  const qrl = Object.assign(invoke, methods);
+  return qrl as any;
 };
 
 export const getSymbolHash = (symbolName: string) => {

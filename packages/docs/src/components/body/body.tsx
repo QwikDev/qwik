@@ -1,4 +1,4 @@
-import { component$, Host, useContextProvider, useStore } from '@builder.io/qwik';
+import { component$, useContextProvider, useStore } from '@builder.io/qwik';
 import { Content } from '@builder.io/qwik-city';
 import { GlobalStore, SiteStore } from '../../context';
 
@@ -11,14 +11,14 @@ export const Body = component$(
     useContextProvider(GlobalStore, store);
 
     return (
-      <Host
+      <div
         class={{
           'header-open': store.headerMenuOpen,
           'menu-open': store.sideMenuOpen,
         }}
       >
         <Content />
-      </Host>
+      </div>
     );
   },
   { tagName: 'body' }

@@ -6,15 +6,19 @@ import { Header } from '../../../components/header/header';
 import exampleSections, { ExampleApp } from '@examples-data';
 import type { ReplAppInput } from '../../../repl/types';
 import { DocumentHead, useLocation } from '@builder.io/qwik-city';
+import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
 
 export default component$(() => {
   useStyles$(styles);
 
   const { params } = useLocation();
+  const panelStore = useStore(() => ({
+    active: 'Examples',
+    list: PANELS,
+  }));
 
   const store = useStore<ExamplesStore>(() => {
     const app = getExampleApp(params.id);
-
     const initStore: ExamplesStore = {
       appId: params.id,
       buildId: 0,
@@ -22,7 +26,6 @@ export default component$(() => {
       entryStrategy: 'hook',
       files: app?.inputs || [],
       version: '',
-      activePanel: 'Examples',
     };
     return initStore;
   });
@@ -43,9 +46,9 @@ export default component$(() => {
       <div
         class={{
           'examples-menu-container': true,
-          'examples-panel-input': store.activePanel === 'Input',
-          'examples-panel-output': store.activePanel === 'Output',
-          'examples-panel-console': store.activePanel === 'Console',
+          'examples-panel-input': panelStore.active === 'Input',
+          'examples-panel-output': panelStore.active === 'Output',
+          'examples-panel-console': panelStore.active === 'Console',
         }}
       >
         <div class="examples-menu">
@@ -60,7 +63,7 @@ export default component$(() => {
                   preventDefault:click
                   onClick$={() => {
                     store.appId = app.id;
-                    store.activePanel = 'Input';
+                    panelStore.active === 'Input';
                     history.replaceState({}, '', `/examples/${app.id}`);
                   }}
                   class={{
@@ -98,21 +101,7 @@ export default component$(() => {
           />
         </main>
       </div>
-      <div class="panel-toggle">
-        {PANELS.map((p) => (
-          <button
-            key={p}
-            onClick$={() => {
-              store.activePanel = p;
-            }}
-            type="button"
-            preventDefault:click
-            class={{ active: store.activePanel === p }}
-          >
-            {p}
-          </button>
-        ))}
-      </div>
+      <PanelToggle panelStore={panelStore} />
     </Host>
   );
 });
@@ -138,7 +127,6 @@ export const PANELS: ActivePanel[] = ['Examples', 'Input', 'Output', 'Console'];
 
 interface ExamplesStore extends ReplAppInput {
   appId: string;
-  activePanel: ActivePanel;
 }
 
 type ActivePanel = 'Examples' | 'Input' | 'Output' | 'Console';

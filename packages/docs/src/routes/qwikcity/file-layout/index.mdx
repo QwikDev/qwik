@@ -21,13 +21,16 @@ All file-based route information is placed in `src/routes` directory. This is th
     - counter.tsx
   - routes/              # Put your route specific components here.
     - docs/
-      - overview.mdx     # https://example.com/docs/overview
-      - index.mdx        # https://example.com/docs/
+      - overview/
+        - index.mdx      # https://example.com/docs/overview
+      - index.mdx        # https://example.com/docs
     - index.tsx          # https://example.com/
+    - layout.tsx         # All nested pages use this layout
 ```
+
 ## Sample Component
 
-Qwik City expects that files that are in the `src/routes` folder have a default export.
+Qwik City expects that `index.tsx` files that are in the `src/routes` folder have a `default` export.
 
 ```typescript
 import { component$ } from '@builder.io/qwik';

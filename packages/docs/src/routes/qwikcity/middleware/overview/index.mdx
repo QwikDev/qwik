@@ -8,9 +8,37 @@ Qwik City middleware is a glue code that connects server rendering framework (su
 
 Qwik City comes pre-bundle with:
 
-- [`cloudflare-pages`](../cloudflare-pages/index.mdx)
-- [`express`](../express/index.mdx)
-- [`netlify-edge`](../netlify-edge/index.mdx)
+- [`cloudflare-pages`](./cloudflare-pages/index.mdx)
+- [`express`](./express/index.mdx)
+- [`netlify-edge`](./netlify-edge/index.mdx)
+
+## Build
+
+Qwik City use vite cli `--ssr` to specify the SSR entry
+
+```bash
+vite build --ssr src/entry.MIDDLEWARE.tsx
+```
+
+default output dir is `./server` and it is configurable by setting `qwikVite` plugin option
+
+```typescript
+// file vite.config.ts
+import { qwikVite } from "@builder.io/qwik/optimizer";
+
+export default defineConfig(() => {
+  return {
+    plugins: [
+      // ...other plugins
+      qwikVite({
+        ssr: {
+          outDir: "netlify/edge-functions",
+        },
+      }),
+    ],
+  };
+});
+```
 
 ## Advanced
 

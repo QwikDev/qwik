@@ -127,11 +127,7 @@ export async function loadUserResponse(
 
         // create user request event, which is a narrowed down request context
         const requstEv: RequestEvent = {
-          request: {
-            ...request,
-            // in netlify edge, deconstructing request would drop headers
-            headers: request.headers,
-          },
+          request,
           url: new URL(url),
           params: { ...params },
           response,

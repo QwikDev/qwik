@@ -5,31 +5,28 @@ import { useLocation, useNavigate } from './use-functions';
 /**
  * @public
  */
-export const Link = component$<LinkProps>(
-  (props) => {
-    const nav = useNavigate();
-    const loc = useLocation();
-    const linkProps = { ...props };
-    const clientNavPath = getClientNavPath(linkProps, loc);
-    if (clientNavPath) {
-      linkProps['preventdefault:click'] = true;
-      linkProps.href = clientNavPath;
-    }
-    return (
-      <div
-        {...linkProps}
-        onClick$={() => {
-          if (clientNavPath) {
-            nav.path = linkProps.href!;
-          }
-        }}
-      >
-        <Slot />
-      </div>
-    );
-  },
-  { tagName: 'a' }
-);
+export const Link = component$<LinkProps>((props) => {
+  const nav = useNavigate();
+  const loc = useLocation();
+  const linkProps = { ...props };
+  const clientNavPath = getClientNavPath(linkProps, loc);
+  if (clientNavPath) {
+    linkProps['preventdefault:click'] = true;
+    linkProps.href = clientNavPath;
+  }
+  return (
+    <a
+      {...linkProps}
+      onClick$={() => {
+        if (clientNavPath) {
+          nav.path = linkProps.href!;
+        }
+      }}
+    >
+      <Slot />
+    </a>
+  );
+});
 
 type AnchorAttributes = QwikIntrinsicElements['a'];
 

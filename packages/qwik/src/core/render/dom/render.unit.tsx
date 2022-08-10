@@ -576,36 +576,26 @@ function getFirstNode(el: Element) {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////
-export const HelloWorld = component$(
-  (props: { name?: string }) => {
-    useStyles$(`span.� { color: red; }`);
-    const state = useStore({ salutation: 'Hello' });
-    return (
-      <span>
-        {state.salutation} {props.name || 'World'}
-      </span>
-    );
-  },
-  {
-    tagName: 'hello-world',
-  }
-);
+export const HelloWorld = component$((props: { name?: string }) => {
+  useStyles$(`span.� { color: red; }`);
+  const state = useStore({ salutation: 'Hello' });
+  return (
+    <span>
+      {state.salutation} {props.name || 'World'}
+    </span>
+  );
+});
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////
-export const RenderProps = component$(
-  (props: { thing?: string; href?: string }) => {
-    return (
-      <render-props href={props.href}>
-        <span>{JSON.stringify(props)}</span>
-      </render-props>
-    );
-  },
-  {
-    tagName: 'render-props',
-  }
-);
+export const RenderProps = component$((props: { thing?: string; href?: string }) => {
+  return (
+    <render-props href={props.href}>
+      <span>{JSON.stringify(props)}</span>
+    </render-props>
+  );
+});
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Counter
@@ -634,45 +624,30 @@ export const Counter_add = () => {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Project
 //////////////////////////////////////////////////////////////////////////////////////////
-export const Project = component$(
-  () => {
-    return (
-      <section>
-        <Slot></Slot>
-        <Slot name="details"></Slot>
-        <Slot name="description"></Slot>
-      </section>
-    );
-  },
-  {
-    tagName: 'project',
-  }
-);
+export const Project = component$(() => {
+  return (
+    <section>
+      <Slot></Slot>
+      <Slot name="details"></Slot>
+      <Slot name="description"></Slot>
+    </section>
+  );
+});
 
-export const SimpleProject = component$(
-  () => {
-    return (
-      <section>
-        <Slot>..default..</Slot>
-      </section>
-    );
-  },
-  {
-    tagName: 'project',
-  }
-);
+export const SimpleProject = component$(() => {
+  return (
+    <section>
+      <Slot>..default..</Slot>
+    </section>
+  );
+});
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // HostFixture
 //////////////////////////////////////////////////////////////////////////////////////////
-export const HostFixture = component$(
-  (props: { hostAttrs?: string; content?: string }) => {
-    return <div {...JSON.parse(props.hostAttrs || '{}')}>{props.content}</div>;
-  },
-  {
-    tagName: 'host-fixture',
-  }
-);
+export const HostFixture = component$((props: { hostAttrs?: string; content?: string }) => {
+  return <div {...JSON.parse(props.hostAttrs || '{}')}>{props.content}</div>;
+});
 
 //////////////////////////////////////////////////////////////////////////////////////////
 export const InnerHTMLComponent = component$(() => {

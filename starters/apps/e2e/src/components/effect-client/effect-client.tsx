@@ -52,15 +52,13 @@ export const Timer = component$(() => {
     };
   });
 
-    return (
-      <div>
-        <div id="counter">{state.count}</div>
-        <div id="msg">{state.msg}</div>
-      </div>
-    );
-  },
-  { tagName: 'div' }
-);
+  return (
+    <div>
+      <div id="counter">{state.count}</div>
+      <div id="msg">{state.msg}</div>
+    </div>
+  );
+});
 
 export const Eager = component$(() => {
   console.log('<Timer> renders');
@@ -79,11 +77,9 @@ export const Eager = component$(() => {
     }
   );
 
-    return (
-      <div>
-        <div id="eager-msg">{state.msg}</div>
-      </div>
-    );
-  },
-  { tagName: 'div' }
-);
+  return (
+    <div>
+      <div id="eager-msg">{state.msg}</div>
+    </div>
+  );
+});

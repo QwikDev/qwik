@@ -173,39 +173,29 @@ interface ItemsObj {
 
 /////////////////////////////////////////////////////////////////////////////
 
-export const ItemDetail = component$(
-  (props: { itemObj: ItemObj }) => {
-    // const state = useStore({ editing: false });
-    return (
-      <>
-        <input type="checkbox" checked={props.itemObj.done} />
-        <span>{props.itemObj.title || 'loading...'}</span>
-      </>
-    );
-  },
-  {
-    tagName: 'item-detail',
-  }
-);
+export const ItemDetail = component$((props: { itemObj: ItemObj }) => {
+  // const state = useStore({ editing: false });
+  return (
+    <item-detail>
+      <input type="checkbox" checked={props.itemObj.done} />
+      <span>{props.itemObj.title || 'loading...'}</span>
+    </item-detail>
+  );
+});
 
 /////////////////////////////////////////////////////////////////////////////
 
-export const Items = component$(
-  (props: { items: ItemsObj }) => {
-    // const state = useStore({ editing: false });
-    return (
-      <>
-        {props.items.items.map((item) => (
-          <ItemDetail itemObj={item} />
-        ))}
-        Total: {props.items.items.length}
-      </>
-    );
-  },
-  {
-    tagName: 'items',
-  }
-);
+export const Items = component$((props: { items: ItemsObj }) => {
+  // const state = useStore({ editing: false });
+  return (
+    <items>
+      {props.items.items.map((item) => (
+        <ItemDetail itemObj={item} />
+      ))}
+      Total: {props.items.items.length}
+    </items>
+  );
+});
 
 function delay(miliseconds: number): Promise<void> {
   return new Promise((res) => setTimeout(res, miliseconds));

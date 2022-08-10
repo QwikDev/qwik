@@ -695,21 +695,16 @@ renderSSRSuite('null component', async () => {
 
 renderSSRSuite.run();
 
-export const MyCmp = component$(
-  (props: Record<string, any>) => {
-    return (
-      <section>
-        <div>
-          MyCmp
-          {JSON.stringify(props)}
-        </div>
-      </section>
-    );
-  },
-  {
-    tagName: 'section',
-  }
-);
+export const MyCmp = component$((props: Record<string, any>) => {
+  return (
+    <section>
+      <div>
+        MyCmp
+        {JSON.stringify(props)}
+      </div>
+    </section>
+  );
+});
 
 export const MyCmpComplex = component$(() => {
   const ref = useRef();

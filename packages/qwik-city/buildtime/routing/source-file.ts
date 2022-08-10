@@ -1,4 +1,3 @@
-import { basename, extname } from 'path';
 import type { BuildContext, RouteSourceFile, RouteSourceFileName, RouteSourceType } from '../types';
 import { addError } from '../utils/format';
 import {
@@ -8,11 +7,13 @@ import {
   isMarkdownExt,
   isMenuFileName,
   isPageModuleExt,
+  getExtension,
+  removeExtension,
 } from '../utils/fs';
 
 export function getSourceFile(fileName: string) {
-  const ext = extname(fileName).toLowerCase();
-  const extlessName = basename(fileName, ext);
+  const ext = getExtension(fileName);
+  const extlessName = removeExtension(fileName);
   const isPageModule = isPageModuleExt(ext);
   const isModule = isModuleExt(ext);
   const isMarkdown = isMarkdownExt(ext);

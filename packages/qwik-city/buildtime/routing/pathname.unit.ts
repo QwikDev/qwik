@@ -1,14 +1,38 @@
 import { test } from 'uvu';
 import { equal } from 'uvu/assert';
 import {
-  getMenuLinkHref,
+  getMarkdownRelativeUrl,
   getPathnameFromDirPath,
+  isSameOriginUrl,
   normalizePathname,
   parseRouteIndexName,
 } from './pathname';
 import type { NormalizedPluginOptions } from '../types';
 import { tmpdir } from 'os';
 import { join } from 'path';
+
+test('isSameOriginUrl', () => {
+  const t = [
+    { url: '#hash', expect: false },
+    { url: '   #hash', expect: false },
+    { url: '', expect: false },
+    { url: '    ', expect: false },
+    { url: 'javascript://nice', expect: false },
+    { url: 'file://local', expect: false },
+    { url: 'about://blank', expect: false },
+    { url: 'HTTPS://qwik.builder.io', expect: false },
+    { url: 'http://qwik.builder.io', expect: false },
+    { url: 'relative:whatever', expect: true },
+    { url: 'relative', expect: true },
+    { url: './relative', expect: true },
+    { url: '/absolute', expect: true },
+    { url: undefined, expect: false },
+    { url: null, expect: false },
+  ];
+  t.forEach((c) => {
+    equal(isSameOriginUrl(c.url!), c.expect, c.url!);
+  });
+});
 
 test('getPathnameFromDirPath', () => {
   const routesDir = tmpdir();
@@ -113,7 +137,7 @@ test('parseRouteIndexName', () => {
   });
 });
 
-test('normalizePathname', () => {
+test('getMarkdownRelativeUrl', () => {
   const routesDir = tmpdir();
   const menuFilePath = join(routesDir, 'docs', 'menu.md');
 
@@ -139,6 +163,14 @@ test('normalizePathname', () => {
       expect: 'http://builder.io/',
     },
     {
+      href: '#hash',
+      expect: '#hash',
+    },
+    {
+      href: '',
+      expect: '',
+    },
+    {
       href: './getting-started.txt',
       expect: './getting-started.txt',
     },
@@ -151,7 +183,7 @@ test('normalizePathname', () => {
       routesDir: routesDir,
       mdx: {},
     };
-    equal(getMenuLinkHref(opts, menuFilePath, c.href), c.expect);
+    equal(getMarkdownRelativeUrl(opts, menuFilePath, c.href), c.expect);
   });
 });
 

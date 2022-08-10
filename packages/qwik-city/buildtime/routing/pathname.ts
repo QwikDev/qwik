@@ -1,7 +1,8 @@
-import { relative, dirname, join, extname, basename } from 'path';
+import { relative, dirname, join, basename } from 'path';
 import { getSourceFile } from './source-file';
 import type { NormalizedPluginOptions } from '../types';
-import { isMarkdownExt, normalizePath } from '../utils/fs';
+import { getExtension, isMarkdownExt, normalizePath } from '../utils/fs';
+import { existsSync } from 'fs';
 
 export function parseRouteIndexName(extlessName: string) {
   let layoutName = '';
@@ -63,26 +64,55 @@ export function normalizePathname(opts: NormalizedPluginOptions, pathname: strin
   return pathname;
 }
 
-export function getMenuLinkHref(opts: NormalizedPluginOptions, menuFilePath: string, href: string) {
-  if (typeof href !== 'string' || href.charAt(0) === '/') {
-    return href;
+export function isSameOriginUrl(url: string) {
+  if (typeof url === 'string') {
+    url = url.trim();
+    if (url !== '') {
+      const firstChar = url.charAt(0);
+      if (firstChar !== '/' && firstChar !== '.') {
+        if (firstChar === '#') {
+          return false;
+        }
+        const i = url.indexOf(':');
+        if (i > -1) {
+          const protocol = url.slice(0, i).toLowerCase();
+          return !PROTOCOLS[protocol];
+        }
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+export function getMarkdownRelativeUrl(
+  opts: NormalizedPluginOptions,
+  containingFilePath: string,
+  url: string,
+  checkFileExists?: boolean
+) {
+  if (typeof url !== 'string' || !isSameOriginUrl(url)) {
+    return url;
   }
 
-  const protocol = href.split(':').pop()!.toLowerCase();
-  if (PROTOCOLS[protocol]) {
-    return href;
-  }
+  const querySplit = url.split('?');
+  const hashSplit = url.split('#');
+  const strippedUrl = url.split('?')[0].split('#')[0];
 
-  const querySplit = href.split('?');
-  const hashSplit = href.split('#');
-  href = href.split('?')[0].split('#')[0];
-
-  if (isMarkdownExt(extname(href))) {
-    const menuDirPath = dirname(menuFilePath);
-    const parts = normalizePath(href)
+  if (isMarkdownExt(getExtension(strippedUrl))) {
+    const containingDirPath = dirname(containingFilePath);
+    const parts = normalizePath(strippedUrl)
       .split('/')
       .filter((p) => p.length > 0);
-    const filePath = join(menuDirPath, ...parts);
+    const filePath = join(containingDirPath, ...parts);
+
+    if (checkFileExists) {
+      if (!existsSync(filePath)) {
+        console.warn(
+          `\nThe link "${url}", found within "${containingFilePath}" does not have a matching source file.\n`
+        );
+      }
+    }
 
     const fileName = basename(filePath);
     const sourceFileName = getSourceFile(fileName);
@@ -98,7 +128,7 @@ export function getMenuLinkHref(opts: NormalizedPluginOptions, menuFilePath: str
     }
   }
 
-  return href;
+  return url;
 }
 
 const PROTOCOLS: { [protocol: string]: boolean } = {

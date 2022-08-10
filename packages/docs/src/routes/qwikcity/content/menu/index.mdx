@@ -90,7 +90,7 @@ export default component$(
     const { pathname } = useLocation();
 
     return (
-      <Host class="menu">
+      <aside class="menu">
         {menu
           ? menu.items?.map((item) => (
               <>
@@ -112,7 +112,7 @@ export default component$(
               </>
             ))
           : null}
-      </Host>
+      </aside>
     );
   }
 );

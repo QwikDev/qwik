@@ -1,5 +1,6 @@
-import { ROUTE_TYPE_ENDPOINT } from '../../runtime/src/library//constants';
-import type { BuildContext, BuildFallbackRoute, BuildRoute } from '../types';
+import type { BuildContext, BuildRoute } from '../types';
+import { addError } from '../utils/format';
+import { isModuleExt, isPageExt } from '../utils/fs';
 import { getImportPath } from './utils';
 
 export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[]) {
@@ -20,17 +21,14 @@ export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[
     }
   }
 
-  const routes = ctx.routes.filter(
-    (r) => r.type === 'page' || (includeEndpoints && r.type === 'endpoint')
-  );
-
-  c.push(`\n/** Qwik City Routes (${routes.length}) */`);
+  c.push(`\n/** Qwik City Routes (${ctx.routes.length}) */`);
   c.push(`const routes = [`);
 
-  for (const route of routes) {
+  for (const route of ctx.routes) {
     const loaders = [];
 
-    if (route.type === 'page') {
+    if (isPageExt(route.ext)) {
+      // page module or markdown
       for (const layout of route.layouts) {
         loaders.push(layout.id);
       }
@@ -42,45 +40,26 @@ export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[
         esmImports.push(`import * as ${route.id} from ${JSON.stringify(importPath)};`);
         loaders.push(`()=>${route.id}`);
       }
-    } else if (route.type === 'endpoint' && includeEndpoints) {
+    } else if (includeEndpoints && isModuleExt(route.ext)) {
+      // include endpoints, and this is a module
       const importPath = getImportPath(route.filePath);
       esmImports.push(`import * as ${route.id} from ${JSON.stringify(importPath)};`);
       loaders.push(`()=>${route.id}`);
     }
 
-    c.push(`  ${createRoute(route, loaders)},`);
+    if (loaders.length > 0) {
+      c.push(`  ${createRoute(route, loaders)},`);
+    } else {
+      addError(ctx, `Route "${route.pathname}" does not have any modules.`);
+    }
   }
 
   c.push(`];`);
-
-  if (isSsr) {
-    c.push(`\n/** Qwik City Fallback Routes (${ctx.fallbackRoutes.length}) */`);
-    c.push(`const fallbackRoutes = [`);
-
-    for (const fallbackRoute of ctx.fallbackRoutes) {
-      const loaders = [];
-      for (const layout of fallbackRoute.layouts) {
-        loaders.push(layout.id);
-      }
-      const importPath = getImportPath(fallbackRoute.filePath);
-      esmImports.push(`import * as ${fallbackRoute.id} from ${JSON.stringify(importPath)};`);
-      loaders.push(`()=>${fallbackRoute.id}`);
-
-      c.push(`  ${createFallbackRoute(fallbackRoute, loaders)},`);
-    }
-
-    c.push(`];`);
-  }
 }
 
 function createRoute(r: BuildRoute, loaders: string[]) {
   const pattern = r.pattern.toString();
   const moduleLoaders = `[ ${loaders.join(', ')} ]`;
-
-  if (r.type === 'endpoint') {
-    const paramNames = JSON.stringify(r.paramNames);
-    return `[ ${pattern}, ${moduleLoaders}, ${paramNames}, ${ROUTE_TYPE_ENDPOINT} ]`;
-  }
 
   if (r.paramNames.length > 0) {
     const paramNames = JSON.stringify(r.paramNames);
@@ -88,14 +67,4 @@ function createRoute(r: BuildRoute, loaders: string[]) {
   }
 
   return `[ ${pattern}, ${moduleLoaders} ]`;
-}
-
-function createFallbackRoute(r: BuildFallbackRoute, loaders: string[]) {
-  const pattern = r.pattern.toString();
-  const moduleLoaders = `[ ${loaders.join(', ')} ]`;
-  const paramNames = JSON.stringify(r.paramNames);
-  const routeType = r.type === 'endpoint' ? ROUTE_TYPE_ENDPOINT : 0;
-  const status = JSON.stringify(r.status);
-
-  return `[ ${pattern}, ${moduleLoaders}, ${paramNames}, ${routeType}, ${status} ]`;
 }

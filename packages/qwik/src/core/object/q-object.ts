@@ -85,7 +85,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     let subscriber: Subscriber | undefined | null;
     const invokeCtx = tryGetInvokeContext();
     const recursive = (this.$flags$ & QObjectRecursive) !== 0;
-    const immutable = false && (this.$flags$ & QObjectImmutable) !== 0;
+    const immutable = (this.$flags$ & QObjectImmutable) !== 0;
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
@@ -208,6 +208,9 @@ const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
     }
     switch (typeof unwrapped) {
       case 'object':
+        if (isPromise(unwrapped)) return value;
+        if (isElement(unwrapped)) return value;
+        if (isDocument(unwrapped)) return value;
         if (isArray(unwrapped)) {
           for (const item of unwrapped) {
             _verifySerializable(item, seen);
@@ -220,9 +223,6 @@ const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
           }
           return value;
         }
-        if (isPromise(unwrapped)) return value;
-        if (isElement(unwrapped)) return value;
-        if (isDocument(unwrapped)) return value;
         break;
       case 'boolean':
       case 'string':

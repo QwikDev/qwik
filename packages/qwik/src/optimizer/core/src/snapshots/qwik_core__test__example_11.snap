@@ -27,8 +27,7 @@ export const App = component$(() => {
 ============================= header_component_header_onclick_kjd9tcnknxy.tsx ==
 
 import dep3 from "dep3/something";
-export const Header_component_Header_onClick_KjD9TCNkNxY = (ev)=>dep3(ev)
-;
+export const Header_component_Header_onClick_KjD9TCNkNxY = (ev)=>dep3(ev);
 
 /*
 {
@@ -56,8 +55,7 @@ import { bar as bbar } from "./state";
 import * as dep2 from "dep2";
 import { qrl } from "@builder.io/qwik";
 export const Header_component_UVBJuFYfvDo = ()=>{
-    return <Header onClick={qrl(()=>import("./entry_hooks")
-    , "Header_component_Header_onClick_KjD9TCNkNxY")}>
+    return <Header onClick={qrl(()=>import("./entry_hooks"), "Header_component_Header_onClick_KjD9TCNkNxY")}>
 
             {dep2.stuff()}{bbar()}
 
@@ -114,10 +112,8 @@ export const App_component_wGkRHWXaqjs = ()=>{
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("../entry_hooks")
-, "Header_component_UVBJuFYfvDo"));
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("../entry_hooks")
-, "App_component_wGkRHWXaqjs"));
+export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("../entry_hooks"), "Header_component_UVBJuFYfvDo"));
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("../entry_hooks"), "App_component_wGkRHWXaqjs"));
 
 ============================= entry_hooks.js (ENTRY POINT)==
 

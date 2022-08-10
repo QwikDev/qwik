@@ -48,10 +48,8 @@ export const Child = component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Parent = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_Parent")
-, "Parent_component_0TaiDayHrlo"));
-export const Child = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_Child")
-, "Child_component_9GyF01GDKqw"));
+export const Parent = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_Parent"), "Parent_component_0TaiDayHrlo"));
+export const Child = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_Child"), "Child_component_9GyF01GDKqw"));
 
 ============================= parent_component_0taidayhrlo.js ==
 
@@ -64,13 +62,11 @@ export const Parent_component_0TaiDayHrlo = ()=>{
         text: ''
     });
     // Double count watch
-    useServerMountQrl(qrl(()=>import("./entry_server")
-    , "Parent_component_useServerMount_cQrQm0HrrM8", [
+    useServerMountQrl(qrl(()=>import("./entry_server"), "Parent_component_useServerMount_cQrQm0HrrM8", [
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: qrl(()=>import("./entry_Parent")
-        , "Parent_component_div_onClick_C5XE49Nqd3A"),
+        onClick$: qrl(()=>import("./entry_Parent"), "Parent_component_div_onClick_C5XE49Nqd3A"),
         children: state.text
     });
 };
@@ -124,8 +120,7 @@ export const Child_component_useServerMount_lnE1dxU8z28 = async ()=>{
 */
 ============================= parent_component_div_onclick_c5xe49nqd3a.js ==
 
-export const Parent_component_div_onClick_C5XE49Nqd3A = ()=>console.log('parent')
-;
+export const Parent_component_div_onClick_C5XE49Nqd3A = ()=>console.log('parent');
 
 /*
 {
@@ -157,13 +152,11 @@ export const Child_component_9GyF01GDKqw = ()=>{
         text: ''
     });
     // Double count watch
-    useServerMountQrl(qrl(()=>import("./entry_server")
-    , "Child_component_useServerMount_lnE1dxU8z28", [
+    useServerMountQrl(qrl(()=>import("./entry_server"), "Child_component_useServerMount_lnE1dxU8z28", [
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: qrl(()=>import("./entry_Child")
-        , "Child_component_div_onClick_elliVSnAiOQ"),
+        onClick$: qrl(()=>import("./entry_Child"), "Child_component_div_onClick_elliVSnAiOQ"),
         children: state.text
     });
 };
@@ -219,8 +212,7 @@ export const Parent_component_useServerMount_cQrQm0HrrM8 = async ()=>{
 */
 ============================= child_component_div_onclick_ellivsnaioq.js ==
 
-export const Child_component_div_onClick_elliVSnAiOQ = ()=>console.log('child')
-;
+export const Child_component_div_onClick_elliVSnAiOQ = ()=>console.log('child');
 
 /*
 {

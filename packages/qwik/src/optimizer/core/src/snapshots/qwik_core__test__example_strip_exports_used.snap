@@ -57,16 +57,14 @@ import { qrl } from "@builder.io/qwik";
 export const onGet = ()=>{
     throw "removed by optimizer";
 };
-export default /*#__PURE__*/ componentQrl(qrl(()=>import("./test_component_luxexe0dqrg")
-, "test_component_LUXeXe0DQrg"));
+export default /*#__PURE__*/ componentQrl(qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
 
 ============================= test_component_luxexe0dqrg.tsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 import { useResourceQrl } from "@builder.io/qwik";
 export const test_component_LUXeXe0DQrg = ()=>{
-    useResourceQrl(qrl(()=>import("./test_component_useresource_4a8wvy7wh38")
-    , "test_component_useResource_4a8wVY7wh38"));
+    useResourceQrl(qrl(()=>import("./test_component_useresource_4a8wvy7wh38"), "test_component_useResource_4a8wVY7wh38"));
     return <div >cmp</div>;
 };
 

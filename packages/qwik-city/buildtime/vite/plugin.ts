@@ -4,13 +4,7 @@ import type { Plugin, UserConfig } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-runtime';
 import type { BuildContext } from '../types';
 import { createBuildContext, resetBuildContext } from '../utils/context';
-import {
-  isLayoutName,
-  isMarkdownExt,
-  isMenuFileName,
-  normalizePath,
-  removeExtension,
-} from '../utils/fs';
+import { isMarkdownExt, isMenuFileName, normalizePath, removeExtension } from '../utils/fs';
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityVitePluginOptions } from './types';
 import { build } from '../build';
@@ -108,14 +102,14 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
           return menuCode;
         }
 
-        const ext = extname(id);
+        const ext = extname(fileName).toLowerCase();
         if (isMarkdownExt(ext) && mdxTransform) {
           const mdxResult = await mdxTransform(code, id);
           return mdxResult;
         }
 
         if (ctx.target === 'client') {
-          if (ext === '.js' && !isLayoutName(fileName)) {
+          if (ext === '.js') {
             id = normalizePath(id);
             if (id.startsWith(ctx.opts.routesDir)) {
               if (SERVER_ENDPOINT_FNS.some((fnName) => code.includes(fnName))) {

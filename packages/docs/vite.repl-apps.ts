@@ -2,14 +2,14 @@ import type { Plugin } from 'vite';
 import type { TransformModuleInput } from '@builder.io/qwik/optimizer';
 import { join, basename } from 'path';
 import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
-import type { ExampleSection } from './src/repl/apps/examples/examples-data';
-import type { PlaygroundApp } from './src/repl/apps/playground/playground-data';
-import type { TutorialSection } from './src/repl/apps/tutorial/tutorial-data';
+import type { ExampleSection } from './src/routes/examples/apps/examples-data';
+import type { PlaygroundApp } from './src/routes/playground/playground-data';
+import type { TutorialSection } from './src/routes/tutorial/tutorial-data';
 import type { PluginContext } from 'rollup';
 import type { ReplModuleInput } from './src/repl/types';
 
-export function playgroundData(replAppsDir: string): Plugin {
-  const playgroundAppDir = join(replAppsDir, 'playground');
+export function playgroundData(routesDir: string): Plugin {
+  const playgroundAppDir = join(routesDir, 'playground', 'app');
 
   return {
     name: 'playgroundData',
@@ -41,8 +41,8 @@ export function playgroundData(replAppsDir: string): Plugin {
   };
 }
 
-export function examplesData(replAppsDir: string): Plugin {
-  const dir = join(replAppsDir, 'examples');
+export function examplesData(routesDir: string): Plugin {
+  const dir = join(routesDir, 'examples', 'apps');
   const menuPath = join(dir, 'examples-menu.json');
   const menuSrc = readFileSync(menuPath, 'utf-8');
 
@@ -141,8 +141,8 @@ export function examplesData(replAppsDir: string): Plugin {
   };
 }
 
-export function tutorialData(replAppsDir: string): Plugin {
-  const dir = join(replAppsDir, 'tutorial');
+export function tutorialData(routesDir: string): Plugin {
+  const dir = join(routesDir, 'tutorial');
   const menuPath = join(dir, 'tutorial-menu.json');
   const menuSrc = readFileSync(menuPath, 'utf-8');
 

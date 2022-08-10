@@ -1,5 +1,5 @@
 import { test } from 'uvu';
-import * as assert from 'uvu/assert';
+import { equal } from 'uvu/assert';
 import { parseRoutePathname } from './parse-pathname';
 
 /**
@@ -28,22 +28,21 @@ const tests = {
     pattern: /^\/blog\/([^/]+?)\.json$/,
     paramNames: ['slug'],
   },
-  '/[...catchall]': {
+  '/[...rest]': {
     pattern: /^(?:\/(.*))?\/?$/,
-    paramNames: ['catchall'],
+    paramNames: ['rest'],
   },
-  '/foo/[...catchall]/bar': {
+  '/foo/[...rest]/bar': {
     pattern: /^\/foo(?:\/(.*))?\/bar\/?$/,
-    paramNames: ['catchall'],
+    paramNames: ['rest'],
   },
 };
 
 for (const [key, expected] of Object.entries(tests)) {
   test(`parseRoutePathname: "${key}"`, () => {
     const actual = parseRoutePathname(key);
-
-    assert.equal(actual.pattern.toString(), expected.pattern.toString());
-    assert.equal(actual.paramNames, expected.paramNames);
+    equal(actual.pattern.toString(), expected.pattern.toString());
+    equal(actual.paramNames, expected.paramNames);
   });
 }
 

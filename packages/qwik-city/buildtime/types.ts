@@ -2,7 +2,7 @@ export interface BuildContext {
   rootDir: string;
   opts: NormalizedPluginOptions;
   routes: BuildRoute[];
-  fallbackRoutes: BuildFallbackRoute[];
+  errors: BuildRoute[];
   layouts: BuildLayout[];
   entries: BuildEntry[];
   menus: BuildMenu[];
@@ -22,17 +22,28 @@ export interface Diagnostic {
   message: string;
 }
 
-export interface RouteSourceFile {
-  type: 'page' | 'endpoint' | 'layout' | 'entry' | 'menu' | '404' | '500';
+export interface RouteSourceFile extends RouteSourceFileName {
   dirPath: string;
   dirName: string;
   filePath: string;
   fileName: string;
+}
+
+export interface RouteSourceFileName {
+  type: RouteSourceType;
+  /**
+   * Filename without the extension
+   */
+  extlessName: string;
+  /**
+   * Just the extension
+   */
   ext: string;
 }
 
+export type RouteSourceType = 'route' | 'layout' | 'entry' | 'menu' | 'error';
+
 export interface BuildRoute extends ParsedPathname {
-  type: 'page' | 'endpoint';
   /**
    * Unique id built from its relative file system path
    */
@@ -41,6 +52,7 @@ export interface BuildRoute extends ParsedPathname {
    * Local file system path
    */
   filePath: string;
+  ext: string;
   /**
    * URL Pathname
    */
@@ -62,22 +74,16 @@ export interface PathnameSegmentPart {
   rest: boolean;
 }
 
-export interface BuildFallbackRoute extends BuildRoute {
-  status: '404' | '500';
-}
-
-export interface ParsedLayoutId {
+export interface BuildLayout {
+  filePath: string;
+  dirPath: string;
+  id: string;
   layoutType: 'top' | 'nested';
   layoutName: string;
 }
 
-export interface BuildLayout extends ParsedLayoutId {
-  filePath: string;
-  dirPath: string;
-  id: string;
-}
-
 export interface BuildEntry {
+  id: string;
   chunkFileName: string;
   filePath: string;
 }
@@ -101,6 +107,11 @@ export interface PluginOptions {
    * Directory of the `routes`. Defaults to `src/routes`.
    */
   routesDir?: string;
+  /**
+   * The base url is used to create absolute URL paths to
+   * the hostname.  Defaults to `/`.
+   */
+  baseUrl?: string;
   /**
    * Ensure a trailing slash ends page urls. Defaults to `false`.
    */

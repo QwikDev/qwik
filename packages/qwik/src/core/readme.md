@@ -165,7 +165,7 @@ It can be used to release resources, abort network requests, stop timers...
 
 Register a listener on the current component's host element.
 
-Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<Host>` is a better idea.
+Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.
 
 @see `useOn`, `useOnWindow`, `useOnDocument`.
 
@@ -192,16 +192,6 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 @see `useOn`, `useOnWindow`, `useOnDocument`.
 
 <docs code="./examples.tsx#use-on-document"/>
-
-@alpha
-
-# `useHostElement`
-
-Retrieves the Host Element of the current component.
-
-NOTE: `useHostElement` method can only be used in the synchronous portion of the callback (before any `await` statements.)
-
-<docs code="./examples.tsx#use-host-element"/>
 
 @alpha
 

@@ -8,7 +8,7 @@ import {
 } from '../error/error';
 import { isQrl } from '../import/qrl-class';
 import { tryGetInvokeContext } from '../use/use-core';
-import { isDocument, isElement, isNode } from '../util/element';
+import { isDocument, isNode, isQwikElement } from '../util/element';
 import { logWarn } from '../util/log';
 import { qDev } from '../util/qdev';
 import { tryGetContext } from '../props/props';
@@ -209,8 +209,9 @@ const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
     switch (typeof unwrapped) {
       case 'object':
         if (isPromise(unwrapped)) return value;
-        if (isElement(unwrapped)) return value;
+        if (isQwikElement(unwrapped)) return value;
         if (isDocument(unwrapped)) return value;
+
         if (isArray(unwrapped)) {
           for (const item of unwrapped) {
             _verifySerializable(item, seen);
@@ -311,7 +312,7 @@ export const mutable = <T>(v: T): MutableWrapper<T> => {
 };
 
 export const isConnected = (sub: Subscriber): boolean => {
-  if (isElement(sub)) {
+  if (isQwikElement(sub)) {
     return !!tryGetContext(sub) || sub.isConnected;
   } else {
     return isConnected(sub.$el$);

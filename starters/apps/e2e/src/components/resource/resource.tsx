@@ -2,7 +2,6 @@
 import {
   component$,
   useStore,
-  Host,
   useResource$,
   Resource,
   useWatch$,
@@ -80,12 +79,12 @@ export const ResourceApp = component$(() => {
   // });
 
   return (
-    <Host>
+    <div>
       <button type="button" onClick$={() => state.count++}>
         Increment
       </button>
       <Results result={resource} />
-    </Host>
+    </div>
   );
 });
 
@@ -98,7 +97,7 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
   logs.content += '[RENDER] <Results>\n\n\n';
 
   return (
-    <Host>
+    <div>
       <Resource
         resource={props.result}
         onPending={() => <div class="resource1">loading resource 1...</div>}
@@ -118,7 +117,7 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
         /> */}
 
       <div class="logs">{logs.content}</div>
-    </Host>
+    </div>
   );
 });
 

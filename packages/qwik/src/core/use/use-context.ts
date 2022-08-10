@@ -1,10 +1,16 @@
 import { fromCamelToKebabCase } from '../util/case';
-import { getContext } from '../props/props';
+import { getContext, tryGetContext } from '../props/props';
 import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
 import { verifySerializable } from '../object/q-object';
 import { qDev } from '../util/qdev';
 import { isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
+import {
+  getVirtualElement,
+  isComment,
+  QwikElement,
+  VirtualElement,
+} from '../render/dom/virtual-element';
 
 // <docs markdown="../readme.md#Context">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -262,7 +268,8 @@ export const useContext = <STATE extends object>(context: Context<STATE>): STATE
   if (qDev) {
     validateContext(context);
   }
-  let hostElement = ctx.$hostElement$;
+
+  let hostElement: QwikElement = ctx.$hostElement$;
   const contexts = ctx.$renderCtx$.$localStack$;
   for (let i = contexts.length - 1; i >= 0; i--) {
     const ctx = contexts[i];
@@ -275,29 +282,56 @@ export const useContext = <STATE extends object>(context: Context<STATE>): STATE
       }
     }
   }
-  if (hostElement.closest) {
-    const foundEl = hostElement.closest(`[q\\:ctx*="${context.id}"]`);
-    if (foundEl) {
-      const value = getContext(foundEl).$contexts$!.get(context.id);
-      if (value) {
-        set(value);
-        return value;
-      }
+
+  if ((hostElement as any).closest) {
+    const value = queryContextFromDom(hostElement, context.id);
+    if (value !== undefined) {
+      set(value);
+      return value;
     }
   }
   throw qError(QError_notFoundContext, context.id);
+};
+
+export const queryContextFromDom = (hostElement: QwikElement, contextId: string) => {
+  let element: QwikElement | null = hostElement;
+  while (element) {
+    let node: Node | VirtualElement | null = element;
+    let virtual: VirtualElement | null;
+    while (node && (virtual = findVirtual(node))) {
+      const contexts = tryGetContext(virtual)?.$contexts$;
+      if (contexts) {
+        if (contexts.has(contextId)) {
+          return contexts.get(contextId);
+        }
+      }
+      node = virtual;
+    }
+    element = element.parentElement;
+  }
+  return undefined;
+};
+
+export const findVirtual = (el: Node | VirtualElement) => {
+  let node: Node | VirtualElement | null = el;
+  let stack = 1;
+  while ((node = node.previousSibling)) {
+    if (isComment(node)) {
+      if (node.data === '/qv') {
+        stack++;
+      } else if (node.data.startsWith('qv ')) {
+        stack--;
+        if (stack === 0) {
+          return getVirtualElement(node)!;
+        }
+      }
+    }
+  }
+  return null;
 };
 
 export const validateContext = (context: Context<any>) => {
   if (!isObject(context) || typeof context.id !== 'string' || context.id.length === 0) {
     throw qError(QError_invalidContext, context);
   }
-};
-
-export const serializeInlineContexts = (contexts: Map<string, any>) => {
-  const serializedContexts: string[] = [];
-  contexts.forEach((_, key) => {
-    serializedContexts.push(key);
-  });
-  return serializedContexts.join(' ');
 };

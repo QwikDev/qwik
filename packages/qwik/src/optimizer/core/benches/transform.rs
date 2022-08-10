@@ -76,13 +76,13 @@ fn transform_todo_app(b: &mut Bencher) {
           return $(() => {
             console.log('on-qRender$ => <Main/>');
             return (
-              <Host class="main">
+              <div class="main">
                 <ul class="todo-list">
                   {getFilteredItems(props.todos).map((key) => (
                     <Item item={key} todos={props.todos} />
                   ))}
                 </ul>
-              </Host>
+              </div>
             );
           });
         });
@@ -96,7 +96,7 @@ fn transform_todo_app(b: &mut Bencher) {
                 '"/>'
             );
             return (
-              <Host class={{ completed: props.item.completed, editing: state.editing }}>
+              <div class={{ completed: props.item.completed, editing: state.editing }}>
                 <div class="view">
                   <input
                     class="toggle"
@@ -133,7 +133,7 @@ fn transform_todo_app(b: &mut Bencher) {
                     }}
                   />
                 ) : null}
-              </Host>
+              </div>
             );
           });
         });
@@ -159,7 +159,7 @@ fn transform_todo_app(b: &mut Bencher) {
             }
             const remaining = getFilteredCount(props.todos);
             return (
-              <Host class="footer">
+              <div class="footer">
                 {props.todos.items.length > 0 ? (
                   <>
                     <span class="todo-count">
@@ -178,7 +178,7 @@ fn transform_todo_app(b: &mut Bencher) {
                     ) : null}
                   </>
                 ) : null}
-              </Host>
+              </div>
             );
           });
         });

@@ -1,11 +1,12 @@
 import type { ComponentCtx, QContext } from '../props/props';
 import type { ContainerState } from './container';
+import type { QwikElement, VirtualElement } from './dom/virtual-element';
 
 /**
  * @alpha
  */
 export interface RenderOperation {
-  $el$: Node;
+  $el$: Node | VirtualElement;
   $operation$: string;
   $args$: any[];
   $fn$: () => void;
@@ -23,8 +24,8 @@ export interface RenderPerf {
  */
 export interface RenderContext {
   $doc$: Document;
-  $roots$: Element[];
-  $hostElements$: Set<Element>;
+  $roots$: QwikElement[];
+  $hostElements$: Set<QwikElement>;
   $operations$: RenderOperation[];
   $localStack$: QContext[];
   $currentComponent$: ComponentCtx | undefined;

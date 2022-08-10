@@ -1,4 +1,4 @@
-import { component$, useStore, Slot, Host } from '@builder.io/qwik';
+import { component$, useStore, Slot } from '@builder.io/qwik';
 
 export const SlotParent = component$(() => {
   const state = useStore({
@@ -22,7 +22,7 @@ export const SlotParent = component$(() => {
           </Projector>
 
           <Thing state={state} id="btn3">
-            <Projector host:id="projected" state={state}>
+            <Projector id="projected" state={state}>
               {!state.removeContent && <>INSIDE THING {state.count}</>}
             </Projector>
           </Thing>
@@ -73,36 +73,40 @@ export const SlotParent = component$(() => {
   );
 });
 
-export const Projector = component$((props: { state: any }) => {
+export const Projector = component$((props: { state: any; id: string }) => {
   return (
-    <Host
+    <div
+      id={props.id}
       onClick$={() => {
         props.state.count--;
       }}
     >
       <Button>
-        <Slot name="start">Placeholder Start</Slot>
+        <Slot name="start"></Slot>
 
         {!props.state.disableButtons && (
           <div>
-            <Slot as="article" />
+            <Slot />
           </div>
         )}
         <Slot name="end" />
       </Button>
-    </Host>
+    </div>
   );
 });
 
-export const Button = component$(
-  () => {
-    return <Host q:sname="" type="button"></Host>;
-  },
-  {
-    tagName: 'button',
-  }
-);
+export const Button = component$((props: { id?: string }) => {
+  return (
+    <button type="button" id={props.id}>
+      <Slot />
+    </button>
+  );
+});
 
-export const Thing = component$((props: { state: any }) => {
-  return <article class="todoapp">{!props.state.disableNested && <Slot />}</article>;
+export const Thing = component$((props: { state: any; id: string }) => {
+  return (
+    <article class="todoapp" id={props.id}>
+      {!props.state.disableNested && <Slot />}
+    </article>
+  );
 });

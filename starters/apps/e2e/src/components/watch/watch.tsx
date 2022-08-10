@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { component$, useServerMount$, useWatch$, useStore, Host } from '@builder.io/qwik';
+import { component$, useServerMount$, useWatch$, useStore } from '@builder.io/qwik';
 
 interface State {
   count: number;
@@ -44,26 +44,26 @@ export const Watch = component$(() => {
 
 export const WatchShell = component$(({ store }: { store: State }) => {
   return (
-    <Host>
+    <div>
       <div id="server-content">{store.server}</div>
       <div id="parent">{store.count}</div>
       <Child state={store} />
       <button id="add" onClick$={() => store.count++}>
         +
       </button>
-    </Host>
+    </div>
   );
 });
 
 export const Child = component$((props: { state: State }) => {
   console.log('CHILD renders');
   return (
-    <Host>
+    <div>
       <div id="child">
         {props.state.count} / {props.state.doubleCount}
       </div>
       <GrandChild state={props.state} />
-    </Host>
+    </div>
   );
 });
 

@@ -1,3 +1,4 @@
+import type { QwikElement } from '../render/dom/virtual-element';
 import { getContainer } from '../use/use-core';
 import { getDocument } from '../util/dom';
 import { isObject } from '../util/types';
@@ -63,7 +64,7 @@ const isModule = (module: any) => {
  * @param url - relative URL
  * @returns fully qualified URL.
  */
-export const toUrl = (doc: Document, element: Element, url: string | URL): URL => {
+export const toUrl = (doc: Document, element: QwikElement, url: string | URL): URL => {
   const containerEl = getContainer(element);
   const base = new URL(containerEl?.getAttribute('q:base') ?? doc.baseURI, doc.baseURI);
   return new URL(url, base);
@@ -102,7 +103,7 @@ export const setPlatform = (doc: Document, plt: CorePlatform) =>
  * @alpha
  */
 // </docs>
-export const getPlatform = (docOrNode: Document | Node) => {
+export const getPlatform = (docOrNode: Document | QwikElement) => {
   const doc = getDocument(docOrNode) as PlatformDocument;
   return doc[DocumentPlatform] || (doc[DocumentPlatform] = createPlatform(doc));
 };

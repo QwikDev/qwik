@@ -4,7 +4,7 @@ import { isJSXNode, jsx } from '../jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from '../jsx/types/jsx-node';
 import { visitJsxNode } from './visitor';
 import { getDocument } from '../../util/dom';
-import { qDev, qTest } from '../../util/qdev';
+import { qDev } from '../../util/qdev';
 import { version } from '../../version';
 import { QContainerAttr } from '../../util/markers';
 import { logWarn } from '../../util/log';
@@ -14,7 +14,7 @@ import { directSetAttribute } from '../fast-calls';
 import { processData } from './render-dom';
 import { ContainerState, getContainerState } from '../container';
 import { postRendering } from './notify-render';
-import { BASE_QWIK_STYLES, createRenderContext } from '../execute-component';
+import { createRenderContext } from '../execute-component';
 
 /**
  * @alpha
@@ -90,30 +90,15 @@ const renderRoot = async (
   ctx.$roots$.push(parent as Element);
 
   const processedNodes = await processData(jsxNode);
-  await visitJsxNode(ctx, parent as Element, processedNodes, false);
+  await visitJsxNode(ctx, parent as Element, processedNodes, 0);
 
   executeContext(ctx);
-  if (!qTest) {
-    injectQwikSlotCSS(parent);
-  }
 
   if (qDev) {
     appendQwikDevTools(containerEl);
     printRenderStats(ctx);
   }
   return ctx;
-};
-export const injectQwikSlotCSS = (docOrElm: Document | Element) => {
-  const doc = getDocument(docOrElm);
-  const isDoc = isDocument(docOrElm);
-  const style = doc.createElement('style');
-  directSetAttribute(style, 'id', 'qwik/base-styles');
-  style.textContent = BASE_QWIK_STYLES;
-  if (isDoc) {
-    docOrElm.head.appendChild(style);
-  } else {
-    docOrElm.insertBefore(style, docOrElm.firstChild);
-  }
 };
 
 export const getElement = (docOrElm: Document | Element): Element => {

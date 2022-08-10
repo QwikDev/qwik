@@ -1,4 +1,4 @@
-import { component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
+import { component$, Slot, useStyles$ } from '@builder.io/qwik';
 import type { RequestHandler, DocumentHead } from '~qwik-city-runtime';
 import { isUserAuthenticated } from '../../auth/auth';
 import Footer from '../../components/footer/footer';
@@ -9,7 +9,7 @@ export default component$(() => {
   useStyles$(styles);
 
   return (
-    <Host data-test-layout="dashboard">
+    <div data-test-layout="dashboard">
       <Header />
       <main class="dashboard">
         <aside class="dashboard-menu">
@@ -37,7 +37,7 @@ export default component$(() => {
         </section>
       </main>
       <Footer />
-    </Host>
+    </div>
   );
 });
 

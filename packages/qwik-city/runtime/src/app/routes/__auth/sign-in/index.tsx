@@ -2,13 +2,13 @@
  * Simple Auth For Testing Only!!!
  */
 
-import { component$, Host } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 import type { DocumentHead, RequestHandler } from '~qwik-city-runtime';
 import { signIn, isUserAuthenticated } from '../../../auth/auth';
 
 export default component$(() => {
   return (
-    <Host>
+    <div>
       <h1>Sign In</h1>
 
       <form method="post">
@@ -23,7 +23,7 @@ export default component$(() => {
         <button data-test-sign-in>Sign In</button>
       </form>
       <p>(Username: qwik, Password: dev)</p>
-    </Host>
+    </div>
   );
 });
 

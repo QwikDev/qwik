@@ -1,4 +1,4 @@
-import { component$, Host } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 import { FILTERS, Todos } from '../../state/state';
 import { Item } from '../item/item';
 
@@ -7,12 +7,12 @@ interface BodyProps {
 }
 export const Body = component$(({ todos }: BodyProps) => {
   return (
-    <Host class="main">
+    <div class="main">
       <ul class="todo-list">
         {todos.items.filter(FILTERS[todos.filter]).map((key) => (
           <Item item={key} todos={todos} />
         ))}
       </ul>
-    </Host>
+    </div>
   );
 });

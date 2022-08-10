@@ -1,4 +1,4 @@
-import { component$, useStore, Host } from '@builder.io/qwik';
+import { component$, useStore } from '@builder.io/qwik';
 
 export const Render = component$(() => {
   const parent = {
@@ -11,18 +11,16 @@ export const Render = component$(() => {
 
   const state = useStore(parent, { recursive: true });
   return (
-    <Host>
-      <button
-        onClick$={() => {
-          state.counter.count++;
-        }}
-      >
-        <Child counter={state.counter}></Child>
-      </button>
-    </Host>
+    <button
+      onClick$={() => {
+        state.counter.count++;
+      }}
+    >
+      <Child counter={state.counter}></Child>
+    </button>
   );
 });
 
 export const Child = component$((props: { counter: { count: number } }) => {
-  return <Host>Rerender {props.counter.count}</Host>;
+  return <>Rerender {props.counter.count}</>;
 });

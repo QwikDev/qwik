@@ -1,27 +1,27 @@
-import { component$, Host, useStyles$, useStore } from '@builder.io/qwik';
+import { component$, useStyles$, useStore } from '@builder.io/qwik';
 
 export const App = component$(() => {
   useStyles$(AppCSS);
   const store = useStore({ open: false, siblings: [0] }, { recursive: true });
 
   return (
-    <Host class="parent">
+    <div class="parent">
       <button onClick$={() => (store.open = !store.open)}>toggle</button>
       <button onClick$={() => store.siblings.push(0)}>addSibling</button>
       {store.open ? <Child key="child" /> : null}
       {store.siblings.map(() => (
         <Sibling />
       ))}
-    </Host>
+    </div>
   );
 });
 
 export const Child = component$(() => {
   useStyles$(ChildCSS);
   return (
-    <Host class="child">
+    <div class="child">
       <div>Child</div>
-    </Host>
+    </div>
   );
 });
 
@@ -29,9 +29,9 @@ export const Sibling = component$(() => {
   useStyles$(SiblingCSS);
 
   return (
-    <Host class="sibling">
+    <div class="sibling">
       <div>Sibling</div>
-    </Host>
+    </div>
   );
 });
 

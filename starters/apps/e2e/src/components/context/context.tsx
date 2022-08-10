@@ -1,7 +1,6 @@
 import {
   useStore,
   component$,
-  Host,
   createContext,
   useContextProvider,
   useContext,
@@ -26,7 +25,7 @@ export const ContextRoot = component$(() => {
   useContextProvider(Context2, state2);
 
   return (
-    <Host>
+    <div>
       <button class="root-increment1" onClick$={() => state1.count++}>
         Increment State 1
       </button>
@@ -38,7 +37,7 @@ export const ContextRoot = component$(() => {
         <Level2 />
         <Level2 />
       </ContextFromSlot>
-    </Host>
+    </div>
   );
 });
 
@@ -64,7 +63,7 @@ export const Level2 = component$(() => {
   const stateSlot = useContext(ContextSlot);
 
   return (
-    <Host>
+    <div>
       <h1>Level2</h1>
       <div class="level2-state1">
         {state1.displayName} = {state1.count}
@@ -83,7 +82,7 @@ export const Level2 = component$(() => {
       {Array.from({ length: state3.count }, () => {
         return <Level3></Level3>;
       })}
-    </Host>
+    </div>
   );
 });
 
@@ -94,7 +93,7 @@ export const Level3 = component$(() => {
   const stateSlot = useContext(ContextSlot);
 
   return (
-    <Host>
+    <div>
       <h2>Level3</h2>
       <div class="level3-state1">
         {state1.displayName} = {state1.count}
@@ -108,6 +107,6 @@ export const Level3 = component$(() => {
       <div class="level3-slot">
         {stateSlot.displayName} = {stateSlot.count}
       </div>
-    </Host>
+    </div>
   );
 });

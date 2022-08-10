@@ -66,48 +66,23 @@ export interface AriaAttributes {
 export type AriaRole = 'alert' | 'alertdialog' | 'application' | 'article' | 'banner' | 'button' | 'cell' | 'checkbox' | 'columnheader' | 'combobox' | 'complementary' | 'contentinfo' | 'definition' | 'dialog' | 'directory' | 'document' | 'feed' | 'figure' | 'form' | 'grid' | 'gridcell' | 'group' | 'heading' | 'img' | 'link' | 'list' | 'listbox' | 'listitem' | 'log' | 'main' | 'marquee' | 'math' | 'menu' | 'menubar' | 'menuitem' | 'menuitemcheckbox' | 'menuitemradio' | 'navigation' | 'none' | 'note' | 'option' | 'presentation' | 'progressbar' | 'radio' | 'radiogroup' | 'region' | 'row' | 'rowgroup' | 'rowheader' | 'scrollbar' | 'search' | 'searchbox' | 'separator' | 'slider' | 'spinbutton' | 'status' | 'switch' | 'tab' | 'table' | 'tablist' | 'tabpanel' | 'term' | 'textbox' | 'timer' | 'toolbar' | 'tooltip' | 'tree' | 'treegrid' | 'treeitem' | (string & {});
 
 // @public
-export const component$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>, options?: ComponentOptions) => Component<PROPS>;
+export const component$: <PROPS extends {}>(onMount: OnRenderFn<PROPS>) => Component<PROPS>;
 
 // @public
 export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
 
-// Warning: (ae-forgotten-export) The symbol "PreventDefault" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ComponentCustomEvents" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ComponentKnownEvents" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface ComponentBaseProps extends PreventDefault, ComponentCustomEvents, ComponentKnownEvents {
-    // (undocumented)
-    'host:tagName'?: JSXTagName;
+export interface ComponentBaseProps {
     // (undocumented)
     'q:slot'?: string;
     // (undocumented)
-    [key: `host:${string}`]: any;
-    // (undocumented)
     children?: JSXChildren;
     // (undocumented)
-    class?: string | {
-        [className: string]: boolean;
-    };
-    // (undocumented)
-    className?: string | undefined;
-    // (undocumented)
-    id?: string | undefined;
-    // (undocumented)
     key?: string | number;
-    // (undocumented)
-    ref?: Ref<Element>;
-    // (undocumented)
-    style?: Record<string, string | number> | string | undefined;
 }
 
 // @public
-export interface ComponentOptions {
-    tagName?: JSXTagName;
-}
-
-// @public
-export const componentQrl: <PROPS extends {}>(onRenderQrl: QRL<OnRenderFn<PROPS>>, options?: ComponentOptions) => Component<PROPS>;
+export const componentQrl: <PROPS extends {}>(onRenderQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
 
 // @public
 export interface Context<STATE extends object> {
@@ -118,7 +93,8 @@ export interface Context<STATE extends object> {
 // @alpha
 export interface CorePlatform {
     chunkForSymbol: (symbolName: string) => [symbol: string, chunk: string] | undefined;
-    importSymbol: (element: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
+    // Warning: (ae-forgotten-export) The symbol "QwikElement" needs to be exported by the entry point index.d.ts
+    importSymbol: (element: QwikElement, url: string | URL, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
     nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
@@ -153,7 +129,7 @@ export interface FunctionComponent<P = {}> {
 }
 
 // @alpha
-export const getPlatform: (docOrNode: Document | Node) => CorePlatform;
+export const getPlatform: (docOrNode: Document | QwikElement) => CorePlatform;
 
 // @public (undocumented)
 export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props: PROPS | null, ...children: any[]): JSXNode<TYPE>;
@@ -191,15 +167,6 @@ export namespace h {
         export interface IntrinsicElements extends QwikJSX.IntrinsicElements {
         }
     }
-}
-
-// @public
-export const Host: FunctionComponent<HostAttributes>;
-
-// @public (undocumented)
-export interface HostAttributes extends HTMLAttributes<HTMLElement> {
-    // (undocumented)
-    [key: string]: any;
 }
 
 // @public (undocumented)
@@ -294,7 +261,7 @@ export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL
 export const inlinedQrl: <T>(symbol: T, symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public (undocumented)
-const jsx: <T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string | number) => JSXNode<T>;
+const jsx: <T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string | number | null) => JSXNode<T>;
 export { jsx }
 export { jsx as jsxDEV }
 export { jsx as jsxs }
@@ -373,7 +340,7 @@ export interface QRL<TYPE = any> {
     getHash(): string;
     // (undocumented)
     getSymbol(): string;
-    resolve(el?: Element): Promise<TYPE>;
+    resolve(el?: QwikElement): Promise<TYPE>;
 }
 
 // @alpha
@@ -550,8 +517,6 @@ export const SkipRerender: FunctionComponent<{}>;
 // @public (undocumented)
 export const Slot: FunctionComponent<{
     name?: string;
-    as?: string;
-    children?: any;
 }>;
 
 // @alpha (undocumented)
@@ -659,9 +624,6 @@ export function useEnvData<T>(key: string): T | undefined;
 
 // @alpha (undocumented)
 export function useEnvData<T, B = T>(key: string, defaultValue: B): T | B;
-
-// @alpha
-export const useHostElement: () => Element;
 
 // Warning: (ae-internal-missing-underscore) The name "useLexicalScope" should be prefixed with an underscore because the declaration is marked as @internal
 //

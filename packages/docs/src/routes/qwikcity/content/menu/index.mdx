@@ -16,7 +16,7 @@ First layout files as follows:
 ```
 - src/
   - routes/
-    - some/   
+    - some/
       - menu.md
       - layout.tsx
       - path/
@@ -31,7 +31,7 @@ Navigating to `https://example.com/some/path` activates:
 
 ## Declaring Menu Structure
 
-Use `menu.md` to declare the menu structure. 
+Use `menu.md` to declare the menu structure.
 - Use the headings (`#`, `##`, etc..) to define menu depth
 - Use the bulleted list (`-`) to define menu items.
 
@@ -60,18 +60,18 @@ The example above will return:
     {
       text: "Getting Started",
       items: [
-        { 
-          text: "Introduction", 
-          href: "/docs/introduction" 
+        {
+          text: "Introduction",
+          href: "/docs/introduction"
         }
       ],
     },
     {
       text: "Components",
       items: [
-        { 
-          text: "Basics", 
-          href: "/docs/components/basics" 
+        {
+          text: "Basics",
+          href: "/docs/components/basics"
         }
       ],
     },
@@ -90,7 +90,7 @@ export default component$(
     const { pathname } = useLocation();
 
     return (
-      <Host class="menu">
+      <div class="menu">
         {menu
           ? menu.items?.map((item) => (
               <>
@@ -112,7 +112,7 @@ export default component$(
               </>
             ))
           : null}
-      </Host>
+      </div>
     );
   }
 );

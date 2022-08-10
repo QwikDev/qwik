@@ -1,6 +1,6 @@
 export function createEl(tagName: string, doc: Document) {
   return {
-    nodeType: 1,
+    nodeType: tagName === ':virtual' ? 111 : 1,
     nodeName: tagName.toUpperCase(),
     localName: tagName,
     ownerDocument: doc,

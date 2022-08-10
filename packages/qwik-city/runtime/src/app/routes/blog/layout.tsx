@@ -1,8 +1,8 @@
-import { component$, Host, Slot } from '@builder.io/qwik';
+import { component$, Slot } from '@builder.io/qwik';
 
 export default component$(() => {
   return (
-    <Host data-test-layout="blog">
+    <div data-test-layout="blog">
       <section class="blog-content">
         <Slot />
       </section>
@@ -20,6 +20,6 @@ export default component$(() => {
           </li>
         </ul>
       </aside>
-    </Host>
+    </div>
   );
 });

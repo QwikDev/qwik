@@ -1,11 +1,11 @@
-import { component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
+import { component$, Slot, useStyles$ } from '@builder.io/qwik';
 import styles from './layout.css?inline';
 
 export default component$(() => {
   useStyles$(styles);
 
   return (
-    <Host class="auth" data-test-layout="auth">
+    <div class="auth" data-test-layout="auth">
       <section class="auth-content">
         <Slot />
       </section>
@@ -15,6 +15,6 @@ export default component$(() => {
           <li>Forgot password</li>
         </ul>
       </aside>
-    </Host>
+    </div>
   );
 });

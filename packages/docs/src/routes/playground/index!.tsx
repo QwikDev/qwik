@@ -1,4 +1,4 @@
-import { $, component$, Host, useStyles$, useStore, useClientEffect$ } from '@builder.io/qwik';
+import { $, component$, useStyles$, useStore, useClientEffect$ } from '@builder.io/qwik';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { Repl } from '../../repl/repl';
 import { Header } from '../../components/header/header';
@@ -76,7 +76,7 @@ export default component$(() => {
   });
 
   return (
-    <Host
+    <div
       class={{
         playground: true,
         'full-width': true,
@@ -88,15 +88,15 @@ export default component$(() => {
 
       <Repl
         input={store}
-        style={{
-          gridTemplateColumns: `${store.colLeft}% ${100 - store.colLeft}%`,
-        }}
-        class={{
-          'repl-panel-output': panelStore.active === 'Output',
-          'repl-panel-console': panelStore.active === 'Console',
-          // might be removed ?
-          repl: true,
-        }}
+        // style={{
+        //   gridTemplateColumns: `${store.colLeft}% ${100 - store.colLeft}%`,
+        // }}
+        // class={{
+        //   'repl-panel-output': panelStore.active === 'Output',
+        //   'repl-panel-console': panelStore.active === 'Console',
+        //   // might be removed ?
+        //   repl: true,
+        // }}
         enableCopyToPlayground={false}
         enableDownload={true}
         enableInputDelete={true}
@@ -113,7 +113,7 @@ export default component$(() => {
         }}
       />
       <PanelToggle panelStore={panelStore} />
-    </Host>
+    </div>
   );
 });
 

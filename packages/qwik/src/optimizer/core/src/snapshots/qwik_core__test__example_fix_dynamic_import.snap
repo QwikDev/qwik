@@ -14,10 +14,10 @@ export function foo() {
 
 export const Header = component$(() => {
     return (
-        <Host>
+        <div>
             {import("../state")}
             {thing}
-        </Host>
+        </div>
     );
 });
 
@@ -25,13 +25,13 @@ export const Header = component$(() => {
 
 import thing from "./project/state";
 export const Header_component_RGgm7Ks9QWI = ()=>{
-    return <Host >
+    return <div >
 
             {import("./project/state")}
 
             {thing}
 
-        </Host>;
+        </div>;
 };
 
 /*
@@ -49,7 +49,7 @@ export const Header_component_RGgm7Ks9QWI = ()=>{
   "captures": false,
   "loc": [
     173,
-    286
+    284
   ]
 }
 */

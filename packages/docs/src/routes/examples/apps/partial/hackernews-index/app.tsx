@@ -18,9 +18,9 @@ export const HackerNews = component$(() => {
   );
 });
 
-export const Nav = component$(
-  () => {
-    return (
+export const Nav = component$(() => {
+  return (
+    <nav>
       <header class="header">
         <nav class="inner">
           <a href="/">
@@ -48,10 +48,9 @@ export const Nav = component$(
           </a>
         </nav>
       </header>
-    );
-  },
-  { tagName: 'nav' }
-);
+    </nav>
+  );
+});
 
 export const Stories = component$((props: { data: any }) => {
   const page = 1;

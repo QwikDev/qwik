@@ -1,12 +1,10 @@
 import {
   component$,
-  Host,
   implicit$FirstArg,
   NoSerialize,
   noSerialize,
   QRL,
   SkipRerender,
-  useHostElement,
   useWatch$,
   useStore,
   EagernessOptions,
@@ -43,67 +41,62 @@ export function qwikifyQrl<PROPS extends {}>(
   reactCmp$: QRL<FunctionComponent<PROPS>>,
   opts?: QwikifyOptions
 ) {
-  return component$<QwikifyProps<PROPS>>(
-    (props) => {
-      const hostElement = useHostElement();
-      const store = useStore<QwikifyCmp<PROPS>>({});
-      const clientOnly = !!(props['client:only'] || opts?.clientOnly);
-      let eagerness: EagernessOptions | undefined;
-      if (props['client:visible'] || opts?.eagerness === 'visible') {
-        eagerness = 'visible';
-      } else if (props['client:load'] || clientOnly || opts?.eagerness === 'load') {
-        eagerness = 'load';
-      }
-
-      useWatch$(
-        async ({ track }) => {
-          track(props);
-
-          if (isBrowser) {
-            if (store.data) {
-              store.data.root.render(store.data.client.Main(store.data.cmp, filterProps(props)));
-            } else {
-              const [Cmp, client] = await Promise.all([reactCmp$.resolve(), import('./client')]);
-
-              let root: Root;
-              if (hostElement.childElementCount > 0) {
-                root = client.hydrateRoot(
-                  hostElement,
-                  client.Main(Cmp, filterProps(props), store.event)
-                );
-              } else {
-                root = client.createRoot(hostElement);
-                root.render(client.Main(Cmp, filterProps(props)));
-              }
-              store.data = noSerialize({
-                client,
-                cmp: Cmp,
-                root,
-              });
-            }
-          }
-        },
-        { eagerness }
-      );
-
-      if (isServer && !clientOnly) {
-        const jsx = Promise.all([reactCmp$.resolve(), import('./server')]).then(([Cmp, server]) => {
-          const html = server.render(Cmp, filterProps(props));
-          return <Host dangerouslySetInnerHTML={html}></Host>;
-        });
-        return <>{jsx}</>;
-      }
-
-      return (
-        <Host>
-          <SkipRerender />
-        </Host>
-      );
-    },
-    {
-      tagName: opts?.tagName ?? 'qwik-wrap',
+  return component$<QwikifyProps<PROPS>>((props) => {
+    const hostElement = {} as Element;
+    const store = useStore<QwikifyCmp<PROPS>>({});
+    const clientOnly = !!(props['client:only'] || opts?.clientOnly);
+    let eagerness: EagernessOptions | undefined;
+    if (props['client:visible'] || opts?.eagerness === 'visible') {
+      eagerness = 'visible';
+    } else if (props['client:load'] || clientOnly || opts?.eagerness === 'load') {
+      eagerness = 'load';
     }
-  );
+
+    useWatch$(
+      async ({ track }) => {
+        track(props);
+
+        if (isBrowser) {
+          if (store.data) {
+            store.data.root.render(store.data.client.Main(store.data.cmp, filterProps(props)));
+          } else {
+            const [Cmp, client] = await Promise.all([reactCmp$.resolve(), import('./client')]);
+
+            let root: Root;
+            if (hostElement.childElementCount > 0) {
+              root = client.hydrateRoot(
+                hostElement,
+                client.Main(Cmp, filterProps(props), store.event)
+              );
+            } else {
+              root = client.createRoot(hostElement);
+              root.render(client.Main(Cmp, filterProps(props)));
+            }
+            store.data = noSerialize({
+              client,
+              cmp: Cmp,
+              root,
+            });
+          }
+        }
+      },
+      { eagerness }
+    );
+
+    if (isServer && !clientOnly) {
+      const jsx = Promise.all([reactCmp$.resolve(), import('./server')]).then(([Cmp, server]) => {
+        const html = server.render(Cmp, filterProps(props));
+        return <div dangerouslySetInnerHTML={html}></div>;
+      });
+      return <>{jsx}</>;
+    }
+
+    return (
+      <qwik-wrap>
+        <SkipRerender />
+      </qwik-wrap>
+    );
+  });
 }
 
 export const filterProps = (props: Record<string, any>): Record<string, any> => {

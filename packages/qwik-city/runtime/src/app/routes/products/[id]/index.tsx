@@ -1,4 +1,4 @@
-import { Resource, component$, Host, useStore } from '@builder.io/qwik';
+import { Resource, component$, useStore } from '@builder.io/qwik';
 import { useEndpoint, useLocation, RequestHandler, DocumentHead } from '~qwik-city-runtime';
 import os from 'os';
 
@@ -9,7 +9,7 @@ export default component$(() => {
   const resource = useEndpoint<typeof onGet>();
 
   return (
-    <Host>
+    <div>
       <h1>Product: {params.id}</h1>
 
       <Resource
@@ -71,7 +71,7 @@ export default component$(() => {
           </a>
         </li>
       </ul>
-    </Host>
+    </div>
   );
 });
 

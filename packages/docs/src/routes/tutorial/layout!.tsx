@@ -1,4 +1,4 @@
-import { component$, Host, Slot, useStore, useStyles$, useWatch$ } from '@builder.io/qwik';
+import { component$, Slot, useStore, useStyles$, useWatch$ } from '@builder.io/qwik';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { useLocation } from '@builder.io/qwik-city';
 import { Repl } from '../../repl/repl';
@@ -49,7 +49,7 @@ export default component$(() => {
   });
 
   return (
-    <Host class="tutorial full-width fixed-header">
+    <div class="tutorial full-width fixed-header">
       <Header />
       <main
         class={{
@@ -98,7 +98,7 @@ export default component$(() => {
         </div>
       </main>
       <PanelToggle panelStore={panelStore} />
-    </Host>
+    </div>
   );
 });
 

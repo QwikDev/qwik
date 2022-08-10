@@ -1,13 +1,13 @@
-import { component$, Host } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 import type { DocumentHead } from '../../library/types';
 
 export default component$(() => {
   return (
-    <Host>
+    <div>
       <h1 onClick$={() => console.warn('hola')}>Welcome to Qwik City</h1>
 
       <p>The meta-framework for Qwik.</p>
-    </Host>
+    </div>
   );
 });
 

@@ -1,4 +1,4 @@
-import { component$, Host, Slot, useStyles$ } from '@builder.io/qwik';
+import { component$, Slot, useStyles$ } from '@builder.io/qwik';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import { Footer } from '../../components/footer/footer';
@@ -11,7 +11,7 @@ export default component$(() => {
   useStyles$(styles);
 
   return (
-    <Host class="docs fixed-header">
+    <div class="docs fixed-header">
       <Header />
       <SideBar />
       <main>
@@ -22,7 +22,7 @@ export default component$(() => {
         </article>
         <OnThisPage />
       </main>
-    </Host>
+    </div>
   );
 });
 

@@ -32,9 +32,9 @@ export interface Ref<T> {
  *   });
  *
  *   return (
- *     <Host>
+ *     <div>
  *       <input type="text" ref={input} />
- *     </Host>
+ *     </div>
  *   );
  * });
  *

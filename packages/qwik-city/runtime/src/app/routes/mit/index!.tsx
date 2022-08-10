@@ -1,10 +1,10 @@
-import { component$, Host } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 import type { DocumentHead } from '../../../library/types';
 
 export default component$(() => {
   const d = new Date();
   return (
-    <Host style={{ padding: '20px' }}>
+    <div style={{ padding: '20px' }}>
       <h1>MIT License</h1>
 
       <p>Copyright {d.getUTCFullYear()} Builder.io</p>
@@ -30,7 +30,7 @@ export default component$(() => {
         OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
         DEALINGS IN THE SOFTWARE.
       </p>
-    </Host>
+    </div>
   );
 });
 

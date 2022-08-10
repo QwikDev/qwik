@@ -9,10 +9,10 @@ import { logDebug } from '../util/log';
 import { runtimeQrl } from '../import/qrl';
 import { pauseContainer } from '../object/store';
 import { useDocument } from '../use/use-document.public';
-import { useHostElement } from '../use/use-host-element.public';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
 import { render } from '../render/dom/render.public';
+import { expectDOM } from '../../testing/expect-dom.unit';
 
 const storeSuite = suite('store');
 
@@ -27,13 +27,24 @@ storeSuite('should serialize content', async () => {
       <LexicalScope />
     </div>
   );
+  await expectDOM(
+    document.body,
+    `
+  <body q:version="" q:container="resumed">
+    <div>
+      <!--qv q:key=sX: q:id=0-->
+      <div q:id="1" on:click="/runtimeQRL#_[0 1 2 3 4 5 6 7 8 9 10 11]"></div>
+      <!--/qv-->
+    </div>
+  </body>`
+  );
   await pauseContainer(document.body);
   const script = getQwikJSON(document.body)!;
 
   equal(JSON.parse(script.textContent!), {
     ctx: {
       '#1': {
-        r: '0 1 2 m 8 f 7 6 i! m k #0 l',
+        r: '0 1 2 m 8 f 7 6 i! m k l',
       },
     },
     objs: [
@@ -65,7 +76,7 @@ storeSuite('should serialize content', async () => {
       },
       ['d'],
       'hello',
-      '\b/runtimeQRL#_{"tagName":"lexical-scope"}',
+      '\b/runtimeQRL#_',
       ['0', 'g', '1', 'h'],
       2,
       {},
@@ -99,51 +110,46 @@ export const LexicalScope_render = () => {
   );
 };
 
-export const LexicalScope = component$(
-  () => {
-    const state = useStore({
-      count: 0,
-    });
-    const nu = 1;
-    const str = 'hola';
-    const obj = {
-      a: { thing: 12 },
-      b: 'hola',
-      c: 123,
-      d: false,
-      e: true,
-      f: null,
-      g: undefined,
-      h: [1, 'string', false, { hola: 1 }, ['hello']],
-      i: LexicalScope,
-    };
-    const noserialize = noSerialize({ text: 'not included', window: () => {} });
-    const undef = undefined;
-    const nulll = null;
-    const array = [1, 2, 'hola', {}];
-    const boolTrue = true;
-    const boolFalse = false;
-    const qrl = $(() => logDebug('qrl'));
-    const el = useHostElement();
-    const doc = useDocument();
-    const thing = runtimeQrl(LexicalScope_render, [
-      nu,
-      str,
-      obj,
-      undef,
-      nulll,
-      array,
-      boolTrue,
-      boolFalse,
-      state,
-      noserialize,
-      qrl,
-      el,
-      doc,
-    ]);
-    return <div onClick$={thing}></div>;
-  },
-  { tagName: 'lexical-scope' }
-);
+export const LexicalScope = component$(() => {
+  const state = useStore({
+    count: 0,
+  });
+  const nu = 1;
+  const str = 'hola';
+  const obj = {
+    a: { thing: 12 },
+    b: 'hola',
+    c: 123,
+    d: false,
+    e: true,
+    f: null,
+    g: undefined,
+    h: [1, 'string', false, { hola: 1 }, ['hello']],
+    i: LexicalScope,
+  };
+  const noserialize = noSerialize({ text: 'not included', window: () => {} });
+  const undef = undefined;
+  const nulll = null;
+  const array = [1, 2, 'hola', {}];
+  const boolTrue = true;
+  const boolFalse = false;
+  const qrl = $(() => logDebug('qrl'));
+  const doc = useDocument();
+  const thing = runtimeQrl(LexicalScope_render, [
+    nu,
+    str,
+    obj,
+    undef,
+    nulll,
+    array,
+    boolTrue,
+    boolFalse,
+    state,
+    noserialize,
+    qrl,
+    doc,
+  ]);
+  return <div onClick$={thing}></div>;
+});
 
 storeSuite.run();

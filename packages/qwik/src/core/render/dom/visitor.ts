@@ -897,7 +897,7 @@ export const appendHeadStyle = (
     }
   };
   ctx.$containerState$.$styleIds$.add(styleTask.styleId);
-  ctx.$postOperations$.push({
+  ctx.$operations$.push({
     $el$: hostElement,
     $operation$: 'append-style',
     $args$: [styleTask],
@@ -980,9 +980,6 @@ export const executeContextWithSlots = (ctx: RenderContext) => {
 
 export const executeContext = (ctx: RenderContext) => {
   for (const op of ctx.$operations$) {
-    op.$fn$();
-  }
-  for (const op of ctx.$postOperations$) {
     op.$fn$();
   }
 };

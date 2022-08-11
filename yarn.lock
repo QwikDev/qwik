@@ -96,7 +96,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/qwik-city@0.0.35, @builder.io/qwik-city@workspace:packages/qwik-city":
+"@builder.io/qwik-city@npm:0.0.35":
+  version: 0.0.35
+  resolution: "@builder.io/qwik-city@npm:0.0.35"
+  dependencies:
+    "@mdx-js/mdx": 2.1.2
+    "@types/mdx": 2.0.2
+    source-map: 0.7.4
+    vfile: 5.3.4
+  checksum: ccb414d5d17d6bff40da69373e9518495e3181f1694c1be8a7d056a40e8ea3a62c91faa46b02695d75d365145417a7ae4e5e79ccc523a4187819d77382c2bf53
+  languageName: node
+  linkType: hard
+
+"@builder.io/qwik-city@workspace:packages/qwik-city":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik-city@workspace:packages/qwik-city"
   dependencies:

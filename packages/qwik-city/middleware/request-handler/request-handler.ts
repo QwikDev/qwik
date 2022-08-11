@@ -9,7 +9,7 @@ import { pageHandler } from './page-handler';
 import { RedirectResponse, redirectResponse } from './redirect-handler';
 
 /**
- * @public
+ * @alpha
  */
 export async function requestHandler<T = any>(
   requestCtx: QwikCityRequestContext,

@@ -10,7 +10,7 @@ import type { RenderOptions } from '@builder.io/qwik/server';
 import type { Request as Request_2 } from 'express';
 import type { Response as Response_2 } from 'express';
 
-// @public (undocumented)
+// @alpha (undocumented)
 export function qwikCity(render: Render, opts?: QwikCityExpressOptions): {
     router: (req: Request_2, res: Response_2, next: NextFunction) => Promise<void>;
     notFound: (req: Request_2, res: Response_2, next: (e: any) => void) => Promise<void>;
@@ -18,7 +18,7 @@ export function qwikCity(render: Render, opts?: QwikCityExpressOptions): {
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityRequestOptions" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @alpha (undocumented)
 export interface QwikCityExpressOptions extends QwikCityRequestOptions {
 }
 

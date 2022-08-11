@@ -3,7 +3,7 @@ import { getClientNavPath } from './client-navigation';
 import { useLocation, useNavigate } from './use-functions';
 
 /**
- * @public
+ * @alpha
  */
 export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
@@ -31,6 +31,6 @@ export const Link = component$<LinkProps>((props) => {
 type AnchorAttributes = QwikIntrinsicElements['a'];
 
 /**
- * @public
+ * @alpha
  */
 export interface LinkProps extends AnchorAttributes {}

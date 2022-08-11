@@ -29,7 +29,7 @@ export interface MenuModule {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface RouteLocation {
   readonly params: RouteParams;
@@ -47,7 +47,7 @@ export type MutableRouteLocation = Mutable<RouteLocation>;
 type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
 /**
- * @public
+ * @alpha
  */
 export interface DocumentHeadValue {
   /**
@@ -71,12 +71,12 @@ export interface DocumentHeadValue {
 }
 
 /**
- * @public
+ * @alpha
  */
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
 /**
- * @public
+ * @alpha
  */
 export interface DocumentMeta {
   content?: string;
@@ -87,7 +87,7 @@ export interface DocumentMeta {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface DocumentLink {
   as?: string;
@@ -110,7 +110,7 @@ export interface DocumentLink {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface DocumentStyle {
   style: string;
@@ -119,7 +119,7 @@ export interface DocumentStyle {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface DocumentHeadProps<T = unknown> extends RouteLocation {
   data: T;
@@ -127,7 +127,7 @@ export interface DocumentHeadProps<T = unknown> extends RouteLocation {
 }
 
 /**
- * @public
+ * @alpha
  */
 export type DocumentHead<T = unknown> =
   | DocumentHeadValue
@@ -143,7 +143,7 @@ export interface ContentState {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface ContentMenu {
   text: string;
@@ -152,7 +152,7 @@ export interface ContentMenu {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface ContentHeading {
   text: string;
@@ -166,7 +166,7 @@ export type ModuleLoader = ContentModuleLoader | EndpointModuleLoader;
 export type MenuModuleLoader = () => Promise<MenuModule>;
 
 /**
- * @public
+ * @alpha
  */
 export type RouteData =
   | [pattern: RegExp, loaders: ModuleLoader[]]
@@ -179,7 +179,7 @@ export type FallbackRouteData =
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 
 /**
- * @public
+ * @alpha
  */
 export interface QwikCityPlan {
   routes?: RouteData[];
@@ -190,7 +190,7 @@ export interface QwikCityPlan {
 }
 
 /**
- * @public
+ * @alpha
  */
 export type RouteParams = Record<string, string>;
 
@@ -209,7 +209,7 @@ export interface LoadedContent extends LoadedRoute {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface RequestContext {
   formData(): Promise<FormData>;
@@ -221,7 +221,7 @@ export interface RequestContext {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface ResponseContext {
   /**
@@ -259,7 +259,7 @@ export interface ResponseContext {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface RequestEvent {
   request: RequestContext;
@@ -274,17 +274,17 @@ export interface RequestEvent {
 }
 
 /**
- * @public
+ * @alpha
  */
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 
 /**
- * @public
+ * @alpha
  */
 export type RequestHandler<BODY = unknown> = (ev: RequestEvent) => RequestHandlerResult<BODY>;
 
 /**
- * @public
+ * @alpha
  * @deprecated Please use `RequestHandler` instead.
  */
 export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;

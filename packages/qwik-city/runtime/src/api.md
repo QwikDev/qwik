@@ -8,10 +8,10 @@ import { Component } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { ResourceReturn } from '@builder.io/qwik';
 
-// @public @deprecated (undocumented)
+// @alpha @deprecated (undocumented)
 export const Content: Component<    {}>;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export interface ContentHeading {
     // (undocumented)
     id: string;
@@ -21,7 +21,7 @@ export interface ContentHeading {
     text: string;
 }
 
-// @public (undocumented)
+// @alpha (undocumented)
 export interface ContentMenu {
     // (undocumented)
     href?: string;
@@ -31,10 +31,10 @@ export interface ContentMenu {
     text: string;
 }
 
-// @public (undocumented)
+// @alpha (undocumented)
 export type DocumentHead<T = unknown> = DocumentHeadValue | ((props: DocumentHeadProps<T>) => DocumentHeadValue);
 
-// @public (undocumented)
+// @alpha (undocumented)
 export interface DocumentHeadProps<T = unknown> extends RouteLocation {
     // (undocumented)
     data: T;
@@ -42,7 +42,7 @@ export interface DocumentHeadProps<T = unknown> extends RouteLocation {
     head: ResolvedDocumentHead;
 }
 
-// @public (undocumented)
+// @alpha (undocumented)
 export interface DocumentHeadValue {
     links?: DocumentLink[];
     meta?: DocumentMeta[];
@@ -50,7 +50,7 @@ export interface DocumentHeadValue {
     title?: string;
 }
 
-// @public (undocumented)
+// @alpha (undocumented)
 export interface DocumentLink {
     // (undocumented)
     as?: string;
@@ -88,7 +88,7 @@ export interface DocumentLink {
     type?: string;
 }
 
-// @public (undocumented)
+// @alpha (undocumented)
 export interface DocumentMeta {
     // (undocumented)
     content?: string;
@@ -102,7 +102,7 @@ export interface DocumentMeta {
     property?: string;
 }
 
-// @public (undocumented)
+// @alpha (undocumented)
 export interface DocumentStyle {
     // (undocumented)
     key?: string;
@@ -114,28 +114,25 @@ export interface DocumentStyle {
     style: string;
 }
 
-// @public @deprecated (undocumented)
+// @alpha @deprecated (undocumented)
 export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
 
-// @public (undocumented)
-export const Html: Component<HtmlProps>;
+// @alpha @deprecated (undocumented)
+export const Html: Component<    {}>;
 
-// Warning: (ae-forgotten-export) The symbol "RootHtmlAttributes" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export interface HtmlProps extends RootHtmlAttributes {
-}
-
-// @public (undocumented)
+// @alpha (undocumented)
 export const Link: Component<LinkProps>;
 
 // Warning: (ae-forgotten-export) The symbol "AnchorAttributes" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @alpha (undocumented)
 export interface LinkProps extends AnchorAttributes {
 }
 
-// @public (undocumented)
+// @alpha (undocumented)
+export const QwikCity: Component<    {}>;
+
+// @alpha (undocumented)
 export interface QwikCityPlan {
     // (undocumented)
     cacheModules?: boolean;
@@ -153,7 +150,7 @@ export interface QwikCityPlan {
     trailingSlash?: boolean;
 }
 
-// @public (undocumented)
+// @alpha (undocumented)
 export interface RequestContext {
     // (undocumented)
     formData(): Promise<FormData>;
@@ -169,7 +166,7 @@ export interface RequestContext {
     url: string;
 }
 
-// @public (undocumented)
+// @alpha (undocumented)
 export interface RequestEvent {
     // (undocumented)
     abort: () => void;
@@ -186,13 +183,13 @@ export interface RequestEvent {
 
 // Warning: (ae-forgotten-export) The symbol "RequestHandlerResult" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @alpha (undocumented)
 export type RequestHandler<BODY = unknown> = (ev: RequestEvent) => RequestHandlerResult<BODY>;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export interface ResponseContext {
     // Warning: (ae-forgotten-export) The symbol "ErrorResponse" needs to be exported by the entry point index.d.ts
     readonly error: (status: number) => ErrorResponse;
@@ -204,10 +201,10 @@ export interface ResponseContext {
 
 // Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @alpha (undocumented)
 export type RouteData = [pattern: RegExp, loaders: ModuleLoader[]] | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]];
 
-// @public (undocumented)
+// @alpha (undocumented)
 export interface RouteLocation {
     // (undocumented)
     readonly href: string;
@@ -219,31 +216,31 @@ export interface RouteLocation {
     readonly query: Record<string, string>;
 }
 
-// @public (undocumented)
+// @alpha (undocumented)
 export type RouteParams = Record<string, string>;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export const RouterOutlet: Component<    {}>;
 
 // Warning: (ae-forgotten-export) The symbol "ContentState" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @alpha (undocumented)
 export const useContent: () => ContentState;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export const useDocumentHead: () => Required<ResolvedDocumentHead>;
 
 // Warning: (ae-forgotten-export) The symbol "GetEndpointData" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @alpha (undocumented)
 export const useEndpoint: <T = unknown>() => ResourceReturn<GetEndpointData<T>>;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export const useLocation: () => RouteLocation;
 
 // Warning: (ae-forgotten-export) The symbol "RouteNavigate" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @alpha (undocumented)
 export const useNavigate: () => RouteNavigate;
 
 // (No @packageDocumentation comment for this package)

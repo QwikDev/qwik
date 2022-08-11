@@ -2,7 +2,7 @@ import { component$, jsx, SkipRerender, useContext } from '@builder.io/qwik';
 import { ContentInternalContext } from './contexts';
 
 /**
- * @public
+ * @alpha
  */
 export const RouterOutlet = component$(() => {
   const { contents } = useContext(ContentInternalContext);
@@ -25,6 +25,6 @@ export const RouterOutlet = component$(() => {
 
 /**
  * @deprecated Please use `RouterOutlet` instead.
- * @public
+ * @alpha
  */
 export const Content = RouterOutlet;

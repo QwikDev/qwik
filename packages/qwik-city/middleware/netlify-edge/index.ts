@@ -5,7 +5,7 @@ import type { Render } from '@builder.io/qwik/server';
 // @builder.io/qwik-city/middleware/netlify-edge
 
 /**
- * @public
+ * @alpha
  */
 export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions) {
   async function onRequest(request: Request, { next }: EventPluginContext) {
@@ -58,12 +58,12 @@ export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions) {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface QwikCityNetlifyOptions extends QwikCityRequestOptions {}
 
 /**
- * @public
+ * @alpha
  */
 export interface EventPluginContext {
   next: (input?: Request | string, init?: RequestInit) => Promise<Response>;

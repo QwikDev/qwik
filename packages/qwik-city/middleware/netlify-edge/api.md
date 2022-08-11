@@ -7,18 +7,18 @@
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 
-// @public (undocumented)
+// @alpha (undocumented)
 export interface EventPluginContext {
     // (undocumented)
     next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
 }
 
-// @public (undocumented)
+// @alpha (undocumented)
 export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions): (request: Request, { next }: EventPluginContext) => Promise<Response>;
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityRequestOptions" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @alpha (undocumented)
 export interface QwikCityNetlifyOptions extends QwikCityRequestOptions {
 }
 

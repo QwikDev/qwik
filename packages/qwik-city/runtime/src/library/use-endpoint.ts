@@ -6,7 +6,7 @@ import type { RequestHandler } from './types';
 type GetEndpointData<T> = T extends RequestHandler<infer U> ? U : T;
 
 /**
- * @public
+ * @alpha
  */
 export const useEndpoint = <T = unknown>() => {
   const loc = useLocation();

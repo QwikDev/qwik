@@ -8,23 +8,23 @@ import {
 import type { RouteLocation, ResolvedDocumentHead, RouteNavigate, QwikCityEnvData } from './types';
 
 /**
- * @public
+ * @alpha
  */
 export const useContent = () => useContext(ContentContext);
 
 /**
- * @public
+ * @alpha
  */
 export const useDocumentHead = (): Required<ResolvedDocumentHead> =>
   useContext(DocumentHeadContext);
 
 /**
- * @public
+ * @alpha
  */
 export const useLocation = (): RouteLocation => useContext(RouteLocationContext);
 
 /**
- * @public
+ * @alpha
  */
 export const useNavigate = (): RouteNavigate => useContext(RouteNavigateContext);
 

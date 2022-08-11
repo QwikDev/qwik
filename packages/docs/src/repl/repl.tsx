@@ -103,7 +103,7 @@ export const Repl = component$((props: ReplProps) => {
   });
 
   return (
-    <div class="repl">
+    <>
       <ReplInputPanel
         input={input}
         store={store}
@@ -114,7 +114,7 @@ export const Repl = component$((props: ReplProps) => {
       />
       <ReplOutputPanel input={input} store={store} />
       <ReplDetailPanel input={input} store={store} />
-    </div>
+    </>
   );
 });
 

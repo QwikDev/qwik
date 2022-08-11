@@ -86,21 +86,23 @@ export default component$(() => {
     >
       <Header />
 
-      <Repl
-        input={store}
-        // style={{
-        //   gridTemplateColumns: `${store.colLeft}% ${100 - store.colLeft}%`,
-        // }}
-        // class={{
-        //   'repl-panel-output': panelStore.active === 'Output',
-        //   'repl-panel-console': panelStore.active === 'Console',
-        //   // might be removed ?
-        //   repl: true,
-        // }}
-        enableCopyToPlayground={false}
-        enableDownload={true}
-        enableInputDelete={true}
-      />
+      <div
+        class={{
+          'repl-panel-output': panelStore.active === 'Output',
+          'repl-panel-console': panelStore.active === 'Console',
+          repl: true,
+        }}
+        style={{
+          gridTemplateColumns: `${store.colLeft}% ${100 - store.colLeft}%`,
+        }}
+      >
+        <Repl
+          input={store}
+          enableCopyToPlayground={false}
+          enableDownload={true}
+          enableInputDelete={true}
+        />
+      </div>
 
       <div
         class="repl-col-resize-bar"

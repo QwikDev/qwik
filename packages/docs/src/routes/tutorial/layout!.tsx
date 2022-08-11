@@ -85,15 +85,17 @@ export default component$(() => {
           <TutorialContentFooter store={store} />
         </div>
         <div class="tutorial-repl-panel">
-          <Repl
-            input={store}
-            enableHtmlOutput={store.app.enableHtmlOutput}
-            enableClientOutput={store.app.enableClientOutput}
-            enableSsrOutput={store.app.enableSsrOutput}
-            enableCopyToPlayground={true}
-            enableDownload={true}
-            enableInputDelete={false}
-          />
+          <div class="repl">
+            <Repl
+              input={store}
+              enableHtmlOutput={store.app.enableHtmlOutput}
+              enableClientOutput={store.app.enableClientOutput}
+              enableSsrOutput={store.app.enableSsrOutput}
+              enableCopyToPlayground={true}
+              enableDownload={true}
+              enableInputDelete={false}
+            />
+          </div>
           <div class="tutorial-repl-footer" />
         </div>
       </main>

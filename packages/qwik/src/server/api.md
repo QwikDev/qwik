@@ -22,6 +22,10 @@ export function getQwikLoaderScript(opts?: {
 // @alpha (undocumented)
 export interface InOrderAuto {
     // (undocumented)
+    initialChunkSize?: number;
+    // (undocumented)
+    minimunChunkSize?: number;
+    // (undocumented)
     strategy: 'auto';
 }
 
@@ -90,13 +94,6 @@ export interface RenderResult {
     prefetchResources: PrefetchResource[];
     // (undocumented)
     snapshotResult: SnapshotResult | null;
-    // (undocumented)
-    timing: {
-        createDocument: number;
-        render: number;
-        snapshot: number;
-        toString: number;
-    };
 }
 
 // @alpha (undocumented)
@@ -115,6 +112,16 @@ export interface RenderToStreamOptions extends RenderOptions {
 
 // @alpha (undocumented)
 export interface RenderToStreamResult extends RenderResult {
+    // (undocumented)
+    flushes: number;
+    // (undocumented)
+    size: number;
+    // (undocumented)
+    timing: {
+        firstFlush: number;
+        render: number;
+        snapshot: number;
+    };
 }
 
 // @alpha (undocumented)
@@ -131,6 +138,11 @@ export interface RenderToStringOptions extends RenderOptions {
 export interface RenderToStringResult extends RenderResult {
     // (undocumented)
     html: string;
+    // (undocumented)
+    timing: {
+        render: number;
+        snapshot: number;
+    };
 }
 
 // @alpha (undocumented)

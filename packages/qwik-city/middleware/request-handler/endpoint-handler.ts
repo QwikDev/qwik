@@ -31,13 +31,13 @@ export function endpointHandler<T = any>(
         const type = typeof body;
         if (type === 'string') {
           // string body
-          write(body);
+          write(body as any);
         } else if (type === 'number' || type === 'boolean') {
           // convert to string body
           write(String(body));
         } else {
           // unknown content type, do not assume how to serialize
-          write(body);
+          write(body as any);
         }
       }
     }

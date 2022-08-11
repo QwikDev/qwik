@@ -17,10 +17,9 @@ export const TutorialContentHeader = component$(({ store }: TutorialContentHeade
 
       <select
         onChange$={(_, elm: any) => {
-          // const loc = host.ownerDocument.location;
-          // if (loc.pathname !== elm.value) {
-          //   loc.href = `/tutorial/${elm.value}`;
-          // }
+          if (location.pathname !== elm.value) {
+            location.href = `/tutorial/${elm.value}`;
+          }
         }}
       >
         {tutorialSections.map((s) => (

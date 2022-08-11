@@ -130,6 +130,9 @@ export interface LinkProps extends AnchorAttributes {
 }
 
 // @alpha (undocumented)
+export const QwikCity: Component<    {}>;
+
+// @alpha (undocumented)
 export interface QwikCityPlan {
     // (undocumented)
     cacheModules?: boolean;

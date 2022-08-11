@@ -18,6 +18,7 @@ import { delay } from '../../util/promises';
 import { SSRComment } from '../jsx/host.public';
 import { Slot } from '../jsx/slot.public';
 import { renderSSR, RenderSSROptions } from './render-ssr';
+import { useStore } from '../../use/use-store.public';
 
 const renderSSRSuite = suite('renderSSR');
 renderSSRSuite('render attributes', async () => {
@@ -304,12 +305,12 @@ renderSSRSuite('using component with key', async () => {
 
 renderSSRSuite('using component props', async () => {
   await testSSR(
-    <MyCmp id="12" host:prop="attribute" prop="12" />,
+    <MyCmp id="12" host:prop="attribute" innerHTML="123" dangerouslySetInnerHTML="432" prop="12" />,
     `
     <html q:container="paused" q:version="dev" q:render="ssr">
       <!--qv q:id=0 q:key=sX:-->
       <section>
-        <div>MyCmp{"id":"12","host:prop":"attribute","prop":"12"}</div>
+        <div>MyCmp{"id":"12","host:prop":"attribute","innerHTML":"123","dangerouslySetInnerHTML":"432","prop":"12"}</div>
       </section>
       <!--/qv-->
     </html>
@@ -377,7 +378,7 @@ renderSSRSuite('<head>', async () => {
     </head>,
     `
   <html q:container="paused" q:version="dev" q:render="ssr">
-    <head>
+    <head q:head>
       <title q:head>hola</title>
       <meta q:head>
       <div q:head>
@@ -586,12 +587,25 @@ renderSSRSuite('nested html', async () => {
   );
 });
 
-// renderSSRSuite('root html component', async () => {
-//   await testSSR(
-//     <HtmlCmp host:aria-hidden="true" />,
-//     `<html aria-hidden="true" q:container="paused" q:version="dev" q:render="ssr" prop="123" q:id="0" on:qvisible="/runtimeQRL#_[0]"><div>hola</div></html>`
-//   );
-// });
+renderSSRSuite('root html component', async () => {
+  await testSSR(
+    <HeadCmp host:aria-hidden="true">
+      <link>Stuff</link>
+    </HeadCmp>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr">
+      <!--qv q:id=0 q:key=sX:-->
+      <head q:id="1" q:head on:qvisible="/runtimeQRL#_[0]">
+        <title q:head>hola</title>
+        <!--qv q:sname q:sref=0 q:key-->
+        <link q:head />
+        <!--/qv-->
+      </head>
+      <!--/qv-->
+    </html>
+    `
+  );
+});
 
 renderSSRSuite('fragment name', async () => {
   await testSSR(
@@ -610,7 +624,7 @@ renderSSRSuite('fragment name', async () => {
       <!--/qv-->
     </container>`,
     {
-      fragmentTagName: 'container',
+      containerTagName: 'container',
       base: '/manu/folder',
       beforeContent: [<link rel="stylesheet" href="/global.css" />],
     }
@@ -646,34 +660,38 @@ renderSSRSuite('ssr marks', async () => {
   );
 });
 
-// renderSSRSuite('html slot', async () => {
-//   await testSSR(
-//     <HtmlContext>
-//       <head>
-//         <meta charSet="utf-8" />
-//         <title>Qwik</title>
-//       </head>
-//       <body>
-//         <div></div>
-//       </body>
-//     </HtmlContext>,
-//     `<html q:container="paused" q:version="dev" q:render="ssr" q:base="/manu/folder" q:sname q:id="0" q:ctx="internal" q:sref="0">
-//       <head>
-//         <meta charSet="utf-8" q:head>
-//         <title q:head>Qwik</title>
-//         <style id="qwik/base-styles">q\\:slot,q\\:host{display:contents}q\\:fallback,q\\:template{display:none}q\\:fallback:last-child{display:contents}</style>
-//         <link rel="stylesheet" href="/global.css">
-//       </head>
-//       <body>
-//         <div></div>
-//       </body>
-//     </html>`,
-//     {
-//       beforeContent: [<link rel="stylesheet" href="/global.css" />],
-//       base: '/manu/folder',
-//     }
-//   );
-// });
+renderSSRSuite('html slot', async () => {
+  await testSSR(
+    <HtmlContext>
+      <head>
+        <meta charSet="utf-8" />
+        <title>Qwik</title>
+      </head>
+      <body>
+        <div></div>
+      </body>
+    </HtmlContext>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr" q:base="/manu/folder">
+      <!--qv q:id=0 q:key=sX:-->
+      <!--qv q:sname q:sref=0 q:key-->
+      <head q:head>
+        <meta charset="utf-8" q:head />
+        <title q:head>Qwik</title>
+        <link rel="stylesheet" href="/global.css" />
+      </head>
+      <body>
+        <div></div>
+      </body>
+      <!--/qv-->
+      <!--/qv-->
+    </html>`,
+    {
+      beforeContent: [<link rel="stylesheet" href="/global.css" />],
+      base: '/manu/folder',
+    }
+  );
+});
 
 renderSSRSuite('null component', async () => {
   await testSSR(
@@ -834,37 +852,24 @@ export const UseClientEffect = component$(() => {
   return <div />;
 });
 
-// export const HtmlCmp = component$(
-//   () => {
-//     useClientEffect$(() => {
-//       console.warn('client effect');
-//     });
-//     return (
-//       <div prop="123">
-//         <div>hola</div>
-//       </div>
-//     );
-//   },
-//   {
-//     tagName: 'html',
-//   }
-// );
+export const HeadCmp = component$(() => {
+  useClientEffect$(() => {
+    console.warn('client effect');
+  });
+  return (
+    <head>
+      <title>hola</title>
+      <Slot></Slot>
+    </head>
+  );
+});
 
-// export const HtmlContext = component$(
-//   () => {
-//     const store = useStore({});
-//     useContextProvider(CTX_INTERNAL, store);
+export const HtmlContext = component$(() => {
+  const store = useStore({});
+  useContextProvider(CTX_INTERNAL, store);
 
-//     return (
-//       <div q:sname="">
-//         <SkipRerender />
-//       </div>
-//     );
-//   },
-//   {
-//     tagName: 'html',
-//   }
-// );
+  return <Slot />;
+});
 async function testSSR(
   node: JSXNode,
   expected: string | string[],
@@ -879,6 +884,7 @@ async function testSSR(
   };
   await renderSSR(doc, node, {
     stream,
+    containerTagName: 'html',
     ...opts,
   });
   if (typeof expected === 'string') {

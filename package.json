@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "qwik-monorepo",
-  "version": "0.0.42",
+  "version": "0.0.100",
   "scripts": {
     "build": "tsm scripts/index.ts --tsc --build --qwikcity --api --platform-binding-wasm-copy",
     "build.full": "tsm scripts/index.ts --tsc --build --api --eslint --qwikcity --qwikreact --platform-binding --wasm",
@@ -13,10 +13,10 @@
     "build.validate": "tsm scripts/index.ts --tsc --build --api --eslint --platform-binding --wasm --validate",
     "build.cli": "tsm scripts/index.ts --cli --dev",
     "build.cli.prod": "tsm scripts/index.ts --cli",
+    "build.watch": "tsm scripts/index.ts --build  --qwikcity --watch --dev --platform-binding",
     "commit": "git-cz",
     "cli": "yarn build.cli && node packages/create-qwik/dist/create-qwik",
     "cli.validate": "tsm scripts/validate-cli.ts",
-    "build.watch": "tsm scripts/index.ts --build --watch --dev --platform-binding",
     "api.update": "tsm scripts/index.ts --tsc --api --dev",
     "tsc.check": "tsc --noEmit",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",

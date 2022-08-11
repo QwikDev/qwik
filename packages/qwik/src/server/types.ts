@@ -90,13 +90,25 @@ export interface PrefetchResource {
 /**
  * @alpha
  */
-export interface RenderToStreamResult extends RenderResult {}
+export interface RenderToStreamResult extends RenderResult {
+  flushes: number;
+  size: number;
+  timing: {
+    firstFlush: number;
+    render: number;
+    snapshot: number;
+  };
+}
 
 /**
  * @alpha
  */
 export interface RenderToStringResult extends RenderResult {
   html: string;
+  timing: {
+    render: number;
+    snapshot: number;
+  };
 }
 
 /**
@@ -105,12 +117,6 @@ export interface RenderToStringResult extends RenderResult {
 export interface RenderResult {
   prefetchResources: PrefetchResource[];
   snapshotResult: SnapshotResult | null;
-  timing: {
-    createDocument: number;
-    render: number;
-    snapshot: number;
-    toString: number;
-  };
 }
 
 /**
@@ -148,7 +154,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
    * When set, the app is serialized into a fragment. And the returned html is not a complete document.
    * Defaults to `undefined`
    */
-  fragmentTagName?: string;
+  containerTagName?: string;
 
   envData?: Record<string, any>;
 }
@@ -163,6 +169,8 @@ export interface RenderToStringOptions extends RenderOptions {}
  */
 export interface InOrderAuto {
   strategy: 'auto';
+  minimunChunkSize?: number;
+  initialChunkSize?: number;
 }
 
 /**

@@ -2,14 +2,20 @@
 
 If you are using VSCode, you can install the [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension. Once installed you will be prompted to reopen the folder in a container. All required dependencies will be installed in the container for you. If you're not prompted, you can run the `Remote-Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
 
-If you're not abled to use the dev container, follow these instructions:
+If you're not able to use the dev container, follow these instructions:
 
-Make sure you have installed [Rust](https://www.rust-lang.org/it/tools/install).
+## Prerequisite
+
+To build platform binding and wasm, make sure you have installed [Rust](https://www.rust-lang.org/it/tools/install).
 
 > On Windows, Rust requires [C++ build tools](https://visualstudio.microsoft.com/it/visual-cpp-build-tools/). You can also select _Desktop development with C++_
 > while installing Visual Studio.
 
+> Alternatively, if Rust is not available you can run `yarn build.platform.copy` to download bindings from CDN
+
 To build Qwik for local development, first install the dev dependencies using [yarn](https://yarnpkg.com/):
+
+## Development
 
 ```
 yarn
@@ -25,6 +31,19 @@ Next the `start` command will:
 ```
 yarn start
 ```
+
+Finally you can use yarn workspace command to run packages' commands, for example:
+
+```
+yarn workspace qwik-docs dev.ssr
+yarn workspace @builder.io/qwik-city dev.ssr
+```
+
+More commands can be found in each package's package.json scripts section.
+
+## Starter CLI `create-qwik`
+
+- [Starter CLI](https://github.com/BuilderIO/qwik/blob/main/starters/README.md)
 
 ## Running All Tests
 
@@ -91,7 +110,7 @@ yarn commit
 
 You'll be asked guiding questions which will eventually create a descriptive commit message and necessary to generate meaningful release notes / CHANGELOG automatically.
 
-## Releasing `@builder.io/qwik`
+## Releasing
 
 1. Run `yarn release.prepare`, which will test, lint and build.
 2. Use the interactive UI to select the next version, which will update the `package.json` `version` property, add the git change, and start a commit message.
@@ -102,33 +121,16 @@ You'll be asked guiding questions which will eventually create a descriptive com
 7. If the build is successful and all tests and validation passes, the workflow will automatically publish to NPM, commit a git tag to the repo, and create a Github release.
 8. 🚀
 
-## Releasing `@builder.io/qwik-city`
-
-1. Run `yarn release.prepare.qwik-city`, which will test and build.
-2. Use the interactive UI to select the next version, which will update the `package.json` `version` property, add the git change, and start a commit message.
-3. Create a PR with the `package.json` change to merge to `main`.
-4. After the `package.json` with the updated version is in `main`, click the [Run Workflow](https://github.com/BuilderIO/qwik/actions/workflows/release-qwik-city.yml) button from the "Release Qwik City" Github Action workflow.
-5. The Github Action will dispatch the workflow to build and publish `@builder.io/qwik-city`.
-6. If the build is successful and all tests and validation passes, the workflow will automatically publish to NPM.
-7. ⚡️
-
-## Starter CLI `create-qwik`
-
-- [Starter CLI](https://github.com/BuilderIO/qwik/blob/main/starters/README.md)
-
 ## Pre-submit hooks
 
 The project has pre-submit hooks, which ensure that your code is correctly formatted. You can run them manually like so:
 
 ```
 yarn lint
-yarn buildifier-check
-yarn prettier-check
 ```
 
 Some of the issues can be fixed automatically by using:
 
 ```
-yarn buildifier-fix
-yarn prettier-fix
+yarn fmt
 ```

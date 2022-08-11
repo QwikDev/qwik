@@ -1,6 +1,6 @@
 import { ElementFixture, trigger } from '../../testing/element-fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
-import { runtimeQrl } from '../import/qrl';
+import { inlinedQrl, runtimeQrl } from '../import/qrl';
 import { useStylesQrl } from '../use/use-styles';
 import { PropsOf, component$ } from './component.public';
 import { suite } from 'uvu';
@@ -16,7 +16,7 @@ qComponent('should declare and render basic component', async () => {
     fixture.host,
     `
     <host q:version="" q:container="resumed">
-        <style q:style="2ej4-0">
+        <style q:style="pfkgyr-0">
            {
           }
         </style>
@@ -116,7 +116,7 @@ qComponent('should render a collection of todo items', async () => {
 
 /////////////////////////////////////////////////////////////////////////////
 export const HelloWorld = component$(() => {
-  useStylesQrl(runtimeQrl(`{}`));
+  useStylesQrl(inlinedQrl(`{}`, 'named-style'));
   return <span>Hello World</span>;
 });
 

@@ -414,9 +414,9 @@ export interface RenderSSROptions {
     // (undocumented)
     beforeContent?: JSXNode[];
     // (undocumented)
-    envData?: Record<string, any>;
+    containerTagName: string;
     // (undocumented)
-    fragmentTagName?: string;
+    envData?: Record<string, any>;
     // (undocumented)
     stream: StreamWriter;
     // (undocumented)
@@ -582,7 +582,7 @@ export const SSRStreamBlock: FunctionComponent<{
 
 // @alpha (undocumented)
 export type StreamWriter = {
-    write: (chunk: any) => void | boolean | Promise<void> | Promise<boolean>;
+    write: (chunk: string) => void | boolean | Promise<void> | Promise<boolean>;
 };
 
 // @public

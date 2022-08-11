@@ -32,47 +32,64 @@ export async function renderToStream(
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> {
   let stream = opts.stream;
+  let bufferSize = 0;
+  let totalSize = 0;
+  let networkFlushes = 0;
+  let firstFlushTime = 0;
   const doc = createSimpleDocument() as Document;
   const inOrderStreaming = opts.streaming?.inOrder ?? {
     strategy: 'auto',
+    initialChunkSize: 30000,
+    minimunChunkSize: 1024,
   };
+  const containerTagName = opts.containerTagName ?? 'html';
   const buffer: string[] = [];
   const nativeStream = stream;
+  const firstFlushTimer = createTimer();
   function flush() {
     buffer.forEach((chunk) => nativeStream.write(chunk));
     buffer.length = 0;
+    bufferSize = 0;
+    networkFlushes++;
+    if (networkFlushes === 1) {
+      firstFlushTime = firstFlushTimer();
+    }
+  }
+  function enqueue(chunk: string) {
+    bufferSize += chunk.length;
+    totalSize += chunk.length;
+    buffer.push(chunk);
   }
   switch (inOrderStreaming.strategy) {
     case 'disabled':
       stream = {
-        write(chunk) {
-          buffer.push(chunk);
-        },
+        write: enqueue,
       };
       break;
     case 'auto':
       let count = 0;
+      const minimunChunkSize = inOrderStreaming.minimunChunkSize ?? 0;
+      const initialChunkSize = inOrderStreaming.initialChunkSize ?? 0;
       stream = {
         write(chunk) {
+          enqueue(chunk);
           if (chunk === '<!--qkssr-pu-->') {
             count++;
           } else if (count > 0 && chunk === '<!--qkssr-po-->') {
             count--;
-            if (count === 0) {
-              flush();
-            }
           }
-          if (count === 0) {
-            nativeStream.write(chunk);
-          } else {
-            buffer.push(chunk);
+          const chunkSize = networkFlushes === 0 ? initialChunkSize : minimunChunkSize;
+          if (count === 0 && bufferSize >= chunkSize) {
+            flush();
           }
         },
       };
       break;
   }
 
-  if (typeof opts.fragmentTagName === 'string') {
+  if (containerTagName === 'html') {
+    stream.write(DOCTYPE);
+  } else {
     if (opts.qwikLoader) {
       if (opts.qwikLoader.include === undefined) {
         opts.qwikLoader.include = 'never';
@@ -85,8 +102,6 @@ export async function renderToStream(
         include: 'never',
       };
     }
-  } else {
-    stream.write(DOCTYPE);
   }
 
   if (!opts.manifest) {
@@ -106,14 +121,20 @@ export async function renderToStream(
     ? injections.map((injection) => jsx(injection.tag, injection.attributes))
     : undefined;
 
+  const renderTimer = createTimer();
+  let renderTime = 0;
+  let snapshotTime = 0;
   await renderSSR(doc, rootNode, {
     stream,
-    fragmentTagName: opts.fragmentTagName,
+    containerTagName,
     envData: opts.envData,
     url: opts.url instanceof URL ? opts.url.href : opts.url,
     base: buildBase,
     beforeContent,
     beforeClose: async (contexts, containerState) => {
+      renderTime = renderTimer();
+      const snapshotTimer = createTimer();
+
       snapshotResult = await _pauseFromContexts(contexts, containerState);
       prefetchResources = getPrefetchResources(snapshotResult, opts, mapper);
       const children: (JSXNode | null)[] = [
@@ -140,15 +161,7 @@ export async function renderToStream(
           })
         );
       }
-      // if (snapshotResult?.pendingContent) {
-      //   await Promise.allSettled(
-      //     snapshotResult.pendingContent.map((promise) => {
-      //       return promise.then((resolved) => {
-      //         stream.write(`<script type="qwik/chunk">${resolved}</script>`);
-      //       });
-      //     })
-      //   );
-      // }
+      snapshotTime = snapshotTimer();
       return jsx(Fragment, { children });
     },
   });
@@ -156,16 +169,15 @@ export async function renderToStream(
   // Flush remaining chunks in the buffer
   flush();
 
-  const docToStringTimer = createTimer();
-
   const result: RenderToStreamResult = {
     prefetchResources,
     snapshotResult,
+    flushes: networkFlushes,
+    size: totalSize,
     timing: {
-      createDocument: 0,
-      render: 0,
-      snapshot: 0,
-      toString: docToStringTimer(),
+      render: renderTime,
+      snapshot: snapshotTime,
+      firstFlush: firstFlushTime,
     },
   };
   return result;

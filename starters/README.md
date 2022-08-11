@@ -11,7 +11,7 @@ Here are steps to try out the CLI in local environment.
 1. Build CLI:
 
    ```
-   # npm run build.cli
+   # yarn build.cli
    ```
 
 1. Run CLI:

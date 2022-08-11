@@ -5,7 +5,7 @@ import type { Render } from '@builder.io/qwik/server';
 // @builder.io/qwik-city/middleware/cloudflare-pages
 
 /**
- * @public
+ * @alpha
  */
 export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) {
   async function onRequest({ request, next, waitUntil }: EventPluginContext) {
@@ -78,12 +78,12 @@ export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) 
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface QwikCityCloudflarePagesOptions extends QwikCityRequestOptions {}
 
 /**
- * @public
+ * @alpha
  */
 export interface EventPluginContext {
   request: Request;

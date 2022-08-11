@@ -20,7 +20,6 @@ export type {
 
 export { RouterOutlet, Content } from './library/router-outlet';
 export { Html } from './library/html';
-export type { HtmlProps } from './library/html';
 export { Link } from './library/link';
 export type { LinkProps } from './library/link';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './library/use-functions';

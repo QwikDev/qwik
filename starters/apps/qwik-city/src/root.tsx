@@ -1,14 +1,16 @@
-import { Html } from '@builder.io/qwik-city';
+import { component$ } from '@builder.io/qwik';
+import { Html, RouterOutlet } from '@builder.io/qwik-city';
 import { Head } from './components/head/head';
-import { Body } from './components/body/body';
 
 import './global.css';
 
-export default () => {
+export default component$(() => {
   return (
-    <Html lang="en" dir="ltr">
+    <Html>
       <Head />
-      <Body />
+      <body lang="en">
+        <RouterOutlet />
+      </body>
     </Html>
   );
-};
+});

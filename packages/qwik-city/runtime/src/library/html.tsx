@@ -1,7 +1,6 @@
 import {
   component$,
   noSerialize,
-  QwikIntrinsicElements,
   Slot,
   useContextProvider,
   useStore,
@@ -29,9 +28,9 @@ import { useQwikCityEnv } from './use-functions';
 import { clientNavigate, toPath } from './client-navigation';
 
 /**
- * @public
+ * @alpha
  */
-export const Html = component$<HtmlProps>((props) => {
+export const QwikCity = component$(() => {
   const env = useQwikCityEnv();
 
   const routeLocation = useStore<MutableRouteLocation>(() => {
@@ -106,9 +105,8 @@ export const Html = component$<HtmlProps>((props) => {
   return <Slot />;
 });
 
-type RootHtmlAttributes = QwikIntrinsicElements['html'];
-
 /**
- * @public
+ * @alpha
+ * @deprecated - use QwikCity
  */
-export interface HtmlProps extends RootHtmlAttributes {}
+export const Html = QwikCity;

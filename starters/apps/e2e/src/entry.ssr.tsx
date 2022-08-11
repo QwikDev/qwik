@@ -59,7 +59,7 @@ export default function (opts: RenderToStreamOptions) {
       </>,
       {
         debug: true,
-        fragmentTagName: 'container',
+        containerTagName: 'container',
         // streaming: {
         //   inOrder: {
         //     buffering: 'marks',

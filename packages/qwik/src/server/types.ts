@@ -148,7 +148,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
    * When set, the app is serialized into a fragment. And the returned html is not a complete document.
    * Defaults to `undefined`
    */
-  fragmentTagName?: string;
+  containerTagName?: string;
 
   envData?: Record<string, any>;
 }

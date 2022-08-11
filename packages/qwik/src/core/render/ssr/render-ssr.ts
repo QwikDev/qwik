@@ -46,7 +46,7 @@ export type StreamWriter = {
  * @alpha
  */
 export interface RenderSSROptions {
-  fragmentTagName?: string;
+  containerTagName: string;
   stream: StreamWriter;
   base?: string;
   envData?: Record<string, any>;
@@ -73,7 +73,7 @@ const IS_RAW_CONTENT = 1 << 2;
  * @alpha
  */
 export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROptions) => {
-  const root = opts.fragmentTagName ?? 'html';
+  const root = opts.containerTagName;
   const containerEl = doc.createElement(root);
   const containerState = getContainerState(containerEl);
   const rctx = createRenderContext(doc, containerState);
@@ -106,29 +106,23 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
     Object.assign(containerState.$envData$, opts.envData);
   }
 
-  if (opts.fragmentTagName) {
+  if (root === 'html') {
     node = jsx(root, {
       ...containerAttributes,
-      children: [...ssrCtx.headNodes, node],
-    });
-    await renderNode(node, ssrCtx, opts.stream, 0, (stream) => {
-      const result = beforeClose?.(ssrCtx.$contexts$, containerState);
-      if (result) {
-        return processData(result, ssrCtx, stream, 0, undefined);
-      }
+      children: [node],
     });
   } else {
     node = jsx(root, {
       ...containerAttributes,
-      children: node,
-    });
-    await renderNode(node, ssrCtx, opts.stream, 0, (stream) => {
-      const result = beforeClose?.(ssrCtx.$contexts$, containerState);
-      if (result) {
-        return processData(result, ssrCtx, stream, 0, undefined);
-      }
+      children: [...ssrCtx.headNodes, node],
     });
   }
+  await renderNode(node, ssrCtx, opts.stream, 0, (stream) => {
+    const result = beforeClose?.(ssrCtx.$contexts$, containerState);
+    if (result) {
+      return processData(result, ssrCtx, stream, 0, undefined);
+    }
+  });
 };
 
 export const renderNodeFunction = (
@@ -231,7 +225,6 @@ export const renderNodeElement = (
   const textType = node.type;
   const elCtx = getContext(ssrCtx.rctx.$doc$.createElement(node.type));
   const hasRef = 'ref' in props;
-  const insideHead = flags & IS_HEAD;
   const attributes = updateProperties(ssrCtx.rctx, elCtx, props);
   const hostCtx = ssrCtx.hostCtx;
   if (hostCtx) {
@@ -245,7 +238,14 @@ export const renderNodeElement = (
     }
   }
 
+  // Reset HOST flags
+  if (textType === 'head') {
+    flags |= IS_HEAD;
+  }
+
   const hasEvents = elCtx.$listeners$;
+  const isHead = flags & IS_HEAD;
+
   if (key != null) {
     attributes['q:key'] = key;
   }
@@ -255,7 +255,7 @@ export const renderNodeElement = (
     elCtx.$id$ = newID;
     ssrCtx.$contexts$.push(elCtx);
   }
-  if (insideHead) {
+  if (isHead) {
     attributes['q:head'] = '';
   }
   if (extraAttributes) {
@@ -270,15 +270,15 @@ export const renderNodeElement = (
     return;
   }
 
-  // Reset HOST flags
-  flags = 0;
-
-  if (textType === 'head') {
-    flags |= IS_HEAD;
+  if (textType !== 'head') {
+    flags &= ~IS_HEAD;
   }
   if (hasRawContent[textType]) {
     flags |= IS_RAW_CONTENT;
+  } else {
+    flags &= ~IS_RAW_CONTENT;
   }
+
   if (extraNodes) {
     for (const node of extraNodes) {
       renderNodeElementSync(node.type, node.props, stream);

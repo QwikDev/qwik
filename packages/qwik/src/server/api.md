@@ -75,9 +75,9 @@ export type Render = RenderToString | RenderToStream;
 // @alpha (undocumented)
 export interface RenderOptions extends SerializeDocumentOptions {
     base?: string;
+    containerTagName?: string;
     // (undocumented)
     envData?: Record<string, any>;
-    fragmentTagName?: string;
     // (undocumented)
     prefetchStrategy?: PrefetchStrategy | null;
     qwikLoader?: QwikLoaderOptions;

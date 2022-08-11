@@ -51,6 +51,6 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
 const qInflate = (ref: string, hostCtx: QContext) => {
   const int = parseInt(ref, 10);
   const obj = hostCtx.$refMap$[int];
-  assertTrue(hostCtx.$refMap$.length > int, 'out of bounds infrate access', ref);
+  assertTrue(hostCtx.$refMap$.length > int, 'out of bounds inflate access', ref);
   return obj;
 };

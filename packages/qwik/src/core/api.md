@@ -414,9 +414,9 @@ export interface RenderSSROptions {
     // (undocumented)
     beforeContent?: JSXNode[];
     // (undocumented)
-    envData?: Record<string, any>;
+    containerTagName: string;
     // (undocumented)
-    fragmentTagName?: string;
+    envData?: Record<string, any>;
     // (undocumented)
     stream: StreamWriter;
     // (undocumented)

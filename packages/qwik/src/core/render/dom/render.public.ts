@@ -58,7 +58,13 @@ export const render = async (
     Object.assign(containerState.$envData$, envData);
   }
   containerState.$hostsRendering$ = new Set();
-  containerState.$renderPromise$ = renderRoot(parent, jsxNode, doc, containerState, containerEl);
+  containerState.$renderPromise$ = renderRoot(
+    containerEl,
+    jsxNode,
+    doc,
+    containerState,
+    containerEl
+  );
 
   const renderCtx = await containerState.$renderPromise$;
   const allowRerender = opts?.allowRerender ?? true;
@@ -80,7 +86,7 @@ export const render = async (
 };
 
 const renderRoot = async (
-  parent: Element | Document,
+  parent: Element,
   jsxNode: JSXNode<unknown> | FunctionComponent<any>,
   doc: Document,
   containerState: ContainerState,

@@ -5,7 +5,7 @@ export default component$(() => {
   useStyles$(styles);
 
   return (
-    <div>
+    <footer>
       <ul>
         <li>
           <a href="/blog">Blog</a>
@@ -22,6 +22,6 @@ export default component$(() => {
           </a>
         </li>
       </ul>
-    </div>
+    </footer>
   );
 });

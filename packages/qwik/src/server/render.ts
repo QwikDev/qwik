@@ -36,6 +36,7 @@ export async function renderToStream(
   const inOrderStreaming = opts.streaming?.inOrder ?? {
     strategy: 'auto',
   };
+  const containerTagName = opts.containerTagName ?? 'html';
   const buffer: string[] = [];
   const nativeStream = stream;
   function flush() {
@@ -72,7 +73,9 @@ export async function renderToStream(
       break;
   }
 
-  if (typeof opts.fragmentTagName === 'string') {
+  if (containerTagName === 'html') {
+    stream.write(DOCTYPE);
+  } else {
     if (opts.qwikLoader) {
       if (opts.qwikLoader.include === undefined) {
         opts.qwikLoader.include = 'never';
@@ -85,8 +88,6 @@ export async function renderToStream(
         include: 'never',
       };
     }
-  } else {
-    stream.write(DOCTYPE);
   }
 
   if (!opts.manifest) {
@@ -108,7 +109,7 @@ export async function renderToStream(
 
   await renderSSR(doc, rootNode, {
     stream,
-    fragmentTagName: opts.fragmentTagName,
+    containerTagName,
     envData: opts.envData,
     url: opts.url instanceof URL ? opts.url.href : opts.url,
     base: buildBase,

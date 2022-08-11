@@ -90,15 +90,17 @@ export default component$(() => {
         </div>
 
         <main class="examples-repl">
-          <Repl
-            input={store}
-            enableSsrOutput={false}
-            enableClientOutput={false}
-            enableHtmlOutput={false}
-            enableCopyToPlayground={true}
-            enableDownload={true}
-            enableInputDelete={false}
-          />
+          <div class="repl">
+            <Repl
+              input={store}
+              enableSsrOutput={false}
+              enableClientOutput={false}
+              enableHtmlOutput={false}
+              enableCopyToPlayground={true}
+              enableDownload={true}
+              enableInputDelete={false}
+            />
+          </div>
         </main>
       </div>
       <PanelToggle panelStore={panelStore} />

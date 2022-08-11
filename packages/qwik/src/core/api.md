@@ -582,7 +582,7 @@ export const SSRStreamBlock: FunctionComponent<{
 
 // @alpha (undocumented)
 export type StreamWriter = {
-    write: (chunk: any) => void | boolean | Promise<void> | Promise<boolean>;
+    write: (chunk: string) => void | boolean | Promise<void> | Promise<boolean>;
 };
 
 // @public

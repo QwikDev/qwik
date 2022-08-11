@@ -39,7 +39,7 @@ import { serializeVirtualAttributes } from '../dom/virtual-element';
  * @alpha
  */
 export type StreamWriter = {
-  write: (chunk: any) => void | boolean | Promise<void> | Promise<boolean>;
+  write: (chunk: string) => void | boolean | Promise<void> | Promise<boolean>;
 };
 
 /**

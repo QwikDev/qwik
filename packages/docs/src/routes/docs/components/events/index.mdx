@@ -34,10 +34,10 @@ const Counter = component$(() => {
   });
 
   return (
-    <>
+    <div>
       <button onClick$={() => store.htmlCount++}>{store.htmlCount}</button>
       <CmpButton onClick$={() => store.cmpCount++}>{store.cmpCount}</CmpButton>
-    </>
+    </div>
   );
 });
 ```
@@ -51,12 +51,7 @@ Notice that both `<button>` and `<CmpButton>` use the same syntax for registerin
 </div>
 ```
 
-1. For the HTML `<button>` the resulting HTML is `<button>` along with `on:click` attribute for the event.
-2. For the Component `<CmpButton>` the resulting HTML is `<div>...</div>`.
-   - See [Host Element](../anatomy/index.mdx) for explanation of why components need host element.
-   - Notice that because the `<CmpButton>` is an element, there is no corresponding `on:click` in the DOM. This makes sense because, in this case, the `onClick` event is something that `<CmpButton>` emits and should not be confused with the browser's `click` event. (It is likely that the implementation of the `<CmpButton>` will have an internal `on:click` listener which forwards the event, but that is an implementation detail of `<CmpButton>`)
-
-The main point here is that while the syntax of the events is consistent between HTML elements and Components, the resulting HTML only has `on:<event>` attributes for the DOM events, not for the component props.
+For the HTML `<button>` the resulting HTML is `<button>` along with `on:click` attribute for the event. The main point here is that while the syntax of the events is consistent between HTML elements and Components, the resulting HTML only has `on:<event>` attributes for the DOM events, not for the component props.
 
 ## Prevent default
 

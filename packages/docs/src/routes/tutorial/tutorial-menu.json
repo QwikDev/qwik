@@ -319,26 +319,6 @@
     ]
   },
   {
-    "id": "host",
-    "title": "Host Element",
-    "apps": [
-      {
-        "id": "basic",
-        "title": "Host Element",
-        "enableHtmlOutput": false,
-        "enableClientOutput": false,
-        "enableSsrOutput": false
-      },
-      {
-        "id": "parent",
-        "title": "Parent use of Host Element",
-        "enableHtmlOutput": false,
-        "enableClientOutput": false,
-        "enableSsrOutput": false
-      }
-    ]
-  },
-  {
     "id": "style",
     "title": "Styling",
     "apps": [

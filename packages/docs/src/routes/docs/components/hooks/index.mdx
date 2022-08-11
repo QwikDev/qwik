@@ -228,24 +228,6 @@ function User(props: {user: User}) {
 }
 ```
 
-## useHostElement()
-
-Retrieves the Host Element of the current component.
-
-NOTE: `useHostElement` method can only be used in the synchronous portion of the callback (before any `await` statements.)
-
-```tsx
-const Section = component$(() => {
-  const hostElement = useHostElement();
-  console.log(hostElement); // hostElement is a HTMLSectionElement
-  return (
-    <section>
-      I am a section
-    </section>
-  )
-});
-```
-
 ## useStyles$()
 
 A lazy-loadable reference to component's styles.

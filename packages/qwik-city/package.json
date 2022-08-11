@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.0.100",
+  "version": "0.0.101",
   "description": "The meta-framework for Qwik.",
   "main": "./lib/index.qwik.cjs",
   "module": "./lib/index.qwik.mjs",
@@ -81,6 +81,7 @@
   "bugs": {
     "url": "https://github.com/BuilderIO/qwik/issues"
   },
+  "private": true,
   "publishConfig": {
     "access": "public"
   }

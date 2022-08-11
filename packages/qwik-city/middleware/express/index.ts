@@ -8,7 +8,7 @@ import type { Request, Response, NextFunction } from 'express';
 // @builder.io/qwik-city/middleware/express
 
 /**
- * @public
+ * @alpha
  */
 export function qwikCity(render: Render, opts?: QwikCityExpressOptions) {
   patchGlobalFetch();
@@ -45,7 +45,7 @@ export function qwikCity(render: Render, opts?: QwikCityExpressOptions) {
 }
 
 /**
- * @public
+ * @alpha
  */
 export interface QwikCityExpressOptions extends QwikCityRequestOptions {}
 

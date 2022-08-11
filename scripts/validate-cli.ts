@@ -51,9 +51,7 @@ async function validateCreateQwikCli() {
   const tmpDir = join(__dirname, '..', 'dist-dev');
   await validateStarter(api, tmpDir, 'blank', '', true);
   await validateStarter(api, tmpDir, 'library', '', false);
-
-  // TODO!!!! Enable Qwik City starter tests!!!!!!
-  // await validateStarter(api, tmpDir, 'qwik-city', 'express', true);
+  await validateStarter(api, tmpDir, 'qwik-city', 'express', true);
 
   console.log(`👽 create-qwik validated\n`);
 }

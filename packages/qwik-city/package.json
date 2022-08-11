@@ -31,9 +31,11 @@
     "start": "cd runtime && node --inspect ../../../node_modules/vite/bin/vite.js",
     "dev.ssr": "cd runtime && node --inspect ../../../node_modules/vite/bin/vite.js --mode ssr",
     "dev.debug": "cd runtime && node --inspect-brk ../../../node_modules/vite/bin/vite.js --mode ssr --force",
-    "build": "yarn build.client && yarn build.ssr",
+    "build": "yarn build.client && yarn build.express",
     "build.client": "cd runtime && vite build --config vite-app.config.ts",
-    "build.ssr": "cd runtime && vite build --config vite-app.config.ts --ssr src/entry.express.tsx",
+    "build.express": "cd runtime && vite build --config vite-app.config.ts --ssr src/entry.express.tsx",
+    "build.static": "cd runtime && vite build --config vite-app.config.ts --ssr src/entry.static.tsx",
+    "run.static": "cd runtime && node server/entry.static.js",
     "build.runtime": "cd runtime && vite build --mode lib",
     "serve": "node --inspect runtime/server/entry.express",
     "serve.debug": "node --inspect-brk runtime/server/entry.express",
@@ -83,5 +85,6 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "private": true
 }

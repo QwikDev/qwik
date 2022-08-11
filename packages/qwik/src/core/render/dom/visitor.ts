@@ -64,7 +64,7 @@ type PropHandler = (
   oldValue: any
 ) => boolean;
 
-export type ChildrenMode = 'root' | 'default' | 'head' | 'elements';
+export type ChildrenMode = 'root' | 'head' | 'elements';
 
 export const visitJsxNode = (
   ctx: RenderContext,
@@ -99,8 +99,6 @@ export const smartUpdateChildren = (
   if (isHead) {
     mode = 'head';
     flags |= IS_HEAD;
-  } else {
-    flags &= ~IS_HEAD;
   }
   const oldCh = getChildren(elm, mode);
   if (oldCh.length > 0 && ch.length > 0) {
@@ -202,12 +200,9 @@ export const updateChildren = (
 
   let wait = promiseAll(results) as any;
   if (oldStartIdx <= oldEndIdx) {
-    const canRemove = parentElm.nodeName !== 'HEAD';
-    if (canRemove) {
-      wait = then(wait, () => {
-        removeVnodes(ctx, oldCh, oldStartIdx, oldEndIdx);
-      });
-    }
+    wait = then(wait, () => {
+      removeVnodes(ctx, oldCh, oldStartIdx, oldEndIdx);
+    });
   }
   return wait;
 };
@@ -235,8 +230,6 @@ const getCh = (elm: QwikElement, filter: (el: Node | VirtualElement) => boolean)
 
 export const getChildren = (elm: QwikElement, mode: ChildrenMode): (Node | VirtualElement)[] => {
   switch (mode) {
-    case 'default':
-      return getCh(elm, isNode);
     case 'root':
       return getCh(elm, isChildComponent);
     case 'head':
@@ -252,7 +245,11 @@ export const isNode = (elm: Node | VirtualElement): boolean => {
 };
 
 const isHeadChildren = (node: Node | VirtualElement): boolean => {
-  return isQwikElement(node) && (node.hasAttribute('q:head') || node.nodeName === 'TITLE');
+  const type = node.nodeType;
+  if (type === 1) {
+    return (node as Element).hasAttribute('q:head');
+  }
+  return type === 111;
 };
 
 const isSlotTemplate = (node: Node | VirtualElement): node is HTMLTemplateElement => {
@@ -260,7 +257,21 @@ const isSlotTemplate = (node: Node | VirtualElement): node is HTMLTemplateElemen
 };
 
 const isChildComponent = (node: Node | VirtualElement): boolean => {
-  return isNode(node) && node.nodeName !== 'Q:TEMPLATE';
+  const type = node.nodeType;
+  if (type === 3 || type === 111) {
+    return true;
+  }
+  if (type !== 1) {
+    return false;
+  }
+  const nodeName = node.nodeName;
+  if (nodeName === 'Q:TEMPLATE') {
+    return false;
+  }
+  if (nodeName === 'HEAD') {
+    return (node as Element).hasAttribute('q:head');
+  }
+  return true;
 };
 
 export const splitBy = <T>(input: T[], condition: (item: T) => string): Record<string, T[]> => {
@@ -374,7 +385,7 @@ export const patchVnode = (
   }
 
   if (!isSlot) {
-    return smartUpdateChildren(rctx, elm as Element, ch, 'default', flags);
+    return smartUpdateChildren(rctx, elm as Element, ch, 'root', flags);
   }
 };
 
@@ -485,7 +496,7 @@ export const resolveSlotProjection = (
       // Move template to slot
       const template = before.templates[key];
       if (template) {
-        const children = getChildren(template, 'default');
+        const children = getChildren(template, 'root');
         children.forEach((child) => {
           directAppendChild(slotEl, child);
         });
@@ -525,9 +536,22 @@ const createElm = (
     flags |= IS_SVG;
     isSvg = true;
   }
-  const isHead = !!(flags & IS_HEAD);
   const isVirtual = tag === VIRTUAL_TYPE;
-  const elm = isVirtual ? newVirtualElement(rctx.$doc$) : createElement(rctx, tag, isSvg);
+  let elm: QwikElement;
+  let isHead = !!(flags & IS_HEAD);
+
+  if (isVirtual) {
+    elm = newVirtualElement(rctx.$doc$);
+  } else if (tag === 'head') {
+    elm = rctx.$doc$.head;
+    flags |= IS_HEAD;
+    isHead = true;
+  } else if (tag === 'title') {
+    elm = rctx.$doc$.querySelector('title') ?? createElement(rctx, tag, isSvg);
+  } else {
+    elm = createElement(rctx, tag, isSvg);
+    flags &= ~IS_HEAD;
+  }
 
   vnode.$elm$ = elm;
   const props = vnode.$props$;
@@ -538,7 +562,7 @@ const createElm = (
 
   setKey(elm, vnode.$key$);
 
-  if (isHead) {
+  if (isHead && !isVirtual) {
     directSetAttribute(elm as Element, 'q:head', '');
   }
 
@@ -572,7 +596,6 @@ const createElm = (
   if (isComponent || ctx.$listeners$ || hasRef) {
     setQId(rctx, ctx);
   }
-
   let wait: ValueOrPromise<void>;
   if (isComponent) {
     // Run mount hook

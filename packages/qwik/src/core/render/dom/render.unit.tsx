@@ -1,7 +1,7 @@
 import { ElementFixture, trigger } from '../../../testing/element-fixture';
 import { expectDOM } from '../../../testing/expect-dom.unit';
 import { component$ } from '../../component/component.public';
-import { runtimeQrl } from '../../import/qrl';
+import { inlinedQrl, runtimeQrl } from '../../import/qrl';
 import { pauseContainer } from '../../object/store';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
@@ -9,7 +9,7 @@ import { useClientEffect$, useServerMount$, useWatch$ } from '../../use/use-watc
 import { useCleanup$ } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
-import { useStyles$ } from '../../use/use-styles';
+import { useStylesQrl } from '../../use/use-styles';
 import { equal, match } from 'uvu/assert';
 import { suite } from 'uvu';
 import { useRef } from '../../use/use-ref';
@@ -87,14 +87,37 @@ renderSuite('should serialize boolean attributes correctly', async () => {
 });
 renderSuite('should render into a document', async () => {
   const fixture = new ElementFixture();
+  fixture.document.head.appendChild(fixture.document.createElement('existing'));
   await render(
     fixture.document,
-    <html>
-      <head></head>
+    <Transparent>
+      <head>
+        <title>Replace</title>
+        <div>
+          <div></div>
+        </div>
+      </head>
       <body>WORKS</body>
-    </html>
+    </Transparent>
   );
-  equal(fixture.document.body.innerHTML, 'WORKS');
+  await expectDOM(
+    fixture.document.documentElement,
+    `
+  <html q:version="" q:container="resumed">
+  <!--qv q:key=sX: q:id=0-->
+  <!--qv q:key q:sref=0 q:sname-->
+    <head q:head="">
+      <existing></existing>
+      <title q:head="">Replace</title>
+      <div q:head=""><div></div></div>
+    </head>
+    <body>
+      WORKS
+    </body>
+    <!--/qv-->
+    <!--/qv-->
+  </html>`
+  );
 });
 
 renderSuite('should render attributes', async () => {
@@ -154,22 +177,21 @@ renderSuite('should render a component', async () => {
 renderSuite('should render component external props', async () => {
   const fixture = new ElementFixture();
 
-  await render(fixture.host, <RenderProps thing="World" q:slot="start" />);
-  await expectRendered(fixture, '<render-props><span>{"thing":"World"}</span></render-props>');
+  await render(
+    fixture.host,
+    <RenderProps thing="World" q:slot="start" innerHTML="123" dangerouslySetInnerHTML="432" />
+  );
+  await expectRendered(
+    fixture,
+    '<render-props><span>{"thing":"World","innerHTML":"123","dangerouslySetInnerHTML":"432"}</span></render-props>'
+  );
 });
 
-renderSuite.skip('should render a blank component', async () => {
+renderSuite('should render a blank component', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <InnerHTMLComponent />);
-  await expectRendered(
-    fixture,
-    `
-      <div aria-hidden="false">
-        <div class="normal">Normal div</div>
-        <button on:click="/runtimeQRL#_">toggle</button>
-      </div>`
-  );
+  await expectRendered(fixture, `<div><span>WORKS</span></div>`);
 });
 
 renderSuite('should render a div then a component', async () => {
@@ -580,7 +602,7 @@ function getFirstNode(el: Element) {
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////
 export const HelloWorld = component$((props: { name?: string }) => {
-  useStyles$(`span.� { color: red; }`);
+  useStylesQrl(inlinedQrl(`span.� { color: red; }`, 'style-1'));
   const state = useStore({ salutation: 'Hello' });
   return (
     <span>
@@ -592,7 +614,7 @@ export const HelloWorld = component$((props: { name?: string }) => {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////
-export const RenderProps = component$((props: { thing?: string; href?: string }) => {
+export const RenderProps = component$((props: Record<string, any>) => {
   return (
     <render-props href={props.href}>
       <span>{JSON.stringify(props)}</span>
@@ -682,6 +704,10 @@ export const ToggleChild = component$(() => {
       <div>this is ToggleChild</div>
     </div>
   );
+});
+
+export const Transparent = component$(() => {
+  return <Slot></Slot>;
 });
 
 //////////////////////////////////////////////////////////////////////////////////////////

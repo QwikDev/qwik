@@ -121,7 +121,6 @@ You'll be asked guiding questions which will eventually create a descriptive com
 7. If the build is successful and all tests and validation passes, the workflow will automatically publish to NPM, commit a git tag to the repo, and create a Github release.
 8. 🚀
 
-
 ## Pre-submit hooks
 
 The project has pre-submit hooks, which ensure that your code is correctly formatted. You can run them manually like so:

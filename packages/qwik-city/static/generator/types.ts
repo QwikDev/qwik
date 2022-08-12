@@ -1,14 +1,25 @@
+import type { StreamWriter } from '@builder.io/qwik';
+import type { QwikCityRequestOptions } from '../../middleware/request-handler/types';
+
 export interface System {
-  readFile: (filePath: string) => Promise<string>;
-  writeFile: (filePath: string, data: any) => Promise<void>;
+  init: () => Promise<void>;
+  close: () => Promise<void>;
+  ensureDir: (filePath: string) => Promise<void>;
+  createWriteStream: (filePath: string) => StaticStreamWriter;
   getFilePath: (outDir: string, pathname: string) => string;
+  createTimer: () => () => number;
+  appendResult: (result: StaticWorkerRenderResult) => Promise<void>;
+}
+
+export interface StaticStreamWriter extends StreamWriter {
+  close(callback: () => void): void;
 }
 
 export interface MainContext {
   init: () => Promise<void>;
+  close: () => Promise<void>;
   hasAvailableWorker: () => boolean;
   render: (config: StaticWorkerRenderConfig) => Promise<StaticWorkerRenderResult>;
-  dispose: () => Promise<void>;
 }
 
 export interface Logger {
@@ -17,7 +28,7 @@ export interface Logger {
   debug: (...msgs: any[]) => void;
 }
 
-export interface StaticGeneratorOptions {
+export interface StaticGeneratorOptions extends QwikCityRequestOptions {
   ourDir: string;
   baseUrl: string;
   urls?: string[];
@@ -25,6 +36,9 @@ export interface StaticGeneratorOptions {
   maxWorkers?: number;
   maxTasksPerWorker?: number;
   log?: 'debug';
+  sitemapOutFile?: string;
+  resultsCsvOutFile?: string;
+  errorsOutFile?: string;
 }
 
 export type NormalizedStaticGeneratorOptions = Required<StaticGeneratorOptions>;
@@ -35,5 +49,16 @@ export interface StaticWorkerRenderConfig {
 }
 
 export interface StaticWorkerRenderResult {
-  anchorPathnames: string[];
+  url: string;
+  links: string[];
+  duration: number;
+  status: number;
+  error: string;
+}
+
+export interface StaticGeneratorResults {
+  duration: number;
+  rendered: number;
+  errors: number;
+  urls: number;
 }

@@ -22,6 +22,10 @@
     "./middleware/netlify-edge": {
       "import": "./lib/middleware/netlify-edge/index.mjs"
     },
+    "./static/node": {
+      "import": "./lib/static/node/index.mjs",
+      "require": "./lib/static/node/index.cjs"
+    },
     "./vite": {
       "import": "./lib/vite/index.mjs",
       "require": "./lib/vite/index.cjs"
@@ -40,7 +44,7 @@
     "serve": "node --inspect runtime/server/entry.express",
     "serve.debug": "node --inspect-brk runtime/server/entry.express",
     "test": "yarn test.unit && yarn test.e2e",
-    "test.unit": "tsm ../../node_modules/.bin/uvu . unit.ts --tsmconfig tsm.cjs",
+    "test.unit": "tsm ../../node_modules/.bin/uvu /Users/adambradley/git/qwik/packages/qwik-city/static/generator/ worker.unit.ts --tsmconfig tsm.cjs",
     "test.e2e": "DISABLE_JS=true node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts",
     "test.e2e.client": "node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts"
   },
@@ -86,6 +90,5 @@
   "private": true,
   "publishConfig": {
     "access": "public"
-  },
-  "private": true
+  }
 }

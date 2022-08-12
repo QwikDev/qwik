@@ -9,14 +9,15 @@ import { cpus as nodeCpus } from 'os';
 import { Worker } from 'worker_threads';
 import { fileURLToPath } from 'url';
 import type { NodeStaticWorkerRenderConfig, NodeStaticWorkerRenderResult } from './types';
+import { relative } from 'path';
 
 export function createNodeMain(opts: NormalizedStaticGeneratorOptions, log: Logger) {
-  const __filename = fileURLToPath(import.meta.url);
+  const currentFile = fileURLToPath(import.meta.url);
 
   const ssgWorkers: StaticGeneratorWorker[] = [];
 
   const init = async () => {
-    log.debug(`Static Node: ${__filename}`);
+    log.debug(`Static Node: ${relative(process.cwd(), currentFile)}`);
 
     const maxWorkers = nodeCpus().length - 1;
     if (typeof opts.maxWorkers !== 'number') {
@@ -36,7 +37,7 @@ export function createNodeMain(opts: NormalizedStaticGeneratorOptions, log: Logg
 
   const createWorker = (index: number) => {
     const mainTasks = new Map<number, WorkerMainTask>();
-    const nodeWorker = new Worker(__filename);
+    const nodeWorker = new Worker(currentFile);
     log.debug(`main: created worker ${index}`);
 
     const ssgWorker: StaticGeneratorWorker = {
@@ -50,11 +51,11 @@ export function createNodeMain(opts: NormalizedStaticGeneratorOptions, log: Logg
           const taskId = ssgWorker.totalTasks++;
           try {
             mainTasks.set(taskId, resolve);
-            const taskInput: NodeStaticWorkerRenderConfig = {
+            const config: NodeStaticWorkerRenderConfig = {
               taskId,
               ...input,
             };
-            nodeWorker.postMessage(taskInput);
+            nodeWorker.postMessage(config);
           } catch (e) {
             ssgWorker.activeTasks--;
             mainTasks.delete(taskId);
@@ -66,28 +67,27 @@ export function createNodeMain(opts: NormalizedStaticGeneratorOptions, log: Logg
       terminate: async () => {
         mainTasks.clear();
         log.debug(`main: terminated worker ${index}`);
+
         await nodeWorker.terminate();
       },
     };
 
-    nodeWorker.on('message', (rsp: NodeStaticWorkerRenderResult) => {
-      const mainTask = mainTasks.get(rsp.taskId);
+    nodeWorker.on('message', (nodeResult: NodeStaticWorkerRenderResult) => {
+      const mainTask = mainTasks.get(nodeResult.taskId);
       if (mainTask) {
-        mainTasks.delete(rsp.taskId);
+        mainTasks.delete(nodeResult.taskId);
         ssgWorker.activeTasks--;
-        mainTask(rsp);
+        mainTask(nodeResult);
       }
     });
 
     nodeWorker.on('error', (e) => {
-      log.debug(`main: worker ${index} error: ${e}`);
+      console.error(`main: worker ${index} error: ${e}`);
     });
 
     nodeWorker.on('exit', (code) => {
       if (code !== 1) {
-        log.error(`main: worker ${index} exit ${code}`);
-      } else {
-        log.debug(`main: worker ${index} exit ${code}`);
+        console.error(`main: worker ${index} exit ${code}`);
       }
     });
 
@@ -107,7 +107,7 @@ export function createNodeMain(opts: NormalizedStaticGeneratorOptions, log: Logg
     return ssgWorker.render(config);
   };
 
-  const dispose = async () => {
+  const close = async () => {
     await Promise.all(
       ssgWorkers.map(async (ssgWorker) => {
         try {
@@ -124,7 +124,7 @@ export function createNodeMain(opts: NormalizedStaticGeneratorOptions, log: Logg
     init,
     hasAvailableWorker,
     render,
-    dispose,
+    close,
   };
 
   return mainCtx;

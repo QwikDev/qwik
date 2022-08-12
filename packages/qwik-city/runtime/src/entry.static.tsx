@@ -11,4 +11,5 @@ qwikCityGenerate(render, {
   ourDir,
   baseUrl: 'https://qwik.builder.io/',
   log: 'debug',
+  resultsCsvOutFile: 'results.csv',
 });

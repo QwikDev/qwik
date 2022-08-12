@@ -4,6 +4,9 @@ import type {
   StaticWorkerRenderResult,
 } from '../generator/types';
 
+/**
+ * @alpha
+ */
 export interface NodeStaticGeneratorOptions extends StaticGeneratorOptions {}
 
 export interface NodeStaticWorkerRenderConfig extends StaticWorkerRenderConfig {

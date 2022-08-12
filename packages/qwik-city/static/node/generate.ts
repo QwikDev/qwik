@@ -8,28 +8,35 @@ import type {
 import { main, normalizeOptions } from '../generator';
 import { createNodeMain } from './node-main';
 import { isMainThread, parentPort } from 'worker_threads';
-import { workerRender } from '../generator/worker';
+import { workerStaticRender } from '../generator/worker';
 import { createNodeLogger, createNodeSystem } from './node-system';
 
+// @builder.io/qwik-city/static/node
+
+/**
+ * @alpha
+ */
 export async function qwikCityGenerate(render: Render, opts: NodeStaticGeneratorOptions) {
   try {
     const normalizedOpts = normalizeOptions(opts);
     const nodeLog = createNodeLogger(normalizedOpts);
-    const nodeSys = createNodeSystem();
+    const nodeSys = await createNodeSystem(normalizedOpts, nodeLog);
 
     if (isMainThread) {
       const nodeMain = createNodeMain(normalizedOpts, nodeLog);
+      await nodeSys.init();
       await nodeMain.init();
       await main(normalizedOpts, nodeLog, nodeMain, nodeSys);
-      await nodeMain.dispose();
+      await nodeMain.close();
+      await nodeSys.close();
     } else {
       parentPort?.on('message', async (config: NodeStaticWorkerRenderConfig) => {
-        const result = await workerRender(normalizedOpts, nodeLog, nodeSys, render, config);
-        const rsp: NodeStaticWorkerRenderResult = {
+        const result = await workerStaticRender(normalizedOpts, nodeLog, nodeSys, render, config);
+        const workerResult: NodeStaticWorkerRenderResult = {
           taskId: config.taskId,
           ...result,
         };
-        parentPort?.postMessage(rsp);
+        parentPort?.postMessage(workerResult);
       });
     }
   } catch (e) {

@@ -1,7 +1,7 @@
 import type { RequestHandler } from '@builder.io/qwik-city';
 import cityPlan from '@qwik-city-plan';
 
-export const onGet: RequestHandler = ({ response }) => {
+export const onGet: RequestHandler = ({ url, response }) => {
   response.headers.set('Content-Type', 'application/xml');
   const { routes = [] } = cityPlan;
   const pages = routes
@@ -20,11 +20,9 @@ export const onGet: RequestHandler = ({ response }) => {
       .map(
         (page) =>
           `<url>
-			<loc>${website}/${page}</loc>
+			<loc>${url.origin}/${page}</loc>
 		  </url>`
       )
       .join('')}
 	</urlset>`;
 };
-
-const website = 'http://host.docker.internal:3000';

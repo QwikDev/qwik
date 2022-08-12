@@ -1,5 +1,5 @@
 import { useLocation } from '@builder.io/qwik-city';
-import { component$, $, useStyles$, useContext, useClientEffect$ } from '@builder.io/qwik';
+import { component$, $, useStyles$, useContext } from '@builder.io/qwik';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
 import { GithubLogo } from '../svgs/github-logo';
@@ -8,27 +8,12 @@ import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './header.css?inline';
 import { GlobalStore } from '../../context';
+import { Search } from './search';
 
 export const Header = component$(() => {
   useStyles$(styles);
   const globalStore = useContext(GlobalStore);
   const pathname = useLocation().pathname;
-
-  useClientEffect$(() => {
-    // @ts-ignore
-    window.docsearch({
-      container: '#docsearch',
-      appId: 'EGKUXMJIF5',
-      indexName: 'docsearch-legacy',
-      apiKey: 'f33b1a3676a3ee83ed7c133203a7e762',
-      transformItems(items: any[]) {
-        return items.map((item) => ({
-          ...item,
-          url: item.url?.replace('http://host.docker.internal:3000', window.origin),
-        }));
-      },
-    });
-  });
 
   const toggleMenu = $(() => {
     globalStore.headerMenuOpen = !globalStore.headerMenuOpen;
@@ -39,13 +24,14 @@ export const Header = component$(() => {
   });
 
   return (
-    <header>
+    <header class="header-container">
       <div class="header-inner">
         <div class="header-logo">
           <a href="/">
             <span className="sr-only">Qwik Homepage</span>
             <QwikLogo width={110} height={50} />
           </a>
+          <Search />
         </div>
         <button onClick$={toggleMenu} class="mobile-menu" type="button">
           <span class="more-icon">
@@ -56,9 +42,6 @@ export const Header = component$(() => {
           </span>
         </button>
         <ul className="md:grow md:flex md:justify-end md:p-4 menu-toolkit">
-          <li>
-            <div id="docsearch"></div>
-          </li>
           <li>
             <a
               href="/docs/overview"

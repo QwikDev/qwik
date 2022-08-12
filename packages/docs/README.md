@@ -66,7 +66,7 @@ STILL WIP
 
 resource: https://docsearch.algolia.com/
 
-### crawler
+### Crawler
 
 To crawl local server for testing index settings use this command
 
@@ -85,9 +85,9 @@ see guide of [DocSearch-legacy docker command](https://docsearch.algolia.com/doc
 
 More recommend way is use https://crawler.algolia.com/
 
-### searchbar
+### Search UI
 
 there're two options for now
 
-1. @docsearch/js is react based widget render
+1. @docsearch/js is react based render of autocomplete
 2. qwik implementation base on @algolia/autocomplete-js

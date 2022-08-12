@@ -10,13 +10,13 @@
 
 # The HTML-first framework
 
-Qwik offers the fastest possible page load times - regardless of the complexity of your website. Qwik is so fast because it allows fully interactive sites to load with almost no JavaScript and [pickup from where the server left off](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/docs/concepts/resumable/index.mdx)
+Qwik offers the fastest possible page load times - regardless of the complexity of your website. Qwik is so fast because it allows fully interactive sites to load with almost no JavaScript and [pickup from where the server left off](https://qwik.builder.io/docs/concepts/resumable)
 
 As users interact with the site, only the necesary parts of the site load on-demand. This [precision lazy-loading](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/docs/concepts/progressive.mdx) is what makes Qwik so quick.
 
 ## Getting Started
 
-Try out our starter: it
+Try out our starter:
 
 ```bash
 npm init qwik@latest

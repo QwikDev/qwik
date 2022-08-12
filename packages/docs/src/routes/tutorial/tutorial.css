@@ -7,7 +7,7 @@
 
 .tutorial .repl {
   display: grid;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: 50% 50%;
   grid-template-areas:
     'repl-input-panel'
     'repl-output-panel';

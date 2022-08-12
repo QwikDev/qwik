@@ -59,3 +59,35 @@ Then visit [http://localhost:8787/](http://localhost:8787/)
 If you don't already have an account, then [create a Cloudflare account here](https://dash.cloudflare.com/sign-up/pages). Next go to your dashboard and follow the [Cloudflare Pages deployment guide](https://developers.cloudflare.com/pages/framework-guides/deploy-anything/).
 
 Within the projects "Settings" for "Build and deployments", the "Build command" should be `npm run build`, and the "Build output directory" should be set to `dist`.
+
+## Algolia search
+
+STILL WIP
+
+resource: https://docsearch.algolia.com/
+
+### crawler
+
+To crawl local server for testing index settings use this command
+
+```bash
+# create apiKey via https://www.algolia.com/account/api-keys
+touch .env
+# APPLICATION_ID=APPLICATION_ID
+# API_KEY=API_KEY
+
+docker run -it --rm --env-file=.env -e "CONFIG=$(cat ./packages/docs/algolia.json | jq -r tostring)" algolia/docsearch-scraper
+```
+
+see guide of [DocSearch-legacy docker command](https://docsearch.algolia.com/docs/legacy/run-your-own#run-the-crawl-from-the-docker-image)
+
+> In mac machine, docker container can access host's network, workaround is to use `host.docker.internal`
+
+More recommend way is use https://crawler.algolia.com/
+
+### searchbar
+
+there're two options for now
+
+1. @docsearch/js is react based widget render
+2. qwik implementation base on @algolia/autocomplete-js

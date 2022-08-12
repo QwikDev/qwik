@@ -1,4 +1,5 @@
-import { component$, $, useStyles$, useContext } from '@builder.io/qwik';
+import { useLocation } from '@builder.io/qwik-city';
+import { component$, $, useStyles$, useContext, useClientEffect$ } from '@builder.io/qwik';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
 import { GithubLogo } from '../svgs/github-logo';
@@ -11,6 +12,25 @@ import { GlobalStore } from '../../context';
 export const Header = component$(() => {
   useStyles$(styles);
   const globalStore = useContext(GlobalStore);
+  const pathname = useLocation().pathname;
+
+  useClientEffect$(() => {
+    // @ts-ignore
+    window.docsearch({
+      container: '#docsearch',
+      appId: 'EGKUXMJIF5',
+      indexName: 'docsearch-legacy',
+      apiKey: 'f33b1a3676a3ee83ed7c133203a7e762',
+      transformItems(items: any[]) {
+        console.log(items)
+        return items.map(item => ({
+          ...item,
+          url: item.url?.replace('http://host.docker.internal:3000', window.origin)
+        }))
+      }
+    })
+  });
+
 
   const toggleMenu = $(() => {
     globalStore.headerMenuOpen = !globalStore.headerMenuOpen;
@@ -39,12 +59,15 @@ export const Header = component$(() => {
         </button>
         <ul className="md:grow md:flex md:justify-end md:p-4 menu-toolkit">
           <li>
-            <a href="/docs/overview" onClick$={closeMenu}>
+            <div id="docsearch"></div>
+          </li>
+          <li>
+            <a href="/docs/overview"  class={{ active: pathname.startsWith('/docs') }} onClick$={closeMenu}>
               <span>Docs</span>
             </a>
           </li>
           <li>
-            <a href="/qwikcity/overview" onClick$={closeMenu}>
+            <a href="/qwikcity/overview"  class={{ active: pathname.startsWith('/qwikcity') }} onClick$={closeMenu}>
               <span>Qwik City</span>
             </a>
           </li>

@@ -15,6 +15,7 @@ export const Head = component$(() => {
       <title>{head.title ? `${head.title} - Qwik` : `Qwik`}</title>
       <link rel="canonical" href={loc.href} />
       <meta name="viewport" content="width=device-width" />
+      {/* <link rel="preconnect" href="https://YOUR_APP_ID-dsn.algolia.net" crossorigin /> */}
 
       <Manifest />
       <Social loc={loc} head={head} />
@@ -31,6 +32,7 @@ export const Head = component$(() => {
       {head.styles.map((s) => (
         <style {...s.props} dangerouslySetInnerHTML={s.style} />
       ))}
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3" />
     </head>
   );
 });

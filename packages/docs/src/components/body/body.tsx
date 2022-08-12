@@ -17,6 +17,7 @@ export const Body = component$(() => {
       }}
     >
       <Content />
+      <script src="https://cdn.jsdelivr.net/npm/@docsearch/js@3"></script>
     </body>
   );
 });

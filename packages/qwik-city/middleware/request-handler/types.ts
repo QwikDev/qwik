@@ -16,7 +16,7 @@ export type ResponseHandler<T = any> = (
   status: number,
   headers: Headers,
   body: (stream: StreamWriter) => Promise<void>
-) => T;
+) => Promise<T>;
 
 export interface UserResponseContext {
   type: 'endpoint' | 'page';

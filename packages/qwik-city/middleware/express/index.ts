@@ -85,7 +85,7 @@ function fromExpressHttp(req: Request, res: Response) {
       text: getRequestBody,
       url: url.href,
     },
-    response: (status, headers, body) => {
+    response: async (status, headers, body) => {
       res.statusCode = status;
       headers.forEach((value, key) => res.setHeader(key, value));
       body({

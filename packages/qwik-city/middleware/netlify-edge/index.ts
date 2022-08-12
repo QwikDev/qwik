@@ -14,23 +14,33 @@ export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions) {
         url: new URL(request.url),
         request,
         response: (status, headers, body) => {
-          const { readable, writable } = new TransformStream();
-          const writer = writable.getWriter();
+          return new Promise<Response>((resolve) => {
+            let flushedHeaders = false;
+            const { readable, writable } = new TransformStream();
+            const writer = writable.getWriter();
+            const response = new Response(readable, { status, headers });
 
-          body({
-            write: (chunk) => {
-              if (typeof chunk === 'string') {
-                const encoder = new TextEncoder();
-                writer.write(encoder.encode(chunk));
-              } else {
-                writer.write(chunk);
+            body({
+              write: (chunk) => {
+                if (!flushedHeaders) {
+                  flushedHeaders = true;
+                  resolve(response);
+                }
+                if (typeof chunk === 'string') {
+                  const encoder = new TextEncoder();
+                  writer.write(encoder.encode(chunk));
+                } else {
+                  writer.write(chunk);
+                }
+              },
+            }).finally(() => {
+              if (!flushedHeaders) {
+                flushedHeaders = true;
+                resolve(response);
               }
-            },
-          }).finally(() => {
-            writer.close();
+              writer.close();
+            });
           });
-
-          return new Response(readable, { status, headers });
         },
       };
 

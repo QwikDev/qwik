@@ -22,15 +22,14 @@ export const Header = component$(() => {
       indexName: 'docsearch-legacy',
       apiKey: 'f33b1a3676a3ee83ed7c133203a7e762',
       transformItems(items: any[]) {
-        console.log(items)
-        return items.map(item => ({
+        console.log(items);
+        return items.map((item) => ({
           ...item,
-          url: item.url?.replace('http://host.docker.internal:3000', window.origin)
-        }))
-      }
-    })
+          url: item.url?.replace('http://host.docker.internal:3000', window.origin),
+        }));
+      },
+    });
   });
-
 
   const toggleMenu = $(() => {
     globalStore.headerMenuOpen = !globalStore.headerMenuOpen;
@@ -62,12 +61,20 @@ export const Header = component$(() => {
             <div id="docsearch"></div>
           </li>
           <li>
-            <a href="/docs/overview"  class={{ active: pathname.startsWith('/docs') }} onClick$={closeMenu}>
+            <a
+              href="/docs/overview"
+              class={{ active: pathname.startsWith('/docs') }}
+              onClick$={closeMenu}
+            >
               <span>Docs</span>
             </a>
           </li>
           <li>
-            <a href="/qwikcity/overview"  class={{ active: pathname.startsWith('/qwikcity') }} onClick$={closeMenu}>
+            <a
+              href="/qwikcity/overview"
+              class={{ active: pathname.startsWith('/qwikcity') }}
+              onClick$={closeMenu}
+            >
               <span>Qwik City</span>
             </a>
           </li>

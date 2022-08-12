@@ -22,7 +22,6 @@ export const Header = component$(() => {
       indexName: 'docsearch-legacy',
       apiKey: 'f33b1a3676a3ee83ed7c133203a7e762',
       transformItems(items: any[]) {
-        console.log(items);
         return items.map((item) => ({
           ...item,
           url: item.url?.replace('http://host.docker.internal:3000', window.origin),

@@ -1,8 +1,8 @@
-import { component$, useClientEffect$ } from "@builder.io/qwik";
+import { component$, useClientEffect$ } from '@builder.io/qwik';
 
 export const Search = component$(() => {
   // const head  = useDocumentHead()
-  const appId = import.meta.env.VITE_ALGOLIA_APP_ID
+  const appId = import.meta.env.VITE_ALGOLIA_APP_ID;
   useClientEffect$(() => {
     // FIXME: seems not work
     // head.links.push({
@@ -31,7 +31,5 @@ export const Search = component$(() => {
     });
   });
 
-  return (
-    <div id="docsearch"></div>
-  );
+  return <div id="docsearch"></div>;
 });

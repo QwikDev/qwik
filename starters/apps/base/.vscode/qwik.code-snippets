@@ -13,25 +13,17 @@
 			"    $3",
 			"  });",
 			"  ",
-			"  return (",
-			"    <${4}>",
-			"      $5",
-			"    </${4}>",
-			"  );",
+			"  return <${4} on${5:Click}$={(e) => {$6}}>$7</${4}>",
 			"});"
 		]
 	},
-	"Qwik component (basic)": {
+	"Qwik component (simple)": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "component$basic",
-		"description": "Basic Qwik component",
+		"prefix": "component$simple",
+		"description": "Simple Qwik component",
 		"body": [
 			"export const ${1:${TM_FILENAME_BASE/(.*)/${1:/capitalize}/}} = component$(() => {",
-			"  return (",
-			"    <$2>",
-			"      $3",
-			"    </$2>",
-			"  );",
+			"  return <$2>$4</$2>",
 			"});"
 		]
 	},

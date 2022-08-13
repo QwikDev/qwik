@@ -7,8 +7,11 @@ import type {
 } from '../generator/types';
 import fs from 'fs';
 import { dirname, isAbsolute, join } from 'path';
+import { patchGlobalFetch } from '../../middleware/express/node-fetch';
 
 export async function createNodeSystem(opts: NormalizedStaticGeneratorOptions, log: Logger) {
+  patchGlobalFetch();
+
   const getFilePath = (outDir: string, pathname: string) => {
     pathname = pathname.slice(1);
     if (!pathname.endsWith('/')) {
@@ -98,7 +101,7 @@ export async function createNodeSystem(opts: NormalizedStaticGeneratorOptions, l
   const appendResult = async (result: StaticWorkerRenderResult) => {
     const promises: Promise<any>[] = [];
 
-    if (sitemapOutFile) {
+    if (sitemapOutFile && result.ok) {
       sitemapBuffer.push(`<url><loc>${result.url}</loc></url>`);
       if (sitemapBuffer.length > 50) {
         promises.push(fs.promises.appendFile(sitemapOutFile, sitemapBuffer.join('\n') + '\n'));

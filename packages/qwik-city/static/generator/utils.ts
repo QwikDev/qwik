@@ -51,7 +51,41 @@ export function normalizePathname(url: string, baseUrl: URL) {
 
 export function collectAnchorHrefs(b: { c: string }, links: Set<string>, url: URL) {
   while (b.c.length > 8) {
+    const scriptStart = b.c.indexOf('<script');
+    if (scriptStart === 0) {
+      const scriptEnd = b.c.indexOf('</script>');
+      if (scriptEnd === -1) {
+        break;
+      }
+      b.c = b.c.slice(scriptEnd + 9);
+      continue;
+    }
+
+    const templateStart = b.c.indexOf('<template');
+    if (templateStart === 0) {
+      const templateEnd = b.c.indexOf('</template>');
+      if (templateEnd === -1) {
+        break;
+      }
+      b.c = b.c.slice(templateEnd + 11);
+      continue;
+    }
+
     const anchorStart = b.c.indexOf('<a ');
+    if (scriptStart > -1) {
+      if (anchorStart > -1 && scriptStart < anchorStart) {
+        b.c = b.c.slice(scriptStart);
+        continue;
+      }
+    }
+
+    if (templateStart > -1) {
+      if (anchorStart > -1 && templateStart < anchorStart) {
+        b.c = b.c.slice(templateStart);
+        continue;
+      }
+    }
+
     if (anchorStart === -1) {
       b.c = '';
       break;
@@ -102,12 +136,10 @@ export function collectAnchorHrefs(b: { c: string }, links: Set<string>, url: UR
           value = value.split(' ').shift()!;
         }
 
-        if (value !== '') {
+        if (value !== '' && value.charAt(0) !== '{') {
           const hrefUrl = new URL(value, url);
-          if (hrefUrl.origin === url.origin) {
-            if (hrefUrl.pathname !== url.pathname) {
-              links.add(hrefUrl.pathname);
-            }
+          if (hrefUrl.origin === url.origin && hrefUrl.pathname !== url.pathname) {
+            links.add(hrefUrl.pathname);
           }
         }
       }

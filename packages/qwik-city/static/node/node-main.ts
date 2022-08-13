@@ -17,7 +17,7 @@ export function createNodeMain(opts: NormalizedStaticGeneratorOptions, log: Logg
   const ssgWorkers: StaticGeneratorWorker[] = [];
 
   const init = async () => {
-    log.debug(`Static Node: ${relative(process.cwd(), currentFile)}`);
+    log.info(`Qwik City SSG: ${relative(process.cwd(), currentFile)}`);
 
     const maxWorkers = nodeCpus().length - 1;
     if (typeof opts.maxWorkers !== 'number') {
@@ -26,19 +26,20 @@ export function createNodeMain(opts: NormalizedStaticGeneratorOptions, log: Logg
       opts.maxWorkers = Math.max(1, Math.min(opts.maxWorkers, maxWorkers));
     }
 
-    log.debug(`main: max workers ${maxWorkers}, max tasks per worker ${opts.maxTasksPerWorker}`);
-
     for (let i = 0; i < opts.maxWorkers; i++) {
       ssgWorkers.push(createWorker(i));
     }
 
-    log.debug(`main: created ${ssgWorkers.length} worker(s)`);
+    log.debug(
+      `max workers: ${maxWorkers}, max tasks per worker: ${opts.maxTasksPerWorker}, created: ${
+        ssgWorkers.length
+      } worker${ssgWorkers.length === 1 ? '' : 's'}`
+    );
   };
 
   const createWorker = (index: number) => {
     const mainTasks = new Map<number, WorkerMainTask>();
     const nodeWorker = new Worker(currentFile);
-    log.debug(`main: created worker ${index}`);
 
     const ssgWorker: StaticGeneratorWorker = {
       activeTasks: 0,
@@ -66,8 +67,6 @@ export function createNodeMain(opts: NormalizedStaticGeneratorOptions, log: Logg
 
       terminate: async () => {
         mainTasks.clear();
-        log.debug(`main: terminated worker ${index}`);
-
         await nodeWorker.terminate();
       },
     };
@@ -82,12 +81,12 @@ export function createNodeMain(opts: NormalizedStaticGeneratorOptions, log: Logg
     });
 
     nodeWorker.on('error', (e) => {
-      console.error(`main: worker ${index} error: ${e}`);
+      console.error(`worker ${index} error: ${e}`);
     });
 
     nodeWorker.on('exit', (code) => {
       if (code !== 1) {
-        console.error(`main: worker ${index} exit ${code}`);
+        console.error(`worker ${index} exit ${code}`);
       }
     });
 

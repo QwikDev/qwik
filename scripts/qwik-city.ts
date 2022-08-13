@@ -177,7 +177,7 @@ async function buildNetlifyEdge(config: BuildConfig, inputDir: string, outputDir
 async function buildStaticNode(config: BuildConfig, inputDir: string, outputDir: string) {
   const entryPoints = [join(inputDir, 'static', 'node', 'index.ts')];
 
-  const external = ['fs', 'os', 'path', 'ur', '@qwik-city-plan'];
+  const external = ['fs', 'os', 'path', 'url', 'node-fetch', '@qwik-city-plan'];
 
   await build({
     entryPoints,

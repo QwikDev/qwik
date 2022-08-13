@@ -1,6 +1,5 @@
 import type { Render } from '@builder.io/qwik/server';
 import type {
-  Logger,
   NormalizedStaticGeneratorOptions,
   StaticWorkerRenderConfig,
   StaticWorkerRenderResult,
@@ -14,7 +13,6 @@ import { collectAnchorHrefs } from './utils';
 
 export async function workerStaticRender(
   opts: NormalizedStaticGeneratorOptions,
-  log: Logger,
   sys: System,
   render: Render,
   config: StaticWorkerRenderConfig
@@ -28,7 +26,8 @@ export async function workerStaticRender(
     links: [],
     duration: 0,
     status: 0,
-    error: '',
+    ok: false,
+    error: null,
   };
 
   try {
@@ -50,8 +49,19 @@ export async function workerStaticRender(
     const requestCtx: QwikCityRequestContext<void> = {
       url,
       request,
-      response: async (status, headers, body) => {
+      response: async (status, headers, body, err) => {
         result.status = status;
+
+        if (err) {
+          if (err.stack) {
+            result.error = String(err.stack);
+          } else if (err.message) {
+            result.error = String(err.message);
+          } else {
+            result.error = String(err);
+          }
+          return;
+        }
 
         if (status >= 301 && status <= 308) {
           const loc = headers.get('Location');
@@ -69,7 +79,9 @@ export async function workerStaticRender(
         }
 
         const isHtml = (headers.get('Content-Type') || '').includes('text/html');
-        if (!isHtml || status < 200 || status >= 300) {
+        result.ok = isHtml && status >= 200 && status < 300;
+
+        if (!result.ok) {
           // don't bother for non OK status or content that's not html
           return;
         }

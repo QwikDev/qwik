@@ -15,7 +15,8 @@ export interface QwikCityDevRequestContext extends QwikCityRequestContext {
 export type ResponseHandler<T = any> = (
   status: number,
   headers: Headers,
-  body: (stream: StreamWriter) => Promise<void>
+  body: (stream: StreamWriter) => Promise<void>,
+  error?: any
 ) => Promise<T>;
 
 export interface UserResponseContext {

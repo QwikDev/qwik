@@ -5,8 +5,24 @@ import { collectAnchorHrefs } from './utils';
 test('collectAnchorHrefs', () => {
   const tests = [
     {
-      c: `<a href="aaa">111</a><a href="bbb"><a href="ccc">333</a></a>`,
-      expect: ['/aaa', '/bbb', '/ccc'],
+      c: `<template><a href="aaa">111</a></template>`,
+      expect: [],
+    },
+    {
+      c: `<span><a href="aaa">111</a></span><script><a href="bbb">111</a></script><a href="ccc">111</a>`,
+      expect: ['/aaa', '/ccc'],
+    },
+    {
+      c: `<span></span><script><a href="aaa">111</a></script>`,
+      expect: [],
+    },
+    {
+      c: `<script><a href="aaa">111</a>`,
+      expect: [],
+    },
+    {
+      c: `<script></script><a href="aaa">111</a>`,
+      expect: ['/aaa'],
     },
     {
       c: `<a href="aaa">111</a><a href="aaa"><a href="aaa">333</a></a>`,
@@ -51,6 +67,18 @@ test('collectAnchorHrefs', () => {
     {
       c: `<a x href=path z>123</a></span>`,
       expect: ['/path'],
+    },
+    {
+      c: `<a href={asdf}>`,
+      expect: [],
+    },
+    {
+      c: `<a href=>`,
+      expect: [],
+    },
+    {
+      c: `<a href=path   `,
+      expect: [],
     },
     {
       c: '<span><a></a></span>',

@@ -12,8 +12,6 @@ export async function main(
   main: MainContext,
   sys: System
 ) {
-  log.debug(`initMain(), entry urls: ${opts.urls.length}`);
-
   return new Promise<StaticGeneratorResults>((resolve, reject) => {
     try {
       const timer = sys.createTimer();
@@ -41,10 +39,19 @@ export async function main(
             generatorResults.urls = completed.size;
             generatorResults.duration = timer();
 
-            log.info(`rendered: ${generatorResults.rendered}`);
             log.info(
-              `average: ${(generatorResults.duration / generatorResults.rendered).toFixed(1)} ms`
+              `rendered: ${generatorResults.rendered} page${
+                generatorResults.rendered === 1 ? '' : 's'
+              }`
             );
+            log.info(`duration: ${generatorResults.duration.toFixed(1)} ms`);
+            if (generatorResults.rendered > 0) {
+              log.info(
+                `average: ${(generatorResults.duration / generatorResults.rendered).toFixed(
+                  1
+                )} ms per page`
+              );
+            }
             if (generatorResults.errors > 0) {
               log.info(`errors: ${generatorResults.errors}`);
             }
@@ -75,9 +82,6 @@ export async function main(
             filePath,
           });
 
-          active.delete(pathname);
-          completed.add(pathname);
-
           for (const p of result.links) {
             if (!pending.includes(p) && !active.has(p) && !completed.has(p)) {
               pending.push(p);
@@ -87,10 +91,15 @@ export async function main(
           await sys.appendResult(result);
 
           if (result.error) {
+            log.error(pathname, result.error);
             generatorResults.errors++;
-          } else {
+          } else if (result.ok) {
             generatorResults.rendered++;
+            log.debug(pathname);
           }
+
+          active.delete(pathname);
+          completed.add(pathname);
 
           setTimeout(renderNext);
         } catch (e) {

@@ -53,7 +53,8 @@ export interface StaticWorkerRenderResult {
   links: string[];
   duration: number;
   status: number;
-  error: string;
+  ok: boolean;
+  error: string | null;
 }
 
 export interface StaticGeneratorResults {

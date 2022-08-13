@@ -31,7 +31,7 @@ export async function qwikCityGenerate(render: Render, opts: NodeStaticGenerator
       await nodeSys.close();
     } else {
       parentPort?.on('message', async (config: NodeStaticWorkerRenderConfig) => {
-        const result = await workerStaticRender(normalizedOpts, nodeLog, nodeSys, render, config);
+        const result = await workerStaticRender(normalizedOpts, nodeSys, render, config);
         const workerResult: NodeStaticWorkerRenderResult = {
           taskId: config.taskId,
           ...result,

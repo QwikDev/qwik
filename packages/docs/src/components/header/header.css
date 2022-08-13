@@ -83,6 +83,7 @@ header .header-logo {
   padding-left: 1rem;
   display: flex;
   align-items: center;
+  height: var(--header-height);
 }
 
 .full-width header .header-logo {

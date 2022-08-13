@@ -1,24 +1,22 @@
 {
 	"Qwik component": {
 		"scope": "typescriptreact",
-		"prefix": "component$",
-		"description": "Qwik counter component",
+		"prefix": "component$props",
+		"description": "Qwik component w/ props",
 		"body": [
-			"export interface ${1:MyCmp}Props {",
-			"  step: number;",
+			"export interface ${1:${TM_FILENAME_BASE/(.*)/${1:/capitalize}/}}Props {",
+			"  $2",
 			"}",
 			"",
-			"export const ${1:MyCmp} = component$((props: ${1:MyCmp}Props) => {",
+			"export const $1 = component$((props: $1Props) => {",
 			"  const state = useStore({",
-			"    count: 0",
+			"    $3",
 			"  });",
-			"  $0",
+			"  ",
 			"  return (",
-			"    <div>",
-			"      <button onClick$={() => state.count += props.step}>",
-			"        {state.count}",
-			"      </button>",
-			"    </div>",
+			"    <${4}>",
+			"      $5",
+			"    </${4}>",
 			"  );",
 			"});"
 		]
@@ -28,13 +26,11 @@
 		"prefix": "component$basic",
 		"description": "Basic Qwik component",
 		"body": [
-			"export const ${1:MyCmp} = component$(() => {",
+			"export const ${1:${TM_FILENAME_BASE/(.*)/${1:/capitalize}/}} = component$(() => {",
 			"  return (",
-			"    <div>",
-			"      <div>",
-			"        ${1:MyCmp}",
-			"      </div>",
-			"    </div>",
+			"    <$2>",
+			"      $3",
+			"    </$2>",
 			"  );",
 			"});"
 		]

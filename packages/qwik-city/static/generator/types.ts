@@ -31,7 +31,7 @@ export interface Logger {
 export interface StaticGeneratorOptions extends QwikCityRequestOptions {
   ourDir: string;
   baseUrl: string;
-  urls?: string[];
+  urlLoader?: () => Promise<string[]>;
   crawl?: boolean;
   maxWorkers?: number;
   maxTasksPerWorker?: number;

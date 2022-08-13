@@ -15,13 +15,6 @@ export function normalizeOptions(input: StaticGeneratorOptions | undefined) {
   baseUrl.search = '';
   output.baseUrl = baseUrl.href;
 
-  if (!Array.isArray(output.urls)) {
-    output.urls = [output.baseUrl];
-  }
-  output.urls = output.urls
-    .map((url) => normalizePathname(url, baseUrl)!)
-    .filter((url) => typeof url === 'string');
-
   if (typeof output.crawl !== 'boolean') {
     output.crawl = true;
   }

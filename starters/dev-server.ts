@@ -230,7 +230,6 @@ async function ssrApp(
   const opts: RenderToStreamOptions = {
     stream: res,
     manifest,
-    url: new URL(`${req.protocol}://${req.hostname}${req.url}`),
     debug: true,
     base,
   };

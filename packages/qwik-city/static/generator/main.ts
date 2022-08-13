@@ -12,6 +12,15 @@ export async function main(
   main: MainContext,
   sys: System
 ) {
+  const pending: string[] = [];
+  if (typeof opts.urlLoader === 'function') {
+    (await opts.urlLoader()).forEach((url) => {
+      pending.push(new URL(url, opts.baseUrl).pathname);
+    });
+  } else {
+    pending.push(new URL(opts.baseUrl).pathname);
+  }
+
   return new Promise<StaticGeneratorResults>((resolve, reject) => {
     try {
       const timer = sys.createTimer();
@@ -22,7 +31,6 @@ export async function main(
         urls: 0,
       };
 
-      const pending = [...opts.urls];
       const active = new Set<string>();
       const completed = new Set<string>();
       let isResolved = false;

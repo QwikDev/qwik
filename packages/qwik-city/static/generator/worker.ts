@@ -108,7 +108,6 @@ export async function workerStaticRender(
     await requestHandler(requestCtx, render, {
       ...opts,
       ...config,
-      url: url.href,
     });
 
     result.links = Array.from(links);

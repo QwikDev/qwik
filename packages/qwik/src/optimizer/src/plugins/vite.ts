@@ -499,7 +499,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               qwikPlugin.log(`handleSSR()`, 'symbols', manifest);
 
               const renderOpts: RenderToStreamOptions = {
-                url: url.href,
                 debug: true,
                 stream: res,
                 snapshot: !isClientDevOnly,

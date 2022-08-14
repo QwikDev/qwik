@@ -14,7 +14,7 @@ import {
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityVitePluginOptions } from './types';
 import { build } from '../build';
-import { configureDevServer } from './dev-server';
+import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { SERVER_ENDPOINT_FNS, stripServerEndpoints } from '../utils/strip-server-endpoints';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/entries';
@@ -63,9 +63,14 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     },
 
     configureServer(server) {
-      if (ctx) {
-        configureDevServer(ctx, server);
-      }
+      return () => {
+        // qwik city middleware injected after vite internal middlewares
+        // but before @builder.io/qwik/optimizer/vite middlewares
+        if (ctx) {
+          server.middlewares.use(staticDistMiddleware(server));
+          server.middlewares.use(ssrDevMiddleware(ctx, server));
+        }
+      };
     },
 
     buildStart() {

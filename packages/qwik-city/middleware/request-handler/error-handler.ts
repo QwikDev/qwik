@@ -67,6 +67,10 @@ export function errorResponse(requestCtx: QwikCityRequestContext, errorResponse:
 function minimalHtmlResponse(status: number, message?: string, stack?: string) {
   const width = typeof message === 'string' ? '600px' : '300px';
   const color = status >= 500 ? COLOR_500 : COLOR_400;
+  if (status < 500) {
+    stack = '';
+  }
+
   return `<!DOCTYPE html>
 <html data-qwik-city-status="${status}">
 <head>

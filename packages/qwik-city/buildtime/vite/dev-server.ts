@@ -1,7 +1,7 @@
 import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'http';
 import fs from 'fs';
-import { join } from 'path';
+import { extname, join, resolve } from 'path';
 import { createHeaders } from '../../middleware/request-handler/headers';
 import type { BuildContext } from '../types';
 import type { RouteModule } from '../../runtime/src/library/types';
@@ -20,24 +20,13 @@ import {
   redirectResponse,
   RedirectResponse,
 } from '../../middleware/request-handler/redirect-handler';
+import { normalizePath } from '../utils/fs';
 
-export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
-  server.middlewares.use(async (req, res, next) => {
+export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
+  return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
       const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
       const pathname = url.pathname;
-
-      if (isVitePathname(pathname)) {
-        next();
-        return;
-      }
-
-      // see if this path is a static file in one of these directories which vite will serve
-      const isAsset = await isStaticAsset(server, pathname);
-      if (isAsset) {
-        next();
-        return;
-      }
 
       const requestCtx = fromDevServerHttp(url, req, res);
       const result = await buildFromUrlPathname(ctx, pathname);
@@ -109,41 +98,62 @@ export function configureDevServer(ctx: BuildContext, server: ViteDevServer) {
     } catch (e) {
       next(e);
     }
-  });
+  };
 }
 
-function isVitePathname(pathname: string) {
-  return (
-    pathname.startsWith('/@fs/') ||
-    pathname.startsWith('/@id/') ||
-    pathname.startsWith('/@vite/') ||
-    pathname.startsWith('/__vite_ping') ||
-    pathname.startsWith('/__open-in-editor') ||
-    pathname.startsWith('/@qwik-city-plan') ||
-    pathname.startsWith('/src/') ||
-    pathname.startsWith('/node_modules/') ||
-    pathname.startsWith('/favicon.ico')
+/**
+ * Static file server for files written directly to the 'dist' dir.
+ * Only handles the simplest cases.
+ */
+export function staticDistMiddleware({ config }: ViteDevServer) {
+  const distDirs = new Set(
+    ['dist', config.build.outDir].map((d) => normalizePath(resolve(config.root, d)))
   );
-}
 
-async function isStaticAsset(server: ViteDevServer, pathname: string) {
-  const localPath = pathname.slice(1);
-  const publicDirs = ['dist', 'public'].map((dir) => join(server.config.root, dir));
-  publicDirs.push(server.config.build.outDir);
+  const mimes: { [ext: string]: string } = {
+    '.js': 'text/javascript',
+    '.mjs': 'text/javascript',
+    '.json': 'application/json',
+    '.css': 'text/css',
+    '.html': 'text/html',
+    '.svg': 'image/svg+xml',
+    '.png': 'image/png',
+    '.gif': 'image/gif',
+    '.jpeg': 'image/jpeg',
+    '.jpg': 'image/jpeg',
+  };
 
-  for (const publicDir of publicDirs) {
-    try {
-      // check for public path static file asset
-      const filePath = join(publicDir, localPath);
-      const s = await fs.promises.stat(filePath);
-      if (s.isFile()) {
-        return true;
-      }
-    } catch (e) {
-      //
+  return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
+    const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
+    const relPath = url.pathname.slice(1);
+
+    const ext = extname(relPath).toLowerCase();
+    const contentType = mimes[ext];
+
+    if (!contentType) {
+      next();
+      return;
     }
-  }
-  return false;
+
+    for (const distDir of distDirs) {
+      try {
+        const filePath = join(distDir, relPath);
+        const s = await fs.promises.stat(filePath);
+        if (s.isFile()) {
+          res.writeHead(200, {
+            'Content-Type': contentType,
+            'X-Source-Path': filePath,
+          });
+          fs.createReadStream(filePath).pipe(res);
+          return;
+        }
+      } catch (e) {
+        //
+      }
+    }
+
+    next();
+  };
 }
 
 function fromDevServerHttp(url: URL, req: Connect.IncomingMessage, res: ServerResponse) {

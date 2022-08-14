@@ -72,6 +72,17 @@
 			""
 		]
 	},
+	"useResource": {
+		"scope": "javascriptreact,typescriptreact",
+		"prefix": "useResource$",
+		"description": "useResource$() declaration",
+		"body": [
+			"const $1 = useResource$(({ track, previous, cleanup }) => {",
+			"  $0",
+			"});",
+			""
+		]
+	},
 	"useServerMount": {
 		"scope": "javascriptreact,typescriptreact",
 		"prefix": "useServerMount",

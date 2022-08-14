@@ -1,3 +1,1 @@
-export { main } from './main';
-export { workerStaticRender } from './worker';
-export { normalizeOptions } from './utils';
+export { staticGenerate } from './generate';

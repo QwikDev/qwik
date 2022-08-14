@@ -240,6 +240,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           updatedViteConfig.publicDir = false;
           updatedViteConfig.build!.ssr = true;
         }
+        if (typeof viteConfig.build?.emptyOutDir === 'boolean') {
+          updatedViteConfig.build!.emptyOutDir = viteConfig.build!.emptyOutDir;
+        } else {
+          updatedViteConfig.build!.emptyOutDir = false;
+        }
       } else if (opts.target === 'client') {
         if (buildMode === 'production') {
           updatedViteConfig.resolve!.conditions = ['min'];

@@ -87,6 +87,7 @@ vite('command: serve, mode: production', async () => {
   equal(opts.resolveQwikBuild, false);
 
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
+  equal(build.emptyOutDir, undefined);
   equal(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev.tsx')));
   equal(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
   equal(outputOptions.chunkFileNames, 'build/q-[hash].js');
@@ -121,6 +122,7 @@ vite('command: build, mode: development', async () => {
 
   equal(plugin.enforce, 'pre');
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
+  equal(build.emptyOutDir, undefined);
   equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
   equal(outputOptions.assetFileNames, 'build/[name].[ext]');
   equal(outputOptions.chunkFileNames, 'build/[name].js');
@@ -154,6 +156,7 @@ vite('command: build, mode: production', async () => {
 
   equal(plugin.enforce, 'pre');
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
+  equal(build.emptyOutDir, undefined);
   equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
   equal(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
   equal(outputOptions.chunkFileNames, 'build/q-[hash].js');
@@ -188,6 +191,7 @@ vite('command: build, --mode production (client)', async () => {
   equal(opts.buildMode, 'production');
   equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
   equal(build.outDir, normalizePath(resolve(cwd, 'client-dist')));
+  equal(build.emptyOutDir, undefined);
 });
 
 vite('command: build, --ssr entry.express.tsx', async () => {
@@ -213,6 +217,7 @@ vite('command: build, --ssr entry.express.tsx', async () => {
 
   equal(plugin.enforce, 'pre');
   equal(build.outDir, normalizePath(resolve(cwd, 'server')));
+  equal(build.emptyOutDir, false);
   equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'entry.express.tsx'))]);
   equal(outputOptions.assetFileNames, undefined);
   equal(outputOptions.chunkFileNames, undefined);
@@ -236,7 +241,10 @@ vite('command: serve, --mode ssr', async () => {
     },
   };
   const plugin: VitePlugin = qwikVite(initOpts);
-  const c: any = (await plugin.config!({}, { command: 'serve', mode: 'ssr' }))!;
+  const c: any = (await plugin.config!(
+    { build: { emptyOutDir: true } },
+    { command: 'serve', mode: 'ssr' }
+  ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -246,6 +254,7 @@ vite('command: serve, --mode ssr', async () => {
   equal(build.ssr, undefined);
   equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'renderz.tsx'))]);
   equal(c.build.outDir, normalizePath(resolve(cwd, 'ssr-dist')));
+  equal(build.emptyOutDir, true);
   equal(c.publicDir, undefined);
   equal(opts.resolveQwikBuild, false);
 });

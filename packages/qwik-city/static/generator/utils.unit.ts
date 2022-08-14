@@ -1,9 +1,46 @@
 import { test } from 'uvu';
 import { equal } from 'uvu/assert';
-import { collectAnchorHrefs } from './utils';
+import { collectAnchorHrefs, msToString } from './utils';
+
+test('collectAnchorHrefs chunks', () => {
+  const b = { c: '' };
+  const pathnames = new Set<string>();
+  const url = new URL('https://qwik.builder.io/');
+  const chunks = [
+    { chunk: '', expect: [] },
+    { chunk: '<span>', expect: [] },
+    { chunk: '<a href=', expect: [] },
+    { chunk: '"/abc', expect: [] },
+    { chunk: '"', expect: [] },
+    { chunk: '>', expect: ['/abc'] },
+    { chunk: '</span>', expect: ['/abc'] },
+    { chunk: '<a ', expect: ['/abc'] },
+    { chunk: ' href="/efg"', expect: ['/abc'] },
+    { chunk: '>', expect: ['/abc', '/efg'] },
+    { chunk: '<', expect: ['/abc', '/efg'] },
+    { chunk: 'a', expect: ['/abc', '/efg'] },
+    { chunk: ' hr', expect: ['/abc', '/efg'] },
+    { chunk: 'ef', expect: ['/abc', '/efg'] },
+    { chunk: '  ="', expect: ['/abc', '/efg'] },
+    { chunk: '/xy', expect: ['/abc', '/efg'] },
+    { chunk: 'z"   ', expect: ['/abc', '/efg'] },
+    { chunk: '   ', expect: ['/abc', '/efg'] },
+    { chunk: '>', expect: ['/abc', '/efg', '/xyz'] },
+  ];
+
+  chunks.forEach((t) => {
+    b.c += t.chunk;
+    collectAnchorHrefs(b, pathnames, url);
+    equal(Array.from(pathnames).sort(), Array.from(t.expect).sort());
+  });
+});
 
 test('collectAnchorHrefs', () => {
   const tests = [
+    {
+      c: `<header><div class="header-inner"><section class="logo"><a href="/" data-test-link="header-home">Qwik City 🏙</a></section><nav data-test-header-links="true"><a href="/blog" data-test-link="blog-home">Blog</a><a href="/docs" data-test-link="docs-home">Docs</a><a href="/api" data-test-link="api-home">API</a><a href="/products/hat" data-test-link="products-hat">Products</a><a href="/about-us" data-test-link="about-us">About Us</a><a href="/sign-in" data-test-link="sign-in">Sign In</a></nav></div></header>`,
+      expect: ['/', '/about-us', '/api', '/blog', '/docs', '/products/hat', '/sign-in'],
+    },
     {
       c: `<template><a href="aaa">111</a></template>`,
       expect: [],
@@ -86,7 +123,7 @@ test('collectAnchorHrefs', () => {
     },
     {
       c: '<span><a href="  #  "  ></a></span>',
-      expect: [],
+      expect: ['/'],
     },
     {
       c: '<span><a href=""  ></a></span>',
@@ -124,6 +161,35 @@ test('collectAnchorHrefs', () => {
     const url = new URL('https://qwik.builder.io/');
     collectAnchorHrefs(b, pathnames, url);
     equal(Array.from(pathnames).sort(), Array.from(t.expect).sort());
+  });
+});
+
+test('collectAnchorHrefs', () => {
+  const tests = [
+    {
+      ms: 0.05,
+      expect: '0.05 ms',
+    },
+    {
+      ms: 10.5,
+      expect: '10.5 ms',
+    },
+    {
+      ms: 100,
+      expect: '100.0 ms',
+    },
+    {
+      ms: 2000,
+      expect: '2.0 s',
+    },
+    {
+      ms: 120000,
+      expect: '2.0 m',
+    },
+  ];
+
+  tests.forEach((t) => {
+    equal(msToString(t.ms), t.expect);
   });
 });
 

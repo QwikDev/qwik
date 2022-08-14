@@ -2,13 +2,17 @@ import type { StreamWriter } from '@builder.io/qwik';
 import type { QwikCityRequestOptions } from '../../middleware/request-handler/types';
 
 export interface System {
-  init: () => Promise<void>;
-  close: () => Promise<void>;
+  createMainProcess: () => Promise<MainContext>;
+  createWorkerProcess: (
+    onRender: (config: StaticWorkerRenderConfig) => Promise<StaticWorkerRenderResult>
+  ) => void;
+  createLogger: () => Promise<Logger>;
+  getOptions: () => StaticGeneratorOptions;
+  isMainThread: () => boolean;
   ensureDir: (filePath: string) => Promise<void>;
   createWriteStream: (filePath: string) => StaticStreamWriter;
-  getFilePath: (outDir: string, pathname: string) => string;
   createTimer: () => () => number;
-  appendResult: (result: StaticWorkerRenderResult) => Promise<void>;
+  getIndexFilePath: (pathname: string) => string;
 }
 
 export interface StaticStreamWriter extends StreamWriter {
@@ -16,10 +20,9 @@ export interface StaticStreamWriter extends StreamWriter {
 }
 
 export interface MainContext {
-  init: () => Promise<void>;
-  close: () => Promise<void>;
   hasAvailableWorker: () => boolean;
   render: (config: StaticWorkerRenderConfig) => Promise<StaticWorkerRenderResult>;
+  close: () => Promise<void>;
 }
 
 export interface Logger {
@@ -29,7 +32,7 @@ export interface Logger {
 }
 
 export interface StaticGeneratorOptions extends QwikCityRequestOptions {
-  ourDir: string;
+  outDir: string;
   baseUrl: string;
   urlLoader?: () => Promise<string[]>;
   crawl?: boolean;
@@ -37,18 +40,14 @@ export interface StaticGeneratorOptions extends QwikCityRequestOptions {
   maxTasksPerWorker?: number;
   log?: 'debug';
   sitemapOutFile?: string;
-  resultsCsvOutFile?: string;
-  errorsOutFile?: string;
 }
-
-export type NormalizedStaticGeneratorOptions = Required<StaticGeneratorOptions>;
 
 export interface StaticWorkerRenderConfig {
   pathname: string;
-  filePath: string;
 }
 
 export interface StaticWorkerRenderResult {
+  pathname: string;
   url: string;
   links: string[];
   duration: number;

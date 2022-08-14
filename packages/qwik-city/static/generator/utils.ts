@@ -1,42 +1,15 @@
-import { normalizePath } from '../../buildtime/utils/fs';
-import type { NormalizedStaticGeneratorOptions, StaticGeneratorOptions } from './types';
-
-export function normalizeOptions(input: StaticGeneratorOptions | undefined) {
-  const output: NormalizedStaticGeneratorOptions = { ...input } as any;
-
-  output.ourDir = normalizePath(output.ourDir);
-
-  if (output.sitemapOutFile === undefined) {
-    output.sitemapOutFile = 'sitemap.xml';
-  }
-
-  const baseUrl = new URL(output.baseUrl);
-  baseUrl.hash = '';
-  baseUrl.search = '';
-  output.baseUrl = baseUrl.href;
-
-  if (typeof output.crawl !== 'boolean') {
-    output.crawl = true;
-  }
-
-  if (typeof output.maxTasksPerWorker !== 'number') {
-    output.maxTasksPerWorker = MAX_TASKS_PER_WORKER;
-  }
-
-  return output;
-}
-
-const MAX_TASKS_PER_WORKER = 20;
-
-export function normalizePathname(url: string, baseUrl: URL) {
+export function normalizePathname(url: string | undefined | null, baseUrl: URL) {
   if (typeof url === 'string') {
-    try {
-      const u = new URL(url, baseUrl);
-      if (u.origin === baseUrl.origin) {
-        return u.pathname;
+    url = url.trim();
+    if (url !== '') {
+      try {
+        const u = new URL(url, baseUrl);
+        if (u.origin === baseUrl.origin) {
+          return u.pathname;
+        }
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {
-      console.error(e);
     }
   }
   return null;
@@ -62,6 +35,11 @@ export function collectAnchorHrefs(b: { c: string }, links: Set<string>, url: UR
       }
       b.c = b.c.slice(templateEnd + 11);
       continue;
+    }
+
+    const lastChar = b.c.charAt(b.c.length - 1);
+    if (lastChar === '<' || /\s/.test(lastChar)) {
+      break;
     }
 
     const anchorStart = b.c.indexOf('<a ');
@@ -109,7 +87,7 @@ export function collectAnchorHrefs(b: { c: string }, links: Set<string>, url: UR
         } else {
           if (char === '=') {
             hasEqual = true;
-          } else if (char !== ' ' && char !== '\n' && char !== '\t') {
+          } else if (!/\s/.test(char)) {
             break;
           }
         }
@@ -117,25 +95,42 @@ export function collectAnchorHrefs(b: { c: string }, links: Set<string>, url: UR
 
       value = value.trim();
       if (value !== '') {
-        const char = value.charAt(0);
+        const charCode = value.charCodeAt(0);
 
-        if (char === `"`) {
+        if (charCode === DOUBLE_QUOTE) {
           value = value.slice(1);
           value = value.slice(0, value.indexOf(`"`));
-        } else if (char === `'`) {
+        } else if (charCode === SINGLE_QUOTE) {
           value = value.slice(1);
           value = value.slice(0, value.indexOf(`'`));
         } else {
           value = value.split(' ').shift()!;
         }
 
-        if (value !== '' && value.charAt(0) !== '{') {
-          const hrefUrl = new URL(value, url);
-          if (hrefUrl.origin === url.origin && hrefUrl.pathname !== url.pathname) {
-            links.add(hrefUrl.pathname);
+        if (value !== '' && value.charCodeAt(0) !== LEFT_CURLY_BRACKET) {
+          const pathname = normalizePathname(value, url);
+          if (pathname) {
+            links.add(pathname);
           }
         }
       }
     }
   }
 }
+
+export function msToString(ms: number) {
+  if (ms < 1) {
+    return ms.toFixed(2) + ' ms';
+  }
+  if (ms < 1000) {
+    return ms.toFixed(1) + ' ms';
+  }
+  if (ms < 60000) {
+    return (ms / 1000).toFixed(1) + ' s';
+  }
+  return (ms / 60000).toFixed(1) + ' m';
+}
+
+const DOUBLE_QUOTE = 34;
+const SINGLE_QUOTE = 39;
+const LEFT_CURLY_BRACKET = 123;

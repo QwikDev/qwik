@@ -63,7 +63,7 @@ export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) 
           });
         },
       };
-      let optsWithEnv: QwikCityCloudflarePagesOptions = { ...(opts || {}), envData: env };
+      const optsWithEnv: QwikCityCloudflarePagesOptions = { ...(opts || {}), envData: env };
       const handledResponse = await requestHandler<Response>(requestCtx, render, optsWithEnv);
       if (handledResponse) {
         return handledResponse;

@@ -8,7 +8,7 @@ import type { Render } from '@builder.io/qwik/server';
  * @alpha
  */
 export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) {
-  async function onRequest({ request, next, waitUntil }: EventPluginContext) {
+  async function onRequest({ request, env, next, waitUntil }: EventPluginContext) {
     try {
       const url = new URL(request.url);
 
@@ -63,8 +63,8 @@ export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) 
           });
         },
       };
-
-      const handledResponse = await requestHandler<Response>(requestCtx, render, opts);
+      let optsWithEnv: QwikCityCloudflarePagesOptions = {...(opts || {}), envData: env }; 
+      const handledResponse = await requestHandler<Response>(requestCtx, render, optsWithEnv);
       if (handledResponse) {
         return handledResponse;
       }
@@ -97,6 +97,7 @@ export interface QwikCityCloudflarePagesOptions extends QwikCityRequestOptions {
  */
 export interface EventPluginContext {
   request: Request;
+  env: Record<string, any>;
   waitUntil: (promise: Promise<any>) => void;
   next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
 }

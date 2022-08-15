@@ -6,7 +6,7 @@
   box-shadow: 0px 2px 5px #0000003d;
 }
 
-.fixed-header header {
+.fixed-header .header-container {
   position: fixed;
   top: 0;
   width: 100%;
@@ -88,21 +88,4 @@ header .header-logo {
 
 .full-width header .header-logo {
   left: 0;
-}
-
-#docsearch {
-  --docsearch-searchbox-background: rgba(247, 248, 250, 1);
-  --docsearch-searchbox-focus-background: rgba(247, 248, 250, 1);
-  --docsearch-text-color: var(--docsearch-muted-color);
-}
-
-/* to override global.css */
-#docsearch button {
-  background-color: var(--docsearch-searchbox-background);
-}
-
-@media (max-width: 996px) {
-  #docsearch {
-    display: none;
-  }
 }

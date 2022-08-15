@@ -1,5 +1,6 @@
 import { useLocation } from '@builder.io/qwik-city';
 import { component$, $, useStyles$, useContext } from '@builder.io/qwik';
+import { DocSearch } from 'docsearch-qwik';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
 import { GithubLogo } from '../svgs/github-logo';
@@ -8,7 +9,6 @@ import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './header.css?inline';
 import { GlobalStore } from '../../context';
-import { Search } from './search';
 
 export const Header = component$(() => {
   useStyles$(styles);
@@ -31,7 +31,19 @@ export const Header = component$(() => {
             <span className="sr-only">Qwik Homepage</span>
             <QwikLogo width={110} height={50} />
           </a>
-          <Search />
+          {/*  @ts-ignore */}
+          <DocSearch
+            appId={import.meta.env.VITE_ALGOLIA_APP_ID}
+            apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
+            indexName="docsearch-legacy"
+            transformItems$={(items: any[]) => {
+              return items.map((item) => ({
+                ...item,
+                // TODO: remove this after migrate to algolia crawler
+                url: item.url?.replace('http://host.docker.internal:3000', window.origin),
+              }));
+            }}
+          />
         </div>
         <button onClick$={toggleMenu} class="mobile-menu" type="button">
           <span class="more-icon">

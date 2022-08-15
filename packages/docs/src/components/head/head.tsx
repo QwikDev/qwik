@@ -31,7 +31,6 @@ export const Head = component$(() => {
       {head.styles.map((s) => (
         <style {...s.props} dangerouslySetInnerHTML={s.style} />
       ))}
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3" />
     </head>
   );
 });

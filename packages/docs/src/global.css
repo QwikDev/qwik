@@ -1,7 +1,8 @@
 @import 'prism-themes/themes/prism-dracula.css';
+@import '@docsearch/css';
 
-code[class*='language-'],
-pre[class*='language-'] {
+code[class *='language-'],
+pre[class *='language-'] {
   font-family: Menlo, Monaco, 'Courier New', monospace;
   font-weight: normal;
   font-size: 12px;

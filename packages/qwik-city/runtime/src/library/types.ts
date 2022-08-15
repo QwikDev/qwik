@@ -131,7 +131,7 @@ export interface DocumentHeadProps<T = unknown> extends RouteLocation {
  */
 export type DocumentHead<T = unknown> =
   | DocumentHeadValue
-  | ((props: DocumentHeadProps<T>) => DocumentHeadValue);
+  | ((props: DocumentHeadProps<GetEndpointData<T>>) => DocumentHeadValue);
 
 export interface ContentStateInternal {
   contents: NoSerialize<ContentModule[]>;
@@ -310,3 +310,5 @@ export interface QwikCityEnvData {
   route: MutableRouteLocation;
   response: EndpointResponse;
 }
+
+export type GetEndpointData<T> = T extends RequestHandler<infer U> ? U : T;

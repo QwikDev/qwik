@@ -31,8 +31,10 @@ export interface ContentMenu {
     text: string;
 }
 
+// Warning: (ae-forgotten-export) The symbol "GetEndpointData" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export type DocumentHead<T = unknown> = DocumentHeadValue | ((props: DocumentHeadProps<T>) => DocumentHeadValue);
+export type DocumentHead<T = unknown> = DocumentHeadValue | ((props: DocumentHeadProps<GetEndpointData<T>>) => DocumentHeadValue);
 
 // @alpha (undocumented)
 export interface DocumentHeadProps<T = unknown> extends RouteLocation {
@@ -230,8 +232,6 @@ export const useContent: () => ContentState;
 // @alpha (undocumented)
 export const useDocumentHead: () => Required<ResolvedDocumentHead>;
 
-// Warning: (ae-forgotten-export) The symbol "GetEndpointData" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
 export const useEndpoint: <T = unknown>() => ResourceReturn<GetEndpointData<T>>;
 

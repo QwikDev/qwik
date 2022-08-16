@@ -45,7 +45,8 @@ export function scopeStylesheet(css: string, scopeId: string): string {
   return out.join('');
 
   function flush(idx: number) {
-    out.push(css.substring(lastIdx, idx));
+    const substr = css.substring(lastIdx, idx).replace(/:global\((.*)\)/, '$1');
+    out.push(substr);
     lastIdx = idx;
   }
 }
@@ -64,6 +65,7 @@ const enum MODE {
   selector, // .selector {}
   media, // .selector {}
   body, // .selector {body}
+  global, // :global(selector)
   stringSingle, // 'text'
   stringDouble, // 'text'
   commentMultiline, // /* ... */
@@ -78,9 +80,12 @@ const enum CHAR {
   FORWARD_SLASH = 47, // `/`.charCodeAt(0);
   DOUBLE_QUOTE = 34, // `"`.charCodeAt(0);
   SINGLE_QUOTE = 39, // `'`.charCodeAt(0);
+  OPEN_PARENTHESIS = 40, // `(`.charCodeAt(0);
+  CLOSE_PARENTHESIS = 41, // `)`.charCodeAt(0);
   STAR = 42, // `*`.charCodeAt(0);
   DASH = 45, // `-`.charCodeAt(0);
   DOT = 46, // `.`.charCodeAt(0);
+  COLON = 58, // `:`.charCodeAt(0);
   AT = 64, // `@`.charCodeAt(0);
   A = 65, // `A`.charCodeAt(0);
   Z = 90, // `Z`.charCodeAt(0);
@@ -89,6 +94,7 @@ const enum CHAR {
   BACKSLASH = 92, // `\\`.charCodeAt(0);
   UNDERSCORE = 95, // `_`.charCodeAt(0);
   a = 97, // `a`.charCodeAt(0);
+  g = 103, // `g`.charCodeAt(0)
   z = 122, // `z`.charCodeAt(0);
   OPEN_BRACE = 123, // `{`.charCodeAt(0);
   CLOSE_BRACE = 125, // `}`.charCodeAt(0);
@@ -109,6 +115,7 @@ const STATE_MACHINE: StateArc[][] = [
     [CHAR.ANY, CHAR.AT, MODE.media],
     [CHAR.ANY, CHAR.OPEN_BRACE, MODE.body],
     [CHAR.FORWARD_SLASH, CHAR.STAR, MODE.commentMultiline],
+    [CHAR.COLON, CHAR.g, MODE.global],
   ] /*selector*/,
   [
     [CHAR.ANY, CHAR.CLOSE_BRACE, MODE.EXIT],
@@ -122,6 +129,7 @@ const STATE_MACHINE: StateArc[][] = [
     [CHAR.ANY, CHAR.DOUBLE_QUOTE, MODE.stringDouble],
     [CHAR.FORWARD_SLASH, CHAR.STAR, MODE.commentMultiline],
   ] /*body*/,
+  [[CHAR.ANY, CHAR.CLOSE_PARENTHESIS, MODE.EXIT]] /* :global */,
   [[CHAR.ANY, CHAR.SINGLE_QUOTE, MODE.EXIT]] /*stringSingle*/,
   [[CHAR.ANY, CHAR.DOUBLE_QUOTE, MODE.EXIT]] /*stringDouble*/,
   [[CHAR.STAR, CHAR.FORWARD_SLASH, MODE.EXIT]] /*commentMultiline*/,

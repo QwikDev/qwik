@@ -17,6 +17,9 @@ export function scopeStylesheet(css: string, scopeId: string): string {
     const arcs = STATE_MACHINE[mode];
     for (let i = 0; i < arcs.length; i++) {
       const [expectLastCh, expectCh, newMode] = arcs[i];
+      if (expectCh === ch && mode === MODE.global) {
+        flush(idx, (x) => x.replace(/:global\((.*)\)/, '$1'));
+      }
       if (
         expectLastCh === lastCh ||
         expectLastCh === CHAR.ANY ||
@@ -44,8 +47,12 @@ export function scopeStylesheet(css: string, scopeId: string): string {
   flush(idx);
   return out.join('');
 
-  function flush(idx: number) {
-    const substr = css.substring(lastIdx, idx).replace(/:global\((.*)\)/, '$1');
+  function flush(idx: number, trans?: (i: string) => string) {
+    let substr = css.substring(lastIdx, idx);
+    if (trans) {
+      console.log(substr);
+      substr = trans(substr);
+    }
     out.push(substr);
     lastIdx = idx;
   }

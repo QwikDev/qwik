@@ -22,8 +22,8 @@ Try out our starter:
 npm init qwik@latest
 ```
 
-- Understand the difference between [resumable and replayable](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/docs/concepts/resumable.mdx) applications.
-- Learn about Qwik's high level [mental model](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/docs/think-qwik.mdx).
+- Understand the difference between [resumable and replayable](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/docs/concepts/resumable/index.mdx) applications.
+- Learn about Qwik's high level [mental model](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/docs/think-qwik/index.mdx).
 
 ## Docs
 

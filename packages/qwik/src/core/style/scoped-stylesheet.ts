@@ -50,7 +50,6 @@ export function scopeStylesheet(css: string, scopeId: string): string {
   function flush(idx: number, trans?: (i: string) => string) {
     let substr = css.substring(lastIdx, idx);
     if (trans) {
-      console.log(substr);
       substr = trans(substr);
     }
     out.push(substr);

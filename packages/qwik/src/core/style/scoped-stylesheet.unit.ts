@@ -50,6 +50,7 @@ scopedStyles('nested scoping', () => {
 });
 
 scopedStyles('nested with global', () => {
+  equal(scopeStylesheet('a > :global(b) > .c {}', 'ABC'), 'a.⭐️ABC > b > .c.⭐️ABC {}');
   equal(scopeStylesheet('a > .b > :global(c) {}', 'ABC'), 'a.⭐️ABC > .b.⭐️ABC > c {}');
 });
 

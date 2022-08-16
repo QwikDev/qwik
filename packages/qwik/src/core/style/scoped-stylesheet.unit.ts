@@ -8,7 +8,6 @@ scopedStyles('element scoping', () => {
   equal(scopeStylesheet('a{x}', 'ABC'), 'a.⭐️ABC{x}');
   equal(scopeStylesheet('aa{x}', 'ABC'), 'aa.⭐️ABC{x}');
   equal(scopeStylesheet('a-2{x}', 'ABC'), 'a-2.⭐️ABC{x}');
-  equal(scopeStylesheet('a-2{x}', 'ABC'), 'a-2.⭐️ABC{x}');
   equal(scopeStylesheet('a_a{x}', 'ABC'), 'a_a.⭐️ABC{x}');
   equal(scopeStylesheet('a {x}', 'ABC'), 'a.⭐️ABC {x}');
   equal(scopeStylesheet('body {x}', 'ABC'), 'body.⭐️ABC {x}');

@@ -14,7 +14,7 @@ export interface BuildContext {
 }
 
 export interface FrontmatterAttrs {
-  [attrName: string]: string;
+  [attrName: string]: any;
 }
 
 export interface Diagnostic {

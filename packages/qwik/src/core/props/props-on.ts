@@ -1,8 +1,7 @@
-import { parseQRL } from '../import/qrl';
+import { inlinedQrl, parseQRL } from '../import/qrl';
 import { isQrl, isSameQRL, QRLInternal } from '../import/qrl-class';
 import type { QContext } from './props';
 import { isArray } from '../util/types';
-import { $ } from '../import/qrl.public';
 import { QScopedStyle } from '../util/markers';
 
 const ON_PROP_REGEX = /^(window:|document:|)on([A-Z]|-.).*\$$/;
@@ -19,7 +18,9 @@ export const addQRLListener = (
   if (!input) {
     return undefined;
   }
-  const value = isArray(input) ? input.map(ensureQrl) : ensureQrl(input);
+  const value = isArray(input)
+    ? input.map((i, index) => ensureQrl(i, `${index}`))
+    : ensureQrl(input, '_');
 
   if (!ctx.$listeners$) {
     ctx.$listeners$ = new Map();
@@ -46,8 +47,9 @@ export const addQRLListener = (
   return existingListeners;
 };
 
-const ensureQrl = (value: any) => {
-  return isQrl(value) ? value : ($(value) as QRLInternal);
+const ensureQrl = (value: any, symbol: string) => {
+  // return isQrl(value) ? value : ($(value) as QRLInternal);
+  return isQrl(value) ? value : (inlinedQrl(value, symbol) as QRLInternal);
 };
 
 export const getDomListeners = (el: Element): Map<string, QRLInternal[]> => {

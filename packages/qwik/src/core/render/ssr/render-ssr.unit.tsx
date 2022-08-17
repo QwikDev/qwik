@@ -91,19 +91,19 @@ renderSSRSuite('single simple children', async () => {
 renderSSRSuite('events', async () => {
   await testSSR(
     <div onClick$={() => console.warn('hol')}>hola</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div q:id="0" on:click="/runtimeQRL#_">hola</div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr"><div q:id="0" on:click="/inlinedQRL#_">hola</div></html>'
   );
   await testSSR(
     <div document:onClick$={() => console.warn('hol')}>hola</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div q:id="0" on-document:click="/runtimeQRL#_">hola</div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr"><div q:id="0" on-document:click="/inlinedQRL#_">hola</div></html>'
   );
   await testSSR(
     <div window:onClick$={() => console.warn('hol')}>hola</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div q:id="0" on-window:click="/runtimeQRL#_">hola</div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr"><div q:id="0" on-window:click="/inlinedQRL#_">hola</div></html>'
   );
   await testSSR(
     <input onInput$={() => console.warn('hol')} />,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><input q:id="0" on:input="/runtimeQRL#_"></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr"><input q:id="0" on:input="/inlinedQRL#_"></html>'
   );
 });
 
@@ -339,8 +339,8 @@ renderSSRSuite('using complex component', async () => {
     <MyCmpComplex></MyCmpComplex>,
     `<html q:container="paused" q:version="dev" q:render="ssr">
       <!--qv q:id=0 q:key=sX:-->
-      <div q:id="1" on:click="/runtimeQRL#_">
-        <button q:id="2" on:click="/runtimeQRL#_">Click</button>
+      <div q:id="1" on:click="/inlinedQRL#_">
+        <button q:id="2" on:click="/inlinedQRL#_">Click</button>
         <!--qv q:sname q:sref=0 q:key--><!--/qv-->
       </div>
       <!--/qv-->
@@ -354,8 +354,8 @@ renderSSRSuite('using complex component with slot', async () => {
     `
     <html q:container="paused" q:version="dev" q:render="ssr">
       <!--qv q:id=0 q:key=sX:-->
-      <div q:id="1" on:click="/runtimeQRL#_">
-        <button q:id="2" on:click="/runtimeQRL#_">Click</button>
+      <div q:id="1" on:click="/inlinedQRL#_">
+        <button q:id="2" on:click="/inlinedQRL#_">Click</button>
         <!--qv q:sname q:sref=0 q:key-->
         Hola
         <!--/qv-->
@@ -508,7 +508,7 @@ renderSSRSuite('component useOn()', async () => {
     <Events />,
     `<html q:container="paused" q:version="dev" q:render="ssr">
       <!--qv q:id=0 q:key=sX:-->
-      <div q:id="1" on:click="/runtimeQRL#_\n/runtimeQRL#_" on-window:click="/runtimeQRL#_" on-document:click="/runtimeQRL#_"></div>
+      <div q:id="1" on:click="/inlinedQRL#_\n/runtimeQRL#_" on-window:click="/runtimeQRL#_" on-document:click="/runtimeQRL#_"></div>
       <!--/qv-->
     </html>`
   );

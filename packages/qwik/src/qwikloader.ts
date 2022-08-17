@@ -38,19 +38,34 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
     );
   };
 
+  const getHandler = async (element: Element, url: URL, prop: string, symbolName: string) => {
+    // if qrl is created by client side
+    if (url.pathname === '/inlinedQRL') {
+      // Question: better to get from __qrls__ ? is that mean to include inlineQRLs ?
+      const qrl = (element as any).__ctx__?.$listeners$
+        ?.get('on:click')
+        ?.find((i: any) => i.$chunk$ === url.pathname && i.$symbol$ === symbolName);
+      if (qrl) {
+        return qrl;
+      }
+    }
+    const module =
+      (window as any)[url.pathname] || findModule(await import(url.href.split('#')[0]));
+    return module[symbolName] || error(url + ' does not export ' + symbolName);
+  };
+
   const dispatch = async (element: Element, onPrefix: string, eventName: string, ev: Event) => {
     if (element.hasAttribute('preventdefault:' + eventName)) {
       ev.preventDefault();
     }
-    const attrValue = element.getAttribute('on' + onPrefix + ':' + eventName);
+    const prop = 'on' + onPrefix + ':' + eventName;
+    const attrValue = element.getAttribute(prop);
     if (attrValue) {
       for (const qrl of attrValue.split('\n')) {
         const url = qrlResolver(element, qrl);
         if (url) {
           const symbolName = getSymbolName(url);
-          const module =
-            (window as any)[url.pathname] || findModule(await import(url.href.split('#')[0]));
-          const handler = module[symbolName] || error(url + ' does not export ' + symbolName);
+          const handler = await getHandler(element, url, prop, symbolName);
           const previousCtx = (doc as any)[Q_CONTEXT];
           if (element.isConnected) {
             try {

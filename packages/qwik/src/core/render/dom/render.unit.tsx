@@ -1,7 +1,7 @@
 import { ElementFixture, trigger } from '../../../testing/element-fixture';
 import { expectDOM } from '../../../testing/expect-dom.unit';
 import { component$ } from '../../component/component.public';
-import { inlinedQrl, runtimeQrl } from '../../import/qrl';
+import { inlinedQrl } from '../../import/qrl';
 import { pauseContainer } from '../../object/store';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
@@ -66,16 +66,16 @@ renderSuite('should serialize events correctly', async () => {
     `
       <div
         q:id="0"
-        on:mousedown="/runtimeQRL#_"
-        on:keyup="/runtimeQRL#_"
-        on:dblclick="/runtimeQRL#_"
-        on:-dbl-click="/runtimeQRL#_"
-        on:qvisible="/runtimeQRL#_"
-        on-document:load="/runtimeQRL#_"
-        on-document:thing="/runtimeQRL#_"
-        on-document:-thing="/runtimeQRL#_"
-        on-window:scroll="/runtimeQRL#_"
-        on-window:-scroll="/runtimeQRL#_"
+        on:mousedown="/inlinedQRL#_"
+        on:keyup="/inlinedQRL#_"
+        on:dblclick="/inlinedQRL#_"
+        on:-dbl-click="/inlinedQRL#_"
+        on:qvisible="/inlinedQRL#_"
+        on-document:load="/inlinedQRL#_"
+        on-document:thing="/inlinedQRL#_"
+        on-document:-thing="/inlinedQRL#_"
+        on-window:scroll="/inlinedQRL#_"
+        on-window:-scroll="/inlinedQRL#_"
     ></div>
     `
   );
@@ -203,7 +203,7 @@ renderSuite('should render a div then a component', async () => {
     `
     <div aria-hidden="false">
       <div class="normal">Normal div</div>
-      <button q:id="1" on:click="/runtimeQRL#_">toggle</button>
+      <button q:id="1" on:click="/inlinedQRL#_">toggle</button>
     </div>`
   );
   await trigger(fixture.host, 'button', 'click');
@@ -214,13 +214,7 @@ renderSuite('should render a div then a component', async () => {
       <!--qv q:key=sX: q:id=2-->
       <div><div>this is ToggleChild</div></div>
       <!--/qv-->
-      <button
-        q:id="1"
-        on:click="/runtimeQRL#_
-/runtimeQRL#_"
-      >
-        toggle
-      </button>
+      <button q:id="1" on:click="/inlinedQRL#_" >toggle</button>
     </div>`
   );
 });
@@ -231,20 +225,12 @@ renderSuite('should process clicks', async () => {
   await render(fixture.host, <Counter step={5} />);
   await expectRendered(
     fixture,
-    '<button q:id="1" class="decrement" on:click="/runtimeQRL#_[0 1]">-</button>'
+    '<button q:id="1" class="decrement" on:click="/inlinedQRL#_[0 1]">-</button>'
   );
   await trigger(fixture.host, 'button.increment', 'click');
   await expectRendered(
     fixture,
-    `
-      <button
-        q:id="1"
-        class="decrement"
-        on:click="/runtimeQRL#_[0 1]
-/runtimeQRL#_[0 2]"
-    >
-       -
-      </button>`
+    `<button q:id="1" class="decrement" on:click="/inlinedQRL#_[0 2]" >-</button>`
   );
 });
 
@@ -631,11 +617,11 @@ export const Counter = component$((props: { step?: number }) => {
   const step = Number(props.step || 1);
   return (
     <>
-      <button class="decrement" onClick$={runtimeQrl(Counter_add, [state, { value: -step }])}>
+      <button class="decrement" onClick$={inlinedQrl(Counter_add, '_', [state, { value: -step }])}>
         -
       </button>
       <span>{state.count}</span>
-      <button class="increment" onClick$={runtimeQrl(Counter_add, [state, { value: step }])}>
+      <button class="increment" onClick$={inlinedQrl(Counter_add, '_', [state, { value: step }])}>
         +
       </button>
     </>

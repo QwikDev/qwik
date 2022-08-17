@@ -18,6 +18,7 @@ export function rehypePage(ctx: BuildContext): Transformer {
     const sourcePath = normalizePath(vfile.path);
 
     updateContentLinks(mdast, ctx.opts, sourcePath);
+    exportFrontmatter(ctx, mdast, sourcePath);
     exportContentHead(ctx, mdast, sourcePath);
     exportContentHeadings(mdast);
   };
@@ -43,6 +44,11 @@ function updateContentLinks(mdast: Root, opts: NormalizedPluginOptions, sourcePa
       }
     }
   });
+}
+
+function exportFrontmatter(ctx: BuildContext, mdast: Root, sourcePath: string) {
+  const attrs = ctx.frontmatter.get(sourcePath);
+  createExport(mdast, 'frontmatter', attrs);
 }
 
 function exportContentHead(ctx: BuildContext, mdast: Root, sourcePath: string) {

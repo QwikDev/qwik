@@ -28,10 +28,7 @@ export function scopeStylesheet(css: string, scopeId: string): string {
         if (
           expectCh === ch ||
           expectCh === CHAR.ANY ||
-          (expectCh === CHAR.NOT_IDENT_AND_NOT_DOT &&
-            ch !== CHAR.COLON &&
-            !isIdent(ch) &&
-            ch !== CHAR.DOT)
+          (expectCh === CHAR.NOT_IDENT_AND_NOT_DOT && !isIdent(ch) && ch !== CHAR.DOT)
         ) {
           if (newMode === MODE.EXIT) {
             mode = stack.pop() || MODE.selector;
@@ -74,6 +71,7 @@ const enum MODE {
   selector, // .selector {}
   media, // .selector {}
   body, // .selector {body}
+  pseudo, // ::pseudo or :pseudo
   global, // :global(selector)
   stringSingle, // 'text'
   stringDouble, // 'text'
@@ -124,6 +122,7 @@ const STATE_MACHINE: StateArc[][] = [
     [CHAR.ANY, CHAR.AT, MODE.media],
     [CHAR.ANY, CHAR.OPEN_BRACE, MODE.body],
     [CHAR.FORWARD_SLASH, CHAR.STAR, MODE.commentMultiline],
+    [CHAR.COLON, CHAR.ANY, MODE.pseudo],
     [CHAR.COLON, CHAR.g, MODE.global],
   ] /*selector*/,
   [
@@ -138,6 +137,7 @@ const STATE_MACHINE: StateArc[][] = [
     [CHAR.ANY, CHAR.DOUBLE_QUOTE, MODE.stringDouble],
     [CHAR.FORWARD_SLASH, CHAR.STAR, MODE.commentMultiline],
   ] /*body*/,
+  [[CHAR.ANY, CHAR.SPACE, MODE.EXIT]] /* :pseudo */,
   [[CHAR.ANY, CHAR.CLOSE_PARENTHESIS, MODE.EXIT]] /* :global */,
   [[CHAR.ANY, CHAR.SINGLE_QUOTE, MODE.EXIT]] /*stringSingle*/,
   [[CHAR.ANY, CHAR.DOUBLE_QUOTE, MODE.EXIT]] /*stringDouble*/,

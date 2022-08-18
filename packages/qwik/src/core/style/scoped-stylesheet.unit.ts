@@ -40,8 +40,8 @@ scopedStyles('class scoping', () => {
 });
 
 scopedStyles('class scoping with pseudo selectors and elements', () => {
-  equal(scopeStylesheet('.class:hover {}', 'ABC'), '.class:hover.⭐️ABC {}');
-  equal(scopeStylesheet('.class::after {}', 'ABC'), '.class::after.⭐️ABC {}');
+  equal(scopeStylesheet('.class:hover {}', 'ABC'), '.class.⭐️ABC:hover {}');
+  equal(scopeStylesheet('.class::after {}', 'ABC'), '.class.⭐️ABC::after {}');
 });
 
 scopedStyles('class with global', () => {

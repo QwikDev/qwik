@@ -299,7 +299,7 @@ export function DynamicBackground() {
   const [blue, setBlue] = useState(0);
   return (
     <div style={
-      'background': `rgb({red}, {green}, {blue})`
+      'background': `rgb(${red}, ${green}, ${blue})`
     }>
       <button onClick={() => {
         setRed(Math.random() * 256);

@@ -9,10 +9,10 @@ export function routeSortCompare(a: BuildRoute, b: BuildRoute) {
 
     // /x < /x/y, but /[...x]/y < /[...x]
     if (!sa) {
-      return a.id.includes('[...') ? 1 : -1;
+      return a.pathname.includes('[...') ? 1 : -1;
     }
     if (!sb) {
-      return b.id.includes('[...') ? -1 : 1;
+      return b.pathname.includes('[...') ? -1 : 1;
     }
 
     const maxParts = Math.max(sa.length, sb.length);

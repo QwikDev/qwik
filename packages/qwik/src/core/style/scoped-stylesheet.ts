@@ -28,7 +28,10 @@ export function scopeStylesheet(css: string, scopeId: string): string {
         if (
           expectCh === ch ||
           expectCh === CHAR.ANY ||
-          (expectCh === CHAR.NOT_IDENT_AND_NOT_DOT && !isIdent(ch) && ch !== CHAR.DOT)
+          (expectCh === CHAR.NOT_IDENT_AND_NOT_DOT &&
+            ch !== CHAR.COLON &&
+            !isIdent(ch) &&
+            ch !== CHAR.DOT)
         ) {
           if (newMode === MODE.EXIT) {
             mode = stack.pop() || MODE.selector;

@@ -23,7 +23,6 @@ scopedStyles('element with global', () => {
   equal(scopeStylesheet(':global(a) {x}', 'ABC'), 'a {x}');
   equal(scopeStylesheet(':global(body) {x}', 'ABC'), 'body {x}');
   equal(scopeStylesheet(':global(body) {body{x}}', 'ABC'), 'body {body{x}}');
-  equal(scopeStylesheet('a:g-like-pseudo{x}', 'ABC'), 'a.⭐️ABC:g-like-pseudo{x}');
 });
 
 scopedStyles('ignore string content', () => {
@@ -39,6 +38,12 @@ scopedStyles('class scoping', () => {
   equal(scopeStylesheet('.a.b.c {}', 'ABC'), '.a.b.c.⭐️ABC {}');
   equal(scopeStylesheet('.div{}', 'ABC'), '.div.⭐️ABC{}');
 });
+
+scopedStyles('class scoping with pseudo selectors and elements', () => {
+  equal(scopeStylesheet('.class:hover {}', 'ABC'), '.class:hover.⭐️ABC {}');
+  equal(scopeStylesheet('.class::after {}', 'ABC'), '.class::after.⭐️ABC {}');
+});
+
 scopedStyles('class with global', () => {
   equal(scopeStylesheet(':global(.class) {}', 'ABC'), '.class {}');
   equal(scopeStylesheet(':global(.a.b.c) {}', 'ABC'), '.a.b.c {}');

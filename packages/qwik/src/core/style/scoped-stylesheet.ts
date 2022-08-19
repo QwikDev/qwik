@@ -14,12 +14,10 @@ export function scopeStylesheet(css: string, scopeId: string): string {
       idx++;
       ch = CHAR.A; // Pretend it's a letter
     }
+
     const arcs = STATE_MACHINE[mode];
     for (let i = 0; i < arcs.length; i++) {
       const [expectLastCh, expectCh, newMode] = arcs[i];
-      if (expectCh === ch && mode === MODE.global) {
-        flush(idx, (x) => x.replace(/:global\((.*)\)/, '$1'));
-      }
       if (
         expectLastCh === lastCh ||
         expectLastCh === CHAR.ANY ||
@@ -31,10 +29,15 @@ export function scopeStylesheet(css: string, scopeId: string): string {
           (expectCh === CHAR.NOT_IDENT_AND_NOT_DOT && !isIdent(ch) && ch !== CHAR.DOT)
         ) {
           if (newMode === MODE.EXIT) {
+            if (mode === MODE.global) {
+              flush(idx, (x) => x.replace(/:global\((.*)\)/, '$1'));
+            }
             mode = stack.pop() || MODE.selector;
           } else if (mode === newMode) {
             flush(idx - 1);
-            out.push('.', ComponentStylesPrefixContent, scopeId);
+            if (mode === MODE.selector) {
+              out.push('.', ComponentStylesPrefixContent, scopeId);
+            }
           } else {
             stack.push(mode);
             mode = newMode;
@@ -69,7 +72,7 @@ function isIdent(ch: number): boolean {
 
 const enum MODE {
   selector, // .selector {}
-  media, // .selector {}
+  media, // @media {}
   body, // .selector {body}
   pseudo, // ::pseudo or :pseudo
   global, // :global(selector)
@@ -101,7 +104,9 @@ const enum CHAR {
   BACKSLASH = 92, // `\\`.charCodeAt(0);
   UNDERSCORE = 95, // `_`.charCodeAt(0);
   a = 97, // `a`.charCodeAt(0);
+  f = 102, // `f`.charCodeAt(0)
   g = 103, // `g`.charCodeAt(0)
+  k = 107, // `k`.charCodeAt(0)
   z = 122, // `z`.charCodeAt(0);
   OPEN_BRACE = 123, // `{`.charCodeAt(0);
   CLOSE_BRACE = 125, // `}`.charCodeAt(0);
@@ -119,7 +124,9 @@ type StateArc = [
 const STATE_MACHINE: StateArc[][] = [
   [
     [CHAR.IDENT, CHAR.NOT_IDENT_AND_NOT_DOT, MODE.selector],
-    [CHAR.ANY, CHAR.AT, MODE.media],
+    [CHAR.AT, CHAR.ANY, MODE.media],
+    [CHAR.AT, CHAR.k, MODE.body], // @keyframes
+    [CHAR.AT, CHAR.f, MODE.body], // @font-face
     [CHAR.ANY, CHAR.OPEN_BRACE, MODE.body],
     [CHAR.FORWARD_SLASH, CHAR.STAR, MODE.commentMultiline],
     [CHAR.COLON, CHAR.ANY, MODE.pseudo],

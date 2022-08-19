@@ -67,6 +67,24 @@ scopedStyles('media', () => {
   );
 });
 
+scopedStyles('keyframes', () => {
+  equal(scopeStylesheet('@keyframes slide {0%{}100%{}}', 'ABC'), '@keyframes slide {0%{}100%{}}');
+  equal(
+    scopeStylesheet('@keyframes slide {0%{}100%{}} .a{}', 'ABC'),
+    '@keyframes slide {0%{}100%{}} .a.⭐️ABC{}'
+  );
+  // TODO: scoped keyframe's name need to be hashed
+  //       and replace the place where original name being referenced: `animation-name: xxx`
+  // equal(
+  //   scopeStylesheet('@keyframes slide {0%{}100%{}} .a{ani:slide}', 'ABC'),
+  //   '@keyframes slide-ABC {0%{}100%{}} .a.⭐️ABC{ani:slide-ABC}'
+  // );
+  equal(
+    scopeStylesheet('@keyframes slide {/*comment{}*/ 0% {} 100% {}}', 'ABC'),
+    '@keyframes slide {/*comment{}*/ 0% {} 100% {}}'
+  );
+});
+
 scopedStyles('comments', () => {
   equal(
     scopeStylesheet('@media(max-width: 999px){/*body{}*/}', 'ABC'),

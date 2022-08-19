@@ -1,11 +1,17 @@
-import type { StaticGeneratorOptions, StaticGeneratorResults, System } from './types';
-import { msToString, normalizePathname } from './utils';
+import type { StaticGeneratorOptions, StaticGeneratorResults, StaticRoute, System } from './types';
+import { getPathnameForDynamicRoute, msToString, normalizePathname } from './utils';
+import type { PageModule, RouteParams } from '../../runtime/src/library/types';
+import cityPlan from '@qwik-city-plan';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();
+  validateOptions(opts);
+
   const main = await sys.createMainProcess();
   const log = await sys.createLogger();
-  const pending = await getInitialPathnames(opts);
+  const queue: StaticRoute[] = [];
+  const active = new Set<string>();
+  const routes = cityPlan.routes || [];
 
   return new Promise<StaticGeneratorResults>((resolve, reject) => {
     try {
@@ -14,112 +20,153 @@ export async function mainThread(sys: System) {
         duration: 0,
         rendered: 0,
         errors: 0,
-        urls: 0,
       };
 
-      const active = new Set<string>();
-      const completed = new Set<string>();
-      let isResolved = false;
+      let isCompleted = false;
+      let isRoutesLoaded = false;
 
       const next = () => {
-        if (!isResolved) {
-          while (main.hasAvailableWorker() && pending.length > 0 && !isResolved) {
-            render();
+        while (!isCompleted && main.hasAvailableWorker() && queue.length > 0) {
+          const staticRoute = queue.shift();
+          if (staticRoute) {
+            render(staticRoute);
           }
+        }
 
-          if (pending.length === 0 && active.size === 0 && !isResolved) {
-            isResolved = true;
+        if (!isCompleted && isRoutesLoaded && queue.length === 0 && active.size === 0) {
+          isCompleted = true;
 
-            generatorResults.urls = completed.size;
-            generatorResults.duration = timer();
+          generatorResults.duration = timer();
 
+          log.info(
+            `Rendered: ${generatorResults.rendered} page${
+              generatorResults.rendered === 1 ? '' : 's'
+            }`
+          );
+
+          log.info(`Duration: ${msToString(generatorResults.duration)}`);
+
+          if (generatorResults.rendered > 0) {
             log.info(
-              `Rendered: ${generatorResults.rendered} page${
-                generatorResults.rendered === 1 ? '' : 's'
-              }`
+              `Average: ${msToString(
+                generatorResults.duration / generatorResults.rendered
+              )} per page`
             );
-            log.info(`Duration: ${msToString(generatorResults.duration)}`);
-            if (generatorResults.rendered > 0) {
-              log.info(
-                `Average: ${msToString(
-                  generatorResults.duration / generatorResults.rendered
-                )} per page`
-              );
-            }
-            if (generatorResults.errors > 0) {
-              log.info(`errors: ${generatorResults.errors}`);
-            }
-
-            main
-              .close()
-              .then(() => resolve(generatorResults))
-              .catch(reject);
           }
+
+          if (generatorResults.errors > 0) {
+            log.info(`errors: ${generatorResults.errors}`);
+          }
+
+          main
+            .close()
+            .then(() => {
+              setTimeout(() => resolve(generatorResults));
+            })
+            .catch(reject);
         }
       };
 
-      const render = async () => {
+      let isPendingDrain = false;
+      const flushQueue = () => {
+        if (!isPendingDrain) {
+          isPendingDrain = true;
+          setTimeout(() => {
+            isPendingDrain = false;
+            next();
+          });
+        }
+      };
+
+      const render = async (staticRoute: StaticRoute) => {
         try {
-          if (isResolved) {
-            return;
-          }
+          active.add(staticRoute.pathname);
 
-          const pathname = pending.shift();
-          if (!pathname) {
-            return;
-          }
+          const result = await main.render({ type: 'render', ...staticRoute });
 
-          active.add(pathname);
-
-          const result = await main.render({ pathname });
-
-          for (const p of result.links) {
-            if (!pending.includes(p) && !active.has(p) && !completed.has(p)) {
-              pending.push(p);
-            }
-          }
+          active.delete(staticRoute.pathname);
 
           if (result.error) {
-            log.error(pathname, result.error);
+            log.error(staticRoute.pathname, result.error);
             generatorResults.errors++;
           } else if (result.ok) {
             generatorResults.rendered++;
-            log.debug(`  ${pathname}`);
+            log.debug(`  ${staticRoute.pathname}`);
           }
 
-          active.delete(pathname);
-          completed.add(pathname);
-
-          setTimeout(next);
+          flushQueue();
         } catch (e) {
-          isResolved = true;
+          isCompleted = true;
           reject(e);
         }
       };
 
-      setTimeout(next);
+      const addToQueue = (pathname: string | undefined | null, params: RouteParams | undefined) => {
+        pathname = normalizePathname(opts, pathname);
+        if (pathname && !queue.some((s) => s.pathname === pathname)) {
+          queue.push({
+            pathname,
+            params,
+          });
+          flushQueue();
+        }
+      };
+
+      const loadStaticRoutes = async () => {
+        await Promise.all(
+          routes.map(async (route) => {
+            const [_, loaders, paramNames, originalPathname] = route;
+            const modules = await Promise.all(loaders.map((loader) => loader()));
+            const pageModule: PageModule = modules[modules.length - 1] as any;
+
+            if (pageModule.default) {
+              // page module (not an endpoint)
+
+              if (Array.isArray(paramNames) && paramNames.length > 0) {
+                if (typeof pageModule.onStaticGenerate === 'function' && paramNames.length > 0) {
+                  // dynamic route page module
+                  const staticGenerate = await pageModule.onStaticGenerate();
+                  if (Array.isArray(staticGenerate.params)) {
+                    for (const params of staticGenerate.params) {
+                      const pathname = getPathnameForDynamicRoute(
+                        originalPathname!,
+                        paramNames,
+                        params
+                      );
+                      addToQueue(pathname, params);
+                    }
+                  }
+                }
+              } else {
+                // static route page module
+                addToQueue(originalPathname, undefined);
+              }
+            }
+          })
+        );
+
+        isRoutesLoaded = true;
+
+        flushQueue();
+      };
+
+      loadStaticRoutes();
     } catch (e) {
       reject(e);
     }
   });
 }
 
-async function getInitialPathnames(opts: StaticGeneratorOptions) {
-  const baseUrl = new URL(opts.baseUrl);
-
-  if (typeof opts.urlLoader === 'function') {
-    const initialPathnames: string[] = [];
-    const urls = await opts.urlLoader();
-    if (Array.isArray(urls)) {
-      for (const url of urls) {
-        const pathname = normalizePathname(url, baseUrl);
-        if (pathname && !initialPathnames.includes(pathname)) {
-          initialPathnames.push(pathname);
-        }
-      }
-    }
-    return initialPathnames;
+function validateOptions(opts: StaticGeneratorOptions) {
+  let baseUrl = opts.baseUrl;
+  if (typeof baseUrl !== 'string' || baseUrl.trim().length === 0) {
+    throw new Error(`Missing "baseUrl" option`);
   }
-
-  return [baseUrl.pathname];
+  baseUrl = baseUrl.trim();
+  if (!baseUrl.startsWith('https://') && !baseUrl.startsWith('http://')) {
+    throw new Error(`"baseUrl" must start with a valid protocol, "https://" or "http://"`);
+  }
+  if (!opts.baseUrl.endsWith('/')) {
+    throw new Error(`"baseUrl" option must end with a slash "/"`);
+  }
 }

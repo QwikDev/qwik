@@ -11,12 +11,9 @@ export default defineConfig(() => {
   return {
     ssr: {
       // SSR builds for the edge should use the "webworker" target
-      target: process.env.SSG ? 'node' : 'webworker',
-
-      format: process.env.SSG ? 'cjs' : 'esm',
-
-      // No external imports in ssr module, instead bundle into one file
-      noExternal: process.env.SSG ? undefined : true,
+      // SSG builds should use "node"
+      target: 'node',
+      format: 'cjs',
     },
     plugins: [
       qwikCity(),

@@ -1,5 +1,10 @@
 import { component$, Resource } from '@builder.io/qwik';
-import { useEndpoint, DocumentHead, RequestHandler } from '~qwik-city-runtime';
+import {
+  useEndpoint,
+  DocumentHead,
+  RequestHandler,
+  StaticGenerateHandler,
+} from '~qwik-city-runtime';
 
 export default component$(() => {
   const resource = useEndpoint<typeof onGet>();
@@ -10,8 +15,8 @@ export default component$(() => {
         resource={resource}
         onResolved={(blog) => (
           <>
-            <h1>{blog.blogTitle}</h1>
-            <p>{blog.blogContent}</p>
+            <h1>{blog.title}</h1>
+            <p>{blog.content}</p>
           </>
         )}
       />
@@ -19,18 +24,28 @@ export default component$(() => {
   );
 });
 
-export const onGet: RequestHandler<EndpointData> = async ({ params, request }) => {
+export const onGet: RequestHandler<BlogData> = async ({ params, request }) => {
   return {
-    blogTitle: `Blog: ${params.slug}`,
-    blogContent: `${params.slug}, ${request.url}`,
+    title: `Blog: ${params.slug}`,
+    content: `${params.slug}, ${request.url}`,
   };
 };
 
-export const head: DocumentHead<EndpointData> = ({ data }) => {
-  return { title: data?.blogTitle };
+export const onStaticGenerate: StaticGenerateHandler = async () => {
+  return {
+    params: [
+      {
+        slug: `what-is-resumability`,
+      },
+    ],
+  };
 };
 
-export interface EndpointData {
-  blogTitle: string;
-  blogContent: string;
+export const head: DocumentHead<BlogData> = ({ data }) => {
+  return { title: data?.title };
+};
+
+export interface BlogData {
+  title: string;
+  content: string;
 }

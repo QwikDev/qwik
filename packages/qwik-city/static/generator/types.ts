@@ -1,10 +1,11 @@
 import type { StreamWriter } from '@builder.io/qwik';
+import type { RouteParams } from '../../runtime/src';
 import type { QwikCityRequestOptions } from '../../middleware/request-handler/types';
 
 export interface System {
   createMainProcess: () => Promise<MainContext>;
   createWorkerProcess: (
-    onRender: (config: StaticWorkerRenderConfig) => Promise<StaticWorkerRenderResult>
+    onMessage: (msg: WorkerInputMessage) => Promise<WorkerOutputMessage>
   ) => void;
   createLogger: () => Promise<Logger>;
   getOptions: () => StaticGeneratorOptions;
@@ -21,7 +22,7 @@ export interface StaticStreamWriter extends StreamWriter {
 
 export interface MainContext {
   hasAvailableWorker: () => boolean;
-  render: (config: StaticWorkerRenderConfig) => Promise<StaticWorkerRenderResult>;
+  render: (staticRoute: StaticRenderInput) => Promise<StaticWorkerRenderResult>;
   close: () => Promise<void>;
 }
 
@@ -42,16 +43,27 @@ export interface StaticGeneratorOptions extends QwikCityRequestOptions {
   sitemapOutFile?: string;
 }
 
-export interface StaticWorkerRenderConfig {
+export type WorkerInputMessage = StaticRenderInput | WorkerCloseMessage;
+
+export type WorkerOutputMessage = StaticWorkerRenderResult | WorkerCloseMessage;
+
+export interface StaticRenderInput extends StaticRoute {
+  type: 'render';
+}
+
+export interface StaticRoute {
   pathname: string;
+  params: RouteParams | undefined;
+}
+
+export interface WorkerCloseMessage {
+  type: 'close';
 }
 
 export interface StaticWorkerRenderResult {
+  type: 'render';
   pathname: string;
   url: string;
-  links: string[];
-  duration: number;
-  status: number;
   ok: boolean;
   error: string | null;
 }
@@ -60,5 +72,4 @@ export interface StaticGeneratorResults {
   duration: number;
   rendered: number;
   errors: number;
-  urls: number;
 }

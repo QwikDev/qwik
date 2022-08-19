@@ -1,10 +1,10 @@
 import { parentPort } from 'worker_threads';
-import type { StaticWorkerRenderConfig, StaticWorkerRenderResult } from '../generator/types';
+import type { WorkerInputMessage, WorkerOutputMessage } from '../generator/types';
 
 export async function createNodeWorkerProcess(
-  onRender: (config: StaticWorkerRenderConfig) => Promise<StaticWorkerRenderResult>
+  onMessage: (msg: WorkerInputMessage) => Promise<WorkerOutputMessage>
 ) {
-  parentPort?.on('message', async (config) => {
-    parentPort?.postMessage(await onRender(config));
+  parentPort?.on('message', async (msg: WorkerInputMessage) => {
+    parentPort?.postMessage(await onMessage(msg));
   });
 }

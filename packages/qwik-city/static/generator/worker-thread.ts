@@ -1,7 +1,7 @@
 import type { Render } from '@builder.io/qwik/server';
 import type {
   StaticGeneratorOptions,
-  StaticWorkerRenderConfig,
+  StaticRoute,
   StaticWorkerRenderResult,
   System,
 } from './types';
@@ -9,14 +9,25 @@ import { requestHandler } from '../../middleware/request-handler';
 import { createHeaders } from '../../middleware/request-handler/headers';
 import type { QwikCityRequestContext } from '../../middleware/request-handler/types';
 import type { RequestContext } from '../../runtime/src/library/types';
-import { collectAnchorHrefs, normalizePathname } from './utils';
 
 export async function workerThread(sys: System, render: Render) {
   const opts = sys.getOptions();
+  const pendingPromises = new Set<Promise<any>>();
 
-  sys.createWorkerProcess(async (config: StaticWorkerRenderConfig) => {
-    const result = await workerRender(sys, render, opts, config);
-    return result;
+  sys.createWorkerProcess(async (msg) => {
+    switch (msg.type) {
+      case 'render': {
+        return new Promise<StaticWorkerRenderResult>((resolve) => {
+          workerRender(sys, render, opts, msg, pendingPromises, resolve);
+        });
+      }
+      case 'close': {
+        const promises = Array.from(pendingPromises);
+        pendingPromises.clear();
+        await Promise.all(promises);
+        return { type: 'close' };
+      }
+    }
   });
 }
 
@@ -24,24 +35,22 @@ async function workerRender(
   sys: System,
   render: Render,
   opts: StaticGeneratorOptions,
-  config: StaticWorkerRenderConfig
+  staticRoute: StaticRoute,
+  pendingPromises: Set<Promise<any>>,
+  callback: (result: StaticWorkerRenderResult) => void
 ) {
-  const timer = sys.createTimer();
-
-  const url = new URL(config.pathname, opts.baseUrl);
+  const url = new URL(staticRoute.pathname, opts.baseUrl);
 
   const result: StaticWorkerRenderResult = {
-    pathname: config.pathname,
+    type: 'render',
+    pathname: staticRoute.pathname,
     url: url.href,
-    links: [],
-    duration: 0,
-    status: 0,
     ok: false,
     error: null,
   };
 
   try {
-    const filePath = sys.getIndexFilePath(config.pathname);
+    const filePath = sys.getIndexFilePath(staticRoute.pathname);
 
     const headers = createHeaders();
     headers.set('Accept', 'text/html');
@@ -55,15 +64,10 @@ async function workerRender(
       url: url.href,
     };
 
-    const anchorBuffer = { c: '' };
-    const links = new Set<string>();
-
     const requestCtx: QwikCityRequestContext<void> = {
       url,
       request,
       response: async (status, headers, body, err) => {
-        result.status = status;
-
         if (err) {
           if (err.stack) {
             result.error = String(err.stack);
@@ -72,50 +76,61 @@ async function workerRender(
           } else {
             result.error = String(err);
           }
-          return;
+        } else {
+          result.ok =
+            status >= 200 &&
+            status <= 299 &&
+            (headers.get('Content-Type') || '').includes('text/html');
         }
 
-        if (status >= 301 && status <= 308) {
-          const redirectPathname = normalizePathname(headers.get('Location'), url);
-          if (redirectPathname) {
-            links.add(redirectPathname);
-          }
-          return;
-        }
+        // early callback with result, don't bother waiting on fs writes
+        callback(result);
 
-        const isHtml = (headers.get('Content-Type') || '').includes('text/html');
-        result.ok = isHtml && status >= 200 && status <= 299;
+        if (result.ok) {
+          await sys.ensureDir(filePath);
 
-        if (!result.ok) {
-          // don't bother for non OK status or content that's not html
-          return;
-        }
-
-        await sys.ensureDir(filePath);
-
-        return new Promise((resolve) => {
-          const writer = sys.createWriteStream(filePath);
-          body({
-            write: (chunk) => {
-              writer.write(chunk);
-              if (typeof chunk === 'string') {
-                anchorBuffer.c += chunk;
-                collectAnchorHrefs(anchorBuffer, links, url);
-              }
-            },
-          }).finally(() => {
-            writer.close(resolve);
+          return new Promise((resolve) => {
+            const writer = sys.createWriteStream(filePath);
+            body({
+              write: (chunk) => {
+                writer.write(chunk);
+              },
+            }).finally(() => {
+              writer.close(resolve);
+            });
           });
-        });
+        }
       },
     };
 
-    await requestHandler(requestCtx, render, {
+    const promise = requestHandler(requestCtx, render, {
       ...opts,
-      ...config,
-    });
+      ...staticRoute,
+    })
+      .then((rsp) => {
+        if (rsp == null) {
+          callback(result);
+        }
+      })
+      .catch((e) => {
+        if (e) {
+          if (e.stack) {
+            result.error = String(e.stack);
+          } else if (e.message) {
+            result.error = String(e.message);
+          } else {
+            result.error = String(e);
+          }
+        } else {
+          result.error = `Error`;
+        }
+        callback(result);
+      })
+      .finally(() => {
+        pendingPromises.delete(promise);
+      });
 
-    result.links = Array.from(links);
+    pendingPromises.add(promise);
   } catch (e: any) {
     if (e) {
       if (e.stack) {
@@ -128,9 +143,6 @@ async function workerRender(
     } else {
       result.error = `Error`;
     }
+    callback(result);
   }
-
-  result.duration = timer();
-
-  return result;
 }

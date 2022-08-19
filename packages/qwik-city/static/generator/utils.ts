@@ -1,12 +1,39 @@
-export function normalizePathname(url: string | undefined | null, baseUrl: URL) {
-  if (typeof url === 'string') {
-    url = url.trim();
-    if (url !== '') {
+import type { RouteParams } from '../../runtime/src';
+import type { StaticGeneratorOptions } from './types';
+
+export function normalizePathname(
+  opts: StaticGeneratorOptions,
+  pathname: string | undefined | null
+) {
+  if (typeof pathname === 'string') {
+    pathname = pathname.trim();
+
+    if (pathname !== '') {
       try {
-        const u = new URL(url, baseUrl);
-        if (u.origin === baseUrl.origin) {
-          return u.pathname;
+        if (pathname.startsWith('/')) {
+          pathname = pathname.slice(1);
         }
+
+        pathname = new URL(pathname, opts.baseUrl).pathname;
+
+        if (pathname !== '/') {
+          if (opts.trailingSlash) {
+            if (!pathname.endsWith('/')) {
+              const segments = pathname.split('/');
+              const lastSegment = segments[segments.length - 1];
+
+              if (!lastSegment.includes('.')) {
+                pathname += '/';
+              }
+            }
+          } else {
+            if (pathname.endsWith('/')) {
+              pathname = pathname.slice(0, pathname.length - 1);
+            }
+          }
+        }
+
+        return pathname;
       } catch (e) {
         console.error(e);
       }
@@ -15,107 +42,24 @@ export function normalizePathname(url: string | undefined | null, baseUrl: URL) 
   return null;
 }
 
-export function collectAnchorHrefs(b: { c: string }, links: Set<string>, url: URL) {
-  while (b.c.length > 8) {
-    const scriptStart = b.c.indexOf('<script');
-    if (scriptStart === 0) {
-      const scriptEnd = b.c.indexOf('</script>');
-      if (scriptEnd === -1) {
-        break;
-      }
-      b.c = b.c.slice(scriptEnd + 9);
-      continue;
-    }
+export function getPathnameForDynamicRoute(
+  originalPathname: string,
+  paramNames: string[] | undefined,
+  params: RouteParams | undefined
+) {
+  let pathname = originalPathname;
 
-    const templateStart = b.c.indexOf('<template');
-    if (templateStart === 0) {
-      const templateEnd = b.c.indexOf('</template>');
-      if (templateEnd === -1) {
-        break;
-      }
-      b.c = b.c.slice(templateEnd + 11);
-      continue;
-    }
-
-    const lastChar = b.c.charAt(b.c.length - 1);
-    if (lastChar === '<' || /\s/.test(lastChar)) {
-      break;
-    }
-
-    const anchorStart = b.c.indexOf('<a ');
-    if (scriptStart > -1) {
-      if (anchorStart > -1 && scriptStart < anchorStart) {
-        b.c = b.c.slice(scriptStart);
-        continue;
-      }
-    }
-
-    if (templateStart > -1) {
-      if (anchorStart > -1 && templateStart < anchorStart) {
-        b.c = b.c.slice(templateStart);
-        continue;
-      }
-    }
-
-    if (anchorStart === -1) {
-      b.c = '';
-      break;
-    }
-
-    b.c = b.c.slice(anchorStart);
-    const anchorEnd = b.c.indexOf('>');
-    if (anchorEnd === -1) {
-      break;
-    }
-
-    const anchor = b.c.slice(0, anchorEnd);
-    b.c = b.c.slice(anchorEnd + 1);
-
-    const hrefStart = anchor.indexOf('href');
-    if (hrefStart > -1) {
-      const href = anchor.slice(hrefStart + 4);
-      const hrefLen = href.length;
-      let value = '';
-      let hasEqual = false;
-
-      for (let i = 0; i < hrefLen; i++) {
-        const char = href.charAt(i);
-
-        if (hasEqual) {
-          value = href.slice(i);
-          break;
-        } else {
-          if (char === '=') {
-            hasEqual = true;
-          } else if (!/\s/.test(char)) {
-            break;
-          }
-        }
-      }
-
-      value = value.trim();
-      if (value !== '') {
-        const charCode = value.charCodeAt(0);
-
-        if (charCode === DOUBLE_QUOTE) {
-          value = value.slice(1);
-          value = value.slice(0, value.indexOf(`"`));
-        } else if (charCode === SINGLE_QUOTE) {
-          value = value.slice(1);
-          value = value.slice(0, value.indexOf(`'`));
-        } else {
-          value = value.split(' ').shift()!;
-        }
-
-        if (value !== '' && value.charCodeAt(0) !== LEFT_CURLY_BRACKET) {
-          const pathname = normalizePathname(value, url);
-          if (pathname) {
-            links.add(pathname);
-          }
-        }
-      }
+  if (paramNames && params) {
+    for (const paramName of paramNames) {
+      const paramKey = `[${paramName}]`;
+      const restParamKey = `[...${paramName}]`;
+      const paramValue = params[paramName];
+      pathname = pathname.replace(restParamKey, paramValue);
+      pathname = pathname.replace(paramKey, paramValue);
     }
   }
+
+  return pathname;
 }
 
 export function msToString(ms: number) {
@@ -130,7 +74,3 @@ export function msToString(ms: number) {
   }
   return (ms / 60000).toFixed(1) + ' m';
 }
-
-const DOUBLE_QUOTE = 34;
-const SINGLE_QUOTE = 39;
-const LEFT_CURLY_BRACKET = 123;

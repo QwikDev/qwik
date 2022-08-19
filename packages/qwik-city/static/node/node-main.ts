@@ -1,8 +1,10 @@
 import type {
   MainContext,
+  StaticRoute,
   StaticGeneratorOptions,
-  StaticWorkerRenderConfig,
   StaticWorkerRenderResult,
+  WorkerOutputMessage,
+  WorkerInputMessage,
 } from '../generator/types';
 import fs from 'fs';
 import { cpus as nodeCpus } from 'os';
@@ -35,13 +37,17 @@ export async function createNodeMainProcess(opts: StaticGeneratorOptions) {
   }
 
   let sitemapOutFile = opts.sitemapOutFile;
-  if (sitemapOutFile) {
+  if (sitemapOutFile !== null) {
+    if (typeof sitemapOutFile !== 'string') {
+      sitemapOutFile = 'sitemap.xml';
+    }
     if (!isAbsolute(sitemapOutFile)) {
       sitemapOutFile = join(outDir, sitemapOutFile);
     }
   }
 
-  const createWorker = (index: number) => {
+  const createWorker = () => {
+    let terminateResolve: (() => void) | null = null;
     const mainTasks = new Map<string, WorkerMainTask>();
     const nodeWorker = new Worker(currentFile);
 
@@ -49,16 +55,16 @@ export async function createNodeMainProcess(opts: StaticGeneratorOptions) {
       activeTasks: 0,
       totalTasks: 0,
 
-      render: (config) => {
+      render: (staticRoute) => {
         return new Promise((resolve, reject) => {
           try {
             ssgWorker.activeTasks++;
             ssgWorker.totalTasks++;
-            mainTasks.set(config.pathname, resolve);
-            nodeWorker.postMessage(config);
+            mainTasks.set(staticRoute.pathname, resolve);
+            nodeWorker.postMessage(staticRoute);
           } catch (e) {
             ssgWorker.activeTasks--;
-            mainTasks.delete(config.pathname);
+            mainTasks.delete(staticRoute.pathname);
             reject(e);
           }
         });
@@ -66,44 +72,60 @@ export async function createNodeMainProcess(opts: StaticGeneratorOptions) {
 
       terminate: async () => {
         mainTasks.clear();
+        const msg: WorkerInputMessage = { type: 'close' };
+        await new Promise<void>((resolve) => {
+          terminateResolve = resolve;
+          nodeWorker.postMessage(msg);
+        });
         await nodeWorker.terminate();
       },
     };
 
-    nodeWorker.on('message', (result: StaticWorkerRenderResult) => {
-      const mainTask = mainTasks.get(result.pathname);
-      if (mainTask) {
-        mainTasks.delete(result.pathname);
-        ssgWorker.activeTasks--;
-        mainTask(result);
+    nodeWorker.on('message', (msg: WorkerOutputMessage) => {
+      switch (msg.type) {
+        case 'render': {
+          const mainTask = mainTasks.get(msg.pathname);
+          if (mainTask) {
+            mainTasks.delete(msg.pathname);
+            ssgWorker.activeTasks--;
+            mainTask(msg);
+          }
+          break;
+        }
+        case 'close': {
+          if (terminateResolve) {
+            terminateResolve();
+            terminateResolve = null;
+          }
+          break;
+        }
       }
     });
 
     nodeWorker.on('error', (e) => {
-      console.error(`worker ${index} error: ${e}`);
+      console.error(`worker error: ${e}`);
     });
 
     nodeWorker.on('exit', (code) => {
       if (code !== 1) {
-        console.error(`worker ${index} exit ${code}`);
+        console.error(`worker exit ${code}`);
       }
     });
 
     return ssgWorker;
   };
 
+  const getNextWorker = () => ssgWorkers.sort(ssgWorkerCompare)[0];
+
   const hasAvailableWorker = () => {
-    const ssgWorker = ssgWorkers.sort(ssgWorkerCompare)[0];
-    if (ssgWorker) {
-      return ssgWorker.activeTasks < maxTasksPerWorker;
-    }
-    return false;
+    const ssgWorker = getNextWorker();
+    return ssgWorker.activeTasks < maxTasksPerWorker;
   };
 
-  const render = async (config: StaticWorkerRenderConfig) => {
-    const ssgWorker = ssgWorkers.sort(ssgWorkerCompare)[0]!;
+  const render = async (staticRoute: StaticRoute) => {
+    const ssgWorker = getNextWorker();
 
-    const result = await ssgWorker.render(config);
+    const result = await ssgWorker.render(staticRoute);
 
     if (sitemapOutFile && result.ok) {
       sitemapBuffer.push(`<url><loc>${result.url}</loc></url>`);
@@ -153,7 +175,7 @@ export async function createNodeMainProcess(opts: StaticGeneratorOptions) {
   }
 
   for (let i = 0; i < maxWorkers; i++) {
-    ssgWorkers.push(createWorker(i));
+    ssgWorkers.push(createWorker());
   }
 
   const mainCtx: MainContext = {
@@ -172,13 +194,7 @@ function ssgWorkerCompare(a: StaticGeneratorWorker, b: StaticGeneratorWorker) {
   if (a.activeTasks > b.activeTasks) {
     return 1;
   }
-  if (a.totalTasks < b.totalTasks) {
-    return -1;
-  }
-  if (a.totalTasks > b.totalTasks) {
-    return 1;
-  }
-  return Math.random() < 0.5 ? -1 : 1;
+  return a.totalTasks < b.totalTasks ? -1 : 1;
 }
 
 type WorkerMainTask = (result: StaticWorkerRenderResult) => void;
@@ -186,6 +202,6 @@ type WorkerMainTask = (result: StaticWorkerRenderResult) => void;
 interface StaticGeneratorWorker {
   activeTasks: number;
   totalTasks: number;
-  render: (config: StaticWorkerRenderConfig) => Promise<StaticWorkerRenderResult>;
+  render: (staticRoute: StaticRoute) => Promise<StaticWorkerRenderResult>;
   terminate: () => Promise<void>;
 }

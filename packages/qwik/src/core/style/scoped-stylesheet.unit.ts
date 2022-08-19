@@ -68,7 +68,10 @@ scopedStyles('media', () => {
 });
 
 scopedStyles('keyframes', () => {
-  equal(scopeStylesheet('@keyframes slide {0%{}100%{}}', 'ABC'), '@keyframes slide {0%{}100%{}}');
+  equal(
+    scopeStylesheet('@keyframes slide {0%{test:a}100%{test:b}}', 'ABC'),
+    '@keyframes slide {0%{test:a}100%{test:b}}'
+  );
   equal(
     scopeStylesheet('@keyframes slide {0%{}100%{}} .a{}', 'ABC'),
     '@keyframes slide {0%{}100%{}} .a.⭐️ABC{}'

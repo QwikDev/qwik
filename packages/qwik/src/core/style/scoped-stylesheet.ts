@@ -33,7 +33,8 @@ export function scopeStylesheet(css: string, scopeId: string): string {
               flush(idx, (x) => x.replace(/:global\((.*)\)/, '$1'));
             }
             mode = stack.pop() || MODE.selector;
-          } else if (mode === newMode) {
+          } else if (mode === newMode && mode !== MODE.body) {
+            // body allowed to nested, need to keep stack's hierarchy
             flush(idx - 1);
             if (mode === MODE.selector) {
               out.push('.', ComponentStylesPrefixContent, scopeId);
@@ -73,6 +74,7 @@ function isIdent(ch: number): boolean {
 const enum MODE {
   selector, // .selector {}
   media, // @media {}
+  at,
   body, // .selector {body}
   pseudo, // ::pseudo or :pseudo
   global, // :global(selector)
@@ -104,9 +106,8 @@ const enum CHAR {
   BACKSLASH = 92, // `\\`.charCodeAt(0);
   UNDERSCORE = 95, // `_`.charCodeAt(0);
   a = 97, // `a`.charCodeAt(0);
-  f = 102, // `f`.charCodeAt(0)
-  g = 103, // `g`.charCodeAt(0)
-  k = 107, // `k`.charCodeAt(0)
+  g = 103, // `g`.charCodeAt(0);
+  m = 109, // `m`.charCodeAt(0);
   z = 122, // `z`.charCodeAt(0);
   OPEN_BRACE = 123, // `{`.charCodeAt(0);
   CLOSE_BRACE = 125, // `}`.charCodeAt(0);
@@ -124,9 +125,8 @@ type StateArc = [
 const STATE_MACHINE: StateArc[][] = [
   [
     [CHAR.IDENT, CHAR.NOT_IDENT_AND_NOT_DOT, MODE.selector],
-    [CHAR.AT, CHAR.ANY, MODE.media],
-    [CHAR.AT, CHAR.k, MODE.body], // @keyframes
-    [CHAR.AT, CHAR.f, MODE.body], // @font-face
+    [CHAR.AT, CHAR.ANY, MODE.at],
+    [CHAR.AT, CHAR.m, MODE.media],
     [CHAR.ANY, CHAR.OPEN_BRACE, MODE.body],
     [CHAR.FORWARD_SLASH, CHAR.STAR, MODE.commentMultiline],
     [CHAR.COLON, CHAR.ANY, MODE.pseudo],
@@ -139,7 +139,15 @@ const STATE_MACHINE: StateArc[][] = [
     [CHAR.FORWARD_SLASH, CHAR.STAR, MODE.commentMultiline],
   ] /*media*/,
   [
+    // if previous one is }, means just out from body, then exit at scope as well
+    [CHAR.CLOSE_BRACE, CHAR.ANY, MODE.EXIT],
+    [CHAR.FORWARD_SLASH, CHAR.STAR, MODE.commentMultiline],
+    [CHAR.ANY, CHAR.OPEN_BRACE, MODE.body],
+    [CHAR.FORWARD_SLASH, CHAR.STAR, MODE.commentMultiline],
+  ] /* at rule */,
+  [
     [CHAR.ANY, CHAR.CLOSE_BRACE, MODE.EXIT],
+    [CHAR.ANY, CHAR.OPEN_BRACE, MODE.body],
     [CHAR.ANY, CHAR.SINGLE_QUOTE, MODE.stringSingle],
     [CHAR.ANY, CHAR.DOUBLE_QUOTE, MODE.stringDouble],
     [CHAR.FORWARD_SLASH, CHAR.STAR, MODE.commentMultiline],

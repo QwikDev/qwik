@@ -2,6 +2,7 @@ import type { Transformer } from 'unified';
 import type { BuildContext, FrontmatterAttrs } from '../types';
 import { normalizePath } from '../utils/fs';
 import { visit } from 'unist-util-visit';
+import { parse as parseYaml } from 'yaml';
 import type { ResolvedDocumentHead } from '../../runtime/src';
 
 export function parseFrontmatter(ctx: BuildContext): Transformer {
@@ -9,7 +10,10 @@ export function parseFrontmatter(ctx: BuildContext): Transformer {
     const attrs: FrontmatterAttrs = {};
 
     visit(mdast, 'yaml', (node: any) => {
-      parseFrontmatterAttrs(attrs, node.value);
+      const parsedAttrs = parseFrontmatterAttrs(node.value);
+      for (const k in parsedAttrs) {
+        attrs[k] = parsedAttrs[k];
+      }
     });
 
     if (Object.keys(attrs).length > 0) {
@@ -18,19 +22,11 @@ export function parseFrontmatter(ctx: BuildContext): Transformer {
   };
 }
 
-export function parseFrontmatterAttrs(attrs: FrontmatterAttrs, yaml: string) {
+export function parseFrontmatterAttrs(yaml: string) {
   if (typeof yaml === 'string') {
     yaml = yaml.trim();
     if (yaml !== '') {
-      const lines = yaml.split(/\r?\n|\r|\n/g);
-      for (const line of lines) {
-        const parts = line.split(':');
-        if (parts.length > 1) {
-          const attrName = parts[0].trim();
-          const attrValue = parts.slice(1).join(':').trim();
-          attrs[attrName] = attrValue;
-        }
-      }
+      return parseYaml(yaml);
     }
   }
   return null;

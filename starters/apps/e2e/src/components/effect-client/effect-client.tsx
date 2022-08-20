@@ -80,6 +80,36 @@ export const Eager = component$(() => {
   return (
     <div>
       <div id="eager-msg">{state.msg}</div>
+      <ClientSide key={state.msg} />
     </div>
+  );
+});
+
+export const ClientSide = component$(() => {
+  console.log('<Timer> renders');
+
+  const state = useStore({
+    text1: 'empty',
+    text2: 'empty',
+  });
+
+  useClientEffect$(
+    () => {
+      state.text1 = 'run';
+    },
+    {
+      eagerness: 'load',
+    }
+  );
+
+  useClientEffect$(() => {
+    state.text2 = 'run';
+  });
+
+  return (
+    <>
+      <div id="client-side-msg-1">{state.text1}</div>
+      <div id="client-side-msg-2">{state.text2}</div>
+    </>
   );
 });

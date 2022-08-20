@@ -12,7 +12,6 @@ import {
   ResourceReturnInternal,
   Watch,
 } from './use-watch';
-import { assertDefined } from '../assert/assert';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { qDev } from '../util/qdev';
@@ -153,8 +152,7 @@ export const createResourceReturn = <T>(
 
 export const useIsServer = () => {
   const ctx = getInvokeContext();
-  assertDefined(ctx.$doc$, 'doc must be defined', ctx);
-  return isServer(ctx.$doc$);
+  return isServer(ctx);
 };
 
 export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceReturnInternal<T> => {

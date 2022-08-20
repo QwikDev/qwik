@@ -19,7 +19,7 @@ import {
 import { useOn } from './use-on';
 import { GetObjID, intToStr, strToInt } from '../object/store';
 import type { ContainerState } from '../render/container';
-import { _hW } from '../render/dom/notify-render';
+import { notifyWatch, _hW } from '../render/dom/notify-render';
 import { useSequentialScope } from './use-sequential-scope';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
 
@@ -260,8 +260,7 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
     getContext(el).$watches$.push(watch);
     const previousWait = ctx.$waitOn$.slice();
     ctx.$waitOn$.push(Promise.all(previousWait).then(() => runSubscriber(watch, containerState)));
-    const isServer = containerState.$platform$.isServer;
-    if (isServer) {
+    if (isServer(ctx)) {
       useRunWatch(watch, opts?.eagerness);
     }
   }
@@ -364,12 +363,12 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
     assertQrl(qrl);
     const el = ctx.$hostElement$;
     const watch = new Watch(WatchFlagsIsEffect, i, el, qrl, undefined);
+    const eagerness = opts?.eagerness ?? 'visible';
     set(true);
     getContext(el).$watches$.push(watch);
-    useRunWatch(watch, opts?.eagerness ?? 'visible');
-    const doc = ctx.$doc$ as any;
-    if (doc['qO']) {
-      doc['qO'].observe(el);
+    useRunWatch(watch, eagerness);
+    if (!isServer(ctx)) {
+      notifyWatch(watch, ctx.$renderCtx$.$containerState$);
     }
   }
 };
@@ -449,7 +448,8 @@ export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
   if (get) {
     return;
   }
-  if (isServer(ctx.$doc$)) {
+
+  if (isServer(ctx)) {
     ctx.$waitOn$.push(mountQrl());
     set(true);
   } else {

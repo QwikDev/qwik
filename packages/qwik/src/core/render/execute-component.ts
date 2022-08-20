@@ -103,6 +103,7 @@ export const createRenderContext = (
     $containerEl$: containerState.$containerEl$,
     $hostElements$: new Set(),
     $operations$: [],
+    $postOperations$: [],
     $roots$: [],
     $localStack$: [],
     $currentComponent$: undefined,

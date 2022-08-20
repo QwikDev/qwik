@@ -27,6 +27,7 @@ export interface RenderContext {
   $roots$: QwikElement[];
   $hostElements$: Set<QwikElement>;
   $operations$: RenderOperation[];
+  $postOperations$: RenderOperation[];
   $localStack$: QContext[];
   $currentComponent$: ComponentCtx | undefined;
   $containerState$: ContainerState;

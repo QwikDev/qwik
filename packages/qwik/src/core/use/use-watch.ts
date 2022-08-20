@@ -1,6 +1,6 @@
 import { getProxyTarget, noSerialize, NoSerialize, unwrapProxy } from '../object/q-object';
 import { getContext } from '../props/props';
-import { newInvokeContext, useInvoke } from './use-core';
+import { newInvokeContext, invoke } from './use-core';
 import { logError, logErrorAndStop } from '../util/log';
 import { delay, safeCall, then } from '../util/promises';
 import { getDocument } from '../util/dom';
@@ -144,7 +144,7 @@ export interface ResourceRejected<T> {
 
   promise: Promise<T>;
   resolved: undefined;
-  error: NoSerialize<any>;
+  error: any;
   timeout?: number;
 }
 
@@ -650,9 +650,31 @@ export const runResource = <T>(
 
   let resolve: (v: T) => void;
   let reject: (v: any) => void;
+  let done = false;
+
+  const setState = (resolved: boolean, value: any) => {
+    if (!done) {
+      done = true;
+      if (resolved) {
+        done = true;
+        resource.state = 'resolved';
+        resource.resolved = value;
+        resource.error = undefined;
+        resolve(value);
+      } else {
+        done = true;
+        resource.state = 'rejected';
+        resource.resolved = undefined;
+        resource.error = value;
+        reject(value);
+      }
+      return true;
+    }
+    return false;
+  };
 
   // Execute mutation inside empty invokation
-  useInvoke(invokationContext, () => {
+  invoke(invokationContext, () => {
     resource.state = 'pending';
     resource.resolved = undefined as any;
     resource.promise = new Promise((r, re) => {
@@ -663,31 +685,15 @@ export const runResource = <T>(
 
   watch.$destroy$ = noSerialize(() => {
     cleanups.forEach((fn) => fn());
-    reject('cancelled');
   });
 
-  let done = false;
   const promise = safeCall(
     () => then(waitOn, () => watchFn(opts)),
     (value) => {
-      if (!done) {
-        done = true;
-        resource.state = 'resolved';
-        resource.resolved = value;
-        resource.error = undefined;
-        resolve(value);
-      }
-      return;
+      setState(true, value);
     },
     (reason) => {
-      if (!done) {
-        done = true;
-        resource.state = 'rejected';
-        resource.resolved = undefined as any;
-        resource.error = noSerialize(reason);
-        reject(reason);
-      }
-      return;
+      setState(false, reason);
     }
   );
 
@@ -696,13 +702,8 @@ export const runResource = <T>(
     return Promise.race([
       promise,
       delay(timeout).then(() => {
-        if (!done) {
-          done = true;
-          resource.state = 'rejected';
-          resource.resolved = undefined as any;
-          resource.error = 'timeout';
+        if (setState(false, 'timeout')) {
           cleanupWatch(watch);
-          reject('timeout');
         }
       }),
     ]);

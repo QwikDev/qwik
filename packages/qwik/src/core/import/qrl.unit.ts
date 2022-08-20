@@ -47,11 +47,11 @@ qrlSuite('should parse', () => {
   });
 });
 
-equal(stringifyQRL(createQRL('./chunk', '', null, null, null, null, null)), './chunk');
-equal(stringifyQRL(createQRL('./c', 's1', null, null, null, null, null)), './c#s1');
-equal(stringifyQRL(createQRL('./c', 's1', null, null, [], null, null)), './c#s1');
-equal(stringifyQRL(createQRL('./c', 's1', null, null, [1, '2'] as any, null, null)), './c#s1[1 2]');
-equal(stringifyQRL(createQRL('./c', 's1', null, null, [1 as any, '2'], null, null)), './c#s1[1 2]');
+equal(stringifyQRL(createQRL('./chunk', '', null, null, null, null, null)), 'chunk');
+equal(stringifyQRL(createQRL('./c', 's1', null, null, null, null, null)), 'c#s1');
+equal(stringifyQRL(createQRL('./c', 's1', null, null, [], null, null)), 'c#s1');
+equal(stringifyQRL(createQRL('./c', 's1', null, null, [1, '2'] as any, null, null)), 'c#s1[1 2]');
+equal(stringifyQRL(createQRL('c', 's1', null, null, [1 as any, '2'], null, null)), 'c#s1[1 2]');
 
 qrlSuite('should parse reference', () => {
   const require = (str: string) => {

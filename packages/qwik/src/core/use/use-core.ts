@@ -80,7 +80,18 @@ export const useInvokeContext = (): RenderInvokeContext => {
   return ctx as any;
 };
 
-export const useInvoke = <ARGS extends any[] = any[], RET = any>(
+export const useBindInvokeContext = <T extends ((...args: any[]) => any) | undefined>(
+  callback: T
+): T => {
+  if (callback == null) {
+    return callback;
+  }
+  const ctx = getInvokeContext();
+  return ((...args: any[]) => {
+    return invoke(ctx, callback.bind(undefined, ...args));
+  }) as T;
+};
+export const invoke = <ARGS extends any[] = any[], RET = any>(
   context: InvokeContext,
   fn: (...args: ARGS) => RET,
   ...args: ARGS

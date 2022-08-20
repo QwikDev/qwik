@@ -17,7 +17,7 @@ import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { qDev } from '../util/qdev';
 import { isServer } from '../platform/platform';
-import { getInvokeContext } from './use-core';
+import { getInvokeContext, useBindInvokeContext } from './use-core';
 
 import { isObject } from '../util/types';
 import type { GetObjID } from '../object/store';
@@ -66,8 +66,11 @@ export const useResourceQrl = <T>(
 /**
  * @public
  */
-export const useResource$ = <T>(generatorFn: ResourceFn<T>): ResourceReturn<T> => {
-  return useResourceQrl<T>($(generatorFn));
+export const useResource$ = <T>(
+  generatorFn: ResourceFn<T>,
+  opts?: ResourceOptions
+): ResourceReturn<T> => {
+  return useResourceQrl<T>($(generatorFn), opts);
 };
 
 /**
@@ -102,7 +105,10 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
     }
   }
 
-  const promise: any = props.resource.promise.then(props.onResolved, props.onRejected);
+  const promise: any = props.resource.promise.then(
+    useBindInvokeContext(props.onResolved),
+    useBindInvokeContext(props.onRejected)
+  );
   // if (isServer) {
   //   const onPending = props.onPending;
   //   if (props.ssrWait && onPending) {
@@ -166,7 +172,7 @@ export const serializeResource = (resource: ResourceReturn<any>, getObjId: GetOb
   } else if (state === 'pending') {
     return `1`;
   } else {
-    return `2`;
+    return `2 ${getObjId(resource.error)}`;
   }
 };
 
@@ -182,7 +188,7 @@ export const parseResourceReturn = <T>(data: string): ResourceReturn<T> => {
     result.promise = new Promise(() => {});
   } else if (first === '2') {
     result.state = 'rejected';
-    result.promise = Promise.reject();
+    result.error = id as any;
   }
   return result;
 };

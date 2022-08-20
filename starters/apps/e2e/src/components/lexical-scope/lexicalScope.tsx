@@ -16,6 +16,9 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   const a = 1;
   const b = '</script>';
   const promise = Promise.resolve('from a promise');
+  const rejected = Promise.reject(new Error('failed message'));
+  rejected.catch(() => null);
+
   const c = {
     a: { thing: 12 },
     b: 'hola',
@@ -41,25 +44,28 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   nullPrototype.value = 12;
 
   const onclick = $(async () => {
-    promise.then((promiseValue) => {
-      state.result = JSON.stringify([
-        a,
-        b,
-        c,
-        String(d),
-        String(e),
-        f,
-        g,
-        h,
-        i,
-        props.message,
-        promiseValue,
-        url.href,
-        date.toISOString(),
-        `${regex.source} ${regex.flags}`,
-        nullPrototype.value,
-      ]);
-      state.count++;
+    rejected.catch((reason) => {
+      promise.then((promiseValue) => {
+        state.result = JSON.stringify([
+          a,
+          b,
+          c,
+          String(d),
+          String(e),
+          f,
+          g,
+          h,
+          i,
+          props.message,
+          promiseValue,
+          url.href,
+          date.toISOString(),
+          `${regex.source} ${regex.flags}`,
+          nullPrototype.value,
+          reason.message,
+        ]);
+        state.count++;
+      });
     });
   });
 

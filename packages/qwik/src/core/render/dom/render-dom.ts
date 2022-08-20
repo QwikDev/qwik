@@ -1,5 +1,5 @@
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
-import { InvokeContext, newInvokeContext, useInvoke } from '../../use/use-core';
+import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
 import { QScopedStyle } from '../../util/markers';
@@ -77,7 +77,7 @@ export const processNode = (
     textType = VIRTUAL_TYPE;
   } else if (isFunction(node.type)) {
     const res = invocationContext
-      ? useInvoke(invocationContext, () => node.type(node.props, node.key))
+      ? invoke(invocationContext, () => node.type(node.props, node.key))
       : node.type(node.props, node.key);
     return processData(res, invocationContext);
   } else if (isString(node.type)) {

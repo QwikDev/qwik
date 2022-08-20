@@ -478,7 +478,7 @@ export interface ResourceRejected<T> {
     // (undocumented)
     __brand: 'resource';
     // (undocumented)
-    error: NoSerialize<any>;
+    error: any;
     // (undocumented)
     promise: Promise<T>;
     // (undocumented)
@@ -652,7 +652,7 @@ export const useOnWindow: (event: string, eventQrl: QRL<(ev: Event) => void>) =>
 export const useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;
 
 // @public (undocumented)
-export const useResource$: <T>(generatorFn: ResourceFn<T>) => ResourceReturn<T>;
+export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;
 
 // @public (undocumented)
 export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) => ResourceReturn<T>;

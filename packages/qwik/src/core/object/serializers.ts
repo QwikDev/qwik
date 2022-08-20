@@ -57,6 +57,18 @@ const QRLSerializer: Serializer<QRLInternal> = {
   },
 };
 
+const ErrorSerializer: Serializer<Error> = {
+  test: (v) => v instanceof Error,
+  serialize: (obj) => {
+    return obj.message;
+  },
+  prepare: (text) => {
+    const err = new Error(text);
+    err.stack = undefined;
+    return err;
+  },
+};
+
 const DocumentSerializer: Serializer<Document> = {
   test: (v) => isDocument(v),
   prepare: (_, _c, doc) => {
@@ -76,6 +88,11 @@ const ResourceSerializer: Serializer<ResourceReturn<any>> = {
     if (resource.state === 'resolved') {
       resource.resolved = getObject(resource.resolved);
       resource.promise = Promise.resolve(resource.resolved);
+    } else if (resource.state === 'rejected') {
+      const p = Promise.reject(resource.error);
+      p.catch(() => null);
+      resource.error = getObject(resource.error);
+      resource.promise = p;
     }
   },
 };
@@ -165,6 +182,7 @@ const serializers: Serializer<any>[] = [
   DateSerializer,
   ComponentSerializer,
   PureFunctionSerializer,
+  ErrorSerializer,
 ];
 
 export const canSerialize = (obj: any): boolean => {

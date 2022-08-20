@@ -1,5 +1,5 @@
 import { isNotNullable, isPromise, then } from '../../util/promises';
-import { InvokeContext, newInvokeContext, useInvoke } from '../../use/use-core';
+import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
 import { isJSXNode, jsx } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, ValueOrPromise } from '../../util/types';
 import { getContext, getPropsMutator, normalizeOnProp, QContext } from '../../props/props';
@@ -141,7 +141,7 @@ export const renderNodeFunction = (
     return renderNodeVirtual(node, elCtx, undefined, ssrCtx, stream, flags, beforeClose);
   }
   const res = ssrCtx.invocationContext
-    ? useInvoke(ssrCtx.invocationContext, () => node.type(node.props, node.key))
+    ? invoke(ssrCtx.invocationContext, () => node.type(node.props, node.key))
     : node.type(node.props, node.key);
   return processData(res, ssrCtx, stream, flags, beforeClose);
 };
@@ -606,7 +606,7 @@ export const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => 
   ) {
     const fn = children.type;
     const res = ssrCtx.invocationContext
-      ? useInvoke(ssrCtx.invocationContext, () => fn(children.props, children.key))
+      ? invoke(ssrCtx.invocationContext, () => fn(children.props, children.key))
       : fn(children.props, children.key);
     return flatVirtualChildren(res, ssrCtx);
   }

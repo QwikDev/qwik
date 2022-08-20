@@ -51,7 +51,10 @@ export const Root = component$(() => {
         <a href="/e2e/weather">Weather app</a>
       </p>
       <p>
-        <a href="/e2e/resource">Resource</a>
+        <a href="/e2e/resource">Resource Lifecycle</a>
+      </p>
+      <p>
+        <a href="/e2e/resource-serialization">Resource serialization</a>
       </p>
     </section>
   );

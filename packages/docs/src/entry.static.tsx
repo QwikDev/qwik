@@ -8,4 +8,5 @@ qwikCityGenerate(render, {
   baseUrl: 'https://qwik.builder.io/',
   outDir: join(fileURLToPath(import.meta.url), '..', '..', 'dist'),
   log: 'debug',
+  trailingSlash: true,
 });

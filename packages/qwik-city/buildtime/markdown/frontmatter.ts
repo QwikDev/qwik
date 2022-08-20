@@ -10,7 +10,7 @@ export function parseFrontmatter(ctx: BuildContext): Transformer {
     const attrs: FrontmatterAttrs = {};
 
     visit(mdast, 'yaml', (node: any) => {
-      const parsedAttrs = parseFrontmatterAttrs(node.value);
+      const parsedAttrs = parseFrontmatterAttrs(node.value) as FrontmatterAttrs;
       for (const k in parsedAttrs) {
         attrs[k] = parsedAttrs[k];
       }
@@ -38,12 +38,12 @@ export function frontmatterAttrsToDocumentHead(attrs: FrontmatterAttrs | undefin
 
     for (const attrName in attrs) {
       const attrValue = attrs[attrName];
-      if (attrName === 'title') {
-        head.title = attrValue;
-      } else if (attrName === 'description') {
+      if (attrName === 'title' && attrValue) {
+        head.title = attrValue.toString();
+      } else if (attrName === 'description' && attrValue) {
         head.meta.push({
           name: attrName,
-          content: attrValue,
+          content: attrValue.toString(),
         });
       }
     }

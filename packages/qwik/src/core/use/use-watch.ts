@@ -1,6 +1,6 @@
 import { getProxyTarget, noSerialize, NoSerialize, unwrapProxy } from '../object/q-object';
 import { getContext } from '../props/props';
-import { newInvokeContext, invoke } from './use-core';
+import { newInvokeContext, invoke, waitAndRun } from './use-core';
 import { logError, logErrorAndStop } from '../util/log';
 import { delay, safeCall, then } from '../util/promises';
 import { getDocument } from '../util/dom';
@@ -251,18 +251,20 @@ export interface UseWatchOptions {
 // </docs>
 export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => {
   const { get, set, ctx, i } = useSequentialScope<boolean>();
-  if (!get) {
-    assertQrl(qrl);
-    const el = ctx.$hostElement$;
-    const containerState = ctx.$renderCtx$.$containerState$;
-    const watch = new Watch(WatchFlagsIsDirty | WatchFlagsIsWatch, i, el, qrl, undefined);
-    set(true);
-    getContext(el).$watches$.push(watch);
-    const previousWait = ctx.$waitOn$.slice();
-    ctx.$waitOn$.push(Promise.all(previousWait).then(() => runSubscriber(watch, containerState)));
-    if (isServer(ctx)) {
-      useRunWatch(watch, opts?.eagerness);
-    }
+  if (get) {
+    return;
+  }
+  assertQrl(qrl);
+
+  const el = ctx.$hostElement$;
+  const containerState = ctx.$renderCtx$.$containerState$;
+  const watch = new Watch(WatchFlagsIsDirty | WatchFlagsIsWatch, i, el, qrl, undefined);
+  set(true);
+  qrl.$resolveLazy$(el);
+  getContext(el).$watches$.push(watch);
+  waitAndRun(ctx, () => runSubscriber(watch, containerState));
+  if (isServer(ctx)) {
+    useRunWatch(watch, opts?.eagerness);
   }
 };
 
@@ -359,17 +361,19 @@ export const useWatch$ = /*#__PURE__*/ implicit$FirstArg(useWatchQrl);
 // </docs>
 export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void => {
   const { get, set, i, ctx } = useSequentialScope<boolean>();
-  if (!get) {
-    assertQrl(qrl);
-    const el = ctx.$hostElement$;
-    const watch = new Watch(WatchFlagsIsEffect, i, el, qrl, undefined);
-    const eagerness = opts?.eagerness ?? 'visible';
-    set(true);
-    getContext(el).$watches$.push(watch);
-    useRunWatch(watch, eagerness);
-    if (!isServer(ctx)) {
-      notifyWatch(watch, ctx.$renderCtx$.$containerState$);
-    }
+  if (get) {
+    return;
+  }
+  assertQrl(qrl);
+  const el = ctx.$hostElement$;
+  const watch = new Watch(WatchFlagsIsEffect, i, el, qrl, undefined);
+  const eagerness = opts?.eagerness ?? 'visible';
+  set(true);
+  getContext(el).$watches$.push(watch);
+  useRunWatch(watch, eagerness);
+  if (!isServer(ctx)) {
+    qrl.$resolveLazy$(el);
+    notifyWatch(watch, ctx.$renderCtx$.$containerState$);
   }
 };
 
@@ -450,7 +454,7 @@ export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
   }
 
   if (isServer(ctx)) {
-    ctx.$waitOn$.push(mountQrl());
+    waitAndRun(ctx, mountQrl);
     set(true);
   } else {
     throw qError(QError_canNotMountUseServerMount, ctx.$hostElement$);
@@ -538,7 +542,9 @@ export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
   if (get) {
     return;
   }
-  ctx.$waitOn$.push(mountQrl());
+  assertQrl(mountQrl);
+  mountQrl.$resolveLazy$(ctx.$hostElement$);
+  waitAndRun(ctx, mountQrl);
   set(true);
 };
 

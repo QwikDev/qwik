@@ -20,6 +20,7 @@ import { ResourceApp } from './components/resource/resource';
 import { TreeshakingApp } from './components/treeshaking/treeshaking';
 import { Streaming } from './components/streaming/streaming';
 import { ResourceSerialization } from './components/resource/resource-serialization';
+import { MountRoot } from './components/mount/mount';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -50,6 +51,7 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/resource-serialization': () => <ResourceSerialization />,
     '/e2e/treeshaking': () => <TreeshakingApp />,
     '/e2e/streaming': () => <Streaming />,
+    '/e2e/mount': () => <MountRoot />,
   };
   const Test = tests[url.pathname];
 

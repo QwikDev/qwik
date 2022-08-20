@@ -107,6 +107,11 @@ export const invoke = <ARGS extends any[] = any[], RET = any>(
   return returnValue;
 };
 
+export const waitAndRun = (ctx: Required<InvokeContext>, callback: () => any) => {
+  const previousWait = ctx.$waitOn$.slice();
+  ctx.$waitOn$.push(Promise.allSettled(previousWait).then(callback));
+};
+
 export const newInvokeContext = (
   doc?: Document,
   hostElement?: QwikElement,

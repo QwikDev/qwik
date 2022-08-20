@@ -88,7 +88,6 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
     headNodes: [],
   };
   const beforeContent = opts.beforeContent;
-  const beforeClose = opts.beforeClose;
   if (beforeContent) {
     ssrCtx.headNodes.push(...beforeContent);
   }
@@ -119,12 +118,28 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
       children: [...ssrCtx.headNodes, node],
     });
   }
-  await renderNode(node, ssrCtx, opts.stream, 0, (stream) => {
+  containerState.$hostsRendering$ = new Set();
+  containerState.$renderPromise$ = Promise.resolve().then(() =>
+    renderRoot(node, ssrCtx, opts.stream, containerState, opts)
+  );
+  await containerState.$renderPromise$;
+};
+
+export const renderRoot = async (
+  node: JSXNode<any>,
+  ssrCtx: SSRContext,
+  stream: StreamWriter,
+  containerState: ContainerState,
+  opts: RenderSSROptions
+) => {
+  const beforeClose = opts.beforeClose;
+  await renderNode(node, ssrCtx, stream, 0, (stream) => {
     const result = beforeClose?.(ssrCtx.$contexts$, containerState);
     if (result) {
       return processData(result, ssrCtx, stream, 0, undefined);
     }
   });
+  return ssrCtx.rctx;
 };
 
 export const renderNodeFunction = (

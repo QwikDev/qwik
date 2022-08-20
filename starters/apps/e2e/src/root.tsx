@@ -56,6 +56,9 @@ export const Root = component$(() => {
       <p>
         <a href="/e2e/resource-serialization">Resource serialization</a>
       </p>
+      <p>
+        <a href="/e2e/mount">Mount</a>
+      </p>
     </section>
   );
 });

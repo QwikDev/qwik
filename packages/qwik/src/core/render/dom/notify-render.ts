@@ -48,11 +48,10 @@ export const notifyChange = (subscriber: Subscriber, containerState: ContainerSt
  * @public
  */
 const notifyRender = (hostElement: QwikElement, containerState: ContainerState): void => {
-  if (qDev && !qTest && containerState.$platform$.isServer) {
-    logWarn('Can not rerender in server platform');
-    return undefined;
+  const isServer = qDev && !qTest && containerState.$platform$.isServer;
+  if (!isServer) {
+    resumeIfNeeded(containerState.$containerEl$);
   }
-  resumeIfNeeded(containerState.$containerEl$);
 
   const ctx = getContext(hostElement);
   assertDefined(
@@ -74,6 +73,10 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
     );
     containerState.$hostsStaging$.add(hostElement);
   } else {
+    if (isServer) {
+      logWarn('Can not rerender in server platform');
+      return undefined;
+    }
     containerState.$hostsNext$.add(hostElement);
     scheduleFrame(containerState);
   }

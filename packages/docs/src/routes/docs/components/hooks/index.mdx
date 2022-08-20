@@ -92,6 +92,8 @@ Use `useWatch` to track changes on a set of inputs, and then re-execute the `wat
 
 The `watchFn` only executes if the tracked inputs change. To track the inputs use the `track` function to wrap property reads. This creates subscriptions that will trigger the `watchFn` to re-run.
 
+See also: `useClientEffect$()` that have same semantics but only run on client.
+
 
 ### Example
 
@@ -129,6 +131,12 @@ const Cmp = component$(() => {
 ```
 
 ## useClientEffect$()
+
+Reruns the `watchFn` when the tracked inputs change.
+
+If no `track` being used, it run exactly execute once.
+
+### Example
 
 ```tsx
 const Timer = component$(() => {
@@ -191,7 +199,6 @@ function User(props: {user: User}) {
   )
 }
 ```
-
 
 ## useServerMount$()
 

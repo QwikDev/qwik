@@ -227,7 +227,7 @@ export const renderNodeElement = (
   const textType = node.type;
   const elCtx = getContext(ssrCtx.rctx.$doc$.createElement(node.type));
   const hasRef = 'ref' in props;
-  const attributes = updateProperties(ssrCtx.rctx, elCtx, props);
+  const attributes = updateProperties(elCtx, props);
   const hostCtx = ssrCtx.hostCtx;
   if (hostCtx) {
     attributes['class'] = joinClasses(hostCtx.$scopeIds$, attributes['class']);
@@ -615,11 +615,7 @@ export const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => 
   return children;
 };
 
-const updateProperties = (
-  rctx: RenderContext,
-  ctx: QContext,
-  expectProps: Record<string, any> | null
-) => {
+const updateProperties = (ctx: QContext, expectProps: Record<string, any> | null) => {
   const attributes: Record<string, string> = {};
   if (!expectProps) {
     return attributes;

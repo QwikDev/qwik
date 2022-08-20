@@ -460,10 +460,14 @@ test.describe('e2e', () => {
       const counter = await page.locator('#counter');
       const msg = await page.locator('#msg');
       const msgEager = await page.locator('#eager-msg');
+      const msgClientSide1 = await page.locator('#client-side-msg-1');
+      const msgClientSide2 = await page.locator('#client-side-msg-2');
 
       await expect(counter).toHaveText('0');
       await expect(msg).toHaveText('empty');
       await expect(msgEager).toHaveText('run');
+      await expect(msgClientSide1).toHaveText('run');
+      await expect(msgClientSide2).toHaveText('run');
 
       await counter.scrollIntoViewIfNeeded();
       await page.waitForTimeout(100);

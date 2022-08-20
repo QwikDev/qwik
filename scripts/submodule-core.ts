@@ -83,6 +83,7 @@ async function submoduleCoreProd(config: BuildConfig) {
         // developer production builds could use core.min.js directly, or setup
         // their own build tools to define the globa `qwikDev` to false
         'globalThis.qDev': false,
+        'globalThis.qDynamicPlatform': false,
         'globalThis.describe': false,
         'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       },

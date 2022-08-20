@@ -80,7 +80,7 @@ export const Eager = component$(() => {
   return (
     <div>
       <div id="eager-msg">{state.msg}</div>
-      <ClientSide key={state.msg}/>
+      <ClientSide key={state.msg} />
     </div>
   );
 });
@@ -108,8 +108,8 @@ export const ClientSide = component$(() => {
 
   return (
     <>
-      <div id="client-side-msg">{state.text1}</div>
-      <div id="client-side-msg">{state.text2}</div>
+      <div id="client-side-msg-1">{state.text1}</div>
+      <div id="client-side-msg-2">{state.text2}</div>
     </>
   );
 });

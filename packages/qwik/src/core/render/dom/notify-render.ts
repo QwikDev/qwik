@@ -79,7 +79,7 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
   }
 };
 
-const notifyWatch = (watch: SubscriberDescriptor, containerState: ContainerState) => {
+export const notifyWatch = (watch: SubscriberDescriptor, containerState: ContainerState) => {
   if (watch.$flags$ & WatchFlagsIsDirty) {
     return;
   }

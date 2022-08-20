@@ -25,9 +25,7 @@ import { Streaming } from './components/streaming/streaming';
  *
  * @returns a promise when all of the rendering is completed.
  */
-export default function (opts: RenderToStreamOptions) {
-  const url = new URL(opts.url);
-
+export default function (opts: RenderToStreamOptions, url: URL) {
   const tests: Record<string, FunctionComponent> = {
     '/e2e/': () => <Root />,
     '/e2e/two-listeners': () => <TwoListeners />,

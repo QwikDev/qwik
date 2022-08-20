@@ -324,8 +324,13 @@ export const _pauseFromContexts = async (
       suffix = '%';
     }
     if (isPromise(obj)) {
-      obj = getPromiseValue(obj);
-      suffix += '~';
+      const { value, resolved } = getPromiseValue(obj);
+      obj = value;
+      if (resolved) {
+        suffix += '~';
+      } else {
+        suffix += '_';
+      }
     }
     if (isObject(obj)) {
       const target = getProxyTarget(obj);
@@ -685,6 +690,9 @@ const OBJECT_TRANSFORMS: Record<string, (obj: any, containerState: ContainerStat
   '~': (obj: any) => {
     return Promise.resolve(obj);
   },
+  _: (obj: any) => {
+    return Promise.reject(obj);
+  },
 };
 
 const getObjectImpl = (
@@ -693,6 +701,12 @@ const getObjectImpl = (
   objs: any[],
   containerState: ContainerState
 ) => {
+  assertTrue(
+    typeof id === 'string' && id.length > 0,
+    'resume: id must be an non-empty string, got:',
+    id
+  );
+
   if (id.startsWith(ELEMENT_ID_PREFIX)) {
     assertTrue(elements.has(id), `missing element for id:`, id);
     return elements.get(id);
@@ -795,14 +809,33 @@ const collectSubscriptions = async (target: any, collector: Collector) => {
 };
 
 const PROMISE_VALUE = Symbol();
+
+interface PromiseValue {
+  resolved: boolean;
+  value: any;
+}
 const resolvePromise = (promise: Promise<any>) => {
-  return promise.then((value) => {
-    (promise as any)[PROMISE_VALUE] = value;
-    return value;
-  });
+  return promise.then(
+    (value) => {
+      const v: PromiseValue = {
+        resolved: true,
+        value,
+      };
+      (promise as any)[PROMISE_VALUE] = v;
+      return value;
+    },
+    (value) => {
+      const v: PromiseValue = {
+        resolved: false,
+        value,
+      };
+      (promise as any)[PROMISE_VALUE] = v;
+      return value;
+    }
+  );
 };
 
-const getPromiseValue = (promise: Promise<any>) => {
+const getPromiseValue = (promise: Promise<any>): PromiseValue => {
   assertTrue(PROMISE_VALUE in promise, 'pause: promise was not resolved previously', promise);
   return (promise as any)[PROMISE_VALUE];
 };
@@ -836,8 +869,8 @@ const collectValue = async (obj: any, collector: Collector, leaks: boolean) => {
     if (typeof obj === 'object') {
       // Handle promises
       if (isPromise(obj)) {
-        const resolved = await resolvePromise(obj);
-        await collectValue(resolved, collector, leaks);
+        const value = await resolvePromise(obj);
+        await collectValue(value, collector, leaks);
         return;
       }
 

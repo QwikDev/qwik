@@ -140,6 +140,9 @@ export const stringifyQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
       }
     }
   }
+  if (chunk.startsWith('./')) {
+    chunk = chunk.slice(2);
+  }
   const parts: string[] = [chunk];
   if (symbol && symbol !== 'default') {
     if (chunk === RUNTIME_QRL && qTest) {

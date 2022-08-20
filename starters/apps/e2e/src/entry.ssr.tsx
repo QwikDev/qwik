@@ -19,6 +19,7 @@ import { Weather } from './components/resource/weather';
 import { ResourceApp } from './components/resource/resource';
 import { TreeshakingApp } from './components/treeshaking/treeshaking';
 import { Streaming } from './components/streaming/streaming';
+import { ResourceSerialization } from './components/resource/resource-serialization';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -46,6 +47,7 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/broadcast-events': () => <BroadcastEvents />,
     '/e2e/weather': () => <Weather />,
     '/e2e/resource': () => <ResourceApp />,
+    '/e2e/resource-serialization': () => <ResourceSerialization />,
     '/e2e/treeshaking': () => <TreeshakingApp />,
     '/e2e/streaming': () => <Streaming />,
   };

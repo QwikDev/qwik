@@ -85,7 +85,7 @@ export const initReplServer = (win: Window, doc: Document, nav: Navigator) => {
   const replReady = () => {
     clearTimeout(loadTmr);
 
-    console.debug(`Qwik REPL server "` + clientId + `" ready`);
+    console.debug('Qwik REPL server "%s" ready', clientId);
 
     nav.serviceWorker.addEventListener('message', receiveMessageFromSw);
     win.addEventListener('message', receiveMessageFromUserApp);
@@ -94,10 +94,10 @@ export const initReplServer = (win: Window, doc: Document, nav: Navigator) => {
   };
 
   if (win.parent === win) {
-    console.error(`Qwik REPL server "` + clientId + `" is not an iframe window`);
+    console.error('Qwik REPL server "%s" is not an iframe window', clientId);
   } else {
     loadTmr = setTimeout(() => {
-      console.error(`Qwik REPL server "` + clientId + `" has not initialized`);
+      console.error('Qwik REPL server "%s" has not initialized', clientId);
     }, 15000);
 
     nav.serviceWorker
@@ -108,7 +108,7 @@ export const initReplServer = (win: Window, doc: Document, nav: Navigator) => {
         (reg) => {
           swRegistration = reg;
           if (swRegistration.active) {
-            console.debug(`Qwik REPL server "` + clientId + `" service worker registration active`);
+            console.debug('Qwik REPL server "%s" service worker registration active', clientId);
             replReady();
 
             reg.addEventListener('updatefound', () => {
@@ -130,18 +130,13 @@ export const initReplServer = (win: Window, doc: Document, nav: Navigator) => {
               if (ev?.target?.state == 'activated') {
                 replReady();
               } else {
-                console.debug(
-                  `Qwik REPL server "` + clientId + `" statechange: ${ev?.target?.state}`
-                );
+                console.debug('Qwik REPL server "%s" statechange: %s', clientId, ev?.target?.state);
               }
             });
           }
         },
         (err) => {
-          console.error(
-            `Qwik REPL Server "` + clientId + `" service worker registration failed:`,
-            err
-          );
+          console.error('Qwik REPL Server "%s" service worker registration failed:', clientId, err);
         }
       )
       .catch((e) => console.error(e));

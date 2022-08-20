@@ -43,6 +43,7 @@ export async function renderToStream(
     minimunChunkSize: 1024,
   };
   const containerTagName = opts.containerTagName ?? 'html';
+  const containerAttributes = opts.containerAttributes ?? {};
   const buffer: string[] = [];
   const nativeStream = stream;
   const firstFlushTimer = createTimer();
@@ -127,6 +128,7 @@ export async function renderToStream(
   await renderSSR(doc, rootNode, {
     stream,
     containerTagName,
+    containerAttributes,
     envData: opts.envData,
     url: opts.url instanceof URL ? opts.url.href : opts.url,
     base: buildBase,

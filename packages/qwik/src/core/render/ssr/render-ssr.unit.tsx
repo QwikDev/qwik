@@ -607,7 +607,7 @@ renderSSRSuite('root html component', async () => {
   );
 });
 
-renderSSRSuite('fragment name', async () => {
+renderSSRSuite('containerTagName', async () => {
   await testSSR(
     <>
       <Styles />
@@ -627,6 +627,40 @@ renderSSRSuite('fragment name', async () => {
       containerTagName: 'container',
       base: '/manu/folder',
       beforeContent: [<link rel="stylesheet" href="/global.css" />],
+    }
+  );
+});
+
+renderSSRSuite('containerAttributes', async () => {
+  await testSSR(
+    <>
+      <div></div>
+    </>,
+    `
+    <html prefix="something" q:container="paused" q:version="dev" q:render="ssr">
+     <div></div>
+    </html>
+    `,
+    {
+      containerAttributes: {
+        prefix: 'something',
+      },
+    }
+  );
+  await testSSR(
+    <>
+      <div></div>
+    </>,
+    `
+    <app prefix="something" q:container="paused" q:version="dev" q:render="ssr">
+     <div></div>
+    </app>
+    `,
+    {
+      containerTagName: 'app',
+      containerAttributes: {
+        prefix: 'something',
+      },
     }
   );
 });
@@ -885,6 +919,7 @@ async function testSSR(
   await renderSSR(doc, node, {
     stream,
     containerTagName: 'html',
+    containerAttributes: {},
     ...opts,
   });
   if (typeof expected === 'string') {

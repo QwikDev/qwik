@@ -7,7 +7,6 @@ import { getDocument } from '../../util/dom';
 import { qDev } from '../../util/qdev';
 import { version } from '../../version';
 import { QContainerAttr } from '../../util/markers';
-import { logWarn } from '../../util/log';
 import { appendQwikDevTools } from '../../props/props';
 import { qError, QError_cannotRenderOverExistingContainer } from '../../error/error';
 import { directSetAttribute } from '../fast-calls';
@@ -20,7 +19,6 @@ import { createRenderContext } from '../execute-component';
  * @alpha
  */
 export interface RenderOptions {
-  allowRerender?: boolean;
   envData?: Record<string, any>;
 }
 
@@ -67,22 +65,7 @@ export const render = async (
   );
 
   const renderCtx = await containerState.$renderPromise$;
-  const allowRerender = opts?.allowRerender ?? true;
-  if (allowRerender) {
-    await postRendering(containerState, renderCtx);
-  } else {
-    containerState.$hostsRendering$ = undefined;
-    containerState.$renderPromise$ = undefined;
-
-    const next =
-      containerState.$hostsNext$.size +
-      containerState.$hostsStaging$.size +
-      containerState.$watchNext$.size +
-      containerState.$watchStaging$.size;
-    if (next > 0) {
-      logWarn('State changed and a rerender is required, skipping');
-    }
-  }
+  await postRendering(containerState, renderCtx);
 };
 
 const renderRoot = async (

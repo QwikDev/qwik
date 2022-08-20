@@ -47,6 +47,7 @@ export type StreamWriter = {
  */
 export interface RenderSSROptions {
   containerTagName: string;
+  containerAttributes: Record<string, string>;
   stream: StreamWriter;
   base?: string;
   envData?: Record<string, any>;
@@ -92,6 +93,7 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
     ssrCtx.headNodes.push(...beforeContent);
   }
   const containerAttributes: Record<string, string> = {
+    ...opts.containerAttributes,
     'q:container': 'paused',
     'q:version': version ?? 'dev',
     'q:render': 'ssr',

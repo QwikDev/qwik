@@ -397,8 +397,6 @@ export const render: (parent: Element | Document, jsxNode: JSXNode<unknown> | Fu
 // @alpha (undocumented)
 export interface RenderOptions {
     // (undocumented)
-    allowRerender?: boolean;
-    // (undocumented)
     envData?: Record<string, any>;
 }
 
@@ -413,6 +411,8 @@ export interface RenderSSROptions {
     beforeClose?: (contexts: QContext[], containerState: ContainerState) => Promise<JSXNode>;
     // (undocumented)
     beforeContent?: JSXNode[];
+    // (undocumented)
+    containerAttributes: Record<string, string>;
     // (undocumented)
     containerTagName: string;
     // (undocumented)

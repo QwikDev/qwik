@@ -516,53 +516,74 @@ renderSSRSuite('component useOn()', async () => {
 
 renderSSRSuite('component useStyles()', async () => {
   await testSSR(
-    <Styles />,
+    <>
+      <body>
+        <Styles />
+      </body>
+    </>,
     `<html q:container="paused" q:version="dev" q:render="ssr">
-      <!--qv q:id=0 q:key=sX:-->
-        <style q:style="17nc-0">.host {color: red}</style>
-        <div class="host">
-          Text
-        </div>
-      <!--/qv-->
+      <body>
+        <!--qv q:id=0 q:key=sX:-->
+          <style q:style="17nc-0">.host {color: red}</style>
+          <div class="host">
+            Text
+          </div>
+        <!--/qv-->
+      </body>
     </html>`
   );
 });
 
 renderSSRSuite('component useStylesScoped()', async () => {
   await testSSR(
-    <ScopedStyles1>
-      <div>projected</div>
-    </ScopedStyles1>,
-    `<html q:container="paused" q:version="dev" q:render="ssr">
-      <!--qv q:sstyle=⭐️1d-0 q:id=0 q:key=sX:-->
-      <style q:style="1d-0">.host.⭐️1d-0 {color: red}</style>
-      <div class="⭐️1d-0 host">
-        <div class="⭐️1d-0">
-          Scoped1
-          <!--qv q:sname q:sref=0 q:key-->
+    <>
+      <body>
+        <ScopedStyles1>
+          <div>projected</div>
+        </ScopedStyles1>
+      </body>
+    </>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr">
+      <body>
+        <!--qv q:sstyle=⭐️1d-0 q:id=0 q:key=sX:-->
+        <style q:style="1d-0">
+          .host.⭐️1d-0 {
+            color: red;
+          }
+        </style>
+        <div class="⭐️1d-0 host">
+          <div class="⭐️1d-0">
+            Scoped1
+            <!--qv q:sname q:sref=0 q:key-->
             <div>projected</div>
+            <!--/qv-->
+            <p class="⭐️1d-0">Que tal?</p>
+          </div>
+          <!--qv q:sstyle=⭐️f0gmsw-0 q:id=2 q:key=sX:-->
+          <style q:style="f0gmsw-0">
+            .host.⭐️f0gmsw-0 {
+              color: blue;
+            }
+          </style>
+          <div class="⭐️f0gmsw-0 host">
+            <div class="⭐️f0gmsw-0">
+              Scoped2
+              <p class="⭐️f0gmsw-0">Bien</p>
+            </div>
+          </div>
           <!--/qv-->
-          <p class="⭐️1d-0">Que tal?</p>
-        </div>
-        <!--qv q:sstyle=⭐️f0gmsw-0 q:id=2 q:key=sX:-->
-          <style q:style="f0gmsw-0">.host.⭐️f0gmsw-0 {color: blue}</style>
+          <!--qv q:sstyle=⭐️f0gmsw-0 q:id=1 q:key=sX:-->
           <div class="⭐️f0gmsw-0 host">
             <div class="⭐️f0gmsw-0">
               Scoped2
               <p class="⭐️f0gmsw-0">Bien</p>
             </div>
           </div>
-        <!--/qv-->
-        <!--qv q:sstyle=⭐️f0gmsw-0 q:id=1 q:key=sX:-->
-          <div class="⭐️f0gmsw-0 host">
-            <div class="⭐️f0gmsw-0">
-              Scoped2
-              <p class="⭐️f0gmsw-0">Bien</p>
-            </div>
-          </div>
-        <!--/qv-->
+          <!--/qv-->
         </div>
-      <!--/qv-->
+        <!--/qv-->
+      </body>
     </html>`
   );
 });
@@ -713,6 +734,11 @@ renderSSRSuite('html slot', async () => {
         <meta charset="utf-8" q:head />
         <title q:head>Qwik</title>
         <link rel="stylesheet" href="/global.css" />
+        <style q:style="fio5tb-1">
+          body {
+            background: blue;
+          }
+        </style>
       </head>
       <body>
         <div></div>
@@ -900,6 +926,7 @@ export const HeadCmp = component$(() => {
 
 export const HtmlContext = component$(() => {
   const store = useStore({});
+  useStylesQrl(inlinedQrl(`body {background: blue}`, 'styles_DelayResource'));
   useContextProvider(CTX_INTERNAL, store);
 
   return <Slot />;

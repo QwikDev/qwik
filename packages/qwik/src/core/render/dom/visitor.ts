@@ -886,18 +886,23 @@ export const appendHeadStyle = (
 ) => {
   const fn = () => {
     const containerEl = ctx.$containerEl$;
-    const isDoc = ctx.$doc$.documentElement === containerEl && !!ctx.$doc$.head;
-    const style = ctx.$doc$.createElement('style');
+    const doc = ctx.$doc$;
+    const isDoc = doc.documentElement === containerEl;
+    const headEl = doc.head;
+    const style = doc.createElement('style');
+    if (isDoc && !headEl) {
+      logWarn('document.head is undefined');
+    }
     directSetAttribute(style, QStyle, styleTask.styleId);
     style.textContent = styleTask.content;
-    if (isDoc) {
-      directAppendChild(ctx.$doc$.head, style);
+    if (isDoc && headEl) {
+      directAppendChild(headEl, style);
     } else {
       directInsertBefore(containerEl, style, containerEl.firstChild);
     }
   };
   ctx.$containerState$.$styleIds$.add(styleTask.styleId);
-  ctx.$operations$.push({
+  ctx.$postOperations$.push({
     $el$: hostElement,
     $operation$: 'append-style',
     $args$: [styleTask],
@@ -962,7 +967,7 @@ const createTextNode = (ctx: RenderContext, text: string): Text => {
 export const executeContextWithSlots = (ctx: RenderContext) => {
   const before = ctx.$roots$.map((elm) => getSlots(null, elm));
 
-  executeContext(ctx);
+  executeDOMRender(ctx);
 
   const after = ctx.$roots$.map((elm) => getSlots(null, elm));
   assertEqual(
@@ -978,7 +983,7 @@ export const executeContextWithSlots = (ctx: RenderContext) => {
   }
 };
 
-export const executeContext = (ctx: RenderContext) => {
+export const executeDOMRender = (ctx: RenderContext) => {
   for (const op of ctx.$operations$) {
     op.$fn$();
   }

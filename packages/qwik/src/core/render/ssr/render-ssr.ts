@@ -23,7 +23,7 @@ import {
   QStyle,
 } from '../../util/markers';
 import { SSRComment, Virtual } from '../jsx/host.public';
-import { logWarn } from '../../util/log';
+import { logError, logWarn } from '../../util/log';
 import { addQRLListener, isOnProp } from '../../props/props-on';
 import { version } from '../../version';
 import { fromCamelToKebabCase } from '../../util/case';
@@ -34,6 +34,7 @@ import { assertDefined } from '../../assert/assert';
 import { serializeSStyle, styleHost } from '../../component/qrl-styles';
 import type { Ref } from '../../use/use-ref';
 import { serializeVirtualAttributes } from '../dom/virtual-element';
+import { qDev } from '../../util/qdev';
 
 /**
  * @alpha
@@ -66,9 +67,9 @@ export interface SSRContext {
   headNodes: JSXNode[];
 }
 
-const IS_HOST = 1 << 0;
-const IS_HEAD = 1 << 1;
-const IS_RAW_CONTENT = 1 << 2;
+const IS_HEAD = 1 << 0;
+const IS_RAW_CONTENT = 1 << 1;
+const IS_HTML = 1 << 2;
 
 /**
  * @alpha
@@ -78,6 +79,7 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
   const containerEl = doc.createElement(root);
   const containerState = getContainerState(containerEl);
   const rctx = createRenderContext(doc, containerState);
+  const headNodes = opts.beforeContent ?? [];
   const ssrCtx: SSRContext = {
     rctx,
     $contexts$: [],
@@ -85,12 +87,9 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
     projectedContext: undefined,
     hostCtx: undefined,
     invocationContext: undefined,
-    headNodes: [],
+    headNodes: root === 'html' ? headNodes : [],
   };
-  const beforeContent = opts.beforeContent;
-  if (beforeContent) {
-    ssrCtx.headNodes.push(...beforeContent);
-  }
+
   const containerAttributes: Record<string, string> = {
     ...opts.containerAttributes,
     'q:container': 'paused',
@@ -115,7 +114,7 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
   } else {
     node = jsx(root, {
       ...containerAttributes,
-      children: [...ssrCtx.headNodes, node],
+      children: [...(headNodes ?? []), node],
     });
   }
   containerState.$hostsRendering$ = new Set();
@@ -126,7 +125,7 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
 };
 
 export const renderRoot = async (
-  node: JSXNode<any>,
+  node: JSXNode<string>,
   ssrCtx: SSRContext,
   stream: StreamWriter,
   containerState: ContainerState,
@@ -139,6 +138,14 @@ export const renderRoot = async (
       return processData(result, ssrCtx, stream, 0, undefined);
     }
   });
+  if (qDev) {
+    if (ssrCtx.headNodes.length > 0) {
+      logError(
+        'Missing <head>. Global styles could not be rendered. Please render a <head> element at the root of the app'
+      );
+      throw new Error('dfd');
+    }
+  }
   return ssrCtx.rctx;
 };
 
@@ -286,9 +293,13 @@ export const renderNodeElement = (
   if (renderNodeElementSync(textType, attributes, stream)) {
     return;
   }
-
   if (textType !== 'head') {
     flags &= ~IS_HEAD;
+  }
+  if (textType === 'html') {
+    flags |= IS_HTML;
+  } else {
+    flags &= ~IS_HTML;
   }
   if (hasRawContent[textType]) {
     flags |= IS_RAW_CONTENT;
@@ -308,6 +319,7 @@ export const renderNodeElement = (
       ssrCtx.headNodes.forEach((node) => {
         renderNodeElementSync(node.type, node.props, stream);
       });
+      ssrCtx.headNodes.length = 0;
     }
     // Fast path
     if (!beforeClose) {
@@ -388,7 +400,7 @@ export const renderSSRComponent = (
   );
   return then(executeComponent(ssrCtx.rctx, elCtx), (res) => {
     if (!res) {
-      console.error('not rendered');
+      logError('component was not rendered during SSR');
       return;
     }
 
@@ -419,11 +431,13 @@ export const renderSSRComponent = (
       invocationContext,
     };
 
-    const extraNodes = [];
+    const extraNodes: JSXNode<any>[] = [];
     const styleClasses = [];
     if (elCtx.$appendStyles$) {
+      const isHTML = !!(flags & IS_HTML);
+      const array = isHTML ? ssrCtx.headNodes : extraNodes;
       for (const style of elCtx.$appendStyles$) {
-        extraNodes!.push(
+        array.push(
           jsx('style', {
             [QStyle]: style.styleId,
             dangerouslySetInnerHTML: style.content,
@@ -454,7 +468,6 @@ export const renderSSRComponent = (
       node.key
     );
 
-    flags |= IS_HOST;
     newSSrContext.hostCtx = elCtx;
 
     return renderNodeVirtual(

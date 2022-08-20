@@ -1,10 +1,10 @@
-import { partytownSnippet } from '@builder.io/partytown/integration';
+// import { partytownSnippet } from '@builder.io/partytown/integration';
 
 export const Vendor = () => {
   return (
     <>
       {/*  Analytics  */}
-      <script
+      {/* <script
         dangerouslySetInnerHTML={partytownSnippet({
           forward: ['dataLayer.push'],
         })}
@@ -23,7 +23,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         src="https://cdn.jsdelivr.net/npm/@builder.io/persist-attribution@0.0.1-beta-2/dist/persist-attribution.min.js"
         id="persist-attribution-init"
         data-send-page-view-events="true"
-      />
+      /> */}
 
       {/*  DNS Prefetch  */}
       <link rel="dns-prefetch" href="https://cdn.jsdelivr.net/" />

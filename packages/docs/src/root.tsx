@@ -1,13 +1,28 @@
-import { Html } from '@builder.io/qwik-city';
+import { component$, useContextProvider, useStore } from '@builder.io/qwik';
+import { QwikCity, RouterOutlet } from '@builder.io/qwik-city';
 import { Head } from './components/head/head';
-import { Body } from './components/body/body';
+import { GlobalStore, SiteStore } from './context';
 import './global.css';
 
-export default function Root() {
+export default component$(() => {
+  const store = useStore<SiteStore>({
+    headerMenuOpen: false,
+    sideMenuOpen: false,
+  });
+
+  useContextProvider(GlobalStore, store);
+
   return (
-    <Html>
+    <QwikCity>
       <Head />
-      <Body />
-    </Html>
+      <body
+        class={{
+          'header-open': store.headerMenuOpen,
+          'menu-open': store.sideMenuOpen,
+        }}
+      >
+        <RouterOutlet />
+      </body>
+    </QwikCity>
   );
-}
+});

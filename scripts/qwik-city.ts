@@ -61,7 +61,15 @@ export async function buildQwikCity(config: BuildConfig) {
     publishConfig: {
       access: 'public',
     },
-    files: ['index.d.ts', 'index.qwik.mjs', 'index.qwik.cjs', 'modules.d.ts', 'middleware', 'vite'],
+    files: [
+      'index.d.ts',
+      'index.qwik.mjs',
+      'index.qwik.cjs',
+      'modules.d.ts',
+      'middleware',
+      'static',
+      'vite',
+    ],
     devDependencies: undefined,
     scripts: undefined,
   };

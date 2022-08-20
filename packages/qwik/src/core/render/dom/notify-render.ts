@@ -151,6 +151,9 @@ const renderMarked = async (containerState: ContainerState): Promise<RenderConte
     }
   }
 
+  // Add post operations
+  ctx.$operations$.push(...ctx.$postOperations$);
+
   // Early exist, no dom operations
   if (ctx.$operations$.length === 0) {
     printRenderStats(ctx);

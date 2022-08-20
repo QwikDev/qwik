@@ -1,5 +1,5 @@
 import { isDocument } from '../../util/element';
-import { executeContext, printRenderStats } from './visitor';
+import { executeDOMRender, printRenderStats } from './visitor';
 import { isJSXNode, jsx } from '../jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from '../jsx/types/jsx-node';
 import { visitJsxNode } from './visitor';
@@ -81,7 +81,8 @@ const renderRoot = async (
   const processedNodes = await processData(jsxNode);
   await visitJsxNode(ctx, parent as Element, processedNodes, 0);
 
-  executeContext(ctx);
+  ctx.$operations$.push(...ctx.$postOperations$);
+  executeDOMRender(ctx);
 
   if (qDev) {
     appendQwikDevTools(containerEl);

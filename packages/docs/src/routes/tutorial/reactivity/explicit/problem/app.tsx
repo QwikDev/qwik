@@ -11,7 +11,7 @@ export const App = component$(() => {
     delayCount: 0,
   });
   console.log('Render: <App>');
-  useWatch$((track) => {
+  useWatch$(({ track }) => {
     // tracking `store.count`
     // setup a timer to copy `count => delayCount` after 2 seconds.
     return () => {

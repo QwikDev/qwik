@@ -80,7 +80,7 @@ export const ResourceApp = component$(() => {
 
   return (
     <div>
-      <button type="button" onClick$={() => state.count++}>
+      <button type="button" class="increment" onClick$={() => state.count++}>
         Increment
       </button>
       <Results result={resource} />
@@ -96,6 +96,9 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
   const logs = useContext(LOGS);
   logs.content += '[RENDER] <Results>\n\n\n';
 
+  const state = useStore({
+    count: 0,
+  });
   return (
     <div>
       <Resource
@@ -103,7 +106,14 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
         onPending={() => <div class="resource1">loading resource 1...</div>}
         onRejected={(reason) => <div class="resource1">error {reason}</div>}
         onResolved={(number) => {
-          return <div class="resource1">resource 1 is {number}</div>;
+          return (
+            <>
+              <div class="resource1">resource 1 is {number}</div>
+              <button class="count" onClick$={() => state.count++}>
+                count is {state.count}
+              </button>
+            </>
+          );
         }}
       />
 

@@ -2,7 +2,7 @@ import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { verifySerializable } from '../object/q-object';
 import { getPlatform } from '../platform/platform';
 import type { QwikElement } from '../render/dom/virtual-element';
-import { InvokeContext, newInvokeContext, useInvoke } from '../use/use-core';
+import { InvokeContext, newInvokeContext, invoke } from '../use/use-core';
 import { then } from '../util/promises';
 import { qDev } from '../util/qdev';
 import { isFunction, ValueOrPromise } from '../util/types';
@@ -93,20 +93,20 @@ export const createQRL = <TYPE>(
           if (beforeFn) {
             beforeFn();
           }
-          return useInvoke(context, fn as any, ...args);
+          return invoke(context, fn as any, ...args);
         }
         throw qError(QError_qrlIsNotFunction);
       });
     }) as any;
   };
 
-  const invoke = async function (...args: any) {
+  const invokeQRL = async function (...args: any) {
     const fn = invokeFn();
     const result = await fn(...args);
     return result;
   };
 
-  const QRL: QRLInternal<TYPE> = invoke as any;
+  const QRL: QRLInternal<TYPE> = invokeQRL as any;
   const methods: QRLInternalMethods<TYPE> = {
     getSymbol: () => refSymbol ?? symbol,
     getHash: () => getSymbolHash(refSymbol ?? symbol),
@@ -128,7 +128,7 @@ export const createQRL = <TYPE>(
       return stringifyQRL(QRL, options);
     },
   };
-  const qrl = Object.assign(invoke, methods);
+  const qrl = Object.assign(invokeQRL, methods);
   return qrl as any;
 };
 

@@ -13,8 +13,10 @@ export interface BuildContext {
   isDevServerClientOnly: boolean;
 }
 
+export type Yaml = string | number | boolean | null | { [attrName: string]: Yaml } | Yaml[];
+
 export interface FrontmatterAttrs {
-  [attrName: string]: any;
+  [attrName: string]: Yaml;
 }
 
 export interface Diagnostic {

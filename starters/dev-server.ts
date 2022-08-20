@@ -56,8 +56,10 @@ async function handleApp(req: Request, res: Response) {
     res.end();
   } catch (e: any) {
     console.error(e);
-    res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.send(`❌ ${e.stack || e}`);
+    if (!res.headersSent) {
+      res.set('Content-Type', 'text/plain; charset=utf-8');
+      res.send(`❌ ${e.stack || e}`);
+    }
   }
 }
 

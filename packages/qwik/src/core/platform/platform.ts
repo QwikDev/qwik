@@ -1,6 +1,7 @@
 import type { QwikElement } from '../render/dom/virtual-element';
-import { getContainer } from '../use/use-core';
+import { getContainer, InvokeContext } from '../use/use-core';
 import { getDocument } from '../util/dom';
+import { qDynamicPlatform } from '../util/qdev';
 import { isObject } from '../util/types';
 import type { CorePlatform } from './types';
 
@@ -108,8 +109,13 @@ export const getPlatform = (docOrNode: Document | QwikElement) => {
   return doc[DocumentPlatform] || (doc[DocumentPlatform] = createPlatform(doc));
 };
 
-export const isServer = (doc: Document) => {
-  return getPlatform(doc).isServer;
+export const isServer = (ctx: InvokeContext) => {
+  if (qDynamicPlatform) {
+    return (
+      ctx.$renderCtx$?.$containerState$.$platform$.isServer ?? getPlatform(ctx.$doc$!).isServer
+    );
+  }
+  return false;
 };
 
 const DocumentPlatform = ':platform:';

@@ -1,6 +1,6 @@
 import { getProxyTarget, noSerialize, NoSerialize, unwrapProxy } from '../object/q-object';
 import { getContext } from '../props/props';
-import { newInvokeContext, useInvoke } from './use-core';
+import { newInvokeContext, invoke, waitAndRun } from './use-core';
 import { logError, logErrorAndStop } from '../util/log';
 import { delay, safeCall, then } from '../util/promises';
 import { getDocument } from '../util/dom';
@@ -19,7 +19,7 @@ import {
 import { useOn } from './use-on';
 import { GetObjID, intToStr, strToInt } from '../object/store';
 import type { ContainerState } from '../render/container';
-import { _hW } from '../render/dom/notify-render';
+import { notifyWatch, _hW } from '../render/dom/notify-render';
 import { useSequentialScope } from './use-sequential-scope';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
 
@@ -144,7 +144,7 @@ export interface ResourceRejected<T> {
 
   promise: Promise<T>;
   resolved: undefined;
-  error: NoSerialize<any>;
+  error: any;
   timeout?: number;
 }
 
@@ -251,19 +251,20 @@ export interface UseWatchOptions {
 // </docs>
 export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => {
   const { get, set, ctx, i } = useSequentialScope<boolean>();
-  if (!get) {
-    assertQrl(qrl);
-    const el = ctx.$hostElement$;
-    const containerState = ctx.$renderCtx$.$containerState$;
-    const watch = new Watch(WatchFlagsIsDirty | WatchFlagsIsWatch, i, el, qrl, undefined);
-    set(true);
-    getContext(el).$watches$.push(watch);
-    const previousWait = ctx.$waitOn$.slice();
-    ctx.$waitOn$.push(Promise.all(previousWait).then(() => runSubscriber(watch, containerState)));
-    const isServer = containerState.$platform$.isServer;
-    if (isServer) {
-      useRunWatch(watch, opts?.eagerness);
-    }
+  if (get) {
+    return;
+  }
+  assertQrl(qrl);
+
+  const el = ctx.$hostElement$;
+  const containerState = ctx.$renderCtx$.$containerState$;
+  const watch = new Watch(WatchFlagsIsDirty | WatchFlagsIsWatch, i, el, qrl, undefined);
+  set(true);
+  qrl.$resolveLazy$(el);
+  getContext(el).$watches$.push(watch);
+  waitAndRun(ctx, () => runSubscriber(watch, containerState));
+  if (isServer(ctx)) {
+    useRunWatch(watch, opts?.eagerness);
   }
 };
 
@@ -360,17 +361,19 @@ export const useWatch$ = /*#__PURE__*/ implicit$FirstArg(useWatchQrl);
 // </docs>
 export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void => {
   const { get, set, i, ctx } = useSequentialScope<boolean>();
-  if (!get) {
-    assertQrl(qrl);
-    const el = ctx.$hostElement$;
-    const watch = new Watch(WatchFlagsIsEffect, i, el, qrl, undefined);
-    set(true);
-    getContext(el).$watches$.push(watch);
-    useRunWatch(watch, opts?.eagerness ?? 'visible');
-    const doc = ctx.$doc$ as any;
-    if (doc['qO']) {
-      doc['qO'].observe(el);
-    }
+  if (get) {
+    return;
+  }
+  assertQrl(qrl);
+  const el = ctx.$hostElement$;
+  const watch = new Watch(WatchFlagsIsEffect, i, el, qrl, undefined);
+  const eagerness = opts?.eagerness ?? 'visible';
+  set(true);
+  getContext(el).$watches$.push(watch);
+  useRunWatch(watch, eagerness);
+  if (!isServer(ctx)) {
+    qrl.$resolveLazy$(el);
+    notifyWatch(watch, ctx.$renderCtx$.$containerState$);
   }
 };
 
@@ -449,8 +452,9 @@ export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
   if (get) {
     return;
   }
-  if (isServer(ctx.$doc$)) {
-    ctx.$waitOn$.push(mountQrl());
+
+  if (isServer(ctx)) {
+    waitAndRun(ctx, mountQrl);
     set(true);
   } else {
     throw qError(QError_canNotMountUseServerMount, ctx.$hostElement$);
@@ -538,7 +542,9 @@ export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
   if (get) {
     return;
   }
-  ctx.$waitOn$.push(mountQrl());
+  assertQrl(mountQrl);
+  mountQrl.$resolveLazy$(ctx.$hostElement$);
+  waitAndRun(ctx, mountQrl);
   set(true);
 };
 
@@ -650,9 +656,31 @@ export const runResource = <T>(
 
   let resolve: (v: T) => void;
   let reject: (v: any) => void;
+  let done = false;
+
+  const setState = (resolved: boolean, value: any) => {
+    if (!done) {
+      done = true;
+      if (resolved) {
+        done = true;
+        resource.state = 'resolved';
+        resource.resolved = value;
+        resource.error = undefined;
+        resolve(value);
+      } else {
+        done = true;
+        resource.state = 'rejected';
+        resource.resolved = undefined;
+        resource.error = value;
+        reject(value);
+      }
+      return true;
+    }
+    return false;
+  };
 
   // Execute mutation inside empty invokation
-  useInvoke(invokationContext, () => {
+  invoke(invokationContext, () => {
     resource.state = 'pending';
     resource.resolved = undefined as any;
     resource.promise = new Promise((r, re) => {
@@ -663,31 +691,15 @@ export const runResource = <T>(
 
   watch.$destroy$ = noSerialize(() => {
     cleanups.forEach((fn) => fn());
-    reject('cancelled');
   });
 
-  let done = false;
   const promise = safeCall(
     () => then(waitOn, () => watchFn(opts)),
     (value) => {
-      if (!done) {
-        done = true;
-        resource.state = 'resolved';
-        resource.resolved = value;
-        resource.error = undefined;
-        resolve(value);
-      }
-      return;
+      setState(true, value);
     },
     (reason) => {
-      if (!done) {
-        done = true;
-        resource.state = 'rejected';
-        resource.resolved = undefined as any;
-        resource.error = noSerialize(reason);
-        reject(reason);
-      }
-      return;
+      setState(false, reason);
     }
   );
 
@@ -696,13 +708,8 @@ export const runResource = <T>(
     return Promise.race([
       promise,
       delay(timeout).then(() => {
-        if (!done) {
-          done = true;
-          resource.state = 'rejected';
-          resource.resolved = undefined as any;
-          resource.error = 'timeout';
+        if (setState(false, 'timeout')) {
           cleanupWatch(watch);
-          reject('timeout');
         }
       }),
     ]);

@@ -1,5 +1,5 @@
 import { isNotNullable, isPromise, then } from '../../util/promises';
-import { InvokeContext, newInvokeContext, useInvoke } from '../../use/use-core';
+import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
 import { isJSXNode, jsx } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, ValueOrPromise } from '../../util/types';
 import { getContext, getPropsMutator, normalizeOnProp, QContext } from '../../props/props';
@@ -47,6 +47,7 @@ export type StreamWriter = {
  */
 export interface RenderSSROptions {
   containerTagName: string;
+  containerAttributes: Record<string, string>;
   stream: StreamWriter;
   base?: string;
   envData?: Record<string, any>;
@@ -87,11 +88,11 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
     headNodes: [],
   };
   const beforeContent = opts.beforeContent;
-  const beforeClose = opts.beforeClose;
   if (beforeContent) {
     ssrCtx.headNodes.push(...beforeContent);
   }
   const containerAttributes: Record<string, string> = {
+    ...opts.containerAttributes,
     'q:container': 'paused',
     'q:version': version ?? 'dev',
     'q:render': 'ssr',
@@ -117,12 +118,28 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
       children: [...ssrCtx.headNodes, node],
     });
   }
-  await renderNode(node, ssrCtx, opts.stream, 0, (stream) => {
+  containerState.$hostsRendering$ = new Set();
+  containerState.$renderPromise$ = Promise.resolve().then(() =>
+    renderRoot(node, ssrCtx, opts.stream, containerState, opts)
+  );
+  await containerState.$renderPromise$;
+};
+
+export const renderRoot = async (
+  node: JSXNode<any>,
+  ssrCtx: SSRContext,
+  stream: StreamWriter,
+  containerState: ContainerState,
+  opts: RenderSSROptions
+) => {
+  const beforeClose = opts.beforeClose;
+  await renderNode(node, ssrCtx, stream, 0, (stream) => {
     const result = beforeClose?.(ssrCtx.$contexts$, containerState);
     if (result) {
       return processData(result, ssrCtx, stream, 0, undefined);
     }
   });
+  return ssrCtx.rctx;
 };
 
 export const renderNodeFunction = (
@@ -141,7 +158,7 @@ export const renderNodeFunction = (
     return renderNodeVirtual(node, elCtx, undefined, ssrCtx, stream, flags, beforeClose);
   }
   const res = ssrCtx.invocationContext
-    ? useInvoke(ssrCtx.invocationContext, () => node.type(node.props, node.key))
+    ? invoke(ssrCtx.invocationContext, () => node.type(node.props, node.key))
     : node.type(node.props, node.key);
   return processData(res, ssrCtx, stream, flags, beforeClose);
 };
@@ -225,7 +242,7 @@ export const renderNodeElement = (
   const textType = node.type;
   const elCtx = getContext(ssrCtx.rctx.$doc$.createElement(node.type));
   const hasRef = 'ref' in props;
-  const attributes = updateProperties(ssrCtx.rctx, elCtx, props);
+  const attributes = updateProperties(elCtx, props);
   const hostCtx = ssrCtx.hostCtx;
   if (hostCtx) {
     attributes['class'] = joinClasses(hostCtx.$scopeIds$, attributes['class']);
@@ -606,18 +623,14 @@ export const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => 
   ) {
     const fn = children.type;
     const res = ssrCtx.invocationContext
-      ? useInvoke(ssrCtx.invocationContext, () => fn(children.props, children.key))
+      ? invoke(ssrCtx.invocationContext, () => fn(children.props, children.key))
       : fn(children.props, children.key);
     return flatVirtualChildren(res, ssrCtx);
   }
   return children;
 };
 
-const updateProperties = (
-  rctx: RenderContext,
-  ctx: QContext,
-  expectProps: Record<string, any> | null
-) => {
+const updateProperties = (ctx: QContext, expectProps: Record<string, any> | null) => {
   const attributes: Record<string, string> = {};
   if (!expectProps) {
     return attributes;

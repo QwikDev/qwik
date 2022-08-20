@@ -119,7 +119,9 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
     });
   }
   containerState.$hostsRendering$ = new Set();
-  containerState.$renderPromise$ = renderRoot(node, ssrCtx, opts.stream, containerState, opts);
+  containerState.$renderPromise$ = Promise.resolve().then(() =>
+    renderRoot(node, ssrCtx, opts.stream, containerState, opts)
+  );
   await containerState.$renderPromise$;
 };
 

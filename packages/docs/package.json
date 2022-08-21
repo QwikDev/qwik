@@ -22,7 +22,9 @@
     "@builder.io/qwik": "0.0.100-dev20220820024200",
     "@builder.io/qwik-city": "0.0.101-3",
     "@cloudflare/kv-asset-handler": "0.2.0",
+    "@docsearch/css": "^3.2.0",
     "autoprefixer": "10.4.7",
+    "docsearch-qwik": "0.0.3",
     "fflate": "^0.7.3",
     "node-fetch": "3.2.9",
     "postcss": "8.4.14",
@@ -42,9 +44,5 @@
     "node": ">=16"
   },
   "license": "MIT",
-  "private": true,
-  "dependencies": {
-    "@docsearch/css": "^3.2.0",
-    "docsearch-qwik": "0.0.1"
-  }
+  "private": true
 }

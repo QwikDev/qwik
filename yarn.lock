@@ -3275,14 +3275,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"docsearch-qwik@npm:0.0.1":
-  version: 0.0.1
-  resolution: "docsearch-qwik@npm:0.0.1"
+"docsearch-qwik@npm:0.0.3":
+  version: 0.0.3
+  resolution: "docsearch-qwik@npm:0.0.3"
   dependencies:
     "@algolia/autocomplete-core": ^1.7.1
     "@algolia/client-search": ^4.14.2
     algoliasearch: ^4.14.2
-  checksum: 93399e1381690d450d2f305ddd7f94ac9556d6265847179e9dd0911cc7aaffde9888e43fef5bb1b55caf2fbf839c84fbdcda9751882f184142dce5268f4309c2
+  checksum: e309a19a61bce1d57ff78f72b349b463e71f5abc900cbb6e4f425938f182c2fe9d16f06096566e8ddcc35a3348b6b0f6ada0faace89e0e4d03b0b85abc240643
   languageName: node
   linkType: hard
 
@@ -7574,7 +7574,7 @@ __metadata:
     "@cloudflare/kv-asset-handler": 0.2.0
     "@docsearch/css": ^3.2.0
     autoprefixer: 10.4.7
-    docsearch-qwik: 0.0.1
+    docsearch-qwik: 0.0.3
     fflate: ^0.7.3
     node-fetch: 3.2.9
     postcss: 8.4.14

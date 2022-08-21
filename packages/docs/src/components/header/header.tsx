@@ -1,5 +1,6 @@
 import { useLocation } from '@builder.io/qwik-city';
 import { component$, $, useStyles$, useContext } from '@builder.io/qwik';
+// @ts-ignore
 import { DocSearch } from 'docsearch-qwik';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';

@@ -1,9 +1,7 @@
 import { useResource$ } from '@builder.io/qwik';
 import { useLocation, useQwikCityEnv } from './use-functions';
 import { isServer } from '@builder.io/qwik/build';
-import type { RequestHandler } from './types';
-
-type GetEndpointData<T> = T extends RequestHandler<infer U> ? U : T;
+import type { GetEndpointData } from './types';
 
 /**
  * @alpha

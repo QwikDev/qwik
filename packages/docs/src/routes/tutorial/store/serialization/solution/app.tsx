@@ -27,7 +27,7 @@ export const App = component$(() => {
       <ul>
         {parentStore.children.map((child) => (
           <li>
-            {child.name} -&lt; {child.parent.name}
+            {child.name} &lt; {child.parent.name}
           </li>
         ))}
       </ul>

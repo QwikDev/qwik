@@ -6,4 +6,6 @@ Stores must always be serializable, however sometimes you may to want persist a 
 
 When the application is paused, non-serializable properties are discarded.
 
-> **Your task**: Add a cleanup function in `store.cleanup` so that the `stop` button can clear the interval.
+> **Your task**: Add a cleanup function in `store.cleanup` so that the `stop` button can clear the interval with `clearInterval()`.
+> for that, add `noSerialize` import from '@builder.io/qwik' and use `noSerialize` function to wrap clearInterval function;
+`

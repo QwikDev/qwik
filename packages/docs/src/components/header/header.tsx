@@ -39,27 +39,27 @@ export const Header = component$(() => {
         </button>
         <ul className="md:grow md:flex md:justify-end md:p-4 menu-toolkit">
           <li>
-            <a href="/docs/overview" onClick$={closeMenu}>
+            <a href="/docs/overview/" onClick$={closeMenu}>
               <span>Docs</span>
             </a>
           </li>
           <li>
-            <a href="/qwikcity/overview" onClick$={closeMenu}>
+            <a href="/qwikcity/overview/" onClick$={closeMenu}>
               <span>Qwik City</span>
             </a>
           </li>
           <li>
-            <a href="/examples/introduction/hello-world" onClick$={closeMenu}>
+            <a href="/examples/introduction/hello-world/" onClick$={closeMenu}>
               <span>Examples</span>
             </a>
           </li>
           <li>
-            <a href="/tutorial/welcome/overview" onClick$={closeMenu}>
+            <a href="/tutorial/welcome/overview/" onClick$={closeMenu}>
               <span>Tutorial</span>
             </a>
           </li>
           <li>
-            <a href="/playground" onClick$={closeMenu}>
+            <a href="/playground/" onClick$={closeMenu}>
               <span>Playground</span>
             </a>
           </li>

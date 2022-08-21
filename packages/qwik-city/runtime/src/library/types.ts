@@ -17,6 +17,7 @@ export interface PageModule extends RouteModule {
   readonly default: any;
   readonly head?: ContentModuleHead;
   readonly headings?: ContentHeading[];
+  readonly onStaticGenerate?: StaticGenerateHandler;
 }
 
 export interface LayoutModule extends RouteModule {
@@ -170,7 +171,8 @@ export type MenuModuleLoader = () => Promise<MenuModule>;
  */
 export type RouteData =
   | [pattern: RegExp, loaders: ModuleLoader[]]
-  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]];
+  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]]
+  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[], originalPathname: string];
 
 export type FallbackRouteData =
   | [pattern: RegExp, loaders: ModuleLoader[]]
@@ -302,6 +304,15 @@ export type RequestHandlerResult<BODY> =
 export interface EndpointResponse {
   body: any;
   status: number;
+}
+
+/**
+ * @alpha
+ */
+export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
+
+export interface StaticGenerate {
+  params?: RouteParams[];
 }
 
 export interface QwikCityRenderDocument extends Document {}

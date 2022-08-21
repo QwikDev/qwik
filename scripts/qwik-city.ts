@@ -21,6 +21,7 @@ export async function buildQwikCity(config: BuildConfig) {
     buildCloudflarePages(config, inputDir, outputDir),
     buildExpress(config, inputDir, outputDir),
     buildNetlifyEdge(config, inputDir, outputDir),
+    buildStaticNode(config, inputDir, outputDir),
   ]);
 
   await buildRuntime(inputDir);
@@ -47,6 +48,10 @@ export async function buildQwikCity(config: BuildConfig) {
       './middleware/netlify-edge': {
         import: './middleware/netlify-edge/index.mjs',
       },
+      './static/node': {
+        import: './static/node/index.mjs',
+        require: './static/node/index.cjs',
+      },
       './vite': {
         import: './vite/index.mjs',
         require: './vite/index.cjs',
@@ -56,7 +61,15 @@ export async function buildQwikCity(config: BuildConfig) {
     publishConfig: {
       access: 'public',
     },
-    files: ['index.d.ts', 'index.qwik.mjs', 'index.qwik.cjs', 'modules.d.ts', 'middleware', 'vite'],
+    files: [
+      'index.d.ts',
+      'index.qwik.mjs',
+      'index.qwik.cjs',
+      'modules.d.ts',
+      'middleware',
+      'static',
+      'vite',
+    ],
     devDependencies: undefined,
     scripts: undefined,
   };
@@ -166,6 +179,34 @@ async function buildNetlifyEdge(config: BuildConfig, inputDir: string, outputDir
     format: 'esm',
     watch: watcher(config),
     external,
+  });
+}
+
+async function buildStaticNode(config: BuildConfig, inputDir: string, outputDir: string) {
+  const entryPoints = [join(inputDir, 'static', 'node', 'index.ts')];
+
+  const external = ['fs', 'os', 'path', 'url', 'node-fetch', '@qwik-city-plan'];
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'static', 'node', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    external,
+    watch: watcher(config),
+  });
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'static', 'node', 'index.cjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'cjs',
+    external,
+    watch: watcher(config),
   });
 }
 

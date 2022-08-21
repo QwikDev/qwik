@@ -130,7 +130,6 @@ export async function renderToStream(
     containerTagName,
     containerAttributes,
     envData: opts.envData,
-    url: opts.url instanceof URL ? opts.url.href : opts.url,
     base: buildBase,
     beforeContent,
     beforeClose: async (contexts, containerState) => {

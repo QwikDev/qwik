@@ -9,7 +9,7 @@ export function pageHandler<T = any>(
   opts?: QwikCityRequestOptions
 ): Promise<T> {
   const { status, headers } = userResponse;
-  const { response, url } = requestCtx;
+  const { response } = requestCtx;
 
   if (!headers.has('Content-Type')) {
     // default to text/html if Content-Type wasn't provided
@@ -20,7 +20,6 @@ export function pageHandler<T = any>(
     // begin http streaming the page content as it's rendering html
     const result = await render({
       stream,
-      url: url.href,
       envData: getQwikCityEnvData(userResponse),
       ...opts,
     });

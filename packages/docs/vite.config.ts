@@ -4,7 +4,6 @@ import { resolve } from 'path';
 import { qwikCity } from '@builder.io/qwik-city/vite';
 import { partytownVite } from '@builder.io/partytown/utils';
 import { examplesData, playgroundData, tutorialData } from './vite.repl-apps';
-import { replServiceWorker } from './vite.repl-worker';
 
 export default defineConfig(() => {
   const routesDir = resolve('src', 'routes');
@@ -12,13 +11,14 @@ export default defineConfig(() => {
   return {
     ssr: {
       // SSR builds for the edge should use the "webworker" target
-      target: 'webworker',
-
-      // No external imports in ssr module, instead bundle into one file
-      noExternal: true,
+      // SSG builds should use "node"
+      target: 'node',
+      format: 'cjs',
     },
     plugins: [
-      qwikCity(),
+      qwikCity({
+        trailingSlash: true,
+      }),
       qwikVite(),
       partytownVite({
         dest: resolve('dist', '~partytown'),
@@ -26,7 +26,6 @@ export default defineConfig(() => {
       examplesData(routesDir),
       playgroundData(routesDir),
       tutorialData(routesDir),
-      replServiceWorker(),
     ],
     clearScreen: false,
     optimizeDeps: {

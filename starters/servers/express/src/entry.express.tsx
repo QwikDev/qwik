@@ -14,12 +14,12 @@ const { router, notFound } = qwikCity(render);
 // create the express server
 const app = express();
 
+// static asset handlers
+app.use(`/build`, express.static(buildDir, { immutable: true, maxAge: '1y' }));
+app.use(express.static(distDir));
+
 // use Qwik City's page and endpoint handler
 app.use(router);
-
-// static asset handlers
-app.use(`/build`, express.static(buildDir, { immutable: true, maxAge: '1y', index: false }));
-app.use(express.static(distDir, { index: false }));
 
 // use Qwik City's 404 handler
 app.use(notFound);

@@ -40,7 +40,7 @@ import { qDev } from '../../util/qdev';
  * @alpha
  */
 export type StreamWriter = {
-  write: (chunk: string) => void | boolean | Promise<void> | Promise<boolean>;
+  write: (chunk: string) => void;
 };
 
 /**

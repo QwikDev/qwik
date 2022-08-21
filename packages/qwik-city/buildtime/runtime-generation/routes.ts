@@ -48,7 +48,7 @@ export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[
     }
 
     if (loaders.length > 0) {
-      c.push(`  ${createRoute(route, loaders)},`);
+      c.push(`  ${createRoute(route, loaders, isSsr)},`);
     } else {
       addError(ctx, `Route "${route.pathname}" does not have any modules.`);
     }
@@ -57,9 +57,15 @@ export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[
   c.push(`];`);
 }
 
-function createRoute(r: BuildRoute, loaders: string[]) {
+function createRoute(r: BuildRoute, loaders: string[], isSsr: boolean) {
   const pattern = r.pattern.toString();
   const moduleLoaders = `[ ${loaders.join(', ')} ]`;
+
+  if (isSsr) {
+    const paramNames =
+      r.paramNames && r.paramNames.length > 0 ? JSON.stringify(r.paramNames) : `undefined`;
+    return `[ ${pattern}, ${moduleLoaders}, ${paramNames}, "${r.pathname}" ]`;
+  }
 
   if (r.paramNames.length > 0) {
     const paramNames = JSON.stringify(r.paramNames);

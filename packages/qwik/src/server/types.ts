@@ -7,7 +7,6 @@ import type { QwikManifest, SymbolMapperFn, SymbolMapper } from '@builder.io/qwi
 export interface SerializeDocumentOptions {
   manifest?: QwikManifest;
   symbolMapper?: SymbolMapperFn;
-  url?: URL | string;
   debug?: boolean;
 }
 

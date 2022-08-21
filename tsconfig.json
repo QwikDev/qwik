@@ -34,14 +34,13 @@
       "@builder.io/qwik-city/middleware/netlify-edge": [
         "packages/qwik-city/middleware/netlify-edge"
       ],
+      "@builder.io/qwik-city/static/node": ["packages/qwik-city/static/node"],
       "@builder.io/qwik-city/vite": ["packages/qwik-city/buildtime/vite/index"],
       "@examples-data": ["packages/docs/src/routes/examples/apps/examples-data.ts"],
       "@playground-data": ["packages/docs/src/routes/playground/playground-data.ts"],
       "@tutorial-data": ["packages/docs/src/routes/tutorial/tutorial-data.ts"],
       "@qwik-client-manifest": ["packages/qwik/src/server/server-modules.d.ts"],
       "@qwik-city-plan": ["packages/qwik-city/runtime/src/library/qwik-city-plan.ts"],
-      "@repl-server-html": ["packages/docs/src/repl/worker/repl-server.ts"],
-      "@repl-server-url": ["packages/docs/src/repl/worker/repl-server.ts"],
       "create-qwik": ["packages/create-qwik/api/index.ts"]
     },
     "types": ["node", "vite/client"],

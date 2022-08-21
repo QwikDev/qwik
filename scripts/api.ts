@@ -74,6 +74,11 @@ export function apiExtractor(config: BuildConfig) {
     join(config.packagesDir, 'qwik-city', 'middleware', 'netlify-edge'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'netlify-edge', 'index.d.ts')
   );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'static', 'node'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'static', 'node', 'index.d.ts')
+  );
   generateQwikCityReferenceModules(config);
 
   console.log('🥶', 'submodule d.ts API files generated');

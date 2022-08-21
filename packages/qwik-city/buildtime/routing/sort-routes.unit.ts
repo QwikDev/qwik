@@ -1,6 +1,7 @@
 import { test } from 'uvu';
 import { equal } from 'uvu/assert';
 import type { BuildRoute } from '../types';
+import { createFileId } from '../utils/fs';
 import { parseRoutePathname } from './parse-pathname';
 import { routeSortCompare } from './sort-routes';
 
@@ -45,7 +46,7 @@ test('routeSortCompare', () => {
 function route(r: TestRoute) {
   const pathname = r.pathname || '/';
   const route: BuildRoute = {
-    id: pathname,
+    id: createFileId('', pathname),
     filePath: pathname,
     pathname,
     ext: '.tsx',

@@ -17,6 +17,7 @@ export interface PageModule extends RouteModule {
   readonly default: any;
   readonly head?: ContentModuleHead;
   readonly headings?: ContentHeading[];
+  readonly onStaticGenerate?: StaticGenerateHandler;
 }
 
 export interface LayoutModule extends RouteModule {
@@ -131,7 +132,7 @@ export interface DocumentHeadProps<T = unknown> extends RouteLocation {
  */
 export type DocumentHead<T = unknown> =
   | DocumentHeadValue
-  | ((props: DocumentHeadProps<T>) => DocumentHeadValue);
+  | ((props: DocumentHeadProps<GetEndpointData<T>>) => DocumentHeadValue);
 
 export interface ContentStateInternal {
   contents: NoSerialize<ContentModule[]>;
@@ -170,7 +171,8 @@ export type MenuModuleLoader = () => Promise<MenuModule>;
  */
 export type RouteData =
   | [pattern: RegExp, loaders: ModuleLoader[]]
-  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]];
+  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]]
+  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[], originalPathname: string];
 
 export type FallbackRouteData =
   | [pattern: RegExp, loaders: ModuleLoader[]]
@@ -304,9 +306,20 @@ export interface EndpointResponse {
   status: number;
 }
 
+/**
+ * @alpha
+ */
+export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
+
+export interface StaticGenerate {
+  params?: RouteParams[];
+}
+
 export interface QwikCityRenderDocument extends Document {}
 
 export interface QwikCityEnvData {
   route: MutableRouteLocation;
   response: EndpointResponse;
 }
+
+export type GetEndpointData<T> = T extends RequestHandler<infer U> ? U : T;

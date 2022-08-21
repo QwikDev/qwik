@@ -56,7 +56,7 @@ export const Header = component$(() => {
         <ul className="md:grow md:flex md:justify-end md:p-4 menu-toolkit">
           <li>
             <a
-              href="/docs/overview"
+              href="/docs/overview/"
               class={{ active: pathname.startsWith('/docs') }}
               onClick$={closeMenu}
             >
@@ -65,7 +65,7 @@ export const Header = component$(() => {
           </li>
           <li>
             <a
-              href="/qwikcity/overview"
+              href="/qwikcity/overview/"
               class={{ active: pathname.startsWith('/qwikcity') }}
               onClick$={closeMenu}
             >
@@ -73,17 +73,17 @@ export const Header = component$(() => {
             </a>
           </li>
           <li>
-            <a href="/examples/introduction/hello-world" onClick$={closeMenu}>
+            <a href="/examples/introduction/hello-world/" onClick$={closeMenu}>
               <span>Examples</span>
             </a>
           </li>
           <li>
-            <a href="/tutorial/welcome/overview" onClick$={closeMenu}>
+            <a href="/tutorial/welcome/overview/" onClick$={closeMenu}>
               <span>Tutorial</span>
             </a>
           </li>
           <li>
-            <a href="/playground" onClick$={closeMenu}>
+            <a href="/playground/" onClick$={closeMenu}>
               <span>Playground</span>
             </a>
           </li>

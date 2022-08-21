@@ -79,6 +79,8 @@ export type Render = RenderToString | RenderToStream;
 // @alpha (undocumented)
 export interface RenderOptions extends SerializeDocumentOptions {
     base?: string;
+    // (undocumented)
+    containerAttributes?: Record<string, string>;
     containerTagName?: string;
     // (undocumented)
     envData?: Record<string, any>;
@@ -153,8 +155,6 @@ export interface SerializeDocumentOptions {
     manifest?: QwikManifest;
     // (undocumented)
     symbolMapper?: SymbolMapperFn;
-    // (undocumented)
-    url?: URL | string;
 }
 
 // @alpha

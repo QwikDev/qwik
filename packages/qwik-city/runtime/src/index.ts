@@ -16,6 +16,7 @@ export type {
   ResolvedDocumentHead,
   RouteData,
   RouteLocation,
+  StaticGenerateHandler,
 } from './library/types';
 
 export { RouterOutlet, Content } from './library/router-outlet';

@@ -24,7 +24,7 @@ test.describe('e2e', () => {
       const SNAPSHOT =
         '<p>1</p><p>"&lt;/script&gt;"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}}</p><p>undefined</p><p>null</p><p>[1,2,"hola",null,{}]</p><p>true</p><p>false</p><p>()=&gt;console.error()</p><p>mutable message</p><p>from a promise</p>';
       const RESULT =
-        '[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}},"undefined","null",[1,2,"hola",null,{}],true,false,null,"mutable message","from a promise","http://qwik.builder.com/docs?query=true","2022-07-26T17:40:30.255Z","hola()\\\\/ gi",12]';
+        '[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}},"undefined","null",[1,2,"hola",null,{}],true,false,null,"mutable message","from a promise","http://qwik.builder.com/docs?query=true","2022-07-26T17:40:30.255Z","hola()\\\\/ gi",12,"failed message"]';
 
       function normalizeSnapshot(str: string) {
         return str.replace(' =&gt; ', '=&gt;');
@@ -460,10 +460,14 @@ test.describe('e2e', () => {
       const counter = await page.locator('#counter');
       const msg = await page.locator('#msg');
       const msgEager = await page.locator('#eager-msg');
+      const msgClientSide1 = await page.locator('#client-side-msg-1');
+      const msgClientSide2 = await page.locator('#client-side-msg-2');
 
       await expect(counter).toHaveText('0');
       await expect(msg).toHaveText('empty');
       await expect(msgEager).toHaveText('run');
+      await expect(msgClientSide1).toHaveText('run');
+      await expect(msgClientSide2).toHaveText('run');
 
       await counter.scrollIntoViewIfNeeded();
       await page.waitForTimeout(100);
@@ -568,9 +572,8 @@ test.describe('e2e', () => {
 
     test('should load', async ({ page }) => {
       const resource1 = await page.locator('.resource1');
-      // const resource2 = await page.locator('.resource2');
       const logs = await page.locator('.logs');
-      const increment = await page.locator('button');
+      const increment = await page.locator('button.increment');
       let logsContent =
         '[RENDER] <ResourceApp>\n[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n[RENDER] <Results>\n\n\n';
       await expect(resource1).toHaveText('resource 1 is 80');
@@ -594,6 +597,68 @@ test.describe('e2e', () => {
       await expect(resource1).toHaveText('resource 1 is 88');
       // await expect(resource2).toHaveText('resource 2 is 176');
       await expect(logs).toHaveText(logsContent);
+    });
+
+    test('should track subscriptions', async ({ page }) => {
+      const resource1 = await page.locator('.resource1');
+      const logs = await page.locator('.logs');
+      let logsContent =
+        '[RENDER] <ResourceApp>\n[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n[RENDER] <Results>\n\n\n';
+      await expect(resource1).toHaveText('resource 1 is 80');
+      await expect(logs).toHaveText(logsContent);
+
+      // Count
+      const countBtn = await page.locator('button.count');
+      await expect(countBtn).toHaveText('count is 0');
+      await countBtn.click();
+      await expect(countBtn).toHaveText('count is 1');
+
+      logsContent += '[RESOURCE] 1 after\n[RENDER] <Results>\n\n\n';
+      await expect(logs).toHaveText(logsContent);
+
+      await countBtn.click();
+      await expect(countBtn).toHaveText('count is 2');
+
+      logsContent += '[RENDER] <Results>\n\n\n';
+      await expect(logs).toHaveText(logsContent);
+    });
+  });
+
+  test.describe('resource serialization', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/resource-serialization');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should load', async ({ page }) => {
+      const button1 = await page.locator('button.r1');
+      const button2 = await page.locator('button.r2');
+      const button3 = await page.locator('button.r3');
+
+      await expect(button1).toHaveText('PASS: Success 0');
+      await expect(button2).toHaveText('ERROR: Error: failed 0');
+      await expect(button3).toHaveText('ERROR: timeout 0');
+
+      // Click button 1
+      await button1.click();
+
+      await expect(button1).toHaveText('PASS: Success 1');
+      await expect(button2).toHaveText('ERROR: Error: failed 0');
+      await expect(button3).toHaveText('ERROR: timeout 0');
+
+      // Click button 2
+      await button2.click();
+
+      await expect(button1).toHaveText('PASS: Success 1');
+      await expect(button2).toHaveText('ERROR: Error: failed 1');
+      await expect(button3).toHaveText('ERROR: timeout 1');
+
+      // Click button 2
+      await button2.click();
+
+      await expect(button1).toHaveText('PASS: Success 1');
+      await expect(button2).toHaveText('ERROR: Error: failed 2');
+      await expect(button3).toHaveText('ERROR: timeout 2');
     });
   });
 
@@ -623,6 +688,40 @@ test.describe('e2e', () => {
 
       const el2 = await page.$$('[q\\:style]');
       await expect(el2.length).toBe(3);
+    });
+  });
+
+  test.describe('mount', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/mount');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should render logs correctly', async ({ page }) => {
+      const btn = await page.locator('button');
+      const logs = await page.locator('#logs');
+      const renders = await page.locator('#renders');
+      await expect(renders).toHaveText('Renders: 2');
+      await expect(logs).toHaveText(`BEFORE useServerMount1()
+AFTER useServerMount1()
+BEFORE useMount2()
+AFTER useMount2()
+BEFORE useWatch3()
+AFTER useWatch3()
+BEFORE useServerMount4()
+AFTER useServerMount4()`);
+
+      await btn.click();
+      await expect(renders).toHaveText('Renders: 3');
+      await expect(logs).toHaveText(`BEFORE useServerMount1()
+AFTER useServerMount1()
+BEFORE useMount2()
+AFTER useMount2()
+BEFORE useWatch3()
+AFTER useWatch3()
+BEFORE useServerMount4()
+AFTER useServerMount4()
+Click`);
     });
   });
 });

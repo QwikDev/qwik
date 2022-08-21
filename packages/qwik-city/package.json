@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.0.101",
+  "version": "0.0.101-3",
   "description": "The meta-framework for Qwik.",
   "main": "./lib/index.qwik.cjs",
   "module": "./lib/index.qwik.mjs",
@@ -22,6 +22,10 @@
     "./middleware/netlify-edge": {
       "import": "./lib/middleware/netlify-edge/index.mjs"
     },
+    "./static/node": {
+      "import": "./lib/static/node/index.mjs",
+      "require": "./lib/static/node/index.cjs"
+    },
     "./vite": {
       "import": "./lib/vite/index.mjs",
       "require": "./lib/vite/index.cjs"
@@ -31,9 +35,11 @@
     "start": "cd runtime && node --inspect ../../../node_modules/vite/bin/vite.js",
     "dev.ssr": "cd runtime && node --inspect ../../../node_modules/vite/bin/vite.js --mode ssr",
     "dev.debug": "cd runtime && node --inspect-brk ../../../node_modules/vite/bin/vite.js --mode ssr --force",
-    "build": "yarn build.client && yarn build.ssr",
+    "build": "yarn build.client && yarn build.express && yarn build.static && yarn ssg",
     "build.client": "cd runtime && vite build --config vite-app.config.ts",
-    "build.ssr": "cd runtime && vite build --config vite-app.config.ts --ssr src/entry.express.tsx",
+    "build.express": "cd runtime && vite build --config vite-app.config.ts --ssr src/entry.express.tsx",
+    "build.static": "cd runtime && vite build --config vite-app.config.ts --ssr src/entry.static.tsx",
+    "ssg": "cd runtime && node server/entry.static.js",
     "build.runtime": "cd runtime && vite build --mode lib",
     "serve": "node --inspect runtime/server/entry.express",
     "serve.debug": "node --inspect-brk runtime/server/entry.express",

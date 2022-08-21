@@ -155,8 +155,6 @@ export interface SerializeDocumentOptions {
     manifest?: QwikManifest;
     // (undocumented)
     symbolMapper?: SymbolMapperFn;
-    // (undocumented)
-    url?: URL | string;
 }
 
 // @alpha

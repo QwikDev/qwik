@@ -1,13 +1,26 @@
-// bundled into an HTML self-executing script
+/**
+ * Source for url: "/repl/~repl-server.js"
+ * Created from the route: "src/routes/repl/~repl-server.js/entry.ts"
+ * Script executed from url: "/repl/~repl-server-host.html"
+ * Public static html source file: "public/repl/~repl-server-host.html"
+ */
+
 /* eslint-disable no-console */
 import type { ReplMessage, ReplResult } from '../types';
 
-const init = (clientId: string) => {
+export const initReplServer = (win: Window, doc: Document, nav: Navigator) => {
+  const clientId = win.location.hash.slice(1);
+
+  if (!/^[a-z0-9]+$/.test(clientId)) {
+    console.error('Qwik REPL server missing valid client id');
+    return;
+  }
+
   let swRegistration: ServiceWorkerRegistration | null = null;
   let loadTmr: any = null;
 
   const updateApp = (result: ReplResult) => {
-    const iframe = document.createElement('iframe');
+    const iframe = doc.createElement('iframe');
     iframe.classList.add('loading');
     iframe.src = `/repl/` + result.clientId + `/`;
     iframe.dataset.buildId = String(result.buildId);
@@ -29,7 +42,7 @@ const init = (clientId: string) => {
       }
     });
 
-    document.body.appendChild(iframe);
+    doc.body.appendChild(iframe);
   };
 
   const receiveMessageFromMainApp = (ev: MessageEvent) => {
@@ -46,7 +59,7 @@ const init = (clientId: string) => {
 
   const sendMessageToMain = (msg: ReplMessage) => {
     if (msg.clientId === clientId) {
-      window.parent.postMessage(msg, '*');
+      win.parent.postMessage(msg, '*');
     }
   };
 
@@ -72,22 +85,22 @@ const init = (clientId: string) => {
   const replReady = () => {
     clearTimeout(loadTmr);
 
-    console.debug(`Qwik REPL server "` + clientId + `" ready`);
+    console.debug('Qwik REPL server "%s" ready', clientId);
 
-    navigator.serviceWorker.addEventListener('message', receiveMessageFromSw);
-    window.addEventListener('message', receiveMessageFromUserApp);
+    nav.serviceWorker.addEventListener('message', receiveMessageFromSw);
+    win.addEventListener('message', receiveMessageFromUserApp);
 
     sendMessageToMain({ type: 'replready', clientId: clientId! });
   };
 
-  if (window.parent === window) {
-    console.error(`Qwik REPL server "` + clientId + `" is not an iframe window`);
+  if (win.parent === win) {
+    console.error('Qwik REPL server "%s" is not an iframe window', clientId);
   } else {
     loadTmr = setTimeout(() => {
-      console.error(`Qwik REPL server "` + clientId + `" has not initialized`);
+      console.error('Qwik REPL server "%s" has not initialized', clientId);
     }, 15000);
 
-    navigator.serviceWorker
+    nav.serviceWorker
       .register('/repl/repl-sw.js', {
         scope: '/repl/',
       })
@@ -95,7 +108,7 @@ const init = (clientId: string) => {
         (reg) => {
           swRegistration = reg;
           if (swRegistration.active) {
-            console.debug(`Qwik REPL server "` + clientId + `" service worker registration active`);
+            console.debug('Qwik REPL server "%s" service worker registration active', clientId);
             replReady();
 
             reg.addEventListener('updatefound', () => {
@@ -106,7 +119,7 @@ const init = (clientId: string) => {
                   if (newWorker.state == 'activated') {
                     if (!isRefreshing) {
                       isRefreshing = true;
-                      window.parent.location.reload();
+                      win.parent.location.reload();
                     }
                   }
                 });
@@ -117,33 +130,18 @@ const init = (clientId: string) => {
               if (ev?.target?.state == 'activated') {
                 replReady();
               } else {
-                console.debug(
-                  `Qwik REPL server "` + clientId + `" statechange: ${ev?.target?.state}`
-                );
+                console.debug('Qwik REPL server "%s" statechange: %s', clientId, ev?.target?.state);
               }
             });
           }
         },
         (err) => {
-          console.error(
-            `Qwik REPL Server "` + clientId + `" service worker registration failed:`,
-            err
-          );
+          console.error('Qwik REPL Server "%s" service worker registration failed:', clientId, err);
         }
       )
       .catch((e) => console.error(e));
 
-    document.title += ': ' + clientId;
-    window.addEventListener('message', receiveMessageFromMainApp);
+    doc.title += ': ' + clientId;
+    win.addEventListener('message', receiveMessageFromMainApp);
   }
 };
-
-const hashClientId = location.hash.slice(1);
-if (/^[a-z0-9]+$/.test(hashClientId)) {
-  init(hashClientId);
-} else {
-  console.error('Qwik REPL server missing valid client id');
-}
-
-const s = '';
-export default s;

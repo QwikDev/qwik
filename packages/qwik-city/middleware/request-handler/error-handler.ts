@@ -9,9 +9,7 @@ export class ErrorResponse extends Error {
 }
 
 export function notFoundHandler<T = any>(requestCtx: QwikCityRequestContext): Promise<T> {
-  const status = HttpStatus.NotFound;
-  const message = 'Not Found';
-  return minimalHtmlResponse(requestCtx, status, message);
+  return errorResponse(requestCtx, new ErrorResponse(404, 'Not Found'));
 }
 
 export function errorHandler(requestCtx: QwikCityRequestContext, e: any) {
@@ -32,28 +30,48 @@ export function errorHandler(requestCtx: QwikCityRequestContext, e: any) {
     }
   }
 
-  return minimalHtmlResponse(requestCtx, status, message, stack);
+  const html = minimalHtmlResponse(status, message, stack);
+  const headers = createHeaders();
+  headers.set('Content-Type', 'text/html; charset=utf-8');
+
+  return requestCtx.response(
+    status,
+    headers,
+    async (stream) => {
+      stream.write(html);
+    },
+    e
+  );
 }
 
 export function errorResponse(requestCtx: QwikCityRequestContext, errorResponse: ErrorResponse) {
-  return minimalHtmlResponse(
-    requestCtx,
+  const html = minimalHtmlResponse(
     errorResponse.status,
     errorResponse.message,
     errorResponse.stack
   );
+
+  const headers = createHeaders();
+  headers.set('Content-Type', 'text/html; charset=utf-8');
+
+  return requestCtx.response(
+    errorResponse.status,
+    headers,
+    async (stream) => {
+      stream.write(html);
+    },
+    errorResponse
+  );
 }
 
-function minimalHtmlResponse(
-  requestCtx: QwikCityRequestContext,
-  status: number,
-  message?: string,
-  stack?: string
-) {
-  const { response } = requestCtx;
+function minimalHtmlResponse(status: number, message?: string, stack?: string) {
   const width = typeof message === 'string' ? '600px' : '300px';
   const color = status >= 500 ? COLOR_500 : COLOR_400;
-  const html = `<!DOCTYPE html>
+  if (status < 500) {
+    stack = '';
+  }
+
+  return `<!DOCTYPE html>
 <html data-qwik-city-status="${status}">
 <head>
   <meta charset="utf-8">
@@ -76,13 +94,6 @@ function minimalHtmlResponse(
 </body>
 </html>
 `;
-
-  const headers = createHeaders();
-  headers.set('Content-Type', 'text/html; charset=utf-8');
-
-  return response(status, headers, async (stream) => {
-    stream.write(html);
-  });
 }
 
 const COLOR_400 = '#5249d9';

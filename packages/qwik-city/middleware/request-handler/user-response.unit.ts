@@ -172,7 +172,7 @@ test('remove trailing slash, PageModule', async () => {
     equal(true, false, 'Should have thrown');
   } catch (e: any) {
     instance(e, RedirectResponse);
-    equal(e.status, 308);
+    equal(e.status, 307);
     equal(e.location, '/somepath?qs=true');
   }
 });
@@ -190,7 +190,7 @@ test('add trailing slash, PageModule', async () => {
     equal(true, false, 'Should have thrown');
   } catch (e: any) {
     instance(e, RedirectResponse);
-    equal(e.status, 308);
+    equal(e.status, 307);
     equal(e.location, '/somepath/?qs=true');
   }
 });

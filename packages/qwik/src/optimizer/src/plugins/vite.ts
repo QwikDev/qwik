@@ -240,6 +240,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           updatedViteConfig.publicDir = false;
           updatedViteConfig.build!.ssr = true;
         }
+        if (typeof viteConfig.build?.emptyOutDir === 'boolean') {
+          updatedViteConfig.build!.emptyOutDir = viteConfig.build!.emptyOutDir;
+        } else {
+          updatedViteConfig.build!.emptyOutDir = false;
+        }
       } else if (opts.target === 'client') {
         if (buildMode === 'production') {
           updatedViteConfig.resolve!.conditions = ['min'];
@@ -412,134 +417,137 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         }
       }
 
-      server.middlewares.use(async (req, res, next) => {
-        const domain = 'http://' + (req.headers.host ?? 'localhost');
-        const url = new URL(req.originalUrl!, domain);
-        const pathname = url.pathname;
+      return () => {
+        // qwik middleware injected after vite internal middlewares
+        server.middlewares.use(async (req, res, next) => {
+          const domain = 'http://' + (req.headers.host ?? 'localhost');
+          const url = new URL(req.originalUrl!, domain);
 
-        const hasExtension = /\.[\w?=&]+$/.test(pathname);
-        const isViteMod = pathname.startsWith('/@') || url.href.includes('?html-proxy');
-        const isVitePing = url.href.includes('__vite_ping');
-        const skipSSR = url.href.includes('ssr=false');
+          const pathname = url.pathname;
 
-        if (hasExtension || isViteMod || isVitePing || skipSSR) {
-          next();
-          return;
-        }
+          const hasExtension = /\.[\w?=&]+$/.test(pathname);
+          const isViteMod = pathname.startsWith('/@') || url.href.includes('?html-proxy');
+          const isVitePing = url.href.includes('__vite_ping');
+          const skipSSR = url.href.includes('ssr=false');
 
-        try {
-          if (req.headers.accept && req.headers.accept.includes('text/html')) {
-            const envData: Record<string, any> = {
-              ...(res as QwikViteDevResponse)._qwikEnvData,
-              url: url.href,
-            };
+          if (hasExtension || isViteMod || isVitePing || skipSSR) {
+            next();
+            return;
+          }
 
-            const status = typeof res.statusCode === 'number' ? res.statusCode : 200;
-            if (isClientDevOnly) {
-              qwikPlugin.log(`handleClientEntry("${url}")`);
-
-              const relPath = path.relative(opts.rootDir, clientDevInput!);
-              const entryUrl = '/' + qwikPlugin.normalizePath(relPath);
-
-              let html = getViteDevIndexHtml(entryUrl, envData);
-              html = await server.transformIndexHtml(pathname, html);
-
-              res.setHeader('Content-Type', 'text/html; charset=utf-8');
-              res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0');
-              res.setHeader('Access-Control-Allow-Origin', '*');
-              res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
-              res.writeHead(status);
-
-              res.end(html);
-              return;
-            }
-
-            qwikPlugin.log(`handleSSR("${url}"), ssr input: ${opts.input[0]}`);
-
-            const ssrModule = await server.ssrLoadModule(opts.input[0], {
-              fixStacktrace: true,
-            });
-
-            const render: Render = ssrModule.default ?? ssrModule.render;
-
-            if (typeof render === 'function') {
-              const manifest: QwikManifest = {
-                symbols: {},
-                mapping: {},
-                bundles: {},
-                injections: [],
-                version: '1',
+          try {
+            if (req.headers.accept && req.headers.accept.includes('text/html')) {
+              const envData: Record<string, any> = {
+                ...(res as QwikViteDevResponse)._qwikEnvData,
+                url: url.href,
               };
 
-              Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
-                entry[1].forEach((v) => {
-                  const hook = v.info?.meta?.hook;
-                  let url = v.url;
-                  if (v.lastHMRTimestamp) {
-                    url += `?t=${v.lastHMRTimestamp}`;
-                  }
-                  if (hook) {
-                    manifest.mapping[hook.name] = url;
-                  }
+              const status = typeof res.statusCode === 'number' ? res.statusCode : 200;
+              if (isClientDevOnly) {
+                qwikPlugin.log(`handleClientEntry("${url}")`);
 
-                  const { pathId, query } = parseId(v.url);
-                  if (query === '' && pathId.endsWith('.css')) {
-                    manifest.injections!.push({
-                      tag: 'link',
-                      location: 'head',
-                      attributes: {
-                        rel: 'stylesheet',
-                        href: url,
-                      },
-                    });
-                  }
-                });
+                const relPath = path.relative(opts.rootDir, clientDevInput!);
+                const entryUrl = '/' + qwikPlugin.normalizePath(relPath);
+
+                let html = getViteDevIndexHtml(entryUrl, envData);
+                html = await server.transformIndexHtml(pathname, html);
+
+                res.setHeader('Content-Type', 'text/html; charset=utf-8');
+                res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0');
+                res.setHeader('Access-Control-Allow-Origin', '*');
+                res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
+                res.writeHead(status);
+
+                res.end(html);
+                return;
+              }
+
+              qwikPlugin.log(`handleSSR("${url}"), ssr input: ${opts.input[0]}`);
+
+              const ssrModule = await server.ssrLoadModule(opts.input[0], {
+                fixStacktrace: true,
               });
 
-              qwikPlugin.log(`handleSSR()`, 'symbols', manifest);
+              const render: Render = ssrModule.default ?? ssrModule.render;
 
-              const renderOpts: RenderToStreamOptions = {
-                url: url.href,
-                debug: true,
-                stream: res,
-                snapshot: !isClientDevOnly,
-                manifest: isClientDevOnly ? undefined : manifest,
-                symbolMapper: isClientDevOnly
-                  ? undefined
-                  : (symbolName, mapper) => {
-                      if (mapper) {
-                        const hash = getSymbolHash(symbolName);
-                        return mapper[hash];
-                      }
-                    },
-                prefetchStrategy: null,
-                envData: envData,
-              };
+              if (typeof render === 'function') {
+                const manifest: QwikManifest = {
+                  symbols: {},
+                  mapping: {},
+                  bundles: {},
+                  injections: [],
+                  version: '1',
+                };
 
-              res.setHeader('Content-Type', 'text/html; charset=utf-8');
-              res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0');
-              res.setHeader('Access-Control-Allow-Origin', '*');
-              res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
-              res.writeHead(status);
+                Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
+                  entry[1].forEach((v) => {
+                    const hook = v.info?.meta?.hook;
+                    let url = v.url;
+                    if (v.lastHMRTimestamp) {
+                      url += `?t=${v.lastHMRTimestamp}`;
+                    }
+                    if (hook) {
+                      manifest.mapping[hook.name] = url;
+                    }
 
-              const result = await render(renderOpts);
-              if ('html' in result) {
-                res.write('<script type="module" src="/@vite/client"></script>');
-                res.end((result as any).html);
+                    const { pathId, query } = parseId(v.url);
+                    if (query === '' && pathId.endsWith('.css')) {
+                      manifest.injections!.push({
+                        tag: 'link',
+                        location: 'head',
+                        attributes: {
+                          rel: 'stylesheet',
+                          href: url,
+                        },
+                      });
+                    }
+                  });
+                });
+
+                qwikPlugin.log(`handleSSR()`, 'symbols', manifest);
+
+                const renderOpts: RenderToStreamOptions = {
+                  debug: true,
+                  stream: res,
+                  snapshot: !isClientDevOnly,
+                  manifest: isClientDevOnly ? undefined : manifest,
+                  symbolMapper: isClientDevOnly
+                    ? undefined
+                    : (symbolName, mapper) => {
+                        if (mapper) {
+                          const hash = getSymbolHash(symbolName);
+                          return mapper[hash];
+                        }
+                      },
+                  prefetchStrategy: null,
+                  envData: envData,
+                };
+
+                res.setHeader('Content-Type', 'text/html; charset=utf-8');
+                res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0');
+                res.setHeader('Access-Control-Allow-Origin', '*');
+                res.setHeader('X-Powered-By', 'Qwik Vite Dev Server');
+                res.writeHead(status);
+
+                const result = await render(renderOpts);
+                if ('html' in result) {
+                  res.write('<script type="module" src="/@vite/client"></script>');
+                  res.end((result as any).html);
+                } else {
+                  res.write('<script type="module" src="/@vite/client"></script>');
+                  res.end();
+                }
               } else {
-                res.write('<script type="module" src="/@vite/client"></script>');
-                res.end();
+                next();
               }
             } else {
               next();
             }
-          } else {
-            next();
+          } catch (e: any) {
+            next(e);
           }
-        } catch (e: any) {
-          next(e);
-        }
-      });
+        });
+      };
     },
 
     handleHotUpdate(ctx) {

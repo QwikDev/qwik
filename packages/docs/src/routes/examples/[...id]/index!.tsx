@@ -1,5 +1,5 @@
 import { component$, useStyles$, useWatch$, useStore } from '@builder.io/qwik';
-import type { RequestHandler } from '@builder.io/qwik-city';
+import type { RequestHandler, RouteParams, StaticGenerateHandler } from '@builder.io/qwik-city';
 import { Repl } from '../../../repl/repl';
 import styles from './examples.css?inline';
 import { Header } from '../../../components/header/header';
@@ -138,4 +138,17 @@ export const onGet: RequestHandler = ({ response }) => {
     'Cache-Control',
     'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
   );
+};
+
+export const onStaticGenerate: StaticGenerateHandler = () => {
+  return {
+    params: exampleSections.reduce((params, section) => {
+      section.apps.forEach((app) => {
+        params.push({
+          id: app.id,
+        });
+      });
+      return params;
+    }, [] as RouteParams[]),
+  };
 };

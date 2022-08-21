@@ -15,7 +15,6 @@ import type { ReplStore, ReplUpdateMessage, ReplMessage, ReplAppInput } from './
 import { ReplDetailPanel } from './repl-detail-panel';
 import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
-import replServerUrl from '@repl-server-url';
 
 export const Repl = component$((props: ReplProps) => {
   useStyles$(styles);
@@ -83,7 +82,7 @@ export const Repl = component$((props: ReplProps) => {
     if (v.version) {
       store.versions = v.versions;
       input.version = v.version;
-      store.serverUrl = new URL(replServerUrl + '#' + store.clientId, origin).href;
+      store.serverUrl = new URL(`/repl/~repl-server-host.html#${store.clientId}`, origin).href;
 
       window.addEventListener('message', (ev) => receiveMessageFromReplServer(ev, store));
     } else {

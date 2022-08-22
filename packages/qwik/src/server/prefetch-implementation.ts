@@ -1,5 +1,9 @@
 import { Fragment, jsx, JSXNode } from '@builder.io/qwik';
-import { flattenPrefetchResources, workerFetchScript } from './prefetch-utils';
+import {
+  flattenPrefetchResources,
+  prefetchUrlsEventScript,
+  workerFetchScript,
+} from './prefetch-utils';
 import type {
   DeprecatedPrefetchImplementation,
   PrefetchImplementation,
@@ -19,6 +23,9 @@ export function applyPrefetchImplementation(
     // set default if implementation wasn't provided
     const prefetchImpl = normalizePrefetchImplementation(prefetchStrategy?.implementation);
 
+    if (prefetchImpl.prefetchUrlsEvent === 'always') {
+      return prefetchUrlsEvent(prefetchResources);
+    }
     if (prefetchImpl.linkInsert === 'html-append') {
       return linkHtmlImplementation(prefetchResources, prefetchImpl);
     } else if (prefetchImpl.linkInsert === 'js-append') {
@@ -30,6 +37,13 @@ export function applyPrefetchImplementation(
 
   // do not add a prefech implementation
   return null;
+}
+
+function prefetchUrlsEvent(prefetchResources: PrefetchResource[]) {
+  return jsx('script', {
+    type: 'module',
+    dangerouslySetInnerHTML: prefetchUrlsEventScript(prefetchResources),
+  });
 }
 
 /**
@@ -138,6 +152,7 @@ function normalizePrefetchImplementation(
           linkInsert: 'html-append',
           linkRel: 'prefetch',
           workerFetchInsert: null,
+          prefetchUrlsEvent: null,
         };
       }
       case 'link-prefetch': {
@@ -146,6 +161,7 @@ function normalizePrefetchImplementation(
           linkInsert: 'js-append',
           linkRel: 'prefetch',
           workerFetchInsert: 'no-link-support',
+          prefetchUrlsEvent: null,
         };
       }
       case 'link-preload-html': {
@@ -154,6 +170,7 @@ function normalizePrefetchImplementation(
           linkInsert: 'html-append',
           linkRel: 'preload',
           workerFetchInsert: null,
+          prefetchUrlsEvent: null,
         };
       }
       case 'link-preload': {
@@ -162,6 +179,7 @@ function normalizePrefetchImplementation(
           linkInsert: 'js-append',
           linkRel: 'preload',
           workerFetchInsert: 'no-link-support',
+          prefetchUrlsEvent: null,
         };
       }
       case 'link-modulepreload-html': {
@@ -170,6 +188,7 @@ function normalizePrefetchImplementation(
           linkInsert: 'html-append',
           linkRel: 'modulepreload',
           workerFetchInsert: null,
+          prefetchUrlsEvent: null,
         };
       }
       case 'link-modulepreload': {
@@ -178,6 +197,7 @@ function normalizePrefetchImplementation(
           linkInsert: 'js-append',
           linkRel: 'modulepreload',
           workerFetchInsert: 'no-link-support',
+          prefetchUrlsEvent: null,
         };
       }
     }
@@ -186,7 +206,8 @@ function normalizePrefetchImplementation(
     return {
       linkInsert: null,
       linkRel: null,
-      workerFetchInsert: 'always',
+      workerFetchInsert: null,
+      prefetchUrlsEvent: 'always',
     };
   }
 
@@ -197,9 +218,10 @@ function normalizePrefetchImplementation(
 
   // default PrefetchImplementation
   const defaultImplementation: Required<PrefetchImplementation> = {
-    linkInsert: 'html-append',
-    linkRel: 'prefetch',
-    workerFetchInsert: 'always',
+    linkInsert: null,
+    linkRel: null,
+    workerFetchInsert: null,
+    prefetchUrlsEvent: 'always',
   };
   return defaultImplementation;
 }

@@ -224,6 +224,13 @@ export type RouteParams = Record<string, string>;
 // @alpha (undocumented)
 export const RouterOutlet: Component<    {}>;
 
+// @alpha (undocumented)
+const ServiceWorker_2: Component<    {}>;
+export { ServiceWorker_2 as ServiceWorker }
+
+// @alpha (undocumented)
+export const setupServiceWorker: () => void;
+
 // Warning: (ae-forgotten-export) The symbol "StaticGenerate" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)

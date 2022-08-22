@@ -322,10 +322,6 @@ export interface QwikCityEnvData {
   response: EndpointResponse;
 }
 
-export interface ServiceWorkerOptions {
-  symbolPrefetch?: 'auto' | 'visible' | 'document' | 'all' | 'none';
-}
-
 export interface ServiceWorkerEventMessage {
   data: {
     qprefetchsymbols?: string[];

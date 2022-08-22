@@ -1,16 +1,11 @@
 import { bundleImports, mapping } from '@qwik-client-manifest';
-import type { ServiceWorkerEventMessage, ServiceWorkerOptions } from './types';
+import type { ServiceWorkerEventMessage } from './types';
 
 const qBase = '/build/';
 
 const qBuildCacheName = 'QwikBuild';
 
-const cachedSymbolFetch = async (
-  opts: NormalizedServiceWorkerOptions,
-  cache: Cache,
-  fetch: Fetch,
-  request: Request
-) => {
+const cachedSymbolFetch = async (cache: Cache, fetch: Fetch, request: Request) => {
   const cachedRes = await cache.match(request.url);
   if (cachedRes) {
     return cachedRes;
@@ -25,7 +20,6 @@ const cachedSymbolFetch = async (
 };
 
 const fetchSymbols = async (
-  opts: NormalizedServiceWorkerOptions,
   cache: Cache,
   fetch: Fetch,
   symbols: string[],
@@ -40,7 +34,7 @@ const fetchSymbols = async (
     if (!urls.has(url)) {
       urls.add(url);
       const request = new Request(url);
-      fetches.push(cachedSymbolFetch(opts, cache, fetch, request));
+      fetches.push(cachedSymbolFetch(cache, fetch, request));
     }
   };
 
@@ -66,10 +60,7 @@ const fetchSymbols = async (
   }
 };
 
-const setupServiceWorkerSelf = (
-  self: ServiceWorkerGlobalScope,
-  opts: NormalizedServiceWorkerOptions
-) => {
+const setupServiceWorkerSelf = (self: ServiceWorkerGlobalScope) => {
   const nativeFetch = self.fetch.bind(self);
   const qBaseUrl = new URL(qBase, self.origin);
   const qBundleUrls = new Set(
@@ -80,11 +71,11 @@ const setupServiceWorkerSelf = (
     const request = ev.request;
 
     if (request.method === 'GET') {
-      if (opts.symbolPrefetch !== 'none' && qBundleUrls.has(request.url)) {
+      if (qBundleUrls.has(request.url)) {
         ev.respondWith(
           self.caches
             .open(qBuildCacheName)
-            .then((cache) => cachedSymbolFetch(opts, cache, nativeFetch, request))
+            .then((cache) => cachedSymbolFetch(cache, nativeFetch, request))
         );
       }
     }
@@ -93,31 +84,14 @@ const setupServiceWorkerSelf = (
   self.addEventListener('message', async ({ data }: ServiceWorkerEventMessage) => {
     if (Array.isArray(data.qprefetchsymbols)) {
       const cache = await self.caches.open(qBuildCacheName);
-      await fetchSymbols(opts, cache, nativeFetch, data.qprefetchsymbols, qBundleUrls, qBaseUrl);
+      await fetchSymbols(cache, nativeFetch, data.qprefetchsymbols, qBundleUrls, qBaseUrl);
     }
   });
-
-  if (opts.symbolPrefetch === 'all') {
-    self.addEventListener('install', async () => {
-      const cache = await self.caches.open(qBuildCacheName);
-      const symbols = Object.keys(mapping);
-      await fetchSymbols(opts, cache, nativeFetch, symbols, qBundleUrls, qBaseUrl);
-    });
-  }
 };
 
-const normalizeSwOptions = (
-  opts: ServiceWorkerOptions | undefined
-): NormalizedServiceWorkerOptions => {
-  return {
-    symbolPrefetch: 'auto',
-    ...opts,
-  };
-};
-
-export const setupServiceWorker = (opts?: ServiceWorkerOptions) =>
-  setupServiceWorkerSelf(self as any, normalizeSwOptions(opts));
-
-type NormalizedServiceWorkerOptions = Required<ServiceWorkerOptions>;
+/**
+ * @alpha
+ */
+export const setupServiceWorker = () => setupServiceWorkerSelf(self as any);
 
 type Fetch = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;

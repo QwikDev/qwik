@@ -16,7 +16,7 @@ const app = express();
 
 // static asset handlers
 app.use(`/build`, express.static(buildDir, { immutable: true, maxAge: '1y' }));
-app.use(express.static(distDir));
+app.use(express.static(distDir, { redirect: false }));
 
 // use Qwik City's page and endpoint handler
 app.use(router);

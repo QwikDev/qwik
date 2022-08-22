@@ -15,6 +15,7 @@ export default defineConfig(() => {
       rollupOptions: {
         external: ['@qwik-city-plan'],
       },
+      minify: false,
     },
     resolve: {
       alias: {

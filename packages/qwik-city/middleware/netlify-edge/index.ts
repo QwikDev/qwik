@@ -44,22 +44,17 @@ export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions) {
         },
       };
 
-<<<<<<< HEAD
-      // check if the next middleware is able to handle this request
-      // useful if the request is for a static asset but app uses a catchall route
-=======
       const handledResponse = await requestHandler<Response>(requestCtx, render, {}, opts);
       if (handledResponse) {
         return handledResponse;
       }
 
->>>>>>> Add platform field to RequestEvent
       const nextResponse = await next();
 
       if (nextResponse.status === 404) {
         // next middleware unable to handle request
         // send request to qwik city request handler
-        const handledResponse = await requestHandler<Response>(requestCtx, render, opts);
+        const handledResponse = await requestHandler<Response>(requestCtx, render, {}, opts);
         if (handledResponse) {
           return handledResponse;
         }

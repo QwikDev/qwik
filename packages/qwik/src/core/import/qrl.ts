@@ -131,6 +131,7 @@ export const stringifyQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
   const refSymbol = qrl.$refSymbol$ ?? symbol;
   const platform = opts.$platform$;
   const element = opts.$element$;
+  if (qDe)
   if (platform) {
     const result = platform.chunkForSymbol(refSymbol);
     if (result) {

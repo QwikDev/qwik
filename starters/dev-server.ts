@@ -23,6 +23,8 @@ const appNames = readdirSync(startersAppsDir).filter(
 
 const qwikDistDir = join(__dirname, '..', 'packages', 'qwik', 'dist');
 const qwikDistCorePath = join(qwikDistDir, 'core.mjs');
+const qwikMinDistCorePath = join(qwikDistDir, 'core.prod.mjs');
+
 const qwikDistServerPath = join(qwikDistDir, 'server.mjs');
 const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.mjs');
 const qwikDistJsxRuntimePath = join(qwikDistDir, 'jsx-runtime.mjs');
@@ -63,12 +65,12 @@ async function handleApp(req: Request, res: Response) {
   }
 }
 
-function devPlugin(opts: { isServer: boolean }): Plugin {
+function devPlugin(opts: { isServer: boolean, production: boolean }): Plugin {
   return {
     name: 'devPlugin',
     resolveId(id, importee) {
       if (id === '@builder.io/qwik') {
-        return qwikDistCorePath;
+        return opts.production ? qwikMinDistCorePath : qwikDistCorePath;
       }
       if (id === '@qwik-client-manifest') {
         return id;
@@ -131,15 +133,16 @@ async function buildApp(appDir: string) {
   removeDir(appDistDir);
   removeDir(appServerDir);
 
+  const isProd = appDir.endsWith('.prod');
   let clientManifest: QwikManifest | undefined = undefined;
 
   const clientBuild = await rollup({
     input: getSrcInput(appSrcDir),
     plugins: [
-      devPlugin({ isServer: false }),
+      devPlugin({ isServer: false, production: isProd }),
       optimizer.qwikRollup({
         target: 'client',
-        buildMode: 'development',
+        buildMode: isProd ? 'production' : 'development',
         srcDir: appSrcDir,
         forceFullBuild: true,
         entryStrategy: { type: 'hook' },
@@ -156,7 +159,7 @@ async function buildApp(appDir: string) {
   const ssrBuild = await rollup({
     input: join(appSrcDir, 'entry.ssr.tsx'),
     plugins: [
-      devPlugin({ isServer: true }),
+      devPlugin({ isServer: true, production: isProd }),
       optimizer.qwikRollup({
         target: 'ssr',
         buildMode: 'production',

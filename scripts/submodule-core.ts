@@ -120,6 +120,40 @@ async function submoduleCoreProd(config: BuildConfig) {
   }
   console.log('🐭 core.min.mjs:', await fileSize(esmMinFile));
 
+
+  const esmProdResult = await minify(esmCode, {
+    module: true,
+    compress: {
+
+      global_defs: {
+        // special global that when set to false will remove all dev code entirely
+        // developer production builds could use core.min.js directly, or setup
+        // their own build tools to define the globa `qwikDev` to false
+        'globalThis.qDev': false,
+        'globalThis.qDynamicPlatform': false,
+        'globalThis.describe': false,
+        'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+      },
+      ecma: 2020,
+      passes: 3,
+    },
+    mangle: false,
+    format: {
+      beautify: true,
+      comments: /__PURE__/,
+      preserve_annotations: true,
+      preamble: getBanner('@builder.io/qwik', config.distVersion),
+      ecma: 2020,
+    },
+  });
+
+  const esmProdFile = join(config.distPkgDir, 'core.prod.mjs');
+  const esmProdCode = esmProdResult.code!;
+  await writeFile(esmProdFile, esmProdCode);
+
+  console.log('🐭 core.prod.mjs:', await fileSize(esmProdFile));
+
+
   esmCode = esmCode.replace(/globalThis\.qDev \!== false/g, 'true');
   await writeFile(join(config.distPkgDir, 'core.mjs'), esmCode);
 

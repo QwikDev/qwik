@@ -10,7 +10,7 @@ import {
 } from '../../props/props';
 import { addQRLListener, isOnProp } from '../../props/props-on';
 import { isArray, isString, ValueOrPromise } from '../../util/types';
-import { promiseAll, then } from '../../util/promises';
+import { isPromise, promiseAll, then } from '../../util/promises';
 import { assertDefined, assertEqual, assertTrue } from '../../assert/assert';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { logDebug, logError, logWarn } from '../../util/log';
@@ -399,17 +399,30 @@ const addVnodes = (
   flags: number
 ): ValueOrPromise<void> => {
   const promises = [];
+  let hasPromise = false;
   for (; startIdx <= endIdx; ++startIdx) {
     const ch = vnodes[startIdx];
     assertDefined(ch, 'render: node must be defined at index', startIdx, vnodes);
-    promises.push(createElm(ctx, ch, flags));
-  }
-  return then(promiseAll(promises), (children) => {
-    for (const child of children) {
-      insertBefore(ctx, parentElm, child, before);
+    const elm = createElm(ctx, ch, flags)
+    promises.push(elm);
+    if (isPromise(elm)) {
+      hasPromise = true;
     }
-  });
+  }
+  if (hasPromise) {
+    return Promise.all(promises)
+      .then((children) => insertChildren(ctx, parentElm, children, before))
+  } else {
+    insertChildren(ctx, parentElm, promises as Node[], before);
+  }
+
 };
+
+const insertChildren = (ctx: RenderContext, parentElm: QwikElement, children: (Node | VirtualElement)[], before: Node | VirtualElement | null) => {
+  for (const child of children) {
+    insertBefore(ctx, parentElm, child, before);
+  }
+}
 
 const removeVnodes = (
   ctx: RenderContext,
@@ -590,7 +603,7 @@ const createElm = (
   if (isComponent) {
     updateComponentProperties(ctx, rctx, props);
   } else {
-    updateProperties(ctx, rctx, props, isSvg);
+    setProperties(ctx, props, isSvg);
   }
 
   if (isComponent || ctx.$listeners$ || hasRef) {
@@ -785,6 +798,64 @@ export const updateProperties = (
   }
   return false;
 };
+
+export const setProperties = (
+  ctx: QContext,
+  expectProps: Record<string, any>,
+  isSvg: boolean
+) => {
+  const keys = Object.keys(expectProps);
+  if (keys.length === 0) {
+    return false;
+  }
+  let cache = ctx.$cache$;
+  if (!cache) {
+    cache = ctx.$cache$ = new Map();
+  }
+  const elm = ctx.$element$;
+  for (const key of keys) {
+    if (key === 'children') {
+      continue;
+    }
+    const newValue = expectProps[key];
+    if (key === 'ref') {
+      (newValue as Ref<Element>).current = elm as Element;
+      continue;
+    }
+
+    // Early exit if value didnt change
+    cache.set(key, newValue);
+
+    if (isOnProp(key)) {
+      setEvent(ctx, key, newValue);
+      continue;
+    }
+
+    // Check if its an exception
+    const exception = PROP_HANDLER_MAP[key];
+    if (exception) {
+      if (exception(undefined, elm as HTMLElement, key, newValue, undefined)) {
+        continue;
+      }
+    }
+
+    // Check if property in prototype
+    if (!isSvg && key in elm) {
+      (elm as any)[key] = newValue;
+      continue;
+    }
+
+    // Fallback to render attribute
+    directSetAttribute(elm, key, newValue);
+  }
+  if (ctx.$listeners$) {
+    ctx.$listeners$.forEach((value, key) => {
+      directSetAttribute(elm, fromCamelToKebabCase(key), serializeQRLs(value, ctx));
+    });
+  }
+  return false;
+};
+
 
 export const updateComponentProperties = (
   ctx: QContext,

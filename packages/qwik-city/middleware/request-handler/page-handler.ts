@@ -32,17 +32,14 @@ export function pageHandler<T = any>(
 }
 
 export function getQwikCityEnvData(userResponse: UserResponseContext): {
+  url: string;
   qwikcity: QwikCityEnvData;
 } {
   const { url, params, pendingBody, resolvedBody, status } = userResponse;
   return {
+    url: url.href,
     qwikcity: {
-      route: {
-        href: url.href,
-        pathname: url.pathname,
-        params: { ...params },
-        query: Object.fromEntries(url.searchParams.entries()),
-      },
+      params: { ...params },
       response: {
         body: pendingBody || resolvedBody,
         status: status,

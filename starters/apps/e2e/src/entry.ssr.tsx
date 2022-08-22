@@ -1,4 +1,4 @@
-import type { FunctionComponent } from '@builder.io/qwik';
+import { FunctionComponent, useEnvData } from '@builder.io/qwik';
 import { renderToStream, RenderToStreamOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
@@ -28,7 +28,7 @@ import { RefRoot } from './components/ref/ref';
  *
  * @returns a promise when all of the rendering is completed.
  */
-export default function (opts: RenderToStreamOptions, url: URL) {
+export default function (opts: RenderToStreamOptions) {
   const tests: Record<string, FunctionComponent> = {
     '/e2e/': () => <Root />,
     '/e2e/two-listeners': () => <TwoListeners />,
@@ -53,6 +53,8 @@ export default function (opts: RenderToStreamOptions, url: URL) {
     '/e2e/mount': () => <MountRoot />,
     '/e2e/ref': () => <RefRoot />,
   };
+
+  const url = new URL(opts.envData.url);
   const Test = tests[url.pathname];
 
   // Render segment instead

@@ -8,7 +8,7 @@ import { isAbsolute, join, resolve, dirname } from 'path';
 import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync } from 'fs';
 import { Plugin, rollup } from 'rollup';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import type { RenderToStreamOptions } from '@builder.io/qwik/server';
+import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
 import { fileURLToPath } from 'url';
 
 const app = express();
@@ -223,10 +223,11 @@ async function ssrApp(
 ) {
   const ssrPath = join(appDir, 'server', 'entry.ssr.js');
   const mod = await import(ssrPath);
-  const render = mod.default ?? mod.render;
+  const render: Render = mod.default ?? mod.render;
 
   // ssr the document
   const base = `/${appName}/build/`;
+  const url = new URL(`${req.protocol}://${req.hostname}${req.url}`).href;
 
   const chunks: string[] = [];
   const opts: RenderToStreamOptions = {
@@ -234,9 +235,11 @@ async function ssrApp(
     manifest,
     debug: true,
     base,
+    envData: {
+      url,
+    },
   };
-  const url = new URL(`${req.protocol}://${req.hostname}${req.url}`);
-  await render(opts, url);
+  await render(opts);
 
   return chunks.join('');
 }

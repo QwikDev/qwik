@@ -318,7 +318,7 @@ export interface StaticGenerate {
 export interface QwikCityRenderDocument extends Document {}
 
 export interface QwikCityEnvData {
-  route: MutableRouteLocation;
+  params: RouteParams;
   response: EndpointResponse;
 }
 

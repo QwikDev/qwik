@@ -1,7 +1,6 @@
 import { useLocation } from '@builder.io/qwik-city';
 import { component$, $, useStyles$, useContext } from '@builder.io/qwik';
-// @ts-ignore
-import { DocSearch } from 'docsearch-qwik';
+import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
 import { GithubLogo } from '../svgs/github-logo';
@@ -32,7 +31,6 @@ export const Header = component$(() => {
             <span className="sr-only">Qwik Homepage</span>
             <QwikLogo width={110} height={50} />
           </a>
-          {/*  @ts-ignore */}
           <DocSearch
             appId={import.meta.env.VITE_ALGOLIA_APP_ID}
             apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}

@@ -311,14 +311,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/qwik@npm:0.0.100-dev20220820024200":
-  version: 0.0.100-dev20220820024200
-  resolution: "@builder.io/qwik@npm:0.0.100-dev20220820024200"
-  checksum: b9dd2dfad5c6d7a5e34402cd62c4278875df427a9fd7022f33ba9a447a70c47a301f424f34490b4888866455e2bed9aa1b09f42d5bab2bdb8e8dd7e6ea13c161
-  languageName: node
-  linkType: hard
-
-"@builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
+"@builder.io/qwik@^0.0.100, @builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   languageName: unknown
@@ -3272,17 +3265,6 @@ __metadata:
   version: 1.1.3
   resolution: "dlv@npm:1.1.3"
   checksum: d7381bca22ed11933a1ccf376db7a94bee2c57aa61e490f680124fa2d1cd27e94eba641d9f45be57caab4f9a6579de0983466f620a2cd6230d7ec93312105ae7
-  languageName: node
-  linkType: hard
-
-"docsearch-qwik@npm:0.0.3":
-  version: 0.0.3
-  resolution: "docsearch-qwik@npm:0.0.3"
-  dependencies:
-    "@algolia/autocomplete-core": ^1.7.1
-    "@algolia/client-search": ^4.14.2
-    algoliasearch: ^4.14.2
-  checksum: e309a19a61bce1d57ff78f72b349b463e71f5abc900cbb6e4f425938f182c2fe9d16f06096566e8ddcc35a3348b6b0f6ada0faace89e0e4d03b0b85abc240643
   languageName: node
   linkType: hard
 
@@ -7568,13 +7550,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "qwik-docs@workspace:packages/docs"
   dependencies:
+    "@algolia/autocomplete-core": ^1.7.1
+    "@algolia/client-search": ^4.14.2
     "@builder.io/partytown": ^0.6.4
-    "@builder.io/qwik": 0.0.100-dev20220820024200
+    "@builder.io/qwik": ^0.0.100
     "@builder.io/qwik-city": 0.0.101-3
     "@cloudflare/kv-asset-handler": 0.2.0
     "@docsearch/css": ^3.2.0
+    algoliasearch: ^4.14.2
     autoprefixer: 10.4.7
-    docsearch-qwik: 0.0.3
     fflate: ^0.7.3
     node-fetch: 3.2.9
     postcss: 8.4.14

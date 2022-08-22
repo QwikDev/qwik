@@ -1,5 +1,4 @@
 @import 'prism-themes/themes/prism-dracula.css';
-@import '@docsearch/css';
 
 code[class*='language-'],
 pre[class*='language-'] {

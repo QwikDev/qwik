@@ -611,9 +611,6 @@ export const useContext: <STATE extends object>(context: Context<STATE>) => STAT
 // @public
 export const useContextProvider: <STATE extends object>(context: Context<STATE>, newValue: STATE) => void;
 
-// @alpha
-export const useDocument: () => Document;
-
 // @public (undocumented)
 export interface UseEffectOptions {
     eagerness?: EagernessOptions;

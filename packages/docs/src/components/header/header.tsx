@@ -35,13 +35,6 @@ export const Header = component$(() => {
             appId={import.meta.env.VITE_ALGOLIA_APP_ID}
             apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
             indexName={import.meta.env.VITE_ALGOLIA_INDEX}
-            transformItems$={(items: any[]) => {
-              return items.map((item) => ({
-                ...item,
-                // TODO: remove this after migrate to algolia crawler together with search token & index name
-                url: item.url?.replace('http://host.docker.internal:3000', window.origin),
-              }));
-            }}
           />
         </div>
         <button onClick$={toggleMenu} class="mobile-menu" type="button">

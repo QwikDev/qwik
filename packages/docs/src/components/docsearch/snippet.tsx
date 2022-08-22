@@ -1,4 +1,4 @@
-import { component$, mutable } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 
 export function getPropertyByPath(object: Record<string, any>, path: string): any {
   const parts = path.split('.');

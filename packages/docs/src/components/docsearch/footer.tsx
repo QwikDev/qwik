@@ -1,4 +1,4 @@
-import { component$, Slot } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 import { AlgoliaLogo } from './algolia-logo';
 
 export type FooterTranslations = Partial<{

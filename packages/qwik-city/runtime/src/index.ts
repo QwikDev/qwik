@@ -23,6 +23,8 @@ export { RouterOutlet, Content } from './library/router-outlet';
 export { Html, QwikCity } from './library/html';
 export { Link } from './library/link';
 export type { LinkProps } from './library/link';
+export { ServiceWorker } from './library/sw-main';
+export { setupServiceWorker } from './library/sw-worker';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './library/use-functions';
 export { useEndpoint } from './library/use-endpoint';
 

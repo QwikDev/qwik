@@ -15,11 +15,13 @@ export default component$(() => {
       <Header />
       <SideBar />
       <main>
-        <article>
-          <Slot />
+        <div class="docs-container">
+          <article>
+            <Slot />
+          </article>
           <ContentNav />
           <Footer />
-        </article>
+        </div>
         <OnThisPage />
       </main>
     </div>

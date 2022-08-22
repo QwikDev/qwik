@@ -6,7 +6,7 @@
   @apply mx-auto mt-14 min-h-[100vh] xl:max-w-[1400px];
 }
 
-.docs article {
+.docs .docs-container {
   @apply pt-[80px];
   @apply px-6;
 

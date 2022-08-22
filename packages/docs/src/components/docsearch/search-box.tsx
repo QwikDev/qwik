@@ -64,7 +64,6 @@ export const SearchBox = component$(({ translations = {}, ...props }: SearchBoxP
         <input
           class="DocSearch-Input"
           aria-autocomplete="both"
-          aria-activedescendant={undefined ? '' : 'docsearch-item-ITEM_ID'}
           aria-control="docsearch-list"
           aria-labelledby="docsearch-label"
           value={props.state.query}

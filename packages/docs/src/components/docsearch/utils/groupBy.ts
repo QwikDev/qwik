@@ -5,7 +5,7 @@ export function groupBy<TValue extends Record<string, unknown>>(
   return values.reduce<Record<string, TValue[]>>((acc, item) => {
     const key = predicate(item);
 
-    if (!acc.hasOwnProperty(key)) {
+    if (!Object.prototype.hasOwnProperty.call(acc, key)) {
       acc[key] = [];
     }
 

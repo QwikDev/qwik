@@ -113,6 +113,18 @@ scopedStyles('@keyframe', () => {
     scopeStylesheet('@keyframes slidein {from{b:c(0%);}to{b:c(0%);}}', '_'),
     '@keyframes slidein-⭐️_ {from{b:c(0%);}to{b:c(0%);}}'
   );
+  equal(
+    scopeStylesheet('@-prefix-keyframes slidein {from{b:c(0%);}to{b:c(0%);}}', '_'),
+    '@-prefix-keyframes slidein-⭐️_ {from{b:c(0%);}to{b:c(0%);}}'
+  );
+});
+
+scopedStyles('animation-name', () => {
+  equal(scopeStylesheet('p{animation-name: x}', '_'), 'p.⭐️_{animation-name: x-⭐️_}');
+});
+
+scopedStyles('animation', () => {
+  equal(scopeStylesheet('p{animation: a b c }', '_'), 'p.⭐️_{animation: a b c-⭐️_ }');
 });
 
 scopedStyles('@font-face', () => {

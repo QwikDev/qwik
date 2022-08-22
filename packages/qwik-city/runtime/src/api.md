@@ -175,6 +175,7 @@ export interface RequestEvent {
     // (undocumented)
     next: () => Promise<void>;
     params: RouteParams;
+    platform: Record<string, any>;
     // (undocumented)
     request: RequestContext;
     // (undocumented)

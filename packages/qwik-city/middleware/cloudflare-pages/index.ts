@@ -8,7 +8,7 @@ import type { Render } from '@builder.io/qwik/server';
  * @alpha
  */
 export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) {
-  async function onRequest({ request, next, waitUntil }: EventPluginContext) {
+  async function onRequest({ request, next, env, waitUntil }: EventPluginContext) {
     try {
       const url = new URL(request.url);
 
@@ -64,20 +64,13 @@ export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) 
         },
       };
 
-      // check if the next middleware is able to handle this request
-      // useful if the request is for a static asset but app uses a catchall route
+      const handledResponse = await requestHandler<Response>(requestCtx, render, env, opts);
+      if (handledResponse) {
+        return handledResponse;
+      }
+
       const nextResponse = await next();
-
       if (nextResponse.status === 404) {
-        // next middleware unable to handle request
-        // send request to qwik city request handler
-        const handledResponse = await requestHandler<Response>(requestCtx, render, opts);
-        if (handledResponse) {
-          return handledResponse;
-        }
-
-        // qwik city did not have a route for this request
-        // respond with qwik city's 404 handler
         const notFoundResponse = await notFoundHandler<Response>(requestCtx);
         return notFoundResponse;
       }
@@ -107,4 +100,5 @@ export interface EventPluginContext {
   request: Request;
   waitUntil: (promise: Promise<any>) => void;
   next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
+  env: Record<string, any>;
 }

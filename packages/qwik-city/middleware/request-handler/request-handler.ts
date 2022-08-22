@@ -14,6 +14,7 @@ import { RedirectResponse, redirectResponse } from './redirect-handler';
 export async function requestHandler<T = any>(
   requestCtx: QwikCityRequestContext,
   render: Render,
+  platform: Record<string, any>,
   opts?: QwikCityRequestOptions
 ): Promise<T | null> {
   try {
@@ -25,7 +26,13 @@ export async function requestHandler<T = any>(
       const { mods, params } = loadedRoute;
 
       // build endpoint response from each module in the hierarchy
-      const userResponse = await loadUserResponse(requestCtx, params, mods, trailingSlash);
+      const userResponse = await loadUserResponse(
+        requestCtx,
+        params,
+        mods,
+        platform,
+        trailingSlash
+      );
 
       // status and headers should be immutable in at this point
       // body may not have resolved yet

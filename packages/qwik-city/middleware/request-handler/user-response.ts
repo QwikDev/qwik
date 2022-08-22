@@ -16,6 +16,7 @@ export async function loadUserResponse(
   requestCtx: QwikCityRequestContext,
   params: RouteParams,
   routeModules: RouteModule[],
+  platform: Record<string, any>,
   trailingSlash?: boolean
 ) {
   const { request, url } = requestCtx;
@@ -126,17 +127,18 @@ export async function loadUserResponse(
         };
 
         // create user request event, which is a narrowed down request context
-        const requstEv: RequestEvent = {
+        const requestEv: RequestEvent = {
           request,
           url: new URL(url),
           params: { ...params },
           response,
+          platform,
           next,
           abort,
         };
 
         // get the user's endpoint returned data
-        const syncData = reqHandler(requstEv) as any;
+        const syncData = reqHandler(requestEv) as any;
 
         if (typeof syncData === 'function') {
           // sync returned function

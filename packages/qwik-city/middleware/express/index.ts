@@ -17,7 +17,7 @@ export function qwikCity(render: Render, opts?: QwikCityExpressOptions) {
     try {
       const requestCtx = fromExpressHttp(req, res);
       try {
-        const rsp = await requestHandler(requestCtx, render, opts);
+        const rsp = await requestHandler(requestCtx, render, {}, opts);
         if (!rsp) {
           next();
         }

@@ -17,8 +17,12 @@ export const Head = component$(() => {
       <meta name="viewport" content="width=device-width" />
 
       <Manifest />
-      <Social loc={loc} head={head} />
-      <Vendor />
+      {import.meta.env.PROD && (
+        <>
+          <Social loc={loc} head={head} />
+          <Vendor />
+        </>
+      )}
 
       {head.meta.map((m) => (
         <meta {...m} />

@@ -40,6 +40,10 @@ export function scopeStylesheet(css: string, scopeId: string): string {
           (expectCh === CHAR.WHITESPACE && isWhiteSpace(ch))
         ) {
           if (arc.length == 3 || lookAhead(arc)) {
+            if (arc.length > 3) {
+              // If matched on lookAhead than we we have to update current `ch`
+              ch = css.charCodeAt(idx - 1);
+            }
             DEBUG &&
               console.log(
                 'MATCH',
@@ -115,20 +119,31 @@ export function scopeStylesheet(css: string, scopeId: string): string {
     if (mode === MODE.pseudoGlobal || isInGlobal()) return;
 
     flush(idx);
-    const separator = stack.length && stack[stack.length - 1] === MODE.atRuleSelector ? '-' : '.';
+    const parentMode = stack.length && stack[stack.length - 1];
+    const separator = parentMode === MODE.atRuleSelector || mode === MODE.animation ? '-' : '.';
     out.push(separator, ComponentStylesPrefixContent, scopeId);
     DEBUG && console.log('INSERT', out.join(''));
   }
   function lookAhead(arc: StateArc): boolean {
+    let prefix = 0; // Ignore vendor prefixes such as `-webkit-`.
+    if (css.charCodeAt(idx) === CHAR.DASH) {
+      for (let i = 1; i < 10; i++) {
+        // give up after 10 characters
+        if (css.charCodeAt(idx + i) === CHAR.DASH) {
+          prefix = i + 1;
+          break;
+        }
+      }
+    }
     words: for (let arcIndx = 3; arcIndx < arc.length; arcIndx++) {
       const txt = arc[arcIndx] as string;
       for (let i = 0; i < txt.length; i++) {
-        if ((css.charCodeAt(idx + i) | CHAR.LOWERCASE) !== txt.charCodeAt(i)) {
+        if ((css.charCodeAt(idx + i + prefix) | CHAR.LOWERCASE) !== txt.charCodeAt(i)) {
           continue words;
         }
       }
       // we found a match;
-      idx += txt.length;
+      idx += txt.length + prefix;
       return true;
     }
     return false;
@@ -191,6 +206,7 @@ function modeToString(mode: MODE): string {
     'stringSingle',
     'stringDouble',
     'commentMultiline',
+    'animation',
     'EXIT',
     'EXIT_INSERT_SCOPE',
   ][mode];
@@ -218,6 +234,7 @@ const enum MODE {
   stringSingle, // 'text'
   stringDouble, // 'text'
   commentMultiline, // /* ... */
+  animation,
   // NOT REAL MODES
   EXIT, // Exit the mode
   EXIT_INSERT_SCOPE, // Exit the mode INSERT SCOPE
@@ -385,6 +402,7 @@ const STATE_MACHINE: StateArc[][] = [
     [CHAR.ANY, CHAR.CLOSE_BRACE, MODE.EXIT],
     [CHAR.ANY, CHAR.OPEN_BRACE, MODE.body],
     [CHAR.ANY, CHAR.OPEN_PARENTHESIS, MODE.inertParenthesis],
+    [CHAR.ANY, CHAR.a, MODE.animation, 'nimation-name:'],
     ...STRINGS_COMMENTS,
   ],
   [
@@ -398,5 +416,9 @@ const STATE_MACHINE: StateArc[][] = [
   [
     /// commentMultiline
     [CHAR.STAR, CHAR.FORWARD_SLASH, MODE.EXIT],
+  ],
+  [
+    /// animation
+    [CHAR.IDENT, CHAR.NOT_IDENT, MODE.EXIT_INSERT_SCOPE],
   ],
 ];

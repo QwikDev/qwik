@@ -51,7 +51,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             requestCtx,
             params,
             routeModules,
-            {}, // TODO: Need to get actual platform object
+            {},
             ctx.opts.trailingSlash
           );
 

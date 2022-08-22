@@ -32,7 +32,7 @@ storeSuite('should serialize content', async () => {
   <body q:version="" q:container="resumed">
     <div>
       <!--qv q:key=sX: q:id=0-->
-      <div q:id="1" on:click="/runtimeQRL#_[0 1 2 3 4 5 6 7 8 9 10 11]"></div>
+      <div q:id="1" on:click="/runtimeQRL#_[0 1 2 3 4 5 6 7 8 9 10]"></div>
       <!--/qv-->
     </div>
   </body>`
@@ -43,7 +43,7 @@ storeSuite('should serialize content', async () => {
   equal(JSON.parse(script.textContent!), {
     ctx: {
       '#1': {
-        r: '0 1 2 m 8 f 7 6 i! m k l',
+        r: '0 1 2 l 8 f 7 6 i! l k',
       },
     },
     objs: [
@@ -56,7 +56,7 @@ storeSuite('should serialize content', async () => {
         d: '6',
         e: '7',
         f: '8',
-        g: 'm',
+        g: 'l',
         h: '9',
         i: 'e',
       },
@@ -84,7 +84,6 @@ storeSuite('should serialize content', async () => {
       },
       0,
       '\u0001/runtimeQRL#_',
-      '\u0002',
       '\u0000',
     ],
     subs: [],

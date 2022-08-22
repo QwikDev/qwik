@@ -53,7 +53,7 @@ export default component$(() => {
       >
         <div class="examples-menu">
           {exampleSections.map((s) => (
-            <div key={s.id} class="examples-menu-section">
+            <article key={s.id} class="examples-menu-section">
               <h2>{s.title}</h2>
 
               {s.apps.map((app) => (
@@ -78,7 +78,7 @@ export default component$(() => {
                   </div>
                 </a>
               ))}
-            </div>
+            </article>
           ))}
           <a
             href="https://github.com/BuilderIO/qwik/tree/main/packages/docs/src/routes/examples/apps/"

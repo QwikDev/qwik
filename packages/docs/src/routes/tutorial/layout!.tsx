@@ -57,7 +57,7 @@ export default component$(() => {
           'tutorial-panel-output': panelStore.active === 'Output',
         }}
       >
-        <div class="tutorial-content-panel">
+        <article class="tutorial-content-panel">
           <TutorialContentHeader store={store} />
 
           <div class="content-main">
@@ -83,7 +83,7 @@ export default component$(() => {
           </div>
 
           <TutorialContentFooter store={store} />
-        </div>
+        </article>
         <div class="tutorial-repl-panel">
           <div class="repl">
             <Repl

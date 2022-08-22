@@ -73,6 +73,9 @@ export function useSelfMouse() {
 }
 
 export const BroadcastEvents = component$(() => {
+  const state = useStore({
+    count: 0,
+  });
   return (
     <div>
       <ul>
@@ -87,7 +90,10 @@ export const BroadcastEvents = component$(() => {
         <li>1</li>
         <li>1</li>
       </ul>
-      <MouseEvents />
+      <button id="btn-toggle-render" type="button" onClick$={() => state.count++}>
+        Rerender
+      </button>
+      <MouseEvents key={state.count} />
     </div>
   );
 });
@@ -99,13 +105,13 @@ export const MouseEvents = component$(() => {
 
   return (
     <div>
-      <p>
-        (Document: x: {mouseDoc.x}, y: {mouseDoc.y}, inside: {mouseDoc.inside})
+      <p class="document">
+        (Document: x: {mouseDoc.x}, y: {mouseDoc.y})
       </p>
-      <p>
-        (Window: x: {mouseWin.x}, y: {mouseWin.y}, inside: {mouseWin.inside})
+      <p class="window">
+        (Window: x: {mouseWin.x}, y: {mouseWin.y})
       </p>
-      <p>
+      <p class="self">
         (Host: x: {mouseSelf.x}, y: {mouseSelf.y}, inside: {mouseSelf.inside})
       </p>
     </div>

@@ -6,7 +6,7 @@ import { pauseContainer } from '../../object/store';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
 import { useClientEffect$, useServerMount$, useWatch$ } from '../../use/use-watch';
-import { useCleanup$ } from '../../use/use-on';
+import { useCleanup$, useOn } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
 import { useStylesQrl } from '../../use/use-styles';
@@ -296,6 +296,29 @@ renderSuite('should project un-named slot component', async () => {
   );
 });
 
+renderSuite('should render host events on the first element', async () => {
+  const fixture = new ElementFixture();
+
+  await render(fixture.host, <UseEvents />);
+  await expectDOM(
+    fixture.host,
+    `
+  <host q:version="" q:container="resumed">
+    <!--qv q:key=sX: q:id=0-->
+    hello
+    <div
+      q:id="1"
+      on:qvisible="/runtimeQRL#_[0]"
+      on:click="/inlinedQRL#use-on-click"
+    >
+      thing
+    </div>
+    stuff
+    <!--/qv-->
+  </host>`
+  );
+});
+
 renderSuite('should project named slot component', async () => {
   const fixture = new ElementFixture();
 
@@ -401,30 +424,30 @@ renderSuite('should render a component with hooks', async () => {
   await expectRendered(
     fixture,
     `
-      <div>
-        <div q:id="1" id="effect"></div>
-        <div q:id="2" id="effect-destroy"></div>
-        <div id="watch">true</div>
-        <div q:id="3" id="watch-destroy"></div>
-        <div id="server-mount">true</div>
-        <div q:id="4" id="cleanup"></div>
-        <div id="reference">true</div>
-      </div>`
+    <div q:id="1" on:qvisible="/runtimeQRL#_[0]">
+      <div q:id="2" id="effect"></div>
+      <div q:id="3" id="effect-destroy"></div>
+      <div id="watch">true</div>
+      <div q:id="4" id="watch-destroy"></div>
+      <div id="server-mount">true</div>
+      <div q:id="5" id="cleanup"></div>
+      <div id="reference">true</div>
+    </div>`
   );
 
   await pauseContainer(fixture.host);
   await expectRendered(
     fixture,
     `
-      <div>
-        <div q:id="1" id="effect"></div>
-        <div q:id="2" id="effect-destroy"></div>
-        <div id="watch">true</div>
-        <div q:id="3" id="watch-destroy">true</div>
-        <div id="server-mount">true</div>
-        <div q:id="4" id="cleanup">true</div>
-        <div id="reference">true</div>
-      </div>`
+    <div q:id="1" on:qvisible="/runtimeQRL#_[0]">
+      <div q:id="2" id="effect"></div>
+      <div q:id="3" id="effect-destroy"></div>
+      <div id="watch">true</div>
+      <div q:id="4" id="watch-destroy">true</div>
+      <div id="server-mount">true</div>
+      <div q:id="5" id="cleanup">true</div>
+      <div id="reference">true</div>
+    </div>`
   );
 });
 
@@ -708,6 +731,25 @@ export const ToggleChild = component$(() => {
 
 export const Transparent = component$(() => {
   return <Slot></Slot>;
+});
+
+export const UseEvents = component$(() => {
+  useClientEffect$(() => {
+    console.warn('hello');
+  });
+  useOn(
+    'click',
+    inlinedQrl(() => {
+      console.warn('click');
+    }, 'use-on-click')
+  );
+  return (
+    <>
+      hello
+      <div>thing</div>
+      stuff
+    </>
+  );
 });
 
 //////////////////////////////////////////////////////////////////////////////////////////

@@ -123,6 +123,10 @@ scopedStyles('animation-name', () => {
   equal(scopeStylesheet('p{animation-name: x}', '_'), 'p.⭐️_{animation-name: x-⭐️_}');
 });
 
+scopedStyles('animation', () => {
+  equal(scopeStylesheet('p{animation: a b c }', '_'), 'p.⭐️_{animation: a b c-⭐️_ }');
+});
+
 scopedStyles('@font-face', () => {
   equal(
     scopeStylesheet(

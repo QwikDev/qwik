@@ -12,6 +12,7 @@ export function scopeStylesheet(css: string, scopeId: string): string {
   let lastIdx = idx;
   let mode: MODE = MODE.rule as any;
   let lastCh = 0;
+  let lastMarkIdx = 0;
   DEBUG && console.log('--------------------------');
   while (idx < end) {
     DEBUG && console.log(css);
@@ -52,7 +53,10 @@ export function scopeStylesheet(css: string, scopeId: string): string {
                 modeToString(newMode)
               );
             // We found a match!
-            if (newMode === MODE.EXIT || newMode == MODE.EXIT_INSERT_SCOPE) {
+            if (newMode === MODE.MARK_INSERT_LOCATION) {
+              lastMarkIdx = idx - 1;
+              continue; // pretend no match.
+            } else if (newMode === MODE.EXIT || newMode == MODE.EXIT_INSERT_SCOPE) {
               if (newMode === MODE.EXIT_INSERT_SCOPE) {
                 if (mode === MODE.starSelector && !isInGlobal()) {
                   // Replace `*` with the scoping elementClassIdSelector.
@@ -64,6 +68,8 @@ export function scopeStylesheet(css: string, scopeId: string): string {
                     insertScopingSelector(idx - 2);
                   }
                   lastIdx++;
+                } else if (mode === MODE.animation) {
+                  insertScopingSelector(lastMarkIdx);
                 } else {
                   if (!isChainedSelector(ch)) {
                     // We are exiting one of the Selector so we may need to
@@ -209,6 +215,7 @@ function modeToString(mode: MODE): string {
     'animation',
     'EXIT',
     'EXIT_INSERT_SCOPE',
+    'MARK_INSERT_LOCATION',
   ][mode];
 }
 
@@ -238,6 +245,7 @@ const enum MODE {
   // NOT REAL MODES
   EXIT, // Exit the mode
   EXIT_INSERT_SCOPE, // Exit the mode INSERT SCOPE
+  MARK_INSERT_LOCATION, // Possible place to insert scope selector
 }
 
 const enum CHAR {
@@ -402,7 +410,7 @@ const STATE_MACHINE: StateArc[][] = [
     [CHAR.ANY, CHAR.CLOSE_BRACE, MODE.EXIT],
     [CHAR.ANY, CHAR.OPEN_BRACE, MODE.body],
     [CHAR.ANY, CHAR.OPEN_PARENTHESIS, MODE.inertParenthesis],
-    [CHAR.ANY, CHAR.a, MODE.animation, 'nimation-name:'],
+    [CHAR.ANY, CHAR.a, MODE.animation, 'nimation-name:', 'nimation:'],
     ...STRINGS_COMMENTS,
   ],
   [
@@ -419,6 +427,9 @@ const STATE_MACHINE: StateArc[][] = [
   ],
   [
     /// animation
-    [CHAR.IDENT, CHAR.NOT_IDENT, MODE.EXIT_INSERT_SCOPE],
+    [CHAR.IDENT, CHAR.NOT_IDENT, MODE.MARK_INSERT_LOCATION],
+    [CHAR.ANY, CHAR.SEMICOLON, MODE.EXIT_INSERT_SCOPE],
+    [CHAR.ANY, CHAR.CLOSE_BRACE, MODE.EXIT_INSERT_SCOPE],
+    ...STRINGS_COMMENTS,
   ],
 ];

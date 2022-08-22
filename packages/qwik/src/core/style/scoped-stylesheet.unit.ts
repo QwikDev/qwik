@@ -111,20 +111,20 @@ scopedStyles('complex properties', () => {
 scopedStyles('@keyframe', () => {
   equal(
     scopeStylesheet('@keyframes slidein {from{b:c(0%);}to{b:c(0%);}}', '_'),
-    '@keyframes slidein-⭐️_ {from{b:c(0%);}to{b:c(0%);}}'
+    '@keyframes slidein {from{b:c(0%);}to{b:c(0%);}}'
   );
   equal(
     scopeStylesheet('@-prefix-keyframes slidein {from{b:c(0%);}to{b:c(0%);}}', '_'),
-    '@-prefix-keyframes slidein-⭐️_ {from{b:c(0%);}to{b:c(0%);}}'
+    '@-prefix-keyframes slidein {from{b:c(0%);}to{b:c(0%);}}'
   );
 });
 
 scopedStyles('animation-name', () => {
-  equal(scopeStylesheet('p{animation-name: x}', '_'), 'p.⭐️_{animation-name: x-⭐️_}');
+  equal(scopeStylesheet('p{animation-name: x}', '_'), 'p.⭐️_{animation-name: x}');
 });
 
 scopedStyles('animation', () => {
-  equal(scopeStylesheet('p{animation: a b c }', '_'), 'p.⭐️_{animation: a b c-⭐️_ }');
+  equal(scopeStylesheet('p{animation: a b c }', '_'), 'p.⭐️_{animation: a b c }');
 });
 
 scopedStyles('@font-face', () => {

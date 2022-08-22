@@ -76,7 +76,7 @@ export function Component() {
   const [value, setValue] = useState(0);
   return (
     <div>
-      Value is: ${value}
+      Value is: {value}
     </div>
   )
 }
@@ -108,7 +108,7 @@ export function Counter() {
   return (
     <>
       <div>
-        Value is: ${count}
+        Value is: {count}
       </div>
       <button onClick={() => setCount(count + 1)}>
         Increment
@@ -155,7 +155,7 @@ export function Clock() {
   });
   return (
     <div>
-      Seconds: ${seconds}
+      Seconds: {seconds}
     </div>
   )
 }
@@ -181,7 +181,7 @@ export const Fetch = component$(() => {
 
   return (
     <>
-      <div>${state.responseJson.name}</div>
+      <div>${state.responseJson?.name}</div>
       <input name="url" onInput$={(ev) => (state.url = ev.target.value)} />
     </>
   );
@@ -201,7 +201,7 @@ export function Fetch() {
   }, [url]);
   return (
     <>
-      <div>${responseJson.name}</div>
+      <div>{responseJson?.name}</div>
       <input name="url" onInput={(ev) => setUrl(ev.target.value)} />
     </>
   );
@@ -389,7 +389,7 @@ export function Presidents() {
   return (
     <ul>
       {presidents.map((president) => (
-        <li>
+        <li key={president.name + president.years}>
           {president.name} ({president.years})
         </li>
       ))}

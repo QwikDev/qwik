@@ -724,4 +724,60 @@ AFTER useServerMount4()
 Click`);
     });
   });
+
+  test.describe('ref', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/ref');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should render correctly', async ({ page }) => {
+      const staticEl = await page.locator('#static');
+      const dynamic = await page.locator('#dynamic');
+      await expect(staticEl).toHaveText('Rendered');
+      await expect(dynamic).toHaveText('Rendered');
+    });
+  });
+
+  test.describe('broadcast-events', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/broadcast-events');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    function tests() {
+      test('should render correctly', async ({ page }) => {
+        const document = await page.locator('p.document');
+        const window = await page.locator('p.window');
+        const self = await page.locator('p.self');
+
+        await expect(document).toHaveText('(Document: x: 0, y: 0)');
+        await expect(window).toHaveText('(Window: x: 0, y: 0)');
+        await expect(self).toHaveText('(Host: x: 0, y: 0, inside: false)');
+
+        await page.mouse.move(100, 50);
+
+        await expect(document).toHaveText('(Document: x: 100, y: 50)');
+        await expect(window).toHaveText('(Window: x: 100, y: 50)');
+        await expect(self).toHaveText('(Host: x: 0, y: 0, inside: false)');
+
+        await page.mouse.move(100, 300);
+
+        await expect(document).toHaveText('(Document: x: 100, y: 300)');
+        await expect(window).toHaveText('(Window: x: 100, y: 300)');
+        await expect(self).toHaveText('(Host: x: 100, y: 300, inside: true)');
+      });
+    }
+
+    tests();
+
+    test.describe('client rerender', () => {
+      test.beforeEach(async ({ page }) => {
+        const toggleRender = await page.locator('#btn-toggle-render');
+        await toggleRender.click();
+        await page.waitForTimeout(100);
+      });
+      tests();
+    });
+  });
 });

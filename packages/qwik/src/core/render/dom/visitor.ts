@@ -718,7 +718,7 @@ export const PROP_HANDLER_MAP: Record<string, PropHandler> = {
 };
 
 export const updateProperties = (
-  ctx: QContext,
+  elCtx: QContext,
   rctx: RenderContext,
   expectProps: Record<string, any>,
   isSvg: boolean
@@ -727,8 +727,8 @@ export const updateProperties = (
   if (keys.length === 0) {
     return false;
   }
-  let cache = ctx.$cache$;
-  const elm = ctx.$element$;
+  let cache = elCtx.$cache$;
+  const elm = elCtx.$element$;
   for (const key of keys) {
     if (key === 'children') {
       continue;
@@ -742,7 +742,7 @@ export const updateProperties = (
     // Early exit if value didnt change
     const cacheKey = key;
     if (!cache) {
-      cache = ctx.$cache$ = new Map();
+      cache = elCtx.$cache$ = new Map();
     }
     const oldValue = cache.get(cacheKey);
     if (newValue === oldValue) {
@@ -757,7 +757,7 @@ export const updateProperties = (
     }
 
     if (isOnProp(key)) {
-      setEvent(ctx, key, newValue);
+      setEvent(elCtx, key, newValue);
       continue;
     }
 
@@ -778,11 +778,16 @@ export const updateProperties = (
     // Fallback to render attribute
     setAttribute(rctx, elm, key, newValue);
   }
-  if (ctx.$listeners$) {
-    ctx.$listeners$.forEach((value, key) => {
-      setAttribute(rctx, elm, fromCamelToKebabCase(key), serializeQRLs(value, ctx));
+  const cmp = rctx.$currentComponent$;
+  if (cmp && !cmp.$attachedListeners$) {
+    cmp.$attachedListeners$ = true;
+    cmp.$ctx$.$listeners$?.forEach((qrl, eventName) => {
+      addQRLListener(elCtx, eventName, qrl);
     });
   }
+  elCtx.$listeners$?.forEach((value, key) => {
+    setAttribute(rctx, elm, fromCamelToKebabCase(key), serializeQRLs(value, elCtx));
+  });
   return false;
 };
 

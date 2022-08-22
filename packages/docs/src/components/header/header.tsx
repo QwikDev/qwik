@@ -34,11 +34,11 @@ export const Header = component$(() => {
           <DocSearch
             appId={import.meta.env.VITE_ALGOLIA_APP_ID}
             apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
-            indexName="docsearch-legacy"
+            indexName={import.meta.env.VITE_ALGOLIA_INDEX}
             transformItems$={(items: any[]) => {
               return items.map((item) => ({
                 ...item,
-                // TODO: remove this after migrate to algolia crawler
+                // TODO: remove this after migrate to algolia crawler together with search token & index name
                 url: item.url?.replace('http://host.docker.internal:3000', window.origin),
               }));
             }}
@@ -72,17 +72,29 @@ export const Header = component$(() => {
             </a>
           </li>
           <li>
-            <a href="/examples/introduction/hello-world/" onClick$={closeMenu}>
+            <a
+              href="/examples/introduction/hello-world/"
+              class={{ active: pathname.startsWith('/examples') }}
+              onClick$={closeMenu}
+            >
               <span>Examples</span>
             </a>
           </li>
           <li>
-            <a href="/tutorial/welcome/overview/" onClick$={closeMenu}>
+            <a
+              href="/tutorial/welcome/overview/"
+              class={{ active: pathname.startsWith('/tutorial') }}
+              onClick$={closeMenu}
+            >
               <span>Tutorial</span>
             </a>
           </li>
           <li>
-            <a href="/playground/" onClick$={closeMenu}>
+            <a
+              href="/playground/"
+              class={{ active: pathname.startsWith('/playground') }}
+              onClick$={closeMenu}
+            >
               <span>Playground</span>
             </a>
           </li>

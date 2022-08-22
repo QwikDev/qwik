@@ -68,7 +68,11 @@ resource: https://docsearch.algolia.com/
 
 ### Crawler
 
-To crawl local server for testing index settings use this command
+Setup in https://crawler.algolia.com/
+
+### Debug local site with crawler settings
+
+To crawl localhost site for testing index settings for content hierarchy. use this docker command
 
 ```bash
 # create apiKey via https://www.algolia.com/account/api-keys
@@ -82,12 +86,3 @@ docker run -it --rm --env-file=.env -e "CONFIG=$(cat ./packages/docs/algolia.jso
 see guide of [DocSearch-legacy docker command](https://docsearch.algolia.com/docs/legacy/run-your-own#run-the-crawl-from-the-docker-image)
 
 > In mac machine, docker container can access host's network, workaround is to use `host.docker.internal`
-
-More recommend way is use https://crawler.algolia.com/
-
-### Search UI
-
-there're two options for now
-
-1. @docsearch/js is react based render of autocomplete
-2. qwik implementation base on @algolia/autocomplete-js

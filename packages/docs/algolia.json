@@ -1,16 +1,16 @@
 {
-  "index_name": "docsearch-legacy",
-  "sitemap_urls": ["http://host.docker.internal:3000/sitemap.xml"],
+  "index_name": "qwik",
+  "sitemap_urls": ["http://qwik.builder.io/sitemap.xml"],
   "selectors": {
     "lvl0": {
       "selector": "header a.active",
       "global": true
     },
-    "lvl1": "main article h1",
-    "lvl2": "main article h2",
-    "lvl3": "main article h3",
-    "lvl4": "main article h4",
-    "lvl5": "main article h5",
-    "text": "main article p,main article li,main article td"
+    "lvl1": "article h1",
+    "lvl2": "article h2",
+    "lvl3": "article h3",
+    "lvl4": "article h4",
+    "lvl5": "article h5",
+    "text": "article p,article li,article td"
   }
 }

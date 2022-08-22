@@ -1,4 +1,6 @@
+import { useLocation } from '@builder.io/qwik-city';
 import { component$, $, useStyles$, useContext } from '@builder.io/qwik';
+import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
 import { GithubLogo } from '../svgs/github-logo';
@@ -11,6 +13,7 @@ import { GlobalStore } from '../../context';
 export const Header = component$(() => {
   useStyles$(styles);
   const globalStore = useContext(GlobalStore);
+  const pathname = useLocation().pathname;
 
   const toggleMenu = $(() => {
     globalStore.headerMenuOpen = !globalStore.headerMenuOpen;
@@ -21,13 +24,18 @@ export const Header = component$(() => {
   });
 
   return (
-    <header>
+    <header class="header-container">
       <div class="header-inner">
         <div class="header-logo">
           <a href="/">
             <span className="sr-only">Qwik Homepage</span>
             <QwikLogo width={110} height={50} />
           </a>
+          <DocSearch
+            appId={import.meta.env.VITE_ALGOLIA_APP_ID}
+            apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
+            indexName={import.meta.env.VITE_ALGOLIA_INDEX}
+          />
         </div>
         <button onClick$={toggleMenu} class="mobile-menu" type="button">
           <span class="more-icon">
@@ -39,27 +47,47 @@ export const Header = component$(() => {
         </button>
         <ul className="md:grow md:flex md:justify-end md:p-4 menu-toolkit">
           <li>
-            <a href="/docs/overview/" onClick$={closeMenu}>
+            <a
+              href="/docs/overview/"
+              class={{ active: pathname.startsWith('/docs') }}
+              onClick$={closeMenu}
+            >
               <span>Docs</span>
             </a>
           </li>
           <li>
-            <a href="/qwikcity/overview/" onClick$={closeMenu}>
+            <a
+              href="/qwikcity/overview/"
+              class={{ active: pathname.startsWith('/qwikcity') }}
+              onClick$={closeMenu}
+            >
               <span>Qwik City</span>
             </a>
           </li>
           <li>
-            <a href="/examples/introduction/hello-world/" onClick$={closeMenu}>
+            <a
+              href="/examples/introduction/hello-world/"
+              class={{ active: pathname.startsWith('/examples') }}
+              onClick$={closeMenu}
+            >
               <span>Examples</span>
             </a>
           </li>
           <li>
-            <a href="/tutorial/welcome/overview/" onClick$={closeMenu}>
+            <a
+              href="/tutorial/welcome/overview/"
+              class={{ active: pathname.startsWith('/tutorial') }}
+              onClick$={closeMenu}
+            >
               <span>Tutorial</span>
             </a>
           </li>
           <li>
-            <a href="/playground/" onClick$={closeMenu}>
+            <a
+              href="/playground/"
+              class={{ active: pathname.startsWith('/playground') }}
+              onClick$={closeMenu}
+            >
               <span>Playground</span>
             </a>
           </li>

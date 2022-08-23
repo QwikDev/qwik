@@ -64,7 +64,7 @@ export default component$(() => {
                   onClick$={() => {
                     store.appId = app.id;
                     panelStore.active === 'Input';
-                    history.replaceState({}, '', `/examples/${app.id}`);
+                    history.replaceState({}, '', `/examples/${app.id}/`);
                   }}
                   class={{
                     'example-button': true,

@@ -251,12 +251,43 @@ vite('command: serve, --mode ssr', async () => {
 
   equal(opts.target, 'ssr');
   equal(opts.buildMode, 'development');
+  equal(build.minify, undefined);
   equal(build.ssr, undefined);
   equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'renderz.tsx'))]);
   equal(c.build.outDir, normalizePath(resolve(cwd, 'ssr-dist')));
   equal(build.emptyOutDir, true);
   equal(c.publicDir, undefined);
   equal(opts.resolveQwikBuild, false);
+});
+
+vite('command: build, --mode lib', async () => {
+  const initOpts = {
+    optimizerOptions: mockOptimizerOptions(),
+  };
+  const plugin: VitePlugin = qwikVite(initOpts);
+  const c: any = (await plugin.config!(
+    {
+      build: {
+        lib: {
+          entry: './src/index.ts',
+          formats: ['es', 'cjs'],
+        },
+      },
+    },
+    { command: 'build', mode: 'lib' }
+  ))!;
+  const opts = await plugin.api?.getOptions();
+  const build = c.build!;
+  const rollupOptions = build!.rollupOptions!;
+
+  equal(opts.target, 'lib');
+  equal(opts.buildMode, 'development');
+  equal(build.minify, false);
+  equal(build.ssr, undefined);
+  equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'index.ts'))]);
+  equal(c.build.outDir, normalizePath(resolve(cwd, 'lib')));
+  equal(build.emptyOutDir, undefined);
+  equal(opts.resolveQwikBuild, true);
 });
 
 vite.run();

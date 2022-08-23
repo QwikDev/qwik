@@ -34,7 +34,7 @@ import { isArray, isObject, isSerializableObject, isString } from '../util/types
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
 import { isResourceReturn } from '../use/use-resource';
-import { createParser, Parser, serializeValue } from './serializers';
+import { createParser, Parser, serializeValue, UNDEFINED_PREFIX } from './serializers';
 import { ContainerState, getContainerState } from '../render/container';
 import { getQId } from '../render/execute-component';
 import { processVirtualNodes, QwikElement } from '../render/dom/virtual-element';
@@ -438,30 +438,36 @@ export const _pauseFromContexts = async (
 
   // Serialize objects
   const convertedObjs = objs.map((obj) => {
-    const value = serializeValue(obj, getObjId, containerState);
-    if (value !== undefined) {
-      return value;
+    if (obj === null) {
+      return null;
     }
-    switch (typeof obj) {
-      case 'object':
-        if (obj === null) {
-          return null;
-        }
-        if (isArray(obj)) {
-          return obj.map(mustGetObjId);
-        }
-        if (isSerializableObject(obj)) {
-          const output: Record<string, any> = {};
-          Object.entries(obj).forEach(([key, value]) => {
-            output[key] = mustGetObjId(value);
-          });
-          return output;
-        }
-        break;
+    const typeObj = typeof obj;
+    switch (typeObj) {
+      case 'undefined':
+        return UNDEFINED_PREFIX;
       case 'string':
       case 'number':
       case 'boolean':
         return obj;
+
+      default:
+        const value = serializeValue(obj, getObjId, containerState);
+        if (value !== undefined) {
+          return value;
+        }
+        if (typeObj === 'object') {
+          if (isArray(obj)) {
+            return obj.map(mustGetObjId);
+          }
+          if (isSerializableObject(obj)) {
+            const output: Record<string, any> = {};
+            Object.entries(obj).forEach(([key, value]) => {
+              output[key] = mustGetObjId(value);
+            });
+            return output;
+          }
+        }
+        break;
     }
     throw qError(QError_verifySerializable, obj);
   });
@@ -623,7 +629,7 @@ const reviveValues = (
   for (let i = 0; i < objs.length; i++) {
     const value = objs[i];
     if (isString(value)) {
-      objs[i] = parser.prepare(value);
+      objs[i] = value === UNDEFINED_PREFIX ? undefined : parser.prepare(value);
     }
   }
   for (let i = 0; i < subs.length; i++) {

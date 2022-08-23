@@ -122,7 +122,6 @@ export const getTutorial = (id: string) => {
 };
 
 export const ensureDefaultFiles = (appFiles: ReplModuleInput[]) => {
-  debugger;
   const files: ReplModuleInput[] = JSON.parse(JSON.stringify(appFiles));
 
   const DEFAULT_ENTRY_SERVER = `

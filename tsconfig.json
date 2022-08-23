@@ -41,7 +41,9 @@
       "@tutorial-data": ["packages/docs/src/routes/tutorial/tutorial-data.ts"],
       "@qwik-client-manifest": ["packages/qwik/src/server/server-modules.d.ts"],
       "@qwik-city-plan": ["packages/qwik-city/runtime/src/library/qwik-city-plan.ts"],
-      "@qwik-city-sw-registration": ["packages/qwik-city/runtime/src/library/sw-main-script.ts"],
+      "@qwik-city-sw-registration": [
+        "packages/qwik-city/runtime/src/library/sw-registration-build.ts"
+      ],
       "create-qwik": ["packages/create-qwik/api/index.ts"]
     },
     "types": ["node", "vite/client"],

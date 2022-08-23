@@ -19,6 +19,17 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   const rejected = Promise.reject(new Error('failed message'));
   rejected.catch(() => null);
 
+  const specialStrings = [
+    '\b: backspace',
+    '\f: form feed',
+    '\n: line feed',
+    '\r: carriage return',
+    '\t: horizontal tab',
+    '\v: vertical tab',
+    '\0: null character',
+    "': single quote",
+    '\\: backslash',
+  ];
   const c = {
     a: { thing: 12 },
     b: 'hola',
@@ -63,6 +74,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
           `${regex.source} ${regex.flags}`,
           nullPrototype.value,
           reason.message,
+          specialStrings,
         ]);
         state.count++;
       });

@@ -171,18 +171,25 @@ const PureFunctionSerializer: Serializer<Function> = {
   fill: undefined,
 };
 
+const StringSerializer: Serializer<string> = {
+  test: () => false,
+  prepare: (data) => data,
+};
+
 const serializers: Serializer<any>[] = [
-  UndefinedSerializer,
-  QRLSerializer,
-  DocumentSerializer,
-  ResourceSerializer,
-  WatchSerializer,
-  URLSerializer,
-  RegexSerializer,
-  DateSerializer,
-  ComponentSerializer,
-  PureFunctionSerializer,
-  ErrorSerializer,
+  UndefinedSerializer, // 00
+  QRLSerializer, // 01
+  DocumentSerializer, // 02
+  ResourceSerializer, // 03
+  WatchSerializer, // 04
+  URLSerializer, // 05
+  RegexSerializer, // 06
+  DateSerializer, // 07
+  ComponentSerializer, // 08
+  PureFunctionSerializer, // 09
+  StringSerializer, // 10 SPECIAL because strings can start with `\n`.charCodeAt(0) == 10
+  StringSerializer, // 11 SPECIAL because strings can start with `\t`.charCodeAt(0) == 11
+  ErrorSerializer, // 12
 ];
 
 export const canSerialize = (obj: any): boolean => {

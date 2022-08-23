@@ -100,11 +100,14 @@ export function getMarkdownRelativeUrl(
   const strippedUrl = url.split('?')[0].split('#')[0];
 
   if (isMarkdownExt(getExtension(strippedUrl))) {
-    const containingDirPath = dirname(containingFilePath);
+    const isAbsolute = strippedUrl.startsWith('/');
     const parts = normalizePath(strippedUrl)
       .split('/')
       .filter((p) => p.length > 0);
-    const filePath = join(containingDirPath, ...parts);
+
+    const filePath = isAbsolute
+      ? join(opts.routesDir, ...parts)
+      : join(dirname(containingFilePath), ...parts);
 
     if (checkFileExists) {
       if (!existsSync(filePath)) {

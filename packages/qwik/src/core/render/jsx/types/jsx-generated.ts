@@ -404,7 +404,7 @@ export interface MediaHTMLAttributes<T> extends HTMLAttributes<T> {
   autoPlay?: boolean | undefined;
   controls?: boolean | undefined;
   controlsList?: string | undefined;
-  crossOrigin?: string | undefined;
+  crossOrigin?: HTMLCrossOriginAttribute;
   loop?: boolean | undefined;
   mediaGroup?: string | undefined;
   muted?: boolean | undefined;
@@ -506,7 +506,7 @@ export interface IframeHTMLAttributes<T> extends HTMLAttributes<T> {
 }
 export interface ImgHTMLAttributes<T> extends HTMLAttributes<T> {
   alt?: string | undefined;
-  crossOrigin?: 'anonymous' | 'use-credentials' | '' | undefined;
+  crossOrigin?: HTMLCrossOriginAttribute;
   decoding?: 'async' | 'auto' | 'sync' | undefined;
   height?: number | string | undefined;
   loading?: 'eager' | 'lazy' | undefined;
@@ -517,6 +517,9 @@ export interface ImgHTMLAttributes<T> extends HTMLAttributes<T> {
   useMap?: string | undefined;
   width?: number | string | undefined;
 }
+
+export type HTMLCrossOriginAttribute = 'anonymous' | 'use-credentials' | '' | undefined;
+
 export type HTMLInputTypeAttribute =
   | 'button'
   | 'checkbox'
@@ -602,7 +605,7 @@ export interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
   autoFocus?: boolean | undefined;
   capture?: boolean | 'user' | 'environment' | undefined; // https://www.w3.org/TR/html-media-capture/#the-capture-attribute
   checked?: boolean | undefined;
-  crossOrigin?: string | undefined;
+  crossOrigin?: HTMLCrossOriginAttribute;
   disabled?: boolean | undefined;
   enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send' | undefined;
   form?: string | undefined;
@@ -652,7 +655,7 @@ export interface LiHTMLAttributes<T> extends HTMLAttributes<T> {
 }
 export interface LinkHTMLAttributes<T> extends HTMLAttributes<T> {
   as?: string | undefined;
-  crossOrigin?: string | undefined;
+  crossOrigin?: HTMLCrossOriginAttribute;
   href?: string | undefined;
   hrefLang?: string | undefined;
   integrity?: string | undefined;
@@ -735,7 +738,7 @@ export interface ScriptHTMLAttributes<T> extends HTMLAttributes<T> {
   async?: boolean | undefined;
   /** @deprecated Deprecated */
   charSet?: string | undefined;
-  crossOrigin?: string | undefined;
+  crossOrigin?: HTMLCrossOriginAttribute;
   defer?: boolean | undefined;
   integrity?: string | undefined;
   noModule?: boolean | undefined;
@@ -874,7 +877,7 @@ export interface SVGAttributes<T> extends AriaAttributes, DOMAttributes<T> {
 
   role?: string | undefined;
   tabindex?: number | undefined;
-  crossOrigin?: 'anonymous' | 'use-credentials' | '' | undefined;
+  crossOrigin?: HTMLCrossOriginAttribute;
 
   'accent-height'?: number | string | undefined;
   accumulate?: 'none' | 'sum' | undefined;

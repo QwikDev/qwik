@@ -253,6 +253,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         if (isClientDevOnly) {
           updatedViteConfig.build!.rollupOptions!.input = clientDevInput;
         }
+      } else if (opts.target === 'lib') {
+        // Library Build
+        updatedViteConfig.build!.minify = false;
       }
 
       return updatedViteConfig;

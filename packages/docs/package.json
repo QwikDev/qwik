@@ -18,10 +18,14 @@
     "fmt.check": "prettier --check ."
   },
   "devDependencies": {
+    "@algolia/autocomplete-core": "^1.7.1",
+    "@algolia/client-search": "^4.14.2",
     "@builder.io/partytown": "^0.6.4",
-    "@builder.io/qwik": "0.0.100-dev20220820024200",
+    "@builder.io/qwik": "^0.0.101",
     "@builder.io/qwik-city": "0.0.101-3",
     "@cloudflare/kv-asset-handler": "0.2.0",
+    "@docsearch/css": "^3.2.0",
+    "algoliasearch": "^4.14.2",
     "autoprefixer": "10.4.7",
     "fflate": "^0.7.3",
     "node-fetch": "3.2.9",

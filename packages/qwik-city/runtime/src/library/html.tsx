@@ -3,6 +3,7 @@ import {
   noSerialize,
   Slot,
   useContextProvider,
+  useEnvData,
   useStore,
   useWatch$,
 } from '@builder.io/qwik';
@@ -31,21 +32,22 @@ import { clientNavigate, toPath } from './client-navigation';
  * @alpha
  */
 export const QwikCity = component$(() => {
+  const url = new URL(useEnvData<string>('url')!);
   const env = useQwikCityEnv();
 
-  const routeLocation = useStore<MutableRouteLocation>(() => {
-    const initRouteLocation = env?.route;
-    if (!initRouteLocation) {
-      throw new Error(`Missing Qwik City User Context`);
-    }
-    return initRouteLocation;
+  if (!env?.params) {
+    throw new Error(`Missing Qwik City Env Data`);
+  }
+
+  const routeLocation = useStore<MutableRouteLocation>({
+    href: url.href,
+    pathname: url.pathname,
+    query: Object.fromEntries(url.searchParams.entries()),
+    params: env.params,
   });
 
-  const routeNavigate = useStore<RouteNavigate>(() => {
-    const initRouteLocation = env?.route;
-    return {
-      path: toPath(new URL(initRouteLocation!.href)),
-    };
+  const routeNavigate = useStore<RouteNavigate>({
+    path: toPath(url),
   });
 
   const documentHead = useStore(createDocumentHead);

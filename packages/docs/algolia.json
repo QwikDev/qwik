@@ -1,0 +1,16 @@
+{
+  "index_name": "qwik",
+  "sitemap_urls": ["http://qwik.builder.io/sitemap.xml"],
+  "selectors": {
+    "lvl0": {
+      "selector": "header a.active",
+      "global": true
+    },
+    "lvl1": "article h1",
+    "lvl2": "article h2",
+    "lvl3": "article h3",
+    "lvl4": "article h4",
+    "lvl5": "article h5",
+    "text": "article p,article li,article td"
+  }
+}

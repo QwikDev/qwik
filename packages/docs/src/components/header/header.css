@@ -1,4 +1,4 @@
-header {
+.header-container {
   height: calc(var(--header-height));
   margin-bottom: 6px;
   color: white;
@@ -6,7 +6,7 @@ header {
   box-shadow: 0px 2px 5px #0000003d;
 }
 
-.fixed-header header {
+.fixed-header .header-container {
   position: fixed;
   top: 0;
   width: 100%;
@@ -68,6 +68,7 @@ header .header-inner {
   max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
+  position: relative;
 }
 
 .full-width header .header-inner {
@@ -76,9 +77,13 @@ header .header-inner {
 
 header .header-logo {
   position: absolute;
-  top: 5px;
+  top: 0;
+  bottom: 0;
   left: max(0px, calc(50% - 45rem));
   padding-left: 1rem;
+  display: flex;
+  align-items: center;
+  height: var(--header-height);
 }
 
 .full-width header .header-logo {

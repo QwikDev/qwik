@@ -271,6 +271,9 @@ export interface RequestEvent {
   /** URL Route params which have been parsed from the current url pathname. */
   params: RouteParams;
 
+  /** Platform specific data and functions */
+  platform: Record<string, any>;
+
   next: () => Promise<void>;
   abort: () => void;
 }
@@ -318,7 +321,7 @@ export interface StaticGenerate {
 export interface QwikCityRenderDocument extends Document {}
 
 export interface QwikCityEnvData {
-  route: MutableRouteLocation;
+  params: RouteParams;
   response: EndpointResponse;
 }
 

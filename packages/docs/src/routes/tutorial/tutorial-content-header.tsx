@@ -18,7 +18,7 @@ export const TutorialContentHeader = component$(({ store }: TutorialContentHeade
       <select
         onChange$={(_, elm: any) => {
           if (location.pathname !== elm.value) {
-            location.href = `/tutorial/${elm.value}`;
+            location.href = `/tutorial/${elm.value}/`;
           }
         }}
       >

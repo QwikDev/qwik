@@ -65,7 +65,7 @@ export default component$(() => {
               <Slot />
               {store.next ? (
                 <p class="next-link">
-                  <a href={`/tutorial/${store.next.id}`} class="next">
+                  <a href={`/tutorial/${store.next.id}/`} class="next">
                     Next: {store.next.title}
                   </a>
                 </p>
@@ -122,20 +122,10 @@ export const getTutorial = (id: string) => {
 };
 
 export const ensureDefaultFiles = (appFiles: ReplModuleInput[]) => {
+  debugger;
   const files: ReplModuleInput[] = JSON.parse(JSON.stringify(appFiles));
 
-  if (!files.some((i) => i.code === '/root.tsx')) {
-    files.push({ path: '/root.tsx', code: DEFAULT_ROOT, hidden: true });
-  }
-
-  if (!files.some((i) => i.code === '/entry.server.tsx')) {
-    files.push({ path: '/entry.server.tsx', code: DEFAULT_ENTRY_SERVER, hidden: true });
-  }
-
-  return files;
-};
-
-export const DEFAULT_ENTRY_SERVER = `
+  const DEFAULT_ENTRY_SERVER = `
 import { renderToString, RenderOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
 
@@ -144,7 +134,7 @@ export default function(opts: RenderOptions) {
 }
 `;
 
-export const DEFAULT_ROOT = `
+  const DEFAULT_ROOT = `
 import { App } from './app';
 
 export const Root = () => {
@@ -160,6 +150,17 @@ export const Root = () => {
   );
 };
 `;
+
+  if (!files.some((i) => i.code === '/root.tsx')) {
+    files.push({ path: '/root.tsx', code: DEFAULT_ROOT, hidden: true });
+  }
+
+  if (!files.some((i) => i.code === '/entry.server.tsx')) {
+    files.push({ path: '/entry.server.tsx', code: DEFAULT_ENTRY_SERVER, hidden: true });
+  }
+
+  return files;
+};
 
 export interface TutorialStore extends ReplAppInput {
   appId: string;

@@ -8,7 +8,6 @@ Routing is a way to map public URLs for a site to specific components declared i
 
 Qwik City uses directory-based routing. This means that the structure of your routes directory drives the public-facing URLs that the user will see for your application. However, it differs slightly from traditional file based routing, which we will discuss shortly.
 
-
 ## Directory Based Routing
 
 Qwik City support the follwing filetypes for routes
@@ -74,11 +73,7 @@ To return HTML for a specific route you will need to implement a component. For 
 
 ```typescript
 export default component$(() => {
-  return (
-    <H1>
-      Hello World!
-    </H1>
-  );
+  return <H1>Hello World!</H1>;
 });
 ```
 
@@ -95,6 +90,7 @@ The `@qwik-city-plan` import is synthetic, meaning that it is created as part of
 ## Advanced routing
 
 Qwik City also supports:
+
 - [Route Parameters](/qwikcity/routing/route-parameters/index.mdx)
 - [Nested layouts](/qwikcity/layout/overview/index.mdx)
 - [Menus](/qwikcity/content/menu/index.mdx)

@@ -38,6 +38,7 @@ import { createParser, Parser, serializeValue, UNDEFINED_PREFIX } from './serial
 import { ContainerState, getContainerState } from '../render/container';
 import { getQId } from '../render/execute-component';
 import { processVirtualNodes, QwikElement } from '../render/dom/virtual-element';
+import { getDomListeners } from '../props/props-on';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -129,7 +130,7 @@ export const resumeContainer = (containerEl: Element) => {
   }
 
   Object.entries(meta.ctx).forEach(([elementID, ctxMeta]) => {
-    const el = getObject(elementID) as Element;
+    const el = getObject(elementID) as QwikElement;
     assertDefined(el, `resume: cant find dom node for id`, elementID);
     const ctx = getContext(el);
     const qobj = ctxMeta.r;
@@ -139,7 +140,9 @@ export const resumeContainer = (containerEl: Element) => {
     const watches = ctxMeta.w;
 
     if (qobj) {
+      assertTrue(isElement(el), 'el must be an actual DOM element');
       ctx.$refMap$.push(...qobj.split(' ').map((part) => getObject(part)));
+      ctx.$listeners$ = getDomListeners(el as any);
     }
     if (seq) {
       ctx.$seq$ = seq.split(' ').map((part) => getObject(part));
@@ -234,13 +237,14 @@ export const _pauseFromContexts = async (
   const collector = createCollector(containerState);
   const listeners: SnapshotListener[] = [];
   for (const ctx of elements) {
-    if (ctx.$listeners$) {
+    const el = ctx.$element$;
+    if (ctx.$listeners$ && isElement(el)) {
       ctx.$listeners$.forEach((qrls, key) => {
         qrls.forEach((qrl) => {
           listeners.push({
             key,
             qrl,
-            el: ctx.$element$ as Element,
+            el,
           });
         });
       });

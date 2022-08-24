@@ -22,7 +22,7 @@
     "@algolia/client-search": "^4.14.2",
     "@builder.io/partytown": "^0.6.4",
     "@builder.io/qwik": "^0.0.105",
-    "@builder.io/qwik-city": "0.0.104",
+    "@builder.io/qwik-city": "0.0.105",
     "@cloudflare/kv-asset-handler": "0.2.0",
     "@docsearch/css": "^3.2.1",
     "algoliasearch": "^4.14.2",

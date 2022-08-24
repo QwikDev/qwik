@@ -119,14 +119,6 @@ async function submoduleCoreProd(config: BuildConfig) {
     );
   }
   console.log('🐭 core.min.mjs:', await fileSize(esmMinFile));
-
-  esmCode = esmCode.replace(/globalThis\.qDev \!== false/g, 'true');
-  await writeFile(join(config.distPkgDir, 'core.mjs'), esmCode);
-
-  // always set the cjs version (probably imported serverside) to dev mode
-  let cjsCode = await readFile(join(config.distPkgDir, 'core.cjs'), 'utf-8');
-  cjsCode = cjsCode.replace(/globalThis\.qDev \!== false/g, 'true');
-  await writeFile(join(config.distPkgDir, 'core.cjs'), cjsCode);
 }
 
 async function submoduleCoreDev(config: BuildConfig) {

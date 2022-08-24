@@ -17,8 +17,15 @@ Qwik's context API is made of 3 methods, importable from `@builder.io/qwik`:
 This example is made of two components, the `Parent` and the `Child`. The parent component creates some new state and assigns it to a context, allowing any descendent component to get a reference to the "state".
 
 At the same time, the parent component is rendering `<div>Count: {state.count}</div>`, creating a reactive subscription, that will rerender when the Child changes the value in the click handler: `<button onClick$={() => state.count++}>`
+
 ```tsx
-import { component$, useStore, useContext, useContextProvider, createContext} from '@builder.io/qwik';
+import {
+  component$,
+  useStore,
+  useContext,
+  useContextProvider,
+  createContext,
+} from '@builder.io/qwik';
 
 // Create a new context descriptor
 export const MyContext = createContext('my-context');
@@ -44,9 +51,7 @@ export const Child = component$(() => {
   const state = useContext(MyContext);
   return (
     <>
-      <button onClick$={() => state.count++}>
-        Increment
-      </button>
+      <button onClick$={() => state.count++}>Increment</button>
     </>
   );
 });
@@ -61,7 +66,7 @@ Let's dig into every API involved:
 This method takes a string that gives the context unique name, if your application uses a lot of different context or you are writting a component library, we recommend to follow a name convention that avoids conflicts, such as:
 
 ```tsx
-export const QwikCityContext = createContext("io.builder.qwik.city");
+export const QwikCityContext = createContext('io.builder.qwik.city');
 ```
 
 Notice that the value returned by `createContext()` does not hold any state, and its immutable. It's only used to describe the name and type of the context, like the address or an identifier.
@@ -84,7 +89,7 @@ export const Parent = component$(() => {
   const plainArray = listOfUSPresidents();
   useContextProvider(MyContextArray, plainArray);
 
-  const appName = "My super app";
+  const appName = 'My super app';
   useContextProvider(MyContextString, appName);
 
   return (
@@ -100,7 +105,6 @@ Let's see how `Children` can consume the values:
 ### `useContext()`
 
 Again, like all use- methods, only usable at the root of a `component$()`. This methods allows to get the **provided** value to a named context.
-
 
 ```tsx
 export const Children = component$(() => {
@@ -122,7 +126,7 @@ When a context is created using `createContext()` a type can be provided, in fac
 
 ```tsx
 export interface SharedState {
-    count: number;
+  count: number;
 }
 export const MyContext = createContext<SharedState>('my-context');
 ```
@@ -132,10 +136,16 @@ This way, when using `MyContext` in `useContextProvider()` and `useContext()` th
 Let's see a working example:
 
 ```tsx
-import { component$, useStore, useContext, useContextProvider, createContext } from '@builder.io/qwik';
+import {
+  component$,
+  useStore,
+  useContext,
+  useContextProvider,
+  createContext,
+} from '@builder.io/qwik';
 
 export interface SharedState {
-    count: number;
+  count: number;
 }
 export const MyContext = createContext<SharedState>('my-context');
 
@@ -157,11 +167,8 @@ export const Child = component$(() => {
   const state = useContext(MyContext); // type of "state" will be `SharedState`
   return (
     <>
-      <button onClick$={() => state.count++}>
-        Increment
-      </button>
+      <button onClick$={() => state.count++}>Increment</button>
     </>
   );
 });
 ```
-

@@ -13,7 +13,7 @@ title: Serialization & Serialization Boundaries
 A serialization boundary occurs whenever you cross a lexical scope of a function that is converted into lazy loadable form. It is always denoted by `$(...)` (or `____$(...)`) See example:
 
 ```tsx
-import {component$} from "@builder.io/qwik";
+import { component$ } from '@builder.io/qwik';
 
 export const topLevel = Promise.resolve('nonserializable data');
 
@@ -25,30 +25,31 @@ export const Greeter = component$(() => {
 
   const captureSerializable = 'serializable data';
   const captureNonSerializable = Promise.resolve('nonserializable data');
-  
+
   return (
-    <button onClick$={() => {
-      // BEGIN onClick serialization boundary
+    <button
+      onClick$={() => {
+        // BEGIN onClick serialization boundary
 
-      // Referring to top level symbols that are exported is always allowed,
-      // even if the value is non-serializable.
-      console.log(topLevel); // OK
+        // Referring to top level symbols that are exported is always allowed,
+        // even if the value is non-serializable.
+        console.log(topLevel); // OK
 
-      // Capturing a non-top-level variable is allowed only if:
-      // - declared as `const`
-      // - is serializable (runtime error)
-      console.log(captureSerializable); // OK
+        // Capturing a non-top-level variable is allowed only if:
+        // - declared as `const`
+        // - is serializable (runtime error)
+        console.log(captureSerializable); // OK
 
-      // Referring to captureNonSerializable will pass static analysis but
-      // will fail at runtime because Qwik does not know how to serilize it.
-      console.log(captureNonSerializable); // RUNTIME ERROR
+        // Referring to captureNonSerializable will pass static analysis but
+        // will fail at runtime because Qwik does not know how to serilize it.
+        console.log(captureNonSerializable); // RUNTIME ERROR
 
-      // END onClick serialization boundary
-    }}>
+        // END onClick serialization boundary
+      }}
+    >
       click
     </button>
   );
   // BEGIN component serialization boundary
 });
-
 ```

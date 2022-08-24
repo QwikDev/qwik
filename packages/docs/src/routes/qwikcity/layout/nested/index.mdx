@@ -15,7 +15,7 @@ Most times it is desirable to nest layouts into each other. A page's content can
       - index.tsx        # https://example.com/about
 ```
 
-In the above example, there are two layouts that apply themselves around the `/about` page component. 
+In the above example, there are two layouts that apply themselves around the `/about` page component.
 
 1. `src/routes/layout.tsx`
 2. `src/routes/about/layout.tsx`
@@ -26,7 +26,7 @@ In this case, the layouts will nest each other with the page within each of them
 +------------------------------------------------+
 |       src/routes/layout.tsx                    |
 |  +------------------------------------------+  |
-|  |    src/routes/about/layout.tsx           |  | 
+|  |    src/routes/about/layout.tsx           |  |
 |  |  +------------------------------------+  |  |
 |  |  | src/routes/about/index.tsx         |  |  |
 |  |  |                                    |  |  |
@@ -42,7 +42,8 @@ In this case, the layouts will nest each other with the page within each of them
 export default component$(() => {
   return (
     <main>
-      <Slot />{/* <== Child layout/route inserted here */}
+      <Slot />
+      {/* <== Child layout/route inserted here */}
     </main>
   );
 });
@@ -53,7 +54,8 @@ export default component$(() => {
 export default component$(() => {
   return (
     <section>
-      <Slot />{/* <== Child layout/route inserted here */}
+      <Slot />
+      {/* <== Child layout/route inserted here */}
     </section>
   );
 });

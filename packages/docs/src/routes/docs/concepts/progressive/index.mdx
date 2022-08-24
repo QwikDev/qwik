@@ -20,13 +20,11 @@ The issue is that the frameworks need to reconcile their internal state with the
 - Frameworks need to download and execute components to rebuild the render tree on startup. (See [hydration is pure overhead](https://www.builder.io/blog/hydration-is-pure-overhead)) This forces eager download and execution of all components in the render tree.
 - The event handlers come with the components even though they are not needed at the time of rendering. The inclusion of event handlers forces the download of unnecessary code.
 
-
 ## Solution
 
 Qwik architecture takes full advantage of modern tooling to automate the problem of entry point generation. Developers can write components normally, while the Qwik optimizer will split the components into chunks and download them as needed.
 
 In addition the framework runtime does not need to download code that is not required for interactivity, even if the component is part of the render tree.
-
 
 ### Optimizer
 
@@ -59,13 +57,13 @@ Lazy-loading is a core property of the framework and not an afterthought.
 Let's look at our example again:
 
 ```tsx
-// the `$` suffix for `component` indicates that the component should be 
+// the `$` suffix for `component` indicates that the component should be
 // lazy-loaded.
 const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
-  // the `$` suffix for `onClick` indicates that the implementation for 
-  // the handler should be lazy-loaded. 
+  // the `$` suffix for `onClick` indicates that the implementation for
+  // the handler should be lazy-loaded.
   return <button onClick$={() => store.count++}>{store.count}</button>;
 });
 ```

@@ -2,11 +2,12 @@
 title: Qwik City - Head Title
 ---
 
-#  Qwik City - Head Title
+# Qwik City - Head Title
 
 HTML places the `<head>` tag as the first element within `<html>` (at the very top of the HTML content). The `<head>` section is not something that your route component renders directly, yet you still need to control its content. This can be achieved by exporting a `head` property (or function) from your page component.
 
 Assume this file layout.
+
 ```
 - src/
   - routes/
@@ -78,7 +79,7 @@ An advanced case is that a [layout](../../layout/overview/index.mdx) may want to
 ```typescript
 // File: src/routes/index.tsx
 export const head: DocumentHead = {
-  title: `Foo`
+  title: `Foo`,
 };
 ```
 
@@ -86,7 +87,7 @@ export const head: DocumentHead = {
 // File: src/routes/layout.tsx
 export const head: DocumentHead<EndpointData> = ({ head }) => {
   return {
-    title: `${head.title} Bar`
+    title: `${head.title} Bar`,
   };
 };
 ```

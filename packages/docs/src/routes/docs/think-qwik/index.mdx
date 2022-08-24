@@ -13,7 +13,6 @@ The unique part of Qwik is not in what it does but in how it achieves its goals.
 
 The goal of Qwik is having only to download and execute the bare minimum of the application.
 
-
 ## Core principle
 
 > Delay execution of JavaScript as much as possible.
@@ -49,7 +48,6 @@ As our applications get more complex with a higher fidelity of interactivity, th
 
 To make matters worse, JavaScript is single-threaded; therefore, our complex sites can't take advantage of modern multi-core CPUs.
 
-
 ## How did we get here?
 
 The solution to the above problem is both obvious and hard: Ship less JavaScript.
@@ -79,7 +77,6 @@ Our industry best practices lead to large bundles, and the web is full of exampl
 The mantra of Qwik is that bundle size should not be something that developers should think about. It should just naturally emerge as part of how the framework is designed.
 
 Qwik is designed from the ground up to produce lots of lazy loadable boundaries. Tooling can break up your application into many lazy-loadable chunks, and the runtime can download them only when needed.
-
 
 ## Why not fix existing frameworks/tools?
 

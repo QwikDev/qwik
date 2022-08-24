@@ -22,27 +22,27 @@ const Stores = component$(() => {
     name: 'Manu',
     address: {
       address: '',
-      city: ''
+      city: '',
     },
-    orgs: []
+    orgs: [],
   });
   // useStore() can also accept a function to calculate the initial value
   const state = useStore(() => {
     return {
-      value: expensiveInitialValue()
-    }
-  })
+      value: expensiveInitialValue(),
+    };
+  });
   return (
     <>
       <div>Counter: {counter.value}</div>
-      <Child userData={userData} state={state}/>
+      <Child userData={userData} state={state} />
     </>
-  )
+  );
 });
 function useCounter(step: number) {
   // Multiple stores can be created in custom hooks for convenience and composability
   const counterStore = useStore({
-    value: 0
+    value: 0,
   });
   useClientEffect$(() => {
     // Only runs in the client
@@ -78,9 +78,9 @@ const Cmp = component$(() => {
   });
   return (
     <>
-      <input type="text" ref={input}/>
+      <input type="text" ref={input} />
     </>
-  )
+  );
 });
 ```
 
@@ -94,7 +94,6 @@ The `watchFn` only executes if the tracked inputs change. To track the inputs us
 
 See also: `useClientEffect$()` that have same semantics but only run on client.
 
-
 ### Example
 
 The `useWatch` function is used to observe the `state.count` property. Any changes to the `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
@@ -104,7 +103,7 @@ const Cmp = component$(() => {
   const store = useStore({
     count: 0,
     doubleCount: 0,
-    debounced: 0
+    debounced: 0,
   });
   // Double count watch
   useWatch$(({ track }) => {
@@ -123,10 +122,12 @@ const Cmp = component$(() => {
   });
   return (
     <>
-      <div>{store.count} / {store.doubleCount}</div>
+      <div>
+        {store.count} / {store.doubleCount}
+      </div>
       <div>{store.debounced}</div>
     </>
-  )
+  );
 });
 ```
 
@@ -141,7 +142,7 @@ If no `track` being used, it run exactly execute once.
 ```tsx
 const Timer = component$(() => {
   const store = useStore({
-    count: 0
+    count: 0,
   });
   useClientEffect$(() => {
     // Only runs in the client
@@ -152,18 +153,13 @@ const Timer = component$(() => {
       clearInterval(timer);
     };
   });
-  return (
-    <>
-      {store.count}
-    </>
-  )
+  return <>{store.count}</>;
 });
 ```
 
-
 ## useMount$()
 
-Register a hook that executes on component creation.  `useMount$()` will block the rendering of the component until after `useMount$()` callback resolves. (This is useful for fetching asynchronous data and delaying rendering until data is received, ensuring that the rendered component contains the data.).
+Register a hook that executes on component creation. `useMount$()` will block the rendering of the component until after `useMount$()` callback resolves. (This is useful for fetching asynchronous data and delaying rendering until data is received, ensuring that the rendered component contains the data.).
 
 While `useMount$()` executes both on the server and on the client, it runs exactly once. (Either on the server or on the client depending on where the component got first rendered.)
 
@@ -174,7 +170,7 @@ See also: `useServerMount$()` that have same semantics but only run on server.
 ```tsx
 const Cmp = component$(() => {
   const store = useStore({
-    users: []
+    users: [],
   });
   useMount$(async () => {
     // This code will run on component creation to fetch the data.
@@ -182,21 +178,19 @@ const Cmp = component$(() => {
   });
   return (
     <>
-      {store.users.map((user => (
-        <User user={user}/>
-      )))}
+      {store.users.map((user) => (
+        <User user={user} />
+      ))}
     </>
-  )
+  );
 });
 
 interface User {
   name: string;
 }
 
-function User(props: {user: User}) {
-  return (
-    <div>Name: {props.user.name}</div>
-  )
+function User(props: { user: User }) {
+  return <div>Name: {props.user.name}</div>;
 }
 ```
 
@@ -209,7 +203,7 @@ Registers a server mount hook that runs only in the server when the component is
 ```tsx
 const Cmp = component$(() => {
   const store = useStore({
-    users: []
+    users: [],
   });
   useServerMount$(async () => {
     // This code will ONLY run once in the server, when the component is mounted
@@ -217,21 +211,19 @@ const Cmp = component$(() => {
   });
   return (
     <>
-      {store.users.map((user => (
-        <User user={user}/>
-      )))}
+      {store.users.map((user) => (
+        <User user={user} />
+      ))}
     </>
-  )
+  );
 });
 
 interface User {
   name: string;
 }
 
-function User(props: {user: User}) {
-  return (
-    <div>Name: {props.user.name}</div>
-  )
+function User(props: { user: User }) {
+  return <div>Name: {props.user.name}</div>;
 }
 ```
 

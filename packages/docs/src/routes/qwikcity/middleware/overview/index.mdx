@@ -24,7 +24,7 @@ default output dir is `./server` and it is configurable by setting `qwikVite` pl
 
 ```typescript
 // file vite.config.ts
-import { qwikVite } from "@builder.io/qwik/optimizer";
+import { qwikVite } from '@builder.io/qwik/optimizer';
 
 export default defineConfig(() => {
   return {
@@ -32,7 +32,7 @@ export default defineConfig(() => {
       // ...other plugins
       qwikVite({
         ssr: {
-          outDir: "CUSTOM_DIR",
+          outDir: 'CUSTOM_DIR',
         },
       }),
     ],

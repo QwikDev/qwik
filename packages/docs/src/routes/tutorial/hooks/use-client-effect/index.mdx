@@ -4,7 +4,6 @@ title: useClientEffect$()
 
 Use `useClientEffect$()` to execute code after the component is resumed. This is useful for setting up timers or streams on the client when the application is resumed.
 
-
 ## `track()` and `useClientEffect$()`
 
 `useClientEffect$()` receives a `track()` function just like `useWatch$()`. Use the `track()` function to trigger the effect when the store is updated. See [reactivity](/tutorial/reactivity/explicit/index.mdx) for more information.
@@ -30,3 +29,4 @@ The example shows a clock component that is rendered below the fold. Use the `us
 Keep in mind that `useClientEffect$()` should return a cleanup function that releases the `setInterval` timer so that the timer can be properly cleaned up when the component is unmounted/destroyed.
 
 
+```

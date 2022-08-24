@@ -7,6 +7,7 @@ title: Qwik City - Non-200 Response
 At times it is necessary to respond with HTTP status codes other than 200. In such cases, response handler is the place to determine what status code should be returned.
 
 Assume this file layout.
+
 ```
 - src/
   - routes/
@@ -36,8 +37,8 @@ export const onGet: RequestHandler<EndpointData> = async ({ params, response }) 
   if (!product) {
     // Product data not found
     // but the data is still given to the renderer to decide what to do
-    response.status = 404
-    return null
+    response.status = 404;
+    return null;
   } else {
     // ...
   }
@@ -46,9 +47,9 @@ export const onGet: RequestHandler<EndpointData> = async ({ params, response }) 
 export default component$(() => {
   const resource = useEndpoint<typeof onGet>(); //equivalent to useEndpoint<EndpointData>
 
-  if (resource.state=='resolved' && !resource.resolved) {
+  if (resource.state == 'resolved' && !resource.resolved) {
     // Early return for 404
-    return <div>404: Product not found!!!</div>
+    return <div>404: Product not found!!!</div>;
   }
 
   // Normal rendering

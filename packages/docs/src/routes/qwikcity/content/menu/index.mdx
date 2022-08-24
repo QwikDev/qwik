@@ -32,11 +32,13 @@ Navigating to `https://example.com/some/path` activates:
 ## Declaring Menu Structure
 
 Use `menu.md` to declare the menu structure.
+
 - Use the headings (`#`, `##`, etc..) to define menu depth
 - Use the bulleted list (`-`) to define menu items.
 
 ```markdown
 <!-- File: src/routes/some/menu.md -->
+
 # Docs
 
 ## Getting Started
@@ -53,6 +55,7 @@ Use `menu.md` to declare the menu structure.
 At runtime any component can retrieve the menu with `useContent()` hook. The type returned is `ContentMenu`.
 
 The example above will return:
+
 ```javascript
 {
   text: "Docs",
@@ -84,36 +87,34 @@ The example above will return:
 While `useContent()` can be invoked from any component that is part of the current route. It is typically used in a layout component (or a component used by layout) to render the menu. An example usage is shown here:
 
 ```typescript
-export default component$(
-  () => {
-    const { menu } = useContent();
-    const { pathname } = useLocation();
+export default component$(() => {
+  const { menu } = useContent();
+  const { pathname } = useLocation();
 
-    return (
-      <div class="menu">
-        {menu
-          ? menu.items?.map((item) => (
-              <>
-                <h5>{item.text}</h5>
-                <ul>
-                  {item.items?.map((item) => (
-                    <li>
-                      <a
-                        href={item.href}
-                        class={{
-                          "is-active": pathname === item.href,
-                        }}
-                      >
-                        {item.text}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            ))
-          : null}
-      </div>
-    );
-  }
-);
+  return (
+    <div class="menu">
+      {menu
+        ? menu.items?.map((item) => (
+            <>
+              <h5>{item.text}</h5>
+              <ul>
+                {item.items?.map((item) => (
+                  <li>
+                    <a
+                      href={item.href}
+                      class={{
+                        'is-active': pathname === item.href,
+                      }}
+                    >
+                      {item.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ))
+        : null}
+    </div>
+  );
+});
 ```

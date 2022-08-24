@@ -3,7 +3,6 @@ title: Optimizer Rules
 fetch: https://hackmd.io/@mhevery/rkydmxJZ9
 ---
 
-
 # Optimizer
 
 Qwik's philosophy is to delay loading code for as long as possible. To do that, Qwik relies on Optimizer to re-arrange the code for lazy loading. The Optimizer is code level transformation that runs as part of the rollup. (Optimizer is written in Rust (and available as WASM) for instant performance)
@@ -31,11 +30,7 @@ const Counter = component(qrl('./chunk-a.js', 'Counter_onMount'));
 ```tsx
 export const Counter_onMount = () => {
   const store = useStore({ count: 0 });
-  return (
-    <button onClick$={qrl('./chunk-b.js', 'Counter_onClick', [store])}>
-      {store.count}
-    </button>
-  );
+  return <button onClick$={qrl('./chunk-b.js', 'Counter_onClick', [store])}>{store.count}</button>;
 };
 ```
 
@@ -49,7 +44,6 @@ const Counter_onClick = () => {
 ```
 
 Notice that every occurrence of `$` results in a new lazy loadable symbol.
-
 
 # `$` and Optimizer Rules
 
@@ -263,8 +257,8 @@ The Optimizer can lazy-load a function closure, which lexically captures variabl
 
 Since not all valid JavaScript is valid Optimizer code, keep in mind the following rules:
 
-* All captured variables must be declared as a `const`.
-* All captured variables must be either:
+- All captured variables must be declared as a `const`.
+- All captured variables must be either:
   - serializable
   - importable (either `import` or `export` in this file)
 

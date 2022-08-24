@@ -29,6 +29,7 @@ In the above solution, the callback is only downloaded when `delay$` is ready to
 ## Creating your APIs with `$` suffix
 
 Qwik runtime works with `QRL`s. For this reason we define a method like so:
+
 ```typescript
 export function delayQrl<T>(fn: QRL<() => T>, delayInMs: number): Promise<T> {
   return new Promise((res) => {
@@ -50,13 +51,16 @@ export const delay$ = implicit$FirstArg(delayQrl);
 Here are the types to make it clearer as to what is going on.
 
 ```typescript
-declare delayQrl: (fn: QRL<() => T>, delayInMs: number) => Promise<T>;
-declare delay$: (fn: () => T, delayInMs: number) => Promise<T>;
+declare;
+delayQrl: (fn: QRL<() => T>, delayInMs: number) => Promise<T>;
+declare;
+delay$: (fn: () => T, delayInMs: number) => Promise<T>;
 ```
 
 The above allows us to use `delay$` in an inlined fashion, but the Optimizer converts the `delay$` to `delayQrl` form.
 
 NOTE the two methods must have the same prefix. So a general form is:
+
 ```typescript
 export const SOME_NAME_Qrl = ...;
 export const SOME_NAME_$ = implicit$FirstArg(SOME_NAME_Qrl);

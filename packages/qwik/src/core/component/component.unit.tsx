@@ -15,7 +15,7 @@ qComponent('should declare and render basic component', async () => {
   await expectDOM(
     fixture.host,
     `
-    <host q:version="" q:container="resumed">
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
         <style q:style="pfkgyr-0">
            {
           }
@@ -32,7 +32,7 @@ qComponent('should render Counter and accept events', async () => {
   await render(fixture.host, <MyCounter step={5} value={15} />);
   await expectDOM(
     fixture.host,
-    `          <host q:version="" q:container="resumed">
+    `          <host q:version="dev" q:container="resumed" q:render="dom-dev">
     <!--qv q:key=sX: q:id=0-->
     <my-counter>
       <button q:id="1" class="decrement" on:click="/runtimeQRL#_[0 1 2]">-</button>
@@ -46,7 +46,7 @@ qComponent('should render Counter and accept events', async () => {
   await expectDOM(
     fixture.host,
     `
-<host q:version="" q:container="resumed">
+<host q:version="dev" q:container="resumed" q:render="dom-dev">
   <!--qv q:key=sX: q:id=0-->
   <my-counter>
     <button
@@ -91,7 +91,7 @@ qComponent('should render a collection of todo items', async () => {
   await expectDOM(
     host,
     `
-    <host q:version="" q:container="resumed">
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
       <!--qv q:key=sX: q:id=0-->
       <items>
         <!--qv q:key=sX: q:id=1-->

@@ -230,6 +230,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         },
       };
 
+      if (buildMode === 'development') {
+        (globalThis as any).qDev = true;
+        updatedViteConfig.define = {
+          'globalThis.qDev': true,
+        };
+      }
+
       if (opts.target === 'ssr') {
         // SSR Build
         if (viteCommand === 'serve') {

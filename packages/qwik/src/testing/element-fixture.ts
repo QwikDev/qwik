@@ -1,7 +1,6 @@
 import { getContext, normalizeOnProp, QContext } from '../core/props/props';
 import type { QwikDocument } from '../core/document';
 import { fromCamelToKebabCase } from '../core/util/case';
-import { qGlobal } from '../core/util/qdev';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
@@ -74,8 +73,9 @@ export async function trigger(
         const url = new URL(qrl, 'http://mock-test/');
 
         // Create a mock document to simulate `qwikloader` environment.
-        const previousQDocument: QwikDocument = (qGlobal as any).document;
-        const document: QwikDocument = ((qGlobal as any).document = element.ownerDocument as any);
+        const previousQDocument: QwikDocument = (globalThis as any).document;
+        const document: QwikDocument = ((globalThis as any).document =
+          element.ownerDocument as any);
         document.__q_context__ = [element, event, url];
         try {
           const ctx = getContext(element);
@@ -87,7 +87,7 @@ export async function trigger(
           }
         } finally {
           document.__q_context__ = undefined;
-          (qGlobal as any).document = previousQDocument;
+          (globalThis as any).document = previousQDocument;
         }
       });
     }
@@ -102,7 +102,7 @@ export function getEvent(ctx: QContext, prop: string): any {
 
 export function qPropReadQRL(ctx: QContext, prop: string): ((event: Event) => void) | null {
   const listeners = !ctx.$listeners$
-    ? (ctx.$listeners$ = new Map<string, QRLInternal<any>[]>()) //  todo
+    ? (ctx.$listeners$ = new Map<string, QRLInternal<any>[]>())
     : ctx.$listeners$;
 
   return async (event) => {

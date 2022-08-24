@@ -16,6 +16,7 @@ import { applyPrefetchImplementation } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
 import { createSimpleDocument } from './document';
 import type { SymbolMapper } from '../optimizer/src/types';
+import { qDev } from '../core/util/qdev';
 // import { logWarn } from '../core/util/log';
 
 const DOCTYPE = '<!DOCTYPE html>';
@@ -138,10 +139,11 @@ export async function renderToStream(
 
       snapshotResult = await _pauseFromContexts(contexts, containerState);
       prefetchResources = getPrefetchResources(snapshotResult, opts, mapper);
+      const jsonData = JSON.stringify(snapshotResult.state, undefined, qDev ? '  ' : undefined);
       const children: (JSXNode | null)[] = [
         jsx('script', {
           type: 'qwik/json',
-          dangerouslySetInnerHTML: escapeText(JSON.stringify(snapshotResult.state)),
+          dangerouslySetInnerHTML: escapeText(jsonData),
         }),
       ];
       if (prefetchResources.length > 0) {

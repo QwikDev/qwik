@@ -96,6 +96,7 @@ export const getElement = (docOrElm: Document | Element): Element => {
 };
 
 export const injectQContainer = (containerEl: Element) => {
-  directSetAttribute(containerEl, 'q:version', version || '');
+  directSetAttribute(containerEl, 'q:version', version ?? 'dev');
   directSetAttribute(containerEl, QContainerAttr, 'resumed');
+  directSetAttribute(containerEl, 'q:render', qDev ? 'dom-dev' : 'dom');
 };

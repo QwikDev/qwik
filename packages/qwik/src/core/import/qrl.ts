@@ -17,6 +17,8 @@ import { qTest } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
 import type { QwikElement } from '../render/dom/virtual-element';
 import type { QContext } from '../props/props';
+import { assertTrue } from '../assert/assert';
+import { isElement } from '../../testing/html';
 
 let runtimeSymbolId = 0;
 const RUNTIME_QRL = '/runtimeQRL';
@@ -173,11 +175,12 @@ export const stringifyQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
   return qrlString;
 };
 
-export const serializeQRLs = (existingQRLs: QRLInternal<any>[], ctx: QContext): string => {
+export const serializeQRLs = (existingQRLs: QRLInternal<any>[], elCtx: QContext): string => {
+  assertTrue(isElement(elCtx.$element$), 'Element must be an actual element');
   const opts: QRLSerializeOptions = {
-    $platform$: getPlatform(ctx.$element$),
-    $element$: ctx.$element$,
-    $addRefMap$: (obj) => addToArray(ctx.$refMap$, obj),
+    $platform$: getPlatform(elCtx.$element$),
+    $element$: elCtx.$element$,
+    $addRefMap$: (obj) => addToArray(elCtx.$refMap$, obj),
   };
   return existingQRLs.map((qrl) => stringifyQRL(qrl, opts)).join('\n');
 };

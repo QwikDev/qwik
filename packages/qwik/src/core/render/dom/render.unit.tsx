@@ -19,7 +19,7 @@ renderSuite('should render basic content', async () => {
   const fixture = new ElementFixture();
   await render(fixture.host, <div></div>);
   await expectRendered(fixture, '<div></div>');
-  equal(fixture.host.getAttribute('q:version'), '');
+  equal(fixture.host.getAttribute('q:version'), 'dev');
   equal(fixture.host.getAttribute('q:container'), 'resumed');
 
   await pauseContainer(fixture.host);
@@ -103,7 +103,7 @@ renderSuite('should render into a document', async () => {
   await expectDOM(
     fixture.document.documentElement,
     `
-  <html q:version="" q:container="resumed">
+  <html q:version="dev" q:container="resumed" q:render="dom-dev">
   <!--qv q:key=sX: q:id=0-->
   <!--qv q:key q:sref=0 q:sname-->
     <head q:head="">
@@ -303,7 +303,7 @@ renderSuite('should render host events on the first element', async () => {
   await expectDOM(
     fixture.host,
     `
-  <host q:version="" q:container="resumed">
+  <host q:version="dev" q:container="resumed" q:render="dom-dev">
     <!--qv q:key=sX: q:id=0-->
     hello
     <div

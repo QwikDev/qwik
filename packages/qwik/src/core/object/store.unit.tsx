@@ -29,7 +29,7 @@ storeSuite('should serialize content', async () => {
   await expectDOM(
     document.body,
     `
-  <body q:version="" q:container="resumed">
+  <body q:version="dev" q:container="resumed" q:render="dom-dev">
     <div>
       <!--qv q:key=sX: q:id=0-->
       <div q:id="1" on:click="/runtimeQRL#_[0 1 2 3 4 5 6 7 8 9 10]"></div>

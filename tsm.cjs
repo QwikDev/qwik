@@ -13,7 +13,8 @@ module.exports = {
       jsxFactory: 'qwikJsx.h',
       jsxFragment: 'qwikJsx.Fragment',
       banner: `
-      globalThis.describe = true;
+      globalThis.qTest = true;
+      globalThis.qDev = true;
       import * as qwikJsx from "${corePath}";`,
       target: 'es2020',
       loader: 'tsx',
@@ -21,7 +22,10 @@ module.exports = {
     },
     '.ts': {
       loader: 'ts',
-      banner: 'globalThis.describe = true;',
+      banner: `
+globalThis.qTest = true;
+globalThis.qDev = true;
+`,
       minify: false,
     },
   },

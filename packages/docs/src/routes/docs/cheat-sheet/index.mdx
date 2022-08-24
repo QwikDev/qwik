@@ -150,7 +150,7 @@ export const Fetch = component$(() => {
     responseJson: undefined,
   });
 
-  useWatch$(async (track) => {
+  useWatch$(async ({ track }) => {
     track(state, 'url');
     const res = await fetch(state.url);
     const json = await res.json();

@@ -16,11 +16,7 @@ export const Component = component$(() => {
 
 ```tsx
 export function Component() {
-  return (
-    <div>
-      Hello world
-    </div>
-  )
+  return <div>Hello world</div>;
 }
 ```
 
@@ -32,23 +28,17 @@ export function Component() {
 export const Component = component$(() => {
   return (
     <>
-      <button onClick$={() => console.log('click')}>
-        Click me
-      </button>
+      <button onClick$={() => console.log('click')}>Click me</button>
     </>
-  )
-})
+  );
+});
 ```
 
 ### React
 
 ```tsx
 export function Component() {
-  return (
-    <button onClick={() => console.log('click')}>
-      Click me
-    </button>
-  )
+  return <button onClick={() => console.log('click')}>Click me</button>;
 }
 ```
 
@@ -74,11 +64,7 @@ export const Component = component$(() => {
 ```tsx
 export function Component() {
   const [value, setValue] = useState(0);
-  return (
-    <div>
-      Value is: {value}
-    </div>
-  )
+  return <div>Value is: {value}</div>;
 }
 ```
 
@@ -107,14 +93,10 @@ export function Counter() {
   const [count, setCount] = useState(0);
   return (
     <>
-      <div>
-        Value is: {count}
-      </div>
-      <button onClick={() => setCount(count + 1)}>
-        Increment
-      </button>
+      <div>Value is: {count}</div>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
     </>
-  )
+  );
 }
 ```
 
@@ -153,11 +135,7 @@ export function Clock() {
     }, 1000);
     return () => clearInterval(interval);
   });
-  return (
-    <div>
-      Seconds: {seconds}
-    </div>
-  )
+  return <div>Seconds: {seconds}</div>;
 }
 ```
 

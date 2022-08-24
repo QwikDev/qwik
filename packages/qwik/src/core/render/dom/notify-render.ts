@@ -1,7 +1,7 @@
 import { assertDefined } from '../../assert/assert';
 import { executeContextWithSlots, IS_HEAD, IS_SVG, printRenderStats, SVG_NS } from './visitor';
 import { getContext, resumeIfNeeded } from '../../props/props';
-import { qDev, qTest } from '../../util/qdev';
+import { qDynamicPlatform, qTest } from '../../util/qdev';
 import { getDocument } from '../../util/dom';
 import { logError, logWarn } from '../../util/log';
 import { getContainer } from '../../use/use-core';
@@ -48,7 +48,7 @@ export const notifyChange = (subscriber: Subscriber, containerState: ContainerSt
  * @public
  */
 const notifyRender = (hostElement: QwikElement, containerState: ContainerState): void => {
-  const isServer = qDev && !qTest && containerState.$platform$.isServer;
+  const isServer = qDynamicPlatform && !qTest && containerState.$platform$.isServer;
   if (!isServer) {
     resumeIfNeeded(containerState.$containerEl$);
   }

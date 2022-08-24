@@ -970,7 +970,7 @@ export const DelayResource = component$((props: { text: string; delay: number })
   });
   return (
     <div class="cmp">
-      <Resource resource={resource} onResolved={(value) => <span>{value}</span>} />
+      <Resource value={resource} onResolved={(value) => <span>{value}</span>} />
     </div>
   );
 });

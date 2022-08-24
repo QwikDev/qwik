@@ -470,7 +470,7 @@ export interface ResourceProps<T> {
     // (undocumented)
     onResolved: (value: T) => JSXNode;
     // (undocumented)
-    resource: ResourceReturn<T>;
+    value: ResourceReturn<T>;
 }
 
 // @public (undocumented)

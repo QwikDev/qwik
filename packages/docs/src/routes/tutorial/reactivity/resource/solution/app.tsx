@@ -33,7 +33,7 @@ export const App = component$(() => {
       </span>
       <div>
         <Resource
-          resource={reposResource}
+          value={reposResource}
           onPending={() => <>Loading...</>}
           onRejected={(error) => <>Error: {error.message}</>}
           onResolved={(repos) => (

@@ -12,7 +12,7 @@ export default component$(() => {
   return (
     <div>
       <Resource
-        resource={resource}
+        value={resource}
         onResolved={(blog) => (
           <>
             <h1>{blog.title}</h1>

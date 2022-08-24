@@ -13,7 +13,7 @@ export default component$(() => {
       <h1>Product: {params.id}</h1>
 
       <Resource
-        resource={resource}
+        value={resource}
         onPending={() => <p>Loading</p>}
         onRejected={(e) => <p>{e}</p>}
         onResolved={(product) => {

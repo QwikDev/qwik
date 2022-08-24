@@ -102,7 +102,7 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
   return (
     <div>
       <Resource
-        resource={props.result}
+        value={props.result}
         onPending={() => <div class="resource1">loading resource 1...</div>}
         onRejected={(reason) => <div class="resource1">error {reason}</div>}
         onResolved={(number) => {
@@ -116,15 +116,6 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
           );
         }}
       />
-
-      {/* <Async
-          resource={props.result2}
-          onPending={() => <div class="resource2">loading resource 2...</div>}
-          onRejected={(reason) => <div class="resource2">error {reason}</div>}
-          onResolved={(number) => {
-            return <div class="resource2">resource 2 is {number}</div>;
-          }}
-        /> */}
 
       <div class="logs">{logs.content}</div>
     </div>

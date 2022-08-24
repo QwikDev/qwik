@@ -60,7 +60,7 @@ export default component$(() => {
   const productData = useEndpoint<typeof onGet>(); // equivalent to useEndpoint<EndpointData>
   return (
     <Resource
-      resource={productData}
+      value={productData}
       onPending={() => <div>Loading...</div>}
       onError={() => <div>Error</div>}
       onResolved={(product) => (

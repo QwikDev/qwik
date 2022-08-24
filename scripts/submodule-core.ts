@@ -84,7 +84,7 @@ async function submoduleCoreProd(config: BuildConfig) {
         // their own build tools to define the globa `qwikDev` to false
         'globalThis.qDev': false,
         'globalThis.qDynamicPlatform': false,
-        'globalThis.describe': false,
+        'globalThis.qTest': false,
         'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       },
       ecma: 2020,

@@ -150,6 +150,7 @@ async function buildApp(appDir: string) {
     ],
   });
   await clientBuild.write({
+    banner: 'globalThis.qDev = true;',
     dir: appDistDir,
   });
 
@@ -170,6 +171,7 @@ async function buildApp(appDir: string) {
   console.log('appServerDir', appServerDir);
 
   await ssrBuild.write({
+    banner: 'globalThis.qDev = true;',
     dir: appServerDir,
   });
 

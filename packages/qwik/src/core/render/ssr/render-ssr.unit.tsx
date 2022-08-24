@@ -24,14 +24,14 @@ const renderSSRSuite = suite('renderSSR');
 renderSSRSuite('render attributes', async () => {
   await testSSR(
     <div id="stuff" aria-required="true" role=""></div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div id="stuff" aria-required="true" role></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div id="stuff" aria-required="true" role></div></html>'
   );
 });
 
 renderSSRSuite('render className', async () => {
   await testSSR(
     <div className="stuff"></div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div class="stuff"></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div class="stuff"></div></html>'
   );
 });
 
@@ -43,67 +43,67 @@ renderSSRSuite('render class', async () => {
         other: false,
       }}
     ></div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div class="stuff"></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div class="stuff"></div></html>'
   );
 });
 
 renderSSRSuite('render contentEditable', async () => {
   await testSSR(
     <div contentEditable="true"></div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div contentEditable="true"></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div contentEditable="true"></div></html>'
   );
 });
 
 renderSSRSuite('self closing elements', async () => {
   await testSSR(
     <input></input>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><input></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><input></html>'
   );
 });
 
 renderSSRSuite('single simple children', async () => {
   await testSSR(
     <div>hola</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div>hola</div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div>hola</div></html>'
   );
   await testSSR(
     <div>{0}</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div>0</div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div>0</div></html>'
   );
   await testSSR(
     <div>{true}</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div></div></html>'
   );
   await testSSR(
     <div>{false}</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div></div></html>'
   );
   await testSSR(
     <div>{null}</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div></div></html>'
   );
   await testSSR(
     <div>{undefined}</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div></div></html>'
   );
 });
 
 renderSSRSuite('events', async () => {
   await testSSR(
     <div onClick$={() => console.warn('hol')}>hola</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div q:id="0" on:click="/runtimeQRL#_">hola</div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div q:id="0" on:click="/runtimeQRL#_">hola</div></html>'
   );
   await testSSR(
     <div document:onClick$={() => console.warn('hol')}>hola</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div q:id="0" on-document:click="/runtimeQRL#_">hola</div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div q:id="0" on-document:click="/runtimeQRL#_">hola</div></html>'
   );
   await testSSR(
     <div window:onClick$={() => console.warn('hol')}>hola</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div q:id="0" on-window:click="/runtimeQRL#_">hola</div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div q:id="0" on-window:click="/runtimeQRL#_">hola</div></html>'
   );
   await testSSR(
     <input onInput$={() => console.warn('hol')} />,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><input q:id="0" on:input="/runtimeQRL#_"></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><input q:id="0" on:input="/runtimeQRL#_"></html>'
   );
 });
 
@@ -111,13 +111,13 @@ renderSSRSuite('ref', async () => {
   const ref = { current: undefined } as Ref<any>;
   await testSSR(
     <div ref={ref}></div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div q:id="0"></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div q:id="0"></div></html>'
   );
 });
 renderSSRSuite('innerHTML', async () => {
   await testSSR(
     <div dangerouslySetInnerHTML="<p>hola</p>"></div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div><p>hola</p></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div><p>hola</p></div></html>'
   );
 });
 
@@ -126,14 +126,14 @@ renderSSRSuite('single complex children', async () => {
     <div>
       <p>hola</p>
     </div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div><p>hola</p></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div><p>hola</p></div></html>'
   );
   await testSSR(
     <div>
       hola {2}
       <p>hola</p>
     </div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div>hola 2<p>hola</p></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div>hola 2<p>hola</p></div></html>'
   );
 });
 
@@ -149,7 +149,7 @@ renderSSRSuite('single multiple children', async () => {
       <li>7</li>
       <li>8</li>
     </ul>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><ul><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li><li>6</li><li>7</li><li>8</li></ul></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><ul><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li><li>6</li><li>7</li><li>8</li></ul></html>'
   );
 });
 
@@ -160,7 +160,7 @@ renderSSRSuite('sanitazion', async () => {
       <script>{`.rule > thing{}`}</script>
       <div>{`.rule > thing{}`}</div>
     </>,
-    `<html q:container="paused" q:version="dev" q:render="ssr"><style>.rule > thing{}</style><script>.rule > thing{}</script><div>.rule &gt; thing{}</div></html>`
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev"><style>.rule > thing{}</style><script>.rule > thing{}</script><div>.rule &gt; thing{}</div></html>`
   );
 });
 
@@ -186,18 +186,18 @@ renderSSRSuite('using fragment', async () => {
       </>
       <li>8</li>
     </ul>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><ul><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li><li>6</li><li>7</li><li>8</li></ul></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><ul><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li><li>6</li><li>7</li><li>8</li></ul></html>'
   );
 });
 
 renderSSRSuite('using promises', async () => {
   await testSSR(
     <div>{Promise.resolve('hola')}</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div>hola</div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div>hola</div></html>'
   );
   await testSSR(
     <div>{Promise.resolve(<p>hola</p>)}</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr"><div><p>hola</p></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div><p>hola</p></div></html>'
   );
 
   await testSSR(
@@ -215,7 +215,7 @@ renderSSRSuite('using promises', async () => {
       '<html',
       ' q:container="paused"',
       ' q:version="dev"',
-      ' q:render="ssr"',
+      ' q:render="ssr-dev"',
       '>',
       '<ul',
       '>',
@@ -247,7 +247,7 @@ renderSSRSuite('DelayResource', async () => {
       <DelayResource text="thing" delay={100} />
       <DelayResource text="thing" delay={10} />
     </ul>,
-    `<html q:container="paused" q:version="dev" q:render="ssr">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
     <ul>
       <!--qv q:id=1 q:key=sX:-->
         <style q:style="fio5tb-0">.cmp {background: blue}</style>
@@ -269,7 +269,7 @@ renderSSRSuite('using promises with DelayResource', async () => {
       ))}
       <DelayResource text="thing" delay={500} />
     </ul>,
-    `<html q:container="paused" q:version="dev" q:render="ssr">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <ul>
         <li>thing</li>
         <!--qv q:id=0 q:key=sX:-->
@@ -284,7 +284,7 @@ renderSSRSuite('using promises with DelayResource', async () => {
 renderSSRSuite('using component', async () => {
   await testSSR(
     <MyCmp />,
-    `<html q:container="paused" q:version="dev" q:render="ssr">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       <section><div>MyCmp{}</div></section>
       <!--/qv-->
@@ -295,7 +295,7 @@ renderSSRSuite('using component', async () => {
 renderSSRSuite('using component with key', async () => {
   await testSSR(
     <MyCmp key="hola" />,
-    `<html q:container="paused" q:version="dev" q:render="ssr">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:hola-->
       <section><div>MyCmp{}</div></section>
       <!--/qv-->
@@ -307,7 +307,7 @@ renderSSRSuite('using component props', async () => {
   await testSSR(
     <MyCmp id="12" host:prop="attribute" innerHTML="123" dangerouslySetInnerHTML="432" prop="12" />,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       <section>
         <div>MyCmp{"id":"12","host:prop":"attribute","innerHTML":"123","dangerouslySetInnerHTML":"432","prop":"12"}</div>
@@ -324,7 +324,7 @@ renderSSRSuite('using component project content', async () => {
       <div>slot</div>
     </MyCmp>,
     `
-  <html q:container="paused" q:version="dev" q:render="ssr">
+  <html q:container="paused" q:version="dev" q:render="ssr-dev">
     <!--qv q:id=0 q:key=sX:-->
     <section><div>MyCmp{}</div></section>
     <q:template q:slot hidden aria-hidden="true"><div>slot</div></q:template>
@@ -337,7 +337,7 @@ renderSSRSuite('using component project content', async () => {
 renderSSRSuite('using complex component', async () => {
   await testSSR(
     <MyCmpComplex></MyCmpComplex>,
-    `<html q:container="paused" q:version="dev" q:render="ssr">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       <div q:id="1" on:click="/runtimeQRL#_">
         <button q:id="2" on:click="/runtimeQRL#_">Click</button>
@@ -352,7 +352,7 @@ renderSSRSuite('using complex component with slot', async () => {
   await testSSR(
     <MyCmpComplex>Hola</MyCmpComplex>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       <div q:id="1" on:click="/runtimeQRL#_">
         <button q:id="2" on:click="/runtimeQRL#_">Click</button>
@@ -377,7 +377,7 @@ renderSSRSuite('<head>', async () => {
       </>
     </head>,
     `
-  <html q:container="paused" q:version="dev" q:render="ssr">
+  <html q:container="paused" q:version="dev" q:render="ssr-dev">
     <head q:head>
       <title q:head>hola</title>
       <meta q:head>
@@ -403,7 +403,7 @@ renderSSRSuite('named slots', async () => {
       default
     </NamedSlot>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       <div>
         <!--qv q:sname=start q:sref=0 q:key=start-->
@@ -434,7 +434,7 @@ renderSSRSuite('nested slots', async () => {
       </SimpleSlot>
     </SimpleSlot>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
         <div id="root">
           Before root
@@ -470,7 +470,7 @@ renderSSRSuite('mixes slots', async () => {
   await testSSR(
     <MixedSlot>Content</MixedSlot>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       <!--qv q:id=1 q:key=sX:-->
         <div id="1">Before 1
@@ -492,7 +492,7 @@ renderSSRSuite('component useContextProvider()', async () => {
     <Context>
       <ContextConsumer />
     </Context>,
-    `<html q:container="paused" q:version="dev" q:render="ssr">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
         <!--qv q:sname q:sref=0 q:key-->
           <!--qv q:id=1 q:key=sX:-->hello bye<!--/qv-->
@@ -506,7 +506,7 @@ renderSSRSuite('component useContextProvider()', async () => {
 renderSSRSuite('component useOn()', async () => {
   await testSSR(
     <Events />,
-    `<html q:container="paused" q:version="dev" q:render="ssr">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       <div q:id="1" on:click="/runtimeQRL#_\n/runtimeQRL#_" on-window:click="/runtimeQRL#_" on-document:click="/runtimeQRL#_"></div>
       <!--/qv-->
@@ -521,7 +521,7 @@ renderSSRSuite('component useStyles()', async () => {
         <Styles />
       </body>
     </>,
-    `<html q:container="paused" q:version="dev" q:render="ssr">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <body>
         <!--qv q:id=0 q:key=sX:-->
           <style q:style="17nc-0">.host {color: red}</style>
@@ -544,7 +544,7 @@ renderSSRSuite('component useStylesScoped()', async () => {
       </body>
     </>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <body>
         <!--qv q:sstyle=⭐️1d-0 q:id=0 q:key=sX:-->
         <style q:style="1d-0">
@@ -591,7 +591,7 @@ renderSSRSuite('component useStylesScoped()', async () => {
 renderSSRSuite('component useClientEffect()', async () => {
   await testSSR(
     <UseClientEffect />,
-    `<html q:container="paused" q:version="dev" q:render="ssr">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
         <div q:id="1" on:qvisible="/runtimeQRL#_[0]"></div>
       <!--/qv-->
@@ -604,7 +604,7 @@ renderSSRSuite('nested html', async () => {
     <>
       <div></div>
     </>,
-    `<html q:container="paused" q:version="dev" q:render="ssr"><div></div></html>`
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev"><div></div></html>`
   );
 });
 
@@ -614,7 +614,7 @@ renderSSRSuite('root html component', async () => {
       <link>Stuff</link>
     </HeadCmp>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       <head q:id="1" q:head on:qvisible="/runtimeQRL#_[0]">
         <title q:head>hola</title>
@@ -634,7 +634,7 @@ renderSSRSuite('containerTagName', async () => {
       <Styles />
       <UseClientEffect></UseClientEffect>
     </>,
-    `<container q:container="paused" q:version="dev" q:render="ssr" q:base="/manu/folder">
+    `<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="/manu/folder">
       <link rel="stylesheet" href="/global.css">
       <!--qv q:id=2 q:key=sX:-->
         <style q:style="17nc-0">.host {color: red}</style>
@@ -658,7 +658,7 @@ renderSSRSuite('containerAttributes', async () => {
       <div></div>
     </>,
     `
-    <html prefix="something" q:container="paused" q:version="dev" q:render="ssr">
+    <html prefix="something" q:container="paused" q:version="dev" q:render="ssr-dev">
      <div></div>
     </html>
     `,
@@ -673,7 +673,7 @@ renderSSRSuite('containerAttributes', async () => {
       <div></div>
     </>,
     `
-    <app prefix="something" q:container="paused" q:version="dev" q:render="ssr">
+    <app prefix="something" q:container="paused" q:version="dev" q:render="ssr-dev">
      <div></div>
     </app>
     `,
@@ -703,7 +703,7 @@ renderSSRSuite('ssr marks', async () => {
         <li>3</li>
       ))}
     </>,
-    `<html q:container="paused" q:version="dev" q:render="ssr">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <li>1</li>
       <li>2</li>
       <!--here-->
@@ -727,7 +727,7 @@ renderSSRSuite('html slot', async () => {
       </body>
     </HtmlContext>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr" q:base="/manu/folder">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="/manu/folder">
       <!--qv q:id=0 q:key=sX:-->
       <!--qv q:sname q:sref=0 q:key-->
       <head q:head>
@@ -758,7 +758,7 @@ renderSSRSuite('null component', async () => {
     <>
       <NullCmp />
     </>,
-    `<html q:container="paused" q:version="dev" q:render="ssr"><!--qv q:id=0 q:key=sX:--><!--/qv--></html>`
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev"><!--qv q:id=0 q:key=sX:--><!--/qv--></html>`
   );
 });
 // TODO

@@ -5,8 +5,7 @@
     "selectServer": true,
     "featureOptions": [
       "prettier",
-      "tailwindcss",
-      "react"
+      "tailwindcss"
     ],
     "featureEnabled": [
       "prettier"

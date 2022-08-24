@@ -541,8 +541,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
                 const result = await render(renderOpts);
                 if ('html' in result) {
-                  res.write('<script type="module" src="/@vite/client"></script>');
-                  res.end((result as any).html);
+                  res.write((result as any).html);
+                  res.end('<script type="module" src="/@vite/client"></script>');
                 } else {
                   res.write('<script type="module" src="/@vite/client"></script>');
                   res.end();

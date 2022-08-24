@@ -45,7 +45,7 @@ export function qwikifyQrl<PROPS extends {}>(
   return component$<QwikifyProps<PROPS>>((props) => {
     const ref = useRef();
     const store = useStore<QwikifyCmp<PROPS>>({});
-    const Host = opts?.tagName ?? 'qwik-react' as any;
+    const Host = opts?.tagName ?? ('qwik-react' as any);
     const clientOnly = !!(props['client:only'] || opts?.clientOnly);
     let eagerness: EagernessOptions | undefined;
     if (props['client:visible'] || opts?.eagerness === 'visible') {

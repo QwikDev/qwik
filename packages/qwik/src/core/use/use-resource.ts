@@ -77,7 +77,7 @@ export const useResource$ = <T>(
  * @public
  */
 export interface ResourceProps<T> {
-  resource: ResourceReturn<T>;
+  value: ResourceReturn<T>;
   onResolved: (value: T) => JSXNode;
   onPending?: () => JSXNode;
   onRejected?: (reason: any) => JSXNode;
@@ -90,22 +90,22 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
   const isBrowser = !qDev || !useIsServer();
   if (isBrowser) {
     if (props.onRejected) {
-      props.resource.promise.catch(() => {});
-      if (props.resource.state === 'rejected') {
-        return props.onRejected(props.resource.error);
+      props.value.promise.catch(() => {});
+      if (props.value.state === 'rejected') {
+        return props.onRejected(props.value.error);
       }
     }
     if (props.onPending) {
-      const state = props.resource.state;
+      const state = props.value.state;
       if (state === 'pending') {
         return props.onPending();
       } else if (state === 'resolved') {
-        return props.onResolved(props.resource.resolved);
+        return props.onResolved(props.value.resolved);
       }
     }
   }
 
-  const promise: any = props.resource.promise.then(
+  const promise: any = props.value.promise.then(
     useBindInvokeContext(props.onResolved),
     useBindInvokeContext(props.onRejected)
   );

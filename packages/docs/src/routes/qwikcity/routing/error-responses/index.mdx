@@ -53,8 +53,8 @@ export default component$(() => {
 
   // Normal rendering
   return (
-    <Resource 
-      resource={resource}
+    <Resource
+      value={resource}
       onPending={() => <div>Loading...</div>}
       onError={() => <div>Error</div>}
       onResolved={() => (

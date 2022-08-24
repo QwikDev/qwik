@@ -92,7 +92,7 @@ export const WeatherResults2 = component$(
     return (
       <div>
         <Resource
-          resource={props.weather}
+          value={props.weather}
           onPending={() => <div>loading data...</div>}
           onRejected={(reason) => <div>error {reason}</div>}
           onResolved={(weather) => {

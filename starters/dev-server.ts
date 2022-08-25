@@ -4,7 +4,7 @@
 /* eslint-disable no-console */
 
 import express, { NextFunction, Request, Response } from 'express';
-import { build, InlineConfig, PluginOption } from 'vite'
+import { build, InlineConfig, PluginOption } from 'vite';
 import { join, resolve } from 'path';
 import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync, readFileSync } from 'fs';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
@@ -26,7 +26,7 @@ const qwikCityDistDir = join(__dirname, '..', 'packages', 'qwik-city', 'lib');
 const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.mjs');
 const qwikCityDistVite = join(qwikCityDistDir, 'vite', 'index.mjs');
 
-const qwikCityVirtualEntry = '@dev-ssr-entry'
+const qwikCityVirtualEntry = '@dev-ssr-entry';
 
 Error.stackTraceLimit = 1000;
 
@@ -47,7 +47,7 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
 
     const pkgPath = join(appDir, 'package.json');
     const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-    const enableCityServer = !!pkgJson.__qwik__?.selectServer
+    const enableCityServer = !!pkgJson.__qwik__?.selectServer;
 
     let clientManifest = cache.get(appDir);
     if (!clientManifest) {
@@ -57,7 +57,7 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
 
     res.set('Content-Type', 'text/html');
     if (enableCityServer) {
-      cityApp(req, res, next, appDir)
+      cityApp(req, res, next, appDir);
     } else {
       await ssrApp(req, res, appName, appDir, clientManifest);
       res.end();
@@ -84,7 +84,7 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
   removeDir(appServerDir);
 
   let clientManifest: QwikManifest | undefined = undefined;
-  const plugins: PluginOption[] = []
+  const plugins: PluginOption[] = [];
   if (enableCityServer) {
     // ssr entry existed in service folder, use dev plugin to
     // 1. export router
@@ -93,7 +93,7 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
       name: 'devPlugin',
       resolveId(id) {
         if (id.endsWith('entry.ssr.tsx')) {
-          return qwikCityVirtualEntry
+          return qwikCityVirtualEntry;
         }
       },
       load(id) {
@@ -117,15 +117,19 @@ export {
   router,
   notFound
 }
-`
+`;
         }
-      }
-    })
-    const qwikCityVite: typeof import('@builder.io/qwik-city/vite') = await import(qwikCityDistVite)
-    plugins.push(qwikCityVite.qwikCity({
-      // question ? use vite's base instead
-      baseUrl: `/${appName}/`,
-    }))
+      },
+    });
+    const qwikCityVite: typeof import('@builder.io/qwik-city/vite') = await import(
+      qwikCityDistVite
+    );
+    plugins.push(
+      qwikCityVite.qwikCity({
+        // question ? use vite's base instead
+        baseUrl: `/${appName}/`,
+      })
+    );
   }
   const getInlineConf = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,
@@ -133,36 +137,35 @@ export {
     configFile: false,
     base: `/${appName}/`,
     ...extra,
-  })
+  });
 
-  await build(getInlineConf({
-    plugins: [
-      ...plugins,
-      optimizer.qwikVite({
-        entryStrategy: {
-          // TODO: e2e example seems requiring 'single' in vite ?
-          // previous is 'hook' in rollup. don't know why
-          type: enableCityServer ? 'smart' : 'single'
-        },
-        client: {
-          // forceFullBuild: true,
-          manifestOutput(manifest) {
-            clientManifest = manifest
+  await build(
+    getInlineConf({
+      plugins: [
+        ...plugins,
+        optimizer.qwikVite({
+          entryStrategy: {
+            // TODO: e2e example seems requiring 'single' in vite ?
+            // previous is 'hook' in rollup. don't know why
+            type: enableCityServer ? 'smart' : 'single',
           },
-        },
-      })
-    ],
-  }));
+          client: {
+            // forceFullBuild: true,
+            manifestOutput(manifest) {
+              clientManifest = manifest;
+            },
+          },
+        }),
+      ],
+    })
+  );
 
   await build(
     getInlineConf({
       build: {
         ssr: resolve(appSrcDir, 'entry.ssr.tsx'),
       },
-      plugins: [
-        ...plugins,
-        optimizer.qwikVite()
-      ],
+      plugins: [...plugins, optimizer.qwikVite()],
     })
   );
 
@@ -187,20 +190,15 @@ function removeDir(dir: string) {
   }
 }
 
-async function cityApp(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-  appDir: string
-) {
+async function cityApp(req: Request, res: Response, next: NextFunction, appDir: string) {
   const ssrPath = join(appDir, 'server', `${qwikCityVirtualEntry}.js`);
 
   const mod = await import(ssrPath);
   const router: any = mod.router;
   router(req, res, () => {
     mod.notFound(req, res, () => {
-      next()
-    })
+      next();
+    });
   });
 }
 
@@ -209,7 +207,7 @@ async function ssrApp(
   res: Response,
   appName: string,
   appDir: string,
-  manifest: QwikManifest,
+  manifest: QwikManifest
 ) {
   const ssrPath = join(appDir, 'server', 'entry.ssr.js');
   const mod = await import(ssrPath);

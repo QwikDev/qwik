@@ -52,7 +52,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             routeModules,
             {},
             ctx.opts.trailingSlash,
-            ctx.opts.baseUrl,
+            ctx.opts.baseUrl
           );
 
           if (userResponse.type === 'endpoint') {

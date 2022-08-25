@@ -219,7 +219,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   let hasValidatedSource = false;
 
-  const validateSource = async (resolver: (id: string) => Promise<unknown|undefined>) => {
+  const validateSource = async (resolver: (id: string) => Promise<unknown | undefined>) => {
     if (!hasValidatedSource) {
       hasValidatedSource = true;
 
@@ -234,7 +234,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         }
         for (const alias in opts.input) {
           const input = opts.input[alias];
-          const resolved = await resolver(input)
+          const resolved = await resolver(input);
           if (!resolved) {
             throw new Error(`Qwik input "${input}" not found.`);
           }

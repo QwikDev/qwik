@@ -31,7 +31,8 @@ export async function requestHandler<T = any>(
         params,
         mods,
         platform,
-        trailingSlash
+        trailingSlash,
+        opts?.base
       );
 
       // status and headers should be immutable in at this point

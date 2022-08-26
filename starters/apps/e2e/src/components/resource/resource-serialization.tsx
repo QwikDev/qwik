@@ -33,7 +33,7 @@ export const ResourceSerialization = component$(() => {
   return (
     <>
       <Resource
-        resource={resourceSuccess}
+        value={resourceSuccess}
         onResolved={(data) => (
           <button class="success r1" onClick$={() => state.count0++}>
             PASS: {data} {state.count0}
@@ -46,7 +46,7 @@ export const ResourceSerialization = component$(() => {
         )}
       />
       <Resource
-        resource={resourceFailure}
+        value={resourceFailure}
         onResolved={(data) => (
           <button class="success r2" onClick$={() => state.count0++}>
             PASS: {data} {state.count0}
@@ -59,7 +59,7 @@ export const ResourceSerialization = component$(() => {
         )}
       />
       <Resource
-        resource={resourceTimeout}
+        value={resourceTimeout}
         onResolved={(data) => (
           <button class="success r3" onClick$={() => state.count0++}>
             PASS: {data} {state.count0}

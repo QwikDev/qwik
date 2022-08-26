@@ -9,6 +9,7 @@ In our example, the content of the `<Panel>` element (inside the `<App>`) is the
 ## Why `<Slot>`?
 
 Why is Qwik opting to use `<Slot/>` rather than `children` property? The use of `<Slot>` is a strategic choice to enable the rendering of components out of order. (Meaning that a component should be capable of re-rendering even if the parent component is not yet resumed.) There are two issues with using `children` in Qwik.
+
 1. If Qwik would use the `children` property for projection the `children` property would need to be serializable. This is because when the child component renders it needs the `children` to insert someplace.
 2. A child component could modify the contents of the `children` before passing and inserting it into the render tree. This would prevent the parent component from rendering independently from the child. If a child would modify the children, then every time the parent component would change the `children` Qwik would have to re-run the child component to see what kind of modifications it would make to the `children` before inserting them into the render tree.
 

@@ -7,7 +7,7 @@ export default component$(() => {
   return (
     <>
       <Resource
-        resource={resource}
+        value={resource}
         onResolved={(builderContent) => {
           return <main class="builder" dangerouslySetInnerHTML={builderContent.html} />;
         }}

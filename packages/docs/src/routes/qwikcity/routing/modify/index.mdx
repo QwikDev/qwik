@@ -3,7 +3,7 @@ title: Qwik City - Modify Data
 ---
 
 # Qwik City - Modify Data
- 
+
 Endpoints can define a way to fetch data and they can also define HTTP verbs to modify data. These are `GET`, `POST`, `PUT`, `PATCH`, `DELETE`. We have already discussed the `GET` verb in the previous section. Each of these verbs has a corresponding `on___` method such as `onGet`, `onPost`, `onPut`, `onPatch`, and `onDelete`.
 
 ```typescript
@@ -17,14 +17,14 @@ interface ProductData {
   price: number;
   description: string;
 }
-export const onPut: RequestHandler<EndpointData> = async ({ url, params, request, response } ) => {
+export const onPut: RequestHandler<EndpointData> = async ({ url, params, request, response }) => {
   // put your DB access here (hard coding a response for the simplicity)
-  
+
   // read data from request and perform DB update.
   // console.log(params.skuId);
   // console.log(request.method);
   // console.log(url.pathname);
-  
+
   // set response headers
   response.headers.append('Cache-Control', ' public, max-age=86400');
 
@@ -32,7 +32,7 @@ export const onPut: RequestHandler<EndpointData> = async ({ url, params, request
   return {
     skuId: params.skuId,
     price: 123.45,
-    description: `Description for ${params.skuId}`
+    description: `Description for ${params.skuId}`,
   };
 };
 ```

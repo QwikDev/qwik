@@ -3,7 +3,7 @@ import { loadUserResponse } from './user-response';
 import type { QwikCityRequestContext, QwikCityRequestOptions } from './types';
 import type { Render } from '@builder.io/qwik/server';
 import { errorHandler, ErrorResponse, errorResponse } from './error-handler';
-import cityPlan from '@qwik-city-plan';
+import { routes, menus, cacheModules } from '@qwik-city-plan';
 import { endpointHandler } from './endpoint-handler';
 import { pageHandler } from './page-handler';
 import { RedirectResponse, redirectResponse } from './redirect-handler';
@@ -19,7 +19,6 @@ export async function requestHandler<T = any>(
 ): Promise<T | null> {
   try {
     const pathname = requestCtx.url.pathname;
-    const { routes, menus, cacheModules, trailingSlash } = { ...cityPlan, ...opts };
     const loadedRoute = await loadRoute(routes, menus, cacheModules, pathname);
     if (loadedRoute) {
       // found and loaded the route for this pathname
@@ -31,7 +30,7 @@ export async function requestHandler<T = any>(
         params,
         mods,
         platform,
-        trailingSlash
+        opts?.trailingSlash
       );
 
       // status and headers should be immutable in at this point

@@ -7,6 +7,7 @@ import {
   isMarkdownExt,
   isMenuFileName,
   isPageModuleExt,
+  isServiceWorkerName,
   getExtension,
   removeExtension,
 } from '../utils/fs';
@@ -35,6 +36,9 @@ export function getSourceFile(fileName: string) {
   } else if (isMenuFileName(fileName)) {
     // menu.md
     type = 'menu';
+  } else if (isModule && isServiceWorkerName(extlessName)) {
+    // service-worker.ts|js
+    type = 'service-worker';
   }
 
   if (type !== null) {

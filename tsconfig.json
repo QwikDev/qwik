@@ -3,7 +3,7 @@
     "incremental": true,
     "target": "ES2020",
     "module": "ES2020",
-    "lib": ["es2020", "DOM"],
+    "lib": ["es2020", "DOM", "webworker"],
     "resolveJsonModule": true,
     "jsx": "react-jsx",
     "jsxImportSource": "@builder.io/qwik",
@@ -41,6 +41,10 @@
       "@tutorial-data": ["packages/docs/src/routes/tutorial/tutorial-data.ts"],
       "@qwik-client-manifest": ["packages/qwik/src/server/server-modules.d.ts"],
       "@qwik-city-plan": ["packages/qwik-city/runtime/src/library/qwik-city-plan.ts"],
+      "@qwik-city-sw-register-build": [
+        "packages/qwik-city/buildtime/runtime-generation/sw-register-build.ts"
+      ],
+      "@qwik-city-sw-register": ["packages/qwik-city/runtime/src/library/sw-register-runtime.ts"],
       "create-qwik": ["packages/create-qwik/api/index.ts"]
     },
     "types": ["node", "vite/client"],

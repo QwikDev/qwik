@@ -179,11 +179,16 @@ export async function loadUserResponse(
     );
   }
 
-  if (hasPageRenderer && request.headers.get('Accept') !== 'application/json') {
+  if (request.headers.get('Accept')?.includes('text/html')) {
     // this is a page module
     // user can force the respond to be an endpoint with Accept request header
     // response should be a page
     userResponse.type = 'page';
+
+    // TODO: need to figure out work with HMR
+    // if (!hasPageRenderer) {
+    //   throw new ErrorResponse(HttpStatus.NotFound, 'Not Found')
+    // }
   } else {
     // this is only an endpoint, and not a page module
     if (!hasRequestMethodHandler) {

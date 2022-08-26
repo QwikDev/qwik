@@ -3,12 +3,13 @@
 // DO NOT USE FOR PRODUCTION!!!
 /* eslint-disable no-console */
 
-import express, { Request, Response } from 'express';
-import { isAbsolute, join, resolve, dirname } from 'path';
-import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync } from 'fs';
-import { Plugin, rollup } from 'rollup';
+import express, { NextFunction, Request, Response } from 'express';
+import { build, InlineConfig, PluginOption } from 'vite';
+import { join, resolve } from 'path';
+import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync, readFileSync } from 'fs';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
+import type { PackageJSON } from 'scripts/util';
 import { fileURLToPath } from 'url';
 
 const app = express();
@@ -22,21 +23,23 @@ const appNames = readdirSync(startersAppsDir).filter(
 );
 
 const qwikDistDir = join(__dirname, '..', 'packages', 'qwik', 'dist');
-const qwikDistCorePath = join(qwikDistDir, 'core.mjs');
-const qwikDistServerPath = join(qwikDistDir, 'server.mjs');
+const qwikCityDistDir = join(__dirname, '..', 'packages', 'qwik-city', 'lib');
 const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.mjs');
-const qwikDistJsxRuntimePath = join(qwikDistDir, 'jsx-runtime.mjs');
+const qwikCityDistVite = join(qwikCityDistDir, 'vite', 'index.mjs');
+
+const qwikCityVirtualEntry = '@city-ssr-entry';
+const entrySsrFileName = 'entry.ssr.tsx';
+
 Error.stackTraceLimit = 1000;
 
 // dev server builds ssr's the starter app on-demand (don't do this in production)
 const cache = new Map<string, QwikManifest>();
-async function handleApp(req: Request, res: Response) {
+async function handleApp(req: Request, res: Response, next: NextFunction) {
   try {
     const url = new URL(req.url, address);
     const paths = url.pathname.split('/');
     const appName = paths[1];
     const appDir = join(startersAppsDir, appName);
-
     if (!existsSync(appDir)) {
       res.send(`❌ Invalid dev-server path: ${appDir}`);
       return;
@@ -44,16 +47,23 @@ async function handleApp(req: Request, res: Response) {
 
     console.log(req.method, req.url, `[${appName} build/ssr]`);
 
+    const pkgPath = join(appDir, 'package.json');
+    const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+    const enableCityServer = !!pkgJson.__qwik__?.selectServer;
+
     let clientManifest = cache.get(appDir);
     if (!clientManifest) {
-      clientManifest = await buildApp(appDir);
+      clientManifest = await buildApp(appDir, appName, enableCityServer);
       cache.set(appDir, clientManifest);
     }
 
     res.set('Content-Type', 'text/html');
-    await ssrApp(req, res, appName, appDir, clientManifest);
-
-    res.end();
+    if (enableCityServer) {
+      cityApp(req, res, next, appDir);
+    } else {
+      await ssrApp(req, res, appName, appDir, clientManifest);
+      res.end();
+    }
   } catch (e: any) {
     console.error(e);
     if (!res.headersSent) {
@@ -63,140 +73,102 @@ async function handleApp(req: Request, res: Response) {
   }
 }
 
-function devPlugin(opts: { isServer: boolean }): Plugin {
-  return {
-    name: 'devPlugin',
-    resolveId(id, importee) {
-      if (id === '@builder.io/qwik') {
-        return qwikDistCorePath;
-      }
-      if (id === '@qwik-client-manifest') {
-        return id;
-      }
-      if (id === '@builder.io/qwik/server') {
-        return qwikDistServerPath;
-      }
-      if (id === '@builder.io/qwik/build') {
-        return id;
-      }
-      if (id === '@builder.io/qwik/jsx-runtime') {
-        return qwikDistJsxRuntimePath;
-      }
-      if (!id.startsWith('.') && !isAbsolute(id)) {
-        return { id, external: true };
-      }
-      if (importee) {
-        const fileId = id.split('?')[0];
-        if (fileId.endsWith('.css')) {
-          return resolve(dirname(importee), fileId);
-        }
-      }
-      return null;
-    },
-    load(id) {
-      if (id === '@builder.io/qwik/build') {
-        return `
-export const isServer = ${String(opts.isServer)};
-export const isBrowser = ${String(!opts.isServer)};
-        `;
-      }
-      if (id === '@qwik-client-manifest') {
-        return 'export const manifest = undefined;';
-      }
-      return null;
-    },
-    transform(code, id) {
-      if (id.endsWith('.css')) {
-        return `const CSS = ${JSON.stringify(code)}; export default CSS;`;
-      }
-      return null;
-    },
-    renderDynamicImport({ targetModuleId }) {
-      if (targetModuleId === 'node-fetch') {
-        return { left: 'import(', right: ')' };
-      }
-    },
-  };
-}
-
-async function buildApp(appDir: string) {
+async function buildApp(appDir: string, appName: string, enableCityServer: boolean) {
   const optimizer: typeof import('@builder.io/qwik/optimizer') = await import(
     qwikDistOptimizerPath
   );
   const appSrcDir = join(appDir, 'src');
   const appDistDir = join(appDir, 'dist');
   const appServerDir = join(appDir, 'server');
+  const baseUrl = `/${appName}/`;
 
   // always clean the build directory
   removeDir(appDistDir);
   removeDir(appServerDir);
 
   let clientManifest: QwikManifest | undefined = undefined;
+  const plugins: PluginOption[] = [];
+  if (enableCityServer) {
+    // ssr entry existed in service folder, use dev plugin to
+    // 1. export router
+    // 2. set baseUrl
+    plugins.push({
+      name: 'devPlugin',
+      resolveId(id) {
+        if (id.endsWith(entrySsrFileName)) {
+          return qwikCityVirtualEntry;
+        }
+      },
+      load(id) {
+        if (id === qwikCityVirtualEntry) {
+          return `import { qwikCity } from '@builder.io/qwik-city/middleware/express';
+import { jsx } from '@builder.io/qwik';
+import { renderToStream } from '@builder.io/qwik/server';
+import { manifest } from '@qwik-client-manifest';
+import Root from '${resolve(appSrcDir, 'root')}';
 
-  const clientBuild = await rollup({
-    input: getSrcInput(appSrcDir),
-    plugins: [
-      devPlugin({ isServer: false }),
-      optimizer.qwikRollup({
-        target: 'client',
-        buildMode: 'development',
-        srcDir: appSrcDir,
-        forceFullBuild: true,
-        entryStrategy: { type: 'hook' },
-        manifestOutput: (m) => {
-          clientManifest = m;
-        },
-      }),
-    ],
+export default function render(opts) {
+  return renderToStream(jsx(Root), {
+    manifest,
+    ...opts,
   });
-  await clientBuild.write({
-    banner: 'globalThis.qDev = true;',
-    dir: appDistDir,
+}
+const { router, notFound } = qwikCity(render, {
+  base: '${baseUrl}',
+});
+export {
+  router,
+  notFound
+}
+`;
+        }
+      },
+    });
+    const qwikCityVite: typeof import('@builder.io/qwik-city/vite') = await import(
+      qwikCityDistVite
+    );
+    plugins.push(qwikCityVite.qwikCity());
+  }
+  const getInlineConf = (extra?: InlineConfig): InlineConfig => ({
+    root: appDir,
+    mode: 'development',
+    configFile: false,
+    base: baseUrl,
+    ...extra,
   });
 
-  const ssrBuild = await rollup({
-    input: join(appSrcDir, 'entry.ssr.tsx'),
-    plugins: [
-      devPlugin({ isServer: true }),
-      optimizer.qwikRollup({
-        target: 'ssr',
-        buildMode: 'production',
-        srcDir: appSrcDir,
-        entryStrategy: { type: 'inline' },
-        manifestInput: clientManifest,
-      }),
-    ],
-  });
+  await build(
+    getInlineConf({
+      plugins: [
+        ...plugins,
+        optimizer.qwikVite({
+          entryStrategy: {
+            // TODO: e2e example seems requiring 'single' in vite ?
+            // previous is 'hook' in rollup. don't know why
+            type: enableCityServer ? 'smart' : 'single',
+          },
+          client: {
+            // forceFullBuild: true,
+            manifestOutput(manifest) {
+              clientManifest = manifest;
+            },
+          },
+        }),
+      ],
+    })
+  );
+
+  await build(
+    getInlineConf({
+      build: {
+        ssr: resolve(appSrcDir, entrySsrFileName),
+      },
+      plugins: [...plugins, optimizer.qwikVite()],
+    })
+  );
 
   console.log('appServerDir', appServerDir);
-
-  await ssrBuild.write({
-    banner: 'globalThis.qDev = true;',
-    dir: appServerDir,
-  });
-
   return clientManifest!;
-}
-
-function getSrcInput(appSrcDir: string) {
-  // get all the entry points for tsx for DEV ONLY!
-  const srcInputs: string[] = [];
-
-  function readDir(dir: string) {
-    const items = readdirSync(dir);
-    for (const item of items) {
-      const itemPath = join(dir, item);
-      const s = statSync(itemPath);
-      if (s.isDirectory()) {
-        readDir(itemPath);
-      } else if (item.endsWith('.tsx') && !item.endsWith('entry.express.tsx')) {
-        srcInputs.push(itemPath);
-      }
-    }
-  }
-  readDir(appSrcDir);
-
-  return srcInputs;
 }
 
 function removeDir(dir: string) {
@@ -216,6 +188,18 @@ function removeDir(dir: string) {
   }
 }
 
+async function cityApp(req: Request, res: Response, next: NextFunction, appDir: string) {
+  const ssrPath = join(appDir, 'server', `${qwikCityVirtualEntry}.js`);
+
+  const mod = await import(ssrPath);
+  const router: any = mod.router;
+  router(req, res, () => {
+    mod.notFound(req, res, () => {
+      next();
+    });
+  });
+}
+
 async function ssrApp(
   req: Request,
   res: Response,
@@ -231,7 +215,6 @@ async function ssrApp(
   const base = `/${appName}/build/`;
   const url = new URL(`${req.protocol}://${req.hostname}${req.url}`).href;
 
-  const chunks: string[] = [];
   const opts: RenderToStreamOptions = {
     stream: res,
     manifest,
@@ -242,8 +225,6 @@ async function ssrApp(
     },
   };
   await render(opts);
-
-  return chunks.join('');
 }
 
 function startersHomepage(_: Request, res: Response) {

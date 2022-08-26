@@ -278,7 +278,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     async buildStart() {
-      await qwikPlugin.validateSource();
+      // Using vite.resolveId to check file if exist
+      // for example input might be virtual file
+      const resolver = this.resolve;
+      await qwikPlugin.validateSource(resolver);
 
       qwikPlugin.onAddWatchFile((ctx, path) => {
         ctx.addWatchFile(path);

@@ -27,7 +27,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
     try {
       const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
       const pathname = url.pathname;
-
       const requestCtx = fromDevServerHttp(url, req, res);
       const result = await buildFromUrlPathname(ctx, pathname);
       if (result) {
@@ -52,7 +51,8 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             params,
             routeModules,
             {},
-            ctx.opts.trailingSlash
+            ctx.opts.trailingSlash,
+            ctx.opts.baseUrl
           );
 
           if (userResponse.type === 'endpoint') {

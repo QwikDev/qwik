@@ -17,7 +17,8 @@ export async function loadUserResponse(
   params: RouteParams,
   routeModules: RouteModule[],
   platform: Record<string, any>,
-  trailingSlash?: boolean
+  trailingSlash?: boolean,
+  base: string = '/'
 ) {
   const { request, url } = requestCtx;
   const { pathname } = url;
@@ -34,7 +35,7 @@ export async function loadUserResponse(
   let hasRequestMethodHandler = false;
   const hasPageRenderer = isLastModulePageRoute(routeModules);
 
-  if (hasPageRenderer && pathname !== '/') {
+  if (hasPageRenderer && pathname !== base) {
     // only check for slash redirect on pages
     if (trailingSlash) {
       // must have a trailing slash

@@ -21,6 +21,7 @@ import {
   QWIK_BUILD_ID,
   QwikPackages,
   QWIK_JSX_RUNTIME_ID,
+  CLIENT_OUT_DIR,
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
@@ -175,6 +176,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
 
       const opts = qwikPlugin.normalizeOptions(pluginOpts);
+
+      // TODO: better way for other plugins to get ahold of the manifest info
+      (globalThis as any).QWIK_MANIFEST = pluginOpts.manifestInput;
+
+      // TODO: better way for other plugins to get ahold of client output directory path
+      (globalThis as any).QWIK_CLIENT_OUT_DIR = qwikPlugin.normalizePath(
+        sys.path.resolve(opts.rootDir, qwikViteOpts.client?.outDir || CLIENT_OUT_DIR)
+      );
 
       if (typeof qwikViteOpts.client?.devInput === 'string') {
         clientDevInput = path.resolve(opts.rootDir, qwikViteOpts.client.devInput);

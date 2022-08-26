@@ -14,12 +14,14 @@ export function createBuildContext(
     errors: [],
     layouts: [],
     entries: [],
+    serviceWorkers: [],
     menus: [],
     diagnostics: [],
     frontmatter: new Map(),
     target: target || 'ssr',
     isDevServer: false,
     isDevServerClientOnly: false,
+    isDirty: true,
   };
   return ctx;
 }
@@ -33,6 +35,7 @@ export function resetBuildContext(ctx: BuildContext | null) {
     ctx.menus.length = 0;
     ctx.diagnostics.length = 0;
     ctx.frontmatter.clear();
+    ctx.isDirty = true;
   }
 }
 

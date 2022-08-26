@@ -1,6 +1,6 @@
 import type { StreamWriter } from '@builder.io/qwik';
 import type { RenderOptions } from '@builder.io/qwik/server';
-import type { QwikCityPlan, RequestContext, RouteParams } from '../../runtime/src/library/types';
+import type { RequestContext, RouteParams } from '../../runtime/src/library/types';
 
 export interface QwikCityRequestContext<T = any> {
   request: RequestContext;
@@ -29,4 +29,6 @@ export interface UserResponseContext {
   pendingBody: Promise<string | number | boolean | null | undefined> | undefined;
 }
 
-export interface QwikCityRequestOptions extends QwikCityPlan, RenderOptions {}
+export interface QwikCityRequestOptions extends RenderOptions {
+  trailingSlash?: boolean;
+}

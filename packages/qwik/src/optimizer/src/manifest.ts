@@ -99,77 +99,78 @@ function prioritorizeSymbolNames(manifest: QwikManifest) {
 // User triggered events should have priority
 const EVENT_PRIORITY = [
   // Click Events
-  'onClick$',
-  'onDblClick$',
-  'onContextMenu$',
-  'onAuxClick$',
+  'click',
+  'dblclick',
+  'contextmenu',
+  'auxclick',
 
   // Pointer Events
-  'onPointerDown$',
-  'onPointerUp$',
-  'onPointerMove$',
-  'onPointerOver$',
-  'onPointerEnter$',
-  'onPointerLeave$',
-  'onPointerOut$',
-  'onPointerCancel$',
-  'onGotPointerCapture$',
-  'onLostPointerCapture$',
+  'pointerdown',
+  'pointerup',
+  'pointermove',
+  'pointerover',
+  'pointerenter',
+  'pointerleave',
+  'pointerout',
+  'pointercancel',
+  'gotpointercapture',
+  'lostpointercapture',
 
   // Touch Events
-  'onTouchStart$',
-  'onTouchEnd$',
-  'onTouchMove$',
-  'onTouchCancel$',
+  'touchstart',
+  'touchend',
+  'touchmove',
+  'touchcancel',
 
   // Mouse Events
-  'onMouseDown$',
-  'onMouseUp$',
-  'onMouseMove$',
-  'onMouseEnter$',
-  'onMouseLeave$',
-  'onMouseOver$',
-  'onMouseOut$',
-  'onWheel$',
+  'mousedown',
+  'mouseup',
+  'mousemove',
+  'mouseenter',
+  'mouseleave',
+  'mouseover',
+  'mouseout',
+  'wheel',
 
   // Gesture Events
-  'onGestureStart$',
-  'onGestureChange$',
-  'onGestureEnd$',
+  'gesturestart',
+  'gesturechange',
+  'gestureend',
 
   // Keyboard Events
-  'onKeyDown$',
-  'onKeyUp$',
-  'onKeyPress$',
+  'keydown',
+  'keyup',
+  'keypress',
 
   // Input/Change Events
-  'onInput$',
-  'onChange$',
-  'onSearch$',
-  'onInvalid$',
-  'onBeforeInput$',
-  'onSelect$',
+  'input',
+  'change',
+  'search',
+  'invalid',
+  'beforeinput',
+  'select',
 
   // Focus/Blur Events
-  'onFocusIn$',
-  'onFocusOut$',
-  'onFocus$',
-  'onBlur$',
+  'focusin',
+  'focusout',
+  'focus',
+  'blur',
 
   // Form Events
-  'onSubmit$',
-  'onReset$',
+  'submit',
+  'reset',
 
   // Scroll Events
-  'onScroll$',
-].map((n) => n.toLowerCase());
+  'scroll',
+].map((n) => `on${n.toLowerCase()}$`);
 
 const FUNCTION_PRIORITY = [
+  'useWatch$',
   'useClientEffect$',
   'useEffect$',
   'component$',
   'useStyles$',
-  'useStyles$',
+  'useStylesScoped$',
 ].map((n) => n.toLowerCase());
 
 function sortBundleNames(manifest: QwikManifest) {

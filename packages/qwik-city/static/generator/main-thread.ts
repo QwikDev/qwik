@@ -1,7 +1,7 @@
 import type { StaticGeneratorOptions, StaticGeneratorResults, StaticRoute, System } from './types';
 import { getPathnameForDynamicRoute, msToString, normalizePathname } from './utils';
 import type { PageModule, RouteParams } from '../../runtime/src/library/types';
-import cityPlan from '@qwik-city-plan';
+import { routes } from '@qwik-city-plan';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();
@@ -11,7 +11,6 @@ export async function mainThread(sys: System) {
   const log = await sys.createLogger();
   const queue: StaticRoute[] = [];
   const active = new Set<string>();
-  const routes = cityPlan.routes || [];
 
   return new Promise<StaticGeneratorResults>((resolve, reject) => {
     try {

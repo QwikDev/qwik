@@ -1,8 +1,6 @@
-import type { QwikCityPlan } from './types';
+import type { MenuData, RouteData } from './types';
 
 // Generated at build time
-const qwikCityPlan: QwikCityPlan = {
-  routes: [],
-};
-
-export default qwikCityPlan;
+export const routes: RouteData[] = [];
+export const menus: MenuData[] = [];
+export const cacheModules = false;

@@ -17,8 +17,14 @@ import { build } from '../build';
 import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { SERVER_ENDPOINT_FNS, stripServerEndpoints } from '../utils/strip-server-endpoints';
 import { transformMenu } from '../markdown/menu';
-import { generateQwikCityEntries } from '../runtime-generation/entries';
+import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
 import { patchGlobalFetch } from '../../middleware/express/node-fetch';
+import type { QwikManifest } from '@builder.io/qwik/optimizer';
+import { readFile, writeFile } from 'fs/promises';
+import {
+  generateServiceWorkerRegister,
+  prependManifestToServiceWorker,
+} from '../runtime-generation/generate-sw-register';
 
 /**
  * @alpha
@@ -37,11 +43,12 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
 
     config() {
       const updatedViteConfig: UserConfig = {
+        base: userOpts?.baseUrl,
         optimizeDeps: {
-          exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID],
+          exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],
         },
         ssr: {
-          noExternal: [QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY],
+          noExternal: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],
         },
       };
       return updatedViteConfig;
@@ -78,7 +85,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     },
 
     resolveId(id) {
-      if (id === QWIK_CITY_PLAN_ID || id === QWIK_CITY_ENTRIES_ID) {
+      if (id === QWIK_CITY_PLAN_ID || id === QWIK_CITY_ENTRIES_ID || id === QWIK_CITY_SW_REGISTER) {
         return join(rootDir!, id);
       }
       return null;
@@ -86,20 +93,32 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
 
     async load(id) {
       if (ctx) {
-        if (id.endsWith(QWIK_CITY_PLAN_ID)) {
-          // @qwik-city-plan
-          if (!ctx.isDevServer) {
+        if (id.endsWith(QWIK_CITY_ENTRIES_ID)) {
+          // @qwik-city-entries
+          return generateQwikCityEntries(ctx);
+        }
+
+        const isCityPlan = id.endsWith(QWIK_CITY_PLAN_ID);
+        const isSwRegister = id.endsWith(QWIK_CITY_SW_REGISTER);
+
+        if (isCityPlan || isSwRegister) {
+          if (!ctx.isDevServer && ctx.isDirty) {
             await build(ctx);
+            ctx.isDirty = false;
             ctx.diagnostics.forEach((d) => {
               this.warn(d.message);
             });
           }
 
-          return generateQwikCityPlan(ctx);
-        }
-        if (id.endsWith(QWIK_CITY_ENTRIES_ID)) {
-          // @qwik-city-entries
-          return generateQwikCityEntries(ctx);
+          if (isCityPlan) {
+            // @qwik-city-plan
+            return generateQwikCityPlan(ctx);
+          }
+
+          if (isSwRegister) {
+            // @qwik-city-sw-register
+            return generateServiceWorkerRegister(ctx);
+          }
         }
       }
       return null;
@@ -138,30 +157,47 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     },
 
     generateBundle(_, bundles) {
-      if (ctx) {
-        const entries = ctx.entries.map((entry) => {
+      // client bundles
+      if (ctx?.target === 'client') {
+        const entries = [...ctx.entries, ...ctx.serviceWorkers].map((entry) => {
           return {
             chunkFileName: entry.chunkFileName,
             extensionlessFilePath: removeExtension(entry.filePath),
           };
         });
-        if (entries.length === 0) {
-          return;
-        }
 
-        for (const fileName in bundles) {
-          const chunk = bundles[fileName];
-          if (chunk.type === 'chunk' && chunk.isDynamicEntry) {
-            let extensionlessFilePath = chunk.facadeModuleId;
-            if (extensionlessFilePath && extensionlessFilePath.includes('entry')) {
-              extensionlessFilePath = removeExtension(normalizePath(extensionlessFilePath));
-
-              const entry = entries.find(
-                (entry) => entry.extensionlessFilePath === extensionlessFilePath
-              );
-              if (entry) {
-                chunk.fileName = entry.chunkFileName;
+        for (const entry of entries) {
+          for (const fileName in bundles) {
+            const c = bundles[fileName];
+            if (c.type === 'chunk' && c.isDynamicEntry && c.facadeModuleId) {
+              const extensionlessFilePath = removeExtension(normalizePath(c.facadeModuleId));
+              if (entry.extensionlessFilePath === extensionlessFilePath) {
+                c.fileName = entry.chunkFileName;
+                continue;
               }
+            }
+          }
+        }
+      }
+    },
+
+    async writeBundle() {
+      if (ctx?.target === 'ssr') {
+        // ssr build
+        const manifest: QwikManifest = (globalThis as any).QWIK_MANIFEST;
+        const clientOutDir: string = (globalThis as any).QWIK_CLIENT_OUT_DIR;
+        if (manifest && clientOutDir) {
+          for (const swEntry of ctx.serviceWorkers) {
+            try {
+              const swClientDistPath = join(clientOutDir, swEntry.chunkFileName);
+
+              const swCode = await readFile(swClientDistPath, 'utf-8');
+              const swCodeUpdate = prependManifestToServiceWorker(ctx, manifest, swCode);
+              if (swCodeUpdate) {
+                await writeFile(swClientDistPath, swCodeUpdate);
+              }
+            } catch (e) {
+              console.error(e);
             }
           }
         }
@@ -175,3 +211,4 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
 const QWIK_CITY_PLAN_ID = '@qwik-city-plan';
 const QWIK_CITY_ENTRIES_ID = '@qwik-city-entries';
 const QWIK_CITY = '@builder.io/qwik-city';
+const QWIK_CITY_SW_REGISTER = '@qwik-city-sw-register';

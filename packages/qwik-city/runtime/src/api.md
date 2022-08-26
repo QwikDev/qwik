@@ -5,6 +5,7 @@
 ```ts
 
 import { Component } from '@builder.io/qwik';
+import { JSXNode } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { ResourceReturn } from '@builder.io/qwik';
 
@@ -224,6 +225,12 @@ export type RouteParams = Record<string, string>;
 
 // @alpha (undocumented)
 export const RouterOutlet: Component<    {}>;
+
+// @alpha (undocumented)
+export const ServiceWorkerRegister: () => JSXNode<"script">;
+
+// @alpha (undocumented)
+export const setupServiceWorker: () => void;
 
 // Warning: (ae-forgotten-export) The symbol "StaticGenerate" needs to be exported by the entry point index.d.ts
 //

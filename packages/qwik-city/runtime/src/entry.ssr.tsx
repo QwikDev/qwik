@@ -6,5 +6,12 @@ export default function (opts: RenderToStreamOptions) {
   return renderToStream(<Root />, {
     manifest,
     ...opts,
+    prefetchStrategy: {
+      implementation: {
+        linkInsert: null,
+        workerFetchInsert: null,
+        prefetchEvent: 'always',
+      },
+    },
   });
 }

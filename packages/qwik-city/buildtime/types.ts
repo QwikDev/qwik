@@ -5,12 +5,14 @@ export interface BuildContext {
   errors: BuildRoute[];
   layouts: BuildLayout[];
   entries: BuildEntry[];
+  serviceWorkers: BuildEntry[];
   menus: BuildMenu[];
   frontmatter: Map<string, FrontmatterAttrs>;
   diagnostics: Diagnostic[];
   target: 'ssr' | 'client';
   isDevServer: boolean;
   isDevServerClientOnly: boolean;
+  isDirty: boolean;
 }
 
 export type Yaml = string | number | boolean | null | { [attrName: string]: Yaml } | Yaml[];
@@ -43,7 +45,7 @@ export interface RouteSourceFileName {
   ext: string;
 }
 
-export type RouteSourceType = 'route' | 'layout' | 'entry' | 'menu' | 'error';
+export type RouteSourceType = 'route' | 'layout' | 'entry' | 'menu' | 'error' | 'service-worker';
 
 export interface BuildRoute extends ParsedPathname {
   /**

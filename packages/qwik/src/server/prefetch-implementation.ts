@@ -1,5 +1,9 @@
 import { Fragment, jsx, JSXNode } from '@builder.io/qwik';
-import { flattenPrefetchResources, workerFetchScript } from './prefetch-utils';
+import {
+  flattenPrefetchResources,
+  prefetchUrlsEventScript,
+  workerFetchScript,
+} from './prefetch-utils';
 import type {
   DeprecatedPrefetchImplementation,
   PrefetchImplementation,
@@ -19,12 +23,24 @@ export function applyPrefetchImplementation(
     // set default if implementation wasn't provided
     const prefetchImpl = normalizePrefetchImplementation(prefetchStrategy?.implementation);
 
+    const prefetchNodes: JSXNode[] = [];
+
+    if (prefetchImpl.prefetchEvent === 'always') {
+      prefetchUrlsEvent(prefetchNodes, prefetchResources);
+    }
+
     if (prefetchImpl.linkInsert === 'html-append') {
-      return linkHtmlImplementation(prefetchResources, prefetchImpl);
-    } else if (prefetchImpl.linkInsert === 'js-append') {
-      return linkJsImplementation(prefetchResources, prefetchImpl);
+      linkHtmlImplementation(prefetchNodes, prefetchResources, prefetchImpl);
+    }
+
+    if (prefetchImpl.linkInsert === 'js-append') {
+      linkJsImplementation(prefetchNodes, prefetchResources, prefetchImpl);
     } else if (prefetchImpl.workerFetchInsert === 'always') {
-      return workerFetchImplementation(prefetchResources);
+      workerFetchImplementation(prefetchNodes, prefetchResources);
+    }
+
+    if (prefetchNodes.length > 0) {
+      return jsx(Fragment, { children: prefetchNodes });
     }
   }
 
@@ -32,18 +48,26 @@ export function applyPrefetchImplementation(
   return null;
 }
 
+function prefetchUrlsEvent(prefetchNodes: JSXNode[], prefetchResources: PrefetchResource[]) {
+  prefetchNodes.push(
+    jsx('script', {
+      type: 'module',
+      dangerouslySetInnerHTML: prefetchUrlsEventScript(prefetchResources),
+    })
+  );
+}
+
 /**
  * Creates the `<link>` within the rendered html.
  * Optionally add the JS worker fetch
  */
 function linkHtmlImplementation(
+  prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
   prefetchImpl: Required<PrefetchImplementation>
 ) {
   const urls = flattenPrefetchResources(prefetchResources);
   const rel = prefetchImpl.linkRel || 'prefetch';
-
-  const children: JSXNode[] = [];
 
   for (const url of urls) {
     const attributes: Record<string, string> = {};
@@ -55,14 +79,8 @@ function linkHtmlImplementation(
       }
     }
 
-    children.push(jsx('link', attributes, undefined));
+    prefetchNodes.push(jsx('link', attributes, undefined));
   }
-
-  if (prefetchImpl.workerFetchInsert === 'always') {
-    children.push(workerFetchImplementation(prefetchResources));
-  }
-
-  return jsx(Fragment, { children: children });
 }
 
 /**
@@ -71,6 +89,7 @@ function linkHtmlImplementation(
  * web worker fetch.
  */
 function linkJsImplementation(
+  prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
   prefetchImpl: Required<PrefetchImplementation>
 ) {
@@ -110,20 +129,27 @@ function linkJsImplementation(
     s += workerFetchScript();
   }
 
-  return jsx('script', {
-    type: 'module',
-    dangerouslySetInnerHTML: s,
-  });
+  prefetchNodes.push(
+    jsx('script', {
+      type: 'module',
+      dangerouslySetInnerHTML: s,
+    })
+  );
 }
 
-function workerFetchImplementation(prefetchResources: PrefetchResource[]) {
+function workerFetchImplementation(
+  prefetchNodes: JSXNode[],
+  prefetchResources: PrefetchResource[]
+) {
   let s = `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`;
   s += workerFetchScript();
 
-  return jsx('script', {
-    type: 'module',
-    dangerouslySetInnerHTML: s,
-  });
+  prefetchNodes.push(
+    jsx('script', {
+      type: 'module',
+      dangerouslySetInnerHTML: s,
+    })
+  );
 }
 
 function normalizePrefetchImplementation(
@@ -138,6 +164,7 @@ function normalizePrefetchImplementation(
           linkInsert: 'html-append',
           linkRel: 'prefetch',
           workerFetchInsert: null,
+          prefetchEvent: null,
         };
       }
       case 'link-prefetch': {
@@ -146,6 +173,7 @@ function normalizePrefetchImplementation(
           linkInsert: 'js-append',
           linkRel: 'prefetch',
           workerFetchInsert: 'no-link-support',
+          prefetchEvent: null,
         };
       }
       case 'link-preload-html': {
@@ -154,6 +182,7 @@ function normalizePrefetchImplementation(
           linkInsert: 'html-append',
           linkRel: 'preload',
           workerFetchInsert: null,
+          prefetchEvent: null,
         };
       }
       case 'link-preload': {
@@ -162,6 +191,7 @@ function normalizePrefetchImplementation(
           linkInsert: 'js-append',
           linkRel: 'preload',
           workerFetchInsert: 'no-link-support',
+          prefetchEvent: null,
         };
       }
       case 'link-modulepreload-html': {
@@ -170,6 +200,7 @@ function normalizePrefetchImplementation(
           linkInsert: 'html-append',
           linkRel: 'modulepreload',
           workerFetchInsert: null,
+          prefetchEvent: null,
         };
       }
       case 'link-modulepreload': {
@@ -178,6 +209,7 @@ function normalizePrefetchImplementation(
           linkInsert: 'js-append',
           linkRel: 'modulepreload',
           workerFetchInsert: 'no-link-support',
+          prefetchEvent: null,
         };
       }
     }
@@ -187,6 +219,7 @@ function normalizePrefetchImplementation(
       linkInsert: null,
       linkRel: null,
       workerFetchInsert: 'always',
+      prefetchEvent: null,
     };
   }
 
@@ -197,9 +230,10 @@ function normalizePrefetchImplementation(
 
   // default PrefetchImplementation
   const defaultImplementation: Required<PrefetchImplementation> = {
-    linkInsert: 'html-append',
-    linkRel: 'prefetch',
+    linkInsert: null,
+    linkRel: null,
     workerFetchInsert: 'always',
+    prefetchEvent: null,
   };
   return defaultImplementation;
 }

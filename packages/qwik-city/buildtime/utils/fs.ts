@@ -106,6 +106,10 @@ export function isMenuFileName(fileName: string) {
   return fileName === 'menu.md';
 }
 
+export function isServiceWorkerName(extlessName: string) {
+  return extlessName === 'service-worker';
+}
+
 export function isEntryName(extlessName: string) {
   return extlessName === 'entry';
 }

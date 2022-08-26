@@ -38,6 +38,13 @@ export function resolveSourceFiles(opts: NormalizedPluginOptions, sourceFiles: R
       return a.chunkFileName < b.chunkFileName ? -1 : 1;
     });
 
+  const serviceWorkers = sourceFiles
+    .filter((s) => s.type === 'service-worker')
+    .map((p) => resolveServiceWorkerEntry(opts, p))
+    .sort((a, b) => {
+      return a.chunkFileName < b.chunkFileName ? -1 : 1;
+    });
+
   const menus = sourceFiles
     .filter((s) => s.type === 'menu')
     .map((p) => resolveMenu(opts, p))
@@ -62,8 +69,9 @@ export function resolveSourceFiles(opts: NormalizedPluginOptions, sourceFiles: R
   uniqueIds(routes);
   uniqueIds(errors);
   uniqueIds(entries);
+  uniqueIds(serviceWorkers);
 
-  return { layouts, routes, errors, entries, menus };
+  return { layouts, routes, errors, entries, menus, serviceWorkers };
 }
 
 export function resolveLayout(opts: NormalizedPluginOptions, layoutSourceFile: RouteSourceFile) {
@@ -168,6 +176,19 @@ export function resolveError(
 function resolveEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {
   const pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
   const chunkFileName = pathname.slice(1);
+
+  const buildEntry: BuildEntry = {
+    id: createFileId(opts.routesDir, sourceFile.filePath),
+    filePath: sourceFile.filePath,
+    chunkFileName,
+  };
+
+  return buildEntry;
+}
+
+function resolveServiceWorkerEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {
+  const pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
+  const chunkFileName = pathname.slice(1) + sourceFile.extlessName + '.js';
 
   const buildEntry: BuildEntry = {
     id: createFileId(opts.routesDir, sourceFile.filePath),

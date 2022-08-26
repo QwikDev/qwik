@@ -35,8 +35,7 @@ export const clientNavigate = (win: ClientHistoryWindow, routeNavigate: RouteNav
 /**
  * Gets an absolute url path string (url.pathname + url.search + url.hash)
  */
-export const toPath = (url: { pathname: string; search: string; hash: string }) =>
-  url.pathname + url.search + url.hash;
+export const toPath = (url: SimpleURL) => url.pathname + url.search + url.hash;
 
 /**
  * Create a URL from a string and baseUrl
@@ -46,7 +45,7 @@ const toUrl = (url: string, baseUrl: { href: string }) => new URL(url, baseUrl.h
 /**
  * Checks only if the origins are the same.
  */
-const isSameOrigin = (a: { origin: string }, b: { origin: string }) => a.origin === b.origin;
+const isSameOrigin = (a: SimpleURL, b: SimpleURL) => a.origin === b.origin;
 
 /**
  * Checks only if the pathname + search are the same for the URLs.

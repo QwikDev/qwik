@@ -18,6 +18,13 @@ export function workerFetchScript() {
   return s;
 }
 
+export function prefetchUrlsEventScript(prefetchResources: PrefetchResource[]) {
+  const data = {
+    urls: flattenPrefetchResources(prefetchResources),
+  };
+  return `dispatchEvent(new CustomEvent("qprefetch",{detail:${JSON.stringify(data)}}))`;
+}
+
 export function flattenPrefetchResources(prefetchResources: PrefetchResource[]) {
   const urls: string[] = [];
 

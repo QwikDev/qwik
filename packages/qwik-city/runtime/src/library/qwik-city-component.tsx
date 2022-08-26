@@ -32,13 +32,17 @@ import { clientNavigate, toPath } from './client-navigation';
  * @alpha
  */
 export const QwikCity = component$(() => {
-  const url = new URL(useEnvData<string>('url')!);
   const env = useQwikCityEnv();
-
   if (!env?.params) {
     throw new Error(`Missing Qwik City Env Data`);
   }
 
+  const urlEnv = useEnvData<string>('url');
+  if (!urlEnv) {
+    throw new Error(`Missing Qwik URL Env Data`);
+  }
+
+  const url = new URL(urlEnv);
   const routeLocation = useStore<MutableRouteLocation>({
     href: url.href,
     pathname: url.pathname,
@@ -67,15 +71,10 @@ export const QwikCity = component$(() => {
   useContextProvider(RouteNavigateContext, routeNavigate);
 
   useWatch$(async ({ track }) => {
-    const { default: cityPlan } = await import('@qwik-city-plan');
+    const { routes, menus, cacheModules } = await import('@qwik-city-plan');
     const path = track(routeNavigate, 'path');
     const url = new URL(path, routeLocation.href);
-    const loadedRoute = await loadRoute(
-      cityPlan.routes,
-      cityPlan.menus,
-      cityPlan.cacheModules,
-      url.pathname
-    );
+    const loadedRoute = await loadRoute(routes, menus, cacheModules, url.pathname);
     if (loadedRoute) {
       const contentModules = loadedRoute.mods as ContentModule[];
       const pageModule = contentModules[contentModules.length - 1] as PageModule;
@@ -109,6 +108,6 @@ export const QwikCity = component$(() => {
 
 /**
  * @alpha
- * @deprecated - use QwikCity
+ * @deprecated - The "Html" component has been renamed to "QwikCity".
  */
 export const Html = QwikCity;

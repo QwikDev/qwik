@@ -1,7 +1,7 @@
 import type { BuildContext } from '../types';
-import { createEntries } from './entries';
-import { createMenus } from './menus';
-import { createRoutes } from './routes';
+import { createEntries } from './generate-entries';
+import { createMenus } from './generate-menus';
+import { createRoutes } from './generate-routes';
 
 /**
  * Generates the Qwik City Plan runtime code
@@ -10,32 +10,15 @@ export function generateQwikCityPlan(ctx: BuildContext) {
   const esmImports: string[] = [];
   const c: string[] = [];
 
+  c.push(`\n/** Qwik City Plan */`);
+
   createRoutes(ctx, c, esmImports);
 
-  const totalMenus = createMenus(ctx, c, esmImports);
-
-  c.push(`\n/** Qwik City Plan */`);
-  c.push(`const qwikCityPlan = {`);
-
-  c.push(`  routes,`);
-
-  if (totalMenus > 0) {
-    c.push(`  menus,`);
-  }
-
-  if (ctx.opts.trailingSlash) {
-    c.push(`  trailingSlash: true,`);
-  }
-
-  if (ctx.isDevServer) {
-    c.push(`  cacheModules: false,`);
-  }
-
-  c.push(`};`);
+  createMenus(ctx, c, esmImports);
 
   createEntries(ctx, c);
 
-  c.push(`export default qwikCityPlan;\n`);
+  c.push(`export const cacheModules = ${JSON.stringify(!ctx.isDevServer)};`);
 
   return esmImports.join('\n') + c.join('\n');
 }

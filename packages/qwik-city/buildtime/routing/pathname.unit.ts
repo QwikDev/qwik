@@ -159,6 +159,10 @@ test('getMarkdownRelativeUrl', () => {
       expect: '/link',
     },
     {
+      href: '/link/index.mdx',
+      expect: '/link',
+    },
+    {
       href: 'http://builder.io/',
       expect: 'http://builder.io/',
     },

@@ -812,10 +812,6 @@ export const updateComponentProperties = (
 
 const setEvent = (ctx: QContext, prop: string, value: any) => {
   assertTrue(prop.endsWith('$'), 'render: event property does not end with $', prop);
-  // TODO
-  // if (!ctx.$listeners$) {
-  //   ctx.$listeners$ = getDomListeners(ctx.$element$);
-  // }
   addQRLListener(ctx, normalizeOnProp(prop.slice(0, -1)), value);
 };
 

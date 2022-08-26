@@ -11,27 +11,27 @@ Let's say a user tries to go to a dashboard page, but has not logged in yet. We 
 ```typescript
 // File: src/routes/dashboard.js
 import { component$ } from '@builder.io/qwik';
-import { checkAuthorization } from '../auth' // Your authorization code
-import type { DashboardData } from '../types' // Your types
+import { checkAuthorization } from '../auth'; // Your authorization code
+import type { DashboardData } from '../types'; // Your types
 
 export const onGet: RequestHandler<DashboardData> = async ({ request, response }) => {
-	const isAuthorized = checkAuthorization(request.headers.get('cookie'));
+  const isAuthorized = checkAuthorization(request.headers.get('cookie'));
 
-	if (!isAuthorized) {
-		// User is not authorized!
-		// throw the redirect response to 
+  if (!isAuthorized) {
+    // User is not authorized!
+    // throw the redirect response to
     // relocate the user to the log-in page
-		throw response.redirect('/login');
-	} else {
-		// ...
-	}
+    throw response.redirect('/login');
+  } else {
+    // ...
+  }
 };
 ```
 
-The `response.redirect()` function takes a url and optionally a status code as the second argument. 
+The `response.redirect()` function takes a url and optionally a status code as the second argument.
 
 ```tsx
-throw response.redirect('/login', 301) // Permanent redirect
+throw response.redirect('/login', 301); // Permanent redirect
 ```
 
 [Common redirect status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages):
@@ -41,4 +41,4 @@ throw response.redirect('/login', 301) // Permanent redirect
 
 If you do not provide a status code, Qwik City will default to a `307` Temporary Redirect status.
 
-Read more about redirect status codes [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages). 
+Read more about redirect status codes [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages).

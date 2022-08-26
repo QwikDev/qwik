@@ -219,7 +219,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   let hasValidatedSource = false;
 
-  const validateSource = async () => {
+  const validateSource = async (resolver: (id: string) => Promise<unknown | undefined>) => {
     if (!hasValidatedSource) {
       hasValidatedSource = true;
 
@@ -234,7 +234,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         }
         for (const alias in opts.input) {
           const input = opts.input[alias];
-          if (!fs.existsSync(input)) {
+          const resolved = await resolver(input);
+          if (!resolved) {
             throw new Error(`Qwik input "${input}" not found.`);
           }
         }
@@ -648,7 +649,7 @@ export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 
 export const SRC_DIR_DEFAULT = 'src';
 
-const CLIENT_OUT_DIR = 'dist';
+export const CLIENT_OUT_DIR = 'dist';
 
 const SSR_OUT_DIR = 'server';
 

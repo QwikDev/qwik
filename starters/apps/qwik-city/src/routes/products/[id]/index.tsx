@@ -9,7 +9,7 @@ export default component$(() => {
   return (
     <>
       <Resource
-        resource={resource}
+        value={resource}
         onPending={() => <p>Loading</p>}
         onResolved={(product) => {
           if (product == null) {

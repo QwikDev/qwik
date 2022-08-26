@@ -114,7 +114,6 @@ const MyComp = component$(() => {
 });
 ```
 
-
 ## Out-of-order rendering
 
 Qwik components can render out of order. A component can render without forcing a parent component to render first or to force child components to render as a consequence of the component render. This is an important property of Qwik because it allows Qwik applications to only re-render components which have been invalidated due to state change rather than re-rendering the whole component tree on change.

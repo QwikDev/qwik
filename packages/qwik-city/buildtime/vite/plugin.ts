@@ -43,6 +43,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
 
     config() {
       const updatedViteConfig: UserConfig = {
+        appType: 'custom',
         base: userOpts?.baseUrl,
         optimizeDeps: {
           exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],
@@ -70,6 +71,22 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     },
 
     configureServer(server) {
+      const handleChange = (file: string) => {
+        // If routes folder changed
+        if (ctx && file.startsWith(ctx.opts.routesDir)) {
+          build(ctx);
+          server.transformRequest(file);
+        }
+      };
+      server.watcher.on('add', handleChange);
+
+      // This add lot of overhead, but would be useful for
+      // previous page component is not defined, but now it is.
+      // need a server.transformRequest(file);
+      //
+      // @see user-response !hasPageRenderer to Not Found TODO
+      // server.watcher.on('change', handleChange);
+
       return () => {
         // qwik city middleware injected after vite internal middlewares
         // but before @builder.io/qwik/optimizer/vite middlewares

@@ -116,11 +116,12 @@ function createTypesApi(config: BuildConfig, inPath: string, outPath: string, co
 }
 
 function generateQwikCityReferenceModules(config: BuildConfig) {
-  // server-modules.d.ts
+  // @builder.io/qwik-city/server-modules.d.ts
   const referenceDts = `
 declare module '@qwik-city-plan' {
-  const qwikCityPlan: any;
-  export default qwikCityPlan;
+  export const routes: any[];
+  export const menus: any[];
+  export const cacheModules: boolean;
 }
 `;
   const srcModulesPath = join(config.packagesDir, 'qwik-city', 'lib');
@@ -140,12 +141,8 @@ function generateServerReferenceModules(config: BuildConfig) {
   // server-modules.d.ts
   const referenceDts = `/// <reference types="./server" />
 declare module '@qwik-client-manifest' {
-  const symbols: QwikSymbol;
-  const mapping: { [symbolName: string]: string };
-  const bundles: { [bundleName: string]: string };
-  const bundleImports: { [bundleName: string]: string[] };
   const manifest: QwikManifest;
-  export { symbols, mapping, bundles, bundleImports, manifest };
+  export { manifest };
 }
 `;
 

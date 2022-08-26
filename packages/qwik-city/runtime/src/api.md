@@ -5,6 +5,7 @@
 ```ts
 
 import { Component } from '@builder.io/qwik';
+import { JSXNode } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { ResourceReturn } from '@builder.io/qwik';
 
@@ -226,8 +227,7 @@ export type RouteParams = Record<string, string>;
 export const RouterOutlet: Component<    {}>;
 
 // @alpha (undocumented)
-const ServiceWorker_2: Component<    {}>;
-export { ServiceWorker_2 as ServiceWorker }
+export const ServiceWorkerRegister: () => JSXNode<"script">;
 
 // @alpha (undocumented)
 export const setupServiceWorker: () => void;

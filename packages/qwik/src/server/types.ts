@@ -50,7 +50,7 @@ export interface PrefetchImplementation {
    * dispatchEvent(new CustomEvent('qprefetchurls', { detail: [...urls] }))
    * ```
    */
-  prefetchUrlsEvent?: 'always' | null;
+  prefetchEvent?: 'always' | null;
 }
 
 /**

@@ -19,10 +19,10 @@ export function workerFetchScript() {
 }
 
 export function prefetchUrlsEventScript(prefetchResources: PrefetchResource[]) {
-  const urls = flattenPrefetchResources(prefetchResources);
-  return `setTimeout(dispatchEvent(new CustomEvent('qprefetchurls',{detail:${JSON.stringify(
-    urls
-  )}})))`;
+  const data = {
+    urls: flattenPrefetchResources(prefetchResources),
+  };
+  return `dispatchEvent(new CustomEvent("qprefetch",{detail:${JSON.stringify(data)}}))`;
 }
 
 export function flattenPrefetchResources(prefetchResources: PrefetchResource[]) {

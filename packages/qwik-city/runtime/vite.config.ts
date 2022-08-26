@@ -1,7 +1,6 @@
-import { defineConfig, Plugin } from 'vite';
+import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import { qwikCity } from '@builder.io/qwik-city/vite';
-import { join } from 'path';
 
 export default defineConfig(() => {
   return {
@@ -24,7 +23,6 @@ export default defineConfig(() => {
       },
     },
     plugins: [
-      serviceWorkerRegistration(),
       qwikCity({
         routesDir: './src/app/routes',
       }),
@@ -39,26 +37,3 @@ export default defineConfig(() => {
     },
   };
 });
-
-function serviceWorkerRegistration(): Plugin {
-  const swRegPackageId = '@qwik-city-sw-registration';
-
-  return {
-    name: 'serviceWorkerRegistration',
-
-    resolveId(id, importer) {
-      if (id === swRegPackageId && importer) {
-        return join(importer, id);
-      }
-      return null;
-    },
-
-    load(id) {
-      if (id.endsWith(swRegPackageId)) {
-        const code = `console.log('swreg');`;
-        return `export default ${JSON.stringify(code)};`;
-      }
-      return null;
-    },
-  };
-}

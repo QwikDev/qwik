@@ -22,7 +22,7 @@ export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[
   }
 
   c.push(`\n/** Qwik City Routes (${ctx.routes.length}) */`);
-  c.push(`const routes = [`);
+  c.push(`export const routes = [`);
 
   for (const route of ctx.routes) {
     const loaders = [];

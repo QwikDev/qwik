@@ -42,7 +42,7 @@ export type InOrderStreaming = InOrderAuto | InOrderDisabled;
 export interface PrefetchImplementation {
     linkInsert?: 'js-append' | 'html-append' | null;
     linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
-    prefetchUrlsEvent?: 'always' | null;
+    prefetchEvent?: 'always' | null;
     workerFetchInsert?: 'always' | 'no-link-support' | null;
 }
 

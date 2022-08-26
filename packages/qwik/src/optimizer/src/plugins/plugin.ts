@@ -582,43 +582,9 @@ export const isBrowser = ${JSON.stringify(!isServer)};
 
   async function getQwikServerManifestModule(loadOpts: { ssr?: boolean }) {
     const isServer = opts.target === 'ssr' || !!loadOpts.ssr;
-    const m = isServer ? opts.manifestInput : null;
-
-    const c = [`// @qwik-client-manifest`];
-
-    if (m) {
-      c.push(`export const bundleImports = {`);
-      Object.entries(m.bundles).forEach(([bundleName, bundle]) => {
-        c.push(`  ${JSON.stringify(bundleName)}: ${JSON.stringify(bundle.imports || [])},`);
-      });
-      c.push(`};`);
-      c.push(`export const symbols = ${JSON.stringify(m.symbols)};`);
-      c.push(`export const mapping = ${JSON.stringify(m.mapping)};`);
-      c.push(`export const bundles = ${JSON.stringify(m.bundles)};`);
-      c.push(`export const manifest = {`);
-      c.push(`  symbols,`);
-      c.push(`  mapping,`);
-      c.push(`  bundles,`);
-      if (m.injections) {
-        c.push(`  injections: ${JSON.stringify(m.injections)},`);
-      }
-      if (m.options) {
-        c.push(`  options: ${JSON.stringify(m.options)},`);
-      }
-      if (m.platform) {
-        c.push(`  platform: ${JSON.stringify(m.platform)},`);
-      }
-      c.push(`  version: ${JSON.stringify(m.version)},`);
-      c.push(`};`);
-    } else {
-      c.push(`export const symbols = null;`);
-      c.push(`export const mapping = null;`);
-      c.push(`export const bundles = null;`);
-      c.push(`export const bundleImports = null;`);
-      c.push(`export const manifest = null;`);
-    }
-
-    return c.join('\n') + '\n';
+    const manifest = isServer ? opts.manifestInput : null;
+    return `// @qwik-client-manifest
+export const manifest = ${JSON.stringify(manifest)};\n`;
   }
 
   return {
@@ -682,7 +648,7 @@ export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 
 export const SRC_DIR_DEFAULT = 'src';
 
-const CLIENT_OUT_DIR = 'dist';
+export const CLIENT_OUT_DIR = 'dist';
 
 const SSR_OUT_DIR = 'server';
 

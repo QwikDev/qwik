@@ -179,7 +179,13 @@ export async function loadUserResponse(
     );
   }
 
-  if (hasPageRenderer && request.headers.get('Accept') !== 'application/json') {
+  // TODO: if not have pageRender, return 404 here
+  if (request.headers.get('Accept')?.includes('text/html')) {
+    // Previous check is following:
+    // > if (hasPageRenderer && request.headers.get('Accept') !== 'application/json') {
+    // in dev mode, user might create empty page file, then will be treated as endPoint request
+    // then not go through Render process and no HMR
+
     // this is a page module
     // user can force the respond to be an endpoint with Accept request header
     // response should be a page

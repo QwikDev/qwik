@@ -41,6 +41,26 @@ test(`getSourceFile`, () => {
       },
     },
     {
+      fileName: 'service-worker.ts',
+      expect: {
+        type: 'service-worker',
+        extlessName: 'service-worker',
+        ext: '.ts',
+      },
+    },
+    {
+      fileName: 'service-worker.js',
+      expect: {
+        type: 'service-worker',
+        extlessName: 'service-worker',
+        ext: '.js',
+      },
+    },
+    {
+      fileName: 'service-worker.tsx',
+      expect: null,
+    },
+    {
       fileName: 'menu.md',
       expect: {
         type: 'menu',

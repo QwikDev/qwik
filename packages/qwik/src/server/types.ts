@@ -39,6 +39,18 @@ export interface PrefetchImplementation {
    * `no-link-support`: Only include the worker fetch JS runtime when the browser doesn't support `<link>` prefetch/preload/modulepreload.
    */
   workerFetchInsert?: 'always' | 'no-link-support' | null;
+  /**
+   * Dispatch a `qprefetchurls` custom event with an array of all the urls that should be prefetched as its detail data.
+   * This event dispatch script will be inlined into the document's HTML, so any listeners for this event
+   * should already be ready to handle the event.
+   *
+   * Will create a script similar to:
+   *
+   * ```
+   * dispatchEvent(new CustomEvent('qprefetchurls', { detail: [...urls] }))
+   * ```
+   */
+  prefetchEvent?: 'always' | null;
 }
 
 /**

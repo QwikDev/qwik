@@ -648,7 +648,7 @@ export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 
 export const SRC_DIR_DEFAULT = 'src';
 
-const CLIENT_OUT_DIR = 'dist';
+export const CLIENT_OUT_DIR = 'dist';
 
 const SSR_OUT_DIR = 'server';
 

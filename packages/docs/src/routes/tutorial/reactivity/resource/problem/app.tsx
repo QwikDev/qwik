@@ -6,20 +6,8 @@ export const App = component$(() => {
     org: 'BuilderIO',
   });
 
-  const reposResource = useResource$<string[]>(({ track, cleanup }) => {
-    // We need a way to re-run fetching data whenever the `github.org` changes.
-    // Use `track` to trigger re-running of the this data fetching function.
-    track(github, 'org');
-
-    // A good practice is to use `AbortController` to abort the fetching of data if
-    // new request comes in. We create a new `AbortController` and register a `cleanup`
-    // function which is called when this function re-runs.
-    const controller = new AbortController();
-    cleanup(() => controller.abort());
-
-    // Fetch the data and return the promises.
-    return getRepositories(github.org, controller);
-  });
+  // Use useResource$() to set up how the data is fetched from the server.
+  // See the example for Fetching Data in the text on the left.
 
   console.log('Render');
   return (
@@ -32,11 +20,9 @@ export const App = component$(() => {
         />
       </span>
       <div>
-        <Resource
-          value={reposResource}
-          onPending={() => <>Loading...</>}
-          onRejected={(error) => <>Error: {error.message}</>}
-          onResolved={(repos) => (
+        {/* Use <Resource> to display the data from the useResource$() function. */}
+        {/* To help, here's a callback function to display the data on resolved. */}
+          {/* (repos) => (
             <ul>
               {repos.map((repo) => (
                 <li>
@@ -44,8 +30,7 @@ export const App = component$(() => {
                 </li>
               ))}
             </ul>
-          )}
-        />
+          ) */}
       </div>
     </div>
   );

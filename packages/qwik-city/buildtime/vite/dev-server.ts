@@ -27,6 +27,12 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
     try {
       const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
       const pathname = url.pathname;
+
+      if (isViteInternalRequest(pathname)) {
+        next();
+        return;
+      }
+
       const requestCtx = fromDevServerHttp(url, req, res);
       const result = await buildFromUrlPathname(ctx, pathname);
       if (result) {
@@ -94,7 +100,20 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         }
       }
 
-      // static file does not exist, 404
+      next();
+    } catch (e) {
+      next(e);
+    }
+  };
+}
+
+export function dev404Middleware() {
+  return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
+    try {
+      const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
+
+      const requestCtx = fromDevServerHttp(url, req, res);
+
       await notFoundHandler(requestCtx);
     } catch (e) {
       next(e);
@@ -126,6 +145,12 @@ export function staticDistMiddleware({ config }: ViteDevServer) {
 
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
+
+    if (isViteInternalRequest(url.pathname)) {
+      next();
+      return;
+    }
+
     const relPath = url.pathname.slice(1);
 
     const ext = extname(relPath).toLowerCase();
@@ -156,6 +181,13 @@ export function staticDistMiddleware({ config }: ViteDevServer) {
     next();
   };
 }
+
+const FS_PREFIX = `/@fs/`;
+const VALID_ID_PREFIX = `/@id/`;
+const VITE_PUBLIC_PATH = `/@vite/`;
+const internalPrefixes = [FS_PREFIX, VALID_ID_PREFIX, VITE_PUBLIC_PATH];
+const InternalPrefixRE = new RegExp(`^(?:${internalPrefixes.join('|')})`);
+const isViteInternalRequest = (url: string): boolean => InternalPrefixRE.test(url);
 
 function fromDevServerHttp(url: URL, req: Connect.IncomingMessage, res: ServerResponse) {
   const requestHeaders = createHeaders();

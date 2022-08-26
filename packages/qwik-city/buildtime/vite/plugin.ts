@@ -14,7 +14,7 @@ import {
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityVitePluginOptions } from './types';
 import { build } from '../build';
-import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
+import { dev404Middleware, ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { SERVER_ENDPOINT_FNS, stripServerEndpoints } from '../utils/strip-server-endpoints';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
@@ -80,20 +80,20 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
       };
       server.watcher.on('add', handleChange);
 
-      // This add lot of overhead, but would be useful for
-      // previous page component is not defined, but now it is.
-      // need a server.transformRequest(file);
-      //
-      // @see user-response !hasPageRenderer to Not Found TODO
-      // server.watcher.on('change', handleChange);
+      if (ctx) {
+        // qwik city middleware injected BEFORE vite internal middlewares
+        // and BEFORE @builder.io/qwik/optimizer/vite middlewares
+        // handles only known user defined routes
+        server.middlewares.use(ssrDevMiddleware(ctx, server));
+
+        // handles static files physically found in the dist directory
+        server.middlewares.use(staticDistMiddleware(server));
+      }
 
       return () => {
-        // qwik city middleware injected after vite internal middlewares
-        // but before @builder.io/qwik/optimizer/vite middlewares
-        if (ctx) {
-          server.middlewares.use(staticDistMiddleware(server));
-          server.middlewares.use(ssrDevMiddleware(ctx, server));
-        }
+        // qwik city 404 middleware injected AFTER vite internal middlewares
+        // and no other middlewares have handled this request
+        server.middlewares.use(dev404Middleware());
       };
     },
 

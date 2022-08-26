@@ -1,5 +1,4 @@
 import type { BuildContext, BuildRoute } from '../types';
-import { addError } from '../utils/format';
 import { isModuleExt, isPageExt } from '../utils/fs';
 import { getImportPath } from './utils';
 
@@ -49,8 +48,6 @@ export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[
 
     if (loaders.length > 0) {
       c.push(`  ${createRoute(route, loaders, isSsr)},`);
-    } else {
-      addError(ctx, `Route "${route.pathname}" does not have any modules.`);
     }
   }
 

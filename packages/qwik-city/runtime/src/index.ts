@@ -19,10 +19,12 @@ export type {
   StaticGenerateHandler,
 } from './library/types';
 
-export { RouterOutlet, Content } from './library/router-outlet';
-export { Html, QwikCity } from './library/html';
-export { Link } from './library/link';
-export type { LinkProps } from './library/link';
+export { RouterOutlet, Content } from './library/router-outlet-component';
+export { Html, QwikCity } from './library/qwik-city-component';
+export { Link } from './library/link-component';
+export type { LinkProps } from './library/link-component';
+export { ServiceWorkerRegister } from './library/sw-component';
+export { setupServiceWorker } from './library/sw-worker';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './library/use-functions';
 export { useEndpoint } from './library/use-endpoint';
 

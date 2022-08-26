@@ -9,6 +9,7 @@ import { join, resolve } from 'path';
 import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync, readFileSync } from 'fs';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
+import type { PackageJSON } from 'scripts/util';
 import { fileURLToPath } from 'url';
 
 const app = express();
@@ -26,7 +27,8 @@ const qwikCityDistDir = join(__dirname, '..', 'packages', 'qwik-city', 'lib');
 const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.mjs');
 const qwikCityDistVite = join(qwikCityDistDir, 'vite', 'index.mjs');
 
-const qwikCityVirtualEntry = '@dev-ssr-entry';
+const qwikCityVirtualEntry = '@city-ssr-entry';
+const entrySsrFileName = 'entry.ssr.tsx';
 
 Error.stackTraceLimit = 1000;
 
@@ -78,6 +80,7 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
   const appSrcDir = join(appDir, 'src');
   const appDistDir = join(appDir, 'dist');
   const appServerDir = join(appDir, 'server');
+  const baseUrl = `/${appName}/`;
 
   // always clean the build directory
   removeDir(appDistDir);
@@ -92,7 +95,7 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
     plugins.push({
       name: 'devPlugin',
       resolveId(id) {
-        if (id.endsWith('entry.ssr.tsx')) {
+        if (id.endsWith(entrySsrFileName)) {
           return qwikCityVirtualEntry;
         }
       },
@@ -111,7 +114,7 @@ export default function render(opts) {
   });
 }
 const { router, notFound } = qwikCity(render, {
-  base: '/qwik-city/',
+  base: '${baseUrl}',
 });
 export {
   router,
@@ -124,18 +127,13 @@ export {
     const qwikCityVite: typeof import('@builder.io/qwik-city/vite') = await import(
       qwikCityDistVite
     );
-    plugins.push(
-      qwikCityVite.qwikCity({
-        // question ? use vite's base instead
-        baseUrl: `/${appName}/`,
-      })
-    );
+    plugins.push(qwikCityVite.qwikCity());
   }
   const getInlineConf = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,
     mode: 'development',
     configFile: false,
-    base: `/${appName}/`,
+    base: baseUrl,
     ...extra,
   });
 
@@ -163,7 +161,7 @@ export {
   await build(
     getInlineConf({
       build: {
-        ssr: resolve(appSrcDir, 'entry.ssr.tsx'),
+        ssr: resolve(appSrcDir, entrySsrFileName),
       },
       plugins: [...plugins, optimizer.qwikVite()],
     })
@@ -256,7 +254,6 @@ function startersHomepage(_: Request, res: Response) {
 }
 
 import nodeFetch, { Headers, Request as R, Response as RE } from 'node-fetch';
-import type { PackageJSON } from 'scripts/util';
 
 (global as any).fetch = nodeFetch;
 (global as any).Headers = Headers;

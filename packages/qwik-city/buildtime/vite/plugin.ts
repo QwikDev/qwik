@@ -37,6 +37,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
 
     config() {
       const updatedViteConfig: UserConfig = {
+        appType: 'custom',
         optimizeDeps: {
           exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID],
         },
@@ -71,6 +72,13 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
         }
       };
       server.watcher.on('add', handleChange);
+
+      // This add lot of overhead, but would be useful for
+      // previous page component is not defined, but now it is.
+      // need a server.transformRequest(file);
+      //
+      // @see user-response !hasPageRenderer to Not Found TODO
+      // server.watcher.on('change', handleChange);
 
       return () => {
         // qwik city middleware injected after vite internal middlewares

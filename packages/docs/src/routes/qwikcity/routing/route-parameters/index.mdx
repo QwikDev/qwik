@@ -15,12 +15,13 @@ Imagine that you have a page with the following URLs where `[skuId]` can be any 
   - Will match: `https://example.com/sku/1234/details`
 
 ```
-- src/
-  - routes/
-    - sku/
-      - [skuId]/
-        - index.js       # https://example.com/sku/1234
-        - details.js     # https://example.com/sku/1234/details
+──src/
+  └─routes/
+    └─sku/
+      └─[skuId]/
+        ├─index.js       # https://example.com/sku/1234
+        └─details/
+          └─index.js     # https://example.com/sku/1234/details
 ```
 
 ## Retrieving the Route Parameter from the URL

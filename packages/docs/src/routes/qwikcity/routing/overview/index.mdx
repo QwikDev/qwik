@@ -6,63 +6,63 @@ title: Qwik City - Routing
 
 Routing is a way to map public URLs for a site to specific components declared in your application.
 
-Qwik City uses directory-based routing. This means that the structure of your routes directory drives the public-facing URLs that the user will see for your application. However, it differs slightly from traditional file based routing, which we will discuss shortly.
+Qwik City uses directory-based routing. This means that the structure of your routes directory drives the public-facing URLs that the user will see for your application. However, it differs slightly from traditional file-based routing, which we will discuss shortly.
 
-## Directory Based Routing
+## Directory-based Routing
 
-Qwik City support the follwing filetypes for routes
+Qwik City supports the following filetypes for routes
 
-In the Qwik City routes directory, `folders + an index` file map to a URL path. For example, if the user sees `https://example.com/some/path`, the component exported at `src/routes/some/path/index` (either `.mdx` or `.tsx`) will be shown.
+In the Qwik City routes directory, `folder-path` plus an `index` file map to a URL path. For example, if the user sees `https://example.com/some/path`, the component exported at `src/routes/some/path/index` (either `.mdx` or `.tsx`) will be shown.
 
 ```
-- src/
-  - routes/
-    - some/
-      - path/
-        - index.tsx       # https://example.com/some/path
+──src/
+  └─routes/
+    └─some/
+      └─path/
+        └─index.tsx       # https://example.com/some/path
 ```
 
-Note that the leaf file at the end of the route named index. This is **important**. In other meta-frameworks you may be familiar with, there is a distinction made between `pages` and `data endpoints` or `api routes`. In Qwik City, there is no distinction, they are all `endpoints`.
+Note that the leaf file at the end of the route is named index. This is **important**. In other meta-frameworks you may be familiar with, there is a distinction made between `pages` and `data endpoints` or `API routes`. In Qwik City, there is no distinction, they are all `endpoints`.
 
 To define an endpoint, you must a define an `index.[filetype]` where [filetype] can be one of `.ts`, `.tsx`, `.js`, `.jsx`, `.md`, or `.mdx`.
 
 While the following directory structure:
 
 ```
-- src/
-  - routes/
-    - contact.tsx
-    - about.tsx
-    - store.tsx
-    - index.tsx
+──src/
+  └─routes/
+    ├─contact.tsx
+    ├─about.tsx
+    ├─store.tsx
+    └─index.tsx
 ```
 
-may work in other meta-frameworks that use file based routing, Qwik City will not register a route for any non-index files. In Qwik City, the equivalent file structure would looks like this:
+may work in other meta-frameworks that use file-based routing, Qwik City will not register a route for any non-index files. In Qwik City, the equivalent file structure would look like this:
 
 ```
-- src/
-  - routes/
-    - contact/
-      - index.tsx
-    - about/
-      - index.tsx
-    - store/
-      - index.tsx
-    - index/
-      - index.tsx
+──src/
+  └─routes/
+    ├─contact/
+    │ └─index.tsx
+    ├─about/
+    │ └─index.tsx
+    ├─store/
+    │ └─index.tsx
+    └─index/
+      └─index.tsx
 ```
 
-At first this may seem like extra work, but there are advantages to this approach. One advantage is being able define component files in a route directory without them being rendered. Consider the follwing:
+At first, this may seem like extra work, but there are advantages to this approach. One advantage is being able to define component files in a route directory without them being rendered. Consider the following:
 
 ```
-- src/
-  - routes/
-    - index.tsx                 # https://example.com/
-    - some/
-      - index.tsx               # https://example.com/some
-      - path/
-        - index.tsx             # https://example.com/some/path
-        - other_component.tsx   # this file is ignored and not mapped to any URL because it is not an index.
+──src/
+  └─routes/
+    ├─index.tsx                 # https://example.com/
+    └─some/
+      ├─index.tsx               # https://example.com/some
+      └─path/
+        ├─index.tsx             # https://example.com/some/path
+        └─other_component.tsx   # this file is ignored and not mapped to any URL because it is not an index.
 ```
 
 The `other_component.tsx` file can be imported and used inside of `path/index.tsx`, but is otherwise ignored by Qwik City.

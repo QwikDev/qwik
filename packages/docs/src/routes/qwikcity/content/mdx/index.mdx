@@ -9,11 +9,11 @@ An alternative way to author content is using `.mdx` files ([Markdown JSX](https
 Let's assume you have your routes set up like this:
 
 ```
-- src/
-  - routes/
-    - some/
-      - path/
-        - index.mdx    # https://example.com/some/path
+──src/
+  └─routes/
+    └─some/
+      └─path/
+        └─index.mdx    # https://example.com/some/path
 ```
 
 ```Markdown
@@ -33,13 +33,13 @@ The above component will be rendered at `https://example.com/some/path`.
 [MDX](https://mdxjs.com/) is a creative opportunity for you to come up with new content quickly ("Qwikly" 🙂) and if you need more interaction on your page you can seamlessly integrate your Qwik components like so:
 
 ```
-- src/
-  - components/
-    - counter.tsx
-  - routes/
-    - some/
-      - path/
-        - index.mdx    # https://example.com/some/path
+──src/
+  ├─components/
+  │ └─counter.tsx
+  └─routes/
+    └─some/
+      └─path/
+        └─index.mdx    # https://example.com/some/path
 ```
 
 ```Markdown
@@ -70,6 +70,6 @@ export const Counter = component$(() => {
 });
 ```
 
-**Note**: A key difference with Qwik City and many current metaframeworks is directory-based routing. Every route needs to be defined as `a-directory/index.(tsx,ts,js,jsx,md,mdx)`.
+**Note**: A key difference between Qwik City and many current meta-frameworks is directory-based routing. Every route needs to be defined as `a-directory/index.(tsx,ts,js,jsx,md,mdx)`.
 
-In other metaframeworks you're used to `about.mdx` will render a route `http://example.com/about`. However, this will not work in Qwik City. You must rename the file to `about/index.mdx` for Qwik City to know to render it.
+In other meta-frameworks you're used to `about.mdx` will render a route `http://example.com/about`. However, this will not work in Qwik City. You must rename the file to `about/index.mdx` for Qwik City to know to render it.

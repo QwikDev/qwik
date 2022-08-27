@@ -53,7 +53,7 @@ export const OtherComponent = component$(() => {
   const Cmp = component$(() => {
     useCleanup$(() => {
       // Executed after SSR (pause) or when the component gets removed from the DOM.
-      // Can be used to release resouces, abort network requets, stop timers...
+      // Can be used to release resources, abort network requests, stop timers...
       console.log('component is destroyed');
     });
     return <div>Hello world</div>;
@@ -177,12 +177,12 @@ export const CmpInline = component$(() => {
       };
     });
     return (
-      <>
+      <div>
         <div>
           {store.count} / {store.doubleCount}
         </div>
         <div>{store.debounced}</div>
-      </>
+      </div>
     );
   });
   // </docs>
@@ -313,10 +313,10 @@ export const CmpInline = component$(() => {
     });
 
     return (
-      <>
+      <div>
         <div>Counter: {counter.value}</div>
         <Child userData={userData} state={state} />
-      </>
+      </div>
     );
   });
 
@@ -359,9 +359,9 @@ export const CmpInline = component$(() => {
     });
 
     return (
-      <>
+      <div>
         <input type="text" ref={input} />
-      </>
+      </div>
     );
   });
 

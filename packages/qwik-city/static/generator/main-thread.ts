@@ -1,7 +1,8 @@
 import type { StaticGeneratorOptions, StaticGeneratorResults, StaticRoute, System } from './types';
-import { getPathnameForDynamicRoute, msToString, normalizePathname } from './utils';
+import { msToString } from '../../utils/format';
+import { getPathnameForDynamicRoute, normalizePathname } from '../../utils/pathname';
 import type { PageModule, RouteParams } from '../../runtime/src/library/types';
-import { routes } from '@qwik-city-plan';
+import { routes, trailingSlash, basePathname } from '@qwik-city-plan';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();
@@ -101,7 +102,7 @@ export async function mainThread(sys: System) {
       };
 
       const addToQueue = (pathname: string | undefined | null, params: RouteParams | undefined) => {
-        pathname = normalizePathname(opts, pathname);
+        pathname = normalizePathname(pathname, basePathname, trailingSlash);
         if (pathname && !queue.some((s) => s.pathname === pathname)) {
           queue.push({
             pathname,
@@ -157,15 +158,17 @@ export async function mainThread(sys: System) {
 }
 
 function validateOptions(opts: StaticGeneratorOptions) {
-  let baseUrl = opts.baseUrl;
-  if (typeof baseUrl !== 'string' || baseUrl.trim().length === 0) {
-    throw new Error(`Missing "baseUrl" option`);
+  let siteOrigin = opts.origin;
+  if (typeof siteOrigin !== 'string' || siteOrigin.trim().length === 0) {
+    throw new Error(`Missing "origin" option`);
   }
-  baseUrl = baseUrl.trim();
-  if (!baseUrl.startsWith('https://') && !baseUrl.startsWith('http://')) {
-    throw new Error(`"baseUrl" must start with a valid protocol, "https://" or "http://"`);
+  siteOrigin = siteOrigin.trim();
+  if (!siteOrigin.startsWith('https://') && !siteOrigin.startsWith('http://')) {
+    throw new Error(`"origin" must start with a valid protocol, such as "https://" or "http://"`);
   }
-  if (!opts.baseUrl.endsWith('/')) {
-    throw new Error(`"baseUrl" option must end with a slash "/"`);
+  try {
+    new URL(siteOrigin);
+  } catch (e) {
+    throw new Error(`Invalid "origin": ${e}`);
   }
 }

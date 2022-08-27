@@ -18,7 +18,7 @@ export async function loadUserResponse(
   routeModules: RouteModule[],
   platform: Record<string, any>,
   trailingSlash?: boolean,
-  base: string = '/'
+  basePathname: string = '/'
 ) {
   const { request, url } = requestCtx;
   const { pathname } = url;
@@ -35,7 +35,7 @@ export async function loadUserResponse(
   let hasRequestMethodHandler = false;
   const hasPageRenderer = isLastModulePageRoute(routeModules);
 
-  if (hasPageRenderer && pathname !== base) {
+  if (hasPageRenderer && pathname !== basePathname) {
     // only check for slash redirect on pages
     if (trailingSlash) {
       // must have a trailing slash
@@ -180,7 +180,7 @@ export async function loadUserResponse(
     );
   }
 
-  if (request.headers.get('Accept')?.includes('text/html')) {
+  if (hasPageRenderer && request.headers.get('Accept') !== 'application/json') {
     // this is a page module
     // user can force the respond to be an endpoint with Accept request header
     // response should be a page

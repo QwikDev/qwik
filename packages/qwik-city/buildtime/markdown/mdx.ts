@@ -4,7 +4,7 @@ import { rehypePage } from './rehype';
 import { rehypeSyntaxHighlight } from './syntax-highlight';
 import type { BuildContext } from '../types';
 import { parseFrontmatter } from './frontmatter';
-import { getExtension } from '../utils/fs';
+import { getExtension } from '../../utils/fs';
 
 export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransform> {
   const { createFormatAwareProcessors } = await import(

@@ -1,5 +1,47 @@
-import { basename, dirname, normalize } from 'path';
+import { basename, dirname, normalize, relative } from 'path';
+import type { NormalizedPluginOptions } from '../buildtime/types';
 import { toTitleCase } from './format';
+import { normalizePathname } from './pathname';
+
+export function parseRouteIndexName(extlessName: string) {
+  let layoutName = '';
+  const layoutStop = extlessName.endsWith('!');
+
+  if (layoutStop) {
+    extlessName = extlessName.slice(0, extlessName.length - 1);
+  }
+
+  const namedLayoutParts = extlessName.split('@');
+  if (namedLayoutParts.length > 1) {
+    namedLayoutParts.shift();
+    layoutName = namedLayoutParts.join('@');
+  }
+
+  return { layoutName, layoutStop };
+}
+
+export function getPathnameFromDirPath(opts: NormalizedPluginOptions, dirPath: string) {
+  // get relative file system path from the dirname
+  // ignoring the already known "index" filename
+  const relFilePath = relative(opts.routesDir, dirPath);
+
+  // ensure file system path uses / (POSIX) instead of \\ (windows)
+  const pathname = normalizePath(relFilePath);
+
+  return (
+    normalizePathname(pathname, opts.basePathname, opts.trailingSlash)!
+      .split('/')
+      // remove pathless segments (directories starting with "__")
+      .filter((segment) => !segment.startsWith('__'))
+      .join('/')
+  );
+}
+
+export function getMenuPathname(opts: NormalizedPluginOptions, filePath: string) {
+  let pathname = normalizePath(relative(opts.routesDir, filePath));
+  pathname = `/` + normalizePath(dirname(pathname));
+  return normalizePathname(pathname, opts.basePathname, opts.trailingSlash)!;
+}
 
 export function getExtension(fileName: string) {
   if (typeof fileName === 'string') {

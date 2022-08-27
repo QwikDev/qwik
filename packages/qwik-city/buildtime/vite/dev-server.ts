@@ -20,7 +20,7 @@ import {
   redirectResponse,
   RedirectResponse,
 } from '../../middleware/request-handler/redirect-handler';
-import { normalizePath } from '../utils/fs';
+import { normalizePath } from '../../utils/fs';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
@@ -58,7 +58,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             routeModules,
             {},
             ctx.opts.trailingSlash,
-            ctx.opts.baseUrl
+            ctx.opts.basePathname
           );
 
           if (userResponse.type === 'endpoint') {

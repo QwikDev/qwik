@@ -29,6 +29,4 @@ export interface UserResponseContext {
   pendingBody: Promise<string | number | boolean | null | undefined> | undefined;
 }
 
-export interface QwikCityRequestOptions extends RenderOptions {
-  trailingSlash?: boolean;
-}
+export interface QwikCityRequestOptions extends RenderOptions {}

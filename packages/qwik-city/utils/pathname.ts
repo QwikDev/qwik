@@ -1,9 +1,9 @@
-import type { RouteParams } from '../../runtime/src';
-import type { StaticGeneratorOptions } from './types';
+import type { RouteParams } from '../runtime/src';
 
 export function normalizePathname(
-  opts: StaticGeneratorOptions,
-  pathname: string | undefined | null
+  pathname: string | undefined | null,
+  basePathname: string,
+  trailingSlash: boolean
 ) {
   if (typeof pathname === 'string') {
     pathname = pathname.trim();
@@ -14,10 +14,12 @@ export function normalizePathname(
           pathname = pathname.slice(1);
         }
 
-        pathname = new URL(pathname, opts.baseUrl).pathname;
+        // normalize the basePath and pathname together
+        // origin doesn't matter here
+        pathname = new URL(basePathname + pathname, `https://qwik.builder.io`).pathname;
 
-        if (pathname !== '/') {
-          if (opts.trailingSlash) {
+        if (pathname !== basePathname) {
+          if (trailingSlash) {
             if (!pathname.endsWith('/')) {
               const segments = pathname.split('/');
               const lastSegment = segments[segments.length - 1];
@@ -62,15 +64,31 @@ export function getPathnameForDynamicRoute(
   return pathname;
 }
 
-export function msToString(ms: number) {
-  if (ms < 1) {
-    return ms.toFixed(2) + ' ms';
+export function isSameOriginUrl(url: string) {
+  if (typeof url === 'string') {
+    url = url.trim();
+    if (url !== '') {
+      const firstChar = url.charAt(0);
+      if (firstChar !== '/' && firstChar !== '.') {
+        if (firstChar === '#') {
+          return false;
+        }
+        const i = url.indexOf(':');
+        if (i > -1) {
+          const protocol = url.slice(0, i).toLowerCase();
+          return !PROTOCOLS[protocol];
+        }
+      }
+      return true;
+    }
   }
-  if (ms < 1000) {
-    return ms.toFixed(1) + ' ms';
-  }
-  if (ms < 60000) {
-    return (ms / 1000).toFixed(1) + ' s';
-  }
-  return (ms / 60000).toFixed(1) + ' m';
+  return false;
 }
+
+const PROTOCOLS: { [protocol: string]: boolean } = {
+  https: true,
+  http: true,
+  about: true,
+  javascript: true,
+  file: true,
+};

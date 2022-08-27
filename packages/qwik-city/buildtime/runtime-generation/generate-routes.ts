@@ -1,5 +1,5 @@
 import type { BuildContext, BuildRoute } from '../types';
-import { isModuleExt, isPageExt } from '../utils/fs';
+import { isModuleExt, isPageExt } from '../../utils/fs';
 import { getImportPath } from './utils';
 
 export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[]) {

@@ -6,7 +6,7 @@ The current folder includes all the examples present in: http://qwik.builder.io/
 
 ### 1. Example category
 
-The first level of folders are the categories. Feel free to add a new root level folder to create a new category if your new example does not fit one of the existing ones.
+The first level of folders are the categories. Feel free to add a new root-level folder to create a new category if your new example does not fit one of the existing ones.
 
 ### 2. Create a new example folder
 

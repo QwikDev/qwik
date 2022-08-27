@@ -229,9 +229,6 @@ export const RouterOutlet: Component<    {}>;
 // @alpha (undocumented)
 export const ServiceWorkerRegister: () => JSXNode<"script">;
 
-// @alpha (undocumented)
-export const setupServiceWorker: () => void;
-
 // Warning: (ae-forgotten-export) The symbol "StaticGenerate" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)

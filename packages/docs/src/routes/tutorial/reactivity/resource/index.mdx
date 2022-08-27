@@ -37,7 +37,7 @@ The `useResource$()` function returns a `ResourceReturn` object, which is a Prom
 
 ## Rendering data
 
-Use `<Resource>` to display the data of `useResource$()` function. The `<Resource>` allows you to render different content depending if the resource is `pending`, `resolved` or `rejected`.
+Use `<Resource>` to display the data of the `useResource$()` function. The `<Resource>` allows you to render different content depending if the resource is `pending`, `resolved` or `rejected`.
 
 On the server the `<Resource>` does not render `loading` state, instead, it pauses rendering until the resource is resolved and will always render as either `resolved` or `rejected`. (On the client, the `<Resource>` renders all states including `pending`.)
 

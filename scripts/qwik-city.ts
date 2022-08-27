@@ -8,6 +8,7 @@ import mri from 'mri';
 import { execa } from 'execa';
 import { fileURLToPath } from 'url';
 import { readFile, copyFile } from 'fs/promises';
+import { rollup } from 'rollup';
 
 const PACKAGE = 'qwik-city';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -17,6 +18,7 @@ export async function buildQwikCity(config: BuildConfig) {
   const outputDir = join(inputDir, 'lib');
 
   await Promise.all([
+    buildServiceWorker(config, inputDir, outputDir),
     buildVite(config, inputDir, outputDir),
     buildCloudflarePages(config, inputDir, outputDir),
     buildExpress(config, inputDir, outputDir),
@@ -56,20 +58,26 @@ export async function buildQwikCity(config: BuildConfig) {
         import: './vite/index.mjs',
         require: './vite/index.cjs',
       },
-    },
-    private: false,
-    publishConfig: {
-      access: 'public',
+      './service-worker': {
+        import: './service-worker.mjs',
+        require: './service-worker.cjs',
+      },
     },
     files: [
       'index.d.ts',
       'index.qwik.mjs',
       'index.qwik.cjs',
+      'service-worker.mjs',
+      'service-worker.cjs',
       'modules.d.ts',
       'middleware',
       'static',
       'vite',
     ],
+    publishConfig: {
+      access: 'public',
+    },
+    private: undefined,
     devDependencies: undefined,
     scripts: undefined,
   };
@@ -148,6 +156,31 @@ function serviceWorkerRegisterBuild(swRegisterCode: string) {
     },
   };
   return plugin;
+}
+
+async function buildServiceWorker(config: BuildConfig, inputDir: string, outputDir: string) {
+  const build = await rollup({
+    input: join(
+      config.tscDir,
+      'packages',
+      'qwik-city',
+      'runtime',
+      'src',
+      'library',
+      'service-worker',
+      'index.js'
+    ),
+  });
+
+  await build.write({
+    file: join(outputDir, 'service-worker.mjs'),
+    format: 'es',
+  });
+
+  await build.write({
+    file: join(outputDir, 'service-worker.cjs'),
+    format: 'cjs',
+  });
 }
 
 async function buildCloudflarePages(config: BuildConfig, inputDir: string, outputDir: string) {

@@ -1,6 +1,6 @@
 import { component$, Slot, QwikIntrinsicElements } from '@builder.io/qwik';
 import { getClientNavPath } from './client-navigation';
-import type { QrlPrefetchData } from './types';
+import type { QrlPrefetchData } from './service-worker/types';
 import { useLocation, useNavigate } from './use-functions';
 
 /**
@@ -23,7 +23,7 @@ export const Link = component$<LinkProps>((props) => {
           nav.path = linkProps.href!;
         }
       }}
-      onMouseOver$={(ev) => {
+      onMouseOver$={() => {
         if (clientNavPath) {
           const data: QrlPrefetchData = { links: [clientNavPath] };
           dispatchEvent(new CustomEvent('qprefetch', { detail: data }));

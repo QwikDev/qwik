@@ -1,5 +1,5 @@
 /* eslint-disable */
-import type { QrlPrefetchData, QrlPrefetchMessage } from './types';
+import type { QrlPrefetchData, QrlPrefetchMessage } from './service-worker/types';
 
 // Source for what becomes innerHTML to the <ServiceWorkerRegister/> script
 

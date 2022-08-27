@@ -18,6 +18,9 @@
     "noUnusedLocals": true,
     "paths": {
       "~qwik-city-runtime": ["packages/qwik-city/runtime/src/index.ts"],
+      "~qwik-city-runtime/service-worker": [
+        "packages/qwik-city/runtime/src/library/service-worker/index.ts"
+      ],
       "@builder.io/qwik": ["packages/qwik/src/core/index.ts"],
       "@builder.io/qwik/build": ["packages/qwik/src/build/index.ts"],
       "@builder.io/qwik/jsx-runtime": ["packages/qwik/src/jsx-runtime/index.ts"],
@@ -27,6 +30,9 @@
       "@builder.io/qwik/testing": ["packages/qwik/src/testing/index.ts"],
       "@builder.io/qwik-react": ["packages/qwik-react/src/index.ts"],
       "@builder.io/qwik-city": ["packages/qwik-city/runtime/src/index.ts"],
+      "@builder.io/qwik-city/service-worker": [
+        "packages/qwik-city/runtime/src/library/service-worker/index.ts"
+      ],
       "@builder.io/qwik-city/middleware/cloudflare-pages": [
         "packages/qwik-city/middleware/cloudflare-pages"
       ],

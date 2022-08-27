@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 declare const self: ServiceWorkerGlobalScope;
 
-import { setupServiceWorker } from '~qwik-city-runtime';
+import { setupServiceWorker } from '~qwik-city-runtime/service-worker';
 
 setupServiceWorker();
 

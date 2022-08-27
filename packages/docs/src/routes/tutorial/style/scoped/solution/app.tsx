@@ -11,7 +11,7 @@ export const App = component$(() => {
 
 export const ComponentA = component$(() => {
   useStyles$(`
-    .component .⭐️� {
+    .component {
       background-color: red;
     }`);
   return (
@@ -23,7 +23,7 @@ export const ComponentA = component$(() => {
 
 export const ComponentB = component$(() => {
   useStyles$(`
-    .component .⭐️� {
+    .component {
       background-color: green;
     }`);
 

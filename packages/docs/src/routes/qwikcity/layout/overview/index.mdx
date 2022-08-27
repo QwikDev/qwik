@@ -13,33 +13,32 @@ The developer could extract all of these into `<Header>`, `<Footer>`, and `<Menu
 Let's say we would like our site to look like this:
 
 ```
-+---------------------------------------------------+
-| Header                                            |
-+---------------------------------------------------+
-| Menu    | <ROUTE_SPECIFIC_CONTENT>                |
-| - home  |                                         |
-| - about |                                         |
-|         |                                         |
-+---------------------------------------------------+
-| Footer                                            |
-+---------------------------------------------------+
-
+┌───────────────────────────────────────────────────┐
+│ Header                                            │
+├─────────┬─────────────────────────────────────────┤
+│ Menu    │ <ROUTE_SPECIFIC_CONTENT>                │
+│ - home  │                                         │
+│ - about │                                         │
+│         │                                         │
+├─────────┴─────────────────────────────────────────┤
+│ Footer                                            │
+└───────────────────────────────────────────────────┘
 ```
 
 We can define the above with these files.
 
 ```
-- src/
-  - components/
-    - header.tsx     # Header component implementation
-    - footer.tsx     # Footer component implementation
-    - menu.tsx       # Menu component implementation
-  - routes/
-    - layout.tsx     # Layout implementation using: <Header>, <Footer>, and <Menu>
-    - about/
-      - index.tsx      # https://example.com/about
-    - index/
-      - index.tsx      # https://example.com/
+──src/
+  ├─components/
+  │ ├─header.tsx     # Header component implementation
+  │ ├─footer.tsx     # Footer component implementation
+  │ └─menu.tsx       # Menu component implementation
+  └─routes/
+    ├─layout.tsx     # Layout implementation using: <Header>, <Footer>, and <Menu>
+    ├─about/
+    │ └─index.tsx    # https://example.com/about
+    └─index/
+      └─index.tsx    # https://example.com/
 ```
 
 ### Component implementations
@@ -77,8 +76,7 @@ export default component$(() => {
     <>
       <Header />
       <Menu />
-      <Slot />
-      {/* <== This is where the route will be inserted */}
+      <Slot/> {/* <== This is where the route will be inserted */}
       <Footer />
     </>
   );

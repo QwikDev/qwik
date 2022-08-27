@@ -29,6 +29,10 @@
     "./vite": {
       "import": "./lib/vite/index.mjs",
       "require": "./lib/vite/index.cjs"
+    },
+    "./service-worker": {
+      "import": "./lib/service-worker.mjs",
+      "require": "./lib/service-worker.cjs"
     }
   },
   "scripts": {

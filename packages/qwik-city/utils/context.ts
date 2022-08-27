@@ -1,4 +1,4 @@
-import type { NormalizedPluginOptions, BuildContext, PluginOptions } from '../types';
+import type { NormalizedPluginOptions, BuildContext, PluginOptions } from '../buildtime/types';
 import { isAbsolute, resolve } from 'path';
 import { normalizePath } from './fs';
 
@@ -49,13 +49,13 @@ function normalizeOptions(rootDir: string, userOpts: PluginOptions | undefined) 
   }
   opts.routesDir = normalizePath(opts.routesDir);
 
-  if (typeof opts.baseUrl !== 'string') {
-    opts.baseUrl = '/';
+  if (typeof opts.basePathname !== 'string') {
+    opts.basePathname = '/';
   } else {
-    const url = new URL(opts.baseUrl, 'https://qwik.builer.io/');
-    opts.baseUrl = url.pathname;
-    if (!opts.baseUrl.endsWith('/')) {
-      opts.baseUrl += '/';
+    const url = new URL(opts.basePathname, 'https://qwik.builer.io/');
+    opts.basePathname = url.pathname;
+    if (!opts.basePathname.endsWith('/')) {
+      opts.basePathname += '/';
     }
   }
 

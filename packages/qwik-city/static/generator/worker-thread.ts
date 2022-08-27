@@ -39,7 +39,8 @@ async function workerRender(
   pendingPromises: Set<Promise<any>>,
   callback: (result: StaticWorkerRenderResult) => void
 ) {
-  const url = new URL(staticRoute.pathname, opts.baseUrl);
+  // pathname and origin already normalized at this point
+  const url = new URL(staticRoute.pathname, opts.origin);
 
   const result: StaticWorkerRenderResult = {
     type: 'render',
@@ -103,10 +104,15 @@ async function workerRender(
       },
     };
 
-    const promise = requestHandler(requestCtx, render, {
-      ...opts,
-      ...staticRoute,
-    })
+    const promise = requestHandler(
+      requestCtx,
+      render,
+      {},
+      {
+        ...opts,
+        ...staticRoute,
+      }
+    )
       .then((rsp) => {
         if (rsp == null) {
           callback(result);

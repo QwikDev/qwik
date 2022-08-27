@@ -2,7 +2,7 @@ import type { BuildContext, BuildRoute } from '../types';
 import swRegister from '@qwik-city-sw-register-build';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { ServiceWorkerBundles } from '../../runtime/src/library/types';
-import { isPageModuleExt } from '../utils/fs';
+import { isPageModuleExt } from '../../utils/fs';
 
 export function generateServiceWorkerRegister(ctx: BuildContext) {
   let swReg: string;
@@ -17,7 +17,7 @@ export function generateServiceWorkerRegister(ctx: BuildContext) {
       const sw = ctx.serviceWorkers.sort((a, b) =>
         a.chunkFileName.length < b.chunkFileName.length ? -1 : 1
       )[0];
-      swUrl = ctx.opts.baseUrl + sw.chunkFileName;
+      swUrl = ctx.opts.basePathname + sw.chunkFileName;
     }
 
     swReg = swReg.replace('__url', swUrl);

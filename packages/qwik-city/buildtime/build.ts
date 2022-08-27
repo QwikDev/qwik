@@ -1,5 +1,5 @@
 import type { BuildContext, BuildRoute, RouteSourceFile } from './types';
-import { addError } from './utils/format';
+import { addError } from '../utils/format';
 import { validateSourceFiles } from './routing/source-file';
 import { walkRoutes } from './routing/walk-routes-dir';
 import { getRouteParams } from '../runtime/src/library/routing';

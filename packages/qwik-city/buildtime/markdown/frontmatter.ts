@@ -1,6 +1,6 @@
 import type { Transformer } from 'unified';
 import type { BuildContext, FrontmatterAttrs } from '../types';
-import { normalizePath } from '../utils/fs';
+import { normalizePath } from '../../utils/fs';
 import { visit } from 'unist-util-visit';
 import { parse as parseYaml } from 'yaml';
 import type { ResolvedDocumentHead } from '../../runtime/src';

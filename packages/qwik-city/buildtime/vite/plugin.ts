@@ -3,19 +3,19 @@ import { basename, join, resolve } from 'path';
 import type { Plugin, UserConfig } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-runtime';
 import type { BuildContext } from '../types';
-import { createBuildContext, resetBuildContext } from '../utils/context';
+import { createBuildContext, resetBuildContext } from '../../utils/context';
 import {
   getExtension,
   isMarkdownExt,
   isMenuFileName,
   normalizePath,
   removeExtension,
-} from '../utils/fs';
+} from '../../utils/fs';
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityVitePluginOptions } from './types';
 import { build } from '../build';
 import { dev404Middleware, ssrDevMiddleware, staticDistMiddleware } from './dev-server';
-import { SERVER_ENDPOINT_FNS, stripServerEndpoints } from '../utils/strip-server-endpoints';
+import { SERVER_ENDPOINT_FNS, stripServerEndpoints } from '../../utils/strip-server-endpoints';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
 import { patchGlobalFetch } from '../../middleware/express/node-fetch';
@@ -44,7 +44,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     config() {
       const updatedViteConfig: UserConfig = {
         appType: 'custom',
-        base: userOpts?.baseUrl,
+        base: userOpts?.basePathname,
         optimizeDeps: {
           exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],
         },

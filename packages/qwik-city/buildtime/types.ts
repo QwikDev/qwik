@@ -112,10 +112,11 @@ export interface PluginOptions {
    */
   routesDir?: string;
   /**
-   * The base url is used to create absolute URL paths to
-   * the hostname.  Defaults to `/`.
+   * The base pathname is used to create absolute URL paths up to
+   * the `hostname`, and must always start and end with a
+   * `/`.  Defaults to `/`.
    */
-  baseUrl?: string;
+  basePathname?: string;
   /**
    * Ensure a trailing slash ends page urls. Defaults to `false`.
    */

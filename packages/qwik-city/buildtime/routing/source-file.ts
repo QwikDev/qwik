@@ -1,5 +1,5 @@
 import type { BuildContext, RouteSourceFile, RouteSourceFileName, RouteSourceType } from '../types';
-import { addError } from '../utils/format';
+import { addError } from '../../utils/format';
 import {
   isModuleExt,
   isEntryName,
@@ -10,7 +10,7 @@ import {
   isServiceWorkerName,
   getExtension,
   removeExtension,
-} from '../utils/fs';
+} from '../../utils/fs';
 
 export function getSourceFile(fileName: string) {
   const ext = getExtension(fileName);

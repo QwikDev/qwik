@@ -8,11 +8,11 @@ import type {
   BuildRoute,
   MarkdownAttributes,
   NormalizedPluginOptions,
-} from '../types';
+} from '../buildtime/types';
 import { createBuildContext } from './context';
 import { tmpdir } from 'os';
 import { normalizePath } from './fs';
-import { build } from '../build';
+import { build } from '../buildtime/build';
 import { fileURLToPath } from 'url';
 
 export function suite(title?: string) {
@@ -42,7 +42,7 @@ export function testAppSuite(title: string) {
   s.before.each(async (testCtx) => {
     if (!buildCtx) {
       const __dirname = fileURLToPath(new URL('.', import.meta.url));
-      const testAppRootDir = join(__dirname, '..', '..', 'runtime', 'src');
+      const testAppRootDir = join(__dirname, '..', 'runtime', 'src');
       const ctx = createBuildContext(testAppRootDir, {
         routesDir: join(testAppRootDir, 'app', 'routes'),
       });

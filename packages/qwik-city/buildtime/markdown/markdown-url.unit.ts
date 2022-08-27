@@ -1,0 +1,62 @@
+import { test } from 'uvu';
+import { equal } from 'uvu/assert';
+import { getMarkdownRelativeUrl } from './markdown-url';
+import type { NormalizedPluginOptions } from '../types';
+import { tmpdir } from 'os';
+import { join } from 'path';
+
+test('getMarkdownRelativeUrl', () => {
+  const routesDir = tmpdir();
+  const menuFilePath = join(routesDir, 'docs', 'menu.md');
+
+  const t = [
+    {
+      href: './getting-started/index.mdx',
+      expect: '/docs/getting-started',
+    },
+    {
+      href: './getting-started/index.mdx?intro',
+      expect: '/docs/getting-started?intro',
+    },
+    {
+      href: './getting-started/index.mdx#intro',
+      expect: '/docs/getting-started#intro',
+    },
+    {
+      href: '/link',
+      expect: '/link',
+    },
+    {
+      href: '/link/index.mdx',
+      expect: '/link',
+    },
+    {
+      href: 'http://builder.io/',
+      expect: 'http://builder.io/',
+    },
+    {
+      href: '#hash',
+      expect: '#hash',
+    },
+    {
+      href: '',
+      expect: '',
+    },
+    {
+      href: './getting-started.txt',
+      expect: './getting-started.txt',
+    },
+  ];
+
+  t.forEach((c) => {
+    const opts: NormalizedPluginOptions = {
+      basePathname: '/',
+      trailingSlash: false,
+      routesDir: routesDir,
+      mdx: {},
+    };
+    equal(getMarkdownRelativeUrl(opts, menuFilePath, c.href), c.expect);
+  });
+});
+
+test.run();

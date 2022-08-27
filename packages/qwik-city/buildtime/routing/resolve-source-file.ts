@@ -7,8 +7,12 @@ import type {
   NormalizedPluginOptions,
   RouteSourceFile,
 } from '../types';
-import { createFileId, normalizePath } from '../utils/fs';
-import { getPathnameFromDirPath, parseRouteIndexName } from './pathname';
+import {
+  createFileId,
+  getPathnameFromDirPath,
+  parseRouteIndexName,
+  normalizePath,
+} from '../../utils/fs';
 import { parseRoutePathname } from './parse-pathname';
 import { routeSortCompare } from './sort-routes';
 

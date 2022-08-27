@@ -18,6 +18,10 @@ export function generateQwikCityPlan(ctx: BuildContext) {
 
   createEntries(ctx, c);
 
+  c.push(`export const trailingSlash = ${JSON.stringify(!!ctx.opts.trailingSlash)};`);
+
+  c.push(`export const basePathname = ${JSON.stringify(ctx.opts.basePathname)};`);
+
   c.push(`export const cacheModules = ${JSON.stringify(!ctx.isDevServer)};`);
 
   return esmImports.join('\n') + c.join('\n');

@@ -7,7 +7,7 @@ import type { NodeStaticGeneratorOptions } from './types';
 import { createNodeMainProcess } from './node-main';
 import { createNodeWorkerProcess } from './node-worker';
 import { isMainThread } from 'worker_threads';
-import { normalizePath } from '../../buildtime/utils/fs';
+import { normalizePath } from '../../utils/fs';
 
 export async function createNodeSystem(opts: NodeStaticGeneratorOptions) {
   opts = { ...opts };

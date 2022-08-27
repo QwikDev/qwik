@@ -1,4 +1,4 @@
-import type { BuildContext } from '../types';
+import type { BuildContext } from '../buildtime/types';
 
 export function toTitleCase(str: string) {
   return str.replace(/\w\S*/g, (txt) => {
@@ -18,4 +18,17 @@ export function addWarning(ctx: BuildContext, message: string) {
     type: 'warn',
     message: String(message),
   });
+}
+
+export function msToString(ms: number) {
+  if (ms < 1) {
+    return ms.toFixed(2) + ' ms';
+  }
+  if (ms < 1000) {
+    return ms.toFixed(1) + ' ms';
+  }
+  if (ms < 60000) {
+    return (ms / 1000).toFixed(1) + ' s';
+  }
+  return (ms / 60000).toFixed(1) + ' m';
 }

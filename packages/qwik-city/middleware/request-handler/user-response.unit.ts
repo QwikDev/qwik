@@ -6,6 +6,57 @@ import { loadUserResponse } from './user-response';
 import { RedirectResponse } from './redirect-handler';
 import { ErrorResponse } from './error-handler';
 
+test('page module, as endpoint type, cuz application/json request header', async () => {
+  const requestCtx = mockRequestContext();
+  requestCtx.request.headers.set('Accept', 'application/json');
+  const trailingSlash = false;
+
+  const endpoints: PageModule[] = [
+    {
+      default: () => {},
+      onGet: ({ response }) => {
+        response.headers.set('is', 'endpoint');
+      },
+    },
+  ];
+
+  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+  equal(u.type, 'endpoint');
+});
+
+test('endpoint module type cuz no default modle export', async () => {
+  const requestCtx = mockRequestContext();
+  const trailingSlash = false;
+
+  const endpoints: RouteModule[] = [
+    {
+      onGet: ({ response }) => {
+        response.headers.set('is', 'endpoint');
+      },
+    },
+  ];
+
+  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+  equal(u.type, 'endpoint');
+});
+
+test('page module type cuz default modle export', async () => {
+  const requestCtx = mockRequestContext();
+  const trailingSlash = false;
+
+  const endpoints: PageModule[] = [
+    {
+      default: () => {},
+      onGet: ({ response }) => {
+        response.headers.set('is', 'page');
+      },
+    },
+  ];
+
+  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+  equal(u.type, 'page');
+});
+
 test('sync endpoint, undefined body', async () => {
   const requestCtx = mockRequestContext();
   const trailingSlash = false;

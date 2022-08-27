@@ -39,7 +39,7 @@ test('resolveLayout', () => {
   t.forEach((c) => {
     const opts: NormalizedPluginOptions = {
       routesDir: '',
-      baseUrl: '/',
+      basePathname: '/',
       trailingSlash: false,
       mdx: {},
     };

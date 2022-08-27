@@ -180,7 +180,7 @@ export async function loadUserResponse(
     );
   }
 
-  if (request.headers.get('Accept')?.includes('text/html')) {
+  if (hasPageRenderer && request.headers.get('Accept') !== 'application/json') {
     // this is a page module
     // user can force the respond to be an endpoint with Accept request header
     // response should be a page

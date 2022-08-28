@@ -33,6 +33,7 @@
   @apply text-5xl font-bold;
   @apply mb-6;
   @apply relative;
+  scroll-margin-top: 80px;
 }
 
 .docs article h2,

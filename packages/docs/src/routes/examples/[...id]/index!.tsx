@@ -11,16 +11,16 @@ import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
 export default component$(() => {
   useStyles$(styles);
 
-  const { params } = useLocation();
   const panelStore = useStore(() => ({
     active: 'Input',
     list: PANELS,
   }));
 
   const store = useStore<ExamplesStore>(() => {
+    const { params } = useLocation();
     const app = getExampleApp(params.id);
     const initStore: ExamplesStore = {
-      appId: params.id,
+      appId: app ? app.id : '',
       buildId: 0,
       buildMode: 'development',
       entryStrategy: 'hook',

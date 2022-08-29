@@ -7,12 +7,12 @@ title: Qwik City - Nested Layout
 Most times it is desirable to nest layouts into each other. A page's content can be nested in numerous wrapping layouts, which is determined by the directory structure.
 
 ```
-──src/
-  └─routes/
-    ├─layout.tsx         # Parent layout
-    └─about/
-      ├─layout.tsx       # Child layout
-      └─index.tsx        # https://example.com/about
+src/
+└── routes/
+    ├── layout.tsx           # Parent layout
+    └── about/
+        ├── layout.tsx       # Child layout
+        └── index.tsx        # https://example.com/about
 ```
 
 In the above example, there are two layouts that apply themselves around the `/about` page component.

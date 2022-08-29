@@ -29,6 +29,12 @@
 - [MDX](content/mdx/index.mdx)
 - [Menu](content/menu/index.mdx)
 
+## Static Site Generation
+
+- [Overview](static-site-generation/overview/index.md)
+- [Static Site Config](static-site-generation/static-site-config/index.md)
+- [Dynamic Routes](static-site-generation/dynamic-routes/index.md)
+
 ## Head
 
 - [Title](head/title/index.mdx)

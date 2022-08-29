@@ -223,6 +223,7 @@ test('getPathnameFromDirPath', () => {
       basePathname: c.basePathname,
       trailingSlash: c.trailingSlash,
       mdx: {},
+      baseUrl: c.basePathname,
     };
     const pathname = getPathnameFromDirPath(opts, c.dirPath);
     equal(pathname, c.expect, c.dirPath);

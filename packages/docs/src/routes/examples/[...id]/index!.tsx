@@ -13,7 +13,7 @@ export default component$(() => {
 
   const { params } = useLocation();
   const panelStore = useStore(() => ({
-    active: 'Examples',
+    active: 'Input',
     list: PANELS,
   }));
 
@@ -59,7 +59,7 @@ export default component$(() => {
               {s.apps.map((app) => (
                 <a
                   key={app.id}
-                  href={`/examples/${app.id}`}
+                  href={`/examples/${app.id}/`}
                   preventDefault:click
                   onClick$={() => {
                     store.appId = app.id;
@@ -109,6 +109,9 @@ export default component$(() => {
 });
 
 export const getExampleApp = (id: string): ExampleApp | undefined => {
+  if (id.endsWith('/')) {
+    id = id.slice(0, id.length - 1);
+  }
   for (const exampleSection of exampleSections) {
     for (const app of exampleSection.apps) {
       if (app.id === id) {

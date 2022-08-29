@@ -18,7 +18,7 @@
     "noUnusedLocals": true,
     "paths": {
       "~qwik-city-runtime": ["packages/qwik-city/runtime/src/index.ts"],
-      "~qwik-city-runtime/service-worker": [
+      "~qwik-city-runtime-service-worker": [
         "packages/qwik-city/runtime/src/library/service-worker/index.ts"
       ],
       "@builder.io/qwik": ["packages/qwik/src/core/index.ts"],

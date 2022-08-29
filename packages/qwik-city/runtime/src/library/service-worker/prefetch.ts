@@ -1,13 +1,13 @@
 import type { Fetch, ServiceWorkerBundles, ServiceWorkerLink } from './types';
 import { cachedFetch } from './cached-fetch';
-import { existingPrefetches } from './constants';
+import { awaitingRequests, existingPrefetches } from './constants';
 
 export const prefetchBundleNames = (
-  buildBundles: ServiceWorkerBundles,
+  bundles: ServiceWorkerBundles,
   qBuildCache: Cache,
   fetch: Fetch,
   baseUrl: URL,
-  bundleNames: string[]
+  prefetchBundles: string[]
 ) => {
   const fetches: Promise<Response>[] = [];
 
@@ -16,17 +16,17 @@ export const prefetchBundleNames = (
       const url = new URL(bundleName, baseUrl).href;
       if (!existingPrefetches.has(url)) {
         existingPrefetches.add(url);
-        fetches.push(cachedFetch(qBuildCache, fetch, new Request(url)));
+        fetches.push(cachedFetch(qBuildCache, fetch, awaitingRequests, new Request(url)));
       }
     } catch (e) {
       console.error(e);
     }
   };
 
-  for (const bundleName of bundleNames) {
-    prefetchBundle(bundleName);
-    if (buildBundles[bundleName]) {
-      buildBundles[bundleName].forEach(prefetchBundle);
+  for (const prefetchBundleName of prefetchBundles) {
+    prefetchBundle(prefetchBundleName);
+    if (bundles[prefetchBundleName]) {
+      bundles[prefetchBundleName].forEach(prefetchBundle);
     }
   }
 
@@ -34,20 +34,20 @@ export const prefetchBundleNames = (
 };
 
 export const prefetchLinks = (
-  buildBundles: ServiceWorkerBundles,
-  buildLinks: ServiceWorkerLink[],
-  buildLibraryBundles: string[],
+  bundles: ServiceWorkerBundles,
+  links: ServiceWorkerLink[],
+  libraryBundles: string[],
   qBuildCache: Cache,
   fetch: Fetch,
   baseUrl: URL,
-  linkPathnames: string[]
+  prefetchLinkPathnames: string[]
 ) => {
-  for (const linkPathname of linkPathnames) {
-    for (const link of buildLinks) {
+  for (const linkPathname of prefetchLinkPathnames) {
+    for (const link of links) {
       const pattern = link[0];
       if (pattern.test(linkPathname)) {
-        const bundleNames = [...link[1], ...buildLibraryBundles];
-        return prefetchBundleNames(buildBundles, qBuildCache, fetch, baseUrl, bundleNames);
+        const prefetchBundles = [...link[1], ...libraryBundles];
+        return prefetchBundleNames(bundles, qBuildCache, fetch, baseUrl, prefetchBundles);
       }
     }
   }

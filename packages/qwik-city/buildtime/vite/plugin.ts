@@ -71,15 +71,6 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     },
 
     configureServer(server) {
-      const handleChange = (file: string) => {
-        // If routes folder changed
-        if (ctx && file.startsWith(ctx.opts.routesDir)) {
-          build(ctx);
-          server.transformRequest(file);
-        }
-      };
-      server.watcher.on('add', handleChange);
-
       if (ctx) {
         // qwik city middleware injected BEFORE vite internal middlewares
         // and BEFORE @builder.io/qwik/optimizer/vite middlewares

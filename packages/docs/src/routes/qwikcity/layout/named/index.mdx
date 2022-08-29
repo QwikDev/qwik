@@ -9,13 +9,13 @@ At times related routes need to have drastically different layouts from their si
 Qwik City defines the convention that layouts are within `src/routes` and the filename starts with `layout`. That's why the default layout is named `layout.tsx`. A named layout also starts with `layout` followed by a dash `-` and a unique name, such as `layout-narrow.tsx`.
 
 ```
-──src/
-  └─routes/
-    ├─contact/
-    │ └─index@narrow.tsx  # https://example.com/contact (Layout: layout-narrow.tsx)
-    ├─layout.tsx          # Default layout
-    ├─layout-narrow.tsx   # Default named layout
-    └─index.tsx           # https://example.com/ (Layout: layout.tsx)
+src/
+└── routes/
+    ├── contact/
+    │   └── index@narrow.tsx      # https://example.com/contact (Layout: layout-narrow.tsx)
+    ├── layout.tsx                # Default layout
+    ├── layout-narrow.tsx         # Default named layout
+    └── index.tsx                 # https://example.com/ (Layout: layout.tsx)
 ```
 
 - `https://example.com/`

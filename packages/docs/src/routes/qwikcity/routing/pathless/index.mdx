@@ -8,15 +8,15 @@ Common purpose routes are often placed into directories so they can share layout
 
 By prefixing any directory name with two underscores `__`, then the directory name itself will not be included in the URL pathname.
 
-For example, an app places all accounts routes together in a directory, however, `/account/` could be dropped from the URL for cleaner, shorter URLs. In the example below, notice that the paths are within `src/routes/__accounts/` directory. However, the URL paths exclude `__accounts/`.
+For example, let's say an app placed all accounts routes together in a directory, however, `/account/` could be dropped from the URL for cleaner, shorter URLs. In the example below, notice that the paths are within `src/routes/__accounts/` directory. However, the URL paths exclude `__accounts/`.
 
 ```
-──src/
-  └─routes/
-    └─__accounts/               # Notice the double underscore prefix
-      ├─layout.tsx              # Shared account layout
-      ├─profile/
-      │ └─index.tsx             # https://example.com/profile
-      └─settings/
-        └─index.tsx             # https://example.com/settings
+src/
+└── routes/
+    └── __accounts/                    # Notice the double underscore prefix
+        ├── layout.tsx                 # Shared account layout
+        └── profile/
+            └── index.tsx              # https://example.com/profile
+        └── settings/
+            └── index.tsx              # https://example.com/settings
 ```

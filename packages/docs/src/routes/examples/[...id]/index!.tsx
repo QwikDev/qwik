@@ -11,16 +11,16 @@ import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
 export default component$(() => {
   useStyles$(styles);
 
-  const { params } = useLocation();
   const panelStore = useStore(() => ({
-    active: 'Examples',
+    active: 'Input',
     list: PANELS,
   }));
 
   const store = useStore<ExamplesStore>(() => {
+    const { params } = useLocation();
     const app = getExampleApp(params.id);
     const initStore: ExamplesStore = {
-      appId: params.id,
+      appId: app ? app.id : '',
       buildId: 0,
       buildMode: 'development',
       entryStrategy: 'hook',
@@ -59,7 +59,7 @@ export default component$(() => {
               {s.apps.map((app) => (
                 <a
                   key={app.id}
-                  href={`/examples/${app.id}`}
+                  href={`/examples/${app.id}/`}
                   preventDefault:click
                   onClick$={() => {
                     store.appId = app.id;
@@ -109,6 +109,9 @@ export default component$(() => {
 });
 
 export const getExampleApp = (id: string): ExampleApp | undefined => {
+  if (id.endsWith('/')) {
+    id = id.slice(0, id.length - 1);
+  }
   for (const exampleSection of exampleSections) {
     for (const app of exampleSection.apps) {
       if (app.id === id) {

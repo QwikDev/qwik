@@ -268,19 +268,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/qwik-city@npm:0.0.105":
-  version: 0.0.105
-  resolution: "@builder.io/qwik-city@npm:0.0.105"
-  dependencies:
-    "@mdx-js/mdx": 2.1.3
-    "@types/mdx": 2.0.2
-    source-map: 0.7.4
-    vfile: 5.3.4
-  checksum: d9a661da243a475700f93e1a7a46f0aedfbff06067f749cdee4f6cf7eb3be2924e79ebd0a3b891b85d221b6682bcb104e0f95a71a1c5cdf4a0c46e63c91164c4
-  languageName: node
-  linkType: hard
-
-"@builder.io/qwik-city@workspace:packages/qwik-city":
+"@builder.io/qwik-city@0.0.106, @builder.io/qwik-city@workspace:packages/qwik-city":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik-city@workspace:packages/qwik-city"
   dependencies:
@@ -347,14 +335,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/qwik@npm:^0.0.105":
-  version: 0.0.105
-  resolution: "@builder.io/qwik@npm:0.0.105"
-  checksum: f1f41102b2876ad1bcc028cbebf31606b668727feeee92106374f0f666e43a763d6f4509f9d0164b816cf9e20dfb16126dbfc12e42cb47447ae8608960a5ff50
-  languageName: node
-  linkType: hard
-
-"@builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
+"@builder.io/qwik@0.0.106, @builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   languageName: unknown
@@ -7923,8 +7904,8 @@ __metadata:
     "@algolia/autocomplete-core": ^1.7.1
     "@algolia/client-search": ^4.14.2
     "@builder.io/partytown": ^0.6.4
-    "@builder.io/qwik": ^0.0.105
-    "@builder.io/qwik-city": 0.0.105
+    "@builder.io/qwik": 0.0.106
+    "@builder.io/qwik-city": 0.0.106
     "@cloudflare/kv-asset-handler": 0.2.0
     "@docsearch/css": ^3.2.1
     algoliasearch: ^4.14.2

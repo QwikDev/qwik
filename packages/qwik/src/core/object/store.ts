@@ -34,10 +34,11 @@ import { isArray, isObject, isSerializableObject, isString } from '../util/types
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
 import { isResourceReturn } from '../use/use-resource';
-import { createParser, Parser, serializeValue } from './serializers';
+import { createParser, Parser, serializeValue, UNDEFINED_PREFIX } from './serializers';
 import { ContainerState, getContainerState } from '../render/container';
 import { getQId } from '../render/execute-component';
 import { processVirtualNodes, QwikElement } from '../render/dom/virtual-element';
+import { getDomListeners } from '../props/props-on';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -129,7 +130,7 @@ export const resumeContainer = (containerEl: Element) => {
   }
 
   Object.entries(meta.ctx).forEach(([elementID, ctxMeta]) => {
-    const el = getObject(elementID) as Element;
+    const el = getObject(elementID) as QwikElement;
     assertDefined(el, `resume: cant find dom node for id`, elementID);
     const ctx = getContext(el);
     const qobj = ctxMeta.r;
@@ -139,7 +140,9 @@ export const resumeContainer = (containerEl: Element) => {
     const watches = ctxMeta.w;
 
     if (qobj) {
+      assertTrue(isElement(el), 'el must be an actual DOM element');
       ctx.$refMap$.push(...qobj.split(' ').map((part) => getObject(part)));
+      ctx.$listeners$ = getDomListeners(el as any);
     }
     if (seq) {
       ctx.$seq$ = seq.split(' ').map((part) => getObject(part));
@@ -234,13 +237,14 @@ export const _pauseFromContexts = async (
   const collector = createCollector(containerState);
   const listeners: SnapshotListener[] = [];
   for (const ctx of elements) {
-    if (ctx.$listeners$) {
+    const el = ctx.$element$;
+    if (ctx.$listeners$ && isElement(el)) {
       ctx.$listeners$.forEach((qrls, key) => {
         qrls.forEach((qrl) => {
           listeners.push({
             key,
             qrl,
-            el: ctx.$element$ as Element,
+            el,
           });
         });
       });
@@ -438,30 +442,36 @@ export const _pauseFromContexts = async (
 
   // Serialize objects
   const convertedObjs = objs.map((obj) => {
-    const value = serializeValue(obj, getObjId, containerState);
-    if (value !== undefined) {
-      return value;
+    if (obj === null) {
+      return null;
     }
-    switch (typeof obj) {
-      case 'object':
-        if (obj === null) {
-          return null;
-        }
-        if (isArray(obj)) {
-          return obj.map(mustGetObjId);
-        }
-        if (isSerializableObject(obj)) {
-          const output: Record<string, any> = {};
-          Object.entries(obj).forEach(([key, value]) => {
-            output[key] = mustGetObjId(value);
-          });
-          return output;
-        }
-        break;
+    const typeObj = typeof obj;
+    switch (typeObj) {
+      case 'undefined':
+        return UNDEFINED_PREFIX;
       case 'string':
       case 'number':
       case 'boolean':
         return obj;
+
+      default:
+        const value = serializeValue(obj, getObjId, containerState);
+        if (value !== undefined) {
+          return value;
+        }
+        if (typeObj === 'object') {
+          if (isArray(obj)) {
+            return obj.map(mustGetObjId);
+          }
+          if (isSerializableObject(obj)) {
+            const output: Record<string, any> = {};
+            Object.entries(obj).forEach(([key, value]) => {
+              output[key] = mustGetObjId(value);
+            });
+            return output;
+          }
+        }
+        break;
     }
     throw qError(QError_verifySerializable, obj);
   });
@@ -623,7 +633,7 @@ const reviveValues = (
   for (let i = 0; i < objs.length; i++) {
     const value = objs[i];
     if (isString(value)) {
-      objs[i] = parser.prepare(value);
+      objs[i] = value === UNDEFINED_PREFIX ? undefined : parser.prepare(value);
     }
   }
   for (let i = 0; i < subs.length; i++) {

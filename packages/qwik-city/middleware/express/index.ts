@@ -17,7 +17,7 @@ export function qwikCity(render: Render, opts?: QwikCityExpressOptions) {
     try {
       const requestCtx = fromExpressHttp(req, res);
       try {
-        const rsp = await requestHandler(requestCtx, render, opts);
+        const rsp = await requestHandler(requestCtx, render, {}, opts);
         if (!rsp) {
           next();
         }
@@ -50,7 +50,7 @@ export function qwikCity(render: Render, opts?: QwikCityExpressOptions) {
 export interface QwikCityExpressOptions extends QwikCityRequestOptions {}
 
 function fromExpressHttp(req: Request, res: Response) {
-  const url = new URL(req.path, `${req.protocol}://${req.headers.host}`);
+  const url = new URL(req.url, `${req.protocol}://${req.headers.host}`);
   const requestHeaders = createHeaders();
   const nodeRequestHeaders = req.headers;
   for (const key in nodeRequestHeaders) {

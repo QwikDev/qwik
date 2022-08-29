@@ -12,7 +12,7 @@ import { Worker } from 'worker_threads';
 import { fileURLToPath } from 'url';
 import { isAbsolute, join } from 'path';
 import { ensureDir } from './node-system';
-import { normalizePath } from '../../buildtime/utils/fs';
+import { normalizePath } from '../../utils/fs';
 
 export async function createNodeMainProcess(opts: StaticGeneratorOptions) {
   const currentFile = fileURLToPath(import.meta.url);

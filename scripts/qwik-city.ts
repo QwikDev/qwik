@@ -1,5 +1,5 @@
 import { BuildConfig, nodeTarget, panic, run, watcher } from './util';
-import { build } from 'esbuild';
+import { build, Plugin, transform } from 'esbuild';
 import { join } from 'path';
 import { readPackageJson, writePackageJson } from './package-json';
 import { checkExistingNpmVersion, releaseVersionPrompt } from './release';
@@ -7,7 +7,8 @@ import semver from 'semver';
 import mri from 'mri';
 import { execa } from 'execa';
 import { fileURLToPath } from 'url';
-import { copyFile } from 'fs/promises';
+import { readFile, copyFile } from 'fs/promises';
+import { rollup } from 'rollup';
 
 const PACKAGE = 'qwik-city';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -17,6 +18,7 @@ export async function buildQwikCity(config: BuildConfig) {
   const outputDir = join(inputDir, 'lib');
 
   await Promise.all([
+    buildServiceWorker(config, inputDir, outputDir),
     buildVite(config, inputDir, outputDir),
     buildCloudflarePages(config, inputDir, outputDir),
     buildExpress(config, inputDir, outputDir),
@@ -56,20 +58,26 @@ export async function buildQwikCity(config: BuildConfig) {
         import: './vite/index.mjs',
         require: './vite/index.cjs',
       },
-    },
-    private: false,
-    publishConfig: {
-      access: 'public',
+      './service-worker': {
+        import: './service-worker.mjs',
+        require: './service-worker.cjs',
+      },
     },
     files: [
       'index.d.ts',
       'index.qwik.mjs',
       'index.qwik.cjs',
+      'service-worker.mjs',
+      'service-worker.cjs',
       'modules.d.ts',
       'middleware',
       'static',
       'vite',
     ],
+    publishConfig: {
+      access: 'public',
+    },
+    private: undefined,
     devDependencies: undefined,
     scripts: undefined,
   };
@@ -97,6 +105,15 @@ async function buildVite(config: BuildConfig, inputDir: string, outputDir: strin
 
   const external = ['source-map', 'vfile', '@mdx-js/mdx', 'typescript'];
 
+  const swRegisterPath = join(inputDir, 'runtime', 'src', 'library', 'sw-register.ts');
+  let swRegisterCode = await readFile(swRegisterPath, 'utf-8');
+
+  const swResult = await transform(swRegisterCode, { loader: 'ts', minify: true });
+  swRegisterCode = swResult.code.trim();
+  if (swRegisterCode.endsWith(';')) {
+    swRegisterCode = swRegisterCode.slice(0, swRegisterCode.length - 1);
+  }
+
   await build({
     entryPoints,
     outfile: join(outputDir, 'vite', 'index.mjs'),
@@ -106,6 +123,7 @@ async function buildVite(config: BuildConfig, inputDir: string, outputDir: strin
     format: 'esm',
     external,
     watch: watcher(config),
+    plugins: [serviceWorkerRegisterBuild(swRegisterCode)],
   });
 
   await build({
@@ -117,6 +135,51 @@ async function buildVite(config: BuildConfig, inputDir: string, outputDir: strin
     format: 'cjs',
     external,
     watch: watcher(config),
+    plugins: [serviceWorkerRegisterBuild(swRegisterCode)],
+  });
+}
+
+function serviceWorkerRegisterBuild(swRegisterCode: string) {
+  const filter = /\@qwik-city-sw-register-build/;
+
+  const plugin: Plugin = {
+    name: 'serviceWorkerRegisterBuild',
+    setup(build) {
+      build.onResolve({ filter }, (args) => ({
+        path: args.path,
+        namespace: 'sw-reg',
+      }));
+      build.onLoad({ filter: /.*/, namespace: 'sw-reg' }, () => ({
+        contents: swRegisterCode,
+        loader: 'text',
+      }));
+    },
+  };
+  return plugin;
+}
+
+async function buildServiceWorker(config: BuildConfig, inputDir: string, outputDir: string) {
+  const build = await rollup({
+    input: join(
+      config.tscDir,
+      'packages',
+      'qwik-city',
+      'runtime',
+      'src',
+      'library',
+      'service-worker',
+      'index.js'
+    ),
+  });
+
+  await build.write({
+    file: join(outputDir, 'service-worker.mjs'),
+    format: 'es',
+  });
+
+  await build.write({
+    file: join(outputDir, 'service-worker.cjs'),
+    format: 'cjs',
   });
 }
 

@@ -16,7 +16,9 @@ export async function loadUserResponse(
   requestCtx: QwikCityRequestContext,
   params: RouteParams,
   routeModules: RouteModule[],
-  trailingSlash?: boolean
+  platform: Record<string, any>,
+  trailingSlash?: boolean,
+  basePathname: string = '/'
 ) {
   const { request, url } = requestCtx;
   const { pathname } = url;
@@ -33,7 +35,7 @@ export async function loadUserResponse(
   let hasRequestMethodHandler = false;
   const hasPageRenderer = isLastModulePageRoute(routeModules);
 
-  if (hasPageRenderer && pathname !== '/') {
+  if (hasPageRenderer && pathname !== basePathname) {
     // only check for slash redirect on pages
     if (trailingSlash) {
       // must have a trailing slash
@@ -126,17 +128,18 @@ export async function loadUserResponse(
         };
 
         // create user request event, which is a narrowed down request context
-        const requstEv: RequestEvent = {
+        const requestEv: RequestEvent = {
           request,
           url: new URL(url),
           params: { ...params },
           response,
+          platform,
           next,
           abort,
         };
 
         // get the user's endpoint returned data
-        const syncData = reqHandler(requstEv) as any;
+        const syncData = reqHandler(requestEv) as any;
 
         if (typeof syncData === 'function') {
           // sync returned function
@@ -182,6 +185,11 @@ export async function loadUserResponse(
     // user can force the respond to be an endpoint with Accept request header
     // response should be a page
     userResponse.type = 'page';
+
+    // TODO: need to figure out work with HMR
+    // if (!hasPageRenderer) {
+    //   throw new ErrorResponse(HttpStatus.NotFound, 'Not Found')
+    // }
   } else {
     // this is only an endpoint, and not a page module
     if (!hasRequestMethodHandler) {

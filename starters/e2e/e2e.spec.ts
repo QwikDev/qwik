@@ -24,7 +24,7 @@ test.describe('e2e', () => {
       const SNAPSHOT =
         '<p>1</p><p>"&lt;/script&gt;"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}}</p><p>undefined</p><p>null</p><p>[1,2,"hola",null,{}]</p><p>true</p><p>false</p><p>()=&gt;console.error()</p><p>mutable message</p><p>from a promise</p>';
       const RESULT =
-        '[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}},"undefined","null",[1,2,"hola",null,{}],true,false,null,"mutable message","from a promise","http://qwik.builder.com/docs?query=true","2022-07-26T17:40:30.255Z","hola()\\\\/ gi",12,"failed message"]';
+        '[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}},"undefined","null",[1,2,"hola",null,{}],true,false,null,"mutable message","from a promise","http://qwik.builder.com/docs?query=true","2022-07-26T17:40:30.255Z","hola()\\\\/ gi",12,"failed message",["\\b: backspace","\\f: form feed","\\n: line feed","\\r: carriage return","\\t: horizontal tab","\\u000b: vertical tab","\\u0000: null character","\': single quote","\\\\: backslash"]]';
 
       function normalizeSnapshot(str: string) {
         return str.replace(' =&gt; ', '=&gt;');
@@ -722,6 +722,62 @@ AFTER useWatch3()
 BEFORE useServerMount4()
 AFTER useServerMount4()
 Click`);
+    });
+  });
+
+  test.describe('ref', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/ref');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should render correctly', async ({ page }) => {
+      const staticEl = await page.locator('#static');
+      const dynamic = await page.locator('#dynamic');
+      await expect(staticEl).toHaveText('Rendered');
+      await expect(dynamic).toHaveText('Rendered');
+    });
+  });
+
+  test.describe('broadcast-events', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/broadcast-events');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    function tests() {
+      test('should render correctly', async ({ page }) => {
+        const document = await page.locator('p.document');
+        const window = await page.locator('p.window');
+        const self = await page.locator('p.self');
+
+        await expect(document).toHaveText('(Document: x: 0, y: 0)');
+        await expect(window).toHaveText('(Window: x: 0, y: 0)');
+        await expect(self).toHaveText('(Host: x: 0, y: 0, inside: false)');
+
+        await page.mouse.move(100, 50);
+
+        await expect(document).toHaveText('(Document: x: 100, y: 50)');
+        await expect(window).toHaveText('(Window: x: 100, y: 50)');
+        await expect(self).toHaveText('(Host: x: 0, y: 0, inside: false)');
+
+        await page.mouse.move(100, 300);
+
+        await expect(document).toHaveText('(Document: x: 100, y: 300)');
+        await expect(window).toHaveText('(Window: x: 100, y: 300)');
+        await expect(self).toHaveText('(Host: x: 100, y: 300, inside: true)');
+      });
+    }
+
+    tests();
+
+    test.describe('client rerender', () => {
+      test.beforeEach(async ({ page }) => {
+        const toggleRender = await page.locator('#btn-toggle-render');
+        await toggleRender.click();
+        await page.waitForTimeout(100);
+      });
+      tests();
     });
   });
 });

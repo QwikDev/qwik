@@ -1,5 +1,5 @@
 import type { BuildContext, BuildRoute, RouteSourceFile } from './types';
-import { addError } from './utils/format';
+import { addError } from '../utils/format';
 import { validateSourceFiles } from './routing/source-file';
 import { walkRoutes } from './routing/walk-routes-dir';
 import { getRouteParams } from '../runtime/src/library/routing';
@@ -18,6 +18,7 @@ export async function build(ctx: BuildContext) {
     ctx.routes = resolved.routes;
     ctx.errors = resolved.errors;
     ctx.entries = resolved.entries;
+    ctx.serviceWorkers = resolved.serviceWorkers;
     ctx.menus = resolved.menus;
 
     validateBuild(ctx, sourceFiles);
@@ -45,6 +46,7 @@ export async function buildFromUrlPathname(
   ctx.routes = resolved.routes;
   ctx.errors = resolved.errors;
   ctx.entries = resolved.entries;
+  ctx.serviceWorkers = resolved.serviceWorkers;
   ctx.menus = resolved.menus;
 
   for (const d of ctx.diagnostics) {

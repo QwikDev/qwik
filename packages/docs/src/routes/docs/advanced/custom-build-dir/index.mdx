@@ -12,6 +12,7 @@ In certain cases, sometimes we need to make the build output directory different
 ## Wrong Way
 
 Usually with Vite.js we do it like this:
+
 ```js
 // vite.config.js
 import { defineConfig } from 'vite';
@@ -26,7 +27,7 @@ export default defineConfig(() => {
   return {
     /* VITE_CONFIG */
     build: {
-      outDir: '../resources/' // This will be overrided to `dist` by qwikVite() setting
+      outDir: '../resources/', // This will be overrided to `dist` by qwikVite() setting
     },
     plugins: [
       qwikCity({
@@ -47,20 +48,21 @@ However, it will be overridden by the settings of QwikVite() so nothing happens 
 ## The Right Way
 
 So instead of changing the settings in Vite.js directly, we just need to change the settings in QwikVite() like this:
+
 ```ts
-import { defineConfig } from "vite";
-import { qwikVite } from "@builder.io/qwik/optimizer";
-import { qwikCity } from "@builder.io/qwik-city/vite";
-import tsconfigPaths from "vite-tsconfig-paths";
+import { defineConfig } from 'vite';
+import { qwikVite } from '@builder.io/qwik/optimizer';
+import { qwikCity } from '@builder.io/qwik-city/vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig(() => {
   return {
-    ssr: { target: "webworker", noExternal: true },
+    ssr: { target: 'webworker', noExternal: true },
     plugins: [
       qwikCity(),
       qwikVite({
         client: {
-          outDir: "resources/", // This is the right setting
+          outDir: 'resources/', // This is the right setting
         },
       }),
       tsconfigPaths(),

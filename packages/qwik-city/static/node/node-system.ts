@@ -7,11 +7,10 @@ import type { NodeStaticGeneratorOptions } from './types';
 import { createNodeMainProcess } from './node-main';
 import { createNodeWorkerProcess } from './node-worker';
 import { isMainThread } from 'worker_threads';
-import { normalizePath } from '../../buildtime/utils/fs';
-import cityPlan from '@qwik-city-plan';
+import { normalizePath } from '../../utils/fs';
 
 export async function createNodeSystem(opts: NodeStaticGeneratorOptions) {
-  opts = { trailingSlash: cityPlan?.trailingSlash, ...opts };
+  opts = { ...opts };
 
   patchGlobalFetch();
 

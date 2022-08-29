@@ -8,7 +8,7 @@ import type { Render } from '@builder.io/qwik/server';
  * @alpha
  */
 export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) {
-  async function onRequest({ request, next, waitUntil }: EventPluginContext) {
+  async function onRequest({ request, next, env, waitUntil }: EventPluginContext) {
     try {
       const url = new URL(request.url);
 
@@ -64,7 +64,7 @@ export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) 
         },
       };
 
-      const handledResponse = await requestHandler<Response>(requestCtx, render, opts);
+      const handledResponse = await requestHandler<Response>(requestCtx, render, env, opts);
       if (handledResponse) {
         return handledResponse;
       }
@@ -75,6 +75,7 @@ export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) 
         return notFoundResponse;
       }
 
+      // use the next middleware's response
       return nextResponse;
     } catch (e: any) {
       return new Response(String(e || 'Error'), {
@@ -99,4 +100,5 @@ export interface EventPluginContext {
   request: Request;
   waitUntil: (promise: Promise<any>) => void;
   next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
+  env: Record<string, any>;
 }

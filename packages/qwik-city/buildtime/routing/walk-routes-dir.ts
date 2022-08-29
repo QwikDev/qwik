@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { basename, join } from 'path';
 import type { RouteSourceFile } from '../types';
-import { normalizePath } from '../utils/fs';
+import { normalizePath } from '../../utils/fs';
 import { getSourceFile } from './source-file';
 
 export async function walkRoutes(routesDir: string) {

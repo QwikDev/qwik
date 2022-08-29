@@ -470,7 +470,7 @@ export interface ResourceProps<T> {
     // (undocumented)
     onResolved: (value: T) => JSXNode;
     // (undocumented)
-    resource: ResourceReturn<T>;
+    value: ResourceReturn<T>;
 }
 
 // @public (undocumented)
@@ -610,9 +610,6 @@ export const useContext: <STATE extends object>(context: Context<STATE>) => STAT
 
 // @public
 export const useContextProvider: <STATE extends object>(context: Context<STATE>, newValue: STATE) => void;
-
-// @alpha
-export const useDocument: () => Document;
 
 // @public (undocumented)
 export interface UseEffectOptions {

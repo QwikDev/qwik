@@ -94,7 +94,7 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
     ...opts.containerAttributes,
     'q:container': 'paused',
     'q:version': version ?? 'dev',
-    'q:render': 'ssr',
+    'q:render': qDev ? 'ssr-dev' : 'ssr',
   };
   if (opts.base) {
     containerAttributes['q:base'] = opts.base;
@@ -143,7 +143,6 @@ export const renderRoot = async (
       logError(
         'Missing <head>. Global styles could not be rendered. Please render a <head> element at the root of the app'
       );
-      throw new Error('dfd');
     }
   }
   return ssrCtx.rctx;

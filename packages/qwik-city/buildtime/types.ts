@@ -5,12 +5,14 @@ export interface BuildContext {
   errors: BuildRoute[];
   layouts: BuildLayout[];
   entries: BuildEntry[];
+  serviceWorkers: BuildEntry[];
   menus: BuildMenu[];
   frontmatter: Map<string, FrontmatterAttrs>;
   diagnostics: Diagnostic[];
   target: 'ssr' | 'client';
   isDevServer: boolean;
   isDevServerClientOnly: boolean;
+  isDirty: boolean;
 }
 
 export type Yaml = string | number | boolean | null | { [attrName: string]: Yaml } | Yaml[];
@@ -43,7 +45,7 @@ export interface RouteSourceFileName {
   ext: string;
 }
 
-export type RouteSourceType = 'route' | 'layout' | 'entry' | 'menu' | 'error';
+export type RouteSourceType = 'route' | 'layout' | 'entry' | 'menu' | 'error' | 'service-worker';
 
 export interface BuildRoute extends ParsedPathname {
   /**
@@ -110,10 +112,11 @@ export interface PluginOptions {
    */
   routesDir?: string;
   /**
-   * The base url is used to create absolute URL paths to
-   * the hostname.  Defaults to `/`.
+   * The base pathname is used to create absolute URL paths up to
+   * the `hostname`, and must always start and end with a
+   * `/`.  Defaults to `/`.
    */
-  baseUrl?: string;
+  basePathname?: string;
   /**
    * Ensure a trailing slash ends page urls. Defaults to `false`.
    */

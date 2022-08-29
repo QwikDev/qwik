@@ -8,6 +8,7 @@ import {
   useWatch$,
   useStore,
   EagernessOptions,
+  useRef,
 } from '@builder.io/qwik';
 
 import { isBrowser, isServer } from '@builder.io/qwik/build';
@@ -42,8 +43,9 @@ export function qwikifyQrl<PROPS extends {}>(
   opts?: QwikifyOptions
 ) {
   return component$<QwikifyProps<PROPS>>((props) => {
-    const hostElement = {} as Element;
+    const ref = useRef();
     const store = useStore<QwikifyCmp<PROPS>>({});
+    const Host = opts?.tagName ?? ('qwik-react' as any);
     const clientOnly = !!(props['client:only'] || opts?.clientOnly);
     let eagerness: EagernessOptions | undefined;
     if (props['client:visible'] || opts?.eagerness === 'visible') {
@@ -56,7 +58,8 @@ export function qwikifyQrl<PROPS extends {}>(
       async ({ track }) => {
         track(props);
 
-        if (isBrowser) {
+        const hostElement = ref.current;
+        if (isBrowser && hostElement) {
           if (store.data) {
             store.data.root.render(store.data.client.Main(store.data.cmp, filterProps(props)));
           } else {
@@ -86,15 +89,15 @@ export function qwikifyQrl<PROPS extends {}>(
     if (isServer && !clientOnly) {
       const jsx = Promise.all([reactCmp$.resolve(), import('./server')]).then(([Cmp, server]) => {
         const html = server.render(Cmp, filterProps(props));
-        return <div dangerouslySetInnerHTML={html}></div>;
+        return <Host ref={ref} dangerouslySetInnerHTML={html} />;
       });
       return <>{jsx}</>;
     }
 
     return (
-      <qwik-wrap>
+      <Host ref={ref}>
         <SkipRerender />
-      </qwik-wrap>
+      </Host>
     );
   });
 }

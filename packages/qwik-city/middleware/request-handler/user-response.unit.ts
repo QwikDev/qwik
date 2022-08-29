@@ -6,6 +6,57 @@ import { loadUserResponse } from './user-response';
 import { RedirectResponse } from './redirect-handler';
 import { ErrorResponse } from './error-handler';
 
+test('page module, as endpoint type, cuz application/json request header', async () => {
+  const requestCtx = mockRequestContext();
+  requestCtx.request.headers.set('Accept', 'application/json');
+  const trailingSlash = false;
+
+  const endpoints: PageModule[] = [
+    {
+      default: () => {},
+      onGet: ({ response }) => {
+        response.headers.set('is', 'endpoint');
+      },
+    },
+  ];
+
+  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+  equal(u.type, 'endpoint');
+});
+
+test('endpoint module type cuz no default modle export', async () => {
+  const requestCtx = mockRequestContext();
+  const trailingSlash = false;
+
+  const endpoints: RouteModule[] = [
+    {
+      onGet: ({ response }) => {
+        response.headers.set('is', 'endpoint');
+      },
+    },
+  ];
+
+  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+  equal(u.type, 'endpoint');
+});
+
+test('page module type cuz default modle export', async () => {
+  const requestCtx = mockRequestContext();
+  const trailingSlash = false;
+
+  const endpoints: PageModule[] = [
+    {
+      default: () => {},
+      onGet: ({ response }) => {
+        response.headers.set('is', 'page');
+      },
+    },
+  ];
+
+  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+  equal(u.type, 'page');
+});
+
 test('sync endpoint, undefined body', async () => {
   const requestCtx = mockRequestContext();
   const trailingSlash = false;
@@ -19,7 +70,7 @@ test('sync endpoint, undefined body', async () => {
     },
   ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
   equal(u.status, 204);
   equal(u.headers.get('name'), 'value');
   equal(u.pendingBody, undefined);
@@ -41,7 +92,7 @@ test('async endpoint, resolved data, render blocking', async () => {
     },
   ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
   equal(u.status, 204);
   equal(u.headers.get('name'), 'value');
   equal(u.pendingBody, undefined);
@@ -71,7 +122,7 @@ test('onPost priority over onRequest, dont call onGet', async () => {
     },
   ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
   equal(u.status, 200);
   equal(calledOnGet, false);
   equal(calledOnPost, true);
@@ -92,7 +143,7 @@ test('catchall onRequest', async () => {
     },
   ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
   equal(u.status, 200);
   equal(calledOnRequest, true);
 });
@@ -113,7 +164,7 @@ test('user manual redirect, PageModule', async () => {
       },
     ];
 
-    await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+    await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
     equal(true, false, 'Should have thrown');
   } catch (e: any) {
     instance(e, RedirectResponse);
@@ -137,7 +188,7 @@ test('throw redirect', async () => {
       },
     ];
 
-    await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+    await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
     equal(true, false, 'Should have thrown');
   } catch (e: any) {
     instance(e, RedirectResponse);
@@ -151,7 +202,7 @@ test('no handler for endpoint', async () => {
     const requestCtx = mockRequestContext();
     const trailingSlash = false;
     const routeModules: RouteModule[] = [{ onDelete: () => {} }, { onPost: () => {} }, {}];
-    await loadUserResponse(requestCtx, {}, routeModules, trailingSlash);
+    await loadUserResponse(requestCtx, {}, routeModules, {}, trailingSlash);
     equal(true, false, 'Should have thrown');
   } catch (e: any) {
     instance(e, ErrorResponse);
@@ -168,7 +219,7 @@ test('remove trailing slash, PageModule', async () => {
         default: () => {},
       },
     ];
-    await loadUserResponse(requestCtx, {}, routeModules, trailingSlash);
+    await loadUserResponse(requestCtx, {}, routeModules, {}, trailingSlash);
     equal(true, false, 'Should have thrown');
   } catch (e: any) {
     instance(e, RedirectResponse);
@@ -186,7 +237,7 @@ test('add trailing slash, PageModule', async () => {
         default: () => {},
       },
     ];
-    await loadUserResponse(requestCtx, {}, routeModules, trailingSlash);
+    await loadUserResponse(requestCtx, {}, routeModules, {}, trailingSlash);
     equal(true, false, 'Should have thrown');
   } catch (e: any) {
     instance(e, RedirectResponse);

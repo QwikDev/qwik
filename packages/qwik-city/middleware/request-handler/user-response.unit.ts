@@ -197,11 +197,31 @@ test('throw redirect', async () => {
   }
 });
 
-test('no handler for endpoint', async () => {
+test('no endpoint and no handler', async () => {
   try {
     const requestCtx = mockRequestContext();
     const trailingSlash = false;
-    const routeModules: RouteModule[] = [{ onDelete: () => {} }, { onPost: () => {} }, {}];
+
+    const endpoints: RouteModule[] = [{}];
+
+    await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+    equal(true, false, 'Should have thrown');
+  } catch (e: any) {
+    instance(e, ErrorResponse);
+    equal(e.status, 404);
+  }
+});
+
+test('no handler for endpoint', async () => {
+  try {
+    const requestCtx = mockRequestContext();
+    requestCtx.request.headers.set('Accept', 'application/json');
+    const trailingSlash = false;
+    const routeModules: (RouteModule | PageModule)[] = [
+      { onDelete: () => {} },
+      { onPost: () => {} },
+      { default: () => {} },
+    ];
     await loadUserResponse(requestCtx, {}, routeModules, {}, trailingSlash);
     equal(true, false, 'Should have thrown');
   } catch (e: any) {

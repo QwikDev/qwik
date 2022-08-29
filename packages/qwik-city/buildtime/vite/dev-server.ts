@@ -100,6 +100,19 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         }
       }
 
+      /**
+       * if no route match, but is html request, fast path to 404
+       * otherwise qwik plugin will take over render without envData causing error
+       */
+      if (!result && req.headers.accept && req.headers.accept.includes('text/html')) {
+        // TODO: after file change, need to manual page refresh to see changes currently
+        //       there's two ways handling HMR for page endpoint with error
+        // 1. Html response inject `import.meta.hot.accept('./pageEndpoint_FILE_URL', () => { location.reload })`
+        // 2. watcher, diff previous & current file content, a bit expensive
+        notFoundHandler(requestCtx);
+        return;
+      }
+
       next();
     } catch (e) {
       next(e);

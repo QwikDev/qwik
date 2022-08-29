@@ -110,6 +110,11 @@ export async function loadUserResponse(
 
       reqHandler = reqHandler || endpointModule.onRequest;
 
+      // If route/index.tsx not export any page / request handler
+      if (middlewareIndex === routeModules.length - 1 && !hasPageRenderer && !reqHandler) {
+        throw new ErrorResponse(HttpStatus.NotFound, `Not Found`);
+      }
+
       if (typeof reqHandler === 'function') {
         hasRequestMethodHandler = true;
 
@@ -185,11 +190,6 @@ export async function loadUserResponse(
     // user can force the respond to be an endpoint with Accept request header
     // response should be a page
     userResponse.type = 'page';
-
-    // TODO: need to figure out work with HMR
-    // if (!hasPageRenderer) {
-    //   throw new ErrorResponse(HttpStatus.NotFound, 'Not Found')
-    // }
   } else {
     // this is only an endpoint, and not a page module
     if (!hasRequestMethodHandler) {

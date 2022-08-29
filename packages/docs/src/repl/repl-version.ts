@@ -43,17 +43,17 @@ export const getReplVersion = async (version: string | undefined) => {
         // last part cannot have letters in it
         return false;
       }
-      // mini-semver check, must be >= than 0.0.20
+      // mini-semver check, must be >= than 0.0.100
       if (parts[0] === '0' && parts[1] === '0') {
-        if (parseInt(parts[2], 10) < 21) {
+        if (parseInt(parts[2], 10) < 100) {
           return false;
         }
       }
       return true;
     });
 
-    if (versions.length > 25) {
-      versions = versions.slice(0, 25);
+    if (versions.length > 20) {
+      versions = versions.slice(0, 20);
     }
 
     if (!version || !npmData.versions.includes(version)) {

@@ -125,6 +125,10 @@ export interface PluginOptions {
    * MDX Options https://mdxjs.com/
    */
   mdx?: any;
+  /**
+   * @deprecated Please use "basePathname" instead.
+   */
+  baseUrl?: string;
 }
 
 export interface NormalizedPluginOptions extends Required<PluginOptions> {}

@@ -42,6 +42,7 @@ test('resolveLayout', () => {
       basePathname: '/',
       trailingSlash: false,
       mdx: {},
+      baseUrl: '/',
     };
     const sourceFile: RouteSourceFile = {
       ...getSourceFile(c.fileName)!,

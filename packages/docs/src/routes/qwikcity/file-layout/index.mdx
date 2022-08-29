@@ -15,16 +15,16 @@ All file-based route information is placed in `src/routes` directory. This is th
 ## Sample `routes` directory example
 
 ```
-- src/
-  - components/          # Put your reusable components here.
-    - counter.tsx
-  - routes/              # Put your route specific components here.
-    - docs/
-      - overview/
-        - index.mdx      # https://example.com/docs/overview
-      - index.mdx        # https://example.com/docs
-    - index.tsx          # https://example.com/
-    - layout.tsx         # All nested pages use this layout
+src/
+├── components/                # Put your reusable components here.
+│    └── counter.tsx
+└── routes/                    # Put your route specific components here.
+    ├── docs/
+    │   ├── overview/
+    │   │   └── index.mdx      # https://example.com/docs/overview
+    │   └── index.mdx          # https://example.com/docs
+    ├── index.tsx              # https://example.com/
+    └── layout.tsx             # All nested pages use this layout
 ```
 
 ## Sample Component

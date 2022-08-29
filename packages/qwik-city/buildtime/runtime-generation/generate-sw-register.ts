@@ -1,7 +1,7 @@
 import type { BuildContext, BuildRoute } from '../types';
 import swRegister from '@qwik-city-sw-register-build';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import type { ServiceWorkerBundles } from '../../runtime/src/library/types';
+import type { ServiceWorkerBundles } from '../../runtime/src/library/service-worker/types';
 import { isPageModuleExt } from '../../utils/fs';
 
 export function generateServiceWorkerRegister(ctx: BuildContext) {

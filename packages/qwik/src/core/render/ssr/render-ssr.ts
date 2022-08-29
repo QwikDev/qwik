@@ -143,7 +143,6 @@ export const renderRoot = async (
       logError(
         'Missing <head>. Global styles could not be rendered. Please render a <head> element at the root of the app'
       );
-      throw new Error('dfd');
     }
   }
   return ssrCtx.rctx;

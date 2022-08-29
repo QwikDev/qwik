@@ -54,6 +54,7 @@ test('getMarkdownRelativeUrl', () => {
       trailingSlash: false,
       routesDir: routesDir,
       mdx: {},
+      baseUrl: '/',
     };
     equal(getMarkdownRelativeUrl(opts, menuFilePath, c.href), c.expect);
   });

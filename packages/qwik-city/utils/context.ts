@@ -49,6 +49,11 @@ function normalizeOptions(rootDir: string, userOpts: PluginOptions | undefined) 
   }
   opts.routesDir = normalizePath(opts.routesDir);
 
+  if (typeof opts.baseUrl === 'string') {
+    // baseUrl deprecated
+    opts.basePathname = opts.baseUrl;
+  }
+
   if (typeof opts.basePathname !== 'string') {
     opts.basePathname = '/';
   } else {

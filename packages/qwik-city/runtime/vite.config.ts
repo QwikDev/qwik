@@ -20,6 +20,7 @@ export default defineConfig(() => {
     resolve: {
       alias: {
         '~qwik-city-runtime': '/src/index.ts',
+        '~qwik-city-runtime-service-worker': '/src/library/service-worker/index.ts',
       },
     },
     plugins: [

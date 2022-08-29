@@ -20,4 +20,9 @@ export interface ServiceWorkerBundles {
 
 export type ServiceWorkerLink = [pattern: RegExp, bundleNames: string[]];
 
-export type Fetch = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+export type Fetch = (r: Request) => Promise<Response>;
+
+export type AwaitingRequests = Map<
+  string,
+  { resolve: (response: Response | PromiseLike<Response>) => void; reject: (msg: any) => void }[]
+>;

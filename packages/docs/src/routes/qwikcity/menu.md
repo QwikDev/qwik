@@ -31,9 +31,9 @@
 
 ## Static Site Generation
 
-- [Overview](static-site-generation/overview/index.md)
-- [Static Site Config](static-site-generation/static-site-config/index.md)
-- [Dynamic Routes](static-site-generation/dynamic-routes/index.md)
+- [Overview](static-site-generation/overview/index.mdx)
+- [Static Site Config](static-site-generation/static-site-config/index.mdx)
+- [Dynamic Routes](static-site-generation/dynamic-routes/index.mdx)
 
 ## Head
 

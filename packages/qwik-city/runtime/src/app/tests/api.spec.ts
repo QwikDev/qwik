@@ -44,8 +44,8 @@ test('Page route, accept application/javascript', async ({ page: api }) => {
   expect(clientData.prefetch).toBeDefined();
 });
 
-test('Page qdata.json route', async ({ page: api }) => {
-  const rsp = (await api.goto('/products/hat/qdata.json'))!;
+test('Page q-data.json route', async ({ page: api }) => {
+  const rsp = (await api.goto('/products/hat/q-data.json'))!;
   expect(rsp.status()).toBe(200);
   expect(rsp.headers()['content-type']).toBe('application/json; charset=utf-8');
 

@@ -243,28 +243,28 @@ test('add trailing slash, PageModule', async () => {
 });
 
 test('updateRequestCtx, trailing slash', () => {
-  const requestCtx = mockRequestContext({ url: '/about/qdata.json' });
+  const requestCtx = mockRequestContext({ url: '/about/q-data.json' });
   updateRequestCtx(requestCtx, true);
   equal(requestCtx.url.pathname, '/about/');
   equal(requestCtx.request.headers.get('Accept'), 'application/json');
 });
 
 test('updateRequestCtx, no trailing slash', () => {
-  const requestCtx = mockRequestContext({ url: '/about/qdata.json' });
+  const requestCtx = mockRequestContext({ url: '/about/q-data.json' });
   updateRequestCtx(requestCtx, false);
   equal(requestCtx.url.pathname, '/about');
   equal(requestCtx.request.headers.get('Accept'), 'application/json');
 });
 
 test('updateRequestCtx, root, trailing slash', () => {
-  const requestCtx = mockRequestContext({ url: '/qdata.json' });
+  const requestCtx = mockRequestContext({ url: '/q-data.json' });
   updateRequestCtx(requestCtx, true);
   equal(requestCtx.url.pathname, '/');
   equal(requestCtx.request.headers.get('Accept'), 'application/json');
 });
 
 test('updateRequestCtx, root, no trailing slash', () => {
-  const requestCtx = mockRequestContext({ url: '/qdata.json' });
+  const requestCtx = mockRequestContext({ url: '/q-data.json' });
   updateRequestCtx(requestCtx, false);
   equal(requestCtx.url.pathname, '/');
   equal(requestCtx.request.headers.get('Accept'), 'application/json');

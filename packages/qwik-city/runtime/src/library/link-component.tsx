@@ -1,6 +1,7 @@
 import { component$, Slot, QwikIntrinsicElements } from '@builder.io/qwik';
 import { getClientNavPath } from './client-navigation';
-import type { QrlPrefetchData } from './service-worker/types';
+import type { QPrefetchData } from './service-worker/types';
+import { fetchClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
 
 /**
@@ -23,17 +24,20 @@ export const Link = component$<LinkProps>((props) => {
           nav.path = linkProps.href!;
         }
       }}
-      onMouseOver$={() => {
-        if (clientNavPath) {
-          const data: QrlPrefetchData = { links: [clientNavPath] };
-          dispatchEvent(new CustomEvent('qprefetch', { detail: data }));
-        }
-      }}
+      onMouseOver$={() => prefetchLinkResources(clientNavPath)}
     >
       <Slot />
     </a>
   );
 });
+
+export const prefetchLinkResources = (clientNavPath: string | null) => {
+  if (clientNavPath) {
+    fetchClientData(clientNavPath);
+    const data: QPrefetchData = { links: [clientNavPath] };
+    dispatchEvent(new CustomEvent('qprefetch', { detail: data }));
+  }
+};
 
 type AnchorAttributes = QwikIntrinsicElements['a'];
 

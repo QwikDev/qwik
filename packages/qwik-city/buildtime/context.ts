@@ -8,7 +8,6 @@ export function createBuildContext(
   target?: 'ssr' | 'client'
 ) {
   const ctx: BuildContext = {
-    buildId: generateBuildId(),
     rootDir: normalizePath(rootDir),
     opts: normalizeOptions(rootDir, userOpts),
     routes: [],
@@ -29,7 +28,6 @@ export function createBuildContext(
 
 export function resetBuildContext(ctx: BuildContext | null) {
   if (ctx) {
-    ctx.buildId = generateBuildId();
     ctx.routes.length = 0;
     ctx.errors.length = 0;
     ctx.layouts.length = 0;
@@ -73,8 +71,4 @@ function normalizeOptions(rootDir: string, userOpts: PluginOptions | undefined) 
   opts.mdx = opts.mdx || {};
 
   return opts;
-}
-
-function generateBuildId() {
-  return Math.random().toString(36).slice(2);
 }

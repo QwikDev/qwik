@@ -1,5 +1,5 @@
 import { loadRoute } from '../../runtime/src/library/routing';
-import { loadUserResponse } from './user-response';
+import { loadUserResponse, updateRequestCtx } from './user-response';
 import type { QwikCityRequestContext, QwikCityRequestOptions } from './types';
 import type { Render } from '@builder.io/qwik/server';
 import { errorHandler, ErrorResponse, errorResponse } from './error-handler';
@@ -18,8 +18,9 @@ export async function requestHandler<T = any>(
   opts?: QwikCityRequestOptions
 ): Promise<T | null> {
   try {
-    const pathname = requestCtx.url.pathname;
-    const loadedRoute = await loadRoute(routes, menus, cacheModules, pathname);
+    updateRequestCtx(requestCtx, trailingSlash);
+
+    const loadedRoute = await loadRoute(routes, menus, cacheModules, requestCtx.url.pathname);
     if (loadedRoute) {
       // found and loaded the route for this pathname
       const { mods, params } = loadedRoute;

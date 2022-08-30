@@ -41,13 +41,21 @@ export async function createNodeSystem(opts: NodeStaticGeneratorOptions) {
 
   const outDir = normalizePath(opts.outDir);
 
-  const getIndexFilePath = (pathname: string) => {
+  const getPageFilePath = (pathname: string) => {
     pathname = pathname.slice(1);
-    if (pathname.endsWith('/')) {
-      pathname += 'index.html';
-    } else {
-      pathname += '/index.html';
+    if (!pathname.endsWith('/')) {
+      pathname += '/';
     }
+    pathname += 'index.html';
+    return join(outDir, pathname);
+  };
+
+  const getDataFilePath = (pathname: string) => {
+    pathname = pathname.slice(1);
+    if (!pathname.endsWith('/')) {
+      pathname += '/';
+    }
+    pathname += 'qdata.json';
     return join(outDir, pathname);
   };
 
@@ -60,7 +68,8 @@ export async function createNodeSystem(opts: NodeStaticGeneratorOptions) {
     ensureDir,
     createWriteStream,
     createTimer,
-    getIndexFilePath,
+    getPageFilePath,
+    getDataFilePath,
   };
 
   return sys;

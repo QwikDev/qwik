@@ -2,11 +2,25 @@ import { test } from 'uvu';
 import { equal, instance } from 'uvu/assert';
 import { mockRequestContext, wait } from './test-utils';
 import type { PageModule, RouteModule } from '../../runtime/src/library/types';
-import { loadUserResponse } from './user-response';
+import { loadUserResponse, updateRequestCtx } from './user-response';
 import { RedirectResponse } from './redirect-handler';
 import { ErrorResponse } from './error-handler';
 
-test('page module, as endpoint type, cuz application/json request header', async () => {
+test('endpoint type cuz no default module export', async () => {
+  const requestCtx = mockRequestContext();
+  const trailingSlash = false;
+
+  const endpoints: RouteModule[] = [
+    {
+      onGet: () => {},
+    },
+  ];
+
+  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+  equal(u.type, 'endpoint');
+});
+
+test('pagedata type cuz default module export and application/jon accept header', async () => {
   const requestCtx = mockRequestContext();
   requestCtx.request.headers.set('Accept', 'application/json');
   const trailingSlash = false;
@@ -14,47 +28,26 @@ test('page module, as endpoint type, cuz application/json request header', async
   const endpoints: PageModule[] = [
     {
       default: () => {},
-      onGet: ({ response }) => {
-        response.headers.set('is', 'endpoint');
-      },
     },
   ];
 
   const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
-  equal(u.type, 'endpoint');
+  equal(u.type, 'pagedata');
 });
 
-test('endpoint module type cuz no default modle export', async () => {
-  const requestCtx = mockRequestContext();
-  const trailingSlash = false;
-
-  const endpoints: RouteModule[] = [
-    {
-      onGet: ({ response }) => {
-        response.headers.set('is', 'endpoint');
-      },
-    },
-  ];
-
-  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
-  equal(u.type, 'endpoint');
-});
-
-test('page module type cuz default modle export', async () => {
+test('pagehtml type cuz default module export', async () => {
   const requestCtx = mockRequestContext();
   const trailingSlash = false;
 
   const endpoints: PageModule[] = [
     {
       default: () => {},
-      onGet: ({ response }) => {
-        response.headers.set('is', 'page');
-      },
+      onGet: () => {},
     },
   ];
 
   const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
-  equal(u.type, 'page');
+  equal(u.type, 'pagehtml');
 });
 
 test('sync endpoint, undefined body', async () => {
@@ -197,30 +190,13 @@ test('throw redirect', async () => {
   }
 });
 
-test('no endpoint and no handler', async () => {
-  try {
-    const requestCtx = mockRequestContext();
-    const trailingSlash = false;
-
-    const endpoints: RouteModule[] = [{}];
-
-    await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
-    equal(true, false, 'Should have thrown');
-  } catch (e: any) {
-    instance(e, ErrorResponse);
-    equal(e.status, 404);
-  }
-});
-
 test('no handler for endpoint', async () => {
   try {
     const requestCtx = mockRequestContext();
-    requestCtx.request.headers.set('Accept', 'application/json');
     const trailingSlash = false;
     const routeModules: (RouteModule | PageModule)[] = [
       { onDelete: () => {} },
       { onPost: () => {} },
-      { default: () => {} },
     ];
     await loadUserResponse(requestCtx, {}, routeModules, {}, trailingSlash);
     equal(true, false, 'Should have thrown');
@@ -264,6 +240,34 @@ test('add trailing slash, PageModule', async () => {
     equal(e.status, 307);
     equal(e.location, '/somepath/?qs=true');
   }
+});
+
+test('updateRequestCtx, trailing slash', () => {
+  const requestCtx = mockRequestContext({ url: '/about/qdata.json' });
+  updateRequestCtx(requestCtx, true);
+  equal(requestCtx.url.pathname, '/about/');
+  equal(requestCtx.request.headers.get('Accept'), 'application/json');
+});
+
+test('updateRequestCtx, no trailing slash', () => {
+  const requestCtx = mockRequestContext({ url: '/about/qdata.json' });
+  updateRequestCtx(requestCtx, false);
+  equal(requestCtx.url.pathname, '/about');
+  equal(requestCtx.request.headers.get('Accept'), 'application/json');
+});
+
+test('updateRequestCtx, root, trailing slash', () => {
+  const requestCtx = mockRequestContext({ url: '/qdata.json' });
+  updateRequestCtx(requestCtx, true);
+  equal(requestCtx.url.pathname, '/');
+  equal(requestCtx.request.headers.get('Accept'), 'application/json');
+});
+
+test('updateRequestCtx, root, no trailing slash', () => {
+  const requestCtx = mockRequestContext({ url: '/qdata.json' });
+  updateRequestCtx(requestCtx, false);
+  equal(requestCtx.url.pathname, '/');
+  equal(requestCtx.request.headers.get('Accept'), 'application/json');
 });
 
 test.run();

@@ -8,8 +8,10 @@ export const getCacheToDelete = (bundles: ServiceWorkerBundles, cachedUrls: stri
 export const useCache = (request: Request, response: Response | undefined) =>
   !!response && !hasNoCacheHeader(request) && !hasNoCacheHeader(response);
 
-const hasNoCacheHeader = (r: { headers: Headers }) =>
-  (r.headers.get('Cache-Control') || '').includes('no-cache');
+const hasNoCacheHeader = (r: { headers: Headers }) => {
+  const cacheControl = r.headers.get('Cache-Control') || '';
+  return cacheControl.includes('no-cache') || cacheControl.includes('max-age=0');
+};
 
 export const isBuildRequest = (buildBundles: ServiceWorkerBundles, requestPathname: string) => {
   for (const bundleName in buildBundles) {

@@ -20,10 +20,18 @@ export async function loadUserResponse(
   trailingSlash?: boolean,
   basePathname: string = '/'
 ) {
+  if (routeModules.length === 0) {
+    throw new ErrorResponse(HttpStatus.NotFound, `Not Found`);
+  }
+
   const { request, url } = requestCtx;
   const { pathname } = url;
+  const isPageModule = isLastModulePageRoute(routeModules);
+  const isPageDataRequest = isPageModule && request.headers.get('Accept') === 'application/json';
+  const type = isPageDataRequest ? 'pagedata' : isPageModule ? 'pagehtml' : 'endpoint';
+
   const userResponse: UserResponseContext = {
-    type: 'endpoint',
+    type,
     url,
     params,
     status: HttpStatus.Ok,
@@ -33,9 +41,8 @@ export async function loadUserResponse(
   };
 
   let hasRequestMethodHandler = false;
-  const hasPageRenderer = isLastModulePageRoute(routeModules);
 
-  if (hasPageRenderer && pathname !== basePathname) {
+  if (isPageModule && pathname !== basePathname) {
     // only check for slash redirect on pages
     if (trailingSlash) {
       // must have a trailing slash
@@ -55,10 +62,10 @@ export async function loadUserResponse(
     }
   }
 
-  let middlewareIndex = -1;
+  let routeModuleIndex = -1;
 
   const abort = () => {
-    middlewareIndex = ABORT_INDEX;
+    routeModuleIndex = ABORT_INDEX;
   };
 
   const redirect = (url: string, status?: number) => {
@@ -70,10 +77,10 @@ export async function loadUserResponse(
   };
 
   const next = async () => {
-    middlewareIndex++;
+    routeModuleIndex++;
 
-    while (middlewareIndex < routeModules.length) {
-      const endpointModule = routeModules[middlewareIndex];
+    while (routeModuleIndex < routeModules.length) {
+      const endpointModule = routeModules[routeModuleIndex];
 
       let reqHandler: RequestHandler | undefined = undefined;
 
@@ -109,11 +116,6 @@ export async function loadUserResponse(
       }
 
       reqHandler = reqHandler || endpointModule.onRequest;
-
-      // If route/index.tsx not export any page / request handler
-      if (middlewareIndex === routeModules.length - 1 && !hasPageRenderer && !reqHandler) {
-        throw new ErrorResponse(HttpStatus.NotFound, `Not Found`);
-      }
 
       if (typeof reqHandler === 'function') {
         hasRequestMethodHandler = true;
@@ -169,7 +171,7 @@ export async function loadUserResponse(
         }
       }
 
-      middlewareIndex++;
+      routeModuleIndex++;
     }
   };
 
@@ -185,17 +187,10 @@ export async function loadUserResponse(
     );
   }
 
-  if (hasPageRenderer && request.headers.get('Accept') !== 'application/json') {
-    // this is a page module
-    // user can force the respond to be an endpoint with Accept request header
-    // response should be a page
-    userResponse.type = 'page';
-  } else {
-    // this is only an endpoint, and not a page module
-    if (!hasRequestMethodHandler) {
-      // didn't find any handlers
-      throw new ErrorResponse(HttpStatus.MethodNotAllowed, `Method Not Allowed`);
-    }
+  // this is only an endpoint, and not a page module
+  if (type === 'endpoint' && !hasRequestMethodHandler) {
+    // didn't find any handlers
+    throw new ErrorResponse(HttpStatus.MethodNotAllowed, `Method Not Allowed`);
   }
 
   return userResponse;
@@ -223,5 +218,24 @@ function isLastModulePageRoute(routeModules: RouteModule[]) {
   const lastRouteModule = routeModules[routeModules.length - 1];
   return lastRouteModule && typeof (lastRouteModule as PageModule).default === 'function';
 }
+
+export function updateRequestCtx(requestCtx: QwikCityRequestContext, trailingSlash: boolean) {
+  let pathname = requestCtx.url.pathname;
+
+  if (pathname.endsWith(QDATA_JSON)) {
+    requestCtx.request.headers.set('Accept', 'application/json');
+
+    const trimEnd = pathname.length - QDATA_JSON_LEN + (trailingSlash ? 1 : 0);
+
+    pathname = pathname.slice(0, trimEnd);
+    if (pathname === '') {
+      pathname = '/';
+    }
+    requestCtx.url.pathname = pathname;
+  }
+}
+
+const QDATA_JSON = '/qdata.json';
+const QDATA_JSON_LEN = QDATA_JSON.length;
 
 const ABORT_INDEX = 999999999;

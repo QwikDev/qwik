@@ -6,8 +6,8 @@ import { createHeaders } from '../../middleware/request-handler/headers';
 import type { BuildContext } from '../types';
 import type { RouteModule } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
-import { loadUserResponse } from '../../middleware/request-handler/user-response';
-import { getQwikCityEnvData } from '../../middleware/request-handler/page-handler';
+import { loadUserResponse, updateRequestCtx } from '../../middleware/request-handler/user-response';
+import { getQwikCityEnvData, pageHandler } from '../../middleware/request-handler/page-handler';
 import { buildFromUrlPathname } from '../build';
 import { endpointHandler } from '../../middleware/request-handler/endpoint-handler';
 import {
@@ -21,20 +21,22 @@ import {
   RedirectResponse,
 } from '../../middleware/request-handler/redirect-handler';
 import { normalizePath } from '../../utils/fs';
+import type { RenderToStringResult } from '@builder.io/qwik/server';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
       const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
-      const pathname = url.pathname;
 
-      if (isViteInternalRequest(pathname)) {
+      if (isViteInternalRequest(url.pathname)) {
         next();
         return;
       }
 
       const requestCtx = fromDevServerHttp(url, req, res);
-      const result = await buildFromUrlPathname(ctx, pathname);
+      updateRequestCtx(requestCtx, ctx.opts.trailingSlash);
+
+      const result = await buildFromUrlPathname(ctx, requestCtx.url.pathname);
       if (result) {
         const { route, params } = result;
 
@@ -60,6 +62,12 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             ctx.opts.trailingSlash,
             ctx.opts.basePathname
           );
+
+          if (userResponse.type === 'pagedata') {
+            // dev server endpoint handler
+            await pageHandler(requestCtx, userResponse, noopDevRender);
+            return;
+          }
 
           if (userResponse.type === 'endpoint') {
             // dev server endpoint handler
@@ -193,6 +201,19 @@ export function staticDistMiddleware({ config }: ViteDevServer) {
 
     next();
   };
+}
+
+async function noopDevRender() {
+  const result: RenderToStringResult = {
+    html: '',
+    timing: {
+      render: 0,
+      snapshot: 0,
+    },
+    prefetchResources: [],
+    snapshotResult: null,
+  };
+  return result;
 }
 
 const FS_PREFIX = `/@fs/`;

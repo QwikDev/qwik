@@ -309,6 +309,12 @@ export interface EndpointResponse {
   status: number;
 }
 
+export interface ClientPageData {
+  data: any;
+  params: RouteParams;
+  prefetch: string[];
+}
+
 /**
  * @alpha
  */

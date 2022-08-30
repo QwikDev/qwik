@@ -13,11 +13,12 @@ export interface System {
   ensureDir: (filePath: string) => Promise<void>;
   createWriteStream: (filePath: string) => StaticStreamWriter;
   createTimer: () => () => number;
-  getIndexFilePath: (pathname: string) => string;
+  getPageFilePath: (pathname: string) => string;
+  getDataFilePath: (pathname: string) => string;
 }
 
 export interface StaticStreamWriter extends StreamWriter {
-  close(callback: () => void): void;
+  close(callback?: () => void): void;
 }
 
 export interface MainContext {

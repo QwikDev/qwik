@@ -1,4 +1,3 @@
-import { existingPrefetches } from './constants';
 import type { AwaitingRequests, Fetch } from './types';
 import { useCache } from './utils';
 
@@ -49,7 +48,6 @@ export const cachedFetch = (
 
       // create a new array of the request waiting to be resolved
       awaitingRequests.set(url, [{ resolve: promiseResolve, reject: promiseReject }]);
-      existingPrefetches.add(url);
 
       cache
         .match(url)

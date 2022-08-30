@@ -55,7 +55,7 @@ export async function createNodeSystem(opts: NodeStaticGeneratorOptions) {
     if (!pathname.endsWith('/')) {
       pathname += '/';
     }
-    pathname += 'qdata.json';
+    pathname += 'q-data.json';
     return join(outDir, pathname);
   };
 

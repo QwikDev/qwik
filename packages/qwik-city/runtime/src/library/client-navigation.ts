@@ -74,8 +74,8 @@ export const getClientNavPath = (props: Record<string, any>, baseUrl: { href: st
   return null;
 };
 
-export const getClientEndpointPath = (pagePathname: string, buildId: string) =>
-  pagePathname + (pagePathname.endsWith('/') ? '' : '/') + 'qdata.json?v=' + buildId;
+export const getClientEndpointPath = (pagePathname: string) =>
+  pagePathname + (pagePathname.endsWith('/') ? '' : '/') + 'q-data.json';
 
 const handleScroll = async (win: Window, previousUrl: SimpleURL, newUrl: SimpleURL) => {
   const doc = win.document;

@@ -47,7 +47,7 @@ export function pageHandler<T = any>(
 
     if (typeof stream.clientData === 'function') {
       // a data fn was provided by the request context
-      // useful for writing qdata.json during SSG
+      // useful for writing q-data.json during SSG
       stream.clientData(await getClientPageData(userResponse, result));
     }
   });

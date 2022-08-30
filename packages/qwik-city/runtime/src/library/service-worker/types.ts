@@ -1,14 +1,14 @@
-export interface QrlPrefetchData {
+export interface QPrefetchData {
   urls?: string[];
   links?: string[];
 }
 
-export interface QrlPrefetchMessage extends QrlPrefetchData {
+export interface QPrefetchMessage extends QPrefetchData {
   type: 'qprefetch';
   base: string;
 }
 
-export type ServiceWorkerMessage = QrlPrefetchMessage;
+export type ServiceWorkerMessage = QPrefetchMessage;
 
 export interface ServiceWorkerMessageEvent {
   data: ServiceWorkerMessage;

@@ -24,7 +24,5 @@ export function generateQwikCityPlan(ctx: BuildContext) {
 
   c.push(`export const cacheModules = ${JSON.stringify(!ctx.isDevServer)};`);
 
-  c.push(`export const buildId = ${JSON.stringify(ctx.buildId)};`);
-
   return esmImports.join('\n') + c.join('\n');
 }

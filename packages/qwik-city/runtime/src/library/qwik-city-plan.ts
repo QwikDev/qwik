@@ -6,4 +6,3 @@ export const menus: MenuData[] = [];
 export const trailingSlash = false;
 export const basePathname = '/';
 export const cacheModules = false;
-export const buildId = 'qwik';

@@ -231,12 +231,12 @@ const baseUrl = new URL('https://qwik.dev/');
 });
 
 [
-  { pathname: '/', expect: '/qdata.json?v=abc' },
-  { pathname: '/about', expect: '/about/qdata.json?v=abc' },
-  { pathname: '/about/', expect: '/about/qdata.json?v=abc' },
+  { pathname: '/', expect: '/q-data.json' },
+  { pathname: '/about', expect: '/about/q-data.json' },
+  { pathname: '/about/', expect: '/about/q-data.json' },
 ].forEach((t) => {
   test(`getClientEndpointUrl("${t.pathname}")`, () => {
-    const url = getClientEndpointPath(t.pathname, 'abc');
+    const url = getClientEndpointPath(t.pathname);
     equal(url, t.expect);
   });
 });

@@ -38,7 +38,7 @@ export interface StaticGeneratorOptions extends QwikCityRequestOptions {
    */
   outDir: string;
   /**
-   * The URL `origin`, which is combination of only the scheme (protocol) and hostname (domain).
+   * The URL `origin`, which is a combination of the scheme (protocol) and hostname (domain).
    * For example, `https://qwik.builder.io` has the protocol `https://` and domain `qwik.builder.io`.
    * However, the `origin` does not include a `pathname`.
    *

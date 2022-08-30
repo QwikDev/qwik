@@ -22,15 +22,15 @@ export const useEndpoint = <T = unknown>() => {
       return env.response.body;
     } else {
       // fetch() for new data when the pathname has changed
-      return fetchClientData(pathname);
+      return fetchClientData(pathname, loc);
     }
   });
 };
 
 const cachedClientDataResponses: { c: Promise<ClientPageData>; t: number; u: string }[] = [];
 
-export const fetchClientData = async (pathname: string) => {
-  const endpointUrl = getClientEndpointPath(pathname);
+export const fetchClientData = async (pathname: string, baseUrl: { href: string }) => {
+  const endpointUrl = getClientEndpointPath(pathname, baseUrl);
   const i = cachedClientDataResponses.findIndex((cached) => cached.u === endpointUrl);
   const now = Date.now();
   let cachedClientDataResponse = cachedClientDataResponses[i];

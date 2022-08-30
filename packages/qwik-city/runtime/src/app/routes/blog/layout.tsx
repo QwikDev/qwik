@@ -1,4 +1,5 @@
 import { component$, Slot } from '@builder.io/qwik';
+import { Link } from '~qwik-city-runtime';
 
 export default component$(() => {
   return (
@@ -9,14 +10,14 @@ export default component$(() => {
       <aside class="blog-menu">
         <ul>
           <li>
-            <a href="/blog/what-is-resumability" data-test-link="blog-resumability">
+            <Link href="/blog/what-is-resumability" data-test-link="blog-resumability">
               What Is Resumability?
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="/blog/serializing-props" data-test-link="blog-serializing-props">
+            <Link href="/blog/serializing-props" data-test-link="blog-serializing-props">
               Serializing Props
-            </a>
+            </Link>
           </li>
         </ul>
       </aside>

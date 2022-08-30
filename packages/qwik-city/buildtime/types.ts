@@ -1,4 +1,5 @@
 export interface BuildContext {
+  buildId: string;
   rootDir: string;
   opts: NormalizedPluginOptions;
   routes: BuildRoute[];

@@ -54,6 +54,14 @@ test('do not useCache, no response', () => {
   equal(c, false);
 });
 
+test('do not useCache, response has max-age=0', () => {
+  const request = mockRequest();
+  const response = mockResponse();
+  response.headers.set('cache-control', 'max-age=0');
+  const c = useCache(request, response);
+  equal(c, false);
+});
+
 test('do not useCache, response has no-cache', () => {
   const request = mockRequest();
   const response = mockResponse();

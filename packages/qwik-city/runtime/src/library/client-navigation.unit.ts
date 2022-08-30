@@ -4,6 +4,7 @@ import {
   ClientHistoryWindow,
   clientNavigate,
   CLIENT_HISTORY_INITIALIZED,
+  getClientEndpointPath,
   getClientNavPath,
   isSameOriginDifferentPath,
   SimpleURL,
@@ -207,27 +208,36 @@ test('isSameOriginDifferentPath', () => {
   });
 });
 
-test('getClientNavPath ', () => {
-  const baseUrl = new URL('https://qwik.dev/');
-  const compare = [
-    { props: { href: '#hash' }, expect: '/#hash' },
-    { props: { href: '?qs=true' }, expect: '/?qs=true' },
-    { props: { href: '/abs-path' }, expect: '/abs-path' },
-    { props: { href: './rel-path' }, expect: '/rel-path' },
-    { props: { href: 'rel-path' }, expect: '/rel-path' },
-    { props: { href: '/path/../rel-path' }, expect: '/rel-path' },
-    { props: { href: '/abs-path', target: '_blank' }, expect: null },
-    { props: { href: 'http://qwik.dev/' }, expect: null },
-    { props: { href: 'http://builder.io/' }, expect: null },
-    { props: { href: '       ' }, expect: null },
-    { props: { href: '       ' }, expect: null },
-    { props: { href: '' }, expect: null },
-    { props: { href: null }, expect: null },
-    { props: {}, expect: null },
-  ];
-
-  compare.forEach((c) => {
+const baseUrl = new URL('https://qwik.dev/');
+[
+  { props: { href: '#hash' }, expect: '/#hash' },
+  { props: { href: '?qs=true' }, expect: '/?qs=true' },
+  { props: { href: '/abs-path' }, expect: '/abs-path' },
+  { props: { href: './rel-path' }, expect: '/rel-path' },
+  { props: { href: 'rel-path' }, expect: '/rel-path' },
+  { props: { href: '/path/../rel-path' }, expect: '/rel-path' },
+  { props: { href: '/abs-path', target: '_blank' }, expect: null },
+  { props: { href: 'http://qwik.dev/' }, expect: null },
+  { props: { href: 'http://builder.io/' }, expect: null },
+  { props: { href: '       ' }, expect: null },
+  { props: { href: '       ' }, expect: null },
+  { props: { href: '' }, expect: null },
+  { props: { href: null }, expect: null },
+  { props: {}, expect: null },
+].forEach((c) => {
+  test(`getClientNavPath ${c.props.href}`, () => {
     equal(getClientNavPath(c.props, baseUrl), c.expect, `${c.props.href} ${c.expect}`);
+  });
+});
+
+[
+  { pathname: '/', expect: '/qdata.json?v=abc' },
+  { pathname: '/about', expect: '/about/qdata.json?v=abc' },
+  { pathname: '/about/', expect: '/about/qdata.json?v=abc' },
+].forEach((t) => {
+  test(`getClientEndpointUrl("${t.pathname}")`, () => {
+    const url = getClientEndpointPath(t.pathname, 'abc');
+    equal(url, t.expect);
   });
 });
 

@@ -9,7 +9,7 @@ import type {
   MarkdownAttributes,
   NormalizedPluginOptions,
 } from '../buildtime/types';
-import { createBuildContext } from './context';
+import { createBuildContext } from '../buildtime/context';
 import { tmpdir } from 'os';
 import { normalizePath } from './fs';
 import { build } from '../buildtime/build';

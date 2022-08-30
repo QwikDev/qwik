@@ -24,16 +24,29 @@ export const Link = component$<LinkProps>((props) => {
           nav.path = linkProps.href!;
         }
       }}
-      onMouseOver$={() => prefetchLinkResources(clientNavPath)}
+      onMouseOver$={() => prefetchLinkResources(clientNavPath, loc, false)}
+      onQVisible$={() => prefetchLinkResources(clientNavPath, loc, true)}
     >
       <Slot />
     </a>
   );
 });
 
-export const prefetchLinkResources = (clientNavPath: string | null) => {
-  if (clientNavPath) {
-    fetchClientData(clientNavPath);
+let windowInnerWidth = 0;
+
+export const prefetchLinkResources = (
+  clientNavPath: string | null,
+  baseUrl: { href: string },
+  isOnVisible: boolean
+) => {
+  if (!windowInnerWidth) {
+    windowInnerWidth = window.innerWidth;
+  }
+
+  if (clientNavPath && (!isOnVisible || (isOnVisible && windowInnerWidth < 800))) {
+    // either this is a mouseover event, probably on desktop
+    // or the link is visible, and the viewport width is less than X
+    fetchClientData(clientNavPath, baseUrl);
     const data: QPrefetchData = { links: [clientNavPath] };
     dispatchEvent(new CustomEvent('qprefetch', { detail: data }));
   }

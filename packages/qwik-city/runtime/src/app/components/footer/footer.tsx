@@ -9,16 +9,16 @@ export default component$(() => {
     <footer>
       <ul>
         <li>
-          <a href="/blog">Blog</a>
+          <Link href="/blog">Blog</Link>
         </li>
         <li>
-          <a href="/docs">Docs</a>
+          <Link href="/docs">Docs</Link>
         </li>
         <li>
-          <a href="/about-us">About Us</a>
+          <Link href="/about-us">About Us</Link>
         </li>
         <li>
-          <a href="/sign-in">Sign In</a>
+          <Link href="/sign-in">Sign In</Link>
         </li>
         <li>
           <Link href="/mit" target="_self" data-test-link="mit">
@@ -27,9 +27,9 @@ export default component$(() => {
           </Link>
         </li>
         <li>
-          <a class="footer-home" href="/">
+          <Link class="footer-home" href="/">
             Home
-          </a>
+          </Link>
         </li>
       </ul>
     </footer>

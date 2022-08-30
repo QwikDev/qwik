@@ -1,10 +1,9 @@
-import type { PageModule, RouteModule } from '../../runtime/src/library/types';
+import type { RouteModule } from '../../runtime/src/library/types';
 import { test } from 'uvu';
 import { equal, instance } from 'uvu/assert';
 import { mockRequestContext, wait } from './test-utils';
 import { loadUserResponse } from './user-response';
 import { endpointHandler } from './endpoint-handler';
-import { ErrorResponse } from './error-handler';
 
 test('onRequest, async return callback, async callback data', async () => {
   const requestCtx = mockRequestContext();
@@ -257,40 +256,6 @@ test('onGet preference over onRequest', async () => {
   equal(calledOnGet, true);
   equal(calledOnRequest, false);
   equal(responseData.status, 200);
-});
-
-test('405, not a page', async () => {
-  try {
-    const requestCtx = mockRequestContext();
-    const { request } = requestCtx;
-    request.headers.set('Accept', 'application/json');
-    const routeModules: RouteModule[] = [];
-
-    await loadUserResponse(requestCtx, {}, routeModules, {}, false);
-    equal(true, false, 'Should have thrown');
-  } catch (e: any) {
-    instance(e, ErrorResponse);
-    equal(e.status, 405);
-  }
-});
-
-test('405, is a page, accept json header', async () => {
-  try {
-    const requestCtx = mockRequestContext();
-    const { request } = requestCtx;
-    request.headers.set('Accept', 'application/json');
-    const routeModules: PageModule[] = [
-      {
-        default: () => {},
-      },
-    ];
-
-    await loadUserResponse(requestCtx, {}, routeModules, {}, false);
-    equal(true, false, 'Should have thrown');
-  } catch (e: any) {
-    instance(e, ErrorResponse);
-    equal(e.status, 405);
-  }
 });
 
 test.run();

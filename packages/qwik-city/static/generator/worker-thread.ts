@@ -51,7 +51,8 @@ async function workerRender(
   };
 
   try {
-    const filePath = sys.getIndexFilePath(staticRoute.pathname);
+    const pageFilePath = sys.getPageFilePath(staticRoute.pathname);
+    const dataFilePath = sys.getDataFilePath(staticRoute.pathname);
 
     const headers = createHeaders();
     headers.set('Accept', 'text/html');
@@ -88,16 +89,24 @@ async function workerRender(
         callback(result);
 
         if (result.ok) {
-          await sys.ensureDir(filePath);
+          await sys.ensureDir(pageFilePath);
 
           return new Promise((resolve) => {
-            const writer = sys.createWriteStream(filePath);
+            const pageWriter = sys.createWriteStream(pageFilePath);
+            const dataWriter = sys.createWriteStream(dataFilePath);
+
             body({
               write: (chunk) => {
-                writer.write(chunk);
+                // page html writer
+                pageWriter.write(chunk);
+              },
+              clientData: (data) => {
+                // page data writer
+                dataWriter.write(JSON.stringify(data));
               },
             }).finally(() => {
-              writer.close(resolve);
+              dataWriter.close();
+              pageWriter.close(resolve);
             });
           });
         }

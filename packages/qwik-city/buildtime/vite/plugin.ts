@@ -3,7 +3,7 @@ import { basename, join, resolve } from 'path';
 import type { Plugin, UserConfig } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-runtime';
 import type { BuildContext } from '../types';
-import { createBuildContext, resetBuildContext } from '../../utils/context';
+import { createBuildContext, resetBuildContext } from '../context';
 import {
   getExtension,
   isMarkdownExt,

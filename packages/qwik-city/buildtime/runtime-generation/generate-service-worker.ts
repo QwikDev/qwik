@@ -1,8 +1,8 @@
 import type { BuildContext, BuildRoute } from '../types';
 import swRegister from '@qwik-city-sw-register-build';
+import { isPageExt } from '../../utils/fs';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { ServiceWorkerBundles } from '../../runtime/src/library/service-worker/types';
-import { isPageModuleExt } from '../../utils/fs';
 
 export function generateServiceWorkerRegister(ctx: BuildContext) {
   let swReg: string;
@@ -60,7 +60,7 @@ function generateServiceWorkerLinks(ctx: BuildContext, manifest: QwikManifest) {
   const links: string[] = [];
 
   for (const route of ctx.routes) {
-    if (isPageModuleExt(route.ext)) {
+    if (isPageExt(route.ext)) {
       const pattern = route.pattern.toString();
       const bundleNames = getLinkBundleNames(ctx, manifest, route);
       links.push(`[${pattern},${JSON.stringify(bundleNames)}]`);

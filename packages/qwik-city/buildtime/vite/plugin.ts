@@ -24,7 +24,7 @@ import { readFile, writeFile } from 'fs/promises';
 import {
   generateServiceWorkerRegister,
   prependManifestToServiceWorker,
-} from '../runtime-generation/generate-sw-register';
+} from '../runtime-generation/generate-service-worker';
 
 /**
  * @alpha

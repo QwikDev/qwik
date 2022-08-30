@@ -235,7 +235,7 @@ export function updateRequestCtx(requestCtx: QwikCityRequestContext, trailingSla
   }
 }
 
-const QDATA_JSON = '/qdata.json';
+const QDATA_JSON = '/q-data.json';
 const QDATA_JSON_LEN = QDATA_JSON.length;
 
 const ABORT_INDEX = 999999999;

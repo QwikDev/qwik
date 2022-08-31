@@ -38,9 +38,8 @@ test('Page route, accept application/javascript', async ({ page: api }) => {
   expect(rsp.headers()['content-type']).toBe('application/json; charset=utf-8');
 
   const clientData: ClientPageData = await rsp.json();
-  expect(clientData.data.productId).toBe('hat');
-  expect(clientData.data.price).toBe('$21.96');
-  expect(clientData.params.id).toBe('hat');
+  expect(clientData.body.productId).toBe('hat');
+  expect(clientData.body.price).toBe('$21.96');
   expect(clientData.prefetch).toBeDefined();
 });
 
@@ -50,8 +49,7 @@ test('Page q-data.json route', async ({ page: api }) => {
   expect(rsp.headers()['content-type']).toBe('application/json; charset=utf-8');
 
   const clientData: ClientPageData = await rsp.json();
-  expect(clientData.data.productId).toBe('hat');
-  expect(clientData.data.price).toBe('$21.96');
-  expect(clientData.params.id).toBe('hat');
+  expect(clientData.body.productId).toBe('hat');
+  expect(clientData.body.price).toBe('$21.96');
   expect(clientData.prefetch).toBeDefined();
 });

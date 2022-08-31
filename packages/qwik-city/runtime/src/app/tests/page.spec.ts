@@ -83,15 +83,17 @@ test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
     activeHeaderLink: 'Products',
   });
 
-  /***********  Products: shirt (301 redirect to /products/tshirt)  ***********/
-  await linkNavigate(ctx, '[data-test-link="products-shirt"]');
-  await assertPage(ctx, {
-    pathname: '/products/tshirt',
-    title: 'Product tshirt - Qwik',
-    layoutHierarchy: ['root'],
-    h1: 'Product: tshirt',
-    activeHeaderLink: 'Products',
-  });
+  if (!javaScriptEnabled) {
+    /***********  Products: shirt (301 redirect to /products/tshirt)  ***********/
+    await linkNavigate(ctx, '[data-test-link="products-shirt"]');
+    await assertPage(ctx, {
+      pathname: '/products/tshirt',
+      title: 'Product tshirt - Qwik',
+      layoutHierarchy: ['root'],
+      h1: 'Product: tshirt',
+      activeHeaderLink: 'Products',
+    });
+  }
 
   /***********  Products: hoodie (404)  ***********/
   await linkNavigate(ctx, '[data-test-link="products-hoodie"]', 404);

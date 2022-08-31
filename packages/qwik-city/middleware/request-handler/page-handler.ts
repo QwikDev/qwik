@@ -26,7 +26,7 @@ export function pageHandler<T = any>(
     headers.set('Content-Type', 'text/html; charset=utf-8');
   }
 
-  return response(status, headers, async (stream) => {
+  return response(isPageData ? 200 : status, headers, async (stream) => {
     // begin http streaming the page content as it's rendering html
     const result = await render({
       stream: isPageData ? noopStream : stream,
@@ -55,10 +55,17 @@ export function pageHandler<T = any>(
 
 async function getClientPageData(userResponse: UserResponseContext, result: RenderResult) {
   const clientPage: ClientPageData = {
-    params: userResponse.params,
-    data: userResponse.pendingBody ? await userResponse.pendingBody : userResponse.resolvedBody,
+    body: userResponse.pendingBody ? await userResponse.pendingBody : userResponse.resolvedBody,
     prefetch: addPrefetchResource(result.prefetchResources, []),
+    status: userResponse.status,
   };
+  if (
+    userResponse.status >= 301 &&
+    userResponse.status <= 308 &&
+    userResponse.headers.has('location')
+  ) {
+    clientPage.redirect = userResponse.headers.get('location')!;
+  }
   return clientPage;
 }
 

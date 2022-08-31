@@ -177,7 +177,11 @@ export async function loadUserResponse(
 
   await next();
 
-  if (isRedirectStatus(userResponse.status) && userResponse.headers.has('Location')) {
+  if (
+    !isPageDataRequest &&
+    isRedirectStatus(userResponse.status) &&
+    userResponse.headers.has('Location')
+  ) {
     // user must have manually set redirect instead of throw response.redirect()
     // never render the page if the user manually set the status to be a redirect
     throw new RedirectResponse(

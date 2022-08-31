@@ -1,6 +1,6 @@
 import type { PlaywrightTestConfig } from '@playwright/test';
 
-const javaScriptEnabled = process.env.DISABLE_JS !== 'true';
+const javaScriptEnabled = process.env.mode === 'spa';
 
 const config: PlaywrightTestConfig = {
   use: {

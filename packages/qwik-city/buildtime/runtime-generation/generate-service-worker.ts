@@ -74,8 +74,10 @@ function generateServiceWorkerLinks(ctx: BuildContext, manifest: QwikManifest) {
 const knownLibraryNames = new Set([
   'QwikCity_component_useWatch',
   'RouterOutlet_component',
+  'Link_component',
   'Link_component_a_onClick',
   'Link_component_a_onMouseOver',
+  'Link_component_a_onQVisible',
 ]);
 
 function generateServiceWorkerLibraryBundles(manifest: QwikManifest) {

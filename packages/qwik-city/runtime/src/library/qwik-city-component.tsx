@@ -24,9 +24,10 @@ import {
   RouteNavigateContext,
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
-import { isBrowser } from '@builder.io/qwik/build';
+import { isBrowser, isServer } from '@builder.io/qwik/build';
 import { useQwikCityEnv } from './use-functions';
 import { clientNavigate, toPath } from './client-navigation';
+import { loadClientData } from './use-endpoint';
 
 /**
  * @alpha
@@ -74,11 +75,26 @@ export const QwikCity = component$(() => {
     const { routes, menus, cacheModules } = await import('@qwik-city-plan');
     const path = track(routeNavigate, 'path');
     const url = new URL(path, routeLocation.href);
-    const loadedRoute = await loadRoute(routes, menus, cacheModules, url.pathname);
+
+    const endpointResponse = isServer
+      ? env?.response
+      : loadClientData(sessionStorage, url.pathname, url);
+
+    const [loadedRoute, clientPageData] = await Promise.all([
+      loadRoute(routes, menus, cacheModules, url.pathname),
+      endpointResponse,
+    ]);
+
     if (loadedRoute) {
+      // Update route location
+      routeLocation.href = url.href;
+      routeLocation.pathname = url.pathname;
+      routeLocation.params = { ...loadedRoute.params };
+      routeLocation.query = Object.fromEntries(url.searchParams.entries());
+
       const contentModules = loadedRoute.mods as ContentModule[];
       const pageModule = contentModules[contentModules.length - 1] as PageModule;
-      const resolvedHead = resolveHead(env?.response, routeLocation, contentModules);
+      const resolvedHead = resolveHead(clientPageData, routeLocation, contentModules);
 
       // Update document head
       documentHead.links = resolvedHead.links;
@@ -90,12 +106,6 @@ export const QwikCity = component$(() => {
       content.headings = pageModule.headings;
       content.menu = loadedRoute.menu;
       contentInternal.contents = noSerialize(contentModules);
-
-      // Update route location
-      routeLocation.href = url.href;
-      routeLocation.pathname = url.pathname;
-      routeLocation.params = { ...loadedRoute.params };
-      routeLocation.query = Object.fromEntries(url.searchParams.entries());
 
       if (isBrowser) {
         clientNavigate(window, routeNavigate);

@@ -1,5 +1,5 @@
 import { Resource, component$, useStore } from '@builder.io/qwik';
-import { useEndpoint, useLocation, RequestHandler, DocumentHead } from '~qwik-city-runtime';
+import { Link, useEndpoint, useLocation, RequestHandler, DocumentHead } from '~qwik-city-runtime';
 import os from 'os';
 
 export default component$(() => {
@@ -53,22 +53,22 @@ export default component$(() => {
 
       <ul>
         <li>
-          <a href="/products/jacket" data-test-link="products-jacket">
+          <Link href="/products/jacket" data-test-link="products-jacket">
             Jacket
-          </a>
+          </Link>
         </li>
         <li>
-          <a href="/products/hat">Hat</a>
+          <Link href="/products/hat">Hat</Link>
         </li>
         <li>
-          <a href="/products/shirt" data-test-link="products-shirt">
+          <Link href="/products/shirt" data-test-link="products-shirt">
             T-Shirt (Redirect to /products/tshirt)
-          </a>
+          </Link>
         </li>
         <li>
-          <a href="/products/hoodie" data-test-link="products-hoodie">
+          <Link href="/products/hoodie" data-test-link="products-hoodie">
             Hoodie (404 Not Found)
-          </a>
+          </Link>
         </li>
       </ul>
     </div>

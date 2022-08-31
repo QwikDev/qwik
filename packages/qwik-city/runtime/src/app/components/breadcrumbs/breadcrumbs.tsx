@@ -1,4 +1,4 @@
-import { component$, useStyles$ } from '@builder.io/qwik';
+import { component$, mutable, useStyles$ } from '@builder.io/qwik';
 import { Link, useContent, useLocation, ContentMenu } from '~qwik-city-runtime';
 import styles from './breadcrumbs.css?inline';
 
@@ -17,7 +17,7 @@ export const Breadcrumbs = component$(() => {
     <nav class="breadcrumbs">
       {breadcrumbs.map((b, i) => (
         <span data-test-breadcrumb={i}>
-          {b.href ? <Link href={b.href}>{b.text}</Link> : b.text}
+          {b.href ? <Link href={mutable(b.href)}>{b.text}</Link> : b.text}
         </span>
       ))}
     </nav>

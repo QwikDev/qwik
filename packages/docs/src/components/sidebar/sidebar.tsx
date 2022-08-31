@@ -1,5 +1,5 @@
-import { component$, useContext, useStyles$ } from '@builder.io/qwik';
-import { ContentMenu, useContent, useLocation } from '@builder.io/qwik-city';
+import { component$, mutable, useContext, useStyles$ } from '@builder.io/qwik';
+import { ContentMenu, Link, useContent, useLocation } from '@builder.io/qwik-city';
 import { GlobalStore } from '../../context';
 import { CloseIcon } from '../svgs/close-icon';
 import styles from './sidebar.css?inline';
@@ -53,14 +53,14 @@ export const SideBar = component$(() => {
                 <ul>
                   {item.items?.map((item) => (
                     <li>
-                      <a
-                        href={item.href}
-                        class={{
+                      <Link
+                        href={mutable(item.href)}
+                        class={mutable({
                           'is-active': pathname === item.href,
-                        }}
+                        })}
                       >
                         {item.text}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>

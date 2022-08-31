@@ -1,5 +1,5 @@
-import { useLocation } from '@builder.io/qwik-city';
-import { component$, $, useStyles$, useContext } from '@builder.io/qwik';
+import { Link, useLocation } from '@builder.io/qwik-city';
+import { component$, $, useStyles$, useContext, mutable } from '@builder.io/qwik';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
@@ -27,10 +27,10 @@ export const Header = component$(() => {
     <header class="header-container">
       <div class="header-inner">
         <div class="header-logo">
-          <a href="/">
+          <Link href="/">
             <span className="sr-only">Qwik Homepage</span>
             <QwikLogo width={110} height={50} />
-          </a>
+          </Link>
           <DocSearch
             appId={import.meta.env.VITE_ALGOLIA_APP_ID}
             apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
@@ -47,22 +47,22 @@ export const Header = component$(() => {
         </button>
         <ul className="md:grow md:flex md:justify-end md:p-4 menu-toolkit">
           <li>
-            <a
+            <Link
               href="/docs/overview/"
-              class={{ active: pathname.startsWith('/docs') }}
+              class={mutable({ active: pathname.startsWith('/docs') })}
               onClick$={closeMenu}
             >
               <span>Docs</span>
-            </a>
+            </Link>
           </li>
           <li>
-            <a
+            <Link
               href="/qwikcity/overview/"
-              class={{ active: pathname.startsWith('/qwikcity') }}
+              class={mutable({ active: pathname.startsWith('/qwikcity') })}
               onClick$={closeMenu}
             >
               <span>Qwik City</span>
-            </a>
+            </Link>
           </li>
           <li>
             <a

@@ -1,5 +1,5 @@
-import { ContentMenu, useContent, useLocation } from '@builder.io/qwik-city';
-import { component$, useStyles$ } from '@builder.io/qwik';
+import { ContentMenu, Link, useContent, useLocation } from '@builder.io/qwik-city';
+import { component$, mutable, useStyles$ } from '@builder.io/qwik';
 import styles from './content-nav.css?inline';
 
 export const ContentNav = component$(() => {
@@ -21,16 +21,16 @@ export const ContentNav = component$(() => {
     <nav class="content-nav border-t border-slate-300 flex flex-wrap py-4">
       <div class="flex-1">
         {prev ? (
-          <a class="px-3 py-1 prev" href={prev.href}>
+          <Link class="px-3 py-1 prev" href={mutable(prev.href)}>
             {prev.text}
-          </a>
+          </Link>
         ) : null}
       </div>
       <div class="flex-1 text-right">
         {next ? (
-          <a class="px-3 py-1 next" href={next.href}>
+          <Link class="px-3 py-1 next" href={mutable(next.href)}>
             {next.text}
-          </a>
+          </Link>
         ) : null}
       </div>
     </nav>

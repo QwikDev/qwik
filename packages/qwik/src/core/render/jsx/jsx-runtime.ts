@@ -21,9 +21,7 @@ export const jsx = <T extends string | FunctionComponent<PROPS>, PROPS>(
   return new JSXNodeImpl<T>(type, props, key);
 };
 
-export const HOST_TYPE = ':host';
 export const SKIP_RENDER_TYPE = ':skipRender';
-export const VIRTUAL_TYPE = ':virtual';
 
 export class JSXNodeImpl<T> implements JSXNode<T> {
   constructor(

@@ -1,9 +1,11 @@
 import { parseQRL } from '../import/qrl';
-import { isQrl, isSameQRL, QRLInternal } from '../import/qrl-class';
-import type { QContext } from './props';
-import { isArray } from '../util/types';
+import { isQrl, QRLInternal } from '../import/qrl-class';
+import { normalizeOnProp, QContext } from './props';
 import { $ } from '../import/qrl.public';
 import { QScopedStyle } from '../util/markers';
+import { directGetAttribute } from '../render/fast-calls';
+import { isArray } from '../util/types';
+import { assertTrue } from '../assert/assert';
 
 const ON_PROP_REGEX = /^(window:|document:|)on([A-Z]|-.).*\$$/;
 
@@ -11,16 +13,7 @@ export const isOnProp = (prop: string): boolean => {
   return ON_PROP_REGEX.test(prop);
 };
 
-export const addQRLListener = (
-  ctx: QContext,
-  prop: string,
-  input: any
-): QRLInternal<any>[] | undefined => {
-  if (!input) {
-    return undefined;
-  }
-  const value = isArray(input) ? input.map(ensureQrl) : ensureQrl(input);
-
+export const addQRLListener = (ctx: QContext, prop: string, input: QRLInternal[]): boolean => {
   if (!ctx.$listeners$) {
     ctx.$listeners$ = new Map();
   }
@@ -28,22 +21,24 @@ export const addQRLListener = (
   if (!existingListeners) {
     ctx.$listeners$.set(prop, (existingListeners = []));
   }
-  const newQRLs = isArray(value) ? value : [value];
-  for (const value of newQRLs) {
-    const cp = value.$copy$();
-    cp.$setContainer$(ctx.$element$);
-
-    // Important we modify the array as it is cached.
+  start: for (const qrl of input) {
+    const hash = qrl.$hash$;
     for (let i = 0; i < existingListeners.length; i++) {
       const qrl = existingListeners[i];
-      if (isSameQRL(qrl as any, cp)) {
-        existingListeners.splice(i, 1);
-        i--;
+      if (qrl.$hash$ === hash) {
+        existingListeners.splice(i, 1, qrl);
+        continue start;
       }
     }
-    existingListeners.push(cp);
+    existingListeners.push(qrl);
   }
-  return existingListeners;
+  return false;
+};
+
+export const setEvent = (ctx: QContext, prop: string, input: any) => {
+  assertTrue(prop.endsWith('$'), 'render: event property does not end with $', prop);
+  const qrls = isArray(input) ? input.map(ensureQrl) : [ensureQrl(input)];
+  addQRLListener(ctx, normalizeOnProp(prop.slice(0, -1)), qrls);
 };
 
 const ensureQrl = (value: any) => {
@@ -71,7 +66,7 @@ export const getDomListeners = (el: Element): Map<string, QRLInternal[]> => {
 };
 
 export const getScopeIds = (el: Element): string[] => {
-  const scoped = el.getAttribute(QScopedStyle);
+  const scoped = directGetAttribute(el, QScopedStyle);
   if (scoped) {
     return scoped.split(' ');
   }

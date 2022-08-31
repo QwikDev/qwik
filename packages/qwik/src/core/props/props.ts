@@ -45,28 +45,23 @@ export interface QContextEvents {
   [eventName: string]: QRL | undefined;
 }
 
-export interface ComponentCtx {
-  $ctx$: QContext;
-  $slots$: ProcessedJSXNode[];
-  $attachedListeners$: boolean;
-}
-
 export interface QContext {
   $element$: QwikElement;
   $refMap$: any[];
   $dirty$: boolean;
+  $attachedListeners$: boolean;
   $id$: string;
   $mounted$: boolean;
-  $cache$: Map<string, any> | null;
   $props$: Record<string, any> | null;
   $renderQrl$: QRLInternal<OnRenderFn<any>> | null;
-  $component$: ComponentCtx | null;
   $listeners$: Map<string, QRLInternal<any>[]> | null;
   $seq$: any[];
   $watches$: SubscriberDescriptor[];
   $contexts$: Map<string, any> | null;
   $appendStyles$: StyleAppend[] | null;
   $scopeIds$: string[] | null;
+  $vdom$: ProcessedJSXNode | null;
+  $slots$: ProcessedJSXNode[] | null;
 }
 
 export const tryGetContext = (element: QwikElement): QContext | undefined => {
@@ -79,17 +74,18 @@ export const getContext = (element: Element | VirtualElement): QContext => {
     (element as any)[Q_CTX] = ctx = {
       $dirty$: false,
       $mounted$: false,
+      $attachedListeners$: false,
       $id$: '',
       $element$: element,
-      $cache$: null,
       $refMap$: [],
       $seq$: [],
       $watches$: [],
+      $slots$: null,
       $scopeIds$: null,
       $appendStyles$: null,
       $props$: null,
+      $vdom$: null,
       $renderQrl$: null,
-      $component$: null,
       $listeners$: null,
       $contexts$: null,
     };
@@ -106,7 +102,6 @@ export const cleanupContext = (ctx: QContext, subsManager: SubscriptionManager) 
   if (ctx.$renderQrl$) {
     subsManager.$clearSub$(el);
   }
-  ctx.$component$ = null;
   ctx.$renderQrl$ = null;
   ctx.$seq$.length = 0;
   ctx.$watches$.length = 0;
@@ -132,7 +127,7 @@ export const normalizeOnProp = (prop: string) => {
   } else {
     prop = prop.toLowerCase();
   }
-  return `${scope}:${prop}`;
+  return scope + ":" + prop;
 };
 
 export const createProps = (target: any, containerState: ContainerState) => {

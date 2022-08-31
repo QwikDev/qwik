@@ -257,7 +257,7 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
   assertQrl(qrl);
 
   const el = ctx.$hostElement$;
-  const containerState = ctx.$renderCtx$.$containerState$;
+  const containerState = ctx.$renderCtx$.$static$.$containerState$;
   const watch = new Watch(WatchFlagsIsDirty | WatchFlagsIsWatch, i, el, qrl, undefined);
   set(true);
   qrl.$resolveLazy$(el);
@@ -373,7 +373,7 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
   useRunWatch(watch, eagerness);
   if (!isServer(ctx)) {
     qrl.$resolveLazy$(el);
-    notifyWatch(watch, ctx.$renderCtx$.$containerState$);
+    notifyWatch(watch, ctx.$renderCtx$.$static$.$containerState$);
   }
 };
 

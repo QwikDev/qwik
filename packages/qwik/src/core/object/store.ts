@@ -76,7 +76,7 @@ export const pauseContainer = async (
 export const moveStyles = (containerEl: Element, containerState: ContainerState) => {
   const head = containerEl.ownerDocument.head;
   containerEl.querySelectorAll('style[q\\:style]').forEach((el) => {
-    containerState.$styleIds$.add(el.getAttribute(QStyle)!);
+    containerState.$styleIds$.add(directGetAttribute(el, QStyle)!);
     head.appendChild(el);
   });
 };
@@ -142,7 +142,7 @@ export const resumeContainer = (containerEl: Element) => {
     if (qobj) {
       assertTrue(isElement(el), 'el must be an actual DOM element');
       ctx.$refMap$.push(...qobj.split(' ').map((part) => getObject(part)));
-      ctx.$listeners$ = getDomListeners(el as any);
+      ctx.$listeners$ = getDomListeners(el as Element);
     }
     if (seq) {
       ctx.$seq$ = seq.split(' ').map((part) => getObject(part));

@@ -17,7 +17,6 @@ import type { ContainerState } from './container';
 import { fromCamelToKebabCase } from '../util/case';
 import { qError, QError_stringifyClassOrStyle } from '../error/error';
 import { intToStr } from '../object/store';
-import { directSetAttribute } from './fast-calls';
 import type { QwikElement } from './dom/virtual-element';
 
 export interface ExecuteComponentOutput {
@@ -27,60 +26,51 @@ export interface ExecuteComponentOutput {
 
 export const executeComponent = (
   rctx: RenderContext,
-  ctx: QContext
+  elCtx: QContext
 ): ValueOrPromise<ExecuteComponentOutput | void> => {
-  ctx.$dirty$ = false;
-  ctx.$mounted$ = true;
+  elCtx.$dirty$ = false;
+  elCtx.$mounted$ = true;
+  elCtx.$slots$ = [];
 
-  const hostElement = ctx.$element$;
-  const onRenderQRL = ctx.$renderQrl$!;
-  assertDefined(onRenderQRL, `render: host element to render must has a $renderQrl$:`, ctx);
+  const hostElement = elCtx.$element$;
+  const onRenderQRL = elCtx.$renderQrl$!;
+  const staticCtx = rctx.$static$;
+  const containerState = staticCtx.$containerState$;
+  const props = elCtx.$props$;
+  const newCtx = pushRenderContext(rctx, elCtx);
+  const invocatinContext = newInvokeContext(staticCtx.$doc$, hostElement, undefined, RenderEvent);
+  const waitOn = (invocatinContext.$waitOn$ = [] as any[]);
+  assertDefined(onRenderQRL, `render: host element to render must has a $renderQrl$:`, elCtx);
+  assertDefined(props, `render: host element to render must has defined props`, elCtx);
 
-  const props = ctx.$props$;
-  assertDefined(props, `render: host element to render must has defined props`, ctx);
-
-  // Component is not dirty any more
-  rctx.$containerState$.$hostsStaging$.delete(hostElement);
-
-  const newCtx = copyRenderContext(rctx);
+  // Set component context
+  newCtx.$cmpCtx$ = elCtx;
 
   // Invoke render hook
-  const invocatinContext = newInvokeContext(rctx.$doc$, hostElement, undefined, RenderEvent);
   invocatinContext.$subscriber$ = hostElement;
-  invocatinContext.$renderCtx$ = newCtx;
-  const waitOn = (invocatinContext.$waitOn$ = [] as any[]);
+  invocatinContext.$renderCtx$ = rctx;
 
+  // Component is not dirty any more
+  containerState.$hostsStaging$.delete(hostElement);
   // Clean current subscription before render
-  rctx.$containerState$.$subsManager$.$clearSub$(hostElement);
+  containerState.$subsManager$.$clearSub$(hostElement);
 
   // Resolve render function
-  const onRenderFn = onRenderQRL.$invokeFn$(rctx.$containerEl$, invocatinContext);
+  const onRenderFn = onRenderQRL.$invokeFn$(containerState.$containerEl$, invocatinContext);
 
   return safeCall(
     () => onRenderFn(props) as JSXNode | Function,
     (jsxNode) => {
-      rctx.$hostElements$.add(hostElement);
+      staticCtx.$hostElements$.add(hostElement);
       const waitOnPromise = promiseAll(waitOn);
       return then(waitOnPromise, () => {
         if (isFunction(jsxNode)) {
-          ctx.$dirty$ = false;
+          elCtx.$dirty$ = false;
           jsxNode = jsxNode();
-        } else if (ctx.$dirty$) {
-          return executeComponent(rctx, ctx);
+        } else if (elCtx.$dirty$) {
+          return executeComponent(rctx, elCtx);
         }
-
-        let componentCtx = ctx.$component$;
-        if (!componentCtx) {
-          componentCtx = ctx.$component$ = {
-            $ctx$: ctx,
-            $slots$: [],
-            $attachedListeners$: false,
-          };
-        }
-        componentCtx.$attachedListeners$ = false;
-        componentCtx.$slots$ = [];
-        newCtx.$localStack$.push(ctx);
-        newCtx.$currentComponent$ = componentCtx;
+        elCtx.$attachedListeners$ = false;
         return {
           node: jsxNode as JSXNode,
           rctx: newCtx,
@@ -98,26 +88,26 @@ export const createRenderContext = (
   containerState: ContainerState
 ): RenderContext => {
   const ctx: RenderContext = {
-    $doc$: doc,
-    $containerState$: containerState,
-    $containerEl$: containerState.$containerEl$,
-    $hostElements$: new Set(),
-    $operations$: [],
-    $postOperations$: [],
-    $roots$: [],
-    $localStack$: [],
-    $currentComponent$: undefined,
-    $perf$: {
-      $visited$: 0,
+    $static$: {
+      $doc$: doc,
+      $containerState$: containerState,
+      $containerEl$: containerState.$containerEl$,
+      $hostElements$: new Set(),
+      $operations$: [],
+      $postOperations$: [],
+      $roots$: [],
     },
+    $cmpCtx$: undefined,
+    $localStack$: [],
   };
   return ctx;
 };
 
-export const copyRenderContext = (ctx: RenderContext): RenderContext => {
+export const pushRenderContext = (ctx: RenderContext, elCtx: QContext): RenderContext => {
   const newCtx: RenderContext = {
-    ...ctx,
-    $localStack$: [...ctx.$localStack$],
+    $static$: ctx.$static$,
+    $cmpCtx$: ctx.$cmpCtx$,
+    $localStack$: ctx.$localStack$.concat(elCtx),
   };
   return newCtx;
 };
@@ -186,7 +176,7 @@ export const stringifyStyle = (obj: any): string => {
 };
 
 export const getNextIndex = (ctx: RenderContext) => {
-  return intToStr(ctx.$containerState$.$elementIndex$++);
+  return intToStr(ctx.$static$.$containerState$.$elementIndex$++);
 };
 
 export const getQId = (el: QwikElement): string | null => {
@@ -200,7 +190,7 @@ export const getQId = (el: QwikElement): string | null => {
 export const setQId = (rctx: RenderContext, ctx: QContext) => {
   const id = getNextIndex(rctx);
   ctx.$id$ = id;
-  directSetAttribute(ctx.$element$, ELEMENT_ID, id);
+  ctx.$element$.setAttribute(ELEMENT_ID, id);
 };
 
 export const hasStyle = (containerState: ContainerState, styleId: string) => {

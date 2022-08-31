@@ -112,7 +112,8 @@ export const getPlatform = (docOrNode: Document | QwikElement) => {
 export const isServer = (ctx: InvokeContext) => {
   if (qDynamicPlatform) {
     return (
-      ctx.$renderCtx$?.$containerState$.$platform$.isServer ?? getPlatform(ctx.$doc$!).isServer
+      ctx.$renderCtx$?.$static$.$containerState$.$platform$.isServer ??
+      getPlatform(ctx.$doc$!).isServer
     );
   }
   return false;

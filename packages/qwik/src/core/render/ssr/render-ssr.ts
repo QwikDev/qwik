@@ -2,11 +2,10 @@ import { isNotNullable, isPromise, then } from '../../util/promises';
 import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
 import { isJSXNode, jsx } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, ValueOrPromise } from '../../util/types';
-import { getContext, getPropsMutator, normalizeOnProp, QContext } from '../../props/props';
+import { getContext, getPropsMutator, QContext } from '../../props/props';
 import type { JSXNode } from '../jsx/types/jsx-node';
 import {
   ALLOWS_PROPS,
-  copyRenderContext,
   createRenderContext,
   executeComponent,
   getNextIndex,
@@ -24,7 +23,7 @@ import {
 } from '../../util/markers';
 import { SSRComment, Virtual } from '../jsx/host.public';
 import { logError, logWarn } from '../../util/log';
-import { addQRLListener, isOnProp } from '../../props/props-on';
+import { addQRLListener, isOnProp, setEvent } from '../../props/props-on';
 import { version } from '../../version';
 import { fromCamelToKebabCase } from '../../util/case';
 import { serializeQRLs } from '../../import/qrl';
@@ -33,7 +32,7 @@ import type { RenderContext } from '../types';
 import { assertDefined } from '../../assert/assert';
 import { serializeSStyle, styleHost } from '../../component/qrl-styles';
 import type { Ref } from '../../use/use-ref';
-import { serializeVirtualAttributes } from '../dom/virtual-element';
+import { serializeVirtualAttributes, VIRTUAL } from '../dom/virtual-element';
 import { qDev } from '../../util/qdev';
 
 /**
@@ -145,7 +144,7 @@ export const renderRoot = async (
       );
     }
   }
-  return ssrCtx.rctx;
+  return ssrCtx.rctx.$static$;
 };
 
 export const renderNodeFunction = (
@@ -160,7 +159,7 @@ export const renderNodeFunction = (
     return;
   }
   if (node.type === Virtual) {
-    const elCtx = getContext(ssrCtx.rctx.$doc$.createElement(':virtual'));
+    const elCtx = getContext(ssrCtx.rctx.$static$.$doc$.createElement(VIRTUAL));
     return renderNodeVirtual(node, elCtx, undefined, ssrCtx, stream, flags, beforeClose);
   }
   const res = ssrCtx.invocationContext
@@ -246,17 +245,17 @@ export const renderNodeElement = (
   const key = node.key != null ? String(node.key) : null;
   const props = node.props;
   const textType = node.type;
-  const elCtx = getContext(ssrCtx.rctx.$doc$.createElement(node.type));
+  const elCtx = getContext(ssrCtx.rctx.$static$.$doc$.createElement(node.type));
   const hasRef = 'ref' in props;
   const attributes = updateProperties(elCtx, props);
   const hostCtx = ssrCtx.hostCtx;
   if (hostCtx) {
     attributes['class'] = joinClasses(hostCtx.$scopeIds$, attributes['class']);
-    const cmp = hostCtx.$component$!;
+    const cmp = hostCtx;
     if (!cmp.$attachedListeners$) {
       cmp.$attachedListeners$ = true;
-      hostCtx.$listeners$?.forEach((qrl, eventName) => {
-        addQRLListener(elCtx, eventName, qrl);
+      hostCtx.$listeners$?.forEach((qrls, eventName) => {
+        addQRLListener(elCtx, eventName, qrls);
       });
     }
   }
@@ -415,12 +414,12 @@ export const renderSSRComponent = (
         children = [children];
       }
     }
-    const invocationContext = newInvokeContext(newCtx.$doc$, hostElement, undefined);
+    const invocationContext = newInvokeContext(newCtx.$static$.$doc$, hostElement, undefined);
     invocationContext.$subscriber$ = hostElement;
     invocationContext.$renderCtx$ = newCtx;
     const projectedContext: SSRContext = {
       ...ssrCtx,
-      rctx: copyRenderContext(newCtx),
+      rctx: newCtx,
     };
     const newSSrContext: SSRContext = {
       ...ssrCtx,
@@ -670,8 +669,7 @@ const updateProperties = (ctx: QContext, expectProps: Record<string, any> | null
     }
 
     if (isOnProp(key)) {
-      const attributeName = normalizeOnProp(key.slice(0, -1));
-      addQRLListener(ctx, attributeName, newValue);
+      setEvent(ctx, key, newValue);
       continue;
     }
 
@@ -694,7 +692,7 @@ const updateComponentProperties = (
   if (keys.length === 0) {
     return attributes;
   }
-  const qwikProps = getPropsMutator(ctx, rctx.$containerState$);
+  const qwikProps = getPropsMutator(ctx, rctx.$static$.$containerState$);
   for (const key of keys) {
     if (key === 'children' || key === OnRenderProp) {
       continue;

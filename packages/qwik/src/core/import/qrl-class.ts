@@ -17,6 +17,8 @@ export interface QRLInternalMethods<TYPE> {
   readonly $chunk$: string;
   readonly $symbol$: string;
   readonly $refSymbol$: string | null;
+  readonly $hash$: string;
+
   $capture$: string[] | null;
   $captureRef$: any[] | null;
 
@@ -105,17 +107,19 @@ export const createQRL = <TYPE>(
     const result = await fn(...args);
     return result;
   };
+  const hash = getSymbolHash(symbol);
 
   const QRL: QRLInternal<TYPE> = invokeQRL as any;
   const methods: QRLInternalMethods<TYPE> = {
     getSymbol: () => refSymbol ?? symbol,
-    getHash: () => getSymbolHash(refSymbol ?? symbol),
+    getHash: () => hash,
     resolve,
     $resolveLazy$: resolveLazy,
     $setContainer$: setContainer,
     $chunk$: chunk,
     $symbol$: symbol,
     $refSymbol$: refSymbol,
+    $hash$: hash,
     $invokeFn$: invokeFn,
 
     $capture$: capture,
@@ -138,10 +142,6 @@ export const getSymbolHash = (symbolName: string) => {
     return symbolName.slice(index + 1);
   }
   return symbolName;
-};
-
-export const isSameQRL = (a: QRLInternal<any>, b: QRLInternal<any>): boolean => {
-  return a.getHash() === b.getHash();
 };
 
 export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {

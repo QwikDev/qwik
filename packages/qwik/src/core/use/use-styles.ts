@@ -126,7 +126,7 @@ const _useStyles = (
   const renderCtx = ctx.$renderCtx$;
   const styleId = styleKey(styleQrl, i);
   const hostElement = ctx.$hostElement$;
-  const containerState = renderCtx.$containerState$;
+  const containerState = renderCtx.$static$.$containerState$;
   const elCtx = getContext(ctx.$hostElement$);
   set(styleId);
 

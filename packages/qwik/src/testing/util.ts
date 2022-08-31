@@ -63,7 +63,7 @@ function isNode(value: any): value is Node {
 }
 
 function isElement(value: any): value is HTMLElement {
-  return isNode(value) && value.nodeType == 1 /*ELEMENT_NODE*/;
+  return isNode(value) && value.nodeType === 1 /*ELEMENT_NODE*/;
 }
 
 export function normalizeUrl(url: string | URL | undefined | null) {

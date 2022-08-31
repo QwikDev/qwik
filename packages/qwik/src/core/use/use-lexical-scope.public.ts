@@ -20,8 +20,8 @@ import { assertQrl } from '../import/qrl-class';
 // </docs>
 export const useLexicalScope = <VARS extends any[]>(): VARS => {
   const context = getInvokeContext();
-  const hostElement = context.$hostElement$;
-  const qrl = context.$qrl$ ?? parseQRL(decodeURIComponent(String(context.$url$)), hostElement);
+  const el = context.$element$;
+  const qrl = context.$qrl$ ?? parseQRL(decodeURIComponent(String(context.$url$)), el);
   assertQrl(qrl);
 
   if (qrl.$captureRef$ == null) {

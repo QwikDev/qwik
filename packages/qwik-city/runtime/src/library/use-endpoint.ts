@@ -4,6 +4,7 @@ import { isServer } from '@builder.io/qwik/build';
 import type { ClientPageData, GetEndpointData } from './types';
 import { getClientEndpointPath } from './client-navigation';
 import type { QPrefetchData } from './service-worker/types';
+import { cacheModules } from '@qwik-city-plan';
 
 /**
  * @alpha
@@ -12,7 +13,7 @@ export const useEndpoint = <T = unknown>() => {
   const loc = useLocation();
   const env = useQwikCityEnv();
 
-  return useResource$<GetEndpointData<T>>(({ track }) => {
+  return useResource$<GetEndpointData<T>>(async ({ track }) => {
     const pathname = track(loc, 'pathname');
 
     if (isServer) {
@@ -22,53 +23,70 @@ export const useEndpoint = <T = unknown>() => {
       return env.response.body;
     } else {
       // fetch() for new data when the pathname has changed
-      return fetchClientData(pathname, loc);
+      const clientData = await loadClientData(sessionStorage, pathname, loc);
+      return clientData && clientData.body;
     }
   });
 };
 
-const cachedClientDataResponses: { c: Promise<ClientPageData>; t: number; u: string }[] = [];
+const pendingClientDataFetch = new Map<string, Promise<ClientPageData | null>>();
 
-export const fetchClientData = async (pathname: string, baseUrl: { href: string }) => {
+export const loadClientData = async (
+  qSession: Storage,
+  pathname: string,
+  baseUrl: { href: string }
+) => {
   const endpointUrl = getClientEndpointPath(pathname, baseUrl);
-  const i = cachedClientDataResponses.findIndex((cached) => cached.u === endpointUrl);
   const now = Date.now();
-  let cachedClientDataResponse = cachedClientDataResponses[i];
+  const expiration = cacheModules ? 600000 : 10000;
 
-  if (!cachedClientDataResponse || cachedClientDataResponse.t + 300000 < now) {
-    cachedClientDataResponse = {
-      c: new Promise<ClientPageData>((resolve, reject) => {
-        fetch(endpointUrl).then((clientResponse) => {
-          try {
-            const contentType = clientResponse.headers.get('content-type') || '';
-            if (clientResponse.ok && contentType.includes('json')) {
-              clientResponse.json().then((clientData: ClientPageData) => {
-                const prefetchData: QPrefetchData = { links: clientData.prefetch };
-                dispatchEvent(new CustomEvent('qprefetch', { detail: prefetchData }));
-                resolve(clientData);
-              }, reject);
-            } else {
-              reject(`Invalid endpoint response: ${clientResponse.status}, ${contentType}`);
-            }
-          } catch (e) {
-            reject(e);
-          }
-        }, reject);
-      }),
-      t: now,
-      u: endpointUrl,
-    };
-    if (i > -1) {
-      cachedClientDataResponses[i] = cachedClientDataResponse;
-    } else {
-      cachedClientDataResponses.push(cachedClientDataResponse);
-      if (cachedClientDataResponses.length > 30) {
-        cachedClientDataResponses.splice(0, cachedClientDataResponses.length - 30);
-      }
+  let pendingFetch = pendingClientDataFetch.get(endpointUrl);
+  if (!pendingFetch) {
+    const cachedClientDataResponse: CachedClientDataResponse | null = JSON.parse(
+      qSession.getItem(endpointUrl) || 'null'
+    );
+
+    if (cachedClientDataResponse && cachedClientDataResponse.t + expiration > now) {
+      // we already cached the data and it hasn't expired yet
+      return cachedClientDataResponse.c;
     }
+
+    pendingFetch = new Promise<any>((resolve) => {
+      fetch(endpointUrl).then(
+        (clientResponse) => {
+          const contentType = clientResponse.headers.get('content-type') || '';
+          if (clientResponse.ok && contentType.includes('json')) {
+            clientResponse.json().then(
+              (clientData: ClientPageData) => {
+                const prefetchData: QPrefetchData = { links: clientData.prefetch };
+                const cachedClientDataResponse: CachedClientDataResponse = {
+                  c: clientData,
+                  t: now,
+                };
+
+                dispatchEvent(new CustomEvent('qprefetch', { detail: prefetchData }));
+
+                if (qSession.length > 100) {
+                  qSession.clear();
+                }
+                qSession.setItem(endpointUrl, JSON.stringify(cachedClientDataResponse));
+
+                resolve(clientData);
+              },
+              () => resolve(null)
+            );
+          } else {
+            resolve(null);
+          }
+        },
+        () => resolve(null)
+      );
+    }).finally(() => pendingClientDataFetch.delete(endpointUrl));
+
+    pendingClientDataFetch.set(endpointUrl, pendingFetch);
   }
 
-  const clientPageData = await cachedClientDataResponse.c;
-
-  return clientPageData.data;
+  return pendingFetch;
 };
+
+type CachedClientDataResponse = { c: ClientPageData; t: number };

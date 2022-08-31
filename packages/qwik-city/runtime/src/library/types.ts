@@ -309,10 +309,9 @@ export interface EndpointResponse {
   status: number;
 }
 
-export interface ClientPageData {
-  data: any;
-  params: RouteParams;
+export interface ClientPageData extends EndpointResponse {
   prefetch: string[];
+  redirect?: string;
 }
 
 /**

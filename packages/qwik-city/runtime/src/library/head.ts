@@ -8,7 +8,7 @@ import type {
 } from './types';
 
 export const resolveHead = (
-  endpoint: EndpointResponse | undefined,
+  endpoint: EndpointResponse | undefined | null,
   routeLocation: RouteLocation,
   contentModules: ContentModule[]
 ) => {

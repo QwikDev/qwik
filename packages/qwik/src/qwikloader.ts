@@ -1,3 +1,5 @@
+import type { QRLInternal } from './core/import/qrl-class';
+
 /**
  * Set up event listening for browser.
  *
@@ -42,6 +44,15 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
     if (element.hasAttribute('preventdefault:' + eventName)) {
       ev.preventDefault();
     }
+    const attrName = 'on' + onPrefix + ':' + eventName;
+    const qrls = (element as any)['_qc_']?.li?.get(attrName);
+    if (qrls) {
+      qrls.forEach((q: QRLInternal) => {
+        const fn = q.getFn([element, ev] as any);
+        fn(ev, element);
+      });
+      return;
+    }
     const attrValue = element.getAttribute('on' + onPrefix + ':' + eventName);
     if (attrValue) {
       for (const qrl of attrValue.split('\n')) {
@@ -55,7 +66,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
           if (element.isConnected) {
             try {
               (doc as any)[Q_CONTEXT] = [element, ev, url];
-              handler(ev, element, url);
+              handler(ev, element);
             } finally {
               (doc as any)[Q_CONTEXT] = previousCtx;
               emitEvent(element, 'qsymbol', symbolName);

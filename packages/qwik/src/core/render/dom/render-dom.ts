@@ -4,7 +4,7 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
 import { QScopedStyle } from '../../util/markers';
 import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises';
-import { qDev } from '../../util/qdev';
+import { qDev, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
 import { domToVnode, visitJsxNode } from './visitor';
 import { SkipRerender, Virtual } from '../jsx/host.public';
@@ -72,7 +72,9 @@ export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
     public $props$: Record<string, any>,
     public $children$: ProcessedJSXNode[],
     public $key$: string | null
-  ) {}
+  ) {
+    seal(this);
+  }
 }
 
 export const processNode = (
@@ -99,14 +101,10 @@ export const processNode = (
     throw qError(QError_invalidJsxNodeType, nodeType);
   }
   let children: ProcessedJSXNode[] = EMPTY_ARRAY;
-  if (originalChildren) {
+  if (originalChildren != null) {
     return then(processData(originalChildren, invocationContext), (result) => {
       if (result !== undefined) {
-        if (isArray(result)) {
-          children = result;
-        } else {
-          children = [result];
-        }
+        children = isArray(result) ? result : [result];
       }
       return new ProcessedJSXNodeImpl(textType, props, children, key);
     });

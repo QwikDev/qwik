@@ -5,7 +5,7 @@ export function createEl(tagName: string, doc: Document) {
     localName: tagName,
     ownerDocument: doc,
     isConnected: true,
-    __ctx__: null,
+    _qc_: null,
     __virtual: null,
     'q:id': null,
   };

@@ -1,5 +1,6 @@
 import { assertEqual, assertTrue } from '../../assert/assert';
 import { isElement, isQwikElement, isVirtualElement } from '../../util/element';
+import { qSerialize, seal } from '../../util/qdev';
 import { directGetAttribute } from '../fast-calls';
 import { getChildren } from './visitor';
 
@@ -40,10 +41,10 @@ export type QwikElement = Element | VirtualElement;
 export const newVirtualElement = (doc: Document): VirtualElement => {
   const open = doc.createComment('qv ');
   const close = doc.createComment('/qv');
-  return new VirtualElement2(open, close);
+  return new VirtualElementImpl(open, close);
 };
 
-export const parseVirtualAttributes = (str: string) => {
+export const parseVirtualAttributes = (str: string): Map<string, string> => {
   if (!str) {
     return new Map();
   }
@@ -117,33 +118,32 @@ export const unescape = (s: string) => {
 
 export const VIRTUAL = ':virtual';
 
-export class VirtualElement2 implements VirtualElement {
-  private template: HTMLTemplateElement;
+export class VirtualElementImpl implements VirtualElement {
   ownerDocument: Document;
+  _qc_: any = null;
+
   readonly nodeType = 111 as const;
   readonly localName = VIRTUAL;
   readonly nodeName = VIRTUAL;
-  private attributes: Map<any, any>;
+  private attributes: Map<string, string>;
+  private template: HTMLTemplateElement;
+
   constructor(public open: Comment, public close: Comment) {
     const doc = (this.ownerDocument = open.ownerDocument);
     this.template = doc.createElement('template');
     this.attributes = parseVirtualAttributes(open.data.slice(3));
     assertTrue(open.data.startsWith('qv '), 'comment is not a qv');
     (open as any)[VIRTUAL_SYMBOL] = this;
+    seal(this);
   }
 
   insertBefore<T extends Node>(node: T, ref: Node | null): T {
-    // if (qDev && child) {
-    //   if (!children.includes(child)) {
-    //     throw new Error('child is not part of the virtual element');
-    //   }
-    // }
     const parent = this.parentElement;
     if (parent) {
       const ref2 = ref ? ref : this.close;
       parent.insertBefore(node, ref2);
     } else {
-      this.insertBefore(node, ref);
+      this.template.insertBefore(node, ref);
     }
     return node;
   }
@@ -180,10 +180,6 @@ export class VirtualElement2 implements VirtualElement {
     this.insertBeforeTo(newParent, null);
   }
 
-  updateComment() {
-    this.open.data = `qv ${serializeVirtualAttributes(this.attributes)}`;
-  }
-
   removeChild(child: Node) {
     if (this.parentElement) {
       this.parentElement.removeChild(child);
@@ -202,12 +198,16 @@ export class VirtualElement2 implements VirtualElement {
 
   setAttribute(prop: string, value: string) {
     this.attributes.set(prop, value);
-    this.updateComment();
+    if (qSerialize) {
+      this.open.data = updateComment(this.attributes);
+    }
   }
 
   removeAttribute(prop: string) {
     this.attributes.delete(prop);
-    this.updateComment();
+    if (qSerialize) {
+      this.open.data = updateComment(this.attributes);
+    }
   }
 
   matches(_: string) {
@@ -295,6 +295,10 @@ export class VirtualElement2 implements VirtualElement {
   }
 }
 
+const updateComment = (attributes: Map<string, string>) => {
+  return `qv ${serializeVirtualAttributes(attributes)}`;
+};
+
 export const processVirtualNodes = (node: Node | null): Node | QwikElement | null => {
   if (node == null) {
     return null;
@@ -316,7 +320,7 @@ export const getVirtualElement = (open: Comment): VirtualElement | null => {
   }
   if (open.data.startsWith('qv ')) {
     const close = findClose(open);
-    return new VirtualElement2(open, close);
+    return new VirtualElementImpl(open, close);
   }
   return null;
 };

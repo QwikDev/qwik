@@ -18,6 +18,7 @@ import { fromCamelToKebabCase } from '../util/case';
 import { qError, QError_stringifyClassOrStyle } from '../error/error';
 import { intToStr } from '../object/store';
 import type { QwikElement } from './dom/virtual-element';
+import { qSerialize, seal } from '../util/qdev';
 
 export interface ExecuteComponentOutput {
   node: JSXNode | null;
@@ -56,7 +57,7 @@ export const executeComponent = (
   containerState.$subsManager$.$clearSub$(hostElement);
 
   // Resolve render function
-  const onRenderFn = onRenderQRL.$invokeFn$(containerState.$containerEl$, invocatinContext);
+  const onRenderFn = onRenderQRL.getFn(invocatinContext);
 
   return safeCall(
     () => onRenderFn(props) as JSXNode | Function,
@@ -96,10 +97,14 @@ export const createRenderContext = (
       $operations$: [],
       $postOperations$: [],
       $roots$: [],
+      $addSlots$: [],
+      $rmSlots$: [],
     },
     $cmpCtx$: undefined,
     $localStack$: [],
   };
+  seal(ctx);
+  seal(ctx.$static$);
   return ctx;
 };
 
@@ -190,7 +195,9 @@ export const getQId = (el: QwikElement): string | null => {
 export const setQId = (rctx: RenderContext, ctx: QContext) => {
   const id = getNextIndex(rctx);
   ctx.$id$ = id;
-  ctx.$element$.setAttribute(ELEMENT_ID, id);
+  if (qSerialize) {
+    ctx.$element$.setAttribute(ELEMENT_ID, id);
+  }
 };
 
 export const hasStyle = (containerState: ContainerState, styleId: string) => {

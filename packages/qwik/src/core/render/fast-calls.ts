@@ -5,6 +5,5 @@ export const directSetAttribute = (el: QwikElement, prop: string, value: string)
 };
 
 export const directGetAttribute = (el: QwikElement, prop: string) => {
-  console.warn('DOM READ: directGetAttribute()', el, prop);
   return el.getAttribute(prop);
 };

@@ -1,10 +1,10 @@
+import { assertDefined } from '../../assert/assert';
 import { codeToText, QError_setProperty } from '../../error/error';
 import type { StyleAppend } from '../../use/use-core';
 import { logDebug, logError, logWarn } from '../../util/log';
-import { QStyle } from '../../util/markers';
+import { QSlot, QSlotRef, QStyle } from '../../util/markers';
 import { qDev } from '../../util/qdev';
-import type { SubscriptionManager } from '../container';
-import { directSetAttribute } from '../fast-calls';
+import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import type { RenderStaticContext } from '../types';
 import type { QwikElement, VirtualElement } from './virtual-element';
 import {
@@ -12,6 +12,8 @@ import {
   directAppendChild,
   directInsertBefore,
   directRemoveChild,
+  getChildren,
+  isSlotTemplate,
   SVG_NS,
 } from './visitor';
 
@@ -83,6 +85,18 @@ export const insertBefore = <T extends Node | VirtualElement>(
   return newChild;
 };
 
+export const appendChild = <T extends Node | VirtualElement>(
+  ctx: RenderStaticContext,
+  parent: QwikElement,
+  newChild: T
+): T => {
+  ctx.$operations$.push({
+    $operation$: directAppendChild,
+    $args$: [parent, newChild],
+  });
+  return newChild;
+};
+
 export const appendHeadStyle = (ctx: RenderStaticContext, styleTask: StyleAppend) => {
   ctx.$containerState$.$styleIds$.add(styleTask.styleId);
   ctx.$postOperations$.push({
@@ -117,15 +131,16 @@ export const prepend = (ctx: RenderStaticContext, parent: QwikElement, newChild:
 export const removeNode = (ctx: RenderStaticContext, el: Node | VirtualElement) => {
   ctx.$operations$.push({
     $operation$: _removeNode,
-    $args$: [el, ctx.$containerState$.$subsManager$],
+    $args$: [el, ctx],
   });
 };
 
-const _removeNode = (el: Element, subsManager: SubscriptionManager) => {
+const _removeNode = (el: Node | VirtualElement, staticCtx: RenderStaticContext) => {
   const parent = el.parentElement;
   if (parent) {
     if (el.nodeType === 1 || el.nodeType === 111) {
-      cleanupTree(el as Element, subsManager);
+      const subsManager = staticCtx.$containerState$.$subsManager$;
+      cleanupTree(el as Element, staticCtx, subsManager);
     }
     directRemoveChild(parent, el);
   } else if (qDev) {
@@ -133,10 +148,69 @@ const _removeNode = (el: Element, subsManager: SubscriptionManager) => {
   }
 };
 
+export const createTemplate = (doc: Document, slotName: string) => {
+  const template = createElement(doc, 'q:template', false);
+  directSetAttribute(template, QSlot, slotName);
+  directSetAttribute(template, 'hidden', '');
+  directSetAttribute(template, 'aria-hidden', 'true');
+
+  return template;
+};
+
 export const executeDOMRender = (ctx: RenderStaticContext) => {
   for (const op of ctx.$operations$) {
     op.$operation$.apply(undefined, op.$args$);
   }
+  resolveSlotProjection(ctx);
+};
+
+export const getKey = (el: QwikElement): string | null => {
+  return directGetAttribute(el, 'q:key');
+};
+
+export const setKey = (el: QwikElement, key: string | null) => {
+  if (key !== null) {
+    directSetAttribute(el, 'q:key', key);
+  }
+};
+
+export const resolveSlotProjection = (ctx: RenderStaticContext) => {
+  // Slots removed
+  ctx.$rmSlots$.forEach((slotEl) => {
+    const key = getKey(slotEl);
+    assertDefined(key, 'slots must have a key');
+
+    const slotChildren = getChildren(slotEl, 'root');
+    if (slotChildren.length > 0) {
+      const sref = slotEl.getAttribute(QSlotRef);
+      const hostCtx = ctx.$roots$.find((r) => r.$id$ === sref);
+      if (hostCtx) {
+        const template = createTemplate(ctx.$doc$, key);
+        const hostElm = hostCtx.$element$;
+        for (const child of slotChildren) {
+          directAppendChild(template, child);
+        }
+        directInsertBefore(hostElm, template, hostElm.firstChild);
+      }
+    }
+  });
+
+  // Slots added
+  ctx.$addSlots$.forEach(([slotEl, hostElm]) => {
+    const key = getKey(slotEl);
+    assertDefined(key, 'slots must have a key');
+
+    const template = Array.from(hostElm.childNodes).find((node) => {
+      return isSlotTemplate(node) && node.getAttribute(QSlot) === key;
+    }) as Element | undefined;
+    if (template) {
+      const children = getChildren(template, 'root');
+      children.forEach((child) => {
+        directAppendChild(slotEl, child);
+      });
+      template.remove();
+    }
+  });
 };
 
 export const createTextNode = (doc: Document, text: string): Text => {

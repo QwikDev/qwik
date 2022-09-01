@@ -14,15 +14,16 @@ import { qDev } from '../util/qdev';
 import { logError } from '../util/log';
 import { isQrl, QRLInternal } from '../import/qrl-class';
 import { directGetAttribute } from '../render/fast-calls';
-import { assertDefined } from '../assert/assert';
+import { assertDefined, assertTrue } from '../assert/assert';
 import { codeToText, QError_immutableJsxProps } from '../error/error';
 import type { QRL } from '../import/qrl.public';
-import { getContainer, StyleAppend } from '../use/use-core';
+import { getWrappingContainer, StyleAppend } from '../use/use-core';
 import { ContainerState, getContainerState, SubscriptionManager } from '../render/container';
 import type { ProcessedJSXNode } from '../render/dom/render-dom';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
+import { fromCamelToKebabCase } from '../util/case';
 
-const Q_CTX = '__ctx__';
+export const Q_CTX = '_qc_';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
@@ -54,7 +55,7 @@ export interface QContext {
   $mounted$: boolean;
   $props$: Record<string, any> | null;
   $renderQrl$: QRLInternal<OnRenderFn<any>> | null;
-  $listeners$: Map<string, QRLInternal<any>[]> | null;
+  li: Map<string, QRLInternal<any>[]> | null;
   $seq$: any[];
   $watches$: SubscriberDescriptor[];
   $contexts$: Map<string, any> | null;
@@ -86,7 +87,7 @@ export const getContext = (element: Element | VirtualElement): QContext => {
       $props$: null,
       $vdom$: null,
       $renderQrl$: null,
-      $listeners$: null,
+      li: null,
       $contexts$: null,
     };
   }
@@ -123,7 +124,7 @@ export const normalizeOnProp = (prop: string) => {
     }
   }
   if (prop.startsWith('-')) {
-    prop = prop.slice(1);
+    prop = fromCamelToKebabCase(prop.slice(1));
   } else {
     prop = prop.toLowerCase();
   }
@@ -194,6 +195,21 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
  * @internal
  */
 export const _useMutableProps = (element: Element, mutable: boolean) => {
-  const ctx = getContainer(element);
+  const ctx = getWrappingContainer(element);
   getContainerState(ctx!).$mutableProps$ = mutable;
+};
+
+
+export const inflateQrl = (qrl: QRLInternal, elCtx: QContext) => {
+  assertDefined(
+    qrl.$capture$,
+    'invoke: qrl capture must be defined inside useLexicalScope()',
+    qrl
+  );
+  return qrl.$captureRef$ = qrl.$capture$.map((idx) => {
+    const int = parseInt(idx, 10);
+    const obj = elCtx.$refMap$[int];
+    assertTrue(elCtx.$refMap$.length > int, 'out of bounds inflate access', idx);
+    return obj;
+  });
 };

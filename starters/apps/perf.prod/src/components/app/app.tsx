@@ -162,19 +162,19 @@ export const App = component$(() => {
               <tr key={id} class={id === state.selected ? 'danger' : ''}>
                 <td class="col-md-1">{id}</td>
                 <td class="col-md-4">
-                  <a onClick$={() => (state.selected = id)}>{label}</a>
+                  <a onClick$={() => alert(label)}>{label}</a>
                 </td>
                 <td class="col-md-1">
                   <a
-                    onClick$={() => {
-                      const d = state.data;
-                      d.splice(
-                        d.findIndex((d) => d.id === id),
-                        1
-                      );
-                    }}
+                  // onClick$={() => {
+                  //   const d = state.data;
+                  //   d.splice(
+                  //     d.findIndex((d) => d.id === id),
+                  //     1
+                  //   );
+                  // }}
                   >
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true" />
+                    <span class="glyphicon glyphicon-remove" ariaHidden="true" />
                   </a>
                 </td>
                 <td class="col-md-6" />
@@ -183,7 +183,7 @@ export const App = component$(() => {
           })}
         </tbody>
       </table>
-      <span class="preloadicon glyphicon glyphicon-remove" aria-hidden="true" />
+      <span class="preloadicon glyphicon glyphicon-remove" ariaHidden="true" />
     </div>
   );
 });

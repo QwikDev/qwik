@@ -193,7 +193,7 @@ export const qrlToUrl = (element: Element, qrl: QRLInternal): URL => {
 /**
  * `./chunk#symbol[captures]
  */
-export const parseQRL = (qrl: string, el?: QwikElement): QRLInternal => {
+export const parseQRL = (qrl: string, containerEl?: Element): QRLInternal => {
   const endIdx = qrl.length;
   const hashIdx = indexOf(qrl, 0, '#');
   const captureIdx = indexOf(qrl, hashIdx, '[');
@@ -217,8 +217,8 @@ export const parseQRL = (qrl: string, el?: QwikElement): QRLInternal => {
     logError(codeToText(QError_runtimeQrlNoElement), qrl);
   }
   const iQrl = createQRL<any>(chunk, symbol, null, null, capture, null, null);
-  if (el) {
-    iQrl.$setContainer$(el);
+  if (containerEl) {
+    iQrl.$setContainer$(containerEl);
   }
   return iQrl;
 };

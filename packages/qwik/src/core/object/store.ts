@@ -1,3 +1,5 @@
+'use strict';
+
 import { assertDefined, assertTrue } from '../assert/assert';
 import { assertQrl, isQrl } from '../import/qrl-class';
 import { getContext, QContext, tryGetContext } from '../props/props';
@@ -37,7 +39,7 @@ import { isResourceReturn } from '../use/use-resource';
 import { createParser, Parser, serializeValue, UNDEFINED_PREFIX } from './serializers';
 import { ContainerState, getContainerState } from '../render/container';
 import { getQId } from '../render/execute-component';
-import { processVirtualNodes, QwikElement } from '../render/dom/virtual-element';
+import { processVirtualNodes, QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import { getDomListeners } from '../props/props-on';
 
 export type GetObject = (id: string) => any;
@@ -141,14 +143,14 @@ export const resumeContainer = (containerEl: Element) => {
 
     if (qobj) {
       assertTrue(isElement(el), 'el must be an actual DOM element');
-      ctx.$refMap$.push(...qobj.split(' ').map((part) => getObject(part)));
-      ctx.$listeners$ = getDomListeners(el as Element);
+      ctx.$refMap$.push(...qobj.split(' ').map(getObject));
+      ctx.li = getDomListeners(ctx, containerEl);
     }
     if (seq) {
-      ctx.$seq$ = seq.split(' ').map((part) => getObject(part));
+      ctx.$seq$ = seq.split(' ').map(getObject);
     }
     if (watches) {
-      ctx.$watches$ = watches.split(' ').map((part) => getObject(part));
+      ctx.$watches$ = watches.split(' ').map(getObject);
     }
     if (contexts) {
       contexts.split(' ').map((part) => {
@@ -238,8 +240,8 @@ export const _pauseFromContexts = async (
   const listeners: SnapshotListener[] = [];
   for (const ctx of elements) {
     const el = ctx.$element$;
-    if (ctx.$listeners$ && isElement(el)) {
-      ctx.$listeners$.forEach((qrls, key) => {
+    if (ctx.li && isElement(el)) {
+      ctx.li.forEach((qrls, key) => {
         qrls.forEach((qrl) => {
           listeners.push({
             key,
@@ -288,7 +290,9 @@ export const _pauseFromContexts = async (
   const canRender = collector.$elements$.length > 0;
   if (canRender) {
     for (const ctx of elements) {
-      await collectProps(ctx.$element$, ctx.$props$, collector);
+      if (isVirtualElement(ctx.$element$)) {
+        await collectProps(ctx.$element$, ctx.$props$, collector);
+      }
 
       if (ctx.$contexts$) {
         for (const item of ctx.$contexts$.values()) {
@@ -388,7 +392,7 @@ export const _pauseFromContexts = async (
     const subs = containerState.$subsManager$.$tryGetLocal$(obj)?.$subs$;
     if (subs) {
       subs.forEach((set, key) => {
-        if (isQwikElement(key)) {
+        if (isNode(key) && isVirtualElement(key)) {
           if (!collector.$elements$.includes(key)) {
             return;
           }
@@ -490,7 +494,7 @@ export const _pauseFromContexts = async (
     const renderQrl = ctx.$renderQrl$;
     const seq = ctx.$seq$;
     const metaValue: SnapshotMetaValue = {};
-    const elementCaptured = collector.$elements$.includes(node);
+    const elementCaptured = isVirtualElement(node) && collector.$elements$.includes(node);
 
     let add = false;
     if (ref.length > 0) {
@@ -735,7 +739,7 @@ const getObjectImpl = (
   return obj;
 };
 
-const collectProps = async (el: QwikElement, props: any, collector: Collector) => {
+const collectProps = async (el: VirtualElement, props: any, collector: Collector) => {
   const subs = collector.$containerState$.$subsManager$.$tryGetLocal$(
     getProxyTarget(props)
   )?.$subs$;
@@ -749,7 +753,7 @@ export interface Collector {
   $seen$: Set<any>;
   $seenLeaks$: Set<any>;
   $objMap$: Map<any, any>;
-  $elements$: QwikElement[];
+  $elements$: VirtualElement[];
   $watches$: SubscriberDescriptor[];
   $containerState$: ContainerState;
 }
@@ -765,7 +769,7 @@ const createCollector = (containerState: ContainerState): Collector => {
   };
 };
 
-const collectElement = async (el: QwikElement, collector: Collector) => {
+const collectElement = async (el: VirtualElement, collector: Collector) => {
   if (collector.$elements$.includes(el)) {
     return;
   }
@@ -809,7 +813,7 @@ const collectSubscriptions = async (target: any, collector: Collector) => {
     }
     collector.$seen$.add(subs);
     for (const key of Array.from(subs.keys())) {
-      if (isVirtualElement(key)) {
+      if (isNode(key) && isVirtualElement(key)) {
         await collectElement(key, collector);
       } else {
         await collectValue(key, collector, true);

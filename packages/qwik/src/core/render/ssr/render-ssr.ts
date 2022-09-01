@@ -17,15 +17,14 @@ import {
   OnRenderProp,
   QScopedStyle,
   QSlot,
-  QSlotName,
   QSlotRef,
+  QSlotS,
   QStyle,
 } from '../../util/markers';
 import { SSRComment, Virtual } from '../jsx/host.public';
 import { logError, logWarn } from '../../util/log';
 import { addQRLListener, isOnProp, setEvent } from '../../props/props-on';
 import { version } from '../../version';
-import { fromCamelToKebabCase } from '../../util/case';
 import { serializeQRLs } from '../../import/qrl';
 import { ContainerState, getContainerState } from '../container';
 import type { RenderContext } from '../types';
@@ -34,6 +33,7 @@ import { serializeSStyle, styleHost } from '../../component/qrl-styles';
 import type { Ref } from '../../use/use-ref';
 import { serializeVirtualAttributes, VIRTUAL } from '../dom/virtual-element';
 import { qDev } from '../../util/qdev';
+import { qError, QError_canNotRenderHTML } from '../../error/error';
 
 /**
  * @alpha
@@ -185,14 +185,13 @@ export const renderNodeVirtual = (
   }
   const { children, ...attributes } = node.props;
 
-  const slotName = props[QSlotName];
-  const isSlot = typeof slotName === 'string';
+  const isSlot = QSlotS in props;
+  const key = node.key != null ? String(node.key) : null;
   if (isSlot) {
     assertDefined(ssrCtx.hostCtx?.$id$, 'hostId must be defined for a slot');
     attributes[QSlotRef] = ssrCtx.hostCtx.$id$;
   }
 
-  const key = node.key != null ? String(node.key) : null;
   if (key != null) {
     attributes['q:key'] = key;
   }
@@ -214,9 +213,10 @@ export const renderNodeVirtual = (
 
     let promise: ValueOrPromise<void>;
     if (isSlot) {
-      const content = ssrCtx.projectedChildren?.[slotName];
+      assertDefined(key, 'key must be defined for a slot');
+      const content = ssrCtx.projectedChildren?.[key];
       if (content) {
-        ssrCtx.projectedChildren![slotName] = undefined;
+        ssrCtx.projectedChildren![key] = undefined;
         promise = processData(content, ssrCtx.projectedContext!, stream, flags);
       }
     }
@@ -250,11 +250,14 @@ export const renderNodeElement = (
   const attributes = updateProperties(elCtx, props);
   const hostCtx = ssrCtx.hostCtx;
   if (hostCtx) {
+    if (textType === 'html') {
+      throw qError(QError_canNotRenderHTML);
+    }
     attributes['class'] = joinClasses(hostCtx.$scopeIds$, attributes['class']);
     const cmp = hostCtx;
     if (!cmp.$attachedListeners$) {
       cmp.$attachedListeners$ = true;
-      hostCtx.$listeners$?.forEach((qrls, eventName) => {
+      hostCtx.li?.forEach((qrls, eventName) => {
         addQRLListener(elCtx, eventName, qrls);
       });
     }
@@ -265,7 +268,7 @@ export const renderNodeElement = (
     flags |= IS_HEAD;
   }
 
-  const hasEvents = elCtx.$listeners$;
+  const hasEvents = elCtx.li;
   const isHead = flags & IS_HEAD;
 
   if (key != null) {
@@ -283,9 +286,9 @@ export const renderNodeElement = (
   if (extraAttributes) {
     Object.assign(attributes, extraAttributes);
   }
-  if (elCtx.$listeners$) {
-    elCtx.$listeners$.forEach((value, key) => {
-      attributes[fromCamelToKebabCase(key)] = serializeQRLs(value, elCtx);
+  if (elCtx.li) {
+    elCtx.li.forEach((value, key) => {
+      attributes[key] = serializeQRLs(value, elCtx);
     });
   }
   if (renderNodeElementSync(textType, attributes, stream)) {

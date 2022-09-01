@@ -4,7 +4,7 @@ import { getContext, resumeIfNeeded } from '../../props/props';
 import { qDynamicPlatform, qTest } from '../../util/qdev';
 import { getDocument } from '../../util/dom';
 import { logError, logWarn } from '../../util/log';
-import { getContainer } from '../../use/use-core';
+import { getWrappingContainer } from '../../use/use-core';
 import {
   runSubscriber,
   Subscriber,
@@ -121,7 +121,7 @@ const scheduleFrame = (containerState: ContainerState): Promise<RenderStaticCont
  */
 export const _hW = () => {
   const [watch] = useLexicalScope<[SubscriberDescriptor]>();
-  notifyWatch(watch, getContainerState(getContainer(watch.$el$)!));
+  notifyWatch(watch, getContainerState(getWrappingContainer(watch.$el$)!));
 };
 
 const renderMarked = async (containerState: ContainerState): Promise<RenderContext> => {
@@ -218,11 +218,11 @@ const executeWatchesBefore = async (containerState: ContainerState) => {
 
   containerState.$watchNext$.forEach((watch) => {
     if (isWatch(watch)) {
-      watchPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
+      watchPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
       containerState.$watchNext$.delete(watch);
     }
     if (isResourceWatch(watch)) {
-      resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
+      resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
       containerState.$watchNext$.delete(watch);
     }
   });
@@ -230,9 +230,9 @@ const executeWatchesBefore = async (containerState: ContainerState) => {
     // Run staging effected
     containerState.$watchStaging$.forEach((watch) => {
       if (isWatch(watch)) {
-        watchPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
+        watchPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
       } else if (isResourceWatch(watch)) {
-        resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
+        resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
       } else {
         containerState.$watchNext$.add(watch);
       }
@@ -268,7 +268,7 @@ const executeWatchesAfter = async (
 
   containerState.$watchNext$.forEach((watch) => {
     if (watchPred(watch, false)) {
-      watchPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
+      watchPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
       containerState.$watchNext$.delete(watch);
     }
   });
@@ -276,7 +276,7 @@ const executeWatchesAfter = async (
     // Run staging effected
     containerState.$watchStaging$.forEach((watch) => {
       if (watchPred(watch, true)) {
-        watchPromises.push(then(watch.$qrl$.$resolveLazy$(watch.$el$), () => watch));
+        watchPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
       } else {
         containerState.$watchNext$.add(watch);
       }

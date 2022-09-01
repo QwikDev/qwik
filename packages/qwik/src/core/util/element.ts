@@ -1,4 +1,5 @@
-import { QwikElement, VirtualElement, VirtualElement2 } from '../render/dom/virtual-element';
+import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
+import { qDev } from './qdev';
 
 export const isNode = (value: any): value is Node => {
   return value && typeof value.nodeType === 'number';
@@ -7,15 +8,15 @@ export const isDocument = (value: any): value is Document => {
   return value && value.nodeType === 9;
 };
 export const isElement = (value: Node | VirtualElement): value is Element => {
-  return isNode(value) && value.nodeType === 1;
+  return value.nodeType === 1;
 };
 
 export const isQwikElement = (value: any): value is QwikElement => {
   return isNode(value) && (value.nodeType === 1 || value.nodeType === 111);
 };
 
-export const isVirtualElement = (value: any): value is VirtualElement => {
-  return value instanceof VirtualElement2;
+export const isVirtualElement = (value: Node | VirtualElement): value is VirtualElement => {
+  return value.nodeType === 111;
 };
 
 export const isText = (value: Node): value is Text => {
@@ -24,3 +25,11 @@ export const isText = (value: Node): value is Text => {
 export const isComment = (value: Node): value is Comment => {
   return value.nodeType === 9;
 };
+
+export function assertQwikElement(el: any): asserts el is QwikElement {
+  if (qDev) {
+    if (!isQwikElement(el)) {
+      throw new Error('Not a Qwik Element');
+    }
+  }
+}

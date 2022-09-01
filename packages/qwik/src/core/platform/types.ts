@@ -1,4 +1,3 @@
-import type { QwikElement } from '../render/dom/virtual-element';
 import type { ValueOrPromise } from '../util/types';
 
 // <docs markdown="./readme.md#CorePlatform">
@@ -55,7 +54,7 @@ export interface CorePlatform {
    * @returns A promise that resolves to the imported symbol.
    */
   // </docs>
-  importSymbol: (element: QwikElement, url: string | URL, symbol: string) => ValueOrPromise<any>;
+  importSymbol: (containerEl: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
   // <docs markdown="./readme.md#CorePlatform.raf">
   // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
   // (edit ./readme.md#CorePlatform.raf instead)

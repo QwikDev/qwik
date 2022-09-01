@@ -1,8 +1,10 @@
 import type { ServiceWorkerBundles } from './types';
 
-export const getCacheToDelete = (bundles: ServiceWorkerBundles, cachedUrls: string[]) => {
-  const bundleNames = Object.keys(bundles);
-  return cachedUrls.filter((url) => !bundleNames.some((bundleName) => url.endsWith(bundleName)));
+export const getCacheToDelete = (appBundles: ServiceWorkerBundles, cachedUrls: string[]) => {
+  const appBundleNames = Object.keys(appBundles);
+  return cachedUrls.filter(
+    (url) => !appBundleNames.some((appBundleName) => url.endsWith(appBundleName))
+  );
 };
 
 export const useCache = (request: Request, response: Response | undefined) =>
@@ -13,7 +15,10 @@ const hasNoCacheHeader = (r: { headers: Headers }) => {
   return cacheControl.includes('no-cache') || cacheControl.includes('max-age=0');
 };
 
-export const isBuildRequest = (buildBundles: ServiceWorkerBundles, requestPathname: string) => {
+export const isAppBuildBundleRequest = (
+  buildBundles: ServiceWorkerBundles,
+  requestPathname: string
+) => {
   for (const bundleName in buildBundles) {
     if (requestPathname.endsWith(bundleName)) {
       return true;

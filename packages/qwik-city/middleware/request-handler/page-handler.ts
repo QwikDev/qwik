@@ -54,9 +54,11 @@ export function pageHandler<T = any>(
 }
 
 async function getClientPageData(userResponse: UserResponseContext, result: RenderResult) {
+  const prefetchBundleNames = getPrefetchBundleNames(result);
+
   const clientPage: ClientPageData = {
     body: userResponse.pendingBody ? await userResponse.pendingBody : userResponse.resolvedBody,
-    prefetch: addPrefetchResource(result.prefetchResources, []),
+    prefetch: prefetchBundleNames.length > 0 ? prefetchBundleNames : undefined,
     status: userResponse.status,
   };
   if (
@@ -69,17 +71,55 @@ async function getClientPageData(userResponse: UserResponseContext, result: Rend
   return clientPage;
 }
 
-const addPrefetchResource = (prefetchResources: PrefetchResource[], urls: string[]) => {
-  if (Array.isArray(prefetchResources)) {
-    for (const prefetchResource of prefetchResources) {
-      if (!urls.includes(prefetchResource.url)) {
-        urls.push(prefetchResource.url);
-        addPrefetchResource(prefetchResource.imports, urls);
+function getPrefetchBundleNames(result: RenderResult) {
+  const bundleNames: string[] = [];
+
+  const addPrefetchResource = (prefetchResources: PrefetchResource[]) => {
+    if (Array.isArray(prefetchResources)) {
+      for (const prefetchResource of prefetchResources) {
+        const bundleName = prefetchResource.url.split('/').pop();
+        if (bundleName && !bundleNames.includes(bundleName)) {
+          bundleNames.push(bundleName);
+          addPrefetchResource(prefetchResource.imports);
+        }
+      }
+    }
+  };
+
+  addPrefetchResource(result.prefetchResources);
+
+  const manifest = result._manifest;
+  const renderedSymbols = result._symbols;
+
+  if (manifest && renderedSymbols) {
+    for (const renderedSymbolName of renderedSymbols) {
+      const symbol = manifest.symbols[renderedSymbolName];
+      if (symbol && symbol.ctxName === 'component$') {
+        const bundleName = manifest.mapping[renderedSymbolName];
+        if (bundleName && !bundleNames.includes(bundleName)) {
+          bundleNames.push(bundleName);
+        }
+      }
+    }
+
+    for (const [symbolName, symbol] of Object.entries(manifest.symbols)) {
+      if (symbol.displayName === 'QwikCity_component_useWatch') {
+        const bundleName = manifest.mapping[symbolName];
+        const bundle = manifest.bundles[bundleName];
+        if (bundle && Array.isArray(bundle.dynamicImports)) {
+          for (const dynamicImportName of bundle.dynamicImports) {
+            if (dynamicImportName && !bundleNames.includes(dynamicImportName)) {
+              bundleNames.push(dynamicImportName);
+            }
+          }
+        }
+        break;
       }
     }
   }
-  return urls;
-};
+
+  return bundleNames;
+}
 
 export function getQwikCityEnvData(userResponse: UserResponseContext): {
   url: string;

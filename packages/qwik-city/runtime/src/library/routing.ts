@@ -47,7 +47,7 @@ export const loadRoute = async (
           await Promise.all(pendingLoads);
         }
 
-        return { params, mods, menu };
+        return [params, mods, menu];
       }
     }
   }

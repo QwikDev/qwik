@@ -1,14 +1,12 @@
-import type { ServiceWorkerBundles, ServiceWorkerLink, ServiceWorkerMessageEvent } from './types';
+import type { ServiceWorkerBundles, ServiceWorkerMessageEvent } from './types';
 import { cachedFetch } from './cached-fetch';
-import { getCacheToDelete, isBuildRequest } from './utils';
+import { getCacheToDelete, isAppBuildBundleRequest } from './utils';
 import { awaitingRequests, qBuildCacheName } from './constants';
-import { prefetchBundleNames, prefetchLinks } from './prefetch';
+import { prefetchBundleNames } from './prefetch';
 
 export const setupServiceWorkerScope = (
   swScope: ServiceWorkerGlobalScope,
-  bundles: ServiceWorkerBundles,
-  links: ServiceWorkerLink[],
-  libraryBundles: string[]
+  appBundles: ServiceWorkerBundles
 ) => {
   swScope.addEventListener('fetch', (ev) => {
     const request = ev.request;
@@ -16,7 +14,7 @@ export const setupServiceWorkerScope = (
     if (request.method === 'GET') {
       const url = new URL(request.url);
 
-      if (isBuildRequest(bundles, url.pathname)) {
+      if (isAppBuildBundleRequest(appBundles, url.pathname)) {
         const nativeFetch = swScope.fetch.bind(swScope);
         ev.respondWith(
           swScope.caches
@@ -34,19 +32,8 @@ export const setupServiceWorkerScope = (
         const qBuildCache = await swScope.caches.open(qBuildCacheName);
         const baseUrl = new URL(data.base, swScope.origin);
 
-        if (Array.isArray(data.urls)) {
-          prefetchBundleNames(bundles, qBuildCache, nativeFetch, baseUrl, data.urls);
-        }
-        if (Array.isArray(data.links)) {
-          prefetchLinks(
-            bundles,
-            links,
-            libraryBundles,
-            qBuildCache,
-            nativeFetch,
-            baseUrl,
-            data.links
-          );
+        if (Array.isArray(data.bundles)) {
+          prefetchBundleNames(appBundles, qBuildCache, nativeFetch, baseUrl, data.bundles);
         }
       }
     }
@@ -57,7 +44,7 @@ export const setupServiceWorkerScope = (
       const qBuildCache = await swScope.caches.open(qBuildCacheName);
       const cachedRequestKeys = await qBuildCache.keys();
       const cachedUrls = cachedRequestKeys.map((r) => r.url);
-      const cachedRequestsToDelete = getCacheToDelete(bundles, cachedUrls);
+      const cachedRequestsToDelete = getCacheToDelete(appBundles, cachedUrls);
       await Promise.all(cachedRequestsToDelete.map((r) => qBuildCache.delete(r)));
     } catch (e) {
       console.error(e);

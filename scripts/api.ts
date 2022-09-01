@@ -123,7 +123,7 @@ declare module '@qwik-city-plan' {
   export const menus: any[];
   export const trailingSlash: boolean;
   export const basePathname: string;
-  export const cacheModules: boolean;
+  export const cacheModules: boolean; 
 }
 `;
   const srcModulesPath = join(config.packagesDir, 'qwik-city', 'lib');

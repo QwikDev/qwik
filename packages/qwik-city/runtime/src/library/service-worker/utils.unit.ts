@@ -2,7 +2,7 @@ import { test } from 'uvu';
 import { equal } from 'uvu/assert';
 import { Request as NodeRequest, Response as NodeResponse } from 'node-fetch';
 import type { ServiceWorkerBundles } from './types';
-import { getCacheToDelete, isBuildRequest, useCache } from './utils';
+import { getCacheToDelete, isAppBuildBundleRequest, useCache } from './utils';
 
 test('getCacheToDelete, delete bundles no longer possible', () => {
   const buildBundles: ServiceWorkerBundles = {
@@ -27,23 +27,23 @@ test('getCacheToDelete, none to delete', () => {
   equal(c, []);
 });
 
-test('isBuildRequest, in buildBundles', () => {
+test('isAppBuildBundleRequest, in buildBundles', () => {
   const buildBundles: ServiceWorkerBundles = {
     'q-abc.js': [],
     'q-def.js': [],
   };
   const pathname = '/build/q-abc.js';
-  const c = isBuildRequest(buildBundles, pathname);
+  const c = isAppBuildBundleRequest(buildBundles, pathname);
   equal(c, true);
 });
 
-test('isBuildRequest, not in buildBundles', () => {
+test('isAppBuildBundleRequest, not in buildBundles', () => {
   const buildBundles: ServiceWorkerBundles = {
     'q-abc.js': [],
     'q-def.js': [],
   };
   const pathname = '/build/q-xyz.js';
-  const c = isBuildRequest(buildBundles, pathname);
+  const c = isAppBuildBundleRequest(buildBundles, pathname);
   equal(c, false);
 });
 

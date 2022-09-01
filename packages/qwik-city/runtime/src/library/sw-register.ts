@@ -4,7 +4,7 @@ import type { QPrefetchData, QPrefetchMessage } from './service-worker/types';
 // Source for what becomes innerHTML to the <ServiceWorkerRegister/> script
 
 ((
-  queuedUrls: string[],
+  queuedBundleUrls: string[],
   swReg?: QwikServiceWorkerRegistration,
   sendPrefetch?: (data: QPrefetchData, qBase?: Element) => void,
   initServiceWorker?: () => void
@@ -25,8 +25,8 @@ import type { QPrefetchData, QPrefetchMessage } from './service-worker/types';
     const data = ev.detail;
     if (swReg) {
       sendPrefetch!(data);
-    } else if (data.urls) {
-      queuedUrls.push(...data.urls);
+    } else if (data.bundles) {
+      queuedBundleUrls.push(...data.bundles);
     }
   });
 
@@ -35,7 +35,7 @@ import type { QPrefetchData, QPrefetchMessage } from './service-worker/types';
     .then((reg) => {
       initServiceWorker = () => {
         swReg = reg;
-        sendPrefetch!({ urls: queuedUrls });
+        sendPrefetch!({ bundles: queuedBundleUrls });
       };
 
       if (reg.installing) {

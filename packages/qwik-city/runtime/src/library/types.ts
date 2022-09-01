@@ -200,11 +200,11 @@ export type ContentModule = PageModule | LayoutModule;
 
 export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
 
-export interface LoadedRoute {
-  params: RouteParams;
-  mods: (RouteModule | ContentModule)[];
-  menu: ContentMenu | undefined;
-}
+export type LoadedRoute = [
+  params: RouteParams,
+  mods: (RouteModule | ContentModule)[],
+  menu: ContentMenu | undefined
+];
 
 export interface LoadedContent extends LoadedRoute {
   pageModule: PageModule;
@@ -310,7 +310,7 @@ export interface EndpointResponse {
 }
 
 export interface ClientPageData extends EndpointResponse {
-  prefetch: string[];
+  prefetch?: string[];
   redirect?: string;
 }
 

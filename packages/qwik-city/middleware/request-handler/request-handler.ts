@@ -23,7 +23,7 @@ export async function requestHandler<T = any>(
     const loadedRoute = await loadRoute(routes, menus, cacheModules, requestCtx.url.pathname);
     if (loadedRoute) {
       // found and loaded the route for this pathname
-      const { mods, params } = loadedRoute;
+      const [params, mods] = loadedRoute;
 
       // build endpoint response from each module in the hierarchy
       const userResponse = await loadUserResponse(

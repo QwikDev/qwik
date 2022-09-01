@@ -47,27 +47,34 @@ export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[
     }
 
     if (loaders.length > 0) {
-      c.push(`  ${createRoute(route, loaders, isSsr)},`);
+      c.push(`  ${createRouteData(route, loaders, isSsr)},`);
     }
   }
 
   c.push(`];`);
 }
 
-function createRoute(r: BuildRoute, loaders: string[], isSsr: boolean) {
+function createRouteData(r: BuildRoute, loaders: string[], isSsr: boolean) {
   const pattern = r.pattern.toString();
   const moduleLoaders = `[ ${loaders.join(', ')} ]`;
+
+  // Use RouteData interface
 
   if (isSsr) {
     const paramNames =
       r.paramNames && r.paramNames.length > 0 ? JSON.stringify(r.paramNames) : `undefined`;
-    return `[ ${pattern}, ${moduleLoaders}, ${paramNames}, "${r.pathname}" ]`;
+    const originalPathname = JSON.stringify(r.pathname);
+
+    // SSR also adds the originalPathname to the RouteData
+    return `[ ${pattern}, ${moduleLoaders}, ${paramNames}, ${originalPathname} ]`;
   }
 
   if (r.paramNames.length > 0) {
+    // only add the params to the RouteData if there are any
     const paramNames = JSON.stringify(r.paramNames);
     return `[ ${pattern}, ${moduleLoaders}, ${paramNames} ]`;
   }
 
+  // simple RouteData, only pattern regex and module loaders
   return `[ ${pattern}, ${moduleLoaders} ]`;
 }

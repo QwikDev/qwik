@@ -1,6 +1,5 @@
 import { component$, Slot, QwikIntrinsicElements } from '@builder.io/qwik';
 import { getClientNavPath } from './client-navigation';
-import type { QPrefetchData } from './service-worker/types';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
 
@@ -46,9 +45,7 @@ export const prefetchLinkResources = (
   if (clientNavPath && (!isOnVisible || (isOnVisible && windowInnerWidth < 800))) {
     // either this is a mouseover event, probably on desktop
     // or the link is visible, and the viewport width is less than X
-    loadClientData(sessionStorage, clientNavPath, baseUrl);
-    const data: QPrefetchData = { links: [clientNavPath] };
-    dispatchEvent(new CustomEvent('qprefetch', { detail: data }));
+    loadClientData(clientNavPath, baseUrl);
   }
 };
 

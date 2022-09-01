@@ -1,6 +1,6 @@
 import { parseQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
-import { normalizeOnProp, QContext } from './props';
+import { inflateQrl, normalizeOnProp, QContext } from './props';
 import { $ } from '../import/qrl.public';
 import { QScopedStyle } from '../util/markers';
 import { directGetAttribute } from '../render/fast-calls';
@@ -14,23 +14,27 @@ export const isOnProp = (prop: string): boolean => {
 };
 
 export const addQRLListener = (ctx: QContext, prop: string, input: QRLInternal[]): boolean => {
-  if (!ctx.$listeners$) {
-    ctx.$listeners$ = new Map();
+  if (!ctx.li) {
+    ctx.li = new Map();
   }
-  let existingListeners = ctx.$listeners$.get(prop);
+  let existingListeners = ctx.li.get(prop);
   if (!existingListeners) {
-    ctx.$listeners$.set(prop, (existingListeners = []));
+    ctx.li.set(prop, (existingListeners = []));
   }
-  start: for (const qrl of input) {
+  for (const qrl of input) {
     const hash = qrl.$hash$;
+    let replaced = false;
     for (let i = 0; i < existingListeners.length; i++) {
-      const qrl = existingListeners[i];
-      if (qrl.$hash$ === hash) {
+      const existing = existingListeners[i];
+      if (existing.$hash$ === hash) {
         existingListeners.splice(i, 1, qrl);
-        continue start;
+        replaced = true;
+        break;
       }
     }
-    existingListeners.push(qrl);
+    if (!replaced) {
+      existingListeners.push(qrl);
+    }
   }
   return false;
 };
@@ -45,8 +49,11 @@ const ensureQrl = (value: any) => {
   return isQrl(value) ? value : ($(value) as QRLInternal);
 };
 
-export const getDomListeners = (el: Element): Map<string, QRLInternal[]> => {
-  const attributes = el.attributes;
+export const getDomListeners = (
+  ctx: QContext,
+  containerEl: Element
+): Map<string, QRLInternal[]> => {
+  const attributes = (ctx.$element$ as Element).attributes;
   const listeners: Map<string, QRLInternal[]> = new Map();
   for (let i = 0; i < attributes.length; i++) {
     const { name, value } = attributes.item(i)!;
@@ -59,7 +66,14 @@ export const getDomListeners = (el: Element): Map<string, QRLInternal[]> => {
       if (!array) {
         listeners.set(name, (array = []));
       }
-      array.push(parseQRL(value, el));
+      const urls = value.split('\n');
+      for (const url of urls) {
+        const qrl = parseQRL(url, containerEl);
+        if (qrl.$capture$) {
+          inflateQrl(qrl, ctx);
+        }
+        array.push(qrl);
+      }
     }
   }
   return listeners;

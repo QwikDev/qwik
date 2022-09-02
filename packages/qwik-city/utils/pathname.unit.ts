@@ -141,6 +141,26 @@ test('dynamic rest pathname', () => {
   equal(p, '/blog/what-is-resumability');
 });
 
+test('dynamic, empty rest pathname in root', () => {
+  const p = getPathname({
+    originalPathname: '/[...id]',
+    params: {
+      id: '',
+    },
+  });
+  equal(p, '/');
+});
+
+test('dynamic, empty rest pathname in root with nested page', () => {
+  const p = getPathname({
+    originalPathname: '/[...id]/page',
+    params: {
+      id: '',
+    },
+  });
+  equal(p, '/page');
+});
+
 test('dynamic pathname', () => {
   const p = getPathname({
     originalPathname: '/docs/[category]/[slugId]',
@@ -154,7 +174,8 @@ test('dynamic pathname', () => {
 
 function getPathname(t: { originalPathname: string; params?: RouteParams }) {
   const p = parseRoutePathname(t.originalPathname);
-  return getPathnameForDynamicRoute(t.originalPathname, p.paramNames, t.params);
+  const d = getPathnameForDynamicRoute(t.originalPathname, p.paramNames, t.params);
+  return normalizePathname(d, '/', false);
 }
 
 test.run();

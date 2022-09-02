@@ -10,6 +10,9 @@ export function normalizePathname(
 
     if (pathname !== '') {
       try {
+        // remove duplicate forward slashes
+        pathname = pathname.replace(/\/+/g, '/');
+
         if (pathname.startsWith('/')) {
           pathname = pathname.slice(1);
         }

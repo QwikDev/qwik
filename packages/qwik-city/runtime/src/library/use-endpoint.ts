@@ -53,8 +53,6 @@ export const loadClientData = async (
               clientResponse.json().then(
                 (clientData: ClientPageData) => {
                   const prefetchData: QPrefetchData = {
-                    requestUrl: requestUrl.pathname,
-                    currentUrl: currentUrl.pathname,
                     bundles: clientData.prefetch,
                     qKeys: getDocumentQKeys(document),
                   };

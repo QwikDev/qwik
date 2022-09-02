@@ -1,6 +1,4 @@
 export interface QPrefetchData {
-  requestUrl?: string;
-  currentUrl?: string;
   bundles?: string[];
   qKeys?: string[];
 }

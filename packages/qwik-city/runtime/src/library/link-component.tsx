@@ -45,7 +45,7 @@ export const prefetchLinkResources = (
     windowInnerWidth = window.innerWidth;
   }
 
-  if (prefetch && clientNavPath && (!isOnVisible || (isOnVisible && windowInnerWidth < 500))) {
+  if (prefetch && clientNavPath && (!isOnVisible || (isOnVisible && windowInnerWidth < 520))) {
     // either this is a mouseover event, probably on desktop
     // or the link is visible, and the viewport width is less than X
     loadClientData(clientNavPath, baseUrl);

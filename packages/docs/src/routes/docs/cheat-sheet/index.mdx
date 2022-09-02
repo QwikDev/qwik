@@ -53,7 +53,7 @@ export const Component = component$(() => {
   });
   return (
     <>
-      <div>Value is: ${state.value}</div>
+      <div>Value is: {state.value}</div>
     </>
   );
 });
@@ -79,7 +79,7 @@ export const Counter = component$(() => {
   });
   return (
     <>
-      <div>Value is: ${state.count}</div>
+      <div>Value is: {state.count}</div>
       <button onClick$={() => state.count++}>Increment</button>
     </>
   );
@@ -118,7 +118,7 @@ export const Clock = component$(() => {
 
   return (
     <>
-      <div>Seconds: ${state.seconds}</div>
+      <div>Seconds: {state.seconds}</div>
     </>
   );
 });
@@ -159,7 +159,7 @@ export const Fetch = component$(() => {
 
   return (
     <>
-      <div>${state.responseJson?.name}</div>
+      <div>{state.responseJson?.name}</div>
       <input name="url" onInput$={(ev) => (state.url = ev.target.value)} />
     </>
   );

@@ -130,6 +130,8 @@ export const Link: Component<LinkProps>;
 //
 // @alpha (undocumented)
 export interface LinkProps extends AnchorAttributes {
+    // (undocumented)
+    prefetch?: boolean;
 }
 
 // @alpha (undocumented)

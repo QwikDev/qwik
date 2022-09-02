@@ -2,7 +2,7 @@ import { useResource$ } from '@builder.io/qwik';
 import { useLocation, useQwikCityEnv } from './use-functions';
 import { isServer } from '@builder.io/qwik/build';
 import type { ClientPageData, GetEndpointData } from './types';
-import { getClientEndpointPath, toUrl } from './client-navigation';
+import { getClientEndpointPath } from './client-navigation';
 import type { QPrefetchData } from './service-worker/types';
 import { cacheModules } from '@qwik-city-plan';
 

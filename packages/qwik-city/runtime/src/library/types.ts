@@ -172,7 +172,13 @@ export type MenuModuleLoader = () => Promise<MenuModule>;
 export type RouteData =
   | [pattern: RegExp, loaders: ModuleLoader[]]
   | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]]
-  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[], originalPathname: string];
+  | [
+      pattern: RegExp,
+      loaders: ModuleLoader[],
+      paramNames: string[],
+      originalPathname: string,
+      routeBundleNames: string[]
+    ];
 
 export type FallbackRouteData =
   | [pattern: RegExp, loaders: ModuleLoader[]]
@@ -200,11 +206,12 @@ export type ContentModule = PageModule | LayoutModule;
 
 export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
 
-export interface LoadedRoute {
-  params: RouteParams;
-  mods: (RouteModule | ContentModule)[];
-  menu: ContentMenu | undefined;
-}
+export type LoadedRoute = [
+  params: RouteParams,
+  mods: (RouteModule | ContentModule)[],
+  menu: ContentMenu | undefined,
+  routeBundleNames: string[] | undefined
+];
 
 export interface LoadedContent extends LoadedRoute {
   pageModule: PageModule;
@@ -309,8 +316,9 @@ export interface EndpointResponse {
   status: number;
 }
 
-export interface ClientPageData extends EndpointResponse {
-  prefetch: string[];
+export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
+  status?: number;
+  prefetch?: string[];
   redirect?: string;
 }
 

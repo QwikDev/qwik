@@ -1,6 +1,5 @@
 import { component$, Slot, QwikIntrinsicElements } from '@builder.io/qwik';
-import { getClientNavPath } from './client-navigation';
-import type { QPrefetchData } from './service-worker/types';
+import { getClientNavPath, toUrl } from './client-navigation';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
 
@@ -10,22 +9,24 @@ import { useLocation, useNavigate } from './use-functions';
 export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
   const loc = useLocation();
+  const originalHref = props.href;
   const linkProps = { ...props };
-  const clientNavPath = getClientNavPath(linkProps, loc);
-  if (clientNavPath) {
-    linkProps['preventdefault:click'] = true;
-    linkProps.href = clientNavPath;
-  }
+  const clientPathname = getClientNavPath(linkProps, loc);
+  const prefetchUrl = props.prefetch && clientPathname ? toUrl(clientPathname, loc).href : null;
+
+  linkProps['preventdefault:click'] = !!clientPathname;
+  linkProps.href = clientPathname || originalHref;
+
   return (
     <a
       {...linkProps}
       onClick$={() => {
-        if (clientNavPath) {
+        if (clientPathname) {
           nav.path = linkProps.href!;
         }
       }}
-      onMouseOver$={() => prefetchLinkResources(clientNavPath, loc, false)}
-      onQVisible$={() => prefetchLinkResources(clientNavPath, loc, true)}
+      onMouseOver$={() => prefetchLinkResources(prefetchUrl, false)}
+      onQVisible$={() => prefetchLinkResources(prefetchUrl, true)}
     >
       <Slot />
     </a>
@@ -34,21 +35,15 @@ export const Link = component$<LinkProps>((props) => {
 
 let windowInnerWidth = 0;
 
-export const prefetchLinkResources = (
-  clientNavPath: string | null,
-  baseUrl: { href: string },
-  isOnVisible: boolean
-) => {
+export const prefetchLinkResources = (prefetchUrl: string | null, isOnVisible: boolean) => {
   if (!windowInnerWidth) {
     windowInnerWidth = window.innerWidth;
   }
 
-  if (clientNavPath && (!isOnVisible || (isOnVisible && windowInnerWidth < 800))) {
+  if (prefetchUrl && (!isOnVisible || (isOnVisible && windowInnerWidth < 520))) {
     // either this is a mouseover event, probably on desktop
     // or the link is visible, and the viewport width is less than X
-    loadClientData(sessionStorage, clientNavPath, baseUrl);
-    const data: QPrefetchData = { links: [clientNavPath] };
-    dispatchEvent(new CustomEvent('qprefetch', { detail: data }));
+    loadClientData(prefetchUrl);
   }
 };
 
@@ -57,4 +52,6 @@ type AnchorAttributes = QwikIntrinsicElements['a'];
 /**
  * @alpha
  */
-export interface LinkProps extends AnchorAttributes {}
+export interface LinkProps extends AnchorAttributes {
+  prefetch?: boolean;
+}

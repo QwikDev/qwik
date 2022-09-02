@@ -1,6 +1,6 @@
 export interface QPrefetchData {
-  urls?: string[];
-  links?: string[];
+  bundles?: string[];
+  qKeys?: string[];
 }
 
 export interface QPrefetchMessage extends QPrefetchData {
@@ -14,15 +14,15 @@ export interface ServiceWorkerMessageEvent {
   data: ServiceWorkerMessage;
 }
 
-export interface ServiceWorkerBundles {
-  [bundleName: string]: string[];
-}
+export type AppBundle = [importedBundleNames: string[], symbolHashesInBundle: string[]];
 
-export type ServiceWorkerLink = [pattern: RegExp, bundleNames: string[]];
+export interface AppBundles {
+  [bundleName: string]: AppBundle;
+}
 
 export type Fetch = (r: Request) => Promise<Response>;
 
 export type AwaitingRequests = Map<
   string,
-  { resolve: (response: Response | PromiseLike<Response>) => void; reject: (msg: any) => void }[]
+  [resolve: (response: Response | PromiseLike<Response>) => void, reject: (msg: any) => void][]
 >;

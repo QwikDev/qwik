@@ -1,11 +1,5 @@
 import { assertDefined } from '../assert/assert';
-import {
-  ComponentStylesPrefixContent,
-  ELEMENT_ID,
-  OnRenderProp,
-  QSlot,
-  RenderEvent,
-} from '../util/markers';
+import { ELEMENT_ID, OnRenderProp, QSlot, RenderEvent } from '../util/markers';
 import { promiseAll, safeCall, then } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { logError } from '../util/log';
@@ -115,14 +109,6 @@ export const pushRenderContext = (ctx: RenderContext, elCtx: QContext): RenderCo
     $localStack$: ctx.$localStack$.concat(elCtx),
   };
   return newCtx;
-};
-
-export const stringifyClass = (obj: any, oldValue: string | undefined): string => {
-  const oldParsed = parseClassAny(oldValue);
-  const newParsed = parseClassAny(obj);
-  return [...oldParsed.filter((s) => s.includes(ComponentStylesPrefixContent)), ...newParsed].join(
-    ' '
-  );
 };
 
 export const joinClasses = (...input: any[]): string => {

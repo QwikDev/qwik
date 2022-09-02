@@ -105,6 +105,28 @@ export const appendHeadStyle = (ctx: RenderStaticContext, styleTask: StyleAppend
   });
 };
 
+export const setClasslist = (
+  ctx: RenderStaticContext | undefined,
+  elm: Element,
+  toRemove: string[],
+  toAdd: string[]
+) => {
+  if (ctx) {
+    ctx.$operations$.push({
+      $operation$: _setClasslist,
+      $args$: [elm, toRemove, toAdd],
+    });
+  } else {
+    _setClasslist(elm, toRemove, toAdd);
+  }
+};
+
+export const _setClasslist = (elm: Element, toRemove: string[], toAdd: string[]) => {
+  const classList = elm.classList;
+  classList.remove(...toRemove);
+  classList.add(...toAdd);
+};
+
 export const _appendHeadStyle = (doc: Document, containerEl: Element, styleTask: StyleAppend) => {
   const isDoc = doc.documentElement === containerEl;
   const headEl = doc.head;

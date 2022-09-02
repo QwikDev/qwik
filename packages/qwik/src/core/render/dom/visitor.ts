@@ -20,10 +20,10 @@ import { assertQwikElement, isQwikElement, isText, isVirtualElement } from '../.
 import { getVdom, ProcessedJSXNode, ProcessedJSXNodeImpl, renderComponent } from './render-dom';
 import type { RenderContext, RenderStaticContext } from '../types';
 import {
+  parseClassAny,
   pushRenderContext,
   setQId,
   SKIPS_PROPS,
-  stringifyClass,
   stringifyStyle,
 } from '../execute-component';
 import type { SubscriptionManager } from '../container';
@@ -49,6 +49,7 @@ import {
   prepend,
   removeNode,
   setAttribute,
+  setClasslist,
   setKey,
   setProperty,
 } from './operations';
@@ -740,14 +741,14 @@ const handleStyle: PropHandler = (ctx, elm, _, newValue) => {
 };
 
 const handleClass: PropHandler = (ctx, elm, _, newValue, oldValue) => {
-  // if (!oldValue) {
-  //   oldValue = elm.className;
-  // }
-  oldValue = !oldValue ? '' : oldValue;
-  const className = stringifyClass(newValue, oldValue);
-  if (oldValue !== className) {
-    setProperty(ctx, elm, 'className', className);
-  }
+  const oldClasses = parseClassAny(oldValue);
+  const newClasses = parseClassAny(newValue);
+  setClasslist(
+    ctx,
+    elm,
+    oldClasses.filter((c) => c && !newClasses.includes(c)),
+    newClasses.filter((c) => c && !oldClasses.includes(c))
+  );
   return true;
 };
 

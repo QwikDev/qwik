@@ -14,7 +14,7 @@ export const useEndpoint = <T = unknown>() => {
   const env = useQwikCityEnv();
 
   return useResource$<GetEndpointData<T>>(async ({ track }) => {
-    const pathname = track(loc, 'pathname');
+    const href = track(loc, 'href');
 
     if (isServer) {
       if (!env) {
@@ -23,18 +23,14 @@ export const useEndpoint = <T = unknown>() => {
       return env.response.body;
     } else {
       // fetch() for new data when the pathname has changed
-      const clientData = await loadClientData(pathname, loc);
+      const clientData = await loadClientData(href);
       return clientData && clientData.body;
     }
   });
 };
 
-export const loadClientData = async (
-  requestPathname: string,
-  currentUrl: { pathname: string; href: string }
-) => {
-  const requestUrl = toUrl(requestPathname, currentUrl);
-  const endpointUrl = getClientEndpointPath(requestUrl);
+export const loadClientData = async (href: string) => {
+  const endpointUrl = getClientEndpointPath(new URL(href).pathname);
   const now = Date.now();
   const expiration = cacheModules ? 600000 : 15000;
 

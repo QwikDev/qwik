@@ -234,15 +234,10 @@ const baseUrl = new URL('https://qwik.dev/');
 [
   { pathname: '/', expect: '/q-data.json' },
   { pathname: '/about', expect: '/about/q-data.json' },
-  { pathname: '/about#hash', expect: '/about/q-data.json' },
-  { pathname: '/about?qs=true', expect: '/about/q-data.json' },
-  { pathname: '/about/#hash', expect: '/about/q-data.json' },
-  { pathname: '/about/?qs=true', expect: '/about/q-data.json' },
   { pathname: '/about/', expect: '/about/q-data.json' },
 ].forEach((t) => {
   test(`getClientEndpointUrl("${t.pathname}")`, () => {
-    const url = new URL(t.pathname, 'https://qwik.builder.io/');
-    const endpointPath = getClientEndpointPath(url);
+    const endpointPath = getClientEndpointPath(t.pathname);
     equal(endpointPath, t.expect);
   });
 });

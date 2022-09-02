@@ -1,5 +1,5 @@
 import { component$, Slot, QwikIntrinsicElements } from '@builder.io/qwik';
-import { getClientNavPath } from './client-navigation';
+import { getClientNavPath, toUrl } from './client-navigation';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
 
@@ -11,22 +11,22 @@ export const Link = component$<LinkProps>((props) => {
   const loc = useLocation();
   const originalHref = props.href;
   const linkProps = { ...props };
-  const clientNavPath = getClientNavPath(linkProps, loc);
-  const prefetch = props.prefetch !== false;
+  const clientPathname = getClientNavPath(linkProps, loc);
+  const prefetchUrl = props.prefetch && clientPathname ? toUrl(clientPathname, loc).href : null;
 
-  linkProps['preventdefault:click'] = !!clientNavPath;
-  linkProps.href = clientNavPath || originalHref;
+  linkProps['preventdefault:click'] = !!clientPathname;
+  linkProps.href = clientPathname || originalHref;
 
   return (
     <a
       {...linkProps}
       onClick$={() => {
-        if (clientNavPath) {
+        if (clientPathname) {
           nav.path = linkProps.href!;
         }
       }}
-      onMouseOver$={() => prefetchLinkResources(clientNavPath, loc, prefetch, false)}
-      onQVisible$={() => prefetchLinkResources(clientNavPath, loc, prefetch, true)}
+      onMouseOver$={() => prefetchLinkResources(prefetchUrl, false)}
+      onQVisible$={() => prefetchLinkResources(prefetchUrl, true)}
     >
       <Slot />
     </a>
@@ -35,20 +35,15 @@ export const Link = component$<LinkProps>((props) => {
 
 let windowInnerWidth = 0;
 
-export const prefetchLinkResources = (
-  clientNavPath: string | null,
-  baseUrl: { pathname: string; href: string },
-  prefetch: boolean,
-  isOnVisible: boolean
-) => {
+export const prefetchLinkResources = (prefetchUrl: string | null, isOnVisible: boolean) => {
   if (!windowInnerWidth) {
     windowInnerWidth = window.innerWidth;
   }
 
-  if (prefetch && clientNavPath && (!isOnVisible || (isOnVisible && windowInnerWidth < 520))) {
+  if (prefetchUrl && (!isOnVisible || (isOnVisible && windowInnerWidth < 520))) {
     // either this is a mouseover event, probably on desktop
     // or the link is visible, and the viewport width is less than X
-    loadClientData(clientNavPath, baseUrl);
+    loadClientData(prefetchUrl);
   }
 };
 

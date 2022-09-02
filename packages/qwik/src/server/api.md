@@ -96,6 +96,8 @@ export interface RenderResult {
     // @internal
     _manifest?: QwikManifest;
     // (undocumented)
+    manifest?: QwikManifest;
+    // (undocumented)
     prefetchResources: PrefetchResource[];
     // (undocumented)
     snapshotResult: SnapshotResult | null;

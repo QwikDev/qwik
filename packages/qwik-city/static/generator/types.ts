@@ -72,6 +72,17 @@ export interface StaticGeneratorOptions extends QwikCityRequestOptions {
    * Log level.
    */
   log?: 'debug';
+  /**
+   * Set to `false` if the generated static HTML files should not be written to disk. Setting
+   * to `false` is useful if the SSG should only write the `q-data.json` files to disk.
+   * Defaults to `true`.
+   */
+  emitHtml?: boolean;
+  /**
+   * Set to `false` if the generated `q-data.json` data files should not be written to disk.
+   * Defaults to `true`.
+   */
+  emitData?: boolean;
 }
 
 export type WorkerInputMessage = StaticRenderInput | WorkerCloseMessage;

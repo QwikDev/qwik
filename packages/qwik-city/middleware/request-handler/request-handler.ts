@@ -23,7 +23,7 @@ export async function requestHandler<T = any>(
     const loadedRoute = await loadRoute(routes, menus, cacheModules, requestCtx.url.pathname);
     if (loadedRoute) {
       // found and loaded the route for this pathname
-      const { mods, params } = loadedRoute;
+      const [params, mods, _, routeBundleNames] = loadedRoute;
 
       // build endpoint response from each module in the hierarchy
       const userResponse = await loadUserResponse(
@@ -41,7 +41,7 @@ export async function requestHandler<T = any>(
         return endpointHandler(requestCtx, userResponse);
       }
 
-      return pageHandler(requestCtx, userResponse, render, opts);
+      return pageHandler(requestCtx, userResponse, render, opts, routeBundleNames);
     }
   } catch (e: any) {
     if (e instanceof RedirectResponse) {

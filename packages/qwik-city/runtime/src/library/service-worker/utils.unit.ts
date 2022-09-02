@@ -1,49 +1,49 @@
 import { test } from 'uvu';
 import { equal } from 'uvu/assert';
 import { Request as NodeRequest, Response as NodeResponse } from 'node-fetch';
-import type { ServiceWorkerBundles } from './types';
-import { getCacheToDelete, isBuildRequest, useCache } from './utils';
+import type { AppBundles } from './types';
+import { getCacheToDelete, isAppBundleRequest, useCache } from './utils';
 
 test('getCacheToDelete, delete bundles no longer possible', () => {
-  const buildBundles: ServiceWorkerBundles = {
-    'q-abc.js': [],
-    'q-def.js': [],
+  const appBundles: AppBundles = {
+    'q-abc.js': [[], []],
+    'q-def.js': [[], []],
   };
   const cachedUrls = [
     'https://qwik.builder.io/build/q-abc.js',
     'https://qwik.builder.io/build/q-xyz.js',
   ];
-  const c = getCacheToDelete(buildBundles, cachedUrls);
+  const c = getCacheToDelete(appBundles, cachedUrls);
   equal(c, ['https://qwik.builder.io/build/q-xyz.js']);
 });
 
 test('getCacheToDelete, none to delete', () => {
-  const buildBundles: ServiceWorkerBundles = {
-    'q-abc.js': [],
-    'q-def.js': [],
+  const appBundles: AppBundles = {
+    'q-abc.js': [[], []],
+    'q-def.js': [[], []],
   };
   const cachedUrls = ['https://qwik.builder.io/build/q-abc.js'];
-  const c = getCacheToDelete(buildBundles, cachedUrls);
+  const c = getCacheToDelete(appBundles, cachedUrls);
   equal(c, []);
 });
 
-test('isBuildRequest, in buildBundles', () => {
-  const buildBundles: ServiceWorkerBundles = {
-    'q-abc.js': [],
-    'q-def.js': [],
+test('isAppBundleRequest, in buildBundles', () => {
+  const appBundles: AppBundles = {
+    'q-abc.js': [[], []],
+    'q-def.js': [[], []],
   };
   const pathname = '/build/q-abc.js';
-  const c = isBuildRequest(buildBundles, pathname);
+  const c = isAppBundleRequest(appBundles, pathname);
   equal(c, true);
 });
 
-test('isBuildRequest, not in buildBundles', () => {
-  const buildBundles: ServiceWorkerBundles = {
-    'q-abc.js': [],
-    'q-def.js': [],
+test('isAppBundleRequest, not in buildBundles', () => {
+  const appBundles: AppBundles = {
+    'q-abc.js': [[], []],
+    'q-def.js': [[], []],
   };
   const pathname = '/build/q-xyz.js';
-  const c = isBuildRequest(buildBundles, pathname);
+  const c = isAppBundleRequest(appBundles, pathname);
   equal(c, false);
 });
 

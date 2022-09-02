@@ -5,10 +5,11 @@ import type {
   ResolvedDocumentHead,
   DocumentHeadProps,
   DocumentHeadValue,
+  ClientPageData,
 } from './types';
 
 export const resolveHead = (
-  endpoint: EndpointResponse | undefined | null,
+  endpoint: EndpointResponse | ClientPageData | undefined | null,
   routeLocation: RouteLocation,
   contentModules: ContentModule[]
 ) => {

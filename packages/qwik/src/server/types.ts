@@ -128,10 +128,9 @@ export interface RenderToStringResult extends RenderResult {
 export interface RenderResult {
   prefetchResources: PrefetchResource[];
   snapshotResult: SnapshotResult | null;
-  /** @internal Experimental! */
+  manifest?: QwikManifest;
+  /** @internal TODO: Move to snapshotResult */
   _symbols?: string[];
-  /** @internal Experimental! */
-  _manifest?: QwikManifest;
 }
 
 /**

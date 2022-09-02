@@ -79,7 +79,7 @@ export const QwikCity = component$(() => {
 
     const loadRoutePromise = loadRoute(routes, menus, cacheModules, pathname);
 
-    const endpointResponse = isServer ? env.response : loadClientData(pathname, url);
+    const endpointResponse = isServer ? env.response : loadClientData(url.href);
 
     const loadedRoute = await loadRoutePromise;
 

@@ -93,8 +93,8 @@ export interface RenderOptions extends SerializeDocumentOptions {
 
 // @alpha (undocumented)
 export interface RenderResult {
-    // @internal
-    _manifest?: QwikManifest;
+    // (undocumented)
+    manifest?: QwikManifest;
     // (undocumented)
     prefetchResources: PrefetchResource[];
     // (undocumented)

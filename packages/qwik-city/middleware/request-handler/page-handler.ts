@@ -1,4 +1,5 @@
 import type { StreamWriter } from '@builder.io/qwik';
+import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type {
   PrefetchResource,
   Render,
@@ -98,7 +99,7 @@ function getPrefetchBundleNames(result: RenderResult, routeBundleNames: string[]
 
   addPrefetchResource(result.prefetchResources);
 
-  const manifest = result._manifest;
+  const manifest: QwikManifest | undefined = result.manifest || (result as any)._manifest;
   const renderedSymbols = result._symbols;
 
   if (manifest && renderedSymbols) {

@@ -179,6 +179,7 @@ export async function renderToStream(
     prefetchResources,
     snapshotResult,
     flushes: networkFlushes,
+    manifest: opts.manifest,
     size: totalSize,
     timing: {
       render: renderTime,
@@ -186,7 +187,6 @@ export async function renderToStream(
       firstFlush: firstFlushTime,
     },
     _symbols: renderSymbols,
-    _manifest: opts.manifest,
   };
   return result;
 }
@@ -234,6 +234,7 @@ const escapeText = (str: string) => {
 };
 
 function collectRenderSymbols(renderSymbols: string[], elements: QContext[]) {
+  // TODO: Move to snapshot result
   for (const ctx of elements) {
     const symbol = ctx.$renderQrl$?.getSymbol();
     if (symbol && !renderSymbols.includes(symbol)) {

@@ -112,6 +112,10 @@ const handleScroll = async (win: Window, previousUrl: SimpleURL, newUrl: SimpleU
           break;
         }
       }
+    } else {
+      // different route and there isn't a hash
+      await domWait();
+      win.scrollTo(0, 0);
     }
   }
 };

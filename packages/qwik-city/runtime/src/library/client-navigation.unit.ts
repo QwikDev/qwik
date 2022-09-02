@@ -136,6 +136,7 @@ function createTestWindow(href: string): TestClientHistoryWindow {
     firePopstate: () => {
       listeners[listeners.length - 1]();
     },
+    scrollTo: (x: number, y: number) => {},
   } as any;
 }
 

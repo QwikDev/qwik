@@ -51,15 +51,14 @@ async function workerRender(
   };
 
   try {
-    const pageFilePath = sys.getPageFilePath(staticRoute.pathname);
-    const dataFilePath = sys.getDataFilePath(staticRoute.pathname);
-
-    const headers = createHeaders();
-    headers.set('Accept', 'text/html');
+    const requestHeaders = createHeaders();
+    requestHeaders.set('Accept', 'text/html,application/json');
+    requestHeaders.set('Host', url.host);
+    requestHeaders.set('User-Agent', 'Qwik City SSG');
 
     const request: RequestContext = {
       formData: async () => new URLSearchParams(),
-      headers,
+      headers: requestHeaders,
       json: async () => {},
       method: 'GET',
       text: async () => '',
@@ -89,24 +88,44 @@ async function workerRender(
         callback(result);
 
         if (result.ok) {
-          await sys.ensureDir(pageFilePath);
+          const writeHtmlEnabled = opts.emitHtml !== false;
+          const writeDataEnabled = opts.emitData !== false;
+
+          const htmlFilePath = sys.getPageFilePath(staticRoute.pathname);
+          const dataFilePath = sys.getDataFilePath(staticRoute.pathname);
+
+          if (writeHtmlEnabled || writeDataEnabled) {
+            await sys.ensureDir(htmlFilePath);
+          }
 
           return new Promise((resolve) => {
-            const pageWriter = sys.createWriteStream(pageFilePath);
-            const dataWriter = sys.createWriteStream(dataFilePath);
+            const htmlWriter = writeHtmlEnabled ? sys.createWriteStream(htmlFilePath) : null;
+            const dataWriter = writeDataEnabled ? sys.createWriteStream(dataFilePath) : null;
 
             body({
               write: (chunk) => {
                 // page html writer
-                pageWriter.write(chunk);
+                if (htmlWriter) {
+                  htmlWriter.write(chunk);
+                }
               },
               clientData: (data) => {
                 // page data writer
-                dataWriter.write(JSON.stringify(data));
+                if (dataWriter) {
+                  dataWriter.write(JSON.stringify(data));
+                }
               },
             }).finally(() => {
-              dataWriter.close();
-              pageWriter.close(resolve);
+              if (htmlWriter) {
+                if (dataWriter) {
+                  dataWriter.close();
+                }
+                htmlWriter.close(resolve);
+              } else if (dataWriter) {
+                dataWriter.close(resolve);
+              } else {
+                resolve();
+              }
             });
           });
         }

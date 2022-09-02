@@ -192,9 +192,11 @@ export interface QwikBundle {
     // (undocumented)
     imports?: string[];
     // (undocumented)
+    origins?: string[];
+    // (undocumented)
     size: number;
     // (undocumented)
-    symbols: string[];
+    symbols?: string[];
 }
 
 // @alpha (undocumented)

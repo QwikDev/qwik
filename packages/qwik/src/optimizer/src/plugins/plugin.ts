@@ -522,7 +522,26 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         .map((mod) => mod.hook)
         .filter((h) => !!h) as HookAnalysis[];
 
-      return generateManifestFromBundles(path, hooks, injections, outputBundles, opts);
+      const manifest = generateManifestFromBundles(path, hooks, injections, outputBundles, opts);
+
+      for (const symbol of Object.values(manifest.symbols)) {
+        if (symbol.origin) {
+          symbol.origin = normalizePath(symbol.origin);
+        }
+      }
+
+      for (const bundle of Object.values(manifest.bundles)) {
+        if (bundle.origins) {
+          bundle.origins = bundle.origins
+            .map((abs) => {
+              const relPath = path.relative(opts.rootDir, abs);
+              return normalizePath(relPath);
+            })
+            .sort();
+        }
+      }
+
+      return manifest;
     };
 
     return { addBundle, addInjection, generateManifest };

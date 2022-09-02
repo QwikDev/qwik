@@ -22,6 +22,7 @@ export const loadRoute = async (
       if (match) {
         const loaders = route[1];
         const params = getRouteParams(route[2], match);
+        const routeBundleNames = route[4];
         const mods: RouteModule[] = new Array(loaders.length);
         const pendingLoads: Promise<any>[] = [];
         const menuLoader = getMenuLoader(menus, pathname);
@@ -47,7 +48,7 @@ export const loadRoute = async (
           await Promise.all(pendingLoads);
         }
 
-        return { params, mods, menu };
+        return [params, mods, menu, routeBundleNames];
       }
     }
   }

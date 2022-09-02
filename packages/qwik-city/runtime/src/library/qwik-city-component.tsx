@@ -75,25 +75,31 @@ export const QwikCity = component$(() => {
     const { routes, menus, cacheModules } = await import('@qwik-city-plan');
     const path = track(routeNavigate, 'path');
     const url = new URL(path, routeLocation.href);
+    const pathname = url.pathname;
 
-    const endpointResponse = isServer
-      ? env?.response
-      : loadClientData(sessionStorage, url.pathname, url);
+    const loadRoutePromise = loadRoute(routes, menus, cacheModules, pathname);
 
-    const [loadedRoute, clientPageData] = await Promise.all([
-      loadRoute(routes, menus, cacheModules, url.pathname),
-      endpointResponse,
-    ]);
+    const endpointResponse = isServer ? env.response : loadClientData(url.href);
+
+    const loadedRoute = await loadRoutePromise;
 
     if (loadedRoute) {
+      const [params, mods, menu] = loadedRoute;
+      const contentModules = mods as ContentModule[];
+      const pageModule = contentModules[contentModules.length - 1] as PageModule;
+
       // Update route location
       routeLocation.href = url.href;
-      routeLocation.pathname = url.pathname;
-      routeLocation.params = { ...loadedRoute.params };
+      routeLocation.pathname = pathname;
+      routeLocation.params = { ...params };
       routeLocation.query = Object.fromEntries(url.searchParams.entries());
 
-      const contentModules = loadedRoute.mods as ContentModule[];
-      const pageModule = contentModules[contentModules.length - 1] as PageModule;
+      // Update content
+      content.headings = pageModule.headings;
+      content.menu = menu;
+      contentInternal.contents = noSerialize(contentModules);
+
+      const clientPageData = await endpointResponse;
       const resolvedHead = resolveHead(clientPageData, routeLocation, contentModules);
 
       // Update document head
@@ -101,11 +107,6 @@ export const QwikCity = component$(() => {
       documentHead.meta = resolvedHead.meta;
       documentHead.styles = resolvedHead.styles;
       documentHead.title = resolvedHead.title;
-
-      // Update content
-      content.headings = pageModule.headings;
-      content.menu = loadedRoute.menu;
-      contentInternal.contents = noSerialize(contentModules);
 
       if (isBrowser) {
         clientNavigate(window, routeNavigate);

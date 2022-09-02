@@ -20,6 +20,7 @@ export const Menu = component$(() => {
                     <Link
                       data-test-menu-link={item.href}
                       href={mutable(item.href)}
+                      prefetch={true}
                       class={mutable({
                         'is-active': pathname === item.href,
                       })}

@@ -14,7 +14,7 @@ export const cachedFetch = (
     if (awaitingRequestResolves) {
       // there's already an active request happening
       // don't start a new request
-      awaitingRequestResolves.push({ resolve: promiseResolve, reject: promiseReject });
+      awaitingRequestResolves.push([promiseResolve, promiseReject]);
     } else {
       // there isn't already an active request for this url
       // start a new request
@@ -24,9 +24,9 @@ export const cachedFetch = (
         if (resolves) {
           // loop through each of the active request
           awaitingRequests.delete(url);
-          for (const { resolve } of resolves) {
+          for (const [awaitingResolve] of resolves) {
             // clone a new response for each of the active requests
-            resolve(response.clone());
+            awaitingResolve(response.clone());
           }
         } else {
           // somehow the array of awaiting requests doesn't exist
@@ -38,8 +38,8 @@ export const cachedFetch = (
         const resolves = awaitingRequests.get(url);
         if (resolves) {
           awaitingRequests.delete(url);
-          for (const { reject } of resolves) {
-            reject(msg);
+          for (const [_, awaitingReject] of resolves) {
+            awaitingReject(msg);
           }
         } else {
           promiseReject(msg);
@@ -47,7 +47,7 @@ export const cachedFetch = (
       };
 
       // create a new array of the request waiting to be resolved
-      awaitingRequests.set(url, [{ resolve: promiseResolve, reject: promiseReject }]);
+      awaitingRequests.set(url, [[promiseResolve, promiseReject]]);
 
       cache
         .match(url)

@@ -17,6 +17,7 @@ import { getPrefetchResources } from './prefetch-strategy';
 import { createSimpleDocument } from './document';
 import type { SymbolMapper } from '../optimizer/src/types';
 import { qDev } from '../core/util/qdev';
+import type { QContext } from '../core/props/props';
 // import { logWarn } from '../core/util/log';
 
 const DOCTYPE = '<!DOCTYPE html>';
@@ -126,6 +127,7 @@ export async function renderToStream(
   const renderTimer = createTimer();
   let renderTime = 0;
   let snapshotTime = 0;
+  const renderSymbols: string[] = [];
   await renderSSR(doc, rootNode, {
     stream,
     containerTagName,
@@ -164,6 +166,7 @@ export async function renderToStream(
           })
         );
       }
+      collectRenderSymbols(renderSymbols, contexts);
       snapshotTime = snapshotTimer();
       return jsx(Fragment, { children });
     },
@@ -176,12 +179,14 @@ export async function renderToStream(
     prefetchResources,
     snapshotResult,
     flushes: networkFlushes,
+    manifest: opts.manifest,
     size: totalSize,
     timing: {
       render: renderTime,
       snapshot: snapshotTime,
       firstFlush: firstFlushTime,
     },
+    _symbols: renderSymbols,
   };
   return result;
 }
@@ -227,3 +232,13 @@ function computeSymbolMapper(manifest: QwikManifest | undefined): SymbolMapper |
 const escapeText = (str: string) => {
   return str.replace(/<(\/?script)/g, '\\x3C$1');
 };
+
+function collectRenderSymbols(renderSymbols: string[], elements: QContext[]) {
+  // TODO: Move to snapshot result
+  for (const ctx of elements) {
+    const symbol = ctx.$renderQrl$?.getSymbol();
+    if (symbol && !renderSymbols.includes(symbol)) {
+      renderSymbols.push(symbol);
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import type { StreamWriter } from '@builder.io/qwik';
+import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type {
   PrefetchResource,
   Render,
@@ -12,7 +13,8 @@ export function pageHandler<T = any>(
   requestCtx: QwikCityRequestContext,
   userResponse: UserResponseContext,
   render: Render,
-  opts?: QwikCityRequestOptions
+  opts?: QwikCityRequestOptions,
+  routeBundleNames?: string[]
 ): Promise<T> {
   const { status, headers } = userResponse;
   const { response } = requestCtx;
@@ -36,7 +38,7 @@ export function pageHandler<T = any>(
 
     if (isPageData) {
       // write just the page json data to the response body
-      stream.write(JSON.stringify(await getClientPageData(userResponse, result)));
+      stream.write(JSON.stringify(await getClientPageData(userResponse, result, routeBundleNames)));
     } else {
       if ((typeof result as any as RenderToStringResult).html === 'string') {
         // render result used renderToString(), so none of it was streamed
@@ -48,38 +50,84 @@ export function pageHandler<T = any>(
     if (typeof stream.clientData === 'function') {
       // a data fn was provided by the request context
       // useful for writing q-data.json during SSG
-      stream.clientData(await getClientPageData(userResponse, result));
+      stream.clientData(await getClientPageData(userResponse, result, routeBundleNames));
     }
   });
 }
 
-async function getClientPageData(userResponse: UserResponseContext, result: RenderResult) {
+async function getClientPageData(
+  userResponse: UserResponseContext,
+  result: RenderResult,
+  routeBundleNames: string[] | undefined
+) {
+  const prefetchBundleNames = getPrefetchBundleNames(result, routeBundleNames);
+
   const clientPage: ClientPageData = {
     body: userResponse.pendingBody ? await userResponse.pendingBody : userResponse.resolvedBody,
-    prefetch: addPrefetchResource(result.prefetchResources, []),
-    status: userResponse.status,
+    status: userResponse.status !== 200 ? userResponse.status : undefined,
+    redirect:
+      (userResponse.status >= 301 &&
+        userResponse.status <= 308 &&
+        userResponse.headers.get('location')) ||
+      undefined,
+    prefetch: prefetchBundleNames.length > 0 ? prefetchBundleNames : undefined,
   };
-  if (
-    userResponse.status >= 301 &&
-    userResponse.status <= 308 &&
-    userResponse.headers.has('location')
-  ) {
-    clientPage.redirect = userResponse.headers.get('location')!;
-  }
+
   return clientPage;
 }
 
-const addPrefetchResource = (prefetchResources: PrefetchResource[], urls: string[]) => {
-  if (Array.isArray(prefetchResources)) {
-    for (const prefetchResource of prefetchResources) {
-      if (!urls.includes(prefetchResource.url)) {
-        urls.push(prefetchResource.url);
-        addPrefetchResource(prefetchResource.imports, urls);
+function getPrefetchBundleNames(result: RenderResult, routeBundleNames: string[] | undefined) {
+  const bundleNames: string[] = [];
+
+  const addBundle = (bundleName: string | undefined) => {
+    if (bundleName && !bundleNames.includes(bundleName)) {
+      bundleNames.push(bundleName);
+    }
+  };
+
+  const addPrefetchResource = (prefetchResources: PrefetchResource[]) => {
+    if (Array.isArray(prefetchResources)) {
+      for (const prefetchResource of prefetchResources) {
+        const bundleName = prefetchResource.url.split('/').pop();
+        if (bundleName && !bundleNames.includes(bundleName)) {
+          addBundle(bundleName);
+          addPrefetchResource(prefetchResource.imports);
+        }
+      }
+    }
+  };
+
+  addPrefetchResource(result.prefetchResources);
+
+  const manifest: QwikManifest | undefined = result.manifest || (result as any)._manifest;
+  const renderedSymbols = result._symbols;
+
+  if (manifest && renderedSymbols) {
+    // add every component on this page
+    for (const renderedSymbolName of renderedSymbols) {
+      const symbol = manifest.symbols[renderedSymbolName];
+      if (symbol && symbol.ctxName === 'component$') {
+        addBundle(manifest.mapping[renderedSymbolName]);
+      }
+    }
+
+    // and the router regex map
+    for (const [bundleName, bundle] of Object.entries(manifest.bundles)) {
+      if (bundle.origins && bundle.origins.includes('@qwik-city-plan')) {
+        addBundle(bundleName);
+        break;
       }
     }
   }
-  return urls;
-};
+
+  if (routeBundleNames) {
+    for (const routeBundleName of routeBundleNames) {
+      addBundle(routeBundleName);
+    }
+  }
+
+  return bundleNames;
+}
 
 export function getQwikCityEnvData(userResponse: UserResponseContext): {
   url: string;

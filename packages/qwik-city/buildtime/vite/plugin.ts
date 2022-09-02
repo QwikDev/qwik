@@ -1,7 +1,7 @@
 import { createMdxTransformer, MdxTransform } from '../markdown/mdx';
 import { basename, join, resolve } from 'path';
 import type { Plugin, UserConfig } from 'vite';
-import { generateQwikCityPlan } from '../runtime-generation/generate-runtime';
+import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
 import type { BuildContext } from '../types';
 import { createBuildContext, resetBuildContext } from '../context';
 import {
@@ -192,6 +192,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
     async writeBundle() {
       if (ctx?.target === 'ssr') {
         // ssr build
+        // TODO: Better way to get QwikManifest
         const manifest: QwikManifest = (globalThis as any).QWIK_MANIFEST;
         const clientOutDir: string = (globalThis as any).QWIK_CLIENT_OUT_DIR;
         if (manifest && clientOutDir) {
@@ -200,7 +201,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
               const swClientDistPath = join(clientOutDir, swEntry.chunkFileName);
 
               const swCode = await readFile(swClientDistPath, 'utf-8');
-              const swCodeUpdate = prependManifestToServiceWorker(ctx, manifest, swCode);
+              const swCodeUpdate = prependManifestToServiceWorker(manifest, swCode);
               if (swCodeUpdate) {
                 await writeFile(swClientDistPath, swCodeUpdate);
               }

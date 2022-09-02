@@ -15,8 +15,20 @@ export const ContentNav = component$(() => {
 
   return (
     <nav class="content-nav">
-      <div class="prev">{prev ? <Link href={mutable(prev.href)}>{prev.text}</Link> : null}</div>
-      <div class="next">{next ? <Link href={mutable(next.href)}>{next.text}</Link> : null}</div>
+      <div class="prev">
+        {prev ? (
+          <Link href={mutable(prev.href)} prefetch={true}>
+            {prev.text}
+          </Link>
+        ) : null}
+      </div>
+      <div class="next">
+        {next ? (
+          <Link href={mutable(next.href)} prefetch={true}>
+            {next.text}
+          </Link>
+        ) : null}
+      </div>
     </nav>
   );
 });

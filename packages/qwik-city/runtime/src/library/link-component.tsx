@@ -12,7 +12,7 @@ export const Link = component$<LinkProps>((props) => {
   const originalHref = props.href;
   const linkProps = { ...props };
   const clientNavPath = getClientNavPath(linkProps, loc);
-  const prefetch = !!props.prefetch;
+  const prefetch = props.prefetch !== false;
 
   linkProps['preventdefault:click'] = !!clientNavPath;
   linkProps.href = clientNavPath || originalHref;

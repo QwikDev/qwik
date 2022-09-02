@@ -240,9 +240,9 @@ const baseUrl = new URL('https://qwik.dev/');
   { pathname: '/about/', expect: '/about/q-data.json' },
 ].forEach((t) => {
   test(`getClientEndpointUrl("${t.pathname}")`, () => {
-    const baseUrl = new URL('https://qwik.builder.io/');
-    const url = getClientEndpointPath(t.pathname, baseUrl);
-    equal(url, t.expect);
+    const url = new URL(t.pathname, 'https://qwik.builder.io/');
+    const endpointPath = getClientEndpointPath(url);
+    equal(endpointPath, t.expect);
   });
 });
 

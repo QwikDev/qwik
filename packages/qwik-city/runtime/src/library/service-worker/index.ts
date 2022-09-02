@@ -1,4 +1,4 @@
-import type { ServiceWorkerBundles } from './types';
+import type { AppBundles } from './types';
 import { setupServiceWorkerScope } from './setup';
 
 /**
@@ -10,4 +10,4 @@ export const setupServiceWorker = () => {
   }
 };
 
-declare const appBundles: ServiceWorkerBundles;
+declare const appBundles: AppBundles;

@@ -1,12 +1,12 @@
-import type { ServiceWorkerBundles, ServiceWorkerMessageEvent } from './types';
-import { cachedFetch } from './cached-fetch';
-import { getCacheToDelete, isAppBuildBundleRequest } from './utils';
+import type { AppBundles, ServiceWorkerMessageEvent } from './types';
 import { awaitingRequests, qBuildCacheName } from './constants';
+import { cachedFetch } from './cached-fetch';
+import { getCacheToDelete, isAppBundleRequest } from './utils';
 import { prefetchBundleNames } from './prefetch';
 
 export const setupServiceWorkerScope = (
   swScope: ServiceWorkerGlobalScope,
-  appBundles: ServiceWorkerBundles
+  appBundles: AppBundles
 ) => {
   swScope.addEventListener('fetch', (ev) => {
     const request = ev.request;
@@ -14,7 +14,7 @@ export const setupServiceWorkerScope = (
     if (request.method === 'GET') {
       const url = new URL(request.url);
 
-      if (isAppBuildBundleRequest(appBundles, url.pathname)) {
+      if (isAppBundleRequest(appBundles, url.pathname)) {
         const nativeFetch = swScope.fetch.bind(swScope);
         ev.respondWith(
           swScope.caches
@@ -26,15 +26,20 @@ export const setupServiceWorkerScope = (
   });
 
   swScope.addEventListener('message', async ({ data }: ServiceWorkerMessageEvent) => {
-    if (data.type === 'qprefetch') {
-      if (typeof data.base === 'string') {
+    if (data.type === 'qprefetch' && typeof data.base === 'string') {
+      if (Array.isArray(data.bundles)) {
         const nativeFetch = swScope.fetch.bind(swScope);
         const qBuildCache = await swScope.caches.open(qBuildCacheName);
         const baseUrl = new URL(data.base, swScope.origin);
 
-        if (Array.isArray(data.bundles)) {
-          prefetchBundleNames(appBundles, qBuildCache, nativeFetch, baseUrl, data.bundles);
-        }
+        prefetchBundleNames(
+          appBundles,
+          qBuildCache,
+          nativeFetch,
+          baseUrl,
+          data.qKeys,
+          data.bundles
+        );
       }
     }
   });

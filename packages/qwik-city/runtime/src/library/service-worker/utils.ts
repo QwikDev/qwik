@@ -1,6 +1,6 @@
-import type { ServiceWorkerBundles } from './types';
+import type { AppBundles } from './types';
 
-export const getCacheToDelete = (appBundles: ServiceWorkerBundles, cachedUrls: string[]) => {
+export const getCacheToDelete = (appBundles: AppBundles, cachedUrls: string[]) => {
   const appBundleNames = Object.keys(appBundles);
   return cachedUrls.filter(
     (url) => !appBundleNames.some((appBundleName) => url.endsWith(appBundleName))
@@ -15,12 +15,9 @@ const hasNoCacheHeader = (r: { headers: Headers }) => {
   return cacheControl.includes('no-cache') || cacheControl.includes('max-age=0');
 };
 
-export const isAppBuildBundleRequest = (
-  buildBundles: ServiceWorkerBundles,
-  requestPathname: string
-) => {
-  for (const bundleName in buildBundles) {
-    if (requestPathname.endsWith(bundleName)) {
+export const isAppBundleRequest = (appBundles: AppBundles, requestPathname: string) => {
+  for (const appBundleName in appBundles) {
+    if (requestPathname.endsWith(appBundleName)) {
       return true;
     }
   }

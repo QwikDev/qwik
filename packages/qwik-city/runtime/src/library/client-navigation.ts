@@ -40,7 +40,7 @@ export const toPath = (url: SimpleURL) => url.pathname + url.search + url.hash;
 /**
  * Create a URL from a string and baseUrl
  */
-const toUrl = (url: string, baseUrl: { href: string }) => new URL(url, baseUrl.href);
+export const toUrl = (url: string, baseUrl: { href: string }) => new URL(url, baseUrl.href);
 
 /**
  * Checks only if the origins are the same.
@@ -74,10 +74,8 @@ export const getClientNavPath = (props: Record<string, any>, baseUrl: { href: st
   return null;
 };
 
-export const getClientEndpointPath = (pagePathname: string, baseUrl: { href: string }) => {
-  pagePathname = toUrl(pagePathname, baseUrl).pathname;
-  return pagePathname + (pagePathname.endsWith('/') ? '' : '/') + 'q-data.json';
-};
+export const getClientEndpointPath = (pageUrl: URL) =>
+  pageUrl.pathname + (pageUrl.pathname.endsWith('/') ? '' : '/') + 'q-data.json';
 
 const handleScroll = async (win: Window, previousUrl: SimpleURL, newUrl: SimpleURL) => {
   const doc = win.document;

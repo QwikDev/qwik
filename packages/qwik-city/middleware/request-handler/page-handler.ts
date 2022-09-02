@@ -12,7 +12,8 @@ export function pageHandler<T = any>(
   requestCtx: QwikCityRequestContext,
   userResponse: UserResponseContext,
   render: Render,
-  opts?: QwikCityRequestOptions
+  opts?: QwikCityRequestOptions,
+  routeBundleNames?: string[]
 ): Promise<T> {
   const { status, headers } = userResponse;
   const { response } = requestCtx;
@@ -36,7 +37,7 @@ export function pageHandler<T = any>(
 
     if (isPageData) {
       // write just the page json data to the response body
-      stream.write(JSON.stringify(await getClientPageData(userResponse, result)));
+      stream.write(JSON.stringify(await getClientPageData(userResponse, result, routeBundleNames)));
     } else {
       if ((typeof result as any as RenderToStringResult).html === 'string') {
         // render result used renderToString(), so none of it was streamed
@@ -48,38 +49,47 @@ export function pageHandler<T = any>(
     if (typeof stream.clientData === 'function') {
       // a data fn was provided by the request context
       // useful for writing q-data.json during SSG
-      stream.clientData(await getClientPageData(userResponse, result));
+      stream.clientData(await getClientPageData(userResponse, result, routeBundleNames));
     }
   });
 }
 
-async function getClientPageData(userResponse: UserResponseContext, result: RenderResult) {
-  const prefetchBundleNames = getPrefetchBundleNames(result);
+async function getClientPageData(
+  userResponse: UserResponseContext,
+  result: RenderResult,
+  routeBundleNames: string[] | undefined
+) {
+  const prefetchBundleNames = getPrefetchBundleNames(result, routeBundleNames);
 
   const clientPage: ClientPageData = {
     body: userResponse.pendingBody ? await userResponse.pendingBody : userResponse.resolvedBody,
+    status: userResponse.status !== 200 ? userResponse.status : undefined,
+    redirect:
+      (userResponse.status >= 301 &&
+        userResponse.status <= 308 &&
+        userResponse.headers.get('location')) ||
+      undefined,
     prefetch: prefetchBundleNames.length > 0 ? prefetchBundleNames : undefined,
-    status: userResponse.status,
   };
-  if (
-    userResponse.status >= 301 &&
-    userResponse.status <= 308 &&
-    userResponse.headers.has('location')
-  ) {
-    clientPage.redirect = userResponse.headers.get('location')!;
-  }
+
   return clientPage;
 }
 
-function getPrefetchBundleNames(result: RenderResult) {
+function getPrefetchBundleNames(result: RenderResult, routeBundleNames: string[] | undefined) {
   const bundleNames: string[] = [];
+
+  const addBundle = (bundleName: string | undefined) => {
+    if (bundleName && !bundleNames.includes(bundleName)) {
+      bundleNames.push(bundleName);
+    }
+  };
 
   const addPrefetchResource = (prefetchResources: PrefetchResource[]) => {
     if (Array.isArray(prefetchResources)) {
       for (const prefetchResource of prefetchResources) {
         const bundleName = prefetchResource.url.split('/').pop();
         if (bundleName && !bundleNames.includes(bundleName)) {
-          bundleNames.push(bundleName);
+          addBundle(bundleName);
           addPrefetchResource(prefetchResource.imports);
         }
       }
@@ -92,29 +102,26 @@ function getPrefetchBundleNames(result: RenderResult) {
   const renderedSymbols = result._symbols;
 
   if (manifest && renderedSymbols) {
+    // add every component on this page
     for (const renderedSymbolName of renderedSymbols) {
       const symbol = manifest.symbols[renderedSymbolName];
       if (symbol && symbol.ctxName === 'component$') {
-        const bundleName = manifest.mapping[renderedSymbolName];
-        if (bundleName && !bundleNames.includes(bundleName)) {
-          bundleNames.push(bundleName);
-        }
+        addBundle(manifest.mapping[renderedSymbolName]);
       }
     }
 
-    for (const [symbolName, symbol] of Object.entries(manifest.symbols)) {
-      if (symbol.displayName === 'QwikCity_component_useWatch') {
-        const bundleName = manifest.mapping[symbolName];
-        const bundle = manifest.bundles[bundleName];
-        if (bundle && Array.isArray(bundle.dynamicImports)) {
-          for (const dynamicImportName of bundle.dynamicImports) {
-            if (dynamicImportName && !bundleNames.includes(dynamicImportName)) {
-              bundleNames.push(dynamicImportName);
-            }
-          }
-        }
+    // and the router regex map
+    for (const [bundleName, bundle] of Object.entries(manifest.bundles)) {
+      if (bundle.origins && bundle.origins.includes('@qwik-city-plan')) {
+        addBundle(bundleName);
         break;
       }
+    }
+  }
+
+  if (routeBundleNames) {
+    for (const routeBundleName of routeBundleNames) {
+      addBundle(routeBundleName);
     }
   }
 

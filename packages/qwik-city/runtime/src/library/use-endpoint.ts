@@ -2,7 +2,7 @@ import { useResource$ } from '@builder.io/qwik';
 import { useLocation, useQwikCityEnv } from './use-functions';
 import { isServer } from '@builder.io/qwik/build';
 import type { ClientPageData, GetEndpointData } from './types';
-import { getClientEndpointPath } from './client-navigation';
+import { getClientEndpointPath, toUrl } from './client-navigation';
 import type { QPrefetchData } from './service-worker/types';
 import { cacheModules } from '@qwik-city-plan';
 
@@ -29,8 +29,12 @@ export const useEndpoint = <T = unknown>() => {
   });
 };
 
-export const loadClientData = async (pathname: string, baseUrl: { href: string }) => {
-  const endpointUrl = getClientEndpointPath(pathname, baseUrl);
+export const loadClientData = async (
+  requestPathname: string,
+  currentUrl: { pathname: string; href: string }
+) => {
+  const requestUrl = toUrl(requestPathname, currentUrl);
+  const endpointUrl = getClientEndpointPath(requestUrl);
   const now = Date.now();
   const expiration = cacheModules ? 600000 : 15000;
 
@@ -49,7 +53,10 @@ export const loadClientData = async (pathname: string, baseUrl: { href: string }
               clientResponse.json().then(
                 (clientData: ClientPageData) => {
                   const prefetchData: QPrefetchData = {
+                    requestUrl: requestUrl.pathname,
+                    currentUrl: currentUrl.pathname,
                     bundles: clientData.prefetch,
+                    qKeys: getDocumentQKeys(document),
                   };
                   dispatchEvent(new CustomEvent('qprefetch', { detail: prefetchData }));
                   resolve(clientData);
@@ -74,6 +81,26 @@ export const loadClientData = async (pathname: string, baseUrl: { href: string }
   }
 
   return cachedClientPageData.c;
+};
+
+export const getDocumentQKeys = (doc: Document) => {
+  let comment: Comment | null | undefined;
+  let data: string;
+  let attrIndex: number;
+
+  const walker = doc.createTreeWalker(doc, /* SHOW_COMMENT */ 128);
+  const qKeys = new Set<string>();
+
+  while ((comment = walker.nextNode() as any)) {
+    data = comment.data;
+    attrIndex = data.indexOf('q:key=');
+    if (attrIndex > -1) {
+      data = data.slice(attrIndex + 6);
+      qKeys.add(data.slice(0, data.indexOf(':')));
+    }
+  }
+
+  return Array.from(qKeys);
 };
 
 const cachedClientPages: CachedClientPageData[] = [];

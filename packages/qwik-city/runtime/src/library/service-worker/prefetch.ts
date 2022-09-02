@@ -1,37 +1,39 @@
-import type { Fetch, ServiceWorkerBundles } from './types';
+import type { Fetch, AppBundles } from './types';
 import { cachedFetch } from './cached-fetch';
 import { awaitingRequests, existingPrefetches } from './constants';
 
 export const prefetchBundleNames = (
-  appBundles: ServiceWorkerBundles,
+  appBundles: AppBundles,
   qBuildCache: Cache,
   fetch: Fetch,
   baseUrl: URL,
+  activeDomQKeys: string[] | undefined,
   prefetchAppBundleNames: string[]
 ) => {
-  const prefetchBundle = (prefetchAppBundleName: string) => {
-    try {
-      const url = new URL(prefetchAppBundleName, baseUrl).href;
-      if (appBundles[prefetchAppBundleName] && !existingPrefetches.has(url)) {
-        if (existingPrefetches.size > 100) {
-          existingPrefetches.clear();
+  const prefetchAppBundle = (prefetchAppBundleName: string) => {
+    const appBundle = appBundles[prefetchAppBundleName];
+
+    if (appBundle && !existingPrefetches.has(prefetchAppBundleName)) {
+      try {
+        existingPrefetches.add(prefetchAppBundleName);
+
+        const [importedBundleNames, symbolHashesInBundle] = appBundle;
+
+        const symbolActiveInDom =
+          Array.isArray(activeDomQKeys) &&
+          activeDomQKeys.some((qKey) => symbolHashesInBundle.includes(qKey));
+
+        if (!symbolActiveInDom) {
+          const url = new URL(prefetchAppBundleName, baseUrl).href;
+          cachedFetch(qBuildCache, fetch, awaitingRequests, new Request(url));
         }
-        existingPrefetches.add(url);
-        cachedFetch(qBuildCache, fetch, awaitingRequests, new Request(url));
+
+        importedBundleNames.forEach(prefetchAppBundle);
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {
-      console.error(e);
     }
   };
 
-  for (const prefetchAppBundleName of prefetchAppBundleNames) {
-    prefetchBundle(prefetchAppBundleName);
-
-    const prefetchAppBundleImports = appBundles[prefetchAppBundleName];
-    if (Array.isArray(prefetchAppBundleImports)) {
-      for (const prefetchAppBundleImport of prefetchAppBundleImports) {
-        prefetchBundle(prefetchAppBundleImport);
-      }
-    }
-  }
+  prefetchAppBundleNames.forEach(prefetchAppBundle);
 };

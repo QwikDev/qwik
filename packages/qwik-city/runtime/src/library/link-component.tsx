@@ -35,7 +35,7 @@ let windowInnerWidth = 0;
 
 export const prefetchLinkResources = (
   clientNavPath: string | null,
-  baseUrl: { href: string },
+  baseUrl: { pathname: string; href: string },
   isOnVisible: boolean
 ) => {
   if (!windowInnerWidth) {

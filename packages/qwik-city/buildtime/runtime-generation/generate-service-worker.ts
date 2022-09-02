@@ -1,7 +1,7 @@
 import type { BuildContext } from '../types';
 import swRegister from '@qwik-city-sw-register-build';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import type { ServiceWorkerBundles } from '../../runtime/src/library/service-worker/types';
+import type { AppBundles } from '../../runtime/src/library/service-worker/types';
 
 export function generateServiceWorkerRegister(ctx: BuildContext) {
   let swReg: string;
@@ -39,14 +39,26 @@ export function prependManifestToServiceWorker(manifest: QwikManifest, swCode: s
 }
 
 function generateAppBundles(manifest: QwikManifest) {
-  const bundles: ServiceWorkerBundles = {};
+  const appBundles: AppBundles = {};
 
   for (const appBundleName in manifest.bundles) {
-    const bundle = manifest.bundles[appBundleName];
-    bundles[appBundleName] = Array.isArray(bundle.imports) ? bundle.imports : [];
+    const manifestBundle = manifest.bundles[appBundleName];
+    const importedBundleNames = Array.isArray(manifestBundle.imports) ? manifestBundle.imports : [];
+    const symbolHashesInBundle = new Set<string>();
+
+    if (manifestBundle.symbols) {
+      for (const manifestBundleSymbolName of manifestBundle.symbols) {
+        const symbol = manifest.symbols[manifestBundleSymbolName];
+        if (symbol?.hash) {
+          symbolHashesInBundle.add(symbol.hash);
+        }
+      }
+    }
+
+    appBundles[appBundleName] = [importedBundleNames, Array.from(symbolHashesInBundle)];
   }
 
-  return `const appBundles=${JSON.stringify(bundles)};`;
+  return `const appBundles=${JSON.stringify(appBundles)};`;
 }
 
 const SW_UNREGISTER = `

@@ -26,8 +26,9 @@ import {
 import { createDocumentHead, resolveHead } from './head';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import { useQwikCityEnv } from './use-functions';
-import { clientNavigate, toPath } from './client-navigation';
+import { clientNavigate } from './client-navigate';
 import { loadClientData } from './use-endpoint';
+import { toPath } from './utils';
 
 /**
  * @alpha

@@ -339,3 +339,11 @@ export interface QwikCityEnvData {
 }
 
 export type GetEndpointData<T> = T extends RequestHandler<infer U> ? U : T;
+
+export interface SimpleURL {
+  origin: string;
+  href: string;
+  pathname: string;
+  search: string;
+  hash: string;
+}

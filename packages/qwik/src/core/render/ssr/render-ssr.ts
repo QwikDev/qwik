@@ -21,7 +21,7 @@ import {
   QSlotS,
   QStyle,
 } from '../../util/markers';
-import { SSRComment, Virtual } from '../jsx/host.public';
+import { SSRComment, SSRStream, Virtual } from '../jsx/host.public';
 import { logError, logWarn } from '../../util/log';
 import { addQRLListener, isOnProp, setEvent } from '../../props/props-on';
 import { version } from '../../version';
@@ -154,11 +154,15 @@ export const renderNodeFunction = (
   flags: number,
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ) => {
-  if (node.type === SSRComment) {
+  const fn = node.type;
+  if (fn === SSRComment) {
     stream.write(`<!--${node.props.data ?? ''}-->`);
     return;
   }
-  if (node.type === Virtual) {
+  if (fn === SSRStream) {
+    return renderGenerator(node, ssrCtx, stream, flags);
+  }
+  if (fn === Virtual) {
     const elCtx = getContext(ssrCtx.rctx.$static$.$doc$.createElement(VIRTUAL));
     return renderNodeVirtual(node, elCtx, undefined, ssrCtx, stream, flags, beforeClose);
   }
@@ -166,6 +170,21 @@ export const renderNodeFunction = (
     ? invoke(ssrCtx.invocationContext, () => node.type(node.props, node.key))
     : node.type(node.props, node.key);
   return processData(res, ssrCtx, stream, flags, beforeClose);
+};
+
+export const renderGenerator = async (
+  node: JSXNode<typeof SSRStream>,
+  ssrCtx: SSRContext,
+  stream: StreamWriter,
+  flags: number
+) => {
+  const value = node.props.generator(stream) as AsyncGenerator<any> | Promise<void>;
+  if (isPromise(value)) {
+    return value;
+  }
+  for await (const chunk of value) {
+    await processData(chunk, ssrCtx, stream, flags, undefined);
+  }
 };
 
 export const renderNodeVirtual = (
@@ -633,6 +652,7 @@ export const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => 
     isJSXNode(children) &&
     isFunction(children.type) &&
     children.type !== SSRComment &&
+    children.type !== SSRStream &&
     children.type !== Virtual
   ) {
     const fn = children.type;

@@ -352,6 +352,7 @@ export const patchVnode = (
     }
     return;
   }
+  assertQwikElement(elm);
 
   // Early exit for a skip render node
   if (tag === SKIP_RENDER_TYPE) {
@@ -366,10 +367,24 @@ export const patchVnode = (
   }
 
   const props = newVnode.$props$;
-  const ctx = getContext(elm as Element);
   const isComponent = isVirtual && OnRenderProp in props;
   if (!isComponent) {
-    updateProperties(ctx, rctx, oldVnode.$props$, props, isSvg);
+    updateProperties(elm, rctx, oldVnode.$props$, props, isSvg);
+    const currentComponent = rctx.$cmpCtx$;
+    if (currentComponent && !currentComponent.$attachedListeners$) {
+      const elCtx = getContext(elm);
+      currentComponent.$attachedListeners$ = true;
+      currentComponent.li?.forEach((qrls, eventName) => {
+        addQRLListener(elCtx, eventName, qrls);
+        addGlobalListener(staticCtx, elm, eventName);
+      });
+    }
+    if (qSerialize) {
+      const elCtx = getContext(elm);
+      elCtx.li?.forEach((value, key) => {
+        setAttribute(staticCtx, elm, key, serializeQRLs(value, elCtx));
+      });
+    }
 
     if (isSvg && newVnode.$type$ === 'foreignObject') {
       flags &= ~IS_SVG;
@@ -393,6 +408,7 @@ export const patchVnode = (
     return smartUpdateChildren(rctx, oldVnode, newVnode, 'root', flags);
   }
 
+  const ctx = getContext(elm);
   let needsRender = updateComponentProperties(ctx, rctx, props);
 
   // TODO: review this corner case
@@ -784,7 +800,7 @@ export const PROP_HANDLER_MAP: Record<string, PropHandler | undefined> = {
 };
 
 export const updateProperties = (
-  elCtx: QContext,
+  elm: QwikElement,
   rctx: RenderContext,
   oldProps: Record<string, any>,
   newProps: Record<string, any>,
@@ -792,11 +808,9 @@ export const updateProperties = (
 ) => {
   const keys = Object.keys(newProps);
   if (keys.length === 0) {
-    return false;
+    return;
   }
-  let renderListeners = false;
   const staticCtx = rctx.$static$;
-  const elm = elCtx.$element$;
   for (const key of keys) {
     if (key === 'children') {
       continue;
@@ -816,8 +830,7 @@ export const updateProperties = (
       if (areExactQRLs(newValue, oldValue)) {
         continue;
       }
-      addGlobalListener(staticCtx, elm, setEvent(elCtx, key, newValue));
-      renderListeners = true;
+      addGlobalListener(staticCtx, elm, setEvent(getContext(elm), key, newValue));
       continue;
     }
 
@@ -837,20 +850,6 @@ export const updateProperties = (
 
     // Fallback to render attribute
     setAttribute(staticCtx, elm, key, newValue);
-  }
-  const cmp = rctx.$cmpCtx$;
-  if (cmp && !cmp.$attachedListeners$) {
-    cmp.$attachedListeners$ = true;
-    cmp.li?.forEach((qrls, eventName) => {
-      addQRLListener(elCtx, eventName, qrls);
-      addGlobalListener(staticCtx, elm, eventName);
-      renderListeners = true;
-    });
-  }
-  if (qSerialize && renderListeners) {
-    elCtx.li?.forEach((value, key) => {
-      setAttribute(staticCtx, elm, key, serializeQRLs(value, elCtx));
-    });
   }
   return false;
 };

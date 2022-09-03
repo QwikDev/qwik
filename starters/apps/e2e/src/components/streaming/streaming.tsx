@@ -1,4 +1,4 @@
-import { component$, Resource, useResource$, useStyles$ } from '@builder.io/qwik';
+import { component$, Resource, SSRStream, useResource$, useStyles$ } from '@builder.io/qwik';
 
 export function delay(time: number) {
   return new Promise<void>((resolve) => {
@@ -14,6 +14,14 @@ export const Streaming = component$(() => {
       <Cmp text="this 3" delay={3000}></Cmp>
       <Cmp text="this 4" delay={4000}></Cmp>
       <Cmp text="this 5" delay={3000}></Cmp>
+      <SSRStream>
+        {async function* () {
+          for (let i = 0; i < 100; i++) {
+            yield <div>{i}</div>;
+            await delay(500);
+          }
+        }}
+      </SSRStream>
     </div>
   );
 });
@@ -37,8 +45,8 @@ export const Cmp = component$((props: { text: string; delay: number }) => {
   });
 
   return (
-    <div class="cmp">
-      <Resource value={resource} onResolved={(value) => <span>{value}</span>} />
+    <div>
+      <Resource value={resource} onResolved={(value) => <span class="cmp">{value}</span>} />
     </div>
   );
 });

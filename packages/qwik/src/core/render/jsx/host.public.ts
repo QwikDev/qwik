@@ -1,5 +1,8 @@
+import type { ValueOrPromise } from '../../util/types';
 import { jsx } from '../jsx/jsx-runtime';
+import type { StreamWriter } from '../ssr/render-ssr';
 import type { FunctionComponent } from './types/jsx-node';
+import type { JSXChildren } from './types/jsx-qwik-attributes';
 
 /**
  * @alpha
@@ -27,3 +30,15 @@ export const SSRStreamBlock: FunctionComponent<{ children?: any }> = (props) => 
     jsx(SSRComment, { data: 'qkssr-po' }),
   ] as any;
 };
+
+/**
+ * @alpha
+ */
+export interface StreamProps {
+  children: (stream: StreamWriter) => ValueOrPromise<void> | AsyncGenerator<JSXChildren, void, any>;
+}
+
+/**
+ * @alpha
+ */
+export const SSRStream: FunctionComponent<StreamProps> = (() => null) as any;

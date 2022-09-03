@@ -60,6 +60,7 @@ export interface AriaAttributes {
     'aria-valuemin'?: number | undefined;
     'aria-valuenow'?: number | undefined;
     'aria-valuetext'?: string | undefined;
+    ariaHidden?: Booleanish | undefined;
 }
 
 // @public (undocumented)
@@ -93,8 +94,7 @@ export interface Context<STATE extends object> {
 // @alpha
 export interface CorePlatform {
     chunkForSymbol: (symbolName: string) => [symbol: string, chunk: string] | undefined;
-    // Warning: (ae-forgotten-export) The symbol "QwikElement" needs to be exported by the entry point index.d.ts
-    importSymbol: (element: QwikElement, url: string | URL, symbol: string) => ValueOrPromise<any>;
+    importSymbol: (containerEl: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
     nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
@@ -128,6 +128,8 @@ export interface FunctionComponent<P = {}> {
     (props: P, key?: string): JSXNode | null;
 }
 
+// Warning: (ae-forgotten-export) The symbol "QwikElement" needs to be exported by the entry point index.d.ts
+//
 // @alpha
 export const getPlatform: (docOrNode: Document | QwikElement) => CorePlatform;
 

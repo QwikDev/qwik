@@ -1,3 +1,4 @@
+import { isNode } from '../../testing/html';
 import { tryGetContext } from '../props/props';
 import { isElement } from './element';
 import { qDev } from './qdev';
@@ -37,7 +38,7 @@ export const logDebug = (message?: string, ...optionalParams: any[]) => {
 const printParams = (optionalParams: any[]) => {
   if (qDev) {
     return optionalParams.map((p) => {
-      if (isElement(p)) {
+      if (isNode(p) && isElement(p)) {
         return printElement(p);
       }
       return p;

@@ -21,7 +21,7 @@ import { GetObjID, intToStr, strToInt } from '../object/store';
 import type { ContainerState } from '../render/container';
 import { notifyWatch, _hW } from '../render/dom/notify-render';
 import { useSequentialScope } from './use-sequential-scope';
-import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
+import type { QwikElement } from '../render/dom/virtual-element';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;
@@ -257,10 +257,10 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
   assertQrl(qrl);
 
   const el = ctx.$hostElement$;
-  const containerState = ctx.$renderCtx$.$containerState$;
+  const containerState = ctx.$renderCtx$.$static$.$containerState$;
   const watch = new Watch(WatchFlagsIsDirty | WatchFlagsIsWatch, i, el, qrl, undefined);
   set(true);
-  qrl.$resolveLazy$(el);
+  qrl.$resolveLazy$();
   getContext(el).$watches$.push(watch);
   waitAndRun(ctx, () => runSubscriber(watch, containerState));
   if (isServer(ctx)) {
@@ -372,8 +372,8 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
   getContext(el).$watches$.push(watch);
   useRunWatch(watch, eagerness);
   if (!isServer(ctx)) {
-    qrl.$resolveLazy$(el);
-    notifyWatch(watch, ctx.$renderCtx$.$containerState$);
+    qrl.$resolveLazy$();
+    notifyWatch(watch, ctx.$renderCtx$.$static$.$containerState$);
   }
 };
 
@@ -543,7 +543,7 @@ export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
     return;
   }
   assertQrl(mountQrl);
-  mountQrl.$resolveLazy$(ctx.$hostElement$);
+  mountQrl.$resolveLazy$();
   waitAndRun(ctx, mountQrl);
   set(true);
 };
@@ -583,7 +583,7 @@ export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
 // </docs>
 export const useMount$ = /*#__PURE__*/ implicit$FirstArg(useMountQrl);
 
-export type Subscriber = SubscriberDescriptor | VirtualElement | Element;
+export type Subscriber = SubscriberDescriptor | QwikElement;
 
 export type WatchDescriptor = DescriptorBase<WatchFn>;
 
@@ -619,7 +619,7 @@ export const runResource = <T>(
   const doc = getDocument(el);
   const invokationContext = newInvokeContext(doc, el, undefined, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
-  const watchFn = watch.$qrl$.$invokeFn$(el, invokationContext, () => {
+  const watchFn = watch.$qrl$.getFn(invokationContext, () => {
     subsManager.$clearSub$(watch);
   });
 
@@ -728,7 +728,7 @@ export const runWatch = (
   const doc = getDocument(el);
   const invokationContext = newInvokeContext(doc, el, undefined, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
-  const watchFn = watch.$qrl$.$invokeFn$(el, invokationContext, () => {
+  const watchFn = watch.$qrl$.getFn(invokationContext, () => {
     subsManager.$clearSub$(watch);
   }) as WatchFn;
   const track: Tracker = (obj: any, prop?: string) => {
@@ -784,7 +784,7 @@ export const cleanupWatch = (watch: SubscriberDescriptor) => {
 export const destroyWatch = (watch: SubscriberDescriptor) => {
   if (watch.$flags$ & WatchFlagsIsCleanup) {
     watch.$flags$ &= ~WatchFlagsIsCleanup;
-    const cleanup = watch.$qrl$.$invokeFn$(watch.$el$);
+    const cleanup = watch.$qrl$;
     (cleanup as any)();
   } else {
     cleanupWatch(watch);

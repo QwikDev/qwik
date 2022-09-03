@@ -4,18 +4,18 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
 import { QScopedStyle } from '../../util/markers';
 import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises';
-import { qDev } from '../../util/qdev';
+import { qDev, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
-import { appendHeadStyle, visitJsxNode } from './visitor';
+import { domToVnode, visitJsxNode } from './visitor';
 import { SkipRerender, Virtual } from '../jsx/host.public';
-import { isJSXNode, SKIP_RENDER_TYPE, VIRTUAL_TYPE } from '../jsx/jsx-runtime';
+import { isJSXNode, SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
 import type { JSXNode } from '../jsx/types/jsx-node';
 import { executeComponent } from '../execute-component';
 import type { RenderContext } from '../types';
 import { serializeSStyle } from '../../component/qrl-styles';
-import { directSetAttribute } from '../fast-calls';
 import type { QContext } from '../../props/props';
-import type { VirtualElement } from './virtual-element';
+import { QwikElement, VIRTUAL, VirtualElement } from './virtual-element';
+import { appendHeadStyle } from './operations';
 
 export const renderComponent = (
   rctx: RenderContext,
@@ -29,32 +29,42 @@ export const renderComponent = (
     if (res) {
       const hostElement = ctx.$element$;
       const newCtx = res.rctx;
-      const invocatinContext = newInvokeContext(rctx.$doc$, hostElement);
+      const invocatinContext = newInvokeContext(rctx.$static$.$doc$, hostElement);
       invocatinContext.$subscriber$ = hostElement;
       invocatinContext.$renderCtx$ = newCtx;
       if (justMounted) {
         if (ctx.$appendStyles$) {
           for (const style of ctx.$appendStyles$) {
-            appendHeadStyle(rctx, hostElement, style);
+            appendHeadStyle(rctx.$static$, style);
           }
         }
         if (ctx.$scopeIds$) {
           const value = serializeSStyle(ctx.$scopeIds$);
           if (value) {
-            directSetAttribute(hostElement, QScopedStyle, value);
+            hostElement.setAttribute(QScopedStyle, value);
           }
         }
       }
       const processedJSXNode = processData(res.node, invocatinContext);
       return then(processedJSXNode, (processedJSXNode) => {
-        return visitJsxNode(newCtx, hostElement, processedJSXNode, flags);
+        const newVdom = wrapJSX(hostElement, processedJSXNode);
+        const oldVdom = getVdom(ctx);
+        ctx.$vdom$ = newVdom;
+        return visitJsxNode(newCtx, oldVdom, newVdom, flags);
       });
     }
   });
 };
 
+export const getVdom = (ctx: QContext) => {
+  if (!ctx.$vdom$) {
+    ctx.$vdom$ = domToVnode(ctx.$element$);
+  }
+  return ctx.$vdom$;
+};
+
 export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
-  $elm$: Element | null = null;
+  $elm$: Node | VirtualElement | null = null;
   $text$: string = '';
 
   constructor(
@@ -62,7 +72,9 @@ export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
     public $props$: Record<string, any>,
     public $children$: ProcessedJSXNode[],
     public $key$: string | null
-  ) {}
+  ) {
+    seal(this);
+  }
 }
 
 export const processNode = (
@@ -70,36 +82,45 @@ export const processNode = (
   invocationContext?: InvokeContext
 ): ValueOrPromise<ProcessedJSXNode | ProcessedJSXNode[] | undefined> => {
   const key = node.key != null ? String(node.key) : null;
+  const nodeType = node.type;
+  const props = node.props;
+  const originalChildren = props.children;
   let textType = '';
-  if (node.type === SkipRerender) {
+  if (isString(nodeType)) {
+    textType = nodeType;
+  } else if (nodeType === Virtual) {
+    textType = VIRTUAL;
+  } else if (nodeType === SkipRerender) {
     textType = SKIP_RENDER_TYPE;
-  } else if (node.type === Virtual) {
-    textType = VIRTUAL_TYPE;
-  } else if (isFunction(node.type)) {
+  } else if (isFunction(nodeType)) {
     const res = invocationContext
-      ? invoke(invocationContext, () => node.type(node.props, node.key))
-      : node.type(node.props, node.key);
+      ? invoke(invocationContext, () => nodeType(props, node.key))
+      : nodeType(props, node.key);
     return processData(res, invocationContext);
-  } else if (isString(node.type)) {
-    textType = node.type;
   } else {
-    throw qError(QError_invalidJsxNodeType, node.type);
+    throw qError(QError_invalidJsxNodeType, nodeType);
   }
   let children: ProcessedJSXNode[] = EMPTY_ARRAY;
-  if (node.props) {
-    const mightPromise = processData(node.props.children, invocationContext);
-    return then(mightPromise, (result) => {
+  if (originalChildren != null) {
+    return then(processData(originalChildren, invocationContext), (result) => {
       if (result !== undefined) {
-        if (isArray(result)) {
-          children = result;
-        } else {
-          children = [result];
-        }
+        children = isArray(result) ? result : [result];
       }
-      return new ProcessedJSXNodeImpl(textType, node.props, children, key);
+      return new ProcessedJSXNodeImpl(textType, props, children, key);
     });
+  } else {
+    return new ProcessedJSXNodeImpl(textType, props, children, key);
   }
-  return new ProcessedJSXNodeImpl(textType, node.props, children, key);
+};
+
+export const wrapJSX = (
+  element: QwikElement,
+  input: ProcessedJSXNode[] | ProcessedJSXNode | undefined
+) => {
+  const children = input === undefined ? EMPTY_ARRAY : isArray(input) ? input : [input];
+  const node = new ProcessedJSXNodeImpl(':virtual', {}, children, null);
+  node.$elm$ = element;
+  return node;
 };
 
 export const processData = (
@@ -109,17 +130,18 @@ export const processData = (
   if (node == null || typeof node === 'boolean') {
     return undefined;
   }
-  if (isJSXNode(node)) {
-    return processNode(node, invocationContext);
-  } else if (isPromise(node)) {
-    return node.then((node) => processData(node, invocationContext));
-  } else if (isArray(node)) {
-    const output = promiseAll(node.flatMap((n) => processData(n, invocationContext)));
-    return then(output, (array) => array.flat(100).filter(isNotNullable));
-  } else if (isString(node) || typeof node === 'number') {
+  if (isString(node) || typeof node === 'number') {
     const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, EMPTY_ARRAY, null);
     newNode.$text$ = String(node);
     return newNode;
+  } else if (isJSXNode(node)) {
+    return processNode(node, invocationContext);
+  }
+  if (isArray(node)) {
+    const output = promiseAll(node.flatMap((n) => processData(n, invocationContext)));
+    return then(output, (array) => array.flat(100).filter(isNotNullable));
+  } else if (isPromise(node)) {
+    return node.then((node) => processData(node, invocationContext));
   } else {
     logWarn('A unsupported value was passed to the JSX, skipping render. Value:', node);
     return undefined;

@@ -1,5 +1,5 @@
 import type { QwikElement } from '../render/dom/virtual-element';
-import { getContainer, InvokeContext } from '../use/use-core';
+import type { InvokeContext } from '../use/use-core';
 import { getDocument } from '../util/dom';
 import { qDynamicPlatform } from '../util/qdev';
 import { isObject } from '../util/types';
@@ -9,9 +9,8 @@ export const createPlatform = (doc: Document): CorePlatform => {
   const moduleCache = new Map<string, { [symbol: string]: any }>();
   return {
     isServer: false,
-    importSymbol(element, url, symbolName) {
-      const urlDoc = toUrl(doc, element, url).toString();
-
+    importSymbol(containerEl, url, symbolName) {
+      const urlDoc = toUrl(doc, containerEl, url).toString();
       const urlCopy = new URL(urlDoc);
       urlCopy.hash = '';
       urlCopy.search = '';
@@ -65,9 +64,9 @@ const isModule = (module: any) => {
  * @param url - relative URL
  * @returns fully qualified URL.
  */
-export const toUrl = (doc: Document, element: QwikElement, url: string | URL): URL => {
-  const containerEl = getContainer(element);
-  const base = new URL(containerEl?.getAttribute('q:base') ?? doc.baseURI, doc.baseURI);
+export const toUrl = (doc: Document, containerEl: QwikElement, url: string | URL): URL => {
+  const baseURI = doc.baseURI;
+  const base = new URL(containerEl.getAttribute('q:base') ?? baseURI, baseURI);
   return new URL(url, base);
 };
 
@@ -112,7 +111,8 @@ export const getPlatform = (docOrNode: Document | QwikElement) => {
 export const isServer = (ctx: InvokeContext) => {
   if (qDynamicPlatform) {
     return (
-      ctx.$renderCtx$?.$containerState$.$platform$.isServer ?? getPlatform(ctx.$doc$!).isServer
+      ctx.$renderCtx$?.$static$.$containerState$.$platform$.isServer ??
+      getPlatform(ctx.$doc$!).isServer
     );
   }
   return false;

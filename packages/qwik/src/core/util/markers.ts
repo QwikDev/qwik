@@ -27,7 +27,7 @@ export const EventAny = 'on:.';
  */
 export const QSlot = 'q:slot';
 export const QSlotRef = 'q:sref';
-export const QSlotName = 'q:sname';
+export const QSlotS = 'q:s';
 export const QStyle = 'q:style';
 export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';

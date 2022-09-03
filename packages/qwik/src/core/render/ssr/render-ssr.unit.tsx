@@ -341,7 +341,7 @@ renderSSRSuite('using complex component', async () => {
       <!--qv q:id=0 q:key=sX:-->
       <div q:id="1" on:click="/runtimeQRL#_">
         <button q:id="2" on:click="/runtimeQRL#_">Click</button>
-        <!--qv q:sname q:sref=0 q:key--><!--/qv-->
+        <!--qv q:s q:sref=0 q:key--><!--/qv-->
       </div>
       <!--/qv-->
     </html>`
@@ -356,7 +356,7 @@ renderSSRSuite('using complex component with slot', async () => {
       <!--qv q:id=0 q:key=sX:-->
       <div q:id="1" on:click="/runtimeQRL#_">
         <button q:id="2" on:click="/runtimeQRL#_">Click</button>
-        <!--qv q:sname q:sref=0 q:key-->
+        <!--qv q:s q:sref=0 q:key-->
         Hola
         <!--/qv-->
       </div>
@@ -406,12 +406,12 @@ renderSSRSuite('named slots', async () => {
     <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       <div>
-        <!--qv q:sname=start q:sref=0 q:key=start-->
+        <!--qv q:s q:sref=0 q:key=start-->
         <div q:slot="start">START: 1</div>
         <div q:slot="start">START: 2</div>
         <!--/qv-->
-        <div><!--qv q:sname q:sref=0 q:key-->Textfromdefault<!--/qv--></div>
-        <!--qv q:sname=end q:sref=0 q:key=end-->
+        <div><!--qv q:s q:sref=0 q:key-->Textfromdefault<!--/qv--></div>
+        <!--qv q:s q:sref=0 q:key=end-->
         <div q:slot="end">END: 1</div>
         <div q:slot="end">END: 2</div>
         <!--/qv-->
@@ -438,15 +438,15 @@ renderSSRSuite('nested slots', async () => {
       <!--qv q:id=0 q:key=sX:-->
         <div id="root">
           Before root
-          <!--qv q:sname q:sref=0 q:key-->
+          <!--qv q:s q:sref=0 q:key-->
             <!--qv q:id=1 q:key=sX:-->
             <div id="level 1">
               Before level 1
-              <!--qv q:sname q:sref=1 q:key-->
+              <!--qv q:s q:sref=1 q:key-->
                 <!--qv q:id=2 q:key=sX:-->
                   <div id="level 2">
                     Before level 2
-                    <!--qv q:sname q:sref=2 q:key-->
+                    <!--qv q:s q:sref=2 q:key-->
                       BEFORE CONTENT
                       <div>Content</div>
                       AFTER CONTENT
@@ -474,8 +474,8 @@ renderSSRSuite('mixes slots', async () => {
       <!--qv q:id=0 q:key=sX:-->
       <!--qv q:id=1 q:key=sX:-->
         <div id="1">Before 1
-        <!--qv q:sname q:sref=1 q:key-->
-          <!--qv q:sname q:sref=0 q:key-->
+        <!--qv q:s q:sref=1 q:key-->
+          <!--qv q:s q:sref=0 q:key-->
             Content
           <!--/qv-->
         <!--/qv-->
@@ -494,7 +494,7 @@ renderSSRSuite('component useContextProvider()', async () => {
     </Context>,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
-        <!--qv q:sname q:sref=0 q:key-->
+        <!--qv q:s q:sref=0 q:key-->
           <!--qv q:id=1 q:key=sX:-->hello bye<!--/qv-->
         <!--/qv-->
         <!--qv q:id=2 q:key=sX:-->hello bye<!--/qv-->
@@ -555,7 +555,7 @@ renderSSRSuite('component useStylesScoped()', async () => {
         <div class="⭐️1d-0 host">
           <div class="⭐️1d-0">
             Scoped1
-            <!--qv q:sname q:sref=0 q:key-->
+            <!--qv q:s q:sref=0 q:key-->
             <div>projected</div>
             <!--/qv-->
             <p class="⭐️1d-0">Que tal?</p>
@@ -593,7 +593,8 @@ renderSSRSuite('component useClientEffect()', async () => {
     <UseClientEffect />,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
-        <div q:id="1" on:qvisible="/runtimeQRL#_[0]"></div>
+        <div q:id="1" on:qvisible="/runtimeQRL#_[0]
+/runtimeQRL#_[1]"></div>
       <!--/qv-->
     </html>`
   );
@@ -618,7 +619,7 @@ renderSSRSuite('root html component', async () => {
       <!--qv q:id=0 q:key=sX:-->
       <head q:id="1" q:head on:qvisible="/runtimeQRL#_[0]">
         <title q:head>hola</title>
-        <!--qv q:sname q:sref=0 q:key-->
+        <!--qv q:s q:sref=0 q:key-->
         <link q:head />
         <!--/qv-->
       </head>
@@ -641,7 +642,8 @@ renderSSRSuite('containerTagName', async () => {
         <div class="host">Text</div>
       <!--/qv-->
       <!--qv q:id=0 q:key=sX:-->
-        <div q:id="1" on:qvisible="/runtimeQRL#_[0]"></div>
+        <div q:id="1" on:qvisible="/runtimeQRL#_[0]
+/runtimeQRL#_[1]"></div>
       <!--/qv-->
     </container>`,
     {
@@ -729,7 +731,7 @@ renderSSRSuite('html slot', async () => {
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="/manu/folder">
       <!--qv q:id=0 q:key=sX:-->
-      <!--qv q:sname q:sref=0 q:key-->
+      <!--qv q:s q:sref=0 q:key-->
       <head q:head>
         <meta charset="utf-8" q:head />
         <title q:head>Qwik</title>
@@ -908,6 +910,9 @@ export const ContextConsumer = component$(() => {
 export const UseClientEffect = component$(() => {
   useClientEffect$(() => {
     console.warn('client effect');
+  });
+  useClientEffect$(() => {
+    console.warn('second client effect');
   });
   return <div />;
 });

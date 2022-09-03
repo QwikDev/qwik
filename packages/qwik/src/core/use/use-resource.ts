@@ -44,7 +44,7 @@ export const useResourceQrl = <T>(
   }
   assertQrl(qrl);
 
-  const containerState = ctx.$renderCtx$.$containerState$;
+  const containerState = ctx.$renderCtx$.$static$.$containerState$;
   const resource = createResourceReturn<T>(containerState, opts);
   const el = ctx.$hostElement$;
   const watch = new Watch(

@@ -38,7 +38,7 @@ export interface Serializer<T> {
   /**
    * Convert the object to a string.
    */
-  serialize?: (obj: T, getObjID: GetObjID, containerState: ContainerState) => string;
+  serialize: ((obj: T, getObjID: GetObjID, containerState: ContainerState) => string) | undefined;
   /**
    * Deserialize the object.
    */
@@ -46,7 +46,7 @@ export interface Serializer<T> {
   /**
    * Second pass to fill in the object.
    */
-  fill?: (obj: T, getObject: GetObject, containerState: ContainerState) => void;
+  fill: ((obj: T, getObject: GetObject, containerState: ContainerState) => void) | undefined;
 }
 
 const QRLSerializer: Serializer<QRLInternal> = {
@@ -110,6 +110,7 @@ const URLSerializer: Serializer<URL> = {
   test: (v) => v instanceof URL,
   serialize: (obj) => obj.href,
   prepare: (data) => new URL(data),
+  fill: undefined,
 };
 
 const DateSerializer: Serializer<Date> = {
@@ -117,6 +118,7 @@ const DateSerializer: Serializer<Date> = {
   test: (v) => v instanceof Date,
   serialize: (obj) => obj.toISOString(),
   prepare: (data) => new Date(data),
+  fill: undefined,
 };
 
 const RegexSerializer: Serializer<RegExp> = {
@@ -129,6 +131,7 @@ const RegexSerializer: Serializer<RegExp> = {
     const flags = data.slice(0, space);
     return new RegExp(source, flags);
   },
+  fill: undefined,
 };
 
 const ErrorSerializer: Serializer<Error> = {
@@ -142,14 +145,17 @@ const ErrorSerializer: Serializer<Error> = {
     err.stack = undefined;
     return err;
   },
+  fill: undefined,
 };
 
 const DocumentSerializer: Serializer<Document> = {
   prefix: '\u000F',
   test: (v) => isDocument(v),
+  serialize: undefined,
   prepare: (_, _c, doc) => {
     return doc;
   },
+  fill: undefined,
 };
 
 export const SERIALIZABLE_STATE = Symbol('serializable-data');

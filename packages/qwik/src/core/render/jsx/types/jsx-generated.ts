@@ -110,6 +110,11 @@ export interface AriaAttributes {
    */
   'aria-hidden'?: Booleanish | undefined;
   /**
+   * Indicates whether the element is exposed to an accessibility API.
+   * @see aria-disabled.
+   */
+  ariaHidden?: Booleanish | undefined;
+  /**
    * Indicates the entered value does not conform to the format expected by the application.
    * @see aria-errormessage.
    */

@@ -1,4 +1,4 @@
-import { QSlotName } from '../../util/markers';
+import { QSlotS } from '../../util/markers';
 import { Virtual } from './host.public';
 import { jsx } from './jsx-runtime';
 import type { FunctionComponent } from './types/jsx-node';
@@ -13,7 +13,7 @@ export const Slot: FunctionComponent<{
   return jsx(
     Virtual,
     {
-      [QSlotName]: name,
+      [QSlotS]: '',
     },
     name
   );

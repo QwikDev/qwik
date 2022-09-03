@@ -5,6 +5,7 @@ import { pathToFileURL } from 'url';
 import { createRequire } from 'module';
 import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import ts from 'typescript';
+import { rollup } from 'rollup';
 
 /**
  * This will validate a completed production build by triple checking all the
@@ -72,6 +73,7 @@ export async function validateBuild(config: BuildConfig) {
   }
 
   await validatePackageJson(config, pkg, errors);
+  await validateModuleTreeshake(config, join(config.distPkgDir, 'core.min.mjs'));
 
   const allFiles: string[] = [];
   function getFiles(dir: string) {
@@ -173,4 +175,49 @@ async function validatePackageJson(config: BuildConfig, pkg: PackageJSON, errors
   }
 
   validateExports(pkg.exports!);
+}
+
+async function validateModuleTreeshake(
+  config: BuildConfig,
+  entryModulePath: string
+): Promise<void> {
+  const virtualInputId = `@index`;
+  const bundle = await rollup({
+    input: virtualInputId,
+    treeshake: true,
+    plugins: [
+      {
+        name: 'resolver',
+        resolveId(id) {
+          if (id === virtualInputId) {
+            return id;
+          }
+        },
+        load(id) {
+          if (id === virtualInputId) {
+            return `import "${entryModulePath}";`;
+          }
+        },
+      },
+    ],
+    onwarn(warning) {
+      if (warning.code !== 'EMPTY_BUNDLE') {
+        throw warning;
+      }
+    },
+  });
+
+  const o = await bundle.generate({
+    format: 'es',
+  });
+
+  const output = o.output[0];
+  const outputCode = output.code.trim();
+
+  if (outputCode !== '') {
+    console.log(outputCode);
+    throw new Error(`🧨  Not all code was not treeshaken (treeshooken? treeshaked?)`);
+  }
+
+  console.log(`🌳  validated treeshake`);
 }

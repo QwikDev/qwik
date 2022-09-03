@@ -1,8 +1,7 @@
 import { isDocument } from '../../util/element';
-import { executeDOMRender, printRenderStats } from './visitor';
 import { isJSXNode, jsx } from '../jsx/jsx-runtime';
 import type { JSXNode, FunctionComponent } from '../jsx/types/jsx-node';
-import { visitJsxNode } from './visitor';
+import { domToVnode, visitJsxNode } from './visitor';
 import { getDocument } from '../../util/dom';
 import { qDev } from '../../util/qdev';
 import { version } from '../../version';
@@ -10,10 +9,11 @@ import { QContainerAttr } from '../../util/markers';
 import { appendQwikDevTools } from '../../props/props';
 import { qError, QError_cannotRenderOverExistingContainer } from '../../error/error';
 import { directSetAttribute } from '../fast-calls';
-import { processData } from './render-dom';
+import { processData, wrapJSX } from './render-dom';
 import { ContainerState, getContainerState } from '../container';
 import { postRendering } from './notify-render';
 import { createRenderContext } from '../execute-component';
+import { executeDOMRender, printRenderStats } from './operations';
 
 /**
  * @alpha
@@ -76,19 +76,21 @@ const renderRoot = async (
   containerEl: Element
 ) => {
   const ctx = createRenderContext(doc, containerState);
-  ctx.$roots$.push(parent as Element);
+  const staticCtx = ctx.$static$;
+  // staticCtx.$roots$.push(parent as Element);
 
   const processedNodes = await processData(jsxNode);
-  await visitJsxNode(ctx, parent as Element, processedNodes, 0);
+  const rootJsx = domToVnode(parent);
+  await visitJsxNode(ctx, rootJsx, wrapJSX(parent, processedNodes), 0);
 
-  ctx.$operations$.push(...ctx.$postOperations$);
-  executeDOMRender(ctx);
+  staticCtx.$operations$.push(...staticCtx.$postOperations$);
+  executeDOMRender(staticCtx);
 
   if (qDev) {
     appendQwikDevTools(containerEl);
-    printRenderStats(ctx);
+    printRenderStats(staticCtx);
   }
-  return ctx;
+  return staticCtx;
 };
 
 export const getElement = (docOrElm: Document | Element): Element => {

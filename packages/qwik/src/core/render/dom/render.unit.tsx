@@ -105,8 +105,9 @@ renderSuite('should render into a document', async () => {
     `
   <html q:version="dev" q:container="resumed" q:render="dom-dev">
   <!--qv q:key=sX: q:id=0-->
-  <!--qv q:key q:sref=0 q:sname-->
+  <!--qv q:key q:sref=0 q:s-->
     <head q:head="">
+      <title></title>
       <existing></existing>
       <title q:head="">Replace</title>
       <div q:head=""><div></div></div>
@@ -256,11 +257,11 @@ renderSuite('should project no content', async () => {
     fixture,
     `
       <section>
-        <!--qv q:key q:sref=0 q:sname-->
+        <!--qv q:key q:sref=0 q:s-->
         <!--/qv-->
-        <!--qv q:key=details q:sref=0 q:sname=details-->
+        <!--qv q:key=details q:sref=0 q:s-->
         <!--/qv-->
-        <!--qv q:key=description q:sref=0 q:sname=description-->
+        <!--qv q:key=description q:sref=0 q:s-->
         <!--/qv-->
       </section>`
   );
@@ -274,12 +275,12 @@ renderSuite('should project un-named slot text', async () => {
     fixture,
     `
       <section>
-        <!--qv q:key q:sref=0 q:sname-->
+        <!--qv q:key q:sref=0 q:s-->
         projection
         <!--/qv-->
-        <!--qv q:key=details q:sref=0 q:sname=details-->
+        <!--qv q:key=details q:sref=0 q:s-->
         <!--/qv-->
-        <!--qv q:key=description q:sref=0 q:sname=description-->
+        <!--qv q:key=description q:sref=0 q:s-->
         <!--/qv-->
       </section>`
   );
@@ -334,13 +335,13 @@ renderSuite('should project named slot component', async () => {
     fixture,
     `
       <section>
-        <!--qv q:key q:sref=0 q:sname-->
+        <!--qv q:key q:sref=0 q:s-->
         PROJECTION
         <!--/qv-->
-        <!--qv q:key=details q:sref=0 q:sname=details-->
+        <!--qv q:key=details q:sref=0 q:s-->
         <span q:slot="details">DETAILS</span>
         <!--/qv-->
-        <!--qv q:key=description q:sref=0 q:sname=description-->
+        <!--qv q:key=description q:sref=0 q:s-->
         <span q:slot="description">DESCRIPTION</span>
         <!--/qv-->
       </section>`
@@ -358,12 +359,27 @@ renderSuite('should project multiple slot with same name', async () => {
       <span q:slot="ignore">IGNORE</span>
     </Project>
   );
-  await expectRendered(
-    fixture,
+  await expectDOM(
+    fixture.host,
     `
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
+      <!--qv q:key=sX: q:id=0-->
+      <section>
+        <!--qv q:key q:sref=0 q:s-->
+        <!--/qv-->
+        <!--qv q:key=details q:sref=0 q:s-->
+        <span q:slot="details">DETAILS1</span>
+        <span q:slot="details">DETAILS2</span>
+        <!--/qv-->
+        <!--qv q:key=description q:sref=0 q:s-->
+        <!--/qv-->
+      </section>
       <q:template q:slot="ignore" hidden="" aria-hidden="true">
         <span q:slot="ignore">IGNORE</span>
-      </q:template>`
+      </q:template>
+      <!--/qv-->
+    </host>
+    `
   );
 });
 renderSuite('should not destroy projection when <Project> reruns', async () => {
@@ -379,7 +395,7 @@ renderSuite('should not destroy projection when <Project> reruns', async () => {
     fixture,
     `
       <section>
-        <!--qv q:key q:sref=0 q:sname-->
+        <!--qv q:key q:sref=0 q:s-->
         <span>PROJECTION</span>
         <!--/qv-->
       </section>`

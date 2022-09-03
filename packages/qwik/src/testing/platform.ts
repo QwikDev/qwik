@@ -2,8 +2,6 @@ import { getPlatform, setPlatform } from '../core/platform/platform';
 import type { TestPlatform } from './types';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { getContainer } from '../core/use/use-core';
-import type { QwikElement } from '../core/render/dom/virtual-element';
 
 function createPlatform(document: any) {
   if (!document || (document as Document).nodeType !== 9) {
@@ -24,8 +22,8 @@ function createPlatform(document: any) {
   const moduleCache = new Map<string, { [symbol: string]: any }>();
   const testPlatform: TestPlatform = {
     isServer: true,
-    importSymbol(element, url, symbolName) {
-      const urlDoc = toUrl(element.ownerDocument, element, url);
+    importSymbol(containerEl, url, symbolName) {
+      const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url);
       const importPath = toPath(urlDoc);
       const mod = moduleCache.get(importPath);
       if (mod) {
@@ -97,8 +95,7 @@ export function setTestPlatform(document: any) {
  * @param url - relative URL
  * @returns fully qualified URL.
  */
-export function toUrl(doc: Document, element: QwikElement, url: string | URL): URL {
-  const containerEl = getContainer(element);
+export function toUrl(doc: Document, containerEl: Element, url: string | URL): URL {
   const base = new URL(containerEl?.getAttribute('q:base') ?? doc.baseURI, doc.baseURI);
   return new URL(url, base);
 }

@@ -81,6 +81,7 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
   const appDistDir = join(appDir, 'dist');
   const appServerDir = join(appDir, 'server');
   const baseUrl = `/${appName}/`;
+  const isProd = appName.includes('.prod');
 
   // always clean the build directory
   removeDir(appDistDir);
@@ -135,10 +136,17 @@ export {
     configFile: false,
     base: baseUrl,
     ...extra,
+    define: {
+      'globalThis.qSerialize': false,
+      'globalThis.qDev': !isProd,
+    },
   });
 
   await build(
     getInlineConf({
+      build: {
+        minify: false,
+      },
       plugins: [
         ...plugins,
         optimizer.qwikVite({
@@ -161,6 +169,7 @@ export {
   await build(
     getInlineConf({
       build: {
+        minify: false,
         ssr: resolve(appSrcDir, entrySsrFileName),
       },
       plugins: [...plugins, optimizer.qwikVite()],

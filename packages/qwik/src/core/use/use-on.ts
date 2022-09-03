@@ -1,6 +1,6 @@
 import { assertQrl } from '../import/qrl-class';
 import type { QRL } from '../import/qrl.public';
-import { getContext } from '../props/props';
+import { getContext, normalizeOnProp } from '../props/props';
 import { addQRLListener } from '../props/props-on';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { useInvokeContext } from './use-core';
@@ -85,7 +85,7 @@ export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);
  */
 // </docs>
 export const useOn = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
-  _useOn(`on:${event}`, eventQrl);
+  _useOn(`on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnDocument">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -118,7 +118,7 @@ export const useOn = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
  */
 // </docs>
 export const useOnDocument = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
-  _useOn(`on-document:${event}`, eventQrl);
+  _useOn(`document:on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnWindow">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -152,11 +152,11 @@ export const useOnDocument = (event: string, eventQrl: QRL<(ev: Event) => void>)
  */
 // </docs>
 export const useOnWindow = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
-  _useOn(`on-window:${event}`, eventQrl);
+  _useOn(`window:on-${event}`, eventQrl);
 
 const _useOn = (eventName: string, eventQrl: QRL<(ev: Event) => void>) => {
   const invokeCtx = useInvokeContext();
   const ctx = getContext(invokeCtx.$hostElement$);
   assertQrl(eventQrl);
-  addQRLListener(ctx, eventName, eventQrl);
+  addQRLListener(ctx, normalizeOnProp(eventName), [eventQrl]);
 };

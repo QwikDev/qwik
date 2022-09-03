@@ -5,7 +5,6 @@ import { isFunction, isString } from '../util/types';
 import type { CorePlatform } from '../platform/types';
 import { getDocument } from '../util/dom';
 import { logError } from '../util/log';
-import { tryGetInvokeContext } from '../use/use-core';
 import {
   codeToText,
   qError,
@@ -33,6 +32,8 @@ const EXTRACT_SELF_IMPORT = /Promise\s*\.\s*resolve/;
 // https://regexr.com/6a83h
 const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+\.(js|ts)x?):/;
 
+const QRLcache = new Map<string, string>();
+
 // <docs markdown="../readme.md#qrl">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#qrl instead)
@@ -55,41 +56,42 @@ export const qrl = <T = any>(
   symbol: string,
   lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> => {
-  let chunk: string;
+  let chunk = '';
   let symbolFn: null | (() => Promise<Record<string, any>>) = null;
   if (isString(chunkOrFn)) {
     chunk = chunkOrFn;
   } else if (isFunction(chunkOrFn)) {
     symbolFn = chunkOrFn;
-    let match: RegExpMatchArray | null;
-    const srcCode = String(chunkOrFn);
-    if ((match = srcCode.match(EXTRACT_IMPORT_PATH)) && match[2]) {
-      chunk = match[2];
-    } else if ((match = srcCode.match(EXTRACT_SELF_IMPORT))) {
-      const ref = 'QWIK-SELF';
-      const frames = new Error(ref).stack!.split('\n');
-      const start = frames.findIndex((f) => f.includes(ref));
-      const frame = frames[start + 2];
-      match = frame.match(EXTRACT_FILE_NAME);
-      if (!match) {
-        chunk = 'main';
-      } else {
-        chunk = match[1];
-      }
+    const cached = QRLcache.get(symbol);
+    if (cached) {
+      chunk = cached;
     } else {
-      throw qError(QError_dynamicImportFailed, srcCode);
+      let match: RegExpMatchArray | null;
+      const srcCode = String(chunkOrFn);
+      if ((match = srcCode.match(EXTRACT_IMPORT_PATH)) && match[2]) {
+        chunk = match[2];
+      } else if ((match = srcCode.match(EXTRACT_SELF_IMPORT))) {
+        const ref = 'QWIK-SELF';
+        const frames = new Error(ref).stack!.split('\n');
+        const start = frames.findIndex((f) => f.includes(ref));
+        const frame = frames[start + 2];
+        match = frame.match(EXTRACT_FILE_NAME);
+        if (!match) {
+          chunk = 'main';
+        } else {
+          chunk = match[1];
+        }
+      } else {
+        throw qError(QError_dynamicImportFailed, srcCode);
+      }
+      QRLcache.set(symbol, chunk);
     }
   } else {
     throw qError(QError_unknownTypeArgument, chunkOrFn);
   }
 
   // Unwrap subscribers
-  const qrl = createQRL<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture, null);
-  const ctx = tryGetInvokeContext();
-  if (ctx && ctx.$element$) {
-    qrl.$setContainer$(ctx.$element$);
-  }
-  return qrl as any;
+  return createQRL<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture, null);
 };
 
 export const runtimeQrl = <T>(
@@ -133,6 +135,7 @@ export const stringifyQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
   const refSymbol = qrl.$refSymbol$ ?? symbol;
   const platform = opts.$platform$;
   const element = opts.$element$;
+
   if (platform) {
     const result = platform.chunkForSymbol(refSymbol);
     if (result) {
@@ -154,13 +157,11 @@ export const stringifyQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
   }
   const capture = qrl.$capture$;
   const captureRef = qrl.$captureRef$;
-  if (opts.$getObjId$) {
-    if (captureRef && captureRef.length) {
+  if (captureRef && captureRef.length) {
+    if (opts.$getObjId$) {
       const capture = captureRef.map(opts.$getObjId$);
       parts.push(`[${capture.join(' ')}]`);
-    }
-  } else if (opts.$addRefMap$) {
-    if (captureRef && captureRef.length) {
+    } else if (opts.$addRefMap$) {
       const capture = captureRef.map(opts.$addRefMap$);
       parts.push(`[${capture.join(' ')}]`);
     }
@@ -192,7 +193,7 @@ export const qrlToUrl = (element: Element, qrl: QRLInternal): URL => {
 /**
  * `./chunk#symbol[captures]
  */
-export const parseQRL = (qrl: string, el?: QwikElement): QRLInternal => {
+export const parseQRL = (qrl: string, containerEl?: Element): QRLInternal => {
   const endIdx = qrl.length;
   const hashIdx = indexOf(qrl, 0, '#');
   const captureIdx = indexOf(qrl, hashIdx, '[');
@@ -216,8 +217,8 @@ export const parseQRL = (qrl: string, el?: QwikElement): QRLInternal => {
     logError(codeToText(QError_runtimeQrlNoElement), qrl);
   }
   const iQrl = createQRL<any>(chunk, symbol, null, null, capture, null, null);
-  if (el) {
-    iQrl.$setContainer$(el);
+  if (containerEl) {
+    iQrl.$setContainer$(containerEl);
   }
   return iQrl;
 };

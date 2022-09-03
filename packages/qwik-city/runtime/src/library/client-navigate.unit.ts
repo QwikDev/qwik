@@ -1,16 +1,8 @@
-import { test, suite } from 'uvu';
+import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
-import {
-  ClientHistoryWindow,
-  clientNavigate,
-  CLIENT_HISTORY_INITIALIZED,
-  getClientEndpointPath,
-  getClientNavPath,
-  isSameOriginDifferentPath,
-  SimpleURL,
-  toPath,
-} from './client-navigation';
-import type { RouteNavigate } from './types';
+import { ClientHistoryWindow, clientNavigate, CLIENT_HISTORY_INITIALIZED } from './client-navigate';
+import type { RouteNavigate, SimpleURL } from './types';
+import { toPath } from './utils';
 
 const navTest = suite('clientNavigate');
 
@@ -152,94 +144,3 @@ function createRouteNavigate(win: { location: SimpleURL }) {
 }
 
 navTest.run();
-
-test('isSameOriginDifferentPath', () => {
-  const compare = [
-    {
-      a: 'http://qwik.dev/',
-      b: 'http://qwik.dev/',
-      expect: false,
-    },
-    {
-      a: 'http://qwik.dev/',
-      b: 'http://b.io/',
-      expect: false,
-    },
-    {
-      a: 'http://qwik.dev/',
-      b: 'http://b.io/path-b',
-      expect: false,
-    },
-    {
-      a: 'http://qwik.dev/path-a',
-      b: 'http://qwik.dev/path-b',
-      expect: true,
-    },
-    {
-      a: 'http://qwik.dev/qs=a',
-      b: 'http://qwik.dev/qs=b',
-      expect: true,
-    },
-    {
-      a: 'http://qwik.dev/qs=a',
-      b: 'http://qwik.dev/qs=a',
-      expect: false,
-    },
-    {
-      a: 'http://qwik.dev/qs=a#hash1',
-      b: 'http://qwik.dev/qs=b#hash1',
-      expect: true,
-    },
-    {
-      a: 'http://qwik.dev/qs=a#hash1',
-      b: 'http://qwik.dev/qs=a#hash1',
-      expect: false,
-    },
-    {
-      a: 'http://qwik.dev/qs=a#hash1',
-      b: 'http://qwik.dev/qs=a#hash2',
-      expect: true,
-    },
-  ];
-
-  compare.forEach((c) => {
-    const a = new URL(c.a);
-    const b = new URL(c.b);
-    equal(isSameOriginDifferentPath(a, b), c.expect, `${a} ${b}`);
-  });
-});
-
-const baseUrl = new URL('https://qwik.dev/');
-[
-  { props: { href: '#hash' }, expect: '/#hash' },
-  { props: { href: '?qs=true' }, expect: '/?qs=true' },
-  { props: { href: '/abs-path' }, expect: '/abs-path' },
-  { props: { href: './rel-path' }, expect: '/rel-path' },
-  { props: { href: 'rel-path' }, expect: '/rel-path' },
-  { props: { href: '/path/../rel-path' }, expect: '/rel-path' },
-  { props: { href: '/abs-path', target: '_blank' }, expect: null },
-  { props: { href: 'http://qwik.dev/' }, expect: null },
-  { props: { href: 'http://builder.io/' }, expect: null },
-  { props: { href: '       ' }, expect: null },
-  { props: { href: '       ' }, expect: null },
-  { props: { href: '' }, expect: null },
-  { props: { href: null }, expect: null },
-  { props: {}, expect: null },
-].forEach((c) => {
-  test(`getClientNavPath ${c.props.href}`, () => {
-    equal(getClientNavPath(c.props, baseUrl), c.expect, `${c.props.href} ${c.expect}`);
-  });
-});
-
-[
-  { pathname: '/', expect: '/q-data.json' },
-  { pathname: '/about', expect: '/about/q-data.json' },
-  { pathname: '/about/', expect: '/about/q-data.json' },
-].forEach((t) => {
-  test(`getClientEndpointUrl("${t.pathname}")`, () => {
-    const endpointPath = getClientEndpointPath(t.pathname);
-    equal(endpointPath, t.expect);
-  });
-});
-
-test.run();

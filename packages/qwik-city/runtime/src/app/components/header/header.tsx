@@ -11,13 +11,14 @@ export default component$(() => {
     <header>
       <div class="header-inner">
         <section class="logo">
-          <Link href="/" data-test-link="header-home">
+          <Link href="/" prefetch={true} data-test-link="header-home">
             Qwik City 🏙
           </Link>
         </section>
         <nav data-test-header-links>
           <Link
             href="/blog"
+            prefetch={true}
             class={mutable({ active: pathname.startsWith('/blog') })}
             data-test-link="blog-home"
           >
@@ -25,6 +26,7 @@ export default component$(() => {
           </Link>
           <Link
             href="/docs"
+            prefetch={true}
             class={mutable({ active: pathname.startsWith('/docs') })}
             data-test-link="docs-home"
           >
@@ -32,6 +34,7 @@ export default component$(() => {
           </Link>
           <Link
             href="/api"
+            prefetch={true}
             class={mutable({ active: pathname.startsWith('/api') })}
             data-test-link="api-home"
           >
@@ -39,6 +42,7 @@ export default component$(() => {
           </Link>
           <Link
             href="/products/hat"
+            prefetch={true}
             class={mutable({ active: pathname.startsWith('/products') })}
             data-test-link="products-hat"
           >
@@ -46,6 +50,7 @@ export default component$(() => {
           </Link>
           <Link
             href="/about-us"
+            prefetch={true}
             class={mutable({ active: pathname.startsWith('/about-us') })}
             data-test-link="about-us"
           >
@@ -53,6 +58,7 @@ export default component$(() => {
           </Link>
           <Link
             href="/sign-in"
+            prefetch={true}
             class={mutable({ active: pathname.startsWith('/sign-in') })}
             data-test-link="sign-in"
           >

@@ -1,10 +1,11 @@
-import type { RouteNavigate } from './types';
+import type { RouteNavigate, SimpleURL } from './types';
+import { isSameOriginDifferentPathname, isSamePath, toPath, toUrl } from './utils';
 
 export const clientNavigate = (win: ClientHistoryWindow, routeNavigate: RouteNavigate) => {
   const currentUrl = win.location;
   const newUrl = toUrl(routeNavigate.path, currentUrl)!;
 
-  if (isSameOriginDifferentPath(currentUrl, newUrl)) {
+  if (isSameOriginDifferentPathname(currentUrl, newUrl)) {
     // current browser url and route path are different
     // see if we should scroll to the hash after the url update
     handleScroll(win, currentUrl, newUrl);
@@ -22,7 +23,7 @@ export const clientNavigate = (win: ClientHistoryWindow, routeNavigate: RouteNav
       const currentUrl = win.location;
       const previousUrl = toUrl(routeNavigate.path, currentUrl)!;
 
-      if (isSameOriginDifferentPath(currentUrl, previousUrl)) {
+      if (isSameOriginDifferentPathname(currentUrl, previousUrl)) {
         handleScroll(win, previousUrl, currentUrl);
         // current browser url and route path are different
         // update the route path
@@ -31,51 +32,6 @@ export const clientNavigate = (win: ClientHistoryWindow, routeNavigate: RouteNav
     });
   }
 };
-
-/**
- * Gets an absolute url path string (url.pathname + url.search + url.hash)
- */
-export const toPath = (url: SimpleURL) => url.pathname + url.search + url.hash;
-
-/**
- * Create a URL from a string and baseUrl
- */
-export const toUrl = (url: string, baseUrl: { href: string }) => new URL(url, baseUrl.href);
-
-/**
- * Checks only if the origins are the same.
- */
-const isSameOrigin = (a: SimpleURL, b: SimpleURL) => a.origin === b.origin;
-
-/**
- * Checks only if the pathname + search are the same for the URLs.
- */
-const isSamePath = (a: SimpleURL, b: SimpleURL) => toPath(a) === toPath(b);
-
-/**
- * Same origin, but different pathname + search + hash.
- */
-export const isSameOriginDifferentPath = (a: SimpleURL, b: SimpleURL) =>
-  isSameOrigin(a, b) && !isSamePath(a, b);
-
-export const getClientNavPath = (props: Record<string, any>, baseUrl: { href: string }) => {
-  const href = props.href;
-  if (typeof href === 'string' && href.trim() !== '' && typeof props.target !== 'string') {
-    try {
-      const linkUrl = toUrl(href, baseUrl);
-      const currentUrl = toUrl('', baseUrl)!;
-      if (isSameOrigin(linkUrl, currentUrl)) {
-        return toPath(linkUrl);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
-  return null;
-};
-
-export const getClientEndpointPath = (pathname: string) =>
-  pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json';
 
 const handleScroll = async (win: Window, previousUrl: SimpleURL, newUrl: SimpleURL) => {
   const doc = win.document;
@@ -136,12 +92,4 @@ export const CLIENT_HISTORY_INITIALIZED = /* @__PURE__ */ Symbol();
 
 export interface ClientHistoryWindow extends Window {
   [CLIENT_HISTORY_INITIALIZED]?: 1;
-}
-
-export interface SimpleURL {
-  origin: string;
-  href: string;
-  pathname: string;
-  search: string;
-  hash: string;
 }

@@ -1,5 +1,5 @@
 import { component$, Slot, QwikIntrinsicElements } from '@builder.io/qwik';
-import { getClientNavPath, toUrl } from './client-navigation';
+import { getClientNavPath, getPrefetchUrl } from './utils';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
 
@@ -11,17 +11,17 @@ export const Link = component$<LinkProps>((props) => {
   const loc = useLocation();
   const originalHref = props.href;
   const linkProps = { ...props };
-  const clientPathname = getClientNavPath(linkProps, loc);
-  const prefetchUrl = props.prefetch && clientPathname ? toUrl(clientPathname, loc).href : null;
+  const clientNavPath = getClientNavPath(linkProps, loc);
+  const prefetchUrl = getPrefetchUrl(props, clientNavPath, loc);
 
-  linkProps['preventdefault:click'] = !!clientPathname;
-  linkProps.href = clientPathname || originalHref;
+  linkProps['preventdefault:click'] = !!clientNavPath;
+  linkProps.href = clientNavPath || originalHref;
 
   return (
     <a
       {...linkProps}
       onClick$={() => {
-        if (clientPathname) {
+        if (clientNavPath) {
           nav.path = linkProps.href!;
         }
       }}
@@ -32,8 +32,6 @@ export const Link = component$<LinkProps>((props) => {
     </a>
   );
 });
-
-let windowInnerWidth = 0;
 
 export const prefetchLinkResources = (prefetchUrl: string | null, isOnVisible: boolean) => {
   if (!windowInnerWidth) {
@@ -46,6 +44,8 @@ export const prefetchLinkResources = (prefetchUrl: string | null, isOnVisible: b
     loadClientData(prefetchUrl);
   }
 };
+
+let windowInnerWidth = 0;
 
 type AnchorAttributes = QwikIntrinsicElements['a'];
 

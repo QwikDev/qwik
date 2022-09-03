@@ -9,7 +9,7 @@ import type { QRLInternal } from './core/import/qrl-class';
  * @param doc - Document to use for setting up global listeners, and to
  *     determine all of the browser supported events.
  */
-export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorker?: Worker) => {
+export const qwikLoader = (doc: Document, hasInitialized?: number) => {
   const Q_CONTEXT = '__q_context__';
 
   const broadcast = (infix: string, type: string, ev: Event) => {
@@ -47,13 +47,10 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
     const attrName = 'on' + onPrefix + ':' + eventName;
     const qrls = (element as any)['_qc_']?.li?.get(attrName);
     if (qrls) {
-      qrls.forEach((q: QRLInternal) => {
-        const fn = q.getFn([element, ev] as any);
-        fn(ev, element);
-      });
+      qrls.forEach((q: QRLInternal) => q.getFn([element, ev])(ev, element));
       return;
     }
-    const attrValue = element.getAttribute('on' + onPrefix + ':' + eventName);
+    const attrValue = element.getAttribute(attrName);
     if (attrValue) {
       for (const qrl of attrValue.split('\n')) {
         const url = qrlResolver(element, qrl);
@@ -102,8 +99,8 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
    *
    * @param ev - Browser event.
    */
-  const processDocumentEvent = (ev: Event, element?: Element | null) => {
-    element = ev.target as Element | null;
+  const processDocumentEvent = (ev: Event) => {
+    let element = ev.target as Element | null;
     broadcast('-document', ev.type, ev);
 
     while (element && element.getAttribute) {
@@ -112,13 +109,12 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
     }
   };
 
-  const processWindowEvent = (ev: Event, element?: Element | null) => {
-    element = ev.target as Element | null;
+  const processWindowEvent = (ev: Event) => {
     broadcast('-window', ev.type, ev);
   };
 
-  const processReadyStateChange = (readyState?: DocumentReadyState) => {
-    readyState = doc.readyState;
+  const processReadyStateChange = () => {
+    const readyState = doc.readyState;
     if (!hasInitialized && (readyState == 'interactive' || readyState == 'complete')) {
       // document is ready
       hasInitialized = 1;
@@ -165,7 +161,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number, prefetchWorke
     } else {
       const scriptTag = doc.querySelector('script[events]');
       if (scriptTag) {
-        const events = scriptTag!.getAttribute('events')!;
+        const events = scriptTag.getAttribute('events')!;
         events.split(/[\s,;]+/).forEach(addDocEventListener);
       } else {
         for (const key in doc) {

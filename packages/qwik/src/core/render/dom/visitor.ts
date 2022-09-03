@@ -569,8 +569,6 @@ const createElm = (
     elm = doc.head;
     flags |= IS_HEAD;
     isHead = true;
-  } else if (tag === 'title') {
-    elm = doc.querySelector('title') ?? createElement(doc, tag, isSvg);
   } else {
     elm = createElement(doc, tag, isSvg);
     flags &= ~IS_HEAD;
@@ -666,8 +664,8 @@ const createElm = (
       setQId(rctx, elCtx);
     }
     if (listeners) {
-      listeners.forEach((value, key) => {
-        setAttribute(staticCtx, elm, key, serializeQRLs(value, elCtx));
+      listeners.forEach((qrl, key) => {
+        setAttribute(staticCtx, elm, key, serializeQRLs(qrl, elCtx));
       });
     }
   }
@@ -818,7 +816,7 @@ export const updateProperties = (
       if (areExactQRLs(newValue, oldValue)) {
         continue;
       }
-      setEvent(elCtx, key, newValue);
+      addGlobalListener(staticCtx, elm, setEvent(elCtx, key, newValue));
       renderListeners = true;
       continue;
     }
@@ -845,6 +843,7 @@ export const updateProperties = (
     cmp.$attachedListeners$ = true;
     cmp.li?.forEach((qrls, eventName) => {
       addQRLListener(elCtx, eventName, qrls);
+      addGlobalListener(staticCtx, elm, eventName);
       renderListeners = true;
     });
   }
@@ -854,6 +853,12 @@ export const updateProperties = (
     });
   }
   return false;
+};
+
+const addGlobalListener = (staticCtx: RenderStaticContext, elm: QwikElement, prop: string) => {
+  if (!qSerialize && prop.includes(':')) {
+    setAttribute(staticCtx, elm, prop, '');
+  }
 };
 
 export const areExactQRLs = (oldValue: any, newValue: any) => {
@@ -903,7 +908,7 @@ export const setProperties = (
     }
 
     if (isOnProp(key)) {
-      setEvent(getContext(elm), key, newValue);
+      addGlobalListener(rctx, elm, setEvent(getContext(elm), key, newValue));
       continue;
     }
 

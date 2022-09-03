@@ -32,7 +32,7 @@ export interface RenderInvokeContext extends InvokeContext {
   $renderCtx$: RenderContext;
 }
 
-export type InvokeTuple = [Element, Event, URL | undefined];
+export type InvokeTuple = [Element, Event, URL?];
 
 export interface InvokeContext {
   $url$: URL | undefined;

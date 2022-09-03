@@ -7,7 +7,7 @@ import { directGetAttribute } from '../render/fast-calls';
 import { isArray } from '../util/types';
 import { assertTrue } from '../assert/assert';
 
-const ON_PROP_REGEX = /^(window:|document:|)on([A-Z]|-.).*\$$/;
+const ON_PROP_REGEX = /^(on|window:|document:)/;
 
 export const isOnProp = (prop: string): boolean => {
   return ON_PROP_REGEX.test(prop);
@@ -42,7 +42,9 @@ export const addQRLListener = (ctx: QContext, prop: string, input: QRLInternal[]
 export const setEvent = (ctx: QContext, prop: string, input: any) => {
   assertTrue(prop.endsWith('$'), 'render: event property does not end with $', prop);
   const qrls = isArray(input) ? input.map(ensureQrl) : [ensureQrl(input)];
-  addQRLListener(ctx, normalizeOnProp(prop.slice(0, -1)), qrls);
+  prop = normalizeOnProp(prop.slice(0, -1));
+  addQRLListener(ctx, prop, qrls);
+  return prop;
 };
 
 const ensureQrl = (value: any) => {

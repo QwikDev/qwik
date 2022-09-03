@@ -111,8 +111,8 @@ export const cleanupContext = (ctx: QContext, subsManager: SubscriptionManager) 
   (el as any)[Q_CTX] = undefined;
 };
 
-const PREFIXES = ['document:on', 'window:on', 'on'];
-const SCOPED = ['on-document', 'on-window', 'on'];
+const PREFIXES = ['on', 'window:on', 'document:on'];
+const SCOPED = ['on', 'on-window', 'on-document'];
 
 export const normalizeOnProp = (prop: string) => {
   let scope = 'on';
@@ -121,6 +121,7 @@ export const normalizeOnProp = (prop: string) => {
     if (prop.startsWith(prefix)) {
       scope = SCOPED[i];
       prop = prop.slice(prefix.length);
+      break;
     }
   }
   if (prop.startsWith('-')) {

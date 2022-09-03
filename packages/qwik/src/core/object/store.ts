@@ -1,5 +1,3 @@
-'use strict';
-
 import { assertDefined, assertTrue } from '../assert/assert';
 import { assertQrl, isQrl } from '../import/qrl-class';
 import { getContext, QContext, tryGetContext } from '../props/props';

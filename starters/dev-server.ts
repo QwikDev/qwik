@@ -137,6 +137,7 @@ export {
     base: baseUrl,
     ...extra,
     define: {
+      'globalThis.qSerialize': false,
       'globalThis.qDev': !isProd,
     },
   });

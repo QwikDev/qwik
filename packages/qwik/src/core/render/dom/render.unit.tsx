@@ -107,6 +107,7 @@ renderSuite('should render into a document', async () => {
   <!--qv q:key=sX: q:id=0-->
   <!--qv q:key q:sref=0 q:s-->
     <head q:head="">
+      <title></title>
       <existing></existing>
       <title q:head="">Replace</title>
       <div q:head=""><div></div></div>

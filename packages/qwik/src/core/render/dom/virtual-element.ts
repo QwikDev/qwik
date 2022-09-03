@@ -2,6 +2,7 @@ import { assertEqual, assertTrue } from '../../assert/assert';
 import { isElement, isQwikElement, isVirtualElement } from '../../util/element';
 import { qSerialize, seal } from '../../util/qdev';
 import { directGetAttribute } from '../fast-calls';
+import { createElement } from './operations';
 import { getChildren } from './visitor';
 
 const VIRTUAL_SYMBOL = '__virtual';
@@ -130,7 +131,7 @@ export class VirtualElementImpl implements VirtualElement {
 
   constructor(public open: Comment, public close: Comment) {
     const doc = (this.ownerDocument = open.ownerDocument);
-    this.template = doc.createElement('template');
+    this.template = createElement(doc, 'template', false) as HTMLTemplateElement;
     this.attributes = parseVirtualAttributes(open.data.slice(3));
     assertTrue(open.data.startsWith('qv '), 'comment is not a qv');
     (open as any)[VIRTUAL_SYMBOL] = this;

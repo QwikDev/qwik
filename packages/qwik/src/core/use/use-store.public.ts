@@ -86,7 +86,7 @@ export const useStore = <STATE extends object>(
     set(value);
     return value;
   } else {
-    const containerState = ctx.$renderCtx$.$containerState$;
+    const containerState = ctx.$renderCtx$.$static$.$containerState$;
     const recursive = opts?.recursive ?? false;
     const flags = recursive ? QObjectRecursive : 0;
     const newStore = createProxy(value, containerState, flags, undefined);

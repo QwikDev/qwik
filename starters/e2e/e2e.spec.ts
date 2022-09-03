@@ -748,24 +748,38 @@ Click`);
     function tests() {
       test('should render correctly', async ({ page }) => {
         const document = await page.locator('p.document');
+        const document2 = await page.locator('p.document2');
+
         const window = await page.locator('p.window');
+        const window2 = await page.locator('p.window2');
+
         const self = await page.locator('p.self');
+        const self2 = await page.locator('p.self2');
 
         await expect(document).toHaveText('(Document: x: 0, y: 0)');
+        await expect(document2).toHaveText('(Document2: x: 0, y: 0)');
         await expect(window).toHaveText('(Window: x: 0, y: 0)');
+        await expect(window2).toHaveText('(Window2: x: 0, y: 0)');
         await expect(self).toHaveText('(Host: x: 0, y: 0, inside: false)');
+        await expect(self2).toHaveText('(Host2: x: 0, y: 0)');
 
         await page.mouse.move(100, 50);
 
         await expect(document).toHaveText('(Document: x: 100, y: 50)');
+        await expect(document2).toHaveText('(Document2: x: 100, y: 50)');
         await expect(window).toHaveText('(Window: x: 100, y: 50)');
+        await expect(window2).toHaveText('(Window2: x: 100, y: 50)');
         await expect(self).toHaveText('(Host: x: 0, y: 0, inside: false)');
+        await expect(self2).toHaveText('(Host2: x: 0, y: 0)');
 
         await page.mouse.move(100, 300);
 
         await expect(document).toHaveText('(Document: x: 100, y: 300)');
+        await expect(document2).toHaveText('(Document2: x: 100, y: 300)');
         await expect(window).toHaveText('(Window: x: 100, y: 300)');
+        await expect(window2).toHaveText('(Window2: x: 100, y: 300)');
         await expect(self).toHaveText('(Host: x: 100, y: 300, inside: true)');
+        await expect(self2).toHaveText('(Host2: x: 100, y: 300)');
       });
     }
 

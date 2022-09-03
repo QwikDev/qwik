@@ -241,8 +241,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       if (buildMode === 'development') {
         (globalThis as any).qDev = true;
+        const qDevKey = 'globalThis.qDev';
         updatedViteConfig.define = {
-          'globalThis.qDev': true,
+          [qDevKey]: viteConfig?.define?.[qDevKey] ?? true,
         };
       }
 

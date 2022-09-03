@@ -1,6 +1,6 @@
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
-import { qDev } from '../../util/qdev';
+import { qDev, seal } from '../../util/qdev';
 import { logWarn } from '../../util/log';
 import { isFunction, isObject, isString } from '../../util/types';
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
@@ -21,16 +21,16 @@ export const jsx = <T extends string | FunctionComponent<PROPS>, PROPS>(
   return new JSXNodeImpl<T>(type, props, key);
 };
 
-export const HOST_TYPE = ':host';
 export const SKIP_RENDER_TYPE = ':skipRender';
-export const VIRTUAL_TYPE = ':virtual';
 
 export class JSXNodeImpl<T> implements JSXNode<T> {
   constructor(
     public type: T,
     public props: Record<string, any>,
     public key: string | number | null = null
-  ) {}
+  ) {
+    seal(this);
+  }
 }
 
 export const isJSXNode = (n: any): n is JSXNode<unknown> => {

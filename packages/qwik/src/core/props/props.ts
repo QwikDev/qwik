@@ -14,15 +14,16 @@ import { qDev } from '../util/qdev';
 import { logError } from '../util/log';
 import { isQrl, QRLInternal } from '../import/qrl-class';
 import { directGetAttribute } from '../render/fast-calls';
-import { assertDefined } from '../assert/assert';
+import { assertDefined, assertTrue } from '../assert/assert';
 import { codeToText, QError_immutableJsxProps } from '../error/error';
 import type { QRL } from '../import/qrl.public';
-import { getContainer, StyleAppend } from '../use/use-core';
+import { getWrappingContainer, StyleAppend } from '../use/use-core';
 import { ContainerState, getContainerState, SubscriptionManager } from '../render/container';
 import type { ProcessedJSXNode } from '../render/dom/render-dom';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
+import { fromCamelToKebabCase } from '../util/case';
 
-const Q_CTX = '__ctx__';
+export const Q_CTX = '_qc_';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
@@ -45,28 +46,23 @@ export interface QContextEvents {
   [eventName: string]: QRL | undefined;
 }
 
-export interface ComponentCtx {
-  $ctx$: QContext;
-  $slots$: ProcessedJSXNode[];
-  $attachedListeners$: boolean;
-}
-
 export interface QContext {
   $element$: QwikElement;
   $refMap$: any[];
   $dirty$: boolean;
+  $attachedListeners$: boolean;
   $id$: string;
   $mounted$: boolean;
-  $cache$: Map<string, any> | null;
   $props$: Record<string, any> | null;
   $renderQrl$: QRLInternal<OnRenderFn<any>> | null;
-  $component$: ComponentCtx | null;
-  $listeners$: Map<string, QRLInternal<any>[]> | null;
+  li: Map<string, QRLInternal<any>[]> | null;
   $seq$: any[];
   $watches$: SubscriberDescriptor[];
   $contexts$: Map<string, any> | null;
   $appendStyles$: StyleAppend[] | null;
   $scopeIds$: string[] | null;
+  $vdom$: ProcessedJSXNode | null;
+  $slots$: ProcessedJSXNode[] | null;
 }
 
 export const tryGetContext = (element: QwikElement): QContext | undefined => {
@@ -79,18 +75,19 @@ export const getContext = (element: Element | VirtualElement): QContext => {
     (element as any)[Q_CTX] = ctx = {
       $dirty$: false,
       $mounted$: false,
+      $attachedListeners$: false,
       $id$: '',
       $element$: element,
-      $cache$: null,
       $refMap$: [],
       $seq$: [],
       $watches$: [],
+      $slots$: null,
       $scopeIds$: null,
       $appendStyles$: null,
       $props$: null,
+      $vdom$: null,
       $renderQrl$: null,
-      $component$: null,
-      $listeners$: null,
+      li: null,
       $contexts$: null,
     };
   }
@@ -106,7 +103,6 @@ export const cleanupContext = (ctx: QContext, subsManager: SubscriptionManager) 
   if (ctx.$renderQrl$) {
     subsManager.$clearSub$(el);
   }
-  ctx.$component$ = null;
   ctx.$renderQrl$ = null;
   ctx.$seq$.length = 0;
   ctx.$watches$.length = 0;
@@ -115,8 +111,8 @@ export const cleanupContext = (ctx: QContext, subsManager: SubscriptionManager) 
   (el as any)[Q_CTX] = undefined;
 };
 
-const PREFIXES = ['document:on', 'window:on', 'on'];
-const SCOPED = ['on-document', 'on-window', 'on'];
+const PREFIXES = ['on', 'window:on', 'document:on'];
+const SCOPED = ['on', 'on-window', 'on-document'];
 
 export const normalizeOnProp = (prop: string) => {
   let scope = 'on';
@@ -125,14 +121,15 @@ export const normalizeOnProp = (prop: string) => {
     if (prop.startsWith(prefix)) {
       scope = SCOPED[i];
       prop = prop.slice(prefix.length);
+      break;
     }
   }
   if (prop.startsWith('-')) {
-    prop = prop.slice(1);
+    prop = fromCamelToKebabCase(prop.slice(1));
   } else {
     prop = prop.toLowerCase();
   }
-  return `${scope}:${prop}`;
+  return scope + ":" + prop;
 };
 
 export const createProps = (target: any, containerState: ContainerState) => {
@@ -199,6 +196,21 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
  * @internal
  */
 export const _useMutableProps = (element: Element, mutable: boolean) => {
-  const ctx = getContainer(element);
+  const ctx = getWrappingContainer(element);
   getContainerState(ctx!).$mutableProps$ = mutable;
+};
+
+
+export const inflateQrl = (qrl: QRLInternal, elCtx: QContext) => {
+  assertDefined(
+    qrl.$capture$,
+    'invoke: qrl capture must be defined inside useLexicalScope()',
+    qrl
+  );
+  return qrl.$captureRef$ = qrl.$capture$.map((idx) => {
+    const int = parseInt(idx, 10);
+    const obj = elCtx.$refMap$[int];
+    assertTrue(elCtx.$refMap$.length > int, 'out of bounds inflate access', idx);
+    return obj;
+  });
 };

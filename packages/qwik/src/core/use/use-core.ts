@@ -9,6 +9,7 @@ import { qError, QError_useInvokeContext, QError_useMethodOutsideContext } from 
 import type { RenderContext } from '../render/types';
 import type { Subscriber } from './use-watch';
 import type { QwikElement } from '../render/dom/virtual-element';
+import { seal } from '../util/qdev';
 
 declare const document: QwikDocument;
 
@@ -17,25 +18,37 @@ export interface StyleAppend {
   content: string | null;
 }
 
-export interface InvokeContext {
-  $url$: URL | null;
+export interface RenderInvokeContext extends InvokeContext {
+  $url$: URL;
   $seq$: number;
-  $doc$?: Document;
-  $hostElement$?: QwikElement;
-  $element$?: Element;
+  $doc$: Document;
+  $hostElement$: QwikElement;
+  $element$: Element;
   $event$: any;
-  $qrl$?: QRL<any>;
-  $waitOn$?: ValueOrPromise<any>[];
-  $props$?: Props;
-  $subscriber$?: Subscriber | null;
-  $renderCtx$?: RenderContext;
+  $qrl$: QRL<any>;
+  $waitOn$: ValueOrPromise<any>[];
+  $props$: Props;
+  $subscriber$: Subscriber | null;
+  $renderCtx$: RenderContext;
 }
 
-export type RenderInvokeContext = Required<InvokeContext>;
+export type InvokeTuple = [Element, Event, URL?];
+
+export interface InvokeContext {
+  $url$: URL | undefined;
+  $seq$: number;
+  $doc$: Document | undefined;
+  $hostElement$: QwikElement | undefined;
+  $element$: Element | undefined;
+  $event$: any | undefined;
+  $qrl$: QRL<any> | undefined;
+  $waitOn$: ValueOrPromise<any>[] | undefined;
+  $props$: Props | undefined;
+  $subscriber$: Subscriber | null | undefined;
+  $renderCtx$: RenderContext | undefined;
+}
 
 let _context: InvokeContext | undefined;
-
-export const CONTAINER = Symbol('container');
 
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
@@ -44,14 +57,7 @@ export const tryGetInvokeContext = (): InvokeContext | undefined => {
       return undefined;
     }
     if (isArray(context)) {
-      const element = context[0];
-      return (document.__q_context__ = newInvokeContext(
-        getDocument(element),
-        undefined,
-        element,
-        context[1],
-        context[2]
-      ));
+      return (document.__q_context__ = newInvokeContextFromTuple(context));
     }
     return context as InvokeContext;
   }
@@ -107,9 +113,14 @@ export const invoke = <ARGS extends any[] = any[], RET = any>(
   return returnValue;
 };
 
-export const waitAndRun = (ctx: Required<InvokeContext>, callback: () => any) => {
+export const waitAndRun = (ctx: RenderInvokeContext, callback: () => any) => {
   const previousWait = ctx.$waitOn$.slice();
   ctx.$waitOn$.push(Promise.allSettled(previousWait).then(callback));
+};
+
+export const newInvokeContextFromTuple = (context: InvokeTuple) => {
+  const element = context[0];
+  return newInvokeContext(getDocument(element), undefined, element, context[1], context[2]);
 };
 
 export const newInvokeContext = (
@@ -119,22 +130,23 @@ export const newInvokeContext = (
   event?: any,
   url?: URL
 ): InvokeContext => {
-  return {
+  const ctx = {
     $seq$: 0,
     $doc$: doc,
     $hostElement$: hostElement,
     $element$: element,
     $event$: event,
-    $url$: url || null,
+    $url$: url,
     $qrl$: undefined,
+    $props$: undefined,
+    $renderCtx$: undefined,
+    $subscriber$: undefined,
+    $waitOn$: undefined,
   };
+  seal(ctx);
+  return ctx;
 };
 
-export const getContainer = (el: QwikElement): Element | null => {
-  let container = (el as any)[CONTAINER];
-  if (!container) {
-    container = el.closest(QContainerSelector);
-    (el as any)[CONTAINER] = container;
-  }
-  return container;
+export const getWrappingContainer = (el: QwikElement): Element | null => {
+  return el.closest(QContainerSelector);
 };

@@ -1,9 +1,11 @@
 import { ComponentStylesPrefixContent } from '../util/markers';
 import { hashCode } from '../util/hash_code';
 import type { QRL } from '../import/qrl.public';
+import { assertQrl } from '../import/qrl-class';
 
 export const styleKey = (qStyles: QRL<string>, index: number): string => {
-  return `${hashCode(qStyles.getHash())}-${index}`;
+  assertQrl(qStyles);
+  return `${hashCode(qStyles.$hash$)}-${index}`;
 };
 
 export const styleHost = (styleId: string): string => {

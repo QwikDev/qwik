@@ -21,14 +21,14 @@ export const ContentNav = component$(() => {
     <nav class="content-nav border-t border-slate-300 flex flex-wrap py-4">
       <div class="flex-1">
         {prev ? (
-          <Link class="px-3 py-1 prev" href={mutable(prev.href)}>
+          <Link class="px-3 py-1 prev" href={mutable(prev.href)} prefetch={true}>
             {prev.text}
           </Link>
         ) : null}
       </div>
       <div class="flex-1 text-right">
         {next ? (
-          <Link class="px-3 py-1 next" href={mutable(next.href)}>
+          <Link class="px-3 py-1 next" href={mutable(next.href)} prefetch={true}>
             {next.text}
           </Link>
         ) : null}

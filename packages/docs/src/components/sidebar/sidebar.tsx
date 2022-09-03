@@ -58,6 +58,7 @@ export const SideBar = component$(() => {
                         class={mutable({
                           'is-active': pathname === item.href,
                         })}
+                        prefetch={true}
                       >
                         {item.text}
                       </Link>

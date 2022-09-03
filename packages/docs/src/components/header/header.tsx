@@ -27,10 +27,10 @@ export const Header = component$(() => {
     <header class="header-container">
       <div class="header-inner">
         <div class="header-logo">
-          <Link href="/">
+          <a href="/">
             <span className="sr-only">Qwik Homepage</span>
             <QwikLogo width={110} height={50} />
-          </Link>
+          </a>
           <DocSearch
             appId={import.meta.env.VITE_ALGOLIA_APP_ID}
             apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
@@ -51,6 +51,7 @@ export const Header = component$(() => {
               href="/docs/overview/"
               class={mutable({ active: pathname.startsWith('/docs') })}
               onClick$={closeMenu}
+              prefetch={true}
             >
               <span>Docs</span>
             </Link>
@@ -60,6 +61,7 @@ export const Header = component$(() => {
               href="/qwikcity/overview/"
               class={mutable({ active: pathname.startsWith('/qwikcity') })}
               onClick$={closeMenu}
+              prefetch={true}
             >
               <span>Qwik City</span>
             </Link>

@@ -1,12 +1,14 @@
-import type { AppBundles, ServiceWorkerMessageEvent } from './types';
+import type { AppBundle, LinkBundle, ServiceWorkerMessageEvent } from './types';
 import { awaitingRequests, qBuildCacheName } from './constants';
 import { cachedFetch } from './cached-fetch';
 import { getCacheToDelete, isAppBundleRequest } from './utils';
-import { prefetchBundleNames } from './prefetch';
+import { prefetchBundleNames, prefetchLinkBundles, prefetchWaterfall } from './prefetch';
 
 export const setupServiceWorkerScope = (
   swScope: ServiceWorkerGlobalScope,
-  appBundles: AppBundles
+  appBundles: AppBundle[],
+  libraryBundleIds: number[],
+  linkBundles: LinkBundle[]
 ) => {
   swScope.addEventListener('fetch', (ev) => {
     const request = ev.request;
@@ -17,9 +19,10 @@ export const setupServiceWorkerScope = (
       if (isAppBundleRequest(appBundles, url.pathname)) {
         const nativeFetch = swScope.fetch.bind(swScope);
         ev.respondWith(
-          swScope.caches
-            .open(qBuildCacheName)
-            .then((qrlCache) => cachedFetch(qrlCache, nativeFetch, awaitingRequests, request))
+          swScope.caches.open(qBuildCacheName).then((qBuildCache) => {
+            prefetchWaterfall(appBundles, qBuildCache, nativeFetch, url);
+            return cachedFetch(qBuildCache, nativeFetch, awaitingRequests, request);
+          })
         );
       }
     }
@@ -27,19 +30,24 @@ export const setupServiceWorkerScope = (
 
   swScope.addEventListener('message', async ({ data }: ServiceWorkerMessageEvent) => {
     if (data.type === 'qprefetch' && typeof data.base === 'string') {
-      if (Array.isArray(data.bundles)) {
-        const nativeFetch = swScope.fetch.bind(swScope);
-        const qBuildCache = await swScope.caches.open(qBuildCacheName);
-        const baseUrl = new URL(data.base, swScope.origin);
+      const nativeFetch = swScope.fetch.bind(swScope);
+      const qBuildCache = await swScope.caches.open(qBuildCacheName);
+      const baseUrl = new URL(data.base, swScope.origin);
 
-        prefetchBundleNames(
+      if (Array.isArray(data.links)) {
+        prefetchLinkBundles(
           appBundles,
+          libraryBundleIds,
+          linkBundles,
           qBuildCache,
-          nativeFetch,
+          fetch,
           baseUrl,
-          data.qKeys,
-          data.bundles
+          data.links
         );
+      }
+
+      if (Array.isArray(data.bundles)) {
+        prefetchBundleNames(appBundles, qBuildCache, nativeFetch, baseUrl, data.bundles);
       }
     }
   });

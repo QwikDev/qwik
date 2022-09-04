@@ -1,10 +1,7 @@
-import type { AppBundles } from './types';
+import type { AppBundle } from './types';
 
-export const getCacheToDelete = (appBundles: AppBundles, cachedUrls: string[]) => {
-  const appBundleNames = Object.keys(appBundles);
-  return cachedUrls.filter(
-    (url) => !appBundleNames.some((appBundleName) => url.endsWith(appBundleName))
-  );
+export const getCacheToDelete = (appBundles: AppBundle[], cachedUrls: string[]) => {
+  return cachedUrls.filter((url) => !appBundles.some((appBundle) => url.endsWith(appBundle[0])));
 };
 
 export const useCache = (request: Request, response: Response | undefined) =>
@@ -15,11 +12,11 @@ const hasNoCacheHeader = (r: { headers: Headers }) => {
   return cacheControl.includes('no-cache') || cacheControl.includes('max-age=0');
 };
 
-export const isAppBundleRequest = (appBundles: AppBundles, requestPathname: string) => {
-  for (const appBundleName in appBundles) {
-    if (requestPathname.endsWith(appBundleName)) {
-      return true;
-    }
-  }
-  return false;
-};
+export const isAppBundleRequest = (appBundles: AppBundle[], requestPathname: string) =>
+  appBundles.some((b) => requestPathname.endsWith('/' + b[0]));
+
+export const getAppBundleByName = (appBundles: AppBundle[], appBundleName: string | null) =>
+  appBundles.find((b) => b[0] === appBundleName);
+
+export const getAppBundlesNamesFromIds = (appBundles: AppBundle[], bundleIds: number[]) =>
+  bundleIds.map((bundleId) => (appBundles[bundleId] ? appBundles[bundleId][0] : null));

@@ -201,7 +201,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
               const swClientDistPath = join(clientOutDir, swEntry.chunkFileName);
 
               const swCode = await readFile(swClientDistPath, 'utf-8');
-              const swCodeUpdate = prependManifestToServiceWorker(manifest, swCode);
+              const swCodeUpdate = prependManifestToServiceWorker(ctx, manifest, swCode);
               if (swCodeUpdate) {
                 await writeFile(swClientDistPath, swCodeUpdate);
               }

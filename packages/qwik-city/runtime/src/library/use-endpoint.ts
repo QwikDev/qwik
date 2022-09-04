@@ -3,8 +3,8 @@ import { useLocation, useQwikCityEnv } from './use-functions';
 import { isServer } from '@builder.io/qwik/build';
 import type { ClientPageData, GetEndpointData } from './types';
 import { getClientEndpointPath } from './utils';
-import type { QPrefetchData } from './service-worker/types';
 import { cacheModules } from '@qwik-city-plan';
+import { dispatchPrefetchEvent } from './client-navigate';
 
 /**
  * @alpha
@@ -30,12 +30,18 @@ export const useEndpoint = <T = unknown>() => {
 };
 
 export const loadClientData = async (href: string) => {
-  const endpointUrl = getClientEndpointPath(new URL(href).pathname);
+  const pagePathname = new URL(href).pathname;
+  const endpointUrl = getClientEndpointPath(pagePathname);
   const now = Date.now();
   const expiration = cacheModules ? 600000 : 15000;
 
   const cachedClientPageIndex = cachedClientPages.findIndex((c) => c.u === endpointUrl);
+
   let cachedClientPageData = cachedClientPages[cachedClientPageIndex];
+
+  dispatchPrefetchEvent({
+    links: [pagePathname],
+  });
 
   if (!cachedClientPageData || cachedClientPageData.t + expiration < now) {
     cachedClientPageData = {
@@ -48,11 +54,11 @@ export const loadClientData = async (href: string) => {
             if (clientResponse.ok && contentType.includes('json')) {
               clientResponse.json().then(
                 (clientData: ClientPageData) => {
-                  const prefetchData: QPrefetchData = {
+                  dispatchPrefetchEvent({
                     bundles: clientData.prefetch,
-                    qKeys: getDocumentQKeys(document),
-                  };
-                  dispatchEvent(new CustomEvent('qprefetch', { detail: prefetchData }));
+                    links: [pagePathname],
+                    // qKeys: getDocumentQKeys(document),
+                  });
                   resolve(clientData);
                 },
                 () => resolve(null)
@@ -74,28 +80,30 @@ export const loadClientData = async (href: string) => {
     cachedClientPages.push(cachedClientPageData);
   }
 
+  cachedClientPageData.c.catch((e) => console.error(e));
+
   return cachedClientPageData.c;
 };
 
-export const getDocumentQKeys = (doc: Document) => {
-  let comment: Comment | null | undefined;
-  let data: string;
-  let attrIndex: number;
+// export const getDocumentQKeys = (doc: Document) => {
+//   let comment: Comment | null | undefined;
+//   let data: string;
+//   let attrIndex: number;
 
-  const walker = doc.createTreeWalker(doc, /* SHOW_COMMENT */ 128);
-  const qKeys = new Set<string>();
+//   const walker = doc.createTreeWalker(doc, /* SHOW_COMMENT */ 128);
+//   const qKeys = new Set<string>();
 
-  while ((comment = walker.nextNode() as any)) {
-    data = comment.data;
-    attrIndex = data.indexOf('q:key=');
-    if (attrIndex > -1) {
-      data = data.slice(attrIndex + 6);
-      qKeys.add(data.slice(0, data.indexOf(':')));
-    }
-  }
+//   while ((comment = walker.nextNode() as any)) {
+//     data = comment.data;
+//     attrIndex = data.indexOf('q:key=');
+//     if (attrIndex > -1) {
+//       data = data.slice(attrIndex + 6);
+//       qKeys.add(data.slice(0, data.indexOf(':')));
+//     }
+//   }
 
-  return Array.from(qKeys);
-};
+//   return Array.from(qKeys);
+// };
 
 const cachedClientPages: CachedClientPageData[] = [];
 

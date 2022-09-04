@@ -110,14 +110,6 @@ function getPrefetchBundleNames(result: RenderResult, routeBundleNames: string[]
         addBundle(manifest.mapping[renderedSymbolName]);
       }
     }
-
-    // and the router regex map
-    for (const [bundleName, bundle] of Object.entries(manifest.bundles)) {
-      if (bundle.origins && bundle.origins.includes('@qwik-city-plan')) {
-        addBundle(bundleName);
-        break;
-      }
-    }
   }
 
   if (routeBundleNames) {

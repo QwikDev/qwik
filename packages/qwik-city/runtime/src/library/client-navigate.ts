@@ -1,3 +1,4 @@
+import type { QPrefetchData } from './service-worker/types';
 import type { RouteNavigate, SimpleURL } from './types';
 import { isSameOriginDifferentPathname, isSamePath, toPath, toUrl } from './utils';
 
@@ -87,6 +88,9 @@ const scrollToHashId = (doc: Document, hash: string) => {
   }
   return elm;
 };
+
+export const dispatchPrefetchEvent = (prefetchData: QPrefetchData) =>
+  dispatchEvent(new CustomEvent('qprefetch', { detail: prefetchData }));
 
 export const CLIENT_HISTORY_INITIALIZED = /* @__PURE__ */ Symbol();
 

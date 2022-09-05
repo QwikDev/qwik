@@ -199,30 +199,33 @@ renderSuite('should render a div then a component', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <ToggleRootComponent />);
-  await expectRendered(
-    fixture,
+  await expectDOM(
+    fixture.host,
     `
-    <div aria-hidden="false">
-      <div class="normal">Normal div</div>
-      <button q:id="1" on:click="/runtimeQRL#_">toggle</button>
-    </div>`
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
+      <!--qv q:key=sX: q:id=0-->
+      <div aria-hidden="false">
+        <div class="normal">Normal div</div>
+        <button q:id="1" on:click="/runtimeQRL#_">toggle</button>
+      </div>
+      <!--/qv-->
+    </host>`
   );
   await trigger(fixture.host, 'button', 'click');
-  await expectRendered(
-    fixture,
+  await expectDOM(
+    fixture.host,
     `
-    <div aria-hidden="true">
-      <!--qv q:key=sX: q:id=2-->
-      <div><div>this is ToggleChild</div></div>
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
+      <!--qv q:key=sX: q:id=0-->
+      <div aria-hidden="true">
+        <!--qv q:key=sX: q:id=2-->
+        <div><div>this is ToggleChild</div></div>
+        <!--/qv-->
+        <button q:id="1" on:click="/runtimeQRL#_">toggle</button>
+      </div>
       <!--/qv-->
-      <button
-        q:id="1"
-        on:click="/runtimeQRL#_
-/runtimeQRL#_"
-      >
-        toggle
-      </button>
-    </div>`
+    </host>
+    `
   );
 });
 
@@ -230,22 +233,28 @@ renderSuite('should process clicks', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <Counter step={5} />);
-  await expectRendered(
-    fixture,
-    '<button q:id="1" class="decrement" on:click="/runtimeQRL#_[0 1]">-</button>'
+  await expectDOM(
+    fixture.host,
+    `
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
+      <!--qv q:key=sX: q:id=0-->
+      <button q:id="1" class="decrement" on:click="/runtimeQRL#_[0 1]">-</button>
+      <span>0</span>
+      <button q:id="2" class="increment" on:click="/runtimeQRL#_[0 1]">+</button>
+      <!--/qv-->
+    </host>`
   );
   await trigger(fixture.host, 'button.increment', 'click');
-  await expectRendered(
-    fixture,
+  await expectDOM(
+    fixture.host,
     `
-      <button
-        q:id="1"
-        class="decrement"
-        on:click="/runtimeQRL#_[0 1]
-/runtimeQRL#_[0 2]"
-    >
-       -
-      </button>`
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
+      <!--qv q:key=sX: q:id=0-->
+      <button q:id="1" class="decrement" on:click="/runtimeQRL#_[0 2]">-</button>
+      <span>5</span>
+      <button q:id="2" class="increment" on:click="/runtimeQRL#_[0 2]">+</button>
+      <!--/qv-->
+    </host>`
   );
 });
 

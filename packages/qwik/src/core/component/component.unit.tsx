@@ -52,8 +52,7 @@ qComponent('should render Counter and accept events', async () => {
     <button
       q:id="1"
       class="decrement"
-      on:click="/runtimeQRL#_[0 1 2]
-/runtimeQRL#_[0 1 3]"
+      on:click="/runtimeQRL#_[0 1 3]"
     >
       -
     </button>
@@ -61,8 +60,7 @@ qComponent('should render Counter and accept events', async () => {
     <button
       q:id="2"
       class="increment"
-      on:click="/runtimeQRL#_[0 1 2]
-/runtimeQRL#_[0 1 3]"
+      on:click="/runtimeQRL#_[0 1 3]"
     >
       +
     </button>

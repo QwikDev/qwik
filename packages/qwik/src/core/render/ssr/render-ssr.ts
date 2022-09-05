@@ -178,7 +178,7 @@ export const renderGenerator = async (
   stream: StreamWriter,
   flags: number
 ) => {
-  const value = node.props.generator(stream) as AsyncGenerator<any> | Promise<void>;
+  const value = node.props.children(stream) as AsyncGenerator<any> | Promise<void>;
   if (isPromise(value)) {
     return value;
   }

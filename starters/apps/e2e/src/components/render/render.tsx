@@ -18,8 +18,9 @@ export const Render = component$(() => {
           state.counter.count++;
         }}
       >
-        <Child counter={state.counter}></Child>
+        Increment
       </button>
+      <Child counter={state.counter}></Child>
     </>
   );
 });
@@ -42,7 +43,7 @@ export const Child = component$((props: { counter: { count: number } }) => {
     const count = props.counter.count;
     return (<>
       <span>Rerender {count}</span>
-      <div>
+      <div id='attributes'>
         <button id="toggle" onClick$={() => state.hideAttributes = !state.hideAttributes}>
           Toggle attributes
         </button>
@@ -54,6 +55,7 @@ export const Child = component$((props: { counter: { count: number } }) => {
   return <>
     <span>Rerender {count}</span>
     <div
+      id='attributes'
       preventDefault:click
       autoCorrect='all'
       aria-hidden='true'

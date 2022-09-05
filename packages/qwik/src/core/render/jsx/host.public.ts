@@ -4,7 +4,7 @@ import type { StreamWriter } from '../ssr/render-ssr';
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 
-export const QOnce = 'qOnce';
+export const QOnce = 'qonce';
 
 /**
  * @alpha

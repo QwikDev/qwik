@@ -556,11 +556,21 @@ test.describe('e2e', () => {
     });
 
     test('should load', async ({ page }) => {
-      const button = await page.locator('button');
+      const button = await page.locator('button#increment');
+      const text = await page.locator('span');
 
-      await expect(button).toHaveText('Rerender 0');
+      await expect(text).toHaveText('Rerender 0');
       await button.click();
-      await expect(button).toHaveText('Rerender 1');
+      await expect(text).toHaveText('Rerender 1');
+    });
+
+    test('should load', async ({ page }) => {
+      const button = await page.locator('button#increment');
+      const text = await page.locator('span');
+
+      await expect(text).toHaveText('Rerender 0');
+      await button.click();
+      await expect(text).toHaveText('Rerender 1');
     });
   });
 

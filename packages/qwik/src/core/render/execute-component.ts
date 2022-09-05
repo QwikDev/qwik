@@ -13,6 +13,7 @@ import { qError, QError_stringifyClassOrStyle } from '../error/error';
 import { intToStr } from '../object/store';
 import type { QwikElement } from './dom/virtual-element';
 import { qSerialize, seal } from '../util/qdev';
+import { EMPTY_ARRAY } from '../util/flyweight';
 
 export interface ExecuteComponentOutput {
   node: JSXNode | null;
@@ -143,7 +144,7 @@ export const parseClassAny = (obj: any): string[] => {
 
 const parseClassListRegex = /\s/;
 const parseClassList = (value: string | undefined | null): string[] =>
-  !value ? [] : value.split(parseClassListRegex);
+  !value ? EMPTY_ARRAY : value.split(parseClassListRegex);
 
 export const stringifyStyle = (obj: any): string => {
   if (obj == null) return '';

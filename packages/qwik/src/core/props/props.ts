@@ -55,9 +55,9 @@ export interface QContext {
   $mounted$: boolean;
   $props$: Record<string, any> | null;
   $renderQrl$: QRLInternal<OnRenderFn<any>> | null;
-  li: Map<string, QRLInternal<any>[]> | null;
-  $seq$: any[];
-  $watches$: SubscriberDescriptor[];
+  li: Record<string, QRLInternal<any>[]>;
+  $seq$: any[] | null;
+  $watches$: SubscriberDescriptor[] | null;
   $contexts$: Map<string, any> | null;
   $appendStyles$: StyleAppend[] | null;
   $scopeIds$: string[] | null;
@@ -79,15 +79,15 @@ export const getContext = (element: Element | VirtualElement): QContext => {
       $id$: '',
       $element$: element,
       $refMap$: [],
-      $seq$: [],
-      $watches$: [],
+      li: {},
+      $watches$: null,
+      $seq$: null,
       $slots$: null,
       $scopeIds$: null,
       $appendStyles$: null,
       $props$: null,
       $vdom$: null,
       $renderQrl$: null,
-      li: null,
       $contexts$: null,
     };
   }
@@ -96,7 +96,7 @@ export const getContext = (element: Element | VirtualElement): QContext => {
 
 export const cleanupContext = (ctx: QContext, subsManager: SubscriptionManager) => {
   const el = ctx.$element$;
-  ctx.$watches$.forEach((watch) => {
+  ctx.$watches$?.forEach((watch) => {
     subsManager.$clearSub$(watch);
     destroyWatch(watch);
   });
@@ -104,8 +104,8 @@ export const cleanupContext = (ctx: QContext, subsManager: SubscriptionManager) 
     subsManager.$clearSub$(el);
   }
   ctx.$renderQrl$ = null;
-  ctx.$seq$.length = 0;
-  ctx.$watches$.length = 0;
+  ctx.$seq$ = null;
+  ctx.$watches$ = null;
   ctx.$dirty$ = false;
 
   (el as any)[Q_CTX] = undefined;

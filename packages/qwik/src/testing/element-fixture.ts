@@ -5,7 +5,6 @@ import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
 import { getDocument } from '../core/util/dom';
-import type { QRLInternal } from '../core/import/qrl-class';
 import { getWrappingContainer } from '../core/use/use-core';
 
 /**
@@ -102,11 +101,11 @@ export function getEvent(ctx: QContext, prop: string): any {
 }
 
 export function qPropReadQRL(ctx: QContext, prop: string): ((event: Event) => void) | null {
-  const listeners = !ctx.li ? (ctx.li = new Map<string, QRLInternal<any>[]>()) : ctx.li;
+  const listeners = !ctx.li ? (ctx.li = {}) : ctx.li;
 
   const containerEl = getWrappingContainer(ctx.$element$)!;
   return async (event) => {
-    const qrls = listeners.get(prop) ?? [];
+    const qrls = listeners[prop] ?? [];
 
     await Promise.all(
       qrls.map((qrl) => {

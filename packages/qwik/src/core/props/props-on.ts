@@ -13,7 +13,11 @@ export const isOnProp = (prop: string): boolean => {
   return ON_PROP_REGEX.test(prop);
 };
 
-export const addQRLListener = (listenersMap: Record<string, QRLInternal<any>[]>, prop: string, input: QRLInternal[]): boolean => {
+export const addQRLListener = (
+  listenersMap: Record<string, QRLInternal<any>[]>,
+  prop: string,
+  input: QRLInternal[]
+): boolean => {
   let existingListeners = listenersMap[prop];
   if (!existingListeners) {
     listenersMap[prop] = existingListeners = [];

@@ -13,7 +13,7 @@ export const Render = component$(() => {
   return (
     <>
       <button
-        id='increment'
+        id="increment"
         onClick$={() => {
           state.counter.count++;
         }}
@@ -36,38 +36,41 @@ export const Child = component$((props: { counter: { count: number } }) => {
   .odd::after{
     content: "odd"
   }
-  `
-  )
+  `);
 
   if (state.hideAttributes) {
     const count = props.counter.count;
-    return (<>
-      <span>Rerender {count}</span>
-      <div id='attributes'>
-        <button id="toggle" onClick$={() => state.hideAttributes = !state.hideAttributes}>
-          Toggle attributes
-        </button>
-      </div>
-     </>
+    return (
+      <>
+        <span>Rerender {count}</span>
+        <div id="attributes">
+          <button id="toggle" onClick$={() => (state.hideAttributes = !state.hideAttributes)}>
+            Toggle attributes
+          </button>
+        </div>
+      </>
     );
   }
   const count = props.counter.count;
-  return <>
-    <span>Rerender {count}</span>
-    <div
-      id='attributes'
-      preventDefault:click
-      autoCorrect='all'
-      aria-hidden='true'
-      class={{
-        'even': (count % 2)===0,
-        'odd': (count % 2)===1,
-        'stable0': true,
-        'hidden': false,
-      }}>
-        <button id="toggle" onClick$={() => state.hideAttributes = !state.hideAttributes}>
+  return (
+    <>
+      <span>Rerender {count}</span>
+      <div
+        id="attributes"
+        preventDefault:click
+        autoCorrect="all"
+        aria-hidden="true"
+        class={{
+          even: count % 2 === 0,
+          odd: count % 2 === 1,
+          stable0: true,
+          hidden: false,
+        }}
+      >
+        <button id="toggle" onClick$={() => (state.hideAttributes = !state.hideAttributes)}>
           Toggle attributes
         </button>
       </div>
-   </>
+    </>
+  );
 });

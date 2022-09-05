@@ -9,7 +9,7 @@ export const QOnce = 'qonce';
 /**
  * @alpha
  */
- export const SkipRender: JSXNode = Symbol('skip render') as any;
+export const SkipRender: JSXNode = Symbol('skip render') as any;
 
 /**
  * @alpha

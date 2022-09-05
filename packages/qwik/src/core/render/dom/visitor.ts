@@ -1,4 +1,11 @@
-import { ComponentStylesPrefixContent, ELEMENT_ID, OnRenderProp, QSlot, QSlotRef, QSlotS } from '../../util/markers';
+import {
+  ComponentStylesPrefixContent,
+  ELEMENT_ID,
+  OnRenderProp,
+  QSlot,
+  QSlotRef,
+  QSlotS,
+} from '../../util/markers';
 import {
   cleanupContext,
   getContext,
@@ -287,13 +294,14 @@ export const getProps = (node: Element) => {
 
     const name = a.name;
     if (!name.includes(':')) {
-      props[name] = (name === 'class')
-        ? parseClassAny(a.value).filter(c => !c.startsWith(ComponentStylesPrefixContent))
-        :a.value;
+      props[name] =
+        name === 'class'
+          ? parseClassAny(a.value).filter((c) => !c.startsWith(ComponentStylesPrefixContent))
+          : a.value;
     }
   }
   return props;
-}
+};
 
 export const isNode = (elm: Node | VirtualElement): boolean => {
   const type = elm.nodeType;
@@ -389,13 +397,13 @@ export const patchVnode = (
       currentComponent.$attachedListeners$ = true;
       Object.entries(currentComponent.li).forEach(([key, value]) => {
         addQRLListener(listenerMap, key, value);
-        addGlobalListener(staticCtx, elm, key)
+        addGlobalListener(staticCtx, elm, key);
       });
     }
     if (qSerialize) {
-      Object.entries(listenerMap).forEach(([key, value]) => (
+      Object.entries(listenerMap).forEach(([key, value]) =>
         setAttribute(staticCtx, elm, key, serializeQRLs(value, elCtx))
-      ));
+      );
     }
 
     if (isSvg && newVnode.$type$ === 'foreignObject') {
@@ -666,7 +674,7 @@ const createElm = (
       currentComponent.$attachedListeners$ = true;
       Object.entries(currentComponent.li).forEach(([eventName, qrls]) => {
         addQRLListener(listenerMap, eventName, qrls);
-      })
+      });
     }
   }
 
@@ -816,7 +824,7 @@ export const updateProperties = (
   isSvg: boolean
 ): Record<string, QRLInternal<any>[]> => {
   const keys = getKeys(oldProps, newProps);
-  const listenersMap = elCtx.li = {};
+  const listenersMap = (elCtx.li = {});
   if (keys.length === 0) {
     return listenersMap;
   }
@@ -863,9 +871,9 @@ export const updateProperties = (
 
 const getKeys = (oldProps: Record<string, any>, newProps: Record<string, any>) => {
   const keys = Object.keys(newProps);
-  keys.push(...Object.keys(oldProps).filter(p => !keys.includes(p)));
+  keys.push(...Object.keys(oldProps).filter((p) => !keys.includes(p)));
   return keys;
-}
+};
 
 const addGlobalListener = (staticCtx: RenderStaticContext, elm: QwikElement, prop: string) => {
   if (!qSerialize && prop.includes(':')) {

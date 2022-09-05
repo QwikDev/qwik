@@ -94,11 +94,7 @@ export function qwikifyQrl<PROPS extends {}>(
       return <>{jsx}</>;
     }
 
-    return (
-      <Host ref={ref}>
-        {SkipRender}
-      </Host>
-    );
+    return <Host ref={ref}>{SkipRender}</Host>;
   });
 }
 

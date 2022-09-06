@@ -221,7 +221,7 @@ export type JSXChildren =
   | RegExp
   | JSXChildren[]
   | Promise<JSXChildren>
-  | JSXNode<any>;
+  | JSXNode;
 
 /**
  * @public

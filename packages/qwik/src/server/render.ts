@@ -18,7 +18,7 @@ import { createSimpleDocument } from './document';
 import type { SymbolMapper } from '../optimizer/src/types';
 import { qDev } from '../core/util/qdev';
 import type { QContext } from '../core/props/props';
-// import { logWarn } from '../core/util/log';
+import { EMPTY_OBJ } from '../core/util/flyweight';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -121,7 +121,7 @@ export async function renderToStream(
 
   const injections = opts.manifest?.injections;
   const beforeContent = injections
-    ? injections.map((injection) => jsx(injection.tag, injection.attributes))
+    ? injections.map((injection) => jsx(injection.tag, injection.attributes ?? EMPTY_OBJ))
     : undefined;
 
   const renderTimer = createTimer();

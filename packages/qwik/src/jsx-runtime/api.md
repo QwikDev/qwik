@@ -10,13 +10,13 @@ export const Fragment: FunctionComponent<{
 }>;
 
 // @public (undocumented)
-export interface FunctionComponent<P = {}> {
+export interface FunctionComponent<P = Record<string, any>> {
     // (undocumented)
-    (props: P, key?: string): JSXNode | null;
+    (props: P, key: string | null): JSXNode | null;
 }
 
 // @public (undocumented)
-const jsx: <T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string | number | null) => JSXNode<T>;
+const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key?: string | number | null) => JSXNode<T>;
 export { jsx }
 export { jsx as jsxDEV }
 export { jsx as jsxs }
@@ -45,11 +45,11 @@ namespace JSX_2 {
 export { JSX_2 as JSX }
 
 // @public (undocumented)
-export interface JSXNode<T = any> {
+export interface JSXNode<T = string | FunctionComponent> {
     // (undocumented)
-    key: string | number | null;
+    key: string | null;
     // (undocumented)
-    props: Record<string, any>;
+    props: T extends FunctionComponent<infer B> ? B : Record<string, any>;
     // (undocumented)
     type: T;
 }

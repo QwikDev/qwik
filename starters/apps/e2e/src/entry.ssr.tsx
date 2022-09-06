@@ -18,7 +18,7 @@ import { BroadcastEvents } from './components/broadcast-events/broadcast-event';
 import { Weather } from './components/resource/weather';
 import { ResourceApp } from './components/resource/resource';
 import { TreeshakingApp } from './components/treeshaking/treeshaking';
-import { Streaming } from './components/streaming/streaming';
+import { StreamingRoot } from './components/streaming/streaming';
 import { ResourceSerialization } from './components/resource/resource-serialization';
 import { MountRoot } from './components/mount/mount';
 import { RefRoot } from './components/ref/ref';
@@ -49,7 +49,7 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/resource': () => <ResourceApp />,
     '/e2e/resource-serialization': () => <ResourceSerialization />,
     '/e2e/treeshaking': () => <TreeshakingApp />,
-    '/e2e/streaming': () => <Streaming />,
+    '/e2e/streaming': () => <StreamingRoot />,
     '/e2e/mount': () => <MountRoot />,
     '/e2e/ref': () => <RefRoot />,
   };

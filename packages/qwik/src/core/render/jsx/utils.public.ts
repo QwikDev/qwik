@@ -1,4 +1,3 @@
-import type { ValueOrPromise } from '../../util/types';
 import { jsx } from '../jsx/jsx-runtime';
 import type { StreamWriter } from '../ssr/render-ssr';
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
@@ -53,7 +52,10 @@ export const SSRStreamBlock: FunctionComponent<{ children?: any }> = (props) => 
  * @alpha
  */
 export interface StreamProps {
-  children: (stream: StreamWriter) => ValueOrPromise<void> | AsyncGenerator<JSXChildren, void, any>;
+  children:
+    | AsyncGenerator<JSXChildren, void, any>
+    | ((stream: StreamWriter) => Promise<void>)
+    | (() => AsyncGenerator<JSXChildren, void, any>);
 }
 
 /**

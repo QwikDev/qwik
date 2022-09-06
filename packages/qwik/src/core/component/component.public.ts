@@ -7,7 +7,7 @@ import { jsx } from '../render/jsx/jsx-runtime';
 import type { MutableWrapper } from '../object/q-object';
 import { SERIALIZABLE_STATE } from '../object/serializers';
 import { qTest } from '../util/qdev';
-import { Virtual } from '../render/jsx/host.public';
+import { Virtual } from '../render/jsx/utils.public';
 import { assertQrl } from '../import/qrl-class';
 
 /**
@@ -121,7 +121,7 @@ export const componentQrl = <PROPS extends {}>(
   onRenderQrl: QRL<OnRenderFn<PROPS>>
 ): Component<PROPS> => {
   // Return a QComponent Factory function.
-  function QwikComponent(props: PublicProps<PROPS>, key?: string): JSXNode<PROPS> {
+  function QwikComponent(props: PublicProps<PROPS>, key: string | null): JSXNode {
     assertQrl(onRenderQrl);
     const hash = qTest ? 'sX' : onRenderQrl.$hash$;
     const finalKey = hash + ':' + (key ? key : '');

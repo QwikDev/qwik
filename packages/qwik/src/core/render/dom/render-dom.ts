@@ -7,7 +7,7 @@ import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises'
 import { qDev, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
 import { domToVnode, visitJsxNode } from './visitor';
-import { SkipRerender, Virtual } from '../jsx/host.public';
+import { SkipRender, Virtual } from '../jsx/utils.public';
 import { isJSXNode, SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
 import type { JSXNode } from '../jsx/types/jsx-node';
 import { executeComponent } from '../execute-component';
@@ -90,8 +90,6 @@ export const processNode = (
     textType = nodeType;
   } else if (nodeType === Virtual) {
     textType = VIRTUAL;
-  } else if (nodeType === SkipRerender) {
-    textType = SKIP_RENDER_TYPE;
   } else if (isFunction(nodeType)) {
     const res = invocationContext
       ? invoke(invocationContext, () => nodeType(props, node.key))
@@ -136,12 +134,13 @@ export const processData = (
     return newNode;
   } else if (isJSXNode(node)) {
     return processNode(node, invocationContext);
-  }
-  if (isArray(node)) {
+  } else if (isArray(node)) {
     const output = promiseAll(node.flatMap((n) => processData(n, invocationContext)));
     return then(output, (array) => array.flat(100).filter(isNotNullable));
   } else if (isPromise(node)) {
     return node.then((node) => processData(node, invocationContext));
+  } else if (node === SkipRender) {
+    return new ProcessedJSXNodeImpl(SKIP_RENDER_TYPE, EMPTY_OBJ, EMPTY_ARRAY, null);
   } else {
     logWarn('A unsupported value was passed to the JSX, skipping render. Value:', node);
     return undefined;

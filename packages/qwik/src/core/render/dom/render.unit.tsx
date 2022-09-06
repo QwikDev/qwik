@@ -9,7 +9,7 @@ import { useClientEffect$, useServerMount$, useWatch$ } from '../../use/use-watc
 import { useCleanup$, useOn } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
-import { useStylesQrl } from '../../use/use-styles';
+import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
 import { equal, match } from 'uvu/assert';
 import { suite } from 'uvu';
 import { useRef } from '../../use/use-ref';
@@ -175,6 +175,57 @@ renderSuite('should render a component', async () => {
   await expectRendered(fixture, '<span>Hello World</span>');
 });
 
+renderSuite('should render a component with scoped styles', async () => {
+  const fixture = new ElementFixture();
+
+  await render(fixture.host, <HelloWorldScoped />);
+  await expectDOM(
+    fixture.host,
+    `
+  <host q:version="dev" q:container="resumed" q:render="dom-dev">
+    <style q:style="ml52vk-0">
+      .stuff.⭐️ml52vk-0 {
+        color: red;
+      }
+    </style>
+    <!--qv q:key=sX: q:id=0 q:sstyle=⭐️ml52vk-0-->
+    <div class="⭐️ml52vk-0">
+      <div class="⭐️ml52vk-0 stuff" aria-hidden="true">
+        Hello
+        <button class="⭐️ml52vk-0" q:id="1" on:click="/runtimeQRL#_">
+          Toggle
+        </button>
+      </div>
+    </div>
+    <!--/qv-->
+  </host>
+  `
+  );
+  await trigger(fixture.host, 'button', 'click');
+  await expectDOM(
+    fixture.host,
+    `
+  <host q:version="dev" q:container="resumed" q:render="dom-dev">
+    <style q:style="ml52vk-0">
+      .stuff.⭐️ml52vk-0 {
+        color: red;
+      }
+    </style>
+    <!--qv q:key=sX: q:id=0 q:sstyle=⭐️ml52vk-0-->
+    <div class="⭐️ml52vk-0">
+      <div class="⭐️ml52vk-0">
+        Hello
+        <button class="⭐️ml52vk-0" q:id="1" on:click="/runtimeQRL#_">
+          Toggle
+        </button>
+      </div>
+    </div>
+    <!--/qv-->
+  </host>
+  `
+  );
+});
+
 renderSuite('should render component external props', async () => {
   const fixture = new ElementFixture();
 
@@ -199,30 +250,33 @@ renderSuite('should render a div then a component', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <ToggleRootComponent />);
-  await expectRendered(
-    fixture,
+  await expectDOM(
+    fixture.host,
     `
-    <div aria-hidden="false">
-      <div class="normal">Normal div</div>
-      <button q:id="1" on:click="/runtimeQRL#_">toggle</button>
-    </div>`
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
+      <!--qv q:key=sX: q:id=0-->
+      <div aria-hidden="false">
+        <div class="normal">Normal div</div>
+        <button q:id="1" on:click="/runtimeQRL#_">toggle</button>
+      </div>
+      <!--/qv-->
+    </host>`
   );
   await trigger(fixture.host, 'button', 'click');
-  await expectRendered(
-    fixture,
+  await expectDOM(
+    fixture.host,
     `
-    <div aria-hidden="true">
-      <!--qv q:key=sX: q:id=2-->
-      <div><div>this is ToggleChild</div></div>
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
+      <!--qv q:key=sX: q:id=0-->
+      <div aria-hidden="true">
+        <!--qv q:key=sX: q:id=2-->
+        <div><div>this is ToggleChild</div></div>
+        <!--/qv-->
+        <button q:id="1" on:click="/runtimeQRL#_">toggle</button>
+      </div>
       <!--/qv-->
-      <button
-        q:id="1"
-        on:click="/runtimeQRL#_
-/runtimeQRL#_"
-      >
-        toggle
-      </button>
-    </div>`
+    </host>
+    `
   );
 });
 
@@ -230,22 +284,28 @@ renderSuite('should process clicks', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <Counter step={5} />);
-  await expectRendered(
-    fixture,
-    '<button q:id="1" class="decrement" on:click="/runtimeQRL#_[0 1]">-</button>'
+  await expectDOM(
+    fixture.host,
+    `
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
+      <!--qv q:key=sX: q:id=0-->
+      <button q:id="1" class="decrement" on:click="/runtimeQRL#_[0 1]">-</button>
+      <span>0</span>
+      <button q:id="2" class="increment" on:click="/runtimeQRL#_[0 1]">+</button>
+      <!--/qv-->
+    </host>`
   );
   await trigger(fixture.host, 'button.increment', 'click');
-  await expectRendered(
-    fixture,
+  await expectDOM(
+    fixture.host,
     `
-      <button
-        q:id="1"
-        class="decrement"
-        on:click="/runtimeQRL#_[0 1]
-/runtimeQRL#_[0 2]"
-    >
-       -
-      </button>`
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
+      <!--qv q:key=sX: q:id=0-->
+      <button q:id="1" class="decrement" on:click="/runtimeQRL#_[0 2]">-</button>
+      <span>5</span>
+      <button q:id="2" class="increment" on:click="/runtimeQRL#_[0 2]">+</button>
+      <!--/qv-->
+    </host>`
   );
 });
 
@@ -647,6 +707,30 @@ export const HelloWorld = component$((props: { name?: string }) => {
     <span>
       {state.salutation} {props.name || 'World'}
     </span>
+  );
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Hello World
+//////////////////////////////////////////////////////////////////////////////////////////
+export const HelloWorldScoped = component$(() => {
+  useStylesScopedQrl(inlinedQrl(`.stuff { color: red; }`, 'style-scoped-1'));
+  const state = useStore({ cond: false });
+  return (
+    <div>
+      {state.cond && (
+        <div>
+          Hello
+          <button onClick$={() => (state.cond = !state.cond)}>Toggle</button>
+        </div>
+      )}
+      {!state.cond && (
+        <div class="stuff" aria-hidden="true">
+          Hello
+          <button onClick$={() => (state.cond = !state.cond)}>Toggle</button>
+        </div>
+      )}
+    </div>
   );
 });
 

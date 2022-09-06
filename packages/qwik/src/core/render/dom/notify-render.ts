@@ -1,4 +1,4 @@
-import { assertDefined } from '../../assert/assert';
+import { assertDefined, assertTrue } from '../../assert/assert';
 import { executeContextWithSlots, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
 import { getContext, resumeIfNeeded } from '../../props/props';
 import { qDynamicPlatform, qTest } from '../../util/qdev';
@@ -60,7 +60,6 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
     `render: notified host element must have a defined $renderQrl$`,
     ctx
   );
-
   if (ctx.$dirty$) {
     return;
   }
@@ -144,11 +143,14 @@ const renderMarked = async (containerState: ContainerState): Promise<RenderConte
   for (const el of renderingQueue) {
     if (!staticCtx.$hostElements$.has(el)) {
       const elCtx = getContext(el);
-      staticCtx.$roots$.push(elCtx);
-      try {
-        await renderComponent(ctx, elCtx, getFlags(el.parentElement));
-      } catch (e) {
-        logError(codeToText(QError_errorWhileRendering), e);
+      if (elCtx.$renderQrl$) {
+        assertTrue(el.isConnected, 'element must be connected to the dom');
+        staticCtx.$roots$.push(elCtx);
+        try {
+          await renderComponent(ctx, elCtx, getFlags(el.parentElement));
+        } catch (e) {
+          logError(codeToText(QError_errorWhileRendering), e);
+        }
       }
     }
   }

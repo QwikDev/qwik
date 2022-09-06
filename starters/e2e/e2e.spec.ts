@@ -556,11 +556,47 @@ test.describe('e2e', () => {
     });
 
     test('should load', async ({ page }) => {
-      const button = await page.locator('button');
+      const button = await page.locator('button#increment');
+      const text = await page.locator('span');
 
-      await expect(button).toHaveText('Rerender 0');
+      await expect(text).toHaveText('Rerender 0');
       await button.click();
-      await expect(button).toHaveText('Rerender 1');
+      await expect(text).toHaveText('Rerender 1');
+    });
+
+    test('should render classes', async ({ page }) => {
+      const increment = await page.locator('button#increment');
+      const toggle = await page.locator('button#toggle');
+
+      const attributes = await page.locator('#attributes');
+
+      await expect(attributes).toHaveAttribute('class', '⭐️unvb18-1 even stable0');
+      await expect(attributes).toHaveAttribute('aria-hidden', 'true');
+      await expect(attributes).toHaveAttribute('preventdefault:click', '');
+
+      await increment.click();
+
+      await expect(attributes).toHaveAttribute('class', '⭐️unvb18-1 stable0 odd');
+      await expect(attributes).toHaveAttribute('aria-hidden', 'true');
+      await expect(attributes).toHaveAttribute('preventdefault:click', '');
+
+      await toggle.click();
+
+      await expect(attributes).toHaveAttribute('class', '⭐️unvb18-1');
+      await expect(attributes).toHaveAttribute('aria-hidden', '');
+      await expect(attributes).toHaveAttribute('preventdefault:click', '');
+
+      await increment.click();
+
+      await expect(attributes).toHaveAttribute('class', '⭐️unvb18-1');
+      await expect(attributes).toHaveAttribute('aria-hidden', '');
+      await expect(attributes).toHaveAttribute('preventdefault:click', '');
+
+      await toggle.click();
+
+      await expect(attributes).toHaveAttribute('class', '⭐️unvb18-1 even stable0');
+      await expect(attributes).toHaveAttribute('aria-hidden', 'true');
+      await expect(attributes).toHaveAttribute('preventdefault:click', '');
     });
   });
 
@@ -792,6 +828,67 @@ Click`);
         await page.waitForTimeout(100);
       });
       tests();
+    });
+  });
+
+  test.describe('streaming', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/streaming', {
+        waitUntil: 'domcontentloaded',
+      });
+      page.on('console', (msg) => {
+        if (msg.type() === 'error') {
+          expect(msg.text()).toEqual(undefined);
+        }
+      });
+
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should render correctly', async ({ page }) => {
+      const ul = await page.locator('ul > li');
+      const ol = await page.locator('ol > li');
+      const cmps = await page.locator('.cmp');
+
+      await expect(ul).toHaveCount(5);
+      await expect(ol).toHaveCount(10);
+      await expect(cmps).toHaveCount(5);
+    });
+
+    test('should rerender correctly', async ({ page }) => {
+      const ul = await page.locator('ul > li');
+      const ol = await page.locator('ol > li');
+      const cmps = await page.locator('.cmp');
+      const count = await page.locator('button#count');
+      await count.click();
+
+      await expect(count).toHaveText('Rerender 1');
+      await expect(ul).toHaveCount(5);
+      await expect(ol).toHaveCount(10);
+      await expect(cmps).toHaveCount(5);
+    });
+
+    test('should render in client correctly', async ({ page }) => {
+      const ul = await page.locator('ul > li');
+      const ol = await page.locator('ol > li');
+      const cmps = await page.locator('.cmp');
+      const count = await page.locator('button#count');
+      const rerender = await page.locator('button#client-render');
+      await count.click();
+      await expect(count).toHaveText('Rerender 1');
+
+      await rerender.click();
+      await page.waitForTimeout(500);
+      await count.click();
+      await page.waitForTimeout(3000);
+
+      await expect(count).toHaveText('Rerender 0');
+      await expect(ul).toHaveCount(0);
+      await expect(ol).toHaveCount(0);
+      await expect(cmps).toHaveCount(5);
+
+      await count.click();
+      await expect(count).toHaveText('Rerender 1');
     });
   });
 });

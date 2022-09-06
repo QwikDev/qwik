@@ -38,8 +38,12 @@ export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
     assertQrl(unmountFn);
     const el = ctx.$hostElement$;
     const watch = new Watch(WatchFlagsIsCleanup, i, el, unmountFn, undefined);
+    const elCtx = getContext(el);
     set(true);
-    getContext(el).$watches$.push(watch);
+    if (!elCtx.$watches$) {
+      elCtx.$watches$ = [];
+    }
+    elCtx.$watches$.push(watch);
   }
 };
 
@@ -158,5 +162,5 @@ const _useOn = (eventName: string, eventQrl: QRL<(ev: Event) => void>) => {
   const invokeCtx = useInvokeContext();
   const ctx = getContext(invokeCtx.$hostElement$);
   assertQrl(eventQrl);
-  addQRLListener(ctx, normalizeOnProp(eventName), [eventQrl]);
+  addQRLListener(ctx.li, normalizeOnProp(eventName), [eventQrl]);
 };

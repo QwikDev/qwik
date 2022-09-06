@@ -21,7 +21,7 @@ import {
   QSlotS,
   QStyle,
 } from '../../util/markers';
-import { SSRComment, Virtual } from '../jsx/host.public';
+import { SSRComment, Virtual } from '../jsx/utils.public';
 import { logError, logWarn } from '../../util/log';
 import { addQRLListener, isOnProp, setEvent } from '../../props/props-on';
 import { version } from '../../version';
@@ -154,11 +154,12 @@ export const renderNodeFunction = (
   flags: number,
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ) => {
-  if (node.type === SSRComment) {
+  const fn = node.type;
+  if (fn === SSRComment) {
     stream.write(`<!--${node.props.data ?? ''}-->`);
     return;
   }
-  if (node.type === Virtual) {
+  if (fn === Virtual) {
     const elCtx = getContext(ssrCtx.rctx.$static$.$doc$.createElement(VIRTUAL));
     return renderNodeVirtual(node, elCtx, undefined, ssrCtx, stream, flags, beforeClose);
   }
@@ -257,8 +258,8 @@ export const renderNodeElement = (
     const cmp = hostCtx;
     if (!cmp.$attachedListeners$) {
       cmp.$attachedListeners$ = true;
-      hostCtx.li?.forEach((qrls, eventName) => {
-        addQRLListener(elCtx, eventName, qrls);
+      Object.entries(hostCtx.li).forEach(([eventName, qrls]) => {
+        addQRLListener(elCtx.li, eventName, qrls);
       });
     }
   }
@@ -268,13 +269,13 @@ export const renderNodeElement = (
     flags |= IS_HEAD;
   }
 
-  const hasEvents = elCtx.li;
+  const listeners = Object.entries(elCtx.li);
   const isHead = flags & IS_HEAD;
 
   if (key != null) {
     attributes['q:key'] = key;
   }
-  if (hasRef || hasEvents) {
+  if (hasRef || listeners.length > 0) {
     const newID = getNextIndex(ssrCtx.rctx);
     attributes[ELEMENT_ID] = newID;
     elCtx.$id$ = newID;
@@ -286,11 +287,9 @@ export const renderNodeElement = (
   if (extraAttributes) {
     Object.assign(attributes, extraAttributes);
   }
-  if (elCtx.li) {
-    elCtx.li.forEach((value, key) => {
-      attributes[key] = serializeQRLs(value, elCtx);
-    });
-  }
+  listeners.forEach(([key, value]) => {
+    attributes[key] = serializeQRLs(value, elCtx);
+  });
   if (renderNodeElementSync(textType, attributes, stream)) {
     return;
   }
@@ -672,7 +671,7 @@ const updateProperties = (ctx: QContext, expectProps: Record<string, any> | null
     }
 
     if (isOnProp(key)) {
-      setEvent(ctx, key, newValue);
+      setEvent(ctx.li, key, newValue);
       continue;
     }
 

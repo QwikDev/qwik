@@ -13,13 +13,14 @@ export const isOnProp = (prop: string): boolean => {
   return ON_PROP_REGEX.test(prop);
 };
 
-export const addQRLListener = (ctx: QContext, prop: string, input: QRLInternal[]): boolean => {
-  if (!ctx.li) {
-    ctx.li = new Map();
-  }
-  let existingListeners = ctx.li.get(prop);
+export const addQRLListener = (
+  listenersMap: Record<string, QRLInternal<any>[]>,
+  prop: string,
+  input: QRLInternal[]
+): boolean => {
+  let existingListeners = listenersMap[prop];
   if (!existingListeners) {
-    ctx.li.set(prop, (existingListeners = []));
+    listenersMap[prop] = existingListeners = [];
   }
   for (const qrl of input) {
     const hash = qrl.$hash$;
@@ -39,11 +40,11 @@ export const addQRLListener = (ctx: QContext, prop: string, input: QRLInternal[]
   return false;
 };
 
-export const setEvent = (ctx: QContext, prop: string, input: any) => {
+export const setEvent = (listenerMap: Record<string, QRLInternal[]>, prop: string, input: any) => {
   assertTrue(prop.endsWith('$'), 'render: event property does not end with $', prop);
   const qrls = isArray(input) ? input.map(ensureQrl) : [ensureQrl(input)];
   prop = normalizeOnProp(prop.slice(0, -1));
-  addQRLListener(ctx, prop, qrls);
+  addQRLListener(listenerMap, prop, qrls);
   return prop;
 };
 
@@ -54,9 +55,9 @@ const ensureQrl = (value: any) => {
 export const getDomListeners = (
   ctx: QContext,
   containerEl: Element
-): Map<string, QRLInternal[]> => {
+): Record<string, QRLInternal[]> => {
   const attributes = (ctx.$element$ as Element).attributes;
-  const listeners: Map<string, QRLInternal[]> = new Map();
+  const listeners: Record<string, QRLInternal[]> = {};
   for (let i = 0; i < attributes.length; i++) {
     const { name, value } = attributes.item(i)!;
     if (
@@ -64,9 +65,9 @@ export const getDomListeners = (
       name.startsWith('on-window:') ||
       name.startsWith('on-document:')
     ) {
-      let array = listeners.get(name);
+      let array = listeners[name];
       if (!array) {
-        listeners.set(name, (array = []));
+        listeners[name] = array = [];
       }
       const urls = value.split('\n');
       for (const url of urls) {

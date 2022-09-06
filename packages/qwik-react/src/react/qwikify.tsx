@@ -4,11 +4,11 @@ import {
   NoSerialize,
   noSerialize,
   QRL,
-  SkipRerender,
   useWatch$,
   useStore,
   EagernessOptions,
   useRef,
+  SkipRender,
 } from '@builder.io/qwik';
 
 import { isBrowser, isServer } from '@builder.io/qwik/build';
@@ -94,11 +94,7 @@ export function qwikifyQrl<PROPS extends {}>(
       return <>{jsx}</>;
     }
 
-    return (
-      <Host ref={ref}>
-        <SkipRerender />
-      </Host>
-    );
+    return <Host ref={ref}>{SkipRender}</Host>;
   });
 }
 

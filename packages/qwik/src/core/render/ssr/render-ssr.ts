@@ -21,7 +21,7 @@ import {
   QSlotS,
   QStyle,
 } from '../../util/markers';
-import { SSRComment, Virtual } from '../jsx/host.public';
+import { SSRComment, Virtual } from '../jsx/utils.public';
 import { logError, logWarn } from '../../util/log';
 import { addQRLListener, isOnProp, setEvent } from '../../props/props-on';
 import { version } from '../../version';

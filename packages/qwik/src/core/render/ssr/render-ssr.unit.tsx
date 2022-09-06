@@ -15,7 +15,7 @@ import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
 import { useClientEffect$ } from '../../use/use-watch';
 import { delay } from '../../util/promises';
-import { SSRComment } from '../jsx/host.public';
+import { SSRComment } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
 import { renderSSR, RenderSSROptions } from './render-ssr';
 import { useStore } from '../../use/use-store.public';

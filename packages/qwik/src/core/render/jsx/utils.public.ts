@@ -1,4 +1,4 @@
-import { jsx } from '../jsx/jsx-runtime';
+import { jsx } from './jsx-runtime';
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
 
 export const QOnce = 'qonce';
@@ -8,9 +8,6 @@ export const QOnce = 'qonce';
  */
 export const SkipRender: JSXNode = Symbol('skip render') as any;
 
-/**
- * @alpha
- */
 export const RenderOnce: FunctionComponent<{ children?: any }> = (props: any, key) => {
   return jsx(
     Virtual,

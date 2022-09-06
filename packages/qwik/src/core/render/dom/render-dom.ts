@@ -7,7 +7,7 @@ import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises'
 import { qDev, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
 import { domToVnode, visitJsxNode } from './visitor';
-import { SkipRender, Virtual } from '../jsx/host.public';
+import { SkipRender, Virtual } from '../jsx/utils.public';
 import { isJSXNode, SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
 import type { JSXNode } from '../jsx/types/jsx-node';
 import { executeComponent } from '../execute-component';

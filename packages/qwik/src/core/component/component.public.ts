@@ -7,7 +7,7 @@ import { jsx } from '../render/jsx/jsx-runtime';
 import type { MutableWrapper } from '../object/q-object';
 import { SERIALIZABLE_STATE } from '../object/serializers';
 import { qTest } from '../util/qdev';
-import { Virtual } from '../render/jsx/host.public';
+import { Virtual } from '../render/jsx/utils.public';
 import { assertQrl } from '../import/qrl-class';
 
 /**

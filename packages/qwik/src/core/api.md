@@ -397,11 +397,6 @@ export interface Ref<T> {
 export const render: (parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>, opts?: RenderOptions) => Promise<void>;
 
 // @alpha (undocumented)
-export const RenderOnce: FunctionComponent<{
-    children?: any;
-}>;
-
-// @alpha (undocumented)
 export interface RenderOptions {
     // (undocumented)
     envData?: Record<string, any>;

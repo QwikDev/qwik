@@ -61,7 +61,7 @@ import {
   setProperty,
 } from './operations';
 import { serializeQRLs } from '../../import/qrl';
-import { QOnce } from '../jsx/host.public';
+import { QOnce } from '../jsx/utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';

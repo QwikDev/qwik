@@ -944,12 +944,12 @@ export const setProperties = (
 
     // Check if property in prototype
     if (!isSvg && key in elm) {
-      setProperty(staticCtx, elm, key, newValue);
+      setProperty(rctx, elm, key, newValue);
       continue;
     }
 
     // Fallback to render attribute
-    setAttribute(staticCtx, elm, key, newValue);
+    setAttribute(rctx, elm, key, newValue);
   }
   return listenerMap;
 };
@@ -959,31 +959,17 @@ export const setComponentProps = (
   rctx: RenderContext,
   expectProps: Record<string, any>
 ) => {
-  const keys = Object.keys(newProps);
+  const keys = Object.keys(expectProps);
   if (keys.length === 0) {
     return false;
-=======
-  elCtx: QContext,
-  newProps: Record<string, any>,
-  isSvg: boolean
-) => {
-  const elm = elCtx.$element$;
-  const keys = Object.keys(newProps);
-  const listenerMap = elCtx.li;
-  if (keys.length === 0) {
-    return listenerMap;
->>>>>>> main
   }
   const qwikProps = getPropsMutator(ctx, rctx.$static$.$containerState$);
   for (const key of keys) {
-    if (key === 'children') {
+    if (SKIPS_PROPS.includes(key)) {
       continue;
     }
-    const newValue = newProps[key];
-    if (key === 'ref') {
-      (newValue as Ref<Element>).current = elm as Element;
-      continue;
-    }
+    qwikProps.set(key, expectProps[key]);
+  }
   return ctx.$dirty$;
 };
 

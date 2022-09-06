@@ -526,6 +526,8 @@ export interface SnapshotListener {
     // (undocumented)
     el: Element;
     // (undocumented)
+    eventName: string;
+    // (undocumented)
     key: string;
     // (undocumented)
     qrl: QRL<any>;

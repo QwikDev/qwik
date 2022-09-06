@@ -194,13 +194,6 @@ export const useContextProvider = <STATE extends object>(
 ) => {
   const { get, set, ctx } = useSequentialScope<boolean>();
   if (get !== undefined) {
-    assertEqual(
-      get,
-      newValue,
-      'Value passed provided to useContextProvider() is not the same',
-      get,
-      newValue
-    );
     return;
   }
   if (qDev) {

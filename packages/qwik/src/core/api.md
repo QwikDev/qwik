@@ -582,11 +582,6 @@ export const SSRComment: FunctionComponent<{
     data: string;
 }>;
 
-// Warning: (ae-forgotten-export) The symbol "StreamProps" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export const SSRStream: FunctionComponent<StreamProps>;
-
 // @alpha (undocumented)
 export const SSRStreamBlock: FunctionComponent<{
     children?: any;

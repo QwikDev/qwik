@@ -1,5 +1,8 @@
-import { jsx } from './jsx-runtime';
+import type { ValueOrPromise } from '../../util/types';
+import { jsx } from '../jsx/jsx-runtime';
+import type { StreamWriter } from '../ssr/render-ssr';
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
+import type { JSXChildren } from './types/jsx-qwik-attributes';
 
 export const QOnce = 'qonce';
 
@@ -45,3 +48,18 @@ export const SSRStreamBlock: FunctionComponent<{ children?: any }> = (props) => 
     jsx(SSRComment, { data: 'qkssr-po' }),
   ] as any;
 };
+
+/**
+ * @alpha
+ */
+export interface StreamProps {
+  children: (stream: StreamWriter) => ValueOrPromise<void> | AsyncGenerator<JSXChildren, void, any>;
+}
+
+/**
+ * @alpha
+ */
+export const SSRStream: FunctionComponent<StreamProps> = (props, key) =>
+  jsx(RenderOnce, { children: jsx(InternalSSRStream, props) }, key);
+
+export const InternalSSRStream: FunctionComponent<StreamProps> = () => null;

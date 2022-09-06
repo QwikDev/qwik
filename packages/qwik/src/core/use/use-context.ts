@@ -192,7 +192,7 @@ export const useContextProvider = <STATE extends object>(
   newValue: STATE
 ) => {
   const { get, set, ctx } = useSequentialScope<boolean>();
-  if (get) {
+  if (get !== undefined) {
     return;
   }
   if (qDev) {
@@ -210,6 +210,11 @@ export const useContextProvider = <STATE extends object>(
   contexts.set(context.id, newValue);
   set(true);
 };
+
+export interface UseContext {
+  <STATE extends object, T>(context: Context<STATE>, defaultValue: T): STATE | T;
+  <STATE extends object>(context: Context<STATE>): STATE;
+}
 
 // <docs markdown="../readme.md#useContext">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -260,9 +265,12 @@ export const useContextProvider = <STATE extends object>(
  * @public
  */
 // </docs>
-export const useContext = <STATE extends object>(context: Context<STATE>): STATE => {
+export const useContext: UseContext = <STATE extends object>(
+  context: Context<STATE>,
+  defaultValue?: any
+) => {
   const { get, set, ctx } = useSequentialScope<STATE>();
-  if (get) {
+  if (get !== undefined) {
     return get;
   }
   if (qDev) {
@@ -277,8 +285,7 @@ export const useContext = <STATE extends object>(context: Context<STATE>): STATE
     if (ctx.$contexts$) {
       const found = ctx.$contexts$.get(context.id);
       if (found) {
-        set(found);
-        return found;
+        return set(found);
       }
     }
   }
@@ -286,9 +293,12 @@ export const useContext = <STATE extends object>(context: Context<STATE>): STATE
   if ((hostElement as any).closest) {
     const value = queryContextFromDom(hostElement, context.id);
     if (value !== undefined) {
-      set(value);
-      return value;
+      return set(value);
     }
+  }
+
+  if (defaultValue !== undefined) {
+    return set(defaultValue);
   }
   throw qError(QError_notFoundContext, context.id);
 };

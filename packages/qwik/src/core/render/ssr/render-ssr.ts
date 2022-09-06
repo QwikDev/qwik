@@ -3,7 +3,7 @@ import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
 import { isJSXNode, jsx } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, ValueOrPromise } from '../../util/types';
 import { getContext, getPropsMutator, QContext } from '../../props/props';
-import type { JSXNode } from '../jsx/types/jsx-node';
+import type { FunctionComponent, JSXNode } from '../jsx/types/jsx-node';
 import {
   ALLOWS_PROPS,
   createRenderContext,
@@ -21,7 +21,7 @@ import {
   QSlotS,
   QStyle,
 } from '../../util/markers';
-import { SSRComment, Virtual } from '../jsx/utils.public';
+import { SSRComment, InternalSSRStream, Virtual } from '../jsx/utils.public';
 import { logError, logWarn } from '../../util/log';
 import { addQRLListener, isOnProp, setEvent } from '../../props/props-on';
 import { version } from '../../version';
@@ -52,7 +52,7 @@ export interface RenderSSROptions {
   base?: string;
   envData?: Record<string, any>;
   url?: string;
-  beforeContent?: JSXNode[];
+  beforeContent?: JSXNode<string>[];
   beforeClose?: (contexts: QContext[], containerState: ContainerState) => Promise<JSXNode>;
 }
 
@@ -63,7 +63,7 @@ export interface SSRContext {
   hostCtx: QContext | undefined;
   invocationContext?: InvokeContext | undefined;
   $contexts$: QContext[];
-  headNodes: JSXNode[];
+  headNodes: JSXNode<string>[];
 }
 
 const IS_HEAD = 1 << 0;
@@ -124,7 +124,7 @@ export const renderSSR = async (doc: Document, node: JSXNode, opts: RenderSSROpt
 };
 
 export const renderRoot = async (
-  node: JSXNode<string>,
+  node: JSXNode,
   ssrCtx: SSRContext,
   stream: StreamWriter,
   containerState: ContainerState,
@@ -148,7 +148,7 @@ export const renderRoot = async (
 };
 
 export const renderNodeFunction = (
-  node: JSXNode<any>,
+  node: JSXNode<FunctionComponent>,
   ssrCtx: SSRContext,
   stream: StreamWriter,
   flags: number,
@@ -156,17 +156,51 @@ export const renderNodeFunction = (
 ) => {
   const fn = node.type;
   if (fn === SSRComment) {
-    stream.write(`<!--${node.props.data ?? ''}-->`);
+    stream.write(`<!--${(node as JSXNode<typeof SSRComment>).props.data ?? ''}-->`);
     return;
+  }
+  if (fn === InternalSSRStream) {
+    return renderGenerator(node as JSXNode<typeof InternalSSRStream>, ssrCtx, stream, flags);
   }
   if (fn === Virtual) {
     const elCtx = getContext(ssrCtx.rctx.$static$.$doc$.createElement(VIRTUAL));
-    return renderNodeVirtual(node, elCtx, undefined, ssrCtx, stream, flags, beforeClose);
+    return renderNodeVirtual(
+      node as JSXNode<typeof Virtual>,
+      elCtx,
+      undefined,
+      ssrCtx,
+      stream,
+      flags,
+      beforeClose
+    );
   }
+
   const res = ssrCtx.invocationContext
     ? invoke(ssrCtx.invocationContext, () => node.type(node.props, node.key))
     : node.type(node.props, node.key);
   return processData(res, ssrCtx, stream, flags, beforeClose);
+};
+
+export const renderGenerator = async (
+  node: JSXNode<typeof InternalSSRStream>,
+  ssrCtx: SSRContext,
+  stream: StreamWriter,
+  flags: number
+) => {
+  const generator = node.props.children;
+  let value: AsyncGenerator;
+  if (isFunction(generator)) {
+    const v = generator(stream);
+    if (isPromise(v)) {
+      return v;
+    }
+    value = v;
+  } else {
+    value = generator;
+  }
+  for await (const chunk of value) {
+    await processData(chunk, ssrCtx, stream, flags, undefined);
+  }
 };
 
 export const renderNodeVirtual = (
@@ -431,7 +465,7 @@ export const renderSSRComponent = (
       invocationContext,
     };
 
-    const extraNodes: JSXNode<any>[] = [];
+    const extraNodes: JSXNode<string>[] = [];
     const styleClasses = [];
     if (elCtx.$appendStyles$) {
       const isHTML = !!(flags & IS_HTML);
@@ -526,16 +560,30 @@ const splitProjectedChildren = (children: any, ssrCtx: SSRContext) => {
 };
 
 export const renderNode = (
-  node: JSXNode<any>,
+  node: JSXNode,
   ssrCtx: SSRContext,
   stream: StreamWriter,
   flags: number,
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ) => {
   if (typeof node.type === 'string') {
-    return renderNodeElement(node as any, undefined, undefined, ssrCtx, stream, flags, beforeClose);
+    return renderNodeElement(
+      node as JSXNode<string>,
+      undefined,
+      undefined,
+      ssrCtx,
+      stream,
+      flags,
+      beforeClose
+    );
   } else {
-    return renderNodeFunction(node, ssrCtx, stream, flags, beforeClose);
+    return renderNodeFunction(
+      node as JSXNode<FunctionComponent>,
+      ssrCtx,
+      stream,
+      flags,
+      beforeClose
+    );
   }
 };
 export const processData = (
@@ -632,6 +680,7 @@ export const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => 
     isJSXNode(children) &&
     isFunction(children.type) &&
     children.type !== SSRComment &&
+    children.type !== InternalSSRStream &&
     children.type !== Virtual
   ) {
     const fn = children.type;

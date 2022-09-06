@@ -976,16 +976,17 @@ export const setComponentProps = (
 export const cleanupTree = (
   parent: QwikElement,
   rctx: RenderStaticContext,
-  subsManager: SubscriptionManager
+  subsManager: SubscriptionManager,
+  stopSlots: boolean
 ) => {
-  if (parent.hasAttribute(QSlotS)) {
+  if (stopSlots && parent.hasAttribute(QSlotS)) {
     rctx.$rmSlots$.push(parent);
     return;
   }
   cleanupElement(parent, subsManager);
   const ch = getChildren(parent, 'elements');
   for (const child of ch) {
-    cleanupTree(child as QwikElement, rctx, subsManager);
+    cleanupTree(child as QwikElement, rctx, subsManager, stopSlots);
   }
 };
 

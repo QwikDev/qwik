@@ -12,7 +12,7 @@ import {
   QError_runtimeQrlNoElement,
   QError_unknownTypeArgument,
 } from '../error/error';
-import { qTest } from '../util/qdev';
+import { qDev, qTest } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
 import type { QwikElement } from '../render/dom/virtual-element';
 import type { QContext } from '../props/props';
@@ -63,7 +63,7 @@ export const qrl = <T = any>(
   } else if (isFunction(chunkOrFn)) {
     symbolFn = chunkOrFn;
     const cached = QRLcache.get(symbol);
-    if (cached) {
+    if (!qDev && cached) {
       chunk = cached;
     } else {
       let match: RegExpMatchArray | null;

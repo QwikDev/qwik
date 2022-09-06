@@ -162,7 +162,7 @@ const _removeNode = (el: Node | VirtualElement, staticCtx: RenderStaticContext) 
   if (parent) {
     if (el.nodeType === 1 || el.nodeType === 111) {
       const subsManager = staticCtx.$containerState$.$subsManager$;
-      cleanupTree(el as Element, staticCtx, subsManager);
+      cleanupTree(el as Element, staticCtx, subsManager, true);
     }
     directRemoveChild(parent, el);
   } else if (qDev) {
@@ -198,6 +198,7 @@ export const setKey = (el: QwikElement, key: string | null) => {
 
 export const resolveSlotProjection = (ctx: RenderStaticContext) => {
   // Slots removed
+  const subsManager = ctx.$containerState$.$subsManager$;
   ctx.$rmSlots$.forEach((slotEl) => {
     const key = getKey(slotEl);
     assertDefined(key, 'slots must have a key');
@@ -213,6 +214,10 @@ export const resolveSlotProjection = (ctx: RenderStaticContext) => {
           directAppendChild(template, child);
         }
         directInsertBefore(hostElm, template, hostElm.firstChild);
+      } else {
+        // If slot content cannot be relocated, it means it's content is definively removed
+        // Cleanup needs to be executed
+        cleanupTree(slotEl, ctx, subsManager, false);
       }
     }
   });

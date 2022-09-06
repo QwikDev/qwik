@@ -17,6 +17,7 @@ import { useClientEffect$ } from '../../use/use-watch';
 import { delay } from '../../util/promises';
 import { SSRComment } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
+import { jsx } from '../jsx/jsx-runtime';
 import { renderSSR, RenderSSROptions } from './render-ssr';
 import { useStore } from '../../use/use-store.public';
 
@@ -649,7 +650,7 @@ renderSSRSuite('containerTagName', async () => {
     {
       containerTagName: 'container',
       base: '/manu/folder',
-      beforeContent: [<link rel="stylesheet" href="/global.css" />],
+      beforeContent: [jsx('link', { rel: 'stylesheet', href: '/global.css' })],
     }
   );
 });
@@ -749,7 +750,7 @@ renderSSRSuite('html slot', async () => {
       <!--/qv-->
     </html>`,
     {
-      beforeContent: [<link rel="stylesheet" href="/global.css" />],
+      beforeContent: [jsx('link', { rel: 'stylesheet', href: '/global.css' })],
       base: '/manu/folder',
     }
   );

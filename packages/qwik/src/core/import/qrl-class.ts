@@ -82,19 +82,19 @@ export const createQRL = <TYPE>(
     return isFunction(symbolRef) ? symbolRef : resolve();
   };
 
-  const invokeFn = (currentCtx?: InvokeContext | InvokeTuple, beforeFn?: () => void) => {
+  const invokeFn = (currentCtx?: InvokeContext | InvokeTuple, beforeFn?: () => void | boolean) => {
     return ((...args: any[]): any => {
       const fn = resolveLazy() as TYPE;
       return then(fn, (fn) => {
         if (isFunction(fn)) {
+          if (beforeFn && beforeFn() === false) {
+            return;
+          }
           const baseContext = createInvokationContext(currentCtx);
           const context: InvokeContext = {
             ...baseContext,
             $qrl$: QRL as QRLInternal<any>,
           };
-          if (beforeFn) {
-            beforeFn();
-          }
           return invoke(context, fn as any, ...args);
         }
         throw qError(QError_qrlIsNotFunction);

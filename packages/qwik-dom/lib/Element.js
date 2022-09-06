@@ -232,23 +232,6 @@ Element.prototype = Object.create(ContainerNode.prototype, {
     },
   },
 
-  isConnected: {
-    get: function () {
-      let node = this;
-      while (node != null) {
-        if (node.nodeType === Node.DOCUMENT_NODE) {
-          return true;
-        }
-
-        node = node.parentNode;
-        if (node != null && node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-          node = node.host;
-        }
-      }
-      return false;
-    },
-  },
-
   firstElementChild: {
     get: function () {
       for (var kid = this.firstChild; kid !== null; kid = kid.nextSibling) {

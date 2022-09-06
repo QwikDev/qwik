@@ -11,6 +11,7 @@ import {
   QwikElement,
   VirtualElement,
 } from '../render/dom/virtual-element';
+import { assertEqual } from '../assert/assert';
 
 // <docs markdown="../readme.md#Context">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -192,7 +193,8 @@ export const useContextProvider = <STATE extends object>(
   newValue: STATE
 ) => {
   const { get, set, ctx } = useSequentialScope<boolean>();
-  if (get) {
+  if (get !== undefined) {
+    assertEqual(get, newValue, 'Value passed provided to useContextProvider() is not the same', get, newValue);
     return;
   }
   if (qDev) {
@@ -270,7 +272,7 @@ export const useContext: UseContext = <STATE extends object>(
   defaultValue?: any
 ) => {
   const { get, set, ctx } = useSequentialScope<STATE>();
-  if (get) {
+  if (get !== undefined) {
     return get;
   }
   if (qDev) {
@@ -285,8 +287,7 @@ export const useContext: UseContext = <STATE extends object>(
     if (ctx.$contexts$) {
       const found = ctx.$contexts$.get(context.id);
       if (found) {
-        set(found);
-        return found;
+        return set(found);
       }
     }
   }
@@ -294,13 +295,12 @@ export const useContext: UseContext = <STATE extends object>(
   if ((hostElement as any).closest) {
     const value = queryContextFromDom(hostElement, context.id);
     if (value !== undefined) {
-      set(value);
-      return value;
+      return set(value);
     }
   }
 
   if (defaultValue !== undefined) {
-    return defaultValue;
+    return set(defaultValue);
   }
   throw qError(QError_notFoundContext, context.id);
 };

@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@builder.io/partytown": "^0.6.4",
-    "@builder.io/qwik-dom": "2.1.18",
+    "@builder.io/qwik-dom": "2.1.19",
     "@microsoft/api-extractor": "7.29.5",
     "@napi-rs/cli": "2.11.4",
     "@napi-rs/triples": "1.1.0",

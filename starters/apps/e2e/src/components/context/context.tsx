@@ -16,6 +16,7 @@ export const Context1 = createContext<ContextI>('ctx');
 export const Context2 = createContext<ContextI>('ctx1');
 export const Context3 = createContext<ContextI>('ctx2');
 export const ContextSlot = createContext<ContextI>('slot');
+export const Unset = createContext<ContextI>('unset');
 
 export const ContextRoot = component$(() => {
   const state1 = useStore({ displayName: 'ROOT / state1', count: 0 });
@@ -91,6 +92,10 @@ export const Level3 = component$(() => {
   const state2 = useContext(Context2);
   const state3 = useContext(Context3);
   const stateSlot = useContext(ContextSlot);
+
+  if (useContext(Unset, null) !== null) {
+    throw new Error('ERROR');
+  }
 
   return (
     <div>

@@ -211,6 +211,11 @@ export const useContextProvider = <STATE extends object>(
   set(true);
 };
 
+export interface UseContext {
+  <STATE extends object, T>(context: Context<STATE>, defaultValue: T): STATE | T;
+  <STATE extends object>(context: Context<STATE>): STATE;
+}
+
 // <docs markdown="../readme.md#useContext">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useContext instead)
@@ -260,7 +265,10 @@ export const useContextProvider = <STATE extends object>(
  * @public
  */
 // </docs>
-export const useContext = <STATE extends object>(context: Context<STATE>): STATE => {
+export const useContext: UseContext = <STATE extends object>(
+  context: Context<STATE>,
+  defaultValue?: any
+) => {
   const { get, set, ctx } = useSequentialScope<STATE>();
   if (get) {
     return get;
@@ -289,6 +297,10 @@ export const useContext = <STATE extends object>(context: Context<STATE>): STATE
       set(value);
       return value;
     }
+  }
+
+  if (defaultValue !== undefined) {
+    return defaultValue;
   }
   throw qError(QError_notFoundContext, context.id);
 };

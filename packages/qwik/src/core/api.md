@@ -616,8 +616,10 @@ export const useClientEffect$: (first: WatchFn, opts?: UseEffectOptions | undefi
 // @public
 export const useClientEffectQrl: (qrl: QRL<WatchFn>, opts?: UseEffectOptions) => void;
 
+// Warning: (ae-forgotten-export) The symbol "UseContext" needs to be exported by the entry point index.d.ts
+//
 // @public
-export const useContext: <STATE extends object>(context: Context<STATE>) => STATE;
+export const useContext: UseContext;
 
 // @public
 export const useContextProvider: <STATE extends object>(context: Context<STATE>, newValue: STATE) => void;

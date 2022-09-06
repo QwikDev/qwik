@@ -1,5 +1,5 @@
-import { Link, useLocation } from '@builder.io/qwik-city';
-import { component$, $, useStyles$, useContext, mutable } from '@builder.io/qwik';
+import { useLocation } from '@builder.io/qwik-city';
+import { component$, $, useStyles$, useContext } from '@builder.io/qwik';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
@@ -47,24 +47,22 @@ export const Header = component$(() => {
         </button>
         <ul className="md:grow md:flex md:justify-end md:p-4 menu-toolkit">
           <li>
-            <Link
+            <a
               href="/docs/overview/"
-              class={mutable({ active: pathname.startsWith('/docs') })}
+              class={{ active: pathname.startsWith('/docs') }}
               onClick$={closeMenu}
-              prefetch={true}
             >
               <span>Docs</span>
-            </Link>
+            </a>
           </li>
           <li>
-            <Link
+            <a
               href="/qwikcity/overview/"
-              class={mutable({ active: pathname.startsWith('/qwikcity') })}
+              class={{ active: pathname.startsWith('/qwikcity') }}
               onClick$={closeMenu}
-              prefetch={true}
             >
               <span>Qwik City</span>
-            </Link>
+            </a>
           </li>
           <li>
             <a

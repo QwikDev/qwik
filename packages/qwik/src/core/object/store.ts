@@ -238,8 +238,8 @@ export const _pauseFromContexts = async (
   const listeners: SnapshotListener[] = [];
   for (const ctx of elements) {
     const el = ctx.$element$;
-    if (ctx.li && isElement(el)) {
-      ctx.li.forEach((qrls, key) => {
+    if (isElement(el)) {
+      Object.entries(ctx.li).forEach(([key, qrls]) => {
         qrls.forEach((qrl) => {
           listeners.push({
             key,
@@ -249,8 +249,10 @@ export const _pauseFromContexts = async (
         });
       });
     }
-    for (const watch of ctx.$watches$) {
-      collector.$watches$.push(watch);
+    if (ctx.$watches$) {
+      for (const watch of ctx.$watches$) {
+        collector.$watches$.push(watch);
+      }
     }
   }
 
@@ -516,7 +518,7 @@ export const _pauseFromContexts = async (
         }
       }
 
-      if (watches.length > 0) {
+      if (watches && watches.length > 0) {
         const value = watches.map(getObjId).filter(isNotNullable).join(' ');
         if (value) {
           metaValue.w = value;
@@ -524,7 +526,7 @@ export const _pauseFromContexts = async (
         }
       }
 
-      if (elementCaptured && seq.length > 0) {
+      if (elementCaptured && seq && seq.length > 0) {
         const value = seq.map(mustGetObjId).join(' ');
         if (value) {
           metaValue.s = value;
@@ -780,13 +782,16 @@ const collectElement = async (el: VirtualElement, collector: Collector) => {
     if (ctx.$renderQrl$) {
       await collectValue(ctx.$renderQrl$, collector, false);
     }
-    for (const obj of ctx.$seq$) {
-      await collectValue(obj, collector, false);
+    if (ctx.$seq$) {
+      for (const obj of ctx.$seq$) {
+        await collectValue(obj, collector, false);
+      }
     }
-    for (const obj of ctx.$watches$) {
-      await collectValue(obj, collector, false);
+    if (ctx.$watches$) {
+      for (const obj of ctx.$watches$) {
+        await collectValue(obj, collector, false);
+      }
     }
-
     if (ctx.$contexts$) {
       for (const obj of ctx.$contexts$.values()) {
         await collectValue(obj, collector, false);

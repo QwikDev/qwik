@@ -259,9 +259,13 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
   const el = ctx.$hostElement$;
   const containerState = ctx.$renderCtx$.$static$.$containerState$;
   const watch = new Watch(WatchFlagsIsDirty | WatchFlagsIsWatch, i, el, qrl, undefined);
+  const elCtx = getContext(el);
   set(true);
   qrl.$resolveLazy$();
-  getContext(el).$watches$.push(watch);
+  if (!elCtx.$watches$) {
+    elCtx.$watches$ = [];
+  }
+  elCtx.$watches$.push(watch);
   waitAndRun(ctx, () => runSubscriber(watch, containerState));
   if (isServer(ctx)) {
     useRunWatch(watch, opts?.eagerness);
@@ -368,8 +372,12 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
   const el = ctx.$hostElement$;
   const watch = new Watch(WatchFlagsIsEffect, i, el, qrl, undefined);
   const eagerness = opts?.eagerness ?? 'visible';
+  const elCtx = getContext(el);
   set(true);
-  getContext(el).$watches$.push(watch);
+  if (!elCtx.$watches$) {
+    elCtx.$watches$ = [];
+  }
+  elCtx.$watches$.push(watch);
   useRunWatch(watch, eagerness);
   if (!isServer(ctx)) {
     qrl.$resolveLazy$();

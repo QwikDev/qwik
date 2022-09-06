@@ -1,4 +1,11 @@
-import { ELEMENT_ID, OnRenderProp, QSlot, QSlotRef, QSlotS } from '../../util/markers';
+import {
+  ComponentStylesPrefixContent,
+  ELEMENT_ID,
+  OnRenderProp,
+  QSlot,
+  QSlotRef,
+  QSlotS,
+} from '../../util/markers';
 import {
   cleanupContext,
   getContext,
@@ -15,7 +22,7 @@ import { qDev, qSerialize } from '../../util/qdev';
 import type { OnRenderFn } from '../../component/component.public';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
-import { assertQrl, isQrl } from '../../import/qrl-class';
+import { assertQrl, isQrl, QRLInternal } from '../../import/qrl-class';
 import { assertQwikElement, isQwikElement, isText, isVirtualElement } from '../../util/element';
 import { getVdom, ProcessedJSXNode, ProcessedJSXNodeImpl, renderComponent } from './render-dom';
 import type { RenderContext, RenderStaticContext } from '../types';
@@ -54,6 +61,8 @@ import {
   setProperty,
 } from './operations';
 import { serializeQRLs } from '../../import/qrl';
+import { QOnce } from '../jsx/utils.public';
+import { EMPTY_OBJ } from '../../util/flyweight';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -91,16 +100,13 @@ export const smartUpdateChildren = (
 ) => {
   assertQwikElement(oldVnode.$elm$);
 
-  let ch = newVnode.$children$;
+  const ch = newVnode.$children$;
+  if (ch.length === 1 && ch[0].$type$ === SKIP_RENDER_TYPE) {
+    return;
+  }
   const elm = oldVnode.$elm$;
   const needsDOMRead = oldVnode.$children$ === CHILDREN_PLACEHOLDER;
   if (needsDOMRead) {
-    if (ch.length === 1 && ch[0].$type$ === SKIP_RENDER_TYPE) {
-      if (elm.firstChild !== null) {
-        return;
-      }
-      ch = ch[0].$children$;
-    }
     const isHead = elm.nodeName === 'HEAD';
     if (isHead) {
       mode = 'head';
@@ -265,7 +271,8 @@ export const getChildrenVnodes = (elm: QwikElement, mode: ChildrenMode) => {
 
 export const domToVnode = (node: Node | VirtualElement): ProcessedJSXNode => {
   if (isQwikElement(node)) {
-    const t = new ProcessedJSXNodeImpl(node.localName, {}, CHILDREN_PLACEHOLDER, getKey(node));
+    const props = isVirtualElement(node) ? EMPTY_OBJ : getProps(node);
+    const t = new ProcessedJSXNodeImpl(node.localName, props, CHILDREN_PLACEHOLDER, getKey(node));
     t.$elm$ = node;
     return t;
   } else if (isText(node)) {
@@ -275,6 +282,25 @@ export const domToVnode = (node: Node | VirtualElement): ProcessedJSXNode => {
     return t;
   }
   throw new Error('invalid node');
+};
+
+export const getProps = (node: Element) => {
+  const props: Record<string, any> = {};
+  const attributes = node.attributes;
+  const len = attributes.length;
+  for (let i = 0; i < len; i++) {
+    const a = attributes.item(i);
+    assertDefined(a, 'attribute must be defined');
+
+    const name = a.name;
+    if (!name.includes(':')) {
+      props[name] =
+        name === 'class'
+          ? parseClassAny(a.value).filter((c) => !c.startsWith(ComponentStylesPrefixContent))
+          : a.value;
+    }
+  }
+  return props;
 };
 
 export const isNode = (elm: Node | VirtualElement): boolean => {
@@ -352,11 +378,7 @@ export const patchVnode = (
     }
     return;
   }
-
-  // Early exit for a skip render node
-  if (tag === SKIP_RENDER_TYPE) {
-    return;
-  }
+  assertQwikElement(elm);
 
   // Track SVG state
   let isSvg = !!(flags & IS_SVG);
@@ -366,10 +388,23 @@ export const patchVnode = (
   }
 
   const props = newVnode.$props$;
-  const ctx = getContext(elm as Element);
   const isComponent = isVirtual && OnRenderProp in props;
+  const elCtx = getContext(elm);
   if (!isComponent) {
-    updateProperties(ctx, rctx, oldVnode.$props$, props, isSvg);
+    const listenerMap = updateProperties(elCtx, staticCtx, oldVnode.$props$, props, isSvg);
+    const currentComponent = rctx.$cmpCtx$;
+    if (currentComponent && !currentComponent.$attachedListeners$) {
+      currentComponent.$attachedListeners$ = true;
+      Object.entries(currentComponent.li).forEach(([key, value]) => {
+        addQRLListener(listenerMap, key, value);
+        addGlobalListener(staticCtx, elm, key);
+      });
+    }
+    if (qSerialize) {
+      Object.entries(listenerMap).forEach(([key, value]) =>
+        setAttribute(staticCtx, elm, key, serializeQRLs(value, elCtx))
+      );
+    }
 
     if (isSvg && newVnode.$type$ === 'foreignObject') {
       flags &= ~IS_SVG;
@@ -390,16 +425,20 @@ export const patchVnode = (
       }
       return;
     }
+    const isRenderOnce = isVirtual && QOnce in props;
+    if (isRenderOnce) {
+      return;
+    }
     return smartUpdateChildren(rctx, oldVnode, newVnode, 'root', flags);
   }
 
-  let needsRender = updateComponentProperties(ctx, rctx, props);
+  let needsRender = setComponentProps(elCtx, rctx, props);
 
   // TODO: review this corner case
-  if (!needsRender && !ctx.$renderQrl$ && !ctx.$element$.hasAttribute(ELEMENT_ID)) {
-    setQId(rctx, ctx);
-    ctx.$renderQrl$ = props[OnRenderProp];
-    assertQrl(ctx.$renderQrl$ as any);
+  if (!needsRender && !elCtx.$renderQrl$ && !elCtx.$element$.hasAttribute(ELEMENT_ID)) {
+    setQId(rctx, elCtx);
+    elCtx.$renderQrl$ = props[OnRenderProp];
+    assertQrl(elCtx.$renderQrl$ as any);
     needsRender = true;
   }
 
@@ -409,11 +448,11 @@ export const patchVnode = (
   // we need to render the nested component, and wait before projecting the content
   // since otherwise we don't know where the slots
   if (needsRender) {
-    return then(renderComponent(rctx, ctx, flags), () =>
-      renderContentProjection(rctx, ctx, newVnode, flags)
+    return then(renderComponent(rctx, elCtx, flags), () =>
+      renderContentProjection(rctx, elCtx, newVnode, flags)
     );
   }
-  return renderContentProjection(rctx, ctx, newVnode, flags);
+  return renderContentProjection(rctx, elCtx, newVnode, flags);
 };
 
 const renderContentProjection = (
@@ -563,6 +602,9 @@ const createElm = (
     isSvg = true;
   }
   const isVirtual = tag === VIRTUAL;
+  const props = vnode.$props$;
+  const isComponent = OnRenderProp in props;
+  const staticCtx = rctx.$static$;
   if (isVirtual) {
     elm = newVirtualElement(doc);
   } else if (tag === 'head') {
@@ -575,25 +617,20 @@ const createElm = (
   }
 
   vnode.$elm$ = elm;
-  const props = vnode.$props$;
-  const isComponent = OnRenderProp in props;
-  const staticCtx = rctx.$static$;
-
   if (isSvg && tag === 'foreignObject') {
     isSvg = false;
     flags &= ~IS_SVG;
   }
-
+  const elCtx = getContext(elm);
   if (isComponent) {
     setKey(elm, vnode.$key$);
     assertTrue(isVirtual, 'component must be a virtual element');
-    const elCtx = getContext(elm);
-    updateComponentProperties(elCtx, rctx, props);
+    const renderQRL = props[OnRenderProp];
+    assertQrl<OnRenderFn<any>>(renderQRL);
+    setComponentProps(elCtx, rctx, props);
     setQId(rctx, elCtx);
 
     // Run mount hook
-    const renderQRL = props![OnRenderProp];
-    assertQrl<OnRenderFn<any>>(renderQRL);
     elCtx.$renderQrl$ = renderQRL;
 
     return then(renderComponent(rctx, elCtx, flags), () => {
@@ -624,6 +661,8 @@ const createElm = (
   const currentComponent = rctx.$cmpCtx$;
   const isSlot = isVirtual && QSlotS in props;
   const hasRef = !isVirtual && 'ref' in props;
+  const listenerMap = setProperties(staticCtx, elCtx, props, isSvg);
+
   if (currentComponent && !isVirtual) {
     const scopedIds = currentComponent.$scopeIds$;
     if (scopedIds) {
@@ -631,11 +670,10 @@ const createElm = (
         (elm as Element).classList.add(styleId);
       });
     }
-    if (!currentComponent.$attachedListeners$ && currentComponent.li) {
-      const elCtx = getContext(elm);
+    if (!currentComponent.$attachedListeners$) {
       currentComponent.$attachedListeners$ = true;
-      currentComponent.li.forEach((qrls, eventName) => {
-        addQRLListener(elCtx, eventName, qrls);
+      Object.entries(currentComponent.li).forEach(([eventName, qrls]) => {
+        addQRLListener(listenerMap, eventName, qrls);
       });
     }
   }
@@ -652,22 +690,17 @@ const createElm = (
     setKey(elm, vnode.$key$);
   }
 
-  setProperties(staticCtx, elm, props, isSvg);
-
   if (qSerialize) {
-    const elCtx = getContext(elm);
-    const listeners = elCtx.li;
+    const listeners = Object.entries(listenerMap);
     if (isHead && !isVirtual) {
       directSetAttribute(elm as Element, 'q:head', '');
     }
-    if (listeners || hasRef) {
+    if (listeners.length > 0 || hasRef) {
       setQId(rctx, elCtx);
     }
-    if (listeners) {
-      listeners.forEach((qrl, key) => {
-        setAttribute(staticCtx, elm, key, serializeQRLs(qrl, elCtx));
-      });
-    }
+    listeners.forEach(([key, qrls]) => {
+      setAttribute(staticCtx, elm, key, serializeQRLs(qrls, elCtx));
+    });
   }
 
   const setsInnerHTML = props[dangerouslySetInnerHTML] !== undefined;
@@ -785,17 +818,16 @@ export const PROP_HANDLER_MAP: Record<string, PropHandler | undefined> = {
 
 export const updateProperties = (
   elCtx: QContext,
-  rctx: RenderContext,
+  staticCtx: RenderStaticContext,
   oldProps: Record<string, any>,
   newProps: Record<string, any>,
   isSvg: boolean
-) => {
-  const keys = Object.keys(newProps);
+): Record<string, QRLInternal<any>[]> => {
+  const keys = getKeys(oldProps, newProps);
+  const listenersMap = (elCtx.li = {});
   if (keys.length === 0) {
-    return false;
+    return listenersMap;
   }
-  let renderListeners = false;
-  const staticCtx = rctx.$static$;
   const elm = elCtx.$element$;
   for (const key of keys) {
     if (key === 'children') {
@@ -813,11 +845,7 @@ export const updateProperties = (
     }
 
     if (isOnProp(key)) {
-      if (areExactQRLs(newValue, oldValue)) {
-        continue;
-      }
-      addGlobalListener(staticCtx, elm, setEvent(elCtx, key, newValue));
-      renderListeners = true;
+      setEvent(listenersMap, key, newValue);
       continue;
     }
 
@@ -838,21 +866,13 @@ export const updateProperties = (
     // Fallback to render attribute
     setAttribute(staticCtx, elm, key, newValue);
   }
-  const cmp = rctx.$cmpCtx$;
-  if (cmp && !cmp.$attachedListeners$) {
-    cmp.$attachedListeners$ = true;
-    cmp.li?.forEach((qrls, eventName) => {
-      addQRLListener(elCtx, eventName, qrls);
-      addGlobalListener(staticCtx, elm, eventName);
-      renderListeners = true;
-    });
-  }
-  if (qSerialize && renderListeners) {
-    elCtx.li?.forEach((value, key) => {
-      setAttribute(staticCtx, elm, key, serializeQRLs(value, elCtx));
-    });
-  }
-  return false;
+  return listenersMap;
+};
+
+const getKeys = (oldProps: Record<string, any>, newProps: Record<string, any>) => {
+  const keys = Object.keys(newProps);
+  keys.push(...Object.keys(oldProps).filter((p) => !keys.includes(p)));
+  return keys;
 };
 
 const addGlobalListener = (staticCtx: RenderStaticContext, elm: QwikElement, prop: string) => {
@@ -889,13 +909,15 @@ export const sameArrays = (a1: any[], a2: any[]) => {
 
 export const setProperties = (
   rctx: RenderStaticContext,
-  elm: QwikElement,
+  elCtx: QContext,
   newProps: Record<string, any>,
   isSvg: boolean
 ) => {
+  const elm = elCtx.$element$;
   const keys = Object.keys(newProps);
+  const listenerMap = elCtx.li;
   if (keys.length === 0) {
-    return false;
+    return listenerMap;
   }
   for (const key of keys) {
     if (key === 'children') {
@@ -908,7 +930,7 @@ export const setProperties = (
     }
 
     if (isOnProp(key)) {
-      addGlobalListener(rctx, elm, setEvent(getContext(elm), key, newValue));
+      addGlobalListener(rctx, elm, setEvent(listenerMap, key, newValue));
       continue;
     }
 
@@ -929,10 +951,10 @@ export const setProperties = (
     // Fallback to render attribute
     setAttribute(rctx, elm, key, newValue);
   }
-  return false;
+  return listenerMap;
 };
 
-export const updateComponentProperties = (
+export const setComponentProps = (
   ctx: QContext,
   rctx: RenderContext,
   expectProps: Record<string, any>

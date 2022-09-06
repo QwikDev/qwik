@@ -55,9 +55,12 @@ export const useResourceQrl = <T>(
     resource
   ) as ResourceDescriptor<any>;
   const previousWait = Promise.all(ctx.$waitOn$.slice());
+  const elCtx = getContext(el);
   runResource(watch, containerState, previousWait);
-
-  getContext(el).$watches$.push(watch);
+  if (!elCtx.$watches$) {
+    elCtx.$watches$ = [];
+  }
+  elCtx.$watches$.push(watch);
   set(resource);
 
   return resource;

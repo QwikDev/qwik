@@ -1,4 +1,5 @@
 import type { QRLInternal } from './core/import/qrl-class';
+import type { QContext } from './core/props/props';
 
 /**
  * Set up event listening for browser.
@@ -45,7 +46,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       ev.preventDefault();
     }
     const attrName = 'on' + onPrefix + ':' + eventName;
-    const qrls = (element as any)['_qc_']?.li?.get(attrName);
+    const qrls = ((element as any)['_qc_'] as QContext)?.li[attrName];
     if (qrls) {
       qrls.forEach((q: QRLInternal) => q.getFn([element, ev])(ev, element));
       return;

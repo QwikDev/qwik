@@ -37,8 +37,8 @@ export const Cmp = component$((props: { text: string; delay: number }) => {
   });
 
   return (
-    <div class="cmp">
-      <Resource value={resource} onResolved={(value) => <span>{value}</span>} />
+    <div>
+      <Resource value={resource} onResolved={(value) => <span class="cmp">{value}</span>} />
     </div>
   );
 });

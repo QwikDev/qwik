@@ -36,7 +36,7 @@ export type { CorePlatform } from './platform/types';
 // JSX Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export { h } from './render/jsx/factory';
-export { SkipRerender, SSRStreamBlock, SSRComment } from './render/jsx/host.public';
+export { SSRStreamBlock, SSRComment, SkipRender } from './render/jsx/utils.public';
 export { Slot } from './render/jsx/slot.public';
 export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
 export type { HTMLAttributes, AriaAttributes, AriaRole } from './render/jsx/types/jsx-generated';

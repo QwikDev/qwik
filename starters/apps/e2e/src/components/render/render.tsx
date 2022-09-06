@@ -1,4 +1,4 @@
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore, useStylesScoped$ } from '@builder.io/qwik';
 
 export const Render = component$(() => {
   const parent = {
@@ -11,16 +11,66 @@ export const Render = component$(() => {
 
   const state = useStore(parent, { recursive: true });
   return (
-    <button
-      onClick$={() => {
-        state.counter.count++;
-      }}
-    >
+    <>
+      <button
+        id="increment"
+        onClick$={() => {
+          state.counter.count++;
+        }}
+      >
+        Increment
+      </button>
       <Child counter={state.counter}></Child>
-    </button>
+    </>
   );
 });
 
 export const Child = component$((props: { counter: { count: number } }) => {
-  return <>Rerender {props.counter.count}</>;
+  const state = useStore({
+    hideAttributes: false,
+  });
+  useStylesScoped$(`
+  .even::before{
+    content: "even"
+  }
+  .odd::after{
+    content: "odd"
+  }
+  `);
+
+  if (state.hideAttributes) {
+    const count = props.counter.count;
+    return (
+      <>
+        <span>Rerender {count}</span>
+        <div id="attributes">
+          <button id="toggle" onClick$={() => (state.hideAttributes = !state.hideAttributes)}>
+            Toggle attributes
+          </button>
+        </div>
+      </>
+    );
+  }
+  const count = props.counter.count;
+  return (
+    <>
+      <span>Rerender {count}</span>
+      <div
+        id="attributes"
+        preventDefault:click
+        autoCorrect="all"
+        aria-hidden="true"
+        class={{
+          even: count % 2 === 0,
+          odd: count % 2 === 1,
+          stable0: true,
+          hidden: false,
+        }}
+      >
+        <button id="toggle" onClick$={() => (state.hideAttributes = !state.hideAttributes)}>
+          Toggle attributes
+        </button>
+      </div>
+    </>
+  );
 });

@@ -514,7 +514,7 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
 
 // @alpha (undocumented)
-export const SkipRerender: FunctionComponent<{}>;
+export const SkipRender: JSXNode;
 
 // @public (undocumented)
 export const Slot: FunctionComponent<{

@@ -48,7 +48,9 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     const attrName = 'on' + onPrefix + ':' + eventName;
     const qrls = ((element as any)['_qc_'] as QContext)?.li[attrName];
     if (qrls) {
-      qrls.forEach((q: QRLInternal) => q.getFn([element, ev])(ev, element));
+      qrls.forEach((q: QRLInternal) =>
+        q.getFn([element, ev], () => element.isConnected)(ev, element)
+      );
       return;
     }
     const attrValue = element.getAttribute(attrName);

@@ -8,7 +8,7 @@ export const RouterOutlet = component$(() => {
   const { contents } = useContext(ContentInternalContext);
   if (contents && contents.length > 0) {
     const contentsLen = contents.length;
-    let cmp: JSXNode<any> | null = null;
+    let cmp: JSXNode | null = null;
     for (let i = contentsLen - 1; i >= 0; i--) {
       cmp = jsx(contents[i].default, {
         children: cmp,

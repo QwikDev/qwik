@@ -123,9 +123,9 @@ export const Fragment: FunctionComponent<{
 }>;
 
 // @public (undocumented)
-export interface FunctionComponent<P = {}> {
+export interface FunctionComponent<P = Record<string, any>> {
     // (undocumented)
-    (props: P, key?: string): JSXNode | null;
+    (props: P, key: string | null): JSXNode | null;
 }
 
 // Warning: (ae-forgotten-export) The symbol "QwikElement" needs to be exported by the entry point index.d.ts
@@ -263,20 +263,20 @@ export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL
 export const inlinedQrl: <T>(symbol: T, symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public (undocumented)
-const jsx: <T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string | number | null) => JSXNode<T>;
+const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key?: string | number | null) => JSXNode<T>;
 export { jsx }
 export { jsx as jsxDEV }
 export { jsx as jsxs }
 
 // @public (undocumented)
-export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | JSXNode<any>;
+export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | JSXNode;
 
 // @public (undocumented)
-export interface JSXNode<T = any> {
+export interface JSXNode<T = string | FunctionComponent> {
     // (undocumented)
-    key: string | number | null;
+    key: string | null;
     // (undocumented)
-    props: Record<string, any>;
+    props: T extends FunctionComponent<infer B> ? B : Record<string, any>;
     // (undocumented)
     type: T;
 }
@@ -394,7 +394,7 @@ export interface Ref<T> {
 }
 
 // @alpha
-export const render: (parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>, opts?: RenderOptions) => Promise<void>;
+export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<void>;
 
 // @alpha (undocumented)
 export interface RenderOptions {
@@ -412,7 +412,7 @@ export interface RenderSSROptions {
     // (undocumented)
     beforeClose?: (contexts: QContext[], containerState: ContainerState) => Promise<JSXNode>;
     // (undocumented)
-    beforeContent?: JSXNode[];
+    beforeContent?: JSXNode<string>[];
     // (undocumented)
     containerAttributes: Record<string, string>;
     // (undocumented)
@@ -578,9 +578,18 @@ export const SSRComment: FunctionComponent<{
 }>;
 
 // @alpha (undocumented)
+export const SSRStream: FunctionComponent<StreamProps>;
+
+// @alpha (undocumented)
 export const SSRStreamBlock: FunctionComponent<{
     children?: any;
 }>;
+
+// @alpha (undocumented)
+export interface StreamProps {
+    // (undocumented)
+    children: AsyncGenerator<JSXChildren, void, any> | ((stream: StreamWriter) => Promise<void>) | (() => AsyncGenerator<JSXChildren, void, any>);
+}
 
 // @alpha (undocumented)
 export type StreamWriter = {

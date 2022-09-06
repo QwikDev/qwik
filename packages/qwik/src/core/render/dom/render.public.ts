@@ -36,7 +36,7 @@ export interface RenderOptions {
  */
 export const render = async (
   parent: Element | Document,
-  jsxNode: JSXNode<unknown> | FunctionComponent<any>,
+  jsxNode: JSXNode | FunctionComponent<any>,
   opts?: RenderOptions
 ): Promise<void> => {
   // If input is not JSX, convert it

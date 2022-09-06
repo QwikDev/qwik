@@ -11,7 +11,6 @@ import {
   QwikElement,
   VirtualElement,
 } from '../render/dom/virtual-element';
-import { assertEqual } from '../assert/assert';
 
 // <docs markdown="../readme.md#Context">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

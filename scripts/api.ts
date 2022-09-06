@@ -56,6 +56,11 @@ export function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.packagesDir, 'qwik-city', 'runtime', 'src', 'library', 'service-worker'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'service-worker.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.packagesDir, 'qwik-city', 'buildtime', 'vite'),
     join(config.packagesDir, 'qwik-city', 'lib', 'vite', 'index.d.ts')
   );

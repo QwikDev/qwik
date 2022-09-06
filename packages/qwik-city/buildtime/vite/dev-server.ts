@@ -8,7 +8,7 @@ import type { RouteModule } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
 import { loadUserResponse, updateRequestCtx } from '../../middleware/request-handler/user-response';
 import { getQwikCityEnvData, pageHandler } from '../../middleware/request-handler/page-handler';
-import { buildFromUrlPathname } from '../build';
+import { updateBuildContext } from '../build';
 import { endpointHandler } from '../../middleware/request-handler/endpoint-handler';
 import {
   errorResponse,
@@ -22,8 +22,23 @@ import {
 } from '../../middleware/request-handler/redirect-handler';
 import { normalizePath } from '../../utils/fs';
 import type { RenderToStringResult } from '@builder.io/qwik/server';
+import { getRouteParams } from '../../runtime/src/library/routing';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
+  const matchRouteRequest = async (pathname: string) => {
+    for (const route of ctx.routes) {
+      const match = route.pattern.exec(pathname);
+      if (match) {
+        return {
+          route,
+          params: getRouteParams(route.paramNames, match),
+        };
+      }
+    }
+
+    return null;
+  };
+
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
       const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
@@ -36,9 +51,19 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
       const requestCtx = fromDevServerHttp(url, req, res);
       updateRequestCtx(requestCtx, ctx.opts.trailingSlash);
 
-      const result = await buildFromUrlPathname(ctx, requestCtx.url.pathname);
-      if (result) {
-        const { route, params } = result;
+      await updateBuildContext(ctx);
+
+      for (const d of ctx.diagnostics) {
+        if (d.type === 'error') {
+          console.error(d.message);
+        } else {
+          console.warn(d.message);
+        }
+      }
+
+      const routeResult = await matchRouteRequest(requestCtx.url.pathname);
+      if (routeResult) {
+        const { route, params } = routeResult;
 
         // use vite to dynamically load each layout/page module in this route's hierarchy
         const routeModules: RouteModule[] = [];
@@ -108,11 +133,23 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         }
       }
 
-      /**
-       * if no route match, but is html request, fast path to 404
-       * otherwise qwik plugin will take over render without envData causing error
-       */
-      if (!result && req.headers.accept && req.headers.accept.includes('text/html')) {
+      if (!routeResult) {
+        // test if this is a dev service-worker.js request
+        for (const sw of ctx.serviceWorkers) {
+          const match = sw.pattern.exec(requestCtx.url.pathname);
+          if (match) {
+            res.setHeader('Content-Type', 'text/javascript');
+            res.end(DEV_SERVICE_WORKER);
+            return;
+          }
+        }
+      }
+
+      if (!routeResult && req.headers.accept && req.headers.accept.includes('text/html')) {
+        /**
+         * if no route match, but is html request, fast path to 404
+         * otherwise qwik plugin will take over render without envData causing error
+         */
         // TODO: after file change, need to manual page refresh to see changes currently
         //       there's two ways handling HMR for page endpoint with error
         // 1. Html response inject `import.meta.hot.accept('./pageEndpoint_FILE_URL', () => { location.reload })`
@@ -275,3 +312,8 @@ function fromDevServerHttp(url: URL, req: Connect.IncomingMessage, res: ServerRe
 
   return requestCtx;
 }
+
+const DEV_SERVICE_WORKER = `/* Qwik City Dev Service Worker */
+addEventListener('install', () => self.skipWaiting());
+addEventListener('activate', () => self.clients.claim());
+`;

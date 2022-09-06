@@ -69,6 +69,7 @@ export async function buildQwikCity(config: BuildConfig) {
       'index.qwik.cjs',
       'service-worker.mjs',
       'service-worker.cjs',
+      'service-worker.d.ts',
       'modules.d.ts',
       'middleware',
       'static',

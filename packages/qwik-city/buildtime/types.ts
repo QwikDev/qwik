@@ -86,7 +86,7 @@ export interface BuildLayout {
   layoutName: string;
 }
 
-export interface BuildEntry {
+export interface BuildEntry extends ParsedPathname {
   id: string;
   chunkFileName: string;
   filePath: string;

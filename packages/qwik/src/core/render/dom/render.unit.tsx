@@ -9,7 +9,7 @@ import { useClientEffect$, useServerMount$, useWatch$ } from '../../use/use-watc
 import { useCleanup$, useOn } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
-import { useStylesQrl } from '../../use/use-styles';
+import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
 import { equal, match } from 'uvu/assert';
 import { suite } from 'uvu';
 import { useRef } from '../../use/use-ref';
@@ -173,6 +173,57 @@ renderSuite('should render a component', async () => {
 
   await render(fixture.host, <HelloWorld name="World" />);
   await expectRendered(fixture, '<span>Hello World</span>');
+});
+
+renderSuite('should render a component with scoped styles', async () => {
+  const fixture = new ElementFixture();
+
+  await render(fixture.host, <HelloWorldScoped />);
+  await expectDOM(
+    fixture.host,
+    `
+  <host q:version="dev" q:container="resumed" q:render="dom-dev">
+    <style q:style="ml52vk-0">
+      .stuff.⭐️ml52vk-0 {
+        color: red;
+      }
+    </style>
+    <!--qv q:key=sX: q:id=0 q:sstyle=⭐️ml52vk-0-->
+    <div class="⭐️ml52vk-0">
+      <div class="⭐️ml52vk-0 stuff" aria-hidden="true">
+        Hello
+        <button class="⭐️ml52vk-0" q:id="1" on:click="/runtimeQRL#_">
+          Toggle
+        </button>
+      </div>
+    </div>
+    <!--/qv-->
+  </host>
+  `
+  );
+  await trigger(fixture.host, 'button', 'click');
+  await expectDOM(
+    fixture.host,
+    `
+  <host q:version="dev" q:container="resumed" q:render="dom-dev">
+    <style q:style="ml52vk-0">
+      .stuff.⭐️ml52vk-0 {
+        color: red;
+      }
+    </style>
+    <!--qv q:key=sX: q:id=0 q:sstyle=⭐️ml52vk-0-->
+    <div class="⭐️ml52vk-0">
+      <div class="⭐️ml52vk-0">
+        Hello
+        <button class="⭐️ml52vk-0" q:id="1" on:click="/runtimeQRL#_">
+          Toggle
+        </button>
+      </div>
+    </div>
+    <!--/qv-->
+  </host>
+  `
+  );
 });
 
 renderSuite('should render component external props', async () => {
@@ -656,6 +707,30 @@ export const HelloWorld = component$((props: { name?: string }) => {
     <span>
       {state.salutation} {props.name || 'World'}
     </span>
+  );
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Hello World
+//////////////////////////////////////////////////////////////////////////////////////////
+export const HelloWorldScoped = component$(() => {
+  useStylesScopedQrl(inlinedQrl(`.stuff { color: red; }`, 'style-scoped-1'));
+  const state = useStore({ cond: false });
+  return (
+    <div>
+      {state.cond && (
+        <div>
+          Hello
+          <button onClick$={() => (state.cond = !state.cond)}>Toggle</button>
+        </div>
+      )}
+      {!state.cond && (
+        <div class="stuff" aria-hidden="true">
+          Hello
+          <button onClick$={() => (state.cond = !state.cond)}>Toggle</button>
+        </div>
+      )}
+    </div>
   );
 });
 

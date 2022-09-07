@@ -13,6 +13,7 @@ import {
   getProxyTarget,
   isConnected,
   isMutable,
+  isSignal,
   mutable,
   shouldSerialize,
 } from './q-object';
@@ -382,7 +383,7 @@ export const _pauseFromContexts = async (
     { subscriber: Subscriber | '$'; data: string[] | number | null }[]
   >();
   objs.forEach((obj) => {
-    const flags = getProxyFlags(containerState.$proxyMap$.get(obj));
+    const flags = isSignal(obj) ? 0 : getProxyFlags(containerState.$proxyMap$.get(obj));
     if (flags === undefined) {
       return;
     }
@@ -393,6 +394,7 @@ export const _pauseFromContexts = async (
         data: flags,
       });
     }
+    debugger;
     const subs = containerState.$subsManager$.$tryGetLocal$(obj)?.$subs$;
     if (subs) {
       subs.forEach((set, key) => {
@@ -893,6 +895,16 @@ const collectValue = async (obj: any, collector: Collector, leaks: boolean) => {
 
     // Handle Objets
     if (typeof obj === 'object') {
+      // Handle Signal
+      if (isSignal(obj)) {
+        collector.$objMap$.set(obj, obj);
+        if (leaks) {
+          await collectSubscriptions(obj, collector);
+        }
+        await collectValue(obj.untrackedValue, collector, leaks);
+        return
+      }
+
       // Handle promises
       if (isPromise(obj)) {
         const value = await resolvePromise(obj);

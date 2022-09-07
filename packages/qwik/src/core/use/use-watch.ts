@@ -1,4 +1,4 @@
-import { getProxyTarget, noSerialize, NoSerialize, unwrapProxy } from '../object/q-object';
+import { getProxyTarget, isSignal, noSerialize, NoSerialize, Signal, unwrapProxy } from '../object/q-object';
 import { getContext } from '../props/props';
 import { newInvokeContext, invoke, waitAndRun } from './use-core';
 import { logError, logErrorAndStop } from '../util/log';
@@ -68,6 +68,7 @@ export const WatchFlagsIsResource = 1 << 4;
  */
 // </docs>
 export interface Tracker {
+  <T>(obj: Signal<T>): T;
   <T extends {}>(obj: T): T;
   <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
 }
@@ -640,6 +641,10 @@ export const runResource = <T>(
   );
 
   const track: Tracker = (obj: any, prop?: string) => {
+    if (isSignal(obj)) {
+      obj.track(watch);
+      return obj.untrackedValue;
+    }
     const target = getProxyTarget(obj);
     if (target) {
       const manager = subsManager.$getLocal$(target);
@@ -740,6 +745,10 @@ export const runWatch = (
     subsManager.$clearSub$(watch);
   }) as WatchFn;
   const track: Tracker = (obj: any, prop?: string) => {
+    if (isSignal(obj)) {
+      obj.track(watch);
+      return obj.untrackedValue;
+    }
     const target = getProxyTarget(obj);
     if (target) {
       const manager = subsManager.$getLocal$(target);

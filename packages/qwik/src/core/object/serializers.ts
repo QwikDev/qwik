@@ -13,7 +13,7 @@ import {
   SubscriberDescriptor,
 } from '../use/use-watch';
 import { isDocument } from '../util/element';
-import { SignalImpl } from './q-object';
+import { isSignal, SignalImpl } from './q-object';
 import type { GetObject, GetObjID } from './store';
 
 /**
@@ -207,9 +207,9 @@ const PureFunctionSerializer: Serializer<Function> = {
 
 const SignalSerializer: Serializer<SignalImpl<any>> = {
   prefix: '\u0012',
-  test: (v) => v instanceof SignalImpl,
+  test: (v) => isSignal(v),
   serialize: (obj, getObjId) => {
-    const code = getObjId(obj);
+    const code = getObjId(obj.untrackedValue);
     assertDefined(code, 'can not find ID for data', obj);
     return code;
   },
@@ -282,6 +282,9 @@ export const createParser = (
           const value = s.prepare(data.slice(prefix.length), containerState, doc);
           if (s.fill) {
             fillMap.set(value, s);
+          }
+          if (s.subs) {
+            subsMap.set(value, s);
           }
           return value;
         }

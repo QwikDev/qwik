@@ -1,6 +1,7 @@
 /* eslint-disable */
 
 import type { QRL } from '../../../import/qrl.public';
+import type { Signal } from '../../../object/q-object';
 import type { Ref } from '../../../use/use-ref';
 import type { JSXNode } from './jsx-node';
 
@@ -219,6 +220,7 @@ export type JSXChildren =
   | undefined
   | Function
   | RegExp
+  | Signal<JSXChildren>
   | JSXChildren[]
   | Promise<JSXChildren>
   | JSXNode;

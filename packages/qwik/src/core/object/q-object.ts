@@ -24,6 +24,12 @@ export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 export const QObjectRecursive = 1 << 0;
 export const QObjectImmutable = 1 << 1;
 
+const QOjectTargetSymbol = Symbol();
+const QOjectFlagsSymbol = Symbol();
+
+/**
+ * @alpha
+ */
 export interface Signal<T = any> {
   value: T;
   readonly untrackedValue: T;
@@ -60,13 +66,14 @@ export class SignalImpl<T> implements Signal<T> {
   constructor(v: T) {
     this.untrackedValue = v;
   }
-  get value() {
-    const invokeCtx = tryGetInvokeContext();
+  track(sub: Subscriber | undefined | null) {
     const manager = this.m;
-    const subscriber = invokeCtx ? invokeCtx.$subscriber$ : null;
-    if (subscriber && manager) {
-      manager.$addSub$(subscriber);
+    if (sub && manager) {
+      manager.$addSub$(sub);
     }
+  }
+  get value() {
+    this.track(tryGetInvokeContext()?.$subscriber$);
     return this.untrackedValue;
   }
   set value(v: T) {
@@ -87,6 +94,10 @@ export class SignalImpl<T> implements Signal<T> {
       manager.$notifySubs$();
     }
   }
+}
+
+export const isSignal = (obj: any): obj is SignalImpl<any> => {
+  return obj instanceof SignalImpl;
 }
 
 export const createProxy = <T extends object>(
@@ -113,9 +124,6 @@ export const createProxy = <T extends object>(
   containerState.$proxyMap$.set(target, proxy);
   return proxy;
 };
-
-const QOjectTargetSymbol = Symbol();
-const QOjectFlagsSymbol = Symbol();
 
 export type TargetType = Record<string | symbol, any>;
 

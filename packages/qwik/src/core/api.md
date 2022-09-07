@@ -268,8 +268,10 @@ export { jsx }
 export { jsx as jsxDEV }
 export { jsx as jsxs }
 
+// Warning: (ae-incompatible-release-tags) The symbol "JSXChildren" is marked as @public, but its signature references "Signal" which is marked as @alpha
+//
 // @public (undocumented)
-export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | JSXNode;
+export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | Signal<JSXChildren> | JSXChildren[] | Promise<JSXChildren> | JSXNode;
 
 // @public (undocumented)
 export interface JSXNode<T = string | FunctionComponent> {
@@ -514,6 +516,14 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
 
 // @alpha (undocumented)
+export interface Signal<T = any> {
+    // (undocumented)
+    readonly untrackedValue: T;
+    // (undocumented)
+    value: T;
+}
+
+// @alpha (undocumented)
 export const SkipRender: JSXNode;
 
 // @public (undocumented)
@@ -600,6 +610,10 @@ export type StreamWriter = {
 
 // @public
 export interface Tracker {
+    // Warning: (ae-incompatible-release-tags) The symbol "__call" is marked as @public, but its signature references "Signal" which is marked as @alpha
+    //
+    // (undocumented)
+    <T>(obj: Signal<T>): T;
     // (undocumented)
     <T extends {}>(obj: T): T;
     // (undocumented)
@@ -674,6 +688,17 @@ export const useServerMount$: <T>(first: MountFn<T>) => void;
 
 // @public
 export const useServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
+
+// @alpha (undocumented)
+export interface UseSignal {
+    // (undocumented)
+    <T>(): Signal<T | undefined>;
+    // (undocumented)
+    <T>(value: T): Signal<T>;
+}
+
+// @alpha (undocumented)
+export const useSignal: UseSignal;
 
 // @public
 export const useStore: <STATE extends object>(initialState: STATE | (() => STATE), opts?: UseStoreOptions) => STATE;

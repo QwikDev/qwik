@@ -34,6 +34,7 @@ import type { Ref } from '../../use/use-ref';
 import { serializeVirtualAttributes, VIRTUAL } from '../dom/virtual-element';
 import { qDev } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
+import { isSignal } from '../../object/q-object';
 
 /**
  * @alpha
@@ -596,19 +597,22 @@ export const processData = (
   if (node == null || typeof node === 'boolean') {
     return;
   }
-  if (isJSXNode(node)) {
-    return renderNode(node, ssrCtx, stream, flags, beforeClose);
-  } else if (isPromise(node)) {
-    return node.then((node) => processData(node, ssrCtx, stream, flags, beforeClose));
-  } else if (isArray(node)) {
-    node = _flatVirtualChildren(node, ssrCtx);
-    return walkChildren(node, ssrCtx, stream, flags);
-  } else if (isString(node) || typeof node === 'number') {
+  if (isString(node) || typeof node === 'number') {
     if ((flags & IS_RAW_CONTENT) !== 0) {
       stream.write(String(node));
     } else {
       stream.write(escape(String(node)));
     }
+  } else if (isJSXNode(node)) {
+    return renderNode(node, ssrCtx, stream, flags, beforeClose);
+  } else if (isSignal(node)) {
+    node.track(ssrCtx.invocationContext?.$subscriber$);
+    return processData(node.untrackedValue, ssrCtx, stream, flags, beforeClose);
+  } else if (isPromise(node)) {
+    return node.then((node) => processData(node, ssrCtx, stream, flags, beforeClose));
+  } else if (isArray(node)) {
+    node = _flatVirtualChildren(node, ssrCtx);
+    return walkChildren(node, ssrCtx, stream, flags);
   } else {
     logWarn('A unsupported value was passed to the JSX, skipping render. Value:', node);
   }

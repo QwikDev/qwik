@@ -5,8 +5,8 @@ import { useSequentialScope } from './use-sequential-scope';
  * @alpha
  */
 export interface UseSignal {
-  <T>(): T | undefined;
-  <T>(value: T): T;
+  <T>(): Signal<T | undefined>;
+  <T>(value: T): Signal<T>;
 }
 
 /**
@@ -23,3 +23,4 @@ export const useSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE>
   set(signal);
   return signal;
 };
+

@@ -166,6 +166,24 @@ export async function renderToStream(
           })
         );
       }
+
+      const uniqueListeners = new Set<string>();
+      snapshotResult.listeners.forEach((li) => {
+        uniqueListeners.add(JSON.stringify(li.eventName));
+      });
+      const extraListeners = Array.from(uniqueListeners);
+      if (extraListeners.length > 0) {
+        let content = `window.qwikevents.push(${extraListeners.join(', ')})`;
+        if (!includeLoader) {
+          content = `window.qwikevents||=[];${content}`;
+        }
+        children.push(
+          jsx('script', {
+            dangerouslySetInnerHTML: content,
+          })
+        );
+      }
+
       collectRenderSymbols(renderSymbols, contexts);
       snapshotTime = snapshotTimer();
       return jsx(Fragment, { children });

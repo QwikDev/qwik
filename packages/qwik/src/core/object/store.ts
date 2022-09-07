@@ -39,6 +39,7 @@ import { ContainerState, getContainerState } from '../render/container';
 import { getQId } from '../render/execute-component';
 import { processVirtualNodes, QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import { getDomListeners } from '../props/props-on';
+import { fromKebabToCamelCase } from '../util/case';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -205,6 +206,7 @@ export interface SnapshotState {
  */
 export interface SnapshotListener {
   key: string;
+  eventName: string;
   qrl: QRL<any>;
   el: Element;
 }
@@ -245,6 +247,7 @@ export const _pauseFromContexts = async (
             key,
             qrl,
             el,
+            eventName: getEventName(key),
           });
         });
       });
@@ -958,4 +961,10 @@ export const intToStr = (nu: number) => {
 
 export const strToInt = (nu: string) => {
   return parseInt(nu, 36);
+};
+
+export const getEventName = (attribute: string) => {
+  const colonPos = attribute.indexOf(':');
+  assertTrue(colonPos >= 0, 'colon not found in attribute');
+  return fromKebabToCamelCase(attribute.slice(colonPos + 1));
 };

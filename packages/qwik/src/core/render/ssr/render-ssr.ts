@@ -775,6 +775,9 @@ function processPropKey(prop: string) {
   if (prop === 'className') {
     return 'class';
   }
+  else if (prop === 'htmlFor') {
+    return 'for';
+  }
   return prop;
 }
 

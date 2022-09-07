@@ -35,7 +35,7 @@ import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
 import { isResourceReturn } from '../use/use-resource';
 import { createParser, Parser, serializeValue, UNDEFINED_PREFIX } from './serializers';
-import { ContainerState, getContainerState } from '../render/container';
+import { ContainerState, getContainerState, SubscriberMap } from '../render/container';
 import { getQId } from '../render/execute-component';
 import { processVirtualNodes, QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import { getDomListeners } from '../props/props-on';
@@ -123,7 +123,8 @@ export const resumeContainer = (containerEl: Element) => {
   const parser = createParser(getObject, containerState, doc);
 
   // Revive proxies with subscriptions into the proxymap
-  reviveValues(meta.objs, meta.subs, getObject, containerState, parser);
+  reviveValues(meta.objs, parser);
+  reviveSubscriptions(meta.objs, meta.subs, getObject, containerState, parser);
 
   // Rebuild target objects
   for (const obj of meta.objs) {
@@ -630,24 +631,27 @@ export const getNodesInScope = (parent: Element, predicate: (el: Node) => boolea
   return pars;
 };
 
-const reviveValues = (
-  objs: any[],
-  subs: any[],
-  getObject: GetObject,
-  containerState: ContainerState,
-  parser: Parser
-) => {
+const reviveValues = (objs: any[], parser: Parser) => {
   for (let i = 0; i < objs.length; i++) {
     const value = objs[i];
     if (isString(value)) {
       objs[i] = value === UNDEFINED_PREFIX ? undefined : parser.prepare(value);
     }
   }
+};
+
+const reviveSubscriptions = (
+  objs: any[],
+  subs: any[],
+  getObject: GetObject,
+  containerState: ContainerState,
+  parser: Parser
+) => {
   for (let i = 0; i < subs.length; i++) {
     const value = objs[i];
     const sub = subs[i];
     if (sub) {
-      const converted = new Map();
+      const converted: SubscriberMap = new Map();
       let flags = 0;
       Object.entries(sub).forEach((entry) => {
         if (entry[0] === '$') {
@@ -662,7 +666,9 @@ const reviveValues = (
         const set = entry[1] === null ? null : (new Set(entry[1] as any) as Set<string>);
         converted.set(el, set);
       });
-      createProxy(value, containerState, flags, converted);
+      if (!parser.subs(value, converted)) {
+        createProxy(value, containerState, flags, converted);
+      }
     }
   }
 };

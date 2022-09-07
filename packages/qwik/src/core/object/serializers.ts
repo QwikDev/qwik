@@ -1,8 +1,9 @@
+import { assertDefined } from '../assert/assert';
 import { Component, componentQrl, isQwikComponent } from '../component/component.public';
 import { parseQRL, stringifyQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
 import type { QRL } from '../import/qrl.public';
-import type { ContainerState } from '../render/container';
+import type { ContainerState, SubscriberMap } from '../render/container';
 import { isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
 import {
   isSubscriberDescriptor,
@@ -12,6 +13,7 @@ import {
   SubscriberDescriptor,
 } from '../use/use-watch';
 import { isDocument } from '../util/element';
+import { SignalImpl } from './q-object';
 import type { GetObject, GetObjID } from './store';
 
 /**
@@ -43,6 +45,11 @@ export interface Serializer<T> {
    * Deserialize the object.
    */
   prepare: (data: string, containerState: ContainerState, doc: Document) => T;
+  /**
+   * Second pass to fill in the object.
+   */
+  subs?: (obj: T, subs: SubscriberMap, containerState: ContainerState) => void;
+
   /**
    * Second pass to fill in the object.
    */
@@ -198,8 +205,28 @@ const PureFunctionSerializer: Serializer<Function> = {
   fill: undefined,
 };
 
+const SignalSerializer: Serializer<SignalImpl<any>> = {
+  prefix: '\u0012',
+  test: (v) => v instanceof SignalImpl,
+  serialize: (obj, getObjId) => {
+    const code = getObjId(obj);
+    assertDefined(code, 'can not find ID for data', obj);
+    return code;
+  },
+  prepare: (data) => {
+    return new SignalImpl(data);
+  },
+  subs: (signal, subs, containerState) => {
+    signal.m = containerState.$subsManager$.$getLocal$(signal, subs);
+  },
+  fill: (signal, getObject) => {
+    signal.untrackedValue = getObject(signal.untrackedValue);
+  },
+};
+
 const serializers: Serializer<any>[] = [
   QRLSerializer,
+  SignalSerializer,
   WatchSerializer,
   ResourceSerializer,
   URLSerializer,
@@ -235,6 +262,7 @@ export const serializeValue = (obj: any, getObjID: GetObjID, containerState: Con
 
 export interface Parser {
   prepare(data: string): any;
+  subs(obj: any, subs: SubscriberMap): boolean;
   fill(obj: any): boolean;
 }
 
@@ -243,7 +271,9 @@ export const createParser = (
   containerState: ContainerState,
   doc: Document
 ): Parser => {
-  const map = new Map<any, Serializer<any>>();
+  const fillMap = new Map<any, Serializer<any>>();
+  const subsMap = new Map<any, Serializer<any>>();
+
   return {
     prepare(data: string) {
       for (const s of serializers) {
@@ -251,15 +281,23 @@ export const createParser = (
         if (data.startsWith(prefix)) {
           const value = s.prepare(data.slice(prefix.length), containerState, doc);
           if (s.fill) {
-            map.set(value, s);
+            fillMap.set(value, s);
           }
           return value;
         }
       }
       return data;
     },
+    subs(obj: any, subs: SubscriberMap) {
+      const serializer = subsMap.get(obj);
+      if (serializer) {
+        serializer.subs!(obj, subs, containerState);
+        return true;
+      }
+      return false;
+    },
     fill(obj: any) {
-      const serializer = map.get(obj);
+      const serializer = fillMap.get(obj);
       if (serializer) {
         serializer.fill!(obj, getObject, containerState);
         return true;

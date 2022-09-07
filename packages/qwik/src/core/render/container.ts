@@ -20,7 +20,7 @@ export interface SubscriptionManager {
 }
 
 export interface LocalSubscriptionManager {
-  $subs$: SubscriberMap;
+  readonly $subs$: SubscriberMap;
   $notifySubs$: (key?: string | undefined) => void;
   $addSub$: (subscriber: Subscriber, key?: string) => void;
 }

@@ -16,13 +16,18 @@ import { RenderEvent } from '../util/markers';
 import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
 import { isPromise } from '../util/promises';
 import { canSerialize } from './serializers';
-import type { ContainerState, LocalSubscriptionManager } from '../render/container';
+import type { ContainerState, LocalSubscriptionManager, SubscriberMap } from '../render/container';
 import type { Subscriber } from '../use/use-watch';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
 export const QObjectRecursive = 1 << 0;
 export const QObjectImmutable = 1 << 1;
+
+export interface Signal<T = any> {
+  value: T;
+  readonly untrackedValue: T;
+}
 
 /**
  * Creates a proxy that notifies of any writes.
@@ -39,11 +44,56 @@ export const getOrCreateProxy = <T extends object>(
   return createProxy(target, containerState, flags, undefined);
 };
 
+export const createSignal = <T>(
+  value: T,
+  containerState: ContainerState,
+  subs?: Map<Element, Set<string>>
+): Signal<T> => {
+  const signal = new SignalImpl<T>(value);
+  signal.m = containerState.$subsManager$.$getLocal$(signal, subs);
+  return signal;
+};
+
+export class SignalImpl<T> implements Signal<T> {
+  untrackedValue: T;
+  m: LocalSubscriptionManager | null = null;
+  constructor(v: T) {
+    this.untrackedValue = v;
+  }
+  get value() {
+    const invokeCtx = tryGetInvokeContext();
+    const manager = this.m;
+    const subscriber = invokeCtx ? invokeCtx.$subscriber$ : null;
+    if (subscriber && manager) {
+      manager.$addSub$(subscriber);
+    }
+    return this.untrackedValue;
+  }
+  set value(v: T) {
+    if (qDev) {
+      verifySerializable(v);
+      const invokeCtx = tryGetInvokeContext();
+      if (invokeCtx && invokeCtx.$event$ === RenderEvent) {
+        logWarn(
+          'State mutation inside render function. Move mutation to useWatch(), useClientEffect() or useServerMount()',
+          invokeCtx.$hostElement$
+        );
+      }
+    }
+    const manager = this.m;
+    const oldValue = this.untrackedValue;
+    if (manager && oldValue !== v) {
+      this.untrackedValue = v;
+      manager.$notifySubs$();
+    }
+  }
+}
+
 export const createProxy = <T extends object>(
   target: T,
   containerState: ContainerState,
   flags: number,
-  subs?: Map<Element, Set<string>>
+  subs?: SubscriberMap
 ): T => {
   assertEqual(unwrapProxy(target), target, 'Unexpected proxy at this location', target);
   assertTrue(!containerState.$proxyMap$.has(target), 'Proxy was already created', target);

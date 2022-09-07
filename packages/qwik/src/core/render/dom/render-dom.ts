@@ -16,7 +16,7 @@ import { serializeSStyle } from '../../component/qrl-styles';
 import type { QContext } from '../../props/props';
 import { QwikElement, VIRTUAL, VirtualElement } from './virtual-element';
 import { appendHeadStyle } from './operations';
-import { isSignal } from '../../object/q-object';
+import { isSignal, SignalImpl } from '../../object/q-object';
 
 export const renderComponent = (
   rctx: RenderContext,
@@ -67,6 +67,7 @@ export const getVdom = (ctx: QContext) => {
 export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
   $elm$: Node | VirtualElement | null = null;
   $text$: string = '';
+  $signal$: SignalImpl<any> | null = null;
 
   constructor(
     public $type$: string,
@@ -136,8 +137,16 @@ export const processData = (
   } else if (isJSXNode(node)) {
     return processNode(node, invocationContext);
   } else if (isSignal(node)) {
-    node.track(invocationContext?.$subscriber$);
-    return processData(node.untrackedValue, invocationContext)
+    const value = node.value;
+    if (isString(value) || typeof value === 'number') {
+      const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, EMPTY_ARRAY, null);
+      newNode.$text$ = String(value);
+      newNode.$signal$ = node;
+      return newNode;
+    } else {
+      node.track(invocationContext?.$subscriber$);
+      return processData(node.untrackedValue, invocationContext)
+    }
   } else if (isArray(node)) {
     const output = promiseAll(node.flatMap((n) => processData(n, invocationContext)));
     return then(output, (array) => array.flat(100).filter(isNotNullable));
@@ -172,4 +181,5 @@ export interface ProcessedJSXNode {
   $key$: string | null;
   $elm$: Node | VirtualElement | null;
   $text$: string;
+  $signal$: SignalImpl<any> | null;
 }

@@ -8,7 +8,7 @@ import { getWrappingContainer } from '../../use/use-core';
 import {
   runSubscriber,
   Subscriber,
-  SubscriberDescriptor,
+  SubscriberEffect,
   WatchFlagsIsDirty,
   WatchFlagsIsEffect,
   WatchFlagsIsResource,
@@ -18,17 +18,22 @@ import { then } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { codeToText, QError_errorWhileRendering } from '../../error/error';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
-import { isQwikElement } from '../../util/element';
 import { renderComponent } from './render-dom';
 import type { RenderContext, RenderStaticContext } from '../types';
 import { ContainerState, getContainerState } from '../container';
 import { createRenderContext } from '../execute-component';
 import { getRootNode, QwikElement } from './virtual-element';
 import { printRenderStats } from './operations';
+import { executeSignalOperation, isSignalOperation, SubscriberSignal } from './signals';
 
 export const notifyChange = (subscriber: Subscriber, containerState: ContainerState) => {
-  if (isQwikElement(subscriber)) {
-    notifyRender(subscriber, containerState);
+  if (isSignalOperation(subscriber)) {
+    if (subscriber.length === 1) {
+      notifyRender(subscriber[0], containerState);
+    } else {
+      notifySignalOperation(subscriber, containerState);
+
+    }
   } else {
     notifyWatch(subscriber, containerState);
   }
@@ -46,7 +51,6 @@ export const notifyChange = (subscriber: Subscriber, containerState: ContainerSt
  *
  * @param hostElement - Host-element of the component to re-render.
  * @returns A promise which is resolved when the component has been rendered.
- * @public
  */
 const notifyRender = (hostElement: QwikElement, containerState: ContainerState): void => {
   const isServer = qDynamicPlatform && !qTest && containerState.$platform$.isServer;
@@ -82,7 +86,21 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
   }
 };
 
-export const notifyWatch = (watch: SubscriberDescriptor, containerState: ContainerState) => {
+const notifySignalOperation = (op: SubscriberSignal, containerState: ContainerState): void => {
+  const activeRendering = containerState.$hostsRendering$ !== undefined;
+  if (activeRendering) {
+    assertDefined(
+      containerState.$renderPromise$,
+      'render: while rendering, $renderPromise$ must be defined',
+      containerState
+    );
+    containerState.$opsNext$.add(op);
+  } else {
+    containerState.$opsNext$.add(op);
+    scheduleFrame(containerState);
+  }
+};
+export const notifyWatch = (watch: SubscriberEffect, containerState: ContainerState) => {
   if (watch.$flags$ & WatchFlagsIsDirty) {
     return;
   }
@@ -119,7 +137,7 @@ const scheduleFrame = (containerState: ContainerState): Promise<RenderStaticCont
  *
  */
 export const _hW = () => {
-  const [watch] = useLexicalScope<[SubscriberDescriptor]>();
+  const [watch] = useLexicalScope<[SubscriberEffect]>();
   notifyWatch(watch, getContainerState(getWrappingContainer(watch.$el$)!));
 };
 
@@ -154,6 +172,9 @@ const renderMarked = async (containerState: ContainerState): Promise<RenderConte
       }
     }
   }
+
+  containerState.$opsNext$.forEach(op => executeSignalOperation(staticCtx, op))
+  containerState.$opsNext$.clear();
 
   // Add post operations
   staticCtx.$operations$.push(...staticCtx.$postOperations$);
@@ -206,16 +227,17 @@ export const postRendering = async (containerState: ContainerState, ctx: RenderS
   containerState.$hostsRendering$ = undefined;
   containerState.$renderPromise$ = undefined;
 
-  if (containerState.$hostsNext$.size + containerState.$watchNext$.size > 0) {
+  const pending = containerState.$hostsNext$.size + containerState.$watchNext$.size + containerState.$opsNext$.size;
+  if (pending > 0) {
     scheduleFrame(containerState);
   }
 };
 
 const executeWatchesBefore = async (containerState: ContainerState) => {
-  const resourcesPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
-  const watchPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
-  const isWatch = (watch: SubscriberDescriptor) => (watch.$flags$ & WatchFlagsIsWatch) !== 0;
-  const isResourceWatch = (watch: SubscriberDescriptor) =>
+  const resourcesPromises: ValueOrPromise<SubscriberEffect>[] = [];
+  const watchPromises: ValueOrPromise<SubscriberEffect>[] = [];
+  const isWatch = (watch: SubscriberEffect) => (watch.$flags$ & WatchFlagsIsWatch) !== 0;
+  const isResourceWatch = (watch: SubscriberEffect) =>
     (watch.$flags$ & WatchFlagsIsResource) !== 0;
 
   containerState.$watchNext$.forEach((watch) => {
@@ -264,9 +286,9 @@ const executeWatchesBefore = async (containerState: ContainerState) => {
 
 const executeWatchesAfter = async (
   containerState: ContainerState,
-  watchPred: (watch: SubscriberDescriptor, staging: boolean) => boolean
+  watchPred: (watch: SubscriberEffect, staging: boolean) => boolean
 ) => {
-  const watchPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
+  const watchPromises: ValueOrPromise<SubscriberEffect>[] = [];
 
   containerState.$watchNext$.forEach((watch) => {
     if (watchPred(watch, false)) {
@@ -303,7 +325,7 @@ const sortNodes = (elements: QwikElement[]) => {
   elements.sort((a, b) => (a.compareDocumentPosition(getRootNode(b)) & 2 ? 1 : -1));
 };
 
-const sortWatches = (watches: SubscriberDescriptor[]) => {
+const sortWatches = (watches: SubscriberEffect[]) => {
   watches.sort((a, b) => {
     if (a.$el$ === b.$el$) {
       return a.$index$ < b.$index$ ? -1 : 1;

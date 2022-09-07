@@ -8,7 +8,7 @@ import {
 import { resumeContainer } from '../object/store';
 import { QContainerAttr } from '../util/markers';
 import type { OnRenderFn } from '../component/component.public';
-import { destroyWatch, SubscriberDescriptor } from '../use/use-watch';
+import { destroyWatch, SubscriberEffect } from '../use/use-watch';
 import { pauseContainer } from '../object/store';
 import { qDev } from '../util/qdev';
 import { logError } from '../util/log';
@@ -57,7 +57,7 @@ export interface QContext {
   $renderQrl$: QRLInternal<OnRenderFn<any>> | null;
   li: Record<string, QRLInternal<any>[]>;
   $seq$: any[] | null;
-  $watches$: SubscriberDescriptor[] | null;
+  $watches$: SubscriberEffect[] | null;
   $contexts$: Map<string, any> | null;
   $appendStyles$: StyleAppend[] | null;
   $scopeIds$: string[] | null;

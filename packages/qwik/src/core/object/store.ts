@@ -20,7 +20,7 @@ import {
 import {
   destroyWatch,
   Subscriber,
-  SubscriberDescriptor,
+  SubscriberEffect,
   WatchFlagsIsDirty,
 } from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
@@ -394,7 +394,6 @@ export const _pauseFromContexts = async (
         data: flags,
       });
     }
-    debugger;
     const subs = containerState.$subsManager$.$tryGetLocal$(obj)?.$subs$;
     if (subs) {
       subs.forEach((set, key) => {
@@ -765,7 +764,7 @@ export interface Collector {
   $seenLeaks$: Set<any>;
   $objMap$: Map<any, any>;
   $elements$: VirtualElement[];
-  $watches$: SubscriberDescriptor[];
+  $watches$: SubscriberEffect[];
   $containerState$: ContainerState;
 }
 

@@ -1,12 +1,14 @@
-import { component$, useWatch$, Signal, useSignal } from '@builder.io/qwik';
+import { component$, useWatch$, Signal, useSignal, useStore } from '@builder.io/qwik';
 
 export const Signals = component$(() => {
   const count = useSignal(0);
   const doubleCount = useSignal(0);
 
   useWatch$(({track}) => {
-    doubleCount.value = track(count);
+    doubleCount.value = track(count) * 2;
   });
+
+  console.log('render parent');
 
   return (
     <>
@@ -23,10 +25,14 @@ interface ChildProps {
 }
 
 export const Child = component$<ChildProps>(({count}) => {
+  console.log('render child');
 
   return (
     <>
-      <div>{count}</div>
+      <div>Stuff: {count}</div>
+      {Array.from({length: 50000}).map(() => {
+        return (<div aria-hidden="true">Expensive</div>)
+      })}
     </>
   );
 });

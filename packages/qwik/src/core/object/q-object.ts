@@ -18,6 +18,7 @@ import { isPromise } from '../util/promises';
 import { canSerialize } from './serializers';
 import type { ContainerState, LocalSubscriptionManager, SubscriberMap } from '../render/container';
 import type { Subscriber } from '../use/use-watch';
+import { isSignalOperation } from '../render/dom/signals';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
@@ -63,9 +64,11 @@ export const createSignal = <T>(
 export class SignalImpl<T> implements Signal<T> {
   untrackedValue: T;
   m: LocalSubscriptionManager | null = null;
+
   constructor(v: T) {
     this.untrackedValue = v;
   }
+
   track(sub: Subscriber | undefined | null) {
     const manager = this.m;
     if (sub && manager) {
@@ -372,6 +375,8 @@ export const mutable = <T>(v: T): MutableWrapper<T> => {
 export const isConnected = (sub: Subscriber): boolean => {
   if (isQwikElement(sub)) {
     return !!tryGetContext(sub) || sub.isConnected;
+  } else if (isSignalOperation(sub)) {
+    return false;
   } else {
     return isConnected(sub.$el$);
   }

@@ -370,11 +370,19 @@ export const patchVnode = (
   const tag = newVnode.$type$;
   const staticCtx = rctx.$static$;
   const isVirtual = tag === VIRTUAL;
+  const currentComponent = rctx.$cmpCtx$;
+  assertDefined(elm, 'while patching element must be defined');
+  assertDefined(currentComponent, 'while patching current component must be defined');
+
   newVnode.$elm$ = elm;
 
   // Render text nodes
   if (tag === '#text') {
     if (oldVnode.$text$ !== newVnode.$text$) {
+      const signal = newVnode.$signal$;
+      if (signal) {
+        signal.track([currentComponent.$element$, signal, 0, elm, 'data']);
+      }
       setProperty(staticCtx, elm, 'data', newVnode.$text$);
     }
     return;
@@ -393,8 +401,7 @@ export const patchVnode = (
   const elCtx = getContext(elm);
   if (!isComponent) {
     const listenerMap = updateProperties(elCtx, staticCtx, oldVnode.$props$, props, isSvg);
-    const currentComponent = rctx.$cmpCtx$;
-    if (currentComponent && !currentComponent.$attachedListeners$) {
+    if (!currentComponent.$attachedListeners$) {
       currentComponent.$attachedListeners$ = true;
       Object.entries(currentComponent.li).forEach(([key, value]) => {
         addQRLListener(listenerMap, key, value);
@@ -413,8 +420,6 @@ export const patchVnode = (
     }
     const isSlot = isVirtual && QSlotS in props;
     if (isSlot) {
-      const currentComponent = rctx.$cmpCtx$;
-      assertDefined(currentComponent, 'slots can not be rendered outside a component');
       assertDefined(currentComponent.$slots$, 'current component slots must be a defined array');
       currentComponent.$slots$.push(newVnode);
       return;

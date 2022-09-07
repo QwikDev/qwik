@@ -10,7 +10,7 @@ import {
   parseWatch,
   ResourceReturn,
   serializeWatch,
-  SubscriberDescriptor,
+  SubscriberEffect,
 } from '../use/use-watch';
 import { isDocument } from '../util/element';
 import { isSignal, SignalImpl } from './q-object';
@@ -76,7 +76,7 @@ const QRLSerializer: Serializer<QRLInternal> = {
   },
 };
 
-const WatchSerializer: Serializer<SubscriberDescriptor> = {
+const WatchSerializer: Serializer<SubscriberEffect> = {
   prefix: '\u0003',
   test: (v) => isSubscriberDescriptor(v),
   serialize: (obj, getObjId) => serializeWatch(obj, getObjId),

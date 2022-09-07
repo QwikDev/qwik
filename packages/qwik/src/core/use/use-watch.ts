@@ -22,6 +22,7 @@ import type { ContainerState } from '../render/container';
 import { notifyWatch, _hW } from '../render/dom/notify-render';
 import { useSequentialScope } from './use-sequential-scope';
 import type { QwikElement } from '../render/dom/virtual-element';
+import type { SubscriberRender } from '../render/dom/signals';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;
@@ -592,20 +593,20 @@ export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
 // </docs>
 export const useMount$ = /*#__PURE__*/ implicit$FirstArg(useMountQrl);
 
-export type Subscriber = SubscriberDescriptor | QwikElement;
+export type Subscriber = SubscriberEffect | SubscriberRender;
 
 export type WatchDescriptor = DescriptorBase<WatchFn>;
 
 export interface ResourceDescriptor<T> extends DescriptorBase<ResourceFn<T>, ResourceReturn<T>> {}
 
-export type SubscriberDescriptor = WatchDescriptor | ResourceDescriptor<any>;
+export type SubscriberEffect = WatchDescriptor | ResourceDescriptor<any>;
 
-export const isResourceWatch = (watch: SubscriberDescriptor): watch is ResourceDescriptor<any> => {
+export const isResourceWatch = (watch: SubscriberEffect): watch is ResourceDescriptor<any> => {
   return !!watch.$resource$;
 };
 
 export const runSubscriber = async (
-  watch: SubscriberDescriptor,
+  watch: SubscriberEffect,
   containerState: ContainerState
 ) => {
   assertEqual(!!(watch.$flags$ & WatchFlagsIsDirty), true, 'Resource is not dirty', watch);
@@ -786,7 +787,7 @@ export const runWatch = (
   );
 };
 
-export const cleanupWatch = (watch: SubscriberDescriptor) => {
+export const cleanupWatch = (watch: SubscriberEffect) => {
   const destroy = watch.$destroy$;
   if (destroy) {
     watch.$destroy$ = undefined;
@@ -798,7 +799,7 @@ export const cleanupWatch = (watch: SubscriberDescriptor) => {
   }
 };
 
-export const destroyWatch = (watch: SubscriberDescriptor) => {
+export const destroyWatch = (watch: SubscriberEffect) => {
   if (watch.$flags$ & WatchFlagsIsCleanup) {
     watch.$flags$ &= ~WatchFlagsIsCleanup;
     const cleanup = watch.$qrl$;
@@ -808,7 +809,7 @@ export const destroyWatch = (watch: SubscriberDescriptor) => {
   }
 };
 
-const useRunWatch = (watch: SubscriberDescriptor, eagerness: EagernessOptions | undefined) => {
+const useRunWatch = (watch: SubscriberEffect, eagerness: EagernessOptions | undefined) => {
   if (eagerness === 'load') {
     useOn('qinit', getWatchHandlerQrl(watch));
   } else if (eagerness === 'visible') {
@@ -816,7 +817,7 @@ const useRunWatch = (watch: SubscriberDescriptor, eagerness: EagernessOptions | 
   }
 };
 
-const getWatchHandlerQrl = (watch: SubscriberDescriptor) => {
+const getWatchHandlerQrl = (watch: SubscriberEffect) => {
   const watchQrl = watch.$qrl$;
   const watchHandler = createQRL(
     watchQrl.$chunk$,
@@ -834,11 +835,11 @@ export const isWatchCleanup = (obj: any): obj is WatchDescriptor => {
   return isSubscriberDescriptor(obj) && !!(obj.$flags$ & WatchFlagsIsCleanup);
 };
 
-export const isSubscriberDescriptor = (obj: any): obj is SubscriberDescriptor => {
+export const isSubscriberDescriptor = (obj: any): obj is SubscriberEffect => {
   return isObject(obj) && obj instanceof Watch;
 };
 
-export const serializeWatch = (watch: SubscriberDescriptor, getObjId: GetObjID) => {
+export const serializeWatch = (watch: SubscriberEffect, getObjId: GetObjID) => {
   let value = `${intToStr(watch.$flags$)} ${intToStr(watch.$index$)} ${getObjId(
     watch.$qrl$
   )} ${getObjId(watch.$el$)}`;

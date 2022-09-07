@@ -70,6 +70,7 @@ export interface SSRContext {
 const IS_HEAD = 1 << 0;
 const IS_RAW_CONTENT = 1 << 1;
 const IS_HTML = 1 << 2;
+const IS_SIBLING_TEXT = 1 << 3;
 
 /**
  * @alpha
@@ -341,6 +342,7 @@ export const renderNodeElement = (
   } else {
     flags &= ~IS_RAW_CONTENT;
   }
+  flags &= ~IS_SIBLING_TEXT;
 
   if (extraNodes) {
     for (const node of extraNodes) {
@@ -597,8 +599,11 @@ export const processData = (
   if (node == null || typeof node === 'boolean') {
     return;
   }
-  if (isString(node) || typeof node === 'number') {
-    if ((flags & IS_RAW_CONTENT) !== 0) {
+  if (isPrimitive(node)) {
+    if (flags & IS_SIBLING_TEXT) {
+      stream.write('<!---->');
+    }
+    if (flags & IS_RAW_CONTENT) {
       stream.write(String(node));
     } else {
       stream.write(escape(String(node)));
@@ -638,6 +643,7 @@ function walkChildren(
   }
 
   let currentIndex = 0;
+  let prevPrimitive = false;
   const buffers: string[][] = [];
   return children.reduce((prevPromise, child, index) => {
     const buffer: string[] = [];
@@ -651,7 +657,12 @@ function walkChildren(
         }
       },
     };
-    return then(processData(child, ssrContext, localStream, flags), () => {
+    let localFlag = flags;
+    if (prevPrimitive) {
+      localFlag |= IS_SIBLING_TEXT;
+    }
+    prevPrimitive = isPrimitive(child);
+    return then(processData(child, ssrContext, localStream, localFlag), () => {
       return then(prevPromise, () => {
         currentIndex++;
         if (buffers.length > currentIndex) {
@@ -869,3 +880,7 @@ export const escapeAttr = (s: string) => {
     });
   }
 };
+
+export const isPrimitive = (obj: any): obj is (string | number) => {
+  return isString(obj) || typeof obj === 'number'
+}

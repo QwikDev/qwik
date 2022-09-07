@@ -155,7 +155,7 @@ readystate.after(() => {
   delete (global as any).CustomEvent;
 });
 
-readystate('should query on:qinit document complete', () => {
+readystate('should query on:qvisible document complete', () => {
   const doc = createReadyStateTestDocument();
   doc.readyState = 'complete';
 
@@ -163,17 +163,17 @@ readystate('should query on:qinit document complete', () => {
   doc.querySelectorAll = spy.fn;
 
   qwikLoader(doc as any);
-  equal(spy.lastCall.arguments, ['[on\\:qinit]']);
+  equal(spy.lastCall.arguments, ['[on\\:qvisible]']);
 });
 
-readystate('should query on:qinit if document interactive', () => {
+readystate('should query on:qvisible if document interactive', () => {
   const doc = createReadyStateTestDocument();
   doc.readyState = 'interactive';
   const spy = snoop(doc.querySelectorAll);
   doc.querySelectorAll = spy.fn;
 
   qwikLoader(doc as any);
-  equal(spy.lastCall.arguments, ['[on\\:qinit]']);
+  equal(spy.lastCall.arguments, ['[on\\:qvisible]']);
 });
 
 readystate('should not query on:qinit if document loading', () => {

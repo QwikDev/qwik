@@ -63,6 +63,7 @@ import {
 import { serializeQRLs } from '../../import/qrl';
 import { QOnce } from '../jsx/utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
+import { getEventName } from '../../object/store';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -878,6 +879,13 @@ const getKeys = (oldProps: Record<string, any>, newProps: Record<string, any>) =
 const addGlobalListener = (staticCtx: RenderStaticContext, elm: QwikElement, prop: string) => {
   if (!qSerialize && prop.includes(':')) {
     setAttribute(staticCtx, elm, prop, '');
+  }
+  try {
+    if ((window as any).qwikevents) {
+      (window as any).qwikevents.push(getEventName(prop));
+    }
+  } catch (err) {
+    logWarn(err);
   }
 };
 

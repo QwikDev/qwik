@@ -122,6 +122,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       broadcast('', 'qinit', createEvent('qinit'));
 
       const results = doc.querySelectorAll('[on\\:qvisible]');
+
       if (results.length > 0) {
         const observer = new IntersectionObserver((entries) => {
           for (const entry of entries) {

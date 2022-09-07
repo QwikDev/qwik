@@ -6,7 +6,7 @@ title: Prefetching
 
 Prefetching is a way for applications to begin downloading modules in a background task, before the user may actually require these modules. The ideal solution is to only prefetch the smallest amount of code that is highly likely to be executed from a user's interaction. Only downloading and executing a minimal amount of JavaScript is an area where Qwik applications excel.
 
-For example, a product page may have a click listener on the "Add to cart" button, and when this button is clicked, the user should immediately get feedback to show the product added to the cart. In this example, Qwik would be able to prefetch the code only for the event listener, rather than all the JavaScript for the entire application or route. This is in contrast to the traditional approach, where prefetching is used to load the entire application or route, and framework code, just in order for the application to add the click event listener.
+For example, a product page may have a click listener on the "Add to cart" button, and when this button is clicked, the user should immediately get feedback to show the product added to the cart. In this example, Qwik would be able to prefetch the code only for the event listener rather than all the JavaScript for the entire application or route. This is in contrast to the traditional approach, where prefetching is used to load the entire application or route, and framework code, just in order for the application to add the click event listener.
 
 Remember, the [difference between resumability and hydration](/docs/concepts/resumable/), is that resumability allows Qwik applications to avoid executing JavaScript just to restore the event listeners, component tree, and application state. By fundamentally breaking apart a component's event listeners, render function, and state, the amount of code to prefetch is significantly smaller than a traditional approach.
 
@@ -53,7 +53,7 @@ export default function (opts: RenderToStreamOptions) {
 
 ### Request/Response Cache and Service Workers
 
-The preferred caching strategy, used by [Qwik City](https://qwik.builder.io/qwikcity/overview/), is to use a Service Worker to populate the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). Qwik itself should be configured to use the `prefetchEvent` option, which will dispatch a `qprefetch` event. Next, Qwik City will listen for this event, and communicate with its service worker to persistent the Request / Response object pairs so they are cached in long lived memory.
+The preferred caching strategy used by [Qwik City](https://qwik.builder.io/qwikcity/overview/), is to use a Service Worker to populate the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). Qwik itself should be configured to use the `prefetchEvent` option, which will dispatch a `qprefetch` event. Next, Qwik City will listen for this event and communicate with its service worker to persist the Request / Response object pairs so they are cached in long-lived memory.
 
 By using a service worker to intercept fetch requests from the browser, this approach allows fine-grain caching control, along with preventing multiple-requests for the resource.
 

@@ -6,13 +6,13 @@ title: Prefetching
 
 Prefetching is a way for applications to begin downloading modules in a background task, before the user may actually require these modules. The ideal solution is to only prefetch the smallest amount of code that is highly likely to be executed from a user's interaction. Only downloading and executing a minimal amount of JavaScript is an area where Qwik applications excel.
 
-For example, a product page may have a click listener on the "Add to cart" button, and when this button is clicked, the user should immediately get feedback to show the product added to the cart. In this example, Qwik would be able to prefetch the code only for only the event listener, rather than all the JavaScript for the entire application or route. This is in contrast to the traditional approach, where prefetching is used to load the entire application or route, and framework code, just in order for the application to add the click event listener.
+For example, a product page may have a click listener on the "Add to cart" button, and when this button is clicked, the user should immediately get feedback to show the product added to the cart. In this example, Qwik would be able to prefetch the code only for the event listener, rather than all the JavaScript for the entire application or route. This is in contrast to the traditional approach, where prefetching is used to load the entire application or route, and framework code, just in order for the application to add the click event listener.
 
-Remember, the [difference between resumability and hydration](/docs/concepts/resumable/), is that resumability allows Qwik applications to not have to execute just for the client JavaScript to restore the event listeners, component tree, and application state. By fundamentally breaking apart a component's event listeners, render function, and state, the amount of code to prefetch is significantly smaller than a traditional approach.
+Remember, the [difference between resumability and hydration](/docs/concepts/resumable/), is that resumability allows Qwik applications to avoid executing JavaScript just to restore the event listeners, component tree, and application state. By fundamentally breaking apart a component's event listeners, render function, and state, the amount of code to prefetch is significantly smaller than a traditional approach.
 
 ## Prefetching Strategy
 
-The prefetching strategy is the logic which decides which JavaScript, if any, Qwik should prefetch in the background once the page loads. By default, Qwik will prefetch any visible listeners on the page. To configure the prefetching strategy, use the options argument of the `renderToStream()` function, often found in the `src/entry.ssr.tsx` source file. Providing optimal prefetching strategies is an area Qwik will continue to invest in and experiement with.
+The prefetching strategy is the logic which decides which JavaScript, if any, Qwik should prefetch in the background. By default, Qwik will prefetch any visible listeners on the page. To configure the prefetching strategy, use the options argument of the `renderToStream()` function, often found in the `src/entry.ssr.tsx` source file. Providing optimal prefetching strategies is an area Qwik will continue to research and experiement with.
 
 ```ts
 export default function (opts: RenderToStreamOptions) {
@@ -21,7 +21,7 @@ export default function (opts: RenderToStreamOptions) {
     prefetchStrategy: {
       // custom prefetching config
     },
-    ...opts
+    ...opts,
   });
 }
 ```
@@ -37,33 +37,37 @@ export default function (opts: RenderToStreamOptions) {
     prefetchStrategy: {
       implementation: {
         // custom prefetching implementation
-      }
+      },
     },
-    ...opts
+    ...opts,
   });
 }
 ```
 
-| Option | Description |
-|--------|-------------|
-| `prefetchEvent` | Dispatch a `qprefetch` event with detail data containing the urls that should be prefetched. The event dispatch script will be inlined into the document's HTML. |
-| `linkInsert` | Insert the `<link>` element into the document. Using `html-append`, it will render each `<link>` directly within html, appended at the end of the body. Using the `js-append` option will instead insert JavaScript, which will create the elements and append them at the end of the body.
-| `linkRel` | This option is used to define the [`rel` attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types) of the `<link>` element. When the `linkInsert` option is used, the default is `prefetch`. |
-| `workerFetchInsert` | Prefetch urls by calling a `fetch()` for each module, with the goal this populate's the browser cache. |
+| Option              | Description                                                                                                                                                                                                                                                                                                 |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `prefetchEvent`     | Dispatch a `qprefetch` event with detail data containing the urls that should be prefetched. The event dispatch script will be inlined into the document's HTML.                                                                                                                                            |
+| `linkInsert`        | Insert the `<link>` element into the document. When using `html-append`, it will render each `<link>` directly within html, appended at the end of the body. Using the `js-append` option will instead insert JavaScript, which will create the elements at runtime and append them at the end of the body. |
+| `linkRel`           | This option is used to define the [`rel` attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types) of the `<link>` element. When the `linkInsert` option is used, the default is `prefetch`. Other options include `preload` and `modulepreload`.                                            |
+| `workerFetchInsert` | Prefetch urls by calling a `fetch()` for each module, with the goal that it populate's the network cache.                                                                                                                                                                                                   |
 
 ### Request/Response Cache and Service Workers
 
 The preferred caching strategy, used by [Qwik City](https://qwik.builder.io/qwikcity/overview/), is to use a Service Worker to populate the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). Qwik itself should be configured to use the `prefetchEvent` option, which will dispatch a `qprefetch` event. Next, Qwik City will listen for this event, and communicate with its service worker to persistent the Request / Response object pairs so they are cached in long lived memory.
 
-By using a service worker to intercept fetch requests from the browser, this approach allows fine-grain caching control, along with preventing multiple-requests for the resource. Additionally,
+By using a service worker to intercept fetch requests from the browser, this approach allows fine-grain caching control, along with preventing multiple-requests for the resource.
 
 ### Link `rel`
 
-Using the `<link>` element with the `rel` attribute is a common approach by today's frameworks, and can be configured by enabling the `linkInsert` and `linkRel` options. The challenge with the link rel approach is lack of support on all devices, at least at the time of writing, and during development can be misleading that it works everywhere. 
+Using the `<link>` element with the `rel` attribute is a common approach by today's frameworks, and Qwik can use this method by configuring the `linkInsert` and `linkRel` options. The challenge with the link rel approach is lack of support on _all_ devices, at least at the time of writing. Additionally, during development can be misleading that it works everywhere, while on mobile devices it is not easily visible that link prefetching is working correctly.
 
-For example, Safari, which is the browser powering iPhones and iPads, does not support `modulepreload`. This is significant because mobile devices maybe benefit the most from module preloading. Next is Firefox, which does not support link rel `prefetch` when https.
+For example, Safari, which is the browser powering iPhones and iPads, does not support `modulepreload`. This is significant because mobile devices maybe benefit the most from module preloading. Next is Firefox, which does not support link rel `prefetch` when on `https`.
 
-Additionally, it may be possible to fire off a multiple requests for the same resource. For example, let's say we want to prefetch `module-a.js`, and while that's being downloaded (which may take a short time, or a very long time), the user interacts with the app, which then decides to actually request and use `module-a.js`. At the time of writing, browsers will often fire off a second request, which makes matters worse.
+> Prefetch is a feature that’s supposed to help make our visitor’s experiences faster but with the wrong combination of browser and CDN / server it can actually make experiences slower!
+>
+> \- <cite><a href="https://andydavies.me/blog/2020/07/08/rel-equals-prefetch-and-the-importance-of-effective-http-slash-2-prioritisation/">Rel=prefetch and the Importance of Effective HTTP/2 Prioritisation</a></cite>
+
+Additionally, it may be possible to fire off a multiple requests for the same resource. For example, let's say we want to prefetch `module-a.js`, and while that's being downloaded (which may take a short time, or a very long time), the user interacts with the app, which then decides to actually request and execute `module-a.js`. At the time of writing, browsers will often fire off a second request, which makes matters worse.
 
 ### Web Worker Fetch
 

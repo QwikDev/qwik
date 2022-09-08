@@ -49,7 +49,7 @@ const Parent = component$(() => {
 
   return (
     <>
-      <button onClick$={(store.step *= -1)}>direction</button>
+      <button onClick$={() => (store.step *= -1)}>direction</button>
       <button onClick$={() => (store.count += store.step)}>{store.step}</button>
       <Greeter name={mutable('World_' + store.count)} />
     </>

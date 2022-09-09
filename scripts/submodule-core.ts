@@ -121,13 +121,46 @@ async function submoduleCoreProd(config: BuildConfig) {
   }
   console.log('🐭 core.min.mjs:', await fileSize(esmMinFile));
 
-  esmCode = esmCode.replace(/globalThis\.qDev \!== false/g, 'true');
   await writeFile(join(config.distPkgDir, 'core.mjs'), esmCode);
 
   // always set the cjs version (probably imported serverside) to dev mode
   let cjsCode = await readFile(join(config.distPkgDir, 'core.cjs'), 'utf-8');
-  cjsCode = cjsCode.replace(/globalThis\.qDev \!== false/g, 'true');
   await writeFile(join(config.distPkgDir, 'core.cjs'), cjsCode);
+
+  await submoduleCoreProduction(config, esmCode, join(config.distPkgDir, 'core.prod.mjs'));
+  await submoduleCoreProduction(config, cjsCode, join(config.distPkgDir, 'core.prod.cjs'));
+}
+
+async function submoduleCoreProduction(config: BuildConfig, code: string, outPath: string) {
+  code = code.replace(/globalThis.qDev === true/g, 'false');
+  code = code.replace(/globalThis.qSerialize !== false/g, 'true');
+  code = code.replace(/globalThis.qDynamicPlatform !== false/g, 'true');
+  code = code.replace(/globalThis.qTest === true/g, 'false');
+
+  const result = await minify(code, {
+    compress: {
+      booleans: false,
+      collapse_vars: true,
+      dead_code: true,
+      inline: true,
+      join_vars: false,
+      passes: 3,
+      reduce_vars: true,
+      side_effects: true,
+      toplevel: true,
+      unused: true,
+    },
+    format: {
+      comments: false,
+      beautify: true,
+      braces: true,
+      preamble: getBanner('@builder.io/qwik', config.distVersion),
+    },
+    mangle: false,
+  });
+  code = result.code!;
+
+  await writeFile(outPath, code + '\n');
 }
 
 async function submoduleCoreDev(config: BuildConfig) {

@@ -153,6 +153,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@arr/every@npm:^1.0.0":
+  version: 1.0.1
+  resolution: "@arr/every@npm:1.0.1"
+  checksum: fc33cd8f3244db7053b89898fc0d1753dd17f40328a443d8640dc15578ed74c59d8e12fe8de87ddb20a2cee578dc0dd9fbb94eb77ef209158fb615bb904b684f
+  languageName: node
+  linkType: hard
+
 "@babel/code-frame@npm:^7.0.0":
   version: 7.16.7
   resolution: "@babel/code-frame@npm:7.16.7"
@@ -1358,6 +1365,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@polka/url@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@polka/url@npm:0.5.0"
+  checksum: 3f007adf9c271b28992ebff1df6424e75e7d579493c66969356a9b5dada18480583744dbc28a7467371fa10eb794a5e1dc1f3fcd359c0b5685f4f9c6592cd312
+  languageName: node
+  linkType: hard
+
 "@popperjs/core@npm:^2.11.6":
   version: 2.11.6
   resolution: "@popperjs/core@npm:2.11.6"
@@ -1549,6 +1563,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/express-serve-static-core@npm:*":
+  version: 4.17.30
+  resolution: "@types/express-serve-static-core@npm:4.17.30"
+  dependencies:
+    "@types/node": "*"
+    "@types/qs": "*"
+    "@types/range-parser": "*"
+  checksum: c40d9027884ab9e97fa29d9d41d1b75a5966109312e26594cf03c61b278b5bf8e095f53589e47899b34a2e224291a44043617695c3e8bd22284f988e48582ee6
+  languageName: node
+  linkType: hard
+
 "@types/express-serve-static-core@npm:^4.17.18":
   version: 4.17.28
   resolution: "@types/express-serve-static-core@npm:4.17.28"
@@ -1560,7 +1585,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/express@npm:4.17.13":
+"@types/express@npm:*, @types/express@npm:4.17.13":
   version: 4.17.13
   resolution: "@types/express@npm:4.17.13"
   dependencies:
@@ -1698,6 +1723,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/polka@npm:^0.5.4":
+  version: 0.5.4
+  resolution: "@types/polka@npm:0.5.4"
+  dependencies:
+    "@types/express": "*"
+    "@types/express-serve-static-core": "*"
+    "@types/node": "*"
+    "@types/trouter": "*"
+  checksum: 8027a6cf6989d63ad01346c031698885586f3b800746bc35c84ab66f981e452cc58f8770fec703509cacf615f450c7010eb5221cef47a75e9494cdc42df8f8b3
+  languageName: node
+  linkType: hard
+
 "@types/prettier@npm:^2.7.0":
   version: 2.7.0
   resolution: "@types/prettier@npm:2.7.0"
@@ -1828,6 +1865,13 @@ __metadata:
   version: 0.0.29
   resolution: "@types/stack-trace@npm:0.0.29"
   checksum: 2dcfdf8f10e250a76e43efe6d3e05a463b4e22ca290dbb423ec14fa21f57f94ef0cc8ba19ed3394c448218d9ddd9f7cd9adea131fb6572aa2d484b1cf7f043aa
+  languageName: node
+  linkType: hard
+
+"@types/trouter@npm:*":
+  version: 3.1.1
+  resolution: "@types/trouter@npm:3.1.1"
+  checksum: 773417a0ba388e4e95529a576a921d14be1656eb8f79f7be85ce6b4537733b98ac40edb6de53e0fe11a341e4354a2336698336421badb454c99718a90b9fdc03
   languageName: node
   linkType: hard
 
@@ -6143,6 +6187,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"matchit@npm:^1.0.0":
+  version: 1.1.0
+  resolution: "matchit@npm:1.1.0"
+  dependencies:
+    "@arr/every": ^1.0.0
+  checksum: 14617343d9f77a5f2a2e9e5213b1d6c1c7b3efda10758d1502e632edf63bf77f260e3f1aa2afdc97dd7e259fae7845a1b07719cd4680d2f1d23b2aa45a393934
+  languageName: node
+  linkType: hard
+
 "mdast-util-definitions@npm:^5.0.0":
   version: 5.1.0
   resolution: "mdast-util-definitions@npm:5.1.0"
@@ -7653,6 +7706,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"polka@npm:^0.5.2":
+  version: 0.5.2
+  resolution: "polka@npm:0.5.2"
+  dependencies:
+    "@polka/url": ^0.5.0
+    trouter: ^2.0.1
+  checksum: 5f4994e78985e10f77fcccced4d3781ba3f896059f66be6099ee189007b73a9bd4d136f73e4156f731bfe3ead66b1d44448b9be6e57e88fa28b53a6096bd3f11
+  languageName: node
+  linkType: hard
+
 "postcss-import@npm:^14.1.0":
   version: 14.1.0
   resolution: "postcss-import@npm:14.1.0"
@@ -7943,6 +8006,7 @@ __metadata:
     "@types/node": latest
     "@types/node-fetch": 2.6.2
     "@types/path-browserify": 1.0.0
+    "@types/polka": ^0.5.4
     "@types/prettier": ^2.7.0
     "@types/semver": 7.3.12
     "@typescript-eslint/eslint-plugin": 5.34.0
@@ -7963,6 +8027,7 @@ __metadata:
     mri: 1.2.0
     node-fetch: 3.2.10
     path-browserify: 1.0.1
+    polka: ^0.5.2
     prettier: 2.7.1
     rollup: 2.77.0
     semver: 7.3.7
@@ -9136,6 +9201,15 @@ __metadata:
   version: 2.1.0
   resolution: "trough@npm:2.1.0"
   checksum: a577bb561c2b401cc0e1d9e188fcfcdf63b09b151ff56a668da12197fe97cac15e3d77d5b51f426ccfd94255744a9118e9e9935afe81a3644fa1be9783c82886
+  languageName: node
+  linkType: hard
+
+"trouter@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "trouter@npm:2.0.1"
+  dependencies:
+    matchit: ^1.0.0
+  checksum: 4a25e81a132d75e8659a29c4b1f6a91eff06601a78a9d1fc189d525ad0298881ed7db7a82045a3b7d1fcc52cb283d2ca7b79eb908de02088798de36659d5205c
   languageName: node
   linkType: hard
 

@@ -1,10 +1,13 @@
 import { styleContent, styleKey } from '../component/qrl-styles';
 import type { QRL } from '../import/qrl.public';
 import { implicit$FirstArg } from '../util/implicit_dollar';
-import { scopeStylesheet } from '../style/scoped-stylesheet';
+import { getScopedStyles } from '../style/scoped-stylesheet';
 import { getContext } from '../props/props';
 import { hasStyle } from '../render/execute-component';
 import { useSequentialScope } from './use-sequential-scope';
+import { assertQrl } from '../import/qrl-class';
+import { isPromise } from '../util/promises';
+import { assertDefined } from '../assert/assert';
 
 // <docs markdown="../readme.md#useStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -85,7 +88,7 @@ export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
  */
 // </docs>
 export const useStylesScopedQrl = (styles: QRL<string>): void => {
-  _useStyles(styles, scopeStylesheet, true);
+  _useStyles(styles, getScopedStyles, true);
 };
 
 // <docs markdown="../readme.md#useStylesScoped">
@@ -119,13 +122,14 @@ const _useStyles = (
   transform: (str: string, styleId: string) => string,
   scoped: boolean
 ): string => {
+  assertQrl(styleQrl);
+
   const { get, set, ctx, i } = useSequentialScope<string>();
   if (get) {
     return get;
   }
   const renderCtx = ctx.$renderCtx$;
   const styleId = styleKey(styleQrl, i);
-  const hostElement = ctx.$hostElement$;
   const containerState = renderCtx.$static$.$containerState$;
   const elCtx = getContext(ctx.$hostElement$);
   set(styleId);
@@ -139,16 +143,23 @@ const _useStyles = (
   if (scoped) {
     elCtx.$scopeIds$.push(styleContent(styleId));
   }
-  if (!hasStyle(containerState, styleId)) {
-    containerState.$styleIds$.add(styleId);
-    ctx.$waitOn$.push(
-      styleQrl.resolve(hostElement).then((styleText) => {
-        elCtx.$appendStyles$!.push({
-          styleId,
-          content: transform(styleText, styleId),
-        });
-      })
-    );
+  if (hasStyle(containerState, styleId)) {
+    return styleId;
+  }
+  containerState.$styleIds$.add(styleId);
+  styleQrl.$setContainer$(containerState.$containerEl$);
+  const value = styleQrl.$resolveLazy$();
+  const appendStyle = (styleText: string) => {
+    assertDefined(elCtx.$appendStyles$, 'appendStyles must be defined');
+    elCtx.$appendStyles$.push({
+      styleId,
+      content: transform(styleText, styleId),
+    });
+  };
+  if (isPromise(value)) {
+    ctx.$waitOn$.push(value.then(appendStyle));
+  } else {
+    appendStyle(value);
   }
   return styleId;
 };

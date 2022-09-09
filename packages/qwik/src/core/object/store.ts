@@ -253,9 +253,7 @@ export const _pauseFromContexts = async (
       });
     }
     if (ctx.$watches$) {
-      for (const watch of ctx.$watches$) {
-        collector.$watches$.push(watch);
-      }
+      collector.$watches$.push(...ctx.$watches$);
     }
   }
 
@@ -280,13 +278,20 @@ export const _pauseFromContexts = async (
     const captured = listener.qrl.$captureRef$;
     if (captured) {
       for (const obj of captured) {
-        await collectValue(obj, collector, true);
+        collectValue(obj, collector, true);
       }
     }
     const ctx = tryGetContext(listener.el)!;
     for (const obj of ctx.$refMap$) {
-      await collectValue(obj, collector, true);
+      collectValue(obj, collector, true);
     }
+  }
+
+  // Wait for remaining promises
+  let promises: Promise<any>[];
+  while ((promises = collector.$promises$).length > 0) {
+    collector.$promises$ = [];
+    await Promise.allSettled(promises);
   }
 
   // If at this point any component can render, we need to capture Context and Props
@@ -294,12 +299,12 @@ export const _pauseFromContexts = async (
   if (canRender) {
     for (const ctx of elements) {
       if (isVirtualElement(ctx.$element$)) {
-        await collectProps(ctx.$element$, ctx.$props$, collector);
+        collectProps(ctx.$element$, ctx.$props$, collector);
       }
 
       if (ctx.$contexts$) {
         for (const item of ctx.$contexts$.values()) {
-          await collectValue(item, collector, false);
+          collectValue(item, collector, false);
         }
       }
     }
@@ -487,9 +492,8 @@ export const _pauseFromContexts = async (
 
   // Write back to the dom
   elements.forEach((ctx) => {
+    assertDefined(ctx, `pause: missing context for dom node`);
     const node = ctx.$element$;
-    assertDefined(ctx, `pause: missing context for dom node`, node);
-
     const ref = ctx.$refMap$;
     const props = ctx.$props$;
     const contexts = ctx.$contexts$;
@@ -742,13 +746,13 @@ const getObjectImpl = (
   return obj;
 };
 
-const collectProps = async (el: VirtualElement, props: any, collector: Collector) => {
+const collectProps = (el: VirtualElement, props: any, collector: Collector) => {
   const subs = collector.$containerState$.$subsManager$.$tryGetLocal$(
     getProxyTarget(props)
   )?.$subs$;
   if (subs && subs.has(el)) {
     // The host element read the props
-    await collectElement(el, collector);
+    collectElement(el, collector);
   }
 };
 
@@ -759,20 +763,22 @@ export interface Collector {
   $elements$: VirtualElement[];
   $watches$: SubscriberDescriptor[];
   $containerState$: ContainerState;
+  $promises$: Promise<any>[];
 }
 
 const createCollector = (containerState: ContainerState): Collector => {
   return {
+    $containerState$: containerState,
     $seen$: new Set(),
     $seenLeaks$: new Set(),
     $objMap$: new Map(),
     $elements$: [],
     $watches$: [],
-    $containerState$: containerState,
+    $promises$: [],
   };
 };
 
-const collectElement = async (el: VirtualElement, collector: Collector) => {
+const collectElement = (el: VirtualElement, collector: Collector) => {
   if (collector.$elements$.includes(el)) {
     return;
   }
@@ -780,24 +786,24 @@ const collectElement = async (el: VirtualElement, collector: Collector) => {
   if (ctx) {
     collector.$elements$.push(el);
     if (ctx.$props$) {
-      await collectValue(ctx.$props$, collector, false);
+      collectValue(ctx.$props$, collector, false);
     }
     if (ctx.$renderQrl$) {
-      await collectValue(ctx.$renderQrl$, collector, false);
+      collectValue(ctx.$renderQrl$, collector, false);
     }
     if (ctx.$seq$) {
       for (const obj of ctx.$seq$) {
-        await collectValue(obj, collector, false);
+        collectValue(obj, collector, false);
       }
     }
     if (ctx.$watches$) {
       for (const obj of ctx.$watches$) {
-        await collectValue(obj, collector, false);
+        collectValue(obj, collector, false);
       }
     }
     if (ctx.$contexts$) {
       for (const obj of ctx.$contexts$.values()) {
-        await collectValue(obj, collector, false);
+        collectValue(obj, collector, false);
       }
     }
   }
@@ -811,7 +817,7 @@ export const unescapeText = (str: string) => {
   return str.replace(/\\x3C(\/?script)/g, '<$1');
 };
 
-const collectSubscriptions = async (target: any, collector: Collector) => {
+const collectSubscriptions = (target: any, collector: Collector) => {
   const subs = collector.$containerState$.$subsManager$.$tryGetLocal$(target)?.$subs$;
   if (subs) {
     if (collector.$seen$.has(subs)) {
@@ -820,9 +826,9 @@ const collectSubscriptions = async (target: any, collector: Collector) => {
     collector.$seen$.add(subs);
     for (const key of Array.from(subs.keys())) {
       if (isNode(key) && isVirtualElement(key)) {
-        await collectElement(key, collector);
+        collectElement(key, collector);
       } else {
-        await collectValue(key, collector, true);
+        collectValue(key, collector, true);
       }
     }
   }
@@ -860,7 +866,7 @@ const getPromiseValue = (promise: Promise<any>): PromiseValue => {
   return (promise as any)[PROMISE_VALUE];
 };
 
-const collectValue = async (obj: any, collector: Collector, leaks: boolean) => {
+const collectValue = (obj: any, collector: Collector, leaks: boolean) => {
   const input = obj;
   const seen = leaks ? collector.$seenLeaks$ : collector.$seen$;
   if (seen.has(obj)) {
@@ -879,7 +885,7 @@ const collectValue = async (obj: any, collector: Collector, leaks: boolean) => {
       collector.$objMap$.set(obj, obj);
       if (obj.$captureRef$) {
         for (const item of obj.$captureRef$) {
-          await collectValue(item, collector, leaks);
+          collectValue(item, collector, leaks);
         }
       }
       return;
@@ -889,8 +895,11 @@ const collectValue = async (obj: any, collector: Collector, leaks: boolean) => {
     if (typeof obj === 'object') {
       // Handle promises
       if (isPromise(obj)) {
-        const value = await resolvePromise(obj);
-        await collectValue(value, collector, leaks);
+        collector.$promises$.push(
+          resolvePromise(obj).then((value) => {
+            collectValue(value, collector, leaks);
+          })
+        );
         return;
       }
 
@@ -909,7 +918,7 @@ const collectValue = async (obj: any, collector: Collector, leaks: boolean) => {
       // If proxy collect subscriptions
       if (target) {
         if (leaks) {
-          await collectSubscriptions(target, collector);
+          collectSubscriptions(target, collector);
         }
         obj = target;
         if (seen.has(obj)) {
@@ -919,8 +928,8 @@ const collectValue = async (obj: any, collector: Collector, leaks: boolean) => {
 
         if (isResourceReturn(obj)) {
           collector.$objMap$.set(target, target);
-          await collectValue(obj.promise, collector, leaks);
-          await collectValue(obj.resolved, collector, leaks);
+          collectValue(obj.promise, collector, leaks);
+          collectValue(obj.resolved, collector, leaks);
           return;
         }
       }
@@ -928,12 +937,12 @@ const collectValue = async (obj: any, collector: Collector, leaks: boolean) => {
       collector.$objMap$.set(obj, obj);
       if (isArray(obj)) {
         for (let i = 0; i < obj.length; i++) {
-          await collectValue(input[i], collector, leaks);
+          collectValue(input[i], collector, leaks);
         }
       } else {
         for (const key in obj) {
           if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            await collectValue(input[key], collector, leaks);
+            collectValue(input[key], collector, leaks);
           }
         }
       }

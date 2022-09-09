@@ -12,6 +12,7 @@ import {
   setDevVersion,
   setReleaseVersion,
 } from './release';
+import { submoduleCli } from './submodule-cli';
 import { submoduleCore } from './submodule-core';
 import { submoduleJsxRuntime } from './submodule-jsx-runtime';
 import { submoduleOptimizer } from './submodule-optimizer';
@@ -111,6 +112,7 @@ export async function build(config: BuildConfig) {
     }
 
     if (config.cli) {
+      await submoduleCli(config);
       await buildCli(config);
     }
 

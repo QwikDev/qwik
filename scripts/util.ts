@@ -304,15 +304,15 @@ export function panic(msg: string) {
  */
 export interface PackageJSON {
   name: string;
-  version: string;
+  version?: string;
   dependencies?: { [pkgName: string]: string };
   devDependencies?: { [pkgName: string]: string };
   description?: string;
   scripts?: { [scriptName: string]: string };
   license?: string;
-  main: string;
+  main?: string;
   module?: string;
-  types: string;
+  types?: string;
   type?: string;
   files?: string[];
   exports?: { [key: string]: any };
@@ -327,7 +327,6 @@ export interface PackageJSON {
     priority: number;
     featureOptions?: string[];
     featureEnabled?: string[];
-    selectServer?: boolean;
     vite?: {
       VITE_IMPORTS?: string;
       VITE_CONFIG?: string;

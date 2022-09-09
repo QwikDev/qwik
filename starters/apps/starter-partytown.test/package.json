@@ -7,8 +7,7 @@
   "__qwik__": {
     "priority": 0,
     "featureOptions": [
-      "prettier",
-      "tailwindcss"
+      "prettier"
     ],
     "featureEnabled": [
       "prettier"

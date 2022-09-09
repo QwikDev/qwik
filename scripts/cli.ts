@@ -1,9 +1,10 @@
-import { BuildConfig, copyFile, emptyDir, importPath, mkdir, nodeTarget, stat } from './util';
+import { BuildConfig, copyFile, emptyDir, mkdir, nodeTarget, stat } from './util';
 import { build } from 'esbuild';
 import { basename, join } from 'path';
 import { getBanner, readdir, watcher, run } from './util';
 import { readPackageJson, writePackageJson } from './package-json';
 import { existsSync } from 'fs';
+import { rm } from 'fs/promises';
 
 const PACKAGE = 'create-qwik';
 
@@ -12,10 +13,11 @@ export async function buildCli(config: BuildConfig) {
   const distCliDir = join(srcCliDir, 'dist');
 
   await bundleCli(config, srcCliDir, distCliDir);
-  await copyStartersDir(config, distCliDir);
+  await copyStartersDir(config, distCliDir, ['apps']);
 
   await copyFile(join(srcCliDir, 'package.json'), join(distCliDir, 'package.json'));
   await copyFile(join(srcCliDir, 'README.md'), join(distCliDir, 'README.md'));
+  await copyFile(join(srcCliDir, 'create-qwik.cjs'), join(distCliDir, 'create-qwik.cjs'));
 
   console.log('🐠 create-qwik cli');
 }
@@ -24,28 +26,30 @@ async function bundleCli(config: BuildConfig, srcCliDir: string, distCliDir: str
   emptyDir(distCliDir);
 
   await build({
-    entryPoints: [join(srcCliDir, 'interface', 'index.ts')],
-    outfile: join(distCliDir, PACKAGE),
-    bundle: true,
-    sourcemap: false,
+    entryPoints: [join(srcCliDir, 'index.ts')],
+    outfile: join(distCliDir, 'index.cjs'),
     target: nodeTarget,
     platform: 'node',
-    minify: !config.dev,
-    plugins: [importPath(/api$/, './index.js')],
-    banner: {
-      js: `${getBanner(PACKAGE, config.distVersion)}`,
-    },
-    watch: watcher(config),
-  });
-
-  await build({
-    entryPoints: [join(srcCliDir, 'api', 'index.ts')],
-    outfile: join(distCliDir, 'index.js'),
+    format: 'cjs',
     bundle: true,
     sourcemap: false,
-    target: 'node14',
-    platform: 'node',
     minify: !config.dev,
+    plugins: [
+      {
+        name: 'colorAlias',
+        setup(build) {
+          build.onResolve({ filter: /^chalk$/ }, async (args) => {
+            const result = await build.resolve('kleur', {
+              resolveDir: args.resolveDir,
+            });
+            if (result.errors.length > 0) {
+              return { errors: result.errors };
+            }
+            return { path: result.path };
+          });
+        },
+      },
+    ],
     banner: {
       js: getBanner(PACKAGE, config.distVersion),
     },
@@ -101,15 +105,25 @@ export async function publishStarterCli(
   );
 }
 
-async function copyStartersDir(config: BuildConfig, distCliDir: string) {
+export async function copyStartersDir(
+  config: BuildConfig,
+  distCliDir: string,
+  typeDirs: ('apps' | 'features' | 'servers' | 'static-generators')[]
+) {
   const distStartersDir = join(distCliDir, 'starters');
-  await mkdir(distStartersDir);
+  try {
+    await mkdir(distStartersDir);
+  } catch (e) {
+    //
+  }
 
-  const copyDirs = ['apps', 'servers', 'features'];
   await Promise.all(
-    copyDirs.map(async (dirName) => {
-      const srcDir = join(config.startersDir, dirName);
-      const distDir = join(distStartersDir, dirName);
+    typeDirs.map(async (typeDir) => {
+      const srcDir = join(config.startersDir, typeDir);
+      const distDir = join(distStartersDir, typeDir);
+
+      await rm(distDir, { force: true, recursive: true });
+
       await copyDir(config, srcDir, distDir);
 
       const distStartersDirs = await readdir(distDir);
@@ -130,7 +144,7 @@ async function copyDir(config: BuildConfig, srcDir: string, destDir: string) {
   const items = await readdir(srcDir);
   await Promise.all(
     items.map(async (itemName) => {
-      if (!IGNORE[itemName] && !itemName.includes('.test')) {
+      if (isValidFsItem(itemName)) {
         const srcPath = join(srcDir, itemName);
         const destPath = join(destDir, itemName);
         const itemStat = await stat(srcPath);
@@ -174,6 +188,10 @@ async function updatePackageJson(config: BuildConfig, destDir: string) {
   setVersionFromRoot('vite');
 
   await writePackageJson(destDir, pkgJson);
+}
+
+function isValidFsItem(fsItemName: string) {
+  return !IGNORE[fsItemName] && !fsItemName.includes('.prod') && !fsItemName.includes('.test');
 }
 
 const IGNORE: { [path: string]: boolean } = {

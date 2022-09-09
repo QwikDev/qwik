@@ -3,7 +3,6 @@ import type { QwikCityRequestContext, QwikCityRequestOptions } from '../request-
 import { errorHandler, notFoundHandler, requestHandler } from '../request-handler';
 import { patchGlobalFetch } from './node-fetch';
 import { createHeaders } from '../request-handler/headers';
-import type { Request, Response, NextFunction } from 'express';
 
 // @builder.io/qwik-city/middleware/express
 
@@ -13,7 +12,7 @@ import type { Request, Response, NextFunction } from 'express';
 export function qwikCity(render: Render, opts?: QwikCityExpressOptions) {
   patchGlobalFetch();
 
-  const router = async (req: Request, res: Response, next: NextFunction) => {
+  const router = async (req: ExpressRequest, res: ExpressResponse, next: ExpressNextFunction) => {
     try {
       const requestCtx = fromExpressHttp(req, res);
       try {
@@ -29,7 +28,7 @@ export function qwikCity(render: Render, opts?: QwikCityExpressOptions) {
     }
   };
 
-  const notFound = async (req: Request, res: Response, next: (e: any) => void) => {
+  const notFound = async (req: ExpressRequest, res: ExpressResponse, next: (e: any) => void) => {
     try {
       const requestCtx = fromExpressHttp(req, res);
       await notFoundHandler(requestCtx);
@@ -44,12 +43,7 @@ export function qwikCity(render: Render, opts?: QwikCityExpressOptions) {
   };
 }
 
-/**
- * @alpha
- */
-export interface QwikCityExpressOptions extends QwikCityRequestOptions {}
-
-function fromExpressHttp(req: Request, res: Response) {
+function fromExpressHttp(req: ExpressRequest, res: ExpressResponse) {
   const url = new URL(req.url, `${req.protocol}://${req.headers.host}`);
   const requestHeaders = createHeaders();
   const nodeRequestHeaders = req.headers;
@@ -66,7 +60,7 @@ function fromExpressHttp(req: Request, res: Response) {
 
   const getRequestBody = async () => {
     const buffers = [];
-    for await (const chunk of req) {
+    for await (const chunk of req as any) {
       buffers.push(chunk);
     }
     return Buffer.concat(buffers).toString();
@@ -101,4 +95,35 @@ function fromExpressHttp(req: Request, res: Response) {
   };
 
   return requestCtx;
+}
+
+/**
+ * @alpha
+ */
+export interface QwikCityExpressOptions extends QwikCityRequestOptions {}
+
+/**
+ * @alpha
+ */
+export interface ExpressRequest {
+  headers: Record<string, string | string[] | undefined>;
+  method: string;
+  protocol: string;
+  url: string;
+}
+
+/**
+ * @alpha
+ */
+export interface ExpressResponse {
+  statusCode: number;
+  setHeader: (key: string, value: string) => void;
+  write: (chunk: any) => void;
+  end: () => void;
+}
+
+/**
+ * @alpha
+ */ export interface ExpressNextFunction {
+  (err?: any): void;
 }

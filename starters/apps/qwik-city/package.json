@@ -4,16 +4,11 @@
     "priority": 1,
     "selectServer": true,
     "featureOptions": [
-      "prettier",
-      "tailwindcss"
+      "prettier"
     ],
     "featureEnabled": [
       "prettier"
     ]
   },
-  "type": "module",
-  "devDependencies": {
-    "@builder.io/qwik-city": "0.0.109",
-    "vite-tsconfig-paths": "3.5.0"
-  }
+  "type": "module"
 }

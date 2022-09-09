@@ -4,16 +4,43 @@
 
 ```ts
 
-import type { NextFunction } from 'express';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
-import type { Request as Request_2 } from 'express';
-import type { Response as Response_2 } from 'express';
+
+// @alpha (undocumented)
+export interface ExpressNextFunction {
+    // (undocumented)
+    (err?: any): void;
+}
+
+// @alpha (undocumented)
+export interface ExpressRequest {
+    // (undocumented)
+    headers: Record<string, string | string[] | undefined>;
+    // (undocumented)
+    method: string;
+    // (undocumented)
+    protocol: string;
+    // (undocumented)
+    url: string;
+}
+
+// @alpha (undocumented)
+export interface ExpressResponse {
+    // (undocumented)
+    end: () => void;
+    // (undocumented)
+    setHeader: (key: string, value: string) => void;
+    // (undocumented)
+    statusCode: number;
+    // (undocumented)
+    write: (chunk: any) => void;
+}
 
 // @alpha (undocumented)
 export function qwikCity(render: Render, opts?: QwikCityExpressOptions): {
-    router: (req: Request_2, res: Response_2, next: NextFunction) => Promise<void>;
-    notFound: (req: Request_2, res: Response_2, next: (e: any) => void) => Promise<void>;
+    router: (req: ExpressRequest, res: ExpressResponse, next: ExpressNextFunction) => Promise<void>;
+    notFound: (req: ExpressRequest, res: ExpressResponse, next: (e: any) => void) => Promise<void>;
 };
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityRequestOptions" needs to be exported by the entry point index.d.ts

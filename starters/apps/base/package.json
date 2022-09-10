@@ -7,6 +7,8 @@
     "build.server": "vite build --ssr src/entry.server.tsx",
     "dev": "node --inspect node_modules/vite/bin/vite.js --mode ssr",
     "dev.debug": "node --inspect-brk node_modules/vite/bin/vite.js --force --mode ssr",
+    "fmt": "prettier --write .",
+    "fmt.check": "prettier --check .",
     "lint": "eslint \"src/**/*.ts*\"",
     "typecheck": "tsc --incremental --noEmit",
     "qwik": "qwik"
@@ -21,6 +23,7 @@
     "eslint-plugin-qwik": "latest",
     "eslint": "8.12.0",
     "node-fetch": "latest",
+    "prettier": "latest",
     "polka": "latest",
     "sirv": "latest",
     "typescript": "latest",

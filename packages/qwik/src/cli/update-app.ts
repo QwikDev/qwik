@@ -1,28 +1,87 @@
-import { getPackageManager, readPackageJson, writePackageJson } from './utils';
+import { getPackageManager, panic } from './utils';
 import fs from 'fs';
-import { join } from 'path';
-import type { UpdateAppOptions } from './types';
-import { loadStarterData } from './starters';
-import { mergeViteConfigContents } from './merge-configs';
+import { dirname, join } from 'path';
+import type { FsUpdates, IntegrationData, UpdateAppOptions, UpdateAppResult } from './types';
+import { loadIntegrations } from './integrations';
+import { updateViteConfig } from './code-mod';
+import { installDeps, startSpinner } from './install-deps';
+import type { Options } from 'prettier';
 
 export async function updateApp(opts: UpdateAppOptions) {
-  if (opts.addIntegration) {
-    const [features, servers, staticGenerators] = await Promise.all([
-      loadStarterData('features'),
-      loadStarterData('servers'),
-      loadStarterData('static-generators'),
-    ]);
-    const integrations = [...features, ...servers, ...staticGenerators];
-    const integration = integrations.find((s) => s.id === opts.addIntegration);
-    if (!integration) {
-      throw new Error(`Unable to find integration "${opts.addIntegration}"`);
-    }
-
-    await mergeStarterDir(integration.dir, opts.rootDir);
+  const integrations = await loadIntegrations();
+  const integration = integrations.find((s) => s.id === opts.integration);
+  if (!integration) {
+    throw new Error(`Unable to find integration "${opts.integration}"`);
   }
+
+  const fileUpdates: FsUpdates = {
+    files: [],
+    installedDeps: {},
+  };
+
+  if (opts.installDeps) {
+    fileUpdates.installedDeps = {
+      ...integration.pkgJson.dependencies,
+      ...integration.pkgJson.devDependencies,
+    };
+  }
+
+  await mergeIntegrationDir(fileUpdates, opts, integration.dir, opts.rootDir);
+
+  if ((globalThis as any).codemod) {
+    await updateViteConfigs(fileUpdates, integration, opts.rootDir);
+  }
+
+  const commit = async (showSpinner?: boolean) => {
+    const isInstallingDeps = Object.keys(fileUpdates.installedDeps).length > 0;
+    const spinner = showSpinner
+      ? startSpinner(`Updating app${isInstallingDeps ? ' and installing dependencies' : ''}...`)
+      : null;
+    try {
+      const dirs = new Set(fileUpdates.files.map((f) => dirname(f.path)));
+      for (const dir of Array.from(dirs)) {
+        try {
+          fs.mkdirSync(dir, { recursive: true });
+        } catch (e) {
+          //
+        }
+      }
+
+      const fsWrites = Promise.all(
+        fileUpdates.files.map(async (f) => {
+          await fs.promises.writeFile(f.path, f.content);
+        })
+      );
+
+      if (opts.installDeps && Object.keys(fileUpdates.installedDeps).length > 0) {
+        const pkgManager = getPackageManager();
+        const { install } = installDeps(pkgManager, opts.rootDir);
+        await install;
+      }
+
+      await fsWrites;
+      spinner && spinner.succeed();
+    } catch (e) {
+      spinner && spinner.fail();
+      panic(String(e));
+    }
+  };
+
+  const result: UpdateAppResult = {
+    rootDir: opts.rootDir,
+    integration,
+    updates: fileUpdates,
+    commit,
+  };
+  return result;
 }
 
-async function mergeStarterDir(srcDir: string, destDir: string) {
+async function mergeIntegrationDir(
+  fileUpdates: FsUpdates,
+  opts: UpdateAppOptions,
+  srcDir: string,
+  destDir: string
+) {
   const items = await fs.promises.readdir(srcDir);
   await Promise.all(
     items.map(async (itemName) => {
@@ -32,59 +91,57 @@ async function mergeStarterDir(srcDir: string, destDir: string) {
       const s = await fs.promises.stat(srcChildPath);
 
       if (s.isDirectory()) {
-        await fs.promises.mkdir(destChildPath, { recursive: true });
-        await mergeStarterDir(srcChildPath, destChildPath);
+        // await fs.promises.mkdir(destChildPath, { recursive: true });
+        await mergeIntegrationDir(fileUpdates, opts, srcChildPath, destChildPath);
       } else if (s.isFile()) {
         if (destName === 'package.json') {
-          await mergePackageJsons(srcDir, destDir);
-        } else if (destName === 'vite.config.ts') {
-          await mergeViteConfigs(srcChildPath, destChildPath);
+          await mergePackageJsons(fileUpdates, srcChildPath, destChildPath);
         } else if (destName === 'README.md') {
-          await mergeReadmes(srcChildPath, destChildPath);
+          await mergeReadmes(fileUpdates, srcChildPath, destChildPath);
         } else if (destName === '.gitignore') {
-          await mergeGitIgnores(srcChildPath, destChildPath);
+          await mergeGitIgnores(fileUpdates, srcChildPath, destChildPath);
         } else {
-          await fs.promises.copyFile(srcChildPath, destChildPath);
+          if (fs.existsSync(destChildPath)) {
+            fileUpdates.files.push({
+              path: destChildPath,
+              content: await fs.promises.readFile(srcChildPath, 'utf-8'),
+              type: 'overwrite',
+            });
+          } else {
+            fileUpdates.files.push({
+              path: destChildPath,
+              content: await fs.promises.readFile(srcChildPath),
+              type: 'create',
+            });
+          }
         }
       }
     })
   );
 }
 
-async function mergePackageJsons(srcDir: string, destDir: string) {
-  const srcPkgJson = await readPackageJson(srcDir);
-  let destPkgJson: any = {};
-  try {
-    destPkgJson = await readPackageJson(destDir);
-  } catch (e) {
-    //
-  }
+async function mergePackageJsons(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
+  const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
+  const srcPkgJson = JSON.parse(srcContent);
 
   const props = ['scripts', 'dependencies', 'devDependencies'];
-  props.forEach((prop) => {
-    mergePackageJsonSort(srcPkgJson, destPkgJson, prop);
-  });
-
-  const replaceProps = [
-    'version',
-    'private',
-    'main',
-    'module',
-    'qwik',
-    'types',
-    'exports',
-    'files',
-  ];
-
-  for (const prop of replaceProps) {
-    if (destPkgJson[prop] === undefined && srcPkgJson[prop] !== undefined) {
-      destPkgJson[prop] = srcPkgJson[prop];
-    }
+  try {
+    const destPkgJson = JSON.parse(await fs.promises.readFile(destPath, 'utf-8'));
+    props.forEach((prop) => {
+      mergePackageJsonSort(srcPkgJson, destPkgJson, prop);
+    });
+    fileUpdates.files.push({
+      path: destPath,
+      content: JSON.stringify(destPkgJson, null, 2) + '\n',
+      type: 'modify',
+    });
+  } catch (e) {
+    fileUpdates.files.push({
+      path: destPath,
+      content: srcContent,
+      type: 'create',
+    });
   }
-
-  delete destPkgJson.__qwik__;
-
-  await writePackageJson(destDir, destPkgJson);
 }
 
 function mergePackageJsonSort(src: any, dest: any, prop: string) {
@@ -104,43 +161,37 @@ function mergePackageJsonSort(src: any, dest: any, prop: string) {
   }
 }
 
-async function mergeViteConfigs(srcPath: string, destPath: string) {
+async function mergeReadmes(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
   const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
 
-  try {
-    let destContent = await fs.promises.readFile(destPath, 'utf-8');
-    destContent = mergeViteConfigContents(srcContent, destContent);
-    await fs.promises.writeFile(destPath, destContent);
-  } catch (e) {
-    await fs.promises.writeFile(destPath, srcContent.trim() + '\n');
-  }
-}
-
-async function mergeReadmes(srcPath: string, destPath: string) {
-  const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
-
+  let type: 'create' | 'modify';
   let destContent = '';
   try {
     destContent = await fs.promises.readFile(destPath, 'utf-8');
     destContent += '\n\n' + srcContent;
+    type = 'modify';
   } catch (e) {
     destContent = srcContent;
+    type = 'create';
   }
 
   const pkgManager = getPackageManager();
   if (pkgManager === 'yarn') {
     destContent = destContent.replace(/npm run/g, 'yarn');
   }
-  destContent = destContent.trim() + '\n';
 
-  await fs.promises.writeFile(destPath, destContent);
+  fileUpdates.files.push({
+    path: destPath,
+    content: destContent.trim() + '\n',
+    type,
+  });
 }
 
-async function mergeGitIgnores(srcPath: string, destPath: string) {
+async function mergeGitIgnores(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
   const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
 
   try {
-    let destContent = await fs.promises.readFile(destPath, 'utf-8');
+    const destContent = await fs.promises.readFile(destPath, 'utf-8');
     const srcLines = srcContent.trim().split(/\r?\n/);
     const destLines = destContent.trim().split(/\r?\n/);
     for (const srcLine of srcLines) {
@@ -151,11 +202,62 @@ async function mergeGitIgnores(srcPath: string, destPath: string) {
         destLines.push(srcLine);
       }
     }
-
-    destContent = destLines.join('\n').trim() + '\n';
-
-    await fs.promises.writeFile(destPath, destContent);
+    fileUpdates.files.push({
+      path: destPath,
+      content: destLines.join('\n').trim() + '\n',
+      type: 'modify',
+    });
   } catch (e) {
-    await fs.promises.writeFile(destPath, srcContent.trim() + '\n');
+    fileUpdates.files.push({
+      path: destPath,
+      content: srcContent,
+      type: 'create',
+    });
+  }
+}
+
+async function updateViteConfigs(
+  fileUpdates: FsUpdates,
+  integration: IntegrationData,
+  rootDir: string
+) {
+  try {
+    const viteConfig = integration.pkgJson.__qwik__?.viteConfig;
+    if (viteConfig) {
+      const viteConfigPath = join(rootDir, 'vite.config.ts');
+      const destContent = await fs.promises.readFile(viteConfigPath, 'utf-8');
+
+      const ts = (await import('typescript')).default;
+      let updatedContent = updateViteConfig(ts, destContent, viteConfig);
+
+      if (updatedContent) {
+        try {
+          const prettier = (await import('prettier')).default;
+
+          let prettierOpts: Options = {
+            filepath: viteConfigPath,
+          };
+
+          const opts = await prettier.resolveConfig(viteConfigPath);
+          if (opts) {
+            prettierOpts = { ...opts, ...prettierOpts };
+          }
+
+          updatedContent = prettier.format(updatedContent, prettierOpts);
+
+          updatedContent = updatedContent.replace(`export default`, `\nexport default`);
+        } catch (e) {
+          console.error(e);
+        }
+
+        fileUpdates.files.push({
+          path: viteConfigPath,
+          content: updatedContent,
+          type: 'modify',
+        });
+      }
+    }
+  } catch (e) {
+    panic(String(e));
   }
 }

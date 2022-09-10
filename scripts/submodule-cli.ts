@@ -20,9 +20,6 @@ export async function submoduleCli(config: BuildConfig) {
     banner: { js: getBanner('@builder.io/qwik/cli', config.distVersion) },
     outExtension: { '.js': '.cjs' },
     watch: watcher(config, submodule),
-    define: {
-      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
-    },
     plugins: [
       {
         name: 'colorAlias',
@@ -39,6 +36,11 @@ export async function submoduleCli(config: BuildConfig) {
         },
       },
     ],
+    external: ['prettier', 'typescript'],
+    define: {
+      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+      'globalThis.codemod': 'true',
+    },
   });
 
   await copyFile(join(config.srcDir, submodule, 'qwik.cjs'), join(config.distPkgDir, 'qwik.cjs'));

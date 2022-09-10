@@ -2,23 +2,23 @@ import fs from 'fs';
 import { join } from 'path';
 import color from 'kleur';
 import detectPackageManager from 'which-pm-runs';
-import type { PackageJSON } from '../../../../scripts/util';
+import type { IntegrationPackageJson } from './types';
 
 export async function readPackageJson(dir: string) {
   const path = join(dir, 'package.json');
-  const pkgJson: PackageJSON = JSON.parse(await fs.promises.readFile(path, 'utf-8'));
+  const pkgJson: IntegrationPackageJson = JSON.parse(await fs.promises.readFile(path, 'utf-8'));
   return pkgJson;
 }
 
-export async function writePackageJson(dir: string, pkgJson: PackageJSON) {
+export async function writePackageJson(dir: string, pkgJson: IntegrationPackageJson) {
   const path = join(dir, 'package.json');
   await fs.promises.writeFile(path, JSON.stringify(pkgJson, null, 2) + '\n');
 }
 
-export function cleanPackageJson(srcPkg: any) {
+export function cleanPackageJson(srcPkg: IntegrationPackageJson) {
   srcPkg = { ...srcPkg };
 
-  const cleanedPkg: any = {
+  const cleanedPkg: IntegrationPackageJson = {
     name: srcPkg.name,
     version: srcPkg.version,
     description: srcPkg.description,
@@ -34,10 +34,18 @@ export function cleanPackageJson(srcPkg: any) {
 
   const sortedKeys = Object.keys(srcPkg).sort();
   for (const key of sortedKeys) {
-    cleanedPkg[key] = (srcPkg as any)[key];
+    (cleanedPkg as any)[key] = (srcPkg as any)[key];
   }
 
   return cleanedPkg;
+}
+
+export function dashToTitlelCase(str: string) {
+  return str
+    .toLocaleLowerCase()
+    .split('-')
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(' ');
 }
 
 export function toDashCase(str: string) {

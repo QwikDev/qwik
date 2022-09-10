@@ -1,4 +1,3 @@
-import type { PackageJSON } from '../../../../scripts/util';
 import type { AppCommand } from './app-command';
 
 export interface CreateAppOptions {
@@ -11,23 +10,40 @@ export interface CreateAppResult extends CreateAppOptions {}
 
 export interface UpdateAppOptions {
   rootDir: string;
-  addIntegration?: string;
+  integration: string;
+  installDeps?: boolean;
 }
 
-export interface UpdateAppResults extends UpdateAppOptions {}
+export interface UpdateAppResult {
+  rootDir: string;
+  integration: IntegrationData;
+  updates: FsUpdates;
+  commit: (showSpinner?: boolean) => Promise<void>;
+}
 
-export interface StarterData {
+export interface FsUpdates {
+  files: {
+    path: string;
+    content: string | Buffer;
+    type: 'create' | 'overwrite' | 'modify';
+  }[];
+  installedDeps: { [dep: string]: string };
+}
+
+export interface IntegrationData {
   id: string;
+  type: IntegrationType;
   name: string;
   description: string;
-  pkgJson: PackageJSON;
+  pkgJson: IntegrationPackageJson;
   dir: string;
   priority: number;
   featureOptions: string[];
   featureEnabled: string[];
+  viteConfig?: ViteConfigUpdates;
 }
 
-export type StarterType = 'apps' | 'features' | 'servers' | 'static-generators';
+export type IntegrationType = 'app' | 'feature' | 'server' | 'static-generator';
 
 export interface Feature {
   id: string;
@@ -37,3 +53,32 @@ export interface Feature {
 }
 
 export type FeatureCmd = (app: AppCommand) => Promise<void>;
+
+export interface IntegrationPackageJson {
+  name: string;
+  description: string;
+  version?: string;
+  scripts?: { [k: string]: string };
+  dependencies?: { [k: string]: string };
+  devDependencies?: { [k: string]: string };
+  private?: boolean;
+  __qwik__?: {
+    priority: number;
+    featureOptions?: string[];
+    featureEnabled?: string[];
+    viteConfig?: ViteConfigUpdates;
+  };
+}
+
+export interface EnsureImport {
+  defaultImport?: string;
+  namedImports?: string[];
+  importPath: string;
+}
+
+export interface ViteConfigUpdates {
+  imports?: EnsureImport[];
+  viteConfig?: { [key: string]: string };
+  vitePlugins?: string[];
+  qwikViteConfig?: { [key: string]: string };
+}

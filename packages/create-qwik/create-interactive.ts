@@ -1,15 +1,17 @@
 /* eslint-disable no-console */
+import fs from 'fs';
+import { relative } from 'path';
 import prompts from 'prompts';
 import color from 'kleur';
-import { backgroundInstallDeps } from './install-deps';
-import fs from 'fs';
-import { loadStarterData } from '../qwik/src/cli/starters';
-import { getPackageManager } from '../qwik/src/cli/utils';
-import { createOutDir, createOutDirName, createApp, logResult } from './create-app';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
-import { relative } from 'path';
+import { backgroundInstallDeps } from '../qwik/src/cli/install-deps';
+import { createOutDir, createOutDirName, createApp } from './create-app';
+import { getPackageManager } from '../qwik/src/cli/utils';
+import { logCreateAppResult } from '../qwik/src/cli/log';
+import { loadIntegrations } from '../qwik/src/cli/integrations';
 
 export async function runCreateInteractiveCli() {
+  console.log(``);
   console.clear();
 
   console.log(`💫 ${color.cyan(`Let's create a Qwik app`)} 💫`);
@@ -17,7 +19,8 @@ export async function runCreateInteractiveCli() {
 
   const pkgManager = getPackageManager();
 
-  const starterApps = await loadStarterData('apps');
+  const integrations = await loadIntegrations();
+  const starterApps = integrations.filter((i) => i.type === 'app');
   const baseApp = starterApps.find((a) => a.id === 'base')!;
   const apps = starterApps.filter((a) => a.id !== baseApp!.id);
 
@@ -131,7 +134,7 @@ export async function runCreateInteractiveCli() {
 
   const successfulDepsInstall = await backgroundInstall.complete(runInstall, result.outDir);
 
-  logResult(result, successfulDepsInstall);
+  logCreateAppResult(result, successfulDepsInstall);
 
   return result;
 }

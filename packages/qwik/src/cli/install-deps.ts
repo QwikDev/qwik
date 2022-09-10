@@ -5,16 +5,15 @@ import os from 'os';
 import path from 'path';
 import spawn from 'cross-spawn';
 import type { ChildProcess } from 'child_process';
-import type { StarterData } from '../qwik/src/cli/types';
+import type { IntegrationData } from './types';
 
-export function backgroundInstallDeps(pkgManager: string, baseApp: StarterData) {
-  const { tmpInstallDir } = setupTmpInstall(baseApp);
+export function installDeps(pkgManager: string, dir: string) {
   let installChild: ChildProcess;
 
-  const backgroundProcess = new Promise<void>((resolve) => {
+  const install = new Promise<void>((resolve) => {
     try {
       installChild = spawn(pkgManager, ['install'], {
-        cwd: tmpInstallDir,
+        cwd: dir,
         stdio: 'ignore',
       });
 
@@ -36,13 +35,26 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: StarterData) 
     }
   };
 
+  return { abort, install };
+}
+
+export function startSpinner(msg: string) {
+  const spinner = ora(msg).start();
+  return spinner;
+}
+
+export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationData) {
+  const { tmpInstallDir } = setupTmpInstall(baseApp);
+
+  const { install, abort } = installDeps(pkgManager, tmpInstallDir);
+
   const complete = async (runInstall: boolean, outDir: string) => {
     let success = false;
 
     if (runInstall) {
-      const spinner = ora(`Installing ${pkgManager} dependencies...`).start();
+      const spinner = startSpinner(`Installing ${pkgManager} dependencies...`);
       try {
-        await backgroundProcess;
+        await install;
 
         const tmpNodeModules = path.join(tmpInstallDir, 'node_modules');
         const appNodeModules = path.join(outDir, 'node_modules');
@@ -80,7 +92,7 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: StarterData) 
   return { abort, complete };
 }
 
-function setupTmpInstall(baseApp: StarterData) {
+function setupTmpInstall(baseApp: IntegrationData) {
   const tmpId =
     'create-qwik-' +
     Math.round(Math.random() * Number.MAX_SAFE_INTEGER)

@@ -9,11 +9,19 @@
   },
   "__qwik__": {
     "priority": -1,
-    "vite": {
-      "VITE_IMPORTS": "import netlifyEdge from '@netlify/vite-plugin-netlify-edge';",
-      "VITE_CONFIG": "",
-      "VITE_QWIK": "{ ssr: { outDir: 'netlify/edge-functions/entry.netlify' } }",
-      "VITE_PLUGINS": "netlifyEdge({ functionName: 'entry.netlify' }),"
+    "viteConfig": {
+      "imports": [
+        {
+          "defaultImport": "netlifyEdge",
+          "importPath": "@netlify/vite-plugin-netlify-edge"
+        }
+      ],
+      "qwikViteConfig": {
+        "ssr": "{ outDir: 'netlify/edge-functions/entry.netlify' }"
+      },
+      "vitePlugins": [
+        "netlifyEdge({ functionName: 'entry.netlify' })"
+      ]
     }
   }
 }

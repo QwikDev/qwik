@@ -72,10 +72,16 @@
   ],
   "exclude": [
     "packages/create-qwik/dist",
+    "packages/docs/dist",
+    "packages/docs/server",
+    "packages/qwik/dist",
+    "packages/qwik-city/dist",
+    "packages/qwik-react/lib",
     "**/lib",
     "starters/**/entry.netlify.ts",
     "starters/**/entry.cloudflare.tsx",
     "starters/**/entry.express.tsx",
+    "starters/**/entry.static.tsx",
     "starters/**/entry.ssr.tsx",
     "packages/qwik/**/*.d.ts",
     "packages/qwik-dom"

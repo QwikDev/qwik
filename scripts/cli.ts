@@ -50,6 +50,10 @@ async function bundleCli(config: BuildConfig, srcCliDir: string, distCliDir: str
         },
       },
     ],
+    external: ['prettier', 'typescript'],
+    define: {
+      'globalThis.codemod': 'false',
+    },
     banner: {
       js: getBanner(PACKAGE, config.distVersion),
     },

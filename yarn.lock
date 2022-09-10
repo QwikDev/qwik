@@ -345,6 +345,8 @@ __metadata:
 "@builder.io/qwik@0.0.108, @builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
+  bin:
+    qwik: ./dist/qwik.cjs
   languageName: unknown
   linkType: soft
 
@@ -3117,7 +3119,7 @@ __metadata:
     ora: ^6.1.2
     prompts: 2.4.2
   bin:
-    create-qwik: ./create-qwik
+    create-qwik: ./create-qwik.cjs
   languageName: unknown
   linkType: soft
 

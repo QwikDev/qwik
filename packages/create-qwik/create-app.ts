@@ -1,18 +1,16 @@
 /* eslint-disable no-console */
 import fs from 'fs';
-import { join, relative, resolve } from 'path';
-import color from 'kleur';
-import {
-  cleanPackageJson,
-  getPackageManager,
-  panic,
-  toDashCase,
-  writePackageJson,
-} from '../qwik/src/cli/utils';
-import { loadStarterData } from '../qwik/src/cli/starters';
+import { join, resolve } from 'path';
+import { cleanPackageJson, panic, toDashCase, writePackageJson } from '../qwik/src/cli/utils';
+import { loadIntegrations } from '../qwik/src/cli/integrations';
+import { logCreateAppResult } from '../qwik/src/cli/log';
 import { updateApp } from '../qwik/src/cli/update-app';
-import type { CreateAppOptions, CreateAppResult, StarterData } from '../qwik/src/cli/types';
-import type { PackageJSON } from '../../scripts/util';
+import type {
+  CreateAppOptions,
+  CreateAppResult,
+  IntegrationData,
+  IntegrationPackageJson,
+} from '../qwik/src/cli/types';
 
 export async function runCreateCli(starterId: string, projectName: string) {
   const outDirName = createOutDirName(projectName);
@@ -39,7 +37,7 @@ export async function runCreateCli(starterId: string, projectName: string) {
 
   const result = await createApp(opts);
 
-  logResult(result, false);
+  logCreateAppResult(result, false);
 
   return result;
 }
@@ -64,7 +62,7 @@ export async function createApp(opts: CreateAppOptions) {
     outDir: opts.outDir,
   };
 
-  const starterApps = await loadStarterData('apps');
+  const starterApps = (await loadIntegrations()).filter((i) => i.type === 'app');
   const baseApp = starterApps.find((a) => a.id === 'base');
   const starterApp = starterApps.find((s) => s.id === opts.starterId);
   if (!baseApp) {
@@ -81,10 +79,10 @@ export async function createApp(opts: CreateAppOptions) {
 
 async function createFromStarter(
   result: CreateAppResult,
-  baseApp: StarterData,
-  starterApp: StarterData
+  baseApp: IntegrationData,
+  starterApp: IntegrationData
 ) {
-  const appPkgJson: PackageJSON = {
+  const appPkgJson: IntegrationPackageJson = {
     name: toDashCase(result.projectName),
     description: starterApp.description.trim(),
     private: true,
@@ -92,14 +90,19 @@ async function createFromStarter(
   await writePackageJson(result.outDir, cleanPackageJson(appPkgJson));
   await createReadme(result);
 
-  await updateApp({
+  const baseUpdate = await updateApp({
     rootDir: result.outDir,
-    addIntegration: baseApp.id,
+    integration: baseApp.id,
+    installDeps: false,
   });
-  await updateApp({
+  await baseUpdate.commit(false);
+
+  const starterUpdate = await updateApp({
     rootDir: result.outDir,
-    addIntegration: starterApp.id,
+    integration: starterApp.id,
+    installDeps: false,
   });
+  await starterUpdate.commit(false);
 }
 
 async function createReadme(result: CreateAppResult) {
@@ -121,40 +124,6 @@ async function createReadme(result: CreateAppResult) {
   const readmePath = join(result.outDir, 'README.md');
   const readmeContent = r.join('\n').trim() + '\n';
   await fs.promises.writeFile(readmePath, readmeContent);
-}
-
-export function logResult(result: CreateAppResult, ranInstall: boolean) {
-  const isCwdDir = process.cwd() === result.outDir;
-  const relativeProjectPath = relative(process.cwd(), result.outDir);
-  console.clear();
-
-  if (isCwdDir) {
-    console.log(`⭐️ ${color.bgGreen(' Success! ')}`);
-  } else {
-    console.log(
-      `⭐️ ${color.green(`${color.bgGreen(' Success! ')} Project saved in`)} ${color.yellow(
-        relativeProjectPath
-      )} ${color.green(`directory`)}`
-    );
-  }
-
-  console.log(``);
-
-  console.log(`🤖 ${color.cyan(`Next steps:`)}`);
-  if (!isCwdDir) {
-    console.log(`   cd ${relativeProjectPath}`);
-  }
-  if (!ranInstall) {
-    const pkgManager = getPackageManager();
-    console.log(`   ${pkgManager} install`);
-    console.log(`   ${pkgManager} start`);
-  }
-  console.log(``);
-
-  console.log(`💬 ${color.cyan('Questions? Start the conversation at:')}`);
-  console.log(`   https://qwik.builder.io/chat`);
-  console.log(`   https://twitter.com/QwikDev`);
-  console.log(``);
 }
 
 function isValidOption(value: any) {

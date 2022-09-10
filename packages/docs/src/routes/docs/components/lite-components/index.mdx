@@ -27,7 +27,7 @@ const MyApp = component$(() => {
 In the above example, the `MyButton` is a lite component. Lite components' lazy loading is merged with the regular component they are part of. In this case:
 
 - `MyButton` will get bundled with the `MyApp` render function.
-- `MyButton` Whenever the render function of `MyApp` executes, it will also force the execution of `MyButton`.
+- Whenever the render function of `MyApp` executes, it will also force the execution of `MyButton`.
 - `MyButton` does not have a host element.
 
 You can think of lightweight components as being inlined into the component, where they are instantiated.

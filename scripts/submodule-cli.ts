@@ -1,6 +1,6 @@
 import { build } from 'esbuild';
 import { join } from 'path';
-import { copyStartersDir } from './cli';
+import { copyStartersDir } from './create-qwik-cli';
 import { BuildConfig, copyFile, getBanner, nodeTarget, watcher } from './util';
 
 /**

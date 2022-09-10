@@ -21,7 +21,7 @@ import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
 import { tsc } from './tsc';
 import { validateBuild } from './validate-build';
-import { buildCli } from './cli';
+import { buildCreateQwikCli } from './create-qwik-cli';
 import { submoduleBuild } from './submodule-build';
 import { buildEslint } from './eslint';
 import { buildQwikCity } from './qwik-city';
@@ -113,7 +113,7 @@ export async function build(config: BuildConfig) {
 
     if (config.cli) {
       await submoduleCli(config);
-      await buildCli(config);
+      await buildCreateQwikCli(config);
     }
 
     if (config.prepareRelease) {

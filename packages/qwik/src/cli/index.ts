@@ -14,3 +14,5 @@ export async function runCli() {
     panic(String(e));
   }
 }
+
+export { updateApp } from './update-app';

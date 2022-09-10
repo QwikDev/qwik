@@ -8,11 +8,11 @@ import { rm } from 'fs/promises';
 
 const PACKAGE = 'create-qwik';
 
-export async function buildCli(config: BuildConfig) {
+export async function buildCreateQwikCli(config: BuildConfig) {
   const srcCliDir = join(config.packagesDir, PACKAGE);
   const distCliDir = join(srcCliDir, 'dist');
 
-  await bundleCli(config, srcCliDir, distCliDir);
+  await bundleCreateQwikCli(config, srcCliDir, distCliDir);
   await copyStartersDir(config, distCliDir, ['apps']);
 
   await copyFile(join(srcCliDir, 'package.json'), join(distCliDir, 'package.json'));
@@ -22,7 +22,7 @@ export async function buildCli(config: BuildConfig) {
   console.log('🐠 create-qwik cli');
 }
 
-async function bundleCli(config: BuildConfig, srcCliDir: string, distCliDir: string) {
+async function bundleCreateQwikCli(config: BuildConfig, srcCliDir: string, distCliDir: string) {
   emptyDir(distCliDir);
 
   await build({
@@ -61,7 +61,7 @@ async function bundleCli(config: BuildConfig, srcCliDir: string, distCliDir: str
   });
 }
 
-export async function publishStarterCli(
+export async function publishCreateQwikCli(
   config: BuildConfig,
   distTag: string,
   version: string,

@@ -1,4 +1,3 @@
-import { qwikCity } from '@builder.io/qwik-city/middleware/express';
 import polka from 'polka';
 import sirv from 'sirv';
 import { fileURLToPath } from 'url';
@@ -9,9 +8,6 @@ import render from './entry.ssr';
 const distDir = join(fileURLToPath(import.meta.url), '..', '..', 'dist');
 const buildDir = join(distDir, 'build');
 
-// Create the Qwik City server middleware
-const { router, notFound } = qwikCity(render);
-
 // Create the http server with polka
 // https://github.com/lukeed/polka
 const app = polka();
@@ -21,13 +17,27 @@ const app = polka();
 app.use(`/build`, sirv(buildDir, { immutable: true }));
 app.use(sirv(distDir));
 
-// Use Qwik City's page and endpoint request handler
-app.use(router);
+// Handler for all requests
+app.get('/*', async (req, res, next) => {
+  try {
+    // Render the Root component to a string
+    const result = await render({
+      stream: res,
+    });
 
-// Use Qwik City's 404 handler
-app.use(notFound);
+    // Respond with SSR'd HTML
+    if ('html' in result) {
+      res.send((result as any).html);
+    } else {
+      res.end();
+    }
+  } catch (e) {
+    // Error while server-side rendering
+    next(e);
+  }
+});
 
-// Start the server
+// start the server
 app.listen(3000, () => {
   /* eslint-disable */
   console.log(`http://localhost:3000/`);

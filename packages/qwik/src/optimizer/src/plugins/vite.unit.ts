@@ -194,13 +194,13 @@ vite('command: build, --mode production (client)', async () => {
   equal(build.emptyOutDir, undefined);
 });
 
-vite('command: build, --ssr entry.express.tsx', async () => {
+vite('command: build, --ssr entry.server.tsx', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin: VitePlugin = qwikVite(initOpts);
   const c = (await plugin.config!(
-    { build: { ssr: resolve(cwd, 'src', 'entry.express.tsx') } },
+    { build: { ssr: resolve(cwd, 'src', 'entry.server.tsx') } },
     { command: 'build', mode: '' }
   ))!;
   const opts = await plugin.api?.getOptions();
@@ -218,7 +218,7 @@ vite('command: build, --ssr entry.express.tsx', async () => {
   equal(plugin.enforce, 'pre');
   equal(build.outDir, normalizePath(resolve(cwd, 'server')));
   equal(build.emptyOutDir, false);
-  equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'entry.express.tsx'))]);
+  equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'entry.server.tsx'))]);
   equal(outputOptions.assetFileNames, undefined);
   equal(outputOptions.chunkFileNames, undefined);
   equal(outputOptions.entryFileNames, undefined);

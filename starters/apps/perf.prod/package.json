@@ -1,8 +1,8 @@
 {
-  "description": "Blank Qwik starter app.",
+  "description": "Qwik Performance starter app.",
   "scripts": {
-    "build.server": "vite build --ssr src/entry.express.tsx",
-    "serve": "node server/entry.express"
+    "build.server": "vite build --ssr src/entry.server.tsx",
+    "serve": "node server/entry.server.mjs"
   },
   "devDependencies": {
     "@types/express": "4.17.13",

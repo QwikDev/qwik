@@ -1,7 +1,7 @@
 {
   "description": "Netlify Edge Functions",
   "scripts": {
-    "build.server": "vite build --ssr src/entry.netlify.ts",
+    "build.server": "vite build --ssr src/entry.server.tsx",
     "serve": "netlify dev"
   },
   "devDependencies": {
@@ -17,10 +17,10 @@
         }
       ],
       "qwikViteConfig": {
-        "ssr": "{ outDir: 'netlify/edge-functions/entry.netlify' }"
+        "ssr": "{ outDir: 'netlify/edge-functions/entry.server' }"
       },
       "vitePlugins": [
-        "netlifyEdge({ functionName: 'entry.netlify' })"
+        "netlifyEdge({ functionName: 'entry.server' })"
       ]
     }
   }

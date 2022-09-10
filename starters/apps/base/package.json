@@ -10,6 +10,7 @@
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "lint": "eslint \"src/**/*.ts*\"",
+    "serve": "node server/entry.server.mjs",
     "typecheck": "tsc --incremental --noEmit",
     "qwik": "qwik"
   },

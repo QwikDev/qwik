@@ -13,6 +13,8 @@ import assert from 'assert';
 import { join, relative } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { readPackageJson, writePackageJson } from './package-json';
+import type { UpdateAppOptions } from '../packages/qwik/src/cli/types';
+import { panic } from './util';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
@@ -42,10 +44,13 @@ async function validateCreateQwikCli() {
   const tmpDir = join(__dirname, '..', 'dist-dev');
 
   await Promise.all([
-    validateStarter(api, tmpDir, 'blank', true, `👻`),
-    validateStarter(api, tmpDir, 'qwik-city', true, `😈`),
+    validateStarter(api, tmpDir, 'qwik-city', true, `😈`, 'cloudflare-pages'),
+    validateStarter(api, tmpDir, 'blank', true, `👻`, 'qwik-react'),
     validateStarter(api, tmpDir, 'library', false, `📚`),
-  ]);
+  ]).catch((e) => {
+    console.error(e);
+    panic(String(e));
+  });
 
   console.log(`👽 create-qwik validated\n`);
 }
@@ -55,7 +60,8 @@ async function validateStarter(
   distDir: string,
   starterId: string,
   app: boolean,
-  emoji: string
+  emoji: string,
+  addIntegrationId?: string
 ) {
   const projectName = starterId;
   const appDir = join(distDir, 'e2e-' + projectName);
@@ -101,11 +107,27 @@ async function validateStarter(
   const distEslintQwik = join(__dirname, '..', 'packages', 'eslint-plugin-qwik', 'dist');
   cpSync(distEslintQwik, eslintNodeModule);
 
+  if (!process.env.CI && addIntegrationId) {
+    copyLocalQwikDistToTestApp(appDir);
+
+    const appNodeModulesQwik = join(appDir, 'node_modules', '@builder.io', 'qwik');
+    accessSync(appNodeModulesQwik);
+
+    const appNodeModulesQwikCli = join(appNodeModulesQwik, 'cli.cjs');
+    console.log(`${emoji} cli qwik add: ${appNodeModulesQwikCli}`);
+
+    const qwikAdd: any = await import(pathToFileURL(appNodeModulesQwikCli).href);
+
+    const opts: UpdateAppOptions = {
+      rootDir: appDir,
+      integration: addIntegrationId,
+    };
+    const result = await qwikAdd.updateApp(opts);
+    await result.commit();
+  }
+
   console.log(`${emoji} ${projectName}: npm run build`);
   await execa('npm', ['run', 'build'], { cwd: appDir, stdout: 'inherit' });
-
-  console.log(`${emoji} ${projectName}: npm run lint`);
-  await execa('npm', ['run', 'lint'], { cwd: appDir, stdout: 'inherit' });
 
   accessSync(join(appDir, '.vscode'));
 

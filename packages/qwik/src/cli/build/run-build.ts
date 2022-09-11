@@ -48,14 +48,12 @@ export async function runBuildCommand(app: AppCommand) {
   }
  
   const clientScript = parseScript(buildClientScript);
-  const clientBuild = execa(clientScript.cmd, clientScript.flags, {
+  await execa(clientScript.cmd, clientScript.flags, {
     stdio: 'inherit',
     cwd: app.rootDir
   }).catch(() => {
     process.exit(1);
   });
- 
-  await clientBuild;
 
   console.log(``);
   console.log(`${color.green('✓')} Built client modules`);

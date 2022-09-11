@@ -93,7 +93,7 @@
     "qwikloader.debug.js",
     "qwikloader.optimize.js",
     "qwikloader.optimize.debug.js",
-    "qwik",
+    "qwik.cjs",
     "server.cjs",
     "server.mjs",
     "server.d.ts",

@@ -1,4 +1,4 @@
-import type { AppCommand } from './app-command';
+import type { AppCommand } from './utils/app-command';
 
 export interface CreateAppOptions {
   projectName: string;

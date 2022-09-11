@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { join } from 'path';
-import type { IntegrationData, IntegrationType } from './types';
+import type { IntegrationData, IntegrationType } from '../types';
 import { dashToTitlelCase, readPackageJson } from './utils';
 
 let integrations: IntegrationData[] | null = null;

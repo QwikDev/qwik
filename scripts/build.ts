@@ -73,6 +73,7 @@ export async function build(config: BuildConfig) {
         submoduleQwikLoader(config),
         submoduleBuild(config),
         submoduleTesting(config),
+        buildCreateQwikCli(config),
         copyFiles(config),
       ]);
 
@@ -113,7 +114,6 @@ export async function build(config: BuildConfig) {
 
     if (config.cli) {
       await submoduleCli(config);
-      await buildCreateQwikCli(config);
     }
 
     if (config.prepareRelease) {

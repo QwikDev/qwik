@@ -5,6 +5,7 @@ import type {
   Expression,
   FunctionExpression,
   ObjectPattern,
+  Statement,
 } from '@typescript-eslint/types/dist/generated/ast-spec';
 
 const createRule = ESLintUtils.RuleCreator(
@@ -49,57 +50,25 @@ export const noPreventDefault = createRule({
     function handleFunctionExpression(
       expressionNode: ArrowFunctionExpression | FunctionExpression
     ) {
-      if (inlineOnly) {
-        const isInlineCall =
-          expressionNode.parent?.type === AST_NODE_TYPES.JSXExpressionContainer &&
-          expressionNode.parent.parent?.type === AST_NODE_TYPES.JSXAttribute &&
-          (expressionNode.parent.parent.name.name as string)?.endsWith('$');
-
-        if (!isInlineCall) {
-          return;
-        }
-      }
-
-      const firstParam = expressionNode.params?.[0];
-      const eventParamName =
-        firstParam?.type === AST_NODE_TYPES.Identifier ? firstParam.name : null;
-      const preventDefaultParamName =
-        (!eventParamName &&
-          firstParam?.type === AST_NODE_TYPES.ObjectPattern &&
-          getPreventDefaultParamName(firstParam)) ||
-        null;
-
-      if (!eventParamName && !preventDefaultParamName) {
+      if (shouldBeInlineButIsnt(expressionNode, inlineOnly)) {
         return;
       }
 
-      const isBlockStatement = expressionNode.body.type === AST_NODE_TYPES.BlockStatement;
+      const { eventParamName, preventDefaultParamName } = extractParamInfo(expressionNode);
 
-      if (isBlockStatement) {
-        (expressionNode.body as BlockStatement).body
-          .filter(
-            (statement) =>
-              statement.type === AST_NODE_TYPES.ExpressionStatement &&
-              isPreventDefaultCall(statement.expression, eventParamName, preventDefaultParamName)
-          )
-          .forEach((preventDefaultCallStatement) => {
-            context.report({
-              node: preventDefaultCallStatement,
-              messageId: 'errorMessage',
-            });
-          });
+      const functionHasAccessToPreventDefault = eventParamName || preventDefaultParamName;
+      if (!functionHasAccessToPreventDefault) {
         return;
       }
 
-      if (
-        isPreventDefaultCall(
-          expressionNode.body as Expression,
-          eventParamName,
-          preventDefaultParamName
-        )
-      ) {
+      const errorNodes = gerErroneousStatementsOrExpressions(
+        expressionNode,
+        eventParamName,
+        preventDefaultParamName
+      );
+      for (const node of errorNodes) {
         context.report({
-          node: expressionNode.body,
+          node,
           messageId: 'errorMessage',
         });
       }
@@ -115,6 +84,55 @@ export const noPreventDefault = createRule({
     };
   },
 });
+
+function extractParamInfo(expressionNode: ArrowFunctionExpression | FunctionExpression) {
+  const firstParam = expressionNode.params?.[0];
+  const eventParamName = firstParam?.type === AST_NODE_TYPES.Identifier ? firstParam.name : null;
+  const preventDefaultParamName =
+    (!eventParamName &&
+      firstParam?.type === AST_NODE_TYPES.ObjectPattern &&
+      getPreventDefaultParamName(firstParam)) ||
+    null;
+  return { eventParamName, preventDefaultParamName };
+}
+
+function gerErroneousStatementsOrExpressions(
+  expressionNode: ArrowFunctionExpression | FunctionExpression,
+  eventParamName: string,
+  preventDefaultParamName: string
+) {
+  if (expressionNode.body.type === AST_NODE_TYPES.BlockStatement) {
+    return (expressionNode.body as BlockStatement).body.filter(
+      (statement) =>
+        statement.type === AST_NODE_TYPES.ExpressionStatement &&
+        isPreventDefaultCall(statement.expression, eventParamName, preventDefaultParamName)
+    );
+  }
+
+  if (
+    isPreventDefaultCall(expressionNode.body as Expression, eventParamName, preventDefaultParamName)
+  ) {
+    return [expressionNode.body];
+  }
+
+  return [];
+}
+
+function shouldBeInlineButIsnt(
+  expressionNode: ArrowFunctionExpression | FunctionExpression,
+  inlineOnly: boolean
+) {
+  if (!inlineOnly) {
+    return false;
+  }
+
+  const isInline =
+    expressionNode.parent?.type === AST_NODE_TYPES.JSXExpressionContainer &&
+    expressionNode.parent.parent?.type === AST_NODE_TYPES.JSXAttribute &&
+    (expressionNode.parent.parent.name.name as string)?.endsWith('$');
+
+  return !isInline;
+}
 
 function isPreventDefaultCall(
   expression: Expression,

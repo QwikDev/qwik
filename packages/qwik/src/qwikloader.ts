@@ -12,6 +12,7 @@ import type { QContext } from './core/props/props';
  */
 export const qwikLoader = (doc: Document, hasInitialized?: number) => {
   const Q_CONTEXT = '__q_context__';
+  const win = window as any;
 
   const broadcast = (infix: string, type: string, ev: Event) => {
     type = type.replace(/([A-Z])/g, (a) => '-' + a.toLowerCase());
@@ -20,14 +21,11 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       .forEach((target) => dispatch(target, infix, type, ev));
   };
 
-  const emitEvent = (el: Element, eventName: string, detail: any) =>
-    el.dispatchEvent(
-      new CustomEvent(eventName, {
-        detail,
-        bubbles: true,
-        composed: true,
-      })
-    );
+  const createEvent = (eventName: string, detail?: any, bubbles = false) =>
+    new CustomEvent(eventName, {
+      detail,
+      bubbles,
+    });
 
   const error = (msg: string) => {
     throw new Error('QWIK ' + msg);
@@ -59,8 +57,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
         const url = qrlResolver(element, qrl);
         if (url) {
           const symbolName = getSymbolName(url);
-          const module =
-            (window as any)[url.pathname] || findModule(await import(url.href.split('#')[0]));
+          const module = win[url.pathname] || findModule(await import(url.href.split('#')[0]));
           const handler = module[symbolName] || error(url + ' does not export ' + symbolName);
           const previousCtx = (doc as any)[Q_CONTEXT];
           if (element.isConnected) {
@@ -69,7 +66,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
               handler(ev, element);
             } finally {
               (doc as any)[Q_CONTEXT] = previousCtx;
-              emitEvent(element, 'qsymbol', symbolName);
+              element.dispatchEvent(createEvent('qsymbol', symbolName, true));
             }
           }
         }
@@ -122,60 +119,44 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       // document is ready
       hasInitialized = 1;
 
-      broadcast('', 'qinit', new CustomEvent('qinit'));
+      broadcast('', 'qinit', createEvent('qinit'));
 
-      if (typeof IntersectionObserver !== 'undefined') {
+      const results = doc.querySelectorAll('[on\\:qvisible]');
+
+      if (results.length > 0) {
         const observer = new IntersectionObserver((entries) => {
           for (const entry of entries) {
             if (entry.isIntersecting) {
               observer.unobserve(entry.target);
-              dispatch(
-                entry.target,
-                '',
-                'qvisible',
-                new CustomEvent('qvisible', {
-                  bubbles: false,
-                  detail: entry,
-                })
-              );
+              dispatch(entry.target, '', 'qvisible', createEvent('qvisible', entry));
             }
           }
         });
-        (doc as any)['qO'] = observer;
-        doc.querySelectorAll('[on\\:qvisible]').forEach((el) => observer.observe(el));
+        results.forEach((el) => observer.observe(el));
       }
     }
   };
 
-  const addDocEventListener = (eventName: string) => {
-    document.addEventListener(eventName, processDocumentEvent, { capture: true });
-    window.addEventListener(eventName, processWindowEvent);
+  const events = new Set();
+
+  const push = (eventNames: string[]) => {
+    for (const eventName of eventNames) {
+      if (!events.has(eventName)) {
+        document.addEventListener(eventName, processDocumentEvent, { capture: true });
+        win.addEventListener(eventName, processWindowEvent);
+        events.add(eventName);
+      }
+    }
   };
 
   if (!(doc as any).qR) {
-    // ensure the document only initializes one qwik loader
-    (doc as any).qR = 1;
-
-    // Set up listeners. Start with `document` and walk up the prototype
-    // inheritance on look for `on*` properties. Assume that `on*` property
-    // corresponds to an event browser can emit.
-    if (window.BuildEvents) {
-      window.qEvents.forEach(addDocEventListener);
-    } else {
-      const scriptTag = doc.querySelector('script[events]');
-      if (scriptTag) {
-        const events = scriptTag.getAttribute('events')!;
-        events.split(/[\s,;]+/).forEach(addDocEventListener);
-      } else {
-        for (const key in doc) {
-          if (key.startsWith('on')) {
-            // For each `on*` property, set up a listener.
-            addDocEventListener(key.slice(2));
-          }
-        }
-      }
+    const qwikevents = win.qwikevents;
+    if (Array.isArray(qwikevents)) {
+      push(qwikevents);
     }
-
+    win.qwikevents = {
+      push: (...e: string[]) => push(e),
+    };
     doc.addEventListener('readystatechange', processReadyStateChange as any);
     processReadyStateChange();
   }

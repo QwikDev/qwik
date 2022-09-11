@@ -4,5 +4,6 @@ import { qwikVite } from '@builder.io/qwik/optimizer';
 export default defineConfig(() => {
   return {
     plugins: [qwikVite()],
+    ssr: { target: 'node', format: 'cjs' },
   };
 });

@@ -3,8 +3,11 @@ import type { AppCommand } from '../utils/app-command';
 import { readdirSync } from 'fs';
 import { execa } from 'execa';
 import { join } from 'path';
+import { runBuildCommand } from '../build/run-build';
 
 export async function runSsgCommand(app: AppCommand) {
+  await runBuildCommand(app);
+
   let serverBuilds: string[];
   try {
     serverBuilds = readdirSync(app.serverDir);

@@ -1,48 +1,70 @@
+/* eslint-disable no-console */
+import color from 'kleur';
 import type { AppCommand } from '../utils/app-command';
-import { execa, ExecaChildProcess } from 'execa';
+import { execa, ExecaReturnValue } from 'execa';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 
 export async function runBuildCommand(app: AppCommand) {
   const srcFileNames = readdirSync(app.srcDir);
 
-  const qwikBuildId = Date.now() + Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
-    .toString(36)
-    .toLowerCase();
+  console.log(``);
 
-  const b1: ExecaChildProcess<string>[] = [];
+  const step1: Promise<ExecaReturnValue<string>>[] = [];
+  const step2: Promise<ExecaReturnValue<string>>[] = [];
   
-  const typecheck = execa('tsc', ['--incremental', '--noEmit'], {
-    stdio: 'inherit',
+  const typecheck = execa('tsc', ['--incremental', '--noEmit', '--pretty']).catch((e) => {
+    let out = e.stdout;
+    if (out.startsWith('tsc')) {
+      out = out.slice(3);
+    }
+    console.log('\n' + out);
+    process.exit(1);
   });
-  b1.push(typecheck);
-
+  step1.push(typecheck);
+ 
   const clientBuild = execa('vite', ['build'], {
     stdio: 'inherit',
-    env: {
-      ...process.env,
-      qwikBuildId
-    }
+  }).catch(() => {
+    process.exit(1);
   });
-  b1.push(clientBuild);
+  step1.push(clientBuild);
 
-  await Promise.all(b1);
-  
-  const b2: ExecaChildProcess<string>[] = [];
+  await Promise.all(step1).then(() => {
+    console.log('');
+    console.log(`${color.green('✓')} Type checked source`);
+    console.log(`${color.green('✓')} Built client modules`);
+  })
 
   for (const srcFileName of srcFileNames) {
-    if (srcFileName === 'entry.server.tsx' || srcFileName === 'entry.static.tsx') {
+    if (srcFileName === 'entry.server.tsx') {
       const extPath = join(app.srcDir, srcFileName);
-      const build = execa('vite', ['build', '--ssr', extPath], {
-        stdio: 'inherit',
-        env: {
-          ...process.env,
-          qwikBuildId
-        }
-      });
-      b2.push(build);
+      const serverBuild = execa('vite', ['build', '--ssr', extPath])
+        .catch((e) => {
+          console.log(e.stdout);
+          process.exit(1);
+        })
+        .then((cp) => {
+          console.log(`${color.green('✓')} Built server (ssr) modules`);
+          return cp;
+        });
+      step2.push(serverBuild);    
+    } else if ( srcFileName === 'entry.static.tsx') {
+      const extPath = join(app.srcDir, srcFileName);
+      const staticBuild = execa('vite', ['build', '--ssr', extPath])
+        .catch((e) => {
+          console.log(e);
+          process.exit(1);
+        })
+        .then((cp) => {
+          console.log(`${color.green('✓')} Built static (ssg) modules`);
+          return cp;
+        });
+      step2.push(staticBuild);
     }
   }
 
-  await Promise.all(b2);
+  await Promise.all(step2);
+
+  console.log('');
 }

@@ -1,6 +1,10 @@
 import { BuildConfig, ensureDir, panic } from './util';
 import { apiExtractor } from './api';
+import { buildCreateQwikCli } from './create-qwik-cli';
+import { buildEslint } from './eslint';
 import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform';
+import { buildQwikCity } from './qwik-city';
+import { buildQwikReact } from './qwik-react';
 import { buildWasmBinding } from './binding-wasm';
 import { copyFiles } from './copy-files';
 import { emptyDir } from './util';
@@ -12,6 +16,7 @@ import {
   setDevVersion,
   setReleaseVersion,
 } from './release';
+import { submoduleBuild } from './submodule-build';
 import { submoduleCli } from './submodule-cli';
 import { submoduleCore } from './submodule-core';
 import { submoduleJsxRuntime } from './submodule-jsx-runtime';
@@ -21,11 +26,6 @@ import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
 import { tsc } from './tsc';
 import { validateBuild } from './validate-build';
-import { buildCreateQwikCli } from './create-qwik-cli';
-import { submoduleBuild } from './submodule-build';
-import { buildEslint } from './eslint';
-import { buildQwikCity } from './qwik-city';
-import { buildQwikReact } from './qwik-react';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in
@@ -73,7 +73,7 @@ export async function build(config: BuildConfig) {
         submoduleQwikLoader(config),
         submoduleBuild(config),
         submoduleTesting(config),
-        buildCreateQwikCli(config),
+        submoduleCli(config),
         copyFiles(config),
       ]);
 
@@ -113,7 +113,7 @@ export async function build(config: BuildConfig) {
     }
 
     if (config.cli) {
-      await submoduleCli(config);
+      await buildCreateQwikCli(config);
     }
 
     if (config.prepareRelease) {

@@ -54,11 +54,11 @@ export async function runBuildCommand(app: AppCommand) {
   }).catch(() => {
     process.exit(1);
   });
+ 
+  await clientBuild;
 
-  clientBuild.then(() => {
-    console.log(``);
-    console.log(`${color.green('✓')} Built client modules`);
-  })
+  console.log(``);
+  console.log(`${color.green('✓')} Built client modules`);
 
   const step2: Promise<ExecaReturnValue<string>>[] = [];
 

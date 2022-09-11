@@ -371,4 +371,79 @@ test('valid-lexical-scope', () => {
   });
 });
 
+test('no-prevent-default', () => {
+  ruleTester.run('no-prevent-default', rules['no-prevent-default'], {
+    valid: [
+      {
+        code: '<button onClick$={() => {}}></button>',
+      },
+      {
+        code: `
+          import { component$, $ } from '@builder.io/qwik';
+
+          export const App = component$(() => {
+            const callback = $((event) => {
+              event.preventDefault();
+            });
+            return <button onClick$={callback}></button>;
+          });
+        `,
+        options: [
+          {
+            inlineOnly: true,
+          },
+        ],
+      },
+    ],
+    invalid: [
+      {
+        code: '<button onClick$={(event) => {event.preventDefault();}}></button>',
+        errors: [{ messageId: 'errorMessage' }],
+      },
+      {
+        code: '<button onClick$={(event) => event.preventDefault()}></button>',
+        errors: [{ messageId: 'errorMessage' }],
+      },
+      {
+        code: '<button onClick$={function(event){ event.preventDefault(); }}></button>',
+        errors: [{ messageId: 'errorMessage' }],
+      },
+      {
+        code: '<button onClick$={({preventDefault}) => {preventDefault();}}></button>',
+        errors: [{ messageId: 'errorMessage' }],
+      },
+      {
+        code: '<button onClick$={({preventDefault: fn}) => {fn();}}></button>',
+        errors: [{ messageId: 'errorMessage' }],
+      },
+      {
+        code: `
+          import { component$, $ } from '@builder.io/qwik';
+
+          export const App = component$(() => {
+            const callback = $((event) => {
+              event.preventDefault();
+            });
+            return <button onClick$={callback}></button>;
+          });
+        `,
+        errors: [{ messageId: 'errorMessage' }],
+      },
+      {
+        code: `
+          import { component$, $ } from '@builder.io/qwik';
+
+          export const App = component$(() => {
+            const callback = $(function myFn(event){
+              event.preventDefault();
+            });
+            return <button onClick$={callback}></button>;
+          });
+        `,
+        errors: [{ messageId: 'errorMessage' }],
+      },
+    ],
+  });
+});
+
 export {};

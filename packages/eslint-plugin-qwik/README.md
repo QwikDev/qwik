@@ -4,3 +4,4 @@
 
 - `no-use-after-await` (deprecated)
 - `valid-lexical-scope`
+- `no-prevent-default`

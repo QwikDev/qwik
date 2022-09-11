@@ -1,7 +1,8 @@
 {
   "description": "Static Site Generator (Node.js)",
   "scripts": {
-    "ssg": "qwik ssg"
+    "build.static": "vite build --ssr src/entry.static.tsx",
+    "ssg": "node server/entry.static"
   },
   "__qwik__": {
     "priority": -1,

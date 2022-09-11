@@ -1,13 +1,16 @@
 {
   "name": "qwik-project-name",
   "scripts": {
-    "start": "vite --mode ssr",
     "build": "qwik build",
+    "build.client": "vite build",
+    "build.server": "vite build --ssr src/entry.server.tsx",
     "dev": "vite --mode ssr",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "lint": "eslint \"src/**/*.ts*\"",
-    "serve": "qwik serve",
+    "serve": "node server/entry.server",
+    "start": "vite --mode ssr",
+    "typecheck": "tsc --incremental --noEmit",
     "qwik": "qwik"
   },
   "devDependencies": {

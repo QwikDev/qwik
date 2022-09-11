@@ -415,6 +415,54 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
     },
 
+    async writeBundle(_, rollupBundle) {
+      const opts = qwikPlugin.getOptions();
+      if (opts.target === 'ssr') {
+        // ssr build
+
+        const sys = qwikPlugin.getSys();
+        if (sys.env === 'node') {
+          const outputs = Object.keys(rollupBundle);
+
+          // In order to simplify executing the server script with a common scripot
+          // always ensure there's a plain .js file.
+          // For example, if only a .mjs was generated, also
+          // create the .js file that just calls the .mjs file
+          const patchModuleFormat = async (buildType: 'server' | 'static') => {
+            try {
+              const js = `entry.${buildType}.js`;
+              const cjs = `entry.${buildType}.cjs`;
+              const mjs = `entry.${buildType}.mjs`;
+
+              if (!outputs.includes(js)) {
+                // didn't generate a .js script
+                if (outputs.includes(mjs)) {
+                  // create a .js file that just import()s the .mjs script
+                  const fs: typeof import('fs') = await sys.dynamicImport('fs');
+                  await fs.promises.writeFile(
+                    sys.path.join(opts.outDir, js),
+                    `import("./${mjs}").catch((e) => { console.error(e); process.exit(1); });`
+                  );
+                } else if (outputs.includes(cjs)) {
+                  // create a .js file that just require()s the .cjs script
+                  const fs: typeof import('fs') = await sys.dynamicImport('fs');
+                  await fs.promises.writeFile(
+                    sys.path.join(opts.outDir, js),
+                    `require("./${cjs}");`
+                  );
+                }
+              }
+            } catch (e) {
+              console.error('patchModuleFormat', e);
+            }
+          };
+
+          await patchModuleFormat('server');
+          await patchModuleFormat('static');
+        }
+      }
+    },
+
     async configureServer(server: ViteDevServer) {
       const opts = qwikPlugin.getOptions();
       const sys = qwikPlugin.getSys();

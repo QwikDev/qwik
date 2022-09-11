@@ -42,14 +42,6 @@ export class AppCommand {
     this._rootDir = rootDir;
   }
 
-  get serverDir() {
-    return join(this.rootDir, 'server');
-  }
-
-  get srcDir() {
-    return join(this.rootDir, 'src');
-  }
-
   get packageJson(): PackageJSON {
     if (!this._rootPkgJson) {
       const pkgJsonPath = join(this.rootDir, 'package.json');

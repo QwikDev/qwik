@@ -3,9 +3,6 @@ import color from 'kleur';
 import { AppCommand } from './utils/app-command';
 import { runAddCommand } from './add/run-add';
 import { panic } from './utils/utils';
-import { runDevCommand } from './dev/run-dev';
-import { runServeCommand } from './serve/run-serve';
-import { runSsgCommand } from './ssg/run-ssg';
 import { runBuildCommand } from './build/run-build';
 
 export async function runCli() {
@@ -31,18 +28,6 @@ async function runCommand(app: AppCommand) {
       await runBuildCommand(app);
       return;
     }
-    case 'dev': {
-      await runDevCommand(app);
-      return;
-    }
-    case 'serve': {
-      await runServeCommand(app);
-      return;
-    }
-    case 'ssg': {
-      await runSsgCommand(app);
-      return;
-    }
     case 'help': {
       printHelp();
       return;
@@ -64,11 +49,8 @@ async function runCommand(app: AppCommand) {
 async function printHelp() {
   console.log(color.bgCyan(` Qwik Help `));
   console.log(``);
-  console.log(`  qwik add      ${color.dim(`Add an integration`)}`);
-  console.log(`  qwik build    ${color.dim(`Parallelize client/server builds and type checking`)}`);
-  console.log(`  qwik dev      ${color.dim(`Vite dev build with ssr mode`)}`);
-  console.log(`  qwik serve    ${color.dim(`Serve the production build`)}`);
-  console.log(`  qwik ssg      ${color.dim(`Run build then static site generation`)}`);
+  console.log(`  qwik add     ${color.dim(`Add an integration`)}`);
+  console.log(`  qwik build   ${color.dim(`Parallelize client/server builds and type checking`)}`);
   console.log(``);
 }
 

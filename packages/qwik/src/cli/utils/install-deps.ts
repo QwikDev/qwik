@@ -5,7 +5,7 @@ import os from 'os';
 import path from 'path';
 import spawn from 'cross-spawn';
 import type { ChildProcess } from 'child_process';
-import type { IntegrationData } from './types';
+import type { IntegrationData } from '../types';
 
 export function installDeps(pkgManager: string, dir: string) {
   let installChild: ChildProcess;

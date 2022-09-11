@@ -4,11 +4,11 @@ import { relative } from 'path';
 import prompts from 'prompts';
 import color from 'kleur';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
-import { backgroundInstallDeps } from '../qwik/src/cli/install-deps';
+import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
 import { createOutDir, createOutDirName, createApp } from './create-app';
-import { getPackageManager } from '../qwik/src/cli/utils';
-import { logCreateAppResult } from '../qwik/src/cli/log';
-import { loadIntegrations } from '../qwik/src/cli/integrations';
+import { getPackageManager } from '../qwik/src/cli/utils/utils';
+import { logCreateAppResult } from '../qwik/src/cli/utils/log';
+import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 
 export async function runCreateInteractiveCli() {
   console.log(``);

@@ -1,9 +1,5 @@
 {
   "description": "Blank Qwik starter app.",
-  "scripts": {
-    "build.server": "vite build --ssr src/entry.server.tsx",
-    "serve": "node server/entry.server.mjs"
-  },
   "type": "module",
   "__qwik__": {
     "priority": 0,

@@ -1,5 +1,5 @@
 import { createApp, runCreateCli } from './create-app';
-import { panic } from '../qwik/src/cli/utils';
+import { panic } from '../qwik/src/cli/utils/utils';
 import { runCreateInteractiveCli } from './create-interactive';
 
 export async function runCli() {

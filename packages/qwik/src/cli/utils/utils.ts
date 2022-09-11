@@ -2,7 +2,7 @@ import fs from 'fs';
 import { join } from 'path';
 import color from 'kleur';
 import detectPackageManager from 'which-pm-runs';
-import type { IntegrationPackageJson } from './types';
+import type { IntegrationPackageJson } from '../types';
 
 export async function readPackageJson(dir: string) {
   const path = join(dir, 'package.json');

@@ -11,7 +11,7 @@ import type {
   Statement,
   TransformerFactory,
 } from 'typescript';
-import type { EnsureImport, ViteConfigUpdates } from './types';
+import type { EnsureImport, ViteConfigUpdates } from '../types';
 
 export function updateViteConfig(ts: TypeScript, sourceText: string, updates?: ViteConfigUpdates) {
   if (

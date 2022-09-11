@@ -1,43 +1,19 @@
 /* eslint-disable no-console */
-import type { AppCommand } from './app-command';
-import color from 'kleur';
+import type { AppCommand } from '../utils/app-command';
+import { loadIntegrations } from '../utils/integrations';
 import prompts from 'prompts';
-import { loadIntegrations } from './integrations';
+import color from 'kleur';
+import { getPackageManager, panic } from '../utils/utils';
 import { updateApp } from './update-app';
-import { getPackageManager, panic } from './utils';
+import type { UpdateAppResult } from '../types';
 import { relative } from 'path';
-import type { UpdateAppResult } from './types';
-import { logUpdateAppCommitResult } from './log';
+import { logSuccessFooter } from '../utils/log';
 
-export async function runAddCommand(app: AppCommand) {
-  const id = app.args[1];
-  if (id === 'help') {
-    await printAddHelp();
-    return;
-  }
-
-  if (typeof id === 'string') {
-    try {
-      const result = await updateApp({
-        rootDir: app.rootDir,
-        integration: id,
-      });
-      await result.commit();
-      return;
-    } catch (e) {
-      console.error(`\n❌ ${color.red(String(e))}\n`);
-      await printAddHelp();
-      process.exit(1);
-    }
-  }
-
-  await runAddInteractiveCli(app);
-}
-
-async function runAddInteractiveCli(app: AppCommand) {
+export async function runAddInteractive(app: AppCommand) {
   console.clear();
 
   const integrations = await loadIntegrations();
+  const staticGenerator = integrations.find((i) => i.type === 'static-generator')!;
   const features = integrations.filter((i) => i.type === 'feature');
 
   const featureAnswer = await prompts(
@@ -47,7 +23,7 @@ async function runAddInteractiveCli(app: AppCommand) {
       message: `What feature would you like to add?`,
       choices: [
         { title: 'Server (SSR)', value: '__server' },
-        { title: 'Static Generator (SSG)', value: '__static-generator' },
+        { title: 'Static Generator (SSG)', value: staticGenerator.id },
         ...features.map((f) => {
           return { title: f.name, value: f.id };
         }),
@@ -86,58 +62,49 @@ async function runAddInteractiveCli(app: AppCommand) {
     );
     integrationId = serverAnswer.id;
     console.log(``);
-  } else if (featureAnswer.featureType === '__static-generator') {
-    const staticGenerators = integrations.filter((i) => i.type === 'static-generator');
-    const staticAnswer = await prompts(
-      {
-        type: 'select',
-        name: 'id',
-        message: `Which static generator would you like to add?`,
-        choices: staticGenerators.map((f) => {
-          return { title: f.name, value: f.id, description: f.description };
-        }),
-        hint: ' ',
-      },
-      {
-        onCancel: () => {
-          console.log(``);
-          process.exit(0);
-        },
-      }
-    );
-    integrationId = staticAnswer.id;
-    console.log(``);
   } else {
     integrationId = featureAnswer.featureType;
   }
 
-  const pkgManager = getPackageManager();
-  const runInstallAnswer = await prompts(
-    {
-      type: 'confirm',
-      name: 'runInstall',
-      message: `Would you like to install ${pkgManager} dependencies?`,
-      initial: true,
-    },
-    {
-      onCancel: async () => {
-        console.log('');
-        process.exit(0);
+  const selectedIntegration = integrations.find((i) => i.id === integrationId);
+
+  const integrationHasDeps =
+    Object.keys({
+      ...selectedIntegration?.pkgJson.dependencies,
+      ...selectedIntegration?.pkgJson.devDependencies,
+    }).length > 0;
+
+  let runInstall = false;
+  if (integrationHasDeps) {
+    const pkgManager = getPackageManager();
+    const runInstallAnswer = await prompts(
+      {
+        type: 'confirm',
+        name: 'runInstall',
+        message: `Would you like to install ${pkgManager} dependencies?`,
+        initial: true,
       },
-    }
-  );
-  console.log(``);
+      {
+        onCancel: async () => {
+          console.log('');
+          process.exit(0);
+        },
+      }
+    );
+    console.log(``);
+    runInstall = !!runInstallAnswer.runInstall;
+  }
 
   const result = await updateApp({
     rootDir: app.rootDir,
     integration: integrationId,
-    installDeps: !!runInstallAnswer.runInstall,
+    installDeps: runInstall,
   });
 
   await logUpdateAppResult(result);
 }
 
-async function logUpdateAppResult(result: UpdateAppResult) {
+export async function logUpdateAppResult(result: UpdateAppResult) {
   const modifyFiles = result.updates.files.filter((f) => f.type === 'modify');
   const overwriteFiles = result.updates.files.filter((f) => f.type === 'overwrite');
   const createFiles = result.updates.files.filter((f) => f.type === 'create');
@@ -216,30 +183,13 @@ async function logUpdateAppResult(result: UpdateAppResult) {
   }
 }
 
-export async function printAddHelp() {
-  const integrations = await loadIntegrations();
-  const servers = integrations.filter((i) => i.type === 'server');
-  const staticGenerators = integrations.filter((i) => i.type === 'static-generator');
-  const features = integrations.filter((i) => i.type === 'feature');
+function logUpdateAppCommitResult(result: UpdateAppResult) {
+  console.clear();
 
-  console.log(`${color.green(`qwik add`)} ${color.cyan(`[feature]`)}`);
+  console.log(
+    `⭐️ ${color.bgGreen(` Success! `)} ${color.yellow(result.integration.id)} added to your app`
+  );
   console.log(``);
 
-  console.log(`  ${color.cyan('Servers')}`);
-  for (const s of servers) {
-    console.log(`    ${s.id}  ${color.dim(s.description)}`);
-  }
-  console.log(``);
-
-  console.log(`  ${color.cyan('Static Generators')}`);
-  for (const s of staticGenerators) {
-    console.log(`    ${s.id}  ${color.dim(s.description)}`);
-  }
-  console.log(``);
-
-  console.log(`  ${color.cyan('Features')}`);
-  for (const s of features) {
-    console.log(`    ${s.id}  ${color.dim(s.description)}`);
-  }
-  console.log(``);
+  logSuccessFooter();
 }

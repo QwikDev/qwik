@@ -1,7 +1,6 @@
 {
   "description": "Cloudflare Pages",
   "scripts": {
-    "build.server": "vite build --ssr src/entry.server.tsx",
     "serve": "wrangler pages dev ./dist"
   },
   "devDependencies": {

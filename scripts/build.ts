@@ -114,6 +114,7 @@ export async function build(config: BuildConfig) {
 
     if (config.cli) {
       await buildCreateQwikCli(config);
+      await submoduleCli(config);
     }
 
     if (config.prepareRelease) {

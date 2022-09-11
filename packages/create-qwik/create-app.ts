@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
 import fs from 'fs';
 import { join, resolve } from 'path';
-import { cleanPackageJson, panic, toDashCase, writePackageJson } from '../qwik/src/cli/utils';
-import { loadIntegrations } from '../qwik/src/cli/integrations';
-import { logCreateAppResult } from '../qwik/src/cli/log';
-import { updateApp } from '../qwik/src/cli/update-app';
+import { cleanPackageJson, panic, toDashCase, writePackageJson } from '../qwik/src/cli/utils/utils';
+import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
+import { logCreateAppResult } from '../qwik/src/cli/utils/log';
+import { updateApp } from '../qwik/src/cli/add/update-app';
 import type {
   CreateAppOptions,
   CreateAppResult,

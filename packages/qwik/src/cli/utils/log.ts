@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import color from 'kleur';
 import { relative } from 'path';
-import type { CreateAppResult, UpdateAppResult } from './types';
+import type { CreateAppResult } from '../types';
 import { getPackageManager } from './utils';
 
 export function logCreateAppResult(result: CreateAppResult, ranInstall: boolean) {
@@ -36,18 +36,7 @@ export function logCreateAppResult(result: CreateAppResult, ranInstall: boolean)
   logSuccessFooter();
 }
 
-export function logUpdateAppCommitResult(result: UpdateAppResult) {
-  console.clear();
-
-  console.log(
-    `⭐️ ${color.bgGreen(` Success! `)} ${color.yellow(result.integration.id)} added to your app`
-  );
-  console.log(``);
-
-  logSuccessFooter();
-}
-
-function logSuccessFooter() {
+export function logSuccessFooter() {
   console.log(`💬 ${color.cyan('Questions? Start the conversation at:')}`);
   console.log(`   https://qwik.builder.io/chat`);
   console.log(`   https://twitter.com/QwikDev`);

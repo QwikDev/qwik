@@ -2,7 +2,8 @@
 import type { AppCommand } from '../utils/app-command';
 import { readdirSync } from 'fs';
 import { execa } from 'execa';
-import { join } from 'path';
+import color from 'kleur';
+import { join, relative } from 'path';
 import { runBuildCommand } from '../build/run-build';
 
 export async function runSsgCommand(app: AppCommand) {
@@ -20,6 +21,9 @@ export async function runSsgCommand(app: AppCommand) {
       const ssgBuildName = 'entry.static' + ext;
       if (buildName === ssgBuildName) {
         const exePath = join(app.serverDir, ssgBuildName);
+
+        console.log(color.dim(`node ${relative(app.rootDir, exePath)}`) + '\n');
+
         await execa('node', [exePath], {
           stdio: 'inherit',
         });

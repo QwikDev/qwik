@@ -1,11 +1,12 @@
 {
   "name": "qwik-project-name",
   "scripts": {
-    "start": "qwik dev",
+    "start": "vite --mode ssr",
     "build": "qwik build",
-    "dev": "qwik dev",
-    "fmt": "qwik fmt",
-    "lint": "qwik lint",
+    "dev": "vite --mode ssr",
+    "fmt": "prettier --write .",
+    "fmt.check": "prettier --check .",
+    "lint": "eslint \"src/**/*.ts*\"",
     "serve": "qwik serve",
     "qwik": "qwik"
   },

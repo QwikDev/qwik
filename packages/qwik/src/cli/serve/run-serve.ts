@@ -1,8 +1,9 @@
 /* eslint-disable no-console */
 import type { AppCommand } from '../utils/app-command';
 import { readdirSync } from 'fs';
+import color from 'kleur';
 import { execa } from 'execa';
-import { join } from 'path';
+import { join, relative } from 'path';
 
 export async function runServeCommand(app: AppCommand) {
   let serverBuilds: string[];
@@ -17,6 +18,9 @@ export async function runServeCommand(app: AppCommand) {
       const serverBuildName = 'entry.server' + ext;
       if (buildName === serverBuildName) {
         const exePath = join(app.serverDir, serverBuildName);
+
+        console.log(color.dim(`node ${relative(app.rootDir, exePath)}`) + '\n');
+
         await execa('node', [exePath], {
           stdio: 'inherit',
         });

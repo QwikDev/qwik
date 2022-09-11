@@ -1,11 +1,9 @@
 /* eslint-disable no-console */
 import color from 'kleur';
 import { AppCommand } from './utils/app-command';
-import { printAddHelp, runAddCommand } from './add/run-add';
+import { runAddCommand } from './add/run-add';
 import { panic } from './utils/utils';
 import { runDevCommand } from './dev/run-dev';
-import { runFmtCommand } from './fmt/run-fmt';
-import { runLintCommand } from './lint/run-lint';
 import { runServeCommand } from './serve/run-serve';
 import { runSsgCommand } from './ssg/run-ssg';
 import { runBuildCommand } from './build/run-build';
@@ -37,14 +35,6 @@ async function runCommand(app: AppCommand) {
       await runDevCommand(app);
       return;
     }
-    case 'fmt': {
-      await runFmtCommand(app);
-      return;
-    }
-    case 'lint': {
-      await runLintCommand(app);
-      return;
-    }
     case 'serve': {
       await runServeCommand(app);
       return;
@@ -63,6 +53,10 @@ async function runCommand(app: AppCommand) {
     }
   }
 
+  if (typeof app.task === 'string') {
+    console.log(color.red(`Unrecognized qwik command: ${app.task}`) + '\n');
+  }
+
   await printHelp();
   process.exit(1);
 }
@@ -70,9 +64,14 @@ async function runCommand(app: AppCommand) {
 async function printHelp() {
   console.log(color.bgCyan(` Qwik Help `));
   console.log(``);
-  await printAddHelp();
+  console.log(`  qwik add      ${color.dim(`Add an integration`)}`);
+  console.log(`  qwik build    ${color.dim(`Parallelize client/server builds and type checking`)}`);
+  console.log(`  qwik dev      ${color.dim(`Vite dev build with ssr mode`)}`);
+  console.log(`  qwik serve    ${color.dim(`Serve the production build`)}`);
+  console.log(`  qwik ssg      ${color.dim(`Run build then static site generation`)}`);
+  console.log(``);
 }
 
 function printVersion() {
-  console.log(color.cyan((globalThis as any).QWIK_VERSION));
+  console.log((globalThis as any).QWIK_VERSION);
 }

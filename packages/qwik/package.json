@@ -11,9 +11,13 @@
     ".": {
       "import": {
         "min": "./dist/core.min.mjs",
+        "production": "./dist/core.prod.mjs",
         "default": "./dist/core.mjs"
       },
-      "require": "./dist/core.cjs"
+      "require": {
+        "production": "./dist/core.prod.cjs",
+        "default": "./dist/core.cjs"
+      }
     },
     "./cli": {
       "require": "./dist/cli.cjs"
@@ -74,6 +78,8 @@
     "core.min.mjs",
     "core.mjs",
     "core.mjs.map",
+    "core.prod.cjs",
+    "core.prod.mjs",
     "core.d.ts",
     "jsx-runtime/package.json",
     "jsx-runtime.cjs",

@@ -25,9 +25,13 @@ export async function generatePackageJson(config: BuildConfig) {
       '.': {
         import: {
           min: './core.min.mjs',
+          production: './core.prod.mjs',
           default: './core.mjs',
         },
-        require: './core.cjs',
+        require: {
+          production: './core.prod.cjs',
+          default: './core.cjs',
+        },
       },
       './cli': {
         require: './cli.cjs',

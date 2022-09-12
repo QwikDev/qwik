@@ -1,5 +1,6 @@
 import {
   component$,
+  JSXNode,
   noSerialize,
   Slot,
   useContextProvider,
@@ -33,7 +34,26 @@ import { toPath } from './utils';
 /**
  * @alpha
  */
-export const QwikCity = component$(() => {
+export interface QwikCityProps {
+  /**
+   * The QwikCity component must have only two direct children: `<head>` and `<body>`, like the following example:
+   *
+   * ```tsx
+   * <QwikCity>
+   *   <head>
+   *     <meta charSet="utf-8" />
+   *   </head>
+   *   <body lang="en"></body>
+   * </QwikCity>
+   * ```
+   */
+  children?: [JSXNode, JSXNode];
+}
+
+/**
+ * @alpha
+ */
+export const QwikCity = component$<QwikCityProps>(() => {
   const env = useQwikCityEnv();
   if (!env?.params) {
     throw new Error(`Missing Qwik City Env Data`);

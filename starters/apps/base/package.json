@@ -3,7 +3,6 @@
   "scripts": {
     "build": "qwik build",
     "build.client": "vite build",
-    "build.server": "vite build --ssr src/entry.server.tsx",
     "dev": "vite --mode ssr",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",

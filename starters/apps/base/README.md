@@ -22,10 +22,10 @@ Production build that creates only the client-side modules that are dynamically 
 npm run build.client
 ```
 
-### Server Modules
+### Preview
 
-Production build that creates the server-side render (SSR) module that is used by the server to render the HTML.
+The preview command is intended for previewing the build locally and not meant as a production server.
 
 ```
-npm run build.server
+npm run preview
 ```

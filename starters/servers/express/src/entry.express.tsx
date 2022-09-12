@@ -1,4 +1,4 @@
-import { qwikCity } from 'packages/qwik-city/middleware/node';
+import { qwikCity } from '@builder.io/qwik-city/middleware/node';
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { join } from 'path';
@@ -27,7 +27,7 @@ app.use(router);
 app.use(notFound);
 
 // Start the express server
-app.listen(8080, () => {
+app.listen(3000, () => {
   /* eslint-disable */
-  console.log(`http://localhost:8080/`);
+  console.log(`http://localhost:3000/`);
 });

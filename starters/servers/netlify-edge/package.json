@@ -17,10 +17,10 @@
         }
       ],
       "qwikViteConfig": {
-        "ssr": "{ outDir: 'netlify/edge-functions/entry.server' }"
+        "ssr": "{ outDir: 'netlify/edge-functions/entry.netlify-edge' }"
       },
       "vitePlugins": [
-        "netlifyEdge({ functionName: 'entry.server' })"
+        "netlifyEdge({ functionName: 'entry.netlify-edge' })"
       ]
     }
   }

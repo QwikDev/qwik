@@ -4,7 +4,7 @@ command = "npm run build"
 
 [[edge_functions]]
 path = "/*"
-function = "entry.server"
+function = "entry.netlify-edge"
 
 [dev]
 framework = "#static"

@@ -3,11 +3,12 @@
   "scripts": {
     "build": "qwik build",
     "build.client": "vite build",
+    "build.preview": "vite build --ssr src/entry.preview.tsx",
     "dev": "vite --mode ssr",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "lint": "eslint \"src/**/*.ts*\"",
-    "preview": "vite preview",
+    "preview": "qwik build preview && vite preview",
     "start": "vite --mode ssr",
     "typecheck": "tsc --incremental --noEmit",
     "qwik": "qwik"

@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 import color from 'kleur';
 import { AppCommand } from './utils/app-command';
-import { runAddCommand } from './add/run-add';
+import { runAddCommand } from './add/run-add-command';
 import { panic } from './utils/utils';
-import { runBuildCommand } from './build/run-build';
+import { runBuildCommand } from './build/run-build-command';
 
 export async function runCli() {
   try {

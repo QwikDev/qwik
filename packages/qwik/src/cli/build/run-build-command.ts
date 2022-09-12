@@ -9,21 +9,29 @@ export async function runBuildCommand(app: AppCommand) {
     throw new Error(`No "scripts" property found in package.json`);
   }
 
-  const typecheckScript = pkgJsonScripts.typecheck;
-  const buildClientScript = pkgJsonScripts['build.client'];
-  const buildServerScript = pkgJsonScripts['build.server'];
-  const buildStaticScript = pkgJsonScripts['build.static'];
+  const isPreviewBuild = app.args.includes('preview');
 
-  const scripts = [typecheckScript, buildClientScript, buildServerScript, buildStaticScript]
-    .filter(s => typeof s === 'string' && s.trim().length > 0);
+  const buildClientScript = pkgJsonScripts['build.client'];
+  const buildPreviewScript = isPreviewBuild ? pkgJsonScripts['build.preview'] : undefined;
+  const buildServerScript = !isPreviewBuild ? pkgJsonScripts['build.server'] : undefined;
+  const buildStaticScript = pkgJsonScripts['build.static'];
+  const runSsgScript = pkgJsonScripts['ssg'];
+  const typecheckScript = !isPreviewBuild ? pkgJsonScripts.typecheck : undefined;
+
+  const scripts = [typecheckScript, buildClientScript, buildPreviewScript, buildServerScript, buildStaticScript]
+    .filter(s => typeof s === 'string' && s.trim().length > 0)!;
 
   if (!buildClientScript) {
     throw new Error(`"build.client" script not found in package.json`);
   }
 
+  if (isPreviewBuild && !buildPreviewScript && !buildStaticScript) {
+    throw new Error(`Neither "build.preview" or "build.static" script found in package.json for preview`);
+  }
+
   console.log(``);
   for (const script of scripts) {
-    console.log(color.dim(script));
+    console.log(color.dim(script!));
   }
   console.log(``);
   
@@ -59,6 +67,26 @@ export async function runBuildCommand(app: AppCommand) {
   console.log(`${color.green('✓')} Built client modules`);
 
   const step2: Promise<ExecaReturnValue<string>>[] = [];
+
+  if (buildPreviewScript) {
+    const previewScript = parseScript(buildPreviewScript);
+    const previewBuild = execa(previewScript.cmd, previewScript.flags, {
+      cwd: app.rootDir,
+      env: {
+        FORCE_COLOR: 'true'
+      }
+    }).catch((e) => {
+      console.log(``);
+      if (e.stderr) {
+        console.log(e.stderr);
+      } else {
+        console.log(e.stdout);
+      }
+      console.log(``);
+      process.exit(1);
+    });
+    step2.push(previewBuild);  
+  }
 
   if (buildServerScript) {
     const serverScript = parseScript(buildServerScript);
@@ -107,6 +135,9 @@ export async function runBuildCommand(app: AppCommand) {
   if (step2.length > 0) {
     await Promise.all(step2)
       .then(() => {
+        if (buildPreviewScript) {
+          console.log(`${color.green('✓')} Built preview (ssr) modules`);
+        }
         if (buildServerScript) {
           console.log(`${color.green('✓')} Built server (ssr) modules`);
         }
@@ -116,6 +147,25 @@ export async function runBuildCommand(app: AppCommand) {
         if (typecheck) {
           console.log(`${color.green('✓')} Type checked`);
         }
+
+        if (isPreviewBuild && buildStaticScript && runSsgScript) {
+          const ssgScript = parseScript(buildStaticScript);
+          return execa(ssgScript.cmd, ssgScript.flags, {
+            cwd: app.rootDir,
+            env: {
+              FORCE_COLOR: 'true'
+            }
+          }).catch((e) => {
+            console.log(``);
+            if (e.stderr) {
+              console.log(e.stderr);
+            } else {
+              console.log(e.stdout);
+            }
+            console.log(``);
+            process.exit(1);
+          });
+        }
       });
   }
 
@@ -123,8 +173,7 @@ export async function runBuildCommand(app: AppCommand) {
 }
 
 function parseScript(s: string) {
-  const parts = s.split(' ');
-  const cmd = parts[0];
-  const flags = parts.slice(1);
+  const flags = s.split(' ');
+  const cmd = flags.shift()!;
   return { cmd, flags };
 }

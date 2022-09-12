@@ -15,12 +15,12 @@
     "./middleware/cloudflare-pages": {
       "import": "./lib/middleware/cloudflare-pages/index.mjs"
     },
-    "./middleware/express": {
-      "import": "./lib/middleware/express/index.mjs",
-      "require": "./lib/middleware/express/index.cjs"
-    },
     "./middleware/netlify-edge": {
       "import": "./lib/middleware/netlify-edge/index.mjs"
+    },
+    "./middleware/node": {
+      "import": "./lib/middleware/node/index.mjs",
+      "require": "./lib/middleware/node/index.cjs"
     },
     "./static/node": {
       "import": "./lib/static/node/index.mjs",
@@ -45,7 +45,6 @@
     "build.static": "cd runtime && vite build --config vite-app.config.ts --ssr src/entry.static.tsx",
     "ssg": "cd runtime && node server/entry.static.js",
     "build.runtime": "cd runtime && vite build --mode lib",
-    "preview": "vite preview",
     "serve": "node --inspect runtime/server/entry.express",
     "serve.debug": "node --inspect-brk runtime/server/entry.express",
     "test": "yarn test.unit && yarn test.e2e",

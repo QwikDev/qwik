@@ -38,8 +38,6 @@ export interface IntegrationData {
   pkgJson: IntegrationPackageJson;
   dir: string;
   priority: number;
-  featureOptions: string[];
-  featureEnabled: string[];
   viteConfig?: ViteConfigUpdates;
 }
 
@@ -64,8 +62,6 @@ export interface IntegrationPackageJson {
   private?: boolean;
   __qwik__?: {
     priority: number;
-    featureOptions?: string[];
-    featureEnabled?: string[];
     viteConfig?: ViteConfigUpdates;
   };
 }

@@ -1,6 +1,7 @@
 {
   "description": "Netlify Edge Functions",
   "scripts": {
+    "build.server": "vite build --ssr src/entry.netlify-edge.tsx",
     "serve": "netlify dev"
   },
   "devDependencies": {

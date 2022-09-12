@@ -1,7 +1,7 @@
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { join } from 'path';
-import { qwikCity } from '../../middleware/express';
+import { qwikCity } from '../../middleware/node';
 import render from './entry.ssr';
 
 // directories where the static assets are located

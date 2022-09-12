@@ -71,13 +71,13 @@ export function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'middleware', 'express'),
-    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'express', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'middleware', 'netlify-edge'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'netlify-edge', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'middleware', 'netlify-edge'),
-    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'netlify-edge', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'middleware', 'node'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'node', 'index.d.ts')
   );
   createTypesApi(
     config,

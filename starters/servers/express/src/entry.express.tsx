@@ -1,4 +1,4 @@
-import { qwikCity } from '@builder.io/qwik-city/middleware/express';
+import { qwikCity } from 'packages/qwik-city/middleware/node';
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { join } from 'path';
@@ -12,9 +12,11 @@ const buildDir = join(distDir, 'build');
 const { router, notFound } = qwikCity(render);
 
 // Create the express server
+// https://expressjs.com/
 const app = express();
 
 // Static asset handlers
+// https://expressjs.com/en/starter/static-files.html
 app.use(`/build`, express.static(buildDir, { immutable: true, maxAge: '1y' }));
 app.use(express.static(distDir, { redirect: false }));
 

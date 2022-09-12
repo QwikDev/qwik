@@ -8,7 +8,7 @@
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "lint": "eslint \"src/**/*.ts*\"",
-    "serve": "node server/entry.server",
+    "preview": "vite preview",
     "start": "vite --mode ssr",
     "typecheck": "tsc --incremental --noEmit",
     "qwik": "qwik"
@@ -24,8 +24,6 @@
     "eslint": "8.12.0",
     "node-fetch": "latest",
     "prettier": "latest",
-    "polka": "latest",
-    "sirv": "latest",
     "typescript": "latest",
     "vite": "latest",
     "vite-tsconfig-paths": "3.5.0"

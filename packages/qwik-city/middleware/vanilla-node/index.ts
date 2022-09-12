@@ -5,7 +5,7 @@ import { patchGlobalFetch } from './node-fetch';
 import { createHeaders } from '../request-handler/headers';
 import type { Request, Response, NextFunction } from 'express';
 
-// @builder.io/qwik-city/middleware/express
+// @builder.io/qwik-city/middleware/node
 
 /**
  * @alpha

@@ -34,8 +34,6 @@ export async function loadIntegrations() {
                   dir: dirPath,
                   pkgJson,
                   priority: pkgJson?.__qwik__?.priority ?? 0,
-                  featureOptions: pkgJson?.__qwik__?.featureOptions ?? [],
-                  featureEnabled: pkgJson?.__qwik__?.featureEnabled ?? [],
                   viteConfig: pkgJson?.__qwik__?.viteConfig,
                 };
                 loadingIntegrations.push(integration);

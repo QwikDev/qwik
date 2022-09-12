@@ -23,36 +23,41 @@ export const renderComponent = (
   flags: number
 ): ValueOrPromise<void> => {
   const justMounted = !ctx.$mounted$;
+  const hostElement = ctx.$element$;
+  const containerState = rctx.$static$.$containerState$;
+  // Component is not dirty any more
+  containerState.$hostsStaging$.delete(hostElement);
+  // Clean current subscription before render
+  containerState.$subsManager$.$clearSub$(hostElement);
 
   // TODO, serialize scopeIds
   return then(executeComponent(rctx, ctx), (res) => {
-    if (res) {
-      const hostElement = ctx.$element$;
-      const newCtx = res.rctx;
-      const invocatinContext = newInvokeContext(rctx.$static$.$doc$, hostElement);
-      invocatinContext.$subscriber$ = hostElement;
-      invocatinContext.$renderCtx$ = newCtx;
-      if (justMounted) {
-        if (ctx.$appendStyles$) {
-          for (const style of ctx.$appendStyles$) {
-            appendHeadStyle(rctx.$static$, style);
-          }
-        }
-        if (ctx.$scopeIds$) {
-          const value = serializeSStyle(ctx.$scopeIds$);
-          if (value) {
-            hostElement.setAttribute(QScopedStyle, value);
-          }
+    const staticCtx = rctx.$static$;
+    const newCtx = res.rctx;
+    const invocatinContext = newInvokeContext(hostElement);
+    staticCtx.$hostElements$.add(hostElement);
+    invocatinContext.$subscriber$ = hostElement;
+    invocatinContext.$renderCtx$ = newCtx;
+    if (justMounted) {
+      if (ctx.$appendStyles$) {
+        for (const style of ctx.$appendStyles$) {
+          appendHeadStyle(staticCtx, style);
         }
       }
-      const processedJSXNode = processData(res.node, invocatinContext);
-      return then(processedJSXNode, (processedJSXNode) => {
-        const newVdom = wrapJSX(hostElement, processedJSXNode);
-        const oldVdom = getVdom(ctx);
-        ctx.$vdom$ = newVdom;
-        return visitJsxNode(newCtx, oldVdom, newVdom, flags);
-      });
+      if (ctx.$scopeIds$) {
+        const value = serializeSStyle(ctx.$scopeIds$);
+        if (value) {
+          hostElement.setAttribute(QScopedStyle, value);
+        }
+      }
     }
+    const processedJSXNode = processData(res.node, invocatinContext);
+    return then(processedJSXNode, (processedJSXNode) => {
+      const newVdom = wrapJSX(hostElement, processedJSXNode);
+      const oldVdom = getVdom(ctx);
+      ctx.$vdom$ = newVdom;
+      return visitJsxNode(newCtx, oldVdom, newVdom, flags);
+    });
   });
 };
 
@@ -91,9 +96,7 @@ export const processNode = (
   } else if (nodeType === Virtual) {
     textType = VIRTUAL;
   } else if (isFunction(nodeType)) {
-    const res = invocationContext
-      ? invoke(invocationContext, () => nodeType(props, node.key))
-      : nodeType(props, node.key);
+    const res = invoke(invocationContext, nodeType, props, node.key);
     return processData(res, invocationContext);
   } else {
     throw qError(QError_invalidJsxNodeType, nodeType);

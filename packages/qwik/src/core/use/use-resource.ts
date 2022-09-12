@@ -16,7 +16,7 @@ import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { qDev } from '../util/qdev';
 import { isServer } from '../platform/platform';
-import { getInvokeContext, useBindInvokeContext } from './use-core';
+import { useBindInvokeContext } from './use-core';
 
 import { isObject } from '../util/types';
 import type { GetObjID } from '../object/store';
@@ -90,7 +90,7 @@ export interface ResourceProps<T> {
  * @public
  */
 export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
-  const isBrowser = !qDev || !useIsServer();
+  const isBrowser = !qDev || !isServer();
   if (isBrowser) {
     if (props.onRejected) {
       props.value.promise.catch(() => {});
@@ -152,11 +152,6 @@ export const createResourceReturn = <T>(
   result.promise = initialPromise as any;
   const resource = createProxy(result, containerState, 0, undefined);
   return resource;
-};
-
-export const useIsServer = () => {
-  const ctx = getInvokeContext();
-  return isServer(ctx);
 };
 
 export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceReturnInternal<T> => {

@@ -1,17 +1,11 @@
-import { getPlatform, setPlatform } from '../core/platform/platform';
+import { setPlatform } from '../core/platform/platform';
 import type { TestPlatform } from './types';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 
-function createPlatform(document: any) {
-  if (!document || (document as Document).nodeType !== 9) {
-    throw new Error(`Invalid Document implementation`);
-  }
-
-  const doc: Document = document;
-
+function createPlatform() {
   interface Queue<T> {
-    fn: (doc: Document) => Promise<T>;
+    fn: () => Promise<T>;
     promise: Promise<T>;
     resolve: (value: T) => void;
     reject: (value: any) => void;
@@ -21,7 +15,7 @@ function createPlatform(document: any) {
 
   const moduleCache = new Map<string, { [symbol: string]: any }>();
   const testPlatform: TestPlatform = {
-    isServer: true,
+    isServer: false,
     importSymbol(containerEl, url, symbolName) {
       const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url);
       const importPath = toPath(urlDoc);
@@ -65,7 +59,7 @@ function createPlatform(document: any) {
       await Promise.resolve();
       if (render) {
         try {
-          render.resolve(await render.fn(doc));
+          render.resolve(await render.fn());
         } catch (e) {
           render.reject(e);
         }
@@ -79,9 +73,8 @@ function createPlatform(document: any) {
   return testPlatform;
 }
 
-export function setTestPlatform(document: any) {
-  const platform = createPlatform(document);
-  setPlatform(document, platform);
+export function setTestPlatform() {
+  setPlatform(testPlatform);
 }
 
 /**
@@ -116,17 +109,12 @@ function toPath(url: URL) {
   throw new Error(`Unable to find path for import "${url}"`);
 }
 
+const testPlatform = createPlatform();
+
 /**
  * @alpha
  */
-export function getTestPlatform(document: any): TestPlatform {
-  const testPlatform: TestPlatform = getPlatform(document) as any;
-  if (!testPlatform) {
-    throw new Error(`Test platform was not applied to the document`);
-  }
-  if (typeof testPlatform.flush !== 'function') {
-    throw new Error(`Invalid Test platform applied to the document`);
-  }
+export function getTestPlatform(): TestPlatform {
   return testPlatform;
 }
 

@@ -1,5 +1,5 @@
 import { createTimer, getBuildBase } from './utils';
-import { JSXNode, renderSSR, Fragment, jsx, _pauseFromContexts } from '@builder.io/qwik';
+import { renderSSR, Fragment, jsx, _pauseFromContexts, JSXNode } from '@builder.io/qwik';
 import type { SnapshotResult } from '@builder.io/qwik';
 import { getSymbolHash, setServerPlatform } from './platform';
 import type {
@@ -8,17 +8,17 @@ import type {
   RenderToStreamResult,
   RenderToStringOptions,
   RenderToStringResult,
-  PrefetchResource,
   StreamWriter,
+  PrefetchResource,
 } from './types';
 import { getQwikLoaderScript } from './scripts';
-import { applyPrefetchImplementation } from './prefetch-implementation';
-import { getPrefetchResources } from './prefetch-strategy';
-import { createSimpleDocument } from './document';
+import { getPrefetchResources, ResolvedManifest } from './prefetch-strategy';
 import type { SymbolMapper } from '../optimizer/src/types';
 import { qDev } from '../core/util/qdev';
 import type { QContext } from '../core/props/props';
 import { EMPTY_OBJ } from '../core/util/flyweight';
+import { getValidManifest } from '../optimizer/src/manifest';
+import { applyPrefetchImplementation } from './prefetch-implementation';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -38,30 +38,31 @@ export async function renderToStream(
   let totalSize = 0;
   let networkFlushes = 0;
   let firstFlushTime = 0;
-  const doc = createSimpleDocument() as Document;
   const inOrderStreaming = opts.streaming?.inOrder ?? {
     strategy: 'auto',
-    initialChunkSize: 30000,
-    minimunChunkSize: 1024,
+    maximunInitialChunk: 50000,
+    maximunChunk: 30000,
   };
   const containerTagName = opts.containerTagName ?? 'html';
   const containerAttributes = opts.containerAttributes ?? {};
-  const buffer: string[] = [];
+  let buffer: string = '';
   const nativeStream = stream;
   const firstFlushTimer = createTimer();
   function flush() {
-    buffer.forEach((chunk) => nativeStream.write(chunk));
-    buffer.length = 0;
-    bufferSize = 0;
-    networkFlushes++;
-    if (networkFlushes === 1) {
-      firstFlushTime = firstFlushTimer();
+    if (buffer) {
+      nativeStream.write(buffer);
+      buffer = '';
+      bufferSize = 0;
+      networkFlushes++;
+      if (networkFlushes === 1) {
+        firstFlushTime = firstFlushTimer();
+      }
     }
   }
   function enqueue(chunk: string) {
     bufferSize += chunk.length;
     totalSize += chunk.length;
-    buffer.push(chunk);
+    buffer += chunk;
   }
   switch (inOrderStreaming.strategy) {
     case 'disabled':
@@ -69,20 +70,28 @@ export async function renderToStream(
         write: enqueue,
       };
       break;
+    case 'direct':
+      stream = nativeStream;
+      break;
     case 'auto':
       let count = 0;
-      const minimunChunkSize = inOrderStreaming.minimunChunkSize ?? 0;
-      const initialChunkSize = inOrderStreaming.initialChunkSize ?? 0;
+      let forceFlush = false;
+      const minimunChunkSize = inOrderStreaming.maximunChunk ?? 0;
+      const initialChunkSize = inOrderStreaming.maximunInitialChunk ?? 0;
       stream = {
         write(chunk) {
-          enqueue(chunk);
-          if (chunk === '<!--qkssr-pu-->') {
+          if (chunk === '<!--qkssr-f-->') {
+            forceFlush ||= true;
+          } else if (chunk === '<!--qkssr-pu-->') {
             count++;
-          } else if (count > 0 && chunk === '<!--qkssr-po-->') {
+          } else if (chunk === '<!--qkssr-po-->') {
             count--;
+          } else {
+            enqueue(chunk);
           }
           const chunkSize = networkFlushes === 0 ? initialChunkSize : minimunChunkSize;
-          if (count === 0 && bufferSize >= chunkSize) {
+          if (count === 0 && (forceFlush || bufferSize >= chunkSize)) {
+            forceFlush = false;
             flush();
           }
         },
@@ -110,25 +119,24 @@ export async function renderToStream(
   if (!opts.manifest) {
     console.warn('Missing client manifest, loading symbols in the client might 404');
   }
-
   const buildBase = getBuildBase(opts);
-  const mapper = computeSymbolMapper(opts.manifest);
-  await setServerPlatform(doc, opts, mapper);
+  const resolvedManifest = resolveManifest(opts.manifest);
+  await setServerPlatform(opts, resolvedManifest);
 
   // Render
   let prefetchResources: PrefetchResource[] = [];
   let snapshotResult: SnapshotResult | null = null;
 
-  const injections = opts.manifest?.injections;
+  const injections = resolvedManifest?.manifest.injections;
   const beforeContent = injections
     ? injections.map((injection) => jsx(injection.tag, injection.attributes ?? EMPTY_OBJ))
     : undefined;
 
   const renderTimer = createTimer();
+  const renderSymbols: string[] = [];
   let renderTime = 0;
   let snapshotTime = 0;
-  const renderSymbols: string[] = [];
-  await renderSSR(doc, rootNode, {
+  await renderSSR(rootNode, {
     stream,
     containerTagName,
     containerAttributes,
@@ -140,7 +148,7 @@ export async function renderToStream(
       const snapshotTimer = createTimer();
 
       snapshotResult = await _pauseFromContexts(contexts, containerState);
-      prefetchResources = getPrefetchResources(snapshotResult, opts, mapper);
+      prefetchResources = getPrefetchResources(snapshotResult, opts, resolvedManifest);
       const jsonData = JSON.stringify(snapshotResult.state, undefined, qDev ? '  ' : undefined);
       const children: (JSXNode | null)[] = [
         jsx('script', {
@@ -194,10 +202,10 @@ export async function renderToStream(
   flush();
 
   const result: RenderToStreamResult = {
-    prefetchResources,
+    prefetchResources: undefined as any,
     snapshotResult,
     flushes: networkFlushes,
-    manifest: opts.manifest,
+    manifest: resolvedManifest?.manifest,
     size: totalSize,
     timing: {
       render: renderTime,
@@ -236,13 +244,28 @@ export async function renderToString(
   };
 }
 
-function computeSymbolMapper(manifest: QwikManifest | undefined): SymbolMapper | undefined {
+/**
+ * @alpha
+ */
+export function resolveManifest(
+  manifest: QwikManifest | ResolvedManifest | undefined
+): ResolvedManifest | undefined {
+  if (!manifest) {
+    return undefined;
+  }
+  if ('mapper' in manifest) {
+    return manifest;
+  }
+  manifest = getValidManifest(manifest);
   if (manifest) {
     const mapper: SymbolMapper = {};
     Object.entries(manifest.mapping).forEach(([key, value]) => {
       mapper[getSymbolHash(key)] = [key, value];
     });
-    return mapper;
+    return {
+      mapper,
+      manifest,
+    };
   }
   return undefined;
 }

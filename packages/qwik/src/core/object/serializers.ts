@@ -54,7 +54,6 @@ const QRLSerializer: Serializer<QRLInternal> = {
   test: (v) => isQrl(v),
   serialize: (obj, getObjId, containerState) => {
     return stringifyQRL(obj, {
-      $platform$: containerState.$platform$,
       $getObjId$: getObjId,
     });
   },
@@ -165,7 +164,6 @@ const ComponentSerializer: Serializer<Component<any>> = {
   serialize: (obj, getObjId, containerState) => {
     const [qrl]: [QRLInternal] = (obj as any)[SERIALIZABLE_STATE];
     return stringifyQRL(qrl, {
-      $platform$: containerState.$platform$,
       $getObjId$: getObjId,
     });
   },

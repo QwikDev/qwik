@@ -36,7 +36,7 @@ export interface ElementFixtureOptions {
 }
 
 // @alpha (undocumented)
-export function getTestPlatform(document: any): TestPlatform;
+export function getTestPlatform(): TestPlatform;
 
 // @alpha (undocumented)
 export interface MockDocument extends Document {

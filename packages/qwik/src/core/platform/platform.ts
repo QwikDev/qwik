@@ -1,16 +1,14 @@
 import type { QwikElement } from '../render/dom/virtual-element';
-import type { InvokeContext } from '../use/use-core';
-import { getDocument } from '../util/dom';
 import { qDynamicPlatform } from '../util/qdev';
 import { isObject } from '../util/types';
 import type { CorePlatform } from './types';
 
-export const createPlatform = (doc: Document): CorePlatform => {
+export const createPlatform = (): CorePlatform => {
   const moduleCache = new Map<string, { [symbol: string]: any }>();
   return {
     isServer: false,
     importSymbol(containerEl, url, symbolName) {
-      const urlDoc = toUrl(doc, containerEl, url).toString();
+      const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url).toString();
       const urlCopy = new URL(urlDoc);
       urlCopy.hash = '';
       urlCopy.search = '';
@@ -44,7 +42,6 @@ export const createPlatform = (doc: Document): CorePlatform => {
     },
   };
 };
-
 const findModule = (module: any) => {
   return Object.values(module).find(isModule) || module;
 };
@@ -70,6 +67,8 @@ export const toUrl = (doc: Document, containerEl: QwikElement, url: string | URL
   return new URL(url, base);
 };
 
+let _platform = createPlatform();
+
 // <docs markdown="./readme.md#setPlatform">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ./readme.md#setPlatform instead)
@@ -84,8 +83,7 @@ export const toUrl = (doc: Document, containerEl: QwikElement, url: string | URL
  * @alpha
  */
 // </docs>
-export const setPlatform = (doc: Document, plt: CorePlatform) =>
-  ((doc as PlatformDocument)[DocumentPlatform] = plt);
+export const setPlatform = (plt: CorePlatform) => (_platform = plt);
 
 // <docs markdown="./readme.md#getPlatform">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -103,23 +101,13 @@ export const setPlatform = (doc: Document, plt: CorePlatform) =>
  * @alpha
  */
 // </docs>
-export const getPlatform = (docOrNode: Document | QwikElement) => {
-  const doc = getDocument(docOrNode) as PlatformDocument;
-  return doc[DocumentPlatform] || (doc[DocumentPlatform] = createPlatform(doc));
+export const getPlatform = () => {
+  return _platform;
 };
 
-export const isServer = (ctx: InvokeContext) => {
+export const isServer = () => {
   if (qDynamicPlatform) {
-    return (
-      ctx.$renderCtx$?.$static$.$containerState$.$platform$.isServer ??
-      getPlatform(ctx.$doc$!).isServer
-    );
+    return _platform.isServer;
   }
   return false;
 };
-
-const DocumentPlatform = ':platform:';
-
-interface PlatformDocument extends Document {
-  [DocumentPlatform]?: CorePlatform;
-}

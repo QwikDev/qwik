@@ -1,11 +1,12 @@
 import type { SnapshotResult, StreamWriter } from '@builder.io/qwik';
 import type { QwikManifest, SymbolMapperFn, SymbolMapper } from '@builder.io/qwik/optimizer';
+import type { ResolvedManifest } from './prefetch-strategy';
 
 /**
  * @alpha
  */
 export interface SerializeDocumentOptions {
-  manifest?: QwikManifest;
+  manifest?: QwikManifest | ResolvedManifest;
   symbolMapper?: SymbolMapperFn;
   debug?: boolean;
 }
@@ -183,8 +184,8 @@ export interface RenderToStringOptions extends RenderOptions {}
  */
 export interface InOrderAuto {
   strategy: 'auto';
-  minimunChunkSize?: number;
-  initialChunkSize?: number;
+  maximunInitialChunk?: number;
+  maximunChunk?: number;
 }
 
 /**
@@ -197,7 +198,14 @@ export interface InOrderDisabled {
 /**
  * @alpha
  */
-export type InOrderStreaming = InOrderAuto | InOrderDisabled;
+export interface InOrderDirect {
+  strategy: 'direct';
+}
+
+/**
+ * @alpha
+ */
+export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 /**
  * @alpha

@@ -19,7 +19,6 @@ export type {
   InOrderStreaming,
   SymbolsToPrefetch,
 } from './types';
-export { renderToString, renderToStream } from './render';
-export { createTimer, versions } from './utils';
+export { renderToString, renderToStream, resolveManifest } from './render';
+export { versions } from './utils';
 export { getQwikLoaderScript } from './scripts';
-export { setServerPlatform } from './platform';

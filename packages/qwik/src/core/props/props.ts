@@ -132,13 +132,13 @@ export const normalizeOnProp = (prop: string) => {
   return scope + ":" + prop;
 };
 
-export const createProps = (target: any, containerState: ContainerState) => {
+export const createProps = (target: Record<string, any>, containerState: ContainerState) => {
   return createProxy(target, containerState, QObjectImmutable);
 };
 
 export const getPropsMutator = (ctx: QContext, containerState: ContainerState) => {
   let props = ctx.$props$;
-  if (!ctx.$props$) {
+  if (!props) {
     ctx.$props$ = props = createProps({}, containerState);
   }
   const target = getProxyTarget(props);
@@ -151,12 +151,12 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
       let oldValue = target[prop];
       let mut = false;
       if (isMutable(oldValue)) {
-        oldValue = oldValue.v;
+        oldValue = oldValue.mut;
       }
       if (containerState.$mutableProps$) {
         mut = true;
         if (isMutable(value)) {
-          value = value.v;
+          value = value.mut;
           target[prop] = value;
         } else {
           target[prop] = mutable(value);
@@ -164,7 +164,7 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
       } else {
         target[prop] = value;
         if (isMutable(value)) {
-          value = value.v;
+          value = value.mut;
           mut = true;
         }
       }

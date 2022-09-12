@@ -1,5 +1,4 @@
 import { getBuildBase } from './utils';
-import { getValidManifest } from '../optimizer/src/manifest';
 import type {
   PrefetchResource,
   QwikManifest,
@@ -10,55 +9,59 @@ import type {
 
 import type { QRLInternal } from '../core/import/qrl-class';
 
+export interface ResolvedManifest {
+  mapper: SymbolMapper;
+  manifest: QwikManifest;
+}
+
 export function getPrefetchResources(
   snapshotResult: SnapshotResult | null,
   opts: RenderToStringOptions,
-  mapper: SymbolMapper | undefined
+  resolvedManifest: ResolvedManifest | undefined
 ): PrefetchResource[] {
-  const manifest = getValidManifest(opts.manifest);
-  if (manifest && mapper) {
-    const prefetchStrategy = opts.prefetchStrategy;
-    const buildBase = getBuildBase(opts);
+  if (!resolvedManifest) {
+    return [];
+  }
+  const prefetchStrategy = opts.prefetchStrategy;
+  const buildBase = getBuildBase(opts);
 
-    if (prefetchStrategy !== null) {
-      // do nothing if opts.prefetchStrategy is explicitly set to null
+  if (prefetchStrategy !== null) {
+    // do nothing if opts.prefetchStrategy is explicitly set to null
 
-      if (
-        !prefetchStrategy ||
-        !prefetchStrategy.symbolsToPrefetch ||
-        prefetchStrategy.symbolsToPrefetch === 'auto'
-      ) {
-        // DEFAULT 'events-document'
-        // if prefetchStrategy is undefined
-        // or prefetchStrategy.symbolsToPrefetch is undefined
-        // get event QRLs used in this document
-        return getAutoPrefetch(snapshotResult, manifest, mapper, buildBase);
-      }
+    if (
+      !prefetchStrategy ||
+      !prefetchStrategy.symbolsToPrefetch ||
+      prefetchStrategy.symbolsToPrefetch === 'auto'
+    ) {
+      // DEFAULT 'events-document'
+      // if prefetchStrategy is undefined
+      // or prefetchStrategy.symbolsToPrefetch is undefined
+      // get event QRLs used in this document
+      return getAutoPrefetch(snapshotResult, resolvedManifest, buildBase);
+    }
 
-      if (typeof prefetchStrategy.symbolsToPrefetch === 'function') {
-        // call user option symbolsToPrefetch()
-        try {
-          return prefetchStrategy.symbolsToPrefetch({ manifest });
-        } catch (e) {
-          console.error('getPrefetchUrls, symbolsToPrefetch()', e);
-        }
+    if (typeof prefetchStrategy.symbolsToPrefetch === 'function') {
+      // call user option symbolsToPrefetch()
+      try {
+        return prefetchStrategy.symbolsToPrefetch({ manifest: resolvedManifest.manifest });
+      } catch (e) {
+        console.error('getPrefetchUrls, symbolsToPrefetch()', e);
       }
     }
   }
-
   // no urls to prefetch
   return [];
 }
 
 function getAutoPrefetch(
   snapshotResult: SnapshotResult | null,
-  manifest: QwikManifest,
-  mapper: SymbolMapper,
+  resolvedManifest: ResolvedManifest,
   buildBase: string
 ) {
   const prefetchResources: PrefetchResource[] = [];
   const listeners = snapshotResult?.listeners;
   const stateObjs = snapshotResult?.objs;
+  const { mapper, manifest } = resolvedManifest;
   const urls = new Set<string>();
 
   if (Array.isArray(listeners)) {

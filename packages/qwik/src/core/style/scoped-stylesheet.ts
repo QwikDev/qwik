@@ -4,6 +4,16 @@ import { ComponentStylesPrefixContent } from '../util/markers';
 // Make sure this is always set to `false` in production, but it is useful to set for `true` in development for debugging.
 const DEBUG: boolean = false;
 
+export const STYLE_CACHE = new Map();
+
+export const getScopedStyles = (css: string, scopeId: string): string => {
+  let styleCss = STYLE_CACHE.get(scopeId);
+  if (!styleCss) {
+    STYLE_CACHE.set(scopeId, (styleCss = scopeStylesheet(css, scopeId)));
+  }
+  return styleCss;
+};
+
 export const scopeStylesheet = (css: string, scopeId: string): string => {
   const end = css.length;
   const out: string[] = [];

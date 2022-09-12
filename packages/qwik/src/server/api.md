@@ -19,9 +19,9 @@ export function getQwikLoaderScript(opts?: {
 // @alpha (undocumented)
 export interface InOrderAuto {
     // (undocumented)
-    initialChunkSize?: number;
+    maximunChunk?: number;
     // (undocumented)
-    minimunChunkSize?: number;
+    maximunInitialChunk?: number;
     // (undocumented)
     strategy: 'auto';
 }

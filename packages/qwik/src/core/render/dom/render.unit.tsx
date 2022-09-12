@@ -5,7 +5,7 @@ import { inlinedQrl, runtimeQrl } from '../../import/qrl';
 import { pauseContainer } from '../../object/store';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
-import { useClientEffect$, useServerMount$, useWatch$ } from '../../use/use-watch';
+import { useClientEffect$, useWatch$ } from '../../use/use-watch';
 import { useCleanup$, useOn } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
@@ -501,11 +501,11 @@ renderSuite('should render a component with hooks', async () => {
     fixture,
     `
     <div q:id="1" on:qvisible="/runtimeQRL#_[0]">
-      <div q:id="2" id="effect"></div>
+      <div q:id="2" id="effect">true</div>
       <div q:id="3" id="effect-destroy"></div>
       <div id="watch">true</div>
       <div q:id="4" id="watch-destroy"></div>
-      <div id="server-mount">true</div>
+      <div id="server-mount">false</div>
       <div q:id="5" id="cleanup"></div>
       <div id="reference">true</div>
     </div>`
@@ -516,11 +516,11 @@ renderSuite('should render a component with hooks', async () => {
     fixture,
     `
     <div q:id="1" on:qvisible="/runtimeQRL#_[0]">
-      <div q:id="2" id="effect"></div>
-      <div q:id="3" id="effect-destroy"></div>
+      <div q:id="2" id="effect">true</div>
+      <div q:id="3" id="effect-destroy">true</div>
       <div id="watch">true</div>
       <div q:id="4" id="watch-destroy">true</div>
-      <div id="server-mount">true</div>
+      <div id="server-mount">false</div>
       <div q:id="5" id="cleanup">true</div>
       <div id="reference">true</div>
     </div>`
@@ -880,10 +880,6 @@ export const Hooks = component$(() => {
     return () => {
       effectDestroyDiv.current!.textContent = 'true';
     };
-  });
-
-  useServerMount$(() => {
-    state.server = 'true';
   });
 
   return (

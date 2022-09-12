@@ -290,8 +290,7 @@ export const mutable: <T>(v: T) => MutableWrapper<T>;
 
 // @alpha
 export interface MutableWrapper<T> {
-    [MUTABLE]: true;
-    v: T;
+    mut: T;
 }
 
 // @public (undocumented)
@@ -309,7 +308,7 @@ export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
 // Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _pauseFromContexts: (elements: QContext[], containerState: ContainerState) => Promise<SnapshotResult>;
+export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState) => Promise<SnapshotResult>;
 
 // @public (undocumented)
 export interface PropFnInterface<ARGS extends any[], RET> {
@@ -556,8 +555,6 @@ export interface SnapshotResult {
     mode: 'render' | 'listeners' | 'static';
     // (undocumented)
     objs: any[];
-    // (undocumented)
-    pendingContent: Promise<string>[];
     // (undocumented)
     state: SnapshotState;
 }

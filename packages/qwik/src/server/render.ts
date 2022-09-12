@@ -1,5 +1,5 @@
 import { createTimer, getBuildBase } from './utils';
-import { JSXNode, renderSSR, Fragment, jsx, _pauseFromContexts } from '@builder.io/qwik';
+import { renderSSR, Fragment, jsx, _pauseFromContexts, JSXNode } from '@builder.io/qwik';
 import type { SnapshotResult } from '@builder.io/qwik';
 import { getSymbolHash, setServerPlatform } from './platform';
 import type {
@@ -40,8 +40,8 @@ export async function renderToStream(
   let firstFlushTime = 0;
   const inOrderStreaming = opts.streaming?.inOrder ?? {
     strategy: 'auto',
-    initialChunkSize: 30000,
-    minimunChunkSize: 1024,
+    maximunInitialChunk: 50000,
+    maximunChunk: 30000,
   };
   const containerTagName = opts.containerTagName ?? 'html';
   const containerAttributes = opts.containerAttributes ?? {};
@@ -76,16 +76,18 @@ export async function renderToStream(
     case 'auto':
       let count = 0;
       let forceFlush = false;
-      const minimunChunkSize = inOrderStreaming.minimunChunkSize ?? 0;
-      const initialChunkSize = inOrderStreaming.initialChunkSize ?? 0;
+      const minimunChunkSize = inOrderStreaming.maximunChunk ?? 0;
+      const initialChunkSize = inOrderStreaming.maximunInitialChunk ?? 0;
       stream = {
         write(chunk) {
-          enqueue(chunk);
-          forceFlush ||= chunk === '<!--qkssr-f-->';
-          if (chunk === '<!--qkssr-pu-->') {
+          if (chunk === '<!--qkssr-f-->') {
+            forceFlush ||= true;
+          } else if (chunk === '<!--qkssr-pu-->') {
             count++;
-          } else if (count > 0 && chunk === '<!--qkssr-po-->') {
+          } else if (chunk === '<!--qkssr-po-->') {
             count--;
+          } else {
+            enqueue(chunk);
           }
           const chunkSize = networkFlushes === 0 ? initialChunkSize : minimunChunkSize;
           if (count === 0 && (forceFlush || bufferSize >= chunkSize)) {
@@ -142,9 +144,6 @@ export async function renderToStream(
     base: buildBase,
     beforeContent,
     beforeClose: async (contexts, containerState) => {
-      // if (true as any) {
-      //   return jsx(Fragment, {});
-      // }
       renderTime = renderTimer();
       const snapshotTimer = createTimer();
 

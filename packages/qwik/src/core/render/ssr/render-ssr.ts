@@ -22,6 +22,9 @@ import { serializeSStyle } from '../../component/qrl-styles';
 import { qDev, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
 import { serializeQRLs } from '../../import/qrl';
+import type { Ref } from '../../use/use-ref';
+
+const FLUSH_COMMENT = '<!--qkssr-f-->';
 
 /**
  * @alpha
@@ -142,10 +145,16 @@ export const renderGenerator = async (
   stream: StreamWriter,
   flags: number
 ) => {
+  stream.write(FLUSH_COMMENT);
   const generator = node.props.children;
   let value: AsyncGenerator;
   if (isFunction(generator)) {
-    const v = generator(stream);
+    const v = generator({
+      write(chunk) {
+        stream.write(chunk);
+        stream.write(FLUSH_COMMENT);
+      },
+    });
     if (isPromise(v)) {
       return v;
     }
@@ -155,6 +164,7 @@ export const renderGenerator = async (
   }
   for await (const chunk of value) {
     await processData(chunk, ssrCtx, stream, flags, undefined);
+    stream.write(FLUSH_COMMENT);
   }
 };
 
@@ -223,18 +233,22 @@ const CLOSE_VIRTUAL = `<!--/qv-->`;
 
 export const renderElementAttributes = (
   elCtx: QContext,
-  attributes: Record<string, string>
+  attributes: Record<string, any>
 ): string => {
   let text = '';
-  for (const [prop, value] of Object.entries(attributes)) {
+  for (const prop of Object.keys(attributes)) {
     if (
       prop === 'children' ||
       prop === 'key' ||
-      prop === 'ref' ||
       prop === 'class' ||
       prop === 'className' ||
       prop === 'dangerouslySetInnerHTML'
     ) {
+      continue;
+    }
+    const value = attributes[prop];
+    if (prop === 'ref') {
+      (value as Ref<Element>).current = elCtx.$element$ as Element;
       continue;
     }
     if (isOnProp(prop)) {
@@ -251,10 +265,11 @@ export const renderElementAttributes = (
 };
 export const renderAttributes = (attributes: Record<string, string>): string => {
   let text = '';
-  for (const [prop, value] of Object.entries(attributes)) {
+  for (const prop of Object.keys(attributes)) {
     if (prop === 'dangerouslySetInnerHTML') {
       continue;
     }
+    const value = attributes[prop];
     if (value != null) {
       text += ' ' + (value === '' ? prop : prop + '="' + value + '"');
     }
@@ -264,10 +279,11 @@ export const renderAttributes = (attributes: Record<string, string>): string => 
 
 export const renderVirtualAttributes = (attributes: Record<string, string>): string => {
   let text = '';
-  for (const [prop, value] of Object.entries(attributes)) {
+  for (const prop of Object.keys(attributes)) {
     if (prop === 'children') {
       continue;
     }
+    const value = attributes[prop];
     if (value != null) {
       text += ' ' + (value === '' ? prop : prop + '=' + value + '');
     }
@@ -443,8 +459,8 @@ export const renderNode = (
       }
       if (!hostCtx.$attachedListeners$) {
         hostCtx.$attachedListeners$ = true;
-        for (const [eventName, qrls] of Object.entries(hostCtx.li)) {
-          addQRLListener(elCtx.li, eventName, qrls);
+        for (const eventName of Object.keys(hostCtx.li)) {
+          addQRLListener(elCtx.li, eventName, hostCtx.li[eventName]);
         }
       }
     }
@@ -458,9 +474,9 @@ export const renderNode = (
     if (classStr) {
       openingElement += ' class="' + classStr + '"';
     }
-    const listeners = Object.entries(elCtx.li);
-    for (const [key, qrls] of listeners) {
-      openingElement += ' ' + key + '="' + serializeQRLs(qrls, elCtx) + '"';
+    const listeners = Object.keys(elCtx.li);
+    for (const key of listeners) {
+      openingElement += ' ' + key + '="' + serializeQRLs(elCtx.li[key], elCtx) + '"';
     }
     if (key != null) {
       openingElement += ' q:key="' + key + '"';
@@ -559,7 +575,7 @@ export const processData = (
   } else if (isArray(node)) {
     return walkChildren(node, ssrCtx, stream, flags);
   } else if (isPromise(node)) {
-    stream.write('<!--qkssr-f-->');
+    stream.write(FLUSH_COMMENT);
     return node.then((node) => processData(node, ssrCtx, stream, flags, beforeClose));
   } else {
     logWarn('A unsupported value was passed to the JSX, skipping render. Value:', node);

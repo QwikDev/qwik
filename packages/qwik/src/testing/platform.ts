@@ -15,7 +15,7 @@ function createPlatform() {
 
   const moduleCache = new Map<string, { [symbol: string]: any }>();
   const testPlatform: TestPlatform = {
-    isServer: true,
+    isServer: false,
     importSymbol(containerEl, url, symbolName) {
       const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url);
       const importPath = toPath(urlDoc);

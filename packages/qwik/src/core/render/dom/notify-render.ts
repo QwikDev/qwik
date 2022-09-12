@@ -1,7 +1,6 @@
 import { assertDefined, assertTrue } from '../../assert/assert';
 import { executeContextWithSlots, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
 import { getContext, resumeIfNeeded } from '../../props/props';
-import { qDynamicPlatform, qTest } from '../../util/qdev';
 import { getDocument } from '../../util/dom';
 import { logError, logWarn } from '../../util/log';
 import { getWrappingContainer } from '../../use/use-core';
@@ -20,11 +19,12 @@ import { codeToText, QError_errorWhileRendering } from '../../error/error';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { isQwikElement } from '../../util/element';
 import { renderComponent } from './render-dom';
-import type { RenderContext, RenderStaticContext } from '../types';
+import type { RenderStaticContext } from '../types';
 import { ContainerState, getContainerState } from '../container';
 import { createRenderContext } from '../execute-component';
 import { getRootNode, QwikElement } from './virtual-element';
 import { printRenderStats } from './operations';
+import { getPlatform, isServer } from '../../platform/platform';
 
 export const notifyChange = (subscriber: Subscriber, containerState: ContainerState) => {
   if (isQwikElement(subscriber)) {
@@ -49,8 +49,8 @@ export const notifyChange = (subscriber: Subscriber, containerState: ContainerSt
  * @public
  */
 const notifyRender = (hostElement: QwikElement, containerState: ContainerState): void => {
-  const isServer = qDynamicPlatform && !qTest && containerState.$platform$.isServer;
-  if (!isServer) {
+  const server = isServer();
+  if (!server) {
     resumeIfNeeded(containerState.$containerEl$);
   }
 
@@ -73,7 +73,7 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
     );
     containerState.$hostsStaging$.add(hostElement);
   } else {
-    if (isServer) {
+    if (server) {
       logWarn('Can not rerender in server platform');
       return undefined;
     }
@@ -104,9 +104,7 @@ export const notifyWatch = (watch: SubscriberDescriptor, containerState: Contain
 
 const scheduleFrame = (containerState: ContainerState): Promise<RenderStaticContext> => {
   if (containerState.$renderPromise$ === undefined) {
-    containerState.$renderPromise$ = containerState.$platform$.nextTick(() =>
-      renderMarked(containerState)
-    );
+    containerState.$renderPromise$ = getPlatform().nextTick(() => renderMarked(containerState));
   }
   return containerState.$renderPromise$;
 };
@@ -123,7 +121,7 @@ export const _hW = () => {
   notifyWatch(watch, getContainerState(getWrappingContainer(watch.$el$)!));
 };
 
-const renderMarked = async (containerState: ContainerState): Promise<RenderContext> => {
+const renderMarked = async (containerState: ContainerState): Promise<void> => {
   const hostsRendering = (containerState.$hostsRendering$ = new Set(containerState.$hostsNext$));
   containerState.$hostsNext$.clear();
   await executeWatchesBefore(containerState);
@@ -134,7 +132,6 @@ const renderMarked = async (containerState: ContainerState): Promise<RenderConte
   containerState.$hostsStaging$.clear();
 
   const doc = getDocument(containerState.$containerEl$);
-  const platform = containerState.$platform$;
   const renderingQueue = Array.from(hostsRendering);
   sortNodes(renderingQueue);
 
@@ -162,14 +159,14 @@ const renderMarked = async (containerState: ContainerState): Promise<RenderConte
   if (staticCtx.$operations$.length === 0) {
     printRenderStats(staticCtx);
     postRendering(containerState, staticCtx);
-    return ctx;
+    return;
   }
 
-  return platform.raf(() => {
+  return getPlatform().raf(() => {
     executeContextWithSlots(ctx);
     printRenderStats(staticCtx);
     postRendering(containerState, staticCtx);
-    return ctx;
+    return;
   });
 };
 

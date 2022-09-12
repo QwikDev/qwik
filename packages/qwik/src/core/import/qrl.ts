@@ -2,7 +2,6 @@ import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QRL } from './qrl.public';
 import { assertQrl, createQRL, QRLInternal } from './qrl-class';
 import { isFunction, isString } from '../util/types';
-import type { CorePlatform } from '../platform/types';
 import { getDocument } from '../util/dom';
 import { logError } from '../util/log';
 import {
@@ -122,7 +121,6 @@ export const inlinedQrl = <T>(
 };
 
 export interface QRLSerializeOptions {
-  $platform$?: CorePlatform;
   $element$?: QwikElement;
   $getObjId$?: (obj: any) => string | null;
   $addRefMap$?: (obj: any) => number;
@@ -133,8 +131,7 @@ export const stringifyQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
   let symbol = qrl.$symbol$;
   let chunk = qrl.$chunk$;
   const refSymbol = qrl.$refSymbol$ ?? symbol;
-  const platform = opts.$platform$;
-  const element = opts.$element$;
+  const platform = getPlatform();
 
   if (platform) {
     const result = platform.chunkForSymbol(refSymbol);
@@ -168,18 +165,12 @@ export const stringifyQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
   } else if (capture && capture.length > 0) {
     parts.push(`[${capture.join(' ')}]`);
   }
-  const qrlString = parts.join('');
-  if (qrl.$chunk$ === RUNTIME_QRL && element) {
-    const qrls: Set<QRL> = (element as any).__qrls__ || ((element as any).__qrls__ = new Set());
-    qrls.add(qrl);
-  }
-  return qrlString;
+  return parts.join('');
 };
 
 export const serializeQRLs = (existingQRLs: QRLInternal<any>[], elCtx: QContext): string => {
   assertTrue(isElement(elCtx.$element$), 'Element must be an actual element');
   const opts: QRLSerializeOptions = {
-    $platform$: getPlatform(elCtx.$element$),
     $element$: elCtx.$element$,
     $addRefMap$: (obj) => addToArray(elCtx.$refMap$, obj),
   };

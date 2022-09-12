@@ -1,7 +1,5 @@
 import { assertEqual } from '../assert/assert';
 import { getProxyTarget } from '../object/q-object';
-import { getPlatform } from '../platform/platform';
-import type { CorePlatform } from '../platform/types';
 import type { Subscriber, SubscriberDescriptor } from '../use/use-watch';
 import { seal } from '../util/qdev';
 import { notifyChange } from './dom/notify-render';
@@ -33,7 +31,6 @@ export interface ContainerState {
 
   $proxyMap$: ObjToProxyMap;
   $subsManager$: SubscriptionManager;
-  $platform$: CorePlatform;
 
   $watchNext$: Set<SubscriberDescriptor>;
   $watchStaging$: Set<SubscriberDescriptor>;
@@ -55,31 +52,35 @@ const CONTAINER_STATE = Symbol('ContainerState');
 export const getContainerState = (containerEl: Element): ContainerState => {
   let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
   if (!set) {
-    (containerEl as any)[CONTAINER_STATE] = set = {
-      $containerEl$: containerEl,
-
-      $proxyMap$: new WeakMap(),
-      $subsManager$: null as any,
-      $platform$: getPlatform(containerEl),
-
-      $watchNext$: new Set(),
-      $watchStaging$: new Set(),
-
-      $hostsNext$: new Set(),
-      $hostsStaging$: new Set(),
-      $renderPromise$: undefined,
-      $hostsRendering$: undefined,
-
-      $envData$: {},
-      $elementIndex$: 0,
-
-      $styleIds$: new Set(),
-      $mutableProps$: false,
-    };
-    seal(set);
-    set.$subsManager$ = createSubscriptionManager(set);
+    (containerEl as any)[CONTAINER_STATE] = set = createContainerState(containerEl);
   }
   return set;
+};
+
+export const createContainerState = (containerEl: Element) => {
+  const containerState: ContainerState = {
+    $containerEl$: containerEl,
+
+    $proxyMap$: new WeakMap(),
+    $subsManager$: null as any,
+
+    $watchNext$: new Set(),
+    $watchStaging$: new Set(),
+
+    $hostsNext$: new Set(),
+    $hostsStaging$: new Set(),
+    $renderPromise$: undefined,
+    $hostsRendering$: undefined,
+
+    $envData$: {},
+    $elementIndex$: 0,
+
+    $styleIds$: new Set(),
+    $mutableProps$: false,
+  };
+  seal(containerState);
+  containerState.$subsManager$ = createSubscriptionManager(containerState);
+  return containerState;
 };
 
 export const createSubscriptionManager = (containerState: ContainerState): SubscriptionManager => {

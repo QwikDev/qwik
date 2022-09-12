@@ -128,10 +128,8 @@ export interface FunctionComponent<P = Record<string, any>> {
     (props: P, key: string | null): JSXNode | null;
 }
 
-// Warning: (ae-forgotten-export) The symbol "QwikElement" needs to be exported by the entry point index.d.ts
-//
 // @alpha
-export const getPlatform: (docOrNode: Document | QwikElement) => CorePlatform;
+export const getPlatform: () => CorePlatform;
 
 // @public (undocumented)
 export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props: PROPS | null, ...children: any[]): JSXNode<TYPE>;
@@ -292,8 +290,7 @@ export const mutable: <T>(v: T) => MutableWrapper<T>;
 
 // @alpha
 export interface MutableWrapper<T> {
-    [MUTABLE]: true;
-    v: T;
+    mut: T;
 }
 
 // @public (undocumented)
@@ -305,13 +302,13 @@ export type NoSerialize<T> = (T & {
 export const noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 
 // @public (undocumented)
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null | (() => JSXNode<any>);
+export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
 
 // Warning: (ae-forgotten-export) The symbol "QContext" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _pauseFromContexts: (elements: QContext[], containerState: ContainerState) => Promise<SnapshotResult>;
+export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState) => Promise<SnapshotResult>;
 
 // @public (undocumented)
 export interface PropFnInterface<ARGS extends any[], RET> {
@@ -342,7 +339,7 @@ export interface QRL<TYPE = any> {
     getHash(): string;
     // (undocumented)
     getSymbol(): string;
-    resolve(el?: QwikElement): Promise<TYPE>;
+    resolve(): Promise<TYPE>;
 }
 
 // @alpha
@@ -403,7 +400,7 @@ export interface RenderOptions {
 }
 
 // @alpha (undocumented)
-export const renderSSR: (doc: Document, node: JSXNode, opts: RenderSSROptions) => Promise<void>;
+export const renderSSR: (node: JSXNode, opts: RenderSSROptions) => Promise<void>;
 
 // @alpha (undocumented)
 export interface RenderSSROptions {
@@ -511,7 +508,7 @@ export interface ResourceResolved<T> {
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
 // @alpha
-export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
+export const setPlatform: (plt: CorePlatform) => CorePlatform;
 
 // @alpha (undocumented)
 export const SkipRender: JSXNode;
@@ -558,8 +555,6 @@ export interface SnapshotResult {
     mode: 'render' | 'listeners' | 'static';
     // (undocumented)
     objs: any[];
-    // (undocumented)
-    pendingContent: Promise<string>[];
     // (undocumented)
     state: SnapshotState;
 }

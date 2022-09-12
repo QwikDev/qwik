@@ -1,11 +1,5 @@
 import { assertEqual, assertTrue } from '../assert/assert';
-import {
-  qError,
-  QError_immutableProps,
-  QError_onlyLiteralWrapped,
-  QError_onlyObjectWrapped,
-  QError_verifySerializable,
-} from '../error/error';
+import { qError, QError_immutableProps, QError_verifySerializable } from '../error/error';
 import { isQrl } from '../import/qrl-class';
 import { tryGetInvokeContext } from '../use/use-core';
 import { isDocument, isNode, isQwikElement } from '../util/element';
@@ -16,7 +10,7 @@ import { RenderEvent } from '../util/markers';
 import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
 import { isPromise } from '../util/promises';
 import { canSerialize } from './serializers';
-import type { ContainerState, LocalSubscriptionManager } from '../render/container';
+import type { ContainerState, LocalSubscriptionManager, SubscriberMap } from '../render/container';
 import type { Subscriber } from '../use/use-watch';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
@@ -47,13 +41,11 @@ export const createProxy = <T extends object>(
 ): T => {
   assertEqual(unwrapProxy(target), target, 'Unexpected proxy at this location', target);
   assertTrue(!containerState.$proxyMap$.has(target), 'Proxy was already created', target);
-
-  if (!isObject(target)) {
-    throw qError(QError_onlyObjectWrapped, target);
-  }
-  if (target.constructor !== Object && !isArray(target)) {
-    throw qError(QError_onlyLiteralWrapped, target);
-  }
+  assertTrue(isObject(target), 'Target must be an object');
+  assertTrue(
+    isSerializableObject(target) || isArray(target),
+    'Target must be a serializable object'
+  );
 
   const manager = containerState.$subsManager$.$getLocal$(target, subs);
   const proxy = new Proxy(
@@ -65,6 +57,7 @@ export const createProxy = <T extends object>(
 };
 
 const QOjectTargetSymbol = Symbol();
+const QOjectSubsSymbol = Symbol();
 const QOjectFlagsSymbol = Symbol();
 
 export type TargetType = Record<string | symbol, any>;
@@ -80,6 +73,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (typeof prop === 'symbol') {
       if (prop === QOjectTargetSymbol) return target;
       if (prop === QOjectFlagsSymbol) return this.$flags$;
+      if (prop === QOjectSubsSymbol) return this.$manager$.$subs$;
       return target[prop];
     }
     let subscriber: Subscriber | undefined | null;
@@ -91,7 +85,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     }
     let value = target[prop];
     if (isMutable(value)) {
-      value = value.v;
+      value = value.mut;
     } else if (immutable) {
       subscriber = null;
     }
@@ -211,7 +205,9 @@ const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
         if (isPromise(unwrapped)) return value;
         if (isQwikElement(unwrapped)) return value;
         if (isDocument(unwrapped)) return value;
-
+        if (isMutable(unwrapped)) {
+          return _verifySerializable(unwrapped.mut, seen);
+        }
         if (isArray(unwrapped)) {
           for (const item of unwrapped) {
             _verifySerializable(item, seen);
@@ -241,6 +237,10 @@ export const shouldSerialize = (obj: any): boolean => {
     return !noSerializeSet.has(obj);
   }
   return true;
+};
+
+export const fastShouldSerialize = (obj: any): boolean => {
+  return !noSerializeSet.has(obj);
 };
 
 /**
@@ -305,11 +305,12 @@ export const immutable = <T extends {}>(input: T): Readonly<T> => {
  */
 // </docs>
 export const mutable = <T>(v: T): MutableWrapper<T> => {
-  return {
-    [MUTABLE]: true,
-    v,
-  };
+  return new MutableImpl(v);
 };
+
+class MutableImpl<T> implements MutableWrapper<T> {
+  constructor(public mut: T) {}
+}
 
 export const isConnected = (sub: Subscriber): boolean => {
   if (isQwikElement(sub)) {
@@ -318,8 +319,6 @@ export const isConnected = (sub: Subscriber): boolean => {
     return isConnected(sub.$el$);
   }
 };
-
-const MUTABLE = Symbol('mutable');
 
 // <docs markdown="../readme.md#MutableWrapper">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -332,31 +331,28 @@ const MUTABLE = Symbol('mutable');
 // </docs>
 export interface MutableWrapper<T> {
   /**
-   * A marker symbol.
-   */
-  [MUTABLE]: true;
-  /**
    * Mutable value.
    */
-  v: T;
+  mut: T;
 }
 
 export const isMutable = (v: any): v is MutableWrapper<any> => {
-  return isObject(v) && v[MUTABLE] === true;
+  return v instanceof MutableImpl;
 };
 
 /**
  * @alpha
  */
 export const unwrapProxy = <T>(proxy: T): T => {
-  return getProxyTarget<T>(proxy) ?? proxy;
+  return isObject(proxy) ? getProxyTarget<T>(proxy) ?? proxy : proxy;
 };
 
-export const getProxyTarget = <T = Record<string, any>>(obj: T): T | undefined => {
-  if (isObject(obj)) {
-    return (obj as any)[QOjectTargetSymbol];
-  }
-  return undefined;
+export const getProxyTarget = <T extends Record<string, any>>(obj: T): T | undefined => {
+  return (obj as any)[QOjectTargetSymbol];
+};
+
+export const getProxySubs = (obj: any): SubscriberMap | undefined => {
+  return (obj as any)[QOjectSubsSymbol];
 };
 
 export const getProxyFlags = <T = Record<string, any>>(obj: T): number | undefined => {

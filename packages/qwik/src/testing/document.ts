@@ -13,7 +13,7 @@ import { normalizeUrl } from './util';
 export function createDocument(opts?: MockDocumentOptions) {
   const doc = qwikDom.createDocument(opts?.html);
   ensureGlobals(doc, opts);
-  setTestPlatform(doc);
+  setTestPlatform();
   return doc;
 }
 

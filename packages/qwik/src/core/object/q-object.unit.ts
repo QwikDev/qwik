@@ -1,13 +1,11 @@
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
-import { createSimpleDocument } from '../../server/document';
 import { createSubscriptionManager, getContainerState } from '../render/container';
 
 import { getOrCreateProxy, QObjectRecursive, unwrapProxy } from './q-object';
 
 const qObject = suite('q-object');
-const doc = createSimpleDocument();
-const container = getContainerState(doc as any);
+const container = getContainerState({} as any);
 const map: any = {
   $subsManager$: createSubscriptionManager(container),
   $proxyMap$: new WeakMap(),

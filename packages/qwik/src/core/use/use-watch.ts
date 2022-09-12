@@ -3,7 +3,6 @@ import { getContext } from '../props/props';
 import { newInvokeContext, invoke, waitAndRun } from './use-core';
 import { logError, logErrorAndStop } from '../util/log';
 import { delay, safeCall, then } from '../util/promises';
-import { getDocument } from '../util/dom';
 import { isFunction, isObject, ValueOrPromise } from '../util/types';
 import { isServer } from '../platform/platform';
 import { implicit$FirstArg } from '../util/implicit_dollar';
@@ -267,7 +266,7 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
   }
   elCtx.$watches$.push(watch);
   waitAndRun(ctx, () => runSubscriber(watch, containerState));
-  if (isServer(ctx)) {
+  if (isServer()) {
     useRunWatch(watch, opts?.eagerness);
   }
 };
@@ -379,7 +378,7 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
   }
   elCtx.$watches$.push(watch);
   useRunWatch(watch, eagerness);
-  if (!isServer(ctx)) {
+  if (!isServer()) {
     qrl.$resolveLazy$();
     notifyWatch(watch, ctx.$renderCtx$.$static$.$containerState$);
   }
@@ -461,7 +460,7 @@ export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
     return;
   }
 
-  if (isServer(ctx)) {
+  if (isServer()) {
     waitAndRun(ctx, mountQrl);
     set(true);
   } else {
@@ -603,15 +602,12 @@ export const isResourceWatch = (watch: SubscriberDescriptor): watch is ResourceD
   return !!watch.$resource$;
 };
 
-export const runSubscriber = async (
-  watch: SubscriberDescriptor,
-  containerState: ContainerState
-) => {
+export const runSubscriber = (watch: SubscriberDescriptor, containerState: ContainerState) => {
   assertEqual(!!(watch.$flags$ & WatchFlagsIsDirty), true, 'Resource is not dirty', watch);
   if (isResourceWatch(watch)) {
-    await runResource(watch, containerState);
+    return runResource(watch, containerState);
   } else {
-    await runWatch(watch, containerState);
+    return runWatch(watch, containerState);
   }
 };
 
@@ -624,8 +620,7 @@ export const runResource = <T>(
   cleanupWatch(watch);
 
   const el = watch.$el$;
-  const doc = getDocument(el);
-  const invokationContext = newInvokeContext(doc, el, undefined, 'WatchEvent');
+  const invokationContext = newInvokeContext(el, undefined, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
   const watchFn = watch.$qrl$.getFn(invokationContext, () => {
     subsManager.$clearSub$(watch);
@@ -733,8 +728,7 @@ export const runWatch = (
 
   cleanupWatch(watch);
   const el = watch.$el$;
-  const doc = getDocument(el);
-  const invokationContext = newInvokeContext(doc, el, undefined, 'WatchEvent');
+  const invokationContext = newInvokeContext(el, undefined, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
   const watchFn = watch.$qrl$.getFn(invokationContext, () => {
     subsManager.$clearSub$(watch);

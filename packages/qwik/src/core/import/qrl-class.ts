@@ -1,7 +1,6 @@
 import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { verifySerializable } from '../object/q-object';
 import { getPlatform } from '../platform/platform';
-import type { QwikElement } from '../render/dom/virtual-element';
 import {
   InvokeContext,
   newInvokeContext,
@@ -27,13 +26,18 @@ export interface QRLInternalMethods<TYPE> {
   $capture$: string[] | null;
   $captureRef$: any[] | null;
 
-  resolve(el?: QwikElement): Promise<TYPE>;
+  resolve(): Promise<TYPE>;
   getSymbol(): string;
   getHash(): string;
-  getFn(currentCtx?: InvokeContext | InvokeTuple, beforeFn?: () => void): any;
+  getFn(
+    currentCtx?: InvokeContext | InvokeTuple,
+    beforeFn?: () => void
+  ): TYPE extends (...args: infer ARGS) => infer Return
+    ? (...args: ARGS) => ValueOrPromise<Return>
+    : any;
 
   $setContainer$(containerEl: Element): void;
-  $resolveLazy$(): void;
+  $resolveLazy$(): ValueOrPromise<TYPE>;
 }
 
 export interface QRLInternal<TYPE = any> extends QRL<TYPE>, QRLInternalMethods<TYPE> {}
@@ -71,7 +75,7 @@ export const createQRL = <TYPE>(
           `QRL '${chunk}#${symbol || 'default'}' does not have an attached container`
         );
       }
-      const symbol2 = getPlatform(containerEl).importSymbol(containerEl, chunk, symbol);
+      const symbol2 = getPlatform().importSymbol(containerEl, chunk, symbol);
       return (symbolRef = then(symbol2, (ref) => {
         return (symbolRef = ref);
       }));
@@ -79,7 +83,7 @@ export const createQRL = <TYPE>(
   };
 
   const resolveLazy = (): ValueOrPromise<TYPE> => {
-    return isFunction(symbolRef) ? symbolRef : resolve();
+    return symbolRef ? symbolRef : resolve();
   };
 
   const invokeFn = (currentCtx?: InvokeContext | InvokeTuple, beforeFn?: () => void | boolean) => {

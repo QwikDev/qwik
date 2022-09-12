@@ -1,15 +1,15 @@
-import { isArray, ValueOrPromise } from '../util/types';
+import { isArray } from '../util/types';
 import type { Props } from '../props/props.public';
 import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
 import { QContainerSelector, RenderEvent } from '../util/markers';
-import { getDocument } from '../util/dom';
 import type { QRL } from '../import/qrl.public';
 import { qError, QError_useInvokeContext, QError_useMethodOutsideContext } from '../error/error';
 import type { RenderContext } from '../render/types';
 import type { Subscriber } from './use-watch';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { seal } from '../util/qdev';
+import { isPromise } from '../util/promises';
 
 declare const document: QwikDocument;
 
@@ -26,7 +26,7 @@ export interface RenderInvokeContext extends InvokeContext {
   $element$: Element;
   $event$: any;
   $qrl$: QRL<any>;
-  $waitOn$: ValueOrPromise<any>[];
+  $waitOn$: Promise<any>[];
   $props$: Props;
   $subscriber$: Subscriber | null;
   $renderCtx$: RenderContext;
@@ -37,12 +37,11 @@ export type InvokeTuple = [Element, Event, URL?];
 export interface InvokeContext {
   $url$: URL | undefined;
   $seq$: number;
-  $doc$: Document | undefined;
   $hostElement$: QwikElement | undefined;
   $element$: Element | undefined;
   $event$: any | undefined;
   $qrl$: QRL<any> | undefined;
-  $waitOn$: ValueOrPromise<any>[] | undefined;
+  $waitOn$: Promise<any>[] | undefined;
   $props$: Props | undefined;
   $subscriber$: Subscriber | null | undefined;
   $renderCtx$: RenderContext | undefined;
@@ -80,7 +79,6 @@ export const useInvokeContext = (): RenderInvokeContext => {
   assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`, ctx);
   assertDefined(ctx.$waitOn$, `invoke: $waitOn$ must be defined`, ctx);
   assertDefined(ctx.$renderCtx$, `invoke: $renderCtx$ must be defined`, ctx);
-  assertDefined(ctx.$doc$, `invoke: $doc$ must be defined`, ctx);
   assertDefined(ctx.$subscriber$, `invoke: $subscriber$ must be defined`, ctx);
 
   return ctx as any;
@@ -98,7 +96,7 @@ export const useBindInvokeContext = <T extends ((...args: any[]) => any) | undef
   }) as T;
 };
 export const invoke = <ARGS extends any[] = any[], RET = any>(
-  context: InvokeContext,
+  context: InvokeContext | undefined,
   fn: (...args: ARGS) => RET,
   ...args: ARGS
 ): RET => {
@@ -114,17 +112,23 @@ export const invoke = <ARGS extends any[] = any[], RET = any>(
 };
 
 export const waitAndRun = (ctx: RenderInvokeContext, callback: () => any) => {
-  const previousWait = ctx.$waitOn$.slice();
-  ctx.$waitOn$.push(Promise.allSettled(previousWait).then(callback));
+  const waitOn = ctx.$waitOn$;
+  if (waitOn.length === 0) {
+    const result = callback();
+    if (isPromise(result)) {
+      waitOn.push(result);
+    }
+  } else {
+    waitOn.push(Promise.allSettled(waitOn).then(callback));
+  }
 };
 
 export const newInvokeContextFromTuple = (context: InvokeTuple) => {
   const element = context[0];
-  return newInvokeContext(getDocument(element), undefined, element, context[1], context[2]);
+  return newInvokeContext(undefined, element, context[1], context[2]);
 };
 
 export const newInvokeContext = (
-  doc?: Document,
   hostElement?: QwikElement,
   element?: Element,
   event?: any,
@@ -132,7 +136,6 @@ export const newInvokeContext = (
 ): InvokeContext => {
   const ctx = {
     $seq$: 0,
-    $doc$: doc,
     $hostElement$: hostElement,
     $element$: element,
     $event$: event,

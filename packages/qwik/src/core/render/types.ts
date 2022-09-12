@@ -26,7 +26,6 @@ export interface RenderStaticContext {
   $operations$: RenderOperation[];
   $postOperations$: RenderOperation[];
   $containerState$: ContainerState;
-  $containerEl$: Element;
   $addSlots$: [QwikElement, QwikElement][];
   $rmSlots$: QwikElement[];
 }

@@ -396,15 +396,15 @@ export const patchVnode = (
     const currentComponent = rctx.$cmpCtx$;
     if (currentComponent && !currentComponent.$attachedListeners$) {
       currentComponent.$attachedListeners$ = true;
-      Object.entries(currentComponent.li).forEach(([key, value]) => {
-        addQRLListener(listenerMap, key, value);
+      for (const key of Object.keys(currentComponent.li)) {
+        addQRLListener(listenerMap, key, currentComponent.li[key]);
         addGlobalListener(staticCtx, elm, key);
-      });
+      }
     }
     if (qSerialize) {
-      Object.entries(listenerMap).forEach(([key, value]) =>
-        setAttribute(staticCtx, elm, key, serializeQRLs(value, elCtx))
-      );
+      for (const key of Object.keys(listenerMap)) {
+        setAttribute(staticCtx, elm, key, serializeQRLs(listenerMap[key], elCtx));
+      }
     }
 
     if (isSvg && newVnode.$type$ === 'foreignObject') {
@@ -469,8 +469,9 @@ const renderContentProjection = (
   const slotMaps = getSlotMap(hostCtx);
 
   // Remove content from empty slots
-  Object.entries(slotMaps.slots).forEach(([key, slotEl]) => {
+  for (const key of Object.keys(slotMaps.slots)) {
     if (!splittedNewChidren[key]) {
+      const slotEl = slotMaps.slots[key];
       const oldCh = getChildrenVnodes(slotEl, 'root');
       if (oldCh.length > 0) {
         const slotCtx = tryGetContext(slotEl);
@@ -480,21 +481,23 @@ const renderContentProjection = (
         removeVnodes(staticCtx, oldCh, 0, oldCh.length - 1);
       }
     }
-  });
+  }
 
   // Remove empty templates
-  Object.entries(slotMaps.templates).forEach(([key, templateEl]) => {
+  for (const key of Object.keys(slotMaps.templates)) {
+    const templateEl = slotMaps.templates[key];
     if (templateEl) {
       if (!splittedNewChidren[key] || slotMaps.slots[key]) {
         removeNode(staticCtx, templateEl);
         slotMaps.templates[key] = undefined;
       }
     }
-  });
+  }
 
   // Render into slots
   return promiseAll(
-    Object.entries(splittedNewChidren).map(([key, newVdom]) => {
+    Object.keys(splittedNewChidren).map((key) => {
+      const newVdom = splittedNewChidren[key];
       const slotElm = getSlotElement(staticCtx, slotMaps, hostCtx.$element$, key);
       const slotCtx = getContext(slotElm);
       const oldVdom = getVdom(slotCtx);
@@ -673,9 +676,9 @@ const createElm = (
     }
     if (!currentComponent.$attachedListeners$) {
       currentComponent.$attachedListeners$ = true;
-      Object.entries(currentComponent.li).forEach(([eventName, qrls]) => {
-        addQRLListener(listenerMap, eventName, qrls);
-      });
+      for (const eventName of Object.keys(currentComponent.li)) {
+        addQRLListener(listenerMap, eventName, currentComponent.li[eventName]);
+      }
     }
   }
 
@@ -692,16 +695,16 @@ const createElm = (
   }
 
   if (qSerialize) {
-    const listeners = Object.entries(listenerMap);
+    const listeners = Object.keys(listenerMap);
     if (isHead && !isVirtual) {
       directSetAttribute(elm as Element, 'q:head', '');
     }
     if (listeners.length > 0 || hasRef) {
       setQId(rctx, elCtx);
     }
-    listeners.forEach(([key, qrls]) => {
-      setAttribute(staticCtx, elm, key, serializeQRLs(qrls, elCtx));
-    });
+    for (const key of listeners) {
+      setAttribute(staticCtx, elm, key, serializeQRLs(listenerMap[key], elCtx));
+    }
   }
 
   const setsInnerHTML = props[dangerouslySetInnerHTML] !== undefined;

@@ -1,7 +1,8 @@
 {
   "description": "File based routing and MDX support",
   "__qwik__": {
-    "priority": 1
+    "priority": 1,
+    "selectServer": true
   },
   "type": "module"
 }

@@ -223,7 +223,7 @@ async function buildMiddlewareNode(config: BuildConfig, inputDir: string, output
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'middleware', 'express', 'index.cjs'),
+    outfile: join(outputDir, 'middleware', 'node', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,

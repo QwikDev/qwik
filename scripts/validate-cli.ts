@@ -13,7 +13,6 @@ import assert from 'assert';
 import { join, relative } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { readPackageJson, writePackageJson } from './package-json';
-import type { UpdateAppOptions } from '../packages/qwik/src/cli/types';
 import { panic } from './util';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -44,8 +43,8 @@ async function validateCreateQwikCli() {
   const tmpDir = join(__dirname, '..', 'dist-dev');
 
   await Promise.all([
-    validateStarter(api, tmpDir, 'qwik-city', true, `😈`, 'cloudflare-pages'),
-    validateStarter(api, tmpDir, 'blank', true, `👻`, 'qwik-react'),
+    validateStarter(api, tmpDir, 'qwik-city', true, `😈`),
+    validateStarter(api, tmpDir, 'blank', true, `👻`),
     validateStarter(api, tmpDir, 'library', false, `📚`),
   ]).catch((e) => {
     console.error(e);
@@ -60,8 +59,7 @@ async function validateStarter(
   distDir: string,
   starterId: string,
   app: boolean,
-  emoji: string,
-  addIntegrationId?: string
+  emoji: string
 ) {
   const projectName = starterId;
   const appDir = join(distDir, 'e2e-' + projectName);
@@ -101,6 +99,12 @@ async function validateStarter(
   const distQwik = join(__dirname, '..', 'packages', 'qwik', 'dist');
   cpSync(distQwik, qwikNodeModule);
 
+  console.log(`${emoji} ${projectName}: copy @builder.io/qwik-city distribution`);
+  const qwikCityNodeModule = join(appDir, 'node_modules', '@builder.io', 'qwik-city');
+  rmSync(qwikCityNodeModule, { force: true, recursive: true });
+  const distQwikCity = join(__dirname, '..', 'packages', 'qwik-city', 'lib');
+  cpSync(distQwikCity, qwikCityNodeModule);
+
   console.log(`${emoji} ${projectName}: copy eslint-plugin-qwik distribution`);
   const eslintNodeModule = join(appDir, 'node_modules', 'eslint-plugin-qwik');
   rmSync(eslintNodeModule, { force: true, recursive: true });
@@ -111,25 +115,6 @@ async function validateStarter(
   const typesNodeModule = join(appDir, 'node_modules', '@types');
   const distTypesQwik = join(__dirname, '..', 'node_modules', '@types');
   cpSync(distTypesQwik, typesNodeModule);
-
-  if (!process.env.CI && addIntegrationId) {
-    copyLocalQwikDistToTestApp(appDir);
-
-    const appNodeModulesQwik = join(appDir, 'node_modules', '@builder.io', 'qwik');
-    accessSync(appNodeModulesQwik);
-
-    const appNodeModulesQwikCli = join(appNodeModulesQwik, 'cli.cjs');
-    console.log(`${emoji} cli qwik add: ${appNodeModulesQwikCli}`);
-
-    const qwikAdd: any = await import(pathToFileURL(appNodeModulesQwikCli).href);
-
-    const opts: UpdateAppOptions = {
-      rootDir: appDir,
-      integration: addIntegrationId,
-    };
-    const result = await qwikAdd.updateApp(opts);
-    await result.commit();
-  }
 
   console.log(`${emoji} ${projectName}: npm run build`);
   if (app) {
@@ -151,8 +136,6 @@ async function validateStarter(
     accessSync(join(appDir, 'dist', 'favicon.ico'));
     accessSync(join(appDir, 'dist', 'q-manifest.json'));
     accessSync(join(appDir, 'dist', 'build'));
-    const serverDir = join(appDir, 'server');
-    accessSync(serverDir);
   } else {
     // library
     accessSync(join(appDir, 'lib', 'types'));

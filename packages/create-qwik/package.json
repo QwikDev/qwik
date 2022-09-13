@@ -5,7 +5,7 @@
   "bin": "./create-qwik.cjs",
   "main": "index.js",
   "files": [
-    "qwik",
+    "create-qwik.cjs",
     "starters/"
   ],
   "author": "Builder.io Team",

@@ -107,6 +107,11 @@ async function validateStarter(
   const distEslintQwik = join(__dirname, '..', 'packages', 'eslint-plugin-qwik', 'dist');
   cpSync(distEslintQwik, eslintNodeModule);
 
+  console.log(`${emoji} ${projectName}: copy @types`);
+  const typesNodeModule = join(appDir, 'node_modules', '@types');
+  const distTypesQwik = join(__dirname, '..', 'node_modules', '@types');
+  cpSync(distTypesQwik, typesNodeModule);
+
   if (!process.env.CI && addIntegrationId) {
     copyLocalQwikDistToTestApp(appDir);
 
@@ -127,7 +132,17 @@ async function validateStarter(
   }
 
   console.log(`${emoji} ${projectName}: npm run build`);
-  await execa('npm', ['run', 'build'], { cwd: appDir, stdout: 'inherit' });
+  if (app) {
+    await execa('node', ['./node_modules/@builder.io/qwik/cli.cjs', 'build'], {
+      cwd: appDir,
+      stdout: 'inherit',
+    });
+  } else {
+    await execa('npm', ['run', 'build'], {
+      cwd: appDir,
+      stdout: 'inherit',
+    });
+  }
 
   accessSync(join(appDir, '.vscode'));
 

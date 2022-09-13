@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
-import { getSymbolHash } from '../../../server/platform';
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem, Path, QwikManifest } from '../types';
 import { NormalizedQwikPluginOptions, parseId } from './plugin';
@@ -252,3 +251,11 @@ function getViteDevIndexHtml(entryUrl: string, envData: Record<string, any>) {
 }
 
 export const VITE_DEV_CLIENT_QS = `qwik-vite-dev-client`;
+
+export const getSymbolHash = (symbolName: string) => {
+  const index = symbolName.lastIndexOf('_');
+  if (index > -1) {
+    return symbolName.slice(index + 1);
+  }
+  return symbolName;
+};

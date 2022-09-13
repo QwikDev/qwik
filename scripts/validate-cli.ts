@@ -133,7 +133,7 @@ async function validateStarter(
 
   console.log(`${emoji} ${projectName}: npm run build`);
   if (app) {
-    await execa('node', ['./node_modules/@builder.io/qwik/cli.cjs', 'build'], {
+    await execa('node', ['./node_modules/@builder.io/qwik/qwik.cjs', 'build'], {
       cwd: appDir,
       stdout: 'inherit',
     });
@@ -153,22 +153,6 @@ async function validateStarter(
     accessSync(join(appDir, 'dist', 'build'));
     const serverDir = join(appDir, 'server');
     accessSync(serverDir);
-
-    let hasEntryServer = false;
-    const serverOutput = readdirSync(serverDir);
-    for (const serverFileName of serverOutput) {
-      if (serverFileName.startsWith('entry.')) {
-        hasEntryServer = true;
-        break;
-      }
-    }
-
-    if (!hasEntryServer) {
-      throw new Error(`"${projectName}", ${appDir} did not generate server output`);
-    }
-    if (!serverOutput) {
-      throw new Error(`"${projectName}", ${appDir} did not generate server output`);
-    }
   } else {
     // library
     accessSync(join(appDir, 'lib', 'types'));

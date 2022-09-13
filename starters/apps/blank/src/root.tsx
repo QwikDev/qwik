@@ -2,7 +2,7 @@ import { App } from './components/app/app';
 
 import './global.css';
 
-export default () => {
+export default function () {
   return (
     <html>
       <head>
@@ -15,4 +15,4 @@ export default () => {
       </body>
     </html>
   );
-};
+}

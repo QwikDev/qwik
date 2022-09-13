@@ -1,6 +1,6 @@
 import { BuildConfig, PackageJSON, panic } from './util';
 import { access, readFile } from './util';
-import { extname, join } from 'path';
+import { basename, extname, join } from 'path';
 import { pathToFileURL } from 'url';
 import { createRequire } from 'module';
 import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
@@ -30,8 +30,11 @@ export async function validateBuild(config: BuildConfig) {
 
       switch (ext) {
         case '.cjs':
-          require(filePath);
-          console.log(`✅ ${filePath}`);
+          const f = basename(filePath);
+          if (f !== 'qwik.cjs') {
+            require(filePath);
+            console.log(`✅ ${filePath}`);
+          }
           break;
         case '.mjs':
           if (config.esmNode) {
@@ -53,9 +56,14 @@ export async function validateBuild(config: BuildConfig) {
           break;
         default:
           if (existsSync(filePath)) {
-            const content = readFileSync(filePath, 'utf-8');
-            if (content.trim() === '') {
-              errors.push(`Expected package.json file is empty: ${filePath}`);
+            const s = statSync(filePath);
+            if (s.isFile()) {
+              const content = readFileSync(filePath, 'utf-8');
+              if (content.trim() === '') {
+                errors.push(`Expected package.json file is empty: ${filePath}`);
+              } else {
+                console.log(`✅ ${filePath}`);
+              }
             } else {
               console.log(`✅ ${filePath}`);
             }
@@ -82,7 +90,10 @@ export async function validateBuild(config: BuildConfig) {
       .forEach((filePath) => {
         const s = statSync(filePath);
         if (s.isDirectory()) {
-          getFiles(filePath);
+          const dirName = basename(filePath);
+          if (dirName !== 'starters') {
+            getFiles(filePath);
+          }
         } else if (s.isFile()) {
           allFiles.push(filePath);
         } else {

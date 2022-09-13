@@ -1,9 +1,7 @@
 # Build
-build
-dist
-lib
-server
-functions/**/*.js
+/dist
+/lib
+/server
 
 # Development
 node_modules

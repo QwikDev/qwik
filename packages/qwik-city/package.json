@@ -15,12 +15,12 @@
     "./middleware/cloudflare-pages": {
       "import": "./lib/middleware/cloudflare-pages/index.mjs"
     },
-    "./middleware/express": {
-      "import": "./lib/middleware/express/index.mjs",
-      "require": "./lib/middleware/express/index.cjs"
-    },
     "./middleware/netlify-edge": {
       "import": "./lib/middleware/netlify-edge/index.mjs"
+    },
+    "./middleware/node": {
+      "import": "./lib/middleware/node/index.mjs",
+      "require": "./lib/middleware/node/index.cjs"
     },
     "./static/node": {
       "import": "./lib/static/node/index.mjs",
@@ -39,9 +39,9 @@
     "start": "cd runtime && node --inspect ../../../node_modules/vite/bin/vite.js",
     "dev.ssr": "cd runtime && node --inspect ../../../node_modules/vite/bin/vite.js --mode ssr",
     "dev.debug": "cd runtime && node --inspect-brk ../../../node_modules/vite/bin/vite.js --mode ssr --force",
-    "build": "yarn build.client && yarn build.express && yarn build.static && yarn ssg",
+    "build": "yarn build.client && yarn build.server && yarn build.static && yarn ssg",
     "build.client": "cd runtime && vite build --config vite-app.config.ts",
-    "build.express": "cd runtime && vite build --config vite-app.config.ts --ssr src/entry.express.tsx",
+    "build.server": "cd runtime && vite build --config vite-app.config.ts --ssr src/entry.express.tsx",
     "build.static": "cd runtime && vite build --config vite-app.config.ts --ssr src/entry.static.tsx",
     "ssg": "cd runtime && node server/entry.static.js",
     "build.runtime": "cd runtime && vite build --mode lib",

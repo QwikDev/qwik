@@ -1,7 +1,7 @@
 {
-  "description": "Cloudflare Pages.",
+  "description": "Cloudflare Pages",
   "scripts": {
-    "build.ssr": "vite build --ssr src/entry.cloudflare.tsx",
+    "build.server": "vite build --ssr src/entry.cloudflare-pages.tsx",
     "serve": "wrangler pages dev ./dist"
   },
   "devDependencies": {
@@ -9,10 +9,10 @@
   },
   "__qwik__": {
     "priority": -1,
-    "vite": {
-      "VITE_IMPORTS": "",
-      "VITE_CONFIG": "ssr: {target: 'webworker', noExternal: true},",
-      "VITE_PLUGINS": ""
+    "viteConfig": {
+      "viteConfig": {
+        "ssr": "{ target: 'webworker', noExternal: true }"
+      }
     }
   }
 }

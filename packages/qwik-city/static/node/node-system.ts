@@ -2,7 +2,7 @@
 import type { System } from '../generator/types';
 import fs from 'fs';
 import { dirname, join } from 'path';
-import { patchGlobalFetch } from '../../middleware/express/node-fetch';
+import { patchGlobalFetch } from '../../middleware/node/node-fetch';
 import type { NodeStaticGeneratorOptions } from './types';
 import { createNodeMainProcess } from './node-main';
 import { createNodeWorkerProcess } from './node-worker';

@@ -6,7 +6,7 @@ import prompts from 'prompts';
 import { readPackageJson, writePackageJson } from './package-json';
 import semver from 'semver';
 import { validateBuild } from './validate-build';
-import { publishStarterCli } from './cli';
+import { publishCreateQwikCli } from './create-qwik-cli';
 import { publishEslint } from './eslint';
 
 export async function setDevVersion(config: BuildConfig) {
@@ -189,7 +189,7 @@ export async function publish(config: BuildConfig) {
     isDryRun ? '(dry-run)' : ''
   );
 
-  await publishStarterCli(config, distTag, version, isDryRun);
+  await publishCreateQwikCli(config, distTag, version, isDryRun);
   await publishEslint(config, distTag, version, isDryRun);
 }
 

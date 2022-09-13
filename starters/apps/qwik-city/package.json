@@ -2,18 +2,7 @@
   "description": "File based routing and MDX support",
   "__qwik__": {
     "priority": 1,
-    "selectServer": true,
-    "featureOptions": [
-      "prettier",
-      "tailwindcss"
-    ],
-    "featureEnabled": [
-      "prettier"
-    ]
+    "selectServer": true
   },
-  "type": "module",
-  "devDependencies": {
-    "@builder.io/qwik-city": "0.0.109",
-    "vite-tsconfig-paths": "3.5.0"
-  }
+  "type": "module"
 }

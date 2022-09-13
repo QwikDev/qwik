@@ -17,6 +17,9 @@ export async function generatePackageJson(config: BuildConfig) {
     license: rootPkg.license,
     main: './core.cjs',
     types: './core.d.ts',
+    bin: {
+      qwik: './qwik.cjs',
+    },
     type: 'module',
     exports: {
       '.': {
@@ -29,6 +32,9 @@ export async function generatePackageJson(config: BuildConfig) {
           production: './core.prod.cjs',
           default: './core.cjs',
         },
+      },
+      './cli': {
+        require: './cli.cjs',
       },
       './jsx-runtime': {
         import: './jsx-runtime.mjs',

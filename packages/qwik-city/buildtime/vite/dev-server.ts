@@ -2,7 +2,6 @@ import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'http';
 import fs from 'fs';
 import { extname, join, resolve } from 'path';
-import { createHeaders } from '../../middleware/request-handler/headers';
 import type { BuildContext } from '../types';
 import type { RouteModule } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
@@ -15,7 +14,6 @@ import {
   ErrorResponse,
   notFoundHandler,
 } from '../../middleware/request-handler/error-handler';
-import type { QwikCityRequestContext } from '../../middleware/request-handler/types';
 import {
   redirectResponse,
   RedirectResponse,
@@ -23,6 +21,7 @@ import {
 import { normalizePath } from '../../utils/fs';
 import type { RenderToStringResult } from '@builder.io/qwik/server';
 import { getRouteParams } from '../../runtime/src/library/routing';
+import { fromNodeHttp } from '../../middleware/node/http';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = async (pathname: string) => {
@@ -48,7 +47,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         return;
       }
 
-      const requestCtx = fromDevServerHttp(url, req, res);
+      const requestCtx = fromNodeHttp(url, req, res);
       updateRequestCtx(requestCtx, ctx.opts.trailingSlash);
 
       await updateBuildContext(ctx);
@@ -169,9 +168,7 @@ export function dev404Middleware() {
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
       const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
-
-      const requestCtx = fromDevServerHttp(url, req, res);
-
+      const requestCtx = fromNodeHttp(url, req, res);
       await notFoundHandler(requestCtx);
     } catch (e) {
       next(e);
@@ -259,59 +256,6 @@ const VITE_PUBLIC_PATH = `/@vite/`;
 const internalPrefixes = [FS_PREFIX, VALID_ID_PREFIX, VITE_PUBLIC_PATH];
 const InternalPrefixRE = new RegExp(`^(?:${internalPrefixes.join('|')})`);
 const isViteInternalRequest = (url: string): boolean => InternalPrefixRE.test(url);
-
-function fromDevServerHttp(url: URL, req: Connect.IncomingMessage, res: ServerResponse) {
-  const requestHeaders = createHeaders();
-  const nodeRequestHeaders = req.headers;
-  for (const key in nodeRequestHeaders) {
-    const value = nodeRequestHeaders[key];
-    if (typeof value === 'string') {
-      requestHeaders.set(key, value);
-    } else if (Array.isArray(value)) {
-      for (const v of value) {
-        requestHeaders.append(key, v);
-      }
-    }
-  }
-
-  const getRequestBody = async () => {
-    const buffers = [];
-    for await (const chunk of req) {
-      buffers.push(chunk);
-    }
-    return Buffer.concat(buffers).toString();
-  };
-
-  const requestCtx: QwikCityRequestContext = {
-    request: {
-      headers: requestHeaders,
-      formData: async () => {
-        return new URLSearchParams(await getRequestBody());
-      },
-      json: async () => {
-        return JSON.parse(await getRequestBody()!);
-      },
-      method: req.method || 'GET',
-      text: getRequestBody,
-      url: url.href,
-    },
-    response: async (status, headers, body) => {
-      res.statusCode = status;
-      headers.forEach((value, key) => res.setHeader(key, value));
-      body({
-        write: (chunk) => {
-          res.write(chunk);
-        },
-      }).finally(() => {
-        res.end();
-      });
-      return res;
-    },
-    url,
-  };
-
-  return requestCtx;
-}
 
 const DEV_SERVICE_WORKER = `/* Qwik City Dev Service Worker */
 addEventListener('install', () => self.skipWaiting());

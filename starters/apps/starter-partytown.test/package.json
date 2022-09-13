@@ -5,13 +5,6 @@
   },
   "type": "module",
   "__qwik__": {
-    "priority": 0,
-    "featureOptions": [
-      "prettier",
-      "tailwindcss"
-    ],
-    "featureEnabled": [
-      "prettier"
-    ]
+    "priority": 0
   }
 }

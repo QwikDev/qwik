@@ -8,11 +8,11 @@
     "build": "yarn build.client && yarn build.static && yarn ssg",
     "build.client": "vite build",
     "build.static": "vite build --ssr src/entry.static.tsx",
-    "ssg": "node server/entry.static.js",
     "dev": "node --inspect ../../node_modules/vite/bin/vite.js --force",
     "dev.ssr": "node --inspect ../../node_modules/vite/bin/vite.js --mode ssr --force",
     "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr --force",
     "serve": "wrangler pages dev ./dist",
+    "ssg": "node server/entry.static",
     "start": "yarn dev.ssr",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check ."

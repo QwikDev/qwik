@@ -12,6 +12,7 @@ export async function mainThread(sys: System) {
   const log = await sys.createLogger();
   const queue: StaticRoute[] = [];
   const active = new Set<string>();
+  const task = Promise.resolve();
 
   return new Promise<StaticGeneratorResults>((resolve, reject) => {
     try {
@@ -39,7 +40,7 @@ export async function mainThread(sys: System) {
           generatorResults.duration = timer();
 
           log.info(
-            `Rendered: ${generatorResults.rendered} page${
+            `Generated: ${generatorResults.rendered} page${
               generatorResults.rendered === 1 ? '' : 's'
             }`
           );
@@ -57,6 +58,7 @@ export async function mainThread(sys: System) {
           if (generatorResults.errors > 0) {
             log.info(`errors: ${generatorResults.errors}`);
           }
+          log.info(``);
 
           main
             .close()
@@ -71,7 +73,7 @@ export async function mainThread(sys: System) {
       const flushQueue = () => {
         if (!isPendingDrain) {
           isPendingDrain = true;
-          setTimeout(() => {
+          task.then(() => {
             isPendingDrain = false;
             next();
           });

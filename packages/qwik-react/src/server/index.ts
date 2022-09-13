@@ -1,7 +1,12 @@
-import type { RenderToStringOptions, RenderToStringResult } from '@builder.io/qwik/server';
+import type {
+  RenderToStreamOptions,
+  RenderToStreamResult,
+  RenderToStringOptions,
+  RenderToStringResult,
+} from '@builder.io/qwik/server';
 
 /**
- * Server-Side Render method to be called by a server.
+ * Server-Side Render to string method to be called by a server.
  */
 export async function renderToString(
   rootNode: any,
@@ -16,5 +21,26 @@ export async function renderToString(
   return {
     ...result,
     html: finalHtml,
+  };
+}
+
+/**
+ * Server-Side Render to stream method to be called by a server.
+ */
+export async function renderToStream(
+  rootNode: any,
+  opts: RenderToStreamOptions
+): Promise<RenderToStreamResult> {
+  const result = await renderToString(rootNode, opts);
+  opts.stream.write(result.html);
+  return {
+    ...result,
+    flushes: -1,
+    size: -1,
+    timing: {
+      firstFlush: -1,
+      render: -1,
+      snapshot: -1,
+    },
   };
 }

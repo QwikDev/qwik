@@ -1,61 +1,31 @@
-import { component$, Resource, useResource$ } from '@builder.io/qwik';
-import { DocumentHead, RequestHandler, useEndpoint, useLocation } from '@builder.io/qwik-city';
-import { getContent, RenderContent, getBuilderSearchParams } from '@builder.io/sdk-qwik';
-
-export const BUILDER_PUBLIC_API_KEY = 'fe30f73e01ef40558cd69a9493eba2a2'; // ggignore
-export const MODEL = 'content-page';
+import { component$, Resource } from '@builder.io/qwik';
+import { DocumentHead, RequestHandler, useEndpoint } from '@builder.io/qwik-city';
 
 export default component$(() => {
-  const location = useLocation();
-  const isSDK = location.query.render === 'sdk';
+  const resource = useEndpoint<typeof onRequest>();
 
-  if (isSDK) {
-    const builderContentRsrc = useResource$<any>(() => {
-      return getContent({
-        model: MODEL,
-        apiKey: BUILDER_PUBLIC_API_KEY,
-        options: getBuilderSearchParams(location.query),
-        userAttributes: {
-          urlPath: location.pathname || '/',
-        },
-      });
-    });
-
-    return (
+  return (
+    <>
       <Resource
-        value={builderContentRsrc}
-        onPending={() => <div>Loading...</div>}
-        onResolved={(content) => (
-          <RenderContent model={MODEL} content={content} apiKey={BUILDER_PUBLIC_API_KEY} />
-        )}
+        value={resource}
+        onResolved={(builderContent) => {
+          return <main class="builder" dangerouslySetInnerHTML={builderContent.html} />;
+        }}
+        onRejected={(r) => {
+          return (
+            <div>
+              Unable to load content <span hidden>{r}</span>
+            </div>
+          );
+        }}
       />
-    );
-  } else {
-    const resource = useEndpoint<typeof onRequest>();
-
-    return (
-      <>
-        <Resource
-          value={resource}
-          onResolved={(builderContent) => {
-            return <main class="builder" dangerouslySetInnerHTML={builderContent.html} />;
-          }}
-          onRejected={(r) => {
-            return (
-              <div>
-                Unable to load content <span hidden>{r}</span>
-              </div>
-            );
-          }}
-        />
-      </>
-    );
-  }
+    </>
+  );
 });
 
 export const onRequest: RequestHandler<BuilderContent> = async ({ url }) => {
-  const qwikUrl = new URL('https://cdn.builder.io/api/v1/qwik/' + MODEL);
-  qwikUrl.searchParams.set('apiKey', BUILDER_PUBLIC_API_KEY);
+  const qwikUrl = new URL('https://cdn.builder.io/api/v1/qwik/content-page');
+  qwikUrl.searchParams.set('apiKey', 'fe30f73e01ef40558cd69a9493eba2a2');
   qwikUrl.searchParams.set('userAttributes.urlPath', url.pathname);
 
   const response = await fetch(qwikUrl.href);

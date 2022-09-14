@@ -240,14 +240,14 @@ function formatFileSize(bytes: number) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + '' + sizes[i];
 }
 
-export const access = /*@__PURE__*/ promisify(fsAccess);
-export const copyFile = /*@__PURE__*/ promisify(fsCopyFile);
-export const readFile = /*@__PURE__*/ promisify(fsReadFile);
-export const readdir = /*@__PURE__*/ promisify(fsReaddir);
-export const unlink = /*@__PURE__*/ promisify(fsUnlink);
-export const stat = /*@__PURE__*/ promisify(fsStat);
-export const writeFile = /*@__PURE__*/ promisify(fsWriteFile);
-export const mkdir = /*@__PURE__*/ promisify(fsMkdir);
+export const access = /*#__PURE__*/ promisify(fsAccess);
+export const copyFile = /*#__PURE__*/ promisify(fsCopyFile);
+export const readFile = /*#__PURE__*/ promisify(fsReadFile);
+export const readdir = /*#__PURE__*/ promisify(fsReaddir);
+export const unlink = /*#__PURE__*/ promisify(fsUnlink);
+export const stat = /*#__PURE__*/ promisify(fsStat);
+export const writeFile = /*#__PURE__*/ promisify(fsWriteFile);
+export const mkdir = /*#__PURE__*/ promisify(fsMkdir);
 
 export function emptyDir(dir: string) {
   if (existsSync(dir)) {

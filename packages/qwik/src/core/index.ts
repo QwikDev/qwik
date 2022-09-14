@@ -92,14 +92,13 @@ export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
 export { useServerMount$, useServerMountQrl } from './use/use-watch';
 export { useMount$, useMountQrl } from './use/use-watch';
 
-export { _useMutableProps } from './props/props';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './util/types';
 export type { NoSerialize } from './object/q-object';
-export { noSerialize, mutable } from './object/q-object';
-export type { MutableWrapper } from './object/q-object';
+export { noSerialize, mutable, _immutable } from './object/q-object';
+export type { ImmutableWrapper } from './object/q-object';
 
 export { version } from './version';

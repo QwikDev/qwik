@@ -84,10 +84,11 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       subscriber = invokeCtx.$subscriber$;
     }
     let value = target[prop];
-    if (isMutable(value)) {
-      value = value.mut;
-    } else if (immutable) {
-      subscriber = null;
+    if (isImmutable(value)) {
+      value = value.v;
+      if (immutable) {
+        subscriber = null;
+      }
     }
     if (subscriber) {
       const isA = isArray(target);
@@ -205,8 +206,8 @@ const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
         if (isPromise(unwrapped)) return value;
         if (isQwikElement(unwrapped)) return value;
         if (isDocument(unwrapped)) return value;
-        if (isMutable(unwrapped)) {
-          return _verifySerializable(unwrapped.mut, seen);
+        if (isImmutable(unwrapped)) {
+          return _verifySerializable(unwrapped.v, seen);
         }
         if (isArray(unwrapped)) {
           for (const item of unwrapped) {
@@ -275,10 +276,6 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
   return input as any;
 };
 
-export const immutable = <T extends {}>(input: T): Readonly<T> => {
-  return Object.freeze(input);
-};
-
 // <docs markdown="../readme.md#mutable">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#mutable instead)
@@ -302,14 +299,25 @@ export const immutable = <T extends {}>(input: T): Readonly<T> => {
  * See: [Mutable Props Tutorial](http://qwik.builder.io/tutorial/props/mutable) for an example
  *
  * @alpha
+ * @deprecated Remove it, not needed anymore
  */
 // </docs>
-export const mutable = <T>(v: T): MutableWrapper<T> => {
-  return new MutableImpl(v);
+export const mutable = <T>(v: T): T => {
+  console.warn('mutable() is deprecated, you can safely remove all usages of mutable() in your code')
+  return v;
 };
 
-class MutableImpl<T> implements MutableWrapper<T> {
-  constructor(public mut: T) {}
+
+/**
+ * @internal
+ */
+export const _immutable = <T>(v: T): ImmutableWrapper<T> => {
+  return new ImmutableImpl(v);
+};
+
+
+class ImmutableImpl<T> implements ImmutableWrapper<T> {
+  constructor(public v: T) {}
 }
 
 export const isConnected = (sub: Subscriber): boolean => {
@@ -329,15 +337,15 @@ export const isConnected = (sub: Subscriber): boolean => {
  * @alpha
  */
 // </docs>
-export interface MutableWrapper<T> {
+export interface ImmutableWrapper<T> {
   /**
-   * Mutable value.
+   * Immutable prop.
    */
-  mut: T;
+  v: T;
 }
 
-export const isMutable = (v: any): v is MutableWrapper<any> => {
-  return v instanceof MutableImpl;
+export const isImmutable = (v: any): v is ImmutableWrapper<any> => {
+  return v instanceof ImmutableImpl;
 };
 
 /**

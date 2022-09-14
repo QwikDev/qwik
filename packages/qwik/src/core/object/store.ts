@@ -14,8 +14,9 @@ import {
   getProxySubs,
   getProxyTarget,
   isConnected,
-  isMutable,
+  isImmutable,
   mutable,
+  _immutable,
 } from './q-object';
 import {
   destroyWatch,
@@ -303,7 +304,7 @@ export const _pauseFromContexts = async (
 
     for (const ctx of allContexts) {
       if (ctx.$props$) {
-        collectMutableProps(ctx.$element$ as any, ctx.$props$, collector);
+        collectProps(ctx, collector);
       }
       if (ctx.$contexts$) {
         for (const item of ctx.$contexts$.values()) {
@@ -340,8 +341,8 @@ export const _pauseFromContexts = async (
 
   const getObjId = (obj: any): string | null => {
     let suffix = '';
-    if (isMutable(obj)) {
-      obj = obj.mut;
+    if (isImmutable(obj)) {
+      obj = obj.v;
       suffix = '%';
     }
     if (isPromise(obj)) {
@@ -743,11 +744,17 @@ const getObjectImpl = (
   return obj;
 };
 
-const collectMutableProps = (el: VirtualElement, props: any, collector: Collector) => {
-  const subs = getProxySubs(props);
-  if (subs && subs.has(el)) {
-    // The host element read the props
-    collectElement(el, collector);
+{
+  [ImmutableProps]: ['class']
+}
+const collectProps = (elCtx: QContext, collector: Collector) => {
+  const parentCtx = elCtx.$parent$;
+  if (parentCtx && elCtx.$props$ && collector.$elements$.includes(parentCtx.$element$ as any)) {
+    const subs = getProxySubs(elCtx.$props$);
+    const el = elCtx.$element$ as VirtualElement;
+    if (subs && subs.has(el)) {
+      collectElement(el, collector);
+    }
   }
 };
 

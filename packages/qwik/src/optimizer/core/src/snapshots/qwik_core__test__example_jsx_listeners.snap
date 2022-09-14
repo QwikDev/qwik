@@ -136,7 +136,19 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
         onKeyup$: handler,
         "onDocument:keyup$": handler,
         "onWindow:keyup$": handler,
-        custom$: qrl(()=>import("./foo_component_div_custom_pyhnxab17ms"), "Foo_component_div_custom_pyHnxab17ms")
+        custom$: qrl(()=>import("./foo_component_div_custom_pyhnxab17ms"), "Foo_component_div_custom_pyHnxab17ms"),
+        _$: [
+            "onClick$",
+            "onDocumentScroll$",
+            "onDocumentScroll$",
+            "on-cLick$",
+            "onDocument-sCroll$",
+            "onDocument-scroLL$",
+            "host:onClick$",
+            "host:onDocumentScroll$",
+            "host:onDocumentScroll$",
+            "custom$"
+        ]
     });
 };
 export { _hW } from "@builder.io/qwik";

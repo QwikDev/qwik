@@ -108,14 +108,24 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
             /*#__PURE__*/ _jsxs(_Fragment, {
                 children: [
                     /*#__PURE__*/ _jsx("div", {
-                        class: "class"
-                    }),
-                    /*#__PURE__*/ _jsx("div", {
-                        class: "class"
+                        class: "class",
+                        _$: [
+                            "class"
+                        ]
                     }),
                     /*#__PURE__*/ _jsx("div", {
                         class: "class",
-                        children: "12"
+                        _$: [
+                            "class"
+                        ]
+                    }),
+                    /*#__PURE__*/ _jsx("div", {
+                        class: "class",
+                        children: "12",
+                        _$: [
+                            "class",
+                            "children"
+                        ]
                     })
                 ]
             }),
@@ -123,7 +133,10 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
                 class: "class",
                 children: /*#__PURE__*/ _jsx(Lightweight, {
                     ...props
-                })
+                }),
+                _$: [
+                    "class"
+                ]
             }),
             /*#__PURE__*/ _jsxs("div", {
                 class: "class",
@@ -131,11 +144,17 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
                     /*#__PURE__*/ _jsx("div", {}),
                     /*#__PURE__*/ _jsx("div", {}),
                     /*#__PURE__*/ _jsx("div", {})
+                ],
+                _$: [
+                    "class"
                 ]
             }),
             /*#__PURE__*/ _jsx("div", {
                 class: "class",
-                children: children
+                children: children,
+                _$: [
+                    "class"
+                ]
             })
         ]
     });

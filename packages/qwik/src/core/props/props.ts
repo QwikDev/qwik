@@ -1,8 +1,7 @@
 import {
   createProxy,
   getProxyTarget,
-  isMutable,
-  mutable,
+  isImmutable,
   QObjectImmutable,
 } from '../object/q-object';
 import { resumeContainer } from '../object/store';
@@ -11,13 +10,11 @@ import type { OnRenderFn } from '../component/component.public';
 import { destroyWatch, SubscriberDescriptor } from '../use/use-watch';
 import { pauseContainer } from '../object/store';
 import { qDev } from '../util/qdev';
-import { logError } from '../util/log';
-import { isQrl, QRLInternal } from '../import/qrl-class';
+import type { QRLInternal } from '../import/qrl-class';
 import { directGetAttribute } from '../render/fast-calls';
 import { assertDefined, assertTrue } from '../assert/assert';
-import { codeToText, QError_immutableJsxProps } from '../error/error';
 import type { QRL } from '../import/qrl.public';
-import { getWrappingContainer, StyleAppend } from '../use/use-core';
+import type { StyleAppend } from '../use/use-core';
 import { ContainerState, getContainerState, SubscriptionManager } from '../render/container';
 import type { ProcessedJSXNode } from '../render/dom/render-dom';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
@@ -63,6 +60,7 @@ export interface QContext {
   $scopeIds$: string[] | null;
   $vdom$: ProcessedJSXNode | null;
   $slots$: ProcessedJSXNode[] | null;
+  $parent$: QContext | null;
 }
 
 export const tryGetContext = (element: QwikElement): QContext | undefined => {
@@ -89,6 +87,7 @@ export const getContext = (element: Element | VirtualElement): QContext => {
       $vdom$: null,
       $renderQrl$: null,
       $contexts$: null,
+      $parent$: null,
     };
   }
   return ctx;
@@ -147,59 +146,20 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
 
   return {
     set(prop: string, value: any) {
-      const didSet = prop in target;
       let oldValue = target[prop];
-      let mut = false;
-      if (isMutable(oldValue)) {
-        oldValue = oldValue.mut;
+      if (isImmutable(oldValue)) {
+        oldValue = oldValue.v;
       }
-      if (containerState.$mutableProps$) {
-        mut = true;
-        if (isMutable(value)) {
-          value = value.mut;
-          target[prop] = value;
-        } else {
-          target[prop] = mutable(value);
-        }
-      } else {
-        target[prop] = value;
-        if (isMutable(value)) {
-          value = value.mut;
-          mut = true;
-        }
+      target[prop] = value;
+      if (isImmutable(value)) {
+        value = value.v;
       }
       if (oldValue !== value) {
-        if (qDev) {
-          if (didSet && !mut && !isQrl(value)) {
-            const displayName = ctx.$renderQrl$?.getSymbol() ?? ctx.$element$.localName;
-            logError(
-              codeToText(QError_immutableJsxProps),
-              `If you need to change a value of a passed in prop, please wrap the prop with "mutable()" <${displayName} ${prop}={mutable(...)}>`,
-              '\n - Component:',
-              displayName,
-              '\n - Prop:',
-              prop,
-              '\n - Old value:',
-              oldValue,
-              '\n - New value:',
-              value
-            );
-          }
-        }
         manager.$notifySubs$(prop);
       }
     },
   };
 };
-
-/**
- * @internal
- */
-export const _useMutableProps = (element: Element, mutable: boolean) => {
-  const ctx = getWrappingContainer(element);
-  getContainerState(ctx!).$mutableProps$ = mutable;
-};
-
 
 export const inflateQrl = (qrl: QRLInternal, elCtx: QContext) => {
   assertDefined(

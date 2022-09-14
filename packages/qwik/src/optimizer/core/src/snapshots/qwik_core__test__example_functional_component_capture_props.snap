@@ -132,6 +132,9 @@ export const App_component_1_w0t0o3QMovU = ()=>{
             v1,
             v2,
             v3
+        ],
+        _$: [
+            "onClick$"
         ]
     });
 };

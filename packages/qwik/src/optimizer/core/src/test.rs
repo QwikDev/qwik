@@ -1258,11 +1258,19 @@ fn issue_150() {
     test_input!(TestInput {
         code: r#"
 import { component$, $ } from '@builder.io/qwik';
+import { hola } from 'sdfds';
 
 export const Greeter = component$(() => {
+    const stuff = useStore();
     return $(() => {
         return (
-            <div/>
+            <div
+                class={{
+                    'foo': true,
+                    'bar': stuff.condition,
+                    'baz': hola ? 'true' : 'false',
+                }}
+            />
         )
     });
 });

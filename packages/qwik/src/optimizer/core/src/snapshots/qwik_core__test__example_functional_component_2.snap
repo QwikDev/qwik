@@ -133,8 +133,14 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                         state,
                         thing
                     ]),
-                    children: btn.name
+                    children: btn.name,
+                    _$: [
+                        "onClick$"
+                    ]
                 }))
+        ],
+        _$: [
+            "onClick$"
         ]
     });
 };

@@ -51,7 +51,10 @@ export const App_component_AkbU84a8zes = ()=>{
                     onClick$: qrl(()=>import("./app_component_div_p_button_onclick_8dwua0cjar4.js"), "App_component_div_p_button_onClick_8dWUa0cJAr4", [
                         store
                     ]),
-                    children: "Click"
+                    children: "Click",
+                    _$: [
+                        "children"
+                    ]
                 })
             })
         ]
@@ -95,7 +98,10 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { state } from "./components/sibling";
 export const Local_component_jJ0v28bs0p8 = ()=>{
     return /*#__PURE__*/ _jsx("div", {
-        children: state
+        children: state,
+        _$: [
+            "children"
+        ]
     });
 };
 

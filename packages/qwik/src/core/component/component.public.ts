@@ -4,7 +4,7 @@ import { OnRenderProp } from '../util/markers';
 import type { ComponentBaseProps, JSXChildren } from '../render/jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
-import type { MutableWrapper } from '../object/q-object';
+import type { ImmutableWrapper } from '../object/q-object';
 import { SERIALIZABLE_STATE } from '../object/serializers';
 import { qTest } from '../util/qdev';
 import { Virtual } from '../render/jsx/utils.public';
@@ -58,7 +58,7 @@ export type PublicProps<PROPS extends {}> = MutableProps<PROPS> &
  * @public
  */
 export type MutableProps<PROPS extends {}> = {
-  [K in keyof PROPS]: K extends 'children' ? PROPS[K] : PROPS[K] | MutableWrapper<PROPS[K]>;
+  [K in keyof PROPS]: K extends 'children' ? PROPS[K] : PROPS[K] | ImmutableWrapper<PROPS[K]>;
 };
 
 /**

@@ -44,7 +44,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
 
     config() {
       const updatedViteConfig: UserConfig = {
-        appType: 'mpa',
+        appType: 'custom',
         base: userOpts?.basePathname,
         optimizeDeps: {
           exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],

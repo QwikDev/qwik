@@ -20,6 +20,8 @@ export const Foo = component$(() => {
 
 export const Foo_component_useStyles_pV9TSCBIhw8 = '.class {}';
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAIe,WAAW\"}")
 /*
 {
   "origin": "test.tsx",
@@ -48,6 +50,8 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
     return <div class="class"/>;
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,IAAM;IAChC,6GAAuB,CAAC;IACxB,QACK,GAAG,CAAC,KAAK,CAAC,OAAO,GACpB;CACL\"}")
 /*
 {
   "origin": "test.tsx",
@@ -75,6 +79,8 @@ export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_ht
     tagName: "my-foo"
 });
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,0FAKhB;IACC,OAAO,EAAE,QAAQ;CACpB,CAAC,CAAC\"}")
 == DIAGNOSTICS ==
 
 []

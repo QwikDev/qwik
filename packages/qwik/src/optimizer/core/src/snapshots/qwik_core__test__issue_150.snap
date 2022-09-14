@@ -24,11 +24,15 @@ import { qrl } from "@builder.io/qwik";
 export const Greeter = /*#__PURE__*/ componentQrl(qrl(()=>import("./greeter_component_n7hug2hhu0q"), "Greeter_component_n7HuG2hhU0Q"));
 qrl(()=>import("./d_wknfjeiqvua"), "d_wKNFJEIQVUA");
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,OAAO,iBAAG,iGAMrB,CAAC;oDAEmC\"}")
 ============================= d_wknfjeiqvua.js (ENTRY POINT)==
 
 export const d_wKNFJEIQVUA = ()=>console.log('thing');
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAWY,IAAI,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -56,6 +60,8 @@ export const Greeter_component_1_krCndSwhX4U = ()=>{
 };
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";+CAIa,IAAM;IACX,qBACI,KAAC,KAAG,KAAE,CACT;CACJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -82,6 +88,8 @@ export const Greeter_component_n7HuG2hhU0Q = ()=>{
     return qrl(()=>import("./greeter_component_1_krcndswhx4u"), "Greeter_component_1_krCndSwhX4U");
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6CAGkC,IAAM;IACpC,+FAIG;CACN\"}")
 /*
 {
   "origin": "test.tsx",

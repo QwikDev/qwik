@@ -21,6 +21,8 @@ import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_nuxfthrjvxe"), "App_Component_NuXFTHRjvXE"));
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,yFAMjB,CAAC\"}")
 ============================= app_component_1_a08txhb9pek.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -33,6 +35,8 @@ export const App_Component_1_A08tXHb9pEk = ()=>{
 };
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAMoB;;yBACZ,KAAC,KAAG;kBAAE,KAAK,CAAC,KAAK;MAAO;CAC3B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -65,6 +69,8 @@ export const App_Component_NuXFTHRjvXE = (props)=>{
     ]);
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG6B,CAAC,KAAK,GAAK;IACpC,MAAM,KAAK,GAAG,QAAQ,CAAC;QAAC,KAAK,EAAE,CAAC;KAAC,CAAC,AAAC;IAEnC;;OAEG;CACN\"}")
 /*
 {
   "origin": "test.tsx",

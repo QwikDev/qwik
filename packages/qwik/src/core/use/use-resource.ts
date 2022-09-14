@@ -24,16 +24,79 @@ import type { ContainerState } from '../render/container';
 import { useSequentialScope } from './use-sequential-scope';
 
 /**
+ * Options to pass to `useResource$()`
+ *
+ * @see useResource
  * @public
  */
 export interface ResourceOptions {
-  // Timeout in milliseconds
+  /**
+   * Timeout in milliseconds. If the resource takes more than the specified millisecond, it will timeout.
+   * Resulting on a rejected resource.
+   */
   timeout?: number;
 }
 
+// <docs markdown="../readme.md#useResource">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#useResource instead)
 /**
+ * This method works like an async memoized function that runs whenever some tracked value
+ * changes and returns some data.
+ *
+ * `useResouce` however returns immediate a `ResourceReturn` object that contains the data and a
+ * state that indicates if the data is available or not.
+ *
+ * The status can be one of the following:
+ *
+ * - 'pending' - the data is not yet available.
+ * - 'resolved' - the data is available.
+ * - 'rejected' - the data is not available due to an error or timeout.
+ *
+ * ## Example
+ *
+ * Example showing how `useResource` to perform a fetch to request the weather, whenever the
+ * input city name changes.
+ *
+ * ```tsx
+ * const Cmp = component$(() => {
+ *   const store = useStore({
+ *     city: '',
+ *   });
+ *
+ *   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
+ *     const cityName = track(store, 'city');
+ *     const abortController = new AbortController();
+ *     cleanup(() => abortController.abort('cleanup'));
+ *     const res = await  fetch(`http://weatherdata.com?city=${cityName}`, {
+ *       signal: abortController.signal
+ *     });
+ *     const data = res.json();
+ *     return data;
+ *   });
+ *
+ *   return (
+ *     <div>
+ *       <input name="city" onInput$={(ev: any) => store.city = ev.target.value}/>
+ *       <Resource
+ *         value={weatherResource}
+ *         onResolved={(weather) => {
+ *           return (
+ *             <div>Temperature: {weather.temp}</div>
+ *           );
+ *         }}
+ *       />
+ *     </div>
+ *   );
+ * });
+ * ```
+ *
+ * @see Resource
+ * @see ResourceReturn
+ *
  * @public
  */
+// </docs>
 export const useResourceQrl = <T>(
   qrl: QRL<ResourceFn<T>>,
   opts?: ResourceOptions
@@ -66,9 +129,66 @@ export const useResourceQrl = <T>(
   return resource;
 };
 
+// <docs markdown="../readme.md#useResource">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#useResource instead)
 /**
+ * This method works like an async memoized function that runs whenever some tracked value
+ * changes and returns some data.
+ *
+ * `useResouce` however returns immediate a `ResourceReturn` object that contains the data and a
+ * state that indicates if the data is available or not.
+ *
+ * The status can be one of the following:
+ *
+ * - 'pending' - the data is not yet available.
+ * - 'resolved' - the data is available.
+ * - 'rejected' - the data is not available due to an error or timeout.
+ *
+ * ## Example
+ *
+ * Example showing how `useResource` to perform a fetch to request the weather, whenever the
+ * input city name changes.
+ *
+ * ```tsx
+ * const Cmp = component$(() => {
+ *   const store = useStore({
+ *     city: '',
+ *   });
+ *
+ *   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
+ *     const cityName = track(store, 'city');
+ *     const abortController = new AbortController();
+ *     cleanup(() => abortController.abort('cleanup'));
+ *     const res = await  fetch(`http://weatherdata.com?city=${cityName}`, {
+ *       signal: abortController.signal
+ *     });
+ *     const data = res.json();
+ *     return data;
+ *   });
+ *
+ *   return (
+ *     <div>
+ *       <input name="city" onInput$={(ev: any) => store.city = ev.target.value}/>
+ *       <Resource
+ *         value={weatherResource}
+ *         onResolved={(weather) => {
+ *           return (
+ *             <div>Temperature: {weather.temp}</div>
+ *           );
+ *         }}
+ *       />
+ *     </div>
+ *   );
+ * });
+ * ```
+ *
+ * @see Resource
+ * @see ResourceReturn
+ *
  * @public
  */
+// </docs>
 export const useResource$ = <T>(
   generatorFn: ResourceFn<T>,
   opts?: ResourceOptions
@@ -86,9 +206,66 @@ export interface ResourceProps<T> {
   onRejected?: (reason: any) => JSXNode;
 }
 
+// <docs markdown="../readme.md#useResource">
+// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
+// (edit ../readme.md#useResource instead)
 /**
+ * This method works like an async memoized function that runs whenever some tracked value
+ * changes and returns some data.
+ *
+ * `useResouce` however returns immediate a `ResourceReturn` object that contains the data and a
+ * state that indicates if the data is available or not.
+ *
+ * The status can be one of the following:
+ *
+ * - 'pending' - the data is not yet available.
+ * - 'resolved' - the data is available.
+ * - 'rejected' - the data is not available due to an error or timeout.
+ *
+ * ## Example
+ *
+ * Example showing how `useResource` to perform a fetch to request the weather, whenever the
+ * input city name changes.
+ *
+ * ```tsx
+ * const Cmp = component$(() => {
+ *   const store = useStore({
+ *     city: '',
+ *   });
+ *
+ *   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
+ *     const cityName = track(store, 'city');
+ *     const abortController = new AbortController();
+ *     cleanup(() => abortController.abort('cleanup'));
+ *     const res = await  fetch(`http://weatherdata.com?city=${cityName}`, {
+ *       signal: abortController.signal
+ *     });
+ *     const data = res.json();
+ *     return data;
+ *   });
+ *
+ *   return (
+ *     <div>
+ *       <input name="city" onInput$={(ev: any) => store.city = ev.target.value}/>
+ *       <Resource
+ *         value={weatherResource}
+ *         onResolved={(weather) => {
+ *           return (
+ *             <div>Temperature: {weather.temp}</div>
+ *           );
+ *         }}
+ *       />
+ *     </div>
+ *   );
+ * });
+ * ```
+ *
+ * @see Resource
+ * @see ResourceReturn
+ *
  * @public
  */
+// </docs>
 export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
   const isBrowser = !qDev || !isServer();
   if (isBrowser) {
@@ -104,6 +281,8 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
         return props.onPending();
       } else if (state === 'resolved') {
         return props.onResolved(props.value.resolved);
+      } else if (state === 'rejected') {
+        throw props.value.error;
       }
     }
   }

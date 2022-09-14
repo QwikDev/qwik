@@ -23,7 +23,6 @@ export type {
 export { $ } from './import/qrl.public';
 export { qrl, inlinedQrl } from './import/qrl';
 export type { QRL, PropFunction, PropFnInterface } from './import/qrl.public';
-export type { Props } from './props/props.public';
 export { implicit$FirstArg } from './util/implicit_dollar';
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -91,6 +90,7 @@ export { useResource$, useResourceQrl, Resource } from './use/use-resource';
 export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
 export { useServerMount$, useServerMountQrl } from './use/use-watch';
 export { useMount$, useMountQrl } from './use/use-watch';
+export { useErrorBoundary } from './use/use-error-boundary';
 
 export { _useMutableProps } from './props/props';
 

@@ -25,6 +25,7 @@ import {
   generateServiceWorkerRegister,
   prependManifestToServiceWorker,
 } from '../runtime-generation/generate-service-worker';
+import type { RollupError } from 'rollup';
 
 /**
  * @alpha
@@ -43,7 +44,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
 
     config() {
       const updatedViteConfig: UserConfig = {
-        appType: 'custom',
+        appType: 'mpa',
         base: userOpts?.basePathname,
         optimizeDeps: {
           exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],
@@ -142,8 +143,23 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
 
         const ext = getExtension(fileName);
         if (isMarkdownExt(ext) && mdxTransform) {
-          const mdxResult = await mdxTransform(code, id);
-          return mdxResult;
+          try {
+            const mdxResult = await mdxTransform(code, id);
+            return mdxResult;
+          } catch (e: any) {
+            const column = e.position.start.column;
+            const line = e.position.start.line;
+            const err: RollupError = Object.assign(new Error(e.reason), {
+              id,
+              plugin: 'qwik-city-mdx',
+              loc: {
+                column: column,
+                line: line,
+              },
+              stack: '',
+            });
+            this.error(err);
+          }
         }
 
         if (ctx.target === 'client') {

@@ -293,7 +293,7 @@ export interface MutableWrapper<T> {
     mut: T;
 }
 
-// @public (undocumented)
+// @public
 export type NoSerialize<T> = (T & {
     __no_serialize__: true;
 }) | undefined;
@@ -318,9 +318,6 @@ export interface PropFnInterface<ARGS extends any[], RET> {
 
 // @public (undocumented)
 export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;
-
-// @public (undocumented)
-export type Props<T extends {} = {}> = Record<string, any> & T;
 
 // @public
 export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;
@@ -384,7 +381,7 @@ export namespace QwikJSX {
     }
 }
 
-// @public (undocumented)
+// @public
 export interface Ref<T> {
     // (undocumented)
     current: T | undefined;
@@ -422,7 +419,7 @@ export interface RenderSSROptions {
     url?: string;
 }
 
-// @public (undocumented)
+// @public
 export const Resource: <T>(props: ResourceProps<T>) => JSXNode;
 
 // @public (undocumented)
@@ -438,9 +435,8 @@ export interface ResourceCtx<T> {
 // @public (undocumented)
 export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
 
-// @public (undocumented)
+// @public
 export interface ResourceOptions {
-    // (undocumented)
     timeout?: number;
 }
 
@@ -513,7 +509,7 @@ export const setPlatform: (plt: CorePlatform) => CorePlatform;
 // @alpha (undocumented)
 export const SkipRender: JSXNode;
 
-// @public (undocumented)
+// @public
 export const Slot: FunctionComponent<{
     name?: string;
 }>;
@@ -632,6 +628,11 @@ export function useEnvData<T>(key: string): T | undefined;
 // @alpha (undocumented)
 export function useEnvData<T, B = T>(key: string, defaultValue: B): T | B;
 
+// Warning: (ae-forgotten-export) The symbol "ErrorBoundaryStore" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
+
 // Warning: (ae-internal-missing-underscore) The name "useLexicalScope" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
@@ -658,10 +659,10 @@ export const useOnWindow: (event: string, eventQrl: QRL<(ev: Event) => void>) =>
 // @public
 export const useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;
 
-// @public (undocumented)
+// @public
 export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;
 
-// @public (undocumented)
+// @public
 export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) => ResourceReturn<T>;
 
 // @public

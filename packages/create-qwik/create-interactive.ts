@@ -5,7 +5,7 @@ import prompts from 'prompts';
 import color from 'kleur';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
-import { createOutDir, createOutDirName, createApp } from './create-app';
+import { createApp, getOutDir } from './create-app';
 import { getPackageManager } from '../qwik/src/cli/utils/utils';
 import { logCreateAppResult } from '../qwik/src/cli/utils/log';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
@@ -14,7 +14,11 @@ export async function runCreateInteractiveCli() {
   console.log(``);
   console.clear();
 
-  console.log(`💫 ${color.cyan(`Let's create a Qwik app`)} 💫`);
+  console.log(
+    `💫 ${color.cyan(`Let's create a Qwik app`)} 💫  ${color.dim(
+      `v${(globalThis as any).QWIK_VERSION}`
+    )}`
+  );
   console.log(``);
 
   const pkgManager = getPackageManager();
@@ -29,9 +33,9 @@ export async function runCreateInteractiveCli() {
   const projectNameAnswer = await prompts(
     {
       type: 'text',
-      name: 'projectName',
-      message: 'Project name',
-      initial: 'qwik-app',
+      name: 'outDir',
+      message: 'Where would you like to create your new project?',
+      initial: './qwik-app',
     },
     {
       onCancel: () => {
@@ -42,9 +46,8 @@ export async function runCreateInteractiveCli() {
   );
   console.log(``);
 
-  const projectName: string = projectNameAnswer.projectName;
-  const outDirName = createOutDirName(projectName);
-  const outDir = createOutDir(outDirName);
+  const outDir: string = getOutDir(projectNameAnswer.outDir);
+
   let removeExistingOutDirPromise: Promise<void> | null = null;
 
   if (fs.existsSync(outDir)) {
@@ -64,7 +67,7 @@ export async function runCreateInteractiveCli() {
       },
       {
         onCancel: async () => {
-          console.log('\n' + color.dim(` - Exited without modifying "${outDir}"`) + '\n');
+          console.log(color.dim(` - Exited without modifying "${outDir}"`) + '\n');
           await backgroundInstall.abort();
           process.exit(1);
         },
@@ -74,7 +77,7 @@ export async function runCreateInteractiveCli() {
     if (existingOutDirAnswer.outDirChoice === 'replace') {
       removeExistingOutDirPromise = fs.promises.rm(outDir, { recursive: true });
     } else {
-      console.log('\n' + color.dim(` - Exited without modifying "${outDir}"`) + '\n');
+      console.log(color.dim(` - Exited without modifying "${outDir}"`) + '\n');
       await backgroundInstall.abort();
       process.exit(1);
     }
@@ -126,7 +129,6 @@ export async function runCreateInteractiveCli() {
 
   const opts: CreateAppOptions = {
     starterId,
-    projectName,
     outDir,
   };
 

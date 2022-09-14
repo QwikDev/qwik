@@ -61,19 +61,16 @@ async function validateStarter(
   app: boolean,
   emoji: string
 ) {
-  const projectName = starterId;
-  const appDir = join(distDir, 'e2e-' + projectName);
+  const appDir = join(distDir, 'e2e-' + starterId);
 
-  console.log(`${emoji} ${projectName}: ${appDir}`);
+  console.log(`${emoji} ${appDir}`);
   rmSync(appDir, { force: true, recursive: true });
 
   const result = await api.createApp({
-    projectName,
     starterId,
     outDir: appDir,
   });
 
-  assert.strictEqual(result.projectName, projectName);
   assert.strictEqual(result.starterId, starterId);
   assert.strictEqual(result.outDir, appDir);
 
@@ -81,7 +78,6 @@ async function validateStarter(
 
   const appPkgJsonPath = join(result.outDir, 'package.json');
   const appPkgJson = JSON.parse(readFileSync(appPkgJsonPath, 'utf-8'));
-  assert.strictEqual(appPkgJson.name, projectName.toLowerCase());
 
   appPkgJson.devDependencies['@builder.io/qwik'] = 'latest';
   writeFileSync(appPkgJsonPath, JSON.stringify(appPkgJson, null, 2));
@@ -90,7 +86,7 @@ async function validateStarter(
   accessSync(tsconfigPath);
 
   const { execa } = await import('execa');
-  console.log(`${emoji} ${projectName}: npm install`);
+  console.log(`${emoji} ${starterId}: npm install`);
   await execa('npm', ['install'], { cwd: appDir, stdout: 'inherit' });
 
   // console.log(`${emoji} ${projectName}: copy @builder.io/qwik distribution`);
@@ -140,7 +136,7 @@ async function validateStarter(
   // accessSync(join(appDir, 'tsconfig.json'));
   // accessSync(join(appDir, 'tsconfig.tsbuildinfo'));
 
-  console.log(`${emoji} ${projectName} validated\n`);
+  console.log(`${emoji} ${starterId} validated\n`);
 }
 
 function cpSync(src: string, dest: string) {

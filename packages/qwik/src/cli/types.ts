@@ -1,7 +1,6 @@
 import type { AppCommand } from './utils/app-command';
 
 export interface CreateAppOptions {
-  projectName: string;
   starterId: string;
   outDir: string;
 }

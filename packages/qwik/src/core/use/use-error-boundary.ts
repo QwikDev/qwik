@@ -10,7 +10,6 @@ import { useStore } from './use-store.public';
 export const useErrorBoundary = (): Readonly<ErrorBoundaryStore> => {
   const store: ErrorBoundaryStore = useStore({
     error: undefined,
-    host: undefined,
   });
   useOn('error-boundary', qrl('/runtime', 'error', [store]));
   useContextProvider(ERROR_CONTEXT, store);

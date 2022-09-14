@@ -5,7 +5,6 @@ import type { QwikElement } from './dom/virtual-element';
 import type { RenderContext } from './types';
 
 export interface ErrorBoundaryStore {
-  host: QwikElement | undefined;
   error: any | undefined;
 }
 
@@ -29,7 +28,6 @@ export const handleError = (err: any, hostElement: QwikElement, rctx?: RenderCon
     if (errorStore === undefined) {
       throw err;
     }
-    errorStore.host = hostElement;
     errorStore.error = err;
   }
 };

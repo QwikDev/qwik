@@ -3,9 +3,10 @@
   "version": "0.0.108",
   "description": "Interactive CLI for create Qwik projects and adding features.",
   "bin": "./create-qwik.cjs",
-  "main": "index.js",
+  "main": "./index.cjs",
   "files": [
     "create-qwik.cjs",
+    "index.cjs",
     "starters/"
   ],
   "author": "Builder.io Team",

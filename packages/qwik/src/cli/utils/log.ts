@@ -12,17 +12,17 @@ export function logCreateAppResult(result: CreateAppResult, ranInstall: boolean)
   const relativeProjectPath = relative(process.cwd(), result.outDir);
 
   if (isCwdDir) {
-    console.log(`⭐️ ${color.bgGreen(' Success! ')}`);
+    console.log(`🦄 ${color.bgMagenta(' Success! ')}`);
   } else {
     console.log(
-      `⭐️ ${color.green(`${color.bgGreen(' Success! ')} Project saved in`)} ${color.yellow(
-        relativeProjectPath
-      )} ${color.green(`directory`)}`
+      `🦄 ${color.bgMagenta(' Success! ')} ${color.cyan(`Project created in`)} ${color.bold(
+        color.magenta(relativeProjectPath)
+      )} ${color.cyan(`directory`)}`
     );
   }
   console.log(``);
 
-  console.log(`🤖 ${color.cyan(`Next steps:`)}`);
+  console.log(`🐰 ${color.cyan(`Next steps:`)}`);
   if (!isCwdDir) {
     console.log(`   cd ${relativeProjectPath}`);
   }

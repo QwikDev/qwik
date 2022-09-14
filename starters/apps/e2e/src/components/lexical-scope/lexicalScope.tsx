@@ -1,12 +1,7 @@
 import { component$, $, useStore, mutable, noSerialize } from '@builder.io/qwik';
 
 export const LexicalScope = component$(() => {
-  return (
-    <LexicalScopeChild
-      message={mutable('mutable message')}
-      message2={mutable(null)}
-    />
-    )
+  return <LexicalScopeChild message={mutable('mutable message')} message2={mutable(null)} />;
 });
 
 interface LexicalScopeProps {

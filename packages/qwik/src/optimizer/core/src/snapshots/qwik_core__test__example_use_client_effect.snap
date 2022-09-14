@@ -36,6 +36,8 @@ import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const Child = /*#__PURE__*/ componentQrl(qrl(()=>import("./child_component_9gyf01gdkqw"), "Child_component_9GyF01GDKqw"));
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,KAAK,iBAAG,6FAoBnB,CAAC\"}")
 ============================= child_component_9gyf01gdkqw.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
@@ -55,6 +57,8 @@ export const Child_component_9GyF01GDKqw = ()=>{
     });
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;2CAGgC,IAAM;IAClC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,KAAK,EAAE,CAAC;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAOE,CAAC;IAEH,qBACI,KAAC,KAAG;kBACH,KAAK,CAAC,KAAK;MACV,CACJ;CACL\"}")
 /*
 {
   "origin": "test.tsx",
@@ -88,6 +92,8 @@ export const Child_component_useClientEffect_kYRT1iERt9g = ()=>{
 };
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2DASqB;;IACb,MAAM,KAAK,GAAG,WAAW,CAAC,IAAM;QAChC,KAAK,CAAC,KAAK,EAAE,CAAC;KACb,EAAE,IAAI,CAAC,AAAC;IACT,OAAO,IAAM;QACb,aAAa,CAAC,KAAK,CAAC,CAAC;KACpB,CAAA;CACJ\"}")
 /*
 {
   "origin": "test.tsx",

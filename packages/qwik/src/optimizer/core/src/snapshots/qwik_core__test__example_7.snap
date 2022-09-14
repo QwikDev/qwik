@@ -28,6 +28,8 @@ export const Header_component_J4uyIhaBNR4 = ()=>{
     return <div onClick={qrl(()=>import("./header_component_div_onclick_i7ekvwh3674"), "Header_component_div_onClick_i7ekvWH3674")}/>;
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAGiC,IAAM;IACnC,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,CAAC;IACrB,QACK,GAAG,CAAC,OAAO,+GACd;CACH\"}")
 /*
 {
   "origin": "test.tsx",
@@ -54,6 +56,8 @@ import { qrl } from "@builder.io/qwik";
 export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("./header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
 /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,MAAM,iBAAG,+FAKlB,CAAC;cAEO,yFAIV,CAAC\"}")
 ============================= app_component_ckepmxzlub0.tsx (ENTRY POINT)==
 
 import { Header } from "./test";
@@ -61,6 +65,8 @@ export const App_component_ckEPmXZlub0 = ()=>{
     return <Header />;
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAUuB,IAAM;IACzB,QACK,MAAM,IACT;CACL\"}")
 /*
 {
   "origin": "test.tsx",
@@ -85,6 +91,8 @@ export const App_component_ckEPmXZlub0 = ()=>{
 export const Header_component_div_onClick_i7ekvWH3674 = (ctx)=>console.log(ctx);
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAMwB,CAAC,GAAG,GAAK,OAAO,CAAC,GAAG,CAAC,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

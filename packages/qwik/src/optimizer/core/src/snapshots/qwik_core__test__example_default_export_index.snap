@@ -25,6 +25,8 @@ export default /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
         </div>;
 }, "mongo_component_ouWLj4jA2oI"));
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/index.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,6BAAe,wBAAW,IAAM;IAC5B,QACK,GAAG,CAAC,QAAQ,aAAE,IAAM,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,8CAAE;;QAC3C,EAAE,GAAG,EACP;CACL,iCAAC,CAAC\"}")
 == DIAGNOSTICS ==
 
 []

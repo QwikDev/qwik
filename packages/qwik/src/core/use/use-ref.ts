@@ -1,6 +1,8 @@
 import { useStore } from './use-store.public';
 
 /**
+ * Type of the value returned by `useRef()`.
+ *
  * @public
  */
 export interface Ref<T> {

@@ -11,6 +11,7 @@ import {
   QwikElement,
   VirtualElement,
 } from '../render/dom/virtual-element';
+import type { RenderContext } from '../render/types';
 
 // <docs markdown="../readme.md#Context">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -129,7 +130,7 @@ export interface Context<STATE extends object> {
  */
 // </docs>
 export const createContext = <STATE extends object>(name: string): Context<STATE> => {
-  return Object.freeze({
+  return /*#__PURE__*/ Object.freeze({
     id: fromCamelToKebabCase(name),
   } as any);
 };
@@ -277,30 +278,42 @@ export const useContext: UseContext = <STATE extends object>(
     validateContext(context);
   }
 
-  let hostElement: QwikElement = ctx.$hostElement$;
-  const contexts = ctx.$renderCtx$.$localStack$;
-  for (let i = contexts.length - 1; i >= 0; i--) {
-    const ctx = contexts[i];
-    hostElement = ctx.$element$;
-    if (ctx.$contexts$) {
-      const found = ctx.$contexts$.get(context.id);
-      if (found) {
-        return set(found);
-      }
-    }
+  const value = resolveContext(context, ctx.$hostElement$, ctx.$renderCtx$);
+  if (value !== undefined) {
+    return set(value);
   }
-
-  if ((hostElement as any).closest) {
-    const value = queryContextFromDom(hostElement, context.id);
-    if (value !== undefined) {
-      return set(value);
-    }
-  }
-
   if (defaultValue !== undefined) {
     return set(defaultValue);
   }
   throw qError(QError_notFoundContext, context.id);
+};
+
+export const resolveContext = <STATE extends object>(
+  context: Context<STATE>,
+  hostElement: QwikElement,
+  rctx?: RenderContext
+): STATE | undefined => {
+  const contextID = context.id;
+  if (rctx) {
+    const contexts = rctx.$localStack$;
+    for (let i = contexts.length - 1; i >= 0; i--) {
+      const ctx = contexts[i];
+      hostElement = ctx.$element$;
+      if (ctx.$contexts$) {
+        const found = ctx.$contexts$.get(contextID);
+        if (found) {
+          return found;
+        }
+      }
+    }
+  }
+  if ((hostElement as any).closest) {
+    const value = queryContextFromDom(hostElement, contextID);
+    if (value !== undefined) {
+      return value;
+    }
+  }
+  return undefined;
 };
 
 export const queryContextFromDom = (hostElement: QwikElement, contextId: string) => {

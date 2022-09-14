@@ -24,6 +24,8 @@ export const App_Header_component_B9F3YeqcO1w = ()=>{
     return <div onClick={qrl(()=>import("./app_header_component_div_onclick_ao7ui7iw6oq"), "App_Header_component_div_onClick_aO7uI7Iw6oQ")}/>;
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gDAG8B,IAAM;IAC5B,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,CAAC;IACrB,QACK,GAAG,CAAC,OAAO,uHACd;CACL\"}")
 /*
 {
   "origin": "test.tsx",
@@ -48,6 +50,8 @@ export const App_Header_component_B9F3YeqcO1w = ()=>{
 export const App_Header_component_div_onClick_aO7uI7Iw6oQ = (ctx)=>console.log(ctx);
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"4DAM4B,CAAC,GAAG,GAAK,OAAO,CAAC,GAAG,CAAC,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -76,6 +80,8 @@ export function App() {
     return Header;
 }
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AACA,OAAO,SAAS,GAAG,GAAG;IAClB,MAAM,MAAM,iBAAG,uGAKb,AAAC;IACH,OAAO,MAAM,CAAC;CACjB\"}")
 == DIAGNOSTICS ==
 
 []

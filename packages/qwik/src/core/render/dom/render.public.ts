@@ -14,6 +14,7 @@ import { ContainerState, getContainerState } from '../container';
 import { postRendering } from './notify-render';
 import { createRenderContext } from '../execute-component';
 import { executeDOMRender, printRenderStats } from './operations';
+import { logError } from '../../util/log';
 
 /**
  * @alpha
@@ -79,9 +80,25 @@ const renderRoot = async (
   const staticCtx = ctx.$static$;
   // staticCtx.$roots$.push(parent as Element);
 
-  const processedNodes = await processData(jsxNode);
-  const rootJsx = domToVnode(parent);
-  await visitJsxNode(ctx, rootJsx, wrapJSX(parent, processedNodes), 0);
+  try {
+    const processedNodes = await processData(jsxNode);
+    const rootJsx = domToVnode(parent);
+    await visitJsxNode(ctx, rootJsx, wrapJSX(parent, processedNodes), 0);
+  } catch (err) {
+    logError(err);
+    if (qDev) {
+      if (err && err instanceof Error) {
+        doc.dispatchEvent(
+          new CustomEvent('qerror', {
+            bubbles: true,
+            detail: {
+              error: err,
+            },
+          })
+        );
+      }
+    }
+  }
 
   staticCtx.$operations$.push(...staticCtx.$postOperations$);
   executeDOMRender(staticCtx);

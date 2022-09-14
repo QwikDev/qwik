@@ -47,6 +47,8 @@ export const useCounter = ()=>{
 export const STEP = 1;
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAwB,QAAQ,QAAQ,kBAAkB,CAAC;AAC3D,OAAO,MAAM,UAAU,GAAG,IAAM;IAC5B,OAAO,QAAQ,CAAC;QAAC,KAAK,EAAE,CAAC;KAAC,CAAC,CAAC;CAC/B,CAAA;AAED,OAAO,MAAM,IAAI,GAAG,CAAC,CAAC;AAEtB,OAAO,MAAM,GAAG,iBAAG,yFAoBjB,CAAA\"}")
 ============================= app_component_div_onclick_1cgetmfzx0g.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -55,6 +57,8 @@ export const App_component_div_onClick_1CGetmFZx0g = ()=>{
     return state.count += count2;
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAeuB;;WAAM,KAAK,CAAC,KAAK,IAAE,MAAM;CAAA\"}")
 /*
 {
   "origin": "test.tsx",
@@ -83,6 +87,8 @@ export const App_component_div_button_onClick_f5NwW9e63a4 = ()=>{
     return state.count += btn.offset + thing + STEP + STEP_2 + props.step;
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;4DAmB8B;;WAAM,KAAK,CAAC,KAAK,IAAI,GAAG,CAAC,MAAM,GAAG,KAAK,GAAG,IAAI,GAAG,MAAM,GAAG,KAAK,CAAC,IAAI;CAAA\"}")
 /*
 {
   "origin": "test.tsx",
@@ -139,6 +145,8 @@ export const App_component_ckEPmXZlub0 = (props)=>{
     });
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAQ8B,CAAC,KAAK,GAAK;IACrC,MAAM,KAAK,GAAG,UAAU,EAAE,AAAC;IAC3B,MAAM,KAAK,GAAG,QAAQ,CAAC;QAAC,KAAK,EAAE,CAAC;KAAC,CAAC,AAAC;IACnC,MAAM,MAAM,GAAG,CAAC,AAAC;IAEjB,MAAM,MAAM,GAAG,KAAK,CAAC,KAAK,GAAG,CAAC,AAAC;IAC/B,qBACI,MAAC,KAAG;QAAC,QAAQ;;;;;0BACT,KAAC,MAAI;0BAAE,KAAK,CAAC,KAAK;cAAQ;YACzB,OAAO,CAAC,GAAG,CAAC,CAAA,GAAG,iBACZ,KAAC,QAAM;oBACH,QAAQ;;;;;;;8BAEP,GAAG,CAAC,IAAI;kBACJ,AACZ,CAAC;;MAEA,CAER;CACL\"}")
 /*
 {
   "origin": "test.tsx",

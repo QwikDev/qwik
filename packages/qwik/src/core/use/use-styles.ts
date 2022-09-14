@@ -147,8 +147,7 @@ const _useStyles = (
     return styleId;
   }
   containerState.$styleIds$.add(styleId);
-  styleQrl.$setContainer$(containerState.$containerEl$);
-  const value = styleQrl.$resolveLazy$();
+  const value = styleQrl.$resolveLazy$(containerState.$containerEl$);
   const appendStyle = (styleText: string) => {
     assertDefined(elCtx.$appendStyles$, 'appendStyles must be defined');
     elCtx.$appendStyles$.push({

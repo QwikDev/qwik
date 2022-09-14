@@ -22,11 +22,15 @@ import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export default /*#__PURE__*/ componentQrl(qrl(()=>import("../../../../entry______slug__.js"), "_____slug___component_vgk6N3QaQd4"));
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,6BAAe,sGAKb,CAAC\"}")
 ============================= _____slug___component_div_onclick_oesymv0so3o.js ==
 
 import { sibling } from "./src/routes/_repl/[id]/sibling";
 export const _____slug___component_div_onClick_OesyMV0SO3o = ()=>console.log(mongodb, sibling);
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";6DAMuB,IAAM,OAAO,CAAC,GAAG,CAAC,OAAO,EAAE,OAAO,CAAC\"}")
 /*
 {
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
@@ -56,6 +60,8 @@ export const _____slug___component_vgk6N3QaQd4 = ()=>{
     });
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;iDAI0B,IAAM;IAC5B,qBACI,KAAC,KAAG;QAAC,QAAQ;MACP,CACR;CACL\"}")
 /*
 {
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
@@ -80,6 +86,8 @@ export const _____slug___component_vgk6N3QaQd4 = ()=>{
 export { _____slug___component_div_onClick_OesyMV0SO3o } from "./_____slug___component_div_onclick_oesymv0so3o.js";
 export { _____slug___component_vgk6N3QaQd4 } from "./_____slug___component_vgk6n3qaqd4.js";
 
+
+None
 == DIAGNOSTICS ==
 
 []

@@ -43,6 +43,8 @@ export const s_odz7eidI4GM = ()=>{
     return store.count++;
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAiByC,IAAI;IACrB,MAAM,CAAC,KAAK,CAAC,GAAG,eAAe,EAAE,AAAC;IAClC,OAAO,KAAK,CAAC,KAAK,EAAE,CAAC;CACxB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -92,6 +94,8 @@ export const s_Fh88JClhbC0 = ()=>{
     });
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;6BAGyD,IAAI;IACzD,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,KAAK,EAAE,CAAC;KACX,CAAC,AAAC;IACH,OAAO,WAAW,GAAG,IAAI,CAAC,KAAK,EAAE;QAC7B,QAAQ,EAAE;YACN,WAAW,GAAG,IAAI,CAAC,GAAG,EAAE;gBACpB,QAAQ,EAAE;oBACN,SAAS;oBACT,KAAK,CAAC,KAAK;iBACd;aACJ,CAAC;YACF,WAAW,GAAG,GAAG,CAAC,GAAG,EAAE;gBACnB,QAAQ,EAAE,WAAW,GAAG,GAAG,CAAC,QAAQ,EAAE;oBAClC,QAAQ;;;oBAMR,QAAQ,EAAE,OAAO;iBACpB,CAAC;aACL,CAAC;SACL;KACJ,CAAC,CAAC;CACN\"}")
 /*
 {
   "origin": "test.tsx",
@@ -117,11 +121,15 @@ import { qrl } from "@builder.io/qwik";
 import { componentQrl } from '@builder.io/qwik';
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_hooks"), "s_Fh88JClhbC0"));
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;AAAA,SAAS,YAAY,QAA0D,kBAAkB,CAAC;AAElG,OAAO,MAAM,GAAG,GAAG,WAAW,GAAG,YAAY,mDAyBb,CAAC\"}")
 ============================= entry_hooks.js (ENTRY POINT)==
 
 export { s_odz7eidI4GM } from "./s_odz7eidi4gm";
 export { s_Fh88JClhbC0 } from "./s_fh88jclhbc0";
 
+
+None
 == DIAGNOSTICS ==
 
 []

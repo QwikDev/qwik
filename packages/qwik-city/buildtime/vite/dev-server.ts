@@ -255,7 +255,9 @@ const VALID_ID_PREFIX = `/@id/`;
 const VITE_PUBLIC_PATH = `/@vite/`;
 const internalPrefixes = [FS_PREFIX, VALID_ID_PREFIX, VITE_PUBLIC_PATH];
 const InternalPrefixRE = new RegExp(`^(?:${internalPrefixes.join('|')})`);
-const isViteInternalRequest = (url: string): boolean => InternalPrefixRE.test(url);
+const isViteInternalRequest = (url: string): boolean => {
+  return url.includes('__open-in-editor') || InternalPrefixRE.test(url);
+};
 
 const DEV_SERVICE_WORKER = `/* Qwik City Dev Service Worker */
 addEventListener('install', () => self.skipWaiting());

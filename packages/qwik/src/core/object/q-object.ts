@@ -244,6 +244,9 @@ export const fastShouldSerialize = (obj: any): boolean => {
 };
 
 /**
+ * Returned type of the `noSerialize()` function. It will be TYPE or undefined.
+ *
+ * @see noSerialize
  * @public
  */
 export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;

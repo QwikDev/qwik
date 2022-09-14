@@ -12,7 +12,7 @@ Side note: You can also declare regular (standard JSX) components that will have
 
 Qwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
 
-### Example:
+## Example:
 
 An example showing how to create a counter component:
 
@@ -41,6 +41,29 @@ Use `useStore` to create a state for your application. The returned object is a 
 Example showing how `useStore` is used in Counter example to keep track of the count.
 
 <docs code="./examples.tsx#use-store"/>
+
+@public
+
+# `useResource`
+
+This method works like an async memoized function that runs whenever some tracked value changes and returns some data.
+
+`useResouce` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.
+
+The status can be one of the following:
+
+- 'pending' - the data is not yet available.
+- 'resolved' - the data is available.
+- 'rejected' - the data is not available due to an error or timeout.
+
+## Example
+
+Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
+
+<docs code="./examples.tsx#use-resource"/>
+
+@see Resource
+@see ResourceReturn
 
 @public
 

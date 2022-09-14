@@ -31,6 +31,8 @@ export const test_component_useResource_4a8wVY7wh38 = ()=>{
     return onGet();
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAciB,IAAM;IACf,OAAO,KAAK,EAAE,CAAC;CAClB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -59,6 +61,8 @@ export const onGet = ()=>{
 };
 export default /*#__PURE__*/ componentQrl(qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;aAGa,KAAK;;;AASlB,6BAAe,2FAKb,CAAC\"}")
 ============================= test_component_luxexe0dqrg.tsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
@@ -68,6 +72,8 @@ export const test_component_LUXeXe0DQrg = ()=>{
     return <div >cmp</div>;
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAa0B,IAAK;IAC3B,qHAEE;IACF,QAAQ,GAAG,EAAC,GAAG,EAAE,GAAG,EAAC;CACxB\"}")
 /*
 {
   "origin": "test.tsx",

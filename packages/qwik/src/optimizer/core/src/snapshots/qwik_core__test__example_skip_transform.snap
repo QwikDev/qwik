@@ -27,6 +27,8 @@ export const App = component$((props)=>{
         }));
 });
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;AAEA,OAAO,MAAM,OAAO,GAAG,CAAC,CAAC,IAAI,OAAO,CAAC,GAAG,CAAC,MAAM,CAAC,CAAC,CAAC;AAElD,OAAO,MAAM,GAAG,GAAG,UAAU,CAAC,CAAC,KAAK,GAAK;IACrC,UAAU,CAAC,MAAM,CAAC,CAAC;IACnB,OAAO,CAAC,CAAC,kBACL,KAAC,KAAG;sBAAE,KAAK,CAAC,KAAK;UAAO,AAC3B,CAAC,CAAC;CACN,CAAC,CAAC\"}")
 == DIAGNOSTICS ==
 
 []

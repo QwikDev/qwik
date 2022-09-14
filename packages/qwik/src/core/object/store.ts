@@ -1,5 +1,5 @@
 import { assertDefined, assertTrue } from '../assert/assert';
-import { assertQrl, isQrl } from '../import/qrl-class';
+import { isQrl } from '../import/qrl-class';
 import { getContext, QContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
 import { isDocument, isElement, isNode, isQwikElement, isVirtualElement } from '../util/element';
@@ -240,10 +240,16 @@ export const _pauseFromContexts = async (
   const listeners: SnapshotListener[] = [];
   for (const ctx of allContexts) {
     const el = ctx.$element$;
-    if (isElement(el)) {
-      const ctxLi = ctx.li;
-      for (const key of Object.keys(ctxLi)) {
-        for (const qrl of ctxLi[key]) {
+    const ctxLi = ctx.li;
+    for (const key of Object.keys(ctxLi)) {
+      for (const qrl of ctxLi[key]) {
+        const captured = qrl.$captureRef$;
+        if (captured) {
+          for (const obj of captured) {
+            collectValue(obj, collector, true);
+          }
+        }
+        if (isElement(el)) {
           listeners.push({
             key,
             qrl,
@@ -270,21 +276,6 @@ export const _pauseFromContexts = async (
       listeners: [],
       mode: 'static',
     };
-  }
-
-  // Listeners becomes the app roots
-  for (const listener of listeners) {
-    assertQrl(listener.qrl);
-    const captured = listener.qrl.$captureRef$;
-    if (captured) {
-      for (const obj of captured) {
-        collectValue(obj, collector, true);
-      }
-    }
-    // const ctx = tryGetContext(listener.el)!;
-    // for (const obj of ctx.$refMap$) {
-    //   collectValue(obj, collector, true);
-    // }
   }
 
   // Wait for remaining promises

@@ -55,8 +55,9 @@ export const renderComponent = (
     return then(processedJSXNode, (processedJSXNode) => {
       const newVdom = wrapJSX(hostElement, processedJSXNode);
       const oldVdom = getVdom(ctx);
-      ctx.$vdom$ = newVdom;
-      return visitJsxNode(newCtx, oldVdom, newVdom, flags);
+      return then(visitJsxNode(newCtx, oldVdom, newVdom, flags), () => {
+        ctx.$vdom$ = newVdom;
+      });
     });
   });
 };

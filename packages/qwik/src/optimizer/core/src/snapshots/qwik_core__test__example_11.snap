@@ -29,6 +29,8 @@ export const App = component$(() => {
 import dep3 from "dep3/something";
 export const Header_component_Header_onClick_KjD9TCNkNxY = (ev)=>dep3(ev);
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";2DAQ2B,CAAC,EAAE,GAAK,IAAI,CAAC,EAAE,CAAC\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -62,6 +64,8 @@ export const Header_component_UVBJuFYfvDo = ()=>{
         </Header>;
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC,IAAM;IACnC,QACK,MAAM,CAAC,OAAO,mFAAuB;;YAClC,CAAC,IAAI,CAAC,KAAK,EAAE,EAAE,IAAI,EAAE,CAAC;;QAC1B,EAAE,MAAM,EACV;CACL\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -89,6 +93,8 @@ export const App_component_wGkRHWXaqjs = ()=>{
     return <Header >{foo()}</Header>;
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;yCAc8B,IAAM;IAChC,QACK,MAAM,GAAE,GAAG,EAAE,GAAG,MAAM,EACzB;CACL\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -115,6 +121,8 @@ import { qrl } from "@builder.io/qwik";
 export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("../entry_hooks"), "Header_component_UVBJuFYfvDo"));
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("../entry_hooks"), "App_component_wGkRHWXaqjs"));
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,MAAM,iBAAG,+EAMpB,CAAC;AAEH,OAAO,MAAM,GAAG,iBAAG,4EAIjB,CAAC\"}")
 ============================= entry_hooks.js (ENTRY POINT)==
 
 export { Header_component_Header_onClick_KjD9TCNkNxY } from "./header_component_header_onclick_kjd9tcnknxy";
@@ -122,6 +130,8 @@ export { Header_component_UVBJuFYfvDo } from "./header_component_uvbjufyfvdo";
 export { App_component_wGkRHWXaqjs } from "./app_component_wgkrhwxaqjs";
 export { _hW } from "@builder.io/qwik";
 
+
+None
 == DIAGNOSTICS ==
 
 []

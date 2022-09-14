@@ -25,6 +25,8 @@ export const Header_component_J4uyIhaBNR4 = ()=>{
     return qrl(()=>import("./header_component_1_2b8d0oh9zwc"), "Header_component_1_2B8d0oH9ZWc");
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAGiC,IAAM;IACnC,6FAOG;CACN\"}")
 /*
 {
   "origin": "test.tsx",
@@ -55,6 +57,8 @@ export const Header_component_1_2B8d0oH9ZWc = (hola)=>{
 };
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8CAIa,CAAC,IAAI,GAAK;IACf,MAAM,IAAI,GAAG,IAAI,AAAC;IAClB,MAAM,EAAC,SAAS,CAAA,EAAE,KAAK,CAAA,EAAC,GAAG,IAAI,AAAC;IAChC,MAAM,KAAK,GAAG,IAAI,CAAC,OAAO,CAAC,KAAK,CAAC,MAAM,CAAC,AAAC;IACzC,QACK,MAAM,IACT;CACL\"}")
 /*
 {
   "origin": "test.tsx",
@@ -80,6 +84,8 @@ import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("./header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,MAAM,iBAAG,+FASpB,CAAC\"}")
 == DIAGNOSTICS ==
 
 []

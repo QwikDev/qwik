@@ -14,20 +14,20 @@ export interface RenderOperation {
  * @alpha
  */
 export interface RenderContext {
-  $static$: RenderStaticContext;
-  $localStack$: QContext[];
+  readonly $static$: RenderStaticContext;
+  readonly $localStack$: QContext[];
   $cmpCtx$: QContext | undefined;
 }
 
 export interface RenderStaticContext {
-  $doc$: Document;
-  $roots$: QContext[];
-  $hostElements$: Set<QwikElement>;
-  $operations$: RenderOperation[];
-  $postOperations$: RenderOperation[];
-  $containerState$: ContainerState;
-  $addSlots$: [QwikElement, QwikElement][];
-  $rmSlots$: QwikElement[];
+  readonly $doc$: Document;
+  readonly $roots$: QContext[];
+  readonly $hostElements$: Set<QwikElement>;
+  readonly $operations$: RenderOperation[];
+  readonly $postOperations$: RenderOperation[];
+  readonly $containerState$: ContainerState;
+  readonly $addSlots$: [QwikElement, QwikElement][];
+  readonly $rmSlots$: QwikElement[];
 }
 
 /**

@@ -1,8 +1,6 @@
 ---
-source: src/optimizer/core/src/test.rs
-assertion_line: 1017
+source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
-
 ---
 ==INPUT==
 
@@ -13,6 +11,8 @@ export const cache = patternCache[cacheKey] || (patternCache[cacheKey]={});
 
 export const cache = patternCache[cacheKey] || (patternCache[cacheKey] = {});
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"AACA,OAAO,MAAM,KAAK,GAAG,YAAY,CAAC,QAAQ,CAAC,IAAK,CAAA,YAAY,CAAC,QAAQ,CAAC,GAAC,EAAE,CAAA,AAAC,CAAC\"}")
 == DIAGNOSTICS ==
 
 []

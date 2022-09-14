@@ -1,3 +1,5 @@
+# Qwik App ⚡️
+
 - [Qwik Docs](https://qwik.builder.io/)
 - [Discord](https://qwik.builder.io/chat)
 - [Qwik Github](https://github.com/BuilderIO/qwik)

@@ -28,7 +28,7 @@ export async function updateApp(opts: UpdateAppOptions) {
 
   await mergeIntegrationDir(fileUpdates, opts, integration.dir, opts.rootDir);
 
-  if ((globalThis as any).codemod) {
+  if ((globalThis as any).CODE_MOD) {
     await updateViteConfigs(fileUpdates, integration, opts.rootDir);
   }
 

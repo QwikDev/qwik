@@ -288,12 +288,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         ctx.addWatchFile(path);
       });
 
-      qwikPlugin.onDiagnostics((diagnostics, optimizer) => {
+      qwikPlugin.onDiagnostics((diagnostics, optimizer, srcDir) => {
         diagnostics.forEach((d) => {
+          const id = qwikPlugin.normalizePath(optimizer.sys.path.join(srcDir, d.file));
           if (d.category === 'error') {
-            this.error(createRollupError(optimizer, d));
+            this.error(createRollupError(id, d));
           } else {
-            this.warn(createRollupError(optimizer, d));
+            this.warn(createRollupError(id, d));
           }
         });
       });
@@ -518,7 +519,8 @@ export async function render(document, rootNode, opts) {
     qwikLoader = document.createElement('script');
     qwikLoader.id = 'qwikloader';
     qwikLoader.innerHTML = ${qwikLoader};
-    document.head.appendChild(qwikLoader);
+    const parent = document.head ?? document.body ?? document.documentElement;
+    parent.appendChild(qwikLoader);
   }
 
   if (!window.__qwikViteLog) {

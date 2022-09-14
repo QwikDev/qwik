@@ -43,8 +43,8 @@ macro_rules! snapshot_res {
                 for module in &v.modules {
                     let is_entry = if module.is_entry { "(ENTRY POINT)" } else { "" };
                     output += format!(
-                        "\n============================= {} {}==\n\n{}",
-                        module.path, is_entry, module.code
+                        "\n============================= {} {}==\n\n{}\n\n{:?}",
+                        module.path, is_entry, module.code, module.map
                     )
                     .as_str();
                     if let Some(hook) = &module.hook {

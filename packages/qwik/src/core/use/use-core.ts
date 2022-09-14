@@ -1,5 +1,4 @@
 import { isArray } from '../util/types';
-import type { Props } from '../props/props.public';
 import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
 import { QContainerSelector, RenderEvent } from '../util/markers';
@@ -27,7 +26,6 @@ export interface RenderInvokeContext extends InvokeContext {
   $event$: any;
   $qrl$: QRL<any>;
   $waitOn$: Promise<any>[];
-  $props$: Props;
   $subscriber$: Subscriber | null;
   $renderCtx$: RenderContext;
 }
@@ -42,7 +40,6 @@ export interface InvokeContext {
   $event$: any | undefined;
   $qrl$: QRL<any> | undefined;
   $waitOn$: Promise<any>[] | undefined;
-  $props$: Props | undefined;
   $subscriber$: Subscriber | null | undefined;
   $renderCtx$: RenderContext | undefined;
 }

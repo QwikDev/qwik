@@ -2,7 +2,6 @@ import { assertDefined } from '../assert/assert';
 import { ELEMENT_ID, OnRenderProp, QSlot, RenderEvent } from '../util/markers';
 import { safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
-import { logError } from '../util/log';
 import { isArray, isObject, isString, ValueOrPromise } from '../util/types';
 import { QContext, tryGetContext } from '../props/props';
 import type { JSXNode } from './jsx/types/jsx-node';
@@ -15,6 +14,7 @@ import type { QwikElement } from './dom/virtual-element';
 import { qSerialize, seal } from '../util/qdev';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { SkipRender } from './jsx/utils.public';
+import { handleError } from './error-handling';
 
 export interface ExecuteComponentOutput {
   node: JSXNode | null;
@@ -46,6 +46,7 @@ export const executeComponent = (
   invocatinContext.$renderCtx$ = rctx;
 
   // Resolve render function
+  onRenderQRL.$setContainer$(rctx.$static$.$containerState$.$containerEl$);
   const onRenderFn = onRenderQRL.getFn(invocatinContext);
 
   return safeCall(
@@ -72,7 +73,7 @@ export const executeComponent = (
       };
     },
     (err) => {
-      logError(err);
+      handleError(err, hostElement, rctx);
       return {
         node: SkipRender,
         rctx: newCtx,

@@ -190,6 +190,40 @@ export const CmpInline = component$(() => {
 };
 
 () => {
+  // <docs anchor="use-resource">
+  const Cmp = component$(() => {
+    const store = useStore({
+      city: '',
+    });
+
+    const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
+      const cityName = track(store, 'city');
+      const abortController = new AbortController();
+      cleanup(() => abortController.abort('cleanup'));
+      const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
+        signal: abortController.signal,
+      });
+      const data = res.json();
+      return data;
+    });
+
+    return (
+      <div>
+        <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
+        <Resource
+          value={weatherResource}
+          onResolved={(weather) => {
+            return <div>Temperature: {weather.temp}</div>;
+          }}
+        />
+      </div>
+    );
+  });
+  // </docs>
+  return Cmp;
+};
+
+() => {
   // <docs anchor="use-watch-simple">
   const Cmp = component$(() => {
     const store = useStore({ count: 0, doubleCount: 0 });
@@ -452,6 +486,7 @@ function doExtraStuff() {
 import { importedFn } from './import/example';
 import { createContext, useContext, useContextProvider } from './use/use-context';
 import { useRef } from './use/use-ref';
+import { Resource, useResource$ } from './use/use-resource';
 
 export const greet = () => console.log('greet');
 function topLevelFn() {}

@@ -354,7 +354,7 @@ export const _pauseFromContexts = async (
           suffix += '_';
         }
       }
-      const target = getProxyTarget(obj);
+      const target = isObject(obj) && getProxyTarget(obj);
       if (target) {
         suffix += '!';
         obj = target;

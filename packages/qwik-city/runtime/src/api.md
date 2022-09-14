@@ -6,6 +6,7 @@
 
 import { Component } from '@builder.io/qwik';
 import { JSXNode } from '@builder.io/qwik';
+import { PropFunction } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { ResourceReturn } from '@builder.io/qwik';
 
@@ -119,6 +120,11 @@ export interface DocumentStyle {
 
 // @alpha @deprecated (undocumented)
 export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
+
+// Warning: (ae-forgotten-export) The symbol "ErrorBoundaryProps" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const ErrorBoundary: Component<ErrorBoundaryProps>;
 
 // @alpha @deprecated (undocumented)
 export const Html: Component<    {}>;

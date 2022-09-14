@@ -22,6 +22,7 @@ export type {
 export { RouterOutlet, Content } from './library/router-outlet-component';
 export { Html, QwikCity } from './library/qwik-city-component';
 export { Link } from './library/link-component';
+export { ErrorBoundary } from './library/error-boundary';
 export type { LinkProps } from './library/link-component';
 export { ServiceWorkerRegister } from './library/sw-component';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './library/use-functions';

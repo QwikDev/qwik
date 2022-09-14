@@ -130,7 +130,7 @@ export interface Context<STATE extends object> {
  */
 // </docs>
 export const createContext = <STATE extends object>(name: string): Context<STATE> => {
-  return Object.freeze({
+  return /*#__PURE__*/ Object.freeze({
     id: fromCamelToKebabCase(name),
   } as any);
 };

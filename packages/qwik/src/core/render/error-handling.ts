@@ -8,7 +8,7 @@ export interface ErrorBoundaryStore {
   error: any | undefined;
 }
 
-export const ERROR_CONTEXT = createContext<ErrorBoundaryStore>('qk-error');
+export const ERROR_CONTEXT = /*#__PURE__*/ createContext<ErrorBoundaryStore>('qk-error');
 
 export const handleError = (err: any, hostElement: QwikElement, rctx?: RenderContext) => {
   if (qDev) {

@@ -47,7 +47,7 @@ async function runCommand(app: AppCommand) {
 }
 
 async function printHelp() {
-  console.log(color.bgCyan(` Qwik Help `));
+  console.log(color.bgMagenta(` Qwik Help `));
   console.log(``);
   console.log(`  qwik add     ${color.dim(`Add an integration`)}`);
   console.log(`  qwik build   ${color.dim(`Parallelize client/server builds and type checking`)}`);

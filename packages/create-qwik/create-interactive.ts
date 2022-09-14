@@ -15,9 +15,9 @@ export async function runCreateInteractiveCli() {
   console.clear();
 
   console.log(
-    `💫 ${color.cyan(`Let's create a Qwik app`)} 💫  ${color.dim(
-      `v${(globalThis as any).QWIK_VERSION}`
-    )}`
+    `🐰 ${color.cyan(`Let's create a`)} ${color.bold(color.magenta(`Qwik`))} ${color.cyan(
+      `app`
+    )} 🐇   ${color.dim(`v${(globalThis as any).QWIK_VERSION}`)}`
   );
   console.log(``);
 

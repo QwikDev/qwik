@@ -1,16 +1,12 @@
 import { component$ } from '@builder.io/qwik';
 import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
-import { Analytics } from './analytics';
-import { Social } from './social';
 
-export const Head = component$(() => {
+export const RouterHead = component$(() => {
   const head = useDocumentHead();
   const loc = useLocation();
 
   return (
-    <head>
-      <meta charSet="utf-8" />
-
+    <>
       <title>{head.title ? `${head.title} - Qwik` : `Qwik`}</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="canonical" href={loc.href} />
@@ -28,7 +24,17 @@ export const Head = component$(() => {
       ))}
 
       <Social />
-      <Analytics loc={loc} />
-    </head>
+    </>
   );
 });
+
+export const Social = () => {
+  return (
+    <>
+      <meta property="og:site_name" content="Qwik" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:site" content="@QwikDev" />
+      <meta name="twitter:title" content="Qwik" />
+    </>
+  );
+};

@@ -124,12 +124,14 @@ export async function logUpdateAppResult(result: UpdateAppResult) {
   console.clear();
 
   console.log(
-    `🤖 ${color.bgCyan(` Ready? `)} Apply ${color.yellow(result.integration.id)} to your app?`
+    `🦄 ${color.bgCyan(` Ready? `)} Apply ${color.bold(
+      color.magenta(result.integration.id)
+    )} to your app?`
   );
   console.log(``);
 
   if (modifyFiles.length > 0) {
-    console.log(`🚙 ${color.cyan(`Modify`)}`);
+    console.log(`👻 ${color.cyan(`Modify`)}`);
     for (const f of modifyFiles) {
       console.log(`   - ${relative(process.cwd(), f.path)}`);
     }
@@ -137,7 +139,7 @@ export async function logUpdateAppResult(result: UpdateAppResult) {
   }
 
   if (overwriteFiles.length > 0) {
-    console.log(`🚗 ${color.cyan(`Overwrite`)}`);
+    console.log(`🌐 ${color.cyan(`Overwrite`)}`);
     for (const f of overwriteFiles) {
       console.log(`   - ${relative(process.cwd(), f.path)}`);
     }
@@ -147,7 +149,7 @@ export async function logUpdateAppResult(result: UpdateAppResult) {
   if (installDeps) {
     const pkgManager = getPackageManager();
     console.log(
-      `🏎 ${color.cyan(
+      `💿 ${color.cyan(
         `Install ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`
       )}`
     );
@@ -161,7 +163,9 @@ export async function logUpdateAppResult(result: UpdateAppResult) {
     {
       type: 'select',
       name: 'commit',
-      message: `Ready to apply the ${color.yellow(result.integration.id)} updates to your app?`,
+      message: `Ready to apply the ${color.bold(
+        color.magenta(result.integration.id)
+      )} updates to your app?`,
       choices: [
         { title: 'Yes looks good, finish update!', value: true },
         { title: 'Nope, cancel update', value: false },
@@ -187,7 +191,9 @@ function logUpdateAppCommitResult(result: UpdateAppResult) {
   console.clear();
 
   console.log(
-    `⭐️ ${color.bgGreen(` Success! `)} ${color.yellow(result.integration.id)} added to your app`
+    `🦄 ${color.magenta(` Success! `)} ${color.bold(
+      color.cyan(result.integration.id)
+    )} added to your app`
   );
   console.log(``);
 

@@ -130,10 +130,10 @@ export async function configureDevServer(
 
           const result = await render(renderOpts);
           if ('html' in result) {
-            res.write('<script type="module" src="/@vite/client"></script>');
+            res.write(END_SSR_SCRIPT);
             res.end((result as any).html);
           } else {
-            res.write('<script type="module" src="/@vite/client"></script>');
+            res.write(END_SSR_SCRIPT);
             res.end();
           }
         } else {
@@ -223,10 +223,35 @@ const skipSsrRender = (url: URL) => {
   const isHtmlProxy = url.searchParams.has('html-proxy');
   const isVitePing = pathname.includes('__vite_ping');
   const skipSSR = url.searchParams.get('ssr') === 'false';
+  const openInEditor = pathname.includes('__open-in-editor');
+
   return (
-    hasExtension || isHtmlProxy || isVitePing || skipSSR || InternalPrefixRE.test(url.pathname)
+    openInEditor ||
+    hasExtension ||
+    isHtmlProxy ||
+    isVitePing ||
+    skipSSR ||
+    InternalPrefixRE.test(url.pathname)
   );
 };
+
+const DEV_ERROR_HANDLING = `
+<script>
+document.addEventListener('qerror', ev => {
+  const ErrorOverlay = customElements.get('vite-error-overlay');
+  if (!ErrorOverlay) {
+    return;
+  }
+  const err = ev.detail.error;
+  const overlay = new ErrorOverlay(err);
+  document.body.appendChild(overlay);
+});
+</script>`;
+
+const END_SSR_SCRIPT = `
+<script type="module" src="/@vite/client"></script>
+${DEV_ERROR_HANDLING}
+`;
 
 function getViteDevIndexHtml(entryUrl: string, envData: Record<string, any>) {
   return `<!DOCTYPE html>
@@ -246,6 +271,7 @@ function getViteDevIndexHtml(entryUrl: string, envData: Record<string, any>) {
     }
     main();
     </script>
+    ${DEV_ERROR_HANDLING}
   </body>
 </html>`;
 }

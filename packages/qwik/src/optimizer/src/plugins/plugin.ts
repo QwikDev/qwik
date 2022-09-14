@@ -27,7 +27,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   let internalOptimizer: Optimizer | null = null;
   let addWatchFileCallback: (ctx: any, path: string) => void = () => {};
-  let diagnosticsCallback: (d: Diagnostic[], optimizer: Optimizer) => void = () => {};
+  let diagnosticsCallback: (
+    d: Diagnostic[],
+    optimizer: Optimizer,
+    srcDir: string
+  ) => void = () => {};
 
   const opts: NormalizedQwikPluginOptions = {
     target: 'client',
@@ -296,7 +300,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transformedOutputs.set(key, [output, key]);
       }
 
-      diagnosticsCallback(result.diagnostics, optimizer);
+      diagnosticsCallback(result.diagnostics, optimizer, srcDir);
 
       results.set('@buildStart', result);
     }
@@ -456,6 +460,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         filePath = path.relative(opts.srcDir, pathId);
       }
       filePath = normalizePath(filePath);
+      const srcDir = opts.srcDir ? opts.srcDir : normalizePath(dir);
       const newOutput = optimizer.transformModulesSync({
         input: [
           {
@@ -468,12 +473,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         sourceMaps: false,
         transpile: true,
         explicitExtensions: true,
-        srcDir: opts.srcDir ? opts.srcDir : normalizePath(dir),
+        srcDir,
         dev: opts.buildMode === 'development',
         scope: opts.scope ? opts.scope : undefined,
       });
 
-      diagnosticsCallback(newOutput.diagnostics, optimizer);
+      diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
 
       results.set(normalizePath(pathId), newOutput);
 
@@ -566,7 +571,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     addWatchFileCallback = cb;
   };
 
-  const onDiagnostics = (cb: (d: Diagnostic[], optimizer: Optimizer) => void) => {
+  const onDiagnostics = (cb: (d: Diagnostic[], optimizer: Optimizer, srcDir: string) => void) => {
     diagnosticsCallback = cb;
   };
 

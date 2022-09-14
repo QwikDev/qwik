@@ -20,10 +20,14 @@ import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0.js"), "App_component_ckEPmXZlub0"));
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,4FAKjB,CAAC\"}")
 ============================= app_component_usestyles_t35nsa5uv7u.js (ENTRY POINT)==
 
 export const App_component_useStyles_t35nSa5UV7U = 'hola';
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAIe,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -52,6 +56,8 @@ export const App_component_ckEPmXZlub0 = (props)=>{
     return qrl(()=>import("./app_component_1_w0t0o3qmovu.js"), "App_component_1_w0t0o3QMovU");
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,KAAK,GAAK;IACrC,gHAAkB,CAAC;IACnB,0FAEG;CACN\"}")
 /*
 {
   "origin": "test.tsx",
@@ -77,6 +83,8 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const App_component_1_w0t0o3QMovU = ()=>/*#__PURE__*/ _jsx("div", {});
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKa,kBACL,KAAC,KAAG,KAAO,AACd\"}")
 /*
 {
   "origin": "test.tsx",

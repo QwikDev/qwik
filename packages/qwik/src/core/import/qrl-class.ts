@@ -37,7 +37,7 @@ export interface QRLInternalMethods<TYPE> {
     : any;
 
   $setContainer$(containerEl: Element): void;
-  $resolveLazy$(): ValueOrPromise<TYPE>;
+  $resolveLazy$(containerEl?: Element): ValueOrPromise<TYPE>;
 }
 
 export interface QRLInternal<TYPE = any> extends QRL<TYPE>, QRLInternalMethods<TYPE> {}
@@ -55,35 +55,38 @@ export const createQRL = <TYPE>(
     verifySerializable(captureRef);
   }
 
-  let containerEl: Element | undefined;
+  let _containerEl: Element | undefined;
 
   const setContainer = (el: Element) => {
-    if (!containerEl) {
-      containerEl = el;
+    if (!_containerEl) {
+      _containerEl = el;
     }
   };
 
-  const resolve = async (): Promise<TYPE> => {
+  const resolve = async (containerEl?: Element): Promise<TYPE> => {
+    if (containerEl) {
+      setContainer(containerEl);
+    }
     if (symbolRef) {
       return symbolRef;
     }
     if (symbolFn) {
       return (symbolRef = symbolFn().then((module) => (symbolRef = module[symbol])));
     } else {
-      if (!containerEl) {
+      if (!_containerEl) {
         throw new Error(
           `QRL '${chunk}#${symbol || 'default'}' does not have an attached container`
         );
       }
-      const symbol2 = getPlatform().importSymbol(containerEl, chunk, symbol);
+      const symbol2 = getPlatform().importSymbol(_containerEl, chunk, symbol);
       return (symbolRef = then(symbol2, (ref) => {
         return (symbolRef = ref);
       }));
     }
   };
 
-  const resolveLazy = (): ValueOrPromise<TYPE> => {
-    return symbolRef ? symbolRef : resolve();
+  const resolveLazy = (containerEl?: Element): ValueOrPromise<TYPE> => {
+    return symbolRef ? symbolRef : resolve(containerEl);
   };
 
   const invokeFn = (currentCtx?: InvokeContext | InvokeTuple, beforeFn?: () => void | boolean) => {

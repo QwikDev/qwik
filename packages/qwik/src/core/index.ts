@@ -90,6 +90,7 @@ export { useResource$, useResourceQrl, Resource } from './use/use-resource';
 export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
 export { useServerMount$, useServerMountQrl } from './use/use-watch';
 export { useMount$, useMountQrl } from './use/use-watch';
+export { useErrorBoundary } from './use/use-error-boundary';
 
 export { _useMutableProps } from './props/props';
 

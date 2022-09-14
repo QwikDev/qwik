@@ -15,7 +15,6 @@ import {
 } from '../../use/use-watch';
 import { then } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
-import { codeToText, QError_errorWhileRendering } from '../../error/error';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { isQwikElement } from '../../util/element';
 import { renderComponent } from './render-dom';
@@ -25,6 +24,7 @@ import { createRenderContext } from '../execute-component';
 import { getRootNode, QwikElement } from './virtual-element';
 import { printRenderStats } from './operations';
 import { getPlatform, isServer } from '../../platform/platform';
+import { qDev } from '../../util/qdev';
 
 export const notifyChange = (subscriber: Subscriber, containerState: ContainerState) => {
   if (isQwikElement(subscriber)) {
@@ -46,7 +46,7 @@ export const notifyChange = (subscriber: Subscriber, containerState: ContainerSt
  *
  * @param hostElement - Host-element of the component to re-render.
  * @returns A promise which is resolved when the component has been rendered.
- * @public
+ *
  */
 const notifyRender = (hostElement: QwikElement, containerState: ContainerState): void => {
   const server = isServer();
@@ -145,8 +145,20 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
         staticCtx.$roots$.push(elCtx);
         try {
           await renderComponent(ctx, elCtx, getFlags(el.parentElement));
-        } catch (e) {
-          logError(codeToText(QError_errorWhileRendering), e);
+        } catch (err) {
+          logError(err);
+          if (qDev) {
+            if (err && err instanceof Error) {
+              doc.dispatchEvent(
+                new CustomEvent('qerror', {
+                  bubbles: true,
+                  detail: {
+                    error: err,
+                  },
+                })
+              );
+            }
+          }
         }
       }
     }
@@ -210,6 +222,7 @@ export const postRendering = async (containerState: ContainerState, ctx: RenderS
 
 const executeWatchesBefore = async (containerState: ContainerState) => {
   const resourcesPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
+  const containerEl = containerState.$containerEl$;
   const watchPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
   const isWatch = (watch: SubscriberDescriptor) => (watch.$flags$ & WatchFlagsIsWatch) !== 0;
   const isResourceWatch = (watch: SubscriberDescriptor) =>
@@ -217,11 +230,11 @@ const executeWatchesBefore = async (containerState: ContainerState) => {
 
   containerState.$watchNext$.forEach((watch) => {
     if (isWatch(watch)) {
-      watchPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
+      watchPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
       containerState.$watchNext$.delete(watch);
     }
     if (isResourceWatch(watch)) {
-      resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
+      resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
       containerState.$watchNext$.delete(watch);
     }
   });
@@ -229,9 +242,9 @@ const executeWatchesBefore = async (containerState: ContainerState) => {
     // Run staging effected
     containerState.$watchStaging$.forEach((watch) => {
       if (isWatch(watch)) {
-        watchPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
+        watchPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
       } else if (isResourceWatch(watch)) {
-        resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
+        resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
       } else {
         containerState.$watchNext$.add(watch);
       }
@@ -264,10 +277,11 @@ const executeWatchesAfter = async (
   watchPred: (watch: SubscriberDescriptor, staging: boolean) => boolean
 ) => {
   const watchPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
+  const containerEl = containerState.$containerEl$;
 
   containerState.$watchNext$.forEach((watch) => {
     if (watchPred(watch, false)) {
-      watchPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
+      watchPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
       containerState.$watchNext$.delete(watch);
     }
   });
@@ -275,7 +289,7 @@ const executeWatchesAfter = async (
     // Run staging effected
     containerState.$watchStaging$.forEach((watch) => {
       if (watchPred(watch, true)) {
-        watchPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
+        watchPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
       } else {
         containerState.$watchNext$.add(watch);
       }

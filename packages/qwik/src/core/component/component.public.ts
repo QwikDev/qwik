@@ -1,7 +1,7 @@
 import { $, PropFnInterface, QRL } from '../import/qrl.public';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { OnRenderProp } from '../util/markers';
-import type { ComponentBaseProps } from '../render/jsx/types/jsx-qwik-attributes';
+import type { ComponentBaseProps, JSXChildren } from '../render/jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
 import type { MutableWrapper } from '../object/q-object';
@@ -45,11 +45,16 @@ export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer 
  */
 export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
 
+export type ComponentChildren<PROPS extends {}> = PROPS extends { children: any }
+  ? never
+  : { children?: JSXChildren };
 /**
  * Extends the defined component PROPS, adding the default ones (children and q:slot) as well as the mutable variations.
  * @public
  */
-export type PublicProps<PROPS extends {}> = TransformProps<PROPS> & ComponentBaseProps;
+export type PublicProps<PROPS extends {}> = TransformProps<PROPS> &
+  ComponentBaseProps &
+  ComponentChildren<PROPS>;
 
 /**
  * Transform the component PROPS adding the mutable equivalents, so `mutable()` can be used natively.

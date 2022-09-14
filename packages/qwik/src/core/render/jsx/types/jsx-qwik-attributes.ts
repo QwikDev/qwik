@@ -203,7 +203,6 @@ export type ComponentKnownEvents = {
 export interface ComponentBaseProps {
   key?: string | number;
   'q:slot'?: string;
-  children?: JSXChildren;
 }
 
 export interface QwikAttributes extends QwikProps, QwikEvents {}

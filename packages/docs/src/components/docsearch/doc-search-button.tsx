@@ -1,5 +1,4 @@
 import { component$ } from '@builder.io/qwik';
-import { ControlKeyIcon } from './icons/ControlKeyIcon';
 import { SearchIcon } from './icons/SearchIcon';
 
 export function isAppleDevice() {

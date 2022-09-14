@@ -25,15 +25,17 @@ export const Link = component$<LinkProps>((props) => {
           nav.path = linkProps.href!;
         }
       }}
-      onMouseOver$={() => prefetchLinkResources(prefetchUrl, false)}
-      onQVisible$={() => prefetchLinkResources(prefetchUrl, true)}
+      data-prefetch={prefetchUrl}
+      onMouseOver$={(ev) => prefetchLinkResources(ev)}
+      onQVisible$={(ev) => prefetchLinkResources(ev, true)}
     >
       <Slot />
     </a>
   );
 });
 
-export const prefetchLinkResources = (prefetchUrl: string | null, isOnVisible: boolean) => {
+export const prefetchLinkResources = (ev: any, isOnVisible?: boolean) => {
+  const prefetchUrl = ev.currentTarget.dataset.prefetch;
   if (!windowInnerWidth) {
     windowInnerWidth = window.innerWidth;
   }

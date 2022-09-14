@@ -2,7 +2,7 @@
   "description": "File based routing and MDX support",
   "__qwik__": {
     "priority": 1,
-    "selectServer": true
+    "qwikCity": true
   },
   "type": "module"
 }

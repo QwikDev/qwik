@@ -88,7 +88,7 @@ async function createFromStarter(
     private: true,
   };
   await writePackageJson(result.outDir, cleanPackageJson(appPkgJson));
-  await createReadme(result);
+  await createReadme(baseApp, result);
 
   const baseUpdate = await updateApp({
     rootDir: result.outDir,
@@ -105,24 +105,10 @@ async function createFromStarter(
   await starterUpdate.commit(false);
 }
 
-async function createReadme(result: CreateAppResult) {
-  const r: string[] = [];
-
-  r.push(`# Qwik ${result.projectName} ⚡️`);
-  r.push(``);
-  r.push(`- [Qwik Docs](https://qwik.builder.io/)`);
-  r.push(`- [Qwik Github](https://github.com/BuilderIO/qwik)`);
-  r.push(`- [@QwikDev](https://twitter.com/QwikDev)`);
-  r.push(`- [Discord](https://qwik.builder.io/chat)`);
-  r.push(`- [Vite](https://vitejs.dev/)`);
-  r.push(`- [Partytown](https://partytown.builder.io/)`);
-  r.push(`- [Mitosis](https://github.com/BuilderIO/mitosis)`);
-  r.push(`- [Builder.io](https://www.builder.io/)`);
-  r.push(``);
-  r.push(`--------------------`);
+async function createReadme(baseApp: IntegrationData, result: CreateAppResult) {
+  const readmeContent = `# Qwik ${result.projectName} ⚡️`;
 
   const readmePath = join(result.outDir, 'README.md');
-  const readmeContent = r.join('\n').trim() + '\n';
   await fs.promises.writeFile(readmePath, readmeContent);
 }
 

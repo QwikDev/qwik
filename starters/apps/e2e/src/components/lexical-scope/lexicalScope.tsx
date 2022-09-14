@@ -1,11 +1,12 @@
 import { component$, $, useStore, mutable, noSerialize } from '@builder.io/qwik';
 
 export const LexicalScope = component$(() => {
-  return <LexicalScopeChild message={mutable('mutable message')}></LexicalScopeChild>;
+  return <LexicalScopeChild message={mutable('mutable message')} message2={mutable(null)} />;
 });
 
 interface LexicalScopeProps {
   message: string;
+  message2: string | null;
 }
 
 export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
@@ -68,6 +69,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
           h,
           i,
           props.message,
+          props.message2,
           promiseValue,
           url.href,
           date.toISOString(),

@@ -1,7 +1,7 @@
 import { $, QRL } from '../import/qrl.public';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { OnRenderProp } from '../util/markers';
-import type { ComponentBaseProps } from '../render/jsx/types/jsx-qwik-attributes';
+import type { ComponentBaseProps, JSXChildren } from '../render/jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
 import type { MutableWrapper } from '../object/q-object';
@@ -44,16 +44,21 @@ export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer 
  */
 export type Component<PROPS extends {}> = FunctionComponent<PublicProps<PROPS>>;
 
+export type ComponentChildren<PROPS extends {}> = PROPS extends { children: any }
+  ? never
+  : { children?: JSXChildren };
 /**
  * @public
  */
-export type PublicProps<PROPS extends {}> = MutableProps<PROPS> & ComponentBaseProps;
+export type PublicProps<PROPS extends {}> = MutableProps<PROPS> &
+  ComponentBaseProps &
+  ComponentChildren<PROPS>;
 
 /**
  * @public
  */
 export type MutableProps<PROPS extends {}> = {
-  [K in keyof PROPS]: PROPS[K] | MutableWrapper<PROPS[K]>;
+  [K in keyof PROPS]: K extends 'children' ? PROPS[K] : PROPS[K] | MutableWrapper<PROPS[K]>;
 };
 
 /**

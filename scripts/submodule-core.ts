@@ -132,11 +132,6 @@ async function submoduleCoreProd(config: BuildConfig) {
 }
 
 async function submoduleCoreProduction(config: BuildConfig, code: string, outPath: string) {
-  code = code.replace(/globalThis.qDev === true/g, 'false');
-  code = code.replace(/globalThis.qSerialize !== false/g, 'true');
-  code = code.replace(/globalThis.qDynamicPlatform !== false/g, 'true');
-  code = code.replace(/globalThis.qTest === true/g, 'false');
-
   const result = await minify(code, {
     compress: {
       booleans: false,
@@ -149,6 +144,13 @@ async function submoduleCoreProduction(config: BuildConfig, code: string, outPat
       side_effects: true,
       toplevel: true,
       unused: true,
+      global_defs: {
+        'globalThis.qDev': false,
+        'globalThis.qSerialize': true,
+        'globalThis.qDynamicPlatform': true,
+        'globalThis.qTest': false,
+        'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+      },
     },
     format: {
       comments: false,

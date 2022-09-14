@@ -77,8 +77,6 @@ export interface ComponentBaseProps {
     // (undocumented)
     'q:slot'?: string;
     // (undocumented)
-    children?: JSXChildren;
-    // (undocumented)
     key?: string | number;
 }
 
@@ -326,9 +324,10 @@ export type Props<T extends {} = {}> = Record<string, any> & T;
 export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;
 
 // Warning: (ae-forgotten-export) The symbol "MutableProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ComponentChildren" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type PublicProps<PROPS extends {}> = MutableProps<PROPS> & ComponentBaseProps;
+export type PublicProps<PROPS extends {}> = MutableProps<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;
 
 // @public
 export interface QRL<TYPE = any> {

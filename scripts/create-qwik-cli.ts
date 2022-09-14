@@ -172,13 +172,23 @@ async function updatePackageJson(config: BuildConfig, destDir: string) {
   const setVersionFromRoot = (pkgName: string) => {
     if (pkgJson.devDependencies && pkgJson.devDependencies[pkgName]) {
       if (rootPkg.devDependencies && rootPkg.devDependencies[pkgName]) {
-        pkgJson.devDependencies[pkgName] = rootPkg.devDependencies[pkgName];
+        if (
+          rootPkg.devDependencies[pkgName] !== 'next' &&
+          rootPkg.devDependencies[pkgName] !== 'dev'
+        ) {
+          pkgJson.devDependencies[pkgName] = rootPkg.devDependencies[pkgName];
+        }
       }
     }
   };
 
   if (pkgJson.devDependencies && pkgJson.devDependencies['@builder.io/qwik']) {
-    pkgJson.devDependencies['@builder.io/qwik'] = rootPkg.version;
+    if (
+      pkgJson.devDependencies['@builder.io/qwik'] !== 'next' &&
+      pkgJson.devDependencies['@builder.io/qwik'] !== 'dev'
+    ) {
+      pkgJson.devDependencies['@builder.io/qwik'] = rootPkg.version;
+    }
   }
 
   setVersionFromRoot('@types/eslint');

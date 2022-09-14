@@ -2,7 +2,7 @@
 title: Resources
 ---
 
-## useResource$()
+# useResource$()
 
 This method allow to generated computed values asyncronously. The function passed as first argument will be called when the component is mounted and when the tracked value change.
 
@@ -38,7 +38,7 @@ The state, `resource.state`, can be one of the following strings:
 - `'resolved'` - the data is available.
 - `'rejected'` - the data is not available due to an error or timeout.
 
-The callback passed to `useResource$()` runs right after the `useMount()` and `useWatch()` callbacks complete, please refer to the [Lifecycle](/guide/lifecycle) section for more details.
+The callback passed to `useResource$()` runs right after the `useMount$()` and `useWatch$()` callbacks complete, please refer to the [Lifecycle](/guide/lifecycle) section for more details.
 
 ## `<Resource>`
 

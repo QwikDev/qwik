@@ -16,7 +16,7 @@ export default component$(() => {
         apiKey: BUILDER_PUBLIC_API_KEY,
         options: getBuilderSearchParams(location.query),
         userAttributes: {
-          urlPath: location.pathname || '/',
+          urlPath: '/betda',
         },
       });
     });
@@ -56,7 +56,7 @@ export default component$(() => {
 export const onRequest: RequestHandler<BuilderContent> = async ({ url }) => {
   const qwikUrl = new URL('https://cdn.builder.io/api/v1/qwik/' + MODEL);
   qwikUrl.searchParams.set('apiKey', BUILDER_PUBLIC_API_KEY);
-  qwikUrl.searchParams.set('userAttributes.urlPath', url.pathname);
+  qwikUrl.searchParams.set('userAttributes.urlPath', '/beta');
 
   const response = await fetch(qwikUrl.href);
   if (response.ok) {

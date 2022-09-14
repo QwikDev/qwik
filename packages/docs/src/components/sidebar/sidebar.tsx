@@ -47,9 +47,11 @@ export const SideBar = component$(() => {
           <CloseIcon width={24} height={24} />
         </button>
         {menu?.items
-          ? menu.items.map((item) => (
-              <>
-                <h5>{item.text}</h5>
+          ? menu.items.map((item, i) => (
+              <details open={i < 1 || item.items?.some((item) => pathname === item.href)}>
+                <summary>
+                  <h5>{item.text}</h5>
+                </summary>
                 <ul>
                   {item.items?.map((item) => (
                     <li>
@@ -64,7 +66,7 @@ export const SideBar = component$(() => {
                     </li>
                   ))}
                 </ul>
-              </>
+              </details>
             ))
           : null}
       </nav>

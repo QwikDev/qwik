@@ -103,7 +103,7 @@ As far as Qwik is concerned, passing events to a component is equivalent to pass
 On the usage side, when referring to the `<CmpButton>`:
 
 ```tsx
-<CmpButton onClick$={async () => store.cmpCount++}>{store.cmpCount}</CmpButton>
+<CmpButton onClick$={() => store.cmpCount++}>{store.cmpCount}</CmpButton>
 ```
 
 ## Working with QRLs
@@ -112,7 +112,7 @@ Let's look at a variation of `<CmpButton>` implementation. In this example, we w
 
 ```tsx
 interface CmpButtonProps {
-  onClick$?: PropFunction<() => void>;
+  onClick$?: PropFunction<() => number>;
 }
 
 const CmpButton = component$((props: CmpButtonProps) => {
@@ -120,8 +120,8 @@ const CmpButton = component$((props: CmpButtonProps) => {
     <button
       onDblclick$={props.onClick$}
       onClick$={async () => {
-        await (props.onClick$ && props.onClick$());
-        console.log('clicked');
+        const nu = await props?.onClick$();
+        console.log('clicked', nu);
       }}
     >
       <Slot />

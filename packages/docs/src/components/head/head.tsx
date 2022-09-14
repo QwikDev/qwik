@@ -20,6 +20,12 @@ export const Head = component$(() => {
       <meta name="theme-color" content="#0093ee" />
       <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
       <link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap"
+        rel="stylesheet"
+      />
 
       {import.meta.env.PROD && (
         <>

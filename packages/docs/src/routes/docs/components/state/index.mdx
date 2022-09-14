@@ -107,20 +107,14 @@ export const Child = component$(() => {
 
 Computed values are values that are derived from other values. They are useful when you have a value that is derived from other values, and you want to keep it in sync with the other values.
 
-In Qwik there are two ways to create computed values, using `useWatch()` or `useResource()`.
+In Qwik there are two ways to create computed values, using `useWatch$()` or `useResource$()`.
 
-The main different between the two is that `useWatch()` allows side effects and execution is serialized, while `useResource()` is asynchronous and multiple useResource can happen in parallel.
+The main different between the two is that `useWatch$()` allows side effects and execution is serialized, while `useResource$()` is asynchronous and multiple useResource can happen in parallel.
 
-useWatch() is usually used to compute intermediate state, while useResource() has better ergonomics to compute final state, used for rendering. Let's see some example:
-
-| Property | useWatch() | useResource() |
-|----------|------------|---------------|
-| Execution | Synchronous | Asynchronous |
-| Side effects | Allowed | Not allowed |
-| Execution order | Serialized | Parallel |
+`useWatch$()` is usually used to compute intermediate state, while `useResource$()` has better ergonomics to compute final state, used for rendering. Let's see some example:
 
 
-### `useWatch() example`
+### `useWatch$()` example
 ```tsx
 const App = component$(() => {
   const state = useStore({
@@ -143,7 +137,7 @@ const App = component$(() => {
 });
 ```
 
-### `useResource() example`
+### `useResource$()` example
 
 ```tsx
 const App = component$(() => {

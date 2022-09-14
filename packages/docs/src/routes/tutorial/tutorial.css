@@ -184,7 +184,7 @@
   @apply mt-8;
   @apply mb-4;
   @apply relative;
-  scroll-margin-top: 80px;
+  scroll-margin-top: var(--scroll-margin-top);
 }
 
 .content-main h2 {

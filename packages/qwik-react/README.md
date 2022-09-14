@@ -43,7 +43,7 @@ npm run build.client
 Production build that creates the server-side render (SSR) module that is used by the server to render the HTML.
 
 ```
-npm run build.ssr
+npm run build.server
 ```
 
 ---

@@ -18,7 +18,7 @@ import { dev404Middleware, ssrDevMiddleware, staticDistMiddleware } from './dev-
 import { SERVER_ENDPOINT_FNS, stripServerEndpoints } from '../../utils/strip-server-endpoints';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
-import { patchGlobalFetch } from '../../middleware/express/node-fetch';
+import { patchGlobalFetch } from '../../middleware/node/node-fetch';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import { readFile, writeFile } from 'fs/promises';
 import {

@@ -20,9 +20,9 @@ export async function buildQwikCity(config: BuildConfig) {
   await Promise.all([
     buildServiceWorker(config, inputDir, outputDir),
     buildVite(config, inputDir, outputDir),
-    buildCloudflarePages(config, inputDir, outputDir),
-    buildExpress(config, inputDir, outputDir),
-    buildNetlifyEdge(config, inputDir, outputDir),
+    buildMiddlewareCloudflarePages(config, inputDir, outputDir),
+    buildMiddlewareNetlifyEdge(config, inputDir, outputDir),
+    buildMiddlewareNode(config, inputDir, outputDir),
     buildStaticNode(config, inputDir, outputDir),
   ]);
 
@@ -43,9 +43,9 @@ export async function buildQwikCity(config: BuildConfig) {
       './middleware/cloudflare-pages': {
         import: './middleware/cloudflare-pages/index.mjs',
       },
-      './middleware/express': {
-        import: './middleware/express/index.mjs',
-        require: './middleware/express/index.cjs',
+      './middleware/node': {
+        import: './middleware/node/index.mjs',
+        require: './middleware/node/index.cjs',
       },
       './middleware/netlify-edge': {
         import: './middleware/netlify-edge/index.mjs',
@@ -184,7 +184,11 @@ async function buildServiceWorker(config: BuildConfig, inputDir: string, outputD
   });
 }
 
-async function buildCloudflarePages(config: BuildConfig, inputDir: string, outputDir: string) {
+async function buildMiddlewareCloudflarePages(
+  config: BuildConfig,
+  inputDir: string,
+  outputDir: string
+) {
   const entryPoints = [join(inputDir, 'middleware', 'cloudflare-pages', 'index.ts')];
 
   const external = ['@qwik-city-plan'];
@@ -201,14 +205,14 @@ async function buildCloudflarePages(config: BuildConfig, inputDir: string, outpu
   });
 }
 
-async function buildExpress(config: BuildConfig, inputDir: string, outputDir: string) {
-  const entryPoints = [join(inputDir, 'middleware', 'express', 'index.ts')];
+async function buildMiddlewareNode(config: BuildConfig, inputDir: string, outputDir: string) {
+  const entryPoints = [join(inputDir, 'middleware', 'node', 'index.ts')];
 
-  const external = ['express', 'node-fetch', 'path', '@qwik-city-plan'];
+  const external = ['node-fetch', 'path', '@qwik-city-plan'];
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'middleware', 'express', 'index.mjs'),
+    outfile: join(outputDir, 'middleware', 'node', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -219,7 +223,7 @@ async function buildExpress(config: BuildConfig, inputDir: string, outputDir: st
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'middleware', 'express', 'index.cjs'),
+    outfile: join(outputDir, 'middleware', 'node', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -229,7 +233,11 @@ async function buildExpress(config: BuildConfig, inputDir: string, outputDir: st
   });
 }
 
-async function buildNetlifyEdge(config: BuildConfig, inputDir: string, outputDir: string) {
+async function buildMiddlewareNetlifyEdge(
+  config: BuildConfig,
+  inputDir: string,
+  outputDir: string
+) {
   const entryPoints = [join(inputDir, 'middleware', 'netlify-edge', 'index.ts')];
 
   const external = ['@qwik-city-plan'];

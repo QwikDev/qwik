@@ -23,7 +23,6 @@ export type {
 export { $ } from './import/qrl.public';
 export { qrl, inlinedQrl } from './import/qrl';
 export type { QRL, PropFunction, PropFnInterface } from './import/qrl.public';
-export type { Props } from './props/props.public';
 export { implicit$FirstArg } from './util/implicit_dollar';
 
 //////////////////////////////////////////////////////////////////////////////////////////

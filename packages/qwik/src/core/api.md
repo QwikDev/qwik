@@ -319,16 +319,13 @@ export interface PropFnInterface<ARGS extends any[], RET> {
 // @public (undocumented)
 export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;
 
-// @public (undocumented)
-export type Props<T extends {} = {}> = Record<string, any> & T;
-
 // @public
 export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;
 
-// Warning: (ae-forgotten-export) The symbol "MutableProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "TransformProps" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
-export type PublicProps<PROPS extends {}> = MutableProps<PROPS> & ComponentBaseProps;
+// @public
+export type PublicProps<PROPS extends {}> = TransformProps<PROPS> & ComponentBaseProps;
 
 // @public
 export interface QRL<TYPE = any> {

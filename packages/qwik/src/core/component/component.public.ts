@@ -1,4 +1,4 @@
-import { $, QRL } from '../import/qrl.public';
+import { $, PropFnInterface, QRL } from '../import/qrl.public';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { OnRenderProp } from '../util/markers';
 import type { ComponentBaseProps, JSXChildren } from '../render/jsx/types/jsx-qwik-attributes';
@@ -9,6 +9,7 @@ import { SERIALIZABLE_STATE } from '../object/serializers';
 import { qTest } from '../util/qdev';
 import { Virtual } from '../render/jsx/utils.public';
 import { assertQrl } from '../import/qrl-class';
+import type { ValueOrPromise } from '../util/types';
 
 /**
  * Infers `Props` from the component.
@@ -48,18 +49,27 @@ export type ComponentChildren<PROPS extends {}> = PROPS extends { children: any 
   ? never
   : { children?: JSXChildren };
 /**
+ * Extends the defined component PROPS, adding the default ones (children and q:slot) as well as the mutable variations.
  * @public
  */
-export type PublicProps<PROPS extends {}> = MutableProps<PROPS> &
+export type PublicProps<PROPS extends {}> = TransformProps<PROPS> &
   ComponentBaseProps &
   ComponentChildren<PROPS>;
 
 /**
+ * Transform the component PROPS adding the mutable equivalents, so `mutable()` can be used natively.
  * @public
  */
-export type MutableProps<PROPS extends {}> = {
-  [K in keyof PROPS]: K extends 'children' ? PROPS[K] : PROPS[K] | MutableWrapper<PROPS[K]>;
+export type TransformProps<PROPS extends {}> = {
+  [K in keyof PROPS]: TransformProp<PROPS[K]>;
 };
+
+/**
+ * @public
+ */
+export type TransformProp<T> = T extends PropFnInterface<infer ARGS, infer RET>
+  ? (...args: ARGS) => ValueOrPromise<RET>
+  : T | MutableWrapper<T>;
 
 /**
  * @alpha
@@ -84,7 +94,7 @@ export type EventHandler<T> = QRL<(value: T) => any>;
  * Qwik component is a facade that describes how the component should be used without forcing the
  * implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
  *
- * ### Example:
+ * ### Example
  *
  * An example showing how to create a counter component:
  *
@@ -156,7 +166,7 @@ export const isQwikComponent = (component: any): component is Component<any> => 
  * Qwik component is a facade that describes how the component should be used without forcing the
  * implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
  *
- * ### Example:
+ * ### Example
  *
  * An example showing how to create a counter component:
  *

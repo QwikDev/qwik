@@ -2,6 +2,27 @@
   @apply fixed z-20 top-0 bottom-0;
 }
 
+.sidebar summary {
+  cursor: pointer;
+  display: block;
+}
+
+.sidebar summary:hover h5 {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-color: currentColor;
+}
+
+.sidebar summary::marker,
+.sidebar summary::-webkit-details-marker {
+  display: none;
+  content: '';
+}
+
+.sidebar details[open] summary {
+  font-weight: 800;
+}
+
 .breadcrumbs {
   @apply fixed z-10 w-[100%];
   top: var(--header-height);
@@ -43,27 +64,31 @@
 }
 
 .menu {
-  @apply fixed z-10 top-[78px] bottom-0;
+  @apply fixed z-10 bottom-0;
   @apply pb-6;
   @apply overflow-y-auto;
   @apply hidden;
 
-  @apply right-auto left-[max(0px,calc(50%-45rem))];
+  @apply right-auto left-[max(0px,calc(50%-43rem))];
 
   /* large */
   @apply lg:block;
   @apply lg:pl-4 lg:pr-4;
-  @apply lg:w-[18rem];
+  @apply lg:w-[14rem];
+
+  padding-top: 30px;
+  top: 8rem;
+  border-right: 2px solid #18b6f6;
 }
 
 .menu h5 {
-  @apply font-semibold  px-3 py-1 mb-1 rounded-md whitespace-nowrap;
+  @apply px-3 py-1 mb-1 rounded-md whitespace-nowrap;
   color: var(--qwik-dark-blue);
-  font-weight: 800;
 }
 
 .menu ul {
-  @apply border-slate-100 pb-5;
+  @apply border-slate-100 pb-8;
+  padding-left: 10px;
 }
 
 .menu li {
@@ -72,9 +97,8 @@
 
 .menu li a {
   @apply py-1 pl-3 block text-slate-900 hover:bg-slate-200;
-  border-radius: 3px;
 }
 
 .menu li a.is-active {
-  @apply bg-slate-100;
+  font-weight: 800;
 }

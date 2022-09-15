@@ -1,5 +1,4 @@
 import { component$ } from '@builder.io/qwik';
-import { ControlKeyIcon } from './icons/ControlKeyIcon';
 import { SearchIcon } from './icons/SearchIcon';
 
 export function isAppleDevice() {
@@ -33,13 +32,6 @@ export const DocSearchButton = component$((props: DocSearchButtonProps) => {
       <span className="DocSearch-Button-Container">
         <SearchIcon />
         <span className="DocSearch-Button-Placeholder">{buttonText}</span>
-      </span>
-
-      <span className="DocSearch-Button-Keys">
-        <kbd className="DocSearch-Button-Key">
-          <ControlKeyIcon />
-        </kbd>
-        <kbd className="DocSearch-Button-Key">K</kbd>
       </span>
     </button>
   );

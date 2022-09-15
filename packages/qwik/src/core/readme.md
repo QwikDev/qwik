@@ -12,7 +12,7 @@ Side note: You can also declare regular (standard JSX) components that will have
 
 Qwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
 
-## Example:
+### Example
 
 An example showing how to create a counter component:
 
@@ -36,7 +36,7 @@ Creates an object that Qwik can track across serializations.
 
 Use `useStore` to create a state for your application. The returned object is a proxy that has a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
 
-## Example
+### Example
 
 Example showing how `useStore` is used in Counter example to keep track of the count.
 
@@ -56,7 +56,7 @@ The status can be one of the following:
 - 'resolved' - the data is available.
 - 'rejected' - the data is not available due to an error or timeout.
 
-## Example
+### Example
 
 Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
 
@@ -77,7 +77,7 @@ export function useRef<T = Element>(current?: T): Ref<T> {
 }
 ```
 
-## Example
+### Example
 
 <docs code="./examples.tsx#use-ref"/>
 
@@ -95,7 +95,7 @@ The `watchFn` only executes if the observed inputs change. To observe the inputs
 
 @public
 
-## Example
+### Example
 
 The `useWatch` function is used to observe the `state.count` property. Any changes to the `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
 
@@ -110,7 +110,7 @@ Used to signal to Qwik which state should be watched for changes.
 
 The `Tracker` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap state objects in a read proxy which signals to Qwik which properties should be watched for changes. A change to any of the properties causes the `watchFn` to rerun.
 
-## Example
+### Example
 
 The `obs` passed into the `watchFn` is used to mark `state.count` as a property of interest. Any changes to the `state.count` property will cause the `watchFn` to rerun.
 
@@ -130,7 +130,7 @@ The `obs` passed into the `watchFn` is used to mark `state.count` as a property 
 
 Register a server mount hook that runs only in the server when the component is first mounted.
 
-## Example
+### Example
 
 <docs code="./examples.tsx#use-mount"/>
 
@@ -141,7 +141,7 @@ Register a server mount hook that runs only in the server when the component is 
 
 Register's a server mount hook that runs only in the server when the component is first mounted.
 
-## Example
+### Example
 
 <docs code="./examples.tsx#use-server-mount"/>
 
@@ -391,7 +391,7 @@ Context is a way to pass stores to the child components without prop-drilling.
 
 Use `createContext()` to create a `Context`. `Context` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
-## Example
+### Example
 
 <docs code="./examples.tsx#context"/>
 @public
@@ -404,7 +404,7 @@ Context is a way to pass stores to the child components without prop-drilling.
 
 Use `createContext()` to create a `Context`. `Context` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
-## Example
+### Example
 
 <docs code="./examples.tsx#context"/>
 @param name - The name of the context.
@@ -418,7 +418,7 @@ Use `useContextProvider()` to assign a value to a context. The assignment happen
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-## Example
+### Example
 
 <docs code="./examples.tsx#context"/>
 @param context - The context to assign a value to.
@@ -431,7 +431,7 @@ Retrive Context value.
 
 Use `useContext()` to retrieve the value of context in a component. To retrieve a value a parent component needs to invoke `useContextProvider()` to assign a value.
 
-## Example
+### Example
 
 <docs code="./examples.tsx#context"/>
 @param context - The context to retrieve a value from.

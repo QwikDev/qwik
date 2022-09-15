@@ -29,13 +29,8 @@ export const Header = component$(() => {
         <div class="header-logo">
           <a href="/">
             <span className="sr-only">Qwik Homepage</span>
-            <QwikLogo width={110} height={50} />
+            <QwikLogo width={180} height={50} />
           </a>
-          <DocSearch
-            appId={import.meta.env.VITE_ALGOLIA_APP_ID}
-            apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
-            indexName={import.meta.env.VITE_ALGOLIA_INDEX}
-          />
         </div>
         <button onClick$={toggleMenu} class="mobile-menu" type="button">
           <span class="more-icon">
@@ -90,6 +85,13 @@ export const Header = component$(() => {
             >
               <span>Playground</span>
             </a>
+          </li>
+          <li>
+            <DocSearch
+              appId={import.meta.env.VITE_ALGOLIA_APP_ID}
+              apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
+              indexName={import.meta.env.VITE_ALGOLIA_INDEX}
+            />
           </li>
           <li>
             <a href="https://github.com/BuilderIO/qwik" target="_blank" onClick$={closeMenu}>

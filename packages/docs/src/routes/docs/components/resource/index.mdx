@@ -1,0 +1,132 @@
+---
+title: Resources
+---
+
+# useResource$()
+
+This method allow to generated computed values asyncronously. The function passed as first argument will be called when the component is mounted and when the tracked value change.
+
+Just like all the `use-` methods, it must be called within the context of `component$()`, and all the hook rules apply.
+
+
+```tsx
+const store = useStore({
+  bar: 'foo'
+})
+const resource = useResource$(async (ctx) => {
+  ctx.track(store, 'bar'); // the resource will rerun when store.bar changes.
+  ctx.track(props, 'url'); // track() can be called multiple times, to track multiple values
+  ctx.cleanup(() => {
+    // In case the resource need to be cleaned up, this function will be called.
+    // Allowing to clean resources like timers, subscriptions, fetch requests, etc.
+  });
+
+  // cleanup() can also be called multiple times.
+  ctx.cleanup(() => console.log('cleanup'));
+
+  // Resources can contain async computations
+  const value = await expensiveCompute(store.bar, props.url);
+  return value;
+});
+```
+
+As we see in the example above, `useResouce$()` returns immediately a `ResourceReturn<T>` object that works like a glorified fully reactive promise, contains the data and the resource state.
+
+The state, `resource.state`, can be one of the following strings:
+
+- `'pending'` - the data is not yet available.
+- `'resolved'` - the data is available.
+- `'rejected'` - the data is not available due to an error or timeout.
+
+The callback passed to `useResource$()` runs right after the `useMount$()` and `useWatch$()` callbacks complete, please refer to the [Lifecycle](../lifecycle/index.mdx) section for more details.
+
+## `<Resource>`
+
+`<Resource>` is a component that renders its children when the resource is resolved, and renders a fallback when the resource is pending or rejected.
+
+```tsx
+  <Resource
+    value={weatherResource}
+    onPending={() => <div>Loading...</div>}
+    onRejected={() => <div>Failed to load weather</div>}
+    onResolved={(weather) => {
+      return <div>Temperature: {weather.temp}</div>;
+    }}
+  />
+```
+
+Notice that `<Resource>` is not necessary to use `useResource$()`, it's just a convenient way to render the resource state.
+
+### Example using `useResource$()` with `<Resource>`
+
+Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
+
+```tsx
+export const Cmp = component$(() => {
+  const store = useStore({
+    city: '',
+  });
+
+  const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
+    const cityName = track(store, 'city');
+    const abortController = new AbortController();
+    cleanup(() => abortController.abort('cleanup'));
+    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
+      signal: abortController.signal,
+    });
+    const data = res.json();
+    return data;
+  });
+
+  return (
+    <div>
+      <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
+      <Resource
+        value={weatherResource}
+        onPending={() => <div>Loading...</div>}
+        onResolved={(weather) => {
+          return <div>Temperature: {weather.temp}</div>;
+        }}
+      />
+    </div>
+  );
+});
+```
+
+
+### Example without `<Resource>`
+
+```tsx
+export const Cmp = component$(() => {
+  const store = useStore({
+    city: '',
+  });
+
+  const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
+    const cityName = track(store, 'city');
+    const abortController = new AbortController();
+    cleanup(() => abortController.abort('cleanup'));
+    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
+      signal: abortController.signal,
+    });
+    const data = res.json();
+    return data;
+  });
+
+  return (
+    <div>
+      <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
+      {weatherResource.state === 'pending' && (
+        <div>Loading...</div>
+      )}
+      {weatherResource.state === 'resolved' && (
+        <div>Temperature: {weatherResource.resolved.temp}</div>
+      )}
+    </div>
+  );
+});
+```
+
+> **NOTE**
+> We strongly recommend to use `<Resource/>` whenever it's possible, since this component will more efficiently avoid rerenders and it's also optimized for SSR
+

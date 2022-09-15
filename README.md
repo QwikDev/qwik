@@ -19,7 +19,7 @@ As users interact with the site, only the necesary parts of the site load on-dem
 Try out our starter:
 
 ```bash
-npm init qwik@latest
+npm create qwik@latest
 ```
 
 - Understand the difference between [resumable and replayable](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/docs/concepts/resumable/index.mdx) applications.

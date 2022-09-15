@@ -1,0 +1,168 @@
+# State
+
+State management is an important part of any app. In Qwik, we can differenciate between two types of state, reactive and static.
+
+Static state is anything that can be serialized, a string, number, an object, array... anything. Reactive state on the other hand is created with `useStore()`.
+
+It's important that notice that state in Qwik is not component state, but rather app state, that can be instanciated by any component.
+
+
+## `useStore()`
+
+`const reactive = useStore(initialState)` is a hook that creates a reactive object. It takes an initial state as a parameter, and returns a reactive object.
+
+The reactive object returned by `useStore()` is just like another object, but it's reactive. If you change a property of the object, the any component that depends on it will be updated.
+
+### Example
+
+Example showing how `useStore` is used in Counter example to keep track of the count.
+
+```tsx
+const App = component$(() => {
+  const state = useStore({ count: 0 });
+
+  return (
+    <>
+      <button onClick={() => state.count++}>Increment</button>)}
+      Count: {state.count}
+    </>
+  );
+});
+
+```
+
+The example above, the App component is using `useStore()` to create a reactive object. The object is then used to keep track of the count. The count is then displayed in the component.
+
+Just accessing the `state.count` property will cause the component to be updated if the count changes, when the property is changed in the click handler.
+
+
+## Passing an store to other components
+
+One of the nice properties of Qwik is that the state can be passed to other components, and they can both read and write to it, allowing data to flow across the tree in all directions.
+
+There are three ways to pass state to other components.
+
+### Using props
+
+The most naive way to pass state to other components is to pass it as props. This is the way you would do it in React, and it works in Qwik as well.
+
+```tsx
+export const Parent = component$(() => {
+  const userData = useStore({
+    count: 0,
+  });
+
+  return (
+    <>
+      <Child userData={userData} />
+    </>
+  );
+});
+
+export const Child = component$(({userData}) => {
+  return (
+    <>
+      <button onClick={() => userData.count++}>Increment</button>)}
+      Count: {userData.count}
+    </>
+  );
+});
+```
+
+### Using context API
+
+The context API is a way to pass state to components without having to pass it as props. Automatically all the descendant components in the tree can get a reference to the state, and read/write to it.
+
+Check the [context API](../context/index.mdx) for more information.
+
+```tsx
+const CTX = createContext('stuff');
+
+const Stores = component$(() => {
+  const userData = useStore({
+    count: 0,
+  });
+
+  useContextProvider(CTX, userData);
+
+  return (
+    <>
+      <Child />
+    </>
+  );
+});
+
+export const Child = component$(() => {
+  const userData = useContext(CTX);
+  return (
+    <>
+      <button onClick={() => userData.count++}>Increment</button>)}
+      Count: {userData.count}
+    </>
+  );
+});
+```
+
+## Computed values
+
+Computed values are values that are derived from other values. They are useful when you have a value that is derived from other values, and you want to keep it in sync with the other values.
+
+In Qwik there are two ways to create computed values, using `useWatch$()` or `useResource$()`.
+
+The main different between the two is that `useWatch$()` allows side effects and execution is serialized, while `useResource$()` is asynchronous and multiple useResource can happen in parallel.
+
+`useWatch$()` is usually used to compute intermediate state, while `useResource$()` has better ergonomics to compute final state, used for rendering. Let's see some example:
+
+
+### `useWatch$()` example
+```tsx
+const App = component$(() => {
+  const state = useStore({
+    count: 0,
+    doubleCount: 0
+  });
+
+  useWatch$(({track}) => {
+    track(state, 'count');
+    state.doubleCount = state.count * 2;
+  });
+
+  return (
+    <>
+      <button onClick={() => state.count++}>Increment</button>)}
+      Count: {state.count}
+      Count * 2: {state.doubleCount}
+    </>
+  );
+});
+```
+
+### `useResource$()` example
+
+```tsx
+const App = component$(() => {
+  const state = useStore({
+    count: 0,
+  });
+
+  const doubleCount = useResource$(({track}) => {
+    track(state, 'count');
+    return state.count * 2;
+  });
+
+  return (
+    <>
+      <button onClick={() => state.count++}>Increment</button>)}
+      Count: {state.count}
+      Count * 2: {doubleCount.promise}
+    </>
+  );
+});
+```
+
+Both [useWatch](../lifecycle/index.mdx#usewatch) and [useResource](../resource/index.mdx) are explained in detail in their respective sections.
+
+## Reactivity
+
+Thanks to the fine grained reactivity of Qwik, only the components that depend on the state will be updated. This is a huge performance gain, as only the components that need to be updated will be updated.
+

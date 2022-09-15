@@ -14,10 +14,10 @@
 .on-this-page a {
   position: relative;
   display: block;
-  color: var(--qwik-dark-blue);
-  border: 0 solid #ddd;
+  color: #006ce9c7;
+  border: 0 solid #18b6f6;
   border-left-width: 2px;
-  padding: 4px 2px 4px 8px;
+  padding: 4px 2px 4px 12px;
 }
 
 .on-this-page a.indent {

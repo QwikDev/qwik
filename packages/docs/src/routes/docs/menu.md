@@ -5,22 +5,22 @@
 - [Overview](overview/index.mdx)
 - [Getting Started](getting-started/index.mdx)
 - [Think Qwik](think-qwik/index.mdx)
-- [Cheat Sheet](cheat-sheet/index.mdx)
 
 ## Component API
 
 - [Overview](components/overview/index.mdx)
-- [Anatomy](components/anatomy/index.mdx)
-- [Hooks](components/hooks/index.mdx)
+- [State](components/state/index.mdx)
 - [Events](components/events/index.mdx)
+- [Lifecycle](components/lifecycle/index.mdx)
 - [Context](components/context/index.mdx)
+- [Resource](components/resource/index.mdx)
 - [Lite components](components/lite-components/index.mdx)
 - [Content projection](components/projection/index.mdx)
 - [Rendering](components/rendering/index.mdx)
 
 ## Cheat Sheet
 
-- [Components](cheat/components/index.mdx)
+- [Qwik vs React](cheat/qwik-react/index.mdx)
 - [Serialization](cheat/serialization/index.mdx)
 
 ## Concepts

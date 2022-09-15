@@ -347,7 +347,7 @@ export const isMutable = (v: any): v is MutableWrapper<any> => {
  * @alpha
  */
 export const unwrapProxy = <T>(proxy: T): T => {
-  return isObject(proxy) ? getProxyTarget<T>(proxy) ?? proxy : proxy;
+  return isObject(proxy) ? getProxyTarget<any>(proxy) ?? proxy : proxy;
 };
 
 export const getProxyTarget = <T extends Record<string, any>>(obj: T): T | undefined => {

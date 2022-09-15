@@ -53,7 +53,7 @@ export const tryGetInvokeContext = (): InvokeContext | undefined => {
       return undefined;
     }
     if (isArray(context)) {
-      return (document.__q_context__ = newInvokeContextFromTuple(context));
+      return (document.__q_context__ = newInvokeContextFromTuple(context as any));
     }
     return context as InvokeContext;
   }

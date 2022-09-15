@@ -1,6 +1,5 @@
 import path, { resolve } from 'path';
 import { qwikVite } from './vite';
-import type { Plugin as VitePlugin } from 'vite';
 import type { OptimizerOptions } from '../types';
 import type { OutputOptions } from 'rollup';
 import { suite } from 'uvu';
@@ -39,8 +38,8 @@ vite('command: serve, mode: development', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin: VitePlugin = qwikVite(initOpts);
-  const c = (await plugin.config!({}, { command: 'serve', mode: 'development' }))!;
+  const plugin = qwikVite(initOpts);
+  const c = (await plugin.config({}, { command: 'serve', mode: 'development' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -72,8 +71,8 @@ vite('command: serve, mode: production', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin: VitePlugin = qwikVite(initOpts);
-  const c = (await plugin.config!({}, { command: 'serve', mode: 'production' }))!;
+  const plugin = qwikVite(initOpts);
+  const c = (await plugin.config({}, { command: 'serve', mode: 'production' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -106,8 +105,8 @@ vite('command: build, mode: development', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin: VitePlugin = qwikVite(initOpts);
-  const c = (await plugin.config!({}, { command: 'build', mode: 'development' }))!;
+  const plugin = qwikVite(initOpts);
+  const c = (await plugin.config({}, { command: 'build', mode: 'development' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -140,8 +139,8 @@ vite('command: build, mode: production', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin: VitePlugin = qwikVite(initOpts);
-  const c = (await plugin.config!({}, { command: 'build', mode: 'production' }))!;
+  const plugin = qwikVite(initOpts);
+  const c = (await plugin.config({}, { command: 'build', mode: 'production' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -180,8 +179,8 @@ vite('command: build, --mode production (client)', async () => {
     },
   };
 
-  const plugin: VitePlugin = qwikVite(initOpts);
-  const c: any = (await plugin.config!({}, { command: 'build', mode: 'production' }))!;
+  const plugin = qwikVite(initOpts);
+  const c: any = (await plugin.config({}, { command: 'build', mode: 'production' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -198,8 +197,8 @@ vite('command: build, --ssr entry.server.tsx', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin: VitePlugin = qwikVite(initOpts);
-  const c = (await plugin.config!(
+  const plugin = qwikVite(initOpts);
+  const c = (await plugin.config(
     { build: { ssr: resolve(cwd, 'src', 'entry.server.tsx') } },
     { command: 'build', mode: '' }
   ))!;
@@ -240,8 +239,8 @@ vite('command: serve, --mode ssr', async () => {
       outDir: resolve(cwd, 'ssr-dist'),
     },
   };
-  const plugin: VitePlugin = qwikVite(initOpts);
-  const c: any = (await plugin.config!(
+  const plugin = qwikVite(initOpts);
+  const c: any = (await plugin.config(
     { build: { emptyOutDir: true } },
     { command: 'serve', mode: 'ssr' }
   ))!;
@@ -264,8 +263,8 @@ vite('command: build, --mode lib', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin: VitePlugin = qwikVite(initOpts);
-  const c: any = (await plugin.config!(
+  const plugin = qwikVite(initOpts);
+  const c: any = (await plugin.config(
     {
       build: {
         lib: {

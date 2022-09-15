@@ -666,6 +666,7 @@ export interface LinkHTMLAttributes<T> extends HTMLAttributes<T> {
   integrity?: string | undefined;
   media?: string | undefined;
   imageSrcSet?: string | undefined;
+  imageSizes?: string | undefined;
   referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
   rel?: string | undefined;
   sizes?: string | undefined;

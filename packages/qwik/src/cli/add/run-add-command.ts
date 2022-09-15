@@ -36,7 +36,7 @@ export async function printAddHelp() {
   const staticGenerators = integrations.filter((i) => i.type === 'static-generator');
   const features = integrations.filter((i) => i.type === 'feature');
 
-  console.log(`${color.green(`qwik add`)} [integration]`);
+  console.log(`${color.magenta(`qwik add`)} [integration]`);
   console.log(``);
 
   console.log(`  ${color.cyan('Servers')}`);

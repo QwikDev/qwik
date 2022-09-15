@@ -64,7 +64,7 @@ export async function runBuildCommand(app: AppCommand) {
   });
 
   console.log(``);
-  console.log(`${color.green('✓')} Built client modules`);
+  console.log(`${color.cyan('✓')} Built client modules`);
 
   const step2: Promise<ExecaReturnValue<string>>[] = [];
 
@@ -136,16 +136,16 @@ export async function runBuildCommand(app: AppCommand) {
     await Promise.all(step2)
       .then(() => {
         if (buildPreviewScript) {
-          console.log(`${color.green('✓')} Built preview (ssr) modules`);
+          console.log(`${color.cyan('✓')} Built preview (ssr) modules`);
         }
         if (buildServerScript) {
-          console.log(`${color.green('✓')} Built server (ssr) modules`);
+          console.log(`${color.cyan('✓')} Built server (ssr) modules`);
         }
         if (buildStaticScript) {
-          console.log(`${color.green('✓')} Built static (ssg) modules`);
+          console.log(`${color.cyan('✓')} Built static (ssg) modules`);
         }
         if (typecheck) {
-          console.log(`${color.green('✓')} Type checked`);
+          console.log(`${color.cyan('✓')} Type checked`);
         }
 
         if (isPreviewBuild && buildStaticScript && runSsgScript) {

@@ -100,7 +100,7 @@ async function mergeReadmes(fileUpdates: FsUpdates, srcPath: string, destPath: s
   let destContent = '';
   try {
     destContent = await fs.promises.readFile(destPath, 'utf-8');
-    destContent += '\n\n' + srcContent;
+    destContent = destContent.trim() + '\n\n' + srcContent;
     type = 'modify';
   } catch (e) {
     destContent = srcContent;

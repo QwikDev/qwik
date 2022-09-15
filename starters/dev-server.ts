@@ -51,7 +51,6 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
     const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, 'utf-8'));
     const enableCityServer = !!pkgJson.__qwik__?.qwikCity;
 
-    console.log('enableCityServer', enableCityServer);
     let clientManifest = cache.get(appDir);
     if (!clientManifest) {
       clientManifest = await buildApp(appDir, appName, enableCityServer);

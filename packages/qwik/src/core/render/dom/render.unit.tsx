@@ -758,7 +758,7 @@ export const Counter = component$((props: { step?: number }) => {
         -
       </button>
       <span>{state.count}</span>
-      <button class="increment" onClick$={runtimeQrl(Counter_add, [state, { value: step }])}>
+      <button className="increment" onClick$={runtimeQrl(Counter_add, [state, { value: step }])}>
         +
       </button>
     </>

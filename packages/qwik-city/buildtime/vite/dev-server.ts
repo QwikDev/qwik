@@ -35,6 +35,19 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
       }
     }
 
+    if (ctx.opts.trailingSlash && !pathname.endsWith('/')) {
+      const pathnameWithSlash = pathname + '/';
+      for (const route of ctx.routes) {
+        const match = route.pattern.exec(pathnameWithSlash);
+        if (match) {
+          return {
+            route,
+            params: getRouteParams(route.paramNames, match),
+          };
+        }
+      }
+    }
+
     return null;
   };
 

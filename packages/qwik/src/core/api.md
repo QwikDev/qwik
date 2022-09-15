@@ -320,11 +320,11 @@ export type PropFunction<T extends Function> = T extends (...args: infer ARGS) =
 // @public
 export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;
 
-// Warning: (ae-forgotten-export) The symbol "MutableProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "TransformProps" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ComponentChildren" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
-export type PublicProps<PROPS extends {}> = MutableProps<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;
+// @public
+export type PublicProps<PROPS extends {}> = TransformProps<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;
 
 // @public
 export interface QRL<TYPE = any> {

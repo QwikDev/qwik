@@ -14,7 +14,9 @@ Use `useClientEffect$()` to execute code after the component is resumed. This is
 
 Qwik is resumable. Resumability means that the application starts on the server and then is transferred to the client. On the client, the application continues execution from where it left off. A common use case is creating a component on the server, pausing, and then resuming on the client. To make the component fully functional, it may be necessary to execute code eagerly on the client to set up timers or streams.
 
-`useClientEffect$()` is a client only method. (There is no equivalent on the server.) NOTE: See `useWatch$()` for behavior that needs to be executed on both client and server.
+`useClientEffect$()` is a client only method. (There is no equivalent on the server.)
+
+> **NOTE** See `useWatch$()` for behavior that needs to be executed on both client and server.
 
 ## When is `useClientEffect$()` executed?
 
@@ -22,7 +24,7 @@ Client effect code is executed after the component is resumed. The `useClientEff
 - `visible` (default): Execute the effect when the component becomes visible. This is a preferred option because it delays the execution of the effect until the component is visible rather than eagerly on application startup (We are trying to minimize the amount of code the application runs on startup).
 - `load`: Execute the code as soon as possible. This is usually right after `DOMContentLoaded` event.
 
-## Example
+### Example
 
 The example shows a clock component that is rendered below the fold. Use the `useClientEffect$()` to make the clock update the current time every second to make it work on the client. We have provided the utility function `updateClock` to aid your implementation.
 

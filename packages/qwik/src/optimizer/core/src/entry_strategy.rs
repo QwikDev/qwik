@@ -55,9 +55,7 @@ pub struct SingleStrategy {
 
 impl SingleStrategy {
     pub fn new(map: Option<HashMap<String, JsWord>>) -> Self {
-        Self {
-            map,
-        }
+        Self { map }
     }
 }
 
@@ -101,9 +99,7 @@ pub struct PerComponentStrategy {
 
 impl PerComponentStrategy {
     pub fn new(map: Option<HashMap<String, JsWord>>) -> Self {
-        Self {
-            map,
-        }
+        Self { map }
     }
 }
 
@@ -135,9 +131,7 @@ pub struct SmartStrategy {
 
 impl SmartStrategy {
     pub fn new(map: Option<HashMap<String, JsWord>>) -> Self {
-        Self {
-            map,
-        }
+        Self { map }
     }
 }
 impl EntryPolicy for SmartStrategy {
@@ -164,7 +158,10 @@ impl EntryPolicy for SmartStrategy {
     }
 }
 
-pub fn parse_entry_strategy(strategy: EntryStrategy, manual_chunks: Option<HashMap<String, JsWord>>) -> Box<dyn EntryPolicy> {
+pub fn parse_entry_strategy(
+    strategy: EntryStrategy,
+    manual_chunks: Option<HashMap<String, JsWord>>,
+) -> Box<dyn EntryPolicy> {
     match strategy {
         EntryStrategy::Hook => Box::new(PerHookStrategy::default()),
         EntryStrategy::Inline => Box::new(InlineStrategy::default()),

@@ -31,8 +31,8 @@ use std::path::Path;
 
 use anyhow::Error;
 use serde::{Deserialize, Serialize};
-use std::str;
 use std::collections::HashMap;
+use std::str;
 use swc_atoms::JsWord;
 
 use crate::code_move::generate_entries;

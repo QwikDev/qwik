@@ -1199,7 +1199,6 @@ export const Child = component$(() => {
     });
 }
 
-
 #[test]
 fn example_manual_chunks() {
     test_input!(TestInput {
@@ -1253,7 +1252,6 @@ export const Child = component$(() => {
         ..TestInput::default()
     });
 }
-
 
 #[test]
 fn example_strip_exports_unused() {

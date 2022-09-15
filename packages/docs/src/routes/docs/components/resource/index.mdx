@@ -38,7 +38,7 @@ The state, `resource.state`, can be one of the following strings:
 - `'resolved'` - the data is available.
 - `'rejected'` - the data is not available due to an error or timeout.
 
-The callback passed to `useResource$()` runs right after the `useMount$()` and `useWatch$()` callbacks complete, please refer to the [Lifecycle](/guide/lifecycle) section for more details.
+The callback passed to `useResource$()` runs right after the `useMount$()` and `useWatch$()` callbacks complete, please refer to the [Lifecycle](../lifecycle/index.mdx) section for more details.
 
 ## `<Resource>`
 
@@ -127,5 +127,6 @@ export const Cmp = component$(() => {
 });
 ```
 
-**We strongly recommend to use `<Resource/>` whenever it's possible, since this component will more efficiently avoid rerenders and it's also optimized for SSR**
+> **NOTE**
+> We strongly recommend to use `<Resource/>` whenever it's possible, since this component will more efficiently avoid rerenders and it's also optimized for SSR
 

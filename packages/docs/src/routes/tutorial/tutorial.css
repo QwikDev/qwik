@@ -227,6 +227,7 @@
   max-width: 50px;
   background-color: transparent;
   line-height: 1.5;
+  border: none;
 }
 
 .content-main code {

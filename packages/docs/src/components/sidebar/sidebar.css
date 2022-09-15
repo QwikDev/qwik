@@ -13,7 +13,8 @@
   text-decoration-color: currentColor;
 }
 
-.sidebar summary::marker {
+.sidebar summary::marker,
+.sidebar summary::-webkit-details-marker {
   display: none;
   content: '';
 }

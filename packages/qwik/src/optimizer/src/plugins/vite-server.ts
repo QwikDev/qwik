@@ -2,6 +2,7 @@
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem, Path, QwikManifest } from '../types';
+import { ERROR_HOST } from './errored-host';
 import { NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 
@@ -237,6 +238,7 @@ const skipSsrRender = (url: URL) => {
 
 const DEV_ERROR_HANDLING = `
 <script>
+
 document.addEventListener('qerror', ev => {
   const ErrorOverlay = customElements.get('vite-error-overlay');
   if (!ErrorOverlay) {
@@ -251,6 +253,7 @@ document.addEventListener('qerror', ev => {
 const END_SSR_SCRIPT = `
 <script type="module" src="/@vite/client"></script>
 ${DEV_ERROR_HANDLING}
+${ERROR_HOST}
 `;
 
 function getViteDevIndexHtml(entryUrl: string, envData: Record<string, any>) {

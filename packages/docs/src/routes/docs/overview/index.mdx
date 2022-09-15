@@ -3,6 +3,8 @@ title: Overview
 fetch: https://hackmd.io/@mhevery/Sy52N2Ax9
 ---
 
+import { getCommunity } from './community';
+
 # Welcome to Qwik
 
 Qwik is a new kind of web framework that can deliver instantly load web applications at any size or complexity. Your sites and apps can boot with about 1kb of JS (regardless of application complexity), and achieve consistent performance at scale.
@@ -27,24 +29,26 @@ Qwik is a new kind of web framework that can deliver instantly load web applicat
 ## Getting Started with Qwik
 
 <div class="card-grid">
-  <div class="card card-center">
-    <h3>Overview</h3>
-  </div>
-    <div class="card card-center">
+  <a class="card card-center" href='/docs/getting-started/'>
+    <p class='icon'>🚀</p>
+    <h3>npm init qwik</h3>
+  </a>
+  <a class="card card-center" href='/docs/think-qwik/'>
+    <p class='icon'>🤔</p>
     <h3>Why Qwik?</h3>
-  </div>
-  <div class="card card-center">
-    <h3>Getting starter?</h3>
-  </div>
-    <div class="card card-center">
-    <h3>Overview</h3>
-  </div>
-    <div class="card card-center">
-    <h3>Why Qwik?</h3>
-  </div>
-  <div class="card card-center">
-    <h3>Getting starter?</h3>
-  </div>
+  </a>
+  <a class="card card-center" href='/docs/components/overview/'>
+    <p class='icon'>📚</p>
+    <h3>API</h3>
+  </a>
+  <a class="card card-center" href='https://qwik.builder.io/chat'>
+    <p class='icon'>{getCommunity()}</p>
+    <h3>Community</h3>
+  </a>
+  <a class="card card-center" href='https://github.com/BuilderIO/qwik'>
+    <p class='icon'>💙</p>
+    <h3>Open source</h3>
+  </a>
 </div>
 
 ## Does page speed really matter?

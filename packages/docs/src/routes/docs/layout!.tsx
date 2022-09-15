@@ -1,4 +1,4 @@
-import { component$, Slot, useStyles$ } from '@builder.io/qwik';
+import { component$, Slot, useStore, useStyles$ } from '@builder.io/qwik';
 import { RequestHandler, useLocation } from '@builder.io/qwik-city';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import { Footer } from '../../components/footer/footer';

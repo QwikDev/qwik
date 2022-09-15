@@ -48,10 +48,10 @@ export const MyCmp = component$(async (props: MyCmpProps) => {
 });
 ```
 
-NOTE:
-
-- For an explanation of `$` see lazy-loading and Optimizer discussion.
-- For a detailed discussion of props, see Component/props discussion.
+> **NOTE**
+>
+> - For an explanation of `$` see lazy-loading and Optimizer discussion.
+> - For a detailed discussion of props, see Component/props discussion.
 
 ## Props
 
@@ -148,7 +148,8 @@ const Parent_onRender = () => (
 );
 ```
 
-NOTE: for simplicity, not all of the transformations are shown; all resulting symbols are kept in the same file for succinctness.
+> **NOTE**
+> For simplicity, not all of the transformations are shown; all resulting symbols are kept in the same file for succinctness.
 
 Notice that after the optimizer transforms the code, the `Parent` no longer directly references `Child`. This is important because it allows the bundler (and tree shakers) to freely move the symbols into different chunks without pulling the rest of the application with it.
 

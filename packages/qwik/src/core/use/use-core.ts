@@ -116,7 +116,7 @@ export const waitAndRun = (ctx: RenderInvokeContext, callback: () => any) => {
       waitOn.push(result);
     }
   } else {
-    waitOn.push(Promise.allSettled(waitOn).then(callback));
+    waitOn.push(Promise.all(waitOn).then(callback));
   }
 };
 

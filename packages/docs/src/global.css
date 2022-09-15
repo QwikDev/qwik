@@ -33,6 +33,7 @@ html {
   --repl-tab-height: 56px;
   --repl-tab-bg-color: var(--qwik-light-blue);
   --panel-toggle-height: 0px;
+  --docsearch-muted-color: var(--qwik-purple);
 }
 
 @media (max-width: 768px) {

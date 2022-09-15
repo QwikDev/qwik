@@ -10,7 +10,7 @@ import diagram from './diagram2.svg';
 
 
 
-## useMount$()
+## `useMount$()`
 
 Register a hook that executes on component creation. `useMount$()` will block the rendering of the component until after `useMount$()` callback resolves. (This is useful for fetching asynchronous data and delaying rendering until data is received, ensuring that the rendered component contains the data.).
 
@@ -47,7 +47,7 @@ function User(props: { user: User }) {
 }
 ```
 
-## useServerMount$()
+## `useServerMount$()`
 
 Registers a server mount hook that runs only in the server when the component is first mounted.
 
@@ -80,7 +80,7 @@ function User(props: { user: User }) {
 }
 ```
 
-## useWatch$()
+## `useWatch$()`
 
 Reruns the `watchFn` when the tracked inputs change.
 
@@ -127,7 +127,7 @@ const Cmp = component$(() => {
 });
 ```
 
-## useClientEffect$()
+## `useClientEffect$()`
 
 Reruns the `watchFn` when the tracked inputs change.
 

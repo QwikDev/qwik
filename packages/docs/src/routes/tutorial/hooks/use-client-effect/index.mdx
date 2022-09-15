@@ -24,7 +24,7 @@ Client effect code is executed after the component is resumed. The `useClientEff
 - `visible` (default): Execute the effect when the component becomes visible. This is a preferred option because it delays the execution of the effect until the component is visible rather than eagerly on application startup (We are trying to minimize the amount of code the application runs on startup).
 - `load`: Execute the code as soon as possible. This is usually right after `DOMContentLoaded` event.
 
-## Example
+### Example
 
 The example shows a clock component that is rendered below the fold. Use the `useClientEffect$()` to make the clock update the current time every second to make it work on the client. We have provided the utility function `updateClock` to aid your implementation.
 

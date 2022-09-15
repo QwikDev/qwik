@@ -8,6 +8,6 @@ Browser events are synchronous, but because Qwik is fine-grained loadable Qwik e
 
 To solve this Qwik provides a declarative API to automatically call `preventDefault()` when the event is triggered. This is achieved by adding `preventdefault:<event-name>` attribute to the element. This allows the Qwikloader to synchronously call `preventDefault()` when the event is triggered.
 
-## Example
+### Example
 
 Clicking on the link will cause a navigation event. We wish to prevent this and call our callback instead. Add `preventdefault:click` to the `<a href>` to achieve this.

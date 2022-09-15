@@ -24,6 +24,6 @@ Use `useMount$()` if the code that needs to be executed is identical.
 
 Because `useServerMount$()` hooks have `$` in their name, they are subject to lazy loading. Lazy-loading means that the function is moved into a new file by the Optimizer. When the function is moved the Optimizer also moves any imports with it. This means that it is safe to have server-only imports as part of the `useServerMount$()` hook as they will be removed by the Optimizer.
 
-## Example
+### Example
 
 Use `useServerMount()` to fetch data needed for the rendering.

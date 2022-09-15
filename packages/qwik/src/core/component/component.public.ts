@@ -94,7 +94,7 @@ export type EventHandler<T> = QRL<(value: T) => any>;
  * Qwik component is a facade that describes how the component should be used without forcing the
  * implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
  *
- * ### Example:
+ * ### Example
  *
  * An example showing how to create a counter component:
  *
@@ -166,7 +166,7 @@ export const isQwikComponent = (component: any): component is Component<any> => 
  * Qwik component is a facade that describes how the component should be used without forcing the
  * implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
  *
- * ### Example:
+ * ### Example
  *
  * An example showing how to create a counter component:
  *

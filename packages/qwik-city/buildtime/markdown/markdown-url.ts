@@ -29,12 +29,10 @@ export function getMarkdownRelativeUrl(
       ? join(opts.routesDir, ...parts)
       : join(dirname(containingFilePath), ...parts);
 
-    if (checkFileExists) {
-      if (!existsSync(filePath)) {
-        console.warn(
-          `\nThe link "${url}", found within "${containingFilePath}" does not have a matching source file.\n`
-        );
-      }
+    if (checkFileExists && !existsSync(filePath)) {
+      console.warn(
+        `\nThe link "${url}", found within "${containingFilePath}" does not have a matching source file.\n`
+      );
     }
 
     const fileName = basename(filePath);

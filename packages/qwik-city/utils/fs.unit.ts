@@ -93,12 +93,17 @@ test('isMenuFileName', () => {
 
 test('getExtension', () => {
   const t = [
+    { name: 'file.md?qs', expect: '.md' },
+    { name: 'file.md#hash', expect: '.md' },
+    { name: 'file.md', expect: '.md' },
     { name: 'file.dot.dot.PnG ', expect: '.png' },
     { name: 'file.JSX', expect: '.jsx' },
     { name: 'file.d.ts', expect: '.d.ts' },
     { name: 'file.ts', expect: '.ts' },
     { name: 'C:\\path\\to\\file.tsx', expect: '.tsx' },
     { name: 'http://qwik.builder.io/index.mdx', expect: '.mdx' },
+    { name: '?qs', expect: '' },
+    { name: '#hash', expect: '' },
     { name: 'file', expect: '' },
     { name: '', expect: '' },
     { name: null, expect: '' },

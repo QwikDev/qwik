@@ -709,6 +709,8 @@ test.describe('e2e', () => {
       const child1 = await page.locator('text=Child 2');
 
       const addChild = await page.locator('button');
+
+      await expect(parent).toHaveAttribute('class', '⭐️yalzmy-0 parent count-10');
       await expect(parent).toHaveCSS('font-size', '200px');
       await expect(child1).toHaveCSS('font-size', '20px');
 
@@ -718,6 +720,7 @@ test.describe('e2e', () => {
       await page.waitForTimeout(100);
 
       const child10 = await page.locator('text=Child 10');
+      await expect(parent).toHaveAttribute('class', '⭐️yalzmy-0 parent count-11');
       await expect(parent).toHaveCSS('font-size', '200px');
       await expect(child1).toHaveCSS('font-size', '20px');
       await expect(child10).toHaveCSS('font-size', '20px');

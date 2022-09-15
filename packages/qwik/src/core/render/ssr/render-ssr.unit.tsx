@@ -548,7 +548,7 @@ renderSSRSuite('component useStylesScoped()', async () => {
           }
         </style>
         <div class="⭐️1d-0 host">
-          <div class="⭐️1d-0">
+          <div class="⭐️1d-0 div">
             Scoped1
             <!--qv q:s q:sref=0 q:key=-->
             <div>projected</div>
@@ -852,7 +852,7 @@ export const ScopedStyles1 = component$(() => {
 
   return (
     <div class="host">
-      <div>
+      <div className="div">
         Scoped1
         <Slot></Slot>
         <p>Que tal?</p>

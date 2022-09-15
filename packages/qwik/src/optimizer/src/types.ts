@@ -188,8 +188,7 @@ export type EntryStrategy =
   | SingleEntryStrategy
   | HookEntryStrategy
   | ComponentEntryStrategy
-  | SmartEntryStrategy
-  | ManualEntryStrategy;
+  | SmartEntryStrategy;
 
 /**
  * @alpha
@@ -206,13 +205,6 @@ export interface InlineEntryStrategy {
 /**
  * @alpha
  */
-export interface SingleEntryStrategy {
-  type: 'single';
-}
-
-/**
- * @alpha
- */
 export interface HookEntryStrategy {
   type: 'hook';
 }
@@ -220,8 +212,17 @@ export interface HookEntryStrategy {
 /**
  * @alpha
  */
+export interface SingleEntryStrategy {
+  type: 'single';
+  manual?: Record<string, string>;
+}
+
+/**
+ * @alpha
+ */
 export interface ComponentEntryStrategy {
   type: 'component';
+  manual?: Record<string, string>;
 }
 
 /**
@@ -229,14 +230,7 @@ export interface ComponentEntryStrategy {
  */
 export interface SmartEntryStrategy {
   type: 'smart';
-}
-
-/**
- * @alpha
- */
-export interface ManualEntryStrategy {
-  type: 'manual';
-  entries: string[][];
+  manual?: Record<string, string>;
 }
 
 /**

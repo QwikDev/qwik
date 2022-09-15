@@ -1,0 +1,31 @@
+.on-this-page {
+  padding-bottom: 20px;
+}
+
+.on-this-page h6 {
+  padding-bottom: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.on-this-page ul {
+  padding-bottom: 20px;
+}
+
+.on-this-page a {
+  position: relative;
+  display: block;
+  color: var(--qwik-dark-blue);
+  border: 0 solid #ddd;
+  border-left-width: 2px;
+  padding: 4px 2px 4px 8px;
+}
+
+.on-this-page a.indent {
+  padding-left: 30px;
+}
+
+.on-this-page a:hover {
+  background-color: #0093ee17;
+  border-color: var(--qwik-dark-blue);
+}

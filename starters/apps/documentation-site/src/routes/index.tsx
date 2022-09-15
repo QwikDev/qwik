@@ -4,7 +4,7 @@ import type { DocumentHead } from '@builder.io/qwik-city';
 export default component$(() => {
   return (
     <div>
-      <h1>Welcome to Qwik City</h1>
+      <h1>Welcome to Qwik Docs Examples</h1>
 
       <p>The meta-framework for Qwik.</p>
     </div>
@@ -12,5 +12,5 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: 'Welcome to Qwik City',
+  title: 'Welcome to Qwik Documentation',
 };

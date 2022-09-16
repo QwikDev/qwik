@@ -216,6 +216,12 @@ h6 a:hover .icon {
   .docs article code {
     word-break: break-all;
   }
+  .docs article h1 {
+    font-size: 40px;
+  }
+  .docs article h2 {
+    font-size: 30px;
+  }
 }
 
 .docs article table {

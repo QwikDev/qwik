@@ -20,6 +20,7 @@ macro_rules! test_input {
             minify: input.minify,
             transpile: input.transpile,
             explicit_extensions: input.explicit_extensions,
+            manual_chunks: input.manual_chunks,
             entry_strategy: input.entry_strategy,
             dev: input.dev,
             scope: input.scope,
@@ -1199,6 +1200,60 @@ export const Child = component$(() => {
 }
 
 #[test]
+fn example_manual_chunks() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useWatch$, useStore, useStyles$ } from '@builder.io/qwik';
+import mongo from 'mongodb';
+import redis from 'redis';
+
+export const Parent = component$(() => {
+    const state = useStore({
+        text: ''
+    });
+
+    // Double count watch
+    useWatch$(async () => {
+        state.text = await mongo.users();
+        redis.set(state.text);
+    });
+
+    return (
+        <div onClick$={() => console.log('parent')}>
+            {state.text}
+        </div>
+    );
+});
+
+export const Child = component$(() => {
+    const state = useStore({
+        text: ''
+    });
+
+    // Double count watch
+    useWatch$(async () => {
+        state.text = await mongo.users();
+    });
+
+    return (
+        <div onClick$={() => console.log('child')}>
+            {state.text}
+        </div>
+    );
+});
+"#
+        .to_string(),
+        transpile: true,
+        manual_chunks: Some(HashMap::from_iter(vec![
+            ("C5XE49Nqd3A".into(), "chunk_clicks".into()),
+            ("elliVSnAiOQ".into(), "chunk_clicks".into()),
+        ])),
+        entry_strategy: EntryStrategy::Smart,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_strip_exports_unused() {
     test_input!(TestInput {
         code: r#"
@@ -1512,6 +1567,7 @@ export const Local = component$(() => {
         minify: MinifyMode::Simplify,
         explicit_extensions: true,
         dev: true,
+        manual_chunks: None,
         entry_strategy: EntryStrategy::Hook,
         transpile: true,
         scope: None,
@@ -1570,6 +1626,7 @@ export const Greeter = component$(() => {
         minify: MinifyMode::Simplify,
         explicit_extensions: true,
         dev: true,
+        manual_chunks: None,
         entry_strategy: EntryStrategy::Hook,
         transpile: true,
         scope: None,
@@ -1599,6 +1656,7 @@ export const Greeter = component$(() => {
             minify: MinifyMode::Simplify,
             explicit_extensions: true,
             dev: option.0,
+            manual_chunks: None,
             entry_strategy: option.1,
             transpile: option.2,
             scope: None,
@@ -1637,6 +1695,7 @@ struct TestInput {
     pub code: String,
     pub filename: String,
     pub src_dir: String,
+    pub manual_chunks: Option<HashMap<String, JsWord>>,
     pub entry_strategy: EntryStrategy,
     pub minify: MinifyMode,
     pub transpile: bool,
@@ -1653,6 +1712,7 @@ impl TestInput {
             filename: "test.tsx".to_string(),
             src_dir: "/user/qwik/src/".to_string(),
             code: "/user/qwik/src/".to_string(),
+            manual_chunks: None,
             entry_strategy: EntryStrategy::Hook,
             minify: MinifyMode::Simplify,
             transpile: false,

@@ -707,6 +707,9 @@ const setComponentProps = (
 };
 
 function processPropKey(prop: string) {
+  if (prop === 'htmlFor') {
+    return 'for';
+  }
   return prop;
 }
 

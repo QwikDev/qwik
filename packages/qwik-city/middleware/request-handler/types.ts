@@ -31,6 +31,7 @@ export interface UserResponseContext {
   headers: Headers;
   resolvedBody: string | number | boolean | null | undefined;
   pendingBody: Promise<string | number | boolean | null | undefined> | undefined;
+  aborted: boolean;
 }
 
 export interface QwikCityRequestOptions extends RenderOptions {}

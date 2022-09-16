@@ -38,6 +38,7 @@ export async function loadUserResponse(
     headers: createHeaders(),
     resolvedBody: undefined,
     pendingBody: undefined,
+    aborted: false,
   };
 
   let hasRequestMethodHandler = false;
@@ -176,6 +177,7 @@ export async function loadUserResponse(
   };
 
   await next();
+  userResponse.aborted = routeModuleIndex >= ABORT_INDEX;
 
   if (
     !isPageDataRequest &&
@@ -196,7 +198,6 @@ export async function loadUserResponse(
     // didn't find any handlers
     throw new ErrorResponse(HttpStatus.MethodNotAllowed, `Method Not Allowed`);
   }
-
   return userResponse;
 }
 

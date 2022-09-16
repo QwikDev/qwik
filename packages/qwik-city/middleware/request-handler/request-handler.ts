@@ -34,6 +34,9 @@ export async function requestHandler<T = any>(
         trailingSlash,
         basePathname
       );
+      if (userResponse.aborted) {
+        return null;
+      }
 
       // status and headers should be immutable in at this point
       // body may not have resolved yet

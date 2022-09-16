@@ -24,7 +24,7 @@ import { getRouteParams } from '../../runtime/src/library/routing';
 import { fromNodeHttp } from '../../middleware/node/http';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
-  const matchRouteRequest = async (pathname: string) => {
+  const matchRouteRequest = (pathname: string) => {
     for (const route of ctx.routes) {
       const match = route.pattern.exec(pathname);
       if (match) {
@@ -73,7 +73,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         }
       }
 
-      const routeResult = await matchRouteRequest(requestCtx.url.pathname);
+      const routeResult = matchRouteRequest(requestCtx.url.pathname);
       if (routeResult) {
         const { route, params } = routeResult;
 

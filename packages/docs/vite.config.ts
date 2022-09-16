@@ -24,6 +24,9 @@ export default defineConfig(() => {
           type: 'smart',
           manual: {
             ...algoliaSearch,
+            ...leftMenu,
+            ...rightMenu,
+            ...repl,
           },
         },
       }),
@@ -59,4 +62,34 @@ const algoliaSearch = {
   MuhA2XBHGV8: 'algolia',
   kySyEi4IbWw: 'algolia',
   J3Nim3Y9sio: 'algolia',
+  aWt0AqHIkGQ: 'algolia',
+  JJa1OmmlJI0: 'algolia',
+};
+
+const leftMenu = {
+  '80OgQ5lcFr4': 'leftmenu',
+  w5MYBhIX0cA: 'leftmenu',
+  pEMEmtwhXxM: 'leftmenu',
+};
+
+const rightMenu = {
+  QavemLlxiyA: 'rightmenu',
+  w5MYBhIX0cA: 'rightmenu',
+};
+
+const repl = {
+  '9hTSF08oC0c': 'repl',
+  b0zG7SjJ0mY: 'repl',
+  '2pen08LKHIc': 'repl',
+  '00yssl5ZdQ0': 'repl',
+  dGMbXdytWYw: 'repl',
+  '3LhofjAcE3o': 'repl',
+  Vf8gUl5vM9Q: 'repl',
+  iw211Du0bw8: 'repl',
+  znnkb13Pb1Q: 'repl',
+  JNuA4OQTkdc: 'repl',
+  MbH3hL9RTzs: 'repl',
+  uCl5Lf0Typ8: 'repl',
+  vkZre20bmo0: 'repl',
+  '599ANF7zBGE': 'repl',
 };

@@ -13,7 +13,7 @@ export const Footer = component$(() => {
       <div class="made-with-love">Made with ❤️ by</div>
       <div class="footer-top">
         <a href="https://www.builder.io" target="_blank">
-          <img class="builder-logo" src={builder} alt="Builder.io logo" />
+          <img class="builder-logo" width="312" height="67" src={builder} alt="Builder.io logo" />
         </a>
         <ul class="footer-social">
           <li>

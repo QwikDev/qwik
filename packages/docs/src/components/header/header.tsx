@@ -32,7 +32,13 @@ export const Header = component$(() => {
             <QwikLogo width={180} height={50} />
           </a>
         </div>
-        <button onClick$={toggleMenu} class="mobile-menu" type="button">
+        <button
+          onClick$={toggleMenu}
+          class="mobile-menu"
+          type="button"
+          title="Toggle right menu"
+          aria-label="Toggle right menu"
+        >
           <span class="more-icon">
             <MoreIcon width={30} height={30} />
           </span>

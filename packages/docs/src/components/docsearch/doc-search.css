@@ -10,8 +10,8 @@
 .docsearch .DocSearch-Button {
   background-color: var(--docsearch-searchbox-background);
   --docsearch-text-color: var(--docsearch-muted-color);
-  border: 2px solid var(--qwik-purple);
-  --docsearch-muted-color: var(--qwik-purple);
+  border: 2px solid var(--qwik-dark-blue);
+  --docsearch-muted-color: var(--qwik-dark-blue);
 }
 
 .docsearch kbd {

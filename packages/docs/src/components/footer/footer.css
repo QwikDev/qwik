@@ -1,5 +1,28 @@
-.docs footer nav a {
-  @apply text-slate-600;
-  @apply no-underline;
-  @apply hover:underline;
+footer {
+  padding: 20px 0;
+}
+.made-with-love {
+  font-size: 14px;
+}
+
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid black;
+  padding-bottom: 15px;
+}
+.builder-logo {
+  width: 160px;
+}
+
+.footer-social {
+  list-style: none;
+  display: flex;
+}
+.footer-social li {
+  padding: 10px;
+}
+.footer-bottom {
+  padding-top: 5px;
+  font-size: 12px;
 }

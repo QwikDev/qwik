@@ -9,7 +9,7 @@
     "build.client": "vite build",
     "build.static": "vite build --ssr src/entry.static.tsx",
     "dev": "node --inspect ../../node_modules/vite/bin/vite.js --force",
-    "dev.ssr": "node --inspect ../../node_modules/vite/bin/vite.js --mode ssr --force",
+    "dev.ssr": "node --inspect ../../node_modules/vite/bin/vite.js --mode ssr --force --open",
     "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr --force",
     "serve": "wrangler pages dev ./dist",
     "ssg": "node server/entry.static",

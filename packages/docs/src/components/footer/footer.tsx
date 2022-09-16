@@ -1,27 +1,36 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
 import styles from './footer.css?inline';
-
+import builder from './builder.svg';
+import { TwitterLogo } from '../svgs/twitter-logo';
+import { GithubLogo } from '../svgs/github-logo';
 export const Footer = component$(() => {
   useStyles$(styles);
 
   return (
-    <footer class="pt-8 pb-12 px-2 flex flex-wrap justify-center sm:justify-between text-sm">
-      <nav class="flex py-2 px-2 md:px-0">
-        <a class="px-4 py-1" href="https://github.com/BuilderIO/qwik" target="_blank">
-          Github
-        </a>
-        <a class="px-4 py-1" href="https://twitter.com/QwikDev" target="_blank">
-          @QwikDev
-        </a>
-        <a class="px-4 py-1" href="https://qwik.builder.io/chat" target="_blank">
-          Discord
-        </a>
-      </nav>
-      <div class="py-3 px-2 md:px-0">
-        <span>Made with ♡ by the </span>
-        <a href="https://www.builder.io/">Builder.io</a>
-        <span> team</span>
+    <footer>
+      <div class="made-with-love">Made with love by</div>
+      <div class="footer-top">
+        <img class="builder-logo" src={builder} alt="Builder.io logo" />
+        <ul class="footer-social">
+          <li>
+            <a href="https://github.com/BuilderIO" target="_blank" title="Github">
+              <span class="md:hidden">Github</span>
+              <span class="hidden md:block">
+                <GithubLogo width={22} height={22} />
+              </span>
+            </a>
+          </li>
+          <li>
+            <a href="https://twitter.com/builderio" target="_blank" title="Twitter">
+              <span class="md:hidden">@builderio</span>
+              <span class="hidden md:block">
+                <TwitterLogo width={22} height={22} />
+              </span>
+            </a>
+          </li>
+        </ul>
       </div>
+      <div class="footer-bottom">© 2022 Builder.io, Inc.</div>
     </footer>
   );
 });

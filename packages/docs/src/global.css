@@ -1,5 +1,41 @@
 @import 'prism-themes/themes/prism-dracula.css';
 
+/* latin */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecnFHGPc.woff2)
+    format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* latin */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLGT9Z1xlFd2JQEk.woff2)
+    format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* latin */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLCz7Z1xlFd2JQEk.woff2)
+    format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 code[class*='language-'],
 pre[class*='language-'] {
   font-family: Menlo, Monaco, 'Courier New', monospace;
@@ -33,7 +69,6 @@ html {
   --repl-tab-height: 56px;
   --repl-tab-bg-color: var(--qwik-light-blue);
   --panel-toggle-height: 0px;
-  --docsearch-muted-color: var(--qwik-purple);
 }
 
 @media (max-width: 768px) {
@@ -63,12 +98,13 @@ body {
 
   .menu-open .menu {
     @apply block;
-    @apply bg-gray-900;
 
     @apply top-0;
     @apply p-3;
     @apply pr-16;
     width: 360px;
+
+    background: white;
   }
 
   .menu-open .menu h5 {
@@ -78,7 +114,6 @@ body {
   .menu-open .menu li a,
   .menu-open .menu li a.is-active {
     @apply p-3;
-    @apply text-slate-100 bg-transparent hover:text-slate-500;
   }
 
   .menu-open header {
@@ -106,7 +141,6 @@ body {
   }
 
   .menu-close {
-    @apply text-slate-300;
     display: block;
     position: fixed;
     top: 0;
@@ -115,6 +149,7 @@ body {
     height: 100vh;
     padding-left: 12px;
     cursor: default;
+    color: var(--qwik-dark-blue);
   }
 
   .menu-close svg {

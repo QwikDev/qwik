@@ -137,6 +137,15 @@ renderSSRSuite('innerHTML', async () => {
     '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div><p>hola</p></div></html>'
   );
   await testSSR(
+    <div dangerouslySetInnerHTML=""></div>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div></div></html>'
+  );
+  const Div = 'div' as any;
+  await testSSR(
+    <Div dangerouslySetInnerHTML={0}></Div>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div>0</div></html>'
+  );
+  await testSSR(
     <script dangerouslySetInnerHTML="() => null"></script>,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <script>

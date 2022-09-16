@@ -47,6 +47,13 @@ renderSSRSuite('render class', async () => {
   );
 });
 
+renderSSRSuite('render htmlFor', async () => {
+  await testSSR(
+    <label htmlFor="stuff"></label>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><label for="stuff"></label></html>'
+  );
+});
+
 renderSSRSuite('render contentEditable', async () => {
   await testSSR(
     <div contentEditable="true"></div>,

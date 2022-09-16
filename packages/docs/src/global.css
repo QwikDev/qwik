@@ -98,12 +98,13 @@ body {
 
   .menu-open .menu {
     @apply block;
-    @apply bg-gray-900;
 
     @apply top-0;
     @apply p-3;
     @apply pr-16;
     width: 360px;
+
+    background: white;
   }
 
   .menu-open .menu h5 {
@@ -113,7 +114,6 @@ body {
   .menu-open .menu li a,
   .menu-open .menu li a.is-active {
     @apply p-3;
-    @apply text-slate-100 bg-transparent hover:text-slate-500;
   }
 
   .menu-open header {
@@ -141,7 +141,6 @@ body {
   }
 
   .menu-close {
-    @apply text-slate-300;
     display: block;
     position: fixed;
     top: 0;
@@ -150,6 +149,7 @@ body {
     height: 100vh;
     padding-left: 12px;
     cursor: default;
+    color: var(--qwik-dark-blue);
   }
 
   .menu-close svg {

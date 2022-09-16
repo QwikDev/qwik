@@ -3,25 +3,53 @@ title: Overview
 fetch: https://hackmd.io/@mhevery/Sy52N2Ax9
 ---
 
-# Overview
+import { getCommunity } from './community';
+
+# Welcome to Qwik
 
 Qwik is a new kind of web framework that can deliver instantly load web applications at any size or complexity. Your sites and apps can boot with about 1kb of JS (regardless of application complexity), and achieve consistent performance at scale.
 
-## Qwik is:
+## Qwik Goals
 
-- **General-purpose**: Qwik is familiar for React developers and can be used to build any type of web site or application.
-- **Resumable**: Qwik is [resumable](concepts/resumable) which means Qwik applications require **no hydration**. This allows Qwik apps to have instant-on interactivity.
-- **Progressive**: Qwik takes [full responsibility of how to load and download JS](https://www.builder.io/blog/dont-blame-the-developer-for-what-the-frameworks-did). No more manual code splitting.
-- **Reactive**: Qwik semantics allow for [fully reactive and efficient rendering](../concepts/reactivity/index.mdx).
-- **Fast**: Qwik has consistantly fast performance no matter the application complexity, offering sub-second full page loads even on mobile devices. Qwik achieves this by delivering pure HTML, and incrementally loading JS only as-needed.
-- **Scalable**: Qwik application have [O(1) constant scalability](https://www.builder.io/blog/our-current-frameworks-are-on-we-need-o1). It does not matter the size of your application, boot time is constantly fast.
+<div class="card-grid">
+  <div class="card">
+    <h3>General-purpose</h3>
+    <p>Qwik can be used to build any type of web site or application</p>
+  </div>
+    <div class="card">
+    <h3>Instant-on</h3>
+    <p>Unlike other frameworks, Qwik is resumable which means Qwik applications require 0 hydration. This allows Qwik apps to have instant-on interactivity, regardless of size or complexity</p>
+  </div>
+    <div class="card">
+    <h3>Optimized for speed</h3>
+    <p>Qwik has unprecedented performance, offering sub-second full page loads even on mobile devices. Qwik achieves this by delivering pure HTML, and incrementally loading JS only as-needed.</p>
+  </div>
+</div>
 
-<img
-  alt="Qwik Diagram"
-  width="1000"
-  height="640"
-  src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fd33c7a95e98144f682ab67dd27d1f957?format=webp&width=1000"
-/>
+## Getting Started with Qwik
+
+<div class="card-grid">
+  <a class="card card-center" href='/docs/getting-started/'>
+    <p class='icon'>🚀</p>
+    <h3>npm create qwik</h3>
+  </a>
+  <a class="card card-center" href='/docs/think-qwik/'>
+    <p class='icon'>🤔</p>
+    <h3>Why Qwik?</h3>
+  </a>
+  <a class="card card-center" href='/docs/components/overview/'>
+    <p class='icon'>📚</p>
+    <h3>API</h3>
+  </a>
+  <a class="card card-center" href='https://qwik.builder.io/chat'>
+    <p class='icon'>{getCommunity()}</p>
+    <h3>Community</h3>
+  </a>
+  <a class="card card-center" href='https://github.com/BuilderIO/qwik'>
+    <p class='icon'>💙</p>
+    <h3>Open source</h3>
+  </a>
+</div>
 
 ## Does page speed really matter?
 

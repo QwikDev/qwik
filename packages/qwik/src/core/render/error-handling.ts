@@ -1,5 +1,7 @@
 import { isServer } from '../platform/platform';
+import { getContext } from '../props/props';
 import { createContext, resolveContext } from '../use/use-context';
+import { isVirtualElement } from '../util/element';
 import { qDev } from '../util/qdev';
 import type { QwikElement } from './dom/virtual-element';
 import type { RenderContext } from './types';
@@ -12,6 +14,16 @@ export const ERROR_CONTEXT = /*#__PURE__*/ createContext<ErrorBoundaryStore>('qk
 
 export const handleError = (err: any, hostElement: QwikElement, rctx?: RenderContext) => {
   if (qDev) {
+    // Clean vdom
+    if (!isServer() && isVirtualElement(hostElement)) {
+      getContext(hostElement).$vdom$ = null;
+      const errorDiv = document.createElement('errored-host');
+      (errorDiv as any).props = { error: err };
+      errorDiv.setAttribute('q:key', '_error_');
+      errorDiv.append(...hostElement.childNodes);
+      hostElement.appendChild(errorDiv);
+    }
+
     if (err && err instanceof Error) {
       if (!('hostElement' in err)) {
         (err as any)['hostElement'] = hostElement;

@@ -53,7 +53,7 @@ export const tryGetInvokeContext = (): InvokeContext | undefined => {
       return undefined;
     }
     if (isArray(context)) {
-      return (document.__q_context__ = newInvokeContextFromTuple(context));
+      return (document.__q_context__ = newInvokeContextFromTuple(context as any));
     }
     return context as InvokeContext;
   }
@@ -116,7 +116,7 @@ export const waitAndRun = (ctx: RenderInvokeContext, callback: () => any) => {
       waitOn.push(result);
     }
   } else {
-    waitOn.push(Promise.allSettled(waitOn).then(callback));
+    waitOn.push(Promise.all(waitOn).then(callback));
   }
 };
 

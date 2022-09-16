@@ -54,7 +54,7 @@ export const executeComponent = (
     (jsxNode) => {
       elCtx.$attachedListeners$ = false;
       if (waitOn.length > 0) {
-        return Promise.allSettled(waitOn).then(() => {
+        return Promise.all(waitOn).then(() => {
           if (elCtx.$dirty$) {
             return executeComponent(rctx, elCtx);
           }

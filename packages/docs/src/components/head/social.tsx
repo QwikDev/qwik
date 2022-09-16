@@ -6,7 +6,7 @@ export const Social = ({ head, loc }: SocialProps) => {
   const img =
     'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F56f46c6818704d47957a587157e2444f?width=1200';
   const imgAlt =
-    'Image of Qwik Framework Logo, Framework reimagined for the edge. Code snippet npm init qwik@latest';
+    'Image of Qwik Framework Logo, Framework reimagined for the edge. Code snippet npm create qwik@latest';
 
   return (
     <>

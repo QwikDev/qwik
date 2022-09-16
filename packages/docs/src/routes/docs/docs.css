@@ -1,22 +1,19 @@
-.docs {
-  @apply bg-white text-gray-900;
-}
-
 .docs main {
-  @apply mx-auto mt-14 min-h-[100vh] xl:max-w-[1400px];
+  @apply mx-auto min-h-[100vh] xl:max-w-[1300px];
+  margin-top: calc(var(--header-height) + 10px);
 }
 
 .docs .docs-container {
   @apply pt-[80px];
-  @apply px-6;
+  @apply px-8;
 
   /* medium */
 
   /* large */
-  @apply lg:pt-5 lg:ml-[19rem] lg:mr-[4rem] lg:px-0;
+  @apply lg:pt-5 lg:ml-[17rem] lg:mr-[4rem] lg:px-0;
 
   /* xlarge */
-  @apply xl:pr-16 xl:mr-[16.5rem];
+  @apply xl:pr-16 xl:mr-[18rem];
 }
 
 .docs article a {
@@ -24,16 +21,79 @@
   text-decoration: underline;
 }
 
+.docs article blockquote {
+  background: #f1f5fe;
+  padding: 20px 13px 20px 10px;
+  border-left: 10px solid #ac7ef4;
+  margin: 30px 0;
+}
+
+.docs article blockquote p:first-child {
+  margin-top: 0;
+}
+
+.docs article blockquote p:last-child {
+  margin-bottom: 0;
+}
+
 .docs article a:hover {
   text-decoration: none;
 }
 
+.docs article .card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  margin: 30px 0;
+}
+
+.docs article .card {
+  background: #f7f8fb;
+  border-radius: 10px;
+  min-width: 230px;
+  padding: 25px;
+  flex: 1;
+  color: inherit;
+  text-decoration: none;
+  /* display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-decoration: none; */
+}
+
+.docs article a.card:hover {
+  outline: 2px solid var(--qwik-dark-blue);
+}
+
+.docs article .card-center {
+  text-align: center;
+}
+
+.docs article .card h3 {
+  margin-top: 10px;
+  margin-bottom: 0;
+  font-weight: 500;
+  font-size: 22px;
+}
+
+.docs article .card p {
+  font-size: 14px;
+}
+
+.docs article .card .icon {
+  font-size: 70px;
+  margin: 0;
+  line-height: 1;
+}
+
 .docs article h1 {
-  @apply text-slate-900;
-  @apply text-5xl font-bold;
-  @apply mb-6;
+  @apply mb-7;
   @apply relative;
-  scroll-margin-top: 80px;
+
+  line-height: 1.2;
+  font-size: 55px;
+  font-weight: 800;
+  scroll-margin-top: var(--scroll-margin-top);
 }
 
 .docs article h2,
@@ -42,15 +102,23 @@
 .docs article h5,
 .docs article h6 {
   @apply text-xl font-semibold;
-  @apply text-slate-900;
-  @apply mt-8;
-  @apply mb-4;
   @apply relative;
-  scroll-margin-top: 80px;
+  margin-top: 1.2em;
+  scroll-margin-top: var(--scroll-margin-top);
+
+  margin-bottom: max(0.7em, 18px);
 }
 
 .docs article h2 {
-  @apply text-3xl;
+  line-height: 1.2;
+  font-size: 48px;
+  font-weight: 800;
+  scroll-margin-top: var(--scroll-margin-top);
+  margin-top: 70px;
+}
+
+.docs article h3 {
+  font-size: 1.8rem;
 }
 
 .docs h2 a,
@@ -60,7 +128,7 @@
 .docs h6 a {
   position: absolute;
   width: 100%;
-  height: 32px;
+  height: 1em;
 }
 
 .icon-link {
@@ -70,7 +138,7 @@
 .icon-link::after {
   position: absolute;
   content: '#';
-  left: -23px;
+  left: -1em;
 }
 
 h2 a:hover .icon,
@@ -82,17 +150,24 @@ h6 a:hover .icon {
 }
 
 .docs article p {
-  @apply my-5;
-  font-size: 17px;
+  margin-top: 1.6rem;
+  margin-bottom: 0.9rem;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.7;
+  color: #171a19;
 }
 
 .docs article ul,
 .docs article ol {
   @apply my-4;
-  @apply ml-8;
-  font-size: 17px;
+  @apply ml-10;
   line-height: 1.7;
   list-style: disc;
+
+  font-size: 16px;
+  font-weight: 400;
+  color: #171a19;
 }
 
 .docs article ol {
@@ -104,20 +179,28 @@ h6 a:hover .icon {
   @apply pl-2;
 }
 
+.docs article li::marker,
+.docs article li::-webkit-details-marker {
+  color: var(--qwik-dark-blue);
+  font-weight: 800;
+}
+
 .docs article pre {
   overflow: auto;
   color: white;
   background-color: rgb(1 31 51);
   padding: 18px 15px;
   border-radius: 8px;
-  margin-bottom: 4px;
+  margin: 20px 0;
 }
 
 .docs article pre code {
   display: block;
   max-width: 50px;
   background-color: transparent;
-  line-height: 1.5;
+  line-height: 1.26;
+  border: none;
+  user-select: auto;
 }
 
 .docs article code {
@@ -125,6 +208,8 @@ h6 a:hover .icon {
   padding: 2px 4px;
   border-radius: 3px;
   font-size: 0.9em;
+  border-bottom: 2px solid #bfbfbf;
+  user-select: all;
 }
 
 @media (max-width: 640px) {
@@ -156,4 +241,14 @@ h6 a:hover .icon {
 .docs article img {
   border-radius: 5px;
   overflow: hidden;
+}
+
+@media (min-width: 1280px) {
+  .docs main.no-right-menu .docs-container {
+    margin-right: 6rem;
+  }
+}
+
+.docs main.no-right-menu .on-this-page {
+  display: none;
 }

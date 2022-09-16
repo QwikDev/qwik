@@ -1,4 +1,3 @@
-import type { QRLInternal } from './core/import/qrl-class';
 import type { QContext } from './core/props/props';
 
 /**
@@ -45,9 +44,9 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     const attrName = 'on' + onPrefix + ':' + eventName;
     const qrls = ((element as any)['_qc_'] as QContext)?.li[attrName];
     if (qrls) {
-      qrls.forEach((q: QRLInternal) =>
-        q.getFn([element, ev], () => element.isConnected)(ev, element)
-      );
+      for (const q of qrls) {
+        await q.getFn([element, ev], () => element.isConnected)(ev, element);
+      }
       return;
     }
     const attrValue = element.getAttribute(attrName);
@@ -62,7 +61,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
           if (element.isConnected) {
             try {
               (doc as any)[Q_CONTEXT] = [element, ev, url];
-              handler(ev, element);
+              await handler(ev, element);
             } finally {
               (doc as any)[Q_CONTEXT] = previousCtx;
               doc.dispatchEvent(
@@ -103,13 +102,13 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
    *
    * @param ev - Browser event.
    */
-  const processDocumentEvent = (ev: Event) => {
+  const processDocumentEvent = async (ev: Event) => {
     let element = ev.target as Element | null;
     broadcast('-document', ev.type, ev);
 
     while (element && element.getAttribute) {
-      dispatch(element, '', ev.type, ev);
-      element = ev.bubbles ? element.parentElement : null;
+      await dispatch(element, '', ev.type, ev);
+      element = ev.bubbles && ev.cancelBubble !== true ? element.parentElement : null;
     }
   };
 

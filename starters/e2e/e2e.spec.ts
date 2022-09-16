@@ -99,6 +99,18 @@ test.describe('e2e', () => {
       expect(await countWrapped.textContent()).toEqual('countWrapped: 2');
       expect(await btnWrapped.textContent()).toEqual('Wrapped 2');
     });
+
+    test('should prevent defaults and bubbling', async ({ page }) => {
+      const prevented1 = await page.locator('#prevent-default-1');
+      const prevented2 = await page.locator('#prevent-default-2');
+      const countWrapped = await page.locator('#count-anchor');
+
+      await prevented1.click();
+      await expect(countWrapped).toHaveText('countAnchor: 0');
+
+      await prevented2.click();
+      await expect(countWrapped).toHaveText('countAnchor: 1');
+    });
   });
 
   test.describe('slot', () => {

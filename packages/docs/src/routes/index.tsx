@@ -1,4 +1,4 @@
-import { component$, Resource, useResource$ } from '@builder.io/qwik';
+import { component$, Resource } from '@builder.io/qwik';
 import { DocumentHead, RequestHandler, useEndpoint, useLocation } from '@builder.io/qwik-city';
 import { getContent, RenderContent, getBuilderSearchParams } from '@builder.io/sdk-qwik';
 import type { Dictionary } from '@builder.io/sdk-qwik/types/types/typescript';
@@ -17,7 +17,7 @@ export default component$(() => {
     ? (content: any) => (
         <RenderContent model={MODEL} content={content} apiKey={BUILDER_PUBLIC_API_KEY} />
       )
-    : (builderContent: string) => {
+    : (builderContent: BuilderContent) => {
         return <main class="builder" dangerouslySetInnerHTML={builderContent.html} />;
       };
 
@@ -50,7 +50,7 @@ export const onRequest: RequestHandler<BuilderContent> = async ({ url }) => {
       userAttributes: {
         urlPath: url.pathname,
       },
-    });
+    }) as any;
   } else {
     const qwikUrl = new URL(QWIK_REST_API + '/api/v1/qwik/' + MODEL);
     qwikUrl.searchParams.set('apiKey', BUILDER_PUBLIC_API_KEY);

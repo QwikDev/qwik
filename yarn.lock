@@ -364,12 +364,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/sdk-qwik@npm:^0.0.20":
-  version: 0.0.20
-  resolution: "@builder.io/sdk-qwik@npm:0.0.20"
+"@builder.io/sdk-qwik@npm:^0.0.21":
+  version: 0.0.21
+  resolution: "@builder.io/sdk-qwik@npm:0.0.21"
   peerDependencies:
     "@builder.io/qwik": 0.0.108-dev20220913220811
-  checksum: a2158ec9d6b5182536963e36ac033f535e45ea1d1138421aa11242453b974a0187305c275899ce164981a5a8d28ef41be119fe3048cdfd75603d278ec0a98f32
+  checksum: 786f7dada8ca2039328d61827843e10c47681fdc228d5fb558d059df366529000b824629090225c233fc9eaa385f79c36ec25ad86041666dee49c1580a09b35e
   languageName: node
   linkType: hard
 
@@ -7839,7 +7839,7 @@ __metadata:
     "@builder.io/partytown": ^0.6.4
     "@builder.io/qwik": ^0.0.108
     "@builder.io/qwik-city": ^0.0.109
-    "@builder.io/sdk-qwik": ^0.0.20
+    "@builder.io/sdk-qwik": ^0.0.21
     "@cloudflare/kv-asset-handler": 0.2.0
     "@docsearch/css": ^3.2.1
     algoliasearch: ^4.14.2

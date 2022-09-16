@@ -304,7 +304,7 @@ export const renderNodeElementSync = (
 
   // Render innerHTML
   const innerHTML = attributes.dangerouslySetInnerHTML;
-  if (innerHTML) {
+  if (innerHTML != null) {
     stream.write(innerHTML);
   }
   stream.write(`</${tagName}>`);
@@ -498,8 +498,8 @@ export const renderNode = (
     }
 
     const innerHTML = props.dangerouslySetInnerHTML;
-    if (innerHTML) {
-      stream.write(innerHTML);
+    if (innerHTML != null) {
+      stream.write(String(innerHTML));
       stream.write(`</${tagName}>`);
       return;
     }

@@ -75,6 +75,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
       const routeResult = matchRouteRequest(requestCtx.url.pathname);
       if (routeResult) {
+        // found a matching route
         const { route, params } = routeResult;
 
         // use vite to dynamically load each layout/page module in this route's hierarchy
@@ -143,9 +144,9 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           }
           return;
         }
-      }
+      } else {
+        // no matching route
 
-      if (!routeResult) {
         // test if this is a dev service-worker.js request
         for (const sw of ctx.serviceWorkers) {
           const match = sw.pattern.exec(requestCtx.url.pathname);
@@ -157,7 +158,15 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         }
       }
 
-      if (!routeResult && req.headers.accept && req.headers.accept.includes('text/html')) {
+      // simple test if it's a static file
+      const ext = getExtension(requestCtx.url.pathname);
+      if (STATIC_CONTENT_TYPES[ext]) {
+        // let the static asset middleware handle this
+        next();
+        return;
+      }
+
+      if (req.headers.accept && req.headers.accept.includes('text/html')) {
         /**
          * if no route match, but is html request, fast path to 404
          * otherwise qwik plugin will take over render without envData causing error
@@ -195,22 +204,10 @@ export function dev404Middleware() {
  */
 export function staticDistMiddleware({ config }: ViteDevServer) {
   const distDirs = new Set(
-    ['dist', config.build.outDir].map((d) => normalizePath(resolve(config.root, d)))
+    ['dist', config.build.outDir, config.publicDir].map((d) =>
+      normalizePath(resolve(config.root, d))
+    )
   );
-
-  const mimes: { [ext: string]: string } = {
-    '.js': 'text/javascript',
-    '.mjs': 'text/javascript',
-    '.json': 'application/json',
-    '.css': 'text/css',
-    '.html': 'text/html',
-    '.svg': 'image/svg+xml',
-    '.png': 'image/png',
-    '.gif': 'image/gif',
-    '.jpeg': 'image/jpeg',
-    '.jpg': 'image/jpeg',
-    '.ico': 'image/x-icon',
-  };
 
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
@@ -223,8 +220,7 @@ export function staticDistMiddleware({ config }: ViteDevServer) {
     const relPath = url.pathname.slice(1);
 
     const ext = getExtension(relPath);
-    const contentType = mimes[ext];
-
+    const contentType = STATIC_CONTENT_TYPES[ext];
     if (!contentType) {
       next();
       return;
@@ -294,6 +290,20 @@ const SKIP_SRC_EXTS: { [ext: string]: boolean } = {
   '.md': true,
   '.mdx': true,
   '.css': true,
+};
+
+const STATIC_CONTENT_TYPES: { [ext: string]: string } = {
+  '.js': 'text/javascript',
+  '.mjs': 'text/javascript',
+  '.json': 'application/json',
+  '.css': 'text/css',
+  '.html': 'text/html',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.gif': 'image/gif',
+  '.jpeg': 'image/jpeg',
+  '.jpg': 'image/jpeg',
+  '.ico': 'image/x-icon',
 };
 
 const DEV_SERVICE_WORKER = `/* Qwik City Dev Service Worker */

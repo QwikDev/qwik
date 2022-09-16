@@ -94,7 +94,12 @@ export const Header = component$(() => {
             />
           </li>
           <li>
-            <a href="https://github.com/BuilderIO/qwik" target="_blank" onClick$={closeMenu}>
+            <a
+              href="https://github.com/BuilderIO/qwik"
+              target="_blank"
+              onClick$={closeMenu}
+              title="Github"
+            >
               <span class="md:hidden">Github</span>
               <span class="hidden md:block">
                 <GithubLogo width={22} height={22} />
@@ -102,15 +107,25 @@ export const Header = component$(() => {
             </a>
           </li>
           <li>
-            <a href="https://twitter.com/QwikDev" target="_blank" onClick$={closeMenu}>
-              <span class="md:hidden">@Builder.io</span>
+            <a
+              href="https://twitter.com/QwikDev"
+              target="_blank"
+              onClick$={closeMenu}
+              title="Twitter"
+            >
+              <span class="md:hidden">@QwikDev</span>
               <span class="hidden md:block">
                 <TwitterLogo width={22} height={22} />
               </span>
             </a>
           </li>
           <li>
-            <a href="https://qwik.builder.io/chat" target="_blank" onClick$={closeMenu}>
+            <a
+              href="https://qwik.builder.io/chat"
+              target="_blank"
+              onClick$={closeMenu}
+              title="Discord"
+            >
               <span class="md:hidden">Discord</span>
               <span class="hidden md:block">
                 <DiscordLogo width={22} height={22} />

@@ -5,7 +5,7 @@ import type { Dictionary } from '@builder.io/sdk-qwik/types/types/typescript';
 
 export const BUILDER_PUBLIC_API_KEY = 'fe30f73e01ef40558cd69a9493eba2a2'; // ggignore
 export const MODEL = 'content-page';
-export const LOCALHOST = true;
+export const LOCALHOST = false;
 export const QWIK_REST_API = LOCALHOST ? 'http://localhost:4321' : 'https://cdn.builder.io';
 
 export default component$(() => {

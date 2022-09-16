@@ -23,6 +23,13 @@ export default component$(() => {
       >
         <RouterOutlet />
         <ServiceWorkerRegister />
+        <script
+          dangerouslySetInnerHTML={`
+        document.addEventListener('qsymbol', (ev) => {
+          console.log('QSymbol', ev.detail.symbol);
+        });
+        `}
+        ></script>
       </body>
     </QwikCity>
   );

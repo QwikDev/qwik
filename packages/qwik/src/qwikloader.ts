@@ -21,10 +21,9 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       .forEach((target) => dispatch(target, infix, type, ev));
   };
 
-  const createEvent = (eventName: string, detail?: any, bubbles = false) =>
+  const createEvent = (eventName: string, detail?: any) =>
     new CustomEvent(eventName, {
       detail,
-      bubbles,
     });
 
   const error = (msg: string) => {
@@ -66,7 +65,12 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
               handler(ev, element);
             } finally {
               (doc as any)[Q_CONTEXT] = previousCtx;
-              element.dispatchEvent(createEvent('qsymbol', symbolName, true));
+              doc.dispatchEvent(
+                createEvent('qsymbol', {
+                  symbol: symbolName,
+                  element: element,
+                })
+              );
             }
           }
         }

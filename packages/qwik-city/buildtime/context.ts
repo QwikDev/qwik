@@ -22,6 +22,7 @@ export function createBuildContext(
     isDevServer: false,
     isDevServerClientOnly: false,
     isDirty: true,
+    activeBuild: null,
   };
   return ctx;
 }

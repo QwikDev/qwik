@@ -1,6 +1,4 @@
-import { component$ } from '@builder.io/qwik';
-
-export const LoadingIcon = component$(() => {
+export const LoadingIcon = () => {
   return (
     <svg viewBox="0 0 38 38" stroke="currentColor" stroke-opacity=".5">
       <g fill="none" fill-rule="evenodd">
@@ -20,4 +18,4 @@ export const LoadingIcon = component$(() => {
       </g>
     </svg>
   );
-});
+};

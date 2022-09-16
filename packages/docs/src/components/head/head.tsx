@@ -18,14 +18,11 @@ export const Head = component$(() => {
       <meta name="application-name" content="Qwik" />
       <meta name="apple-mobile-web-app-title" content="Qwik" />
       <meta name="theme-color" content="#0093ee" />
-      <meta property="og:image" content="/hero-qwik-white-bg.png" />
       <meta property="og:title" content="Qwik - Framework reimagined for the edge" />
       <meta
         property="og:description"
         content="No hydration, auto lazy-loading, edge-optimized, and fun 🎉!"
       />
-      <meta property="og:image:width" content="4554" />
-      <meta property="og:image:height" content="2916" />
       <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
       <link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />
       <link rel="preconnect" href="https://fonts.googleapis.com" />

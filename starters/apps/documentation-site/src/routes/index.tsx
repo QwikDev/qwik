@@ -11,7 +11,7 @@ export default component$(() => {
         <li>
           <span>The </span>
           <a href="/docs">Documentation</a>
-          <span> pages use multiple nested layouts, one providing a left menu.</span>
+          <span> pages use multiple nested layouts, one of them providing a left menu.</span>
         </li>
         <li>
           Check out the <code>src/routes</code> directory to get started.
@@ -21,6 +21,10 @@ export default component$(() => {
         </li>
         <li>
           More info about development in <code>README.md</code>
+        </li>
+        <li>
+          <a href="/docs">Qwik City</a>
+          <span> is the meta-framework for Qwik</span>
         </li>
       </ul>
 

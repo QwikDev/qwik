@@ -5,10 +5,10 @@ header {
   display: grid;
   grid-template-columns: minmax(130px, auto) 1fr;
   gap: 30px;
-  height: var(--theme-navbar-height);
+  height: 80px;
   width: 100%;
   padding: 10px;
-  background-color: var(--theme-navbar-bg);
+  background-color: white;
   overflow: hidden;
 }
 

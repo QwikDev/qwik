@@ -15,6 +15,8 @@ export const Social = ({ head, loc }: SocialProps) => {
       <meta property="og:description" content={desc} />
       <meta property="og:image" content={img} />
       <meta property="og:image:alt" content={imgAlt} />
+      <meta property="og:image:width" content="4554" />
+      <meta property="og:image:height" content="2916" />
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content="Qwik" />
       <meta property="og:locale" content="en_US" />

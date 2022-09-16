@@ -468,6 +468,8 @@ renderSuite('should render into host component', async () => {
   await render(
     fixture.host,
     <divfixture
+      on:click="./lazy.js"
+      onscrolling="./test.js"
       hostAttrs={JSON.stringify({
         id: 'TEST',
         class: { thing: true },
@@ -480,6 +482,8 @@ renderSuite('should render into host component', async () => {
     fixture,
     `
       <divfixture
+        on:click="./lazy.js"
+        onscrolling="./test.js"
         hostattrs='{"id":"TEST","class":{"thing":true},"name":"NAME"}'
         content="CONTENT"
       >

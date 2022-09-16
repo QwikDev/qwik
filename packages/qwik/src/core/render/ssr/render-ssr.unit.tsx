@@ -54,6 +54,16 @@ renderSSRSuite('render contentEditable', async () => {
   );
 });
 
+renderSSRSuite('render fake click handler', async () => {
+  const Div = 'div' as any;
+  await testSSR(
+    <Div on:click="true" onScroll="text"></Div>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <div on:click="true" onScroll="text"></div>
+    </html>`
+  );
+});
+
 renderSSRSuite('self closing elements', async () => {
   await testSSR(
     <input></input>,
@@ -118,6 +128,14 @@ renderSSRSuite('innerHTML', async () => {
   await testSSR(
     <div dangerouslySetInnerHTML="<p>hola</p>"></div>,
     '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div><p>hola</p></div></html>'
+  );
+  await testSSR(
+    <script dangerouslySetInnerHTML="() => null"></script>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <script>
+        () => null
+      </script>
+    </html>`
   );
 });
 
@@ -300,12 +318,19 @@ renderSSRSuite('using component with key', async () => {
 
 renderSSRSuite('using component props', async () => {
   await testSSR(
-    <MyCmp id="12" host:prop="attribute" innerHTML="123" dangerouslySetInnerHTML="432" prop="12" />,
+    <MyCmp
+      id="12"
+      host:prop="attribute"
+      innerHTML="123"
+      dangerouslySetInnerHTML="432"
+      onClick="lazy.js"
+      prop="12"
+    />,
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       <section>
-        <div>MyCmp{"id":"12","host:prop":"attribute","innerHTML":"123","dangerouslySetInnerHTML":"432","prop":"12"}</div>
+        <div>MyCmp{"id":"12","host:prop":"attribute","innerHTML":"123","dangerouslySetInnerHTML":"432","onClick":"lazy.js","prop":"12"}</div>
       </section>
       <!--/qv-->
     </html>

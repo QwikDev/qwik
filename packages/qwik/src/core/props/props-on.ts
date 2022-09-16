@@ -10,7 +10,7 @@ import { assertTrue } from '../assert/assert';
 const ON_PROP_REGEX = /^(on|window:|document:)/;
 
 export const isOnProp = (prop: string): boolean => {
-  return ON_PROP_REGEX.test(prop);
+  return prop.endsWith('$') && ON_PROP_REGEX.test(prop);
 };
 
 export const addQRLListener = (

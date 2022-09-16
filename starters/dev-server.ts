@@ -126,6 +126,11 @@ export {
     configFile: false,
     base: baseUrl,
     ...extra,
+    resolve: {
+      alias: {
+        '@builder.io/qwik': join(qwikDistDir),
+      },
+    },
     define: {
       'globalThis.qSerialize': false,
       'globalThis.qDev': !isProd,

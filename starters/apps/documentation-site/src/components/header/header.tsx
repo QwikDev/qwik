@@ -6,25 +6,21 @@ import styles from './header.css?inline';
 export default component$(() => {
   useStyles$(styles);
 
-  const pathname = useLocation().pathname;
+  const { pathname } = useLocation();
 
   return (
     <header>
-      <div class="header-inner">
-        <section class="logo">
-          <a href="/">
-            <QwikLogo />
-          </a>
-        </section>
-        <nav>
-          <a href="/docs" class={{ active: pathname.startsWith('/docs') }}>
-            Docs
-          </a>
-          <a href="/about-us" class={{ active: pathname.startsWith('/about-us') }}>
-            About Us
-          </a>
-        </nav>
-      </div>
+      <a class="logo" href="/">
+        <QwikLogo />
+      </a>
+      <nav>
+        <a href="/docs" class={{ active: pathname.startsWith('/docs') }}>
+          Docs
+        </a>
+        <a href="/about-us" class={{ active: pathname.startsWith('/about-us') }}>
+          About Us
+        </a>
+      </nav>
     </header>
   );
 });

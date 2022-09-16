@@ -7,6 +7,12 @@ export default component$(() => {
       <h1>Welcome to Qwik Docs Starter</h1>
 
       <ul>
+        <li>This homepage uses a layout without a menu.</li>
+        <li>
+          <span>The </span>
+          <a href="/docs">Documentation</a>
+          <span> pages use multiple nested layouts, one providing a left menu.</span>
+        </li>
         <li>
           Check out the <code>src/routes</code> directory to get started.
         </li>

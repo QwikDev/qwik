@@ -26,7 +26,7 @@ export default component$(() => {
         <script
           dangerouslySetInnerHTML={`
         document.addEventListener('qsymbol', (ev) => {
-          console.log('QSymbol', ev.detail.symbol);
+          console.debug('QSymbol', ev.detail.symbol);
         });
         `}
         ></script>

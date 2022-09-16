@@ -18,6 +18,8 @@ export const SideBar = component$(() => {
         <button
           onClick$={() => (globalStore.sideMenuOpen = !globalStore.sideMenuOpen)}
           type="button"
+          title="Toggle left menu"
+          aria-label="Toggle left menu"
         >
           <span class="sr-only">Navigation</span>
           <svg width="24" height="24">

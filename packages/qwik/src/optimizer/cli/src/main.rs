@@ -120,6 +120,7 @@ fn optimize(
         source_maps: optimizer_input.sourcemaps,
         minify: optimizer_input.minify,
         transpile: optimizer_input.transpile,
+        manual_chunks: None,
         entry_strategy: optimizer_input.strategy,
         explicit_extensions: optimizer_input.explicit_extensions,
         dev: true,

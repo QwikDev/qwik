@@ -1,6 +1,6 @@
 import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { verifySerializable } from '../object/q-object';
-import { getPlatform } from '../platform/platform';
+import { getPlatform, isServer } from '../platform/platform';
 import {
   InvokeContext,
   newInvokeContext,
@@ -9,7 +9,7 @@ import {
   newInvokeContextFromTuple,
 } from '../use/use-core';
 import { then } from '../util/promises';
-import { qDev, seal } from '../util/qdev';
+import { qDev, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, ValueOrPromise } from '../util/types';
 import type { QRL } from './qrl.public';
 
@@ -102,6 +102,7 @@ export const createQRL = <TYPE>(
             ...baseContext,
             $qrl$: QRL as QRLInternal<any>,
           };
+          emitUsedSymbol(symbol, context.$element$);
           return invoke(context, fn as any, ...args);
         }
         throw qError(QError_qrlIsNotFunction);
@@ -163,3 +164,18 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
     }
   }
 }
+
+export const emitUsedSymbol = (symbol: string, element: Element | undefined) => {
+  if (!qTest && !isServer()) {
+    document.dispatchEvent(
+      new CustomEvent('qsymbol', {
+        bubbles: false,
+        detail: {
+          symbol,
+          element,
+          timestamp: performance.now(),
+        },
+      })
+    );
+  }
+};

@@ -31,6 +31,7 @@ use std::path::Path;
 
 use anyhow::Error;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::str;
 use swc_atoms::JsWord;
 
@@ -49,6 +50,7 @@ pub struct TransformFsOptions {
     pub glob: Option<String>,
     pub minify: MinifyMode,
     pub entry_strategy: EntryStrategy,
+    pub manual_chunks: Option<HashMap<String, JsWord>>,
     pub source_maps: bool,
     pub transpile: bool,
     pub explicit_extensions: bool,
@@ -74,6 +76,7 @@ pub struct TransformModulesOptions {
     pub minify: MinifyMode,
     pub transpile: bool,
     pub entry_strategy: EntryStrategy,
+    pub manual_chunks: Option<HashMap<String, JsWord>>,
     pub explicit_extensions: bool,
     pub dev: bool,
     pub scope: Option<String>,
@@ -86,7 +89,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
     let src_dir = Path::new(&config.src_dir);
     let mut paths = vec![];
     let is_inline = matches!(config.entry_strategy, EntryStrategy::Inline);
-    let entry_policy = &*parse_entry_strategy(config.entry_strategy);
+    let entry_policy = &*parse_entry_strategy(config.entry_strategy, config.manual_chunks);
     crate::package_json::find_modules(src_dir, config.vendor_roots, &mut paths)?;
 
     #[cfg(feature = "parallel")]
@@ -125,7 +128,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
 pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
     let src_dir = std::path::Path::new(&config.src_dir);
     let is_inline = matches!(config.entry_strategy, EntryStrategy::Inline);
-    let entry_policy = &*parse_entry_strategy(config.entry_strategy);
+    let entry_policy = &*parse_entry_strategy(config.entry_strategy, config.manual_chunks);
     #[cfg(feature = "parallel")]
     let iterator = config.input.par_iter();
 

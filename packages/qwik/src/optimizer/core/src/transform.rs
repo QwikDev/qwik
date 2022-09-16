@@ -507,7 +507,7 @@ impl<'a> QwikTransform<'a> {
             .options
             .entry_policy
             .get_entry_for_sym(
-                &symbol_name,
+                &hook_data.hash,
                 self.options.path_data,
                 &self.stack_ctxt,
                 &hook_data,

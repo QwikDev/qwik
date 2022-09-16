@@ -8,18 +8,25 @@ export default component$(() => {
     <footer>
       <ul>
         <li>
-          <a href="/blog">Blog</a>
-        </li>
-        <li>
           <a href="/docs">Docs</a>
         </li>
         <li>
           <a href="/about-us">About Us</a>
         </li>
         <li>
-          <a class="footer-home" href="/">
-            Home
-          </a>
+          <a href="https://qwik.builder.io/">Qwik</a>
+        </li>
+        <li>
+          <a href="https://twitter.com/QwikDev">Twitter</a>
+        </li>
+        <li>
+          <a href="https://github.com/BuilderIO/qwik">Github</a>
+        </li>
+        <li>
+          <a href="https://qwik.builder.io/chat">Chat</a>
+        </li>
+        <li>
+          <a href="/">Home</a>
         </li>
       </ul>
     </footer>

@@ -1,3 +1,12 @@
+:root {
+  --qwik-dark-blue: #006ce9;
+  --qwik-light-blue: #18b6f6;
+  --qwik-light-purple: #ac7ff4;
+  --qwik-dark-purple: #713fc2;
+
+  --anchor-color: var(--qwik-dark-blue);
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -16,7 +25,7 @@ main {
 }
 
 a {
-  color: #006eb3;
+  color: var(--anchor-color);
 }
 
 a:hover {

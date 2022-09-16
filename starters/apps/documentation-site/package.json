@@ -1,5 +1,6 @@
 {
-  "description": "File based routing and MDX support",
+  "name": "qwik-docs-starter",
+  "description": "Documentation site starter.",
   "__qwik__": {
     "priority": 1,
     "qwikCity": true

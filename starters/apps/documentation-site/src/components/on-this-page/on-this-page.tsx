@@ -9,10 +9,10 @@ export default component$(() => {
   const contentHeadings = headings?.filter((h) => h.level === 2 || h.level === 3) || [];
 
   const { pathname } = useLocation();
-  const editUrl = `#update-to-your-edit-url-for-${pathname}`;
+  const editUrl = `#update-your-edit-url-for-${pathname}`;
 
   return (
-    <aside class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-45rem))] overflow-y-auto hidden xl:block xl:w-[18rem] xl:top-[5rem]">
+    <aside class="on-this-page">
       {contentHeadings.length > 0 ? (
         <>
           <h6>On This Page</h6>

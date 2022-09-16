@@ -1,4 +1,5 @@
 {
+  "name": "qwik-library-starter",
   "description": "Create a component library",
   "version": "0.0.1",
   "private": false,

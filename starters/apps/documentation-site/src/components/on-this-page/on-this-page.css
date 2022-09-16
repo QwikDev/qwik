@@ -26,6 +26,5 @@
 }
 
 .on-this-page a:hover {
-  background-color: #0093ee17;
   border-color: var(--qwik-dark-blue);
 }

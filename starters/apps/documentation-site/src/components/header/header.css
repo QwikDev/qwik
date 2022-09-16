@@ -1,5 +1,4 @@
 header {
-  background-color: #0093ee;
 }
 
 header .header-inner {
@@ -10,12 +9,7 @@ header .header-inner {
   margin: 0 auto;
 }
 
-.full-screen header .header-inner {
-  max-width: 100%;
-}
-
 header a {
-  color: white;
   text-decoration: none;
   padding: 4px 8px;
   margin-right: 5px;
@@ -28,19 +22,4 @@ header a:hover {
 
 header .active {
   background-color: #ffffff30;
-}
-
-.theme-toggle {
-  background: transparent;
-  width: 30px;
-  border: none;
-  cursor: pointer;
-}
-
-.theme-light .theme-toggle::before {
-  content: '☽';
-}
-
-.theme-dark .theme-toggle::before {
-  content: '☀';
 }

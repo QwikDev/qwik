@@ -1,4 +1,5 @@
 {
+  "name": "qwik-blank-starter",
   "description": "Blank Qwik starter app.",
   "type": "module",
   "__qwik__": {

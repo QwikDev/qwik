@@ -62,11 +62,11 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "packages/qwik",
-    "packages/qwik-city",
-    "packages/qwik-react",
     "packages/create-qwik",
     "packages/docs",
+    "packages/qwik/src",
+    "packages/qwik-city",
+    "packages/qwik-react/src",
     "scripts",
     "starters"
   ],
@@ -74,16 +74,8 @@
     "packages/create-qwik/dist",
     "packages/docs/dist",
     "packages/docs/server",
-    "packages/qwik/dist",
-    "packages/qwik-city/dist",
-    "packages/qwik-react/lib",
     "**/lib",
-    "starters/**/entry.cloudflare-pages.tsx",
-    "starters/**/entry.express.tsx",
-    "starters/**/entry.netlify-edge.tsx",
-    "starters/**/entry.static.tsx",
-    "starters/**/entry.ssr.tsx",
-    "packages/qwik/**/*.d.ts",
-    "packages/qwik-dom"
+    "starters",
+    "packages/qwik/**/*.d.ts"
   ]
 }

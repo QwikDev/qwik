@@ -1,7 +1,7 @@
 import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'http';
 import fs from 'fs';
-import { extname, join, resolve } from 'path';
+import { join, resolve } from 'path';
 import type { BuildContext } from '../types';
 import type { RouteModule } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
@@ -18,13 +18,13 @@ import {
   redirectResponse,
   RedirectResponse,
 } from '../../middleware/request-handler/redirect-handler';
-import { normalizePath } from '../../utils/fs';
+import { getExtension, normalizePath } from '../../utils/fs';
 import type { RenderToStringResult } from '@builder.io/qwik/server';
 import { getRouteParams } from '../../runtime/src/library/routing';
 import { fromNodeHttp } from '../../middleware/node/http';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
-  const matchRouteRequest = async (pathname: string) => {
+  const matchRouteRequest = (pathname: string) => {
     for (const route of ctx.routes) {
       const match = route.pattern.exec(pathname);
       if (match) {
@@ -55,7 +55,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
     try {
       const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
 
-      if (isViteInternalRequest(url.pathname)) {
+      if (skipRequest(url.pathname)) {
         next();
         return;
       }
@@ -73,7 +73,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         }
       }
 
-      const routeResult = await matchRouteRequest(requestCtx.url.pathname);
+      const routeResult = matchRouteRequest(requestCtx.url.pathname);
       if (routeResult) {
         const { route, params } = routeResult;
 
@@ -209,19 +209,20 @@ export function staticDistMiddleware({ config }: ViteDevServer) {
     '.gif': 'image/gif',
     '.jpeg': 'image/jpeg',
     '.jpg': 'image/jpeg',
+    '.ico': 'image/x-icon',
   };
 
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
 
-    if (isViteInternalRequest(url.pathname)) {
+    if (skipRequest(url.pathname)) {
       next();
       return;
     }
 
     const relPath = url.pathname.slice(1);
 
-    const ext = extname(relPath).toLowerCase();
+    const ext = getExtension(relPath);
     const contentType = mimes[ext];
 
     if (!contentType) {
@@ -268,8 +269,31 @@ const VALID_ID_PREFIX = `/@id/`;
 const VITE_PUBLIC_PATH = `/@vite/`;
 const internalPrefixes = [FS_PREFIX, VALID_ID_PREFIX, VITE_PUBLIC_PATH];
 const InternalPrefixRE = new RegExp(`^(?:${internalPrefixes.join('|')})`);
-const isViteInternalRequest = (url: string): boolean => {
-  return url.includes('__open-in-editor') || InternalPrefixRE.test(url);
+
+function skipRequest(pathname: string) {
+  if (pathname.includes('__open-in-editor') || InternalPrefixRE.test(pathname)) {
+    return true;
+  }
+  if (pathname.includes('favicon')) {
+    return true;
+  }
+  if (pathname.startsWith('/src/')) {
+    const ext = getExtension(pathname);
+    if (SKIP_SRC_EXTS[ext]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+const SKIP_SRC_EXTS: { [ext: string]: boolean } = {
+  '.tsx': true,
+  '.ts': true,
+  '.jsx': true,
+  '.js': true,
+  '.md': true,
+  '.mdx': true,
+  '.css': true,
 };
 
 const DEV_SERVICE_WORKER = `/* Qwik City Dev Service Worker */

@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
+import type { IncomingMessage } from 'http';
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem, Path, QwikManifest } from '../types';
 import { ERROR_HOST } from './errored-host';
@@ -37,12 +38,7 @@ export async function configureDevServer(
       const domain = 'http://' + (req.headers.host ?? 'localhost');
       const url = new URL(req.originalUrl!, domain);
 
-      if (skipSsrRender(url)) {
-        next();
-        return;
-      }
-
-      if (req.headers.accept && req.headers.accept.includes('text/html')) {
+      if (shouldSsrRender(req, url)) {
         const envData: Record<string, any> = {
           ...(res as QwikViteDevResponse)._qwikEnvData,
           url: url.href,
@@ -218,22 +214,32 @@ const VITE_PUBLIC_PATH = `/@vite/`;
 const internalPrefixes = [FS_PREFIX, VALID_ID_PREFIX, VITE_PUBLIC_PATH];
 const InternalPrefixRE = new RegExp(`^(?:${internalPrefixes.join('|')})`);
 
-const skipSsrRender = (url: URL) => {
+const shouldSsrRender = (req: IncomingMessage, url: URL) => {
   const pathname = url.pathname;
-  const hasExtension = /\.[\w?=&]+$/.test(pathname) && !pathname.endsWith('.html');
-  const isHtmlProxy = url.searchParams.has('html-proxy');
-  const isVitePing = pathname.includes('__vite_ping');
-  const skipSSR = url.searchParams.get('ssr') === 'false';
-  const openInEditor = pathname.includes('__open-in-editor');
-
-  return (
-    openInEditor ||
-    hasExtension ||
-    isHtmlProxy ||
-    isVitePing ||
-    skipSSR ||
-    InternalPrefixRE.test(url.pathname)
-  );
+  if (/\.[\w?=&]+$/.test(pathname) && !pathname.endsWith('.html')) {
+    // has extension
+    return false;
+  }
+  if (pathname.includes('__vite_ping')) {
+    return false;
+  }
+  if (pathname.includes('__open-in-editor')) {
+    return false;
+  }
+  if (url.searchParams.has('html-proxy')) {
+    return false;
+  }
+  if (url.searchParams.get('ssr') === 'false') {
+    return false;
+  }
+  if (InternalPrefixRE.test(url.pathname)) {
+    return false;
+  }
+  const acceptHeader = req.headers.accept || '';
+  if (!acceptHeader.includes('text/html')) {
+    return false;
+  }
+  return true;
 };
 
 const DEV_ERROR_HANDLING = `

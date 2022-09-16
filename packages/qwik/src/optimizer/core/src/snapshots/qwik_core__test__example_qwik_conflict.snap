@@ -53,6 +53,8 @@ export const Root = /*#__PURE__*/ componentQrl(qrl(()=>import("./root_component_
     tagName: "my-foo"
 });
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AACA,SAAS,GAAG,IAAH,IAAG,QAAQ,uBAAuB,CAAC;AAE5C,OAAO,MAAM,EAAE,GAAG,EAAE,CAAC;AACrB,OAAO,MAAM,WAAW,GAAG,EAAE,CAAC;AAE9B,MAAM,aAAY,GAAG,IAAM,OAAO,CAAC,GAAG,CAAC,UAAU,EAAE,IAAG,EAAE,CAAC,AAAC;AAE1D,aAAY,EAAE,CAAC;AACf,OAAO,MAAM,GAAG,iBAAG,0FAQhB;IACC,OAAO,EAAE,QAAQ;CACpB,CAAC,CAAC;AAEH,OAAO,MAAM,IAAI,iBAAG,4FAOjB;IACC,OAAO,EAAE,QAAQ;CACpB,CAAC,CAAC\"}")
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
@@ -71,6 +73,8 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
     });
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAU8B,IAAM;IAChC,UAAU,CAAC,OAAO,CAAC,CAAC;IACpB,MAAM,IAAI,GAAG,EAAE,GAAG,WAAW,AAAC;IAC9B,OAAO,CAAC,GAAG,CAAC,IAAI,CAAC,CAAC;IAClB,MAAM,IAAG,GAAG,EAAE,AAAC;IACf,qBACI,KAAC,KAAG;QAAC,QAAQ;;;MAA0B,CAC1C;CACJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -95,6 +99,8 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
 export const Root_component_useStyles_u5DkUxGrGnU = 'thing';
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAuBgB,OAAO\"}")
 /*
 {
   "origin": "test.tsx",
@@ -123,6 +129,8 @@ export const Root_component_royhjYaCbYE = ()=>{
     return qrl(()=>import("./root_component_1_cbpqnyduhi4"), "Root_component_1_cBpQNYDUHI4");
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAsB+B,IAAM;IACjC,SAAS,mGAAY,CAAC;IACtB,yFAIG;CACN\"}")
 /*
 {
   "origin": "test.tsx",
@@ -150,6 +158,8 @@ export const Root_component_1_cBpQNYDUHI4 = ()=>{
 };
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAwBa,IAAM;IACX,qBACI,KAAC,KAAG,KAAE,CACT;CACJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -177,6 +187,8 @@ export const Foo_component_div_onClick_M48DYiidSJw = ()=>{
     return console.log(qrl);
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAgBuB;;WAAK,OAAO,CAAC,GAAG,CAAC,GAAG,CAAC;CAAA\"}")
 /*
 {
   "origin": "test.tsx",

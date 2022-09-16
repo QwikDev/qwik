@@ -5,7 +5,7 @@ import { inlinedQrl, runtimeQrl } from '../../import/qrl';
 import { pauseContainer } from '../../object/store';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
-import { useClientEffect$, useServerMount$, useWatch$ } from '../../use/use-watch';
+import { useClientEffect$, useWatch$ } from '../../use/use-watch';
 import { useCleanup$, useOn } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
@@ -468,6 +468,8 @@ renderSuite('should render into host component', async () => {
   await render(
     fixture.host,
     <divfixture
+      on:click="./lazy.js"
+      onscrolling="./test.js"
       hostAttrs={JSON.stringify({
         id: 'TEST',
         class: { thing: true },
@@ -480,6 +482,8 @@ renderSuite('should render into host component', async () => {
     fixture,
     `
       <divfixture
+        on:click="./lazy.js"
+        onscrolling="./test.js"
         hostattrs='{"id":"TEST","class":{"thing":true},"name":"NAME"}'
         content="CONTENT"
       >
@@ -501,11 +505,11 @@ renderSuite('should render a component with hooks', async () => {
     fixture,
     `
     <div q:id="1" on:qvisible="/runtimeQRL#_[0]">
-      <div q:id="2" id="effect"></div>
+      <div q:id="2" id="effect">true</div>
       <div q:id="3" id="effect-destroy"></div>
       <div id="watch">true</div>
       <div q:id="4" id="watch-destroy"></div>
-      <div id="server-mount">true</div>
+      <div id="server-mount">false</div>
       <div q:id="5" id="cleanup"></div>
       <div id="reference">true</div>
     </div>`
@@ -516,11 +520,11 @@ renderSuite('should render a component with hooks', async () => {
     fixture,
     `
     <div q:id="1" on:qvisible="/runtimeQRL#_[0]">
-      <div q:id="2" id="effect"></div>
-      <div q:id="3" id="effect-destroy"></div>
+      <div q:id="2" id="effect">true</div>
+      <div q:id="3" id="effect-destroy">true</div>
       <div id="watch">true</div>
       <div q:id="4" id="watch-destroy">true</div>
-      <div id="server-mount">true</div>
+      <div id="server-mount">false</div>
       <div q:id="5" id="cleanup">true</div>
       <div id="reference">true</div>
     </div>`
@@ -758,7 +762,7 @@ export const Counter = component$((props: { step?: number }) => {
         -
       </button>
       <span>{state.count}</span>
-      <button class="increment" onClick$={runtimeQrl(Counter_add, [state, { value: step }])}>
+      <button className="increment" onClick$={runtimeQrl(Counter_add, [state, { value: step }])}>
         +
       </button>
     </>
@@ -880,10 +884,6 @@ export const Hooks = component$(() => {
     return () => {
       effectDestroyDiv.current!.textContent = 'true';
     };
-  });
-
-  useServerMount$(() => {
-    state.server = 'true';
   });
 
   return (

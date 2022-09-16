@@ -59,13 +59,13 @@ delay$: (fn: () => T, delayInMs: number) => Promise<T>;
 
 The above allows us to use `delay$` in an inlined fashion, but the Optimizer converts the `delay$` to `delayQrl` form.
 
-NOTE the two methods must have the same prefix. So a general form is:
+> **NOTE** the two methods must have the same prefix. So a general form is:
 
 ```typescript
 export const SOME_NAME_Qrl = ...;
 export const SOME_NAME_$ = implicit$FirstArg(SOME_NAME_Qrl);
 ```
 
-## Example
+### Example
 
 In our example we are executing `store.count++` and `store.delay++` together. Wrap the `store.delay` in `delay$()` call so that it updates with a one second delay.

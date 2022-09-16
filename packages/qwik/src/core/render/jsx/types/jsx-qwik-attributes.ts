@@ -127,7 +127,7 @@ export type PreventDefault = {
 };
 
 export interface QwikProps extends PreventDefault {
-  class?: string | { [className: string]: boolean };
+  class?: string | { [className: string]: boolean } | string[];
   dangerouslySetInnerHTML?: string;
   ref?: Ref<Element>;
 
@@ -203,7 +203,6 @@ export type ComponentKnownEvents = {
 export interface ComponentBaseProps {
   key?: string | number;
   'q:slot'?: string;
-  children?: JSXChildren;
 }
 
 export interface QwikAttributes extends QwikProps, QwikEvents {}

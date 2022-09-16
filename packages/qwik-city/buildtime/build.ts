@@ -21,15 +21,25 @@ export async function build(ctx: BuildContext) {
 }
 
 export async function updateBuildContext(ctx: BuildContext) {
-  const sourceFiles = await walkRoutes(ctx.opts.routesDir);
-
-  const resolved = resolveSourceFiles(ctx.opts, sourceFiles);
-  ctx.layouts = resolved.layouts;
-  ctx.routes = resolved.routes;
-  ctx.errors = resolved.errors;
-  ctx.entries = resolved.entries;
-  ctx.serviceWorkers = resolved.serviceWorkers;
-  ctx.menus = resolved.menus;
+  if (!ctx.activeBuild) {
+    ctx.activeBuild = new Promise<void>((resolve, reject) => {
+      walkRoutes(ctx.opts.routesDir)
+        .then((sourceFiles) => {
+          const resolved = resolveSourceFiles(ctx.opts, sourceFiles);
+          ctx.layouts = resolved.layouts;
+          ctx.routes = resolved.routes;
+          ctx.errors = resolved.errors;
+          ctx.entries = resolved.entries;
+          ctx.serviceWorkers = resolved.serviceWorkers;
+          ctx.menus = resolved.menus;
+          resolve();
+        }, reject)
+        .finally(() => {
+          ctx.activeBuild = null;
+        });
+    });
+  }
+  return ctx.activeBuild;
 }
 
 function validateBuild(ctx: BuildContext) {

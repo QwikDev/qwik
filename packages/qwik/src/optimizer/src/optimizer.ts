@@ -91,6 +91,7 @@ const convertOptions = (opts: any) => {
     transpile: false,
     explicitExtensions: false,
     dev: true,
+    manualChunks: undefined,
     scope: undefined,
     stripExports: undefined,
   };
@@ -100,5 +101,6 @@ const convertOptions = (opts: any) => {
     }
   });
   output.entryStrategy = opts.entryStrategy?.type ?? 'smart';
+  output.manualChunks = opts.entryStrategy?.manual ?? undefined;
   return output;
 };

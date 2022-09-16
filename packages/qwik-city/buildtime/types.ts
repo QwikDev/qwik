@@ -13,6 +13,7 @@ export interface BuildContext {
   isDevServer: boolean;
   isDevServerClientOnly: boolean;
   isDirty: boolean;
+  activeBuild: Promise<void> | null;
 }
 
 export type Yaml = string | number | boolean | null | { [attrName: string]: Yaml } | Yaml[];

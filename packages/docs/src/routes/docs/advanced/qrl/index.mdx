@@ -35,7 +35,7 @@ QRLs can also restore lexically scoped variables. In that case, the variables ar
 
 The array is used by `useLexicalScope()` to restore the variables.
 
-## Example
+### Example
 
 Let's look at an example of how all of the pieces of the QRL tie together.
 
@@ -93,9 +93,7 @@ Assume: `http://localhost/index.html`
 ```html
 <html>
   <body q:base="/build/">
-    <div q:id="123" q:obj="456" q:host>
-      <button q:obj="456, 123" on:click="./chunk-c.js#Counter_onClick[0,1]">0</button>
-    </div>
+    <button q:obj="456, 123" on:click="./chunk-c.js#Counter_onClick[0,1]">0</button>
     <script>
       /*Qwikloader script*/
     </script>
@@ -131,7 +129,7 @@ The main thing to note is the `on:click` attribute. This attribute gets read by 
    - `<button q:obj="456, 123"` gets `store` as well as reference to the `<div q:id="457">`
 9. Once the `qwik/json` is deserialized, `useLexicalScope` can use the QRL's `[0,1]` array to look into `q:obj="456, 123"` to retrieve object with id `456` and `123`, which are props of `<div q:id="123" q:obj="456" q:host>` as well as `store` from `Counter_onMount` function.
 
-NOTE: for performance reasons the `q:obj` and `<script type="qwik/json">` are only updated when the application is deserialized into HTML. When the application is running, these attributes may have stale values.
+> **NOTE:** For performance reasons the `q:obj` and `<script type="qwik/json">` are only updated when the application is deserialized into HTML. When the application is running, these attributes may have stale values.
 
 # Why not just dynamic `import()`?
 
@@ -143,6 +141,8 @@ There are several reasons:
 2. Dynamic imports deal with chunks, but they have no mechanism to refer to a specific symbol in the chunk.
 3. Dynamic imports have relative paths to the file which imported it. This is a problem because when the relative path is placed in HTML, it loses the context which defines relative to what. When the framework reads the path from HTML and tries to import it as `import(element.getAttribute('on:click'))`, the framework will become the context for relative path resolution. This is wrong as the original context before serialization to the HTML was different.
 4. Finally, QRLs encode information about the lexically scoped variables captured in the closure and need to be restored.
+5. Requires that the developer writes `import('./file-a.js')`, which means the developer is in charge of deciding where the lazy-loaded boundaries are. This limits our ability of the tooling to move code around in an automated way.
+
 
 Because of the above differences, Qwik introduces QRLs as a mechanism for lazy load closures into a Qwik application.
 

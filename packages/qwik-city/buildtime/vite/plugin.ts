@@ -18,13 +18,14 @@ import { dev404Middleware, ssrDevMiddleware, staticDistMiddleware } from './dev-
 import { SERVER_ENDPOINT_FNS, stripServerEndpoints } from '../../utils/strip-server-endpoints';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
-import { patchGlobalFetch } from '../../middleware/express/node-fetch';
+import { patchGlobalFetch } from '../../middleware/node/node-fetch';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import { readFile, writeFile } from 'fs/promises';
 import {
   generateServiceWorkerRegister,
   prependManifestToServiceWorker,
 } from '../runtime-generation/generate-service-worker';
+import type { RollupError } from 'rollup';
 
 /**
  * @alpha
@@ -142,8 +143,23 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions) {
 
         const ext = getExtension(fileName);
         if (isMarkdownExt(ext) && mdxTransform) {
-          const mdxResult = await mdxTransform(code, id);
-          return mdxResult;
+          try {
+            const mdxResult = await mdxTransform(code, id);
+            return mdxResult;
+          } catch (e: any) {
+            const column = e.position.start.column;
+            const line = e.position.start.line;
+            const err: RollupError = Object.assign(new Error(e.reason), {
+              id,
+              plugin: 'qwik-city-mdx',
+              loc: {
+                column: column,
+                line: line,
+              },
+              stack: '',
+            });
+            this.error(err);
+          }
         }
 
         if (ctx.target === 'client') {

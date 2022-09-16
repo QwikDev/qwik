@@ -24,7 +24,7 @@ test.describe('e2e', () => {
       const SNAPSHOT =
         '<p>1</p><p>"&lt;/script&gt;"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}}</p><p>undefined</p><p>null</p><p>[1,2,"hola",null,{}]</p><p>true</p><p>false</p><p>()=&gt;console.error()</p><p>mutable message</p><p>from a promise</p>';
       const RESULT =
-        '[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}},"undefined","null",[1,2,"hola",null,{}],true,false,null,"mutable message","from a promise","http://qwik.builder.com/docs?query=true","2022-07-26T17:40:30.255Z","hola()\\\\/ gi",12,"failed message",["\\b: backspace","\\f: form feed","\\n: line feed","\\r: carriage return","\\t: horizontal tab","\\u000b: vertical tab","\\u0000: null character","\': single quote","\\\\: backslash"]]';
+        '[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}},"undefined","null",[1,2,"hola",null,{}],true,false,null,"mutable message",null,"from a promise","http://qwik.builder.com/docs?query=true","2022-07-26T17:40:30.255Z","hola()\\\\/ gi",12,"failed message",["\\b: backspace","\\f: form feed","\\n: line feed","\\r: carriage return","\\t: horizontal tab","\\u000b: vertical tab","\\u0000: null character","\': single quote","\\\\: backslash"]]';
 
       function normalizeSnapshot(str: string) {
         return str.replace(' =&gt; ', '=&gt;');
@@ -98,6 +98,18 @@ test.describe('e2e', () => {
       expect(await contentTransparent.textContent()).toEqual('countTransparent: 2');
       expect(await countWrapped.textContent()).toEqual('countWrapped: 2');
       expect(await btnWrapped.textContent()).toEqual('Wrapped 2');
+    });
+
+    test('should prevent defaults and bubbling', async ({ page }) => {
+      const prevented1 = await page.locator('#prevent-default-1');
+      const prevented2 = await page.locator('#prevent-default-2');
+      const countWrapped = await page.locator('#count-anchor');
+
+      await prevented1.click();
+      await expect(countWrapped).toHaveText('countAnchor: 0');
+
+      await prevented2.click();
+      await expect(countWrapped).toHaveText('countAnchor: 1');
     });
   });
 
@@ -709,6 +721,8 @@ test.describe('e2e', () => {
       const child1 = await page.locator('text=Child 2');
 
       const addChild = await page.locator('button');
+
+      await expect(parent).toHaveAttribute('class', '⭐️yalzmy-0 parent count-10');
       await expect(parent).toHaveCSS('font-size', '200px');
       await expect(child1).toHaveCSS('font-size', '20px');
 
@@ -718,6 +732,7 @@ test.describe('e2e', () => {
       await page.waitForTimeout(100);
 
       const child10 = await page.locator('text=Child 10');
+      await expect(parent).toHaveAttribute('class', '⭐️yalzmy-0 parent count-11');
       await expect(parent).toHaveCSS('font-size', '200px');
       await expect(child1).toHaveCSS('font-size', '20px');
       await expect(child10).toHaveCSS('font-size', '20px');

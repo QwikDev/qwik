@@ -54,7 +54,7 @@ pub struct SingleStrategy {
 }
 
 impl SingleStrategy {
-    pub fn new(map: Option<HashMap<String, JsWord>>) -> Self {
+    pub const fn new(map: Option<HashMap<String, JsWord>>) -> Self {
         Self { map }
     }
 }
@@ -98,7 +98,7 @@ pub struct PerComponentStrategy {
 }
 
 impl PerComponentStrategy {
-    pub fn new(map: Option<HashMap<String, JsWord>>) -> Self {
+    pub const fn new(map: Option<HashMap<String, JsWord>>) -> Self {
         Self { map }
     }
 }
@@ -130,7 +130,7 @@ pub struct SmartStrategy {
 }
 
 impl SmartStrategy {
-    pub fn new(map: Option<HashMap<String, JsWord>>) -> Self {
+    pub const fn new(map: Option<HashMap<String, JsWord>>) -> Self {
         Self { map }
     }
 }

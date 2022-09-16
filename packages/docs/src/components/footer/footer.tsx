@@ -17,7 +17,7 @@ export const Footer = component$(() => {
         </a>
         <ul class="footer-social">
           <li>
-            <a href="https://qwik.builder.io/chat" target="_blank" title="Discrod">
+            <a href="https://qwik.builder.io/chat" target="_blank" title="Discord">
               <DiscordLogo width={22} height={22} />
             </a>
           </li>

@@ -2,7 +2,9 @@ footer {
   padding: 20px 0;
 }
 .made-with-love {
-  font-size: 14px;
+  font-size: 12px;
+  margin-bottom: 9px;
+  color: #333;
 }
 
 .footer-top {

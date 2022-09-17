@@ -7,6 +7,7 @@ import { getPackageManager } from './utils';
 export function logCreateAppResult(result: CreateAppResult, ranInstall: boolean) {
   console.log(``);
   console.clear();
+  console.log(``);
 
   const isCwdDir = process.cwd() === result.outDir;
   const relativeProjectPath = relative(process.cwd(), result.outDir);

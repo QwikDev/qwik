@@ -2,6 +2,7 @@
 import type { AppCommand } from '../utils/app-command';
 import color from 'kleur';
 import { loadIntegrations } from '../utils/integrations';
+import { pmRunCmd } from '../utils/utils';
 import { runAddInteractive } from './run-add-interactive';
 import { updateApp } from './update-app';
 
@@ -35,8 +36,10 @@ export async function printAddHelp() {
   const servers = integrations.filter((i) => i.type === 'server');
   const staticGenerators = integrations.filter((i) => i.type === 'static-generator');
   const features = integrations.filter((i) => i.type === 'feature');
+  const pmRun = pmRunCmd();
 
-  console.log(`${color.magenta(`qwik add`)} [integration]`);
+  console.log(``);
+  console.log(`${color.magenta(`${pmRun} qwik add`)} [integration]`);
   console.log(``);
 
   console.log(`  ${color.cyan('Servers')}`);

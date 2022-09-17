@@ -9,7 +9,7 @@ export const Footer = component$(() => {
   useStyles$(styles);
 
   return (
-    <footer class="container mx-auto">
+    <footer class="container mx-auto px-4 md:px-0 mt-4">
       <div class="made-with-love">Made with ❤️ by</div>
       <div class="footer-top">
         <a href="https://www.builder.io" target="_blank">
@@ -17,27 +17,18 @@ export const Footer = component$(() => {
         </a>
         <ul class="footer-social">
           <li>
-            <a href="https://qwik.builder.io/chat" target="_blank" title="Discrod">
-              <span class="md:hidden">Discord</span>
-              <span class="hidden md:block">
-                <DiscordLogo width={22} height={22} />
-              </span>
+            <a href="https://qwik.builder.io/chat" target="_blank" title="Discord">
+              <DiscordLogo width={22} height={22} />
             </a>
           </li>
           <li>
             <a href="https://github.com/BuilderIO/qwik" target="_blank" title="Github">
-              <span class="md:hidden">Github</span>
-              <span class="hidden md:block">
-                <GithubLogo width={22} height={22} />
-              </span>
+              <GithubLogo width={22} height={22} />
             </a>
           </li>
           <li>
             <a href="https://twitter.com/qwikdev" target="_blank" title="Twitter">
-              <span class="md:hidden">@qwikdev</span>
-              <span class="hidden md:block">
-                <TwitterLogo width={22} height={22} />
-              </span>
+              <TwitterLogo width={22} height={22} />
             </a>
           </li>
         </ul>

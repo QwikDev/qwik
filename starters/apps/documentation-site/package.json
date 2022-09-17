@@ -1,6 +1,6 @@
 {
   "name": "qwik-docs-starter",
-  "description": "Documentation site starter.",
+  "description": "Documentation site starter",
   "__qwik__": {
     "priority": 0,
     "qwikCity": true

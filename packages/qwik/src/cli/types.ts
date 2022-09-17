@@ -33,7 +33,6 @@ export interface IntegrationData {
   id: string;
   type: IntegrationType;
   name: string;
-  description: string;
   pkgJson: IntegrationPackageJson;
   dir: string;
   priority: number;
@@ -53,7 +52,7 @@ export type FeatureCmd = (app: AppCommand) => Promise<void>;
 
 export interface IntegrationPackageJson {
   name: string;
-  description: string;
+  description?: string;
   version?: string;
   scripts?: { [k: string]: string };
   dependencies?: { [k: string]: string };

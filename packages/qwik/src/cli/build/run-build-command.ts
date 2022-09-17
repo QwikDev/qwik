@@ -2,6 +2,7 @@
 import color from 'kleur';
 import type { AppCommand } from '../utils/app-command';
 import { execa, ExecaReturnValue } from 'execa';
+import { pmRunCmd } from '../utils/utils';
 
 export async function runBuildCommand(app: AppCommand) {
   const pkgJsonScripts = app.packageJson.scripts;
@@ -155,10 +156,12 @@ export async function runBuildCommand(app: AppCommand) {
       }
 
       if (!isPreviewBuild && !buildServerScript && !buildStaticScript) {
+        const pmRun = pmRunCmd()
         console.log(``);
-        console.log(`${color.magenta('●')} Missing an integration`);
-        console.log(`${color.magenta('●')} Use npm run qwik add to add an integration`);
-        console.log(`${color.magenta('●')} Use npm run preview to preview build`);
+        console.log(`${color.bgMagenta(' Missing an integration ')}`);
+        console.log(``);
+        console.log(`${color.magenta('・')} Use ${color.magenta(pmRun + ' qwik add')} to add an integration`);
+        console.log(`${color.magenta('・')} Use ${color.magenta(pmRun + ' preview')} to preview the build`);
       }
 
       if (isPreviewBuild && buildStaticScript && runSsgScript) {

@@ -78,8 +78,7 @@ async function createFromStarter(
   starterApp: IntegrationData
 ) {
   const appPkgJson: IntegrationPackageJson = {
-    name: starterApp.name || 'qwik-starter',
-    description: starterApp.description || '',
+    name: `my-${starterApp.pkgJson.name}`,
     private: true,
   };
   await writePackageJson(result.outDir, cleanPackageJson(appPkgJson));

@@ -13,6 +13,7 @@ import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 export async function runCreateInteractiveCli() {
   console.log(``);
   console.clear();
+  console.log(``);
 
   console.log(
     `🐰 ${color.cyan(`Let's create a`)} ${color.bold(color.magenta(`Qwik`))} ${color.cyan(
@@ -63,7 +64,7 @@ export async function runCreateInteractiveCli() {
           { title: 'Do not overwrite this directory and exit', value: 'exit' },
           { title: 'Overwrite and replace this directory', value: 'replace' },
         ],
-        hint: ' ',
+        hint: '(use ↓↑ arrows, hit enter)',
       },
       {
         onCancel: async () => {
@@ -91,7 +92,7 @@ export async function runCreateInteractiveCli() {
       choices: apps.map((s) => {
         return { title: s.name, value: s.id, description: s.description };
       }),
-      hint: ' ',
+      hint: '(use ↓↑ arrows, hit enter)',
     },
     {
       onCancel: async () => {

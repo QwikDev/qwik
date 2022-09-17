@@ -243,7 +243,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/qwik-city@^0.0.110, @builder.io/qwik-city@workspace:packages/qwik-city":
+"@builder.io/qwik-city@^0.0.111, @builder.io/qwik-city@workspace:packages/qwik-city":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik-city@workspace:packages/qwik-city"
   dependencies:
@@ -310,7 +310,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/qwik@^0.0.109, @builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
+"@builder.io/qwik@npm:^0.0.109":
+  version: 0.0.109
+  resolution: "@builder.io/qwik@npm:0.0.109"
+  bin:
+    qwik: qwik.cjs
+  checksum: 8749c192b340122b4ec4e18d09e0af4121afa7346acd1a02c4e1db514cd6dc8b7f11eba91a21e249b981ef8b40bfd5c9ea17cb07f24a58523c6ccd395d41c7f6
+  languageName: node
+  linkType: hard
+
+"@builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   bin:
@@ -7660,7 +7669,7 @@ __metadata:
     "@algolia/client-search": ^4.14.2
     "@builder.io/partytown": ^0.6.4
     "@builder.io/qwik": ^0.0.109
-    "@builder.io/qwik-city": ^0.0.110
+    "@builder.io/qwik-city": ^0.0.111
     "@builder.io/sdk-qwik": ^0.0.23
     "@cloudflare/kv-asset-handler": 0.2.0
     "@docsearch/css": ^3.2.1

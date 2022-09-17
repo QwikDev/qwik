@@ -1,9 +1,0 @@
-{
-  "name": "qwik-blank-starter",
-  "description": "Blank Qwik starter app.",
-  "type": "module",
-  "__qwik__": {
-    "priority": 0,
-    "qwikCity": true
-  }
-}

@@ -2,6 +2,7 @@
 import color from 'kleur';
 import type { AppCommand } from '../utils/app-command';
 import { execa, ExecaReturnValue } from 'execa';
+import { pmRunCmd } from '../utils/utils';
 
 export async function runBuildCommand(app: AppCommand) {
   const pkgJsonScripts = app.packageJson.scripts;
@@ -18,15 +19,22 @@ export async function runBuildCommand(app: AppCommand) {
   const runSsgScript = pkgJsonScripts['ssg'];
   const typecheckScript = !isPreviewBuild ? pkgJsonScripts.typecheck : undefined;
 
-  const scripts = [typecheckScript, buildClientScript, buildPreviewScript, buildServerScript, buildStaticScript]
-    .filter(s => typeof s === 'string' && s.trim().length > 0)!;
+  const scripts = [
+    typecheckScript,
+    buildClientScript,
+    buildPreviewScript,
+    buildServerScript,
+    buildStaticScript,
+  ].filter((s) => typeof s === 'string' && s.trim().length > 0)!;
 
   if (!buildClientScript) {
     throw new Error(`"build.client" script not found in package.json`);
   }
 
   if (isPreviewBuild && !buildPreviewScript && !buildStaticScript) {
-    throw new Error(`Neither "build.preview" or "build.static" script found in package.json for preview`);
+    throw new Error(
+      `Neither "build.preview" or "build.static" script found in package.json for preview`
+    );
   }
 
   console.log(``);
@@ -34,7 +42,7 @@ export async function runBuildCommand(app: AppCommand) {
     console.log(color.dim(script!));
   }
   console.log(``);
-  
+
   let typecheck: Promise<ExecaReturnValue<string>> | null = null;
 
   if (typecheckScript && typecheckScript.startsWith('tsc')) {
@@ -44,7 +52,7 @@ export async function runBuildCommand(app: AppCommand) {
       tscScript.flags.push('--pretty');
     }
     typecheck = execa(tscScript.cmd, tscScript.flags, {
-      cwd: app.rootDir
+      cwd: app.rootDir,
     }).catch((e) => {
       let out = e.stdout;
       if (out.startsWith('tsc')) {
@@ -54,11 +62,11 @@ export async function runBuildCommand(app: AppCommand) {
       process.exit(1);
     });
   }
- 
+
   const clientScript = parseScript(buildClientScript);
   await execa(clientScript.cmd, clientScript.flags, {
     stdio: 'inherit',
-    cwd: app.rootDir
+    cwd: app.rootDir,
   }).catch(() => {
     process.exit(1);
   });
@@ -73,8 +81,8 @@ export async function runBuildCommand(app: AppCommand) {
     const previewBuild = execa(previewScript.cmd, previewScript.flags, {
       cwd: app.rootDir,
       env: {
-        FORCE_COLOR: 'true'
-      }
+        FORCE_COLOR: 'true',
+      },
     }).catch((e) => {
       console.log(``);
       if (e.stderr) {
@@ -85,7 +93,7 @@ export async function runBuildCommand(app: AppCommand) {
       console.log(``);
       process.exit(1);
     });
-    step2.push(previewBuild);  
+    step2.push(previewBuild);
   }
 
   if (buildServerScript) {
@@ -93,8 +101,8 @@ export async function runBuildCommand(app: AppCommand) {
     const serverBuild = execa(serverScript.cmd, serverScript.flags, {
       cwd: app.rootDir,
       env: {
-        FORCE_COLOR: 'true'
-      }
+        FORCE_COLOR: 'true',
+      },
     }).catch((e) => {
       console.log(``);
       if (e.stderr) {
@@ -105,7 +113,7 @@ export async function runBuildCommand(app: AppCommand) {
       console.log(``);
       process.exit(1);
     });
-    step2.push(serverBuild);  
+    step2.push(serverBuild);
   }
 
   if (buildStaticScript) {
@@ -113,8 +121,8 @@ export async function runBuildCommand(app: AppCommand) {
     const staticBuild = execa(staticScript.cmd, staticScript.flags, {
       cwd: app.rootDir,
       env: {
-        FORCE_COLOR: 'true'
-      }
+        FORCE_COLOR: 'true',
+      },
     }).catch((e) => {
       console.log(``);
       if (e.stderr) {
@@ -125,48 +133,56 @@ export async function runBuildCommand(app: AppCommand) {
       console.log(``);
       process.exit(1);
     });
-    step2.push(staticBuild);  
+    step2.push(staticBuild);
   }
 
   if (typecheck) {
-    step2.push(typecheck);  
+    step2.push(typecheck);
   }
 
   if (step2.length > 0) {
-    await Promise.all(step2)
-      .then(() => {
-        if (buildPreviewScript) {
-          console.log(`${color.cyan('✓')} Built preview (ssr) modules`);
-        }
-        if (buildServerScript) {
-          console.log(`${color.cyan('✓')} Built server (ssr) modules`);
-        }
-        if (buildStaticScript) {
-          console.log(`${color.cyan('✓')} Built static (ssg) modules`);
-        }
-        if (typecheck) {
-          console.log(`${color.cyan('✓')} Type checked`);
-        }
+    await Promise.all(step2).then(() => {
+      if (buildPreviewScript) {
+        console.log(`${color.cyan('✓')} Built preview (ssr) modules`);
+      }
+      if (buildServerScript) {
+        console.log(`${color.cyan('✓')} Built server (ssr) modules`);
+      }
+      if (buildStaticScript) {
+        console.log(`${color.cyan('✓')} Built static (ssg) modules`);
+      }
+      if (typecheck) {
+        console.log(`${color.cyan('✓')} Type checked`);
+      }
 
-        if (isPreviewBuild && buildStaticScript && runSsgScript) {
-          const ssgScript = parseScript(buildStaticScript);
-          return execa(ssgScript.cmd, ssgScript.flags, {
-            cwd: app.rootDir,
-            env: {
-              FORCE_COLOR: 'true'
-            }
-          }).catch((e) => {
-            console.log(``);
-            if (e.stderr) {
-              console.log(e.stderr);
-            } else {
-              console.log(e.stdout);
-            }
-            console.log(``);
-            process.exit(1);
-          });
-        }
-      });
+      if (!isPreviewBuild && !buildServerScript && !buildStaticScript) {
+        const pmRun = pmRunCmd()
+        console.log(``);
+        console.log(`${color.bgMagenta(' Missing an integration ')}`);
+        console.log(``);
+        console.log(`${color.magenta('・')} Use ${color.magenta(pmRun + ' qwik add')} to add an integration`);
+        console.log(`${color.magenta('・')} Use ${color.magenta(pmRun + ' preview')} to preview the build`);
+      }
+
+      if (isPreviewBuild && buildStaticScript && runSsgScript) {
+        const ssgScript = parseScript(buildStaticScript);
+        return execa(ssgScript.cmd, ssgScript.flags, {
+          cwd: app.rootDir,
+          env: {
+            FORCE_COLOR: 'true',
+          },
+        }).catch((e) => {
+          console.log(``);
+          if (e.stderr) {
+            console.log(e.stderr);
+          } else {
+            console.log(e.stdout);
+          }
+          console.log(``);
+          process.exit(1);
+        });
+      }
+    });
   }
 
   console.log(``);

@@ -29,7 +29,6 @@ export async function loadIntegrations() {
                 const integration: IntegrationData = {
                   id: dirItem,
                   name: dashToTitlelCase(dirItem),
-                  description: pkgJson.description ?? '',
                   type: integrationType,
                   dir: dirPath,
                   pkgJson,

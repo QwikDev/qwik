@@ -33,7 +33,6 @@ export interface IntegrationData {
   id: string;
   type: IntegrationType;
   name: string;
-  description: string;
   pkgJson: IntegrationPackageJson;
   dir: string;
   priority: number;

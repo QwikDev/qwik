@@ -51,7 +51,7 @@ export async function runAddInteractive(app: AppCommand) {
         name: 'id',
         message: `Which server would you like to add?`,
         choices: servers.map((f) => {
-          return { title: f.name, value: f.id, description: f.description };
+          return { title: f.name, value: f.id, description: f.pkgJson.description };
         }),
         hint: ' ',
       },

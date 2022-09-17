@@ -56,6 +56,14 @@ export function getPackageManager() {
   return detectPackageManager()?.name || 'npm';
 }
 
+export function pmRunCmd() {
+  const pm = getPackageManager();
+  if (pm === 'yarn') {
+    return pm;
+  }
+  return `${pm} run`;
+}
+
 export function panic(msg: string) {
   console.error(`\n❌ ${color.red(msg)}\n`);
   process.exit(1);

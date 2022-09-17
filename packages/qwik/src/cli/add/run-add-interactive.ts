@@ -10,7 +10,9 @@ import { relative } from 'path';
 import { logSuccessFooter } from '../utils/log';
 
 export async function runAddInteractive(app: AppCommand) {
+  console.log(``);
   console.clear();
+  console.log(``);
 
   const integrations = await loadIntegrations();
   const staticGenerator = integrations.find((i) => i.type === 'static-generator')!;
@@ -28,7 +30,7 @@ export async function runAddInteractive(app: AppCommand) {
           return { title: f.name, value: f.id };
         }),
       ],
-      hint: ' ',
+      hint: '(use ↓↑ arrows, hit enter)',
     },
     {
       onCancel: () => {
@@ -122,6 +124,7 @@ export async function logUpdateAppResult(result: UpdateAppResult) {
 
   console.log(``);
   console.clear();
+  console.log(``);
 
   console.log(
     `🦄 ${color.bgCyan(` Ready? `)} Apply ${color.bold(
@@ -191,9 +194,9 @@ function logUpdateAppCommitResult(result: UpdateAppResult) {
   console.clear();
 
   console.log(
-    `🦄 ${color.magenta(` Success! `)} ${color.bold(
+    `🦄 ${color.bgMagenta(` Success! `)} Added ${color.bold(
       color.cyan(result.integration.id)
-    )} added to your app`
+    )} to your app`
   );
   console.log(``);
 

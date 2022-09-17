@@ -56,7 +56,9 @@ pre[class*='language-'] {
 }
 
 html {
-  font-family: Poppins;
+  font-family: Poppins, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI,
+    Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    Segoe UI Symbol, 'Noto Color Emoji';
   color: #0e201a;
 
   --scroll-margin-top: 120px;

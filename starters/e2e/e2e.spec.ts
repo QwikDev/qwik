@@ -718,13 +718,15 @@ test.describe('e2e', () => {
 
     test('should load', async ({ page }) => {
       const parent = await page.locator('.parent');
-      const child1 = await page.locator('text=Child 2');
+      const child2 = await page.locator('text=Child 2');
+      const inline2 = await page.locator('text=Inline 2');
 
       const addChild = await page.locator('button');
 
       await expect(parent).toHaveAttribute('class', '⭐️yalzmy-0 parent count-10');
       await expect(parent).toHaveCSS('font-size', '200px');
-      await expect(child1).toHaveCSS('font-size', '20px');
+      await expect(child2).toHaveCSS('font-size', '20px');
+      await expect(inline2).toHaveCSS('font-size', '40px');
 
       const el = await page.$$('[q\\:style]');
       await expect(el.length).toBe(3);
@@ -732,10 +734,14 @@ test.describe('e2e', () => {
       await page.waitForTimeout(100);
 
       const child10 = await page.locator('text=Child 10');
+      const inline10 = await page.locator('text=Inline 10');
+
       await expect(parent).toHaveAttribute('class', '⭐️yalzmy-0 parent count-11');
       await expect(parent).toHaveCSS('font-size', '200px');
-      await expect(child1).toHaveCSS('font-size', '20px');
+      await expect(child2).toHaveCSS('font-size', '20px');
+      await expect(inline2).toHaveCSS('font-size', '40px');
       await expect(child10).toHaveCSS('font-size', '20px');
+      await expect(inline10).toHaveCSS('font-size', '40px');
 
       const el2 = await page.$$('[q\\:style]');
       await expect(el2.length).toBe(3);

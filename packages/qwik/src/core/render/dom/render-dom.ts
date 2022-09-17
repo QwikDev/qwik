@@ -4,7 +4,7 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
 import { QScopedStyle } from '../../util/markers';
 import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises';
-import { qDev, seal } from '../../util/qdev';
+import { qDev, qSerialize, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
 import { domToVnode, visitJsxNode } from './visitor';
 import { SkipRender, Virtual } from '../jsx/utils.public';
@@ -44,7 +44,7 @@ export const renderComponent = (
           appendHeadStyle(staticCtx, style);
         }
       }
-      if (ctx.$scopeIds$) {
+      if (qSerialize && ctx.$scopeIds$) {
         const value = serializeSStyle(ctx.$scopeIds$);
         if (value) {
           hostElement.setAttribute(QScopedStyle, value);

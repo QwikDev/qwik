@@ -16,7 +16,10 @@ export const Styles = component$(() => {
           Add Child
         </button>
         {Array.from({ length: store.count }).map((_, i) => (
-          <Child index={i} />
+          <>
+            <Child index={i} />
+            <div class="parent-child">Inline {i}</div>
+          </>
         ))}
       </div>
     </div>

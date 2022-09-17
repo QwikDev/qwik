@@ -27,12 +27,6 @@
     "np": "7.6.1"
   },
   "__qwik__": {
-    "priority": -1,
-    "featureOptions": [
-      "prettier"
-    ],
-    "featureEnabled": [
-      "prettier"
-    ]
+    "priority": -1
   }
 }

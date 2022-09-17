@@ -44,19 +44,19 @@ export async function printAddHelp() {
 
   console.log(`  ${color.cyan('Servers')}`);
   for (const s of servers) {
-    console.log(`    ${s.id}  ${color.dim(s.description)}`);
+    console.log(`    ${s.id}  ${color.dim(s.pkgJson.description)}`);
   }
   console.log(``);
 
   console.log(`  ${color.cyan('Static Generator')}`);
   for (const s of staticGenerators) {
-    console.log(`    ${s.id}  ${color.dim(s.description)}`);
+    console.log(`    ${s.id}  ${color.dim(s.pkgJson.description)}`);
   }
   console.log(``);
 
   console.log(`  ${color.cyan('Features')}`);
   for (const s of features) {
-    console.log(`    ${s.id}  ${color.dim(s.description)}`);
+    console.log(`    ${s.id}  ${color.dim(s.pkgJson.description)}`);
   }
   console.log(``);
 }

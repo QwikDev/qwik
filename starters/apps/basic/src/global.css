@@ -8,11 +8,11 @@
 body {
   background-color: #fafafa;
   font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  padding: 20px;
+  padding: 20px 20px 40px 20px;
 }
 
 main {
-  max-width: 720px;
+  max-width: 760px;
   margin: 0 auto;
   background-color: white;
   border-radius: 5px;
@@ -20,8 +20,9 @@ main {
   overflow: hidden;
 }
 
-h1 {
-  margin-top: 0;
+h1,
+h2 {
+  margin: 0 0 5px 0;
 }
 
 .lightning {
@@ -35,7 +36,8 @@ section {
 
 ul {
   list-style-type: square;
-  margin: 10px 0 40px 0;
+  margin: 5px 0 30px 0;
+  padding-left: 25px;
 }
 
 li {
@@ -55,16 +57,22 @@ a:hover {
   text-decoration: none;
 }
 
-table {
-  margin: 10px 0 40px 0;
+table.commands {
+  margin: 0 0 30px 0;
 }
 
-.commands td:last-child {
-  padding-left: 20px;
+.commands td {
+  padding: 5px;
+}
+
+.commands td:first-child {
+  white-space: nowrap;
+  padding-right: 20px;
 }
 
 code {
   font-family: Menlo, Monaco, Courier New, monospace;
+  font-size: 0.9em;
   color: var(--qwik-dark-blue);
   padding: 0 4px;
 }

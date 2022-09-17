@@ -5,12 +5,7 @@ import { cleanPackageJson, panic, writePackageJson } from '../qwik/src/cli/utils
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 import { logCreateAppResult } from '../qwik/src/cli/utils/log';
 import { updateApp } from '../qwik/src/cli/add/update-app';
-import type {
-  CreateAppOptions,
-  CreateAppResult,
-  IntegrationData,
-  IntegrationPackageJson,
-} from '../qwik/src/cli/types';
+import type { CreateAppOptions, CreateAppResult, IntegrationData } from '../qwik/src/cli/types';
 
 export async function runCreateCli(starterId: string, outDir: string) {
   if (writeToCwd()) {
@@ -77,12 +72,12 @@ async function createFromStarter(
   baseApp: IntegrationData,
   starterApp: IntegrationData
 ) {
-  const appPkgJson: IntegrationPackageJson = {
-    name: starterApp.name || 'qwik-starter',
-    description: starterApp.description || '',
+  const appPkgJson = cleanPackageJson({
+    name: `my-${starterApp.pkgJson.name}`,
+    description: starterApp.pkgJson.description,
     private: true,
-  };
-  await writePackageJson(result.outDir, cleanPackageJson(appPkgJson));
+  });
+  await writePackageJson(result.outDir, appPkgJson);
 
   const readmePath = join(result.outDir, 'README.md');
   await fs.promises.writeFile(readmePath, '');

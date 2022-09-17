@@ -1,7 +1,6 @@
-import { render, RenderOptions } from '@builder.io/qwik';
-import Root from './root';
-
-/**
+/*
+ * WHAT IS THIS FILE?
+ *
  * Development entry point using only client-side modules:
  * - Do not use this mode in production!
  * - No SSR
@@ -10,6 +9,9 @@ import Root from './root';
  * - More code is transferred to the browser than in SSR mode.
  * - Optimizer/Serialization/Deserialization code is not exercised!
  */
+import { render, RenderOptions } from '@builder.io/qwik';
+import Root from './root';
+
 export default function (opts: RenderOptions) {
   return render(document, <Root />, opts);
 }

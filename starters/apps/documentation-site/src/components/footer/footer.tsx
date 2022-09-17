@@ -25,10 +25,12 @@ export default component$(() => {
         <li>
           <a href="https://qwik.builder.io/chat">Chat</a>
         </li>
-        <li>
-          <a href="/">Home</a>
-        </li>
       </ul>
+      <div>
+        <a href="https://www.builder.io/" target="_blank" class="builder">
+          Made with ♡ by Builder.io
+        </a>
+      </div>
     </footer>
   );
 });

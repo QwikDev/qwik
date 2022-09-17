@@ -4,7 +4,13 @@ import { getContext, QContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
 import { isDocument, isElement, isNode, isQwikElement, isVirtualElement } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
-import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QStyle } from '../util/markers';
+import {
+  ELEMENT_ID,
+  ELEMENT_ID_PREFIX,
+  QContainerAttr,
+  QScopedStyle,
+  QStyle,
+} from '../util/markers';
 import { qDev } from '../util/qdev';
 import {
   createProxy,
@@ -115,7 +121,6 @@ export const resumeContainer = (containerEl: Element) => {
     assertDefined(id, `resume: element missed q:id`, el);
     const ctx = getContext(el);
     ctx.$id$ = id;
-    ctx.$mounted$ = true;
     elements.set(ELEMENT_ID_PREFIX + id, el);
     maxId = Math.max(maxId, strToInt(id));
   });
@@ -132,8 +137,9 @@ export const resumeContainer = (containerEl: Element) => {
   }
 
   for (const elementID of Object.keys(meta.ctx)) {
+    assertTrue(elementID.startsWith('#'), 'elementId must start with #');
     const ctxMeta = meta.ctx[elementID];
-    const el = getObject(elementID) as QwikElement;
+    const el = elements.get(elementID);
     assertDefined(el, `resume: cant find dom node for id`, elementID);
     const ctx = getContext(el);
     const qobj = ctxMeta.r;
@@ -154,20 +160,21 @@ export const resumeContainer = (containerEl: Element) => {
       ctx.$watches$ = watches.split(' ').map(getObject);
     }
     if (contexts) {
-      contexts.split(' ').map((part) => {
+      ctx.$contexts$ = new Map();
+      for (const part of contexts.split(' ')) {
         const [key, value] = part.split('=');
-        if (!ctx.$contexts$) {
-          ctx.$contexts$ = new Map();
-        }
         ctx.$contexts$.set(key, getObject(value));
-      });
+      }
     }
 
     // Restore sequence scoping
     if (host) {
       const [props, renderQrl] = host.split(' ');
+      const styleIds = el.getAttribute(QScopedStyle);
       assertDefined(props, `resume: props missing in host metadata`, host);
       assertDefined(renderQrl, `resume: renderQRL missing in host metadata`, host);
+      ctx.$scopeIds$ = styleIds ? styleIds.split(' ') : null;
+      ctx.$mounted$ = true;
       ctx.$props$ = getObject(props);
       ctx.$renderQrl$ = getObject(renderQrl);
     }

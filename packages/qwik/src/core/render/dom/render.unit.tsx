@@ -571,6 +571,63 @@ renderSuite('should render #text nodes', async () => {
   equal(namespaces, ['http://www.w3.org/2000/svg', 'http://www.w3.org/2000/svg']);
 });
 
+renderSuite('should render class object correctly', async () => {
+  const fixture = new ElementFixture();
+
+  await render(
+    fixture.host,
+    <div
+      class={{
+        stuff: true,
+        other: false,
+        'm-0 p-2': true,
+      }}
+    ></div>
+  );
+  await expectRendered(fixture, `<div class="stuff m-0 p-2"></div>`);
+});
+
+renderSuite('should render class array correctly', async () => {
+  const fixture = new ElementFixture();
+
+  await render(
+    fixture.host,
+    <div class={['stuff', '', 'm-0 p-2', null, 'active', undefined, 'container'] as any}></div>
+  );
+  await expectRendered(fixture, `<div class="stuff m-0 p-2 active container"></div>`);
+});
+
+renderSuite('should re-render classes correctly', async () => {
+  const fixture = new ElementFixture();
+
+  await render(fixture.host, <RenderClasses></RenderClasses>);
+  await expectDOM(
+    fixture.host,
+    `
+  <host q:version="dev" q:container="resumed" q:render="dom-dev">
+    <!--qv q:key=sX: q:id=0-->
+    <button q:id="1" class="increment" on:click="/runtimeQRL#_[0 1]">+</button>
+    <div class="stuff m-0 p-2">Div 1</div>
+    <div class="stuff m-0 p-2 active container">Div 2</div>
+    <!--/qv-->
+  </host>`
+  );
+
+  await trigger(fixture.host, 'button', 'click');
+
+  await expectDOM(
+    fixture.host,
+    `
+  <host q:version="dev" q:container="resumed" q:render="dom-dev">
+    <!--qv q:key=sX: q:id=0-->
+    <button q:id="1" class="increment" on:click="/runtimeQRL#_[0 2]">+</button>
+    <div class="other">Div 1</div>
+    <div class="stuff m-0 p-2 active container almost-null">Div 2</div>
+    <!--/qv-->
+  </host>`
+  );
+});
+
 renderSuite('should render camelCase attributes', async () => {
   const fixture = new ElementFixture();
 
@@ -746,6 +803,46 @@ export const RenderProps = component$((props: Record<string, any>) => {
     <render-props href={props.href}>
       <span>{JSON.stringify(props)}</span>
     </render-props>
+  );
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Render Classes
+//////////////////////////////////////////////////////////////////////////////////////////
+export const RenderClasses = component$(() => {
+  const state = useStore({
+    count: 0,
+  });
+  return (
+    <>
+      <button className="increment" onClick$={runtimeQrl(Counter_add, [state, { value: 1 }])}>
+        +
+      </button>
+      <div
+        class={{
+          stuff: state.count % 2 === 0,
+          other: state.count % 2 === 1,
+          'm-0 p-2': state.count % 2 === 0,
+        }}
+      >
+        Div 1
+      </div>
+      <div
+        class={
+          [
+            'stuff',
+            '',
+            'm-0 p-2',
+            state.count % 2 === 0 ? null : 'almost-null',
+            'active',
+            undefined,
+            'container',
+          ] as any
+        }
+      >
+        Div 2
+      </div>
+    </>
   );
 });
 

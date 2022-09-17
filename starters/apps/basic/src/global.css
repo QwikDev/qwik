@@ -73,6 +73,22 @@ table.commands {
 code {
   font-family: Menlo, Monaco, Courier New, monospace;
   font-size: 0.9em;
-  color: var(--qwik-dark-blue);
-  padding: 0 4px;
+  background-color: rgb(224, 224, 224);
+  padding: 2px 4px;
+  border-radius: 3px;
+  border-bottom: 2px solid #bfbfbf;
+}
+
+footer {
+  padding: 15px;
+  text-align: center;
+  font-size: 0.8em;
+}
+
+footer a {
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
 }

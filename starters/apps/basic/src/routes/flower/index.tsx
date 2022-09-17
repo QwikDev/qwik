@@ -1,8 +1,10 @@
 import { component$, useClientEffect$, useStore, useStylesScoped$ } from '@builder.io/qwik';
+import { useLocation } from '@builder.io/qwik-city';
 import styles from './flower.css?inline';
 
 export default component$(() => {
   useStylesScoped$(styles);
+  const loc = useLocation();
 
   const state = useStore({
     count: 0,

@@ -52,7 +52,7 @@ export type FeatureCmd = (app: AppCommand) => Promise<void>;
 
 export interface IntegrationPackageJson {
   name: string;
-  description?: string;
+  description: string;
   version?: string;
   scripts?: { [k: string]: string };
   dependencies?: { [k: string]: string };

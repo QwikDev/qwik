@@ -114,30 +114,33 @@ export const pushRenderContext = (ctx: RenderContext, elCtx: QContext): RenderCo
   return newCtx;
 };
 
-export const parseClassAny = (obj: any): string[] => {
+export const serializeClass = (obj: any) => {
   if (isString(obj)) {
-    return parseClassList(obj);
+    return obj;
   } else if (isObject(obj)) {
     if (isArray(obj)) {
-      return obj;
+      return obj.join(' ');
     } else {
-      const output: string[] = [];
-      for (const key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-          const value = obj[key];
-          if (value) {
-            output.push(key);
+      let buffer = '';
+      let previous = false;
+      for (const key of Object.keys(obj)) {
+        const value = obj[key];
+        if (value) {
+          if (previous) {
+            buffer += ' ';
           }
+          buffer += key;
+          previous = true;
         }
       }
-      return output;
+      return buffer;
     }
   }
-  return [];
+  return '';
 };
 
 const parseClassListRegex = /\s/;
-const parseClassList = (value: string | undefined | null): string[] =>
+export const parseClassList = (value: string | undefined | null): string[] =>
   !value ? EMPTY_ARRAY : value.split(parseClassListRegex);
 
 export const stringifyStyle = (obj: any): string => {

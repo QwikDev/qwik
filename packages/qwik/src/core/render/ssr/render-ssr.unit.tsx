@@ -41,9 +41,17 @@ renderSSRSuite('render class', async () => {
       class={{
         stuff: true,
         other: false,
+        'm-0 p-2': true,
       }}
     ></div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div class="stuff"></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div class="stuff m-0 p-2"></div></html>'
+  );
+
+  await testSSR(
+    <div class={['stuff', '', 'm-0 p-2', null, 'active', undefined, 'container'] as any}></div>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <div class="stuff m-0 p-2 active container"></div>
+    </html>`
   );
 });
 

@@ -27,8 +27,9 @@ import { assertQwikElement, isQwikElement, isText, isVirtualElement } from '../.
 import { getVdom, ProcessedJSXNode, ProcessedJSXNodeImpl, renderComponent } from './render-dom';
 import type { RenderContext, RenderStaticContext } from '../types';
 import {
-  parseClassAny,
+  parseClassList,
   pushRenderContext,
+  serializeClass,
   setQId,
   SKIPS_PROPS,
   stringifyStyle,
@@ -295,13 +296,16 @@ export const getProps = (node: Element) => {
 
     const name = a.name;
     if (!name.includes(':')) {
-      props[name] =
-        name === 'class'
-          ? parseClassAny(a.value).filter((c) => !c.startsWith(ComponentStylesPrefixContent))
-          : a.value;
+      props[name] = name === 'class' ? parseDomClass(a.value) : a.value;
     }
   }
   return props;
+};
+
+const parseDomClass = (value: string): string => {
+  return parseClassList(value)
+    .filter((c) => !c.startsWith(ComponentStylesPrefixContent))
+    .join(' ');
 };
 
 export const isNode = (elm: Node | VirtualElement): boolean => {
@@ -776,8 +780,19 @@ const handleStyle: PropHandler = (ctx, elm, _, newValue) => {
 };
 
 const handleClass: PropHandler = (ctx, elm, _, newValue, oldValue) => {
-  const oldClasses = parseClassAny(oldValue);
-  const newClasses = parseClassAny(newValue);
+  assertTrue(
+    oldValue == null || typeof oldValue === 'string',
+    'class oldValue must be either nullish or string',
+    oldValue
+  );
+  assertTrue(
+    newValue == null || typeof newValue === 'string',
+    'class newValue must be either nullish or string',
+    newValue
+  );
+
+  const oldClasses = parseClassList(oldValue);
+  const newClasses = parseClassList(newValue);
   setClasslist(
     ctx,
     elm,
@@ -836,10 +851,13 @@ export const updateProperties = (
     if (key === 'children') {
       continue;
     }
-    const newValue = newProps[key];
+    let newValue = newProps[key];
     if (key === 'className') {
       newProps['class'] = newValue;
       key = 'class';
+    }
+    if (key === 'class') {
+      newProps['class'] = newValue = serializeClass(newValue);
     }
     const oldValue = oldProps[key];
     if (oldValue === newValue) {
@@ -937,10 +955,13 @@ export const setProperties = (
     if (key === 'children') {
       continue;
     }
-    const newValue = newProps[key];
+    let newValue = newProps[key];
     if (key === 'className') {
       newProps['class'] = newValue;
       key = 'class';
+    }
+    if (key === 'class') {
+      newProps['class'] = newValue = serializeClass(newValue);
     }
     if (key === 'ref') {
       (newValue as Ref<Element>).current = elm as Element;

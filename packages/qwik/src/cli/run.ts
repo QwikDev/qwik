@@ -52,16 +52,16 @@ async function printHelp() {
   console.log(color.bgMagenta(` Qwik Help `));
   console.log(``);
   console.log(
-    `  ${pmRun} qwik ${color.cyan(`add`)}      ${color.dim(`Add an integration to this app`)}`
+    `  ${pmRun} qwik ${color.cyan(`add`)}            ${color.dim(`Add an integration to this app`)}`
   );
   console.log(
-    `  ${pmRun} qwik ${color.cyan(`build`)}    ${color.dim(
-      `Parallelize client/server builds and type checking`
+    `  ${pmRun} qwik ${color.cyan(`build`)}          ${color.dim(
+      `Parallelize builds and type checking`
     )}`
   );
   console.log(
-    `  ${pmRun} qwik ${color.cyan(`preview`)}  ${color.dim(
-      `Parallelize builds and starts preview server`
+    `  ${pmRun} qwik ${color.cyan(`build preview`)}  ${color.dim(
+      `Same as "build", but for preview server`
     )}`
   );
   console.log(``);

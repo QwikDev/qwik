@@ -47,6 +47,7 @@ import { getQId } from '../render/execute-component';
 import { processVirtualNodes, QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import { getDomListeners } from '../props/props-on';
 import { fromKebabToCamelCase } from '../util/case';
+import { domToVnode } from '../render/dom/visitor';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -121,6 +122,9 @@ export const resumeContainer = (containerEl: Element) => {
     assertDefined(id, `resume: element missed q:id`, el);
     const ctx = getContext(el);
     ctx.$id$ = id;
+    if (isElement(el)) {
+      ctx.$vdom$ = domToVnode(el);
+    }
     elements.set(ELEMENT_ID_PREFIX + id, el);
     maxId = Math.max(maxId, strToInt(id));
   });
@@ -142,15 +146,15 @@ export const resumeContainer = (containerEl: Element) => {
     const el = elements.get(elementID);
     assertDefined(el, `resume: cant find dom node for id`, elementID);
     const ctx = getContext(el);
-    const qobj = ctxMeta.r;
+    const refMap = ctxMeta.r;
     const seq = ctxMeta.s;
     const host = ctxMeta.h;
     const contexts = ctxMeta.c;
     const watches = ctxMeta.w;
 
-    if (qobj) {
+    if (refMap) {
       assertTrue(isElement(el), 'el must be an actual DOM element');
-      ctx.$refMap$.push(...qobj.split(' ').map(getObject));
+      ctx.$refMap$ = refMap.split(' ').map(getObject);
       ctx.li = getDomListeners(ctx, containerEl);
     }
     if (seq) {

@@ -23,7 +23,13 @@ import type { OnRenderFn } from '../../component/component.public';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
 import { assertQrl, isQrl, QRLInternal } from '../../import/qrl-class';
-import { assertQwikElement, isQwikElement, isText, isVirtualElement } from '../../util/element';
+import {
+  assertQwikElement,
+  isElement,
+  isQwikElement,
+  isText,
+  isVirtualElement,
+} from '../../util/element';
 import { getVdom, ProcessedJSXNode, ProcessedJSXNodeImpl, renderComponent } from './render-dom';
 import type { RenderContext, RenderStaticContext } from '../types';
 import {
@@ -268,7 +274,14 @@ export const getChildren = (elm: QwikElement, mode: ChildrenMode): (Node | Virtu
 };
 
 export const getChildrenVnodes = (elm: QwikElement, mode: ChildrenMode) => {
-  return getChildren(elm, mode).map(domToVnode);
+  return getChildren(elm, mode).map(getVnodeFromEl);
+};
+
+export const getVnodeFromEl = (el: Node | VirtualElement) => {
+  if (isElement(el)) {
+    return tryGetContext(el)?.$vdom$ ?? domToVnode(el);
+  }
+  return domToVnode(el);
 };
 
 export const domToVnode = (node: Node | VirtualElement): ProcessedJSXNode => {
@@ -291,12 +304,12 @@ export const getProps = (node: Element) => {
   const attributes = node.attributes;
   const len = attributes.length;
   for (let i = 0; i < len; i++) {
-    const a = attributes.item(i);
-    assertDefined(a, 'attribute must be defined');
+    const attr = attributes.item(i);
+    assertDefined(attr, 'attribute must be defined');
 
-    const name = a.name;
+    const name = attr.name;
     if (!name.includes(':')) {
-      props[name] = name === 'class' ? parseDomClass(a.value) : a.value;
+      props[name] = name === 'class' ? parseDomClass(attr.value) : attr.value;
     }
   }
   return props;

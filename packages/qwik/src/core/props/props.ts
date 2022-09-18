@@ -10,7 +10,7 @@ import { QContainerAttr } from '../util/markers';
 import type { OnRenderFn } from '../component/component.public';
 import { destroyWatch, SubscriberDescriptor } from '../use/use-watch';
 import { pauseContainer } from '../object/store';
-import { qDev } from '../util/qdev';
+import { qDev, qSerialize } from '../util/qdev';
 import { logError } from '../util/log';
 import { isQrl, QRLInternal } from '../import/qrl-class';
 import { directGetAttribute } from '../render/fast-calls';
@@ -29,7 +29,7 @@ export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
   if (isResumed === 'paused') {
     resumeContainer(containerEl);
-    if (qDev) {
+    if (qSerialize) {
       appendQwikDevTools(containerEl);
     }
   }

@@ -152,6 +152,7 @@ export async function configurePreviewServer(
   path: Path
 ) {
   const fs: typeof import('fs') = await sys.dynamicImport('fs');
+  const url: typeof import('url') = await sys.dynamicImport('url');
 
   const entryPreviewPaths = ['mjs', 'cjs', 'js'].map((ext) =>
     path.join(opts.rootDir, 'server', `entry.preview.${ext}`)
@@ -166,7 +167,8 @@ export async function configurePreviewServer(
   }
 
   try {
-    const previewModuleImport = await sys.strictDynamicImport(entryPreviewModulePath);
+    const entryPreviewImportPath = url.pathToFileURL(entryPreviewModulePath).href;
+    const previewModuleImport = await sys.strictDynamicImport(entryPreviewImportPath);
 
     let previewMiddleware: Connect.HandleFunction | null = null;
     let preview404Middleware: Connect.HandleFunction | null = null;

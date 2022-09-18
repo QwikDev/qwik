@@ -53,6 +53,6 @@ export default component$(() => {
   );
 });
 
-const head: DocumentHead = {
+export const head: DocumentHead = {
   title: 'Qwik Flower',
 };

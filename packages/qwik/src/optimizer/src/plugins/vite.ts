@@ -433,7 +433,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             try {
               const bundleFileName = sys.path.basename(bundeName);
               const ext = sys.path.extname(bundleFileName);
-              if (bundleFileName.startsWith('entry.') && (ext === '.mjs' || ext === '.cjs')) {
+              if (
+                bundleFileName.startsWith('entry.') &&
+                !bundleFileName.includes('preview') &&
+                (ext === '.mjs' || ext === '.cjs')
+              ) {
                 const extlessName = sys.path.basename(bundleFileName, ext);
                 const js = `${extlessName}.js`;
                 const moduleName = extlessName + ext;

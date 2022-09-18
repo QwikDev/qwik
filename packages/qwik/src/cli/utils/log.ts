@@ -1,41 +1,5 @@
 /* eslint-disable no-console */
 import color from 'kleur';
-import { relative } from 'path';
-import type { CreateAppResult } from '../types';
-import { getPackageManager } from './utils';
-
-export function logCreateAppResult(result: CreateAppResult, ranInstall: boolean) {
-  console.log(``);
-  console.clear();
-  console.log(``);
-
-  const isCwdDir = process.cwd() === result.outDir;
-  const relativeProjectPath = relative(process.cwd(), result.outDir);
-
-  if (isCwdDir) {
-    console.log(`🦄 ${color.bgMagenta(' Success! ')}`);
-  } else {
-    console.log(
-      `🦄 ${color.bgMagenta(' Success! ')} ${color.cyan(`Project created in`)} ${color.bold(
-        color.magenta(relativeProjectPath)
-      )} ${color.cyan(`directory`)}`
-    );
-  }
-  console.log(``);
-
-  console.log(`🐰 ${color.cyan(`Next steps:`)}`);
-  if (!isCwdDir) {
-    console.log(`   cd ${relativeProjectPath}`);
-  }
-  const pkgManager = getPackageManager();
-  if (!ranInstall) {
-    console.log(`   ${pkgManager} install`);
-  }
-  console.log(`   ${pkgManager} start`);
-  console.log(``);
-
-  logSuccessFooter();
-}
 
 export function logSuccessFooter() {
   console.log(`💬 ${color.cyan('Questions? Start the conversation at:')}`);

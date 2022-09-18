@@ -1,11 +1,17 @@
 /* eslint-disable no-console */
-import fs from 'fs';
-import { isAbsolute, join, resolve } from 'path';
-import { cleanPackageJson, panic, writePackageJson } from '../qwik/src/cli/utils/utils';
-import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
-import { logCreateAppResult } from '../qwik/src/cli/utils/log';
-import { updateApp } from '../qwik/src/cli/add/update-app';
 import type { CreateAppOptions, CreateAppResult, IntegrationData } from '../qwik/src/cli/types';
+import fs from 'fs';
+import color from 'kleur';
+import { isAbsolute, join, relative, resolve } from 'path';
+import {
+  cleanPackageJson,
+  getPackageManager,
+  panic,
+  writePackageJson,
+} from '../qwik/src/cli/utils/utils';
+import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
+import { logSuccessFooter } from '../qwik/src/cli/utils/log';
+import { updateApp } from '../qwik/src/cli/add/update-app';
 
 export async function runCreateCli(starterId: string, outDir: string) {
   if (writeToCwd()) {
@@ -31,6 +37,39 @@ export async function runCreateCli(starterId: string, outDir: string) {
   logCreateAppResult(result, false);
 
   return result;
+}
+
+export function logCreateAppResult(result: CreateAppResult, ranInstall: boolean) {
+  console.log(``);
+  console.clear();
+  console.log(``);
+
+  const isCwdDir = process.cwd() === result.outDir;
+  const relativeProjectPath = relative(process.cwd(), result.outDir);
+
+  if (isCwdDir) {
+    console.log(`🦄 ${color.bgMagenta(' Success! ')}`);
+  } else {
+    console.log(
+      `🦄 ${color.bgMagenta(' Success! ')} ${color.cyan(`Project created in`)} ${color.bold(
+        color.magenta(relativeProjectPath)
+      )} ${color.cyan(`directory`)}`
+    );
+  }
+  console.log(``);
+
+  console.log(`🐰 ${color.cyan(`Next steps:`)}`);
+  if (!isCwdDir) {
+    console.log(`   cd ${relativeProjectPath}`);
+  }
+  const pkgManager = getPackageManager();
+  if (!ranInstall) {
+    console.log(`   ${pkgManager} install`);
+  }
+  console.log(`   ${pkgManager} start`);
+  console.log(``);
+
+  logSuccessFooter();
 }
 
 export async function createApp(opts: CreateAppOptions) {

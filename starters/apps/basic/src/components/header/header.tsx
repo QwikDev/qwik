@@ -1,9 +1,9 @@
-import { component$, useStyles$ } from '@builder.io/qwik';
+import { component$, useStylesScoped$ } from '@builder.io/qwik';
 import { QwikLogo } from '../icons/qwik';
-import styles from './header.css';
+import styles from './header.css?inline';
 
 export default component$(() => {
-  useStyles$(styles);
+  useStylesScoped$(styles);
 
   return (
     <header>

@@ -153,7 +153,7 @@ export async function configurePreviewServer(
 ) {
   const fs: typeof import('fs') = await sys.dynamicImport('fs');
 
-  const entryPreviewPaths = ['js', 'mjs', 'cjs'].map((ext) =>
+  const entryPreviewPaths = ['mjs', 'cjs', 'js'].map((ext) =>
     path.join(opts.rootDir, 'server', `entry.preview.${ext}`)
   );
 

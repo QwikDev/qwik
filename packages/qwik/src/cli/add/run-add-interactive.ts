@@ -42,7 +42,7 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
         name: 'featureType',
         message: `What feature would you like to add?`,
         choices: [
-          { title: 'Server (SSR)', value: '__server' },
+          { title: 'Server Adaptors (SSR)', value: '__server' },
           { title: 'Static Generator (SSG)', value: staticGenerator.id },
           ...features.map((f) => {
             return { title: f.name, value: f.id };
@@ -66,7 +66,7 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
         {
           type: 'select',
           name: 'id',
-          message: `Which server would you like to add?`,
+          message: `Which server adaptor would you like to add?`,
           choices: servers.map((f) => {
             return { title: f.name, value: f.id, description: f.pkgJson.description };
           }),

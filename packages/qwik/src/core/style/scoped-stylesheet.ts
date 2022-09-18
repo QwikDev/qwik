@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { ComponentStylesPrefixContent } from '../util/markers';
+import { qDev } from '../util/qdev';
 
 // Make sure this is always set to `false` in production, but it is useful to set for `true` in development for debugging.
 const DEBUG: boolean = false;
@@ -7,6 +8,9 @@ const DEBUG: boolean = false;
 export const STYLE_CACHE = new Map();
 
 export const getScopedStyles = (css: string, scopeId: string): string => {
+  if (qDev) {
+    return scopeStylesheet(css, scopeId);
+  }
   let styleCss = STYLE_CACHE.get(scopeId);
   if (!styleCss) {
     STYLE_CACHE.set(scopeId, (styleCss = scopeStylesheet(css, scopeId)));

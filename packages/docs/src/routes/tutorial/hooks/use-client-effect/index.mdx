@@ -8,8 +8,6 @@ Use `useClientEffect$()` to execute code after the component is resumed. This is
 
 `useClientEffect$()` receives a `track()` function just like `useWatch$()`. Use the `track()` function to trigger the effect when the store is updated. See [reactivity](/tutorial/reactivity/explicit/index.mdx) for more information.
 
-```jsx
-
 ## Component Life Cycle and SSR
 
 Qwik is resumable. Resumability means that the application starts on the server and then is transferred to the client. On the client, the application continues execution from where it left off. A common use case is creating a component on the server, pausing, and then resuming on the client. To make the component fully functional, it may be necessary to execute code eagerly on the client to set up timers or streams.
@@ -29,6 +27,3 @@ Client effect code is executed after the component is resumed. The `useClientEff
 The example shows a clock component that is rendered below the fold. Use the `useClientEffect$()` to make the clock update the current time every second to make it work on the client. We have provided the utility function `updateClock` to aid your implementation.
 
 Keep in mind that `useClientEffect$()` should return a cleanup function that releases the `setInterval` timer so that the timer can be properly cleaned up when the component is unmounted/destroyed.
-
-
-```

@@ -34,13 +34,16 @@ export async function renderToStream(
   const result = await renderToString(rootNode, opts);
   opts.stream.write(result.html);
   return {
-    ...result,
-    flushes: -1,
-    size: -1,
+    prefetchResources: result.prefetchResources,
+    snapshotResult: result.snapshotResult,
+    _symbols: result._symbols,
+    manifest: result.manifest,
+    flushes: 1,
+    size: result.html.length,
     timing: {
-      firstFlush: -1,
-      render: -1,
-      snapshot: -1,
+      firstFlush: result.timing.render,
+      render: result.timing.render,
+      snapshot: result.timing.snapshot,
     },
   };
 }

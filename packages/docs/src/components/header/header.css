@@ -2,8 +2,6 @@
   height: calc(var(--header-height));
   margin-bottom: 6px;
   background: white;
-  position: relative;
-  z-index: 100;
 }
 
 @media (min-width: 1024px) {

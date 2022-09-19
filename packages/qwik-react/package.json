@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-react",
-  "version": "0.0.100",
+  "version": "0.0.102",
   "description": "QwikReact allows to apply inject React component into existing Qwik application",
   "scripts": {
     "build": "npm run build.lib",

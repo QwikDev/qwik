@@ -92,29 +92,41 @@ export async function createApp(opts: CreateAppOptions) {
   };
 
   const starterApps = (await loadIntegrations()).filter((i) => i.type === 'app');
-  const baseApp = starterApps.find((a) => a.id === 'base');
-  const starterApp = starterApps.find((s) => s.id === opts.starterId);
-  if (!baseApp) {
-    throw new Error(`Unable to find base app`);
-  }
-  if (!starterApp) {
-    throw new Error(`Invalid starter id "${opts.starterId}"`);
-  }
+  const isLibrary = opts.starterId === 'library';
+  if (isLibrary) {
+    const baseApp = starterApps.find((a) => a.id === 'library');
+    if (!baseApp) {
+      throw new Error(`Unable to find base app`);
+    }
+    await createFromStarter(result, baseApp);
+  } else {
+    const baseApp = starterApps.find((a) => a.id === 'base');
+    if (!baseApp) {
+      throw new Error(`Unable to find base app`);
+    }
+    const starterApp = starterApps.find((s) => s.id === opts.starterId);
+    if (!starterApp) {
+      throw new Error(`Invalid starter id "${opts.starterId}"`);
+    }
 
-  await createFromStarter(result, baseApp, starterApp);
-
+    await createFromStarter(result, baseApp, starterApp);
+  }
   return result;
 }
 
 async function createFromStarter(
   result: CreateAppResult,
   baseApp: IntegrationData,
-  starterApp: IntegrationData
+  starterApp?: IntegrationData
 ) {
+  const appInfo = starterApp ?? baseApp;
   const appPkgJson = cleanPackageJson({
-    name: `my-${starterApp.pkgJson.name}`,
-    description: starterApp.pkgJson.description,
-    private: true,
+    ...baseApp.pkgJson,
+    name: `my-${appInfo.pkgJson.name}`,
+    description: appInfo.pkgJson.description,
+    scripts: undefined,
+    dependencies: undefined,
+    devDependencies: undefined,
   });
   await writePackageJson(result.outDir, appPkgJson);
 
@@ -128,12 +140,14 @@ async function createFromStarter(
   });
   await baseUpdate.commit(false);
 
-  const starterUpdate = await updateApp({
-    rootDir: result.outDir,
-    integration: starterApp.id,
-    installDeps: false,
-  });
-  await starterUpdate.commit(false);
+  if (starterApp) {
+    const starterUpdate = await updateApp({
+      rootDir: result.outDir,
+      integration: starterApp.id,
+      installDeps: false,
+    });
+    await starterUpdate.commit(false);
+  }
 }
 
 function isValidOption(value: any) {

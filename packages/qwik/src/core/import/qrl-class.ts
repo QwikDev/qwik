@@ -166,7 +166,7 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
 }
 
 export const emitUsedSymbol = (symbol: string, element: Element | undefined) => {
-  if (!qTest && !isServer()) {
+  if (!qTest && !isServer() && typeof document === 'object') {
     document.dispatchEvent(
       new CustomEvent('qsymbol', {
         bubbles: false,

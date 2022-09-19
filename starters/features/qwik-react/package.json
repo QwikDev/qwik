@@ -1,7 +1,7 @@
 {
   "description": "Use React components into your Qwik app",
   "devDependencies": {
-    "@builder.io/qwik-react": "0.0.100",
+    "@builder.io/qwik-react": "0.0.102",
     "@emotion/react": "11.9.3",
     "@emotion/server": "11.4.0",
     "@emotion/styled": "11.9.3",

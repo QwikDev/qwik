@@ -9,7 +9,6 @@ import type {
   RenderToStringOptions,
   RenderToStringResult,
   StreamWriter,
-  PrefetchResource,
 } from './types';
 import { getQwikLoaderScript } from './scripts';
 import { getPrefetchResources, ResolvedManifest } from './prefetch-strategy';
@@ -124,7 +123,6 @@ export async function renderToStream(
   await setServerPlatform(opts, resolvedManifest);
 
   // Render
-  let prefetchResources: PrefetchResource[] = [];
   let snapshotResult: SnapshotResult | null = null;
 
   const injections = resolvedManifest?.manifest.injections;
@@ -148,7 +146,7 @@ export async function renderToStream(
       const snapshotTimer = createTimer();
 
       snapshotResult = await _pauseFromContexts(contexts, containerState);
-      prefetchResources = getPrefetchResources(snapshotResult, opts, resolvedManifest);
+
       const jsonData = JSON.stringify(snapshotResult.state, undefined, qDev ? '  ' : undefined);
       const children: (JSXNode | null)[] = [
         jsx('script', {
@@ -156,9 +154,21 @@ export async function renderToStream(
           dangerouslySetInnerHTML: escapeText(jsonData),
         }),
       ];
-      if (prefetchResources.length > 0) {
-        children.push(applyPrefetchImplementation(opts, prefetchResources));
+
+      if (opts.prefetchStrategy !== null) {
+        // skip prefetch implementation if prefetchStrategy === null
+        const prefetchResources = getPrefetchResources(snapshotResult, opts, resolvedManifest);
+        if (prefetchResources.length > 0) {
+          const prefetchImpl = applyPrefetchImplementation(
+            opts.prefetchStrategy,
+            prefetchResources
+          );
+          if (prefetchImpl) {
+            children.push(prefetchImpl);
+          }
+        }
       }
+
       const needLoader = !snapshotResult || snapshotResult.mode !== 'static';
       const includeMode = opts.qwikLoader?.include ?? 'auto';
       const includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);

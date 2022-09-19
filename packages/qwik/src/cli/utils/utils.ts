@@ -31,6 +31,7 @@ export function cleanPackageJson(srcPkg: IntegrationPackageJson) {
     types: srcPkg.types,
     exports: srcPkg.exports,
     files: srcPkg.files,
+    engines: { node: '>=15.0.0' },
   };
 
   Object.keys(cleanedPkg).forEach((prop) => {

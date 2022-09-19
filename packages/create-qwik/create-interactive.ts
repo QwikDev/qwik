@@ -10,6 +10,7 @@ import { getPackageManager } from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 
 export async function runCreateInteractiveCli() {
+  checkNodeVersion();
   console.log(``);
   console.clear();
   console.log(``);
@@ -139,4 +140,15 @@ export async function runCreateInteractiveCli() {
   logCreateAppResult(result, successfulDepsInstall);
 
   return result;
+}
+
+function checkNodeVersion() {
+  const version = process.version;
+  const majorVersion = Number(version.replace('v', '').split('.')[0]);
+  if (majorVersion < 15) {
+    console.error(
+      color.red(`Qwik requires Node.js 15 or higher. You are currently running Node.js ${version}.`)
+    );
+    process.exit(1);
+  }
 }

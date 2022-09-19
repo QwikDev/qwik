@@ -57,6 +57,7 @@ export interface IntegrationPackageJson {
   scripts?: { [k: string]: string };
   dependencies?: { [k: string]: string };
   devDependencies?: { [k: string]: string };
+  engines?: { node: string };
   private?: boolean;
   __qwik__?: {
     priority: number;

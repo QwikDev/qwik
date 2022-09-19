@@ -25,6 +25,7 @@ export function cleanPackageJson(srcPkg: IntegrationPackageJson) {
     scripts: srcPkg.scripts,
     dependencies: srcPkg.dependencies,
     devDependencies: srcPkg.devDependencies,
+    engines: { node: '>=15.0.0' },
   };
 
   Object.keys(cleanedPkg).forEach((prop) => {

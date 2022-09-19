@@ -11,23 +11,26 @@ export async function runBuildCommand(app: AppCommand) {
   }
 
   const isPreviewBuild = app.args.includes('preview');
-
+  const buildLibScript = pkgJsonScripts['build.lib'];
+  const isLibraryBuild = !!buildLibScript;
   const buildClientScript = pkgJsonScripts['build.client'];
   const buildPreviewScript = isPreviewBuild ? pkgJsonScripts['build.preview'] : undefined;
   const buildServerScript = !isPreviewBuild ? pkgJsonScripts['build.server'] : undefined;
   const buildStaticScript = pkgJsonScripts['build.static'];
   const runSsgScript = pkgJsonScripts['ssg'];
-  const typecheckScript = !isPreviewBuild ? pkgJsonScripts.typecheck : undefined;
+  const buildTypes = !isPreviewBuild ? pkgJsonScripts['build.types'] : undefined;
 
   const scripts = [
-    typecheckScript,
+    buildTypes,
     buildClientScript,
+    buildLibScript,
     buildPreviewScript,
     buildServerScript,
     buildStaticScript,
   ].filter((s) => typeof s === 'string' && s.trim().length > 0)!;
 
-  if (!buildClientScript) {
+  if (!isLibraryBuild && !buildClientScript) {
+    console.log(pkgJsonScripts);
     throw new Error(`"build.client" script not found in package.json`);
   }
 
@@ -45,8 +48,8 @@ export async function runBuildCommand(app: AppCommand) {
 
   let typecheck: Promise<ExecaReturnValue<string>> | null = null;
 
-  if (typecheckScript && typecheckScript.startsWith('tsc')) {
-    const tscScript = parseScript(typecheckScript);
+  if (buildTypes && buildTypes.startsWith('tsc')) {
+    const tscScript = parseScript(buildTypes);
     if (!tscScript.flags.includes('--pretty')) {
       // ensures colors flow throw when we console log the stdout
       tscScript.flags.push('--pretty');
@@ -63,18 +66,40 @@ export async function runBuildCommand(app: AppCommand) {
     });
   }
 
-  const clientScript = parseScript(buildClientScript);
-  await execa(clientScript.cmd, clientScript.flags, {
-    stdio: 'inherit',
-    cwd: app.rootDir,
-  }).catch(() => {
-    process.exit(1);
-  });
+  if (buildClientScript) {
+    const clientScript = parseScript(buildClientScript);
+    await execa(clientScript.cmd, clientScript.flags, {
+      stdio: 'inherit',
+      cwd: app.rootDir,
+    }).catch(() => {
+      process.exit(1);
+    });
 
-  console.log(``);
-  console.log(`${color.cyan('✓')} Built client modules`);
+    console.log(``);
+    console.log(`${color.cyan('✓')} Built client modules`);
+  }
 
   const step2: Promise<ExecaReturnValue<string>>[] = [];
+
+  if (buildLibScript) {
+    const libScript = parseScript(buildLibScript);
+    const libBuild = execa(libScript.cmd, libScript.flags, {
+      cwd: app.rootDir,
+      env: {
+        FORCE_COLOR: 'true',
+      },
+    }).catch((e) => {
+      console.log(``);
+      if (e.stderr) {
+        console.log(e.stderr);
+      } else {
+        console.log(e.stdout);
+      }
+      console.log(``);
+      process.exit(1);
+    });
+    step2.push(libBuild);
+  }
 
   if (buildPreviewScript) {
     const previewScript = parseScript(buildPreviewScript);
@@ -142,6 +167,9 @@ export async function runBuildCommand(app: AppCommand) {
 
   if (step2.length > 0) {
     await Promise.all(step2).then(() => {
+      if (buildLibScript) {
+        console.log(`${color.cyan('✓')} Built library modules`);
+      }
       if (buildPreviewScript) {
         console.log(`${color.cyan('✓')} Built preview (ssr) modules`);
       }
@@ -155,7 +183,7 @@ export async function runBuildCommand(app: AppCommand) {
         console.log(`${color.cyan('✓')} Type checked`);
       }
 
-      if (!isPreviewBuild && !buildServerScript && !buildStaticScript) {
+      if (!isPreviewBuild && !buildServerScript && !buildStaticScript && !isLibraryBuild) {
         const pmRun = pmRunCmd()
         console.log(``);
         console.log(`${color.bgMagenta(' Missing an integration ')}`);

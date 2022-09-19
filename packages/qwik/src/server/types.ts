@@ -48,7 +48,7 @@ export interface PrefetchImplementation {
    * Will create a script similar to:
    *
    * ```
-   * dispatchEvent(new CustomEvent('qprefetchurls', { detail: { urls: [...] } }))
+   * document.dispatchEvent(new CustomEvent('qprefetchurls', { detail: { urls: [...] } }))
    * ```
    */
   prefetchEvent?: 'always' | null;

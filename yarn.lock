@@ -310,16 +310,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/qwik@npm:^0.0.110":
-  version: 0.0.110
-  resolution: "@builder.io/qwik@npm:0.0.110"
-  bin:
-    qwik: qwik.cjs
-  checksum: 0096243cf68368296de200e52d66aa7df515f8b4b1c54f0a5d4c5952c64972081480ca071b19fa2241c47b6b86d68005dc885cc8314d94cd151328fc4d40cba2
-  languageName: node
-  linkType: hard
-
-"@builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
+"@builder.io/qwik@^0.9.0, @builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   bin:
@@ -7668,7 +7659,7 @@ __metadata:
     "@algolia/autocomplete-core": ^1.7.1
     "@algolia/client-search": ^4.14.2
     "@builder.io/partytown": ^0.6.4
-    "@builder.io/qwik": ^0.0.110
+    "@builder.io/qwik": ^0.9.0
     "@builder.io/qwik-city": ^0.0.111
     "@builder.io/sdk-qwik": ^0.0.23
     "@cloudflare/kv-asset-handler": 0.2.0

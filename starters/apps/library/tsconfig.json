@@ -8,7 +8,7 @@
     "jsxImportSource": "@builder.io/qwik",
     "strict": true,
     "declaration": true,
-    "declarationDir": "lib/types",
+    "declarationDir": "lib-types",
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "esModuleInterop": true,

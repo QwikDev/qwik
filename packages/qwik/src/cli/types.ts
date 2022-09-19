@@ -59,6 +59,13 @@ export interface IntegrationPackageJson {
   devDependencies?: { [k: string]: string };
   engines?: { node: string };
   private?: boolean;
+  files?: string[];
+  main?: string;
+  exports?: any;
+  module?: string;
+  qwik?: string;
+  types?: string;
+  type?: string;
   __qwik__?: {
     priority: number;
     viteConfig?: ViteConfigUpdates;

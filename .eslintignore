@@ -21,4 +21,5 @@ packages/docs/src/routes/examples/apps/**/*
 packages/docs/src/routes/playground/app/**/*
 packages/docs/src/routes/tutorial/**/*
 starters/apps/base
+starters/apps/library
 vite.config.ts

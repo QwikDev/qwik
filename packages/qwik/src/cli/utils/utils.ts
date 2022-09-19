@@ -25,6 +25,12 @@ export function cleanPackageJson(srcPkg: IntegrationPackageJson) {
     scripts: srcPkg.scripts,
     dependencies: srcPkg.dependencies,
     devDependencies: srcPkg.devDependencies,
+    main: srcPkg.main,
+    qwik: srcPkg.qwik,
+    module: srcPkg.module,
+    types: srcPkg.types,
+    exports: srcPkg.exports,
+    files: srcPkg.files,
     engines: { node: '>=15.0.0' },
   };
 

@@ -145,9 +145,9 @@ export async function runCreateInteractiveCli() {
 function checkNodeVersion() {
   const version = process.version;
   const majorVersion = Number(version.replace('v', '').split('.')[0]);
-  if (majorVersion < 15) {
+  if (majorVersion < 16) {
     console.error(
-      color.red(`Qwik requires Node.js 15 or higher. You are currently running Node.js ${version}.`)
+      color.red(`Qwik requires Node.js 16 or higher. You are currently running Node.js ${version}.`)
     );
     process.exit(1);
   }

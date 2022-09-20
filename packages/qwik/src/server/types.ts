@@ -41,15 +41,19 @@ export interface PrefetchImplementation {
    */
   workerFetchInsert?: 'always' | 'no-link-support' | null;
   /**
-   * Dispatch a `qprefetch` event with detail data containing the urls that should be prefetched.
+   * Dispatch a `qprefetch` event with detail data containing the bundles that should be prefetched.
    * The event dispatch script will be inlined into the document's HTML so any listeners of this
    * event should already be ready to handle the event.
    *
-   * Will create a script similar to:
+   * This implementation will inject a script similar to:
    *
    * ```
-   * dispatchEvent(new CustomEvent('qprefetchurls', { detail: { urls: [...] } }))
+   * <script type="module">
+   *   dispatchEvent(new CustomEvent("qprefetch", { detail:{ "bundles": [...] } }))
+   * </script>
    * ```
+   *
+   * By default, the `prefetchEvent` implementation will be set to `always`.
    */
   prefetchEvent?: 'always' | null;
 }

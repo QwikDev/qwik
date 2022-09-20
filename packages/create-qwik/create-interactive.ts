@@ -5,16 +5,21 @@ import prompts from 'prompts';
 import color from 'kleur';
 import type { CreateAppOptions } from '../qwik/src/cli/types';
 import { backgroundInstallDeps } from '../qwik/src/cli/utils/install-deps';
-import { createOutDir, createOutDirName, createApp } from './create-app';
+import { createApp, getOutDir, logCreateAppResult } from './create-app';
 import { getPackageManager } from '../qwik/src/cli/utils/utils';
-import { logCreateAppResult } from '../qwik/src/cli/utils/log';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
 
 export async function runCreateInteractiveCli() {
+  checkNodeVersion();
   console.log(``);
   console.clear();
+  console.log(``);
 
-  console.log(`💫 ${color.cyan(`Let's create a Qwik app`)} 💫`);
+  console.log(
+    `🐰 ${color.cyan(`Let's create a`)} ${color.bold(color.magenta(`Qwik`))} ${color.cyan(
+      `app`
+    )} 🐇   ${color.dim(`v${(globalThis as any).QWIK_VERSION}`)}`
+  );
   console.log(``);
 
   const pkgManager = getPackageManager();
@@ -29,9 +34,9 @@ export async function runCreateInteractiveCli() {
   const projectNameAnswer = await prompts(
     {
       type: 'text',
-      name: 'projectName',
-      message: 'Project name',
-      initial: 'qwik-app',
+      name: 'outDir',
+      message: 'Where would you like to create your new project?',
+      initial: './qwik-app',
     },
     {
       onCancel: () => {
@@ -42,9 +47,8 @@ export async function runCreateInteractiveCli() {
   );
   console.log(``);
 
-  const projectName: string = projectNameAnswer.projectName;
-  const outDirName = createOutDirName(projectName);
-  const outDir = createOutDir(outDirName);
+  const outDir: string = getOutDir(projectNameAnswer.outDir);
+
   let removeExistingOutDirPromise: Promise<void> | null = null;
 
   if (fs.existsSync(outDir)) {
@@ -60,11 +64,11 @@ export async function runCreateInteractiveCli() {
           { title: 'Do not overwrite this directory and exit', value: 'exit' },
           { title: 'Overwrite and replace this directory', value: 'replace' },
         ],
-        hint: ' ',
+        hint: '(use ↓↑ arrows, hit enter)',
       },
       {
         onCancel: async () => {
-          console.log('\n' + color.dim(` - Exited without modifying "${outDir}"`) + '\n');
+          console.log(color.dim(` - Exited without modifying "${outDir}"`) + '\n');
           await backgroundInstall.abort();
           process.exit(1);
         },
@@ -74,7 +78,7 @@ export async function runCreateInteractiveCli() {
     if (existingOutDirAnswer.outDirChoice === 'replace') {
       removeExistingOutDirPromise = fs.promises.rm(outDir, { recursive: true });
     } else {
-      console.log('\n' + color.dim(` - Exited without modifying "${outDir}"`) + '\n');
+      console.log(color.dim(` - Exited without modifying "${outDir}"`) + '\n');
       await backgroundInstall.abort();
       process.exit(1);
     }
@@ -86,9 +90,9 @@ export async function runCreateInteractiveCli() {
       name: 'starterId',
       message: 'Select a starter',
       choices: apps.map((s) => {
-        return { title: s.name, value: s.id, description: s.description };
+        return { title: s.name, value: s.id, description: s.pkgJson?.description };
       }),
-      hint: ' ',
+      hint: '(use ↓↑ arrows, hit enter)',
     },
     {
       onCancel: async () => {
@@ -126,7 +130,6 @@ export async function runCreateInteractiveCli() {
 
   const opts: CreateAppOptions = {
     starterId,
-    projectName,
     outDir,
   };
 
@@ -137,4 +140,15 @@ export async function runCreateInteractiveCli() {
   logCreateAppResult(result, successfulDepsInstall);
 
   return result;
+}
+
+function checkNodeVersion() {
+  const version = process.version;
+  const majorVersion = Number(version.replace('v', '').split('.')[0]);
+  if (majorVersion < 16) {
+    console.error(
+      color.red(`Qwik requires Node.js 16 or higher. You are currently running Node.js ${version}.`)
+    );
+    process.exit(1);
+  }
 }

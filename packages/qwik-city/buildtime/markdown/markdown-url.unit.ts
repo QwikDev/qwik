@@ -23,6 +23,11 @@ test('getMarkdownRelativeUrl', () => {
       expect: '/docs/getting-started#intro',
     },
     {
+      href: './getting-started/index.mdx#intro',
+      trailingSlash: true,
+      expect: '/docs/getting-started/#intro',
+    },
+    {
       href: '/link',
       expect: '/link',
     },
@@ -51,7 +56,7 @@ test('getMarkdownRelativeUrl', () => {
   t.forEach((c) => {
     const opts: NormalizedPluginOptions = {
       basePathname: '/',
-      trailingSlash: false,
+      trailingSlash: !!c.trailingSlash,
       routesDir: routesDir,
       mdx: {},
       baseUrl: '/',

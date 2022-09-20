@@ -1,27 +1,25 @@
 /* eslint-disable no-console */
+import type { CreateAppOptions, CreateAppResult, IntegrationData } from '../qwik/src/cli/types';
 import fs from 'fs';
-import { join, resolve } from 'path';
-import { cleanPackageJson, panic, toDashCase, writePackageJson } from '../qwik/src/cli/utils/utils';
+import color from 'kleur';
+import { isAbsolute, join, relative, resolve } from 'path';
+import {
+  cleanPackageJson,
+  getPackageManager,
+  panic,
+  writePackageJson,
+} from '../qwik/src/cli/utils/utils';
 import { loadIntegrations } from '../qwik/src/cli/utils/integrations';
-import { logCreateAppResult } from '../qwik/src/cli/utils/log';
+import { logSuccessFooter } from '../qwik/src/cli/utils/log';
 import { updateApp } from '../qwik/src/cli/add/update-app';
-import type {
-  CreateAppOptions,
-  CreateAppResult,
-  IntegrationData,
-  IntegrationPackageJson,
-} from '../qwik/src/cli/types';
 
-export async function runCreateCli(starterId: string, projectName: string) {
-  const outDirName = createOutDirName(projectName);
-  let outDir: string;
-
+export async function runCreateCli(starterId: string, outDir: string) {
   if (writeToCwd()) {
     // write to the current working directory
     outDir = process.cwd();
   } else {
     // create a sub directory
-    outDir = createOutDir(outDirName);
+    outDir = getOutDir(outDir);
     if (fs.existsSync(outDir)) {
       panic(
         `Directory "${outDir}" already exists. Please either remove this directory, or choose another location.`
@@ -31,7 +29,6 @@ export async function runCreateCli(starterId: string, projectName: string) {
 
   const opts: CreateAppOptions = {
     starterId,
-    projectName,
     outDir,
   };
 
@@ -42,53 +39,99 @@ export async function runCreateCli(starterId: string, projectName: string) {
   return result;
 }
 
-export async function createApp(opts: CreateAppOptions) {
-  if (!isValidOption(opts.projectName)) {
-    throw new Error(`Missing project name`);
+export function logCreateAppResult(result: CreateAppResult, ranInstall: boolean) {
+  console.log(``);
+  console.clear();
+  console.log(``);
+
+  const isCwdDir = process.cwd() === result.outDir;
+  const relativeProjectPath = relative(process.cwd(), result.outDir);
+
+  if (isCwdDir) {
+    console.log(`🦄 ${color.bgMagenta(' Success! ')}`);
+  } else {
+    console.log(
+      `🦄 ${color.bgMagenta(' Success! ')} ${color.cyan(`Project created in`)} ${color.bold(
+        color.magenta(relativeProjectPath)
+      )} ${color.cyan(`directory`)}`
+    );
   }
+  console.log(``);
+
+  console.log(`🐰 ${color.cyan(`Next steps:`)}`);
+  if (!isCwdDir) {
+    console.log(`   cd ${relativeProjectPath}`);
+  }
+  const pkgManager = getPackageManager();
+  if (!ranInstall) {
+    console.log(`   ${pkgManager} install`);
+  }
+  console.log(`   ${pkgManager} start`);
+  console.log(``);
+
+  logSuccessFooter();
+}
+
+export async function createApp(opts: CreateAppOptions) {
   if (!isValidOption(opts.starterId)) {
     throw new Error(`Missing starter id`);
   }
   if (!isValidOption(opts.outDir)) {
     throw new Error(`Missing outDir`);
   }
+  if (!isAbsolute(opts.outDir)) {
+    throw new Error(`outDir must be an absolute path`);
+  }
   if (!fs.existsSync(opts.outDir)) {
     fs.mkdirSync(opts.outDir, { recursive: true });
   }
 
   const result: CreateAppResult = {
-    projectName: opts.projectName,
     starterId: opts.starterId,
     outDir: opts.outDir,
   };
 
   const starterApps = (await loadIntegrations()).filter((i) => i.type === 'app');
-  const baseApp = starterApps.find((a) => a.id === 'base');
-  const starterApp = starterApps.find((s) => s.id === opts.starterId);
-  if (!baseApp) {
-    throw new Error(`Unable to find base app`);
-  }
-  if (!starterApp) {
-    throw new Error(`Invalid starter id "${opts.starterId}"`);
-  }
+  const isLibrary = opts.starterId === 'library';
+  if (isLibrary) {
+    const baseApp = starterApps.find((a) => a.id === 'library');
+    if (!baseApp) {
+      throw new Error(`Unable to find base app`);
+    }
+    await createFromStarter(result, baseApp);
+  } else {
+    const baseApp = starterApps.find((a) => a.id === 'base');
+    if (!baseApp) {
+      throw new Error(`Unable to find base app`);
+    }
+    const starterApp = starterApps.find((s) => s.id === opts.starterId);
+    if (!starterApp) {
+      throw new Error(`Invalid starter id "${opts.starterId}"`);
+    }
 
-  await createFromStarter(result, baseApp, starterApp);
-
+    await createFromStarter(result, baseApp, starterApp);
+  }
   return result;
 }
 
 async function createFromStarter(
   result: CreateAppResult,
   baseApp: IntegrationData,
-  starterApp: IntegrationData
+  starterApp?: IntegrationData
 ) {
-  const appPkgJson: IntegrationPackageJson = {
-    name: toDashCase(result.projectName),
-    description: starterApp.description.trim(),
-    private: true,
-  };
-  await writePackageJson(result.outDir, cleanPackageJson(appPkgJson));
-  await createReadme(result);
+  const appInfo = starterApp ?? baseApp;
+  const appPkgJson = cleanPackageJson({
+    ...baseApp.pkgJson,
+    name: `my-${appInfo.pkgJson.name}`,
+    description: appInfo.pkgJson.description,
+    scripts: undefined,
+    dependencies: undefined,
+    devDependencies: undefined,
+  });
+  await writePackageJson(result.outDir, appPkgJson);
+
+  const readmePath = join(result.outDir, 'README.md');
+  await fs.promises.writeFile(readmePath, '');
 
   const baseUpdate = await updateApp({
     rootDir: result.outDir,
@@ -97,45 +140,22 @@ async function createFromStarter(
   });
   await baseUpdate.commit(false);
 
-  const starterUpdate = await updateApp({
-    rootDir: result.outDir,
-    integration: starterApp.id,
-    installDeps: false,
-  });
-  await starterUpdate.commit(false);
-}
-
-async function createReadme(result: CreateAppResult) {
-  const r: string[] = [];
-
-  r.push(`# Qwik ${result.projectName} ⚡️`);
-  r.push(``);
-  r.push(`- [Qwik Docs](https://qwik.builder.io/)`);
-  r.push(`- [Qwik Github](https://github.com/BuilderIO/qwik)`);
-  r.push(`- [@QwikDev](https://twitter.com/QwikDev)`);
-  r.push(`- [Discord](https://qwik.builder.io/chat)`);
-  r.push(`- [Vite](https://vitejs.dev/)`);
-  r.push(`- [Partytown](https://partytown.builder.io/)`);
-  r.push(`- [Mitosis](https://github.com/BuilderIO/mitosis)`);
-  r.push(`- [Builder.io](https://www.builder.io/)`);
-  r.push(``);
-  r.push(`--------------------`);
-
-  const readmePath = join(result.outDir, 'README.md');
-  const readmeContent = r.join('\n').trim() + '\n';
-  await fs.promises.writeFile(readmePath, readmeContent);
+  if (starterApp) {
+    const starterUpdate = await updateApp({
+      rootDir: result.outDir,
+      integration: starterApp.id,
+      installDeps: false,
+    });
+    await starterUpdate.commit(false);
+  }
 }
 
 function isValidOption(value: any) {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
-export function createOutDirName(projectName: string) {
-  return projectName.toLocaleLowerCase().replace(/ /g, '-');
-}
-
-export function createOutDir(outDirName: string) {
-  return resolve(process.cwd(), outDirName);
+export function getOutDir(outDir: string) {
+  return resolve(process.cwd(), outDir);
 }
 
 export function writeToCwd() {

@@ -245,6 +245,9 @@ export const fastShouldSerialize = (obj: any): boolean => {
 };
 
 /**
+ * Returned type of the `noSerialize()` function. It will be TYPE or undefined.
+ *
+ * @see noSerialize
  * @public
  */
 export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
@@ -303,10 +306,11 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
  */
 // </docs>
 export const mutable = <T>(v: T): T => {
-  console.warn('mutable() is deprecated, you can safely remove all usages of mutable() in your code')
+  console.warn(
+    'mutable() is deprecated, you can safely remove all usages of mutable() in your code'
+  );
   return v;
 };
-
 
 /**
  * @internal
@@ -314,7 +318,6 @@ export const mutable = <T>(v: T): T => {
 export const _immutable = <T>(v: T): ImmutableWrapper<T> => {
   return new ImmutableImpl(v);
 };
-
 
 class ImmutableImpl<T> implements ImmutableWrapper<T> {
   constructor(public v: T) {}
@@ -352,7 +355,7 @@ export const isImmutable = (v: any): v is ImmutableWrapper<any> => {
  * @alpha
  */
 export const unwrapProxy = <T>(proxy: T): T => {
-  return isObject(proxy) ? getProxyTarget<T>(proxy) ?? proxy : proxy;
+  return isObject(proxy) ? getProxyTarget<any>(proxy) ?? proxy : proxy;
 };
 
 export const getProxyTarget = <T extends Record<string, any>>(obj: T): T | undefined => {

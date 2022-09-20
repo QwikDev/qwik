@@ -288,12 +288,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         ctx.addWatchFile(path);
       });
 
-      qwikPlugin.onDiagnostics((diagnostics, optimizer) => {
+      qwikPlugin.onDiagnostics((diagnostics, optimizer, srcDir) => {
         diagnostics.forEach((d) => {
+          const id = qwikPlugin.normalizePath(optimizer.sys.path.join(srcDir, d.file));
           if (d.category === 'error') {
-            this.error(createRollupError(optimizer, d));
+            this.error(createRollupError(id, d));
           } else {
-            this.warn(createRollupError(optimizer, d));
+            this.warn(createRollupError(id, d));
           }
         });
       });
@@ -424,31 +425,32 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         if (sys.env === 'node') {
           const outputs = Object.keys(rollupBundle);
 
-          // In order to simplify executing the server script with a common scripot
+          // In order to simplify executing the server script with a common script
           // always ensure there's a plain .js file.
           // For example, if only a .mjs was generated, also
           // create the .js file that just calls the .mjs file
-          const patchModuleFormat = async (buildType: 'server' | 'static') => {
+          const patchModuleFormat = async (bundeName: string) => {
             try {
-              const js = `entry.${buildType}.js`;
-              const cjs = `entry.${buildType}.cjs`;
-              const mjs = `entry.${buildType}.mjs`;
+              const bundleFileName = sys.path.basename(bundeName);
+              const ext = sys.path.extname(bundleFileName);
+              if (
+                bundleFileName.startsWith('entry.') &&
+                !bundleFileName.includes('preview') &&
+                (ext === '.mjs' || ext === '.cjs')
+              ) {
+                const extlessName = sys.path.basename(bundleFileName, ext);
+                const js = `${extlessName}.js`;
+                const moduleName = extlessName + ext;
 
-              if (!outputs.includes(js)) {
-                // didn't generate a .js script
-                if (outputs.includes(mjs)) {
-                  // create a .js file that just import()s the .mjs script
+                const hasJsScript = outputs.some((f) => sys.path.basename(f) === js);
+                if (!hasJsScript) {
+                  // didn't generate a .js script
+                  // create a .js file that just import()s their script
+                  const bundleOutDir = sys.path.dirname(bundeName);
                   const fs: typeof import('fs') = await sys.dynamicImport('fs');
                   await fs.promises.writeFile(
-                    sys.path.join(opts.outDir, js),
-                    `import("./${mjs}").catch((e) => { console.error(e); process.exit(1); });`
-                  );
-                } else if (outputs.includes(cjs)) {
-                  // create a .js file that just require()s the .cjs script
-                  const fs: typeof import('fs') = await sys.dynamicImport('fs');
-                  await fs.promises.writeFile(
-                    sys.path.join(opts.outDir, js),
-                    `require("./${cjs}");`
+                    sys.path.join(opts.outDir, bundleOutDir, js),
+                    `import("./${moduleName}").catch((e) => { console.error(e); process.exit(1); });`
                   );
                 }
               }
@@ -457,8 +459,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             }
           };
 
-          await patchModuleFormat('server');
-          await patchModuleFormat('static');
+          await Promise.all(outputs.map(patchModuleFormat));
         }
       }
     },
@@ -518,12 +519,13 @@ export async function render(document, rootNode, opts) {
     qwikLoader = document.createElement('script');
     qwikLoader.id = 'qwikloader';
     qwikLoader.innerHTML = ${qwikLoader};
-    document.head.appendChild(qwikLoader);
+    const parent = document.head ?? document.body ?? document.documentElement;
+    parent.appendChild(qwikLoader);
   }
 
   if (!window.__qwikViteLog) {
     window.__qwikViteLog = true;
-    console.debug("%c⭐️ Qwik Dev Mode","background: #0c75d2; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;","Do not use this mode in production!\\n - No portion of the application is pre-rendered on the server\\n - All of the application is running eagerly in the browser\\n - Optimizer/Serialization/Deserialization code is not exercised!");
+    console.debug("%c⭐️ Qwik Client Mode","background: #0c75d2; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;","Do not use this mode in production!\\n - No portion of the application is pre-rendered on the server\\n - All of the application is running eagerly in the browser\\n - Optimizer/Serialization/Deserialization code is not exercised!");
   }
 }`;
 }

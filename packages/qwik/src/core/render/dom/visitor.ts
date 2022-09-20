@@ -23,12 +23,19 @@ import type { OnRenderFn } from '../../component/component.public';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
 import { assertQrl, isQrl, QRLInternal } from '../../import/qrl-class';
-import { assertQwikElement, isQwikElement, isText, isVirtualElement } from '../../util/element';
+import {
+  assertQwikElement,
+  isElement,
+  isQwikElement,
+  isText,
+  isVirtualElement,
+} from '../../util/element';
 import { getVdom, ProcessedJSXNode, ProcessedJSXNodeImpl, renderComponent } from './render-dom';
 import type { RenderContext, RenderStaticContext } from '../types';
 import {
-  parseClassAny,
+  parseClassList,
   pushRenderContext,
+  serializeClass,
   setQId,
   SKIPS_PROPS,
   stringifyStyle,
@@ -267,7 +274,14 @@ export const getChildren = (elm: QwikElement, mode: ChildrenMode): (Node | Virtu
 };
 
 export const getChildrenVnodes = (elm: QwikElement, mode: ChildrenMode) => {
-  return getChildren(elm, mode).map(domToVnode);
+  return getChildren(elm, mode).map(getVnodeFromEl);
+};
+
+export const getVnodeFromEl = (el: Node | VirtualElement) => {
+  if (isElement(el)) {
+    return tryGetContext(el)?.$vdom$ ?? domToVnode(el);
+  }
+  return domToVnode(el);
 };
 
 export const domToVnode = (node: Node | VirtualElement): ProcessedJSXNode => {
@@ -290,18 +304,21 @@ export const getProps = (node: Element) => {
   const attributes = node.attributes;
   const len = attributes.length;
   for (let i = 0; i < len; i++) {
-    const a = attributes.item(i);
-    assertDefined(a, 'attribute must be defined');
+    const attr = attributes.item(i);
+    assertDefined(attr, 'attribute must be defined');
 
-    const name = a.name;
+    const name = attr.name;
     if (!name.includes(':')) {
-      props[name] =
-        name === 'class'
-          ? parseClassAny(a.value).filter((c) => !c.startsWith(ComponentStylesPrefixContent))
-          : a.value;
+      props[name] = name === 'class' ? parseDomClass(attr.value) : attr.value;
     }
   }
   return props;
+};
+
+const parseDomClass = (value: string): string => {
+  return parseClassList(value)
+    .filter((c) => !c.startsWith(ComponentStylesPrefixContent))
+    .join(' ');
 };
 
 export const isNode = (elm: Node | VirtualElement): boolean => {
@@ -776,8 +793,19 @@ const handleStyle: PropHandler = (ctx, elm, _, newValue) => {
 };
 
 const handleClass: PropHandler = (ctx, elm, _, newValue, oldValue) => {
-  const oldClasses = parseClassAny(oldValue);
-  const newClasses = parseClassAny(newValue);
+  assertTrue(
+    oldValue == null || typeof oldValue === 'string',
+    'class oldValue must be either nullish or string',
+    oldValue
+  );
+  assertTrue(
+    newValue == null || typeof newValue === 'string',
+    'class newValue must be either nullish or string',
+    newValue
+  );
+
+  const oldClasses = parseClassList(oldValue);
+  const newClasses = parseClassList(newValue);
   setClasslist(
     ctx,
     elm,
@@ -813,7 +841,6 @@ const noop: PropHandler = () => {
 export const PROP_HANDLER_MAP: Record<string, PropHandler | undefined> = {
   style: handleStyle,
   class: handleClass,
-  className: handleClass,
   value: checkBeforeAssign,
   checked: checkBeforeAssign,
   [dangerouslySetInnerHTML]: setInnerHTML,
@@ -833,11 +860,18 @@ export const updateProperties = (
     return listenersMap;
   }
   const elm = elCtx.$element$;
-  for (const key of keys) {
+  for (let key of keys) {
     if (key === 'children') {
       continue;
     }
-    const newValue = newProps[key];
+    let newValue = newProps[key];
+    if (key === 'className') {
+      newProps['class'] = newValue;
+      key = 'class';
+    }
+    if (key === 'class') {
+      newProps['class'] = newValue = serializeClass(newValue);
+    }
     const oldValue = oldProps[key];
     if (oldValue === newValue) {
       continue;
@@ -930,11 +964,18 @@ export const setProperties = (
   if (keys.length === 0) {
     return listenerMap;
   }
-  for (const key of keys) {
+  for (let key of keys) {
     if (key === 'children') {
       continue;
     }
-    const newValue = newProps[key];
+    let newValue = newProps[key];
+    if (key === 'className') {
+      newProps['class'] = newValue;
+      key = 'class';
+    }
+    if (key === 'class') {
+      newProps['class'] = newValue = serializeClass(newValue);
+    }
     if (key === 'ref') {
       (newValue as Ref<Element>).current = elm as Element;
       continue;

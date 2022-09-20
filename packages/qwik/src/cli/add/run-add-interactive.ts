@@ -5,53 +5,50 @@ import prompts from 'prompts';
 import color from 'kleur';
 import { getPackageManager, panic } from '../utils/utils';
 import { updateApp } from './update-app';
-import type { UpdateAppResult } from '../types';
+import type { IntegrationData, UpdateAppResult } from '../types';
 import { relative } from 'path';
 import { logSuccessFooter } from '../utils/log';
 
-export async function runAddInteractive(app: AppCommand) {
+export async function runAddInteractive(app: AppCommand, id: string | undefined) {
+  console.log(``);
   console.clear();
-
-  const integrations = await loadIntegrations();
-  const staticGenerator = integrations.find((i) => i.type === 'static-generator')!;
-  const features = integrations.filter((i) => i.type === 'feature');
-
-  const featureAnswer = await prompts(
-    {
-      type: 'select',
-      name: 'featureType',
-      message: `What feature would you like to add?`,
-      choices: [
-        { title: 'Server (SSR)', value: '__server' },
-        { title: 'Static Generator (SSG)', value: staticGenerator.id },
-        ...features.map((f) => {
-          return { title: f.name, value: f.id };
-        }),
-      ],
-      hint: ' ',
-    },
-    {
-      onCancel: () => {
-        console.log(``);
-        process.exit(0);
-      },
-    }
-  );
   console.log(``);
 
-  let integrationId: string;
+  const integrations = await loadIntegrations();
+  let integration: IntegrationData | undefined;
 
-  if (featureAnswer.featureType === '__server') {
-    const servers = integrations.filter((i) => i.type === 'server');
-    const serverAnswer = await prompts(
+  if (typeof id === 'string') {
+    // cli passed a flag with the integration id to add
+    integration = integrations.find((i) => i.id === id);
+    if (!integration) {
+      throw new Error(`Invalid integration: ${id}`);
+    }
+
+    console.log(
+      `🦋 ${color.bgCyan(` Add Integration `)} ${color.bold(color.magenta(integration.id))}`
+    );
+    console.log(``);
+  } else {
+    // use interactive cli to choose which integration to add
+    console.log(`🦋 ${color.bgCyan(` Add Integration `)}`);
+    console.log(``);
+
+    const staticGenerator = integrations.find((i) => i.type === 'static-generator')!;
+    const features = integrations.filter((i) => i.type === 'feature');
+
+    const featureAnswer = await prompts(
       {
         type: 'select',
-        name: 'id',
-        message: `Which server would you like to add?`,
-        choices: servers.map((f) => {
-          return { title: f.name, value: f.id, description: f.description };
-        }),
-        hint: ' ',
+        name: 'featureType',
+        message: `What feature would you like to add?`,
+        choices: [
+          { title: 'Server Adaptors (SSR)', value: '__server' },
+          { title: 'Static Generator (SSG)', value: staticGenerator.id },
+          ...features.map((f) => {
+            return { title: f.name, value: f.id };
+          }),
+        ],
+        hint: '(use ↓↑ arrows, hit enter)',
       },
       {
         onCancel: () => {
@@ -60,18 +57,42 @@ export async function runAddInteractive(app: AppCommand) {
         },
       }
     );
-    integrationId = serverAnswer.id;
     console.log(``);
-  } else {
-    integrationId = featureAnswer.featureType;
-  }
 
-  const selectedIntegration = integrations.find((i) => i.id === integrationId);
+    if (featureAnswer.featureType === '__server') {
+      // narrow list to just server integrations
+      const servers = integrations.filter((i) => i.type === 'server');
+      const serverAnswer = await prompts(
+        {
+          type: 'select',
+          name: 'id',
+          message: `Which server adaptor would you like to add?`,
+          choices: servers.map((f) => {
+            return { title: f.name, value: f.id, description: f.pkgJson.description };
+          }),
+          hint: ' ',
+        },
+        {
+          onCancel: () => {
+            console.log(``);
+            process.exit(0);
+          },
+        }
+      );
+      integration = integrations.find((i) => i.id === serverAnswer.id);
+      console.log(``);
+    } else {
+      integration = integrations.find((i) => i.id === featureAnswer.featureType);
+    }
+    if (!integration) {
+      throw new Error(`Invalid integration: ${id}`);
+    }
+  }
 
   const integrationHasDeps =
     Object.keys({
-      ...selectedIntegration?.pkgJson.dependencies,
-      ...selectedIntegration?.pkgJson.devDependencies,
+      ...integration.pkgJson.dependencies,
+      ...integration.pkgJson.devDependencies,
     }).length > 0;
 
   let runInstall = false;
@@ -97,14 +118,14 @@ export async function runAddInteractive(app: AppCommand) {
 
   const result = await updateApp({
     rootDir: app.rootDir,
-    integration: integrationId,
+    integration: integration.id,
     installDeps: runInstall,
   });
 
   await logUpdateAppResult(result);
 }
 
-export async function logUpdateAppResult(result: UpdateAppResult) {
+async function logUpdateAppResult(result: UpdateAppResult) {
   const modifyFiles = result.updates.files.filter((f) => f.type === 'modify');
   const overwriteFiles = result.updates.files.filter((f) => f.type === 'overwrite');
   const createFiles = result.updates.files.filter((f) => f.type === 'create');
@@ -122,14 +143,17 @@ export async function logUpdateAppResult(result: UpdateAppResult) {
 
   console.log(``);
   console.clear();
+  console.log(``);
 
   console.log(
-    `🤖 ${color.bgCyan(` Ready? `)} Apply ${color.yellow(result.integration.id)} to your app?`
+    `👻 ${color.bgCyan(` Ready? `)} Add ${color.bold(
+      color.magenta(result.integration.id)
+    )} to your app?`
   );
   console.log(``);
 
   if (modifyFiles.length > 0) {
-    console.log(`🚙 ${color.cyan(`Modify`)}`);
+    console.log(`🐬 ${color.cyan(`Modify`)}`);
     for (const f of modifyFiles) {
       console.log(`   - ${relative(process.cwd(), f.path)}`);
     }
@@ -137,7 +161,7 @@ export async function logUpdateAppResult(result: UpdateAppResult) {
   }
 
   if (overwriteFiles.length > 0) {
-    console.log(`🚗 ${color.cyan(`Overwrite`)}`);
+    console.log(`🐳 ${color.cyan(`Overwrite`)}`);
     for (const f of overwriteFiles) {
       console.log(`   - ${relative(process.cwd(), f.path)}`);
     }
@@ -147,7 +171,7 @@ export async function logUpdateAppResult(result: UpdateAppResult) {
   if (installDeps) {
     const pkgManager = getPackageManager();
     console.log(
-      `🏎 ${color.cyan(
+      `💾 ${color.cyan(
         `Install ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`
       )}`
     );
@@ -161,7 +185,9 @@ export async function logUpdateAppResult(result: UpdateAppResult) {
     {
       type: 'select',
       name: 'commit',
-      message: `Ready to apply the ${color.yellow(result.integration.id)} updates to your app?`,
+      message: `Ready to apply the ${color.bold(
+        color.magenta(result.integration.id)
+      )} updates to your app?`,
       choices: [
         { title: 'Yes looks good, finish update!', value: true },
         { title: 'Nope, cancel update', value: false },
@@ -187,7 +213,9 @@ function logUpdateAppCommitResult(result: UpdateAppResult) {
   console.clear();
 
   console.log(
-    `⭐️ ${color.bgGreen(` Success! `)} ${color.yellow(result.integration.id)} added to your app`
+    `🦄 ${color.bgMagenta(` Success! `)} Added ${color.bold(
+      color.cyan(result.integration.id)
+    )} to your app`
   );
   console.log(``);
 

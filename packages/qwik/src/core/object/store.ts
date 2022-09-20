@@ -1,10 +1,16 @@
 import { assertDefined, assertTrue } from '../assert/assert';
-import { assertQrl, isQrl } from '../import/qrl-class';
+import { isQrl } from '../import/qrl-class';
 import { getContext, QContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
 import { isDocument, isElement, isNode, isQwikElement, isVirtualElement } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
-import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QStyle } from '../util/markers';
+import {
+  ELEMENT_ID,
+  ELEMENT_ID_PREFIX,
+  QContainerAttr,
+  QScopedStyle,
+  QStyle,
+} from '../util/markers';
 import { qDev } from '../util/qdev';
 import {
   createProxy,
@@ -42,6 +48,7 @@ import { getQId } from '../render/execute-component';
 import { processVirtualNodes, QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import { getDomListeners } from '../props/props-on';
 import { fromKebabToCamelCase } from '../util/case';
+import { domToVnode } from '../render/dom/visitor';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -116,7 +123,9 @@ export const resumeContainer = (containerEl: Element) => {
     assertDefined(id, `resume: element missed q:id`, el);
     const ctx = getContext(el);
     ctx.$id$ = id;
-    ctx.$mounted$ = true;
+    if (isElement(el)) {
+      ctx.$vdom$ = domToVnode(el);
+    }
     elements.set(ELEMENT_ID_PREFIX + id, el);
     maxId = Math.max(maxId, strToInt(id));
   });
@@ -133,19 +142,20 @@ export const resumeContainer = (containerEl: Element) => {
   }
 
   for (const elementID of Object.keys(meta.ctx)) {
+    assertTrue(elementID.startsWith('#'), 'elementId must start with #');
     const ctxMeta = meta.ctx[elementID];
-    const el = getObject(elementID) as QwikElement;
+    const el = elements.get(elementID);
     assertDefined(el, `resume: cant find dom node for id`, elementID);
     const ctx = getContext(el);
-    const qobj = ctxMeta.r;
+    const refMap = ctxMeta.r;
     const seq = ctxMeta.s;
     const host = ctxMeta.h;
     const contexts = ctxMeta.c;
     const watches = ctxMeta.w;
 
-    if (qobj) {
+    if (refMap) {
       assertTrue(isElement(el), 'el must be an actual DOM element');
-      ctx.$refMap$.push(...qobj.split(' ').map(getObject));
+      ctx.$refMap$ = refMap.split(' ').map(getObject);
       ctx.li = getDomListeners(ctx, containerEl);
     }
     if (seq) {
@@ -155,20 +165,21 @@ export const resumeContainer = (containerEl: Element) => {
       ctx.$watches$ = watches.split(' ').map(getObject);
     }
     if (contexts) {
-      contexts.split(' ').map((part) => {
+      ctx.$contexts$ = new Map();
+      for (const part of contexts.split(' ')) {
         const [key, value] = part.split('=');
-        if (!ctx.$contexts$) {
-          ctx.$contexts$ = new Map();
-        }
         ctx.$contexts$.set(key, getObject(value));
-      });
+      }
     }
 
     // Restore sequence scoping
     if (host) {
       const [props, renderQrl] = host.split(' ');
+      const styleIds = el.getAttribute(QScopedStyle);
       assertDefined(props, `resume: props missing in host metadata`, host);
       assertDefined(renderQrl, `resume: renderQRL missing in host metadata`, host);
+      ctx.$scopeIds$ = styleIds ? styleIds.split(' ') : null;
+      ctx.$mounted$ = true;
       ctx.$props$ = getObject(props);
       ctx.$renderQrl$ = getObject(renderQrl);
     }
@@ -241,10 +252,16 @@ export const _pauseFromContexts = async (
   const listeners: SnapshotListener[] = [];
   for (const ctx of allContexts) {
     const el = ctx.$element$;
-    if (isElement(el)) {
-      const ctxLi = ctx.li;
-      for (const key of Object.keys(ctxLi)) {
-        for (const qrl of ctxLi[key]) {
+    const ctxLi = ctx.li;
+    for (const key of Object.keys(ctxLi)) {
+      for (const qrl of ctxLi[key]) {
+        const captured = qrl.$captureRef$;
+        if (captured) {
+          for (const obj of captured) {
+            collectValue(obj, collector, true);
+          }
+        }
+        if (isElement(el)) {
           listeners.push({
             key,
             qrl,
@@ -271,21 +288,6 @@ export const _pauseFromContexts = async (
       listeners: [],
       mode: 'static',
     };
-  }
-
-  // Listeners becomes the app roots
-  for (const listener of listeners) {
-    assertQrl(listener.qrl);
-    const captured = listener.qrl.$captureRef$;
-    if (captured) {
-      for (const obj of captured) {
-        collectValue(obj, collector, true);
-      }
-    }
-    // const ctx = tryGetContext(listener.el)!;
-    // for (const obj of ctx.$refMap$) {
-    //   collectValue(obj, collector, true);
-    // }
   }
 
   // Wait for remaining promises
@@ -744,9 +746,6 @@ const getObjectImpl = (
   return obj;
 };
 
-{
-  [ImmutableProps]: ['class']
-}
 const collectProps = (elCtx: QContext, collector: Collector) => {
   const parentCtx = elCtx.$parent$;
   if (parentCtx && elCtx.$props$ && collector.$elements$.includes(parentCtx.$element$ as any)) {

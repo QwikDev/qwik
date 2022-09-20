@@ -1,7 +1,6 @@
 import type { AppCommand } from './utils/app-command';
 
 export interface CreateAppOptions {
-  projectName: string;
   starterId: string;
   outDir: string;
 }
@@ -34,7 +33,6 @@ export interface IntegrationData {
   id: string;
   type: IntegrationType;
   name: string;
-  description: string;
   pkgJson: IntegrationPackageJson;
   dir: string;
   priority: number;
@@ -59,7 +57,15 @@ export interface IntegrationPackageJson {
   scripts?: { [k: string]: string };
   dependencies?: { [k: string]: string };
   devDependencies?: { [k: string]: string };
+  engines?: { node: string };
   private?: boolean;
+  files?: string[];
+  main?: string;
+  exports?: any;
+  module?: string;
+  qwik?: string;
+  types?: string;
+  type?: string;
   __qwik__?: {
     priority: number;
     viteConfig?: ViteConfigUpdates;

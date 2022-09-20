@@ -7,7 +7,7 @@ fetch: https://hackmd.io/@mhevery/HJTWrnCl5
 
 Rendering is the process of updating the DOM based on 1) changes in the state of the application and 2) component templates. Qwik is unique because it knows how to render templates out-of-order and asynchronously.
 
-- **out-of-order**: this means that Qwik does not require that the parent component or child component must also be rendered when rendering a component.
+- **Out-of-order**: this means that Qwik does not require that the parent component or child component must also be rendered when rendering a component.
 - **Asynchronously**: this means that Qwik's` render` function understands that it may need to download child components, and therefore the rendering operation is asynchronous.
 
 Simple counter-example:
@@ -28,10 +28,7 @@ Once rendered, the HTML fragment may look something like this:
 </div>
 ```
 
-Note:
-
 - For explanation of `$` see [`$` and optimizer rules](../../advanced/optimizer/index.mdx).
-- For explanation of `q:host` see [host element](../../components/anatomy/index.mdx).
 - For explanation of `q:obj` see [serialization](../../concepts/resumable/index.mdx).
 - For explanation of `on:click` see [qwikloader](../../advanced/qwikloader/index.mdx).
 

@@ -20,10 +20,14 @@ import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_hooks.tsx"), "App_component_ckEPmXZlub0"));
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,+EAKjB,CAAC\"}")
 ============================= app_component_usestyles_t35nsa5uv7u.tsx ==
 
 export const App_component_useStyles_t35nSa5UV7U = 'hola';
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAIe,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -52,6 +56,8 @@ export const App_component_ckEPmXZlub0 = (props)=>{
     return qrl(()=>import("./entry_hooks.tsx"), "App_component_1_w0t0o3QMovU");
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,KAAK,GAAK;IACrC,yFAAkB,CAAC;IACnB,2EAEG;CACN\"}")
 /*
 {
   "origin": "test.tsx",
@@ -75,6 +81,8 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 
 export const App_component_1_w0t0o3QMovU = ()=><div ></div>;
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAKa,KACJ,GAAG,IAAG,GAAG,CACb\"}")
 /*
 {
   "origin": "test.tsx",
@@ -101,6 +109,8 @@ export { App_component_ckEPmXZlub0 } from "./app_component_ckepmxzlub0.tsx";
 export { App_component_1_w0t0o3QMovU } from "./app_component_1_w0t0o3qmovu.tsx";
 export { _hW } from "@builder.io/qwik";
 
+
+None
 == DIAGNOSTICS ==
 
 []

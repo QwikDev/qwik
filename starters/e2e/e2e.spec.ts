@@ -99,6 +99,18 @@ test.describe('e2e', () => {
       expect(await countWrapped.textContent()).toEqual('countWrapped: 2');
       expect(await btnWrapped.textContent()).toEqual('Wrapped 2');
     });
+
+    test('should prevent defaults and bubbling', async ({ page }) => {
+      const prevented1 = await page.locator('#prevent-default-1');
+      const prevented2 = await page.locator('#prevent-default-2');
+      const countWrapped = await page.locator('#count-anchor');
+
+      await prevented1.click();
+      await expect(countWrapped).toHaveText('countAnchor: 0');
+
+      await prevented2.click();
+      await expect(countWrapped).toHaveText('countAnchor: 1');
+    });
   });
 
   test.describe('slot', () => {
@@ -457,12 +469,14 @@ test.describe('e2e', () => {
     });
 
     test('should load', async ({ page }) => {
+      const container = await page.locator('#container');
       const counter = await page.locator('#counter');
       const msg = await page.locator('#msg');
       const msgEager = await page.locator('#eager-msg');
       const msgClientSide1 = await page.locator('#client-side-msg-1');
       const msgClientSide2 = await page.locator('#client-side-msg-2');
 
+      await expect(container).toHaveAttribute('data-effect', '');
       await expect(counter).toHaveText('0');
       await expect(msg).toHaveText('empty');
       await expect(msgEager).toHaveText('run');
@@ -472,10 +486,12 @@ test.describe('e2e', () => {
       await counter.scrollIntoViewIfNeeded();
       await page.waitForTimeout(100);
 
+      await expect(container).toHaveAttribute('data-effect', 'true');
       await expect(counter).toHaveText('10');
       await expect(msg).toHaveText('run');
 
       await page.waitForTimeout(500);
+      await expect(container).toHaveAttribute('data-effect', 'true');
       await expect(counter).toHaveText('11');
       await expect(msg).toHaveText('run');
     });
@@ -706,11 +722,15 @@ test.describe('e2e', () => {
 
     test('should load', async ({ page }) => {
       const parent = await page.locator('.parent');
-      const child1 = await page.locator('text=Child 2');
+      const child2 = await page.locator('text=Child 2');
+      const inline2 = await page.locator('text=Inline 2');
 
       const addChild = await page.locator('button');
+
+      await expect(parent).toHaveAttribute('class', '⭐️yalzmy-0 parent count-10');
       await expect(parent).toHaveCSS('font-size', '200px');
-      await expect(child1).toHaveCSS('font-size', '20px');
+      await expect(child2).toHaveCSS('font-size', '20px');
+      await expect(inline2).toHaveCSS('font-size', '40px');
 
       const el = await page.$$('[q\\:style]');
       await expect(el.length).toBe(3);
@@ -718,9 +738,14 @@ test.describe('e2e', () => {
       await page.waitForTimeout(100);
 
       const child10 = await page.locator('text=Child 10');
+      const inline10 = await page.locator('text=Inline 10');
+
+      await expect(parent).toHaveAttribute('class', '⭐️yalzmy-0 parent count-11');
       await expect(parent).toHaveCSS('font-size', '200px');
-      await expect(child1).toHaveCSS('font-size', '20px');
+      await expect(child2).toHaveCSS('font-size', '20px');
+      await expect(inline2).toHaveCSS('font-size', '40px');
       await expect(child10).toHaveCSS('font-size', '20px');
+      await expect(inline10).toHaveCSS('font-size', '40px');
 
       const el2 = await page.$$('[q\\:style]');
       await expect(el2.length).toBe(3);

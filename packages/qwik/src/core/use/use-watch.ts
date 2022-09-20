@@ -21,6 +21,8 @@ import type { ContainerState } from '../render/container';
 import { notifyWatch, _hW } from '../render/dom/notify-render';
 import { useSequentialScope } from './use-sequential-scope';
 import type { QwikElement } from '../render/dom/virtual-element';
+import { handleError } from '../render/error-handling';
+import type { RenderContext } from '../render/types';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;
@@ -260,12 +262,12 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
   const watch = new Watch(WatchFlagsIsDirty | WatchFlagsIsWatch, i, el, qrl, undefined);
   const elCtx = getContext(el);
   set(true);
-  qrl.$resolveLazy$();
+  qrl.$resolveLazy$(containerState.$containerEl$);
   if (!elCtx.$watches$) {
     elCtx.$watches$ = [];
   }
   elCtx.$watches$.push(watch);
-  waitAndRun(ctx, () => runSubscriber(watch, containerState));
+  waitAndRun(ctx, () => runSubscriber(watch, containerState, ctx.$renderCtx$));
   if (isServer()) {
     useRunWatch(watch, opts?.eagerness);
   }
@@ -372,6 +374,7 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
   const watch = new Watch(WatchFlagsIsEffect, i, el, qrl, undefined);
   const eagerness = opts?.eagerness ?? 'visible';
   const elCtx = getContext(el);
+  const containerState = ctx.$renderCtx$.$static$.$containerState$;
   set(true);
   if (!elCtx.$watches$) {
     elCtx.$watches$ = [];
@@ -379,8 +382,8 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
   elCtx.$watches$.push(watch);
   useRunWatch(watch, eagerness);
   if (!isServer()) {
-    qrl.$resolveLazy$();
-    notifyWatch(watch, ctx.$renderCtx$.$static$.$containerState$);
+    qrl.$resolveLazy$(containerState.$containerEl$);
+    notifyWatch(watch, containerState);
   }
 };
 
@@ -550,7 +553,7 @@ export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
     return;
   }
   assertQrl(mountQrl);
-  mountQrl.$resolveLazy$();
+  mountQrl.$resolveLazy$(ctx.$renderCtx$.$static$.$containerState$.$containerEl$);
   waitAndRun(ctx, mountQrl);
   set(true);
 };
@@ -602,12 +605,16 @@ export const isResourceWatch = (watch: SubscriberDescriptor): watch is ResourceD
   return !!watch.$resource$;
 };
 
-export const runSubscriber = (watch: SubscriberDescriptor, containerState: ContainerState) => {
+export const runSubscriber = (
+  watch: SubscriberDescriptor,
+  containerState: ContainerState,
+  rctx?: RenderContext
+) => {
   assertEqual(!!(watch.$flags$ & WatchFlagsIsDirty), true, 'Resource is not dirty', watch);
   if (isResourceWatch(watch)) {
     return runResource(watch, containerState);
   } else {
-    return runWatch(watch, containerState);
+    return runWatch(watch, containerState, rctx);
   }
 };
 
@@ -722,13 +729,14 @@ export const runResource = <T>(
 
 export const runWatch = (
   watch: WatchDescriptor,
-  containerState: ContainerState
+  containerState: ContainerState,
+  rctx?: RenderContext
 ): ValueOrPromise<void> => {
   watch.$flags$ &= ~WatchFlagsIsDirty;
 
   cleanupWatch(watch);
-  const el = watch.$el$;
-  const invokationContext = newInvokeContext(el, undefined, 'WatchEvent');
+  const hostElement = watch.$el$;
+  const invokationContext = newInvokeContext(hostElement, undefined, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
   const watchFn = watch.$qrl$.getFn(invokationContext, () => {
     subsManager.$clearSub$(watch);
@@ -766,7 +774,7 @@ export const runWatch = (
       }
     },
     (reason) => {
-      logError(reason);
+      handleError(reason, hostElement, rctx);
     }
   );
 };

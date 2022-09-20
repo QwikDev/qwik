@@ -18,8 +18,15 @@ export const Head = component$(() => {
       <meta name="application-name" content="Qwik" />
       <meta name="apple-mobile-web-app-title" content="Qwik" />
       <meta name="theme-color" content="#0093ee" />
+      <meta property="og:title" content="Qwik - Framework reimagined for the edge" />
+      <meta
+        property="og:description"
+        content="No hydration, auto lazy-loading, edge-optimized, and fun 🎉!"
+      />
       <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
       <link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
 
       {import.meta.env.PROD && (
         <>

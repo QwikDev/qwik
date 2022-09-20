@@ -2,7 +2,6 @@ import { assertDefined } from '../assert/assert';
 import { ELEMENT_ID, OnRenderProp, QSlot, RenderEvent } from '../util/markers';
 import { safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
-import { logError } from '../util/log';
 import { isArray, isObject, isString, ValueOrPromise } from '../util/types';
 import { QContext, tryGetContext } from '../props/props';
 import type { JSXNode } from './jsx/types/jsx-node';
@@ -15,6 +14,7 @@ import type { QwikElement } from './dom/virtual-element';
 import { qSerialize, seal } from '../util/qdev';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { SkipRender } from './jsx/utils.public';
+import { handleError } from './error-handling';
 
 export interface ExecuteComponentOutput {
   node: JSXNode | null;
@@ -46,6 +46,7 @@ export const executeComponent = (
   invocatinContext.$renderCtx$ = rctx;
 
   // Resolve render function
+  onRenderQRL.$setContainer$(rctx.$static$.$containerState$.$containerEl$);
   const onRenderFn = onRenderQRL.getFn(invocatinContext);
 
   return safeCall(
@@ -53,7 +54,7 @@ export const executeComponent = (
     (jsxNode) => {
       elCtx.$attachedListeners$ = false;
       if (waitOn.length > 0) {
-        return Promise.allSettled(waitOn).then(() => {
+        return Promise.all(waitOn).then(() => {
           if (elCtx.$dirty$) {
             return executeComponent(rctx, elCtx);
           }
@@ -72,7 +73,7 @@ export const executeComponent = (
       };
     },
     (err) => {
-      logError(err);
+      handleError(err, hostElement, rctx);
       return {
         node: SkipRender,
         rctx: newCtx,
@@ -113,30 +114,33 @@ export const pushRenderContext = (ctx: RenderContext, elCtx: QContext): RenderCo
   return newCtx;
 };
 
-export const parseClassAny = (obj: any): string[] => {
+export const serializeClass = (obj: any) => {
   if (isString(obj)) {
-    return parseClassList(obj);
+    return obj;
   } else if (isObject(obj)) {
     if (isArray(obj)) {
-      return obj;
+      return obj.join(' ');
     } else {
-      const output: string[] = [];
-      for (const key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-          const value = obj[key];
-          if (value) {
-            output.push(key);
+      let buffer = '';
+      let previous = false;
+      for (const key of Object.keys(obj)) {
+        const value = obj[key];
+        if (value) {
+          if (previous) {
+            buffer += ' ';
           }
+          buffer += key;
+          previous = true;
         }
       }
-      return output;
+      return buffer;
     }
   }
-  return [];
+  return '';
 };
 
 const parseClassListRegex = /\s/;
-const parseClassList = (value: string | undefined | null): string[] =>
+export const parseClassList = (value: string | undefined | null): string[] =>
   !value ? EMPTY_ARRAY : value.split(parseClassListRegex);
 
 export const stringifyStyle = (obj: any): string => {

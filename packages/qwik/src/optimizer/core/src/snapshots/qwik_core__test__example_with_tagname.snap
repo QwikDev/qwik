@@ -25,6 +25,8 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
     return qrl(()=>import("./foo_component_1_dvu6fitwgly"), "Foo_component_1_DvU6FitWglY");
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IAChC,uFAKG;CACN\"}")
 /*
 {
   "origin": "test.tsx",
@@ -53,6 +55,8 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
 };
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAIa,IAAM;IACX,QACK,GAAG,EAAC;;YACL,EAAE,GAAG,EACR;CACJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -80,6 +84,8 @@ export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_ht
     tagName: "my-foo"
 });
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,0FAOhB;IACC,OAAO,EAAE,QAAQ;CACpB,CAAC,CAAC\"}")
 == DIAGNOSTICS ==
 
 []

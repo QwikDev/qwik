@@ -76,7 +76,7 @@ jobs:
         run: yarn install --immutable --network-timeout 300000
 
       - name: Build Package
-        run: yarn tsm scripts/index.ts --tsc --build --api --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: yarn tsm scripts/index.ts --tsc --build --cli --api --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print Package Dist Build
         run: tree packages/qwik/dist/
@@ -87,9 +87,6 @@ jobs:
           name: dist-dev-builder-io-qwik
           path: packages/qwik/dist/
           if-no-files-found: error
-
-      - name: Build Create Qwik CLI
-        run: yarn tsm scripts/index.ts --cli
 
       - name: Print Create Qwik CLI Dist Build
         run: tree packages/create-qwik/dist/

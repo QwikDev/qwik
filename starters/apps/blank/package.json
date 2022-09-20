@@ -1,7 +1,0 @@
-{
-  "description": "Blank Qwik starter app.",
-  "type": "module",
-  "__qwik__": {
-    "priority": 0
-  }
-}

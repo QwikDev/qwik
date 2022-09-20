@@ -41,9 +41,24 @@ renderSSRSuite('render class', async () => {
       class={{
         stuff: true,
         other: false,
+        'm-0 p-2': true,
       }}
     ></div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div class="stuff"></div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div class="stuff m-0 p-2"></div></html>'
+  );
+
+  await testSSR(
+    <div class={['stuff', '', 'm-0 p-2', null, 'active', undefined, 'container'] as any}></div>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <div class="stuff m-0 p-2 active container"></div>
+    </html>`
+  );
+});
+
+renderSSRSuite('render htmlFor', async () => {
+  await testSSR(
+    <label htmlFor="stuff"></label>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><label for="stuff"></label></html>'
   );
 });
 
@@ -51,6 +66,16 @@ renderSSRSuite('render contentEditable', async () => {
   await testSSR(
     <div contentEditable="true"></div>,
     '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div contentEditable="true"></div></html>'
+  );
+});
+
+renderSSRSuite('render fake click handler', async () => {
+  const Div = 'div' as any;
+  await testSSR(
+    <Div on:click="true" onScroll="text"></Div>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <div on:click="true" onScroll="text"></div>
+    </html>`
   );
 });
 
@@ -118,6 +143,23 @@ renderSSRSuite('innerHTML', async () => {
   await testSSR(
     <div dangerouslySetInnerHTML="<p>hola</p>"></div>,
     '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div><p>hola</p></div></html>'
+  );
+  await testSSR(
+    <div dangerouslySetInnerHTML=""></div>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div></div></html>'
+  );
+  const Div = 'div' as any;
+  await testSSR(
+    <Div dangerouslySetInnerHTML={0}></Div>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div>0</div></html>'
+  );
+  await testSSR(
+    <script dangerouslySetInnerHTML="() => null"></script>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <script>
+        () => null
+      </script>
+    </html>`
   );
 });
 
@@ -300,12 +342,19 @@ renderSSRSuite('using component with key', async () => {
 
 renderSSRSuite('using component props', async () => {
   await testSSR(
-    <MyCmp id="12" host:prop="attribute" innerHTML="123" dangerouslySetInnerHTML="432" prop="12" />,
+    <MyCmp
+      id="12"
+      host:prop="attribute"
+      innerHTML="123"
+      dangerouslySetInnerHTML="432"
+      onClick="lazy.js"
+      prop="12"
+    />,
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       <section>
-        <div>MyCmp{"id":"12","host:prop":"attribute","innerHTML":"123","dangerouslySetInnerHTML":"432","prop":"12"}</div>
+        <div>MyCmp{"id":"12","host:prop":"attribute","innerHTML":"123","dangerouslySetInnerHTML":"432","onClick":"lazy.js","prop":"12"}</div>
       </section>
       <!--/qv-->
     </html>
@@ -548,7 +597,7 @@ renderSSRSuite('component useStylesScoped()', async () => {
           }
         </style>
         <div class="⭐️1d-0 host">
-          <div class="⭐️1d-0">
+          <div class="⭐️1d-0 div">
             Scoped1
             <!--qv q:s q:sref=0 q:key=-->
             <div>projected</div>
@@ -852,7 +901,7 @@ export const ScopedStyles1 = component$(() => {
 
   return (
     <div class="host">
-      <div>
+      <div className="div">
         Scoped1
         <Slot></Slot>
         <p>Que tal?</p>

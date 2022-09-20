@@ -18,6 +18,8 @@ export const SideBar = component$(() => {
         <button
           onClick$={() => (globalStore.sideMenuOpen = !globalStore.sideMenuOpen)}
           type="button"
+          title="Toggle left menu"
+          aria-label="Toggle left menu"
         >
           <span class="sr-only">Navigation</span>
           <svg width="24" height="24">
@@ -46,31 +48,40 @@ export const SideBar = component$(() => {
         >
           <CloseIcon width={24} height={24} />
         </button>
-        {menu?.items
-          ? menu.items.map((item) => (
-              <>
-                <h5>{item.text}</h5>
-                <ul>
-                  {item.items?.map((item) => (
-                    <li>
-                      <a
-                        href={item.href}
-                        class={{
-                          'is-active': pathname === item.href,
-                        }}
-                      >
-                        {item.text}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            ))
-          : null}
+        <Items items={menu?.items} pathname={pathname} />
       </nav>
     </aside>
   );
 });
+
+export function Items({ items, pathname }: { items?: ContentMenu[]; pathname: string }) {
+  return (
+    <ul>
+      {items &&
+        items.map((item, i) => (
+          <li>
+            {item.items ? (
+              <details open={i < 1 || item.items?.some((item) => pathname === item.href)}>
+                <summary>
+                  <h5>{item.text}</h5>
+                </summary>
+                <Items items={item.items} pathname={pathname} />
+              </details>
+            ) : (
+              <a
+                href={item.href}
+                class={{
+                  'is-active': pathname === item.href,
+                }}
+              >
+                {item.text}
+              </a>
+            )}
+          </li>
+        ))}
+    </ul>
+  );
+}
 
 export function createBreadcrumbs(menu: ContentMenu | undefined, pathname: string) {
   if (menu?.items) {

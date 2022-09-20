@@ -23,7 +23,7 @@ You can think of the page load as the first user interaction, which prefetches w
 
 ## Prefetch Event
 
-The recommended prefetching strategy is to use a [service worker](../service-worker-prefetching/index.mdx) to populate the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). Qwik itself should be configured to use the [prefetchEvent](../../../docs/advanced/prefetching/index.mdx) implmentation, which will dispatch a prefect event.
+The recommended prefetching strategy is to use a [service worker](../service-worker-prefetching/index.mdx) to populate the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). Qwik itself should be configured to use the [prefetchEvent](../../../docs/advanced/prefetching/index.mdx) implementation, which will dispatch a prefetch event.
 
 The `qprefetch` event can contain various detailed data about what to prefetch, such as:
 

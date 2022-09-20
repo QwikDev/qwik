@@ -15,7 +15,7 @@ export const RouterHead = component$(() => {
       <meta name="apple-mobile-web-app-title" content="Qwik" />
       <meta name="application-name" content="Qwik" />
       <meta name="apple-mobile-web-app-title" content="Qwik" />
-      <meta name="theme-color" content="#0093ee" />
+      <meta name="theme-color" content="#006ce9" />
 
       <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
       <link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />

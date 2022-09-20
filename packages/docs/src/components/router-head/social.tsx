@@ -1,9 +1,11 @@
 import type { ResolvedDocumentHead, RouteLocation } from '@builder.io/qwik-city';
 
 export const Social = ({ head, loc }: SocialProps) => {
-  const title = head.title;
-  const desc = head.meta.find((m) => m.name === 'description')?.content;
-  const img = '/logos/social.png';
+  const title = head.title || `Qwik - Framework reimagined for the edge`;
+  const desc =
+    head.meta.find((m) => m.name === 'description')?.content ||
+    `No hydration, auto lazy-loading, edge-optimized, and fun 🎉!`;
+  const img = new URL('/logos/social.png', loc.href).href;
   const imgAlt =
     'Image of Qwik Framework Logo, Framework reimagined for the edge. Code snippet npm create qwik@latest';
 
@@ -15,8 +17,8 @@ export const Social = ({ head, loc }: SocialProps) => {
       <meta property="og:description" content={desc} />
       <meta property="og:image" content={img} />
       <meta property="og:image:alt" content={imgAlt} />
-      <meta property="og:image:width" content="4554" />
-      <meta property="og:image:height" content="2916" />
+      <meta property="og:image:width" content="800" />
+      <meta property="og:image:height" content="418" />
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content="Qwik" />
       <meta property="og:locale" content="en_US" />

@@ -31,6 +31,51 @@ However, there are fundamentally [new concepts](../think-qwik/index.mdx) to lear
 
 We also got an interactive [tutorial](../../tutorial/welcome/overview/) to get you started.
 
+### What are all those `$`?
+
+You might have noticed that there are more [`$`](../advanced/optimizer/index.mdx#the-meaning-of-) than usual in Qwik apps: `component$()`, `useWatch$()`, `<div onClick$={() => console.log('click')} />`. It's not for nothing, Qwik breaks your application into small chunks, this pieces are smaller than the component itself, event handlers, hooks... the `$` signals both the [optimizer](../advanced/optimizer/index.mdx) and the developer when it's happening.
+
+**Example:**
+```tsx
+import { component$ } from '@builder.io/qwik';
+
+export const App = component$(() => {
+  console.log('render');
+  return <p onClick$={() => console.log('hello')}>Hello Qwik</p>;
+});
+```
+
+The component above is splitted thanks to the `$` syntax into:
+
+**app.js**
+```js
+import { componentQrl, qrl } from "@builder.io/qwik";
+
+const App = /*#__PURE__*/ componentQrl(qrl(()=>import('./app_component_akbu84a8zes.js'), "App_component_AkbU84a8zes"));
+
+export { App };
+```
+
+**app_component_akbu84a8zes.js**
+```js
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { qrl } from "@builder.io/qwik";
+export const App_component_AkbU84a8zes = ()=>{
+    console.log('render');
+    return /*#__PURE__*/ _jsx("p", {
+        onClick$: qrl(()=>import("./app_component_p_onclick_01pegc10cpw"), "App_component_p_onClick_01pEgC10cpw"),
+        children: "Hello Qwik"
+    });
+};
+```
+
+**app_component_p_onclick_01pegc10cpw.js**
+```js
+export const App_component_p_onClick_01pEgC10cpw = ()=>console.log('hello');
+```
+
+
+
 ### Does Qwik download JS when the user interacts?
 
 Nope, in production Qwik uses a lot of information generated during SSR to start [prefetching](../../qwikcity/prefetching/overview/index.mdx) only the bits of interactivity of the current page as soon as possible (ASAP), this way when the user clicks or interacts, the JS is already downloaded.
@@ -49,6 +94,11 @@ Qwik does not need to prefetch everything to start running, while other framewor
 
 Not at all, thanks to [prefetching](../../qwikcity/prefetching/overview/index.mdx) Qwik apps are not more affected by slow networks than other frameworks. In fact because of the fine grained bundling and resumability, Qwik apps can become interactive with much less JS, effectively making them faster on slow networks.
 
+
+### Does Qwik generate too many small files?
+
+In dev mode Qwik generates a lot of small files because it uses the Dev [Vite.js](https://vitejs.dev/) server, but in production mode Qwik bundles files in a more efficient way.
+
 ### Is there a Router for Qwik available?
 
 YES! [Qwik City](../../qwikcity/overview/index.mdx) includes a directory-based router, and it is inspired by Nextjs and others.
@@ -58,10 +108,6 @@ YES! [Qwik City](../../qwikcity/overview/index.mdx) includes a directory-based r
 You can deploy easily a Qwik App in any [serverless enviroment thanks to our adaptors](../../qwikcity/middleware/overview/index.mdx), we also support a [vanilla-node adaptor](../../qwikcity/middleware/express/index.mdx) for Express-based servers.
 
 You can deploy your Qwik app as a static site, if there is no need for SSR, thanks to our [SSG adaptor](../../qwikcity/static-site-generation/overview/index.mdx).
-
-### Does Qwik generate too many small files?
-
-In dev mode Qwik generates a lot of small files because it uses the Dev [Vite.js](https://vitejs.dev/) server, but in production mode Qwik bundles files in a more efficient way.
 
 ### SPA is faster than MPA
 
@@ -83,6 +129,9 @@ With Qwik, developers don't need to choose between SPA and MPA, every site is bo
 
 MPA vs SPA is not longer an architectural decision taken at beginning of the project, but a decision made for every link.
 
+### Can Qwik do SSG?
+
+Yes! It's part of all Qwik City starters, learn how to do [Static Site Generation here](../../qwikcity/static-site-generation/overview/index.mdx).
 
 ### but... with other frameworks I can also do MPA and SPA
 

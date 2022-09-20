@@ -1,6 +1,6 @@
 import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QRL } from './qrl.public';
-import { assertQrl, createQRL, QRLInternal } from './qrl-class';
+import { assertQrl, createQRL, emitEvent, getSymbolHash, QRLInternal } from './qrl-class';
 import { isFunction, isString } from '../util/types';
 import { getDocument } from '../util/dom';
 import { logError } from '../util/log';
@@ -83,7 +83,14 @@ export const qrl = <T = any>(
       } else {
         throw qError(QError_dynamicImportFailed, srcCode);
       }
-      QRLcache.set(symbol, chunk);
+      if (!qDev) {
+        // Add to cache
+        QRLcache.set(symbol, chunk);
+        // Emit event
+        emitEvent('qprefetch', {
+          symbols: [getSymbolHash(symbol)],
+        });
+      }
     }
   } else {
     throw qError(QError_unknownTypeArgument, chunkOrFn);

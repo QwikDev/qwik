@@ -6,7 +6,7 @@ title: Qwik City Caching Request and Response Pairs
 
 In many traditional frameworks, the preferred strategy is to use `<link>` with a `rel` attribute of `prefetch`, `preload` or `modulepreload`. However, there are [enough known issues](#known-issues-with-link) that Qwik has preferred to not make `link` the default prefetching strategy (though it still can be [configured](../../../docs/advanced/prefetching/index.mdx)).
 
-Instead, Qwik prefers to using a newer approach which takes full advantage of the browser's [Cache API](https://developer.mozilla.org/en-US/docs/Web/API/Cache), which is also better supported compared to [modulepreload](#known-issues-with-link).
+Instead, Qwik prefers to use a newer approach that takes full advantage of the browser's [Cache API](https://developer.mozilla.org/en-US/docs/Web/API/Cache), which is also better supported compared to [modulepreload](#known-issues-with-link).
 
 ## Cache API
 
@@ -24,17 +24,17 @@ When Qwik requests a module it uses a dynamic `import()`. For example, let's say
 const module = await import('/build/q-abc.js');
 ```
 
-What's important is here that Qwik itself has no knowledge of a prefetching or caching strategy. It's simply making a request for a URL. However, because we've installed a service worker, and the service worker is intercepting requests, the it's able to inspect the URL and say, "oh hey look, this is a reqest for `/build/q-abc.js`! This is one of our bundles! Let's first check to see if we already have this in the cache before we do an actual network request."
+What's important is here that Qwik itself has no knowledge of a prefetching or caching strategy. It's simply making a request for a URL. However, because we've installed a service worker, and the service worker is intercepting requests, it's able to inspect the URL and say, "look, this is a request for `/build/q-abc.js`! This is one of our bundles! Let's first check to see if we already have this in the cache before we do an actual network request."
 
-This is where the power of the service worker and cache API come in! Qwik is able to first pre-populate the cache for modules the user may soon request within another thread. And better yet, if it's already cached, then there's no need for the browser to do anything.
+This is where the power of the service worker and cache API comes in! Qwik first pre-populates the cache for modules the user may soon request within another thread. And better yet, if it's already cached, then there's no need for the browser to do anything.
 
 Other benefits include [Parallelizing Network Requests](../parallelizing-network-requests/index.mdx).
 
 ## Known Issues with link
 
-The challenge with the link rel approach is lack of support on _all_ devices, at least at the time of writing. Additionally, during development it can be misleading that it works everywhere, while on mobile devices it is not easily visible that link prefetching is working correctly.
+The challenge with the link rel approach is the lack of support on _all_ devices, at least at the time of writing. Additionally, during development, it can be misleading that it works everywhere, while on mobile devices it is not easily visible that link prefetching is working correctly.
 
-> Prefetch is a feature that's supposed to help make our visitor's experiences faster but with the wrong combination of browser and CDN / server it can actually make experiences slower!
+> Prefetch is a feature that's supposed to help make our visitor's experiences faster but with the wrong combination of browser and CDN / server it can make experiences slower!
 >
 > \- <cite><a href="https://andydavies.me/blog/2020/07/08/rel-equals-prefetch-and-the-importance-of-effective-http-slash-2-prioritisation/">Rel=prefetch and the Importance of Effective HTTP/2 Prioritisation</a></cite>
 
@@ -46,6 +46,6 @@ The challenge with the link rel approach is lack of support on _all_ devices, at
 
 ### Duplicate Requests
 
-It may be possible to fire off a duplicate requests for the same resource. For example, let's say we want to prefetch `module-a.js`, and while that's being downloaded (which may take a short time, or a very long time, we don't know), the user interacts with the app, which then decides to actually request and execute `module-a.js`. At the time of writing, browsers will often fire off a second request, which actually makes matters worse.
+It may be possible to fire off duplicate requests for the same resource. For example, let's say we want to prefetch `module-a.js`, and while that's being downloaded (which may take a short time or a very long time, we don't know), the user interacts with the app, which then decides to request and execute `module-a.js`. At the time of writing, browsers will often fire off a second request, which makes matters worse.
 
-The service worker approach is able to [avoid this](../parallelizing-network-requests/index.mdx) by identifying a request is already inflight, waiting on the first request for `module-a.js` to finish, and then cloning it for the second request. Meaning only one network request will happen, even though numerous modules and prefetches may call for the same request/response.
+The service worker approach can [avoid this](../parallelizing-network-requests/index.mdx) by identifying a request that is already in flight, waiting on the first request for `module-a.js` to finish, and then cloning it for the second request. Meaning only one network request will happen, even though numerous modules and prefetches may call for the same request/response.

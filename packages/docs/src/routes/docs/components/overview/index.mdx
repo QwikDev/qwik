@@ -37,7 +37,7 @@ export const MyCmp = component$(async (props: MyCmpProps) => {
       <button
         onClick$={() => {
           // This will update the local state and cause a re-render.
-          // Reactivity is at qwik's core!
+          // Reactivity is at Qwik's core!
           state.count++;
         }}
       >
@@ -97,7 +97,7 @@ The above example shows how the `MyApp` component can use the `Counter` componen
 
 Qwik components are reactive on the component level. Component props, as well as stores, are proxies. These proxies track reads as well as writes.
 
-- A proxy-read during OnRender function execution lets Qwik know that the OnRender function depends on a given property. A read creates a subscription on that property. In our example, OnRender reads`{store.count}`, which creates a subscription that tells Qwik that whenever the `store.count` changes, the component should be invalidated.
+- A proxy-read during OnRender method execution lets Qwik know that the OnRender method depends on a given property. A read creates a subscription on that property. In our example, OnRender reads`{store.count}`, which creates a subscription that tells Qwik that whenever the `store.count` changes, the component should be invalidated.
 - A proxy-write notifies Qwik that all associated subscriptions should be invalidated.
 
 When components get invalidated, they are added to the invalidation queue, which is flushed (rendered) on the next `requestAnimationFrame`. This acts as a form of coalescing for component rendering.
@@ -151,7 +151,7 @@ const Parent_onRender = () => (
 > **NOTE**
 > For simplicity, not all of the transformations are shown; all resulting symbols are kept in the same file for succinctness.
 
-Notice that after the optimizer transforms the code, the `Parent` no longer directly references `Child`. This is important because it allows the bundler (and tree shakers) to freely move the symbols into different chunks without pulling the rest of the application with it.
+Notice that after the Optimizer transforms the code, the `Parent` no longer directly references `Child`. This is important because it allows the bundler (and tree shakers) to freely move the symbols into different chunks without pulling the rest of the application with it.
 
 So what happens when the `Parent` component renders and `Child` component has not yet been downloaded? First, the `Parent` component renders its JSX like so.
 
@@ -167,7 +167,7 @@ As you can see in the above example, the `<div/>` acts as a marker where the `Ch
 
 ## Mental Model
 
-The optimizer splits Qwik components into the host element and the behavior of the component. The host element gets bundled with the parent components OnRender function, whereas the component's behavior is something that gets lazy-loaded on an as-needed basis.
+The Optimizer splits Qwik components into the host element and the behavior of the component. The host element gets bundled with the parent component's OnRender method, whereas the component's behavior is something that gets lazy-loaded on an as-needed basis.
 
 ## API Overview
 

@@ -1,14 +1,15 @@
-import type { AppBundle, LinkBundle, ServiceWorkerMessageEvent } from './types';
+import type { AppBundle, AppSymbols, LinkBundle, ServiceWorkerMessageEvent } from './types';
 import { awaitingRequests, qBuildCacheName } from './constants';
 import { cachedFetch } from './cached-fetch';
-import { getCacheToDelete, isAppBundleRequest } from './utils';
+import { getCacheToDelete, isAppBundleRequest, resolveSymbols } from './utils';
 import { prefetchBundleNames, prefetchLinkBundles, prefetchWaterfall } from './prefetch';
 
 export const setupServiceWorkerScope = (
   swScope: ServiceWorkerGlobalScope,
   appBundles: AppBundle[],
   libraryBundleIds: number[],
-  linkBundles: LinkBundle[]
+  linkBundles: LinkBundle[],
+  appSymbols: AppSymbols
 ) => {
   swScope.addEventListener('fetch', (ev) => {
     const request = ev.request;
@@ -48,6 +49,11 @@ export const setupServiceWorkerScope = (
 
       if (Array.isArray(data.bundles)) {
         prefetchBundleNames(appBundles, qBuildCache, nativeFetch, baseUrl, data.bundles);
+      }
+
+      if (Array.isArray(data.symbols)) {
+        const paths = resolveSymbols(appSymbols, data.symbols);
+        prefetchBundleNames(appBundles, qBuildCache, nativeFetch, baseUrl, paths);
       }
     }
   });

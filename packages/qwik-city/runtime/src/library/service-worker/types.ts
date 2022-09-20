@@ -1,7 +1,7 @@
 export interface QPrefetchData {
   links?: string[];
   bundles?: string[];
-  qKeys?: string[];
+  symbols?: string[];
 }
 
 export interface QPrefetchMessage extends QPrefetchData {
@@ -15,6 +15,7 @@ export interface ServiceWorkerMessageEvent {
   data: ServiceWorkerMessage;
 }
 
+export type AppSymbols = Map<string, string>;
 export type AppBundle =
   | [bundleName: string, importedBundleIds: number[]]
   | [bundleName: string, importedBundleIds: number[], symbolHashesInBundle: string[]];

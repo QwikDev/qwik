@@ -23,6 +23,13 @@
 - [Named](layout/named/index.mdx)
 - [Top](layout/top/index.mdx)
 
+## Prefetching
+
+- [Overview](prefetching/overview/index.mdx)
+- [Service Worker](prefetching/service-worker-prefetching/index.mdx)
+- [Response Caching](prefetching/request-response-cache/index.mdx)
+- [Parallelizing Requests](prefetching/parallelizing-network-requests/index.mdx)
+
 ## Authoring Content
 
 - [Components](content/component/index.mdx)

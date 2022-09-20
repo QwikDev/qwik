@@ -90,7 +90,7 @@ const scrollToHashId = (doc: Document, hash: string) => {
 };
 
 export const dispatchPrefetchEvent = (prefetchData: QPrefetchData) =>
-  dispatchEvent(new CustomEvent('qprefetch', { detail: prefetchData }));
+  document.dispatchEvent(new CustomEvent('qprefetch', { detail: prefetchData }));
 
 export const CLIENT_HISTORY_INITIALIZED = /* @__PURE__ */ Symbol();
 

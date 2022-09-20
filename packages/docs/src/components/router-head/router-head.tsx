@@ -4,13 +4,17 @@ import { Social } from './social';
 import { Vendor } from './vendor';
 
 export const RouterHead = component$(() => {
+  const { href } = useLocation();
   const head = useDocumentHead();
-  const loc = useLocation();
+  const title = head.title ? `${head.title} - Qwik` : `Qwik - Framework reimagined for the edge`;
+  const description =
+    head.meta.find((m) => m.name === 'description')?.content ||
+    `No hydration, auto lazy-loading, edge-optimized, and fun 🎉!`;
 
   return (
     <>
-      <title>{head.title ? `${head.title} - Qwik` : `Qwik`}</title>
-      <link rel="canonical" href={loc.href} />
+      <title>{title}</title>
+      <link rel="canonical" href={href} />
       <meta name="viewport" content="width=device-width" />
       <meta name="apple-mobile-web-app-title" content="Qwik" />
       <meta name="application-name" content="Qwik" />
@@ -24,7 +28,7 @@ export const RouterHead = component$(() => {
 
       {import.meta.env.PROD && (
         <>
-          <Social loc={loc} head={head} />
+          <Social title={title} description={description} href={href} />
           <Vendor />
         </>
       )}

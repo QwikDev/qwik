@@ -8,7 +8,7 @@ Prefetching is a way for applications to begin downloading modules in a backgrou
 
 Only downloading and executing a minimal amount of JavaScript is an area where Qwik applications excel. And since Qwik is able to understand how individual components are used (and what's not used), it can also best decide which bundles should be prefetched.
 
-Remember, the [difference between resumability and hydration](../../concepts/resumable/index.mdx), is that resumability allows Qwik applications to avoid executing JavaScript just to restore the event listeners, component tree, and application state. By fundamentally breaking apart a component's event listeners, render function, and state, the amount of code to prefetch is also significantly smaller than a traditional approach.
+Remember, the [difference between resumability and hydration](../../concepts/resumable/index.mdx), is that resumability allows Qwik applications to avoid executing JavaScript just to restore the event listeners, component tree, and application state. By fundamentally breaking apart a component's event listeners, render function, and state, the amount of code to prefetch is also significantly smaller than from a traditional approach.
 
 ## Collecting Used Symbols
 
@@ -22,7 +22,7 @@ Since Qwik understand what's possible, it's able to prefetch the code only for t
 
 ## Prefetching Strategy
 
-The prefetching strategy is the logic which decides which JavaScript, if any, Qwik should prefetch in the background. By default, Qwik will prefetch any visible listeners on the page. To configure the prefetching strategy, use the options argument of the `renderToStream()` function, often found in the `src/entry.ssr.tsx` source file. Providing optimal prefetching strategies is an area Qwik will continue to research and experiement with.
+The prefetching strategy is the logic which decides which JavaScript, if any, Qwik should prefetch in the background. By default, Qwik will prefetch any visible listeners on the page. To configure the prefetching strategy, use the options argument of the `renderToStream()` function, often found in the `src/entry.ssr.tsx` source file. Providing optimal prefetching strategies is an area Qwik will continue to research and experiment with.
 
 ```ts
 export default function (opts: RenderToStreamOptions) {
@@ -56,8 +56,8 @@ export default function (opts: RenderToStreamOptions) {
 
 | Option              | Description                                                                                                                                                                                                                                                                                                 |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `prefetchEvent`     | Dispatch a `qprefetch` event with detail data containing the urls that should be prefetched. The event dispatch script will be inlined into the document's HTML. Used by [Qwik City](../../../qwikcity/prefetching/overview/index.mdx).                                                                     |
-| `linkInsert`        | Insert the `<link>` element into the document. When using `html-append`, it will render each `<link>` directly within html, appended at the end of the body. Using the `js-append` option will instead insert JavaScript, which will create the elements at runtime and append them at the end of the body. |
+| `prefetchEvent`     | Dispatch a `qprefetch` event with detailed data containing the urls that should be prefetched. The event dispatch script will be inlined into the document's HTML.                                                                                                                                            |
+| `linkInsert`        | Insert the `<link>` element into the document. When using `html-append`, it will render each `<link>` directly within the html, appended at the end of the body. Using the `js-append` option, it will instead insert some JavaScript, which creates the elements at runtime and appends them at the end of the body. |
 | `linkRel`           | This option is used to define the [`rel` attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types) of the `<link>` element. When the `linkInsert` option is used, the default is `prefetch`. Other options include `preload` and `modulepreload`.                                            |
 | `workerFetchInsert` | Prefetch urls by calling a `fetch()` for each module, with the goal that it populate's the network cache.                                                                                                                                                                                                   |
 
@@ -69,9 +69,9 @@ By using a service worker to intercept fetch requests from the browser, this app
 
 ### Link `rel`
 
-Using the `<link>` element with the `rel` attribute is a common approach by today's frameworks, and Qwik can use this method by configuring the `linkInsert` and `linkRel` options. The challenge with the link rel approach is lack of support on _all_ devices, at least at the time of writing. Additionally, during development it can be misleading that it works everywhere, while on mobile devices it is not easily visible that link prefetching is working correctly.
+Using the `<link>` element with the `rel` attribute is a common approach by today's frameworks, and Qwik can use this method by configuring the `linkInsert` and `linkRel` options. The challenge with the link rel approach is lack of support on _all_ devices, at least at the time of writing. Additionally, during development, it can be misleading that it works everywhere; while on mobile devices it is not easily visible that link prefetching is working correctly.
 
-For example, Safari, which is the browser powering iPhones and iPads, does not support `modulepreload`. This is significant because mobile devices maybe benefit the most from module preloading. Next is Firefox, which does not support link rel `prefetch` when on `https`.
+For example, Safari (the browser powering iPhones and iPads) does not support `modulepreload`. This is significant because mobile devices maybe benefit the most from module preloading. Next is Firefox, which does not support link rel `prefetch` when on `https`.
 
 > Prefetch is a feature that's supposed to help make our visitor's experiences faster but with the wrong combination of browser and CDN / server it can actually make experiences slower!
 >
@@ -99,7 +99,7 @@ No, for several reasons:
 
 - Existing frameworks must download and execute all of the code ([hydration](/docs/concepts/resumable/)) before the application can be interactive. Typically the download of the code is a smaller time cost than the execution of the code.
 - Qwik code prefetch only downloads but does not execute the code. Therefore even if Qwik prefetches the same amount of code as the existing frameworks, the result is significant time cost savings.
-- Qwik prefetches only the code which is needed for the current page. Qwik avoids download code associated with components that are static. In the worst case, Qwik prefetches the same amount of code as the existing frameworks' best case. In most cases, Qwik prefetches a small fraction of code compared to the existing frameworks.
+- Qwik only prefetches the code which is needed for the current page. Qwik avoids downloading code associated with components that are static. In the worst case, Qwik prefetches the same amount of code as the existing frameworks' best case. In most cases, Qwik prefetches a small fraction of code compared to the existing frameworks.
 - Prefetching of code can happen on other threads than the main thread. Many browsers can even pre-parse the AST of the code off the main thread.
 - If the user interaction happens before the prefetch is completed, the browser will automatically prioritize the interaction chunk before the remaining prefetch chunks.
 - Qwik can break up the application into many small chunks, and these chunks can be downloaded in the order of probability that the user will interact with them. Existing frameworks have trouble breaking up applications into small chunks, and there is no easy way to prioritize the chunk download order because hydration requires a single "main" entry point to the application.

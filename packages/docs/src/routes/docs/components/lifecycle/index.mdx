@@ -12,11 +12,11 @@ import diagram from './diagram2.svg';
 
 ## `useMount$()`
 
-Register a hook that executes on component creation. `useMount$()` will block the rendering of the component until after `useMount$()` callback resolves. (This is useful for fetching asynchronous data and delaying rendering until data is received, ensuring that the rendered component contains the data.).
+`useMount$()` registers a hook to be executed upon component creation. `useMount$()` will block the rendering of the component until after the `useMount$()` callback resolves. (This is useful for fetching asynchronous data and delaying rendering until data is received, ensuring that the rendered component contains the data)
 
-While `useMount$()` executes both on the server and on the client, it runs exactly once. (Either on the server or on the client depending on where the component got first rendered.)
+While `useMount$()` can execute on either the server or on the client, it runs exactly once. (Either on the server or on the client, depending on where the component got first rendered)
 
-See also: `useServerMount$()` that have same semantics but only run on server.
+See also the `useServerMount$()` hook which has the same semantics but only runs on the server.
 
 ### Example
 
@@ -49,7 +49,7 @@ function User(props: { user: User }) {
 
 ## `useServerMount$()`
 
-Registers a server mount hook that runs only in the server when the component is first mounted.
+`useServerMount$()` registers a server-mounted hook that only runs on the server when the component is first mounted.
 
 ### Example
 
@@ -82,13 +82,13 @@ function User(props: { user: User }) {
 
 ## `useWatch$()`
 
-Reruns the `watchFn` when the tracked inputs change.
+Re-runs the `watchFn` when the tracked inputs change.
 
 Use `useWatch` to track changes on a set of inputs, and then re-execute the `watchFn` when those inputs change.
 
-The `watchFn` only executes if the tracked inputs change. To track the inputs use the `track` function to wrap property reads. This creates subscriptions that will trigger the `watchFn` to re-run.
+The `watchFn` only executes if the tracked inputs change. To track the inputs, use the `track` function to wrap property reads. This will create subscriptions that will trigger the `watchFn` to re-run.
 
-See also: `useClientEffect$()` that have same semantics but only run on client.
+See also the `useClientEffect$()` hook that has the same semantics but only runs on the client.
 
 ### Example
 
@@ -129,7 +129,7 @@ const Cmp = component$(() => {
 
 ## `useClientEffect$()`
 
-Reruns the `watchFn` when the tracked inputs change.
+Re-runs the `watchFn` when the tracked inputs change.
 
 If no `track` is being used, it will execute exactly once.
 

@@ -4,11 +4,21 @@ title: Prefetching
 
 # Prefetching
 
-Prefetching is a way for applications to begin downloading modules in a background task, before the user may actually require these modules. The ideal solution is to only prefetch the smallest amount of code that is highly likely to be executed from a user's interaction. Only downloading and executing a minimal amount of JavaScript is an area where Qwik applications excel.
+Prefetching is a way for applications to begin downloading modules in a background task, before the user may actually require these modules. The ideal solution is to only prefetch the smallest amount of code that is highly likely to be executed from a user's interaction, but avoiding any JavaScript that's _couldn't_ be used.
 
-For example, a product page may have a click listener on the "Add to cart" button, and when this button is clicked, the user should immediately get feedback to show that the product was added to the cart. In this example, Qwik would be able to prefetch the code only for the event listener rather than all the JavaScript for the entire application or route. This is in contrast to the traditional approach, where prefetching is used to load the entire application or route and framework code, just in order for the application to add the click event listener.
+Only downloading and executing a minimal amount of JavaScript is an area where Qwik applications excel. And since Qwik is able to understand how individual components are used (and what's not used), it can also best decide which bundles should be prefetched.
 
-Remember, the [difference between resumability and hydration](/docs/concepts/resumable/) is that resumability allows Qwik applications to avoid executing JavaScript just to restore the event listeners, component tree, and application state. By fundamentally breaking apart a component's event listeners, render function, and state, the amount of code to prefetch is significantly smaller than from a traditional approach.
+Remember, the [difference between resumability and hydration](../../concepts/resumable/index.mdx), is that resumability allows Qwik applications to avoid executing JavaScript just to restore the event listeners, component tree, and application state. By fundamentally breaking apart a component's event listeners, render function, and state, the amount of code to prefetch is also significantly smaller than from a traditional approach.
+
+## Collecting Used Symbols
+
+When Qwik renders an app, it's able to collect which "symbols" were used during the render. A symbol includes various parts of a component, which are [extracted by the optimizer](../optimizer/index.mdx) in order to break apart the application. Individual event listeners, component state, and the component renderer itself are examples of different symbols that could be extracted.
+
+For example, a product page may have a click listener on the "Add to cart" button, and when this button is clicked, the user should immediately get feedback to show the product added to the cart. In this example, the Qwik optimizer would be able to understand that the only symbol a user could interact with is the "Add to cart" button click event listener.
+
+For our "Add to cart" example, the optimizer would collect the symbols for only the click event listener, and the renderer for the add to cart widget. It would not, however, have to download, hydrate, and re-render any of the other parts of the application, since it's not even possible to re-render other sections of the page.
+
+Since Qwik understand what's possible, it's able to prefetch the code only for the event listener rather than all the JavaScript for the entire application or route. This is in contrast to the traditional approach, where prefetching is used to load the entire application or route, and framework code, just in order for the application to add the click event listener.
 
 ## Prefetching Strategy
 
@@ -53,7 +63,7 @@ export default function (opts: RenderToStreamOptions) {
 
 ### Request/Response Cache and Service Workers
 
-The preferred caching strategy used by [Qwik City](https://qwik.builder.io/qwikcity/overview/), is to use a Service Worker to populate the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). Qwik itself should be configured to use the `prefetchEvent` option, which will dispatch a `qprefetch` event. Next, Qwik City will listen for this event and communicate with its service worker to persist the Request / Response object pairs so they are cached in long-lived memory.
+The preferred caching strategy used by [Qwik City](../../../qwikcity/prefetching/overview/index.mdx), is to use a Service Worker to populate the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). Qwik itself should be configured to use the `prefetchEvent` implementation, which will dispatch a `qprefetch` event. Next, Qwik City will listen for this event and communicate with its service worker to persist the Request / Response object pairs so they are cached in long-lived memory.
 
 By using a service worker to intercept fetch requests from the browser, this approach allows fine-grain caching control, along with preventing multiple-requests for the resource.
 

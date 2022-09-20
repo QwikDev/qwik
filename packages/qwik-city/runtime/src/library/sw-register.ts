@@ -21,8 +21,8 @@ import type { QPrefetchData, QPrefetchMessage } from './service-worker/types';
     }
   };
 
-  addEventListener('qprefetch', (ev) => {
-    const data = ev.detail;
+  document.addEventListener('qprefetch', (ev) => {
+    const data = (ev as CustomEvent<QPrefetchData>).detail;
     if (swReg) {
       sendPrefetch!(data);
     } else if (data.bundles) {
@@ -58,9 +58,3 @@ interface QwikServiceWorker extends ServiceWorker {
 interface QwikServiceWorkerRegistration extends ServiceWorkerRegistration {
   active: QwikServiceWorker | null;
 }
-
-interface QPrefetchEvent extends CustomEvent {
-  detail: QPrefetchData;
-}
-
-declare const addEventListener: (type: 'qprefetch', cb: (ev: QPrefetchEvent) => void) => void;

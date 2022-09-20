@@ -160,7 +160,7 @@ You will be amazed!
 
 No, Partial hydration (or island architecture) popularized by [Astro](https://astro.build/) is about preventing [full-page hydration](https://www.builder.io/blog/hydration-is-pure-overhead), where all existing components in the page need to be downloaded and executed, and instead breaking the app into islands of interactivity.
 
-Islands that developers need to manually define, and then manually describe in which situations they should be hydrated. Islands that can not community between each other.
+Islands that developers need to manually define, and then manually describe in which situations they should be hydrated. Islands that can not communicate between each other.
 
 Instead, Qwik components does not hydrate at all. Qwik achieves this through a powerful serialization system, that serializes only the necesary state the reactivity graph, so app can resumes without eagarly running any JS.
 

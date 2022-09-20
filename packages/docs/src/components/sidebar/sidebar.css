@@ -87,8 +87,9 @@
 }
 
 .menu ul {
-  @apply border-slate-100 pb-8;
+  @apply border-slate-100;
   padding-left: 10px;
+  padding-bottom: 15px;
 }
 
 .menu li {

@@ -48,33 +48,40 @@ export const SideBar = component$(() => {
         >
           <CloseIcon width={24} height={24} />
         </button>
-        {menu?.items
-          ? menu.items.map((item, i) => (
-              <details open={i < 1 || item.items?.some((item) => pathname === item.href)}>
-                <summary>
-                  <h5>{item.text}</h5>
-                </summary>
-                <ul>
-                  {item.items?.map((item) => (
-                    <li>
-                      <a
-                        href={item.href}
-                        class={{
-                          'is-active': pathname === item.href,
-                        }}
-                      >
-                        {item.text}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            ))
-          : null}
+        <Items items={menu?.items} pathname={pathname} />
       </nav>
     </aside>
   );
 });
+
+export function Items({ items, pathname }: { items?: ContentMenu[]; pathname: string }) {
+  return (
+    <ul>
+      {items &&
+        items.map((item, i) => (
+          <li>
+            {item.items ? (
+              <details open={i < 1 || item.items?.some((item) => pathname === item.href)}>
+                <summary>
+                  <h5>{item.text}</h5>
+                </summary>
+                <Items items={item.items} pathname={pathname} />
+              </details>
+            ) : (
+              <a
+                href={item.href}
+                class={{
+                  'is-active': pathname === item.href,
+                }}
+              >
+                {item.text}
+              </a>
+            )}
+          </li>
+        ))}
+    </ul>
+  );
+}
 
 export function createBreadcrumbs(menu: ContentMenu | undefined, pathname: string) {
   if (menu?.items) {

@@ -252,6 +252,9 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
 // @internal
 export const _hW: () => void;
 
+// @internal (undocumented)
+export const _IMMUTABLE: unique symbol;
+
 // @alpha
 export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET;
 
@@ -283,13 +286,8 @@ export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLEl
 // @public (undocumented)
 export type MountFn<T> = () => ValueOrPromise<T>;
 
-// @alpha
-export const mutable: <T>(v: T) => MutableWrapper<T>;
-
-// @alpha
-export interface MutableWrapper<T> {
-    mut: T;
-}
+// @alpha @deprecated (undocumented)
+export const mutable: <T>(v: T) => T;
 
 // @public
 export type NoSerialize<T> = (T & {
@@ -642,9 +640,6 @@ export const useMount$: <T>(first: MountFn<T>) => void;
 
 // @public
 export const useMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
-
-// @internal (undocumented)
-export const _useMutableProps: (element: Element, mutable: boolean) => void;
 
 // @alpha
 export const useOn: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;

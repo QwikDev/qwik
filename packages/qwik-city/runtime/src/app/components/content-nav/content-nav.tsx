@@ -1,5 +1,5 @@
 import { ContentMenu, Link, useContent, useLocation } from '@builder.io/qwik-city';
-import { component$, mutable, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@builder.io/qwik';
 import styles from './content-nav.css?inline';
 
 export const ContentNav = component$(() => {
@@ -17,14 +17,14 @@ export const ContentNav = component$(() => {
     <nav class="content-nav">
       <div class="prev">
         {prev ? (
-          <Link href={mutable(prev.href)} prefetch={true}>
+          <Link href={prev.href} prefetch={true}>
             {prev.text}
           </Link>
         ) : null}
       </div>
       <div class="next">
         {next ? (
-          <Link href={mutable(next.href)} prefetch={true}>
+          <Link href={next.href} prefetch={true}>
             {next.text}
           </Link>
         ) : null}

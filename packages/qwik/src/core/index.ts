@@ -92,14 +92,11 @@ export { useServerMount$, useServerMountQrl } from './use/use-watch';
 export { useMount$, useMountQrl } from './use/use-watch';
 export { useErrorBoundary } from './use/use-error-boundary';
 
-export { _useMutableProps } from './props/props';
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './util/types';
 export type { NoSerialize } from './object/q-object';
-export { noSerialize, mutable } from './object/q-object';
-export type { MutableWrapper } from './object/q-object';
+export { noSerialize, mutable, _IMMUTABLE } from './object/q-object';
 
 export { version } from './version';

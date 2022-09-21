@@ -1,4 +1,4 @@
-import { component$, mutable, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@builder.io/qwik';
 import { Link, useLocation } from '~qwik-city-runtime';
 import styles from './header.css?inline';
 
@@ -19,7 +19,7 @@ export default component$(() => {
           <Link
             href="/blog"
             prefetch={true}
-            class={mutable({ active: pathname.startsWith('/blog') })}
+            class={{ active: pathname.startsWith('/blog') }}
             data-test-link="blog-home"
           >
             Blog
@@ -27,7 +27,7 @@ export default component$(() => {
           <Link
             href="/docs"
             prefetch={true}
-            class={mutable({ active: pathname.startsWith('/docs') })}
+            class={{ active: pathname.startsWith('/docs') }}
             data-test-link="docs-home"
           >
             Docs
@@ -35,7 +35,7 @@ export default component$(() => {
           <Link
             href="/api"
             prefetch={true}
-            class={mutable({ active: pathname.startsWith('/api') })}
+            class={{ active: pathname.startsWith('/api') }}
             data-test-link="api-home"
           >
             API
@@ -43,7 +43,7 @@ export default component$(() => {
           <Link
             href="/products/hat"
             prefetch={true}
-            class={mutable({ active: pathname.startsWith('/products') })}
+            class={{ active: pathname.startsWith('/products') }}
             data-test-link="products-hat"
           >
             Products
@@ -51,7 +51,7 @@ export default component$(() => {
           <Link
             href="/about-us"
             prefetch={true}
-            class={mutable({ active: pathname.startsWith('/about-us') })}
+            class={{ active: pathname.startsWith('/about-us') }}
             data-test-link="about-us"
           >
             About Us
@@ -59,7 +59,7 @@ export default component$(() => {
           <Link
             href="/sign-in"
             prefetch={true}
-            class={mutable({ active: pathname.startsWith('/sign-in') })}
+            class={{ active: pathname.startsWith('/sign-in') }}
             data-test-link="sign-in"
           >
             Sign In

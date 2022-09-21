@@ -2,6 +2,7 @@
 #![deny(clippy::perf)]
 #![deny(clippy::nursery)]
 #![allow(clippy::use_self)]
+#![feature(box_patterns)]
 
 #[cfg(test)]
 mod test;
@@ -11,6 +12,7 @@ mod collector;
 mod entry_strategy;
 mod errors;
 mod filter_exports;
+mod is_immutable;
 mod package_json;
 mod parse;
 mod transform;

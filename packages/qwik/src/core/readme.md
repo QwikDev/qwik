@@ -442,26 +442,3 @@ Use `useContext()` to retrieve the value of context in a component. To retrieve 
 Serialize the current state of the application into DOM
 
 @alpha
-
-# `mutable`
-
-Mark property as mutable.
-
-Qwik assumes that all bindings in components are immutable by default. This is done for two reasons:
-
-1. JSX does not allow Qwik runtime to know if a binding is static or mutable.
-   `<Example valueA={123} valueB={exp}>` At runtime there is no way to know if `valueA` is immutable.
-2. If Qwik assumes that properties are immutable, then it can do a better job data-shaking the amount of code that needs to be serialized to the client.
-
-Because Qwik assumes that bindings are immutable by default, it needs a way for a developer to let it know that binding is mutable. `mutable()` function serves that purpose.
-`<Example valueA={123} valueB={mutable(exp)}>`. In this case, the Qwik runtime can correctly recognize that the `Example` props are mutable and need to be serialized.
-
-See: [Mutable Props Tutorial](http://qwik.builder.io/tutorial/props/mutable) for an example
-
-@alpha
-
-# `MutableWrapper`
-
-A marker object returned by `mutable()` to identify that the binding is mutable.
-
-@alpha

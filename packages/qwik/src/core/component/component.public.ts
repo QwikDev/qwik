@@ -4,7 +4,6 @@ import { OnRenderProp } from '../util/markers';
 import type { ComponentBaseProps, JSXChildren } from '../render/jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
-import type { MutableWrapper } from '../object/q-object';
 import { SERIALIZABLE_STATE } from '../object/serializers';
 import { qTest } from '../util/qdev';
 import { Virtual } from '../render/jsx/utils.public';
@@ -49,7 +48,7 @@ export type ComponentChildren<PROPS extends {}> = PROPS extends { children: any 
   ? never
   : { children?: JSXChildren };
 /**
- * Extends the defined component PROPS, adding the default ones (children and q:slot) as well as the mutable variations.
+ * Extends the defined component PROPS, adding the default ones (children and q:slot)..
  * @public
  */
 export type PublicProps<PROPS extends {}> = TransformProps<PROPS> &
@@ -57,7 +56,7 @@ export type PublicProps<PROPS extends {}> = TransformProps<PROPS> &
   ComponentChildren<PROPS>;
 
 /**
- * Transform the component PROPS adding the mutable equivalents, so `mutable()` can be used natively.
+ * Transform the component PROPS.
  * @public
  */
 export type TransformProps<PROPS extends {}> = {
@@ -69,7 +68,7 @@ export type TransformProps<PROPS extends {}> = {
  */
 export type TransformProp<T> = T extends PropFnInterface<infer ARGS, infer RET>
   ? (...args: ARGS) => ValueOrPromise<RET>
-  : T | MutableWrapper<T>;
+  : T;
 
 /**
  * @alpha

@@ -26,7 +26,12 @@ export async function transformMenu(
   return `${code} export default ${id}`;
 }
 
-export function parseMenu(opts: NormalizedPluginOptions, filePath: string, content: string) {
+export function parseMenu(
+  opts: NormalizedPluginOptions,
+  filePath: string,
+  content: string,
+  checkFileExists = true
+) {
   const tokens = marked.lexer(content, {});
   let currentDepth = 0;
   const stack: ParsedMenuItem[] = [];
@@ -53,7 +58,7 @@ export function parseMenu(opts: NormalizedPluginOptions, filePath: string, conte
           lastNode.text = h2Token.text;
         } else if (h2Token.type === 'link') {
           lastNode.text = h2Token.text;
-          lastNode.href = getMarkdownRelativeUrl(opts, filePath, h2Token.href, true);
+          lastNode.href = getMarkdownRelativeUrl(opts, filePath, h2Token.href, checkFileExists);
         } else {
           throw new Error(
             `Headings can only be a text or link. Received "${h2Token.type}", value "${h2Token.raw}", in menu: ${filePath}`
@@ -79,7 +84,7 @@ export function parseMenu(opts: NormalizedPluginOptions, filePath: string, conte
                 } else if (liItem.type === 'link') {
                   parentNode.items.push({
                     text: liItem.text,
-                    href: getMarkdownRelativeUrl(opts, filePath, liItem.href, true),
+                    href: getMarkdownRelativeUrl(opts, filePath, liItem.href, checkFileExists),
                   });
                 } else {
                   throw new Error(
@@ -90,7 +95,7 @@ export function parseMenu(opts: NormalizedPluginOptions, filePath: string, conte
             } else if (liToken.type === 'link') {
               parentNode.items.push({
                 text: liToken.text,
-                href: getMarkdownRelativeUrl(opts, filePath, liToken.href, true),
+                href: getMarkdownRelativeUrl(opts, filePath, liToken.href, checkFileExists),
               });
             } else {
               throw new Error(

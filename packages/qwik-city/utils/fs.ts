@@ -31,8 +31,8 @@ export function getPathnameFromDirPath(opts: NormalizedPluginOptions, dirPath: s
   return (
     normalizePathname(pathname, opts.basePathname, opts.trailingSlash)!
       .split('/')
-      // remove pathless segments (directories starting with "__")
-      .filter((segment) => !segment.startsWith('__'))
+      // remove grouped layout segments
+      .filter((segment) => !isGroupedLayoutName(segment))
       .join('/')
   );
 }
@@ -164,4 +164,18 @@ export function isErrorName(extlessName: string) {
     //
   }
   return false;
+}
+
+export function isGroupedLayoutName(dirName: string, warn = true) {
+  if (dirName.startsWith('__')) {
+    if (warn) {
+      console.warn(
+        `Grouped (pathless) layout "${dirName}" should use the "(${dirName.slice(
+          2
+        )})" directory name instead. Prefixing a directory with "__" has been deprecated and will be removed in future verions.`
+      );
+    }
+    return true;
+  }
+  return dirName.startsWith('(') && dirName.endsWith(')');
 }

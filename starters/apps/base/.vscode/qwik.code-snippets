@@ -1,7 +1,7 @@
 {
 	"Qwik component": {
 		"scope": "typescriptreact",
-		"prefix": "q-component w/props",
+		"prefix": "q:component w/props",
 		"description": "Qwik component w/ props",
 		"body": [
 			"export interface ${1:${TM_FILENAME_BASE/(.*)/${1:/capitalize}/}}Props {",
@@ -19,7 +19,7 @@
 	},
 	"Qwik component (simple)": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q-component simple",
+		"prefix": "q:component simple",
 		"description": "Simple Qwik component",
 		"body": [
 			"export const ${1:${TM_FILENAME_BASE/(.*)/${1:/capitalize}/}} = component$(() => {",
@@ -29,7 +29,7 @@
 	},
 	"Qwik state": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q-useStore$",
+		"prefix": "q:useStore$",
 		"description": "useStore() declaration",
 		"body": [
 			"const ${1:state} = useStore({",
@@ -40,7 +40,7 @@
 	},
 	"$ hook": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q-$",
+		"prefix": "q:$",
 		"description": "$() function hook",
 		"body": [
 			"$(() => {",
@@ -51,7 +51,7 @@
 	},
 	"useClientEffect": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q-useClientEffect",
+		"prefix": "q:useClientEffect",
 		"description": "useClientEffect$() function hook",
 		"body": [
 			"useClientEffect$(({ track }) => {",
@@ -62,7 +62,7 @@
 	},
 	"useWatch": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q-useWatch",
+		"prefix": "q:useWatch",
 		"description": "useWatch$() function hook",
 		"body": [
 			"useWatch$(({ track }) => {",
@@ -74,7 +74,7 @@
 	},
 	"useResource": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q-useResource$",
+		"prefix": "q:useResource$",
 		"description": "useResource$() declaration",
 		"body": [
 			"const $1 = useResource$(({ track, previous, cleanup }) => {",
@@ -85,7 +85,7 @@
 	},
 	"useServerMount": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q-useServerMount",
+		"prefix": "q:useServerMount",
 		"description": "useServerMount$() function hook",
 		"body": [
 			"useServerMount$(() => {",

@@ -92,7 +92,9 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (immutable) {
       // If property is not declared in the target
       // or the prop is immutable, then we dont need to subscribe
-      if (!(prop in target) || target[_IMMUTABLE]?.includes(prop)) subscriber = null;
+      if (!(prop in target) || target[_IMMUTABLE]?.includes(prop)) {
+        subscriber = null;
+      }
     }
     if (subscriber) {
       const isA = isArray(target);

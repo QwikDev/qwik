@@ -14,13 +14,13 @@
 - [Modifying Data](routing/modify/index.mdx)
 - [Redirects](routing/redirects/index.mdx)
 - [Error Responses](routing/error-responses/index.mdx)
-- [Pathless Layouts](routing/pathless/index.mdx)
 
 ## Layout
 
 - [Overview](layout/overview/index.mdx)
 - [Nested](layout/nested/index.mdx)
 - [Named](layout/named/index.mdx)
+- [Grouped](layout/grouped/index.mdx)
 - [Top](layout/top/index.mdx)
 
 ## Prefetching

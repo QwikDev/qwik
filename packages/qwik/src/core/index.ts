@@ -98,6 +98,5 @@ export { useErrorBoundary } from './use/use-error-boundary';
 export type { ValueOrPromise } from './util/types';
 export type { NoSerialize } from './object/q-object';
 export { noSerialize, mutable, _IMMUTABLE } from './object/q-object';
-export type { ImmutableWrapper } from './object/q-object';
 
 export { version } from './version';

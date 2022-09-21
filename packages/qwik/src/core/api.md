@@ -256,11 +256,6 @@ export const _hW: () => void;
 export const _IMMUTABLE: unique symbol;
 
 // @alpha
-export interface ImmutableWrapper<T> {
-    v: T;
-}
-
-// @alpha
 export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET;
 
 // @alpha (undocumented)

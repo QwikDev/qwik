@@ -321,7 +321,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   slot?: string | undefined;
   spellCheck?: Booleanish | undefined;
   style?: Record<string, string | number | undefined> | string | undefined;
-  tabIndex?: number | undefined;
+  tabindex?: number | undefined;
   title?: string | undefined;
   translate?: 'yes' | 'no' | undefined;
 

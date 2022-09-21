@@ -48,7 +48,7 @@ export type ComponentChildren<PROPS extends {}> = PROPS extends { children: any 
   ? never
   : { children?: JSXChildren };
 /**
- * Extends the defined component PROPS, adding the default ones (children and q:slot) as well as the mutable variations.
+ * Extends the defined component PROPS, adding the default ones (children and q:slot)..
  * @public
  */
 export type PublicProps<PROPS extends {}> = TransformProps<PROPS> &

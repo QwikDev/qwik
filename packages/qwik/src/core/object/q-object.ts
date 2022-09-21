@@ -278,32 +278,10 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
   return input as any;
 };
 
-// <docs markdown="../readme.md#mutable">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#mutable instead)
 /**
- * Mark property as mutable.
- *
- * Qwik assumes that all bindings in components are immutable by default. This is done for two
- * reasons:
- *
- * 1. JSX does not allow Qwik runtime to know if a binding is static or mutable.
- *    `<Example valueA={123} valueB={exp}>` At runtime there is no way to know if `valueA` is
- * immutable.
- * 2. If Qwik assumes that properties are immutable, then it can do a better job data-shaking the
- * amount of code that needs to be serialized to the client.
- *
- * Because Qwik assumes that bindings are immutable by default, it needs a way for a developer to
- * let it know that binding is mutable. `mutable()` function serves that purpose.
- * `<Example valueA={123} valueB={mutable(exp)}>`. In this case, the Qwik runtime can correctly
- * recognize that the `Example` props are mutable and need to be serialized.
- *
- * See: [Mutable Props Tutorial](http://qwik.builder.io/tutorial/props/mutable) for an example
- *
  * @alpha
  * @deprecated Remove it, not needed anymore
  */
-// </docs>
 export const mutable = <T>(v: T): T => {
   console.warn(
     'mutable() is deprecated, you can safely remove all usages of mutable() in your code'

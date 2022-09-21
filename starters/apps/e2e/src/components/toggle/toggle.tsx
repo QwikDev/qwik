@@ -74,7 +74,7 @@ export const Logs0 = component$((props: Record<string, any>) => {
 export const Logs1 = component$((props: Record<string, any>) => {
   return (
     <div>
-      <Logs2 message={mutable(props.store.logs)} />
+      <Logs2 message={props.store.logs} />
     </div>
   );
 });

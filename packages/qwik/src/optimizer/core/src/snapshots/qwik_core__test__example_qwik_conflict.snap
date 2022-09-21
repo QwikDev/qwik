@@ -69,15 +69,12 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
     return /*#__PURE__*/ _jsx("div", {
         onClick$: qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw", [
             qrl1
-        ]),
-        _$: [
-            "onClick$"
-        ]
+        ])
     });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAU8B,IAAM;IAChC,UAAU,CAAC,OAAO,CAAC,CAAC;IACpB,MAAM,IAAI,GAAG,EAAE,GAAG,WAAW,AAAC;IAC9B,OAAO,CAAC,GAAG,CAAC,IAAI,CAAC,CAAC;IAClB,MAAM,IAAG,GAAG,EAAE,AAAC;IACf,qBACI,KAAC,KAAG;QAAC,QAAQ;;;;;;MAA0B,CAC1C;CACJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAU8B,IAAM;IAChC,UAAU,CAAC,OAAO,CAAC,CAAC;IACpB,MAAM,IAAI,GAAG,EAAE,GAAG,WAAW,AAAC;IAC9B,OAAO,CAAC,GAAG,CAAC,IAAI,CAAC,CAAC;IAClB,MAAM,IAAG,GAAG,EAAE,AAAC;IACf,qBACI,KAAC,KAAG;QAAC,QAAQ;;;MAA0B,CAC1C;CACJ\"}")
 /*
 {
   "origin": "test.tsx",

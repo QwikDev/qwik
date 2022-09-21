@@ -1,7 +1,6 @@
 import {
   createProxy,
   getProxyTarget,
-  isImmutable,
   QObjectImmutable,
 } from '../object/q-object';
 import { resumeContainer } from '../object/store';
@@ -146,14 +145,8 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
 
   return {
     set(prop: string, value: any) {
-      let oldValue = target[prop];
-      if (isImmutable(oldValue)) {
-        oldValue = oldValue.v;
-      }
+      const oldValue = target[prop];
       target[prop] = value;
-      if (isImmutable(value)) {
-        value = value.v;
-      }
       if (oldValue !== value) {
         manager.$notifySubs$(prop);
       }

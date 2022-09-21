@@ -144,25 +144,13 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
         onKeyup$: handler,
         "onDocument:keyup$": handler,
         "onWindow:keyup$": handler,
-        custom$: qrl(()=>import("./foo_component_div_custom_pyhnxab17ms"), "Foo_component_div_custom_pyHnxab17ms"),
-        _$: [
-            "onClick$",
-            "onDocumentScroll$",
-            "onDocumentScroll$",
-            "on-cLick$",
-            "onDocument-sCroll$",
-            "onDocument-scroLL$",
-            "host:onClick$",
-            "host:onDocumentScroll$",
-            "host:onDocumentScroll$",
-            "custom$"
-        ]
+        custom$: qrl(()=>import("./foo_component_div_custom_pyhnxab17ms"), "Foo_component_div_custom_pyHnxab17ms")
     });
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAKa,IAAM;IACX,MAAM,OAAO,8FAAiC,AAAC;IAC/C,qBACI,KAAC,KAAG;QACA,QAAQ;QACR,iBAAiB;QACjB,iBAAiB;QAEjB,WAAS;QACT,oBAAkB;QAClB,oBAAkB;QAPtB,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QALE,QAAQ,EAAE,OAAO;QAbrB,mBAkBE,EAJqB,OAAO;QAd9B,iBAkBE,EAHmB,OAAO;QAExB,OAAO;;;;;YAZP,WAAS;YACT,oBAAkB;YAClB,oBAAkB;YAPtB,eAkBE;YAlBF,wBAkBE;YAlBF,wBAkBE;;;MAAA,CACL;CACJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAKa,IAAM;IACX,MAAM,OAAO,8FAAiC,AAAC;IAC/C,qBACI,KAAC,KAAG;QACA,QAAQ;QACR,iBAAiB;QACjB,iBAAiB;QAEjB,WAAS;QACT,oBAAkB;QAClB,oBAAkB;QAPtB,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QALE,QAAQ,EAAE,OAAO;QAbrB,mBAkBE,EAJqB,OAAO;QAd9B,iBAkBE,EAHmB,OAAO;QAExB,OAAO;MACT,CACL;CACJ\"}")
 /*
 {
   "origin": "test.tsx",

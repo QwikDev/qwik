@@ -20,9 +20,6 @@ import {
   getProxySubs,
   getProxyTarget,
   isConnected,
-  isImmutable,
-  mutable,
-  _immutable,
 } from './q-object';
 import {
   destroyWatch,
@@ -343,10 +340,6 @@ export const _pauseFromContexts = async (
 
   const getObjId = (obj: any): string | null => {
     let suffix = '';
-    if (isImmutable(obj)) {
-      obj = obj.v;
-      suffix = '%';
-    }
     if (isPromise(obj)) {
       const { value, resolved } = getPromiseValue(obj);
       obj = value;
@@ -704,9 +697,6 @@ const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => 
 const OBJECT_TRANSFORMS: Record<string, (obj: any, containerState: ContainerState) => any> = {
   '!': (obj: any, containerState: ContainerState) => {
     return containerState.$proxyMap$.get(obj) ?? getOrCreateProxy(obj, containerState);
-  },
-  '%': (obj: any) => {
-    return mutable(obj);
   },
   '~': (obj: any) => {
     return Promise.resolve(obj);

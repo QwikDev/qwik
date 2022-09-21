@@ -53,10 +53,7 @@ export const App_component_AkbU84a8zes = ()=>{
                     onClick$: qrl(()=>import("./app_component_div_p_button_onclick_8dwua0cjar4.js"), "App_component_div_p_button_onClick_8dWUa0cJAr4", [
                         store
                     ]),
-                    children: "Click",
-                    _$: [
-                        "children"
-                    ]
+                    children: "Click"
                 })
             })
         ]
@@ -64,7 +61,7 @@ export const App_component_AkbU84a8zes = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\";;;;yCAWyD,IAAI;IACzD,MAAM,KAAK,GAAG,OAAO,EAAE,AAAC;IACxB,OAAO,WAAW,GAAG,IAAI,CAAC,KAAK,EAAE;QAC7B,QAAQ,EAAE;YACN,WAAW,GAAG,IAAI,CAAC,GAAG,EAAE;gBACpB,QAAQ,EAAE;oBACN,SAAS;oBACT,KAAK,CAAC,KAAK;iBACd;aACJ,CAAC;YACF,WAAW,GAAG,GAAG,CAAC,GAAG,EAAE;gBACnB,QAAQ,EAAE,WAAW,GAAG,GAAG,CAAC,QAAQ,EAAE;oBAClC,QAAQ;;;oBAMR,QAAQ,EAAE,OAAO;;;;iBACpB,CAAC;aACL,CAAC;SACL;KACJ,CAAC,CAAC;CACN\"}")
+Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\";;;;yCAWyD,IAAI;IACzD,MAAM,KAAK,GAAG,OAAO,EAAE,AAAC;IACxB,OAAO,WAAW,GAAG,IAAI,CAAC,KAAK,EAAE;QAC7B,QAAQ,EAAE;YACN,WAAW,GAAG,IAAI,CAAC,GAAG,EAAE;gBACpB,QAAQ,EAAE;oBACN,SAAS;oBACT,KAAK,CAAC,KAAK;iBACd;aACJ,CAAC;YACF,WAAW,GAAG,GAAG,CAAC,GAAG,EAAE;gBACnB,QAAQ,EAAE,WAAW,GAAG,GAAG,CAAC,QAAQ,EAAE;oBAClC,QAAQ;;;oBAMR,QAAQ,EAAE,OAAO;iBACpB,CAAC;aACL,CAAC;SACL;KACJ,CAAC,CAAC;CACN\"}")
 /*
 {
   "origin": "../../node_modules/dep/dist/lib.mjs",
@@ -104,15 +101,12 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { state } from "./components/sibling";
 export const Local_component_jJ0v28bs0p8 = ()=>{
     return /*#__PURE__*/ _jsx("div", {
-        children: state,
-        _$: [
-            "children"
-        ]
+        children: state
     });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/path/to/app/src/thing/components/main.tsx\"],\"names\":[],\"mappings\":\";;2CAIgC,IAAM;IAClC,qBACI,KAAC,KAAG;kBAAE,KAAK;;;;MAAO,CACrB;CACJ\"}")
+Some("{\"version\":3,\"sources\":[\"/path/to/app/src/thing/components/main.tsx\"],\"names\":[],\"mappings\":\";;2CAIgC,IAAM;IAClC,qBACI,KAAC,KAAG;kBAAE,KAAK;MAAO,CACrB;CACJ\"}")
 /*
 {
   "origin": "components/main.tsx",

@@ -19,6 +19,11 @@ export const QObjectRecursive = 1 << 0;
 export const QObjectImmutable = 1 << 1;
 
 /**
+ * @internal
+ */
+export const _IMMUTABLE = Symbol('IMMUTABLE');
+
+/**
  * Creates a proxy that notifies of any writes.
  */
 export const getOrCreateProxy = <T extends object>(
@@ -80,15 +85,12 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     const invokeCtx = tryGetInvokeContext();
     const recursive = (this.$flags$ & QObjectRecursive) !== 0;
     const immutable = (this.$flags$ & QObjectImmutable) !== 0;
+    const value = target[prop];
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
-    let value = target[prop];
-    if (isImmutable(value)) {
-      value = value.v;
-      if (immutable) {
-        subscriber = null;
-      }
+    if (immutable && target[_IMMUTABLE]?.includes(prop)) {
+      subscriber = null;
     }
     if (subscriber) {
       const isA = isArray(target);
@@ -206,9 +208,6 @@ const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
         if (isPromise(unwrapped)) return value;
         if (isQwikElement(unwrapped)) return value;
         if (isDocument(unwrapped)) return value;
-        if (isImmutable(unwrapped)) {
-          return _verifySerializable(unwrapped.v, seen);
-        }
         if (isArray(unwrapped)) {
           for (const item of unwrapped) {
             _verifySerializable(item, seen);
@@ -312,17 +311,6 @@ export const mutable = <T>(v: T): T => {
   return v;
 };
 
-/**
- * @internal
- */
-export const _immutable = <T>(v: T): ImmutableWrapper<T> => {
-  return new ImmutableImpl(v);
-};
-
-class ImmutableImpl<T> implements ImmutableWrapper<T> {
-  constructor(public v: T) {}
-}
-
 export const isConnected = (sub: Subscriber): boolean => {
   if (isQwikElement(sub)) {
     return !!tryGetContext(sub) || sub.isConnected;
@@ -346,10 +334,6 @@ export interface ImmutableWrapper<T> {
    */
   v: T;
 }
-
-export const isImmutable = (v: any): v is ImmutableWrapper<any> => {
-  return v instanceof ImmutableImpl;
-};
 
 /**
  * @alpha

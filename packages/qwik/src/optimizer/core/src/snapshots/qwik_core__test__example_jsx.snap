@@ -112,24 +112,14 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
             /*#__PURE__*/ _jsxs(_Fragment, {
                 children: [
                     /*#__PURE__*/ _jsx("div", {
-                        class: "class",
-                        _$: [
-                            "class"
-                        ]
+                        class: "class"
+                    }),
+                    /*#__PURE__*/ _jsx("div", {
+                        class: "class"
                     }),
                     /*#__PURE__*/ _jsx("div", {
                         class: "class",
-                        _$: [
-                            "class"
-                        ]
-                    }),
-                    /*#__PURE__*/ _jsx("div", {
-                        class: "class",
-                        children: "12",
-                        _$: [
-                            "class",
-                            "children"
-                        ]
+                        children: "12"
                     })
                 ]
             }),
@@ -137,10 +127,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
                 class: "class",
                 children: /*#__PURE__*/ _jsx(Lightweight, {
                     ...props
-                }),
-                _$: [
-                    "class"
-                ]
+                })
             }),
             /*#__PURE__*/ _jsxs("div", {
                 class: "class",
@@ -148,17 +135,11 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
                     /*#__PURE__*/ _jsx("div", {}),
                     /*#__PURE__*/ _jsx("div", {}),
                     /*#__PURE__*/ _jsx("div", {})
-                ],
-                _$: [
-                    "class"
                 ]
             }),
             /*#__PURE__*/ _jsx("div", {
                 class: "class",
-                children: children,
-                _$: [
-                    "class"
-                ]
+                children: children
             })
         ]
     });
@@ -166,7 +147,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAea;;IACL,qBACI,MAAC,KAAG;;0BACA;;kCACI,KAAC,KAAG;wBAAC,KAAK,EAAC,OAAO;;;;sBAAE;kCACpB,KAAC,KAAG;wBAAC,KAAK,EAAC,OAAO;;;;sBAAO;kCACzB,KAAC,KAAG;wBAAC,KAAK,EAAC,OAAO;kCAAC,IAAE;;;;;sBAAM;;cAC5B;0BACH,KAAC,KAAG;gBAAC,KAAK,EAAC,OAAO;0BACd,cAAA,KAAC,WAAW;oBAAE,GAAG,KAAK;kBAAG;;;;cACvB;0BACN,MAAC,KAAG;gBAAC,KAAK,EAAC,OAAO;;kCACd,KAAC,KAAG,KAAE;kCACN,KAAC,KAAG,KAAE;kCACN,KAAC,KAAG,KAAE;;;;;cACJ;0BACN,KAAC,KAAG;gBAAC,KAAK,EAAC,OAAO;0BACb,QAAQ;;;;cACP;;MACJ,CACT;CACJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAea;;IACL,qBACI,MAAC,KAAG;;0BACA;;kCACI,KAAC,KAAG;wBAAC,KAAK,EAAC,OAAO;sBAAE;kCACpB,KAAC,KAAG;wBAAC,KAAK,EAAC,OAAO;sBAAO;kCACzB,KAAC,KAAG;wBAAC,KAAK,EAAC,OAAO;kCAAC,IAAE;sBAAM;;cAC5B;0BACH,KAAC,KAAG;gBAAC,KAAK,EAAC,OAAO;0BACd,cAAA,KAAC,WAAW;oBAAE,GAAG,KAAK;kBAAG;cACvB;0BACN,MAAC,KAAG;gBAAC,KAAK,EAAC,OAAO;;kCACd,KAAC,KAAG,KAAE;kCACN,KAAC,KAAG,KAAE;kCACN,KAAC,KAAG,KAAE;;cACJ;0BACN,KAAC,KAAG;gBAAC,KAAK,EAAC,OAAO;0BACb,QAAQ;cACP;;MACJ,CACT;CACJ\"}")
 /*
 {
   "origin": "test.tsx",

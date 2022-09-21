@@ -138,16 +138,13 @@ export const App_component_1_w0t0o3QMovU = ()=>{
             v1,
             v2,
             v3
-        ],
-        _$: [
-            "onClick$"
         ]
     });
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMa;;IACL,qBACI,MAAC,KAAG;QAAC,QAAQ;;;;;YACR,EAAE;YAAE,EAAE;YAAE,EAAE;YAAE,EAAE;YAAE,EAAE;YAAE,EAAE;YAAE,EAAE;YAC1B,EAAE;YAAE,EAAE;YAAE,EAAE;YAAE,EAAE;YAAE,EAAE;YAAE,EAAE;YAAE,EAAE;YAC1B,EAAE;YAAE,EAAE;YAAE,EAAE;;;;;MACT,CACT;CACJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMa;;IACL,qBACI,MAAC,KAAG;QAAC,QAAQ;;;;;YACR,EAAE;YAAE,EAAE;YAAE,EAAE;YAAE,EAAE;YAAE,EAAE;YAAE,EAAE;YAAE,EAAE;YAC1B,EAAE;YAAE,EAAE;YAAE,EAAE;YAAE,EAAE;YAAE,EAAE;YAAE,EAAE;YAAE,EAAE;YAC1B,EAAE;YAAE,EAAE;YAAE,EAAE;;MACT,CACT;CACJ\"}")
 /*
 {
   "origin": "test.tsx",

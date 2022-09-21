@@ -1412,6 +1412,49 @@ export const App = component$(() => {
 }
 
 #[test]
+fn example_immutable_analysis() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+import importedValue from 'v';
+
+export const App = component$(() => {
+    const state = useStore({count: 0});
+    return (
+        <>
+            <p class="stuff">Hello Qwik</p>
+            <Div
+                immutable1="stuff"
+                immutable2={{
+                    foo: 'bar',
+                    baz: importedValue ? true : false,
+                }}
+                immutable3={2}
+                immutable4$={(ev) => console.log(state.count)}
+                immutable5={[1, 2, importedValue, null, {}]}
+            >
+                <p>Hello Qwik</p>
+            </Div>
+            <Div
+                class={state}
+                mutable1={{
+                    foo: 'bar',
+                    baz: state.count ? true : false,
+                }}
+                mutable2={(() => console.log(state.count))()}
+                mutable3={[1, 2, state, null, {}]}
+            />
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_qwik_react() {
     test_input!(TestInput {
         code: r#"

@@ -253,7 +253,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
 export const _hW: () => void;
 
 // @internal (undocumented)
-export const _immutable: <T>(v: T) => ImmutableWrapper<T>;
+export const _IMMUTABLE: unique symbol;
 
 // @alpha
 export interface ImmutableWrapper<T> {

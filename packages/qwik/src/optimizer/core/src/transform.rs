@@ -71,13 +71,13 @@ pub struct HookData {
 
 #[derive(Debug)]
 enum PositionToken {
-    JSXFunction,
+    JSXFunction(bool),
     Any,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum IdentType {
-    Var,
+    Var(bool),
     Fn,
     Class,
 }
@@ -386,7 +386,7 @@ impl<'a> QwikTransform<'a> {
             .iter()
             .flat_map(|v| v.iter())
             .cloned()
-            .partition(|(_, t)| t == &IdentType::Var);
+            .partition(|(_, t)| matches!(t, IdentType::Var(_)));
 
         let decl_collect: HashSet<Id> = valid_decl.into_iter().map(|a| a.0).collect();
         let invalid_decl: HashSet<Id> = invalid_decl.into_iter().map(|a| a.0).collect();
@@ -554,6 +554,7 @@ impl<'a> QwikTransform<'a> {
     fn handle_jsx(&mut self, node: ast::CallExpr) -> ast::CallExpr {
         let mut name_token = false;
         let first_arg = node.args.get(0);
+        let mut is_fn = false;
         if let Some(name) = first_arg {
             match &*name.expr {
                 ast::Expr::Lit(ast::Lit::Str(str)) => {
@@ -561,13 +562,15 @@ impl<'a> QwikTransform<'a> {
                     name_token = true;
                 }
                 ast::Expr::Ident(ident) => {
+                    is_fn = true;
                     self.stack_ctxt.push(ident.sym.to_string());
                     name_token = true;
                 }
                 _ => {}
             }
         }
-        self.position_ctxt.push(PositionToken::JSXFunction);
+
+        self.position_ctxt.push(PositionToken::JSXFunction(is_fn));
         let o = node.fold_children_with(self);
         self.position_ctxt.pop();
         if name_token {
@@ -787,17 +790,33 @@ impl<'a> Fold for QwikTransform<'a> {
     }
 
     // Variable tracking
+    fn fold_var_decl(&mut self, node: ast::VarDecl) -> ast::VarDecl {
+        if let Some(current_scope) = self.decl_stack.last_mut() {
+            let ident_type = if node.kind == ast::VarDeclKind::Const {
+                IdentType::Var(true)
+            } else {
+                IdentType::Var(false)
+            };
+            let mut identifiers = Vec::with_capacity(node.decls.len() + 2);
+            for decl in &node.decls {
+                collect_from_pat(&decl.name, &mut identifiers);
+            }
+            current_scope.extend(identifiers.into_iter().map(|(id, _)| (id, ident_type)));
+        }
+        node.fold_children_with(self)
+    }
+
     fn fold_var_declarator(&mut self, node: ast::VarDeclarator) -> ast::VarDeclarator {
         let mut stacked = false;
         if let ast::Pat::Ident(ref ident) = node.name {
             self.stack_ctxt.push(ident.id.sym.to_string());
             stacked = true;
         }
-        if let Some(current_scope) = self.decl_stack.last_mut() {
-            let mut identifiers = vec![];
-            collect_from_pat(&node.name, &mut identifiers);
-            current_scope.extend(identifiers.into_iter().map(|(id, _)| (id, IdentType::Var)));
-        }
+        // if let Some(current_scope) = self.decl_stack.last_mut() {
+        //     let mut identifiers = vec![];
+        //     collect_from_pat(&node.name, &mut identifiers);
+        //     current_scope.extend(identifiers.into_iter().map(|(id, _)| (id, IdentType::Var)));
+        // }
         let o = node.fold_children_with(self);
         if stacked {
             self.stack_ctxt.pop();
@@ -822,7 +841,7 @@ impl<'a> Fold for QwikTransform<'a> {
             .extend(
                 identifiers
                     .into_iter()
-                    .map(|(key, _)| (key, IdentType::Var)),
+                    .map(|(key, _)| (key, IdentType::Var(false))),
             );
 
         let o = node.fold_children_with(self);
@@ -842,7 +861,11 @@ impl<'a> Fold for QwikTransform<'a> {
         for param in &node.params {
             let mut identifiers = vec![];
             collect_from_pat(param, &mut identifiers);
-            current_scope.extend(identifiers.into_iter().map(|(id, _)| (id, IdentType::Var)));
+            current_scope.extend(
+                identifiers
+                    .into_iter()
+                    .map(|(id, _)| (id, IdentType::Var(false))),
+            );
         }
 
         let o = node.fold_children_with(self);
@@ -994,123 +1017,135 @@ impl<'a> Fold for QwikTransform<'a> {
     }
 
     fn fold_object_lit(&mut self, object: ast::ObjectLit) -> ast::ObjectLit {
-        let jsx_call = matches!(self.position_ctxt.last(), Some(PositionToken::JSXFunction));
-        if !jsx_call {
-            return object;
-        }
+        match self.position_ctxt.last() {
+            Some(PositionToken::JSXFunction(is_fn)) => {
+                let is_fn = *is_fn;
+                let mut immutable = vec![];
+                let mut new_props = vec![];
+                for prop in object.props {
+                    match prop {
+                        ast::PropOrSpread::Prop(box ast::Prop::KeyValue(node)) => {
+                            let mut name_token = false;
 
-        let mut immutable = vec![];
-        let mut new_props = vec![];
-        for prop in object.props {
-            match prop {
-                ast::PropOrSpread::Prop(box ast::Prop::KeyValue(node)) => {
-                    let mut name_token = false;
-
-                    let node = match node.key {
-                        ast::PropName::Ident(ref ident) => {
-                            if is_immutable_expr(&node.value, &self.options.global_collect) {
-                                immutable.push(Some(ast::ExprOrSpread::from(ast::Expr::Lit(
-                                    ast::Lit::Str(ast::Str::from(ident.sym.clone())),
-                                ))));
-                            }
-                            if ident.sym != *CHILDREN {
-                                self.stack_ctxt.push(ident.sym.to_string());
-                                name_token = true;
-                            }
-                            if jsx_call {
-                                if convert_signal_word(&ident.sym).is_some()
-                                    && matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
-                                {
-                                    ast::KeyValueProp {
-                                        value: Box::new(ast::Expr::Call(
-                                            self.create_synthetic_qhook(
-                                                *node.value,
-                                                HookKind::Event,
+                            let node = match node.key {
+                                ast::PropName::Ident(ref ident) => {
+                                    if ident.sym != *CHILDREN {
+                                        self.stack_ctxt.push(ident.sym.to_string());
+                                        name_token = true;
+                                    }
+                                    if is_fn
+                                        && is_immutable_expr(
+                                            &node.value,
+                                            &ident.sym,
+                                            &self.options.global_collect,
+                                            self.decl_stack.last(),
+                                        )
+                                    {
+                                        immutable.push(Some(ast::ExprOrSpread::from(
+                                            ast::Expr::Lit(ast::Lit::Str(ast::Str::from(
                                                 ident.sym.clone(),
-                                                None,
-                                            ),
-                                        )),
-                                        ..node
+                                            ))),
+                                        )));
                                     }
-                                } else {
-                                    node
+                                    if convert_signal_word(&ident.sym).is_some()
+                                        && matches!(
+                                            *node.value,
+                                            ast::Expr::Arrow(_) | ast::Expr::Fn(_)
+                                        )
+                                    {
+                                        ast::KeyValueProp {
+                                            value: Box::new(ast::Expr::Call(
+                                                self.create_synthetic_qhook(
+                                                    *node.value,
+                                                    HookKind::Event,
+                                                    ident.sym.clone(),
+                                                    None,
+                                                ),
+                                            )),
+                                            ..node
+                                        }
+                                    } else {
+                                        node
+                                    }
                                 }
-                            } else {
-                                node
-                            }
-                        }
-                        ast::PropName::Str(ref s) => {
-                            if s.value != *CHILDREN {
-                                self.stack_ctxt.push(s.value.to_string());
-                                name_token = true;
-                            }
-                            if is_immutable_expr(&node.value, &self.options.global_collect) {
-                                immutable.push(Some(ast::ExprOrSpread::from(ast::Expr::Lit(
-                                    ast::Lit::Str(s.clone()),
-                                ))));
-                            }
-                            if jsx_call {
-                                if convert_signal_word(&s.value).is_some()
-                                    && matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
-                                {
-                                    ast::KeyValueProp {
-                                        value: Box::new(ast::Expr::Call(
-                                            self.create_synthetic_qhook(
-                                                *node.value,
-                                                HookKind::Event,
-                                                s.value.clone(),
-                                                None,
-                                            ),
-                                        )),
-                                        ..node
+                                ast::PropName::Str(ref s) => {
+                                    if s.value != *CHILDREN {
+                                        self.stack_ctxt.push(s.value.to_string());
+                                        name_token = true;
                                     }
-                                } else if is_immutable_expr(
-                                    &node.value,
-                                    &self.options.global_collect,
-                                ) {
-                                    ast::KeyValueProp {
-                                        key: ast::PropName::Str(ast::Str::from(JsWord::from(
-                                            format!("${}", s.value),
-                                        ))),
-                                        ..node
+                                    if is_fn
+                                        && is_immutable_expr(
+                                            &node.value,
+                                            &s.value,
+                                            &self.options.global_collect,
+                                            self.decl_stack.last(),
+                                        )
+                                    {
+                                        immutable.push(Some(ast::ExprOrSpread::from(
+                                            ast::Expr::Lit(ast::Lit::Str(s.clone())),
+                                        )));
                                     }
-                                } else {
-                                    node
+                                    if convert_signal_word(&s.value).is_some()
+                                        && matches!(
+                                            *node.value,
+                                            ast::Expr::Arrow(_) | ast::Expr::Fn(_)
+                                        )
+                                    {
+                                        ast::KeyValueProp {
+                                            value: Box::new(ast::Expr::Call(
+                                                self.create_synthetic_qhook(
+                                                    *node.value,
+                                                    HookKind::Event,
+                                                    s.value.clone(),
+                                                    None,
+                                                ),
+                                            )),
+                                            ..node
+                                        }
+                                    } else {
+                                        node
+                                    }
                                 }
-                            } else {
-                                node
-                            }
-                        }
-                        _ => node,
-                    };
+                                _ => node,
+                            };
 
-                    self.position_ctxt.push(PositionToken::Any);
-                    let o = node.fold_children_with(self);
-                    self.position_ctxt.pop();
-                    if name_token {
-                        self.stack_ctxt.pop();
+                            self.position_ctxt.push(PositionToken::Any);
+                            let o = node.fold_children_with(self);
+                            self.position_ctxt.pop();
+                            if name_token {
+                                self.stack_ctxt.pop();
+                            }
+                            new_props
+                                .push(ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(o))));
+                        }
+                        prop => {
+                            new_props.push(prop.fold_children_with(self));
+                        }
                     }
-                    new_props.push(ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(o))));
                 }
-                prop => {
-                    new_props.push(prop.fold_children_with(self));
+                if !immutable.is_empty() {
+                    new_props.push(ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
+                        ast::KeyValueProp {
+                            key: ast::PropName::Computed(ast::ComputedPropName {
+                                span: DUMMY_SP,
+                                expr: Box::new(ast::Expr::Ident(new_ident_from_id(
+                                    &self
+                                        .ensure_import(_IMMUTABLE.clone(), BUILDER_IO_QWIK.clone()),
+                                ))),
+                            }),
+                            value: Box::new(ast::Expr::Array(ast::ArrayLit {
+                                elems: immutable,
+                                span: DUMMY_SP,
+                            })),
+                        },
+                    ))))
+                }
+                ast::ObjectLit {
+                    props: new_props,
+                    ..object
                 }
             }
-        }
-        if !immutable.is_empty() {
-            new_props.push(ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
-                ast::KeyValueProp {
-                    key: ast::PropName::Ident(ast::Ident::new(JsWord::from("_$"), DUMMY_SP)),
-                    value: Box::new(ast::Expr::Array(ast::ArrayLit {
-                        elems: immutable,
-                        span: DUMMY_SP,
-                    })),
-                },
-            ))))
-        }
-        ast::ObjectLit {
-            props: new_props,
-            ..object
+            _ => object,
         }
     }
 

@@ -69,15 +69,12 @@ export const Parent_component_0TaiDayHrlo = ()=>{
     ]));
     return /*#__PURE__*/ _jsx("div", {
         onClick$: qrl(()=>import("./chunk_clicks"), "Parent_component_div_onClick_C5XE49Nqd3A"),
-        children: state.text,
-        _$: [
-            "onClick$"
-        ]
+        children: state.text
     });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAKiC,IAAM;IACnC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,IAAI,EAAE,EAAE;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAGE,CAAC;IAEH,qBACI,KAAC,KAAG;QAAC,QAAQ;kBACR,KAAK,CAAC,IAAI;;;;MACT,CACR;CACL\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAKiC,IAAM;IACnC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,IAAI,EAAE,EAAE;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAGE,CAAC;IAEH,qBACI,KAAC,KAAG;QAAC,QAAQ;kBACR,KAAK,CAAC,IAAI;MACT,CACR;CACL\"}")
 /*
 {
   "origin": "test.tsx",
@@ -200,15 +197,12 @@ export const Child_component_9GyF01GDKqw = ()=>{
     ]));
     return /*#__PURE__*/ _jsx("div", {
         onClick$: qrl(()=>import("./chunk_clicks"), "Child_component_div_onClick_elliVSnAiOQ"),
-        children: state.text,
-        _$: [
-            "onClick$"
-        ]
+        children: state.text
     });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;2CAuBgC,IAAM;IAClC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,IAAI,EAAE,EAAE;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAEE,CAAC;IAEH,qBACI,KAAC,KAAG;QAAC,QAAQ;kBACR,KAAK,CAAC,IAAI;;;;MACT,CACR;CACL\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;2CAuBgC,IAAM;IAClC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,IAAI,EAAE,EAAE;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAEE,CAAC;IAEH,qBACI,KAAC,KAAG;QAAC,QAAQ;kBACR,KAAK,CAAC,IAAI;MACT,CACR;CACL\"}")
 /*
 {
   "origin": "test.tsx",

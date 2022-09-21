@@ -1,4 +1,4 @@
-import { component$, mutable, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@builder.io/qwik';
 import { useContent, Link, useLocation } from '@builder.io/qwik-city';
 import styles from './menu.css?inline';
 
@@ -18,10 +18,10 @@ export default component$(() => {
                 {item.items?.map((item) => (
                   <li>
                     <Link
-                      href={mutable(item.href)}
-                      class={mutable({
+                      href={item.href}
+                      class={{
                         'is-active': loc.pathname === item.href,
-                      })}
+                      }}
                     >
                       {item.text}
                     </Link>

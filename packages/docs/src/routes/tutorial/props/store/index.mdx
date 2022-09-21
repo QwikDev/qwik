@@ -2,9 +2,7 @@
 title: Passing Stores
 ---
 
-The previous tutorial introduced you `mutable()` to demonstrate that Qwik assumes all props are static to remain efficient.
-
-Beyond the fact that typing `mutable()` is extra work, the previous example is also inefficient in its own way.
+The previous tutorial introduced you how you could pass primitives and objects to components. In this tutorial, we will learn how to pass stores to components, which is way more efficient in terms of rerendering.
 
 When you click on the `+1` button, the `<App>` is re-rendered to update the `<Display>` bindings. The re-rendering of `<App>` is needed to update the props of `<Display>`, but this process doesn't update to what the user sees, so it is a waste of resources.
 
@@ -14,9 +12,8 @@ A better approach is to only re-render `<Display>` component by passing in the `
 
 Two benefits emerge by making the above change:
 
-- The `mutable()` binding function is removed from the component.
 - The `<App>` component doesn't need to be downloaded or re-rendered.
 
 ## Best Practice
 
-A best practice to follow in Qwik features passing a store to child components rather than individual primitives. When you use primitives, you are forced to wrap them with `mutable()` to make the application work.
+A best practice to follow in Qwik features passing a store to child components rather than individual primitives. When you use primitives, the parent component needs to rerender just to pass in the new value. When you pass in a store, the parent component doesn't need to rerender.

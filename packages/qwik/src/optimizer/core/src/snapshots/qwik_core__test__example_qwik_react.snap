@@ -150,6 +150,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
 
 import { Fragment } from "@builder.io/qwik/jsx-runtime";
 import { SkipRerender } from "@builder.io/qwik";
+import { _IMMUTABLE } from "@builder.io/qwik";
 import { filterProps } from "../node_modules/@builder.io/qwik-react/index.qwik";
 import { isServer } from "@builder.io/qwik/build";
 import { jsx } from "@builder.io/qwik/jsx-runtime";
@@ -180,7 +181,10 @@ export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
         ]).then(([Cmp, server])=>{
             const html = server.render(Cmp, filterProps(props));
             return /*#__PURE__*/ jsx(Host, {
-                dangerouslySetInnerHTML: html
+                dangerouslySetInnerHTML: html,
+                [_IMMUTABLE]: [
+                    "dangerouslySetInnerHTML"
+                ]
             });
         });
         return /*#__PURE__*/ jsx(Fragment, {
@@ -193,7 +197,7 @@ export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-react/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;;;;;;;gDAMiD,CAAC,KAAK,GAAG;IAClD,MAAM,CAAC,WAAW,CAAC,GAAG,eAAe,EAAE,AAAC;IACxC,MAAM,WAAW,GAAG,cAAc,EAAE,AAAC;IACrC,MAAM,KAAK,GAAG,QAAQ,CAAC,EAAE,CAAC,AAAC;IAC3B,IAAI,GAAG,AAAC;IACR,IAAI,KAAK,CAAC,gBAAgB,CAAC,EAAE,GAAG,GAAG,SAAS,CAAC;SACxC,IAAI,KAAK,CAAC,aAAa,CAAC,IAAI,KAAK,CAAC,aAAa,CAAC,EAAE,GAAG,GAAG,MAAM,CAAC;IACpE,WAAW;;;;;QA4BP;QACA,GAAG;KACN,CAAC,CAAC;IACH,IAAI,QAAQ,IAAI,CAAC,KAAK,CAAC,aAAa,CAAC,EAAE;QACnC,MAAM,KAAK,GAAG,OAAO,CAAC,GAAG,CAAC;YACtB,WAAW,CAAC,OAAO,EAAE;YACrB,MAAM,CAAC,2DAAsB,CAAC;SACjC,CAAC,CAAC,IAAI,CAAC,CAAC,CAAC,GAAG,EAAE,MAAM,CAAC,GAAG;YACrB,MAAM,IAAI,GAAG,MAAM,CAAC,MAAM,CAAC,GAAG,EAAE,WAAW,CAAC,KAAK,CAAC,CAAC,AAAC;YACpD,OAAO,WAAW,GAAG,GAAG,CAAC,IAAI,EAAE;gBAC3B,uBAAuB,EAAE,IAAI;aAChC,CAAC,CAAC;SACN,CAAC,AAAC;QACH,OAAO,WAAW,GAAG,GAAG,CAAC,QAAQ,EAAE;YAC/B,QAAQ,EAAE,KAAK;SAClB,CAAC,CAAC;KACN;IACD,OAAO,WAAW,GAAG,GAAG,CAAC,IAAI,EAAE;QAC3B,QAAQ,EAAE,WAAW,GAAG,GAAG,CAAC,YAAY,EAAE,EAAE,CAAC;KAChD,CAAC,CAAC;CACN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-react/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;;;;;;;;gDAMiD,CAAC,KAAK,GAAG;IAClD,MAAM,CAAC,WAAW,CAAC,GAAG,eAAe,EAAE,AAAC;IACxC,MAAM,WAAW,GAAG,cAAc,EAAE,AAAC;IACrC,MAAM,KAAK,GAAG,QAAQ,CAAC,EAAE,CAAC,AAAC;IAC3B,IAAI,GAAG,AAAC;IACR,IAAI,KAAK,CAAC,gBAAgB,CAAC,EAAE,GAAG,GAAG,SAAS,CAAC;SACxC,IAAI,KAAK,CAAC,aAAa,CAAC,IAAI,KAAK,CAAC,aAAa,CAAC,EAAE,GAAG,GAAG,MAAM,CAAC;IACpE,WAAW;;;;;QA4BP;QACA,GAAG;KACN,CAAC,CAAC;IACH,IAAI,QAAQ,IAAI,CAAC,KAAK,CAAC,aAAa,CAAC,EAAE;QACnC,MAAM,KAAK,GAAG,OAAO,CAAC,GAAG,CAAC;YACtB,WAAW,CAAC,OAAO,EAAE;YACrB,MAAM,CAAC,2DAAsB,CAAC;SACjC,CAAC,CAAC,IAAI,CAAC,CAAC,CAAC,GAAG,EAAE,MAAM,CAAC,GAAG;YACrB,MAAM,IAAI,GAAG,MAAM,CAAC,MAAM,CAAC,GAAG,EAAE,WAAW,CAAC,KAAK,CAAC,CAAC,AAAC;YACpD,OAAO,WAAW,GAAG,GAAG,CAAC,IAAI,EAAE;gBAC3B,uBAAuB,EAAE,IAAI;;;;aAChC,CAAC,CAAC;SACN,CAAC,AAAC;QACH,OAAO,WAAW,GAAG,GAAG,CAAC,QAAQ,EAAE;YAC/B,QAAQ,EAAE,KAAK;SAClB,CAAC,CAAC;KACN;IACD,OAAO,WAAW,GAAG,GAAG,CAAC,IAAI,EAAE;QAC3B,QAAQ,EAAE,WAAW,GAAG,GAAG,CAAC,YAAY,EAAE,EAAE,CAAC;KAChD,CAAC,CAAC;CACN\"}")
 /*
 {
   "origin": "../node_modules/@builder.io/qwik-react/index.qwik.mjs",

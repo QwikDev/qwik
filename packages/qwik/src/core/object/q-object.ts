@@ -19,6 +19,11 @@ export const QObjectRecursive = 1 << 0;
 export const QObjectImmutable = 1 << 1;
 
 /**
+ * @internal
+ */
+export const _IMMUTABLE = Symbol('IMMUTABLE');
+
+/**
  * Creates a proxy that notifies of any writes.
  */
 export const getOrCreateProxy = <T extends object>(
@@ -80,14 +85,14 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     const invokeCtx = tryGetInvokeContext();
     const recursive = (this.$flags$ & QObjectRecursive) !== 0;
     const immutable = (this.$flags$ & QObjectImmutable) !== 0;
+    const value = target[prop];
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
-    let value = target[prop];
-    if (isMutable(value)) {
-      value = value.mut;
-    } else if (immutable) {
-      subscriber = null;
+    if (immutable) {
+      // If property is not declared in the target
+      // or the prop is immutable, then we dont need to subscribe
+      if (!(prop in target) || target[_IMMUTABLE]?.includes(prop)) subscriber = null;
     }
     if (subscriber) {
       const isA = isArray(target);
@@ -205,9 +210,6 @@ const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
         if (isPromise(unwrapped)) return value;
         if (isQwikElement(unwrapped)) return value;
         if (isDocument(unwrapped)) return value;
-        if (isMutable(unwrapped)) {
-          return _verifySerializable(unwrapped.mut, seen);
-        }
         if (isArray(unwrapped)) {
           for (const item of unwrapped) {
             _verifySerializable(item, seen);
@@ -278,42 +280,16 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
   return input as any;
 };
 
-export const immutable = <T extends {}>(input: T): Readonly<T> => {
-  return Object.freeze(input);
-};
-
-// <docs markdown="../readme.md#mutable">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#mutable instead)
 /**
- * Mark property as mutable.
- *
- * Qwik assumes that all bindings in components are immutable by default. This is done for two
- * reasons:
- *
- * 1. JSX does not allow Qwik runtime to know if a binding is static or mutable.
- *    `<Example valueA={123} valueB={exp}>` At runtime there is no way to know if `valueA` is
- * immutable.
- * 2. If Qwik assumes that properties are immutable, then it can do a better job data-shaking the
- * amount of code that needs to be serialized to the client.
- *
- * Because Qwik assumes that bindings are immutable by default, it needs a way for a developer to
- * let it know that binding is mutable. `mutable()` function serves that purpose.
- * `<Example valueA={123} valueB={mutable(exp)}>`. In this case, the Qwik runtime can correctly
- * recognize that the `Example` props are mutable and need to be serialized.
- *
- * See: [Mutable Props Tutorial](http://qwik.builder.io/tutorial/props/mutable) for an example
- *
  * @alpha
+ * @deprecated Remove it, not needed anymore
  */
-// </docs>
-export const mutable = <T>(v: T): MutableWrapper<T> => {
-  return new MutableImpl(v);
+export const mutable = <T>(v: T): T => {
+  console.warn(
+    'mutable() is deprecated, you can safely remove all usages of mutable() in your code'
+  );
+  return v;
 };
-
-class MutableImpl<T> implements MutableWrapper<T> {
-  constructor(public mut: T) {}
-}
 
 export const isConnected = (sub: Subscriber): boolean => {
   if (isQwikElement(sub)) {
@@ -321,26 +297,6 @@ export const isConnected = (sub: Subscriber): boolean => {
   } else {
     return isConnected(sub.$el$);
   }
-};
-
-// <docs markdown="../readme.md#MutableWrapper">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#MutableWrapper instead)
-/**
- * A marker object returned by `mutable()` to identify that the binding is mutable.
- *
- * @alpha
- */
-// </docs>
-export interface MutableWrapper<T> {
-  /**
-   * Mutable value.
-   */
-  mut: T;
-}
-
-export const isMutable = (v: any): v is MutableWrapper<any> => {
-  return v instanceof MutableImpl;
 };
 
 /**

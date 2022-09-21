@@ -44,7 +44,6 @@ export interface ContainerState {
   $elementIndex$: number;
 
   $styleIds$: Set<string>;
-  $mutableProps$: boolean;
 }
 
 const CONTAINER_STATE = Symbol('ContainerState');
@@ -76,7 +75,6 @@ export const createContainerState = (containerEl: Element) => {
     $elementIndex$: 0,
 
     $styleIds$: new Set(),
-    $mutableProps$: false,
   };
   seal(containerState);
   containerState.$subsManager$ = createSubscriptionManager(containerState);

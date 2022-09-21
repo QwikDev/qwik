@@ -51,7 +51,7 @@ export interface SSRContext {
   rctx: RenderContext;
   projectedChildren: Record<string, any[] | undefined> | undefined;
   projectedContext: SSRContext | undefined;
-  hostCtx: QContext | undefined;
+  hostCtx: QContext | null;
   invocationContext?: InvokeContext | undefined;
   $contexts$: QContext[];
   headNodes: JSXNode<string>[];
@@ -81,7 +81,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
     $contexts$: [],
     projectedChildren: undefined,
     projectedContext: undefined,
-    hostCtx: undefined,
+    hostCtx: null,
     invocationContext: undefined,
     headNodes: root === 'html' ? headNodes : [],
   };
@@ -536,6 +536,7 @@ export const renderNode = (
 
   if (tagName === Virtual) {
     const elCtx = createContext(111);
+    elCtx.$parent$ = ssrCtx.hostCtx;
     return renderNodeVirtual(
       node as JSXNode<typeof Virtual>,
       elCtx,

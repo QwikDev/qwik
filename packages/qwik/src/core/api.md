@@ -291,7 +291,7 @@ export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLEl
 // @public (undocumented)
 export type MountFn<T> = () => ValueOrPromise<T>;
 
-// @alpha @deprecated
+// @alpha @deprecated (undocumented)
 export const mutable: <T>(v: T) => T;
 
 // @public

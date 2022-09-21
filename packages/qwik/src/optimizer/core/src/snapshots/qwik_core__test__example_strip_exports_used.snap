@@ -32,7 +32,7 @@ export const test_component_useResource_4a8wVY7wh38 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAciB,IAAM;IACf,OAAO,KAAK,EAAE,CAAC;CAClB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAciB,IAAM;IACf,OAAO,KAAK,EAAE,CAAC;AACnB,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -73,7 +73,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAa0B,IAAK;IAC3B,qHAEE;IACF,QAAQ,GAAG,EAAC,GAAG,EAAE,GAAG,EAAC;CACxB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAa0B,IAAK;IAC3B,qHAEE;IACF,QAAQ,GAAG,EAAC,GAAG,EAAE,GAAG,EAAC;AACzB,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

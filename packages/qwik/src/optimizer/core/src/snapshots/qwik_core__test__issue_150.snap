@@ -109,7 +109,7 @@ export const Greeter_component_n7HuG2hhU0Q = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6CAIkC,IAAM;IACpC,MAAM,KAAK,GAAG,QAAQ,EAAE,AAAC;IACzB;;OAUG;CACN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6CAIkC,IAAM;IACpC,MAAM,KAAK,GAAG,QAAQ,EAAE,AAAC;IACzB;;OAUG;AACP,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

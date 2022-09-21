@@ -67,7 +67,7 @@ export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_ht
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;AAEA,OAAO,MAAM,WAAW,GAAG,CAAC,KAAK,GAAK;IAClC,qBACI,KAAC,KAAG;kBACA,cAAA;;8BACI,KAAC,KAAG,KAAE;8BACN,KAAC,QAAM;oBAAE,GAAG,KAAK;kBAAG;;UACrB;MACD,CACT;CACJ,CAAC;AAEF,OAAO,MAAM,GAAG,iBAAG,0FAuBhB;IACC,OAAO,EAAE,QAAQ;CACpB,CAAC,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;AAEA,OAAO,MAAM,WAAW,GAAG,CAAC,KAAK,GAAK;IAClC,qBACI,KAAC,KAAG;kBACA,cAAA;;8BACI,KAAC,KAAG,KAAE;8BACN,KAAC,QAAM;oBAAE,GAAG,KAAK;kBAAG;;UACrB;MACD,CACT;AACL,CAAC,CAAC;AAEF,OAAO,MAAM,GAAG,iBAAG,0FAuBhB;IACC,OAAO,EAAE,QAAQ;CACpB,CAAC,CAAC\"}")
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
@@ -78,7 +78,7 @@ export const Foo_component_HTDRsvUbLiE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAc8B,CAAC,KAAK,GAAK;IACrC;;OAqBG;CACN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAc8B,CAAC,KAAK,GAAK;IACrC;;OAqBG;AACP,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

@@ -25,7 +25,7 @@ pub fn new_ident_from_id(id: &Id) -> ast::Ident {
     )
 }
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(Eq, PartialEq, Clone, Copy)]
 pub enum ImportKind {
     Named,
     All,

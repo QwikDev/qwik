@@ -12,3 +12,4 @@
 /tutorials/ /tutorial/welcome/overview 307
 
 /qwikcity/routing/pathless/ /qwikcity/layout/grouped/ 308
+/qwikcity/middleware/express/ /qwikcity/middleware/node/ 308

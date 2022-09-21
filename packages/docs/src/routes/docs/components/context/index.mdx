@@ -4,7 +4,7 @@ title: Context
 
 # Context
 
-Qwik provides a context API, very similar to React's functional `useContext()`. In fact the context API is the most efficient way to pass data down, reducing overhead, generating less code and allowing Qwik to treeshake unused data more heavily.
+Qwik provides a context API, very similar to React's functional `useContext()`. In fact, Qwik's context API is the most efficient way to pass data down, reducing overhead, generating less code, and allowing Qwik to treeshake unused data more heavily.
 
 Qwik's context API is made of 3 methods, importable from `@builder.io/qwik`:
 
@@ -16,7 +16,7 @@ Qwik's context API is made of 3 methods, importable from `@builder.io/qwik`:
 
 This example is made of two components, the `Parent` and the `Child`. The parent component creates some new state and assigns it to a context, allowing any descendent component to get a reference to the "state".
 
-At the same time, the parent component is rendering `<div>Count: {state.count}</div>`, creating a reactive subscription, that will rerender when the Child changes the value in the click handler: `<button onClick$={() => state.count++}>`
+At the same time, the parent component is rendering `<div>Count: {state.count}</div>`, creating a reactive subscription that will re-render when the Child changes the value in the click handler: `<button onClick$={() => state.count++}>`.
 
 ```tsx
 import {
@@ -63,13 +63,13 @@ Let's dig into every API involved:
 
 ### `createContext()`
 
-This method takes a string that gives the context unique name, if your application uses a lot of different context or you are writting a component library, we recommend to follow a name convention that avoids conflicts, such as:
+This method takes a string that gives the context unique name, if your application uses a lot of different context or you are writing a component library, we recommend to follow a name convention that avoids conflicts, such as:
 
 ```tsx
 export const QwikCityContext = createContext('io.builder.qwik.city');
 ```
 
-Notice that the value returned by `createContext()` does not hold any state, and its immutable. It's only used to describe the name and type of the context, like the address or an identifier.
+Notice that the value returned by `createContext()` does not hold any state, and it's immutable. It's only used to describe the name and type of the context, like an address or an identifier.
 
 Because it does not hold any state, it's ok to call it and make it a singleton, exported in some shared module.
 
@@ -77,7 +77,7 @@ Because it does not hold any state, it's ok to call it and make it a singleton, 
 
 Like all use- methods, it can only be called at the root of `component$()` (not inside branches). This method is called by some higher level component and it's what assigns (provides) a value to the context. The provided value will not be globally available across the whole render tree, but only to descendant components in the tree.
 
-The value passed to `useContextProvider()` can be any primitive, useStores, object or even array that contains serializable values.
+The value passed to `useContextProvider()` can be any primitive, object (including from useStore), or array that contains serializable values.
 
 ```tsx
 export const Parent = component$(() => {
@@ -104,7 +104,7 @@ Let's see how `Children` can consume the values:
 
 ### `useContext()`
 
-Again, like all use- methods, only usable at the root of a `component$()`. This methods allows to get the **provided** value to a named context.
+Again, like all use- methods, they are only usable at the root of a `component$()`. This methods allows us to get the **provided** value to a named context.
 
 ```tsx
 export const Children = component$(() => {
@@ -122,7 +122,7 @@ export const Children = component$(() => {
 
 ## Typed contexts
 
-When a context is created using `createContext()` a type can be provided, in fact, it's very recommended to do so, in order to reduce errors and typos:
+When a context is created using `createContext()`, a type can be provided. In fact, it's highly recommended to do so, in order to reduce errors and typos.
 
 ```tsx
 export interface SharedState {
@@ -131,7 +131,7 @@ export interface SharedState {
 export const MyContext = createContext<SharedState>('my-context');
 ```
 
-This way, when using `MyContext` in `useContextProvider()` and `useContext()` the provided value will have the `SharedState` type.
+This way, when using `MyContext` in `useContextProvider()` and `useContext()`, the provided value will have the `SharedState` type.
 
 Let's see a working example:
 

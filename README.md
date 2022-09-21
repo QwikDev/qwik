@@ -12,7 +12,7 @@
 
 Qwik offers the fastest possible page load times - regardless of the complexity of your website. Qwik is so fast because it allows fully interactive sites to load with almost no JavaScript and [pickup from where the server left off](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/docs/concepts/resumable/index.mdx).
 
-As users interact with the site, only the necesary parts of the site load on-demand. This [precision lazy-loading](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/docs/concepts/progressive/index.mdx) is what makes Qwik so quick.
+As users interact with the site, only the necessary parts of the site load on-demand. This [precision lazy-loading](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/docs/concepts/progressive/index.mdx) is what makes Qwik so quick.
 
 ## Getting Started
 

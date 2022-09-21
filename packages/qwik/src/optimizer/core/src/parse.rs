@@ -217,6 +217,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     }
 
                     let mut did_transform = false;
+
                     // Transpile JSX
                     if transpile && is_type_script {
                         did_transform = true;
@@ -469,6 +470,7 @@ pub fn emit_source_code(
             minify: false,
             target: ast::EsVersion::latest(),
             ascii_only: false,
+            omit_last_semi: false,
         };
         let mut emitter = swc_ecmascript::codegen::Emitter {
             cfg: config,
@@ -527,7 +529,13 @@ fn handle_error(
                 Some(
                     span_labels
                         .into_iter()
-                        .map(|span_label| SourceLocation::from(source_map, span_label.span))
+                        .flat_map(|span_label| {
+                            if span_label.span.hi == span_label.span.lo {
+                                None
+                            } else {
+                                Some(SourceLocation::from(source_map, span_label.span))
+                            }
+                        })
                         .collect(),
                 )
             };

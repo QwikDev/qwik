@@ -6,7 +6,7 @@ interface AppStore {
   delayCount: number;
 }
 export const App = component$(() => {
-  const store = useStore({
+  const store = useStore<AppStore>({
     count: 0,
     delayCount: 0,
   });

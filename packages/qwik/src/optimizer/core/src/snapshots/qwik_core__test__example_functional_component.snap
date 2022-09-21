@@ -25,7 +25,7 @@ export const Header_component_J4uyIhaBNR4 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAE0B,IAAM;IAC5B,MAAM,KAAK,GAAG,QAAQ,EAAE,AAAC;IACzB,MAAM,EAAC,GAAG,CAAA,EAAE,GAAG,CAAA,EAAC,GAAG,GAAG,EAAE,AAAC;IAEzB,QACK,GAAG,GAAE,KAAK,GAAG,GAAG,EACnB;CACL\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAE0B,IAAM;IAC5B,MAAM,KAAK,GAAG,QAAQ,EAAE,AAAC;IACzB,MAAM,EAAC,GAAG,CAAA,EAAE,GAAG,CAAA,EAAC,GAAG,GAAG,EAAE,AAAC;IAEzB,QACK,GAAG,GAAE,KAAK,GAAG,GAAG,EACnB;AACN,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

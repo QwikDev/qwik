@@ -25,7 +25,7 @@ pub fn new_ident_from_id(id: &Id) -> ast::Ident {
     )
 }
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(Eq, PartialEq, Clone, Copy)]
 pub enum ImportKind {
     Named,
     All,
@@ -130,6 +130,9 @@ impl Visit for GlobalCollect {
                         self.root.extend(identifiers.into_iter());
                     }
                 }
+                ast::Decl::TsEnum(enu) => {
+                    self.root.insert(id!(enu.id), enu.id.span);
+                }
                 _ => {}
             }
         } else {
@@ -219,6 +222,9 @@ impl Visit for GlobalCollect {
 
     fn visit_export_decl(&mut self, node: &ast::ExportDecl) {
         match &node.decl {
+            ast::Decl::TsEnum(enu) => {
+                self.add_export(id!(enu.id), None);
+            }
             ast::Decl::Class(class) => {
                 self.add_export(id!(class.ident), None);
             }

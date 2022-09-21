@@ -6,7 +6,7 @@ export default component$(() => {
   return (
     <div>
       <h1>The component below is a React MUI button:</h1>
-      <MUIButton />
+      <MUIButton client:visible />
     </div>
   );
 });

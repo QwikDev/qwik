@@ -41,7 +41,7 @@ export const Foo_component_HTDRsvUbLiE = ({ foo  })=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,CAAC,EAAC,GAAG,CAAA,EAAC,GAAK;IACrC,MAAM,IAAI,GAAG,EAAE,AAAC;IAChB;;;OAOG;CACN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,CAAC,EAAC,GAAG,CAAA,EAAC,GAAK;IACrC,MAAM,IAAI,GAAG,EAAE,AAAC;IAChB;;;OAOG;AACP,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -71,7 +71,7 @@ export const Bar_component_L80pS8Hxf1Y = ({ bar  })=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAe8B,CAAC,EAAC,GAAG,CAAA,EAAC,GAAK;IACrC;;OAMG;CACN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAe8B,CAAC,EAAC,GAAG,CAAA,EAAC,GAAK;IACrC;;OAMG;AACP,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

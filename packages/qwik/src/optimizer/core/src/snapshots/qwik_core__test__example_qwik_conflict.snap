@@ -74,7 +74,7 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAU8B,IAAM;IAChC,UAAU,CAAC,OAAO,CAAC,CAAC;IACpB,MAAM,IAAI,GAAG,EAAE,GAAG,WAAW,AAAC;IAC9B,OAAO,CAAC,GAAG,CAAC,IAAI,CAAC,CAAC;IAClB,MAAM,IAAG,GAAG,EAAE,AAAC;IACf,qBACI,KAAC,KAAG;QAAC,QAAQ;;;MAA0B,CAC1C;CACJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAU8B,IAAM;IAChC,UAAU,CAAC,OAAO,CAAC,CAAC;IACpB,MAAM,IAAI,GAAG,EAAE,GAAG,WAAW,AAAC;IAC9B,OAAO,CAAC,GAAG,CAAC,IAAI,CAAC,CAAC;IAClB,MAAM,IAAG,GAAG,EAAE,AAAC;IACf,qBACI,KAAC,KAAG;QAAC,QAAQ;;;MAA0B,CAC1C;AACL,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -130,7 +130,7 @@ export const Root_component_royhjYaCbYE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAsB+B,IAAM;IACjC,SAAS,mGAAY,CAAC;IACtB,yFAIG;CACN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAsB+B,IAAM;IACjC,SAAS,mGAAY,CAAC;IACtB,yFAIG;AACP,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -159,7 +159,7 @@ export const Root_component_1_cBpQNYDUHI4 = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAwBa,IAAM;IACX,qBACI,KAAC,KAAG,KAAE,CACT;CACJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAwBa,IAAM;IACX,qBACI,KAAC,KAAG,KAAE,CACT;AACL,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

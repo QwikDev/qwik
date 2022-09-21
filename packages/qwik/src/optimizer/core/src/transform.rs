@@ -11,8 +11,9 @@ use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::DefaultHasher;
 use std::collections::{BTreeMap, HashMap, HashSet};
+use std::fmt::Write as _;
 use std::hash::Hash;
-use std::hash::Hasher;
+use std::hash::Hasher; // import without risk of name clashing
 
 use swc_atoms::{js_word, JsWord};
 use swc_common::comments::{Comments, SingleThreadedComments};
@@ -220,7 +221,7 @@ impl<'a> QwikTransform<'a> {
         if index == 0 {
             self.hooks_names.insert(display_name.clone(), 0);
         } else {
-            display_name += &format!("_{}", index);
+            write!(display_name, "_{}", index).unwrap();
         }
         let mut hasher = DefaultHasher::new();
         let local_file_name = self.options.path_data.rel_path.to_slash_lossy();
@@ -1162,44 +1163,43 @@ impl<'a> Fold for QwikTransform<'a> {
                     return self.fix_dynamic_import(node);
                 }
             }
-            ast::Callee::Expr(expr) => {
-                if let ast::Expr::Ident(ident) = &**expr {
-                    if id_eq!(ident, &self.qhook_fn) {
+            ast::Callee::Expr(box ast::Expr::Ident(ident)) => {
+                if id_eq!(ident, &self.qhook_fn) {
+                    if let Some(comments) = self.options.comments {
+                        comments.add_pure_comment(ident.span.lo);
+                    }
+                    return self.handle_qhook(node);
+                } else if self.jsx_functions.contains(&id!(ident)) {
+                    return self.handle_jsx(node);
+                } else if id_eq!(ident, &self.inlined_qrl_fn) {
+                    return self.handle_inlined_qhook(node);
+                } else if let Some(specifier) = self.marker_functions.get(&id!(ident)) {
+                    self.stack_ctxt.push(ident.sym.to_string());
+                    ctx_name = specifier.clone();
+                    name_token = true;
+
+                    if id_eq!(ident, &self.qcomponent_fn) {
+                        self.in_component = true;
+                        component_token = true;
                         if let Some(comments) = self.options.comments {
-                            comments.add_pure_comment(ident.span.lo);
+                            comments.add_pure_comment(node.span.lo);
                         }
-                        return self.handle_qhook(node);
-                    } else if self.jsx_functions.contains(&id!(ident)) {
-                        return self.handle_jsx(node);
-                    } else if id_eq!(ident, &self.inlined_qrl_fn) {
-                        return self.handle_inlined_qhook(node);
-                    } else if let Some(specifier) = self.marker_functions.get(&id!(ident)) {
-                        self.stack_ctxt.push(ident.sym.to_string());
-                        ctx_name = specifier.clone();
-                        name_token = true;
+                    }
+                    let global_collect = &mut self.options.global_collect;
+                    if let Some(import) = global_collect.imports.get(&id!(ident)).cloned() {
+                        let new_specifier =
+                            convert_signal_word(&import.specifier).expect("Specifier ends with $");
+                        let new_local = self.ensure_import(new_specifier, import.source);
+                        replace_callee = Some(new_ident_from_id(&new_local).as_callee());
+                    } else {
+                        let new_specifier =
+                            convert_signal_word(&ident.sym).expect("Specifier ends with $");
+                        let new_local = global_collect
+                            .exports
+                            .keys()
+                            .find(|id| id.0 == new_specifier);
 
-                        if id_eq!(ident, &self.qcomponent_fn) {
-                            self.in_component = true;
-                            component_token = true;
-                            if let Some(comments) = self.options.comments {
-                                comments.add_pure_comment(node.span.lo);
-                            }
-                        }
-                        let global_collect = &mut self.options.global_collect;
-                        if let Some(import) = global_collect.imports.get(&id!(ident)).cloned() {
-                            let new_specifier = convert_signal_word(&import.specifier)
-                                .expect("Specifier ends with $");
-                            let new_local = self.ensure_import(new_specifier, import.source);
-                            replace_callee = Some(new_ident_from_id(&new_local).as_callee());
-                        } else {
-                            let new_specifier =
-                                convert_signal_word(&ident.sym).expect("Specifier ends with $");
-                            let new_local = global_collect
-                                .exports
-                                .keys()
-                                .find(|id| id.0 == new_specifier);
-
-                            new_local.map_or_else(
+                        new_local.map_or_else(
                                 || {
                                     HANDLER.with(|handler| {
                                         handler
@@ -1215,11 +1215,10 @@ impl<'a> Fold for QwikTransform<'a> {
                                     replace_callee = Some(new_ident_from_id(new_local).as_callee());
                                 },
                             );
-                        }
-                    } else {
-                        self.stack_ctxt.push(ident.sym.to_string());
-                        name_token = true;
                     }
+                } else {
+                    self.stack_ctxt.push(ident.sym.to_string());
+                    name_token = true;
                 }
             }
             _ => {}
@@ -1271,11 +1270,11 @@ impl<'a> Fold for QwikTransform<'a> {
 pub fn add_handle_watch(body: &mut Vec<ast::ModuleItem>) {
     body.push(ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(
         ast::NamedExport {
-            src: Some(ast::Str {
+            src: Some(Box::new(ast::Str {
                 span: DUMMY_SP,
                 value: BUILDER_IO_QWIK.clone(),
                 raw: None,
-            }),
+            })),
             span: DUMMY_SP,
             asserts: None,
             type_only: false,
@@ -1307,11 +1306,11 @@ pub fn create_synthetic_named_export(local: &Id) -> ast::ModuleItem {
 pub fn create_synthetic_named_import(local: &Id, src: &JsWord) -> ast::ModuleItem {
     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {
         span: DUMMY_SP,
-        src: ast::Str {
+        src: Box::new(ast::Str {
             span: DUMMY_SP,
             value: src.clone(),
             raw: None,
-        },
+        }),
         asserts: None,
         type_only: false,
         specifiers: vec![ast::ImportSpecifier::Named(ast::ImportNamedSpecifier {

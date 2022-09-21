@@ -29,7 +29,7 @@ export const Header_component_J4uyIhaBNR4 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAEiC,IAAM;IACnC,SACM;;YACE,CAAC,GAAG,CAAC,OAAO,EAAE,CAAC,GAAG,GAAK,OAAO,CAAC,GAAG,CAAC,GAAG,CAAC,GAAG;;YAC1C,CAAC,GAAG,CAAC,OAAO,8GAAiC;;QACjD,IACF;CACL\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAEiC,IAAM;IACnC,SACM;;YACE,CAAC,GAAG,CAAC,OAAO,EAAE,CAAC,GAAG,GAAK,OAAO,CAAC,GAAG,CAAC,GAAG,CAAC,GAAG;;YAC1C,CAAC,GAAG,CAAC,OAAO,8GAAiC;;QACjD,IACF;AACN,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

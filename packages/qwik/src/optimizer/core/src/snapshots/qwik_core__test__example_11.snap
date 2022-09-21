@@ -65,7 +65,7 @@ export const Header_component_UVBJuFYfvDo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC,IAAM;IACnC,QACK,MAAM,CAAC,OAAO,mFAAuB;;YAClC,CAAC,IAAI,CAAC,KAAK,EAAE,EAAE,IAAI,EAAE,CAAC;;QAC1B,EAAE,MAAM,EACV;CACL\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC,IAAM;IACnC,QACK,MAAM,CAAC,OAAO,mFAAuB;;YAClC,CAAC,IAAI,CAAC,KAAK,EAAE,EAAE,IAAI,EAAE,CAAC;;QAC1B,EAAE,MAAM,EACV;AACN,CAAC\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -94,7 +94,7 @@ export const App_component_wGkRHWXaqjs = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;yCAc8B,IAAM;IAChC,QACK,MAAM,GAAE,GAAG,EAAE,GAAG,MAAM,EACzB;CACL\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;yCAc8B,IAAM;IAChC,QACK,MAAM,GAAE,GAAG,EAAE,GAAG,MAAM,EACzB;AACN,CAAC\"}")
 /*
 {
   "origin": "project/test.tsx",

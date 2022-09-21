@@ -51,7 +51,7 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,IAAM;IAChC,6GAAuB,CAAC;IACxB,QACK,GAAG,CAAC,KAAK,CAAC,OAAO,GACpB;CACL\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,IAAM;IAChC,6GAAuB,CAAC;IACxB,QACK,GAAG,CAAC,KAAK,CAAC,OAAO,GACpB;AACN,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

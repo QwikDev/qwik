@@ -470,6 +470,7 @@ pub fn emit_source_code(
             minify: false,
             target: ast::EsVersion::latest(),
             ascii_only: false,
+            omit_last_semi: false,
         };
         let mut emitter = swc_ecmascript::codegen::Emitter {
             cfg: config,

@@ -39,7 +39,7 @@ const Counter = component$(() => {
 ```
 
 1. The server performs an initial render of the component. The server rendering includes creating the proxy represented by `store`.
-2. The initial render invokes the OnRender method, which has a reference to the `store` proxy. The rendering puts the proxy to "learn" mode. During the build-up of JSX, the proxy observers a read to `count` property. Because the proxy is in "learn" mode, it records that the `Counter` has a subscription on the `store.count`.
+2. The initial render invokes the OnRender method, which has a reference to the `store` proxy. The rendering puts the proxy to "learn" mode. During the build-up of JSX, the proxy observes a read to `count` property. Because the proxy is in "learn" mode, it records that the `Counter` has a subscription on the `store.count`.
 3. The server serializes the state of the application into HTML. This includes the `store` as well as subscription information which says that `Counter` is subscribed to `store.count`.
 4. In the browser, the user clicks the button. Because the click event handler closed over `store`, Qwik restores the store proxy. The proxy contains the application state (the count) and the subscription, which associates the `Counter` with `state.count`.
 5. The event handler increments the `store.count`. Because the `store` is a proxy, it notices the write and uses the subscription information to invalidate the `Counter`.

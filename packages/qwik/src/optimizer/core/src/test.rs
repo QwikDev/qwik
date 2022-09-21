@@ -1455,6 +1455,84 @@ export const App = component$(() => {
 }
 
 #[test]
+fn example_ts_enums_issue_1341() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+enum Thing {
+    A,
+    B
+}
+
+export const App = component$(() => {
+    console.log(Thing.A);
+    return (
+        <>
+            <p class="stuff">Hello Qwik</p>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_ts_enums_no_transpile() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export enum Thing {
+    A,
+    B
+}
+
+export const App = component$(() => {
+    console.log(Thing.A);
+    return (
+        <>
+            <p class="stuff">Hello Qwik</p>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile: false,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_ts_enums() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export enum Thing {
+    A,
+    B
+}
+
+export const App = component$(() => {
+    console.log(Thing.A);
+    return (
+        <>
+            <p class="stuff">Hello Qwik</p>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_qwik_react() {
     test_input!(TestInput {
         code: r#"

@@ -413,6 +413,7 @@ impl<'a> QwikTransform<'a> {
                                 errors::get_diagnostic_id(errors::Error::RootLevelReference)
                             )
                             .emit();
+
                     });
                     // }
                 }

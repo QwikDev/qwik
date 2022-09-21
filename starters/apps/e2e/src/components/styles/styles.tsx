@@ -2,6 +2,7 @@ import { component$, useStylesScoped$, useStore } from '@builder.io/qwik';
 import parent from './parent.css';
 import child from './child.css';
 import child2 from './child2.css';
+import empty from './empty.css';
 
 export const Styles = component$(() => {
   useStylesScoped$(parent);
@@ -29,6 +30,7 @@ export const Styles = component$(() => {
 export const Child = component$((props: { index: number }) => {
   useStylesScoped$(child);
   useStylesScoped$(child2);
+  useStylesScoped$(empty);
 
   return (
     <div class="child-container">

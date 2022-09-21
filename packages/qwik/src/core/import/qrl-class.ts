@@ -86,7 +86,7 @@ export const createQRL = <TYPE>(
   };
 
   const resolveLazy = (containerEl?: Element): ValueOrPromise<TYPE> => {
-    return symbolRef ? symbolRef : resolve(containerEl);
+    return symbolRef !== null ? symbolRef : resolve(containerEl);
   };
 
   const invokeFn = (currentCtx?: InvokeContext | InvokeTuple, beforeFn?: () => void | boolean) => {

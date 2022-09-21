@@ -733,7 +733,7 @@ test.describe('e2e', () => {
       await expect(inline2).toHaveCSS('font-size', '40px');
 
       const el = await page.$$('[q\\:style]');
-      await expect(el.length).toBe(3);
+      await expect(el.length).toBe(4);
       await addChild.click();
       await page.waitForTimeout(100);
 
@@ -748,7 +748,7 @@ test.describe('e2e', () => {
       await expect(inline10).toHaveCSS('font-size', '40px');
 
       const el2 = await page.$$('[q\\:style]');
-      await expect(el2.length).toBe(3);
+      await expect(el2.length).toBe(4);
     });
   });
 

@@ -320,7 +320,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   placeholder?: string | undefined;
   slot?: string | undefined;
   spellCheck?: Booleanish | undefined;
-  style?: Record<string, string | number> | string | undefined;
+  style?: Record<string, string | number | undefined> | string | undefined;
   tabIndex?: number | undefined;
   title?: string | undefined;
   translate?: 'yes' | 'no' | undefined;
@@ -666,6 +666,7 @@ export interface LinkHTMLAttributes<T> extends HTMLAttributes<T> {
   integrity?: string | undefined;
   media?: string | undefined;
   imageSrcSet?: string | undefined;
+  imageSizes?: string | undefined;
   referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
   rel?: string | undefined;
   sizes?: string | undefined;

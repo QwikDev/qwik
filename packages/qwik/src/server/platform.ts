@@ -1,17 +1,15 @@
-import type { SerializeDocumentOptions, SymbolMapper } from './types';
+import type { SerializeDocumentOptions } from './types';
 import type { CorePlatform } from '@builder.io/qwik';
 import { setPlatform } from '@builder.io/qwik';
+import type { ResolvedManifest } from './prefetch-strategy';
 
 declare const require: (module: string) => Record<string, any>;
 
 function createPlatform(
-  document: any,
   opts: SerializeDocumentOptions,
-  mapper: SymbolMapper | undefined
+  resolvedManifest: ResolvedManifest | undefined
 ) {
-  if (!document || (document as Document).nodeType !== 9) {
-    throw new Error(`Invalid Document implementation`);
-  }
+  const mapper = resolvedManifest?.mapper;
   const mapperFn = opts.symbolMapper
     ? opts.symbolMapper
     : (symbolName: string) => {
@@ -62,16 +60,13 @@ function createPlatform(
 /**
  * Applies NodeJS specific platform APIs to the passed in document instance.
  *
- * @alpha
- *
  */
 export async function setServerPlatform(
-  document: any,
   opts: SerializeDocumentOptions,
-  mapper: SymbolMapper | undefined
+  manifest: ResolvedManifest | undefined
 ) {
-  const platform = createPlatform(document, opts, mapper);
-  setPlatform(document, platform);
+  const platform = createPlatform(opts, manifest);
+  setPlatform(platform);
 }
 
 export const getSymbolHash = (symbolName: string) => {

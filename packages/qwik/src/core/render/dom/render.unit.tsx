@@ -5,7 +5,7 @@ import { inlinedQrl, runtimeQrl } from '../../import/qrl';
 import { pauseContainer } from '../../object/store';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
-import { useClientEffect$, useServerMount$, useWatch$ } from '../../use/use-watch';
+import { useClientEffect$, useWatch$ } from '../../use/use-watch';
 import { useCleanup$, useOn } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
@@ -468,6 +468,8 @@ renderSuite('should render into host component', async () => {
   await render(
     fixture.host,
     <divfixture
+      on:click="./lazy.js"
+      onscrolling="./test.js"
       hostAttrs={JSON.stringify({
         id: 'TEST',
         class: { thing: true },
@@ -480,6 +482,8 @@ renderSuite('should render into host component', async () => {
     fixture,
     `
       <divfixture
+        on:click="./lazy.js"
+        onscrolling="./test.js"
         hostattrs='{"id":"TEST","class":{"thing":true},"name":"NAME"}'
         content="CONTENT"
       >
@@ -501,11 +505,11 @@ renderSuite('should render a component with hooks', async () => {
     fixture,
     `
     <div q:id="1" on:qvisible="/runtimeQRL#_[0]">
-      <div q:id="2" id="effect"></div>
+      <div q:id="2" id="effect">true</div>
       <div q:id="3" id="effect-destroy"></div>
       <div id="watch">true</div>
       <div q:id="4" id="watch-destroy"></div>
-      <div id="server-mount">true</div>
+      <div id="server-mount">false</div>
       <div q:id="5" id="cleanup"></div>
       <div id="reference">true</div>
     </div>`
@@ -516,11 +520,11 @@ renderSuite('should render a component with hooks', async () => {
     fixture,
     `
     <div q:id="1" on:qvisible="/runtimeQRL#_[0]">
-      <div q:id="2" id="effect"></div>
-      <div q:id="3" id="effect-destroy"></div>
+      <div q:id="2" id="effect">true</div>
+      <div q:id="3" id="effect-destroy">true</div>
       <div id="watch">true</div>
       <div q:id="4" id="watch-destroy">true</div>
-      <div id="server-mount">true</div>
+      <div id="server-mount">false</div>
       <div q:id="5" id="cleanup">true</div>
       <div id="reference">true</div>
     </div>`
@@ -565,6 +569,63 @@ renderSuite('should render #text nodes', async () => {
     (e: any) => e.namespaceURI
   );
   equal(namespaces, ['http://www.w3.org/2000/svg', 'http://www.w3.org/2000/svg']);
+});
+
+renderSuite('should render class object correctly', async () => {
+  const fixture = new ElementFixture();
+
+  await render(
+    fixture.host,
+    <div
+      class={{
+        stuff: true,
+        other: false,
+        'm-0 p-2': true,
+      }}
+    ></div>
+  );
+  await expectRendered(fixture, `<div class="stuff m-0 p-2"></div>`);
+});
+
+renderSuite('should render class array correctly', async () => {
+  const fixture = new ElementFixture();
+
+  await render(
+    fixture.host,
+    <div class={['stuff', '', 'm-0 p-2', null, 'active', undefined, 'container'] as any}></div>
+  );
+  await expectRendered(fixture, `<div class="stuff m-0 p-2 active container"></div>`);
+});
+
+renderSuite('should re-render classes correctly', async () => {
+  const fixture = new ElementFixture();
+
+  await render(fixture.host, <RenderClasses></RenderClasses>);
+  await expectDOM(
+    fixture.host,
+    `
+  <host q:version="dev" q:container="resumed" q:render="dom-dev">
+    <!--qv q:key=sX: q:id=0-->
+    <button q:id="1" class="increment" on:click="/runtimeQRL#_[0 1]">+</button>
+    <div class="stuff m-0 p-2">Div 1</div>
+    <div class="stuff m-0 p-2 active container">Div 2</div>
+    <!--/qv-->
+  </host>`
+  );
+
+  await trigger(fixture.host, 'button', 'click');
+
+  await expectDOM(
+    fixture.host,
+    `
+  <host q:version="dev" q:container="resumed" q:render="dom-dev">
+    <!--qv q:key=sX: q:id=0-->
+    <button q:id="1" class="increment" on:click="/runtimeQRL#_[0 2]">+</button>
+    <div class="other">Div 1</div>
+    <div class="stuff m-0 p-2 active container almost-null">Div 2</div>
+    <!--/qv-->
+  </host>`
+  );
 });
 
 renderSuite('should render camelCase attributes', async () => {
@@ -746,6 +807,46 @@ export const RenderProps = component$((props: Record<string, any>) => {
 });
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Render Classes
+//////////////////////////////////////////////////////////////////////////////////////////
+export const RenderClasses = component$(() => {
+  const state = useStore({
+    count: 0,
+  });
+  return (
+    <>
+      <button className="increment" onClick$={runtimeQrl(Counter_add, [state, { value: 1 }])}>
+        +
+      </button>
+      <div
+        class={{
+          stuff: state.count % 2 === 0,
+          other: state.count % 2 === 1,
+          'm-0 p-2': state.count % 2 === 0,
+        }}
+      >
+        Div 1
+      </div>
+      <div
+        class={
+          [
+            'stuff',
+            '',
+            'm-0 p-2',
+            state.count % 2 === 0 ? null : 'almost-null',
+            'active',
+            undefined,
+            'container',
+          ] as any
+        }
+      >
+        Div 2
+      </div>
+    </>
+  );
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Counter
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -758,7 +859,7 @@ export const Counter = component$((props: { step?: number }) => {
         -
       </button>
       <span>{state.count}</span>
-      <button class="increment" onClick$={runtimeQrl(Counter_add, [state, { value: step }])}>
+      <button className="increment" onClick$={runtimeQrl(Counter_add, [state, { value: step }])}>
         +
       </button>
     </>
@@ -880,10 +981,6 @@ export const Hooks = component$(() => {
     return () => {
       effectDestroyDiv.current!.textContent = 'true';
     };
-  });
-
-  useServerMount$(() => {
-    state.server = 'true';
   });
 
   return (

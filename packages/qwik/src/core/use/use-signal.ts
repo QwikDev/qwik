@@ -23,4 +23,3 @@ export const useSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE>
   set(signal);
   return signal;
 };
-

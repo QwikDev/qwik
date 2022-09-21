@@ -9,13 +9,14 @@ export default () => {
       <head>
         <meta charSet="utf-8" />
         <title>Qwik + Partytown Blank App</title>
-        <script children={partytownSnippet({ debug: true })} />
+        <script dangerouslySetInnerHTML={partytownSnippet({ debug: true })} />
       </head>
       <body>
         <App />
-        <script type="text/partytown">
-          ({partyTownExampleWhichBlocksMainThreadForOneSecond.toString()})()
-        </script>
+        <script
+          type="text/partytown"
+          dangerouslySetInnerHTML={`(${partyTownExampleWhichBlocksMainThreadForOneSecond.toString()})()`}
+        ></script>
       </body>
     </html>
   );

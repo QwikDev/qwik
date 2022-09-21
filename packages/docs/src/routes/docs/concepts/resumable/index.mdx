@@ -7,9 +7,9 @@ fetch: https://hackmd.io/@mhevery/rkYkHhCxq
 
 A key concept of Qwik applications is that they are resumable from a server-side-rendered state. The best way to explain resumability is to understand how the current generation of frameworks are replayable (hydration).
 
-When an SSR/SSG application boots up on a client, it requires that the framework on the client restore three pieces of information:
+When an SSR/SSG application boots up on a client, it requires that the framework on the client restores three pieces of information:
 
-1. Listeners - locate event listeners and install them on the DOM nodes to make the application interactive;
+1. Listeners - locate event listeners and install them on the DOM nodes to make the application interactive.
 2. Component tree - build up an internal data structure representing the application component tree.
 3. Application state - restore the application state.
 
@@ -24,7 +24,7 @@ Collectively, this is known as hydration. All current generations of frameworks 
 
 Qwik is different because it does not require hydration to resume an application on the client. Not requiring hydration is what makes the Qwik application startup instantaneous.
 
-All other frameworks' hydration **replays** all the application logic in the client. Qwik instead pauses execution in the server, and resumes execution in the client,
+All other frameworks' hydration **replays** all the application logic in the client. Qwik instead pauses execution in the server, and resumes execution in the client.
 
 # Introducing Resumability
 
@@ -105,4 +105,4 @@ The most obvious benefit of using resumability is for server-side-rendering. How
 - Decreased memory pressure, especially on mobile devices
 - Progressive interactivity of existing static websites
 
-Reactivity is a key component of Qwik. Reactivity allows Qwik to track which components are subscribed to which state. This information enables Qwik to invalidate only the relevant component on state change, which minimizes the number of components that need to be rerendered. Without reactivity, a state change would require rerendering from the root component, which would force the whole component tree to be eagerly downloaded.
+Reactivity is a key component of Qwik. Reactivity allows Qwik to track which components are subscribed to which state. This information enables Qwik to invalidate only the relevant component on state change, which minimizes the number of components that need to be rerendered. Without reactivity, a state change would require re-rendering from the root component, which would force the whole component tree to be eagerly downloaded.

@@ -7,6 +7,8 @@
 // @alpha (undocumented)
 export interface ComponentEntryStrategy {
     // (undocumented)
+    manual?: Record<string, string>;
+    // (undocumented)
     type: 'component';
 }
 
@@ -35,7 +37,7 @@ export interface Diagnostic {
 export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 
 // @alpha (undocumented)
-export type EntryStrategy = InlineEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy | ManualEntryStrategy;
+export type EntryStrategy = InlineEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;
 
 // @alpha (undocumented)
 export interface GlobalInjections {
@@ -87,14 +89,6 @@ export interface HookEntryStrategy {
 export interface InlineEntryStrategy {
     // (undocumented)
     type: 'inline';
-}
-
-// @alpha (undocumented)
-export interface ManualEntryStrategy {
-    // (undocumented)
-    entries: string[][];
-    // (undocumented)
-    type: 'manual';
 }
 
 // @alpha (undocumented)
@@ -302,11 +296,15 @@ export interface QwikVitePluginOptions {
 // @alpha (undocumented)
 export interface SingleEntryStrategy {
     // (undocumented)
+    manual?: Record<string, string>;
+    // (undocumented)
     type: 'single';
 }
 
 // @alpha (undocumented)
 export interface SmartEntryStrategy {
+    // (undocumented)
+    manual?: Record<string, string>;
     // (undocumented)
     type: 'smart';
 }

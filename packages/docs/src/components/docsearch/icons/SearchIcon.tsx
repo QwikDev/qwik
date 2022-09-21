@@ -1,6 +1,4 @@
-import { component$ } from '@builder.io/qwik';
-
-export const SearchIcon = component$(() => {
+export const SearchIcon = () => {
   return (
     <svg width="20" height="20" class="DocSearch-Search-Icon" viewBox="0 0 20 20">
       <path
@@ -13,4 +11,4 @@ export const SearchIcon = component$(() => {
       />
     </svg>
   );
-});
+};

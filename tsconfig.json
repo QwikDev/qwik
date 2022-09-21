@@ -36,7 +36,7 @@
       "@builder.io/qwik-city/middleware/cloudflare-pages": [
         "packages/qwik-city/middleware/cloudflare-pages"
       ],
-      "@builder.io/qwik-city/middleware/express": ["packages/qwik-city/middleware/express"],
+      "@builder.io/qwik-city/middleware/node": ["packages/qwik-city/middleware/node"],
       "@builder.io/qwik-city/middleware/netlify-edge": [
         "packages/qwik-city/middleware/netlify-edge"
       ],
@@ -62,22 +62,20 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "packages/qwik",
-    "packages/qwik-city",
-    "packages/qwik-react",
     "packages/create-qwik",
     "packages/docs",
+    "packages/qwik/src",
+    "packages/qwik-city",
+    "packages/qwik-react/src",
     "scripts",
     "starters"
   ],
   "exclude": [
     "packages/create-qwik/dist",
+    "packages/docs/dist",
+    "packages/docs/server",
     "**/lib",
-    "starters/**/entry.netlify.ts",
-    "starters/**/entry.cloudflare.tsx",
-    "starters/**/entry.express.tsx",
-    "starters/**/entry.ssr.tsx",
-    "packages/qwik/**/*.d.ts",
-    "packages/qwik-dom"
+    "starters",
+    "packages/qwik/**/*.d.ts"
   ]
 }

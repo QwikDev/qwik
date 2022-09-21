@@ -13,6 +13,7 @@
   height: calc(100% - var(--header-height));
   transform: translate3d(0, 0, 0);
   transition: transform 500ms;
+  height: 100%;
 }
 
 .examples-panel-input {
@@ -29,6 +30,11 @@
 
 .examples-repl {
   grid-area: example-repl-panel;
+  border-color: #dfdede;
+  border-width: 1px;
+  border-top-style: solid;
+  border-top-left-radius: 5px;
+  overflow: hidden;
 }
 
 .examples .repl {
@@ -71,7 +77,6 @@
 .examples-menu {
   grid-area: example-content-panel;
   position: relative;
-  border-right: 1px solid #dfdede;
   padding: 20px;
   overflow-y: auto;
 }

@@ -8,9 +8,6 @@ import Root from './root';
 export default function (opts: RenderOptions) {
   return renderToStream(<Root />, {
     manifest,
-    qwikLoader: {
-      events: ['click', 'keyup', 'expensiveComputationDone'],
-    },
     ...opts,
   });
 }

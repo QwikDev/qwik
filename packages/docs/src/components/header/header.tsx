@@ -29,15 +29,16 @@ export const Header = component$(() => {
         <div class="header-logo">
           <a href="/">
             <span className="sr-only">Qwik Homepage</span>
-            <QwikLogo width={110} height={50} />
+            <QwikLogo width={180} height={50} />
           </a>
-          <DocSearch
-            appId={import.meta.env.VITE_ALGOLIA_APP_ID}
-            apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
-            indexName={import.meta.env.VITE_ALGOLIA_INDEX}
-          />
         </div>
-        <button onClick$={toggleMenu} class="mobile-menu" type="button">
+        <button
+          onClick$={toggleMenu}
+          class="mobile-menu"
+          type="button"
+          title="Toggle right menu"
+          aria-label="Toggle right menu"
+        >
           <span class="more-icon">
             <MoreIcon width={30} height={30} />
           </span>
@@ -92,7 +93,19 @@ export const Header = component$(() => {
             </a>
           </li>
           <li>
-            <a href="https://github.com/BuilderIO/qwik" target="_blank" onClick$={closeMenu}>
+            <DocSearch
+              appId={import.meta.env.VITE_ALGOLIA_APP_ID}
+              apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
+              indexName={import.meta.env.VITE_ALGOLIA_INDEX}
+            />
+          </li>
+          <li>
+            <a
+              href="https://github.com/BuilderIO/qwik"
+              target="_blank"
+              onClick$={closeMenu}
+              title="Github"
+            >
               <span class="md:hidden">Github</span>
               <span class="hidden md:block">
                 <GithubLogo width={22} height={22} />
@@ -100,15 +113,25 @@ export const Header = component$(() => {
             </a>
           </li>
           <li>
-            <a href="https://twitter.com/QwikDev" target="_blank" onClick$={closeMenu}>
-              <span class="md:hidden">@Builder.io</span>
+            <a
+              href="https://twitter.com/QwikDev"
+              target="_blank"
+              onClick$={closeMenu}
+              title="Twitter"
+            >
+              <span class="md:hidden">@QwikDev</span>
               <span class="hidden md:block">
                 <TwitterLogo width={22} height={22} />
               </span>
             </a>
           </li>
           <li>
-            <a href="https://qwik.builder.io/chat" target="_blank" onClick$={closeMenu}>
+            <a
+              href="https://qwik.builder.io/chat"
+              target="_blank"
+              onClick$={closeMenu}
+              title="Discord"
+            >
               <span class="md:hidden">Discord</span>
               <span class="hidden md:block">
                 <DiscordLogo width={22} height={22} />

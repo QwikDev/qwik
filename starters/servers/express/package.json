@@ -1,7 +1,7 @@
 {
-  "description": "Express.js server.",
+  "description": "Express.js server",
   "scripts": {
-    "build.ssr": "vite build --ssr src/entry.express.tsx",
+    "build.server": "vite build --ssr src/entry.express.tsx",
     "serve": "node server/entry.express"
   },
   "devDependencies": {

@@ -1,4 +1,3 @@
-import type { QwikElement } from '../render/dom/virtual-element';
 import { runtimeQrl } from './qrl';
 
 // <docs markdown="../readme.md#QRL">
@@ -141,7 +140,7 @@ export interface QRL<TYPE = any> {
   /**
    * Resolve the QRL and return the actual value.
    */
-  resolve(el?: QwikElement): Promise<TYPE>;
+  resolve(): Promise<TYPE>;
 
   getSymbol(): string;
   getHash(): string;
@@ -211,6 +210,7 @@ export type PropFunction<T extends Function> = T extends (...args: infer ARGS) =
  * import { importedFn } from './import/example';
  * import { createContext, useContext, useContextProvider } from './use/use-context';
  * import { useRef } from './use/use-ref';
+ * import { Resource, useResource$ } from './use/use-resource';
  *
  * export const greet = () => console.log('greet');
  * function topLevelFn() {}

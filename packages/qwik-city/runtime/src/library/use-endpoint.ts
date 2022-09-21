@@ -3,7 +3,6 @@ import { useLocation, useQwikCityEnv } from './use-functions';
 import { isServer } from '@builder.io/qwik/build';
 import type { ClientPageData, GetEndpointData } from './types';
 import { getClientEndpointPath } from './utils';
-import { cacheModules } from '@qwik-city-plan';
 import { dispatchPrefetchEvent } from './client-navigate';
 
 /**
@@ -30,6 +29,7 @@ export const useEndpoint = <T = unknown>() => {
 };
 
 export const loadClientData = async (href: string) => {
+  const { cacheModules } = await import('@qwik-city-plan');
   const pagePathname = new URL(href).pathname;
   const endpointUrl = getClientEndpointPath(pagePathname);
   const now = Date.now();

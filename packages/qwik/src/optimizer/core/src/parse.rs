@@ -164,8 +164,7 @@ pub struct TransformModule {
     pub path: String,
     pub code: String,
 
-    #[serde(with = "serde_bytes")]
-    pub map: Option<Vec<u8>>,
+    pub map: Option<String>,
 
     pub hook: Option<HookAnalysis>,
     pub is_entry: bool,
@@ -218,6 +217,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     }
 
                     let mut did_transform = false;
+
                     // Transpile JSX
                     if transpile && is_type_script {
                         did_transform = true;
@@ -401,7 +401,7 @@ fn parse(
     source_map: Lrc<SourceMap>,
 ) -> PResult<(ast::Module, SingleThreadedComments, bool, bool)> {
     let source_file =
-        source_map.new_source_file(FileName::Real(path_data.rel_path.clone()), code.into());
+        source_map.new_source_file(FileName::Real(path_data.abs_path.clone()), code.into());
 
     let comments = SingleThreadedComments::default();
     let (is_type_script, is_jsx) = parse_filename(path_data);
@@ -452,7 +452,7 @@ pub fn emit_source_code(
     comments: Option<SingleThreadedComments>,
     program: &ast::Module,
     source_maps: bool,
-) -> Result<(String, Option<Vec<u8>>), Error> {
+) -> Result<(String, Option<String>), Error> {
     let mut src_map_buf = Vec::new();
     let mut buf = Vec::new();
     {
@@ -489,7 +489,7 @@ pub fn emit_source_code(
     {
         Ok((
             unsafe { str::from_utf8_unchecked(&buf).to_string() },
-            Some(map_buf),
+            unsafe { Some(str::from_utf8_unchecked(&map_buf).to_string()) },
         ))
     } else {
         Ok((unsafe { str::from_utf8_unchecked(&buf).to_string() }, None))
@@ -528,7 +528,13 @@ fn handle_error(
                 Some(
                     span_labels
                         .into_iter()
-                        .map(|span_label| SourceLocation::from(source_map, span_label.span))
+                        .flat_map(|span_label| {
+                            if span_label.span.hi == span_label.span.lo {
+                                None
+                            } else {
+                                Some(SourceLocation::from(source_map, span_label.span))
+                            }
+                        })
                         .collect(),
                 )
             };
@@ -558,6 +564,7 @@ fn handle_error(
 }
 
 pub struct PathData {
+    pub abs_path: PathBuf,
     pub rel_path: PathBuf,
     pub base_dir: PathBuf,
     pub abs_dir: PathBuf,
@@ -587,9 +594,11 @@ pub fn parse_path(src: &str, base_dir: &Path) -> Result<PathData, Error> {
         .last()
         .with_context(|| format!("Computing file_prefix for {}", path.to_string_lossy()))?;
 
-    let abs_dir = normalize_path(base_dir.join(path).parent().unwrap());
+    let abs_path = normalize_path(base_dir.join(path));
+    let abs_dir = normalize_path(abs_path.parent().unwrap());
 
     Ok(PathData {
+        abs_path,
         base_dir: base_dir.to_path_buf(),
         rel_path: path.into(),
         abs_dir,

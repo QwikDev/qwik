@@ -20,6 +20,7 @@ macro_rules! test_input {
             minify: input.minify,
             transpile: input.transpile,
             explicit_extensions: input.explicit_extensions,
+            manual_chunks: input.manual_chunks,
             entry_strategy: input.entry_strategy,
             dev: input.dev,
             scope: input.scope,
@@ -43,8 +44,8 @@ macro_rules! snapshot_res {
                 for module in &v.modules {
                     let is_entry = if module.is_entry { "(ENTRY POINT)" } else { "" };
                     output += format!(
-                        "\n============================= {} {}==\n\n{}",
-                        module.path, is_entry, module.code
+                        "\n============================= {} {}==\n\n{}\n\n{:?}",
+                        module.path, is_entry, module.code, module.map
                     )
                     .as_str();
                     if let Some(hook) = &module.hook {
@@ -1199,6 +1200,60 @@ export const Child = component$(() => {
 }
 
 #[test]
+fn example_manual_chunks() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useWatch$, useStore, useStyles$ } from '@builder.io/qwik';
+import mongo from 'mongodb';
+import redis from 'redis';
+
+export const Parent = component$(() => {
+    const state = useStore({
+        text: ''
+    });
+
+    // Double count watch
+    useWatch$(async () => {
+        state.text = await mongo.users();
+        redis.set(state.text);
+    });
+
+    return (
+        <div onClick$={() => console.log('parent')}>
+            {state.text}
+        </div>
+    );
+});
+
+export const Child = component$(() => {
+    const state = useStore({
+        text: ''
+    });
+
+    // Double count watch
+    useWatch$(async () => {
+        state.text = await mongo.users();
+    });
+
+    return (
+        <div onClick$={() => console.log('child')}>
+            {state.text}
+        </div>
+    );
+});
+"#
+        .to_string(),
+        transpile: true,
+        manual_chunks: Some(HashMap::from_iter(vec![
+            ("C5XE49Nqd3A".into(), "chunk_clicks".into()),
+            ("elliVSnAiOQ".into(), "chunk_clicks".into()),
+        ])),
+        entry_strategy: EntryStrategy::Smart,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_strip_exports_unused() {
     test_input!(TestInput {
         code: r#"
@@ -1258,11 +1313,19 @@ fn issue_150() {
     test_input!(TestInput {
         code: r#"
 import { component$, $ } from '@builder.io/qwik';
+import { hola } from 'sdfds';
 
 export const Greeter = component$(() => {
+    const stuff = useStore();
     return $(() => {
         return (
-            <div/>
+            <div
+                class={{
+                    'foo': true,
+                    'bar': stuff.condition,
+                    'baz': hola ? 'true' : 'false',
+                }}
+            />
         )
     });
 });
@@ -1340,6 +1403,127 @@ export const App = component$(() => {
     });
 
     return <p>Hello Qwik</p>;
+});
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_immutable_analysis() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+import importedValue from 'v';
+
+export const App = component$(() => {
+    const state = useStore({count: 0});
+    return (
+        <>
+            <p class="stuff">Hello Qwik</p>
+            <Div
+                immutable1="stuff"
+                immutable2={{
+                    foo: 'bar',
+                    baz: importedValue ? true : false,
+                }}
+                immutable3={2}
+                immutable4$={(ev) => console.log(state.count)}
+                immutable5={[1, 2, importedValue, null, {}]}
+            >
+                <p>Hello Qwik</p>
+            </Div>
+            <Div
+                class={state}
+                mutable1={{
+                    foo: 'bar',
+                    baz: state.count ? true : false,
+                }}
+                mutable2={(() => console.log(state.count))()}
+                mutable3={[1, 2, state, null, {}]}
+            />
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_ts_enums_issue_1341() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+enum Thing {
+    A,
+    B
+}
+
+export const App = component$(() => {
+    console.log(Thing.A);
+    return (
+        <>
+            <p class="stuff">Hello Qwik</p>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_ts_enums_no_transpile() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export enum Thing {
+    A,
+    B
+}
+
+export const App = component$(() => {
+    console.log(Thing.A);
+    return (
+        <>
+            <p class="stuff">Hello Qwik</p>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile: false,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_ts_enums() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export enum Thing {
+    A,
+    B
+}
+
+export const App = component$(() => {
+    console.log(Thing.A);
+    return (
+        <>
+            <p class="stuff">Hello Qwik</p>
+        </>
+    );
 });
 "#
         .to_string(),
@@ -1512,6 +1696,7 @@ export const Local = component$(() => {
         minify: MinifyMode::Simplify,
         explicit_extensions: true,
         dev: true,
+        manual_chunks: None,
         entry_strategy: EntryStrategy::Hook,
         transpile: true,
         scope: None,
@@ -1570,6 +1755,7 @@ export const Greeter = component$(() => {
         minify: MinifyMode::Simplify,
         explicit_extensions: true,
         dev: true,
+        manual_chunks: None,
         entry_strategy: EntryStrategy::Hook,
         transpile: true,
         scope: None,
@@ -1599,6 +1785,7 @@ export const Greeter = component$(() => {
             minify: MinifyMode::Simplify,
             explicit_extensions: true,
             dev: option.0,
+            manual_chunks: None,
             entry_strategy: option.1,
             transpile: option.2,
             scope: None,
@@ -1637,6 +1824,7 @@ struct TestInput {
     pub code: String,
     pub filename: String,
     pub src_dir: String,
+    pub manual_chunks: Option<HashMap<String, JsWord>>,
     pub entry_strategy: EntryStrategy,
     pub minify: MinifyMode,
     pub transpile: bool,
@@ -1653,6 +1841,7 @@ impl TestInput {
             filename: "test.tsx".to_string(),
             src_dir: "/user/qwik/src/".to_string(),
             code: "/user/qwik/src/".to_string(),
+            manual_chunks: None,
             entry_strategy: EntryStrategy::Hook,
             minify: MinifyMode::Simplify,
             transpile: false,

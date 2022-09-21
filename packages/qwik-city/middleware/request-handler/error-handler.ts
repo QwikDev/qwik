@@ -79,7 +79,7 @@ function minimalHtmlResponse(status: number, message?: string, stack?: string) {
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
     body { color: ${color}; background-color: #fafafa; padding: 30px; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
-    p { max-width: ${width}; margin: 60px auto 30px auto; background: white; border-radius: 5px; box-shadow: 0px 0px 50px -20px ${color}; overflow: hidden; }
+    p { max-width: ${width}; margin: 60px auto 30px auto; background: white; border-radius: 4px; box-shadow: 0px 0px 50px -20px ${color}; overflow: hidden; }
     strong { display: inline-block; padding: 15px; background: ${color}; color: white; }
     span { display: inline-block; padding: 15px; }
     pre { max-width: 580px; margin: 0 auto; }
@@ -96,5 +96,5 @@ function minimalHtmlResponse(status: number, message?: string, stack?: string) {
 `;
 }
 
-const COLOR_400 = '#5249d9';
-const COLOR_500 = '#bd16bd';
+const COLOR_400 = '#006ce9';
+const COLOR_500 = '#713fc2';

@@ -1,8 +1,8 @@
 .content-nav .prev,
 .content-nav .next {
   position: relative;
-  background-color: var(--qwik-purple);
-  border: 1px solid var(--qwik-purple);
+  background-color: var(--qwik-dark-blue);
+  border: 1px solid var(--qwik-dark-blue);
   border-radius: 5px;
   padding: 6px 16px;
   text-decoration: none;
@@ -25,7 +25,7 @@
 .content-nav .prev:hover,
 .content-nav .next:hover {
   background-color: white;
-  color: var(--qwik-purple);
+  color: var(--qwik-dark-blue);
 }
 
 .content-nav .prev {

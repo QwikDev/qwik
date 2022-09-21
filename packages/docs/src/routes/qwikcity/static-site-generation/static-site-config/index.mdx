@@ -4,7 +4,7 @@ title: Static Site Generation Config
 
 # Static Site Generation Config
 
-Below is an example of a `src/entry.static.tsx` file, which is the initial file used for a Static Site Generation (SSG) build. Just like a server's entry file for SSR, such as `src/entry.cloudflare.tsx`, it should import your app's `render` function from `./entry.ssr`.
+Below is an example of a `src/entry.static.tsx` file, which is the initial file used for a Static Site Generation (SSG) build. Just like a server's entry file for SSR, such as `src/entry.server.tsx`, it should import your app's `render` function from `./entry.ssr`.
 
 ```typescript
 // file: src/entry.static.tsx
@@ -18,6 +18,20 @@ qwikCityGenerate(render, {
   outDir: join(fileURLToPath(import.meta.url), '..', '..', 'dist'),
 });
 ```
+
+You then can add the `build.ssg` script to `package.json` for building the generator code and add it to the `build` script to have it ready after each build:
+
+```json
+  "build": "npm run typecheck && npm run build.client && npm run build.ssr && npm run build.ssg",
+  "build.ssg": "vite build --ssr src/entry.static.tsx",
+```
+
+In node you can run the generation after building using:
+```bash
+node server/entry.static.js
+```
+
+Your build files will be generated into the `dist` folder, as configured in `src/entry.static.tsx`.
 
 ## SSG Config
 

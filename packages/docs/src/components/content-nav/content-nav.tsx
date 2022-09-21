@@ -26,6 +26,7 @@ export const ContentNav = component$(() => {
           </a>
         ) : null}
       </div>
+
       <div class="flex-1 text-right">
         {next ? (
           <a class="px-3 py-1 next" href={next.href}>

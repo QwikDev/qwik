@@ -120,8 +120,10 @@ export interface DocumentStyle {
 // @alpha @deprecated (undocumented)
 export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
 
+// Warning: (ae-forgotten-export) The symbol "QwikCityProps" needs to be exported by the entry point index.d.ts
+//
 // @alpha @deprecated (undocumented)
-export const Html: Component<    {}>;
+export const Html: Component<QwikCityProps>;
 
 // @alpha (undocumented)
 export const Link: Component<LinkProps>;
@@ -135,7 +137,7 @@ export interface LinkProps extends AnchorAttributes {
 }
 
 // @alpha (undocumented)
-export const QwikCity: Component<    {}>;
+export const QwikCity: Component<QwikCityProps>;
 
 // @alpha (undocumented)
 export interface QwikCityPlan {

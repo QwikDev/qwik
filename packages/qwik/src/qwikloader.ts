@@ -1,4 +1,3 @@
-import type { QRLInternal } from './core/import/qrl-class';
 import type { QContext } from './core/props/props';
 
 /**
@@ -23,10 +22,9 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     );
   };
 
-  const createEvent = (eventName: string, detail?: any, bubbles = false) =>
+  const createEvent = (eventName: string, detail?: any) =>
     new CustomEvent(eventName, {
       detail,
-      bubbles,
     });
 
   const qrlResolver = (element: Element, qrl: string): URL => {
@@ -41,9 +39,9 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       ev.preventDefault();
     }
     if (qrls) {
-      qrls.forEach((q: QRLInternal) =>
-        q.getFn([element, ev], () => element.isConnected)(ev, element)
-      );
+      for (const q of qrls) {
+        await q.getFn([element, ev], () => element.isConnected)(ev, element);
+      }
       return;
     }
     const attrValue = element.getAttribute(attrName);
@@ -51,15 +49,21 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       for (const qrl of attrValue.split('\n')) {
         const url = qrlResolver(element, qrl);
         const symbolName = getSymbolName(url);
-        const handler = findModule(await import(url.href.split('#')[0]))[symbolName];
+        const module = win[url.pathname] || findModule(await import(url.href.split('#')[0]));
+        const handler = module[symbolName];
         const previousCtx = (doc as any)[Q_CONTEXT];
         if (element.isConnected) {
           try {
             (doc as any)[Q_CONTEXT] = [element, ev, url];
-            handler(ev, element);
+            await handler(ev, element);
           } finally {
             (doc as any)[Q_CONTEXT] = previousCtx;
-            element.dispatchEvent(createEvent('qsymbol', symbolName, true));
+            doc.dispatchEvent(
+              createEvent('qsymbol', {
+                symbol: symbolName,
+                element: element,
+              })
+            );
           }
         }
       }
@@ -93,15 +97,15 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
    *
    * @param ev - Browser event.
    */
-  const processDocumentEvent = (ev: Event) => {
+  const processDocumentEvent = async (ev: Event) => {
     // eslint-disable-next-line prefer-const
     let type = camelToKebab(ev.type);
     let element = ev.target as Element | null;
     broadcast('-document', ev, type);
 
     while (element && element.getAttribute) {
-      dispatch(element, '', ev, type);
-      element = ev.bubbles ? element.parentElement : null;
+      await dispatch(element, '', ev, type);
+      element = ev.bubbles && ev.cancelBubble !== true ? element.parentElement : null;
     }
   };
 

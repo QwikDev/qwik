@@ -1,0 +1,30 @@
+{
+  "description": "Use React components into your Qwik app",
+  "devDependencies": {
+    "@builder.io/qwik-react": "0.0.102",
+    "@emotion/react": "11.9.3",
+    "@emotion/server": "11.4.0",
+    "@emotion/styled": "11.9.3",
+    "@mui/material": "5.8.6",
+    "@types/react": "18.0.14",
+    "@types/react-dom": "18.0.5",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "__qwik__": {
+    "priority": -1,
+    "viteConfig": {
+      "imports": [
+        {
+          "namedImports": [
+            "qwikReact"
+          ],
+          "importPath": "@builder.io/qwik-react"
+        }
+      ],
+      "vitePlugins": [
+        "qwikReact()"
+      ]
+    }
+  }
+}

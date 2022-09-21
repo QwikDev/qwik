@@ -4,7 +4,6 @@ import { fromCamelToKebabCase } from '../core/util/case';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
-import { getDocument } from '../core/util/dom';
 import { getWrappingContainer } from '../core/use/use-core';
 
 /**
@@ -92,7 +91,7 @@ export async function trigger(
       });
     }
   });
-  await getTestPlatform(getDocument(element)).flush();
+  await getTestPlatform().flush();
   return Promise.all(elements);
 }
 

@@ -4,7 +4,7 @@ export const Signals = component$(() => {
   const count = useSignal(0);
   const doubleCount = useSignal(0);
 
-  useWatch$(({track}) => {
+  useWatch$(({ track }) => {
     doubleCount.value = track(count) * 2;
   });
 
@@ -12,26 +12,24 @@ export const Signals = component$(() => {
 
   return (
     <>
-      <button onClick$={() => count.value++}>
-        Increment
-      </button>
-      <Child count={doubleCount}/>
+      <button onClick$={() => count.value++}>Increment</button>
+      <Child count={doubleCount} />
     </>
   );
 });
 
 interface ChildProps {
-  count: Signal<number>
+  count: Signal<number>;
 }
 
-export const Child = component$<ChildProps>(({count}) => {
+export const Child = component$<ChildProps>(({ count }) => {
   console.log('render child');
 
   return (
     <>
       <div>Stuff: {count}</div>
-      {Array.from({length: 50000}).map(() => {
-        return (<div aria-hidden="true">Expensive</div>)
+      {Array.from({ length: 50000 }).map(() => {
+        return <div aria-hidden="true">Expensive</div>;
       })}
     </>
   );

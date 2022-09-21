@@ -77,8 +77,6 @@ export interface ComponentBaseProps {
     // (undocumented)
     'q:slot'?: string;
     // (undocumented)
-    children?: JSXChildren;
-    // (undocumented)
     key?: string | number;
 }
 
@@ -128,10 +126,8 @@ export interface FunctionComponent<P = Record<string, any>> {
     (props: P, key: string | null): JSXNode | null;
 }
 
-// Warning: (ae-forgotten-export) The symbol "QwikElement" needs to be exported by the entry point index.d.ts
-//
 // @alpha
-export const getPlatform: (docOrNode: Document | QwikElement) => CorePlatform;
+export const getPlatform: () => CorePlatform;
 
 // @public (undocumented)
 export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props: PROPS | null, ...children: any[]): JSXNode<TYPE>;
@@ -238,7 +234,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
     spellCheck?: Booleanish | undefined;
     // (undocumented)
-    style?: Record<string, string | number> | string | undefined;
+    style?: Record<string, string | number | undefined> | string | undefined;
     // (undocumented)
     tabIndex?: number | undefined;
     // (undocumented)
@@ -255,6 +251,9 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
 
 // @internal
 export const _hW: () => void;
+
+// @internal (undocumented)
+export const _IMMUTABLE: unique symbol;
 
 // @alpha
 export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET;
@@ -289,16 +288,10 @@ export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLEl
 // @public (undocumented)
 export type MountFn<T> = () => ValueOrPromise<T>;
 
-// @alpha
-export const mutable: <T>(v: T) => MutableWrapper<T>;
+// @alpha @deprecated (undocumented)
+export const mutable: <T>(v: T) => T;
 
-// @alpha
-export interface MutableWrapper<T> {
-    [MUTABLE]: true;
-    v: T;
-}
-
-// @public (undocumented)
+// @public
 export type NoSerialize<T> = (T & {
     __no_serialize__: true;
 }) | undefined;
@@ -307,13 +300,13 @@ export type NoSerialize<T> = (T & {
 export const noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 
 // @public (undocumented)
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null | (() => JSXNode<any>);
+export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
 
 // Warning: (ae-forgotten-export) The symbol "QContext" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _pauseFromContexts: (elements: QContext[], containerState: ContainerState) => Promise<SnapshotResult>;
+export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState) => Promise<SnapshotResult>;
 
 // @public (undocumented)
 export interface PropFnInterface<ARGS extends any[], RET> {
@@ -324,16 +317,14 @@ export interface PropFnInterface<ARGS extends any[], RET> {
 // @public (undocumented)
 export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;
 
-// @public (undocumented)
-export type Props<T extends {} = {}> = Record<string, any> & T;
-
 // @public
 export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;
 
-// Warning: (ae-forgotten-export) The symbol "MutableProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "TransformProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ComponentChildren" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
-export type PublicProps<PROPS extends {}> = MutableProps<PROPS> & ComponentBaseProps;
+// @public
+export type PublicProps<PROPS extends {}> = TransformProps<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;
 
 // @public
 export interface QRL<TYPE = any> {
@@ -344,7 +335,7 @@ export interface QRL<TYPE = any> {
     getHash(): string;
     // (undocumented)
     getSymbol(): string;
-    resolve(el?: QwikElement): Promise<TYPE>;
+    resolve(): Promise<TYPE>;
 }
 
 // @alpha
@@ -389,7 +380,7 @@ export namespace QwikJSX {
     }
 }
 
-// @public (undocumented)
+// @public
 export interface Ref<T> {
     // (undocumented)
     current: T | undefined;
@@ -405,7 +396,7 @@ export interface RenderOptions {
 }
 
 // @alpha (undocumented)
-export const renderSSR: (doc: Document, node: JSXNode, opts: RenderSSROptions) => Promise<void>;
+export const renderSSR: (node: JSXNode, opts: RenderSSROptions) => Promise<void>;
 
 // @alpha (undocumented)
 export interface RenderSSROptions {
@@ -427,7 +418,7 @@ export interface RenderSSROptions {
     url?: string;
 }
 
-// @public (undocumented)
+// @public
 export const Resource: <T>(props: ResourceProps<T>) => JSXNode;
 
 // @public (undocumented)
@@ -443,9 +434,8 @@ export interface ResourceCtx<T> {
 // @public (undocumented)
 export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
 
-// @public (undocumented)
+// @public
 export interface ResourceOptions {
-    // (undocumented)
     timeout?: number;
 }
 
@@ -513,7 +503,7 @@ export interface ResourceResolved<T> {
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
 // @alpha
-export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
+export const setPlatform: (plt: CorePlatform) => CorePlatform;
 
 // @alpha (undocumented)
 export interface Signal<T = any> {
@@ -526,7 +516,7 @@ export interface Signal<T = any> {
 // @alpha (undocumented)
 export const SkipRender: JSXNode;
 
-// @public (undocumented)
+// @public
 export const Slot: FunctionComponent<{
     name?: string;
 }>;
@@ -568,8 +558,6 @@ export interface SnapshotResult {
     mode: 'render' | 'listeners' | 'static';
     // (undocumented)
     objs: any[];
-    // (undocumented)
-    pendingContent: Promise<string>[];
     // (undocumented)
     state: SnapshotState;
 }
@@ -651,6 +639,11 @@ export function useEnvData<T>(key: string): T | undefined;
 // @alpha (undocumented)
 export function useEnvData<T, B = T>(key: string, defaultValue: B): T | B;
 
+// Warning: (ae-forgotten-export) The symbol "ErrorBoundaryStore" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
+
 // Warning: (ae-internal-missing-underscore) The name "useLexicalScope" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
@@ -661,9 +654,6 @@ export const useMount$: <T>(first: MountFn<T>) => void;
 
 // @public
 export const useMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
-
-// @internal (undocumented)
-export const _useMutableProps: (element: Element, mutable: boolean) => void;
 
 // @alpha
 export const useOn: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
@@ -677,10 +667,10 @@ export const useOnWindow: (event: string, eventQrl: QRL<(ev: Event) => void>) =>
 // @public
 export const useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;
 
-// @public (undocumented)
+// @public
 export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;
 
-// @public (undocumented)
+// @public
 export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) => ResourceReturn<T>;
 
 // @public

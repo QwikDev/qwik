@@ -1,7 +1,6 @@
 import { assertDefined, assertTrue } from '../../assert/assert';
 import { executeContextWithSlots, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
 import { getContext, resumeIfNeeded } from '../../props/props';
-import { qDynamicPlatform, qTest } from '../../util/qdev';
 import { getDocument } from '../../util/dom';
 import { logError, logWarn } from '../../util/log';
 import { getWrappingContainer } from '../../use/use-core';
@@ -16,15 +15,16 @@ import {
 } from '../../use/use-watch';
 import { then } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
-import { codeToText, QError_errorWhileRendering } from '../../error/error';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { renderComponent } from './render-dom';
-import type { RenderContext, RenderStaticContext } from '../types';
+import type { RenderStaticContext } from '../types';
 import { ContainerState, getContainerState } from '../container';
 import { createRenderContext } from '../execute-component';
 import { getRootNode, QwikElement } from './virtual-element';
 import { printRenderStats } from './operations';
 import { executeSignalOperation, isSignalOperation, SubscriberSignal } from './signals';
+import { getPlatform, isServer } from '../../platform/platform';
+import { qDev } from '../../util/qdev';
 
 export const notifyChange = (subscriber: Subscriber, containerState: ContainerState) => {
   if (isSignalOperation(subscriber)) {
@@ -32,7 +32,6 @@ export const notifyChange = (subscriber: Subscriber, containerState: ContainerSt
       notifyRender(subscriber[0], containerState);
     } else {
       notifySignalOperation(subscriber, containerState);
-
     }
   } else {
     notifyWatch(subscriber, containerState);
@@ -51,10 +50,11 @@ export const notifyChange = (subscriber: Subscriber, containerState: ContainerSt
  *
  * @param hostElement - Host-element of the component to re-render.
  * @returns A promise which is resolved when the component has been rendered.
+ *
  */
 const notifyRender = (hostElement: QwikElement, containerState: ContainerState): void => {
-  const isServer = qDynamicPlatform && !qTest && containerState.$platform$.isServer;
-  if (!isServer) {
+  const server = isServer();
+  if (!server) {
     resumeIfNeeded(containerState.$containerEl$);
   }
 
@@ -77,7 +77,7 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
     );
     containerState.$hostsStaging$.add(hostElement);
   } else {
-    if (isServer) {
+    if (server) {
       logWarn('Can not rerender in server platform');
       return undefined;
     }
@@ -122,9 +122,7 @@ export const notifyWatch = (watch: SubscriberEffect, containerState: ContainerSt
 
 const scheduleFrame = (containerState: ContainerState): Promise<RenderStaticContext> => {
   if (containerState.$renderPromise$ === undefined) {
-    containerState.$renderPromise$ = containerState.$platform$.nextTick(() =>
-      renderMarked(containerState)
-    );
+    containerState.$renderPromise$ = getPlatform().nextTick(() => renderMarked(containerState));
   }
   return containerState.$renderPromise$;
 };
@@ -141,7 +139,7 @@ export const _hW = () => {
   notifyWatch(watch, getContainerState(getWrappingContainer(watch.$el$)!));
 };
 
-const renderMarked = async (containerState: ContainerState): Promise<RenderContext> => {
+const renderMarked = async (containerState: ContainerState): Promise<void> => {
   const hostsRendering = (containerState.$hostsRendering$ = new Set(containerState.$hostsNext$));
   containerState.$hostsNext$.clear();
   await executeWatchesBefore(containerState);
@@ -152,7 +150,6 @@ const renderMarked = async (containerState: ContainerState): Promise<RenderConte
   containerState.$hostsStaging$.clear();
 
   const doc = getDocument(containerState.$containerEl$);
-  const platform = containerState.$platform$;
   const renderingQueue = Array.from(hostsRendering);
   sortNodes(renderingQueue);
 
@@ -166,14 +163,26 @@ const renderMarked = async (containerState: ContainerState): Promise<RenderConte
         staticCtx.$roots$.push(elCtx);
         try {
           await renderComponent(ctx, elCtx, getFlags(el.parentElement));
-        } catch (e) {
-          logError(codeToText(QError_errorWhileRendering), e);
+        } catch (err) {
+          logError(err);
+          if (qDev) {
+            if (err && err instanceof Error) {
+              doc.dispatchEvent(
+                new CustomEvent('qerror', {
+                  bubbles: true,
+                  detail: {
+                    error: err,
+                  },
+                })
+              );
+            }
+          }
         }
       }
     }
   }
 
-  containerState.$opsNext$.forEach(op => executeSignalOperation(staticCtx, op))
+  containerState.$opsNext$.forEach((op) => executeSignalOperation(staticCtx, op));
   containerState.$opsNext$.clear();
 
   // Add post operations
@@ -183,14 +192,14 @@ const renderMarked = async (containerState: ContainerState): Promise<RenderConte
   if (staticCtx.$operations$.length === 0) {
     printRenderStats(staticCtx);
     postRendering(containerState, staticCtx);
-    return ctx;
+    return;
   }
 
-  return platform.raf(() => {
+  return getPlatform().raf(() => {
     executeContextWithSlots(ctx);
     printRenderStats(staticCtx);
     postRendering(containerState, staticCtx);
-    return ctx;
+    return;
   });
 };
 
@@ -227,26 +236,29 @@ export const postRendering = async (containerState: ContainerState, ctx: RenderS
   containerState.$hostsRendering$ = undefined;
   containerState.$renderPromise$ = undefined;
 
-  const pending = containerState.$hostsNext$.size + containerState.$watchNext$.size + containerState.$opsNext$.size;
+  const pending =
+    containerState.$hostsNext$.size +
+    containerState.$watchNext$.size +
+    containerState.$opsNext$.size;
   if (pending > 0) {
     scheduleFrame(containerState);
   }
 };
 
 const executeWatchesBefore = async (containerState: ContainerState) => {
+  const containerEl = containerState.$containerEl$;
   const resourcesPromises: ValueOrPromise<SubscriberEffect>[] = [];
   const watchPromises: ValueOrPromise<SubscriberEffect>[] = [];
   const isWatch = (watch: SubscriberEffect) => (watch.$flags$ & WatchFlagsIsWatch) !== 0;
-  const isResourceWatch = (watch: SubscriberEffect) =>
-    (watch.$flags$ & WatchFlagsIsResource) !== 0;
+  const isResourceWatch = (watch: SubscriberEffect) => (watch.$flags$ & WatchFlagsIsResource) !== 0;
 
   containerState.$watchNext$.forEach((watch) => {
     if (isWatch(watch)) {
-      watchPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
+      watchPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
       containerState.$watchNext$.delete(watch);
     }
     if (isResourceWatch(watch)) {
-      resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
+      resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
       containerState.$watchNext$.delete(watch);
     }
   });
@@ -254,9 +266,9 @@ const executeWatchesBefore = async (containerState: ContainerState) => {
     // Run staging effected
     containerState.$watchStaging$.forEach((watch) => {
       if (isWatch(watch)) {
-        watchPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
+        watchPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
       } else if (isResourceWatch(watch)) {
-        resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
+        resourcesPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
       } else {
         containerState.$watchNext$.add(watch);
       }
@@ -289,10 +301,11 @@ const executeWatchesAfter = async (
   watchPred: (watch: SubscriberEffect, staging: boolean) => boolean
 ) => {
   const watchPromises: ValueOrPromise<SubscriberEffect>[] = [];
+  const containerEl = containerState.$containerEl$;
 
   containerState.$watchNext$.forEach((watch) => {
     if (watchPred(watch, false)) {
-      watchPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
+      watchPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
       containerState.$watchNext$.delete(watch);
     }
   });
@@ -300,7 +313,7 @@ const executeWatchesAfter = async (
     // Run staging effected
     containerState.$watchStaging$.forEach((watch) => {
       if (watchPred(watch, true)) {
-        watchPromises.push(then(watch.$qrl$.$resolveLazy$(), () => watch));
+        watchPromises.push(then(watch.$qrl$.$resolveLazy$(containerEl), () => watch));
       } else {
         containerState.$watchNext$.add(watch);
       }

@@ -1,12 +1,10 @@
 import { assertEqual } from '../assert/assert';
 import { getProxyTarget } from '../object/q-object';
-import { getPlatform } from '../platform/platform';
-import type { CorePlatform } from '../platform/types';
 import type { Subscriber, SubscriberEffect } from '../use/use-watch';
-import { isQwikElement } from '../util/element';
+// import { isQwikElement } from '../util/element';
 import { seal } from '../util/qdev';
 import { notifyChange } from './dom/notify-render';
-import { isSignalOperation, SignalOperation } from './dom/signals';
+// import { isSignalOperation } from './dom/signals';
 import type { QwikElement } from './dom/virtual-element';
 import type { RenderStaticContext } from './types';
 
@@ -36,12 +34,11 @@ export interface ContainerState {
 
   $proxyMap$: ObjToProxyMap;
   $subsManager$: SubscriptionManager;
-  $platform$: CorePlatform;
 
   $watchNext$: Set<SubscriberEffect>;
   $watchStaging$: Set<SubscriberEffect>;
 
-  $opsNext$: Set<SignalOperation>;
+  $opsNext$: Set<any>;
 
   $hostsNext$: Set<QwikElement>;
   $hostsStaging$: Set<QwikElement>;
@@ -52,7 +49,6 @@ export interface ContainerState {
   $elementIndex$: number;
 
   $styleIds$: Set<string>;
-  $mutableProps$: boolean;
 }
 
 const CONTAINER_STATE = Symbol('ContainerState');
@@ -60,39 +56,42 @@ const CONTAINER_STATE = Symbol('ContainerState');
 export const getContainerState = (containerEl: Element): ContainerState => {
   let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
   if (!set) {
-    (containerEl as any)[CONTAINER_STATE] = set = {
-      $containerEl$: containerEl,
-
-      $proxyMap$: new WeakMap(),
-      $subsManager$: null as any,
-      $platform$: getPlatform(containerEl),
-
-      $watchNext$: new Set(),
-      $watchStaging$: new Set(),
-
-      $opsNext$: new Set(),
-
-      $hostsNext$: new Set(),
-      $hostsStaging$: new Set(),
-      $renderPromise$: undefined,
-      $hostsRendering$: undefined,
-
-      $envData$: {},
-      $elementIndex$: 0,
-
-      $styleIds$: new Set(),
-      $mutableProps$: false,
-    };
-    seal(set);
-    set.$subsManager$ = createSubscriptionManager(set);
+    (containerEl as any)[CONTAINER_STATE] = set = createContainerState(containerEl);
   }
   return set;
+};
+
+export const createContainerState = (containerEl: Element) => {
+  const containerState: ContainerState = {
+    $containerEl$: containerEl,
+
+    $proxyMap$: new WeakMap(),
+    $subsManager$: null as any,
+
+    $opsNext$: new Set(),
+
+    $watchNext$: new Set(),
+    $watchStaging$: new Set(),
+
+    $hostsNext$: new Set(),
+    $hostsStaging$: new Set(),
+    $renderPromise$: undefined,
+    $hostsRendering$: undefined,
+
+    $envData$: {},
+    $elementIndex$: 0,
+
+    $styleIds$: new Set(),
+  };
+  seal(containerState);
+  containerState.$subsManager$ = createSubscriptionManager(containerState);
+  return containerState;
 };
 
 export const createSubscriptionManager = (containerState: ContainerState): SubscriptionManager => {
   const objToSubs: ObjToSubscriberMap = new Map();
   const subsToObjs: SubscriberToSubscriberMap = new Map();
-  const hostToSub: HostToSubscriberMap = new Map();
+  // const hostToSub: HostToSubscriberMap = new Map();
 
   const clearSub = (sub: Subscriber) => {
     const subs = subsToObjs.get(sub);
@@ -118,21 +117,21 @@ export const createSubscriptionManager = (containerState: ContainerState): Subsc
     set.add(map);
   };
 
-  const trackRenderToSub = (subscriber: Subscriber, map: SubscriberMap) => {
-    let host: QwikElement | undefined = undefined;
-    if (isQwikElement(subscriber)) {
-      host = subscriber;
-    } else if (isSignalOperation(subscriber)) {
-      host = subscriber[0]
-    }
-    if (host) {
-      let set = hostToSub.get(host);
-      if (!set) {
-        hostToSub.set(host, (set = new Set()));
-      }
-      set.add(map);
-    }
-  };
+  // const trackRenderToSub = (subscriber: Subscriber, map: SubscriberMap) => {
+  //   let host: QwikElement | undefined = undefined;
+  //   if (isQwikElement(subscriber)) {
+  //     host = subscriber;
+  //   } else if (isSignalOperation(subscriber)) {
+  //     host = subscriber[0]
+  //   }
+  //   if (host) {
+  //     let set = hostToSub.get(host);
+  //     if (!set) {
+  //       hostToSub.set(host, (set = new Set()));
+  //     }
+  //     set.add(map);
+  //   }
+  // };
   const getLocal = (obj: any, initialMap?: SubscriberMap) => {
     let local = tryGetLocal(obj);
     if (local) {

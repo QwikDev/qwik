@@ -95,11 +95,6 @@ export default function (opts: RenderToStreamOptions) {
     {
       debug: true,
       ...opts,
-      streaming: {
-        inOrder: {
-          buffering: 'marks',
-        },
-      },
     }
   );
 }

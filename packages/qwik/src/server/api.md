@@ -11,9 +11,6 @@ import type { SymbolMapper } from '@builder.io/qwik/optimizer';
 import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
 
 // @alpha
-export function createTimer(): () => number;
-
-// @alpha
 export function getQwikLoaderScript(opts?: {
     events?: string[];
     debug?: boolean;
@@ -22,9 +19,9 @@ export function getQwikLoaderScript(opts?: {
 // @alpha (undocumented)
 export interface InOrderAuto {
     // (undocumented)
-    initialChunkSize?: number;
+    maximunChunk?: number;
     // (undocumented)
-    minimunChunkSize?: number;
+    maximunInitialChunk?: number;
     // (undocumented)
     strategy: 'auto';
 }
@@ -35,8 +32,10 @@ export interface InOrderDisabled {
     strategy: 'disabled';
 }
 
+// Warning: (ae-forgotten-export) The symbol "InOrderDirect" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export type InOrderStreaming = InOrderAuto | InOrderDisabled;
+export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 // @alpha (undocumented)
 export interface PrefetchImplementation {
@@ -152,18 +151,20 @@ export interface RenderToStringResult extends RenderResult {
     };
 }
 
+// Warning: (ae-forgotten-export) The symbol "ResolvedManifest" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export function resolveManifest(manifest: QwikManifest | ResolvedManifest | undefined): ResolvedManifest | undefined;
+
 // @alpha (undocumented)
 export interface SerializeDocumentOptions {
     // (undocumented)
     debug?: boolean;
     // (undocumented)
-    manifest?: QwikManifest;
+    manifest?: QwikManifest | ResolvedManifest;
     // (undocumented)
     symbolMapper?: SymbolMapperFn;
 }
-
-// @alpha
-export function setServerPlatform(document: any, opts: SerializeDocumentOptions, mapper: SymbolMapper | undefined): Promise<void>;
 
 // @alpha (undocumented)
 export interface StreamingOptions {

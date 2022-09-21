@@ -1,11 +1,5 @@
 import { assertEqual, assertTrue } from '../assert/assert';
-import {
-  qError,
-  QError_immutableProps,
-  QError_onlyLiteralWrapped,
-  QError_onlyObjectWrapped,
-  QError_verifySerializable,
-} from '../error/error';
+import { qError, QError_immutableProps, QError_verifySerializable } from '../error/error';
 import { isQrl } from '../import/qrl-class';
 import { tryGetInvokeContext } from '../use/use-core';
 import { isDocument, isNode, isQwikElement } from '../util/element';
@@ -27,6 +21,7 @@ export const QObjectImmutable = 1 << 1;
 
 const QOjectTargetSymbol = Symbol();
 const QOjectFlagsSymbol = Symbol();
+const QOjectSubsSymbol = Symbol();
 
 /**
  * @alpha
@@ -35,6 +30,11 @@ export interface Signal<T = any> {
   value: T;
   readonly untrackedValue: T;
 }
+
+/**
+ * @internal
+ */
+export const _IMMUTABLE = Symbol('IMMUTABLE');
 
 /**
  * Creates a proxy that notifies of any writes.
@@ -101,7 +101,7 @@ export class SignalImpl<T> implements Signal<T> {
 
 export const isSignal = (obj: any): obj is SignalImpl<any> => {
   return obj instanceof SignalImpl;
-}
+};
 
 export const createProxy = <T extends object>(
   target: T,
@@ -111,13 +111,11 @@ export const createProxy = <T extends object>(
 ): T => {
   assertEqual(unwrapProxy(target), target, 'Unexpected proxy at this location', target);
   assertTrue(!containerState.$proxyMap$.has(target), 'Proxy was already created', target);
-
-  if (!isObject(target)) {
-    throw qError(QError_onlyObjectWrapped, target);
-  }
-  if (target.constructor !== Object && !isArray(target)) {
-    throw qError(QError_onlyLiteralWrapped, target);
-  }
+  assertTrue(isObject(target), 'Target must be an object');
+  assertTrue(
+    isSerializableObject(target) || isArray(target),
+    'Target must be a serializable object'
+  );
 
   const manager = containerState.$subsManager$.$getLocal$(target, subs);
   const proxy = new Proxy(
@@ -141,20 +139,23 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (typeof prop === 'symbol') {
       if (prop === QOjectTargetSymbol) return target;
       if (prop === QOjectFlagsSymbol) return this.$flags$;
+      if (prop === QOjectSubsSymbol) return this.$manager$.$subs$;
       return target[prop];
     }
     let subscriber: Subscriber | undefined | null;
     const invokeCtx = tryGetInvokeContext();
     const recursive = (this.$flags$ & QObjectRecursive) !== 0;
     const immutable = (this.$flags$ & QObjectImmutable) !== 0;
+    const value = target[prop];
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
-    let value = target[prop];
-    if (isMutable(value)) {
-      value = value.v;
-    } else if (immutable) {
-      subscriber = null;
+    if (immutable) {
+      // If property is not declared in the target
+      // or the prop is immutable, then we dont need to subscribe
+      if (!(prop in target) || target[_IMMUTABLE]?.includes(prop)) {
+        subscriber = null;
+      }
     }
     if (subscriber) {
       const isA = isArray(target);
@@ -272,7 +273,6 @@ const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
         if (isPromise(unwrapped)) return value;
         if (isQwikElement(unwrapped)) return value;
         if (isDocument(unwrapped)) return value;
-
         if (isArray(unwrapped)) {
           for (const item of unwrapped) {
             _verifySerializable(item, seen);
@@ -304,7 +304,14 @@ export const shouldSerialize = (obj: any): boolean => {
   return true;
 };
 
+export const fastShouldSerialize = (obj: any): boolean => {
+  return !noSerializeSet.has(obj);
+};
+
 /**
+ * Returned type of the `noSerialize()` function. It will be TYPE or undefined.
+ *
+ * @see noSerialize
  * @public
  */
 export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
@@ -336,40 +343,15 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
   return input as any;
 };
 
-export const immutable = <T extends {}>(input: T): Readonly<T> => {
-  return Object.freeze(input);
-};
-
-// <docs markdown="../readme.md#mutable">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#mutable instead)
 /**
- * Mark property as mutable.
- *
- * Qwik assumes that all bindings in components are immutable by default. This is done for two
- * reasons:
- *
- * 1. JSX does not allow Qwik runtime to know if a binding is static or mutable.
- *    `<Example valueA={123} valueB={exp}>` At runtime there is no way to know if `valueA` is
- * immutable.
- * 2. If Qwik assumes that properties are immutable, then it can do a better job data-shaking the
- * amount of code that needs to be serialized to the client.
- *
- * Because Qwik assumes that bindings are immutable by default, it needs a way for a developer to
- * let it know that binding is mutable. `mutable()` function serves that purpose.
- * `<Example valueA={123} valueB={mutable(exp)}>`. In this case, the Qwik runtime can correctly
- * recognize that the `Example` props are mutable and need to be serialized.
- *
- * See: [Mutable Props Tutorial](http://qwik.builder.io/tutorial/props/mutable) for an example
- *
  * @alpha
+ * @deprecated Remove it, not needed anymore
  */
-// </docs>
-export const mutable = <T>(v: T): MutableWrapper<T> => {
-  return {
-    [MUTABLE]: true,
-    v,
-  };
+export const mutable = <T>(v: T): T => {
+  console.warn(
+    'mutable() is deprecated, you can safely remove all usages of mutable() in your code'
+  );
+  return v;
 };
 
 export const isConnected = (sub: Subscriber): boolean => {
@@ -382,44 +364,19 @@ export const isConnected = (sub: Subscriber): boolean => {
   }
 };
 
-const MUTABLE = Symbol('mutable');
-
-// <docs markdown="../readme.md#MutableWrapper">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#MutableWrapper instead)
-/**
- * A marker object returned by `mutable()` to identify that the binding is mutable.
- *
- * @alpha
- */
-// </docs>
-export interface MutableWrapper<T> {
-  /**
-   * A marker symbol.
-   */
-  [MUTABLE]: true;
-  /**
-   * Mutable value.
-   */
-  v: T;
-}
-
-export const isMutable = (v: any): v is MutableWrapper<any> => {
-  return isObject(v) && v[MUTABLE] === true;
-};
-
 /**
  * @alpha
  */
 export const unwrapProxy = <T>(proxy: T): T => {
-  return getProxyTarget<T>(proxy) ?? proxy;
+  return isObject(proxy) ? getProxyTarget<any>(proxy) ?? proxy : proxy;
 };
 
-export const getProxyTarget = <T = Record<string, any>>(obj: T): T | undefined => {
-  if (isObject(obj)) {
-    return (obj as any)[QOjectTargetSymbol];
-  }
-  return undefined;
+export const getProxyTarget = <T extends Record<string, any>>(obj: T): T | undefined => {
+  return (obj as any)[QOjectTargetSymbol];
+};
+
+export const getProxySubs = (obj: any): SubscriberMap | undefined => {
+  return (obj as any)[QOjectSubsSymbol];
 };
 
 export const getProxyFlags = <T = Record<string, any>>(obj: T): number | undefined => {

@@ -44,7 +44,7 @@ export const Lightweight = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAkC,IAAI,EAAE,SAAS,QAAQ,kBAAkB,CAAC;AAE5E,OAAO,MAAM,UAAU,GAAG,CAAC,GAAG,GAAK;IAC/B,SAAS,CAAC,GAAG,CAAC,CAAC;CAClB,CAAC;AAEF,OAAO,MAAM,QAAQ,GAAG,IAAI,CAAC,UAAU,CAAC,CAAC;AAEzC,OAAO,MAAM,GAAG,iBAAG,yFAQjB,CAAC;AAEH,OAAO,MAAM,WAAW,GAAG,CAAC,KAAK,GAAK;IAClC,mGAEE,CAAC;CACN,CAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAkC,IAAI,EAAE,SAAS,QAAQ,kBAAkB,CAAC;AAE5E,OAAO,MAAM,UAAU,GAAG,CAAC,GAAG,GAAK;IAC/B,SAAS,CAAC,GAAG,CAAC,CAAC;AACnB,CAAC,CAAC;AAEF,OAAO,MAAM,QAAQ,GAAG,IAAI,CAAC,UAAU,CAAC,CAAC;AAEzC,OAAO,MAAM,GAAG,iBAAG,yFAQjB,CAAC;AAEH,OAAO,MAAM,WAAW,GAAG,CAAC,KAAK,GAAK;IAClC,mGAEE,CAAC;AACP,CAAC,CAAE\"}")
 ============================= app_component_usememo_6sc9kvki3y0.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -81,7 +81,7 @@ export const Lightweight_useMemo_UIcxVTQF1a8 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+CAoBa,IAAM;IACX,OAAO,CAAC,GAAG,CAAC,KAAK,CAAC,KAAK,CAAC,CAAC;CAC5B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+CAoBa,IAAM;IACX,OAAO,CAAC,GAAG,CAAC,KAAK,CAAC,KAAK,CAAC,CAAC;AAC7B,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -119,7 +119,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAS8B,CAAC,KAAK,GAAK;IACrC,MAAM,KAAK,GAAG,QAAQ,CAAC;QAAC,KAAK,EAAE,CAAC;KAAC,CAAC,AAAC;IACnC;;OAEE,CAAC;IACH;;OAEG;CACN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAS8B,CAAC,KAAK,GAAK;IACrC,MAAM,KAAK,GAAG,QAAQ,CAAC;QAAC,KAAK,EAAE,CAAC;KAAC,CAAC,AAAC;IACnC;;OAEE,CAAC;IACH;;OAEG;AACP,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

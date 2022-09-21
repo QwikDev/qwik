@@ -26,7 +26,7 @@ export const renderHeader_zBbHWn4e8Cg = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAG8B,IAAM;IAChC,QACK,GAAG,CAAC,OAAO,uGACd;CACL\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAG8B,IAAM;IAChC,QACK,GAAG,CAAC,OAAO,uGACd;AACN,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -55,7 +55,7 @@ export const renderHeader_component_U6Kkv07sbpQ = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kDAQiC,IAAM;IACrC,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,CAAC;IACrB,OAAO,MAAM,CAAC;CACf\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kDAQiC,IAAM;IACrC,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,CAAC;IACrB,OAAO,MAAM,CAAC;AAChB,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

@@ -14,6 +14,7 @@ export const RouterHead = component$(() => {
   return (
     <>
       <title>{title}</title>
+      <meta name="description" content={description} />
       <link rel="canonical" href={href} />
       <meta name="viewport" content="width=device-width" />
       <meta name="apple-mobile-web-app-title" content="Qwik" />

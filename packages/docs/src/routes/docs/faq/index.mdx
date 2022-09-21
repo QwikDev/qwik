@@ -15,7 +15,7 @@ Originally it was called *qoot*, but we thought it would be too hard to search f
 
 ### Why another framework?
 
-The short answer is that Qwik solves a problem that other frameworks can't solve. Qwik has instant-on startup performance no matter the application complexity. Ie, Qwik app deliver the same amount of initial JS regarless of the amount of components. [Qwik is the first open-source O(1) framework](https://www.builder.io/blog/our-current-frameworks-are-on-we-need-o1).
+The short answer is that Qwik solves a problem that other frameworks can't solve. Qwik has instant-on startup performance no matter the application complexity. Ie, Qwik apps deliver the same amount of initial JS regardless of the amount of components. [Qwik is the first open-source O(1) framework](https://www.builder.io/blog/our-current-frameworks-are-on-we-need-o1).
 
 
 ### What is Qwik City?
@@ -25,15 +25,15 @@ The short answer is that Qwik solves a problem that other frameworks can't solve
 
 ### Is Qwik complicated to learn?
 
-We designed Qwik to be [extremelly easy to learn](../cheat/qwik-react/index.mdx) and become productive for React developers, component authoring is pretty much the same, and routing is inspired by Nextjs and others.
+We designed Qwik to be [extremely easy to learn](../cheat/qwik-react/index.mdx) and become productive for React developers, component authoring is pretty much the same, and routing is inspired by Nextjs and others.
 
 However, there are fundamentally [new concepts](../think-qwik/index.mdx) to learn, such as [Resumability](../concepts/resumable/index.mdx), fine grained reactivity, but we think the learning curve is not steep.
 
-We also got an interactive [tutorial](../../tutorial/welcome/overview/) to get you started.
+We also have an interactive [tutorial](../../tutorial/welcome/overview/) to get you started.
 
 ### What are all those `$`?
 
-You might have noticed that there are more [`$`](../advanced/optimizer/index.mdx#the-meaning-of-) than usual in Qwik apps: `component$()`, `useWatch$()`, `<div onClick$={() => console.log('click')} />`. It's not for nothing, Qwik breaks your application into small chunks, this pieces are smaller than the component itself, event handlers, hooks... the `$` signals both the [optimizer](../advanced/optimizer/index.mdx) and the developer when it's happening.
+You might have noticed there are more [`$`](../advanced/optimizer/index.mdx#the-meaning-of-) than usual in Qwik apps: `component$()`, `useWatch$()`, `<div onClick$={() => console.log('click')} />`. It's not for nothing. Qwik breaks your application into small chunks; these pieces are smaller than the component itself. For event handlers, hooks, ect... the `$` signals both to the [optimizer](../advanced/optimizer/index.mdx) and to the developer when it's happening.
 
 **Example:**
 ```tsx
@@ -173,7 +173,7 @@ YES, there is a growing community of Qwik developers at [Discord](https://qwik.b
 
 ### Is Qwik production ready?
 
-YES! but it depends. Qwik has been in development for 2 years now, and we reached [the beta milestones](https://www.builder.io/blog/qwik-and-qwik-city-have-reached-beta), meaning that we are confident that Qwik is ready for production, and there is not expected breaking changes.
+YES! but it depends. Qwik has been in development for 2 years now, and we reached [the beta milestones](https://www.builder.io/blog/qwik-and-qwik-city-have-reached-beta), meaning that we are confident that Qwik is ready for production, and there are not expected breaking changes.
 
 [Builder.io](https://www.builder.io/) and a lot of teams are already using Qwik at production, so you will not be alone.
 

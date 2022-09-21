@@ -56,7 +56,7 @@ export type PublicProps<PROPS extends {}> = TransformProps<PROPS> &
   ComponentChildren<PROPS>;
 
 /**
- * Transform the component PROPS adding the mutable equivalents, so `mutable()` can be used natively.
+ * Transform the component PROPS.
  * @public
  */
 export type TransformProps<PROPS extends {}> = {

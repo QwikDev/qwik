@@ -297,22 +297,6 @@ export const isConnected = (sub: Subscriber): boolean => {
   }
 };
 
-// <docs markdown="../readme.md#MutableWrapper">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#MutableWrapper instead)
-/**
- * A marker object returned by `mutable()` to identify that the binding is mutable.
- *
- * @alpha
- */
-// </docs>
-export interface ImmutableWrapper<T> {
-  /**
-   * Immutable prop.
-   */
-  v: T;
-}
-
 /**
  * @alpha
  */

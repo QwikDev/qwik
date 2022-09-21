@@ -33,7 +33,7 @@ Use `useResource$()` to set up how the data is fetched from the server.
   });
 ```
 
-The `useResource$()` function returns a `ResourceReturn` object, which is a Promise-like object that can be serialized by Qwik. The `useResource$()` function allows you to `track` story properties so that the `useResource$()` function can be reactive on store changes. The `cleanup` function allows you to register a code that needs to be run to release resources from the previous run. Finally, the `useResource$()` function returns a promise that will resolve to the value.
+The `useResource$()` function returns a `ResourceReturn` object, which is a Promise-like object that can be serialized by Qwik. The `useResource$()` function allows you to `track` store properties so that the `useResource$()` function can be reactive on store changes. The `cleanup` function allows you to register a code that needs to be run to release resources from the previous run. Finally, the `useResource$()` function returns a promise that will resolve to the value.
 
 ## Rendering data
 

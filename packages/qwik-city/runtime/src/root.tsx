@@ -1,11 +1,14 @@
 import { QwikCity, RouterOutlet, ServiceWorkerRegister } from '~qwik-city-runtime';
-import { Head } from './app/components/head/head';
+import { RouterHead } from './app/components/router-head/router-head';
 import './global.css';
 
 export default function Root() {
   return (
     <QwikCity>
-      <Head />
+      <head>
+        <meta charSet="utf-8" />
+        <RouterHead />
+      </head>
       <body>
         <RouterOutlet />
         <ServiceWorkerRegister />

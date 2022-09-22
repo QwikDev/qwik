@@ -236,7 +236,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
     style?: Record<string, string | number | undefined> | string | undefined;
     // (undocumented)
-    tabIndex?: number | undefined;
+    tabindex?: number | undefined;
     // (undocumented)
     title?: string | undefined;
     // (undocumented)

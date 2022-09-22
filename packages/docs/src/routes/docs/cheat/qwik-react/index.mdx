@@ -254,10 +254,9 @@ export const DynamicBackground = component$(() => {
     blue: 0,
   });
   return (
-    <div style={
-      'background': `rgb(${state.red}, ${state.green}, ${state.blue})`
-    }>
-    <>
+    <div style={{
+      background: `rgb(${state.red}, ${state.green}, ${state.blue})`
+    }}>
       <button onClick$={() => {
         state.red = Math.random() * 256;
         state.green = Math.random() * 256;
@@ -278,9 +277,9 @@ export function DynamicBackground() {
   const [green, setGreen] = useState(0);
   const [blue, setBlue] = useState(0);
   return (
-    <div style={
-      'background': `rgb(${red}, ${green}, ${blue})`
-    }>
+    <div style={{
+      background: `rgb(${red}, ${green}, ${blue})`
+    }}>
       <button onClick={() => {
         setRed(Math.random() * 256);
         setGreen(Math.random() * 256);

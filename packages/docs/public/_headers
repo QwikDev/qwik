@@ -3,20 +3,30 @@
 
 /build/*
   ! Cache-Control
+
+/build/*
   Cache-Control: public, max-age=31536000, s-maxage=31536000, immutable
 
 /fonts/*
   ! Cache-Control
+
+/fonts/*
   Cache-Control: public, max-age=31536000, s-maxage=31536000, immutable
 
 /*.png
   ! Cache-Control
+
+/*.png
   Cache-Control: public, max-age=86400, s-maxage=86400
 
 /*.svg
   ! Cache-Control
+
+/*.svg
   Cache-Control: public, max-age=86400, s-maxage=86400
 
 /favicon.ico
   ! Cache-Control
+
+/favicon.ico
   Cache-Control: public, max-age=604800, s-maxage=604800

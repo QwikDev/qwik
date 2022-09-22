@@ -24,8 +24,6 @@ export const RouterHead = component$(() => {
 
       <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
       <link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
 
       {import.meta.env.PROD && (
         <>

@@ -1,5 +1,11 @@
 /* eslint-disable */
-
+import type { Properties as CSSProperties } from './jsx-css-properties';
+export type { Properties as CSSProperties } from './jsx-css-properties';
+declare module './jsx-css-properties' {
+  interface Properties {
+    [index: string]: any;
+  }
+}
 import type { DOMAttributes } from './jsx-qwik-attributes';
 interface HTMLWebViewElement extends HTMLElement {}
 interface ClassAttributes<T> {}
@@ -320,7 +326,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   placeholder?: string | undefined;
   slot?: string | undefined;
   spellCheck?: Booleanish | undefined;
-  style?: Record<string, string | number | undefined> | string | undefined;
+  style?: CSSProperties;
   tabIndex?: number | undefined;
   title?: string | undefined;
   translate?: 'yes' | 'no' | undefined;
@@ -876,7 +882,7 @@ export interface SVGAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   method?: string | undefined;
   min?: number | string | undefined;
   name?: string | undefined;
-  style?: Record<string, string | number> | string | undefined;
+  style?: CSSProperties;
   target?: string | undefined;
   type?: string | undefined;
   width?: number | string | undefined;

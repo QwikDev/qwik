@@ -22,8 +22,8 @@ export const cachedFetch = (
         // the response has been resolved
         const resolves = awaitingRequests.get(url);
         if (resolves) {
-          // loop through each of the active request
           awaitingRequests.delete(url);
+          // loop through each of the active requests
           for (const [awaitingResolve] of resolves) {
             // clone a new response for each of the active requests
             awaitingResolve(response.clone());
@@ -59,11 +59,9 @@ export const cachedFetch = (
           } else {
             // no cached response found or user didn't want to use the cache
             // do a full network request
-            return fetch(request).then((networkResponse) => {
-              return cache.put(url, networkResponse.clone()).then(() => {
-                resolve(networkResponse);
-              });
-            });
+            return fetch(request).then((networkResponse) =>
+              cache.put(url, networkResponse.clone()).then(() => resolve(networkResponse))
+            );
           }
         })
         .catch((err) => {
@@ -74,7 +72,6 @@ export const cachedFetch = (
               resolve(cachedResponse);
             } else {
               // darn, we've got no connectivity and no cached response
-              // respond with a 503 offline message
               reject(err);
             }
           });

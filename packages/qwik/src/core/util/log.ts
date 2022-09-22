@@ -58,7 +58,7 @@ const printElement = (el: Element) => {
 
   return {
     tagName: el.tagName,
-    renderQRL: ctx?.$renderQrl$?.getSymbol(),
+    renderQRL: ctx?.$componentQrl$?.getSymbol(),
     element: isServer ? undefined : el,
     ctx: isServer ? undefined : ctx,
   };

@@ -30,12 +30,12 @@ export const executeComponent = (
   elCtx.$slots$ = [];
 
   const hostElement = elCtx.$element$;
-  const onRenderQRL = elCtx.$renderQrl$;
+  const componentQRL = elCtx.$componentQrl$;
   const props = elCtx.$props$;
   const newCtx = pushRenderContext(rctx, elCtx);
   const invocatinContext = newInvokeContext(hostElement, undefined, RenderEvent);
   const waitOn = (invocatinContext.$waitOn$ = []);
-  assertDefined(onRenderQRL, `render: host element to render must has a $renderQrl$:`, elCtx);
+  assertDefined(componentQRL, `render: host element to render must has a $renderQrl$:`, elCtx);
   assertDefined(props, `render: host element to render must has defined props`, elCtx);
 
   // Set component context
@@ -46,11 +46,11 @@ export const executeComponent = (
   invocatinContext.$renderCtx$ = rctx;
 
   // Resolve render function
-  onRenderQRL.$setContainer$(rctx.$static$.$containerState$.$containerEl$);
-  const onRenderFn = onRenderQRL.getFn(invocatinContext);
+  componentQRL.$setContainer$(rctx.$static$.$containerState$.$containerEl$);
+  const componentFn = componentQRL.getFn(invocatinContext);
 
   return safeCall(
-    () => onRenderFn(props),
+    () => componentFn(props),
     (jsxNode) => {
       elCtx.$attachedListeners$ = false;
       if (waitOn.length > 0) {

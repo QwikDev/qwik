@@ -453,10 +453,10 @@ export const patchVnode = (
   let needsRender = setComponentProps(elCtx, rctx, props);
 
   // TODO: review this corner case
-  if (!needsRender && !elCtx.$renderQrl$ && !elCtx.$element$.hasAttribute(ELEMENT_ID)) {
+  if (!needsRender && !elCtx.$componentQrl$ && !elCtx.$element$.hasAttribute(ELEMENT_ID)) {
     setQId(rctx, elCtx);
-    elCtx.$renderQrl$ = props[OnRenderProp];
-    assertQrl(elCtx.$renderQrl$ as any);
+    elCtx.$componentQrl$ = props[OnRenderProp];
+    assertQrl(elCtx.$componentQrl$ as any);
     needsRender = true;
   }
 
@@ -652,7 +652,7 @@ const createElm = (
     setQId(rctx, elCtx);
 
     // Run mount hook
-    elCtx.$renderQrl$ = renderQRL;
+    elCtx.$componentQrl$ = renderQRL;
 
     return then(renderComponent(rctx, elCtx, flags), () => {
       let children = vnode.$children$;

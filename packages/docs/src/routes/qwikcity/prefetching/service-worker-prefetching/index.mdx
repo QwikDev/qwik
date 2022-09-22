@@ -45,7 +45,7 @@ addEventListener('install', () => self.skipWaiting());
 addEventListener('activate', () => self.clients.claim());
 ```
 
-The source code for `src/routes/service-worker.ts` can be modified by the develop however they'd like. This includes opting-in, or opting-out, of setting up Qwik City's service worker.  
+The source code for `src/routes/service-worker.ts` can be modified by the developer however they'd like. This includes opting-in, or opting-out, of setting up Qwik City's service worker.  
 
 Notice that the `setupServiceWorker()` function is imported from `@builder.io/qwik-city/service-worker` and executed at the top of the source file. If, and where, this function is called can be modified by the developer. For example, the developer may want to handle the fetch requests first, in which case they'd add their own fetch listener above `setupServiceWorker()`. Or if they didn't want to use Qwik City's service worker at all, they would just have to remove `setupServiceWorker()` from the file.
 

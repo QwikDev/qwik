@@ -236,7 +236,7 @@ export const DocSearchModal = component$(
           .filter(Boolean)
           .join(' ')}
         role="button"
-        tabIndex={0}
+        tabindex={0}
         onMouseDown$={(event) => {
           if (event.target === containerRef.current) {
             onClose$.apply(undefined, []);

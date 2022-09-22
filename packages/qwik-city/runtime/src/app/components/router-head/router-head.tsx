@@ -3,14 +3,12 @@ import { useDocumentHead, useLocation } from '~qwik-city-runtime';
 import { Social } from './social';
 import { Vendor } from './vendor';
 
-export const Head = component$(() => {
+export const RouterHead = component$(() => {
   const head = useDocumentHead();
   const loc = useLocation();
 
   return (
-    <head>
-      <meta charSet="utf-8" />
-
+    <>
       <title>{head.title ? `${head.title} - Qwik` : `Qwik`}</title>
       <link rel="canonical" href={loc.href} />
 
@@ -30,6 +28,6 @@ export const Head = component$(() => {
       {head.styles.map((s) => (
         <style {...s.props} dangerouslySetInnerHTML={s.style} />
       ))}
-    </head>
+    </>
   );
 });

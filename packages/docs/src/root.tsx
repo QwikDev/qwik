@@ -1,10 +1,12 @@
-import { component$, useContextProvider, useStore } from '@builder.io/qwik';
+import { component$, useContextProvider, useStore, useStyles$ } from '@builder.io/qwik';
 import { QwikCity, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
 import { RouterHead } from './components/router-head/router-head';
 import { GlobalStore, SiteStore } from './context';
-import './global.css';
+import styles from './global.css?inline';
 
 export default component$(() => {
+  useStyles$(styles);
+
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
     sideMenuOpen: false,

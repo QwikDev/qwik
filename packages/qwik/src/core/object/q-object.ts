@@ -10,9 +10,8 @@ import { RenderEvent } from '../util/markers';
 import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
 import { isPromise } from '../util/promises';
 import { canSerialize } from './serializers';
-import type { ContainerState, LocalSubscriptionManager, SubscriberMap } from '../render/container';
-import type { Subscriber } from '../use/use-watch';
-import { isSignalOperation } from '../render/dom/signals';
+import type { ContainerState, LocalSubscriptionManager, Subscriptions } from '../render/container';
+import type { SubscriberEffect, SubscriberHost } from '../use/use-watch';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
@@ -21,7 +20,7 @@ export const QObjectImmutable = 1 << 1;
 
 const QOjectTargetSymbol = Symbol();
 const QOjectFlagsSymbol = Symbol();
-const QOjectSubsSymbol = Symbol();
+export const QOjectManagerSymbol = Symbol();
 
 /**
  * @alpha
@@ -54,29 +53,27 @@ export const getOrCreateProxy = <T extends object>(
 export const createSignal = <T>(
   value: T,
   containerState: ContainerState,
-  subs?: Map<Element, Set<string>>
+  subcriptions?: Subscriptions[]
 ): Signal<T> => {
-  const signal = new SignalImpl<T>(value);
-  signal.m = containerState.$subsManager$.$getLocal$(signal, subs);
+  const manager = containerState.$subsManager$.$createManager$(subcriptions);
+  const signal = new SignalImpl<T>(value, manager);
   return signal;
 };
 
 export class SignalImpl<T> implements Signal<T> {
   untrackedValue: T;
-  m: LocalSubscriptionManager | null = null;
+  [QOjectManagerSymbol]: LocalSubscriptionManager;
 
-  constructor(v: T) {
+  constructor(v: T, manager: LocalSubscriptionManager) {
     this.untrackedValue = v;
+    this[QOjectManagerSymbol] = manager;
   }
 
-  track(sub: Subscriber | undefined | null) {
-    const manager = this.m;
-    if (sub && manager) {
-      manager.$addSub$(sub);
-    }
-  }
   get value() {
-    this.track(tryGetInvokeContext()?.$subscriber$);
+    const sub = tryGetInvokeContext()?.$subscriber$;
+    if (sub) {
+      this[QOjectManagerSymbol].$addSub$([0, sub]);
+    }
     return this.untrackedValue;
   }
   set value(v: T) {
@@ -90,7 +87,7 @@ export class SignalImpl<T> implements Signal<T> {
         );
       }
     }
-    const manager = this.m;
+    const manager = this[QOjectManagerSymbol];
     const oldValue = this.untrackedValue;
     if (manager && oldValue !== v) {
       this.untrackedValue = v;
@@ -107,7 +104,7 @@ export const createProxy = <T extends object>(
   target: T,
   containerState: ContainerState,
   flags: number,
-  subs?: SubscriberMap
+  subs?: Subscriptions[]
 ): T => {
   assertEqual(unwrapProxy(target), target, 'Unexpected proxy at this location', target);
   assertTrue(!containerState.$proxyMap$.has(target), 'Proxy was already created', target);
@@ -117,7 +114,7 @@ export const createProxy = <T extends object>(
     'Target must be a serializable object'
   );
 
-  const manager = containerState.$subsManager$.$getLocal$(target, subs);
+  const manager = containerState.$subsManager$.$createManager$(subs);
   const proxy = new Proxy(
     target,
     new ReadWriteProxyHandler(containerState, manager, flags)
@@ -139,10 +136,10 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (typeof prop === 'symbol') {
       if (prop === QOjectTargetSymbol) return target;
       if (prop === QOjectFlagsSymbol) return this.$flags$;
-      if (prop === QOjectSubsSymbol) return this.$manager$.$subs$;
+      if (prop === QOjectManagerSymbol) return this.$manager$;
       return target[prop];
     }
-    let subscriber: Subscriber | undefined | null;
+    let subscriber: SubscriberHost | SubscriberEffect | undefined | null;
     const invokeCtx = tryGetInvokeContext();
     const recursive = (this.$flags$ & QObjectRecursive) !== 0;
     const immutable = (this.$flags$ & QObjectImmutable) !== 0;
@@ -159,7 +156,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     }
     if (subscriber) {
       const isA = isArray(target);
-      this.$manager$.$addSub$(subscriber, isA ? undefined : prop);
+      this.$manager$.$addSub$([0, subscriber, isA ? undefined : prop]);
     }
     return recursive ? wrap(value, this.$containerState$) : value;
   }
@@ -209,13 +206,13 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   ownKeys(target: TargetType): ArrayLike<string | symbol> {
-    let subscriber: Subscriber | null | undefined = null;
+    let subscriber: SubscriberHost | SubscriberEffect | null | undefined = null;
     const invokeCtx = tryGetInvokeContext();
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
     if (subscriber) {
-      this.$manager$.$addSub$(subscriber);
+      this.$manager$.$addSub$([0, subscriber]);
     }
     return Object.getOwnPropertyNames(target);
   }
@@ -354,11 +351,9 @@ export const mutable = <T>(v: T): T => {
   return v;
 };
 
-export const isConnected = (sub: Subscriber): boolean => {
+export const isConnected = (sub: SubscriberEffect | SubscriberHost): boolean => {
   if (isQwikElement(sub)) {
     return !!tryGetContext(sub) || sub.isConnected;
-  } else if (isSignalOperation(sub)) {
-    return false;
   } else {
     return isConnected(sub.$el$);
   }
@@ -375,8 +370,8 @@ export const getProxyTarget = <T extends Record<string, any>>(obj: T): T | undef
   return (obj as any)[QOjectTargetSymbol];
 };
 
-export const getProxySubs = (obj: any): SubscriberMap | undefined => {
-  return (obj as any)[QOjectSubsSymbol];
+export const getProxyManager = (obj: Record<string, any>): LocalSubscriptionManager | undefined => {
+  return (obj as any)[QOjectManagerSymbol];
 };
 
 export const getProxyFlags = <T = Record<string, any>>(obj: T): number | undefined => {

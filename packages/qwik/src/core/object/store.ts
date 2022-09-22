@@ -16,13 +16,12 @@ import {
   createProxy,
   fastShouldSerialize,
   getOrCreateProxy,
-  getProxyFlags,
-  getProxySubs,
+  getProxyManager,
   getProxyTarget,
   isConnected,
   isSignal,
 } from './q-object';
-import { destroyWatch, Subscriber, SubscriberEffect, WatchFlagsIsDirty } from '../use/use-watch';
+import { destroyWatch, SubscriberEffect, WatchFlagsIsDirty } from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
 import { emitEvent } from '../util/event';
 import {
@@ -36,7 +35,13 @@ import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
 import { isResourceReturn } from '../use/use-resource';
 import { createParser, Parser, serializeValue, UNDEFINED_PREFIX } from './serializers';
-import { ContainerState, getContainerState, SubscriberMap } from '../render/container';
+import {
+  ContainerState,
+  getContainerState,
+  parseSubscription,
+  serializeSubscription,
+  Subscriptions,
+} from '../render/container';
 import { getQId } from '../render/execute-component';
 import { processVirtualNodes, QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import { getDomListeners } from '../props/props-on';
@@ -376,39 +381,23 @@ export const _pauseFromContexts = async (
   };
 
   // Compute subscriptions
-  const subsMap = new Map<
-    any,
-    { subscriber: Subscriber | '$'; data: string[] | number | null }[]
-  >();
+  const subsMap = new Map<any, Subscriptions[]>();
   objs.forEach((obj) => {
-    const proxy = containerState.$proxyMap$.get(obj);
-    // TODO
-    const flags = isSignal(obj) ? 0 : getProxyFlags(containerState.$proxyMap$.get(obj));
-    if (flags === undefined) {
-      return;
+    const subs = getProxyManager(obj)?.$subs$;
+    if (!subs) {
+      return null;
     }
-    const subsObj: { subscriber: Subscriber | '$'; data: string[] | number | null }[] = [];
-    if (flags > 0) {
-      subsObj.push({
-        subscriber: '$',
-        data: flags,
-      });
-    }
-    const subs = getProxySubs(proxy);
-    assertDefined(subs, 'subs must be defined');
-    subs.forEach((set, key) => {
-      if (isNode(key) && isVirtualElement(key)) {
-        if (!collector.$elements$.includes(key)) {
-          return;
+    const filtered = subs.filter((sub) => {
+      const host = sub[1];
+      if (sub[0] === 0 && isNode(host) && isVirtualElement(host)) {
+        if (!collector.$elements$.includes(host)) {
+          return false;
         }
       }
-      subsObj.push({
-        subscriber: key,
-        data: set ? Array.from(set) : null,
-      });
+      return true;
     });
-    if (subsObj.length > 0) {
-      subsMap.set(obj, subsObj);
+    if (filtered.length > 0) {
+      subsMap.set(obj, filtered);
     }
   });
 
@@ -440,18 +429,7 @@ export const _pauseFromContexts = async (
       if (!sub) {
         return undefined;
       }
-      const subsObj: Record<string, string[] | number | null> = {};
-      sub.forEach(({ subscriber, data }) => {
-        if (subscriber === '$') {
-          subsObj[subscriber] = data;
-        } else {
-          const id = getObjId(subscriber);
-          if (id !== null) {
-            subsObj[id] = data;
-          }
-        }
-      });
-      return subsObj;
+      return sub.map((s) => serializeSubscription(s, getObjId));
     })
     .filter(isNotNullable);
 
@@ -644,26 +622,11 @@ const reviveSubscriptions = (
 ) => {
   for (let i = 0; i < subs.length; i++) {
     const value = objs[i];
-    const sub = subs[i];
+    const sub = subs[i] as string[];
     if (sub) {
-      const converted: SubscriberMap = new Map();
-      let flags = 0;
-      for (const key of Object.keys(sub)) {
-        const v = sub[key];
-        if (key === '$') {
-          flags = v as number;
-          continue;
-        }
-        const el = getObject(key);
-        if (!el) {
-          logWarn('QWIK can not revive subscriptions because of missing element ID', key, value);
-          continue;
-        }
-        const set = v === null ? null : (new Set(v as any) as Set<string>);
-        converted.set(el, set);
-      }
+      const converted = sub.map((s) => parseSubscription(s, getObject));
       if (!parser.subs(value, converted)) {
-        createProxy(value, containerState, flags, converted);
+        createProxy(value, containerState, 0, converted);
       }
     }
   }
@@ -742,9 +705,9 @@ const getObjectImpl = (
 const collectProps = (elCtx: QContext, collector: Collector) => {
   const parentCtx = elCtx.$parent$;
   if (parentCtx && elCtx.$props$ && collector.$elements$.includes(parentCtx.$element$ as any)) {
-    const subs = getProxySubs(elCtx.$props$);
+    const subs = getProxyManager(elCtx.$props$)?.$subs$;
     const el = elCtx.$element$ as VirtualElement;
-    if (subs && subs.has(el)) {
+    if (subs && subs.some((e) => e[0] === 0 && e[1] === el)) {
       collectElement(el, collector);
     }
   }
@@ -823,7 +786,7 @@ export const unescapeText = (str: string) => {
 };
 
 const collectSubscriptions = (proxy: any, collector: Collector) => {
-  const subs = getProxySubs(proxy);
+  const subs = getProxyManager(proxy)?.$subs$;
   assertDefined(subs, 'subs must be defined');
   if (collector.$seen$.has(subs)) {
     return;

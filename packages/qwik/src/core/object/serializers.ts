@@ -3,7 +3,7 @@ import { Component, componentQrl, isQwikComponent } from '../component/component
 import { parseQRL, stringifyQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
 import type { QRL } from '../import/qrl.public';
-import type { ContainerState, SubscriberMap } from '../render/container';
+import type { ContainerState, Subscriptions } from '../render/container';
 import { isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
 import {
   isSubscriberDescriptor,
@@ -13,7 +13,7 @@ import {
   SubscriberEffect,
 } from '../use/use-watch';
 import { isDocument } from '../util/element';
-import { isSignal, SignalImpl } from './q-object';
+import { isSignal, QOjectManagerSymbol, SignalImpl } from './q-object';
 import type { GetObject, GetObjID } from './store';
 
 /**
@@ -48,7 +48,7 @@ export interface Serializer<T> {
   /**
    * Second pass to fill in the object.
    */
-  subs?: (obj: T, subs: SubscriberMap, containerState: ContainerState) => void;
+  subs?: (obj: T, subs: Subscriptions[], containerState: ContainerState) => void;
 
   /**
    * Second pass to fill in the object.
@@ -212,10 +212,10 @@ const SignalSerializer: Serializer<SignalImpl<any>> = {
     return code;
   },
   prepare: (data) => {
-    return new SignalImpl(data);
+    return new SignalImpl(data, null as any);
   },
   subs: (signal, subs, containerState) => {
-    signal.m = containerState.$subsManager$.$getLocal$(signal, subs);
+    signal[QOjectManagerSymbol] = containerState.$subsManager$.$createManager$(subs);
   },
   fill: (signal, getObject) => {
     signal.untrackedValue = getObject(signal.untrackedValue);
@@ -260,7 +260,7 @@ export const serializeValue = (obj: any, getObjID: GetObjID, containerState: Con
 
 export interface Parser {
   prepare(data: string): any;
-  subs(obj: any, subs: SubscriberMap): boolean;
+  subs(obj: any, subs: Subscriptions[]): boolean;
   fill(obj: any): boolean;
 }
 
@@ -289,7 +289,7 @@ export const createParser = (
       }
       return data;
     },
-    subs(obj: any, subs: SubscriberMap) {
+    subs(obj: any, subs: Subscriptions[]) {
       const serializer = subsMap.get(obj);
       if (serializer) {
         serializer.subs!(obj, subs, containerState);

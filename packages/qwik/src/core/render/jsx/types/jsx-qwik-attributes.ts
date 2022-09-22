@@ -219,7 +219,7 @@ export type JSXChildren =
   | undefined
   | Function
   | RegExp
-  | Signal<JSXChildren>
+  | Signal<string | number>
   | JSXChildren[]
   | Promise<JSXChildren>
   | JSXNode;

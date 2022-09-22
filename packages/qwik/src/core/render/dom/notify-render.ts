@@ -6,7 +6,6 @@ import { logError, logWarn } from '../../util/log';
 import { getWrappingContainer } from '../../use/use-core';
 import {
   runSubscriber,
-  Subscriber,
   SubscriberEffect,
   WatchFlagsIsDirty,
   WatchFlagsIsEffect,
@@ -18,23 +17,25 @@ import type { ValueOrPromise } from '../../util/types';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { renderComponent } from './render-dom';
 import type { RenderStaticContext } from '../types';
-import { ContainerState, getContainerState } from '../container';
+import { ContainerState, getContainerState, SubscriberSignal, Subscriptions } from '../container';
 import { createRenderContext } from '../execute-component';
 import { getRootNode, QwikElement } from './virtual-element';
 import { printRenderStats } from './operations';
-import { executeSignalOperation, isSignalOperation, SubscriberSignal } from './signals';
+import { executeSignalOperation } from './signals';
 import { getPlatform, isServer } from '../../platform/platform';
 import { qDev } from '../../util/qdev';
+import { isQwikElement } from '../../util/element';
 
-export const notifyChange = (subscriber: Subscriber, containerState: ContainerState) => {
-  if (isSignalOperation(subscriber)) {
-    if (subscriber.length === 1) {
-      notifyRender(subscriber[0], containerState);
+export const notifyChange = (subAction: Subscriptions, containerState: ContainerState) => {
+  if (subAction[0] === 0) {
+    const host = subAction[1];
+    if (isQwikElement(host)) {
+      notifyRender(host, containerState);
     } else {
-      notifySignalOperation(subscriber, containerState);
+      notifyWatch(host, containerState);
     }
   } else {
-    notifyWatch(subscriber, containerState);
+    notifySignalOperation(subAction, containerState);
   }
 };
 

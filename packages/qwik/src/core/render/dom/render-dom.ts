@@ -17,6 +17,7 @@ import type { QContext } from '../../props/props';
 import { QwikElement, VIRTUAL, VirtualElement } from './virtual-element';
 import { appendHeadStyle } from './operations';
 import { isSignal, SignalImpl } from '../../object/q-object';
+import { assertTrue } from '../../assert/assert';
 
 export const renderComponent = (
   rctx: RenderContext,
@@ -134,7 +135,7 @@ export const processData = (
   if (node == null || typeof node === 'boolean') {
     return undefined;
   }
-  if (isString(node) || typeof node === 'number') {
+  if (isPrimitive(node)) {
     const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, EMPTY_ARRAY, null);
     newNode.$text$ = String(node);
     return newNode;
@@ -142,15 +143,11 @@ export const processData = (
     return processNode(node, invocationContext);
   } else if (isSignal(node)) {
     const value = node.value;
-    if (isString(value) || typeof value === 'number') {
-      const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, EMPTY_ARRAY, null);
-      newNode.$text$ = String(value);
-      newNode.$signal$ = node;
-      return newNode;
-    } else {
-      node.track(invocationContext?.$subscriber$);
-      return processData(node.untrackedValue, invocationContext);
-    }
+    const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, EMPTY_ARRAY, null);
+    assertTrue(isPrimitive(value), 'value must be a primitive');
+    newNode.$text$ = String(value);
+    newNode.$signal$ = node;
+    return newNode;
   } else if (isArray(node)) {
     const output = promiseAll(node.flatMap((n) => processData(n, invocationContext)));
     return then(output, (array) => array.flat(100).filter(isNotNullable));
@@ -176,6 +173,10 @@ export const isProcessedJSXNode = (n: any): n is ProcessedJSXNode => {
   } else {
     return n instanceof ProcessedJSXNodeImpl;
   }
+};
+
+export const isPrimitive = (obj: any) => {
+  return isString(obj) || typeof obj === 'number';
 };
 
 export interface ProcessedJSXNode {

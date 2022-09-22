@@ -1,5 +1,6 @@
 import {
   createProxy,
+  getProxyManager,
   getProxyTarget,
   QObjectImmutable,
 } from '../object/q-object';
@@ -139,9 +140,10 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
   if (!props) {
     ctx.$props$ = props = createProps({}, containerState);
   }
+  const manager = getProxyManager(props);
+  assertDefined(manager, `props have to be a proxy, but it is not`, props);
   const target = getProxyTarget(props);
   assertDefined(target, `props have to be a proxy, but it is not`, props);
-  const manager = containerState.$subsManager$.$getLocal$(target);
 
   return {
     set(prop: string, value: any) {

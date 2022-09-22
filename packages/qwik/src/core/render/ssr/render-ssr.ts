@@ -21,8 +21,9 @@ import { assertDefined } from '../../assert/assert';
 import { serializeSStyle } from '../../component/qrl-styles';
 import { qDev, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
-import { isSignal } from '../../object/q-object';
+import { getProxyManager, isSignal } from '../../object/q-object';
 import { serializeQRLs } from '../../import/qrl';
+import type { Ref } from '../../use/use-ref';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
@@ -577,7 +578,11 @@ export const processData = (
   } else if (isArray(node)) {
     return walkChildren(node, ssrCtx, stream, flags);
   } else if (isSignal(node)) {
-    node.track(ssrCtx.invocationContext?.$subscriber$);
+    // TODO
+    const sub = ssrCtx.invocationContext?.$subscriber$;
+    if (sub) {
+      getProxyManager(node)?.$addSub$([0, sub]);
+    }
     return processData(node.untrackedValue, ssrCtx, stream, flags, beforeClose);
   } else if (isPromise(node)) {
     stream.write(FLUSH_COMMENT);

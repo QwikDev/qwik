@@ -71,6 +71,7 @@ import { serializeQRLs } from '../../import/qrl';
 import { QOnce } from '../jsx/utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { getEventName } from '../../object/store';
+import { getProxyManager } from '../../object/q-object';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -398,7 +399,8 @@ export const patchVnode = (
     if (oldVnode.$text$ !== newVnode.$text$) {
       const signal = newVnode.$signal$;
       if (signal) {
-        signal.track([currentComponent.$element$, signal, 0, elm, 'data']);
+        const manager = getProxyManager(signal);
+        manager?.$addSub$([1, currentComponent.$element$, signal, elm, 'data']);
       }
       setProperty(staticCtx, elm, 'data', newVnode.$text$);
     }

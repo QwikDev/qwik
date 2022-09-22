@@ -1,29 +1,24 @@
-import { assertEqual } from '../assert/assert';
-import { getProxyTarget } from '../object/q-object';
-import type { Subscriber, SubscriberEffect } from '../use/use-watch';
-// import { isQwikElement } from '../util/element';
+import { assertTrue } from '../assert/assert';
+import type { Signal } from '../object/q-object';
+import type { GetObject, GetObjID } from '../object/store';
+import type { SubscriberEffect, SubscriberHost } from '../use/use-watch';
 import { seal } from '../util/qdev';
 import { notifyChange } from './dom/notify-render';
-// import { isSignalOperation } from './dom/signals';
 import type { QwikElement } from './dom/virtual-element';
 import type { RenderStaticContext } from './types';
 
 export type ObjToProxyMap = WeakMap<any, any>;
-export type SubscriberMap = Map<Subscriber, Set<string> | null>;
-export type ObjToSubscriberMap = WeakMap<any, LocalSubscriptionManager>;
-export type SubscriberToSubscriberMap = Map<Subscriber, Set<SubscriberMap>>;
-export type HostToSubscriberMap = Map<QwikElement, Set<SubscriberMap>>;
 
 export interface SubscriptionManager {
-  $tryGetLocal$(obj: any): LocalSubscriptionManager | undefined;
-  $getLocal$(obj: any, map?: SubscriberMap): LocalSubscriptionManager;
-  $clearSub$: (sub: Subscriber) => void;
+  $createManager$(map?: Subscriptions[]): LocalSubscriptionManager;
+  $clearSub$: (sub: SubscriberEffect | SubscriberHost) => void;
 }
 
 export interface LocalSubscriptionManager {
-  readonly $subs$: SubscriberMap;
+  readonly $subs$: Subscriptions[];
   $notifySubs$: (key?: string | undefined) => void;
-  $addSub$: (subscriber: Subscriber, key?: string) => void;
+  $unsubGroup$: (group: SubscriberEffect | SubscriberHost) => void;
+  $addSub$: (subscription: Subscriptions) => void;
 }
 
 /**
@@ -38,7 +33,7 @@ export interface ContainerState {
   $watchNext$: Set<SubscriberEffect>;
   $watchStaging$: Set<SubscriberEffect>;
 
-  $opsNext$: Set<any>;
+  $opsNext$: Set<SubscriberSignal>;
 
   $hostsNext$: Set<QwikElement>;
   $hostsStaging$: Set<QwikElement>;
@@ -88,99 +83,126 @@ export const createContainerState = (containerEl: Element) => {
   return containerState;
 };
 
+type A = [type: 0, subscriber: SubscriberEffect | SubscriberHost, key?: string];
+
+type B = [
+  type: 1,
+  subscriber: SubscriberHost,
+  signal: Signal,
+  elm: QwikElement | Node,
+  prop: string
+];
+
+type C = [type: 2, subscriber: SubscriberHost, signal: Signal, elm: QwikElement, attribute: string];
+
+export type SubscriberSignal = B | C;
+
+export type Subscriptions = A | SubscriberSignal;
+
+export type GroupToManagersMap = Map<SubscriberHost | SubscriberEffect, LocalSubscriptionManager[]>;
+
+export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) => {
+  const type = sub[0];
+  const host = sub[1];
+  let base = type + ' ' + getObjId(host);
+  if (sub[0] === 0) {
+    if (sub[2]) {
+      base += ' ' + sub[2];
+    }
+  } else {
+    base += ` ${getObjId(sub[2])} ${getObjId(sub[3])} ${sub[4]}`;
+  }
+  return base;
+};
+
+export const parseSubscription = (sub: string, getObject: GetObject) => {
+  const parts = sub.split(' ');
+  const type = parseInt(parts[0], 10);
+  assertTrue(parts.length >= 2, 'At least 2 parts');
+  const subscription = [type, getObject(parts[1])] as Subscriptions;
+  if (type === 0) {
+    assertTrue(parts.length <= 3, 'Max 3 parts');
+    if (parts.length === 3) {
+      subscription.push(parts[2]);
+    }
+  } else {
+    assertTrue(parts.length === 5, 'Max 3 parts');
+    subscription.push(getObject(parts[2]), getObject(parts[3]), parts[4]);
+  }
+  return subscription;
+};
+
 export const createSubscriptionManager = (containerState: ContainerState): SubscriptionManager => {
-  const objToSubs: ObjToSubscriberMap = new Map();
-  const subsToObjs: SubscriberToSubscriberMap = new Map();
+  const groupToManagers: GroupToManagersMap = new Map();
   // const hostToSub: HostToSubscriberMap = new Map();
 
-  const clearSub = (sub: Subscriber) => {
-    const subs = subsToObjs.get(sub);
-    if (subs) {
-      subs.forEach((s) => {
-        s.delete(sub);
-      });
-      subsToObjs.delete(sub);
-      subs.clear();
+  const clearSub = (group: SubscriberHost | SubscriberEffect) => {
+    const managers = groupToManagers.get(group);
+    if (managers) {
+      for (const manager of managers) {
+        manager.$unsubGroup$(group);
+      }
+      groupToManagers.delete(group);
+      managers.length = 0;
     }
   };
 
-  const tryGetLocal = (obj: any) => {
-    assertEqual(getProxyTarget(obj), undefined, 'object can not be be a proxy', obj);
-    return objToSubs.get(obj);
-  };
-
-  const trackSubToObj = (subscriber: Subscriber, map: SubscriberMap) => {
-    let set = subsToObjs.get(subscriber);
-    if (!set) {
-      subsToObjs.set(subscriber, (set = new Set()));
+  const addToGroup = (
+    group: SubscriberHost | SubscriberEffect,
+    manager: LocalSubscriptionManager
+  ) => {
+    let managers = groupToManagers.get(group);
+    if (!managers) {
+      groupToManagers.set(group, (managers = []));
     }
-    set.add(map);
+    if (!managers.includes(manager)) {
+      managers.push(manager);
+    }
   };
 
-  // const trackRenderToSub = (subscriber: Subscriber, map: SubscriberMap) => {
-  //   let host: QwikElement | undefined = undefined;
-  //   if (isQwikElement(subscriber)) {
-  //     host = subscriber;
-  //   } else if (isSignalOperation(subscriber)) {
-  //     host = subscriber[0]
-  //   }
-  //   if (host) {
-  //     let set = hostToSub.get(host);
-  //     if (!set) {
-  //       hostToSub.set(host, (set = new Set()));
-  //     }
-  //     set.add(map);
-  //   }
-  // };
-  const getLocal = (obj: any, initialMap?: SubscriberMap) => {
-    let local = tryGetLocal(obj);
-    if (local) {
-      assertEqual(
-        initialMap,
-        undefined,
-        'subscription map can not be set to an existing object',
-        local
-      );
-    } else {
-      const map = !initialMap ? (new Map() as SubscriberMap) : initialMap;
-      map.forEach((_, key) => {
-        trackSubToObj(key, map);
-      });
-      objToSubs.set(
-        obj,
-        (local = {
-          $subs$: map,
-          $addSub$(subscriber: Subscriber, key?: string) {
-            if (key == null) {
-              map.set(subscriber, null);
-            } else {
-              let sub = map.get(subscriber);
-              if (sub === undefined) {
-                map.set(subscriber, (sub = new Set()));
-              }
-              if (sub) {
-                sub.add(key);
-              }
-            }
-            trackSubToObj(subscriber, map);
-          },
-          $notifySubs$(key?: string) {
-            map.forEach((value, subscriber) => {
-              if (value === null || !key || value.has(key)) {
-                notifyChange(subscriber, containerState);
-              }
-            });
-          },
-        })
-      );
-      seal(local);
+  const createManager = (initialMap?: Subscriptions[]) => {
+    const map = initialMap ? initialMap : [];
+    const local: LocalSubscriptionManager = {
+      $subs$: map,
+      $unsubGroup$(group) {
+        for (let i = 0; i < map.length; i++) {
+          const found = map[i][1] === group;
+          if (found) {
+            map.splice(i, 1);
+            i--;
+          }
+        }
+      },
+      $addSub$(sub: Subscriptions) {
+        const [type, group, key] = sub;
+        if (type === 0 || type === 1) {
+          if (
+            map.some(([_type, _group, _key]) => _type === type && _group === group && _key === key)
+          ) {
+            return;
+          }
+        }
+        map.push(sub);
+        addToGroup(group, local);
+      },
+      $notifySubs$(key?: string) {
+        for (const sub of map) {
+          if (sub[0] === 0 && sub[2] !== key) {
+            continue;
+          }
+          notifyChange(sub, containerState);
+        }
+      },
+    };
+    seal(local);
+    for (const sub of map) {
+      addToGroup(sub[1], local);
     }
     return local;
   };
 
-  const manager = {
-    $tryGetLocal$: tryGetLocal,
-    $getLocal$: getLocal,
+  const manager: SubscriptionManager = {
+    $createManager$: createManager,
     $clearSub$: clearSub,
   };
   seal(manager);

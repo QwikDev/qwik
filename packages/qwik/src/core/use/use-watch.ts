@@ -1,11 +1,4 @@
-import {
-  getProxyTarget,
-  isSignal,
-  noSerialize,
-  NoSerialize,
-  Signal,
-  unwrapProxy,
-} from '../object/q-object';
+import { getProxyManager, noSerialize, NoSerialize, Signal, unwrapProxy } from '../object/q-object';
 import { getContext } from '../props/props';
 import { newInvokeContext, invoke, waitAndRun } from './use-core';
 import { logError, logErrorAndStop } from '../util/log';
@@ -28,7 +21,6 @@ import type { ContainerState } from '../render/container';
 import { notifyWatch, _hW } from '../render/dom/notify-render';
 import { useSequentialScope } from './use-sequential-scope';
 import type { QwikElement } from '../render/dom/virtual-element';
-import type { SubscriberRender } from '../render/dom/signals';
 import { handleError } from '../render/error-handling';
 import type { RenderContext } from '../render/types';
 
@@ -602,11 +594,11 @@ export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
 // </docs>
 export const useMount$ = /*#__PURE__*/ implicit$FirstArg(useMountQrl);
 
-export type Subscriber = SubscriberEffect | SubscriberRender;
-
 export type WatchDescriptor = DescriptorBase<WatchFn>;
 
 export interface ResourceDescriptor<T> extends DescriptorBase<ResourceFn<T>, ResourceReturn<T>> {}
+
+export type SubscriberHost = QwikElement;
 
 export type SubscriberEffect = WatchDescriptor | ResourceDescriptor<any>;
 
@@ -651,14 +643,9 @@ export const runResource = <T>(
   );
 
   const track: Tracker = (obj: any, prop?: string) => {
-    if (isSignal(obj)) {
-      obj.track(watch);
-      return obj.untrackedValue;
-    }
-    const target = getProxyTarget(obj);
-    if (target) {
-      const manager = subsManager.$getLocal$(target);
-      manager.$addSub$(watch, prop);
+    const manager = getProxyManager(obj);
+    if (manager) {
+      manager.$addSub$([0, watch, prop]);
     } else {
       logErrorAndStop(codeToText(QError_trackUseStore), obj);
     }
@@ -755,14 +742,9 @@ export const runWatch = (
     subsManager.$clearSub$(watch);
   }) as WatchFn;
   const track: Tracker = (obj: any, prop?: string) => {
-    if (isSignal(obj)) {
-      obj.track(watch);
-      return obj.untrackedValue;
-    }
-    const target = getProxyTarget(obj);
-    if (target) {
-      const manager = subsManager.$getLocal$(target);
-      manager.$addSub$(watch, prop);
+    const manager = getProxyManager(obj);
+    if (manager) {
+      manager.$addSub$([0, watch, prop]);
     } else {
       logErrorAndStop(codeToText(QError_trackUseStore), obj);
     }

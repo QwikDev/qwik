@@ -270,7 +270,7 @@ export { jsx as jsxs }
 // Warning: (ae-incompatible-release-tags) The symbol "JSXChildren" is marked as @public, but its signature references "Signal" which is marked as @alpha
 //
 // @public (undocumented)
-export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | Signal<JSXChildren> | JSXChildren[] | Promise<JSXChildren> | JSXNode;
+export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | Signal<string | number> | JSXChildren[] | Promise<JSXChildren> | JSXNode;
 
 // @public (undocumented)
 export interface JSXNode<T = string | FunctionComponent> {

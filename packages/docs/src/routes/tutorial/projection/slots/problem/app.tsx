@@ -6,8 +6,7 @@ export const App = component$(() => {
     <Collapsable>
       <div q:slot="closed">▶ (collapsed summary)</div>
       <div q:slot="open">
-        ▼
-        <div> Content that should be displayed when the collapse component is open. </div>
+        ▼<div> Content that should be displayed when the collapse component is open. </div>
       </div>
     </Collapsable>
   );
@@ -18,7 +17,7 @@ export const Collapsable = component$(() => {
   const store = useStore({ open: true });
   return (
     <div onClick$={() => (store.open = !store.open)}>
-      {store.open ?  <Slot name="open" />  :  `▶` }
+      {store.open ? <Slot name="open" /> : `▶`}
       {/* Instead, project content from the parent named "closed" here */}
     </div>
   );

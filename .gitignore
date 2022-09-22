@@ -18,6 +18,7 @@ target
 todo-express/
 qwik-app/
 **/server/**/*.js
+.idea
 
 # Yarn
 .yarn/*

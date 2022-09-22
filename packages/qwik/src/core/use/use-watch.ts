@@ -1,4 +1,11 @@
-import { getProxyManager, noSerialize, NoSerialize, Signal, unwrapProxy } from '../object/q-object';
+import {
+  getProxyManager,
+  isSignal,
+  noSerialize,
+  NoSerialize,
+  Signal,
+  unwrapProxy,
+} from '../object/q-object';
 import { getContext } from '../props/props';
 import { newInvokeContext, invoke, waitAndRun } from './use-core';
 import { logError, logErrorAndStop } from '../util/log';
@@ -651,6 +658,8 @@ export const runResource = <T>(
     }
     if (prop) {
       return obj[prop];
+    } else if (isSignal(obj)) {
+      return obj.untrackedValue;
     } else {
       return obj;
     }
@@ -750,6 +759,8 @@ export const runWatch = (
     }
     if (prop) {
       return obj[prop];
+    } else if (isSignal(obj)) {
+      return obj.untrackedValue;
     } else {
       return obj;
     }

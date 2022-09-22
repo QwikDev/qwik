@@ -5,13 +5,9 @@ import { verifySerializable } from '../object/q-object';
 import { qDev } from '../util/qdev';
 import { isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
-import {
-  getVirtualElement,
-  isComment,
-  QwikElement,
-  VirtualElement,
-} from '../render/dom/virtual-element';
+import { getVirtualElement, QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import type { RenderContext } from '../render/types';
+import { isComment } from '../util/element';
 
 // <docs markdown="../readme.md#Context">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

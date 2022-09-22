@@ -30,6 +30,7 @@ import {
 } from '../../object/q-object';
 import { serializeQRLs } from '../../import/qrl';
 import type { Ref } from '../../use/use-ref';
+import type { QwikElement } from '../dom/virtual-element';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
@@ -66,7 +67,6 @@ export interface SSRContext {
 
 const IS_HEAD = 1 << 0;
 const IS_HTML = 1 << 2;
-const IS_SIBLING_TEXT = 1 << 3;
 
 export const createDocument = () => {
   const doc = { nodeType: 9 };
@@ -584,12 +584,13 @@ export const processData = (
   } else if (isArray(node)) {
     return walkChildren(node, ssrCtx, stream, flags);
   } else if (isSignal(node)) {
-    // TODO
-    const sub = ssrCtx.invocationContext?.$subscriber$;
+    const sub = ssrCtx.invocationContext?.$subscriber$ as QwikElement;
+    const value = node.untrackedValue;
+    const id = getNextIndex(ssrCtx.rctx);
     if (sub) {
-      getProxyManager(node)?.$addSub$([0, sub]);
+      getProxyManager(node)?.$addSub$([1, sub, node, ('#' + id) as any as Node, 'data']);
     }
-    return processData(node.untrackedValue, ssrCtx, stream, flags, beforeClose);
+    stream.write(`<!--t=${id}-->${escapeHtml(String(value))}<!---->`);
   } else if (isPromise(node)) {
     stream.write(FLUSH_COMMENT);
     return node.then((node) => processData(node, ssrCtx, stream, flags, beforeClose));
@@ -618,7 +619,6 @@ function walkChildren(
   }
 
   let currentIndex = 0;
-  let prevPrimitive = false;
   const buffers: string[][] = [];
   return children.reduce((prevPromise, child, index) => {
     const buffer: string[] = [];
@@ -634,13 +634,8 @@ function walkChildren(
           },
         }
       : stream;
-    let localFlag = flags;
-    if (prevPrimitive) {
-      localFlag |= IS_SIBLING_TEXT;
-    }
-    prevPrimitive = isPrimitive(child);
 
-    const rendered = processData(child, ssrContext, localStream, localFlag);
+    const rendered = processData(child, ssrContext, localStream, flags);
     if (isPromise(rendered) || prevPromise) {
       return then(rendered, () => {
         return then(prevPromise, () => {

@@ -27,8 +27,8 @@ export const Child = component$<ChildProps>(({ count }) => {
 
   return (
     <>
-      <div>Stuff: {count}</div>
-      {Array.from({ length: 50000 }).map(() => {
+      <div>{count}</div>
+      {Array.from({ length: 100 }).map(() => {
         return <div aria-hidden="true">Expensive</div>;
       })}
     </>

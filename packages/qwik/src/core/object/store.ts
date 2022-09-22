@@ -2,7 +2,16 @@ import { assertDefined, assertTrue } from '../assert/assert';
 import { isQrl } from '../import/qrl-class';
 import { getContext, QContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
-import { isDocument, isElement, isNode, isQwikElement, isVirtualElement } from '../util/element';
+import {
+  assertElement,
+  assertQwikElement,
+  isComment,
+  isDocument,
+  isElement,
+  isNode,
+  isQwikElement,
+  isVirtualElement,
+} from '../util/element';
 import { logDebug, logWarn } from '../util/log';
 import {
   ELEMENT_ID,
@@ -45,7 +54,13 @@ import {
   Subscriptions,
 } from '../render/container';
 import { getQId } from '../render/execute-component';
-import { processVirtualNodes, QwikElement, VirtualElement } from '../render/dom/virtual-element';
+import {
+  findClose,
+  processVirtualNodes,
+  QwikElement,
+  VirtualElement,
+  VirtualElementImpl,
+} from '../render/dom/virtual-element';
 import { getDomListeners } from '../props/props-on';
 import { fromKebabToCamelCase } from '../util/case';
 import { domToVnode } from '../render/dom/visitor';
@@ -96,6 +111,8 @@ export const resumeContainer = (containerEl: Element) => {
     logWarn('Skipping hydration because parent element is not q:container');
     return;
   }
+  let maxId = 0;
+
   const doc = getDocument(containerEl);
   const isDocElement = containerEl === doc.documentElement;
   const parentJSON = isDocElement ? doc.body : containerEl;
@@ -111,24 +128,51 @@ export const resumeContainer = (containerEl: Element) => {
   const meta = JSON.parse(unescapeText(script.textContent || '{}')) as SnapshotState;
 
   // Collect all elements
-  const elements = new Map<string, QwikElement>();
+  const elements = new Map<string, QwikElement | Node>();
 
   const getObject: GetObject = (id) => {
     return getObjectImpl(id, elements, meta.objs, containerState);
   };
 
-  let maxId = 0;
-  getNodesInScope(containerEl, hasQId).forEach((el) => {
+  const elementWalker = doc.createTreeWalker(containerEl, SHOW_COMMENT | SHOW_ELEMENT, {
+    acceptNode(node: Element | Comment) {
+      if (isContainer(node)) {
+        return FILTER_REJECT;
+      }
+      if (isComment(node)) {
+        const data = node.data;
+        if (data.startsWith('qv ')) {
+          const close = findClose(node);
+          const virtual = new VirtualElementImpl(node, close);
+          const id = directGetAttribute(virtual, ELEMENT_ID);
+          assertDefined(id, `resume: element missed q:id`, el);
+          const ctx = getContext(virtual);
+          ctx.$id$ = id;
+          elements.set(ELEMENT_ID_PREFIX + id, virtual);
+          maxId = Math.max(maxId, strToInt(id));
+        } else if (data.startsWith('t=')) {
+          const id = data.slice(2);
+          elements.set(ELEMENT_ID_PREFIX + data.slice(2), node.nextSibling!);
+          maxId = Math.max(maxId, strToInt(id));
+        }
+        return FILTER_SKIP;
+      }
+      return node.hasAttribute(ELEMENT_ID) ? FILTER_ACCEPT : FILTER_SKIP;
+    },
+  });
+
+  let el: Node | null = null;
+  while ((el = elementWalker.nextNode())) {
+    assertElement(el);
     const id = directGetAttribute(el, ELEMENT_ID);
     assertDefined(id, `resume: element missed q:id`, el);
     const ctx = getContext(el);
     ctx.$id$ = id;
-    if (isElement(el)) {
-      ctx.$vdom$ = domToVnode(el);
-    }
+    ctx.$vdom$ = domToVnode(el);
     elements.set(ELEMENT_ID_PREFIX + id, el);
     maxId = Math.max(maxId, strToInt(id));
-  });
+  }
+
   containerState.$elementIndex$ = ++maxId;
 
   const parser = createParser(getObject, containerState, doc);
@@ -147,6 +191,7 @@ export const resumeContainer = (containerEl: Element) => {
     const ctxMeta = meta.ctx[elementID];
     const el = elements.get(elementID);
     assertDefined(el, `resume: cant find dom node for id`, elementID);
+    assertQwikElement(el);
     const ctx = getContext(el);
     const refMap = ctxMeta.r;
     const seq = ctxMeta.s;
@@ -383,16 +428,16 @@ export const _pauseFromContexts = async (
   };
 
   // Compute subscriptions
-  const subsMap = new Map<any, string[]>();
+  const subsMap = new Map<any, (Subscriptions | number)[]>();
   objs.forEach((obj) => {
     const subs = getManager(obj, containerState)?.$subs$;
     if (!subs) {
       return null;
     }
     const flags = getProxyFlags(obj) ?? 0;
-    const convered: string[] = [];
+    const convered: (Subscriptions | number)[] = [];
     if (flags > 0) {
-      convered.push(`_${flags}`);
+      convered.push(flags);
     }
     for (const sub of subs) {
       const host = sub[1];
@@ -401,7 +446,7 @@ export const _pauseFromContexts = async (
           continue;
         }
       }
-      convered.push(serializeSubscription(sub, getObjId));
+      convered.push(sub);
     }
     if (convered.length > 0) {
       subsMap.set(obj, convered);
@@ -430,7 +475,20 @@ export const _pauseFromContexts = async (
   }
 
   // Serialize object subscriptions
-  const subs = objs.map((obj) => subsMap.get(obj)).filter(isNotNullable);
+  const subs = objs
+    .map((obj) => {
+      const value = subsMap.get(obj);
+      if (value == null) {
+        return undefined;
+      }
+      return value.map((s) => {
+        if (typeof s === 'number') {
+          return `_${s}`;
+        }
+        return serializeSubscription(s, getObjId);
+      });
+    })
+    .filter(isNotNullable);
 
   // Serialize objects
   const convertedObjs = objs.map((obj) => {
@@ -688,7 +746,7 @@ const OBJECT_TRANSFORMS: Record<string, (obj: any, containerState: ContainerStat
 
 const getObjectImpl = (
   id: string,
-  elements: Map<string, QwikElement>,
+  elements: Map<string, QwikElement | Node>,
   objs: any[],
   containerState: ContainerState
 ) => {

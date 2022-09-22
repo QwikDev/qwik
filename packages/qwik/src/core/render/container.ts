@@ -110,7 +110,8 @@ export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) =>
       base += ' ' + sub[2];
     }
   } else {
-    base += ` ${getObjId(sub[2])} ${getObjId(sub[3])} ${sub[4]}`;
+    const nodeID = typeof sub[3] === 'string' ? sub[3] : getObjId(sub[3]);
+    base += ` ${getObjId(sub[2])} ${nodeID} ${sub[4]}`;
   }
   return base;
 };

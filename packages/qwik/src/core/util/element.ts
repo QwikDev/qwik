@@ -23,12 +23,20 @@ export const isText = (value: Node): value is Text => {
   return value.nodeType === 3;
 };
 export const isComment = (value: Node): value is Comment => {
-  return value.nodeType === 9;
+  return value.nodeType === 8;
 };
 
 export function assertQwikElement(el: any): asserts el is QwikElement {
   if (qDev) {
     if (!isQwikElement(el)) {
+      throw new Error('Not a Qwik Element');
+    }
+  }
+}
+
+export function assertElement(el: Node | VirtualElement): asserts el is Element {
+  if (qDev) {
+    if (!isElement(el)) {
       throw new Error('Not a Qwik Element');
     }
   }

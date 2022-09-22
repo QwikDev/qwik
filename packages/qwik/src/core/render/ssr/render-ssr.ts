@@ -31,6 +31,7 @@ import {
 import { serializeQRLs } from '../../import/qrl';
 import type { Ref } from '../../use/use-ref';
 import type { QwikElement } from '../dom/virtual-element';
+import { assertElement } from '../../util/element';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
@@ -239,38 +240,6 @@ export const renderNodeVirtual = (
 
 const CLOSE_VIRTUAL = `<!--/qv-->`;
 
-export const renderElementAttributes = (
-  elCtx: QContext,
-  attributes: Record<string, any>
-): string => {
-  let text = '';
-  for (const prop of Object.keys(attributes)) {
-    if (
-      prop === 'children' ||
-      prop === 'key' ||
-      prop === 'class' ||
-      prop === 'className' ||
-      prop === 'dangerouslySetInnerHTML'
-    ) {
-      continue;
-    }
-    const value = attributes[prop];
-    if (prop === 'ref') {
-      (value as Ref<Element>).current = elCtx.$element$ as Element;
-      continue;
-    }
-    if (isOnProp(prop)) {
-      setEvent(elCtx.li, prop, value);
-      continue;
-    }
-    const attrName = processPropKey(prop);
-    const attrValue = processPropValue(attrName, value);
-    if (attrValue != null) {
-      text += ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
-    }
-  }
-  return text;
-};
 export const renderAttributes = (attributes: Record<string, string>): string => {
   let text = '';
   for (const prop of Object.keys(attributes)) {
@@ -452,10 +421,56 @@ export const renderNode = (
     const key = node.key;
     const props = node.props;
     const elCtx = createContext(1);
+    const elm = elCtx.$element$;
     const isHead = tagName === 'head';
     const hostCtx = ssrCtx.hostCtx;
-    let openingElement = '<' + tagName + renderElementAttributes(elCtx, props);
+    let openingElement = '<' + tagName;
+    let useSignal = false;
+    for (const prop of Object.keys(props)) {
+      if (
+        prop === 'children' ||
+        prop === 'key' ||
+        prop === 'class' ||
+        prop === 'className' ||
+        prop === 'dangerouslySetInnerHTML'
+      ) {
+        continue;
+      }
+      let value = props[prop];
+      if (prop === 'ref') {
+        assertElement(elm);
+        (value as Ref<Element>).current = elm;
+        continue;
+      }
+      if (isOnProp(prop)) {
+        setEvent(elCtx.li, prop, value);
+        continue;
+      }
+      const attrName = processPropKey(prop);
+      if (isSignal(value)) {
+        if (hostCtx) {
+          getProxyManager(value)!.$addSub$([2, hostCtx.$element$, value, elm, attrName]);
+          useSignal = true;
+        }
+        value = value.untrackedValue;
+      }
+      const attrValue = processPropValue(attrName, value);
+      if (attrValue != null) {
+        openingElement +=
+          ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
+      }
+    }
+
+    let classValue = props.class ?? props.className;
+    if (isSignal(classValue)) {
+      if (hostCtx) {
+        getProxyManager(classValue)?.$addSub$([2, hostCtx.$element$, classValue, elm, 'class']);
+        useSignal = true;
+      }
+      classValue = classValue.untrackedValue;
+    }
     let classStr = stringifyClass(props.class ?? props.className);
+
     if (hostCtx) {
       if (qDev) {
         if (tagName === 'html') {
@@ -489,7 +504,7 @@ export const renderNode = (
     if (key != null) {
       openingElement += ' q:key="' + key + '"';
     }
-    if ('ref' in props || listeners.length > 0) {
+    if ('ref' in props || listeners.length > 0 || useSignal) {
       const newID = getNextIndex(ssrCtx.rctx);
       openingElement += ' q:id="' + newID + '"';
       elCtx.$id$ = newID;

@@ -1,4 +1,4 @@
-import { FunctionComponent, useEnvData } from '@builder.io/qwik';
+import type { FunctionComponent } from '@builder.io/qwik';
 import { renderToStream, RenderToStreamOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
@@ -56,7 +56,7 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/signals': () => <Signals />,
   };
 
-  const url = new URL(opts.envData.url);
+  const url = new URL(opts.envData!.url);
   const Test = tests[url.pathname];
 
   // Render segment instead

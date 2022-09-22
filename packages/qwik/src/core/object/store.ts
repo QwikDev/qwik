@@ -136,9 +136,6 @@ export const resumeContainer = (containerEl: Element) => {
 
   const elementWalker = doc.createTreeWalker(containerEl, SHOW_COMMENT | SHOW_ELEMENT, {
     acceptNode(node: Element | Comment) {
-      if (isContainer(node)) {
-        return FILTER_REJECT;
-      }
       if (isComment(node)) {
         const data = node.data;
         if (data.startsWith('qv ')) {
@@ -156,6 +153,9 @@ export const resumeContainer = (containerEl: Element) => {
           maxId = Math.max(maxId, strToInt(id));
         }
         return FILTER_SKIP;
+      }
+      if (isContainer(node)) {
+        return FILTER_REJECT;
       }
       return node.hasAttribute(ELEMENT_ID) ? FILTER_ACCEPT : FILTER_SKIP;
     },
@@ -867,7 +867,9 @@ const collectSubscriptions = (proxy: any, collector: Collector) => {
   for (const key of subs) {
     const host = key[1];
     if (isNode(host) && isVirtualElement(host)) {
-      collectDeferElement(host, collector);
+      if (key[0] === 0) {
+        collectDeferElement(host, collector);
+      }
     } else {
       collectValue(host, collector, true);
     }

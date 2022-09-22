@@ -30,6 +30,8 @@ export interface Signal<T = any> {
   readonly untrackedValue: T;
 }
 
+export type ValueOrSignal<T> = T | Signal<T>;
+
 /**
  * @internal
  */

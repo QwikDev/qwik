@@ -9,58 +9,61 @@ export const $: <T>(expression: T) => QRL<T>;
 
 // @public (undocumented)
 export interface AriaAttributes {
-    'aria-activedescendant'?: string | undefined;
+    // Warning: (ae-forgotten-export) The symbol "VString" needs to be exported by the entry point index.d.ts
+    'aria-activedescendant'?: VString;
+    // Warning: (ae-forgotten-export) The symbol "ValueOrSignal" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Booleanish" needs to be exported by the entry point index.d.ts
-    'aria-atomic'?: Booleanish | undefined;
+    'aria-atomic'?: ValueOrSignal<Booleanish | undefined>;
     'aria-autocomplete'?: 'none' | 'inline' | 'list' | 'both' | undefined;
-    'aria-busy'?: Booleanish | undefined;
+    'aria-busy'?: ValueOrSignal<Booleanish | undefined>;
     'aria-checked'?: boolean | 'false' | 'mixed' | 'true' | undefined;
-    'aria-colcount'?: number | undefined;
-    'aria-colindex'?: number | undefined;
-    'aria-colspan'?: number | undefined;
-    'aria-controls'?: string | undefined;
+    // Warning: (ae-forgotten-export) The symbol "VNumber" needs to be exported by the entry point index.d.ts
+    'aria-colcount'?: VNumber;
+    'aria-colindex'?: VNumber;
+    'aria-colspan'?: VNumber;
+    'aria-controls'?: VString;
     'aria-current'?: boolean | 'false' | 'true' | 'page' | 'step' | 'location' | 'date' | 'time' | undefined;
-    'aria-describedby'?: string | undefined;
-    'aria-details'?: string | undefined;
-    'aria-disabled'?: Booleanish | undefined;
+    'aria-describedby'?: VString;
+    'aria-details'?: VString;
+    'aria-disabled'?: ValueOrSignal<Booleanish | undefined>;
     // @deprecated
-    'aria-dropeffect'?: 'none' | 'copy' | 'execute' | 'link' | 'move' | 'popup' | undefined;
-    'aria-errormessage'?: string | undefined;
-    'aria-expanded'?: Booleanish | undefined;
-    'aria-flowto'?: string | undefined;
+    'aria-dropeffect'?: ValueOrSignal<'none' | 'copy' | 'execute' | 'link' | 'move' | 'popup' | undefined>;
+    'aria-errormessage'?: VString;
+    'aria-expanded'?: ValueOrSignal<Booleanish | undefined>;
+    'aria-flowto'?: VString;
     // @deprecated
-    'aria-grabbed'?: Booleanish | undefined;
-    'aria-haspopup'?: boolean | 'false' | 'true' | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog' | undefined;
-    'aria-hidden'?: Booleanish | undefined;
-    'aria-invalid'?: boolean | 'false' | 'true' | 'grammar' | 'spelling' | undefined;
-    'aria-keyshortcuts'?: string | undefined;
-    'aria-label'?: string | undefined;
-    'aria-labelledby'?: string | undefined;
-    'aria-level'?: number | undefined;
-    'aria-live'?: 'off' | 'assertive' | 'polite' | undefined;
-    'aria-modal'?: Booleanish | undefined;
-    'aria-multiline'?: Booleanish | undefined;
-    'aria-multiselectable'?: Booleanish | undefined;
+    'aria-grabbed'?: ValueOrSignal<Booleanish | undefined>;
+    'aria-haspopup'?: ValueOrSignal<boolean | 'false' | 'true' | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog' | undefined>;
+    'aria-hidden'?: ValueOrSignal<Booleanish | undefined>;
+    'aria-invalid'?: ValueOrSignal<boolean | 'false' | 'true' | 'grammar' | 'spelling' | undefined>;
+    'aria-keyshortcuts'?: VString;
+    'aria-label'?: VString;
+    'aria-labelledby'?: VString;
+    'aria-level'?: VNumber;
+    'aria-live'?: ValueOrSignal<'off' | 'assertive' | 'polite' | undefined>;
+    'aria-modal'?: ValueOrSignal<Booleanish | undefined>;
+    'aria-multiline'?: ValueOrSignal<Booleanish | undefined>;
+    'aria-multiselectable'?: ValueOrSignal<Booleanish | undefined>;
     'aria-orientation'?: 'horizontal' | 'vertical' | undefined;
-    'aria-owns'?: string | undefined;
-    'aria-placeholder'?: string | undefined;
-    'aria-posinset'?: number | undefined;
-    'aria-pressed'?: boolean | 'false' | 'mixed' | 'true' | undefined;
-    'aria-readonly'?: Booleanish | undefined;
+    'aria-owns'?: VString;
+    'aria-placeholder'?: VString;
+    'aria-posinset'?: VNumber;
+    'aria-pressed'?: ValueOrSignal<boolean | 'false' | 'mixed' | 'true' | undefined>;
+    'aria-readonly'?: ValueOrSignal<Booleanish | undefined>;
     'aria-relevant'?: 'additions' | 'additions removals' | 'additions text' | 'all' | 'removals' | 'removals additions' | 'removals text' | 'text' | 'text additions' | 'text removals' | undefined;
-    'aria-required'?: Booleanish | undefined;
-    'aria-roledescription'?: string | undefined;
-    'aria-rowcount'?: number | undefined;
-    'aria-rowindex'?: number | undefined;
-    'aria-rowspan'?: number | undefined;
-    'aria-selected'?: Booleanish | undefined;
-    'aria-setsize'?: number | undefined;
+    'aria-required'?: ValueOrSignal<Booleanish | undefined>;
+    'aria-roledescription'?: VString;
+    'aria-rowcount'?: VNumber;
+    'aria-rowindex'?: VNumber;
+    'aria-rowspan'?: VNumber;
+    'aria-selected'?: ValueOrSignal<Booleanish | undefined>;
+    'aria-setsize'?: VNumber;
     'aria-sort'?: 'none' | 'ascending' | 'descending' | 'other' | undefined;
-    'aria-valuemax'?: number | undefined;
-    'aria-valuemin'?: number | undefined;
-    'aria-valuenow'?: number | undefined;
-    'aria-valuetext'?: string | undefined;
-    ariaHidden?: Booleanish | undefined;
+    'aria-valuemax'?: VNumber;
+    'aria-valuemin'?: VNumber;
+    'aria-valuenow'?: VNumber;
+    'aria-valuetext'?: VString;
+    ariaHidden?: ValueOrSignal<Booleanish | undefined>;
 }
 
 // @public (undocumented)
@@ -170,83 +173,83 @@ export namespace h {
 // @public (undocumented)
 export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
-    about?: string | undefined;
+    about?: VString;
     // (undocumented)
-    accessKey?: string | undefined;
+    accessKey?: VString;
     // (undocumented)
-    autoCapitalize?: string | undefined;
+    autoCapitalize?: VString;
     // (undocumented)
-    autoCorrect?: string | undefined;
+    autoCorrect?: VString;
     // (undocumented)
-    autoSave?: string | undefined;
+    autoSave?: VString;
     // (undocumented)
-    className?: string | undefined;
+    className?: VString;
     // (undocumented)
-    color?: string | undefined;
+    color?: VString;
     // (undocumented)
     contentEditable?: Booleanish | 'inherit' | undefined;
     // (undocumented)
-    contextMenu?: string | undefined;
+    contextMenu?: VString;
     // (undocumented)
-    datatype?: string | undefined;
+    datatype?: VString;
     // (undocumented)
     dir?: 'ltr' | 'rtl' | 'auto' | undefined;
     // (undocumented)
-    draggable?: Booleanish | undefined;
+    draggable?: ValueOrSignal<Booleanish | undefined>;
     // (undocumented)
-    hidden?: boolean | undefined;
+    hidden?: ValueOrSignal<boolean | undefined>;
     // (undocumented)
-    id?: string | undefined;
+    id?: VString;
     // (undocumented)
     inlist?: any;
     inputMode?: 'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search' | undefined;
-    is?: string | undefined;
+    is?: VString;
     // (undocumented)
-    itemID?: string | undefined;
+    itemID?: VString;
     // (undocumented)
-    itemProp?: string | undefined;
+    itemProp?: VString;
     // (undocumented)
-    itemRef?: string | undefined;
+    itemRef?: VString;
     // (undocumented)
-    itemScope?: boolean | undefined;
+    itemScope?: ValueOrSignal<boolean | undefined>;
     // (undocumented)
-    itemType?: string | undefined;
+    itemType?: VString;
     // (undocumented)
-    lang?: string | undefined;
+    lang?: VString;
     // (undocumented)
-    placeholder?: string | undefined;
+    placeholder?: VString;
     // (undocumented)
-    prefix?: string | undefined;
+    prefix?: VString;
     // (undocumented)
-    property?: string | undefined;
+    property?: VString;
     // (undocumented)
-    radioGroup?: string | undefined;
+    radioGroup?: VString;
     // (undocumented)
-    resource?: string | undefined;
+    resource?: VString;
     // (undocumented)
-    results?: number | undefined;
+    results?: VNumber;
     // (undocumented)
-    role?: AriaRole | undefined;
+    role?: ValueOrSignal<AriaRole | undefined>;
     // (undocumented)
-    security?: string | undefined;
+    security?: VString;
     // (undocumented)
-    slot?: string | undefined;
+    slot?: VString;
     // (undocumented)
-    spellCheck?: Booleanish | undefined;
+    spellCheck?: ValueOrSignal<Booleanish | undefined>;
     // (undocumented)
-    style?: Record<string, string | number | undefined> | string | undefined;
+    style?: Record<string, ValueOrSignal<number | string | undefined>> | string | undefined;
     // (undocumented)
-    tabIndex?: number | undefined;
+    tabIndex?: VNumber;
     // (undocumented)
-    title?: string | undefined;
+    title?: VString;
     // (undocumented)
     translate?: 'yes' | 'no' | undefined;
     // (undocumented)
-    typeof?: string | undefined;
+    typeof?: VString;
     // (undocumented)
     unselectable?: 'on' | 'off' | undefined;
     // (undocumented)
-    vocab?: string | undefined;
+    vocab?: VString;
 }
 
 // @internal

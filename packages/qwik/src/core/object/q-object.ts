@@ -1,4 +1,4 @@
-import { assertEqual, assertTrue } from '../assert/assert';
+import { assertEqual, assertNumber, assertTrue } from '../assert/assert';
 import { qError, QError_immutableProps, QError_verifySerializable } from '../error/error';
 import { isQrl } from '../import/qrl-class';
 import { tryGetInvokeContext } from '../use/use-core';
@@ -18,9 +18,9 @@ export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 export const QObjectRecursive = 1 << 0;
 export const QObjectImmutable = 1 << 1;
 
-const QOjectTargetSymbol = Symbol();
-const QOjectFlagsSymbol = Symbol();
-export const QOjectManagerSymbol = Symbol();
+const QOjectTargetSymbol = Symbol('proxy target');
+export const QObjectFlagsSymbol = Symbol('proxy flags');
+export const QObjectManagerSymbol = Symbol('proxy manager');
 
 /**
  * @alpha
@@ -47,7 +47,10 @@ export const getOrCreateProxy = <T extends object>(
   if (proxy) {
     return proxy;
   }
-  return createProxy(target, containerState, flags, undefined);
+  if (flags !== 0) {
+    (target as any)[QObjectFlagsSymbol] = flags;
+  }
+  return createProxy(target, containerState, undefined);
 };
 
 export const createSignal = <T>(
@@ -62,17 +65,17 @@ export const createSignal = <T>(
 
 export class SignalImpl<T> implements Signal<T> {
   untrackedValue: T;
-  [QOjectManagerSymbol]: LocalSubscriptionManager;
+  [QObjectManagerSymbol]: LocalSubscriptionManager;
 
   constructor(v: T, manager: LocalSubscriptionManager) {
     this.untrackedValue = v;
-    this[QOjectManagerSymbol] = manager;
+    this[QObjectManagerSymbol] = manager;
   }
 
   get value() {
     const sub = tryGetInvokeContext()?.$subscriber$;
     if (sub) {
-      this[QOjectManagerSymbol].$addSub$([0, sub]);
+      this[QObjectManagerSymbol].$addSub$([0, sub]);
     }
     return this.untrackedValue;
   }
@@ -87,7 +90,7 @@ export class SignalImpl<T> implements Signal<T> {
         );
       }
     }
-    const manager = this[QOjectManagerSymbol];
+    const manager = this[QObjectManagerSymbol];
     const oldValue = this.untrackedValue;
     if (manager && oldValue !== v) {
       this.untrackedValue = v;
@@ -103,7 +106,6 @@ export const isSignal = (obj: any): obj is SignalImpl<any> => {
 export const createProxy = <T extends object>(
   target: T,
   containerState: ContainerState,
-  flags: number,
   subs?: Subscriptions[]
 ): T => {
   assertEqual(unwrapProxy(target), target, 'Unexpected proxy at this location', target);
@@ -115,10 +117,7 @@ export const createProxy = <T extends object>(
   );
 
   const manager = containerState.$subsManager$.$createManager$(subs);
-  const proxy = new Proxy(
-    target,
-    new ReadWriteProxyHandler(containerState, manager, flags)
-  ) as any as T;
+  const proxy = new Proxy(target, new ReadWriteProxyHandler(containerState, manager)) as any as T;
   containerState.$proxyMap$.set(target, proxy);
   return proxy;
 };
@@ -128,21 +127,21 @@ export type TargetType = Record<string | symbol, any>;
 class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   constructor(
     private $containerState$: ContainerState,
-    private $manager$: LocalSubscriptionManager,
-    private $flags$: number
+    private $manager$: LocalSubscriptionManager
   ) {}
 
   get(target: TargetType, prop: string | symbol): any {
     if (typeof prop === 'symbol') {
       if (prop === QOjectTargetSymbol) return target;
-      if (prop === QOjectFlagsSymbol) return this.$flags$;
-      if (prop === QOjectManagerSymbol) return this.$manager$;
+      if (prop === QObjectManagerSymbol) return this.$manager$;
       return target[prop];
     }
     let subscriber: SubscriberHost | SubscriberEffect | undefined | null;
+    const flags = target[QObjectFlagsSymbol] ?? 0;
+    assertNumber(flags, 'flags must be an number');
     const invokeCtx = tryGetInvokeContext();
-    const recursive = (this.$flags$ & QObjectRecursive) !== 0;
-    const immutable = (this.$flags$ & QObjectImmutable) !== 0;
+    const recursive = (flags & QObjectRecursive) !== 0;
+    const immutable = (flags & QObjectImmutable) !== 0;
     const value = target[prop];
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
@@ -166,11 +165,13 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       target[prop] = newValue;
       return true;
     }
-    const immutable = (this.$flags$ & QObjectImmutable) !== 0;
+    const flags = target[QObjectFlagsSymbol] ?? 0;
+    assertNumber(flags, 'flags must be an number');
+    const immutable = (flags & QObjectImmutable) !== 0;
     if (immutable) {
       throw qError(QError_immutableProps);
     }
-    const recursive = (this.$flags$ & QObjectRecursive) !== 0;
+    const recursive = (flags & QObjectRecursive) !== 0;
     const unwrappedNewValue = recursive ? unwrapProxy(newValue) : newValue;
     if (qDev) {
       verifySerializable(unwrappedNewValue);
@@ -200,7 +201,6 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   has(target: TargetType, property: string | symbol) {
     if (property === QOjectTargetSymbol) return true;
-    if (property === QOjectFlagsSymbol) return true;
 
     return Object.prototype.hasOwnProperty.call(target, property);
   }
@@ -371,12 +371,9 @@ export const getProxyTarget = <T extends Record<string, any>>(obj: T): T | undef
 };
 
 export const getProxyManager = (obj: Record<string, any>): LocalSubscriptionManager | undefined => {
-  return (obj as any)[QOjectManagerSymbol];
+  return (obj as any)[QObjectManagerSymbol];
 };
 
 export const getProxyFlags = <T = Record<string, any>>(obj: T): number | undefined => {
-  if (isObject(obj)) {
-    return (obj as any)[QOjectFlagsSymbol];
-  }
-  return undefined;
+  return (obj as any)[QObjectFlagsSymbol];
 };

@@ -13,7 +13,7 @@ import {
   SubscriberEffect,
 } from '../use/use-watch';
 import { isDocument } from '../util/element';
-import { isSignal, QOjectManagerSymbol, SignalImpl } from './q-object';
+import { isSignal, QObjectManagerSymbol, SignalImpl } from './q-object';
 import type { GetObject, GetObjID } from './store';
 
 /**
@@ -215,7 +215,7 @@ const SignalSerializer: Serializer<SignalImpl<any>> = {
     return new SignalImpl(data, null as any);
   },
   subs: (signal, subs, containerState) => {
-    signal[QOjectManagerSymbol] = containerState.$subsManager$.$createManager$(subs);
+    signal[QObjectManagerSymbol] = containerState.$subsManager$.$createManager$(subs);
   },
   fill: (signal, getObject) => {
     signal.untrackedValue = getObject(signal.untrackedValue);

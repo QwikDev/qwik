@@ -329,7 +329,7 @@ export const createResourceReturn = <T>(
 ): ResourceReturn<T> => {
   const result = _createResourceReturn<T>(opts);
   result.promise = initialPromise as any;
-  const resource = createProxy(result, containerState, 0, undefined);
+  const resource = createProxy(result, containerState, undefined);
   return resource;
 };
 

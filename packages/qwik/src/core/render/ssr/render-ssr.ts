@@ -2,7 +2,7 @@ import { isPromise, then } from '../../util/promises';
 import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
 import { isJSXNode, jsx } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, ValueOrPromise } from '../../util/types';
-import { createProps, getContext, QContext, Q_CTX } from '../../props/props';
+import { getContext, QContext, Q_CTX } from '../../props/props';
 import type { JSXNode } from '../jsx/types/jsx-node';
 import {
   createRenderContext,
@@ -21,7 +21,13 @@ import { assertDefined } from '../../assert/assert';
 import { serializeSStyle } from '../../component/qrl-styles';
 import { qDev, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
-import { getProxyManager, isSignal } from '../../object/q-object';
+import {
+  createProxy,
+  getProxyManager,
+  isSignal,
+  QObjectFlagsSymbol,
+  QObjectImmutable,
+} from '../../object/q-object';
 import { serializeQRLs } from '../../import/qrl';
 import type { Ref } from '../../use/use-ref';
 
@@ -713,8 +719,10 @@ const setComponentProps = (
   if (keys.length === 0) {
     return;
   }
-  const target = {} as any;
-  ctx.$props$ = createProps(target, rctx.$static$.$containerState$);
+  const target = {
+    [QObjectFlagsSymbol]: QObjectImmutable,
+  } as Record<string, any>;
+  ctx.$props$ = createProxy(target, rctx.$static$.$containerState$);
   for (const key of keys) {
     if (key === 'children' || key === OnRenderProp) {
       continue;

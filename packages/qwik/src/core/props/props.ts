@@ -3,6 +3,7 @@ import {
   getProxyManager,
   getProxyTarget,
   QObjectImmutable,
+  QObjectFlagsSymbol,
 } from '../object/q-object';
 import { resumeContainer } from '../object/store';
 import { QContainerAttr } from '../util/markers';
@@ -131,14 +132,12 @@ export const normalizeOnProp = (prop: string) => {
   return scope + ":" + prop;
 };
 
-export const createProps = (target: Record<string, any>, containerState: ContainerState) => {
-  return createProxy(target, containerState, QObjectImmutable);
-};
-
 export const getPropsMutator = (ctx: QContext, containerState: ContainerState) => {
   let props = ctx.$props$;
   if (!props) {
-    ctx.$props$ = props = createProps({}, containerState);
+    ctx.$props$ = props = createProxy({
+      [QObjectFlagsSymbol]: QObjectImmutable
+    }, containerState);
   }
   const manager = getProxyManager(props);
   assertDefined(manager, `props have to be a proxy, but it is not`, props);

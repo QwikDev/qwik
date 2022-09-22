@@ -16,10 +16,12 @@ import {
   createProxy,
   fastShouldSerialize,
   getOrCreateProxy,
+  getProxyFlags,
   getProxyManager,
   getProxyTarget,
   isConnected,
   isSignal,
+  QObjectFlagsSymbol,
 } from './q-object';
 import { destroyWatch, SubscriberEffect, WatchFlagsIsDirty } from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
@@ -381,23 +383,28 @@ export const _pauseFromContexts = async (
   };
 
   // Compute subscriptions
-  const subsMap = new Map<any, Subscriptions[]>();
+  const subsMap = new Map<any, string[]>();
   objs.forEach((obj) => {
-    const subs = getProxyManager(obj)?.$subs$;
+    const subs = getManager(obj, containerState)?.$subs$;
     if (!subs) {
       return null;
     }
-    const filtered = subs.filter((sub) => {
+    const flags = getProxyFlags(obj) ?? 0;
+    const convered: string[] = [];
+    if (flags > 0) {
+      convered.push(`_${flags}`);
+    }
+    for (const sub of subs) {
       const host = sub[1];
       if (sub[0] === 0 && isNode(host) && isVirtualElement(host)) {
         if (!collector.$elements$.includes(host)) {
-          return false;
+          continue;
         }
       }
-      return true;
-    });
-    if (filtered.length > 0) {
-      subsMap.set(obj, filtered);
+      convered.push(serializeSubscription(sub, getObjId));
+    }
+    if (convered.length > 0) {
+      subsMap.set(obj, convered);
     }
   });
 
@@ -423,15 +430,7 @@ export const _pauseFromContexts = async (
   }
 
   // Serialize object subscriptions
-  const subs = objs
-    .map((obj) => {
-      const sub = subsMap.get(obj);
-      if (!sub) {
-        return undefined;
-      }
-      return sub.map((s) => serializeSubscription(s, getObjId));
-    })
-    .filter(isNotNullable);
+  const subs = objs.map((obj) => subsMap.get(obj)).filter(isNotNullable);
 
   // Serialize objects
   const convertedObjs = objs.map((obj) => {
@@ -566,6 +565,20 @@ export const _pauseFromContexts = async (
   };
 };
 
+export const getManager = (obj: any, containerState: ContainerState) => {
+  if (!isObject(obj)) {
+    return undefined;
+  }
+  if (isSignal(obj)) {
+    return getProxyManager(obj);
+  }
+  const proxy = containerState.$proxyMap$.get(obj);
+  if (proxy) {
+    return getProxyManager(proxy);
+  }
+  return undefined;
+};
+
 export const getQwikJSON = (parentElm: Element): HTMLScriptElement | undefined => {
   let child = parentElm.lastElementChild;
   while (child) {
@@ -615,18 +628,29 @@ const reviveValues = (objs: any[], parser: Parser) => {
 
 const reviveSubscriptions = (
   objs: any[],
-  subs: any[],
+  objsSubs: any[],
   getObject: GetObject,
   containerState: ContainerState,
   parser: Parser
 ) => {
-  for (let i = 0; i < subs.length; i++) {
+  for (let i = 0; i < objsSubs.length; i++) {
     const value = objs[i];
-    const sub = subs[i] as string[];
-    if (sub) {
-      const converted = sub.map((s) => parseSubscription(s, getObject));
+    const subs = objsSubs[i] as string[];
+    if (subs) {
+      const converted: Subscriptions[] = [];
+      let flag = 0;
+      for (const sub of subs) {
+        if (sub.startsWith('_')) {
+          flag = parseInt(sub.slice(1), 10);
+        } else {
+          converted.push(parseSubscription(sub, getObject));
+        }
+      }
+      if (flag > 0) {
+        value[QObjectFlagsSymbol] = flag;
+      }
       if (!parser.subs(value, converted)) {
-        createProxy(value, containerState, 0, converted);
+        createProxy(value, containerState, converted);
       }
     }
   }
@@ -640,21 +664,11 @@ const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => 
   if (obj && typeof obj == 'object') {
     if (isArray(obj)) {
       for (let i = 0; i < obj.length; i++) {
-        const value = obj[i];
-        if (typeof value == 'string') {
-          obj[i] = getObject(value);
-        } else {
-          reviveNestedObjects(value, getObject, parser);
-        }
+        obj[i] = getObject(obj[i]);
       }
     } else if (isSerializableObject(obj)) {
       for (const key of Object.keys(obj)) {
-        const value = obj[key];
-        if (typeof value == 'string') {
-          obj[key] = getObject(value);
-        } else {
-          reviveNestedObjects(value, getObject, parser);
-        }
+        obj[key] = getObject(obj[key]);
       }
     }
   }
@@ -792,11 +806,12 @@ const collectSubscriptions = (proxy: any, collector: Collector) => {
     return;
   }
   collector.$seen$.add(subs);
-  for (const key of Array.from(subs.keys())) {
-    if (isNode(key) && isVirtualElement(key)) {
-      collectDeferElement(key, collector);
+  for (const key of subs) {
+    const host = key[1];
+    if (isNode(host) && isVirtualElement(host)) {
+      collectDeferElement(host, collector);
     } else {
-      collectValue(key, collector, true);
+      collectValue(host, collector, true);
     }
   }
 };

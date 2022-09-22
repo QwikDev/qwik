@@ -4,7 +4,7 @@ title: Resources
 
 # useResource$()
 
-This method allows you to generated computed values asynchronously. The asynchronous function passed as it's first argument will be called when the component is mounted and when the tracked values change.
+This method allows you to generate computed values asynchronously. The asynchronous function passed as its first argument will be called when the component is mounted and when the tracked values change.
 
 Just like all the `use-` methods, it must be called within the context of `component$()`, and all the hook rules apply.
 
@@ -55,7 +55,7 @@ The callback passed to `useResource$()` runs right after the `useMount$()` and `
   />
 ```
 
-Notice that `<Resource>` is not necessary to use `useResource$()`, it's just a convenient way to render the resource state.
+Notice that `<Resource>` is not necessary to use `useResource$()`. It is just a convenient way to render the resource state.
 
 ### Example using `useResource$()` with `<Resource>`
 
@@ -128,5 +128,5 @@ export const Cmp = component$(() => {
 ```
 
 > **NOTE**
-> We strongly recommend to use `<Resource/>` whenever it's possible, since this component will more efficiently avoid rerenders and it's also optimized for SSR.
+> We strongly recommend to use `<Resource/>` whenever possible, since this component will more efficiently avoid rerenders and it is also optimized for SSR.
 

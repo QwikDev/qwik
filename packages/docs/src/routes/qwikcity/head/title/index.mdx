@@ -6,16 +6,6 @@ title: Qwik City - Head Title
 
 HTML places the `<head>` tag as the first element within `<html>` (at the very top of the HTML content). The `<head>` section is not something that your route component renders directly, yet you still need to control its content. This can be achieved by exporting a `head` property (or function) from your page component.
 
-Assume this file layout.
-
-```
-src/
-└── routes/
-    └── product/
-        └── [skuId]/
-            └── index.tsx     # https://example.com/product/1234
-```
-
 ## Static Document Head
 
 If all we need to do is set the title of the page, we can do it in the `head` (and optional `meta`, `links` and `styles`) export of the component like so:
@@ -63,7 +53,7 @@ export const head: DocumentHead<EndpointData> = ({ data }) => {
 };
 ```
 
-The second case is a bit more complicated but it showcases how we can set the title of the page with the value that is retrieved from the `onGet` endpoint. (See [endpoint documentation](/qwikcity/routing/endpoints/index.mdx) for retrieving data.) The Qwik City invokes `onGet` to retrieve the data for the route and then passes the data to the `head` function allowing it to create a custom title.
+The second case is a bit more complicated but it showcases how we can set the title of the page with the value that is retrieved from the `onGet` endpoint. (See [data documentation](../../routing/data/index.mdx) for retrieving data.) The Qwik City invokes `onGet` to retrieve the data for the route and then passes the data to the `head` function allowing it to create a custom title.
 
 ## Resolved Document Head
 

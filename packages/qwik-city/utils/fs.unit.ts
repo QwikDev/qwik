@@ -7,6 +7,7 @@ import {
   createFileId,
   getExtension,
   getPathnameFromDirPath,
+  isGroupedLayoutName,
   isMarkdownExt,
   isMenuFileName,
   isModuleExt,
@@ -18,6 +19,21 @@ import {
 } from './fs';
 
 const routesDir = normalizePath(join(tmpdir(), 'src', 'routes'));
+
+test('isGroupedLayoutName', () => {
+  const t = [
+    { ext: '(abc)', expect: true },
+    { ext: '__abc', expect: true }, // deprecated
+    { ext: '(abc)xyz', expect: false },
+    { ext: 'xyz(abc)', expect: false },
+    { ext: '(abc', expect: false },
+    { ext: 'abc)', expect: false },
+    { ext: 'abc', expect: false },
+  ];
+  t.forEach((c) => {
+    equal(isGroupedLayoutName(c.ext, false), c.expect, c.ext);
+  });
+});
 
 test('isPageExt', () => {
   const t = [
@@ -167,7 +183,7 @@ test('getPathnameFromDirPath', () => {
 
   const t = [
     {
-      dirPath: join(routesDir, '__a', 'about', '__b', 'info', '__c'),
+      dirPath: join(routesDir, '(a)', 'about', '(b)', 'info', '(c)'),
       basePathname: '/',
       trailingSlash: true,
       expect: '/about/info/',

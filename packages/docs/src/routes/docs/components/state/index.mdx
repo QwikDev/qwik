@@ -23,7 +23,7 @@ const App = component$(() => {
 
   return (
     <>
-      <button onClick={() => state.count++}>Increment</button>
+      <button onClick$={() => state.count++}>Increment</button>
       Count: {state.count}
     </>
   );
@@ -62,7 +62,7 @@ export const Parent = component$(() => {
 export const Child = component$(({userData}) => {
   return (
     <>
-      <button onClick={() => userData.count++}>Increment</button>)}
+      <button onClick$={() => userData.count++}>Increment</button>)}
       Count: {userData.count}
     </>
   );
@@ -96,7 +96,7 @@ export const Child = component$(() => {
   const userData = useContext(CTX);
   return (
     <>
-      <button onClick={() => userData.count++}>Increment</button>)}
+      <button onClick$={() => userData.count++}>Increment</button>)}
       Count: {userData.count}
     </>
   );
@@ -129,7 +129,7 @@ const App = component$(() => {
 
   return (
     <>
-      <button onClick={() => state.count++}>Increment</button>)}
+      <button onClick$={() => state.count++}>Increment</button>)}
       Count: {state.count}
       Count * 2: {state.doubleCount}
     </>
@@ -152,7 +152,7 @@ const App = component$(() => {
 
   return (
     <>
-      <button onClick={() => state.count++}>Increment</button>)}
+      <button onClick$={() => state.count++}>Increment</button>)}
       Count: {state.count}
       Count * 2: {doubleCount.promise}
     </>
@@ -165,4 +165,3 @@ Both [useWatch](../lifecycle/index.mdx#usewatch) and [useResource](../resource/i
 ## Reactivity
 
 Thanks to the fine grained reactivity of Qwik, only the components that depend on the state will be updated. This is a huge performance gain, as only the components that need to be updated will be updated.
-

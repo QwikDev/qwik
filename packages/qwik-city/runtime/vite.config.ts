@@ -3,11 +3,11 @@ import { qwikVite } from '@builder.io/qwik/optimizer';
 import { qwikCity } from '@builder.io/qwik-city/vite';
 
 export default defineConfig(({ mode }) => {
-  const isProductionMode = mode === 'production';
+  const isDevelopmentMode = mode === 'development';
 
   return {
     build: {
-      sourcemap: !isProductionMode,
+      sourcemap: isDevelopmentMode,
       target: 'es2020',
       outDir: '../lib',
       lib: {

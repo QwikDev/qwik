@@ -7,6 +7,7 @@ export const Vendor = () => {
       <script
         dangerouslySetInnerHTML={partytownSnippet({
           forward: ['dataLayer.push'],
+          debug: true,
         })}
       />
       <script

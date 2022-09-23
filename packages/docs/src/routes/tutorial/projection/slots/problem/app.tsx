@@ -4,8 +4,10 @@ export const App = component$(() => {
   console.log('Render: <App>');
   return (
     <Collapsable>
-      <span q:slot="closed">(collapsed summary)</span>
-      Content that should be displayed when the collapse component is open.
+      <div q:slot="closed">▶ (collapsed summary)</div>
+      <div q:slot="open">
+        ▼<div> Content that should be displayed when the collapse component is open. </div>
+      </div>
     </Collapsable>
   );
 });
@@ -15,19 +17,8 @@ export const Collapsable = component$(() => {
   const store = useStore({ open: true });
   return (
     <div onClick$={() => (store.open = !store.open)}>
-      {store.open ? (
-        <div>
-          ▼
-          <div>
-            <Slot />
-          </div>
-        </div>
-      ) : (
-        <div>
-          ▶︎
-          {/* Project content name "closed" here */}
-        </div>
-      )}
+      {store.open ? <Slot name="open" /> : `▶`}
+      {/* Instead, project content from the parent named "closed" here */}
     </div>
   );
 });

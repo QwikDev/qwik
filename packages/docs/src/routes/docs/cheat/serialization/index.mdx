@@ -41,7 +41,7 @@ export const Greeter = component$(() => {
         console.log(captureSerializable); // OK
 
         // Referring to captureNonSerializable will pass static analysis but
-        // will fail at runtime because Qwik does not know how to serilize it.
+        // will fail at runtime because Qwik does not know how to serialize it.
         console.log(captureNonSerializable); // RUNTIME ERROR
 
         // END onClick serialization boundary

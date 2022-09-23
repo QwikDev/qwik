@@ -31,7 +31,7 @@ export const onGet: RequestHandler<DashboardData> = async ({ request, response }
 The `response.redirect()` function takes a URL and optionally a status code as the second argument.
 
 ```tsx
-throw response.redirect('/login', 301); // Permanent redirect
+throw response.redirect('/login', 301); // Moved Permanently
 ```
 
 [Common redirect status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages):

@@ -2,9 +2,12 @@ import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import { qwikCity } from '@builder.io/qwik-city/vite';
 
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  const isProductionMode = mode === 'production';
+
   return {
     build: {
+      sourcemap: !isProductionMode,
       target: 'es2020',
       outDir: '../lib',
       lib: {

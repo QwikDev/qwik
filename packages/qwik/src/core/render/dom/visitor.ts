@@ -18,7 +18,7 @@ import type { ValueOrPromise } from '../../util/types';
 import { isPromise, promiseAll, then } from '../../util/promises';
 import { assertDefined, assertEqual, assertTrue } from '../../assert/assert';
 import { logWarn } from '../../util/log';
-import { qDev, qSerialize } from '../../util/qdev';
+import { qDev, qSerialize, qTest } from '../../util/qdev';
 import type { OnRenderFn } from '../../component/component.public';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
@@ -924,12 +924,14 @@ const addGlobalListener = (staticCtx: RenderStaticContext, elm: QwikElement, pro
   if (!qSerialize && prop.includes(':')) {
     setAttribute(staticCtx, elm, prop, '');
   }
-  try {
-    if ((window as any).qwikevents) {
-      (window as any).qwikevents.push(getEventName(prop));
+  if (!qTest) {
+    try {
+      if ((window as any).qwikevents) {
+        (window as any).qwikevents.push(getEventName(prop));
+      }
+    } catch (err) {
+      logWarn(err);
     }
-  } catch (err) {
-    logWarn(err);
   }
 };
 

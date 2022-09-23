@@ -1,4 +1,4 @@
-/* Partytown 0.7.0-dev1663948279283 - MIT builder.io */
+/* Partytown 0.7.0-dev1663955819735 - MIT builder.io */
 (window => {
     const isPromise = v => "object" == typeof v && v && v.then;
     const noop = () => {};
@@ -47,6 +47,13 @@
     const svgConstructorTags = {
         Graphics: "g",
         SVG: "svg"
+    };
+    const createElementFromConstructor = (doc, interfaceName, r, tag) => {
+        r = interfaceName.match(/^(HTML|SVG)(.+)Element$/);
+        if (r) {
+            tag = r[2];
+            return "S" == interfaceName[0] ? doc.createElementNS("http://www.w3.org/2000/svg", svgConstructorTags[tag] || tag.slice(0, 2).toLowerCase() + tag.slice(2)) : doc.createElement(htmlConstructorTags[tag] || tag);
+        }
     };
     const InstanceIdKey = Symbol();
     const CreatedKey = Symbol();
@@ -408,16 +415,6 @@
             })(worker, winCtx, msg[2], msg[3]));
         }
     };
-    const readMainInterfaces = cb => {
-        const elms = Object.getOwnPropertyNames(mainWindow).map((interfaceName => ((doc, interfaceName, r, tag) => {
-            r = interfaceName.match(/^(HTML|SVG)(.+)Element$/);
-            if (r) {
-                tag = r[2];
-                return "S" == interfaceName[0] ? doc.createElementNS("http://www.w3.org/2000/svg", svgConstructorTags[tag] || tag.slice(0, 2).toLowerCase() + tag.slice(2)) : doc.createElement(htmlConstructorTags[tag] || tag);
-            }
-        })(docImpl, interfaceName))).filter((elm => elm)).map((elm => [ elm ]));
-        readImplementations(elms, []).then(cb);
-    };
     const cstrs = new Set([ "Object" ]);
     const readImplementations = async (impls, interfaces) => {
         const cstrImpls = impls.filter((implData => implData[0])).map((implData => {
@@ -429,7 +426,7 @@
         }));
         for (let i = 0; i < len(cstrImpls); i++) {
             const [cstrName, CstrPrototype, impl, intefaceType] = cstrImpls[i];
-            i % 80 == 0 && await splitTask();
+            i % 30 == 0 && await splitTask();
             readOwnImplementation(cstrs, interfaces, cstrName, CstrPrototype, impl, intefaceType);
         }
         return interfaces;
@@ -528,19 +525,28 @@
                     };
                     addGlobalConstructorUsingPrototype(initWebWorkerData.$interfaces$, mainWindow, "IntersectionObserverEntry");
                     cb(initWebWorkerData);
-                })((data => worker.postMessage([ 1, data ]))) : 2 === msg[0] ? readMainInterfaces((info => worker.postMessage([ 3, info ]))) : onMessageFromWebWorker(worker, msg);
+                })((data => worker.postMessage([ 1, data ]))) : 2 === msg[0] ? (async cb => {
+                    const winPropNames = Object.getOwnPropertyNames(mainWindow);
+                    const elms = [];
+                    for (let i = 0; i < winPropNames.length; i++) {
+                        i % 50 == 0 && await splitTask();
+                        const elm = createElementFromConstructor(docImpl, winPropNames[i]);
+                        elm && elms.push([ elm ]);
+                    }
+                    readImplementations(elms, []).then(cb);
+                })((info => worker.postMessage([ 3, info ]))) : onMessageFromWebWorker(worker, msg);
             };
         }));
     })(((accessReq, responseCallback) => mainAccessHandler(worker, accessReq).then(responseCallback))).then((onMessageHandler => {
         if (onMessageHandler) {
-            worker = new Worker(libPath + "partytown-ww-sw.js?v=0.7.0-dev1663948279283", {
+            worker = new Worker(libPath + "partytown-ww-sw.js?v=0.7.0-dev1663955819735", {
                 name: "Partytown 🎉"
             });
             worker.onmessage = ev => {
                 const msg = ev.data;
                 12 === msg[0] ? mainAccessHandler(worker, msg[1]) : onMessageHandler(worker, msg);
             };
-            logMain("Created Partytown web worker (0.7.0-dev1663948279283)");
+            logMain("Created Partytown web worker (0.7.0-dev1663955819735)");
             worker.onerror = ev => console.error("Web Worker Error", ev);
             mainWindow.addEventListener("pt1", (ev => registerWindow(worker, getAndSetInstanceId(ev.detail.frameElement), ev.detail)));
         }

@@ -56,7 +56,7 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
 
   const ctx = getContext(hostElement);
   assertDefined(
-    ctx.$renderQrl$,
+    ctx.$componentQrl$,
     `render: notified host element must have a defined $renderQrl$`,
     ctx
   );
@@ -140,7 +140,7 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
   for (const el of renderingQueue) {
     if (!staticCtx.$hostElements$.has(el)) {
       const elCtx = getContext(el);
-      if (elCtx.$renderQrl$) {
+      if (elCtx.$componentQrl$) {
         assertTrue(el.isConnected, 'element must be connected to the dom');
         staticCtx.$roots$.push(elCtx);
         try {

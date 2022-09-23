@@ -180,7 +180,7 @@ export const renderNodeVirtual = (
   const props = node.props;
   const renderQrl = props[OnRenderProp];
   if (renderQrl) {
-    elCtx.$renderQrl$ = renderQrl;
+    elCtx.$componentQrl$ = renderQrl;
     return renderSSRComponent(ssrCtx, stream, elCtx, node, flags, beforeClose);
   }
   let virtualComment = '<!--qv' + renderVirtualAttributes(props);

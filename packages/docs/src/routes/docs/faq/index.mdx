@@ -127,20 +127,17 @@ Qwik is the unique framework that is both MPA and SPA at the same time.
 Of course! [Qwik City](../../qwikcity/overview/index.mdx) includes the `<Link>` component which triggers a SPA navigation.
 With Qwik, developers don't need to choose between SPA and MPA, every site is both at the same time.
 
-MPA vs SPA is not longer an architectural decision taken at beginning of the project, but a decision made for every link.
+MPA vs SPA is no longer an architectural decision taken at beginning of the project, but a decision made for every link.
 
-### Can Qwik do SSG?
+### Can Qwik do Static Site Generation (SSG)?
 
 Yes! It's part of all Qwik City starters, learn how to do [Static Site Generation here](../../qwikcity/static-site-generation/overview/index.mdx).
 
-### but... with other frameworks I can also do MPA and SPA
+### But... with other frameworks I can also do MPA and SPA
 
-No quite, other frameworks suggest removing all the `<Scripts>` at the root to generate an MPA, effectively removing all the interactivity along with the SPA navigation.
+Not quite, other frameworks suggest removing all the `<Scripts>` at the root to generate an MPA, effectively removing all the interactivity along with the SPA navigation.
 
-And if `<Scripts>` are not removed, then full page reloads become very expensive, because every page reloads means that the framework need to hydrate the entire page.
-
-Qwik does not have any of this page.
-
+And if scripts are _not_ removed, then each full-page reload become very expensive, because every page reload means that the framework needs to hydrate the entire page. Qwik, however, does not have a [hydration cost](https://www.builder.io/blog/hydration-is-pure-overhead) for each page load.
 
 ### Will migrate to Qwik be so much work?
 

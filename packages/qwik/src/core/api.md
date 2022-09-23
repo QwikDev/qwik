@@ -81,7 +81,7 @@ export interface ComponentBaseProps {
 }
 
 // @public
-export const componentQrl: <PROPS extends {}>(onRenderQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
+export const componentQrl: <PROPS extends {}>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
 
 // @public
 export interface Context<STATE extends object> {

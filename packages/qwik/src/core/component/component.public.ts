@@ -132,16 +132,16 @@ export type EventHandler<T> = QRL<(value: T) => any>;
  */
 // </docs>
 export const componentQrl = <PROPS extends {}>(
-  onRenderQrl: QRL<OnRenderFn<PROPS>>
+  componentQrl: QRL<OnRenderFn<PROPS>>
 ): Component<PROPS> => {
   // Return a QComponent Factory function.
   function QwikComponent(props: PublicProps<PROPS>, key: string | null): JSXNode {
-    assertQrl(onRenderQrl);
-    const hash = qTest ? 'sX' : onRenderQrl.$hash$;
+    assertQrl(componentQrl);
+    const hash = qTest ? 'sX' : componentQrl.$hash$;
     const finalKey = hash + ':' + (key ? key : '');
-    return jsx(Virtual, { [OnRenderProp]: onRenderQrl, ...props }, finalKey) as any;
+    return jsx(Virtual, { [OnRenderProp]: componentQrl, ...props }, finalKey) as any;
   }
-  (QwikComponent as any)[SERIALIZABLE_STATE] = [onRenderQrl];
+  (QwikComponent as any)[SERIALIZABLE_STATE] = [componentQrl];
   return QwikComponent;
 };
 

@@ -355,7 +355,7 @@ This means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Q
 
 For example, these function calls are equivalent:
 
-- `component$(() => {...})` is same as `onRender($(() => {...}))`
+- `component$(() => {...})` is same as `component($(() => {...}))`
 
 <docs code="./examples.tsx#implicit$FirstArg"/>
 

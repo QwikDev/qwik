@@ -470,7 +470,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         ],
         entryStrategy: opts.entryStrategy,
         minify: 'simplify',
-        sourceMaps: false,
+        sourceMaps: opts.buildMode === 'development',
         transpile: true,
         explicitExtensions: true,
         srcDir,

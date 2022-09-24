@@ -4,7 +4,7 @@ title: Containers
 
 # Containers
 
-Containers are a way to break up an application into smaller parts. We call these parts containers. Containers bring several benefits. Each container on the page can independently be:
+Containers are a way to break up an application into smaller parts. We call these parts containers. Containers brings several benefits. Each container on the page can independently be:
 
 - **resumed**: Each container can be resumed independently from all other components on the page. Independent resumability further reduces the amount of state which resume deserializes.
 - **updated**: Each container can be updated/replaced at any point using `innerHTML`. This allows a portion of the page to update without forcing a full re-fetch of a complete HTML document without downloading or executing JavaScript.
@@ -28,7 +28,7 @@ Components have restrictions:
 
 ## What do containers solve?
 
-Containers allow multiple independent Qwik applications to run on the page and behave as a single application to the user. There are two most common uses cases:
+Containers allow multiple independent Qwik applications to run on the page and behave as a single application to the user. There are two most common use cases:
 
 1. Routing
 2. Micro-frontend architecture
@@ -43,8 +43,8 @@ A typical site is composed of two logical parts:
 We can model the two parts as two navigation and outlet containers. When the user first navigates to a route, the server responds with HTML, that contains containers for both the navigation and the outlet. Once the user navigates to the second route, there are three ways to solve the navigation:
 
 1. The simplistic approach is to make a full round trip and download an entirely new page. The main downside is that the application loses all of its states on the client.
-1. The classical approach is to treat any further navigation in JavaScript. We replace the current outlet component with the new outlet component and let the new component render. The disadvantage is that we need to download and execute the JavaScript.
-1. The Qwik approach treats the navigation and the outlet as two different containers. The first navigation downloads HTML representing the full page (with both containers). The subsequent navigation fetches the HTML only for the outlet container. This approach is the best of both worlds. The navigation is fast (no JavaScript download or execution), and the application keeps its state in the parent container.
+2. The classical approach is to treat any further navigation in JavaScript. We replace the current outlet component with the new outlet component and let the new component render. The disadvantage is that we need to download and execute the JavaScript.
+3. The Qwik approach treats the navigation and the outlet as two different containers. The first navigation downloads HTML representing the full page (with both containers). The subsequent navigation fetches the HTML only for the outlet container. This approach is the best of both worlds. The navigation is fast (no JavaScript download or execution), and the application keeps its state in the parent container.
 
 ### Micro-frontend
 

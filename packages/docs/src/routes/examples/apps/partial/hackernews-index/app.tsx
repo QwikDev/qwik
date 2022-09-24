@@ -40,7 +40,7 @@ export const Nav = component$(() => {
           </a>
           <a
             class="github"
-            href="http://github.com/builderio/qwikdev"
+            href="http://github.com/builderio/qwik"
             target="_blank"
             rel="noreferrer"
           >

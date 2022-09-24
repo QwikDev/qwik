@@ -226,7 +226,7 @@ export const DebouncedInput = component$(() => {
     value: '',
     debouncedValue: '',
   });
-  useWatch$((track) => {
+  useWatch$(({ track }) => {
     track(state, 'value');
     const debounced = setTimeout(() => {
       state.debouncedValue = state.value;

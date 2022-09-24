@@ -40,16 +40,25 @@ export const addQRLListener = (
   return false;
 };
 
-export const setEvent = (listenerMap: Record<string, QRLInternal[]>, prop: string, input: any) => {
+export const setEvent = (
+  listenerMap: Record<string, QRLInternal[]>,
+  prop: string,
+  input: any,
+  containerEl: Element | undefined
+) => {
   assertTrue(prop.endsWith('$'), 'render: event property does not end with $', prop);
-  const qrls = isArray(input) ? input.map(ensureQrl) : [ensureQrl(input)];
+  const qrls = isArray(input)
+    ? input.map((i) => ensureQrl(i, containerEl))
+    : [ensureQrl(input, containerEl)];
   prop = normalizeOnProp(prop.slice(0, -1));
   addQRLListener(listenerMap, prop, qrls);
   return prop;
 };
 
-const ensureQrl = (value: any) => {
-  return isQrl(value) ? value : ($(value) as QRLInternal);
+const ensureQrl = (value: any, containerEl: Element | undefined) => {
+  const qrl = isQrl(value) ? value : ($(value) as QRLInternal);
+  qrl.$setContainer$(containerEl);
+  return qrl;
 };
 
 export const getDomListeners = (

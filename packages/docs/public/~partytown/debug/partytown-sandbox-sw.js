@@ -1,4 +1,4 @@
-/* Partytown 0.7.0-dev1663955819735 - MIT builder.io */
+/* Partytown 0.7.0-dev1663979287570 - MIT builder.io */
 (window => {
     const isPromise = v => "object" == typeof v && v && v.then;
     const noop = () => {};
@@ -417,17 +417,19 @@
     };
     const cstrs = new Set([ "Object" ]);
     const readImplementations = async (impls, interfaces) => {
-        const cstrImpls = impls.filter((implData => implData[0])).map((implData => {
+        impls = impls.filter((implData => implData[0]));
+        let tm = Date.now();
+        for (const implData of impls) {
+            let now = Date.now();
+            if (now - tm > 30) {
+                await splitTask();
+                tm = now;
+            }
             const impl = implData[0];
             const interfaceType = implData[1];
             const cstrName = getConstructorName(impl);
             const CstrPrototype = mainWindow[cstrName].prototype;
-            return [ cstrName, CstrPrototype, impl, interfaceType ];
-        }));
-        for (let i = 0; i < len(cstrImpls); i++) {
-            const [cstrName, CstrPrototype, impl, intefaceType] = cstrImpls[i];
-            i % 30 == 0 && await splitTask();
-            readOwnImplementation(cstrs, interfaces, cstrName, CstrPrototype, impl, intefaceType);
+            readOwnImplementation(cstrs, interfaces, cstrName, CstrPrototype, impl, interfaceType);
         }
         return interfaces;
     };
@@ -539,14 +541,14 @@
         }));
     })(((accessReq, responseCallback) => mainAccessHandler(worker, accessReq).then(responseCallback))).then((onMessageHandler => {
         if (onMessageHandler) {
-            worker = new Worker(libPath + "partytown-ww-sw.js?v=0.7.0-dev1663955819735", {
+            worker = new Worker(libPath + "partytown-ww-sw.js?v=0.7.0-dev1663979287570", {
                 name: "Partytown 🎉"
             });
             worker.onmessage = ev => {
                 const msg = ev.data;
                 12 === msg[0] ? mainAccessHandler(worker, msg[1]) : onMessageHandler(worker, msg);
             };
-            logMain("Created Partytown web worker (0.7.0-dev1663955819735)");
+            logMain("Created Partytown web worker (0.7.0-dev1663979287570)");
             worker.onerror = ev => console.error("Web Worker Error", ev);
             mainWindow.addEventListener("pt1", (ev => registerWindow(worker, getAndSetInstanceId(ev.detail.frameElement), ev.detail)));
         }

@@ -31,8 +31,10 @@ test('no-use-after-await', () => {
       export const HelloWorld = component$(async () => {
           useMethod();
           await something();
+          let a;
+          a = 2;
           return $(() => {
-            return <div></div>
+            return <div>{a}</div>
           });
         });
         const A = () => { console.log('A') };
@@ -365,6 +367,23 @@ test('valid-lexical-scope', () => {
         });`,
         errors: [
           'JSX attributes that end with $ can only take an inlined arrow function of a QRL identifier. Make sure the value is created using $()',
+        ],
+      },
+      {
+        code: `
+        import { component$ } from 'stuff';
+        export const HelloWorld = component$(() => {
+          let click: string = '';
+          return (
+            <button onClick$={() => {
+              click = '';
+
+            }}>
+            </button>
+          );
+        });`,
+        errors: [
+          'The value of the identifier ("click") can not be changed once it is captured the scope (onClick$). Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
         ],
       },
     ],

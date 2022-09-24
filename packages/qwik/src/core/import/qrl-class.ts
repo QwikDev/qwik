@@ -36,7 +36,7 @@ export interface QRLInternalMethods<TYPE> {
     ? (...args: ARGS) => ValueOrPromise<Return>
     : any;
 
-  $setContainer$(containerEl: Element): void;
+  $setContainer$(containerEl: Element | undefined): void;
   $resolveLazy$(containerEl?: Element): ValueOrPromise<TYPE>;
 }
 
@@ -57,7 +57,7 @@ export const createQRL = <TYPE>(
 
   let _containerEl: Element | undefined;
 
-  const setContainer = (el: Element) => {
+  const setContainer = (el: Element | undefined) => {
     if (!_containerEl) {
       _containerEl = el;
     }

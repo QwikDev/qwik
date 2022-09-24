@@ -252,7 +252,7 @@ export const renderElementAttributes = (
       continue;
     }
     if (isOnProp(prop)) {
-      setEvent(elCtx.li, prop, value);
+      setEvent(elCtx.li, prop, value, undefined);
       continue;
     }
     const attrName = processPropKey(prop);

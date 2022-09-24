@@ -883,7 +883,7 @@ export const updateProperties = (
     }
 
     if (isOnProp(key)) {
-      setEvent(listenersMap, key, newValue);
+      setEvent(listenersMap, key, newValue, staticCtx.$containerState$.$containerEl$);
       continue;
     }
 
@@ -982,7 +982,11 @@ export const setProperties = (
     }
 
     if (isOnProp(key)) {
-      addGlobalListener(rctx, elm, setEvent(listenerMap, key, newValue));
+      addGlobalListener(
+        rctx,
+        elm,
+        setEvent(listenerMap, key, newValue, rctx.$containerState$.$containerEl$)
+      );
       continue;
     }
 

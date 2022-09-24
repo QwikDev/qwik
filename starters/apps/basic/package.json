@@ -1,6 +1,6 @@
 {
   "name": "qwik-basic-starter",
-  "description": "Recommended for your first Qwik app",
+  "description": "Recommended for your first Qwik app (comes with Qwik City)",
   "type": "module",
   "__qwik__": {
     "priority": 1,

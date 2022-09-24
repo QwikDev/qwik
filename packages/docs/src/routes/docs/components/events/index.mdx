@@ -25,7 +25,7 @@ In the above example, the `click` listener is trivial in implementation. But in 
 Because of the async nature of Qwik, an event's handler execution might be delayed because the implementation has not been downloaded yet. This introduces a problem when the event's handler needs to prevent the default behavior of the event. Traditional `event.preventDefault()` will not work, so instead use Qwik's `preventdefault:{eventName}` attribute:
 
 ```tsx
-const Counter = component$(() => {
+const PreventDefaultExample = component$(() => {
   return (
     <a
       href="/about"
@@ -132,7 +132,12 @@ const CmpButton = component$((props: CmpButtonProps) => {
 
 Notice that we can pass the `props.onClick$` method directly to the `onDblclick$` attribute as seen on `<button>` element. (see attribute `onDblclick$={props.onClick$}`) This is because both the inputting prop `onClick$` as well as JSX prop `onDblclick` are of type `PropFunction<?>` (and both have `$` suffix).
 
-However, it is not possible to pass `props.onClick$` to `onClick$` because the types don't match. (This would result in the type error: `onClick$={props.onClick$}`) Instead, the `$` is reserved for inlined closures. In our example, we would like to `console.log("clicked")` after we process the `props.onClick` callback. We can do so with the `props.onClick$()` method. This 1) lazy-loads the code, 2) restores the closure state, and 3) invokes the closure. The operation is asynchronous and therefore returns a promise, which we can resolve using the `await` statement.
+However, it is not possible to pass `props.onClick$` to `onClick$` because the types don't match. (This would result in the type error: `onClick$={props.onClick$}`) Instead, the `$` is reserved for inlined closures. In our example, we would like to `console.log("clicked")` after we process the `props.onClick` callback. We can do so with the `props.onClick$()` method. This method will:
+  1. Lazy load the code
+  2. Restore the closure state
+  3. Invoke the closure
+ 
+ The operation is asynchronous and therefore returns a promise, which we can resolve using the `await` statement.
 
 ## State recovery
 

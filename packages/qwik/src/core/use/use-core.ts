@@ -96,12 +96,14 @@ export const invoke = <ARGS extends any[] = any[], RET = any>(
   context: InvokeContext | undefined,
   fn: (...args: ARGS) => RET,
   ...args: ARGS
-): RET => {
+): RET | Promise<never> => {
   const previousContext = _context;
   let returnValue: RET;
   try {
     _context = context;
     returnValue = fn.apply(null, args);
+  } catch (e) {
+    return Promise.reject(e);
   } finally {
     _context = previousContext;
   }

@@ -101,7 +101,7 @@ export const onScroll_1 = () => alert('scroll');
 Notice:
 
 1. All that the developer had to do was to wrap the function in the `$()` to signal to the Optimizer that the function should be moved to a new file and therefore lazy-loaded.
-2. The `onScroll` had to be implemented slightly differently as it needs to take into account the fact that the `QRL` of the function needs to be loaded before it can be used. In practice using `qImport` is rare in Qwik application as the Qwik framework provide higher-level APIs that rarely expect the developer to work with `qImport` directly.
+2. The `onScroll` had to be implemented slightly differently as it needs to take into account the fact that the `QRL` of the function needs to be loaded before it can be used. In practice using `qImport` is rare in Qwik application as the Qwik framework provides higher-level APIs that rarely expect the developer to work with `qImport` directly.
 
 However, wrapping code in `$()` is a bit inconvenient. For this reason, Optimizer implicitly wraps the first argument of any function call, which ends with `$`. (Additionally, one can use `implicit$FirstArg()` to automatically perform the wrapping and type matching of the function taking the `QRL`.)
 

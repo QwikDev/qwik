@@ -51,23 +51,49 @@ class ErroredHost extends HTMLElement {
     });
 
     this._root.innerHTML = \`
-      <div>👇 Rendering error happened here</div>
 
+      <template data-el="show-errored-host">
+      <div class="error">
+        <template data-el="div-errored-host-2">
+          <!-- String(props.error) -->
+        </template>
+      </div>
+      </template>
+
+      <div class="arrow">👇 Uncaught error happened here 👇
+        <span class="dev-tools">DevTools: Cmd+Alt+I</span>
+      </div>
       <div class="div">
         <slot></slot>
       </div>
 
-      <template data-el="show-errored-host">
-        <div>
-          <template data-el="div-errored-host-2">
-            <!-- String(props.error) -->
-          </template>
-        </div>
-      </template>
-
       <style>
+        .error {
+          border-radius: 5px 5px 0px 0;
+          background: black;
+          color: white;
+          font-family: monospace;
+          font-size: 12px;
+          margin: 0;
+          padding: 10px;
+        }
+        .arrow {
+          background: #f47e81;
+          color: black;
+          font-size: 14px;
+          padding: 10px;
+          text-align: center;
+          font-family: sans-serif;
+        }
+        .dev-tools {
+          background: red;
+          padding: 2px 5px;
+          border-radius: 3px;
+          font-weight: 800;
+        }
         .div {
           outline: 5px solid red;
+          border-radius: 10px;
         }
       </style>\`;
     this.pendingUpdate = true;

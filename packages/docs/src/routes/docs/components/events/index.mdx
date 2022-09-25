@@ -20,6 +20,19 @@ Notice that `onClick$` ends with `$`. This is a hint to both the Qwik Optimizer 
 
 In the above example, the `click` listener is trivial in implementation. But in real applications, the listener may refer to complex code. By creating a lazy-loaded boundary, Qwik can tree-shake all of the code behind the click listener and delay its loading until the user clicks the button.
 
+You can also pass QRLs as values for event listeners. For instance, the above example could also be written in the following way:
+
+```tsx
+import { component$, useStore, $ } from "@builder.io/qwik";
+
+const Counter = component$(() => {
+  const store = useStore({ count: 0 });
+  const incrementCount = $(() => store.count++)
+
+  return <button onClick$={incrementCount}>{store.count}</button>;
+});
+```
+
 ## Prevent default
 
 Because of the async nature of Qwik, an event's handler execution might be delayed because the implementation has not been downloaded yet. This introduces a problem when the event's handler needs to prevent the default behavior of the event. Traditional `event.preventDefault()` will not work, so instead use Qwik's `preventdefault:{eventName}` attribute:

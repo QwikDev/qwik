@@ -5,7 +5,6 @@ import styles from './code-block.css?inline';
 interface CodeBlockProps {
   path?: string;
   language?: 'markup' | 'css' | 'javascript' | 'json';
-  theme?: 'light' | 'dark';
   code: string;
 }
 
@@ -25,9 +24,11 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
         : undefined;
   }
 
+  const theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
   if (language && languages[language]) {
     const highlighted = highlight(props.code, languages[language], language);
-    const className = `language-${language}${props.theme ? ' theme-' + props.theme : ''}`;
+    const className = `language-${language} theme-${theme}`;
     return (
       <pre class={className}>
         <code class={className} dangerouslySetInnerHTML={highlighted} />

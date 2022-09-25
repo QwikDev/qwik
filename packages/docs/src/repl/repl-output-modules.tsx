@@ -32,7 +32,7 @@ export const ReplOutputModules = ({ outputs, headerText }: ReplOutputModulesProp
               {o.size ? <span class="file-size">({o.size})</span> : null}
             </div>
             <div className="file-text">
-              <CodeBlock path={o.path} code={o.code} theme="light" />
+              <CodeBlock path={o.path} code={o.code} />
             </div>
           </div>
         ))}

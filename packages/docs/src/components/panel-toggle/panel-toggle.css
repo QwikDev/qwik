@@ -11,8 +11,8 @@
 
 .panel-toggle button {
   background-color: white;
-  color: var(--qwik-dark-blue);
-  border: 1px solid var(--qwik-dark-blue);
+  color: var(--interactive-text-color);
+  border: 1px solid var(--interactive-text-color);
   border-radius: 3px;
   min-width: 60px;
   overflow: hidden;
@@ -24,7 +24,7 @@
 
 .panel-toggle button.active,
 .panel-toggle button:hover {
-  background-color: var(--qwik-dark-blue);
+  background-color: var(--interactive-text-color);
   color: white;
 }
 

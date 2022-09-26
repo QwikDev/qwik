@@ -5,7 +5,7 @@
 #### ⚡️ Qwik
 
 ```tsx
-export const Component = component$(() => {
+export const HelloWorld = component$(() => {
   return (
     <>
       <div>Hello world</div>
@@ -17,7 +17,7 @@ export const Component = component$(() => {
 #### ⚛️ React
 
 ```tsx
-export function Component() {
+export function HelloWorld() {
   return <div>Hello world</div>;
 }
 ```
@@ -27,7 +27,7 @@ export function Component() {
 #### ⚡️ Qwik
 
 ```tsx
-export const Component = component$(() => {
+export const Button = component$(() => {
   return (
     <>
       <button onClick$={() => console.log('click')}>Click me</button>
@@ -39,7 +39,7 @@ export const Component = component$(() => {
 #### ⚛️ React
 
 ```tsx
-export function Component() {
+export function Button() {
   return <button onClick={() => console.log('click')}>Click me</button>;
 }
 ```
@@ -49,7 +49,7 @@ export function Component() {
 #### ⚡️ Qwik
 
 ```tsx
-export const Component = component$(() => {
+export const LocalStateExample = component$(() => {
   const state = useStore({
     value: 0,
   });
@@ -64,7 +64,7 @@ export const Component = component$(() => {
 #### ⚛️ React
 
 ```tsx
-export function Component() {
+export function UseStateExample() {
   const [value, setValue] = useState(0);
   return <div>Value is: {value}</div>;
 }

@@ -1,45 +1,35 @@
 {
 	"Qwik component": {
 		"scope": "typescriptreact",
-		"prefix": "component$",
-		"description": "Qwik counter component",
+		"prefix": "q:component w/props",
+		"description": "Qwik component w/ props",
 		"body": [
-			"export interface ${1:MyCmp}Props {",
-			"  step: number;",
+			"export interface ${1:${TM_FILENAME_BASE/(.*)/${1:/capitalize}/}}Props {",
+			"  $2",
 			"}",
 			"",
-			"export const ${1:MyCmp} = component$((props: ${1:MyCmp}Props) => {",
+			"export const $1 = component$((props: $1Props) => {",
 			"  const state = useStore({",
-			"    count: 0",
+			"    $3",
 			"  });",
-			"  $0",
-			"  return (",
-			"    <div>",
-			"      <button onClick$={() => state.count += props.step}>",
-			"        {state.count}",
-			"      </button>",
-			"    </div>",
-			"  );",
+			"  ",
+			"  return <${4:button} on${5:Click}$={(${6:e}) => {$7}}>$8</${4}>",
 			"});"
 		]
 	},
-	"Qwik component (basic)": {
+	"Qwik component (simple)": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "component$basic",
-		"description": "Basic Qwik component",
+		"prefix": "q:component simple",
+		"description": "Simple Qwik component",
 		"body": [
-			"export const ${1:MyCmp} = component$(() => {",
-			"  return (",
-			"    <div>",
-			"      ${1:MyCmp}",
-			"    </div>",
-			"  );",
+			"export const ${1:${TM_FILENAME_BASE/(.*)/${1:/capitalize}/}} = component$(() => {",
+			"  return <${2:button}>$4</$2>",
 			"});"
 		]
 	},
 	"Qwik state": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "useStore$",
+		"prefix": "q:useStore$",
 		"description": "useStore() declaration",
 		"body": [
 			"const ${1:state} = useStore({",
@@ -50,7 +40,7 @@
 	},
 	"$ hook": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "$",
+		"prefix": "q:$",
 		"description": "$() function hook",
 		"body": [
 			"$(() => {",
@@ -61,10 +51,10 @@
 	},
 	"useClientEffect": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "useClientEffect",
+		"prefix": "q:useClientEffect",
 		"description": "useClientEffect$() function hook",
 		"body": [
-			"useClientEffect$(({track}) => {",
+			"useClientEffect$(({ track }) => {",
 			"  $0",
 			"});",
 			""
@@ -72,11 +62,22 @@
 	},
 	"useWatch": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "useWatch",
+		"prefix": "q:useWatch",
 		"description": "useWatch$() function hook",
 		"body": [
-			"useWatch$(({track}) => {",
+			"useWatch$(({ track }) => {",
 			"  track($1);",
+			"  $0",
+			"});",
+			""
+		]
+	},
+	"useResource": {
+		"scope": "javascriptreact,typescriptreact",
+		"prefix": "q:useResource$",
+		"description": "useResource$() declaration",
+		"body": [
+			"const $1 = useResource$(({ track, previous, cleanup }) => {",
 			"  $0",
 			"});",
 			""
@@ -84,7 +85,7 @@
 	},
 	"useServerMount": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "useServerMount",
+		"prefix": "q:useServerMount",
 		"description": "useServerMount$() function hook",
 		"body": [
 			"useServerMount$(() => {",

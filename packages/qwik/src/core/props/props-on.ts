@@ -1,11 +1,12 @@
 import { parseQRL } from '../import/qrl';
-import { isQrl, QRLInternal } from '../import/qrl-class';
+import { assertQrl, isQrl, QRLInternal } from '../import/qrl-class';
 import { inflateQrl, normalizeOnProp, QContext } from './props';
 import { $ } from '../import/qrl.public';
 import { QScopedStyle } from '../util/markers';
 import { directGetAttribute } from '../render/fast-calls';
 import { isArray } from '../util/types';
 import { assertTrue } from '../assert/assert';
+import { qRuntimeQrl, qSerialize } from '../util/qdev';
 
 const ON_PROP_REGEX = /^(on|window:|document:)/;
 
@@ -23,6 +24,7 @@ export const addQRLListener = (
     listenersMap[prop] = existingListeners = [];
   }
   for (const qrl of input) {
+    assertQrl(qrl);
     const hash = qrl.$hash$;
     let replaced = false;
     for (let i = 0; i < existingListeners.length; i++) {
@@ -47,15 +49,18 @@ export const setEvent = (
   containerEl: Element | undefined
 ) => {
   assertTrue(prop.endsWith('$'), 'render: event property does not end with $', prop);
-  const qrls = isArray(input)
-    ? input.map((i) => ensureQrl(i, containerEl))
-    : [ensureQrl(input, containerEl)];
+  const qrls = isArray(input) ? input : [ensureQrl(input, containerEl)];
   prop = normalizeOnProp(prop.slice(0, -1));
   addQRLListener(listenerMap, prop, qrls);
   return prop;
 };
 
 const ensureQrl = (value: any, containerEl: Element | undefined) => {
+  if (qSerialize && !qRuntimeQrl) {
+    assertQrl(value);
+    value.$setContainer$(containerEl);
+    return value;
+  }
   const qrl = isQrl(value) ? value : ($(value) as QRLInternal);
   qrl.$setContainer$(containerEl);
   return qrl;

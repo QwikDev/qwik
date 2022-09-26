@@ -40,6 +40,7 @@ use swc_atoms::JsWord;
 use crate::code_move::generate_entries;
 use crate::entry_strategy::parse_entry_strategy;
 pub use crate::entry_strategy::EntryStrategy;
+pub use crate::parse::EmitMode;
 use crate::parse::{transform_code, TransformCodeOptions};
 pub use crate::parse::{ErrorBuffer, HookAnalysis, MinifyMode, TransformModule, TransformOutput};
 
@@ -56,7 +57,7 @@ pub struct TransformFsOptions {
     pub source_maps: bool,
     pub transpile: bool,
     pub explicit_extensions: bool,
-    pub dev: bool,
+    pub mode: EmitMode,
     pub scope: Option<String>,
 
     pub strip_exports: Option<Vec<JsWord>>,
@@ -80,7 +81,7 @@ pub struct TransformModulesOptions {
     pub entry_strategy: EntryStrategy,
     pub manual_chunks: Option<HashMap<String, JsWord>>,
     pub explicit_extensions: bool,
-    pub dev: bool,
+    pub mode: EmitMode,
     pub scope: Option<String>,
 
     pub strip_exports: Option<Vec<JsWord>>,
@@ -115,7 +116,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
                 transpile: config.transpile,
                 scope: config.scope.as_ref(),
                 entry_policy,
-                dev: config.dev,
+                mode: config.mode,
                 is_inline,
                 strip_exports: config.strip_exports.as_deref(),
             })
@@ -146,7 +147,7 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
             transpile: config.transpile,
             explicit_extensions: config.explicit_extensions,
             entry_policy,
-            dev: config.dev,
+            mode: config.mode,
             scope: config.scope.as_ref(),
             is_inline,
 

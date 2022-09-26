@@ -1,4 +1,4 @@
-import { parseQRL, stringifyQRL } from './qrl';
+import { parseQRL, serializeQRL } from './qrl';
 import { createQRL } from './qrl-class';
 import { qrl } from './qrl';
 import { suite } from 'uvu';
@@ -7,7 +7,7 @@ import { equal } from 'uvu/assert';
 const qrlSuite = suite('serialization');
 
 qrlSuite('should parse', () => {
-  matchProps(parseQRL('./chunk'), { $chunk$: './chunk', $symbol$: 'default' });
+  matchProps(parseQRL('./chunk#default'), { $chunk$: './chunk', $symbol$: 'default' });
   matchProps(parseQRL('./chunk#mySymbol'), {
     $chunk$: './chunk',
     $symbol$: 'mySymbol',
@@ -47,11 +47,13 @@ qrlSuite('should parse', () => {
   });
 });
 
-equal(stringifyQRL(createQRL('./chunk', '', null, null, null, null, null)), 'chunk');
-equal(stringifyQRL(createQRL('./c', 's1', null, null, null, null, null)), 'c#s1');
-equal(stringifyQRL(createQRL('./c', 's1', null, null, [], null, null)), 'c#s1');
-equal(stringifyQRL(createQRL('./c', 's1', null, null, [1, '2'] as any, null, null)), 'c#s1[1 2]');
-equal(stringifyQRL(createQRL('c', 's1', null, null, [1 as any, '2'], null, null)), 'c#s1[1 2]');
+qrlSuite('serialize qrls', () => {
+  equal(serializeQRL(createQRL('./chunk', '', null, null, null, null, null)), 'chunk#');
+  equal(serializeQRL(createQRL('./c', 's1', null, null, null, null, null)), 'c#s1');
+  equal(serializeQRL(createQRL('./c', 's1', null, null, [], null, null)), 'c#s1');
+  equal(serializeQRL(createQRL('./c', 's1', null, null, [1, '2'] as any, null, null)), 'c#s1[1 2]');
+  equal(serializeQRL(createQRL('c', 's1', null, null, [1 as any, '2'], null, null)), 'c#s1[1 2]');
+});
 
 qrlSuite('should parse reference', () => {
   const require = (str: string) => {
@@ -75,7 +77,7 @@ qrlSuite('should parse self-reference', () => {});
 
 function matchProps(obj: any, properties: Record<string, any>) {
   for (const [key, value] of Object.entries(properties)) {
-    equal(obj[key], value);
+    equal(obj[key], value, `${obj[key]} !== ${value}`);
   }
 }
 

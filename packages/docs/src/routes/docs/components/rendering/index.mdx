@@ -5,7 +5,11 @@ fetch: https://hackmd.io/@mhevery/HJTWrnCl5
 
 # Rendering
 
-Rendering is the process of updating the DOM based on 1) changes in the state of the application and 2) component templates. Qwik is unique because it knows how to render templates out-of-order and asynchronously.
+Rendering is the process of updating the DOM based on 
+  1. Changes in the state of the application 
+  2. Component templates
+
+Qwik is unique because it knows how to render templates out-of-order and asynchronously.
 
 - **Out-of-order**: this means that Qwik does not require that the parent component or child component must also be rendered when rendering a component.
 - **Asynchronously**: this means that Qwik's `render` function understands that it may need to download child components, and therefore the rendering operation is asynchronous.

@@ -62,10 +62,10 @@ export const Parent = component$(() => {
   );
 });
 
-export const Child = component$(({userData}) => {
+export const Child = component$(({ userData }) => {
   return (
     <>
-      <button onClick$={() => userData.count++}>Increment</button>)}
+      <button onClick$={() => userData.count++}>Increment</button>
       Count: {userData.count}
     </>
   );
@@ -99,7 +99,7 @@ export const Child = component$(() => {
   const userData = useContext(CTX);
   return (
     <>
-      <button onClick$={() => userData.count++}>Increment</button>)}
+      <button onClick$={() => userData.count++}>Increment</button>
       Count: {userData.count}
     </>
   );
@@ -112,7 +112,7 @@ Computed values are values that are derived from other values. They are useful w
 
 In Qwik there are two ways to create computed values, using `useWatch$()` or `useResource$()`.
 
-The main different between the two is that `useWatch$()` allows side effects and the execution is serialized, while `useResource$()` is asynchronous and multiple useResource calls can happen in parallel.
+The main difference between the two is that `useWatch$()` allows side effects and the execution is serialized, while `useResource$()` is asynchronous and multiple useResource calls can happen in parallel.
 
 `useWatch$()` is usually used to compute intermediate state, while `useResource$()` has better ergonomics to compute the final state, used for rendering. Let's see some examples:
 
@@ -125,14 +125,14 @@ const App = component$(() => {
     doubleCount: 0
   });
 
-  useWatch$(({track}) => {
+  useWatch$(({ track }) => {
     track(state, 'count');
     state.doubleCount = state.count * 2;
   });
 
   return (
     <>
-      <button onClick$={() => state.count++}>Increment</button>)}
+      <button onClick$={() => state.count++}>Increment</button>
       Count: {state.count}
       Count * 2: {state.doubleCount}
     </>
@@ -148,14 +148,14 @@ const App = component$(() => {
     count: 0,
   });
 
-  const doubleCount = useResource$(({track}) => {
+  const doubleCount = useResource$(({ track }) => {
     track(state, 'count');
     return state.count * 2;
   });
 
   return (
     <>
-      <button onClick$={() => state.count++}>Increment</button>)}
+      <button onClick$={() => state.count++}>Increment</button>
       Count: {state.count}
       Count * 2: {doubleCount.promise}
     </>
@@ -167,4 +167,4 @@ Both [useWatch](../lifecycle/index.mdx#usewatch) and [useResource](../resource/i
 
 ## Reactivity
 
-Thanks to the fine grained reactivity of Qwik, only the components that depend on the state will be updated. This is a huge performance gain, as only the components that need to be updated will be updated.
+Thanks to the fine grained reactivity of Qwik, only the components that depend on the state will be updated. This is a huge performance gain, as only the components that needs to be updated will be updated.

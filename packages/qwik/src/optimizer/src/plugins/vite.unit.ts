@@ -30,6 +30,7 @@ const excludeDeps = [
   '@vite/env',
   '@builder.io/qwik',
   '@builder.io/qwik/jsx-runtime',
+  '@builder.io/qwik/jsx-dev-runtime',
   '@builder.io/qwik/build',
   '@qwik-client-manifest',
 ];

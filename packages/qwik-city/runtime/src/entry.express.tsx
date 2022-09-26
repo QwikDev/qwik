@@ -11,7 +11,7 @@ const buildDir = join(distDir, 'build');
 // Create the Qwik City express middleware
 const { router, notFound } = qwikCity(render);
 // Allow for dynamic port
-const PORT = process.env.PORT ?? 3000
+const PORT = process.env.PORT ?? 3000;
 // Create the express server
 const app = express();
 

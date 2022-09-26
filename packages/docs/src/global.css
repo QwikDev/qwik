@@ -136,15 +136,15 @@ pre[class*='language-'] {
     --repl-diagnostics-active-border-color: rgb(255, 0, 144);
     --repl-commands-color: var(--qwik-light-blue);
     --repl-tab-bg-color: var(--qwik-dark-blue);
-    --repl-border-color: rgba(255,255,255,.2);
+    --repl-border-color: rgba(255, 255, 255, 0.2);
 
     --tutorial-nav-button-text-color: #ffffff;
 
     --examples-header-text-color: var(--text-color);
     --examples-active-bg-color: #1d1d1d;
     --examples-hover-bg-color: #353639;
-    --examples-border-color: rgba(255,255,255,.2);
-    --examples-main-border-color: rgba(255,255,255,.1);
+    --examples-border-color: rgba(255, 255, 255, 0.2);
+    --examples-main-border-color: rgba(255, 255, 255, 0.1);
 
     --made-with-love-text-color: #c6c5cb;
   }

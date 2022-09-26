@@ -1,2 +1,2 @@
-@import "./code-block.light.css" screen;
-@import "./code-block.dark.css" screen and (prefers-color-scheme: dark);
+@import './code-block.light.css' screen;
+@import './code-block.dark.css' screen and (prefers-color-scheme: dark);

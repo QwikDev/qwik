@@ -31,20 +31,20 @@ export const Lightweight = (props) => {
 
 ============================= test.js ==
 
-import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 import { wrap, useEffect } from '@builder.io/qwik';
 export const useMemoQrl = (qrt)=>{
     useEffect(qrt);
 };
 export const useMemo$ = wrap(useMemoQrl);
-export const App = /*#__PURE__*/ componentQrl(_qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 export const Lightweight = (props)=>{
-    useMemoQrl(_qrl(()=>import("./lightweight_usememo_uicxvtqf1a8"), "Lightweight_useMemo_UIcxVTQF1a8"));
+    useMemoQrl(qrl(()=>import("./lightweight_usememo_uicxvtqf1a8"), "Lightweight_useMemo_UIcxVTQF1a8"));
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAkC,IAAI,EAAE,SAAS,QAAQ,kBAAkB,CAAC;AAE5E,OAAO,MAAM,UAAU,GAAG,CAAC,GAAG,GAAK;IAC/B,SAAS,CAAC,GAAG,CAAC,CAAC;AACnB,CAAC,CAAC;AAEF,OAAO,MAAM,QAAQ,GAAG,IAAI,CAAC,UAAU,CAAC,CAAC;AAEzC,OAAO,MAAM,GAAG,iBAAG,0FAQjB,CAAC;AAEH,OAAO,MAAM,WAAW,GAAG,CAAC,KAAK,GAAK;IAClC,oGAEE,CAAC;AACP,CAAC,CAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAkC,IAAI,EAAE,SAAS,QAAQ,kBAAkB,CAAC;AAE5E,OAAO,MAAM,UAAU,GAAG,CAAC,GAAG,GAAK;IAC/B,SAAS,CAAC,GAAG,CAAC,CAAC;AACnB,CAAC,CAAC;AAEF,OAAO,MAAM,QAAQ,GAAG,IAAI,CAAC,UAAU,CAAC,CAAC;AAEzC,OAAO,MAAM,GAAG,iBAAG,yFAQjB,CAAC;AAEH,OAAO,MAAM,WAAW,GAAG,CAAC,KAAK,GAAK;IAClC,mGAEE,CAAC;AACP,CAAC,CAAE\"}")
 ============================= app_component_usememo_6sc9kvki3y0.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -103,17 +103,17 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { _qrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 import { useMemoQrl } from "./test";
 import { useStore } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = (props)=>{
     const state = useStore({
         count: 0
     });
-    useMemoQrl(_qrl(()=>import("./app_component_usememo_6sc9kvki3y0"), "App_component_useMemo_6Sc9KVki3Y0", [
+    useMemoQrl(qrl(()=>import("./app_component_usememo_6sc9kvki3y0"), "App_component_useMemo_6Sc9KVki3Y0", [
         state
     ]));
-    return _qrl(()=>import("./app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU", [
+    return qrl(()=>import("./app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU", [
         state
     ]);
 };

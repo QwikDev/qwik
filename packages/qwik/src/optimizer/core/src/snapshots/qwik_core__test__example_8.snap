@@ -20,13 +20,13 @@ export const Header = component$(() => {
 
 ============================= header_component_j4uyihabnr4.tsx (ENTRY POINT)==
 
-import { _qrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 export const Header_component_J4uyIhaBNR4 = ()=>{
-    return _qrl(()=>import("./header_component_1_2b8d0oh9zwc"), "Header_component_1_2B8d0oH9ZWc");
+    return qrl(()=>import("./header_component_1_2b8d0oh9zwc"), "Header_component_1_2B8d0oH9ZWc");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAGiC,IAAM;IACnC,8FAOG;AACP,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAGiC,IAAM;IACnC,6FAOG;AACP,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -80,12 +80,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx ==
 
-import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(_qrl(()=>import("./header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
+import { qrl } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("./header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,MAAM,iBAAG,gGASpB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,MAAM,iBAAG,+FASpB,CAAC\"}")
 == DIAGNOSTICS ==
 
 []

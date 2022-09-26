@@ -12,7 +12,7 @@ export const App_component_div_p_button_onClick_8dWUa0cJAr4 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\";8DAuB0C,IAAI;IACtB,MAAM,CAAC,KAAK,CAAC,GAAG,eAAe,EAAE,AAAC;IAClC,OAAO,KAAK,CAAC,KAAK,EAAE,CAAC;AACzB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\";8DAuByC,IAAI;IACrB,MAAM,CAAC,KAAK,CAAC,GAAG,eAAe,EAAE,AAAC;IAClC,OAAO,KAAK,CAAC,KAAK,EAAE,CAAC;AACzB,CAAC\"}")
 /*
 {
   "origin": "../../node_modules/dep/dist/lib.mjs",
@@ -27,16 +27,16 @@ Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    709,
-    841
+    706,
+    838
   ]
 }
 */
 ============================= app_component_akbu84a8zes.js (ENTRY POINT)==
 
-import { _qrl } from "@builder.io/qwik";
 import { jsx } from "@builder.io/qwik/jsx-runtime";
 import { jsxs } from "@builder.io/qwik/jsx-runtime";
+import { qrl } from "@builder.io/qwik";
 import { useData } from "../../node_modules/dep/dist/lib";
 export const App_component_AkbU84a8zes = ()=>{
     const store = useData();
@@ -50,7 +50,7 @@ export const App_component_AkbU84a8zes = ()=>{
             }),
             /*#__PURE__*/ jsx("p", {
                 children: /*#__PURE__*/ jsx("button", {
-                    onClick$: _qrl(()=>import("./app_component_div_p_button_onclick_8dwua0cjar4.js"), "App_component_div_p_button_onClick_8dWUa0cJAr4", [
+                    onClick$: qrl(()=>import("./app_component_div_p_button_onclick_8dwua0cjar4.js"), "App_component_div_p_button_onClick_8dWUa0cJAr4", [
                         store
                     ]),
                     children: "Click"
@@ -61,7 +61,7 @@ export const App_component_AkbU84a8zes = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\";;;;yCAW0D,IAAI;IAC1D,MAAM,KAAK,GAAG,OAAO,EAAE,AAAC;IACxB,OAAO,WAAW,GAAG,IAAI,CAAC,KAAK,EAAE;QAC7B,QAAQ,EAAE;YACN,WAAW,GAAG,IAAI,CAAC,GAAG,EAAE;gBACpB,QAAQ,EAAE;oBACN,SAAS;oBACT,KAAK,CAAC,KAAK;iBACd;aACJ,CAAC;YACF,WAAW,GAAG,GAAG,CAAC,GAAG,EAAE;gBACnB,QAAQ,EAAE,WAAW,GAAG,GAAG,CAAC,QAAQ,EAAE;oBAClC,QAAQ;;;oBAMR,QAAQ,EAAE,OAAO;iBACpB,CAAC;aACL,CAAC;SACL;KACJ,CAAC,CAAC;AACP,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\";;;;yCAWyD,IAAI;IACzD,MAAM,KAAK,GAAG,OAAO,EAAE,AAAC;IACxB,OAAO,WAAW,GAAG,IAAI,CAAC,KAAK,EAAE;QAC7B,QAAQ,EAAE;YACN,WAAW,GAAG,IAAI,CAAC,GAAG,EAAE;gBACpB,QAAQ,EAAE;oBACN,SAAS;oBACT,KAAK,CAAC,KAAK;iBACd;aACJ,CAAC;YACF,WAAW,GAAG,GAAG,CAAC,GAAG,EAAE;gBACnB,QAAQ,EAAE,WAAW,GAAG,GAAG,CAAC,QAAQ,EAAE;oBAClC,QAAQ;;;oBAMR,QAAQ,EAAE,OAAO;iBACpB,CAAC;aACL,CAAC;SACL;KACJ,CAAC,CAAC;AACP,CAAC\"}")
 /*
 {
   "origin": "../../node_modules/dep/dist/lib.mjs",
@@ -76,25 +76,25 @@ Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    317,
-    1040
+    315,
+    1037
   ]
 }
 */
 ============================= ../../node_modules/dep/dist/lib.mjs ==
 
-import { _qrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 import { componentQrl, useStore } from "@builder.io/qwik";
 const useData = ()=>{
     return useStore({
         count: 0
     });
 };
-export const App = /*#__PURE__*/ componentQrl(_qrl(()=>import("../../../src/thing/app_component_akbu84a8zes.js"), "App_component_AkbU84a8zes"));
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("../../../src/thing/app_component_akbu84a8zes.js"), "App_component_AkbU84a8zes"));
 export { useData };
 
 
-Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\"AACA;AAAA,SAAS,YAAY,EAAe,QAAQ,QAAyB,kBAAkB,CAAC;AAIxF,MAAM,OAAO,GAAG,IAAM;IAClB,OAAO,QAAQ,CAAC;QACZ,KAAK,EAAE,CAAC;KACX,CAAC,CAAC;AACP,CAAC;AAED,OAAO,MAAM,GAAG,GAAG,WAAW,GAAG,YAAY,kGAuBb,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\"AACA;AAAA,SAAS,YAAY,EAAc,QAAQ,QAAyB,kBAAkB,CAAC;AAIvF,MAAM,OAAO,GAAG,IAAM;IAClB,OAAO,QAAQ,CAAC;QACZ,KAAK,EAAE,CAAC;KACX,CAAC,CAAC;AACP,CAAC;AAED,OAAO,MAAM,GAAG,GAAG,WAAW,GAAG,YAAY,iGAuBb,CAAC\"}")
 ============================= local_component_jj0v28bs0p8.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
@@ -128,12 +128,12 @@ Some("{\"version\":3,\"sources\":[\"/path/to/app/src/thing/components/main.tsx\"
 */
 ============================= components/main.js ==
 
-import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Local = /*#__PURE__*/ componentQrl(_qrl(()=>import("../local_component_jj0v28bs0p8.js"), "Local_component_jJ0v28bs0p8"));
+import { qrl } from "@builder.io/qwik";
+export const Local = /*#__PURE__*/ componentQrl(qrl(()=>import("../local_component_jj0v28bs0p8.js"), "Local_component_jJ0v28bs0p8"));
 
 
-Some("{\"version\":3,\"sources\":[\"/path/to/app/src/thing/components/main.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,KAAK,iBAAG,kGAInB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/path/to/app/src/thing/components/main.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,KAAK,iBAAG,iGAInB,CAAC\"}")
 == DIAGNOSTICS ==
 
 []

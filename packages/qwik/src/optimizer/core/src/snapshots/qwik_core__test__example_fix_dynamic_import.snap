@@ -57,15 +57,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"
 */
 ============================= project/folder/test.tsx ==
 
-import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 export function foo() {
     return import("../state");
 }
-export const Header = /*#__PURE__*/ componentQrl(_qrl(()=>import("../../entry_hooks"), "Header_component_RGgm7Ks9QWI"));
+export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("../../entry_hooks"), "Header_component_RGgm7Ks9QWI"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,SAAS,GAAG,GAAG;IAClB,OAAO,MAAM,CAAC,UAAU,CAAC,CAAA;AAC7B,CAAC;AAED,OAAO,MAAM,MAAM,iBAAG,mFAOpB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,SAAS,GAAG,GAAG;IAClB,OAAO,MAAM,CAAC,UAAU,CAAC,CAAA;AAC7B,CAAC;AAED,OAAO,MAAM,MAAM,iBAAG,kFAOpB,CAAC\"}")
 ============================= entry_hooks.js (ENTRY POINT)==
 
 export { Header_component_RGgm7Ks9QWI } from "./header_component_rggm7ks9qwi";

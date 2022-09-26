@@ -17,16 +17,16 @@ export default component$(() => {
 
 ============================= src/components/mongo/index.tsx ==
 
-import { _inlinedQrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export default /*#__PURE__*/ componentQrl(_inlinedQrl(()=>{
-    return <div onClick$={_inlinedQrl(()=>console.log(mongodb), "mongo_component_div_onClick_2EK0wZbP8qw")}>
+import { inlinedQrl } from "@builder.io/qwik";
+export default /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+    return <div onClick$={inlinedQrl(()=>console.log(mongodb), "mongo_component_div_onClick_2EK0wZbP8qw")}>
 
         </div>;
 }, "mongo_component_ouWLj4jA2oI"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/index.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,6BAAe,yBAAW,IAAM;IAC5B,QACK,GAAG,CAAC,QAAQ,cAAE,IAAM,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,8CAAE;;QAC3C,EAAE,GAAG,EACP;AACN,CAAC,iCAAC,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/index.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,6BAAe,wBAAW,IAAM;IAC5B,QACK,GAAG,CAAC,QAAQ,aAAE,IAAM,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,8CAAE;;QAC3C,EAAE,GAAG,EACP;AACN,CAAC,iCAAC,CAAC\"}")
 == DIAGNOSTICS ==
 
 []

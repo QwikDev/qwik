@@ -64,23 +64,23 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.js ==
 
-import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(_qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
+import { qrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,2FA0BhB;IACC,OAAO,EAAE,QAAQ;CACpB,CAAC,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,0FA0BhB;IACC,OAAO,EAAE,QAAQ;CACpB,CAAC,CAAC\"}")
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
-import { _qrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = ()=>{
-    return _qrl(()=>import("./foo_component_1_dvu6fitwgly"), "Foo_component_1_DvU6FitWglY");
+    return qrl(()=>import("./foo_component_1_dvu6fitwgly"), "Foo_component_1_DvU6FitWglY");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IAEhC,wFAuBG;AACP,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IAEhC,uFAuBG;AACP,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -128,29 +128,29 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= foo_component_1_dvu6fitwgly.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { _qrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 export const Foo_component_1_DvU6FitWglY = ()=>{
-    const handler = _qrl(()=>import("./foo_component_handler_h10xztd0e7w"), "Foo_component_handler_H10xZtD0e7w");
+    const handler = qrl(()=>import("./foo_component_handler_h10xztd0e7w"), "Foo_component_handler_H10xZtD0e7w");
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: _qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw"),
-        onDocumentScroll$: _qrl(()=>import("./foo_component_div_ondocumentscroll_rwfftfivukc"), "Foo_component_div_onDocumentScroll_rwFFtFiVuKc"),
-        onDocumentScroll$: _qrl(()=>import("./foo_component_div_ondocumentscroll_1_cwneogpmtzi"), "Foo_component_div_onDocumentScroll_1_CwneoGpmTZI"),
-        "on-cLick$": _qrl(()=>import("./foo_component_div_on_click_ioasjw8vyjc"), "Foo_component_div_on_cLick_IoAsJW8vYJc"),
-        "onDocument-sCroll$": _qrl(()=>import("./foo_component_div_ondocument_scroll_5vnik61pzom"), "Foo_component_div_onDocument_sCroll_5VNik61PZOM"),
-        "onDocument-scroLL$": _qrl(()=>import("./foo_component_div_ondocument_scroll_1q0sgr8te3g"), "Foo_component_div_onDocument_scroLL_1q0Sgr8te3g"),
-        "host:onClick$": _qrl(()=>import("./foo_component_div_host_onclick_cpeh970jbey"), "Foo_component_div_host_onClick_cPEH970JbEY"),
-        "host:onDocumentScroll$": _qrl(()=>import("./foo_component_div_host_ondocumentscroll_zip7mifsjry"), "Foo_component_div_host_onDocumentScroll_Zip7mifsjRY"),
-        "host:onDocumentScroll$": _qrl(()=>import("./foo_component_div_host_ondocumentscroll_1_em1lspk7jvg"), "Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg"),
+        onClick$: qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw"),
+        onDocumentScroll$: qrl(()=>import("./foo_component_div_ondocumentscroll_rwfftfivukc"), "Foo_component_div_onDocumentScroll_rwFFtFiVuKc"),
+        onDocumentScroll$: qrl(()=>import("./foo_component_div_ondocumentscroll_1_cwneogpmtzi"), "Foo_component_div_onDocumentScroll_1_CwneoGpmTZI"),
+        "on-cLick$": qrl(()=>import("./foo_component_div_on_click_ioasjw8vyjc"), "Foo_component_div_on_cLick_IoAsJW8vYJc"),
+        "onDocument-sCroll$": qrl(()=>import("./foo_component_div_ondocument_scroll_5vnik61pzom"), "Foo_component_div_onDocument_sCroll_5VNik61PZOM"),
+        "onDocument-scroLL$": qrl(()=>import("./foo_component_div_ondocument_scroll_1q0sgr8te3g"), "Foo_component_div_onDocument_scroLL_1q0Sgr8te3g"),
+        "host:onClick$": qrl(()=>import("./foo_component_div_host_onclick_cpeh970jbey"), "Foo_component_div_host_onClick_cPEH970JbEY"),
+        "host:onDocumentScroll$": qrl(()=>import("./foo_component_div_host_ondocumentscroll_zip7mifsjry"), "Foo_component_div_host_onDocumentScroll_Zip7mifsjRY"),
+        "host:onDocumentScroll$": qrl(()=>import("./foo_component_div_host_ondocumentscroll_1_em1lspk7jvg"), "Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg"),
         onKeyup$: handler,
         "onDocument:keyup$": handler,
         "onWindow:keyup$": handler,
-        custom$: _qrl(()=>import("./foo_component_div_custom_pyhnxab17ms"), "Foo_component_div_custom_pyHnxab17ms")
+        custom$: qrl(()=>import("./foo_component_div_custom_pyhnxab17ms"), "Foo_component_div_custom_pyHnxab17ms")
     });
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAKa,IAAM;IACX,MAAM,OAAO,+FAAiC,AAAC;IAC/C,qBACI,KAAC,KAAG;QACA,QAAQ;QACR,iBAAiB;QACjB,iBAAiB;QAEjB,WAAS;QACT,oBAAkB;QAClB,oBAAkB;QAPtB,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QALE,QAAQ,EAAE,OAAO;QAbrB,mBAkBE,EAJqB,OAAO;QAd9B,iBAkBE,EAHmB,OAAO;QAExB,OAAO;MACT,CACL;AACL,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAKa,IAAM;IACX,MAAM,OAAO,8FAAiC,AAAC;IAC/C,qBACI,KAAC,KAAG;QACA,QAAQ;QACR,iBAAiB;QACjB,iBAAiB;QAEjB,WAAS;QACT,oBAAkB;QAClB,oBAAkB;QAPtB,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QALE,QAAQ,EAAE,OAAO;QAbrB,mBAkBE,EAJqB,OAAO;QAd9B,iBAkBE,EAHmB,OAAO;QAExB,OAAO;MACT,CACL;AACL,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

@@ -7,10 +7,10 @@ pub const LONG_SUFFIX: &str = "Qrl";
 lazy_static! {
     pub static ref CHILDREN: JsWord = JsWord::from("children");
     pub static ref HANDLE_WATCH: JsWord = JsWord::from("_hW");
-    pub static ref _QRL: JsWord = JsWord::from("_qrl");
-    pub static ref _QRL_DEV: JsWord = JsWord::from("_qrlDEV");
-    pub static ref _INLINED_QRL: JsWord = JsWord::from("_inlinedQrl");
-    pub static ref _INLINED_QRL_DEV: JsWord = JsWord::from("_inlinedQrlDEV");
+    pub static ref _QRL: JsWord = JsWord::from("qrl");
+    pub static ref _QRL_DEV: JsWord = JsWord::from("qrlDEV");
+    pub static ref _INLINED_QRL: JsWord = JsWord::from("inlinedQrl");
+    pub static ref _INLINED_QRL_DEV: JsWord = JsWord::from("inlinedQrlDEV");
     pub static ref QHOOK: JsWord = JsWord::from("$");
     pub static ref QWIK_INTERNAL: JsWord = JsWord::from("qwik");
     pub static ref BUILDER_IO_QWIK: JsWord = JsWord::from("@builder.io/qwik");

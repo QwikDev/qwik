@@ -7,7 +7,7 @@
 //
 
 import { component$ } from './component/component.public';
-import { _qrl } from './import/qrl';
+import { qrl } from './import/qrl';
 import { $, QRL } from './import/qrl.public';
 import { useCleanup$, useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
@@ -450,7 +450,7 @@ useOnDocument(
 
 // <docs anchor="qrl-usage-$-optimized">
 // FILE: <current file>
-useOnDocument('mousemove', _qrl('./chunk-abc.js', 'onMousemove'));
+useOnDocument('mousemove', qrl('./chunk-abc.js', 'onMousemove'));
 
 // FILE: chunk-abc.js
 export const onMousemove = () => console.log('mousemove');
@@ -527,7 +527,7 @@ myApi$(() => console.log('callback'));
 
 // will be transpiled to:
 // FILE: <current file>
-myApi(_qrl('./chunk-abc.js', 'callback'));
+myApi(qrl('./chunk-abc.js', 'callback'));
 
 // FILE: chunk-abc.js
 export const callback = () => console.log('callback');

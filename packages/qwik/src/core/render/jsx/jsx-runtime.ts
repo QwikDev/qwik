@@ -1,9 +1,10 @@
 import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
-import { qDev, seal } from '../../util/qdev';
+import { qDev, qSerialize, seal } from '../../util/qdev';
 import { logWarn } from '../../util/log';
 import { isFunction, isObject, isString } from '../../util/types';
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
+import { isQrl } from '../../import/qrl-class';
 
 /**
  * @public
@@ -16,6 +17,13 @@ export const jsx = <T extends string | FunctionComponent<any>>(
   if (qDev) {
     if (!isString(type) && !isFunction(type)) {
       throw qError(QError_invalidJsxNodeType, type);
+    }
+    if (qSerialize && props) {
+      for (const prop of Object.keys(props)) {
+        if (prop.endsWith('$') && !isQrl(props[prop])) {
+          throw qError(QError_invalidJsxNodeType, type);
+        }
+      }
     }
   }
   const processed = key == null ? null : String(key);

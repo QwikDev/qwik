@@ -1,5 +1,3 @@
-import { runtimeQrl } from './qrl';
-
 // <docs markdown="../readme.md#QRL">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#QRL instead)
@@ -124,6 +122,10 @@ import { runtimeQrl } from './qrl';
  *
  * @public
  */
+
+import { qRuntimeQrl, qSerialize } from '../util/qdev';
+import { createQRL } from './qrl-class';
+
 // </docs>
 export interface QRL<TYPE = any> {
   __brand__QRL__: TYPE;
@@ -152,6 +154,8 @@ export interface QRL<TYPE = any> {
 export interface PropFnInterface<ARGS extends any[], RET> {
   (...args: ARGS): Promise<RET>;
 }
+
+let runtimeSymbolId = 0;
 
 /**
  * @public
@@ -241,5 +245,11 @@ export type PropFunction<T extends Function> = T extends (...args: infer ARGS) =
  */
 // </docs>
 export const $ = <T>(expression: T): QRL<T> => {
-  return runtimeQrl(expression);
+  if (qSerialize && !qRuntimeQrl) {
+    throw new Error(
+      'Optimizer should replace all usages of $() with some special syntax. If you need to create a QRL manually, use inlinedQrl() instead.'
+    );
+  }
+
+  return createQRL<T>(null, 's' + runtimeSymbolId++, expression, null, null, null, null);
 };

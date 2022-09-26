@@ -17,12 +17,12 @@ export const App = Component((props) => {
 
 ============================= test.js ==
 
-import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(_qrl(()=>import("./app_component_nuxfthrjvxe"), "App_Component_NuXFTHRjvXE"));
+import { qrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_nuxfthrjvxe"), "App_Component_NuXFTHRjvXE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,0FAMjB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,yFAMjB,CAAC\"}")
 ============================= app_component_1_a08txhb9pek.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -58,13 +58,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= app_component_nuxfthrjvxe.js (ENTRY POINT)==
 
-import { _qrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 export const App_Component_NuXFTHRjvXE = (props)=>{
     const state = useStore({
         thing: 0
     });
-    return _qrl(()=>import("./app_component_1_a08txhb9pek"), "App_Component_1_A08tXHb9pEk", [
+    return qrl(()=>import("./app_component_1_a08txhb9pek"), "App_Component_1_A08tXHb9pEk", [
         state
     ]);
 };

@@ -5,9 +5,9 @@ expression: output
 ==INPUT==
 
 
-import { componentQrl, _inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
+import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
 
-export const App = /*#__PURE__*/ componentQrl(_inlinedQrl(()=>{
+export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
     const store = useStore({
         count: 0
     });
@@ -21,7 +21,7 @@ export const App = /*#__PURE__*/ componentQrl(_inlinedQrl(()=>{
             }),
             /*#__PURE__*/ jsx("p", {
                 children: /*#__PURE__*/ jsx("button", {
-                    onClick$: _inlinedQrl(()=>{
+                    onClick$: inlinedQrl(()=>{
                         const [store] = useLexicalScope();
                         return store.count++;
                     }, "App_component_div_p_button_onClick_odz7eidI4GM", [
@@ -44,7 +44,7 @@ export const s_odz7eidI4GM = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAiB0C,IAAI;IACtB,MAAM,CAAC,KAAK,CAAC,GAAG,eAAe,EAAE,AAAC;IAClC,OAAO,KAAK,CAAC,KAAK,EAAE,CAAC;AACzB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAiByC,IAAI;IACrB,MAAM,CAAC,KAAK,CAAC,GAAG,eAAe,EAAE,AAAC;IAClC,OAAO,KAAK,CAAC,KAAK,EAAE,CAAC;AACzB,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -59,16 +59,16 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    578,
-    710
+    575,
+    707
   ]
 }
 */
 ============================= s_fh88jclhbc0.tsx ==
 
-import { _qrl } from "@builder.io/qwik";
 import { jsx } from "@builder.io/qwik";
 import { jsxs } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 export const s_Fh88JClhbC0 = ()=>{
     const store = useStore({
@@ -84,7 +84,7 @@ export const s_Fh88JClhbC0 = ()=>{
             }),
             /*#__PURE__*/ jsx("p", {
                 children: /*#__PURE__*/ jsx("button", {
-                    onClick$: _qrl(()=>import("./entry_hooks"), "s_odz7eidI4GM", [
+                    onClick$: qrl(()=>import("./entry_hooks"), "s_odz7eidI4GM", [
                         store
                     ]),
                     children: "Click"
@@ -95,7 +95,7 @@ export const s_Fh88JClhbC0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;6BAG0D,IAAI;IAC1D,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,KAAK,EAAE,CAAC;KACX,CAAC,AAAC;IACH,OAAO,WAAW,GAAG,IAAI,CAAC,KAAK,EAAE;QAC7B,QAAQ,EAAE;YACN,WAAW,GAAG,IAAI,CAAC,GAAG,EAAE;gBACpB,QAAQ,EAAE;oBACN,SAAS;oBACT,KAAK,CAAC,KAAK;iBACd;aACJ,CAAC;YACF,WAAW,GAAG,GAAG,CAAC,GAAG,EAAE;gBACnB,QAAQ,EAAE,WAAW,GAAG,GAAG,CAAC,QAAQ,EAAE;oBAClC,QAAQ;;;oBAMR,QAAQ,EAAE,OAAO;iBACpB,CAAC;aACL,CAAC;SACL;KACJ,CAAC,CAAC;AACP,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;6BAGyD,IAAI;IACzD,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,KAAK,EAAE,CAAC;KACX,CAAC,AAAC;IACH,OAAO,WAAW,GAAG,IAAI,CAAC,KAAK,EAAE;QAC7B,QAAQ,EAAE;YACN,WAAW,GAAG,IAAI,CAAC,GAAG,EAAE;gBACpB,QAAQ,EAAE;oBACN,SAAS;oBACT,KAAK,CAAC,KAAK;iBACd;aACJ,CAAC;YACF,WAAW,GAAG,GAAG,CAAC,GAAG,EAAE;gBACnB,QAAQ,EAAE,WAAW,GAAG,GAAG,CAAC,QAAQ,EAAE;oBAClC,QAAQ;;;oBAMR,QAAQ,EAAE,OAAO;iBACpB,CAAC;aACL,CAAC;SACL;KACJ,CAAC,CAAC;AACP,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -110,19 +110,19 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    161,
-    909
+    159,
+    906
   ]
 }
 */
 ============================= test.tsx ==
 
-import { _qrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 import { componentQrl } from '@builder.io/qwik';
-export const App = /*#__PURE__*/ componentQrl(_qrl(()=>import("./entry_hooks"), "s_Fh88JClhbC0"));
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_hooks"), "s_Fh88JClhbC0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;AAAA,SAAS,YAAY,QAA2D,kBAAkB,CAAC;AAEnG,OAAO,MAAM,GAAG,GAAG,WAAW,GAAG,YAAY,oDAyBb,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;AAAA,SAAS,YAAY,QAA0D,kBAAkB,CAAC;AAElG,OAAO,MAAM,GAAG,GAAG,WAAW,GAAG,YAAY,mDAyBb,CAAC\"}")
 ============================= entry_hooks.js (ENTRY POINT)==
 
 export { s_odz7eidI4GM } from "./s_odz7eidi4gm";

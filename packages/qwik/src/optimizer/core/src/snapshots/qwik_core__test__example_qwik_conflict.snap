@@ -39,42 +39,42 @@ export const Root = component$(() => {
 
 ============================= test.js ==
 
-import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-import { qrl } from '@builder.io/qwik/what';
+import { qrl } from "@builder.io/qwik";
+import { qrl as qrl1 } from '@builder.io/qwik/what';
 export const hW = 12;
 export const handleWatch = 42;
-const componentQrl1 = ()=>console.log('not this', qrl());
+const componentQrl1 = ()=>console.log('not this', qrl1());
 componentQrl1();
-export const Foo = /*#__PURE__*/ componentQrl(_qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
+export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
-export const Root = /*#__PURE__*/ componentQrl(_qrl(()=>import("./root_component_royhjyacbye"), "Root_component_royhjYaCbYE"), {
+export const Root = /*#__PURE__*/ componentQrl(qrl(()=>import("./root_component_royhjyacbye"), "Root_component_royhjYaCbYE"), {
     tagName: "my-foo"
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AACA,SAAS,GAAG,QAAQ,uBAAuB,CAAC;AAE5C,OAAO,MAAM,EAAE,GAAG,EAAE,CAAC;AACrB,OAAO,MAAM,WAAW,GAAG,EAAE,CAAC;AAE9B,MAAM,aAAY,GAAG,IAAM,OAAO,CAAC,GAAG,CAAC,UAAU,EAAE,GAAG,EAAE,CAAC,AAAC;AAE1D,aAAY,EAAE,CAAC;AACf,OAAO,MAAM,GAAG,iBAAG,2FAQhB;IACC,OAAO,EAAE,QAAQ;CACpB,CAAC,CAAC;AAEH,OAAO,MAAM,IAAI,iBAAG,6FAOjB;IACC,OAAO,EAAE,QAAQ;CACpB,CAAC,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AACA,SAAS,GAAG,IAAH,IAAG,QAAQ,uBAAuB,CAAC;AAE5C,OAAO,MAAM,EAAE,GAAG,EAAE,CAAC;AACrB,OAAO,MAAM,WAAW,GAAG,EAAE,CAAC;AAE9B,MAAM,aAAY,GAAG,IAAM,OAAO,CAAC,GAAG,CAAC,UAAU,EAAE,IAAG,EAAE,CAAC,AAAC;AAE1D,aAAY,EAAE,CAAC;AACf,OAAO,MAAM,GAAG,iBAAG,0FAQhB;IACC,OAAO,EAAE,QAAQ;CACpB,CAAC,CAAC;AAEH,OAAO,MAAM,IAAI,iBAAG,4FAOjB;IACC,OAAO,EAAE,QAAQ;CACpB,CAAC,CAAC\"}")
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { _qrl } from "@builder.io/qwik";
 import { hW } from "./test";
 import { handleWatch } from "./test";
+import { qrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = ()=>{
     useStyles$('thing');
     const qwik = hW + handleWatch;
     console.log(qwik);
-    const qrl = 23;
+    const qrl1 = 23;
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: _qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw", [
-            qrl
+        onClick$: qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw", [
+            qrl1
         ])
     });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAU8B,IAAM;IAChC,UAAU,CAAC,OAAO,CAAC,CAAC;IACpB,MAAM,IAAI,GAAG,EAAE,GAAG,WAAW,AAAC;IAC9B,OAAO,CAAC,GAAG,CAAC,IAAI,CAAC,CAAC;IAClB,MAAM,GAAG,GAAG,EAAE,AAAC;IACf,qBACI,KAAC,KAAG;QAAC,QAAQ;;;MAA0B,CAC1C;AACL,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAU8B,IAAM;IAChC,UAAU,CAAC,OAAO,CAAC,CAAC;IACpB,MAAM,IAAI,GAAG,EAAE,GAAG,WAAW,AAAC;IAC9B,OAAO,CAAC,GAAG,CAAC,IAAI,CAAC,CAAC;IAClB,MAAM,IAAG,GAAG,EAAE,AAAC;IACf,qBACI,KAAC,KAAG;QAAC,QAAQ;;;MAA0B,CAC1C;AACL,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -122,15 +122,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= root_component_royhjyacbye.js (ENTRY POINT)==
 
-import { _qrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 import { useStyles } from "@builder.io/qwik";
 export const Root_component_royhjYaCbYE = ()=>{
-    useStyles(_qrl(()=>import("./root_component_usestyles_u5dkuxgrgnu"), "Root_component_useStyles_u5DkUxGrGnU"));
-    return _qrl(()=>import("./root_component_1_cbpqnyduhi4"), "Root_component_1_cBpQNYDUHI4");
+    useStyles(qrl(()=>import("./root_component_usestyles_u5dkuxgrgnu"), "Root_component_useStyles_u5DkUxGrGnU"));
+    return qrl(()=>import("./root_component_1_cbpqnyduhi4"), "Root_component_1_cBpQNYDUHI4");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAsB+B,IAAM;IACjC,SAAS,oGAAY,CAAC;IACtB,0FAIG;AACP,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAsB+B,IAAM;IACjC,SAAS,mGAAY,CAAC;IACtB,yFAIG;AACP,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

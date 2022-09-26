@@ -36,11 +36,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx ==
 
-import { _qrl } from "@builder.io/qwik";
-export const sym1 = _qrl(()=>import("./sym1_axurpxx5lak"), "sym1_aXUrPXX5Lak");
+import { qrl } from "@builder.io/qwik";
+export const sym1 = qrl(()=>import("./sym1_axurpxx5lak"), "sym1_aXUrPXX5Lak");
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;AACA,OAAO,MAAM,IAAI,6DAA+B,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;AACA,OAAO,MAAM,IAAI,4DAA+B,CAAC\"}")
 == DIAGNOSTICS ==
 
 []

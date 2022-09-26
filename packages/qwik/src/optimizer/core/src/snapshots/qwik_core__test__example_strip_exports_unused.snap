@@ -23,15 +23,15 @@ export default component$(()=> {
 
 ============================= test.tsx ==
 
-import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
 export const onGet = ()=>{
     throw "removed by optimizer";
 };
-export default /*#__PURE__*/ componentQrl(_qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
+export default /*#__PURE__*/ componentQrl(qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;aAGa,KAAK;;;AASlB,6BAAe,4FAEb,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;aAGa,KAAK;;;AASlB,6BAAe,2FAEb,CAAC\"}")
 ============================= test_component_luxexe0dqrg.tsx (ENTRY POINT)==
 
 export const test_component_LUXeXe0DQrg = ()=>{

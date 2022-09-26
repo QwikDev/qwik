@@ -22,12 +22,12 @@ export const App = component$(() => {
 
 ============================= test.js ==
 
-import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(_qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+import { qrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAIA,OAAO,MAAM,GAAG,iBAAG,0FASjB,CAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAIA,OAAO,MAAM,GAAG,iBAAG,yFASjB,CAAA\"}")
 ============================= app_component_usestyles_t35nsa5uv7u.js (ENTRY POINT)==
 
 export const App_component_useStyles_t35nSa5UV7U = style;
@@ -56,21 +56,21 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { _qrl } from "@builder.io/qwik";
 import css1 from "./global.css";
 import css2 from "./style.css";
+import { qrl } from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
     const style = `${css1}${css2}`;
-    useStylesQrl(_qrl(()=>import("./app_component_usestyles_t35nsa5uv7u"), "App_component_useStyles_t35nSa5UV7U"));
+    useStylesQrl(qrl(()=>import("./app_component_usestyles_t35nsa5uv7u"), "App_component_useStyles_t35nSa5UV7U"));
     const render = ()=>{
         return /*#__PURE__*/ _jsx("div", {});
     };
-    return _qrl(()=>import("./app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU");
+    return qrl(()=>import("./app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAK8B,IAAM;IAChC,MAAM,KAAK,GAAG,CAAC,EAAE,IAAI,CAAC,EAAE,IAAI,CAAC,CAAC,AAAC;IAC/B,8GAAiB,CAAC;IAClB,MAAM,MAAM,GAAG,IAAM;QACjB,qBACI,KAAC,KAAG,KAAO,CACd;IACL,CAAC,AAAC;IACF,wFAAiB;AACrB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAK8B,IAAM;IAChC,MAAM,KAAK,GAAG,CAAC,EAAE,IAAI,CAAC,EAAE,IAAI,CAAC,CAAC,AAAC;IAC/B,6GAAiB,CAAC;IAClB,MAAM,MAAM,GAAG,IAAM;QACjB,qBACI,KAAC,KAAG,KAAO,CACd;IACL,CAAC,AAAC;IACF,uFAAiB;AACrB,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

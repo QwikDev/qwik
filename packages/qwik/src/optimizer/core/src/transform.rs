@@ -263,12 +263,12 @@ impl<'a> QwikTransform<'a> {
         let first_arg = node
             .args
             .pop()
-            .expect("inlinedQrl() should always have the first argument");
+            .expect("_inlinedQrl() should always have the first argument");
 
         let second_arg = node
             .args
             .pop()
-            .expect("inlinedQrl() should always have the second argument");
+            .expect("_inlinedQrl() should always have the second argument");
 
         let third_arg = node.args.pop();
         let span = first_arg.span();

@@ -1112,9 +1112,9 @@ export default component$(() => {
 fn example_parsed_inlined_qrls() {
     test_input!(TestInput {
         code: r#"
-import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
+import { componentQrl, _inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
 
-export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+export const App = /*#__PURE__*/ componentQrl(_inlinedQrl(()=>{
     const store = useStore({
         count: 0
     });
@@ -1128,7 +1128,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
             }),
             /*#__PURE__*/ jsx("p", {
                 children: /*#__PURE__*/ jsx("button", {
-                    onClick$: inlinedQrl(()=>{
+                    onClick$: _inlinedQrl(()=>{
                         const [store] = useLexicalScope();
                         return store.count++;
                     }, "App_component_div_p_button_onClick_odz7eidI4GM", [
@@ -1579,19 +1579,19 @@ export const App = component$(() => {
 fn example_qwik_react() {
     test_input!(TestInput {
         code: r#"
-import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useWatchQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
+import { componentQrl, _inlinedQrl, useLexicalScope, useHostElement, useStore, useWatchQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
 import { jsx, Fragment } from '@builder.io/qwik/jsx-runtime';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 
 function qwikifyQrl(reactCmpQrl) {
-    return /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
+    return /*#__PURE__*/ componentQrl(_inlinedQrl((props)=>{
         const [reactCmpQrl] = useLexicalScope();
         const hostElement = useHostElement();
         const store = useStore({});
         let run;
         if (props['client:visible']) run = 'visible';
         else if (props['client:load'] || props['client:only']) run = 'load';
-        useWatchQrl(inlinedQrl(async (track)=>{
+        useWatchQrl(_inlinedQrl(async (track)=>{
             const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
             track(props);
             if (isBrowser) {
@@ -1680,7 +1680,7 @@ export { qwikify$, qwikifyQrl, renderToString };
 #[test]
 fn relative_paths() {
     let dep = r#"
-import { componentQrl, inlinedQrl, useStore, useLexicalScope } from "@builder.io/qwik";
+import { componentQrl, _inlinedQrl, useStore, useLexicalScope } from "@builder.io/qwik";
 import { jsx, jsxs } from "@builder.io/qwik/jsx-runtime";
 import { state } from './sibling';
 
@@ -1690,7 +1690,7 @@ const useData = () => {
     });
 }
 
-export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+export const App = /*#__PURE__*/ componentQrl(_inlinedQrl(()=>{
     const store = useData();
     return /*#__PURE__*/ jsxs("div", {
         children: [
@@ -1702,7 +1702,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
             }),
             /*#__PURE__*/ jsx("p", {
                 children: /*#__PURE__*/ jsx("button", {
-                    onClick$: inlinedQrl(()=>{
+                    onClick$: _inlinedQrl(()=>{
                         const [store] = useLexicalScope();
                         return store.count++;
                     }, "App_component_div_p_button_onClick_8dWUa0cJAr4", [

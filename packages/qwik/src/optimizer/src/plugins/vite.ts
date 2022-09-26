@@ -202,6 +202,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           dedupe: [...DEDUPE, ...vendorIds],
           conditions: [],
         },
+        esbuild:
+          opts.buildMode === 'development'
+            ? false
+            : {
+                logLevel: 'error',
+                jsx: 'preserve',
+              },
         optimizeDeps: {
           exclude: [
             '@vite/client',
@@ -256,6 +263,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         } else {
           updatedViteConfig.publicDir = false;
           updatedViteConfig.build!.ssr = true;
+          if (buildMode === 'production') {
+            updatedViteConfig.build!.minify = 'esbuild';
+          }
         }
         if (typeof viteConfig.build?.emptyOutDir === 'boolean') {
           updatedViteConfig.build!.emptyOutDir = viteConfig.build!.emptyOutDir;

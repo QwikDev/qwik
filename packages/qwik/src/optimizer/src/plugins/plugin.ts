@@ -672,6 +672,8 @@ export const QWIK_BUILD_ID = '@builder.io/qwik/build';
 
 export const QWIK_JSX_RUNTIME_ID = '@builder.io/qwik/jsx-runtime';
 
+export const QWIK_JSX_DEV_RUNTIME_ID = '@builder.io/qwik/jsx-dev-runtime';
+
 export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 
 export const SRC_DIR_DEFAULT = 'src';

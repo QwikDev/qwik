@@ -84,7 +84,7 @@ export interface ComponentBaseProps {
 }
 
 // @public
-export const componentQrl: <PROPS extends {}>(onRenderQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
+export const componentQrl: <PROPS extends {}>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
 
 // @public
 export interface Context<STATE extends object> {
@@ -261,13 +261,20 @@ export const _IMMUTABLE: unique symbol;
 // @alpha
 export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET;
 
-// @alpha (undocumented)
+// Warning: (ae-internal-missing-underscore) The name "inlinedQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export const inlinedQrl: <T>(symbol: T, symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
+
+// Warning: (ae-forgotten-export) The symbol "QRLDev" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "inlinedQrlDEV" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public (undocumented)
 const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key?: string | number | null) => JSXNode<T>;
 export { jsx }
-export { jsx as jsxDEV }
 export { jsx as jsxs }
 
 // Warning: (ae-incompatible-release-tags) The symbol "JSXChildren" is marked as @public, but its signature references "Signal" which is marked as @alpha
@@ -275,8 +282,17 @@ export { jsx as jsxs }
 // @public (undocumented)
 export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | Signal<string | number> | JSXChildren[] | Promise<JSXChildren> | JSXNode;
 
+// Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key: string | number | null | undefined, isStatic: boolean, opts: JsxDevOpts, ctx: any) => JSXNode<T>;
+
 // @public (undocumented)
 export interface JSXNode<T = string | FunctionComponent> {
+    // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    dev?: DevJSX;
     // (undocumented)
     key: string | null;
     // (undocumented)
@@ -341,8 +357,15 @@ export interface QRL<TYPE = any> {
     resolve(): Promise<TYPE>;
 }
 
-// @alpha
+// Warning: (ae-internal-missing-underscore) The name "qrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[]) => QRL<T>;
+
+// Warning: (ae-internal-missing-underscore) The name "qrlDEV" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public (undocumented)
 export interface QwikDOMAttributes extends DOMAttributes<any> {

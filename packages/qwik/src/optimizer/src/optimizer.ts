@@ -73,7 +73,7 @@ const transformFsAsync = async (
       minify: fsOpts.minify,
       sourceMaps: fsOpts.sourceMaps,
       transpile: fsOpts.transpile,
-      dev: fsOpts.dev,
+      mode: fsOpts.mode,
       scope: fsOpts.scope,
       input,
     };
@@ -90,7 +90,7 @@ const convertOptions = (opts: any) => {
     sourceMaps: false,
     transpile: false,
     explicitExtensions: false,
-    dev: true,
+    mode: 'lib',
     manualChunks: undefined,
     scope: undefined,
     stripExports: undefined,

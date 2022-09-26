@@ -52,7 +52,7 @@ export interface QContext {
   $id$: string;
   $mounted$: boolean;
   $props$: Record<string, any> | null;
-  $renderQrl$: QRLInternal<OnRenderFn<any>> | null;
+  $componentQrl$: QRLInternal<OnRenderFn<any>> | null;
   li: Record<string, QRLInternal<any>[]>;
   $seq$: any[] | null;
   $watches$: SubscriberEffect[] | null;
@@ -86,7 +86,7 @@ export const getContext = (element: Element | VirtualElement): QContext => {
       $appendStyles$: null,
       $props$: null,
       $vdom$: null,
-      $renderQrl$: null,
+      $componentQrl$: null,
       $contexts$: null,
       $parent$: null,
     };
@@ -100,10 +100,10 @@ export const cleanupContext = (ctx: QContext, subsManager: SubscriptionManager) 
     subsManager.$clearSub$(watch);
     destroyWatch(watch);
   });
-  if (ctx.$renderQrl$) {
+  if (ctx.$componentQrl$) {
     subsManager.$clearSub$(el);
   }
-  ctx.$renderQrl$ = null;
+  ctx.$componentQrl$ = null;
   ctx.$seq$ = null;
   ctx.$watches$ = null;
   ctx.$dirty$ = false;
@@ -129,7 +129,7 @@ export const normalizeOnProp = (prop: string) => {
   } else {
     prop = prop.toLowerCase();
   }
-  return scope + ":" + prop;
+  return scope + ':' + prop;
 };
 
 export const getPropsMutator = (ctx: QContext, containerState: ContainerState) => {
@@ -156,15 +156,11 @@ export const getPropsMutator = (ctx: QContext, containerState: ContainerState) =
 };
 
 export const inflateQrl = (qrl: QRLInternal, elCtx: QContext) => {
-  assertDefined(
-    qrl.$capture$,
-    'invoke: qrl capture must be defined inside useLexicalScope()',
-    qrl
-  );
-  return qrl.$captureRef$ = qrl.$capture$.map((idx) => {
+  assertDefined(qrl.$capture$, 'invoke: qrl capture must be defined inside useLexicalScope()', qrl);
+  return (qrl.$captureRef$ = qrl.$capture$.map((idx) => {
     const int = parseInt(idx, 10);
     const obj = elCtx.$refMap$[int];
     assertTrue(elCtx.$refMap$.length > int, 'out of bounds inflate access', idx);
     return obj;
-  });
+  }));
 };

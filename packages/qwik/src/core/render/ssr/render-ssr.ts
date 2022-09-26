@@ -189,7 +189,7 @@ export const renderNodeVirtual = (
   const props = node.props;
   const renderQrl = props[OnRenderProp];
   if (renderQrl) {
-    elCtx.$renderQrl$ = renderQrl;
+    elCtx.$componentQrl$ = renderQrl;
     return renderSSRComponent(ssrCtx, stream, elCtx, node, flags, beforeClose);
   }
   let virtualComment = '<!--qv' + renderVirtualAttributes(props);
@@ -443,7 +443,7 @@ export const renderNode = (
         continue;
       }
       if (isOnProp(prop)) {
-        setEvent(elCtx.li, prop, value);
+        setEvent(elCtx.li, prop, value, undefined);
         continue;
       }
       const attrName = processPropKey(prop);
@@ -651,17 +651,19 @@ function walkChildren(
       : stream;
 
     const rendered = processData(child, ssrContext, localStream, flags);
-    if (isPromise(rendered) || prevPromise) {
-      return then(rendered, () => {
-        return then(prevPromise, () => {
-          currentIndex++;
-          if (buffers.length > currentIndex) {
-            buffers[currentIndex].forEach((chunk) => stream.write(chunk));
-          }
-        });
-      });
-    } else {
+    const next = () => {
       currentIndex++;
+      if (buffers.length > currentIndex) {
+        buffers[currentIndex].forEach((chunk) => stream.write(chunk));
+      }
+    };
+    if (isPromise(rendered) && prevPromise) {
+      return Promise.all([rendered, prevPromise]).then(next);
+    } else if (isPromise(rendered)) {
+      return rendered.then(next);
+    } else if (prevPromise) {
+      return prevPromise.then(next);
+    } else {
       return undefined;
     }
   }, undefined);

@@ -43,9 +43,9 @@ The developer writes code for a simple component.
 
 ```tsx
 const Counter = component$((props: { step: number }) => {
-  const state = createState({ count: 0 });
+  const state = useStore({ count: 0 });
 
-  return <button onClick$={(state.count += props.step || 1)}>{state.count}</button>;
+  return <button onClick$={() => (state.count += props.step || 1)}>{state.count}</button>;
 });
 ```
 

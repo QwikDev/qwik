@@ -227,7 +227,7 @@ export const resumeContainer = (containerEl: Element) => {
       ctx.$scopeIds$ = styleIds ? styleIds.split(' ') : null;
       ctx.$mounted$ = true;
       ctx.$props$ = getObject(props);
-      ctx.$renderQrl$ = getObject(renderQrl);
+      ctx.$componentQrl$ = getObject(renderQrl);
     }
   }
 
@@ -536,7 +536,7 @@ export const _pauseFromContexts = async (
     const props = ctx.$props$;
     const contexts = ctx.$contexts$;
     const watches = ctx.$watches$;
-    const renderQrl = ctx.$renderQrl$;
+    const renderQrl = ctx.$componentQrl$;
     const seq = ctx.$seq$;
     const metaValue: SnapshotMetaValue = {};
     const elementCaptured = isVirtualElement(node) && collector.$elements$.includes(node);
@@ -829,8 +829,8 @@ export const collectElementData = (ctx: QContext, collector: Collector) => {
   if (ctx.$props$) {
     collectValue(ctx.$props$, collector, false);
   }
-  if (ctx.$renderQrl$) {
-    collectValue(ctx.$renderQrl$, collector, false);
+  if (ctx.$componentQrl$) {
+    collectValue(ctx.$componentQrl$, collector, false);
   }
   if (ctx.$seq$) {
     for (const obj of ctx.$seq$) {

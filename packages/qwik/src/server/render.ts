@@ -287,7 +287,7 @@ const escapeText = (str: string) => {
 function collectRenderSymbols(renderSymbols: string[], elements: QContext[]) {
   // TODO: Move to snapshot result
   for (const ctx of elements) {
-    const symbol = ctx.$renderQrl$?.getSymbol();
+    const symbol = ctx.$componentQrl$?.getSymbol();
     if (symbol && !renderSymbols.includes(symbol)) {
       renderSymbols.push(symbol);
     }

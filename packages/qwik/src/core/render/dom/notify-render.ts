@@ -61,7 +61,7 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
 
   const ctx = getContext(hostElement);
   assertDefined(
-    ctx.$renderQrl$,
+    ctx.$componentQrl$,
     `render: notified host element must have a defined $renderQrl$`,
     ctx
   );
@@ -141,67 +141,60 @@ export const _hW = () => {
 };
 
 const renderMarked = async (containerState: ContainerState): Promise<void> => {
-  const hostsRendering = (containerState.$hostsRendering$ = new Set(containerState.$hostsNext$));
-  containerState.$hostsNext$.clear();
-  await executeWatchesBefore(containerState);
-
-  containerState.$hostsStaging$.forEach((host) => {
-    hostsRendering.add(host);
-  });
-  containerState.$hostsStaging$.clear();
-
   const doc = getDocument(containerState.$containerEl$);
-  const renderingQueue = Array.from(hostsRendering);
-  sortNodes(renderingQueue);
+  try {
+    const ctx = createRenderContext(doc, containerState);
+    const staticCtx = ctx.$static$;
+    const hostsRendering = (containerState.$hostsRendering$ = new Set(containerState.$hostsNext$));
+    containerState.$hostsNext$.clear();
+    await executeWatchesBefore(containerState);
 
-  const ctx = createRenderContext(doc, containerState);
-  const staticCtx = ctx.$static$;
-  for (const el of renderingQueue) {
-    if (!staticCtx.$hostElements$.has(el)) {
-      const elCtx = getContext(el);
-      if (elCtx.$renderQrl$) {
-        assertTrue(el.isConnected, 'element must be connected to the dom');
-        staticCtx.$roots$.push(elCtx);
-        try {
-          await renderComponent(ctx, elCtx, getFlags(el.parentElement));
-        } catch (err) {
-          logError(err);
-          if (qDev) {
-            if (err && err instanceof Error) {
-              doc.dispatchEvent(
-                new CustomEvent('qerror', {
-                  bubbles: true,
-                  detail: {
-                    error: err,
-                  },
-                })
-              );
+    containerState.$hostsStaging$.forEach((host) => {
+      hostsRendering.add(host);
+    });
+    containerState.$hostsStaging$.clear();
+
+    const renderingQueue = Array.from(hostsRendering);
+    sortNodes(renderingQueue);
+
+    for (const el of renderingQueue) {
+      if (!staticCtx.$hostElements$.has(el)) {
+        const elCtx = getContext(el);
+        if (elCtx.$componentQrl$) {
+          assertTrue(el.isConnected, 'element must be connected to the dom');
+          staticCtx.$roots$.push(elCtx);
+          try {
+            await renderComponent(ctx, elCtx, getFlags(el.parentElement));
+          } catch (err) {
+            if (qDev) {
+              throw err;
             }
           }
         }
       }
     }
+
+    containerState.$opsNext$.forEach((op) => executeSignalOperation(staticCtx, op));
+    containerState.$opsNext$.clear();
+
+    // Add post operations
+    staticCtx.$operations$.push(...staticCtx.$postOperations$);
+
+    // Early exist, no dom operations
+    if (staticCtx.$operations$.length === 0) {
+      printRenderStats(staticCtx);
+      await postRendering(containerState, staticCtx);
+      return;
+    }
+
+    await getPlatform().raf(() => {
+      executeContextWithSlots(ctx);
+      printRenderStats(staticCtx);
+      return postRendering(containerState, staticCtx);
+    });
+  } catch (err) {
+    logError(err);
   }
-
-  containerState.$opsNext$.forEach((op) => executeSignalOperation(staticCtx, op));
-  containerState.$opsNext$.clear();
-
-  // Add post operations
-  staticCtx.$operations$.push(...staticCtx.$postOperations$);
-
-  // Early exist, no dom operations
-  if (staticCtx.$operations$.length === 0) {
-    printRenderStats(staticCtx);
-    postRendering(containerState, staticCtx);
-    return;
-  }
-
-  return getPlatform().raf(() => {
-    executeContextWithSlots(ctx);
-    printRenderStats(staticCtx);
-    postRendering(containerState, staticCtx);
-    return;
-  });
 };
 
 const getFlags = (el: Element | null) => {

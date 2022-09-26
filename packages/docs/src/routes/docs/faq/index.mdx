@@ -33,7 +33,7 @@ We also have an interactive [tutorial](../../tutorial/welcome/overview/) to get 
 
 ### What are all those `$`?
 
-You might have noticed there are more [`$`](../advanced/optimizer/index.mdx#the-meaning-of-) than usual in Qwik apps: `component$()`, `useWatch$()`, `<div onClick$={() => console.log('click')} />`. It's not for nothing. Qwik breaks your application into small chunks; these pieces are smaller than the component itself. For event handlers, hooks, ect... the `$` signals both to the [optimizer](../advanced/optimizer/index.mdx) and to the developer when it's happening.
+You might have noticed there are more [`$`](../advanced/optimizer/index.mdx#the-meaning-of-) than usual in Qwik apps: `component$()`, `useWatch$()`, `<div onClick$={() => console.log('click')} />`. It's not for nothing. Qwik breaks your application into small chunks; these pieces are smaller than the component itself. For event handlers, hooks, etc... the `$` signals both to the [optimizer](../advanced/optimizer/index.mdx) and to the developer when it's happening.
 
 **Example:**
 ```tsx
@@ -116,7 +116,7 @@ YES! [Qwik City](../../qwikcity/overview/index.mdx) includes a directory-based r
 
 ### Do I need a server to deploy Qwik apps?
 
-You can deploy easily a Qwik App in any [serverless enviroment thanks to our adaptors](../../qwikcity/middleware/overview/index.mdx), we also support a [vanilla-node adaptor](../../qwikcity/middleware/express/index.mdx) for Express-based servers.
+You can deploy easily a Qwik App in any [serverless enviroment thanks to our adaptors](../../qwikcity/middleware/overview/index.mdx), we also support a [vanilla-node adaptor](../../qwikcity/middleware/node/index.mdx) for Nodejs-based servers, such as Express.
 
 You can deploy your Qwik app as a static site, if there is no need for SSR, thanks to our [SSG adaptor](../../qwikcity/static-site-generation/overview/index.mdx).
 
@@ -138,20 +138,17 @@ Qwik is the unique framework that is both MPA and SPA at the same time.
 Of course! [Qwik City](../../qwikcity/overview/index.mdx) includes the `<Link>` component which triggers a SPA navigation.
 With Qwik, developers don't need to choose between SPA and MPA, every site is both at the same time.
 
-MPA vs SPA is not longer an architectural decision taken at beginning of the project, but a decision made for every link.
+MPA vs SPA is no longer an architectural decision taken at beginning of the project, but a decision made for every link.
 
-### Can Qwik do SSG?
+### Can Qwik do Static Site Generation (SSG)?
 
 Yes! It's part of all Qwik City starters, learn how to do [Static Site Generation here](../../qwikcity/static-site-generation/overview/index.mdx).
 
-### but... with other frameworks I can also do MPA and SPA
+### But... with other frameworks I can also do MPA and SPA
 
-No quite, other frameworks suggest removing all the `<Scripts>` at the root to generate an MPA, efectively removing all the interactivity along with the SPA navigation.
+Not quite, other frameworks suggest removing all the `<Scripts>` at the root to generate an MPA, effectively removing all the interactivity along with the SPA navigation.
 
-And if `<Scripts>` are not removed, then full page reloads become very expensive, because every page reloads means that the framework need to hydrate the entire page.
-
-Qwik does not have any of this page.
-
+And if scripts are _not_ removed, then each full-page reload become very expensive, because every page reload means that the framework needs to hydrate the entire page. Qwik, however, does not have a [hydration cost](https://www.builder.io/blog/hydration-is-pure-overhead) for each page load.
 
 ### Will migrate to Qwik be so much work?
 

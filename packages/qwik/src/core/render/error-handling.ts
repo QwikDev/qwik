@@ -18,7 +18,9 @@ export const handleError = (err: any, hostElement: QwikElement, rctx?: RenderCon
     if (!isServer() && isVirtualElement(hostElement)) {
       getContext(hostElement).$vdom$ = null;
       const errorDiv = document.createElement('errored-host');
-      (errorDiv as any).props = { error: err };
+      if (err && err instanceof Error) {
+        (errorDiv as any).props = { error: err };
+      }
       errorDiv.setAttribute('q:key', '_error_');
       errorDiv.append(...hostElement.childNodes);
       hostElement.appendChild(errorDiv);

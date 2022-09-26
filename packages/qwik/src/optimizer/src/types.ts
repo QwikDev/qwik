@@ -76,7 +76,7 @@ export interface TransformOptions {
   sourceMaps?: boolean;
   transpile?: boolean;
   explicitExtensions?: boolean;
-  dev?: boolean;
+  mode?: EmitMode;
   scope?: string;
 }
 
@@ -194,6 +194,11 @@ export type EntryStrategy =
  * @alpha
  */
 export type MinifyMode = 'simplify' | 'none';
+
+/**
+ * @alpha
+ */
+export type EmitMode = 'dev' | 'prod' | 'lib';
 
 /**
  * @alpha

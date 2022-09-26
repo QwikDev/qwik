@@ -13,6 +13,9 @@ It's important to notice that state in Qwik is not component state, but rather a
 
 The reactive object returned by `useStore()` is just like any other object, but it's reactive. If you change a property of the object, any component that depends on it will be updated.
 
+> **NOTE**
+> Make sure to keep a reference to the reactive object and not only to its properties, for reactivity to work. e.g. doing `let { count } = useStore({ count: 0 })` and then mutating `count` won't trigger updates of components that depends on it.
+
 ### Example
 
 An example showing how `useStore` is used in the Counter example to keep track of the count.

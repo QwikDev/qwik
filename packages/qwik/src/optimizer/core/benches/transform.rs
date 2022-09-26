@@ -194,7 +194,7 @@ fn transform_todo_app(b: &mut Bencher) {
           minify: MinifyMode::Simplify,
           transpile: true,
           entry_strategy: EntryStrategy::Single,
-          dev: true,
+          mode: EmitMode::Prod,
           scope: None,
           strip_exports: None,
       })

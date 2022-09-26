@@ -374,13 +374,15 @@ export interface TransformModulesOptions extends TransformOptions {
 // @alpha (undocumented)
 export interface TransformOptions {
     // (undocumented)
-    dev?: boolean;
-    // (undocumented)
     entryStrategy?: EntryStrategy;
     // (undocumented)
     explicitExtensions?: boolean;
     // (undocumented)
     minify?: MinifyMode;
+    // Warning: (ae-forgotten-export) The symbol "EmitMode" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    mode?: EmitMode;
     // (undocumented)
     scope?: string;
     // (undocumented)

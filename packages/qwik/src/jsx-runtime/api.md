@@ -18,7 +18,6 @@ export interface FunctionComponent<P = Record<string, any>> {
 // @public (undocumented)
 const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key?: string | number | null) => JSXNode<T>;
 export { jsx }
-export { jsx as jsxDEV }
 export { jsx as jsxs }
 
 // @public (undocumented)
@@ -44,8 +43,17 @@ namespace JSX_2 {
 }
 export { JSX_2 as JSX }
 
+// Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point jsx-runtime.d.ts
+//
+// @public (undocumented)
+export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key: string | number | null | undefined, isStatic: boolean, opts: JsxDevOpts, ctx: any) => JSXNode<T>;
+
 // @public (undocumented)
 export interface JSXNode<T = string | FunctionComponent> {
+    // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point jsx-runtime.d.ts
+    //
+    // (undocumented)
+    dev?: DevJSX;
     // (undocumented)
     key: string | null;
     // (undocumented)

@@ -90,22 +90,27 @@ export async function generatePackageJson(config: BuildConfig) {
 
   await generateLegacyCjsSubmodule(config, 'core');
   await generateLegacyCjsSubmodule(config, 'jsx-runtime');
+  await generateLegacyCjsSubmodule(config, 'jsx-dev-runtime', 'jsx-runtime');
   await generateLegacyCjsSubmodule(config, 'optimizer');
   await generateLegacyCjsSubmodule(config, 'server');
 
   console.log(`🐷 generated package.json`);
 }
 
-export async function generateLegacyCjsSubmodule(config: BuildConfig, pkgName: string) {
+export async function generateLegacyCjsSubmodule(
+  config: BuildConfig,
+  pkgName: string,
+  index = pkgName
+) {
   // Modern nodejs will resolve the submodule packages using "exports": https://nodejs.org/api/packages.html#subpath-exports
   // however, legacy nodejs still needs a directory and its own package.json
   // this can be removed once node12 is in the distant past
   const pkg: PackageJSON = {
     name: `@builder.io/qwik/${pkgName}`,
     version: config.distVersion,
-    main: `../${pkgName}.cjs`,
-    module: `../${pkgName}.mjs`,
-    types: `../${pkgName}.d.ts`,
+    main: `../${index}.cjs`,
+    module: `../${index}.mjs`,
+    types: `../${index}.d.ts`,
     private: true,
   };
   const submoduleDistDir = join(config.distPkgDir, pkgName);

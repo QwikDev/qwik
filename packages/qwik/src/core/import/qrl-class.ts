@@ -1,4 +1,9 @@
-import { qError, QError_qrlIsNotFunction } from '../error/error';
+import {
+  qError,
+  QError_qrlIsNotFunction,
+  Qerror_qrlMissingChunk,
+  Qerror_qrlMissingContainer,
+} from '../error/error';
 import { verifySerializable } from '../object/q-object';
 import { getPlatform, isServer } from '../platform/platform';
 import {
@@ -11,6 +16,7 @@ import {
 import { then } from '../util/promises';
 import { qDev, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, ValueOrPromise } from '../util/types';
+import type { QRLDev } from './qrl';
 import type { QRL } from './qrl.public';
 
 export const isQrl = (value: any): value is QRLInternal => {
@@ -18,13 +24,14 @@ export const isQrl = (value: any): value is QRLInternal => {
 };
 
 export interface QRLInternalMethods<TYPE> {
-  readonly $chunk$: string;
+  readonly $chunk$: string | null;
   readonly $symbol$: string;
   readonly $refSymbol$: string | null;
   readonly $hash$: string;
 
   $capture$: string[] | null;
   $captureRef$: any[] | null;
+  $dev$: QRLDev | null;
 
   resolve(): Promise<TYPE>;
   getSymbol(): string;
@@ -43,7 +50,7 @@ export interface QRLInternalMethods<TYPE> {
 export interface QRLInternal<TYPE = any> extends QRL<TYPE>, QRLInternalMethods<TYPE> {}
 
 export const createQRL = <TYPE>(
-  chunk: string,
+  chunk: string | null,
   symbol: string,
   symbolRef: null | ValueOrPromise<TYPE>,
   symbolFn: null | (() => Promise<Record<string, any>>),
@@ -67,16 +74,17 @@ export const createQRL = <TYPE>(
     if (containerEl) {
       setContainer(containerEl);
     }
-    if (symbolRef) {
+    if (symbolRef !== null) {
       return symbolRef;
     }
-    if (symbolFn) {
+    if (symbolFn !== null) {
       return (symbolRef = symbolFn().then((module) => (symbolRef = module[symbol])));
     } else {
+      if (!chunk) {
+        throw qError(Qerror_qrlMissingChunk, symbol);
+      }
       if (!_containerEl) {
-        throw new Error(
-          `QRL '${chunk}#${symbol || 'default'}' does not have an attached container`
-        );
+        throw qError(Qerror_qrlMissingContainer, chunk, symbol);
       }
       const symbol2 = getPlatform().importSymbol(_containerEl, chunk, symbol);
       return (symbolRef = then(symbol2, (ref) => {
@@ -143,6 +151,7 @@ export const createQRL = <TYPE>(
 
     $capture$: capture,
     $captureRef$: captureRef,
+    $dev$: null,
   };
   const qrl = Object.assign(invokeQRL, methods);
   seal(qrl);

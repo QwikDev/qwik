@@ -31,6 +31,8 @@ export const QError_trackUseStore = 26;
 export const QError_missingObjectId = 27;
 export const QError_invalidContext = 28;
 export const QError_canNotRenderHTML = 29;
+export const Qerror_qrlMissingContainer = 30;
+export const Qerror_qrlMissingChunk = 31;
 
 export const qError = (code: number, ...parts: any[]): Error => {
   const text = codeToText(code);
@@ -70,6 +72,8 @@ export const codeToText = (code: number): string => {
       'Missing Object ID for captured object', // 27
       'The provided Context reference is not a valid context created by createContext()', // 28
       '<html> is the root container, it can not be rendered inside a component', // 29
+      'QRLs can not be resolved because it does not have an attached container. This means that the QRL does not know where it belongs inside the DOM, so it cant dynamically import() from a relative path.', // 30
+      'QRLs can not be dynamically resolved, because it does not have a chunk path', // 30
     ];
     return `Code(${code}): ${MAP[code] ?? ''}`;
   } else {

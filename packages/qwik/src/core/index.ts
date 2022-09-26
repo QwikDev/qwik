@@ -21,7 +21,7 @@ export type {
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export { $ } from './import/qrl.public';
-export { qrl, inlinedQrl } from './import/qrl';
+export { qrl, inlinedQrl, inlinedQrlDEV, qrlDEV } from './import/qrl';
 export type { QRL, PropFunction, PropFnInterface } from './import/qrl.public';
 export { implicit$FirstArg } from './util/implicit_dollar';
 

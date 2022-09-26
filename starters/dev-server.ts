@@ -131,16 +131,16 @@ export {
         '@builder.io/qwik': join(qwikDistDir),
       },
     },
-    define: {
-      'globalThis.qSerialize': false,
-      'globalThis.qDev': !isProd,
-    },
   });
 
   await build(
     getInlineConf({
       build: {
         minify: false,
+      },
+      define: {
+        'globalThis.qSerialize': false,
+        'globalThis.qDev': !isProd,
       },
       plugins: [
         ...plugins,
@@ -168,6 +168,9 @@ export {
         ssr: enableCityServer ? qwikCityVirtualEntry : resolve(appSrcDir, entrySsrFileName),
       },
       plugins: [...plugins, optimizer.qwikVite()],
+      define: {
+        'globalThis.qDev': !isProd,
+      },
     })
   );
 

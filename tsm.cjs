@@ -14,6 +14,7 @@ module.exports = {
       jsxFragment: 'qwikJsx.Fragment',
       banner: `
       globalThis.qTest = true;
+      globalThis.qRuntimeQrl = true;
       globalThis.qDev = true;
       import * as qwikJsx from "${corePath}";`,
       target: 'es2020',
@@ -24,6 +25,7 @@ module.exports = {
       loader: 'ts',
       banner: `
 globalThis.qTest = true;
+globalThis.qRuntimeQrl = true;
 globalThis.qDev = true;
 `,
       minify: false,

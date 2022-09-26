@@ -1,7 +1,7 @@
 import { ElementFixture, trigger } from '../../../testing/element-fixture';
 import { expectDOM } from '../../../testing/expect-dom.unit';
 import { component$ } from '../../component/component.public';
-import { inlinedQrl, runtimeQrl } from '../../import/qrl';
+import { inlinedQrl } from '../../import/qrl';
 import { pauseContainer } from '../../object/store';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
@@ -370,7 +370,7 @@ renderSuite('should render host events on the first element', async () => {
     <div
       q:id="1"
       on:qvisible="/runtimeQRL#_[0]"
-      on:click="/inlinedQRL#use-on-click"
+      on:click="/runtimeQRL#_"
     >
       thing
     </div>
@@ -815,7 +815,10 @@ export const RenderClasses = component$(() => {
   });
   return (
     <>
-      <button className="increment" onClick$={runtimeQrl(Counter_add, [state, { value: 1 }])}>
+      <button
+        className="increment"
+        onClick$={inlinedQrl(Counter_add, 'Counteradd', [state, { value: 1 }])}
+      >
         +
       </button>
       <div
@@ -855,11 +858,17 @@ export const Counter = component$((props: { step?: number }) => {
   const step = Number(props.step || 1);
   return (
     <>
-      <button class="decrement" onClick$={runtimeQrl(Counter_add, [state, { value: -step }])}>
+      <button
+        class="decrement"
+        onClick$={inlinedQrl(Counter_add, 'Counteradd', [state, { value: -step }])}
+      >
         -
       </button>
       <span>{state.count}</span>
-      <button className="increment" onClick$={runtimeQrl(Counter_add, [state, { value: step }])}>
+      <button
+        className="increment"
+        onClick$={inlinedQrl(Counter_add, 'Counteradd', [state, { value: step }])}
+      >
         +
       </button>
     </>

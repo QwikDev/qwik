@@ -154,7 +154,7 @@ export type BivariantEventHandler<T extends Event> = {
  */
 export type NativeEventHandler<T extends Event = Event> =
   | BivariantEventHandler<T>
-  | BivariantEventHandler<T>[];
+  | QRL<BivariantEventHandler<T>>[];
 
 /**
  * @public

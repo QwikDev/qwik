@@ -27,13 +27,13 @@ const d = $(()=>console.log('thing'));
 
 ============================= test.js ==
 
+import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Greeter = /*#__PURE__*/ componentQrl(qrl(()=>import("./greeter_component_n7hug2hhu0q"), "Greeter_component_n7HuG2hhU0Q"));
-qrl(()=>import("./d_wknfjeiqvua"), "d_wKNFJEIQVUA");
+export const Greeter = /*#__PURE__*/ componentQrl(_qrl(()=>import("./greeter_component_n7hug2hhu0q"), "Greeter_component_n7HuG2hhU0Q"));
+_qrl(()=>import("./d_wknfjeiqvua"), "d_wKNFJEIQVUA");
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,OAAO,iBAAG,iGAarB,CAAC;oDAEmC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,OAAO,iBAAG,kGAarB,CAAC;qDAEmC\"}")
 ============================= d_wknfjeiqvua.js (ENTRY POINT)==
 
 export const d_wKNFJEIQVUA = ()=>console.log('thing');
@@ -100,10 +100,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= greeter_component_n7hug2hhu0q.js (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
+import { _qrl } from "@builder.io/qwik";
 export const Greeter_component_n7HuG2hhU0Q = ()=>{
     const stuff = useStore();
-    return qrl(()=>import("./greeter_component_1_krcndswhx4u"), "Greeter_component_1_krCndSwhX4U", [
+    return _qrl(()=>import("./greeter_component_1_krcndswhx4u"), "Greeter_component_1_krCndSwhX4U", [
         stuff
     ]);
 };

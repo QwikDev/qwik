@@ -1,4 +1,4 @@
-import { qrl } from '../import/qrl';
+import { _qrl } from '../import/qrl';
 import { ErrorBoundaryStore, ERROR_CONTEXT } from '../render/error-handling';
 import { useContextProvider } from './use-context';
 import { useOn } from './use-on';
@@ -11,7 +11,7 @@ export const useErrorBoundary = (): Readonly<ErrorBoundaryStore> => {
   const store: ErrorBoundaryStore = useStore({
     error: undefined,
   });
-  useOn('error-boundary', qrl('/runtime', 'error', [store]));
+  useOn('error-boundary', _qrl('/runtime', 'error', [store]));
   useContextProvider(ERROR_CONTEXT, store);
 
   return store;

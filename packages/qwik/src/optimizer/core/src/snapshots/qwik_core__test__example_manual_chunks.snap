@@ -46,17 +46,17 @@ export const Child = component$(() => {
 
 ============================= test.js ==
 
+import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Parent = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_Parent"), "Parent_component_0TaiDayHrlo"));
-export const Child = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_Child"), "Child_component_9GyF01GDKqw"));
+export const Parent = /*#__PURE__*/ componentQrl(_qrl(()=>import("./entry_Parent"), "Parent_component_0TaiDayHrlo"));
+export const Child = /*#__PURE__*/ componentQrl(_qrl(()=>import("./entry_Child"), "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAIA,OAAO,MAAM,MAAM,iBAAG,+EAgBpB,CAAC;AAEH,OAAO,MAAM,KAAK,iBAAG,6EAenB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAIA,OAAO,MAAM,MAAM,iBAAG,gFAgBpB,CAAC;AAEH,OAAO,MAAM,KAAK,iBAAG,8EAenB,CAAC\"}")
 ============================= parent_component_0taidayhrlo.js ==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { qrl } from "@builder.io/qwik";
+import { _qrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 import { useWatchQrl } from "@builder.io/qwik";
 export const Parent_component_0TaiDayHrlo = ()=>{
@@ -64,11 +64,11 @@ export const Parent_component_0TaiDayHrlo = ()=>{
         text: ''
     });
     // Double count watch
-    useWatchQrl(qrl(()=>import("./entry_Parent"), "Parent_component_useWatch_ZM0ARFf10mw", [
+    useWatchQrl(_qrl(()=>import("./entry_Parent"), "Parent_component_useWatch_ZM0ARFf10mw", [
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: qrl(()=>import("./chunk_clicks"), "Parent_component_div_onClick_C5XE49Nqd3A"),
+        onClick$: _qrl(()=>import("./chunk_clicks"), "Parent_component_div_onClick_C5XE49Nqd3A"),
         children: state.text
     });
 };
@@ -184,7 +184,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= child_component_9gyf01gdkqw.js ==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { qrl } from "@builder.io/qwik";
+import { _qrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 import { useWatchQrl } from "@builder.io/qwik";
 export const Child_component_9GyF01GDKqw = ()=>{
@@ -192,11 +192,11 @@ export const Child_component_9GyF01GDKqw = ()=>{
         text: ''
     });
     // Double count watch
-    useWatchQrl(qrl(()=>import("./entry_Child"), "Child_component_useWatch_YmfsZQTTkH0", [
+    useWatchQrl(_qrl(()=>import("./entry_Child"), "Child_component_useWatch_YmfsZQTTkH0", [
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: qrl(()=>import("./chunk_clicks"), "Child_component_div_onClick_elliVSnAiOQ"),
+        onClick$: _qrl(()=>import("./chunk_clicks"), "Child_component_div_onClick_elliVSnAiOQ"),
         children: state.text
     });
 };

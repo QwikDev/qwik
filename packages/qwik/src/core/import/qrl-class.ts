@@ -11,6 +11,7 @@ import {
 import { then } from '../util/promises';
 import { qDev, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, ValueOrPromise } from '../util/types';
+import type { QRLDev } from './qrl';
 import type { QRL } from './qrl.public';
 
 export const isQrl = (value: any): value is QRLInternal => {
@@ -25,6 +26,7 @@ export interface QRLInternalMethods<TYPE> {
 
   $capture$: string[] | null;
   $captureRef$: any[] | null;
+  $dev$: QRLDev | null;
 
   resolve(): Promise<TYPE>;
   getSymbol(): string;
@@ -143,6 +145,7 @@ export const createQRL = <TYPE>(
 
     $capture$: capture,
     $captureRef$: captureRef,
+    $dev$: null,
   };
   const qrl = Object.assign(invokeQRL, methods);
   seal(qrl);

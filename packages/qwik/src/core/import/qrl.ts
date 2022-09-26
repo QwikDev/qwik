@@ -33,6 +33,12 @@ const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+\.(js|ts)x?):/;
 
 const QRLcache = new Map<string, string>();
 
+export interface QRLDev {
+  file: string;
+  lo: number;
+  hi: number;
+}
+
 // <docs markdown="../readme.md#qrl">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#qrl instead)
@@ -47,10 +53,10 @@ const QRLcache = new Map<string, string>();
  * @param chunkOrFn - Chunk name (or function which is stringified to extract chunk name)
  * @param symbol - Symbol to lazy load
  * @param lexicalScopeCapture - a set of lexically scoped variables to capture.
- * @alpha
+ * @internal
  */
 // </docs>
-export const qrl = <T = any>(
+export const _qrl = <T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
   lexicalScopeCapture: any[] = EMPTY_ARRAY
@@ -116,15 +122,43 @@ export const runtimeQrl = <T>(
 };
 
 /**
- * @alpha
+ * @internal
  */
-export const inlinedQrl = <T>(
+export const _inlinedQrl = <T>(
   symbol: T,
   symbolName: string,
   lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> => {
   // Unwrap subscribers
   return createQRL<T>(INLINED_QRL, symbolName, symbol, null, null, lexicalScopeCapture, null);
+};
+
+/**
+ * @internal
+ */
+export const _qrlDEV = <T = any>(
+  chunkOrFn: string | (() => Promise<any>),
+  symbol: string,
+  opts: QRLDev,
+  lexicalScopeCapture: any[] = EMPTY_ARRAY
+): QRL<T> => {
+  const qrl = _qrl(chunkOrFn, symbol, lexicalScopeCapture) as QRLInternal<T>;
+  qrl.$dev$ = opts;
+  return qrl;
+};
+
+/**
+ * @internal
+ */
+export const _inlinedQrlDEV = <T = any>(
+  symbol: T,
+  symbolName: string,
+  opts: QRLDev,
+  lexicalScopeCapture: any[] = EMPTY_ARRAY
+): QRL<T> => {
+  const qrl = _inlinedQrl(symbol, symbolName, lexicalScopeCapture) as QRLInternal<T>;
+  qrl.$dev$ = opts;
+  return qrl;
 };
 
 export interface QRLSerializeOptions {

@@ -282,6 +282,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       log(`transformedOutput.clear()`);
       transformedOutputs.clear();
 
+      const mode =
+        opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
       const transformOpts: TransformFsOptions = {
         srcDir,
         vendorRoots,
@@ -289,7 +291,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         minify: 'simplify',
         transpile: true,
         explicitExtensions: true,
-        dev: opts.buildMode === 'development',
+        mode,
         scope: opts.scope ? opts.scope : undefined,
       };
 
@@ -461,6 +463,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       filePath = normalizePath(filePath);
       const srcDir = opts.srcDir ? opts.srcDir : normalizePath(dir);
+      const mode = opts.buildMode === 'development' ? 'dev' : 'prod';
       const newOutput = optimizer.transformModulesSync({
         input: [
           {
@@ -474,7 +477,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transpile: true,
         explicitExtensions: true,
         srcDir,
-        dev: opts.buildMode === 'development',
+        mode,
         scope: opts.scope ? opts.scope : undefined,
       });
 

@@ -18,12 +18,12 @@ export default component$(() => {
 
 ============================= src/routes/_repl/[id]/[[...slug]].js ==
 
+import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export default /*#__PURE__*/ componentQrl(qrl(()=>import("../../../../entry______slug__.js"), "_____slug___component_vgk6N3QaQd4"));
+export default /*#__PURE__*/ componentQrl(_qrl(()=>import("../../../../entry______slug__.js"), "_____slug___component_vgk6N3QaQd4"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,6BAAe,sGAKb,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,6BAAe,uGAKb,CAAC\"}")
 ============================= _____slug___component_div_onclick_oesymv0so3o.js ==
 
 import { sibling } from "./src/routes/_repl/[id]/sibling";
@@ -53,10 +53,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
 ============================= _____slug___component_vgk6n3qaqd4.js ==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { qrl } from "@builder.io/qwik";
+import { _qrl } from "@builder.io/qwik";
 export const _____slug___component_vgk6N3QaQd4 = ()=>{
     return /*#__PURE__*/ _jsx("div", {
-        onClick$: qrl(()=>import("./entry______slug__.js"), "_____slug___component_div_onClick_OesyMV0SO3o")
+        onClick$: _qrl(()=>import("./entry______slug__.js"), "_____slug___component_div_onClick_OesyMV0SO3o")
     });
 };
 

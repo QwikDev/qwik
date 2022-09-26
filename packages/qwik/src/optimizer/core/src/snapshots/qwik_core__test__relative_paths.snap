@@ -3,42 +3,16 @@ source: packages/qwik/src/optimizer/core/src/test.rs
 expression: output
 ---
 
-============================= app_component_div_p_button_onclick_8dwua0cjar4.js (ENTRY POINT)==
+============================= ../../node_modules/dep/dist/lib.mjs ==
 
-import { useLexicalScope } from "@builder.io/qwik";
-export const App_component_div_p_button_onClick_8dWUa0cJAr4 = ()=>{
-    const [store] = useLexicalScope();
-    return store.count++;
+import { componentQrl, inlinedQrl, useStore, useLexicalScope } from "@builder.io/qwik";
+import { jsx, jsxs } from "@builder.io/qwik/jsx-runtime";
+const useData = ()=>{
+    return useStore({
+        count: 0
+    });
 };
-
-
-Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\";8DAuByC,IAAI;IACrB,MAAM,CAAC,KAAK,CAAC,GAAG,eAAe,EAAE,AAAC;IAClC,OAAO,KAAK,CAAC,KAAK,EAAE,CAAC;AACzB,CAAC\"}")
-/*
-{
-  "origin": "../../node_modules/dep/dist/lib.mjs",
-  "name": "App_component_div_p_button_onClick_8dWUa0cJAr4",
-  "entry": null,
-  "displayName": "App_component_div_p_button_onClick",
-  "hash": "8dWUa0cJAr4",
-  "canonicalFilename": "app_component_div_p_button_onclick_8dwua0cjar4",
-  "extension": "js",
-  "parent": "App_component_AkbU84a8zes",
-  "ctxKind": "event",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    706,
-    838
-  ]
-}
-*/
-============================= app_component_akbu84a8zes.js (ENTRY POINT)==
-
-import { jsx } from "@builder.io/qwik/jsx-runtime";
-import { jsxs } from "@builder.io/qwik/jsx-runtime";
-import { qrl } from "@builder.io/qwik";
-import { useData } from "../../node_modules/dep/dist/lib";
-export const App_component_AkbU84a8zes = ()=>{
+export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
     const store = useData();
     return /*#__PURE__*/ jsxs("div", {
         children: [
@@ -50,7 +24,10 @@ export const App_component_AkbU84a8zes = ()=>{
             }),
             /*#__PURE__*/ jsx("p", {
                 children: /*#__PURE__*/ jsx("button", {
-                    onClick$: qrl(()=>import("./app_component_div_p_button_onclick_8dwua0cjar4.js"), "App_component_div_p_button_onClick_8dWUa0cJAr4", [
+                    onClick$: inlinedQrl(()=>{
+                        const [store] = useLexicalScope();
+                        return store.count++;
+                    }, "App_component_div_p_button_onClick_8dWUa0cJAr4", [
                         store
                     ]),
                     children: "Click"
@@ -58,43 +35,10 @@ export const App_component_AkbU84a8zes = ()=>{
             })
         ]
     });
-};
+}, "App_component_AkbU84a8zes"));
 
 
-Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\";;;;yCAWyD,IAAI;IACzD,MAAM,KAAK,GAAG,OAAO,EAAE,AAAC;IACxB,OAAO,WAAW,GAAG,IAAI,CAAC,KAAK,EAAE;QAC7B,QAAQ,EAAE;YACN,WAAW,GAAG,IAAI,CAAC,GAAG,EAAE;gBACpB,QAAQ,EAAE;oBACN,SAAS;oBACT,KAAK,CAAC,KAAK;iBACd;aACJ,CAAC;YACF,WAAW,GAAG,GAAG,CAAC,GAAG,EAAE;gBACnB,QAAQ,EAAE,WAAW,GAAG,GAAG,CAAC,QAAQ,EAAE;oBAClC,QAAQ;;;oBAMR,QAAQ,EAAE,OAAO;iBACpB,CAAC;aACL,CAAC;SACL;KACJ,CAAC,CAAC;AACP,CAAC\"}")
-/*
-{
-  "origin": "../../node_modules/dep/dist/lib.mjs",
-  "name": "App_component_AkbU84a8zes",
-  "entry": null,
-  "displayName": "App_component",
-  "hash": "AkbU84a8zes",
-  "canonicalFilename": "app_component_akbu84a8zes",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    315,
-    1037
-  ]
-}
-*/
-============================= ../../node_modules/dep/dist/lib.mjs ==
-
-import { qrl } from "@builder.io/qwik";
-import { componentQrl, useStore } from "@builder.io/qwik";
-const useData = ()=>{
-    return useStore({
-        count: 0
-    });
-};
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("../../../src/thing/app_component_akbu84a8zes.js"), "App_component_AkbU84a8zes"));
-export { useData };
-
-
-Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\"AACA;AAAA,SAAS,YAAY,EAAc,QAAQ,QAAyB,kBAAkB,CAAC;AAIvF,MAAM,OAAO,GAAG,IAAM;IAClB,OAAO,QAAQ,CAAC;QACZ,KAAK,EAAE,CAAC;KACX,CAAC,CAAC;AACP,CAAC;AAED,OAAO,MAAM,GAAG,GAAG,WAAW,GAAG,YAAY,iGAuBb,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\"AACA,SAAS,YAAY,EAAE,UAAU,EAAE,QAAQ,EAAE,eAAe,QAAQ,kBAAkB,CAAC;AACvF,SAAS,GAAG,EAAE,IAAI,QAAQ,8BAA8B,CAAC;AAGzD,MAAM,OAAO,GAAG,IAAM;IAClB,OAAO,QAAQ,CAAC;QACZ,KAAK,EAAE,CAAC;KACX,CAAC,CAAC;AACP,CAAC;AAED,OAAO,MAAM,GAAG,GAAG,WAAW,GAAG,YAAY,CAAC,UAAU,CAAC,IAAI;IACzD,MAAM,KAAK,GAAG,OAAO,EAAE,AAAC;IACxB,OAAO,WAAW,GAAG,IAAI,CAAC,KAAK,EAAE;QAC7B,QAAQ,EAAE;YACN,WAAW,GAAG,IAAI,CAAC,GAAG,EAAE;gBACpB,QAAQ,EAAE;oBACN,SAAS;oBACT,KAAK,CAAC,KAAK;iBACd;aACJ,CAAC;YACF,WAAW,GAAG,GAAG,CAAC,GAAG,EAAE;gBACnB,QAAQ,EAAE,WAAW,GAAG,GAAG,CAAC,QAAQ,EAAE;oBAClC,QAAQ,EAAE,UAAU,CAAC,IAAI;wBACrB,MAAM,CAAC,KAAK,CAAC,GAAG,eAAe,EAAE,AAAC;wBAClC,OAAO,KAAK,CAAC,KAAK,EAAE,CAAC;oBACzB,CAAC,EAAE,gDAAgD,EAAE;wBACjD,KAAK;qBACR,CAAC;oBACF,QAAQ,EAAE,OAAO;iBACpB,CAAC;aACL,CAAC;SACL;KACJ,CAAC,CAAC;AACP,CAAC,EAAE,2BAA2B,CAAC,CAAC,CAAC\"}")
 ============================= local_component_jj0v28bs0p8.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
@@ -128,12 +72,12 @@ Some("{\"version\":3,\"sources\":[\"/path/to/app/src/thing/components/main.tsx\"
 */
 ============================= components/main.js ==
 
+import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Local = /*#__PURE__*/ componentQrl(qrl(()=>import("../local_component_jj0v28bs0p8.js"), "Local_component_jJ0v28bs0p8"));
+export const Local = /*#__PURE__*/ componentQrl(_qrl(()=>import("../local_component_jj0v28bs0p8.js"), "Local_component_jJ0v28bs0p8"));
 
 
-Some("{\"version\":3,\"sources\":[\"/path/to/app/src/thing/components/main.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,KAAK,iBAAG,iGAInB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/path/to/app/src/thing/components/main.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,KAAK,iBAAG,kGAInB,CAAC\"}")
 == DIAGNOSTICS ==
 
 []

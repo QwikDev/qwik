@@ -1,7 +1,7 @@
 import { ElementFixture, trigger } from '../../../testing/element-fixture';
 import { expectDOM } from '../../../testing/expect-dom.unit';
 import { component$ } from '../../component/component.public';
-import { inlinedQrl, runtimeQrl } from '../../import/qrl';
+import { _inlinedQrl, runtimeQrl } from '../../import/qrl';
 import { pauseContainer } from '../../object/store';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
@@ -762,7 +762,7 @@ function getFirstNode(el: Element) {
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////
 export const HelloWorld = component$((props: { name?: string }) => {
-  useStylesQrl(inlinedQrl(`span.� { color: red; }`, 'style-1'));
+  useStylesQrl(_inlinedQrl(`span.� { color: red; }`, 'style-1'));
   const state = useStore({ salutation: 'Hello' });
   return (
     <span>
@@ -775,7 +775,7 @@ export const HelloWorld = component$((props: { name?: string }) => {
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////
 export const HelloWorldScoped = component$(() => {
-  useStylesScopedQrl(inlinedQrl(`.stuff { color: red; }`, 'style-scoped-1'));
+  useStylesScopedQrl(_inlinedQrl(`.stuff { color: red; }`, 'style-scoped-1'));
   const state = useStore({ cond: false });
   return (
     <div>
@@ -940,7 +940,7 @@ export const UseEvents = component$(() => {
   });
   useOn(
     'click',
-    inlinedQrl(() => {
+    _inlinedQrl(() => {
       console.warn('click');
     }, 'use-on-click')
   );

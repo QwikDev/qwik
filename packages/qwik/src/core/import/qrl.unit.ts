@@ -1,6 +1,6 @@
 import { parseQRL, stringifyQRL } from './qrl';
 import { createQRL } from './qrl-class';
-import { qrl } from './qrl';
+import { _qrl } from './qrl';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
 
@@ -58,7 +58,7 @@ qrlSuite('should parse reference', () => {
     console.warn(str);
   };
   matchProps(
-    qrl(
+    _qrl(
       () =>
         Promise.resolve().then(function () {
           return require('./h_my-app_myapp_init-73253fd4.js');

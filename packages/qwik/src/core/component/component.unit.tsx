@@ -1,6 +1,6 @@
 import { ElementFixture, trigger } from '../../testing/element-fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
-import { inlinedQrl, runtimeQrl } from '../import/qrl';
+import { _inlinedQrl, runtimeQrl } from '../import/qrl';
 import { useStylesQrl } from '../use/use-styles';
 import { PropsOf, component$ } from './component.public';
 import { suite } from 'uvu';
@@ -115,7 +115,7 @@ qComponent('should render a collection of todo items', async () => {
 
 /////////////////////////////////////////////////////////////////////////////
 export const HelloWorld = component$(() => {
-  useStylesQrl(inlinedQrl(`{}`, 'named-style'));
+  useStylesQrl(_inlinedQrl(`{}`, 'named-style'));
   return <span>Hello World</span>;
 });
 

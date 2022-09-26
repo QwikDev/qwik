@@ -23,17 +23,17 @@ export const App = component$(() => {
 
 ============================= test.js ==
 
+import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
 let Thing;
 (function(Thing) {
     Thing[Thing["A"] = 0] = "A";
     Thing[Thing["B"] = 1] = "B";
 })(Thing || (Thing = {}));
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(_qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;IAEA,KAGC;UAHI,KAAK;IAAL,KAAK,CAAL,KAAK,CACN,GAAC,IAAD,CAAC,IAAD,GAAC;IADA,KAAK,CAAL,KAAK,CAEN,GAAC,IAAD,CAAC,IAAD,GAAC;GAFA,KAAK,KAAL,KAAK;AAKV,OAAO,MAAM,GAAG,iBAAG,yFAOjB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;IAEA,KAGC;UAHI,KAAK;IAAL,KAAK,CAAL,KAAK,CACN,GAAC,IAAD,CAAC,IAAD,GAAC;IADA,KAAK,CAAL,KAAK,CAEN,GAAC,IAAD,CAAC,IAAD,GAAC;GAFA,KAAK,KAAL,KAAK;AAKV,OAAO,MAAM,GAAG,iBAAG,0FAOjB,CAAC\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";

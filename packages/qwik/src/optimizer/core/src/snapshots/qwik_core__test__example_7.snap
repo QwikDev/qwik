@@ -22,14 +22,14 @@ const App = component$(() => {
 
 ============================= header_component_j4uyihabnr4.tsx (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
+import { _qrl } from "@builder.io/qwik";
 export const Header_component_J4uyIhaBNR4 = ()=>{
     console.log("mount");
-    return <div onClick={qrl(()=>import("./header_component_div_onclick_i7ekvwh3674"), "Header_component_div_onClick_i7ekvWH3674")}/>;
+    return <div onClick={_qrl(()=>import("./header_component_div_onclick_i7ekvwh3674"), "Header_component_div_onClick_i7ekvWH3674")}/>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAGiC,IAAM;IACnC,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,CAAC;IACrB,QACK,GAAG,CAAC,OAAO,+GACd;AACJ,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAGiC,IAAM;IACnC,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,CAAC;IACrB,QACK,GAAG,CAAC,OAAO,gHACd;AACJ,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -51,13 +51,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx ==
 
+import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("./header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
-/*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const Header = /*#__PURE__*/ componentQrl(_qrl(()=>import("./header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
+/*#__PURE__*/ componentQrl(_qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,MAAM,iBAAG,+FAKlB,CAAC;cAEO,yFAIV,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,MAAM,iBAAG,gGAKlB,CAAC;cAEO,0FAIV,CAAC\"}")
 ============================= app_component_ckepmxzlub0.tsx (ENTRY POINT)==
 
 import { Header } from "./test";

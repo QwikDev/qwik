@@ -18,14 +18,14 @@ export const App = () => {
 
 ============================= app_header_component_b9f3yeqco1w.tsx (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
+import { _qrl } from "@builder.io/qwik";
 export const App_Header_component_B9F3YeqcO1w = ()=>{
     console.log("mount");
-    return <div onClick={qrl(()=>import("./app_header_component_div_onclick_ao7ui7iw6oq"), "App_Header_component_div_onClick_aO7uI7Iw6oQ")}/>;
+    return <div onClick={_qrl(()=>import("./app_header_component_div_onclick_ao7ui7iw6oq"), "App_Header_component_div_onClick_aO7uI7Iw6oQ")}/>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gDAG8B,IAAM;IAC5B,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,CAAC;IACrB,QACK,GAAG,CAAC,OAAO,uHACd;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gDAG8B,IAAM;IAC5B,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,CAAC;IACrB,QACK,GAAG,CAAC,OAAO,wHACd;AACN,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -73,15 +73,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx ==
 
+import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
 export const App = ()=>{
-    const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_header_component_b9f3yeqco1w"), "App_Header_component_B9F3YeqcO1w"));
+    const Header = /*#__PURE__*/ componentQrl(_qrl(()=>import("./app_header_component_b9f3yeqco1w"), "App_Header_component_B9F3YeqcO1w"));
     return Header;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AACA,OAAO,MAAM,GAAG,GAAG,IAAM;IACrB,MAAM,MAAM,iBAAG,uGAKb,AAAC;IACH,OAAO,MAAM,CAAC;AAClB,CAAC,CAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AACA,OAAO,MAAM,GAAG,GAAG,IAAM;IACrB,MAAM,MAAM,iBAAG,wGAKb,AAAC;IACH,OAAO,MAAM,CAAC;AAClB,CAAC,CAAE\"}")
 == DIAGNOSTICS ==
 
 []

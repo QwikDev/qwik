@@ -35,14 +35,10 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
 }, "App_component_Fh88JClhbC0"));
 
 
-============================= s_fh88jclhbc0.tsx ==
+============================= test.tsx ==
 
-import { inlinedQrl } from "@builder.io/qwik";
-import { jsx } from "@builder.io/qwik";
-import { jsxs } from "@builder.io/qwik";
-import { useLexicalScope } from "@builder.io/qwik";
-import { useStore } from "@builder.io/qwik";
-export const s_Fh88JClhbC0 = ()=>{
+import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@builder.io/qwik';
+export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
     const store = useStore({
         count: 0
     });
@@ -67,43 +63,10 @@ export const s_Fh88JClhbC0 = ()=>{
             })
         ]
     });
-};
+}, "App_component_Fh88JClhbC0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;6BAGyD,IAAI;IACzD,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,KAAK,EAAE,CAAC;KACX,CAAC,AAAC;IACH,OAAO,WAAW,GAAG,IAAI,CAAC,KAAK,EAAE;QAC7B,QAAQ,EAAE;YACN,WAAW,GAAG,IAAI,CAAC,GAAG,EAAE;gBACpB,QAAQ,EAAE;oBACN,SAAS;oBACT,KAAK,CAAC,KAAK;iBACd;aACJ,CAAC;YACF,WAAW,GAAG,GAAG,CAAC,GAAG,EAAE;gBACnB,QAAQ,EAAE,WAAW,GAAG,GAAG,CAAC,QAAQ,EAAE;oBAClC,QAAQ,EAAE,UAAU,CAAC,IAAI;wBACrB,MAAM,CAAC,KAAK,CAAC,GAAG,eAAe,EAAE,AAAC;wBAClC,OAAO,KAAK,CAAC,KAAK,EAAE,CAAC;oBACzB,CAAC,EAAE,gDAAgD,EAAE;wBACjD,KAAK;qBACR,CAAC;oBACF,QAAQ,EAAE,OAAO;iBACpB,CAAC;aACL,CAAC;SACL;KACJ,CAAC,CAAC;AACP,CAAC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "s_Fh88JClhbC0",
-  "entry": "entry_hooks",
-  "displayName": "App_component",
-  "hash": "Fh88JClhbC0",
-  "canonicalFilename": "s_fh88jclhbc0",
-  "extension": "tsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    159,
-    906
-  ]
-}
-*/
-============================= test.tsx ==
-
-import { qrl } from "@builder.io/qwik";
-import { componentQrl } from '@builder.io/qwik';
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_hooks"), "s_Fh88JClhbC0"));
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;AAAA,SAAS,YAAY,QAA0D,kBAAkB,CAAC;AAElG,OAAO,MAAM,GAAG,GAAG,WAAW,GAAG,YAAY,mDAyBb,CAAC\"}")
-============================= entry_hooks.js (ENTRY POINT)==
-
-export { s_Fh88JClhbC0 } from "./s_fh88jclhbc0";
-
-
-None
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,SAAS,YAAY,EAAE,UAAU,EAAE,QAAQ,EAAE,IAAI,EAAE,GAAG,EAAE,eAAe,QAAQ,kBAAkB,CAAC;AAElG,OAAO,MAAM,GAAG,GAAG,WAAW,GAAG,YAAY,CAAC,UAAU,CAAC,IAAI;IACzD,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,KAAK,EAAE,CAAC;KACX,CAAC,AAAC;IACH,OAAO,WAAW,GAAG,IAAI,CAAC,KAAK,EAAE;QAC7B,QAAQ,EAAE;YACN,WAAW,GAAG,IAAI,CAAC,GAAG,EAAE;gBACpB,QAAQ,EAAE;oBACN,SAAS;oBACT,KAAK,CAAC,KAAK;iBACd;aACJ,CAAC;YACF,WAAW,GAAG,GAAG,CAAC,GAAG,EAAE;gBACnB,QAAQ,EAAE,WAAW,GAAG,GAAG,CAAC,QAAQ,EAAE;oBAClC,QAAQ,EAAE,UAAU,CAAC,IAAI;wBACrB,MAAM,CAAC,KAAK,CAAC,GAAG,eAAe,EAAE,AAAC;wBAClC,OAAO,KAAK,CAAC,KAAK,EAAE,CAAC;oBACzB,CAAC,EAAE,gDAAgD,EAAE;wBACjD,KAAK;qBACR,CAAC;oBACF,QAAQ,EAAE,OAAO;iBACpB,CAAC;aACL,CAAC;SACL;KACJ,CAAC,CAAC;AACP,CAAC,EAAE,2BAA2B,CAAC,CAAC,CAAC\"}")
 == DIAGNOSTICS ==
 
 []

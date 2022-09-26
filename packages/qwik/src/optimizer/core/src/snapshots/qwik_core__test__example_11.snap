@@ -53,11 +53,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 ============================= header_component_uvbjufyfvdo.tsx ==
 
 import { Header } from "./project/test";
+import { _qrl } from "@builder.io/qwik";
 import { bar as bbar } from "./state";
 import * as dep2 from "dep2";
-import { qrl } from "@builder.io/qwik";
 export const Header_component_UVBJuFYfvDo = ()=>{
-    return <Header onClick={qrl(()=>import("./entry_hooks"), "Header_component_Header_onClick_KjD9TCNkNxY")}>
+    return <Header onClick={_qrl(()=>import("./entry_hooks"), "Header_component_Header_onClick_KjD9TCNkNxY")}>
 
             {dep2.stuff()}{bbar()}
 
@@ -65,7 +65,7 @@ export const Header_component_UVBJuFYfvDo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC,IAAM;IACnC,QACK,MAAM,CAAC,OAAO,mFAAuB;;YAClC,CAAC,IAAI,CAAC,KAAK,EAAE,EAAE,IAAI,EAAE,CAAC;;QAC1B,EAAE,MAAM,EACV;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC,IAAM;IACnC,QACK,MAAM,CAAC,OAAO,oFAAuB;;YAClC,CAAC,IAAI,CAAC,KAAK,EAAE,EAAE,IAAI,EAAE,CAAC;;QAC1B,EAAE,MAAM,EACV;AACN,CAAC\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -116,13 +116,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 */
 ============================= project/test.tsx ==
 
+import { _qrl } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("../entry_hooks"), "Header_component_UVBJuFYfvDo"));
-export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("../entry_hooks"), "App_component_wGkRHWXaqjs"));
+export const Header = /*#__PURE__*/ componentQrl(_qrl(()=>import("../entry_hooks"), "Header_component_UVBJuFYfvDo"));
+export const App = /*#__PURE__*/ componentQrl(_qrl(()=>import("../entry_hooks"), "App_component_wGkRHWXaqjs"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,MAAM,iBAAG,+EAMpB,CAAC;AAEH,OAAO,MAAM,GAAG,iBAAG,4EAIjB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,MAAM,iBAAG,gFAMpB,CAAC;AAEH,OAAO,MAAM,GAAG,iBAAG,6EAIjB,CAAC\"}")
 ============================= entry_hooks.js (ENTRY POINT)==
 
 export { Header_component_Header_onClick_KjD9TCNkNxY } from "./header_component_header_onclick_kjd9tcnknxy";

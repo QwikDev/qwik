@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "incremental": true,
+    "target": "ES2018",
+    "module": "ES2020",
+    "lib": ["es2020", "DOM", "WebWorker"],
+    "strict": true,
+    "importsNotUsedAsValues": "error",
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "outDir": "adapter",
+    "declaration": true,
+    "skipLibCheck": true,
+    "sourceMap": false,
+    "jsx": "react-jsx",
+    "jsxImportSource": "@builder.io/qwik",
+    "baseUrl": "./src",
+
+    "paths": {
+      "@builder.io/partytown/integration": [
+        "node_modules/@builder.io/partytown/integration/index.d.ts"
+      ],
+      "@builder.io/qwik/jsx-runtime": ["../../../../packages/qwik/src/jsx-runtime/index.ts"],
+      "@builder.io/qwik/testing": ["../../../../packages/qwik/src/testing/index.ts"]
+    }
+  }
+}

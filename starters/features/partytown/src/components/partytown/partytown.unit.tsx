@@ -9,7 +9,7 @@ const qComponent = suite('q-component');
 qComponent('should declare and render basic component with script party town', async () => {
   const fixture = new ElementFixture().host;
   await render(fixture, <QwikPartytown />);
-  await expectRegex(fixture, `querySelectorAll\('script\[type="text\/partytown"\]'`);
+  await expectRegex(fixture, `querySelectorAll('script[type="text/partytown"]'`);
 });
 
 export async function expectRegex(actual: Element, expected: string) {

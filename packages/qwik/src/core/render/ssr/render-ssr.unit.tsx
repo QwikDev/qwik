@@ -278,21 +278,21 @@ renderSSRSuite('using promises', async () => {
 });
 
 renderSSRSuite('mixed children', async () => {
-    await testSSR(
-        <ul>
-            <li>0</li>
-            <li>1</li>
-            <li>2</li>
-            {Promise.resolve(<li>3</li>)}
-            <li>4</li>
-            {delay(100).then(() => (
-                <li>5</li>
-            ))}
-            {delay(10).then(() => (
-                <li>6</li>
-            ))}
-        </ul>,
-        `
+  await testSSR(
+    <ul>
+      <li>0</li>
+      <li>1</li>
+      <li>2</li>
+      {Promise.resolve(<li>3</li>)}
+      <li>4</li>
+      {delay(100).then(() => (
+        <li>5</li>
+      ))}
+      {delay(10).then(() => (
+        <li>6</li>
+      ))}
+    </ul>,
+    `
         <html q:container="paused" q:version="dev" q:render="ssr-dev">
         <ul>
         <li>0</li>
@@ -307,7 +307,7 @@ renderSSRSuite('mixed children', async () => {
         <li>6</li>
         </ul>
         </html>`
-    );
+  );
 });
 
 renderSSRSuite('DelayResource', async () => {

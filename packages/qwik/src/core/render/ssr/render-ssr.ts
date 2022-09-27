@@ -632,6 +632,7 @@ function walkChildren(
     } else if (prevPromise) {
       return prevPromise.then(next);
     } else {
+      currentIndex++;
       return undefined;
     }
   }, undefined);

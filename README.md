@@ -5,7 +5,7 @@
 </p>
 
 <a href="https://youtu.be/0dC11DMR3fU?t=154">
-  <img width="1229" alt="WWC22 - Qwik + Partytown: How to remove 99% of JavaScript from main thread" src=".github/assets/Qwik-video-thumbnail.png">
+  <img width="1229" alt="WWC22 - Qwik + Partytown: How to remove 99% of JavaScript from main thread" src="https://raw.githubusercontent.com/BuilderIO/qwik/main/.github/assets/Qwik-video-thumbnail.png">
 </a>
 
 # The HTML-first framework

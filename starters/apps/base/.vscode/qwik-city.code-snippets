@@ -1,0 +1,32 @@
+{
+  "onGet": {
+    "scope": "javascriptreact,typescriptreact",
+    "prefix": "q:onGet",
+    "description": "onGet function for a route index",
+    "body": [
+      "export const onGet: RequestHandler = (request) => {",
+      "  $0",
+      "};"
+    ]
+  },
+  "onGet (typed)": {
+    "scope": "javascriptreact,typescriptreact",
+    "prefix": "q:onGet typed",
+    "description": "onGet function for a route index",
+    "body": [
+      "export interface ${1:PageData} {",
+      "  $2",
+      "};",
+      "",
+      "export const onGet: RequestHandler<$1> = (request) => {",
+      "  $4",
+      "};"
+    ]
+  },
+  "useEndpoint": {
+    "scope": "javascriptreact,typescriptreact",
+    "prefix": "q:useEndpoint",
+    "description": "useEndpoint declaration",
+    "body": "const $1 = useEndpoint<typeof onGet>();"
+  }
+}

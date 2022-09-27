@@ -56,6 +56,14 @@ pub enum MinifyMode {
     None,
 }
 
+#[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum EmitMode {
+    Prod,
+    Lib,
+    Dev,
+}
+
 pub struct TransformCodeOptions<'a> {
     pub relative_path: &'a str,
     pub src_dir: &'a Path,
@@ -65,7 +73,7 @@ pub struct TransformCodeOptions<'a> {
     pub explicit_extensions: bool,
     pub code: &'a str,
     pub entry_policy: &'a dyn EntryPolicy,
-    pub dev: bool,
+    pub mode: EmitMode,
     pub scope: Option<&'a String>,
     pub is_inline: bool,
 
@@ -242,6 +250,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         did_transform = true;
                         let mut react_options = react::Options::default();
                         if is_jsx {
+                            react_options.next = Some(true);
+                            react_options.development = Some(config.mode == EmitMode::Dev);
                             react_options.throw_if_namespace = Some(false);
                             react_options.runtime = Some(react::Runtime::Automatic);
                             react_options.import_source = Some("@builder.io/qwik".to_string());
@@ -271,7 +281,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         comments: Some(&comments),
                         global_collect: collect,
                         scope: config.scope,
-                        dev: config.dev,
+                        mode: config.mode,
                         is_inline: config.is_inline,
                     });
 

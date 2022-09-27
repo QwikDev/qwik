@@ -99,7 +99,6 @@ export { useErrorBoundary } from './use/use-error-boundary';
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './util/types';
-export type { NoSerialize } from './object/q-object';
-export { noSerialize, mutable, _IMMUTABLE } from './object/q-object';
-export type { Signal } from './object/q-object';
+export type { NoSerialize, Signal } from './object/q-object';
+export { noSerialize, mutable, _IMMUTABLE, wrapSignal } from './object/q-object';
 export { version } from './version';

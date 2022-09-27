@@ -1576,6 +1576,38 @@ export const App = component$(() => {
 }
 
 #[test]
+fn example_getter_generation() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$(() => {
+    const store = useStore({
+        count: 0,
+        stuff: 0,
+        nested: {
+            count: 0
+        }
+    })
+    return (
+        <Cmp
+            prop={'true'}
+            count={store.count}
+            nested={store.nested.count}
+            store={store}
+            store={store.stuff + 12}
+        >
+        </Cmp>
+    );
+});
+"#
+        .to_string(),
+        transpile: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_qwik_react() {
     test_input!(TestInput {
         code: r#"

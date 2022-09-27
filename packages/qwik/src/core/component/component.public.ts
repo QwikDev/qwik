@@ -9,7 +9,7 @@ import { qDev, qTest } from '../util/qdev';
 import { Virtual } from '../render/jsx/utils.public';
 import { assertQrl } from '../import/qrl-class';
 import type { ValueOrPromise } from '../util/types';
-import { verifySerializable } from '../object/q-object';
+import { Signal, verifySerializable } from '../object/q-object';
 
 /**
  * Infers `Props` from the component.
@@ -69,7 +69,7 @@ export type TransformProps<PROPS extends {}> = {
  */
 export type TransformProp<T> = T extends PropFnInterface<infer ARGS, infer RET>
   ? (...args: ARGS) => ValueOrPromise<RET>
-  : T;
+  : Signal<T> | T;
 
 /**
  * @alpha

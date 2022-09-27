@@ -1,39 +1,50 @@
-import { component$, useWatch$, Signal, useSignal } from '@builder.io/qwik';
+import { component$, useWatch$, useSignal, wrapSignal, useStore, useResource$ } from '@builder.io/qwik';
 
 export const Signals = component$(() => {
   const count = useSignal(0);
-  const doubleCount = useSignal(0);
-  const active = useSignal('active');
 
-  useWatch$(({ track }) => {
-    console.log('run: watch parent');
-    doubleCount.value = track(count) * 2;
-    active.value = count.value % 2 == 0 ? 'yes' : 'no';
+  const doubleCount = useResource$(() => {
+    return count.value * 2; // no track needed
   });
 
-  console.log('run: render parent');
+  useComputed((v) => {
+    return v * 2;
+  }, [signal])
+
 
   return (
     <div data-active={active}>
       <button onClick$={() => count.value++}>Increment</button>
       <Child count={doubleCount} />
+      <Foo number={store.number}/>
+      <Foo number={wrapSignal(store, 'number')}/>
+
+      {/* <Child count={wrapSignal(store, 'foo')} /> */}
+
     </div>
   );
 });
 
 interface ChildProps {
-  count: Signal<number>;
+  count: number;
 }
-
-export const Child = component$<ChildProps>(({ count }) => {
-  console.log('run: render child');
+export const Child = component$((props: ChildProps) => {
 
   return (
     <>
-      <div>{count}</div>
+      <div>{wrap(props, 'count')}</div>
       {Array.from({ length: 20000 }).map(() => {
         return <div aria-hidden="true">Expensive</div>;
       })}
     </>
   );
 });
+
+interface Props {
+  number: number;
+}
+
+export const Foo = (props: Props) => {
+  console.log(props.number)
+
+}

@@ -12,10 +12,12 @@ import type { QContext } from './core/props/props';
 export const qwikLoader = (doc: Document, hasInitialized?: number) => {
   const Q_CONTEXT = '__q_context__';
   const win = window as any;
+  const events = new Set();
 
   const querySelectorAll = (query: string) => {
     return doc.querySelectorAll(query);
   };
+
   const broadcast = (infix: string, ev: Event, type = ev.type) => {
     querySelectorAll('[on' + infix + '\\:' + type + ']').forEach((target) =>
       dispatch(target, infix, ev, type)
@@ -58,17 +60,19 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
             await handler(ev, element);
           } finally {
             (doc as any)[Q_CONTEXT] = previousCtx;
-            doc.dispatchEvent(
-              createEvent('qsymbol', {
-                symbol: symbolName,
-                element: element,
-              })
-            );
+            emitEvent('qsymbol',{
+              symbol: symbolName,
+              element: element,
+            });
           }
         }
       }
     }
   };
+
+  const emitEvent = (eventName: string, detail?: any) => {
+    doc.dispatchEvent(createEvent(eventName, detail));
+  }
 
   const findModule = (module: any) => {
     return Object.values(module).find(isModule) || module;
@@ -119,11 +123,12 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       // document is ready
       hasInitialized = 1;
 
-      broadcast('', createEvent('qinit'));
+      emitEvent('qinit');
+      const riC = requestIdleCallback ?? setTimeout;
+      riC.bind(window)(() => emitEvent('qidle'));
 
-      const results = querySelectorAll('[on\\:qvisible]');
-
-      if (results.length > 0) {
+      if (events.has('qvisible')) {
+        const results = querySelectorAll('[on\\:qvisible]');
         const observer = new IntersectionObserver((entries) => {
           for (const entry of entries) {
             if (entry.isIntersecting) {
@@ -136,8 +141,6 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       }
     }
   };
-
-  const events = new Set();
 
   const addEventListener = (
     el: Document | Window,

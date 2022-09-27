@@ -27,7 +27,6 @@ export const QObjectManagerSymbol = Symbol('proxy manager');
  */
 export interface Signal<T = any> {
   value: T;
-  readonly untrackedValue: T;
 }
 
 export type ValueOrSignal<T> = T | Signal<T>;
@@ -379,3 +378,23 @@ export const getProxyManager = (obj: Record<string, any>): LocalSubscriptionMana
 export const getProxyFlags = <T = Record<string, any>>(obj: T): number | undefined => {
   return (obj as any)[QObjectFlagsSymbol];
 };
+
+
+export class SignalWrapper<T extends Record<string, any>, P extends keyof T> {
+  constructor(private ref: T, private prop: P) {}
+
+  get value(): T[P] {
+    return this.ref[this.prop];
+  }
+  set value(value: T[P]) {
+    this.ref[this.prop] = value;
+  }
+}
+
+export const wrapSignal = <T extends Record<string, any>, P extends keyof T>(obj: T, prop: P): Signal<T[P]> => {
+  if (isSignal(obj)) {
+    assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
+    return obj;
+  }
+  return new SignalWrapper(obj, prop);
+}

@@ -1,0 +1,95 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 1580
+expression: output
+---
+==INPUT==
+
+
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$(() => {
+    const store = useStore({
+        count: 0,
+        stuff: 0,
+        nested: {
+            count: 0
+        }
+    })
+    return (
+        <Cmp
+            prop={'true'}
+            count={store.count}
+            nested={store.nested.count}
+            store={store}
+            store={store.stuff + 12}
+        >
+        </Cmp>
+    );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,yFAkBjB,CAAC\"}")
+============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+
+import { _IMMUTABLE } from "@builder.io/qwik";
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { useStore } from "@builder.io/qwik";
+import { wrapSignal } from "@builder.io/qwik";
+export const App_component_ckEPmXZlub0 = ()=>{
+    const store = useStore({
+        count: 0,
+        stuff: 0,
+        nested: {
+            count: 0
+        }
+    });
+    return /*#__PURE__*/ _jsx(Cmp, {
+        prop: 'true',
+        get count () {
+            return store.count;
+        },
+        get nested () {
+            return store.nested.count;
+        },
+        store: store,
+        store: store.stuff + 12,
+        [_IMMUTABLE]: {
+            prop: true,
+            count: wrapSignal(store, "count"),
+            nested: wrapSignal(wrapSignal(store, "nested"), "count"),
+            store: true
+        }
+    });
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B,IAAM;IAChC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,KAAK,EAAE,CAAC;QACR,KAAK,EAAE,CAAC;QACR,MAAM,EAAE;YACJ,KAAK,EAAE,CAAC;SACX;KACJ,CAAC;IACF,qBACI,KAAC,GAAG;QACA,IAAI,EAAE,MAAM;YACZ,KAAK;mBAAE,KAAK,CAAC,KAAK;;YAClB,MAAM;mBAAE,KAAK,CAAC,MAAM,CAAC,KAAK;;QAC1B,KAAK,EAAE,KAAK;QACZ,KAAK,EAAE,KAAK,CAAC,KAAK,GAAG,EAAE;;YAJvB,IAAI;YACJ,KAAK,aAAE,KAAK;YACZ,MAAM,wBAAE,KAAK;YACb,KAAK;;MAGH,CACR;AACN,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "app_component_ckepmxzlub0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    90,
+    439
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

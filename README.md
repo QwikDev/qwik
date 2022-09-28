@@ -1,5 +1,3 @@
-<br />
-
 <p align="center">
   <img alt="Qwik Logo" width="400" src="https://raw.githubusercontent.com/BuilderIO/qwik/main/.github/assets/qwik-logo.svg" />
 </p>
@@ -15,8 +13,6 @@ Qwik offers the fastest possible page load times - regardless of the complexity 
 As users interact with the site, only the necessary parts of the site load on-demand. This [precision lazy-loading](https://qwik.builder.io/docs/concepts/progressive/) is what makes Qwik so quick.
 
 ## Getting Started
-
-Try out our starter:
 
 ```bash
 npm create qwik@latest

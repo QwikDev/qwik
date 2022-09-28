@@ -1,11 +1,11 @@
 <br />
 
 <p align="center">
-  <img alt="Qwik Logo" width="400" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F667ab6c2283d4c4d878fb9083aacc10f" />
+  <img alt="Qwik Logo" width="400" src="https://raw.githubusercontent.com/BuilderIO/qwik/main/.github/assets/logo.svg" />
 </p>
 
 <a href="https://youtu.be/0dC11DMR3fU?t=154">
-  <img width="1229" alt="WWC22 - Qwik + Partytown: How to remove 99% of JavaScript from main thread" src=".github/assets/Qwik-video-thumbnail.png">
+  <img width="1229" alt="WWC22 - Qwik + Partytown: How to remove 99% of JavaScript from main thread" src="https://raw.githubusercontent.com/BuilderIO/qwik/main/.github/assets/Qwik-video-thumbnail.png">
 </a>
 
 # The HTML-first framework

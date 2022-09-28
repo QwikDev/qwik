@@ -1,4 +1,4 @@
-/* Partytown 0.7.0-dev1664404751749 - MIT builder.io */
+/* Partytown 0.7.0-dev1664407017534 - MIT builder.io */
 (window => {
     const isPromise = v => "object" == typeof v && v && v.then;
     const noop = () => {};
@@ -518,6 +518,18 @@
         $doneCstrs$: new Set
     };
     let worker;
+    const mainAccessRequestQueue = [];
+    const drainQueue = responseCallback => {
+        setTimeout((() => {
+            const accessReq = mainAccessRequestQueue.shift();
+            if (accessReq) {
+                console.time("drainQueue");
+                mainAccessHandler(worker, accessReq).then(responseCallback);
+                console.timeEnd("drainQueue");
+            }
+            len(mainAccessRequestQueue) && drainQueue(responseCallback);
+        }), 0);
+    };
     (receiveMessage => {
         const swContainer = window.navigator.serviceWorker;
         return swContainer.getRegistration().then((swRegistration => {
@@ -565,16 +577,21 @@
                 })((data => worker.postMessage([ 1, data ]))) : onMessageFromWebWorker(worker, msg);
             };
         }));
-    })(((accessReq, responseCallback) => mainAccessHandler(worker, accessReq).then(responseCallback))).then((onMessageHandler => {
+    })(((accessReq, responseCallback) => {
+        console.time("receiveMessage");
+        mainAccessRequestQueue.push(accessReq);
+        drainQueue(responseCallback);
+        console.timeEnd("receiveMessage");
+    })).then((onMessageHandler => {
         if (onMessageHandler) {
-            worker = new Worker(libPath + "partytown-ww-sw.js?v=0.7.0-dev1664404751749", {
+            worker = new Worker(libPath + "partytown-ww-sw.js?v=0.7.0-dev1664407017534", {
                 name: "Partytown 🎉"
             });
             worker.onmessage = ev => {
                 const msg = ev.data;
                 12 === msg[0] ? mainAccessHandler(worker, msg[1]) : onMessageHandler(worker, msg);
             };
-            logMain("Created Partytown web worker (0.7.0-dev1664404751749)");
+            logMain("Created Partytown web worker (0.7.0-dev1664407017534)");
             worker.onerror = ev => console.error("Web Worker Error", ev);
             mainWindow.addEventListener("pt1", (ev => registerWindow(worker, getAndSetInstanceId(ev.detail.frameElement), ev.detail)));
         }

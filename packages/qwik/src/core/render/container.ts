@@ -83,17 +83,29 @@ export const createContainerState = (containerEl: Element) => {
   return containerState;
 };
 
-type A = [type: 0, subscriber: SubscriberEffect | SubscriberHost, key?: string];
+type A = [
+  type: 0,
+  subscriber: SubscriberEffect | SubscriberHost,
+  key: string | undefined
+];
 
 type B = [
   type: 1,
   subscriber: SubscriberHost,
   signal: Signal,
   elm: QwikElement | Node,
-  prop: string
+  prop: string,
+  key: string | undefined
 ];
 
-type C = [type: 2, subscriber: SubscriberHost, signal: Signal, elm: QwikElement, attribute: string];
+type C = [
+  type: 2,
+  subscriber: SubscriberHost,
+  signal: Signal,
+  elm: QwikElement,
+  attribute: string,
+  key: string | undefined
+];
 
 export type SubscriberSignal = B | C;
 
@@ -120,15 +132,13 @@ export const parseSubscription = (sub: string, getObject: GetObject) => {
   const parts = sub.split(' ');
   const type = parseInt(parts[0], 10);
   assertTrue(parts.length >= 2, 'At least 2 parts');
-  const subscription = [type, getObject(parts[1])] as Subscriptions;
+  const subscription = [type, getObject(parts[1])];
   if (type === 0) {
     assertTrue(parts.length <= 3, 'Max 3 parts');
-    if (parts.length === 3) {
-      subscription.push(parts[2]);
-    }
+    subscription.push(parts[2]);
   } else {
-    assertTrue(parts.length === 5, 'Max 3 parts');
-    subscription.push(getObject(parts[2]), getObject(parts[3]), parts[4]);
+    assertTrue(parts.length === 5 || parts.length === 6, 'Max 5 parts');
+    subscription.push(getObject(parts[2]), getObject(parts[3]), parts[4], parts[5]);
   }
   return subscription;
 };
@@ -175,8 +185,9 @@ export const createSubscriptionManager = (containerState: ContainerState): Subsc
         }
       },
       $addSub$(sub: Subscriptions) {
-        const [type, group, key] = sub;
-        if (type === 0 || type === 1) {
+        const [type, group] = sub;
+        const key = sub[sub.length -1] as string | undefined;
+        if (type === 0) {
           if (
             map.some(([_type, _group, _key]) => _type === type && _group === group && _key === key)
           ) {
@@ -188,7 +199,8 @@ export const createSubscriptionManager = (containerState: ContainerState): Subsc
       },
       $notifySubs$(key?: string) {
         for (const sub of map) {
-          if (sub[0] === 0 && sub[2] !== key) {
+          const compare = sub[sub.length - 1];
+          if (key && compare && compare !== key) {
             continue;
           }
           notifyChange(sub, containerState);

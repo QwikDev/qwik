@@ -1588,16 +1588,26 @@ export const App = component$(() => {
         nested: {
             count: 0
         }
-    })
+    });
+    const signal = useSignal(0);
     return (
         <Cmp
-            prop={'true'}
+            prop={'true' + 1 ? 'true' : ''}
             count={store.count}
             nested={store.nested.count}
-            store={store}
+            signal={signal}
             store={store.stuff + 12}
         >
         </Cmp>
+    );
+});
+
+export const Cmp = component$((props) => {
+    return (
+        <>
+            <p data-value={props.count}>{props.nested.count}</p>
+            <p>Value {props.count}<span></span></p>
+        </>
     );
 });
 "#

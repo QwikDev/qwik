@@ -400,7 +400,7 @@ export const patchVnode = (
       const signal = newVnode.$signal$;
       if (signal) {
         const manager = getProxyManager(signal)!;
-        manager.$addSub$([1, currentComponent.$element$, signal, elm, 'data']);
+        manager.$addSub$([1, currentComponent.$element$, signal, elm, 'data', ]);
       }
       setProperty(staticCtx, elm, 'data', newVnode.$text$);
     }

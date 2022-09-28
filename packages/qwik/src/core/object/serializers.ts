@@ -13,7 +13,7 @@ import {
   SubscriberEffect,
 } from '../use/use-watch';
 import { isDocument } from '../util/element';
-import { isSignal, QObjectManagerSymbol, SignalImpl } from './q-object';
+import { isSignal, QObjectManagerSymbol, SignalImpl, SignalWrapper } from './q-object';
 import type { GetObject, GetObjID } from './store';
 
 /**
@@ -222,9 +222,26 @@ const SignalSerializer: Serializer<SignalImpl<any>> = {
   },
 };
 
+const SignalWrapperSerializer: Serializer<SignalWrapper<any, any>> = {
+  prefix: '\u0013',
+  test: (v) => v instanceof SignalWrapper,
+  serialize: (obj, getObjId) => {
+    return `${getObjId(obj.ref)} ${obj.prop}`
+  },
+  prepare: (data) => {
+    const [id, prop] = data.split(' ');
+    return new SignalWrapper(id as any, prop);
+  },
+  fill: (signal, getObject) => {
+    signal.ref = getObject(signal.ref);
+  },
+};
+
+
 const serializers: Serializer<any>[] = [
   QRLSerializer,
   SignalSerializer,
+  SignalWrapperSerializer,
   WatchSerializer,
   ResourceSerializer,
   URLSerializer,

@@ -1,8 +1,7 @@
-/* Partytown 0.7.0-dev1663979287570 - MIT builder.io */
+/* Partytown 0.7.0-dev1664403760899 - MIT builder.io */
 (window => {
     const isPromise = v => "object" == typeof v && v && v.then;
     const noop = () => {};
-    const splitTask = () => new Promise((resolve => setTimeout(resolve, 0)));
     const len = obj => obj.length;
     const getConstructorName = obj => {
         var _a, _b, _c;
@@ -47,13 +46,6 @@
     const svgConstructorTags = {
         Graphics: "g",
         SVG: "svg"
-    };
-    const createElementFromConstructor = (doc, interfaceName, r, tag) => {
-        r = interfaceName.match(/^(HTML|SVG)(.+)Element$/);
-        if (r) {
-            tag = r[2];
-            return "S" == interfaceName[0] ? doc.createElementNS("http://www.w3.org/2000/svg", svgConstructorTags[tag] || tag.slice(0, 2).toLowerCase() + tag.slice(2)) : doc.createElement(htmlConstructorTags[tag] || tag);
-        }
     };
     const InstanceIdKey = Symbol();
     const CreatedKey = Symbol();
@@ -415,26 +407,59 @@
             })(worker, winCtx, msg[2], msg[3]));
         }
     };
+    const readMainImplementations = () => {
+        const elm = docImpl.createElement("i");
+        const textNode = docImpl.createTextNode("");
+        const comment = docImpl.createComment("");
+        const frag = docImpl.createDocumentFragment();
+        const shadowRoot = docImpl.createElement("p").attachShadow({
+            mode: "open"
+        });
+        const intersectionObserver = getGlobalConstructor(mainWindow, "IntersectionObserver");
+        const mutationObserver = getGlobalConstructor(mainWindow, "MutationObserver");
+        const resizeObserver = getGlobalConstructor(mainWindow, "ResizeObserver");
+        const perf = mainWindow.performance;
+        const screen = mainWindow.screen;
+        return [ [ mainWindow.history ], [ perf ], [ perf.navigation ], [ perf.timing ], [ screen ], [ screen.orientation ], [ mainWindow.visualViewport ], [ intersectionObserver, 12 ], [ mutationObserver, 12 ], [ resizeObserver, 12 ], [ textNode ], [ comment ], [ frag ], [ shadowRoot ], [ elm ], [ elm.attributes ], [ elm.classList ], [ elm.dataset ], [ elm.style ], [ docImpl ], [ docImpl.doctype ] ];
+    };
+    const getElementTags = () => Object.getOwnPropertyNames(mainWindow).map((cstrName => ((interfaceName, r, tag, isSvg) => {
+        r = interfaceName.match(/^(HTML|SVG)(.+)Element$/);
+        if (r) {
+            tag = r[2];
+            isSvg = "S" == interfaceName[0];
+            return [ isSvg, isSvg ? svgConstructorTags[tag] || tag.slice(0, 2).toLowerCase() + tag.slice(2) : htmlConstructorTags[tag] || tag ];
+        }
+    })(cstrName))).filter((d => d));
+    const createElementFromTagNames = (tagNames, impls, elementData) => {
+        const start = Date.now();
+        while (elementData = tagNames.pop()) {
+            if (Date.now() - start > 20) {
+                return;
+            }
+            impls.push([ elementData[0] ? docImpl.createElementNS("http://www.w3.org/2000/svg", elementData[1]) : docImpl.createElement(elementData[1]) ]);
+        }
+        initState.$elementTags$ = void 0;
+    };
     const cstrs = new Set([ "Object" ]);
-    const readImplementations = async (impls, interfaces) => {
+    const readImplementations = (impls, interfaces, doneCstrs) => {
+        const start = Date.now();
         impls = impls.filter((implData => implData[0]));
-        let tm = Date.now();
         for (const implData of impls) {
-            let now = Date.now();
-            if (now - tm > 30) {
-                await splitTask();
-                tm = now;
+            if (Date.now() - start > 20) {
+                return false;
             }
             const impl = implData[0];
             const interfaceType = implData[1];
             const cstrName = getConstructorName(impl);
-            const CstrPrototype = mainWindow[cstrName].prototype;
-            readOwnImplementation(cstrs, interfaces, cstrName, CstrPrototype, impl, interfaceType);
+            if (!doneCstrs.has(cstrName)) {
+                doneCstrs.add(cstrName);
+                const CstrPrototype = mainWindow[cstrName].prototype;
+                readOwnImplementation(cstrs, interfaces, cstrName, CstrPrototype, impl, interfaceType);
+            }
         }
-        return interfaces;
+        return true;
     };
-    const readImplementation = async (cstrName, impl, memberName) => {
-        await splitTask();
+    const readImplementation = (cstrName, impl, memberName) => {
         let interfaceMembers = [];
         let interfaceInfo = [ cstrName, "Object", interfaceMembers ];
         for (memberName in impl) {
@@ -489,6 +514,9 @@
     const addGlobalConstructorUsingPrototype = ($interfaces$, mainWindow, cstrName) => {
         void 0 !== mainWindow[cstrName] && $interfaces$.push([ cstrName, "Object", Object.keys(mainWindow[cstrName].prototype).map((propName => [ propName, 6 ])), 12 ]);
     };
+    let initState = {
+        $doneCstrs$: new Set
+    };
     let worker;
     (async receiveMessage => {
         const sharedDataBuffer = new SharedArrayBuffer(1073741824);
@@ -496,51 +524,49 @@
         return (worker, msg) => {
             const msgType = msg[0];
             const accessReq = msg[1];
-            0 === msgType ? (async cb => {
-                const elm = docImpl.createElement("i");
-                const textNode = docImpl.createTextNode("");
-                const comment = docImpl.createComment("");
-                const frag = docImpl.createDocumentFragment();
-                const shadowRoot = docImpl.createElement("p").attachShadow({
-                    mode: "open"
-                });
-                const intersectionObserver = getGlobalConstructor(mainWindow, "IntersectionObserver");
-                const mutationObserver = getGlobalConstructor(mainWindow, "MutationObserver");
-                const resizeObserver = getGlobalConstructor(mainWindow, "ResizeObserver");
-                const perf = mainWindow.performance;
-                const screen = mainWindow.screen;
-                const impls = [ [ mainWindow.history ], [ perf ], [ perf.navigation ], [ perf.timing ], [ screen ], [ screen.orientation ], [ mainWindow.visualViewport ], [ intersectionObserver, 12 ], [ mutationObserver, 12 ], [ resizeObserver, 12 ], [ textNode ], [ comment ], [ frag ], [ shadowRoot ], [ elm ], [ elm.attributes ], [ elm.classList ], [ elm.dataset ], [ elm.style ], [ docImpl ], [ docImpl.doctype ] ];
-                const $config$ = JSON.stringify(config, ((k, v) => {
-                    if ("function" == typeof v) {
-                        v = String(v);
-                        v.startsWith(k + "(") && (v = "function " + v);
+            0 === msgType ? (cb => {
+                const interfaces = initState.$interfaces$;
+                const elementTags = initState.$elementTags$;
+                const impls = initState.$impls$;
+                const win = initState.$window$;
+                if (win) {
+                    if (interfaces) {
+                        if (impls) {
+                            if (elementTags) {
+                                createElementFromTagNames(elementTags, impls);
+                            } else if (readImplementations(impls, interfaces, initState.$doneCstrs$)) {
+                                initState = {};
+                                addGlobalConstructorUsingPrototype(interfaces, mainWindow, "IntersectionObserverEntry");
+                                return cb({
+                                    $config$: JSON.stringify(config, ((k, v) => {
+                                        if ("function" == typeof v) {
+                                            v = String(v);
+                                            v.startsWith(k + "(") && (v = "function " + v);
+                                        }
+                                        return v;
+                                    })),
+                                    $interfaces$: interfaces,
+                                    $libPath$: new URL(libPath, mainWindow.location) + "",
+                                    $origin$: origin,
+                                    $localStorage$: readStorage("localStorage"),
+                                    $sessionStorage$: readStorage("sessionStorage")
+                                });
+                            }
+                        } else {
+                            initState.$impls$ = readMainImplementations();
+                            initState.$elementTags$ = getElementTags();
+                        }
+                    } else {
+                        initState.$interfaces$ = [ win, readImplementation("Node", docImpl.createTextNode("")) ];
                     }
-                    return v;
-                }));
-                const implementations = [ await readImplementation("Window", mainWindow), await readImplementation("Node", textNode) ];
-                const initWebWorkerData = {
-                    $config$: $config$,
-                    $interfaces$: await readImplementations(impls, implementations),
-                    $libPath$: new URL(libPath, mainWindow.location) + "",
-                    $origin$: origin,
-                    $localStorage$: readStorage("localStorage"),
-                    $sessionStorage$: readStorage("sessionStorage")
-                };
-                addGlobalConstructorUsingPrototype(initWebWorkerData.$interfaces$, mainWindow, "IntersectionObserverEntry");
-                cb(initWebWorkerData);
-            })((initData => {
-                initData.$sharedDataBuffer$ = sharedDataBuffer;
-                worker.postMessage([ 1, initData ]);
-            })) : 2 === msg[0] ? (async cb => {
-                const winPropNames = Object.getOwnPropertyNames(mainWindow);
-                const elms = [];
-                for (let i = 0; i < winPropNames.length; i++) {
-                    i % 50 == 0 && await splitTask();
-                    const elm = createElementFromConstructor(docImpl, winPropNames[i]);
-                    elm && elms.push([ elm ]);
+                } else {
+                    initState.$window$ = readImplementation("Window", mainWindow);
                 }
-                readImplementations(elms, []).then(cb);
-            })((info => worker.postMessage([ 3, info ]))) : 11 === msgType ? receiveMessage(accessReq, (accessRsp => {
+                cb();
+            })((data => {
+                data && (data.$sharedDataBuffer$ = sharedDataBuffer);
+                worker.postMessage([ 1, data ]);
+            })) : 11 === msgType ? receiveMessage(accessReq, (accessRsp => {
                 const stringifiedData = JSON.stringify(accessRsp);
                 const stringifiedDataLength = stringifiedData.length;
                 for (let i = 0; i < stringifiedDataLength; i++) {
@@ -552,14 +578,14 @@
         };
     })(((accessReq, responseCallback) => mainAccessHandler(worker, accessReq).then(responseCallback))).then((onMessageHandler => {
         if (onMessageHandler) {
-            worker = new Worker(libPath + "partytown-ww-atomics.js?v=0.7.0-dev1663979287570", {
+            worker = new Worker(libPath + "partytown-ww-atomics.js?v=0.7.0-dev1664403760899", {
                 name: "Partytown 🎉"
             });
             worker.onmessage = ev => {
                 const msg = ev.data;
                 12 === msg[0] ? mainAccessHandler(worker, msg[1]) : onMessageHandler(worker, msg);
             };
-            logMain("Created Partytown web worker (0.7.0-dev1663979287570)");
+            logMain("Created Partytown web worker (0.7.0-dev1664403760899)");
             worker.onerror = ev => console.error("Web Worker Error", ev);
             mainWindow.addEventListener("pt1", (ev => registerWindow(worker, getAndSetInstanceId(ev.detail.frameElement), ev.detail)));
         }

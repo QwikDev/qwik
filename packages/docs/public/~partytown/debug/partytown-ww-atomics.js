@@ -1,4 +1,4 @@
-/* Partytown 0.7.0-dev1663979287570 - MIT builder.io */
+/* Partytown 0.7.0-dev1664403760899 - MIT builder.io */
 (self => {
     const WinIdKey = Symbol();
     const InstanceIdKey = Symbol();
@@ -722,7 +722,7 @@
         return resolvedUrl;
     };
     const resolveUrl = (env, url, type) => resolveToUrl(env, url, type) + "";
-    const getPartytownScript = () => `<script src="${partytownLibUrl("partytown.js?v=0.7.0-dev1663979287570")}"><\/script>`;
+    const getPartytownScript = () => `<script src="${partytownLibUrl("partytown.js?v=0.7.0-dev1664403760899")}"><\/script>`;
     const createImageConstructor = env => class HTMLImageElement {
         constructor() {
             this.s = "";
@@ -1297,7 +1297,7 @@
                         (() => {
                             if (!webWorkerCtx.$initWindowMedia$) {
                                 self.$bridgeToMedia$ = [ getter, setter, callMethod, constructGlobal, definePrototypePropertyDescriptor, randomId, WinIdKey, InstanceIdKey, ApplyPathKey ];
-                                webWorkerCtx.$importScripts$(partytownLibUrl("partytown-media.js?v=0.7.0-dev1663979287570"));
+                                webWorkerCtx.$importScripts$(partytownLibUrl("partytown-media.js?v=0.7.0-dev1664403760899"));
                                 webWorkerCtx.$initWindowMedia$ = self.$bridgeFromMedia$;
                                 delete self.$bridgeFromMedia$;
                             }
@@ -1770,33 +1770,34 @@
                 })(...msg);
             }
         } else if (1 === msgType) {
-            (initWebWorkerData => {
-                const config = webWorkerCtx.$config$ = JSON.parse(initWebWorkerData.$config$);
-                const locOrigin = initWebWorkerData.$origin$;
-                webWorkerCtx.$importScripts$ = importScripts.bind(self);
-                webWorkerCtx.$interfaces$ = initWebWorkerData.$interfaces$;
-                webWorkerCtx.$libPath$ = initWebWorkerData.$libPath$;
-                webWorkerCtx.$origin$ = locOrigin;
-                webWorkerCtx.$postMessage$ = postMessage.bind(self);
-                webWorkerCtx.$sharedDataBuffer$ = initWebWorkerData.$sharedDataBuffer$;
-                webWorkerlocalStorage.set(locOrigin, initWebWorkerData.$localStorage$);
-                webWorkerSessionStorage.set(locOrigin, initWebWorkerData.$sessionStorage$);
-                self.importScripts = void 0;
-                delete self.postMessage;
-                delete self.WorkerGlobalScope;
-                commaSplit("resolveUrl,get,set,apply").map((configName => {
-                    config[configName] && (config[configName] = new Function("return " + config[configName])());
-                }));
-            })(msgValue);
-            webWorkerCtx.$postMessage$([ 2 ]);
-        } else if (3 === msgType) {
-            webWorkerCtx.$interfaces$ = [ ...webWorkerCtx.$interfaces$, ...msgValue ];
-            webWorkerCtx.$isInitialized$ = 1;
-            logWorker("Initialized web worker");
-            webWorkerCtx.$postMessage$([ 4 ]);
-            queuedEvents.length && logWorker(`Queued ready messages: ${queuedEvents.length}`);
-            [ ...queuedEvents ].map(receiveMessageFromSandboxToWorker);
-            queuedEvents.length = 0;
+            if (msgValue) {
+                (initWebWorkerData => {
+                    const config = webWorkerCtx.$config$ = JSON.parse(initWebWorkerData.$config$);
+                    const locOrigin = initWebWorkerData.$origin$;
+                    webWorkerCtx.$importScripts$ = importScripts.bind(self);
+                    webWorkerCtx.$interfaces$ = initWebWorkerData.$interfaces$;
+                    webWorkerCtx.$libPath$ = initWebWorkerData.$libPath$;
+                    webWorkerCtx.$origin$ = locOrigin;
+                    webWorkerCtx.$postMessage$ = postMessage.bind(self);
+                    webWorkerCtx.$sharedDataBuffer$ = initWebWorkerData.$sharedDataBuffer$;
+                    webWorkerCtx.$isInitialized$ = 1;
+                    webWorkerlocalStorage.set(locOrigin, initWebWorkerData.$localStorage$);
+                    webWorkerSessionStorage.set(locOrigin, initWebWorkerData.$sessionStorage$);
+                    self.importScripts = void 0;
+                    delete self.postMessage;
+                    delete self.WorkerGlobalScope;
+                    commaSplit("resolveUrl,get,set,apply").map((configName => {
+                        config[configName] && (config[configName] = new Function("return " + config[configName])());
+                    }));
+                })(msgValue);
+                logWorker("Initialized web worker");
+                webWorkerCtx.$postMessage$([ 4 ]);
+                queuedEvents.length && logWorker(`Queued ready messages: ${queuedEvents.length}`);
+                [ ...queuedEvents ].map(receiveMessageFromSandboxToWorker);
+                queuedEvents.length = 0;
+            } else {
+                postMessage([ 0 ]);
+            }
         } else {
             queuedEvents.push(ev);
         }

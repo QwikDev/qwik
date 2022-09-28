@@ -1,4 +1,4 @@
-/* Partytown 0.7.0-dev1664407017534 - MIT builder.io */
+/* Partytown 0.7.0-dev1664407459625 - MIT builder.io */
 (window => {
     const isPromise = v => "object" == typeof v && v && v.then;
     const noop = () => {};
@@ -433,7 +433,7 @@
     const createElementFromTagNames = (tagNames, impls, elementData) => {
         const start = Date.now();
         while (elementData = tagNames.pop()) {
-            if (Date.now() - start > 20) {
+            if (Date.now() - start > 5) {
                 return;
             }
             impls.push([ elementData[0] ? docImpl.createElementNS("http://www.w3.org/2000/svg", elementData[1]) : docImpl.createElement(elementData[1]) ]);
@@ -445,7 +445,7 @@
         const start = Date.now();
         impls = impls.filter((implData => implData[0]));
         for (const implData of impls) {
-            if (Date.now() - start > 20) {
+            if (Date.now() - start > 5) {
                 return false;
             }
             const impl = implData[0];
@@ -518,18 +518,6 @@
         $doneCstrs$: new Set
     };
     let worker;
-    const mainAccessRequestQueue = [];
-    const drainQueue = responseCallback => {
-        setTimeout((() => {
-            const accessReq = mainAccessRequestQueue.shift();
-            if (accessReq) {
-                console.time("drainQueue");
-                mainAccessHandler(worker, accessReq).then(responseCallback);
-                console.timeEnd("drainQueue");
-            }
-            len(mainAccessRequestQueue) && drainQueue(responseCallback);
-        }), 0);
-    };
     (async receiveMessage => {
         const sharedDataBuffer = new SharedArrayBuffer(1073741824);
         const sharedData = new Int32Array(sharedDataBuffer);
@@ -588,21 +576,16 @@
                 Atomics.notify(sharedData, 0);
             })) : onMessageFromWebWorker(worker, msg);
         };
-    })(((accessReq, responseCallback) => {
-        console.time("receiveMessage");
-        mainAccessRequestQueue.push(accessReq);
-        drainQueue(responseCallback);
-        console.timeEnd("receiveMessage");
-    })).then((onMessageHandler => {
+    })(((accessReq, responseCallback) => setTimeout((() => mainAccessHandler(worker, accessReq).then(responseCallback))))).then((onMessageHandler => {
         if (onMessageHandler) {
-            worker = new Worker(libPath + "partytown-ww-atomics.js?v=0.7.0-dev1664407017534", {
+            worker = new Worker(libPath + "partytown-ww-atomics.js?v=0.7.0-dev1664407459625", {
                 name: "Partytown 🎉"
             });
             worker.onmessage = ev => {
                 const msg = ev.data;
                 12 === msg[0] ? mainAccessHandler(worker, msg[1]) : onMessageHandler(worker, msg);
             };
-            logMain("Created Partytown web worker (0.7.0-dev1664407017534)");
+            logMain("Created Partytown web worker (0.7.0-dev1664407459625)");
             worker.onerror = ev => console.error("Web Worker Error", ev);
             mainWindow.addEventListener("pt1", (ev => registerWindow(worker, getAndSetInstanceId(ev.detail.frameElement), ev.detail)));
         }

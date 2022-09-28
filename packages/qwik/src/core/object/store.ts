@@ -31,6 +31,7 @@ import {
   isConnected,
   isSignal,
   QObjectFlagsSymbol,
+  SignalImpl,
 } from './q-object';
 import { destroyWatch, SubscriberEffect, WatchFlagsIsDirty } from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
@@ -944,7 +945,7 @@ const collectValue = (obj: any, collector: Collector, leaks: boolean) => {
           collector.$noSerialize$.push(obj);
           return;
         }
-        if (isSignal(obj)) {
+        if (obj instanceof SignalImpl) {
           collector.$objSet$.add(obj);
           if (leaks) {
             collectSubscriptions(obj, collector);

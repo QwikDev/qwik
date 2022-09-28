@@ -534,8 +534,6 @@ export const setPlatform: (plt: CorePlatform) => CorePlatform;
 // @alpha (undocumented)
 export interface Signal<T = any> {
     // (undocumented)
-    readonly untrackedValue: T;
-    // (undocumented)
     value: T;
 }
 
@@ -769,6 +767,11 @@ export interface WatchCtx {
 
 // @public (undocumented)
 export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
+
+// Warning: (ae-incompatible-release-tags) The symbol "wrapSignal" is marked as @public, but its signature references "Signal" which is marked as @alpha
+//
+// @public (undocumented)
+export const wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => Signal<T[P]>;
 
 // (No @packageDocumentation comment for this package)
 

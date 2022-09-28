@@ -13,7 +13,7 @@ import {
   SubscriberEffect,
 } from '../use/use-watch';
 import { isDocument } from '../util/element';
-import { isSignal, QObjectManagerSymbol, SignalImpl, SignalWrapper } from './q-object';
+import { QObjectManagerSymbol, SignalImpl, SignalWrapper } from './q-object';
 import type { GetObject, GetObjID } from './store';
 
 /**
@@ -205,7 +205,7 @@ const PureFunctionSerializer: Serializer<Function> = {
 
 const SignalSerializer: Serializer<SignalImpl<any>> = {
   prefix: '\u0012',
-  test: (v) => isSignal(v),
+  test: (v) => v instanceof SignalImpl,
   serialize: (obj, getObjId) => {
     const code = getObjId(obj.untrackedValue);
     assertDefined(code, 'can not find ID for data', obj);
@@ -226,7 +226,7 @@ const SignalWrapperSerializer: Serializer<SignalWrapper<any, any>> = {
   prefix: '\u0013',
   test: (v) => v instanceof SignalWrapper,
   serialize: (obj, getObjId) => {
-    return `${getObjId(obj.ref)} ${obj.prop}`
+    return `${getObjId(obj.ref)} ${obj.prop}`;
   },
   prepare: (data) => {
     const [id, prop] = data.split(' ');
@@ -236,7 +236,6 @@ const SignalWrapperSerializer: Serializer<SignalWrapper<any, any>> = {
     signal.ref = getObject(signal.ref);
   },
 };
-
 
 const serializers: Serializer<any>[] = [
   QRLSerializer,

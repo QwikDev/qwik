@@ -1,5 +1,5 @@
 import { assertDefined } from '../assert/assert';
-import { ELEMENT_ID, OnRenderProp, QSlot, RenderEvent } from '../util/markers';
+import { ELEMENT_ID, QSlot, RenderEvent } from '../util/markers';
 import { safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { isArray, isObject, isString, ValueOrPromise } from '../util/types';
@@ -188,4 +188,4 @@ export const hasStyle = (containerState: ContainerState, styleId: string) => {
   return containerState.$styleIds$.has(styleId);
 };
 
-export const SKIPS_PROPS = [QSlot, OnRenderProp, 'children'];
+export const SKIPS_PROPS = [QSlot, 'children'];

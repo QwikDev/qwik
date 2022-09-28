@@ -55,10 +55,12 @@ export const Child = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_Child"),
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAIA,OAAO,MAAM,MAAM,iBAAG,+EAgBpB,CAAC;AAEH,OAAO,MAAM,KAAK,iBAAG,6EAenB,CAAC\"}")
 ============================= parent_component_0taidayhrlo.js ==
 
+import { _IMMUTABLE } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { qrl } from "@builder.io/qwik";
 import { useServerMountQrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
+import { wrapSignal } from "@builder.io/qwik";
 export const Parent_component_0TaiDayHrlo = ()=>{
     const state = useStore({
         text: ''
@@ -69,12 +71,17 @@ export const Parent_component_0TaiDayHrlo = ()=>{
     ]));
     return /*#__PURE__*/ _jsx("div", {
         onClick$: qrl(()=>import("./entry_Parent"), "Parent_component_div_onClick_C5XE49Nqd3A"),
-        children: state.text
+        get children () {
+            return state.text;
+        },
+        [_IMMUTABLE]: {
+            children: wrapSignal(state, "text")
+        }
     });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAKiC,IAAM;IACnC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,IAAI,EAAE,EAAE;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAGE,CAAC;IAEH,qBACI,KAAC,KAAG;QAAC,QAAQ;kBACR,KAAK,CAAC,IAAI;MACT,CACR;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;4CAKiC,IAAM;IACnC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,IAAI,EAAE,EAAE;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAGE,CAAC;IAEH,qBACI,KAAC,KAAG;QAAC,QAAQ;;mBACR,KAAK,CAAC,IAAI;;;iCAAV,KAAK;;MACJ,CACR;AACN,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -151,10 +158,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= child_component_9gyf01gdkqw.js ==
 
+import { _IMMUTABLE } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { qrl } from "@builder.io/qwik";
 import { useServerMountQrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
+import { wrapSignal } from "@builder.io/qwik";
 export const Child_component_9GyF01GDKqw = ()=>{
     const state = useStore({
         text: ''
@@ -165,12 +174,17 @@ export const Child_component_9GyF01GDKqw = ()=>{
     ]));
     return /*#__PURE__*/ _jsx("div", {
         onClick$: qrl(()=>import("./entry_Child"), "Child_component_div_onClick_elliVSnAiOQ"),
-        children: state.text
+        get children () {
+            return state.text;
+        },
+        [_IMMUTABLE]: {
+            children: wrapSignal(state, "text")
+        }
     });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;2CAuBgC,IAAM;IAClC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,IAAI,EAAE,EAAE;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAEE,CAAC;IAEH,qBACI,KAAC,KAAG;QAAC,QAAQ;kBACR,KAAK,CAAC,IAAI;MACT,CACR;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;2CAuBgC,IAAM;IAClC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,IAAI,EAAE,EAAE;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAEE,CAAC;IAEH,qBACI,KAAC,KAAG;QAAC,QAAQ;;mBACR,KAAK,CAAC,IAAI;;;iCAAV,KAAK;;MACJ,CACR;AACN,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

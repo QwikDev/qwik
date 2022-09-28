@@ -60,7 +60,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
             await handler(ev, element);
           } finally {
             (doc as any)[Q_CONTEXT] = previousCtx;
-            emitEvent('qsymbol',{
+            emitEvent('qsymbol', {
               symbol: symbolName,
               element: element,
             });
@@ -72,7 +72,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
 
   const emitEvent = (eventName: string, detail?: any) => {
     doc.dispatchEvent(createEvent(eventName, detail));
-  }
+  };
 
   const findModule = (module: any) => {
     return Object.values(module).find(isModule) || module;

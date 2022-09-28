@@ -100,8 +100,8 @@ export class SignalImpl<T> implements Signal<T> {
   }
 }
 
-export const isSignal = (obj: any): obj is SignalImpl<any> => {
-  return obj instanceof SignalImpl;
+export const isSignal = (obj: any): obj is Signal<any> => {
+  return obj instanceof SignalImpl || obj instanceof SignalWrapper;
 };
 
 export const createProxy = <T extends object>(
@@ -385,9 +385,7 @@ export const getProxyFlags = <T = Record<string, any>>(obj: T): number | undefin
   return (obj as any)[QObjectFlagsSymbol];
 };
 
-
 export class SignalWrapper<T extends Record<string, any>, P extends keyof T> {
-
   constructor(public ref: T, public prop: P) {}
 
   get [QObjectManagerSymbol]() {
@@ -403,7 +401,10 @@ export class SignalWrapper<T extends Record<string, any>, P extends keyof T> {
   }
 }
 
-export const wrapSignal = <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P): Signal<T[P]> => {
+export const wrapSignal = <T extends Record<any, any>, P extends keyof T>(
+  obj: T,
+  prop: P
+): Signal<T[P]> => {
   if (obj instanceof SignalImpl) {
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
     return obj;
@@ -422,4 +423,4 @@ export const wrapSignal = <T extends Record<any, any>, P extends keyof T>(obj: T
     }
   }
   return new SignalWrapper(obj, prop);
-}
+};

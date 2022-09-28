@@ -27,11 +27,13 @@ import {
   isSignal,
   QObjectFlagsSymbol,
   QObjectImmutable,
+  _IMMUTABLE,
 } from '../../object/q-object';
 import { serializeQRLs } from '../../import/qrl';
 import type { Ref } from '../../use/use-ref';
 import type { QwikElement } from '../dom/virtual-element';
 import { assertElement } from '../../util/element';
+import { EMPTY_OBJ } from '../../util/flyweight';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
@@ -295,7 +297,8 @@ export const renderSSRComponent = (
   flags: number,
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ): ValueOrPromise<void> => {
-  setComponentProps(ssrCtx.rctx, elCtx, node.props);
+  const props = node.props.props;
+  setComponentProps(ssrCtx.rctx, elCtx, props);
   return then(executeComponent(ssrCtx.rctx, elCtx), (res) => {
     const hostElement = elCtx.$element$;
     const newCtx = res.rctx;
@@ -308,7 +311,7 @@ export const renderSSRComponent = (
     };
     const newSSrContext: SSRContext = {
       ...ssrCtx,
-      projectedChildren: splitProjectedChildren(node.props.children, ssrCtx),
+      projectedChildren: splitProjectedChildren(props.children, ssrCtx),
       projectedContext,
       rctx: newCtx,
       invocationContext,
@@ -449,10 +452,10 @@ export const renderNode = (
       const attrName = processPropKey(prop);
       if (isSignal(value)) {
         if (hostCtx) {
-          getProxyManager(value)!.$addSub$([2, hostCtx.$element$, value, elm, attrName]);
+          getProxyManager(value)!.$addSub$([2, hostCtx.$element$, value, elm, attrName, undefined]);
           useSignal = true;
         }
-        value = value.untrackedValue;
+        value = value.value;
       }
       const attrValue = processPropValue(attrName, value);
       if (attrValue != null) {
@@ -464,10 +467,17 @@ export const renderNode = (
     let classValue = props.class ?? props.className;
     if (isSignal(classValue)) {
       if (hostCtx) {
-        getProxyManager(classValue)?.$addSub$([2, hostCtx.$element$, classValue, elm, 'class']);
+        getProxyManager(classValue)?.$addSub$([
+          2,
+          hostCtx.$element$,
+          classValue,
+          elm,
+          'class',
+          undefined,
+        ]);
         useSignal = true;
       }
-      classValue = classValue.untrackedValue;
+      classValue = classValue.value;
     }
     let classStr = stringifyClass(props.class ?? props.className);
 
@@ -600,10 +610,10 @@ export const processData = (
     return walkChildren(node, ssrCtx, stream, flags);
   } else if (isSignal(node)) {
     const sub = ssrCtx.invocationContext?.$subscriber$ as QwikElement;
-    const value = node.untrackedValue;
+    const value = node.value;
     const id = getNextIndex(ssrCtx.rctx);
     if (sub) {
-      getProxyManager(node)?.$addSub$([1, sub, node, ('#' + id) as any as Node, 'data']);
+      getProxyManager(node)?.$addSub$([1, sub, node, ('#' + id) as any as Node, 'data', undefined]);
     }
     stream.write(`<!--t=${id}-->${escapeHtml(String(value))}<!---->`);
   } else if (isPromise(node)) {
@@ -728,18 +738,25 @@ const setComponentProps = (
   expectProps: Record<string, any>
 ) => {
   const keys = Object.keys(expectProps);
-  if (keys.length === 0) {
-    return;
-  }
   const target = {
     [QObjectFlagsSymbol]: QObjectImmutable,
   } as Record<string, any>;
   ctx.$props$ = createProxy(target, rctx.$static$.$containerState$);
+
+  if (keys.length === 0) {
+    return;
+  }
+  const immutable = (expectProps as any)[_IMMUTABLE] ?? EMPTY_OBJ;
   for (const key of keys) {
-    if (key === 'children' || key === OnRenderProp) {
+    if (key === 'children') {
       continue;
     }
-    target[key] = expectProps[key];
+    const signal = immutable[key];
+    if (isSignal(signal)) {
+      target[key] = signal;
+    } else {
+      target[key] = expectProps[key] ;
+    }
   }
 };
 

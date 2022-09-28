@@ -625,7 +625,6 @@ export const runSubscriber = async (
     return runWatch(watch, containerState, rctx);
   }
 };
-asserts
 
 export const runResource = <T>(
   watch: ResourceDescriptor<T>,
@@ -638,7 +637,7 @@ export const runResource = <T>(
   const el = watch.$el$;
   const invokationContext = newInvokeContext(el, undefined, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
-  watch.$qrl$.$captureRef$
+  watch.$qrl$.$captureRef$;
   const watchFn = watch.$qrl$.getFn(invokationContext, () => {
     subsManager.$clearSub$(watch);
   });
@@ -661,7 +660,7 @@ export const runResource = <T>(
     if (prop) {
       return obj[prop];
     } else if (isSignal(obj)) {
-      return obj.untrackedValue;
+      return obj.value;
     } else {
       return obj;
     }
@@ -762,7 +761,7 @@ export const runWatch = (
     if (prop) {
       return obj[prop];
     } else if (isSignal(obj)) {
-      return obj.untrackedValue;
+      return obj.value;
     } else {
       return obj;
     }

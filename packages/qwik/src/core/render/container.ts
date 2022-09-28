@@ -83,11 +83,7 @@ export const createContainerState = (containerEl: Element) => {
   return containerState;
 };
 
-type A = [
-  type: 0,
-  subscriber: SubscriberEffect | SubscriberHost,
-  key: string | undefined
-];
+type A = [type: 0, subscriber: SubscriberEffect | SubscriberHost, key: string | undefined];
 
 type B = [
   type: 1,
@@ -128,7 +124,7 @@ export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) =>
   return base;
 };
 
-export const parseSubscription = (sub: string, getObject: GetObject) => {
+export const parseSubscription = (sub: string, getObject: GetObject): Subscriptions => {
   const parts = sub.split(' ');
   const type = parseInt(parts[0], 10);
   assertTrue(parts.length >= 2, 'At least 2 parts');
@@ -140,7 +136,7 @@ export const parseSubscription = (sub: string, getObject: GetObject) => {
     assertTrue(parts.length === 5 || parts.length === 6, 'Max 5 parts');
     subscription.push(getObject(parts[2]), getObject(parts[3]), parts[4], parts[5]);
   }
-  return subscription;
+  return subscription as any;
 };
 
 export const createSubscriptionManager = (containerState: ContainerState): SubscriptionManager => {
@@ -186,7 +182,7 @@ export const createSubscriptionManager = (containerState: ContainerState): Subsc
       },
       $addSub$(sub: Subscriptions) {
         const [type, group] = sub;
-        const key = sub[sub.length -1] as string | undefined;
+        const key = sub[sub.length - 1] as string | undefined;
         if (type === 0) {
           if (
             map.some(([_type, _group, _key]) => _type === type && _group === group && _key === key)

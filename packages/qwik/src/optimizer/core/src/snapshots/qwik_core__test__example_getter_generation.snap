@@ -1,6 +1,5 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1580
 expression: output
 ---
 ==INPUT==
@@ -50,19 +49,26 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= cmp_component_4rykjtokjwe.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { _IMMUTABLE } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
+import { wrapSignal } from "@builder.io/qwik";
 export const Cmp_component_4ryKJTOKjWE = (props)=>{
     return /*#__PURE__*/ _jsxs(_Fragment, {
         children: [
             /*#__PURE__*/ _jsx("p", {
                 "data-value": props.count,
-                children: props.nested.count
+                get children () {
+                    return props.nested.count;
+                },
+                [_IMMUTABLE]: {
+                    children: wrapSignal(wrapSignal(props, "nested"), "count")
+                }
             }),
             /*#__PURE__*/ _jsxs("p", {
                 children: [
                     "Value ",
-                    props.count,
+                    wrapSignal(props, "count"),
                     /*#__PURE__*/ _jsx("span", {})
                 ]
             })
@@ -71,7 +77,7 @@ export const Cmp_component_4ryKJTOKjWE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAwB8B,CAAC,KAAK,GAAK;IACrC,qBACI;;0BACI,KAAC,GAAC;gBAAC,YAAU,EAAE,KAAK,CAAC,KAAK;0BAAG,KAAK,CAAC,MAAM,CAAC,KAAK;cAAK;0BACpD,MAAC,GAAC;;oBAAC,QAAM;oBAAC,KAAK,CAAC,KAAK;kCAAC,KAAC,MAAI,KAAQ;;cAAI;;MACxC,CACL;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAwB8B,CAAC,KAAK,GAAK;IACrC,qBACI;;0BACI,KAAC,GAAC;gBAAC,YAAU,EAAE,KAAK,CAAC,KAAK;;2BAAG,KAAK,CAAC,MAAM,CAAC,KAAK;;;oDAAlB,KAAK;;cAAkB;0BACpD,MAAC,GAAC;;oBAAC,QAAM;+BAAC,KAAK;kCAAO,KAAC,MAAI,KAAQ;;cAAI;;MACxC,CACL;AACN,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

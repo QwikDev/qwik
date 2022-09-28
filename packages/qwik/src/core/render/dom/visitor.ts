@@ -400,7 +400,7 @@ export const patchVnode = (
       const signal = newVnode.$signal$;
       if (signal) {
         const manager = getProxyManager(signal)!;
-        manager.$addSub$([1, currentComponent.$element$, signal, elm, 'data', ]);
+        manager.$addSub$([1, currentComponent.$element$, signal, elm, 'data', undefined]);
       }
       setProperty(staticCtx, elm, 'data', newVnode.$text$);
     }
@@ -457,12 +457,13 @@ export const patchVnode = (
     return smartUpdateChildren(rctx, oldVnode, newVnode, 'root', flags);
   }
 
-  let needsRender = setComponentProps(elCtx, rctx, props);
+  const cmpProps = props.props;
+  let needsRender = setComponentProps(elCtx, rctx, cmpProps);
 
   // TODO: review this corner case
   if (!needsRender && !elCtx.$componentQrl$ && !elCtx.$element$.hasAttribute(ELEMENT_ID)) {
     setQId(rctx, elCtx);
-    elCtx.$componentQrl$ = props[OnRenderProp];
+    elCtx.$componentQrl$ = cmpProps[OnRenderProp];
     assertQrl(elCtx.$componentQrl$ as any);
     needsRender = true;
   }

@@ -16,7 +16,7 @@ import { serializeSStyle } from '../../component/qrl-styles';
 import type { QContext } from '../../props/props';
 import { QwikElement, VIRTUAL, VirtualElement } from './virtual-element';
 import { appendHeadStyle } from './operations';
-import { isSignal, SignalImpl } from '../../object/q-object';
+import { isSignal, Signal } from '../../object/q-object';
 import { assertTrue } from '../../assert/assert';
 
 export const renderComponent = (
@@ -74,7 +74,7 @@ export const getVdom = (ctx: QContext) => {
 export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
   $elm$: Node | VirtualElement | null = null;
   $text$: string = '';
-  $signal$: SignalImpl<any> | null = null;
+  $signal$: Signal<any> | null = null;
 
   constructor(
     public $type$: string,
@@ -186,5 +186,5 @@ export interface ProcessedJSXNode {
   $key$: string | null;
   $elm$: Node | VirtualElement | null;
   $text$: string;
-  $signal$: SignalImpl<any> | null;
+  $signal$: Signal<any> | null;
 }

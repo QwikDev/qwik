@@ -20,9 +20,6 @@
           "importPath": "path"
         }
       ],
-      "viteConfig": {
-        "ssr": "{ target: 'webworker', noExternal: true }"
-      },
       "vitePlugins": [
         "partytownVite({dest: join(__dirname, 'public', '~partytown')})"
       ]

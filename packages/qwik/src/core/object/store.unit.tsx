@@ -6,7 +6,7 @@ import { component$ } from '../component/component.public';
 import { noSerialize } from './q-object';
 import { $ } from '../import/qrl.public';
 import { logDebug } from '../util/log';
-import { runtimeQrl } from '../import/qrl';
+import { inlinedQrl } from '../import/qrl';
 import { pauseContainer } from '../object/store';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
@@ -132,7 +132,7 @@ export const LexicalScope = component$(() => {
   const boolTrue = true;
   const boolFalse = false;
   const qrl = $(() => logDebug('qrl'));
-  const thing = runtimeQrl(LexicalScope_render, [
+  const thing = inlinedQrl(LexicalScope_render, 'LexicalScope_render', [
     nu,
     str,
     obj,

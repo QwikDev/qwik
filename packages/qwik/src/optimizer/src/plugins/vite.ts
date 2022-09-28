@@ -21,13 +21,14 @@ import {
   QwikPackages,
   QWIK_JSX_RUNTIME_ID,
   CLIENT_OUT_DIR,
+  QWIK_JSX_DEV_RUNTIME_ID,
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { configureDevServer, configurePreviewServer, VITE_DEV_CLIENT_QS } from './vite-server';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import { versions } from '../versions';
 
-const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID];
+const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
 /**
  * @alpha
@@ -202,12 +203,20 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           dedupe: [...DEDUPE, ...vendorIds],
           conditions: [],
         },
+        esbuild:
+          opts.buildMode === 'development'
+            ? false
+            : {
+                logLevel: 'error',
+                jsx: 'preserve',
+              },
         optimizeDeps: {
           exclude: [
             '@vite/client',
             '@vite/env',
             QWIK_CORE_ID,
             QWIK_JSX_RUNTIME_ID,
+            QWIK_JSX_DEV_RUNTIME_ID,
             QWIK_BUILD_ID,
             QWIK_CLIENT_MANIFEST_ID,
             ...vendorIds,
@@ -256,6 +265,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         } else {
           updatedViteConfig.publicDir = false;
           updatedViteConfig.build!.ssr = true;
+          if (buildMode === 'production') {
+            updatedViteConfig.build!.minify = 'esbuild';
+          }
         }
         if (typeof viteConfig.build?.emptyOutDir === 'boolean') {
           updatedViteConfig.build!.emptyOutDir = viteConfig.build!.emptyOutDir;

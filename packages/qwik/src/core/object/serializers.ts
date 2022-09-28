@@ -1,5 +1,5 @@
 import { Component, componentQrl, isQwikComponent } from '../component/component.public';
-import { parseQRL, stringifyQRL } from '../import/qrl';
+import { parseQRL, serializeQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
 import type { QRL } from '../import/qrl.public';
 import type { ContainerState } from '../render/container';
@@ -53,7 +53,7 @@ const QRLSerializer: Serializer<QRLInternal> = {
   prefix: '\u0002',
   test: (v) => isQrl(v),
   serialize: (obj, getObjId, containerState) => {
-    return stringifyQRL(obj, {
+    return serializeQRL(obj, {
       $getObjId$: getObjId,
     });
   },
@@ -163,7 +163,7 @@ const ComponentSerializer: Serializer<Component<any>> = {
   test: (obj) => isQwikComponent(obj),
   serialize: (obj, getObjId, containerState) => {
     const [qrl]: [QRLInternal] = (obj as any)[SERIALIZABLE_STATE];
-    return stringifyQRL(qrl, {
+    return serializeQRL(qrl, {
       $getObjId$: getObjId,
     });
   },

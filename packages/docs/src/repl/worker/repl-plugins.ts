@@ -14,7 +14,11 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       if (!importer) {
         return id;
       }
-      if (id === '@builder.io/qwik' || id === '@builder.io/qwik/jsx-runtime') {
+      if (
+        id === '@builder.io/qwik' ||
+        id === '@builder.io/qwik/jsx-runtime' ||
+        id === '@builder.io/qwik/jsx-dev-runtime'
+      ) {
         return '\0qwikCore';
       }
       if (id === '@builder.io/qwik/server') {

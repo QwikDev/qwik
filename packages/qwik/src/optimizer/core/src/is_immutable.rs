@@ -39,9 +39,7 @@ pub fn is_immutable_expr(
     if key == "key" {
         return false;
     }
-    if key == "ref" {
-        return false;
-    }
+
     let mut collector = ImmutableCollector::new(global, current_stack);
     collector.visit_expr(expr);
     collector.is_immutable

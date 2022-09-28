@@ -22,7 +22,7 @@ macro_rules! test_input {
             explicit_extensions: input.explicit_extensions,
             manual_chunks: input.manual_chunks,
             entry_strategy: input.entry_strategy,
-            dev: input.dev,
+            mode: input.mode,
             scope: input.scope,
             strip_exports,
         });
@@ -990,7 +990,7 @@ export const Foo = component$(() => {
 });
 "#
         .to_string(),
-        dev: false,
+        mode: EmitMode::Prod,
         ..TestInput::default()
     });
 }
@@ -1144,7 +1144,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
 "#
         .to_string(),
         entry_strategy: EntryStrategy::Inline,
-        dev: false,
+        mode: EmitMode::Prod,
         ..TestInput::default()
     });
 }
@@ -1533,6 +1533,49 @@ export const App = component$(() => {
 }
 
 #[test]
+fn example_dev_mode() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$(() => {
+    return (
+        <Cmp>
+            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+        </Cmp>
+    );
+});
+"#
+        .to_string(),
+        mode: EmitMode::Dev,
+        transpile: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_dev_mode_inlined() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$(() => {
+    return (
+        <Cmp>
+            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+        </Cmp>
+    );
+});
+"#
+        .to_string(),
+        mode: EmitMode::Dev,
+        entry_strategy: EntryStrategy::Inline,
+        transpile: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_qwik_react() {
     test_input!(TestInput {
         code: r#"
@@ -1586,7 +1629,10 @@ function qwikifyQrl(reactCmpQrl) {
             ]).then(([Cmp, server])=>{
                 const html = server.render(Cmp, filterProps(props));
                 return /*#__PURE__*/ jsx(Host, {
-                    dangerouslySetInnerHTML: html
+                    dangerouslySetInnerHTML: html,
+                    [_IMMUTABLE]: [
+                        "dangerouslySetInnerHTML"
+                    ]
                 });
             });
             return /*#__PURE__*/ jsx(Fragment, {
@@ -1695,7 +1741,7 @@ export const Local = component$(() => {
         source_maps: true,
         minify: MinifyMode::Simplify,
         explicit_extensions: true,
-        dev: true,
+        mode: EmitMode::Lib,
         manual_chunks: None,
         entry_strategy: EntryStrategy::Hook,
         transpile: true,
@@ -1726,17 +1772,30 @@ export const Greeter = component$(() => {
 
 "#;
     let options = vec![
-        (true, EntryStrategy::Single, true),
-        (true, EntryStrategy::Component, true),
-        (false, EntryStrategy::Hook, true),
-        (false, EntryStrategy::Single, true),
-        (false, EntryStrategy::Component, true),
-        (true, EntryStrategy::Hook, false),
-        (true, EntryStrategy::Single, false),
-        (true, EntryStrategy::Component, false),
-        (false, EntryStrategy::Hook, false),
-        (false, EntryStrategy::Single, false),
-        (false, EntryStrategy::Component, false),
+        (EmitMode::Lib, EntryStrategy::Hook, true),
+        (EmitMode::Lib, EntryStrategy::Single, true),
+        (EmitMode::Lib, EntryStrategy::Component, true),
+        // (EmitMode::Lib, EntryStrategy::Inline, true),
+        (EmitMode::Prod, EntryStrategy::Hook, true),
+        (EmitMode::Prod, EntryStrategy::Single, true),
+        (EmitMode::Prod, EntryStrategy::Component, true),
+        // (EmitMode::Prod, EntryStrategy::Inline, true),
+        (EmitMode::Dev, EntryStrategy::Hook, true),
+        (EmitMode::Dev, EntryStrategy::Single, true),
+        (EmitMode::Dev, EntryStrategy::Component, true),
+        // (EmitMode::Dev, EntryStrategy::Inline, true),
+        (EmitMode::Lib, EntryStrategy::Hook, false),
+        (EmitMode::Lib, EntryStrategy::Single, false),
+        (EmitMode::Lib, EntryStrategy::Component, false),
+        // (EmitMode::Lib, EntryStrategy::Inline, false),
+        (EmitMode::Prod, EntryStrategy::Hook, false),
+        (EmitMode::Prod, EntryStrategy::Single, false),
+        (EmitMode::Prod, EntryStrategy::Component, false),
+        // (EmitMode::Prod, EntryStrategy::Inline, false),
+        (EmitMode::Dev, EntryStrategy::Hook, false),
+        (EmitMode::Dev, EntryStrategy::Single, false),
+        (EmitMode::Dev, EntryStrategy::Component, false),
+        // (EmitMode::Dev, EntryStrategy::Inline, false),
     ];
 
     let res = transform_modules(TransformModulesOptions {
@@ -1754,7 +1813,7 @@ export const Greeter = component$(() => {
         source_maps: true,
         minify: MinifyMode::Simplify,
         explicit_extensions: true,
-        dev: true,
+        mode: EmitMode::Lib,
         manual_chunks: None,
         entry_strategy: EntryStrategy::Hook,
         transpile: true,
@@ -1784,7 +1843,7 @@ export const Greeter = component$(() => {
             source_maps: false,
             minify: MinifyMode::Simplify,
             explicit_extensions: true,
-            dev: option.0,
+            mode: option.0,
             manual_chunks: None,
             entry_strategy: option.1,
             transpile: option.2,
@@ -1830,7 +1889,7 @@ struct TestInput {
     pub transpile: bool,
     pub explicit_extensions: bool,
     pub snapshot: bool,
-    pub dev: bool,
+    pub mode: EmitMode,
     pub scope: Option<String>,
     pub strip_exports: Option<Vec<String>>,
 }
@@ -1847,7 +1906,7 @@ impl TestInput {
             transpile: false,
             explicit_extensions: false,
             snapshot: true,
-            dev: true,
+            mode: EmitMode::Lib,
             scope: None,
             strip_exports: None,
         }

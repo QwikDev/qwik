@@ -67,6 +67,15 @@ export const Header = component$(() => {
           </li>
           <li>
             <a
+              href="/media/"
+              class={{ active: pathname.startsWith('/media') }}
+              onClick$={closeMenu}
+            >
+              <span>Videos</span>
+            </a>
+          </li>
+          <li>
+            <a
               href="/examples/introduction/hello-world/"
               class={{ active: pathname.startsWith('/examples') }}
               onClick$={closeMenu}

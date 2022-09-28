@@ -120,6 +120,12 @@ export default component$(() => {
             Github
           </a>
         </li>
+        <li>
+          <span>Watch </span>
+          <a href="https://qwik.builder.io/media/" target="_blank">
+            Presentations, Podcasts, Videos, etc.
+          </a>
+        </li>
       </ul>
       <Link class="mindblow" href="/flower">
         Blow my mind 🤯

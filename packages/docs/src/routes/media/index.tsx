@@ -102,6 +102,11 @@ export default component$(() => {
 
         <ul class="bullets">
           <li>
+            <a href="https://www.builder.io/blog/hydration-is-pure-overhead" target="_blank">
+              Hydration is Pure Overhead
+            </a>
+          </li>
+          <li>
             <a
               href="https://dev.to/mhevery/a-first-look-at-qwik-the-html-first-framework-af"
               target="_blank"

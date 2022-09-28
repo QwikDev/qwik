@@ -13,7 +13,7 @@ export default component$(() => {
           <a href="#videos">Videos</a>
         </h2>
 
-        <ul>
+        <ul class="thumbnails">
           <li>
             <a href="https://youtu.be/x2eF3YLiNhY" target="_blank">
               <img src="http://i3.ytimg.com/vi/x2eF3YLiNhY/hqdefault.jpg" />
@@ -34,7 +34,7 @@ export default component$(() => {
           <a href="#podcasts">Podcasts</a>
         </h2>
 
-        <ul>
+        <ul class="thumbnails">
           <li>
             <a href="https://www.youtube.com/watch?v=_PDpoJUacuc" target="_blank">
               <img src="http://i3.ytimg.com/vi/_PDpoJUacuc/hqdefault.jpg" />
@@ -73,7 +73,7 @@ export default component$(() => {
           <a href="#presentations">Presentations</a>
         </h2>
 
-        <ul>
+        <ul class="thumbnails">
           <li>
             <a href="https://www.youtube.com/watch?v=0dC11DMR3fU&amp;t=154s" target="_blank">
               <img src="http://i3.ytimg.com/vi/0dC11DMR3fU/hqdefault.jpg" />
@@ -84,6 +84,38 @@ export default component$(() => {
             <a href="https://www.youtube.com/watch?v=GHbNaDSWUX8" target="_blank">
               <img src="http://i3.ytimg.com/vi/GHbNaDSWUX8/hqdefault.jpg" />
               <p>Qwik Workshop Part 1 - Live Coding</p>
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 id="resources">
+          <a href="#resources">Resources</a>
+        </h2>
+
+        <ul class="bullets">
+          <li>
+            <a
+              href="https://docs.google.com/presentation/d/1Jj1iw0lmaecxtUpqyNdF1aBzbCVnSlbPGLbOpN2xydc/edit#slide=id.g13225ffe116_6_234"
+              target="_blank"
+            >
+              Qwik: Instant-on, resumable WebApps - Google Presentation
+            </a>
+          </li>
+          <li>
+            <a href="/logos/qwik-logo.svg" target="_blank">
+              Qwik SVG Logo [svg]
+            </a>
+          </li>
+          <li>
+            <a href="/logos/qwik.svg" target="_blank">
+              Qwik Logo and Text [svg]
+            </a>
+          </li>
+          <li>
+            <a href="/logos/qwik.png" target="_blank">
+              Qwik Logo and Text [png]
             </a>
           </li>
         </ul>

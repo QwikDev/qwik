@@ -86,6 +86,12 @@ export default component$(() => {
               <p>Qwik Workshop Part 1 - Live Coding</p>
             </a>
           </li>
+          <li>
+            <a href="https://www.youtube.com/watch?v=Jf_E1_19aB4&t=629s" target="_blank">
+              <img src="http://i3.ytimg.com/vi/Jf_E1_19aB4/hqdefault.jpg" />
+              <p>Qwik framework overview</p>
+            </a>
+          </li>
         </ul>
       </section>
 

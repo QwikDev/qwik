@@ -55,7 +55,7 @@ export const Section = component$(
 export default component$(() => {
   useStyles$(styles);
   return (
-    <div class="media">
+    <article class="media">
       <h1>Qwik Presentations, Talks, Videos and Podcasts</h1>
 
       <Section title="videos" preview_style="thumbnails" />
@@ -81,7 +81,7 @@ export default component$(() => {
           </a>
         </p>
       </section>
-    </div>
+    </article>
   );
 });
 

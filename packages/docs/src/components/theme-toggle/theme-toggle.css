@@ -1,3 +1,8 @@
+.theme-toggle-container {
+  display: flex;
+  justify-content: end;
+}
+
 .theme-toggle {
   --size: 2rem;
   --icon-fill: hsl(210 10% 30%);

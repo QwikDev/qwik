@@ -114,6 +114,8 @@ pre[class*='language-'] {
 
   --media-separator-color: #dddddd;
   --media-video-shadow-color: var(--qwik-dark-blue);
+
+  --panel-toggle-background-color: var(--qwik-light-blue);
 }
 
 :root[data-theme='dark'] {
@@ -156,6 +158,8 @@ pre[class*='language-'] {
 
   --media-separator-color: rgba(255, 255, 255, 0.1);
   --media-video-shadow-color: var(--qwik-blue);
+
+  --panel-toggle-background-color: var(--qwik-dark-blue);
 }
 
 @media (max-width: 768px) {

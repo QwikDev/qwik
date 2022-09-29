@@ -71,7 +71,7 @@ export const Header = component$(() => {
               class={{ active: pathname.startsWith('/media') }}
               onClick$={closeMenu}
             >
-              <span>Videos</span>
+              <span>Media</span>
             </a>
           </li>
           <li>

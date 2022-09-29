@@ -56,15 +56,15 @@ export const ThemeToggle = component$(() => {
   });
 
   return (
-    <div class={"theme-toggle-container"}>
+    <div class={'theme-toggle-container'}>
       <button
-          type="button"
-          class={"theme-toggle"}
-          id="theme-toggle"
-          title="Toggles light & dark"
-          aria-label={state.theme}
-          aria-live="polite"
-          onClick$={onClick$}
+        type="button"
+        class={'theme-toggle'}
+        id="theme-toggle"
+        title="Toggles light & dark"
+        aria-label={state.theme}
+        aria-live="polite"
+        onClick$={onClick$}
       >
         <SunAndMoon />
       </button>

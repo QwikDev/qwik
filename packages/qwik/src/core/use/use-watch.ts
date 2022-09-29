@@ -3,7 +3,6 @@ import {
   isSignal,
   noSerialize,
   NoSerialize,
-  Signal,
   unwrapProxy,
 } from '../object/q-object';
 import { getContext } from '../props/props';
@@ -76,8 +75,19 @@ export const WatchFlagsIsResource = 1 << 4;
  */
 // </docs>
 export interface Tracker {
-  <T>(obj: Signal<T>): T;
+  /**
+   *
+   */
+  <T>(ctx: () => T): T;
+
+  /**
+   * @deprecated
+   */
   <T extends {}>(obj: T): T;
+
+  /**
+   * @deprecated
+   */
   <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
 }
 
@@ -651,6 +661,11 @@ export const runResource = <T>(
   );
 
   const track: Tracker = (obj: any, prop?: string) => {
+    if (isFunction(obj)) {
+      const ctx = newInvokeContext();
+      ctx.$subscriber$ = watch;
+      return invoke(ctx, obj);
+    }
     const manager = getProxyManager(obj);
     if (manager) {
       manager.$addSub$([0, watch, prop]);
@@ -752,6 +767,11 @@ export const runWatch = (
     subsManager.$clearSub$(watch);
   }) as WatchFn;
   const track: Tracker = (obj: any, prop?: string) => {
+    if (isFunction(obj)) {
+      const ctx = newInvokeContext();
+      ctx.$subscriber$ = watch;
+      return invoke(ctx, obj);
+    }
     const manager = getProxyManager(obj);
     if (manager) {
       manager.$addSub$([0, watch, prop]);
@@ -760,8 +780,6 @@ export const runWatch = (
     }
     if (prop) {
       return obj[prop];
-    } else if (isSignal(obj)) {
-      return obj.value;
     } else {
       return obj;
     }

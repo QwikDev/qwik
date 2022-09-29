@@ -153,7 +153,6 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
         subscriber = null;
       }
       if (isSignal(value)) {
-        subscriber = null;
         value = value.value;
       }
     }

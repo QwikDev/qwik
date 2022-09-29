@@ -1,5 +1,4 @@
 import { assertTrue } from '../assert/assert';
-import type { Signal } from '../object/q-object';
 import type { GetObject, GetObjID } from '../object/store';
 import type { SubscriberEffect, SubscriberHost } from '../use/use-watch';
 import { seal } from '../util/qdev';
@@ -80,7 +79,7 @@ type A = [type: 0, subscriber: SubscriberEffect | SubscriberHost, key: string | 
 type B = [
   type: 1,
   subscriber: SubscriberHost,
-  signal: Signal,
+  signal: Record<string, any>,
   elm: QwikElement | Node,
   prop: string,
   key: string | undefined
@@ -89,7 +88,7 @@ type B = [
 type C = [
   type: 2,
   subscriber: SubscriberHost,
-  signal: Signal,
+  signal: Record<string, any>,
   elm: QwikElement,
   attribute: string,
   key: string | undefined
@@ -112,6 +111,9 @@ export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) =>
   } else {
     const nodeID = typeof sub[3] === 'string' ? sub[3] : getObjId(sub[3]);
     base += ` ${getObjId(sub[2])} ${nodeID} ${sub[4]}`;
+    if (sub[5]) {
+      base += ` ${sub[5]}`;
+    }
   }
   return base;
 };
@@ -188,6 +190,7 @@ export class LocalSubscriptionManager {
       }
     }
   }
+
   $addSub$(sub: Subscriptions) {
     const subs = this.$subs$;
 

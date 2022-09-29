@@ -110,7 +110,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { _IMMUTABLE } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
 import { qrl } from "@builder.io/qwik";
@@ -131,12 +130,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
         ]),
         children: [
             /*#__PURE__*/ _jsx("span", {
-                get children () {
-                    return state.count;
-                },
-                [_IMMUTABLE]: {
-                    children: wrapSignal(state, "count")
-                }
+                children: wrapSignal(state, "count")
             }),
             buttons.map((btn)=>/*#__PURE__*/ _jsx("button", {
                     onClick$: qrl(()=>import("./app_component_div_button_onclick_f5nww9e63a4"), "App_component_div_button_onClick_f5NwW9e63a4", [
@@ -146,19 +140,14 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                         state,
                         thing
                     ]),
-                    get children () {
-                        return btn.name;
-                    },
-                    [_IMMUTABLE]: {
-                        children: wrapSignal(btn, "name")
-                    }
+                    children: wrapSignal(btn, "name")
                 }))
         ]
     });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAQ8B,CAAC,KAAK,GAAK;IACrC,MAAM,KAAK,GAAG,UAAU,EAAE,AAAC;IAC3B,MAAM,KAAK,GAAG,QAAQ,CAAC;QAAC,KAAK,EAAE,CAAC;KAAC,CAAC,AAAC;IACnC,MAAM,MAAM,GAAG,CAAC,AAAC;IAEjB,MAAM,MAAM,GAAG,KAAK,CAAC,KAAK,GAAG,CAAC,AAAC;IAC/B,qBACI,MAAC,KAAG;QAAC,QAAQ;;;;;0BACT,KAAC,MAAI;;2BAAE,KAAK,CAAC,KAAK;;;yCAAX,KAAK;;cAAc;YACzB,OAAO,CAAC,GAAG,CAAC,CAAA,GAAG,iBACZ,KAAC,QAAM;oBACH,QAAQ;;;;;;;;+BAEP,GAAG,CAAC,IAAI;;;6CAAR,GAAG;;kBACC,AACZ,CAAC;;MAEA,CAER;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAQ8B,CAAC,KAAK,GAAK;IACrC,MAAM,KAAK,GAAG,UAAU,EAAE,AAAC;IAC3B,MAAM,KAAK,GAAG,QAAQ,CAAC;QAAC,KAAK,EAAE,CAAC;KAAC,CAAC,AAAC;IACnC,MAAM,MAAM,GAAG,CAAC,AAAC;IAEjB,MAAM,MAAM,GAAG,KAAK,CAAC,KAAK,GAAG,CAAC,AAAC;IAC/B,qBACI,MAAC,KAAG;QAAC,QAAQ;;;;;0BACT,KAAC,MAAI;qCAAE,KAAK;cAAc;YACzB,OAAO,CAAC,GAAG,CAAC,CAAA,GAAG,iBACZ,KAAC,QAAM;oBACH,QAAQ;;;;;;;yCAEP,GAAG;kBACC,AACZ,CAAC;;MAEA,CAER;AACN,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

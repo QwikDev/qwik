@@ -146,7 +146,15 @@ export const componentQrl = <PROPS extends {}>(
     // }
     const hash = qTest ? 'sX' : componentQrl.$hash$;
     const finalKey = hash + ':' + (key ? key : '');
-    return jsx(Virtual, { [OnRenderProp]: componentQrl, props }, finalKey) as any;
+    return jsx(
+      Virtual,
+      {
+        [OnRenderProp]: componentQrl,
+        children: props.children,
+        props,
+      },
+      finalKey
+    ) as any;
   }
   (QwikComponent as any)[SERIALIZABLE_STATE] = [componentQrl];
   return QwikComponent;

@@ -71,7 +71,7 @@ import { serializeQRLs } from '../../import/qrl';
 import { QOnce } from '../jsx/utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { getEventName } from '../../object/store';
-import { getProxyManager } from '../../object/q-object';
+import { getProxyManager, getProxyTarget, SignalWrapper } from '../../object/q-object';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -619,8 +619,27 @@ const createElm = (
 ): ValueOrPromise<Node | VirtualElement> => {
   const tag = vnode.$type$;
   const doc = rctx.$static$.$doc$;
+  const currentComponent = rctx.$cmpCtx$;
   if (tag === '#text') {
-    return (vnode.$elm$ = createTextNode(doc, vnode.$text$!));
+    const signal = vnode.$signal$;
+    const elm = createTextNode(doc, vnode.$text$!);
+    if (signal && currentComponent) {
+      const manager = getProxyManager(signal)!;
+      const sub = currentComponent.$element$;
+      if (signal instanceof SignalWrapper) {
+        manager.$addSub$([
+          1,
+          sub,
+          getProxyTarget(signal.ref),
+          elm,
+          'data',
+          signal.prop === 'value' ? undefined : signal.prop,
+        ]);
+      } else {
+        manager.$addSub$([1, sub, signal, elm, 'data', undefined]);
+      }
+    }
+    return (vnode.$elm$ = elm);
   }
 
   let elm: QwikElement;
@@ -687,7 +706,6 @@ const createElm = (
     });
   }
 
-  const currentComponent = rctx.$cmpCtx$;
   const isSlot = isVirtual && QSlotS in props;
   const hasRef = !isVirtual && 'ref' in props;
   const listenerMap = setProperties(staticCtx, elCtx, props, isSvg);

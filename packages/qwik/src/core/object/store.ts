@@ -141,11 +141,12 @@ export const resumeContainer = (containerEl: Element) => {
           const close = findClose(node);
           const virtual = new VirtualElementImpl(node, close);
           const id = directGetAttribute(virtual, ELEMENT_ID);
-          assertDefined(id, `resume: element missed q:id`, el);
-          const ctx = getContext(virtual);
-          ctx.$id$ = id;
-          elements.set(ELEMENT_ID_PREFIX + id, virtual);
-          maxId = Math.max(maxId, strToInt(id));
+          if (id) {
+            const ctx = getContext(virtual);
+            ctx.$id$ = id;
+            elements.set(ELEMENT_ID_PREFIX + id, virtual);
+            maxId = Math.max(maxId, strToInt(id));
+          }
         } else if (data.startsWith('t=')) {
           const id = data.slice(2);
           elements.set(ELEMENT_ID_PREFIX + data.slice(2), node.nextSibling!);
@@ -934,7 +935,7 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean) => 
           }
           seen.add(obj);
           if (leaks) {
-            collectSubscriptions(input, collector);
+            collectSubscriptions(getProxyManager(input)!, collector);
           }
         }
         const collected = collectDeps(obj, collector, leaks);
@@ -958,11 +959,11 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean) => 
           }
           if (isArray(obj)) {
             for (let i = 0; i < obj.length; i++) {
-              collectValue(input[i], collector, leaks);
+              collectValue(obj[i], collector, leaks);
             }
           } else if (isSerializableObject(obj)) {
             for (const key of Object.keys(obj)) {
-              collectValue(input[key], collector, leaks);
+              collectValue(obj[key], collector, leaks);
             }
           }
         }

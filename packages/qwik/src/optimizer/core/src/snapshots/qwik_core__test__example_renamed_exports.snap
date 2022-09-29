@@ -26,24 +26,18 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= app_component_1_a08txhb9pek.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
-import { _IMMUTABLE } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { wrapSignal } from "@builder.io/qwik";
 export const App_Component_1_A08tXHb9pEk = ()=>{
     const [state] = useLexicalScope();
     return /*#__PURE__*/ _jsx("div", {
-        get children () {
-            return state.thing;
-        },
-        [_IMMUTABLE]: {
-            children: wrapSignal(state, "thing")
-        }
+        children: wrapSignal(state, "thing")
     });
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;2CAMoB;;yBACZ,KAAC,KAAG;;mBAAE,KAAK,CAAC,KAAK;;;iCAAX,KAAK;;MAAa;CAC3B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMoB;;yBACZ,KAAC,KAAG;6BAAE,KAAK;MAAa;CAC3B\"}")
 /*
 {
   "origin": "test.tsx",

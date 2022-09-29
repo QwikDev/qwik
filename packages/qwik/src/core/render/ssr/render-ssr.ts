@@ -24,9 +24,11 @@ import { qError, QError_canNotRenderHTML } from '../../error/error';
 import {
   createProxy,
   getProxyManager,
+  getProxyTarget,
   isSignal,
   QObjectFlagsSymbol,
   QObjectImmutable,
+  SignalWrapper,
   _IMMUTABLE,
 } from '../../object/q-object';
 import { serializeQRLs } from '../../import/qrl';
@@ -297,8 +299,8 @@ export const renderSSRComponent = (
   flags: number,
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ): ValueOrPromise<void> => {
-  const props = node.props.props;
-  setComponentProps(ssrCtx.rctx, elCtx, props);
+  const props = node.props;
+  setComponentProps(ssrCtx.rctx, elCtx, props.props);
   return then(executeComponent(ssrCtx.rctx, elCtx), (res) => {
     const hostElement = elCtx.$element$;
     const newCtx = res.rctx;
@@ -613,7 +615,25 @@ export const processData = (
     const value = node.value;
     const id = getNextIndex(ssrCtx.rctx);
     if (sub) {
-      getProxyManager(node)?.$addSub$([1, sub, node, ('#' + id) as any as Node, 'data', undefined]);
+      if (node instanceof SignalWrapper) {
+        getProxyManager(node)?.$addSub$([
+          1,
+          sub,
+          getProxyTarget(node.ref),
+          ('#' + id) as any as Node,
+          'data',
+          node.prop === 'value' ? undefined : node.prop,
+        ]);
+      } else {
+        getProxyManager(node)?.$addSub$([
+          1,
+          sub,
+          node,
+          ('#' + id) as any as Node,
+          'data',
+          undefined,
+        ]);
+      }
     }
     stream.write(`<!--t=${id}-->${escapeHtml(String(value))}<!---->`);
   } else if (isPromise(node)) {

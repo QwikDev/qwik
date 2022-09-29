@@ -28,11 +28,6 @@ export const App = component$(() => {
     );
 });
 
-export const Foo = (props) => {
-    typeof props.count === 'number'
-
-}
-
 export const Cmp = component$((props) => {
     return (
         <>
@@ -54,7 +49,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= cmp_component_4rykjtokjwe.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _IMMUTABLE } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
 import { wrapSignal } from "@builder.io/qwik";
@@ -63,12 +57,7 @@ export const Cmp_component_4ryKJTOKjWE = (props)=>{
         children: [
             /*#__PURE__*/ _jsx("p", {
                 "data-value": props.count,
-                get children () {
-                    return props.nested.count;
-                },
-                [_IMMUTABLE]: {
-                    children: wrapSignal(wrapSignal(props, "nested"), "count")
-                }
+                children: wrapSignal(wrapSignal(props, "nested"), "count")
             }),
             /*#__PURE__*/ _jsxs("p", {
                 children: [
@@ -82,7 +71,7 @@ export const Cmp_component_4ryKJTOKjWE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAwB8B,CAAC,KAAK,GAAK;IACrC,qBACI;;0BACI,KAAC,GAAC;gBAAC,YAAU,EAAE,KAAK,CAAC,KAAK;;2BAAG,KAAK,CAAC,MAAM,CAAC,KAAK;;;oDAAlB,KAAK;;cAAkB;0BACpD,MAAC,GAAC;;oBAAC,QAAM;+BAAC,KAAK;kCAAO,KAAC,MAAI,KAAQ;;cAAI;;MACxC,CACL;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAwB8B,CAAC,KAAK,GAAK;IACrC,qBACI;;0BACI,KAAC,GAAC;gBAAC,YAAU,EAAE,KAAK,CAAC,KAAK;gDAAG,KAAK;cAAkB;0BACpD,MAAC,GAAC;;oBAAC,QAAM;+BAAC,KAAK;kCAAO,KAAC,MAAI,KAAQ;;cAAI;;MACxC,CACL;AACN,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -120,7 +109,6 @@ export const App_component_ckEPmXZlub0 = ()=>{
     const signal = useSignal(0);
     return /*#__PURE__*/ _jsx(Cmp, {
         prop: 'true' + 1 ? 'true' : '',
-        count: wrapSingla9)
         get count () {
             return store.count;
         },

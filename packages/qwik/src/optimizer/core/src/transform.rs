@@ -870,6 +870,15 @@ impl<'a> QwikTransform<'a> {
                                                 key: node.key.clone(),
                                             },
                                         )))
+                                    } else if let Some(new_children) =
+                                        self.convert_children(&ident.sym, &node.value)
+                                    {
+                                        ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
+                                            ast::KeyValueProp {
+                                                value: Box::new(new_children),
+                                                key: node.key.clone(),
+                                            },
+                                        )))
                                     } else if let Some(getter) = self.convert_to_getter(&node.value)
                                     {
                                         immutable_props.push(ast::PropOrSpread::Prop(Box::new(
@@ -892,15 +901,6 @@ impl<'a> QwikTransform<'a> {
                                                         },
                                                     )],
                                                 }),
-                                            },
-                                        )))
-                                    } else if let Some(new_children) =
-                                        self.convert_children(&ident.sym, &node.value)
-                                    {
-                                        ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
-                                            ast::KeyValueProp {
-                                                value: Box::new(new_children),
-                                                key: node.key.clone(),
                                             },
                                         )))
                                     } else if is_fn

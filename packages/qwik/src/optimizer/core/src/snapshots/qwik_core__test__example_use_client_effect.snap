@@ -40,7 +40,6 @@ export const Child = /*#__PURE__*/ componentQrl(qrl(()=>import("./child_componen
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,KAAK,iBAAG,6FAoBnB,CAAC\"}")
 ============================= child_component_9gyf01gdkqw.js (ENTRY POINT)==
 
-import { _IMMUTABLE } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { qrl } from "@builder.io/qwik";
 import { useClientEffectQrl } from "@builder.io/qwik";
@@ -55,17 +54,12 @@ export const Child_component_9GyF01GDKqw = ()=>{
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {
-        get children () {
-            return state.count;
-        },
-        [_IMMUTABLE]: {
-            children: wrapSignal(state, "count")
-        }
+        children: wrapSignal(state, "count")
     });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;2CAGgC,IAAM;IAClC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,KAAK,EAAE,CAAC;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAOE,CAAC;IAEH,qBACI,KAAC,KAAG;;mBACH,KAAK,CAAC,KAAK;;;iCAAX,KAAK;;MACJ,CACJ;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAGgC,IAAM;IAClC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,KAAK,EAAE,CAAC;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAOE,CAAC;IAEH,qBACI,KAAC,KAAG;6BACH,KAAK;MACJ,CACJ;AACN,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

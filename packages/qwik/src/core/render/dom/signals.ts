@@ -6,7 +6,8 @@ export const executeSignalOperation = (
   staticCtx: RenderStaticContext,
   operation: SubscriberSignal
 ) => {
-  const value = operation[2].value;
+  const prop = operation[5] ?? 'value';
+  const value = operation[2][prop];
   switch (operation[0]) {
     case 1:
       return setProperty(staticCtx, operation[3], operation[4], value);

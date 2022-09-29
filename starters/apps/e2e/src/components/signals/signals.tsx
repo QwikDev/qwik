@@ -1,13 +1,15 @@
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useStore } from '@builder.io/qwik';
 
 export const Signals = component$(() => {
-  console.log('parent');
-  const count = useSignal(0);
+  const store = useStore({
+    count: 0,
+  });
 
+  console.log('render parent');
   return (
     <div>
-      <button onClick$={() => count.value++}>Increment</button>
-      <Child text="sdfkjhsadfkjhsdf" count={count.value} />
+      <button onClick$={() => store.count++}>Increment</button>
+      <Child text="Message" count={store.count} />
     </div>
   );
 });
@@ -17,16 +19,12 @@ interface ChildProps {
   text: string;
 }
 export const Child = component$((props: ChildProps) => {
-  debugger;
-  console.log('child', props.count);
+  console.log('render child');
 
   return (
     <>
       <div>{props.text}</div>
-      <div>{props.count}</div>
-      {Array.from({ length: 20000 }).map(() => {
-        return <div aria-hidden="true">Expensive</div>;
-      })}
+      <div>Stuff: {props.count}</div>
     </>
   );
 });

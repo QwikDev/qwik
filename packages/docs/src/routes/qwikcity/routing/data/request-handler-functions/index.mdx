@@ -1,0 +1,37 @@
+---
+title: Qwik City - Implementing Request Handler Functions
+---
+# Implementing Request Handler functions
+
+On pages and layout component, we can access request data by implementing request handler functions such as ``onGet``, ``onPost``, ``onPut`` etc.
+
+These functions are executed, each one, according to the HTTP method used for this route. 
+
+This function is run before the component is rendered 
+## Example - accessing cookies from request headers
+```typescript
+export const onGet: RequestHandler = async ({request}) => {
+  // on getCookies you may write a code that parse the cookie header 
+  // and have the cookies as an object of cookie name and value dictionary. 
+  const cookiesObj = getCookies(request.headers.get("cookie"));
+  const token = cookiesObj.token;
+  // With the token you may proceed, for example, to an authentication required API
+  doSomethingWithToken(token);
+};
+```
+
+## Parameter fields
+
+The ``onGet`` function gets a ``RequestEvent`` object which has the following fields:
+1. request - Request Object
+2. url - URL object
+3. params - URL params object
+4. response - Response object
+5. platform - Platform data object
+6. next - Next middleware function
+7. abort - Request abortion function 
+
+
+This feature actually enables you to handle the request event, have side effects on the request pipeline, just before you render the component.
+
+It is available on Layouts and pages, but not on regular components.  

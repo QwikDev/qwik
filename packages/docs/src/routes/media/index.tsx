@@ -100,6 +100,26 @@ export const MEDIA = {
       href: 'https://youtu.be/z14c3u9q8rI',
       img_src: 'http://i3.ytimg.com/vi/z14c3u9q8rI/hqdefault.jpg',
       title: 'Qwik JS and the future of frameworks',
+    },
+    {
+      href: 'https://www.youtube.com/watch?v=BxGbnLb5i9Q',
+      img_src: 'http://i3.ytimg.com/vi/BxGbnLb5i9Q/hqdefault.jpg',
+      title: 'Qwik: Under-The-Hood of a Resumable JavaScript Framework'
+    },
+    {
+      href: 'https://www.youtube.com/watch?v=qKCX7Qz1oG8',
+      img_src: 'http://i3.ytimg.com/vi/qKCX7Qz1oG8/hqdefault.jpg',
+      title: 'Is Qwik + RxJS actually possible?'
+    },
+    {
+      href: 'https://www.youtube.com/watch?v=dbxP9FX5j2o',
+      img_src: 'http://i3.ytimg.com/vi/dbxP9FX5j2o/hqdefault.jpg',
+      title: 'Qwik-ifying React SPA to create the fastest possible website'
+    },
+    {
+      href: 'https://www.youtube.com/watch?v=Ts2IWXMYiXk',
+      img_src: 'http://i3.ytimg.com/vi/Ts2IWXMYiXk/hqdefault.jpg',
+      title: 'Après Angular : place à Qwik !'
     }
   ],
   podcasts: [

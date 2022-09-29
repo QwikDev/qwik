@@ -11,7 +11,7 @@ export interface MediaEntry {
 export const ThumbnailLink = component$((props: { entry: MediaEntry }) => {
   return (
     <li>
-      <a href={props.entry.href} target="_blank">
+      <a href={props.entry.href} target="_blank" rel="noreferrer">
         <img src={props.entry.img_src} loading="lazy" decoding="async" aria-hidden="true" />
         <p>{props.entry.title}</p>
       </a>
@@ -22,7 +22,7 @@ export const ThumbnailLink = component$((props: { entry: MediaEntry }) => {
 export const BulletLink = component$((props: { entry: MediaEntry }) => {
   return (
     <li>
-      <a href={props.entry.href} target="_blank">
+      <a href={props.entry.href} target="_blank" rel="noreferrer">
         {props.entry.title}
       </a>
     </li>

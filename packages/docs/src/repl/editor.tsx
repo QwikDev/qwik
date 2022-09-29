@@ -53,9 +53,11 @@ export const Editor = component$((props: EditorProps) => {
 
   useClientEffect$(({ track }) => {
     track(globalStore, 'theme');
-    store.editor?.updateOptions({
-      theme: getEditorTheme(globalStore.theme === 'dark'),
-    });
+    if (globalStore.theme) {
+      store.editor?.updateOptions({
+        theme: getEditorTheme(globalStore.theme === 'dark'),
+      });
+    }
   });
 
   useWatch$(async ({ track }) => {

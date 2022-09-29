@@ -746,16 +746,16 @@ const setComponentProps = (
   if (keys.length === 0) {
     return;
   }
-  const immutable = (expectProps as any)[_IMMUTABLE] ?? EMPTY_OBJ;
+  const immutableMeta = ((target as any)[_IMMUTABLE] =
+    (expectProps as any)[_IMMUTABLE] ?? EMPTY_OBJ);
   for (const key of keys) {
     if (key === 'children') {
       continue;
     }
-    const signal = immutable[key];
-    if (isSignal(signal)) {
-      target[key] = signal;
+    if (isSignal(immutableMeta[key])) {
+      target[key] = immutableMeta[key];
     } else {
-      target[key] = expectProps[key] ;
+      target[key] = expectProps[key];
     }
   }
 };

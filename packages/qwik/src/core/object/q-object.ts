@@ -147,17 +147,15 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
-    const immutableMeta = target[_IMMUTABLE]?.[prop];
     if (immutable) {
-      if (!(prop in target) || immutableMeta) {
+      const immutableProp = !!target[_IMMUTABLE]?.[prop];
+      if (!(prop in target) || immutableProp) {
         subscriber = null;
       }
-      // If property is not declared in the target
-      // or the prop is immutable, then we dont need to subscribe
-    }
-    if (isSignal(immutableMeta)) {
-      subscriber = null;
-      value = immutableMeta.value;
+      if (isSignal(value)) {
+        subscriber = null;
+        value = value.value;
+      }
     }
 
     if (subscriber) {

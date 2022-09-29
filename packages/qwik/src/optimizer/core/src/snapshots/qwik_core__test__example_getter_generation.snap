@@ -28,6 +28,11 @@ export const App = component$(() => {
     );
 });
 
+export const Foo = (props) => {
+    typeof props.count === 'number'
+
+}
+
 export const Cmp = component$((props) => {
     return (
         <>
@@ -115,6 +120,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
     const signal = useSignal(0);
     return /*#__PURE__*/ _jsx(Cmp, {
         prop: 'true' + 1 ? 'true' : '',
+        count: wrapSingla9)
         get count () {
             return store.count;
         },

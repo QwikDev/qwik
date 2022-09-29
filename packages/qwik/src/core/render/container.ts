@@ -13,14 +13,6 @@ export interface SubscriptionManager {
   $createManager$(map?: Subscriptions[]): LocalSubscriptionManager;
   $clearSub$: (sub: SubscriberEffect | SubscriberHost) => void;
 }
-
-export interface LocalSubscriptionManager {
-  readonly $subs$: Subscriptions[];
-  $notifySubs$: (key?: string | undefined) => void;
-  $unsubGroup$: (group: SubscriberEffect | SubscriberHost) => void;
-  $addSub$: (subscription: Subscriptions) => void;
-}
-
 /**
  * @alpha
  */
@@ -141,79 +133,85 @@ export const parseSubscription = (sub: string, getObject: GetObject): Subscripti
 
 export const createSubscriptionManager = (containerState: ContainerState): SubscriptionManager => {
   const groupToManagers: GroupToManagersMap = new Map();
-  // const hostToSub: HostToSubscriberMap = new Map();
-
-  const clearSub = (group: SubscriberHost | SubscriberEffect) => {
-    const managers = groupToManagers.get(group);
-    if (managers) {
-      for (const manager of managers) {
-        manager.$unsubGroup$(group);
-      }
-      groupToManagers.delete(group);
-      managers.length = 0;
-    }
-  };
-
-  const addToGroup = (
-    group: SubscriberHost | SubscriberEffect,
-    manager: LocalSubscriptionManager
-  ) => {
-    let managers = groupToManagers.get(group);
-    if (!managers) {
-      groupToManagers.set(group, (managers = []));
-    }
-    if (!managers.includes(manager)) {
-      managers.push(manager);
-    }
-  };
-
-  const createManager = (initialMap?: Subscriptions[]) => {
-    const map = initialMap ? initialMap : [];
-    const local: LocalSubscriptionManager = {
-      $subs$: map,
-      $unsubGroup$(group) {
-        for (let i = 0; i < map.length; i++) {
-          const found = map[i][1] === group;
-          if (found) {
-            map.splice(i, 1);
-            i--;
-          }
-        }
-      },
-      $addSub$(sub: Subscriptions) {
-        const [type, group] = sub;
-        const key = sub[sub.length - 1] as string | undefined;
-        if (type === 0) {
-          if (
-            map.some(([_type, _group, _key]) => _type === type && _group === group && _key === key)
-          ) {
-            return;
-          }
-        }
-        map.push(sub);
-        addToGroup(group, local);
-      },
-      $notifySubs$(key?: string) {
-        for (const sub of map) {
-          const compare = sub[sub.length - 1];
-          if (key && compare && compare !== key) {
-            continue;
-          }
-          notifyChange(sub, containerState);
-        }
-      },
-    };
-    seal(local);
-    for (const sub of map) {
-      addToGroup(sub[1], local);
-    }
-    return local;
-  };
-
   const manager: SubscriptionManager = {
-    $createManager$: createManager,
-    $clearSub$: clearSub,
+    $createManager$: (initialMap?: Subscriptions[]) => {
+      return new LocalSubscriptionManager(groupToManagers, containerState, initialMap);
+    },
+    $clearSub$: (group: SubscriberHost | SubscriberEffect) => {
+      const managers = groupToManagers.get(group);
+      if (managers) {
+        for (const manager of managers) {
+          manager.$unsubGroup$(group);
+        }
+        groupToManagers.delete(group);
+        managers.length = 0;
+      }
+    },
   };
   seal(manager);
   return manager;
 };
+
+export class LocalSubscriptionManager {
+  readonly $subs$: Subscriptions[];
+
+  constructor(
+    private $groupToManagers$: GroupToManagersMap,
+    private $containerState$: ContainerState,
+    initialMap?: Subscriptions[]
+  ) {
+    this.$subs$ = initialMap ? initialMap : [];
+
+    for (const sub of this.$subs$) {
+      this.$addToGroup$(sub[1], this);
+    }
+    seal(this);
+  }
+
+  $addToGroup$(group: SubscriberHost | SubscriberEffect, manager: LocalSubscriptionManager) {
+    let managers = this.$groupToManagers$.get(group);
+    if (!managers) {
+      this.$groupToManagers$.set(group, (managers = []));
+    }
+    if (!managers.includes(manager)) {
+      managers.push(manager);
+    }
+  }
+
+  $unsubGroup$(group: SubscriberEffect | SubscriberHost) {
+    const subs = this.$subs$;
+    for (let i = 0; i < subs.length; i++) {
+      const found = subs[i][1] === group;
+      if (found) {
+        subs.splice(i, 1);
+        i--;
+      }
+    }
+  }
+  $addSub$(sub: Subscriptions) {
+    const subs = this.$subs$;
+
+    const [type, group] = sub;
+    const key = sub[sub.length - 1] as string | undefined;
+    if (type === 0) {
+      if (
+        subs.some(([_type, _group, _key]) => _type === type && _group === group && _key === key)
+      ) {
+        return;
+      }
+    }
+    subs.push(sub);
+    this.$addToGroup$(group, this);
+  }
+
+  $notifySubs$(key?: string | undefined) {
+    const subs = this.$subs$;
+    for (const sub of subs) {
+      const compare = sub[sub.length - 1];
+      if (key && compare && compare !== key) {
+        continue;
+      }
+      notifyChange(sub, this.$containerState$);
+    }
+  }
+}

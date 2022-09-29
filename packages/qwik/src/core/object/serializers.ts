@@ -14,7 +14,7 @@ import {
 } from '../use/use-watch';
 import { isDocument } from '../util/element';
 import { QObjectManagerSymbol, SignalImpl, SignalWrapper } from './q-object';
-import type { GetObject, GetObjID } from './store';
+import { Collector, collectSubscriptions, collectValue, GetObject, GetObjID } from './store';
 
 /**
  * 0, 8, 9, A, B, C, D
@@ -41,6 +41,12 @@ export interface Serializer<T> {
    * Convert the object to a string.
    */
   serialize: ((obj: T, getObjID: GetObjID, containerState: ContainerState) => string) | undefined;
+
+  /**
+   * Return of
+   */
+  collect?: (obj: T, collector: Collector, leaks: boolean) => void;
+
   /**
    * Deserialize the object.
    */
@@ -92,6 +98,10 @@ const WatchSerializer: Serializer<SubscriberEffect> = {
 const ResourceSerializer: Serializer<ResourceReturn<any>> = {
   prefix: '\u0004',
   test: (v) => isResourceReturn(v),
+  collect: (obj, collector, leaks) => {
+    collectValue(obj.promise, collector, leaks);
+    collectValue(obj.resolved, collector, leaks);
+  },
   serialize: (obj, getObjId) => {
     return serializeResource(obj, getObjId);
   },
@@ -206,6 +216,13 @@ const PureFunctionSerializer: Serializer<Function> = {
 const SignalSerializer: Serializer<SignalImpl<any>> = {
   prefix: '\u0012',
   test: (v) => v instanceof SignalImpl,
+  collect: (obj, collector, leaks) => {
+    collectValue(obj.untrackedValue, collector, leaks);
+    if (leaks) {
+      collectSubscriptions(obj[QObjectManagerSymbol], collector);
+    }
+    return obj;
+  },
   serialize: (obj, getObjId) => {
     const code = getObjId(obj.untrackedValue);
     assertDefined(code, 'can not find ID for data', obj);
@@ -225,6 +242,10 @@ const SignalSerializer: Serializer<SignalImpl<any>> = {
 const SignalWrapperSerializer: Serializer<SignalWrapper<any, any>> = {
   prefix: '\u0013',
   test: (v) => v instanceof SignalWrapper,
+  collect(obj, collector, leaks) {
+    collectValue(obj.ref, collector, leaks);
+    return obj;
+  },
   serialize: (obj, getObjId) => {
     return `${getObjId(obj.ref)} ${obj.prop}`;
   },
@@ -252,9 +273,21 @@ const serializers: Serializer<any>[] = [
   PureFunctionSerializer,
 ];
 
+const collectorSerializers = serializers.filter((a) => a.collect);
+
 export const canSerialize = (obj: any): boolean => {
   for (const s of serializers) {
     if (s.test(obj)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+export const collectDeps = (obj: any, collector: Collector, leaks: boolean) => {
+  for (const s of collectorSerializers) {
+    if (s.test(obj)) {
+      s.collect!(obj, collector, leaks);
       return true;
     }
   }

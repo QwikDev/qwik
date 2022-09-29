@@ -1,5 +1,4 @@
 import { assertDefined, assertTrue } from '../assert/assert';
-import { isQrl } from '../import/qrl-class';
 import { getContext, QContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
 import {
@@ -31,7 +30,6 @@ import {
   isConnected,
   isSignal,
   QObjectFlagsSymbol,
-  SignalImpl,
 } from './q-object';
 import { destroyWatch, SubscriberEffect, WatchFlagsIsDirty } from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
@@ -45,11 +43,11 @@ import {
 import { isArray, isObject, isSerializableObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
-import { isResourceReturn } from '../use/use-resource';
-import { createParser, Parser, serializeValue, UNDEFINED_PREFIX } from './serializers';
+import { collectDeps, createParser, Parser, serializeValue, UNDEFINED_PREFIX } from './serializers';
 import {
   ContainerState,
   getContainerState,
+  LocalSubscriptionManager,
   parseSubscription,
   serializeSubscription,
   Subscriptions,
@@ -366,7 +364,7 @@ export const _pauseFromContexts = async (
   // Wait for remaining promises
   while ((promises = collector.$promises$).length > 0) {
     collector.$promises$ = [];
-    await Promise.allSettled(promises);
+    await Promise.all(promises);
   }
 
   // Convert objSet to array
@@ -858,13 +856,14 @@ export const unescapeText = (str: string) => {
   return str.replace(/\\x3C(\/?script)/g, '<$1');
 };
 
-const collectSubscriptions = (proxy: any, collector: Collector) => {
-  const subs = getProxyManager(proxy)?.$subs$;
-  assertDefined(subs, 'subs must be defined');
-  if (collector.$seen$.has(subs)) {
+export const collectSubscriptions = (manager: LocalSubscriptionManager, collector: Collector) => {
+  if (collector.$seen$.has(manager)) {
     return;
   }
-  collector.$seen$.add(subs);
+  collector.$seen$.add(manager);
+
+  const subs = manager.$subs$;
+  assertDefined(subs, 'subs must be defined');
   for (const key of subs) {
     const host = key[1];
     if (isNode(host) && isVirtualElement(host)) {
@@ -909,33 +908,13 @@ const getPromiseValue = (promise: Promise<any>): PromiseValue => {
   return (promise as any)[PROMISE_VALUE];
 };
 
-const collectValue = (obj: any, collector: Collector, leaks: boolean) => {
+export const collectValue = (obj: any, collector: Collector, leaks: boolean) => {
   if (obj !== null) {
     const objType = typeof obj;
-    const seen = collector.$seen$;
     switch (objType) {
-      case 'function': {
-        if (seen.has(obj)) {
-          return;
-        }
-        seen.add(obj);
-        if (!fastShouldSerialize(obj)) {
-          collector.$objSet$.add(undefined);
-          collector.$noSerialize$.push(obj);
-          return;
-        }
-        if (isQrl(obj)) {
-          collector.$objSet$.add(obj);
-          if (obj.$captureRef$) {
-            for (const item of obj.$captureRef$) {
-              collectValue(item, collector, leaks);
-            }
-          }
-          return;
-        }
-        break;
-      }
+      case 'function':
       case 'object': {
+        const seen = collector.$seen$;
         if (seen.has(obj)) {
           return;
         }
@@ -945,14 +924,25 @@ const collectValue = (obj: any, collector: Collector, leaks: boolean) => {
           collector.$noSerialize$.push(obj);
           return;
         }
-        if (obj instanceof SignalImpl) {
-          collector.$objSet$.add(obj);
-          if (leaks) {
-            collectSubscriptions(obj, collector);
+
+        const input = obj;
+        const target = getProxyTarget(obj);
+        if (target) {
+          obj = target;
+          if (seen.has(obj)) {
+            return;
           }
-          collectValue(obj.untrackedValue, collector, leaks);
+          seen.add(obj);
+          if (leaks) {
+            collectSubscriptions(input, collector);
+          }
+        }
+        const collected = collectDeps(obj, collector, leaks);
+        if (collected) {
+          collector.$objSet$.add(obj);
           return;
         }
+
         if (isPromise(obj)) {
           collector.$promises$.push(
             resolvePromise(obj).then((value) => {
@@ -962,36 +952,18 @@ const collectValue = (obj: any, collector: Collector, leaks: boolean) => {
           return;
         }
 
-        const target = getProxyTarget(obj);
-        const input = obj;
-
-        // If proxy collect subscriptions
-        if (target) {
-          if (leaks) {
-            collectSubscriptions(input, collector);
-          }
-          obj = target;
-          if (seen.has(obj)) {
+        if (objType === 'object') {
+          if (isNode(obj)) {
             return;
           }
-          seen.add(obj);
-
-          if (isResourceReturn(obj)) {
-            collector.$objSet$.add(target);
-            collectValue(obj.promise, collector, leaks);
-            collectValue(obj.resolved, collector, leaks);
-            return;
-          }
-        } else if (isNode(obj)) {
-          return;
-        }
-        if (isArray(obj)) {
-          for (let i = 0; i < obj.length; i++) {
-            collectValue(input[i], collector, leaks);
-          }
-        } else {
-          for (const key of Object.keys(obj)) {
-            collectValue(input[key], collector, leaks);
+          if (isArray(obj)) {
+            for (let i = 0; i < obj.length; i++) {
+              collectValue(input[i], collector, leaks);
+            }
+          } else if (isSerializableObject(obj)) {
+            for (const key of Object.keys(obj)) {
+              collectValue(input[key], collector, leaks);
+            }
           }
         }
         break;

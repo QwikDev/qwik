@@ -34,6 +34,11 @@ export const MEDIA = mediaObj({
       imgSrc: 'http://i3.ytimg.com/vi/Ts2IWXMYiXk/hqdefault.jpg',
       title: 'Après Angular : place à Qwik!',
     },
+    {
+      href: 'https://www.youtube.com/watch?v=Mi7udzhcCDQ',
+      imgSrc: 'http://i3.ytimg.com/vi/Mi7udzhcCDQ/hqdefault.jpg',
+      title: 'Qwik Core Developers Training',
+    },
   ],
   podcasts: [
     {

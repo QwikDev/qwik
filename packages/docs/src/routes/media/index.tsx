@@ -8,22 +8,22 @@ export interface MediaEntry {
   img_src?: string;
 }
 
-export const Thumbnail = component$((props: { entry: MediaEntry }) => {
+export const ThumbnailLink = component$((props: { entry: MediaEntry }) => {
   return (
     <li>
       <a href={props.entry.href} target="_blank">
-        <img src={props.entry.img_src} aria-hidden="true" />
+        <img src={props.entry.img_src} loading="lazy" decoding="async" aria-hidden="true" />
         <p>{props.entry.title}</p>
       </a>
     </li>
   );
 });
 
-export const BulletLink = component$((props: { title: string; href: string }) => {
+export const BulletLink = component$((props: { entry: MediaEntry }) => {
   return (
     <li>
-      <a href={props.href} target="_blank">
-        {props.title}
+      <a href={props.entry.href} target="_blank">
+        {props.entry.title}
       </a>
     </li>
   );
@@ -38,9 +38,13 @@ export const Section = component$(
         </h2>
 
         <ul class={props.preview_style}>
-          {MEDIA[props.title].map((entry) => (
-            <Thumbnail entry={entry} />
-          ))}
+          {MEDIA[props.title].map((entry) => {
+            return props.preview_style === 'thumbnails' ? (
+              <ThumbnailLink entry={entry} />
+            ) : (
+              <BulletLink entry={entry} />
+            );
+          })}
         </ul>
       </section>
     );
@@ -101,23 +105,23 @@ export const MEDIA = {
     {
       href: 'https://www.youtube.com/watch?v=BxGbnLb5i9Q',
       img_src: 'http://i3.ytimg.com/vi/BxGbnLb5i9Q/hqdefault.jpg',
-      title: 'Qwik: Under-The-Hood of a Resumable JavaScript Framework'
+      title: 'Qwik: Under-The-Hood of a Resumable JavaScript Framework',
     },
     {
       href: 'https://www.youtube.com/watch?v=qKCX7Qz1oG8',
       img_src: 'http://i3.ytimg.com/vi/qKCX7Qz1oG8/hqdefault.jpg',
-      title: 'Is Qwik + RxJS actually possible?'
+      title: 'Is Qwik + RxJS actually possible?',
     },
     {
       href: 'https://www.youtube.com/watch?v=dbxP9FX5j2o',
       img_src: 'http://i3.ytimg.com/vi/dbxP9FX5j2o/hqdefault.jpg',
-      title: 'Qwik-ifying React SPA to create the fastest possible website'
+      title: 'Qwik-ifying React SPA to create the fastest possible website',
     },
     {
       href: 'https://www.youtube.com/watch?v=Ts2IWXMYiXk',
       img_src: 'http://i3.ytimg.com/vi/Ts2IWXMYiXk/hqdefault.jpg',
-      title: 'Après Angular : place à Qwik !'
-    }
+      title: 'Après Angular : place à Qwik !',
+    },
   ],
   podcasts: [
     {

@@ -53,7 +53,7 @@ export const Editor = component$((props: EditorProps) => {
 
   useClientEffect$(({ track }) => {
     track(globalStore, 'theme');
-    if (globalStore.theme) {
+    if (globalStore.theme !== 'auto') {
       store.editor?.updateOptions({
         theme: getEditorTheme(globalStore.theme === 'dark'),
       });

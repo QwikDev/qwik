@@ -10,7 +10,7 @@ export default component$(() => {
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
     sideMenuOpen: false,
-    theme: null,
+    theme: 'auto',
   });
 
   useContextProvider(GlobalStore, store);

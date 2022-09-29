@@ -11,6 +11,7 @@ export interface UpdateAppOptions {
   rootDir: string;
   integration: string;
   installDeps?: boolean;
+  postInstallScript?: boolean;
 }
 
 export interface UpdateAppResult {

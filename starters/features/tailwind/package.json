@@ -1,28 +1,14 @@
 {
-  "description": "Use Partytown into your Qwik app",
+  "description": "Use Tailwind into your Qwik app",
   "devDependencies": {
-    "@builder.io/partytown": "^0.7.0"
+    "postcss": "^8.4.16",
+    "tailwindcss": "^3.1.8"
+  },
+  "scripts": {
+    "postinstall": "node ./tailwind.js"
   },
   "__qwik__": {
     "priority": -1,
-    "viteConfig": {
-      "imports": [
-        {
-          "namedImports": [
-            "partytownVite"
-          ],
-          "importPath": "@builder.io/partytown/utils"
-        },
-        {
-          "namedImports": [
-            "join"
-          ],
-          "importPath": "path"
-        }
-      ],
-      "vitePlugins": [
-        "partytownVite({dest: join(__dirname, 'public', '~partytown')})"
-      ]
-    }
+    "viteConfig": {}
   }
 }

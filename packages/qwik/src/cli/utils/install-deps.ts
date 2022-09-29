@@ -92,36 +92,6 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
   return { abort, complete };
 }
 
-export function runScriptPostInstall(pkgManager: string) {
-  let installChild: ChildProcess;
-
-  const install = new Promise<void>((resolve) => {
-    try {
-      installChild = spawn(pkgManager, ['run', 'postinstall'], {
-        stdio: 'ignore',
-      });
-
-      installChild.on('error', () => {
-        resolve();
-      });
-
-      installChild.on('close', () => {
-        resolve();
-      });
-    } catch (e) {
-      //
-    }
-  });
-
-  const abort = async () => {
-    if (installChild) {
-      installChild.kill('SIGINT');
-    }
-  };
-
-  return { abort, install };
-}
-
 function setupTmpInstall(baseApp: IntegrationData) {
   const tmpId =
     'create-qwik-' +

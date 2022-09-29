@@ -4,6 +4,7 @@ import { loadIntegrations } from '../utils/integrations';
 import prompts from 'prompts';
 import color from 'kleur';
 import { getPackageManager, panic } from '../utils/utils';
+import { runScriptPostInstall } from '../utils/install-deps';
 import { updateApp } from './update-app';
 import type { IntegrationData, UpdateAppResult } from '../types';
 import { relative } from 'path';
@@ -114,6 +115,16 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
     );
     console.log(``);
     runInstall = !!runInstallAnswer.runInstall;
+  }
+
+  const integrationHasPostInstall = Object.keys({
+    ...integration.pkgJson.scripts,
+  }) || [undefined];
+
+  if (integrationHasPostInstall.at(0) === 'postinstall') {
+    const pkgManager = getPackageManager();
+    const { install } = runScriptPostInstall(pkgManager);
+    await install;
   }
 
   const result = await updateApp({

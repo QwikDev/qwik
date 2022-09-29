@@ -1,10 +1,4 @@
-import {
-    $,
-    component$,
-    useClientEffect$,
-    useContext,
-    useStyles$
-} from '@builder.io/qwik';
+import { $, component$, useClientEffect$, useContext, useStyles$ } from '@builder.io/qwik';
 import { SunAndMoon } from './sun-and-moon';
 import { themeStorageKey } from '../router-head/theme-script';
 import themeToggle from './theme-toggle.css';
@@ -13,61 +7,64 @@ import { GlobalStore } from '../../context';
 export type ThemePreference = 'dark' | 'light';
 
 export const colorSchemeChangeListener = (onColorSchemeChange: (isDark: boolean) => void) => {
-    const listener = ({matches: isDark}: MediaQueryListEvent) => {
-        onColorSchemeChange(isDark);
-    };
-    window
-        .matchMedia('(prefers-color-scheme: dark)')
-        .addEventListener('change', (event) => listener(event));
+  const listener = ({ matches: isDark }: MediaQueryListEvent) => {
+    onColorSchemeChange(isDark);
+  };
+  window
+    .matchMedia('(prefers-color-scheme: dark)')
+    .addEventListener('change', (event) => listener(event));
 
-    return () => window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', listener);
-}
+  return () =>
+    window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', listener);
+};
 
 export const setPreference = (theme: ThemePreference) => {
-    localStorage.setItem(themeStorageKey, theme);
-    reflectPreference(theme);
-}
+  localStorage.setItem(themeStorageKey, theme);
+  reflectPreference(theme);
+};
 
 export const reflectPreference = (theme: ThemePreference) => {
-    document.firstElementChild?.setAttribute('data-theme', theme)
-}
+  document.firstElementChild?.setAttribute('data-theme', theme);
+};
 
 export const getColorPreference = (): ThemePreference => {
-    if (localStorage.getItem(themeStorageKey)) {
-        return localStorage.getItem(themeStorageKey) as ThemePreference;
-    } else {
-        return window.matchMedia('(prefers-color-scheme: dark)').matches
-            ? 'dark'
-            : 'light';
-    }
-}
+  if (localStorage.getItem(themeStorageKey)) {
+    return localStorage.getItem(themeStorageKey) as ThemePreference;
+  } else {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+};
 
 export const ThemeToggle = component$(() => {
-    useStyles$(themeToggle);
-    const state = useContext(GlobalStore);
+  useStyles$(themeToggle);
+  const state = useContext(GlobalStore);
 
-    useClientEffect$(() => {
-       state.theme = getColorPreference();
+  useClientEffect$(() => {
+    state.theme = getColorPreference();
+  });
+
+  useClientEffect$(() => {
+    return colorSchemeChangeListener((isDark) => {
+      state.theme = isDark ? 'dark' : 'light';
+      setPreference(state.theme);
     });
+  });
 
-    useClientEffect$(() => {
-        return colorSchemeChangeListener((isDark) => {
-            state.theme = isDark ? 'dark' : 'light'
-            setPreference(state.theme);
-        });
-    });
+  const onClick$ = $(() => {
+    state.theme = state.theme === 'light' ? 'dark' : 'light';
+    setPreference(state.theme);
+  });
 
-    const onClick$ = $(() => {
-        state.theme = state.theme  === 'light'
-            ? 'dark'
-            : 'light';
-        setPreference(state.theme);
-    });
-
-    return (
-        <button className="theme-toggle" id="theme-toggle" title="Toggles light & dark" aria-label={state.theme}
-                aria-live="polite" onClick$={onClick$}>
-            <SunAndMoon />
-        </button>
-    )
-})
+  return (
+    <button
+      className="theme-toggle"
+      id="theme-toggle"
+      title="Toggles light & dark"
+      aria-label={state.theme}
+      aria-live="polite"
+      onClick$={onClick$}
+    >
+      <SunAndMoon />
+    </button>
+  );
+});

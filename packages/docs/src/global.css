@@ -116,7 +116,7 @@ pre[class*='language-'] {
   --media-video-shadow-color: var(--qwik-dark-blue);
 }
 
-:root[data-theme="dark"] {
+:root[data-theme='dark'] {
   color-scheme: dark;
   --qwik-blue: #009dfd;
 

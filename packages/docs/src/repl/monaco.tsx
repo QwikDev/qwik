@@ -46,7 +46,7 @@ export const initMonacoEditor = async (
     lineNumbers: props.lineNumbers,
     wordWrap: props.wordWrap,
     model: null,
-    theme: getEditorTheme(getColorPreference() === 'dark')
+    theme: getEditorTheme(getColorPreference() === 'dark'),
   });
 
   ts.typescriptDefaults.setEagerModelSync(true);
@@ -134,7 +134,7 @@ export const updateMonacoEditor = async (props: EditorProps, editorStore: Editor
 
 export const getEditorTheme = (isDark: boolean) => {
   return isDark ? 'vs-dark' : 'vs';
-}
+};
 
 const checkDiagnostics = async (
   monaco: Monaco,

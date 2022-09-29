@@ -6,7 +6,7 @@
   color: rgb(33, 53, 71);
 }
 
-:root[data-theme="dark"] .docsearch {
+:root[data-theme='dark'] .docsearch {
   --docsearch-primary-color: var(--qwik-dark-blue);
   --docsearch-text-color: var(--text-color);
   --docsearch-highlight-color: var(--qwik-blue);
@@ -26,7 +26,6 @@
   --docsearch-footer-background: var(--bg-color);
   --docsearch-footer-shadow: 0 -1px 0 0 #525252, 0 -3px 6px 0 rgba(69, 98, 155, 0.12);
 }
-
 
 /* to override global.css */
 .docsearch .DocSearch-Button {

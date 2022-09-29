@@ -2,7 +2,8 @@ import {
   component$,
   NoSerialize,
   PropFunction,
-  useClientEffect$, useContext,
+  useClientEffect$,
+  useContext,
   useRef,
   useStore,
   useWatch$,
@@ -13,7 +14,7 @@ import {
   getEditorTheme,
   ICodeEditorViewState,
   initMonacoEditor,
-  updateMonacoEditor
+  updateMonacoEditor,
 } from './monaco';
 import type { ReplAppInput, ReplStore } from './types';
 import { colorSchemeChangeListener } from '../components/theme-toggle/theme-toggle';
@@ -50,7 +51,7 @@ export const Editor = component$((props: EditorProps) => {
     });
   });
 
-  useClientEffect$(({track}) => {
+  useClientEffect$(({ track }) => {
     track(globalStore, 'theme');
     store.editor?.updateOptions({
       theme: getEditorTheme(globalStore.theme === 'dark'),

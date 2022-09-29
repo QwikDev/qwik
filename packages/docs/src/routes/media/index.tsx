@@ -31,10 +31,11 @@ export const BulletLink = component$((props: { entry: MediaEntry }) => {
 
 export const Section = component$(
   (props: { title: keyof typeof MEDIA; preview_style: 'thumbnails' | 'bullets' }) => {
+    let capitalized = [props.title[0].toUpperCase(), ...props.title.slice(1)].join("");
     return (
       <section>
         <h2 id={props.title}>
-          <a href={`#${props.title}`}>Videos</a>
+          <a href={`#${props.title}`}>{capitalized}</a>
         </h2>
 
         <ul class={props.preview_style}>
@@ -93,7 +94,12 @@ export const head: DocumentHead = {
 
 // Media Listing
 
-export const MEDIA = {
+// Helper function to allow autocompletions for Media Entries and Record keys
+export function mediaObj<T extends string>(obj: Record<T, MediaEntry[]>) {
+  return obj
+}
+
+export const MEDIA = mediaObj({
   videos: [
     {
       href: 'https://youtu.be/x2eF3YLiNhY',
@@ -202,4 +208,4 @@ export const MEDIA = {
     { href: '/logos/qwik.svg', title: 'Qwik Logo and Text [svg]' },
     { href: '/logos/qwik.png', title: 'Qwik Logo and Text [png]' },
   ],
-};
+});

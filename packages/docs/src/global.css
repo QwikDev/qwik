@@ -111,6 +111,9 @@ pre[class*='language-'] {
   --made-with-love-text-color: #333333;
 
   --on-this-page-hover-bg-color: #0093ee17;
+
+  --media-separator-color: #dddddd;
+  --media-video-shadow-color: var(--qwik-dark-blue);
 }
 
 :root[data-theme="dark"] {
@@ -150,6 +153,9 @@ pre[class*='language-'] {
   --examples-main-border-color: rgba(255, 255, 255, 0.1);
 
   --made-with-love-text-color: #c6c5cb;
+
+  --media-separator-color: rgba(255, 255, 255, 0.1);
+  --media-video-shadow-color: var(--qwik-blue);
 }
 
 @media (max-width: 768px) {

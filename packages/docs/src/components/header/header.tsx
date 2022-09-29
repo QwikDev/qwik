@@ -9,6 +9,7 @@ import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './header.css?inline';
 import { GlobalStore } from '../../context';
+import { ThemeToggle } from '../theme-toggle/theme-toggle';
 
 export const Header = component$(() => {
   useStyles$(styles);
@@ -107,6 +108,9 @@ export const Header = component$(() => {
               apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
               indexName={import.meta.env.VITE_ALGOLIA_INDEX}
             />
+          </li>
+          <li>
+            <ThemeToggle />
           </li>
           <li>
             <a

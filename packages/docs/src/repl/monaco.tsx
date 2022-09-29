@@ -3,6 +3,7 @@ import type { Diagnostic } from '@builder.io/qwik/optimizer';
 import type MonacoTypes from 'monaco-editor';
 import type { EditorProps, EditorStore } from './editor';
 import type { ReplStore } from './types';
+import { getColorPreference } from '../components/theme-toggle/theme-toggle';
 
 export const initMonacoEditor = async (
   containerElm: any,
@@ -45,10 +46,7 @@ export const initMonacoEditor = async (
     lineNumbers: props.lineNumbers,
     wordWrap: props.wordWrap,
     model: null,
-    theme:
-      window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'vs-dark'
-        : 'vs',
+    theme: getEditorTheme(getColorPreference() === 'dark')
   });
 
   ts.typescriptDefaults.setEagerModelSync(true);
@@ -133,6 +131,10 @@ export const updateMonacoEditor = async (props: EditorProps, editorStore: Editor
     }
   }
 };
+
+export const getEditorTheme = (isDark: boolean) => {
+  return isDark ? 'vs-dark' : 'vs';
+}
 
 const checkDiagnostics = async (
   monaco: Monaco,

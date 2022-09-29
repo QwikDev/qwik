@@ -34,7 +34,7 @@ Because of the above constraints, Qwik uses proxies to keep track of the reactiv
 const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
-  return <button onClick$={store.count++}>{store.count}</button>;
+  return <button onClick$={() => store.count++}>{store.count}</button>;
 });
 ```
 
@@ -54,8 +54,8 @@ const ComplexCounter = component$(() => {
 
   return (
     <>
-      <button onClick$={(store.visible = !store.visible)}>{store.visible ? 'hide' : 'show'}</button>
-      <button onClick$={store.count++}>increment</button>
+      <button onClick$={() => (store.visible = !store.visible)}>{store.visible ? 'hide' : 'show'}</button>
+      <button onClick$={() => store.count++}>increment</button>
       {store.visible ? <span>{store.count}</span> : null}
     </>
   );

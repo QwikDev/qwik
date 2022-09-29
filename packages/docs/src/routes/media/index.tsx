@@ -32,7 +32,7 @@ export const MEDIA = mediaObj({
     {
       href: 'https://www.youtube.com/watch?v=Ts2IWXMYiXk',
       imgSrc: 'http://i3.ytimg.com/vi/Ts2IWXMYiXk/hqdefault.jpg',
-      title: 'Après Angular : place à Qwik !',
+      title: 'Après Angular : place à Qwik!',
     },
   ],
   podcasts: [
@@ -40,6 +40,11 @@ export const MEDIA = mediaObj({
       href: 'https://www.youtube.com/watch?v=_PDpoJUacuc',
       imgSrc: 'http://i3.ytimg.com/vi/_PDpoJUacuc/hqdefault.jpg',
       title: 'Build Resumable Apps with Qwik',
+    },
+    {
+      href: 'https://www.youtube.com/watch?v=fa6-Mn0Eybg',
+      imgSrc: 'http://i3.ytimg.com/vi/fa6-Mn0Eybg/hqdefault.jpg',
+      title: 'Qwik + React State (and a new mic!)',
     },
     {
       href: 'https://www.youtube.com/watch?v=iJZaT-AvJ-o',

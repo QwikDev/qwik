@@ -31,7 +31,7 @@ export const BulletLink = component$((props: { entry: MediaEntry }) => {
 
 export const Section = component$(
   (props: { title: keyof typeof MEDIA; preview_style: 'thumbnails' | 'bullets' }) => {
-    let capitalized = [props.title[0].toUpperCase(), ...props.title.slice(1)].join("");
+    const capitalized = [props.title[0].toUpperCase(), ...props.title.slice(1)].join('');
     return (
       <section>
         <h2 id={props.title}>
@@ -93,7 +93,7 @@ export const head: DocumentHead = {
 
 // Helper function to allow autocompletions for Media Entries and Record keys
 export function mediaObj<T extends string>(obj: Record<T, MediaEntry[]>) {
-  return obj
+  return obj;
 }
 
 export const MEDIA = mediaObj({

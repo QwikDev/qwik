@@ -271,3 +271,12 @@ body {
     color: rgb(241 245 249 / var(--tw-text-opacity)) !important;
   }
 }
+
+/* Builder */
+:root[data-theme='dark'] .builder .dark-mode {
+  filter: invert(90%) hue-rotate(180deg);
+}
+
+:root[data-theme='dark'] .builder .dark-mode :is(img, iframe, video) {
+  filter: invert(100%) hue-rotate(180deg);
+}

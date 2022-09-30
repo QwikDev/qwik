@@ -51,14 +51,11 @@ export const Section = component$(
     );
   }
 );
-    );
-  }
-);
 
 export default component$(() => {
   useStyles$(styles);
   return (
-    <div class="media">
+    <article class="media">
       <h1>Qwik Presentations, Talks, Videos and Podcasts</h1>
 
       <Section title="videos" preview_style="thumbnails" />
@@ -110,30 +107,36 @@ export const youtube = (title: string, id: string, start_time?: number): MediaEn
   return {
     href: url.href,
     img_src: `http://i3.ytimg.com/vi/${id}/hqdefault.jpg`,
-    title
-  }
-}
+    title,
+  };
+};
 
 export const MEDIA = mediaObj({
   videos: [
-    youtube("Qwik… the world's first O(1) JavaScript framework?", "x2eF3YLiNhY"),
+    youtube("Qwik… the world's first O(1) JavaScript framework?", 'x2eF3YLiNhY'),
     youtube('Qwik JS and the future of frameworks', 'z14c3u9q8rI'),
     youtube('Qwik: Under-The-Hood of a Resumable JavaScript Framework', 'BxGbnLb5i9Q'),
     youtube('Is Qwik + RxJS actually possible?', 'qKCX7Qz1oG8'),
     youtube('Qwik-ifying React SPA to create the fastest possible website', 'dbxP9FX5j2o'),
-    youtube('Après Angular : place à Qwik !', 'Ts2IWXMYiXk')
+    youtube('Après Angular : place à Qwik !', 'Ts2IWXMYiXk'),
+    youtube('Qwik Core Developers Training', 'Mi7udzhcCDQ'),
   ],
   podcasts: [
     youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc'),
+    youtube('Qwik + React State (and a new mic!)', 'fa6-Mn0Eybg'),
     youtube('Introducing Qwik w/ Misko Hevery & Shai Reznik', 'iJZaT-AvJ-o'),
     youtube('Resumable Apps in Qwik', 'LbMRs7l4czI'),
     youtube('Qwik: A no-hydration instant-on personalized web applications', '0tCuUQe_ZA0'),
     youtube('QWIK - Set of great demos by Misko Hevery', '7MgNMIPISY4'),
   ],
   presentations: [
-    youtube('WWC22 - Qwik + Partytown: How to remove 99% of JavaScript from main thread', '0dC11DMR3fU', 154),
+    youtube(
+      'WWC22 - Qwik + Partytown: How to remove 99% of JavaScript from main thread',
+      '0dC11DMR3fU',
+      154
+    ),
     youtube('Qwik Workshop Part 1 - Live Coding', 'GHbNaDSWUX8'),
-    youtube('Qwik framework overview', 'Jf_E1_19aB4', 629)
+    youtube('Qwik framework overview', 'Jf_E1_19aB4', 629),
   ],
   blogs: [
     {

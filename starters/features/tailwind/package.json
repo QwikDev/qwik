@@ -4,9 +4,6 @@
     "postcss": "^8.4.16",
     "tailwindcss": "^3.1.8"
   },
-  "scripts": {
-    "postinstall": "node ./tailwind.js"
-  },
   "__qwik__": {
     "priority": -1,
     "viteConfig": {}

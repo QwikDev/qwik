@@ -5,13 +5,14 @@ export default (props: RealMetricsOptimizationProps) => (
     const qrlEvents = [];
     const logged = new Set();
 
-    const send = () => {
-      navigator.sendBeacon(
-        "https://cdn.builder.io/api/v1/track",
-        JSON.stringify({
+    const send = () => { 
+      fetch("https://cdn.builder.io/api/v1/track", {
+        method: "POST",
+        body: JSON.stringify({
           events: qrlEvents,
-        })
-      );
+        }),
+        keepalive: true,
+      });
       qrlEvents.length = 0;
     };
 

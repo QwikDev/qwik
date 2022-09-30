@@ -2,17 +2,21 @@ export default (props: RealMetricsOptimizationProps) => (
   <script
     dangerouslySetInnerHTML={`((d) => {
     const id = () =>  Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
+    const sessionId = (sessionStorage["q:sId"] = sessionStorage["q:sId"] || id());
+    const visitorId = (localStorage["q:vId"] = localStorage["q:vId"] || id());
     const qrlEvents = [];
     const logged = new Set();
 
-    const send = () => { 
+    const send = (body) => { 
       fetch("https://cdn.builder.io/api/v1/track", {
         method: "POST",
-        body: JSON.stringify({
-          events: qrlEvents,
-        }),
+        body: body,
         keepalive: true,
       });
+    };
+
+    const sendQrls = () => { 
+      send(JSON.stringify({ events: qrlEvents }));
       qrlEvents.length = 0;
     };
 
@@ -27,25 +31,24 @@ export default (props: RealMetricsOptimizationProps) => (
           data: {
             metadata: {
               url: location.href,
-              timestamp: Date.now(),
-              sinceStart: performance.now(),
+              sinceStart: Math.round(performance.now()),
               qsymbol: qsymbol,
             },
             ownerId: ${JSON.stringify(props.builderApiKey)},
-            sessionId: (sessionStorage["q:sId"] = sessionStorage["q:sId"] || id()),
-            visitorId: (localStorage["q:vId"] = localStorage["q:vId"] || id()),
+            sessionId: sessionId,
+            visitorId: visitorId
           },
         });
 
         if (qrlEvents.length > 9) {
-          send();
+          sendQrls();
         }
       }
     });
 
     d.addEventListener("visibilitychange", () => {
       if (d.visibilityState === "hidden" && qrlEvents.length > 0) {
-        send();
+        sendQrls();
       }
     });
   })(document);

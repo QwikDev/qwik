@@ -2,92 +2,46 @@ import { component$, useStyles$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import styles from './media.css?inline';
 
+// A helper for defining Youtube Media Entries
+export const youtube = (title: string, id: string, start_time?: number): MediaEntry => {
+  const url = new URL('https://www.youtube.com/watch');
+  url.searchParams.append('v', id);
+  // if there's a start_time and it's not 0
+  if (start_time) {
+    url.searchParams.append('t', start_time.toString());
+  }
+  return {
+    href: url.href,
+    imgSrc: `http://i3.ytimg.com/vi/${id}/hqdefault.jpg`,
+    title,
+  };
+};
+
 export const MEDIA = mediaObj({
   videos: [
-    {
-      href: 'https://youtu.be/x2eF3YLiNhY',
-      imgSrc: 'http://i3.ytimg.com/vi/x2eF3YLiNhY/hqdefault.jpg',
-      title: "Qwik… the world's first O(1) JavaScript framework?",
-    },
-    {
-      href: 'https://youtu.be/z14c3u9q8rI',
-      imgSrc: 'http://i3.ytimg.com/vi/z14c3u9q8rI/hqdefault.jpg',
-      title: 'Qwik JS and the future of frameworks',
-    },
-    {
-      href: 'https://www.youtube.com/watch?v=BxGbnLb5i9Q',
-      imgSrc: 'http://i3.ytimg.com/vi/BxGbnLb5i9Q/hqdefault.jpg',
-      title: 'Qwik: Under-The-Hood of a Resumable JavaScript Framework',
-    },
-    {
-      href: 'https://www.youtube.com/watch?v=qKCX7Qz1oG8',
-      imgSrc: 'http://i3.ytimg.com/vi/qKCX7Qz1oG8/hqdefault.jpg',
-      title: 'Is Qwik + RxJS actually possible?',
-    },
-    {
-      href: 'https://www.youtube.com/watch?v=dbxP9FX5j2o',
-      imgSrc: 'http://i3.ytimg.com/vi/dbxP9FX5j2o/hqdefault.jpg',
-      title: 'Qwik-ifying React SPA to create the fastest possible website',
-    },
-    {
-      href: 'https://www.youtube.com/watch?v=Ts2IWXMYiXk',
-      imgSrc: 'http://i3.ytimg.com/vi/Ts2IWXMYiXk/hqdefault.jpg',
-      title: 'Après Angular : place à Qwik!',
-    },
-    {
-      href: 'https://www.youtube.com/watch?v=Mi7udzhcCDQ',
-      imgSrc: 'http://i3.ytimg.com/vi/Mi7udzhcCDQ/hqdefault.jpg',
-      title: 'Qwik Core Developers Training',
-    },
+    youtube("Qwik… the world's first O(1) JavaScript framework?", 'x2eF3YLiNhY'),
+    youtube('Qwik JS and the future of frameworks', 'z14c3u9q8rI'),
+    youtube('Qwik: Under-The-Hood of a Resumable JavaScript Framework', 'BxGbnLb5i9Q'),
+    youtube('Is Qwik + RxJS actually possible?', 'qKCX7Qz1oG8'),
+    youtube('Qwik-ifying React SPA to create the fastest possible website', 'dbxP9FX5j2o'),
+    youtube('Après Angular : place à Qwik!', 'Ts2IWXMYiXk'),
   ],
   podcasts: [
-    {
-      href: 'https://www.youtube.com/watch?v=_PDpoJUacuc',
-      imgSrc: 'http://i3.ytimg.com/vi/_PDpoJUacuc/hqdefault.jpg',
-      title: 'Build Resumable Apps with Qwik',
-    },
-    {
-      href: 'https://www.youtube.com/watch?v=fa6-Mn0Eybg',
-      imgSrc: 'http://i3.ytimg.com/vi/fa6-Mn0Eybg/hqdefault.jpg',
-      title: 'Qwik + React State (and a new mic!)',
-    },
-    {
-      href: 'https://www.youtube.com/watch?v=iJZaT-AvJ-o',
-      imgSrc: 'http://i3.ytimg.com/vi/iJZaT-AvJ-o/hqdefault.jpg',
-      title: 'Introducing Qwik w/ Misko Hevery & Shai Reznik',
-    },
-    {
-      href: 'https://www.youtube.com/watch?v=LbMRs7l4czI',
-      imgSrc: 'http://i3.ytimg.com/vi/LbMRs7l4czI/hqdefault.jpg',
-      title: 'Resumable Apps in Qwik',
-    },
-    {
-      href: 'https://www.youtube.com/watch?v=0tCuUQe_ZA0',
-      imgSrc: 'http://i3.ytimg.com/vi/0tCuUQe_ZA0/hqdefault.jpg',
-      title: 'Qwik: A no-hydration instant-on personalized web applications',
-    },
-    {
-      href: 'https://www.youtube.com/watch?v=7MgNMIPISY4',
-      imgSrc: 'http://i3.ytimg.com/vi/7MgNMIPISY4/hqdefault.jpg',
-      title: 'QWIK - Set of great demos by Misko Hevery',
-    },
+    youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc'),
+    youtube('Qwik + React State (and a new mic!)', 'fa6-Mn0Eybg'),
+    youtube('Introducing Qwik w/ Misko Hevery & Shai Reznik', 'iJZaT-AvJ-o'),
+    youtube('Resumable Apps in Qwik', 'LbMRs7l4czI'),
+    youtube('Qwik: A no-hydration instant-on personalized web applications', '0tCuUQe_ZA0'),
+    youtube('QWIK - Set of great demos by Misko Hevery', '7MgNMIPISY4'),
   ],
   presentations: [
-    {
-      href: 'https://www.youtube.com/watch?v=0dC11DMR3fU&amp;t=154s',
-      imgSrc: 'http://i3.ytimg.com/vi/0dC11DMR3fU/hqdefault.jpg',
-      title: 'WWC22 - Qwik + Partytown: How to remove 99% of JavaScript from main thread',
-    },
-    {
-      href: 'https://www.youtube.com/watch?v=GHbNaDSWUX8',
-      imgSrc: 'http://i3.ytimg.com/vi/GHbNaDSWUX8/hqdefault.jpg',
-      title: 'Qwik Workshop Part 1 - Live Coding',
-    },
-    {
-      href: 'https://www.youtube.com/watch?v=Jf_E1_19aB4&t=629s',
-      imgSrc: 'http://i3.ytimg.com/vi/Jf_E1_19aB4/hqdefault.jpg',
-      title: 'Qwik framework overview',
-    },
+    youtube(
+      'WWC22 - Qwik + Partytown: How to remove 99% of JavaScript from main thread',
+      '0dC11DMR3fU',
+      154
+    ),
+    youtube('Qwik Workshop Part 1 - Live Coding', 'GHbNaDSWUX8'),
+    youtube('Qwik framework overview', 'Jf_E1_19aB4', 629),
   ],
   blogs: [
     {

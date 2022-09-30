@@ -675,7 +675,7 @@ const createElm = (
     assertTrue(isVirtual, 'component must be a virtual element');
     const renderQRL = props[OnRenderProp];
     assertQrl<OnRenderFn<any>>(renderQRL);
-    setComponentProps(elCtx, rctx, props);
+    setComponentProps(elCtx, rctx, props.props);
     setQId(rctx, elCtx);
 
     // Run mount hook

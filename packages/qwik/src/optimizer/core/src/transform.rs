@@ -1050,23 +1050,10 @@ impl<'a> QwikTransform<'a> {
     fn convert_to_getter(&mut self, expr: &ast::Expr) -> Option<ast::Expr> {
         if let ast::Expr::Member(member) = expr {
             let prop_sym = prop_to_string(&member.prop);
-            return match (&member.obj, prop_sym) {
-                (box ast::Expr::Ident(_), Some(sym)) => {
-                    let id =
-                        self.ensure_import(JsWord::from("wrapSignal"), BUILDER_IO_QWIK.clone());
-                    Some(make_wrap(&id, member.obj.clone(), sym))
-                }
-                (_, Some(sym)) => {
-                    if let Some(getter) = self.convert_to_getter(&member.obj) {
-                        let id =
-                            self.ensure_import(JsWord::from("wrapSignal"), BUILDER_IO_QWIK.clone());
-                        Some(make_wrap(&id, Box::new(getter), sym))
-                    } else {
-                        None
-                    }
-                }
-                _ => None,
-            };
+            if let Some(prop_sym) = prop_sym {
+                let id = self.ensure_import(JsWord::from("wrapSignal"), BUILDER_IO_QWIK.clone());
+                return Some(make_wrap(&id, member.obj.clone(), prop_sym));
+            }
         }
         None
     }

@@ -66,6 +66,7 @@ import { domToVnode } from '../render/dom/visitor';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
+export type MustGetObjID = (obj: any) => string;
 
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -485,7 +486,7 @@ export const _pauseFromContexts = async (
         if (typeof s === 'number') {
           return `_${s}`;
         }
-        return serializeSubscription(s, getObjId);
+        return serializeSubscription(s, mustGetObjId);
       });
     })
     .filter(isNotNullable);
@@ -505,7 +506,7 @@ export const _pauseFromContexts = async (
         return obj;
 
       default:
-        const value = serializeValue(obj, getObjId, containerState);
+        const value = serializeValue(obj, mustGetObjId, containerState);
         if (value !== undefined) {
           return value;
         }
@@ -999,3 +1000,4 @@ export const getEventName = (attribute: string) => {
   assertTrue(colonPos >= 0, 'colon not found in attribute');
   return fromKebabToCamelCase(attribute.slice(colonPos + 1));
 };
+

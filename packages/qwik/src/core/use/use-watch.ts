@@ -22,7 +22,7 @@ import {
   QError_trackUseStore,
 } from '../error/error';
 import { useOn } from './use-on';
-import { GetObjID, intToStr, strToInt } from '../object/store';
+import { intToStr, MustGetObjID, strToInt } from '../object/store';
 import type { ContainerState } from '../render/container';
 import { notifyWatch, _hW } from '../render/dom/notify-render';
 import { useSequentialScope } from './use-sequential-scope';
@@ -860,7 +860,7 @@ export const isSubscriberDescriptor = (obj: any): obj is SubscriberEffect => {
   return isObject(obj) && obj instanceof Watch;
 };
 
-export const serializeWatch = (watch: SubscriberEffect, getObjId: GetObjID) => {
+export const serializeWatch = (watch: SubscriberEffect, getObjId: MustGetObjID) => {
   let value = `${intToStr(watch.$flags$)} ${intToStr(watch.$index$)} ${getObjId(
     watch.$qrl$
   )} ${getObjId(watch.$el$)}`;

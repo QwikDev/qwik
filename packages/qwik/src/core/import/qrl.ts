@@ -14,6 +14,7 @@ import type { QwikElement } from '../render/dom/virtual-element';
 import type { QContext } from '../props/props';
 import { assertTrue } from '../assert/assert';
 import { isElement } from '../../testing/html';
+import type { MustGetObjID } from '../object/store';
 
 // https://regexr.com/68v72
 const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
@@ -138,7 +139,7 @@ export const inlinedQrlDEV = <T = any>(
 
 export interface QRLSerializeOptions {
   $element$?: QwikElement;
-  $getObjId$?: (obj: any) => string | null;
+  $getObjId$?: MustGetObjID;
   $addRefMap$?: (obj: any) => number;
 }
 

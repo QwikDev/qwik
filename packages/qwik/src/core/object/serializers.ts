@@ -1,4 +1,3 @@
-import { assertDefined } from '../assert/assert';
 import { Component, componentQrl, isQwikComponent } from '../component/component.public';
 import { parseQRL, serializeQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
@@ -14,7 +13,7 @@ import {
 } from '../use/use-watch';
 import { isDocument } from '../util/element';
 import { QObjectManagerSymbol, SignalImpl, SignalWrapper } from './q-object';
-import { Collector, collectSubscriptions, collectValue, GetObject, GetObjID } from './store';
+import { Collector, collectSubscriptions, collectValue, GetObject, MustGetObjID } from './store';
 
 /**
  * 0, 8, 9, A, B, C, D
@@ -40,7 +39,7 @@ export interface Serializer<T> {
   /**
    * Convert the object to a string.
    */
-  serialize: ((obj: T, getObjID: GetObjID, containerState: ContainerState) => string) | undefined;
+  serialize: ((obj: T, getObjID: MustGetObjID, containerState: ContainerState) => string) | undefined;
 
   /**
    * Return of
@@ -65,7 +64,7 @@ export interface Serializer<T> {
 const QRLSerializer: Serializer<QRLInternal> = {
   prefix: '\u0002',
   test: (v) => isQrl(v),
-  serialize: (obj, getObjId, containerState) => {
+  serialize: (obj, getObjId) => {
     return serializeQRL(obj, {
       $getObjId$: getObjId,
     });
@@ -178,7 +177,7 @@ export const SERIALIZABLE_STATE = Symbol('serializable-data');
 const ComponentSerializer: Serializer<Component<any>> = {
   prefix: '\u0010',
   test: (obj) => isQwikComponent(obj),
-  serialize: (obj, getObjId, containerState) => {
+  serialize: (obj, getObjId) => {
     const [qrl]: [QRLInternal] = (obj as any)[SERIALIZABLE_STATE];
     return serializeQRL(qrl, {
       $getObjId$: getObjId,
@@ -224,9 +223,7 @@ const SignalSerializer: Serializer<SignalImpl<any>> = {
     return obj;
   },
   serialize: (obj, getObjId) => {
-    const code = getObjId(obj.untrackedValue);
-    assertDefined(code, 'can not find ID for data', obj);
-    return code;
+    return getObjId(obj.untrackedValue);
   },
   prepare: (data) => {
     return new SignalImpl(data, null as any);
@@ -294,7 +291,7 @@ export const collectDeps = (obj: any, collector: Collector, leaks: boolean) => {
   return false;
 };
 
-export const serializeValue = (obj: any, getObjID: GetObjID, containerState: ContainerState) => {
+export const serializeValue = (obj: any, getObjID: MustGetObjID, containerState: ContainerState) => {
   for (const s of serializers) {
     if (s.test(obj)) {
       let value = s.prefix;

@@ -10,7 +10,7 @@ Qwik City Netlify Edge middleware allows you to connect Qwik City to [Netlify Ed
 
 Use the `npm run qwik add` command and select netlify integration.
 
-If want to add manually, you can add or modifies file like below
+If want to add manually, you can add or modify files like below
 
 `src/entry.server.tsx`
 
@@ -64,6 +64,16 @@ use Netlify CLI to preview or deploy. [Read the full guide here](https://github.
 
 ```bash
 netlify dev
+```
+
+### Context
+
+[Netlify context](https://docs.netlify.com/edge-functions/api/#netlify-specific-context-object) is available in endpoint method's `platform` param
+
+```javascript
+export const onRequest = async ({ platform }) => {
+  platform.context.log('requested ip:', platform.context.id)
+};
 ```
 
 ### Environment variables

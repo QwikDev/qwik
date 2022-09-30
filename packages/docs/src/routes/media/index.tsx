@@ -99,10 +99,11 @@ export function mediaObj<T extends string>(obj: Record<T, MediaEntry[]>) {
   return obj;
 }
 
+// A helper for defining Youtube Media Entries
 export const youtube = (title: string, id: string, start_time?: number): MediaEntry => {
   let url = new URL('https://www.youtube.com/watch');
   url.searchParams.append('v', id);
-  // if there's a start_time and it's not 0
+  // if there's a start_time and it's not 0k
   if (start_time) {
     url.searchParams.append('t', start_time.toString());
   }

@@ -6,9 +6,13 @@ title: Qwik City - Netlify Edge Middleware
 
 Qwik City Netlify Edge middleware allows you to connect Qwik City to [Netlify Edge](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/).
 
-## Get started
+## Add to qwik project
 
-Create `src/entry.server.tsx` using the built-in middleware within a user's app.
+Use the `npm run qwik add` command and select netlify integration.
+
+If want to add manually, you can add or modifies file like below
+
+`src/entry.server.tsx`
 
 ```typescript
 import { qwikCity } from '@builder.io/qwik-city/middleware/netlify-edge';
@@ -56,12 +60,22 @@ function = "entry.server"
 
 ## Usage
 
-Along with client build, run vite command to perform SSR build
+use Netlify CLI to preview or deploy. [Read the full guide here](https://github.com/BuilderIO/qwik/blob/main/starters/servers/netlify-edge/README.md)
 
 ```bash
-vite build --ssr src/entry.server.tsx
+netlify dev
 ```
 
-Now you can use Netlify CLI to preview or deploy. [Read the full guide here](https://github.com/BuilderIO/qwik/blob/main/starters/servers/netlify-edge/README.md)
+### Environment variables
 
+```javascript
+export const onRequest = async ({ platform }) => {
+  platform.context.log('Vite env read from .dev file', import.meta.env.VITE_DEV)
+  platform.context.log('netlify serverless env read from Netlify UI or CLI', Deno.env.toObject())
+  return {}
+};
+```
+
+
+- [Netlify Environment Variables](https://docs.netlify.com/environment-variables/overview/#environment-variable-options)
 - [Netlify Edge Middleware Source](https://github.com/BuilderIO/qwik/blob/main/packages/qwik-city/middleware/netlify-edge/index.ts)

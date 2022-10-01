@@ -3,6 +3,9 @@ export default (props: RealMetricsOptimizationProps) => (
     dangerouslySetInnerHTML={`
   ((d) => {
     const id = () => Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
+    const pageId = id();
+    const sessionId = (sessionStorage["q:sId"] = sessionStorage["q:sId"] || id());
+    const visitorId = (localStorage["q:vId"] = localStorage["q:vId"] || id());
     const qEvents = [];
     const loggedQrls = new Set();
 
@@ -22,10 +25,14 @@ export default (props: RealMetricsOptimizationProps) => (
       qEvents.push({
         type: type,
         data: {
-          metadata: metadata,
+          metadata: {
+            url: location.href,
+            pageId: pageId,
+            ...metadata
+          },
           ownerId: ${JSON.stringify(props.builderApiKey)},
-          sessionId: (sessionStorage["q:sId"] = sessionStorage["q:sId"] || id()),
-          visitorId: (localStorage["q:vId"] = localStorage["q:vId"] || id()),
+          sessionId: sessionId,
+          visitorId: visitorId
         },
       });
     };
@@ -38,7 +45,6 @@ export default (props: RealMetricsOptimizationProps) => (
           console.debug("QSymbol", qsymbol);
 
           queue("qrl", {
-            url: location.href,
             sinceStart: Math.round(performance.now()),
             qsymbol: qsymbol,
           });
@@ -71,7 +77,6 @@ export default (props: RealMetricsOptimizationProps) => (
 
             if (perf.length > 0) {
               queue("qperf", {
-                url: location.href,
                 perf: perf,
               }); 
             }

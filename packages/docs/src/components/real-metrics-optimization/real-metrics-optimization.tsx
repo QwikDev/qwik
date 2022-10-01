@@ -2,13 +2,9 @@ export default (props: RealMetricsOptimizationProps) => (
   <script
     dangerouslySetInnerHTML={`
   ((d) => {
-    const id = () =>
-      Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
-    const sessionId = (sessionStorage["q:sId"] =
-      sessionStorage["q:sId"] || id());
-    const visitorId = (localStorage["q:vId"] = localStorage["q:vId"] || id());
+    const id = () => Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
     const qEvents = [];
-    const logged = new Set();
+    const loggedQrls = new Set();
 
     const send = () => {
       if (qEvents.length > 0) {
@@ -19,27 +15,32 @@ export default (props: RealMetricsOptimizationProps) => (
         });
         qEvents.length = 0;
       }
+
+    };
+
+    const queue = (type, metadata) => {
+      qEvents.push({
+        type: type,
+        data: {
+          metadata: metadata,
+          ownerId: ${JSON.stringify(props.builderApiKey)},
+          sessionId: (sessionStorage["q:sId"] = sessionStorage["q:sId"] || id()),
+          visitorId: (localStorage["q:vId"] = localStorage["q:vId"] || id()),
+        },
+      });
     };
 
     d.addEventListener("qsymbol", (ev) => {
       try {
         const qsymbol = ev.detail?.symbol;
-        if (qsymbol && !logged.has(qsymbol)) {
-          logged.add(qsymbol);
+        if (qsymbol && !loggedQrls.has(qsymbol)) {
+          loggedQrls.add(qsymbol);
           console.debug("QSymbol", qsymbol);
 
-          qEvents.push({
-            type: "qrl",
-            data: {
-              metadata: {
-                url: location.href,
-                sinceStart: Math.round(performance.now()),
-                qsymbol: qsymbol,
-              },
-              ownerId: ${JSON.stringify(props.builderApiKey)},
-              sessionId: sessionId,
-              visitorId: visitorId,
-            },
+          queue("qrl", {
+            url: location.href,
+            sinceStart: Math.round(performance.now()),
+            qsymbol: qsymbol,
           });
 
           if (qEvents.length > 9) {
@@ -69,18 +70,28 @@ export default (props: RealMetricsOptimizationProps) => (
             }
 
             if (perf.length > 0) {
-              qEvents.push({
-                type: "qperf",
-                data: {
-                  metadata: {
-                    url: location.href,
-                    perf: perf,
-                  },
-                  ownerId: ${JSON.stringify(props.builderApiKey)},
-                  sessionId: sessionId,
-                  visitorId: visitorId,
-                },
-              });
+              queue("qperf", {
+                url: location.href,
+                perf: perf,
+              }); 
+            }
+
+            if (navigator.connection) {
+              const qconn = {};
+              for (const n in navigator.connection) {
+                if (navigator.connection[n] && typeof navigator.connection[n] !== "function") {
+                  qconn[n] = navigator.connection[n];
+                }
+              }
+              queue("qconn", {
+                connection: qconn,
+              }); 
+            }
+
+            if (navigator.userAgentData) {
+              queue("quseragent", {
+                userAgentData: navigator.userAgentData.toJSON()
+              }); 
             }
           }
           send();

@@ -15,6 +15,7 @@ export default (props: RealMetricsOptimizationProps) => (
         });
         qEvents.length = 0;
       }
+
     };
 
     const queue = (type, metadata) => {

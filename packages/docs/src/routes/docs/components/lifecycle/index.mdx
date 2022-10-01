@@ -8,7 +8,13 @@ import diagram from './diagram2.svg';
 
 <img src={diagram}/>
 
+## Rules
 
+When using lifecycle hooks, you must adhere to the following rules:
+
+  - They can only be called in `component$`
+  - They can only be called at the root level of a function / arrow function context, not inside of branches or conditional blocks
+  - They can only be called from another `use*$` method, allowing for composition
 
 ## `useMount$()`
 

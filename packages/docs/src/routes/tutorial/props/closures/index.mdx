@@ -44,7 +44,7 @@ Notice that the `<MyComponent>` component receives a callback function.
 Passing the `props.goodbye$` as a reference to the `<button>`
 
 ```jsx
-<button onClick$={props.goodbye$}>hello</button>
+<button onClick$={props.goodbye$}>good bye</button>
 ```
 
 Creating a new callback for `<button>` and internally invoking the callback QRL.
@@ -55,7 +55,7 @@ Creating a new callback for `<button>` and internally invoking the callback QRL.
     await props.helloQrl?.invoke('World');
   }}
 >
-  good bye
+  hello
 </button>
 ```
 

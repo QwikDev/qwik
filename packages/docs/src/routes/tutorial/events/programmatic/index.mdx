@@ -16,6 +16,6 @@ Qwik provides the following functions to attach a listener:
 
 ## Understanding the `$`
 
-The `$` function signals Qwik to lazy load a reference. When setting up a listener with `useOn`, the second argument is a [Qwik URL](https://qwik.builder.io/docs/advanced/qrl).
+The `$` function signals Qwik to lazy load a reference. When setting up a listener with `useOn`, the second argument is a [Qwik URL](../../../docs/advanced/qrl/index.mdx).
 
 Qwik URLs (QRL) are lazy-loadable references to your code. If `useOn` took a function directly rather than QRL, it would have to eagerly execute to allocate the listener closure. By using a QRL via the `$` function, Qwik can lazy load the closure only as `click` listener is triggered.

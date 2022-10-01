@@ -44,3 +44,8 @@ npm create qwik@latest
 ```
 
 When prompted, choose a name for your project and Basic as your starter.
+
+> Note: the `start` script attempts to launch the site in system’s browser,
+> which in headless environments (e.g., within a container)
+> could cause the command to fail with an error.
+> Edit `package.json` to remove the `--open` flag.

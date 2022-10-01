@@ -5,7 +5,7 @@ export const noUseAfterAwait: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Object destructuring is not recomended for component$',
+      description: 'Object destructuring is not recommended for component$',
       category: 'Variables',
       recommended: true,
       url: 'https://github.com/BuilderIO/qwik',

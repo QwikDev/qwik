@@ -16,6 +16,21 @@ When using lifecycle hooks, you must adhere to the following rules:
   - They can only be called at the root level of a function / arrow function context, not inside of branches or conditional blocks
   - They can only be called from another `use*$` method, allowing for composition
 
+```tsx
+useHook() // <-- ❌ does not work
+export default component$(() => {
+  useHook() // <-- ✅ does work
+  if (condition) {
+    useHook() // <-- ❌ does not work
+  }
+  const myQrl = $(() => useHook()) // <-- ✅ does work
+  return <button onClick$={() => useHook() }></button> // <-- ✅ does work
+}
+const useCustomHook = () => {
+  useHook() // <-- ✅ does work
+}
+```
+
 ## `useMount$()`
 
 `useMount$()` registers a hook to be executed upon component creation. `useMount$()` will block the rendering of the component until after the `useMount$()` callback resolves. (This is useful for fetching asynchronous data and delaying rendering until data is received, ensuring that the rendered component contains the data)

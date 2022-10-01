@@ -4,9 +4,9 @@ export function useMousePosition() {
   const mousePosition = useStore({ x: 0, y: 0 });
   useOnDocument(
     'mousemove',
-    $((event: Event) => {
-      mousePosition.x = (event as MouseEvent).clientX;
-      mousePosition.y = (event as MouseEvent).clientY;
+    $((event: MouseEvent) => {
+      mousePosition.x = event.clientX;
+      mousePosition.y = event.clientY;
     })
   );
   return mousePosition;

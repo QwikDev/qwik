@@ -49,7 +49,7 @@ export async function loadUserResponse(
       // must have a trailing slash
       if (!pathname.endsWith('/')) {
         // add slash to existing pathname
-        throw new RedirectResponse(pathname + '/' + url.search, HttpStatus.TemporaryRedirect);
+        throw new RedirectResponse(pathname + '/' + url.search, HttpStatus.Found);
       }
     } else {
       // should not have a trailing slash
@@ -57,7 +57,7 @@ export async function loadUserResponse(
         // remove slash from existing pathname
         throw new RedirectResponse(
           pathname.slice(0, pathname.length - 1) + url.search,
-          HttpStatus.TemporaryRedirect
+          HttpStatus.Found
         );
       }
     }

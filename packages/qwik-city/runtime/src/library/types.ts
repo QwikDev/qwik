@@ -270,7 +270,7 @@ export interface ResponseContext {
 /**
  * @alpha
  */
-export interface RequestEvent {
+export interface RequestEvent<PLATFORM = unknown> {
   request: RequestContext;
   response: ResponseContext;
   url: URL;
@@ -279,7 +279,7 @@ export interface RequestEvent {
   params: RouteParams;
 
   /** Platform specific data and functions */
-  platform: Record<string, any>;
+  platform: PLATFORM;
 
   next: () => Promise<void>;
   abort: () => void;
@@ -293,7 +293,9 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 
 /**
  * @alpha
  */
-export type RequestHandler<BODY = unknown> = (ev: RequestEvent) => RequestHandlerResult<BODY>;
+export type RequestHandler<BODY = unknown, PLATFORM = unknown> = (
+  ev: RequestEvent<PLATFORM>
+) => RequestHandlerResult<BODY>;
 
 /**
  * @alpha

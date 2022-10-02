@@ -293,7 +293,9 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 
 /**
  * @alpha
  */
-export type RequestHandler<BODY = unknown, PLATFORM = unknown> = (ev: RequestEvent<PLATFORM>) => RequestHandlerResult<BODY>;
+export type RequestHandler<BODY = unknown, PLATFORM = unknown> = (
+  ev: RequestEvent<PLATFORM>
+) => RequestHandlerResult<BODY>;
 
 /**
  * @alpha

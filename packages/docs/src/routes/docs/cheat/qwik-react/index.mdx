@@ -303,15 +303,13 @@ export const Presidents = component$(() => {
     { name: 'Grover Cleveland', years: '1885-1889' },
   ];
   return (
-    <>
-      <ul>
-        {presidents.map((president) => (
-          <li>
-            {president.name} ({president.years})
-          </li>
-        ))}
-      </ul>
-    </>
+    <ul>
+      {presidents.map((president) => (
+        <li>
+          {president.name} ({president.years})
+        </li>
+      ))}
+    </ul>
   );
 });
 ```

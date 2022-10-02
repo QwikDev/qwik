@@ -1,7 +1,6 @@
 import type { DOMAttributes } from './jsx-qwik-attributes';
 interface HTMLWebViewElement extends HTMLElement {}
-interface ClassAttributes<T> {}
-export type Booleanish = 'true' | 'false';
+export type Booleanish = boolean | `${boolean}`;
 
 /**
  * @public

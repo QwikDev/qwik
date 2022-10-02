@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 import type { DOMAttributes } from './jsx-qwik-attributes';
 interface HTMLWebViewElement extends HTMLElement {}
 interface ClassAttributes<T> {}

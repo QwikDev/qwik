@@ -45,14 +45,7 @@ export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions) {
         },
       };
 
-      const handledResponse = await requestHandler<Response>(
-        requestCtx,
-        render,
-        {
-          context,
-        },
-        opts
-      );
+      const handledResponse = await requestHandler<Response>(requestCtx, render, context, opts);
       if (handledResponse) {
         return handledResponse;
       }
@@ -62,14 +55,7 @@ export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions) {
       if (nextResponse.status === 404) {
         // next middleware unable to handle request
         // send request to qwik city request handler
-        const handledResponse = await requestHandler<Response>(
-          requestCtx,
-          render,
-          {
-            context,
-          },
-          opts
-        );
+        const handledResponse = await requestHandler<Response>(requestCtx, render, context, opts);
         if (handledResponse) {
           return handledResponse;
         }

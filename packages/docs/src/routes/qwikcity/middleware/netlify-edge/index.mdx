@@ -72,7 +72,7 @@ netlify dev
 
 ```javascript
 export const onRequest = async ({ platform }) => {
-  platform.context.log('requested ip:', platform.context.id)
+  platform.log('requested ip:', platform.ip)
 };
 ```
 
@@ -80,8 +80,8 @@ export const onRequest = async ({ platform }) => {
 
 ```javascript
 export const onRequest = async ({ platform }) => {
-  platform.context.log('Vite env read from .dev file', import.meta.env.VITE_DEV)
-  platform.context.log('netlify serverless env read from Netlify UI or CLI', Deno.env.toObject())
+  platform.log('Vite env read from .dev file', import.meta.env.VITE_DEV)
+  platform.log('netlify serverless env read from Netlify UI or CLI', Deno.env.toObject())
   return {}
 };
 ```

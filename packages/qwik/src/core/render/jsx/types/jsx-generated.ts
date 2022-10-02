@@ -1138,8 +1138,7 @@ export interface SVGAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   z?: number | string | undefined;
   zoomAndPan?: string | undefined;
 }
-export interface SVGProps<T> extends SVGAttributes<T>, ClassAttributes<T> {}
-export interface IntrinsicElements {
+export interface SVGProps<T> extends SVGAttributes<T> {}
   a: AnchorHTMLAttributes<HTMLAnchorElement>;
   abbr: HTMLAttributes<HTMLElement>;
   address: HTMLAttributes<HTMLElement>;

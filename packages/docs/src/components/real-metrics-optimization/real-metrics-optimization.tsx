@@ -1,10 +1,13 @@
 export default (props: RealMetricsOptimizationProps) => (
   <script
     dangerouslySetInnerHTML={`
-  ((d) => {
+  ((d, sentStats) => {
     const id = () => Math.round(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
     const pageId = id();
     const sessionId = (sessionStorage["q:sId"] = sessionStorage["q:sId"] || id());
+    const now = Date.now();
+    const sessionStart = parseInt((sessionStorage["q:sTs"] = sessionStorage["q:sTs"] || now), 10);
+    const sessionOffset = now - sessionStart;
     const visitorId = (localStorage["q:vId"] = localStorage["q:vId"] || id());
     const qEvents = [];
     const loggedQrls = new Set();
@@ -28,6 +31,7 @@ export default (props: RealMetricsOptimizationProps) => (
           metadata: {
             url: location.href,
             pageId: pageId,
+            sessionOffset: sessionOffset,
             ...metadata
           },
           ownerId: ${JSON.stringify(props.builderApiKey)},
@@ -42,10 +46,9 @@ export default (props: RealMetricsOptimizationProps) => (
         const qsymbol = ev.detail?.symbol;
         if (qsymbol && !loggedQrls.has(qsymbol)) {
           loggedQrls.add(qsymbol);
-          console.debug("QSymbol", qsymbol);
 
           queue("qrl", {
-            sinceStart: Math.round(performance.now()),
+            execTime: Math.round(performance.now()),
             qsymbol: qsymbol,
           });
 
@@ -58,46 +61,35 @@ export default (props: RealMetricsOptimizationProps) => (
       }
     });
 
-    let sentPerf = false;
-
     d.addEventListener("visibilitychange", () => {
       if (d.visibilityState === "hidden") {
         try {
-          if (!sentPerf && performance.getEntriesByType) {
-            sentPerf = true;
-
-            const perf = [];
+          if (!sentStats) {
+            sentStats = true;
+            
+            const metadata = {
+              perf: [],
+              ua: navigator.userAgent,
+            };
             const entryTypes = ["navigation", "paint", "longtask"];
 
-            for (const entryTypeName of entryTypes) {
-              for (const entry of performance.getEntriesByType(entryTypeName)) {
-                perf.push(entry.toJSON());
+            if (performance.getEntriesByType) {
+              for (const entryTypeName of entryTypes) {
+                for (const entry of performance.getEntriesByType(entryTypeName)) {
+                  metadata.perf.push(entry.toJSON());
+                }
               }
-            }
-
-            if (perf.length > 0) {
-              queue("qperf", {
-                perf: perf,
-              }); 
             }
 
             if (navigator.connection) {
-              const qconn = {};
+              metadata.conn = {};
               for (const n in navigator.connection) {
                 if (navigator.connection[n] && typeof navigator.connection[n] !== "function") {
-                  qconn[n] = navigator.connection[n];
+                  metadata.conn[n] = navigator.connection[n];
                 }
               }
-              queue("qconn", {
-                connection: qconn,
-              }); 
             }
-
-            if (navigator.userAgentData) {
-              queue("quseragent", {
-                userAgentData: navigator.userAgentData.toJSON()
-              }); 
-            }
+            queue('qstats', metadata);
           }
           send();
         } catch (e) {

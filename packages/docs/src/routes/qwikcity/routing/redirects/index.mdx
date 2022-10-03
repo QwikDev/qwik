@@ -36,9 +36,10 @@ throw response.redirect('/login', 301); // Moved Permanently
 
 [Common redirect status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages):
 
+- `302`: Found. This response code means that the URI of requested resource has been changed temporarily. Further changes in the URI might be made in the future. Therefore, this same URI should be used by the client in future requests.
 - `307`: Temporary Redirect. The server sends this response to direct the client to get the requested resource at another URI with the same method that was used in the prior request. This has the same semantics as the 302 Found HTTP response code, with the exception that the user agent must not change the HTTP method used: if a POST was used in the first request, a POST must be used in the second request.
 - `308`: Permanent Redirect. This means that the resource is now permanently located at another URI, specified by the `Location` HTTP Response header. This has the same semantics as the 301 Moved Permanently HTTP response code, with the exception that the user agent must not change the HTTP method used: if a POST was used in the first request, a POST must be used in the second request.
 
-If you do not provide a status code, Qwik City will default to a `307` Temporary Redirect status.
+If you do not provide a status code, Qwik City will default to a `302` Temporary Redirect status.
 
 Read more about redirect status codes [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages).

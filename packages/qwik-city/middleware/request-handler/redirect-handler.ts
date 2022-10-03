@@ -9,7 +9,7 @@ export class RedirectResponse {
 
   constructor(public url: string, status?: number, headers?: Headers) {
     this.location = url;
-    this.status = isRedirectStatus(status) ? status : HttpStatus.TemporaryRedirect;
+    this.status = isRedirectStatus(status) ? status : HttpStatus.Found;
     this.headers = headers || createHeaders();
     this.headers.set('Location', this.location);
     this.headers.delete('Cache-Control');

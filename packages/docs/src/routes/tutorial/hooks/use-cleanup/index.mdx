@@ -1,5 +1,9 @@
 ---
 title: useCleanup$() Hook
+contributors:
+  - manucorporat
+  - adamdbradley
+  - felixsanz
 ---
 
 Use `useCleanup$()` hook to execute code after the component is unmounted. A typical use case is to clean up resources such as timers or subscriptions. (Keep in mind that many methods such as `useWatch$()` allow returning a cleanup function, which may be a more idiomatic way to solve the problem.)

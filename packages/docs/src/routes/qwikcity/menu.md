@@ -23,8 +23,7 @@
 ## Data
 
 - [Overview](data/overview/index.mdx)
-- [Request Handling](data/request-response-handling/index.mdx)
-- [Retrieving Data](data/retrieving/index.mdx)
+- [Retrieving Data](data/retrieve/index.mdx)
 - [Modifying Data](data/modify/index.mdx)
 - [Endpoints](data/endpoints/index.mdx)
 - [Redirects](data/redirects/index.mdx)
@@ -58,7 +57,7 @@
 - [useDocumentHead()](api/use-document-head/index.mdx)
 - [useLocation()](api/use-location/index.mdx)
 
-## Middleware
+## Adaptors
 
 - [Overview](middleware/overview/index.mdx)
 - [Cloudflare Pages](middleware/cloudflare-pages/index.mdx)

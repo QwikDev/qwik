@@ -174,13 +174,13 @@ export interface RequestContext {
 }
 
 // @alpha (undocumented)
-export interface RequestEvent {
+export interface RequestEvent<PLATFORM = unknown> {
     // (undocumented)
     abort: () => void;
     // (undocumented)
     next: () => Promise<void>;
     params: RouteParams;
-    platform: Record<string, any>;
+    platform: PLATFORM;
     // (undocumented)
     request: RequestContext;
     // (undocumented)
@@ -192,7 +192,7 @@ export interface RequestEvent {
 // Warning: (ae-forgotten-export) The symbol "RequestHandlerResult" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export type RequestHandler<BODY = unknown> = (ev: RequestEvent) => RequestHandlerResult<BODY>;
+export type RequestHandler<BODY = unknown, PLATFORM = unknown> = (ev: RequestEvent<PLATFORM>) => RequestHandlerResult<BODY>;
 
 // @alpha (undocumented)
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;

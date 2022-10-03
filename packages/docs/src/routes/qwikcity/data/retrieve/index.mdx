@@ -20,7 +20,7 @@ The first step is to structure the directories and files so that we can create t
 
 ## Implement onGet
 
-In a "page" endpoint context, an `onGet` function retrieves data (typically from a database, or other stores). The retrieved data can be returned directly as JSON (`Accept: application/json`) or used as an input to the component to render HTML (`Accept: text/html`). The `onGet` function receives the `params` to extract the parameters used to do data lookup.
+In a "page", an `onGet` function retrieves data (typically from a database, or other stores). The retrieved data can be returned directly as JSON (`Accept: application/json`) or used as an input to the component to render HTML (`Accept: text/html`). The `onGet` function receives the `params` to extract the parameters used to do data lookup.
 
 In this example, the `onGet` function returns the product data that is used inside of our component with the `useEndpoint()` function.
 
@@ -46,7 +46,7 @@ export const onGet: RequestHandler<ProductData> = async ({ params }) => {
 
 ## Using `onGet` in a Component
 
-An endpoint `onGet` function retrieves data and makes it available to the component using `useEndpoint()`.
+An `onGet` function retrieves data and makes it available to the component using `useEndpoint()`.
 
 ```typescript
 import { Resource, component$, useStore } from '@builder.io/qwik';
@@ -76,7 +76,7 @@ export default component$(() => {
 });
 ```
 
-1. Notice that the data endpoint and the component are defined in the same file. The data endpoint is serviced by the `onGet` function and the component is by the modules default export.
+1. Notice that the data request handler and the component are defined in the same file. The data is serviced by the `onGet` function and the component is by the modules default export.
 2. The component uses `useEndpoint()` function to retrieve the data. The `useEndpoint()` function invokes `onGet` function directly on the server but using `fetch()` on the client. Your component does not need to think about server/client differences when using data. The `useEndpoint()` function returns an object of type `ResourceReturn`. `Resource`s are promise-like objects that can be serialized by Qwik.
 3. The `onGet` function is invoked before the component. This allows the `onGet` to return 404 or redirect in case the data is not available.
 4. Notice the use of `<Resource>` JSX element. The purpose of `Resource` is to allow the client to render different states of the `useEndpoint()` resource.

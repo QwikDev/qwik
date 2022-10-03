@@ -13,3 +13,9 @@
 
 /qwikcity/routing/pathless/ /qwikcity/layout/grouped/ 308
 /qwikcity/middleware/express/ /qwikcity/middleware/node/ 308
+
+/qwikcity/routing/data/ /qwikcity/data/overview/ 308
+/qwikcity/routing/endpoints/ /qwikcity/data/endpoints/ 308
+/qwikcity/routing/modify/ /qwikcity/data/modify/ 308
+/qwikcity/routing/retrieve/ /qwikcity/data/retrieve/ 308
+/qwikcity/routing/redirects/ /qwikcity/data/redirects/ 308

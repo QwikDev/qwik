@@ -15,7 +15,8 @@
     "ssg": "node server/entry.static",
     "start": "yarn dev.ssr",
     "fmt": "prettier --write .",
-    "fmt.check": "prettier --check ."
+    "fmt.check": "prettier --check .",
+    "contributors": "tsm contributors.ts"
   },
   "devDependencies": {
     "@algolia/autocomplete-core": "^1.7.1",
@@ -29,11 +30,13 @@
     "algoliasearch": "^4.14.2",
     "autoprefixer": "10.4.11",
     "fflate": "^0.7.3",
+    "gray-matter": "^4.0.3",
     "node-fetch": "3.2.10",
     "postcss": "8.4.16",
     "prism-themes": "1.9.0",
     "prismjs": "^1.29.0",
     "tailwindcss": "3.1.8",
+    "tsm": "^2.2.2",
     "typescript": "4.8.3",
     "uvu": "0.5.6",
     "vite": "3.1.1",

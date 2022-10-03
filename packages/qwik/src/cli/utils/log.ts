@@ -6,4 +6,7 @@ export function logSuccessFooter() {
   console.log(`   https://qwik.builder.io/chat`);
   console.log(`   https://twitter.com/QwikDev`);
   console.log(``);
+  console.log(`📺 ${color.cyan('Presentations, Podcasts and Videos:')}`);
+  console.log(`   https://qwik.builder.io/media/`);
+  console.log(``);
 }

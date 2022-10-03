@@ -38,6 +38,71 @@ The example above, the App component is using `useStore()` to create a reactive 
 
 Just accessing the `state.count` property will cause the component to be updated if the count changes, when the property is changed in the click handler.
 
+### Recursive values
+
+By default, `useStore()` only tracks the top level fields in your store, which means any for any updates to register, you have to update values at the top level field.
+
+For example, this will not work:
+
+```tsx
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$(() => {
+  const store = useStore({
+    nested: { fields: { are: "not tracked" }}
+  })
+  
+  return (
+    <>
+      <p>{store.nested.fields.are}</p>
+      <button onClick$={() => store.nested.fields.are = "tracked"}>Click me</button>
+    </>
+  );
+});
+```
+
+In order to update this with default tracking we would have to update the top level `nested` field:
+
+```ts
+store.nested = { fields: { are: { "tracked" } } }
+```
+
+In order to make the first example work, we can pass a second argument to our useStore, and tell it to use recursion to track all the values in our store, no matter how deep.
+
+```tsx
+export const App = component$(() => {
+  const store = useStore({
+    nested: { fields: { are: "not tracked" }}
+  }, { recursion: true })
+  
+  return (
+    <>
+      <p>{store.nested.fields.are}</p>
+      <button onClick$={() => store.nested.fields.are = "tracked"}>Click me</button>
+    </>
+  );
+});
+```
+
+Now the component will update as expected. This will also track individual values inside of arrays!
+
+```tsx
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$(() => {
+  const store = useStore({
+    letters: ["A", "B", "C"]
+  }, { recursive: true })
+  
+  return (
+    <>
+      {store.letters.map(letter => <p>{letter}</p>)}
+      <button onClick$={() => { store.letters[2] = "Z"}}>Click me</button>
+    </>
+  );
+});
+```
+
 
 ## Passing a store to other components
 

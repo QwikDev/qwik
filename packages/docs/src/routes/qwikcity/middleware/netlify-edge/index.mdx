@@ -8,7 +8,13 @@ Qwik City Netlify Edge middleware allows you to connect Qwik City to [Netlify Ed
 
 ## Get started
 
-Create `src/entry.server.tsx` using the built-in middleware within a user's app.
+Run this command to integrate netlify-edge with your app
+
+```bash
+npm run qwik add netlify-edge
+```
+
+The previous command will create `src/entry.netlify-edge.tsx` using the built-in middleware within a user's app.
 
 ```typescript
 import { qwikCity } from '@builder.io/qwik-city/middleware/netlify-edge';

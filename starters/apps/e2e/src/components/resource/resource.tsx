@@ -110,7 +110,7 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
             <>
               <div className="resource1">resource 1 is {number}</div>
               <button class="count" onClick$={() => state.count++}>
-                count is {state.count}
+                count is {state.count + 0}
               </button>
             </>
           );

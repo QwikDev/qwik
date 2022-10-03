@@ -39,7 +39,9 @@ export interface Serializer<T> {
   /**
    * Convert the object to a string.
    */
-  serialize: ((obj: T, getObjID: MustGetObjID, containerState: ContainerState) => string) | undefined;
+  serialize:
+    | ((obj: T, getObjID: MustGetObjID, containerState: ContainerState) => string)
+    | undefined;
 
   /**
    * Return of
@@ -64,6 +66,13 @@ export interface Serializer<T> {
 const QRLSerializer: Serializer<QRLInternal> = {
   prefix: '\u0002',
   test: (v) => isQrl(v),
+  collect: (v, collector, leaks) => {
+    if (v.$captureRef$) {
+      for (const item of v.$captureRef$) {
+        collectValue(item, collector, leaks);
+      }
+    }
+  },
   serialize: (obj, getObjId) => {
     return serializeQRL(obj, {
       $getObjId$: getObjId,
@@ -83,6 +92,12 @@ const QRLSerializer: Serializer<QRLInternal> = {
 const WatchSerializer: Serializer<SubscriberEffect> = {
   prefix: '\u0003',
   test: (v) => isSubscriberDescriptor(v),
+  collect: (v, collector, leaks) => {
+    collectValue(v.$qrl$, collector, leaks);
+    if (v.$resource$) {
+      collectValue(v.$resource$, collector, leaks);
+    }
+  },
   serialize: (obj, getObjId) => serializeWatch(obj, getObjId),
   prepare: (data) => parseWatch(data) as any,
   fill: (watch, getObject) => {
@@ -291,7 +306,11 @@ export const collectDeps = (obj: any, collector: Collector, leaks: boolean) => {
   return false;
 };
 
-export const serializeValue = (obj: any, getObjID: MustGetObjID, containerState: ContainerState) => {
+export const serializeValue = (
+  obj: any,
+  getObjID: MustGetObjID,
+  containerState: ContainerState
+) => {
   for (const s of serializers) {
     if (s.test(obj)) {
       let value = s.prefix;

@@ -71,7 +71,14 @@ import { serializeQRLs } from '../../import/qrl';
 import { QOnce } from '../jsx/utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { getEventName } from '../../object/store';
-import { getProxyManager, getProxyTarget, SignalWrapper } from '../../object/q-object';
+import {
+  createProxy,
+  getProxyManager,
+  getProxyTarget,
+  QObjectFlagsSymbol,
+  QObjectImmutable,
+  SignalWrapper,
+} from '../../object/q-object';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -1044,10 +1051,19 @@ export const setComponentProps = (
   expectProps: Record<string, any>
 ) => {
   const keys = Object.keys(expectProps);
+  let props = ctx.$props$;
+  if (!props) {
+    ctx.$props$ = props = createProxy(
+      {
+        [QObjectFlagsSymbol]: QObjectImmutable,
+      },
+      rctx.$static$.$containerState$
+    );
+  }
+  const qwikProps = getPropsMutator(props);
   if (keys.length === 0) {
     return false;
   }
-  const qwikProps = getPropsMutator(ctx, rctx.$static$.$containerState$);
   for (const key of keys) {
     if (SKIPS_PROPS.includes(key)) {
       continue;

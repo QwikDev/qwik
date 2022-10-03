@@ -21,7 +21,7 @@ import {
   QError_canNotMountUseServerMount,
   QError_trackUseStore,
 } from '../error/error';
-import { useOn } from './use-on';
+import { useOn, useOnDocument } from './use-on';
 import { intToStr, MustGetObjID, strToInt } from '../object/store';
 import type { ContainerState } from '../render/container';
 import { notifyWatch, _hW } from '../render/dom/notify-render';
@@ -182,7 +182,7 @@ export interface DescriptorBase<T = any, B = undefined> {
 /**
  * @public
  */
-export type EagernessOptions = 'visible' | 'load';
+export type EagernessOptions = 'visible' | 'load' | 'idle';
 
 /**
  * @public
@@ -831,10 +831,12 @@ export const destroyWatch = (watch: SubscriberEffect) => {
 };
 
 const useRunWatch = (watch: SubscriberEffect, eagerness: EagernessOptions | undefined) => {
-  if (eagerness === 'load') {
-    useOn('qinit', getWatchHandlerQrl(watch));
-  } else if (eagerness === 'visible') {
+  if (eagerness === 'visible') {
     useOn('qvisible', getWatchHandlerQrl(watch));
+  } else if (eagerness === 'load') {
+    useOnDocument('qinit', getWatchHandlerQrl(watch));
+  } else if (eagerness === 'idle') {
+    useOnDocument('qidle', getWatchHandlerQrl(watch));
   }
 };
 

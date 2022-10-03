@@ -22,7 +22,7 @@ test.describe('e2e', () => {
 
     test('should rerender without changes', async ({ page }) => {
       const SNAPSHOT =
-        '<p>1</p><p>"&lt;/script&gt;"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}}</p><p>undefined</p><p>null</p><p>[1,2,"hola",null,{}]</p><p>true</p><p>false</p><p>()=&gt;console.error()</p><p>mutable message</p><p>from a promise</p>';
+        '<p>1</p><p>"&lt;/script&gt;"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}}</p><p>undefined</p><p>null</p><p>[1,2,"hola",null,{}]</p><p>true</p><p>false</p><p>()=&gt;console.error()</p><p><!--t=2-->mutable message<!----></p><p>from a promise</p>';
       const RESULT =
         '[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}},"undefined","null",[1,2,"hola",null,{}],true,false,null,"mutable message",null,"from a promise","http://qwik.builder.com/docs?query=true","2022-07-26T17:40:30.255Z","hola()\\\\/ gi",12,"failed message",["\\b: backspace","\\f: form feed","\\n: line feed","\\r: carriage return","\\t: horizontal tab","\\u000b: vertical tab","\\u0000: null character","\': single quote","\\\\: backslash"]]';
 
@@ -475,6 +475,7 @@ test.describe('e2e', () => {
       const msgEager = await page.locator('#eager-msg');
       const msgClientSide1 = await page.locator('#client-side-msg-1');
       const msgClientSide2 = await page.locator('#client-side-msg-2');
+      const msgClientSide3 = await page.locator('#client-side-msg-3');
 
       await expect(container).toHaveAttribute('data-effect', '');
       await expect(counter).toHaveText('0');
@@ -482,6 +483,7 @@ test.describe('e2e', () => {
       await expect(msgEager).toHaveText('run');
       await expect(msgClientSide1).toHaveText('run');
       await expect(msgClientSide2).toHaveText('run');
+      await expect(msgClientSide3).toHaveText('run');
 
       await counter.scrollIntoViewIfNeeded();
       await page.waitForTimeout(100);
@@ -519,7 +521,7 @@ test.describe('e2e', () => {
 
       // ToggleA
       await btnToggle.click();
-      logsStr += 'Child(0)Child(0)ToggleA()';
+      logsStr += 'Child(0)ToggleA()Child(0)';
 
       await expect(title).toHaveText('ToggleB');
       await expect(mount).toHaveText('mounted in client');

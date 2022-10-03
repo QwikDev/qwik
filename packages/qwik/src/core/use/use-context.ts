@@ -8,6 +8,7 @@ import { useSequentialScope } from './use-sequential-scope';
 import { getVirtualElement, QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import type { RenderContext } from '../render/types';
 import { isComment } from '../util/element';
+import { assertTrue } from '../assert/assert';
 
 // <docs markdown="../readme.md#Context">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -126,6 +127,7 @@ export interface Context<STATE extends object> {
  */
 // </docs>
 export const createContext = <STATE extends object>(name: string): Context<STATE> => {
+  assertTrue(/^[\w/.-]+$/.test(name), 'Context name must only contain A-Z,a-z,0-9, _', name);
   return /*#__PURE__*/ Object.freeze({
     id: fromCamelToKebabCase(name),
   } as any);

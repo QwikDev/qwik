@@ -419,5 +419,9 @@ export const wrapSignal = <T extends Record<any, any>, P extends keyof T>(
       return stuff;
     }
   }
-  return new SignalWrapper(obj, prop);
+  const manager = getProxyManager(obj);
+  if (manager) {
+    return new SignalWrapper(obj, prop);
+  }
+  return obj[prop];
 };

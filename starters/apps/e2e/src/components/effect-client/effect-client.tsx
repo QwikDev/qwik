@@ -66,7 +66,7 @@ export const Eager = component$(() => {
   console.log('<Timer> renders');
 
   const state = useStore({
-    msg: 'empty',
+    msg: 'empty 0',
   });
 
   // Double count watch
@@ -91,8 +91,9 @@ export const ClientSide = component$(() => {
   console.log('<Timer> renders');
 
   const state = useStore({
-    text1: 'empty',
-    text2: 'empty',
+    text1: 'empty 1',
+    text2: 'empty 2',
+    text3: 'empty 3',
   });
 
   useClientEffect$(
@@ -108,10 +109,20 @@ export const ClientSide = component$(() => {
     state.text2 = 'run';
   });
 
+  useClientEffect$(
+    () => {
+      state.text3 = 'run';
+    },
+    {
+      eagerness: 'idle',
+    }
+  );
+
   return (
     <>
       <div id="client-side-msg-1">{state.text1}</div>
       <div id="client-side-msg-2">{state.text2}</div>
+      <div id="client-side-msg-3">{state.text3}</div>
     </>
   );
 });

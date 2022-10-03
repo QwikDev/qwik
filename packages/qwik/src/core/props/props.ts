@@ -1,9 +1,6 @@
 import {
-  createProxy,
   getProxyManager,
   getProxyTarget,
-  QObjectImmutable,
-  QObjectFlagsSymbol,
 } from '../object/q-object';
 import { resumeContainer } from '../object/store';
 import { QContainerAttr } from '../util/markers';
@@ -16,7 +13,7 @@ import { directGetAttribute } from '../render/fast-calls';
 import { assertDefined, assertTrue } from '../assert/assert';
 import type { QRL } from '../import/qrl.public';
 import type { StyleAppend } from '../use/use-core';
-import { ContainerState, getContainerState, SubscriptionManager } from '../render/container';
+import { getContainerState, SubscriptionManager } from '../render/container';
 import type { ProcessedJSXNode } from '../render/dom/render-dom';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import { fromCamelToKebabCase } from '../util/case';
@@ -132,13 +129,7 @@ export const normalizeOnProp = (prop: string) => {
   return scope + ':' + prop;
 };
 
-export const getPropsMutator = (ctx: QContext, containerState: ContainerState) => {
-  let props = ctx.$props$;
-  if (!props) {
-    ctx.$props$ = props = createProxy({
-      [QObjectFlagsSymbol]: QObjectImmutable
-    }, containerState);
-  }
+export const getPropsMutator = (props: Record<string, any>) => {
   const manager = getProxyManager(props);
   assertDefined(manager, `props have to be a proxy, but it is not`, props);
   const target = getProxyTarget(props);

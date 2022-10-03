@@ -4,9 +4,11 @@ import { qDev } from './qdev';
 export const isNode = (value: any): value is Node => {
   return value && typeof value.nodeType === 'number';
 };
+
 export const isDocument = (value: any): value is Document => {
   return value && value.nodeType === 9;
 };
+
 export const isElement = (value: Node | VirtualElement): value is Element => {
   return value.nodeType === 1;
 };

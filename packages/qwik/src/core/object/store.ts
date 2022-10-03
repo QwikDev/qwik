@@ -9,6 +9,7 @@ import {
   isElement,
   isNode,
   isQwikElement,
+  isText,
   isVirtualElement,
 } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
@@ -28,10 +29,10 @@ import {
   getProxyManager,
   getProxyTarget,
   isConnected,
-  isSignal,
   QObjectFlagsSymbol,
+  SignalImpl,
 } from './q-object';
-import { destroyWatch, SubscriberEffect, WatchFlagsIsDirty } from '../use/use-watch';
+import { destroyWatch, WatchFlagsIsDirty } from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
 import { emitEvent } from '../util/event';
 import {
@@ -150,7 +151,7 @@ export const resumeContainer = (containerEl: Element) => {
           }
         } else if (data.startsWith('t=')) {
           const id = data.slice(2);
-          elements.set(ELEMENT_ID_PREFIX + data.slice(2), node.nextSibling!);
+          elements.set(ELEMENT_ID_PREFIX + data.slice(2), getTextNode(node));
           maxId = Math.max(maxId, strToInt(id));
         }
         return FILTER_SKIP;
@@ -297,6 +298,24 @@ export const _pauseFromContexts = async (
 ): Promise<SnapshotResult> => {
   const collector = createCollector(containerState);
   const listeners: SnapshotListener[] = [];
+
+  // TODO: optimize
+  for (const ctx of allContexts) {
+    if (ctx.$watches$) {
+      for (const watch of ctx.$watches$) {
+        if (qDev) {
+          if (watch.$flags$ & WatchFlagsIsDirty) {
+            logWarn('Serializing dirty watch. Looks like an internal error.');
+          }
+          if (!isConnected(watch)) {
+            logWarn('Serializing disconneted watch. Looks like an internal error.');
+          }
+        }
+        destroyWatch(watch);
+      }
+    }
+  }
+
   for (const ctx of allContexts) {
     const el = ctx.$element$;
     const ctxLi = ctx.li;
@@ -317,9 +336,6 @@ export const _pauseFromContexts = async (
           });
         }
       }
-    }
-    if (ctx.$watches$) {
-      collector.$watches$.push(...ctx.$watches$);
     }
   }
 
@@ -591,18 +607,6 @@ export const _pauseFromContexts = async (
     }
   });
 
-  for (const watch of collector.$watches$) {
-    if (qDev) {
-      if (watch.$flags$ & WatchFlagsIsDirty) {
-        logWarn('Serializing dirty watch. Looks like an internal error.');
-      }
-      if (!isConnected(watch)) {
-        logWarn('Serializing disconneted watch. Looks like an internal error.');
-      }
-    }
-    destroyWatch(watch);
-  }
-
   // Sanity check of serialized element
   if (qDev) {
     elementToIndex.forEach((value, el) => {
@@ -628,7 +632,7 @@ export const getManager = (obj: any, containerState: ContainerState) => {
   if (!isObject(obj)) {
     return undefined;
   }
-  if (isSignal(obj)) {
+  if (obj instanceof SignalImpl) {
     return getProxyManager(obj);
   }
   const proxy = containerState.$proxyMap$.get(obj);
@@ -791,7 +795,6 @@ export interface Collector {
   $objSet$: Set<any>;
   $noSerialize$: any[];
   $elements$: VirtualElement[];
-  $watches$: SubscriberEffect[];
   $containerState$: ContainerState;
   $promises$: Promise<any>[];
 }
@@ -803,7 +806,6 @@ const createCollector = (containerState: ContainerState): Collector => {
     $objSet$: new Set(),
     $noSerialize$: [],
     $elements$: [],
-    $watches$: [],
     $promises$: [],
   };
 };
@@ -1001,3 +1003,13 @@ export const getEventName = (attribute: string) => {
   return fromKebabToCamelCase(attribute.slice(colonPos + 1));
 };
 
+const getTextNode = (mark: Comment) => {
+  const nextNode = mark.nextSibling!;
+  if (isText(nextNode)) {
+    return nextNode;
+  } else {
+    const textNode = mark.ownerDocument.createTextNode('');
+    mark.parentElement!.insertBefore(textNode, mark);
+    return textNode;
+  }
+};

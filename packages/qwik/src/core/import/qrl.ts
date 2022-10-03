@@ -13,8 +13,8 @@ import { getPlatform } from '../platform/platform';
 import type { QwikElement } from '../render/dom/virtual-element';
 import type { QContext } from '../props/props';
 import { assertTrue } from '../assert/assert';
-import { isElement } from '../../testing/html';
 import type { MustGetObjID } from '../object/store';
+import { assertElement } from '../util/element';
 
 // https://regexr.com/68v72
 const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
@@ -189,7 +189,7 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
 };
 
 export const serializeQRLs = (existingQRLs: QRLInternal<any>[], elCtx: QContext): string => {
-  assertTrue(isElement(elCtx.$element$), 'Element must be an actual element');
+  assertElement(elCtx.$element$);
   const opts: QRLSerializeOptions = {
     $element$: elCtx.$element$,
     $addRefMap$: (obj) => addToArray(elCtx.$refMap$, obj),

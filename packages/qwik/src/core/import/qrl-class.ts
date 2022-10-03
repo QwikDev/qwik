@@ -99,6 +99,7 @@ export const createQRL = <TYPE>(
 
   const invokeFn = (currentCtx?: InvokeContext | InvokeTuple, beforeFn?: () => void | boolean) => {
     return ((...args: any[]): any => {
+      const start = now();
       const fn = resolveLazy() as TYPE;
       return then(fn, (fn) => {
         if (isFunction(fn)) {
@@ -110,7 +111,7 @@ export const createQRL = <TYPE>(
             ...baseContext,
             $qrl$: QRL as QRLInternal<any>,
           };
-          emitUsedSymbol(symbol, context.$element$);
+          emitUsedSymbol(symbol, context.$element$, start);
           return invoke(context, fn as any, ...args);
         }
         throw qError(QError_qrlIsNotFunction);
@@ -174,13 +175,12 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
   }
 }
 
-export const emitUsedSymbol = (symbol: string, element: Element | undefined) => {
+export const emitUsedSymbol = (symbol: string, element: Element | undefined, start: number) => {
   emitEvent('qsymbol', {
-    bubbles: false,
     detail: {
       symbol,
       element,
-      timestamp: performance.now(),
+      invoked: start,
     },
   });
 };
@@ -194,4 +194,14 @@ export const emitEvent = (eventName: string, detail: any) => {
       })
     );
   }
+};
+
+const now = () => {
+  if (qTest || isServer()) {
+    return 0;
+  }
+  if (typeof performance === 'object') {
+    return performance.now();
+  }
+  return 0;
 };

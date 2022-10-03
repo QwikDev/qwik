@@ -82,6 +82,7 @@ export function useRef<T = Element>(current?: T): Ref<T> {
 <docs code="./examples.tsx#use-ref"/>
 
 @deprecated Use `useSignal` instead.
+@alpha
 
 # `useWatch`
 
@@ -175,8 +176,6 @@ Component styles allow Qwik to lazy load the style information for the component
 # `useCleanup`
 
 It can be used to release resources, abort network requests, stop timers...
-
-<docs code="./examples.tsx#use-cleanup"/>
 
 @alpha
 @deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or `useClientEffect$()` instead.

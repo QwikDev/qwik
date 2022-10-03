@@ -621,10 +621,10 @@ export interface Tracker {
     <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
 }
 
-// @alpha
+// @alpha @deprecated
 export const useCleanup$: (first: () => void) => void;
 
-// @alpha
+// @alpha @deprecated
 export const useCleanupQrl: (unmountFn: QRL<() => void>) => void;
 
 // @public
@@ -757,10 +757,8 @@ export interface WatchCtx {
 // @public (undocumented)
 export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
 
-// Warning: (ae-internal-missing-underscore) The name "wrapSignal" should be prefixed with an underscore because the declaration is marked as @internal
-//
 // @internal (undocumented)
-export const wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => Signal<T[P]>;
+export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => Signal<T[P]>;
 
 // (No @packageDocumentation comment for this package)
 

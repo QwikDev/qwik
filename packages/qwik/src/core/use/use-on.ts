@@ -13,9 +13,6 @@ import { Watch, WatchFlagsIsCleanup } from './use-watch';
 /**
  * It can be used to release resources, abort network requests, stop timers...
  *
- * ```tsx
- * ```
- *
  * @alpha
  * @deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or
  * `useClientEffect$()` instead.
@@ -41,9 +38,6 @@ export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
 // (edit ../readme.md#useCleanup instead)
 /**
  * It can be used to release resources, abort network requests, stop timers...
- *
- * ```tsx
- * ```
  *
  * @alpha
  * @deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or

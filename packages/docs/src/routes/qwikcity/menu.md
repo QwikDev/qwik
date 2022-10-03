@@ -59,7 +59,7 @@
 
 ## Adaptors
 
-- [Overview](middleware/overview/index.mdx)
-- [Cloudflare Pages](middleware/cloudflare-pages/index.mdx)
-- [Netlify Edge](middleware/netlify-edge/index.mdx)
-- [Node](middleware/node/index.mdx)
+- [Overview](adaptors/overview/index.mdx)
+- [Cloudflare Pages](adaptors/cloudflare-pages/index.mdx)
+- [Netlify Edge](adaptors/netlify-edge/index.mdx)
+- [Node](adaptors/node/index.mdx)

@@ -16,8 +16,8 @@ interface MyComponentProps {
 export const MyComponent = component$((props: MyComponentProps) => {
   return (
     <div>
-      <button onClick$={props.goodbye$}>hello</button>
-      <button onClick$={async () => await props.hello$('World')}>good bye</button>
+      <button onClick$={props.goodbye$}>good bye</button>
+      <button onClick$={async () => await props.hello$('World')}>hello</button>
     </div>
   );
 });

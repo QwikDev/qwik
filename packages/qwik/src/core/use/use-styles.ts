@@ -34,7 +34,7 @@ import { assertDefined } from '../assert/assert';
  */
 // </docs>
 export const useStylesQrl = (styles: QRL<string>): void => {
-  _useStyles(styles, (str) => str, false);
+  return _useStyles(styles, (str) => str, false);
 };
 
 // <docs markdown="../readme.md#useStyles">
@@ -88,7 +88,7 @@ export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
  */
 // </docs>
 export const useStylesScopedQrl = (styles: QRL<string>): void => {
-  _useStyles(styles, getScopedStyles, true);
+  return _useStyles(styles, getScopedStyles, true);
 };
 
 // <docs markdown="../readme.md#useStylesScoped">

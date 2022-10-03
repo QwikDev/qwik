@@ -44,7 +44,6 @@ export interface Ref<T> {
  * ```
  *
  * @deprecated Use `useSignal` instead.
- * @alpha
  */
 // </docs>
 export const useRef = <T extends Element = Element>(current?: T): Ref<T> => {

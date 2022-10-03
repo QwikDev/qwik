@@ -9,7 +9,7 @@
 import { component$ } from './component/component.public';
 import { qrl } from './import/qrl';
 import { $, QRL } from './import/qrl.public';
-import { useCleanup$, useOn, useOnDocument, useOnWindow } from './use/use-on';
+import { useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
 import { useClientEffect$, useMount$, useServerMount$, useWatch$ } from './use/use-watch';
@@ -46,22 +46,6 @@ export const OtherComponent = component$(() => {
 });
 // </docs>
 //
-
-() => {
-  //
-  // <docs anchor="use-cleanup">
-  const Cmp = component$(() => {
-    useCleanup$(() => {
-      // Executed after SSR (pause) or when the component gets removed from the DOM.
-      // Can be used to release resources, abort network requests, stop timers...
-      console.log('component is destroyed');
-    });
-    return <div>Hello world</div>;
-  });
-  // </docs>
-  //
-  return Cmp;
-};
 
 // <docs anchor="use-styles">
 import styles from './code-block.css?inline';

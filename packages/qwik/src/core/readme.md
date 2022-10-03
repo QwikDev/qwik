@@ -174,15 +174,12 @@ Component styles allow Qwik to lazy load the style information for the component
 
 # `useCleanup`
 
-A lazy-loadable reference to a component's cleanup hook.
-
-Invoked when the component is destroyed (removed from render tree), or paused as part of the SSR serialization.
-
 It can be used to release resources, abort network requests, stop timers...
 
 <docs code="./examples.tsx#use-cleanup"/>
 
 @alpha
+@deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or `useClientEffect$()` instead.
 
 # `useOn`
 

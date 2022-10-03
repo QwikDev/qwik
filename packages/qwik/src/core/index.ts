@@ -100,5 +100,5 @@ export { useErrorBoundary } from './use/use-error-boundary';
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './util/types';
 export type { NoSerialize, Signal } from './object/q-object';
-export { noSerialize, mutable, _IMMUTABLE, _wrapSignal as wrapSignal } from './object/q-object';
+export { noSerialize, mutable, _IMMUTABLE, _wrapSignal } from './object/q-object';
 export { version } from './version';

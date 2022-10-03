@@ -45,7 +45,7 @@ export default defineConfig(() => {
       }),
       tsconfigPaths(),
 +      netlifyEdge({
-+        functionName: "entry.server",
++        functionName: "entry.netlify-edge",
 +      }),
     ],
   };
@@ -57,7 +57,7 @@ Configure `netlify.toml`
 ```toml
 [[edge_functions]]
 path = "/*"
-function = "entry.server"
+function = "entry.netlify-edge"
 ```
 
 ## Usage
@@ -65,7 +65,7 @@ function = "entry.server"
 Along with client build, run vite command to perform SSR build
 
 ```bash
-vite build --ssr src/entry.server.tsx
+vite build --ssr src/entry.netlify-edge.tsx
 ```
 
 Now you can use Netlify CLI to preview or deploy. [Read the full guide here](https://github.com/BuilderIO/qwik/blob/main/starters/servers/netlify-edge/README.md)

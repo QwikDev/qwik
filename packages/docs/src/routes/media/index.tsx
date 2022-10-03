@@ -25,6 +25,8 @@ export const MEDIA = mediaObj({
     youtube('Is Qwik + RxJS actually possible?', 'qKCX7Qz1oG8'),
     youtube('Qwik-ifying React SPA to create the fastest possible website', 'dbxP9FX5j2o'),
     youtube('Après Angular : place à Qwik!', 'Ts2IWXMYiXk'),
+    youtube('🇪🇸 Qwik Framework, Un nuevo Framework Super Rápido (Lazy Loading)', 'kT-Y17mEUZs'),
+    youtube('🇪🇸 Qwik - nuevo framework para Js ', 'GzUMPnsDopM'),
   ],
   podcasts: [
     youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc'),

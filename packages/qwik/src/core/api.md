@@ -352,9 +352,7 @@ export interface QRL<TYPE = any> {
     resolve(): Promise<TYPE>;
 }
 
-// Warning: (ae-internal-missing-underscore) The name "qrl" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
+// @alpha
 export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "qrlDEV" should be prefixed with an underscore because the declaration is marked as @internal
@@ -401,7 +399,7 @@ export namespace QwikJSX {
     }
 }
 
-// @public
+// @alpha @deprecated
 export interface Ref<T> {
     // (undocumented)
     current: T | undefined;
@@ -679,7 +677,7 @@ export const useOnDocument: (event: string, eventQrl: QRL<(ev: Event) => void>) 
 // @alpha
 export const useOnWindow: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
 
-// @public
+// @alpha @deprecated
 export const useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;
 
 // @public

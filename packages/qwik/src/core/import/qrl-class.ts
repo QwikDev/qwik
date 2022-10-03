@@ -1,8 +1,8 @@
 import {
   qError,
   QError_qrlIsNotFunction,
-  Qerror_qrlMissingChunk,
-  Qerror_qrlMissingContainer,
+  QError_qrlMissingChunk,
+  QError_qrlMissingContainer,
 } from '../error/error';
 import { verifySerializable } from '../object/q-object';
 import { getPlatform, isServer } from '../platform/platform';
@@ -81,10 +81,10 @@ export const createQRL = <TYPE>(
       return (symbolRef = symbolFn().then((module) => (symbolRef = module[symbol])));
     } else {
       if (!chunk) {
-        throw qError(Qerror_qrlMissingChunk, symbol);
+        throw qError(QError_qrlMissingChunk, symbol);
       }
       if (!_containerEl) {
-        throw qError(Qerror_qrlMissingContainer, chunk, symbol);
+        throw qError(QError_qrlMissingContainer, chunk, symbol);
       }
       const symbol2 = getPlatform().importSymbol(_containerEl, chunk, symbol);
       return (symbolRef = then(symbol2, (ref) => {

@@ -796,9 +796,14 @@ Click`);
 
     test('should render correctly', async ({ page }) => {
       const staticEl = await page.locator('#static');
-      const dynamic = await page.locator('#dynamic');
+      const dynamicEl = await page.locator('#dynamic');
+      const static2El = await page.locator('#static2');
+      const dynamic2El = await page.locator('#dynamic2');
+
       await expect(staticEl).toHaveText('Rendered');
-      await expect(dynamic).toHaveText('Rendered');
+      await expect(dynamicEl).toHaveText('Rendered');
+      await expect(static2El).toHaveText('Rendered');
+      await expect(dynamic2El).toHaveText('Rendered');
     });
   });
 

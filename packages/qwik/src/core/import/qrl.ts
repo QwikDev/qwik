@@ -5,7 +5,7 @@ import { isFunction, isString } from '../util/types';
 import {
   qError,
   QError_dynamicImportFailed,
-  Qerror_qrlMissingChunk,
+  QError_qrlMissingChunk,
   QError_unknownTypeArgument,
 } from '../error/error';
 import { qRuntimeQrl, qSerialize } from '../util/qdev';
@@ -166,7 +166,7 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
     symbol = '_';
   }
   if (!chunk) {
-    throw qError(Qerror_qrlMissingChunk, qrl);
+    throw qError(QError_qrlMissingChunk, qrl);
   }
   if (chunk.startsWith('./')) {
     chunk = chunk.slice(2);

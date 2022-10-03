@@ -24,6 +24,7 @@ import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
 import { assertQrl, isQrl, QRLInternal } from '../../import/qrl-class';
 import {
+  assertElement,
   assertQwikElement,
   isElement,
   isQwikElement,
@@ -40,8 +41,7 @@ import {
   SKIPS_PROPS,
   stringifyStyle,
 } from '../execute-component';
-import type { SubscriptionManager } from '../container';
-import type { Ref } from '../../use/use-ref';
+import { setRef, SubscriptionManager } from '../container';
 import {
   getRootNode,
   newVirtualElement,
@@ -893,6 +893,7 @@ export const updateProperties = (
     return listenersMap;
   }
   const elm = elCtx.$element$;
+  assertElement(elm);
   for (let key of keys) {
     if (key === 'children') {
       continue;
@@ -911,7 +912,7 @@ export const updateProperties = (
     }
 
     if (key === 'ref') {
-      (newValue as Ref<Element>).current = elm as Element;
+      setRef(newValue, elm);
       continue;
     }
 
@@ -1012,7 +1013,8 @@ export const setProperties = (
       newProps['class'] = newValue = serializeClass(newValue);
     }
     if (key === 'ref') {
-      (newValue as Ref<Element>).current = elm as Element;
+      assertElement(elm);
+      setRef(newValue, elm);
       continue;
     }
 

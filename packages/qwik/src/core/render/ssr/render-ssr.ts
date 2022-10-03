@@ -15,7 +15,7 @@ import { SSRComment, InternalSSRStream, Virtual } from '../jsx/utils.public';
 import { logError, logWarn } from '../../util/log';
 import { addQRLListener, isOnProp, setEvent } from '../../props/props-on';
 import { version } from '../../version';
-import { ContainerState, createContainerState } from '../container';
+import { ContainerState, createContainerState, setRef } from '../container';
 import type { RenderContext } from '../types';
 import { assertDefined } from '../../assert/assert';
 import { serializeSStyle } from '../../component/qrl-styles';
@@ -32,7 +32,6 @@ import {
   _IMMUTABLE,
 } from '../../object/q-object';
 import { serializeQRLs } from '../../import/qrl';
-import type { Ref } from '../../use/use-ref';
 import type { QwikElement } from '../dom/virtual-element';
 import { assertElement } from '../../util/element';
 import { EMPTY_OBJ } from '../../util/flyweight';
@@ -431,6 +430,7 @@ export const renderNode = (
     const hostCtx = ssrCtx.hostCtx;
     let openingElement = '<' + tagName;
     let useSignal = false;
+    assertElement(elm);
     for (const prop of Object.keys(props)) {
       if (
         prop === 'children' ||
@@ -443,8 +443,7 @@ export const renderNode = (
       }
       let value = props[prop];
       if (prop === 'ref') {
-        assertElement(elm);
-        (value as Ref<Element>).current = elm;
+        setRef(value, elm);
         continue;
       }
       if (isOnProp(prop)) {

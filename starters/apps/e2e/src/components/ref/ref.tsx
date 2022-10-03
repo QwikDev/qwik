@@ -1,4 +1,4 @@
-import { component$, useStore, useRef, useClientEffect$ } from '@builder.io/qwik';
+import { component$, useStore, useRef, useClientEffect$, useSignal } from '@builder.io/qwik';
 
 export const RefRoot = component$(() => {
   const state = useStore({
@@ -13,6 +13,9 @@ export const RefRoot = component$(() => {
       <div>
         <Ref id="static"></Ref>
         {state.visible && <Ref id="dynamic"></Ref>}
+
+        <Ref2 id="static-2"></Ref2>
+        {state.visible && <Ref2 id="dynamic"></Ref2>}
       </div>
     </>
   );
@@ -22,6 +25,18 @@ export const Ref = component$((props: { id: string }) => {
   const ref = useRef();
   useClientEffect$(() => {
     ref.current!.textContent = 'Rendered';
+  });
+  return (
+    <>
+      <div id={props.id} ref={ref} />
+    </>
+  );
+});
+
+export const Ref2 = component$((props: { id: string }) => {
+  const ref = useSignal<Element>();
+  useClientEffect$(() => {
+    ref.value!.textContent = 'Rendered';
   });
   return (
     <>

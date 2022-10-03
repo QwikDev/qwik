@@ -46,7 +46,7 @@ export const WatchFlagsIsResource = 1 << 4;
  * state objects in a read proxy which signals to Qwik which properties should be watched for
  * changes. A change to any of the properties causes the `watchFn` to rerun.
  *
- * ## Example
+ * ### Example
  *
  * The `obs` passed into the `watchFn` is used to mark `state.count` as a property of interest.
  * Any changes to the `state.count` property will cause the `watchFn` to rerun.
@@ -55,7 +55,7 @@ export const WatchFlagsIsResource = 1 << 4;
  * const Cmp = component$(() => {
  *   const store = useStore({ count: 0, doubleCount: 0 });
  *   useWatch$(({ track }) => {
- *     const count = track(store, 'count');
+ *     const count = track(() => store.count);
  *     store.doubleCount = 2 * count;
  *   });
  *   return (
@@ -234,7 +234,7 @@ export interface UseWatchOptions {
  *
  * @public
  *
- * ## Example
+ * ### Example
  *
  * The `useWatch` function is used to observe the `state.count` property. Any changes to the
  * `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to
@@ -250,13 +250,13 @@ export interface UseWatchOptions {
  *
  *   // Double count watch
  *   useWatch$(({ track }) => {
- *     const count = track(store, 'count');
+ *     const count = track(() => store.count);
  *     store.doubleCount = 2 * count;
  *   });
  *
  *   // Debouncer watch
  *   useWatch$(({ track }) => {
- *     const doubleCount = track(store, 'doubleCount');
+ *     const doubleCount = track(() => store.doubleCount);
  *     const timer = setTimeout(() => {
  *       store.debounced = doubleCount;
  *     }, 2000);
@@ -319,7 +319,7 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
  *
  * @public
  *
- * ## Example
+ * ### Example
  *
  * The `useWatch` function is used to observe the `state.count` property. Any changes to the
  * `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to
@@ -335,13 +335,13 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
  *
  *   // Double count watch
  *   useWatch$(({ track }) => {
- *     const count = track(store, 'count');
+ *     const count = track(() => store.count);
  *     store.doubleCount = 2 * count;
  *   });
  *
  *   // Debouncer watch
  *   useWatch$(({ track }) => {
- *     const doubleCount = track(store, 'doubleCount');
+ *     const doubleCount = track(() => store.doubleCount);
  *     const timer = setTimeout(() => {
  *       store.debounced = doubleCount;
  *     }, 2000);
@@ -452,7 +452,7 @@ export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useClientEffectQ
  * Register's a server mount hook that runs only in the server when the component is first
  * mounted.
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * const Cmp = component$(() => {
@@ -507,7 +507,7 @@ export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
  * Register's a server mount hook that runs only in the server when the component is first
  * mounted.
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * const Cmp = component$(() => {
@@ -549,7 +549,7 @@ export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl
 /**
  * Register a server mount hook that runs only in the server when the component is first mounted.
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * const Cmp = component$(() => {
@@ -593,7 +593,7 @@ export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
 /**
  * Register a server mount hook that runs only in the server when the component is first mounted.
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * const Cmp = component$(() => {

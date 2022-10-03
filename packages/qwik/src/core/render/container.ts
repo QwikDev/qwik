@@ -1,7 +1,11 @@
 import { assertTrue } from '../assert/assert';
+import { qError, QError_invalidRefValue } from '../error/error';
+import type { Signal } from '../object/q-object';
 import type { GetObject, GetObjID } from '../object/store';
+import type { Ref } from '../use/use-ref';
 import type { SubscriberEffect, SubscriberHost } from '../use/use-watch';
 import { seal } from '../util/qdev';
+import { isFunction, isObject } from '../util/types';
 import { notifyChange } from './dom/notify-render';
 import type { QwikElement } from './dom/virtual-element';
 import type { RenderStaticContext } from './types';
@@ -218,3 +222,16 @@ export class LocalSubscriptionManager {
     }
   }
 }
+
+export const setRef = (value: any, elm: Element) => {
+  if (isFunction(value)) {
+    return value(elm);
+  } else if (isObject(value)) {
+    if ('current' in value) {
+      return ((value as Ref<Element>).current = elm);
+    } else if ('value' in value) {
+      return ((value as Signal<Element>).value = elm);
+    }
+  }
+  throw qError(QError_invalidRefValue, value);
+};

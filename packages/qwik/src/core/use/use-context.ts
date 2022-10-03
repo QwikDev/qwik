@@ -23,7 +23,7 @@ import { assertTrue } from '../assert/assert';
  * for the values. Qwik needs a serializable ID for the context so that the it can track context
  * providers and consumers in a way that survives resumability.
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * // Declare the Context type.
@@ -86,7 +86,7 @@ export interface Context<STATE extends object> {
  * for the values. Qwik needs a serializable ID for the context so that the it can track context
  * providers and consumers in a way that survives resumability.
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * // Declare the Context type.
@@ -145,7 +145,7 @@ export const createContext = <STATE extends object>(name: string): Context<STATE
  *
  * Context is a way to pass stores to the child components without prop-drilling.
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * // Declare the Context type.
@@ -224,7 +224,7 @@ export interface UseContext {
  * Use `useContext()` to retrieve the value of context in a component. To retrieve a value a
  * parent component needs to invoke `useContextProvider()` to assign a value.
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * // Declare the Context type.

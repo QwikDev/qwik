@@ -19,7 +19,7 @@ export interface UseStoreOptions {
  * Use `useStore` to create a state for your application. The returned object is a proxy that has
  * a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
  *
- * ## Example
+ * ### Example
  *
  * Example showing how `useStore` is used in Counter example to keep track of the count.
  *

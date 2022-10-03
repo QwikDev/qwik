@@ -10,9 +10,6 @@
 
 - [Overview](routing/overview/index.mdx)
 - [Route Parameters](routing/route-parameters/index.mdx)
-- [Retrieving Data](routing/data/index.mdx)
-- [Modifying Data](routing/modify/index.mdx)
-- [Redirects](routing/redirects/index.mdx)
 - [Error Responses](routing/error-responses/index.mdx)
 
 ## Layout
@@ -22,6 +19,15 @@
 - [Named](layout/named/index.mdx)
 - [Grouped](layout/grouped/index.mdx)
 - [Top](layout/top/index.mdx)
+
+## Data
+
+- [Overview](data/overview/index.mdx)
+- [Request Handling](data/request-response-handling/index.mdx)
+- [Retrieving Data](data/retrieving/index.mdx)
+- [Modifying Data](data/modify/index.mdx)
+- [Endpoints](data/endpoints/index.mdx)
+- [Redirects](data/redirects/index.mdx)
 
 ## Prefetching
 

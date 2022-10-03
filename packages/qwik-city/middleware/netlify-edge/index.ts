@@ -1,3 +1,4 @@
+import type { Context } from '@netlify/edge-functions';
 import type { QwikCityRequestOptions, QwikCityRequestContext } from '../request-handler/types';
 import { notFoundHandler, requestHandler } from '../request-handler';
 import type { Render } from '@builder.io/qwik/server';
@@ -8,7 +9,7 @@ import type { Render } from '@builder.io/qwik/server';
  * @alpha
  */
 export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions) {
-  async function onRequest(request: Request, { next }: EventPluginContext) {
+  async function onRequest(request: Request, context: Context) {
     try {
       const requestCtx: QwikCityRequestContext<Response> = {
         url: new URL(request.url),
@@ -44,17 +45,17 @@ export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions) {
         },
       };
 
-      const handledResponse = await requestHandler<Response>(requestCtx, render, {}, opts);
+      const handledResponse = await requestHandler<Response>(requestCtx, render, context, opts);
       if (handledResponse) {
         return handledResponse;
       }
 
-      const nextResponse = await next();
+      const nextResponse = await context.next();
 
       if (nextResponse.status === 404) {
         // next middleware unable to handle request
         // send request to qwik city request handler
-        const handledResponse = await requestHandler<Response>(requestCtx, render, {}, opts);
+        const handledResponse = await requestHandler<Response>(requestCtx, render, context, opts);
         if (handledResponse) {
           return handledResponse;
         }
@@ -86,6 +87,4 @@ export interface QwikCityNetlifyOptions extends QwikCityRequestOptions {}
 /**
  * @alpha
  */
-export interface EventPluginContext {
-  next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
-}
+export interface EventPluginContext extends Context {}

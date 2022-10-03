@@ -41,7 +41,7 @@
     "react-dom": ">=18.0.0"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=16"
   },
   "exports": {
     ".": {

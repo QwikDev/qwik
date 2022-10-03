@@ -16,7 +16,7 @@ export function qwikCity(render: Render, opts?: QwikCityNodeRequestOptions) {
   const router = async (
     req: IncomingMessage,
     res: ServerResponse,
-    next: NodeReqestNextFunction
+    next: NodeRequestNextFunction
   ) => {
     try {
       const requestCtx = fromNodeHttp(getUrl(req), req, res);
@@ -55,6 +55,6 @@ export interface QwikCityNodeRequestOptions extends QwikCityRequestOptions {}
 
 /**
  * @alpha
- */ export interface NodeReqestNextFunction {
+ */ export interface NodeRequestNextFunction {
   (err?: any): void;
 }

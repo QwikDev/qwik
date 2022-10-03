@@ -10,14 +10,14 @@ import type { RenderOptions } from '@builder.io/qwik/server';
 import type { ServerResponse } from 'http';
 
 // @alpha (undocumented)
-export interface NodeReqestNextFunction {
+export interface NodeRequestNextFunction {
     // (undocumented)
     (err?: any): void;
 }
 
 // @alpha (undocumented)
 export function qwikCity(render: Render, opts?: QwikCityNodeRequestOptions): {
-    router: (req: IncomingMessage, res: ServerResponse, next: NodeReqestNextFunction) => Promise<void>;
+    router: (req: IncomingMessage, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
     notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => Promise<void>;
 };
 

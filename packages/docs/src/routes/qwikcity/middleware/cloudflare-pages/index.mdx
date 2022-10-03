@@ -4,12 +4,18 @@ title: Qwik City - Cloudflare Pages Middleware
 
 # Cloudflare Pages Middleware
 
+You have to integrate cloudflare-pages using to see command to see your files as the files below
+
+```bash
+npm run qwik add cloudflare-pages
+```
+
 Qwik City Cloudflare Pages middleware allows you to connect Qwik City to [Cloudflare Pages](https://pages.cloudflare.com/).
 
 Below is an example of using the built-in middleware within a user's app.
 
 ```typescript
-// entry.server.tsx
+// entry.cloudflare-pages.tsx
 import render from './entry.ssr';
 import { qwikCity } from '@builder.io/qwik-city/middleware/cloudflare-pages';
 
@@ -23,7 +29,7 @@ The compiled middleware can then be used anywhere in the cloudflare pages `/func
 // for example use /functions/[[path]].ts or /functions/_middleware.ts
 // to have qwik city handle all requests.
 
-export { onRequest } from '../server/entry.server';
+export { onRequest } from '../server/entry.cloudflare-pages';
 ```
 
 - [Cloudflare Pages Middleware Source](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)

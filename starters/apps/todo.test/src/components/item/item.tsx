@@ -20,7 +20,7 @@ export const Item = component$((props: ItemProps) => {
   const todos = useContext(TODOS);
 
   useWatch$(({ track }) => {
-    const current = track(editInput, 'current');
+    const current = track(() => editInput.current);
     if (current) {
       current.focus();
       current.selectionStart = current.selectionEnd = current.value.length;

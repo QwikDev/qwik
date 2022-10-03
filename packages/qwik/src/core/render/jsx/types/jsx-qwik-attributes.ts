@@ -1,7 +1,6 @@
 /* eslint-disable */
 
 import type { QRL } from '../../../import/qrl.public';
-import type { Signal, ValueOrSignal } from '../../../object/q-object';
 import type { Ref } from '../../../use/use-ref';
 import type { JSXNode } from './jsx-node';
 
@@ -128,7 +127,7 @@ export type PreventDefault = {
 };
 
 export interface QwikProps extends PreventDefault {
-  class?: ValueOrSignal<string> | { [className: string]: ValueOrSignal<boolean> } | string[];
+  class?: string | { [className: string]: boolean } | string[];
   dangerouslySetInnerHTML?: string;
   ref?: Ref<Element>;
 
@@ -219,7 +218,6 @@ export type JSXChildren =
   | undefined
   | Function
   | RegExp
-  | Signal<string | number>
   | JSXChildren[]
   | Promise<JSXChildren>
   | JSXNode;

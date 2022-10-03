@@ -76,17 +76,28 @@ export const WatchFlagsIsResource = 1 << 4;
 // </docs>
 export interface Tracker {
   /**
+   * Include the expression using stores / signals to track:
    *
+   * ```tsx
+   * track(() => store.value)
+   * ```
+   *
+   * The `track()` function also returns the value of the scoped expression:
+   *
+   * ```tsx
+   * const count = track(() => store.count);
+   * ```
    */
   <T>(ctx: () => T): T;
 
   /**
-   * @deprecated
+   * Used to track the whole object. If any property of the passed store changes,
+   * the watch will be scheduled to run.
    */
   <T extends {}>(obj: T): T;
 
   /**
-   * @deprecated
+   * @deprecated Use the `track(() => store.value)` instead
    */
   <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
 }

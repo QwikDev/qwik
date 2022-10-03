@@ -47,7 +47,7 @@ export interface QRLDev {
  * @param chunkOrFn - Chunk name (or function which is stringified to extract chunk name)
  * @param symbol - Symbol to lazy load
  * @param lexicalScopeCapture - a set of lexically scoped variables to capture.
- * @internal
+ * @alpha
  */
 // </docs>
 export const qrl = <T = any>(

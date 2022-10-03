@@ -138,8 +138,7 @@ export const ToggleB = component$((props: { root: { logs: string } }) => {
   });
 
   useWatch$(({ track }) => {
-    track(rootState, 'count');
-    state.copyCount = rootState.count;
+    state.copyCount = track(() => rootState.count);
   });
 
   useMount$(() => {

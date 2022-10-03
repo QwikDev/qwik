@@ -9,61 +9,58 @@ export const $: <T>(expression: T) => QRL<T>;
 
 // @public (undocumented)
 export interface AriaAttributes {
-    // Warning: (ae-forgotten-export) The symbol "VString" needs to be exported by the entry point index.d.ts
-    'aria-activedescendant'?: VString;
-    // Warning: (ae-forgotten-export) The symbol "ValueOrSignal" needs to be exported by the entry point index.d.ts
+    'aria-activedescendant'?: string | undefined;
     // Warning: (ae-forgotten-export) The symbol "Booleanish" needs to be exported by the entry point index.d.ts
-    'aria-atomic'?: ValueOrSignal<Booleanish | undefined>;
+    'aria-atomic'?: Booleanish | undefined;
     'aria-autocomplete'?: 'none' | 'inline' | 'list' | 'both' | undefined;
-    'aria-busy'?: ValueOrSignal<Booleanish | undefined>;
+    'aria-busy'?: Booleanish | undefined;
     'aria-checked'?: boolean | 'false' | 'mixed' | 'true' | undefined;
-    // Warning: (ae-forgotten-export) The symbol "VNumber" needs to be exported by the entry point index.d.ts
-    'aria-colcount'?: VNumber;
-    'aria-colindex'?: VNumber;
-    'aria-colspan'?: VNumber;
-    'aria-controls'?: VString;
+    'aria-colcount'?: number | undefined;
+    'aria-colindex'?: number | undefined;
+    'aria-colspan'?: number | undefined;
+    'aria-controls'?: string | undefined;
     'aria-current'?: boolean | 'false' | 'true' | 'page' | 'step' | 'location' | 'date' | 'time' | undefined;
-    'aria-describedby'?: VString;
-    'aria-details'?: VString;
-    'aria-disabled'?: ValueOrSignal<Booleanish | undefined>;
+    'aria-describedby'?: string | undefined;
+    'aria-details'?: string | undefined;
+    'aria-disabled'?: Booleanish | undefined;
     // @deprecated
-    'aria-dropeffect'?: ValueOrSignal<'none' | 'copy' | 'execute' | 'link' | 'move' | 'popup' | undefined>;
-    'aria-errormessage'?: VString;
-    'aria-expanded'?: ValueOrSignal<Booleanish | undefined>;
-    'aria-flowto'?: VString;
+    'aria-dropeffect'?: 'none' | 'copy' | 'execute' | 'link' | 'move' | 'popup' | undefined;
+    'aria-errormessage'?: string | undefined;
+    'aria-expanded'?: Booleanish | undefined;
+    'aria-flowto'?: string | undefined;
     // @deprecated
-    'aria-grabbed'?: ValueOrSignal<Booleanish | undefined>;
-    'aria-haspopup'?: ValueOrSignal<boolean | 'false' | 'true' | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog' | undefined>;
-    'aria-hidden'?: ValueOrSignal<Booleanish | undefined>;
-    'aria-invalid'?: ValueOrSignal<boolean | 'false' | 'true' | 'grammar' | 'spelling' | undefined>;
-    'aria-keyshortcuts'?: VString;
-    'aria-label'?: VString;
-    'aria-labelledby'?: VString;
-    'aria-level'?: VNumber;
-    'aria-live'?: ValueOrSignal<'off' | 'assertive' | 'polite' | undefined>;
-    'aria-modal'?: ValueOrSignal<Booleanish | undefined>;
-    'aria-multiline'?: ValueOrSignal<Booleanish | undefined>;
-    'aria-multiselectable'?: ValueOrSignal<Booleanish | undefined>;
+    'aria-grabbed'?: Booleanish | undefined;
+    'aria-haspopup'?: boolean | 'false' | 'true' | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog' | undefined;
+    'aria-hidden'?: Booleanish | undefined;
+    'aria-invalid'?: boolean | 'false' | 'true' | 'grammar' | 'spelling' | undefined;
+    'aria-keyshortcuts'?: string | undefined;
+    'aria-label'?: string | undefined;
+    'aria-labelledby'?: string | undefined;
+    'aria-level'?: number | undefined;
+    'aria-live'?: 'off' | 'assertive' | 'polite' | undefined;
+    'aria-modal'?: Booleanish | undefined;
+    'aria-multiline'?: Booleanish | undefined;
+    'aria-multiselectable'?: Booleanish | undefined;
     'aria-orientation'?: 'horizontal' | 'vertical' | undefined;
-    'aria-owns'?: VString;
-    'aria-placeholder'?: VString;
-    'aria-posinset'?: VNumber;
-    'aria-pressed'?: ValueOrSignal<boolean | 'false' | 'mixed' | 'true' | undefined>;
-    'aria-readonly'?: ValueOrSignal<Booleanish | undefined>;
+    'aria-owns'?: string | undefined;
+    'aria-placeholder'?: string | undefined;
+    'aria-posinset'?: number | undefined;
+    'aria-pressed'?: boolean | 'false' | 'mixed' | 'true' | undefined;
+    'aria-readonly'?: Booleanish | undefined;
     'aria-relevant'?: 'additions' | 'additions removals' | 'additions text' | 'all' | 'removals' | 'removals additions' | 'removals text' | 'text' | 'text additions' | 'text removals' | undefined;
-    'aria-required'?: ValueOrSignal<Booleanish | undefined>;
-    'aria-roledescription'?: VString;
-    'aria-rowcount'?: VNumber;
-    'aria-rowindex'?: VNumber;
-    'aria-rowspan'?: VNumber;
-    'aria-selected'?: ValueOrSignal<Booleanish | undefined>;
-    'aria-setsize'?: VNumber;
+    'aria-required'?: Booleanish | undefined;
+    'aria-roledescription'?: string | undefined;
+    'aria-rowcount'?: number | undefined;
+    'aria-rowindex'?: number | undefined;
+    'aria-rowspan'?: number | undefined;
+    'aria-selected'?: Booleanish | undefined;
+    'aria-setsize'?: number | undefined;
     'aria-sort'?: 'none' | 'ascending' | 'descending' | 'other' | undefined;
-    'aria-valuemax'?: VNumber;
-    'aria-valuemin'?: VNumber;
-    'aria-valuenow'?: VNumber;
-    'aria-valuetext'?: VString;
-    ariaHidden?: ValueOrSignal<Booleanish | undefined>;
+    'aria-valuemax'?: number | undefined;
+    'aria-valuemin'?: number | undefined;
+    'aria-valuenow'?: number | undefined;
+    'aria-valuetext'?: string | undefined;
+    ariaHidden?: Booleanish | undefined;
 }
 
 // @public (undocumented)
@@ -116,7 +113,7 @@ export interface DOMAttributes<T> extends QwikProps, QwikEvents {
 }
 
 // @public (undocumented)
-export type EagernessOptions = 'visible' | 'load';
+export type EagernessOptions = 'visible' | 'load' | 'idle';
 
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
@@ -173,83 +170,83 @@ export namespace h {
 // @public (undocumented)
 export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
-    about?: VString;
+    about?: string | undefined;
     // (undocumented)
-    accessKey?: VString;
+    accessKey?: string | undefined;
     // (undocumented)
-    autoCapitalize?: VString;
+    autoCapitalize?: string | undefined;
     // (undocumented)
-    autoCorrect?: VString;
+    autoCorrect?: string | undefined;
     // (undocumented)
-    autoSave?: VString;
+    autoSave?: string | undefined;
     // (undocumented)
-    className?: VString;
+    className?: string | undefined;
     // (undocumented)
-    color?: VString;
+    color?: string | undefined;
     // (undocumented)
     contentEditable?: Booleanish | 'inherit' | undefined;
     // (undocumented)
-    contextMenu?: VString;
+    contextMenu?: string | undefined;
     // (undocumented)
-    datatype?: VString;
+    datatype?: string | undefined;
     // (undocumented)
     dir?: 'ltr' | 'rtl' | 'auto' | undefined;
     // (undocumented)
-    draggable?: ValueOrSignal<Booleanish | undefined>;
+    draggable?: Booleanish | undefined;
     // (undocumented)
-    hidden?: ValueOrSignal<boolean | undefined>;
+    hidden?: boolean | undefined;
     // (undocumented)
-    id?: VString;
+    id?: string | undefined;
     // (undocumented)
     inlist?: any;
     inputMode?: 'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search' | undefined;
-    is?: VString;
+    is?: string | undefined;
     // (undocumented)
-    itemID?: VString;
+    itemID?: string | undefined;
     // (undocumented)
-    itemProp?: VString;
+    itemProp?: string | undefined;
     // (undocumented)
-    itemRef?: VString;
+    itemRef?: string | undefined;
     // (undocumented)
-    itemScope?: ValueOrSignal<boolean | undefined>;
+    itemScope?: boolean | undefined;
     // (undocumented)
-    itemType?: VString;
+    itemType?: string | undefined;
     // (undocumented)
-    lang?: VString;
+    lang?: string | undefined;
     // (undocumented)
-    placeholder?: VString;
+    placeholder?: string | undefined;
     // (undocumented)
-    prefix?: VString;
+    prefix?: string | undefined;
     // (undocumented)
-    property?: VString;
+    property?: string | undefined;
     // (undocumented)
-    radioGroup?: VString;
+    radioGroup?: string | undefined;
     // (undocumented)
-    resource?: VString;
+    resource?: string | undefined;
     // (undocumented)
-    results?: VNumber;
+    results?: number | undefined;
     // (undocumented)
-    role?: ValueOrSignal<AriaRole | undefined>;
+    role?: AriaRole | undefined;
     // (undocumented)
-    security?: VString;
+    security?: string | undefined;
     // (undocumented)
-    slot?: VString;
+    slot?: string | undefined;
     // (undocumented)
-    spellCheck?: ValueOrSignal<Booleanish | undefined>;
+    spellCheck?: Booleanish | undefined;
     // (undocumented)
-    style?: Record<string, ValueOrSignal<number | string | undefined>> | string | undefined;
+    style?: Record<string, string | number | undefined> | string | undefined;
     // (undocumented)
-    tabIndex?: VNumber;
+    tabIndex?: number | undefined;
     // (undocumented)
-    title?: VString;
+    title?: string | undefined;
     // (undocumented)
     translate?: 'yes' | 'no' | undefined;
     // (undocumented)
-    typeof?: VString;
+    typeof?: string | undefined;
     // (undocumented)
     unselectable?: 'on' | 'off' | undefined;
     // (undocumented)
-    vocab?: VString;
+    vocab?: string | undefined;
 }
 
 // @internal
@@ -277,10 +274,8 @@ const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends
 export { jsx }
 export { jsx as jsxs }
 
-// Warning: (ae-incompatible-release-tags) The symbol "JSXChildren" is marked as @public, but its signature references "Signal" which is marked as @alpha
-//
 // @public (undocumented)
-export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | Signal<string | number> | JSXChildren[] | Promise<JSXChildren> | JSXNode;
+export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | JSXNode;
 
 // Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
 //
@@ -622,13 +617,9 @@ export type StreamWriter = {
 
 // @public
 export interface Tracker {
-    // Warning: (ae-incompatible-release-tags) The symbol "__call" is marked as @public, but its signature references "Signal" which is marked as @alpha
-    //
-    // (undocumented)
-    <T>(obj: Signal<T>): T;
-    // (undocumented)
+    <T>(ctx: () => T): T;
     <T extends {}>(obj: T): T;
-    // (undocumented)
+    // @deprecated (undocumented)
     <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
 }
 
@@ -768,9 +759,9 @@ export interface WatchCtx {
 // @public (undocumented)
 export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
 
-// Warning: (ae-incompatible-release-tags) The symbol "wrapSignal" is marked as @public, but its signature references "Signal" which is marked as @alpha
+// Warning: (ae-internal-missing-underscore) The name "wrapSignal" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public (undocumented)
+// @internal (undocumented)
 export const wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => Signal<T[P]>;
 
 // (No @packageDocumentation comment for this package)

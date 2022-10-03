@@ -1051,7 +1051,7 @@ impl<'a> QwikTransform<'a> {
         if let ast::Expr::Member(member) = expr {
             let prop_sym = prop_to_string(&member.prop);
             if let Some(prop_sym) = prop_sym {
-                let id = self.ensure_import(JsWord::from("wrapSignal"), BUILDER_IO_QWIK.clone());
+                let id = self.ensure_import(JsWord::from("_wrapSignal"), BUILDER_IO_QWIK.clone());
                 return Some(make_wrap(&id, member.obj.clone(), prop_sym));
             }
         }

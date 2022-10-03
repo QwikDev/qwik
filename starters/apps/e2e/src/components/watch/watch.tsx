@@ -23,7 +23,7 @@ export const Watch = component$(() => {
 
   // Double count watch
   useWatch$(({ track }) => {
-    const count = track(store, 'count');
+    const count = track(() => store.count);
     store.doubleCount = 2 * count;
   });
 

@@ -81,7 +81,7 @@ export function useRef<T = Element>(current?: T): Ref<T> {
 
 <docs code="./examples.tsx#use-ref"/>
 
-@public
+@deprecated Use `useSignal` instead.
 
 # `useWatch`
 

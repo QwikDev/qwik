@@ -29,6 +29,9 @@ export interface Signal<T = any> {
   value: T;
 }
 
+/**
+ * @alpha
+ */
 export type ValueOrSignal<T> = T | Signal<T>;
 
 /**
@@ -398,7 +401,10 @@ export class SignalWrapper<T extends Record<string, any>, P extends keyof T> {
   }
 }
 
-export const wrapSignal = <T extends Record<any, any>, P extends keyof T>(
+/**
+ * @internal
+ */
+export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
   obj: T,
   prop: P
 ): Signal<T[P]> => {

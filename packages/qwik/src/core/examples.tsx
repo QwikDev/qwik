@@ -162,13 +162,13 @@ export const CmpInline = component$(() => {
 
     // Double count watch
     useWatch$(({ track }) => {
-      const count = track(store, 'count');
+      const count = track(() => store.count);
       store.doubleCount = 2 * count;
     });
 
     // Debouncer watch
     useWatch$(({ track }) => {
-      const doubleCount = track(store, 'doubleCount');
+      const doubleCount = track(() => store.doubleCount);
       const timer = setTimeout(() => {
         store.debounced = doubleCount;
       }, 2000);
@@ -197,7 +197,7 @@ export const CmpInline = component$(() => {
     });
 
     const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
-      const cityName = track(store, 'city');
+      const cityName = track(() => store.city);
       const abortController = new AbortController();
       cleanup(() => abortController.abort('cleanup'));
       const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
@@ -228,7 +228,7 @@ export const CmpInline = component$(() => {
   const Cmp = component$(() => {
     const store = useStore({ count: 0, doubleCount: 0 });
     useWatch$(({ track }) => {
-      const count = track(store, 'count');
+      const count = track(() => store.count);
       store.doubleCount = 2 * count;
     });
     return (
@@ -388,7 +388,7 @@ export const CmpInline = component$(() => {
     const input = useRef<HTMLInputElement>();
 
     useClientEffect$(({ track }) => {
-      const el = track(input, 'current')!;
+      const el = track(() => input.current)!;
       el.focus();
     });
 

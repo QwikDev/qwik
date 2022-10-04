@@ -841,12 +841,7 @@ impl<'a> QwikTransform<'a> {
                                         name_token = true;
                                     }
 
-                                    if convert_signal_word(&ident.sym).is_some()
-                                        && matches!(
-                                            *node.value,
-                                            ast::Expr::Arrow(_) | ast::Expr::Fn(_)
-                                        )
-                                    {
+                                    if convert_signal_word(&ident.sym).is_some() {
                                         if is_fn {
                                             immutable_props.push(ast::PropOrSpread::Prop(
                                                 Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
@@ -857,19 +852,26 @@ impl<'a> QwikTransform<'a> {
                                                 })),
                                             ));
                                         }
-                                        ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
-                                            ast::KeyValueProp {
-                                                value: Box::new(ast::Expr::Call(
-                                                    self.create_synthetic_qhook(
-                                                        *node.value.clone(),
-                                                        HookKind::Event,
-                                                        ident.sym.clone(),
-                                                        None,
-                                                    ),
-                                                )),
-                                                key: node.key.clone(),
-                                            },
-                                        )))
+                                        if matches!(
+                                            *node.value,
+                                            ast::Expr::Arrow(_) | ast::Expr::Fn(_)
+                                        ) {
+                                            ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
+                                                ast::KeyValueProp {
+                                                    value: Box::new(ast::Expr::Call(
+                                                        self.create_synthetic_qhook(
+                                                            *node.value.clone(),
+                                                            HookKind::Event,
+                                                            ident.sym.clone(),
+                                                            None,
+                                                        ),
+                                                    )),
+                                                    key: node.key.clone(),
+                                                },
+                                            )))
+                                        } else {
+                                            prop
+                                        }
                                     } else if let Some(new_children) =
                                         self.convert_children(&ident.sym, &node.value)
                                     {
@@ -930,35 +932,41 @@ impl<'a> QwikTransform<'a> {
                                         name_token = true;
                                     }
 
-                                    if convert_signal_word(&s.value).is_some()
-                                        && matches!(
+                                    if convert_signal_word(&s.value).is_some() {
+                                        if matches!(
                                             *node.value,
                                             ast::Expr::Arrow(_) | ast::Expr::Fn(_)
-                                        )
-                                    {
-                                        if is_fn {
-                                            immutable_props.push(ast::PropOrSpread::Prop(
-                                                Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
-                                                    key: node.key.clone(),
-                                                    value: Box::new(ast::Expr::Lit(
-                                                        ast::Lit::Bool(ast::Bool::from(true)),
+                                        ) {
+                                            if is_fn {
+                                                immutable_props.push(ast::PropOrSpread::Prop(
+                                                    Box::new(ast::Prop::KeyValue(
+                                                        ast::KeyValueProp {
+                                                            key: node.key.clone(),
+                                                            value: Box::new(ast::Expr::Lit(
+                                                                ast::Lit::Bool(ast::Bool::from(
+                                                                    true,
+                                                                )),
+                                                            )),
+                                                        },
                                                     )),
-                                                })),
-                                            ));
+                                                ));
+                                            }
+                                            ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
+                                                ast::KeyValueProp {
+                                                    value: Box::new(ast::Expr::Call(
+                                                        self.create_synthetic_qhook(
+                                                            *node.value.clone(),
+                                                            HookKind::Event,
+                                                            s.value.clone(),
+                                                            None,
+                                                        ),
+                                                    )),
+                                                    key: node.key.clone(),
+                                                },
+                                            )))
+                                        } else {
+                                            prop
                                         }
-                                        ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
-                                            ast::KeyValueProp {
-                                                value: Box::new(ast::Expr::Call(
-                                                    self.create_synthetic_qhook(
-                                                        *node.value.clone(),
-                                                        HookKind::Event,
-                                                        s.value.clone(),
-                                                        None,
-                                                    ),
-                                                )),
-                                                key: node.key.clone(),
-                                            },
-                                        )))
                                     } else if let Some(new_children) =
                                         self.convert_children(&s.value, &node.value)
                                     {

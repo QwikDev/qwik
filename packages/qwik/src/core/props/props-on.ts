@@ -83,8 +83,8 @@ const ensureQrl = (value: any, containerEl: Element | undefined) => {
   return qrl;
 };
 
-export const getDomListeners = (ctx: QContext, containerEl: Element): Listener[] => {
-  const attributes = (ctx.$element$ as Element).attributes;
+export const getDomListeners = (elCtx: QContext, containerEl: Element): Listener[] => {
+  const attributes = (elCtx.$element$ as Element).attributes;
   const listeners: Listener[] = [];
   for (let i = 0; i < attributes.length; i++) {
     const { name, value } = attributes.item(i)!;
@@ -97,7 +97,7 @@ export const getDomListeners = (ctx: QContext, containerEl: Element): Listener[]
       for (const url of urls) {
         const qrl = parseQRL(url, containerEl);
         if (qrl.$capture$) {
-          inflateQrl(qrl, ctx);
+          inflateQrl(qrl, elCtx);
         }
         listeners.push([name, qrl]);
       }

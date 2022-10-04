@@ -384,7 +384,6 @@ export const mutable = <T>(v: T): T => {
  */
 export const _useMutableProps = () => {};
 
-
 export const isConnected = (sub: SubscriberEffect | SubscriberHost): boolean => {
   if (isQwikElement(sub)) {
     return !!tryGetContext(sub) || sub.isConnected;

@@ -59,16 +59,16 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
     resumeIfNeeded(containerState.$containerEl$);
   }
 
-  const ctx = getContext(hostElement);
+  const elCtx = getContext(hostElement);
   assertDefined(
-    ctx.$componentQrl$,
+    elCtx.$componentQrl$,
     `render: notified host element must have a defined $renderQrl$`,
-    ctx
+    elCtx
   );
-  if (ctx.$dirty$) {
+  if (elCtx.$dirty$) {
     return;
   }
-  ctx.$dirty$ = true;
+  elCtx.$dirty$ = true;
   const activeRendering = containerState.$hostsRendering$ !== undefined;
   if (activeRendering) {
     assertDefined(

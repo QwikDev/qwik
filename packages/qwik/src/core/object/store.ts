@@ -144,8 +144,8 @@ export const resumeContainer = (containerEl: Element) => {
           const virtual = new VirtualElementImpl(node, close);
           const id = directGetAttribute(virtual, ELEMENT_ID);
           if (id) {
-            const ctx = getContext(virtual);
-            ctx.$id$ = id;
+            const elCtx = getContext(virtual);
+            elCtx.$id$ = id;
             elements.set(ELEMENT_ID_PREFIX + id, virtual);
             maxId = Math.max(maxId, strToInt(id));
           }
@@ -168,9 +168,9 @@ export const resumeContainer = (containerEl: Element) => {
     assertElement(el);
     const id = directGetAttribute(el, ELEMENT_ID);
     assertDefined(id, `resume: element missed q:id`, el);
-    const ctx = getContext(el);
-    ctx.$id$ = id;
-    ctx.$vdom$ = domToVnode(el);
+    const elCtx = getContext(el);
+    elCtx.$id$ = id;
+    elCtx.$vdom$ = domToVnode(el);
     elements.set(ELEMENT_ID_PREFIX + id, el);
     maxId = Math.max(maxId, strToInt(id));
   }
@@ -194,7 +194,7 @@ export const resumeContainer = (containerEl: Element) => {
     const el = elements.get(elementID);
     assertDefined(el, `resume: cant find dom node for id`, elementID);
     assertQwikElement(el);
-    const ctx = getContext(el);
+    const elCtx = getContext(el);
     const refMap = ctxMeta.r;
     const seq = ctxMeta.s;
     const host = ctxMeta.h;
@@ -203,20 +203,20 @@ export const resumeContainer = (containerEl: Element) => {
 
     if (refMap) {
       assertTrue(isElement(el), 'el must be an actual DOM element');
-      ctx.$refMap$ = refMap.split(' ').map(getObject);
-      ctx.li = getDomListeners(ctx, containerEl);
+      elCtx.$refMap$ = refMap.split(' ').map(getObject);
+      elCtx.li = getDomListeners(elCtx, containerEl);
     }
     if (seq) {
-      ctx.$seq$ = seq.split(' ').map(getObject);
+      elCtx.$seq$ = seq.split(' ').map(getObject);
     }
     if (watches) {
-      ctx.$watches$ = watches.split(' ').map(getObject);
+      elCtx.$watches$ = watches.split(' ').map(getObject);
     }
     if (contexts) {
-      ctx.$contexts$ = new Map();
+      elCtx.$contexts$ = new Map();
       for (const part of contexts.split(' ')) {
         const [key, value] = part.split('=');
-        ctx.$contexts$.set(key, getObject(value));
+        elCtx.$contexts$.set(key, getObject(value));
       }
     }
 
@@ -226,10 +226,10 @@ export const resumeContainer = (containerEl: Element) => {
       const styleIds = el.getAttribute(QScopedStyle);
       assertDefined(props, `resume: props missing in host metadata`, host);
       assertDefined(renderQrl, `resume: renderQRL missing in host metadata`, host);
-      ctx.$scopeIds$ = styleIds ? styleIds.split(' ') : null;
-      ctx.$mounted$ = true;
-      ctx.$props$ = getObject(props);
-      ctx.$componentQrl$ = getObject(renderQrl);
+      elCtx.$scopeIds$ = styleIds ? styleIds.split(' ') : null;
+      elCtx.$mounted$ = true;
+      elCtx.$props$ = getObject(props);
+      elCtx.$componentQrl$ = getObject(renderQrl);
     }
   }
 
@@ -828,25 +828,25 @@ const collectElement = (el: VirtualElement, collector: Collector) => {
   }
 };
 
-export const collectElementData = (ctx: QContext, collector: Collector) => {
-  if (ctx.$props$) {
-    collectValue(ctx.$props$, collector, false);
+export const collectElementData = (elCtx: QContext, collector: Collector) => {
+  if (elCtx.$props$) {
+    collectValue(elCtx.$props$, collector, false);
   }
-  if (ctx.$componentQrl$) {
-    collectValue(ctx.$componentQrl$, collector, false);
+  if (elCtx.$componentQrl$) {
+    collectValue(elCtx.$componentQrl$, collector, false);
   }
-  if (ctx.$seq$) {
-    for (const obj of ctx.$seq$) {
+  if (elCtx.$seq$) {
+    for (const obj of elCtx.$seq$) {
       collectValue(obj, collector, false);
     }
   }
-  if (ctx.$watches$) {
-    for (const obj of ctx.$watches$) {
+  if (elCtx.$watches$) {
+    for (const obj of elCtx.$watches$) {
       collectValue(obj, collector, false);
     }
   }
-  if (ctx.$contexts$) {
-    for (const obj of ctx.$contexts$.values()) {
+  if (elCtx.$contexts$) {
+    for (const obj of elCtx.$contexts$.values()) {
       collectValue(obj, collector, false);
     }
   }

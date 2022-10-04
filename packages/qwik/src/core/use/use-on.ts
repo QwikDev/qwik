@@ -132,8 +132,8 @@ export const useOnWindow = (event: string, eventQrl: QRL<(ev: Event) => void>) =
 
 const _useOn = (eventName: string, eventQrl: QRL<(ev: Event) => void>) => {
   const invokeCtx = useInvokeContext();
-  const ctx = getContext(invokeCtx.$hostElement$);
+  const elCtx = getContext(invokeCtx.$hostElement$);
   assertQrl(eventQrl);
-  addQRLListener(ctx.li, [[normalizeOnProp(eventName), eventQrl]]);
-  ctx.$needAttachListeners$ = true;
+  addQRLListener(elCtx.li, [[normalizeOnProp(eventName), eventQrl]]);
+  elCtx.$needAttachListeners$ = true;
 };

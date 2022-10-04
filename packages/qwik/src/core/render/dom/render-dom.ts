@@ -20,34 +20,34 @@ import { isSignal, Signal } from '../../object/q-object';
 import { assertTrue } from '../../assert/assert';
 
 export const renderComponent = (
-  rctx: RenderContext,
-  ctx: QContext,
+  rCtx: RenderContext,
+  elCtx: QContext,
   flags: number
 ): ValueOrPromise<void> => {
-  const justMounted = !ctx.$mounted$;
-  const hostElement = ctx.$element$;
-  const containerState = rctx.$static$.$containerState$;
+  const justMounted = !elCtx.$mounted$;
+  const hostElement = elCtx.$element$;
+  const containerState = rCtx.$static$.$containerState$;
   // Component is not dirty any more
   containerState.$hostsStaging$.delete(hostElement);
   // Clean current subscription before render
   containerState.$subsManager$.$clearSub$(hostElement);
 
   // TODO, serialize scopeIds
-  return then(executeComponent(rctx, ctx), (res) => {
-    const staticCtx = rctx.$static$;
-    const newCtx = res.rctx;
+  return then(executeComponent(rCtx, elCtx), (res) => {
+    const staticCtx = rCtx.$static$;
+    const newCtx = res.rCtx;
     const invocatinContext = newInvokeContext(hostElement);
     staticCtx.$hostElements$.add(hostElement);
     invocatinContext.$subscriber$ = hostElement;
     invocatinContext.$renderCtx$ = newCtx;
     if (justMounted) {
-      if (ctx.$appendStyles$) {
-        for (const style of ctx.$appendStyles$) {
+      if (elCtx.$appendStyles$) {
+        for (const style of elCtx.$appendStyles$) {
           appendHeadStyle(staticCtx, style);
         }
       }
-      if (qSerialize && ctx.$scopeIds$) {
-        const value = serializeSStyle(ctx.$scopeIds$);
+      if (qSerialize && elCtx.$scopeIds$) {
+        const value = serializeSStyle(elCtx.$scopeIds$);
         if (value) {
           hostElement.setAttribute(QScopedStyle, value);
         }
@@ -56,19 +56,19 @@ export const renderComponent = (
     const processedJSXNode = processData(res.node, invocatinContext);
     return then(processedJSXNode, (processedJSXNode) => {
       const newVdom = wrapJSX(hostElement, processedJSXNode);
-      const oldVdom = getVdom(ctx);
+      const oldVdom = getVdom(elCtx);
       return then(visitJsxNode(newCtx, oldVdom, newVdom, flags), () => {
-        ctx.$vdom$ = newVdom;
+        elCtx.$vdom$ = newVdom;
       });
     });
   });
 };
 
-export const getVdom = (ctx: QContext) => {
-  if (!ctx.$vdom$) {
-    ctx.$vdom$ = domToVnode(ctx.$element$);
+export const getVdom = (elCtx: QContext) => {
+  if (!elCtx.$vdom$) {
+    elCtx.$vdom$ = domToVnode(elCtx.$element$);
   }
-  return ctx.$vdom$;
+  return elCtx.$vdom$;
 };
 
 export class ProcessedJSXNodeImpl implements ProcessedJSXNode {

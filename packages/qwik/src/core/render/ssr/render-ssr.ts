@@ -60,7 +60,7 @@ export interface RenderSSROptions {
 }
 
 export interface SSRContext {
-  rctx: RenderContext;
+  rCtx: RenderContext;
   projectedChildren: Record<string, any[] | undefined> | undefined;
   projectedContext: SSRContext | undefined;
   hostCtx: QContext | null;
@@ -87,10 +87,10 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const containerEl = createContext(1).$element$;
   const containerState = createContainerState(containerEl as Element);
   const doc = createDocument();
-  const rctx = createRenderContext(doc as any, containerState);
+  const rCtx = createRenderContext(doc as any, containerState);
   const headNodes = opts.beforeContent ?? [];
   const ssrCtx: SSRContext = {
-    rctx,
+    rCtx,
     $contexts$: [],
     projectedChildren: undefined,
     projectedContext: undefined,
@@ -150,7 +150,7 @@ export const renderRoot = async (
       );
     }
   }
-  return ssrCtx.rctx.$static$;
+  return ssrCtx.rCtx.$static$;
 };
 
 export const renderGenerator = async (
@@ -301,22 +301,22 @@ export const renderSSRComponent = (
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ): ValueOrPromise<void> => {
   const props = node.props;
-  setComponentProps(ssrCtx.rctx, elCtx, props.props);
-  return then(executeComponent(ssrCtx.rctx, elCtx), (res) => {
+  setComponentProps(ssrCtx.rCtx, elCtx, props.props);
+  return then(executeComponent(ssrCtx.rCtx, elCtx), (res) => {
     const hostElement = elCtx.$element$;
-    const newCtx = res.rctx;
+    const newCtx = res.rCtx;
     const invocationContext = newInvokeContext(hostElement, undefined);
     invocationContext.$subscriber$ = hostElement;
     invocationContext.$renderCtx$ = newCtx;
     const projectedContext: SSRContext = {
       ...ssrCtx,
-      rctx: newCtx,
+      rCtx: newCtx,
     };
     const newSSrContext: SSRContext = {
       ...ssrCtx,
       projectedChildren: splitProjectedChildren(props.children, ssrCtx),
       projectedContext,
-      rctx: newCtx,
+      rCtx: newCtx,
       invocationContext,
     };
 
@@ -333,7 +333,7 @@ export const renderSSRComponent = (
         );
       }
     }
-    const newID = getNextIndex(ssrCtx.rctx);
+    const newID = getNextIndex(ssrCtx.rCtx);
     const scopeId = elCtx.$scopeIds$ ? serializeSStyle(elCtx.$scopeIds$) : undefined;
     const processedNode = jsx(
       node.type,
@@ -511,7 +511,7 @@ export const renderNode = (
       openingElement += ' q:key="' + key + '"';
     }
     if ('ref' in props || listeners.length > 0 || useSignal) {
-      const newID = getNextIndex(ssrCtx.rctx);
+      const newID = getNextIndex(ssrCtx.rCtx);
       openingElement += ' q:id="' + newID + '"';
       elCtx.$id$ = newID;
       ssrCtx.$contexts$.push(elCtx);
@@ -607,7 +607,7 @@ export const processData = (
   } else if (isSignal(node)) {
     const hostEl = ssrCtx.hostCtx?.$element$ as QwikElement;
     const value = node.value;
-    const id = getNextIndex(ssrCtx.rctx);
+    const id = getNextIndex(ssrCtx.rCtx);
     if (hostEl) {
       addSignalSub(2, hostEl, node, '#' + id, 'data');
     }
@@ -730,15 +730,15 @@ export const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => 
 };
 
 const setComponentProps = (
-  rctx: RenderContext,
-  ctx: QContext,
+  rCtx: RenderContext,
+  elCtx: QContext,
   expectProps: Record<string, any>
 ) => {
   const keys = Object.keys(expectProps);
   const target = {
     [QObjectFlagsSymbol]: QObjectImmutable,
   } as Record<string, any>;
-  ctx.$props$ = createProxy(target, rctx.$static$.$containerState$);
+  elCtx.$props$ = createProxy(target, rCtx.$static$.$containerState$);
 
   if (keys.length === 0) {
     return;

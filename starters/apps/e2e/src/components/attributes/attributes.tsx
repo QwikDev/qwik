@@ -5,7 +5,9 @@ export const Attributes = component$(() => {
   return (
     <>
       <h1>Most of the changes happen in the input attributes</h1>
-      <button onClick$={() => render.value++}>Rerender</button>
+      <button id="force-rerender" onClick$={() => render.value++}>
+        Rerender
+      </button>
       <AttributesChild key={render.value} />
     </>
   );
@@ -35,7 +37,7 @@ export const AttributesChild = component$(() => {
     <>
       <div>
         <button
-          id="aria-hide"
+          id="hide"
           onClick$={() => {
             hide.value = !hide.value;
           }}
@@ -85,19 +87,25 @@ export const AttributesChild = component$(() => {
       </div>
       <div>
         {hide.value ? (
-          <input id="input" />
+          <>
+            <label id="label" />
+            <input id="input" />
+          </>
         ) : (
-          <input
-            id="input"
-            required={required.value}
-            aria-hidden={state.dataAria as any}
-            aria-label={state.label}
-            data-stuff={'stuff: ' + state.stuff}
-            tabIndex={-1}
-            onInput$={(ev) => {
-              input.value = (ev.target as any).value;
-            }}
-          />
+          <>
+            <label id="label" for={state.label} form="my-form"></label>
+            <input
+              id="input"
+              required={required.value}
+              aria-hidden={state.dataAria as any}
+              aria-label={state.label}
+              data-stuff={'stuff: ' + state.stuff}
+              tabIndex={-1}
+              onInput$={(ev) => {
+                input.value = (ev.target as any).value;
+              }}
+            />
+          </>
         )}
       </div>
       <div id="input-value">{input.value}</div>

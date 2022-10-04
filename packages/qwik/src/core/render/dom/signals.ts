@@ -17,7 +17,9 @@ export const executeSignalOperation = (
       const ctx = tryGetContext(elm);
       let oldValue = undefined;
       if (ctx && ctx.$vdom$) {
-        oldValue = ctx.$vdom$.$props$[prop];
+        const normalizedProp = prop.toLowerCase();
+        oldValue = ctx.$vdom$.$props$[normalizedProp];
+        ctx.$vdom$.$props$[normalizedProp] = value;
       }
       return smartSetProperty(staticCtx, elm, prop, value, oldValue);
     }

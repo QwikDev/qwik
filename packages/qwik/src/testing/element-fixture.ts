@@ -78,8 +78,8 @@ export async function trigger(
           element.ownerDocument as any);
         document.__q_context__ = [element, event, url];
         try {
-          const ctx = getContext(element);
-          const handler = getEvent(ctx, 'on-' + eventNameCamel);
+          const elCtx = getContext(element);
+          const handler = getEvent(elCtx, 'on-' + eventNameCamel);
           if (handler) {
             elements.push(handler());
           } else {
@@ -96,13 +96,13 @@ export async function trigger(
   return Promise.all(elements);
 }
 
-export function getEvent(ctx: QContext, prop: string): any {
-  return qPropReadQRL(ctx, normalizeOnProp(prop));
+export function getEvent(elCtx: QContext, prop: string): any {
+  return qPropReadQRL(elCtx, normalizeOnProp(prop));
 }
 
-export function qPropReadQRL(ctx: QContext, prop: string): ((event: Event) => void) | null {
-  const allListeners = ctx.li;
-  const containerEl = getWrappingContainer(ctx.$element$);
+export function qPropReadQRL(elCtx: QContext, prop: string): ((event: Event) => void) | null {
+  const allListeners = elCtx.li;
+  const containerEl = getWrappingContainer(elCtx.$element$);
   assertDefined(containerEl, 'container element must be defined');
 
   return (event) => {

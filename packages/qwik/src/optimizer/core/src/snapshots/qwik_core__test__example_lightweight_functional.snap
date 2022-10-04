@@ -20,13 +20,13 @@ export const Foo = component$(({color}) => {
 
 export function Button({text, color}) {
     return (
-        <button color={color} onClick$={()=>console.log(text, color)}>{text}</button>
+        <button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
     );
 }
 
 export const ButtonArrow = ({text, color}) => {
     return (
-        <button color={color} onClick$={()=>console.log(text, color)}>{text}</button>
+        <button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
     );
 }
 
@@ -74,7 +74,7 @@ export const ButtonArrow_button_onClick_9npo43fIGik = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAsBwC;;WAAI,OAAO,CAAC,GAAG,CAAC,IAAI,EAAE,KAAK,CAAC;CAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAsB2C;;WAAI,OAAO,CAAC,GAAG,CAAC,IAAI,EAAE,KAAK,CAAC;CAAA\"}")
 /*
 {
   "origin": "test.tsx",
@@ -89,8 +89,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    503,
-    531
+    509,
+    537
   ]
 }
 */
@@ -103,7 +103,7 @@ export const Button_button_onClick_NsM0JYV00Jw = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iDAgBwC;;WAAI,OAAO,CAAC,GAAG,CAAC,IAAI,EAAE,KAAK,CAAC;CAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iDAgB2C;;WAAI,OAAO,CAAC,GAAG,CAAC,IAAI,EAAE,KAAK,CAAC;CAAA\"}")
 /*
 {
   "origin": "test.tsx",
@@ -118,8 +118,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    346,
-    374
+    349,
+    377
   ]
 }
 */
@@ -131,20 +131,20 @@ export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_ht
     tagName: "my-foo"
 });
 export function Button({ text , color  }) {
-    return <button color={color} onClick$={qrl(()=>import("./button_button_onclick_nsm0jyv00jw"), "Button_button_onClick_NsM0JYV00Jw", [
+    return <button onColor$={color} onClick$={qrl(()=>import("./button_button_onclick_nsm0jyv00jw"), "Button_button_onClick_NsM0JYV00Jw", [
         color,
         text
     ])}>{text}</button>;
 }
 export const ButtonArrow = ({ text , color  })=>{
-    return <button color={color} onClick$={qrl(()=>import("./buttonarrow_button_onclick_9npo43figik"), "ButtonArrow_button_onClick_9npo43fIGik", [
+    return <button onColor$={color} onClick$={qrl(()=>import("./buttonarrow_button_onclick_9npo43figik"), "ButtonArrow_button_onClick_9npo43fIGik", [
         color,
         text
     ])}>{text}</button>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,0FAOhB;IACC,OAAO,EAAE,QAAQ;CACpB,CAAC,CAAC;AAEH,OAAO,SAAS,MAAM,CAAC,EAAC,IAAI,CAAA,EAAE,KAAK,CAAA,EAAC,EAAE;IAClC,QACK,MAAM,CAAC,KAAK,EAAE,KAAK,EAAE,QAAQ;;;SAAiC,IAAI,GAAG,MAAM,EAC9E;AACN,CAAC;AAED,OAAO,MAAM,WAAW,GAAG,CAAC,EAAC,IAAI,CAAA,EAAE,KAAK,CAAA,EAAC,GAAK;IAC1C,QACK,MAAM,CAAC,KAAK,EAAE,KAAK,EAAE,QAAQ;;;SAAiC,IAAI,GAAG,MAAM,EAC9E;AACN,CAAC,CAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,0FAOhB;IACC,OAAO,EAAE,QAAQ;CACpB,CAAC,CAAC;AAEH,OAAO,SAAS,MAAM,CAAC,EAAC,IAAI,CAAA,EAAE,KAAK,CAAA,EAAC,EAAE;IAClC,QACK,MAAM,CAAC,QAAQ,EAAE,KAAK,EAAE,QAAQ;;;SAAiC,IAAI,GAAG,MAAM,EACjF;AACN,CAAC;AAED,OAAO,MAAM,WAAW,GAAG,CAAC,EAAC,IAAI,CAAA,EAAE,KAAK,CAAA,EAAC,GAAK;IAC1C,QACK,MAAM,CAAC,QAAQ,EAAE,KAAK,EAAE,QAAQ;;;SAAiC,IAAI,GAAG,MAAM,EACjF;AACN,CAAC,CAAA\"}")
 == DIAGNOSTICS ==
 
 []

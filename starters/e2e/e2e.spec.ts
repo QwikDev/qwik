@@ -797,13 +797,13 @@ Click`);
     test('should render correctly', async ({ page }) => {
       const staticEl = await page.locator('#static');
       const dynamicEl = await page.locator('#dynamic');
-      const static2El = await page.locator('#static2');
-      const dynamic2El = await page.locator('#dynamic2');
+      const static2El = await page.locator('#static-2');
+      const dynamic2El = await page.locator('#dynamic-2');
 
-      await expect(staticEl).toHaveText('Rendered');
-      await expect(dynamicEl).toHaveText('Rendered');
-      await expect(static2El).toHaveText('Rendered');
-      await expect(dynamic2El).toHaveText('Rendered');
+      await expect(staticEl).toHaveText('Rendered static');
+      await expect(dynamicEl).toHaveText('Rendered dynamic');
+      await expect(static2El).toHaveText('Rendered static-2');
+      await expect(dynamic2El).toHaveText('Rendered dynamic-2');
     });
   });
 
@@ -924,7 +924,7 @@ Click`);
     });
   });
 
-  test.describe.only('attributes', () => {
+  test.describe('attributes', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/e2e/attributes');
       page.on('pageerror', (err) => expect(err).toEqual(undefined));
@@ -933,12 +933,16 @@ Click`);
     function tests() {
       test('initial render is correctly', async ({ page }) => {
         const input = await page.locator('#input');
+        const label = await page.locator('#label');
         const renders = await page.locator('#renders');
 
         await expect(input).toHaveAttribute('aria-hidden', 'true');
         await expect(input).toHaveAttribute('aria-label', 'even');
         await expect(input).toHaveAttribute('tabindex', '-1');
         await expect(input).not.hasAttribute('required');
+        await expect(label).toHaveAttribute('for', 'even');
+        await expect(label).toHaveAttribute('form', 'my-form');
+
         await expect(renders).toHaveText('1');
       });
 
@@ -950,18 +954,18 @@ Click`);
         const renders = await page.locator('#renders');
 
         await input.type('Hello');
-        await expect(inputCopy).toHaveAttribute('value', 'Hello');
+        await expect(inputCopy).toHaveJSProperty('value', 'Hello');
         await expect(inputValue).toHaveText('Hello');
         await expect(renders).toHaveText('1');
 
         await stuffBtn.click();
-        await expect(inputCopy).toHaveAttribute('value', 'Hello');
+        await expect(inputCopy).toHaveJSProperty('value', 'Hello');
         await expect(inputValue).toHaveText('Hello');
         await expect(renders).toHaveText('2');
 
         await input.type('Bye');
-        await expect(inputCopy).toHaveAttribute('value', 'Bye');
-        await expect(inputValue).toHaveText('Bye');
+        await expect(inputCopy).toHaveJSProperty('value', 'ByeHello');
+        await expect(inputValue).toHaveText('ByeHello');
         await expect(renders).toHaveText('2');
       });
 
@@ -997,7 +1001,7 @@ Click`);
         const countBtn = await page.locator('#required');
         await countBtn.click();
 
-        await expect(input).toHaveAttribute('aria-hidden', 'false');
+        await expect(input).toHaveAttribute('aria-hidden', 'true');
         await expect(input).toHaveAttribute('aria-label', 'even');
         await expect(input).toHaveAttribute('tabindex', '-1');
         await expect(input).hasAttribute('required');
@@ -1014,6 +1018,8 @@ Click`);
         const countBtn = await page.locator('#hide');
         await countBtn.click();
 
+        await page.waitForTimeout(100);
+
         await expect(input).not.hasAttribute('aria-hidden');
         await expect(input).not.hasAttribute('aria-label');
         await expect(input).not.hasAttribute('tabindex');
@@ -1024,48 +1030,65 @@ Click`);
 
       test('should toggle attributes several times', async ({ page }) => {
         const input = await page.locator('#input');
+        const label = await page.locator('#label');
+
         const renders = await page.locator('#renders');
         const countBtn = await page.locator('#hide');
 
         await countBtn.click();
+        await page.waitForTimeout(100);
+
         await expect(input).not.hasAttribute('aria-hidden');
         await expect(input).not.hasAttribute('aria-label');
         await expect(input).not.hasAttribute('tabindex');
         await expect(input).not.hasAttribute('required');
+        await expect(label).not.hasAttribute('for');
+        await expect(label).not.hasAttribute('form');
         await expect(renders).toHaveText('2');
 
         await countBtn.click();
+        await page.waitForTimeout(100);
         await expect(input).toHaveAttribute('aria-hidden', 'true');
         await expect(input).toHaveAttribute('aria-label', 'even');
         await expect(input).toHaveAttribute('tabindex', '-1');
         await expect(input).not.hasAttribute('required');
+        await expect(label).toHaveAttribute('for', 'even');
+        await expect(label).toHaveAttribute('form', 'my-form');
+
         await expect(renders).toHaveText('3');
 
         await countBtn.click();
+        await page.waitForTimeout(100);
         await expect(input).not.hasAttribute('aria-hidden');
         await expect(input).not.hasAttribute('aria-label');
         await expect(input).not.hasAttribute('tabindex');
         await expect(input).not.hasAttribute('required');
+        await expect(label).not.hasAttribute('for');
+        await expect(label).not.hasAttribute('form');
         await expect(renders).toHaveText('4');
 
         await countBtn.click();
+        await page.waitForTimeout(100);
         await expect(input).toHaveAttribute('aria-hidden', 'true');
         await expect(input).toHaveAttribute('aria-label', 'even');
         await expect(input).toHaveAttribute('tabindex', '-1');
         await expect(input).not.hasAttribute('required');
+        await expect(label).toHaveAttribute('for', 'even');
+        await expect(label).toHaveAttribute('form', 'my-form');
+
         await expect(renders).toHaveText('5');
       });
     }
 
     tests();
 
-    // test.describe('client rerender', () => {
-    //   test.beforeEach(async ({ page }) => {
-    //     const toggleRender = await page.locator('#btn-toggle-render');
-    //     await toggleRender.click();
-    //     await page.waitForTimeout(100);
-    //   });
-    //   tests();
-    // });
+    test.describe('client rerender', () => {
+      test.beforeEach(async ({ page }) => {
+        const toggleRender = await page.locator('#force-rerender');
+        await toggleRender.click();
+        await page.waitForTimeout(100);
+      });
+      tests();
+    });
   });
 });

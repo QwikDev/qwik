@@ -11,11 +11,11 @@ export const RefRoot = component$(() => {
   return (
     <>
       <div>
-        <Ref id="static"></Ref>
-        {state.visible && <Ref id="dynamic"></Ref>}
+        <Ref id="static" key={'1'}></Ref>
+        {state.visible && <Ref id="dynamic" key={'2'}></Ref>}
 
-        <Ref2 id="static-2"></Ref2>
-        {state.visible && <Ref2 id="dynamic"></Ref2>}
+        <Ref2 id="static-2" key={1}></Ref2>
+        {state.visible && <Ref2 id="dynamic-2" key={'2'}></Ref2>}
       </div>
     </>
   );
@@ -24,7 +24,7 @@ export const RefRoot = component$(() => {
 export const Ref = component$((props: { id: string }) => {
   const ref = useRef();
   useClientEffect$(() => {
-    ref.current!.textContent = 'Rendered';
+    ref.current!.textContent = `Rendered ${props.id}`;
   });
   return (
     <>
@@ -36,7 +36,7 @@ export const Ref = component$((props: { id: string }) => {
 export const Ref2 = component$((props: { id: string }) => {
   const ref = useSignal<Element>();
   useClientEffect$(() => {
-    ref.value!.textContent = 'Rendered';
+    ref.value!.textContent = `Rendered ${props.id}`;
   });
   return (
     <>

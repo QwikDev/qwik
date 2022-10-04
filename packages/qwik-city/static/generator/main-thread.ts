@@ -12,7 +12,6 @@ export async function mainThread(sys: System) {
   const log = await sys.createLogger();
   const queue: StaticRoute[] = [];
   const active = new Set<string>();
-  const task = Promise.resolve();
 
   return new Promise<StaticGeneratorResults>((resolve, reject) => {
     try {
@@ -39,25 +38,25 @@ export async function mainThread(sys: System) {
 
           generatorResults.duration = timer();
 
-          log.info(
-            `Generated: ${generatorResults.rendered} page${
-              generatorResults.rendered === 1 ? '' : 's'
-            }`
-          );
-
-          log.info(`Duration: ${msToString(generatorResults.duration)}`);
-
           if (generatorResults.rendered > 0) {
             log.info(
-              `Average: ${msToString(
-                generatorResults.duration / generatorResults.rendered
-              )} per page`
+              `Generated: ${generatorResults.rendered} page${
+                generatorResults.rendered === 1 ? '' : 's'
+              }`
             );
           }
 
           if (generatorResults.errors > 0) {
-            log.info(`errors: ${generatorResults.errors}`);
+            log.info(`Errors: ${generatorResults.errors}`);
           }
+
+          log.info(`Duration: ${msToString(generatorResults.duration)}`);
+
+          const total = generatorResults.rendered + generatorResults.errors;
+          if (total > 0) {
+            log.info(`Average: ${msToString(generatorResults.duration / total)} per page`);
+          }
+
           log.info(``);
 
           main
@@ -73,7 +72,7 @@ export async function mainThread(sys: System) {
       const flushQueue = () => {
         if (!isPendingDrain) {
           isPendingDrain = true;
-          task.then(() => {
+          setTimeout(() => {
             isPendingDrain = false;
             next();
           });
@@ -93,7 +92,6 @@ export async function mainThread(sys: System) {
             generatorResults.errors++;
           } else if (result.ok) {
             generatorResults.rendered++;
-            log.debug(`  ${staticRoute.pathname}`);
           }
 
           flushQueue();

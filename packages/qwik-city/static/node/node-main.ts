@@ -26,7 +26,7 @@ export async function createNodeMainProcess(opts: StaticGeneratorOptions) {
   }
   outDir = normalizePath(outDir);
 
-  let maxWorkers = nodeCpus().length - 1;
+  let maxWorkers = nodeCpus().length;
   if (typeof opts.maxWorkers === 'number') {
     maxWorkers = Math.max(1, Math.min(opts.maxWorkers, maxWorkers));
   }

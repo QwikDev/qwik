@@ -13,7 +13,11 @@ export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) 
       const url = new URL(request.url);
 
       // https://developers.cloudflare.com/workers/runtime-apis/cache/
-      const useCache = url.hostname !== 'localhost' && request.method === 'GET';
+      const useCache =
+        url.hostname !== '127.0.0.1' &&
+        url.hostname !== 'localhost' &&
+        url.port === '' &&
+        request.method === 'GET';
       const cacheKey = new Request(url.href, request);
       const cache = useCache ? await caches.open('custom:qwikcity') : null;
       if (cache) {

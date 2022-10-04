@@ -66,4 +66,5 @@ export const createDocumentHead = (): ResolvedDocumentHead => ({
   meta: [],
   links: [],
   styles: [],
+  frontmatter: {},
 });

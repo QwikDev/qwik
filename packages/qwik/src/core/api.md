@@ -60,7 +60,6 @@ export interface AriaAttributes {
     'aria-valuemin'?: number | undefined;
     'aria-valuenow'?: number | undefined;
     'aria-valuetext'?: string | undefined;
-    ariaHidden?: Booleanish | undefined;
 }
 
 // @public (undocumented)

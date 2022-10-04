@@ -49,6 +49,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= cmp_component_4rykjtokjwe.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { _IMMUTABLE } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
 import { _wrapSignal } from "@builder.io/qwik";
@@ -56,8 +57,13 @@ export const Cmp_component_4ryKJTOKjWE = (props)=>{
     return /*#__PURE__*/ _jsxs(_Fragment, {
         children: [
             /*#__PURE__*/ _jsx("p", {
-                "data-value": props.count,
-                children: _wrapSignal(props.nested, "count")
+                get "data-value" () {
+                    return props.count;
+                },
+                children: _wrapSignal(props.nested, "count"),
+                [_IMMUTABLE]: {
+                    "data-value": _wrapSignal(props, "count")
+                }
             }),
             /*#__PURE__*/ _jsxs("p", {
                 children: [
@@ -71,7 +77,7 @@ export const Cmp_component_4ryKJTOKjWE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAwB8B,CAAC,KAAK,GAAK;IACrC,qBACI;;0BACI,KAAC,GAAC;gBAAC,YAAU,EAAE,KAAK,CAAC,KAAK;sCAAG,KAAK,CAAC,MAAM;cAAW;0BACpD,MAAC,GAAC;;oBAAC,QAAM;gCAAC,KAAK;kCAAO,KAAC,MAAI,KAAQ;;cAAI;;MACxC,CACL;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAwB8B,CAAC,KAAK,GAAK;IACrC,qBACI;;0BACI,KAAC,GAAC;oBAAC,YAAU;2BAAE,KAAK,CAAC,KAAK;;sCAAG,KAAK,CAAC,MAAM;;oBAAtC,YAAU,cAAE,KAAK;;cAAgC;0BACpD,MAAC,GAAC;;oBAAC,QAAM;gCAAC,KAAK;kCAAO,KAAC,MAAI,KAAQ;;cAAI;;MACxC,CACL;AACN,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

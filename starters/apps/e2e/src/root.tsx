@@ -68,6 +68,9 @@ export const Root = component$(() => {
       <p>
         <a href="/e2e/signals">Signals</a>
       </p>
+      <p>
+        <a href="/e2e/attributes">Attributes</a>
+      </p>
     </section>
   );
 });

@@ -12,6 +12,7 @@ import { isPromise } from '../util/promises';
 import { canSerialize } from './serializers';
 import type { ContainerState, LocalSubscriptionManager, Subscriptions } from '../render/container';
 import type { SubscriberEffect, SubscriberHost } from '../use/use-watch';
+import type { QwikElement } from '../render/dom/virtual-element';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
@@ -105,6 +106,25 @@ export class SignalImpl<T> implements Signal<T> {
 
 export const isSignal = (obj: any): obj is Signal<any> => {
   return obj instanceof SignalImpl || obj instanceof SignalWrapper;
+};
+
+interface AddSignal {
+  (type: 1, hostEl: QwikElement, signal: Signal, elm: QwikElement, property: string): void;
+  (type: 2, hostEl: QwikElement, signal: Signal, elm: Node | string, property: string): void;
+}
+export const addSignalSub: AddSignal = (type, hostEl, signal, elm, property) => {
+  const subscription =
+    signal instanceof SignalWrapper
+      ? [
+          type,
+          hostEl,
+          getProxyTarget(signal.ref),
+          elm as any,
+          property,
+          signal.prop === 'value' ? undefined : signal.prop,
+        ]
+      : [type, hostEl, signal, elm, property, undefined];
+  getProxyManager(signal)!.$addSub$(subscription as any);
 };
 
 export const createProxy = <T extends object>(

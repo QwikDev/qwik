@@ -1,6 +1,8 @@
+import { tryGetContext } from '../../props/props';
 import type { SubscriberSignal } from '../container';
 import type { RenderStaticContext } from '../types';
-import { setAttribute, setProperty } from './operations';
+import { setProperty } from './operations';
+import { smartSetProperty } from './visitor';
 
 export const executeSignalOperation = (
   staticCtx: RenderStaticContext,
@@ -9,9 +11,17 @@ export const executeSignalOperation = (
   const prop = operation[5] ?? 'value';
   const value = operation[2][prop];
   switch (operation[0]) {
-    case 1:
-      return setProperty(staticCtx, operation[3], operation[4], value);
+    case 1: {
+      const prop = operation[4];
+      const elm = operation[3];
+      const ctx = tryGetContext(elm);
+      let oldValue = undefined;
+      if (ctx && ctx.$vdom$) {
+        oldValue = ctx.$vdom$.$props$[prop];
+      }
+      return smartSetProperty(staticCtx, elm, prop, value, oldValue);
+    }
     case 2:
-      return setAttribute(staticCtx, operation[3], operation[4], value);
+      return setProperty(staticCtx, operation[3], 'data', value);
   }
 };

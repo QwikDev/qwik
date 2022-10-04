@@ -22,13 +22,12 @@ import { serializeSStyle } from '../../component/qrl-styles';
 import { qDev, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
 import {
+  addSignalSub,
   createProxy,
-  getProxyManager,
-  getProxyTarget,
   isSignal,
   QObjectFlagsSymbol,
   QObjectImmutable,
-  SignalWrapper,
+  Signal,
   _IMMUTABLE,
 } from '../../object/q-object';
 import { serializeQRLs } from '../../import/qrl';
@@ -424,6 +423,7 @@ export const renderNode = (
   if (typeof tagName === 'string') {
     const key = node.key;
     const props = node.props;
+    const immutableMeta: Record<string, boolean | Signal> = (props as any)[_IMMUTABLE] ?? EMPTY_OBJ;
     const elCtx = createContext(1);
     const elm = elCtx.$element$;
     const isHead = tagName === 'head';
@@ -441,7 +441,8 @@ export const renderNode = (
       ) {
         continue;
       }
-      let value = props[prop];
+      let value = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : props[prop];
+
       if (prop === 'ref') {
         setRef(value, elm);
         continue;
@@ -453,7 +454,8 @@ export const renderNode = (
       const attrName = processPropKey(prop);
       if (isSignal(value)) {
         if (hostCtx) {
-          getProxyManager(value)!.$addSub$([2, hostCtx.$element$, value, elm, attrName, undefined]);
+          const hostEl = hostCtx.$element$ as QwikElement;
+          addSignalSub(1, hostEl, value, elm, attrName);
           useSignal = true;
         }
         value = value.value;
@@ -465,22 +467,8 @@ export const renderNode = (
       }
     }
 
-    let classValue = props.class ?? props.className;
-    if (isSignal(classValue)) {
-      if (hostCtx) {
-        getProxyManager(classValue)?.$addSub$([
-          2,
-          hostCtx.$element$,
-          classValue,
-          elm,
-          'class',
-          undefined,
-        ]);
-        useSignal = true;
-      }
-      classValue = classValue.value;
-    }
-    let classStr = stringifyClass(props.class ?? props.className);
+    const classValue = props.class ?? props.className;
+    let classStr = stringifyClass(classValue);
 
     if (hostCtx) {
       if (qDev) {
@@ -610,29 +598,11 @@ export const processData = (
   } else if (isArray(node)) {
     return walkChildren(node, ssrCtx, stream, flags);
   } else if (isSignal(node)) {
-    const sub = ssrCtx.invocationContext?.$subscriber$ as QwikElement;
+    const hostEl = ssrCtx.hostCtx?.$element$ as QwikElement;
     const value = node.value;
     const id = getNextIndex(ssrCtx.rctx);
-    if (sub) {
-      if (node instanceof SignalWrapper) {
-        getProxyManager(node)?.$addSub$([
-          1,
-          sub,
-          getProxyTarget(node.ref),
-          ('#' + id) as any as Node,
-          'data',
-          node.prop === 'value' ? undefined : node.prop,
-        ]);
-      } else {
-        getProxyManager(node)?.$addSub$([
-          1,
-          sub,
-          node,
-          ('#' + id) as any as Node,
-          'data',
-          undefined,
-        ]);
-      }
+    if (hostEl) {
+      addSignalSub(2, hostEl, node, '#' + id, 'data');
     }
     stream.write(`<!--t=${id}-->${escapeHtml(String(value))}<!---->`);
   } else if (isPromise(node)) {

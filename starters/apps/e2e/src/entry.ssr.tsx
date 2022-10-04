@@ -23,6 +23,7 @@ import { ResourceSerialization } from './components/resource/resource-serializat
 import { MountRoot } from './components/mount/mount';
 import { RefRoot } from './components/ref/ref';
 import { Signals } from './components/signals/signals';
+import { Attributes } from './components/attributes/attributes';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -54,6 +55,7 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/mount': () => <MountRoot />,
     '/e2e/ref': () => <RefRoot />,
     '/e2e/signals': () => <Signals />,
+    '/e2e/attributes': () => <Attributes />,
   };
 
   const url = new URL(opts.envData!.url);

@@ -72,12 +72,12 @@ import { QOnce } from '../jsx/utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { getEventName } from '../../object/store';
 import {
+  addSignalSub,
   createProxy,
-  getProxyManager,
-  getProxyTarget,
+  isSignal,
   QObjectFlagsSymbol,
   QObjectImmutable,
-  SignalWrapper,
+  _IMMUTABLE,
 } from '../../object/q-object';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -406,8 +406,7 @@ export const patchVnode = (
     if (oldVnode.$text$ !== newVnode.$text$) {
       const signal = newVnode.$signal$;
       if (signal) {
-        const manager = getProxyManager(signal)!;
-        manager.$addSub$([1, currentComponent.$element$, signal, elm, 'data', undefined]);
+        addSignalSub(2, currentComponent.$element$, signal, elm as Text, 'data');
       }
       setProperty(staticCtx, elm, 'data', newVnode.$text$);
     }
@@ -425,8 +424,9 @@ export const patchVnode = (
   const props = newVnode.$props$;
   const isComponent = isVirtual && OnRenderProp in props;
   const elCtx = getContext(elm);
+  elCtx.$vdom$ = newVnode;
   if (!isComponent) {
-    const listenerMap = updateProperties(elCtx, staticCtx, oldVnode.$props$, props, isSvg);
+    const listenerMap = updateProperties(elCtx, staticCtx, oldVnode.$props$, props);
     if (!currentComponent.$attachedListeners$) {
       currentComponent.$attachedListeners$ = true;
       for (const key of Object.keys(currentComponent.li)) {
@@ -631,20 +631,7 @@ const createElm = (
     const signal = vnode.$signal$;
     const elm = createTextNode(doc, vnode.$text$!);
     if (signal && currentComponent) {
-      const manager = getProxyManager(signal)!;
-      const sub = currentComponent.$element$;
-      if (signal instanceof SignalWrapper) {
-        manager.$addSub$([
-          1,
-          sub,
-          getProxyTarget(signal.ref),
-          elm,
-          'data',
-          signal.prop === 'value' ? undefined : signal.prop,
-        ]);
-      } else {
-        manager.$addSub$([1, sub, signal, elm, 'data', undefined]);
-      }
+      addSignalSub(2, currentComponent.$element$, signal, elm, 'data');
     }
     return (vnode.$elm$ = elm);
   }
@@ -715,7 +702,7 @@ const createElm = (
 
   const isSlot = isVirtual && QSlotS in props;
   const hasRef = !isVirtual && 'ref' in props;
-  const listenerMap = setProperties(staticCtx, elCtx, props, isSvg);
+  const listenerMap = setProperties(staticCtx, elCtx, props);
 
   if (currentComponent && !isVirtual) {
     const scopedIds = currentComponent.$scopeIds$;
@@ -885,60 +872,73 @@ export const updateProperties = (
   staticCtx: RenderStaticContext,
   oldProps: Record<string, any>,
   newProps: Record<string, any>,
-  isSvg: boolean
 ): Record<string, QRLInternal<any>[]> => {
   const keys = getKeys(oldProps, newProps);
   const listenersMap = (elCtx.li = {});
   if (keys.length === 0) {
     return listenersMap;
   }
+  const immutableMeta = (newProps as any)[_IMMUTABLE] ?? EMPTY_OBJ;
   const elm = elCtx.$element$;
   assertElement(elm);
-  for (let key of keys) {
-    if (key === 'children') {
+  for (let prop of keys) {
+    if (prop === 'children') {
       continue;
     }
-    let newValue = newProps[key];
-    if (key === 'className') {
-      newProps['class'] = newValue;
-      key = 'class';
-    }
-    if (key === 'class') {
-      newProps['class'] = newValue = serializeClass(newValue);
-    }
-    const oldValue = oldProps[key];
-    if (oldValue === newValue) {
-      continue;
-    }
-
-    if (key === 'ref') {
+    let newValue = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : newProps[prop];
+    if (prop === 'ref') {
       setRef(newValue, elm);
       continue;
     }
 
-    if (isOnProp(key)) {
-      setEvent(listenersMap, key, newValue, staticCtx.$containerState$.$containerEl$);
+    if (isOnProp(prop)) {
+      setEvent(listenersMap, prop, newValue, staticCtx.$containerState$.$containerEl$);
       continue;
     }
 
-    // Check if its an exception
-    const exception = PROP_HANDLER_MAP[key];
-    if (exception) {
-      if (exception(staticCtx, elm as HTMLElement, key, newValue, oldValue)) {
-        continue;
-      }
+    if (prop === 'className') {
+      newProps['class'] = newValue;
+      prop = 'class';
     }
-
-    // Check if property in prototype
-    if (!isSvg && key in elm) {
-      setProperty(staticCtx, elm, key, newValue);
+    if (isSignal(newValue)) {
+      addSignalSub(1, elm, newValue, elm, prop);
+      newProps[prop] = newValue = newValue.value;
+    }
+    if (prop === 'class') {
+      newProps['class'] = newValue = serializeClass(newValue);
+    }
+    const oldValue = oldProps[prop];
+    if (oldValue === newValue) {
       continue;
     }
-
-    // Fallback to render attribute
-    setAttribute(staticCtx, elm, key, newValue);
+    smartSetProperty(staticCtx, elm as HTMLElement, prop, newValue, oldValue);
   }
   return listenersMap;
+};
+
+export const smartSetProperty = (
+  staticCtx: RenderStaticContext,
+  elm: QwikElement,
+  prop: string,
+  newValue: any,
+  oldValue: any
+) => {
+  // Check if its an exception
+  const exception = PROP_HANDLER_MAP[prop];
+  if (exception) {
+    if (exception(staticCtx, elm as HTMLElement, prop, newValue, oldValue)) {
+      return;
+    }
+  }
+
+  // Check if property in prototype
+  if (prop in elm) {
+    setProperty(staticCtx, elm, prop, newValue);
+    return;
+  }
+
+  // Fallback to render attribute
+  setAttribute(staticCtx, elm, prop, newValue);
 };
 
 const getKeys = (oldProps: Record<string, any>, newProps: Record<string, any>) => {
@@ -991,8 +991,7 @@ export const sameArrays = (a1: any[], a2: any[]) => {
 export const setProperties = (
   rctx: RenderStaticContext,
   elCtx: QContext,
-  newProps: Record<string, any>,
-  isSvg: boolean
+  newProps: Record<string, any>
 ) => {
   const elm = elCtx.$element$;
   const keys = Object.keys(newProps);
@@ -1000,49 +999,39 @@ export const setProperties = (
   if (keys.length === 0) {
     return listenerMap;
   }
-  for (let key of keys) {
-    if (key === 'children') {
+  const immutableMeta = (newProps as any)[_IMMUTABLE] ?? EMPTY_OBJ;
+  for (let prop of keys) {
+    if (prop === 'children') {
       continue;
     }
-    let newValue = newProps[key];
-    if (key === 'className') {
-      newProps['class'] = newValue;
-      key = 'class';
-    }
-    if (key === 'class') {
-      newProps['class'] = newValue = serializeClass(newValue);
-    }
-    if (key === 'ref') {
+
+    let newValue = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : newProps[prop];
+    if (prop === 'ref') {
       assertElement(elm);
       setRef(newValue, elm);
       continue;
     }
-
-    if (isOnProp(key)) {
+    if (isOnProp(prop)) {
       addGlobalListener(
         rctx,
         elm,
-        setEvent(listenerMap, key, newValue, rctx.$containerState$.$containerEl$)
+        setEvent(listenerMap, prop, newValue, rctx.$containerState$.$containerEl$)
       );
       continue;
     }
 
-    // Check if its an exception
-    const exception = PROP_HANDLER_MAP[key];
-    if (exception) {
-      if (exception(rctx, elm as HTMLElement, key, newValue, undefined)) {
-        continue;
-      }
+    if (prop === 'className') {
+      newProps['class'] = newValue;
+      prop = 'class';
     }
-
-    // Check if property in prototype
-    if (!isSvg && key in elm) {
-      setProperty(rctx, elm, key, newValue);
-      continue;
+    if (isSignal(newValue)) {
+      addSignalSub(1, elm, newValue, elm, prop);
+      newProps[prop] = newValue = newValue.value;
     }
-
-    // Fallback to render attribute
-    setAttribute(rctx, elm, key, newValue);
+    if (prop === 'class') {
+      newProps['class'] = newValue = serializeClass(newValue);
+    }
+    smartSetProperty(rctx, elm, prop, newValue, undefined);
   }
   return listenerMap;
 };

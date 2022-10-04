@@ -84,7 +84,7 @@ type B = [
   type: 1,
   subscriber: SubscriberHost,
   signal: Record<string, any>,
-  elm: QwikElement | Node,
+  elm: QwikElement,
   prop: string,
   key: string | undefined
 ];
@@ -93,7 +93,7 @@ type C = [
   type: 2,
   subscriber: SubscriberHost,
   signal: Record<string, any>,
-  elm: QwikElement,
+  elm: Node,
   attribute: string,
   key: string | undefined
 ];

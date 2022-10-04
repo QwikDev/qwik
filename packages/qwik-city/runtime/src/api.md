@@ -47,6 +47,7 @@ export interface DocumentHeadProps<T = unknown> extends RouteLocation {
 
 // @alpha (undocumented)
 export interface DocumentHeadValue {
+    frontmatter?: Record<string, any>;
     links?: DocumentLink[];
     meta?: DocumentMeta[];
     styles?: DocumentStyle[];

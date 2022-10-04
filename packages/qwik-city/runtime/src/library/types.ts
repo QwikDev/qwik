@@ -69,6 +69,12 @@ export interface DocumentHeadValue {
    * Used to manually append `<style>` elements to the `<head>`.
    */
   styles?: DocumentStyle[];
+  /**
+   * Arbitrary object containing custom data. When the document head is created from
+   * markdown files, the frontmatter attributes that are not recognized as a well-known
+   * meta names (such as title, description, author, etc...), are stored in this property.
+   */
+  frontmatter?: Record<string, any>;
 }
 
 /**

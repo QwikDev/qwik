@@ -13,7 +13,7 @@ import {
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
 import { SSRComment, InternalSSRStream, Virtual } from '../jsx/utils.public';
 import { logError, logWarn } from '../../util/log';
-import { addQRLListener, isOnProp, setEvent } from '../../props/props-on';
+import { addQRLListener, groupListeners, isOnProp, setEvent } from '../../props/props-on';
 import { version } from '../../version';
 import { ContainerState, createContainerState, setRef } from '../container';
 import type { RenderContext } from '../types';
@@ -34,6 +34,7 @@ import { serializeQRLs } from '../../import/qrl';
 import type { QwikElement } from '../dom/virtual-element';
 import { assertElement } from '../../util/element';
 import { EMPTY_OBJ } from '../../util/flyweight';
+import type { QRLInternal } from '../../import/qrl-class';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
@@ -65,6 +66,7 @@ export interface SSRContext {
   hostCtx: QContext | null;
   invocationContext?: InvokeContext | undefined;
   $contexts$: QContext[];
+  $pendingListeners$: [string, QRLInternal][];
   headNodes: JSXNode<string>[];
 }
 
@@ -95,6 +97,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
     hostCtx: null,
     invocationContext: undefined,
     headNodes: root === 'html' ? headNodes : [],
+    $pendingListeners$: [],
   };
 
   const containerAttributes: Record<string, any> = {
@@ -354,6 +357,9 @@ export const renderSSRComponent = (
       stream,
       flags,
       (stream) => {
+        if (elCtx.$needAttachListeners$) {
+          logWarn('Component registered some events, some component use useStyleStyle$()');
+        }
         if (beforeClose) {
           return then(renderQTemplates(newSSrContext, stream), () => beforeClose(stream));
         } else {
@@ -466,7 +472,7 @@ export const renderNode = (
           ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
       }
     }
-
+    const listeners = elCtx.li;
     const classValue = props.class ?? props.className;
     let classStr = stringifyClass(classValue);
 
@@ -479,11 +485,9 @@ export const renderNode = (
       if (hostCtx.$scopeIds$) {
         classStr = hostCtx.$scopeIds$.join(' ') + ' ' + classStr;
       }
-      if (!hostCtx.$attachedListeners$) {
-        hostCtx.$attachedListeners$ = true;
-        for (const eventName of Object.keys(hostCtx.li)) {
-          addQRLListener(elCtx.li, eventName, hostCtx.li[eventName]);
-        }
+      if (hostCtx.$needAttachListeners$) {
+        addQRLListener(listeners, hostCtx.li);
+        hostCtx.$needAttachListeners$ = false;
       }
     }
 
@@ -496,9 +500,12 @@ export const renderNode = (
     if (classStr) {
       openingElement += ' class="' + classStr + '"';
     }
-    const listeners = Object.keys(elCtx.li);
-    for (const key of listeners) {
-      openingElement += ' ' + key + '="' + serializeQRLs(elCtx.li[key], elCtx) + '"';
+
+    if (listeners.length > 0) {
+      const groups = groupListeners(listeners);
+      for (const listener of groups) {
+        openingElement += ' ' + listener[0] + '="' + serializeQRLs(listener[1], elCtx) + '"';
+      }
     }
     if (key != null) {
       openingElement += ' q:key="' + key + '"';

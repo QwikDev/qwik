@@ -5,6 +5,7 @@ import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
 import { getWrappingContainer } from '../core/use/use-core';
+import { assertDefined } from '../core/assert/assert';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -100,17 +101,18 @@ export function getEvent(ctx: QContext, prop: string): any {
 }
 
 export function qPropReadQRL(ctx: QContext, prop: string): ((event: Event) => void) | null {
-  const listeners = !ctx.li ? (ctx.li = {}) : ctx.li;
+  const allListeners = ctx.li;
+  const containerEl = getWrappingContainer(ctx.$element$);
+  assertDefined(containerEl, 'container element must be defined');
 
-  const containerEl = getWrappingContainer(ctx.$element$)!;
-  return async (event) => {
-    const qrls = listeners[prop] ?? [];
-
-    await Promise.all(
-      qrls.map((qrl) => {
-        qrl.$setContainer$(containerEl);
-        return qrl(event);
-      })
+  return (event) => {
+    return Promise.all(
+      allListeners
+        .filter((li) => li[0] === prop)
+        .map(([_, qrl]) => {
+          qrl.$setContainer$(containerEl);
+          return qrl(event);
+        })
     );
   };
 }

@@ -12,7 +12,7 @@ import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Ref, useRef } from '../../use/use-ref';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
-import { useClientEffect$ } from '../../use/use-watch';
+import { useClientEffect$, useWatch$ } from '../../use/use-watch';
 import { delay } from '../../util/promises';
 import { SSRComment } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
@@ -711,6 +711,7 @@ renderSSRSuite('containerTagName', async () => {
     <>
       <Styles />
       <UseClientEffect></UseClientEffect>
+      <section></section>
     </>,
     `<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="/manu/folder">
       <link rel="stylesheet" href="/global.css">
@@ -722,6 +723,7 @@ renderSSRSuite('containerTagName', async () => {
         <div on:qvisible="/runtimeQRL#_[0]
 /runtimeQRL#_[1]" q:id="2"></div>
       <!--/qv-->
+      <section></section>
     </container>`,
     {
       containerTagName: 'container',
@@ -994,6 +996,10 @@ export const UseClientEffect = component$(() => {
   useClientEffect$(() => {
     console.warn('second client effect');
   });
+  useWatch$(async () => {
+    await delay(10);
+  });
+
   return <div />;
 });
 
@@ -1061,4 +1067,22 @@ export const DelayResource = component$((props: { text: string; delay: number })
 
 export const NullCmp = component$(() => {
   return null;
+});
+
+export const EffectTransparent = component$(() => {
+  useClientEffect$(() => {
+    console.warn('log');
+  });
+  return <Slot />;
+});
+
+export const EffectTransparentRoot = component$(() => {
+  useClientEffect$(() => {
+    console.warn('log');
+  });
+  return (
+    <EffectTransparent>
+      <section>Hello</section>
+    </EffectTransparent>
+  );
 });

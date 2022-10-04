@@ -52,7 +52,6 @@ export const executeComponent = (
   return safeCall(
     () => componentFn(props),
     (jsxNode) => {
-      elCtx.$attachedListeners$ = false;
       if (waitOn.length > 0) {
         return Promise.all(waitOn).then(() => {
           if (elCtx.$dirty$) {

@@ -17,6 +17,7 @@ import { getContainerState, SubscriptionManager } from '../render/container';
 import type { ProcessedJSXNode } from '../render/dom/render-dom';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import { fromCamelToKebabCase } from '../util/case';
+import type { Listener } from './props-on';
 
 export const Q_CTX = '_qc_';
 
@@ -45,12 +46,12 @@ export interface QContext {
   $element$: QwikElement;
   $refMap$: any[];
   $dirty$: boolean;
-  $attachedListeners$: boolean;
+  $needAttachListeners$: boolean;
   $id$: string;
   $mounted$: boolean;
   $props$: Record<string, any> | null;
   $componentQrl$: QRLInternal<OnRenderFn<any>> | null;
-  li: Record<string, QRLInternal<any>[]>;
+  li: Listener[];
   $seq$: any[] | null;
   $watches$: SubscriberEffect[] | null;
   $contexts$: Map<string, any> | null;
@@ -71,11 +72,11 @@ export const getContext = (element: Element | VirtualElement): QContext => {
     (element as any)[Q_CTX] = ctx = {
       $dirty$: false,
       $mounted$: false,
-      $attachedListeners$: false,
+      $needAttachListeners$: false,
       $id$: '',
       $element$: element,
       $refMap$: [],
-      li: {},
+      li: [],
       $watches$: null,
       $seq$: null,
       $slots$: null,

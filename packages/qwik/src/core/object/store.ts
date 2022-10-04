@@ -318,23 +318,23 @@ export const _pauseFromContexts = async (
 
   for (const ctx of allContexts) {
     const el = ctx.$element$;
-    const ctxLi = ctx.li;
-    for (const key of Object.keys(ctxLi)) {
-      for (const qrl of ctxLi[key]) {
-        const captured = qrl.$captureRef$;
-        if (captured) {
-          for (const obj of captured) {
-            collectValue(obj, collector, true);
-          }
+    const ctxListeners = ctx.li;
+    for (const listener of ctxListeners) {
+      const key = listener[0];
+      const qrl = listener[1];
+      const captured = qrl.$captureRef$;
+      if (captured) {
+        for (const obj of captured) {
+          collectValue(obj, collector, true);
         }
-        if (isElement(el)) {
-          listeners.push({
-            key,
-            qrl,
-            el,
-            eventName: getEventName(key),
-          });
-        }
+      }
+      if (isElement(el)) {
+        listeners.push({
+          key,
+          qrl,
+          el,
+          eventName: getEventName(key),
+        });
       }
     }
   }

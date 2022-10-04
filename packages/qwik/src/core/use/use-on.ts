@@ -134,5 +134,6 @@ const _useOn = (eventName: string, eventQrl: QRL<(ev: Event) => void>) => {
   const invokeCtx = useInvokeContext();
   const ctx = getContext(invokeCtx.$hostElement$);
   assertQrl(eventQrl);
-  addQRLListener(ctx.li, normalizeOnProp(eventName), [eventQrl]);
+  addQRLListener(ctx.li, [[normalizeOnProp(eventName), eventQrl]]);
+  ctx.$needAttachListeners$ = true;
 };

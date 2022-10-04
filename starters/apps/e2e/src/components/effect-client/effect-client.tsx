@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { component$, useClientEffect$, useRef, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useClientEffect$, useRef, useStore, useStyles$, Slot } from '@builder.io/qwik';
 
 export const EffectClient = component$(() => {
   useStyles$(`.box {
@@ -11,6 +11,7 @@ export const EffectClient = component$(() => {
   console.log('<EffectClient> renders');
   return (
     <div>
+      <Issue1413 />
       <div class="box" />
       <div class="box" />
       <div class="box" />
@@ -124,5 +125,29 @@ export const ClientSide = component$(() => {
       <div id="client-side-msg-2">{state.text2}</div>
       <div id="client-side-msg-3">{state.text3}</div>
     </>
+  );
+});
+
+export const FancyName = component$(() => {
+  console.log('Fancy Name');
+  useClientEffect$(() => {
+    console.log('Client effect fancy name');
+  });
+  return <Slot />;
+});
+
+export const fancyName = 'Some';
+
+export const Issue1413 = component$(() => {
+  useClientEffect$(() => {
+    console.log(fancyName);
+  });
+  console.log('Root route');
+  return (
+    <FancyName>
+      <section>
+        <div>Hello</div>
+      </section>
+    </FancyName>
   );
 });

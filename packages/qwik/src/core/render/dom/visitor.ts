@@ -13,7 +13,7 @@ import {
   QContext,
   tryGetContext,
 } from '../../props/props';
-import { addQRLListener, isOnProp, setEvent } from '../../props/props-on';
+import { addQRLListener, groupListeners, isOnProp, setEvent } from '../../props/props-on';
 import type { ValueOrPromise } from '../../util/types';
 import { isPromise, promiseAll, then } from '../../util/promises';
 import { assertDefined, assertEqual, assertTrue } from '../../assert/assert';
@@ -22,7 +22,7 @@ import { qDev, qSerialize, qTest } from '../../util/qdev';
 import type { OnRenderFn } from '../../component/component.public';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
-import { assertQrl, isQrl, QRLInternal } from '../../import/qrl-class';
+import { assertQrl, isQrl } from '../../import/qrl-class';
 import {
   assertElement,
   assertQwikElement,
@@ -424,19 +424,22 @@ export const patchVnode = (
   const props = newVnode.$props$;
   const isComponent = isVirtual && OnRenderProp in props;
   const elCtx = getContext(elm);
-  elCtx.$vdom$ = newVnode;
+  staticCtx.$containerState$.$containerEl$;
+  assertDefined(currentComponent, 'slots can not be rendered outside a component', elm);
   if (!isComponent) {
-    const listenerMap = updateProperties(elCtx, staticCtx, oldVnode.$props$, props);
-    if (!currentComponent.$attachedListeners$) {
-      currentComponent.$attachedListeners$ = true;
-      for (const key of Object.keys(currentComponent.li)) {
-        addQRLListener(listenerMap, key, currentComponent.li[key]);
-        addGlobalListener(staticCtx, elm, key);
-      }
+    const pendingListeners = currentComponent.li;
+    const listeners = elCtx.li;
+    listeners.length = 0;
+    updateProperties(elCtx, staticCtx, oldVnode.$props$, props);
+    if (pendingListeners.length > 0) {
+      addQRLListener(listeners, pendingListeners);
+      pendingListeners.length = 0;
     }
-    if (qSerialize) {
-      for (const key of Object.keys(listenerMap)) {
-        setAttribute(staticCtx, elm, key, serializeQRLs(listenerMap[key], elCtx));
+
+    if (qSerialize && listeners.length > 0) {
+      const groups = groupListeners(listeners);
+      for (const listener of groups) {
+        setAttribute(staticCtx, elm, listener[0], serializeQRLs(listener[1], elCtx));
       }
     }
 
@@ -444,6 +447,7 @@ export const patchVnode = (
       flags &= ~IS_SVG;
       isSvg = false;
     }
+
     const isSlot = isVirtual && QSlotS in props;
     if (isSlot) {
       assertDefined(currentComponent.$slots$, 'current component slots must be a defined array');
@@ -702,7 +706,7 @@ const createElm = (
 
   const isSlot = isVirtual && QSlotS in props;
   const hasRef = !isVirtual && 'ref' in props;
-  const listenerMap = setProperties(staticCtx, elCtx, props);
+  const listeners = setProperties(staticCtx, elCtx, props);
 
   if (currentComponent && !isVirtual) {
     const scopedIds = currentComponent.$scopeIds$;
@@ -711,11 +715,9 @@ const createElm = (
         (elm as Element).classList.add(styleId);
       });
     }
-    if (!currentComponent.$attachedListeners$) {
-      currentComponent.$attachedListeners$ = true;
-      for (const eventName of Object.keys(currentComponent.li)) {
-        addQRLListener(listenerMap, eventName, currentComponent.li[eventName]);
-      }
+    if (currentComponent.$needAttachListeners$) {
+      addQRLListener(listeners, currentComponent.li);
+      currentComponent.$needAttachListeners$ = false;
     }
   }
 
@@ -732,15 +734,15 @@ const createElm = (
   }
 
   if (qSerialize) {
-    const listeners = Object.keys(listenerMap);
     if (isHead && !isVirtual) {
       directSetAttribute(elm as Element, 'q:head', '');
     }
     if (listeners.length > 0 || hasRef) {
       setQId(rctx, elCtx);
     }
-    for (const key of listeners) {
-      setAttribute(staticCtx, elm, key, serializeQRLs(listenerMap[key], elCtx));
+    const groups = groupListeners(listeners);
+    for (const listener of groups) {
+      setAttribute(staticCtx, elm, listener[0], serializeQRLs(listener[1], elCtx));
     }
   }
 
@@ -871,12 +873,11 @@ export const updateProperties = (
   elCtx: QContext,
   staticCtx: RenderStaticContext,
   oldProps: Record<string, any>,
-  newProps: Record<string, any>,
-): Record<string, QRLInternal<any>[]> => {
+  newProps: Record<string, any>
+) => {
   const keys = getKeys(oldProps, newProps);
-  const listenersMap = (elCtx.li = {});
   if (keys.length === 0) {
-    return listenersMap;
+    return;
   }
   const immutableMeta = (newProps as any)[_IMMUTABLE] ?? EMPTY_OBJ;
   const elm = elCtx.$element$;
@@ -892,7 +893,7 @@ export const updateProperties = (
     }
 
     if (isOnProp(prop)) {
-      setEvent(listenersMap, prop, newValue, staticCtx.$containerState$.$containerEl$);
+      setEvent(elCtx.li, prop, newValue, staticCtx.$containerState$.$containerEl$);
       continue;
     }
 
@@ -913,7 +914,6 @@ export const updateProperties = (
     }
     smartSetProperty(staticCtx, elm as HTMLElement, prop, newValue, oldValue);
   }
-  return listenersMap;
 };
 
 export const smartSetProperty = (

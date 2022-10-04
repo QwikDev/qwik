@@ -14,23 +14,7 @@ export function notFoundHandler<T = any>(requestCtx: QwikCityRequestContext): Pr
 
 export function errorHandler(requestCtx: QwikCityRequestContext, e: any) {
   const status = HttpStatus.InternalServerError;
-  let message = 'Server Error';
-  let stack: string | undefined = undefined;
-
-  if (e != null) {
-    if (typeof e === 'object') {
-      if (typeof e.message === 'string') {
-        message = e.message;
-      }
-      if (e.stack != null) {
-        stack = String(e.stack);
-      }
-    } else {
-      message = String(e);
-    }
-  }
-
-  const html = minimalHtmlResponse(status, message, stack);
+  const html = getErrorHtml(status, e);
   const headers = createHeaders();
   headers.set('Content-Type', 'text/html; charset=utf-8');
 
@@ -64,6 +48,26 @@ export function errorResponse(requestCtx: QwikCityRequestContext, errorResponse:
   );
 }
 
+export function getErrorHtml(status: number, e: any) {
+  let message = 'Server Error';
+  let stack: string | undefined = undefined;
+
+  if (e != null) {
+    if (typeof e === 'object') {
+      if (typeof e.message === 'string') {
+        message = e.message;
+      }
+      if (e.stack != null) {
+        stack = String(e.stack);
+      }
+    } else {
+      message = String(e);
+    }
+  }
+
+  return minimalHtmlResponse(status, message, stack);
+}
+
 function minimalHtmlResponse(status: number, message?: string, stack?: string) {
   const width = typeof message === 'string' ? '600px' : '300px';
   const color = status >= 500 ? COLOR_500 : COLOR_400;
@@ -72,9 +76,10 @@ function minimalHtmlResponse(status: number, message?: string, stack?: string) {
   }
 
   return `<!DOCTYPE html>
-<html data-qwik-city-status="${status}">
+<html>
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Status" content="${status}"/>
   <title>${status} ${message}</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>

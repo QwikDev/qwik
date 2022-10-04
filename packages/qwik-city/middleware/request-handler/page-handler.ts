@@ -7,6 +7,8 @@ import type {
   RenderToStringResult,
 } from '@builder.io/qwik/server';
 import type { ClientPageData, QwikCityEnvData } from '../../runtime/src/library/types';
+import { getErrorHtml } from './error-handler';
+import { HttpStatus } from './http-status-codes';
 import type { QwikCityRequestContext, QwikCityRequestOptions, UserResponseContext } from './types';
 
 export function pageHandler<T = any>(
@@ -30,27 +32,34 @@ export function pageHandler<T = any>(
 
   return response(isPageData ? 200 : status, headers, async (stream) => {
     // begin http streaming the page content as it's rendering html
-    const result = await render({
-      stream: isPageData ? noopStream : stream,
-      envData: getQwikCityEnvData(userResponse),
-      ...opts,
-    });
+    try {
+      const result = await render({
+        stream: isPageData ? noopStream : stream,
+        envData: getQwikCityEnvData(userResponse),
+        ...opts,
+      });
 
-    if (isPageData) {
-      // write just the page json data to the response body
-      stream.write(JSON.stringify(await getClientPageData(userResponse, result, routeBundleNames)));
-    } else {
-      if ((typeof result as any as RenderToStringResult).html === 'string') {
-        // render result used renderToString(), so none of it was streamed
-        // write the already completed html to the stream
-        stream.write((result as any as RenderToStringResult).html);
+      if (isPageData) {
+        // write just the page json data to the response body
+        stream.write(
+          JSON.stringify(await getClientPageData(userResponse, result, routeBundleNames))
+        );
+      } else {
+        if ((typeof result as any as RenderToStringResult).html === 'string') {
+          // render result used renderToString(), so none of it was streamed
+          // write the already completed html to the stream
+          stream.write((result as any as RenderToStringResult).html);
+        }
       }
-    }
 
-    if (typeof stream.clientData === 'function') {
-      // a data fn was provided by the request context
-      // useful for writing q-data.json during SSG
-      stream.clientData(await getClientPageData(userResponse, result, routeBundleNames));
+      if (typeof stream.clientData === 'function') {
+        // a data fn was provided by the request context
+        // useful for writing q-data.json during SSG
+        stream.clientData(await getClientPageData(userResponse, result, routeBundleNames));
+      }
+    } catch (e) {
+      const errorHtml = getErrorHtml(HttpStatus.InternalServerError, e);
+      stream.write(errorHtml);
     }
   });
 }

@@ -1,10 +1,9 @@
 import { component$, useStore, $ } from '@builder.io/qwik';
-import type { QwikKeyboardEvent } from 'packages/qwik/src/core/render/jsx/types/jsx-qwik-events';
 
 export const App = component$(() => {
   const store = useStore({ name: '' });
-  const onKeyUp$ = $(async (event: QwikKeyboardEvent<HTMLInputElement>) => {
-    const input = event.currentTarget;
+  const onKeyUp$ = $(async (event: KeyboardEvent) => {
+    const input = event.target as HTMLInputElement;
     if (event.key === 'Enter') {
       await $(() => {
         alert(store.name);

@@ -1,148 +1,133 @@
+/* eslint-disable */
+
 import type { QRL } from '../../../import/qrl.public';
 import type { Signal } from '../../../object/q-object';
 import type { Ref } from '../../../use/use-ref';
 import type { JSXNode } from './jsx-node';
-import type {
-  QwikAnimationEvent,
-  QwikChangeEvent,
-  QwikClipboardEvent,
-  QwikCompositionEvent,
-  QwikDragEvent,
-  QwikFocusEvent,
-  QwikInvalidEvent,
-  QwikKeyboardEvent,
-  QwikMouseEvent,
-  QwikPointerEvent,
-  QwikTouchEvent,
-  QwikTransitionEvent,
-  QwikUIEvent,
-  QwikWheelEvent,
-  SyntheticEvent,
-} from './jsx-qwik-events';
 
-export type QwikEventMap<T> = {
-  Copy: QwikClipboardEvent<T>;
-  CopyCapture: QwikClipboardEvent<T>;
-  Cut: QwikClipboardEvent<T>;
-  CutCapture: QwikClipboardEvent<T>;
-  Paste: QwikClipboardEvent<T>;
-  PasteCapture: QwikClipboardEvent<T>;
-  CompositionEnd: QwikCompositionEvent<T>;
-  CompositionEndCapture: QwikCompositionEvent<T>;
-  CompositionStart: QwikCompositionEvent<T>;
-  CompositionStartCapture: QwikCompositionEvent<T>;
-  CompositionUpdate: QwikCompositionEvent<T>;
-  CompositionUpdateCapture: QwikCompositionEvent<T>;
-  Focus: QwikFocusEvent<T>;
-  FocusCapture: QwikFocusEvent<T>;
-  Focusin: QwikFocusEvent<T>;
-  FocusinCapture: QwikFocusEvent<T>;
-  Focusout: QwikFocusEvent<T>;
-  FocusoutCapture: QwikFocusEvent<T>;
-  Blur: QwikFocusEvent<T>;
-  BlurCapture: QwikFocusEvent<T>;
-  Change: QwikChangeEvent<T>;
-  ChangeCapture: QwikChangeEvent<T>;
+export type QwikEventMap = {
+  Copy: ClipboardEvent;
+  CopyCapture: ClipboardEvent;
+  Cut: ClipboardEvent;
+  CutCapture: ClipboardEvent;
+  Paste: ClipboardEvent;
+  PasteCapture: ClipboardEvent;
+  CompositionEnd: CompositionEvent;
+  CompositionEndCapture: CompositionEvent;
+  CompositionStart: CompositionEvent;
+  CompositionStartCapture: CompositionEvent;
+  CompositionUpdate: CompositionEvent;
+  CompositionUpdateCapture: CompositionEvent;
+  Focus: FocusEvent;
+  FocusCapture: FocusEvent;
+  Focusin: FocusEvent;
+  FocusinCapture: FocusEvent;
+  Focusout: FocusEvent;
+  FocusoutCapture: FocusEvent;
+  Blur: FocusEvent;
+  BlurCapture: FocusEvent;
+  Change: Event;
+  ChangeCapture: Event;
   Input: Event;
   InputCapture: Event;
   Reset: Event;
   ResetCapture: Event;
   Submit: Event;
   SubmitCapture: Event;
-  Invalid: QwikInvalidEvent<T>;
-  InvalidCapture: QwikInvalidEvent<T>;
+  Invalid: Event;
+  InvalidCapture: Event;
   Load: Event;
   LoadCapture: Event;
   Error: Event; // also a Media Event
   ErrorCapture: Event; // also a Media Event
-  KeyDown: QwikKeyboardEvent<T>;
-  KeyDownCapture: QwikKeyboardEvent<T>;
-  KeyPress: QwikKeyboardEvent<T>;
-  KeyPressCapture: QwikKeyboardEvent<T>;
-  KeyUp: QwikKeyboardEvent<T>;
-  KeyUpCapture: QwikKeyboardEvent<T>;
-  AuxClick: QwikMouseEvent<T>;
-  Click: QwikMouseEvent<T>;
-  ClickCapture: QwikMouseEvent<T>;
-  ContextMenu: QwikMouseEvent<T>;
-  ContextMenuCapture: QwikMouseEvent<T>;
-  DblClick: QwikMouseEvent<T>;
-  DblClickCapture: QwikMouseEvent<T>;
-  Drag: QwikDragEvent<T>;
-  DragCapture: QwikDragEvent<T>;
-  DragEnd: QwikDragEvent<T>;
-  DragEndCapture: QwikDragEvent<T>;
-  DragEnter: QwikDragEvent<T>;
-  DragEnterCapture: QwikDragEvent<T>;
-  DragExit: QwikDragEvent<T>;
-  DragExitCapture: QwikDragEvent<T>;
-  DragLeave: QwikDragEvent<T>;
-  DragLeaveCapture: QwikDragEvent<T>;
-  DragOver: QwikDragEvent<T>;
-  DragOverCapture: QwikDragEvent<T>;
-  DragStart: QwikDragEvent<T>;
-  DragStartCapture: QwikDragEvent<T>;
-  Drop: QwikDragEvent<T>;
-  DropCapture: QwikDragEvent<T>;
-  MouseDown: QwikMouseEvent<T>;
-  MouseDownCapture: QwikMouseEvent<T>;
-  MouseEnter: QwikMouseEvent<T>;
-  MouseLeave: QwikMouseEvent<T>;
-  MouseMove: QwikMouseEvent<T>;
-  MouseMoveCapture: QwikMouseEvent<T>;
-  MouseOut: QwikMouseEvent<T>;
-  MouseOutCapture: QwikMouseEvent<T>;
-  MouseOver: QwikMouseEvent<T>;
-  MouseOverCapture: QwikMouseEvent<T>;
-  MouseUp: QwikMouseEvent<T>;
-  MouseUpCapture: QwikMouseEvent<T>;
-  TouchCancel: QwikTouchEvent<T>;
-  TouchCancelCapture: QwikTouchEvent<T>;
-  TouchEnd: QwikTouchEvent<T>;
-  TouchEndCapture: QwikTouchEvent<T>;
-  TouchMove: QwikTouchEvent<T>;
-  TouchMoveCapture: QwikTouchEvent<T>;
-  TouchStart: QwikTouchEvent<T>;
-  TouchStartCapture: QwikTouchEvent<T>;
-  PointerDown: QwikPointerEvent<T>;
-  PointerDownCapture: QwikPointerEvent<T>;
-  PointerMove: QwikPointerEvent<T>;
-  PointerMoveCapture: QwikPointerEvent<T>;
-  PointerUp: QwikPointerEvent<T>;
-  PointerUpCapture: QwikPointerEvent<T>;
-  PointerCancel: QwikPointerEvent<T>;
-  PointerCancelCapture: QwikPointerEvent<T>;
-  PointerEnter: QwikPointerEvent<T>;
-  PointerEnterCapture: QwikPointerEvent<T>;
-  PointerLeave: QwikPointerEvent<T>;
-  PointerLeaveCapture: QwikPointerEvent<T>;
-  PointerOver: QwikPointerEvent<T>;
-  PointerOverCapture: QwikPointerEvent<T>;
-  PointerOut: QwikPointerEvent<T>;
-  PointerOutCapture: QwikPointerEvent<T>;
-  GotPointerCapture: QwikPointerEvent<T>;
-  GotPointerCaptureCapture: QwikPointerEvent<T>;
-  LostPointerCapture: QwikPointerEvent<T>;
-  LostPointerCaptureCapture: QwikPointerEvent<T>;
-  Scroll: QwikUIEvent<T>;
-  ScrollCapture: QwikUIEvent<T>;
-  Wheel: QwikWheelEvent<T>;
-  WheelCapture: QwikWheelEvent<T>;
-  AnimationStart: QwikAnimationEvent<T>;
-  AnimationStartCapture: QwikAnimationEvent<T>;
-  AnimationEnd: QwikAnimationEvent<T>;
-  AnimationEndCapture: QwikAnimationEvent<T>;
-  AnimationIteration: QwikAnimationEvent<T>;
-  AnimationIterationCapture: QwikAnimationEvent<T>;
-  TransitionEnd: QwikTransitionEvent<T>;
-  TransitionEndCapture: QwikTransitionEvent<T>;
+  KeyDown: KeyboardEvent;
+  KeyDownCapture: KeyboardEvent;
+  KeyPress: KeyboardEvent;
+  KeyPressCapture: KeyboardEvent;
+  KeyUp: KeyboardEvent;
+  KeyUpCapture: KeyboardEvent;
+  AuxClick: MouseEvent;
+  Click: MouseEvent;
+  ClickCapture: MouseEvent;
+  ContextMenu: MouseEvent;
+  ContextMenuCapture: MouseEvent;
+  DblClick: MouseEvent;
+  DblClickCapture: MouseEvent;
+  Drag: DragEvent;
+  DragCapture: DragEvent;
+  DragEnd: DragEvent;
+  DragEndCapture: DragEvent;
+  DragEnter: DragEvent;
+  DragEnterCapture: DragEvent;
+  DragExit: DragEvent;
+  DragExitCapture: DragEvent;
+  DragLeave: DragEvent;
+  DragLeaveCapture: DragEvent;
+  DragOver: DragEvent;
+  DragOverCapture: DragEvent;
+  DragStart: DragEvent;
+  DragStartCapture: DragEvent;
+  Drop: DragEvent;
+  DropCapture: DragEvent;
+  MouseDown: MouseEvent;
+  MouseDownCapture: MouseEvent;
+  MouseEnter: MouseEvent;
+  MouseLeave: MouseEvent;
+  MouseMove: MouseEvent;
+  MouseMoveCapture: MouseEvent;
+  MouseOut: MouseEvent;
+  MouseOutCapture: MouseEvent;
+  MouseOver: MouseEvent;
+  MouseOverCapture: MouseEvent;
+  MouseUp: MouseEvent;
+  MouseUpCapture: MouseEvent;
+  TouchCancel: TouchEvent;
+  TouchCancelCapture: TouchEvent;
+  TouchEnd: TouchEvent;
+  TouchEndCapture: TouchEvent;
+  TouchMove: TouchEvent;
+  TouchMoveCapture: TouchEvent;
+  TouchStart: TouchEvent;
+  TouchStartCapture: TouchEvent;
+  PointerDown: PointerEvent;
+  PointerDownCapture: PointerEvent;
+  PointerMove: PointerEvent;
+  PointerMoveCapture: PointerEvent;
+  PointerUp: PointerEvent;
+  PointerUpCapture: PointerEvent;
+  PointerCancel: PointerEvent;
+  PointerCancelCapture: PointerEvent;
+  PointerEnter: PointerEvent;
+  PointerEnterCapture: PointerEvent;
+  PointerLeave: PointerEvent;
+  PointerLeaveCapture: PointerEvent;
+  PointerOver: PointerEvent;
+  PointerOverCapture: PointerEvent;
+  PointerOut: PointerEvent;
+  PointerOutCapture: PointerEvent;
+  GotPointerCapture: PointerEvent;
+  GotPointerCaptureCapture: PointerEvent;
+  LostPointerCapture: PointerEvent;
+  LostPointerCaptureCapture: PointerEvent;
+  Scroll: UIEvent;
+  ScrollCapture: UIEvent;
+  Wheel: WheelEvent;
+  WheelCapture: WheelEvent;
+  AnimationStart: AnimationEvent;
+  AnimationStartCapture: AnimationEvent;
+  AnimationEnd: AnimationEvent;
+  AnimationEndCapture: AnimationEvent;
+  AnimationIteration: AnimationEvent;
+  AnimationIterationCapture: AnimationEvent;
+  TransitionEnd: TransitionEvent;
+  TransitionEndCapture: TransitionEvent;
 };
 
-export type PreventDefault<T> = {
-  [K in keyof QwikEventMap<T> as `prevent${'default' | 'Default'}:${Lowercase<K>}`]?: boolean;
+export type PreventDefault = {
+  [K in keyof QwikEventMap as `prevent${'default' | 'Default'}:${Lowercase<K>}`]?: boolean;
 };
 
-export interface QwikProps<T> extends PreventDefault<T> {
+export interface QwikProps extends PreventDefault {
   class?: string | { [className: string]: boolean } | string[];
   dangerouslySetInnerHTML?: string;
   ref?: Ref<Element> | Signal<Element | undefined> | ((el: Element) => void);
@@ -161,7 +146,7 @@ export interface QwikProps<T> extends PreventDefault<T> {
 
 // Allows for Event Handlers to by typed as QwikEventMap[Key] or Event
 // https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
-export type BivariantEventHandler<T extends SyntheticEvent<any> | Event> = {
+export type BivariantEventHandler<T extends Event> = {
   bivarianceHack(event: T, element: Element): any;
 }['bivarianceHack'];
 
@@ -178,23 +163,23 @@ export type NativeEventHandler<T extends Event = Event> =
 export type QrlEvent<Type extends Event = Event> = QRL<NativeEventHandler<Type>>;
 
 export interface QwikCustomEvents {
-  [key: `${'document:' | 'window:' | ''}on${string}$`]:
-    | NativeEventHandler<Event>
-    | Function
-    | undefined;
+  [key: `${'document:' | 'window:' | ''}on${string}$`]: NativeEventHandler<Event> | undefined;
 }
-export type QwikKnownEvents<T> = {
-  [K in keyof QwikEventMap<T> as `${'document:' | 'window:' | ''}on${K}$`]?: BivariantEventHandler<
-    QwikEventMap<T>[K]
+export type QwikKnownEvents = {
+  [K in keyof QwikEventMap as `${'document:' | 'window:' | ''}on${K}$`]?: NativeEventHandler<
+    QwikEventMap[K]
   >;
 };
 /**
  * @public
  */
-export interface QwikEvents<T> extends QwikKnownEvents<T>, QwikCustomEvents {
+export interface QwikEvents extends QwikKnownEvents, QwikCustomEvents {
   'document:onLoad$'?: BivariantEventHandler<Event>;
-  'document:onScroll$'?: BivariantEventHandler<QwikUIEvent<T>>;
+
+  'document:onScroll$'?: BivariantEventHandler<Event>;
+
   'document:onVisible$'?: BivariantEventHandler<Event>;
+
   'document:onVisibilityChange$'?: BivariantEventHandler<Event>;
 }
 
@@ -203,6 +188,16 @@ export interface QwikEvents<T> extends QwikKnownEvents<T>, QwikCustomEvents {
  */
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
 
+export interface ComponentCustomEvents {
+  [key: `${'host'}on:${string}$`]: NativeEventHandler<Event>;
+  [key: `${'window' | 'document'}:on${string}$`]: NativeEventHandler<Event> | undefined;
+}
+export type ComponentKnownEvents = {
+  [K in keyof QwikEventMap as `${'host' | 'window' | 'document'}:on${K}$`]?: NativeEventHandler<
+    QwikEventMap[K]
+  >;
+};
+
 /**
  * @public
  */
@@ -210,6 +205,8 @@ export interface ComponentBaseProps {
   key?: string | number;
   'q:slot'?: string;
 }
+
+export interface QwikAttributes extends QwikProps, QwikEvents {}
 
 /**
  * @public
@@ -229,7 +226,7 @@ export type JSXChildren =
 /**
  * @public
  */
-export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
+export interface DOMAttributes<T> extends QwikProps, QwikEvents {
   children?: JSXChildren;
   key?: string | number;
 }

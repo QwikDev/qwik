@@ -5,7 +5,6 @@ import { ButtonTranslations, DocSearchButton } from './doc-search-button';
 import { DocSearchModal, ModalTranslations } from './doc-search-modal';
 import styles from './doc-search.css?inline';
 import type { StoredSearchPlugin } from './stored-searches';
-import type { QwikKeyboardEvent } from 'packages/qwik/src/core/render/jsx/types/jsx-qwik-events';
 
 export type DocSearchTranslations = Partial<{
   button: ButtonTranslations;
@@ -39,8 +38,8 @@ export interface DocSearchProps {
   translations?: DocSearchTranslations;
 }
 
-export function isEditingContent(event: QwikKeyboardEvent<HTMLElement>): boolean {
-  const element = event.currentTarget;
+export function isEditingContent(event: KeyboardEvent): boolean {
+  const element = event.target as HTMLElement;
   const tagName = element.tagName;
 
   return (
@@ -73,7 +72,7 @@ export const DocSearch = component$((props: DocSearchProps) => {
   return (
     <div
       class="docsearch"
-      window:onKeyDown$={(event) => {
+      window:onKeyDown$={(event: KeyboardEvent) => {
         function open() {
           // We check that no other DocSearch modal is showing before opening
           // another one.

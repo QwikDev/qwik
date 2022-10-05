@@ -492,20 +492,20 @@ export const _pauseFromContexts = async (
   }
 
   // Serialize object subscriptions
-  const subs = objs
-    .map((obj) => {
-      const value = subsMap.get(obj);
-      if (value == null) {
-        return undefined;
-      }
-      return value.map((s) => {
+  const subs = objs.map((obj) => {
+    const value = subsMap.get(obj);
+    if (value == null) {
+      return undefined;
+    }
+    return value
+      .map((s) => {
         if (typeof s === 'number') {
           return `_${s}`;
         }
-        return serializeSubscription(s, mustGetObjId);
-      });
-    })
-    .filter(isNotNullable);
+        return serializeSubscription(s, getObjId);
+      })
+      .filter(isNotNullable);
+  });
 
   // Serialize objects
   const convertedObjs = objs.map((obj) => {

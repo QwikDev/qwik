@@ -5,19 +5,18 @@ interface State {
   count: number;
   doubleCount: number;
   debounced: number;
-
   server: string;
 }
 
 export const Watch = component$(() => {
+  const nav = useStore({
+    path: '/',
+  });
   const store = useStore<State>({
     count: 2,
     doubleCount: 0,
     debounced: 0,
     server: '',
-  });
-  const nav = useStore({
-    path: ''
   });
 
   useServerMount$(() => {
@@ -48,14 +47,14 @@ export const Watch = component$(() => {
   });
 
   console.log('PARENT renders');
-  return <WatchShell store={store} />;
+  return <WatchShell nav={nav} store={store} />;
 });
 
-export const WatchShell = component$(({ store }: { store: State }) => {
+export const WatchShell = component$(({ store }: { nav: any; store: State }) => {
   return (
     <div>
       <div id="server-content">{store.server}</div>
-      <div id="parent">{store.count}</div>
+      <div id="parent">{store.count + 0}</div>
       <Child state={store} />
       <button id="add" onClick$={() => store.count++}>
         +

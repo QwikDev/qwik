@@ -398,7 +398,7 @@ export namespace QwikJSX {
     }
 }
 
-// @alpha @deprecated
+// @alpha
 export interface Ref<T = Element> {
     // (undocumented)
     current: T | undefined;
@@ -676,7 +676,7 @@ export const useOnDocument: (event: string, eventQrl: QRL<(ev: Event) => void>) 
 // @alpha
 export const useOnWindow: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
 
-// @alpha @deprecated
+// @alpha
 export const useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;
 
 // @public

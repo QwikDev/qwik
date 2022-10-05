@@ -4,6 +4,7 @@ import type { Signal } from '../object/q-object';
 import type { GetObject, GetObjID } from '../object/store';
 import type { Ref } from '../use/use-ref';
 import type { SubscriberEffect, SubscriberHost } from '../use/use-watch';
+import { logError } from '../util/log';
 import { seal } from '../util/qdev';
 import { isFunction, isObject } from '../util/types';
 import { notifyChange } from './dom/notify-render';
@@ -106,15 +107,18 @@ export type GroupToManagersMap = Map<SubscriberHost | SubscriberEffect, LocalSub
 
 export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) => {
   const type = sub[0];
-  const host = sub[1];
-  let base = type + ' ' + getObjId(host);
+  const host = getObjId(sub[1]);
+  if (!host) {
+    return undefined;
+  }
+  let base = type + ' ' + host;
   if (sub[0] === 0) {
     if (sub[2]) {
       base += ' ' + sub[2];
     }
   } else {
-    const nodeID = typeof sub[3] === 'string' ? sub[3] : getObjId(sub[3]);
-    base += ` ${getObjId(sub[2])} ${nodeID} ${sub[4]}`;
+    const nodeID = typeof sub[3] === 'string' ? sub[3] : must(getObjId(sub[3]));
+    base += ` ${must(getObjId(sub[2]))} ${nodeID} ${sub[4]}`;
     if (sub[5]) {
       base += ` ${sub[5]}`;
     }
@@ -234,4 +238,11 @@ export const setRef = (value: any, elm: Element) => {
     }
   }
   throw qError(QError_invalidRefValue, value);
+};
+
+const must = <T>(a: T): NonNullable<T> => {
+  if (a == null) {
+    throw logError('must be non null', a);
+  }
+  return a;
 };

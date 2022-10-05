@@ -285,7 +285,7 @@ const serializers: Serializer<any>[] = [
   PureFunctionSerializer,
 ];
 
-const collectorSerializers = /*#__PURE__*/serializers.filter((a) => a.collect);
+const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.collect);
 
 export const canSerialize = (obj: any): boolean => {
   for (const s of serializers) {

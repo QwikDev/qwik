@@ -104,7 +104,7 @@ export const createContext: <STATE extends object>(name: string) => Context<STAT
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
+export interface DOMAttributes<T> extends QwikProps, QwikEvents {
     // (undocumented)
     children?: JSXChildren;
     // (undocumented)
@@ -363,10 +363,10 @@ export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol:
 export interface QwikDOMAttributes extends DOMAttributes<any> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "IntrinsicHTMLElements" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "IntrinsicElements" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
+export interface QwikIntrinsicElements extends IntrinsicElements {
     // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLAttributes" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLElement" needs to be exported by the entry point index.d.ts
     //

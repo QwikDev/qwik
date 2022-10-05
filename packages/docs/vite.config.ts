@@ -64,6 +64,7 @@ const algoliaSearch = {
   J3Nim3Y9sio: 'algolia',
   aWt0AqHIkGQ: 'algolia',
   JJa1OmmlJI0: 'algolia',
+  uCl5Lf0Typ8: 'algolia',
 };
 
 const leftMenu = {
@@ -89,7 +90,6 @@ const repl = {
   znnkb13Pb1Q: 'repl',
   JNuA4OQTkdc: 'repl',
   MbH3hL9RTzs: 'repl',
-  uCl5Lf0Typ8: 'repl',
   vkZre20bmo0: 'repl',
   '599ANF7zBGE': 'repl',
 };

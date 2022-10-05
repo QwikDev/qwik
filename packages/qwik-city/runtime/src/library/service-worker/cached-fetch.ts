@@ -59,9 +59,13 @@ export const cachedFetch = (
           } else {
             // no cached response found or user didn't want to use the cache
             // do a full network request
-            return fetch(request).then((networkResponse) =>
-              cache.put(url, networkResponse.clone()).then(() => resolve(networkResponse))
-            );
+            return fetch(request).then(async (networkResponse) => {
+              if (networkResponse.ok) {
+                // network response was good, let's cache it
+                await cache.put(url, networkResponse.clone());
+              }
+              resolve(networkResponse);
+            });
           }
         })
         .catch((err) => {

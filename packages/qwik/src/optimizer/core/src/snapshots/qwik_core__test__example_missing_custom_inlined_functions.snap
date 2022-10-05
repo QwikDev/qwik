@@ -24,6 +24,7 @@ export const App = component$((props) => {
 
 ============================= test.js ==
 
+import { _wrapSignal } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { useStore, useEffect } from '@builder.io/qwik';
 export const useMemo$ = (qrt)=>{
@@ -37,12 +38,12 @@ export const App = component$((props)=>{
         console.log(state.count);
     });
     return $(()=>/*#__PURE__*/ _jsx("div", {
-            children: state.count
+            children: _wrapSignal(state, "count")
         }));
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;AAAA,SAAiD,QAAQ,EAAQ,SAAS,QAAQ,kBAAkB,CAAC;AAGrG,OAAO,MAAM,QAAQ,GAAG,CAAC,GAAG,GAAK;IAC7B,SAAS,CAAC,GAAG,CAAC,CAAC;AACnB,CAAC,CAAC;AAEF,OAAO,MAAM,GAAG,GAAG,UAAU,CAAC,CAAC,KAAK,GAAK;IACrC,MAAM,KAAK,GAAG,QAAQ,CAAC;QAAC,KAAK,EAAE,CAAC;KAAC,CAAC,AAAC;IACnC,QAAQ,CAAC,IAAM;QACX,OAAO,CAAC,GAAG,CAAC,KAAK,CAAC,KAAK,CAAC,CAAC;IAC7B,CAAC,CAAC,CAAC;IACH,OAAO,CAAC,CAAC,kBACL,KAAC,KAAG;sBAAE,KAAK,CAAC,KAAK;UAAO,AAC3B,CAAC,CAAC;AACP,CAAC,CAAC,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAiD,QAAQ,EAAQ,SAAS,QAAQ,kBAAkB,CAAC;AAGrG,OAAO,MAAM,QAAQ,GAAG,CAAC,GAAG,GAAK;IAC7B,SAAS,CAAC,GAAG,CAAC,CAAC;AACnB,CAAC,CAAC;AAEF,OAAO,MAAM,GAAG,GAAG,UAAU,CAAC,CAAC,KAAK,GAAK;IACrC,MAAM,KAAK,GAAG,QAAQ,CAAC;QAAC,KAAK,EAAE,CAAC;KAAC,CAAC,AAAC;IACnC,QAAQ,CAAC,IAAM;QACX,OAAO,CAAC,GAAG,CAAC,KAAK,CAAC,KAAK,CAAC,CAAC;IAC7B,CAAC,CAAC,CAAC;IACH,OAAO,CAAC,CAAC,kBACL,KAAC,KAAG;kCAAE,KAAK;UAAa,AAC3B,CAAC,CAAC;AACP,CAAC,CAAC,CAAC\"}")
 == DIAGNOSTICS ==
 
 [

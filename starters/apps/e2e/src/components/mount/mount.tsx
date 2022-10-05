@@ -49,7 +49,7 @@ export const MountRoot = component$(() => {
         Rerender
       </button>
       <pre id="renders">Renders: {internal.renders}</pre>
-      <pre id="logs">{store.logs}</pre>
+      <pre id="logs">{store.logs + ''}</pre>
     </>
   );
 });

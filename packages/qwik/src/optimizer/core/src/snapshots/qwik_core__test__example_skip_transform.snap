@@ -18,17 +18,18 @@ export const App = component$((props) => {
 
 ============================= test.js ==
 
+import { _wrapSignal } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const handler = $(()=>console.log('hola'));
 export const App = component$((props)=>{
     useStyles$('hola');
     return $(()=>/*#__PURE__*/ _jsx("div", {
-            children: state.thing
+            children: _wrapSignal(state, "thing")
         }));
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;AAEA,OAAO,MAAM,OAAO,GAAG,CAAC,CAAC,IAAI,OAAO,CAAC,GAAG,CAAC,MAAM,CAAC,CAAC,CAAC;AAElD,OAAO,MAAM,GAAG,GAAG,UAAU,CAAC,CAAC,KAAK,GAAK;IACrC,UAAU,CAAC,MAAM,CAAC,CAAC;IACnB,OAAO,CAAC,CAAC,kBACL,KAAC,KAAG;sBAAE,KAAK,CAAC,KAAK;UAAO,AAC3B,CAAC,CAAC;AACP,CAAC,CAAC,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,OAAO,GAAG,CAAC,CAAC,IAAI,OAAO,CAAC,GAAG,CAAC,MAAM,CAAC,CAAC,CAAC;AAElD,OAAO,MAAM,GAAG,GAAG,UAAU,CAAC,CAAC,KAAK,GAAK;IACrC,UAAU,CAAC,MAAM,CAAC,CAAC;IACnB,OAAO,CAAC,CAAC,kBACL,KAAC,KAAG;kCAAE,KAAK;UAAa,AAC3B,CAAC,CAAC;AACP,CAAC,CAAC,CAAC\"}")
 == DIAGNOSTICS ==
 
 []

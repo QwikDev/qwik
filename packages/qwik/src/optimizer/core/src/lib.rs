@@ -3,6 +3,7 @@
 #![deny(clippy::nursery)]
 #![allow(clippy::use_self)]
 #![feature(box_patterns)]
+#![allow(clippy::option_if_let_else)]
 
 #[cfg(test)]
 mod test;

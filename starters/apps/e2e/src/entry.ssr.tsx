@@ -1,4 +1,4 @@
-import { FunctionComponent, useEnvData } from '@builder.io/qwik';
+import type { FunctionComponent } from '@builder.io/qwik';
 import { renderToStream, RenderToStreamOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
@@ -22,6 +22,8 @@ import { StreamingRoot } from './components/streaming/streaming';
 import { ResourceSerialization } from './components/resource/resource-serialization';
 import { MountRoot } from './components/mount/mount';
 import { RefRoot } from './components/ref/ref';
+import { Signals } from './components/signals/signals';
+import { Attributes } from './components/attributes/attributes';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -52,9 +54,11 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/streaming': () => <StreamingRoot />,
     '/e2e/mount': () => <MountRoot />,
     '/e2e/ref': () => <RefRoot />,
+    '/e2e/signals': () => <Signals />,
+    '/e2e/attributes': () => <Attributes />,
   };
 
-  const url = new URL(opts.envData.url);
+  const url = new URL(opts.envData!.url);
   const Test = tests[url.pathname];
 
   // Render segment instead

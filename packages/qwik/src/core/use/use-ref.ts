@@ -3,9 +3,9 @@ import { useStore } from './use-store.public';
 /**
  * Type of the value returned by `useRef()`.
  *
- * @public
+ * @alpha
  */
-export interface Ref<T> {
+export interface Ref<T = Element> {
   current: T | undefined;
 }
 
@@ -22,14 +22,14 @@ export interface Ref<T> {
  * }
  * ```
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * const Cmp = component$(() => {
  *   const input = useRef<HTMLInputElement>();
  *
  *   useClientEffect$(({ track }) => {
- *     const el = track(input, 'current')!;
+ *     const el = track(() => input.current)!;
  *     el.focus();
  *   });
  *
@@ -42,7 +42,7 @@ export interface Ref<T> {
  *
  * ```
  *
- * @public
+ * @alpha
  */
 // </docs>
 export const useRef = <T extends Element = Element>(current?: T): Ref<T> => {

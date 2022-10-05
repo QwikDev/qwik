@@ -143,16 +143,17 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { useLexicalScope } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _wrapSignal } from "@builder.io/qwik";
 export const App_component_1_w0t0o3QMovU = ()=>{
     const [state] = useLexicalScope();
     return /*#__PURE__*/ _jsx("div", {
-        children: state.count
+        children: _wrapSignal(state, "count")
     });
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAca;;yBACL,KAAC,KAAG;kBAAE,KAAK,CAAC,KAAK;MAAO;CAC3B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAca;;yBACL,KAAC,KAAG;8BAAE,KAAK;MAAa;CAC3B\"}")
 /*
 {
   "origin": "test.tsx",

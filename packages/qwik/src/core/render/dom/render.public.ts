@@ -49,6 +49,11 @@ export const render = async (
   if (qDev && containerEl.hasAttribute(QContainerAttr)) {
     throw qError(QError_cannotRenderOverExistingContainer, containerEl);
   }
+  // if (qDev) {
+  //   if (parent.childNodes.length > 0) {
+  //     throw new Error('Container must be empty before mounting anything inside');
+  //   }
+  // }
   injectQContainer(containerEl);
 
   const containerState = getContainerState(containerEl);

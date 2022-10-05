@@ -1,5 +1,5 @@
 import { assertEqual, assertTrue } from '../../assert/assert';
-import { isElement, isQwikElement, isVirtualElement } from '../../util/element';
+import { isComment, isElement, isQwikElement, isVirtualElement } from '../../util/element';
 import { qSerialize, seal } from '../../util/qdev';
 import { directGetAttribute } from '../fast-calls';
 import { createElement } from './operations';
@@ -327,7 +327,7 @@ export const getVirtualElement = (open: Comment): VirtualElement | null => {
   return null;
 };
 
-const findClose = (open: Comment): Comment => {
+export const findClose = (open: Comment): Comment => {
   let node = open.nextSibling;
   let stack = 1;
   while (node) {
@@ -344,10 +344,6 @@ const findClose = (open: Comment): Comment => {
     node = node.nextSibling;
   }
   throw new Error('close not found');
-};
-
-export const isComment = (node: Node): node is Comment => {
-  return node.nodeType === 8;
 };
 
 export const getRootNode = (node: Node | VirtualElement | null): Node => {

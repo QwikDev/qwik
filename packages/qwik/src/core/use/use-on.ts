@@ -11,25 +11,11 @@ import { Watch, WatchFlagsIsCleanup } from './use-watch';
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useCleanup instead)
 /**
- * A lazy-loadable reference to a component's cleanup hook.
- *
- * Invoked when the component is destroyed (removed from render tree), or paused as part of the
- * SSR serialization.
- *
  * It can be used to release resources, abort network requests, stop timers...
  *
- * ```tsx
- * const Cmp = component$(() => {
- *   useCleanup$(() => {
- *     // Executed after SSR (pause) or when the component gets removed from the DOM.
- *     // Can be used to release resources, abort network requests, stop timers...
- *     console.log('component is destroyed');
- *   });
- *   return <div>Hello world</div>;
- * });
- * ```
- *
  * @alpha
+ * @deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or
+ * `useClientEffect$()` instead.
  */
 // </docs>
 export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
@@ -51,25 +37,11 @@ export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useCleanup instead)
 /**
- * A lazy-loadable reference to a component's cleanup hook.
- *
- * Invoked when the component is destroyed (removed from render tree), or paused as part of the
- * SSR serialization.
- *
  * It can be used to release resources, abort network requests, stop timers...
  *
- * ```tsx
- * const Cmp = component$(() => {
- *   useCleanup$(() => {
- *     // Executed after SSR (pause) or when the component gets removed from the DOM.
- *     // Can be used to release resources, abort network requests, stop timers...
- *     console.log('component is destroyed');
- *   });
- *   return <div>Hello world</div>;
- * });
- * ```
- *
  * @alpha
+ * @deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or
+ * `useClientEffect$()` instead.
  */
 // </docs>
 export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);
@@ -160,7 +132,8 @@ export const useOnWindow = (event: string, eventQrl: QRL<(ev: Event) => void>) =
 
 const _useOn = (eventName: string, eventQrl: QRL<(ev: Event) => void>) => {
   const invokeCtx = useInvokeContext();
-  const ctx = getContext(invokeCtx.$hostElement$);
+  const elCtx = getContext(invokeCtx.$hostElement$);
   assertQrl(eventQrl);
-  addQRLListener(ctx.li, normalizeOnProp(eventName), [eventQrl]);
+  addQRLListener(elCtx.li, [[normalizeOnProp(eventName), eventQrl]]);
+  elCtx.$needAttachListeners$ = true;
 };

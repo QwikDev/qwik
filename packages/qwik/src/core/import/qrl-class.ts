@@ -1,8 +1,8 @@
 import {
   qError,
   QError_qrlIsNotFunction,
-  Qerror_qrlMissingChunk,
-  Qerror_qrlMissingContainer,
+  QError_qrlMissingChunk,
+  QError_qrlMissingContainer,
 } from '../error/error';
 import { verifySerializable } from '../object/q-object';
 import { getPlatform, isServer } from '../platform/platform';
@@ -81,10 +81,10 @@ export const createQRL = <TYPE>(
       return (symbolRef = symbolFn().then((module) => (symbolRef = module[symbol])));
     } else {
       if (!chunk) {
-        throw qError(Qerror_qrlMissingChunk, symbol);
+        throw qError(QError_qrlMissingChunk, symbol);
       }
       if (!_containerEl) {
-        throw qError(Qerror_qrlMissingContainer, chunk, symbol);
+        throw qError(QError_qrlMissingContainer, chunk, symbol);
       }
       const symbol2 = getPlatform().importSymbol(_containerEl, chunk, symbol);
       return (symbolRef = then(symbol2, (ref) => {
@@ -99,6 +99,7 @@ export const createQRL = <TYPE>(
 
   const invokeFn = (currentCtx?: InvokeContext | InvokeTuple, beforeFn?: () => void | boolean) => {
     return ((...args: any[]): any => {
+      const start = now();
       const fn = resolveLazy() as TYPE;
       return then(fn, (fn) => {
         if (isFunction(fn)) {
@@ -110,7 +111,7 @@ export const createQRL = <TYPE>(
             ...baseContext,
             $qrl$: QRL as QRLInternal<any>,
           };
-          emitUsedSymbol(symbol, context.$element$);
+          emitUsedSymbol(symbol, context.$element$, start);
           return invoke(context, fn as any, ...args);
         }
         throw qError(QError_qrlIsNotFunction);
@@ -174,17 +175,14 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
   }
 }
 
-export const emitUsedSymbol = (symbol: string, element: Element | undefined) => {
-  if (!qTest && !isServer()) {
-    emitEvent('qsymbol', {
-      bubbles: false,
-      detail: {
-        symbol,
-        element,
-        timestamp: performance.now(),
-      },
-    });
-  }
+export const emitUsedSymbol = (symbol: string, element: Element | undefined, reqTime: number) => {
+  emitEvent('qsymbol', {
+    detail: {
+      symbol,
+      element,
+      reqTime,
+    },
+  });
 };
 
 export const emitEvent = (eventName: string, detail: any) => {
@@ -196,4 +194,14 @@ export const emitEvent = (eventName: string, detail: any) => {
       })
     );
   }
+};
+
+const now = () => {
+  if (qTest || isServer()) {
+    return 0;
+  }
+  if (typeof performance === 'object') {
+    return performance.now();
+  }
+  return 0;
 };

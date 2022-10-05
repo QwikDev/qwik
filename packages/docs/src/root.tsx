@@ -1,4 +1,10 @@
-import { component$, useContextProvider, useStore, useStyles$ } from '@builder.io/qwik';
+import {
+  component$,
+  useContextProvider,
+  useStore,
+  useStyles$,
+  _wrapSignal,
+} from '@builder.io/qwik';
 import { QwikCity, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';

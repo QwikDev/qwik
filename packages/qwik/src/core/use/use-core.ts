@@ -5,7 +5,7 @@ import { QContainerSelector, RenderEvent } from '../util/markers';
 import type { QRL } from '../import/qrl.public';
 import { qError, QError_useInvokeContext, QError_useMethodOutsideContext } from '../error/error';
 import type { RenderContext } from '../render/types';
-import type { Subscriber } from './use-watch';
+import type { SubscriberEffect, SubscriberHost } from './use-watch';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { seal } from '../util/qdev';
 import { isPromise } from '../util/promises';
@@ -26,7 +26,7 @@ export interface RenderInvokeContext extends InvokeContext {
   $event$: any;
   $qrl$: QRL<any>;
   $waitOn$: Promise<any>[];
-  $subscriber$: Subscriber | null;
+  $subscriber$: SubscriberEffect | SubscriberHost | null;
   $renderCtx$: RenderContext;
 }
 
@@ -40,7 +40,7 @@ export interface InvokeContext {
   $event$: any | undefined;
   $qrl$: QRL<any> | undefined;
   $waitOn$: Promise<any>[] | undefined;
-  $subscriber$: Subscriber | null | undefined;
+  $subscriber$: SubscriberEffect | SubscriberHost | null | undefined;
   $renderCtx$: RenderContext | undefined;
 }
 

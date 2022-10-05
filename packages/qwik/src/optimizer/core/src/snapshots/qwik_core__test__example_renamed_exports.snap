@@ -27,16 +27,17 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { useLexicalScope } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _wrapSignal } from "@builder.io/qwik";
 export const App_Component_1_A08tXHb9pEk = ()=>{
     const [state] = useLexicalScope();
     return /*#__PURE__*/ _jsx("div", {
-        children: state.thing
+        children: _wrapSignal(state, "thing")
     });
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAMoB;;yBACZ,KAAC,KAAG;kBAAE,KAAK,CAAC,KAAK;MAAO;CAC3B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMoB;;yBACZ,KAAC,KAAG;8BAAE,KAAK;MAAa;CAC3B\"}")
 /*
 {
   "origin": "test.tsx",

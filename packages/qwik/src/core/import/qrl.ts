@@ -5,7 +5,7 @@ import { isFunction, isString } from '../util/types';
 import {
   qError,
   QError_dynamicImportFailed,
-  Qerror_qrlMissingChunk,
+  QError_qrlMissingChunk,
   QError_unknownTypeArgument,
 } from '../error/error';
 import { qRuntimeQrl, qSerialize } from '../util/qdev';
@@ -13,7 +13,8 @@ import { getPlatform } from '../platform/platform';
 import type { QwikElement } from '../render/dom/virtual-element';
 import type { QContext } from '../props/props';
 import { assertTrue } from '../assert/assert';
-import { isElement } from '../../testing/html';
+import type { MustGetObjID } from '../object/store';
+import { assertElement } from '../util/element';
 
 // https://regexr.com/68v72
 const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
@@ -46,7 +47,7 @@ export interface QRLDev {
  * @param chunkOrFn - Chunk name (or function which is stringified to extract chunk name)
  * @param symbol - Symbol to lazy load
  * @param lexicalScopeCapture - a set of lexically scoped variables to capture.
- * @internal
+ * @alpha
  */
 // </docs>
 export const qrl = <T = any>(
@@ -138,7 +139,7 @@ export const inlinedQrlDEV = <T = any>(
 
 export interface QRLSerializeOptions {
   $element$?: QwikElement;
-  $getObjId$?: (obj: any) => string | null;
+  $getObjId$?: MustGetObjID;
   $addRefMap$?: (obj: any) => number;
 }
 
@@ -165,7 +166,7 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
     symbol = '_';
   }
   if (!chunk) {
-    throw qError(Qerror_qrlMissingChunk, qrl);
+    throw qError(QError_qrlMissingChunk, qrl);
   }
   if (chunk.startsWith('./')) {
     chunk = chunk.slice(2);
@@ -188,7 +189,7 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
 };
 
 export const serializeQRLs = (existingQRLs: QRLInternal<any>[], elCtx: QContext): string => {
-  assertTrue(isElement(elCtx.$element$), 'Element must be an actual element');
+  assertElement(elCtx.$element$);
   const opts: QRLSerializeOptions = {
     $element$: elCtx.$element$,
     $addRefMap$: (obj) => addToArray(elCtx.$refMap$, obj),

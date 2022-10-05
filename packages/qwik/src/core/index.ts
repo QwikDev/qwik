@@ -66,6 +66,9 @@ export { useContext, useContextProvider, createContext } from './use/use-context
 export { useEnvData, useUserContext } from './use/use-env-data';
 export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
 export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
+export { useSignal } from './use/use-signal';
+
+export type { UseSignal } from './use/use-signal';
 export type { Context } from './use/use-context';
 export type { Ref } from './use/use-ref';
 export type { UseStoreOptions } from './use/use-store.public';
@@ -96,7 +99,6 @@ export { useErrorBoundary } from './use/use-error-boundary';
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './util/types';
-export type { NoSerialize } from './object/q-object';
-export { noSerialize, mutable, _IMMUTABLE } from './object/q-object';
-
+export type { NoSerialize, Signal } from './object/q-object';
+export { noSerialize, mutable, _IMMUTABLE, _wrapSignal } from './object/q-object';
 export { version } from './version';

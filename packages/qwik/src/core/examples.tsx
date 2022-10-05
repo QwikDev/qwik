@@ -9,7 +9,7 @@
 import { component$ } from './component/component.public';
 import { qrl } from './import/qrl';
 import { $, QRL } from './import/qrl.public';
-import { useCleanup$, useOn, useOnDocument, useOnWindow } from './use/use-on';
+import { useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
 import { useClientEffect$, useMount$, useServerMount$, useWatch$ } from './use/use-watch';
@@ -46,22 +46,6 @@ export const OtherComponent = component$(() => {
 });
 // </docs>
 //
-
-() => {
-  //
-  // <docs anchor="use-cleanup">
-  const Cmp = component$(() => {
-    useCleanup$(() => {
-      // Executed after SSR (pause) or when the component gets removed from the DOM.
-      // Can be used to release resources, abort network requests, stop timers...
-      console.log('component is destroyed');
-    });
-    return <div>Hello world</div>;
-  });
-  // </docs>
-  //
-  return Cmp;
-};
 
 // <docs anchor="use-styles">
 import styles from './code-block.css?inline';
@@ -162,13 +146,13 @@ export const CmpInline = component$(() => {
 
     // Double count watch
     useWatch$(({ track }) => {
-      const count = track(store, 'count');
+      const count = track(() => store.count);
       store.doubleCount = 2 * count;
     });
 
     // Debouncer watch
     useWatch$(({ track }) => {
-      const doubleCount = track(store, 'doubleCount');
+      const doubleCount = track(() => store.doubleCount);
       const timer = setTimeout(() => {
         store.debounced = doubleCount;
       }, 2000);
@@ -197,7 +181,7 @@ export const CmpInline = component$(() => {
     });
 
     const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
-      const cityName = track(store, 'city');
+      const cityName = track(() => store.city);
       const abortController = new AbortController();
       cleanup(() => abortController.abort('cleanup'));
       const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
@@ -228,7 +212,7 @@ export const CmpInline = component$(() => {
   const Cmp = component$(() => {
     const store = useStore({ count: 0, doubleCount: 0 });
     useWatch$(({ track }) => {
-      const count = track(store, 'count');
+      const count = track(() => store.count);
       store.doubleCount = 2 * count;
     });
     return (
@@ -388,7 +372,7 @@ export const CmpInline = component$(() => {
     const input = useRef<HTMLInputElement>();
 
     useClientEffect$(({ track }) => {
-      const el = track(input, 'current')!;
+      const el = track(() => input.current)!;
       el.focus();
     });
 

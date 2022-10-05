@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { component$, useClientEffect$, useRef, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useClientEffect$, useRef, useStore, useStyles$, Slot } from '@builder.io/qwik';
 
 export const EffectClient = component$(() => {
   useStyles$(`.box {
@@ -11,6 +11,7 @@ export const EffectClient = component$(() => {
   console.log('<EffectClient> renders');
   return (
     <div>
+      <Issue1413 />
       <div class="box" />
       <div class="box" />
       <div class="box" />
@@ -66,7 +67,7 @@ export const Eager = component$(() => {
   console.log('<Timer> renders');
 
   const state = useStore({
-    msg: 'empty',
+    msg: 'empty 0',
   });
 
   // Double count watch
@@ -91,8 +92,9 @@ export const ClientSide = component$(() => {
   console.log('<Timer> renders');
 
   const state = useStore({
-    text1: 'empty',
-    text2: 'empty',
+    text1: 'empty 1',
+    text2: 'empty 2',
+    text3: 'empty 3',
   });
 
   useClientEffect$(
@@ -108,10 +110,44 @@ export const ClientSide = component$(() => {
     state.text2 = 'run';
   });
 
+  useClientEffect$(
+    () => {
+      state.text3 = 'run';
+    },
+    {
+      eagerness: 'idle',
+    }
+  );
+
   return (
     <>
       <div id="client-side-msg-1">{state.text1}</div>
       <div id="client-side-msg-2">{state.text2}</div>
+      <div id="client-side-msg-3">{state.text3}</div>
     </>
+  );
+});
+
+export const FancyName = component$(() => {
+  console.log('Fancy Name');
+  useClientEffect$(() => {
+    console.log('Client effect fancy name');
+  });
+  return <Slot />;
+});
+
+export const fancyName = 'Some';
+
+export const Issue1413 = component$(() => {
+  useClientEffect$(() => {
+    console.log(fancyName);
+  });
+  console.log('Root route');
+  return (
+    <FancyName>
+      <section>
+        <div>Hello</div>
+      </section>
+    </FancyName>
   );
 });

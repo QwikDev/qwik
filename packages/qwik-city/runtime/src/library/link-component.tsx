@@ -22,7 +22,7 @@ export const Link = component$<LinkProps>((props) => {
       {...linkProps}
       onClick$={() => {
         if (clientNavPath) {
-          nav.path = linkProps.href!;
+          nav.path = linkProps.href as any;
         }
       }}
       data-prefetch={prefetchUrl}

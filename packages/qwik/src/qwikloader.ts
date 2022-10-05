@@ -125,8 +125,8 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       hasInitialized = 1;
 
       emitEvent('qinit');
-      const riC = requestIdleCallback ?? setTimeout;
-      riC.bind(window)(() => emitEvent('qidle'));
+      const riC = win.requestIdleCallback ?? win.setTimeout;
+      riC.bind(win)(() => emitEvent('qidle'));
 
       if (events.has('qvisible')) {
         const results = querySelectorAll('[on\\:qvisible]');

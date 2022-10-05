@@ -175,12 +175,12 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
   }
 }
 
-export const emitUsedSymbol = (symbol: string, element: Element | undefined, start: number) => {
+export const emitUsedSymbol = (symbol: string, element: Element | undefined, reqTime: number) => {
   emitEvent('qsymbol', {
     detail: {
       symbol,
       element,
-      invoked: start,
+      reqTime,
     },
   });
 };

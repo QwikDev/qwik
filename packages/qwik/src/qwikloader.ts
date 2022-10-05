@@ -52,19 +52,21 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       for (const qrl of attrValue.split('\n')) {
         const url = qrlResolver(element, qrl);
         const symbolName = getSymbolName(url);
-        const module = win[url.pathname] || findModule(await import(url.href.split('#')[0]));
+        const reqTime = performance.now();
+        const module = findModule(await import(url.href.split('#')[0]));
         const handler = module[symbolName];
         const previousCtx = (doc as any)[Q_CONTEXT];
         if (element.isConnected) {
           try {
             (doc as any)[Q_CONTEXT] = [element, ev, url];
-            await handler(ev, element);
-          } finally {
-            (doc as any)[Q_CONTEXT] = previousCtx;
             emitEvent('qsymbol', {
               symbol: symbolName,
               element: element,
+              reqTime,
             });
+            await handler(ev, element);
+          } finally {
+            (doc as any)[Q_CONTEXT] = previousCtx;
           }
         }
       }

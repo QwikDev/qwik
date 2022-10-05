@@ -68,19 +68,25 @@ export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) 
         },
       };
 
+      // check if the next middleware is able to handle this request
+      // useful if the request is for a static asset but app uses a catchall route
+      const nextResponse = await next();
+      if (nextResponse.ok) {
+        // next response is able to handle this request
+        return nextResponse;
+      }
+
+      // next middleware unable to handle request
+      // send request to qwik city request handler
       const handledResponse = await requestHandler<Response>(requestCtx, render, env, opts);
       if (handledResponse) {
         return handledResponse;
       }
 
-      const nextResponse = await next();
-      if (nextResponse.status === 404) {
-        const notFoundResponse = await notFoundHandler<Response>(requestCtx);
-        return notFoundResponse;
-      }
-
-      // use the next middleware's response
-      return nextResponse;
+      // qwik city did not have a route for this request
+      // respond with qwik city's 404 handler
+      const notFoundResponse = await notFoundHandler<Response>(requestCtx);
+      return notFoundResponse;
     } catch (e: any) {
       return new Response(String(e || 'Error'), {
         status: 500,

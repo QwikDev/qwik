@@ -293,6 +293,12 @@ export const mutable = <T>(v: T): T => {
   return v;
 };
 
+/**
+ * @internal
+ * @deprecated Remove it, not needed anymore
+ */
+export const _useMutableProps = () => {};
+
 export const isConnected = (sub: Subscriber): boolean => {
   if (isQwikElement(sub)) {
     return !!tryGetContext(sub) || sub.isConnected;

@@ -10,9 +10,6 @@
 
 - [Overview](routing/overview/index.mdx)
 - [Route Parameters](routing/route-parameters/index.mdx)
-- [Retrieving Data](routing/data/index.mdx)
-- [Modifying Data](routing/modify/index.mdx)
-- [Redirects](routing/redirects/index.mdx)
 - [Error Responses](routing/error-responses/index.mdx)
 
 ## Layout
@@ -22,6 +19,14 @@
 - [Named](layout/named/index.mdx)
 - [Grouped](layout/grouped/index.mdx)
 - [Top](layout/top/index.mdx)
+
+## Data
+
+- [Overview](data/overview/index.mdx)
+- [Retrieving Data](data/retrieve/index.mdx)
+- [Modifying Data](data/modify/index.mdx)
+- [Endpoints](data/endpoints/index.mdx)
+- [Redirects](data/redirects/index.mdx)
 
 ## Prefetching
 
@@ -52,9 +57,9 @@
 - [useDocumentHead()](api/use-document-head/index.mdx)
 - [useLocation()](api/use-location/index.mdx)
 
-## Middleware
+## Adaptors
 
-- [Overview](middleware/overview/index.mdx)
-- [Cloudflare Pages](middleware/cloudflare-pages/index.mdx)
-- [Netlify Edge](middleware/netlify-edge/index.mdx)
-- [Node](middleware/node/index.mdx)
+- [Overview](adaptors/overview/index.mdx)
+- [Cloudflare Pages](adaptors/cloudflare-pages/index.mdx)
+- [Netlify Edge](adaptors/netlify-edge/index.mdx)
+- [Node](adaptors/node/index.mdx)

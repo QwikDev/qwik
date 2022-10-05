@@ -150,7 +150,7 @@ test('user manual redirect, PageModule', async () => {
       {
         onRequest: async ({ response }) => {
           await wait();
-          response.status = 307;
+          response.status = 302;
           response.headers.set('Location', '/redirect');
         },
         default: () => {},
@@ -161,7 +161,7 @@ test('user manual redirect, PageModule', async () => {
     equal(true, false, 'Should have thrown');
   } catch (e: any) {
     instance(e, RedirectResponse);
-    equal(e.status, 307);
+    equal(e.status, 302);
     equal(e.location, '/redirect');
     equal(e.headers.get('Location'), '/redirect');
   }
@@ -185,7 +185,7 @@ test('throw redirect', async () => {
     equal(true, false, 'Should have thrown');
   } catch (e: any) {
     instance(e, RedirectResponse);
-    equal(e.status, 307);
+    equal(e.status, 302);
     equal(e.headers.get('Location'), '/redirect');
   }
 });
@@ -219,7 +219,7 @@ test('remove trailing slash, PageModule', async () => {
     equal(true, false, 'Should have thrown');
   } catch (e: any) {
     instance(e, RedirectResponse);
-    equal(e.status, 307);
+    equal(e.status, 302);
     equal(e.location, '/somepath?qs=true');
   }
 });
@@ -237,7 +237,7 @@ test('add trailing slash, PageModule', async () => {
     equal(true, false, 'Should have thrown');
   } catch (e: any) {
     instance(e, RedirectResponse);
-    equal(e.status, 307);
+    equal(e.status, 302);
     equal(e.location, '/somepath/?qs=true');
   }
 });

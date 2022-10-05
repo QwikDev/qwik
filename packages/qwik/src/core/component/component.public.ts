@@ -146,7 +146,7 @@ export const componentQrl = <PROPS extends {}>(
             verifySerializable((props as any)[key]);
           }
         }
-      })
+      });
     }
     const hash = qTest ? 'sX' : componentQrl.$hash$;
     const finalKey = hash + ':' + (key ? key : '');

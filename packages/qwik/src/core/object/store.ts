@@ -1,4 +1,4 @@
-import { assertDefined, assertTrue } from '../assert/assert';
+import { assertDefined, assertEqual, assertTrue } from '../assert/assert';
 import { getContext, QContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
 import {
@@ -492,20 +492,24 @@ export const _pauseFromContexts = async (
   }
 
   // Serialize object subscriptions
-  const subs = objs.map((obj) => {
+  const subs: string[][] = [];
+  for (const obj of objs) {
     const value = subsMap.get(obj);
     if (value == null) {
-      return undefined;
+      break;
     }
-    return value
-      .map((s) => {
-        if (typeof s === 'number') {
-          return `_${s}`;
-        }
-        return serializeSubscription(s, getObjId);
-      })
-      .filter(isNotNullable);
-  });
+    subs.push(
+      value
+        .map((s) => {
+          if (typeof s === 'number') {
+            return `_${s}`;
+          }
+          return serializeSubscription(s, getObjId);
+        })
+        .filter(isNotNullable)
+    );
+  }
+  assertEqual(subs.length, subsMap.size, 'missing subscriptions to serialize', subs, subsMap);
 
   // Serialize objects
   const convertedObjs = objs.map((obj) => {

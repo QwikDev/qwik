@@ -39,7 +39,7 @@ test('new request, Failed to fetch', async (ctx) => {
   }
 });
 
-test('new request, no cache', async (ctx) => {
+test('new request, no existing cache, cache ok response', async (ctx) => {
   const req = mockRequest('/a.js');
   ctx.addFetchSuccess(mockResponse('/a.js', 'a'));
 
@@ -54,6 +54,23 @@ test('new request, no cache', async (ctx) => {
   equal(responses[0].body, 'a');
   equal(responses[1].body, 'a');
   equal(ctx.cache.get('/a.js')?.body, 'a');
+});
+
+test('new request, no existing cache, do not cache 404 response', async (ctx) => {
+  const req = mockRequest('/a.js');
+  ctx.addFetchSuccess(mockResponse('/a.js', '404', false));
+
+  const promises: Promise<any>[] = [];
+  for (let i = 0; i < 10; i++) {
+    promises.push(cachedFetch(ctx.cache, ctx.fetch, ctx.awaitingRequests, req));
+  }
+  equal(ctx.awaitingRequests.size, 1);
+  equal(ctx.awaitingRequests.get('/a.js')?.length, 10);
+  const responses = await Promise.all(promises);
+  equal(responses.length, 10);
+  equal(responses[0].body, '404');
+  equal(responses[1].body, '404');
+  equal(ctx.cache.get('/a.js'), undefined);
 });
 
 test('new request, no cache', async (ctx) => {
@@ -117,8 +134,8 @@ function mockRequest(url: string): Request {
   } as any;
 }
 
-function mockResponse(url: string, body: string): Response {
-  return { url, body, clone: () => ({ body }) } as any;
+function mockResponse(url: string, body: string, ok = true): Response {
+  return { url, body, ok, clone: () => ({ body, ok }) } as any;
 }
 
 interface TestContext {

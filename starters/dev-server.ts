@@ -148,7 +148,7 @@ export {
           entryStrategy: {
             // TODO: e2e example seems requiring 'single' in vite ?
             // previous is 'hook' in rollup. don't know why
-            type: enableCityServer ? 'smart' : 'hook',
+            type: enableCityServer ? 'smart' : 'single',
           },
           client: {
             // forceFullBuild: true,

@@ -5,15 +5,17 @@ expression: output
 ==INPUT==
 
 
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore, $ } from '@builder.io/qwik';
 import importedValue from 'v';
 
-export const App = component$(() => {
+export const App = component$((props) => {
     const state = useStore({count: 0});
     return (
         <>
-            <p class="stuff">Hello Qwik</p>
+            <p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
             <Div
+                onClick$={props.onClick$}
+                transparent$={() => {console.log('stuff')}}
                 immutable1="stuff"
                 immutable2={{
                     foo: 'bar',
@@ -45,7 +47,7 @@ import { qrl } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,GAAG,iBAAG,yFA4BjB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,GAAG,iBAAG,yFA8BjB,CAAC\"}")
 ============================= app_component__fragment_div_immutable4_qt1dno4izxo.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -55,7 +57,7 @@ export const App_component__Fragment_Div_immutable4_QT1DNo4IZXo = (ev)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEAgB6B,CAAC,EAAE;;WAAK,OAAO,CAAC,GAAG,CAAC,KAAK,CAAC,KAAK,CAAC;CAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEAkB6B,CAAC,EAAE;;WAAK,OAAO,CAAC,GAAG,CAAC,KAAK,CAAC,KAAK,CAAC;CAAA\"}")
 /*
 {
   "origin": "test.tsx",
@@ -70,8 +72,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "immutable4$",
   "captures": true,
   "loc": [
-    485,
-    517
+    621,
+    653
   ]
 }
 */
@@ -84,7 +86,7 @@ import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
 import importedValue from "v";
 import { qrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
-export const App_component_ckEPmXZlub0 = ()=>{
+export const App_component_ckEPmXZlub0 = (props)=>{
     const state = useStore({
         count: 0
     });
@@ -92,9 +94,12 @@ export const App_component_ckEPmXZlub0 = ()=>{
         children: [
             /*#__PURE__*/ _jsx("p", {
                 class: "stuff",
+                onClick$: props.onClick$,
                 children: "Hello Qwik"
             }),
             /*#__PURE__*/ _jsx(Div, {
+                onClick$: props.onClick$,
+                transparent$: qrl(()=>import("./app_component__fragment_div_transparent_jtd8sctndsg"), "App_component__Fragment_Div_transparent_jTD8SCTNDsg"),
                 immutable1: "stuff",
                 immutable2: {
                     foo: 'bar',
@@ -114,12 +119,14 @@ export const App_component_ckEPmXZlub0 = ()=>{
                 children: /*#__PURE__*/ _jsx("p", {
                     children: "Hello Qwik"
                 }),
-                [_IMMUTABLE]: [
-                    "immutable1",
-                    "immutable3",
-                    "immutable4$",
-                    "immutable5"
-                ]
+                [_IMMUTABLE]: {
+                    onClick$: true,
+                    transparent$: true,
+                    immutable1: true,
+                    immutable3: true,
+                    immutable4$: true,
+                    immutable5: true
+                }
             }),
             /*#__PURE__*/ _jsx(Div, {
                 class: state,
@@ -135,17 +142,17 @@ export const App_component_ckEPmXZlub0 = ()=>{
                     null,
                     {}
                 ],
-                [_IMMUTABLE]: [
-                    "class",
-                    "mutable3"
-                ]
+                [_IMMUTABLE]: {
+                    class: true,
+                    mutable3: true
+                }
             })
         ]
     });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAI8B,IAAM;IAChC,MAAM,KAAK,GAAG,QAAQ,CAAC;QAAC,KAAK,EAAE,CAAC;KAAC,CAAC,AAAC;IACnC,qBACI;;0BACI,KAAC,GAAC;gBAAC,KAAK,EAAC,OAAO;0BAAC,YAAU;cAAI;0BAC/B,KAAC,GAAG;gBACA,UAAU,EAAC,OAAO;gBAClB,UAAU,EAAE;oBACR,GAAG,EAAE,KAAK;oBACV,GAAG,EAAE,aAAa,GAAG,IAAI,GAAG,KAAK;iBACpC;gBACD,UAAU,EAAE,CAAC;gBACb,WAAW;;;gBACX,UAAU,EAAE;AAAC,qBAAC;AAAE,qBAAC;oBAAE,aAAa;oBAAE,IAAI;oBAAE,EAAE;iBAAC;0BAE3C,cAAA,KAAC,GAAC;8BAAC,YAAU;kBAAI;;;;;;;cACf;0BACN,KAAC,GAAG;gBACA,KAAK,EAAE,KAAK;gBACZ,QAAQ,EAAE;oBACN,GAAG,EAAE,KAAK;oBACV,GAAG,EAAE,KAAK,CAAC,KAAK,GAAG,IAAI,GAAG,KAAK;iBAClC;gBACD,QAAQ,EAAE,CAAC,IAAM,OAAO,CAAC,GAAG,CAAC,KAAK,CAAC,KAAK,CAAC,CAAC,EAAE;gBAC5C,QAAQ,EAAE;AAAC,qBAAC;AAAE,qBAAC;oBAAE,KAAK;oBAAE,IAAI;oBAAE,EAAE;iBAAC;;;;;cACnC;;MACH,CACL;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAI8B,CAAC,KAAK,GAAK;IACrC,MAAM,KAAK,GAAG,QAAQ,CAAC;QAAC,KAAK,EAAE,CAAC;KAAC,CAAC,AAAC;IACnC,qBACI;;0BACI,KAAC,GAAC;gBAAC,KAAK,EAAC,OAAO;gBAAC,QAAQ,EAAE,KAAK,CAAC,QAAQ;0BAAE,YAAU;cAAI;0BACzD,KAAC,GAAG;gBACA,QAAQ,EAAE,KAAK,CAAC,QAAQ;gBACxB,YAAY;gBACZ,UAAU,EAAC,OAAO;gBAClB,UAAU,EAAE;oBACR,GAAG,EAAE,KAAK;oBACV,GAAG,EAAE,aAAa,GAAG,IAAI,GAAG,KAAK;iBACpC;gBACD,UAAU,EAAE,CAAC;gBACb,WAAW;;;gBACX,UAAU,EAAE;AAAC,qBAAC;AAAE,qBAAC;oBAAE,aAAa;oBAAE,IAAI;oBAAE,EAAE;iBAAC;0BAE3C,cAAA,KAAC,GAAC;8BAAC,YAAU;kBAAI;;oBAXjB,QAAQ;oBACR,YAAY;oBACZ,UAAU;oBAKV,UAAU;oBACV,WAAW;oBACX,UAAU;;cAGR;0BACN,KAAC,GAAG;gBACA,KAAK,EAAE,KAAK;gBACZ,QAAQ,EAAE;oBACN,GAAG,EAAE,KAAK;oBACV,GAAG,EAAE,KAAK,CAAC,KAAK,GAAG,IAAI,GAAG,KAAK;iBAClC;gBACD,QAAQ,EAAE,CAAC,IAAM,OAAO,CAAC,GAAG,CAAC,KAAK,CAAC,KAAK,CAAC,CAAC,EAAE;gBAC5C,QAAQ,EAAE;AAAC,qBAAC;AAAE,qBAAC;oBAAE,KAAK;oBAAE,IAAI;oBAAE,EAAE;iBAAC;;oBANjC,KAAK;oBAML,QAAQ;;cACV;;MACH,CACL;AACN,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -160,8 +167,35 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    121,
-    974
+    124,
+    1110
+  ]
+}
+*/
+============================= app_component__fragment_div_transparent_jtd8sctndsg.js (ENTRY POINT)==
+
+export const App_component__Fragment_Div_transparent_jTD8SCTNDsg = ()=>{
+    console.log('stuff');
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mEAW8B,IAAM;IAAC,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC;AAAA,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component__Fragment_Div_transparent_jTD8SCTNDsg",
+  "entry": null,
+  "displayName": "App_component__Fragment_Div_transparent",
+  "hash": "jTD8SCTNDsg",
+  "canonicalFilename": "app_component__fragment_div_transparent_jtd8sctndsg",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "event",
+  "ctxName": "transparent$",
+  "captures": false,
+  "loc": [
+    360,
+    388
   ]
 }
 */

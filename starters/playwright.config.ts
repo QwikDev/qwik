@@ -1,5 +1,19 @@
-import type { PlaywrightTestConfig } from '@playwright/test';
+import { expect } from '@playwright/test';
+import type { Locator, PlaywrightTestConfig } from '@playwright/test';
 
+expect.extend({
+  async hasAttribute(recieved: Locator, attribute: string) {
+    const pass = await recieved.evaluate(
+      (node, attribute) => node.hasAttribute(attribute),
+      attribute
+    );
+
+    return {
+      message: () => `expected ${recieved} to have attribute \`${attribute}\``,
+      pass,
+    };
+  },
+});
 const config: PlaywrightTestConfig = {
   use: {
     viewport: {

@@ -43,11 +43,13 @@ export default (props: RealMetricsOptimizationProps) => (
 
     d.addEventListener("qsymbol", (ev) => {
       try {
-        const qsymbol = ev.detail?.symbol;
+        const detail = ev.detail;
+        const qsymbol = detail?.symbol;
         if (qsymbol && !loggedQrls.has(qsymbol)) {
           loggedQrls.add(qsymbol);
 
           queue("qrl", {
+            reqTime: Math.round(detail?.reqTime ?? -1),
             execTime: Math.round(performance.now()),
             qsymbol: qsymbol,
           });
@@ -66,7 +68,7 @@ export default (props: RealMetricsOptimizationProps) => (
         try {
           if (!sentStats) {
             sentStats = true;
-            
+
             const metadata = {
               perf: [],
               ua: navigator.userAgent,

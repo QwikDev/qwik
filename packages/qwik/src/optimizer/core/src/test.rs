@@ -485,13 +485,13 @@ export const Foo = component$(({color}) => {
 
 export function Button({text, color}) {
     return (
-        <button color={color} onClick$={()=>console.log(text, color)}>{text}</button>
+        <button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
     );
 }
 
 export const ButtonArrow = ({text, color}) => {
     return (
-        <button color={color} onClick$={()=>console.log(text, color)}>{text}</button>
+        <button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
     );
 }
 "#
@@ -1415,15 +1415,17 @@ export const App = component$(() => {
 fn example_immutable_analysis() {
     test_input!(TestInput {
         code: r#"
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore, $ } from '@builder.io/qwik';
 import importedValue from 'v';
 
-export const App = component$(() => {
+export const App = component$((props) => {
     const state = useStore({count: 0});
     return (
         <>
-            <p class="stuff">Hello Qwik</p>
+            <p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
             <Div
+                onClick$={props.onClick$}
+                transparent$={() => {console.log('stuff')}}
                 immutable1="stuff"
                 immutable2={{
                     foo: 'bar',
@@ -1570,6 +1572,48 @@ export const App = component$(() => {
         .to_string(),
         mode: EmitMode::Dev,
         entry_strategy: EntryStrategy::Inline,
+        transpile: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_getter_generation() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$(() => {
+    const store = useStore({
+        count: 0,
+        stuff: 0,
+        nested: {
+            count: 0
+        }
+    });
+    const signal = useSignal(0);
+    return (
+        <Cmp
+            prop={'true' + 1 ? 'true' : ''}
+            count={store.count}
+            nested={store.nested.count}
+            signal={signal}
+            store={store.stuff + 12}
+        >
+        </Cmp>
+    );
+});
+
+export const Cmp = component$((props) => {
+    return (
+        <>
+            <p data-value={props.count}>{props.nested.count}</p>
+            <p>Value {props.count}<span></span></p>
+        </>
+    );
+});
+"#
+        .to_string(),
         transpile: true,
         ..TestInput::default()
     });

@@ -17,8 +17,6 @@ const storeSuite = suite('store');
 
 storeSuite('should serialize content', async () => {
   const document = createDocument();
-  const div = document.createElement('div');
-  document.body.appendChild(div);
 
   await render(
     document.body,

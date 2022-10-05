@@ -2,7 +2,7 @@ import { isPromise, then } from '../../util/promises';
 import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
 import { isJSXNode, jsx } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, ValueOrPromise } from '../../util/types';
-import { createProps, getContext, QContext, Q_CTX } from '../../props/props';
+import { getContext, QContext, Q_CTX } from '../../props/props';
 import type { JSXNode } from '../jsx/types/jsx-node';
 import {
   createRenderContext,
@@ -13,16 +13,29 @@ import {
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
 import { SSRComment, InternalSSRStream, Virtual } from '../jsx/utils.public';
 import { logError, logWarn } from '../../util/log';
-import { addQRLListener, isOnProp, setEvent } from '../../props/props-on';
+import { addQRLListener, groupListeners, isOnProp, setEvent } from '../../props/props-on';
 import { version } from '../../version';
-import { ContainerState, createContainerState } from '../container';
+import { ContainerState, createContainerState, setRef } from '../container';
 import type { RenderContext } from '../types';
 import { assertDefined } from '../../assert/assert';
 import { serializeSStyle } from '../../component/qrl-styles';
 import { qDev, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
+import {
+  addSignalSub,
+  createProxy,
+  isSignal,
+  QObjectFlagsSymbol,
+  QObjectImmutable,
+  Signal,
+  _IMMUTABLE,
+  _IMMUTABLE_PREFIX,
+} from '../../object/q-object';
 import { serializeQRLs } from '../../import/qrl';
-import type { Ref } from '../../use/use-ref';
+import type { QwikElement } from '../dom/virtual-element';
+import { assertElement } from '../../util/element';
+import { EMPTY_OBJ } from '../../util/flyweight';
+import type { QRLInternal } from '../../import/qrl-class';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
@@ -48,12 +61,13 @@ export interface RenderSSROptions {
 }
 
 export interface SSRContext {
-  rctx: RenderContext;
+  rCtx: RenderContext;
   projectedChildren: Record<string, any[] | undefined> | undefined;
   projectedContext: SSRContext | undefined;
   hostCtx: QContext | null;
   invocationContext?: InvokeContext | undefined;
   $contexts$: QContext[];
+  $pendingListeners$: [string, QRLInternal][];
   headNodes: JSXNode<string>[];
 }
 
@@ -74,16 +88,17 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const containerEl = createContext(1).$element$;
   const containerState = createContainerState(containerEl as Element);
   const doc = createDocument();
-  const rctx = createRenderContext(doc as any, containerState);
+  const rCtx = createRenderContext(doc as any, containerState);
   const headNodes = opts.beforeContent ?? [];
   const ssrCtx: SSRContext = {
-    rctx,
+    rCtx,
     $contexts$: [],
     projectedChildren: undefined,
     projectedContext: undefined,
     hostCtx: null,
     invocationContext: undefined,
     headNodes: root === 'html' ? headNodes : [],
+    $pendingListeners$: [],
   };
 
   const containerAttributes: Record<string, any> = {
@@ -136,7 +151,7 @@ export const renderRoot = async (
       );
     }
   }
-  return ssrCtx.rctx.$static$;
+  return ssrCtx.rCtx.$static$;
 };
 
 export const renderGenerator = async (
@@ -231,38 +246,6 @@ export const renderNodeVirtual = (
 
 const CLOSE_VIRTUAL = `<!--/qv-->`;
 
-export const renderElementAttributes = (
-  elCtx: QContext,
-  attributes: Record<string, any>
-): string => {
-  let text = '';
-  for (const prop of Object.keys(attributes)) {
-    if (
-      prop === 'children' ||
-      prop === 'key' ||
-      prop === 'class' ||
-      prop === 'className' ||
-      prop === 'dangerouslySetInnerHTML'
-    ) {
-      continue;
-    }
-    const value = attributes[prop];
-    if (prop === 'ref') {
-      (value as Ref<Element>).current = elCtx.$element$ as Element;
-      continue;
-    }
-    if (isOnProp(prop)) {
-      setEvent(elCtx.li, prop, value, undefined);
-      continue;
-    }
-    const attrName = processPropKey(prop);
-    const attrValue = processPropValue(attrName, value);
-    if (attrValue != null) {
-      text += ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
-    }
-  }
-  return text;
-};
 export const renderAttributes = (attributes: Record<string, string>): string => {
   let text = '';
   for (const prop of Object.keys(attributes)) {
@@ -318,22 +301,23 @@ export const renderSSRComponent = (
   flags: number,
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ): ValueOrPromise<void> => {
-  setComponentProps(ssrCtx.rctx, elCtx, node.props);
-  return then(executeComponent(ssrCtx.rctx, elCtx), (res) => {
+  const props = node.props;
+  setComponentProps(ssrCtx.rCtx, elCtx, props.props);
+  return then(executeComponent(ssrCtx.rCtx, elCtx), (res) => {
     const hostElement = elCtx.$element$;
-    const newCtx = res.rctx;
+    const newCtx = res.rCtx;
     const invocationContext = newInvokeContext(hostElement, undefined);
     invocationContext.$subscriber$ = hostElement;
     invocationContext.$renderCtx$ = newCtx;
     const projectedContext: SSRContext = {
       ...ssrCtx,
-      rctx: newCtx,
+      rCtx: newCtx,
     };
     const newSSrContext: SSRContext = {
       ...ssrCtx,
-      projectedChildren: splitProjectedChildren(node.props.children, ssrCtx),
+      projectedChildren: splitProjectedChildren(props.children, ssrCtx),
       projectedContext,
-      rctx: newCtx,
+      rCtx: newCtx,
       invocationContext,
     };
 
@@ -350,7 +334,7 @@ export const renderSSRComponent = (
         );
       }
     }
-    const newID = getNextIndex(ssrCtx.rctx);
+    const newID = getNextIndex(ssrCtx.rCtx);
     const scopeId = elCtx.$scopeIds$ ? serializeSStyle(elCtx.$scopeIds$) : undefined;
     const processedNode = jsx(
       node.type,
@@ -374,6 +358,9 @@ export const renderSSRComponent = (
       stream,
       flags,
       (stream) => {
+        if (elCtx.$needAttachListeners$) {
+          logWarn('Component registered some events, some component use useStyleStyle$()');
+        }
         if (beforeClose) {
           return then(renderQTemplates(newSSrContext, stream), () => beforeClose(stream));
         } else {
@@ -443,11 +430,52 @@ export const renderNode = (
   if (typeof tagName === 'string') {
     const key = node.key;
     const props = node.props;
+    const immutableMeta: Record<string, boolean | Signal> = (props as any)[_IMMUTABLE] ?? EMPTY_OBJ;
     const elCtx = createContext(1);
+    const elm = elCtx.$element$;
     const isHead = tagName === 'head';
     const hostCtx = ssrCtx.hostCtx;
-    let openingElement = '<' + tagName + renderElementAttributes(elCtx, props);
-    let classStr = stringifyClass(props.class ?? props.className);
+    let openingElement = '<' + tagName;
+    let useSignal = false;
+    assertElement(elm);
+    for (const prop of Object.keys(props)) {
+      if (
+        prop === 'children' ||
+        prop === 'key' ||
+        prop === 'class' ||
+        prop === 'className' ||
+        prop === 'dangerouslySetInnerHTML'
+      ) {
+        continue;
+      }
+      if (prop === 'ref') {
+        setRef(props[prop], elm);
+        continue;
+      }
+      let value = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : props[prop];
+      if (isOnProp(prop)) {
+        setEvent(elCtx.li, prop, value, undefined);
+        continue;
+      }
+      const attrName = processPropKey(prop);
+      if (isSignal(value)) {
+        if (hostCtx) {
+          const hostEl = hostCtx.$element$ as QwikElement;
+          addSignalSub(1, hostEl, value, elm, attrName);
+          useSignal = true;
+        }
+        value = value.value;
+      }
+      const attrValue = processPropValue(attrName, value);
+      if (attrValue != null) {
+        openingElement +=
+          ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
+      }
+    }
+    const listeners = elCtx.li;
+    const classValue = props.class ?? props.className;
+    let classStr = stringifyClass(classValue);
+
     if (hostCtx) {
       if (qDev) {
         if (tagName === 'html') {
@@ -457,11 +485,9 @@ export const renderNode = (
       if (hostCtx.$scopeIds$) {
         classStr = hostCtx.$scopeIds$.join(' ') + ' ' + classStr;
       }
-      if (!hostCtx.$attachedListeners$) {
-        hostCtx.$attachedListeners$ = true;
-        for (const eventName of Object.keys(hostCtx.li)) {
-          addQRLListener(elCtx.li, eventName, hostCtx.li[eventName]);
-        }
+      if (hostCtx.$needAttachListeners$) {
+        addQRLListener(listeners, hostCtx.li);
+        hostCtx.$needAttachListeners$ = false;
       }
     }
 
@@ -474,15 +500,18 @@ export const renderNode = (
     if (classStr) {
       openingElement += ' class="' + classStr + '"';
     }
-    const listeners = Object.keys(elCtx.li);
-    for (const key of listeners) {
-      openingElement += ' ' + key + '="' + serializeQRLs(elCtx.li[key], elCtx) + '"';
+
+    if (listeners.length > 0) {
+      const groups = groupListeners(listeners);
+      for (const listener of groups) {
+        openingElement += ' ' + listener[0] + '="' + serializeQRLs(listener[1], elCtx) + '"';
+      }
     }
     if (key != null) {
       openingElement += ' q:key="' + key + '"';
     }
-    if ('ref' in props || listeners.length > 0) {
-      const newID = getNextIndex(ssrCtx.rctx);
+    if ('ref' in props || listeners.length > 0 || useSignal) {
+      const newID = getNextIndex(ssrCtx.rCtx);
       openingElement += ' q:id="' + newID + '"';
       elCtx.$id$ = newID;
       ssrCtx.$contexts$.push(elCtx);
@@ -575,6 +604,14 @@ export const processData = (
     return renderNode(node, ssrCtx, stream, flags, beforeClose);
   } else if (isArray(node)) {
     return walkChildren(node, ssrCtx, stream, flags);
+  } else if (isSignal(node)) {
+    const hostEl = ssrCtx.hostCtx?.$element$ as QwikElement;
+    const value = node.value;
+    const id = getNextIndex(ssrCtx.rCtx);
+    if (hostEl) {
+      addSignalSub(2, hostEl, node, '#' + id, 'data');
+    }
+    stream.write(`<!--t=${id}-->${escapeHtml(String(value))}<!---->`);
   } else if (isPromise(node)) {
     stream.write(FLUSH_COMMENT);
     return node.then((node) => processData(node, ssrCtx, stream, flags, beforeClose));
@@ -618,6 +655,7 @@ function walkChildren(
           },
         }
       : stream;
+
     const rendered = processData(child, ssrContext, localStream, flags);
     const next = () => {
       currentIndex++;
@@ -692,21 +730,30 @@ export const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => 
 };
 
 const setComponentProps = (
-  rctx: RenderContext,
-  ctx: QContext,
+  rCtx: RenderContext,
+  elCtx: QContext,
   expectProps: Record<string, any>
 ) => {
   const keys = Object.keys(expectProps);
+  const target = {
+    [QObjectFlagsSymbol]: QObjectImmutable,
+  } as Record<string, any>;
+  elCtx.$props$ = createProxy(target, rCtx.$static$.$containerState$);
+
   if (keys.length === 0) {
     return;
   }
-  const target = {} as any;
-  ctx.$props$ = createProps(target, rctx.$static$.$containerState$);
+  const immutableMeta = ((target as any)[_IMMUTABLE] =
+    (expectProps as any)[_IMMUTABLE] ?? EMPTY_OBJ);
   for (const key of keys) {
-    if (key === 'children' || key === OnRenderProp) {
+    if (key === 'children') {
       continue;
     }
-    target[key] = expectProps[key];
+    if (isSignal(immutableMeta[key])) {
+      target[_IMMUTABLE_PREFIX + key] = immutableMeta[key];
+    } else {
+      target[key] = expectProps[key];
+    }
   }
 };
 
@@ -791,4 +838,8 @@ export const escapeAttr = (s: string) => {
 
 export const joinClasses = (styles: any[], existing: string): string => {
   return styles.join(' ') + existing;
+};
+
+export const isPrimitive = (obj: any): obj is string | number => {
+  return isString(obj) || typeof obj === 'number';
 };

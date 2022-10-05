@@ -53,7 +53,7 @@ export interface ResourceOptions {
  * - 'resolved' - the data is available.
  * - 'rejected' - the data is not available due to an error or timeout.
  *
- * ## Example
+ * ### Example
  *
  * Example showing how `useResource` to perform a fetch to request the weather, whenever the
  * input city name changes.
@@ -65,11 +65,11 @@ export interface ResourceOptions {
  *   });
  *
  *   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
- *     const cityName = track(store, 'city');
+ *     const cityName = track(() => store.city);
  *     const abortController = new AbortController();
  *     cleanup(() => abortController.abort('cleanup'));
- *     const res = await  fetch(`http://weatherdata.com?city=${cityName}`, {
- *       signal: abortController.signal
+ *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
+ *       signal: abortController.signal,
  *     });
  *     const data = res.json();
  *     return data;
@@ -77,13 +77,11 @@ export interface ResourceOptions {
  *
  *   return (
  *     <div>
- *       <input name="city" onInput$={(ev: any) => store.city = ev.target.value}/>
+ *       <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
  *       <Resource
  *         value={weatherResource}
  *         onResolved={(weather) => {
- *           return (
- *             <div>Temperature: {weather.temp}</div>
- *           );
+ *           return <div>Temperature: {weather.temp}</div>;
  *         }}
  *       />
  *     </div>
@@ -145,7 +143,7 @@ export const useResourceQrl = <T>(
  * - 'resolved' - the data is available.
  * - 'rejected' - the data is not available due to an error or timeout.
  *
- * ## Example
+ * ### Example
  *
  * Example showing how `useResource` to perform a fetch to request the weather, whenever the
  * input city name changes.
@@ -157,11 +155,11 @@ export const useResourceQrl = <T>(
  *   });
  *
  *   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
- *     const cityName = track(store, 'city');
+ *     const cityName = track(() => store.city);
  *     const abortController = new AbortController();
  *     cleanup(() => abortController.abort('cleanup'));
- *     const res = await  fetch(`http://weatherdata.com?city=${cityName}`, {
- *       signal: abortController.signal
+ *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
+ *       signal: abortController.signal,
  *     });
  *     const data = res.json();
  *     return data;
@@ -169,13 +167,11 @@ export const useResourceQrl = <T>(
  *
  *   return (
  *     <div>
- *       <input name="city" onInput$={(ev: any) => store.city = ev.target.value}/>
+ *       <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
  *       <Resource
  *         value={weatherResource}
  *         onResolved={(weather) => {
- *           return (
- *             <div>Temperature: {weather.temp}</div>
- *           );
+ *           return <div>Temperature: {weather.temp}</div>;
  *         }}
  *       />
  *     </div>
@@ -222,7 +218,7 @@ export interface ResourceProps<T> {
  * - 'resolved' - the data is available.
  * - 'rejected' - the data is not available due to an error or timeout.
  *
- * ## Example
+ * ### Example
  *
  * Example showing how `useResource` to perform a fetch to request the weather, whenever the
  * input city name changes.
@@ -234,11 +230,11 @@ export interface ResourceProps<T> {
  *   });
  *
  *   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
- *     const cityName = track(store, 'city');
+ *     const cityName = track(() => store.city);
  *     const abortController = new AbortController();
  *     cleanup(() => abortController.abort('cleanup'));
- *     const res = await  fetch(`http://weatherdata.com?city=${cityName}`, {
- *       signal: abortController.signal
+ *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
+ *       signal: abortController.signal,
  *     });
  *     const data = res.json();
  *     return data;
@@ -246,13 +242,11 @@ export interface ResourceProps<T> {
  *
  *   return (
  *     <div>
- *       <input name="city" onInput$={(ev: any) => store.city = ev.target.value}/>
+ *       <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
  *       <Resource
  *         value={weatherResource}
  *         onResolved={(weather) => {
- *           return (
- *             <div>Temperature: {weather.temp}</div>
- *           );
+ *           return <div>Temperature: {weather.temp}</div>;
  *         }}
  *       />
  *     </div>
@@ -329,7 +323,7 @@ export const createResourceReturn = <T>(
 ): ResourceReturn<T> => {
   const result = _createResourceReturn<T>(opts);
   result.promise = initialPromise as any;
-  const resource = createProxy(result, containerState, 0, undefined);
+  const resource = createProxy(result, containerState, undefined);
   return resource;
 };
 

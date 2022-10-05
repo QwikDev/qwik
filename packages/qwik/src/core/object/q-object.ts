@@ -1,4 +1,4 @@
-import { assertEqual, assertTrue } from '../assert/assert';
+import { assertEqual, assertNumber, assertTrue } from '../assert/assert';
 import { qError, QError_immutableProps, QError_verifySerializable } from '../error/error';
 import { isQrl } from '../import/qrl-class';
 import { tryGetInvokeContext } from '../use/use-core';
@@ -10,19 +10,37 @@ import { RenderEvent } from '../util/markers';
 import { isArray, isFunction, isObject, isSerializableObject } from '../util/types';
 import { isPromise } from '../util/promises';
 import { canSerialize } from './serializers';
-import type { ContainerState, LocalSubscriptionManager, SubscriberMap } from '../render/container';
-import type { Subscriber } from '../use/use-watch';
+import type { ContainerState, LocalSubscriptionManager, Subscriptions } from '../render/container';
+import type { SubscriberEffect, SubscriberHost } from '../use/use-watch';
+import type { QwikElement } from '../render/dom/virtual-element';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
 export const QObjectRecursive = 1 << 0;
 export const QObjectImmutable = 1 << 1;
 
+const QOjectTargetSymbol = Symbol('proxy target');
+export const QObjectFlagsSymbol = Symbol('proxy flags');
+export const QObjectManagerSymbol = Symbol('proxy manager');
+
+/**
+ * @alpha
+ */
+export interface Signal<T = any> {
+  value: T;
+}
+
+/**
+ * @alpha
+ */
+export type ValueOrSignal<T> = T | Signal<T>;
+
 /**
  * @internal
  */
 export const _IMMUTABLE = Symbol('IMMUTABLE');
 
+export const _IMMUTABLE_PREFIX = '$$';
 /**
  * Creates a proxy that notifies of any writes.
  */
@@ -35,14 +53,85 @@ export const getOrCreateProxy = <T extends object>(
   if (proxy) {
     return proxy;
   }
-  return createProxy(target, containerState, flags, undefined);
+  if (flags !== 0) {
+    (target as any)[QObjectFlagsSymbol] = flags;
+  }
+  return createProxy(target, containerState, undefined);
+};
+
+export const createSignal = <T>(
+  value: T,
+  containerState: ContainerState,
+  subcriptions?: Subscriptions[]
+): Signal<T> => {
+  const manager = containerState.$subsManager$.$createManager$(subcriptions);
+  const signal = new SignalImpl<T>(value, manager);
+  return signal;
+};
+
+export class SignalImpl<T> implements Signal<T> {
+  untrackedValue: T;
+  [QObjectManagerSymbol]: LocalSubscriptionManager;
+
+  constructor(v: T, manager: LocalSubscriptionManager) {
+    this.untrackedValue = v;
+    this[QObjectManagerSymbol] = manager;
+  }
+
+  get value() {
+    const sub = tryGetInvokeContext()?.$subscriber$;
+    if (sub) {
+      this[QObjectManagerSymbol].$addSub$([0, sub, undefined]);
+    }
+    return this.untrackedValue;
+  }
+  set value(v: T) {
+    if (qDev) {
+      verifySerializable(v);
+      const invokeCtx = tryGetInvokeContext();
+      if (invokeCtx && invokeCtx.$event$ === RenderEvent) {
+        logWarn(
+          'State mutation inside render function. Move mutation to useWatch(), useClientEffect() or useServerMount()',
+          invokeCtx.$hostElement$
+        );
+      }
+    }
+    const manager = this[QObjectManagerSymbol];
+    const oldValue = this.untrackedValue;
+    if (manager && oldValue !== v) {
+      this.untrackedValue = v;
+      manager.$notifySubs$();
+    }
+  }
+}
+
+export const isSignal = (obj: any): obj is Signal<any> => {
+  return obj instanceof SignalImpl || obj instanceof SignalWrapper;
+};
+
+interface AddSignal {
+  (type: 1, hostEl: QwikElement, signal: Signal, elm: QwikElement, property: string): void;
+  (type: 2, hostEl: QwikElement, signal: Signal, elm: Node | string, property: string): void;
+}
+export const addSignalSub: AddSignal = (type, hostEl, signal, elm, property) => {
+  const subscription =
+    signal instanceof SignalWrapper
+      ? [
+          type,
+          hostEl,
+          getProxyTarget(signal.ref),
+          elm as any,
+          property,
+          signal.prop === 'value' ? undefined : signal.prop,
+        ]
+      : [type, hostEl, signal, elm, property, undefined];
+  getProxyManager(signal)!.$addSub$(subscription as any);
 };
 
 export const createProxy = <T extends object>(
   target: T,
   containerState: ContainerState,
-  flags: number,
-  subs?: Map<Element, Set<string>>
+  subs?: Subscriptions[]
 ): T => {
   assertEqual(unwrapProxy(target), target, 'Unexpected proxy at this location', target);
   assertTrue(!containerState.$proxyMap$.has(target), 'Proxy was already created', target);
@@ -52,53 +141,49 @@ export const createProxy = <T extends object>(
     'Target must be a serializable object'
   );
 
-  const manager = containerState.$subsManager$.$getLocal$(target, subs);
-  const proxy = new Proxy(
-    target,
-    new ReadWriteProxyHandler(containerState, manager, flags)
-  ) as any as T;
+  const manager = containerState.$subsManager$.$createManager$(subs);
+  const proxy = new Proxy(target, new ReadWriteProxyHandler(containerState, manager)) as any as T;
   containerState.$proxyMap$.set(target, proxy);
   return proxy;
 };
-
-const QOjectTargetSymbol = Symbol();
-const QOjectSubsSymbol = Symbol();
-const QOjectFlagsSymbol = Symbol();
 
 export type TargetType = Record<string | symbol, any>;
 
 class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   constructor(
     private $containerState$: ContainerState,
-    private $manager$: LocalSubscriptionManager,
-    private $flags$: number
+    private $manager$: LocalSubscriptionManager
   ) {}
 
   get(target: TargetType, prop: string | symbol): any {
     if (typeof prop === 'symbol') {
       if (prop === QOjectTargetSymbol) return target;
-      if (prop === QOjectFlagsSymbol) return this.$flags$;
-      if (prop === QOjectSubsSymbol) return this.$manager$.$subs$;
+      if (prop === QObjectManagerSymbol) return this.$manager$;
       return target[prop];
     }
-    let subscriber: Subscriber | undefined | null;
+    let subscriber: SubscriberHost | SubscriberEffect | undefined | null;
+    const flags = target[QObjectFlagsSymbol] ?? 0;
+    assertNumber(flags, 'flags must be an number');
     const invokeCtx = tryGetInvokeContext();
-    const recursive = (this.$flags$ & QObjectRecursive) !== 0;
-    const immutable = (this.$flags$ & QObjectImmutable) !== 0;
-    const value = target[prop];
+    const recursive = (flags & QObjectRecursive) !== 0;
+    const immutable = (flags & QObjectImmutable) !== 0;
+    let value = target[prop];
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
     if (immutable) {
-      // If property is not declared in the target
-      // or the prop is immutable, then we dont need to subscribe
-      if (!(prop in target) || target[_IMMUTABLE]?.includes(prop)) {
+      const hiddenSignal = target[_IMMUTABLE_PREFIX + prop];
+      if (!(prop in target) || !!hiddenSignal || !!target[_IMMUTABLE]?.[prop]) {
         subscriber = null;
+      }
+      if (hiddenSignal) {
+        assertTrue(isSignal(hiddenSignal), '$$ prop must be a signal');
+        value = hiddenSignal.value;
       }
     }
     if (subscriber) {
       const isA = isArray(target);
-      this.$manager$.$addSub$(subscriber, isA ? undefined : prop);
+      this.$manager$.$addSub$([0, subscriber, isA ? undefined : prop]);
     }
     return recursive ? wrap(value, this.$containerState$) : value;
   }
@@ -108,11 +193,13 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       target[prop] = newValue;
       return true;
     }
-    const immutable = (this.$flags$ & QObjectImmutable) !== 0;
+    const flags = target[QObjectFlagsSymbol] ?? 0;
+    assertNumber(flags, 'flags must be an number');
+    const immutable = (flags & QObjectImmutable) !== 0;
     if (immutable) {
       throw qError(QError_immutableProps);
     }
-    const recursive = (this.$flags$ & QObjectRecursive) !== 0;
+    const recursive = (flags & QObjectRecursive) !== 0;
     const unwrappedNewValue = recursive ? unwrapProxy(newValue) : newValue;
     if (qDev) {
       verifySerializable(unwrappedNewValue);
@@ -142,21 +229,28 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   has(target: TargetType, property: string | symbol) {
     if (property === QOjectTargetSymbol) return true;
-    if (property === QOjectFlagsSymbol) return true;
-
-    return Object.prototype.hasOwnProperty.call(target, property);
+    const hasOwnProperty = Object.prototype.hasOwnProperty;
+    if (hasOwnProperty.call(target, property)) {
+      return true;
+    }
+    if (typeof property === 'string' && hasOwnProperty.call(target, _IMMUTABLE_PREFIX + property)) {
+      return true;
+    }
+    return false;
   }
 
   ownKeys(target: TargetType): ArrayLike<string | symbol> {
-    let subscriber: Subscriber | null | undefined = null;
+    let subscriber: SubscriberHost | SubscriberEffect | null | undefined = null;
     const invokeCtx = tryGetInvokeContext();
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
     if (subscriber) {
-      this.$manager$.$addSub$(subscriber);
+      this.$manager$.$addSub$([0, subscriber, undefined]);
     }
-    return Object.getOwnPropertyNames(target);
+    return Object.getOwnPropertyNames(target).map((a) => {
+      return a.startsWith(_IMMUTABLE_PREFIX) ? a.slice(_IMMUTABLE_PREFIX.length) : a;
+    });
   }
 }
 
@@ -299,7 +393,7 @@ export const mutable = <T>(v: T): T => {
  */
 export const _useMutableProps = () => {};
 
-export const isConnected = (sub: Subscriber): boolean => {
+export const isConnected = (sub: SubscriberEffect | SubscriberHost): boolean => {
   if (isQwikElement(sub)) {
     return !!tryGetContext(sub) || sub.isConnected;
   } else {
@@ -318,13 +412,53 @@ export const getProxyTarget = <T extends Record<string, any>>(obj: T): T | undef
   return (obj as any)[QOjectTargetSymbol];
 };
 
-export const getProxySubs = (obj: any): SubscriberMap | undefined => {
-  return (obj as any)[QOjectSubsSymbol];
+export const getProxyManager = (obj: Record<string, any>): LocalSubscriptionManager | undefined => {
+  return (obj as any)[QObjectManagerSymbol];
 };
 
 export const getProxyFlags = <T = Record<string, any>>(obj: T): number | undefined => {
-  if (isObject(obj)) {
-    return (obj as any)[QOjectFlagsSymbol];
+  return (obj as any)[QObjectFlagsSymbol];
+};
+
+export class SignalWrapper<T extends Record<string, any>, P extends keyof T> {
+  constructor(public ref: T, public prop: P) {}
+
+  get [QObjectManagerSymbol]() {
+    return getProxyManager(this.ref);
   }
-  return undefined;
+
+  get value(): T[P] {
+    return this.ref[this.prop];
+  }
+
+  set value(value: T[P]) {
+    this.ref[this.prop] = value;
+  }
+}
+
+/**
+ * @internal
+ */
+export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
+  obj: T,
+  prop: P
+): Signal<T[P]> => {
+  if (obj instanceof SignalImpl) {
+    assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
+    return obj;
+  }
+  if (obj instanceof SignalWrapper) {
+    assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
+    return obj;
+  }
+  const target = getProxyTarget(obj);
+  if (target) {
+    const signal = target[_IMMUTABLE_PREFIX + (prop as any)];
+    if (signal) {
+      assertTrue(isSignal(signal), `${_IMMUTABLE_PREFIX} has to be a signal kind`);
+      return signal;
+    }
+    return new SignalWrapper(obj, prop);
+  }
+  return obj[prop];
 };

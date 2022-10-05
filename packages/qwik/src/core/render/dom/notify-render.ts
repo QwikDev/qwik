@@ -6,8 +6,7 @@ import { logError, logWarn } from '../../util/log';
 import { getWrappingContainer } from '../../use/use-core';
 import {
   runSubscriber,
-  Subscriber,
-  SubscriberDescriptor,
+  SubscriberEffect,
   WatchFlagsIsDirty,
   WatchFlagsIsEffect,
   WatchFlagsIsResource,
@@ -16,21 +15,27 @@ import {
 import { then } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
-import { isQwikElement } from '../../util/element';
 import { renderComponent } from './render-dom';
 import type { RenderStaticContext } from '../types';
-import { ContainerState, getContainerState } from '../container';
+import { ContainerState, getContainerState, SubscriberSignal, Subscriptions } from '../container';
 import { createRenderContext } from '../execute-component';
 import { getRootNode, QwikElement } from './virtual-element';
 import { printRenderStats } from './operations';
+import { executeSignalOperation } from './signals';
 import { getPlatform, isServer } from '../../platform/platform';
 import { qDev } from '../../util/qdev';
+import { isQwikElement } from '../../util/element';
 
-export const notifyChange = (subscriber: Subscriber, containerState: ContainerState) => {
-  if (isQwikElement(subscriber)) {
-    notifyRender(subscriber, containerState);
+export const notifyChange = (subAction: Subscriptions, containerState: ContainerState) => {
+  if (subAction[0] === 0) {
+    const host = subAction[1];
+    if (isQwikElement(host)) {
+      notifyRender(host, containerState);
+    } else {
+      notifyWatch(host, containerState);
+    }
   } else {
-    notifyWatch(subscriber, containerState);
+    notifySignalOperation(subAction, containerState);
   }
 };
 
@@ -54,16 +59,16 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
     resumeIfNeeded(containerState.$containerEl$);
   }
 
-  const ctx = getContext(hostElement);
+  const elCtx = getContext(hostElement);
   assertDefined(
-    ctx.$componentQrl$,
+    elCtx.$componentQrl$,
     `render: notified host element must have a defined $renderQrl$`,
-    ctx
+    elCtx
   );
-  if (ctx.$dirty$) {
+  if (elCtx.$dirty$) {
     return;
   }
-  ctx.$dirty$ = true;
+  elCtx.$dirty$ = true;
   const activeRendering = containerState.$hostsRendering$ !== undefined;
   if (activeRendering) {
     assertDefined(
@@ -82,7 +87,21 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
   }
 };
 
-export const notifyWatch = (watch: SubscriberDescriptor, containerState: ContainerState) => {
+const notifySignalOperation = (op: SubscriberSignal, containerState: ContainerState): void => {
+  const activeRendering = containerState.$hostsRendering$ !== undefined;
+  if (activeRendering) {
+    assertDefined(
+      containerState.$renderPromise$,
+      'render: while rendering, $renderPromise$ must be defined',
+      containerState
+    );
+    containerState.$opsNext$.add(op);
+  } else {
+    containerState.$opsNext$.add(op);
+    scheduleFrame(containerState);
+  }
+};
+export const notifyWatch = (watch: SubscriberEffect, containerState: ContainerState) => {
   if (watch.$flags$ & WatchFlagsIsDirty) {
     return;
   }
@@ -117,7 +136,7 @@ const scheduleFrame = (containerState: ContainerState): Promise<RenderStaticCont
  *
  */
 export const _hW = () => {
-  const [watch] = useLexicalScope<[SubscriberDescriptor]>();
+  const [watch] = useLexicalScope<[SubscriberEffect]>();
   notifyWatch(watch, getContainerState(getWrappingContainer(watch.$el$)!));
 };
 
@@ -154,6 +173,9 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
         }
       }
     }
+
+    containerState.$opsNext$.forEach((op) => executeSignalOperation(staticCtx, op));
+    containerState.$opsNext$.clear();
 
     // Add post operations
     staticCtx.$operations$.push(...staticCtx.$postOperations$);
@@ -208,18 +230,21 @@ export const postRendering = async (containerState: ContainerState, ctx: RenderS
   containerState.$hostsRendering$ = undefined;
   containerState.$renderPromise$ = undefined;
 
-  if (containerState.$hostsNext$.size + containerState.$watchNext$.size > 0) {
+  const pending =
+    containerState.$hostsNext$.size +
+    containerState.$watchNext$.size +
+    containerState.$opsNext$.size;
+  if (pending > 0) {
     scheduleFrame(containerState);
   }
 };
 
 const executeWatchesBefore = async (containerState: ContainerState) => {
-  const resourcesPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
   const containerEl = containerState.$containerEl$;
-  const watchPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
-  const isWatch = (watch: SubscriberDescriptor) => (watch.$flags$ & WatchFlagsIsWatch) !== 0;
-  const isResourceWatch = (watch: SubscriberDescriptor) =>
-    (watch.$flags$ & WatchFlagsIsResource) !== 0;
+  const resourcesPromises: ValueOrPromise<SubscriberEffect>[] = [];
+  const watchPromises: ValueOrPromise<SubscriberEffect>[] = [];
+  const isWatch = (watch: SubscriberEffect) => (watch.$flags$ & WatchFlagsIsWatch) !== 0;
+  const isResourceWatch = (watch: SubscriberEffect) => (watch.$flags$ & WatchFlagsIsResource) !== 0;
 
   containerState.$watchNext$.forEach((watch) => {
     if (isWatch(watch)) {
@@ -267,9 +292,9 @@ const executeWatchesBefore = async (containerState: ContainerState) => {
 
 const executeWatchesAfter = async (
   containerState: ContainerState,
-  watchPred: (watch: SubscriberDescriptor, staging: boolean) => boolean
+  watchPred: (watch: SubscriberEffect, staging: boolean) => boolean
 ) => {
-  const watchPromises: ValueOrPromise<SubscriberDescriptor>[] = [];
+  const watchPromises: ValueOrPromise<SubscriberEffect>[] = [];
   const containerEl = containerState.$containerEl$;
 
   containerState.$watchNext$.forEach((watch) => {
@@ -307,7 +332,7 @@ const sortNodes = (elements: QwikElement[]) => {
   elements.sort((a, b) => (a.compareDocumentPosition(getRootNode(b)) & 2 ? 1 : -1));
 };
 
-const sortWatches = (watches: SubscriberDescriptor[]) => {
+const sortWatches = (watches: SubscriberEffect[]) => {
   watches.sort((a, b) => {
     if (a.$el$ === b.$el$) {
       return a.$index$ < b.$index$ ? -1 : 1;

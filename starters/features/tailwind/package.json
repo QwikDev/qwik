@@ -1,0 +1,11 @@
+{
+  "description": "Use Tailwind into your Qwik app",
+  "devDependencies": {
+    "postcss": "^8.4.16",
+    "tailwindcss": "^3.1.8"
+  },
+  "__qwik__": {
+    "priority": -1,
+    "viteConfig": {}
+  }
+}

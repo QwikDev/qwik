@@ -3,10 +3,9 @@ import { useStore } from './use-store.public';
 /**
  * Type of the value returned by `useRef()`.
  *
- * @deprecated Use Signal<T> instead.
  * @alpha
  */
-export interface Ref<T> {
+export interface Ref<T = Element> {
   current: T | undefined;
 }
 
@@ -43,7 +42,6 @@ export interface Ref<T> {
  *
  * ```
  *
- * @deprecated Use `useSignal` instead.
  * @alpha
  */
 // </docs>

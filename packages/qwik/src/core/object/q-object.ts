@@ -40,6 +40,7 @@ export type ValueOrSignal<T> = T | Signal<T>;
  */
 export const _IMMUTABLE = Symbol('IMMUTABLE');
 
+export const _IMMUTABLE_PREFIX = '$$';
 /**
  * Creates a proxy that notifies of any writes.
  */
@@ -171,15 +172,15 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       subscriber = invokeCtx.$subscriber$;
     }
     if (immutable) {
-      const immutableProp = !!target[_IMMUTABLE]?.[prop];
-      if (!(prop in target) || immutableProp) {
+      const hiddenSignal = target[_IMMUTABLE_PREFIX + prop];
+      if (!(prop in target) || !!hiddenSignal || !!target[_IMMUTABLE]?.[prop]) {
         subscriber = null;
       }
-      if (isSignal(value)) {
-        value = value.value;
+      if (hiddenSignal) {
+        assertTrue(isSignal(hiddenSignal), '$$ prop must be a signal');
+        value = hiddenSignal.value;
       }
     }
-
     if (subscriber) {
       const isA = isArray(target);
       this.$manager$.$addSub$([0, subscriber, isA ? undefined : prop]);
@@ -228,8 +229,14 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   has(target: TargetType, property: string | symbol) {
     if (property === QOjectTargetSymbol) return true;
-
-    return Object.prototype.hasOwnProperty.call(target, property);
+    const hasOwnProperty = Object.prototype.hasOwnProperty;
+    if (hasOwnProperty.call(target, property)) {
+      return true;
+    }
+    if (typeof property === 'string' && hasOwnProperty.call(target, _IMMUTABLE_PREFIX + property)) {
+      return true;
+    }
+    return false;
   }
 
   ownKeys(target: TargetType): ArrayLike<string | symbol> {
@@ -241,7 +248,9 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (subscriber) {
       this.$manager$.$addSub$([0, subscriber, undefined]);
     }
-    return Object.getOwnPropertyNames(target);
+    return Object.keys(target).map((a) => {
+      return a.startsWith(_IMMUTABLE_PREFIX) ? a.slice(_IMMUTABLE_PREFIX.length) : a;
+    });
   }
 }
 
@@ -442,17 +451,13 @@ export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
     return obj;
   }
-  const stuff = (obj as any)[_IMMUTABLE]?.[prop];
-  if (stuff) {
-    if (stuff instanceof SignalImpl) {
-      return stuff;
+  const target = getProxyTarget(obj);
+  if (target) {
+    const signal = target[_IMMUTABLE_PREFIX + (prop as any)];
+    if (signal) {
+      assertTrue(isSignal(signal), `${_IMMUTABLE_PREFIX} has to be a signal kind`);
+      return signal;
     }
-    if (stuff instanceof SignalWrapper) {
-      return stuff;
-    }
-  }
-  const manager = getProxyManager(obj);
-  if (manager) {
     return new SignalWrapper(obj, prop);
   }
   return obj[prop];

@@ -29,6 +29,7 @@ import {
   QObjectImmutable,
   Signal,
   _IMMUTABLE,
+  _IMMUTABLE_PREFIX,
 } from '../../object/q-object';
 import { serializeQRLs } from '../../import/qrl';
 import type { QwikElement } from '../dom/virtual-element';
@@ -447,12 +448,11 @@ export const renderNode = (
       ) {
         continue;
       }
-      let value = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : props[prop];
-
       if (prop === 'ref') {
-        setRef(value, elm);
+        setRef(props[prop], elm);
         continue;
       }
+      let value = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : props[prop];
       if (isOnProp(prop)) {
         setEvent(elCtx.li, prop, value, undefined);
         continue;
@@ -750,7 +750,7 @@ const setComponentProps = (
       continue;
     }
     if (isSignal(immutableMeta[key])) {
-      target[key] = immutableMeta[key];
+      target[_IMMUTABLE_PREFIX + key] = immutableMeta[key];
     } else {
       target[key] = expectProps[key];
     }

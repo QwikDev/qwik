@@ -905,13 +905,13 @@ export const updateProperties = (
   const immutableMeta = (newProps as any)[_IMMUTABLE] ?? EMPTY_OBJ;
   const elm = elCtx.$element$;
   for (let prop of keys) {
-    let newValue = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : newProps[prop];
     if (prop === 'ref') {
       assertElement(elm);
-      setRef(newValue, elm);
+      setRef(newProps[prop], elm);
       continue;
     }
 
+    let newValue = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : newProps[prop];
     if (isOnProp(prop)) {
       setEvent(elCtx.li, prop, newValue, staticCtx.$containerState$.$containerEl$);
       continue;
@@ -1030,12 +1030,13 @@ export const setProperties = (
     if (prop === 'children') {
       continue;
     }
-    let newValue = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : newProps[prop];
     if (prop === 'ref') {
       assertElement(elm);
-      setRef(newValue, elm);
+      setRef(newProps[prop], elm);
       continue;
     }
+
+    let newValue = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : newProps[prop];
     if (isOnProp(prop)) {
       addGlobalListener(
         staticCtx,

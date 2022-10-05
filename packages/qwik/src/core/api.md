@@ -399,7 +399,7 @@ export namespace QwikJSX {
 }
 
 // @alpha @deprecated
-export interface Ref<T> {
+export interface Ref<T = Element> {
     // (undocumented)
     current: T | undefined;
 }

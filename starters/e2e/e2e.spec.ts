@@ -22,9 +22,9 @@ test.describe('e2e', () => {
 
     test('should rerender without changes', async ({ page }) => {
       const SNAPSHOT =
-        '<p>1</p><p>"&lt;/script&gt;"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}}</p><p>undefined</p><p>null</p><p>[1,2,"hola",null,{}]</p><p>true</p><p>false</p><p>()=&gt;console.error()</p><p><!--t=2-->mutable message<!----></p><p>from a promise</p>';
+        '<p>1</p><p>"&lt;/script&gt;"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}}</p><p>undefined</p><p>null</p><p>[1,2,"hola",null,{}]</p><p>true</p><p>false</p><p>()=&gt;console.error()</p><p><!--t=2-->mutable message<!----></p><p>{"signal":{"untrackedValue":0},"signalValue":0,"store":{"count":0,"signal":{"untrackedValue":0}},"storeCount":0,"storeSignal":{"untrackedValue":0}}</p><p>from a promise</p>';
       const RESULT =
-        '[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}},"undefined","null",[1,2,"hola",null,{}],true,false,null,"mutable message",null,"from a promise","http://qwik.builder.com/docs?query=true","2022-07-26T17:40:30.255Z","hola()\\\\/ gi",12,"failed message",["\\b: backspace","\\f: form feed","\\n: line feed","\\r: carriage return","\\t: horizontal tab","\\u000b: vertical tab","\\u0000: null character","\': single quote","\\\\: backslash"]]';
+        '[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}},"undefined","null",[1,2,"hola",null,{}],true,false,null,"mutable message",null,{"untrackedValue":0},0,{"count":0,"signal":{"untrackedValue":0}},0,{"untrackedValue":0},"from a promise","http://qwik.builder.com/docs?query=true","2022-07-26T17:40:30.255Z","hola()\\\\/ gi",12,"failed message",["\\b: backspace","\\f: form feed","\\n: line feed","\\r: carriage return","\\t: horizontal tab","\\u000b: vertical tab","\\u0000: null character","\': single quote","\\\\: backslash"]]';
 
       function normalizeSnapshot(str: string) {
         return str.replace(' =&gt; ', '=&gt;');
@@ -1000,6 +1000,7 @@ Click`);
         const renders = await page.locator('#renders');
         const countBtn = await page.locator('#required');
         await countBtn.click();
+        await page.waitForTimeout(100);
 
         await expect(input).toHaveAttribute('aria-hidden', 'true');
         await expect(input).toHaveAttribute('aria-label', 'even');
@@ -1089,6 +1090,56 @@ Click`);
         await page.waitForTimeout(100);
       });
       tests();
+    });
+  });
+
+  test.describe('signals', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/signals');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should do its thing', async ({ page }) => {
+      const incrementBtn = await page.locator('#count');
+      const clickBtn = await page.locator('#click');
+      const incrementIdBtn = await page.locator('#increment-id');
+
+      const text = await page.locator('#text');
+      const id = await page.locator('#id');
+      const computed = await page.locator('#computed');
+      const stuff = await page.locator('#stuff');
+
+      await page.waitForTimeout(100);
+      await expect(text).toHaveText('Text: Message');
+      await expect(text).toHaveAttribute('data-set', 'ref');
+      await expect(id).toHaveText('Id: 0');
+      await expect(computed).toHaveText('computed: ');
+      await expect(stuff).toHaveText('Stuff: 10');
+      await expect(stuff).toHaveAttribute('data-set', 'ref2');
+
+      await incrementBtn.click();
+      await expect(text).toHaveText('Text: Message');
+      await expect(text).toHaveAttribute('data-set', 'ref');
+      await expect(id).toHaveText('Id: 0');
+      await expect(computed).toHaveText('computed: ');
+      await expect(stuff).toHaveText('Stuff: 11');
+      await expect(stuff).toHaveAttribute('data-set', 'ref2');
+
+      await clickBtn.click();
+      await expect(text).toHaveText('Text: Message');
+      await expect(text).toHaveAttribute('data-set', 'ref');
+      await expect(id).toHaveText('Id: 0');
+      await expect(computed).toHaveText('computed: clicked');
+      await expect(stuff).toHaveText('Stuff: 11');
+      await expect(stuff).toHaveAttribute('data-set', 'ref2');
+
+      await incrementIdBtn.click();
+      await expect(text).toHaveText('Text: Message');
+      await expect(text).toHaveAttribute('data-set', 'ref');
+      await expect(id).toHaveText('Id: 1');
+      await expect(computed).toHaveText('computed: clicked');
+      await expect(stuff).toHaveText('Stuff: 11');
+      await expect(stuff).toHaveAttribute('data-set', 'ref2');
     });
   });
 });

@@ -16,9 +16,18 @@ export const Watch = component$(() => {
     debounced: 0,
     server: '',
   });
+  const nav = useStore({
+    path: ''
+  });
 
   useServerMount$(() => {
     store.server = 'comes from server';
+  });
+
+  // This watch should be treeshaken
+  useWatch$(({ track }) => {
+    const path = track(() => nav.path);
+    console.log(path);
   });
 
   // Double count watch

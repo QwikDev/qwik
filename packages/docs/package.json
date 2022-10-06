@@ -7,16 +7,17 @@
   "scripts": {
     "build": "yarn build.client && yarn build.static && yarn ssg",
     "build.client": "vite build",
+    "build.server": "vite build --ssr src/entry.cloudflare-pages.tsx",
     "build.static": "vite build --ssr src/entry.static.tsx",
+    "contributors": "tsm contributors.ts",
     "dev": "node --inspect ../../node_modules/vite/bin/vite.js --force",
-    "dev.ssr": "node --inspect ../../node_modules/vite/bin/vite.js --mode ssr --force --open",
     "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr --force",
-    "serve": "wrangler pages dev ./dist",
-    "ssg": "node server/entry.static",
-    "start": "yarn dev.ssr",
+    "dev.ssr": "node --inspect ../../node_modules/vite/bin/vite.js --mode ssr --force --open",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
-    "contributors": "tsm contributors.ts"
+    "serve": "wrangler pages dev ./dist",
+    "ssg": "node server/entry.static",
+    "start": "yarn dev.ssr"
   },
   "devDependencies": {
     "@algolia/autocomplete-core": "^1.7.1",

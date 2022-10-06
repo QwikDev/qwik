@@ -19,6 +19,8 @@ export const Signals = component$(() => {
     signal,
   });
 
+  const styles = useSignal('body { background: white}');
+
   useClientEffect$(() => {
     ref.current!.setAttribute('data-set', 'ref');
     ref2.value!.setAttribute('data-set', 'ref2');
@@ -51,6 +53,14 @@ export const Signals = component$(() => {
       >
         Increment ID
       </button>
+      <button
+        id="background"
+        onClick$={() => {
+          styles.value = 'body { background: black }';
+        }}
+      >
+        Black background
+      </button>
       <Child
         text="Message"
         count={store.foo}
@@ -59,6 +69,7 @@ export const Signals = component$(() => {
         signal={signal}
         signal2={store.signal}
         id={id.value}
+        styles={styles.value}
       />
     </div>
   );
@@ -72,6 +83,7 @@ interface ChildProps {
   signal: Signal<string>;
   signal2: Signal<string>;
   id: number;
+  styles: string;
 }
 export const Child = component$((props: ChildProps) => {
   return (
@@ -84,6 +96,7 @@ export const Child = component$((props: ChildProps) => {
       <div id="stuff" ref={props.ref2}>
         Stuff: {props.count}
       </div>
+      <style>{props.styles}</style>
     </>
   );
 });

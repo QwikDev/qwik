@@ -19,6 +19,7 @@ import { Slot } from '../jsx/slot.public';
 import { jsx } from '../jsx/jsx-runtime';
 import { renderSSR, RenderSSROptions } from './render-ssr';
 import { useStore } from '../../use/use-store.public';
+import { useSignal } from '../../use/use-signal';
 
 const renderSSRSuite = suite('renderSSR');
 renderSSRSuite('render attributes', async () => {
@@ -557,6 +558,26 @@ renderSSRSuite('mixes slots', async () => {
   );
 });
 
+renderSSRSuite('component RenderSignals()', async () => {
+  await testSSR(
+    <RenderSignals />,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <!--qv q:id=0 q:key=sX:-->
+      <head q:head>
+        <title q:head>value</title>
+        <style q:head>
+          value
+        </style>
+        <script q:head>
+          value
+        </script>
+      </head>
+      <!--/qv-->
+    </html>`
+  );
+});
+
 renderSSRSuite('component useContextProvider()', async () => {
   await testSSR(
     <Context>
@@ -1005,6 +1026,19 @@ export const HeadCmp = component$(() => {
       <title>hola</title>
       <Slot></Slot>
     </head>
+  );
+});
+
+export const RenderSignals = component$(() => {
+  const signal = useSignal('value');
+  return (
+    <>
+      <head>
+        <title>{signal.value}</title>
+        <style>{signal.value}</style>
+        <script>{signal.value}</script>
+      </head>
+    </>
   );
 });
 

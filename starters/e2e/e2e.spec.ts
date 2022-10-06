@@ -1103,11 +1103,13 @@ Click`);
       const incrementBtn = await page.locator('#count');
       const clickBtn = await page.locator('#click');
       const incrementIdBtn = await page.locator('#increment-id');
+      const backgroundBtn = await page.locator('#background');
 
       const text = await page.locator('#text');
       const id = await page.locator('#id');
       const computed = await page.locator('#computed');
       const stuff = await page.locator('#stuff');
+      const body = await page.locator('body');
 
       await page.waitForTimeout(100);
       await expect(text).toHaveText('Text: Message');
@@ -1140,6 +1142,16 @@ Click`);
       await expect(computed).toHaveText('computed: clicked');
       await expect(stuff).toHaveText('Stuff: 11');
       await expect(stuff).toHaveAttribute('data-set', 'ref2');
+      await expect(body).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+
+      await backgroundBtn.click();
+      await expect(text).toHaveText('Text: Message');
+      await expect(text).toHaveAttribute('data-set', 'ref');
+      await expect(id).toHaveText('Id: 1');
+      await expect(computed).toHaveText('computed: clicked');
+      await expect(stuff).toHaveText('Stuff: 11');
+      await expect(stuff).toHaveAttribute('data-set', 'ref2');
+      await expect(body).toHaveCSS('background-color', 'rgb(0, 0, 0)');
     });
   });
 });

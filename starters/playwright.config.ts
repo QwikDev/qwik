@@ -14,6 +14,7 @@ expect.extend({
     };
   },
 });
+
 const config: PlaywrightTestConfig = {
   use: {
     viewport: {

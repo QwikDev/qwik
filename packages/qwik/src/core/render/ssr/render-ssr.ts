@@ -73,6 +73,7 @@ export interface SSRContext {
 
 const IS_HEAD = 1 << 0;
 const IS_HTML = 1 << 2;
+const IS_TEXT = 1 << 3;
 
 export const createDocument = () => {
   const doc = { nodeType: 9 };
@@ -495,6 +496,9 @@ export const renderNode = (
     if (isHead) {
       flags |= IS_HEAD;
     }
+    if (textOnlyElements[tagName]) {
+      flags |= IS_TEXT;
+    }
 
     classStr = classStr.trim();
     if (classStr) {
@@ -605,13 +609,22 @@ export const processData = (
   } else if (isArray(node)) {
     return walkChildren(node, ssrCtx, stream, flags);
   } else if (isSignal(node)) {
+    const insideText = flags & IS_TEXT;
     const hostEl = ssrCtx.hostCtx?.$element$ as QwikElement;
-    const value = node.value;
-    const id = getNextIndex(ssrCtx.rCtx);
+    let value;
     if (hostEl) {
-      addSignalSub(2, hostEl, node, '#' + id, 'data');
+      if (!insideText) {
+        value = node.value;
+        const id = getNextIndex(ssrCtx.rCtx);
+        addSignalSub(2, hostEl, node, '#' + id, 'data');
+        stream.write(`<!--t=${id}-->${escapeHtml(String(value))}<!---->`);
+        return;
+      } else {
+        value = invoke(ssrCtx.invocationContext, () => node.value);
+      }
     }
-    stream.write(`<!--t=${id}-->${escapeHtml(String(value))}<!---->`);
+    stream.write(escapeHtml(String(value)));
+    return;
   } else if (isPromise(node)) {
     stream.write(FLUSH_COMMENT);
     return node.then((node) => processData(node, ssrCtx, stream, flags, beforeClose));
@@ -776,6 +789,14 @@ function processPropValue(prop: string, value: any): string | null {
   }
   return String(value);
 }
+
+const textOnlyElements: Record<string, true | undefined> = {
+  title: true,
+  style: true,
+  script: true,
+  noframes: true,
+  noscript: true,
+};
 
 const emptyElements: Record<string, true | undefined> = {
   area: true,

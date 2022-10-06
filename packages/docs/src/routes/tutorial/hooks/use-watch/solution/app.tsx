@@ -17,7 +17,7 @@ export const App = component$(() => {
     <>
       <input
         value={store.value}
-        onKeyUp$={(event) => (store.value = (event.target as HTMLInputElement).value)}
+        onInput$={(event) => (store.value = (event.target as HTMLInputElement).value)}
       />
       <br />
       Current value: {store.value}

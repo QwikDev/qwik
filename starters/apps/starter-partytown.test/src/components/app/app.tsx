@@ -56,7 +56,7 @@ export const App = component$(() => {
           Try interacting with this component by changing{' '}
           <input
             value={state.name}
-            onKeyUp$={(event) => {
+            onInput$={(event) => {
               const input = event.target as HTMLInputElement;
               state.name = input.value;
             }}

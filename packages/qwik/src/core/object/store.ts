@@ -520,29 +520,30 @@ export const _pauseFromContexts = async (
     switch (typeObj) {
       case 'undefined':
         return UNDEFINED_PREFIX;
-      case 'string':
       case 'number':
+        if (!Number.isFinite(obj)) {
+          break;
+        }
+        return obj;
+      case 'string':
       case 'boolean':
         return obj;
-
-      default:
-        const value = serializeValue(obj, mustGetObjId, containerState);
-        if (value !== undefined) {
-          return value;
+    }
+    const value = serializeValue(obj, mustGetObjId, containerState);
+    if (value !== undefined) {
+      return value;
+    }
+    if (typeObj === 'object') {
+      if (isArray(obj)) {
+        return obj.map(mustGetObjId);
+      }
+      if (isSerializableObject(obj)) {
+        const output: Record<string, any> = {};
+        for (const key of Object.keys(obj)) {
+          output[key] = mustGetObjId(obj[key]);
         }
-        if (typeObj === 'object') {
-          if (isArray(obj)) {
-            return obj.map(mustGetObjId);
-          }
-          if (isSerializableObject(obj)) {
-            const output: Record<string, any> = {};
-            for (const key of Object.keys(obj)) {
-              output[key] = mustGetObjId(obj[key]);
-            }
-            return output;
-          }
-        }
-        break;
+        return output;
+      }
     }
     throw qError(QError_verifySerializable, obj);
   });

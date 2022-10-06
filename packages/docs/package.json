@@ -5,7 +5,7 @@
   "homepage": "https://qwik.builder.io/",
   "main": "src/main.tsx",
   "scripts": {
-    "build": "yarn build.client && yarn build.static && yarn ssg && node print-index.js",
+    "build": "yarn build.client && yarn build.static && yarn ssg",
     "printindex": "node print-index.js",
     "build.client": "vite build",
     "build.static": "vite build --ssr src/entry.static.tsx",
@@ -13,7 +13,7 @@
     "dev.ssr": "node --inspect ../../node_modules/vite/bin/vite.js --mode ssr --force --open",
     "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr --force",
     "serve": "wrangler pages dev ./dist",
-    "ssg": "node server/entry.static",
+    "ssg": "node server/entry.static && node print-index.js",
     "start": "yarn dev.ssr",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",

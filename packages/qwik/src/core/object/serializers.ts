@@ -2,17 +2,18 @@ import { Component, componentQrl, isQwikComponent } from '../component/component
 import { parseQRL, serializeQRL } from '../import/qrl';
 import { isQrl, QRLInternal } from '../import/qrl-class';
 import type { QRL } from '../import/qrl.public';
-import type { ContainerState } from '../render/container';
+import type { ContainerState, Subscriptions } from '../render/container';
 import { isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
 import {
   isSubscriberDescriptor,
   parseWatch,
   ResourceReturn,
   serializeWatch,
-  SubscriberDescriptor,
+  SubscriberEffect,
 } from '../use/use-watch';
 import { isDocument } from '../util/element';
-import type { GetObject, GetObjID } from './store';
+import { QObjectManagerSymbol, SignalImpl, SignalWrapper } from './q-object';
+import { Collector, collectSubscriptions, collectValue, GetObject, MustGetObjID } from './store';
 
 /**
  * 0, 8, 9, A, B, C, D
@@ -38,11 +39,24 @@ export interface Serializer<T> {
   /**
    * Convert the object to a string.
    */
-  serialize: ((obj: T, getObjID: GetObjID, containerState: ContainerState) => string) | undefined;
+  serialize:
+    | ((obj: T, getObjID: MustGetObjID, containerState: ContainerState) => string)
+    | undefined;
+
+  /**
+   * Return of
+   */
+  collect?: (obj: T, collector: Collector, leaks: boolean) => void;
+
   /**
    * Deserialize the object.
    */
   prepare: (data: string, containerState: ContainerState, doc: Document) => T;
+  /**
+   * Second pass to fill in the object.
+   */
+  subs?: (obj: T, subs: Subscriptions[], containerState: ContainerState) => void;
+
   /**
    * Second pass to fill in the object.
    */
@@ -52,7 +66,14 @@ export interface Serializer<T> {
 const QRLSerializer: Serializer<QRLInternal> = {
   prefix: '\u0002',
   test: (v) => isQrl(v),
-  serialize: (obj, getObjId, containerState) => {
+  collect: (v, collector, leaks) => {
+    if (v.$captureRef$) {
+      for (const item of v.$captureRef$) {
+        collectValue(item, collector, leaks);
+      }
+    }
+  },
+  serialize: (obj, getObjId) => {
     return serializeQRL(obj, {
       $getObjId$: getObjId,
     });
@@ -68,9 +89,15 @@ const QRLSerializer: Serializer<QRLInternal> = {
   },
 };
 
-const WatchSerializer: Serializer<SubscriberDescriptor> = {
+const WatchSerializer: Serializer<SubscriberEffect> = {
   prefix: '\u0003',
   test: (v) => isSubscriberDescriptor(v),
+  collect: (v, collector, leaks) => {
+    collectValue(v.$qrl$, collector, leaks);
+    if (v.$resource$) {
+      collectValue(v.$resource$, collector, leaks);
+    }
+  },
   serialize: (obj, getObjId) => serializeWatch(obj, getObjId),
   prepare: (data) => parseWatch(data) as any,
   fill: (watch, getObject) => {
@@ -85,6 +112,10 @@ const WatchSerializer: Serializer<SubscriberDescriptor> = {
 const ResourceSerializer: Serializer<ResourceReturn<any>> = {
   prefix: '\u0004',
   test: (v) => isResourceReturn(v),
+  collect: (obj, collector, leaks) => {
+    collectValue(obj.promise, collector, leaks);
+    collectValue(obj.resolved, collector, leaks);
+  },
   serialize: (obj, getObjId) => {
     return serializeResource(obj, getObjId);
   },
@@ -161,7 +192,7 @@ export const SERIALIZABLE_STATE = Symbol('serializable-data');
 const ComponentSerializer: Serializer<Component<any>> = {
   prefix: '\u0010',
   test: (obj) => isQwikComponent(obj),
-  serialize: (obj, getObjId, containerState) => {
+  serialize: (obj, getObjId) => {
     const [qrl]: [QRLInternal] = (obj as any)[SERIALIZABLE_STATE];
     return serializeQRL(qrl, {
       $getObjId$: getObjId,
@@ -196,8 +227,53 @@ const PureFunctionSerializer: Serializer<Function> = {
   fill: undefined,
 };
 
+const SignalSerializer: Serializer<SignalImpl<any>> = {
+  prefix: '\u0012',
+  test: (v) => v instanceof SignalImpl,
+  collect: (obj, collector, leaks) => {
+    collectValue(obj.untrackedValue, collector, leaks);
+    if (leaks) {
+      collectSubscriptions(obj[QObjectManagerSymbol], collector);
+    }
+    return obj;
+  },
+  serialize: (obj, getObjId) => {
+    return getObjId(obj.untrackedValue);
+  },
+  prepare: (data) => {
+    return new SignalImpl(data, null as any);
+  },
+  subs: (signal, subs, containerState) => {
+    signal[QObjectManagerSymbol] = containerState.$subsManager$.$createManager$(subs);
+  },
+  fill: (signal, getObject) => {
+    signal.untrackedValue = getObject(signal.untrackedValue);
+  },
+};
+
+const SignalWrapperSerializer: Serializer<SignalWrapper<any, any>> = {
+  prefix: '\u0013',
+  test: (v) => v instanceof SignalWrapper,
+  collect(obj, collector, leaks) {
+    collectValue(obj.ref, collector, leaks);
+    return obj;
+  },
+  serialize: (obj, getObjId) => {
+    return `${getObjId(obj.ref)} ${obj.prop}`;
+  },
+  prepare: (data) => {
+    const [id, prop] = data.split(' ');
+    return new SignalWrapper(id as any, prop);
+  },
+  fill: (signal, getObject) => {
+    signal.ref = getObject(signal.ref);
+  },
+};
+
 const serializers: Serializer<any>[] = [
   QRLSerializer,
+  SignalSerializer,
+  SignalWrapperSerializer,
   WatchSerializer,
   ResourceSerializer,
   URLSerializer,
@@ -209,6 +285,8 @@ const serializers: Serializer<any>[] = [
   PureFunctionSerializer,
 ];
 
+const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.collect);
+
 export const canSerialize = (obj: any): boolean => {
   for (const s of serializers) {
     if (s.test(obj)) {
@@ -218,7 +296,21 @@ export const canSerialize = (obj: any): boolean => {
   return false;
 };
 
-export const serializeValue = (obj: any, getObjID: GetObjID, containerState: ContainerState) => {
+export const collectDeps = (obj: any, collector: Collector, leaks: boolean) => {
+  for (const s of collectorSerializers) {
+    if (s.test(obj)) {
+      s.collect!(obj, collector, leaks);
+      return true;
+    }
+  }
+  return false;
+};
+
+export const serializeValue = (
+  obj: any,
+  getObjID: MustGetObjID,
+  containerState: ContainerState
+) => {
   for (const s of serializers) {
     if (s.test(obj)) {
       let value = s.prefix;
@@ -233,6 +325,7 @@ export const serializeValue = (obj: any, getObjID: GetObjID, containerState: Con
 
 export interface Parser {
   prepare(data: string): any;
+  subs(obj: any, subs: Subscriptions[]): boolean;
   fill(obj: any): boolean;
 }
 
@@ -241,7 +334,9 @@ export const createParser = (
   containerState: ContainerState,
   doc: Document
 ): Parser => {
-  const map = new Map<any, Serializer<any>>();
+  const fillMap = new Map<any, Serializer<any>>();
+  const subsMap = new Map<any, Serializer<any>>();
+
   return {
     prepare(data: string) {
       for (const s of serializers) {
@@ -249,15 +344,26 @@ export const createParser = (
         if (data.startsWith(prefix)) {
           const value = s.prepare(data.slice(prefix.length), containerState, doc);
           if (s.fill) {
-            map.set(value, s);
+            fillMap.set(value, s);
+          }
+          if (s.subs) {
+            subsMap.set(value, s);
           }
           return value;
         }
       }
       return data;
     },
+    subs(obj: any, subs: Subscriptions[]) {
+      const serializer = subsMap.get(obj);
+      if (serializer) {
+        serializer.subs!(obj, subs, containerState);
+        return true;
+      }
+      return false;
+    },
     fill(obj: any) {
-      const serializer = map.get(obj);
+      const serializer = fillMap.get(obj);
       if (serializer) {
         serializer.fill!(obj, getObject, containerState);
         return true;

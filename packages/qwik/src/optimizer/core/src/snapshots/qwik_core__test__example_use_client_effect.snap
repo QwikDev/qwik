@@ -41,6 +41,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= child_component_9gyf01gdkqw.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _wrapSignal } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { useClientEffectQrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
@@ -53,12 +54,12 @@ export const Child_component_9GyF01GDKqw = ()=>{
         state
     ]));
     return /*#__PURE__*/ _jsx("div", {
-        children: state.count
+        children: _wrapSignal(state, "count")
     });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;2CAGgC,IAAM;IAClC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,KAAK,EAAE,CAAC;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAOE,CAAC;IAEH,qBACI,KAAC,KAAG;kBACH,KAAK,CAAC,KAAK;MACV,CACJ;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAGgC,IAAM;IAClC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,KAAK,EAAE,CAAC;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAOE,CAAC;IAEH,qBACI,KAAC,KAAG;8BACH,KAAK;MACJ,CACJ;AACN,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

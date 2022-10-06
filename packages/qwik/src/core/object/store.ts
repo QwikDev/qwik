@@ -1,8 +1,17 @@
-import { assertDefined, assertTrue } from '../assert/assert';
-import { isQrl } from '../import/qrl-class';
+import { assertDefined, assertEqual, assertTrue } from '../assert/assert';
 import { getContext, QContext, tryGetContext } from '../props/props';
 import { getDocument } from '../util/dom';
-import { isDocument, isElement, isNode, isQwikElement, isVirtualElement } from '../util/element';
+import {
+  assertElement,
+  assertQwikElement,
+  isComment,
+  isDocument,
+  isElement,
+  isNode,
+  isQwikElement,
+  isText,
+  isVirtualElement,
+} from '../util/element';
 import { logDebug, logWarn } from '../util/log';
 import {
   ELEMENT_ID,
@@ -17,16 +26,13 @@ import {
   fastShouldSerialize,
   getOrCreateProxy,
   getProxyFlags,
-  getProxySubs,
+  getProxyManager,
   getProxyTarget,
   isConnected,
+  QObjectFlagsSymbol,
+  SignalImpl,
 } from './q-object';
-import {
-  destroyWatch,
-  Subscriber,
-  SubscriberDescriptor,
-  WatchFlagsIsDirty,
-} from '../use/use-watch';
+import { destroyWatch, WatchFlagsIsDirty } from '../use/use-watch';
 import type { QRL } from '../import/qrl.public';
 import { emitEvent } from '../util/event';
 import {
@@ -38,17 +44,30 @@ import {
 import { isArray, isObject, isSerializableObject, isString } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
-import { isResourceReturn } from '../use/use-resource';
-import { createParser, Parser, serializeValue, UNDEFINED_PREFIX } from './serializers';
-import { ContainerState, getContainerState } from '../render/container';
+import { collectDeps, createParser, Parser, serializeValue, UNDEFINED_PREFIX } from './serializers';
+import {
+  ContainerState,
+  getContainerState,
+  LocalSubscriptionManager,
+  parseSubscription,
+  serializeSubscription,
+  Subscriptions,
+} from '../render/container';
 import { getQId } from '../render/execute-component';
-import { processVirtualNodes, QwikElement, VirtualElement } from '../render/dom/virtual-element';
+import {
+  findClose,
+  processVirtualNodes,
+  QwikElement,
+  VirtualElement,
+  VirtualElementImpl,
+} from '../render/dom/virtual-element';
 import { getDomListeners } from '../props/props-on';
 import { fromKebabToCamelCase } from '../util/case';
 import { domToVnode } from '../render/dom/visitor';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
+export type MustGetObjID = (obj: any) => string;
 
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -93,6 +112,8 @@ export const resumeContainer = (containerEl: Element) => {
     logWarn('Skipping hydration because parent element is not q:container');
     return;
   }
+  let maxId = 0;
+
   const doc = getDocument(containerEl);
   const isDocElement = containerEl === doc.documentElement;
   const parentJSON = isDocElement ? doc.body : containerEl;
@@ -108,30 +129,59 @@ export const resumeContainer = (containerEl: Element) => {
   const meta = JSON.parse(unescapeText(script.textContent || '{}')) as SnapshotState;
 
   // Collect all elements
-  const elements = new Map<string, QwikElement>();
+  const elements = new Map<string, QwikElement | Node>();
 
   const getObject: GetObject = (id) => {
     return getObjectImpl(id, elements, meta.objs, containerState);
   };
 
-  let maxId = 0;
-  getNodesInScope(containerEl, hasQId).forEach((el) => {
+  const elementWalker = doc.createTreeWalker(containerEl, SHOW_COMMENT | SHOW_ELEMENT, {
+    acceptNode(node: Element | Comment) {
+      if (isComment(node)) {
+        const data = node.data;
+        if (data.startsWith('qv ')) {
+          const close = findClose(node);
+          const virtual = new VirtualElementImpl(node, close);
+          const id = directGetAttribute(virtual, ELEMENT_ID);
+          if (id) {
+            const elCtx = getContext(virtual);
+            elCtx.$id$ = id;
+            elements.set(ELEMENT_ID_PREFIX + id, virtual);
+            maxId = Math.max(maxId, strToInt(id));
+          }
+        } else if (data.startsWith('t=')) {
+          const id = data.slice(2);
+          elements.set(ELEMENT_ID_PREFIX + data.slice(2), getTextNode(node));
+          maxId = Math.max(maxId, strToInt(id));
+        }
+        return FILTER_SKIP;
+      }
+      if (isContainer(node)) {
+        return FILTER_REJECT;
+      }
+      return node.hasAttribute(ELEMENT_ID) ? FILTER_ACCEPT : FILTER_SKIP;
+    },
+  });
+
+  let el: Node | null = null;
+  while ((el = elementWalker.nextNode())) {
+    assertElement(el);
     const id = directGetAttribute(el, ELEMENT_ID);
     assertDefined(id, `resume: element missed q:id`, el);
-    const ctx = getContext(el);
-    ctx.$id$ = id;
-    if (isElement(el)) {
-      ctx.$vdom$ = domToVnode(el);
-    }
+    const elCtx = getContext(el);
+    elCtx.$id$ = id;
+    elCtx.$vdom$ = domToVnode(el);
     elements.set(ELEMENT_ID_PREFIX + id, el);
     maxId = Math.max(maxId, strToInt(id));
-  });
+  }
+
   containerState.$elementIndex$ = ++maxId;
 
   const parser = createParser(getObject, containerState, doc);
 
   // Revive proxies with subscriptions into the proxymap
-  reviveValues(meta.objs, meta.subs, getObject, containerState, parser);
+  reviveValues(meta.objs, parser);
+  reviveSubscriptions(meta.objs, meta.subs, getObject, containerState, parser);
 
   // Rebuild target objects
   for (const obj of meta.objs) {
@@ -143,7 +193,8 @@ export const resumeContainer = (containerEl: Element) => {
     const ctxMeta = meta.ctx[elementID];
     const el = elements.get(elementID);
     assertDefined(el, `resume: cant find dom node for id`, elementID);
-    const ctx = getContext(el);
+    assertQwikElement(el);
+    const elCtx = getContext(el);
     const refMap = ctxMeta.r;
     const seq = ctxMeta.s;
     const host = ctxMeta.h;
@@ -152,20 +203,20 @@ export const resumeContainer = (containerEl: Element) => {
 
     if (refMap) {
       assertTrue(isElement(el), 'el must be an actual DOM element');
-      ctx.$refMap$ = refMap.split(' ').map(getObject);
-      ctx.li = getDomListeners(ctx, containerEl);
+      elCtx.$refMap$ = refMap.split(' ').map(getObject);
+      elCtx.li = getDomListeners(elCtx, containerEl);
     }
     if (seq) {
-      ctx.$seq$ = seq.split(' ').map(getObject);
+      elCtx.$seq$ = seq.split(' ').map(getObject);
     }
     if (watches) {
-      ctx.$watches$ = watches.split(' ').map(getObject);
+      elCtx.$watches$ = watches.split(' ').map(getObject);
     }
     if (contexts) {
-      ctx.$contexts$ = new Map();
+      elCtx.$contexts$ = new Map();
       for (const part of contexts.split(' ')) {
         const [key, value] = part.split('=');
-        ctx.$contexts$.set(key, getObject(value));
+        elCtx.$contexts$.set(key, getObject(value));
       }
     }
 
@@ -175,10 +226,10 @@ export const resumeContainer = (containerEl: Element) => {
       const styleIds = el.getAttribute(QScopedStyle);
       assertDefined(props, `resume: props missing in host metadata`, host);
       assertDefined(renderQrl, `resume: renderQRL missing in host metadata`, host);
-      ctx.$scopeIds$ = styleIds ? styleIds.split(' ') : null;
-      ctx.$mounted$ = true;
-      ctx.$props$ = getObject(props);
-      ctx.$componentQrl$ = getObject(renderQrl);
+      elCtx.$scopeIds$ = styleIds ? styleIds.split(' ') : null;
+      elCtx.$mounted$ = true;
+      elCtx.$props$ = getObject(props);
+      elCtx.$componentQrl$ = getObject(renderQrl);
     }
   }
 
@@ -247,29 +298,44 @@ export const _pauseFromContexts = async (
 ): Promise<SnapshotResult> => {
   const collector = createCollector(containerState);
   const listeners: SnapshotListener[] = [];
+
+  // TODO: optimize
   for (const ctx of allContexts) {
-    const el = ctx.$element$;
-    const ctxLi = ctx.li;
-    for (const key of Object.keys(ctxLi)) {
-      for (const qrl of ctxLi[key]) {
-        const captured = qrl.$captureRef$;
-        if (captured) {
-          for (const obj of captured) {
-            collectValue(obj, collector, true);
+    if (ctx.$watches$) {
+      for (const watch of ctx.$watches$) {
+        if (qDev) {
+          if (watch.$flags$ & WatchFlagsIsDirty) {
+            logWarn('Serializing dirty watch. Looks like an internal error.');
+          }
+          if (!isConnected(watch)) {
+            logWarn('Serializing disconneted watch. Looks like an internal error.');
           }
         }
-        if (isElement(el)) {
-          listeners.push({
-            key,
-            qrl,
-            el,
-            eventName: getEventName(key),
-          });
-        }
+        destroyWatch(watch);
       }
     }
-    if (ctx.$watches$) {
-      collector.$watches$.push(...ctx.$watches$);
+  }
+
+  for (const ctx of allContexts) {
+    const el = ctx.$element$;
+    const ctxListeners = ctx.li;
+    for (const listener of ctxListeners) {
+      const key = listener[0];
+      const qrl = listener[1];
+      const captured = qrl.$captureRef$;
+      if (captured) {
+        for (const obj of captured) {
+          collectValue(obj, collector, true);
+        }
+      }
+      if (isElement(el)) {
+        listeners.push({
+          key,
+          qrl,
+          el,
+          eventName: getEventName(key),
+        });
+      }
     }
   }
 
@@ -316,7 +382,7 @@ export const _pauseFromContexts = async (
   // Wait for remaining promises
   while ((promises = collector.$promises$).length > 0) {
     collector.$promises$ = [];
-    await Promise.allSettled(promises);
+    await Promise.all(promises);
   }
 
   // Convert objSet to array
@@ -379,38 +445,28 @@ export const _pauseFromContexts = async (
   };
 
   // Compute subscriptions
-  const subsMap = new Map<
-    any,
-    { subscriber: Subscriber | '$'; data: string[] | number | null }[]
-  >();
+  const subsMap = new Map<any, (Subscriptions | number)[]>();
   objs.forEach((obj) => {
-    const proxy = containerState.$proxyMap$.get(obj);
-    const flags = getProxyFlags(proxy);
-    if (flags === undefined) {
-      return;
+    const subs = getManager(obj, containerState)?.$subs$;
+    if (!subs) {
+      return null;
     }
-    const subsObj: { subscriber: Subscriber | '$'; data: string[] | number | null }[] = [];
+    const flags = getProxyFlags(obj) ?? 0;
+    const convered: (Subscriptions | number)[] = [];
     if (flags > 0) {
-      subsObj.push({
-        subscriber: '$',
-        data: flags,
-      });
+      convered.push(flags);
     }
-    const subs = getProxySubs(proxy);
-    assertDefined(subs, 'subs must be defined');
-    subs.forEach((set, key) => {
-      if (isNode(key) && isVirtualElement(key)) {
-        if (!collector.$elements$.includes(key)) {
-          return;
+    for (const sub of subs) {
+      const host = sub[1];
+      if (sub[0] === 0 && isNode(host) && isVirtualElement(host)) {
+        if (!collector.$elements$.includes(host)) {
+          continue;
         }
       }
-      subsObj.push({
-        subscriber: key,
-        data: set ? Array.from(set) : null,
-      });
-    });
-    if (subsObj.length > 0) {
-      subsMap.set(obj, subsObj);
+      convered.push(sub);
+    }
+    if (convered.length > 0) {
+      subsMap.set(obj, convered);
     }
   });
 
@@ -436,26 +492,24 @@ export const _pauseFromContexts = async (
   }
 
   // Serialize object subscriptions
-  const subs = objs
-    .map((obj) => {
-      const sub = subsMap.get(obj);
-      if (!sub) {
-        return undefined;
-      }
-      const subsObj: Record<string, string[] | number | null> = {};
-      sub.forEach(({ subscriber, data }) => {
-        if (subscriber === '$') {
-          subsObj[subscriber] = data;
-        } else {
-          const id = getObjId(subscriber);
-          if (id !== null) {
-            subsObj[id] = data;
+  const subs: string[][] = [];
+  for (const obj of objs) {
+    const value = subsMap.get(obj);
+    if (value == null) {
+      break;
+    }
+    subs.push(
+      value
+        .map((s) => {
+          if (typeof s === 'number') {
+            return `_${s}`;
           }
-        }
-      });
-      return subsObj;
-    })
-    .filter(isNotNullable);
+          return serializeSubscription(s, getObjId);
+        })
+        .filter(isNotNullable)
+    );
+  }
+  assertEqual(subs.length, subsMap.size, 'missing subscriptions to serialize', subs, subsMap);
 
   // Serialize objects
   const convertedObjs = objs.map((obj) => {
@@ -472,7 +526,7 @@ export const _pauseFromContexts = async (
         return obj;
 
       default:
-        const value = serializeValue(obj, getObjId, containerState);
+        const value = serializeValue(obj, mustGetObjId, containerState);
         if (value !== undefined) {
           return value;
         }
@@ -557,18 +611,6 @@ export const _pauseFromContexts = async (
     }
   });
 
-  for (const watch of collector.$watches$) {
-    if (qDev) {
-      if (watch.$flags$ & WatchFlagsIsDirty) {
-        logWarn('Serializing dirty watch. Looks like an internal error.');
-      }
-      if (!isConnected(watch)) {
-        logWarn('Serializing disconneted watch. Looks like an internal error.');
-      }
-    }
-    destroyWatch(watch);
-  }
-
   // Sanity check of serialized element
   if (qDev) {
     elementToIndex.forEach((value, el) => {
@@ -588,6 +630,20 @@ export const _pauseFromContexts = async (
     listeners,
     mode: canRender ? 'render' : 'listeners',
   };
+};
+
+export const getManager = (obj: any, containerState: ContainerState) => {
+  if (!isObject(obj)) {
+    return undefined;
+  }
+  if (obj instanceof SignalImpl) {
+    return getProxyManager(obj);
+  }
+  const proxy = containerState.$proxyMap$.get(obj);
+  if (proxy) {
+    return getProxyManager(proxy);
+  }
+  return undefined;
 };
 
 export const getQwikJSON = (parentElm: Element): HTMLScriptElement | undefined => {
@@ -628,40 +684,41 @@ export const getNodesInScope = (parent: Element, predicate: (el: Node) => boolea
   return pars;
 };
 
-const reviveValues = (
-  objs: any[],
-  subs: any[],
-  getObject: GetObject,
-  containerState: ContainerState,
-  parser: Parser
-) => {
+const reviveValues = (objs: any[], parser: Parser) => {
   for (let i = 0; i < objs.length; i++) {
     const value = objs[i];
     if (isString(value)) {
       objs[i] = value === UNDEFINED_PREFIX ? undefined : parser.prepare(value);
     }
   }
-  for (let i = 0; i < subs.length; i++) {
+};
+
+const reviveSubscriptions = (
+  objs: any[],
+  objsSubs: any[],
+  getObject: GetObject,
+  containerState: ContainerState,
+  parser: Parser
+) => {
+  for (let i = 0; i < objsSubs.length; i++) {
     const value = objs[i];
-    const sub = subs[i];
-    if (sub) {
-      const converted = new Map();
-      let flags = 0;
-      for (const key of Object.keys(sub)) {
-        const v = sub[key];
-        if (key === '$') {
-          flags = v as number;
-          continue;
+    const subs = objsSubs[i] as string[];
+    if (subs) {
+      const converted: Subscriptions[] = [];
+      let flag = 0;
+      for (const sub of subs) {
+        if (sub.startsWith('_')) {
+          flag = parseInt(sub.slice(1), 10);
+        } else {
+          converted.push(parseSubscription(sub, getObject));
         }
-        const el = getObject(key);
-        if (!el) {
-          logWarn('QWIK can not revive subscriptions because of missing element ID', key, value);
-          continue;
-        }
-        const set = v === null ? null : (new Set(v as any) as Set<string>);
-        converted.set(el, set);
       }
-      createProxy(value, containerState, flags, converted);
+      if (flag > 0) {
+        value[QObjectFlagsSymbol] = flag;
+      }
+      if (!parser.subs(value, converted)) {
+        createProxy(value, containerState, converted);
+      }
     }
   }
 };
@@ -674,21 +731,11 @@ const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => 
   if (obj && typeof obj == 'object') {
     if (isArray(obj)) {
       for (let i = 0; i < obj.length; i++) {
-        const value = obj[i];
-        if (typeof value == 'string') {
-          obj[i] = getObject(value);
-        } else {
-          reviveNestedObjects(value, getObject, parser);
-        }
+        obj[i] = getObject(obj[i]);
       }
     } else if (isSerializableObject(obj)) {
       for (const key of Object.keys(obj)) {
-        const value = obj[key];
-        if (typeof value == 'string') {
-          obj[key] = getObject(value);
-        } else {
-          reviveNestedObjects(value, getObject, parser);
-        }
+        obj[key] = getObject(obj[key]);
       }
     }
   }
@@ -708,7 +755,7 @@ const OBJECT_TRANSFORMS: Record<string, (obj: any, containerState: ContainerStat
 
 const getObjectImpl = (
   id: string,
-  elements: Map<string, QwikElement>,
+  elements: Map<string, QwikElement | Node>,
   objs: any[],
   containerState: ContainerState
 ) => {
@@ -739,9 +786,9 @@ const getObjectImpl = (
 const collectProps = (elCtx: QContext, collector: Collector) => {
   const parentCtx = elCtx.$parent$;
   if (parentCtx && elCtx.$props$ && collector.$elements$.includes(parentCtx.$element$ as any)) {
-    const subs = getProxySubs(elCtx.$props$);
+    const subs = getProxyManager(elCtx.$props$)?.$subs$;
     const el = elCtx.$element$ as VirtualElement;
-    if (subs && subs.has(el)) {
+    if (subs && subs.some((e) => e[0] === 0 && e[1] === el)) {
       collectElement(el, collector);
     }
   }
@@ -752,7 +799,6 @@ export interface Collector {
   $objSet$: Set<any>;
   $noSerialize$: any[];
   $elements$: VirtualElement[];
-  $watches$: SubscriberDescriptor[];
   $containerState$: ContainerState;
   $promises$: Promise<any>[];
 }
@@ -764,7 +810,6 @@ const createCollector = (containerState: ContainerState): Collector => {
     $objSet$: new Set(),
     $noSerialize$: [],
     $elements$: [],
-    $watches$: [],
     $promises$: [],
   };
 };
@@ -787,25 +832,25 @@ const collectElement = (el: VirtualElement, collector: Collector) => {
   }
 };
 
-export const collectElementData = (ctx: QContext, collector: Collector) => {
-  if (ctx.$props$) {
-    collectValue(ctx.$props$, collector, false);
+export const collectElementData = (elCtx: QContext, collector: Collector) => {
+  if (elCtx.$props$) {
+    collectValue(elCtx.$props$, collector, false);
   }
-  if (ctx.$componentQrl$) {
-    collectValue(ctx.$componentQrl$, collector, false);
+  if (elCtx.$componentQrl$) {
+    collectValue(elCtx.$componentQrl$, collector, false);
   }
-  if (ctx.$seq$) {
-    for (const obj of ctx.$seq$) {
+  if (elCtx.$seq$) {
+    for (const obj of elCtx.$seq$) {
       collectValue(obj, collector, false);
     }
   }
-  if (ctx.$watches$) {
-    for (const obj of ctx.$watches$) {
+  if (elCtx.$watches$) {
+    for (const obj of elCtx.$watches$) {
       collectValue(obj, collector, false);
     }
   }
-  if (ctx.$contexts$) {
-    for (const obj of ctx.$contexts$.values()) {
+  if (elCtx.$contexts$) {
+    for (const obj of elCtx.$contexts$.values()) {
       collectValue(obj, collector, false);
     }
   }
@@ -819,18 +864,22 @@ export const unescapeText = (str: string) => {
   return str.replace(/\\x3C(\/?script)/g, '<$1');
 };
 
-const collectSubscriptions = (proxy: any, collector: Collector) => {
-  const subs = getProxySubs(proxy);
-  assertDefined(subs, 'subs must be defined');
-  if (collector.$seen$.has(subs)) {
+export const collectSubscriptions = (manager: LocalSubscriptionManager, collector: Collector) => {
+  if (collector.$seen$.has(manager)) {
     return;
   }
-  collector.$seen$.add(subs);
-  for (const key of Array.from(subs.keys())) {
-    if (isNode(key) && isVirtualElement(key)) {
-      collectDeferElement(key, collector);
+  collector.$seen$.add(manager);
+
+  const subs = manager.$subs$;
+  assertDefined(subs, 'subs must be defined');
+  for (const key of subs) {
+    const host = key[1];
+    if (isNode(host) && isVirtualElement(host)) {
+      if (key[0] === 0) {
+        collectDeferElement(host, collector);
+      }
     } else {
-      collectValue(key, collector, true);
+      collectValue(host, collector, true);
     }
   }
 };
@@ -867,33 +916,13 @@ const getPromiseValue = (promise: Promise<any>): PromiseValue => {
   return (promise as any)[PROMISE_VALUE];
 };
 
-const collectValue = (obj: any, collector: Collector, leaks: boolean) => {
+export const collectValue = (obj: any, collector: Collector, leaks: boolean) => {
   if (obj !== null) {
     const objType = typeof obj;
-    const seen = collector.$seen$;
     switch (objType) {
-      case 'function': {
-        if (seen.has(obj)) {
-          return;
-        }
-        seen.add(obj);
-        if (!fastShouldSerialize(obj)) {
-          collector.$objSet$.add(undefined);
-          collector.$noSerialize$.push(obj);
-          return;
-        }
-        if (isQrl(obj)) {
-          collector.$objSet$.add(obj);
-          if (obj.$captureRef$) {
-            for (const item of obj.$captureRef$) {
-              collectValue(item, collector, leaks);
-            }
-          }
-          return;
-        }
-        break;
-      }
+      case 'function':
       case 'object': {
+        const seen = collector.$seen$;
         if (seen.has(obj)) {
           return;
         }
@@ -903,6 +932,25 @@ const collectValue = (obj: any, collector: Collector, leaks: boolean) => {
           collector.$noSerialize$.push(obj);
           return;
         }
+
+        const input = obj;
+        const target = getProxyTarget(obj);
+        if (target) {
+          obj = target;
+          if (seen.has(obj)) {
+            return;
+          }
+          seen.add(obj);
+          if (leaks) {
+            collectSubscriptions(getProxyManager(input)!, collector);
+          }
+        }
+        const collected = collectDeps(obj, collector, leaks);
+        if (collected) {
+          collector.$objSet$.add(obj);
+          return;
+        }
+
         if (isPromise(obj)) {
           collector.$promises$.push(
             resolvePromise(obj).then((value) => {
@@ -912,36 +960,18 @@ const collectValue = (obj: any, collector: Collector, leaks: boolean) => {
           return;
         }
 
-        const target = getProxyTarget(obj);
-        const input = obj;
-
-        // If proxy collect subscriptions
-        if (target) {
-          if (leaks) {
-            collectSubscriptions(input, collector);
-          }
-          obj = target;
-          if (seen.has(obj)) {
+        if (objType === 'object') {
+          if (isNode(obj)) {
             return;
           }
-          seen.add(obj);
-
-          if (isResourceReturn(obj)) {
-            collector.$objSet$.add(target);
-            collectValue(obj.promise, collector, leaks);
-            collectValue(obj.resolved, collector, leaks);
-            return;
-          }
-        } else if (isNode(obj)) {
-          return;
-        }
-        if (isArray(obj)) {
-          for (let i = 0; i < obj.length; i++) {
-            collectValue(input[i], collector, leaks);
-          }
-        } else {
-          for (const key of Object.keys(obj)) {
-            collectValue(input[key], collector, leaks);
+          if (isArray(obj)) {
+            for (let i = 0; i < obj.length; i++) {
+              collectValue(obj[i], collector, leaks);
+            }
+          } else if (isSerializableObject(obj)) {
+            for (const key of Object.keys(obj)) {
+              collectValue(obj[key], collector, leaks);
+            }
           }
         }
         break;
@@ -975,4 +1005,15 @@ export const getEventName = (attribute: string) => {
   const colonPos = attribute.indexOf(':');
   assertTrue(colonPos >= 0, 'colon not found in attribute');
   return fromKebabToCamelCase(attribute.slice(colonPos + 1));
+};
+
+const getTextNode = (mark: Comment) => {
+  const nextNode = mark.nextSibling!;
+  if (isText(nextNode)) {
+    return nextNode;
+  } else {
+    const textNode = mark.ownerDocument.createTextNode('');
+    mark.parentElement!.insertBefore(textNode, mark);
+    return textNode;
+  }
 };

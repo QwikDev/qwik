@@ -12,13 +12,14 @@ import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Ref, useRef } from '../../use/use-ref';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
-import { useClientEffect$ } from '../../use/use-watch';
+import { useClientEffect$, useWatch$ } from '../../use/use-watch';
 import { delay } from '../../util/promises';
 import { SSRComment } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
 import { jsx } from '../jsx/jsx-runtime';
 import { renderSSR, RenderSSROptions } from './render-ssr';
 import { useStore } from '../../use/use-store.public';
+import { useSignal } from '../../use/use-signal';
 
 const renderSSRSuite = suite('renderSSR');
 renderSSRSuite('render attributes', async () => {
@@ -52,13 +53,6 @@ renderSSRSuite('render class', async () => {
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <div class="stuff m-0 p-2 active container"></div>
     </html>`
-  );
-});
-
-renderSSRSuite('render htmlFor', async () => {
-  await testSSR(
-    <label htmlFor="stuff"></label>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><label for="stuff"></label></html>'
   );
 });
 
@@ -564,6 +558,26 @@ renderSSRSuite('mixes slots', async () => {
   );
 });
 
+renderSSRSuite('component RenderSignals()', async () => {
+  await testSSR(
+    <RenderSignals />,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <!--qv q:id=0 q:key=sX:-->
+      <head q:head>
+        <title q:head>value</title>
+        <style q:head>
+          value
+        </style>
+        <script q:head>
+          value
+        </script>
+      </head>
+      <!--/qv-->
+    </html>`
+  );
+});
+
 renderSSRSuite('component useContextProvider()', async () => {
   await testSSR(
     <Context>
@@ -711,6 +725,7 @@ renderSSRSuite('containerTagName', async () => {
     <>
       <Styles />
       <UseClientEffect></UseClientEffect>
+      <section></section>
     </>,
     `<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="/manu/folder">
       <link rel="stylesheet" href="/global.css">
@@ -722,6 +737,7 @@ renderSSRSuite('containerTagName', async () => {
         <div on:qvisible="/runtimeQRL#_[0]
 /runtimeQRL#_[1]" q:id="2"></div>
       <!--/qv-->
+      <section></section>
     </container>`,
     {
       containerTagName: 'container',
@@ -994,6 +1010,10 @@ export const UseClientEffect = component$(() => {
   useClientEffect$(() => {
     console.warn('second client effect');
   });
+  useWatch$(async () => {
+    await delay(10);
+  });
+
   return <div />;
 });
 
@@ -1006,6 +1026,19 @@ export const HeadCmp = component$(() => {
       <title>hola</title>
       <Slot></Slot>
     </head>
+  );
+});
+
+export const RenderSignals = component$(() => {
+  const signal = useSignal('value');
+  return (
+    <>
+      <head>
+        <title>{signal.value}</title>
+        <style>{signal.value}</style>
+        <script>{signal.value}</script>
+      </head>
+    </>
   );
 });
 
@@ -1061,4 +1094,22 @@ export const DelayResource = component$((props: { text: string; delay: number })
 
 export const NullCmp = component$(() => {
   return null;
+});
+
+export const EffectTransparent = component$(() => {
+  useClientEffect$(() => {
+    console.warn('log');
+  });
+  return <Slot />;
+});
+
+export const EffectTransparentRoot = component$(() => {
+  useClientEffect$(() => {
+    console.warn('log');
+  });
+  return (
+    <EffectTransparent>
+      <section>Hello</section>
+    </EffectTransparent>
+  );
 });

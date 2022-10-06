@@ -1,5 +1,5 @@
 import { assertDefined } from '../assert/assert';
-import { ELEMENT_ID, OnRenderProp, QSlot, RenderEvent } from '../util/markers';
+import { ELEMENT_ID, QSlot, RenderEvent } from '../util/markers';
 import { safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { isArray, isObject, isString, ValueOrPromise } from '../util/types';
@@ -18,11 +18,11 @@ import { handleError } from './error-handling';
 
 export interface ExecuteComponentOutput {
   node: JSXNode | null;
-  rctx: RenderContext;
+  rCtx: RenderContext;
 }
 
 export const executeComponent = (
-  rctx: RenderContext,
+  rCtx: RenderContext,
   elCtx: QContext
 ): ValueOrPromise<ExecuteComponentOutput> => {
   elCtx.$dirty$ = false;
@@ -32,7 +32,7 @@ export const executeComponent = (
   const hostElement = elCtx.$element$;
   const componentQRL = elCtx.$componentQrl$;
   const props = elCtx.$props$;
-  const newCtx = pushRenderContext(rctx, elCtx);
+  const newCtx = pushRenderContext(rCtx, elCtx);
   const invocatinContext = newInvokeContext(hostElement, undefined, RenderEvent);
   const waitOn = (invocatinContext.$waitOn$ = []);
   assertDefined(componentQRL, `render: host element to render must has a $renderQrl$:`, elCtx);
@@ -43,40 +43,39 @@ export const executeComponent = (
 
   // Invoke render hook
   invocatinContext.$subscriber$ = hostElement;
-  invocatinContext.$renderCtx$ = rctx;
+  invocatinContext.$renderCtx$ = rCtx;
 
   // Resolve render function
-  componentQRL.$setContainer$(rctx.$static$.$containerState$.$containerEl$);
+  componentQRL.$setContainer$(rCtx.$static$.$containerState$.$containerEl$);
   const componentFn = componentQRL.getFn(invocatinContext);
 
   return safeCall(
     () => componentFn(props),
     (jsxNode) => {
-      elCtx.$attachedListeners$ = false;
       if (waitOn.length > 0) {
         return Promise.all(waitOn).then(() => {
           if (elCtx.$dirty$) {
-            return executeComponent(rctx, elCtx);
+            return executeComponent(rCtx, elCtx);
           }
           return {
             node: jsxNode,
-            rctx: newCtx,
+            rCtx: newCtx,
           };
         });
       }
       if (elCtx.$dirty$) {
-        return executeComponent(rctx, elCtx);
+        return executeComponent(rCtx, elCtx);
       }
       return {
         node: jsxNode,
-        rctx: newCtx,
+        rCtx: newCtx,
       };
     },
     (err) => {
-      handleError(err, hostElement, rctx);
+      handleError(err, hostElement, rCtx);
       return {
         node: SkipRender,
-        rctx: newCtx,
+        rCtx: newCtx,
       };
     }
   );
@@ -176,11 +175,11 @@ export const getQId = (el: QwikElement): string | null => {
   return null;
 };
 
-export const setQId = (rctx: RenderContext, ctx: QContext) => {
-  const id = getNextIndex(rctx);
-  ctx.$id$ = id;
+export const setQId = (rCtx: RenderContext, elCtx: QContext) => {
+  const id = getNextIndex(rCtx);
+  elCtx.$id$ = id;
   if (qSerialize) {
-    ctx.$element$.setAttribute(ELEMENT_ID, id);
+    elCtx.$element$.setAttribute(ELEMENT_ID, id);
   }
 };
 
@@ -188,4 +187,4 @@ export const hasStyle = (containerState: ContainerState, styleId: string) => {
   return containerState.$styleIds$.has(styleId);
 };
 
-export const SKIPS_PROPS = [QSlot, OnRenderProp, 'children'];
+export const SKIPS_PROPS = [QSlot, 'children'];

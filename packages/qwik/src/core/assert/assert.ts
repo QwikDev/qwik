@@ -30,3 +30,10 @@ export function assertTrue(value1: any, text: string, ...parts: any[]): asserts 
     throw logErrorAndStop(text, ...parts);
   }
 }
+
+export function assertNumber(value1: any, text: string, ...parts: any[]): asserts value1 is number {
+  if (qDev) {
+    if (typeof value1 === 'number') return;
+    throw logErrorAndStop(text, ...parts);
+  }
+}

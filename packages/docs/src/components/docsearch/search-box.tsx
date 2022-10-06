@@ -53,7 +53,7 @@ export const SearchBox = component$(({ translations = {}, ...props }: SearchBoxP
           props.state.activeItemId = null;
         }}
       >
-        <label class="DocSearch-MagnifierLabel" htmlFor="docsearch-input" id="docsearch-label">
+        <label class="DocSearch-MagnifierLabel" for="docsearch-input" id="docsearch-label">
           <SearchIcon />
         </label>
 

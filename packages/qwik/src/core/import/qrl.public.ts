@@ -1,3 +1,6 @@
+import { qRuntimeQrl, qSerialize } from '../util/qdev';
+import { createQRL } from './qrl-class';
+
 // <docs markdown="../readme.md#QRL">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#QRL instead)
@@ -122,10 +125,6 @@
  *
  * @public
  */
-
-import { qRuntimeQrl, qSerialize } from '../util/qdev';
-import { createQRL } from './qrl-class';
-
 // </docs>
 export interface QRL<TYPE = any> {
   __brand__QRL__: TYPE;

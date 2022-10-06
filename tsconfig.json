@@ -68,14 +68,13 @@
     "packages/qwik-city",
     "packages/qwik-react/src",
     "scripts",
-    "starters"
+    "starters/apps/e2e"
   ],
   "exclude": [
     "packages/create-qwik/dist",
     "packages/docs/dist",
     "packages/docs/server",
     "**/lib",
-    "starters",
     "packages/qwik/**/*.d.ts"
   ]
 }

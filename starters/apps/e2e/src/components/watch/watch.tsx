@@ -5,11 +5,13 @@ interface State {
   count: number;
   doubleCount: number;
   debounced: number;
-
   server: string;
 }
 
 export const Watch = component$(() => {
+  const nav = useStore({
+    path: '/',
+  });
   const store = useStore<State>({
     count: 2,
     doubleCount: 0,
@@ -21,9 +23,15 @@ export const Watch = component$(() => {
     store.server = 'comes from server';
   });
 
+  // This watch should be treeshaken
+  useWatch$(({ track }) => {
+    const path = track(() => nav.path);
+    console.log(path);
+  });
+
   // Double count watch
   useWatch$(({ track }) => {
-    const count = track(store, 'count');
+    const count = track(() => store.count);
     store.doubleCount = 2 * count;
   });
 
@@ -39,14 +47,14 @@ export const Watch = component$(() => {
   });
 
   console.log('PARENT renders');
-  return <WatchShell store={store} />;
+  return <WatchShell nav={nav} store={store} />;
 });
 
-export const WatchShell = component$(({ store }: { store: State }) => {
+export const WatchShell = component$(({ store }: { nav: any; store: State }) => {
   return (
     <div>
       <div id="server-content">{store.server}</div>
-      <div id="parent">{store.count}</div>
+      <div id="parent">{store.count + 0}</div>
       <Child state={store} />
       <button id="add" onClick$={() => store.count++}>
         +

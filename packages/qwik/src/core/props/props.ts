@@ -1,8 +1,11 @@
-import { createProxy, getProxyTarget, QObjectImmutable } from '../object/q-object';
+import {
+  getProxyManager,
+  getProxyTarget,
+} from '../object/q-object';
 import { resumeContainer } from '../object/store';
 import { QContainerAttr } from '../util/markers';
 import type { OnRenderFn } from '../component/component.public';
-import { destroyWatch, SubscriberDescriptor } from '../use/use-watch';
+import { destroyWatch, SubscriberEffect } from '../use/use-watch';
 import { pauseContainer } from '../object/store';
 import { qSerialize } from '../util/qdev';
 import type { QRLInternal } from '../import/qrl-class';
@@ -10,10 +13,11 @@ import { directGetAttribute } from '../render/fast-calls';
 import { assertDefined, assertTrue } from '../assert/assert';
 import type { QRL } from '../import/qrl.public';
 import type { StyleAppend } from '../use/use-core';
-import { ContainerState, getContainerState, SubscriptionManager } from '../render/container';
+import { getContainerState, SubscriptionManager } from '../render/container';
 import type { ProcessedJSXNode } from '../render/dom/render-dom';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import { fromCamelToKebabCase } from '../util/case';
+import type { Listener } from './props-on';
 
 export const Q_CTX = '_qc_';
 
@@ -42,14 +46,14 @@ export interface QContext {
   $element$: QwikElement;
   $refMap$: any[];
   $dirty$: boolean;
-  $attachedListeners$: boolean;
+  $needAttachListeners$: boolean;
   $id$: string;
   $mounted$: boolean;
   $props$: Record<string, any> | null;
   $componentQrl$: QRLInternal<OnRenderFn<any>> | null;
-  li: Record<string, QRLInternal<any>[]>;
+  li: Listener[];
   $seq$: any[] | null;
-  $watches$: SubscriberDescriptor[] | null;
+  $watches$: SubscriberEffect[] | null;
   $contexts$: Map<string, any> | null;
   $appendStyles$: StyleAppend[] | null;
   $scopeIds$: string[] | null;
@@ -68,11 +72,11 @@ export const getContext = (element: Element | VirtualElement): QContext => {
     (element as any)[Q_CTX] = ctx = {
       $dirty$: false,
       $mounted$: false,
-      $attachedListeners$: false,
+      $needAttachListeners$: false,
       $id$: '',
       $element$: element,
       $refMap$: [],
-      li: {},
+      li: [],
       $watches$: null,
       $seq$: null,
       $slots$: null,
@@ -88,19 +92,19 @@ export const getContext = (element: Element | VirtualElement): QContext => {
   return ctx;
 };
 
-export const cleanupContext = (ctx: QContext, subsManager: SubscriptionManager) => {
-  const el = ctx.$element$;
-  ctx.$watches$?.forEach((watch) => {
+export const cleanupContext = (elCtx: QContext, subsManager: SubscriptionManager) => {
+  const el = elCtx.$element$;
+  elCtx.$watches$?.forEach((watch) => {
     subsManager.$clearSub$(watch);
     destroyWatch(watch);
   });
-  if (ctx.$componentQrl$) {
+  if (elCtx.$componentQrl$) {
     subsManager.$clearSub$(el);
   }
-  ctx.$componentQrl$ = null;
-  ctx.$seq$ = null;
-  ctx.$watches$ = null;
-  ctx.$dirty$ = false;
+  elCtx.$componentQrl$ = null;
+  elCtx.$seq$ = null;
+  elCtx.$watches$ = null;
+  elCtx.$dirty$ = false;
 
   (el as any)[Q_CTX] = undefined;
 };
@@ -126,18 +130,11 @@ export const normalizeOnProp = (prop: string) => {
   return scope + ':' + prop;
 };
 
-export const createProps = (target: Record<string, any>, containerState: ContainerState) => {
-  return createProxy(target, containerState, QObjectImmutable);
-};
-
-export const getPropsMutator = (ctx: QContext, containerState: ContainerState) => {
-  let props = ctx.$props$;
-  if (!props) {
-    ctx.$props$ = props = createProps({}, containerState);
-  }
+export const getPropsMutator = (props: Record<string, any>) => {
+  const manager = getProxyManager(props);
+  assertDefined(manager, `props have to be a proxy, but it is not`, props);
   const target = getProxyTarget(props);
   assertDefined(target, `props have to be a proxy, but it is not`, props);
-  const manager = containerState.$subsManager$.$getLocal$(target);
 
   return {
     set(prop: string, value: any) {

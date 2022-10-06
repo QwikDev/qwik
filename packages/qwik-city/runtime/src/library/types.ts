@@ -1,6 +1,6 @@
+import type { NoSerialize } from '@builder.io/qwik';
 import type { ErrorResponse } from '../../../middleware/request-handler/error-handler';
 import type { RedirectResponse } from '../../../middleware/request-handler/redirect-handler';
-import type { NoSerialize } from '@builder.io/qwik';
 
 export interface RouteModule<BODY = unknown> {
   onDelete?: RequestHandler<BODY>;
@@ -41,6 +41,10 @@ export interface RouteLocation {
 
 export interface RouteNavigate {
   path: string;
+}
+
+export interface RequestHeaders {
+  [key: string]: string;
 }
 
 export type MutableRouteLocation = Mutable<RouteLocation>;
@@ -324,6 +328,10 @@ export interface EndpointResponse {
   status: number;
 }
 
+export interface EndpointRequest {
+  headers: RequestHeaders;
+}
+
 export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
   status?: number;
   prefetch?: string[];
@@ -344,6 +352,7 @@ export interface QwikCityRenderDocument extends Document {}
 export interface QwikCityEnvData {
   params: RouteParams;
   response: EndpointResponse;
+  request: EndpointRequest;
 }
 
 export type GetEndpointData<T> = T extends RequestHandler<infer U> ? U : T;

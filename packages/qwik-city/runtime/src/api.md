@@ -264,6 +264,11 @@ export const useLocation: () => RouteLocation;
 // @alpha (undocumented)
 export const useNavigate: () => RouteNavigate;
 
+// Warning: (ae-forgotten-export) The symbol "RequestHeaders" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const useRequestHeaders: () => RequestHeaders | undefined;
+
 // (No @packageDocumentation comment for this package)
 
 ```

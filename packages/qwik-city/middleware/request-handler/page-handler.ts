@@ -6,7 +6,11 @@ import type {
   RenderResult,
   RenderToStringResult,
 } from '@builder.io/qwik/server';
-import type { ClientPageData, QwikCityEnvData } from '../../runtime/src/library/types';
+import type {
+  ClientPageData,
+  QwikCityEnvData,
+  RequestContext,
+} from '../../runtime/src/library/types';
 import { getErrorHtml } from './error-handler';
 import { HttpStatus } from './http-status-codes';
 import type { QwikCityRequestContext, QwikCityRequestOptions, UserResponseContext } from './types';
@@ -19,7 +23,7 @@ export function pageHandler<T = any>(
   routeBundleNames?: string[]
 ): Promise<T> {
   const { status, headers } = userResponse;
-  const { response } = requestCtx;
+  const { response, request } = requestCtx;
   const isPageData = userResponse.type === 'pagedata';
 
   if (isPageData) {
@@ -35,7 +39,7 @@ export function pageHandler<T = any>(
     try {
       const result = await render({
         stream: isPageData ? noopStream : stream,
-        envData: getQwikCityEnvData(userResponse),
+        envData: getQwikCityEnvData(userResponse, request),
         ...opts,
       });
 
@@ -130,10 +134,16 @@ function getPrefetchBundleNames(result: RenderResult, routeBundleNames: string[]
   return bundleNames;
 }
 
-export function getQwikCityEnvData(userResponse: UserResponseContext): {
+export function getQwikCityEnvData(
+  userResponse: UserResponseContext,
+  request: RequestContext
+): {
   url: string;
   qwikcity: QwikCityEnvData;
 } {
+  const headers: { [key: string]: string } = {};
+  request.headers.forEach((v, k) => (headers[k] = v));
+
   const { url, params, pendingBody, resolvedBody, status } = userResponse;
   return {
     url: url.href,
@@ -143,6 +153,7 @@ export function getQwikCityEnvData(userResponse: UserResponseContext): {
         body: pendingBody || resolvedBody,
         status: status,
       },
+      request: { headers },
     },
   };
 }

@@ -1,27 +1,27 @@
-import type { ViteDevServer, Connect } from 'vite';
-import type { ServerResponse } from 'http';
+import type { RenderToStringResult } from '@builder.io/qwik/server';
 import fs from 'fs';
+import type { ServerResponse } from 'http';
 import { join, resolve } from 'path';
-import type { BuildContext } from '../types';
-import type { RouteModule } from '../../runtime/src/library/types';
+import type { Connect, ViteDevServer } from 'vite';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
-import { loadUserResponse, updateRequestCtx } from '../../middleware/request-handler/user-response';
-import { getQwikCityEnvData, pageHandler } from '../../middleware/request-handler/page-handler';
-import { updateBuildContext } from '../build';
+import { fromNodeHttp } from '../../middleware/node/http';
 import { endpointHandler } from '../../middleware/request-handler/endpoint-handler';
 import {
   errorResponse,
   ErrorResponse,
   notFoundHandler,
 } from '../../middleware/request-handler/error-handler';
+import { getQwikCityEnvData, pageHandler } from '../../middleware/request-handler/page-handler';
 import {
   redirectResponse,
   RedirectResponse,
 } from '../../middleware/request-handler/redirect-handler';
-import { getExtension, normalizePath } from '../../utils/fs';
-import type { RenderToStringResult } from '@builder.io/qwik/server';
+import { loadUserResponse, updateRequestCtx } from '../../middleware/request-handler/user-response';
 import { getRouteParams } from '../../runtime/src/library/routing';
-import { fromNodeHttp } from '../../middleware/node/http';
+import type { RouteModule } from '../../runtime/src/library/types';
+import { getExtension, normalizePath } from '../../utils/fs';
+import { updateBuildContext } from '../build';
+import type { BuildContext } from '../types';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
@@ -115,7 +115,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
           // qwik city vite plugin should handle dev ssr rendering
           // but add the qwik city user context to the response object
-          const envData = getQwikCityEnvData(userResponse);
+          const envData = getQwikCityEnvData(userResponse, requestCtx.request);
           if (ctx.isDevServerClientOnly) {
             // because we stringify this content for the client only
             // dev server, there's some potential stringify issues

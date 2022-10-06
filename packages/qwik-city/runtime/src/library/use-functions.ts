@@ -5,7 +5,7 @@ import {
   RouteLocationContext,
   RouteNavigateContext,
 } from './contexts';
-import type { RouteLocation, ResolvedDocumentHead, RouteNavigate, QwikCityEnvData } from './types';
+import type { QwikCityEnvData, ResolvedDocumentHead, RouteLocation, RouteNavigate } from './types';
 
 /**
  * @alpha
@@ -29,3 +29,8 @@ export const useLocation = (): RouteLocation => useContext(RouteLocationContext)
 export const useNavigate = (): RouteNavigate => useContext(RouteNavigateContext);
 
 export const useQwikCityEnv = () => noSerialize(useEnvData<QwikCityEnvData>('qwikcity'));
+
+/**
+ * @alpha
+ */
+export const useRequestHeaders = () => useQwikCityEnv()?.request.headers;

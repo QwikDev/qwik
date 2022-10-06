@@ -1,3 +1,8 @@
+export { Link } from './library/link-component';
+export type { LinkProps } from './library/link-component';
+export { Html, QwikCity } from './library/qwik-city-component';
+export { Content, RouterOutlet } from './library/router-outlet-component';
+export { ServiceWorkerRegister } from './library/sw-component';
 export type {
   ContentHeading,
   ContentMenu,
@@ -7,25 +12,23 @@ export type {
   DocumentLink,
   DocumentMeta,
   DocumentStyle,
-  RequestHandler,
-  RequestEvent,
-  RouteParams,
-  ResponseContext,
-  RequestContext,
+  EndpointHandler,
   QwikCityPlan,
+  RequestContext,
+  RequestEvent,
+  RequestHandler,
   ResolvedDocumentHead,
+  ResponseContext,
   RouteData,
   RouteLocation,
+  RouteParams,
   StaticGenerateHandler,
 } from './library/types';
-
-export { RouterOutlet, Content } from './library/router-outlet-component';
-export { Html, QwikCity } from './library/qwik-city-component';
-export { Link } from './library/link-component';
-export type { LinkProps } from './library/link-component';
-export { ServiceWorkerRegister } from './library/sw-component';
-export { useDocumentHead, useLocation, useContent, useNavigate } from './library/use-functions';
 export { useEndpoint } from './library/use-endpoint';
-
-// @deprecated
-export type { EndpointHandler } from './library/types';
+export {
+  useContent,
+  useDocumentHead,
+  useLocation,
+  useNavigate,
+  useRequestHeaders,
+} from './library/use-functions';

@@ -10,3 +10,14 @@ export function logSuccessFooter() {
   console.log(`   https://qwik.builder.io/media/`);
   console.log(``);
 }
+
+/**
+ * Log the next STEPS *ACTION REQUIRED*
+ */
+export function logNextStep(steps: string[]) {
+  if (steps.length) {
+    console.log(`🔴 ${color.bgGreen(` ACTION REQUIRED! `)}`);
+    steps.forEach((step) => console.log(`${step}`));
+    console.log(``);
+  }
+}

@@ -58,6 +58,7 @@ export interface IntegrationPackageJson {
   dependencies?: { [k: string]: string };
   devDependencies?: { [k: string]: string };
   engines?: { node: string };
+  nextSteps?: string[];
   private?: boolean;
   files?: string[];
   main?: string;

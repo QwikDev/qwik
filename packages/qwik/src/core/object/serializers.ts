@@ -270,6 +270,17 @@ const SignalWrapperSerializer: Serializer<SignalWrapper<any, any>> = {
   },
 };
 
+const NoFiniteNumberSerializer: Serializer<number> = {
+  prefix: '\u0014',
+  test: (v) => typeof v === 'number',
+  serialize: (v) => {
+    return String(v);
+  },
+  prepare: (data) => {
+    return Number(data);
+  },
+  fill: undefined,
+};
 const serializers: Serializer<any>[] = [
   QRLSerializer,
   SignalSerializer,
@@ -283,6 +294,7 @@ const serializers: Serializer<any>[] = [
   DocumentSerializer,
   ComponentSerializer,
   PureFunctionSerializer,
+  NoFiniteNumberSerializer,
 ];
 
 const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.collect);

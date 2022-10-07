@@ -91,7 +91,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
                     ast::ImportDecl {
                         span: DUMMY_SP,
                         type_only: false,
-                        asserts: None,
+                        asserts: import.asserts.clone(),
                         src: Box::new(ast::Str {
                             span: DUMMY_SP,
                             value: fix_path(

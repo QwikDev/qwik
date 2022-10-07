@@ -38,6 +38,7 @@ pub struct Import {
     pub specifier: JsWord,
     pub kind: ImportKind,
     pub synthetic: bool,
+    pub asserts: Option<Box<ast::ObjectLit>>,
 }
 
 pub struct GlobalCollect {
@@ -85,6 +86,7 @@ impl GlobalCollect {
                             specifier,
                             kind: ImportKind::Named,
                             synthetic: true,
+                            asserts: None,
                         },
                     );
                     local
@@ -155,6 +157,7 @@ impl Visit for GlobalCollect {
                             specifier: imported,
                             kind: ImportKind::Named,
                             synthetic: false,
+                            asserts: node.asserts.clone(),
                         },
                     );
                 }
@@ -166,6 +169,7 @@ impl Visit for GlobalCollect {
                             specifier: js_word!("default"),
                             kind: ImportKind::Default,
                             synthetic: false,
+                            asserts: node.asserts.clone(),
                         },
                     );
                 }
@@ -177,6 +181,7 @@ impl Visit for GlobalCollect {
                             specifier: "*".into(),
                             kind: ImportKind::All,
                             synthetic: false,
+                            asserts: node.asserts.clone(),
                         },
                     );
                 }

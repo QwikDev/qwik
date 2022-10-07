@@ -1338,7 +1338,6 @@ const d = $(()=>console.log('thing'));
     });
 }
 
-
 #[test]
 fn example_import_assertion() {
     test_input!(TestInput {

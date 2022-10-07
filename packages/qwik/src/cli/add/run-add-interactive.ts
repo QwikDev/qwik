@@ -218,7 +218,7 @@ function logUpdateAppCommitResult(result: UpdateAppResult) {
     )} to your app`
   );
   console.log(``);
-  const isNextSteps = result.integration.pkgJson.nextSteps || [];
+  const isNextSteps = result.integration.pkgJson.__qwik__?.nextSteps || [];
   logNextStep(isNextSteps);
   logSuccessFooter();
 }

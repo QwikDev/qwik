@@ -67,6 +67,7 @@ export interface IntegrationPackageJson {
   types?: string;
   type?: string;
   __qwik__?: {
+    nextSteps?: string[];
     priority: number;
     viteConfig?: ViteConfigUpdates;
   };

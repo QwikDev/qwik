@@ -170,12 +170,19 @@ export class LocalSubscriptionManager {
     private $containerState$: ContainerState,
     initialMap?: Subscriptions[]
   ) {
-    this.$subs$ = initialMap ? initialMap : [];
+    this.$subs$ = [];
 
+    if (initialMap) {
+      this.$addSubs$(initialMap);
+    }
+    seal(this);
+  }
+
+  $addSubs$(subs: Subscriptions[]) {
+    this.$subs$.push(...subs);
     for (const sub of this.$subs$) {
       this.$addToGroup$(sub[1], this);
     }
-    seal(this);
   }
 
   $addToGroup$(group: SubscriberHost | SubscriberEffect, manager: LocalSubscriptionManager) {

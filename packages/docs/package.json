@@ -5,10 +5,9 @@
   "homepage": "https://qwik.builder.io/",
   "main": "src/main.tsx",
   "scripts": {
-    "build": "yarn build.client && yarn build.server && yarn build.static && yarn ssg",
+    "build": "yarn build.client && yarn build.static && yarn ssg",
     "build.client": "vite build",
-    "build.server": "vite build --ssr src/entry.cloudflare-pages.tsx",
-    "build.static": "echo 'skip'",
+    "build.static": "vite build --ssr src/entry.cloudflare-pages.tsx",
     "contributors": "tsm contributors.ts",
     "dev": "node --inspect ../../node_modules/vite/bin/vite.js --force",
     "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr --force",

@@ -101,7 +101,7 @@ Prefetching code ensures that all of the necessary code for running the applicat
 
 No, for several reasons:
 
-- Existing frameworks must download and execute all of the code ([hydration](/docs/concepts/resumable/)) before the application can be interactive. Typically the download of the code is a smaller time cost than the execution of the code.
+- Existing frameworks must download and execute all of the code ([hydration](../../../docs/concepts/resumable/index.mdx)) before the application can be interactive. Typically the download of the code is a smaller time cost than the execution of the code.
 - Qwik code prefetch only downloads but does not execute the code. Therefore even if Qwik prefetches the same amount of code as the existing frameworks, the result is significant time cost savings.
 - Qwik only prefetches the code which is needed for the current page. Qwik avoids downloading code associated with components that are static. In the worst case, Qwik prefetches the same amount of code as the existing frameworks' best case. In most cases, Qwik prefetches a small fraction of code compared to the existing frameworks.
 - Prefetching of code can happen on other threads than the main thread. Many browsers can even pre-parse the AST of the code off the main thread.

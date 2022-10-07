@@ -123,7 +123,7 @@ const MyComp = component$(() => {
 
 Qwik components can render out of order. A component can render without forcing a parent component to render first or a child components to render as a consequence of the component render. This is an important property of Qwik because it allows Qwik applications to only re-render components which have been invalidated due to a state change rather than re-rendering the whole component tree on a state change.
 
-When components render, they need to have access to their props. Parent components create props. The props must be serializable for the component to render independently from the parent. (See [serialization](https://qwik.builder.io/docs/concepts/resumable#serialization) for an in-depth discussion on what is serializable)
+When components render, they need to have access to their props. Parent components create props. The props must be serializable for the component to render independently from the parent. (See [serialization](../resumable/index.mdx#serialization) for an in-depth discussion on what is serializable)
 
 ## Invalidating child components
 

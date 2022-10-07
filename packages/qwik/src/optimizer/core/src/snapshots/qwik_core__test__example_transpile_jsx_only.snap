@@ -1,0 +1,88 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    return (
+        <Cmp>
+            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+        </Cmp>
+    );
+});
+
+============================= app_component_ckepmxzlub0.ts (ENTRY POINT)==
+
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { qrl } from "@builder.io/qwik";
+export const App_component_ckEPmXZlub0 = (props: Stuff)=>{
+    return /*#__PURE__*/ _jsx(Cmp, {
+        children: /*#__PURE__*/ _jsx("p", {
+            class: "stuff",
+            onClick$: qrl(()=>import("./app_component_cmp_p_onclick_vuxzfutkpto.ts"), "App_component_Cmp_p_onClick_vuXzfUTkpto"),
+            children: "Hello Qwik"
+        })
+    });
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,KAAY,EAAL,KAAK,GAAK;IAC5C,qBACI,KAAC,GAAG;kBACA,cAAA,KAAC,GAAC;YAAC,KAAK,EAAC,OAAO;YAAC,QAAQ;sBAA6B,YAAU;UAAI;MAClE,CACR;AACN,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "app_component_ckepmxzlub0",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    90,
+    241
+  ]
+}
+*/
+============================= app_component_cmp_p_onclick_vuxzfutkpto.ts (ENTRY POINT)==
+
+export const App_component_Cmp_p_onClick_vuXzfUTkpto = ()=>console.log('warn');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDAMuC,IAAM,OAAO,CAAC,GAAG,CAAC,MAAM,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_Cmp_p_onClick_vuXzfUTkpto",
+  "entry": null,
+  "displayName": "App_component_Cmp_p_onClick",
+  "hash": "vuXzfUTkpto",
+  "canonicalFilename": "app_component_cmp_p_onclick_vuxzfutkpto",
+  "extension": "ts",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    176,
+    201
+  ]
+}
+*/
+============================= test.ts ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0.ts"), "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,4FAMjB,CAAC\"}")
+== DIAGNOSTICS ==
+
+[]

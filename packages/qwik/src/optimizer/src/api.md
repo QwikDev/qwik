@@ -384,13 +384,17 @@ export interface TransformOptions {
     // (undocumented)
     mode?: EmitMode;
     // (undocumented)
+    preserveFilenames?: boolean;
+    // (undocumented)
     scope?: string;
     // (undocumented)
     sourceMaps?: boolean;
     // (undocumented)
     srcDir: string;
     // (undocumented)
-    transpile?: boolean;
+    transpileJsx?: boolean;
+    // (undocumented)
+    transpileTs?: boolean;
 }
 
 // @alpha (undocumented)

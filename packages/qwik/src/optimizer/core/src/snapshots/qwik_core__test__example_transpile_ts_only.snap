@@ -1,0 +1,34 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    return (
+        <Cmp>
+            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+        </Cmp>
+    );
+});
+
+============================= test.jsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { inlinedQrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
+    return <Cmp >
+
+            <p class="stuff" onClick$={inlinedQrl(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto")}>Hello Qwik</p>
+
+        </Cmp>;
+}, "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,wBAAW,CAAC,KAAY,GAAK;IAC5C,QACK,GAAG,EAAC;;YACD,CAAC,CAAC,CAAC,KAAK,CAAC,OAAO,CAAC,QAAQ,aAAE,IAAM,OAAO,CAAC,GAAG,CAAC,MAAM,CAAC,8CAAE,UAAU,EAAE,CAAC,CAAC;;QACxE,EAAE,GAAG,EACP;AACN,CAAC,+BAAC,CAAC\"}")
+== DIAGNOSTICS ==
+
+[]

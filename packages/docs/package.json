@@ -5,9 +5,9 @@
   "homepage": "https://qwik.builder.io/",
   "main": "src/main.tsx",
   "scripts": {
-    "build": "yarn build.client && yarn build.static && yarn ssg",
+    "build": "qwik build",
     "build.client": "vite build",
-    "build.static": "vite build --ssr src/entry.static.tsx",
+    "build.preview": "vite build --ssr src/entry.preview.tsx",
     "dev": "node --inspect ../../node_modules/vite/bin/vite.js --force",
     "dev.ssr": "node --inspect ../../node_modules/vite/bin/vite.js --mode ssr --force --open",
     "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr --force",
@@ -16,6 +16,7 @@
     "start": "yarn dev.ssr",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
+    "preview": "qwik build preview && vite preview --open",
     "contributors": "tsm contributors.ts"
   },
   "devDependencies": {

@@ -1360,6 +1360,24 @@ const d = $(()=>console.log('thing'));
     });
 }
 
+#[test]
+fn example_import_assertion() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, $ } from '@builder.io/qwik';
+import json from "./foo.json" assert { type: "json" };
+
+export const Greeter = component$(() => {
+    return json;
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
 #[cfg(target_os = "windows")]
 #[test]
 fn issue_188() {

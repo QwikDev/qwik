@@ -74,7 +74,9 @@ export interface TransformOptions {
   entryStrategy?: EntryStrategy;
   minify?: MinifyMode;
   sourceMaps?: boolean;
-  transpile?: boolean;
+  transpileTs?: boolean;
+  transpileJsx?: boolean;
+  preserveFilenames?: boolean;
   explicitExtensions?: boolean;
   mode?: EmitMode;
   scope?: string;

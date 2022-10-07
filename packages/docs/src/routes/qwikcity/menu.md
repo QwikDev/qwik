@@ -63,3 +63,7 @@
 - [Cloudflare Pages](adaptors/cloudflare-pages/index.mdx)
 - [Netlify Edge](adaptors/netlify-edge/index.mdx)
 - [Node](adaptors/node/index.mdx)
+
+## Starters
+
+- [Partytown](starters/partytown/index.mdx)

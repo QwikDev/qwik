@@ -1,0 +1,48 @@
+---
+title: Qwik City and Partytown
+contributors:
+  - manucorporat
+  - leifermendez
+---
+
+# Partytown
+
+Partytown is a tool for improvment load of externals scripts like Google Analytics, Facebook Pixel, etc.
+If you wanna get more information about it please visite [Partytown](https://partytown.builder.io/)
+
+## How use?
+
+Use Qwik starter script
+
+```bash
+npm run qwik add partytown
+```
+
+The previous command update your app and set the configuration in `vite.config.ts` and add new files inside in your `components` dir.  
+
+```typescript
+// file root.tsx
+import { QwikPartytown } from './components/partytown/partytown';
+  return (
+    <QwikCity>
+      <head>
+        <meta charSet="utf-8" />
+        <QwikPartytown forward={["dataLayer.push"]} />;
+
+        <script
+        async
+        type="text/partytown"
+        src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"
+        />;
+
+      </head>
+      <body lang="en">
+      </body>
+    </QwikCity>
+  );
+});
+```
+
+## Advanced
+
+If you kwno more about of the differents possible options [View more](https://partytown.builder.io/configuration)

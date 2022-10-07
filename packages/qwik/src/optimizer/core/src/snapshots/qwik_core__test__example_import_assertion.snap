@@ -1,0 +1,55 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, $ } from '@builder.io/qwik';
+import json from "./foo.json" assert { type: "json" };
+
+export const Greeter = component$(() => {
+    return json;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Greeter = /*#__PURE__*/ componentQrl(qrl(()=>import("./greeter_component_n7hug2hhu0q"), "Greeter_component_n7HuG2hhU0Q"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,OAAO,iBAAG,iGAErB,CAAC\"}")
+============================= greeter_component_n7hug2hhu0q.js (ENTRY POINT)==
+
+import json from "./foo.json" assert {
+    type: "json"
+};
+export const Greeter_component_n7HuG2hhU0Q = ()=>{
+    return json;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qCAEqC;IAAE,IAAI,EAAE,MAAM;CAAE;6CAEnB,IAAM;IACpC,OAAO,IAAI,CAAC;AAChB,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_n7HuG2hhU0Q",
+  "entry": null,
+  "displayName": "Greeter_component",
+  "hash": "n7HuG2hhU0Q",
+  "canonicalFilename": "greeter_component_n7hug2hhu0q",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    142,
+    168
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

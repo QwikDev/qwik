@@ -7,7 +7,7 @@ import { getPackageManager, panic } from '../utils/utils';
 import { updateApp } from './update-app';
 import type { IntegrationData, UpdateAppResult } from '../types';
 import { relative } from 'path';
-import { logSuccessFooter } from '../utils/log';
+import { logSuccessFooter, logNextStep } from '../utils/log';
 
 export async function runAddInteractive(app: AppCommand, id: string | undefined) {
   console.log(``);
@@ -218,6 +218,7 @@ function logUpdateAppCommitResult(result: UpdateAppResult) {
     )} to your app`
   );
   console.log(``);
-
+  const isNextSteps = result.integration.pkgJson.__qwik__?.nextSteps || [];
+  logNextStep(isNextSteps);
   logSuccessFooter();
 }

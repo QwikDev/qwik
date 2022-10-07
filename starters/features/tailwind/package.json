@@ -7,6 +7,15 @@
   },
   "__qwik__": {
     "priority": -1,
-    "viteConfig": {}
+    "viteConfig": {},
+    "nextSteps": [
+      "------------------------------------------------",
+      "You must add the next lines into global.css file",
+      "global.css -------------------------------------",
+      "",
+      "@tailwind base;",
+      "@tailwind components;",
+      "@tailwind utilities;"
+    ]
   }
 }

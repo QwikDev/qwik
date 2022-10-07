@@ -31,6 +31,15 @@ interface LexicalScopeProps {
 }
 
 export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
+  const immutable = useStore(
+    {
+      stuff: 'foo',
+    },
+    {
+      recursive: true,
+    }
+  );
+  Object.freeze(immutable);
   const state = useStore({
     count: 0,
     result: '',

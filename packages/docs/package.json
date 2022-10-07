@@ -5,10 +5,10 @@
   "homepage": "https://qwik.builder.io/",
   "main": "src/main.tsx",
   "scripts": {
-    "build": "yarn build.client && yarn build.static && yarn ssg",
+    "build": "yarn build.client && yarn build.server && yarn build.static && yarn ssg",
     "build.client": "vite build",
-    "build.server": "vite build -c integrations/cloudflare-pages/vite.config.ts",
-    "build.static": "vite build -c integrations/static/vite.config.ts",
+    "build.server": "vite build --ssr src/entry.cloudflare-pages.tsx",
+    "build.static": "echo 'skip'",
     "contributors": "tsm contributors.ts",
     "dev": "node --inspect ../../node_modules/vite/bin/vite.js --force",
     "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr --force",
@@ -16,7 +16,7 @@
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "serve": "wrangler pages dev ./dist",
-    "ssg": "node server/entry.static",
+    "ssg": "echo 'skip'",
     "start": "yarn dev.ssr"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 import { component$ } from '@builder.io/qwik';
 import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
-import { Social } from './social';
-import { Vendor } from './vendor';
+// import { Social } from './social';
+// import { Vendor } from './vendor';
 
 export const RouterHead = component$(() => {
   const { href } = useLocation();
@@ -27,8 +27,8 @@ export const RouterHead = component$(() => {
 
       {import.meta.env.PROD && (
         <>
-          <Social title={title} description={description} href={href} />
-          <Vendor />
+          {/* <Social title={title} description={description} href={href} />
+          <Vendor /> */}
         </>
       )}
 

@@ -1,3 +1,4 @@
+import type { QwikVitePlugin } from '../../../qwik/src/optimizer/src';
 import type { BuildContext } from '../types';
 import { createEntries } from './generate-entries';
 import { createMenus } from './generate-menus';
@@ -6,13 +7,13 @@ import { createRoutes } from './generate-routes';
 /**
  * Generates the Qwik City Plan runtime code
  */
-export function generateQwikCityPlan(ctx: BuildContext) {
+export function generateQwikCityPlan(ctx: BuildContext, qwikPlugin: QwikVitePlugin) {
   const esmImports: string[] = [];
   const c: string[] = [];
 
   c.push(`\n/** Qwik City Plan */`);
 
-  createRoutes(ctx, c, esmImports);
+  createRoutes(ctx, qwikPlugin, c, esmImports);
 
   createMenus(ctx, c, esmImports);
 

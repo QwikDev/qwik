@@ -271,6 +271,28 @@ export interface QwikSymbol {
 export function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;
 
 // @alpha (undocumented)
+export interface QwikVitePlugin {
+    // (undocumented)
+    api: QwikVitePluginApi;
+    // (undocumented)
+    name: 'vite-plugin-qwik';
+}
+
+// @alpha (undocumented)
+export interface QwikVitePluginApi {
+    // (undocumented)
+    getClientOutDir: () => string | null;
+    // (undocumented)
+    getManifest: () => QwikManifest | null;
+    // (undocumented)
+    getOptimizer: () => Optimizer | null;
+    // Warning: (ae-forgotten-export) The symbol "NormalizedQwikPluginOptions" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    getOptions: () => NormalizedQwikPluginOptions;
+}
+
+// @alpha (undocumented)
 export interface QwikVitePluginOptions {
     // (undocumented)
     client?: {

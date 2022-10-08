@@ -16,6 +16,7 @@ export async function generatePackageJson(config: BuildConfig) {
     description: rootPkg.description,
     license: rootPkg.license,
     main: './core.cjs',
+    module: './core.mjs',
     types: './core.d.ts',
     bin: {
       qwik: './qwik.cjs',

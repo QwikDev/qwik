@@ -4,7 +4,6 @@ import { isObject } from '../util/types';
 import type { CorePlatform } from './types';
 
 export const createPlatform = (): CorePlatform => {
-  const moduleCache = new Map<string, { [symbol: string]: any }>();
   return {
     isServer: false,
     importSymbol(containerEl, url, symbolName) {
@@ -13,14 +12,8 @@ export const createPlatform = (): CorePlatform => {
       urlCopy.hash = '';
       urlCopy.search = '';
       const importURL = urlCopy.href;
-      const mod = moduleCache.get(importURL);
-      if (mod) {
-        return mod[symbolName];
-      }
       return import(/* @vite-ignore */ importURL).then((mod) => {
-        mod = findModule(mod);
-        moduleCache.set(importURL, mod);
-        return mod[symbolName];
+        return findSymbol(mod, symbolName);
       });
     },
     raf: (fn) => {
@@ -42,12 +35,15 @@ export const createPlatform = (): CorePlatform => {
     },
   };
 };
-const findModule = (module: any) => {
-  return Object.values(module).find(isModule) || module;
-};
-
-const isModule = (module: any) => {
-  return isObject(module) && module[Symbol.toStringTag] === 'Module';
+const findSymbol = (module: any, symbol: string) => {
+  if (symbol in module) {
+    return module[symbol];
+  }
+  for (const v of Object.values(module)) {
+    if (isObject(v) && symbol in v) {
+      return (v as any)[symbol];
+    }
+  }
 };
 
 /**

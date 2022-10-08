@@ -16,6 +16,7 @@
     "start": "yarn dev.ssr",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
+    "preview": "qwik build preview && vite preview --open",
     "contributors": "tsm contributors.ts"
   },
   "devDependencies": {

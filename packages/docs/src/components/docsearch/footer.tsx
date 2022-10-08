@@ -22,7 +22,7 @@ interface CommandIconProps {
 
 export const CommandIcon = component$((props: CommandIconProps) => {
   return (
-    <svg width="15" height="15" aria-label={props.ariaLabel} role="img">
+    <svg style={{width: 15, height: 15}} aria-label={props.ariaLabel} role="img">
       <g
         fill="none"
         stroke="currentColor"

@@ -42,6 +42,7 @@ export interface Ref<T = Element> {
  *
  * ```
  *
+ * @deprecated Use `useSignal` instead.
  * @alpha
  */
 // </docs>

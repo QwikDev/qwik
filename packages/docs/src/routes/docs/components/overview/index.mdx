@@ -101,7 +101,7 @@ The above example shows how the `MyApp` component can use the `Counter` componen
 
 Qwik components are reactive on the component level. Component props, as well as stores, are proxies. These proxies track reads as well as writes.
 
-- A proxy-read during OnRender method execution lets Qwik know that the OnRender method depends on a given property. A read creates a subscription on that property. In our example, OnRender reads`{store.count}`, which creates a subscription that tells Qwik that whenever the `store.count` changes, the component should be invalidated.
+- A proxy-read during OnRender method execution lets Qwik know that the OnRender method depends on a given property. A read creates a subscription on that property. In our [example](../../concepts/reactivity/#counter-example), OnRender reads`{store.count}`, which creates a subscription that tells Qwik that whenever the `store.count` changes, the component should be invalidated.
 - A proxy-write notifies Qwik that all associated subscriptions should be invalidated.
 
 When components get invalidated, they are added to the invalidation queue, which is flushed (rendered) on the next `requestAnimationFrame`. This acts as a form of coalescing for component rendering.

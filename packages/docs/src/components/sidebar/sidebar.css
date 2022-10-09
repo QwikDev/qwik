@@ -96,8 +96,12 @@
   @apply whitespace-nowrap;
 }
 
+details li {
+  @apply py-1 pl-3 block hover:bg-slate-200 overflow-hidden text-ellipsis;
+}
+
 .menu li a {
-  @apply py-1 pl-3 block text-slate-900 hover:bg-slate-200;
+  @apply text-slate-900;
 }
 
 .menu li a.is-active {

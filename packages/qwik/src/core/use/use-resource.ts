@@ -14,7 +14,6 @@ import {
 } from './use-watch';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
-import { qDev } from '../util/qdev';
 import { isServer } from '../platform/platform';
 import { useBindInvokeContext } from './use-core';
 
@@ -261,7 +260,7 @@ export interface ResourceProps<T> {
  */
 // </docs>
 export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
-  const isBrowser = !qDev || !isServer();
+  const isBrowser = !isServer();
   if (isBrowser) {
     if (props.onRejected) {
       props.value.promise.catch(() => {});
@@ -285,18 +284,6 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
     useBindInvokeContext(props.onResolved),
     useBindInvokeContext(props.onRejected)
   );
-  // if (isServer) {
-  //   const onPending = props.onPending;
-  //   if (props.ssrWait && onPending) {
-  //     promise = Promise.race([
-  //       delay(props.ssrWait).then(() => {
-  //         getInternalResource(props.resource).dirty = true;
-  //         return onPending();
-  //       }),
-  //       promise,
-  //     ]);
-  //   }
-  // }
 
   // Resource path
   return jsx(Fragment, {

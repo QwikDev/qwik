@@ -676,7 +676,7 @@ export const useOnDocument: (event: string, eventQrl: QRL<(ev: Event) => void>) 
 // @alpha
 export const useOnWindow: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
 
-// @alpha
+// @alpha @deprecated
 export const useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;
 
 // @public

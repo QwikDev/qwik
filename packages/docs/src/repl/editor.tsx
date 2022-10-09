@@ -17,7 +17,6 @@ import {
   updateMonacoEditor,
 } from './monaco';
 import type { ReplAppInput, ReplStore } from './types';
-import { colorSchemeChangeListener } from '../components/theme-toggle/theme-toggle';
 import { GlobalStore } from '../context';
 
 export const Editor = component$((props: EditorProps) => {
@@ -41,14 +40,6 @@ export const Editor = component$((props: EditorProps) => {
         store.editor.dispose();
       }
     };
-  });
-
-  useClientEffect$(() => {
-    return colorSchemeChangeListener((isDark) => {
-      store.editor?.updateOptions({
-        theme: getEditorTheme(isDark),
-      });
-    });
   });
 
   useClientEffect$(({ track }) => {

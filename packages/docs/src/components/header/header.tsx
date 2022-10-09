@@ -1,5 +1,5 @@
 import { useLocation } from '@builder.io/qwik-city';
-import { component$, $, useStyles$, useContext } from '@builder.io/qwik';
+import { component$, $, useStyles$, useContext, useClientEffect$ } from '@builder.io/qwik';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
@@ -9,7 +9,12 @@ import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './header.css?inline';
 import { GlobalStore } from '../../context';
-import { ThemeToggle } from '../theme-toggle/theme-toggle';
+import {
+  colorSchemeChangeListener,
+  getColorPreference,
+  setPreference,
+  ThemeToggle,
+} from '../theme-toggle/theme-toggle';
 
 export const Header = component$(() => {
   useStyles$(styles);
@@ -22,6 +27,14 @@ export const Header = component$(() => {
 
   const closeMenu = $(() => {
     globalStore.headerMenuOpen = false;
+  });
+
+  useClientEffect$(() => {
+    globalStore.theme = getColorPreference();
+    return colorSchemeChangeListener((isDark) => {
+      globalStore.theme = isDark ? 'dark' : 'light';
+      setPreference(globalStore.theme);
+    });
   });
 
   return (

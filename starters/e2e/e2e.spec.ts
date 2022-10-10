@@ -934,6 +934,8 @@ Click`);
       test('initial render is correctly', async ({ page }) => {
         const input = await page.locator('#input');
         const label = await page.locator('#label');
+        const svg = await page.locator('#svg');
+
         const renders = await page.locator('#renders');
 
         await expect(input).toHaveAttribute('aria-hidden', 'true');
@@ -942,12 +944,18 @@ Click`);
         await expect(input).not.hasAttribute('required');
         await expect(label).toHaveAttribute('for', 'even');
         await expect(label).toHaveAttribute('form', 'my-form');
+        await expect(svg).toHaveAttribute('width', '15');
+        await expect(svg).toHaveAttribute('height', '15');
+        await expect(svg).toHaveAttribute('preserveAspectRatio', 'xMidYMin slice');
+        await expect(svg).toHaveAttribute('class', 'is-svg');
+        await expect(svg).toHaveAttribute('aria-hidden', 'true');
 
         await expect(renders).toHaveText('1');
       });
 
       test('should type and reflect changes', async ({ page }) => {
         const input = await page.locator('#input');
+        const svg = await page.locator('#svg');
         const inputCopy = await page.locator('#input-copy');
         const inputValue = await page.locator('#input-value');
         const stuffBtn = await page.locator('#stuff');
@@ -967,6 +975,12 @@ Click`);
         await expect(inputCopy).toHaveJSProperty('value', 'ByeHello');
         await expect(inputValue).toHaveText('ByeHello');
         await expect(renders).toHaveText('2');
+
+        await expect(svg).toHaveAttribute('width', '15');
+        await expect(svg).toHaveAttribute('height', '15');
+        await expect(svg).toHaveAttribute('preserveAspectRatio', 'xMidYMin slice');
+        await expect(svg).toHaveAttribute('class', 'is-svg');
+        await expect(svg).toHaveAttribute('aria-hidden', 'true');
       });
 
       test('should update aria-label', async ({ page }) => {
@@ -984,6 +998,7 @@ Click`);
 
       test('should update aria-hidden', async ({ page }) => {
         const input = await page.locator('#input');
+        const svg = await page.locator('#svg');
         const renders = await page.locator('#renders');
         const countBtn = await page.locator('#aria-hidden');
         await countBtn.click();
@@ -992,6 +1007,7 @@ Click`);
         await expect(input).toHaveAttribute('aria-label', 'even');
         await expect(input).toHaveAttribute('tabindex', '-1');
         await expect(input).not.hasAttribute('required');
+        await expect(svg).toHaveAttribute('aria-hidden', 'false');
         await expect(renders).toHaveText('1');
       });
 
@@ -1032,6 +1048,7 @@ Click`);
       test('should toggle attributes several times', async ({ page }) => {
         const input = await page.locator('#input');
         const label = await page.locator('#label');
+        const svg = await page.locator('#svg');
 
         const renders = await page.locator('#renders');
         const countBtn = await page.locator('#hide');
@@ -1045,6 +1062,12 @@ Click`);
         await expect(input).not.hasAttribute('required');
         await expect(label).not.hasAttribute('for');
         await expect(label).not.hasAttribute('form');
+        await expect(svg).not.hasAttribute('width');
+        await expect(svg).not.hasAttribute('height');
+        await expect(svg).not.hasAttribute('preserveAspectRatio');
+        await expect(svg).toHaveAttribute('class', '');
+        await expect(svg).not.hasAttribute('aria-hidden');
+
         await expect(renders).toHaveText('2');
 
         await countBtn.click();
@@ -1055,6 +1078,11 @@ Click`);
         await expect(input).not.hasAttribute('required');
         await expect(label).toHaveAttribute('for', 'even');
         await expect(label).toHaveAttribute('form', 'my-form');
+        await expect(svg).toHaveAttribute('width', '15');
+        await expect(svg).toHaveAttribute('height', '15');
+        await expect(svg).toHaveAttribute('preserveAspectRatio', 'xMidYMin slice');
+        await expect(svg).toHaveAttribute('class', 'is-svg');
+        await expect(svg).toHaveAttribute('aria-hidden', 'true');
 
         await expect(renders).toHaveText('3');
 
@@ -1066,6 +1094,11 @@ Click`);
         await expect(input).not.hasAttribute('required');
         await expect(label).not.hasAttribute('for');
         await expect(label).not.hasAttribute('form');
+        await expect(svg).not.hasAttribute('width');
+        await expect(svg).not.hasAttribute('height');
+        await expect(svg).not.hasAttribute('preserveAspectRatio');
+        await expect(svg).not.hasAttribute('aria-hidden');
+        await expect(svg).toHaveAttribute('class', '');
         await expect(renders).toHaveText('4');
 
         await countBtn.click();
@@ -1076,6 +1109,11 @@ Click`);
         await expect(input).not.hasAttribute('required');
         await expect(label).toHaveAttribute('for', 'even');
         await expect(label).toHaveAttribute('form', 'my-form');
+        await expect(svg).toHaveAttribute('width', '15');
+        await expect(svg).toHaveAttribute('height', '15');
+        await expect(svg).toHaveAttribute('preserveAspectRatio', 'xMidYMin slice');
+        await expect(svg).toHaveAttribute('class', 'is-svg');
+        await expect(svg).toHaveAttribute('aria-hidden', 'true');
 
         await expect(renders).toHaveText('5');
       });

@@ -91,6 +91,14 @@ export const AttributesChild = component$(() => {
           <>
             <label id="label" />
             <input id="input" />
+            <svg id="svg">
+              <feGaussianBlur></feGaussianBlur>
+              <foreignObject>
+                <foreignObject></foreignObject>
+                <div>Still outside svg</div>
+              </foreignObject>
+              <textPath></textPath>
+            </svg>
           </>
         ) : (
           <>
@@ -106,6 +114,21 @@ export const AttributesChild = component$(() => {
                 input.value = (ev.target as any).value;
               }}
             />
+            <svg
+              id="svg"
+              width="15"
+              height="15"
+              class="is-svg"
+              preserveAspectRatio="xMidYMin slice"
+              aria-hidden={state.dataAria as any}
+            >
+              <feGaussianBlur class="is-svg"></feGaussianBlur>
+              <foreignObject class="is-svg">
+                <foreignObject class="is-html"></foreignObject>
+                <div class="is-html">Still outside svg</div>
+              </foreignObject>
+              <textPath scale={0.1}></textPath>
+            </svg>
           </>
         )}
       </div>

@@ -315,7 +315,7 @@ export const getProps = (node: Element) => {
     const attr = attributes.item(i);
     assertDefined(attr, 'attribute must be defined');
 
-    const name = attr.name.toLowerCase();
+    const name = attr.name;
     if (!name.includes(':')) {
       if (name === 'class') {
         props[name] = parseDomClass(attr.value);
@@ -439,7 +439,8 @@ export const patchVnode = (
       elCtx,
       currentComponent.$element$,
       oldVnode.$props$,
-      props
+      props,
+      isSvg
     );
     if (pendingListeners.length > 0) {
       addQRLListener(listeners, pendingListeners);
@@ -717,7 +718,7 @@ const createElm = (
   const isSlot = isVirtual && QSlotS in props;
   const hasRef = !isVirtual && 'ref' in props;
   const listeners = elCtx.li;
-  vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent?.$element$, props);
+  vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent?.$element$, props, isSvg);
 
   if (currentComponent && !isVirtual) {
     const scopedIds = currentComponent.$scopeIds$;
@@ -895,7 +896,8 @@ export const updateProperties = (
   elCtx: QContext,
   hostElm: QwikElement,
   oldProps: Record<string, any>,
-  newProps: Record<string, any>
+  newProps: Record<string, any>,
+  isSvg: boolean
 ): Record<string, any> => {
   const keys = getKeys(oldProps, newProps);
   const values: Record<string, any> = {};
@@ -927,14 +929,14 @@ export const updateProperties = (
     if (prop === 'class') {
       newProps['class'] = newValue = serializeClass(newValue);
     }
-    const normalizedKey = prop.toLowerCase();
-    const oldValue = oldProps[normalizedKey];
-    values[normalizedKey] = newValue;
+    const normalizedProp = isSvg ? prop : prop.toLowerCase();
+    const oldValue = oldProps[normalizedProp];
+    values[normalizedProp] = newValue;
 
     if (oldValue === newValue) {
       continue;
     }
-    smartSetProperty(staticCtx, elm as HTMLElement, prop, newValue, oldValue);
+    smartSetProperty(staticCtx, elm as HTMLElement, prop, newValue, oldValue, isSvg);
   }
   return values;
 };
@@ -944,7 +946,8 @@ export const smartSetProperty = (
   elm: QwikElement,
   prop: string,
   newValue: any,
-  oldValue: any
+  oldValue: any,
+  isSvg: boolean
 ) => {
   // Check if its an exception
   const exception = PROP_HANDLER_MAP[prop];
@@ -955,7 +958,7 @@ export const smartSetProperty = (
   }
 
   // Check if property in prototype
-  if (prop in elm) {
+  if (!isSvg && prop in elm) {
     setProperty(staticCtx, elm, prop, newValue);
     return;
   }
@@ -1017,7 +1020,8 @@ export const setProperties = (
   staticCtx: RenderStaticContext,
   elCtx: QContext,
   hostElm: QwikElement | undefined,
-  newProps: Record<string, any>
+  newProps: Record<string, any>,
+  isSvg: boolean
 ): Record<string, any> => {
   const elm = elCtx.$element$;
   const keys = Object.keys(newProps);
@@ -1056,9 +1060,9 @@ export const setProperties = (
     if (prop === 'class') {
       newValue = serializeClass(newValue);
     }
-    const normalizedKey = prop.toLowerCase();
-    values[normalizedKey] = newValue;
-    smartSetProperty(staticCtx, elm, prop, newValue, undefined);
+    const normalizedProp = isSvg ? prop : prop.toLowerCase();
+    values[normalizedProp] = newValue;
+    smartSetProperty(staticCtx, elm, prop, newValue, undefined, isSvg);
   }
   return values;
 };

@@ -31,7 +31,7 @@ The reactive object returned by `useStore()` is just like any other object, but 
 An example showing how `useStore` is used in the Counter example to keep track of the count.
 
 ```tsx
-const App = component$(() => {
+export const App = component$(() => {
   const state = useStore({ count: 0 });
 
   return (
@@ -61,7 +61,7 @@ export const App = component$(() => {
   const store = useStore({
     nested: { fields: { are: "not tracked" }}
   })
-  
+
   return (
     <>
       <p>{store.nested.fields.are}</p>
@@ -84,7 +84,7 @@ export const App = component$(() => {
   const store = useStore({
     nested: { fields: { are: "not tracked" }}
   }, { recursion: true })
-  
+
   return (
     <>
       <p>{store.nested.fields.are}</p>
@@ -103,7 +103,7 @@ export const App = component$(() => {
   const store = useStore({
     letters: ["A", "B", "C"]
   }, { recursive: true })
-  
+
   return (
     <>
       {store.letters.map(letter => <p>{letter}</p>)}
@@ -156,7 +156,7 @@ Check the [context API](../context/index.mdx) for more information.
 ```tsx
 const CTX = createContext('stuff');
 
-const Stores = component$(() => {
+export const Stores = component$(() => {
   const userData = useStore({
     count: 0,
   });
@@ -193,8 +193,9 @@ The main difference between the two is that `useWatch$()` allows side effects an
 
 
 ### `useWatch$()` example
+
 ```tsx
-const App = component$(() => {
+export const App = component$(() => {
   const state = useStore({
     count: 0,
     doubleCount: 0
@@ -218,7 +219,7 @@ const App = component$(() => {
 ### `useResource$()` example
 
 ```tsx
-const App = component$(() => {
+export const App = component$(() => {
   const state = useStore({
     count: 0,
   });

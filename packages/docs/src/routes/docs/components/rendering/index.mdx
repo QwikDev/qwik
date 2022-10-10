@@ -10,8 +10,8 @@ contributors:
 
 # Rendering
 
-Rendering is the process of updating the DOM based on 
-  1. Changes in the state of the application 
+Rendering is the process of updating the DOM based on
+  1. Changes in the state of the application
   2. Component templates
 
 Qwik is unique because it knows how to render templates out-of-order and asynchronously.
@@ -22,7 +22,7 @@ Qwik is unique because it knows how to render templates out-of-order and asynchr
 Simple counter-example:
 
 ```tsx
-const Counter = component$(() => {
+export const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
   return <button onClick$={() => store.count++}>{store.count}</button>;
@@ -50,7 +50,7 @@ Qwik uses JSX to express the component's template. JSX discussion is outside of 
 Qwik lazy loads components on an as-needed basis. To minimize the number of components to download, Qwik only descends into child components if the component's props have changed.
 
 ```tsx
-const Parent = component$(() => {
+export const Parent = component$(() => {
   const store = useStore({ count: 0, step: 1 });
 
   return (
@@ -62,7 +62,7 @@ const Parent = component$(() => {
   );
 });
 
-const Greeter = component$((props: { name: string }) => {
+export const Greeter = component$((props: { name: string }) => {
   return <span>Hello {props.name}</span>;
 });
 ```

@@ -1108,7 +1108,7 @@ export const cleanupTree = (
   cleanupElement(parent, subsManager);
   const ch = getChildren(parent, 'elements');
   for (const child of ch) {
-    cleanupTree(child as QwikElement, staticCtx, subsManager, stopSlots);
+    cleanupTree(child as QwikElement, staticCtx, subsManager, true);
   }
 };
 

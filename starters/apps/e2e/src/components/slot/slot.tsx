@@ -13,12 +13,17 @@ export const SlotParent = component$(() => {
       {state.render && (
         <>
           <Issue1630>
-            <Child q:slot="slot-content">Component Slot Content</Child>
+            <Child id="slot-child" q:slot="slot-content">
+              Component Slot Content
+            </Child>
             <p q:slot="slot-content" id="slot-p">
               P Slot Content
             </p>
             <p id="noslot-p">Non-Slotted Content</p>
           </Issue1630>
+          <Issue1410>
+            <span id="modal-content">Model content</span>
+          </Issue1410>
           <Projector state={state} id="btn1">
             {!state.removeContent && <>DEFAULT {state.count}</>}
             <span q:slot="ignore">IGNORE</span>
@@ -94,13 +99,33 @@ export const Issue1630 = component$(() => {
   );
 });
 
-export const Child = component$(() => {
+export const Child = component$((props: { id?: string }) => {
   return (
-    <p id="slot-child">
+    <p id={props.id}>
       <Slot />
     </p>
   );
 });
+
+export const Issue1410 = component$(() => {
+  const store = useStore({ open: true });
+
+  return (
+    <>
+      <button id="toggle-modal" onClick$={() => (store.open = !store.open)}>
+        Toggle modal
+      </button>
+      {store.open && (
+        <>
+          <Child>
+            <Slot />
+          </Child>
+        </>
+      )}
+    </>
+  );
+});
+
 export const Projector = component$((props: { state: any; id: string }) => {
   return (
     <div

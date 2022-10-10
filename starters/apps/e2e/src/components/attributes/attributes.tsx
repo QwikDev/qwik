@@ -23,6 +23,7 @@ export const AttributesChild = component$(() => {
     }
   );
 
+  const title = useSignal<string>();
   const input = useSignal('');
   const hide = useSignal(false);
   const required = useSignal(false);
@@ -44,6 +45,14 @@ export const AttributesChild = component$(() => {
           }}
         >
           Toggle hide
+        </button>
+        <button
+          id="title"
+          onClick$={() => {
+            title.value = title.value === undefined ? 'some title' : undefined;
+          }}
+        >
+          Toggle title
         </button>
         <button
           id="aria-hidden"
@@ -102,7 +111,7 @@ export const AttributesChild = component$(() => {
           </>
         ) : (
           <>
-            <label id="label" for={state.label} form="my-form"></label>
+            <label id="label" for={state.label} form="my-form" title={title.value}></label>
             <input
               id="input"
               required={required.value}
@@ -110,6 +119,7 @@ export const AttributesChild = component$(() => {
               aria-label={state.label}
               data-stuff={'stuff: ' + state.stuff}
               tabIndex={-1}
+              title={title.value}
               onInput$={(ev) => {
                 input.value = (ev.target as any).value;
               }}

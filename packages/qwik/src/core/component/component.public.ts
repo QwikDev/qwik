@@ -1,6 +1,6 @@
 import { $, PropFnInterface, QRL } from '../import/qrl.public';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
-import { OnRenderProp } from '../util/markers';
+import { OnRenderProp, QSlot } from '../util/markers';
 import type { ComponentBaseProps, JSXChildren } from '../render/jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
@@ -154,6 +154,7 @@ export const componentQrl = <PROPS extends {}>(
       Virtual,
       {
         [OnRenderProp]: componentQrl,
+        [QSlot]: props[QSlot],
         children: props.children,
         props,
       },

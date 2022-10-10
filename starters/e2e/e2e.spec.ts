@@ -972,8 +972,12 @@ Click`);
         await expect(input).toHaveAttribute('aria-label', 'even');
         await expect(input).toHaveAttribute('tabindex', '-1');
         await expect(input).not.hasAttribute('required');
+        await expect(input).toHaveAttribute('title', '');
+
         await expect(label).toHaveAttribute('for', 'even');
         await expect(label).toHaveAttribute('form', 'my-form');
+        await expect(input).toHaveAttribute('title', '');
+
         await expect(svg).toHaveAttribute('width', '15');
         await expect(svg).toHaveAttribute('height', '15');
         await expect(svg).toHaveAttribute('preserveAspectRatio', 'xMidYMin slice');
@@ -1023,6 +1027,24 @@ Click`);
         await expect(input).toHaveAttribute('aria-label', 'odd');
         await expect(input).toHaveAttribute('tabindex', '-1');
         await expect(input).not.hasAttribute('required');
+        await expect(renders).toHaveText('1');
+      });
+
+      test('should update title', async ({ page }) => {
+        const input = await page.locator('#input');
+        const label = await page.locator('#label');
+
+        const renders = await page.locator('#renders');
+        const countBtn = await page.locator('#title');
+        await countBtn.click();
+
+        await expect(input).toHaveAttribute('title', 'some title');
+        await expect(label).toHaveAttribute('title', 'some title');
+        await expect(renders).toHaveText('1');
+
+        await countBtn.click();
+        await expect(input).toHaveAttribute('title', '');
+        await expect(input).toHaveAttribute('title', '');
         await expect(renders).toHaveText('1');
       });
 

@@ -61,7 +61,7 @@ export const setProperty = (
 
 const _setProperty = (node: any, key: string, value: any) => {
   try {
-    node[key] = value;
+    node[key] = value == null ? '' : value;
   } catch (err) {
     logError(codeToText(QError_setProperty), { node, key, value }, err);
   }

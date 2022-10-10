@@ -36,7 +36,7 @@ Because of the above constraints, Qwik uses proxies to keep track of the reactiv
 ## Counter Example
 
 ```tsx
-const Counter = component$(() => {
+export const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
   return <button onClick$={() => store.count++}>{store.count}</button>;
@@ -54,7 +54,7 @@ const Counter = component$(() => {
 ## Unsubscribe example
 
 ```tsx
-const ComplexCounter = component$(() => {
+export const ComplexCounter = component$(() => {
   const store = useStore({ count: 0, visible: true });
 
   return (
@@ -85,7 +85,7 @@ Notice how the set of subscriptions automatically updates as the component rende
 So far, the examples show the store (`useStore()`) was a simple object with primitive values. However, the same behavior works on all properties of the store recursively.
 
 ```tsx
-const MyComp = component$(() => {
+export const MyComp = component$(() => {
   const store = useStore({
     person: { first: null, last: null },
     location: null
@@ -107,7 +107,7 @@ In the above examples, Qwik will automatically wrap child objects `person` and `
 The wrapping behavior described above has one surprising side-effect. Writing and reading from a proxy auto wraps the object, which means that the identity of the object changes. This should normally not be an issue, but it is something that the developer should keep in mind.
 
 ```tsx
-const MyComp = component$(() => {
+export const MyComp = component$(() => {
   const store = useStore({ person: null });
   const person = { first: 'John', last: 'Smith' };
   store.person = person; // store.person auto wraps object into proxy
@@ -130,11 +130,11 @@ When components render, they need to have access to their props. Parent componen
 When re-rendering a component, the child component's props either stay the same or are updated. A child component only invalidates if it's props change.
 
 ```tsx
-const Child = component$((props: { count: number }) => {
+export const Child = component$((props: { count: number }) => {
   return <span>{props.count}</span>;
 });
 
-const MyApp = component$(() => {
+export const MyApp = component$(() => {
   const store = useStore({ a: 0, b: 0, c: 0 });
 
   return (

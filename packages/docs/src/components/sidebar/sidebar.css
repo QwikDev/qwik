@@ -99,14 +99,16 @@
   @apply whitespace-nowrap;
 }
 
-.menu li a {
-  @apply py-1 pl-3 block;
-  border-radius: 4px;
-  color: var(--secondary-text-color);
+details li {
+  @apply py-1 pl-3 block overflow-hidden text-ellipsis;
 }
 
-.menu li a:hover {
+details li:hover {
   background-color: var(--bg-secondary-color);
+}
+
+.menu li a {
+  color: var(--secondary-text-color);
 }
 
 .menu li a.is-active {

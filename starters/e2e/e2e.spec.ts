@@ -296,6 +296,23 @@ test.describe('e2e', () => {
 
         await expect(content3).toHaveText('INSIDE THING 0', { useInnerText: true });
       });
+
+      test('should project cmp correctly into their selected slot', async ({ page }) => {
+        const toggleBtn = await page.locator('#toggle-child-slot');
+        const slotChild = await page.locator('#slot-child');
+        const slotP = await page.locator('#slot-p');
+        const noslotP = await page.locator('#noslot-p');
+
+        await expect(slotChild).not.toBeHidden();
+        await expect(slotP).not.toBeHidden();
+        await expect(noslotP).not.toBeHidden();
+
+        await toggleBtn.click();
+
+        await expect(slotChild).not.toBeHidden();
+        await expect(slotP).not.toBeHidden();
+        await expect(noslotP).toBeHidden();
+      });
     }
 
     test.beforeEach(async ({ page }) => {

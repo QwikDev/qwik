@@ -48,3 +48,20 @@ export default component$(() => {
   );
 });
 ```
+
+## Catch All Route
+It is also possible to create a catch-all route by adding a directory like `[...slug]`. This works like the above described example but will also consider subsegments of the URI. It can also be applied on the `routes` root level.
+
+```
+src/
+└── routes/
+    └── sku/
+        └── [...slug]/
+            └── index.tsx
+```
+
+The above structure will match:
+- `https://example.com/sku/1234`
+- `https://example.com/sku/1234/detail`
+- `https://example.com/sku/1234/detail/edit`
+- etc

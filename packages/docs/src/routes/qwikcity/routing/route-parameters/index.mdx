@@ -49,8 +49,8 @@ export default component$(() => {
 });
 ```
 
-## Catch All Route
-It is also possible to create a catch-all route by adding a directory like `[...slug]`. This works like the above described example but will also consider subsegments of the URI. It can also be applied on the `routes` root level.
+## Catch All Routes
+It is also possible to create a catch-all routes by adding a directory like `[...slug]`. This works like the above described example but will also consider subsegments of the URI. It can also be applied on the `routes` root level.
 
 ```
 src/
@@ -65,3 +65,18 @@ The above structure will match:
 - `https://example.com/sku/1234/detail`
 - `https://example.com/sku/1234/detail/edit`
 - etc
+
+It is possible to limit catch-all routes by adding a subdirectory say `end-of-route` in `[...slug]` directory.
+
+```
+src/
+└── routes/
+    └── sku/
+        └── [...slug]/
+            ├── index.tsx
+            └── end-of-route/
+                └──index.tsx
+```
+
+The above structure will match:
+- `https://example.com/sku/1234/5678/end-of-route`

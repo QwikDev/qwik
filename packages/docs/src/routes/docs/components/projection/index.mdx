@@ -14,7 +14,7 @@ Content projection allows a component to treat the JSX children of the component
 An example of a collapsible component which conditionally projects it's content.
 
 ```tsx
-const Collapsible = component$(() => {
+export const Collapsible = component$(() => {
   const store = useStore({ isOpen: true });
 
   return (
@@ -31,7 +31,7 @@ const Collapsible = component$(() => {
 The above component can be used from a parent component like so:
 
 ```tsx
-const MyApp = component$(() => {
+export const MyApp = component$(() => {
   return (
     <Collapsible>
       <span q:slot="title">Title text</span>
@@ -67,7 +67,7 @@ Qwik uses slots as a way of connecting content from the parent component to the 
 The parent component uses `q:slot` attribute to identify the source of projection and `<Slot>` element to identify the destination of the projection. Unnamed (or unwrapped) content is assumed to have `q:slot=""` attribute
 
 ```tsx
-const Project = component$(() => {
+export const Project = component$(() => {
   return (
     <div>
       <Slot />
@@ -75,7 +75,7 @@ const Project = component$(() => {
   );
 });
 
-const MyApp = component$(() => {
+export const MyApp = component$(() => {
   return (
     <Project>
       unwrapped text
@@ -107,7 +107,7 @@ Results in:
 Use `q:slot` attributes to name slots.
 
 ```tsx
-const Project = component$(() => {
+export const Project = component$(() => {
   return (
     <div>
       <div class="title">
@@ -118,7 +118,7 @@ const Project = component$(() => {
   );
 });
 
-const MyApp = component$(() => {
+export const MyApp = component$(() => {
   return (
     <Project>
       unwrapped text
@@ -159,11 +159,11 @@ Notice that:
 Qwik keeps all content around, even if not projected. This is because the content could be projected in the future.
 
 ```tsx
-const Project = component$(() => {
+export const Project = component$(() => {
   return <div />;
 });
 
-const MyApp = component$(() => {
+export const MyApp = component$(() => {
   return <Project>unwrapped text</Project>;
 });
 ```
@@ -186,7 +186,7 @@ Notice that the un-projected content is moved into inert `<q:template>`. This is
 It is possible to insert default slot content if the parent component does not provide a value.
 
 ```tsx
-const Project = component$(() => {
+export const Project = component$(() => {
   return (
     <>
       <Slot name="title">default title</Slot>
@@ -195,7 +195,7 @@ const Project = component$(() => {
   );
 });
 
-const MyApp = component$(() => {
+export const MyApp = component$(() => {
   return <Project>some content</Project>;
 });
 ```
@@ -240,9 +240,9 @@ On order for Qwik to be able to render components independently, it must be able
 The `q:slot` attribute must be a direct child of a component.
 
 ```tsx
-const Project = component$(() => { ... })
+export const Project = component$(() => { ... })
 
-const MyApp = component$(() => {
+export const MyApp = component$(() => {
   return (
     <Project>
       <span q:slot="title">ok, direct child of Project</span>

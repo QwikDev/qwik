@@ -12,6 +12,13 @@ export const SlotParent = component$(() => {
     <section class="todoapp">
       {state.render && (
         <>
+          <Issue1630>
+            <Child q:slot="slot-content">Component Slot Content</Child>
+            <p q:slot="slot-content" id="slot-p">
+              P Slot Content
+            </p>
+            <p id="noslot-p">Non-Slotted Content</p>
+          </Issue1630>
           <Projector state={state} id="btn1">
             {!state.removeContent && <>DEFAULT {state.count}</>}
             <span q:slot="ignore">IGNORE</span>
@@ -73,6 +80,27 @@ export const SlotParent = component$(() => {
   );
 });
 
+export const Issue1630 = component$(() => {
+  const store = useStore({ open: true });
+
+  return (
+    <>
+      <button id="toggle-child-slot" onClick$={() => (store.open = !store.open)}>
+        Toggle Non-Slotted Content
+      </button>
+      <Slot name="slot-content" />
+      {store.open && <Slot />}
+    </>
+  );
+});
+
+export const Child = component$(() => {
+  return (
+    <p id="slot-child">
+      <Slot />
+    </p>
+  );
+});
 export const Projector = component$((props: { state: any; id: string }) => {
   return (
     <div

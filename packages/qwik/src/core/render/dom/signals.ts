@@ -2,7 +2,7 @@ import { tryGetContext } from '../../props/props';
 import type { SubscriberSignal } from '../container';
 import type { RenderStaticContext } from '../types';
 import { setProperty } from './operations';
-import { smartSetProperty } from './visitor';
+import { smartSetProperty, SVG_NS } from './visitor';
 
 export const executeSignalOperation = (
   staticCtx: RenderStaticContext,
@@ -15,13 +15,14 @@ export const executeSignalOperation = (
       const prop = operation[4];
       const elm = operation[3];
       const ctx = tryGetContext(elm);
+      const isSVG = elm.namespaceURI === SVG_NS;
       let oldValue = undefined;
       if (ctx && ctx.$vdom$) {
-        const normalizedProp = prop.toLowerCase();
+        const normalizedProp = isSVG ? prop : prop.toLowerCase();
         oldValue = ctx.$vdom$.$props$[normalizedProp];
         ctx.$vdom$.$props$[normalizedProp] = value;
       }
-      return smartSetProperty(staticCtx, elm, prop, value, oldValue);
+      return smartSetProperty(staticCtx, elm, prop, value, oldValue, isSVG);
     }
     case 2:
       return setProperty(staticCtx, operation[3], 'data', value);

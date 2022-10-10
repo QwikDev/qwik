@@ -63,7 +63,7 @@ Let's look at our example again:
 ```tsx
 // the `$` suffix for `component` indicates that the component should be
 // lazy-loaded.
-const Counter = component$(() => {
+export const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
   // the `$` suffix for `onClick` indicates that the implementation for

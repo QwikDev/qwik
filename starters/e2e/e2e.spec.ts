@@ -313,6 +313,19 @@ test.describe('e2e', () => {
         await expect(slotP).not.toBeHidden();
         await expect(noslotP).toBeHidden();
       });
+
+      test('should toggle nested slot', async ({ page }) => {
+        const toggleBtn = await page.locator('#toggle-modal');
+        const modalContent = await page.locator('#modal-content');
+
+        await expect(modalContent).not.toBeHidden();
+
+        await toggleBtn.click();
+        await expect(modalContent).toBeHidden();
+
+        await toggleBtn.click();
+        await expect(modalContent).not.toBeHidden();
+      });
     }
 
     test.beforeEach(async ({ page }) => {

@@ -941,7 +941,7 @@ Click`);
     });
   });
 
-  test.describe.only('attributes', () => {
+  test.describe('attributes', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/e2e/attributes');
       page.on('pageerror', (err) => expect(err).toEqual(undefined));

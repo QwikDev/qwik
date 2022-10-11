@@ -15,7 +15,7 @@ export async function generatePackageJson(config: BuildConfig) {
     version: config.distVersion,
     description: rootPkg.description,
     license: rootPkg.license,
-    main: './core.cjs',
+    main: './core.mjs',
     module: './core.mjs',
     types: './core.d.ts',
     bin: {
@@ -57,7 +57,6 @@ export async function generatePackageJson(config: BuildConfig) {
       './optimizer.mjs': './optimizer.mjs',
       './optimizer': {
         import: './optimizer.mjs',
-        require: './optimizer.cjs',
       },
       './server.cjs': './server.cjs',
       './server.mjs': './server.mjs',
@@ -109,10 +108,17 @@ export async function generateLegacyCjsSubmodule(
   const pkg: PackageJSON = {
     name: `@builder.io/qwik/${pkgName}`,
     version: config.distVersion,
-    main: `../${index}.cjs`,
+    main: `../${index}.mjs`,
     module: `../${index}.mjs`,
     types: `../${index}.d.ts`,
+    type: 'module',
     private: true,
+    exports: {
+      '.': {
+        require: `../${index}.cjs`,
+        import: `../${index}.mjs`,
+      },
+    },
   };
   const submoduleDistDir = join(config.distPkgDir, pkgName);
   ensureDir(submoduleDistDir);

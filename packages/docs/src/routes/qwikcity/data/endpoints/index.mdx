@@ -2,10 +2,11 @@
 title: Qwik City Endpoints and RESTful API
 contributors:
   - adamdbradley
+  - aalaap
 ---
 
 # Endpoints and RESTful API
 
 Qwik City is able to create a RESTful API for your application using Endpoints. Endpoint routes are created the same as how you would create a "page", except the filename should end with `.ts` instead of `.tsx`. An `index.ts` in the `src/routes` directory is only for data, such as a `json` response, while an `index.tsx` is for an HTML page. 
 
-Both "page" and "endpoints" are the same except for one difference: a page exports a `default component$()` to render HTML, whereas an endpoint only HTTP request and response handlers. To learn about defining a page component, you can [read more here](../../content/component/index.mdx). An endpoint route however, is used only for the purpose of responding with data.
+Both "page" and "endpoints" are the same except for one difference: a page exports a `default component$()` to render HTML, whereas an endpoint exports only HTTP request and response handlers. To learn about defining a page component, you can [read more here](../../content/component/index.mdx). An endpoint route however, is used only for the purpose of responding with data.

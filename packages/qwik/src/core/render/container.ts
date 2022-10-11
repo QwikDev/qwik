@@ -212,15 +212,10 @@ export class LocalSubscriptionManager {
 
   $addSub$(sub: Subscriptions) {
     const subs = this.$subs$;
-
-    const [type, group] = sub;
+    const group = sub[1];
     const key = sub[sub.length - 1] as string | undefined;
-    if (type === 0) {
-      if (
-        subs.some(([_type, _group, _key]) => _type === type && _group === group && _key === key)
-      ) {
-        return;
-      }
+    if (subs.some(([_type, _group, _key]) => _type === 0 && _group === group && _key === key)) {
+      return;
     }
     subs.push(sub);
     this.$addToGroup$(group, this);

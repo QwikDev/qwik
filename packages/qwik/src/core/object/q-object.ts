@@ -444,7 +444,10 @@ export class SignalWrapper<T extends Record<string, any>, P extends keyof T> {
 export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
   obj: T,
   prop: P
-): Signal<T[P]> => {
+): any => {
+  if (!isObject(obj)) {
+    return undefined;
+  }
   if (obj instanceof SignalImpl) {
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
     return obj;
@@ -461,6 +464,10 @@ export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
       return signal;
     }
     return new SignalWrapper(obj, prop);
+  }
+  const immutable = (obj as any)[_IMMUTABLE]?.[prop];
+  if (isSignal(immutable)) {
+    return immutable;
   }
   return obj[prop];
 };

@@ -97,7 +97,7 @@ export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
 export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
   return {
     scopeId: _useStyles(styles, getScopedStyles, true),
-  }
+  };
 };
 
 // <docs markdown="../readme.md#useStylesScoped">

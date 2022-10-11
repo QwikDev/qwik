@@ -761,7 +761,7 @@ export interface WatchCtx {
 export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
 
 // @internal (undocumented)
-export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => Signal<T[P]>;
+export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
 
 // (No @packageDocumentation comment for this package)
 

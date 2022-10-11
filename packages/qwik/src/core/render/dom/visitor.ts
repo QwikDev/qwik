@@ -6,19 +6,19 @@ import {
   QSlotRef,
   QSlotS,
 } from '../../util/markers';
+import { cleanupContext, getContext, QContext, tryGetContext } from '../../props/props';
 import {
-  cleanupContext,
-  getContext,
-  getPropsMutator,
-  QContext,
-  tryGetContext,
-} from '../../props/props';
-import { addQRLListener, groupListeners, isOnProp, setEvent } from '../../props/props-on';
+  addQRLListener,
+  groupListeners,
+  isOnProp,
+  PREVENT_DEFAULT,
+  setEvent,
+} from '../../props/props-on';
 import type { ValueOrPromise } from '../../util/types';
 import { isPromise, promiseAll, then } from '../../util/promises';
 import { assertDefined, assertEqual, assertTrue } from '../../assert/assert';
 import { logWarn } from '../../util/log';
-import { qDev, qSerialize, qTest } from '../../util/qdev';
+import { qDev, qSerialize } from '../../util/qdev';
 import type { OnRenderFn } from '../../component/component.public';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
@@ -41,7 +41,7 @@ import {
   SKIPS_PROPS,
   stringifyStyle,
 } from '../execute-component';
-import { setRef, SubscriptionManager } from '../container';
+import { addQwikEvent, setRef, SubscriptionManager } from '../container';
 import {
   getRootNode,
   newVirtualElement,
@@ -70,14 +70,16 @@ import {
 import { serializeQRLs } from '../../import/qrl';
 import { QOnce } from '../jsx/utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
-import { getEventName } from '../../object/store';
 import {
   addSignalSub,
   createProxy,
+  getProxyManager,
+  getProxyTarget,
   isSignal,
   QObjectFlagsSymbol,
   QObjectImmutable,
   _IMMUTABLE,
+  _IMMUTABLE_PREFIX,
 } from '../../object/q-object';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -428,7 +430,7 @@ export const patchVnode = (
   const props = newVnode.$props$;
   const isComponent = isVirtual && OnRenderProp in props;
   const elCtx = getContext(elm);
-  staticCtx.$containerState$.$containerEl$;
+  const containerState = staticCtx.$containerState$;
   assertDefined(currentComponent, 'slots can not be rendered outside a component', elm);
   if (!isComponent) {
     const pendingListeners = currentComponent.li;
@@ -451,6 +453,7 @@ export const patchVnode = (
       const groups = groupListeners(listeners);
       for (const listener of groups) {
         setAttribute(staticCtx, elm, listener[0], serializeQRLs(listener[1], elCtx));
+        addQwikEvent(listener[0], containerState);
       }
     }
 
@@ -755,6 +758,7 @@ const createElm = (
     const groups = groupListeners(listeners);
     for (const listener of groups) {
       setAttribute(staticCtx, elm, listener[0], serializeQRLs(listener[1], elCtx));
+      addQwikEvent(listener[0], staticCtx.$containerState$);
     }
   }
 
@@ -915,7 +919,7 @@ export const updateProperties = (
 
     let newValue = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : newProps[prop];
     if (isOnProp(prop)) {
-      setEvent(elCtx.li, prop, newValue, staticCtx.$containerState$.$containerEl$);
+      browserSetEvent(staticCtx, elCtx, prop, newValue);
       continue;
     }
 
@@ -963,6 +967,10 @@ export const smartSetProperty = (
     return;
   }
 
+  if (prop.startsWith(PREVENT_DEFAULT)) {
+    addQwikEvent(prop.slice(PREVENT_DEFAULT.length), staticCtx.$containerState$);
+  }
+
   // Fallback to render attribute
   setAttribute(staticCtx, elm, prop, newValue);
 };
@@ -973,21 +981,6 @@ const getKeys = (oldProps: Record<string, any>, newProps: Record<string, any>) =
   const oldKeys = Object.keys(oldProps);
   keys.push(...oldKeys.filter((p) => !normalizedKeys.includes(p)));
   return keys.filter((c) => c !== 'children');
-};
-
-const addGlobalListener = (staticCtx: RenderStaticContext, elm: QwikElement, prop: string) => {
-  if (!qSerialize && prop.includes(':')) {
-    setAttribute(staticCtx, elm, prop, '');
-  }
-  if (!qTest) {
-    try {
-      if ((window as any).qwikevents) {
-        (window as any).qwikevents.push(getEventName(prop));
-      }
-    } catch (err) {
-      logWarn(err);
-    }
-  }
 };
 
 export const areExactQRLs = (oldValue: any, newValue: any) => {
@@ -1042,11 +1035,7 @@ export const setProperties = (
 
     let newValue = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : newProps[prop];
     if (isOnProp(prop)) {
-      addGlobalListener(
-        staticCtx,
-        elm,
-        setEvent(elCtx.li, prop, newValue, staticCtx.$containerState$.$containerEl$)
-      );
+      browserSetEvent(staticCtx, elCtx, prop, newValue);
       continue;
     }
 
@@ -1082,15 +1071,32 @@ export const setComponentProps = (
       rCtx.$static$.$containerState$
     );
   }
-  const qwikProps = getPropsMutator(props);
   if (keys.length === 0) {
     return false;
   }
-  for (const key of keys) {
-    if (SKIPS_PROPS.includes(key)) {
+
+  const manager = getProxyManager(props);
+  assertDefined(manager, `props have to be a proxy, but it is not`, props);
+  const target = getProxyTarget(props);
+  assertDefined(target, `props have to be a proxy, but it is not`, props);
+
+  const immutableMeta = ((target as any)[_IMMUTABLE] =
+    (expectProps as any)[_IMMUTABLE] ?? EMPTY_OBJ);
+
+  for (const prop of keys) {
+    if (SKIPS_PROPS.includes(prop)) {
       continue;
     }
-    qwikProps.set(key, expectProps[key]);
+    if (isSignal(immutableMeta[prop])) {
+      target[_IMMUTABLE_PREFIX + prop] = immutableMeta[prop];
+    } else {
+      const value = expectProps[prop];
+      const oldValue = target[prop];
+      target[prop] = value;
+      if (oldValue !== value) {
+        manager.$notifySubs$(prop);
+      }
+    }
   }
   return elCtx.$dirty$;
 };
@@ -1165,6 +1171,22 @@ const createKeyToOldIdx = (
     }
   }
   return map;
+};
+
+const browserSetEvent = (
+  staticCtx: RenderStaticContext,
+  elCtx: QContext,
+  prop: string,
+  input: any
+) => {
+  const containerState = staticCtx.$containerState$;
+  const normalized = setEvent(elCtx.li, prop, input, containerState.$containerEl$);
+  if (!qSerialize) {
+    if (!prop.startsWith('on')) {
+      setAttribute(staticCtx, elCtx.$element$, normalized, '');
+    }
+    addQwikEvent(normalized, containerState);
+  }
 };
 
 const sameVnode = (vnode1: ProcessedJSXNode, vnode2: ProcessedJSXNode): boolean => {

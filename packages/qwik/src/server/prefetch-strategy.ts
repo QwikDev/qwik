@@ -66,13 +66,13 @@ function getAutoPrefetch(
 
   if (Array.isArray(listeners)) {
     // manifest already prioritized the symbols at build time
-    for (const prioritizedSymbolName in mapper) {
+    for (const prioritizedSymbolHash in mapper) {
       const hasSymbol = listeners.some((l) => {
-        return l.qrl.getHash() === prioritizedSymbolName;
+        return l.qrl.getHash() === prioritizedSymbolHash;
       });
 
       if (hasSymbol) {
-        addBundle(manifest, urls, prefetchResources, buildBase, mapper[prioritizedSymbolName][1]);
+        addBundle(manifest, urls, prefetchResources, buildBase, mapper[prioritizedSymbolHash][1]);
       }
     }
   }

@@ -1,7 +1,3 @@
-import {
-  getProxyManager,
-  getProxyTarget,
-} from '../object/q-object';
 import { resumeContainer } from '../object/store';
 import { QContainerAttr } from '../util/markers';
 import type { OnRenderFn } from '../component/component.public';
@@ -128,23 +124,6 @@ export const normalizeOnProp = (prop: string) => {
     prop = prop.toLowerCase();
   }
   return scope + ':' + prop;
-};
-
-export const getPropsMutator = (props: Record<string, any>) => {
-  const manager = getProxyManager(props);
-  assertDefined(manager, `props have to be a proxy, but it is not`, props);
-  const target = getProxyTarget(props);
-  assertDefined(target, `props have to be a proxy, but it is not`, props);
-
-  return {
-    set(prop: string, value: any) {
-      const oldValue = target[prop];
-      target[prop] = value;
-      if (oldValue !== value) {
-        manager.$notifySubs$(prop);
-      }
-    },
-  };
 };
 
 export const inflateQrl = (qrl: QRLInternal, elCtx: QContext) => {

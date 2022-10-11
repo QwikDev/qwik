@@ -20,7 +20,7 @@ export const PanelToggle = component$((props: PanelToggleProps) => {
             props.panelStore.active = p;
           }}
           type="button"
-          preventDefault:click
+          preventdefault:click
           class={{ active: props.panelStore.active === p }}
         >
           {p}

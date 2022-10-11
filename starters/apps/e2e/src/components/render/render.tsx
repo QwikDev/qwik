@@ -57,7 +57,7 @@ export const Child = component$((props: { counter: { count: number } }) => {
       <span>Rerender {count}</span>
       <div
         id="attributes"
-        preventDefault:click
+        preventdefault:click
         autoCorrect="all"
         aria-hidden="true"
         class={{

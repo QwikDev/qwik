@@ -11,7 +11,7 @@ export const ReplTabButton = (props: ReplTabButtonProps) => {
         class="repl-tab-button-select"
         onClick$={props.onClick$}
         type="button"
-        preventDefault:click
+        preventdefault:click
       >
         {props.text}
       </button>
@@ -20,7 +20,7 @@ export const ReplTabButton = (props: ReplTabButtonProps) => {
           class="repl-tab-button-close"
           onClick$={props.onClose$}
           type="button"
-          preventDefault:click
+          preventdefault:click
         >
           <CloseIcon width={9} height={9} />
         </button>

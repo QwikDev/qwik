@@ -185,11 +185,7 @@ export async function renderToStream(
         );
       }
 
-      const uniqueListeners = new Set<string>();
-      snapshotResult.listeners.forEach((li) => {
-        uniqueListeners.add(JSON.stringify(li.eventName));
-      });
-      const extraListeners = Array.from(uniqueListeners);
+      const extraListeners = Array.from(containerState.$events$, (s) => JSON.stringify(s));
       if (extraListeners.length > 0) {
         let content = `window.qwikevents.push(${extraListeners.join(', ')})`;
         if (!includeLoader) {

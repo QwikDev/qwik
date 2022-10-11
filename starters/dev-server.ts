@@ -33,7 +33,7 @@ const entrySsrFileName = 'entry.ssr.tsx';
 Error.stackTraceLimit = 1000;
 
 // dev server builds ssr's the starter app on-demand (don't do this in production)
-const cache = new Map<string, QwikManifest>();
+const cache = new Map<string, Promise<QwikManifest>>();
 async function handleApp(req: Request, res: Response, next: NextFunction) {
   try {
     const url = new URL(req.url, address);
@@ -53,15 +53,17 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
 
     let clientManifest = cache.get(appDir);
     if (!clientManifest) {
-      clientManifest = await buildApp(appDir, appName, enableCityServer);
+      clientManifest = buildApp(appDir, appName, enableCityServer);
       cache.set(appDir, clientManifest);
     }
+
+    const resolved = await clientManifest;
 
     res.set('Content-Type', 'text/html');
     if (enableCityServer) {
       cityApp(req, res, next, appDir);
     } else {
-      await ssrApp(req, res, appName, appDir, clientManifest);
+      await ssrApp(req, res, appName, appDir, resolved);
       res.end();
     }
   } catch (e: any) {

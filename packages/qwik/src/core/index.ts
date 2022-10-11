@@ -68,6 +68,7 @@ export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from '
 export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
 export { useSignal } from './use/use-signal';
 
+export type { UseStylesScoped } from './use/use-styles';
 export type { UseSignal } from './use/use-signal';
 export type { Context } from './use/use-context';
 export type { Ref } from './use/use-ref';

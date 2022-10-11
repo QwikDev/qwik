@@ -97,7 +97,10 @@
 }
 
 details li {
-  @apply py-1 pl-3 block hover:bg-slate-200 overflow-hidden text-ellipsis;
+  @apply py-1 pl-3 hover:bg-slate-200;
+}
+details li a {
+  @apply block overflow-hidden text-ellipsis;
 }
 
 .menu li a {

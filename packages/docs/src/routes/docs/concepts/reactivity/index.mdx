@@ -82,14 +82,14 @@ Notice how the set of subscriptions automatically updates as the component rende
 
 ## Deep objects
 
-So far, the examples show the store (`useStore()`) was a simple object with primitive values. However, the same behavior works on all properties of the store recursively.
+So far, the examples show the store (`useStore()`) was a simple object with primitive values. However, the same behavior can work on all properties of the store recursively by providing the `recursive` option.
 
 ```tsx
 export const MyComp = component$(() => {
   const store = useStore({
     person: { first: null, last: null },
     location: null
-  });
+  }, { recursive: true });
 
   store.location = {street: 'main st'};
 

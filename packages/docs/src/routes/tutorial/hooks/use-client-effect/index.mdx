@@ -23,9 +23,10 @@ Qwik is resumable. Resumability means that the application starts on the server 
 
 ## When is `useClientEffect$()` executed?
 
-Client effect code is executed after the component is resumed. The `useClientEffect$()` method takes an additional argument that controls when the effect is executed. There are two options:
+Client effect code is executed after the component is resumed. The `useClientEffect$()` method takes an additional argument (`{eagerness:'visible|load|idle'}`) that controls when the effect is executed. There are three options:
 - `visible` (default): Execute the effect when the component becomes visible. This is a preferred option because it delays the execution of the effect until the component is visible rather than eagerly on application startup (We are trying to minimize the amount of code the application runs on startup).
 - `load`: Execute the code as soon as possible. This is usually right after `DOMContentLoaded` event.
+- `idle`: Execute the code when the next idle callback is fired.
 
 ### Example
 

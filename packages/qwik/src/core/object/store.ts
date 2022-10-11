@@ -268,7 +268,6 @@ export interface SnapshotState {
  */
 export interface SnapshotListener {
   key: string;
-  eventName: string;
   qrl: QRL<any>;
   el: Element;
 }
@@ -333,7 +332,6 @@ export const _pauseFromContexts = async (
           key,
           qrl,
           el,
-          eventName: getEventName(key),
         });
       }
     }
@@ -1004,8 +1002,11 @@ export const strToInt = (nu: string) => {
 
 export const getEventName = (attribute: string) => {
   const colonPos = attribute.indexOf(':');
-  assertTrue(colonPos >= 0, 'colon not found in attribute');
-  return fromKebabToCamelCase(attribute.slice(colonPos + 1));
+  if (attribute) {
+    return fromKebabToCamelCase(attribute.slice(colonPos + 1));
+  } else {
+    return attribute;
+  }
 };
 
 const getTextNode = (mark: Comment) => {

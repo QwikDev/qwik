@@ -13,6 +13,8 @@ const ON_PROP_REGEX = /^(on|window:|document:)/;
 
 export type Listener = [eventName: string, qrl: QRLInternal];
 
+export const PREVENT_DEFAULT = 'preventdefault:';
+
 export const isOnProp = (prop: string): boolean => {
   return prop.endsWith('$') && ON_PROP_REGEX.test(prop);
 };
@@ -65,10 +67,12 @@ export const setEvent = (
 ) => {
   assertTrue(prop.endsWith('$'), 'render: event property does not end with $', prop);
   prop = normalizeOnProp(prop.slice(0, -1));
-  const listeners = isArray(input)
-    ? input.map((q) => [prop, ensureQrl(q, containerEl)] as Listener)
-    : ([[prop, ensureQrl(input, containerEl)]] as Listener[]);
-  addQRLListener(existingListeners, listeners);
+  if (input) {
+    const listeners = isArray(input)
+      ? input.map((q) => [prop, ensureQrl(q, containerEl)] as Listener)
+      : ([[prop, ensureQrl(input, containerEl)]] as Listener[]);
+    addQRLListener(existingListeners, listeners);
+  }
   return prop;
 };
 

@@ -124,7 +124,7 @@ export type QwikEventMap = {
 };
 
 export type PreventDefault = {
-  [K in keyof QwikEventMap as `prevent${'default' | 'Default'}:${Lowercase<K>}`]?: boolean;
+  [K in keyof QwikEventMap as `preventdefault:${Lowercase<K>}`]?: boolean;
 };
 
 export interface QwikProps extends PreventDefault {

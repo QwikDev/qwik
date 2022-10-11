@@ -718,10 +718,16 @@ export const useStyles$: (first: string) => void;
 export const useStylesQrl: (styles: QRL<string>) => void;
 
 // @alpha
-export const useStylesScoped$: (first: string) => void;
+export const useStylesScoped$: (first: string) => UseStylesScoped;
+
+// @alpha (undocumented)
+export interface UseStylesScoped {
+    // (undocumented)
+    scopeId: string;
+}
 
 // @alpha
-export const useStylesScopedQrl: (styles: QRL<string>) => void;
+export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 
 // @alpha @deprecated (undocumented)
 export const useUserContext: typeof useEnvData;

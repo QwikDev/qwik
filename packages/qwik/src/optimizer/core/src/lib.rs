@@ -2,6 +2,8 @@
 #![deny(clippy::perf)]
 #![deny(clippy::nursery)]
 #![allow(clippy::use_self)]
+#![feature(box_patterns)]
+#![allow(clippy::option_if_let_else)]
 
 #[cfg(test)]
 mod test;
@@ -11,6 +13,7 @@ mod collector;
 mod entry_strategy;
 mod errors;
 mod filter_exports;
+mod is_immutable;
 mod package_json;
 mod parse;
 mod transform;
@@ -31,12 +34,14 @@ use std::path::Path;
 
 use anyhow::Error;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::str;
 use swc_atoms::JsWord;
 
 use crate::code_move::generate_entries;
 use crate::entry_strategy::parse_entry_strategy;
 pub use crate::entry_strategy::EntryStrategy;
+pub use crate::parse::EmitMode;
 use crate::parse::{transform_code, TransformCodeOptions};
 pub use crate::parse::{ErrorBuffer, HookAnalysis, MinifyMode, TransformModule, TransformOutput};
 
@@ -49,10 +54,13 @@ pub struct TransformFsOptions {
     pub glob: Option<String>,
     pub minify: MinifyMode,
     pub entry_strategy: EntryStrategy,
+    pub manual_chunks: Option<HashMap<String, JsWord>>,
     pub source_maps: bool,
-    pub transpile: bool,
+    pub transpile_ts: bool,
+    pub transpile_jsx: bool,
+    pub preserve_filenames: bool,
     pub explicit_extensions: bool,
-    pub dev: bool,
+    pub mode: EmitMode,
     pub scope: Option<String>,
 
     pub strip_exports: Option<Vec<JsWord>>,
@@ -72,10 +80,13 @@ pub struct TransformModulesOptions {
     pub input: Vec<TransformModuleInput>,
     pub source_maps: bool,
     pub minify: MinifyMode,
-    pub transpile: bool,
+    pub transpile_ts: bool,
+    pub transpile_jsx: bool,
+    pub preserve_filenames: bool,
     pub entry_strategy: EntryStrategy,
+    pub manual_chunks: Option<HashMap<String, JsWord>>,
     pub explicit_extensions: bool,
-    pub dev: bool,
+    pub mode: EmitMode,
     pub scope: Option<String>,
 
     pub strip_exports: Option<Vec<JsWord>>,
@@ -86,7 +97,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
     let src_dir = Path::new(&config.src_dir);
     let mut paths = vec![];
     let is_inline = matches!(config.entry_strategy, EntryStrategy::Inline);
-    let entry_policy = &*parse_entry_strategy(config.entry_strategy);
+    let entry_policy = &*parse_entry_strategy(config.entry_strategy, config.manual_chunks);
     crate::package_json::find_modules(src_dir, config.vendor_roots, &mut paths)?;
 
     #[cfg(feature = "parallel")]
@@ -107,10 +118,12 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
                 code: &code,
                 explicit_extensions: config.explicit_extensions,
                 source_maps: config.source_maps,
-                transpile: config.transpile,
+                transpile_jsx: config.transpile_jsx,
+                transpile_ts: config.transpile_ts,
+                preserve_filenames: config.preserve_filenames,
                 scope: config.scope.as_ref(),
                 entry_policy,
-                dev: config.dev,
+                mode: config.mode,
                 is_inline,
                 strip_exports: config.strip_exports.as_deref(),
             })
@@ -125,7 +138,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
 pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
     let src_dir = std::path::Path::new(&config.src_dir);
     let is_inline = matches!(config.entry_strategy, EntryStrategy::Inline);
-    let entry_policy = &*parse_entry_strategy(config.entry_strategy);
+    let entry_policy = &*parse_entry_strategy(config.entry_strategy, config.manual_chunks);
     #[cfg(feature = "parallel")]
     let iterator = config.input.par_iter();
 
@@ -138,10 +151,12 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
             code: &path.code,
             minify: config.minify,
             source_maps: config.source_maps,
-            transpile: config.transpile,
+            transpile_ts: config.transpile_ts,
+            transpile_jsx: config.transpile_jsx,
+            preserve_filenames: config.preserve_filenames,
             explicit_extensions: config.explicit_extensions,
             entry_policy,
-            dev: config.dev,
+            mode: config.mode,
             scope: config.scope.as_ref(),
             is_inline,
 

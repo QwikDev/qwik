@@ -8,7 +8,7 @@ export const App = component$(() => {
   useContextProvider(
     TodosContext,
     useStore<TodosStore>({
-      items: ['Learn QWik', 'Build Qwik app', 'Profit'],
+      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],
     })
   );
 

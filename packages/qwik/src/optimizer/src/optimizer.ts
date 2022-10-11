@@ -72,8 +72,10 @@ const transformFsAsync = async (
       entryStrategy: fsOpts.entryStrategy,
       minify: fsOpts.minify,
       sourceMaps: fsOpts.sourceMaps,
-      transpile: fsOpts.transpile,
-      dev: fsOpts.dev,
+      transpileTs: fsOpts.transpileTs,
+      transpileJsx: fsOpts.transpileJsx,
+      preserveFilenames: fsOpts.preserveFilenames,
+      mode: fsOpts.mode,
       scope: fsOpts.scope,
       input,
     };
@@ -88,9 +90,12 @@ const convertOptions = (opts: any) => {
   const output: any = {
     minify: 'simplify',
     sourceMaps: false,
-    transpile: false,
+    transpileTs: false,
+    transpileJsx: false,
+    preserveFilenames: false,
     explicitExtensions: false,
-    dev: true,
+    mode: 'lib',
+    manualChunks: undefined,
     scope: undefined,
     stripExports: undefined,
   };
@@ -100,5 +105,6 @@ const convertOptions = (opts: any) => {
     }
   });
   output.entryStrategy = opts.entryStrategy?.type ?? 'smart';
+  output.manualChunks = opts.entryStrategy?.manual ?? undefined;
   return output;
 };

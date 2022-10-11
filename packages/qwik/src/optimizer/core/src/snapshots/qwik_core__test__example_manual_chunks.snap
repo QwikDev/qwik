@@ -1,0 +1,277 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useWatch$, useStore, useStyles$ } from '@builder.io/qwik';
+import mongo from 'mongodb';
+import redis from 'redis';
+
+export const Parent = component$(() => {
+    const state = useStore({
+        text: ''
+    });
+
+    // Double count watch
+    useWatch$(async () => {
+        state.text = await mongo.users();
+        redis.set(state.text);
+    });
+
+    return (
+        <div onClick$={() => console.log('parent')}>
+            {state.text}
+        </div>
+    );
+});
+
+export const Child = component$(() => {
+    const state = useStore({
+        text: ''
+    });
+
+    // Double count watch
+    useWatch$(async () => {
+        state.text = await mongo.users();
+    });
+
+    return (
+        <div onClick$={() => console.log('child')}>
+            {state.text}
+        </div>
+    );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Parent = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_Parent"), "Parent_component_0TaiDayHrlo"));
+export const Child = /*#__PURE__*/ componentQrl(qrl(()=>import("./entry_Child"), "Child_component_9GyF01GDKqw"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAIA,OAAO,MAAM,MAAM,iBAAG,+EAgBpB,CAAC;AAEH,OAAO,MAAM,KAAK,iBAAG,6EAenB,CAAC\"}")
+============================= parent_component_0taidayhrlo.js ==
+
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _wrapSignal } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
+import { useWatchQrl } from "@builder.io/qwik";
+export const Parent_component_0TaiDayHrlo = ()=>{
+    const state = useStore({
+        text: ''
+    });
+    // Double count watch
+    useWatchQrl(qrl(()=>import("./entry_Parent"), "Parent_component_useWatch_ZM0ARFf10mw", [
+        state
+    ]));
+    return /*#__PURE__*/ _jsx("div", {
+        onClick$: qrl(()=>import("./chunk_clicks"), "Parent_component_div_onClick_C5XE49Nqd3A"),
+        children: _wrapSignal(state, "text")
+    });
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;4CAKiC,IAAM;IACnC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,IAAI,EAAE,EAAE;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAGE,CAAC;IAEH,qBACI,KAAC,KAAG;QAAC,QAAQ;8BACR,KAAK;MACJ,CACR;AACN,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_0TaiDayHrlo",
+  "entry": "entry_Parent",
+  "displayName": "Parent_component",
+  "hash": "0TaiDayHrlo",
+  "canonicalFilename": "parent_component_0taidayhrlo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    172,
+    485
+  ]
+}
+*/
+============================= parent_component_usewatch_zm0arff10mw.js ==
+
+import { useLexicalScope } from "@builder.io/qwik";
+import mongo from "mongodb";
+import redis from "redis";
+export const Parent_component_useWatch_ZM0ARFf10mw = async ()=>{
+    const [state] = useLexicalScope();
+    state.text = await mongo.users();
+    redis.set(state.text);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;qDAWc;;IACN,KAAK,CAAC,IAAI,GAAG,MAAM,KAAK,CAAC,KAAK,EAAE,CAAC;IACjC,KAAK,CAAC,GAAG,CAAC,KAAK,CAAC,IAAI,CAAC,CAAC;CACzB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_useWatch_ZM0ARFf10mw",
+  "entry": "entry_Parent",
+  "displayName": "Parent_component_useWatch",
+  "hash": "ZM0ARFf10mw",
+  "canonicalFilename": "parent_component_usewatch_zm0arff10mw",
+  "extension": "js",
+  "parent": "Parent_component_0TaiDayHrlo",
+  "ctxKind": "function",
+  "ctxName": "useWatch$",
+  "captures": true,
+  "loc": [
+    275,
+    367
+  ]
+}
+*/
+============================= parent_component_div_onclick_c5xe49nqd3a.js ==
+
+export const Parent_component_div_onClick_C5XE49Nqd3A = ()=>console.log('parent');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAiBuB,IAAM,OAAO,CAAC,GAAG,CAAC,QAAQ,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_div_onClick_C5XE49Nqd3A",
+  "entry": "chunk_clicks",
+  "displayName": "Parent_component_div_onClick",
+  "hash": "C5XE49Nqd3A",
+  "canonicalFilename": "parent_component_div_onclick_c5xe49nqd3a",
+  "extension": "js",
+  "parent": "Parent_component_0TaiDayHrlo",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    407,
+    434
+  ]
+}
+*/
+============================= child_component_usewatch_ymfszqttkh0.js ==
+
+import { useLexicalScope } from "@builder.io/qwik";
+import mongo from "mongodb";
+export const Child_component_useWatch_YmfsZQTTkH0 = async ()=>{
+    const [state] = useLexicalScope();
+    state.text = await mongo.users();
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;oDA6Bc;;IACN,KAAK,CAAC,IAAI,GAAG,MAAM,KAAK,CAAC,KAAK,EAAE,CAAC;CACpC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_useWatch_YmfsZQTTkH0",
+  "entry": "entry_Child",
+  "displayName": "Child_component_useWatch",
+  "hash": "YmfsZQTTkH0",
+  "canonicalFilename": "child_component_usewatch_ymfszqttkh0",
+  "extension": "js",
+  "parent": "Child_component_9GyF01GDKqw",
+  "ctxKind": "function",
+  "ctxName": "useWatch$",
+  "captures": true,
+  "loc": [
+    624,
+    685
+  ]
+}
+*/
+============================= child_component_9gyf01gdkqw.js ==
+
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _wrapSignal } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
+import { useWatchQrl } from "@builder.io/qwik";
+export const Child_component_9GyF01GDKqw = ()=>{
+    const state = useStore({
+        text: ''
+    });
+    // Double count watch
+    useWatchQrl(qrl(()=>import("./entry_Child"), "Child_component_useWatch_YmfsZQTTkH0", [
+        state
+    ]));
+    return /*#__PURE__*/ _jsx("div", {
+        onClick$: qrl(()=>import("./chunk_clicks"), "Child_component_div_onClick_elliVSnAiOQ"),
+        children: _wrapSignal(state, "text")
+    });
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAuBgC,IAAM;IAClC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,IAAI,EAAE,EAAE;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAEE,CAAC;IAEH,qBACI,KAAC,KAAG;QAAC,QAAQ;8BACR,KAAK;MACJ,CACR;AACN,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_9GyF01GDKqw",
+  "entry": "entry_Child",
+  "displayName": "Child_component",
+  "hash": "9GyF01GDKqw",
+  "canonicalFilename": "child_component_9gyf01gdkqw",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    521,
+    802
+  ]
+}
+*/
+============================= child_component_div_onclick_ellivsnaioq.js ==
+
+export const Child_component_div_onClick_elliVSnAiOQ = ()=>console.log('child');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDAkCuB,IAAM,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_div_onClick_elliVSnAiOQ",
+  "entry": "chunk_clicks",
+  "displayName": "Child_component_div_onClick",
+  "hash": "elliVSnAiOQ",
+  "canonicalFilename": "child_component_div_onclick_ellivsnaioq",
+  "extension": "js",
+  "parent": "Child_component_9GyF01GDKqw",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    725,
+    751
+  ]
+}
+*/
+============================= chunk_clicks.js (ENTRY POINT)==
+
+export { Parent_component_div_onClick_C5XE49Nqd3A } from "./parent_component_div_onclick_c5xe49nqd3a";
+export { Child_component_div_onClick_elliVSnAiOQ } from "./child_component_div_onclick_ellivsnaioq";
+
+
+None
+============================= entry_Child.js (ENTRY POINT)==
+
+export { Child_component_useWatch_YmfsZQTTkH0 } from "./child_component_usewatch_ymfszqttkh0";
+export { Child_component_9GyF01GDKqw } from "./child_component_9gyf01gdkqw";
+export { _hW } from "@builder.io/qwik";
+
+
+None
+============================= entry_Parent.js (ENTRY POINT)==
+
+export { Parent_component_0TaiDayHrlo } from "./parent_component_0taidayhrlo";
+export { Parent_component_useWatch_ZM0ARFf10mw } from "./parent_component_usewatch_zm0arff10mw";
+export { _hW } from "@builder.io/qwik";
+
+
+None
+== DIAGNOSTICS ==
+
+[]

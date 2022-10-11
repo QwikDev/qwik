@@ -1,27 +1,46 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
 import styles from './footer.css?inline';
+import builder from './builder.svg';
+import { TwitterLogo } from '../svgs/twitter-logo';
+import { GithubLogo } from '../svgs/github-logo';
+import { DiscordLogo } from '../svgs/discord-logo';
 
 export const Footer = component$(() => {
   useStyles$(styles);
 
   return (
-    <footer class="pt-8 pb-12 px-2 flex flex-wrap justify-center sm:justify-between text-sm">
-      <nav class="flex py-2 px-2 md:px-0">
-        <a class="px-4 py-1" href="https://github.com/BuilderIO/qwik" target="_blank">
-          Github
+    <footer class="container mx-auto px-4 md:px-0 mt-4">
+      <div class="made-with-love">Made with ❤️ by</div>
+      <div class="footer-top">
+        <a href="https://www.builder.io" target="_blank">
+          <img
+            class="builder-logo"
+            width="312"
+            height="67"
+            src={builder}
+            alt="Builder.io logo"
+            loading="lazy"
+          />
         </a>
-        <a class="px-4 py-1" href="https://twitter.com/QwikDev" target="_blank">
-          @QwikDev
-        </a>
-        <a class="px-4 py-1" href="https://qwik.builder.io/chat" target="_blank">
-          Discord
-        </a>
-      </nav>
-      <div class="py-3 px-2 md:px-0">
-        <span>Made with ♡ by the </span>
-        <a href="https://www.builder.io/">Builder.io</a>
-        <span> team</span>
+        <ul class="footer-social">
+          <li>
+            <a href="https://qwik.builder.io/chat" target="_blank" title="Discord">
+              <DiscordLogo width={22} height={22} />
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/BuilderIO/qwik" target="_blank" title="Github">
+              <GithubLogo width={22} height={22} />
+            </a>
+          </li>
+          <li>
+            <a href="https://twitter.com/qwikdev" target="_blank" title="Twitter">
+              <TwitterLogo width={22} height={22} />
+            </a>
+          </li>
+        </ul>
       </div>
+      <div class="footer-bottom">© 2022 Builder.io, Inc.</div>
     </footer>
   );
 });

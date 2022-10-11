@@ -282,14 +282,17 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       log(`transformedOutput.clear()`);
       transformedOutputs.clear();
 
+      const mode =
+        opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
       const transformOpts: TransformFsOptions = {
         srcDir,
         vendorRoots,
         entryStrategy: opts.entryStrategy,
         minify: 'simplify',
-        transpile: true,
+        transpileTs: true,
+        transpileJsx: true,
         explicitExtensions: true,
-        dev: opts.buildMode === 'development',
+        mode,
         scope: opts.scope ? opts.scope : undefined,
       };
 
@@ -461,6 +464,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       filePath = normalizePath(filePath);
       const srcDir = opts.srcDir ? opts.srcDir : normalizePath(dir);
+      const mode = opts.buildMode === 'development' ? 'dev' : 'prod';
       const newOutput = optimizer.transformModulesSync({
         input: [
           {
@@ -470,11 +474,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         ],
         entryStrategy: opts.entryStrategy,
         minify: 'simplify',
-        sourceMaps: false,
-        transpile: true,
+        sourceMaps: opts.buildMode === 'development',
+        transpileTs: true,
+        transpileJsx: true,
         explicitExtensions: true,
         srcDir,
-        dev: opts.buildMode === 'development',
+        mode,
         scope: opts.scope ? opts.scope : undefined,
       });
 
@@ -668,6 +673,8 @@ export const QWIK_CORE_ID = '@builder.io/qwik';
 export const QWIK_BUILD_ID = '@builder.io/qwik/build';
 
 export const QWIK_JSX_RUNTIME_ID = '@builder.io/qwik/jsx-runtime';
+
+export const QWIK_JSX_DEV_RUNTIME_ID = '@builder.io/qwik/jsx-dev-runtime';
 
 export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 

@@ -61,7 +61,7 @@ export const setProperty = (
 
 const _setProperty = (node: any, key: string, value: any) => {
   try {
-    node[key] = value;
+    node[key] = value == null ? '' : value;
   } catch (err) {
     logError(codeToText(QError_setProperty), { node, key, value }, err);
   }
@@ -201,7 +201,7 @@ export const setKey = (el: QwikElement, key: string | null) => {
 export const resolveSlotProjection = (ctx: RenderStaticContext) => {
   // Slots removed
   const subsManager = ctx.$containerState$.$subsManager$;
-  ctx.$rmSlots$.forEach((slotEl) => {
+  for (const slotEl of ctx.$rmSlots$) {
     const key = getKey(slotEl);
     assertDefined(key, 'slots must have a key');
 
@@ -222,10 +222,10 @@ export const resolveSlotProjection = (ctx: RenderStaticContext) => {
         cleanupTree(slotEl, ctx, subsManager, false);
       }
     }
-  });
+  }
 
   // Slots added
-  ctx.$addSlots$.forEach(([slotEl, hostElm]) => {
+  for (const [slotEl, hostElm] of ctx.$addSlots$) {
     const key = getKey(slotEl);
     assertDefined(key, 'slots must have a key');
 
@@ -239,7 +239,7 @@ export const resolveSlotProjection = (ctx: RenderStaticContext) => {
       });
       template.remove();
     }
-  });
+  }
 };
 
 export const createTextNode = (doc: Document, text: string): Text => {

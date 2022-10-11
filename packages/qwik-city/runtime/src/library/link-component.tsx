@@ -22,26 +22,30 @@ export const Link = component$<LinkProps>((props) => {
       {...linkProps}
       onClick$={() => {
         if (clientNavPath) {
-          nav.path = linkProps.href!;
+          nav.path = linkProps.href as any;
         }
       }}
-      onMouseOver$={() => prefetchLinkResources(prefetchUrl, false)}
-      onQVisible$={() => prefetchLinkResources(prefetchUrl, true)}
+      data-prefetch={prefetchUrl}
+      onMouseOver$={(_, elm) => prefetchLinkResources(elm as HTMLElement)}
+      onQVisible$={(_, elm) => prefetchLinkResources(elm as HTMLElement, true)}
     >
       <Slot />
     </a>
   );
 });
 
-export const prefetchLinkResources = (prefetchUrl: string | null, isOnVisible: boolean) => {
-  if (!windowInnerWidth) {
-    windowInnerWidth = window.innerWidth;
-  }
+export const prefetchLinkResources = (elm: HTMLElement, isOnVisible?: boolean) => {
+  const prefetchUrl = elm?.dataset?.prefetch;
+  if (prefetchUrl) {
+    if (!windowInnerWidth) {
+      windowInnerWidth = window.innerWidth;
+    }
 
-  if (prefetchUrl && (!isOnVisible || (isOnVisible && windowInnerWidth < 520))) {
-    // either this is a mouseover event, probably on desktop
-    // or the link is visible, and the viewport width is less than X
-    loadClientData(prefetchUrl);
+    if (!isOnVisible || (isOnVisible && windowInnerWidth < 520)) {
+      // either this is a mouseover event, probably on desktop
+      // or the link is visible, and the viewport width is less than X
+      loadClientData(prefetchUrl);
+    }
   }
 };
 

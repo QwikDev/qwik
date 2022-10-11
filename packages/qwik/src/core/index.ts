@@ -21,7 +21,7 @@ export type {
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export { $ } from './import/qrl.public';
-export { qrl, inlinedQrl } from './import/qrl';
+export { qrl, inlinedQrl, inlinedQrlDEV, qrlDEV } from './import/qrl';
 export type { QRL, PropFunction, PropFnInterface } from './import/qrl.public';
 export { implicit$FirstArg } from './util/implicit_dollar';
 
@@ -66,6 +66,9 @@ export { useContext, useContextProvider, createContext } from './use/use-context
 export { useEnvData, useUserContext } from './use/use-env-data';
 export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
 export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
+export { useSignal } from './use/use-signal';
+
+export type { UseSignal } from './use/use-signal';
 export type { Context } from './use/use-context';
 export type { Ref } from './use/use-ref';
 export type { UseStoreOptions } from './use/use-store.public';
@@ -92,14 +95,10 @@ export { useServerMount$, useServerMountQrl } from './use/use-watch';
 export { useMount$, useMountQrl } from './use/use-watch';
 export { useErrorBoundary } from './use/use-error-boundary';
 
-export { _useMutableProps } from './props/props';
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './util/types';
-export type { NoSerialize } from './object/q-object';
-export { noSerialize, mutable } from './object/q-object';
-export type { MutableWrapper } from './object/q-object';
-
+export type { NoSerialize, Signal } from './object/q-object';
+export { noSerialize, mutable, _IMMUTABLE, _wrapSignal } from './object/q-object';
 export { version } from './version';

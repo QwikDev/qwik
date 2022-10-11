@@ -1,0 +1,75 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useStore } from '@builder.io/qwik';
+
+export enum Thing {
+    A,
+    B
+}
+
+export const App = component$(() => {
+    console.log(Thing.A);
+    return (
+        <>
+            <p class="stuff">Hello Qwik</p>
+        </>
+    );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export let Thing;
+(function(Thing) {
+    Thing[Thing["A"] = 0] = "A";
+    Thing[Thing["B"] = 1] = "B";
+})(Thing || (Thing = {}));
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;WAEO,KAGN;UAHW,KAAK;IAAL,KAAK,CAAL,KAAK,CACb,GAAC,IAAD,CAAC,IAAD,GAAC;IADO,KAAK,CAAL,KAAK,CAEb,GAAC,IAAD,CAAC,IAAD,GAAC;GAFO,KAAK,KAAL,KAAK;AAKjB,OAAO,MAAM,GAAG,iBAAG,yFAOjB,CAAC\"}")
+============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+
+import { Thing } from "./test";
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+export const App_component_ckEPmXZlub0 = ()=>{
+    console.log(Thing.A);
+    return /*#__PURE__*/ _jsx(_Fragment, {
+        children: /*#__PURE__*/ _jsx("p", {
+            class: "stuff",
+            children: "Hello Qwik"
+        })
+    });
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAQ8B,IAAM;IAChC,OAAO,CAAC,GAAG,CAAC,KAAK,CAAC,CAAC,CAAC,CAAC;IACrB,qBACI;kBACI,cAAA,KAAC,GAAC;YAAC,KAAK,EAAC,OAAO;sBAAC,YAAU;UAAI;MAChC,CACL;AACN,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "app_component_ckepmxzlub0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    126,
+    248
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

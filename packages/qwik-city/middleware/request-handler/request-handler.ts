@@ -34,14 +34,25 @@ export async function requestHandler<T = any>(
         trailingSlash,
         basePathname
       );
+      if (userResponse.aborted) {
+        return null;
+      }
 
       // status and headers should be immutable in at this point
       // body may not have resolved yet
       if (userResponse.type === 'endpoint') {
-        return endpointHandler(requestCtx, userResponse);
+        const endpointResult = await endpointHandler(requestCtx, userResponse);
+        return endpointResult;
       }
 
-      return pageHandler(requestCtx, userResponse, render, opts, routeBundleNames);
+      const pageResult = await pageHandler(
+        requestCtx,
+        userResponse,
+        render,
+        opts,
+        routeBundleNames
+      );
+      return pageResult;
     }
   } catch (e: any) {
     if (e instanceof RedirectResponse) {

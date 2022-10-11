@@ -1,6 +1,7 @@
 /* eslint-disable */
 
 import type { QRL } from '../../../import/qrl.public';
+import type { Signal } from '../../../object/q-object';
 import type { Ref } from '../../../use/use-ref';
 import type { JSXNode } from './jsx-node';
 
@@ -127,9 +128,9 @@ export type PreventDefault = {
 };
 
 export interface QwikProps extends PreventDefault {
-  class?: string | { [className: string]: boolean };
+  class?: string | { [className: string]: boolean } | string[];
   dangerouslySetInnerHTML?: string;
-  ref?: Ref<Element>;
+  ref?: Ref<Element> | Signal<Element | undefined> | ((el: Element) => void);
 
   /**
    *
@@ -154,7 +155,7 @@ export type BivariantEventHandler<T extends Event> = {
  */
 export type NativeEventHandler<T extends Event = Event> =
   | BivariantEventHandler<T>
-  | BivariantEventHandler<T>[];
+  | QRL<BivariantEventHandler<T>>[];
 
 /**
  * @public

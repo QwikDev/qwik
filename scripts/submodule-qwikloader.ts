@@ -169,7 +169,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
 }
 
 /**
- * Load each of the qwik scripts to be inlined with esbuild "define" as const varialbles.
+ * Load each of the qwik scripts to be inlined with esbuild "define" as const variables.
  */
 export async function inlineQwikScriptsEsBuild(config: BuildConfig) {
   const variableToFileMap = [

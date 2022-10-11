@@ -18,10 +18,13 @@ macro_rules! test_input {
             }],
             source_maps: true,
             minify: input.minify,
-            transpile: input.transpile,
+            transpile_ts: input.transpile_ts,
+            transpile_jsx: input.transpile_jsx,
+            preserve_filenames: input.preserve_filenames,
             explicit_extensions: input.explicit_extensions,
+            manual_chunks: input.manual_chunks,
             entry_strategy: input.entry_strategy,
-            dev: input.dev,
+            mode: input.mode,
             scope: input.scope,
             strip_exports,
         });
@@ -359,7 +362,8 @@ export const App = component$((props) => {
 })
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }
@@ -385,7 +389,8 @@ export const App = component$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, 
 })
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }
@@ -484,13 +489,13 @@ export const Foo = component$(({color}) => {
 
 export function Button({text, color}) {
     return (
-        <button color={color} onClick$={()=>console.log(text, color)}>{text}</button>
+        <button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
     );
 }
 
 export const ButtonArrow = ({text, color}) => {
     return (
-        <button color={color} onClick$={()=>console.log(text, color)}>{text}</button>
+        <button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
     );
 }
 "#
@@ -521,7 +526,8 @@ export const App = component$(({count}) => {
 })
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }
@@ -546,7 +552,8 @@ export const App = component$(() => {
 })
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }
@@ -566,7 +573,8 @@ export const App = component$(() => {
 })
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }
@@ -594,7 +602,8 @@ export const App = component$(() => {
 })
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }
@@ -614,7 +623,8 @@ export const App = Component((props) => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }
@@ -711,7 +721,8 @@ export const Foo = component$((props) => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }
@@ -753,7 +764,8 @@ export const Foo = component$(() => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }
@@ -795,7 +807,8 @@ export const Root = component$(() => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }
@@ -856,7 +869,8 @@ export const Lightweight = (props) => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }
@@ -883,7 +897,8 @@ export const App = component$((props) => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }
@@ -904,7 +919,8 @@ export const App = component$((props) => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }
@@ -923,7 +939,8 @@ export const App = component$((props) => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         explicit_extensions: true,
         ..TestInput::default()
     });
@@ -966,7 +983,8 @@ export const App2 = qwikify$(() => (
 ));
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         explicit_extensions: true,
         ..TestInput::default()
     });
@@ -989,7 +1007,7 @@ export const Foo = component$(() => {
 });
 "#
         .to_string(),
-        dev: false,
+        mode: EmitMode::Prod,
         ..TestInput::default()
     });
 }
@@ -1024,7 +1042,8 @@ export const Child = component$(() => {
 
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }
@@ -1078,7 +1097,8 @@ export default component$(() => {
 
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         filename: "src/routes/_repl/[id]/[[...slug]].tsx".into(),
         entry_strategy: EntryStrategy::Smart,
         explicit_extensions: true,
@@ -1143,7 +1163,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
 "#
         .to_string(),
         entry_strategy: EntryStrategy::Inline,
-        dev: false,
+        mode: EmitMode::Prod,
         ..TestInput::default()
     });
 }
@@ -1192,7 +1212,63 @@ export const Child = component$(() => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Smart,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_manual_chunks() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useWatch$, useStore, useStyles$ } from '@builder.io/qwik';
+import mongo from 'mongodb';
+import redis from 'redis';
+
+export const Parent = component$(() => {
+    const state = useStore({
+        text: ''
+    });
+
+    // Double count watch
+    useWatch$(async () => {
+        state.text = await mongo.users();
+        redis.set(state.text);
+    });
+
+    return (
+        <div onClick$={() => console.log('parent')}>
+            {state.text}
+        </div>
+    );
+});
+
+export const Child = component$(() => {
+    const state = useStore({
+        text: ''
+    });
+
+    // Double count watch
+    useWatch$(async () => {
+        state.text = await mongo.users();
+    });
+
+    return (
+        <div onClick$={() => console.log('child')}>
+            {state.text}
+        </div>
+    );
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        manual_chunks: Some(HashMap::from_iter(vec![
+            ("C5XE49Nqd3A".into(), "chunk_clicks".into()),
+            ("elliVSnAiOQ".into(), "chunk_clicks".into()),
+        ])),
         entry_strategy: EntryStrategy::Smart,
         ..TestInput::default()
     });
@@ -1258,11 +1334,19 @@ fn issue_150() {
     test_input!(TestInput {
         code: r#"
 import { component$, $ } from '@builder.io/qwik';
+import { hola } from 'sdfds';
 
 export const Greeter = component$(() => {
+    const stuff = useStore();
     return $(() => {
         return (
-            <div/>
+            <div
+                class={{
+                    'foo': true,
+                    'bar': stuff.condition,
+                    'baz': hola ? 'true' : 'false',
+                }}
+            />
         )
     });
 });
@@ -1270,7 +1354,26 @@ export const Greeter = component$(() => {
 const d = $(()=>console.log('thing'));
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_import_assertion() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, $ } from '@builder.io/qwik';
+import json from "./foo.json" assert { type: "json" };
+
+export const Greeter = component$(() => {
+    return json;
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }
@@ -1295,7 +1398,8 @@ export const Greeter = component$(() => {
 const d = $(()=>console.log('thing'));
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
         snapshot: false,
     })
     .unwrap();
@@ -1323,7 +1427,8 @@ export const Root = () => {
 };
 "#
         .to_string(),
-        transpile: false,
+        transpile_ts: false,
+        transpile_jsx: false,
         ..TestInput::default()
     });
 }
@@ -1343,7 +1448,293 @@ export const App = component$(() => {
 });
 "#
         .to_string(),
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_immutable_analysis() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore, $ } from '@builder.io/qwik';
+import importedValue from 'v';
+
+export const App = component$((props) => {
+    const state = useStore({count: 0});
+    return (
+        <>
+            <p class="stuff" onClick$={props.onClick$}>Hello Qwik</p>
+            <Div
+                onClick$={props.onClick$}
+                transparent$={() => {console.log('stuff')}}
+                immutable1="stuff"
+                immutable2={{
+                    foo: 'bar',
+                    baz: importedValue ? true : false,
+                }}
+                immutable3={2}
+                immutable4$={(ev) => console.log(state.count)}
+                immutable5={[1, 2, importedValue, null, {}]}
+            >
+                <p>Hello Qwik</p>
+            </Div>
+            <Div
+                class={state}
+                mutable1={{
+                    foo: 'bar',
+                    baz: state.count ? true : false,
+                }}
+                mutable2={(() => console.log(state.count))()}
+                mutable3={[1, 2, state, null, {}]}
+            />
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_ts_enums_issue_1341() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+enum Thing {
+    A,
+    B
+}
+
+export const App = component$(() => {
+    console.log(Thing.A);
+    return (
+        <>
+            <p class="stuff">Hello Qwik</p>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_ts_enums_no_transpile() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export enum Thing {
+    A,
+    B
+}
+
+export const App = component$(() => {
+    console.log(Thing.A);
+    return (
+        <>
+            <p class="stuff">Hello Qwik</p>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_ts: false,
+        transpile_jsx: false,
+
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_ts_enums() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export enum Thing {
+    A,
+    B
+}
+
+export const App = component$(() => {
+    console.log(Thing.A);
+    return (
+        <>
+            <p class="stuff">Hello Qwik</p>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_dev_mode() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$(() => {
+    return (
+        <Cmp>
+            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+        </Cmp>
+    );
+});
+"#
+        .to_string(),
+        mode: EmitMode::Dev,
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_dev_mode_inlined() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$(() => {
+    return (
+        <Cmp>
+            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+        </Cmp>
+    );
+});
+"#
+        .to_string(),
+        mode: EmitMode::Dev,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        transpile_jsx: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_transpile_jsx_only() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    return (
+        <Cmp>
+            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+        </Cmp>
+    );
+});
+"#
+        .to_string(),
+        transpile_ts: false,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_transpile_ts_only() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    return (
+        <Cmp>
+            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+        </Cmp>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        transpile_jsx: false,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_preserve_filenames() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    return (
+        <Cmp>
+            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+        </Cmp>
+    );
+});
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: false,
+        transpile_jsx: true,
+        preserve_filenames: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_getter_generation() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$(() => {
+    const store = useStore({
+        count: 0,
+        stuff: 0,
+        nested: {
+            count: 0
+        }
+    });
+    const signal = useSignal(0);
+    return (
+        <Cmp
+            prop={'true' + 1 ? 'true' : ''}
+            count={store.count}
+            nested={store.nested.count}
+            signal={signal}
+            store={store.stuff + 12}
+        >
+        </Cmp>
+    );
+});
+
+export const Cmp = component$((props) => {
+    return (
+        <>
+            <p data-value={props.count}>{props.nested.count}</p>
+            <p>Value {props.count}<span></span></p>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
         ..TestInput::default()
     });
 }
@@ -1402,7 +1793,10 @@ function qwikifyQrl(reactCmpQrl) {
             ]).then(([Cmp, server])=>{
                 const html = server.render(Cmp, filterProps(props));
                 return /*#__PURE__*/ jsx(Host, {
-                    dangerouslySetInnerHTML: html
+                    dangerouslySetInnerHTML: html,
+                    [_IMMUTABLE]: [
+                        "dangerouslySetInnerHTML"
+                    ]
                 });
             });
             return /*#__PURE__*/ jsx(Fragment, {
@@ -1511,9 +1905,12 @@ export const Local = component$(() => {
         source_maps: true,
         minify: MinifyMode::Simplify,
         explicit_extensions: true,
-        dev: true,
+        mode: EmitMode::Lib,
+        manual_chunks: None,
         entry_strategy: EntryStrategy::Hook,
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
+        preserve_filenames: false,
         scope: None,
         strip_exports: None,
     });
@@ -1541,17 +1938,30 @@ export const Greeter = component$(() => {
 
 "#;
     let options = vec![
-        (true, EntryStrategy::Single, true),
-        (true, EntryStrategy::Component, true),
-        (false, EntryStrategy::Hook, true),
-        (false, EntryStrategy::Single, true),
-        (false, EntryStrategy::Component, true),
-        (true, EntryStrategy::Hook, false),
-        (true, EntryStrategy::Single, false),
-        (true, EntryStrategy::Component, false),
-        (false, EntryStrategy::Hook, false),
-        (false, EntryStrategy::Single, false),
-        (false, EntryStrategy::Component, false),
+        (EmitMode::Lib, EntryStrategy::Hook, true),
+        (EmitMode::Lib, EntryStrategy::Single, true),
+        (EmitMode::Lib, EntryStrategy::Component, true),
+        // (EmitMode::Lib, EntryStrategy::Inline, true),
+        (EmitMode::Prod, EntryStrategy::Hook, true),
+        (EmitMode::Prod, EntryStrategy::Single, true),
+        (EmitMode::Prod, EntryStrategy::Component, true),
+        // (EmitMode::Prod, EntryStrategy::Inline, true),
+        (EmitMode::Dev, EntryStrategy::Hook, true),
+        (EmitMode::Dev, EntryStrategy::Single, true),
+        (EmitMode::Dev, EntryStrategy::Component, true),
+        // (EmitMode::Dev, EntryStrategy::Inline, true),
+        (EmitMode::Lib, EntryStrategy::Hook, false),
+        (EmitMode::Lib, EntryStrategy::Single, false),
+        (EmitMode::Lib, EntryStrategy::Component, false),
+        // (EmitMode::Lib, EntryStrategy::Inline, false),
+        (EmitMode::Prod, EntryStrategy::Hook, false),
+        (EmitMode::Prod, EntryStrategy::Single, false),
+        (EmitMode::Prod, EntryStrategy::Component, false),
+        // (EmitMode::Prod, EntryStrategy::Inline, false),
+        (EmitMode::Dev, EntryStrategy::Hook, false),
+        (EmitMode::Dev, EntryStrategy::Single, false),
+        (EmitMode::Dev, EntryStrategy::Component, false),
+        // (EmitMode::Dev, EntryStrategy::Inline, false),
     ];
 
     let res = transform_modules(TransformModulesOptions {
@@ -1569,9 +1979,12 @@ export const Greeter = component$(() => {
         source_maps: true,
         minify: MinifyMode::Simplify,
         explicit_extensions: true,
-        dev: true,
+        mode: EmitMode::Lib,
+        manual_chunks: None,
         entry_strategy: EntryStrategy::Hook,
-        transpile: true,
+        transpile_ts: true,
+        transpile_jsx: true,
+        preserve_filenames: false,
         scope: None,
         strip_exports: None,
     });
@@ -1598,9 +2011,12 @@ export const Greeter = component$(() => {
             source_maps: false,
             minify: MinifyMode::Simplify,
             explicit_extensions: true,
-            dev: option.0,
+            mode: option.0,
+            manual_chunks: None,
             entry_strategy: option.1,
-            transpile: option.2,
+            transpile_ts: option.2,
+            transpile_jsx: option.2,
+            preserve_filenames: false,
             scope: None,
             strip_exports: None,
         });
@@ -1637,12 +2053,15 @@ struct TestInput {
     pub code: String,
     pub filename: String,
     pub src_dir: String,
+    pub manual_chunks: Option<HashMap<String, JsWord>>,
     pub entry_strategy: EntryStrategy,
     pub minify: MinifyMode,
-    pub transpile: bool,
+    pub transpile_ts: bool,
+    pub transpile_jsx: bool,
+    pub preserve_filenames: bool,
     pub explicit_extensions: bool,
     pub snapshot: bool,
-    pub dev: bool,
+    pub mode: EmitMode,
     pub scope: Option<String>,
     pub strip_exports: Option<Vec<String>>,
 }
@@ -1653,12 +2072,15 @@ impl TestInput {
             filename: "test.tsx".to_string(),
             src_dir: "/user/qwik/src/".to_string(),
             code: "/user/qwik/src/".to_string(),
+            manual_chunks: None,
             entry_strategy: EntryStrategy::Hook,
             minify: MinifyMode::Simplify,
-            transpile: false,
+            transpile_ts: false,
+            transpile_jsx: false,
+            preserve_filenames: false,
             explicit_extensions: false,
             snapshot: true,
-            dev: true,
+            mode: EmitMode::Lib,
             scope: None,
             strip_exports: None,
         }

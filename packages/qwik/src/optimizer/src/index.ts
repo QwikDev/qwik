@@ -9,7 +9,6 @@ export type {
   GlobalInjections,
   HookAnalysis,
   HookEntryStrategy,
-  ManualEntryStrategy,
   MinifyMode,
   Optimizer,
   OptimizerOptions,

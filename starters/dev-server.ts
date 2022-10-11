@@ -49,9 +49,8 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
 
     const pkgPath = join(appDir, 'package.json');
     const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-    const enableCityServer = !!pkgJson.__qwik__?.selectServer;
+    const enableCityServer = !!pkgJson.__qwik__?.qwikCity;
 
-    console.log('enableCityServer', enableCityServer);
     let clientManifest = cache.get(appDir);
     if (!clientManifest) {
       clientManifest = await buildApp(appDir, appName, enableCityServer);
@@ -127,9 +126,10 @@ export {
     configFile: false,
     base: baseUrl,
     ...extra,
-    define: {
-      'globalThis.qSerialize': false,
-      'globalThis.qDev': !isProd,
+    resolve: {
+      alias: {
+        '@builder.io/qwik': join(qwikDistDir),
+      },
     },
   });
 
@@ -137,6 +137,10 @@ export {
     getInlineConf({
       build: {
         minify: false,
+      },
+      define: {
+        'globalThis.qSerialize': false,
+        'globalThis.qDev': !isProd,
       },
       plugins: [
         ...plugins,
@@ -164,6 +168,9 @@ export {
         ssr: enableCityServer ? qwikCityVirtualEntry : resolve(appSrcDir, entrySsrFileName),
       },
       plugins: [...plugins, optimizer.qwikVite()],
+      define: {
+        'globalThis.qDev': !isProd,
+      },
     })
   );
 

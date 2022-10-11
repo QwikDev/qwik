@@ -1,6 +1,6 @@
 import { ElementFixture, trigger } from '../../testing/element-fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
-import { inlinedQrl, runtimeQrl } from '../import/qrl';
+import { inlinedQrl } from '../import/qrl';
 import { useStylesQrl } from '../use/use-styles';
 import { PropsOf, component$ } from './component.public';
 import { suite } from 'uvu';
@@ -149,14 +149,14 @@ export const MyCounter = component$((props: { step?: number; value?: number }) =
     <my-counter>
       <button
         class="decrement"
-        onClick$={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
+        onClick$={inlinedQrl(MyCounter_update, 'update', [props, state, { dir: -1 }])}
       >
         -
       </button>
       <span>{state.count}</span>
       <button
         class="increment"
-        onClick$={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
+        onClick$={inlinedQrl(MyCounter_update, 'update', [props, state, { dir: 1 }])}
       >
         +
       </button>

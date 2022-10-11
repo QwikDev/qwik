@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik",
-  "version": "0.0.108",
+  "version": "0.10.0",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "main": "./dist/core.cjs",
   "types": "./dist/core.d.ts",
@@ -81,6 +81,7 @@
     "core.prod.cjs",
     "core.prod.mjs",
     "core.d.ts",
+    "jsx-dev-runtime/package.json",
     "jsx-runtime/package.json",
     "jsx-runtime.cjs",
     "jsx-runtime.cjs.map",
@@ -154,6 +155,6 @@
     "Builder.io"
   ],
   "engines": {
-    "node": ">=14.18.0"
+    "node": ">=16"
   }
 }

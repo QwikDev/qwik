@@ -1,6 +1,5 @@
 // @ts-ignore
 import algoliasearch from 'algoliasearch/dist/algoliasearch-lite.esm.browser';
-import { flatten } from '@algolia/autocomplete-shared';
 import type { SearchClient } from 'algoliasearch/lite';
 import { preResolve, postResolve, resolve } from '@algolia/autocomplete-core/dist/esm/resolve';
 import { reshape } from '@algolia/autocomplete-core/dist/esm/reshape';
@@ -153,7 +152,7 @@ export function handleSearch(
         ...collection,
         // We flatten the stored items to support calling `getAlgoliaResults`
         // from the source itself.
-        items: flatten(collection.items as any).map((item: any) => ({
+        items: (collection.items as any[]).flat(Infinity).map((item: any) => ({
           ...item,
           __autocomplete_id: baseItemId++,
         })),

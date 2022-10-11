@@ -1,5 +1,10 @@
 ---
 title: useResource$()
+contributors:
+  - adamdbradley
+  - muralikrishna8
+  - jmmon
+  - manucorporat
 ---
 
 For this tutorial, we would like to fetch the list of repositories for a given GitHub organization. To aid you, we have added the `getRepositories()` function to the bottom of the file. Your task is to use the `getRepositories()` function to fetch the list of repositories whenever the user updates the `org` input.
@@ -33,7 +38,7 @@ Use `useResource$()` to set up how the data is fetched from the server.
   });
 ```
 
-The `useResource$()` function returns a `ResourceReturn` object, which is a Promise-like object that can be serialized by Qwik. The `useResource$()` function allows you to `track` story properties so that the `useResource$()` function can be reactive on store changes. The `cleanup` function allows you to register a code that needs to be run to release resources from the previous run. Finally, the `useResource$()` function returns a promise that will resolve to the value.
+The `useResource$()` function returns a `ResourceReturn` object, which is a Promise-like object that can be serialized by Qwik. The `useResource$()` function allows you to `track` store properties so that the `useResource$()` function can be reactive on store changes. The `cleanup` function allows you to register a code that needs to be run to release resources from the previous run. Finally, the `useResource$()` function returns a promise that will resolve to the value.
 
 ## Rendering data
 

@@ -38,6 +38,7 @@ export async function loadUserResponse(
     headers: createHeaders(),
     resolvedBody: undefined,
     pendingBody: undefined,
+    aborted: false,
   };
 
   let hasRequestMethodHandler = false;
@@ -48,7 +49,7 @@ export async function loadUserResponse(
       // must have a trailing slash
       if (!pathname.endsWith('/')) {
         // add slash to existing pathname
-        throw new RedirectResponse(pathname + '/' + url.search, HttpStatus.TemporaryRedirect);
+        throw new RedirectResponse(pathname + '/' + url.search, HttpStatus.Found);
       }
     } else {
       // should not have a trailing slash
@@ -56,7 +57,7 @@ export async function loadUserResponse(
         // remove slash from existing pathname
         throw new RedirectResponse(
           pathname.slice(0, pathname.length - 1) + url.search,
-          HttpStatus.TemporaryRedirect
+          HttpStatus.Found
         );
       }
     }
@@ -176,6 +177,7 @@ export async function loadUserResponse(
   };
 
   await next();
+  userResponse.aborted = routeModuleIndex >= ABORT_INDEX;
 
   if (
     !isPageDataRequest &&
@@ -196,7 +198,6 @@ export async function loadUserResponse(
     // didn't find any handlers
     throw new ErrorResponse(HttpStatus.MethodNotAllowed, `Method Not Allowed`);
   }
-
   return userResponse;
 }
 

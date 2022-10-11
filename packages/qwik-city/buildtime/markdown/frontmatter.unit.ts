@@ -40,10 +40,21 @@ test('frontmatter, dictionary', async () => {
 });
 
 test('frontmatter, multiple', async () => {
-  const yaml = 'title: Some Title' + '\n' + 'description: Some Description';
+  const yaml =
+    'title: Some Title' +
+    '\n' +
+    'description: Some Description' +
+    '\n' +
+    'contributors:' +
+    '\n - abc' +
+    '\n - xyz' +
+    '\n' +
+    'color-scheme: dark';
   const attrs: FrontmatterAttrs = parseFrontmatterAttrs(yaml);
   assert.equal(attrs.title, 'Some Title');
   assert.equal(attrs.description, 'Some Description');
+  assert.equal(attrs.contributors, ['abc', 'xyz']);
+  assert.equal(attrs['color-scheme'], 'dark');
 });
 
 test('frontmatter, no attrs head', async () => {
@@ -60,15 +71,30 @@ test('frontmatter, attrs head title', async () => {
   assert.equal(head!.meta.length, 0);
 });
 
-test('frontmatter, attrs head description', async () => {
-  const attrs: FrontmatterAttrs = {
-    description: 'My Description',
-  };
-  const head = frontmatterAttrsToDocumentHead(attrs);
-  assert.equal(head!.title, '');
-  assert.equal(head!.meta.length, 1);
-  assert.equal(head!.meta[0].name, 'description');
-  assert.equal(head!.meta[0].content, 'My Description');
-});
+const metaNames = [
+  'author',
+  'creator',
+  'color-scheme',
+  'description',
+  'generator',
+  'keywords',
+  'publisher',
+  'referrer',
+  'robots',
+  'theme-color',
+  'viewport',
+];
+for (const metaName of metaNames) {
+  test(`frontmatter, meta name "${metaName}"`, async () => {
+    const attrs: FrontmatterAttrs = {
+      [metaName]: `My ${metaName}`,
+    };
+    const head = frontmatterAttrsToDocumentHead(attrs);
+    assert.equal(head!.title, '');
+    assert.equal(head!.meta.length, 1);
+    assert.equal(head!.meta[0].name, metaName);
+    assert.equal(head!.meta[0].content, `My ${metaName}`);
+  });
+}
 
 test.run();

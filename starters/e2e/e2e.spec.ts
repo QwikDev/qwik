@@ -22,9 +22,9 @@ test.describe('e2e', () => {
 
     test('should rerender without changes', async ({ page }) => {
       const SNAPSHOT =
-        '<p>1</p><p>"&lt;/script&gt;"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}}</p><p>undefined</p><p>null</p><p>[1,2,"hola",null,{}]</p><p>true</p><p>false</p><p>()=&gt;console.error()</p><p>mutable message</p><p>from a promise</p>';
+        '<p>1</p><p>"&lt;/script&gt;"</p><p>{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}}</p><p>undefined</p><p>null</p><p>[1,2,"hola",null,{}]</p><p>true</p><p>false</p><p>()=&gt;console.error()</p><p><!--t=2-->mutable message<!----></p><p>{"signal":{"untrackedValue":0},"signalValue":0,"store":{"count":0,"signal":{"untrackedValue":0}},"storeCount":0,"storeSignal":{"untrackedValue":0}}</p><p>from a promise</p>';
       const RESULT =
-        '[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}},"undefined","null",[1,2,"hola",null,{}],true,false,null,"mutable message",null,"from a promise","http://qwik.builder.com/docs?query=true","2022-07-26T17:40:30.255Z","hola()\\\\/ gi",12,"failed message",["\\b: backspace","\\f: form feed","\\n: line feed","\\r: carriage return","\\t: horizontal tab","\\u000b: vertical tab","\\u0000: null character","\': single quote","\\\\: backslash"]]';
+        '[1,"</script>",{"a":{"thing":12},"b":"hola","c":123,"d":false,"e":true,"f":null,"h":[1,"string",false,{"hola":1},["hello"]],"promise":{}},"undefined","null",[1,2,"hola",null,{}],true,false,null,"mutable message",null,{"untrackedValue":0},0,{"count":0,"signal":{"untrackedValue":0}},0,{"untrackedValue":0},"from a promise","http://qwik.builder.com/docs?query=true","2022-07-26T17:40:30.255Z","hola()\\\\/ gi",12,"failed message",["\\b: backspace","\\f: form feed","\\n: line feed","\\r: carriage return","\\t: horizontal tab","\\u000b: vertical tab","\\u0000: null character","\': single quote","\\\\: backslash"],"Infinity","-Infinity","NaN"]';
 
       function normalizeSnapshot(str: string) {
         return str.replace(' =&gt; ', '=&gt;');
@@ -98,6 +98,18 @@ test.describe('e2e', () => {
       expect(await contentTransparent.textContent()).toEqual('countTransparent: 2');
       expect(await countWrapped.textContent()).toEqual('countWrapped: 2');
       expect(await btnWrapped.textContent()).toEqual('Wrapped 2');
+    });
+
+    test('should prevent defaults and bubbling', async ({ page }) => {
+      const prevented1 = await page.locator('#prevent-default-1');
+      const prevented2 = await page.locator('#prevent-default-2');
+      const countWrapped = await page.locator('#count-anchor');
+
+      await prevented1.click();
+      await expect(countWrapped).toHaveText('countAnchor: 0');
+
+      await prevented2.click();
+      await expect(countWrapped).toHaveText('countAnchor: 1');
     });
   });
 
@@ -284,6 +296,36 @@ test.describe('e2e', () => {
 
         await expect(content3).toHaveText('INSIDE THING 0', { useInnerText: true });
       });
+
+      test('should project cmp correctly into their selected slot', async ({ page }) => {
+        const toggleBtn = await page.locator('#toggle-child-slot');
+        const slotChild = await page.locator('#slot-child');
+        const slotP = await page.locator('#slot-p');
+        const noslotP = await page.locator('#noslot-p');
+
+        await expect(slotChild).not.toBeHidden();
+        await expect(slotP).not.toBeHidden();
+        await expect(noslotP).not.toBeHidden();
+
+        await toggleBtn.click();
+
+        await expect(slotChild).not.toBeHidden();
+        await expect(slotP).not.toBeHidden();
+        await expect(noslotP).toBeHidden();
+      });
+
+      test('should toggle nested slot', async ({ page }) => {
+        const toggleBtn = await page.locator('#toggle-modal');
+        const modalContent = await page.locator('#modal-content');
+
+        await expect(modalContent).not.toBeHidden();
+
+        await toggleBtn.click();
+        await expect(modalContent).toBeHidden();
+
+        await toggleBtn.click();
+        await expect(modalContent).not.toBeHidden();
+      });
     }
 
     test.beforeEach(async ({ page }) => {
@@ -457,25 +499,31 @@ test.describe('e2e', () => {
     });
 
     test('should load', async ({ page }) => {
+      const container = await page.locator('#container');
       const counter = await page.locator('#counter');
       const msg = await page.locator('#msg');
       const msgEager = await page.locator('#eager-msg');
       const msgClientSide1 = await page.locator('#client-side-msg-1');
       const msgClientSide2 = await page.locator('#client-side-msg-2');
+      const msgClientSide3 = await page.locator('#client-side-msg-3');
 
+      await expect(container).toHaveAttribute('data-effect', '');
       await expect(counter).toHaveText('0');
       await expect(msg).toHaveText('empty');
       await expect(msgEager).toHaveText('run');
       await expect(msgClientSide1).toHaveText('run');
       await expect(msgClientSide2).toHaveText('run');
+      await expect(msgClientSide3).toHaveText('run');
 
       await counter.scrollIntoViewIfNeeded();
       await page.waitForTimeout(100);
 
+      await expect(container).toHaveAttribute('data-effect', 'true');
       await expect(counter).toHaveText('10');
       await expect(msg).toHaveText('run');
 
       await page.waitForTimeout(500);
+      await expect(container).toHaveAttribute('data-effect', 'true');
       await expect(counter).toHaveText('11');
       await expect(msg).toHaveText('run');
     });
@@ -503,7 +551,7 @@ test.describe('e2e', () => {
 
       // ToggleA
       await btnToggle.click();
-      logsStr += 'Child(0)Child(0)ToggleA()';
+      logsStr += 'Child(0)ToggleA()Child(0)';
 
       await expect(title).toHaveText('ToggleB');
       await expect(mount).toHaveText('mounted in client');
@@ -706,24 +754,33 @@ test.describe('e2e', () => {
 
     test('should load', async ({ page }) => {
       const parent = await page.locator('.parent');
-      const child1 = await page.locator('text=Child 2');
+      const child2 = await page.locator('text=Child 2');
+      const inline2 = await page.locator('text=Inline 2');
 
       const addChild = await page.locator('button');
+
+      await expect(parent).toHaveAttribute('class', '⭐️yalzmy-0 parent count-10');
       await expect(parent).toHaveCSS('font-size', '200px');
-      await expect(child1).toHaveCSS('font-size', '20px');
+      await expect(child2).toHaveCSS('font-size', '20px');
+      await expect(inline2).toHaveCSS('font-size', '40px');
 
       const el = await page.$$('[q\\:style]');
-      await expect(el.length).toBe(3);
+      await expect(el.length).toBe(4);
       await addChild.click();
       await page.waitForTimeout(100);
 
       const child10 = await page.locator('text=Child 10');
+      const inline10 = await page.locator('text=Inline 10');
+
+      await expect(parent).toHaveAttribute('class', '⭐️yalzmy-0 parent count-11');
       await expect(parent).toHaveCSS('font-size', '200px');
-      await expect(child1).toHaveCSS('font-size', '20px');
+      await expect(child2).toHaveCSS('font-size', '20px');
+      await expect(inline2).toHaveCSS('font-size', '40px');
       await expect(child10).toHaveCSS('font-size', '20px');
+      await expect(inline10).toHaveCSS('font-size', '40px');
 
       const el2 = await page.$$('[q\\:style]');
-      await expect(el2.length).toBe(3);
+      await expect(el2.length).toBe(4);
     });
   });
 
@@ -769,9 +826,14 @@ Click`);
 
     test('should render correctly', async ({ page }) => {
       const staticEl = await page.locator('#static');
-      const dynamic = await page.locator('#dynamic');
-      await expect(staticEl).toHaveText('Rendered');
-      await expect(dynamic).toHaveText('Rendered');
+      const dynamicEl = await page.locator('#dynamic');
+      const static2El = await page.locator('#static-2');
+      const dynamic2El = await page.locator('#dynamic-2');
+
+      await expect(staticEl).toHaveText('Rendered static');
+      await expect(dynamicEl).toHaveText('Rendered dynamic');
+      await expect(static2El).toHaveText('Rendered static-2');
+      await expect(dynamic2El).toHaveText('Rendered dynamic-2');
     });
   });
 
@@ -889,6 +951,297 @@ Click`);
 
       await count.click();
       await expect(count).toHaveText('Rerender 1');
+    });
+  });
+
+  test.describe('attributes', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/attributes');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    function tests() {
+      test('initial render is correctly', async ({ page }) => {
+        const input = await page.locator('#input');
+        const label = await page.locator('#label');
+        const svg = await page.locator('#svg');
+
+        const renders = await page.locator('#renders');
+
+        await expect(input).toHaveAttribute('aria-hidden', 'true');
+        await expect(input).toHaveAttribute('aria-label', 'even');
+        await expect(input).toHaveAttribute('tabindex', '-1');
+        await expect(input).not.hasAttribute('required');
+        await expect(input).toHaveAttribute('title', '');
+
+        await expect(label).toHaveAttribute('for', 'even');
+        await expect(label).toHaveAttribute('form', 'my-form');
+        await expect(input).toHaveAttribute('title', '');
+
+        await expect(svg).toHaveAttribute('width', '15');
+        await expect(svg).toHaveAttribute('height', '15');
+        await expect(svg).toHaveAttribute('preserveAspectRatio', 'xMidYMin slice');
+        await expect(svg).toHaveAttribute('class', 'is-svg');
+        await expect(svg).toHaveAttribute('aria-hidden', 'true');
+
+        await expect(renders).toHaveText('1');
+      });
+
+      test('should type and reflect changes', async ({ page }) => {
+        const input = await page.locator('#input');
+        const svg = await page.locator('#svg');
+        const inputCopy = await page.locator('#input-copy');
+        const inputValue = await page.locator('#input-value');
+        const stuffBtn = await page.locator('#stuff');
+        const renders = await page.locator('#renders');
+
+        await input.type('Hello');
+        await expect(inputCopy).toHaveJSProperty('value', 'Hello');
+        await expect(inputValue).toHaveText('Hello');
+        await expect(renders).toHaveText('1');
+
+        await stuffBtn.click();
+        await expect(inputCopy).toHaveJSProperty('value', 'Hello');
+        await expect(inputValue).toHaveText('Hello');
+        await expect(renders).toHaveText('2');
+
+        await input.type('Bye');
+        await expect(inputCopy).toHaveJSProperty('value', 'ByeHello');
+        await expect(inputValue).toHaveText('ByeHello');
+        await expect(renders).toHaveText('2');
+
+        await expect(svg).toHaveAttribute('width', '15');
+        await expect(svg).toHaveAttribute('height', '15');
+        await expect(svg).toHaveAttribute('preserveAspectRatio', 'xMidYMin slice');
+        await expect(svg).toHaveAttribute('class', 'is-svg');
+        await expect(svg).toHaveAttribute('aria-hidden', 'true');
+      });
+
+      test('should update aria-label', async ({ page }) => {
+        const input = await page.locator('#input');
+        const renders = await page.locator('#renders');
+        const countBtn = await page.locator('#count');
+        await countBtn.click();
+
+        await expect(input).toHaveAttribute('aria-hidden', 'true');
+        await expect(input).toHaveAttribute('aria-label', 'odd');
+        await expect(input).toHaveAttribute('tabindex', '-1');
+        await expect(input).not.hasAttribute('required');
+        await expect(renders).toHaveText('1');
+      });
+
+      test('should update title', async ({ page }) => {
+        const input = await page.locator('#input');
+        const label = await page.locator('#label');
+
+        const renders = await page.locator('#renders');
+        const countBtn = await page.locator('#title');
+        await countBtn.click();
+
+        await expect(input).toHaveAttribute('title', 'some title');
+        await expect(label).toHaveAttribute('title', 'some title');
+        await expect(renders).toHaveText('1');
+
+        await countBtn.click();
+        await expect(input).toHaveAttribute('title', '');
+        await expect(input).toHaveAttribute('title', '');
+        await expect(renders).toHaveText('1');
+      });
+
+      test('should update aria-hidden', async ({ page }) => {
+        const input = await page.locator('#input');
+        const svg = await page.locator('#svg');
+        const renders = await page.locator('#renders');
+        const countBtn = await page.locator('#aria-hidden');
+        await countBtn.click();
+
+        await expect(input).toHaveAttribute('aria-hidden', 'false');
+        await expect(input).toHaveAttribute('aria-label', 'even');
+        await expect(input).toHaveAttribute('tabindex', '-1');
+        await expect(input).not.hasAttribute('required');
+        await expect(svg).toHaveAttribute('aria-hidden', 'false');
+        await expect(renders).toHaveText('1');
+      });
+
+      test('should update required', async ({ page }) => {
+        const input = await page.locator('#input');
+        const renders = await page.locator('#renders');
+        const countBtn = await page.locator('#required');
+        await countBtn.click();
+        await page.waitForTimeout(100);
+
+        await expect(input).toHaveAttribute('aria-hidden', 'true');
+        await expect(input).toHaveAttribute('aria-label', 'even');
+        await expect(input).toHaveAttribute('tabindex', '-1');
+        await expect(input).hasAttribute('required');
+        await expect(renders).toHaveText('1');
+      });
+
+      test('should hide all attributes', async ({ page }) => {
+        const input = await page.locator('#input');
+        const renders = await page.locator('#renders');
+
+        const requiredBtn = await page.locator('#required');
+        await requiredBtn.click();
+
+        const countBtn = await page.locator('#hide');
+        await countBtn.click();
+
+        await page.waitForTimeout(100);
+
+        await expect(input).not.hasAttribute('aria-hidden');
+        await expect(input).not.hasAttribute('aria-label');
+        await expect(input).not.hasAttribute('tabindex');
+        await expect(input).not.hasAttribute('required');
+
+        await expect(renders).toHaveText('2');
+      });
+
+      test('should toggle attributes several times', async ({ page }) => {
+        const input = await page.locator('#input');
+        const label = await page.locator('#label');
+        const svg = await page.locator('#svg');
+
+        const renders = await page.locator('#renders');
+        const countBtn = await page.locator('#hide');
+
+        await countBtn.click();
+        await page.waitForTimeout(100);
+
+        await expect(input).not.hasAttribute('aria-hidden');
+        await expect(input).not.hasAttribute('aria-label');
+        await expect(input).not.hasAttribute('tabindex');
+        await expect(input).not.hasAttribute('required');
+        await expect(label).not.hasAttribute('for');
+        await expect(label).not.hasAttribute('form');
+        await expect(svg).not.hasAttribute('width');
+        await expect(svg).not.hasAttribute('height');
+        await expect(svg).not.hasAttribute('preserveAspectRatio');
+        await expect(svg).toHaveAttribute('class', '');
+        await expect(svg).not.hasAttribute('aria-hidden');
+
+        await expect(renders).toHaveText('2');
+
+        await countBtn.click();
+        await page.waitForTimeout(100);
+        await expect(input).toHaveAttribute('aria-hidden', 'true');
+        await expect(input).toHaveAttribute('aria-label', 'even');
+        await expect(input).toHaveAttribute('tabindex', '-1');
+        await expect(input).not.hasAttribute('required');
+        await expect(label).toHaveAttribute('for', 'even');
+        await expect(label).toHaveAttribute('form', 'my-form');
+        await expect(svg).toHaveAttribute('width', '15');
+        await expect(svg).toHaveAttribute('height', '15');
+        await expect(svg).toHaveAttribute('preserveAspectRatio', 'xMidYMin slice');
+        await expect(svg).toHaveAttribute('class', 'is-svg');
+        await expect(svg).toHaveAttribute('aria-hidden', 'true');
+
+        await expect(renders).toHaveText('3');
+
+        await countBtn.click();
+        await page.waitForTimeout(100);
+        await expect(input).not.hasAttribute('aria-hidden');
+        await expect(input).not.hasAttribute('aria-label');
+        await expect(input).not.hasAttribute('tabindex');
+        await expect(input).not.hasAttribute('required');
+        await expect(label).not.hasAttribute('for');
+        await expect(label).not.hasAttribute('form');
+        await expect(svg).not.hasAttribute('width');
+        await expect(svg).not.hasAttribute('height');
+        await expect(svg).not.hasAttribute('preserveAspectRatio');
+        await expect(svg).not.hasAttribute('aria-hidden');
+        await expect(svg).toHaveAttribute('class', '');
+        await expect(renders).toHaveText('4');
+
+        await countBtn.click();
+        await page.waitForTimeout(100);
+        await expect(input).toHaveAttribute('aria-hidden', 'true');
+        await expect(input).toHaveAttribute('aria-label', 'even');
+        await expect(input).toHaveAttribute('tabindex', '-1');
+        await expect(input).not.hasAttribute('required');
+        await expect(label).toHaveAttribute('for', 'even');
+        await expect(label).toHaveAttribute('form', 'my-form');
+        await expect(svg).toHaveAttribute('width', '15');
+        await expect(svg).toHaveAttribute('height', '15');
+        await expect(svg).toHaveAttribute('preserveAspectRatio', 'xMidYMin slice');
+        await expect(svg).toHaveAttribute('class', 'is-svg');
+        await expect(svg).toHaveAttribute('aria-hidden', 'true');
+
+        await expect(renders).toHaveText('5');
+      });
+    }
+
+    tests();
+
+    test.describe('client rerender', () => {
+      test.beforeEach(async ({ page }) => {
+        const toggleRender = await page.locator('#force-rerender');
+        await toggleRender.click();
+        await page.waitForTimeout(100);
+      });
+      tests();
+    });
+  });
+
+  test.describe('signals', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/signals');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should do its thing', async ({ page }) => {
+      const incrementBtn = await page.locator('#count');
+      const clickBtn = await page.locator('#click');
+      const incrementIdBtn = await page.locator('#increment-id');
+      const backgroundBtn = await page.locator('#background');
+
+      const text = await page.locator('#text');
+      const id = await page.locator('#id');
+      const computed = await page.locator('#computed');
+      const stuff = await page.locator('#stuff');
+      const body = await page.locator('body');
+
+      await page.waitForTimeout(100);
+      await expect(text).toHaveText('Text: Message');
+      await expect(text).toHaveAttribute('data-set', 'ref');
+      await expect(id).toHaveText('Id: 0');
+      await expect(computed).toHaveText('computed: ');
+      await expect(stuff).toHaveText('Stuff: 10');
+      await expect(stuff).toHaveAttribute('data-set', 'ref2');
+
+      await incrementBtn.click();
+      await expect(text).toHaveText('Text: Message');
+      await expect(text).toHaveAttribute('data-set', 'ref');
+      await expect(id).toHaveText('Id: 0');
+      await expect(computed).toHaveText('computed: ');
+      await expect(stuff).toHaveText('Stuff: 11');
+      await expect(stuff).toHaveAttribute('data-set', 'ref2');
+
+      await clickBtn.click();
+      await expect(text).toHaveText('Text: Message');
+      await expect(text).toHaveAttribute('data-set', 'ref');
+      await expect(id).toHaveText('Id: 0');
+      await expect(computed).toHaveText('computed: clicked');
+      await expect(stuff).toHaveText('Stuff: 11');
+      await expect(stuff).toHaveAttribute('data-set', 'ref2');
+
+      await incrementIdBtn.click();
+      await expect(text).toHaveText('Text: Message');
+      await expect(text).toHaveAttribute('data-set', 'ref');
+      await expect(id).toHaveText('Id: 1');
+      await expect(computed).toHaveText('computed: clicked');
+      await expect(stuff).toHaveText('Stuff: 11');
+      await expect(stuff).toHaveAttribute('data-set', 'ref2');
+      await expect(body).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+
+      await backgroundBtn.click();
+      await expect(text).toHaveText('Text: Message');
+      await expect(text).toHaveAttribute('data-set', 'ref');
+      await expect(id).toHaveText('Id: 1');
+      await expect(computed).toHaveText('computed: clicked');
+      await expect(stuff).toHaveText('Stuff: 11');
+      await expect(stuff).toHaveAttribute('data-set', 'ref2');
+      await expect(body).toHaveCSS('background-color', 'rgb(0, 0, 0)');
     });
   });
 });

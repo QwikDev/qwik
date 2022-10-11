@@ -1,5 +1,8 @@
 ---
 title: Static Site Generation Config
+contributors:
+  - adamdbradley
+  - wtho
 ---
 
 # Static Site Generation Config
@@ -18,6 +21,20 @@ qwikCityGenerate(render, {
   outDir: join(fileURLToPath(import.meta.url), '..', '..', 'dist'),
 });
 ```
+
+You then can add the `build.ssg` script to `package.json` for building the generator code and add it to the `build` script to have it ready after each build:
+
+```json
+  "build": "npm run typecheck && npm run build.client && npm run build.ssr && npm run build.ssg",
+  "build.ssg": "vite build --ssr src/entry.static.tsx",
+```
+
+In node you can run the generation after building using:
+```bash
+node server/entry.static.js
+```
+
+Your build files will be generated into the `dist` folder, as configured in `src/entry.static.tsx`.
 
 ## SSG Config
 

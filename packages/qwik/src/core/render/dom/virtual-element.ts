@@ -1,5 +1,5 @@
 import { assertEqual, assertTrue } from '../../assert/assert';
-import { isElement, isQwikElement, isVirtualElement } from '../../util/element';
+import { isComment, isElement, isQwikElement, isVirtualElement } from '../../util/element';
 import { qSerialize, seal } from '../../util/qdev';
 import { directGetAttribute } from '../fast-calls';
 import { createElement } from './operations';
@@ -15,6 +15,7 @@ export interface VirtualElement {
   readonly insertBeforeTo: (newParent: QwikElement, child: Node | null) => void;
   readonly appendTo: (newParent: QwikElement) => void;
   readonly ownerDocument: Document;
+  readonly namespaceURI: string;
   readonly nodeType: 111;
   readonly childNodes: Node[];
   readonly firstChild: Node | null;
@@ -166,9 +167,10 @@ export class VirtualElementImpl implements VirtualElement {
 
   insertBeforeTo(newParent: QwikElement, child: Node | null) {
     const ch = Array.from(this.childNodes);
-    if (this.parentElement) {
-      console.warn('already attached');
-    }
+    // TODO
+    // if (this.parentElement) {
+    //   console.warn('already attached');
+    // }
     newParent.insertBefore(this.open, child);
     for (const c of ch) {
       newParent.insertBefore(c, child);
@@ -179,6 +181,10 @@ export class VirtualElementImpl implements VirtualElement {
 
   appendTo(newParent: QwikElement) {
     this.insertBeforeTo(newParent, null);
+  }
+
+  get namespaceURI() {
+    return this.parentElement?.namespaceURI ?? '';
   }
 
   removeChild(child: Node) {
@@ -326,7 +332,7 @@ export const getVirtualElement = (open: Comment): VirtualElement | null => {
   return null;
 };
 
-const findClose = (open: Comment): Comment => {
+export const findClose = (open: Comment): Comment => {
   let node = open.nextSibling;
   let stack = 1;
   while (node) {
@@ -343,10 +349,6 @@ const findClose = (open: Comment): Comment => {
     node = node.nextSibling;
   }
   throw new Error('close not found');
-};
-
-export const isComment = (node: Node): node is Comment => {
-  return node.nodeType === 8;
 };
 
 export const getRootNode = (node: Node | VirtualElement | null): Node => {

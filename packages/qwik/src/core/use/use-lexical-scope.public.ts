@@ -25,12 +25,12 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
     const el = context.$element$;
     assertDefined(el, 'invoke: element must be defined inside useLexicalScope()', context);
     const container = getWrappingContainer(el);
-    const ctx = getContext(el);
+    const elCtx = getContext(el);
     assertDefined(container, `invoke: cant find parent q:container of`, el);
     qrl = parseQRL(decodeURIComponent(String(context.$url$)), container);
     assertQrl(qrl);
     resumeIfNeeded(container);
-    inflateQrl(qrl, ctx);
+    inflateQrl(qrl, elCtx);
   } else {
     assertQrl(qrl);
     assertDefined(

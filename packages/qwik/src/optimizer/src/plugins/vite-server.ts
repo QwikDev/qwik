@@ -1,9 +1,12 @@
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
+import type { IncomingMessage } from 'http';
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem, Path, QwikManifest } from '../types';
+import { ERROR_HOST } from './errored-host';
 import { NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
+import { formatError } from './vite-utils';
 
 export async function configureDevServer(
   server: ViteDevServer,
@@ -36,12 +39,7 @@ export async function configureDevServer(
       const domain = 'http://' + (req.headers.host ?? 'localhost');
       const url = new URL(req.originalUrl!, domain);
 
-      if (skipSsrRender(url)) {
-        next();
-        return;
-      }
-
-      if (req.headers.accept && req.headers.accept.includes('text/html')) {
+      if (shouldSsrRender(req, url)) {
         const envData: Record<string, any> = {
           ...(res as QwikViteDevResponse)._qwikEnvData,
           url: url.href,
@@ -66,7 +64,7 @@ export async function configureDevServer(
         }
 
         const ssrModule = await server.ssrLoadModule(opts.input[0], {
-          fixStacktrace: true,
+          fixStacktrace: false,
         });
 
         const render: Render = ssrModule.default ?? ssrModule.render;
@@ -143,6 +141,10 @@ export async function configureDevServer(
         next();
       }
     } catch (e: any) {
+      server.ssrFixStacktrace(e);
+      if (e instanceof Error) {
+        await formatError(sys, e);
+      }
       next(e);
     }
   });
@@ -155,8 +157,9 @@ export async function configurePreviewServer(
   path: Path
 ) {
   const fs: typeof import('fs') = await sys.dynamicImport('fs');
+  const url: typeof import('url') = await sys.dynamicImport('url');
 
-  const entryPreviewPaths = ['js', 'mjs', 'cjs'].map((ext) =>
+  const entryPreviewPaths = ['mjs', 'cjs', 'js'].map((ext) =>
     path.join(opts.rootDir, 'server', `entry.preview.${ext}`)
   );
 
@@ -169,7 +172,8 @@ export async function configurePreviewServer(
   }
 
   try {
-    const previewModuleImport = await sys.strictDynamicImport(entryPreviewModulePath);
+    const entryPreviewImportPath = url.pathToFileURL(entryPreviewModulePath).href;
+    const previewModuleImport = await sys.strictDynamicImport(entryPreviewImportPath);
 
     let previewMiddleware: Connect.HandleFunction | null = null;
     let preview404Middleware: Connect.HandleFunction | null = null;
@@ -217,26 +221,37 @@ const VITE_PUBLIC_PATH = `/@vite/`;
 const internalPrefixes = [FS_PREFIX, VALID_ID_PREFIX, VITE_PUBLIC_PATH];
 const InternalPrefixRE = new RegExp(`^(?:${internalPrefixes.join('|')})`);
 
-const skipSsrRender = (url: URL) => {
+const shouldSsrRender = (req: IncomingMessage, url: URL) => {
   const pathname = url.pathname;
-  const hasExtension = /\.[\w?=&]+$/.test(pathname) && !pathname.endsWith('.html');
-  const isHtmlProxy = url.searchParams.has('html-proxy');
-  const isVitePing = pathname.includes('__vite_ping');
-  const skipSSR = url.searchParams.get('ssr') === 'false';
-  const openInEditor = pathname.includes('__open-in-editor');
-
-  return (
-    openInEditor ||
-    hasExtension ||
-    isHtmlProxy ||
-    isVitePing ||
-    skipSSR ||
-    InternalPrefixRE.test(url.pathname)
-  );
+  if (/\.[\w?=&]+$/.test(pathname) && !pathname.endsWith('.html')) {
+    // has extension
+    return false;
+  }
+  if (pathname.includes('__vite_ping')) {
+    return false;
+  }
+  if (pathname.includes('__open-in-editor')) {
+    return false;
+  }
+  if (url.searchParams.has('html-proxy')) {
+    return false;
+  }
+  if (url.searchParams.get('ssr') === 'false') {
+    return false;
+  }
+  if (InternalPrefixRE.test(url.pathname)) {
+    return false;
+  }
+  const acceptHeader = req.headers.accept || '';
+  if (!acceptHeader.includes('text/html')) {
+    return false;
+  }
+  return true;
 };
 
 const DEV_ERROR_HANDLING = `
 <script>
+
 document.addEventListener('qerror', ev => {
   const ErrorOverlay = customElements.get('vite-error-overlay');
   if (!ErrorOverlay) {
@@ -248,9 +263,19 @@ document.addEventListener('qerror', ev => {
 });
 </script>`;
 
+const PERF_WARNING = `
+<script>
+if (!window.__qwikViteLog) {
+  window.__qwikViteLog = true;
+  console.debug("%c⭐️ Qwik Dev SSR Mode","background: #0c75d2; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;","App is running in SSR development mode!\\n - Additional JS is loaded by Vite for debugging and live reloading\\n - Rendering performance might not be optimal\\n - Delayed interactivity because prefetching is disabled\\n - Vite dev bundles do not represent production output\\n\\nProduction build can be tested running 'npm run preview'");
+}
+</script>`;
+
 const END_SSR_SCRIPT = `
 <script type="module" src="/@vite/client"></script>
 ${DEV_ERROR_HANDLING}
+${ERROR_HOST}
+${PERF_WARNING}
 `;
 
 function getViteDevIndexHtml(entryUrl: string, envData: Record<string, any>) {

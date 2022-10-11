@@ -69,6 +69,12 @@ export interface DocumentHeadValue {
    * Used to manually append `<style>` elements to the `<head>`.
    */
   styles?: DocumentStyle[];
+  /**
+   * Arbitrary object containing custom data. When the document head is created from
+   * markdown files, the frontmatter attributes that are not recognized as a well-known
+   * meta names (such as title, description, author, etc...), are stored in this property.
+   */
+  frontmatter?: Record<string, any>;
 }
 
 /**
@@ -270,7 +276,7 @@ export interface ResponseContext {
 /**
  * @alpha
  */
-export interface RequestEvent {
+export interface RequestEvent<PLATFORM = unknown> {
   request: RequestContext;
   response: ResponseContext;
   url: URL;
@@ -279,7 +285,7 @@ export interface RequestEvent {
   params: RouteParams;
 
   /** Platform specific data and functions */
-  platform: Record<string, any>;
+  platform: PLATFORM;
 
   next: () => Promise<void>;
   abort: () => void;
@@ -293,7 +299,9 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 
 /**
  * @alpha
  */
-export type RequestHandler<BODY = unknown> = (ev: RequestEvent) => RequestHandlerResult<BODY>;
+export type RequestHandler<BODY = unknown, PLATFORM = unknown> = (
+  ev: RequestEvent<PLATFORM>
+) => RequestHandlerResult<BODY>;
 
 /**
  * @alpha

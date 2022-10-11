@@ -1,27 +1,23 @@
 import {
-  createProxy,
+  getProxyManager,
   getProxyTarget,
-  isMutable,
-  mutable,
-  QObjectImmutable,
 } from '../object/q-object';
 import { resumeContainer } from '../object/store';
 import { QContainerAttr } from '../util/markers';
 import type { OnRenderFn } from '../component/component.public';
-import { destroyWatch, SubscriberDescriptor } from '../use/use-watch';
+import { destroyWatch, SubscriberEffect } from '../use/use-watch';
 import { pauseContainer } from '../object/store';
-import { qDev } from '../util/qdev';
-import { logError } from '../util/log';
-import { isQrl, QRLInternal } from '../import/qrl-class';
+import { qSerialize } from '../util/qdev';
+import type { QRLInternal } from '../import/qrl-class';
 import { directGetAttribute } from '../render/fast-calls';
 import { assertDefined, assertTrue } from '../assert/assert';
-import { codeToText, QError_immutableJsxProps } from '../error/error';
 import type { QRL } from '../import/qrl.public';
-import { getWrappingContainer, StyleAppend } from '../use/use-core';
-import { ContainerState, getContainerState, SubscriptionManager } from '../render/container';
+import type { StyleAppend } from '../use/use-core';
+import { getContainerState, SubscriptionManager } from '../render/container';
 import type { ProcessedJSXNode } from '../render/dom/render-dom';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import { fromCamelToKebabCase } from '../util/case';
+import type { Listener } from './props-on';
 
 export const Q_CTX = '_qc_';
 
@@ -29,7 +25,7 @@ export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
   if (isResumed === 'paused') {
     resumeContainer(containerEl);
-    if (qDev) {
+    if (qSerialize) {
       appendQwikDevTools(containerEl);
     }
   }
@@ -50,19 +46,20 @@ export interface QContext {
   $element$: QwikElement;
   $refMap$: any[];
   $dirty$: boolean;
-  $attachedListeners$: boolean;
+  $needAttachListeners$: boolean;
   $id$: string;
   $mounted$: boolean;
   $props$: Record<string, any> | null;
-  $renderQrl$: QRLInternal<OnRenderFn<any>> | null;
-  li: Record<string, QRLInternal<any>[]>;
+  $componentQrl$: QRLInternal<OnRenderFn<any>> | null;
+  li: Listener[];
   $seq$: any[] | null;
-  $watches$: SubscriberDescriptor[] | null;
+  $watches$: SubscriberEffect[] | null;
   $contexts$: Map<string, any> | null;
   $appendStyles$: StyleAppend[] | null;
   $scopeIds$: string[] | null;
   $vdom$: ProcessedJSXNode | null;
   $slots$: ProcessedJSXNode[] | null;
+  $parent$: QContext | null;
 }
 
 export const tryGetContext = (element: QwikElement): QContext | undefined => {
@@ -75,11 +72,11 @@ export const getContext = (element: Element | VirtualElement): QContext => {
     (element as any)[Q_CTX] = ctx = {
       $dirty$: false,
       $mounted$: false,
-      $attachedListeners$: false,
+      $needAttachListeners$: false,
       $id$: '',
       $element$: element,
       $refMap$: [],
-      li: {},
+      li: [],
       $watches$: null,
       $seq$: null,
       $slots$: null,
@@ -87,26 +84,27 @@ export const getContext = (element: Element | VirtualElement): QContext => {
       $appendStyles$: null,
       $props$: null,
       $vdom$: null,
-      $renderQrl$: null,
+      $componentQrl$: null,
       $contexts$: null,
+      $parent$: null,
     };
   }
   return ctx;
 };
 
-export const cleanupContext = (ctx: QContext, subsManager: SubscriptionManager) => {
-  const el = ctx.$element$;
-  ctx.$watches$?.forEach((watch) => {
+export const cleanupContext = (elCtx: QContext, subsManager: SubscriptionManager) => {
+  const el = elCtx.$element$;
+  elCtx.$watches$?.forEach((watch) => {
     subsManager.$clearSub$(watch);
     destroyWatch(watch);
   });
-  if (ctx.$renderQrl$) {
+  if (elCtx.$componentQrl$) {
     subsManager.$clearSub$(el);
   }
-  ctx.$renderQrl$ = null;
-  ctx.$seq$ = null;
-  ctx.$watches$ = null;
-  ctx.$dirty$ = false;
+  elCtx.$componentQrl$ = null;
+  elCtx.$seq$ = null;
+  elCtx.$watches$ = null;
+  elCtx.$dirty$ = false;
 
   (el as any)[Q_CTX] = undefined;
 };
@@ -129,88 +127,32 @@ export const normalizeOnProp = (prop: string) => {
   } else {
     prop = prop.toLowerCase();
   }
-  return scope + ":" + prop;
+  return scope + ':' + prop;
 };
 
-export const createProps = (target: Record<string, any>, containerState: ContainerState) => {
-  return createProxy(target, containerState, QObjectImmutable);
-};
-
-export const getPropsMutator = (ctx: QContext, containerState: ContainerState) => {
-  let props = ctx.$props$;
-  if (!props) {
-    ctx.$props$ = props = createProps({}, containerState);
-  }
+export const getPropsMutator = (props: Record<string, any>) => {
+  const manager = getProxyManager(props);
+  assertDefined(manager, `props have to be a proxy, but it is not`, props);
   const target = getProxyTarget(props);
   assertDefined(target, `props have to be a proxy, but it is not`, props);
-  const manager = containerState.$subsManager$.$getLocal$(target);
 
   return {
     set(prop: string, value: any) {
-      const didSet = prop in target;
-      let oldValue = target[prop];
-      let mut = false;
-      if (isMutable(oldValue)) {
-        oldValue = oldValue.mut;
-      }
-      if (containerState.$mutableProps$) {
-        mut = true;
-        if (isMutable(value)) {
-          value = value.mut;
-          target[prop] = value;
-        } else {
-          target[prop] = mutable(value);
-        }
-      } else {
-        target[prop] = value;
-        if (isMutable(value)) {
-          value = value.mut;
-          mut = true;
-        }
-      }
+      const oldValue = target[prop];
+      target[prop] = value;
       if (oldValue !== value) {
-        if (qDev) {
-          if (didSet && !mut && !isQrl(value)) {
-            const displayName = ctx.$renderQrl$?.getSymbol() ?? ctx.$element$.localName;
-            logError(
-              codeToText(QError_immutableJsxProps),
-              `If you need to change a value of a passed in prop, please wrap the prop with "mutable()" <${displayName} ${prop}={mutable(...)}>`,
-              '\n - Component:',
-              displayName,
-              '\n - Prop:',
-              prop,
-              '\n - Old value:',
-              oldValue,
-              '\n - New value:',
-              value
-            );
-          }
-        }
         manager.$notifySubs$(prop);
       }
     },
   };
 };
 
-/**
- * @internal
- */
-export const _useMutableProps = (element: Element, mutable: boolean) => {
-  const ctx = getWrappingContainer(element);
-  getContainerState(ctx!).$mutableProps$ = mutable;
-};
-
-
 export const inflateQrl = (qrl: QRLInternal, elCtx: QContext) => {
-  assertDefined(
-    qrl.$capture$,
-    'invoke: qrl capture must be defined inside useLexicalScope()',
-    qrl
-  );
-  return qrl.$captureRef$ = qrl.$capture$.map((idx) => {
+  assertDefined(qrl.$capture$, 'invoke: qrl capture must be defined inside useLexicalScope()', qrl);
+  return (qrl.$captureRef$ = qrl.$capture$.map((idx) => {
     const int = parseInt(idx, 10);
     const obj = elCtx.$refMap$[int];
     assertTrue(elCtx.$refMap$.length > int, 'out of bounds inflate access', idx);
     return obj;
-  });
+  }));
 };

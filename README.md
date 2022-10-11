@@ -1,50 +1,45 @@
-<br />
-
 <p align="center">
-  <img alt="Qwik Logo" width="400" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F667ab6c2283d4c4d878fb9083aacc10f" />
+  <img alt="Qwik Logo" width="400" src="https://raw.githubusercontent.com/BuilderIO/qwik/main/.github/assets/qwik-logo.svg" />
 </p>
 
 <a href="https://youtu.be/0dC11DMR3fU?t=154">
-  <img width="1229" alt="WWC22 - Qwik + Partytown: How to remove 99% of JavaScript from main thread" src=".github/assets/Qwik-video-thumbnail.png">
+  <img width="1229" alt="WWC22 - Qwik + Partytown: How to remove 99% of JavaScript from main thread" src="https://raw.githubusercontent.com/BuilderIO/qwik/main/.github/assets/Qwik-video-thumbnail.png">
 </a>
 
 # The HTML-first framework
 
-Qwik offers the fastest possible page load times - regardless of the complexity of your website. Qwik is so fast because it allows fully interactive sites to load with almost no JavaScript and [pickup from where the server left off](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/docs/concepts/resumable/index.mdx).
+Qwik offers the fastest possible page load times - regardless of the complexity of your website. Qwik is so fast because it allows fully interactive sites to load with almost no JavaScript and [pickup from where the server left off](https://qwik.builder.io/docs/concepts/resumable/).
 
-As users interact with the site, only the necesary parts of the site load on-demand. This [precision lazy-loading](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/docs/concepts/progressive/index.mdx) is what makes Qwik so quick.
+As users interact with the site, only the necessary parts of the site load on-demand. This [precision lazy-loading](https://qwik.builder.io/docs/concepts/progressive/) is what makes Qwik so quick.
 
 ## Getting Started
 
-Try out our starter:
-
 ```bash
-npm init qwik@latest
+npm create qwik@latest
 ```
 
-- Understand the difference between [resumable and replayable](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/docs/concepts/resumable/index.mdx) applications.
-- Learn about Qwik's high level [mental model](https://github.com/BuilderIO/qwik/blob/main/packages/docs/src/routes/docs/think-qwik/index.mdx).
+- Understand the difference between [resumable and replayable](https://qwik.builder.io/docs/concepts/resumable/) applications.
+- Learn about Qwik's high level [mental model](https://qwik.builder.io/docs/think-qwik/).
 
-## Docs
+## Resources
 
-- [Official Docs](https://qwik.builder.io/)
-
-## Blog Posts
-
-- [HTML-first, JavaScript last: the secret to web speed!](https://dev.to/mhevery/html-first-javascript-last-the-secret-to-web-speed-4ic9)
-- [A first look at Qwik - the HTML first framework](https://dev.to/mhevery/a-first-look-at-qwik-the-html-first-framework-af)
-- [Death by Closure (and how Qwik solves it)](https://dev.to/mhevery/death-by-closure-and-how-qwik-solves-it-44jj)
-- [Qwik: the answer to optimal fine-grained lazy loading](https://dev.to/mhevery/qwik-the-answer-to-optimal-fine-grained-lazy-loading-2hdp)
-
-## Development
-
-- See [Contributing.md](https://github.com/BuilderIO/qwik/blob/main/CONTRIBUTING.md) for more information on how to build Qwik from the source and contribute!
+- [Docs](https://qwik.builder.io/)
+- [Examples](https://qwik.builder.io/examples/introduction/hello-world/)
+- [Tutorials](https://qwik.builder.io/tutorial/welcome/overview/)
+- [Videos](https://qwik.builder.io/media/#videos)
+- [Podcasts](https://qwik.builder.io/media/#podcasts)
+- [Presentations](https://qwik.builder.io/media/#presentations)
+- [Blogs](https://qwik.builder.io/media/#blogs)
 
 ## Community
 
 - Ping us at [@QwikDev](https://twitter.com/QwikDev)
 - Join our [Discord](https://qwik.builder.io/chat) community
 - Join all the [other community groups](https://qwikcommunity.com)
+
+## Development
+
+- See [Contributing.md](https://github.com/BuilderIO/qwik/blob/main/CONTRIBUTING.md) for more information on how to build Qwik from the source and contribute!
 
 ## Related
 

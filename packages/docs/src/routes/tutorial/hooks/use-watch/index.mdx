@@ -1,5 +1,8 @@
 ---
 title: useWatch$()
+contributors:
+  - manucorporat
+  - adamdbradley
 ---
 
 Use `useWatch$()` to execute a function before the initial render and whenever the tracking values change. The function executes before rendering, but it can't delay rendering, so if `useWatch$()` is asynchronous, the rendering will happen before the `useWatch$()` is fully executed.
@@ -12,4 +15,4 @@ The `useWatch$()` hook receives a `track()` function used for setting up subscri
 
 The `useWatch$()` hook can return a cleanup callback. This is useful for cleaning up any resources before new execution.
 
-## Example
+### Example

@@ -15,7 +15,7 @@ import { $, QRL } from '../import/qrl.public';
  *
  * For example, these function calls are equivalent:
  *
- * - `component$(() => {...})` is same as `onRender($(() => {...}))`
+ * - `component$(() => {...})` is same as `component($(() => {...}))`
  *
  * ```tsx
  * export function myApi(callback: QRL<() => void>): void {

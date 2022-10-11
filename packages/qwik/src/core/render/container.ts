@@ -1,11 +1,12 @@
 import { assertTrue } from '../assert/assert';
 import { qError, QError_invalidRefValue } from '../error/error';
 import type { Signal } from '../object/q-object';
-import type { GetObject, GetObjID } from '../object/store';
+import { getEventName, GetObject, GetObjID } from '../object/store';
+import { isServer } from '../platform/platform';
 import type { Ref } from '../use/use-ref';
 import type { SubscriberEffect, SubscriberHost } from '../use/use-watch';
-import { logError } from '../util/log';
-import { seal } from '../util/qdev';
+import { logError, logWarn } from '../util/log';
+import { qSerialize, qTest, seal } from '../util/qdev';
 import { isFunction, isObject } from '../util/types';
 import { notifyChange } from './dom/notify-render';
 import type { QwikElement } from './dom/virtual-element';
@@ -21,25 +22,26 @@ export interface SubscriptionManager {
  * @alpha
  */
 export interface ContainerState {
-  $containerEl$: Element;
+  readonly $containerEl$: Element;
 
-  $proxyMap$: ObjToProxyMap;
+  readonly $proxyMap$: ObjToProxyMap;
   $subsManager$: SubscriptionManager;
 
-  $watchNext$: Set<SubscriberEffect>;
-  $watchStaging$: Set<SubscriberEffect>;
+  readonly $watchNext$: Set<SubscriberEffect>;
+  readonly $watchStaging$: Set<SubscriberEffect>;
 
-  $opsNext$: Set<SubscriberSignal>;
+  readonly $opsNext$: Set<SubscriberSignal>;
 
-  $hostsNext$: Set<QwikElement>;
-  $hostsStaging$: Set<QwikElement>;
+  readonly $hostsNext$: Set<QwikElement>;
+  readonly $hostsStaging$: Set<QwikElement>;
   $hostsRendering$: Set<QwikElement> | undefined;
   $renderPromise$: Promise<RenderStaticContext> | undefined;
 
   $envData$: Record<string, any>;
   $elementIndex$: number;
 
-  $styleIds$: Set<string>;
+  readonly $styleIds$: Set<string>;
+  readonly $events$: Set<string>;
 }
 
 const CONTAINER_STATE = Symbol('ContainerState');
@@ -56,8 +58,9 @@ export const createContainerState = (containerEl: Element) => {
   const containerState: ContainerState = {
     $containerEl$: containerEl,
 
+    $elementIndex$: 0,
+
     $proxyMap$: new WeakMap(),
-    $subsManager$: null as any,
 
     $opsNext$: new Set(),
 
@@ -66,13 +69,14 @@ export const createContainerState = (containerEl: Element) => {
 
     $hostsNext$: new Set(),
     $hostsStaging$: new Set(),
-    $renderPromise$: undefined,
-    $hostsRendering$: undefined,
-
-    $envData$: {},
-    $elementIndex$: 0,
 
     $styleIds$: new Set(),
+    $events$: new Set(),
+
+    $envData$: {},
+    $renderPromise$: undefined,
+    $hostsRendering$: undefined,
+    $subsManager$: null as any,
   };
   seal(containerState);
   containerState.$subsManager$ = createSubscriptionManager(containerState);
@@ -252,4 +256,20 @@ const must = <T>(a: T): NonNullable<T> => {
     throw logError('must be non null', a);
   }
   return a;
+};
+
+export const addQwikEvent = (prop: string, containerState: ContainerState) => {
+  const eventName = getEventName(prop);
+  if (!qTest && !isServer()) {
+    try {
+      if ((window as any).qwikevents) {
+        (window as any).qwikevents.push(eventName);
+      }
+    } catch (err) {
+      logWarn(err);
+    }
+  }
+  if (qSerialize) {
+    containerState.$events$.add(eventName);
+  }
 };

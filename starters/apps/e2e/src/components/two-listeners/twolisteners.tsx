@@ -6,7 +6,7 @@ export const TwoListeners = component$(() => {
   return (
     <a
       href="/"
-      preventDefault:click
+      preventdefault:click
       class="two-listeners"
       onClick$={[$(() => store1.count++), $(() => store2.count++)]}
     >

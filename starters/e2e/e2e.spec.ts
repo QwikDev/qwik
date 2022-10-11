@@ -1244,4 +1244,32 @@ Click`);
       await expect(body).toHaveCSS('background-color', 'rgb(0, 0, 0)');
     });
   });
+
+  test.describe('events client side', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/e2e/events-client');
+      page.on('pageerror', (err) => expect(err).toEqual(undefined));
+    });
+
+    test('should progressively listen to new events', async ({ page }) => {
+      const link = await page.locator('#link');
+      const input = await page.locator('#input');
+
+      // it should do nothing, no navigate
+      await link.click();
+
+      await input.focus();
+
+      const div = await page.locator('#div');
+      await expect(div).toHaveText('Text: ');
+      await expect(div).toHaveAttribute('class', '');
+
+      await input.fill('Some text');
+      await expect(div).toHaveText('Text: Some text');
+      await expect(div).toHaveAttribute('class', '');
+
+      await div.hover();
+      await expect(div).toHaveAttribute('class', 'isOver');
+    });
+  });
 });

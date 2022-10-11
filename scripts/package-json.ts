@@ -115,10 +115,10 @@ export async function generateLegacyCjsSubmodule(
     private: true,
     exports: {
       '.': {
-        'require': `../${index}.cjs`,
-        'import': `../${index}.mjs`,
-      }
-    }
+        require: `../${index}.cjs`,
+        import: `../${index}.mjs`,
+      },
+    },
   };
   const submoduleDistDir = join(config.distPkgDir, pkgName);
   ensureDir(submoduleDistDir);

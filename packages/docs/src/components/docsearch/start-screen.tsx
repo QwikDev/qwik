@@ -65,7 +65,7 @@ export const StartScreen = component$(({ translations = {}, ...props }: StartScr
                       className="DocSearch-Hit-action-button"
                       title={saveRecentSearchButtonTitle}
                       type="submit"
-                      preventDefault:click
+                      preventdefault:click
                       onClick$={(event) => {
                         // @ts-ignore
                         props.state.favoriteSearches?.add(item);
@@ -83,7 +83,7 @@ export const StartScreen = component$(({ translations = {}, ...props }: StartScr
                       className="DocSearch-Hit-action-button"
                       title={removeRecentSearchButtonTitle}
                       type="submit"
-                      preventDefault:click
+                      preventdefault:click
                       onClick$={(event) => {
                         // @ts-ignore
                         props.state.recentSearches?.remove(item);
@@ -115,7 +115,7 @@ export const StartScreen = component$(({ translations = {}, ...props }: StartScr
                       className="DocSearch-Hit-action-button"
                       title={removeFavoriteSearchButtonTitle}
                       type="submit"
-                      preventDefault:click
+                      preventdefault:click
                       onClick$={(event) => {
                         // @ts-ignore
                         props.state.favoriteSearches?.remove(item);

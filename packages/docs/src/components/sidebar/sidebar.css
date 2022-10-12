@@ -107,6 +107,10 @@ details li:hover {
   background-color: var(--bg-secondary-color);
 }
 
+details li a {
+  @apply block overflow-hidden text-ellipsis;
+}
+
 .menu li a {
   color: var(--secondary-text-color);
 }

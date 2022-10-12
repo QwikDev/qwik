@@ -60,7 +60,7 @@ export default component$(() => {
                 <a
                   key={app.id}
                   href={`/examples/${app.id}/`}
-                  preventDefault:click
+                  preventdefault:click
                   onClick$={() => {
                     store.appId = app.id;
                     panelStore.active === 'Input';

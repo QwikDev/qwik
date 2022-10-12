@@ -16,7 +16,7 @@ export const ReplOutputModules = ({ outputs, headerText }: ReplOutputModulesProp
                   fileItem.scrollIntoView();
                 }
               }}
-              preventDefault:click
+              preventdefault:click
               key={o.path}
             >
               {o.path}

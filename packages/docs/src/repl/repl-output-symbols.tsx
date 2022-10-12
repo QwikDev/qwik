@@ -16,7 +16,7 @@ export const ReplOutputSymbols = ({ outputs }: ReplOutputSymbolsProps) => {
                   fileItem.scrollIntoView();
                 }
               }}
-              preventDefault:click
+              preventdefault:click
               key={o.path}
             >
               {o.hook?.canonicalFilename}

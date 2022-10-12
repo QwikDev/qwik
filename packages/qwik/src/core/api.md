@@ -542,8 +542,6 @@ export interface SnapshotListener {
     // (undocumented)
     el: Element;
     // (undocumented)
-    eventName: string;
-    // (undocumented)
     key: string;
     // (undocumented)
     qrl: QRL<any>;
@@ -720,10 +718,16 @@ export const useStyles$: (first: string) => void;
 export const useStylesQrl: (styles: QRL<string>) => void;
 
 // @alpha
-export const useStylesScoped$: (first: string) => void;
+export const useStylesScoped$: (first: string) => UseStylesScoped;
+
+// @alpha (undocumented)
+export interface UseStylesScoped {
+    // (undocumented)
+    scopeId: string;
+}
 
 // @alpha
-export const useStylesScopedQrl: (styles: QRL<string>) => void;
+export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 
 // @alpha @deprecated (undocumented)
 export const useUserContext: typeof useEnvData;
@@ -757,7 +761,7 @@ export interface WatchCtx {
 export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
 
 // @internal (undocumented)
-export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => Signal<T[P]>;
+export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
 
 // (No @packageDocumentation comment for this package)
 

@@ -7,15 +7,15 @@ test.describe('effect-client', () => {
   });
 
   test('should load', async ({ page }) => {
-    const container = await page.locator('#container');
-    const counter = await page.locator('#counter');
-    const msg = await page.locator('#msg');
-    const msgEager = await page.locator('#eager-msg');
-    const msgClientSide1 = await page.locator('#client-side-msg-1');
-    const msgClientSide2 = await page.locator('#client-side-msg-2');
-    const msgClientSide3 = await page.locator('#client-side-msg-3');
+    const container = page.locator('#container');
+    const counter = page.locator('#counter');
+    const msg = page.locator('#msg');
+    const msgEager = page.locator('#eager-msg');
+    const msgClientSide1 = page.locator('#client-side-msg-1');
+    const msgClientSide2 = page.locator('#client-side-msg-2');
+    const msgClientSide3 = page.locator('#client-side-msg-3');
 
-    await expect(container).toHaveAttribute('data-effect', '');
+    await expect(container).not.hasAttribute('data-effect');
     await expect(counter).toHaveText('0');
     await expect(msg).toHaveText('empty');
     await expect(msgEager).toHaveText('run');

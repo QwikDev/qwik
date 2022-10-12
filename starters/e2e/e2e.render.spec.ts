@@ -7,8 +7,8 @@ test.describe('render', () => {
   });
 
   test('should load', async ({ page }) => {
-    const button = await page.locator('button#increment');
-    const text = await page.locator('span');
+    const button = page.locator('button#increment');
+    const text = page.locator('span');
 
     await expect(text).toHaveText('Rerender 0');
     await button.click();
@@ -16,36 +16,36 @@ test.describe('render', () => {
   });
 
   test('should render classes', async ({ page }) => {
-    const increment = await page.locator('button#increment');
-    const toggle = await page.locator('button#toggle');
+    const increment = page.locator('button#increment');
+    const toggle = page.locator('button#toggle');
 
-    const attributes = await page.locator('#attributes');
+    const attributes = page.locator('#attributes');
 
-    await expect(attributes).toHaveAttribute('class', '⭐️unvb18-1 even stable0');
+    await expect(attributes).toHaveClass('⭐️unvb18-1 even stable0');
     await expect(attributes).toHaveAttribute('aria-hidden', 'true');
     await expect(attributes).toHaveAttribute('preventdefault:click', '');
 
     await increment.click();
 
-    await expect(attributes).toHaveAttribute('class', '⭐️unvb18-1 stable0 odd');
+    await expect(attributes).toHaveClass('⭐️unvb18-1 stable0 odd');
     await expect(attributes).toHaveAttribute('aria-hidden', 'true');
     await expect(attributes).toHaveAttribute('preventdefault:click', '');
 
     await toggle.click();
 
-    await expect(attributes).toHaveAttribute('class', '⭐️unvb18-1');
-    await expect(attributes).toHaveAttribute('aria-hidden', '');
-    await expect(attributes).toHaveAttribute('preventdefault:click', '');
+    await expect(attributes).toHaveClass('⭐️unvb18-1');
+    await expect(attributes).not.hasAttribute('aria-hidden');
+    await expect(attributes).not.hasAttribute('preventdefault:click');
 
     await increment.click();
 
-    await expect(attributes).toHaveAttribute('class', '⭐️unvb18-1');
-    await expect(attributes).toHaveAttribute('aria-hidden', '');
-    await expect(attributes).toHaveAttribute('preventdefault:click', '');
+    await expect(attributes).toHaveClass('⭐️unvb18-1');
+    await expect(attributes).not.hasAttribute('aria-hidden');
+    await expect(attributes).not.hasAttribute('preventdefault:click');
 
     await toggle.click();
 
-    await expect(attributes).toHaveAttribute('class', '⭐️unvb18-1 even stable0');
+    await expect(attributes).toHaveClass('⭐️unvb18-1 even stable0');
     await expect(attributes).toHaveAttribute('aria-hidden', 'true');
     await expect(attributes).toHaveAttribute('preventdefault:click', '');
   });

@@ -2,6 +2,7 @@ import { assertDefined } from '../../assert/assert';
 import { codeToText, QError_setProperty } from '../../error/error';
 import type { StyleAppend } from '../../use/use-core';
 import { getDocument } from '../../util/dom';
+import { isElement, isNode } from '../../util/element';
 import { logDebug, logError, logWarn } from '../../util/log';
 import { QSlot, QSlotRef, QStyle } from '../../util/markers';
 import { qDev } from '../../util/qdev';
@@ -62,6 +63,9 @@ export const setProperty = (
 const _setProperty = (node: any, key: string, value: any) => {
   try {
     node[key] = value == null ? '' : value;
+    if (value == null && isNode(node) && isElement(node)) {
+      node.removeAttribute(key);
+    }
   } catch (err) {
     logError(codeToText(QError_setProperty), { node, key, value }, err);
   }

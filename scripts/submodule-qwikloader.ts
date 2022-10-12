@@ -223,10 +223,10 @@ async function generateLoaderSubmodule(config: BuildConfig) {
   const loaderPkg: PackageJSON = {
     name: `@builder.io/qwik/loader`,
     version: config.distVersion,
-    main: `index.cjs`,
-    module: `index.mjs`,
+    main: `index.mjs`,
     types: `index.d.ts`,
     private: true,
+    type: 'module',
   };
   await writePackageJson(loaderDistDir, loaderPkg);
 }

@@ -67,10 +67,10 @@ async function generateTestingPackageJson(config: BuildConfig) {
   const pkg: PackageJSON = {
     name: '@builder.io/qwik/testing',
     version: config.distVersion,
-    main: 'index.cjs',
-    module: 'index.mjs',
+    main: 'index.mjs',
     types: 'index.d.ts',
     private: true,
+    type: 'module',
   };
   const testingDistDir = join(config.distPkgDir, 'testing');
   await writePackageJson(testingDistDir, pkg);

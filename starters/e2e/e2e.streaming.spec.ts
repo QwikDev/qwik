@@ -15,9 +15,9 @@ test.describe('streaming', () => {
   });
 
   test('should render correctly', async ({ page }) => {
-    const ul = await page.locator('ul > li');
-    const ol = await page.locator('ol > li');
-    const cmps = await page.locator('.cmp');
+    const ul = page.locator('ul > li');
+    const ol = page.locator('ol > li');
+    const cmps = page.locator('.cmp');
 
     await expect(ul).toHaveCount(5);
     await expect(ol).toHaveCount(10);
@@ -25,10 +25,10 @@ test.describe('streaming', () => {
   });
 
   test('should rerender correctly', async ({ page }) => {
-    const ul = await page.locator('ul > li');
-    const ol = await page.locator('ol > li');
-    const cmps = await page.locator('.cmp');
-    const count = await page.locator('button#count');
+    const ul = page.locator('ul > li');
+    const ol = page.locator('ol > li');
+    const cmps = page.locator('.cmp');
+    const count = page.locator('button#count');
     await count.click();
 
     await expect(count).toHaveText('Rerender 1');
@@ -38,11 +38,11 @@ test.describe('streaming', () => {
   });
 
   test('should render in client correctly', async ({ page }) => {
-    const ul = await page.locator('ul > li');
-    const ol = await page.locator('ol > li');
-    const cmps = await page.locator('.cmp');
-    const count = await page.locator('button#count');
-    const rerender = await page.locator('button#client-render');
+    const ul = page.locator('ul > li');
+    const ol = page.locator('ol > li');
+    const cmps = page.locator('.cmp');
+    const count = page.locator('button#count');
+    const rerender = page.locator('button#client-render');
     await count.click();
     await expect(count).toHaveText('Rerender 1');
 

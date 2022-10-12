@@ -6,7 +6,7 @@ test.describe('factory', () => {
   });
 
   test('should render correctly', async ({ page }) => {
-    const body = await page.locator('body');
+    const body = page.locator('body');
 
     expect((await body.innerText()).trim()).toEqual('A\nB\nLight: wow!');
   });

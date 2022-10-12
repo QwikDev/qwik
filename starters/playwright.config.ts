@@ -3,14 +3,13 @@ import type { Locator, PlaywrightTestConfig } from '@playwright/test';
 
 expect.extend({
   async hasAttribute(recieved: Locator, attribute: string) {
-    const pass = await recieved.evaluate(
-      (node, attribute) => node.hasAttribute(attribute),
-      attribute
-    );
+    const pass = await recieved.evaluate((node, attribute) => {
+      return node.getAttribute(attribute);
+    }, attribute);
 
     return {
-      message: () => `expected ${recieved} to have attribute \`${attribute}\``,
-      pass,
+      message: () => `expected ${recieved} to have attribute \`${attribute}\` (${pass})`,
+      pass: pass !== null,
     };
   },
 });

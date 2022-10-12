@@ -9,7 +9,7 @@ test.describe('Todo', () => {
 
   test('todo title', async ({ page }) => {
     const title = page.locator('title');
-    await expect(title).toHaveText('Qwik Demo: Todo');
+    await expect(title).toHaveText('Qwik Demo: Todo', { useInnerText: true });
   });
 
   test('should start with 3 items', async ({ page }) => {
@@ -63,7 +63,7 @@ test.describe('Todo', () => {
     await assertItemCount(page, 2);
     await page.waitForTimeout(100);
 
-    await page.locator('.todo-list>li:last-child input').click();
+    page.locator('.todo-list>li:last-child input').click();
     await assertItemCount(page, 1, 2);
   });
 
@@ -71,14 +71,14 @@ test.describe('Todo', () => {
   // test('should add item, remove item, set filter.', async ({ page }) => {
   //   await addTodoItem(page, 'New Item');
   //   await assertItemCount(page, 4);
-  //   await page.locator('.todo-list>li:nth-child(2)').hover();
-  //   await page.locator('.todo-list>li:nth-child(2) button').click();
+  //   page.locator('.todo-list>li:nth-child(2)').hover();
+  //   page.locator('.todo-list>li:nth-child(2) button').click();
   //   await assertItemCount(page, 3);
-  //   await page.locator('.todo-list>li:last-child').hover();
-  //   await page.locator('.todo-list>li:last-child input').click();
+  //   page.locator('.todo-list>li:last-child').hover();
+  //   page.locator('.todo-list>li:last-child input').click();
   //   await assertItemCount(page, 2, 3);
-  //   await page.locator('footer li:first-child').click();
-  //   await page.locator('.clear-completed').click();
+  //   page.locator('footer li:first-child').click();
+  //   page.locator('.clear-completed').click();
   //   await assertItemCount(page, 2);
   // });
 });

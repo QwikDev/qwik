@@ -7,10 +7,10 @@ test.describe('ref', () => {
   });
 
   test('should render correctly', async ({ page }) => {
-    const staticEl = await page.locator('#static');
-    const dynamicEl = await page.locator('#dynamic');
-    const static2El = await page.locator('#static-2');
-    const dynamic2El = await page.locator('#dynamic-2');
+    const staticEl = page.locator('#static');
+    const dynamicEl = page.locator('#dynamic');
+    const static2El = page.locator('#static-2');
+    const dynamic2El = page.locator('#dynamic-2');
 
     await expect(staticEl).toHaveText('Rendered static');
     await expect(dynamicEl).toHaveText('Rendered dynamic');

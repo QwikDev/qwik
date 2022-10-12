@@ -15,10 +15,10 @@ test.describe('lexical-scope', () => {
     function normalizeSnapshot(str: string) {
       return str.replace(' =&gt; ', '=&gt;');
     }
-    const result = await page.locator('#result');
-    const content = await page.locator('#static');
+    const result = page.locator('#result');
+    const content = page.locator('#static');
     expect(normalizeSnapshot(await content.innerHTML())).toEqual(SNAPSHOT);
-    const btn = await page.locator('#rerender');
+    const btn = page.locator('#rerender');
     expect(await btn.textContent()).toEqual('Rerender 0');
     expect(await result.textContent()).toEqual('');
 

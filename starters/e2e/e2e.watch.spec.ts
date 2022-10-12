@@ -7,11 +7,11 @@ test.describe('watch', () => {
   });
 
   test('should watch correctly', async ({ page }) => {
-    const server = await page.locator('#server-content');
+    const server = page.locator('#server-content');
 
-    const parent = await page.locator('#parent');
-    const child = await page.locator('#child');
-    const debounced = await page.locator('#debounced');
+    const parent = page.locator('#parent');
+    const child = page.locator('#child');
+    const debounced = page.locator('#debounced');
     const addButton = page.locator('#add');
 
     await expect(server).toHaveText('comes from server');

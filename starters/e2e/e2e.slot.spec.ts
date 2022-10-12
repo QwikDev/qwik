@@ -3,10 +3,10 @@ import { test, expect } from '@playwright/test';
 test.describe('slot', () => {
   function tests() {
     test('should update count', async ({ page }) => {
-      const content1 = await page.locator('#btn1');
-      const content2 = await page.locator('#btn2');
-      const content3 = await page.locator('#btn3');
-      const btnCount = await page.locator('#btn-count');
+      const content1 = page.locator('#btn1');
+      const content2 = page.locator('#btn2');
+      const content3 = page.locator('#btn3');
+      const btnCount = page.locator('#btn-count');
 
       await expect(content1).toHaveText('DEFAULT 0');
       await expect(content2).toHaveText('START 0');
@@ -28,11 +28,11 @@ test.describe('slot', () => {
     });
 
     test('should toggle buttons', async ({ page }) => {
-      const content1 = await page.locator('#btn1');
-      const content2 = await page.locator('#btn2');
-      const content3 = await page.locator('#btn3');
+      const content1 = page.locator('#btn1');
+      const content2 = page.locator('#btn2');
+      const content3 = page.locator('#btn3');
 
-      const btnToggleButtons = await page.locator('#btn-toggle-buttons');
+      const btnToggleButtons = page.locator('#btn-toggle-buttons');
 
       // btnToggleButtons
       await page.waitForTimeout(100);
@@ -51,12 +51,12 @@ test.describe('slot', () => {
     });
 
     test('should toggle buttons with count', async ({ page }) => {
-      const content1 = await page.locator('#btn1');
-      const content2 = await page.locator('#btn2');
-      const content3 = await page.locator('#btn3');
+      const content1 = page.locator('#btn1');
+      const content2 = page.locator('#btn2');
+      const content3 = page.locator('#btn3');
 
-      const btnToggleButtons = await page.locator('#btn-toggle-buttons');
-      const btnCount = await page.locator('#btn-count');
+      const btnToggleButtons = page.locator('#btn-toggle-buttons');
+      const btnCount = page.locator('#btn-count');
 
       // btnToggleButtons
       await btnToggleButtons.click();
@@ -95,12 +95,12 @@ test.describe('slot', () => {
     });
 
     test('should toggle content', async ({ page }) => {
-      const content1 = await page.locator('#btn1');
-      const content2 = await page.locator('#btn2');
-      const content3 = await page.locator('#btn3');
+      const content1 = page.locator('#btn1');
+      const content2 = page.locator('#btn2');
+      const content3 = page.locator('#btn3');
 
-      const btnToggleContent = await page.locator('#btn-toggle-content');
-      const btnCount = await page.locator('#btn-count');
+      const btnToggleContent = page.locator('#btn-toggle-content');
+      const btnCount = page.locator('#btn-count');
 
       // btnToggleButtons
       await btnToggleContent.click();
@@ -119,12 +119,12 @@ test.describe('slot', () => {
     });
 
     test('should toggle content and buttons', async ({ page }) => {
-      const content1 = await page.locator('#btn1');
-      const content2 = await page.locator('#btn2');
-      const content3 = await page.locator('#btn3');
+      const content1 = page.locator('#btn1');
+      const content2 = page.locator('#btn2');
+      const content3 = page.locator('#btn3');
 
-      const btnToggleButtons = await page.locator('#btn-toggle-buttons');
-      const btnToggleContent = await page.locator('#btn-toggle-content');
+      const btnToggleButtons = page.locator('#btn-toggle-buttons');
+      const btnToggleContent = page.locator('#btn-toggle-content');
 
       // btnToggleButtons
       await btnToggleButtons.click();
@@ -139,12 +139,12 @@ test.describe('slot', () => {
     });
 
     test('should toggle thing + count', async ({ page }) => {
-      const content1 = await page.locator('#btn1');
-      const content2 = await page.locator('#btn2');
-      const content3 = await page.locator('#btn3');
+      const content1 = page.locator('#btn1');
+      const content2 = page.locator('#btn2');
+      const content3 = page.locator('#btn3');
 
-      const btnToggleThing = await page.locator('#btn-toggle-thing');
-      const btnCount = await page.locator('#btn-count');
+      const btnToggleThing = page.locator('#btn-toggle-thing');
+      const btnCount = page.locator('#btn-count');
 
       // btnToggleButtons
       await btnToggleThing.click();
@@ -162,10 +162,10 @@ test.describe('slot', () => {
     });
 
     test('should not lose q context', async ({ page }) => {
-      const content3 = await page.locator('#btn3');
-      const projected = await page.locator('#projected');
-      const btnToggleThing = await page.locator('#btn-toggle-thing');
-      const btnCount = await page.locator('#btn-count');
+      const content3 = page.locator('#btn3');
+      const projected = page.locator('#projected');
+      const btnToggleThing = page.locator('#btn-toggle-thing');
+      const btnCount = page.locator('#btn-count');
 
       await btnCount.click();
       await page.waitForTimeout(100);
@@ -185,10 +185,10 @@ test.describe('slot', () => {
     });
 
     test('should project cmp correctly into their selected slot', async ({ page }) => {
-      const toggleBtn = await page.locator('#toggle-child-slot');
-      const slotChild = await page.locator('#slot-child');
-      const slotP = await page.locator('#slot-p');
-      const noslotP = await page.locator('#noslot-p');
+      const toggleBtn = page.locator('#toggle-child-slot');
+      const slotChild = page.locator('#slot-child');
+      const slotP = page.locator('#slot-p');
+      const noslotP = page.locator('#noslot-p');
 
       await expect(slotChild).not.toBeHidden();
       await expect(slotP).not.toBeHidden();
@@ -202,8 +202,8 @@ test.describe('slot', () => {
     });
 
     test('should toggle nested slot', async ({ page }) => {
-      const toggleBtn = await page.locator('#toggle-modal');
-      const modalContent = await page.locator('#modal-content');
+      const toggleBtn = page.locator('#toggle-modal');
+      const modalContent = page.locator('#modal-content');
 
       await expect(modalContent).not.toBeHidden();
 
@@ -224,7 +224,7 @@ test.describe('slot', () => {
 
   test.describe('client rerender', () => {
     test.beforeEach(async ({ page }) => {
-      const toggleRender = await page.locator('#btn-toggle-render');
+      const toggleRender = page.locator('#btn-toggle-render');
       await toggleRender.click();
       await page.waitForTimeout(100);
       await toggleRender.click();

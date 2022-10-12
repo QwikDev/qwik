@@ -7,19 +7,19 @@ test.describe('signals', () => {
   });
 
   test('should do its thing', async ({ page }) => {
-    const incrementBtn = await page.locator('#count');
-    const clickBtn = await page.locator('#click');
-    const incrementIdBtn = await page.locator('#increment-id');
-    const backgroundBtn = await page.locator('#background');
+    const incrementBtn = page.locator('#count');
+    const clickBtn = page.locator('#click');
+    const incrementIdBtn = page.locator('#increment-id');
+    const backgroundBtn = page.locator('#background');
 
-    const parentRender = await page.locator('#parent-renders');
-    const childRender = await page.locator('#child-renders');
+    const parentRender = page.locator('#parent-renders');
+    const childRender = page.locator('#child-renders');
 
-    const text = await page.locator('#text');
-    const id = await page.locator('#id');
-    const computed = await page.locator('#computed');
-    const stuff = await page.locator('#stuff');
-    const body = await page.locator('body');
+    const text = page.locator('#text');
+    const id = page.locator('#id');
+    const computed = page.locator('#computed');
+    const stuff = page.locator('#stuff');
+    const body = page.locator('body');
 
     await page.waitForTimeout(100);
 
@@ -76,8 +76,8 @@ test.describe('signals', () => {
   });
 
   test('issue 1681', async ({ page }) => {
-    const result = await page.locator('#issue-1681-return');
-    const button = await page.locator('#issue-1681-btn');
+    const result = page.locator('#issue-1681-return');
+    const button = page.locator('#issue-1681-btn');
 
     await expect(result).toHaveText('Count A is 0 Count B is 0');
     await button.click();

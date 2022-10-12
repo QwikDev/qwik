@@ -7,9 +7,9 @@ test.describe('resource', () => {
   });
 
   test('should load', async ({ page }) => {
-    const resource1 = await page.locator('.resource1');
-    const logs = await page.locator('.logs');
-    const increment = await page.locator('button.increment');
+    const resource1 = page.locator('.resource1');
+    const logs = page.locator('.logs');
+    const increment = page.locator('button.increment');
     let logsContent =
       '[RENDER] <ResourceApp>\n[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n[RENDER] <Results>\n\n\n';
     await expect(resource1).toHaveText('resource 1 is 80');
@@ -36,15 +36,15 @@ test.describe('resource', () => {
   });
 
   test('should track subscriptions', async ({ page }) => {
-    const resource1 = await page.locator('.resource1');
-    const logs = await page.locator('.logs');
+    const resource1 = page.locator('.resource1');
+    const logs = page.locator('.logs');
     let logsContent =
       '[RENDER] <ResourceApp>\n[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n[RENDER] <Results>\n\n\n';
     await expect(resource1).toHaveText('resource 1 is 80');
     await expect(logs).toHaveText(logsContent);
 
     // Count
-    const countBtn = await page.locator('button.count');
+    const countBtn = page.locator('button.count');
     await expect(countBtn).toHaveText('count is 0');
     await countBtn.click();
     await expect(countBtn).toHaveText('count is 1');
@@ -67,9 +67,9 @@ test.describe('resource serialization', () => {
   });
 
   test('should load', async ({ page }) => {
-    const button1 = await page.locator('button.r1');
-    const button2 = await page.locator('button.r2');
-    const button3 = await page.locator('button.r3');
+    const button1 = page.locator('button.r1');
+    const button2 = page.locator('button.r2');
+    const button3 = page.locator('button.r3');
 
     await expect(button1).toHaveText('PASS: Success 0');
     await expect(button2).toHaveText('ERROR: Error: failed 0');

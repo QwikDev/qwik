@@ -12,7 +12,7 @@ export const App = component$(() => {
   });
   console.log('Render: <App>');
   useWatch$(({ track }) => {
-    track(store, 'count');
+    track(() => store.count);
     const id = setTimeout(() => (store.delayCount = store.count), 2000);
     return () => clearTimeout(id);
   });

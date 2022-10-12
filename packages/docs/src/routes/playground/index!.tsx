@@ -43,11 +43,11 @@ export default component$(() => {
   });
 
   useClientEffect$(({ track }) => {
-    track(store, 'buildId');
-    track(store, 'buildMode');
-    track(store, 'entryStrategy');
-    track(store, 'files');
-    track(store, 'version');
+    track(() => store.buildId);
+    track(() => store.buildMode);
+    track(() => store.entryStrategy);
+    track(() => store.files);
+    track(() => store.version);
 
     if (store.version) {
       clearTimeout(store.shareUrlTmr);

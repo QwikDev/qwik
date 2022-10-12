@@ -29,7 +29,7 @@ export const AutoComplete = component$(() => {
   });
 
   useWatch$(async ({ track }) => {
-    const searchInput = track(state, 'searchInput');
+    const searchInput = track(() => state.searchInput);
 
     if (!searchInput) {
       state.searchResults = [];

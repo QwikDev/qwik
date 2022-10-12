@@ -31,7 +31,7 @@ export default component$(() => {
   });
 
   useWatch$(({ track }) => {
-    const appId = track(store, 'appId');
+    const appId = track(() => store.appId);
     const app = getExampleApp(appId);
     store.files = app?.inputs || [];
     if (typeof document !== 'undefined') {

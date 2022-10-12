@@ -21,31 +21,31 @@ test.describe('render', () => {
 
     const attributes = page.locator('#attributes');
 
-    await expect(attributes).toHaveAttribute('class', '⭐️unvb18-1 even stable0');
+    await expect(attributes).toHaveClass('⭐️unvb18-1 even stable0');
     await expect(attributes).toHaveAttribute('aria-hidden', 'true');
     await expect(attributes).toHaveAttribute('preventdefault:click', '');
 
     await increment.click();
 
-    await expect(attributes).toHaveAttribute('class', '⭐️unvb18-1 stable0 odd');
+    await expect(attributes).toHaveClass('⭐️unvb18-1 stable0 odd');
     await expect(attributes).toHaveAttribute('aria-hidden', 'true');
     await expect(attributes).toHaveAttribute('preventdefault:click', '');
 
     await toggle.click();
 
-    await expect(attributes).toHaveAttribute('class', '⭐️unvb18-1');
+    await expect(attributes).toHaveClass('⭐️unvb18-1');
     await expect(attributes).not.hasAttribute('aria-hidden');
     await expect(attributes).not.hasAttribute('preventdefault:click');
 
     await increment.click();
 
-    await expect(attributes).toHaveAttribute('class', '⭐️unvb18-1');
+    await expect(attributes).toHaveClass('⭐️unvb18-1');
     await expect(attributes).not.hasAttribute('aria-hidden');
     await expect(attributes).not.hasAttribute('preventdefault:click');
 
     await toggle.click();
 
-    await expect(attributes).toHaveAttribute('class', '⭐️unvb18-1 even stable0');
+    await expect(attributes).toHaveClass('⭐️unvb18-1 even stable0');
     await expect(attributes).toHaveAttribute('aria-hidden', 'true');
     await expect(attributes).toHaveAttribute('preventdefault:click', '');
   });

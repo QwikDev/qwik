@@ -13,7 +13,7 @@ test.describe('styles', () => {
 
     const addChild = page.locator('button');
 
-    await expect(parent).toHaveAttribute('class', '⭐️yalzmy-0 parent count-10');
+    await expect(parent).toHaveClass('⭐️yalzmy-0 parent count-10');
     await expect(parent).toHaveCSS('font-size', '200px');
     await expect(child2).toHaveCSS('font-size', '20px');
     await expect(inline2).toHaveCSS('font-size', '40px');
@@ -26,7 +26,7 @@ test.describe('styles', () => {
     const child10 = page.locator('text=Child 10');
     const inline10 = page.locator('text=Inline 10');
 
-    await expect(parent).toHaveAttribute('class', '⭐️yalzmy-0 parent count-11');
+    await expect(parent).toHaveClass('⭐️yalzmy-0 parent count-11');
     await expect(parent).toHaveCSS('font-size', '200px');
     await expect(child2).toHaveCSS('font-size', '20px');
     await expect(inline2).toHaveCSS('font-size', '40px');

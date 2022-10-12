@@ -132,13 +132,13 @@ test.describe('events client side', () => {
 
     const div = page.locator('#div');
     await expect(div).toHaveText('Text: ');
-    await expect(div).toHaveAttribute('class', '');
+    await expect(div).toHaveClass('');
 
     await input.fill('Some text');
     await expect(div).toHaveText('Text: Some text');
-    await expect(div).toHaveAttribute('class', '');
+    await expect(div).toHaveClass('');
 
     await div.hover();
-    await expect(div).toHaveAttribute('class', 'isOver');
+    await expect(div).toHaveClass('isOver');
   });
 });

@@ -27,7 +27,7 @@ test.describe('attributes', () => {
       await expect(svg).toHaveAttribute('width', '15');
       await expect(svg).toHaveAttribute('height', '15');
       await expect(svg).toHaveAttribute('preserveAspectRatio', 'xMidYMin slice');
-      await expect(svg).toHaveAttribute('class', 'is-svg');
+      await expect(svg).toHaveClass('is-svg');
       await expect(svg).toHaveAttribute('aria-hidden', 'true');
 
       await expect(renders).toHaveText('1');
@@ -59,7 +59,7 @@ test.describe('attributes', () => {
       await expect(svg).toHaveAttribute('width', '15');
       await expect(svg).toHaveAttribute('height', '15');
       await expect(svg).toHaveAttribute('preserveAspectRatio', 'xMidYMin slice');
-      await expect(svg).toHaveAttribute('class', 'is-svg');
+      await expect(svg).toHaveClass('is-svg');
       await expect(svg).toHaveAttribute('aria-hidden', 'true');
     });
 
@@ -164,7 +164,7 @@ test.describe('attributes', () => {
       await expect(svg).not.hasAttribute('width');
       await expect(svg).not.hasAttribute('height');
       await expect(svg).not.hasAttribute('preserveAspectRatio');
-      await expect(svg).toHaveAttribute('class', '');
+      await expect(svg).toHaveClass('');
       await expect(svg).not.hasAttribute('aria-hidden');
 
       await expect(renders).toHaveText('2');
@@ -180,7 +180,7 @@ test.describe('attributes', () => {
       await expect(svg).toHaveAttribute('width', '15');
       await expect(svg).toHaveAttribute('height', '15');
       await expect(svg).toHaveAttribute('preserveAspectRatio', 'xMidYMin slice');
-      await expect(svg).toHaveAttribute('class', 'is-svg');
+      await expect(svg).toHaveClass('is-svg');
       await expect(svg).toHaveAttribute('aria-hidden', 'true');
 
       await expect(renders).toHaveText('3');
@@ -197,7 +197,7 @@ test.describe('attributes', () => {
       await expect(svg).not.hasAttribute('height');
       await expect(svg).not.hasAttribute('preserveAspectRatio');
       await expect(svg).not.hasAttribute('aria-hidden');
-      await expect(svg).toHaveAttribute('class', '');
+      await expect(svg).toHaveClass('');
       await expect(renders).toHaveText('4');
 
       await countBtn.click();
@@ -211,7 +211,7 @@ test.describe('attributes', () => {
       await expect(svg).toHaveAttribute('width', '15');
       await expect(svg).toHaveAttribute('height', '15');
       await expect(svg).toHaveAttribute('preserveAspectRatio', 'xMidYMin slice');
-      await expect(svg).toHaveAttribute('class', 'is-svg');
+      await expect(svg).toHaveClass('is-svg');
       await expect(svg).toHaveAttribute('aria-hidden', 'true');
 
       await expect(renders).toHaveText('5');

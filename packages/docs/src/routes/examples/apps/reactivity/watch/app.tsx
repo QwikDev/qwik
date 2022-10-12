@@ -13,7 +13,7 @@ export const App = component$(() => {
 
   useWatch$(({ track }) => {
     // track changes in store.count
-    track(store, 'count');
+    track(() => store.count);
     console.log('count changed');
 
     const timer = setTimeout(() => {

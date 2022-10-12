@@ -7,11 +7,11 @@ test.describe('events', () => {
   });
 
   test('should rerender correctly', async ({ page }) => {
-    const btnWrapped = await page.locator('#btn-wrapped');
-    const btnTransparent = await page.locator('#btn-transparent');
+    const btnWrapped = page.locator('#btn-wrapped');
+    const btnTransparent = page.locator('#btn-transparent');
 
-    const contentTransparent = await page.locator('#count-transparent');
-    const countWrapped = await page.locator('#count-wrapped');
+    const contentTransparent = page.locator('#count-transparent');
+    const countWrapped = page.locator('#count-wrapped');
 
     expect(await contentTransparent.textContent()).toEqual('countTransparent: 0');
     expect(await countWrapped.textContent()).toEqual('countWrapped: 0');
@@ -47,9 +47,9 @@ test.describe('events', () => {
   });
 
   test('should prevent defaults and bubbling', async ({ page }) => {
-    const prevented1 = await page.locator('#prevent-default-1');
-    const prevented2 = await page.locator('#prevent-default-2');
-    const countWrapped = await page.locator('#count-anchor');
+    const prevented1 = page.locator('#prevent-default-1');
+    const prevented2 = page.locator('#prevent-default-2');
+    const countWrapped = page.locator('#count-anchor');
 
     await prevented1.click();
     await expect(countWrapped).toHaveText('countAnchor: 0');
@@ -67,14 +67,14 @@ test.describe('broadcast-events', () => {
 
   function tests() {
     test('should render correctly', async ({ page }) => {
-      const document = await page.locator('p.document');
-      const document2 = await page.locator('p.document2');
+      const document = page.locator('p.document');
+      const document2 = page.locator('p.document2');
 
-      const window = await page.locator('p.window');
-      const window2 = await page.locator('p.window2');
+      const window = page.locator('p.window');
+      const window2 = page.locator('p.window2');
 
-      const self = await page.locator('p.self');
-      const self2 = await page.locator('p.self2');
+      const self = page.locator('p.self');
+      const self2 = page.locator('p.self2');
 
       await expect(document).toHaveText('(Document: x: 0, y: 0)');
       await expect(document2).toHaveText('(Document2: x: 0, y: 0)');
@@ -107,7 +107,7 @@ test.describe('broadcast-events', () => {
 
   test.describe('client rerender', () => {
     test.beforeEach(async ({ page }) => {
-      const toggleRender = await page.locator('#btn-toggle-render');
+      const toggleRender = page.locator('#btn-toggle-render');
       await toggleRender.click();
       await page.waitForTimeout(100);
     });
@@ -122,23 +122,23 @@ test.describe('events client side', () => {
   });
 
   test('should progressively listen to new events', async ({ page }) => {
-    const link = await page.locator('#link');
-    const input = await page.locator('#input');
+    const link = page.locator('#link');
+    const input = page.locator('#input');
 
     // it should do nothing, no navigate
     await link.click();
 
     await input.focus();
 
-    const div = await page.locator('#div');
+    const div = page.locator('#div');
     await expect(div).toHaveText('Text: ');
-    await expect(div).toHaveAttribute('class', '');
+    await expect(div).toHaveClass('');
 
     await input.fill('Some text');
     await expect(div).toHaveText('Text: Some text');
-    await expect(div).toHaveAttribute('class', '');
+    await expect(div).toHaveClass('');
 
     await div.hover();
-    await expect(div).toHaveAttribute('class', 'isOver');
+    await expect(div).toHaveClass('isOver');
   });
 });

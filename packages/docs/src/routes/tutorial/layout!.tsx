@@ -40,7 +40,7 @@ export default component$(() => {
   });
 
   useWatch$(({ track }) => {
-    const appId = track(store, 'appId');
+    const appId = track(() => store.appId);
     const t = getTutorial(appId)!;
 
     store.files = ensureDefaultFiles(t.app.problemInputs);

@@ -49,4 +49,15 @@ test.describe('render', () => {
     await expect(attributes).toHaveAttribute('aria-hidden', 'true');
     await expect(attributes).toHaveAttribute('preventdefault:click', '');
   });
+
+  test('issue1475', async ({ page }) => {
+    const button = await page.locator('#issue-1475-button');
+    const result = await page.locator('#issue-1475-result');
+
+    await button.click();
+    await page.waitForTimeout(100);
+    await expect(result).toHaveText('1. Before\n2. Some text\nMiddle\n3 After\n\nStuff', {
+      useInnerText: true,
+    });
+  });
 });

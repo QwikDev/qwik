@@ -40,6 +40,15 @@ export const promiseAll = <T extends readonly unknown[] | []>(
   return promises as any;
 };
 
+export const promiseAllLazy = <T extends readonly unknown[] | []>(
+  promises: T
+): ValueOrPromise<void> => {
+  if (promises.length > 0) {
+    return Promise.all(promises) as any;
+  }
+  return promises as any;
+};
+
 export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
   return v != null;
 };

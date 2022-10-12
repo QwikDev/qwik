@@ -15,7 +15,7 @@ import {
   setEvent,
 } from '../../props/props-on';
 import type { ValueOrPromise } from '../../util/types';
-import { isPromise, promiseAll, then } from '../../util/promises';
+import { isPromise, promiseAll, promiseAllLazy, then } from '../../util/promises';
 import { assertDefined, assertEqual, assertTrue } from '../../assert/assert';
 import { logWarn } from '../../util/log';
 import { qDev, qSerialize } from '../../util/qdev';
@@ -169,7 +169,7 @@ export const updateChildren = (
   let oldKeyToIdx: KeyToIndexMap | undefined;
   let idxInOld: number;
   let elmToMove: ProcessedJSXNode;
-  const results = [];
+  const results: any[] = [];
   const staticCtx = ctx.$static$;
 
   while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
@@ -214,21 +214,15 @@ export const updateChildren = (
       idxInOld = oldKeyToIdx[newStartVnode.$key$ as string];
       if (idxInOld === undefined) {
         // New element
-        const newElm = createElm(ctx, newStartVnode, flags);
-        results.push(
-          then(newElm, (newElm) => {
-            insertBefore(staticCtx, parentElm, newElm, oldStartVnode?.$elm$);
-          })
-        );
+        const newElm = createElm(ctx, newStartVnode, flags, results);
+        insertBefore(staticCtx, parentElm, newElm, oldStartVnode?.$elm$);
       } else {
         elmToMove = oldCh[idxInOld];
         if (!isTagName(elmToMove, newStartVnode.$type$)) {
-          const newElm = createElm(ctx, newStartVnode, flags);
-          results.push(
-            then(newElm, (newElm) => {
-              insertBefore(staticCtx, parentElm, newElm, oldStartVnode?.$elm$);
-            })
-          );
+          const newElm = createElm(ctx, newStartVnode, flags, results);
+          then(newElm, (newElm) => {
+            insertBefore(staticCtx, parentElm, newElm, oldStartVnode?.$elm$);
+          });
         } else {
           results.push(patchVnode(ctx, elmToMove, newStartVnode, flags));
           oldCh[idxInOld] = undefined as any;
@@ -567,35 +561,14 @@ const addVnodes = (
   endIdx: number,
   flags: number
 ): ValueOrPromise<void> => {
-  const promises = [];
-  let hasPromise = false;
+  const promises: Promise<any>[] = [];
   for (; startIdx <= endIdx; ++startIdx) {
     const ch = vnodes[startIdx];
     assertDefined(ch, 'render: node must be defined at index', startIdx, vnodes);
-    const elm = createElm(ctx, ch, flags);
-    promises.push(elm);
-    if (isPromise(elm)) {
-      hasPromise = true;
-    }
+    const elm = createElm(ctx, ch, flags, promises);
+    insertBefore(ctx.$static$, parentElm, elm, before);
   }
-  if (hasPromise) {
-    return Promise.all(promises).then((children) =>
-      insertChildren(ctx.$static$, parentElm, children, before)
-    );
-  } else {
-    insertChildren(ctx.$static$, parentElm, promises as Node[], before);
-  }
-};
-
-const insertChildren = (
-  ctx: RenderStaticContext,
-  parentElm: QwikElement,
-  children: (Node | VirtualElement)[],
-  before: Node | VirtualElement | null
-) => {
-  for (const child of children) {
-    insertBefore(ctx, parentElm, child, before);
-  }
+  return promiseAllLazy(promises);
 };
 
 const removeVnodes = (
@@ -640,8 +613,9 @@ const getSlotName = (node: ProcessedJSXNode): string => {
 const createElm = (
   rCtx: RenderContext,
   vnode: ProcessedJSXNode,
-  flags: number
-): ValueOrPromise<Node | VirtualElement> => {
+  flags: number,
+  promises: Promise<any>[]
+): Node | VirtualElement => {
   const tag = vnode.$type$;
   const doc = rCtx.$static$.$doc$;
   const currentComponent = rCtx.$cmpCtx$;
@@ -693,29 +667,31 @@ const createElm = (
     // Run mount hook
     elCtx.$componentQrl$ = renderQRL;
 
-    return then(renderComponent(rCtx, elCtx, flags), () => {
+    const wait = then(renderComponent(rCtx, elCtx, flags), () => {
       let children = vnode.$children$;
       if (children.length === 0) {
-        return elm;
+        return;
       }
       if (children.length === 1 && children[0].$type$ === SKIP_RENDER_TYPE) {
         children = children[0].$children$;
       }
       const slotRctx = pushRenderContext(rCtx, elCtx);
       const slotMap = getSlotMap(elCtx);
-      const elements = children.map((ch) => createElm(slotRctx, ch, flags));
-      return then(promiseAll(elements), () => {
-        for (const node of children) {
-          assertDefined(node.$elm$, 'vnode elm must be defined');
-          appendChild(
-            staticCtx,
-            getSlotElement(staticCtx, slotMap, elm, getSlotName(node)),
-            node.$elm$
-          );
-        }
-        return elm;
-      });
+      const p: Promise<void>[] = [];
+      for (const node of children) {
+        const nodeElm = createElm(slotRctx, node, flags, p);
+        assertDefined(node.$elm$, 'vnode elm must be defined');
+        assertEqual(nodeElm, node.$elm$, 'vnode elm must be defined');
+
+        appendChild(staticCtx, getSlotElement(staticCtx, slotMap, elm, getSlotName(node)), nodeElm);
+      }
+
+      return promiseAllLazy(p);
     });
+    if (isPromise(wait)) {
+      promises.push(wait);
+    }
+    return elm;
   }
 
   const isSlot = isVirtual && QSlotS in props;
@@ -776,14 +752,11 @@ const createElm = (
   if (children.length === 1 && children[0].$type$ === SKIP_RENDER_TYPE) {
     children = children[0].$children$;
   }
-  const promises = children.map((ch) => createElm(rCtx, ch, flags));
-  return then(promiseAll(promises), () => {
-    for (const node of children) {
-      assertDefined(node.$elm$, 'vnode elm must be defined');
-      appendChild(rCtx.$static$, elm, node.$elm$);
-    }
-    return elm;
-  });
+  const nodes = children.map((ch) => createElm(rCtx, ch, flags, promises));
+  for (const node of nodes) {
+    appendChild(rCtx.$static$, elm, node);
+  }
+  return elm;
 };
 
 interface SlotMaps {

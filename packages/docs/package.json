@@ -23,7 +23,7 @@
     "@algolia/autocomplete-core": "^1.7.1",
     "@algolia/client-search": "^4.14.2",
     "@builder.io/partytown": "^0.7.1",
-    "@builder.io/qwik": "0.10.0",
+    "@builder.io/qwik": "0.11.0",
     "@builder.io/qwik-city": "0.0.112",
     "@builder.io/sdk-qwik": "^0.0.26",
     "@cloudflare/kv-asset-handler": "0.2.0",

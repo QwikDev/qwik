@@ -21,7 +21,7 @@ export const ResultsScreen = component$((props: { state: DocSearchState }) => {
             <ul role="listbox" aria-labelledby="docsearch-label" id="docsearch-list">
               {collection.items.map((item, index) => {
                 return (
-                  <Result state={props.state} item={mutable(item)}>
+                  <Result state={props.state} item={item} key={item.objectID}>
                     {item.__docsearch_parent && (
                       <svg q:slot="start-action" class="DocSearch-Hit-Tree" viewBox="0 0 24 54">
                         <g
@@ -41,7 +41,7 @@ export const ResultsScreen = component$((props: { state: DocSearchState }) => {
                       </svg>
                     )}
                     <div q:slot="start-action" class="DocSearch-Hit-icon">
-                      <SourceIcon type={mutable(item.type)} />
+                      <SourceIcon type={item.type} />
                     </div>
                     <div q:slot="end-action" class="DocSearch-Hit-action">
                       <SelectIcon />

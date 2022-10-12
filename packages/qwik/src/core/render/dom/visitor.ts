@@ -1084,17 +1084,13 @@ export const cleanupTree = (
     staticCtx.$rmSlots$.push(parent);
     return;
   }
-  cleanupElement(parent, subsManager);
+  const ctx = tryGetContext(parent);
+  if (ctx) {
+    cleanupContext(ctx, subsManager);
+  }
   const ch = getChildren(parent, 'elements');
   for (const child of ch) {
     cleanupTree(child as QwikElement, staticCtx, subsManager, true);
-  }
-};
-
-const cleanupElement = (el: QwikElement, subsManager: SubscriptionManager) => {
-  const ctx = tryGetContext(el);
-  if (ctx) {
-    cleanupContext(ctx, subsManager);
   }
 };
 

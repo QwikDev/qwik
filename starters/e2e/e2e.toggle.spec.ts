@@ -7,12 +7,12 @@ test.describe('toggle', () => {
   });
 
   test('should load', async ({ page }) => {
-    const title = await page.locator('h1');
-    const mount = await page.locator('#mount');
-    const root = await page.locator('#root');
-    const logs = await page.locator('#logs');
-    const btnToggle = await page.locator('button#toggle');
-    const btnIncrement = await page.locator('button#increment');
+    const title = page.locator('h1');
+    const mount = page.locator('#mount');
+    const root = page.locator('#root');
+    const logs = page.locator('#logs');
+    const btnToggle = page.locator('button#toggle');
+    const btnIncrement = page.locator('button#increment');
 
     let logsStr = 'Logs: Log(0)';
     await expect(title).toHaveText('ToggleA');

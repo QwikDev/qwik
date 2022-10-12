@@ -7,9 +7,9 @@ test.describe('mount', () => {
   });
 
   test('should render logs correctly', async ({ page }) => {
-    const btn = await page.locator('button');
-    const logs = await page.locator('#logs');
-    const renders = await page.locator('#renders');
+    const btn = page.locator('button');
+    const logs = page.locator('#logs');
+    const renders = page.locator('#renders');
     await expect(renders).toHaveText('Renders: 2');
     await expect(logs).toHaveText(`BEFORE useServerMount1()
 AFTER useServerMount1()

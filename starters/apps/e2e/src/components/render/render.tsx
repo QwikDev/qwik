@@ -1,4 +1,5 @@
-import { component$, useStore, useStylesScoped$ } from '@builder.io/qwik';
+import { component$, useSignal, useStore, useStylesScoped$, useWatch$ } from '@builder.io/qwik';
+import { delay } from '../streaming/demo';
 
 export const Render = component$(() => {
   const parent = {
@@ -72,5 +73,36 @@ export const Child = component$((props: { counter: { count: number } }) => {
         </button>
       </div>
     </>
+  );
+});
+
+
+export const Issue1475 = component$((props: { counter: { count: number } }) => {
+  const render = useSignal(false);
+  return (
+    <>
+      <button onClick$={() => render.value = true}>Render</button>
+      <div>
+        {render.value && (
+        <>
+          <h1>Before</h1>
+          Some text
+          <LazyIssue1475/>
+          <h2>After</h2>
+        </>
+        )}
+      </div>
+    </>
+  );
+});
+
+
+export const LazyIssue1475 = component$(() => {
+  useWatch$(async() => {
+    await delay(100);
+  });
+
+  return (
+    <div>Middle</div>
   );
 });

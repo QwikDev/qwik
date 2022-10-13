@@ -1,7 +1,6 @@
 import {
   component$,
   useRef,
-  mutable,
   noSerialize,
   useContextProvider,
   useClientEffect$,

@@ -1,4 +1,4 @@
-import { component$, mutable, Slot, useContext, useStore } from '@builder.io/qwik';
+import { component$, Slot, useContext, useStore } from '@builder.io/qwik';
 import { SearchContext } from './context';
 import type { DocSearchState } from './doc-search';
 import { Snippet } from './snippet';

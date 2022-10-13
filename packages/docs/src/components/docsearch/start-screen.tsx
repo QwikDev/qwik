@@ -64,7 +64,7 @@ export const StartScreen = component$((props: StartScreenProps) => {
                     <button
                       className="DocSearch-Hit-action-button"
                       title={saveRecentSearchButtonTitle}
-                      type="submit"
+                      type="button"
                       preventdefault:click
                       onClick$={(event) => {
                         // @ts-ignore

@@ -8,14 +8,14 @@ contributors:
 
 Common purpose routes are often placed into directories so they can share layouts, and so related source files are logically grouped next to each other. However, it may be desirable that the directory, which was used to group similar files and share layouts, is excluded from the public-facing URL. This is where "grouped" layouts come in (also referred to as a "pathless" layout route).
 
-By prefixing any directory name with two underscores `__`, then the directory name itself will not be included in the URL pathname.
+By surrounding any directory name with parentheses, such as `(name)`, then the directory name itself will not be included in the URL pathname.
 
-For example, let's say an app placed all accounts routes together in a directory, however, `/account/` could be dropped from the URL for cleaner, shorter URLs. In the example below, notice that the paths are within `src/routes/__accounts/` directory. However, the URL paths exclude `__accounts/`.
+For example, let's say an app placed all accounts routes together in a directory, however, `/account/` could be dropped from the URL for cleaner, shorter URLs. In the example below, notice that the paths are within `src/routes/(accounts)/` directory. However, the URL paths exclude `(accounts)/`.
 
 ```
 src/
 └── routes/
-    └── __accounts/                    # Notice the double underscore prefix
+    └── (accounts)/                    # Notice the double underscore prefix
         ├── layout.tsx                 # Shared account layout
         └── profile/
             └── index.tsx              # https://example.com/profile

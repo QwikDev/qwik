@@ -7,7 +7,7 @@ import type {
   SymbolMapper,
 } from './types';
 
-import type { QRLInternal } from '../core/import/qrl-class';
+import type { QRLInternal } from '../core/qrl/qrl-class';
 
 export interface ResolvedManifest {
   mapper: SymbolMapper;

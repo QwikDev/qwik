@@ -1,8 +1,8 @@
 import { isArray } from '../util/types';
-import { assertDefined } from '../assert/assert';
+import { assertDefined } from '../error/assert';
 import type { QwikDocument } from '../document';
 import { QContainerSelector, RenderEvent } from '../util/markers';
-import type { QRL } from '../import/qrl.public';
+import type { QRL } from '../qrl/qrl.public';
 import { qError, QError_useInvokeContext, QError_useMethodOutsideContext } from '../error/error';
 import type { RenderContext } from '../render/types';
 import type { SubscriberEffect, SubscriberHost } from './use-watch';

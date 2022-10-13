@@ -1,20 +1,12 @@
-import {
-  getProxyManager,
-  isSignal,
-  noSerialize,
-  NoSerialize,
-  unwrapProxy,
-} from '../object/q-object';
-import { getContext } from '../props/props';
 import { newInvokeContext, invoke, waitAndRun } from './use-core';
 import { logError, logErrorAndStop } from '../util/log';
 import { delay, safeCall, then } from '../util/promises';
 import { isFunction, isObject, ValueOrPromise } from '../util/types';
 import { isServer } from '../platform/platform';
 import { implicit$FirstArg } from '../util/implicit_dollar';
-import { assertDefined, assertEqual } from '../assert/assert';
-import type { QRL } from '../import/qrl.public';
-import { assertQrl, createQRL, QRLInternal } from '../import/qrl-class';
+import { assertDefined, assertEqual } from '../error/assert';
+import type { QRL } from '../qrl/qrl.public';
+import { assertQrl, createQRL, QRLInternal } from '../qrl/qrl-class';
 import {
   codeToText,
   qError,
@@ -22,13 +14,15 @@ import {
   QError_trackUseStore,
 } from '../error/error';
 import { useOn, useOnDocument } from './use-on';
-import { intToStr, MustGetObjID, strToInt } from '../object/store';
-import type { ContainerState } from '../render/container';
+import { ContainerState, intToStr, MustGetObjID, strToInt } from '../container/container';
 import { notifyWatch, _hW } from '../render/dom/notify-render';
 import { useSequentialScope } from './use-sequential-scope';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { handleError } from '../render/error-handling';
 import type { RenderContext } from '../render/types';
+import { getProxyManager, noSerialize, NoSerialize, unwrapProxy } from '../state/common';
+import { getContext } from '../state/context';
+import { isSignal } from '../state/signal';
 
 export const WatchFlagsIsEffect = 1 << 0;
 export const WatchFlagsIsWatch = 1 << 1;

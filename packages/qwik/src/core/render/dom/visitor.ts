@@ -6,23 +6,16 @@ import {
   QSlotRef,
   QSlotS,
 } from '../../util/markers';
-import { cleanupContext, getContext, QContext, tryGetContext } from '../../props/props';
-import {
-  addQRLListener,
-  groupListeners,
-  isOnProp,
-  PREVENT_DEFAULT,
-  setEvent,
-} from '../../props/props-on';
+import { addQRLListener, isOnProp, PREVENT_DEFAULT, setEvent } from '../../state/listeners';
 import type { ValueOrPromise } from '../../util/types';
 import { isPromise, promiseAll, promiseAllLazy, then } from '../../util/promises';
-import { assertDefined, assertEqual, assertTrue } from '../../assert/assert';
+import { assertDefined, assertEqual, assertTrue } from '../../error/assert';
 import { logWarn } from '../../util/log';
 import { qDev, qSerialize } from '../../util/qdev';
 import type { OnRenderFn } from '../../component/component.public';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
-import { assertQrl, isQrl } from '../../import/qrl-class';
+import { assertQrl, isQrl } from '../../qrl/qrl-class';
 import {
   assertElement,
   assertQwikElement,
@@ -41,7 +34,7 @@ import {
   SKIPS_PROPS,
   stringifyStyle,
 } from '../execute-component';
-import { addQwikEvent, setRef, SubscriptionManager } from '../container';
+import { addQwikEvent, setRef } from '../../container/container';
 import {
   getRootNode,
   newVirtualElement,
@@ -67,20 +60,20 @@ import {
   setKey,
   setProperty,
 } from './operations';
-import { serializeQRLs } from '../../import/qrl';
 import { QOnce } from '../jsx/utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
+import { addSignalSub, isSignal } from '../../state/signal';
+import { cleanupContext, getContext, QContext, tryGetContext } from '../../state/context';
 import {
-  addSignalSub,
-  createProxy,
   getProxyManager,
   getProxyTarget,
-  isSignal,
   QObjectFlagsSymbol,
   QObjectImmutable,
+  SubscriptionManager,
   _IMMUTABLE,
   _IMMUTABLE_PREFIX,
-} from '../../object/q-object';
+} from '../../state/common';
+import { createProxy } from '../../state/store';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -424,7 +417,6 @@ export const patchVnode = (
   const props = newVnode.$props$;
   const isComponent = isVirtual && OnRenderProp in props;
   const elCtx = getContext(elm);
-  const containerState = staticCtx.$containerState$;
   assertDefined(currentComponent, 'slots can not be rendered outside a component', elm);
   if (!isComponent) {
     const pendingListeners = currentComponent.li;
@@ -441,14 +433,6 @@ export const patchVnode = (
     if (pendingListeners.length > 0) {
       addQRLListener(listeners, pendingListeners);
       pendingListeners.length = 0;
-    }
-
-    if (qSerialize && listeners.length > 0) {
-      const groups = groupListeners(listeners);
-      for (const listener of groups) {
-        setAttribute(staticCtx, elm, listener[0], serializeQRLs(listener[1], elCtx));
-        addQwikEvent(listener[0], containerState);
-      }
     }
 
     if (isSvg && newVnode.$type$ === 'foreignObject') {
@@ -730,11 +714,6 @@ const createElm = (
     }
     if (listeners.length > 0 || hasRef) {
       setQId(rCtx, elCtx);
-    }
-    const groups = groupListeners(listeners);
-    for (const listener of groups) {
-      setAttribute(staticCtx, elm, listener[0], serializeQRLs(listener[1], elCtx));
-      addQwikEvent(listener[0], staticCtx.$containerState$);
     }
   }
 

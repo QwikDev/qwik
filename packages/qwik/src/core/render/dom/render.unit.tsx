@@ -1,8 +1,7 @@
 import { ElementFixture, trigger } from '../../../testing/element-fixture';
 import { expectDOM } from '../../../testing/expect-dom.unit';
 import { component$ } from '../../component/component.public';
-import { inlinedQrl } from '../../import/qrl';
-import { pauseContainer } from '../../object/store';
+import { inlinedQrl } from '../../qrl/qrl';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
 import { useClientEffect$, useWatch$ } from '../../use/use-watch';
@@ -13,6 +12,7 @@ import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
 import { equal, match } from 'uvu/assert';
 import { suite } from 'uvu';
 import { useRef } from '../../use/use-ref';
+import { pauseContainer } from '../../container/pause';
 
 const renderSuite = suite('render');
 renderSuite('should render basic content', async () => {

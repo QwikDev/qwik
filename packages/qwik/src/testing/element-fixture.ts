@@ -1,11 +1,12 @@
-import { getContext, normalizeOnProp, QContext } from '../core/props/props';
 import type { QwikDocument } from '../core/document';
 import { fromCamelToKebabCase } from '../core/util/case';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
 import { getWrappingContainer } from '../core/use/use-core';
-import { assertDefined } from '../core/assert/assert';
+import { assertDefined } from '../core/error/assert';
+import { getContext, QContext } from '../core/state/context';
+import { normalizeOnProp } from '../core/state/listeners';
 
 /**
  * Creates a simple DOM structure for testing components.

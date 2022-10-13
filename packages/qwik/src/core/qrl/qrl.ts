@@ -11,10 +11,10 @@ import {
 import { qRuntimeQrl, qSerialize } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
 import type { QwikElement } from '../render/dom/virtual-element';
-import type { QContext } from '../props/props';
-import { assertTrue } from '../assert/assert';
-import type { MustGetObjID } from '../object/store';
+import { assertDefined, assertTrue } from '../error/assert';
 import { assertElement } from '../util/element';
+import type { MustGetObjID } from '../container/container';
+import type { QContext } from '../state/context';
 
 // https://regexr.com/68v72
 const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
@@ -241,4 +241,14 @@ const addToArray = (array: any[], obj: any) => {
     return array.length - 1;
   }
   return index;
+};
+
+export const inflateQrl = (qrl: QRLInternal, elCtx: QContext) => {
+  assertDefined(qrl.$capture$, 'invoke: qrl capture must be defined inside useLexicalScope()', qrl);
+  return (qrl.$captureRef$ = qrl.$capture$.map((idx) => {
+    const int = parseInt(idx, 10);
+    const obj = elCtx.$refMap$[int];
+    assertTrue(elCtx.$refMap$.length > int, 'out of bounds inflate access', idx);
+    return obj;
+  }));
 };

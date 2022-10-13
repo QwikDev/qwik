@@ -4,7 +4,7 @@ import { qDev, qSerialize, seal } from '../../util/qdev';
 import { logWarn } from '../../util/log';
 import { isFunction, isObject, isString } from '../../util/types';
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
-import { isQrl } from '../../import/qrl-class';
+import { isQrl } from '../../qrl/qrl-class';
 
 /**
  * @public

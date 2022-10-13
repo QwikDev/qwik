@@ -5,8 +5,8 @@ import { format } from 'prettier';
 
 import type { StreamWriter } from '../../../server/types';
 import { component$ } from '../../component/component.public';
-import { inlinedQrl } from '../../import/qrl';
-import { $ } from '../../import/qrl.public';
+import { inlinedQrl } from '../../qrl/qrl';
+import { $ } from '../../qrl/qrl.public';
 import { createContext, useContext, useContextProvider } from '../../use/use-context';
 import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Ref, useRef } from '../../use/use-ref';

@@ -1,6 +1,6 @@
 import { ElementFixture, trigger } from '../../testing/element-fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
-import { inlinedQrl } from '../import/qrl';
+import { inlinedQrl } from '../qrl/qrl';
 import { useStylesQrl } from '../use/use-styles';
 import { PropsOf, component$ } from './component.public';
 import { suite } from 'uvu';

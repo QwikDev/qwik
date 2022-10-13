@@ -1,17 +1,17 @@
 import { createDocument } from '../../testing/document';
 import { useStore } from '../use/use-store.public';
-import { getQwikJSON } from './store';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { component$ } from '../component/component.public';
-import { noSerialize } from './q-object';
-import { $ } from '../import/qrl.public';
+import { $ } from '../qrl/qrl.public';
 import { logDebug } from '../util/log';
-import { inlinedQrl } from '../import/qrl';
-import { pauseContainer } from '../object/store';
+import { inlinedQrl } from '../qrl/qrl';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
 import { render } from '../render/dom/render.public';
 import { expectDOM } from '../../testing/expect-dom.unit';
+import { getQwikJSON } from './resume';
+import { pauseContainer } from './pause';
+import { noSerialize } from '../state/common';
 
 const storeSuite = suite('store');
 

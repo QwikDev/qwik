@@ -16,11 +16,9 @@ export async function renderToString(
   // Pass in the manifest that was generated from the client build
   const mod = await import('../react/server');
   const result = await mod.renderToString(rootNode, opts);
-  const styles = mod.getGlobalStyleTag(result.html);
-  const finalHtml = result.html.replace('</head>', styles + '</head>');
   return {
     ...result,
-    html: finalHtml,
+    html: result.html,
   };
 }
 

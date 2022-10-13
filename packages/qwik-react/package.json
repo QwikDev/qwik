@@ -19,9 +19,6 @@
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",
-    "@emotion/react": "11.10.4",
-    "@emotion/server": "11.10.0",
-    "@emotion/styled": "11.10.4",
     "@mui/material": "5.10.9",
     "@types/react": "18.0.21",
     "@types/react-dom": "18.0.6",
@@ -32,9 +29,6 @@
   },
   "peerDependencies": {
     "@builder.io/qwik": ">=0.0.38",
-    "@emotion/react": ">=11.9.0",
-    "@emotion/server": ">=11.4.0",
-    "@emotion/styled": ">=11.9.3",
     "@types/react": ">=18.0.1",
     "@types/react-dom": ">=18.0.0",
     "react": ">=18.0.0",

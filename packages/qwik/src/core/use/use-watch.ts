@@ -637,7 +637,7 @@ export const runSubscriber = async (
 ) => {
   assertEqual(!!(watch.$flags$ & WatchFlagsIsDirty), true, 'Resource is not dirty', watch);
   if (isResourceWatch(watch)) {
-    return runResource(watch, containerState);
+    return runResource(watch, containerState, rctx);
   } else {
     return runWatch(watch, containerState, rctx);
   }
@@ -646,16 +646,17 @@ export const runSubscriber = async (
 export const runResource = <T>(
   watch: ResourceDescriptor<T>,
   containerState: ContainerState,
+  rctx?: RenderContext,
   waitOn?: Promise<any>
 ): ValueOrPromise<void> => {
   watch.$flags$ &= ~WatchFlagsIsDirty;
   cleanupWatch(watch);
 
   const el = watch.$el$;
-  const invokationContext = newInvokeContext(el, undefined, 'WatchEvent');
+  const invocationContext = newInvokeContext(rctx?.$static$.$locale$, el, undefined, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
   watch.$qrl$.$captureRef$;
-  const watchFn = watch.$qrl$.getFn(invokationContext, () => {
+  const watchFn = watch.$qrl$.getFn(invocationContext, () => {
     subsManager.$clearSub$(watch);
   });
 
@@ -734,7 +735,7 @@ export const runResource = <T>(
   };
 
   // Execute mutation inside empty invokation
-  invoke(invokationContext, () => {
+  invoke(invocationContext, () => {
     resource._state = 'pending';
     resource.loading = !isServer();
     resource._resolved = undefined as any;
@@ -781,9 +782,14 @@ export const runWatch = (
 
   cleanupWatch(watch);
   const hostElement = watch.$el$;
-  const invokationContext = newInvokeContext(hostElement, undefined, 'WatchEvent');
+  const invocationContext = newInvokeContext(
+    rctx?.$static$.$locale$,
+    hostElement,
+    undefined,
+    'WatchEvent'
+  );
   const { $subsManager$: subsManager } = containerState;
-  const watchFn = watch.$qrl$.getFn(invokationContext, () => {
+  const watchFn = watch.$qrl$.getFn(invocationContext, () => {
     subsManager.$clearSub$(watch);
   }) as WatchFn;
   const track: Tracker = (obj: any, prop?: string) => {

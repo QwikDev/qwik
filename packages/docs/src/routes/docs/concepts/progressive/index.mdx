@@ -10,11 +10,11 @@ contributors:
 
 Progressively is about downloading code as the application needs, without having to download the entire codebase eagerly.
 
-This connect with Qwik's [core tenant](../../think-qwik/index.mdx) which focus on delaying **the loading** and execution of JavaScript for as long as possible. Qwik needs to break up the application into many lazy loadable chunks to achieve that.
+This connect with Qwik's [core tenet](../../think-qwik/index.mdx) which focus on delaying **the loading** and execution of JavaScript for as long as possible. Qwik needs to break up the application into many lazy loadable chunks to achieve that.
 
 ## Current state-of-the-art
 
-[Existing frameworks suffer of two problems](https://www.builder.io/blog/dont-blame-the-developer-for-what-the-frameworks-did):
+[Existing frameworks suffer from two problems](https://www.builder.io/blog/dont-blame-the-developer-for-what-the-frameworks-did):
 
 - Lazy loading boundaries are 100% delegated to the developer
 - Frameworks can only lazy load components that are not in the current render tree.
@@ -41,7 +41,7 @@ Without the Optimizer, either:
 - The code would have to be broken up by the developer into importable parts. This would be unnatural to write an application, making for a bad DX.
 - The application would have to load a lot of unnecessary code as there would be no lazy-loaded boundaries.
 
-Qwik runtime must understand the Optimizer output. The biggest difference to comprehend is that by breaking up the component into lazy-loadable chunks, the lazy-loading requirement introduces asynchronous code into the framework. The framework has to be written differently to take asynchronicity into account. Existing frameworks assume that all code is available synchronously. This assumption prevents an easy insertion of lazy-loading into existing frameworks. (For example, when a new component is created, the framework assumes that it's initialization code can be invoked in a synchronous fashion. If this is the first time component is referenced, then it's code needs to be lazy-loaded, and therefore the framework must take that into account.)
+Qwik runtime must understand the Optimizer output. The biggest difference to comprehend is that by breaking up the component into lazy-loadable chunks, the lazy-loading requirement introduces asynchronous code into the framework. The framework has to be written differently to take asynchronicity into account. Existing frameworks assume that all code is available synchronously. This assumption prevents an easy insertion of lazy-loading into existing frameworks. (For example, when a new component is created, the framework assumes that its initialization code can be invoked in a synchronous fashion. If this is the first time component is referenced, then its code needs to be lazy-loaded, and therefore the framework must take that into account.)
 
 ### Lazy-loading
 

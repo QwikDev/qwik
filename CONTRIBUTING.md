@@ -75,9 +75,7 @@ yarn test.watch
 
 - [Open Qwik in Stackblitz Codeflow](https://pr.new/github.com/BuilderIO/qwik/)
 - Review PR in Stackblitz
-![image](https://user-images.githubusercontent.com/4918140/195581745-8dfca1f9-2dcd-4f6a-b7aa-705f3627f8fa.png)
-
-
+  ![image](https://user-images.githubusercontent.com/4918140/195581745-8dfca1f9-2dcd-4f6a-b7aa-705f3627f8fa.png)
 
 ### E2E Tests Only
 

@@ -22,31 +22,31 @@ export interface ScreenStateProps {
   translations: ScreenStateTranslations;
 }
 
-export const ScreenState = component$(
-  ({ translations = {}, state, disableUserPersonalization }: ScreenStateProps) => {
-    if (state.status === 'error') {
-      return <ErrorScreen translations={translations?.errorScreen} />;
-    }
-
-    const hasCollections = state.collections.some((collection) => collection.items.length > 0);
-
-    if (!state.query) {
-      return (
-        <StartScreen
-          disableUserPersonalization={disableUserPersonalization}
-          state={state}
-          translations={translations?.startScreen}
-        />
-      );
-    }
-
-    if (hasCollections === false) {
-      return <NoResultsScreen state={state} translations={translations?.noResultsScreen} />;
-    }
-
-    return <ResultsScreen state={state} />;
+export const ScreenState = component$((props: ScreenStateProps) => {
+  if (props.state.status === 'error') {
+    return <ErrorScreen translations={props.translations?.errorScreen} />;
   }
-);
+
+  const hasCollections = props.state.collections.some((collection) => collection.items.length > 0);
+
+  if (!props.state.query) {
+    return (
+      <StartScreen
+        disableUserPersonalization={props.disableUserPersonalization}
+        state={props.state}
+        translations={props.translations?.startScreen}
+      />
+    );
+  }
+
+  if (hasCollections === false) {
+    return (
+      <NoResultsScreen state={props.state} translations={props.translations?.noResultsScreen} />
+    );
+  }
+
+  return <ResultsScreen state={props.state} />;
+});
 
 // TODO: prevent UI flickering
 // function areEqual(_prevProps, nextProps) {

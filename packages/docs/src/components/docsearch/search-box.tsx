@@ -25,13 +25,13 @@ interface SearchBoxProps {
   translations?: SearchBoxTranslations;
 }
 
-export const SearchBox = component$(({ translations = {}, ...props }: SearchBoxProps) => {
+export const SearchBox = component$((props: SearchBoxProps) => {
   const {
     resetButtonTitle = 'Clear the query',
     resetButtonAriaLabel = 'Clear the query',
     cancelButtonText = 'Cancel',
     cancelButtonAriaLabel = 'Cancel',
-  } = translations;
+  } = props.translations ?? {};
 
   useClientEffect$(() => {
     if (props.autoFocus) {
@@ -115,9 +115,11 @@ export const SearchBox = component$(({ translations = {}, ...props }: SearchBoxP
               // TODO: cancel pending request
             }
             if (event.key === 'Enter') {
-              const { item, itemUrl } = getActiveItem({
-                ...props.state,
-              } as any)!;
+              const activeItem = getActiveItem(props.state as any);
+              if (!activeItem) {
+                return;
+              }
+              const { itemUrl, item } = activeItem;
               if (event.metaKey || event.ctrlKey) {
                 if (itemUrl !== undefined) {
                   context.onSelectItem({ item, event });

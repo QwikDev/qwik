@@ -1,4 +1,4 @@
-import { component$, mutable, Slot, useContext, useStore } from '@builder.io/qwik';
+import { component$, Slot, useContext, useStore } from '@builder.io/qwik';
 import { SearchContext } from './context';
 import type { DocSearchState } from './doc-search';
 import { Snippet } from './snippet';
@@ -59,15 +59,12 @@ export const Result = component$(
               <div class="DocSearch-Hit-content-wrapper">
                 <Snippet
                   class="DocSearch-Hit-title"
-                  hit={mutable(item)}
-                  attribute={mutable('hierarchy.lvl1')}
+                  hit={item}
+                  attribute={'hierarchy.lvl1'}
+                  key="s--1"
                 />
                 {item.content && (
-                  <Snippet
-                    class="DocSearch-Hit-path"
-                    hit={mutable(item)}
-                    attribute={mutable('content')}
-                  />
+                  <Snippet class="DocSearch-Hit-path" hit={item} attribute={'content'} key="s-0" />
                 )}
               </div>
             )}
@@ -80,30 +77,24 @@ export const Result = component$(
                 item.type === 'lvl5' ||
                 item.type === 'lvl6') && (
                 <div class="DocSearch-Hit-content-wrapper">
-                  <Snippet
-                    class="DocSearch-Hit-title"
-                    hit={mutable(item)}
-                    attribute={mutable(undefined)}
-                  />
+                  <Snippet class="DocSearch-Hit-title" hit={item} attribute={undefined} key="s-1" />
                   <Snippet
                     class="DocSearch-Hit-path"
-                    hit={mutable(item)}
-                    attribute={mutable('hierarchy.lvl1')}
+                    hit={item}
+                    attribute={'hierarchy.lvl1'}
+                    key="s-2"
                   />
                 </div>
               )}
 
             {item.type === 'content' && (
               <div class="DocSearch-Hit-content-wrapper">
-                <Snippet
-                  class="DocSearch-Hit-title"
-                  hit={mutable(item)}
-                  attribute={mutable('content')}
-                />
+                <Snippet class="DocSearch-Hit-title" hit={item} attribute={'content'} key="s-3" />
                 <Snippet
                   class="DocSearch-Hit-path"
-                  hit={mutable(item)}
-                  attribute={mutable('hierarchy.lvl1')}
+                  hit={item}
+                  attribute={'hierarchy.lvl1'}
+                  key="s-4"
                 />
               </div>
             )}

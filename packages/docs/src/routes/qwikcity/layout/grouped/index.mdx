@@ -2,6 +2,7 @@
 title: Qwik City - Grouped Layouts
 contributors:
   - adamdbradley
+  - Craiqser
 ---
 
 # Grouped Layouts
@@ -10,15 +11,15 @@ Common purpose routes are often placed into directories so they can share layout
 
 By surrounding any directory name with parentheses, such as `(name)`, then the directory name itself will not be included in the URL pathname.
 
-For example, let's say an app placed all accounts routes together in a directory, however, `/account/` could be dropped from the URL for cleaner, shorter URLs. In the example below, notice that the paths are within `src/routes/(accounts)/` directory. However, the URL paths exclude `(accounts)/`.
+For example, let's say an app placed all _account_ routes together in a directory, however, `/account/` could be dropped from the URL for cleaner, shorter URLs. In the example below, notice that the paths are within the `src/routes/(account)/` directory. However, the URL paths exclude `(account)/`.
 
 ```
 src/
 └── routes/
-    └── (accounts)/             # Notice the parentheses
-        ├── layout.tsx          # Shared account layout
+    └── (account)/             # Notice the parentheses
+        ├── layout.tsx         # Shared account layout
         └── profile/
-            └── index.tsx       # https://example.com/profile
+            └── index.tsx      # https://example.com/profile
         └── settings/
-            └── index.tsx       # https://example.com/settings
+            └── index.tsx      # https://example.com/settings
 ```

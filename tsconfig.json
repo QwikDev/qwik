@@ -33,6 +33,9 @@
       "@builder.io/qwik-city/service-worker": [
         "packages/qwik-city/runtime/src/library/service-worker/index.ts"
       ],
+      "@builder.io/qwik-city/adaptors/cloudflare-pages/vite": [
+        "packages/qwik-city/adaptors/cloudflare-pages/vite/index.ts"
+      ],
       "@builder.io/qwik-city/middleware/cloudflare-pages": [
         "packages/qwik-city/middleware/cloudflare-pages"
       ],

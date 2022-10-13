@@ -1,5 +1,5 @@
 {
   "version": 1,
-  "include": ["/"],
-  "exclude": []
+  "include": ["/*"],
+  "exclude": ["/build/*", "/favicon.ico", "/manifest.json", "/robots.txt"]
 }

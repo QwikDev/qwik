@@ -1,4 +1,5 @@
-import { qwikCity } from '@builder.io/qwik-city/middleware/cloudflare-pages';
+import { createQwikCity } from '@builder.io/qwik-city/middleware/cloudflare-pages';
+import qwikCityPlan from '@qwik-city-plan';
 import render from './entry.ssr';
 
-export const onRequest = qwikCity(render);
+export const onRequest = createQwikCity({ render, qwikCityPlan });

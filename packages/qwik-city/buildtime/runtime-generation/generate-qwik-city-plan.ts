@@ -25,5 +25,7 @@ export function generateQwikCityPlan(ctx: BuildContext, qwikPlugin: QwikVitePlug
 
   c.push(`export const cacheModules = ${JSON.stringify(!ctx.isDevServer)};`);
 
+  c.push(`export default { routes, menus, trailingSlash, basePathname, cacheModules };`);
+
   return esmImports.join('\n') + c.join('\n');
 }

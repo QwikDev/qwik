@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-import type { Render } from '@builder.io/qwik/server';
 import type { NodeStaticGeneratorOptions } from './types';
 import { createNodeSystem } from './node-system';
 import { staticGenerate } from '../generator/generate';
@@ -9,11 +8,12 @@ import { staticGenerate } from '../generator/generate';
 /**
  * @alpha
  */
-export async function qwikCityGenerate(render: Render, opts: NodeStaticGeneratorOptions) {
+export async function generate(opts: NodeStaticGeneratorOptions) {
   try {
     const nodeSys = await createNodeSystem(opts);
-    await staticGenerate(nodeSys, render);
+    await staticGenerate(nodeSys);
   } catch (e) {
     console.error(e);
+    process.exit(1);
   }
 }

@@ -1,4 +1,3 @@
-import type { Render } from '@builder.io/qwik/server';
 import type {
   StaticGeneratorOptions,
   StaticRoute,
@@ -10,7 +9,7 @@ import { createHeaders } from '../../middleware/request-handler/headers';
 import type { QwikCityRequestContext } from '../../middleware/request-handler/types';
 import type { RequestContext } from '../../runtime/src/library/types';
 
-export async function workerThread(sys: System, render: Render) {
+export async function workerThread(sys: System) {
   const opts = sys.getOptions();
   const pendingPromises = new Set<Promise<any>>();
 
@@ -18,7 +17,7 @@ export async function workerThread(sys: System, render: Render) {
     switch (msg.type) {
       case 'render': {
         return new Promise<StaticWorkerRenderResult>((resolve) => {
-          workerRender(sys, render, opts, msg, pendingPromises, resolve);
+          workerRender(sys, opts, msg, pendingPromises, resolve);
         });
       }
       case 'close': {
@@ -33,7 +32,6 @@ export async function workerThread(sys: System, render: Render) {
 
 async function workerRender(
   sys: System,
-  render: Render,
   opts: StaticGeneratorOptions,
   staticRoute: StaticRoute,
   pendingPromises: Set<Promise<any>>,
@@ -130,17 +128,13 @@ async function workerRender(
           });
         }
       },
+      platform: sys.platform,
     };
 
-    const promise = requestHandler(
-      requestCtx,
-      render,
-      {},
-      {
-        ...opts,
-        ...staticRoute,
-      }
-    )
+    const promise = requestHandler(requestCtx, {
+      ...opts,
+      ...staticRoute,
+    })
       .then((rsp) => {
         if (rsp == null) {
           callback(result);

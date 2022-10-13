@@ -20,7 +20,7 @@ import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
 import { patchGlobalFetch } from '../../middleware/node/node-fetch';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import { readFile, writeFile } from 'fs/promises';
+import fs from 'fs';
 import {
   generateServiceWorkerRegister,
   prependManifestToServiceWorker,
@@ -235,10 +235,10 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
             try {
               const swClientDistPath = join(clientOutDir, swEntry.chunkFileName);
 
-              const swCode = await readFile(swClientDistPath, 'utf-8');
+              const swCode = await fs.promises.readFile(swClientDistPath, 'utf-8');
               const swCodeUpdate = prependManifestToServiceWorker(ctx, manifest, swCode);
               if (swCodeUpdate) {
-                await writeFile(swClientDistPath, swCodeUpdate);
+                await fs.promises.writeFile(swClientDistPath, swCodeUpdate);
               }
             } catch (e) {
               console.error(e);

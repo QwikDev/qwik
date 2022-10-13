@@ -290,6 +290,8 @@ export interface QwikVitePluginApi {
     //
     // (undocumented)
     getOptions: () => NormalizedQwikPluginOptions;
+    // (undocumented)
+    getRootDir: () => string | null;
 }
 
 // @alpha (undocumented)

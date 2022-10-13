@@ -7,14 +7,17 @@
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 
+// @alpha (undocumented)
+export function generate(opts: NodeStaticGeneratorOptions): Promise<void>;
+
 // Warning: (ae-forgotten-export) The symbol "StaticGeneratorOptions" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
 export interface NodeStaticGeneratorOptions extends StaticGeneratorOptions {
 }
 
-// @alpha (undocumented)
-export function qwikCityGenerate(render: Render, opts: NodeStaticGeneratorOptions): Promise<void>;
+// @alpha @deprecated (undocumented)
+export const qwikCityGenerate: typeof generate;
 
 // (No @packageDocumentation comment for this package)
 

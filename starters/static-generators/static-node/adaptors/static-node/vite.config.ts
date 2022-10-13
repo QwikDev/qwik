@@ -1,5 +1,5 @@
+import { extendConfig } from '@builder.io/qwik-city/vite';
 import baseConfig from '../../vite.config';
-import { extendConfig } from '../cloudflare-pages/vite.config';
 
 export default extendConfig(baseConfig, () => {
   return {
@@ -8,7 +8,10 @@ export default extendConfig(baseConfig, () => {
       format: 'cjs',
     },
     build: {
-      ssr: 'src/entry.static.tsx',
+      ssr: true,
+      rollupOptions: {
+        input: ['src/entry.static.tsx', 'src/entry.ssr.tsx'],
+      },
       outDir: 'server',
     },
   };

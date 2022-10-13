@@ -48,6 +48,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getOptimizer: () => qwikPlugin.getOptimizer(),
     getOptions: () => qwikPlugin.getOptions(),
     getManifest: () => manifestInput,
+    getRootDir: () => qwikPlugin.getOptions().rootDir,
     getClientOutDir: () => clientOutDir,
   };
 
@@ -692,6 +693,7 @@ export interface QwikVitePluginApi {
   getOptimizer: () => Optimizer | null;
   getOptions: () => NormalizedQwikPluginOptions;
   getManifest: () => QwikManifest | null;
+  getRootDir: () => string | null;
   getClientOutDir: () => string | null;
 }
 

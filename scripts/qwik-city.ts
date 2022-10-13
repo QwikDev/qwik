@@ -20,6 +20,7 @@ export async function buildQwikCity(config: BuildConfig) {
   await Promise.all([
     buildServiceWorker(config, inputDir, outputDir),
     buildVite(config, inputDir, outputDir),
+    buildAdaptorCloudflarePagesVite(config, inputDir, outputDir),
     buildMiddlewareCloudflarePages(config, inputDir, outputDir),
     buildMiddlewareNetlifyEdge(config, inputDir, outputDir),
     buildMiddlewareNode(config, inputDir, outputDir),
@@ -39,6 +40,9 @@ export async function buildQwikCity(config: BuildConfig) {
       '.': {
         import: './index.qwik.mjs',
         require: './index.qwik.cjs',
+      },
+      './adaptors/cloudflare-pages/vite': {
+        import: './adaptors/cloudflare-pages/vite/index.mjs',
       },
       './middleware/cloudflare-pages': {
         import: './middleware/cloudflare-pages/index.mjs',
@@ -104,7 +108,16 @@ async function buildRuntime(input: string) {
 async function buildVite(config: BuildConfig, inputDir: string, outputDir: string) {
   const entryPoints = [join(inputDir, 'buildtime', 'vite', 'index.ts')];
 
-  const external = ['source-map', 'vfile', '@mdx-js/mdx', 'typescript'];
+  const external = [
+    'fs',
+    'path',
+    'url',
+    'vite',
+    'source-map',
+    'vfile',
+    '@mdx-js/mdx',
+    'typescript',
+  ];
 
   const swRegisterPath = join(inputDir, 'runtime', 'src', 'library', 'sw-register.ts');
   let swRegisterCode = await readFile(swRegisterPath, 'utf-8');
@@ -181,6 +194,27 @@ async function buildServiceWorker(config: BuildConfig, inputDir: string, outputD
   await build.write({
     file: join(outputDir, 'service-worker.cjs'),
     format: 'cjs',
+  });
+}
+
+async function buildAdaptorCloudflarePagesVite(
+  config: BuildConfig,
+  inputDir: string,
+  outputDir: string
+) {
+  const entryPoints = [join(inputDir, 'adaptors', 'cloudflare-pages', 'vite', 'index.ts')];
+
+  const external = ['vite', 'fs', 'path'];
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'adaptors', 'cloudflare-pages', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    watch: watcher(config),
+    external,
   });
 }
 

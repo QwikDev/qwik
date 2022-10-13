@@ -70,6 +70,10 @@ export async function createNodeSystem(opts: NodeStaticGeneratorOptions) {
     createTimer,
     getPageFilePath,
     getDataFilePath,
+    platform: {
+      static: true,
+      node: process.versions.node,
+    },
   };
 
   return sys;

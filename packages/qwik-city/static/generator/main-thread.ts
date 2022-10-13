@@ -2,7 +2,6 @@ import type { StaticGeneratorOptions, StaticGeneratorResults, StaticRoute, Syste
 import { msToString } from '../../utils/format';
 import { getPathnameForDynamicRoute, normalizePathname } from '../../utils/pathname';
 import type { PageModule, RouteParams } from '../../runtime/src/library/types';
-import { routes, trailingSlash, basePathname } from '@qwik-city-plan';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();
@@ -12,6 +11,10 @@ export async function mainThread(sys: System) {
   const log = await sys.createLogger();
   const queue: StaticRoute[] = [];
   const active = new Set<string>();
+  const qwikCityPlan = opts.qwikCityPlan;
+  const routes = qwikCityPlan.routes || [];
+  const basePathname = qwikCityPlan.basePathname || '/';
+  const trailingSlash = !!qwikCityPlan.trailingSlash;
 
   return new Promise<StaticGeneratorResults>((resolve, reject) => {
     try {

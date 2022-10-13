@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-import type { Render } from '@builder.io/qwik/server';
 import type { System } from './types';
 import { mainThread } from './main-thread';
 import { workerThread } from './worker-thread';
@@ -9,10 +7,10 @@ import { workerThread } from './worker-thread';
 /**
  * @alpha
  */
-export async function staticGenerate(sys: System, render: Render) {
+export async function staticGenerate(sys: System) {
   if (sys.isMainThread()) {
     await mainThread(sys);
   } else {
-    await workerThread(sys, render);
+    await workerThread(sys);
   }
 }

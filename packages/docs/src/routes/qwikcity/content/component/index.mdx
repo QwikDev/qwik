@@ -45,7 +45,7 @@ src/
     └── some/
         └── path/
             ├── index.tsx              # https://example.com/some/path
-            └── sub_component.tsx
+            └── _sub_component.tsx
 ```
 
 Inside `index.tsx` you can create a component that is exported as `default` export. Content is created by writing a template with [JSX](https://reactjs.org/docs/introducing-jsx.html)-Syntax. Every component-function returns the template that should be rendered on the screen. If you want to learn more about the component anatomy, please see [components documentation](../../../docs/components/overview/index.mdx).
@@ -63,7 +63,8 @@ export default component$(() => {
       <Heading />
       <h2>Hello World!</h2>
       <SubComponent />
-    </>;
+    </>
+  );
 });
 ```
 

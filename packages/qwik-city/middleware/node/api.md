@@ -4,6 +4,8 @@
 
 ```ts
 
+/// <reference types="node" />
+
 import type { IncomingMessage } from 'http';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';

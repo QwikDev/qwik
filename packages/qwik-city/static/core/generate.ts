@@ -1,4 +1,4 @@
-import type { System } from './types';
+import type { System } from '../types';
 import { mainThread } from './main-thread';
 import { workerThread } from './worker-thread';
 
@@ -7,7 +7,7 @@ import { workerThread } from './worker-thread';
 /**
  * @alpha
  */
-export async function staticGenerate(sys: System) {
+export async function generate(sys: System) {
   if (sys.isMainThread()) {
     await mainThread(sys);
   } else {

@@ -6,13 +6,11 @@
 
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
-import type { StreamWriter } from '@builder.io/qwik';
 
 // Warning: (ae-forgotten-export) The symbol "StaticGeneratorOptions" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "System" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export function createNodeSystem(opts: StaticGeneratorOptions): Promise<System>;
+export function generate(opts: StaticGeneratorOptions): Promise<void>;
 
 // (No @packageDocumentation comment for this package)
 

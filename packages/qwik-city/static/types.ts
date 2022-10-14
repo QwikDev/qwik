@@ -1,6 +1,6 @@
 import type { StreamWriter } from '@builder.io/qwik';
-import type { RouteParams } from '../../runtime/src';
-import type { QwikCityHandlerOptions } from '../../middleware/request-handler/types';
+import type { RouteParams } from '../runtime/src';
+import type { QwikCityHandlerOptions } from '../middleware/request-handler/types';
 
 export interface System {
   createMainProcess: () => Promise<MainContext>;
@@ -35,6 +35,7 @@ export interface Logger {
 }
 
 export interface StaticGeneratorOptions extends QwikCityHandlerOptions {
+  currentFile: string;
   /**
    * File system directory where the static files should be written.
    */

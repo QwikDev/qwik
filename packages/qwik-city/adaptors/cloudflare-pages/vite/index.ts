@@ -3,8 +3,7 @@ import type { QwikCityPlugin } from '@builder.io/qwik-city/vite';
 import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import { join } from 'path';
 import fs from 'fs';
-import { generateOutput } from '../generate';
-import { generateStaticEntryModule } from '../static';
+import { generateOutput, generateServerPackageJson, generateSsgModule } from '../generate';
 
 /**
  * @alpha
@@ -15,35 +14,37 @@ export function cloudflarePages(opts: CloudflarePagesAdaptorOptions = {}): Plugi
   let serverOutDir: string | null = null;
 
   async function generate() {
-    const qwikCityPluginApi = qwikCityPlugin!.api;
     const qwikVitePluginApi = qwikVitePlugin!.api;
+    const qwikCityPluginApi = qwikCityPlugin!.api;
 
     const rootDir = qwikVitePluginApi.getRootDir()!;
     const clientOutDir = qwikVitePluginApi.getClientOutDir()!;
     const routes = qwikCityPluginApi.getRoutes();
 
+    const ssgModuleFileName = `ssg.js`;
     const generated = generateOutput(routes);
 
     const cfFunctionsDir = join(rootDir, 'functions');
-    const cfHeadersPath = join(clientOutDir, '_headers');
-    const cfRedirectsPath = join(clientOutDir, '_redirects');
-    const cfRoutesPath = join(clientOutDir, '_routes.json');
-    const staticEntryPath = join(serverOutDir!, 'entry.static.js');
+    const ssgEntryPath = join(serverOutDir!, ssgModuleFileName);
+
+    const serverPackageJsonPath = join(serverOutDir!, 'package.json');
+    const serverPackageJsonCode = generateServerPackageJson();
 
     await Promise.all([
-      fs.promises.writeFile(cfHeadersPath, generated.headers),
-      fs.promises.writeFile(cfRedirectsPath, generated.redirects),
-      fs.promises.writeFile(cfRoutesPath, generated.routes),
+      fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode),
       ...generated.functions.map((fn) => {
         const fnPath = join(cfFunctionsDir, fn.path);
         return fs.promises.writeFile(fnPath, fn.content);
       }),
     ]);
 
-    if (opts.staticOptimizations) {
-      const staticEntryCode = generateStaticEntryModule();
-      await fs.promises.writeFile(staticEntryPath, staticEntryCode);
-    }
+    const ssgModuleOutput = generateSsgModule({
+      renderModulePath: `./entry.ssr.js`,
+      qwikCityPlanModulePath: `./entry.cloudflare-pages.js`,
+      outDir: clientOutDir,
+    });
+
+    await fs.promises.writeFile(ssgEntryPath, ssgModuleOutput);
   }
 
   return {

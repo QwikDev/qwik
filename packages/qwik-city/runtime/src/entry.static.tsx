@@ -1,4 +1,4 @@
-import { generate } from '../../static/node';
+import { generate } from '../../static';
 import qwikCityPlan from '@qwik-city-plan';
 import render from './entry.ssr';
 import { fileURLToPath } from 'url';
@@ -11,4 +11,5 @@ generate({
   origin: 'https://qwik.builder.io',
   outDir: join(fileURLToPath(import.meta.url), '..', '..', 'dist'),
   log: 'debug',
+  currentFile: import.meta.url,
 });

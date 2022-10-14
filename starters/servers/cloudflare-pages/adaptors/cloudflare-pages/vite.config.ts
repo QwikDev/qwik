@@ -15,6 +15,10 @@ export default extendConfig(baseConfig, () => {
       },
       outDir: 'server',
     },
-    plugins: [cloudflarePages()],
+    plugins: [
+      cloudflarePages({
+        staticOptimizations: true,
+      }),
+    ],
   };
 });

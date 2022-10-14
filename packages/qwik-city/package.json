@@ -12,6 +12,10 @@
       "import": "./lib/index.qwik.mjs",
       "require": "./lib/index.qwik.cjs"
     },
+    "./adaptors/cloudflare-pages/vite": {
+      "import": "./lib/adaptors/cloudflare-pages/vite/index.mjs",
+      "require": "./lib/adaptors/cloudflare-pages/vite/index.cjs"
+    },
     "./middleware/cloudflare-pages": {
       "import": "./lib/middleware/cloudflare-pages/index.mjs"
     },
@@ -22,9 +26,11 @@
       "import": "./lib/middleware/node/index.mjs",
       "require": "./lib/middleware/node/index.cjs"
     },
+    "./static": {
+      "import": "./lib/static/index.mjs"
+    },
     "./static/node": {
-      "import": "./lib/static/node/index.mjs",
-      "require": "./lib/static/node/index.cjs"
+      "import": "./lib/static/node.mjs"
     },
     "./vite": {
       "import": "./lib/vite/index.mjs",

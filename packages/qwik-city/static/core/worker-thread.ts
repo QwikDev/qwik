@@ -3,11 +3,11 @@ import type {
   StaticRoute,
   StaticWorkerRenderResult,
   System,
-} from './types';
-import { requestHandler } from '../../middleware/request-handler';
-import { createHeaders } from '../../middleware/request-handler/headers';
+} from '../types';
 import type { QwikCityRequestContext } from '../../middleware/request-handler/types';
 import type { RequestContext } from '../../runtime/src/library/types';
+import { createHeaders } from '../../middleware/request-handler/headers';
+import { requestHandler } from '../../middleware/request-handler';
 
 export async function workerThread(sys: System) {
   const opts = sys.getOptions();

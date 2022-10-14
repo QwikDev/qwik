@@ -1,7 +1,7 @@
-import type { StaticGeneratorOptions, StaticGeneratorResults, StaticRoute, System } from './types';
+import type { PageModule, RouteParams } from '../../runtime/src/library/types';
+import type { StaticGeneratorOptions, StaticGeneratorResults, StaticRoute, System } from '../types';
 import { msToString } from '../../utils/format';
 import { getPathnameForDynamicRoute, normalizePathname } from '../../utils/pathname';
-import type { PageModule, RouteParams } from '../../runtime/src/library/types';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();

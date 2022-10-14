@@ -11,13 +11,14 @@ export default extendConfig(baseConfig, () => {
     build: {
       ssr: true,
       rollupOptions: {
-        input: [
-          'src/entry.cloudflare-pages.tsx',
-          'src/entry.ssr.tsx',
-        ],
+        input: ['src/entry.cloudflare-pages.tsx', 'src/entry.ssr.tsx'],
       },
       outDir: 'server',
     },
-    plugins: [cloudflarePages()],
+    plugins: [
+      cloudflarePages({
+        staticOptimizations: true,
+      }),
+    ],
   };
 });

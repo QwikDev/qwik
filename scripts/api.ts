@@ -81,8 +81,8 @@ export function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'static', 'node'),
-    join(config.packagesDir, 'qwik-city', 'lib', 'static', 'node', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'static'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'static', 'index.d.ts')
   );
   generateQwikCityReferenceModules(config);
 

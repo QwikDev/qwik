@@ -3,7 +3,7 @@ import type { QwikCityPlugin } from '@builder.io/qwik-city/vite';
 import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import { join } from 'path';
 import fs from 'fs';
-import { generateOutput, generateServerPackageJson, generateSsgModule } from '../generate';
+import { generateServerPackageJson, generateSsgModule } from '../generate';
 
 /**
  * @alpha
@@ -15,28 +15,13 @@ export function cloudflarePages(opts: CloudflarePagesAdaptorOptions = {}): Plugi
 
   async function generate() {
     const qwikVitePluginApi = qwikVitePlugin!.api;
-    const qwikCityPluginApi = qwikCityPlugin!.api;
-
-    const rootDir = qwikVitePluginApi.getRootDir()!;
     const clientOutDir = qwikVitePluginApi.getClientOutDir()!;
-    const routes = qwikCityPluginApi.getRoutes();
 
     const ssgModuleFileName = `ssg.js`;
-    const generated = generateOutput(routes);
-
-    const cfFunctionsDir = join(rootDir, 'functions');
     const ssgEntryPath = join(serverOutDir!, ssgModuleFileName);
 
     const serverPackageJsonPath = join(serverOutDir!, 'package.json');
     const serverPackageJsonCode = generateServerPackageJson();
-
-    await Promise.all([
-      fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode),
-      ...generated.functions.map((fn) => {
-        const fnPath = join(cfFunctionsDir, fn.path);
-        return fs.promises.writeFile(fnPath, fn.content);
-      }),
-    ]);
 
     const ssgModuleOutput = generateSsgModule({
       renderModulePath: `./entry.ssr.js`,
@@ -44,7 +29,10 @@ export function cloudflarePages(opts: CloudflarePagesAdaptorOptions = {}): Plugi
       outDir: clientOutDir,
     });
 
-    await fs.promises.writeFile(ssgEntryPath, ssgModuleOutput);
+    await Promise.all([
+      fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode),
+      fs.promises.writeFile(ssgEntryPath, ssgModuleOutput),
+    ]);
   }
 
   return {
@@ -70,6 +58,4 @@ export function cloudflarePages(opts: CloudflarePagesAdaptorOptions = {}): Plugi
   };
 }
 
-export interface CloudflarePagesAdaptorOptions {
-  staticOptimizations?: boolean;
-}
+export interface CloudflarePagesAdaptorOptions {}

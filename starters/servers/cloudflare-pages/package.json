@@ -8,11 +8,6 @@
     "wrangler": "beta"
   },
   "__qwik__": {
-    "priority": -1,
-    "viteConfig": {
-      "viteConfig": {
-        "ssr": "{ target: 'webworker', noExternal: true }"
-      }
-    }
+    "priority": -1
   }
 }

@@ -268,7 +268,6 @@ export interface SnapshotState {
  */
 export interface SnapshotListener {
   key: string;
-  eventName: string;
   qrl: QRL<any>;
   el: Element;
 }
@@ -333,7 +332,6 @@ export const _pauseFromContexts = async (
           key,
           qrl,
           el,
-          eventName: getEventName(key),
         });
       }
     }
@@ -520,29 +518,30 @@ export const _pauseFromContexts = async (
     switch (typeObj) {
       case 'undefined':
         return UNDEFINED_PREFIX;
-      case 'string':
       case 'number':
+        if (!Number.isFinite(obj)) {
+          break;
+        }
+        return obj;
+      case 'string':
       case 'boolean':
         return obj;
-
-      default:
-        const value = serializeValue(obj, mustGetObjId, containerState);
-        if (value !== undefined) {
-          return value;
+    }
+    const value = serializeValue(obj, mustGetObjId, containerState);
+    if (value !== undefined) {
+      return value;
+    }
+    if (typeObj === 'object') {
+      if (isArray(obj)) {
+        return obj.map(mustGetObjId);
+      }
+      if (isSerializableObject(obj)) {
+        const output: Record<string, any> = {};
+        for (const key of Object.keys(obj)) {
+          output[key] = mustGetObjId(obj[key]);
         }
-        if (typeObj === 'object') {
-          if (isArray(obj)) {
-            return obj.map(mustGetObjId);
-          }
-          if (isSerializableObject(obj)) {
-            const output: Record<string, any> = {};
-            for (const key of Object.keys(obj)) {
-              output[key] = mustGetObjId(obj[key]);
-            }
-            return output;
-          }
-        }
-        break;
+        return output;
+      }
     }
     throw qError(QError_verifySerializable, obj);
   });
@@ -1003,8 +1002,11 @@ export const strToInt = (nu: string) => {
 
 export const getEventName = (attribute: string) => {
   const colonPos = attribute.indexOf(':');
-  assertTrue(colonPos >= 0, 'colon not found in attribute');
-  return fromKebabToCamelCase(attribute.slice(colonPos + 1));
+  if (attribute) {
+    return fromKebabToCamelCase(attribute.slice(colonPos + 1));
+  } else {
+    return attribute;
+  }
 };
 
 const getTextNode = (mark: Comment) => {

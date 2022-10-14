@@ -31,6 +31,15 @@ interface LexicalScopeProps {
 }
 
 export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
+  const immutable = useStore(
+    {
+      stuff: 'foo',
+    },
+    {
+      recursive: true,
+    }
+  );
+  Object.freeze(immutable);
   const state = useStore({
     count: 0,
     result: '',
@@ -82,8 +91,18 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   const regex = /hola()\//gi;
   const nullPrototype = Object.create(null);
   nullPrototype.value = 12;
+  const infinite = Infinity;
+  const negativeInfinite = -Infinity;
+  const nan = NaN;
 
   const onclick = $(async () => {
+    // eslint-disable-next-line
+    console.assert(infinite === Infinity);
+    // eslint-disable-next-line
+    console.assert(negativeInfinite === -Infinity);
+    // eslint-disable-next-line
+    console.assert(isNaN(nan));
+
     rejected.catch((reason) => {
       promise.then((promiseValue) => {
         state.result = JSON.stringify([
@@ -110,6 +129,9 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
           nullPrototype.value,
           reason.message,
           specialStrings,
+          String(infinite),
+          String(negativeInfinite),
+          String(nan),
         ]);
         state.count++;
       });

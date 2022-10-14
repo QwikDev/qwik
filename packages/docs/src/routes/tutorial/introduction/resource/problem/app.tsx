@@ -9,7 +9,7 @@ export const App = component$(() => {
   const reposResource = useResource$<string[]>(({ track, cleanup }) => {
     // We need a way to re-run fetching data whenever the `github.org` changes.
     // Use `track` to trigger re-running of the this data fetching function.
-    track(github, 'org');
+    track(() => github.org);
 
     // A good practice is to use `AbortController` to abort the fetching of data if
     // new request comes in. We create a new `AbortController` and register a `cleanup`
@@ -28,7 +28,7 @@ export const App = component$(() => {
         GitHub username:
         <input
           value={github.org}
-          onKeyUp$={(ev) => (github.org = (ev.target as HTMLInputElement).value)}
+          onInput$={(ev) => (github.org = (ev.target as HTMLInputElement).value)}
         />
       </span>
       <div>

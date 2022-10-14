@@ -31,7 +31,7 @@ export default component$(() => {
   });
 
   useWatch$(({ track }) => {
-    const appId = track(store, 'appId');
+    const appId = track(() => store.appId);
     const app = getExampleApp(appId);
     store.files = app?.inputs || [];
     if (typeof document !== 'undefined') {
@@ -60,7 +60,7 @@ export default component$(() => {
                 <a
                   key={app.id}
                   href={`/examples/${app.id}/`}
-                  preventDefault:click
+                  preventdefault:click
                   onClick$={() => {
                     store.appId = app.id;
                     panelStore.active === 'Input';

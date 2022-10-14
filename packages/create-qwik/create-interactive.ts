@@ -47,7 +47,7 @@ export async function runCreateInteractiveCli() {
   );
   console.log(``);
 
-  const outDir: string = getOutDir(projectNameAnswer.outDir);
+  const outDir: string = getOutDir(projectNameAnswer.outDir.trim());
 
   let removeExistingOutDirPromise: Promise<void> | null = null;
 

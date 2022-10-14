@@ -53,8 +53,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
         const url = qrlResolver(element, qrl);
         const symbolName = getSymbolName(url);
         const reqTime = performance.now();
-        const module = findModule(await import(url.href.split('#')[0]));
-        const handler = module[symbolName];
+        const handler = findSymbol(await import(url.href.split('#')[0]), symbolName);
         const previousCtx = (doc as any)[Q_CONTEXT];
         if (element.isConnected) {
           try {
@@ -77,12 +76,15 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     doc.dispatchEvent(createEvent(eventName, detail));
   };
 
-  const findModule = (module: any) => {
-    return Object.values(module).find(isModule) || module;
-  };
-
-  const isModule = (module: any) => {
-    return typeof module === 'object' && module && module[Symbol.toStringTag] === 'Module';
+  const findSymbol = (module: any, symbol: string) => {
+    if (symbol in module) {
+      return module[symbol];
+    }
+    for (const v of Object.values(module)) {
+      if (typeof v === 'object' && v && symbol in v) {
+        return (v as any)[symbol];
+      }
+    }
   };
 
   const getSymbolName = (url: URL) =>

@@ -9,6 +9,13 @@ import { assertQrl } from '../import/qrl-class';
 import { isPromise } from '../util/promises';
 import { assertDefined } from '../assert/assert';
 
+/**
+ * @alpha
+ */
+export interface UseStylesScoped {
+  scopeId: string;
+}
+
 // <docs markdown="../readme.md#useStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useStyles instead)
@@ -87,8 +94,10 @@ export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
  * @alpha
  */
 // </docs>
-export const useStylesScopedQrl = (styles: QRL<string>): void => {
-  _useStyles(styles, getScopedStyles, true);
+export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
+  return {
+    scopeId: _useStyles(styles, getScopedStyles, true),
+  };
 };
 
 // <docs markdown="../readme.md#useStylesScoped">

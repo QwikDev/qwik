@@ -16,8 +16,8 @@
 
 - [Overview](layout/overview/index.mdx)
 - [Nested](layout/nested/index.mdx)
-- [Named](layout/named/index.mdx)
 - [Grouped](layout/grouped/index.mdx)
+- [Named](layout/named/index.mdx)
 - [Top](layout/top/index.mdx)
 
 ## Data
@@ -63,3 +63,7 @@
 - [Cloudflare Pages](adaptors/cloudflare-pages/index.mdx)
 - [Netlify Edge](adaptors/netlify-edge/index.mdx)
 - [Node](adaptors/node/index.mdx)
+
+## Starters
+
+- [Partytown](starters/partytown/index.mdx)

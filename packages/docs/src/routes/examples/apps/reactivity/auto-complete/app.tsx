@@ -29,7 +29,7 @@ export const AutoComplete = component$(() => {
   });
 
   useWatch$(async ({ track }) => {
-    const searchInput = track(state, 'searchInput');
+    const searchInput = track(() => state.searchInput);
 
     if (!searchInput) {
       state.searchResults = [];
@@ -48,7 +48,7 @@ export const AutoComplete = component$(() => {
     <div>
       <input
         type="text"
-        onKeyup$={(ev) => (state.searchInput = (ev.target as HTMLInputElement).value)}
+        onInput$={(ev) => (state.searchInput = (ev.target as HTMLInputElement).value)}
       />
       <SuggestionsListComponent state={state}></SuggestionsListComponent>
     </div>

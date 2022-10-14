@@ -13,9 +13,15 @@ import {
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
 import { SSRComment, InternalSSRStream, Virtual } from '../jsx/utils.public';
 import { logError, logWarn } from '../../util/log';
-import { addQRLListener, groupListeners, isOnProp, setEvent } from '../../props/props-on';
+import {
+  addQRLListener,
+  groupListeners,
+  isOnProp,
+  PREVENT_DEFAULT,
+  setEvent,
+} from '../../props/props-on';
 import { version } from '../../version';
-import { ContainerState, createContainerState, setRef } from '../container';
+import { addQwikEvent, ContainerState, createContainerState, setRef } from '../container';
 import type { RenderContext } from '../types';
 import { assertDefined } from '../../assert/assert';
 import { serializeSStyle } from '../../component/qrl-styles';
@@ -467,6 +473,9 @@ export const renderNode = (
         }
         value = value.value;
       }
+      if (prop.startsWith(PREVENT_DEFAULT)) {
+        addQwikEvent(prop.slice(PREVENT_DEFAULT.length), ssrCtx.rCtx.$static$.$containerState$);
+      }
       const attrValue = processPropValue(attrName, value);
       if (attrValue != null) {
         openingElement +=
@@ -509,6 +518,7 @@ export const renderNode = (
       const groups = groupListeners(listeners);
       for (const listener of groups) {
         openingElement += ' ' + listener[0] + '="' + serializeQRLs(listener[1], elCtx) + '"';
+        addQwikEvent(listener[0], ssrCtx.rCtx.$static$.$containerState$);
       }
     }
     if (key != null) {

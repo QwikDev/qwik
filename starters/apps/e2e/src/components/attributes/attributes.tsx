@@ -23,6 +23,7 @@ export const AttributesChild = component$(() => {
     }
   );
 
+  const title = useSignal<string>();
   const input = useSignal('');
   const hide = useSignal(false);
   const required = useSignal(false);
@@ -44,6 +45,14 @@ export const AttributesChild = component$(() => {
           }}
         >
           Toggle hide
+        </button>
+        <button
+          id="title"
+          onClick$={() => {
+            title.value = title.value === undefined ? 'some title' : undefined;
+          }}
+        >
+          Toggle title
         </button>
         <button
           id="aria-hidden"
@@ -91,10 +100,18 @@ export const AttributesChild = component$(() => {
           <>
             <label id="label" />
             <input id="input" />
+            <svg id="svg">
+              <feGaussianBlur></feGaussianBlur>
+              <foreignObject>
+                <foreignObject></foreignObject>
+                <div>Still outside svg</div>
+              </foreignObject>
+              <textPath></textPath>
+            </svg>
           </>
         ) : (
           <>
-            <label id="label" for={state.label} form="my-form"></label>
+            <label id="label" for={state.label} form="my-form" title={title.value}></label>
             <input
               id="input"
               required={required.value}
@@ -102,10 +119,26 @@ export const AttributesChild = component$(() => {
               aria-label={state.label}
               data-stuff={'stuff: ' + state.stuff}
               tabIndex={-1}
+              title={title.value}
               onInput$={(ev) => {
                 input.value = (ev.target as any).value;
               }}
             />
+            <svg
+              id="svg"
+              width="15"
+              height="15"
+              class="is-svg"
+              preserveAspectRatio="xMidYMin slice"
+              aria-hidden={state.dataAria as any}
+            >
+              <feGaussianBlur class="is-svg"></feGaussianBlur>
+              <foreignObject class="is-svg">
+                <foreignObject class="is-html"></foreignObject>
+                <div class="is-html">Still outside svg</div>
+              </foreignObject>
+              <textPath scale={0.1}></textPath>
+            </svg>
           </>
         )}
       </div>

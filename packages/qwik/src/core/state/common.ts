@@ -10,8 +10,8 @@ import type { SubscriberEffect, SubscriberHost } from '../use/use-watch';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { notifyChange } from '../render/dom/notify-render';
 import { logError } from '../util/log';
-import { SignalImpl } from './signal';
 import { tryGetContext } from './context';
+import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
 
 export interface SubscriptionManager {
   $createManager$(map?: Subscriptions[]): LocalSubscriptionManager;
@@ -19,20 +19,6 @@ export interface SubscriptionManager {
 }
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
-
-export const QObjectRecursive = 1 << 0;
-export const QObjectImmutable = 1 << 1;
-
-export const QOjectTargetSymbol = Symbol('proxy target');
-export const QObjectFlagsSymbol = Symbol('proxy flags');
-export const QObjectManagerSymbol = Symbol('proxy manager');
-
-/**
- * @internal
- */
-export const _IMMUTABLE = Symbol('IMMUTABLE');
-
-export const _IMMUTABLE_PREFIX = '$$';
 
 export type TargetType = Record<string | symbol, any>;
 
@@ -328,18 +314,4 @@ const must = <T>(a: T): NonNullable<T> => {
     throw logError('must be non null', a);
   }
   return a;
-};
-
-export const getManager = (obj: any, containerState: ContainerState) => {
-  if (!isObject(obj)) {
-    return undefined;
-  }
-  if (obj instanceof SignalImpl) {
-    return getProxyManager(obj);
-  }
-  const proxy = containerState.$proxyMap$.get(obj);
-  if (proxy) {
-    return getProxyManager(proxy);
-  }
-  return undefined;
 };

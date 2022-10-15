@@ -10,12 +10,10 @@ import {
   getProxyManager,
   getProxyTarget,
   LocalSubscriptionManager,
-  QObjectManagerSymbol,
   Subscriptions,
   verifySerializable,
-  _IMMUTABLE,
-  _IMMUTABLE_PREFIX,
 } from './common';
+import { QObjectManagerSymbol, _IMMUTABLE, _IMMUTABLE_PREFIX } from './constants';
 
 /**
  * @alpha

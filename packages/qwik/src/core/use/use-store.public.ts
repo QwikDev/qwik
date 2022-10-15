@@ -1,4 +1,4 @@
-import { QObjectRecursive } from '../state/common';
+import { QObjectRecursive } from '../state/constants';
 import { getOrCreateProxy } from '../state/store';
 import { isFunction } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';

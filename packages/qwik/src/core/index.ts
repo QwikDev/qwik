@@ -103,6 +103,7 @@ export type { ValueOrPromise } from './util/types';
 export type { Signal } from './state/signal';
 export type { NoSerialize } from './state/common';
 export { _wrapSignal } from './state/signal';
-export { noSerialize, mutable, _IMMUTABLE } from './state/common';
+export { noSerialize, mutable } from './state/common';
+export { _IMMUTABLE } from './state/constants';
 
 export { version } from './version';

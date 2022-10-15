@@ -14,8 +14,9 @@ import {
 import { isDocument } from '../util/element';
 import { SignalImpl, SignalWrapper } from '../state/signal';
 import { Collector, collectSubscriptions, collectValue } from './pause';
-import { QObjectManagerSymbol, Subscriptions } from '../state/common';
+import type { Subscriptions } from '../state/common';
 import { getOrCreateProxy } from '../state/store';
+import { QObjectManagerSymbol } from '../state/constants';
 
 /**
  * 0, 8, 9, A, B, C, D

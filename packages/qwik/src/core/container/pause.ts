@@ -37,7 +37,6 @@ import { serializeSStyle } from '../style/qrl-styles';
 import { serializeQRLs } from '../qrl/qrl';
 import {
   fastShouldSerialize,
-  getManager,
   getProxyFlags,
   getProxyManager,
   getProxyTarget,
@@ -47,6 +46,7 @@ import {
   Subscriptions,
 } from '../state/common';
 import { QContext, tryGetContext } from '../state/context';
+import { SignalImpl } from '../state/signal';
 
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -671,4 +671,18 @@ const hasQId = (el: Node) => {
     return node.hasAttribute(ELEMENT_ID);
   }
   return false;
+};
+
+const getManager = (obj: any, containerState: ContainerState) => {
+  if (!isObject(obj)) {
+    return undefined;
+  }
+  if (obj instanceof SignalImpl) {
+    return getProxyManager(obj);
+  }
+  const proxy = containerState.$proxyMap$.get(obj);
+  if (proxy) {
+    return getProxyManager(proxy);
+  }
+  return undefined;
 };

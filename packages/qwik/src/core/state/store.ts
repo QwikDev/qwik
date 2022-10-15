@@ -11,19 +11,21 @@ import type { ContainerState } from '../container/container';
 import type { SubscriberEffect, SubscriberHost } from '../use/use-watch';
 import {
   LocalSubscriptionManager,
+  shouldSerialize,
+  Subscriptions,
+  unwrapProxy,
+  verifySerializable,
+} from './common';
+import { isSignal } from './signal';
+import {
   QObjectFlagsSymbol,
   QObjectImmutable,
   QObjectManagerSymbol,
   QObjectRecursive,
   QOjectTargetSymbol,
-  shouldSerialize,
-  Subscriptions,
-  unwrapProxy,
-  verifySerializable,
   _IMMUTABLE,
   _IMMUTABLE_PREFIX,
-} from './common';
-import { isSignal } from './signal';
+} from './constants';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 

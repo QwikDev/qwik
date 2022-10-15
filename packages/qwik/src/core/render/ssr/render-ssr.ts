@@ -38,13 +38,8 @@ import { assertElement } from '../../util/element';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import { getContext, QContext, Q_CTX } from '../../state/context';
-import {
-  QObjectFlagsSymbol,
-  QObjectImmutable,
-  _IMMUTABLE,
-  _IMMUTABLE_PREFIX,
-} from '../../state/common';
 import { createProxy } from '../../state/store';
+import { QObjectFlagsSymbol, QObjectImmutable, _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 

@@ -31,11 +31,12 @@ import {
 import { findClose, QwikElement, VirtualElementImpl } from '../render/dom/virtual-element';
 import { getDomListeners } from '../state/listeners';
 import { domToVnode } from '../render/dom/visitor';
-import { parseSubscription, QObjectFlagsSymbol, Subscriptions } from '../state/common';
+import { parseSubscription, Subscriptions } from '../state/common';
 import { createProxy } from '../state/store';
 import { qSerialize } from '../util/qdev';
 import { pauseContainer } from './pause';
 import { getContext } from '../state/context';
+import { QObjectFlagsSymbol } from '../state/constants';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
@@ -45,13 +46,6 @@ export const resumeIfNeeded = (containerEl: Element): void => {
       appendQwikDevTools(containerEl);
     }
   }
-};
-
-export const appendQwikDevTools = (containerEl: Element) => {
-  (containerEl as any)['qwik'] = {
-    pause: () => pauseContainer(containerEl),
-    state: getContainerState(containerEl),
-  };
 };
 
 export const resumeContainer = (containerEl: Element) => {
@@ -304,4 +298,11 @@ const getTextNode = (mark: Comment) => {
     mark.parentElement!.insertBefore(textNode, mark);
     return textNode;
   }
+};
+
+export const appendQwikDevTools = (containerEl: Element) => {
+  (containerEl as any)['qwik'] = {
+    pause: () => pauseContainer(containerEl),
+    state: getContainerState(containerEl),
+  };
 };

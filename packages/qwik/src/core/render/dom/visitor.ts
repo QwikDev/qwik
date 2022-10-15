@@ -64,16 +64,14 @@ import { QOnce } from '../jsx/utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { addSignalSub, isSignal } from '../../state/signal';
 import { cleanupContext, getContext, QContext, tryGetContext } from '../../state/context';
+import { getProxyManager, getProxyTarget, SubscriptionManager } from '../../state/common';
+import { createProxy } from '../../state/store';
 import {
-  getProxyManager,
-  getProxyTarget,
   QObjectFlagsSymbol,
   QObjectImmutable,
-  SubscriptionManager,
   _IMMUTABLE,
   _IMMUTABLE_PREFIX,
-} from '../../state/common';
-import { createProxy } from '../../state/store';
+} from '../../state/constants';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -704,11 +702,10 @@ const createElm = (
     directSetAttribute(elm, QSlotRef, currentComponent.$id$);
     currentComponent.$slots$.push(vnode);
     staticCtx.$addSlots$.push([elm, currentComponent.$element$]);
-  } else if (qSerialize) {
-    setKey(elm, vnode.$key$);
   }
-
   if (qSerialize) {
+    setKey(elm, vnode.$key$);
+
     if (isHead && !isVirtual) {
       directSetAttribute(elm as Element, 'q:head', '');
     }
@@ -1129,12 +1126,10 @@ const browserSetEvent = (
 ) => {
   const containerState = staticCtx.$containerState$;
   const normalized = setEvent(elCtx.li, prop, input, containerState.$containerEl$);
-  if (!qSerialize) {
-    if (!prop.startsWith('on')) {
-      setAttribute(staticCtx, elCtx.$element$, normalized, '');
-    }
-    addQwikEvent(normalized, containerState);
+  if (!prop.startsWith('on')) {
+    setAttribute(staticCtx, elCtx.$element$, normalized, '');
   }
+  addQwikEvent(normalized, containerState);
 };
 
 const sameVnode = (vnode1: ProcessedJSXNode, vnode2: ProcessedJSXNode): boolean => {

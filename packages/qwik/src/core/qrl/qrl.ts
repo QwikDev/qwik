@@ -53,7 +53,8 @@ export interface QRLDev {
 export const qrl = <T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
-  lexicalScopeCapture: any[] = EMPTY_ARRAY
+  lexicalScopeCapture: any[] = EMPTY_ARRAY,
+  stackOffset = 0
 ): QRL<T> => {
   let chunk: string | null = null;
   let symbolFn: null | (() => Promise<Record<string, any>>) = null;
@@ -68,7 +69,7 @@ export const qrl = <T = any>(
         const ref = 'QWIK-SELF';
         const frames = new Error(ref).stack!.split('\n');
         const start = frames.findIndex((f) => f.includes(ref));
-        const frame = frames[start + 2];
+        const frame = frames[start + 2 + stackOffset];
         match = frame.match(EXTRACT_FILE_NAME);
         if (!match) {
           chunk = 'main';
@@ -118,7 +119,7 @@ export const qrlDEV = <T = any>(
   opts: QRLDev,
   lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> => {
-  const newQrl = qrl(chunkOrFn, symbol, lexicalScopeCapture) as QRLInternal<T>;
+  const newQrl = qrl(chunkOrFn, symbol, lexicalScopeCapture, 1) as QRLInternal<T>;
   newQrl.$dev$ = opts;
   return newQrl;
 };

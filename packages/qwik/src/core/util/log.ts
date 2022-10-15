@@ -1,5 +1,5 @@
-import type { QContext } from '../props/props';
 import type { QwikElement } from '../render/dom/virtual-element';
+import type { QContext } from '../state/context';
 import { isElement, isNode } from './element';
 import { qDev } from './qdev';
 

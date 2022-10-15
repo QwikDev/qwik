@@ -1,14 +1,14 @@
 import { fromCamelToKebabCase } from '../util/case';
-import { getContext, tryGetContext } from '../props/props';
 import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
-import { verifySerializable } from '../object/q-object';
 import { qDev } from '../util/qdev';
 import { isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
 import { getVirtualElement, QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import type { RenderContext } from '../render/types';
 import { isComment } from '../util/element';
-import { assertTrue } from '../assert/assert';
+import { assertTrue } from '../error/assert';
+import { verifySerializable } from '../state/common';
+import { getContext, tryGetContext } from '../state/context';
 
 // <docs markdown="../readme.md#Context">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

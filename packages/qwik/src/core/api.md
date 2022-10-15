@@ -317,9 +317,10 @@ export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
 
 // Warning: (ae-forgotten-export) The symbol "QContext" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "GetObjID" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState) => Promise<SnapshotResult>;
+export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState, fallbackGetObjId?: GetObjID) => Promise<SnapshotResult>;
 
 // @public (undocumented)
 export interface PropFnInterface<ARGS extends any[], RET> {
@@ -352,7 +353,7 @@ export interface QRL<TYPE = any> {
 }
 
 // @alpha
-export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[]) => QRL<T>;
+export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[], stackOffset?: number) => QRL<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "qrlDEV" should be prefixed with an underscore because the declaration is marked as @internal
 //

@@ -1,7 +1,7 @@
 import { ComponentStylesPrefixContent } from '../util/markers';
 import { hashCode } from '../util/hash_code';
-import type { QRL } from '../import/qrl.public';
-import { assertQrl } from '../import/qrl-class';
+import type { QRL } from '../qrl/qrl.public';
+import { assertQrl } from '../qrl/qrl-class';
 
 export const styleKey = (qStyles: QRL<string>, index: number): string => {
   assertQrl(qStyles);

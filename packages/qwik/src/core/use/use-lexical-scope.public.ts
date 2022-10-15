@@ -1,8 +1,9 @@
-import { assertDefined } from '../assert/assert';
-import { parseQRL } from '../import/qrl';
-import { getContext, inflateQrl, resumeIfNeeded } from '../props/props';
+import { assertDefined } from '../error/assert';
+import { inflateQrl, parseQRL } from '../qrl/qrl';
 import { getWrappingContainer, getInvokeContext } from './use-core';
-import { assertQrl } from '../import/qrl-class';
+import { assertQrl } from '../qrl/qrl-class';
+import { getContext } from '../state/context';
+import { resumeIfNeeded } from '../container/resume';
 
 // <docs markdown="../readme.md#useLexicalScope">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

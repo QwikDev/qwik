@@ -251,8 +251,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (buildMode === 'development') {
         (globalThis as any).qDev = true;
         const qDevKey = 'globalThis.qDev';
+        const qSerializeKey = 'globalThis.qSerialize';
         updatedViteConfig.define = {
           [qDevKey]: viteConfig?.define?.[qDevKey] ?? true,
+          [qSerializeKey]: viteConfig?.define?.[qSerializeKey] ?? true,
         };
       }
 

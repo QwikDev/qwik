@@ -1,7 +1,7 @@
-import { assertQrl } from '../import/qrl-class';
-import type { QRL } from '../import/qrl.public';
-import { getContext, normalizeOnProp } from '../props/props';
-import { addQRLListener } from '../props/props-on';
+import { assertQrl } from '../qrl/qrl-class';
+import type { QRL } from '../qrl/qrl.public';
+import { getContext } from '../state/context';
+import { addQRLListener, normalizeOnProp } from '../state/listeners';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { useInvokeContext } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';

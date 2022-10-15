@@ -1,7 +1,5 @@
-import { createProxy, getProxyTarget } from '../object/q-object';
-import { getContext } from '../props/props';
-import { $, QRL } from '../import/qrl.public';
-import { assertQrl } from '../import/qrl-class';
+import { $, QRL } from '../qrl/qrl.public';
+import { assertQrl } from '../qrl/qrl-class';
 import {
   ResourceReturn,
   ResourceDescriptor,
@@ -18,9 +16,11 @@ import { isServer } from '../platform/platform';
 import { useBindInvokeContext } from './use-core';
 
 import { isObject } from '../util/types';
-import type { GetObjID } from '../object/store';
-import type { ContainerState } from '../render/container';
+import type { ContainerState, GetObjID } from '../container/container';
 import { useSequentialScope } from './use-sequential-scope';
+import { getContext } from '../state/context';
+import { createProxy } from '../state/store';
+import { getProxyTarget } from '../state/common';
 
 /**
  * Options to pass to `useResource$()`

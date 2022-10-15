@@ -5,8 +5,8 @@ import { format } from 'prettier';
 
 import type { StreamWriter } from '../../../server/types';
 import { component$ } from '../../component/component.public';
-import { inlinedQrl } from '../../import/qrl';
-import { $ } from '../../import/qrl.public';
+import { inlinedQrl } from '../../qrl/qrl';
+import { $ } from '../../qrl/qrl.public';
 import { createContext, useContext, useContextProvider } from '../../use/use-context';
 import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Ref, useRef } from '../../use/use-ref';
@@ -376,13 +376,17 @@ renderSSRSuite('using component props', async () => {
       dangerouslySetInnerHTML="432"
       onClick="lazy.js"
       prop="12"
-    />,
+      q:slot="name"
+    >
+      stuff
+    </MyCmp>,
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       <section>
         <div>MyCmp{"id":"12","host:prop":"attribute","innerHTML":"123","dangerouslySetInnerHTML":"432","onClick":"lazy.js","prop":"12"}</div>
       </section>
+      <q:template q:slot hidden aria-hidden="true">stuff</q:template>
       <!--/qv-->
     </html>
     `

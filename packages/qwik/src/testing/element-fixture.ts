@@ -1,11 +1,11 @@
-import { getContext, normalizeOnProp, QContext } from '../core/props/props';
-import type { QwikDocument } from '../core/document';
 import { fromCamelToKebabCase } from '../core/util/case';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
 import { getWrappingContainer } from '../core/use/use-core';
-import { assertDefined } from '../core/assert/assert';
+import { assertDefined } from '../core/error/assert';
+import { getContext, QContext } from '../core/state/context';
+import { normalizeOnProp } from '../core/state/listeners';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -59,42 +59,32 @@ export interface ElementFixtureOptions {
  * @returns
  */
 export async function trigger(
-  element: Element,
+  root: Element,
   selector: string,
   eventNameCamel: string
-): Promise<Element[]> {
-  const elements: Promise<Element>[] = [];
-  Array.from(element.querySelectorAll(selector)).forEach((element) => {
+): Promise<void> {
+  for (const element of Array.from(root.querySelectorAll(selector))) {
     const kebabEventName = fromCamelToKebabCase(eventNameCamel);
-    const qrlAttr = element.getAttribute('on:' + kebabEventName);
-    if (qrlAttr) {
-      qrlAttr.split('/n').forEach((qrl) => {
-        const event = { type: kebabEventName };
-        const url = new URL(qrl, 'http://mock-test/');
-
-        // Create a mock document to simulate `qwikloader` environment.
-        const previousQDocument: QwikDocument = (globalThis as any).document;
-        const document: QwikDocument = ((globalThis as any).document =
-          element.ownerDocument as any);
-        document.__q_context__ = [element, event, url];
-        try {
-          const elCtx = getContext(element);
-          const handler = getEvent(elCtx, 'on-' + eventNameCamel);
-          if (handler) {
-            elements.push(handler());
-          } else {
-            console.error('handler not available');
-          }
-        } finally {
-          document.__q_context__ = undefined;
-          (globalThis as any).document = previousQDocument;
-        }
-      });
-    }
-  });
+    const event = { type: kebabEventName };
+    const attrName = 'on:' + kebabEventName;
+    await dispatch(element, attrName, event);
+  }
   await getTestPlatform().flush();
-  return Promise.all(elements);
 }
+
+export const dispatch = async (root: Element | null, attrName: string, ev: any) => {
+  while (root) {
+    const elm = root;
+    const ctx = getContext(elm);
+    const qrls = ctx?.li.filter((li) => li[0] === attrName);
+    if (qrls && qrls.length > 0) {
+      for (const q of qrls) {
+        await q[1].getFn([elm, ev], () => elm.isConnected)(ev, elm);
+      }
+    }
+    root = elm.parentElement;
+  }
+};
 
 export function getEvent(elCtx: QContext, prop: string): any {
   return qPropReadQRL(elCtx, normalizeOnProp(prop));

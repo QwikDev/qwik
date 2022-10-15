@@ -1,4 +1,4 @@
-import { assertDefined } from '../../assert/assert';
+import { assertDefined } from '../../error/assert';
 import { codeToText, QError_setProperty } from '../../error/error';
 import type { StyleAppend } from '../../use/use-core';
 import { getDocument } from '../../util/dom';

@@ -1,5 +1,5 @@
-import type { QContext } from '../props/props';
-import type { ContainerState } from './container';
+import type { ContainerState } from '../container/container';
+import type { QContext } from '../state/context';
 import type { QwikElement } from './dom/virtual-element';
 
 /**

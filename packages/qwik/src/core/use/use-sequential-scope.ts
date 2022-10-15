@@ -1,5 +1,5 @@
-import { verifySerializable } from '../object/q-object';
-import { getContext } from '../props/props';
+import { verifySerializable } from '../state/common';
+import { getContext } from '../state/context';
 import { qDev } from '../util/qdev';
 import { RenderInvokeContext, useInvokeContext } from './use-core';
 

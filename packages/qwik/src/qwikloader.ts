@@ -1,4 +1,4 @@
-import type { QContext } from './core/props/props';
+import type { QContext } from './core/state/context';
 
 /**
  * Set up event listening for browser.

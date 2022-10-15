@@ -1,6 +1,6 @@
 import { ElementFixture, trigger } from '../../testing/element-fixture';
 import { expectDOM } from '../../testing/expect-dom.unit';
-import { inlinedQrl } from '../import/qrl';
+import { inlinedQrl } from '../qrl/qrl';
 import { useStylesQrl } from '../use/use-styles';
 import { PropsOf, component$ } from './component.public';
 import { suite } from 'uvu';
@@ -20,7 +20,7 @@ qComponent('should declare and render basic component', async () => {
            {
           }
         </style>
-        <!--qv q:key=sX: q:id=0-->
+        <!--qv q:key=sX:-->
         <span>Hello World</span>
         <!--/qv-->
       </host>`
@@ -34,11 +34,11 @@ qComponent('should render Counter and accept events', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX: q:id=0-->
+    <!--qv q:key=sX:-->
     <my-counter>
-      <button q:id="1" class="decrement" on:click="/runtimeQRL#_[0 1 2]">-</button>
+      <button class="decrement">-</button>
       <span>15</span>
-      <button q:id="2" class="increment" on:click="/runtimeQRL#_[0 1 2]">+</button>
+      <button class="increment">+</button>
     </my-counter>
     <!--/qv-->
   </host>`
@@ -48,20 +48,16 @@ qComponent('should render Counter and accept events', async () => {
     fixture.host,
     `
 <host q:version="dev" q:container="resumed" q:render="dom-dev">
-  <!--qv q:key=sX: q:id=0-->
+  <!--qv q:key=sX:-->
   <my-counter>
     <button
-      q:id="1"
       class="decrement"
-      on:click="/runtimeQRL#_[0 1 3]"
     >
       -
     </button>
     <span>10</span>
     <button
-      q:id="2"
       class="increment"
-      on:click="/runtimeQRL#_[0 1 3]"
     >
       +
     </button>
@@ -91,15 +87,15 @@ qComponent('should render a collection of todo items', async () => {
     host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX: q:id=0-->
+      <!--qv q:key=sX:-->
       <items>
-        <!--qv q:key=sX: q:id=1-->
+        <!--qv q:key=sX:-->
         <item-detail>
           <input type="checkbox" checked="" />
           <span>Task 1</span>
         </item-detail>
         <!--/qv-->
-        <!--qv q:key=sX: q:id=2-->
+        <!--qv q:key=sX:-->
         <item-detail>
           <input type="checkbox" />
           <span>Task 2</span>

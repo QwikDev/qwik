@@ -1,38 +1,14 @@
-import { resumeContainer } from '../object/store';
-import { QContainerAttr } from '../util/markers';
 import type { OnRenderFn } from '../component/component.public';
 import { destroyWatch, SubscriberEffect } from '../use/use-watch';
-import { pauseContainer } from '../object/store';
-import { qSerialize } from '../util/qdev';
-import type { QRLInternal } from '../import/qrl-class';
-import { directGetAttribute } from '../render/fast-calls';
-import { assertDefined, assertTrue } from '../assert/assert';
-import type { QRL } from '../import/qrl.public';
+import type { QRLInternal } from '../qrl/qrl-class';
+import type { QRL } from '../qrl/qrl.public';
 import type { StyleAppend } from '../use/use-core';
-import { getContainerState, SubscriptionManager } from '../render/container';
 import type { ProcessedJSXNode } from '../render/dom/render-dom';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
-import { fromCamelToKebabCase } from '../util/case';
-import type { Listener } from './props-on';
+import type { SubscriptionManager } from './common';
+import type { Listener } from './listeners';
 
 export const Q_CTX = '_qc_';
-
-export const resumeIfNeeded = (containerEl: Element): void => {
-  const isResumed = directGetAttribute(containerEl, QContainerAttr);
-  if (isResumed === 'paused') {
-    resumeContainer(containerEl);
-    if (qSerialize) {
-      appendQwikDevTools(containerEl);
-    }
-  }
-};
-
-export const appendQwikDevTools = (containerEl: Element) => {
-  (containerEl as any)['qwik'] = {
-    pause: () => pauseContainer(containerEl),
-    state: getContainerState(containerEl),
-  };
-};
 
 export interface QContextEvents {
   [eventName: string]: QRL | undefined;
@@ -103,35 +79,4 @@ export const cleanupContext = (elCtx: QContext, subsManager: SubscriptionManager
   elCtx.$dirty$ = false;
 
   (el as any)[Q_CTX] = undefined;
-};
-
-const PREFIXES = ['on', 'window:on', 'document:on'];
-const SCOPED = ['on', 'on-window', 'on-document'];
-
-export const normalizeOnProp = (prop: string) => {
-  let scope = 'on';
-  for (let i = 0; i < PREFIXES.length; i++) {
-    const prefix = PREFIXES[i];
-    if (prop.startsWith(prefix)) {
-      scope = SCOPED[i];
-      prop = prop.slice(prefix.length);
-      break;
-    }
-  }
-  if (prop.startsWith('-')) {
-    prop = fromCamelToKebabCase(prop.slice(1));
-  } else {
-    prop = prop.toLowerCase();
-  }
-  return scope + ':' + prop;
-};
-
-export const inflateQrl = (qrl: QRLInternal, elCtx: QContext) => {
-  assertDefined(qrl.$capture$, 'invoke: qrl capture must be defined inside useLexicalScope()', qrl);
-  return (qrl.$captureRef$ = qrl.$capture$.map((idx) => {
-    const int = parseInt(idx, 10);
-    const obj = elCtx.$refMap$[int];
-    assertTrue(elCtx.$refMap$.length > int, 'out of bounds inflate access', idx);
-    return obj;
-  }));
 };

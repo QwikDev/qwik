@@ -7,8 +7,8 @@
 //
 
 import { component$ } from './component/component.public';
-import { qrl } from './import/qrl';
-import { $, QRL } from './import/qrl.public';
+import { qrl } from './qrl/qrl';
+import { $, QRL } from './qrl/qrl.public';
 import { useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
@@ -467,7 +467,7 @@ function doExtraStuff() {
 })();
 
 // <docs anchor="qrl-capturing-rules">
-import { importedFn } from './import/example';
+
 import { createContext, useContext, useContextProvider } from './use/use-context';
 import { useRef } from './use/use-ref';
 import { Resource, useResource$ } from './use/use-resource';
@@ -480,9 +480,7 @@ function myCode() {
   function localFn() {}
   // Valid Examples
   $(greet); // greet is importable
-  $(importedFn); // importedFn is importable
   $(() => greet()); // greet is importable;
-  $(() => importedFn()); // importedFn is importable
   $(() => console.log(store)); // store is serializable.
 
   // Compile time errors

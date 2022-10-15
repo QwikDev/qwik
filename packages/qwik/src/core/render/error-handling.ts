@@ -1,5 +1,5 @@
 import { isServer } from '../platform/platform';
-import { getContext } from '../props/props';
+import { getContext } from '../state/context';
 import { createContext, resolveContext } from '../use/use-context';
 import { isVirtualElement } from '../util/element';
 import { qDev } from '../util/qdev';

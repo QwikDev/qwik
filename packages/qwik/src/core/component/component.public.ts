@@ -1,16 +1,16 @@
-import { $, PropFnInterface, QRL } from '../import/qrl.public';
+import { $, PropFnInterface, QRL } from '../qrl/qrl.public';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { OnRenderProp, QSlot } from '../util/markers';
 import type { ComponentBaseProps, JSXChildren } from '../render/jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
-import { SERIALIZABLE_STATE } from '../object/serializers';
+import { SERIALIZABLE_STATE } from '../container/serializers';
 import { qDev, qTest } from '../util/qdev';
 import { Virtual } from '../render/jsx/utils.public';
-import { assertQrl } from '../import/qrl-class';
+import { assertQrl } from '../qrl/qrl-class';
 import type { ValueOrPromise } from '../util/types';
 import { invoke, newInvokeContext } from '../use/use-core';
-import { verifySerializable } from '../object/q-object';
+import { verifySerializable } from '../state/common';
 
 /**
  * Infers `Props` from the component.

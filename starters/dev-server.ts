@@ -141,7 +141,7 @@ export {
         minify: false,
       },
       define: {
-        'globalThis.qSerialize': false,
+        'globalThis.qSerialize': true,
         'globalThis.qDev': !isProd,
       },
       plugins: [

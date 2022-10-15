@@ -1,13 +1,12 @@
-import { parseQRL } from '../import/qrl';
-import { assertQrl, isQrl, QRLInternal } from '../import/qrl-class';
-import { inflateQrl, normalizeOnProp, QContext } from './props';
-import { $ } from '../import/qrl.public';
-import { QScopedStyle } from '../util/markers';
-import { directGetAttribute } from '../render/fast-calls';
+import { inflateQrl, parseQRL } from '../qrl/qrl';
+import { assertQrl, isQrl, QRLInternal } from '../qrl/qrl-class';
+import { $ } from '../qrl/qrl.public';
 import { isArray } from '../util/types';
-import { assertTrue } from '../assert/assert';
+import { assertTrue } from '../error/assert';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { qRuntimeQrl, qSerialize } from '../util/qdev';
+import { fromCamelToKebabCase } from '../util/case';
+import type { QContext } from './context';
 
 const ON_PROP_REGEX = /^(on|window:|document:)/;
 
@@ -76,6 +75,27 @@ export const setEvent = (
   return prop;
 };
 
+const PREFIXES = ['on', 'window:on', 'document:on'];
+const SCOPED = ['on', 'on-window', 'on-document'];
+
+export const normalizeOnProp = (prop: string) => {
+  let scope = 'on';
+  for (let i = 0; i < PREFIXES.length; i++) {
+    const prefix = PREFIXES[i];
+    if (prop.startsWith(prefix)) {
+      scope = SCOPED[i];
+      prop = prop.slice(prefix.length);
+      break;
+    }
+  }
+  if (prop.startsWith('-')) {
+    prop = fromCamelToKebabCase(prop.slice(1));
+  } else {
+    prop = prop.toLowerCase();
+  }
+  return scope + ':' + prop;
+};
+
 const ensureQrl = (value: any, containerEl: Element | undefined) => {
   if (qSerialize && !qRuntimeQrl) {
     assertQrl(value);
@@ -108,12 +128,4 @@ export const getDomListeners = (elCtx: QContext, containerEl: Element): Listener
     }
   }
   return listeners;
-};
-
-export const getScopeIds = (el: Element): string[] => {
-  const scoped = directGetAttribute(el, QScopedStyle);
-  if (scoped) {
-    return scoped.split(' ');
-  }
-  return [];
 };

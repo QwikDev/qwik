@@ -1,5 +1,5 @@
-import { tryGetContext } from '../../props/props';
-import type { SubscriberSignal } from '../container';
+import type { SubscriberSignal } from '../../state/common';
+import { tryGetContext } from '../../state/context';
 import type { RenderStaticContext } from '../types';
 import { setProperty } from './operations';
 import { smartSetProperty, SVG_NS } from './visitor';

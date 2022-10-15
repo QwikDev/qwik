@@ -2,9 +2,8 @@ import { qError, QError_invalidJsxNodeType } from '../../error/error';
 import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
-import { QScopedStyle } from '../../util/markers';
 import { isNotNullable, isPromise, promiseAll, then } from '../../util/promises';
-import { qDev, qSerialize, seal } from '../../util/qdev';
+import { qDev, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../util/types';
 import { domToVnode, visitJsxNode } from './visitor';
 import { SkipRender, Virtual } from '../jsx/utils.public';
@@ -12,12 +11,11 @@ import { isJSXNode, SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
 import type { JSXNode } from '../jsx/types/jsx-node';
 import { executeComponent } from '../execute-component';
 import type { RenderContext } from '../types';
-import { serializeSStyle } from '../../component/qrl-styles';
-import type { QContext } from '../../props/props';
 import { QwikElement, VIRTUAL, VirtualElement } from './virtual-element';
 import { appendHeadStyle } from './operations';
-import { isSignal, Signal } from '../../object/q-object';
-import { assertTrue } from '../../assert/assert';
+import { isSignal, Signal } from '../../state/signal';
+import { assertTrue } from '../../error/assert';
+import type { QContext } from '../../state/context';
 
 export const renderComponent = (
   rCtx: RenderContext,
@@ -44,12 +42,6 @@ export const renderComponent = (
       if (elCtx.$appendStyles$) {
         for (const style of elCtx.$appendStyles$) {
           appendHeadStyle(staticCtx, style);
-        }
-      }
-      if (qSerialize && elCtx.$scopeIds$) {
-        const value = serializeSStyle(elCtx.$scopeIds$);
-        if (value) {
-          hostElement.setAttribute(QScopedStyle, value);
         }
       }
     }

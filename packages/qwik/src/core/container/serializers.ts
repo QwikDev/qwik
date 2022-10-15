@@ -1,8 +1,8 @@
 import { Component, componentQrl, isQwikComponent } from '../component/component.public';
-import { parseQRL, serializeQRL } from '../import/qrl';
-import { isQrl, QRLInternal } from '../import/qrl-class';
-import type { QRL } from '../import/qrl.public';
-import type { ContainerState, Subscriptions } from '../render/container';
+import { parseQRL, serializeQRL } from '../qrl/qrl';
+import { isQrl, QRLInternal } from '../qrl/qrl-class';
+import type { QRL } from '../qrl/qrl.public';
+import type { ContainerState, GetObject, MustGetObjID } from './container';
 import { isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
 import {
   isSubscriberDescriptor,
@@ -12,8 +12,11 @@ import {
   SubscriberEffect,
 } from '../use/use-watch';
 import { isDocument } from '../util/element';
-import { QObjectManagerSymbol, SignalImpl, SignalWrapper } from './q-object';
-import { Collector, collectSubscriptions, collectValue, GetObject, MustGetObjID } from './store';
+import { SignalImpl, SignalWrapper } from '../state/signal';
+import { Collector, collectSubscriptions, collectValue } from './pause';
+import type { Subscriptions } from '../state/common';
+import { getOrCreateProxy } from '../state/store';
+import { QObjectManagerSymbol } from '../state/constants';
 
 /**
  * 0, 8, 9, A, B, C, D
@@ -384,3 +387,16 @@ export const createParser = (
     },
   };
 };
+
+export const OBJECT_TRANSFORMS: Record<string, (obj: any, containerState: ContainerState) => any> =
+  {
+    '!': (obj: any, containerState: ContainerState) => {
+      return containerState.$proxyMap$.get(obj) ?? getOrCreateProxy(obj, containerState);
+    },
+    '~': (obj: any) => {
+      return Promise.resolve(obj);
+    },
+    _: (obj: any) => {
+      return Promise.reject(obj);
+    },
+  };

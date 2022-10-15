@@ -1,8 +1,7 @@
 import { ElementFixture, trigger } from '../../../testing/element-fixture';
 import { expectDOM } from '../../../testing/expect-dom.unit';
 import { component$ } from '../../component/component.public';
-import { inlinedQrl } from '../../import/qrl';
-import { pauseContainer } from '../../object/store';
+import { inlinedQrl } from '../../qrl/qrl';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
 import { useClientEffect$, useWatch$ } from '../../use/use-watch';
@@ -13,6 +12,7 @@ import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
 import { equal, match } from 'uvu/assert';
 import { suite } from 'uvu';
 import { useRef } from '../../use/use-ref';
+import { pauseContainer } from '../../container/pause';
 
 const renderSuite = suite('render');
 renderSuite('should render basic content', async () => {
@@ -65,17 +65,11 @@ renderSuite('should serialize events correctly', async () => {
     fixture,
     `
       <div
-        q:id="0"
-        on:mousedown="/runtimeQRL#_"
-        on:keyup="/runtimeQRL#_"
-        on:dblclick="/runtimeQRL#_"
-        on:-dbl-click="/runtimeQRL#_"
-        on:qvisible="/runtimeQRL#_"
-        on-document:load="/runtimeQRL#_"
-        on-document:thing="/runtimeQRL#_"
-        on-document:-thing="/runtimeQRL#_"
-        on-window:scroll="/runtimeQRL#_"
-        on-window:-scroll="/runtimeQRL#_"
+        on-document:load=""
+        on-document:thing=""
+        on-document:-thing=""
+        on-window:scroll=""
+        on-window:-scroll=""
     ></div>
     `
   );
@@ -104,7 +98,7 @@ renderSuite('should render into a document', async () => {
     fixture.document.documentElement,
     `
   <html q:version="dev" q:container="resumed" q:render="dom-dev">
-  <!--qv q:key=sX: q:id=0-->
+  <!--qv q:key=sX:-->
   <!--qv q:key q:sref=0 q:s-->
     <head q:head="">
       <title></title>
@@ -188,11 +182,11 @@ renderSuite('should render a component with scoped styles', async () => {
         color: red;
       }
     </style>
-    <!--qv q:key=sX: q:id=0 q:sstyle=⭐️ml52vk-0-->
+    <!--qv q:key=sX:-->
     <div class="⭐️ml52vk-0">
       <div class="⭐️ml52vk-0 stuff" aria-hidden="true">
         Hello
-        <button class="⭐️ml52vk-0" q:id="1" on:click="/runtimeQRL#_">
+        <button class="⭐️ml52vk-0">
           Toggle
         </button>
       </div>
@@ -211,11 +205,11 @@ renderSuite('should render a component with scoped styles', async () => {
         color: red;
       }
     </style>
-    <!--qv q:key=sX: q:id=0 q:sstyle=⭐️ml52vk-0-->
+    <!--qv q:key=sX:-->
     <div class="⭐️ml52vk-0">
       <div class="⭐️ml52vk-0">
         Hello
-        <button class="⭐️ml52vk-0" q:id="1" on:click="/runtimeQRL#_">
+        <button class="⭐️ml52vk-0">
           Toggle
         </button>
       </div>
@@ -254,10 +248,10 @@ renderSuite('should render a div then a component', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX: q:id=0-->
+      <!--qv q:key=sX:-->
       <div aria-hidden="false">
         <div class="normal">Normal div</div>
-        <button q:id="1" on:click="/runtimeQRL#_">toggle</button>
+        <button>toggle</button>
       </div>
       <!--/qv-->
     </host>`
@@ -267,12 +261,12 @@ renderSuite('should render a div then a component', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX: q:id=0-->
+      <!--qv q:key=sX:-->
       <div aria-hidden="true">
-        <!--qv q:key=sX: q:id=2-->
+        <!--qv q:key=sX:-->
         <div><div>this is ToggleChild</div></div>
         <!--/qv-->
-        <button q:id="1" on:click="/runtimeQRL#_">toggle</button>
+        <button>toggle</button>
       </div>
       <!--/qv-->
     </host>
@@ -288,10 +282,10 @@ renderSuite('should process clicks', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX: q:id=0-->
-      <button q:id="1" class="decrement" on:click="/runtimeQRL#_[0 1]">-</button>
+      <!--qv q:key=sX:-->
+      <button class="decrement">-</button>
       <span>0</span>
-      <button q:id="2" class="increment" on:click="/runtimeQRL#_[0 1]">+</button>
+      <button class="increment">+</button>
       <!--/qv-->
     </host>`
   );
@@ -300,10 +294,10 @@ renderSuite('should process clicks', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX: q:id=0-->
-      <button q:id="1" class="decrement" on:click="/runtimeQRL#_[0 2]">-</button>
+      <!--qv q:key=sX:-->
+      <button class="decrement">-</button>
       <span>5</span>
-      <button q:id="2" class="increment" on:click="/runtimeQRL#_[0 2]">+</button>
+      <button class="increment">+</button>
       <!--/qv-->
     </host>`
   );
@@ -365,13 +359,9 @@ renderSuite('should render host events on the first element', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX: q:id=0-->
+    <!--qv q:key=sX:-->
     hello
-    <div
-      q:id="1"
-      on:qvisible="/runtimeQRL#_[0]"
-      on:click="/runtimeQRL#_"
-    >
+    <div>
       thing
     </div>
     stuff
@@ -423,7 +413,7 @@ renderSuite('should project multiple slot with same name', async () => {
     fixture.host,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX: q:id=0-->
+      <!--qv q:key=sX:-->
       <section>
         <!--qv q:key q:sref=0 q:s-->
         <!--/qv-->
@@ -504,13 +494,13 @@ renderSuite('should render a component with hooks', async () => {
   await expectRendered(
     fixture,
     `
-    <div q:id="1" on:qvisible="/runtimeQRL#_[0]">
-      <div q:id="2" id="effect">true</div>
-      <div q:id="3" id="effect-destroy"></div>
+    <div>
+      <div id="effect">true</div>
+      <div id="effect-destroy"></div>
       <div id="watch">true</div>
-      <div q:id="4" id="watch-destroy"></div>
+      <div id="watch-destroy"></div>
       <div id="server-mount">false</div>
-      <div q:id="5" id="cleanup"></div>
+      <div id="cleanup"></div>
       <div id="reference">true</div>
     </div>`
   );
@@ -520,12 +510,12 @@ renderSuite('should render a component with hooks', async () => {
     fixture,
     `
     <div q:id="1" on:qvisible="/runtimeQRL#_[0]">
-      <div q:id="2" id="effect">true</div>
-      <div q:id="3" id="effect-destroy">true</div>
+      <div id="effect" q:id="2">true</div>
+      <div id="effect-destroy" q:id="3">true</div>
       <div id="watch">true</div>
-      <div q:id="4" id="watch-destroy">true</div>
+      <div id="watch-destroy" q:id="4">true</div>
       <div id="server-mount">false</div>
-      <div q:id="5" id="cleanup">true</div>
+      <div id="cleanup" q:id="5">true</div>
       <div id="reference">true</div>
     </div>`
   );
@@ -605,8 +595,8 @@ renderSuite('should re-render classes correctly', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX: q:id=0-->
-    <button q:id="1" class="increment" on:click="/runtimeQRL#_[0 1]">+</button>
+    <!--qv q:key=sX:-->
+    <button class="increment">+</button>
     <div class="stuff m-0 p-2">Div 1</div>
     <div class="stuff m-0 p-2 active container">Div 2</div>
     <!--/qv-->
@@ -619,8 +609,8 @@ renderSuite('should re-render classes correctly', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX: q:id=0-->
-    <button q:id="1" class="increment" on:click="/runtimeQRL#_[0 2]">+</button>
+    <!--qv q:key=sX:-->
+    <button class="increment">+</button>
     <div class="other">Div 1</div>
     <div class="stuff m-0 p-2 active container almost-null">Div 2</div>
     <!--/qv-->

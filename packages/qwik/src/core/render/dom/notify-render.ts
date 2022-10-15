@@ -1,6 +1,5 @@
-import { assertDefined, assertTrue } from '../../assert/assert';
+import { assertDefined, assertTrue } from '../../error/assert';
 import { executeContextWithSlots, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
-import { getContext, resumeIfNeeded } from '../../props/props';
 import { getDocument } from '../../util/dom';
 import { logError, logWarn } from '../../util/log';
 import { getWrappingContainer } from '../../use/use-core';
@@ -17,7 +16,7 @@ import type { ValueOrPromise } from '../../util/types';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { renderComponent } from './render-dom';
 import type { RenderStaticContext } from '../types';
-import { ContainerState, getContainerState, SubscriberSignal, Subscriptions } from '../container';
+import { ContainerState, getContainerState } from '../../container/container';
 import { createRenderContext } from '../execute-component';
 import { getRootNode, QwikElement } from './virtual-element';
 import { printRenderStats } from './operations';
@@ -25,6 +24,9 @@ import { executeSignalOperation } from './signals';
 import { getPlatform, isServer } from '../../platform/platform';
 import { qDev } from '../../util/qdev';
 import { isQwikElement } from '../../util/element';
+import type { SubscriberSignal, Subscriptions } from '../../state/common';
+import { resumeIfNeeded } from '../../container/resume';
+import { getContext } from '../../state/context';
 
 export const notifyChange = (subAction: Subscriptions, containerState: ContainerState) => {
   if (subAction[0] === 0) {

@@ -1,9 +1,6 @@
-import { assertDefined, assertEqual, assertTrue } from '../assert/assert';
-import { getContext, QContext, tryGetContext } from '../props/props';
+import { assertDefined, assertEqual, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
 import {
-  assertElement,
-  assertQwikElement,
   isComment,
   isDocument,
   isElement,
@@ -12,62 +9,51 @@ import {
   isText,
   isVirtualElement,
 } from '../util/element';
-import { logDebug, logWarn } from '../util/log';
-import {
-  ELEMENT_ID,
-  ELEMENT_ID_PREFIX,
-  QContainerAttr,
-  QScopedStyle,
-  QStyle,
-} from '../util/markers';
+import { logWarn } from '../util/log';
+import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QScopedStyle } from '../util/markers';
 import { qDev } from '../util/qdev';
-import {
-  createProxy,
-  fastShouldSerialize,
-  getOrCreateProxy,
-  getProxyFlags,
-  getProxyManager,
-  getProxyTarget,
-  isConnected,
-  QObjectFlagsSymbol,
-  SignalImpl,
-} from './q-object';
+
 import { destroyWatch, WatchFlagsIsDirty } from '../use/use-watch';
-import type { QRL } from '../import/qrl.public';
-import { emitEvent } from '../util/event';
 import {
   qError,
   QError_containerAlreadyPaused,
   QError_missingObjectId,
   QError_verifySerializable,
 } from '../error/error';
-import { isArray, isObject, isSerializableObject, isString } from '../util/types';
+import { isArray, isObject, isSerializableObject } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
-import { collectDeps, createParser, Parser, serializeValue, UNDEFINED_PREFIX } from './serializers';
+import { collectDeps, serializeValue, UNDEFINED_PREFIX } from './serializers';
 import {
   ContainerState,
+  FILTER_REJECT,
+  FILTER_SKIP,
   getContainerState,
+  GetObjID,
+  intToStr,
+  SHOW_COMMENT,
+  SHOW_ELEMENT,
+  SnapshotListener,
+  SnapshotMeta,
+  SnapshotMetaValue,
+  SnapshotResult,
+} from './container';
+import { processVirtualNodes, QwikElement, VirtualElement } from '../render/dom/virtual-element';
+import { groupListeners } from '../state/listeners';
+import { serializeSStyle } from '../style/qrl-styles';
+import { serializeQRLs } from '../qrl/qrl';
+import {
+  fastShouldSerialize,
+  getProxyFlags,
+  getProxyManager,
+  getProxyTarget,
+  isConnected,
   LocalSubscriptionManager,
-  parseSubscription,
   serializeSubscription,
   Subscriptions,
-} from '../render/container';
-import { getQId } from '../render/execute-component';
-import {
-  findClose,
-  processVirtualNodes,
-  QwikElement,
-  VirtualElement,
-  VirtualElementImpl,
-} from '../render/dom/virtual-element';
-import { getDomListeners } from '../props/props-on';
-import { fromKebabToCamelCase } from '../util/case';
-import { domToVnode } from '../render/dom/visitor';
-
-export type GetObject = (id: string) => any;
-export type GetObjID = (obj: any) => string | null;
-export type MustGetObjID = (obj: any) => string;
+} from '../state/common';
+import { QContext, tryGetContext } from '../state/context';
+import { SignalImpl } from '../state/signal';
 
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -75,7 +61,6 @@ export type MustGetObjID = (obj: any) => string;
 /**
  * Serialize the current state of the application into DOM
  *
- * @alpha
  */
 // </docs>
 export const pauseContainer = async (
@@ -90,202 +75,57 @@ export const pauseContainer = async (
   }
   const parentJSON =
     defaultParentJSON ?? (containerEl === doc.documentElement ? doc.body : containerEl);
-  const data = await pauseFromContainer(containerEl);
-  const script = doc.createElement('script');
-  directSetAttribute(script, 'type', 'qwik/json');
-  script.textContent = escapeText(JSON.stringify(data.state, undefined, qDev ? '  ' : undefined));
-  parentJSON.appendChild(script);
+
+  const containerState = getContainerState(containerEl);
+  const contexts = getNodesInScope(containerEl, hasContext);
+
+  // Set container to paused
   directSetAttribute(containerEl, QContainerAttr, 'paused');
+
+  // Update elements with context
+  for (const elCtx of contexts) {
+    const elm = elCtx.$element$;
+    const listeners = elCtx.li;
+    if (elCtx.$scopeIds$) {
+      const value = serializeSStyle(elCtx.$scopeIds$);
+      if (value) {
+        elm.setAttribute(QScopedStyle, value);
+      }
+    }
+    if (elCtx.$id$) {
+      elm.setAttribute(ELEMENT_ID, elCtx.$id$);
+    }
+    if (isElement(elm) && listeners.length > 0) {
+      const groups = groupListeners(listeners);
+      for (const listener of groups) {
+        elm.setAttribute(listener[0], serializeQRLs(listener[1], elCtx));
+      }
+    }
+  }
+
+  // Serialize data
+  const data = await _pauseFromContexts(contexts, containerState, (el) => {
+    if (isNode(el) && isText(el)) {
+      return getTextID(el, containerState);
+    }
+    return null;
+  });
+
+  // Emit Qwik JSON
+  const qwikJson = doc.createElement('script');
+  directSetAttribute(qwikJson, 'type', 'qwik/json');
+  qwikJson.textContent = escapeText(JSON.stringify(data.state, undefined, qDev ? '  ' : undefined));
+  parentJSON.appendChild(qwikJson);
+
+  // Emit event registration
+  const extraListeners = Array.from(containerState.$events$, (s) => JSON.stringify(s));
+  const eventsScript = doc.createElement('script');
+  eventsScript.textContent = `window.qwikevents||=[];window.qwikevents.push(${extraListeners.join(
+    ', '
+  )})`;
+  parentJSON.appendChild(eventsScript);
+
   return data;
-};
-
-export const moveStyles = (containerEl: Element, containerState: ContainerState) => {
-  const head = containerEl.ownerDocument.head;
-  containerEl.querySelectorAll('style[q\\:style]').forEach((el) => {
-    containerState.$styleIds$.add(directGetAttribute(el, QStyle)!);
-    head.appendChild(el);
-  });
-};
-
-export const resumeContainer = (containerEl: Element) => {
-  if (!isContainer(containerEl)) {
-    logWarn('Skipping hydration because parent element is not q:container');
-    return;
-  }
-  let maxId = 0;
-
-  const doc = getDocument(containerEl);
-  const isDocElement = containerEl === doc.documentElement;
-  const parentJSON = isDocElement ? doc.body : containerEl;
-  const script = getQwikJSON(parentJSON);
-  if (!script) {
-    logWarn('Skipping hydration qwik/json metadata was not found.');
-    return;
-  }
-  script.remove();
-
-  const containerState = getContainerState(containerEl);
-  moveStyles(containerEl, containerState);
-  const meta = JSON.parse(unescapeText(script.textContent || '{}')) as SnapshotState;
-
-  // Collect all elements
-  const elements = new Map<string, QwikElement | Node>();
-
-  const getObject: GetObject = (id) => {
-    return getObjectImpl(id, elements, meta.objs, containerState);
-  };
-
-  const elementWalker = doc.createTreeWalker(containerEl, SHOW_COMMENT | SHOW_ELEMENT, {
-    acceptNode(node: Element | Comment) {
-      if (isComment(node)) {
-        const data = node.data;
-        if (data.startsWith('qv ')) {
-          const close = findClose(node);
-          const virtual = new VirtualElementImpl(node, close);
-          const id = directGetAttribute(virtual, ELEMENT_ID);
-          if (id) {
-            const elCtx = getContext(virtual);
-            elCtx.$id$ = id;
-            elements.set(ELEMENT_ID_PREFIX + id, virtual);
-            maxId = Math.max(maxId, strToInt(id));
-          }
-        } else if (data.startsWith('t=')) {
-          const id = data.slice(2);
-          elements.set(ELEMENT_ID_PREFIX + data.slice(2), getTextNode(node));
-          maxId = Math.max(maxId, strToInt(id));
-        }
-        return FILTER_SKIP;
-      }
-      if (isContainer(node)) {
-        return FILTER_REJECT;
-      }
-      return node.hasAttribute(ELEMENT_ID) ? FILTER_ACCEPT : FILTER_SKIP;
-    },
-  });
-
-  let el: Node | null = null;
-  while ((el = elementWalker.nextNode())) {
-    assertElement(el);
-    const id = directGetAttribute(el, ELEMENT_ID);
-    assertDefined(id, `resume: element missed q:id`, el);
-    const elCtx = getContext(el);
-    elCtx.$id$ = id;
-    elCtx.$vdom$ = domToVnode(el);
-    elements.set(ELEMENT_ID_PREFIX + id, el);
-    maxId = Math.max(maxId, strToInt(id));
-  }
-
-  containerState.$elementIndex$ = ++maxId;
-
-  const parser = createParser(getObject, containerState, doc);
-
-  // Revive proxies with subscriptions into the proxymap
-  reviveValues(meta.objs, parser);
-  reviveSubscriptions(meta.objs, meta.subs, getObject, containerState, parser);
-
-  // Rebuild target objects
-  for (const obj of meta.objs) {
-    reviveNestedObjects(obj, getObject, parser);
-  }
-
-  for (const elementID of Object.keys(meta.ctx)) {
-    assertTrue(elementID.startsWith('#'), 'elementId must start with #');
-    const ctxMeta = meta.ctx[elementID];
-    const el = elements.get(elementID);
-    assertDefined(el, `resume: cant find dom node for id`, elementID);
-    assertQwikElement(el);
-    const elCtx = getContext(el);
-    const refMap = ctxMeta.r;
-    const seq = ctxMeta.s;
-    const host = ctxMeta.h;
-    const contexts = ctxMeta.c;
-    const watches = ctxMeta.w;
-
-    if (refMap) {
-      assertTrue(isElement(el), 'el must be an actual DOM element');
-      elCtx.$refMap$ = refMap.split(' ').map(getObject);
-      elCtx.li = getDomListeners(elCtx, containerEl);
-    }
-    if (seq) {
-      elCtx.$seq$ = seq.split(' ').map(getObject);
-    }
-    if (watches) {
-      elCtx.$watches$ = watches.split(' ').map(getObject);
-    }
-    if (contexts) {
-      elCtx.$contexts$ = new Map();
-      for (const part of contexts.split(' ')) {
-        const [key, value] = part.split('=');
-        elCtx.$contexts$.set(key, getObject(value));
-      }
-    }
-
-    // Restore sequence scoping
-    if (host) {
-      const [props, renderQrl] = host.split(' ');
-      const styleIds = el.getAttribute(QScopedStyle);
-      assertDefined(props, `resume: props missing in host metadata`, host);
-      assertDefined(renderQrl, `resume: renderQRL missing in host metadata`, host);
-      elCtx.$scopeIds$ = styleIds ? styleIds.split(' ') : null;
-      elCtx.$mounted$ = true;
-      elCtx.$props$ = getObject(props);
-      elCtx.$componentQrl$ = getObject(renderQrl);
-    }
-  }
-
-  directSetAttribute(containerEl, QContainerAttr, 'resumed');
-  logDebug('Container resumed');
-  emitEvent(containerEl, 'qresume', undefined, true);
-};
-
-/**
- * @alpha
- */
-export interface SnapshotMetaValue {
-  r?: string; // q:obj
-  w?: string; // q:watches
-  s?: string; // q:seq
-  h?: string; // q:host
-  c?: string; // q:context
-}
-
-/**
- * @alpha
- */
-export type SnapshotMeta = Record<string, SnapshotMetaValue>;
-
-/**
- * @alpha
- */
-export interface SnapshotState {
-  ctx: SnapshotMeta;
-  objs: any[];
-  subs: any[];
-}
-
-/**
- * @alpha
- */
-export interface SnapshotListener {
-  key: string;
-  qrl: QRL<any>;
-  el: Element;
-}
-
-/**
- * @alpha
- */
-export interface SnapshotResult {
-  state: SnapshotState;
-  listeners: SnapshotListener[];
-  objs: any[];
-  mode: 'render' | 'listeners' | 'static';
-}
-
-export const pauseFromContainer = async (containerEl: Element): Promise<SnapshotResult> => {
-  const containerState = getContainerState(containerEl);
-  const contexts = getNodesInScope(containerEl, hasQId).map(tryGetContext) as QContext[];
-  return _pauseFromContexts(contexts, containerState);
 };
 
 /**
@@ -293,7 +133,8 @@ export const pauseFromContainer = async (containerEl: Element): Promise<Snapshot
  */
 export const _pauseFromContexts = async (
   allContexts: QContext[],
-  containerState: ContainerState
+  containerState: ContainerState,
+  fallbackGetObjId?: GetObjID
 ): Promise<SnapshotResult> => {
   const collector = createCollector(containerState);
   const listeners: SnapshotListener[] = [];
@@ -384,7 +225,7 @@ export const _pauseFromContexts = async (
   }
 
   // Convert objSet to array
-  const elementToIndex = new Map<QwikElement, string | null>();
+  const elementToIndex = new Map<Node | QwikElement, string | null>();
   const objs = Array.from(collector.$objSet$.keys());
   const objToId = new Map<any, string>();
 
@@ -430,6 +271,9 @@ export const _pauseFromContexts = async (
     const id = objToId.get(obj);
     if (id) {
       return id + suffix;
+    }
+    if (fallbackGetObjId) {
+      return fallbackGetObjId(obj);
     }
     return null;
   };
@@ -631,156 +475,40 @@ export const _pauseFromContexts = async (
   };
 };
 
-export const getManager = (obj: any, containerState: ContainerState) => {
-  if (!isObject(obj)) {
-    return undefined;
-  }
-  if (obj instanceof SignalImpl) {
-    return getProxyManager(obj);
-  }
-  const proxy = containerState.$proxyMap$.get(obj);
-  if (proxy) {
-    return getProxyManager(proxy);
-  }
-  return undefined;
-};
-
-export const getQwikJSON = (parentElm: Element): HTMLScriptElement | undefined => {
-  let child = parentElm.lastElementChild;
-  while (child) {
-    if (child.tagName === 'SCRIPT' && directGetAttribute(child, 'type') === 'qwik/json') {
-      return child as HTMLScriptElement;
-    }
-    child = child.previousElementSibling;
-  }
-  return undefined;
-};
-
-const SHOW_ELEMENT = 1;
-const SHOW_COMMENT = 128;
-const FILTER_ACCEPT = 1;
-const FILTER_REJECT = 2;
-const FILTER_SKIP = 3;
-
-export const getNodesInScope = (parent: Element, predicate: (el: Node) => boolean) => {
-  const nodes: Element[] = [];
-  if (predicate(parent)) {
-    nodes.push(parent);
+export const getNodesInScope = <T>(
+  parent: Element,
+  predicate: (el: Node) => T | undefined
+): T[] => {
+  const results: T[] = [];
+  const v = predicate(parent);
+  if (v !== undefined) {
+    results.push(v);
   }
   const walker = parent.ownerDocument.createTreeWalker(parent, SHOW_ELEMENT | SHOW_COMMENT, {
     acceptNode(node) {
       if (isContainer(node)) {
         return FILTER_REJECT;
       }
-      return predicate(node) ? FILTER_ACCEPT : FILTER_SKIP;
+      const v = predicate(node);
+      if (v !== undefined) {
+        results.push(v);
+      }
+      return FILTER_SKIP;
     },
   });
-  const pars: QwikElement[] = [];
-  let currentNode: Node | null = null;
-  while ((currentNode = walker.nextNode())) {
-    pars.push(processVirtualNodes(currentNode) as Element);
-  }
-  return pars;
+  while (walker.nextNode());
+
+  return results;
 };
 
-const reviveValues = (objs: any[], parser: Parser) => {
-  for (let i = 0; i < objs.length; i++) {
-    const value = objs[i];
-    if (isString(value)) {
-      objs[i] = value === UNDEFINED_PREFIX ? undefined : parser.prepare(value);
-    }
-  }
-};
-
-const reviveSubscriptions = (
-  objs: any[],
-  objsSubs: any[],
-  getObject: GetObject,
-  containerState: ContainerState,
-  parser: Parser
-) => {
-  for (let i = 0; i < objsSubs.length; i++) {
-    const value = objs[i];
-    const subs = objsSubs[i] as string[];
-    if (subs) {
-      const converted: Subscriptions[] = [];
-      let flag = 0;
-      for (const sub of subs) {
-        if (sub.startsWith('_')) {
-          flag = parseInt(sub.slice(1), 10);
-        } else {
-          converted.push(parseSubscription(sub, getObject));
-        }
-      }
-      if (flag > 0) {
-        value[QObjectFlagsSymbol] = flag;
-      }
-      if (!parser.subs(value, converted)) {
-        createProxy(value, containerState, converted);
-      }
-    }
-  }
-};
-
-const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => {
-  if (parser.fill(obj)) {
-    return;
-  }
-
-  if (obj && typeof obj == 'object') {
-    if (isArray(obj)) {
-      for (let i = 0; i < obj.length; i++) {
-        obj[i] = getObject(obj[i]);
-      }
-    } else if (isSerializableObject(obj)) {
-      for (const key of Object.keys(obj)) {
-        obj[key] = getObject(obj[key]);
-      }
-    }
-  }
-};
-
-const OBJECT_TRANSFORMS: Record<string, (obj: any, containerState: ContainerState) => any> = {
-  '!': (obj: any, containerState: ContainerState) => {
-    return containerState.$proxyMap$.get(obj) ?? getOrCreateProxy(obj, containerState);
-  },
-  '~': (obj: any) => {
-    return Promise.resolve(obj);
-  },
-  _: (obj: any) => {
-    return Promise.reject(obj);
-  },
-};
-
-const getObjectImpl = (
-  id: string,
-  elements: Map<string, QwikElement | Node>,
-  objs: any[],
-  containerState: ContainerState
-) => {
-  assertTrue(
-    typeof id === 'string' && id.length > 0,
-    'resume: id must be an non-empty string, got:',
-    id
-  );
-
-  if (id.startsWith(ELEMENT_ID_PREFIX)) {
-    assertTrue(elements.has(id), `missing element for id:`, id);
-    return elements.get(id);
-  }
-  const index = strToInt(id);
-  assertTrue(objs.length > index, 'resume: index is out of bounds', id);
-  let obj = objs[index];
-  for (let i = id.length - 1; i >= 0; i--) {
-    const code = id[i];
-    const transform = OBJECT_TRANSFORMS[code];
-    if (!transform) {
-      break;
-    }
-    obj = transform(obj, containerState);
-  }
-  return obj;
-};
+export interface Collector {
+  $seen$: Set<any>;
+  $objSet$: Set<any>;
+  $noSerialize$: any[];
+  $elements$: VirtualElement[];
+  $containerState$: ContainerState;
+  $promises$: Promise<any>[];
+}
 
 const collectProps = (elCtx: QContext, collector: Collector) => {
   const parentCtx = elCtx.$parent$;
@@ -792,15 +520,6 @@ const collectProps = (elCtx: QContext, collector: Collector) => {
     }
   }
 };
-
-export interface Collector {
-  $seen$: Set<any>;
-  $objSet$: Set<any>;
-  $noSerialize$: any[];
-  $elements$: VirtualElement[];
-  $containerState$: ContainerState;
-  $promises$: Promise<any>[];
-}
 
 const createCollector = (containerState: ContainerState): Collector => {
   return {
@@ -857,10 +576,6 @@ export const collectElementData = (elCtx: QContext, collector: Collector) => {
 
 export const escapeText = (str: string) => {
   return str.replace(/<(\/?script)/g, '\\x3C$1');
-};
-
-export const unescapeText = (str: string) => {
-  return str.replace(/\\x3C(\/?script)/g, '<$1');
 };
 
 export const collectSubscriptions = (manager: LocalSubscriptionManager, collector: Collector) => {
@@ -984,38 +699,52 @@ export const isContainer = (el: Node) => {
   return isElement(el) && el.hasAttribute(QContainerAttr);
 };
 
-const hasQId = (el: Node) => {
+const hasContext = (el: Node) => {
   const node = processVirtualNodes(el);
   if (isQwikElement(node)) {
-    return node.hasAttribute(ELEMENT_ID);
+    const ctx = tryGetContext(node);
+    if (ctx && ctx.$id$) {
+      return ctx;
+    }
   }
-  return false;
+  return undefined;
 };
 
-export const intToStr = (nu: number) => {
-  return nu.toString(36);
-};
-
-export const strToInt = (nu: string) => {
-  return parseInt(nu, 36);
-};
-
-export const getEventName = (attribute: string) => {
-  const colonPos = attribute.indexOf(':');
-  if (attribute) {
-    return fromKebabToCamelCase(attribute.slice(colonPos + 1));
-  } else {
-    return attribute;
+const getManager = (obj: any, containerState: ContainerState) => {
+  if (!isObject(obj)) {
+    return undefined;
   }
+  if (obj instanceof SignalImpl) {
+    return getProxyManager(obj);
+  }
+  const proxy = containerState.$proxyMap$.get(obj);
+  if (proxy) {
+    return getProxyManager(proxy);
+  }
+  return undefined;
 };
 
-const getTextNode = (mark: Comment) => {
-  const nextNode = mark.nextSibling!;
-  if (isText(nextNode)) {
-    return nextNode;
-  } else {
-    const textNode = mark.ownerDocument.createTextNode('');
-    mark.parentElement!.insertBefore(textNode, mark);
-    return textNode;
+const getQId = (el: QwikElement): string | null => {
+  const ctx = tryGetContext(el);
+  if (ctx) {
+    return ctx.$id$;
   }
+  return null;
+};
+
+const getTextID = (node: Text, containerState: ContainerState) => {
+  const prev = node.previousSibling;
+  if (prev && isComment(prev)) {
+    if (prev.data.startsWith('t=')) {
+      return ELEMENT_ID_PREFIX + prev.data.slice(2);
+    }
+  }
+  const doc = node.ownerDocument;
+  const id = intToStr(containerState.$elementIndex$++);
+  const open = doc.createComment(`t=${id}`);
+  const close = doc.createComment('');
+  const parent = node.parentElement!;
+  parent.insertBefore(open, node);
+  parent.insertBefore(close, node.nextSibling);
+  return ELEMENT_ID_PREFIX + id;
 };

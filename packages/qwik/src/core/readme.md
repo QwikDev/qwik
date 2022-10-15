@@ -432,9 +432,3 @@ Use `useContext()` to retrieve the value of context in a component. To retrieve 
 <docs code="./examples.tsx#context"/>
 @param context - The context to retrieve a value from.
 @public
-
-# `pauseContainer`
-
-Serialize the current state of the application into DOM
-
-@alpha

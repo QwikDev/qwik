@@ -1,4 +1,4 @@
-import { $, QRL } from '../import/qrl.public';
+import { $, QRL } from '../qrl/qrl.public';
 
 // <docs markdown="../readme.md#implicit$FirstArg">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

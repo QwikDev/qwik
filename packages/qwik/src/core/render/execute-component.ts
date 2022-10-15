@@ -1,20 +1,18 @@
-import { assertDefined } from '../assert/assert';
-import { ELEMENT_ID, QSlot, RenderEvent } from '../util/markers';
+import { assertDefined } from '../error/assert';
+import { RenderEvent } from '../util/markers';
 import { safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { isArray, isObject, isString, ValueOrPromise } from '../util/types';
-import { QContext, tryGetContext } from '../props/props';
 import type { JSXNode } from './jsx/types/jsx-node';
 import type { RenderContext } from './types';
-import type { ContainerState } from './container';
+import { ContainerState, intToStr } from '../container/container';
 import { fromCamelToKebabCase } from '../util/case';
 import { qError, QError_stringifyClassOrStyle } from '../error/error';
-import { intToStr } from '../object/store';
-import type { QwikElement } from './dom/virtual-element';
-import { qSerialize, seal } from '../util/qdev';
+import { seal } from '../util/qdev';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { SkipRender } from './jsx/utils.public';
 import { handleError } from './error-handling';
+import type { QContext } from '../state/context';
 
 export interface ExecuteComponentOutput {
   node: JSXNode | null;
@@ -167,24 +165,11 @@ export const getNextIndex = (ctx: RenderContext) => {
   return intToStr(ctx.$static$.$containerState$.$elementIndex$++);
 };
 
-export const getQId = (el: QwikElement): string | null => {
-  const ctx = tryGetContext(el);
-  if (ctx) {
-    return ctx.$id$;
-  }
-  return null;
-};
-
 export const setQId = (rCtx: RenderContext, elCtx: QContext) => {
   const id = getNextIndex(rCtx);
   elCtx.$id$ = id;
-  if (qSerialize) {
-    elCtx.$element$.setAttribute(ELEMENT_ID, id);
-  }
 };
 
 export const hasStyle = (containerState: ContainerState, styleId: string) => {
   return containerState.$styleIds$.has(styleId);
 };
-
-export const SKIPS_PROPS = [QSlot, 'children'];

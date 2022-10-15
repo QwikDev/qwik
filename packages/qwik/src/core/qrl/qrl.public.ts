@@ -1,4 +1,4 @@
-import { qRuntimeQrl, qSerialize } from '../util/qdev';
+import { qRuntimeQrl } from '../util/qdev';
 import { createQRL } from './qrl-class';
 
 // <docs markdown="../readme.md#QRL">
@@ -244,7 +244,7 @@ export type PropFunction<T extends Function> = T extends (...args: infer ARGS) =
  */
 // </docs>
 export const $ = <T>(expression: T): QRL<T> => {
-  if (qSerialize && !qRuntimeQrl) {
+  if (!qRuntimeQrl) {
     throw new Error(
       'Optimizer should replace all usages of $() with some special syntax. If you need to create a QRL manually, use inlinedQrl() instead.'
     );

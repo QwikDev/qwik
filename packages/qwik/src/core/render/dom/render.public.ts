@@ -6,15 +6,15 @@ import { getDocument } from '../../util/dom';
 import { qDev } from '../../util/qdev';
 import { version } from '../../version';
 import { QContainerAttr } from '../../util/markers';
-import { appendQwikDevTools } from '../../props/props';
 import { qError, QError_cannotRenderOverExistingContainer } from '../../error/error';
 import { directSetAttribute } from '../fast-calls';
 import { processData, wrapJSX } from './render-dom';
-import { ContainerState, getContainerState } from '../container';
+import { ContainerState, getContainerState } from '../../container/container';
 import { postRendering } from './notify-render';
 import { createRenderContext } from '../execute-component';
 import { executeDOMRender, printRenderStats } from './operations';
 import { logError } from '../../util/log';
+import { appendQwikDevTools } from '../../container/resume';
 
 /**
  * @alpha

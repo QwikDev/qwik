@@ -7,7 +7,7 @@ export function generateSsgModule(opts: {
 
   o.push(`import { generate } from '@builder.io/qwik-city/static';`);
   o.push(`import render from "${opts.renderModulePath}";`);
-  o.push(`import { qwikCityPlan } from "${opts.qwikCityPlanModulePath}";`);
+  o.push(`import qwikCityPlan from "${opts.qwikCityPlanModulePath}";`);
   o.push(``);
   o.push(`generate({`);
   o.push(`  render,`);

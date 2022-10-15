@@ -25,7 +25,7 @@ export function cloudflarePages(opts: CloudflarePagesAdaptorOptions = {}): Plugi
 
     const ssgModuleOutput = generateSsgModule({
       renderModulePath: `./entry.ssr.js`,
-      qwikCityPlanModulePath: `./entry.cloudflare-pages.js`,
+      qwikCityPlanModulePath: `./@qwik-city-plan.js`,
       outDir: clientOutDir,
     });
 

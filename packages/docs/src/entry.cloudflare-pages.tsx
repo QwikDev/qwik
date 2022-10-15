@@ -5,4 +5,3 @@ import render from './entry.ssr';
 const onRequest = createQwikCity({ render, qwikCityPlan });
 
 export { onRequest };
-export { qwikCityPlan };

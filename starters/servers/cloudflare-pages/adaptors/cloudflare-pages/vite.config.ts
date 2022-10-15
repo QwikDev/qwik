@@ -1,8 +1,8 @@
 import { cloudflarePages } from '@builder.io/qwik-city/adaptors/cloudflare-pages/vite';
-import { extendConfig } from '@builder.io/qwik-city/vite';
+import { serverConfig } from '@builder.io/qwik-city/vite';
 import baseConfig from '../../vite.config';
 
-export default extendConfig(baseConfig, () => {
+export default serverConfig(baseConfig, () => {
   return {
     ssr: {
       target: 'webworker',
@@ -15,10 +15,6 @@ export default extendConfig(baseConfig, () => {
       },
       outDir: 'server',
     },
-    plugins: [
-      cloudflarePages({
-        staticOptimizations: true,
-      }),
-    ],
+    plugins: [cloudflarePages()],
   };
 });

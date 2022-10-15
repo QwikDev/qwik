@@ -5,10 +5,8 @@
 ```ts
 
 import { CompileOptions } from '@mdx-js/mdx/lib/compile';
+import { ConfigEnv } from 'vite';
 import { UserConfigExport } from 'vite';
-
-// @alpha (undocumented)
-export function extendConfig(baseConfigExport: UserConfigExport, configExport: UserConfigExport): Promise<Record<string, any>>;
 
 // @alpha (undocumented)
 export type MdxOptions = CompileOptions;
@@ -33,6 +31,9 @@ export interface QwikCityVitePluginOptions extends PluginOptions {
     // (undocumented)
     mdx?: MdxOptions;
 }
+
+// @alpha (undocumented)
+export function serverConfig(baseConfigExport: UserConfigExport, serverConfigExport: UserConfigExport): (env: ConfigEnv) => Promise<Record<string, any>>;
 
 // (No @packageDocumentation comment for this package)
 

@@ -27,6 +27,7 @@ export const MEDIA = mediaObj({
     youtube('Après Angular : place à Qwik!', 'Ts2IWXMYiXk'),
     youtube('🇪🇸 Qwik Framework, Un nuevo Framework Super Rápido (Lazy Loading)', 'kT-Y17mEUZs'),
     youtube('🇪🇸 Qwik - nuevo framework para Js', 'GzUMPnsDopM'),
+    youtube('🇪🇸 ¿Qué onda Qwik?', 'H7TL4SqcC3E'),
     youtube('Exploring Qwik, the Resumable Framework', 'gT5NWKZZPQM'),
     youtube('Building Qwik w/ Misko Hevery', 'lY6e7Hw4uVo'),
   ],

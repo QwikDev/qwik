@@ -1,6 +1,14 @@
 import { assertDefined, assertEqual, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
-import { isDocument, isElement, isNode, isQwikElement, isVirtualElement } from '../util/element';
+import {
+  isComment,
+  isDocument,
+  isElement,
+  isNode,
+  isQwikElement,
+  isText,
+  isVirtualElement,
+} from '../util/element';
 import { logWarn } from '../util/log';
 import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QScopedStyle } from '../util/markers';
 import { qDev } from '../util/qdev';
@@ -18,10 +26,10 @@ import { isNotNullable, isPromise } from '../util/promises';
 import { collectDeps, serializeValue, UNDEFINED_PREFIX } from './serializers';
 import {
   ContainerState,
-  FILTER_ACCEPT,
   FILTER_REJECT,
   FILTER_SKIP,
   getContainerState,
+  GetObjID,
   intToStr,
   SHOW_COMMENT,
   SHOW_ELEMENT,
@@ -46,7 +54,6 @@ import {
 } from '../state/common';
 import { QContext, tryGetContext } from '../state/context';
 import { SignalImpl } from '../state/signal';
-import e from 'express';
 
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -68,18 +75,14 @@ export const pauseContainer = async (
   }
   const parentJSON =
     defaultParentJSON ?? (containerEl === doc.documentElement ? doc.body : containerEl);
-  const data = await pauseFromContainer(containerEl);
-  const script = doc.createElement('script');
-  directSetAttribute(script, 'type', 'qwik/json');
-  script.textContent = escapeText(JSON.stringify(data.state, undefined, qDev ? '  ' : undefined));
-  parentJSON.appendChild(script);
-  directSetAttribute(containerEl, QContainerAttr, 'paused');
-  return data;
-};
 
-export const pauseFromContainer = async (containerEl: Element): Promise<SnapshotResult> => {
   const containerState = getContainerState(containerEl);
   const contexts = getNodesInScope(containerEl, hasContext);
+
+  // Set container to paused
+  directSetAttribute(containerEl, QContainerAttr, 'paused');
+
+  // Update elements with context
   for (const elCtx of contexts) {
     const elm = elCtx.$element$;
     const listeners = elCtx.li;
@@ -99,7 +102,30 @@ export const pauseFromContainer = async (containerEl: Element): Promise<Snapshot
       }
     }
   }
-  return _pauseFromContexts(contexts, containerState);
+
+  // Serialize data
+  const data = await _pauseFromContexts(contexts, containerState, (el) => {
+    if (isNode(el) && isText(el)) {
+      return getTextID(el, containerState);
+    }
+    return null;
+  });
+
+  // Emit Qwik JSON
+  const qwikJson = doc.createElement('script');
+  directSetAttribute(qwikJson, 'type', 'qwik/json');
+  qwikJson.textContent = escapeText(JSON.stringify(data.state, undefined, qDev ? '  ' : undefined));
+  parentJSON.appendChild(qwikJson);
+
+  // Emit event registration
+  const extraListeners = Array.from(containerState.$events$, (s) => JSON.stringify(s));
+  const eventsScript = doc.createElement('script');
+  eventsScript.textContent = `window.qwikevents||=[];window.qwikevents.push(${extraListeners.join(
+    ', '
+  )})`;
+  parentJSON.appendChild(eventsScript);
+
+  return data;
 };
 
 /**
@@ -107,7 +133,8 @@ export const pauseFromContainer = async (containerEl: Element): Promise<Snapshot
  */
 export const _pauseFromContexts = async (
   allContexts: QContext[],
-  containerState: ContainerState
+  containerState: ContainerState,
+  fallbackGetObjId?: GetObjID
 ): Promise<SnapshotResult> => {
   const collector = createCollector(containerState);
   const listeners: SnapshotListener[] = [];
@@ -244,6 +271,9 @@ export const _pauseFromContexts = async (
     const id = objToId.get(obj);
     if (id) {
       return id + suffix;
+    }
+    if (fallbackGetObjId) {
+      return fallbackGetObjId(obj);
     }
     return null;
   };
@@ -700,4 +730,21 @@ const getQId = (el: QwikElement): string | null => {
     return ctx.$id$;
   }
   return null;
+};
+
+const getTextID = (node: Text, containerState: ContainerState) => {
+  const prev = node.previousSibling;
+  if (prev && isComment(prev)) {
+    if (prev.data.startsWith('t=')) {
+      return ELEMENT_ID_PREFIX + prev.data.slice(2);
+    }
+  }
+  const doc = node.ownerDocument;
+  const id = intToStr(containerState.$elementIndex$++);
+  const open = doc.createComment(`t=${id}`);
+  const close = doc.createComment('');
+  const parent = node.parentElement!;
+  parent.insertBefore(open, node);
+  parent.insertBefore(close, node.nextSibling);
+  return ELEMENT_ID_PREFIX + id;
 };

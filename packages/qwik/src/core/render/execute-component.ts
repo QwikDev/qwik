@@ -1,5 +1,5 @@
 import { assertDefined } from '../error/assert';
-import { QSlot, RenderEvent } from '../util/markers';
+import { RenderEvent } from '../util/markers';
 import { safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { isArray, isObject, isString, ValueOrPromise } from '../util/types';
@@ -8,12 +8,11 @@ import type { RenderContext } from './types';
 import { ContainerState, intToStr } from '../container/container';
 import { fromCamelToKebabCase } from '../util/case';
 import { qError, QError_stringifyClassOrStyle } from '../error/error';
-import type { QwikElement } from './dom/virtual-element';
 import { seal } from '../util/qdev';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { SkipRender } from './jsx/utils.public';
 import { handleError } from './error-handling';
-import { QContext, tryGetContext } from '../state/context';
+import type { QContext } from '../state/context';
 
 export interface ExecuteComponentOutput {
   node: JSXNode | null;

@@ -26,7 +26,9 @@ export const MEDIA = mediaObj({
     youtube('Qwik-ifying React SPA to create the fastest possible website', 'dbxP9FX5j2o'),
     youtube('Après Angular : place à Qwik!', 'Ts2IWXMYiXk'),
     youtube('🇪🇸 Qwik Framework, Un nuevo Framework Super Rápido (Lazy Loading)', 'kT-Y17mEUZs'),
-    youtube('🇪🇸 Qwik - nuevo framework para Js ', 'GzUMPnsDopM'),
+    youtube('🇪🇸 Qwik - nuevo framework para Js', 'GzUMPnsDopM'),
+    youtube('Exploring Qwik, the Resumable Framework', 'gT5NWKZZPQM'),
+    youtube('Building Qwik w/ Misko Hevery', 'lY6e7Hw4uVo'),
   ],
   podcasts: [
     youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc'),
@@ -52,8 +54,24 @@ export const MEDIA = mediaObj({
       title: 'Hydration is Pure Overhead',
     },
     {
-      href: 'https://dev.to/mhevery/a-first-look-at-qwik-the-html-first-framework-af',
-      title: 'HTML-first, JavaScript last: the secret to web speed!',
+      href: 'https://www.builder.io/blog/why-progressive-hydration-is-harder-than-you-think',
+      title: 'Why Progressive Hydration is Harder than You Think',
+    },
+    {
+      href: 'https://www.builder.io/blog/why-is-builderio-creating-qwik-and-partytown',
+      title: 'Why is Builder.io creating Qwik and Partytown?',
+    },
+    {
+      href: 'https://www.builder.io/blog/dont-blame-the-developer-for-what-the-frameworks-did',
+      title: "Don't blame the developer for what the frameworks did!",
+    },
+    {
+      href: 'https://www.builder.io/blog/our-current-frameworks-are-on-we-need-o1',
+      title: 'Our current frameworks are O(n); we need O(1)',
+    },
+    {
+      href: 'https://www.builder.io/blog/streaming-is-it-worth-it',
+      title: 'Streaming: is it worth it?',
     },
     {
       href: 'https://dev.to/builderio/a-first-look-at-qwik-the-html-first-framework-af',
@@ -63,10 +81,29 @@ export const MEDIA = mediaObj({
       href: 'https://dev.to/mhevery/death-by-closure-and-how-qwik-solves-it-44jj',
       title: 'Death by Closure (and how Qwik solves it)',
     },
-
+    {
+      href: 'https://dev.to/builderio/html-first-javascript-last-the-secret-to-web-speed-4ic9',
+      title: 'HTML-first, JavaScript last: the secret to web speed!',
+    },
     {
       href: 'https://dev.to/mhevery/qwik-the-answer-to-optimal-fine-grained-lazy-loading-2hdp',
       title: 'Qwik: the answer to optimal fine-grained lazy loading',
+    },
+    {
+      href: 'https://dev.to/builderio/how-to-score-100-on-google-pagespeed-insights-on-mobile-2e0i',
+      title: 'How to score 100 on Google PageSpeed Insights on Mobile',
+    },
+    {
+      href: 'https://dev.to/builderio/your-bundler-is-doing-it-wrong-ic0',
+      title: 'Your bundler is doing it wrong',
+    },
+    {
+      href: 'https://dev.to/builderio/how-we-cut-99-of-our-javascript-with-qwik-partytown-3i3k',
+      title: 'How we cut 99% of our JavaScript with Qwik + Partytown',
+    },
+    {
+      href: 'https://dev.to/builderio/introducing-qwik-starters-get-up-and-running-with-qwik-now-3ap2',
+      title: 'Introducing Qwik starters - get up and running with Qwik now',
     },
   ],
   resources: [

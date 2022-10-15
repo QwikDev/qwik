@@ -29,8 +29,8 @@ storeSuite('should serialize content', async () => {
     `
   <body q:version="dev" q:container="resumed" q:render="dom-dev">
     <div>
-      <!--qv q:key=sX: q:id=0-->
-      <div q:id="1" on:click="/runtimeQRL#_[0 1 2 3 4 5 6 7 8 9 10]"></div>
+      <!--qv q:key=sX:-->
+      <div></div>
       <!--/qv-->
     </div>
   </body>`
@@ -38,6 +38,17 @@ storeSuite('should serialize content', async () => {
   await pauseContainer(document.body);
   const script = getQwikJSON(document.body)!;
 
+  // await expectDOM(
+  //   document.body,
+  //   `
+  // <body q:version="dev" q:container="paused" q:render="dom-dev">
+  //   <div>
+  //     <!--qv q:key=sX:-->
+  //     <div></div>
+  //     <!--/qv-->
+  //   </div>
+  // </body>`
+  // );
   equal(JSON.parse(script.textContent!), {
     ctx: {
       '#1': {

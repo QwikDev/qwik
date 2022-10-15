@@ -376,13 +376,17 @@ renderSSRSuite('using component props', async () => {
       dangerouslySetInnerHTML="432"
       onClick="lazy.js"
       prop="12"
-    />,
+      q:slot="name"
+    >
+      stuff
+    </MyCmp>,
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       <section>
         <div>MyCmp{"id":"12","host:prop":"attribute","innerHTML":"123","dangerouslySetInnerHTML":"432","onClick":"lazy.js","prop":"12"}</div>
       </section>
+      <q:template q:slot hidden aria-hidden="true">stuff</q:template>
       <!--/qv-->
     </html>
     `

@@ -166,14 +166,6 @@ export const getNextIndex = (ctx: RenderContext) => {
   return intToStr(ctx.$static$.$containerState$.$elementIndex$++);
 };
 
-export const getQId = (el: QwikElement): string | null => {
-  const ctx = tryGetContext(el);
-  if (ctx) {
-    return ctx.$id$;
-  }
-  return null;
-};
-
 export const setQId = (rCtx: RenderContext, elCtx: QContext) => {
   const id = getNextIndex(rCtx);
   elCtx.$id$ = id;
@@ -182,5 +174,3 @@ export const setQId = (rCtx: RenderContext, elCtx: QContext) => {
 export const hasStyle = (containerState: ContainerState, styleId: string) => {
   return containerState.$styleIds$.has(styleId);
 };
-
-export const SKIPS_PROPS = [QSlot, 'children'];

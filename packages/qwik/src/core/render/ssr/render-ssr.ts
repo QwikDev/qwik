@@ -39,7 +39,12 @@ import { EMPTY_OBJ } from '../../util/flyweight';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import { getContext, QContext, Q_CTX } from '../../state/context';
 import { createProxy } from '../../state/store';
-import { QObjectFlagsSymbol, QObjectImmutable, _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
+import {
+  QObjectFlagsSymbol,
+  QObjectImmutable,
+  _IMMUTABLE,
+  _IMMUTABLE_PREFIX,
+} from '../../state/constants';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
@@ -766,14 +771,14 @@ const setComponentProps = (
   }
   const immutableMeta = ((target as any)[_IMMUTABLE] =
     (expectProps as any)[_IMMUTABLE] ?? EMPTY_OBJ);
-  for (const key of keys) {
-    if (key === 'children') {
+  for (const prop of keys) {
+    if (prop === 'children' || prop === QSlot) {
       continue;
     }
-    if (isSignal(immutableMeta[key])) {
-      target[_IMMUTABLE_PREFIX + key] = immutableMeta[key];
+    if (isSignal(immutableMeta[prop])) {
+      target[_IMMUTABLE_PREFIX + prop] = immutableMeta[prop];
     } else {
-      target[key] = expectProps[key];
+      target[prop] = expectProps[prop];
     }
   }
 };

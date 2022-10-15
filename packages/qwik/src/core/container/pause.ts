@@ -30,7 +30,6 @@ import {
   SnapshotMetaValue,
   SnapshotResult,
 } from './container';
-import { getQId } from '../render/execute-component';
 import { processVirtualNodes, QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import { groupListeners } from '../state/listeners';
 import { serializeSStyle } from '../style/qrl-styles';
@@ -47,6 +46,7 @@ import {
 } from '../state/common';
 import { QContext, tryGetContext } from '../state/context';
 import { SignalImpl } from '../state/signal';
+import e from 'express';
 
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -54,7 +54,6 @@ import { SignalImpl } from '../state/signal';
 /**
  * Serialize the current state of the application into DOM
  *
- * @alpha
  */
 // </docs>
 export const pauseContainer = async (
@@ -80,7 +79,7 @@ export const pauseContainer = async (
 
 export const pauseFromContainer = async (containerEl: Element): Promise<SnapshotResult> => {
   const containerState = getContainerState(containerEl);
-  const contexts = getNodesInScope(containerEl, hasQId).map(tryGetContext) as QContext[];
+  const contexts = getNodesInScope(containerEl, hasContext);
   for (const elCtx of contexts) {
     const elm = elCtx.$element$;
     const listeners = elCtx.li;
@@ -93,7 +92,7 @@ export const pauseFromContainer = async (containerEl: Element): Promise<Snapshot
     if (elCtx.$id$) {
       elm.setAttribute(ELEMENT_ID, elCtx.$id$);
     }
-    if (listeners.length > 0) {
+    if (isElement(elm) && listeners.length > 0) {
       const groups = groupListeners(listeners);
       for (const listener of groups) {
         elm.setAttribute(listener[0], serializeQRLs(listener[1], elCtx));
@@ -199,7 +198,7 @@ export const _pauseFromContexts = async (
   }
 
   // Convert objSet to array
-  const elementToIndex = new Map<QwikElement, string | null>();
+  const elementToIndex = new Map<Node | QwikElement, string | null>();
   const objs = Array.from(collector.$objSet$.keys());
   const objToId = new Map<any, string>();
 
@@ -446,25 +445,30 @@ export const _pauseFromContexts = async (
   };
 };
 
-export const getNodesInScope = (parent: Element, predicate: (el: Node) => boolean) => {
-  const nodes: Element[] = [];
-  if (predicate(parent)) {
-    nodes.push(parent);
+export const getNodesInScope = <T>(
+  parent: Element,
+  predicate: (el: Node) => T | undefined
+): T[] => {
+  const results: T[] = [];
+  const v = predicate(parent);
+  if (v !== undefined) {
+    results.push(v);
   }
   const walker = parent.ownerDocument.createTreeWalker(parent, SHOW_ELEMENT | SHOW_COMMENT, {
     acceptNode(node) {
       if (isContainer(node)) {
         return FILTER_REJECT;
       }
-      return predicate(node) ? FILTER_ACCEPT : FILTER_SKIP;
+      const v = predicate(node);
+      if (v !== undefined) {
+        results.push(v);
+      }
+      return FILTER_SKIP;
     },
   });
-  const pars: QwikElement[] = [];
-  let currentNode: Node | null = null;
-  while ((currentNode = walker.nextNode())) {
-    pars.push(processVirtualNodes(currentNode) as Element);
-  }
-  return pars;
+  while (walker.nextNode());
+
+  return results;
 };
 
 export interface Collector {
@@ -665,12 +669,15 @@ export const isContainer = (el: Node) => {
   return isElement(el) && el.hasAttribute(QContainerAttr);
 };
 
-const hasQId = (el: Node) => {
+const hasContext = (el: Node) => {
   const node = processVirtualNodes(el);
   if (isQwikElement(node)) {
-    return node.hasAttribute(ELEMENT_ID);
+    const ctx = tryGetContext(node);
+    if (ctx && ctx.$id$) {
+      return ctx;
+    }
   }
-  return false;
+  return undefined;
 };
 
 const getManager = (obj: any, containerState: ContainerState) => {
@@ -685,4 +692,12 @@ const getManager = (obj: any, containerState: ContainerState) => {
     return getProxyManager(proxy);
   }
   return undefined;
+};
+
+const getQId = (el: QwikElement): string | null => {
+  const ctx = tryGetContext(el);
+  if (ctx) {
+    return ctx.$id$;
+  }
+  return null;
 };

@@ -31,7 +31,6 @@ import {
   pushRenderContext,
   serializeClass,
   setQId,
-  SKIPS_PROPS,
   stringifyStyle,
 } from '../execute-component';
 import { addQwikEvent, setRef } from '../../container/container';
@@ -1033,7 +1032,7 @@ export const setComponentProps = (
     (expectProps as any)[_IMMUTABLE] ?? EMPTY_OBJ);
 
   for (const prop of keys) {
-    if (SKIPS_PROPS.includes(prop)) {
+    if (prop === 'children' || prop === QSlot) {
       continue;
     }
     if (isSignal(immutableMeta[prop])) {

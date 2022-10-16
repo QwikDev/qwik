@@ -461,17 +461,9 @@ export interface ResourceOptions {
 // @public (undocumented)
 export interface ResourcePending<T> {
     // (undocumented)
-    __brand: 'resource';
-    // (undocumented)
-    error: undefined;
+    loading: boolean;
     // (undocumented)
     promise: Promise<T>;
-    // (undocumented)
-    resolved: undefined;
-    // (undocumented)
-    state: 'pending';
-    // (undocumented)
-    timeout?: number;
 }
 
 // @public (undocumented)
@@ -489,33 +481,17 @@ export interface ResourceProps<T> {
 // @public (undocumented)
 export interface ResourceRejected<T> {
     // (undocumented)
-    __brand: 'resource';
-    // (undocumented)
-    error: any;
+    loading: boolean;
     // (undocumented)
     promise: Promise<T>;
-    // (undocumented)
-    resolved: undefined;
-    // (undocumented)
-    state: 'rejected';
-    // (undocumented)
-    timeout?: number;
 }
 
 // @public (undocumented)
 export interface ResourceResolved<T> {
     // (undocumented)
-    __brand: 'resource';
-    // (undocumented)
-    error: undefined;
+    loading: boolean;
     // (undocumented)
     promise: Promise<T>;
-    // (undocumented)
-    resolved: T;
-    // (undocumented)
-    state: 'resolved';
-    // (undocumented)
-    timeout?: number;
 }
 
 // @public (undocumented)

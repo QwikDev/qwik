@@ -73,7 +73,7 @@ html {
 @media (max-width: 768px) {
   html {
     --panel-toggle-height: 56px;
-    --header-height: 70px;
+    --header-height: 80px;
   }
 }
 

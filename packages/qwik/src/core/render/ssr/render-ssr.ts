@@ -13,13 +13,7 @@ import {
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
 import { SSRComment, InternalSSRStream, Virtual } from '../jsx/utils.public';
 import { logError, logWarn } from '../../util/log';
-import {
-  addQRLListener,
-  groupListeners,
-  isOnProp,
-  PREVENT_DEFAULT,
-  setEvent,
-} from '../../state/listeners';
+import { groupListeners, isOnProp, PREVENT_DEFAULT, setEvent } from '../../state/listeners';
 import { version } from '../../version';
 import {
   addQwikEvent,
@@ -500,7 +494,7 @@ export const renderNode = (
         classStr = hostCtx.$scopeIds$.join(' ') + ' ' + classStr;
       }
       if (hostCtx.$needAttachListeners$) {
-        addQRLListener(listeners, hostCtx.li);
+        listeners.push(...hostCtx.li);
         hostCtx.$needAttachListeners$ = false;
       }
     }

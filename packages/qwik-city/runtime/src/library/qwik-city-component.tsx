@@ -16,6 +16,7 @@ import type {
   MutableRouteLocation,
   PageModule,
   RouteNavigate,
+  RouteParams,
 } from './types';
 import {
   ContentContext,
@@ -86,6 +87,15 @@ export const QwikCity = component$<QwikCityProps>(() => {
     contents: undefined,
   });
 
+  const getRouteLocationQuery = (searchParams: URLSearchParams) => {
+    const query: RouteParams = {};
+    for (const key of searchParams.keys()) {
+      const values = searchParams.getAll(key);
+      query[key] = values.length === 1 ? values[0] : values;
+    }
+    return query
+  }
+
   useContextProvider(ContentContext, content);
   useContextProvider(ContentInternalContext, contentInternal);
   useContextProvider(DocumentHeadContext, documentHead);
@@ -113,7 +123,7 @@ export const QwikCity = component$<QwikCityProps>(() => {
       routeLocation.href = url.href;
       routeLocation.pathname = pathname;
       routeLocation.params = { ...params };
-      routeLocation.query = Object.fromEntries(url.searchParams.entries());
+      routeLocation.query = getRouteLocationQuery(url.searchParams);
 
       // Update content
       content.headings = pageModule.headings;

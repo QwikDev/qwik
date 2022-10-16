@@ -56,6 +56,7 @@ export async function generatePackageJson(config: BuildConfig) {
       './optimizer.mjs': './optimizer.mjs',
       './optimizer': {
         import: './optimizer.mjs',
+        require: './optimizer.cjs',
       },
       './server.cjs': './server.cjs',
       './server.mjs': './server.mjs',

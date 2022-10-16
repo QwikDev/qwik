@@ -48,6 +48,7 @@ export const MEDIA = mediaObj({
     youtube('Qwik Workshop Part 1 - Live Coding', 'GHbNaDSWUX8'),
     youtube('Qwik framework overview', 'Jf_E1_19aB4', 629),
     youtube('Qwik Core Developers Training', 'Mi7udzhcCDQ'),
+    youtube('Qwik: A no hydration instant', 'Zddw6qy5pf0'),
   ],
   blogs: [
     {

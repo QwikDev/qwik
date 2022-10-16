@@ -12,6 +12,7 @@ export const EffectClient = component$(() => {
   return (
     <div>
       <Issue1413 />
+      <Issue1717 />
       <div class="box" />
       <div class="box" />
       <div class="box" />

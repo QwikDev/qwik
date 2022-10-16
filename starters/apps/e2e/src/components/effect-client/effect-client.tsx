@@ -174,9 +174,12 @@ export function useDelay(value: string) {
 export const Issue1717 = component$(() => {
   const val1 = useDelay('value 1');
   const val2 = useDelay('value 2');
-  const renders = useStore({
-    count: 0,
-  }, {reactive: false});
+  const renders = useStore(
+    {
+      count: 0,
+    },
+    { reactive: false }
+  );
   const signal = useSignal(0);
   useWatch$(async () => {
     await delay(500);
@@ -185,7 +188,9 @@ export const Issue1717 = component$(() => {
   renders.count++;
   return (
     <>
-      <div id="issue-1717-meta">Sub: {signal.value + ''} Renders: {renders.count}</div>
+      <div id="issue-1717-meta">
+        Sub: {signal.value + ''} Renders: {renders.count}
+      </div>
       <div id="issue-1717-value1">{val1.value}</div>
       <div id="issue-1717-value2">{val2.value}</div>
     </>

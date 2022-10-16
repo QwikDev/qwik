@@ -165,11 +165,10 @@ export const SideEffect = component$(() => {
   useWatch$(async () => {
     await delay(100);
     signal.value = 'set';
-  })
+  });
   return (
     <>
       <div>{signal.value}</div>
     </>
   );
 });
-

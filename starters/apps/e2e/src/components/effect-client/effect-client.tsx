@@ -1,5 +1,13 @@
 /* eslint-disable */
-import { component$, useClientEffect$, useRef, useStore, useStyles$, Slot, useSignal } from '@builder.io/qwik';
+import {
+  component$,
+  useClientEffect$,
+  useRef,
+  useStore,
+  useStyles$,
+  Slot,
+  useSignal,
+} from '@builder.io/qwik';
 
 export const EffectClient = component$(() => {
   useStyles$(`.box {
@@ -167,8 +175,8 @@ export const Issue1717 = component$(() => {
 
   return (
     <>
-      <div>{val1.value}</div>
-      <div>{val2.value}</div>
+      <div id="issue-1717-value1">{val1.value}</div>
+      <div id="issue-1717-value2">{val2.value}</div>
     </>
   );
 });

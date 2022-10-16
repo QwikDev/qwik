@@ -35,4 +35,11 @@ test.describe('effect-client', () => {
     await expect(counter).toHaveText('11');
     await expect(msg).toHaveText('run');
   });
+
+  test('issue 1717', async ({ page }) => {
+    const value1 = page.locator('#issue-1717-value1');
+    const value2 = page.locator('#issue-1717-value2');
+    await expect(value1).toHaveText('value 1');
+    await expect(value2).toHaveText('value 2');
+  });
 });

@@ -43,7 +43,7 @@ header li a:hover svg {
 header .mobile-menu {
   position: absolute;
   right: 0;
-  @apply p-3 md:hidden;
+  @apply p-5 md:hidden;
 }
 
 header ul {
@@ -62,6 +62,10 @@ header .close-icon {
 }
 
 @media (max-width: 767px) {
+  .header-container {
+    padding-top: 5px;
+  }
+
   .header-open header ul {
     position: absolute;
     z-index: 10;
@@ -78,6 +82,10 @@ header .close-icon {
 
   .header-open header .close-icon {
     display: block;
+  }
+
+  .header-open .menu-toolkit li {
+    text-align: center;
   }
 }
 

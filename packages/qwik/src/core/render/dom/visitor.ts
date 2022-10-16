@@ -6,7 +6,7 @@ import {
   QSlotRef,
   QSlotS,
 } from '../../util/markers';
-import { addQRLListener, isOnProp, PREVENT_DEFAULT, setEvent } from '../../state/listeners';
+import { isOnProp, PREVENT_DEFAULT, setEvent } from '../../state/listeners';
 import type { ValueOrPromise } from '../../util/types';
 import { isPromise, promiseAll, promiseAllLazy, then } from '../../util/promises';
 import { assertDefined, assertEqual, assertTrue } from '../../error/assert';
@@ -428,7 +428,7 @@ export const patchVnode = (
       isSvg
     );
     if (pendingListeners.length > 0) {
-      addQRLListener(listeners, pendingListeners);
+      listeners.push(...pendingListeners);
       pendingListeners.length = 0;
     }
 
@@ -688,7 +688,7 @@ const createElm = (
       });
     }
     if (currentComponent.$needAttachListeners$) {
-      addQRLListener(listeners, currentComponent.li);
+      listeners.push(...currentComponent.li);
       currentComponent.$needAttachListeners$ = false;
     }
   }

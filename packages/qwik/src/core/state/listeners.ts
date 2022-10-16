@@ -18,25 +18,6 @@ export const isOnProp = (prop: string): boolean => {
   return prop.endsWith('$') && ON_PROP_REGEX.test(prop);
 };
 
-export const addQRLListener = (listeners: Listener[], add: Listener[]) => {
-  for (const entry of add) {
-    const prop = entry[0];
-    const hash = entry[1].$hash$;
-    let replaced = false;
-    for (let i = 0; i < listeners.length; i++) {
-      const existing = listeners[i];
-      if (existing[0] === prop && existing[1].$hash$ === hash) {
-        listeners.splice(i, 1, entry);
-        replaced = true;
-        break;
-      }
-    }
-    if (!replaced) {
-      listeners.push(entry);
-    }
-  }
-};
-
 export const groupListeners = (listeners: Listener[]): [string, QRLInternal[]][] => {
   if (listeners.length === 0) {
     return EMPTY_ARRAY;
@@ -67,10 +48,11 @@ export const setEvent = (
   assertTrue(prop.endsWith('$'), 'render: event property does not end with $', prop);
   prop = normalizeOnProp(prop.slice(0, -1));
   if (input) {
-    const listeners = isArray(input)
-      ? input.map((q) => [prop, ensureQrl(q, containerEl)] as Listener)
-      : ([[prop, ensureQrl(input, containerEl)]] as Listener[]);
-    addQRLListener(existingListeners, listeners);
+    if (isArray(input)) {
+      existingListeners.push(...input.map((q) => [prop, ensureQrl(q, containerEl)] as Listener));
+    } else {
+      existingListeners.push([prop, ensureQrl(input, containerEl)]);
+    }
   }
   return prop;
 };

@@ -26,6 +26,7 @@ export const executeComponent = (
   elCtx.$dirty$ = false;
   elCtx.$mounted$ = true;
   elCtx.$slots$ = [];
+  elCtx.li.length = 0;
 
   const hostElement = elCtx.$element$;
   const componentQRL = elCtx.$componentQrl$;

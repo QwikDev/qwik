@@ -1,5 +1,15 @@
 /* eslint-disable */
-import { component$, useClientEffect$, useRef, useStore, useStyles$, Slot } from '@builder.io/qwik';
+import {
+  component$,
+  useClientEffect$,
+  useRef,
+  useStore,
+  useStyles$,
+  Slot,
+  useSignal,
+  useWatch$,
+} from '@builder.io/qwik';
+import { delay } from '../streaming/streaming';
 
 export const EffectClient = component$(() => {
   useStyles$(`.box {
@@ -12,6 +22,7 @@ export const EffectClient = component$(() => {
   return (
     <div>
       <Issue1413 />
+      <Issue1717 />
       <div class="box" />
       <div class="box" />
       <div class="box" />
@@ -149,5 +160,39 @@ export const Issue1413 = component$(() => {
         <div>Hello</div>
       </section>
     </FancyName>
+  );
+});
+
+export function useDelay(value: string) {
+  const ready = useSignal('---');
+  useClientEffect$(() => {
+    ready.value = value;
+  });
+  return ready;
+}
+
+export const Issue1717 = component$(() => {
+  const val1 = useDelay('value 1');
+  const val2 = useDelay('value 2');
+  const renders = useStore(
+    {
+      count: 0,
+    },
+    { reactive: false }
+  );
+  const signal = useSignal(0);
+  useWatch$(async () => {
+    await delay(500);
+    signal.value = 10;
+  });
+  renders.count++;
+  return (
+    <>
+      <div id="issue-1717-meta">
+        Sub: {signal.value + ''} Renders: {renders.count}
+      </div>
+      <div id="issue-1717-value1">{val1.value}</div>
+      <div id="issue-1717-value2">{val2.value}</div>
+    </>
   );
 });

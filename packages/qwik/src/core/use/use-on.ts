@@ -1,7 +1,7 @@
 import { assertQrl } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import { getContext } from '../state/context';
-import { addQRLListener, normalizeOnProp } from '../state/listeners';
+import { normalizeOnProp } from '../state/listeners';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { useInvokeContext } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
@@ -134,6 +134,6 @@ const _useOn = (eventName: string, eventQrl: QRL<(ev: Event) => void>) => {
   const invokeCtx = useInvokeContext();
   const elCtx = getContext(invokeCtx.$hostElement$);
   assertQrl(eventQrl);
-  addQRLListener(elCtx.li, [[normalizeOnProp(eventName), eventQrl]]);
+  elCtx.li.push([normalizeOnProp(eventName), eventQrl]);
   elCtx.$needAttachListeners$ = true;
 };

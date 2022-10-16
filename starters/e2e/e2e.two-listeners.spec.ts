@@ -9,6 +9,6 @@ test.describe('two-listeners', () => {
   test('should support two QRLs on event', async ({ page }) => {
     const button = page.locator('.two-listeners');
     await button.click();
-    await expect(button).toContainText('2 / 2');
+    await expect(button).toContainText('2 / 3');
   });
 });

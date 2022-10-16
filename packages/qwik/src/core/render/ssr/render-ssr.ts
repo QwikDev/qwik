@@ -7,6 +7,7 @@ import {
   createRenderContext,
   executeComponent,
   getNextIndex,
+  jsxToString,
   stringifyStyle,
 } from '../execute-component';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
@@ -630,13 +631,13 @@ export const processData = (
         value = node.value;
         const id = getNextIndex(ssrCtx.rCtx);
         addSignalSub(2, hostEl, node, '#' + id, 'data');
-        stream.write(`<!--t=${id}-->${escapeHtml(String(value))}<!---->`);
+        stream.write(`<!--t=${id}-->${escapeHtml(jsxToString(value))}<!---->`);
         return;
       } else {
         value = invoke(ssrCtx.invocationContext, () => node.value);
       }
     }
-    stream.write(escapeHtml(String(value)));
+    stream.write(escapeHtml(jsxToString(value)));
     return;
   } else if (isPromise(node)) {
     stream.write(FLUSH_COMMENT);
@@ -872,8 +873,4 @@ export const escapeAttr = (s: string) => {
 
 export const joinClasses = (styles: any[], existing: string): string => {
   return styles.join(' ') + existing;
-};
-
-export const isPrimitive = (obj: any): obj is string | number => {
-  return isString(obj) || typeof obj === 'number';
 };

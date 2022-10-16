@@ -83,4 +83,25 @@ test.describe('signals', () => {
     await button.click();
     await expect(result).toHaveText('Count A is 1 Count B is 1');
   });
+
+  test('issue 1733', async ({ page }) => {
+    const button = page.locator('#issue1733-btn');
+    const spanSignal = page.locator('#issue1733-signal');
+    const spanTrue = page.locator('#issue1733-true');
+    const spanFalse = page.locator('#issue1733-false');
+    const h1 = page.locator('#issue1733-h1');
+
+    await expect(spanSignal).toHaveText('');
+    await expect(spanTrue).toHaveText('');
+    await expect(spanFalse).toHaveText('');
+    await expect(h1).not.toBeVisible();
+
+    await button.click();
+
+    await expect(spanSignal).toHaveText('');
+    await expect(spanTrue).toHaveText('');
+    await expect(spanFalse).toHaveText('');
+    await expect(h1).toBeVisible();
+    await expect(h1).toHaveText('Message');
+  });
 });

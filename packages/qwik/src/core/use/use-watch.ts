@@ -388,21 +388,24 @@ export const useWatch$ = /*#__PURE__*/ implicit$FirstArg(useWatchQrl);
  */
 // </docs>
 export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void => {
-  const { get, set, i, ctx } = useSequentialScope<boolean>();
+  const { get, set, i, ctx } = useSequentialScope<Watch>();
+  const eagerness = opts?.eagerness ?? 'visible';
   if (get) {
+    if (isServer()) {
+      useRunWatch(get, eagerness);
+    }
     return;
   }
   assertQrl(qrl);
   const el = ctx.$hostElement$;
   const watch = new Watch(WatchFlagsIsEffect, i, el, qrl, undefined);
-  const eagerness = opts?.eagerness ?? 'visible';
   const elCtx = getContext(el);
   const containerState = ctx.$renderCtx$.$static$.$containerState$;
-  set(true);
   if (!elCtx.$watches$) {
     elCtx.$watches$ = [];
   }
   elCtx.$watches$.push(watch);
+  set(watch);
   useRunWatch(watch, eagerness);
   if (!isServer()) {
     qrl.$resolveLazy$(containerState.$containerEl$);

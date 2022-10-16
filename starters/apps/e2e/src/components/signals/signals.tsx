@@ -6,7 +6,9 @@ import {
   useSignal,
   useStore,
   useClientEffect$,
+  useWatch$,
 } from '@builder.io/qwik';
+import { delay } from '../resource/resource';
 
 export const Signals = component$(() => {
   const ref = useRef();
@@ -81,6 +83,7 @@ export const Signals = component$(() => {
       />
       <Issue1681 />
       <Issue1733 />
+      <SideEffect />
     </div>
   );
 });
@@ -156,3 +159,17 @@ export const Issue1733 = component$(() => {
     </>
   );
 });
+
+export const SideEffect = component$(() => {
+  const signal = useSignal('initial');
+  useWatch$(async () => {
+    await delay(100);
+    signal.value = 'set';
+  })
+  return (
+    <>
+      <div>{signal.value}</div>
+    </>
+  );
+});
+

@@ -39,7 +39,9 @@ test.describe('effect-client', () => {
   test('issue 1717', async ({ page }) => {
     const value1 = page.locator('#issue-1717-value1');
     const value2 = page.locator('#issue-1717-value2');
+    const meta = page.locator('#issue-1717-meta');
     await expect(value1).toHaveText('value 1');
     await expect(value2).toHaveText('value 2');
+    await expect(meta).toHaveText('Sub: 10 Renders: 2');
   });
 });

@@ -90,8 +90,7 @@ export const QwikCity = component$<QwikCityProps>(() => {
   const getRouteLocationQuery = (searchParams: URLSearchParams) => {
     const query: RouteParams = {};
     for (const key of searchParams.keys()) {
-      const values = searchParams.getAll(key);
-      query[key] = values.length === 1 ? values[0] : values;
+      query[key] = searchParams.getAll(key).join(',');
     }
     return query
   }

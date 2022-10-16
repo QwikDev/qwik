@@ -36,7 +36,7 @@ export interface RouteLocation {
   readonly params: RouteParams;
   readonly href: string;
   readonly pathname: string;
-  readonly query: Record<string, string | string[]>;
+  readonly query: Record<string, string>;
 }
 
 export interface RouteNavigate {
@@ -206,7 +206,7 @@ export interface QwikCityPlan {
 /**
  * @alpha
  */
-export type RouteParams = Record<string, string | string[]>;
+export type RouteParams = Record<string, string>;
 
 export type ContentModule = PageModule | LayoutModule;
 

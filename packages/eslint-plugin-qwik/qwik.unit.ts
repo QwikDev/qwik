@@ -226,6 +226,7 @@ test('valid-lexical-scope', () => {
     }}></div>;
   });
       `,
+      ``,
     ],
     invalid: [
       {

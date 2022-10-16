@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { component$, useClientEffect$, useRef, useStore, useStyles$, Slot } from '@builder.io/qwik';
+import { component$, useClientEffect$, useRef, useStore, useStyles$, Slot, useSignal } from '@builder.io/qwik';
 
 export const EffectClient = component$(() => {
   useStyles$(`.box {
@@ -149,5 +149,25 @@ export const Issue1413 = component$(() => {
         <div>Hello</div>
       </section>
     </FancyName>
+  );
+});
+
+export function useDelay(value: string) {
+  const ready = useSignal('---');
+  useClientEffect$(() => {
+    ready.value = value;
+  });
+  return ready;
+}
+
+export const Issue1717 = component$(() => {
+  const val1 = useDelay('value 1');
+  const val2 = useDelay('value 2');
+
+  return (
+    <>
+      <div>{val1.value}</div>
+      <div>{val2.value}</div>
+    </>
   );
 });

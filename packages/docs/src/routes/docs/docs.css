@@ -112,7 +112,7 @@
 
 .docs article h2 {
   line-height: 1.2;
-  font-size: 48px;
+  font-size: 30px;
   font-weight: 800;
   scroll-margin-top: var(--scroll-margin-top);
   margin-top: 70px;
@@ -263,5 +263,6 @@ h6 a:hover .icon {
 @media (max-width: 768px) {
   .docs article h2 {
     font-size: 1.2rem;
+    margin-top: 2rem;
   }
 }

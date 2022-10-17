@@ -48,7 +48,7 @@ Existing frameworks solve the event listener by downloading the components and e
 
 The above approach does not scale. As the application becomes more complicated, the amount of code needed to download eagerly and execute grows proportionally with the size of the application. This negatively impacts the application startup performance and hence the user experience.
 
-Qwik solves the above issue by serializing the event listens into DOM like so:
+Qwik solves the above issue by serializing the event listeners into DOM like so:
 
 ```html
 <button on:click="./chunk.js#handler_symbol">click me</button>

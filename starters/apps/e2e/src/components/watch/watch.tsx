@@ -97,11 +97,21 @@ export const Issue1766Root = component$(() => {
   const loc = useStore({
     value: '/root'
   });
+
+  const final = useStore({
+    value: '/root'
+  });
   useContextProvider(LinkPath, loc);
+
+  useWatch$(({track}) => {
+    const path = track(() => loc.value);
+    final.value = path.toUpperCase();
+  });
+
   return (
     <>
       <Issue1766/>
-      <div>Loc: {loc.value}</div>
+      <div>Loc: {final.value}</div>
     </>
   )
 });

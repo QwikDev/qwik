@@ -4,6 +4,7 @@
 }
 
 .docs .docs-container {
+  overflow: hidden;
   @apply pt-[80px];
   @apply px-8;
 

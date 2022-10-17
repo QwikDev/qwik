@@ -1,5 +1,15 @@
 /* eslint-disable */
-import { component$, useServerMount$, useWatch$, useStore } from '@builder.io/qwik';
+import {
+  component$,
+  useServerMount$,
+  useWatch$,
+  useStore,
+  useSignal,
+  Signal,
+  createContext,
+  useContext,
+  useContextProvider,
+} from '@builder.io/qwik';
 
 interface State {
   count: number;
@@ -59,6 +69,7 @@ export const WatchShell = component$(({ store }: { nav: any; store: State }) => 
       <button id="add" onClick$={() => store.count++}>
         +
       </button>
+      <Issue1766Root />
     </div>
   );
 });
@@ -78,4 +89,78 @@ export const Child = component$((props: { state: State }) => {
 export const GrandChild = component$((props: { state: State }) => {
   console.log('GrandChild renders');
   return <div id="debounced">Debounced: {props.state.debounced}</div>;
+});
+
+export const LinkPath = createContext<{value: string}>('link-path');
+
+export const Issue1766Root = component$(() => {
+  const loc = useStore({
+    value: '/root'
+  });
+  useContextProvider(LinkPath, loc);
+  return (
+    <>
+      <Issue1766/>
+      <div>Loc: {loc.value}</div>
+    </>
+  )
+});
+
+export const Issue1766 = component$(() => {
+  const counter = useSignal(0);
+  useWatch$(async ({ track }) => {
+    track(counter);
+
+    console.log('This should show in the console over and over.');
+  });
+  return (
+    <div>
+      <h1>Should this work?</h1>
+
+      <p>Check the browser console</p>
+
+      <Issue1766Child counter={counter} />
+    </div>
+  );
+});
+
+type Props = {
+  counter: Signal<number>;
+};
+
+export const Issue1766Child = component$<Props>(({ counter }) => {
+  const state = useStore({ show: false });
+  return (
+    <>
+      {state.show ? (
+        <>
+
+          <button
+            onClick$={() => {
+              counter.value++;
+            }}
+          >
+            Bump In Child Component (Doesn't work)
+          </button>
+          <Link href='/page'/>
+      </>) : (
+        <button
+          onClick$={() => {
+            state.show = true;
+          }}
+        >
+          Show Button
+        </button>
+      )}
+    </>
+  );
+});
+
+export const Link = component$((props: {href: string}) => {
+  const loc = useContext(LinkPath);
+  return (
+    <button onClick$={() => {
+      loc.value = props.href;
+    }}>Navigate</button>
+  )
 });

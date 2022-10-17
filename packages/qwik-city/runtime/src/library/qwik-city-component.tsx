@@ -128,6 +128,7 @@ export const QwikCity = component$<QwikCityProps>(() => {
       documentHead.meta = resolvedHead.meta;
       documentHead.styles = resolvedHead.styles;
       documentHead.title = resolvedHead.title;
+      documentHead.frontmatter = resolvedHead.frontmatter;
 
       if (isBrowser) {
         clientNavigate(window, routeNavigate);

@@ -55,7 +55,7 @@ The following component will be rendered at `https://example.com/some/path` acco
 // File: src/routes/some/path/index.tsx
 import { component$ } from '@builder.io/qwik';
 import Heading from '../../../components/heading';
-import SubComponent from './_sub_component';
+import SubComponent from './sub_component';
 
 export default component$(() => {
   return (
@@ -77,7 +77,7 @@ export default component$(() => {
 ```
 
 ```typescript
-// File: src/routes/some/path/_sub_component.tsx
+// File: src/routes/some/path/sub_component.tsx
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {

@@ -249,12 +249,18 @@ h6 a:hover .icon {
   overflow: hidden;
 }
 
+.docs main.no-right-menu .on-this-page {
+  display: none;
+}
+
 @media (min-width: 1280px) {
   .docs main.no-right-menu .docs-container {
     margin-right: 6rem;
   }
 }
 
-.docs main.no-right-menu .on-this-page {
-  display: none;
+@media (max-width: 768px) {
+  .docs article h2 {
+    font-size: 1.2rem;
+  }
 }

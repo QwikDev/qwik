@@ -14,13 +14,16 @@ export interface QContextEvents {
   [eventName: string]: QRL | undefined;
 }
 
+export const HOST_FLAG_DIRTY = 1 << 0;
+export const HOST_FLAG_NEED_ATTACH_LISTENER = 1 << 1;
+export const HOST_FLAG_MOUNTED = 1 << 2;
+export const HOST_FLAG_DYNAMIC = 1 << 3;
+
 export interface QContext {
   $element$: QwikElement;
   $refMap$: any[];
-  $dirty$: boolean;
-  $needAttachListeners$: boolean;
+  $flags$: number;
   $id$: string;
-  $mounted$: boolean;
   $props$: Record<string, any> | null;
   $componentQrl$: QRLInternal<OnRenderFn<any>> | null;
   li: Listener[];
@@ -42,9 +45,7 @@ export const getContext = (element: Element | VirtualElement): QContext => {
   let ctx = tryGetContext(element)!;
   if (!ctx) {
     (element as any)[Q_CTX] = ctx = {
-      $dirty$: false,
-      $mounted$: false,
-      $needAttachListeners$: false,
+      $flags$: 0,
       $id$: '',
       $element$: element,
       $refMap$: [],
@@ -76,7 +77,7 @@ export const cleanupContext = (elCtx: QContext, subsManager: SubscriptionManager
   elCtx.$componentQrl$ = null;
   elCtx.$seq$ = null;
   elCtx.$watches$ = null;
-  elCtx.$dirty$ = false;
+  elCtx.$flags$ = 0;
 
   (el as any)[Q_CTX] = undefined;
 };

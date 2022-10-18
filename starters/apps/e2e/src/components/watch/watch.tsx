@@ -91,44 +91,45 @@ export const GrandChild = component$((props: { state: State }) => {
   return <div id="debounced">Debounced: {props.state.debounced}</div>;
 });
 
-export const LinkPath = createContext<{value: string}>('link-path');
+export const LinkPath = createContext<{ value: string }>('link-path');
 
 export const Issue1766Root = component$(() => {
   const loc = useStore({
-    value: '/root'
+    value: '/root',
   });
 
   const final = useStore({
-    value: '/root'
+    value: '/root',
   });
   useContextProvider(LinkPath, loc);
 
-  useWatch$(({track}) => {
+  useWatch$(({ track }) => {
     const path = track(() => loc.value);
     final.value = path.toUpperCase();
   });
 
   return (
     <>
-      <Issue1766/>
-      <div>Loc: {final.value}</div>
+      <Issue1766 />
+      <div id="issue-1766-loc">Loc: {final.value}</div>
     </>
-  )
+  );
 });
 
 export const Issue1766 = component$(() => {
   const counter = useSignal(0);
+  const second = useSignal('---');
+
   useWatch$(async ({ track }) => {
     track(counter);
-
-    console.log('This should show in the console over and over.');
+    if (counter.value !== 0) {
+      second.value = 'watch ran';
+    }
   });
+
   return (
     <div>
-      <h1>Should this work?</h1>
-
-      <p>Check the browser console</p>
-
+      <p id="issue-1766">{second.value}</p>
       <Issue1766Child counter={counter} />
     </div>
   );
@@ -144,17 +145,19 @@ export const Issue1766Child = component$<Props>(({ counter }) => {
     <>
       {state.show ? (
         <>
-
           <button
+            id="show-btn-2"
             onClick$={() => {
               counter.value++;
             }}
           >
             Bump In Child Component (Doesn't work)
           </button>
-          <Link href='/page'/>
-      </>) : (
+          <Link href="/page" />
+        </>
+      ) : (
         <button
+          id="show-btn"
           onClick$={() => {
             state.show = true;
           }}
@@ -166,11 +169,16 @@ export const Issue1766Child = component$<Props>(({ counter }) => {
   );
 });
 
-export const Link = component$((props: {href: string}) => {
+export const Link = component$((props: { href: string }) => {
   const loc = useContext(LinkPath);
   return (
-    <button onClick$={() => {
-      loc.value = props.href;
-    }}>Navigate</button>
-  )
+    <button
+      id="link-navigate"
+      onClick$={() => {
+        loc.value = props.href;
+      }}
+    >
+      Navigate
+    </button>
+  );
 });

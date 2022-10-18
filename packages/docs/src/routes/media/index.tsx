@@ -30,6 +30,12 @@ export const MEDIA = mediaObj({
     youtube('🇪🇸 ¿Qué onda Qwik?', 'H7TL4SqcC3E'),
     youtube('Exploring Qwik, the Resumable Framework', 'gT5NWKZZPQM'),
     youtube('Building Qwik w/ Misko Hevery', 'lY6e7Hw4uVo'),
+    youtube(
+      'Qwik: A no hydration instant on personalized web applications by Misko Hevery',
+      'Zddw6qy5pf0'
+    ),
+    youtube('Why the world needs Qwik with Miško Hevery', 'IRw9efkn9UA'),
+    youtube('Exploring Qwik City w/ Adam Bradley & Manu Martínez-Almeida', 'IRw9efkn9UA'),
   ],
   podcasts: [
     youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc'),

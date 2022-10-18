@@ -1,0 +1,852 @@
+{
+  "service": {
+    "service": "aws",
+    "serviceObject": {
+      "name": "aws"
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs16.x",
+      "stage": "dev",
+      "region": "us-east-1",
+      "versionFunctions": true,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ServerlessDeploymentBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                  {
+                    "ServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "ServerlessDeploymentBucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+              "Bucket": {
+                "Ref": "ServerlessDeploymentBucket"
+              },
+              "PolicyDocument": {
+                "Statement": [
+                  {
+                    "Action": "s3:*",
+                    "Effect": "Deny",
+                    "Principal": "*",
+                    "Resource": [
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            },
+                            "/*"
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    "Condition": {
+                      "Bool": {
+                        "aws:SecureTransport": false
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "HelloLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/aws-dev-hello"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": ["lambda.amazonaws.com"]
+                    },
+                    "Action": ["sts:AssumeRole"]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": ["-", ["aws", "dev", "lambda"]]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": ["logs:CreateLogStream", "logs:CreateLogGroup"],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/aws-dev*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": ["logs:PutLogEvents"],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/aws-dev*:*:*"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "aws",
+                    "dev",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "HelloLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/aws/dev/1666112762331-2022-10-18T17:06:02.331Z/aws.zip"
+              },
+              "Handler": "handler.qwikApp",
+              "Runtime": "nodejs16.x",
+              "FunctionName": "aws-dev-hello",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Role": {
+                "Fn::GetAtt": ["IamRoleLambdaExecution", "Arn"]
+              }
+            },
+            "DependsOn": ["HelloLogGroup"]
+          },
+          "HelloLambdaVersiongiZhdqd0FdH1wd97D86R5Ue1lAtiLQEUoplWDZ9Qpc": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "HelloLambdaFunction"
+              },
+              "CodeSha256": "lRXKXME051fQ0EafZ6/cCHkMcslDbb2JIfZqcxNs5qA="
+            }
+          },
+          "HttpApi": {
+            "Type": "AWS::ApiGatewayV2::Api",
+            "Properties": {
+              "Name": "dev-aws",
+              "ProtocolType": "HTTP"
+            }
+          },
+          "HttpApiStage": {
+            "Type": "AWS::ApiGatewayV2::Stage",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "StageName": "$default",
+              "AutoDeploy": true,
+              "DefaultRouteSettings": {
+                "DetailedMetricsEnabled": false
+              }
+            }
+          },
+          "HelloLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": ["HelloLambdaFunction", "Arn"]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationHello": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"HelloLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0"
+            }
+          },
+          "HttpApiRouteDefault": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "$default",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationHello"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationHello"
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": {
+              "Ref": "ServerlessDeploymentBucket"
+            },
+            "Export": {
+              "Name": "sls-aws-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "HelloLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "HelloLambdaVersiongiZhdqd0FdH1wd97D86R5Ue1lAtiLQEUoplWDZ9Qpc"
+            },
+            "Export": {
+              "Name": "sls-aws-dev-HelloLambdaFunctionQualifiedArn"
+            }
+          },
+          "HttpApiId": {
+            "Description": "Id of the HTTP API",
+            "Value": {
+              "Ref": "HttpApi"
+            },
+            "Export": {
+              "Name": "sls-aws-dev-HttpApiId"
+            }
+          },
+          "HttpApiUrl": {
+            "Description": "URL of the HTTP API",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "HttpApi"
+                  },
+                  ".execute-api.",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ".",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  }
+                ]
+              ]
+            },
+            "Export": {
+              "Name": "sls-aws-dev-HttpApiUrl"
+            }
+          }
+        }
+      },
+      "coreCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ServerlessDeploymentBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                  {
+                    "ServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "ServerlessDeploymentBucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+              "Bucket": {
+                "Ref": "ServerlessDeploymentBucket"
+              },
+              "PolicyDocument": {
+                "Statement": [
+                  {
+                    "Action": "s3:*",
+                    "Effect": "Deny",
+                    "Principal": "*",
+                    "Resource": [
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            },
+                            "/*"
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    "Condition": {
+                      "Bool": {
+                        "aws:SecureTransport": false
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": {
+              "Ref": "ServerlessDeploymentBucket"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "plugins": [
+      "serverless-offline",
+      "serverless-plugin-qwik",
+      "serverless-plugin-common-excludes",
+      "serverless-plugin-include-dependencies"
+    ],
+    "pluginsData": {},
+    "functions": {
+      "hello": {
+        "handler": "handler.qwikApp",
+        "events": [
+          {
+            "httpApi": "*",
+            "resolvedMethod": "ANY"
+          }
+        ],
+        "name": "aws-dev-hello",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs16.x",
+        "vpc": {},
+        "versionLogicalId": "HelloLambdaVersiongiZhdqd0FdH1wd97D86R5Ue1lAtiLQEUoplWDZ9Qpc"
+      }
+    },
+    "configValidationMode": "warn",
+    "serviceFilename": "serverless.yml",
+    "initialServerlessConfig": {
+      "service": "aws",
+      "frameworkVersion": "3",
+      "provider": {
+        "$ref": "$[\"service\"][\"provider\"]"
+      },
+      "functions": {
+        "$ref": "$[\"service\"][\"functions\"]"
+      },
+      "package": {
+        "excludeDevDependencies": false,
+        "artifactsS3KeyDirname": "serverless/aws/dev/code-artifacts",
+        "patterns": [
+          "!node_modules/**",
+          "node_modules/@builder.io/qwik/server/**",
+          "node_modules/node-fetch/**",
+          "node_modules/data-uri-to-buffer/**",
+          "node_modules/fetch-blob/**",
+          "node_modules/formdata-polyfill/**",
+          "node_modules/node-domexception/**",
+          "node_modules/web-streams-polyfill/**",
+          "node_modules/@builder.io/qwik/jsx-runtime/**",
+          "node_modules/@builder.io/qwik/**",
+          "!.gitignore",
+          "!.gitconfig",
+          "!.editorconfig",
+          "!.eslintignore",
+          "!.eslintrc",
+          "!.npmrc",
+          "!.nycrc",
+          "!.npmignore",
+          "!*coveralls.yml",
+          "!.circleci/**",
+          "!*circle.yml",
+          "!*travis.yml",
+          "!.gitlab-ci.yml",
+          "!*.md",
+          "!*.apib",
+          "!.vscode/**",
+          "!package-lock.json",
+          "!.npm-upgrade.json",
+          "!sonar-project.properties",
+          "!sonar-coverage.info",
+          "!rollup.config.*",
+          "!yarn.lock",
+          "!coverage/**",
+          "!.nyc_output/**",
+          "!docs/**",
+          "!test/**",
+          "!tests/**",
+          "!CODEOWNERS",
+          "!node_modules/**/*.md",
+          "!node_modules/**/*.flow",
+          "!node_modules/**/*.patch",
+          "!node_modules/**/*.conf",
+          "!node_modules/**/*.markdown",
+          "!node_modules/**/*.coffee",
+          "!node_modules/**/jsdoc_conf.json",
+          "!node_modules/**/*Makefile",
+          "!node_modules/**/Dockerfile",
+          "!node_modules/**/*.txt",
+          "!node_modules/**/*.yml",
+          "!node_modules/**/*.xml",
+          "!node_modules/**/*.html",
+          "!node_modules/**/test/**",
+          "!node_modules/**/tests/**",
+          "!node_modules/**/examples/**",
+          "!node_modules/**/coverage/**",
+          "!node_modules/**/.nyc_output/**",
+          "!node_modules/**/bin/**",
+          "!node_modules/**/bower.json",
+          "!node_modules/**/karma.conf.js",
+          "!node_modules/**/Gruntfile.js",
+          "!node_modules/**/rollup.config.*",
+          "!node_modules/**/yarn.lock",
+          "!node_modules/**/sonar-project.properties",
+          "!node_modules/**/package-lock.json",
+          "!node_modules/**/*.d.ts",
+          "!node_modules/**/*.map",
+          "!node_modules/**/tsconfig.json",
+          "!node_modules/**/AUTHORS",
+          "!node_modules/**/CODEOWNERS",
+          "!node_modules/**/OWNERS",
+          "!node_modules/**/*.iml",
+          "!node_module/**/*.bash_completion.in",
+          "!node_modules/**/*.gif",
+          "!node_modules/**/*.png",
+          "!node_modules/**/*.jpg",
+          "!node_modules/**/*.jpeg",
+          "!node_modules/**/winston/scratch/**",
+          "!node_modules/**/sshpk/man/**",
+          "!node_modules/**/bluebird/js/browser/**",
+          "!node_modules/**/date-fns/docs.json",
+          "!node_modules/**/aws-xray-sdk-core/doc-src/**",
+          "!node_modules/**/aws-sdk/dist/**",
+          "!node_modules/**/aws-sdk/dist-tools/**",
+          "handler.js",
+          "node_modules/@vendia/serverless-express/LICENSE",
+          "node_modules/@vendia/serverless-express/package.json",
+          "node_modules/@vendia/serverless-express/src/configure.js",
+          "node_modules/@vendia/serverless-express/src/constants.js",
+          "node_modules/@vendia/serverless-express/src/current-invoke.js",
+          "node_modules/@vendia/serverless-express/src/event-sources/aws/alb.js",
+          "node_modules/@vendia/serverless-express/src/event-sources/aws/api-gateway-cognito.ts",
+          "node_modules/@vendia/serverless-express/src/event-sources/aws/api-gateway-v1.js",
+          "node_modules/@vendia/serverless-express/src/event-sources/aws/api-gateway-v2.js",
+          "node_modules/@vendia/serverless-express/src/event-sources/aws/appsync-resolver.ts",
+          "node_modules/@vendia/serverless-express/src/event-sources/aws/cognito-trigger.ts",
+          "node_modules/@vendia/serverless-express/src/event-sources/aws/dynamodb.js",
+          "node_modules/@vendia/serverless-express/src/event-sources/aws/eventbridge.js",
+          "node_modules/@vendia/serverless-express/src/event-sources/aws/kinesis.js",
+          "node_modules/@vendia/serverless-express/src/event-sources/aws/lambda-edge.js",
+          "node_modules/@vendia/serverless-express/src/event-sources/aws/sns.js",
+          "node_modules/@vendia/serverless-express/src/event-sources/aws/sqs.js",
+          "node_modules/@vendia/serverless-express/src/event-sources/aws/stepfunction-lambda.ts",
+          "node_modules/@vendia/serverless-express/src/event-sources/azure/http-function-runtime-v3.js",
+          "node_modules/@vendia/serverless-express/src/event-sources/azure/http-function-runtime-v4.js",
+          "node_modules/@vendia/serverless-express/src/event-sources/index.js",
+          "node_modules/@vendia/serverless-express/src/event-sources/utils.js",
+          "node_modules/@vendia/serverless-express/src/frameworks/express.js",
+          "node_modules/@vendia/serverless-express/src/frameworks/hapi.js",
+          "node_modules/@vendia/serverless-express/src/frameworks/index.js",
+          "node_modules/@vendia/serverless-express/src/frameworks/koa.js",
+          "node_modules/@vendia/serverless-express/src/index.js",
+          "node_modules/@vendia/serverless-express/src/is-binary.js",
+          "node_modules/@vendia/serverless-express/src/logger.js",
+          "node_modules/@vendia/serverless-express/src/make-resolver.js",
+          "node_modules/@vendia/serverless-express/src/middleware.js",
+          "node_modules/@vendia/serverless-express/src/request.js",
+          "node_modules/@vendia/serverless-express/src/response.js",
+          "node_modules/@vendia/serverless-express/src/transport.js",
+          "node_modules/express/index.js",
+          "node_modules/express/lib/application.js",
+          "node_modules/express/lib/express.js",
+          "node_modules/express/lib/middleware/init.js",
+          "node_modules/express/lib/middleware/query.js",
+          "node_modules/express/lib/request.js",
+          "node_modules/express/lib/response.js",
+          "node_modules/express/lib/router/index.js",
+          "node_modules/express/lib/router/layer.js",
+          "node_modules/express/lib/router/route.js",
+          "node_modules/express/lib/utils.js",
+          "node_modules/express/lib/view.js",
+          "node_modules/express/LICENSE",
+          "node_modules/express/package.json",
+          "node_modules/vary/index.js",
+          "node_modules/vary/LICENSE",
+          "node_modules/vary/package.json",
+          "node_modules/utils-merge/index.js",
+          "node_modules/utils-merge/LICENSE",
+          "node_modules/utils-merge/package.json",
+          "node_modules/type-is/index.js",
+          "node_modules/type-is/LICENSE",
+          "node_modules/type-is/package.json",
+          "node_modules/mime-types/index.js",
+          "node_modules/mime-types/LICENSE",
+          "node_modules/mime-types/package.json",
+          "node_modules/mime-db/db.json",
+          "node_modules/mime-db/index.js",
+          "node_modules/mime-db/LICENSE",
+          "node_modules/mime-db/package.json",
+          "node_modules/media-typer/index.js",
+          "node_modules/media-typer/LICENSE",
+          "node_modules/media-typer/package.json",
+          "node_modules/statuses/codes.json",
+          "node_modules/statuses/index.js",
+          "node_modules/statuses/LICENSE",
+          "node_modules/statuses/package.json",
+          "node_modules/setprototypeof/index.js",
+          "node_modules/setprototypeof/LICENSE",
+          "node_modules/setprototypeof/package.json",
+          "node_modules/serve-static/index.js",
+          "node_modules/serve-static/LICENSE",
+          "node_modules/serve-static/package.json",
+          "node_modules/send/index.js",
+          "node_modules/send/LICENSE",
+          "node_modules/send/package.json",
+          "node_modules/range-parser/index.js",
+          "node_modules/range-parser/LICENSE",
+          "node_modules/range-parser/package.json",
+          "node_modules/on-finished/index.js",
+          "node_modules/on-finished/LICENSE",
+          "node_modules/on-finished/package.json",
+          "node_modules/ee-first/index.js",
+          "node_modules/ee-first/LICENSE",
+          "node_modules/ee-first/package.json",
+          "node_modules/send/node_modules/ms/index.js",
+          "node_modules/send/node_modules/ms/package.json",
+          "node_modules/mime/cli.js",
+          "node_modules/mime/LICENSE",
+          "node_modules/mime/mime.js",
+          "node_modules/mime/package.json",
+          "node_modules/mime/src/build.js",
+          "node_modules/mime/src/test.js",
+          "node_modules/mime/types.json",
+          "node_modules/http-errors/index.js",
+          "node_modules/http-errors/LICENSE",
+          "node_modules/http-errors/package.json",
+          "node_modules/toidentifier/index.js",
+          "node_modules/toidentifier/LICENSE",
+          "node_modules/toidentifier/package.json",
+          "node_modules/inherits/inherits_browser.js",
+          "node_modules/inherits/inherits.js",
+          "node_modules/inherits/LICENSE",
+          "node_modules/inherits/package.json",
+          "node_modules/depd/index.js",
+          "node_modules/depd/lib/browser/index.js",
+          "node_modules/depd/lib/compat/callsite-tostring.js",
+          "node_modules/depd/lib/compat/event-listener-count.js",
+          "node_modules/depd/lib/compat/index.js",
+          "node_modules/depd/LICENSE",
+          "node_modules/depd/package.json",
+          "node_modules/fresh/index.js",
+          "node_modules/fresh/LICENSE",
+          "node_modules/fresh/package.json",
+          "node_modules/etag/index.js",
+          "node_modules/etag/LICENSE",
+          "node_modules/etag/package.json",
+          "node_modules/escape-html/index.js",
+          "node_modules/escape-html/LICENSE",
+          "node_modules/escape-html/package.json",
+          "node_modules/encodeurl/index.js",
+          "node_modules/encodeurl/LICENSE",
+          "node_modules/encodeurl/package.json",
+          "node_modules/destroy/index.js",
+          "node_modules/destroy/LICENSE",
+          "node_modules/destroy/package.json",
+          "node_modules/send/node_modules/debug/component.json",
+          "node_modules/send/node_modules/debug/LICENSE",
+          "node_modules/send/node_modules/debug/node.js",
+          "node_modules/send/node_modules/debug/package.json",
+          "node_modules/send/node_modules/debug/src/browser.js",
+          "node_modules/send/node_modules/debug/src/debug.js",
+          "node_modules/send/node_modules/debug/src/index.js",
+          "node_modules/send/node_modules/debug/src/inspector-log.js",
+          "node_modules/send/node_modules/debug/src/node.js",
+          "node_modules/send/node_modules/debug/node_modules/ms/index.js",
+          "node_modules/send/node_modules/debug/node_modules/ms/package.json",
+          "node_modules/parseurl/index.js",
+          "node_modules/parseurl/LICENSE",
+          "node_modules/parseurl/package.json",
+          "node_modules/safe-buffer/index.js",
+          "node_modules/safe-buffer/LICENSE",
+          "node_modules/safe-buffer/package.json",
+          "node_modules/qs/dist/qs.js",
+          "node_modules/qs/lib/formats.js",
+          "node_modules/qs/lib/index.js",
+          "node_modules/qs/lib/parse.js",
+          "node_modules/qs/lib/stringify.js",
+          "node_modules/qs/lib/utils.js",
+          "node_modules/qs/package.json",
+          "node_modules/proxy-addr/index.js",
+          "node_modules/proxy-addr/LICENSE",
+          "node_modules/proxy-addr/package.json",
+          "node_modules/ipaddr.js/ipaddr.min.js",
+          "node_modules/ipaddr.js/lib/ipaddr.js",
+          "node_modules/ipaddr.js/LICENSE",
+          "node_modules/ipaddr.js/package.json",
+          "node_modules/forwarded/index.js",
+          "node_modules/forwarded/LICENSE",
+          "node_modules/forwarded/package.json",
+          "node_modules/path-to-regexp/index.js",
+          "node_modules/path-to-regexp/LICENSE",
+          "node_modules/path-to-regexp/package.json",
+          "node_modules/methods/index.js",
+          "node_modules/methods/LICENSE",
+          "node_modules/methods/package.json",
+          "node_modules/merge-descriptors/index.js",
+          "node_modules/merge-descriptors/LICENSE",
+          "node_modules/merge-descriptors/package.json",
+          "node_modules/finalhandler/index.js",
+          "node_modules/finalhandler/LICENSE",
+          "node_modules/finalhandler/package.json",
+          "node_modules/unpipe/index.js",
+          "node_modules/unpipe/LICENSE",
+          "node_modules/unpipe/package.json",
+          "node_modules/finalhandler/node_modules/debug/component.json",
+          "node_modules/finalhandler/node_modules/debug/LICENSE",
+          "node_modules/finalhandler/node_modules/debug/node.js",
+          "node_modules/finalhandler/node_modules/debug/package.json",
+          "node_modules/finalhandler/node_modules/debug/src/browser.js",
+          "node_modules/finalhandler/node_modules/debug/src/debug.js",
+          "node_modules/finalhandler/node_modules/debug/src/index.js",
+          "node_modules/finalhandler/node_modules/debug/src/inspector-log.js",
+          "node_modules/finalhandler/node_modules/debug/src/node.js",
+          "node_modules/finalhandler/node_modules/ms/index.js",
+          "node_modules/finalhandler/node_modules/ms/package.json",
+          "node_modules/express/node_modules/debug/component.json",
+          "node_modules/express/node_modules/debug/LICENSE",
+          "node_modules/express/node_modules/debug/node.js",
+          "node_modules/express/node_modules/debug/package.json",
+          "node_modules/express/node_modules/debug/src/browser.js",
+          "node_modules/express/node_modules/debug/src/debug.js",
+          "node_modules/express/node_modules/debug/src/index.js",
+          "node_modules/express/node_modules/debug/src/inspector-log.js",
+          "node_modules/express/node_modules/debug/src/node.js",
+          "node_modules/express/node_modules/ms/index.js",
+          "node_modules/express/node_modules/ms/package.json",
+          "node_modules/cookie-signature/index.js",
+          "node_modules/cookie-signature/package.json",
+          "node_modules/cookie/index.js",
+          "node_modules/cookie/LICENSE",
+          "node_modules/cookie/package.json",
+          "node_modules/content-type/index.js",
+          "node_modules/content-type/LICENSE",
+          "node_modules/content-type/package.json",
+          "node_modules/content-disposition/index.js",
+          "node_modules/content-disposition/LICENSE",
+          "node_modules/content-disposition/package.json",
+          "node_modules/body-parser/index.js",
+          "node_modules/body-parser/lib/read.js",
+          "node_modules/body-parser/lib/types/json.js",
+          "node_modules/body-parser/lib/types/raw.js",
+          "node_modules/body-parser/lib/types/text.js",
+          "node_modules/body-parser/lib/types/urlencoded.js",
+          "node_modules/body-parser/LICENSE",
+          "node_modules/body-parser/package.json",
+          "node_modules/raw-body/index.js",
+          "node_modules/raw-body/LICENSE",
+          "node_modules/raw-body/package.json",
+          "node_modules/iconv-lite/encodings/dbcs-codec.js",
+          "node_modules/iconv-lite/encodings/dbcs-data.js",
+          "node_modules/iconv-lite/encodings/index.js",
+          "node_modules/iconv-lite/encodings/internal.js",
+          "node_modules/iconv-lite/encodings/sbcs-codec.js",
+          "node_modules/iconv-lite/encodings/sbcs-data-generated.js",
+          "node_modules/iconv-lite/encodings/sbcs-data.js",
+          "node_modules/iconv-lite/encodings/tables/big5-added.json",
+          "node_modules/iconv-lite/encodings/tables/cp936.json",
+          "node_modules/iconv-lite/encodings/tables/cp949.json",
+          "node_modules/iconv-lite/encodings/tables/cp950.json",
+          "node_modules/iconv-lite/encodings/tables/eucjp.json",
+          "node_modules/iconv-lite/encodings/tables/gb18030-ranges.json",
+          "node_modules/iconv-lite/encodings/tables/gbk-added.json",
+          "node_modules/iconv-lite/encodings/tables/shiftjis.json",
+          "node_modules/iconv-lite/encodings/utf16.js",
+          "node_modules/iconv-lite/encodings/utf7.js",
+          "node_modules/iconv-lite/lib/bom-handling.js",
+          "node_modules/iconv-lite/lib/extend-node.js",
+          "node_modules/iconv-lite/lib/index.js",
+          "node_modules/iconv-lite/lib/streams.js",
+          "node_modules/iconv-lite/LICENSE",
+          "node_modules/iconv-lite/package.json",
+          "node_modules/safer-buffer/dangerous.js",
+          "node_modules/safer-buffer/LICENSE",
+          "node_modules/safer-buffer/package.json",
+          "node_modules/safer-buffer/safer.js",
+          "node_modules/safer-buffer/tests.js",
+          "node_modules/bytes/index.js",
+          "node_modules/bytes/LICENSE",
+          "node_modules/bytes/package.json",
+          "node_modules/body-parser/node_modules/debug/component.json",
+          "node_modules/body-parser/node_modules/debug/LICENSE",
+          "node_modules/body-parser/node_modules/debug/node.js",
+          "node_modules/body-parser/node_modules/debug/package.json",
+          "node_modules/body-parser/node_modules/debug/src/browser.js",
+          "node_modules/body-parser/node_modules/debug/src/debug.js",
+          "node_modules/body-parser/node_modules/debug/src/index.js",
+          "node_modules/body-parser/node_modules/debug/src/inspector-log.js",
+          "node_modules/body-parser/node_modules/debug/src/node.js",
+          "node_modules/body-parser/node_modules/ms/index.js",
+          "node_modules/body-parser/node_modules/ms/package.json",
+          "node_modules/array-flatten/array-flatten.js",
+          "node_modules/array-flatten/LICENSE",
+          "node_modules/array-flatten/package.json",
+          "node_modules/accepts/index.js",
+          "node_modules/accepts/LICENSE",
+          "node_modules/accepts/package.json",
+          "node_modules/negotiator/index.js",
+          "node_modules/negotiator/lib/charset.js",
+          "node_modules/negotiator/lib/encoding.js",
+          "node_modules/negotiator/lib/language.js",
+          "node_modules/negotiator/lib/mediaType.js",
+          "node_modules/negotiator/LICENSE",
+          "node_modules/negotiator/package.json",
+          "node_modules/source-map-support/browser-source-map-support.js",
+          "node_modules/source-map-support/package.json",
+          "node_modules/source-map-support/register-hook-require.js",
+          "node_modules/source-map-support/register.js",
+          "node_modules/source-map-support/source-map-support.js",
+          "node_modules/source-map-support/node_modules/source-map/dist/source-map.debug.js",
+          "node_modules/source-map-support/node_modules/source-map/dist/source-map.js",
+          "node_modules/source-map-support/node_modules/source-map/dist/source-map.min.js",
+          "node_modules/source-map-support/node_modules/source-map/lib/array-set.js",
+          "node_modules/source-map-support/node_modules/source-map/lib/base64-vlq.js",
+          "node_modules/source-map-support/node_modules/source-map/lib/base64.js",
+          "node_modules/source-map-support/node_modules/source-map/lib/binary-search.js",
+          "node_modules/source-map-support/node_modules/source-map/lib/mapping-list.js",
+          "node_modules/source-map-support/node_modules/source-map/lib/quick-sort.js",
+          "node_modules/source-map-support/node_modules/source-map/lib/source-map-consumer.js",
+          "node_modules/source-map-support/node_modules/source-map/lib/source-map-generator.js",
+          "node_modules/source-map-support/node_modules/source-map/lib/source-node.js",
+          "node_modules/source-map-support/node_modules/source-map/lib/util.js",
+          "node_modules/source-map-support/node_modules/source-map/LICENSE",
+          "node_modules/source-map-support/node_modules/source-map/package.json",
+          "node_modules/source-map-support/node_modules/source-map/source-map.js",
+          "node_modules/buffer-from/index.js",
+          "node_modules/buffer-from/LICENSE",
+          "node_modules/buffer-from/package.json"
+        ],
+        "artifact": "/home/ljmendez/Projects/qwik-raw/qwik-lambda/.serverless/aws.zip",
+        "artifactDirectoryName": "serverless/aws/dev/1666112762331-2022-10-18T17:06:02.331Z"
+      },
+      "plugins": {
+        "$ref": "$[\"service\"][\"plugins\"]"
+      }
+    },
+    "layers": {},
+    "isDashboardMonitoringPreconfigured": false,
+    "artifact": "/home/ljmendez/Projects/qwik-raw/qwik-lambda/.serverless/aws.zip"
+  },
+  "package": {
+    "artifactDirectoryName": "serverless/aws/dev/1666112762331-2022-10-18T17:06:02.331Z",
+    "artifact": "aws.zip"
+  }
+}

@@ -1,22 +1,23 @@
-import type { StaticGeneratorOptions } from '../types';
-import { generate as coreGenerate } from '../core';
+import type { PlatformStaticGenerateOptions } from '../types';
 import { createSystem } from './node-system';
-import { isMainThread } from 'worker_threads';
+import { isMainThread, workerData } from 'worker_threads';
+import { mainThread } from '../main-thread';
+import { workerThread } from '../worker-thread';
 
-export async function generate(opts: StaticGeneratorOptions) {
-  try {
+export async function generate(opts: PlatformStaticGenerateOptions) {
+  if (isMainThread) {
     const sys = await createSystem(opts);
-    await coreGenerate(sys);
-  } catch (e) {
-    console.error(e);
-    process.exit(1);
+    const result = await mainThread(sys);
+    return result;
   }
+
+  throw new Error(`generate() cannot be called from a worker thread`);
 }
 
 (async () => {
-  if (!isMainThread) {
-    // await generate(workerData);
+  if (!isMainThread && workerData) {
+    // self initializing worker thread with workerData
+    const sys = await createSystem(workerData);
+    await workerThread(sys);
   }
 })();
-
-export { createSystem };

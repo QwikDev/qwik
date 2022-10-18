@@ -30,7 +30,8 @@
       "import": "./lib/static/index.mjs"
     },
     "./static/node": {
-      "import": "./lib/static/node.mjs"
+      "import": "./lib/static/node.mjs",
+      "require": "./lib/static/index.cjs"
     },
     "./vite": {
       "import": "./lib/vite/index.mjs",

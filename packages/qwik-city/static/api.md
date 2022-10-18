@@ -8,9 +8,10 @@ import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 
 // Warning: (ae-forgotten-export) The symbol "StaticGeneratorOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "StaticGeneratorResult" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export function generate(opts: StaticGeneratorOptions): Promise<void>;
+export function generate(opts: StaticGeneratorOptions): Promise<StaticGeneratorResult>;
 
 // (No @packageDocumentation comment for this package)
 

@@ -123,9 +123,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           // from --ssr flag user config
           // entry.server.ts (express/cloudflare/netlify)
           pluginOpts.input = viteConfig.build.ssr;
-        } else {
+        } else if (qwikViteOpts.ssr?.input === 'string') {
           // entry.ssr.tsx input (exports render())
-          pluginOpts.input = qwikViteOpts.ssr?.input;
+          pluginOpts.input = qwikViteOpts.ssr.input;
         }
 
         pluginOpts.outDir = qwikViteOpts.ssr?.outDir;

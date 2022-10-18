@@ -1,17 +1,8 @@
-import type { StaticGeneratorOptions } from '../types';
-import { generate as coreGenerate } from '../core';
-import { createSystem } from './deno-system';
+import type { PlatformStaticGenerateOptions } from '../types';
 
-export async function generate(opts: StaticGeneratorOptions) {
-  try {
-    const sys = await createSystem(opts);
-    await coreGenerate(sys as any);
-  } catch (e) {
-    console.error(e);
-    Deno.exit(1);
-  }
+export async function generate(_opts: PlatformStaticGenerateOptions) {
+  console.error(`Deno not implemented`);
+  Deno.exit(1);
 }
-
-export { createSystem };
 
 declare const Deno: any;

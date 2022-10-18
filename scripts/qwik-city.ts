@@ -58,6 +58,7 @@ export async function buildQwikCity(config: BuildConfig) {
       },
       './static': {
         import: './static/index.mjs',
+        require: './static/index.cjs',
       },
       './static/node': {
         import: './static/node.mjs',
@@ -208,7 +209,7 @@ async function buildAdaptorCloudflarePagesVite(
 ) {
   const entryPoints = [join(inputDir, 'adaptors', 'cloudflare-pages', 'vite', 'index.ts')];
 
-  const external = ['vite', 'fs', 'path'];
+  const external = ['vite', 'fs', 'path', '@builder.io/qwik-city/static'];
 
   await build({
     entryPoints,
@@ -314,6 +315,16 @@ async function buildStatic(config: BuildConfig, inputDir: string, outputDir: str
     format: 'esm',
     watch: watcher(config),
   });
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'static', 'index.cjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'cjs',
+    watch: watcher(config),
+  });
 }
 
 async function buildStaticDeno(config: BuildConfig, inputDir: string, outputDir: string) {
@@ -332,7 +343,7 @@ async function buildStaticDeno(config: BuildConfig, inputDir: string, outputDir:
 async function buildStaticNode(config: BuildConfig, inputDir: string, outputDir: string) {
   const entryPoints = [join(inputDir, 'static', 'node', 'index.ts')];
 
-  const external = ['fs', 'os', 'path', 'url', 'node-fetch'];
+  const external = ['fs', 'node-fetch', 'os', 'path', 'url', 'worker_threads'];
 
   await build({
     entryPoints,
@@ -341,6 +352,17 @@ async function buildStaticNode(config: BuildConfig, inputDir: string, outputDir:
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
+    external,
+    watch: watcher(config),
+  });
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'static', 'node.cjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'cjs',
     external,
     watch: watcher(config),
   });

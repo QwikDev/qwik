@@ -5,7 +5,7 @@
   "homepage": "https://qwik.builder.io/",
   "main": "src/main.tsx",
   "scripts": {
-    "build": "yarn build.client && yarn build.server && yarn ssg",
+    "build": "yarn build.client && yarn build.server",
     "build.client": "vite build",
     "build.server": "vite build -c adaptors/cloudflare-pages/vite.config.ts",
     "contributors": "tsm contributors.ts",
@@ -15,7 +15,6 @@
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "preview": "qwik build preview && vite preview --open",
-    "ssg": "node server/ssg.js",
     "serve": "wrangler pages dev ./dist",
     "start": "yarn dev.ssr"
   },

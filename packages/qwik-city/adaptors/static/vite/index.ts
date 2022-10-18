@@ -1,21 +1,17 @@
 import type { Plugin } from 'vite';
 import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
-import {
-  generate,
-  StaticGenerateOptions,
-  StaticGenerateRenderOptions,
-} from '@builder.io/qwik-city/static';
+import { generate, StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 import { join } from 'path';
 import fs from 'fs';
 
 /**
  * @alpha
  */
-export function cloudflarePages(opts: CloudflarePagesAdaptorOptions = {}): Plugin {
+export function staticGenerate(opts: StaticGenerateAdaptorOptions): Plugin {
   let qwikVitePlugin: QwikVitePlugin | null = null;
   let serverOutDir: string | null = null;
-  let renderModulePath: string | null = null;
-  let qwikCityPlanModulePath: string | null = null;
+  let ssrOutputPath: string | null = null;
+  let qwikCityPlanOutputPath: string | null = null;
 
   async function generateBundles() {
     const qwikVitePluginApi = qwikVitePlugin!.api;
@@ -25,27 +21,16 @@ export function cloudflarePages(opts: CloudflarePagesAdaptorOptions = {}): Plugi
     const serverPackageJsonCode = `{"type":"module"}`;
     await fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode);
 
-    if (opts.staticGenerate) {
-      let generateOpts: StaticGenerateOptions = {
-        outDir: clientOutDir,
-        origin: process?.env?.CF_PAGES_URL || 'https://your.cloudflare.pages.dev',
-        renderModulePath: renderModulePath!,
-        qwikCityPlanModulePath: qwikCityPlanModulePath!,
-      };
-
-      if (typeof opts.staticGenerate === 'object') {
-        generateOpts = {
-          ...generateOpts,
-          ...opts.staticGenerate,
-        };
-      }
-
-      await generate(generateOpts);
-    }
+    await generate({
+      renderModulePath: ssrOutputPath!,
+      qwikCityPlanModulePath: qwikCityPlanOutputPath!,
+      outDir: clientOutDir,
+      ...opts,
+    });
   }
 
   return {
-    name: 'vite-plugin-cloudflare-pages',
+    name: 'vite-plugin-static-generate',
     enforce: 'post',
     apply: 'build',
 
@@ -74,19 +59,19 @@ export function cloudflarePages(opts: CloudflarePagesAdaptorOptions = {}): Plugi
         const chunk = bundles[fileName];
         if (chunk.type === 'chunk' && chunk.isEntry) {
           if (chunk.name === 'entry.ssr') {
-            renderModulePath = join(serverOutDir!, fileName);
+            ssrOutputPath = join(serverOutDir!, fileName);
           } else if (chunk.name === '@qwik-city-plan') {
-            qwikCityPlanModulePath = join(serverOutDir!, fileName);
+            qwikCityPlanOutputPath = join(serverOutDir!, fileName);
           }
         }
       }
 
-      if (!renderModulePath) {
+      if (!ssrOutputPath) {
         throw new Error(
           'Unable to fine "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?'
         );
       }
-      if (!qwikCityPlanModulePath) {
+      if (!qwikCityPlanOutputPath) {
         throw new Error(
           'Unable to fine "@qwik-city-plan" entry point. Did you forget to add it to "build.rollupOptions.input"?'
         );
@@ -99,6 +84,4 @@ export function cloudflarePages(opts: CloudflarePagesAdaptorOptions = {}): Plugi
   };
 }
 
-export interface CloudflarePagesAdaptorOptions {
-  staticGenerate?: StaticGenerateRenderOptions | true;
-}
+export interface StaticGenerateAdaptorOptions extends Omit<StaticGenerateRenderOptions, 'outDir'> {}

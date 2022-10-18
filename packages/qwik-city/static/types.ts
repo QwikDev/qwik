@@ -1,5 +1,6 @@
 import type { StreamWriter } from '@builder.io/qwik';
 import type { RouteParams } from '../runtime/src';
+import type { RenderOptions } from '../../qwik/src/server';
 import type { QwikCityHandlerOptions } from '../middleware/request-handler/types';
 
 export interface System {
@@ -8,8 +9,7 @@ export interface System {
     onMessage: (msg: WorkerInputMessage) => Promise<WorkerOutputMessage>
   ) => void;
   createLogger: () => Promise<Logger>;
-  getOptions: () => StaticGeneratorOptions;
-  isMainThread: () => boolean;
+  getOptions: () => StaticGenerateOptions;
   ensureDir: (filePath: string) => Promise<void>;
   createWriteStream: (filePath: string) => StaticStreamWriter;
   createTimer: () => () => number;
@@ -34,8 +34,10 @@ export interface Logger {
   debug: (...msgs: any[]) => void;
 }
 
-export interface StaticGeneratorOptions extends QwikCityHandlerOptions {
-  currentFile: string;
+/**
+ * @alpha
+ */
+export interface StaticGenerateRenderOptions extends RenderOptions {
   /**
    * File system directory where the static files should be written.
    */
@@ -87,6 +89,26 @@ export interface StaticGeneratorOptions extends QwikCityHandlerOptions {
   emitData?: boolean;
 }
 
+export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
+  /**
+   * Path to the SSR module exporting the default render function.
+   * In most cases it'll be `./src/entry.ssr.tsx`.
+   */
+  renderModulePath: string;
+  /**
+   * Path to the Qwik City Plan module exporting the default `@qwik-city-plan`.
+   */
+  qwikCityPlanModulePath: string;
+}
+
+export interface PlatformStaticGenerateOptions extends StaticGenerateOptions {
+  currentFile: string;
+}
+
+export interface StaticGenerateHandlerOptions
+  extends StaticGenerateRenderOptions,
+    QwikCityHandlerOptions {}
+
 export type WorkerInputMessage = StaticRenderInput | WorkerCloseMessage;
 
 export type WorkerOutputMessage = StaticWorkerRenderResult | WorkerCloseMessage;
@@ -112,7 +134,7 @@ export interface StaticWorkerRenderResult {
   error: string | null;
 }
 
-export interface StaticGeneratorResults {
+export interface StaticGenerateResult {
   duration: number;
   rendered: number;
   errors: number;

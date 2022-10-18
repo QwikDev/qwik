@@ -1,7 +1,7 @@
 import type {
   MainContext,
+  PlatformStaticGenerateOptions,
   StaticRoute,
-  StaticGeneratorOptions,
   StaticWorkerRenderResult,
   WorkerOutputMessage,
   WorkerInputMessage,
@@ -13,7 +13,7 @@ import { isAbsolute, resolve } from 'path';
 import { ensureDir } from './node-system';
 import { normalizePath } from '../../utils/fs';
 
-export async function createNodeMainProcess(opts: StaticGeneratorOptions) {
+export async function createNodeMainProcess(opts: PlatformStaticGenerateOptions) {
   const ssgWorkers: StaticGeneratorWorker[] = [];
   const sitemapBuffer: string[] = [];
   let sitemapPromise: Promise<any> | null = null;
@@ -56,7 +56,7 @@ export async function createNodeMainProcess(opts: StaticGeneratorOptions) {
       workerFilePath = new URL(workerFilePath);
     }
 
-    const nodeWorker = new Worker(workerFilePath);
+    const nodeWorker = new Worker(workerFilePath, { workerData: opts });
 
     const ssgWorker: StaticGeneratorWorker = {
       activeTasks: 0,

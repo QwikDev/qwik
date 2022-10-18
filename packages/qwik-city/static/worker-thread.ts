@@ -1,17 +1,23 @@
 import type {
-  StaticGeneratorOptions,
+  StaticGenerateHandlerOptions,
   StaticRoute,
   StaticWorkerRenderResult,
   System,
-} from '../types';
-import type { QwikCityRequestContext } from '../../middleware/request-handler/types';
-import type { RequestContext } from '../../runtime/src/library/types';
-import { createHeaders } from '../../middleware/request-handler/headers';
-import { requestHandler } from '../../middleware/request-handler';
+} from './types';
+import type { QwikCityRequestContext } from '../middleware/request-handler/types';
+import type { RequestContext } from '../runtime/src/library/types';
+import { createHeaders } from '../middleware/request-handler/headers';
+import { requestHandler } from '../middleware/request-handler';
 
 export async function workerThread(sys: System) {
-  const opts = sys.getOptions();
+  const ssgOpts = sys.getOptions();
   const pendingPromises = new Set<Promise<any>>();
+
+  const opts: StaticGenerateHandlerOptions = {
+    ...ssgOpts,
+    render: await import(ssgOpts.renderModulePath),
+    qwikCityPlan: await import(ssgOpts.qwikCityPlanModulePath),
+  };
 
   sys.createWorkerProcess(async (msg) => {
     switch (msg.type) {
@@ -32,7 +38,7 @@ export async function workerThread(sys: System) {
 
 async function workerRender(
   sys: System,
-  opts: StaticGeneratorOptions,
+  opts: StaticGenerateHandlerOptions,
   staticRoute: StaticRoute,
   pendingPromises: Set<Promise<any>>,
   callback: (result: StaticWorkerRenderResult) => void
@@ -49,19 +55,7 @@ async function workerRender(
   };
 
   try {
-    const requestHeaders = createHeaders();
-    requestHeaders.set('Accept', 'text/html,application/json');
-    requestHeaders.set('Host', url.host);
-    requestHeaders.set('User-Agent', 'Qwik City SSG');
-
-    const request: RequestContext = {
-      formData: async () => new URLSearchParams(),
-      headers: requestHeaders,
-      json: async () => {},
-      method: 'GET',
-      text: async () => '',
-      url: url.href,
-    };
+    const request = new SsgRequestContext(url);
 
     const requestCtx: QwikCityRequestContext<void> = {
       url,
@@ -131,10 +125,7 @@ async function workerRender(
       platform: sys.platform,
     };
 
-    const promise = requestHandler(requestCtx, {
-      ...opts,
-      ...staticRoute,
-    })
+    const promise = requestHandler(requestCtx, opts)
       .then((rsp) => {
         if (rsp == null) {
           callback(result);
@@ -172,5 +163,36 @@ async function workerRender(
       result.error = `Error`;
     }
     callback(result);
+  }
+}
+
+class SsgRequestContext implements RequestContext {
+  url: string;
+  headers: Headers;
+
+  constructor(url: URL) {
+    this.url = url.href;
+
+    const headers = createHeaders();
+    headers.set('Host', url.host);
+    headers.set('Accept', 'text/html,application/json');
+    headers.set('User-Agent', 'Qwik City SSG');
+    this.headers = headers;
+  }
+
+  get method() {
+    return 'GET';
+  }
+
+  async json() {
+    return {};
+  }
+
+  async text() {
+    return '';
+  }
+
+  async formData() {
+    return new URLSearchParams();
   }
 }

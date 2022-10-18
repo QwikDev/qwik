@@ -9,6 +9,9 @@ import { ConfigEnv } from 'vite';
 import { UserConfigExport } from 'vite';
 
 // @alpha (undocumented)
+export function extendConfig(baseConfigExport: UserConfigExport, serverConfigExport: UserConfigExport): (env: ConfigEnv) => Promise<Record<string, any>>;
+
+// @alpha (undocumented)
 export type MdxOptions = CompileOptions;
 
 // @alpha (undocumented)
@@ -31,9 +34,6 @@ export interface QwikCityVitePluginOptions extends PluginOptions {
     // (undocumented)
     mdx?: MdxOptions;
 }
-
-// @alpha (undocumented)
-export function serverConfig(baseConfigExport: UserConfigExport, serverConfigExport: UserConfigExport): (env: ConfigEnv) => Promise<Record<string, any>>;
 
 // (No @packageDocumentation comment for this package)
 

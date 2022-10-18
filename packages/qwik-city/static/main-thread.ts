@@ -1,7 +1,12 @@
-import type { PageModule, RouteParams } from '../../runtime/src/library/types';
-import type { StaticGeneratorOptions, StaticGeneratorResults, StaticRoute, System } from '../types';
-import { msToString } from '../../utils/format';
-import { getPathnameForDynamicRoute, normalizePathname } from '../../utils/pathname';
+import type { PageModule, QwikCityPlan, RouteParams } from '../runtime/src/library/types';
+import type {
+  StaticGenerateRenderOptions,
+  StaticGenerateResult,
+  StaticRoute,
+  System,
+} from './types';
+import { msToString } from '../utils/format';
+import { getPathnameForDynamicRoute, normalizePathname } from '../utils/pathname';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();
@@ -9,17 +14,18 @@ export async function mainThread(sys: System) {
 
   const main = await sys.createMainProcess();
   const log = await sys.createLogger();
+  const qwikCityPlan: QwikCityPlan = (await import(opts.qwikCityPlanModulePath)).default;
+
   const queue: StaticRoute[] = [];
   const active = new Set<string>();
-  const qwikCityPlan = opts.qwikCityPlan;
   const routes = qwikCityPlan.routes || [];
   const basePathname = qwikCityPlan.basePathname || '/';
   const trailingSlash = !!qwikCityPlan.trailingSlash;
 
-  return new Promise<StaticGeneratorResults>((resolve, reject) => {
+  return new Promise<StaticGenerateResult>((resolve, reject) => {
     try {
       const timer = sys.createTimer();
-      const generatorResults: StaticGeneratorResults = {
+      const generatorResult: StaticGenerateResult = {
         duration: 0,
         rendered: 0,
         errors: 0,
@@ -39,25 +45,25 @@ export async function mainThread(sys: System) {
         if (!isCompleted && isRoutesLoaded && queue.length === 0 && active.size === 0) {
           isCompleted = true;
 
-          generatorResults.duration = timer();
+          generatorResult.duration = timer();
 
-          if (generatorResults.rendered > 0) {
+          if (generatorResult.rendered > 0) {
             log.info(
-              `Generated: ${generatorResults.rendered} page${
-                generatorResults.rendered === 1 ? '' : 's'
+              `Generated: ${generatorResult.rendered} page${
+                generatorResult.rendered === 1 ? '' : 's'
               }`
             );
           }
 
-          if (generatorResults.errors > 0) {
-            log.info(`Errors: ${generatorResults.errors}`);
+          if (generatorResult.errors > 0) {
+            log.info(`Errors: ${generatorResult.errors}`);
           }
 
-          log.info(`Duration: ${msToString(generatorResults.duration)}`);
+          log.info(`Duration: ${msToString(generatorResult.duration)}`);
 
-          const total = generatorResults.rendered + generatorResults.errors;
+          const total = generatorResult.rendered + generatorResult.errors;
           if (total > 0) {
-            log.info(`Average: ${msToString(generatorResults.duration / total)} per page`);
+            log.info(`Average: ${msToString(generatorResult.duration / total)} per page`);
           }
 
           log.info(``);
@@ -65,7 +71,7 @@ export async function mainThread(sys: System) {
           main
             .close()
             .then(() => {
-              setTimeout(() => resolve(generatorResults));
+              setTimeout(() => resolve(generatorResult));
             })
             .catch(reject);
         }
@@ -92,9 +98,9 @@ export async function mainThread(sys: System) {
 
           if (result.error) {
             log.error(staticRoute.pathname, result.error);
-            generatorResults.errors++;
+            generatorResult.errors++;
           } else if (result.ok) {
-            generatorResults.rendered++;
+            generatorResult.rendered++;
           }
 
           flushQueue();
@@ -160,7 +166,7 @@ export async function mainThread(sys: System) {
   });
 }
 
-function validateOptions(opts: StaticGeneratorOptions) {
+function validateOptions(opts: StaticGenerateRenderOptions) {
   let siteOrigin = opts.origin;
   if (typeof siteOrigin !== 'string' || siteOrigin.trim().length === 0) {
     throw new Error(`Missing "origin" option`);

@@ -1,10 +1,18 @@
 import type { SearchClient } from 'algoliasearch/lite';
-import { component$, useStore, useStyles$, useRef } from '@builder.io/qwik';
+import {
+  component$,
+  useStore,
+  useStyles$,
+  useRef,
+  useContextBoundary,
+  useContext,
+} from '@builder.io/qwik';
 import type { DocSearchHit, InternalDocSearchHit, StoredDocSearchHit } from './types';
 import { ButtonTranslations, DocSearchButton } from './doc-search-button';
 import { DocSearchModal, ModalTranslations } from './doc-search-modal';
 import styles from './doc-search.css?inline';
 import type { StoredSearchPlugin } from './stored-searches';
+import { GlobalStore } from '../../context';
 
 export type DocSearchTranslations = Partial<{
   button: ButtonTranslations;
@@ -52,6 +60,8 @@ export function isEditingContent(event: KeyboardEvent): boolean {
 
 export const DocSearch = component$((props: DocSearchProps) => {
   useStyles$(styles);
+  useContextBoundary();
+
   const state = useStore<DocSearchState>({
     isOpen: false,
     initialQuery: '',

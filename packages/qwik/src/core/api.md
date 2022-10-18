@@ -636,6 +636,9 @@ export const useClientEffectQrl: (qrl: QRL<WatchFn>, opts?: UseEffectOptions) =>
 // @public
 export const useContext: UseContext;
 
+// @alpha (undocumented)
+export const useContextBoundary: () => void;
+
 // @public
 export const useContextProvider: <STATE extends object>(context: Context<STATE>, newValue: STATE) => void;
 

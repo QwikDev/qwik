@@ -577,6 +577,9 @@ export const collectElementData = (elCtx: QContext, collector: Collector, dynami
         for (const obj of parent.$contexts$.values()) {
           collectValue(obj, collector, dynamic);
         }
+        if (parent.$contexts$.get('_') === true) {
+          break;
+        }
       }
       parent = parent.$parent$;
     }

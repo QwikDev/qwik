@@ -35,6 +35,7 @@ export const MEDIA = mediaObj({
       'Zddw6qy5pf0'
     ),
     youtube('Why the world needs Qwik with Miško Hevery', 'IRw9efkn9UA'),
+    youtube('Exploring Qwik City w/ Adam Bradley & Manu Martínez-Almeida', 'IRw9efkn9UA'),
   ],
   podcasts: [
     youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc'),
@@ -42,7 +43,7 @@ export const MEDIA = mediaObj({
     youtube('Introducing Qwik w/ Misko Hevery & Shai Reznik', 'iJZaT-AvJ-o'),
     youtube('Resumable Apps in Qwik', 'LbMRs7l4czI'),
     youtube('Qwik: A no-hydration instant-on personalized web applications', '0tCuUQe_ZA0'),
-    youtube('QWIK - Set of great demos by Misko Hevery', '7MgNMIPISY4'),
+    youtube('QWIK - Set of great demos by Misko Hevery', 'XoeJisRJjlo'),
   ],
   presentations: [
     youtube(

@@ -376,7 +376,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               size: b.code.length,
             });
           } else {
-            if (fileName.endsWith('.css')) {
+            if (['.css', '.scss', '.sass'].some(ext => fileName.endsWith(ext))) {
               injections.push({
                 tag: 'link',
                 location: 'head',
@@ -497,7 +497,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     handleHotUpdate(ctx) {
       qwikPlugin.log('handleHotUpdate()', ctx);
 
-      if (ctx.file.endsWith('.css')) {
+      if (['.css', '.scss', '.sass'].some(ext => ctx.file.endsWith(ext))) {
         qwikPlugin.log('handleHotUpdate()', 'force css reload');
 
         ctx.server.ws.send({

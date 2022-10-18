@@ -1,12 +1,11 @@
 import {
   component$,
-  useContextBoundary,
   useContextProvider,
   useStore,
   useStyles$,
   _wrapSignal,
 } from '@builder.io/qwik';
-import { QwikCity, RouterOutlet, ServiceWorkerRegister, useLocation } from '@builder.io/qwik-city';
+import { QwikCity, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
 import { GlobalStore, SiteStore } from './context';

@@ -9,7 +9,7 @@ Use `useMount$()` to execute code when the component is mounted into the renderi
 
 ## Component Life Cycle and SSR
 
-Qwik is resumable. Resumability means that the application starts up on the server and then the application is transferred to the client. On the client, the application continues execution from where it left off. The implication of this is that a component may be created on the server and destroyed on the client. This means that the component's `useMount$()` method may execute on the server and but its `useCleanup$()` method may execute on the client.
+Qwik is resumable. Resumability means that the application starts up on the server and then the application is transferred to the client. On the client, the application continues execution from where it left off. The implication of this is that a component may be created on the server and destroyed on the client. This means that the component's `useMount$()` method may execute on the server but its `useCleanup$()` method may execute on the client.
 
 ## Usage of `useMount$()`
 

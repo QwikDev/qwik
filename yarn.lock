@@ -311,12 +311,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/qwik@npm:0.10.0":
-  version: 0.10.0
-  resolution: "@builder.io/qwik@npm:0.10.0"
+"@builder.io/qwik@npm:0.11.0":
+  version: 0.11.0
+  resolution: "@builder.io/qwik@npm:0.11.0"
   bin:
     qwik: qwik.cjs
-  checksum: 4e3bbe8b6a2023b211233c242fc8371148c4e64e4da5ef7c47eef6cdfacc9ef412a22f466d91d550f92829d51c3bca361c80c3e3f0fd75c6810db394350e35af
+  checksum: 6420c368f5fbb19e9719ba558f2aee852c6721596e578a3dea27119494f1052e19cccc0c400d3cfe182a9f8a63fa3bf0b0f7863a85db9f9bd2d7ed9552b0148a
   languageName: node
   linkType: hard
 
@@ -1459,15 +1459,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:1.27.0":
-  version: 1.27.0
-  resolution: "@playwright/test@npm:1.27.0"
+"@playwright/test@npm:1.27.1":
+  version: 1.27.1
+  resolution: "@playwright/test@npm:1.27.1"
   dependencies:
     "@types/node": "*"
-    playwright-core: 1.27.0
+    playwright-core: 1.27.1
   bin:
     playwright: cli.js
-  checksum: ee72ba5f00b0ebc344e2ea710f8c8c11b82f187bbce4f90918a93081b24c50ac18dc4b6f0b56509a06c17d9bf6a0e4482cf62d9021a6db05cd403b5bcc65e13f
+  checksum: 92f219a78c21da03c6599d92c313c914e73cc374306366130fb3bd4701555179394ec5a3000d9375ce59f5a03c00f20d1ddaae50c85583ce475e17795a622699
   languageName: node
   linkType: hard
 
@@ -7479,12 +7479,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.27.0":
-  version: 1.27.0
-  resolution: "playwright-core@npm:1.27.0"
+"playwright-core@npm:1.27.1":
+  version: 1.27.1
+  resolution: "playwright-core@npm:1.27.1"
   bin:
     playwright: cli.js
-  checksum: e45565af0c33c34ccf7b513d8e84eda5101f0e12d495e9e1c2bfe16b675ddcdd8f064c449a1bd908365f2f126c8d40cc14bf95976e881e2e1620cd239240ed23
+  checksum: fd65d3eb29978e0e7a755158625e8922a66ca9d599b7c24ddf920822b261d81c51a5964ef8e0e5ed9b2b12dc64541c5949b6a898d965e107f43261964e8c29a0
   languageName: node
   linkType: hard
 
@@ -7739,7 +7739,7 @@ __metadata:
     "@algolia/autocomplete-core": ^1.7.1
     "@algolia/client-search": ^4.14.2
     "@builder.io/partytown": ^0.7.1
-    "@builder.io/qwik": 0.10.0
+    "@builder.io/qwik": 0.11.0
     "@builder.io/qwik-city": 0.0.112
     "@builder.io/sdk-qwik": ^0.0.26
     "@cloudflare/kv-asset-handler": 0.2.0
@@ -7772,7 +7772,7 @@ __metadata:
     "@napi-rs/triples": 1.1.0
     "@node-rs/helper": 1.3.3
     "@octokit/action": 3.18.1
-    "@playwright/test": 1.27.0
+    "@playwright/test": 1.27.1
     "@types/brotli": ^1.3.1
     "@types/cross-spawn": 6.0.2
     "@types/eslint": 8.4.6

@@ -6,7 +6,9 @@ import {
   useSignal,
   useStore,
   useClientEffect$,
+  useWatch$,
 } from '@builder.io/qwik';
+import { delay } from '../resource/resource';
 
 export const Signals = component$(() => {
   const ref = useRef();
@@ -80,6 +82,8 @@ export const Signals = component$(() => {
         styles={styles.value}
       />
       <Issue1681 />
+      <Issue1733 />
+      <SideEffect />
     </div>
   );
 });
@@ -138,5 +142,33 @@ export const Issue1681 = component$(() => {
         <C who={'A'} count={signal.value} /> <C who={'B'} count={signal} />
       </span>
     </div>
+  );
+});
+
+export const Issue1733 = component$(() => {
+  const store = useStore({ open: false });
+  return (
+    <>
+      <button id="issue1733-btn" onClick$={() => (store.open = !store.open)}>
+        toggle
+      </button>
+      <p id="issue1733-signal">{store.open}</p>
+      <p id="issue1733-false">{false}</p>
+      <p id="issue1733-true">{true}</p>
+      {store.open && <h1 id="issue1733-h1">Message</h1>}
+    </>
+  );
+});
+
+export const SideEffect = component$(() => {
+  const signal = useSignal('initial');
+  useWatch$(async () => {
+    await delay(100);
+    signal.value = 'set';
+  });
+  return (
+    <>
+      <div>{signal.value}</div>
+    </>
   );
 });

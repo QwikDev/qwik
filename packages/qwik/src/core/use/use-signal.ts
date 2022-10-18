@@ -1,4 +1,4 @@
-import { createSignal, Signal } from '../object/q-object';
+import { createSignal, Signal } from '../state/signal';
 import { useSequentialScope } from './use-sequential-scope';
 
 /**

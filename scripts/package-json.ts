@@ -16,7 +16,6 @@ export async function generatePackageJson(config: BuildConfig) {
     description: rootPkg.description,
     license: rootPkg.license,
     main: './core.mjs',
-    module: './core.mjs',
     types: './core.d.ts',
     bin: {
       qwik: './qwik.cjs',
@@ -57,6 +56,7 @@ export async function generatePackageJson(config: BuildConfig) {
       './optimizer.mjs': './optimizer.mjs',
       './optimizer': {
         import: './optimizer.mjs',
+        require: './optimizer.cjs',
       },
       './server.cjs': './server.cjs',
       './server.mjs': './server.mjs',
@@ -109,7 +109,6 @@ export async function generateLegacyCjsSubmodule(
     name: `@builder.io/qwik/${pkgName}`,
     version: config.distVersion,
     main: `../${index}.mjs`,
-    module: `../${index}.mjs`,
     types: `../${index}.d.ts`,
     type: 'module',
     private: true,

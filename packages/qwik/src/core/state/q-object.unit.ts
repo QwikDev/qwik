@@ -1,8 +1,9 @@
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
-import { createSubscriptionManager, getContainerState } from '../render/container';
-
-import { getOrCreateProxy, QObjectRecursive, unwrapProxy } from './q-object';
+import { getContainerState } from '../container/container';
+import { createSubscriptionManager, unwrapProxy } from './common';
+import { QObjectRecursive } from './constants';
+import { getOrCreateProxy } from './store';
 
 const qObject = suite('q-object');
 const container = getContainerState({} as any);

@@ -4,8 +4,8 @@ import {
   QError_qrlMissingChunk,
   QError_qrlMissingContainer,
 } from '../error/error';
-import { verifySerializable } from '../object/q-object';
 import { getPlatform, isServer } from '../platform/platform';
+import { verifySerializable } from '../state/common';
 import {
   InvokeContext,
   newInvokeContext,

@@ -52,8 +52,8 @@ export const Editor = component$((props: EditorProps) => {
   });
 
   useWatch$(async ({ track }) => {
-    track(props.input, 'version');
-    track(store, 'editor');
+    track(() => props.input.version);
+    track(() => store.editor);
 
     if (props.input.version && store.editor) {
       await addQwikLibs(props.input.version);
@@ -61,10 +61,10 @@ export const Editor = component$((props: EditorProps) => {
   });
 
   useWatch$(async ({ track }) => {
-    track(store, 'editor');
-    track(props.input, 'version');
-    track(props.input, 'files');
-    track(props.store, 'selectedInputPath');
+    track(() => store.editor);
+    track(() => props.input.version);
+    track(() => props.input.files);
+    track(() => props.store.selectedInputPath);
 
     if (props.input.version && store.editor) {
       await updateMonacoEditor(props, store);

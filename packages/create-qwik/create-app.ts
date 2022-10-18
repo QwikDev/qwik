@@ -106,7 +106,11 @@ export async function createApp(opts: CreateAppOptions) {
     }
     const starterApp = starterApps.find((s) => s.id === opts.starterId);
     if (!starterApp) {
-      throw new Error(`Invalid starter id "${opts.starterId}"`);
+      throw new Error(
+        `Invalid starter id "${opts.starterId}". It can only be one of${starterApps.map(
+          (app) => ` "${app.id}"`
+        )}.`
+      );
     }
 
     await createFromStarter(result, baseApp, starterApp);

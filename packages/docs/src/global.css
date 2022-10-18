@@ -165,7 +165,7 @@ pre[class*='language-'] {
 @media (max-width: 768px) {
   :root {
     --panel-toggle-height: 56px;
-    --header-height: 70px;
+    --header-height: 80px;
   }
 }
 

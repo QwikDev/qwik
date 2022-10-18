@@ -19,7 +19,7 @@ type StartScreenProps = Pick<ScreenStateProps, 'state' | 'disableUserPersonaliza
   translations?: StartScreenTranslations;
 };
 
-export const StartScreen = component$(({ translations = {}, ...props }: StartScreenProps) => {
+export const StartScreen = component$((props: StartScreenProps) => {
   const {
     recentSearchesTitle = 'Recent',
     noRecentSearchesText = 'No recent searches',
@@ -27,7 +27,7 @@ export const StartScreen = component$(({ translations = {}, ...props }: StartScr
     removeRecentSearchButtonTitle = 'Remove this search from history',
     favoriteSearchesTitle = 'Favorite',
     removeFavoriteSearchButtonTitle = 'Remove this search from favorites',
-  } = translations;
+  } = props.translations ?? {};
   const context: any = useContext(SearchContext);
   const hasCollections = props.state.collections.some((collection) => collection.items.length > 0);
   if (props.state.status === 'idle' && hasCollections === false) {
@@ -56,7 +56,7 @@ export const StartScreen = component$(({ translations = {}, ...props }: StartScr
           {recentCollection &&
             recentCollection.items.map((item, index) => {
               return (
-                <Result state={props.state} item={mutable(item)}>
+                <Result state={props.state} item={item} key={item.objectID}>
                   <div q:slot="start-action" className="DocSearch-Hit-icon">
                     <RecentIcon />
                   </div>
@@ -64,7 +64,7 @@ export const StartScreen = component$(({ translations = {}, ...props }: StartScr
                     <button
                       className="DocSearch-Hit-action-button"
                       title={saveRecentSearchButtonTitle}
-                      type="submit"
+                      type="button"
                       preventdefault:click
                       onClick$={(event) => {
                         // @ts-ignore

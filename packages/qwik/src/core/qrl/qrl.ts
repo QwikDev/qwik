@@ -11,10 +11,10 @@ import {
 import { qRuntimeQrl, qSerialize } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
 import type { QwikElement } from '../render/dom/virtual-element';
-import type { QContext } from '../props/props';
-import { assertTrue } from '../assert/assert';
-import type { MustGetObjID } from '../object/store';
+import { assertDefined, assertTrue } from '../error/assert';
 import { assertElement } from '../util/element';
+import type { MustGetObjID } from '../container/container';
+import type { QContext } from '../state/context';
 
 // https://regexr.com/68v72
 const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
@@ -53,7 +53,8 @@ export interface QRLDev {
 export const qrl = <T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
-  lexicalScopeCapture: any[] = EMPTY_ARRAY
+  lexicalScopeCapture: any[] = EMPTY_ARRAY,
+  stackOffset = 0
 ): QRL<T> => {
   let chunk: string | null = null;
   let symbolFn: null | (() => Promise<Record<string, any>>) = null;
@@ -68,7 +69,7 @@ export const qrl = <T = any>(
         const ref = 'QWIK-SELF';
         const frames = new Error(ref).stack!.split('\n');
         const start = frames.findIndex((f) => f.includes(ref));
-        const frame = frames[start + 2];
+        const frame = frames[start + 2 + stackOffset];
         match = frame.match(EXTRACT_FILE_NAME);
         if (!match) {
           chunk = 'main';
@@ -118,7 +119,7 @@ export const qrlDEV = <T = any>(
   opts: QRLDev,
   lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> => {
-  const newQrl = qrl(chunkOrFn, symbol, lexicalScopeCapture) as QRLInternal<T>;
+  const newQrl = qrl(chunkOrFn, symbol, lexicalScopeCapture, 1) as QRLInternal<T>;
   newQrl.$dev$ = opts;
   return newQrl;
 };
@@ -241,4 +242,14 @@ const addToArray = (array: any[], obj: any) => {
     return array.length - 1;
   }
   return index;
+};
+
+export const inflateQrl = (qrl: QRLInternal, elCtx: QContext) => {
+  assertDefined(qrl.$capture$, 'invoke: qrl capture must be defined inside useLexicalScope()', qrl);
+  return (qrl.$captureRef$ = qrl.$capture$.map((idx) => {
+    const int = parseInt(idx, 10);
+    const obj = elCtx.$refMap$[int];
+    assertTrue(elCtx.$refMap$.length > int, 'out of bounds inflate access', idx);
+    return obj;
+  }));
 };

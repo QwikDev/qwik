@@ -1,4 +1,4 @@
-import { assertEqual, assertTrue } from '../../assert/assert';
+import { assertEqual, assertTrue } from '../../error/assert';
 import { isComment, isElement, isQwikElement, isVirtualElement } from '../../util/element';
 import { qSerialize, seal } from '../../util/qdev';
 import { directGetAttribute } from '../fast-calls';

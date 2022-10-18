@@ -1,7 +1,6 @@
 import {
   component$,
   useRef,
-  mutable,
   noSerialize,
   useContextProvider,
   useClientEffect$,
@@ -247,7 +246,7 @@ export const DocSearchModal = component$(
           <header class="DocSearch-SearchBar" ref={formElementRef}>
             <SearchBox
               state={state}
-              autoFocus={mutable(state.initialQuery?.length === 0)}
+              autoFocus={state.initialQuery?.length === 0}
               inputRef={inputRef as any}
               translations={searchBoxTranslations}
               onClose$={() => {
@@ -261,7 +260,7 @@ export const DocSearchModal = component$(
               state={state}
               disableUserPersonalization={disableUserPersonalization}
               inputRef={inputRef as any}
-              translations={mutable(screenStateTranslations)}
+              translations={screenStateTranslations}
             />
           </div>
 

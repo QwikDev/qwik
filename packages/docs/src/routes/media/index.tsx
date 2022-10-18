@@ -34,10 +34,7 @@ export const MEDIA = mediaObj({
       'Qwik: A no hydration instant on personalized web applications by Misko Hevery',
       'Zddw6qy5pf0'
     ),
-    youtube(
-      'Why the world needs Qwik with Miško Hevery',
-      'IRw9efkn9UA'
-    ),
+    youtube('Why the world needs Qwik with Miško Hevery', 'IRw9efkn9UA'),
   ],
   podcasts: [
     youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc'),

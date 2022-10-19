@@ -1,15 +1,21 @@
 import type { RequestContext } from '../../runtime/src/library/types';
 import { createHeaders } from './headers';
-import type { ResponseHandler } from './types';
+import type { QwikCityRequestContext, ResponseHandler } from './types';
 
-export function mockRequestContext(opts?: { method?: string; url?: string | URL }) {
+export function mockRequestContext(opts?: {
+  method?: string;
+  url?: string | URL;
+}): TestQwikCityRequestContext {
   const url = new URL(opts?.url || '/', 'https://qwik.builder.io');
 
   const request: RequestContext = {
     method: opts?.method || 'GET',
-    url,
+    url: url.href,
     headers: createHeaders(),
-  } as any;
+    formData: () => Promise.resolve(new URLSearchParams()),
+    json: () => Promise.resolve({}),
+    text: () => Promise.resolve(''),
+  };
 
   const responseData: { status: number; headers: Headers; body: Promise<string> } = {
     status: 200,
@@ -32,7 +38,15 @@ export function mockRequestContext(opts?: { method?: string; url?: string | URL 
     });
   };
 
-  return { url, request, response, responseData };
+  return { url, request, response, responseData, platform: { testing: true } };
+}
+
+export interface TestQwikCityRequestContext extends QwikCityRequestContext {
+  responseData: {
+    status: number;
+    headers: Headers;
+    body: any;
+  };
 }
 
 export async function wait() {

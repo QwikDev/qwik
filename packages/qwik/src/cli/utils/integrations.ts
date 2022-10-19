@@ -8,7 +8,7 @@ let integrations: IntegrationData[] | null = null;
 export async function loadIntegrations() {
   if (!integrations) {
     const loadingIntegrations: IntegrationData[] = [];
-    const integrationTypes: IntegrationType[] = ['app', 'feature', 'server', 'static-generator'];
+    const integrationTypes: IntegrationType[] = ['app', 'feature', 'adaptor'];
 
     const integrationsDir = join(__dirname, 'starters');
     const integrationsDirNames = await fs.promises.readdir(integrationsDir);
@@ -33,7 +33,6 @@ export async function loadIntegrations() {
                   dir: dirPath,
                   pkgJson,
                   priority: pkgJson?.__qwik__?.priority ?? 0,
-                  viteConfig: pkgJson?.__qwik__?.viteConfig,
                 };
                 loadingIntegrations.push(integration);
               }

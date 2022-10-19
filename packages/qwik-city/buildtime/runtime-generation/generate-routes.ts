@@ -1,9 +1,15 @@
+import type { QwikVitePlugin } from '../../../qwik/src/optimizer/src';
 import type { BuildContext, BuildRoute } from '../types';
 import { isModuleExt, isPageExt, removeExtension } from '../../utils/fs';
 import { getImportPath } from './utils';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 
-export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[]) {
+export function createRoutes(
+  ctx: BuildContext,
+  qwikPlugin: QwikVitePlugin,
+  c: string[],
+  esmImports: string[]
+) {
   const isSsr = ctx.target === 'ssr';
   const includeEndpoints = isSsr;
   const dynamicImports = ctx.target === 'client';
@@ -48,14 +54,19 @@ export function createRoutes(ctx: BuildContext, c: string[], esmImports: string[
     }
 
     if (loaders.length > 0) {
-      c.push(`  ${createRouteData(route, loaders, isSsr)},`);
+      c.push(`  ${createRouteData(qwikPlugin, route, loaders, isSsr)},`);
     }
   }
 
   c.push(`];`);
 }
 
-function createRouteData(r: BuildRoute, loaders: string[], isSsr: boolean) {
+function createRouteData(
+  qwikPlugin: QwikVitePlugin,
+  r: BuildRoute,
+  loaders: string[],
+  isSsr: boolean
+) {
   const pattern = r.pattern.toString();
   const moduleLoaders = `[ ${loaders.join(', ')} ]`;
 
@@ -65,7 +76,7 @@ function createRouteData(r: BuildRoute, loaders: string[], isSsr: boolean) {
     const paramNames =
       r.paramNames && r.paramNames.length > 0 ? JSON.stringify(r.paramNames) : `undefined`;
     const originalPathname = JSON.stringify(r.pathname);
-    const clientBundleNames = JSON.stringify(getClientRouteBundleNames(r));
+    const clientBundleNames = JSON.stringify(getClientRouteBundleNames(qwikPlugin, r));
 
     // SSR also adds the originalPathname and clientBundleNames to the RouteData
     return `[ ${pattern}, ${moduleLoaders}, ${paramNames}, ${originalPathname}, ${clientBundleNames} ]`;
@@ -81,11 +92,11 @@ function createRouteData(r: BuildRoute, loaders: string[], isSsr: boolean) {
   return `[ ${pattern}, ${moduleLoaders} ]`;
 }
 
-function getClientRouteBundleNames(r: BuildRoute) {
+function getClientRouteBundleNames(qwikPlugin: QwikVitePlugin, r: BuildRoute) {
   const bundlesNames: string[] = [];
 
-  // TODO: Better way to get QwikManifest
-  const manifest: QwikManifest = (globalThis as any).QWIK_MANIFEST;
+  // TODO: Remove globalThis that was previously used. Left in for backwards compatibility.
+  const manifest: QwikManifest = (globalThis as any).QWIK_MANIFEST || qwikPlugin.api.getManifest();
   if (manifest) {
     const manifestBundleNames = Object.keys(manifest.bundles);
 

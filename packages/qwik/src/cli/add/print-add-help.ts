@@ -5,8 +5,7 @@ import { pmRunCmd } from '../utils/utils';
 
 export async function printAddHelp() {
   const integrations = await loadIntegrations();
-  const servers = integrations.filter((i) => i.type === 'server');
-  const staticGenerators = integrations.filter((i) => i.type === 'static-generator');
+  const adaptors = integrations.filter((i) => i.type === 'adaptor');
   const features = integrations.filter((i) => i.type === 'feature');
   const pmRun = pmRunCmd();
 
@@ -14,14 +13,8 @@ export async function printAddHelp() {
   console.log(`${pmRun} qwik ${color.magenta(`add`)} [integration]`);
   console.log(``);
 
-  console.log(`  ${color.cyan('Servers')}`);
-  for (const s of servers) {
-    console.log(`    ${s.id}  ${color.dim(s.pkgJson.description)}`);
-  }
-  console.log(``);
-
-  console.log(`  ${color.cyan('Static Generator')}`);
-  for (const s of staticGenerators) {
+  console.log(`  ${color.cyan('Adaptors')}`);
+  for (const s of adaptors) {
     console.log(`    ${s.id}  ${color.dim(s.pkgJson.description)}`);
   }
   console.log(``);

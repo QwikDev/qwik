@@ -1,11 +1,17 @@
 import type { StreamWriter } from '@builder.io/qwik';
-import type { RenderOptions } from '@builder.io/qwik/server';
-import type { ClientPageData, RequestContext, RouteParams } from '../../runtime/src/library/types';
+import type { Render, RenderOptions } from '@builder.io/qwik/server';
+import type {
+  ClientPageData,
+  QwikCityPlan,
+  RequestContext,
+  RouteParams,
+} from '../../runtime/src/library/types';
 
 export interface QwikCityRequestContext<T = any> {
   request: RequestContext;
   response: ResponseHandler<T>;
   url: URL;
+  platform: Record<string, any>;
 }
 
 export interface QwikCityDevRequestContext extends QwikCityRequestContext {
@@ -34,4 +40,7 @@ export interface UserResponseContext {
   aborted: boolean;
 }
 
-export interface QwikCityRequestOptions extends RenderOptions {}
+export interface QwikCityHandlerOptions extends RenderOptions {
+  render: Render;
+  qwikCityPlan: QwikCityPlan;
+}

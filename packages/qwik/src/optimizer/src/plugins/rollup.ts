@@ -184,7 +184,6 @@ export function normalizeRollupOutputOptions(
 
   if (opts.target === 'ssr') {
     // ssr output
-    outputOpts.inlineDynamicImports = true;
     if (opts.buildMode === 'production') {
       if (!outputOpts.assetFileNames) {
         outputOpts.assetFileNames = 'build/q-[hash].[ext]';

@@ -1,14 +1,16 @@
 import type { Context } from '@netlify/edge-functions';
-import type { QwikCityRequestOptions, QwikCityRequestContext } from '../request-handler/types';
+import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-handler/types';
 import { notFoundHandler, requestHandler } from '../request-handler';
 import type { Render } from '@builder.io/qwik/server';
+import type { RenderOptions } from '@builder.io/qwik';
+import qwikCityPlan from '@qwik-city-plan';
 
 // @builder.io/qwik-city/middleware/netlify-edge
 
 /**
  * @alpha
  */
-export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions) {
+export function createQwikCity(opts: QwikCityNetlifyOptions) {
   async function onRequest(request: Request, context: Context) {
     try {
       const requestCtx: QwikCityRequestContext<Response> = {
@@ -43,6 +45,7 @@ export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions) {
             });
           });
         },
+        platform: context,
       };
 
       // check if the next middleware is able to handle this request
@@ -55,7 +58,7 @@ export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions) {
 
       // next middleware unable to handle request
       // send request to qwik city request handler
-      const handledResponse = await requestHandler<Response>(requestCtx, render, context, opts);
+      const handledResponse = await requestHandler<Response>(requestCtx, opts);
       if (handledResponse) {
         return handledResponse;
       }
@@ -65,6 +68,7 @@ export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions) {
       const notFoundResponse = await notFoundHandler<Response>(requestCtx);
       return notFoundResponse;
     } catch (e: any) {
+      console.error(e);
       return new Response(String(e || 'Error'), {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
@@ -78,9 +82,27 @@ export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions) {
 /**
  * @alpha
  */
-export interface QwikCityNetlifyOptions extends QwikCityRequestOptions {}
+export interface QwikCityNetlifyOptions extends QwikCityHandlerOptions {}
 
 /**
  * @alpha
  */
 export interface EventPluginContext extends Context {}
+
+/**
+ * @alpha
+ * @deprecated Please use `createQwikCity()` instead.
+ *
+ * Example:
+ *
+ * ```ts
+ * import { createQwikCity } from '@builder.io/qwik-city/middleware/netlify-edge';
+ * import qwikCityPlan from '@qwik-city-plan';
+ * import render from './entry.ssr';
+ *
+ * export default createQwikCity({ render, qwikCityPlan });
+ * ```
+ */
+export function qwikCity(render: Render, opts?: RenderOptions) {
+  return createQwikCity({ render, qwikCityPlan, ...opts });
+}

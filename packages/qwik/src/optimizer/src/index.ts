@@ -35,7 +35,7 @@ export type {
 } from './types';
 
 export type { QwikRollupPluginOptions } from './plugins/rollup';
-export type { QwikVitePluginOptions } from './plugins/vite';
+export type { QwikVitePluginOptions, QwikVitePluginApi, QwikVitePlugin } from './plugins/vite';
 export type { QwikBuildMode, QwikBuildTarget } from './plugins/plugin';
 
 export { qwikRollup } from './plugins/rollup';

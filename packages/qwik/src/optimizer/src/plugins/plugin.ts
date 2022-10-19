@@ -169,7 +169,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     if (Array.isArray(updatedOpts.input)) {
-      opts.input = updatedOpts.input;
+      opts.input = [...updatedOpts.input];
     } else if (typeof updatedOpts.input === 'string') {
       opts.input = [updatedOpts.input];
     } else {
@@ -184,9 +184,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         opts.input = [path.resolve(srcDir, 'index.ts')];
       }
     }
-    opts.input = opts.input.map((input) => {
-      return normalizePath(path.resolve(opts.rootDir, input));
-    });
+    opts.input = opts.input.reduce((inputs, i) => {
+      let input = i;
+      if (!i.startsWith('@') && !i.startsWith('~')) {
+        input = normalizePath(path.resolve(opts.rootDir, i));
+      }
+      if (!inputs.includes(input)) {
+        inputs.push(input);
+      }
+      return inputs;
+    }, [] as string[]);
 
     if (typeof updatedOpts.outDir === 'string') {
       opts.outDir = normalizePath(path.resolve(opts.rootDir, normalizePath(updatedOpts.outDir)));

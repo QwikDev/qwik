@@ -6,6 +6,10 @@
 
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
+import type { RenderOptions as RenderOptions_2 } from '@builder.io/qwik';
+
+// @alpha (undocumented)
+export function createQwikCity(opts: QwikCityCloudflarePagesOptions): ({ request, next, env, waitUntil }: EventPluginContext) => Promise<Response>;
 
 // @alpha (undocumented)
 export interface EventPluginContext {
@@ -19,13 +23,13 @@ export interface EventPluginContext {
     waitUntil: (promise: Promise<any>) => void;
 }
 
-// @alpha (undocumented)
-export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions): ({ request, next, env, waitUntil }: EventPluginContext) => Promise<Response>;
+// @alpha @deprecated (undocumented)
+export function qwikCity(render: Render, opts?: RenderOptions_2): ({ request, next, env, waitUntil }: EventPluginContext) => Promise<Response>;
 
-// Warning: (ae-forgotten-export) The symbol "QwikCityRequestOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "QwikCityHandlerOptions" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export interface QwikCityCloudflarePagesOptions extends QwikCityRequestOptions {
+export interface QwikCityCloudflarePagesOptions extends QwikCityHandlerOptions {
 }
 
 // (No @packageDocumentation comment for this package)

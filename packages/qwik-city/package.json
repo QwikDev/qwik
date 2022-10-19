@@ -12,6 +12,22 @@
       "import": "./lib/index.qwik.mjs",
       "require": "./lib/index.qwik.cjs"
     },
+    "./adaptors/cloudflare-pages/vite": {
+      "import": "./lib/adaptors/cloudflare-pages/vite/index.mjs",
+      "require": "./lib/adaptors/cloudflare-pages/vite/index.cjs"
+    },
+    "./adaptors/express/vite": {
+      "import": "./lib/adaptors/express/vite/index.mjs",
+      "require": "./lib/adaptors/express/vite/index.cjs"
+    },
+    "./adaptors/netlify-edge/vite": {
+      "import": "./lib/adaptors/netlify-edge/vite/index.mjs",
+      "require": "./lib/adaptors/netlify-edge/vite/index.cjs"
+    },
+    "./adaptors/static/vite": {
+      "import": "./lib/adaptors/static/vite/index.mjs",
+      "require": "./lib/adaptors/static/vite/index.cjs"
+    },
     "./middleware/cloudflare-pages": {
       "import": "./lib/middleware/cloudflare-pages/index.mjs"
     },
@@ -22,9 +38,9 @@
       "import": "./lib/middleware/node/index.mjs",
       "require": "./lib/middleware/node/index.cjs"
     },
-    "./static/node": {
-      "import": "./lib/static/node/index.mjs",
-      "require": "./lib/static/node/index.cjs"
+    "./static": {
+      "import": "./lib/static/index.mjs",
+      "require": "./lib/static/index.cjs"
     },
     "./vite": {
       "import": "./lib/vite/index.mjs",

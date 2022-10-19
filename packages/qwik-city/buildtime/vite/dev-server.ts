@@ -96,7 +96,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             requestCtx,
             params,
             routeModules,
-            {},
             ctx.opts.trailingSlash,
             ctx.opts.basePathname
           );

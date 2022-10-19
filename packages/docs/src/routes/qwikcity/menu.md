@@ -67,3 +67,4 @@
 ## Starters
 
 - [Partytown](starters/partytown/index.mdx)
+- [Tailwind](starters/tailwind/index.mdx)

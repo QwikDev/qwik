@@ -139,7 +139,7 @@ const MyComp = component(qrl('./chunk-a.js', 'MyComp_onMount'));
 ```tsx
 export const MyComp_onMount = () => {
   /* my component definition */
-});
+};
 ```
 
 The result of Optimizer is that the `MyComp`'s `onMount` method was extracted into a new file. There are a few benefits to doing this:

@@ -37,6 +37,7 @@ export const validLexicalScope = createRule({
         },
       },
     ],
+
     messages: {
       referencesOutside:
         'Identifier ("{{varName}}") can not be captured inside the scope ({{dollarName}}) because {{reason}}. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',

@@ -1,0 +1,131 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    return (
+        <>
+            <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
+            <div>{prop.value && <div></div>}</div>
+            <div>{prop.value || <div></div>}</div>
+            <div>{prop.value ?? <div></div>}</div>
+            <div>Static {f ? 1 : 3}</div>
+
+            <div>Static</div>
+            <div>Static {props.value}</div>
+            <div>Static {stuff()}</div>
+            <div>Static {stuff()}</div>
+
+        </>
+    );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0.js"), "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,4FAgBjB,CAAC\"}")
+============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { _IMMUTABLE } from "@builder.io/qwik";
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { jsxs as _jsxs } from "@builder.io/qwik/jsx-runtime";
+import { _wrapSignal } from "@builder.io/qwik";
+export const App_component_ckEPmXZlub0 = (props)=>{
+    return /*#__PURE__*/ _jsxs(_Fragment, {
+        children: [
+            /*#__PURE__*/ _jsx("div", {
+                children: prop < 2 ? /*#__PURE__*/ _jsx("p", {
+                    children: "1"
+                }) : /*#__PURE__*/ _jsx("p", {
+                    children: "2"
+                }),
+                [_IMMUTABLE]: {
+                    children: false
+                }
+            }),
+            /*#__PURE__*/ _jsx("div", {
+                children: prop.value && /*#__PURE__*/ _jsx("div", {}),
+                [_IMMUTABLE]: {
+                    children: false
+                }
+            }),
+            /*#__PURE__*/ _jsx("div", {
+                children: prop.value || /*#__PURE__*/ _jsx("div", {}),
+                [_IMMUTABLE]: {
+                    children: false
+                }
+            }),
+            /*#__PURE__*/ _jsx("div", {
+                children: prop.value ?? /*#__PURE__*/ _jsx("div", {}),
+                [_IMMUTABLE]: {
+                    children: false
+                }
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "Static ",
+                    f ? 1 : 3
+                ],
+                [_IMMUTABLE]: {
+                    children: false
+                }
+            }),
+            /*#__PURE__*/ _jsx("div", {
+                children: "Static"
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "Static ",
+                    _wrapSignal(props, "value")
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "Static ",
+                    stuff()
+                ]
+            }),
+            /*#__PURE__*/ _jsxs("div", {
+                children: [
+                    "Static ",
+                    stuff()
+                ]
+            })
+        ]
+    });
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B,CAAC,KAAY,GAAK;IAC5C,qBACI;;0BACI,KAAC,KAAG;0BAAE,IAAI,GAAG,CAAC,iBAAG,KAAC,GAAC;8BAAC,GAAC;kBAAI,iBAAG,KAAC,GAAC;8BAAC,GAAC;kBAAI;;;;cAAO;0BAC3C,KAAC,KAAG;0BAAE,IAAI,CAAC,KAAK,kBAAI,KAAC,KAAG,KAAO;;;;cAAO;0BACtC,KAAC,KAAG;0BAAE,IAAI,CAAC,KAAK,kBAAI,KAAC,KAAG,KAAO;;;;cAAO;0BACtC,KAAC,KAAG;0BAAE,IAAI,CAAC,KAAK,kBAAI,KAAC,KAAG,KAAO;;;;cAAO;0BACtC,MAAC,KAAG;;oBAAC,SAAO;oBAAC,CAAC,GAAG,CAAC,GAAG,CAAC;;;;;cAAO;0BAE7B,KAAC,KAAG;0BAAC,QAAM;cAAM;0BACjB,MAAC,KAAG;;oBAAC,SAAO;gCAAC,KAAK;;cAAa;0BAC/B,MAAC,KAAG;;oBAAC,SAAO;oBAAC,KAAK,EAAE;;cAAO;0BAC3B,MAAC,KAAG;;oBAAC,SAAO;oBAAC,KAAK,EAAE;;cAAO;;MAE5B,CACL;AACN,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "app_component_ckepmxzlub0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    90,
+    561
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

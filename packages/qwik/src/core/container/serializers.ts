@@ -75,6 +75,9 @@ const QRLSerializer: Serializer<QRLInternal> = {
         collectValue(item, collector, leaks);
       }
     }
+    if (collector.$prefetch$ === 0) {
+      collector.$qrls$.push(v);
+    }
   },
   serialize: (obj, getObjId) => {
     return serializeQRL(obj, {

@@ -14,14 +14,14 @@ import type { RenderContext } from '../types';
 import { QwikElement, VIRTUAL, VirtualElement } from './virtual-element';
 import { appendHeadStyle } from './operations';
 import { isSignal, Signal } from '../../state/signal';
-import type { QContext } from '../../state/context';
+import { HOST_FLAG_MOUNTED, QContext } from '../../state/context';
 
 export const renderComponent = (
   rCtx: RenderContext,
   elCtx: QContext,
   flags: number
 ): ValueOrPromise<void> => {
-  const justMounted = !elCtx.$mounted$;
+  const justMounted = !(elCtx.$flags$ & HOST_FLAG_MOUNTED);
   const hostElement = elCtx.$element$;
   const containerState = rCtx.$static$.$containerState$;
   // Component is not dirty any more

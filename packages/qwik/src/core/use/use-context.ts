@@ -197,7 +197,7 @@ export const useContextProvider = <STATE extends object>(
   if (qDev) {
     validateContext(context);
   }
-  const hostElement = ctx.$hostElement$!;
+  const hostElement = ctx.$hostElement$;
   const hostCtx = getContext(hostElement);
   let contexts = hostCtx.$contexts$;
   if (!contexts) {
@@ -207,6 +207,30 @@ export const useContextProvider = <STATE extends object>(
     verifySerializable(newValue);
   }
   contexts.set(context.id, newValue);
+  set(true);
+};
+
+/**
+ * @alpha
+ */
+export const useContextBoundary = (...ids: Context<any>[]) => {
+  const { get, set, ctx } = useSequentialScope<boolean>();
+  if (get !== undefined) {
+    return;
+  }
+  const hostElement = ctx.$hostElement$;
+  const hostCtx = getContext(hostElement);
+  let contexts = hostCtx.$contexts$;
+  if (!contexts) {
+    hostCtx.$contexts$ = contexts = new Map();
+  }
+  for (const c of ids) {
+    const value = resolveContext(c, hostElement, ctx.$renderCtx$);
+    if (value !== undefined) {
+      contexts.set(c.id, value);
+    }
+  }
+  contexts.set('_', true);
   set(true);
 };
 
@@ -301,6 +325,9 @@ export const resolveContext = <STATE extends object>(
         const found = ctx.$contexts$.get(contextID);
         if (found) {
           return found;
+        }
+        if (ctx.$contexts$.get('_') === true) {
+          break;
         }
       }
     }

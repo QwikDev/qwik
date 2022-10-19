@@ -4,7 +4,7 @@ use crate::collector::{
 };
 use crate::entry_strategy::EntryPolicy;
 use crate::errors;
-use crate::is_immutable::is_immutable_expr;
+use crate::is_immutable::{is_immutable_children, is_immutable_expr};
 use crate::parse::{EmitMode, PathData};
 use crate::words::*;
 use path_slash::PathExt;
@@ -834,14 +834,24 @@ impl<'a> QwikTransform<'a> {
                     let mut name_token = false;
                     let prop = match prop {
                         ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref node)) => {
-                            match node.key {
-                                ast::PropName::Ident(ref ident) => {
-                                    if ident.sym != *CHILDREN {
-                                        self.stack_ctxt.push(ident.sym.to_string());
-                                        name_token = true;
-                                    }
+                            let key_word = match node.key {
+                                ast::PropName::Ident(ref ident) => Some(ident.sym.clone()),
+                                ast::PropName::Str(ref s) => Some(s.value.clone()),
+                                _ => {
+                                    has_immutable = true;
+                                    None
+                                }
+                            };
+                            if let Some(key_word) = key_word {
+                                let is_children = key_word == *CHILDREN;
+                                if !is_children {
+                                    self.stack_ctxt.push(key_word.to_string());
+                                    name_token = true;
+                                }
 
-                                    if convert_signal_word(&ident.sym).is_some() {
+                                if convert_signal_word(&key_word).is_some() {
+                                    if matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
+                                    {
                                         if is_fn {
                                             immutable_props.push(ast::PropOrSpread::Prop(
                                                 Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
@@ -852,180 +862,86 @@ impl<'a> QwikTransform<'a> {
                                                 })),
                                             ));
                                         }
-                                        if matches!(
-                                            *node.value,
-                                            ast::Expr::Arrow(_) | ast::Expr::Fn(_)
-                                        ) {
-                                            ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
-                                                ast::KeyValueProp {
-                                                    value: Box::new(ast::Expr::Call(
-                                                        self.create_synthetic_qhook(
-                                                            *node.value.clone(),
-                                                            HookKind::Event,
-                                                            ident.sym.clone(),
-                                                            None,
-                                                        ),
-                                                    )),
-                                                    key: node.key.clone(),
-                                                },
-                                            )))
-                                        } else {
-                                            prop
-                                        }
-                                    } else if let Some(new_children) =
-                                        self.convert_children(&ident.sym, &node.value)
-                                    {
+                                        ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
+                                            ast::KeyValueProp {
+                                                value: Box::new(ast::Expr::Call(
+                                                    self.create_synthetic_qhook(
+                                                        *node.value.clone(),
+                                                        HookKind::Event,
+                                                        key_word.clone(),
+                                                        None,
+                                                    ),
+                                                )),
+                                                key: node.key.clone(),
+                                            },
+                                        )))
+                                    } else {
+                                        prop
+                                    }
+                                } else if is_children {
+                                    if let Some(immutable) = is_immutable_children(&node.value) {
+                                        immutable_props.push(ast::PropOrSpread::Prop(Box::new(
+                                            ast::Prop::KeyValue(ast::KeyValueProp {
+                                                key: node.key.clone(),
+                                                value: Box::new(ast::Expr::Lit(ast::Lit::Bool(
+                                                    ast::Bool::from(immutable),
+                                                ))),
+                                            }),
+                                        )));
+                                    }
+                                    if let Some(new_children) = self.convert_children(&node.value) {
                                         ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
                                             ast::KeyValueProp {
                                                 value: Box::new(new_children),
                                                 key: node.key.clone(),
                                             },
                                         )))
-                                    } else if let Some(getter) = self.convert_to_getter(&node.value)
-                                    {
-                                        immutable_props.push(ast::PropOrSpread::Prop(Box::new(
-                                            ast::Prop::KeyValue(ast::KeyValueProp {
-                                                key: node.key.clone(),
-                                                value: Box::new(getter),
-                                            }),
-                                        )));
-                                        ast::PropOrSpread::Prop(Box::new(ast::Prop::Getter(
-                                            ast::GetterProp {
-                                                span: DUMMY_SP,
-                                                type_ann: None,
-                                                key: ast::PropName::Ident(ident.clone()),
-                                                body: Some(ast::BlockStmt {
-                                                    span: DUMMY_SP,
-                                                    stmts: vec![ast::Stmt::Return(
-                                                        ast::ReturnStmt {
-                                                            span: DUMMY_SP,
-                                                            arg: Some(node.value.clone()),
-                                                        },
-                                                    )],
-                                                }),
-                                            },
-                                        )))
-                                    } else if is_fn
-                                        && is_immutable_expr(
-                                            &node.value,
-                                            &ident.sym,
-                                            &self.options.global_collect,
-                                            self.decl_stack.last(),
-                                        )
-                                    {
-                                        immutable_props.push(ast::PropOrSpread::Prop(Box::new(
-                                            ast::Prop::KeyValue(ast::KeyValueProp {
-                                                key: node.key.clone(),
-                                                value: Box::new(ast::Expr::Lit(ast::Lit::Bool(
-                                                    ast::Bool::from(true),
-                                                ))),
-                                            }),
-                                        )));
-                                        prop
                                     } else {
                                         prop
                                     }
-                                }
-                                ast::PropName::Str(ref s) => {
-                                    if s.value != *CHILDREN {
-                                        self.stack_ctxt.push(s.value.to_string());
-                                        name_token = true;
-                                    }
-
-                                    if convert_signal_word(&s.value).is_some() {
-                                        if matches!(
-                                            *node.value,
-                                            ast::Expr::Arrow(_) | ast::Expr::Fn(_)
-                                        ) {
-                                            if is_fn {
-                                                immutable_props.push(ast::PropOrSpread::Prop(
-                                                    Box::new(ast::Prop::KeyValue(
-                                                        ast::KeyValueProp {
-                                                            key: node.key.clone(),
-                                                            value: Box::new(ast::Expr::Lit(
-                                                                ast::Lit::Bool(ast::Bool::from(
-                                                                    true,
-                                                                )),
-                                                            )),
-                                                        },
-                                                    )),
-                                                ));
-                                            }
-                                            ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
-                                                ast::KeyValueProp {
-                                                    value: Box::new(ast::Expr::Call(
-                                                        self.create_synthetic_qhook(
-                                                            *node.value.clone(),
-                                                            HookKind::Event,
-                                                            s.value.clone(),
-                                                            None,
-                                                        ),
-                                                    )),
-                                                    key: node.key.clone(),
-                                                },
-                                            )))
-                                        } else {
-                                            prop
-                                        }
-                                    } else if let Some(new_children) =
-                                        self.convert_children(&s.value, &node.value)
-                                    {
-                                        ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
-                                            ast::KeyValueProp {
-                                                value: Box::new(new_children),
-                                                key: node.key.clone(),
-                                            },
-                                        )))
-                                    } else if let Some(getter) = self.convert_to_getter(&node.value)
-                                    {
-                                        immutable_props.push(ast::PropOrSpread::Prop(Box::new(
-                                            ast::Prop::KeyValue(ast::KeyValueProp {
-                                                key: node.key.clone(),
-                                                value: Box::new(getter),
-                                            }),
-                                        )));
-                                        ast::PropOrSpread::Prop(Box::new(ast::Prop::Getter(
-                                            ast::GetterProp {
+                                } else if let Some(getter) = self.convert_to_getter(&node.value) {
+                                    immutable_props.push(ast::PropOrSpread::Prop(Box::new(
+                                        ast::Prop::KeyValue(ast::KeyValueProp {
+                                            key: node.key.clone(),
+                                            value: Box::new(getter),
+                                        }),
+                                    )));
+                                    ast::PropOrSpread::Prop(Box::new(ast::Prop::Getter(
+                                        ast::GetterProp {
+                                            span: DUMMY_SP,
+                                            type_ann: None,
+                                            key: node.key.clone(),
+                                            body: Some(ast::BlockStmt {
                                                 span: DUMMY_SP,
-                                                type_ann: None,
-                                                key: ast::PropName::Str(s.clone()),
-                                                body: Some(ast::BlockStmt {
+                                                stmts: vec![ast::Stmt::Return(ast::ReturnStmt {
                                                     span: DUMMY_SP,
-                                                    stmts: vec![ast::Stmt::Return(
-                                                        ast::ReturnStmt {
-                                                            span: DUMMY_SP,
-                                                            arg: Some(node.value.clone()),
-                                                        },
-                                                    )],
-                                                }),
-                                            },
-                                        )))
-                                    } else if is_fn
-                                        && is_immutable_expr(
-                                            &node.value,
-                                            &s.value,
-                                            &self.options.global_collect,
-                                            self.decl_stack.last(),
-                                        )
-                                    {
-                                        immutable_props.push(ast::PropOrSpread::Prop(Box::new(
-                                            ast::Prop::KeyValue(ast::KeyValueProp {
-                                                key: node.key.clone(),
-                                                value: Box::new(ast::Expr::Lit(ast::Lit::Bool(
-                                                    ast::Bool::from(true),
-                                                ))),
+                                                    arg: Some(node.value.clone()),
+                                                })],
                                             }),
-                                        )));
-                                        prop
-                                    } else {
-                                        prop
-                                    }
-                                }
-                                ast::PropName::Computed(_) => {
-                                    has_immutable = true;
+                                        },
+                                    )))
+                                } else if is_fn
+                                    && is_immutable_expr(
+                                        &node.value,
+                                        &key_word,
+                                        &self.options.global_collect,
+                                        self.decl_stack.last(),
+                                    )
+                                {
+                                    immutable_props.push(ast::PropOrSpread::Prop(Box::new(
+                                        ast::Prop::KeyValue(ast::KeyValueProp {
+                                            key: node.key.clone(),
+                                            value: Box::new(ast::Expr::Lit(ast::Lit::Bool(
+                                                ast::Bool::from(true),
+                                            ))),
+                                        }),
+                                    )));
+                                    prop
+                                } else {
                                     prop
                                 }
-                                _ => prop,
+                            } else {
+                                prop
                             }
                         }
                         prop => prop,
@@ -1066,10 +982,7 @@ impl<'a> QwikTransform<'a> {
         }
     }
 
-    fn convert_children(&mut self, ident: &JsWord, expr: &ast::Expr) -> Option<ast::Expr> {
-        if ident != &*CHILDREN {
-            return None;
-        }
+    fn convert_children(&mut self, expr: &ast::Expr) -> Option<ast::Expr> {
         if let Some(expr) = self.convert_to_getter(expr) {
             return Some(expr);
         }

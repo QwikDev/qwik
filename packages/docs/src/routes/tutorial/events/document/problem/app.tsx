@@ -8,6 +8,7 @@ export const App = component$(() => {
       onMouseMove$={(event) => {
         store.x = event.x;
         store.y = event.y;
+        console.log(store);
       }}
     >
       Your mouse location is ({store.x}, {store.y}).

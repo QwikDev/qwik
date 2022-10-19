@@ -8,8 +8,6 @@ import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { SymbolMapper } from '@builder.io/qwik/optimizer';
 import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
 
-// Warning: (ae-forgotten-export) The symbol "StaticGenerateResult" needs to be exported by the entry point index.d.ts
-//
 // @alpha
 export function generate(opts: StaticGenerateOptions): Promise<StaticGenerateResult>;
 
@@ -31,6 +29,16 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
     origin: string;
     outDir: string;
     sitemapOutFile?: string;
+}
+
+// @alpha (undocumented)
+export interface StaticGenerateResult {
+    // (undocumented)
+    duration: number;
+    // (undocumented)
+    errors: number;
+    // (undocumented)
+    rendered: number;
 }
 
 // (No @packageDocumentation comment for this package)

@@ -183,7 +183,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
     }
     opts.input = opts.input.reduce((inputs, i) => {
-      const input = normalizePath(path.resolve(opts.rootDir, i));
+      let input = i;
+      if (!i.startsWith('@') && !i.startsWith('~')) {
+        input = normalizePath(path.resolve(opts.rootDir, i));
+      }
       if (!inputs.includes(input)) {
         inputs.push(input);
       }

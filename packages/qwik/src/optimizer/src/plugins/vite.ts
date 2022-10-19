@@ -119,7 +119,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
       if (target === 'ssr') {
         // ssr
-        if (typeof viteConfig.build?.ssr === 'string') {
+        if (viteConfig.build?.ssr && Array.isArray(viteConfig.build?.rollupOptions?.input)) {
+          pluginOpts.input = viteConfig.build!.rollupOptions!.input;
+        } else if (typeof viteConfig.build?.ssr === 'string') {
           // from --ssr flag user config
           // entry.server.ts (express/cloudflare/netlify)
           pluginOpts.input = viteConfig.build.ssr;
@@ -141,6 +143,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         }
         pluginOpts.outDir = viteConfig.build?.outDir;
       }
+
+      console.log('qwik vite puglin input', pluginOpts.input);
 
       if (sys.env === 'node') {
         const fs: typeof import('fs') = await sys.dynamicImport('fs');

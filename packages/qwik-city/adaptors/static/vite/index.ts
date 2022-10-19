@@ -87,4 +87,7 @@ export function staticAdaptor(opts: StaticGenerateAdaptorOptions): any {
   return plugin;
 }
 
+/**
+ * @alpha
+ */
 export interface StaticGenerateAdaptorOptions extends Omit<StaticGenerateRenderOptions, 'outDir'> {}

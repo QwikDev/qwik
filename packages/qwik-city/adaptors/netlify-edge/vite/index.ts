@@ -97,6 +97,9 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
   return plugin;
 }
 
+/**
+ * @alpha
+ */
 export interface NetlifyEdgeAdaptorOptions {
   staticGenerate?: StaticGenerateRenderOptions | true;
 }

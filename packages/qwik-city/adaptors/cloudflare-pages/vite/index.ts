@@ -97,6 +97,9 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
   return plugin;
 }
 
+/**
+ * @alpha
+ */
 export interface CloudflarePagesAdaptorOptions {
   staticGenerate?: StaticGenerateRenderOptions | true;
 }

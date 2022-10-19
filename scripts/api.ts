@@ -66,6 +66,34 @@ export function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.packagesDir, 'qwik-city', 'adaptors', 'cloudflare-pages', 'vite'),
+    join(
+      config.packagesDir,
+      'qwik-city',
+      'lib',
+      'adaptors',
+      'cloudflare-pages',
+      'vite',
+      'index.d.ts'
+    )
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'adaptors', 'express', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'express', 'vite', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'adaptors', 'netlify-edge', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'netlify-edge', 'vite', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'adaptors', 'static', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'static', 'vite', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.packagesDir, 'qwik-city', 'middleware', 'cloudflare-pages'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'cloudflare-pages', 'index.d.ts')
   );

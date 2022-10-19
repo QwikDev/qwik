@@ -1650,6 +1650,38 @@ export const App = component$((props: Stuff) => {
 }
 
 #[test]
+fn example_mutable_children() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    return (
+        <>
+            <div>{prop < 2 ? <p>1</p> : <p>2</p>}</div>
+            <div>{prop.value && <div></div>}</div>
+            <div>{prop.value || <div></div>}</div>
+            <div>{prop.value ?? <div></div>}</div>
+            <div>Static {f ? 1 : 3}</div>
+
+            <div>Static</div>
+            <div>Static {props.value}</div>
+            <div>Static {stuff()}</div>
+            <div>Static {stuff()}</div>
+
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_transpile_ts_only() {
     test_input!(TestInput {
         code: r#"

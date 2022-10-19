@@ -1,5 +1,5 @@
 import { useLocation } from '@builder.io/qwik-city';
-import { component$, $, useStyles$, useContext } from '@builder.io/qwik';
+import { component$, useStyles$, useContext } from '@builder.io/qwik';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
@@ -15,14 +15,6 @@ export const Header = component$(() => {
   const globalStore = useContext(GlobalStore);
   const pathname = useLocation().pathname;
 
-  const toggleMenu = $(() => {
-    globalStore.headerMenuOpen = !globalStore.headerMenuOpen;
-  });
-
-  const closeMenu = $(() => {
-    globalStore.headerMenuOpen = false;
-  });
-
   return (
     <header class="header-container">
       <div class="header-inner">
@@ -33,7 +25,9 @@ export const Header = component$(() => {
           </a>
         </div>
         <button
-          onClick$={toggleMenu}
+          onClick$={() => {
+            globalStore.headerMenuOpen = !globalStore.headerMenuOpen;
+          }}
           class="mobile-menu"
           type="button"
           title="Toggle right menu"
@@ -48,29 +42,17 @@ export const Header = component$(() => {
         </button>
         <ul className="md:grow md:flex md:justify-end md:p-4 menu-toolkit">
           <li>
-            <a
-              href="/docs/overview/"
-              class={{ active: pathname.startsWith('/docs') }}
-              onClick$={closeMenu}
-            >
+            <a href="/docs/overview/" class={{ active: pathname.startsWith('/docs') }}>
               <span>Docs</span>
             </a>
           </li>
           <li>
-            <a
-              href="/qwikcity/overview/"
-              class={{ active: pathname.startsWith('/qwikcity') }}
-              onClick$={closeMenu}
-            >
+            <a href="/qwikcity/overview/" class={{ active: pathname.startsWith('/qwikcity') }}>
               <span>Qwik City</span>
             </a>
           </li>
           <li>
-            <a
-              href="/media/"
-              class={{ active: pathname.startsWith('/media') }}
-              onClick$={closeMenu}
-            >
+            <a href="/media/" class={{ active: pathname.startsWith('/media') }}>
               <span>Media</span>
             </a>
           </li>
@@ -78,7 +60,6 @@ export const Header = component$(() => {
             <a
               href="/examples/introduction/hello-world/"
               class={{ active: pathname.startsWith('/examples') }}
-              onClick$={closeMenu}
             >
               <span>Examples</span>
             </a>
@@ -87,17 +68,12 @@ export const Header = component$(() => {
             <a
               href="/tutorial/welcome/overview/"
               class={{ active: pathname.startsWith('/tutorial') }}
-              onClick$={closeMenu}
             >
               <span>Tutorial</span>
             </a>
           </li>
           <li>
-            <a
-              href="/playground/"
-              class={{ active: pathname.startsWith('/playground') }}
-              onClick$={closeMenu}
-            >
+            <a href="/playground/" class={{ active: pathname.startsWith('/playground') }}>
               <span>Playground</span>
             </a>
           </li>
@@ -109,12 +85,7 @@ export const Header = component$(() => {
             />
           </li>
           <li>
-            <a
-              href="https://github.com/BuilderIO/qwik"
-              target="_blank"
-              onClick$={closeMenu}
-              title="Github"
-            >
+            <a href="https://github.com/BuilderIO/qwik" target="_blank" title="Github">
               <span class="md:hidden">Github</span>
               <span class="hidden md:block">
                 <GithubLogo width={22} height={22} />
@@ -122,12 +93,7 @@ export const Header = component$(() => {
             </a>
           </li>
           <li>
-            <a
-              href="https://twitter.com/QwikDev"
-              target="_blank"
-              onClick$={closeMenu}
-              title="Twitter"
-            >
+            <a href="https://twitter.com/QwikDev" target="_blank" title="Twitter">
               <span class="md:hidden">@QwikDev</span>
               <span class="hidden md:block">
                 <TwitterLogo width={22} height={22} />
@@ -135,12 +101,7 @@ export const Header = component$(() => {
             </a>
           </li>
           <li>
-            <a
-              href="https://qwik.builder.io/chat"
-              target="_blank"
-              onClick$={closeMenu}
-              title="Discord"
-            >
+            <a href="https://qwik.builder.io/chat" target="_blank" title="Discord">
               <span class="md:hidden">Discord</span>
               <span class="hidden md:block">
                 <DiscordLogo width={22} height={22} />

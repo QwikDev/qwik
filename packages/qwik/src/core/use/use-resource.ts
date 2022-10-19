@@ -7,8 +7,8 @@ import {
   runResource,
   WatchFlagsIsDirty,
   WatchFlagsIsResource,
-  ResourceReturnInternal,
   Watch,
+  ResourceReturnInternal,
 } from './use-watch';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
@@ -261,26 +261,27 @@ export interface ResourceProps<T> {
 // </docs>
 export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
   const isBrowser = !isServer();
+  const resource = props.value as ResourceReturnInternal<T>;
   if (isBrowser) {
     if (props.onRejected) {
-      props.value.promise.catch(() => {});
-      if (props.value.state === 'rejected') {
-        return props.onRejected(props.value.error);
+      resource.promise.catch(() => {});
+      if (resource._state === 'rejected') {
+        return props.onRejected(resource._error);
       }
     }
     if (props.onPending) {
-      const state = props.value.state;
+      const state = resource._state;
       if (state === 'pending') {
         return props.onPending();
       } else if (state === 'resolved') {
-        return props.onResolved(props.value.resolved);
+        return props.onResolved(resource._resolved!);
       } else if (state === 'rejected') {
-        throw props.value.error;
+        throw resource._error;
       }
     }
   }
 
-  const promise: any = props.value.promise.then(
+  const promise: any = resource.promise.then(
     useBindInvokeContext(props.onResolved),
     useBindInvokeContext(props.onRejected)
   );
@@ -291,14 +292,15 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
   });
 };
 
-export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn<T> => {
-  const resource: ResourceReturn<T> = {
+export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturnInternal<T> => {
+  const resource: ResourceReturnInternal<T> = {
     __brand: 'resource',
     promise: undefined as never,
-    resolved: undefined as never,
-    error: undefined as never,
-    state: 'pending',
-    timeout: opts?.timeout,
+    loading: isServer() ? false : true,
+    _resolved: undefined as never,
+    _error: undefined as never,
+    _state: 'pending',
+    _timeout: opts?.timeout,
   };
   return resource;
 };
@@ -307,7 +309,7 @@ export const createResourceReturn = <T>(
   containerState: ContainerState,
   opts?: ResourceOptions,
   initialPromise?: Promise<T>
-): ResourceReturn<T> => {
+): ResourceReturnInternal<T> => {
   const result = _createResourceReturn<T>(opts);
   result.promise = initialPromise as any;
   const resource = createProxy(result, containerState, undefined);
@@ -322,30 +324,33 @@ export const isResourceReturn = (obj: any): obj is ResourceReturn<any> => {
   return isObject(obj) && obj.__brand === 'resource';
 };
 
-export const serializeResource = (resource: ResourceReturn<any>, getObjId: GetObjID) => {
-  const state = resource.state;
+export const serializeResource = (resource: ResourceReturnInternal<any>, getObjId: GetObjID) => {
+  const state = resource._state;
   if (state === 'resolved') {
-    return `0 ${getObjId(resource.resolved)}`;
+    return `0 ${getObjId(resource._resolved)}`;
   } else if (state === 'pending') {
     return `1`;
   } else {
-    return `2 ${getObjId(resource.error)}`;
+    return `2 ${getObjId(resource._error)}`;
   }
 };
 
-export const parseResourceReturn = <T>(data: string): ResourceReturn<T> => {
+export const parseResourceReturn = <T>(data: string): ResourceReturnInternal<T> => {
   const [first, id] = data.split(' ');
   const result = _createResourceReturn<T>(undefined);
   result.promise = Promise.resolve() as any;
   if (first === '0') {
-    result.state = 'resolved';
-    result.resolved = id as any;
+    result._state = 'resolved';
+    result._resolved = id as any;
+    result.loading = false;
   } else if (first === '1') {
-    result.state = 'pending';
+    result._state = 'pending';
     result.promise = new Promise(() => {});
+    result.loading = true;
   } else if (first === '2') {
-    result.state = 'rejected';
-    result.error = id as any;
+    result._state = 'rejected';
+    result._error = id as any;
+    result.loading = false;
   }
   return result;
 };

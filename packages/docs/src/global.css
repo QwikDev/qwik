@@ -280,3 +280,8 @@ body {
 :root[data-theme='dark'] .builder .dark-mode :is(img, iframe, video) {
   filter: invert(100%) hue-rotate(180deg);
 }
+
+/* Temporary workaround */
+:root[data-theme='dark'] .builder .csoetdv, :root[data-theme='dark'] .builder .cvha93q {
+  filter: invert(90%) hue-rotate(180deg);
+}

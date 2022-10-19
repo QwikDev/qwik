@@ -1,10 +1,10 @@
-import type { PlatformStaticGenerateOptions } from '../types';
+import type { StaticGenerateOptions } from '../types';
 import { createSystem } from './node-system';
 import { isMainThread, workerData } from 'worker_threads';
 import { mainThread } from '../main-thread';
 import { workerThread } from '../worker-thread';
 
-export async function generate(opts: PlatformStaticGenerateOptions) {
+export async function generate(opts: StaticGenerateOptions) {
   if (isMainThread) {
     const sys = await createSystem(opts);
     const result = await mainThread(sys);

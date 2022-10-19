@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import type { PlatformStaticGenerateOptions, System } from '../types';
+import type { StaticGenerateOptions, System } from '../types';
 import fs from 'fs';
 import { dirname, join } from 'path';
 import { patchGlobalFetch } from '../../middleware/node/node-fetch';
@@ -10,7 +10,7 @@ import { normalizePath } from '../../utils/fs';
 /**
  * @alpha
  */
-export async function createSystem(opts: PlatformStaticGenerateOptions) {
+export async function createSystem(opts: StaticGenerateOptions) {
   patchGlobalFetch();
 
   const createWriteStream = (filePath: string) => {

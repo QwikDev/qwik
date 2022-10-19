@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 import type {
-  PlatformStaticGenerateOptions,
   StaticGenerateRenderOptions,
   StaticGenerateOptions,
   StaticGenerateResult,
@@ -15,16 +14,11 @@ import type {
  */
 export async function generate(opts: StaticGenerateOptions) {
   const ssgPlatform = await getEntryModule();
-  const generateOpts: PlatformStaticGenerateOptions = {
-    currentFile: getCurrentPath(),
-    ...opts,
-  };
-
-  const result: StaticGenerateResult = await ssgPlatform.generate(generateOpts);
+  const result: StaticGenerateResult = await ssgPlatform.generate(opts);
   return result;
 }
 
-export { StaticGenerateOptions, StaticGenerateRenderOptions };
+export { StaticGenerateOptions, StaticGenerateRenderOptions, StaticGenerateResult };
 
 function getEntryModulePath() {
   if (isDeno()) {
@@ -45,13 +39,6 @@ function getEntryModule() {
     return require(entryModule);
   }
   return import(entryModule);
-}
-
-function getCurrentPath() {
-  if (typeof __filename === 'string') {
-    return __filename;
-  }
-  return import.meta.url;
 }
 
 function isDeno() {

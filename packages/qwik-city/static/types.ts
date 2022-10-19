@@ -104,10 +104,6 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
   qwikCityPlanModulePath: string;
 }
 
-export interface PlatformStaticGenerateOptions extends StaticGenerateOptions {
-  currentFile: string;
-}
-
 export interface StaticGenerateHandlerOptions
   extends StaticGenerateRenderOptions,
     QwikCityHandlerOptions {}
@@ -137,6 +133,9 @@ export interface StaticWorkerRenderResult {
   error: string | null;
 }
 
+/**
+ * @alpha
+ */
 export interface StaticGenerateResult {
   duration: number;
   rendered: number;

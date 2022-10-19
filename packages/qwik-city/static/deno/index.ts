@@ -1,6 +1,6 @@
-import type { PlatformStaticGenerateOptions } from '../types';
+import type { StaticGenerateOptions } from '../types';
 
-export async function generate(_opts: PlatformStaticGenerateOptions) {
+export async function generate(_opts: StaticGenerateOptions) {
   console.error(`Deno not implemented`);
   Deno.exit(1);
 }

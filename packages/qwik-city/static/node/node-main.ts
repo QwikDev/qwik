@@ -1,6 +1,6 @@
 import type {
   MainContext,
-  PlatformStaticGenerateOptions,
+  StaticGenerateOptions,
   StaticRoute,
   StaticWorkerRenderResult,
   WorkerOutputMessage,
@@ -13,7 +13,7 @@ import { isAbsolute, resolve } from 'path';
 import { ensureDir } from './node-system';
 import { normalizePath } from '../../utils/fs';
 
-export async function createNodeMainProcess(opts: PlatformStaticGenerateOptions) {
+export async function createNodeMainProcess(opts: StaticGenerateOptions) {
   const ssgWorkers: StaticGeneratorWorker[] = [];
   const sitemapBuffer: string[] = [];
   let sitemapPromise: Promise<any> | null = null;
@@ -51,7 +51,14 @@ export async function createNodeMainProcess(opts: PlatformStaticGenerateOptions)
     let terminateResolve: (() => void) | null = null;
     const mainTasks = new Map<string, WorkerMainTask>();
 
-    let workerFilePath: string | URL = opts.currentFile;
+    let workerFilePath: string | URL;
+
+    if (typeof __filename === 'string') {
+      workerFilePath = __filename;
+    } else {
+      workerFilePath = import.meta.url;
+    }
+
     if (typeof workerFilePath === 'string' && workerFilePath.startsWith('file://')) {
       workerFilePath = new URL(workerFilePath);
     }

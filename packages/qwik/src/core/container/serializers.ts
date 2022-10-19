@@ -7,7 +7,7 @@ import { isResourceReturn, parseResourceReturn, serializeResource } from '../use
 import {
   isSubscriberDescriptor,
   parseWatch,
-  ResourceReturn,
+  ResourceReturnInternal,
   serializeWatch,
   SubscriberEffect,
 } from '../use/use-watch';
@@ -115,12 +115,12 @@ const WatchSerializer: Serializer<SubscriberEffect> = {
   },
 };
 
-const ResourceSerializer: Serializer<ResourceReturn<any>> = {
+const ResourceSerializer: Serializer<ResourceReturnInternal<any>> = {
   prefix: '\u0004',
   test: (v) => isResourceReturn(v),
   collect: (obj, collector, leaks) => {
     collectValue(obj.promise, collector, leaks);
-    collectValue(obj.resolved, collector, leaks);
+    collectValue(obj._resolved, collector, leaks);
   },
   serialize: (obj, getObjId) => {
     return serializeResource(obj, getObjId);
@@ -129,13 +129,13 @@ const ResourceSerializer: Serializer<ResourceReturn<any>> = {
     return parseResourceReturn(data);
   },
   fill: (resource, getObject) => {
-    if (resource.state === 'resolved') {
-      resource.resolved = getObject(resource.resolved);
-      resource.promise = Promise.resolve(resource.resolved);
-    } else if (resource.state === 'rejected') {
-      const p = Promise.reject(resource.error);
+    if (resource._state === 'resolved') {
+      resource._resolved = getObject(resource._resolved);
+      resource.promise = Promise.resolve(resource._resolved);
+    } else if (resource._state === 'rejected') {
+      const p = Promise.reject(resource._error);
       p.catch(() => null);
-      resource.error = getObject(resource.error);
+      resource._error = getObject(resource._error);
       resource.promise = p;
     }
   },

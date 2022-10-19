@@ -137,41 +137,36 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
  * @public
  */
 export interface ResourcePending<T> {
-  __brand: 'resource';
-  state: 'pending';
-
   promise: Promise<T>;
-  resolved: undefined;
-  error: undefined;
-  timeout?: number;
+  loading: boolean;
 }
 
 /**
  * @public
  */
 export interface ResourceResolved<T> {
-  __brand: 'resource';
-  state: 'resolved';
-
   promise: Promise<T>;
-  resolved: T;
-  error: undefined;
-  timeout?: number;
+  loading: boolean;
 }
 
 /**
  * @public
  */
 export interface ResourceRejected<T> {
-  __brand: 'resource';
-  state: 'rejected';
-
   promise: Promise<T>;
-  resolved: undefined;
-  error: any;
-  timeout?: number;
+  loading: boolean;
 }
 
+export interface ResourceReturnInternal<T> {
+  __brand: 'resource';
+  _state: 'pending' | 'resolved' | 'rejected';
+  _resolved: T | undefined;
+  _error: any;
+  _timeout?: number;
+
+  promise: Promise<T>;
+  loading: boolean;
+}
 /**
  * @alpha
  */
@@ -621,7 +616,8 @@ export const useMount$ = /*#__PURE__*/ implicit$FirstArg(useMountQrl);
 
 export type WatchDescriptor = DescriptorBase<WatchFn>;
 
-export interface ResourceDescriptor<T> extends DescriptorBase<ResourceFn<T>, ResourceReturn<T>> {}
+export interface ResourceDescriptor<T>
+  extends DescriptorBase<ResourceFn<T>, ResourceReturnInternal<T>> {}
 
 export type SubscriberHost = QwikElement;
 
@@ -694,7 +690,7 @@ export const runResource = <T>(
     cleanup(callback) {
       cleanups.push(callback);
     },
-    previous: resourceTarget.resolved,
+    previous: resourceTarget._resolved,
   };
 
   let resolve: (v: T) => void;
@@ -706,15 +702,18 @@ export const runResource = <T>(
       done = true;
       if (resolved) {
         done = true;
-        resource.state = 'resolved';
-        resource.resolved = value;
-        resource.error = undefined;
+        resource.loading = false;
+        resource._state = 'resolved';
+        resource._resolved = value;
+        resource._error = undefined;
+
         resolve(value);
       } else {
         done = true;
-        resource.state = 'rejected';
-        resource.resolved = undefined;
-        resource.error = value;
+        resource.loading = false;
+        resource._state = 'rejected';
+        resource._resolved = undefined;
+        resource._error = value;
         reject(value);
       }
       return true;
@@ -724,8 +723,9 @@ export const runResource = <T>(
 
   // Execute mutation inside empty invokation
   invoke(invokationContext, () => {
-    resource.state = 'pending';
-    resource.resolved = undefined as any;
+    resource._state = 'pending';
+    resource.loading = !isServer();
+    resource._resolved = undefined as any;
     resource.promise = new Promise((r, re) => {
       resolve = r;
       reject = re;
@@ -746,7 +746,7 @@ export const runResource = <T>(
     }
   );
 
-  const timeout = resourceTarget.timeout;
+  const timeout = resourceTarget._timeout;
   if (timeout) {
     return Promise.race([
       promise,
@@ -891,8 +891,6 @@ export class Watch implements DescriptorBase<any, any> {
     public $index$: number,
     public $el$: QwikElement,
     public $qrl$: QRLInternal<any>,
-    public $resource$: ResourceReturn<any> | undefined
+    public $resource$: ResourceReturnInternal<any> | undefined
   ) {}
 }
-
-export type ResourceReturnInternal<T = any> = ResourceReturn<T> & { dirty: boolean };

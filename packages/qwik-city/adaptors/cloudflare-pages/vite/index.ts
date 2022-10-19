@@ -1,17 +1,13 @@
 import type { Plugin } from 'vite';
 import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
-import {
-  generate,
-  StaticGenerateOptions,
-  StaticGenerateRenderOptions,
-} from '@builder.io/qwik-city/static';
+import { generate, StaticGenerateOptions, StaticGenerateRenderOptions } from '../../../static';
 import { join } from 'path';
 import fs from 'fs';
 
 /**
  * @alpha
  */
-export function cloudflarePages(opts: CloudflarePagesAdaptorOptions = {}): Plugin {
+export function cloudflarePages(opts: CloudflarePagesAdaptorOptions = {}): any {
   let qwikVitePlugin: QwikVitePlugin | null = null;
   let serverOutDir: string | null = null;
   let renderModulePath: string | null = null;
@@ -44,7 +40,7 @@ export function cloudflarePages(opts: CloudflarePagesAdaptorOptions = {}): Plugi
     }
   }
 
-  return {
+  const plugin: Plugin = {
     name: 'vite-plugin-cloudflare-pages',
     enforce: 'post',
     apply: 'build',
@@ -97,6 +93,7 @@ export function cloudflarePages(opts: CloudflarePagesAdaptorOptions = {}): Plugi
       await generateBundles();
     },
   };
+  return plugin;
 }
 
 export interface CloudflarePagesAdaptorOptions {

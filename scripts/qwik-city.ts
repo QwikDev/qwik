@@ -46,6 +46,10 @@ export async function buildQwikCity(config: BuildConfig) {
         import: './adaptors/cloudflare-pages/vite/index.mjs',
         require: './adaptors/cloudflare-pages/vite/index.cjs',
       },
+      './adaptors/static/vite': {
+        import: './adaptors/static/vite/index.mjs',
+        require: './adaptors/static/vite/index.cjs',
+      },
       './middleware/cloudflare-pages': {
         import: './middleware/cloudflare-pages/index.mjs',
       },
@@ -60,9 +64,6 @@ export async function buildQwikCity(config: BuildConfig) {
         import: './static/index.mjs',
         require: './static/index.cjs',
       },
-      './static/node': {
-        import: './static/node.mjs',
-      },
       './vite': {
         import: './vite/index.mjs',
         require: './vite/index.cjs',
@@ -73,6 +74,7 @@ export async function buildQwikCity(config: BuildConfig) {
       },
     },
     files: [
+      'adaptors',
       'index.d.ts',
       'index.qwik.mjs',
       'index.qwik.cjs',

@@ -4,14 +4,34 @@
 
 ```ts
 
-import type { Render } from '@builder.io/qwik/server';
-import type { RenderOptions } from '@builder.io/qwik/server';
+import type { QwikManifest } from '@builder.io/qwik/optimizer';
+import type { SymbolMapper } from '@builder.io/qwik/optimizer';
+import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
 
-// Warning: (ae-forgotten-export) The symbol "StaticGeneratorOptions" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "StaticGeneratorResult" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "StaticGenerateResult" needs to be exported by the entry point index.d.ts
+//
+// @alpha
+export function generate(opts: StaticGenerateOptions): Promise<StaticGenerateResult>;
+
+// @alpha (undocumented)
+export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
+    qwikCityPlanModulePath: string;
+    renderModulePath: string;
+}
+
+// Warning: (ae-forgotten-export) The symbol "RenderOptions" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export function generate(opts: StaticGeneratorOptions): Promise<StaticGeneratorResult>;
+export interface StaticGenerateRenderOptions extends RenderOptions {
+    emitData?: boolean;
+    emitHtml?: boolean;
+    log?: 'debug';
+    maxTasksPerWorker?: number;
+    maxWorkers?: number;
+    origin: string;
+    outDir: string;
+    sitemapOutFile?: string;
+}
 
 // (No @packageDocumentation comment for this package)
 

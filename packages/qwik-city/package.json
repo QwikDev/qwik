@@ -27,10 +27,7 @@
       "require": "./lib/middleware/node/index.cjs"
     },
     "./static": {
-      "import": "./lib/static/index.mjs"
-    },
-    "./static/node": {
-      "import": "./lib/static/node.mjs",
+      "import": "./lib/static/index.mjs",
       "require": "./lib/static/index.cjs"
     },
     "./vite": {

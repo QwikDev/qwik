@@ -1,13 +1,13 @@
 import type { Plugin } from 'vite';
 import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
-import { generate, StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
+import { generate, StaticGenerateRenderOptions } from '../../../static';
 import { join } from 'path';
 import fs from 'fs';
 
 /**
  * @alpha
  */
-export function staticGenerate(opts: StaticGenerateAdaptorOptions): Plugin {
+export function staticGenerate(opts: StaticGenerateAdaptorOptions): any {
   let qwikVitePlugin: QwikVitePlugin | null = null;
   let serverOutDir: string | null = null;
   let ssrOutputPath: string | null = null;
@@ -29,7 +29,7 @@ export function staticGenerate(opts: StaticGenerateAdaptorOptions): Plugin {
     });
   }
 
-  return {
+  const plugin: Plugin = {
     name: 'vite-plugin-static-generate',
     enforce: 'post',
     apply: 'build',
@@ -82,6 +82,7 @@ export function staticGenerate(opts: StaticGenerateAdaptorOptions): Plugin {
       await generateBundles();
     },
   };
+  return plugin;
 }
 
 export interface StaticGenerateAdaptorOptions extends Omit<StaticGenerateRenderOptions, 'outDir'> {}

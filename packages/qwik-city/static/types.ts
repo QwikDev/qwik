@@ -89,6 +89,9 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
   emitData?: boolean;
 }
 
+/**
+ * @alpha
+ */
 export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
   /**
    * Path to the SSR module exporting the default render function.

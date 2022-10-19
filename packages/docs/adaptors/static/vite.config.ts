@@ -1,4 +1,4 @@
-import { cloudflarePages } from '@builder.io/qwik-city/adaptors/cloudflare-pages/vite';
+import { staticAdaptor } from '@builder.io/qwik-city/adaptors/static/vite';
 import { extendConfig } from '@builder.io/qwik-city/vite';
 import baseConfig from '../../vite.config';
 
@@ -11,8 +11,8 @@ export default extendConfig(baseConfig, () => {
       },
     },
     plugins: [
-      cloudflarePages({
-        staticGenerate: true,
+      staticAdaptor({
+        origin: `https://qwik.builder.io`,
       }),
     ],
   };

@@ -1,17 +1,17 @@
 import type { Plugin } from 'vite';
 import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
-import type { StaticGenerateRenderOptions } from '../../../static';
+import type { StaticGenerateOptions, StaticGenerateRenderOptions } from '../../../static';
 import { join } from 'path';
 import fs from 'fs';
 
 /**
  * @alpha
  */
-export function staticAdaptor(opts: StaticGenerateAdaptorOptions): any {
+export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
   let qwikVitePlugin: QwikVitePlugin | null = null;
   let serverOutDir: string | null = null;
-  let ssrOutputPath: string | null = null;
-  let qwikCityPlanOutputPath: string | null = null;
+  let renderModulePath: string | null = null;
+  let qwikCityPlanModulePath: string | null = null;
 
   async function generateBundles() {
     const qwikVitePluginApi = qwikVitePlugin!.api;
@@ -21,18 +21,28 @@ export function staticAdaptor(opts: StaticGenerateAdaptorOptions): any {
     const serverPackageJsonCode = `{"type":"module"}`;
     await fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode);
 
-    const staticGenerate = await import('../../../static');
+    if (opts.staticGenerate) {
+      const staticGenerate = await import('../../../static');
+      let generateOpts: StaticGenerateOptions = {
+        outDir: clientOutDir,
+        origin: process?.env?.URL || 'https://yoursitename.netlify.app',
+        renderModulePath: renderModulePath!,
+        qwikCityPlanModulePath: qwikCityPlanModulePath!,
+      };
 
-    await staticGenerate.generate({
-      renderModulePath: ssrOutputPath!,
-      qwikCityPlanModulePath: qwikCityPlanOutputPath!,
-      outDir: clientOutDir,
-      ...opts,
-    });
+      if (typeof opts.staticGenerate === 'object') {
+        generateOpts = {
+          ...generateOpts,
+          ...opts.staticGenerate,
+        };
+      }
+
+      await staticGenerate.generate(generateOpts);
+    }
   }
 
   const plugin: Plugin = {
-    name: 'vite-plugin-qwik-city-static-generate',
+    name: 'vite-plugin-qwik-city-netlify-edge',
     enforce: 'post',
     apply: 'build',
 
@@ -45,13 +55,13 @@ export function staticAdaptor(opts: StaticGenerateAdaptorOptions): any {
 
       if (build?.ssr !== true) {
         throw new Error(
-          '"build.ssr" must be set to `true` in order to use the Static Generate adaptor.'
+          '"build.ssr" must be set to `true` in order to use the Netlify Edge adaptor.'
         );
       }
 
       if (!build?.rollupOptions?.input) {
         throw new Error(
-          '"build.rollupOptions.input" must be set in order to use the Static Generate adaptor.'
+          '"build.rollupOptions.input" must be set in order to use the Netlify Edge adaptor.'
         );
       }
     },
@@ -61,19 +71,19 @@ export function staticAdaptor(opts: StaticGenerateAdaptorOptions): any {
         const chunk = bundles[fileName];
         if (chunk.type === 'chunk' && chunk.isEntry) {
           if (chunk.name === 'entry.ssr') {
-            ssrOutputPath = join(serverOutDir!, fileName);
+            renderModulePath = join(serverOutDir!, fileName);
           } else if (chunk.name === '@qwik-city-plan') {
-            qwikCityPlanOutputPath = join(serverOutDir!, fileName);
+            qwikCityPlanModulePath = join(serverOutDir!, fileName);
           }
         }
       }
 
-      if (!ssrOutputPath) {
+      if (!renderModulePath) {
         throw new Error(
           'Unable to fine "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?'
         );
       }
-      if (!qwikCityPlanOutputPath) {
+      if (!qwikCityPlanModulePath) {
         throw new Error(
           'Unable to fine "@qwik-city-plan" entry point. Did you forget to add it to "build.rollupOptions.input"?'
         );
@@ -87,4 +97,6 @@ export function staticAdaptor(opts: StaticGenerateAdaptorOptions): any {
   return plugin;
 }
 
-export interface StaticGenerateAdaptorOptions extends Omit<StaticGenerateRenderOptions, 'outDir'> {}
+export interface NetlifyEdgeAdaptorOptions {
+  staticGenerate?: StaticGenerateRenderOptions | true;
+}

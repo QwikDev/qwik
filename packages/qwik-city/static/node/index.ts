@@ -14,10 +14,10 @@ export async function generate(opts: PlatformStaticGenerateOptions) {
   throw new Error(`generate() cannot be called from a worker thread`);
 }
 
-(async () => {
-  if (!isMainThread && workerData) {
+if (!isMainThread && workerData) {
+  (async () => {
     // self initializing worker thread with workerData
     const sys = await createSystem(workerData);
     await workerThread(sys);
-  }
-})();
+  })();
+}

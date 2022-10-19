@@ -166,7 +166,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.srcDir = normalizePath(path.resolve(opts.rootDir, normalizePath(opts.srcDir)));
     }
 
-    console.log('plugin');
     if (Array.isArray(updatedOpts.input)) {
       opts.input = [...updatedOpts.input];
     } else if (typeof updatedOpts.input === 'string') {

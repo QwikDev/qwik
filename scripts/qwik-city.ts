@@ -1,4 +1,4 @@
-import { BuildConfig, nodeTarget, panic, run, watcher } from './util';
+import { BuildConfig, nodeTarget, panic, run, watcher, importPath } from './util';
 import { build, Plugin, transform } from 'esbuild';
 import { join } from 'path';
 import { readPackageJson, writePackageJson } from './package-json';
@@ -21,6 +21,9 @@ export async function buildQwikCity(config: BuildConfig) {
     buildServiceWorker(config, inputDir, outputDir),
     buildVite(config, inputDir, outputDir),
     buildAdaptorCloudflarePagesVite(config, inputDir, outputDir),
+    buildAdaptorExpressVite(config, inputDir, outputDir),
+    buildAdaptorNetlifyEdgeVite(config, inputDir, outputDir),
+    buildAdaptorStaticVite(config, inputDir, outputDir),
     buildMiddlewareCloudflarePages(config, inputDir, outputDir),
     buildMiddlewareNetlifyEdge(config, inputDir, outputDir),
     buildMiddlewareNode(config, inputDir, outputDir),
@@ -45,6 +48,14 @@ export async function buildQwikCity(config: BuildConfig) {
       './adaptors/cloudflare-pages/vite': {
         import: './adaptors/cloudflare-pages/vite/index.mjs',
         require: './adaptors/cloudflare-pages/vite/index.cjs',
+      },
+      './adaptors/express/vite': {
+        import: './adaptors/express/vite/index.mjs',
+        require: './adaptors/express/vite/index.cjs',
+      },
+      './adaptors/netlify-edge/vite': {
+        import: './adaptors/netlify-edge/vite/index.mjs',
+        require: './adaptors/netlify-edge/vite/index.cjs',
       },
       './adaptors/static/vite': {
         import: './adaptors/static/vite/index.mjs',
@@ -222,6 +233,7 @@ async function buildAdaptorCloudflarePagesVite(
     format: 'esm',
     watch: watcher(config),
     external,
+    plugins: [importPath(/static$/, '../../../static/index.mjs')],
   });
 
   await build({
@@ -233,6 +245,101 @@ async function buildAdaptorCloudflarePagesVite(
     format: 'cjs',
     watch: watcher(config),
     external,
+    plugins: [importPath(/static$/, '../../../static/index.cjs')],
+  });
+}
+
+async function buildAdaptorExpressVite(config: BuildConfig, inputDir: string, outputDir: string) {
+  const entryPoints = [join(inputDir, 'adaptors', 'express', 'vite', 'index.ts')];
+
+  const external = ['vite', 'fs', 'path', '@builder.io/qwik-city/static'];
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'adaptors', 'express', 'vite', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    watch: watcher(config),
+    external,
+    plugins: [importPath(/static$/, '../../../static/index.mjs')],
+  });
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'adaptors', 'express', 'vite', 'index.cjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'cjs',
+    watch: watcher(config),
+    external,
+    plugins: [importPath(/static$/, '../../../static/index.cjs')],
+  });
+}
+
+async function buildAdaptorNetlifyEdgeVite(
+  config: BuildConfig,
+  inputDir: string,
+  outputDir: string
+) {
+  const entryPoints = [join(inputDir, 'adaptors', 'netlify-edge', 'vite', 'index.ts')];
+
+  const external = ['vite', 'fs', 'path', '@builder.io/qwik-city/static'];
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'adaptors', 'netlify-edge', 'vite', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    watch: watcher(config),
+    external,
+    plugins: [importPath(/static$/, '../../../static/index.mjs')],
+  });
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'adaptors', 'netlify-edge', 'vite', 'index.cjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'cjs',
+    watch: watcher(config),
+    external,
+    plugins: [importPath(/static$/, '../../../static/index.cjs')],
+  });
+}
+
+async function buildAdaptorStaticVite(config: BuildConfig, inputDir: string, outputDir: string) {
+  const entryPoints = [join(inputDir, 'adaptors', 'static', 'vite', 'index.ts')];
+
+  const external = ['vite', 'fs', 'path', '@builder.io/qwik-city/static'];
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'adaptors', 'static', 'vite', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    watch: watcher(config),
+    external,
+    plugins: [importPath(/static$/, '../../../static/index.mjs')],
+  });
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'adaptors', 'netlify-edge', 'vite', 'index.cjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'cjs',
+    watch: watcher(config),
+    external,
+    plugins: [importPath(/static$/, '../../../static/index.cjs')],
   });
 }
 

@@ -31,7 +31,7 @@ function getEntryModulePath() {
     return './deno.mjs';
   }
   if (isNode()) {
-    if (typeof require === 'function') {
+    if (isCjs()) {
       return './node.cjs';
     }
     return './node.mjs';
@@ -41,7 +41,7 @@ function getEntryModulePath() {
 
 function getEntryModule() {
   const entryModule = getEntryModulePath();
-  if (typeof require === 'function') {
+  if (isCjs()) {
     return require(entryModule);
   }
   return import(entryModule);
@@ -60,6 +60,11 @@ function isDeno() {
 
 function isNode() {
   return !isDeno() && typeof process !== 'undefined' && !!process.versions?.node;
+}
+
+function isCjs() {
+  const req = 'require';
+  return isNode() && typeof globalThis[req] === 'function';
 }
 
 declare const Deno: any;

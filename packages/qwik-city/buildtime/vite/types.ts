@@ -1,10 +1,11 @@
 import type { MdxTransform } from '../markdown/mdx';
-import type { BuildContext, PluginOptions } from '../types';
+import type { BuildContext, PluginOptions, MdxPlugins } from '../types';
 
 /**
  * @alpha
  */
 export interface QwikCityVitePluginOptions extends PluginOptions {
+  mdxPlugins?: MdxPlugins;
   mdx?: MdxOptions;
 }
 

@@ -243,6 +243,11 @@ test('getPathnameFromDirPath', () => {
       routesDir: routesDir,
       basePathname: c.basePathname,
       trailingSlash: c.trailingSlash,
+      mdxPlugins: {
+        remarkGfm: true,
+        rehypeSyntaxHighlight: true,
+        rehypeAutolinkHeadings: true,
+      },
       mdx: {},
       baseUrl: c.basePathname,
     };

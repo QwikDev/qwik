@@ -41,6 +41,11 @@ test('resolveLayout', () => {
       routesDir: '',
       basePathname: '/',
       trailingSlash: false,
+      mdxPlugins: {
+        remarkGfm: true,
+        rehypeSyntaxHighlight: true,
+        rehypeAutolinkHeadings: true,
+      },
       mdx: {},
       baseUrl: '/',
     };

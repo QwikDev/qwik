@@ -58,6 +58,11 @@ test('getMarkdownRelativeUrl', () => {
       basePathname: '/',
       trailingSlash: !!c.trailingSlash,
       routesDir: routesDir,
+      mdxPlugins: {
+        remarkGfm: true,
+        rehypeSyntaxHighlight: true,
+        rehypeAutolinkHeadings: true,
+      },
       mdx: {},
       baseUrl: '/',
     };

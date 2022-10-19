@@ -79,3 +79,40 @@ export const Counter = component$(() => {
 **Note**: A key difference between Qwik City and many current meta-frameworks is directory-based routing. Every route needs to be defined as `a-directory/index.(tsx,ts,js,jsx,md,mdx)`.
 
 In other meta-frameworks you're used to `about.mdx` will render a route `http://example.com/about`. However, this will not work in Qwik City. You must rename the file to `about/index.mdx` for Qwik City to know to render it.
+
+## Disabling default MDX plugins included.
+
+Qwik City includes 3 plugins by default.
+
+- [remarkGfm](https://github.com/remarkjs/remark-gfm): [GFM](https://github.github.com/gfm/) support (autolink literals, footnotes, strikethrough, tables, tasklists).
+- [rehypeSyntaxHighlight](https://github.com/wooorm/refractor): Lightweight, robust, elegant virtual syntax highlighting using Prism.
+- [rehypeAutolinkHeadings](https://github.com/rehypejs/rehype-autolink-headings): Plugin to add links to headings in HTML.
+
+These plugins can be disabled independently in the following way:
+
+```typescript
+import { defineConfig } from 'vite';
+import { qwikCity } from '@builder.io/qwik-city/vite';
+// See below
+import rehypeAutolinkHeadings from 'rehype-autolink-headings'
+export default defineConfig(() => {
+  return {
+    plugins: [
+      qwikCity({
+        mdxPlugins: {
+          remarkGfm: false,
+          rehypeSyntaxHighlight: false,
+          rehypeAutolinkHeadings: false,
+        },
+        mdx: {
+          rehypePlugins: [
+            // Plugins can now be added manually to use a different configuration
+            [rehypeAutolinkHeadings, { behavior: 'wrap' }],
+          ],
+        },
+      }),
+      /* the rest of the configuration */
+    ],
+  };
+});
+```

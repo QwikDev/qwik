@@ -123,6 +123,10 @@ export interface PluginOptions {
    */
   trailingSlash?: boolean;
   /**
+   * Enable or disable MDX plugins included by default in qwik-city.
+   */
+  mdxPlugins?: MdxPlugins;
+  /**
    * MDX Options https://mdxjs.com/
    */
   mdx?: any;
@@ -130,6 +134,12 @@ export interface PluginOptions {
    * @deprecated Please use "basePathname" instead.
    */
   baseUrl?: string;
+}
+
+export interface MdxPlugins {
+  remarkGfm: boolean;
+  rehypeSyntaxHighlight: boolean;
+  rehypeAutolinkHeadings: boolean;
 }
 
 export interface NormalizedPluginOptions extends Required<PluginOptions> {}

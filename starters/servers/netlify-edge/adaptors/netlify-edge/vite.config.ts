@@ -1,4 +1,5 @@
-import { cloudflarePagesAdaptor } from '@builder.io/qwik-city/adaptors/cloudflare-pages/vite';
+import netlifyEdge from '@netlify/vite-plugin-netlify-edge';
+import { netifyEdgeAdaptor } from '@builder.io/qwik-city/adaptors/netlify-edge/vite';
 import { extendConfig } from '@builder.io/qwik-city/vite';
 import baseConfig from '../../vite.config';
 
@@ -9,15 +10,17 @@ export default extendConfig(baseConfig, () => {
       rollupOptions: {
         input: ['src/entry.cloudflare-pages.tsx', 'src/entry.ssr.tsx', '@qwik-city-plan'],
       },
+      outDir: 'netlify/edge-functions/entry.netlify-edge',
     },
     ssr: {
       target: 'webworker',
       noExternal: true,
     },
     plugins: [
-      cloudflarePagesAdaptor({
+      netifyEdgeAdaptor({
         staticGenerate: true,
       }),
+      netlifyEdge({ functionName: 'entry.netlify-edge' }),
     ],
   };
 });

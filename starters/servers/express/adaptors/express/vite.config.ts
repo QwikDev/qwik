@@ -1,4 +1,4 @@
-import { cloudflarePagesAdaptor } from '@builder.io/qwik-city/adaptors/cloudflare-pages/vite';
+import { expressAdaptor } from '@builder.io/qwik-city/adaptors/express/vite';
 import { extendConfig } from '@builder.io/qwik-city/vite';
 import baseConfig from '../../vite.config';
 
@@ -15,7 +15,7 @@ export default extendConfig(baseConfig, () => {
       noExternal: true,
     },
     plugins: [
-      cloudflarePagesAdaptor({
+      expressAdaptor({
         staticGenerate: true,
       }),
     ],

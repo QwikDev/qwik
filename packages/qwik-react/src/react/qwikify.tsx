@@ -5,15 +5,20 @@ import {
   noSerialize,
   QRL,
   useWatch$,
-  useStore,
   EagernessOptions,
-  useRef,
   SkipRender,
+  useSignal,
+  useOn,
+  $,
+  SSRStream,
+  Slot,
+  SSRRaw,
 } from '@builder.io/qwik';
 
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import type { Root } from 'react-dom/client';
-import type { FunctionComponent } from 'react';
+import { FunctionComponent, createElement } from 'react';
+import * as client from './client';
 
 export interface Internal<PROPS> {
   root: Root;
@@ -21,20 +26,19 @@ export interface Internal<PROPS> {
   cmp: FunctionComponent<PROPS>;
 }
 
-export interface QwikifyCmp<PROPS extends {}> {
-  data?: NoSerialize<Internal<PROPS>>;
-  event?: NoSerialize<any>;
-}
-
 export type QwikifyProps<PROPS extends {}> = PROPS & {
   'client:load'?: boolean;
   'client:visible'?: boolean;
+  'client:idle'?: boolean;
+  'client:hover'?: boolean;
   'client:only'?: boolean;
+  'client:event'?: string | string[];
 };
 
 export interface QwikifyOptions {
   tagName?: string;
-  eagerness?: 'load' | 'visible';
+  eagerness?: 'load' | 'visible' | 'idle' | 'hover';
+  event?: string | string[];
   clientOnly?: boolean;
 }
 
@@ -43,39 +47,65 @@ export function qwikifyQrl<PROPS extends {}>(
   opts?: QwikifyOptions
 ) {
   return component$<QwikifyProps<PROPS>>((props) => {
-    const ref = useRef();
-    const store = useStore<QwikifyCmp<PROPS>>({});
+    const ref = useSignal<Element>();
+    const data = useSignal<NoSerialize<Internal<PROPS>>>();
+    const activated = useSignal<boolean>();
+    const activate = $(() => (activated.value = true));
     const Host = opts?.tagName ?? ('qwik-react' as any);
     const clientOnly = !!(props['client:only'] || opts?.clientOnly);
     let eagerness: EagernessOptions | undefined;
+    let staticRender = true;
     if (props['client:visible'] || opts?.eagerness === 'visible') {
       eagerness = 'visible';
+      staticRender = false;
+    } else if (props['client:idle'] || opts?.eagerness === 'idle') {
+      eagerness = 'idle';
+      staticRender = false;
     } else if (props['client:load'] || clientOnly || opts?.eagerness === 'load') {
       eagerness = 'load';
+      staticRender = false;
+    } else if (props['client:hover'] || opts?.eagerness === 'hover') {
+      staticRender = false;
+      useOn('mouseover', activate);
+    }
+
+    if (props['client:event']) {
+      useOn(props['client:event'], activate);
+      staticRender = false;
+    }
+    if (opts?.event) {
+      useOn(opts?.event, activate);
+      staticRender = false;
     }
 
     useWatch$(
       async ({ track }) => {
         track(props);
+        track(activated);
 
-        const hostElement = ref.current;
+        const hostElement = ref.value;
         if (isBrowser && hostElement) {
-          if (store.data) {
-            store.data.root.render(store.data.client.Main(store.data.cmp, filterProps(props)));
+          if (data.value) {
+            data.value.root.render(createElement(data.value.cmp, clientProps(props) as any));
           } else {
-            const [Cmp, client] = await Promise.all([reactCmp$.resolve(), import('./client')]);
+            const Cmp = await reactCmp$.resolve();
 
             let root: Root;
             if (hostElement.childElementCount > 0) {
               root = client.hydrateRoot(
                 hostElement,
-                client.Main(Cmp, filterProps(props), store.event)
+                createElement(Cmp, clientProps(props) as any),
+                {
+                  onRecoverableError() {
+                    return false;
+                  },
+                }
               );
             } else {
               root = client.createRoot(hostElement);
-              root.render(client.Main(Cmp, filterProps(props)));
+              root.render(createElement(Cmp, clientProps(props) as any));
             }
-            store.data = noSerialize({
+            data.value = noSerialize({
               client,
               cmp: Cmp,
               root,
@@ -88,8 +118,25 @@ export function qwikifyQrl<PROPS extends {}>(
 
     if (isServer && !clientOnly) {
       const jsx = Promise.all([reactCmp$.resolve(), import('./server')]).then(([Cmp, server]) => {
-        const html = server.render(Cmp, filterProps(props));
-        return <Host ref={ref} dangerouslySetInnerHTML={html} />;
+        const render = staticRender ? server.renderToStaticMarkup : server.renderToString;
+        const html = render(createElement(Cmp, serverProps(props) as any));
+        const index = html.indexOf('<!--SLOT-->');
+        if (index > 0) {
+          const part1 = html.slice(0, index);
+          const part2 = html.slice(index + '<!--SLOT-->'.length);
+          return (
+            <Host ref={ref}>
+              <SSRStream>
+                {async function* () {
+                  yield <SSRRaw data={part1} />;
+                  yield <Slot />;
+                  yield <SSRRaw data={part2} />;
+                }}
+              </SSRStream>
+            </Host>
+          );
+        }
+        return <Host ref={ref} dangerouslySetInnerHTML={html}></Host>;
       });
       return <>{jsx}</>;
     }
@@ -104,6 +151,25 @@ export const filterProps = (props: Record<string, any>): Record<string, any> => 
     if (!key.startsWith('client:')) {
       obj[key] = props[key];
     }
+  });
+  obj.children = createElement('p');
+  return obj;
+};
+
+export const clientProps = (props: Record<string, any>): Record<string, any> => {
+  const obj = filterProps(props);
+  obj.children = createElement('q:slot', {
+    suppressHydrationWarning: true,
+    dangerouslySetInnerHTML: { __html: '' },
+  });
+  return obj;
+};
+
+export const serverProps = (props: Record<string, any>): Record<string, any> => {
+  const obj = filterProps(props);
+  obj.children = createElement('q:slot', {
+    suppressHydrationWarning: true,
+    dangerouslySetInnerHTML: { __html: '<!--SLOT-->' },
   });
   return obj;
 };

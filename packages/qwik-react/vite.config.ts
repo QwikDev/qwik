@@ -13,14 +13,9 @@ export default defineConfig(() => {
       },
       rollupOptions: {
         external: [
-          '@emotion/server',
-          '@emotion/cache',
-          '@emotion/core',
-          '@emotion/react',
-          '@emotion/react/jsx-runtime',
-          '@emotion/server/create-instance',
-          'react/jsx-runtime',
           'react',
+          'react/jsx-runtime',
+          'react/jsx-dev-runtime',
           'react-dom/client',
           'react-dom/server',
         ],

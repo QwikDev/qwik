@@ -29,7 +29,13 @@ export const Fragment: FunctionComponent<{}> = ((props: any) => props.children) 
 /**
  * @alpha
  */
-export const SSRComment: FunctionComponent<{ data: string }> = (() => null) as any;
+export const SSRRaw: FunctionComponent<{ data: string }> = (() => null) as any;
+
+/**
+ * @alpha
+ */
+export const SSRComment: FunctionComponent<{ data: string }> = (props) =>
+  jsx(SSRRaw, { data: `<!--${props.data}-->` }, null) as any;
 
 /**
  * @alpha

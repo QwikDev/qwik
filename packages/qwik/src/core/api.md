@@ -569,6 +569,11 @@ export const SSRComment: FunctionComponent<{
 }>;
 
 // @alpha (undocumented)
+export const SSRRaw: FunctionComponent<{
+    data: string;
+}>;
+
+// @alpha (undocumented)
 export const SSRStream: FunctionComponent<StreamProps>;
 
 // @alpha (undocumented)
@@ -646,13 +651,13 @@ export const useMount$: <T>(first: MountFn<T>) => void;
 export const useMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
 
 // @alpha
-export const useOn: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
 
 // @alpha
-export const useOnDocument: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
 
 // @alpha
-export const useOnWindow: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
 
 // @alpha @deprecated
 export const useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;

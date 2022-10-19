@@ -1,6 +1,6 @@
 import { assertQrl } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
-import { getContext } from '../state/context';
+import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
 import { normalizeOnProp } from '../state/listeners';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { useInvokeContext } from './use-core';
@@ -135,5 +135,5 @@ const _useOn = (eventName: string, eventQrl: QRL<(ev: Event) => void>) => {
   const elCtx = getContext(invokeCtx.$hostElement$);
   assertQrl(eventQrl);
   elCtx.li.push([normalizeOnProp(eventName), eventQrl]);
-  elCtx.$needAttachListeners$ = true;
+  elCtx.$flags$ |= HOST_FLAG_NEED_ATTACH_LISTENER;
 };

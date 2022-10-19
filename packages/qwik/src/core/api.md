@@ -568,11 +568,11 @@ export interface SnapshotMetaValue {
 // @alpha (undocumented)
 export interface SnapshotResult {
     // (undocumented)
-    listeners: SnapshotListener[];
-    // (undocumented)
     mode: 'render' | 'listeners' | 'static';
     // (undocumented)
     objs: any[];
+    // (undocumented)
+    qrls: QRL[];
     // (undocumented)
     state: SnapshotState;
 }
@@ -635,6 +635,9 @@ export const useClientEffectQrl: (qrl: QRL<WatchFn>, opts?: UseEffectOptions) =>
 //
 // @public
 export const useContext: UseContext;
+
+// @alpha (undocumented)
+export const useContextBoundary: (...ids: Context<any>[]) => void;
 
 // @public
 export const useContextProvider: <STATE extends object>(context: Context<STATE>, newValue: STATE) => void;

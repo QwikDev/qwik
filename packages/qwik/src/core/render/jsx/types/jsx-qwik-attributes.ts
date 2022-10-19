@@ -1,7 +1,7 @@
 /* eslint-disable */
 
-import type { QRL } from '../../../import/qrl.public';
-import type { Signal } from '../../../object/q-object';
+import type { QRL } from '../../../qrl/qrl.public';
+import type { Signal } from '../../../state/signal';
 import type { Ref } from '../../../use/use-ref';
 import type { JSXNode } from './jsx-node';
 

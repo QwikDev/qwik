@@ -1,4 +1,4 @@
-import { assertDefined } from '../assert/assert';
+import { assertDefined } from '../error/assert';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { qDynamicPlatform } from './qdev';
 

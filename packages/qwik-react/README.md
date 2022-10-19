@@ -50,7 +50,7 @@ npm run build.server
 
 ## Related
 
-- [Qwik Docs](https://qwik.builder.io/)
+- [Qwik Docs](https://qwik.builder.io/docs/overview/)
 - [Qwik Github](https://github.com/BuilderIO/qwik)
 - [@QwikDev](https://twitter.com/QwikDev)
 - [Discord](https://qwik.builder.io/chat)

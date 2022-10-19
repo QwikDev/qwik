@@ -282,6 +282,7 @@ body {
 }
 
 /* Temporary workaround */
-:root[data-theme='dark'] .builder .csoetdv, :root[data-theme='dark'] .builder .cvha93q {
+:root[data-theme='dark'] .builder .csoetdv,
+:root[data-theme='dark'] .builder .cvha93q {
   filter: invert(90%) hue-rotate(180deg);
 }

@@ -83,7 +83,7 @@ In order to make the first example work, we can pass a second argument to our us
 export const App = component$(() => {
   const store = useStore({
     nested: { fields: { are: "not tracked" }}
-  }, { recursion: true })
+  }, { recursive: true })
 
   return (
     <>

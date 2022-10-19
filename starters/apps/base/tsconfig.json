@@ -13,7 +13,10 @@
     "skipLibCheck": true,
     "incremental": true,
     "isolatedModules": true,
+    "outDir": "tmp",
+    "noEmit": true,
     "types": ["node", "vite/client"],
+    "files": ["./.eslintrc.cjs"],
     "paths": {
       "~/*": ["./src/*"]
     }

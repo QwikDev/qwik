@@ -35,24 +35,24 @@ export async function createLinter(sys: OptimizerSystem, rootDir: string): Promi
 
   return {
     async lint(ctx: PluginContext, code: string, id: string) {
-      const filePath = parseRequest(id);
-      if (await eslint.isPathIgnored(filePath)) {
-        return null;
-      }
-      const report = await eslint.lintText(code, {
-        filePath,
-      });
+      try {
+        const filePath = parseRequest(id);
+        if (await eslint.isPathIgnored(filePath)) {
+          return null;
+        }
+        const report = await eslint.lintText(code, {
+          filePath,
+        });
 
-      report.forEach((file) => {
-        for (const message of file.messages) {
-          const err = createRollupError(file.filePath, message);
-          if (message.severity === 2) {
-            ctx.warn(err);
-          } else if (message.severity === 1) {
+        report.forEach((file) => {
+          for (const message of file.messages) {
+            const err = createRollupError(file.filePath, message);
             ctx.warn(err);
           }
-        }
-      });
+        });
+      } catch (err) {
+        console.warn(err);
+      }
     },
   };
 }

@@ -14,6 +14,7 @@ import type {
   TransformModuleInput,
   TransformOutput,
 } from '../types';
+import { createLinter, QwikLinter } from './eslint-plugin';
 
 export interface QwikPackages {
   id: string;
@@ -26,6 +27,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const transformedOutputs = new Map<string, [TransformModule, string]>();
 
   let internalOptimizer: Optimizer | null = null;
+  let linter: QwikLinter | undefined = undefined;
   let addWatchFileCallback: (ctx: any, path: string) => void = () => {};
   let diagnosticsCallback: (
     d: Diagnostic[],
@@ -254,9 +256,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.forceFullBuild ? 'full build' : 'isolated build',
       opts.scope
     );
+    const optimizer = getOptimizer();
+
+    try {
+      linter = await createLinter(optimizer.sys, opts.rootDir);
+    } catch (err) {
+      console.error(err);
+    }
 
     if (opts.forceFullBuild) {
-      const optimizer = getOptimizer();
       const path = getPath();
 
       let srcDir = '/';
@@ -429,7 +437,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
 
-  const transform = function (ctx: any, code: string, id: string) {
+  const transform = async function (ctx: any, code: string, id: string) {
     if (opts.forceFullBuild) {
       // Only run when moduleIsolated === true
       return null;
@@ -485,6 +493,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
 
+      if (newOutput.diagnostics.length === 0 && linter) {
+        await linter.lint(ctx, code, id);
+      }
       results.set(normalizePath(pathId), newOutput);
 
       for (const [id, output] of results.entries()) {

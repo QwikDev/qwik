@@ -160,15 +160,15 @@ export const _pauseFromContexts = async (
     const el = ctx.$element$;
     const ctxListeners = ctx.li;
     for (const listener of ctxListeners) {
-      const qrl = listener[1];
-      const captured = qrl.$captureRef$;
-      if (captured) {
-        for (const obj of captured) {
-          collectValue(obj, collector, true);
+      if (isElement(el)) {
+        const qrl = listener[1];
+        const captured = qrl.$captureRef$;
+        if (captured) {
+          for (const obj of captured) {
+            collectValue(obj, collector, true);
+          }
         }
-      }
-      collector.$qrls$.push(qrl);
-      if (!hasListeners && isElement(el)) {
+        collector.$qrls$.push(qrl);
         hasListeners = true;
       }
     }
@@ -499,6 +499,7 @@ export interface Collector {
   $noSerialize$: any[];
   $elements$: QContext[];
   $qrls$: QRL[];
+  $prefetch$: number;
   $deferElements$: QContext[];
   $containerState$: ContainerState;
   $promises$: Promise<any>[];
@@ -520,6 +521,7 @@ const createCollector = (containerState: ContainerState): Collector => {
     $containerState$: containerState,
     $seen$: new Set(),
     $objSet$: new Set(),
+    $prefetch$: 0,
     $noSerialize$: [],
     $elements$: [],
     $qrls$: [],
@@ -534,11 +536,13 @@ const collectDeferElement = (el: VirtualElement, collector: Collector) => {
     return;
   }
   collector.$elements$.push(ctx);
+  collector.$prefetch$++;
   if (ctx.$flags$ & HOST_FLAG_DYNAMIC) {
     collectElementData(ctx, collector, true);
   } else {
     collector.$deferElements$.push(ctx);
   }
+  collector.$prefetch$--;
 };
 
 const collectElement = (el: VirtualElement, collector: Collector) => {

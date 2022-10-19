@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 import type { Rule } from 'eslint';
-import type { JSXElement } from 'estree-jsx';
-import { exit } from 'process';
+import type { JSXElement, JSXFragment } from 'estree-jsx';
 
 export const singleJsxRoot: Rule.RuleModule = {
   meta: {
@@ -13,18 +12,16 @@ export const singleJsxRoot: Rule.RuleModule = {
     },
     messages: {
       multipleJsxRoots:
-        'Multiple JSX root are not allowed inside the same component, instead use a single Fragment node (<>{}</>) and place all the template inside.',
-      lastJsxRoot:
-        'There must be a single JSX node as root, make sure all JSX nodes are wrapped around a unique Fragment.',
+        'Components in Qwik must have a single JSX root element. Your component has multiple roots on lines: {{lines}}. Rewrite your component with a single root such as (`return <>{...}</>`.) and keep all JSX within',
     },
   },
   create(context) {
     const stack: {
-      rootNodes: JSXElement[];
+      rootNodes: (JSXElement | JSXFragment)[];
       depth: number;
     }[] = [];
     return {
-      ArrowFunctionExpression(node) {
+      ArrowFunctionExpression() {
         stack.push({
           rootNodes: [],
           depth: 0,
@@ -34,15 +31,19 @@ export const singleJsxRoot: Rule.RuleModule = {
         const current = stack[stack.length - 1];
         if (current) {
           if (current.rootNodes.length > 1) {
+            const lines = current.rootNodes.map((node) => node.loc?.start.line ?? 0).join(', ');
             context.report({
-              node: current.rootNodes[current.rootNodes.length - 1].openingElement,
-              messageId: 'lastJsxRoot',
+              node: current.rootNodes[0],
+              messageId: 'multipleJsxRoots',
+              data: {
+                lines,
+              },
             });
           }
         }
         stack.pop();
       },
-      FunctionDeclaration(node) {
+      FunctionDeclaration() {
         stack.push({
           rootNodes: [],
           depth: 0,
@@ -56,12 +57,6 @@ export const singleJsxRoot: Rule.RuleModule = {
         if (current) {
           if (current.depth === 0) {
             current.rootNodes.push(node);
-            if (current.rootNodes.length > 1) {
-              context.report({
-                node: current.rootNodes[current.rootNodes.length - 2],
-                messageId: 'multipleJsxRoots',
-              });
-            }
           }
           current.depth++;
         }

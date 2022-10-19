@@ -144,8 +144,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         pluginOpts.outDir = viteConfig.build?.outDir;
       }
 
-      console.log('qwik vite puglin input', pluginOpts.input);
-
       if (sys.env === 'node') {
         const fs: typeof import('fs') = await sys.dynamicImport('fs');
 

@@ -54,7 +54,7 @@ export const MyCmp = component$(async (props: MyCmpProps) => {
 
 > **NOTE**
 >
-> - For an explanation of `$` see lazy-loading and Optimizer discussion.
+> - For an explanation of `$` see [Lazy-loading](../../advanced/qrl/index.mdx) and [Optimizer](../../advanced/optimizer/index.mdx)  discussion.
 > - For a detailed discussion of props, see Component/props discussion.
 
 ## Props
@@ -65,9 +65,9 @@ In this example a component `Item` declares optional `name`, `quantity`, `descri
 
 ```tsx
 interface ItemProps {
-   name?: string,
-   quantity?: number,
-   description?: string,
+   name?: string;
+   quantity?: number;
+   description?: string;
    price?: number
 }
 
@@ -81,11 +81,11 @@ export const Item = component$((props: ItemProps) => {
 Qwik components can use other components.
 
 ```tsx
-const Counter = component$((props: {step?:number, initial?: number}) => {
+export const Counter = component$((props: {step?:number, initial?: number}) => {
   ...
 });
 
-const MyApp = component$(() => {
+export const MyApp = component$(() => {
   return (
     <>
       <div>Single: <Counter /></div>
@@ -114,7 +114,7 @@ For a detailed discussion of reactivity, see related discussion.
 The component also serves an important role when breaking parent-child relationships for bundling purposes.
 
 ```tsx
-const Child = () => <span>child</span>;
+export const Child = () => <span>child</span>;
 
 const Parent = () => (
   <section>
@@ -126,11 +126,11 @@ const Parent = () => (
 In the above example, referring to the `Parent` component implies a transitive reference to the `Child` component. When the bundler is creating a chunk, a reference to `Parent` necessitates bundling `Child` as well. (`Parent` internally refers to `Child`.) These transitive dependencies are a problem because it means that having a reference to the root component will transitively refer to the remainder of the application—something which Qwik tries to avoid explicitly.
 
 ```tsx
-const Child = component$(() => {
+export const Child = component$(() => {
   return <span>child</span>;
 });
 
-const Parent = component$(() => {
+export const Parent = component$(() => {
   return (
     <section>
       <Child />

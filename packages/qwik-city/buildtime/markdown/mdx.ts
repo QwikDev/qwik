@@ -20,17 +20,41 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
   const userRemarkPlugins = userMdxOpts.remarkPlugins || [];
   const userRehypePlugins = userMdxOpts.rehypePlugins || [];
 
+  const coreMdxPlugins = ctx.opts.mdxPlugins;
+
+  const coreRemarkPlugins = [];
+
+  if (typeof coreMdxPlugins?.remarkGfm === 'undefined' || coreMdxPlugins.remarkGfm) {
+    coreRemarkPlugins.push(remarkGfm);
+  }
+
+  const coreRehypePlugins = [];
+
+  if (
+    typeof coreMdxPlugins?.rehypeSyntaxHighlight === 'undefined' ||
+    coreMdxPlugins.rehypeSyntaxHighlight
+  ) {
+    coreRehypePlugins.push(rehypeSyntaxHighlight);
+  }
+
+  if (
+    typeof coreMdxPlugins?.rehypeAutolinkHeadings === 'undefined' ||
+    coreMdxPlugins.rehypeAutolinkHeadings
+  ) {
+    coreRehypePlugins.push(rehypeAutolinkHeadings);
+  }
+
   const mdxOpts: CompileOptions = {
     SourceMapGenerator,
     jsxImportSource: '@builder.io/qwik',
     ...userMdxOpts,
-    remarkPlugins: [...userRemarkPlugins, remarkGfm, remarkFrontmatter, [parseFrontmatter, ctx]],
-    rehypePlugins: [
-      ...userRehypePlugins,
-      rehypeSyntaxHighlight,
-      [rehypePage, ctx],
-      rehypeAutolinkHeadings,
+    remarkPlugins: [
+      ...userRemarkPlugins,
+      ...coreRemarkPlugins,
+      remarkFrontmatter,
+      [parseFrontmatter, ctx],
     ],
+    rehypePlugins: [...userRehypePlugins, ...coreRehypePlugins, [rehypePage, ctx]],
   };
 
   const { extnames, process } = createFormatAwareProcessors(mdxOpts);

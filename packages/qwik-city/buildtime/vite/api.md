@@ -18,6 +18,10 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any;
 export interface QwikCityVitePluginOptions extends PluginOptions {
     // (undocumented)
     mdx?: MdxOptions;
+    // Warning: (ae-forgotten-export) The symbol "MdxPlugins" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    mdxPlugins?: MdxPlugins;
 }
 
 // (No @packageDocumentation comment for this package)

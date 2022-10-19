@@ -1,26 +1,27 @@
 import type {
   MainContext,
+  StaticGenerateOptions,
   StaticRoute,
-  StaticGeneratorOptions,
   StaticWorkerRenderResult,
   WorkerOutputMessage,
   WorkerInputMessage,
-} from '../generator/types';
+} from '../types';
 import fs from 'fs';
 import { cpus as nodeCpus } from 'os';
 import { Worker } from 'worker_threads';
-import { fileURLToPath } from 'url';
-import { isAbsolute, join } from 'path';
+import { isAbsolute, resolve } from 'path';
 import { ensureDir } from './node-system';
 import { normalizePath } from '../../utils/fs';
 
-export async function createNodeMainProcess(opts: StaticGeneratorOptions) {
-  const currentFile = fileURLToPath(import.meta.url);
+export async function createNodeMainProcess(opts: StaticGenerateOptions) {
   const ssgWorkers: StaticGeneratorWorker[] = [];
   const sitemapBuffer: string[] = [];
   let sitemapPromise: Promise<any> | null = null;
 
   let outDir = opts.outDir;
+  if (typeof outDir !== 'string') {
+    throw new Error(`Missing "outDir" option`);
+  }
   if (!isAbsolute(outDir)) {
     throw new Error(`"outDir" must be an absolute file path, received: ${outDir}`);
   }
@@ -42,14 +43,27 @@ export async function createNodeMainProcess(opts: StaticGeneratorOptions) {
       sitemapOutFile = 'sitemap.xml';
     }
     if (!isAbsolute(sitemapOutFile)) {
-      sitemapOutFile = join(outDir, sitemapOutFile);
+      sitemapOutFile = resolve(outDir, sitemapOutFile);
     }
   }
 
   const createWorker = () => {
     let terminateResolve: (() => void) | null = null;
     const mainTasks = new Map<string, WorkerMainTask>();
-    const nodeWorker = new Worker(currentFile);
+
+    let workerFilePath: string | URL;
+
+    if (typeof __filename === 'string') {
+      workerFilePath = __filename;
+    } else {
+      workerFilePath = import.meta.url;
+    }
+
+    if (typeof workerFilePath === 'string' && workerFilePath.startsWith('file://')) {
+      workerFilePath = new URL(workerFilePath);
+    }
+
+    const nodeWorker = new Worker(workerFilePath, { workerData: opts });
 
     const ssgWorker: StaticGeneratorWorker = {
       activeTasks: 0,

@@ -66,6 +66,34 @@ export function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.packagesDir, 'qwik-city', 'adaptors', 'cloudflare-pages', 'vite'),
+    join(
+      config.packagesDir,
+      'qwik-city',
+      'lib',
+      'adaptors',
+      'cloudflare-pages',
+      'vite',
+      'index.d.ts'
+    )
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'adaptors', 'express', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'express', 'vite', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'adaptors', 'netlify-edge', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'netlify-edge', 'vite', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'adaptors', 'static', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'static', 'vite', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.packagesDir, 'qwik-city', 'middleware', 'cloudflare-pages'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'cloudflare-pages', 'index.d.ts')
   );
@@ -81,8 +109,8 @@ export function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'static', 'node'),
-    join(config.packagesDir, 'qwik-city', 'lib', 'static', 'node', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'static'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'static', 'index.d.ts')
   );
   generateQwikCityReferenceModules(config);
 
@@ -129,6 +157,13 @@ declare module '@qwik-city-plan' {
   export const trailingSlash: boolean;
   export const basePathname: string;
   export const cacheModules: boolean;
+  export default { 
+    routes: any[];
+    menus: any[];
+    trailingSlash: boolean;
+    basePathname: string;
+    cacheModules: boolean;
+  };
 }
 `;
   const srcModulesPath = join(config.packagesDir, 'qwik-city', 'lib');

@@ -1,0 +1,9 @@
+{
+  "description": "Static Site Generator",
+  "scripts": {
+    "build.static": "vite build -c adaptors/static/vite.config.ts"
+  },
+  "__qwik__": {
+    "priority": -1
+  }
+}

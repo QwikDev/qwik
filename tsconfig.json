@@ -33,14 +33,23 @@
       "@builder.io/qwik-city/service-worker": [
         "packages/qwik-city/runtime/src/library/service-worker/index.ts"
       ],
-      "@builder.io/qwik-city/middleware/cloudflare-pages": [
-        "packages/qwik-city/middleware/cloudflare-pages"
+      "@builder.io/qwik-city/adaptors/cloudflare-pages/vite": [
+        "packages/qwik-city/adaptors/cloudflare-pages/vite/index.ts"
+      ],
+      "@builder.io/qwik-city/adaptors/express/vite": [
+        "packages/qwik-city/adaptors/express/vite/index.ts"
+      ],
+      "@builder.io/qwik-city/adaptors/netlify-edge/vite": [
+        "packages/qwik-city/adaptors/netlify-edge/vite/index.ts"
+      ],
+      "@builder.io/qwik-city/adaptors/static/vite": [
+        "packages/qwik-city/adaptors/static/vite/index.ts"
       ],
       "@builder.io/qwik-city/middleware/node": ["packages/qwik-city/middleware/node"],
       "@builder.io/qwik-city/middleware/netlify-edge": [
         "packages/qwik-city/middleware/netlify-edge"
       ],
-      "@builder.io/qwik-city/static/node": ["packages/qwik-city/static/node"],
+      "@builder.io/qwik-city/static": ["packages/qwik-city/static/index.ts"],
       "@builder.io/qwik-city/vite": ["packages/qwik-city/buildtime/vite/index"],
       "@examples-data": ["packages/docs/src/routes/examples/apps/examples-data.ts"],
       "@playground-data": ["packages/docs/src/routes/playground/playground-data.ts"],
@@ -63,7 +72,7 @@
   },
   "include": [
     "packages/create-qwik",
-    "packages/docs",
+    // "packages/docs",
     "packages/qwik/src",
     "packages/qwik-city",
     "packages/qwik-react/src",

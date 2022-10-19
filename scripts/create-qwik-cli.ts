@@ -52,7 +52,6 @@ async function bundleCreateQwikCli(config: BuildConfig, srcCliDir: string, distC
     ],
     external: ['prettier', 'typescript'],
     define: {
-      'globalThis.CODE_MOD': 'false',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
     },
     banner: {
@@ -113,7 +112,7 @@ export async function publishCreateQwikCli(
 export async function copyStartersDir(
   config: BuildConfig,
   distCliDir: string,
-  typeDirs: ('apps' | 'features' | 'servers' | 'static-generators')[]
+  typeDirs: ('apps' | 'features' | 'adaptors')[]
 ) {
   const distStartersDir = join(distCliDir, 'starters');
   try {

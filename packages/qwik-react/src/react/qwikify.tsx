@@ -5,24 +5,25 @@ import {
   noSerialize,
   QRL,
   useWatch$,
-  EagernessOptions,
   SkipRender,
   useSignal,
   useOn,
   $,
-  SSRStream,
   Slot,
-  SSRRaw,
+  useOnDocument,
+  RenderOnce,
+  useStylesScoped$,
 } from '@builder.io/qwik';
 
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import type { Root } from 'react-dom/client';
 import { FunctionComponent, createElement } from 'react';
 import * as client from './client';
+import { renderFromServer } from './server-render';
+import { main } from './slot';
 
 export interface Internal<PROPS> {
-  root: Root;
-  client: typeof import('./client');
+  root: Root | undefined;
   cmp: FunctionComponent<PROPS>;
 }
 
@@ -47,103 +48,105 @@ export function qwikifyQrl<PROPS extends {}>(
   opts?: QwikifyOptions
 ) {
   return component$<QwikifyProps<PROPS>>((props) => {
-    const ref = useSignal<Element>();
-    const data = useSignal<NoSerialize<Internal<PROPS>>>();
-    const activated = useSignal<boolean>();
-    const activate = $(() => (activated.value = true));
-    const Host = opts?.tagName ?? ('qwik-react' as any);
-    const clientOnly = !!(props['client:only'] || opts?.clientOnly);
-    let eagerness: EagernessOptions | undefined;
-    let staticRender = true;
-    if (props['client:visible'] || opts?.eagerness === 'visible') {
-      eagerness = 'visible';
-      staticRender = false;
-    } else if (props['client:idle'] || opts?.eagerness === 'idle') {
-      eagerness = 'idle';
-      staticRender = false;
-    } else if (props['client:load'] || clientOnly || opts?.eagerness === 'load') {
-      eagerness = 'load';
-      staticRender = false;
-    } else if (props['client:hover'] || opts?.eagerness === 'hover') {
-      staticRender = false;
-      useOn('mouseover', activate);
-    }
-
-    if (props['client:event']) {
-      useOn(props['client:event'], activate);
-      staticRender = false;
-    }
-    if (opts?.event) {
-      useOn(opts?.event, activate);
-      staticRender = false;
-    }
-
-    useWatch$(
-      async ({ track }) => {
-        track(props);
-        track(activated);
-
-        const hostElement = ref.value;
-        if (isBrowser && hostElement) {
-          if (data.value) {
-            data.value.root.render(createElement(data.value.cmp, clientProps(props) as any));
-          } else {
-            const Cmp = await reactCmp$.resolve();
-
-            let root: Root;
-            if (hostElement.childElementCount > 0) {
-              root = client.hydrateRoot(
-                hostElement,
-                createElement(Cmp, clientProps(props) as any),
-                {
-                  onRecoverableError() {
-                    return false;
-                  },
-                }
-              );
-            } else {
-              root = client.createRoot(hostElement);
-              root.render(createElement(Cmp, clientProps(props) as any));
-            }
-            data.value = noSerialize({
-              client,
-              cmp: Cmp,
-              root,
-            });
-          }
-        }
-      },
-      { eagerness }
+    const { scopeId } = useStylesScoped$(
+      `q-slot{display:none} q-slotc,q-slotc>q-slot{display:contents}`
     );
+    const hostRef = useSignal<Element>();
+    const slotRef = useSignal<Element>();
+    const internalState = useSignal<NoSerialize<Internal<PROPS>>>();
+    const TagName = opts?.tagName ?? ('qwik-react' as any);
+    const [signal, isStatic, isClientOnly] = useWakeupSignal(props, opts);
 
-    if (isServer && !clientOnly) {
-      const jsx = Promise.all([reactCmp$.resolve(), import('./server')]).then(([Cmp, server]) => {
-        const render = staticRender ? server.renderToStaticMarkup : server.renderToString;
-        const html = render(createElement(Cmp, serverProps(props) as any));
-        const index = html.indexOf('<!--SLOT-->');
-        if (index > 0) {
-          const part1 = html.slice(0, index);
-          const part2 = html.slice(index + '<!--SLOT-->'.length);
-          return (
-            <Host ref={ref}>
-              <SSRStream>
-                {async function* () {
-                  yield <SSRRaw data={part1} />;
-                  yield <Slot />;
-                  yield <SSRRaw data={part2} />;
-                }}
-              </SSRStream>
-            </Host>
+    // Watch takes cares of updates and partial hydration
+    useWatch$(async ({ track }) => {
+      track(props);
+      track(signal);
+
+      if (!isBrowser) {
+        return;
+      }
+
+      // Update
+      if (internalState.value) {
+        if (internalState.value.root) {
+          internalState.value.root.render(
+            main(slotRef.value, scopeId, internalState.value.cmp, props)
           );
         }
-        return <Host ref={ref} dangerouslySetInnerHTML={html}></Host>;
-      });
-      return <>{jsx}</>;
-    }
+      } else {
+        let root: Root | undefined = undefined;
+        const Cmp = await reactCmp$.resolve();
+        const hostElement = hostRef.value;
+        if (hostElement) {
+          // hydration
+          root = client.hydrateRoot(hostElement, main(slotRef.value, scopeId, Cmp, props));
+        }
+        internalState.value = noSerialize({
+          client,
+          cmp: Cmp,
+          root,
+        });
+      }
+    });
 
-    return <Host ref={ref}>{SkipRender}</Host>;
+    if (isServer && !isClientOnly) {
+      const jsx = renderFromServer(TagName, isStatic, reactCmp$, scopeId, props, hostRef, slotRef);
+      return <RenderOnce>{jsx}</RenderOnce>;
+    }
+    return (
+      <RenderOnce>
+        <q-slot ref={slotRef}>
+          <Slot></Slot>
+        </q-slot>
+        <TagName
+          ref={(el: Element) => {
+            const internalData = internalState.value;
+            if (internalData && !internalData.root) {
+              client.flushSync(() => {
+                const root = (internalData.root = client.createRoot(el));
+                root.render(main(slotRef.value, scopeId, internalData.cmp, props));
+              });
+            }
+          }}
+        >
+          {SkipRender}
+        </TagName>
+      </RenderOnce>
+    );
   });
 }
+
+export const useWakeupSignal = (props: QwikifyProps<{}>, opts: QwikifyOptions = {}) => {
+  const signal = useSignal<boolean>();
+  const activate = $(() => (signal.value = true));
+  const clientOnly = !!(props['client:only'] || opts?.clientOnly);
+  let staticRender = true;
+
+  if (props['client:visible'] || opts?.eagerness === 'visible') {
+    useOn('qvisible', activate);
+    staticRender = false;
+  }
+  if (props['client:idle'] || opts?.eagerness === 'idle') {
+    useOnDocument('qidle', activate);
+    staticRender = false;
+  }
+  if (props['client:load'] || clientOnly || opts?.eagerness === 'load') {
+    useOnDocument('qinit', activate);
+    staticRender = false;
+  }
+  if (props['client:hover'] || opts?.eagerness === 'hover') {
+    useOn('mouseover', activate);
+    staticRender = false;
+  }
+  if (props['client:event']) {
+    useOn(props['client:event'], activate);
+    staticRender = false;
+  }
+  if (opts?.event) {
+    useOn(opts?.event, activate);
+  }
+  return [signal, staticRender, clientOnly] as const;
+};
 
 export const filterProps = (props: Record<string, any>): Record<string, any> => {
   const obj: Record<string, any> = {};
@@ -153,24 +156,6 @@ export const filterProps = (props: Record<string, any>): Record<string, any> => 
     }
   });
   obj.children = createElement('p');
-  return obj;
-};
-
-export const clientProps = (props: Record<string, any>): Record<string, any> => {
-  const obj = filterProps(props);
-  obj.children = createElement('q:slot', {
-    suppressHydrationWarning: true,
-    dangerouslySetInnerHTML: { __html: '' },
-  });
-  return obj;
-};
-
-export const serverProps = (props: Record<string, any>): Record<string, any> => {
-  const obj = filterProps(props);
-  obj.children = createElement('q:slot', {
-    suppressHydrationWarning: true,
-    dangerouslySetInnerHTML: { __html: '<!--SLOT-->' },
-  });
   return obj;
 };
 

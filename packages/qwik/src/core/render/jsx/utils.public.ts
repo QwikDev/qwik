@@ -10,6 +10,9 @@ export const QOnce = 'qonce';
  */
 export const SkipRender: JSXNode = Symbol('skip render') as any;
 
+/**
+ * @alpha
+ */
 export const RenderOnce: FunctionComponent<{ children?: any }> = (props: any, key) => {
   return jsx(
     Virtual,

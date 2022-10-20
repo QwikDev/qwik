@@ -409,6 +409,11 @@ export interface Ref<T = Element> {
 export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<void>;
 
 // @alpha (undocumented)
+export const RenderOnce: FunctionComponent<{
+    children?: any;
+}>;
+
+// @alpha (undocumented)
 export interface RenderOptions {
     // (undocumented)
     envData?: Record<string, any>;
@@ -616,9 +621,6 @@ export const useClientEffectQrl: (qrl: QRL<WatchFn>, opts?: UseEffectOptions) =>
 //
 // @public
 export const useContext: UseContext;
-
-// @alpha (undocumented)
-export const useContextBoundary: (...ids: Context<any>[]) => void;
 
 // @public
 export const useContextProvider: <STATE extends object>(context: Context<STATE>, newValue: STATE) => void;

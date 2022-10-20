@@ -16,6 +16,7 @@ export default defineConfig(() => {
           'react',
           'react/jsx-runtime',
           'react/jsx-dev-runtime',
+          'react-dom',
           'react-dom/client',
           'react-dom/server',
         ],

@@ -36,6 +36,7 @@ export interface IntegrationData {
   pkgJson: IntegrationPackageJson;
   dir: string;
   priority: number;
+  viteConfig?: ViteConfigUpdates;
 }
 
 export type IntegrationType = 'app' | 'feature' | 'adaptor';
@@ -67,6 +68,7 @@ export interface IntegrationPackageJson {
   __qwik__?: {
     nextSteps?: string[];
     priority: number;
+    viteConfig?: ViteConfigUpdates;
   };
 }
 
@@ -74,4 +76,11 @@ export interface EnsureImport {
   defaultImport?: string;
   namedImports?: string[];
   importPath: string;
+}
+
+export interface ViteConfigUpdates {
+  imports?: EnsureImport[];
+  viteConfig?: { [key: string]: string };
+  vitePlugins?: string[];
+  qwikViteConfig?: { [key: string]: string };
 }

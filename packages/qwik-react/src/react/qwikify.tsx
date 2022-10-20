@@ -7,13 +7,9 @@ import {
   useWatch$,
   SkipRender,
   useSignal,
-  useOn,
-  $,
   Slot,
-  useOnDocument,
   RenderOnce,
   useStylesScoped$,
-  PropFunction,
 } from '@builder.io/qwik';
 
 import { isBrowser, isServer } from '@builder.io/qwik/build';
@@ -21,49 +17,8 @@ import type { Root } from 'react-dom/client';
 import type { FunctionComponent } from 'react';
 import * as client from './client';
 import { renderFromServer } from './server-render';
-import { getHostProps, main } from './slot';
-
-export interface Internal<PROPS> {
-  root: Root | undefined;
-  cmp: FunctionComponent<PROPS>;
-}
-
-export interface QwikifyBase {
-  'client:load'?: boolean;
-  'client:visible'?: boolean;
-  'client:idle'?: boolean;
-  'client:hover'?: boolean;
-  'client:only'?: boolean;
-  'client:event'?: string | string[];
-  'host:onClick$'?: PropFunction<(ev: Event) => void>;
-  'host:onBlur$'?: PropFunction<(ev: Event) => void>;
-  'host:onFocus$'?: PropFunction<(ev: Event) => void>;
-  'host:onMouseOver$'?: PropFunction<(ev: Event) => void>;
-  children?: any;
-}
-
-export type TransformProps<PROPS extends {}> = {
-  [K in keyof PROPS as TransformKey<K>]: TransformProp<K, PROPS[K]>;
-};
-
-export type TransformKey<K extends string | number | symbol> = K extends `on${string}`
-  ? `${K}$`
-  : K;
-
-export type TransformProp<K extends string | number | symbol, V> = K extends `on${string}`
-  ? V extends Function
-    ? PropFunction<V>
-    : never
-  : V;
-
-export type QwikifyProps<PROPS extends {}> = TransformProps<PROPS> & QwikifyBase;
-
-export interface QwikifyOptions {
-  tagName?: string;
-  eagerness?: 'load' | 'visible' | 'idle' | 'hover';
-  event?: string | string[];
-  clientOnly?: boolean;
-}
+import { getHostProps, main, mainExactProps, useWakeupSignal } from './slot';
+import type { Internal, QwikifyOptions, QwikifyProps } from './types';
 
 export function qwikifyQrl<PROPS extends {}>(
   reactCmp$: QRL<FunctionComponent<PROPS & { children?: any }>>,
@@ -76,12 +31,13 @@ export function qwikifyQrl<PROPS extends {}>(
     const hostRef = useSignal<Element>();
     const slotRef = useSignal<Element>();
     const internalState = useSignal<NoSerialize<Internal<PROPS>>>();
+    const [signal, isClientOnly] = useWakeupSignal(props, opts);
+    const hydrationKeys = {};
     const TagName = opts?.tagName ?? ('qwik-react' as any);
-    const [signal, isStatic, isClientOnly] = useWakeupSignal(props, opts);
 
     // Watch takes cares of updates and partial hydration
     useWatch$(async ({ track }) => {
-      track(props);
+      const trackedProps = track(() => ({ ...props }));
       track(signal);
 
       if (!isBrowser) {
@@ -92,7 +48,7 @@ export function qwikifyQrl<PROPS extends {}>(
       if (internalState.value) {
         if (internalState.value.root) {
           internalState.value.root.render(
-            main(slotRef.value, scopeId, internalState.value.cmp, props)
+            main(slotRef.value, scopeId, internalState.value.cmp, trackedProps)
           );
         }
       } else {
@@ -101,10 +57,17 @@ export function qwikifyQrl<PROPS extends {}>(
         const hostElement = hostRef.value;
         if (hostElement) {
           // hydration
-          root = client.hydrateRoot(hostElement, main(slotRef.value, scopeId, Cmp, props));
+          root = client.flushSync(() => {
+            return client.hydrateRoot(
+              hostElement,
+              mainExactProps(slotRef.value, scopeId, Cmp, hydrationKeys)
+            );
+          });
+          if (signal.value === false) {
+            root.render(main(slotRef.value, scopeId, Cmp, trackedProps));
+          }
         }
         internalState.value = noSerialize({
-          client,
           cmp: Cmp,
           root,
         });
@@ -112,9 +75,18 @@ export function qwikifyQrl<PROPS extends {}>(
     });
 
     if (isServer && !isClientOnly) {
-      const jsx = renderFromServer(TagName, isStatic, reactCmp$, scopeId, props, hostRef, slotRef);
+      const jsx = renderFromServer(
+        TagName,
+        reactCmp$,
+        scopeId,
+        props,
+        hostRef,
+        slotRef,
+        hydrationKeys
+      );
       return <RenderOnce>{jsx}</RenderOnce>;
     }
+
     return (
       <RenderOnce>
         <TagName
@@ -123,10 +95,8 @@ export function qwikifyQrl<PROPS extends {}>(
             queueMicrotask(() => {
               const internalData = internalState.value;
               if (internalData && !internalData.root) {
-                client.flushSync(() => {
-                  const root = (internalData.root = client.createRoot(el));
-                  root.render(main(slotRef.value, scopeId, internalData.cmp, props));
-                });
+                const root = (internalData.root = client.createRoot(el));
+                root.render(main(slotRef.value, scopeId, internalData.cmp, props));
               }
             });
           }}
@@ -140,38 +110,5 @@ export function qwikifyQrl<PROPS extends {}>(
     );
   });
 }
-
-export const useWakeupSignal = (props: QwikifyProps<{}>, opts: QwikifyOptions = {}) => {
-  const signal = useSignal<boolean>();
-  const activate = $(() => (signal.value = true));
-  const clientOnly = !!(props['client:only'] || opts?.clientOnly);
-  let staticRender = true;
-  if (isServer) {
-    if (props['client:visible'] || opts?.eagerness === 'visible') {
-      useOn('qvisible', activate);
-      staticRender = false;
-    }
-    if (props['client:idle'] || opts?.eagerness === 'idle') {
-      useOnDocument('qidle', activate);
-      staticRender = false;
-    }
-    if (props['client:load'] || clientOnly || opts?.eagerness === 'load') {
-      useOnDocument('qinit', activate);
-      staticRender = false;
-    }
-    if (props['client:hover'] || opts?.eagerness === 'hover') {
-      useOn('mouseover', activate);
-      staticRender = false;
-    }
-    if (props['client:event']) {
-      useOn(props['client:event'], activate);
-      staticRender = false;
-    }
-    if (opts?.event) {
-      useOn(opts?.event, activate);
-    }
-  }
-  return [signal, staticRender, clientOnly] as const;
-};
 
 export const qwikify$ = /*#__PURE__*/ implicit$FirstArg(qwikifyQrl);

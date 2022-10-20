@@ -46,11 +46,15 @@ export type TransformProps<PROPS extends {}> = {
   [K in keyof PROPS as TransformKey<K>]: TransformProp<K, PROPS[K]>;
 };
 
-export type TransformKey<K extends string | number | symbol> = K extends `on${string}` ? `${K}$` : K;
+export type TransformKey<K extends string | number | symbol> = K extends `on${string}`
+  ? `${K}$`
+  : K;
 
-export type TransformProp<K extends string | number | symbol, V> = K extends `on${string}` ?
-(V extends Function ? PropFunction<V> : never)
-: V;
+export type TransformProp<K extends string | number | symbol, V> = K extends `on${string}`
+  ? V extends Function
+    ? PropFunction<V>
+    : never
+  : V;
 
 export type QwikifyProps<PROPS extends {}> = TransformProps<PROPS> & QwikifyBase;
 
@@ -62,7 +66,7 @@ export interface QwikifyOptions {
 }
 
 export function qwikifyQrl<PROPS extends {}>(
-  reactCmp$: QRL<FunctionComponent<PROPS & {children?: any}>>,
+  reactCmp$: QRL<FunctionComponent<PROPS & { children?: any }>>,
   opts?: QwikifyOptions
 ) {
   return component$<QwikifyProps<PROPS>>((props) => {

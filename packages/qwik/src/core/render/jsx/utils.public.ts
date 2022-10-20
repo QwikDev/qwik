@@ -10,6 +10,9 @@ export const QOnce = 'qonce';
  */
 export const SkipRender: JSXNode = Symbol('skip render') as any;
 
+/**
+ * @alpha
+ */
 export const RenderOnce: FunctionComponent<{ children?: any }> = (props: any, key) => {
   return jsx(
     Virtual,
@@ -29,7 +32,13 @@ export const Fragment: FunctionComponent<{}> = ((props: any) => props.children) 
 /**
  * @alpha
  */
-export const SSRComment: FunctionComponent<{ data: string }> = (() => null) as any;
+export const SSRRaw: FunctionComponent<{ data: string }> = (() => null) as any;
+
+/**
+ * @alpha
+ */
+export const SSRComment: FunctionComponent<{ data: string }> = (props) =>
+  jsx(SSRRaw, { data: `<!--${props.data}-->` }, null) as any;
 
 /**
  * @alpha

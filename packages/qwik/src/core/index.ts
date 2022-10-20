@@ -35,7 +35,14 @@ export type { CorePlatform } from './platform/types';
 // JSX Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export { h } from './render/jsx/factory';
-export { SSRStreamBlock, SSRStream, SSRComment, SkipRender } from './render/jsx/utils.public';
+export {
+  SSRStreamBlock,
+  SSRRaw,
+  SSRStream,
+  SSRComment,
+  SkipRender,
+  RenderOnce,
+} from './render/jsx/utils.public';
 export type { StreamProps } from './render/jsx/utils.public';
 export { Slot } from './render/jsx/slot.public';
 export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';

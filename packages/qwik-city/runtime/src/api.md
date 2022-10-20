@@ -143,17 +143,15 @@ export const QwikCity: Component<QwikCityProps>;
 // @alpha (undocumented)
 export interface QwikCityPlan {
     // (undocumented)
-    cacheModules?: boolean;
-    // Warning: (ae-forgotten-export) The symbol "FallbackRouteData" needs to be exported by the entry point index.d.ts
-    //
+    basePathname?: string;
     // (undocumented)
-    fallbackRoutes?: FallbackRouteData[];
+    cacheModules?: boolean;
     // Warning: (ae-forgotten-export) The symbol "MenuData" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     menus?: MenuData[];
     // (undocumented)
-    routes?: RouteData[];
+    routes: RouteData[];
     // (undocumented)
     trailingSlash?: boolean;
 }

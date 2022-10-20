@@ -310,7 +310,6 @@ const getUri = (monaco: Monaco, filePath: string) => {
 
 const defaultEditorOpts: IStandaloneEditorConstructionOptions = {
   automaticLayout: true,
-  fixedOverflowWidgets: true,
   lineDecorationsWidth: 5,
   lineNumbersMinChars: 3,
   minimap: { enabled: false },

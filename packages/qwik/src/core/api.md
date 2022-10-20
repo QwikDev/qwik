@@ -409,6 +409,11 @@ export interface Ref<T = Element> {
 export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<void>;
 
 // @alpha (undocumented)
+export const RenderOnce: FunctionComponent<{
+    children?: any;
+}>;
+
+// @alpha (undocumented)
 export interface RenderOptions {
     // (undocumented)
     envData?: Record<string, any>;
@@ -461,17 +466,9 @@ export interface ResourceOptions {
 // @public (undocumented)
 export interface ResourcePending<T> {
     // (undocumented)
-    __brand: 'resource';
-    // (undocumented)
-    error: undefined;
+    loading: boolean;
     // (undocumented)
     promise: Promise<T>;
-    // (undocumented)
-    resolved: undefined;
-    // (undocumented)
-    state: 'pending';
-    // (undocumented)
-    timeout?: number;
 }
 
 // @public (undocumented)
@@ -489,33 +486,17 @@ export interface ResourceProps<T> {
 // @public (undocumented)
 export interface ResourceRejected<T> {
     // (undocumented)
-    __brand: 'resource';
-    // (undocumented)
-    error: any;
+    loading: boolean;
     // (undocumented)
     promise: Promise<T>;
-    // (undocumented)
-    resolved: undefined;
-    // (undocumented)
-    state: 'rejected';
-    // (undocumented)
-    timeout?: number;
 }
 
 // @public (undocumented)
 export interface ResourceResolved<T> {
     // (undocumented)
-    __brand: 'resource';
-    // (undocumented)
-    error: undefined;
+    loading: boolean;
     // (undocumented)
     promise: Promise<T>;
-    // (undocumented)
-    resolved: T;
-    // (undocumented)
-    state: 'resolved';
-    // (undocumented)
-    timeout?: number;
 }
 
 // @public (undocumented)
@@ -568,11 +549,11 @@ export interface SnapshotMetaValue {
 // @alpha (undocumented)
 export interface SnapshotResult {
     // (undocumented)
-    listeners: SnapshotListener[];
-    // (undocumented)
     mode: 'render' | 'listeners' | 'static';
     // (undocumented)
     objs: any[];
+    // (undocumented)
+    qrls: QRL[];
     // (undocumented)
     state: SnapshotState;
 }
@@ -589,6 +570,11 @@ export interface SnapshotState {
 
 // @alpha (undocumented)
 export const SSRComment: FunctionComponent<{
+    data: string;
+}>;
+
+// @alpha (undocumented)
+export const SSRRaw: FunctionComponent<{
     data: string;
 }>;
 
@@ -667,13 +653,13 @@ export const useMount$: <T>(first: MountFn<T>) => void;
 export const useMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
 
 // @alpha
-export const useOn: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
 
 // @alpha
-export const useOnDocument: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
 
 // @alpha
-export const useOnWindow: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
 
 // @alpha @deprecated
 export const useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;

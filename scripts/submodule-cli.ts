@@ -38,14 +38,13 @@ export async function submoduleCli(config: BuildConfig) {
     ],
     external: ['prettier', 'typescript'],
     define: {
-      'globalThis.CODE_MOD': 'true',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
     },
   });
 
   await copyFile(join(config.srcDir, submodule, 'qwik.cjs'), join(config.distPkgDir, 'qwik.cjs'));
 
-  await copyStartersDir(config, config.distPkgDir, ['features', 'servers', 'static-generators']);
+  await copyStartersDir(config, config.distPkgDir, ['features', 'adaptors']);
 
   console.log('📠', submodule);
 }

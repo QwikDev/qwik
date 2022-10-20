@@ -173,6 +173,13 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
         : a;
     });
   }
+
+  getOwnPropertyDescriptor() {
+    return {
+      enumerable: true,
+      configurable: true,
+    };
+  }
 }
 
 const wrap = <T>(value: T, containerState: ContainerState): T => {

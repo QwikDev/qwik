@@ -12,14 +12,25 @@ const SlotCtx = createContext<SlotState>({ scopeId: '' });
 
 export function main(slotEl: Element | undefined, scopeId: string, RootCmp: any, props: any) {
   const newProps = getReactProps(props);
-  newProps.children = createElement(SlotElement, null);
+  return mainExactProps(slotEl, scopeId, RootCmp, newProps);
+}
+
+export function mainExactProps(
+  slotEl: Element | undefined,
+  scopeId: string,
+  RootCmp: any,
+  props: any
+) {
   return createElement(SlotCtx.Provider, {
     value: {
       el: slotEl,
       scopeId,
       attachedEl: undefined,
     },
-    children: createElement(RootCmp, newProps),
+    children: createElement(RootCmp, {
+      ...props,
+      children: createElement(SlotElement, null),
+    }),
   });
 }
 
@@ -57,16 +68,7 @@ export class SlotElement extends Component {
   }
 }
 
-export const clientProps = (props: Record<string, any>): Record<string, any> => {
-  const obj = getReactProps(props);
-  obj.children = createElement('qwik-slot', {
-    suppressHydrationWarning: true,
-    dangerouslySetInnerHTML: { __html: '' },
-  });
-  return obj;
-};
-
-const getReactProps = (props: Record<string, any>): Record<string, any> => {
+export const getReactProps = (props: Record<string, any>): Record<string, any> => {
   const obj: Record<string, any> = {};
   Object.keys(props).forEach((key) => {
     if (!key.startsWith('client:') && !key.startsWith(HOST_PREFIX)) {
@@ -88,7 +90,7 @@ export const getHostProps = (props: Record<string, any>): Record<string, any> =>
 };
 
 export const useWakeupSignal = (props: QwikifyProps<{}>, opts: QwikifyOptions = {}) => {
-  const signal = useSignal<boolean>();
+  const signal = useSignal(false);
   const activate = $(() => (signal.value = true));
   const clientOnly = !!(props['client:only'] || opts?.clientOnly);
   if (isServer) {

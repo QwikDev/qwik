@@ -1,4 +1,4 @@
-import type { PropFunction } from '@builder.io/qwik';
+import type { PropFunction, Signal } from '@builder.io/qwik';
 import type { FunctionComponent } from 'react';
 import type { Root } from 'react-dom/client';
 
@@ -13,6 +13,7 @@ export interface QwikifyBase {
   'client:idle'?: boolean;
   'client:hover'?: boolean;
   'client:only'?: boolean;
+  'client:signal'?: Signal<boolean>;
   'client:event'?: string | string[];
   'host:onClick$'?: PropFunction<(ev: Event) => void>;
   'host:onBlur$'?: PropFunction<(ev: Event) => void>;

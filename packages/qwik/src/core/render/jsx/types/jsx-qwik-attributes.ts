@@ -179,13 +179,16 @@ export type QrlEvent<Type extends Event = Event> = QRL<NativeEventHandler<Type>>
 
 export interface QwikCustomEvents {
   [key: `${'document:' | 'window:' | ''}on${string}$`]:
-    | NativeEventHandler<Event>
-    | Function
-    | undefined;
+    | SingleOrArray<NativeEventHandler<Event>>
+    | SingleOrArray<Function>
+    | SingleOrArray<undefined>;
 }
+
+type SingleOrArray<T> = T | T[];
+
 export type QwikKnownEvents<T> = {
-  [K in keyof QwikEventMap<T> as `${'document:' | 'window:' | ''}on${K}$`]?: BivariantEventHandler<
-    QwikEventMap<T>[K]
+  [K in keyof QwikEventMap<T> as `${'document:' | 'window:' | ''}on${K}$`]?: SingleOrArray<
+    BivariantEventHandler<QwikEventMap<T>[K]>
   >;
 };
 /**

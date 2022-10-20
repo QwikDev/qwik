@@ -5,6 +5,7 @@ import { getPackageManager, panic } from '../utils/utils';
 import { loadIntegrations } from '../utils/integrations';
 import { installDeps, startSpinner } from '../utils/install-deps';
 import { mergeIntegrationDir } from './update-files';
+import { updateViteConfigs } from './update-vite-config';
 
 export async function updateApp(opts: UpdateAppOptions) {
   const integrations = await loadIntegrations();
@@ -26,6 +27,10 @@ export async function updateApp(opts: UpdateAppOptions) {
   }
 
   await mergeIntegrationDir(fileUpdates, opts, integration.dir, opts.rootDir);
+
+  if ((globalThis as any).CODE_MOD) {
+    await updateViteConfigs(fileUpdates, integration, opts.rootDir);
+  }
 
   const commit = async (showSpinner?: boolean) => {
     const isInstallingDeps = Object.keys(fileUpdates.installedDeps).length > 0;

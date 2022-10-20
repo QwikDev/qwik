@@ -1,7 +1,7 @@
 import { assertQrl } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
-import { normalizeOnProp } from '../state/listeners';
+import { Listener, normalizeOnProp } from '../state/listeners';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { useInvokeContext } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
@@ -60,7 +60,7 @@ export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);
  * @alpha
  */
 // </docs>
-export const useOn = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
+export const useOn = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
   _useOn(`on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnDocument">
@@ -93,7 +93,7 @@ export const useOn = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
  * @alpha
  */
 // </docs>
-export const useOnDocument = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
+export const useOnDocument = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
   _useOn(`document:on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnWindow">
@@ -127,13 +127,17 @@ export const useOnDocument = (event: string, eventQrl: QRL<(ev: Event) => void>)
  * @alpha
  */
 // </docs>
-export const useOnWindow = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
+export const useOnWindow = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
   _useOn(`window:on-${event}`, eventQrl);
 
-const _useOn = (eventName: string, eventQrl: QRL<(ev: Event) => void>) => {
+const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: Event) => void>) => {
   const invokeCtx = useInvokeContext();
   const elCtx = getContext(invokeCtx.$hostElement$);
   assertQrl(eventQrl);
-  elCtx.li.push([normalizeOnProp(eventName), eventQrl]);
+  if (typeof eventName === 'string') {
+    elCtx.li.push([normalizeOnProp(eventName), eventQrl]);
+  } else {
+    elCtx.li.push(...eventName.map((name) => [normalizeOnProp(name), eventQrl] as Listener));
+  }
   elCtx.$flags$ |= HOST_FLAG_NEED_ATTACH_LISTENER;
 };

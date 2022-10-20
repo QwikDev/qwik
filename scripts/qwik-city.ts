@@ -36,7 +36,7 @@ export async function buildQwikCity(config: BuildConfig) {
 
   const loaderPkg = {
     ...(await readPackageJson(inputDir)),
-    main: './index.qwik.cjs',
+    main: './index.qwik.mjs',
     qwik: './index.qwik.mjs',
     types: './index.d.ts',
     type: 'module',

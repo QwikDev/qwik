@@ -4,6 +4,7 @@
 }
 
 .docs .docs-container {
+  overflow: hidden;
   @apply pt-[80px];
   @apply px-8;
 
@@ -111,7 +112,7 @@
 
 .docs article h2 {
   line-height: 1.2;
-  font-size: 48px;
+  font-size: 30px;
   font-weight: 800;
   scroll-margin-top: var(--scroll-margin-top);
   margin-top: 70px;
@@ -249,12 +250,19 @@ h6 a:hover .icon {
   overflow: hidden;
 }
 
+.docs main.no-right-menu .on-this-page {
+  display: none;
+}
+
 @media (min-width: 1280px) {
   .docs main.no-right-menu .docs-container {
     margin-right: 6rem;
   }
 }
 
-.docs main.no-right-menu .on-this-page {
-  display: none;
+@media (max-width: 768px) {
+  .docs article h2 {
+    font-size: 1.2rem;
+    margin-top: 2rem;
+  }
 }

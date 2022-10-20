@@ -260,10 +260,10 @@ export const DebouncedInput = () => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedValue(value), 1000);
+    const debounced = setTimeout(() => setDebouncedValue(value), 1000);
 
     return () => {
-      clearTimeout(timer);
+      clearTimeout(debounced);
     };
   }, [value]);
 

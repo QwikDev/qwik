@@ -3,7 +3,6 @@ import { main, getHostProps } from './slot';
 
 export async function renderFromServer(
   Host: any,
-  staticRender: boolean,
   reactCmp$: QRL<any>,
   scopeId: string,
   props: Record<string, any>,
@@ -12,7 +11,7 @@ export async function renderFromServer(
 ) {
   const [Cmp, server] = await Promise.all([reactCmp$.resolve(), import('./server')]);
 
-  const render = staticRender ? server.renderToStaticMarkup : server.renderToString;
+  const render = server.renderToString;
   const html = render(main(undefined, scopeId, Cmp, props));
   const index = html.indexOf('<!--SLOT-->');
   if (index > 0) {

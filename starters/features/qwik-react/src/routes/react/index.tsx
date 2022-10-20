@@ -1,14 +1,38 @@
-import { component$ } from '@builder.io/qwik';
+import { component$, useSignal } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
-import { MUIButton } from '~/integrations/react/button';
+import { MUIAlert, MUIButton, MUISlider, TableApp } from '~/integrations/react/mui';
 
 export default component$(() => {
+  const show = useSignal(false);
+  const count = useSignal(0);
+
   return (
-    <div>
-      <h1>The component below is a React MUI button:</h1>
-      <MUIButton client:visible />
-    </div>
+    <>
+      <MUISlider
+        value={count.value}
+        onChange$={(_, e) => {
+          count.value = e as number;
+        }}
+      />
+
+      <MUIButton variant="contained" host:onClick$={() => alert('click')}>
+        Slider is {count.value}
+      </MUIButton>
+
+      <MUIAlert severity="error">
+        This is a warning from Qwik
+        <QwikCounter></QwikCounter>
+      </MUIAlert>
+
+      <button onClick$={() => (show.value = true)}>Show table</button>
+      {show.value && <TableApp client:visible></TableApp>}
+    </>
   );
+});
+
+export const QwikCounter = component$(() => {
+  const count = useSignal(0);
+  return <button onClick$={() => count.value++}>{count.value}</button>;
 });
 
 export const head: DocumentHead = {

@@ -13,6 +13,7 @@ import {
   useOnDocument,
   RenderOnce,
   useStylesScoped$,
+  PropFunction,
 } from '@builder.io/qwik';
 
 import { isBrowser, isServer } from '@builder.io/qwik/build';
@@ -20,24 +21,38 @@ import type { Root } from 'react-dom/client';
 import type { FunctionComponent } from 'react';
 import * as client from './client';
 import { renderFromServer } from './server-render';
-import { getEvents, main } from './slot';
-import type { QwikEvents } from 'packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes';
+import { getHostProps, main } from './slot';
 
 export interface Internal<PROPS> {
   root: Root | undefined;
   cmp: FunctionComponent<PROPS>;
 }
 
-export interface QwikifyBase extends QwikEvents {
+export interface QwikifyBase {
   'client:load'?: boolean;
   'client:visible'?: boolean;
   'client:idle'?: boolean;
   'client:hover'?: boolean;
   'client:only'?: boolean;
   'client:event'?: string | string[];
+  'host:onClick$'?: PropFunction<(ev: Event) => void>;
+  'host:onBlur$'?: PropFunction<(ev: Event) => void>;
+  'host:onFocus$'?: PropFunction<(ev: Event) => void>;
+  'host:onMouseOver$'?: PropFunction<(ev: Event) => void>;
+  children?: any;
 }
 
-export type QwikifyProps<PROPS extends {}> = PROPS & QwikifyBase;
+export type TransformProps<PROPS extends {}> = {
+  [K in keyof PROPS as TransformKey<K>]: TransformProp<K, PROPS[K]>;
+};
+
+export type TransformKey<K extends string | number | symbol> = K extends `on${string}` ? `${K}$` : K;
+
+export type TransformProp<K extends string | number | symbol, V> = K extends `on${string}` ?
+(V extends Function ? PropFunction<V> : never)
+: V;
+
+export type QwikifyProps<PROPS extends {}> = TransformProps<PROPS> & QwikifyBase;
 
 export interface QwikifyOptions {
   tagName?: string;
@@ -47,7 +62,7 @@ export interface QwikifyOptions {
 }
 
 export function qwikifyQrl<PROPS extends {}>(
-  reactCmp$: QRL<FunctionComponent<PROPS>>,
+  reactCmp$: QRL<FunctionComponent<PROPS & {children?: any}>>,
   opts?: QwikifyOptions
 ) {
   return component$<QwikifyProps<PROPS>>((props) => {
@@ -99,7 +114,7 @@ export function qwikifyQrl<PROPS extends {}>(
     return (
       <RenderOnce>
         <TagName
-          {...getEvents(props)}
+          {...getHostProps(props)}
           ref={(el: Element) => {
             queueMicrotask(() => {
               const internalData = internalState.value;

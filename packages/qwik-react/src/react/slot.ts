@@ -66,20 +66,22 @@ export const clientProps = (props: Record<string, any>): Record<string, any> => 
 const getReactProps = (props: Record<string, any>): Record<string, any> => {
   const obj: Record<string, any> = {};
   Object.keys(props).forEach((key) => {
-    if (!key.startsWith('client:') && !key.endsWith('$')) {
-      obj[key] = props[key];
+    if (!key.startsWith('client:') && !key.startsWith(HOST_PREFIX)) {
+      const normalizedKey = key.endsWith('$') ? key.slice(0, -1) : key;
+      obj[normalizedKey] = props[key];
     }
   });
-  obj.children = createElement('p');
   return obj;
 };
 
-export const getEvents = (props: Record<string, any>): Record<string, any> => {
+export const getHostProps = (props: Record<string, any>): Record<string, any> => {
   const obj: Record<string, any> = {};
   Object.keys(props).forEach((key) => {
-    if (key.endsWith('$')) {
-      obj[key] = props[key];
+    if (key.startsWith(HOST_PREFIX)) {
+      obj[key.slice(HOST_PREFIX.length)] = props[key];
     }
   });
   return obj;
 };
+
+const HOST_PREFIX = 'host:';

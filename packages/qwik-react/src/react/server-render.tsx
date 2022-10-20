@@ -1,5 +1,5 @@
 import { QRL, Signal, Slot, SSRRaw, SSRStream } from '@builder.io/qwik';
-import { main, getEvents } from './slot';
+import { main, getHostProps } from './slot';
 
 export async function renderFromServer(
   Host: any,
@@ -19,7 +19,7 @@ export async function renderFromServer(
     const part1 = html.slice(0, index);
     const part2 = html.slice(index + '<!--SLOT-->'.length);
     return (
-      <Host ref={ref} {...getEvents(props)}>
+      <Host ref={ref} {...getHostProps(props)}>
         <SSRStream>
           {async function* () {
             yield <SSRRaw data={part1} />;

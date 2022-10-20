@@ -38,6 +38,7 @@ export async function submoduleCli(config: BuildConfig) {
     ],
     external: ['prettier', 'typescript'],
     define: {
+      'globalThis.CODE_MOD': 'true',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
     },
   });

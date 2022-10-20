@@ -52,6 +52,7 @@ async function bundleCreateQwikCli(config: BuildConfig, srcCliDir: string, distC
     ],
     external: ['prettier', 'typescript'],
     define: {
+      'globalThis.CODE_MOD': 'false',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
     },
     banner: {

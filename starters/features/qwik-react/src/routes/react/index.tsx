@@ -10,9 +10,12 @@ export default component$(() => {
   return (
     <>
       <h1>Qwik/React mother of all demos</h1>
-      <select value={variant.value} onChange$={(ev) => {
-        variant.value = (ev.target as any).value;
-      }}>
+      <select
+        value={variant.value}
+        onChange$={(ev) => {
+          variant.value = (ev.target as any).value;
+        }}
+      >
         <option>text</option>
         <option>outlined</option>
         <option selected>contained</option>
@@ -25,37 +28,24 @@ export default component$(() => {
         }}
       />
 
-      <MUIButton
-        variant={variant.value}
-        host:onClick$={() => alert('click')}
-      >
+      <MUIButton variant={variant.value} host:onClick$={() => alert('click')}>
         Slider is {count.value}
       </MUIButton>
 
-      <MUIAlert severity='warning'>
+      <MUIAlert severity="warning">
         This is a warning from Qwik
         <QwikCounter></QwikCounter>
       </MUIAlert>
 
-      <button onClick$={() => show.value = true}>
-        Show table
-      </button>
-      {show.value && (
-        <TableApp client:visible>
-          Slider is {count.value}
-        </TableApp>
-      )}
+      <button onClick$={() => (show.value = true)}>Show table</button>
+      {show.value && <TableApp client:visible>Slider is {count.value}</TableApp>}
     </>
   );
 });
 
 export const QwikCounter = component$(() => {
   const count = useSignal(0);
-  return (
-    <button onClick$={() => count.value++}>
-      {count.value}
-    </button>
-  );
+  return <button onClick$={() => count.value++}>{count.value}</button>;
 });
 
 export const head: DocumentHead = {

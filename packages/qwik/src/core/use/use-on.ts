@@ -1,7 +1,7 @@
-import { assertQrl } from '../import/qrl-class';
-import type { QRL } from '../import/qrl.public';
-import { getContext, normalizeOnProp } from '../props/props';
-import { addQRLListener } from '../props/props-on';
+import { assertQrl } from '../qrl/qrl-class';
+import type { QRL } from '../qrl/qrl.public';
+import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
+import { Listener, normalizeOnProp } from '../state/listeners';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { useInvokeContext } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
@@ -11,25 +11,11 @@ import { Watch, WatchFlagsIsCleanup } from './use-watch';
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useCleanup instead)
 /**
- * A lazy-loadable reference to a component's cleanup hook.
- *
- * Invoked when the component is destroyed (removed from render tree), or paused as part of the
- * SSR serialization.
- *
  * It can be used to release resources, abort network requests, stop timers...
  *
- * ```tsx
- * const Cmp = component$(() => {
- *   useCleanup$(() => {
- *     // Executed after SSR (pause) or when the component gets removed from the DOM.
- *     // Can be used to release resources, abort network requests, stop timers...
- *     console.log('component is destroyed');
- *   });
- *   return <div>Hello world</div>;
- * });
- * ```
- *
  * @alpha
+ * @deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or
+ * `useClientEffect$()` instead.
  */
 // </docs>
 export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
@@ -51,25 +37,11 @@ export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useCleanup instead)
 /**
- * A lazy-loadable reference to a component's cleanup hook.
- *
- * Invoked when the component is destroyed (removed from render tree), or paused as part of the
- * SSR serialization.
- *
  * It can be used to release resources, abort network requests, stop timers...
  *
- * ```tsx
- * const Cmp = component$(() => {
- *   useCleanup$(() => {
- *     // Executed after SSR (pause) or when the component gets removed from the DOM.
- *     // Can be used to release resources, abort network requests, stop timers...
- *     console.log('component is destroyed');
- *   });
- *   return <div>Hello world</div>;
- * });
- * ```
- *
  * @alpha
+ * @deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or
+ * `useClientEffect$()` instead.
  */
 // </docs>
 export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);
@@ -88,7 +60,7 @@ export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);
  * @alpha
  */
 // </docs>
-export const useOn = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
+export const useOn = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
   _useOn(`on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnDocument">
@@ -121,7 +93,7 @@ export const useOn = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
  * @alpha
  */
 // </docs>
-export const useOnDocument = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
+export const useOnDocument = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
   _useOn(`document:on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnWindow">
@@ -155,12 +127,17 @@ export const useOnDocument = (event: string, eventQrl: QRL<(ev: Event) => void>)
  * @alpha
  */
 // </docs>
-export const useOnWindow = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
+export const useOnWindow = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
   _useOn(`window:on-${event}`, eventQrl);
 
-const _useOn = (eventName: string, eventQrl: QRL<(ev: Event) => void>) => {
+const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: Event) => void>) => {
   const invokeCtx = useInvokeContext();
-  const ctx = getContext(invokeCtx.$hostElement$);
+  const elCtx = getContext(invokeCtx.$hostElement$);
   assertQrl(eventQrl);
-  addQRLListener(ctx.li, normalizeOnProp(eventName), [eventQrl]);
+  if (typeof eventName === 'string') {
+    elCtx.li.push([normalizeOnProp(eventName), eventQrl]);
+  } else {
+    elCtx.li.push(...eventName.map((name) => [normalizeOnProp(name), eventQrl] as Listener));
+  }
+  elCtx.$flags$ |= HOST_FLAG_NEED_ATTACH_LISTENER;
 };

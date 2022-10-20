@@ -7,7 +7,7 @@ import type {
   SymbolMapper,
 } from './types';
 
-import type { QRLInternal } from '../core/import/qrl-class';
+import type { QRLInternal } from '../core/qrl/qrl-class';
 
 export interface ResolvedManifest {
   mapper: SymbolMapper;
@@ -59,36 +59,19 @@ function getAutoPrefetch(
   buildBase: string
 ) {
   const prefetchResources: PrefetchResource[] = [];
-  const listeners = snapshotResult?.listeners;
-  const stateObjs = snapshotResult?.objs;
+  const qrls = snapshotResult?.qrls;
   const { mapper, manifest } = resolvedManifest;
   const urls = new Set<string>();
 
-  if (Array.isArray(listeners)) {
-    // manifest already prioritized the symbols at build time
-    for (const prioritizedSymbolName in mapper) {
-      const hasSymbol = listeners.some((l) => {
-        return l.qrl.getHash() === prioritizedSymbolName;
-      });
-
-      if (hasSymbol) {
-        addBundle(manifest, urls, prefetchResources, buildBase, mapper[prioritizedSymbolName][1]);
+  if (Array.isArray(qrls)) {
+    for (const obj of qrls) {
+      const qrlSymbolName = obj.getHash();
+      const resolvedSymbol = mapper[qrlSymbolName];
+      if (resolvedSymbol) {
+        addBundle(manifest, urls, prefetchResources, buildBase, resolvedSymbol[0]);
       }
     }
   }
-
-  if (Array.isArray(stateObjs)) {
-    for (const obj of stateObjs) {
-      if (isQrl(obj)) {
-        const qrlSymbolName = obj.getHash();
-        const resolvedSymbol = mapper[qrlSymbolName];
-        if (resolvedSymbol) {
-          addBundle(manifest, urls, prefetchResources, buildBase, resolvedSymbol[0]);
-        }
-      }
-    }
-  }
-
   return prefetchResources;
 }
 

@@ -5,20 +5,21 @@ import { format } from 'prettier';
 
 import type { StreamWriter } from '../../../server/types';
 import { component$ } from '../../component/component.public';
-import { inlinedQrl } from '../../import/qrl';
-import { $ } from '../../import/qrl.public';
+import { inlinedQrl } from '../../qrl/qrl';
+import { $ } from '../../qrl/qrl.public';
 import { createContext, useContext, useContextProvider } from '../../use/use-context';
 import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Ref, useRef } from '../../use/use-ref';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
-import { useClientEffect$ } from '../../use/use-watch';
+import { useClientEffect$, useWatch$ } from '../../use/use-watch';
 import { delay } from '../../util/promises';
 import { SSRComment } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
 import { jsx } from '../jsx/jsx-runtime';
 import { renderSSR, RenderSSROptions } from './render-ssr';
 import { useStore } from '../../use/use-store.public';
+import { useSignal } from '../../use/use-signal';
 
 const renderSSRSuite = suite('renderSSR');
 renderSSRSuite('render attributes', async () => {
@@ -52,13 +53,6 @@ renderSSRSuite('render class', async () => {
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <div class="stuff m-0 p-2 active container"></div>
     </html>`
-  );
-});
-
-renderSSRSuite('render htmlFor', async () => {
-  await testSSR(
-    <label htmlFor="stuff"></label>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><label for="stuff"></label></html>'
   );
 });
 
@@ -277,6 +271,39 @@ renderSSRSuite('using promises', async () => {
   );
 });
 
+renderSSRSuite('mixed children', async () => {
+  await testSSR(
+    <ul>
+      <li>0</li>
+      <li>1</li>
+      <li>2</li>
+      {Promise.resolve(<li>3</li>)}
+      <li>4</li>
+      {delay(100).then(() => (
+        <li>5</li>
+      ))}
+      {delay(10).then(() => (
+        <li>6</li>
+      ))}
+    </ul>,
+    `
+        <html q:container="paused" q:version="dev" q:render="ssr-dev">
+        <ul>
+        <li>0</li>
+        <li>1</li>
+        <li>2</li>
+        <!--qkssr-f-->
+        <li>3</li>
+        <li>4</li>
+        <!--qkssr-f-->
+        <li>5</li>
+        <!--qkssr-f-->
+        <li>6</li>
+        </ul>
+        </html>`
+  );
+});
+
 renderSSRSuite('DelayResource', async () => {
   await testSSR(
     <ul>
@@ -349,13 +376,17 @@ renderSSRSuite('using component props', async () => {
       dangerouslySetInnerHTML="432"
       onClick="lazy.js"
       prop="12"
-    />,
+      q:slot="name"
+    >
+      stuff
+    </MyCmp>,
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       <section>
         <div>MyCmp{"id":"12","host:prop":"attribute","innerHTML":"123","dangerouslySetInnerHTML":"432","onClick":"lazy.js","prop":"12"}</div>
       </section>
+      <q:template q:slot hidden aria-hidden="true">stuff</q:template>
       <!--/qv-->
     </html>
     `
@@ -531,6 +562,26 @@ renderSSRSuite('mixes slots', async () => {
   );
 });
 
+renderSSRSuite('component RenderSignals()', async () => {
+  await testSSR(
+    <RenderSignals />,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <!--qv q:id=0 q:key=sX:-->
+      <head q:head>
+        <title q:head>value</title>
+        <style q:head>
+          value
+        </style>
+        <script q:head>
+          value
+        </script>
+      </head>
+      <!--/qv-->
+    </html>`
+  );
+});
+
 renderSSRSuite('component useContextProvider()', async () => {
   await testSSR(
     <Context>
@@ -678,6 +729,7 @@ renderSSRSuite('containerTagName', async () => {
     <>
       <Styles />
       <UseClientEffect></UseClientEffect>
+      <section></section>
     </>,
     `<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="/manu/folder">
       <link rel="stylesheet" href="/global.css">
@@ -689,6 +741,7 @@ renderSSRSuite('containerTagName', async () => {
         <div on:qvisible="/runtimeQRL#_[0]
 /runtimeQRL#_[1]" q:id="2"></div>
       <!--/qv-->
+      <section></section>
     </container>`,
     {
       containerTagName: 'container',
@@ -961,6 +1014,10 @@ export const UseClientEffect = component$(() => {
   useClientEffect$(() => {
     console.warn('second client effect');
   });
+  useWatch$(async () => {
+    await delay(10);
+  });
+
   return <div />;
 });
 
@@ -973,6 +1030,19 @@ export const HeadCmp = component$(() => {
       <title>hola</title>
       <Slot></Slot>
     </head>
+  );
+});
+
+export const RenderSignals = component$(() => {
+  const signal = useSignal('value');
+  return (
+    <>
+      <head>
+        <title>{signal.value}</title>
+        <style>{signal.value}</style>
+        <script>{signal.value}</script>
+      </head>
+    </>
   );
 });
 
@@ -1028,4 +1098,22 @@ export const DelayResource = component$((props: { text: string; delay: number })
 
 export const NullCmp = component$(() => {
   return null;
+});
+
+export const EffectTransparent = component$(() => {
+  useClientEffect$(() => {
+    console.warn('log');
+  });
+  return <Slot />;
+});
+
+export const EffectTransparentRoot = component$(() => {
+  useClientEffect$(() => {
+    console.warn('log');
+  });
+  return (
+    <EffectTransparent>
+      <section>Hello</section>
+    </EffectTransparent>
+  );
 });

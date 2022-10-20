@@ -53,6 +53,8 @@ export function isEditingContent(event: QwikKeyboardEvent<HTMLElement>): boolean
 
 export const DocSearch = component$((props: DocSearchProps) => {
   useStyles$(styles);
+  // useContextBoundary();
+
   const state = useStore<DocSearchState>({
     isOpen: false,
     initialQuery: '',

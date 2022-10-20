@@ -1,4 +1,5 @@
-import type { QRL } from '../../../import/qrl.public';
+import type { QRL } from '../../../qrl/qrl.public';
+import type { Signal } from '../../../state/signal';
 import type { Ref } from '../../../use/use-ref';
 import type { JSXNode } from './jsx-node';
 import type {
@@ -138,13 +139,13 @@ export type QwikEventMap<T> = {
 };
 
 export type PreventDefault<T> = {
-  [K in keyof QwikEventMap<T> as `prevent${'default' | 'Default'}:${Lowercase<K>}`]?: boolean;
+  [K in keyof QwikEventMap<T> as `preventdefault:${Lowercase<K>}`]?: boolean;
 };
 
 export interface QwikProps<T> extends PreventDefault<T> {
   class?: string | { [className: string]: boolean } | string[];
   dangerouslySetInnerHTML?: string;
-  ref?: Ref<Element>;
+  ref?: Ref<Element> | Signal<Element | undefined> | ((el: Element) => void);
 
   /**
    *
@@ -169,7 +170,7 @@ export type BivariantEventHandler<T extends SyntheticEvent<any> | Event> = {
  */
 export type NativeEventHandler<T extends Event = Event> =
   | BivariantEventHandler<T>
-  | BivariantEventHandler<T>[];
+  | QRL<BivariantEventHandler<T>>[];
 
 /**
  * @public

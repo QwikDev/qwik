@@ -1,8 +1,9 @@
-import { assertDefined } from '../assert/assert';
-import { parseQRL } from '../import/qrl';
-import { getContext, inflateQrl, resumeIfNeeded } from '../props/props';
+import { assertDefined } from '../error/assert';
+import { inflateQrl, parseQRL } from '../qrl/qrl';
 import { getWrappingContainer, getInvokeContext } from './use-core';
-import { assertQrl } from '../import/qrl-class';
+import { assertQrl } from '../qrl/qrl-class';
+import { getContext } from '../state/context';
+import { resumeIfNeeded } from '../container/resume';
 
 // <docs markdown="../readme.md#useLexicalScope">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -25,12 +26,12 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
     const el = context.$element$;
     assertDefined(el, 'invoke: element must be defined inside useLexicalScope()', context);
     const container = getWrappingContainer(el);
-    const ctx = getContext(el);
+    const elCtx = getContext(el);
     assertDefined(container, `invoke: cant find parent q:container of`, el);
     qrl = parseQRL(decodeURIComponent(String(context.$url$)), container);
     assertQrl(qrl);
     resumeIfNeeded(container);
-    inflateQrl(qrl, ctx);
+    inflateQrl(qrl, elCtx);
   } else {
     assertQrl(qrl);
     assertDefined(

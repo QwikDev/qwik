@@ -1,6 +1,11 @@
 ---
 title: Overview
-fetch: https://hackmd.io/@mhevery/SyYrShReq
+contributors:
+  - wmertens
+  - bado22
+  - RATIU5
+  - manucorporat
+  - adamdbradley
 ---
 
 # Reactivity
@@ -31,10 +36,10 @@ Because of the above constraints, Qwik uses proxies to keep track of the reactiv
 ## Counter Example
 
 ```tsx
-const Counter = component$(() => {
+export const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
-  return <button onClick$={store.count++}>{store.count}</button>;
+  return <button onClick$={() => store.count++}>{store.count}</button>;
 });
 ```
 
@@ -49,13 +54,13 @@ const Counter = component$(() => {
 ## Unsubscribe example
 
 ```tsx
-const ComplexCounter = component$(() => {
+export const ComplexCounter = component$(() => {
   const store = useStore({ count: 0, visible: true });
 
   return (
     <>
-      <button onClick$={(store.visible = !store.visible)}>{store.visible ? 'hide' : 'show'}</button>
-      <button onClick$={store.count++}>increment</button>
+      <button onClick$={() => (store.visible = !store.visible)}>{store.visible ? 'hide' : 'show'}</button>
+      <button onClick$={() => store.count++}>increment</button>
       {store.visible ? <span>{store.count}</span> : null}
     </>
   );
@@ -77,14 +82,14 @@ Notice how the set of subscriptions automatically updates as the component rende
 
 ## Deep objects
 
-So far, the examples show the store (`useStore()`) was a simple object with primitive values. However, the same behavior works on all properties of the store recursively.
+So far, the examples show the store (`useStore()`) was a simple object with primitive values. However, the same behavior can work on all properties of the store recursively by providing the `recursive` option.
 
 ```tsx
-const MyComp = component$(() => {
+export const MyComp = component$(() => {
   const store = useStore({
     person: { first: null, last: null },
     location: null
-  });
+  }, { recursive: true });
 
   store.location = {street: 'main st'};
 
@@ -102,7 +107,7 @@ In the above examples, Qwik will automatically wrap child objects `person` and `
 The wrapping behavior described above has one surprising side-effect. Writing and reading from a proxy auto wraps the object, which means that the identity of the object changes. This should normally not be an issue, but it is something that the developer should keep in mind.
 
 ```tsx
-const MyComp = component$(() => {
+export const MyComp = component$(() => {
   const store = useStore({ person: null });
   const person = { first: 'John', last: 'Smith' };
   store.person = person; // store.person auto wraps object into proxy
@@ -118,18 +123,18 @@ const MyComp = component$(() => {
 
 Qwik components can render out of order. A component can render without forcing a parent component to render first or a child components to render as a consequence of the component render. This is an important property of Qwik because it allows Qwik applications to only re-render components which have been invalidated due to a state change rather than re-rendering the whole component tree on a state change.
 
-When components render, they need to have access to their props. Parent components create props. The props must be serializable for the component to render independently from the parent. (See [serialization](https://qwik.builder.io/docs/concepts/resumable#serialization) for an in-depth discussion on what is serializable)
+When components render, they need to have access to their props. Parent components create props. The props must be serializable for the component to render independently from the parent. (See [serialization](../resumable/index.mdx#serialization) for an in-depth discussion on what is serializable)
 
 ## Invalidating child components
 
 When re-rendering a component, the child component's props either stay the same or are updated. A child component only invalidates if it's props change.
 
 ```tsx
-const Child = component$((props: { count: number }) => {
+export const Child = component$((props: { count: number }) => {
   return <span>{props.count}</span>;
 });
 
-const MyApp = component$(() => {
+export const MyApp = component$(() => {
   const store = useStore({ a: 0, b: 0, c: 0 });
 
   return (

@@ -25,8 +25,8 @@ function createPlatform(
 
   const serverPlatform: CorePlatform = {
     isServer: true,
-    async importSymbol(_element, qrl, symbolName) {
-      let [modulePath] = String(qrl).split('#');
+    async importSymbol(_containerEl, url, symbolName) {
+      let modulePath = String(url);
       if (!modulePath.endsWith('.js')) {
         modulePath += '.js';
       }

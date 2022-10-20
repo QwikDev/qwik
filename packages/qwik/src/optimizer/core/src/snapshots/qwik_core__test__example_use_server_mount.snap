@@ -56,6 +56,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= parent_component_0taidayhrlo.js ==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _wrapSignal } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { useServerMountQrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
@@ -69,12 +70,12 @@ export const Parent_component_0TaiDayHrlo = ()=>{
     ]));
     return /*#__PURE__*/ _jsx("div", {
         onClick$: qrl(()=>import("./entry_Parent"), "Parent_component_div_onClick_C5XE49Nqd3A"),
-        children: state.text
+        children: _wrapSignal(state, "text")
     });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAKiC,IAAM;IACnC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,IAAI,EAAE,EAAE;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAGE,CAAC;IAEH,qBACI,KAAC,KAAG;QAAC,QAAQ;kBACR,KAAK,CAAC,IAAI;MACT,CACR;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;4CAKiC,IAAM;IACnC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,IAAI,EAAE,EAAE;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAGE,CAAC;IAEH,qBACI,KAAC,KAAG;QAAC,QAAQ;8BACR,KAAK;MACJ,CACR;AACN,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -152,6 +153,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= child_component_9gyf01gdkqw.js ==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _wrapSignal } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { useServerMountQrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
@@ -165,12 +167,12 @@ export const Child_component_9GyF01GDKqw = ()=>{
     ]));
     return /*#__PURE__*/ _jsx("div", {
         onClick$: qrl(()=>import("./entry_Child"), "Child_component_div_onClick_elliVSnAiOQ"),
-        children: state.text
+        children: _wrapSignal(state, "text")
     });
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;2CAuBgC,IAAM;IAClC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,IAAI,EAAE,EAAE;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAEE,CAAC;IAEH,qBACI,KAAC,KAAG;QAAC,QAAQ;kBACR,KAAK,CAAC,IAAI;MACT,CACR;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAuBgC,IAAM;IAClC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,IAAI,EAAE,EAAE;KACX,CAAC,AAAC;IAEH,qBAAqB;IACrB;;OAEE,CAAC;IAEH,qBACI,KAAC,KAAG;QAAC,QAAQ;8BACR,KAAK;MACJ,CACR;AACN,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

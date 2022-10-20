@@ -37,11 +37,14 @@ export const validLexicalScope = createRule({
         },
       },
     ],
+
     messages: {
       referencesOutside:
         'Identifier ("{{varName}}") can not be captured inside the scope ({{dollarName}}) because {{reason}}. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
       unvalidJsxDollar:
         'JSX attributes that end with $ can only take an inlined arrow function of a QRL identifier. Make sure the value is created using $()',
+      mutableIdentifier:
+        'The value of the identifier ("{{varName}}") can not be changed once it is captured the scope ({{dollarName}}). Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
     },
   },
   create(context) {
@@ -83,7 +86,23 @@ export const validLexicalScope = createRule({
             if (scopeType === 'global') {
               return;
             }
-            const tsNode = esTreeNodeToTSNodeMap.get(ref.identifier);
+            const identifier = ref.identifier;
+            if (
+              identifier.parent &&
+              identifier.parent.type === AST_NODE_TYPES.AssignmentExpression
+            ) {
+              if (identifier.parent.left === identifier) {
+                context.report({
+                  messageId: 'mutableIdentifier',
+                  node: ref.identifier,
+                  data: {
+                    varName: ref.identifier.name,
+                    dollarName: dollarIdentifier,
+                  },
+                });
+              }
+            }
+            const tsNode = esTreeNodeToTSNodeMap.get(identifier);
             if (scopeType === 'module') {
               const s = typeChecker.getSymbolAtLocation(tsNode);
               if (s && exports.includes(s)) {
@@ -170,7 +189,17 @@ export const validLexicalScope = createRule({
       },
       Program(node) {
         const module = esTreeNodeToTSNodeMap.get(node);
-        exports = typeChecker.getExportsOfModule(typeChecker.getSymbolAtLocation(module)!);
+        const moduleSymbol = typeChecker.getSymbolAtLocation(module);
+
+        /**
+         * Despite what the type signature says,
+         * {@link typeChecker.getSymbolAtLocation} can return undefined for
+         * empty modules. This happens, for example, when creating a brand new
+         * file.
+         */
+        if (moduleSymbol) {
+          exports = typeChecker.getExportsOfModule(moduleSymbol);
+        }
       },
       'Program:exit'() {
         walkScope(scopeManager.globalScope! as any);

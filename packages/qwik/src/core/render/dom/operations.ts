@@ -1,7 +1,8 @@
-import { assertDefined } from '../../assert/assert';
+import { assertDefined } from '../../error/assert';
 import { codeToText, QError_setProperty } from '../../error/error';
 import type { StyleAppend } from '../../use/use-core';
 import { getDocument } from '../../util/dom';
+import { isElement, isNode } from '../../util/element';
 import { logDebug, logError, logWarn } from '../../util/log';
 import { QSlot, QSlotRef, QStyle } from '../../util/markers';
 import { qDev } from '../../util/qdev';
@@ -61,7 +62,10 @@ export const setProperty = (
 
 const _setProperty = (node: any, key: string, value: any) => {
   try {
-    node[key] = value;
+    node[key] = value == null ? '' : value;
+    if (value == null && isNode(node) && isElement(node)) {
+      node.removeAttribute(key);
+    }
   } catch (err) {
     logError(codeToText(QError_setProperty), { node, key, value }, err);
   }
@@ -201,7 +205,7 @@ export const setKey = (el: QwikElement, key: string | null) => {
 export const resolveSlotProjection = (ctx: RenderStaticContext) => {
   // Slots removed
   const subsManager = ctx.$containerState$.$subsManager$;
-  ctx.$rmSlots$.forEach((slotEl) => {
+  for (const slotEl of ctx.$rmSlots$) {
     const key = getKey(slotEl);
     assertDefined(key, 'slots must have a key');
 
@@ -222,10 +226,10 @@ export const resolveSlotProjection = (ctx: RenderStaticContext) => {
         cleanupTree(slotEl, ctx, subsManager, false);
       }
     }
-  });
+  }
 
   // Slots added
-  ctx.$addSlots$.forEach(([slotEl, hostElm]) => {
+  for (const [slotEl, hostElm] of ctx.$addSlots$) {
     const key = getKey(slotEl);
     assertDefined(key, 'slots must have a key');
 
@@ -239,7 +243,7 @@ export const resolveSlotProjection = (ctx: RenderStaticContext) => {
       });
       template.remove();
     }
-  });
+  }
 };
 
 export const createTextNode = (doc: Document, text: string): Text => {

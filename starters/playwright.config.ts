@@ -1,4 +1,18 @@
-import type { PlaywrightTestConfig } from '@playwright/test';
+import { expect } from '@playwright/test';
+import type { Locator, PlaywrightTestConfig } from '@playwright/test';
+
+expect.extend({
+  async hasAttribute(recieved: Locator, attribute: string) {
+    const pass = await recieved.evaluate((node, attribute) => {
+      return node.getAttribute(attribute);
+    }, attribute);
+
+    return {
+      message: () => `expected ${recieved} to have attribute \`${attribute}\` (${pass})`,
+      pass: pass !== null,
+    };
+  },
+});
 
 const config: PlaywrightTestConfig = {
   use: {
@@ -7,10 +21,9 @@ const config: PlaywrightTestConfig = {
       height: 600,
     },
   },
-  workers: 1,
   retries: 3,
   webServer: {
-    command: 'tsm ./dev-server.ts 3301',
+    command: 'yarn tsm ./dev-server.ts 3301',
     port: 3301,
     reuseExistingServer: !process.env.CI,
   },

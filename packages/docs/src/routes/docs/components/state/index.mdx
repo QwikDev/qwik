@@ -1,3 +1,13 @@
+---
+contributors:
+  - nnelgxorz
+  - the-r3aper7
+  - voluntadpear
+  - kawamataryo
+  - JaymanW
+  - RATIU5
+  - manucorporat
+---
 # State
 
 State management is an important part of any app. In Qwik, we can differentiate between two types of state, reactive and static.
@@ -13,17 +23,20 @@ It's important to notice that state in Qwik is not component state, but rather a
 
 The reactive object returned by `useStore()` is just like any other object, but it's reactive. If you change a property of the object, any component that depends on it will be updated.
 
+> **NOTE**
+> Make sure to keep a reference to the reactive object and not only to its properties, for reactivity to work. e.g. doing `let { count } = useStore({ count: 0 })` and then mutating `count` won't trigger updates of components that depends on it.
+
 ### Example
 
 An example showing how `useStore` is used in the Counter example to keep track of the count.
 
 ```tsx
-const App = component$(() => {
+export const App = component$(() => {
   const state = useStore({ count: 0 });
 
   return (
     <>
-      <button onClick={() => state.count++}>Increment</button>
+      <button onClick$={() => state.count++}>Increment</button>
       Count: {state.count}
     </>
   );
@@ -34,6 +47,71 @@ const App = component$(() => {
 The example above, the App component is using `useStore()` to create a reactive object. The object is then used to keep track of the count. The count is then displayed in the component.
 
 Just accessing the `state.count` property will cause the component to be updated if the count changes, when the property is changed in the click handler.
+
+### Recursive values
+
+By default, `useStore()` only tracks the top level fields in your store, which means that for any updates to register, you have to update values at the top level field.
+
+For example, this will not work:
+
+```tsx
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$(() => {
+  const store = useStore({
+    nested: { fields: { are: "not tracked" }}
+  })
+
+  return (
+    <>
+      <p>{store.nested.fields.are}</p>
+      <button onClick$={() => store.nested.fields.are = "tracked"}>Click me</button>
+    </>
+  );
+});
+```
+
+In order to update this with default tracking we would have to update the top level `nested` field:
+
+```ts
+store.nested = { fields: { are: { "tracked" } } }
+```
+
+In order to make the first example work, we can pass a second argument to our useStore, and tell it to use recursion to track all the values in our store, no matter how deep.
+
+```tsx
+export const App = component$(() => {
+  const store = useStore({
+    nested: { fields: { are: "not tracked" }}
+  }, { recursive: true })
+
+  return (
+    <>
+      <p>{store.nested.fields.are}</p>
+      <button onClick$={() => store.nested.fields.are = "tracked"}>Click me</button>
+    </>
+  );
+});
+```
+
+Now the component will update as expected. This will also track individual values inside of arrays!
+
+```tsx
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$(() => {
+  const store = useStore({
+    letters: ["A", "B", "C"]
+  }, { recursive: true })
+
+  return (
+    <>
+      {store.letters.map(letter => <p>{letter}</p>)}
+      <button onClick$={() => { store.letters[2] = "Z"}}>Click me</button>
+    </>
+  );
+});
+```
 
 
 ## Passing a store to other components
@@ -59,10 +137,10 @@ export const Parent = component$(() => {
   );
 });
 
-export const Child = component$(({userData}) => {
+export const Child = component$(({ userData }) => {
   return (
     <>
-      <button onClick={() => userData.count++}>Increment</button>)}
+      <button onClick$={() => userData.count++}>Increment</button>
       Count: {userData.count}
     </>
   );
@@ -78,7 +156,7 @@ Check the [context API](../context/index.mdx) for more information.
 ```tsx
 const CTX = createContext('stuff');
 
-const Stores = component$(() => {
+export const Stores = component$(() => {
   const userData = useStore({
     count: 0,
   });
@@ -96,7 +174,7 @@ export const Child = component$(() => {
   const userData = useContext(CTX);
   return (
     <>
-      <button onClick={() => userData.count++}>Increment</button>)}
+      <button onClick$={() => userData.count++}>Increment</button>
       Count: {userData.count}
     </>
   );
@@ -109,27 +187,28 @@ Computed values are values that are derived from other values. They are useful w
 
 In Qwik there are two ways to create computed values, using `useWatch$()` or `useResource$()`.
 
-The main different between the two is that `useWatch$()` allows side effects and the execution is serialized, while `useResource$()` is asynchronous and multiple useResource calls can happen in parallel.
+The main difference between the two is that `useWatch$()` allows side effects and the execution is serialized, while `useResource$()` is asynchronous and multiple useResource calls can happen in parallel.
 
 `useWatch$()` is usually used to compute intermediate state, while `useResource$()` has better ergonomics to compute the final state, used for rendering. Let's see some examples:
 
 
 ### `useWatch$()` example
+
 ```tsx
-const App = component$(() => {
+export const App = component$(() => {
   const state = useStore({
     count: 0,
     doubleCount: 0
   });
 
-  useWatch$(({track}) => {
+  useWatch$(({ track }) => {
     track(state, 'count');
     state.doubleCount = state.count * 2;
   });
 
   return (
     <>
-      <button onClick={() => state.count++}>Increment</button>)}
+      <button onClick$={() => state.count++}>Increment</button>
       Count: {state.count}
       Count * 2: {state.doubleCount}
     </>
@@ -140,19 +219,19 @@ const App = component$(() => {
 ### `useResource$()` example
 
 ```tsx
-const App = component$(() => {
+export const App = component$(() => {
   const state = useStore({
     count: 0,
   });
 
-  const doubleCount = useResource$(({track}) => {
+  const doubleCount = useResource$(({ track }) => {
     track(state, 'count');
     return state.count * 2;
   });
 
   return (
     <>
-      <button onClick={() => state.count++}>Increment</button>)}
+      <button onClick$={() => state.count++}>Increment</button>
       Count: {state.count}
       Count * 2: {doubleCount.promise}
     </>
@@ -164,5 +243,4 @@ Both [useWatch](../lifecycle/index.mdx#usewatch) and [useResource](../resource/i
 
 ## Reactivity
 
-Thanks to the fine grained reactivity of Qwik, only the components that depend on the state will be updated. This is a huge performance gain, as only the components that need to be updated will be updated.
-
+Thanks to the fine grained reactivity of Qwik, only the components that depend on the state will be updated. This is a huge performance gain, as only the components that needs to be updated will be updated.

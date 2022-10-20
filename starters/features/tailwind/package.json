@@ -1,0 +1,21 @@
+{
+  "description": "Use Tailwind into your Qwik app",
+  "devDependencies": {
+    "postcss": "^8.4.16",
+    "tailwindcss": "^3.1.8",
+    "autoprefixer": "10.4.11"
+  },
+  "__qwik__": {
+    "priority": -1,
+    "viteConfig": {},
+    "nextSteps": [
+      "------------------------------------------------",
+      "You must add the next lines into global.css file",
+      "global.css -------------------------------------",
+      "",
+      "@tailwind base;",
+      "@tailwind components;",
+      "@tailwind utilities;"
+    ]
+  }
+}

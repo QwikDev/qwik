@@ -16,7 +16,7 @@ test('endpoint type cuz no default module export', async () => {
     },
   ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
   equal(u.type, 'endpoint');
 });
 
@@ -31,7 +31,7 @@ test('pagedata type cuz default module export and application/jon accept header'
     },
   ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
   equal(u.type, 'pagedata');
 });
 
@@ -46,7 +46,7 @@ test('pagehtml type cuz default module export', async () => {
     },
   ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
   equal(u.type, 'pagehtml');
 });
 
@@ -63,7 +63,7 @@ test('sync endpoint, undefined body', async () => {
     },
   ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
   equal(u.status, 204);
   equal(u.headers.get('name'), 'value');
   equal(u.pendingBody, undefined);
@@ -85,7 +85,7 @@ test('async endpoint, resolved data, render blocking', async () => {
     },
   ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
   equal(u.status, 204);
   equal(u.headers.get('name'), 'value');
   equal(u.pendingBody, undefined);
@@ -115,7 +115,7 @@ test('onPost priority over onRequest, dont call onGet', async () => {
     },
   ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
   equal(u.status, 200);
   equal(calledOnGet, false);
   equal(calledOnPost, true);
@@ -136,7 +136,7 @@ test('catchall onRequest', async () => {
     },
   ];
 
-  const u = await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
   equal(u.status, 200);
   equal(calledOnRequest, true);
 });
@@ -150,18 +150,18 @@ test('user manual redirect, PageModule', async () => {
       {
         onRequest: async ({ response }) => {
           await wait();
-          response.status = 307;
+          response.status = 302;
           response.headers.set('Location', '/redirect');
         },
         default: () => {},
       },
     ];
 
-    await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+    await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
     equal(true, false, 'Should have thrown');
   } catch (e: any) {
     instance(e, RedirectResponse);
-    equal(e.status, 307);
+    equal(e.status, 302);
     equal(e.location, '/redirect');
     equal(e.headers.get('Location'), '/redirect');
   }
@@ -181,11 +181,11 @@ test('throw redirect', async () => {
       },
     ];
 
-    await loadUserResponse(requestCtx, {}, endpoints, {}, trailingSlash);
+    await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
     equal(true, false, 'Should have thrown');
   } catch (e: any) {
     instance(e, RedirectResponse);
-    equal(e.status, 307);
+    equal(e.status, 302);
     equal(e.headers.get('Location'), '/redirect');
   }
 });
@@ -198,7 +198,7 @@ test('no handler for endpoint', async () => {
       { onDelete: () => {} },
       { onPost: () => {} },
     ];
-    await loadUserResponse(requestCtx, {}, routeModules, {}, trailingSlash);
+    await loadUserResponse(requestCtx, {}, routeModules, trailingSlash);
     equal(true, false, 'Should have thrown');
   } catch (e: any) {
     instance(e, ErrorResponse);
@@ -215,11 +215,11 @@ test('remove trailing slash, PageModule', async () => {
         default: () => {},
       },
     ];
-    await loadUserResponse(requestCtx, {}, routeModules, {}, trailingSlash);
+    await loadUserResponse(requestCtx, {}, routeModules, trailingSlash);
     equal(true, false, 'Should have thrown');
   } catch (e: any) {
     instance(e, RedirectResponse);
-    equal(e.status, 307);
+    equal(e.status, 302);
     equal(e.location, '/somepath?qs=true');
   }
 });
@@ -233,11 +233,11 @@ test('add trailing slash, PageModule', async () => {
         default: () => {},
       },
     ];
-    await loadUserResponse(requestCtx, {}, routeModules, {}, trailingSlash);
+    await loadUserResponse(requestCtx, {}, routeModules, trailingSlash);
     equal(true, false, 'Should have thrown');
   } catch (e: any) {
     instance(e, RedirectResponse);
-    equal(e.status, 307);
+    equal(e.status, 302);
     equal(e.location, '/somepath/?qs=true');
   }
 });

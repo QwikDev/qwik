@@ -1,7 +1,5 @@
-import { createProxy, getProxyTarget } from '../object/q-object';
-import { getContext } from '../props/props';
-import { $, QRL } from '../import/qrl.public';
-import { assertQrl } from '../import/qrl-class';
+import { $, QRL } from '../qrl/qrl.public';
+import { assertQrl } from '../qrl/qrl-class';
 import {
   ResourceReturn,
   ResourceDescriptor,
@@ -9,19 +7,20 @@ import {
   runResource,
   WatchFlagsIsDirty,
   WatchFlagsIsResource,
-  ResourceReturnInternal,
   Watch,
+  ResourceReturnInternal,
 } from './use-watch';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
-import { qDev } from '../util/qdev';
 import { isServer } from '../platform/platform';
 import { useBindInvokeContext } from './use-core';
 
 import { isObject } from '../util/types';
-import type { GetObjID } from '../object/store';
-import type { ContainerState } from '../render/container';
+import type { ContainerState, GetObjID } from '../container/container';
 import { useSequentialScope } from './use-sequential-scope';
+import { getContext } from '../state/context';
+import { createProxy } from '../state/store';
+import { getProxyTarget } from '../state/common';
 
 /**
  * Options to pass to `useResource$()`
@@ -53,7 +52,7 @@ export interface ResourceOptions {
  * - 'resolved' - the data is available.
  * - 'rejected' - the data is not available due to an error or timeout.
  *
- * ## Example
+ * ### Example
  *
  * Example showing how `useResource` to perform a fetch to request the weather, whenever the
  * input city name changes.
@@ -65,11 +64,11 @@ export interface ResourceOptions {
  *   });
  *
  *   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
- *     const cityName = track(store, 'city');
+ *     const cityName = track(() => store.city);
  *     const abortController = new AbortController();
  *     cleanup(() => abortController.abort('cleanup'));
- *     const res = await  fetch(`http://weatherdata.com?city=${cityName}`, {
- *       signal: abortController.signal
+ *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
+ *       signal: abortController.signal,
  *     });
  *     const data = res.json();
  *     return data;
@@ -77,13 +76,11 @@ export interface ResourceOptions {
  *
  *   return (
  *     <div>
- *       <input name="city" onInput$={(ev: any) => store.city = ev.target.value}/>
+ *       <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
  *       <Resource
  *         value={weatherResource}
  *         onResolved={(weather) => {
- *           return (
- *             <div>Temperature: {weather.temp}</div>
- *           );
+ *           return <div>Temperature: {weather.temp}</div>;
  *         }}
  *       />
  *     </div>
@@ -145,7 +142,7 @@ export const useResourceQrl = <T>(
  * - 'resolved' - the data is available.
  * - 'rejected' - the data is not available due to an error or timeout.
  *
- * ## Example
+ * ### Example
  *
  * Example showing how `useResource` to perform a fetch to request the weather, whenever the
  * input city name changes.
@@ -157,11 +154,11 @@ export const useResourceQrl = <T>(
  *   });
  *
  *   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
- *     const cityName = track(store, 'city');
+ *     const cityName = track(() => store.city);
  *     const abortController = new AbortController();
  *     cleanup(() => abortController.abort('cleanup'));
- *     const res = await  fetch(`http://weatherdata.com?city=${cityName}`, {
- *       signal: abortController.signal
+ *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
+ *       signal: abortController.signal,
  *     });
  *     const data = res.json();
  *     return data;
@@ -169,13 +166,11 @@ export const useResourceQrl = <T>(
  *
  *   return (
  *     <div>
- *       <input name="city" onInput$={(ev: any) => store.city = ev.target.value}/>
+ *       <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
  *       <Resource
  *         value={weatherResource}
  *         onResolved={(weather) => {
- *           return (
- *             <div>Temperature: {weather.temp}</div>
- *           );
+ *           return <div>Temperature: {weather.temp}</div>;
  *         }}
  *       />
  *     </div>
@@ -222,7 +217,7 @@ export interface ResourceProps<T> {
  * - 'resolved' - the data is available.
  * - 'rejected' - the data is not available due to an error or timeout.
  *
- * ## Example
+ * ### Example
  *
  * Example showing how `useResource` to perform a fetch to request the weather, whenever the
  * input city name changes.
@@ -234,11 +229,11 @@ export interface ResourceProps<T> {
  *   });
  *
  *   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
- *     const cityName = track(store, 'city');
+ *     const cityName = track(() => store.city);
  *     const abortController = new AbortController();
  *     cleanup(() => abortController.abort('cleanup'));
- *     const res = await  fetch(`http://weatherdata.com?city=${cityName}`, {
- *       signal: abortController.signal
+ *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
+ *       signal: abortController.signal,
  *     });
  *     const data = res.json();
  *     return data;
@@ -246,13 +241,11 @@ export interface ResourceProps<T> {
  *
  *   return (
  *     <div>
- *       <input name="city" onInput$={(ev: any) => store.city = ev.target.value}/>
+ *       <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
  *       <Resource
  *         value={weatherResource}
  *         onResolved={(weather) => {
- *           return (
- *             <div>Temperature: {weather.temp}</div>
- *           );
+ *           return <div>Temperature: {weather.temp}</div>;
  *         }}
  *       />
  *     </div>
@@ -267,42 +260,31 @@ export interface ResourceProps<T> {
  */
 // </docs>
 export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
-  const isBrowser = !qDev || !isServer();
+  const isBrowser = !isServer();
+  const resource = props.value as ResourceReturnInternal<T>;
   if (isBrowser) {
     if (props.onRejected) {
-      props.value.promise.catch(() => {});
-      if (props.value.state === 'rejected') {
-        return props.onRejected(props.value.error);
+      resource.promise.catch(() => {});
+      if (resource._state === 'rejected') {
+        return props.onRejected(resource._error);
       }
     }
     if (props.onPending) {
-      const state = props.value.state;
+      const state = resource._state;
       if (state === 'pending') {
         return props.onPending();
       } else if (state === 'resolved') {
-        return props.onResolved(props.value.resolved);
+        return props.onResolved(resource._resolved!);
       } else if (state === 'rejected') {
-        throw props.value.error;
+        throw resource._error;
       }
     }
   }
 
-  const promise: any = props.value.promise.then(
+  const promise: any = resource.promise.then(
     useBindInvokeContext(props.onResolved),
     useBindInvokeContext(props.onRejected)
   );
-  // if (isServer) {
-  //   const onPending = props.onPending;
-  //   if (props.ssrWait && onPending) {
-  //     promise = Promise.race([
-  //       delay(props.ssrWait).then(() => {
-  //         getInternalResource(props.resource).dirty = true;
-  //         return onPending();
-  //       }),
-  //       promise,
-  //     ]);
-  //   }
-  // }
 
   // Resource path
   return jsx(Fragment, {
@@ -310,14 +292,15 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
   });
 };
 
-export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn<T> => {
-  const resource: ResourceReturn<T> = {
+export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturnInternal<T> => {
+  const resource: ResourceReturnInternal<T> = {
     __brand: 'resource',
     promise: undefined as never,
-    resolved: undefined as never,
-    error: undefined as never,
-    state: 'pending',
-    timeout: opts?.timeout,
+    loading: isServer() ? false : true,
+    _resolved: undefined as never,
+    _error: undefined as never,
+    _state: 'pending',
+    _timeout: opts?.timeout,
   };
   return resource;
 };
@@ -326,10 +309,10 @@ export const createResourceReturn = <T>(
   containerState: ContainerState,
   opts?: ResourceOptions,
   initialPromise?: Promise<T>
-): ResourceReturn<T> => {
+): ResourceReturnInternal<T> => {
   const result = _createResourceReturn<T>(opts);
   result.promise = initialPromise as any;
-  const resource = createProxy(result, containerState, 0, undefined);
+  const resource = createProxy(result, containerState, undefined);
   return resource;
 };
 
@@ -341,30 +324,33 @@ export const isResourceReturn = (obj: any): obj is ResourceReturn<any> => {
   return isObject(obj) && obj.__brand === 'resource';
 };
 
-export const serializeResource = (resource: ResourceReturn<any>, getObjId: GetObjID) => {
-  const state = resource.state;
+export const serializeResource = (resource: ResourceReturnInternal<any>, getObjId: GetObjID) => {
+  const state = resource._state;
   if (state === 'resolved') {
-    return `0 ${getObjId(resource.resolved)}`;
+    return `0 ${getObjId(resource._resolved)}`;
   } else if (state === 'pending') {
     return `1`;
   } else {
-    return `2 ${getObjId(resource.error)}`;
+    return `2 ${getObjId(resource._error)}`;
   }
 };
 
-export const parseResourceReturn = <T>(data: string): ResourceReturn<T> => {
+export const parseResourceReturn = <T>(data: string): ResourceReturnInternal<T> => {
   const [first, id] = data.split(' ');
   const result = _createResourceReturn<T>(undefined);
   result.promise = Promise.resolve() as any;
   if (first === '0') {
-    result.state = 'resolved';
-    result.resolved = id as any;
+    result._state = 'resolved';
+    result._resolved = id as any;
+    result.loading = false;
   } else if (first === '1') {
-    result.state = 'pending';
+    result._state = 'pending';
     result.promise = new Promise(() => {});
+    result.loading = true;
   } else if (first === '2') {
-    result.state = 'rejected';
-    result.error = id as any;
+    result._state = 'rejected';
+    result._error = id as any;
+    result.loading = false;
   }
   return result;
 };

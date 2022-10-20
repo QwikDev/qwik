@@ -1,3 +1,10 @@
+---
+contributors:
+  - the-r3aper7
+  - ChibiBlasphem
+  - zahash
+  - manucorporat
+---
 # Cheat sheet
 
 ### Hello world component
@@ -5,21 +12,17 @@
 #### ⚡️ Qwik
 
 ```tsx
-export const Component = component$(() => {
-  return (
-    <>
-      <div>Hello world</div>
-    </>
-  );
+export const HelloWorld = component$(() => {
+  return <div>Hello world</div>;
 });
 ```
 
 #### ⚛️ React
 
 ```tsx
-export function Component() {
+export function HelloWorld() {
   return <div>Hello world</div>;
-}
+};
 ```
 
 ### Button with a click handler
@@ -27,21 +30,17 @@ export function Component() {
 #### ⚡️ Qwik
 
 ```tsx
-export const Component = component$(() => {
-  return (
-    <>
-      <button onClick$={() => console.log('click')}>Click me</button>
-    </>
-  );
+export const Button = component$(() => {
+  return <button onClick$={() => console.log('click')}>Click me</button>;
 });
 ```
 
 #### ⚛️ React
 
 ```tsx
-export function Component() {
+export function Button() {
   return <button onClick={() => console.log('click')}>Click me</button>;
-}
+};
 ```
 
 ### Declare local state
@@ -49,25 +48,21 @@ export function Component() {
 #### ⚡️ Qwik
 
 ```tsx
-export const Component = component$(() => {
+export const LocalStateExample = component$(() => {
   const state = useStore({
     value: 0,
   });
-  return (
-    <>
-      <div>Value is: {state.value}</div>
-    </>
-  );
+  return <div>Value is: {state.value}</div>;
 });
 ```
 
 #### ⚛️ React
 
 ```tsx
-export function Component() {
+export function UseStateExample() {
   const [value, setValue] = useState(0);
   return <div>Value is: {value}</div>;
-}
+};
 ```
 
 ### Create a counter component
@@ -99,7 +94,7 @@ export function Counter() {
       <button onClick={() => setCount(count + 1)}>Increment</button>
     </>
   );
-}
+};
 ```
 
 ### Create a clock that increments every second
@@ -118,11 +113,7 @@ export const Clock = component$(() => {
     return () => clearInterval(interval);
   });
 
-  return (
-    <>
-      <div>Seconds: {state.seconds}</div>
-    </>
-  );
+  return <div>Seconds: {state.seconds}</div>;
 });
 ```
 
@@ -138,7 +129,7 @@ export function Clock() {
     return () => clearInterval(interval);
   });
   return <div>Seconds: {seconds}</div>;
-}
+};
 ```
 
 ### Perform a fetch request every time the state changes
@@ -153,7 +144,7 @@ export const Fetch = component$(() => {
   });
 
   useWatch$(async ({ track }) => {
-    track(state, 'url');
+    track(() => state.url);
     const res = await fetch(state.url);
     const json = await res.json();
     state.responseJson = json;
@@ -185,7 +176,7 @@ export function Fetch() {
       <input name="url" onInput={(ev) => setUrl(ev.target.value)} />
     </>
   );
-}
+};
 ```
 
 ### Declare some context and consume it
@@ -194,6 +185,7 @@ export function Fetch() {
 
 ```tsx
 export const MyContext = createContext('my-context');
+
 export const Parent = component$(() => {
   const state = useStore({
     message: 'some example value',
@@ -208,12 +200,27 @@ export const Parent = component$(() => {
 
 export const Child = component$(() => {
   const state = useContext(MyContext);
-  return (
-    <>
-      <span>{state.message}</span>
-    </>
-  );
+  return <span>{state.message}</span>;
 });
+```
+
+#### ⚛️ React
+
+```tsx
+export const MyContext = createContext({ message: "some example value" });
+
+export default function Parent() {
+  return (
+    <MyContext.Provider value={{ message: "updated example value" }}>
+      <Child />
+    </MyContext.Provider>
+  );
+}
+
+export const Child = () => {
+  const value = useContext(MyContext);
+  return <span>{value.message}</span>;
+};
 ```
 
 ### Create a debounced input
@@ -222,17 +229,20 @@ export const Child = component$(() => {
 
 ```tsx
 export const DebouncedInput = component$(() => {
+
   const state = useStore({
     value: '',
     debouncedValue: '',
   });
-  useWatch$((track) => {
-    track(state, 'value');
+
+  useWatch$(({ track }) => {
+    track(() => state.value);
     const debounced = setTimeout(() => {
       state.debouncedValue = state.value;
     }, 1000);
     return () => clearTimeout(debounced);
   });
+
   return (
     <>
       <input value={state.value} onInput$={(e) => (state.value = e.target.value)} />
@@ -242,22 +252,47 @@ export const DebouncedInput = component$(() => {
 });
 ```
 
+#### ⚛️ React
+
+```tsx
+export const DebouncedInput = () => {
+  const [value, setValue] = useState("");
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const debounced = setTimeout(() => setDebouncedValue(value), 1000);
+
+    return () => {
+      clearTimeout(debounced);
+    };
+  }, [value]);
+
+  return (
+    <>
+      <input value={value} onChange={(e) => setValue(e.target.value)} />
+      <span>{debouncedValue}</span>
+    </>
+  );
+};
+```
+
 ### Change background color randomly every button click
 
 #### ⚡️ Qwik
 
 ```tsx
 export const DynamicBackground = component$(() => {
+
   const state = useStore({
     red: 0,
     green: 0,
     blue: 0,
   });
+
   return (
-    <div style={
-      'background': `rgb(${state.red}, ${state.green}, ${state.blue})`
-    }>
-    <>
+    <div style={{
+      background: `rgb(${state.red}, ${state.green}, ${state.blue})`
+    }}>
       <button onClick$={() => {
         state.red = Math.random() * 256;
         state.green = Math.random() * 256;
@@ -266,7 +301,7 @@ export const DynamicBackground = component$(() => {
         Change background
       </button>
     </div>
-  )
+  );
 });
 ```
 
@@ -278,9 +313,9 @@ export function DynamicBackground() {
   const [green, setGreen] = useState(0);
   const [blue, setBlue] = useState(0);
   return (
-    <div style={
-      'background': `rgb(${red}, ${green}, ${blue})`
-    }>
+    <div style={{
+      background: `rgb(${red}, ${green}, ${blue})`
+    }}>
       <button onClick={() => {
         setRed(Math.random() * 256);
         setGreen(Math.random() * 256);
@@ -289,8 +324,8 @@ export function DynamicBackground() {
         Change background
       </button>
     </div>
-  )
-}
+  );
+};
 ```
 
 ### Create a component that renders a list of the presidents
@@ -324,15 +359,13 @@ export const Presidents = component$(() => {
     { name: 'Grover Cleveland', years: '1885-1889' },
   ];
   return (
-    <>
-      <ul>
-        {presidents.map((president) => (
-          <li>
-            {president.name} ({president.years})
-          </li>
-        ))}
-      </ul>
-    </>
+    <ul>
+      {presidents.map((president) => (
+        <li>
+          {president.name} ({president.years})
+        </li>
+      ))}
+    </ul>
   );
 });
 ```
@@ -374,5 +407,5 @@ export function Presidents() {
       ))}
     </ul>
   );
-}
+};
 ```

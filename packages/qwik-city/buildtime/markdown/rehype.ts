@@ -66,14 +66,16 @@ function exportContentHeadings(mdast: Root) {
 
   visit(mdast, 'element', (node: any) => {
     const level = headingRank(node);
-    if (level && node.properties && !hasProperty(node, 'id')) {
+    if (level && node.properties) {
       const text = toString(node);
-      const id = slugs.slug(text);
-      node.properties.id = id;
+
+      if (!hasProperty(node, 'id')) {
+        node.properties.id = slugs.slug(text);
+      }
 
       headings.push({
         text,
-        id,
+        id: node.properties.id,
         level,
       });
     }

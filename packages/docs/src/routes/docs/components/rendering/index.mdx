@@ -1,11 +1,20 @@
 ---
 title: Rendering
-fetch: https://hackmd.io/@mhevery/HJTWrnCl5
+contributors:
+  - the-r3aper7
+  - RATIU5
+  - manucorporat
+  - forresst
+  - adamdbradley
 ---
 
 # Rendering
 
-Rendering is the process of updating the DOM based on 1) changes in the state of the application and 2) component templates. Qwik is unique because it knows how to render templates out-of-order and asynchronously.
+Rendering is the process of updating the DOM based on
+  1. Changes in the state of the application
+  2. Component templates
+
+Qwik is unique because it knows how to render templates out-of-order and asynchronously.
 
 - **Out-of-order**: this means that Qwik does not require that the parent component or child component must also be rendered when rendering a component.
 - **Asynchronously**: this means that Qwik's `render` function understands that it may need to download child components, and therefore the rendering operation is asynchronous.
@@ -13,7 +22,7 @@ Rendering is the process of updating the DOM based on 1) changes in the state of
 Simple counter-example:
 
 ```tsx
-const Counter = component$(() => {
+export const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
   return <button onClick$={() => store.count++}>{store.count}</button>;
@@ -41,7 +50,7 @@ Qwik uses JSX to express the component's template. JSX discussion is outside of 
 Qwik lazy loads components on an as-needed basis. To minimize the number of components to download, Qwik only descends into child components if the component's props have changed.
 
 ```tsx
-const Parent = component$(() => {
+export const Parent = component$(() => {
   const store = useStore({ count: 0, step: 1 });
 
   return (
@@ -53,7 +62,7 @@ const Parent = component$(() => {
   );
 });
 
-const Greeter = component$((props: { name: string }) => {
+export const Greeter = component$((props: { name: string }) => {
   return <span>Hello {props.name}</span>;
 });
 ```
@@ -61,7 +70,7 @@ const Greeter = component$((props: { name: string }) => {
 In the above example, there are two buttons:
 
 1. Clicking the first button changes the direction of the counter (`store.step` flips between `+1` and `-1`). Changing the `store` requires that the component's `OnRender` function executes. The resulting JSX updates the DOM to show `+1` and `-1`. However, changing the direction will not change the props on `<Greeter name={'World_' + store.count}/>`. For this reason, Qwik will not descend into the `<Greeter>` component, and therefore the `Greeter`'s template does not need to be downloaded or executed. Such aggressive pruning allows Qwik to minimize the amount of code that needs to be present to render a component.
-2. Clicking the second button increments (or decrements) `state.count`. This in turn causes the props on `<Greeter name={'World_' + store.count}/>` to change. A change in props means that Qwik will also descend and render `<Greeter>`. However, it is possible that Qwik does not have a reference to the child component. In that case, Qwik will lazy-load the component and continue the rendering once the component's render function is available.
+2. Clicking the second button increments (or decrements) `store.count`. This in turn causes the props on `<Greeter name={'World_' + store.count}/>` to change. A change in props means that Qwik will also descend and render `<Greeter>`. However, it is possible that Qwik does not have a reference to the child component. In that case, Qwik will lazy-load the component and continue the rendering once the component's render function is available.
 
 ## `render()` is async
 

@@ -113,7 +113,7 @@ export async function publishCreateQwikCli(
 export async function copyStartersDir(
   config: BuildConfig,
   distCliDir: string,
-  typeDirs: ('apps' | 'features' | 'servers' | 'static-generators')[]
+  typeDirs: ('apps' | 'features' | 'adaptors')[]
 ) {
   const distStartersDir = join(distCliDir, 'starters');
   try {

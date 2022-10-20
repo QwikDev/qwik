@@ -6,24 +6,18 @@ import {
   QSlotRef,
   QSlotS,
 } from '../../util/markers';
-import {
-  cleanupContext,
-  getContext,
-  getPropsMutator,
-  QContext,
-  tryGetContext,
-} from '../../props/props';
-import { addQRLListener, isOnProp, setEvent } from '../../props/props-on';
+import { isOnProp, PREVENT_DEFAULT, setEvent } from '../../state/listeners';
 import type { ValueOrPromise } from '../../util/types';
-import { isPromise, promiseAll, then } from '../../util/promises';
-import { assertDefined, assertEqual, assertTrue } from '../../assert/assert';
+import { isPromise, promiseAll, promiseAllLazy, then } from '../../util/promises';
+import { assertDefined, assertEqual, assertTrue } from '../../error/assert';
 import { logWarn } from '../../util/log';
 import { qDev, qSerialize } from '../../util/qdev';
 import type { OnRenderFn } from '../../component/component.public';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
-import { assertQrl, isQrl, QRLInternal } from '../../import/qrl-class';
+import { assertQrl, isQrl } from '../../qrl/qrl-class';
 import {
+  assertElement,
   assertQwikElement,
   isElement,
   isQwikElement,
@@ -37,11 +31,9 @@ import {
   pushRenderContext,
   serializeClass,
   setQId,
-  SKIPS_PROPS,
   stringifyStyle,
 } from '../execute-component';
-import type { SubscriptionManager } from '../container';
-import type { Ref } from '../../use/use-ref';
+import { addQwikEvent, setRef } from '../../container/container';
 import {
   getRootNode,
   newVirtualElement,
@@ -67,10 +59,25 @@ import {
   setKey,
   setProperty,
 } from './operations';
-import { serializeQRLs } from '../../import/qrl';
 import { QOnce } from '../jsx/utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
-import { getEventName } from '../../object/store';
+import { addSignalSub, isSignal } from '../../state/signal';
+import {
+  cleanupContext,
+  getContext,
+  HOST_FLAG_DIRTY,
+  HOST_FLAG_NEED_ATTACH_LISTENER,
+  QContext,
+  tryGetContext,
+} from '../../state/context';
+import { getProxyManager, getProxyTarget, SubscriptionManager } from '../../state/common';
+import { createProxy } from '../../state/store';
+import {
+  QObjectFlagsSymbol,
+  QObjectImmutable,
+  _IMMUTABLE,
+  _IMMUTABLE_PREFIX,
+} from '../../state/constants';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -151,15 +158,15 @@ export const updateChildren = (
   let oldStartIdx = 0;
   let newStartIdx = 0;
   let oldEndIdx = oldCh.length - 1;
-  let oldStartVnode = oldCh[0];
-  let oldEndVnode = oldCh[oldEndIdx];
+  let oldStartVnode = oldCh[0] as ProcessedJSXNode | undefined;
+  let oldEndVnode = oldCh[oldEndIdx] as ProcessedJSXNode | undefined;
   let newEndIdx = newCh.length - 1;
-  let newStartVnode = newCh[0];
-  let newEndVnode = newCh[newEndIdx];
+  let newStartVnode = newCh[0] as ProcessedJSXNode | undefined;
+  let newEndVnode = newCh[newEndIdx] as ProcessedJSXNode | undefined;
   let oldKeyToIdx: KeyToIndexMap | undefined;
   let idxInOld: number;
   let elmToMove: ProcessedJSXNode;
-  const results = [];
+  const results: any[] = [];
   const staticCtx = ctx.$static$;
 
   while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
@@ -204,21 +211,15 @@ export const updateChildren = (
       idxInOld = oldKeyToIdx[newStartVnode.$key$ as string];
       if (idxInOld === undefined) {
         // New element
-        const newElm = createElm(ctx, newStartVnode, flags);
-        results.push(
-          then(newElm, (newElm) => {
-            insertBefore(staticCtx, parentElm, newElm, oldStartVnode.$elm$);
-          })
-        );
+        const newElm = createElm(ctx, newStartVnode, flags, results);
+        insertBefore(staticCtx, parentElm, newElm, oldStartVnode?.$elm$);
       } else {
         elmToMove = oldCh[idxInOld];
         if (!isTagName(elmToMove, newStartVnode.$type$)) {
-          const newElm = createElm(ctx, newStartVnode, flags);
-          results.push(
-            then(newElm, (newElm) => {
-              insertBefore(staticCtx, parentElm, newElm, oldStartVnode.$elm$);
-            })
-          );
+          const newElm = createElm(ctx, newStartVnode, flags, results);
+          then(newElm, (newElm) => {
+            insertBefore(staticCtx, parentElm, newElm, oldStartVnode?.$elm$);
+          });
         } else {
           results.push(patchVnode(ctx, elmToMove, newStartVnode, flags));
           oldCh[idxInOld] = undefined as any;
@@ -309,7 +310,11 @@ export const getProps = (node: Element) => {
 
     const name = attr.name;
     if (!name.includes(':')) {
-      props[name] = name === 'class' ? parseDomClass(attr.value) : attr.value;
+      if (name === 'class') {
+        props[name] = parseDomClass(attr.value);
+      } else {
+        props[name] = attr.value;
+      }
     }
   }
   return props;
@@ -376,7 +381,7 @@ export const splitChildren = (input: ProcessedJSXNode[]): Record<string, Process
 };
 
 export const patchVnode = (
-  rctx: RenderContext,
+  rCtx: RenderContext,
   oldVnode: ProcessedJSXNode,
   newVnode: ProcessedJSXNode,
   flags: number
@@ -385,12 +390,20 @@ export const patchVnode = (
 
   const elm = oldVnode.$elm$;
   const tag = newVnode.$type$;
-  const staticCtx = rctx.$static$;
+  const staticCtx = rCtx.$static$;
   const isVirtual = tag === VIRTUAL;
+  const currentComponent = rCtx.$cmpCtx$;
+  assertDefined(elm, 'while patching element must be defined');
+  assertDefined(currentComponent, 'while patching current component must be defined');
+
   newVnode.$elm$ = elm;
 
   // Render text nodes
   if (tag === '#text') {
+    const signal = newVnode.$signal$;
+    if (signal) {
+      addSignalSub(2, currentComponent.$element$, signal, elm as Text, 'data');
+    }
     if (oldVnode.$text$ !== newVnode.$text$) {
       setProperty(staticCtx, elm, 'data', newVnode.$text$);
     }
@@ -408,30 +421,31 @@ export const patchVnode = (
   const props = newVnode.$props$;
   const isComponent = isVirtual && OnRenderProp in props;
   const elCtx = getContext(elm);
+  assertDefined(currentComponent, 'slots can not be rendered outside a component', elm);
   if (!isComponent) {
-    const listenerMap = updateProperties(elCtx, staticCtx, oldVnode.$props$, props, isSvg);
-    const currentComponent = rctx.$cmpCtx$;
-    if (currentComponent && !currentComponent.$attachedListeners$) {
-      currentComponent.$attachedListeners$ = true;
-      for (const key of Object.keys(currentComponent.li)) {
-        addQRLListener(listenerMap, key, currentComponent.li[key]);
-        addGlobalListener(staticCtx, elm, key);
-      }
-    }
-    if (qSerialize) {
-      for (const key of Object.keys(listenerMap)) {
-        setAttribute(staticCtx, elm, key, serializeQRLs(listenerMap[key], elCtx));
-      }
+    const pendingListeners = currentComponent.li;
+    const listeners = elCtx.li;
+    listeners.length = 0;
+    newVnode.$props$ = updateProperties(
+      staticCtx,
+      elCtx,
+      currentComponent.$element$,
+      oldVnode.$props$,
+      props,
+      isSvg
+    );
+    if (pendingListeners.length > 0) {
+      listeners.push(...pendingListeners);
+      pendingListeners.length = 0;
     }
 
     if (isSvg && newVnode.$type$ === 'foreignObject') {
       flags &= ~IS_SVG;
       isSvg = false;
     }
+
     const isSlot = isVirtual && QSlotS in props;
     if (isSlot) {
-      const currentComponent = rctx.$cmpCtx$;
-      assertDefined(currentComponent, 'slots can not be rendered outside a component');
       assertDefined(currentComponent.$slots$, 'current component slots must be a defined array');
       currentComponent.$slots$.push(newVnode);
       return;
@@ -447,16 +461,17 @@ export const patchVnode = (
     if (isRenderOnce) {
       return;
     }
-    return smartUpdateChildren(rctx, oldVnode, newVnode, 'root', flags);
+    return smartUpdateChildren(rCtx, oldVnode, newVnode, 'root', flags);
   }
 
-  let needsRender = setComponentProps(elCtx, rctx, props);
+  const cmpProps = props.props;
+  let needsRender = setComponentProps(elCtx, rCtx, cmpProps);
 
   // TODO: review this corner case
-  if (!needsRender && !elCtx.$renderQrl$ && !elCtx.$element$.hasAttribute(ELEMENT_ID)) {
-    setQId(rctx, elCtx);
-    elCtx.$renderQrl$ = props[OnRenderProp];
-    assertQrl(elCtx.$renderQrl$ as any);
+  if (!needsRender && !elCtx.$componentQrl$ && !elCtx.$element$.hasAttribute(ELEMENT_ID)) {
+    setQId(rCtx, elCtx);
+    elCtx.$componentQrl$ = cmpProps[OnRenderProp];
+    assertQrl(elCtx.$componentQrl$ as any);
     needsRender = true;
   }
 
@@ -466,23 +481,23 @@ export const patchVnode = (
   // we need to render the nested component, and wait before projecting the content
   // since otherwise we don't know where the slots
   if (needsRender) {
-    return then(renderComponent(rctx, elCtx, flags), () =>
-      renderContentProjection(rctx, elCtx, newVnode, flags)
+    return then(renderComponent(rCtx, elCtx, flags), () =>
+      renderContentProjection(rCtx, elCtx, newVnode, flags)
     );
   }
-  return renderContentProjection(rctx, elCtx, newVnode, flags);
+  return renderContentProjection(rCtx, elCtx, newVnode, flags);
 };
 
 const renderContentProjection = (
-  rctx: RenderContext,
+  rCtx: RenderContext,
   hostCtx: QContext,
   vnode: ProcessedJSXNode,
   flags: number
 ): ValueOrPromise<void> => {
   const newChildren = vnode.$children$;
-  const staticCtx = rctx.$static$;
+  const staticCtx = rCtx.$static$;
   const splittedNewChidren = splitChildren(newChildren);
-  const slotRctx = pushRenderContext(rctx, hostCtx);
+  const slotRctx = pushRenderContext(rCtx, hostCtx);
   const slotMaps = getSlotMap(hostCtx);
 
   // Remove content from empty slots
@@ -534,35 +549,14 @@ const addVnodes = (
   endIdx: number,
   flags: number
 ): ValueOrPromise<void> => {
-  const promises = [];
-  let hasPromise = false;
+  const promises: Promise<any>[] = [];
   for (; startIdx <= endIdx; ++startIdx) {
     const ch = vnodes[startIdx];
     assertDefined(ch, 'render: node must be defined at index', startIdx, vnodes);
-    const elm = createElm(ctx, ch, flags);
-    promises.push(elm);
-    if (isPromise(elm)) {
-      hasPromise = true;
-    }
+    const elm = createElm(ctx, ch, flags, promises);
+    insertBefore(ctx.$static$, parentElm, elm, before);
   }
-  if (hasPromise) {
-    return Promise.all(promises).then((children) =>
-      insertChildren(ctx.$static$, parentElm, children, before)
-    );
-  } else {
-    insertChildren(ctx.$static$, parentElm, promises as Node[], before);
-  }
-};
-
-const insertChildren = (
-  ctx: RenderStaticContext,
-  parentElm: QwikElement,
-  children: (Node | VirtualElement)[],
-  before: Node | VirtualElement | null
-) => {
-  for (const child of children) {
-    insertBefore(ctx, parentElm, child, before);
-  }
+  return promiseAllLazy(promises);
 };
 
 const removeVnodes = (
@@ -605,14 +599,21 @@ const getSlotName = (node: ProcessedJSXNode): string => {
 };
 
 const createElm = (
-  rctx: RenderContext,
+  rCtx: RenderContext,
   vnode: ProcessedJSXNode,
-  flags: number
-): ValueOrPromise<Node | VirtualElement> => {
+  flags: number,
+  promises: Promise<any>[]
+): Node | VirtualElement => {
   const tag = vnode.$type$;
-  const doc = rctx.$static$.$doc$;
+  const doc = rCtx.$static$.$doc$;
+  const currentComponent = rCtx.$cmpCtx$;
   if (tag === '#text') {
-    return (vnode.$elm$ = createTextNode(doc, vnode.$text$!));
+    const signal = vnode.$signal$;
+    const elm = createTextNode(doc, vnode.$text$!);
+    if (signal && currentComponent) {
+      addSignalSub(2, currentComponent.$element$, signal, elm, 'data');
+    }
+    return (vnode.$elm$ = elm);
   }
 
   let elm: QwikElement;
@@ -625,7 +626,7 @@ const createElm = (
   const isVirtual = tag === VIRTUAL;
   const props = vnode.$props$;
   const isComponent = OnRenderProp in props;
-  const staticCtx = rctx.$static$;
+  const staticCtx = rCtx.$static$;
   if (isVirtual) {
     elm = newVirtualElement(doc);
   } else if (tag === 'head') {
@@ -648,41 +649,43 @@ const createElm = (
     assertTrue(isVirtual, 'component must be a virtual element');
     const renderQRL = props[OnRenderProp];
     assertQrl<OnRenderFn<any>>(renderQRL);
-    setComponentProps(elCtx, rctx, props);
-    setQId(rctx, elCtx);
+    setComponentProps(elCtx, rCtx, props.props);
+    setQId(rCtx, elCtx);
 
     // Run mount hook
-    elCtx.$renderQrl$ = renderQRL;
+    elCtx.$componentQrl$ = renderQRL;
 
-    return then(renderComponent(rctx, elCtx, flags), () => {
+    const wait = then(renderComponent(rCtx, elCtx, flags), () => {
       let children = vnode.$children$;
       if (children.length === 0) {
-        return elm;
+        return;
       }
       if (children.length === 1 && children[0].$type$ === SKIP_RENDER_TYPE) {
         children = children[0].$children$;
       }
-      const slotRctx = pushRenderContext(rctx, elCtx);
+      const slotRctx = pushRenderContext(rCtx, elCtx);
       const slotMap = getSlotMap(elCtx);
-      const elements = children.map((ch) => createElm(slotRctx, ch, flags));
-      return then(promiseAll(elements), () => {
-        for (const node of children) {
-          assertDefined(node.$elm$, 'vnode elm must be defined');
-          appendChild(
-            staticCtx,
-            getSlotElement(staticCtx, slotMap, elm, getSlotName(node)),
-            node.$elm$
-          );
-        }
-        return elm;
-      });
+      const p: Promise<void>[] = [];
+      for (const node of children) {
+        const nodeElm = createElm(slotRctx, node, flags, p);
+        assertDefined(node.$elm$, 'vnode elm must be defined');
+        assertEqual(nodeElm, node.$elm$, 'vnode elm must be defined');
+
+        appendChild(staticCtx, getSlotElement(staticCtx, slotMap, elm, getSlotName(node)), nodeElm);
+      }
+
+      return promiseAllLazy(p);
     });
+    if (isPromise(wait)) {
+      promises.push(wait);
+    }
+    return elm;
   }
 
-  const currentComponent = rctx.$cmpCtx$;
   const isSlot = isVirtual && QSlotS in props;
   const hasRef = !isVirtual && 'ref' in props;
-  const listenerMap = setProperties(staticCtx, elCtx, props, isSvg);
+  const listeners = elCtx.li;
+  vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent?.$element$, props, isSvg);
 
   if (currentComponent && !isVirtual) {
     const scopedIds = currentComponent.$scopeIds$;
@@ -691,11 +694,9 @@ const createElm = (
         (elm as Element).classList.add(styleId);
       });
     }
-    if (!currentComponent.$attachedListeners$) {
-      currentComponent.$attachedListeners$ = true;
-      for (const eventName of Object.keys(currentComponent.li)) {
-        addQRLListener(listenerMap, eventName, currentComponent.li[eventName]);
-      }
+    if (currentComponent.$flags$ & HOST_FLAG_NEED_ATTACH_LISTENER) {
+      listeners.push(...currentComponent.li);
+      currentComponent.$flags$ &= ~HOST_FLAG_NEED_ATTACH_LISTENER;
     }
   }
 
@@ -707,20 +708,16 @@ const createElm = (
     directSetAttribute(elm, QSlotRef, currentComponent.$id$);
     currentComponent.$slots$.push(vnode);
     staticCtx.$addSlots$.push([elm, currentComponent.$element$]);
-  } else if (qSerialize) {
-    setKey(elm, vnode.$key$);
   }
 
   if (qSerialize) {
-    const listeners = Object.keys(listenerMap);
+    setKey(elm, vnode.$key$);
+
     if (isHead && !isVirtual) {
       directSetAttribute(elm as Element, 'q:head', '');
     }
     if (listeners.length > 0 || hasRef) {
-      setQId(rctx, elCtx);
-    }
-    for (const key of listeners) {
-      setAttribute(staticCtx, elm, key, serializeQRLs(listenerMap[key], elCtx));
+      setQId(rCtx, elCtx);
     }
   }
 
@@ -738,14 +735,11 @@ const createElm = (
   if (children.length === 1 && children[0].$type$ === SKIP_RENDER_TYPE) {
     children = children[0].$children$;
   }
-  const promises = children.map((ch) => createElm(rctx, ch, flags));
-  return then(promiseAll(promises), () => {
-    for (const node of children) {
-      assertDefined(node.$elm$, 'vnode elm must be defined');
-      appendChild(rctx.$static$, elm, node.$elm$);
-    }
-    return elm;
-  });
+  const nodes = children.map((ch) => createElm(rCtx, ch, flags, promises));
+  for (const node of nodes) {
+    directAppendChild(elm, node);
+  }
+  return elm;
 };
 
 interface SlotMaps {
@@ -753,21 +747,21 @@ interface SlotMaps {
   templates: Record<string, Element | undefined>;
 }
 
-const getSlots = (ctx: QContext): ProcessedJSXNode[] => {
-  const slots = ctx.$slots$;
+const getSlots = (elCtx: QContext): ProcessedJSXNode[] => {
+  const slots = elCtx.$slots$;
   if (!slots) {
-    const parent = ctx.$element$.parentElement;
+    const parent = elCtx.$element$.parentElement;
     assertDefined(parent, 'component should be already attached to the dom');
-    return (ctx.$slots$ = readDOMSlots(ctx));
+    return (elCtx.$slots$ = readDOMSlots(elCtx));
   }
   return slots;
 };
 
-const getSlotMap = (ctx: QContext) => {
-  const slotsArray = getSlots(ctx);
+const getSlotMap = (elCtx: QContext) => {
+  const slotsArray = getSlots(elCtx);
   const slots: Record<string, QwikElement> = {};
   const templates: Record<string, Element | undefined> = {};
-  const t = Array.from(ctx.$element$.childNodes).filter(isSlotTemplate);
+  const t = Array.from(elCtx.$element$.childNodes).filter(isSlotTemplate);
 
   // Map virtual slots
   for (const vnode of slotsArray) {
@@ -781,10 +775,10 @@ const getSlotMap = (ctx: QContext) => {
   return { slots, templates };
 };
 
-const readDOMSlots = (ctx: QContext): ProcessedJSXNode[] => {
-  const parent = ctx.$element$.parentElement;
+const readDOMSlots = (elCtx: QContext): ProcessedJSXNode[] => {
+  const parent = elCtx.$element$.parentElement;
   assertDefined(parent, 'component should be already attached to the dom');
-  return queryAllVirtualByAttribute(parent, QSlotRef, ctx.$id$).map(domToVnode);
+  return queryAllVirtualByAttribute(parent, QSlotRef, elCtx.$id$).map(domToVnode);
 };
 
 const handleStyle: PropHandler = (ctx, elm, _, newValue) => {
@@ -824,6 +818,11 @@ const checkBeforeAssign: PropHandler = (ctx, elm, prop, newValue) => {
   return true;
 };
 
+const forceAttribute: PropHandler = (ctx, elm, prop, newValue) => {
+  setAttribute(ctx, elm, prop.toLowerCase(), newValue);
+  return true;
+};
+
 const dangerouslySetInnerHTML = 'dangerouslySetInnerHTML';
 const setInnerHTML: PropHandler = (ctx, elm, _, newValue) => {
   if (dangerouslySetInnerHTML in elm) {
@@ -843,87 +842,101 @@ export const PROP_HANDLER_MAP: Record<string, PropHandler | undefined> = {
   class: handleClass,
   value: checkBeforeAssign,
   checked: checkBeforeAssign,
+  href: forceAttribute,
+  list: forceAttribute,
+  form: forceAttribute,
+  tabIndex: forceAttribute,
+  download: forceAttribute,
   [dangerouslySetInnerHTML]: setInnerHTML,
   innerHTML: noop,
 };
 
 export const updateProperties = (
-  elCtx: QContext,
   staticCtx: RenderStaticContext,
+  elCtx: QContext,
+  hostElm: QwikElement,
   oldProps: Record<string, any>,
   newProps: Record<string, any>,
   isSvg: boolean
-): Record<string, QRLInternal<any>[]> => {
+): Record<string, any> => {
   const keys = getKeys(oldProps, newProps);
-  const listenersMap = (elCtx.li = {});
+  const values: Record<string, any> = {};
   if (keys.length === 0) {
-    return listenersMap;
+    return values;
   }
+  const immutableMeta = (newProps as any)[_IMMUTABLE] ?? EMPTY_OBJ;
   const elm = elCtx.$element$;
-  for (let key of keys) {
-    if (key === 'children') {
+  for (let prop of keys) {
+    if (prop === 'ref') {
+      assertElement(elm);
+      setRef(newProps[prop], elm);
       continue;
     }
-    let newValue = newProps[key];
-    if (key === 'className') {
-      newProps['class'] = newValue;
-      key = 'class';
+
+    let newValue = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : newProps[prop];
+    if (isOnProp(prop)) {
+      browserSetEvent(staticCtx, elCtx, prop, newValue);
+      continue;
     }
-    if (key === 'class') {
+
+    if (prop === 'className') {
+      prop = 'class';
+    }
+    if (isSignal(newValue)) {
+      addSignalSub(1, hostElm, newValue, elm, prop);
+      newValue = newValue.value;
+    }
+    if (prop === 'class') {
       newProps['class'] = newValue = serializeClass(newValue);
     }
-    const oldValue = oldProps[key];
+    const normalizedProp = isSvg ? prop : prop.toLowerCase();
+    const oldValue = oldProps[normalizedProp];
+    values[normalizedProp] = newValue;
+
     if (oldValue === newValue) {
       continue;
     }
-
-    if (key === 'ref') {
-      (newValue as Ref<Element>).current = elm as Element;
-      continue;
-    }
-
-    if (isOnProp(key)) {
-      setEvent(listenersMap, key, newValue);
-      continue;
-    }
-
-    // Check if its an exception
-    const exception = PROP_HANDLER_MAP[key];
-    if (exception) {
-      if (exception(staticCtx, elm as HTMLElement, key, newValue, oldValue)) {
-        continue;
-      }
-    }
-
-    // Check if property in prototype
-    if (!isSvg && key in elm) {
-      setProperty(staticCtx, elm, key, newValue);
-      continue;
-    }
-
-    // Fallback to render attribute
-    setAttribute(staticCtx, elm, key, newValue);
+    smartSetProperty(staticCtx, elm as HTMLElement, prop, newValue, oldValue, isSvg);
   }
-  return listenersMap;
+  return values;
+};
+
+export const smartSetProperty = (
+  staticCtx: RenderStaticContext,
+  elm: QwikElement,
+  prop: string,
+  newValue: any,
+  oldValue: any,
+  isSvg: boolean
+) => {
+  // Check if its an exception
+  const exception = PROP_HANDLER_MAP[prop];
+  if (exception) {
+    if (exception(staticCtx, elm as HTMLElement, prop, newValue, oldValue)) {
+      return;
+    }
+  }
+
+  // Check if property in prototype
+  if (!isSvg && prop in elm) {
+    setProperty(staticCtx, elm, prop, newValue);
+    return;
+  }
+
+  if (prop.startsWith(PREVENT_DEFAULT)) {
+    addQwikEvent(prop.slice(PREVENT_DEFAULT.length), staticCtx.$containerState$);
+  }
+
+  // Fallback to render attribute
+  setAttribute(staticCtx, elm, prop, newValue);
 };
 
 const getKeys = (oldProps: Record<string, any>, newProps: Record<string, any>) => {
   const keys = Object.keys(newProps);
-  keys.push(...Object.keys(oldProps).filter((p) => !keys.includes(p)));
-  return keys;
-};
-
-const addGlobalListener = (staticCtx: RenderStaticContext, elm: QwikElement, prop: string) => {
-  if (!qSerialize && prop.includes(':')) {
-    setAttribute(staticCtx, elm, prop, '');
-  }
-  try {
-    if ((window as any).qwikevents) {
-      (window as any).qwikevents.push(getEventName(prop));
-    }
-  } catch (err) {
-    logWarn(err);
-  }
+  const normalizedKeys = keys.map((s) => s.toLowerCase());
+  const oldKeys = Object.keys(oldProps);
+  keys.push(...oldKeys.filter((p) => !normalizedKeys.includes(p)));
+  return keys.filter((c) => c !== 'children');
 };
 
 export const areExactQRLs = (oldValue: any, newValue: any) => {
@@ -953,99 +966,114 @@ export const sameArrays = (a1: any[], a2: any[]) => {
 };
 
 export const setProperties = (
-  rctx: RenderStaticContext,
+  staticCtx: RenderStaticContext,
   elCtx: QContext,
+  hostElm: QwikElement | undefined,
   newProps: Record<string, any>,
   isSvg: boolean
-) => {
+): Record<string, any> => {
   const elm = elCtx.$element$;
   const keys = Object.keys(newProps);
-  const listenerMap = elCtx.li;
+  const values: Record<string, any> = {};
   if (keys.length === 0) {
-    return listenerMap;
+    return values;
   }
-  for (let key of keys) {
-    if (key === 'children') {
+  const immutableMeta = (newProps as any)[_IMMUTABLE] ?? EMPTY_OBJ;
+  for (let prop of keys) {
+    if (prop === 'children') {
       continue;
     }
-    let newValue = newProps[key];
-    if (key === 'className') {
-      newProps['class'] = newValue;
-      key = 'class';
-    }
-    if (key === 'class') {
-      newProps['class'] = newValue = serializeClass(newValue);
-    }
-    if (key === 'ref') {
-      (newValue as Ref<Element>).current = elm as Element;
+    if (prop === 'ref') {
+      assertElement(elm);
+      setRef(newProps[prop], elm);
       continue;
     }
 
-    if (isOnProp(key)) {
-      addGlobalListener(rctx, elm, setEvent(listenerMap, key, newValue));
+    let newValue = isSignal(immutableMeta[prop]) ? immutableMeta[prop] : newProps[prop];
+    if (isOnProp(prop)) {
+      browserSetEvent(staticCtx, elCtx, prop, newValue);
       continue;
     }
 
-    // Check if its an exception
-    const exception = PROP_HANDLER_MAP[key];
-    if (exception) {
-      if (exception(rctx, elm as HTMLElement, key, newValue, undefined)) {
-        continue;
-      }
+    if (prop === 'className') {
+      prop = 'class';
     }
-
-    // Check if property in prototype
-    if (!isSvg && key in elm) {
-      setProperty(rctx, elm, key, newValue);
-      continue;
+    if (hostElm && isSignal(newValue)) {
+      addSignalSub(1, hostElm, newValue, elm, prop);
+      newValue = newValue.value;
     }
-
-    // Fallback to render attribute
-    setAttribute(rctx, elm, key, newValue);
+    if (prop === 'class') {
+      newValue = serializeClass(newValue);
+    }
+    const normalizedProp = isSvg ? prop : prop.toLowerCase();
+    values[normalizedProp] = newValue;
+    smartSetProperty(staticCtx, elm, prop, newValue, undefined, isSvg);
   }
-  return listenerMap;
+  return values;
 };
 
 export const setComponentProps = (
-  ctx: QContext,
-  rctx: RenderContext,
+  elCtx: QContext,
+  rCtx: RenderContext,
   expectProps: Record<string, any>
 ) => {
   const keys = Object.keys(expectProps);
+  let props = elCtx.$props$;
+  if (!props) {
+    elCtx.$props$ = props = createProxy(
+      {
+        [QObjectFlagsSymbol]: QObjectImmutable,
+      },
+      rCtx.$static$.$containerState$
+    );
+  }
   if (keys.length === 0) {
     return false;
   }
-  const qwikProps = getPropsMutator(ctx, rctx.$static$.$containerState$);
-  for (const key of keys) {
-    if (SKIPS_PROPS.includes(key)) {
+
+  const manager = getProxyManager(props);
+  assertDefined(manager, `props have to be a proxy, but it is not`, props);
+  const target = getProxyTarget(props);
+  assertDefined(target, `props have to be a proxy, but it is not`, props);
+
+  const immutableMeta = ((target as any)[_IMMUTABLE] =
+    (expectProps as any)[_IMMUTABLE] ?? EMPTY_OBJ);
+
+  for (const prop of keys) {
+    if (prop === 'children' || prop === QSlot) {
       continue;
     }
-    qwikProps.set(key, expectProps[key]);
+    if (isSignal(immutableMeta[prop])) {
+      target[_IMMUTABLE_PREFIX + prop] = immutableMeta[prop];
+    } else {
+      const value = expectProps[prop];
+      const oldValue = target[prop];
+      target[prop] = value;
+      if (oldValue !== value) {
+        manager.$notifySubs$(prop);
+      }
+    }
   }
-  return ctx.$dirty$;
+  return !!(elCtx.$flags$ & HOST_FLAG_DIRTY);
 };
 
 export const cleanupTree = (
   parent: QwikElement,
-  rctx: RenderStaticContext,
+  staticCtx: RenderStaticContext,
   subsManager: SubscriptionManager,
   stopSlots: boolean
 ) => {
   if (stopSlots && parent.hasAttribute(QSlotS)) {
-    rctx.$rmSlots$.push(parent);
+    staticCtx.$rmSlots$.push(parent);
     return;
   }
-  cleanupElement(parent, subsManager);
-  const ch = getChildren(parent, 'elements');
-  for (const child of ch) {
-    cleanupTree(child as QwikElement, rctx, subsManager, stopSlots);
-  }
-};
-
-const cleanupElement = (el: QwikElement, subsManager: SubscriptionManager) => {
-  const ctx = tryGetContext(el);
+  const ctx = tryGetContext(parent);
   if (ctx) {
     cleanupContext(ctx, subsManager);
+  }
+  const ch = getChildren(parent, 'elements');
+  for (const child of ch) {
+    cleanupTree(child as QwikElement, staticCtx, subsManager, true);
   }
 };
 
@@ -1095,6 +1123,20 @@ const createKeyToOldIdx = (
     }
   }
   return map;
+};
+
+const browserSetEvent = (
+  staticCtx: RenderStaticContext,
+  elCtx: QContext,
+  prop: string,
+  input: any
+) => {
+  const containerState = staticCtx.$containerState$;
+  const normalized = setEvent(elCtx.li, prop, input, containerState.$containerEl$);
+  if (!prop.startsWith('on')) {
+    setAttribute(staticCtx, elCtx.$element$, normalized, '');
+  }
+  addQwikEvent(normalized, containerState);
 };
 
 const sameVnode = (vnode1: ProcessedJSXNode, vnode2: ProcessedJSXNode): boolean => {

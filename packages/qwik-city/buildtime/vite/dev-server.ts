@@ -55,7 +55,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
     try {
       const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
 
-      if (skipRequest(url.pathname)) {
+      if (skipRequest(url.pathname) || isVitePing(url.pathname, req.headers)) {
         next();
         return;
       }
@@ -96,7 +96,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             requestCtx,
             params,
             routeModules,
-            {},
             ctx.opts.trailingSlash,
             ctx.opts.basePathname
           );
@@ -280,6 +279,10 @@ function skipRequest(pathname: string) {
     }
   }
   return false;
+}
+
+function isVitePing(url: string, headers: Connect.IncomingMessage['headers']) {
+  return url === '/' && headers.accept === '*/*' && headers['sec-fetch-mode'] === 'no-cors';
 }
 
 const SKIP_SRC_EXTS: { [ext: string]: boolean } = {

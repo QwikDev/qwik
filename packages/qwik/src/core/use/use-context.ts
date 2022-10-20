@@ -1,17 +1,14 @@
 import { fromCamelToKebabCase } from '../util/case';
-import { getContext, tryGetContext } from '../props/props';
 import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
-import { verifySerializable } from '../object/q-object';
 import { qDev } from '../util/qdev';
 import { isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
-import {
-  getVirtualElement,
-  isComment,
-  QwikElement,
-  VirtualElement,
-} from '../render/dom/virtual-element';
+import { getVirtualElement, QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import type { RenderContext } from '../render/types';
+import { isComment } from '../util/element';
+import { assertTrue } from '../error/assert';
+import { verifySerializable } from '../state/common';
+import { getContext, tryGetContext } from '../state/context';
 
 // <docs markdown="../readme.md#Context">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -26,7 +23,7 @@ import type { RenderContext } from '../render/types';
  * for the values. Qwik needs a serializable ID for the context so that the it can track context
  * providers and consumers in a way that survives resumability.
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * // Declare the Context type.
@@ -89,7 +86,7 @@ export interface Context<STATE extends object> {
  * for the values. Qwik needs a serializable ID for the context so that the it can track context
  * providers and consumers in a way that survives resumability.
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * // Declare the Context type.
@@ -130,6 +127,7 @@ export interface Context<STATE extends object> {
  */
 // </docs>
 export const createContext = <STATE extends object>(name: string): Context<STATE> => {
+  assertTrue(/^[\w/.-]+$/.test(name), 'Context name must only contain A-Z,a-z,0-9, _', name);
   return /*#__PURE__*/ Object.freeze({
     id: fromCamelToKebabCase(name),
   } as any);
@@ -147,7 +145,7 @@ export const createContext = <STATE extends object>(name: string): Context<STATE
  *
  * Context is a way to pass stores to the child components without prop-drilling.
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * // Declare the Context type.
@@ -199,7 +197,7 @@ export const useContextProvider = <STATE extends object>(
   if (qDev) {
     validateContext(context);
   }
-  const hostElement = ctx.$hostElement$!;
+  const hostElement = ctx.$hostElement$;
   const hostCtx = getContext(hostElement);
   let contexts = hostCtx.$contexts$;
   if (!contexts) {
@@ -209,6 +207,30 @@ export const useContextProvider = <STATE extends object>(
     verifySerializable(newValue);
   }
   contexts.set(context.id, newValue);
+  set(true);
+};
+
+/**
+ * @alpha
+ */
+export const useContextBoundary = (...ids: Context<any>[]) => {
+  const { get, set, ctx } = useSequentialScope<boolean>();
+  if (get !== undefined) {
+    return;
+  }
+  const hostElement = ctx.$hostElement$;
+  const hostCtx = getContext(hostElement);
+  let contexts = hostCtx.$contexts$;
+  if (!contexts) {
+    hostCtx.$contexts$ = contexts = new Map();
+  }
+  for (const c of ids) {
+    const value = resolveContext(c, hostElement, ctx.$renderCtx$);
+    if (value !== undefined) {
+      contexts.set(c.id, value);
+    }
+  }
+  contexts.set('_', true);
   set(true);
 };
 
@@ -226,7 +248,7 @@ export interface UseContext {
  * Use `useContext()` to retrieve the value of context in a component. To retrieve a value a
  * parent component needs to invoke `useContextProvider()` to assign a value.
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * // Declare the Context type.
@@ -303,6 +325,9 @@ export const resolveContext = <STATE extends object>(
         const found = ctx.$contexts$.get(contextID);
         if (found) {
           return found;
+        }
+        if (ctx.$contexts$.get('_') === true) {
+          break;
         }
       }
     }

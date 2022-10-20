@@ -1,6 +1,9 @@
 ---
 title: Getting Started
-fetch: https://hackmd.io/@mhevery/S1_pV3Cl9
+contributors:
+  - manucorporat
+  - jesperp
+  - adamdbradley
 ---
 
 # Getting Started Qwikly
@@ -12,7 +15,7 @@ Qwik is a new kind of framework that is [resumable](../concepts/resumable/index.
 
 ## Prerequisites
 
-- [node.js v14](https://nodejs.org/en/download/) or higher
+- [node.js v16](https://nodejs.org/en/download/) or higher
 - Your favorite IDE ([vscode](https://code.visualstudio.com/) recommended)
 - Start to [think qwik](../think-qwik/index.mdx)
 
@@ -37,12 +40,11 @@ After your new app is created, you will see an output like the following in your
 💫 Let's create a Qwik app 💫
 
 ✔ Project name … qwik-app
-✔ Select a starter › Blank
-✔ Features › Prettier
+✔ Select a starter › Basic
 
-⭐️ Success! Project saved in qwik-app directory
+🦄  Success!  Project created in portfolio directory
 
-🤖 Next steps:
+🐰 Next steps:
    cd qwik-app
    npm install
    npm start
@@ -50,6 +52,9 @@ After your new app is created, you will see an output like the following in your
 💬 Questions? Start the conversation at:
    https://qwik.builder.io/chat
    https://twitter.com/QwikDev
+
+📺 Presentations, Podcasts and Videos:
+   https://qwik.builder.io/media/
 ```
 
 At this point, you will have `qwik-app` directory, that contains the starter app.
@@ -80,7 +85,7 @@ npm start
 
 ```shell
 
-  VITE v3.0.2  ready in 140 ms
+  VITE v3.1.1  ready in 140 ms
 
   ➜  Local:   http://localhost:5174/
   ➜  Network: use --host to expose
@@ -93,7 +98,7 @@ npm start
 
 Here are some useful commands to get you started. For a complete list please refer to `package.json`.
 
-- `npm start`: alias to `npm run dev` (this currently defaults to running dev.ssr)
-- `npm run dev.client`: starts the dev server in client bootstrap mode
-- `npm run dev.ssr`: starts the dev server with SSR
-- `npm run build`: builds the application for production
+- `npm start`: alias to `npm run dev` (this currently defaults to running SSR)
+- `npm run preview`: Production build and start preview server.
+- `npm run build`: builds the application for production.
+- `npm run qwik add`: Select an integration to add.

@@ -39,12 +39,11 @@ export interface IntegrationData {
   viteConfig?: ViteConfigUpdates;
 }
 
-export type IntegrationType = 'app' | 'feature' | 'server' | 'static-generator';
+export type IntegrationType = 'app' | 'feature' | 'adaptor';
 
 export interface Feature {
   id: string;
   description: string;
-  type: 'server' | 'static';
   add: FeatureCmd;
 }
 
@@ -67,6 +66,7 @@ export interface IntegrationPackageJson {
   types?: string;
   type?: string;
   __qwik__?: {
+    nextSteps?: string[];
     priority: number;
     viteConfig?: ViteConfigUpdates;
   };

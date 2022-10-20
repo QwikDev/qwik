@@ -81,7 +81,8 @@ export function useRef<T = Element>(current?: T): Ref<T> {
 
 <docs code="./examples.tsx#use-ref"/>
 
-@public
+@deprecated Use `useSignal` instead.
+@alpha
 
 # `useWatch`
 
@@ -128,7 +129,7 @@ The `obs` passed into the `watchFn` is used to mark `state.count` as a property 
 
 # `useMount`
 
-Register a server mount hook that runs only in the server when the component is first mounted.
+Registers a hook to execute code when the component is mounted into the rendering tree (on component creation).
 
 ### Example
 
@@ -139,7 +140,7 @@ Register a server mount hook that runs only in the server when the component is 
 
 # `useServerMount`
 
-Register's a server mount hook that runs only in the server when the component is first mounted.
+Registers a server mount hook that runs only in the server when the component is first mounted.
 
 ### Example
 
@@ -174,15 +175,10 @@ Component styles allow Qwik to lazy load the style information for the component
 
 # `useCleanup`
 
-A lazy-loadable reference to a component's cleanup hook.
-
-Invoked when the component is destroyed (removed from render tree), or paused as part of the SSR serialization.
-
 It can be used to release resources, abort network requests, stop timers...
 
-<docs code="./examples.tsx#use-cleanup"/>
-
 @alpha
+@deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or `useClientEffect$()` instead.
 
 # `useOn`
 
@@ -355,7 +351,7 @@ This means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Q
 
 For example, these function calls are equivalent:
 
-- `component$(() => {...})` is same as `onRender($(() => {...}))`
+- `component$(() => {...})` is same as `component($(() => {...}))`
 
 <docs code="./examples.tsx#implicit$FirstArg"/>
 
@@ -436,9 +432,3 @@ Use `useContext()` to retrieve the value of context in a component. To retrieve 
 <docs code="./examples.tsx#context"/>
 @param context - The context to retrieve a value from.
 @public
-
-# `pauseContainer`
-
-Serialize the current state of the application into DOM
-
-@alpha

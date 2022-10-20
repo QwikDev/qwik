@@ -56,16 +56,26 @@ pub enum MinifyMode {
     None,
 }
 
+#[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum EmitMode {
+    Prod,
+    Lib,
+    Dev,
+}
+
 pub struct TransformCodeOptions<'a> {
     pub relative_path: &'a str,
     pub src_dir: &'a Path,
     pub source_maps: bool,
     pub minify: MinifyMode,
-    pub transpile: bool,
+    pub transpile_ts: bool,
+    pub transpile_jsx: bool,
+    pub preserve_filenames: bool,
     pub explicit_extensions: bool,
     pub code: &'a str,
     pub entry_policy: &'a dyn EntryPolicy,
-    pub dev: bool,
+    pub mode: EmitMode,
     pub scope: Option<&'a String>,
     pub is_inline: bool,
 
@@ -187,16 +197,21 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
     let path_data = parse_path(config.relative_path, config.src_dir)?;
     let module = parse(config.code, &path_data, Lrc::clone(&source_map));
     // dbg!(&module);
-    let extension = if config.transpile {
-        JsWord::from("js")
-    } else {
-        JsWord::from(path_data.extension.clone())
-    };
-    let transpile = config.transpile;
+    let transpile_jsx = config.transpile_jsx;
+    let transpile_ts = config.transpile_ts;
+
     let origin: JsWord = path_data.rel_path.to_slash_lossy().into();
 
     match module {
         Ok((main_module, comments, is_type_script, is_jsx)) => {
+            let extension = match (transpile_ts, transpile_jsx, is_type_script, is_jsx) {
+                (true, true, _, _) => JsWord::from("js"),
+                (true, false, _, true) => JsWord::from("jsx"),
+                (true, false, _, false) => JsWord::from("js"),
+                (false, true, true, _) => JsWord::from("ts"),
+                (false, true, false, _) => JsWord::from("js"),
+                (false, false, _, _) => JsWord::from(path_data.extension.clone()),
+            };
             let error_buffer = ErrorBuffer::default();
             let handler = swc_common::errors::Handler::with_emitter(
                 true,
@@ -219,7 +234,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     let mut did_transform = false;
 
                     // Transpile JSX
-                    if transpile && is_type_script {
+                    if transpile_ts && is_type_script {
                         did_transform = true;
                         main_module = if is_jsx {
                             main_module.fold_with(&mut typescript::strip_with_jsx(
@@ -238,10 +253,12 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     }
 
                     // Transpile JSX
-                    if transpile && is_jsx {
+                    if transpile_jsx && is_jsx {
                         did_transform = true;
                         let mut react_options = react::Options::default();
                         if is_jsx {
+                            react_options.next = Some(true);
+                            react_options.development = Some(config.mode == EmitMode::Dev);
                             react_options.throw_if_namespace = Some(false);
                             react_options.runtime = Some(react::Runtime::Automatic);
                             react_options.import_source = Some("@builder.io/qwik".to_string());
@@ -258,7 +275,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     main_module.visit_mut_with(&mut resolver(
                         unresolved_mark,
                         top_level_mark,
-                        is_type_script && !transpile,
+                        is_type_script && !transpile_ts,
                     ));
 
                     // Collect import/export metadata
@@ -271,7 +288,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         comments: Some(&comments),
                         global_collect: collect,
                         scope: config.scope,
-                        dev: config.dev,
+                        mode: config.mode,
                         is_inline: config.is_inline,
                     });
 
@@ -351,7 +368,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         config.source_maps,
                     )?;
 
-                    let a = if did_transform {
+                    let a = if did_transform && !config.preserve_filenames {
                         [&path_data.file_stem, ".", &extension].concat()
                     } else {
                         path_data.file_name

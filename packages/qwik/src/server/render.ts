@@ -14,10 +14,10 @@ import { getQwikLoaderScript } from './scripts';
 import { getPrefetchResources, ResolvedManifest } from './prefetch-strategy';
 import type { SymbolMapper } from '../optimizer/src/types';
 import { qDev } from '../core/util/qdev';
-import type { QContext } from '../core/props/props';
 import { EMPTY_OBJ } from '../core/util/flyweight';
 import { getValidManifest } from '../optimizer/src/manifest';
 import { applyPrefetchImplementation } from './prefetch-implementation';
+import type { QContext } from '../core/state/context';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -185,11 +185,7 @@ export async function renderToStream(
         );
       }
 
-      const uniqueListeners = new Set<string>();
-      snapshotResult.listeners.forEach((li) => {
-        uniqueListeners.add(JSON.stringify(li.eventName));
-      });
-      const extraListeners = Array.from(uniqueListeners);
+      const extraListeners = Array.from(containerState.$events$, (s) => JSON.stringify(s));
       if (extraListeners.length > 0) {
         let content = `window.qwikevents.push(${extraListeners.join(', ')})`;
         if (!includeLoader) {
@@ -287,7 +283,7 @@ const escapeText = (str: string) => {
 function collectRenderSymbols(renderSymbols: string[], elements: QContext[]) {
   // TODO: Move to snapshot result
   for (const ctx of elements) {
-    const symbol = ctx.$renderQrl$?.getSymbol();
+    const symbol = ctx.$componentQrl$?.getSymbol();
     if (symbol && !renderSymbols.includes(symbol)) {
       renderSymbols.push(symbol);
     }

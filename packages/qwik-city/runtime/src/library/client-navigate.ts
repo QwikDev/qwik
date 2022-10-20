@@ -89,8 +89,11 @@ const scrollToHashId = (doc: Document, hash: string) => {
   return elm;
 };
 
-export const dispatchPrefetchEvent = (prefetchData: QPrefetchData) =>
-  document.dispatchEvent(new CustomEvent('qprefetch', { detail: prefetchData }));
+export const dispatchPrefetchEvent = (prefetchData: QPrefetchData) => {
+  if (typeof document !== 'undefined') {
+    document.dispatchEvent(new CustomEvent('qprefetch', { detail: prefetchData }));
+  }
+};
 
 export const CLIENT_HISTORY_INITIALIZED = /* @__PURE__ */ Symbol();
 

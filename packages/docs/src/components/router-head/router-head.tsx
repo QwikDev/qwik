@@ -16,7 +16,7 @@ export const RouterHead = component$(() => {
       <title>{title}</title>
       <meta name="description" content={description} />
       <link rel="canonical" href={href} />
-      <meta name="viewport" content="width=device-width" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
       <meta name="apple-mobile-web-app-title" content="Qwik" />
       <meta name="application-name" content="Qwik" />
       <meta name="apple-mobile-web-app-title" content="Qwik" />
@@ -24,8 +24,6 @@ export const RouterHead = component$(() => {
 
       <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
       <link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
 
       {import.meta.env.PROD && (
         <>

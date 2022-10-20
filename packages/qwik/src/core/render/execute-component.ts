@@ -1,41 +1,40 @@
-import { assertDefined } from '../assert/assert';
-import { ELEMENT_ID, OnRenderProp, QSlot, RenderEvent } from '../util/markers';
+import { assertDefined } from '../error/assert';
+import { RenderEvent } from '../util/markers';
 import { safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { isArray, isObject, isString, ValueOrPromise } from '../util/types';
-import { QContext, tryGetContext } from '../props/props';
 import type { JSXNode } from './jsx/types/jsx-node';
 import type { RenderContext } from './types';
-import type { ContainerState } from './container';
+import { ContainerState, intToStr } from '../container/container';
 import { fromCamelToKebabCase } from '../util/case';
 import { qError, QError_stringifyClassOrStyle } from '../error/error';
-import { intToStr } from '../object/store';
-import type { QwikElement } from './dom/virtual-element';
-import { qSerialize, seal } from '../util/qdev';
+import { seal } from '../util/qdev';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { SkipRender } from './jsx/utils.public';
 import { handleError } from './error-handling';
+import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, QContext } from '../state/context';
 
 export interface ExecuteComponentOutput {
   node: JSXNode | null;
-  rctx: RenderContext;
+  rCtx: RenderContext;
 }
 
 export const executeComponent = (
-  rctx: RenderContext,
+  rCtx: RenderContext,
   elCtx: QContext
 ): ValueOrPromise<ExecuteComponentOutput> => {
-  elCtx.$dirty$ = false;
-  elCtx.$mounted$ = true;
+  elCtx.$flags$ &= ~HOST_FLAG_DIRTY;
+  elCtx.$flags$ |= HOST_FLAG_MOUNTED;
   elCtx.$slots$ = [];
+  elCtx.li.length = 0;
 
   const hostElement = elCtx.$element$;
-  const onRenderQRL = elCtx.$renderQrl$;
+  const componentQRL = elCtx.$componentQrl$;
   const props = elCtx.$props$;
-  const newCtx = pushRenderContext(rctx, elCtx);
+  const newCtx = pushRenderContext(rCtx, elCtx);
   const invocatinContext = newInvokeContext(hostElement, undefined, RenderEvent);
   const waitOn = (invocatinContext.$waitOn$ = []);
-  assertDefined(onRenderQRL, `render: host element to render must has a $renderQrl$:`, elCtx);
+  assertDefined(componentQRL, `render: host element to render must has a $renderQrl$:`, elCtx);
   assertDefined(props, `render: host element to render must has defined props`, elCtx);
 
   // Set component context
@@ -43,40 +42,39 @@ export const executeComponent = (
 
   // Invoke render hook
   invocatinContext.$subscriber$ = hostElement;
-  invocatinContext.$renderCtx$ = rctx;
+  invocatinContext.$renderCtx$ = rCtx;
 
   // Resolve render function
-  onRenderQRL.$setContainer$(rctx.$static$.$containerState$.$containerEl$);
-  const onRenderFn = onRenderQRL.getFn(invocatinContext);
+  componentQRL.$setContainer$(rCtx.$static$.$containerState$.$containerEl$);
+  const componentFn = componentQRL.getFn(invocatinContext);
 
   return safeCall(
-    () => onRenderFn(props),
+    () => componentFn(props),
     (jsxNode) => {
-      elCtx.$attachedListeners$ = false;
       if (waitOn.length > 0) {
         return Promise.all(waitOn).then(() => {
-          if (elCtx.$dirty$) {
-            return executeComponent(rctx, elCtx);
+          if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
+            return executeComponent(rCtx, elCtx);
           }
           return {
             node: jsxNode,
-            rctx: newCtx,
+            rCtx: newCtx,
           };
         });
       }
-      if (elCtx.$dirty$) {
-        return executeComponent(rctx, elCtx);
+      if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
+        return executeComponent(rCtx, elCtx);
       }
       return {
         node: jsxNode,
-        rctx: newCtx,
+        rCtx: newCtx,
       };
     },
     (err) => {
-      handleError(err, hostElement, rctx);
+      handleError(err, hostElement, rCtx);
       return {
         node: SkipRender,
-        rctx: newCtx,
+        rCtx: newCtx,
       };
     }
   );
@@ -168,24 +166,15 @@ export const getNextIndex = (ctx: RenderContext) => {
   return intToStr(ctx.$static$.$containerState$.$elementIndex$++);
 };
 
-export const getQId = (el: QwikElement): string | null => {
-  const ctx = tryGetContext(el);
-  if (ctx) {
-    return ctx.$id$;
-  }
-  return null;
-};
-
-export const setQId = (rctx: RenderContext, ctx: QContext) => {
-  const id = getNextIndex(rctx);
-  ctx.$id$ = id;
-  if (qSerialize) {
-    ctx.$element$.setAttribute(ELEMENT_ID, id);
-  }
+export const setQId = (rCtx: RenderContext, elCtx: QContext) => {
+  const id = getNextIndex(rCtx);
+  elCtx.$id$ = id;
 };
 
 export const hasStyle = (containerState: ContainerState, styleId: string) => {
   return containerState.$styleIds$.has(styleId);
 };
 
-export const SKIPS_PROPS = [QSlot, OnRenderProp, 'children'];
+export const jsxToString = (data: any) => {
+  return data == null || typeof data === 'boolean' ? '' : String(data);
+};

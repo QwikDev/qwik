@@ -4,22 +4,25 @@
 
 ```ts
 
+import type { Context } from '@netlify/edge-functions';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
+import type { RenderOptions as RenderOptions_2 } from '@builder.io/qwik';
 
 // @alpha (undocumented)
-export interface EventPluginContext {
-    // (undocumented)
-    next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
+export function createQwikCity(opts: QwikCityNetlifyOptions): (request: Request, context: Context) => Promise<Response>;
+
+// @alpha (undocumented)
+export interface EventPluginContext extends Context {
 }
 
-// @alpha (undocumented)
-export function qwikCity(render: Render, opts?: QwikCityNetlifyOptions): (request: Request, { next }: EventPluginContext) => Promise<Response>;
+// @alpha @deprecated (undocumented)
+export function qwikCity(render: Render, opts?: RenderOptions_2): (request: Request, context: Context) => Promise<Response>;
 
-// Warning: (ae-forgotten-export) The symbol "QwikCityRequestOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "QwikCityHandlerOptions" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export interface QwikCityNetlifyOptions extends QwikCityRequestOptions {
+export interface QwikCityNetlifyOptions extends QwikCityHandlerOptions {
 }
 
 // (No @packageDocumentation comment for this package)

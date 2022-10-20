@@ -6,6 +6,7 @@ import type { OptimizerSystem, Path, QwikManifest } from '../types';
 import { ERROR_HOST } from './errored-host';
 import { NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
+import { formatError } from './vite-utils';
 
 export async function configureDevServer(
   server: ViteDevServer,
@@ -63,7 +64,7 @@ export async function configureDevServer(
         }
 
         const ssrModule = await server.ssrLoadModule(opts.input[0], {
-          fixStacktrace: true,
+          fixStacktrace: false,
         });
 
         const render: Render = ssrModule.default ?? ssrModule.render;
@@ -140,6 +141,10 @@ export async function configureDevServer(
         next();
       }
     } catch (e: any) {
+      server.ssrFixStacktrace(e);
+      if (e instanceof Error) {
+        await formatError(sys, e);
+      }
       next(e);
     }
   });

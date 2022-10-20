@@ -1,4 +1,5 @@
-import { createProxy, QObjectRecursive } from '../object/q-object';
+import { QObjectRecursive } from '../state/constants';
+import { getOrCreateProxy } from '../state/store';
 import { isFunction } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
 
@@ -19,7 +20,7 @@ export interface UseStoreOptions {
  * Use `useStore` to create a state for your application. The returned object is a proxy that has
  * a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
  *
- * ## Example
+ * ### Example
  *
  * Example showing how `useStore` is used in Counter example to keep track of the count.
  *
@@ -89,7 +90,7 @@ export const useStore = <STATE extends object>(
     const containerState = ctx.$renderCtx$.$static$.$containerState$;
     const recursive = opts?.recursive ?? false;
     const flags = recursive ? QObjectRecursive : 0;
-    const newStore = createProxy(value, containerState, flags, undefined);
+    const newStore = getOrCreateProxy(value, containerState, flags);
     set(newStore);
     return newStore;
   }

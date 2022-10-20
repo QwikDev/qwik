@@ -1,5 +1,9 @@
 ---
 title: Lifecycles
+contributors:
+  - nnelgxorz
+  - RATIU5
+  - manucorporat
 ---
 
 import diagram from './diagram2.svg';
@@ -8,7 +12,30 @@ import diagram from './diagram2.svg';
 
 <img src={diagram}/>
 
+## Rules
 
+When using lifecycle hooks, you must adhere to the following rules:
+
+  - They can only be called in `component$`
+  - They can only be called at the root level of a function / arrow function context, not inside of branches or conditional blocks
+  - They can only be called from another `use*$` method, allowing for composition
+
+```tsx
+useHook() // <-- ❌ does not work
+
+export default component$(() => {
+  useHook() // <-- ✅ does work
+  if (condition) {
+    useHook() // <-- ❌ does not work
+  }
+  const myQrl = $(() => useHook()) // <-- ✅ does work
+  return <button onClick$={() => useHook()}></button> // <-- ✅ does work
+})
+
+const useCustomHook = () => {
+  useHook() // <-- ✅ does work
+}
+```
 
 ## `useMount$()`
 
@@ -21,7 +48,7 @@ See also the `useServerMount$()` hook which has the same semantics but only runs
 ### Example
 
 ```tsx
-const Cmp = component$(() => {
+export const Cmp = component$(() => {
   const store = useStore({
     users: [],
   });
@@ -42,7 +69,7 @@ interface User {
   name: string;
 }
 
-function User(props: { user: User }) {
+export function User(props: { user: User }) {
   return <div>Name: {props.user.name}</div>;
 }
 ```
@@ -54,7 +81,7 @@ function User(props: { user: User }) {
 ### Example
 
 ```tsx
-const Cmp = component$(() => {
+export const Cmp = component$(() => {
   const store = useStore({
     users: [],
   });
@@ -75,7 +102,7 @@ interface User {
   name: string;
 }
 
-function User(props: { user: User }) {
+export function User(props: { user: User }) {
   return <div>Name: {props.user.name}</div>;
 }
 ```
@@ -95,20 +122,20 @@ See also the `useClientEffect$()` hook that has the same semantics but only runs
 The `useWatch` function is used to observe the `state.count` property. Any changes to the `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
 
 ```tsx
-const Cmp = component$(() => {
+export const Cmp = component$(() => {
   const store = useStore({
-    count: 0,
+    count: 1,
     doubleCount: 0,
     debounced: 0,
   });
   // Double count watch
   useWatch$(({ track }) => {
-    const count = track(store, 'count');
+    const count = track(() => store.count);
     store.doubleCount = 2 * count;
   });
   // Debouncer watch
   useWatch$(({ track }) => {
-    const doubleCount = track(store, 'doubleCount');
+    const doubleCount = track(() => store.doubleCount);
     const timer = setTimeout(() => {
       store.debounced = doubleCount;
     }, 2000);
@@ -116,6 +143,7 @@ const Cmp = component$(() => {
       clearTimeout(timer);
     };
   });
+
   return (
     <>
       <div>
@@ -136,7 +164,7 @@ If no `track` is being used, it will execute exactly once.
 ### Example
 
 ```tsx
-const Timer = component$(() => {
+export const Timer = component$(() => {
   const store = useStore({
     count: 0,
   });

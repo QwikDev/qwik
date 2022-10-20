@@ -1,5 +1,12 @@
 ---
 title: Qwik City - Components
+contributors:
+  - manucorporat
+  - adamdbradley
+  - the-r3aper7
+  - Oyemade
+  - mhevery
+  - nnelgxorz
 ---
 
 # Components
@@ -41,14 +48,14 @@ src/
             └── sub_component.tsx
 ```
 
-Inside `index.tsx` you can create a component that is exported as `default` export. Content is created by writing a template with [JSX](https://reactjs.org/docs/introducing-jsx.html)-Syntax. Every component-function returns the template that should be rendered on the screen. If you want to learn more about the component anatomy, please see [components documentation](/docs/components/overview/index.mdx).
+Inside `index.tsx` you can create a component that is exported as `default` export. Content is created by writing a template with [JSX](https://reactjs.org/docs/introducing-jsx.html)-Syntax. Every component-function returns the template that should be rendered on the screen. If you want to learn more about the component anatomy, please see [components documentation](../../../docs/components/overview/index.mdx).
 The following component will be rendered at `https://example.com/some/path` according to the directory-structure, we have set up above.
 
 ```typescript
 // File: src/routes/some/path/index.tsx
 import { component$ } from '@builder.io/qwik';
 import Heading from '../../../components/heading';
-import SubComponent from './_sub_component';
+import SubComponent from './sub_component';
 
 export default component$(() => {
   return (
@@ -56,7 +63,8 @@ export default component$(() => {
       <Heading />
       <h2>Hello World!</h2>
       <SubComponent />
-    </>;
+    </>
+  );
 });
 ```
 
@@ -70,7 +78,7 @@ export default component$(() => {
 ```
 
 ```typescript
-// File: src/routes/some/path/_sub_component.tsx
+// File: src/routes/some/path/sub_component.tsx
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {

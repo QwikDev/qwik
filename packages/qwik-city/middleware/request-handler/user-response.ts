@@ -16,7 +16,6 @@ export async function loadUserResponse(
   requestCtx: QwikCityRequestContext,
   params: RouteParams,
   routeModules: RouteModule[],
-  platform: Record<string, any>,
   trailingSlash?: boolean,
   basePathname: string = '/'
 ) {
@@ -24,7 +23,7 @@ export async function loadUserResponse(
     throw new ErrorResponse(HttpStatus.NotFound, `Not Found`);
   }
 
-  const { request, url } = requestCtx;
+  const { request, url, platform } = requestCtx;
   const { pathname } = url;
   const isPageModule = isLastModulePageRoute(routeModules);
   const isPageDataRequest = isPageModule && request.headers.get('Accept') === 'application/json';
@@ -49,7 +48,7 @@ export async function loadUserResponse(
       // must have a trailing slash
       if (!pathname.endsWith('/')) {
         // add slash to existing pathname
-        throw new RedirectResponse(pathname + '/' + url.search, HttpStatus.TemporaryRedirect);
+        throw new RedirectResponse(pathname + '/' + url.search, HttpStatus.Found);
       }
     } else {
       // should not have a trailing slash
@@ -57,7 +56,7 @@ export async function loadUserResponse(
         // remove slash from existing pathname
         throw new RedirectResponse(
           pathname.slice(0, pathname.length - 1) + url.search,
-          HttpStatus.TemporaryRedirect
+          HttpStatus.Found
         );
       }
     }
@@ -224,7 +223,10 @@ function isLastModulePageRoute(routeModules: RouteModule[]) {
   return lastRouteModule && typeof (lastRouteModule as PageModule).default === 'function';
 }
 
-export function updateRequestCtx(requestCtx: QwikCityRequestContext, trailingSlash: boolean) {
+export function updateRequestCtx(
+  requestCtx: QwikCityRequestContext,
+  trailingSlash: boolean | undefined
+) {
   let pathname = requestCtx.url.pathname;
 
   if (pathname.endsWith(QDATA_JSON)) {

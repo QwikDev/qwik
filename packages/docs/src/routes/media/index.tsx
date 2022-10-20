@@ -35,7 +35,7 @@ export const MEDIA = mediaObj({
       'Zddw6qy5pf0'
     ),
     youtube('Why the world needs Qwik with Miško Hevery', 'IRw9efkn9UA'),
-    youtube('Exploring Qwik City w/ Adam Bradley & Manu Martínez-Almeida', 'IRw9efkn9UA'),
+    youtube('Exploring Qwik City w/ Adam Bradley & Manu Martínez-Almeida', 'XoeJisRJjlo'),
   ],
   podcasts: [
     youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc'),

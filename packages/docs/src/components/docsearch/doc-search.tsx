@@ -52,6 +52,8 @@ export function isEditingContent(event: KeyboardEvent): boolean {
 
 export const DocSearch = component$((props: DocSearchProps) => {
   useStyles$(styles);
+  // useContextBoundary();
+
   const state = useStore<DocSearchState>({
     isOpen: false,
     initialQuery: '',

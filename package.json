@@ -15,7 +15,7 @@
     "build.cli.prod": "tsm scripts/index.ts --cli",
     "build.watch": "tsm scripts/index.ts --build  --qwikcity --watch --dev --platform-binding",
     "commit": "git-cz",
-    "link.dist": "cd packages/qwik/dist && npm link && cd ../../qwik-city/lib && npm link",
+    "link.dist": "cd packages/qwik/dist && npm link && cd ../../qwik-city/lib && npm link && cd ../../eslint-plugin-qwik/dist && npm link",
     "cli": "yarn build.cli && node packages/create-qwik/dist/create-qwik.cjs && tsm scripts/validate-cli.ts --copy-local-qwik-dist",
     "cli.validate": "tsm scripts/validate-cli.ts",
     "api.update": "tsm scripts/index.ts --tsc --api --dev",

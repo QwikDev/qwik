@@ -461,17 +461,9 @@ export interface ResourceOptions {
 // @public (undocumented)
 export interface ResourcePending<T> {
     // (undocumented)
-    __brand: 'resource';
-    // (undocumented)
-    error: undefined;
+    loading: boolean;
     // (undocumented)
     promise: Promise<T>;
-    // (undocumented)
-    resolved: undefined;
-    // (undocumented)
-    state: 'pending';
-    // (undocumented)
-    timeout?: number;
 }
 
 // @public (undocumented)
@@ -489,33 +481,17 @@ export interface ResourceProps<T> {
 // @public (undocumented)
 export interface ResourceRejected<T> {
     // (undocumented)
-    __brand: 'resource';
-    // (undocumented)
-    error: any;
+    loading: boolean;
     // (undocumented)
     promise: Promise<T>;
-    // (undocumented)
-    resolved: undefined;
-    // (undocumented)
-    state: 'rejected';
-    // (undocumented)
-    timeout?: number;
 }
 
 // @public (undocumented)
 export interface ResourceResolved<T> {
     // (undocumented)
-    __brand: 'resource';
-    // (undocumented)
-    error: undefined;
+    loading: boolean;
     // (undocumented)
     promise: Promise<T>;
-    // (undocumented)
-    resolved: T;
-    // (undocumented)
-    state: 'resolved';
-    // (undocumented)
-    timeout?: number;
 }
 
 // @public (undocumented)
@@ -568,11 +544,11 @@ export interface SnapshotMetaValue {
 // @alpha (undocumented)
 export interface SnapshotResult {
     // (undocumented)
-    listeners: SnapshotListener[];
-    // (undocumented)
     mode: 'render' | 'listeners' | 'static';
     // (undocumented)
     objs: any[];
+    // (undocumented)
+    qrls: QRL[];
     // (undocumented)
     state: SnapshotState;
 }
@@ -635,6 +611,9 @@ export const useClientEffectQrl: (qrl: QRL<WatchFn>, opts?: UseEffectOptions) =>
 //
 // @public
 export const useContext: UseContext;
+
+// @alpha (undocumented)
+export const useContextBoundary: (...ids: Context<any>[]) => void;
 
 // @public
 export const useContextProvider: <STATE extends object>(context: Context<STATE>, newValue: STATE) => void;

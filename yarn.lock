@@ -4182,6 +4182,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-plugin-no-only-tests@npm:3.0.0":
+  version: 3.0.0
+  resolution: "eslint-plugin-no-only-tests@npm:3.0.0"
+  checksum: b0e21da64e9df03e2a9ed44306c8c1e94fca3c662f03367f8af95107b1f4bf84d6e1b339d014cba83d6b0fead080c45243e73a5932f3842d62488cbc4aa8153e
+  languageName: node
+  linkType: hard
+
 "eslint-plugin-qwik@workspace:packages/eslint-plugin-qwik":
   version: 0.0.0-use.local
   resolution: "eslint-plugin-qwik@workspace:packages/eslint-plugin-qwik"
@@ -7772,6 +7779,7 @@ __metadata:
     cz-conventional-changelog: 3.3.0
     esbuild: 0.15.11
     eslint: 8.25.0
+    eslint-plugin-no-only-tests: 3.0.0
     execa: 6.1.0
     express: 4.18.2
     monaco-editor: ^0.34.1

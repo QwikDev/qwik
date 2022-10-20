@@ -1,5 +1,4 @@
 import { Component, createContext, createElement, createRef } from 'react';
-import { filterProps } from './qwikify';
 
 interface SlotState {
   el?: Element;
@@ -9,7 +8,7 @@ interface SlotState {
 const SlotCtx = createContext<SlotState>({ scopeId: '' });
 
 export function main(slotEl: Element | undefined, scopeId: string, RootCmp: any, props: any) {
-  const newProps = filterProps(props);
+  const newProps = getReactProps(props);
   newProps.children = createElement(SlotElement, null);
   return createElement(SlotCtx.Provider, {
     value: {
@@ -32,10 +31,9 @@ export class SlotElement extends Component {
   }
 
   componentDidMount(): void {
-    const slotState = this.context;
     const slotC = this.slotC.current;
     if (slotC) {
-      const { attachedEl, el } = slotState;
+      const { attachedEl, el } = this.context;
       if (el) {
         if (!attachedEl) {
           slotC.appendChild(el);
@@ -57,10 +55,31 @@ export class SlotElement extends Component {
 }
 
 export const clientProps = (props: Record<string, any>): Record<string, any> => {
-  const obj = filterProps(props);
+  const obj = getReactProps(props);
   obj.children = createElement('qwik-slot', {
     suppressHydrationWarning: true,
     dangerouslySetInnerHTML: { __html: '' },
+  });
+  return obj;
+};
+
+const getReactProps = (props: Record<string, any>): Record<string, any> => {
+  const obj: Record<string, any> = {};
+  Object.keys(props).forEach((key) => {
+    if (!key.startsWith('client:') && !key.endsWith('$')) {
+      obj[key] = props[key];
+    }
+  });
+  obj.children = createElement('p');
+  return obj;
+};
+
+export const getEvents = (props: Record<string, any>): Record<string, any> => {
+  const obj: Record<string, any> = {};
+  Object.keys(props).forEach((key) => {
+    if (key.endsWith('$')) {
+      obj[key] = props[key];
+    }
   });
   return obj;
 };

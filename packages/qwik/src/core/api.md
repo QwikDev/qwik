@@ -409,6 +409,11 @@ export interface Ref<T = Element> {
 export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<void>;
 
 // @alpha (undocumented)
+export const RenderOnce: FunctionComponent<{
+    children?: any;
+}>;
+
+// @alpha (undocumented)
 export interface RenderOptions {
     // (undocumented)
     envData?: Record<string, any>;
@@ -569,6 +574,11 @@ export const SSRComment: FunctionComponent<{
 }>;
 
 // @alpha (undocumented)
+export const SSRRaw: FunctionComponent<{
+    data: string;
+}>;
+
+// @alpha (undocumented)
 export const SSRStream: FunctionComponent<StreamProps>;
 
 // @alpha (undocumented)
@@ -612,9 +622,6 @@ export const useClientEffectQrl: (qrl: QRL<WatchFn>, opts?: UseEffectOptions) =>
 // @public
 export const useContext: UseContext;
 
-// @alpha (undocumented)
-export const useContextBoundary: (...ids: Context<any>[]) => void;
-
 // @public
 export const useContextProvider: <STATE extends object>(context: Context<STATE>, newValue: STATE) => void;
 
@@ -646,13 +653,13 @@ export const useMount$: <T>(first: MountFn<T>) => void;
 export const useMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
 
 // @alpha
-export const useOn: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
 
 // @alpha
-export const useOnDocument: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
 
 // @alpha
-export const useOnWindow: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
 
 // @alpha @deprecated
 export const useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;

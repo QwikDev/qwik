@@ -11,7 +11,7 @@ import {
   stringifyStyle,
 } from '../execute-component';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
-import { SSRComment, InternalSSRStream, Virtual } from '../jsx/utils.public';
+import { InternalSSRStream, Virtual, SSRRaw } from '../jsx/utils.public';
 import { logError, logWarn } from '../../util/log';
 import { groupListeners, isOnProp, PREVENT_DEFAULT, setEvent } from '../../state/listeners';
 import { version } from '../../version';
@@ -598,8 +598,8 @@ export const renderNode = (
     );
   }
 
-  if (tagName === SSRComment) {
-    stream.write('<!--' + (node as JSXNode<typeof SSRComment>).props.data + '-->');
+  if (tagName === SSRRaw) {
+    stream.write((node as JSXNode<typeof SSRRaw>).props.data);
     return;
   }
   if (tagName === InternalSSRStream) {
@@ -749,7 +749,7 @@ export const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => 
   } else if (
     isJSXNode(children) &&
     isFunction(children.type) &&
-    children.type !== SSRComment &&
+    children.type !== SSRRaw &&
     children.type !== InternalSSRStream &&
     children.type !== Virtual
   ) {

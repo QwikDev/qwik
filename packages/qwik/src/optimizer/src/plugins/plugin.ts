@@ -715,7 +715,7 @@ export interface QwikPluginOptions {
   vendorRoots?: string[];
   manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
   manifestInput?: QwikManifest | null;
-  input?: string[] | string;
+  input?: string[] | string | { [entry: string]: string };
   outDir?: string;
   srcDir?: string | null;
   scope?: string | null;

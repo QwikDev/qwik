@@ -42,44 +42,55 @@ export async function buildQwikCity(config: BuildConfig) {
     type: 'module',
     exports: {
       '.': {
+        types: './index.d.ts',
         import: './index.qwik.mjs',
         require: './index.qwik.cjs',
       },
       './adaptors/cloudflare-pages/vite': {
+        types: './adaptors/cloudflare-pages/vite/index.d.ts',
         import: './adaptors/cloudflare-pages/vite/index.mjs',
         require: './adaptors/cloudflare-pages/vite/index.cjs',
       },
       './adaptors/express/vite': {
+        types: './adaptors/express/vite/index.d.ts',
         import: './adaptors/express/vite/index.mjs',
         require: './adaptors/express/vite/index.cjs',
       },
       './adaptors/netlify-edge/vite': {
+        types: './adaptors/netlify-edge/vite/index.d.ts',
         import: './adaptors/netlify-edge/vite/index.mjs',
         require: './adaptors/netlify-edge/vite/index.cjs',
       },
       './adaptors/static/vite': {
+        types: './adaptors/static/vite/index.d.ts',
         import: './adaptors/static/vite/index.mjs',
         require: './adaptors/static/vite/index.cjs',
       },
       './middleware/cloudflare-pages': {
+        types: './middleware/cloudflare-pages/index.d.ts',
         import: './middleware/cloudflare-pages/index.mjs',
       },
       './middleware/node': {
+        types: './middleware/node/index.d.ts',
         import: './middleware/node/index.mjs',
         require: './middleware/node/index.cjs',
       },
       './middleware/netlify-edge': {
+        types: './middleware/netlify-edge/index.d.ts',
         import: './middleware/netlify-edge/index.mjs',
       },
       './static': {
+        types: './static/index.d.ts',
         import: './static/index.mjs',
         require: './static/index.cjs',
       },
       './vite': {
+        types: './vite/index.d.ts',
         import: './vite/index.mjs',
         require: './vite/index.cjs',
       },
       './service-worker': {
+        types: './service-worker.d.ts',
         import: './service-worker.mjs',
         require: './service-worker.cjs',
       },

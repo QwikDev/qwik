@@ -75,14 +75,14 @@ export async function buildQwikCity(config: BuildConfig) {
         types: './middleware/cloudflare-pages/index.d.ts',
         import: './middleware/cloudflare-pages/index.mjs',
       },
+      './middleware/netlify-edge': {
+        types: './middleware/netlify-edge/index.d.ts',
+        import: './middleware/netlify-edge/index.mjs',
+      },
       './middleware/node': {
         types: './middleware/node/index.d.ts',
         import: './middleware/node/index.mjs',
         require: './middleware/node/index.cjs',
-      },
-      './middleware/netlify-edge': {
-        types: './middleware/netlify-edge/index.d.ts',
-        import: './middleware/netlify-edge/index.mjs',
       },
       './static': {
         types: './static/index.d.ts',

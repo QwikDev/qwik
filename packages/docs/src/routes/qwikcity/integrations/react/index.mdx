@@ -206,6 +206,8 @@ When `true`, the component will not run in SSR, only in the browser.
 Events in React are handled by passing a function as a property to the component, for example:
 
 ```tsx
+// React code (won't work in Qwik)
+
 import { Slider } from '@mui/material';
 
 <Slider onChange={() => console.log('value changed')}></Slider>

@@ -185,6 +185,7 @@ export function Fetch() {
 
 ```tsx
 export const MyContext = createContext('my-context');
+
 export const Parent = component$(() => {
   const state = useStore({
     message: 'some example value',
@@ -203,16 +204,37 @@ export const Child = component$(() => {
 });
 ```
 
+#### ⚛️ React
+
+```tsx
+export const MyContext = createContext({ message: "some example value" });
+
+export default function Parent() {
+  return (
+    <MyContext.Provider value={{ message: "updated example value" }}>
+      <Child />
+    </MyContext.Provider>
+  );
+}
+
+export const Child = () => {
+  const value = useContext(MyContext);
+  return <span>{value.message}</span>;
+};
+```
+
 ### Create a debounced input
 
 #### ⚡️ Qwik
 
 ```tsx
 export const DebouncedInput = component$(() => {
+
   const state = useStore({
     value: '',
     debouncedValue: '',
   });
+
   useWatch$(({ track }) => {
     track(() => state.value);
     const debounced = setTimeout(() => {
@@ -220,6 +242,7 @@ export const DebouncedInput = component$(() => {
     }, 1000);
     return () => clearTimeout(debounced);
   });
+
   return (
     <>
       <input value={state.value} onInput$={(e) => (state.value = e.target.value)} />
@@ -229,17 +252,43 @@ export const DebouncedInput = component$(() => {
 });
 ```
 
+#### ⚛️ React
+
+```tsx
+export const DebouncedInput = () => {
+  const [value, setValue] = useState("");
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const debounced = setTimeout(() => setDebouncedValue(value), 1000);
+
+    return () => {
+      clearTimeout(debounced);
+    };
+  }, [value]);
+
+  return (
+    <>
+      <input value={value} onChange={(e) => setValue(e.target.value)} />
+      <span>{debouncedValue}</span>
+    </>
+  );
+};
+```
+
 ### Change background color randomly every button click
 
 #### ⚡️ Qwik
 
 ```tsx
 export const DynamicBackground = component$(() => {
+
   const state = useStore({
     red: 0,
     green: 0,
     blue: 0,
   });
+
   return (
     <div style={{
       background: `rgb(${state.red}, ${state.green}, ${state.blue})`

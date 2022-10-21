@@ -90,7 +90,7 @@ export async function configureDevServer(
               }
 
               const { pathId, query } = parseId(v.url);
-              if (query === '' && pathId.endsWith('.css')) {
+              if (query === '' && ['.css', '.scss', '.sass'].some((ext) => pathId.endsWith(ext))) {
                 manifest.injections!.push({
                   tag: 'link',
                   location: 'head',
@@ -156,8 +156,8 @@ export async function configurePreviewServer(
   sys: OptimizerSystem,
   path: Path
 ) {
-  const fs: typeof import('fs') = await sys.dynamicImport('fs');
-  const url: typeof import('url') = await sys.dynamicImport('url');
+  const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+  const url: typeof import('url') = await sys.dynamicImport('node:url');
 
   const entryPreviewPaths = ['mjs', 'cjs', 'js'].map((ext) =>
     path.join(opts.rootDir, 'server', `entry.preview.${ext}`)

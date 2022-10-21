@@ -1,4 +1,4 @@
-import type { HTMLAttributes, IntrinsicElements, ScriptHTMLAttributes } from './jsx-generated';
+import type { HTMLAttributes, IntrinsicHTMLElements, ScriptHTMLAttributes } from './jsx-generated';
 
 interface QwikScriptHTMLAttributes<T> extends ScriptHTMLAttributes<T> {
   events?: string[];
@@ -18,7 +18,7 @@ export interface QwikIntrinsicAttributes {}
 /**
  * @public
  */
-export interface QwikIntrinsicElements extends IntrinsicElements {
+export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
   script: QwikScriptHTMLAttributes<HTMLScriptElement>;
   [key: string]: QwikCustomHTMLAttributes<QwikCustomHTMLElement>;
 }

@@ -1,7 +1,12 @@
 export function qwikReact(): any {
-  const OPTIMIZE_DEPS = ['react', 'react-dom/client', 'hoist-non-react-statics', '@emotion/react'];
-
-  const DEDUPE = ['react', 'react-dom', '@emotion/react'];
+  const OPTIMIZE_DEPS = [
+    'react',
+    'react-dom',
+    'react-dom/client',
+    'react/jsx-runtime',
+    'react/jsx-dev-runtime',
+  ];
+  const DEDUPE = ['react', 'react-dom'];
 
   return {
     name: 'vite-plugin-qwik-react',

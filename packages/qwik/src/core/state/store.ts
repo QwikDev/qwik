@@ -167,11 +167,24 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (subscriber) {
       this.$manager$.$addSub$([0, subscriber, undefined]);
     }
+    if (isArray(target)) {
+      return Reflect.ownKeys(target);
+    }
     return Reflect.ownKeys(target).map((a) => {
       return typeof a === 'string' && a.startsWith(_IMMUTABLE_PREFIX)
         ? a.slice(_IMMUTABLE_PREFIX.length)
         : a;
     });
+  }
+
+  getOwnPropertyDescriptor(target: TargetType, prop: string) {
+    if (isArray(target)) {
+      return Object.getOwnPropertyDescriptor(target, prop);
+    }
+    return {
+      enumerable: true,
+      configurable: true,
+    };
   }
 }
 

@@ -26,7 +26,7 @@ export const Result = component$(
             state.activeItemId = item.__autocomplete_id;
           }
         }}
-        onClick$={(event: MouseEvent) => {
+        onClick$={(event) => {
           const searchList = [
             event.target,
             // @ts-ignore

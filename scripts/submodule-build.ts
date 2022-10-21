@@ -1,5 +1,5 @@
 import { BuildConfig, ensureDir, watcher, target, copyFile, PackageJSON } from './util';
-import { join } from 'path';
+import { join } from 'node:path';
 import { BuildOptions, build } from 'esbuild';
 import { writePackageJson } from './package-json';
 

@@ -6,7 +6,7 @@ import color from 'kleur';
 import { getPackageManager, panic } from '../utils/utils';
 import { updateApp } from './update-app';
 import type { IntegrationData, UpdateAppResult } from '../types';
-import { relative } from 'path';
+import { relative } from 'node:path';
 import { logSuccessFooter, logNextStep } from '../utils/log';
 
 export async function runAddInteractive(app: AppCommand, id: string | undefined) {
@@ -72,23 +72,7 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
 
   let runInstall = false;
   if (integrationHasDeps) {
-    const pkgManager = getPackageManager();
-    const runInstallAnswer = await prompts(
-      {
-        type: 'confirm',
-        name: 'runInstall',
-        message: `Would you like to install ${pkgManager} dependencies?`,
-        initial: true,
-      },
-      {
-        onCancel: async () => {
-          console.log('');
-          process.exit(0);
-        },
-      }
-    );
-    console.log(``);
-    runInstall = !!runInstallAnswer.runInstall;
+    runInstall = true;
   }
 
   const result = await updateApp({
@@ -193,7 +177,7 @@ function logUpdateAppCommitResult(result: UpdateAppResult) {
     )} to your app`
   );
   console.log(``);
-  const isNextSteps = result.integration.pkgJson.__qwik__?.nextSteps || [];
-  logNextStep(isNextSteps);
-  logSuccessFooter();
+  logSuccessFooter(result.integration.docs);
+  const nextSteps = result.integration.pkgJson.__qwik__?.nextSteps;
+  logNextStep(nextSteps);
 }

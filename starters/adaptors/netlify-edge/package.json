@@ -8,6 +8,11 @@
     "@netlify/vite-plugin-netlify-edge": "1.1.0"
   },
   "__qwik__": {
-    "priority": -1
+    "priority": 30,
+    "displayName": "Adaptor: Netlify (serverless)",
+    "docs": [
+      "https://qwik.builder.io/qwikcity/adaptors/netlify-edge/",
+      "https://docs.netlify.com/"
+    ]
   }
 }

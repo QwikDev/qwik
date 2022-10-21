@@ -1,8 +1,8 @@
 import type { Plugin } from 'vite';
 import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import type { StaticGenerateOptions, StaticGenerateRenderOptions } from '../../../static';
-import { join } from 'path';
-import fs from 'fs';
+import { join } from 'node:path';
+import fs from 'node:fs';
 
 /**
  * @alpha

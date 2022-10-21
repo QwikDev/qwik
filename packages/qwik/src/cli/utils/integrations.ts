@@ -1,5 +1,5 @@
-import fs from 'fs';
-import { join } from 'path';
+import fs from 'node:fs';
+import { join } from 'node:path';
 import type { IntegrationData, IntegrationType } from '../types';
 import { dashToTitlelCase, readPackageJson } from './utils';
 
@@ -28,10 +28,11 @@ export async function loadIntegrations() {
                 const pkgJson = await readPackageJson(dirPath);
                 const integration: IntegrationData = {
                   id: dirItem,
-                  name: dashToTitlelCase(dirItem),
+                  name: pkgJson.__qwik__?.displayName ?? dashToTitlelCase(dirItem),
                   type: integrationType,
                   dir: dirPath,
                   pkgJson,
+                  docs: pkgJson.__qwik__?.docs ?? [],
                   priority: pkgJson?.__qwik__?.priority ?? 0,
                 };
                 loadingIntegrations.push(integration);

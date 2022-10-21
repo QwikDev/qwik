@@ -709,6 +709,7 @@ const createElm = (
     currentComponent.$slots$.push(vnode);
     staticCtx.$addSlots$.push([elm, currentComponent.$element$]);
   }
+
   if (qSerialize) {
     setKey(elm, vnode.$key$);
 
@@ -736,7 +737,7 @@ const createElm = (
   }
   const nodes = children.map((ch) => createElm(rCtx, ch, flags, promises));
   for (const node of nodes) {
-    appendChild(rCtx.$static$, elm, node);
+    directAppendChild(elm, node);
   }
   return elm;
 };

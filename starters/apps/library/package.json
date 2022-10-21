@@ -1,9 +1,9 @@
 {
   "name": "qwik-library-name",
-  "description": "Create a component library",
+  "description": "Create a reusable Qwik component library",
   "version": "0.0.1",
   "private": false,
-  "main": "./lib/index.qwik.cjs",
+  "main": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
   "module": "./lib/index.qwik.mjs",
   "types": "./lib-types/index.d.ts",
@@ -11,7 +11,8 @@
   "exports": {
     ".": {
       "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs"
+      "require": "./lib/index.qwik.cjs",
+      "types": "./lib-types/index.d.ts"
     }
   },
   "files": [
@@ -26,7 +27,7 @@
     "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
-    "lint": "eslint \"src/**/*.ts*\"",
+    "lint": "eslint src/**/*.ts*",
     "start": "vite --open --mode ssr",
     "qwik": "qwik",
     "release": "np"
@@ -46,6 +47,10 @@
     "vite": "latest"
   },
   "__qwik__": {
-    "priority": -1
+    "displayName": "Component library",
+    "priority": -1,
+    "docs": [
+      "https://qwik.builder.io/docs/overview/"
+    ]
   }
 }

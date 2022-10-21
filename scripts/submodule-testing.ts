@@ -1,7 +1,7 @@
-import { getBanner, importPath, nodeBuiltIns, nodeTarget, target, watcher } from './util';
+import { getBanner, importPath, nodeTarget, target, watcher } from './util';
 import { build, BuildOptions } from 'esbuild';
 import { BuildConfig, injectGlobalThisPoly, PackageJSON } from './util';
-import { join } from 'path';
+import { join } from 'node:path';
 import { writePackageJson } from './package-json';
 
 /**
@@ -16,7 +16,8 @@ export async function submoduleTesting(config: BuildConfig) {
     sourcemap: config.dev,
     bundle: true,
     target,
-    external: [...nodeBuiltIns],
+    platform: 'node',
+    // external: [...nodeBuiltIns],
   };
 
   const esm = build({

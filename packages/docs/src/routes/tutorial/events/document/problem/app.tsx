@@ -6,9 +6,8 @@ export const App = component$(() => {
   return (
     <div
       onMouseMove$={(event) => {
-        store.x = event.x;
-        store.y = event.y;
-        console.log(store);
+        store.x = event.clientX;
+        store.y = event.clientY;
       }}
     >
       Your mouse location is ({store.x}, {store.y}).

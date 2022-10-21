@@ -1,9 +1,6 @@
-/* eslint-disable */
-
 import type { DOMAttributes } from './jsx-qwik-attributes';
 interface HTMLWebViewElement extends HTMLElement {}
-interface ClassAttributes<T> {}
-export type Booleanish = 'true' | 'false';
+export type Booleanish = boolean | `${boolean}`;
 
 /**
  * @public
@@ -1136,8 +1133,10 @@ export interface SVGAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   z?: number | string | undefined;
   zoomAndPan?: string | undefined;
 }
-export interface SVGProps<T> extends SVGAttributes<T>, ClassAttributes<T> {}
-export interface IntrinsicElements {
+export interface SVGProps<T> extends SVGAttributes<T> {}
+
+export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGElements {}
+export interface IntrinsicHTMLElements {
   a: AnchorHTMLAttributes<HTMLAnchorElement>;
   abbr: HTMLAttributes<HTMLElement>;
   address: HTMLAttributes<HTMLElement>;
@@ -1249,11 +1248,15 @@ export interface IntrinsicElements {
   title: HTMLAttributes<HTMLTitleElement>;
   tr: HTMLAttributes<HTMLTableRowElement>;
   track: TrackHTMLAttributes<HTMLTrackElement>;
+  tt: HTMLAttributes<HTMLElement>;
   u: HTMLAttributes<HTMLElement>;
   ul: HTMLAttributes<HTMLUListElement>;
   video: VideoHTMLAttributes<HTMLVideoElement>;
   wbr: HTMLAttributes<HTMLElement>;
   webview: WebViewHTMLAttributes<HTMLWebViewElement>;
+}
+
+export interface IntrinsicSVGElements {
   svg: SVGProps<SVGSVGElement>;
   animate: SVGProps<SVGElement>;
   animateMotion: SVGProps<SVGElement>;

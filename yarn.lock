@@ -7548,7 +7548,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:8.4.18, postcss@npm:^8.4.17, postcss@npm:^8.4.18":
+"postcss@npm:8.4.18, postcss@npm:^8.4.17":
   version: 8.4.18
   resolution: "postcss@npm:8.4.18"
   dependencies:
@@ -7787,7 +7787,7 @@ __metadata:
     node-fetch: 3.2.10
     path-browserify: 1.0.1
     prettier: 2.7.1
-    rollup: 2.79.1
+    rollup: 2.78.0
     semver: 7.3.8
     snoop: ^1.0.4
     tailwindcss: 3.2.0
@@ -7797,7 +7797,7 @@ __metadata:
     tsm: 2.2.2
     typescript: 4.8.4
     uvu: ^0.5.6
-    vite: 3.2.0-beta.3
+    vite: 3.1.8
     vite-tsconfig-paths: 3.5.1
     wasm-pack: 0.10.3
     watchlist: ^0.3.1
@@ -8217,9 +8217,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:2.79.1, rollup@npm:^2.79.1":
-  version: 2.79.1
-  resolution: "rollup@npm:2.79.1"
+"rollup@npm:2.78.0":
+  version: 2.78.0
+  resolution: "rollup@npm:2.78.0"
   dependencies:
     fsevents: ~2.3.2
   dependenciesMeta:
@@ -8227,7 +8227,7 @@ __metadata:
       optional: true
   bin:
     rollup: dist/bin/rollup
-  checksum: 6a2bf167b3587d4df709b37d149ad0300692cc5deb510f89ac7bdc77c8738c9546ae3de9322b0968e1ed2b0e984571f5f55aae28fa7de4cfcb1bc5402a4e2be6
+  checksum: 01b5a7ae082d2a14201c973ee973099f0899cc87b65063d5ca5a77c05eeefb3b51e14b1346cf1a0fc879ac2cbb87239d4f960917bfc30b7c52f5dce50a7f56e7
   languageName: node
   linkType: hard
 
@@ -9355,41 +9355,6 @@ __metadata:
   bin:
     vite: bin/vite.js
   checksum: 982696ad134577dd9915c4c3548ad36ddcf5dc6d341058548a670a13d860e4cdaaf2b320a59221f178018df089d148b9980e9a344316bef12b698a1c1abc7390
-  languageName: node
-  linkType: hard
-
-"vite@npm:3.2.0-beta.3":
-  version: 3.2.0-beta.3
-  resolution: "vite@npm:3.2.0-beta.3"
-  dependencies:
-    esbuild: ^0.15.9
-    fsevents: ~2.3.2
-    postcss: ^8.4.18
-    resolve: ^1.22.1
-    rollup: ^2.79.1
-  peerDependencies:
-    less: "*"
-    sass: "*"
-    stylus: "*"
-    sugarss: "*"
-    terser: ^5.4.0
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  peerDependenciesMeta:
-    less:
-      optional: true
-    sass:
-      optional: true
-    stylus:
-      optional: true
-    sugarss:
-      optional: true
-    terser:
-      optional: true
-  bin:
-    vite: bin/vite.js
-  checksum: 54cd5bc0d56afb03cb7cd9c4e2ddfa3d98dbae5e318fd84ac67309ff2596692ee7f6fc4907a88786bd6ffdb6cbc04b96cc7df541410d32ba019f2b31fb13ace0
   languageName: node
   linkType: hard
 

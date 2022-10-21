@@ -17,8 +17,8 @@ Below is an example of using the built-in Node middleware within a user's [Expre
 ```typescript
 import { qwikCity } from '@builder.io/qwik-city/middleware/node';
 import express from 'express';
-import { fileURLToPath } from 'url';
-import { join } from 'path';
+import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import render from './entry.ssr';
 
 // Directories where the static assets are located

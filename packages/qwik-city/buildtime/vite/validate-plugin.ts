@@ -1,5 +1,5 @@
-import fs from 'fs';
-import { isAbsolute } from 'path';
+import fs from 'node:fs';
+import { isAbsolute } from 'node:path';
 import type { NormalizedPluginOptions } from '../types';
 
 export async function validatePlugin(opts: NormalizedPluginOptions) {

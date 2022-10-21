@@ -1,4 +1,4 @@
-import path, { resolve } from 'path';
+import path, { resolve } from 'node:path';
 import { qwikVite } from './vite';
 import type { OptimizerOptions } from '../types';
 import type { OutputOptions } from 'rollup';

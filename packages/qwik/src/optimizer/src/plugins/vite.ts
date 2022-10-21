@@ -145,7 +145,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
 
       if (sys.env === 'node') {
-        const fs: typeof import('fs') = await sys.dynamicImport('fs');
+        const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
 
         try {
           const rootDir = pluginOpts.rootDir ?? sys.cwd();
@@ -169,7 +169,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // OS tmp directory. This path should always be the same for both client and ssr.
         // Client build will write to this path, and SSR will read from it. For this reason,
         // the Client build should always start and finish before the SSR build.
-        const nodeOs: typeof import('os') = await sys.dynamicImport('os');
+        const nodeOs: typeof import('os') = await sys.dynamicImport('node:os');
         tmpClientManifestPath = path.join(nodeOs.tmpdir(), `vite-plugin-qwik-q-manifest.json`);
 
         if (target === 'ssr' && !pluginOpts.manifestInput) {
@@ -434,7 +434,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         const sys = qwikPlugin.getSys();
         if (tmpClientManifestPath && sys.env === 'node') {
           // Client build should write the manifest to a tmp dir
-          const fs: typeof import('fs') = await sys.dynamicImport('fs');
+          const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
           await fs.promises.writeFile(tmpClientManifestPath, clientManifestStr);
         }
       }
@@ -471,7 +471,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                   // didn't generate a .js script
                   // create a .js file that just import()s their script
                   const bundleOutDir = sys.path.dirname(bundeName);
-                  const fs: typeof import('fs') = await sys.dynamicImport('fs');
+                  const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
                   await fs.promises.writeFile(
                     sys.path.join(opts.outDir, bundleOutDir, js),
                     `import("./${moduleName}").catch((e) => { console.error(e); process.exit(1); });`
@@ -559,7 +559,7 @@ const findQwikRoots = async (
   packageJsonPath: string
 ): Promise<QwikPackages[]> => {
   if (sys.env === 'node') {
-    const fs: typeof import('fs') = await sys.dynamicImport('fs');
+    const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
     const { resolvePackageData }: typeof import('vite') = await sys.strictDynamicImport('vite');
 
     try {

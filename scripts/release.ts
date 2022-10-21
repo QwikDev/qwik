@@ -1,6 +1,6 @@
 import { BuildConfig, panic, run } from './util';
 import { execa } from 'execa';
-import { join } from 'path';
+import { join } from 'node:path';
 import { Octokit } from '@octokit/action';
 import prompts from 'prompts';
 import { readPackageJson, writePackageJson } from './package-json';

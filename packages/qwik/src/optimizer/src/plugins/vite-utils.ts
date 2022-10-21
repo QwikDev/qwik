@@ -6,7 +6,7 @@ export async function formatError(sys: OptimizerSystem, err: any) {
     if (loc) {
       err.loc = loc;
       if (loc.file) {
-        const fs: typeof import('fs') = await sys.dynamicImport('fs');
+        const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
         const { normalizePath }: typeof import('vite') = await sys.strictDynamicImport('vite');
         err.id = normalizePath(err.loc.file);
         try {

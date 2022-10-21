@@ -1,9 +1,9 @@
 import { BuildConfig, ensureDir } from './util';
 import spawn from 'cross-spawn';
-import { join } from 'path';
+import { join } from 'node:path';
 import nodeFetch from 'node-fetch';
 import semver from 'semver';
-import { existsSync } from 'fs';
+import { existsSync } from 'node:fs';
 import { copyFile, readdir, writeFile } from 'fs/promises';
 
 export async function buildPlatformBinding(config: BuildConfig) {

@@ -2,8 +2,8 @@ import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
 import qwikCityPlan from '@qwik-city-plan';
 import render from './entry.ssr';
 import express from 'express';
-import { fileURLToPath } from 'url';
-import { join } from 'path';
+import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
 // Directories where the static assets are located
 const distDir = join(fileURLToPath(import.meta.url), '..', '..', 'dist');

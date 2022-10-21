@@ -238,7 +238,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       const sys = getSys();
       if (sys.env === 'node') {
-        const fs: typeof import('fs') = await sys.dynamicImport('fs');
+        const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
         if (!fs.existsSync(opts.rootDir)) {
           throw new Error(`Qwik rootDir "${opts.rootDir}" not found.`);
         }
@@ -715,7 +715,7 @@ export interface QwikPluginOptions {
   vendorRoots?: string[];
   manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
   manifestInput?: QwikManifest | null;
-  input?: string[] | string;
+  input?: string[] | string | { [entry: string]: string };
   outDir?: string;
   srcDir?: string | null;
   scope?: string | null;

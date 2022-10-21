@@ -1,13 +1,13 @@
 import { BuildConfig, nodeTarget, panic, run, watcher, importPath } from './util';
 import { build, Plugin, transform } from 'esbuild';
-import { join } from 'path';
+import { join } from 'node:path';
 import { readPackageJson, writePackageJson } from './package-json';
 import { checkExistingNpmVersion, releaseVersionPrompt } from './release';
 import semver from 'semver';
 import mri from 'mri';
 import { execa } from 'execa';
-import { fileURLToPath } from 'url';
-import { readFile, copyFile } from 'fs/promises';
+import { fileURLToPath } from 'node:url';
+import { readFile, copyFile } from 'node:fs/promises';
 import { rollup } from 'rollup';
 
 const PACKAGE = 'qwik-city';
@@ -36,50 +36,61 @@ export async function buildQwikCity(config: BuildConfig) {
 
   const loaderPkg = {
     ...(await readPackageJson(inputDir)),
-    main: './index.qwik.cjs',
+    main: './index.qwik.mjs',
     qwik: './index.qwik.mjs',
     types: './index.d.ts',
     type: 'module',
     exports: {
       '.': {
+        types: './index.d.ts',
         import: './index.qwik.mjs',
         require: './index.qwik.cjs',
       },
       './adaptors/cloudflare-pages/vite': {
+        types: './adaptors/cloudflare-pages/vite/index.d.ts',
         import: './adaptors/cloudflare-pages/vite/index.mjs',
         require: './adaptors/cloudflare-pages/vite/index.cjs',
       },
       './adaptors/express/vite': {
+        types: './adaptors/express/vite/index.d.ts',
         import: './adaptors/express/vite/index.mjs',
         require: './adaptors/express/vite/index.cjs',
       },
       './adaptors/netlify-edge/vite': {
+        types: './adaptors/netlify-edge/vite/index.d.ts',
         import: './adaptors/netlify-edge/vite/index.mjs',
         require: './adaptors/netlify-edge/vite/index.cjs',
       },
       './adaptors/static/vite': {
+        types: './adaptors/static/vite/index.d.ts',
         import: './adaptors/static/vite/index.mjs',
         require: './adaptors/static/vite/index.cjs',
       },
       './middleware/cloudflare-pages': {
+        types: './middleware/cloudflare-pages/index.d.ts',
         import: './middleware/cloudflare-pages/index.mjs',
       },
       './middleware/node': {
+        types: './middleware/node/index.d.ts',
         import: './middleware/node/index.mjs',
         require: './middleware/node/index.cjs',
       },
       './middleware/netlify-edge': {
+        types: './middleware/netlify-edge/index.d.ts',
         import: './middleware/netlify-edge/index.mjs',
       },
       './static': {
+        types: './static/index.d.ts',
         import: './static/index.mjs',
         require: './static/index.cjs',
       },
       './vite': {
+        types: './vite/index.d.ts',
         import: './vite/index.mjs',
         require: './vite/index.cjs',
       },
       './service-worker': {
+        types: './service-worker.d.ts',
         import: './service-worker.mjs',
         require: './service-worker.cjs',
       },

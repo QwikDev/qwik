@@ -1,4 +1,4 @@
-import type { IncomingMessage, ServerResponse } from 'http';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { QwikCityHandlerOptions } from '../request-handler/types';
 import { errorHandler, notFoundHandler, requestHandler } from '../request-handler';
 import { fromNodeHttp, getUrl } from './http';

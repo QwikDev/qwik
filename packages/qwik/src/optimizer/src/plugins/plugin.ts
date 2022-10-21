@@ -14,6 +14,7 @@ import type {
   TransformModuleInput,
   TransformOutput,
 } from '../types';
+import { createLinter, QwikLinter } from './eslint-plugin';
 
 export interface QwikPackages {
   id: string;
@@ -26,6 +27,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const transformedOutputs = new Map<string, [TransformModule, string]>();
 
   let internalOptimizer: Optimizer | null = null;
+  let linter: QwikLinter | undefined = undefined;
   let addWatchFileCallback: (ctx: any, path: string) => void = () => {};
   let diagnosticsCallback: (
     d: Diagnostic[],
@@ -167,7 +169,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     if (Array.isArray(updatedOpts.input)) {
-      opts.input = updatedOpts.input;
+      opts.input = [...updatedOpts.input];
     } else if (typeof updatedOpts.input === 'string') {
       opts.input = [updatedOpts.input];
     } else {
@@ -182,9 +184,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         opts.input = [path.resolve(srcDir, 'index.ts')];
       }
     }
-    opts.input = opts.input.map((input) => {
-      return normalizePath(path.resolve(opts.rootDir, input));
-    });
+    opts.input = opts.input.reduce((inputs, i) => {
+      let input = i;
+      if (!i.startsWith('@') && !i.startsWith('~')) {
+        input = normalizePath(path.resolve(opts.rootDir, i));
+      }
+      if (!inputs.includes(input)) {
+        inputs.push(input);
+      }
+      return inputs;
+    }, [] as string[]);
 
     if (typeof updatedOpts.outDir === 'string') {
       opts.outDir = normalizePath(path.resolve(opts.rootDir, normalizePath(updatedOpts.outDir)));
@@ -229,7 +238,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       const sys = getSys();
       if (sys.env === 'node') {
-        const fs: typeof import('fs') = await sys.dynamicImport('fs');
+        const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
         if (!fs.existsSync(opts.rootDir)) {
           throw new Error(`Qwik rootDir "${opts.rootDir}" not found.`);
         }
@@ -254,9 +263,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.forceFullBuild ? 'full build' : 'isolated build',
       opts.scope
     );
+    const optimizer = getOptimizer();
+
+    try {
+      linter = await createLinter(optimizer.sys, opts.rootDir);
+    } catch (err) {
+      console.error(err);
+    }
 
     if (opts.forceFullBuild) {
-      const optimizer = getOptimizer();
       const path = getPath();
 
       let srcDir = '/';
@@ -429,7 +444,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
 
-  const transform = function (ctx: any, code: string, id: string) {
+  const transform = async function (ctx: any, code: string, id: string) {
     if (opts.forceFullBuild) {
       // Only run when moduleIsolated === true
       return null;
@@ -485,6 +500,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
 
+      if (newOutput.diagnostics.length === 0 && linter) {
+        await linter.lint(ctx, code, id);
+      }
       results.set(normalizePath(pathId), newOutput);
 
       for (const [id, output] of results.entries()) {
@@ -697,7 +715,7 @@ export interface QwikPluginOptions {
   vendorRoots?: string[];
   manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
   manifestInput?: QwikManifest | null;
-  input?: string[] | string;
+  input?: string[] | string | { [entry: string]: string };
   outDir?: string;
   srcDir?: string | null;
   scope?: string | null;

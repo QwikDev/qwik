@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import * as assert from 'uvu/assert';
 import { createMenu, parseMenu } from './menu';
 import { suite } from '../../utils/test-suite';

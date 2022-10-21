@@ -26,7 +26,7 @@ import { qDev } from '../../util/qdev';
 import { isQwikElement } from '../../util/element';
 import type { SubscriberSignal, Subscriptions } from '../../state/common';
 import { resumeIfNeeded } from '../../container/resume';
-import { getContext } from '../../state/context';
+import { getContext, HOST_FLAG_DIRTY } from '../../state/context';
 
 export const notifyChange = (subAction: Subscriptions, containerState: ContainerState) => {
   if (subAction[0] === 0) {
@@ -67,10 +67,10 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
     `render: notified host element must have a defined $renderQrl$`,
     elCtx
   );
-  if (elCtx.$dirty$) {
+  if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
     return;
   }
-  elCtx.$dirty$ = true;
+  elCtx.$flags$ |= HOST_FLAG_DIRTY;
   const activeRendering = containerState.$hostsRendering$ !== undefined;
   if (activeRendering) {
     assertDefined(

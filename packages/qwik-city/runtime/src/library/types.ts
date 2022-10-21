@@ -196,8 +196,8 @@ export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
  * @alpha
  */
 export interface QwikCityPlan {
-  routes?: RouteData[];
-  fallbackRoutes?: FallbackRouteData[];
+  routes: RouteData[];
+  basePathname?: string;
   menus?: MenuData[];
   trailingSlash?: boolean;
   cacheModules?: boolean;

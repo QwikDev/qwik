@@ -7,18 +7,13 @@ import {
   createRenderContext,
   executeComponent,
   getNextIndex,
+  jsxToString,
   stringifyStyle,
 } from '../execute-component';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
-import { SSRComment, InternalSSRStream, Virtual } from '../jsx/utils.public';
+import { InternalSSRStream, Virtual, SSRRaw } from '../jsx/utils.public';
 import { logError, logWarn } from '../../util/log';
-import {
-  addQRLListener,
-  groupListeners,
-  isOnProp,
-  PREVENT_DEFAULT,
-  setEvent,
-} from '../../state/listeners';
+import { groupListeners, isOnProp, PREVENT_DEFAULT, setEvent } from '../../state/listeners';
 import { version } from '../../version';
 import {
   addQwikEvent,
@@ -37,7 +32,13 @@ import type { QwikElement } from '../dom/virtual-element';
 import { assertElement } from '../../util/element';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import type { QRLInternal } from '../../qrl/qrl-class';
-import { getContext, QContext, Q_CTX } from '../../state/context';
+import {
+  getContext,
+  HOST_FLAG_DYNAMIC,
+  HOST_FLAG_NEED_ATTACH_LISTENER,
+  QContext,
+  Q_CTX,
+} from '../../state/context';
 import { createProxy } from '../../state/store';
 import {
   QObjectFlagsSymbol,
@@ -368,7 +369,7 @@ export const renderSSRComponent = (
       stream,
       flags,
       (stream) => {
-        if (elCtx.$needAttachListeners$) {
+        if (elCtx.$flags$ & HOST_FLAG_NEED_ATTACH_LISTENER) {
           logWarn('Component registered some events, some component use useStyleStyle$()');
         }
         if (beforeClose) {
@@ -437,6 +438,10 @@ export const renderNode = (
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ) => {
   const tagName = node.type;
+  const hostCtx = ssrCtx.hostCtx;
+  if (hostCtx && hasDynamicChildren(node)) {
+    hostCtx.$flags$ |= HOST_FLAG_DYNAMIC;
+  }
   if (typeof tagName === 'string') {
     const key = node.key;
     const props = node.props;
@@ -444,7 +449,6 @@ export const renderNode = (
     const elCtx = createContext(1);
     const elm = elCtx.$element$;
     const isHead = tagName === 'head';
-    const hostCtx = ssrCtx.hostCtx;
     let openingElement = '<' + tagName;
     let useSignal = false;
     assertElement(elm);
@@ -498,9 +502,9 @@ export const renderNode = (
       if (hostCtx.$scopeIds$) {
         classStr = hostCtx.$scopeIds$.join(' ') + ' ' + classStr;
       }
-      if (hostCtx.$needAttachListeners$) {
-        addQRLListener(listeners, hostCtx.li);
-        hostCtx.$needAttachListeners$ = false;
+      if (hostCtx.$flags$ & HOST_FLAG_NEED_ATTACH_LISTENER) {
+        listeners.push(...hostCtx.li);
+        hostCtx.$flags$ &= ~HOST_FLAG_NEED_ATTACH_LISTENER;
       }
     }
 
@@ -594,8 +598,8 @@ export const renderNode = (
     );
   }
 
-  if (tagName === SSRComment) {
-    stream.write('<!--' + (node as JSXNode<typeof SSRComment>).props.data + '-->');
+  if (tagName === SSRRaw) {
+    stream.write((node as JSXNode<typeof SSRRaw>).props.data);
     return;
   }
   if (tagName === InternalSSRStream) {
@@ -630,13 +634,13 @@ export const processData = (
         value = node.value;
         const id = getNextIndex(ssrCtx.rCtx);
         addSignalSub(2, hostEl, node, '#' + id, 'data');
-        stream.write(`<!--t=${id}-->${escapeHtml(String(value))}<!---->`);
+        stream.write(`<!--t=${id}-->${escapeHtml(jsxToString(value))}<!---->`);
         return;
       } else {
         value = invoke(ssrCtx.invocationContext, () => node.value);
       }
     }
-    stream.write(escapeHtml(String(value)));
+    stream.write(escapeHtml(jsxToString(value)));
     return;
   } else if (isPromise(node)) {
     stream.write(FLUSH_COMMENT);
@@ -745,7 +749,7 @@ export const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => 
   } else if (
     isJSXNode(children) &&
     isFunction(children.type) &&
-    children.type !== SSRComment &&
+    children.type !== SSRRaw &&
     children.type !== InternalSSRStream &&
     children.type !== Virtual
   ) {
@@ -874,6 +878,6 @@ export const joinClasses = (styles: any[], existing: string): string => {
   return styles.join(' ') + existing;
 };
 
-export const isPrimitive = (obj: any): obj is string | number => {
-  return isString(obj) || typeof obj === 'number';
+const hasDynamicChildren = (node: JSXNode) => {
+  return (node.props as any)[_IMMUTABLE]?.children === false;
 };

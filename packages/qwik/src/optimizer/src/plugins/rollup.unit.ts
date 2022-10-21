@@ -1,4 +1,4 @@
-import path, { resolve } from 'path';
+import path, { resolve } from 'node:path';
 import { qwikRollup } from './rollup';
 import type { InputOptions, OutputOptions } from 'rollup';
 import type { OptimizerOptions } from '../types';

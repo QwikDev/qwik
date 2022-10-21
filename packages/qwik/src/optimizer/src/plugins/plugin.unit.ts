@@ -1,4 +1,4 @@
-import path, { resolve } from 'path';
+import path, { resolve } from 'node:path';
 import { suite } from 'uvu';
 import type { QwikManifest } from '../types';
 import { createPlugin } from './plugin';

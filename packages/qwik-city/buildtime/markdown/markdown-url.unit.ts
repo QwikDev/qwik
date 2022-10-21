@@ -2,8 +2,8 @@ import { test } from 'uvu';
 import { equal } from 'uvu/assert';
 import { getMarkdownRelativeUrl } from './markdown-url';
 import type { NormalizedPluginOptions } from '../types';
-import { tmpdir } from 'os';
-import { join } from 'path';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 test('getMarkdownRelativeUrl', () => {
   const routesDir = tmpdir();
@@ -58,6 +58,11 @@ test('getMarkdownRelativeUrl', () => {
       basePathname: '/',
       trailingSlash: !!c.trailingSlash,
       routesDir: routesDir,
+      mdxPlugins: {
+        remarkGfm: true,
+        rehypeSyntaxHighlight: true,
+        rehypeAutolinkHeadings: true,
+      },
       mdx: {},
       baseUrl: '/',
     };

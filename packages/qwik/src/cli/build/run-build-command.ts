@@ -18,7 +18,8 @@ export async function runBuildCommand(app: AppCommand) {
   const buildServerScript = !isPreviewBuild ? pkgJsonScripts['build.server'] : undefined;
   const buildStaticScript = pkgJsonScripts['build.static'];
   const runSsgScript = pkgJsonScripts['ssg'];
-  const buildTypes = !isPreviewBuild ? pkgJsonScripts['build.types'] : undefined;
+  const buildTypes = pkgJsonScripts['build.types'];
+  const lint = pkgJsonScripts['lint'];
 
   const scripts = [
     buildTypes,
@@ -27,6 +28,7 @@ export async function runBuildCommand(app: AppCommand) {
     buildPreviewScript,
     buildServerScript,
     buildStaticScript,
+    lint,
   ].filter((s) => typeof s === 'string' && s.trim().length > 0)!;
 
   if (!isLibraryBuild && !buildClientScript) {
@@ -99,6 +101,26 @@ export async function runBuildCommand(app: AppCommand) {
       process.exit(1);
     });
     step2.push(libBuild);
+  }
+
+  if (lint) {
+    const lintScript = parseScript(lint);
+    const lintBuild = execa(lintScript.cmd, lintScript.flags, {
+      cwd: app.rootDir,
+      env: {
+        FORCE_COLOR: 'true',
+      },
+    }).catch((e) => {
+      console.log(``);
+      if (e.stderr) {
+        console.log(e.stderr);
+      } else {
+        console.log(e.stdout);
+      }
+      console.log(``);
+      process.exit(1);
+    });
+    step2.push(lintBuild);
   }
 
   if (buildPreviewScript) {

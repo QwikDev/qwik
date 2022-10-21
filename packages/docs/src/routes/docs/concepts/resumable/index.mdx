@@ -48,7 +48,7 @@ Existing frameworks solve the event listener by downloading the components and e
 
 The above approach does not scale. As the application becomes more complicated, the amount of code needed to download eagerly and execute grows proportionally with the size of the application. This negatively impacts the application startup performance and hence the user experience.
 
-Qwik solves the above issue by serializing the event listens into DOM like so:
+Qwik solves the above issue by serializing the event listeners into DOM like so:
 
 ```html
 <button on:click="./chunk.js#handler_symbol">click me</button>
@@ -106,5 +106,3 @@ The most obvious benefit of using resumability is for server-side-rendering. How
 - Fine-grained lazy-loading
 - Decreased memory pressure, especially on mobile devices
 - Progressive interactivity of existing static websites
-
-Reactivity is a key component of Qwik. Reactivity allows Qwik to track which components are subscribed to which state. This information enables Qwik to invalidate only the relevant component on state change, which minimizes the number of components that need to be rerendered. Without reactivity, a state change would require re-rendering from the root component, which would force the whole component tree to be eagerly downloaded.

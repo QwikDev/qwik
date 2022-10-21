@@ -1,5 +1,5 @@
-import fs from 'fs';
-import { join } from 'path';
+import fs from 'node:fs';
+import { join } from 'node:path';
 import type { IntegrationData, IntegrationType } from '../types';
 import { dashToTitlelCase, readPackageJson } from './utils';
 
@@ -8,7 +8,7 @@ let integrations: IntegrationData[] | null = null;
 export async function loadIntegrations() {
   if (!integrations) {
     const loadingIntegrations: IntegrationData[] = [];
-    const integrationTypes: IntegrationType[] = ['app', 'feature', 'server', 'static-generator'];
+    const integrationTypes: IntegrationType[] = ['app', 'feature', 'adaptor'];
 
     const integrationsDir = join(__dirname, 'starters');
     const integrationsDirNames = await fs.promises.readdir(integrationsDir);
@@ -28,12 +28,12 @@ export async function loadIntegrations() {
                 const pkgJson = await readPackageJson(dirPath);
                 const integration: IntegrationData = {
                   id: dirItem,
-                  name: dashToTitlelCase(dirItem),
+                  name: pkgJson.__qwik__?.displayName ?? dashToTitlelCase(dirItem),
                   type: integrationType,
                   dir: dirPath,
                   pkgJson,
+                  docs: pkgJson.__qwik__?.docs ?? [],
                   priority: pkgJson?.__qwik__?.priority ?? 0,
-                  viteConfig: pkgJson?.__qwik__?.viteConfig,
                 };
                 loadingIntegrations.push(integration);
               }

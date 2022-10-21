@@ -110,16 +110,16 @@ export const MouseEvents = component$(() => {
   return (
     <div
       onMouseMove$={(event) => {
-        mouseSelf2.x = (event as MouseEvent).clientX;
-        mouseSelf2.y = (event as MouseEvent).clientY;
+        mouseSelf2.x = event.clientX;
+        mouseSelf2.y = event.clientY;
       }}
       window:onMouseMove$={(event) => {
-        mouseWin2.x = (event as MouseEvent).clientX;
-        mouseWin2.y = (event as MouseEvent).clientY;
+        mouseWin2.x = event.clientX;
+        mouseWin2.y = event.clientY;
       }}
       document:onMouseMove$={(event) => {
-        mouseDoc2.x = (event as MouseEvent).clientX;
-        mouseDoc2.y = (event as MouseEvent).clientY;
+        mouseDoc2.x = event.clientX;
+        mouseDoc2.y = event.clientY;
       }}
     >
       <p class="document">

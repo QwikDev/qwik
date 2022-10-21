@@ -1,4 +1,4 @@
-import { basename, dirname, normalize, relative } from 'path';
+import { basename, dirname, normalize, relative } from 'node:path';
 import type { NormalizedPluginOptions } from '../buildtime/types';
 import { toTitleCase } from './format';
 import { normalizePathname } from './pathname';
@@ -85,11 +85,11 @@ export function normalizePath(path: string) {
   return path;
 }
 
-export function createFileId(routesDir: string, path: string) {
+export function createFileId(routesDir: string, fsPath: string) {
   const ids: string[] = [];
 
   for (let i = 0; i < 25; i++) {
-    let baseName = removeExtension(basename(path));
+    let baseName = removeExtension(basename(fsPath));
 
     baseName = baseName.replace(/[\W_]+/g, '');
     if (baseName === '') {
@@ -99,9 +99,9 @@ export function createFileId(routesDir: string, path: string) {
     }
     ids.push(toTitleCase(baseName));
 
-    path = normalizePath(dirname(path));
+    fsPath = normalizePath(dirname(fsPath));
 
-    if (path === routesDir) {
+    if (fsPath === routesDir) {
       break;
     }
   }

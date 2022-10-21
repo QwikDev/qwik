@@ -2,6 +2,7 @@ import type { Plugin as VitePlugin, UserConfig, ViteDevServer } from 'vite';
 import type {
   EntryStrategy,
   GlobalInjections,
+  Optimizer,
   OptimizerOptions,
   OptimizerSystem,
   QwikManifest,
@@ -38,18 +39,23 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let clientDevInput: undefined | string = undefined;
   let tmpClientManifestPath: undefined | string = undefined;
   let viteCommand: 'build' | 'serve' = 'serve';
+  let manifestInput: QwikManifest | null = null;
+  let clientOutDir: string | null = null;
   const injections: GlobalInjections[] = [];
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
+  const api: QwikVitePluginApi = {
+    getOptimizer: () => qwikPlugin.getOptimizer(),
+    getOptions: () => qwikPlugin.getOptions(),
+    getManifest: () => manifestInput,
+    getRootDir: () => qwikPlugin.getOptions().rootDir,
+    getClientOutDir: () => clientOutDir,
+  };
+
   const vitePlugin: VitePlugin = {
     name: 'vite-plugin-qwik',
-
     enforce: 'pre',
-
-    api: {
-      getOptimizer: () => qwikPlugin.getOptimizer(),
-      getOptions: () => qwikPlugin.getOptions(),
-    },
+    api,
 
     async config(viteConfig, viteEnv) {
       await qwikPlugin.init();
@@ -117,9 +123,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           // from --ssr flag user config
           // entry.server.ts (express/cloudflare/netlify)
           pluginOpts.input = viteConfig.build.ssr;
-        } else {
+        } else if (typeof qwikViteOpts.ssr?.input === 'string') {
           // entry.ssr.tsx input (exports render())
-          pluginOpts.input = qwikViteOpts.ssr?.input;
+          pluginOpts.input = qwikViteOpts.ssr.input;
+        } else if (viteConfig.build?.ssr && Array.isArray(viteConfig.build?.rollupOptions?.input)) {
+          pluginOpts.input = viteConfig.build!.rollupOptions!.input;
         }
 
         pluginOpts.outDir = qwikViteOpts.ssr?.outDir;
@@ -137,7 +145,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
 
       if (sys.env === 'node') {
-        const fs: typeof import('fs') = await sys.dynamicImport('fs');
+        const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
 
         try {
           const rootDir = pluginOpts.rootDir ?? sys.cwd();
@@ -161,7 +169,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // OS tmp directory. This path should always be the same for both client and ssr.
         // Client build will write to this path, and SSR will read from it. For this reason,
         // the Client build should always start and finish before the SSR build.
-        const nodeOs: typeof import('os') = await sys.dynamicImport('os');
+        const nodeOs: typeof import('os') = await sys.dynamicImport('node:os');
         tmpClientManifestPath = path.join(nodeOs.tmpdir(), `vite-plugin-qwik-q-manifest.json`);
 
         if (target === 'ssr' && !pluginOpts.manifestInput) {
@@ -178,13 +186,15 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       const opts = qwikPlugin.normalizeOptions(pluginOpts);
 
-      // TODO: better way for other plugins to get ahold of the manifest info
-      (globalThis as any).QWIK_MANIFEST = pluginOpts.manifestInput;
+      manifestInput = pluginOpts.manifestInput || null;
 
-      // TODO: better way for other plugins to get ahold of client output directory path
-      (globalThis as any).QWIK_CLIENT_OUT_DIR = qwikPlugin.normalizePath(
+      clientOutDir = qwikPlugin.normalizePath(
         sys.path.resolve(opts.rootDir, qwikViteOpts.client?.outDir || CLIENT_OUT_DIR)
       );
+
+      // TODO: Remove globalThis that was previously used. Left in for backwards compatibility.
+      (globalThis as any).QWIK_MANIFEST = manifestInput;
+      (globalThis as any).QWIK_CLIENT_OUT_DIR = clientOutDir;
 
       if (typeof qwikViteOpts.client?.devInput === 'string') {
         clientDevInput = path.resolve(opts.rootDir, qwikViteOpts.client.devInput);
@@ -376,7 +386,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               size: b.code.length,
             });
           } else {
-            if (fileName.endsWith('.css')) {
+            if (['.css', '.scss', '.sass'].some((ext) => fileName.endsWith(ext))) {
               injections.push({
                 tag: 'link',
                 location: 'head',
@@ -424,7 +434,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         const sys = qwikPlugin.getSys();
         if (tmpClientManifestPath && sys.env === 'node') {
           // Client build should write the manifest to a tmp dir
-          const fs: typeof import('fs') = await sys.dynamicImport('fs');
+          const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
           await fs.promises.writeFile(tmpClientManifestPath, clientManifestStr);
         }
       }
@@ -461,7 +471,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                   // didn't generate a .js script
                   // create a .js file that just import()s their script
                   const bundleOutDir = sys.path.dirname(bundeName);
-                  const fs: typeof import('fs') = await sys.dynamicImport('fs');
+                  const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
                   await fs.promises.writeFile(
                     sys.path.join(opts.outDir, bundleOutDir, js),
                     `import("./${moduleName}").catch((e) => { console.error(e); process.exit(1); });`
@@ -497,7 +507,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     handleHotUpdate(ctx) {
       qwikPlugin.log('handleHotUpdate()', ctx);
 
-      if (ctx.file.endsWith('.css')) {
+      if (['.css', '.scss', '.sass'].some((ext) => ctx.file.endsWith(ext))) {
         qwikPlugin.log('handleHotUpdate()', 'force css reload');
 
         ctx.server.ws.send({
@@ -549,7 +559,7 @@ const findQwikRoots = async (
   packageJsonPath: string
 ): Promise<QwikPackages[]> => {
   if (sys.env === 'node') {
-    const fs: typeof import('fs') = await sys.dynamicImport('fs');
+    const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
     const { resolvePackageData }: typeof import('vite') = await sys.strictDynamicImport('vite');
 
     try {
@@ -678,6 +688,25 @@ export interface QwikVitePluginOptions {
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
+}
+
+/**
+ * @alpha
+ */
+export interface QwikVitePluginApi {
+  getOptimizer: () => Optimizer | null;
+  getOptions: () => NormalizedQwikPluginOptions;
+  getManifest: () => QwikManifest | null;
+  getRootDir: () => string | null;
+  getClientOutDir: () => string | null;
+}
+
+/**
+ * @alpha
+ */
+export interface QwikVitePlugin {
+  name: 'vite-plugin-qwik';
+  api: QwikVitePluginApi;
 }
 
 export interface QwikViteDevResponse {

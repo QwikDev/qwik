@@ -1,7 +1,7 @@
 import type { ViteDevServer, Connect } from 'vite';
-import type { ServerResponse } from 'http';
-import fs from 'fs';
-import { join, resolve } from 'path';
+import type { ServerResponse } from 'node:http';
+import fs from 'node:fs';
+import { join, resolve } from 'node:path';
 import type { BuildContext } from '../types';
 import type { RouteModule } from '../../runtime/src/library/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
@@ -96,7 +96,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             requestCtx,
             params,
             routeModules,
-            {},
             ctx.opts.trailingSlash,
             ctx.opts.basePathname
           );
@@ -294,6 +293,8 @@ const SKIP_SRC_EXTS: { [ext: string]: boolean } = {
   '.md': true,
   '.mdx': true,
   '.css': true,
+  '.scss': true,
+  '.sass': true,
 };
 
 const STATIC_CONTENT_TYPES: { [ext: string]: string } = {

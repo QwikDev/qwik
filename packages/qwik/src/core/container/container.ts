@@ -57,7 +57,7 @@ export interface SnapshotListener {
  */
 export interface SnapshotResult {
   state: SnapshotState;
-  listeners: SnapshotListener[];
+  qrls: QRL[];
   objs: any[];
   mode: 'render' | 'listeners' | 'static';
 }
@@ -146,9 +146,8 @@ export const addQwikEvent = (prop: string, containerState: ContainerState) => {
   const eventName = getEventName(prop);
   if (!qTest && !isServer()) {
     try {
-      if ((window as any).qwikevents) {
-        (window as any).qwikevents.push(eventName);
-      }
+      const qwikevents = ((globalThis as any).qwikevents ||= []);
+      qwikevents.push(eventName);
     } catch (err) {
       logWarn(err);
     }

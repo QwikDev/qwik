@@ -1,5 +1,6 @@
 import type { SubscriberSignal } from '../../state/common';
 import { tryGetContext } from '../../state/context';
+import { jsxToString } from '../execute-component';
 import type { RenderStaticContext } from '../types';
 import { setProperty } from './operations';
 import { smartSetProperty, SVG_NS } from './visitor';
@@ -25,6 +26,6 @@ export const executeSignalOperation = (
       return smartSetProperty(staticCtx, elm, prop, value, oldValue, isSVG);
     }
     case 2:
-      return setProperty(staticCtx, operation[3], 'data', value);
+      return setProperty(staticCtx, operation[3], 'data', jsxToString(value));
   }
 };

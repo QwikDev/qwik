@@ -50,10 +50,10 @@ export const MUISlider = qwikify$(Slider, { eagerness: 'hover' });
 
 In a nutshell, the rules are:
 
-- 1. Don't mix React and Qwik components in the same file.
-- 2. Place all your react code inside the `src/integrations/react` folder.
-- 3. Add `/** @jsxImportSource react */` at the top of the files containing React code.
-- 4. Use `qwikify$()` to convert React components into Qwik components, which you can import from Qwik modules.
+1. Don't mix React and Qwik components in the same file.
+2. Place all your react code inside the `src/integrations/react` folder.
+3. Add `/** @jsxImportSource react */` at the top of the files containing React code.
+4. Use `qwikify$()` to convert React components into Qwik components, which you can import from Qwik modules.
 
 
 Now your Qwik can import `MUIButton` and use it as any other Qwik component:

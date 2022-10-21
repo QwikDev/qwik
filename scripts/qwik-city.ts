@@ -1,13 +1,13 @@
 import { BuildConfig, nodeTarget, panic, run, watcher, importPath } from './util';
 import { build, Plugin, transform } from 'esbuild';
-import { join } from 'path';
+import { join } from 'node:path';
 import { readPackageJson, writePackageJson } from './package-json';
 import { checkExistingNpmVersion, releaseVersionPrompt } from './release';
 import semver from 'semver';
 import mri from 'mri';
 import { execa } from 'execa';
-import { fileURLToPath } from 'url';
-import { readFile, copyFile } from 'fs/promises';
+import { fileURLToPath } from 'node:url';
+import { readFile, copyFile } from 'node:fs/promises';
 import { rollup } from 'rollup';
 
 const PACKAGE = 'qwik-city';

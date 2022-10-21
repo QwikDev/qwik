@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { readLines, scanFiles, writeFileLines } from './util';
 
 export function main(dir: string) {

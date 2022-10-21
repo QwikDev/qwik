@@ -1,5 +1,5 @@
 import type { RequestHandler } from '~qwik-city-runtime';
-import os from 'os';
+import os from 'node:os';
 
 export const onGet: RequestHandler = ({ request }) => {
   return {

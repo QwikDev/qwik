@@ -1,5 +1,5 @@
 import type { Plugin, WatchMode } from 'esbuild';
-import { join } from 'path';
+import { join } from 'node:path';
 import mri from 'mri';
 import {
   access as fsAccess,
@@ -16,12 +16,12 @@ import {
   unlinkSync,
   writeFile as fsWriteFile,
   mkdir as fsMkdir,
-} from 'fs';
+} from 'node:fs';
 import { promisify } from 'util';
 import { minify, MinifyOptions } from 'terser';
 import type { Plugin as RollupPlugin } from 'rollup';
 import { execa, Options } from 'execa';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Contains information about the build we're generating by parsing

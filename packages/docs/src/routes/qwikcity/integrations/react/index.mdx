@@ -16,7 +16,7 @@ Inside your Qwik app run:
 npm run qwik add react
 ```
 
-If you don't have a Qwik app yet, then you need to [create one first](/docs/getting-started/index.mdx), then, follow the instructions and run the command add React to your app.
+If you don't have a Qwik app yet, then you need to [create one first](../../../docs/getting-started/index.mdx), then, follow the instructions and run the command add React to your app.
 
 ```bash
 npm create qwik
@@ -28,7 +28,7 @@ npm run qwik add react
 
 The `@builder.io/qwik-react` package exports the `qwikify$()` function that allows to convert React components into Qwik components, you can use across your application.
 
-> **Note:** You CAN NOT use React components in Qwik without converting them first, using `qwikify$()`. Even though [React and Qwik component look similar](/docs/cheat/qwik-react/index.mdx), they are fundamentally very different.
+> **Note:** You CAN NOT use React components in Qwik without converting them first, using `qwikify$()`. Even though [React and Qwik component look similar](../../../docs/cheat/qwik-react/index.mdx), they are fundamentally very different.
 
 React and Qwik components can not be mixed in the same file, if you check your project right after running the installation command, you will see a new folder `src/integrations/react/`, from now on, all your React components will live there.
 
@@ -213,7 +213,7 @@ import { Slider } from '@mui/material';
 <Slider onChange={() => console.log('value changed')}></Slider>
 ```
 
-The `qwikify()` function will convert this into a Qwik component that will also expose the React events as Qwik [QRLs](/docs/advanced/qrl/):
+The `qwikify()` function will convert this into a Qwik component that will also expose the React events as Qwik [QRLs](../../../docs/advanced/qrl/index.mdx):
 
 ```tsx
 import { Slider } from '@mui/material';
@@ -247,7 +247,7 @@ The host element is not part of React, meaning that hydration is not necessary t
 ```tsx
 <MUIButton host:onClick$={() => {
   console.log('click a react component without hydration!!');
-}}/>
+}} />
 ```
 
 This will effectively allow you to respond to a click in a [MUI button](https://mui.com/material-ui/react-button/) without downloading a single byte of React code.

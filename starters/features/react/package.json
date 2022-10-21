@@ -18,10 +18,8 @@
       "https://qwik.builder.io/qwikcity/integrations/react/"
     ],
     "nextSteps": {
-      "title": "REACT SUPPORT ADDED!",
+      "title": "New folders created!",
       "lines": [
-        "",
-        "Check out the newly created folders:",
         "",
         " - /src/routes/react: New public route showcasing react integration",
         " - /src/integrations/react: Here's where react component live",

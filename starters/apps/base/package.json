@@ -12,6 +12,7 @@
     "lint": "eslint src/**/*.ts*",
     "preview": "qwik build preview && vite preview --open",
     "start": "vite --open --mode ssr",
+    "serve": "echo 'Run \"npm run qwik add\" to install a server adaptor'",
     "qwik": "qwik"
   },
   "devDependencies": {

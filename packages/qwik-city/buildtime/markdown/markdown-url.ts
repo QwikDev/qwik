@@ -1,8 +1,8 @@
-import { dirname, join, basename } from 'path';
+import { dirname, join, basename } from 'node:path';
 import { getSourceFile } from '../routing/source-file';
 import type { NormalizedPluginOptions } from '../types';
 import { getExtension, getPathnameFromDirPath, isMarkdownExt, normalizePath } from '../../utils/fs';
-import { existsSync } from 'fs';
+import { existsSync } from 'node:fs';
 import { isSameOriginUrl } from '../../utils/pathname';
 
 export function getMarkdownRelativeUrl(

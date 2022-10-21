@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 import type { CreateAppOptions, CreateAppResult, IntegrationData } from '../qwik/src/cli/types';
-import fs from 'fs';
+import fs from 'node:fs';
 import color from 'kleur';
-import { isAbsolute, join, relative, resolve } from 'path';
+import { isAbsolute, join, relative, resolve } from 'node:path';
 import {
   cleanPackageJson,
   getPackageManager,

@@ -13,8 +13,8 @@ Below is an example of a `src/entry.static.tsx` file, which is the initial file 
 // file: src/entry.static.tsx
 import { qwikCityGenerate } from '@builder.io/qwik-city/static/node';
 import render from './entry.ssr';
-import { fileURLToPath } from 'url';
-import { join } from 'path';
+import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
 qwikCityGenerate(render, {
   origin: 'https://qwik.builder.io',

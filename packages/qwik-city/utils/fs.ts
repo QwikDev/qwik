@@ -1,4 +1,4 @@
-import { basename, dirname, normalize, relative } from 'path';
+import { basename, dirname, normalize, relative } from 'node:path';
 import type { NormalizedPluginOptions } from '../buildtime/types';
 import { toTitleCase } from './format';
 import { normalizePathname } from './pathname';

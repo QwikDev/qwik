@@ -1,6 +1,6 @@
 import express from 'express';
-import { fileURLToPath } from 'url';
-import { join } from 'path';
+import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { qwikCity } from '../../middleware/node';
 import render from './entry.ssr';
 

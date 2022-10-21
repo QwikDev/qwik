@@ -1,10 +1,10 @@
 import { BuildConfig, copyFile, emptyDir, mkdir, nodeTarget, stat } from './util';
 import { build } from 'esbuild';
-import { basename, join } from 'path';
+import { basename, join } from 'node:path';
 import { getBanner, readdir, watcher, run } from './util';
 import { readPackageJson, writePackageJson } from './package-json';
-import { existsSync } from 'fs';
-import { rm } from 'fs/promises';
+import { existsSync } from 'node:fs';
+import { rm } from 'node:fs/promises';
 
 const PACKAGE = 'create-qwik';
 

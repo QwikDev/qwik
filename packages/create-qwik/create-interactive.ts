@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
-import fs from 'fs';
-import { relative } from 'path';
+import fs from 'node:fs';
+import { relative } from 'node:path';
 import prompts from 'prompts';
 import color from 'kleur';
 import type { CreateAppOptions } from '../qwik/src/cli/types';

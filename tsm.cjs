@@ -1,5 +1,5 @@
-const { join } = require('path');
-const { pathToFileURL } = require('url');
+const { join } = require('node:path');
+const { pathToFileURL } = require('node:url');
 
 const corePath = pathToFileURL(join(__dirname, 'packages', 'qwik', 'src', 'core', 'index.ts'));
 

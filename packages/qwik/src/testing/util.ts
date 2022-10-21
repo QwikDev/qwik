@@ -1,5 +1,5 @@
-import { normalize } from 'path';
-import { pathToFileURL } from 'url';
+import { normalize } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 /**
  * @alpha

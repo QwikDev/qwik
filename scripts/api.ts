@@ -1,7 +1,7 @@
 import { BuildConfig, panic } from './util';
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
-import { join } from 'path';
-import { readFileSync, writeFileSync } from 'fs';
+import { join } from 'node:path';
+import { readFileSync, writeFileSync } from 'node:fs';
 
 /**
  * Create each submodule's bundled dts file, and ensure
@@ -157,7 +157,7 @@ declare module '@qwik-city-plan' {
   export const trailingSlash: boolean;
   export const basePathname: string;
   export const cacheModules: boolean;
-  export default { 
+  export default {
     routes: any[];
     menus: any[];
     trailingSlash: boolean;

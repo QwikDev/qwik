@@ -3,7 +3,7 @@
   "description": "Create a component library",
   "version": "0.0.1",
   "private": false,
-  "main": "./lib/index.qwik.cjs",
+  "main": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
   "module": "./lib/index.qwik.mjs",
   "types": "./lib-types/index.d.ts",
@@ -11,7 +11,8 @@
   "exports": {
     ".": {
       "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs"
+      "require": "./lib/index.qwik.cjs",
+      "types": "./lib-types/index.d.ts"
     }
   },
   "files": [

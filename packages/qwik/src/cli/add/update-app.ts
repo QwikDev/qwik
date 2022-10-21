@@ -1,6 +1,6 @@
 import type { FsUpdates, UpdateAppOptions, UpdateAppResult } from '../types';
-import { dirname } from 'path';
-import fs from 'fs';
+import { dirname } from 'node:path';
+import fs from 'node:fs';
 import { getPackageManager, panic } from '../utils/utils';
 import { loadIntegrations } from '../utils/integrations';
 import { installDeps, startSpinner } from '../utils/install-deps';

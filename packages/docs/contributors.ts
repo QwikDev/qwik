@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 import fetch from 'node-fetch';
-import fs from 'fs';
-import path from 'path';
-import url from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
+import url from 'node:url';
 import matter from 'gray-matter';
 
 const rootDir = path.join(path.dirname(url.fileURLToPath(import.meta.url)), '..', '..');

@@ -1,6 +1,6 @@
 import { execa } from 'execa';
-import { mkdir } from 'fs/promises';
-import { fileURLToPath } from 'url';
+import { mkdir } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const token = process.env.API_TOKEN_GITHUB;

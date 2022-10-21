@@ -56,7 +56,7 @@
     "url": "https://github.com/BuilderIO/qwik/issues"
   },
   "type": "module",
-  "main": "./lib/index.qwik.cjs",
+  "main": "./lib/index.qwik.mjs",
   "module": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
   "types": "./lib/types/index.d.ts"

@@ -1,5 +1,5 @@
 import { build, BuildOptions } from 'esbuild';
-import { join } from 'path';
+import { join } from 'node:path';
 import { BuildConfig, importPath, target, watcher } from './util';
 
 /**

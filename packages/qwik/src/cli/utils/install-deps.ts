@@ -1,10 +1,10 @@
 import color from 'kleur';
-import fs from 'fs';
+import fs from 'node:fs';
 import ora from 'ora';
-import os from 'os';
-import path from 'path';
+import os from 'node:os';
+import path from 'node:path';
 import spawn from 'cross-spawn';
-import type { ChildProcess } from 'child_process';
+import type { ChildProcess } from 'node:child_process';
 import type { IntegrationData } from '../types';
 
 export function installDeps(pkgManager: string, dir: string) {

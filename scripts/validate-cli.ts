@@ -8,10 +8,10 @@ import {
   readdirSync,
   copyFileSync,
   existsSync,
-} from 'fs';
+} from 'node:fs';
 import assert from 'assert';
-import { join, relative } from 'path';
-import { fileURLToPath, pathToFileURL } from 'url';
+import { join, relative } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readPackageJson, writePackageJson } from './package-json';
 import { panic } from './util';
 

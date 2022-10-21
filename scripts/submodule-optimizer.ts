@@ -10,12 +10,12 @@ import {
   watcher,
   writeFile,
 } from './util';
-import { join } from 'path';
+import { join } from 'node:path';
 import { minify } from 'terser';
 import { platformArchTriples } from '@napi-rs/triples';
 import { readPackageJson } from './package-json';
 import { watch } from 'rollup';
-import { constants } from 'fs';
+import { constants } from 'node:fs';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 
 /**

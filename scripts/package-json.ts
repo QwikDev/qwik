@@ -1,6 +1,6 @@
 import { BuildConfig, ensureDir, PackageJSON } from './util';
 import { readFile, writeFile } from './util';
-import { join } from 'path';
+import { join } from 'node:path';
 
 /**
  * The published build does not use the package.json found in the root directory.
@@ -16,6 +16,7 @@ export async function generatePackageJson(config: BuildConfig) {
     description: rootPkg.description,
     license: rootPkg.license,
     main: './core.mjs',
+    module: './core.mjs',
     types: './core.d.ts',
     bin: {
       qwik: './qwik.cjs',
@@ -23,6 +24,7 @@ export async function generatePackageJson(config: BuildConfig) {
     type: 'module',
     exports: {
       '.': {
+        types: './core.d.ts',
         import: {
           min: './core.min.mjs',
           production: './core.prod.mjs',
@@ -37,34 +39,41 @@ export async function generatePackageJson(config: BuildConfig) {
         require: './cli.cjs',
       },
       './jsx-runtime': {
+        types: './jsx-runtime.d.ts',
         import: './jsx-runtime.mjs',
         require: './jsx-runtime.cjs',
       },
       './jsx-dev-runtime': {
+        types: './jsx-runtime.d.ts',
         import: './jsx-runtime.mjs',
         require: './jsx-runtime.cjs',
       },
       './build': {
+        types: './build/index.d.ts',
         import: './build/index.mjs',
         require: './build/index.cjs',
       },
       './loader': {
+        types: './loader/index.d.ts',
         import: './loader/index.mjs',
         require: './loader/index.cjs',
       },
       './optimizer.cjs': './optimizer.cjs',
       './optimizer.mjs': './optimizer.mjs',
       './optimizer': {
+        types: './optimizer.d.ts',
         import: './optimizer.mjs',
         require: './optimizer.cjs',
       },
       './server.cjs': './server.cjs',
       './server.mjs': './server.mjs',
       './server': {
+        types: './server.d.ts',
         import: './server.mjs',
         require: './server.cjs',
       },
       './testing': {
+        types: './testing/index.d.ts',
         import: './testing/index.mjs',
         require: './testing/index.cjs',
       },

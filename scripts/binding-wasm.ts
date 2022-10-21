@@ -1,6 +1,6 @@
 import { BuildConfig, copyFile, emptyDir, ensureDir } from './util';
 import spawn from 'cross-spawn';
-import { join } from 'path';
+import { join } from 'node:path';
 import { rollup } from 'rollup';
 
 export async function buildWasmBinding(config: BuildConfig) {

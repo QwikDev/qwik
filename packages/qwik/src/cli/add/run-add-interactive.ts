@@ -6,7 +6,7 @@ import color from 'kleur';
 import { getPackageManager, panic } from '../utils/utils';
 import { updateApp } from './update-app';
 import type { IntegrationData, UpdateAppResult } from '../types';
-import { relative } from 'path';
+import { relative } from 'node:path';
 import { logSuccessFooter, logNextStep } from '../utils/log';
 
 export async function runAddInteractive(app: AppCommand, id: string | undefined) {

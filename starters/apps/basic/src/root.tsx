@@ -17,6 +17,7 @@ export default component$(() => {
     <QwikCity>
       <head>
         <meta charSet="utf-8" />
+        <link rel="manifest" href="/manifest.json" />
         <RouterHead />
       </head>
       <body lang="en">

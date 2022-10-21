@@ -52,11 +52,11 @@ export interface ElementFixtureOptions {
 
 /**
  * Trigger an event in unit tests on an element.
- *
  * @param element
  * @param selector
  * @param event
  * @returns
+ * @alpha
  */
 export async function trigger(
   root: Element,

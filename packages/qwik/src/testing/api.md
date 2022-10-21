@@ -11,7 +11,8 @@ export function createDocument(opts?: MockDocumentOptions): Document;
 
 // @alpha (undocumented)
 export const CreateMock: {
-    triggerEvent: (element: ElementFixture, selector: string) => Promise<void>;
+    setTestPlatform: typeof setTestPlatform;
+    triggerEvent: (element: Element, selector: string) => Promise<void>;
 };
 
 // @alpha
@@ -73,6 +74,10 @@ export interface TestPlatform extends CorePlatform {
 
 // @alpha (undocumented)
 export function toFileUrl(filePath: string): string;
+
+// Warnings were encountered during analysis:
+//
+// /home/ljmendez/Projects/qwik-ts/dist-dev/dts-out/packages/qwik/src/testing/library.d.ts:7:5 - (ae-forgotten-export) The symbol "setTestPlatform" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

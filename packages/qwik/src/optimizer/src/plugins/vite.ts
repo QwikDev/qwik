@@ -472,8 +472,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                   // create a .js file that just import()s their script
                   const bundleOutDir = sys.path.dirname(bundeName);
                   const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+
+                  const folder = sys.path.join(opts.outDir, bundleOutDir);
+                  await fs.promises.mkdir(folder, { recursive: true });
                   await fs.promises.writeFile(
-                    sys.path.join(opts.outDir, bundleOutDir, js),
+                    sys.path.join(folder, js),
                     `import("./${moduleName}").catch((e) => { console.error(e); process.exit(1); });`
                   );
                 }

@@ -19,6 +19,7 @@ export function expressAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
 
     const serverPackageJsonPath = join(serverOutDir!, 'package.json');
     const serverPackageJsonCode = `{"type":"module"}`;
+    await fs.promises.mkdir(serverOutDir!, { recursive: true });
     await fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode);
 
     if (opts.staticGenerate) {

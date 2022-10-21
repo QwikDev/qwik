@@ -1,4 +1,4 @@
-import { BuildConfig, nodeTarget, panic, run, watcher, importPath } from './util';
+import { BuildConfig, nodeTarget, panic, run, watcher, importPath, emptyDir } from './util';
 import { build, Plugin, transform } from 'esbuild';
 import { join } from 'node:path';
 import { readPackageJson, writePackageJson } from './package-json';
@@ -16,6 +16,10 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 export async function buildQwikCity(config: BuildConfig) {
   const inputDir = join(config.packagesDir, PACKAGE);
   const outputDir = join(inputDir, 'lib');
+
+  if (!config.dev) {
+    emptyDir(outputDir);
+  }
 
   await Promise.all([
     buildServiceWorker(config, inputDir, outputDir),
@@ -344,7 +348,7 @@ async function buildAdaptorStaticVite(config: BuildConfig, inputDir: string, out
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adaptors', 'netlify-edge', 'vite', 'index.cjs'),
+    outfile: join(outputDir, 'adaptors', 'static', 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,

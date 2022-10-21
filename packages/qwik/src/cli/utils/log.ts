@@ -21,8 +21,8 @@ export function logSuccessFooter(docs: string[]) {
  */
 export function logNextStep(nextSteps: NextSteps | undefined) {
   if (nextSteps) {
-    console.log(`🔴 ${color.bgGreen(` ${nextSteps.title ?? 'ACTION REQUIRED!'} `)}`);
-    nextSteps.lines.forEach((step) => console.log(`${step}`));
+    console.log(`🟣 ${color.bgMagenta(` ${nextSteps.title ?? 'Action Required!'} `)}`);
+    nextSteps.lines.forEach((step) => console.log(`   ${step}`));
     console.log(``);
   }
 }

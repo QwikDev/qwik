@@ -15,8 +15,8 @@ export async function workerThread(sys: System) {
 
   const opts: StaticGenerateHandlerOptions = {
     ...ssgOpts,
-    render: await import(ssgOpts.renderModulePath),
-    qwikCityPlan: await import(ssgOpts.qwikCityPlanModulePath),
+    render: (await import(ssgOpts.renderModulePath)).default,
+    qwikCityPlan: (await import(ssgOpts.qwikCityPlanModulePath)).default,
   };
 
   sys.createWorkerProcess(async (msg) => {

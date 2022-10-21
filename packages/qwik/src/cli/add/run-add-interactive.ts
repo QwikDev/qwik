@@ -72,23 +72,7 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
 
   let runInstall = false;
   if (integrationHasDeps) {
-    const pkgManager = getPackageManager();
-    const runInstallAnswer = await prompts(
-      {
-        type: 'confirm',
-        name: 'runInstall',
-        message: `Would you like to install ${pkgManager} dependencies?`,
-        initial: true,
-      },
-      {
-        onCancel: async () => {
-          console.log('');
-          process.exit(0);
-        },
-      }
-    );
-    console.log(``);
-    runInstall = !!runInstallAnswer.runInstall;
+    runInstall = true;
   }
 
   const result = await updateApp({

@@ -1,6 +1,6 @@
 {
   "name": "qwik-library-name",
-  "description": "Create a component library",
+  "description": "Create a reusable Qwik component library",
   "version": "0.0.1",
   "private": false,
   "main": "./lib/index.qwik.mjs",
@@ -47,6 +47,10 @@
     "vite": "latest"
   },
   "__qwik__": {
-    "priority": -1
+    "displayName": "Component library",
+    "priority": -1,
+    "docs": [
+      "https://qwik.builder.io/docs/overview/"
+    ]
   }
 }

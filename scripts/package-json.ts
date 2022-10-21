@@ -118,11 +118,13 @@ export async function generateLegacyCjsSubmodule(
     name: `@builder.io/qwik/${pkgName}`,
     version: config.distVersion,
     main: `../${index}.mjs`,
+    module: `../${index}.mjs`,
     types: `../${index}.d.ts`,
     type: 'module',
     private: true,
     exports: {
       '.': {
+        types: `../${index}.d.ts`,
         require: `../${index}.cjs`,
         import: `../${index}.mjs`,
       },

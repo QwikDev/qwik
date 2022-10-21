@@ -9,6 +9,11 @@ import type { CorePlatform } from '@builder.io/qwik';
 // @alpha
 export function createDocument(opts?: MockDocumentOptions): Document;
 
+// @alpha (undocumented)
+export const CreateMock: {
+    triggerEvent: (element: ElementFixture, selector: string) => Promise<void>;
+};
+
 // @alpha
 export function createWindow(opts?: MockDocumentOptions): MockWindow;
 

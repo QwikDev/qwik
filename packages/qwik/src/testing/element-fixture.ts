@@ -85,7 +85,6 @@ export const dispatch = async (root: Element | null, attrName: string, ev: any) 
     root = elm.parentElement;
   }
 };
-
 export function getEvent(elCtx: QContext, prop: string): any {
   return qPropReadQRL(elCtx, normalizeOnProp(prop));
 }

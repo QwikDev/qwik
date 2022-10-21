@@ -1,7 +1,7 @@
 {
   "description": "AWS Lambda",
   "scripts": {
-    "build.server": "vite build --ssr src/entry.aws-lambda.tsx",
+    "build.server": "vite build -c adaptors/aws-lambda/vite.config.ts",
     "serverless:preview": "serverless offline"
   },
   "devDependencies": {
@@ -13,6 +13,11 @@
   },
   "__qwik__": {
     "priority": -1,
-    "nextSteps": []
+    "displayName": "Adaptor: AWS Lambda (serverless)",
+    "docs": [
+      "https://qwik.builder.io/qwikcity/adaptors/aws-lambda/",
+      "https://aws.amazon.com/es/lambda/",
+      "https://www.serverless.com/cloud/docs/get-started"
+    ]
   }
 }

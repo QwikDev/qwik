@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "QwikReact allows to apply inject React component into existing Qwik application",
   "scripts": {
     "build": "npm run build.lib",
@@ -12,7 +12,7 @@
     "dev.ssr": "vite --mode ssr",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
-    "lint": "eslint \"src/**/*.ts*\"",
+    "lint": "eslint src/**/*.ts*",
     "release": "np",
     "start": "npm run dev",
     "typecheck": "tsc --noEmit"
@@ -39,7 +39,8 @@
   "exports": {
     ".": {
       "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs"
+      "require": "./lib/index.qwik.cjs",
+      "types": "./lib/types/index.d.ts"
     }
   },
   "files": [

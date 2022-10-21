@@ -69,7 +69,7 @@ export function logCreateAppResult(result: CreateAppResult, ranInstall: boolean)
   console.log(`   ${pkgManager} start`);
   console.log(``);
 
-  const qwikAdd = pkgManager === 'yarn' ? 'yarn qwik add' : `${pkgManager} run qwik app`;
+  const qwikAdd = pkgManager === 'yarn' ? 'yarn qwik add' : `${pkgManager} run qwik add`;
   console.log(`🔌 ${color.cyan('Integrations? Add Netlify, Cloudflare, Tailwind...')}`);
   console.log(`   ${qwikAdd}`);
   console.log(``);

@@ -293,6 +293,8 @@ const SKIP_SRC_EXTS: { [ext: string]: boolean } = {
   '.md': true,
   '.mdx': true,
   '.css': true,
+  '.scss': true,
+  '.sass': true,
 };
 
 const STATIC_CONTENT_TYPES: { [ext: string]: string } = {

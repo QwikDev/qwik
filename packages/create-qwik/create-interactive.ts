@@ -90,7 +90,7 @@ export async function runCreateInteractiveCli() {
       name: 'starterId',
       message: 'Select a starter',
       choices: apps.map((s) => {
-        return { title: s.name, value: s.id, description: s.pkgJson?.description };
+        return { title: s.name, value: s.id, description: '└─' + s.pkgJson?.description };
       }),
       hint: '(use ↓↑ arrows, hit enter)',
     },

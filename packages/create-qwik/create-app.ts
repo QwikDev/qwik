@@ -69,7 +69,16 @@ export function logCreateAppResult(result: CreateAppResult, ranInstall: boolean)
   console.log(`   ${pkgManager} start`);
   console.log(``);
 
-  logSuccessFooter();
+  const qwikAdd = pkgManager === 'yarn' ? 'yarn qwik add' : `${pkgManager} run qwik app`;
+  console.log(`🔌 ${color.cyan('Integrations? Add Netlify, Cloudflare, Tailwind...')}`);
+  console.log(`   ${qwikAdd}`);
+  console.log(``);
+
+  logSuccessFooter(result.docs);
+
+  console.log(`📺 ${color.cyan('Presentations, Podcasts and Videos:')}`);
+  console.log(`   https://qwik.builder.io/media/`);
+  console.log(``);
 }
 
 export async function createApp(opts: CreateAppOptions) {
@@ -89,6 +98,7 @@ export async function createApp(opts: CreateAppOptions) {
   const result: CreateAppResult = {
     starterId: opts.starterId,
     outDir: opts.outDir,
+    docs: [],
   };
 
   const starterApps = (await loadIntegrations()).filter((i) => i.type === 'app');
@@ -123,6 +133,7 @@ async function createFromStarter(
   baseApp: IntegrationData,
   starterApp?: IntegrationData
 ) {
+  result.docs.push(...baseApp.docs);
   const appInfo = starterApp ?? baseApp;
   const appPkgJson = cleanPackageJson({
     ...baseApp.pkgJson,
@@ -145,6 +156,7 @@ async function createFromStarter(
   await baseUpdate.commit(false);
 
   if (starterApp) {
+    result.docs.push(...starterApp.docs);
     const starterUpdate = await updateApp({
       rootDir: result.outDir,
       integration: starterApp.id,

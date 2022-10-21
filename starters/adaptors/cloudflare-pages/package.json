@@ -8,6 +8,11 @@
     "wrangler": "beta"
   },
   "__qwik__": {
-    "priority": -1
+    "priority": 40,
+    "displayName": "Adaptor: Cloudflare Pages (serverless)",
+    "docs": [
+      "https://qwik.builder.io/qwikcity/adaptors/cloudflare-pages/",
+      "https://developers.cloudflare.com/pages"
+    ]
   }
 }

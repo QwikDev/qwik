@@ -10,7 +10,6 @@ export default extendConfig(baseConfig, () => {
         input: ['src/entry.ssr.tsx', '@qwik-city-plan'],
       },
     },
-    ssr: {},
     plugins: [
       staticAdaptor({
         origin: 'https://yoursite.qwik.dev',

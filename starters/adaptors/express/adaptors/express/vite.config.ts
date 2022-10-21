@@ -10,10 +10,6 @@ export default extendConfig(baseConfig, () => {
         input: ['src/entry.express.tsx', 'src/entry.ssr.tsx', '@qwik-city-plan'],
       },
     },
-    ssr: {
-      target: 'webworker',
-      noExternal: true,
-    },
     plugins: [
       expressAdaptor({
         staticGenerate: true,

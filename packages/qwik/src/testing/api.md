@@ -5,14 +5,22 @@
 ```ts
 
 import type { CorePlatform } from '@builder.io/qwik';
+import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 
 // @alpha
 export function createDocument(opts?: MockDocumentOptions): Document;
 
 // @alpha (undocumented)
 export const CreateMock: {
-    setTestPlatform: typeof setTestPlatform;
-    triggerEvent: (element: Element, selector: string) => Promise<void>;
+    userEvent: {
+        raw: (element: Element, eventName: string, document: Element) => Promise<void>;
+    };
+    createPlatform: () => {
+        host: HTMLElement;
+        render: (jsxElement: JSXNode) => Promise<void>;
+        screen: () => HTMLElement;
+        userEvent: (element: HTMLElement | Element, event: string) => Promise<void>;
+    };
 };
 
 // @alpha
@@ -74,10 +82,6 @@ export interface TestPlatform extends CorePlatform {
 
 // @alpha (undocumented)
 export function toFileUrl(filePath: string): string;
-
-// Warnings were encountered during analysis:
-//
-// /home/ljmendez/Projects/qwik-ts/dist-dev/dts-out/packages/qwik/src/testing/library.d.ts:7:5 - (ae-forgotten-export) The symbol "setTestPlatform" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

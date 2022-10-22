@@ -38,7 +38,7 @@
     "serve.debug": "tsm --inspect-brk starters/dev-server.ts 3300",
     "docs.sync": "tsm scripts/docs_sync/index.ts",
     "lint": "yarn lint.eslint && yarn lint.prettier && yarn lint.rust",
-    "lint.eslint": "eslint \"**/*.ts*\"",
+    "lint.eslint": "eslint --cache \"**/*.ts*\"",
     "lint.rust": "make lint",
     "lint.prettier": "prettier --check .",
     "prettier.fix": "prettier --write .",

@@ -7,11 +7,8 @@ interface BaseSyntheticEvent<E = object, C = any, T = any> {
   target: T;
   bubbles: boolean;
   cancelable: boolean;
-  defaultPrevented: boolean;
   eventPhase: number;
   isTrusted: boolean;
-  preventDefault(): void;
-  isDefaultPrevented(): boolean;
   stopPropagation(): void;
   isPropagationStopped(): boolean;
   persist(): void;

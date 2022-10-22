@@ -10,7 +10,7 @@ export default extendConfig(baseConfig, () => {
         input: ['src/entry.cloudflare-pages.tsx', 'src/entry.ssr.tsx', '@qwik-city-plan'],
         output: {
           hoistTransitiveImports: false,
-        }
+        },
       },
     },
     ssr: true,

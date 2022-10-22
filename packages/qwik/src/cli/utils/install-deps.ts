@@ -10,11 +10,11 @@ import type { IntegrationData } from '../types';
 export function installDeps(pkgManager: string, dir: string) {
   let installChild: ChildProcess;
 
-  const errorMessage = `\n${color.bgRed(
+  const errorMessage = `\n\n${color.bgRed(
     `  ${pkgManager} install failed  `
-  )}\n\nYou might need to run "${color.green(
+  )}\n\n  You might need to run "${color.green(
     `${pkgManager} install`
-  )}" manually inside the root of your project to install the dependencies.`;
+  )}" manually inside the root of your project to install the dependencies.\n`;
   const install = new Promise<void>((resolve) => {
     try {
       installChild = spawn(pkgManager, ['install'], {
@@ -32,10 +32,12 @@ export function installDeps(pkgManager: string, dir: string) {
           resolve();
         } else {
           console.error(errorMessage);
+          resolve();
         }
       });
     } catch (e) {
       console.error(errorMessage);
+      resolve();
       //
     }
   });

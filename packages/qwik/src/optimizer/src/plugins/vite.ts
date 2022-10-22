@@ -277,9 +277,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         } else {
           updatedViteConfig.publicDir = false;
           updatedViteConfig.build!.ssr = true;
-          if (buildMode === 'production') {
-            updatedViteConfig.build!.minify = 'esbuild';
-          }
+          // if (buildMode === 'production') {
+          //   updatedViteConfig.build!.minify = 'esbuild';
+          // }
         }
         if (typeof viteConfig.build?.emptyOutDir === 'boolean') {
           updatedViteConfig.build!.emptyOutDir = viteConfig.build!.emptyOutDir;

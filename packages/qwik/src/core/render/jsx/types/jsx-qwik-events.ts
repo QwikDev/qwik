@@ -12,6 +12,27 @@ interface BaseSyntheticEvent<E = object, C = any, T = any> {
   stopPropagation(): void;
   isPropagationStopped(): boolean;
   persist(): void;
+   /**
+   * @deprecated Qwik does not allow `preventDefault()`.
+   * Add a `preventdefault:{event}` attribute to the element instead.
+   * 
+   * @see https://qwik.builder.io/docs/components/events/#prevent-default
+   * 
+   * @example
+   * <a
+      href="/about"
+      preventdefault:click // This will prevent the default behavior of the "click" event.
+      onClick$={(event) => {
+        // event.preventDefault() would not work here
+        // because of Qwik's async nature
+        trackAnalyticsEvent(event.currentTarget)
+        singlePageNavigate('/about');
+      }}
+    >
+      About
+    </a>
+   */
+  preventDefault(): void;
   timeStamp: number;
   type: string;
 }

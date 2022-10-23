@@ -127,6 +127,9 @@ export function qwikCity(render: Render, opts?: RenderOptions) {
   return createQwikCity({ render, qwikCityPlan, ...opts });
 }
 
+/** 
+ * @public
+*/
 export type RequestHandlerCloudflarePages<T = unknown> = RequestHandler<
   T,
   { env: EventPluginContext['env'] }

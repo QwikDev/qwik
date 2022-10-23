@@ -92,9 +92,9 @@ Additionally, you may import the `RequestHandlerNetlify` type to have have type 
 ```typescript
 import {type RequestHandlerNetlify} from '@builder.io/qwik-city/middleware/netlify-edge';
 
-export const onGet: RequestHandlerNetlify = ({platform}) => {
+export const onGet: RequestHandlerNetlify = (({platform}) => {
  //...
-}
+})
 ```
 
 ### Environment variables

@@ -52,9 +52,9 @@ export const onRequest = async ({ platform }) => {
 Additionally, you may import the `RequestHandlerCloudflarePages` type to have have type completions in your editor.
 
 ```typescript
-import {type RequestHandlerNetlify} from '@builder.io/qwik-city/middleware/cloudflare-pages';
+import {type RequestHandlerCloudflarePages} from '@builder.io/qwik-city/middleware/cloudflare-pages';
 
-export const onGet: RequestHandlerCloudflarePages = ({ platform }) => {
+export const onGet: RequestHandlerCloudflarePages = (({ platform }) => {
  //...
-}
+})
 ```

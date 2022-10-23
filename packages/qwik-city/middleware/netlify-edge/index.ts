@@ -99,7 +99,7 @@ export function qwikCity(render: Render, opts?: RenderOptions) {
   return createQwikCity({ render, qwikCityPlan, ...opts });
 }
 
-/** 
+/**
  * @public
-*/
+ */
 export type RequestHandlerNetlify<T = unknown> = RequestHandler<T, Omit<Context, 'next'>>;

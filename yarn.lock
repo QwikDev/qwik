@@ -224,6 +224,7 @@ __metadata:
   resolution: "@builder.io/qwik-city@workspace:packages/qwik-city"
   dependencies:
     "@builder.io/qwik": "workspace:*"
+    "@cloudflare/workers-types": ^3.18.0
     "@mdx-js/mdx": 2.1.5
     "@microsoft/api-extractor": 7.33.4
     "@netlify/edge-functions": ^1.0.2
@@ -312,6 +313,13 @@ __metadata:
   dependencies:
     mime: ^3.0.0
   checksum: bc6a02a9c80be6de90e46454ef4de09301e68726eaa4835de0e30216e50fffcc5612274a17dfb455916cf3418f0cb25fefd2b561a9d2282f4cc10d40527f0acb
+  languageName: node
+  linkType: hard
+
+"@cloudflare/workers-types@npm:^3.18.0":
+  version: 3.18.0
+  resolution: "@cloudflare/workers-types@npm:3.18.0"
+  checksum: 9a54a4fbd12eed19495cf6774cd48b0e97aaee093d40d2ae8e7a11c58937b8ad5173588efca5e138c373c6d6730faf96f2385eee203dab3fdb91565885efb0cd
   languageName: node
   linkType: hard
 

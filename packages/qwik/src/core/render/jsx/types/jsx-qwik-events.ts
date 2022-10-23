@@ -19,18 +19,20 @@ interface BaseSyntheticEvent<E = object, C = any, T = any> {
    * @see https://qwik.builder.io/docs/components/events/#prevent-default
    * 
    * @example
+   * ```tsx
    * <a
-      href="/about"
-      preventdefault:click // This will prevent the default behavior of the "click" event.
-      onClick$={(event) => {
-        // event.preventDefault() would not work here
-        // because of Qwik's async nature
-        trackAnalyticsEvent(event.currentTarget)
-        singlePageNavigate('/about');
-      }}
-    >
-      About
-    </a>
+   *  href="/about"
+   *  preventdefault:click // This will prevent the default behavior of the "click" event.
+   *  onClick$={(event) => {
+   *    // event.preventDefault() would not work here
+   *    // because of Qwik's async nature
+   *    trackAnalyticsEvent(event.currentTarget)
+   *    singlePageNavigate('/about');
+   *  }}
+   * >
+   *  About
+   *</a>
+   * ```
    */
   preventDefault(): void;
   timeStamp: number;

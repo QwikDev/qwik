@@ -111,11 +111,8 @@ export const DocSearch = component$((props: DocSearchProps) => {
     return () => window.removeEventListener('keydown', onKeyDown);
   });
 
-
   return (
-    <div
-      className="docsearch"
-    >
+    <div className="docsearch">
       <DocSearchButton
         ref={searchButtonRef}
         onClick$={() => {

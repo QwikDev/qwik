@@ -12,12 +12,12 @@ interface BaseSyntheticEvent<E = object, C = any, T = any> {
   stopPropagation(): void;
   isPropagationStopped(): boolean;
   persist(): void;
-   /**
+  /**
    * @deprecated Qwik does not allow `preventDefault()`.
    * Add a `preventdefault:{event}` attribute to the element instead.
-   * 
+   *
    * @see https://qwik.builder.io/docs/components/events/#prevent-default
-   * 
+   *
    * @example
    * ```tsx
    * <a

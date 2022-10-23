@@ -40,7 +40,7 @@ export type RequestHandlerCloudflarePages<T = unknown> = RequestHandler_2<T, {
 
 // Warnings were encountered during analysis:
 //
-// /workspaces/qwik/dist-dev/dts-out/packages/qwik-city/middleware/cloudflare-pages/index.d.ts:39:5 - (ae-incompatible-release-tags) The symbol "env" is marked as @public, but its signature references "EventPluginContext" which is marked as @alpha
+// /workspaces/qwik/dist-dev/dts-out/packages/qwik-city/middleware/cloudflare-pages/index.d.ts:42:5 - (ae-incompatible-release-tags) The symbol "env" is marked as @public, but its signature references "EventPluginContext" which is marked as @alpha
 
 // (No @packageDocumentation comment for this package)
 

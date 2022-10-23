@@ -202,7 +202,7 @@ export const App = component$(() => {
   });
 
   useWatch$(({ track }) => {
-    track(state, 'count');
+    track(() => state.count);
     state.doubleCount = state.count * 2;
   });
 
@@ -225,7 +225,7 @@ export const App = component$(() => {
   });
 
   const doubleCount = useResource$(({ track }) => {
-    track(state, 'count');
+    track(() => state.count);
     return state.count * 2;
   });
 

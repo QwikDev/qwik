@@ -6,7 +6,7 @@ import { Vendor } from './vendor';
 export const RouterHead = component$(() => {
   const { href } = useLocation();
   const head = useDocumentHead();
-  const title = head.title ? `${head.title} - Qwik` : `Qwik - Framework reimagined for the edge`;
+  const title = head.title ? `${head.title} - Qwik` : `Qwik - 为edge而生的框架`;
   const description =
     head.meta.find((m) => m.name === 'description')?.content ||
     `No hydration, auto lazy-loading, edge-optimized, and fun 🎉!`;

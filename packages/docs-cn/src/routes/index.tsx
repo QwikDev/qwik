@@ -71,5 +71,5 @@ interface BuilderContent {
 }
 
 export const head: DocumentHead = {
-  title: 'Framework reimagined for the edge!',
+  title: '为edge而生的框架!',
 };

@@ -7,12 +7,8 @@ export default extendConfig(baseConfig, () => {
     build: {
       ssr: true,
       rollupOptions: {
-        input: ['src/entry.cloudflare-pages.tsx', 'src/entry.ssr.tsx', '@qwik-city-plan'],
+        input: ['src/entry.cloudflare-pages.tsx', '@qwik-city-plan'],
       },
-    },
-    ssr: {
-      target: 'webworker',
-      noExternal: true,
     },
     plugins: [
       cloudflarePagesAdaptor({

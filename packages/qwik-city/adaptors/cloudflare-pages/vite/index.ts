@@ -47,6 +47,21 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
     enforce: 'post',
     apply: 'build',
 
+    config() {
+      return {
+        build: {
+          rollupOptions: {
+            output: {
+              hoistTransitiveImports: false,
+            },
+          },
+        },
+        ssr: {
+          target: 'webworker',
+        },
+      };
+    },
+
     configResolved({ build, plugins }) {
       qwikVitePlugin = plugins.find((p) => p.name === 'vite-plugin-qwik') as QwikVitePlugin;
       if (!qwikVitePlugin) {

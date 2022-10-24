@@ -47,7 +47,7 @@ export function fromNodeHttp(url: URL, req: IncomingMessage, res: ServerResponse
       res.statusCode = status;
       let cookies = headers.get('Set-Cookie');
       if (cookies) {
-        cookies.split(', ').forEach(cookie => res.setHeader('Set-Cookie', cookie))
+        cookies.split(', ').forEach((cookie) => res.setHeader('Set-Cookie', cookie));
         headers.delete('Set-Cookie');
       }
       headers.forEach((value, key) => res.setHeader(key, value));

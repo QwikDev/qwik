@@ -100,6 +100,6 @@ export function qwikCity(render: Render, opts?: RenderOptions) {
 }
 
 /**
- * @public
+ * @alpha
  */
 export type RequestHandlerNetlify<T = unknown> = RequestHandler<T, Omit<Context, 'next'>>;

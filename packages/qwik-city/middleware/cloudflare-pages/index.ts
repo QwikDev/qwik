@@ -128,7 +128,7 @@ export function qwikCity(render: Render, opts?: RenderOptions) {
 }
 
 /**
- * @public
+ * @alpha
  */
 export type RequestHandlerCloudflarePages<T = unknown> = RequestHandler<
   T,

@@ -26,7 +26,7 @@ export function qwikCity(render: Render, opts?: RenderOptions_2): (request: Requ
 export interface QwikCityNetlifyOptions extends QwikCityHandlerOptions {
 }
 
-// @public (undocumented)
+// @alpha (undocumented)
 export type RequestHandlerNetlify<T = unknown> = RequestHandler_2<T, Omit<Context, 'next'>>;
 
 // (No @packageDocumentation comment for this package)

@@ -13,7 +13,7 @@ export function createDocument(opts?: MockDocumentOptions): Document;
 // @alpha
 export const createDOM: () => {
     render: (jsxElement: JSXNode) => Promise<void>;
-    screen: () => HTMLElement;
+    screen: HTMLElement;
     userEvent: (element: HTMLElement | string | Element, event: string) => Promise<void>;
 };
 

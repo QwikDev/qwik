@@ -27,9 +27,7 @@ export const createDOM = function () {
     render: function (jsxElement: JSXNode) {
       return renderIn(host, jsxElement);
     },
-    screen: function () {
-      return host;
-    },
+    screen: host,
     userEvent: function (element: HTMLElement | string | Element, event: string) {
       if (typeof element === 'string') return trigger(host, element, event);
       const classListValue = parseClassWithElement(element);

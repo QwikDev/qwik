@@ -104,6 +104,7 @@
   },
   "workspaces": [
     "packages/docs",
+    "packages/docs-cn",
     "packages/create-qwik",
     "packages/qwik",
     "packages/qwik-city",

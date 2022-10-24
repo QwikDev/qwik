@@ -3,8 +3,24 @@ export interface SyntheticEvent<T = Element, E = Event>
 
 interface BaseSyntheticEvent<E = object, C = any, T = any> {
   nativeEvent: E;
+  /**
+   * @deprecated 
+   * 
+   * Qwik cannot reliably capture `event.currentTarget`
+   * 
+   * Instead, you can use `event.target`
+   * 
+   * or 
+   * 
+   * ```tsx
+   * onClick$={(event, currentEvent) => {
+   * // use currentEvent here
+   * }}
+   * ``` 
+   * 
+   */
   currentTarget: C;
-  target: T;
+  target: C;
   bubbles: boolean;
   cancelable: boolean;
   eventPhase: number;
@@ -26,7 +42,7 @@ interface BaseSyntheticEvent<E = object, C = any, T = any> {
    *  onClick$={(event) => {
    *    // event.preventDefault() would not work here
    *    // because of Qwik's async nature
-   *    trackAnalyticsEvent(event.currentTarget)
+   *    trackAnalyticsEvent(event.target)
    *    singlePageNavigate('/about');
    *  }}
    * >

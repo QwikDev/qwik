@@ -1,0 +1,41 @@
+.on-this-page {
+  @apply z-20 bottom-0 pb-8;
+  @apply text-sm;
+}
+
+.on-this-page h6 {
+  @apply font-semibold pb-3 uppercase;
+}
+
+.on-this-page ul {
+  @apply pb-6;
+}
+
+.on-this-page a {
+  position: relative;
+  display: block;
+  color: #006ce9c7;
+  border: 0 solid #18b6f6;
+  border-left-width: 2px;
+  padding: 4px 2px 4px 12px;
+}
+
+.on-this-page a.indent {
+  padding-left: 30px;
+}
+
+.on-this-page a:hover {
+  background-color: #0093ee17;
+  border-color: var(--qwik-dark-blue);
+}
+
+.on-this-page svg {
+  display: inline-block;
+  position: absolute;
+  top: 7px;
+}
+
+.on-this-page span {
+  display: inline-block;
+  padding: 3px 0 2px 28px;
+}

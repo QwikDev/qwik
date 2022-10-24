@@ -1,0 +1,117 @@
+.header-container {
+  height: calc(var(--header-height));
+  margin-bottom: 6px;
+  background: white;
+  position: relative;
+  z-index: 100;
+}
+
+@media (min-width: 1024px) {
+  .header-container {
+    background: #ffffff9e;
+    backdrop-filter: blur(23px) saturate(4.5);
+  }
+}
+
+.fixed-header .header-container {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 40;
+}
+
+header li {
+  @apply px-2 text-right;
+  @apply py-4 md:py-0;
+
+  font-size: 14px;
+  font-weight: 500;
+}
+
+header a.active {
+  color: var(--qwik-dark-blue);
+}
+
+header a:hover {
+  text-decoration: underline;
+}
+
+header li a:hover svg {
+  opacity: 0.8;
+}
+
+header .mobile-menu {
+  position: absolute;
+  right: 0;
+  @apply p-5 md:hidden;
+}
+
+header ul {
+  @apply hidden md:block;
+  @apply pt-0 pb-6 md:pt-0;
+  height: 100%;
+  align-items: center;
+}
+
+header .more-icon {
+  display: block;
+}
+
+header .close-icon {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .header-container {
+    padding-top: 5px;
+  }
+
+  .header-open header ul {
+    position: absolute;
+    z-index: 10;
+    display: block;
+    top: var(--header-height);
+    width: 100%;
+    background: white;
+    height: auto;
+  }
+
+  .header-open header .more-icon {
+    display: none;
+  }
+
+  .header-open header .close-icon {
+    display: block;
+  }
+
+  .header-open .menu-toolkit li {
+    text-align: center;
+  }
+}
+
+header .header-inner {
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  height: 100%;
+}
+
+.full-width header .header-inner {
+  max-width: 100%;
+}
+
+header .header-logo {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: max(0px, calc(50% - 45rem));
+  padding-left: 1rem;
+  display: flex;
+  align-items: center;
+  height: var(--header-height);
+}
+
+.full-width header .header-logo {
+  left: 0;
+}

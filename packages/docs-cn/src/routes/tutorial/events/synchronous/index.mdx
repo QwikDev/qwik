@@ -1,0 +1,12 @@
+---
+title: Synchronous Event Processing
+contributors:
+  - adamdbradley
+  - manucorporat
+---
+
+While not a common use case, you may occasionally need to process events synchronously.
+
+Since Qwik processes asynchronously by default, your code must be explicitly configured for synchronous calls. This example shows how to eagerly load an event handler that processes a synchronous event.
+
+> **Your task:** Convert the `onClick$` from asynchronous event to synchronous event by using `useClientEffect` and normal event registration.

@@ -1,0 +1,17 @@
+/build/*
+  Cache-Control: public, max-age=31536000, s-maxage=31536000, immutable
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, s-maxage=31536000, immutable
+
+/*.png
+  Cache-Control: public, max-age=86400, s-maxage=86400
+
+/*.svg
+  Cache-Control: public, max-age=86400, s-maxage=86400
+
+/favicon.ico
+  Cache-Control: public, max-age=604800, s-maxage=604800
+
+/*
+  Cache-Control: public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400

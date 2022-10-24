@@ -1,0 +1,109 @@
+---
+title: 快速开始
+contributors:
+  - manucorporat
+  - jesperp
+  - adamdbradley
+---
+
+# 快速开始
+
+Qwik是一种[可恢复](../concepts/resumable/index.mdx)（没有JS和hydration）的新框架，为edge而生，
+对[react开发者](../cheat/qwik-react/index.mdx)友好。
+
+- [Stackblitz Qwik + Vite](https://qwik.new)
+- [Examples playground](/examples/reactivity/counter/)
+
+## 准备条件
+
+- [node.js v16](https://nodejs.org/en/download/) 或者更高
+- 一款你最喜欢的IDE， 推荐([vscode](https://code.visualstudio.com/) )
+- 读一下 [think qwik](../think-qwik/index.mdx)这篇文章
+
+
+## 用CLI创建应用
+
+第一步是创建应用。
+Qwik自带了一个CLI让你创建一个应用的基本目录结构。
+我们会使用这个 CLI 创建一个空项目，让你对Qwik快速熟悉起来。
+
+### 在你的shell运行 Qwik CLI
+
+```shell
+npm create qwik@latest
+```
+CLI会通过交互式菜单指导你设置项目名称 以及 选择一个下面的项目模板：
+
+<script id="asciicast-514542" src="https://asciinema.org/a/514542.js" async></script>
+
+你的新应用创建好之后，你会在终端看见如下输出：
+
+```shell
+💫 Let's create a Qwik app 💫
+
+✔ Project name … qwik-app
+✔ Select a starter › Basic
+
+🦄  Success!  Project created in portfolio directory
+
+🐰 Next steps:
+   cd qwik-app
+   npm install
+   npm start
+
+💬 Integration? Add Netlify, Cloudflare, Tailwind...:
+   npm run qwik add
+
+💬 Questions? Start the conversation at:
+   https://qwik.builder.io/chat
+   https://twitter.com/QwikDev
+
+📺 Presentations, Podcasts and Videos:
+   https://qwik.builder.io/media/
+```
+
+此时，你已经有了`qwik-app`目录，它包含整个项目。
+
+## 开发模式下运行
+
+一旦应用下载完毕，
+
+1. 切换到项目目录
+
+```shell
+cd qwik-app
+```
+
+2. 安装依赖:
+
+```shell
+npm install
+```
+
+3. 运行项目
+
+```shell
+npm start
+```
+
+4. 你会在终端看到下面提示：
+
+```shell
+
+  VITE v3.1.1  ready in 140 ms
+
+  ➜  Local:   http://localhost:5174/
+  ➜  Network: use --host to expose
+
+```
+
+5. 访问 http://localhost:5174/ 来探索该应用。
+
+## 一些命令
+
+这里有一些帮助你开始的命令，更完整的命令列表参见`package.json`。
+
+- `npm start`: `npm run dev`的别名 (默认以 SSR 模式运行)
+- `npm run preview`: Production build and start preview server.
+- `npm run build`: builds the application for production.
+- `npm run qwik add`: Select an integration to add.

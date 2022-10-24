@@ -1,0 +1,35 @@
+@import '@docsearch/css';
+
+.docsearch {
+  --docsearch-searchbox-background: rgba(247, 248, 250, 1);
+  --docsearch-searchbox-focus-background: rgba(247, 248, 250, 1);
+  color: rgb(33, 53, 71);
+}
+
+/* to override global.css */
+.docsearch .DocSearch-Button {
+  background-color: var(--docsearch-searchbox-background);
+  --docsearch-text-color: var(--docsearch-muted-color);
+  border: 2px solid var(--qwik-dark-blue);
+  --docsearch-muted-color: var(--qwik-dark-blue);
+}
+
+.docsearch kbd {
+  font-family: system-ui;
+}
+
+.docsearch ul li {
+  text-align: left;
+  margin: 0 0 4px 0;
+  padding: 0;
+}
+
+.docsearch a:hover {
+  text-decoration: none;
+}
+
+@media (max-width: 996px) {
+  .docsearch {
+    display: none;
+  }
+}

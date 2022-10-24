@@ -1,0 +1,20 @@
+---
+title: Recursive Store
+contributors:
+  - adamdbradley
+  - manucorporat
+---
+
+This example features a store that contains other objects rather than just primitives. The `store.counter` property is an object literal.
+
+The example doesn't work as is, because by default the `useStore` function only watches top-level properties.
+
+To make the example work, you need to do one of two things:
+
+1. Wrap `{count:0}` in another `useStore()` call (which is a bit cumbersome)
+
+1. Allow `useStore` to recursively apply reactivity to all properties by passing the additional argument: `{recursive:true}`.
+
+> **Your task:** Update the sample with the `useStore()` function.
+
+Note that stores are not tied to any single component. In fact, you can pass stores from one component to another.

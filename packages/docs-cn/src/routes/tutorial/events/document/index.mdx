@@ -1,0 +1,19 @@
+---
+title: Listening to document/window
+contributors:
+  - adamdbradley
+---
+
+So far you've interacted with events emitted from a DOM element such as a `<button>`, but what if you need to listen for global events?
+
+Common global events include the `document`'s `mousemove` and the `window`'s `scroll` event.
+
+Qwik has the `document:` and `window:` namespace prefixes which allow you to listen to global events.
+
+Open the browser's console and move your mouse over the text in the sample. Notice how moving the mouse logs the mouse position to the console. This logging only happens while moving the mouse over the text because the event is wired on the `div`'s `onMouseMove` event. Attaching at this level stops event bubbling beyond the element's listener.
+
+How would you adjust the code to log the mouse position at all times?
+
+Change to a global listener by adding the `document:` prefix to the `onMouseMove` declaration.
+
+With this change, notice how moving the mouse anywhere on the application (even outside of the text) shows output in the console.

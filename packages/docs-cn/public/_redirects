@@ -1,0 +1,25 @@
+/chat https://discord.gg/bNVSQmPzqy 307
+/chat/ https://discord.gg/bNVSQmPzqy 307
+/docs /docs/overview 307
+/docs/ /docs/overview 307
+/examples /examples/introduction/hello-world 307
+/examples/ /examples/introduction/hello-world 307
+/guide /docs/overview 307
+/guide/ /docs/overview 307
+/tutorial /tutorial/welcome/overview 307
+/tutorial/ /tutorial/welcome/overview 307
+/tutorials /tutorial/welcome/overview 307
+/tutorials/ /tutorial/welcome/overview 307
+
+/qwikcity/routing/pathless/ /qwikcity/layout/grouped/ 308
+
+/qwikcity/middleware/cloudflare-pages/ /qwikcity/adaptors/cloudflare-pages/ 308
+/qwikcity/middleware/netlify-edge/ /qwikcity/adaptors/netlify-edge/ 308
+/qwikcity/middleware/node/ /qwikcity/adaptors/node/ 308
+/qwikcity/middleware/express/ /qwikcity/adaptors/node/ 308
+
+/qwikcity/routing/data/ /qwikcity/data/overview/ 308
+/qwikcity/routing/endpoints/ /qwikcity/data/endpoints/ 308
+/qwikcity/routing/modify/ /qwikcity/data/modify/ 308
+/qwikcity/routing/retrieve/ /qwikcity/data/retrieve/ 308
+/qwikcity/routing/redirects/ /qwikcity/data/redirects/ 308

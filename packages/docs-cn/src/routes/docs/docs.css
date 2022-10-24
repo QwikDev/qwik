@@ -1,0 +1,268 @@
+.docs main {
+  @apply mx-auto min-h-[100vh] xl:max-w-[1300px];
+  margin-top: calc(var(--header-height) + 10px);
+}
+
+.docs .docs-container {
+  overflow: hidden;
+  @apply pt-[80px];
+  @apply px-8;
+
+  /* medium */
+
+  /* large */
+  @apply lg:pt-5 lg:ml-[17rem] lg:mr-[4rem] lg:px-0;
+
+  /* xlarge */
+  @apply xl:pr-16 xl:mr-[18rem];
+}
+
+.docs article a {
+  color: var(--qwik-dark-blue);
+  text-decoration: underline;
+}
+
+.docs article blockquote {
+  background: #f1f5fe;
+  padding: 20px 13px 20px 10px;
+  border-left: 10px solid #ac7ef4;
+  margin: 30px 0;
+}
+
+.docs article blockquote p:first-child {
+  margin-top: 0;
+}
+
+.docs article blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.docs article a:hover {
+  text-decoration: none;
+}
+
+.docs article .card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  margin: 30px 0;
+}
+
+.docs article .card {
+  background: #f7f8fb;
+  border-radius: 10px;
+  min-width: 230px;
+  padding: 25px;
+  flex: 1;
+  color: inherit;
+  text-decoration: none;
+  /* display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-decoration: none; */
+}
+
+.docs article a.card:hover {
+  outline: 2px solid var(--qwik-dark-blue);
+}
+
+.docs article .card-center {
+  text-align: center;
+}
+
+.docs article .card h3 {
+  margin-top: 10px;
+  margin-bottom: 0;
+  font-weight: 500;
+  font-size: 22px;
+}
+
+.docs article .card p {
+  font-size: 14px;
+}
+
+.docs article .card .icon {
+  font-size: 70px;
+  margin: 0;
+  line-height: 1;
+}
+
+.docs article h1 {
+  @apply mb-7;
+  @apply relative;
+
+  line-height: 1.2;
+  font-size: 55px;
+  font-weight: 800;
+  scroll-margin-top: var(--scroll-margin-top);
+}
+
+.docs article h2,
+.docs article h3,
+.docs article h4,
+.docs article h5,
+.docs article h6 {
+  @apply text-xl font-semibold;
+  @apply relative;
+  margin-top: 1.2em;
+  scroll-margin-top: var(--scroll-margin-top);
+
+  margin-bottom: max(0.7em, 18px);
+}
+
+.docs article h2 {
+  line-height: 1.2;
+  font-size: 42px;
+  font-weight: 800;
+  scroll-margin-top: var(--scroll-margin-top);
+  margin-top: 70px;
+}
+
+.docs article h3 {
+  font-size: 1.8rem;
+}
+
+.docs h2 a,
+.docs h3 a,
+.docs h4 a,
+.docs h5 a,
+.docs h6 a {
+  position: absolute;
+  width: 100%;
+  height: 1em;
+}
+
+.icon-link {
+  display: none;
+}
+
+.icon-link::after {
+  position: absolute;
+  content: '#';
+  left: -1em;
+}
+
+h2 a:hover .icon,
+h3 a:hover .icon,
+h4 a:hover .icon,
+h5 a:hover .icon,
+h6 a:hover .icon {
+  display: inline;
+}
+
+.docs article p {
+  margin-top: 1.6rem;
+  margin-bottom: 0.9rem;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.7;
+  color: #171a19;
+}
+
+.docs article ul,
+.docs article ol {
+  @apply my-4;
+  @apply ml-10;
+  line-height: 1.7;
+  list-style: disc;
+
+  font-size: 16px;
+  font-weight: 400;
+  color: #171a19;
+}
+
+.docs article ol {
+  list-style: decimal;
+}
+
+.docs article li {
+  @apply my-1;
+  @apply pl-2;
+}
+
+.docs article li::marker,
+.docs article li::-webkit-details-marker {
+  color: var(--qwik-dark-blue);
+  font-weight: 800;
+}
+
+.docs article pre {
+  overflow: auto;
+  color: white;
+  background-color: rgb(1 31 51);
+  padding: 18px 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.docs article pre code {
+  display: block;
+  max-width: 50px;
+  background-color: transparent;
+  line-height: 1.26;
+  border: none;
+  user-select: auto;
+}
+
+.docs article code {
+  background-color: rgb(224, 224, 224);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.9em;
+  border-bottom: 2px solid #bfbfbf;
+  user-select: all;
+}
+
+@media (max-width: 640px) {
+  .docs article code {
+    word-break: break-all;
+  }
+  .docs article h1 {
+    font-size: 40px;
+  }
+  .docs article h2 {
+    font-size: 30px;
+  }
+}
+
+.docs article table {
+  @apply my-5;
+}
+
+.docs article th,
+.docs article td {
+  padding: 6px;
+  vertical-align: top;
+}
+
+.docs article th:first-child,
+.docs article td:first-child {
+  padding-left: 0;
+}
+
+.docs article th:last-child,
+.docs article td:last-child {
+  padding-right: 0;
+}
+
+.docs article img {
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.docs main.no-right-menu .on-this-page {
+  display: none;
+}
+
+@media (min-width: 1280px) {
+  .docs main.no-right-menu .docs-container {
+    margin-right: 6rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .docs article h2 {
+    font-size: 1.2rem;
+    margin-top: 2rem;
+  }
+}

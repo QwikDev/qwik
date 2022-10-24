@@ -1,0 +1,60 @@
+---
+title: Qwik City - Overview
+contributors:
+  - manucorporat
+  - strogonoff
+  - youngboy
+  - farukEncoded
+  - brunocrosier
+  - forresst
+  - mhevery
+  - adamdbradley
+---
+
+# Qwik City (routing)
+*aka. Qwik Router*
+
+Learning Qwik and Qwik City are not two different things, Qwik City is built on top of Qwik, bringing opinionated routing and goodies to make your life easier.
+
+> Qwik¹ City²
+>
+> [**Qwik¹**](../../docs/overview/index.mdx): Core framework, stable, primitives, component model.
+>
+> [**City²**](../directory-layout/index.mdx): Opinionated file-based router, build fast.
+
+We call it a **meta-framework** for Qwik. Qwik City is to Qwik, what [Next.js](https://nextjs.org/) is to React, what [Nuxt](https://nuxtjs.org/) is to Vue, or [SvelteKit](https://kit.svelte.dev/) to Svelte.
+
+Qwik (core) and Qwik City (routing) solve problems at two layers of abstraction. **Qwik can stay stable**, without breaking changes, focusing on long-term and stable primitives, while Qwik City brings an **opinionated and performant way to build sites at scale**. We don't want to lock the ecosystem into a single correct way of building sites, in fact we encourge the community to build alternative solutions on top Qwik.
+
+> As a user, using Qwik City today for your app is a no-brainer. Thanks to Qwik architecture, it comes with zero overhead, meaning that no extra JS will be delivered to the browser.
+
+
+Use Qwik City to build an e-commerce website, blog site, or any other website that needs routing, layouts, templating, or data retrieval/updates. Qwik City is built on Qwik, and therefore Qwik City sites are resumable and only download the minimal amount of JavaScript with fine-grained lazy loading.
+
+Qwik City provides:
+
+- Directory-based routing
+- Nested layouts
+- File-based menus
+- Breadcrumbs
+- Support authoring content with `.tsx` or `.mdx` file formats
+- Data endpoints
+
+By default, Qwik City sites are fast because they:
+
+- Are resumable
+- Download minimal JavaScript
+- Come with [Partytown](https://partytown.builder.io)
+
+To follow along with this guide, run the Qwik CLI in your command line:
+
+```bash
+npm create qwik@latest
+```
+
+When prompted, choose a name for your project and Basic as your starter.
+
+> Note: the `start` script attempts to launch the site in system’s browser,
+> which in headless environments (e.g., within a container)
+> could cause the command to fail with an error.
+> Edit `package.json` to remove the `--open` flag.

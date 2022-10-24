@@ -1,0 +1,112 @@
+.sidebar {
+  @apply fixed z-20 top-0 bottom-0;
+}
+
+.sidebar summary {
+  cursor: pointer;
+  display: block;
+}
+
+.sidebar summary:hover h5 {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-color: currentColor;
+}
+
+.sidebar summary::marker,
+.sidebar summary::-webkit-details-marker {
+  display: none;
+  content: '';
+}
+
+.sidebar details[open] summary {
+  font-weight: 800;
+}
+
+.breadcrumbs {
+  @apply fixed z-10 w-[100%];
+  top: var(--header-height);
+  @apply border-b border-slate-300;
+  @apply px-1;
+  @apply flex;
+  @apply text-slate-600 bg-white;
+
+  /* large */
+  @apply lg:hidden;
+}
+
+.breadcrumbs button {
+  @apply block;
+  @apply p-4;
+  @apply opacity-70;
+  @apply hover:opacity-100;
+}
+
+.breadcrumbs ol {
+  @apply flex text-sm leading-6 whitespace-nowrap min-w-0;
+  @apply flex items-center;
+}
+
+.breadcrumbs li {
+  @apply pl-1 pr-5;
+  position: relative;
+}
+
+.breadcrumbs li:after {
+  position: absolute;
+  content: '\203A';
+  top: -1px;
+  right: 6px;
+}
+
+.breadcrumbs li:last-child::after {
+  content: '';
+}
+
+.menu {
+  @apply fixed z-10 bottom-0;
+  @apply pb-6;
+  @apply overflow-y-auto;
+  @apply hidden;
+
+  @apply right-auto left-[max(0px,calc(50%-43rem))];
+
+  /* large */
+  @apply lg:block;
+  @apply lg:pl-4 lg:pr-4;
+  @apply lg:w-[14rem];
+
+  padding-top: 30px;
+  top: 8rem;
+  border-right: 2px solid #18b6f6;
+}
+
+.menu h5 {
+  @apply px-3 py-1 mb-1 rounded-md whitespace-nowrap;
+  color: var(--qwik-dark-blue);
+}
+
+.menu ul {
+  @apply border-slate-100;
+  padding-left: 10px;
+  padding-bottom: 15px;
+}
+
+.menu li {
+  @apply whitespace-nowrap;
+}
+
+details li {
+  @apply py-1 pl-3 hover:bg-slate-200;
+}
+details li a {
+  @apply block overflow-hidden text-ellipsis;
+}
+
+.menu li a {
+  @apply text-slate-900;
+}
+
+.menu li a.is-active {
+  font-weight: 800;
+}

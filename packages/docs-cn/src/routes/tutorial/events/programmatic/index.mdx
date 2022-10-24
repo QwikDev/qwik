@@ -1,0 +1,25 @@
+---
+title: Programmatic Listeners
+contributors:
+  - adamdbradley
+  - the-r3aper7
+  - manucorporat
+---
+
+There are times when your app needs to add a conditional listener. Sometimes a listener name is unknown, or you need to use an imperative approach to set up a listener.
+
+Qwik provides the following functions to attach a listener:
+
+| Function          | Description                                             |
+| ----------------- | ------------------------------------------------------- |
+| `useOn()`         | Add an event on specific event on current host element. |
+| `useOnDocument()` | Add an event on specific event on document.             |
+| `useOnWindow()`   | Add an event on specific event on window.               |
+
+> **Your task**: Set up a click listener on the component to call `alert('Hello world!')`.
+
+## Understanding the `$`
+
+The `$` function signals Qwik to lazy load a reference. When setting up a listener with `useOn`, the second argument is a [Qwik URL](../../../docs/advanced/qrl/index.mdx).
+
+Qwik URLs (QRL) are lazy-loadable references to your code. If `useOn` took a function directly rather than QRL, it would have to eagerly execute to allocate the listener closure. By using a QRL via the `$` function, Qwik can lazy load the closure only as `click` listener is triggered.

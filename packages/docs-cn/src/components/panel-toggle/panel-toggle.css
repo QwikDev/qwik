@@ -1,0 +1,44 @@
+.panel-toggle {
+  position: -webkit-sticky;
+  position: sticky;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--qwik-light-blue);
+  width: 100vw;
+  height: var(--panel-toggle-height);
+}
+
+.panel-toggle button {
+  background-color: white;
+  color: var(--qwik-dark-blue);
+  border: 1px solid var(--qwik-dark-blue);
+  border-radius: 3px;
+  min-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 4px 6px;
+  margin: 0 8px;
+  font-size: 12px;
+}
+
+.panel-toggle button.active,
+.panel-toggle button:hover {
+  background-color: var(--qwik-dark-blue);
+  color: white;
+}
+
+@media (min-width: 380px) {
+  .panel-toggle button {
+    padding: 4px 8px;
+    margin: 0 10px;
+    min-width: 70px;
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 768px) {
+  .panel-toggle {
+    display: none;
+  }
+}

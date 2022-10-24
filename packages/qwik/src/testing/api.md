@@ -10,17 +10,11 @@ import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 // @alpha
 export function createDocument(opts?: MockDocumentOptions): Document;
 
-// @alpha (undocumented)
-export const CreateMock: {
-    userEvent: {
-        raw: (element: Element, eventName: string, document: Element) => Promise<void>;
-    };
-    createPlatform: () => {
-        host: HTMLElement;
-        render: (jsxElement: JSXNode) => Promise<void>;
-        screen: () => HTMLElement;
-        userEvent: (element: HTMLElement | Element, event: string) => Promise<void>;
-    };
+// @alpha
+export const createDOM: () => {
+    render: (jsxElement: JSXNode) => Promise<void>;
+    screen: () => HTMLElement;
+    userEvent: (element: HTMLElement | string | Element, event: string) => Promise<void>;
 };
 
 // @alpha

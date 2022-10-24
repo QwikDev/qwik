@@ -10,4 +10,4 @@ export type {
   TestPlatform,
 } from './types';
 export { toFileUrl } from './util';
-export { CreateMock } from './library';
+export { createDOM } from './library';

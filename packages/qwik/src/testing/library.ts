@@ -17,42 +17,23 @@ const parseClassWithElement = (element: Element) => {
 };
 
 /**
- * convenience: events...
- * userEvent.click(#element)
- */
-const userEvent = {
-  raw: function (element: Element, eventName: string, document: Element) {
-    const classListValue = parseClassWithElement(element);
-    return trigger(document, `${element.tagName}${classListValue}`, eventName);
-  },
-};
-
-/**
  * CreatePlatfrom and CreateDocument
+ * @alpha
  */
-const createPlatform = function () {
+export const createDOM = function () {
   setTestPlatform();
   const host = new ElementFixture().host;
   return {
-    host,
     render: function (jsxElement: JSXNode) {
       return renderIn(host, jsxElement);
     },
     screen: function () {
       return host;
     },
-    userEvent: function (element: HTMLElement | Element, event: string) {
+    userEvent: function (element: HTMLElement | string | Element, event: string) {
+      if (typeof element === 'string') return trigger(host, element, event);
       const classListValue = parseClassWithElement(element);
       return trigger(host, `${element.tagName}${classListValue}`, event);
     },
   };
-};
-
-/**
- *
- * @alpha
- */
-export const CreateMock = {
-  userEvent,
-  createPlatform,
 };

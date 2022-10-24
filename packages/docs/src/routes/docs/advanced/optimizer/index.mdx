@@ -15,7 +15,7 @@ The Optimizer looks for `$` and applies a transformation that extracts the expre
 Let's start by looking at a simple `Counter` example:
 
 ```tsx
-const Counter = component$(() => {
+export const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
   return <button onClick$={() => store.count++}>{store.count}</button>;
@@ -121,7 +121,7 @@ Now the developer has a very easy syntax for expressing that a particular functi
 Assume that you have this code:
 
 ```tsx
-const MyComp = component$(() => {
+export const MyComp = component$(() => {
   /* my component definition */
 });
 ```
@@ -156,7 +156,7 @@ The Optimizer extracts expressions (usually functions) into new files and leaves
 Let's look at a simple case:
 
 ```tsx
-const Greeter = component$(() => {
+export const Greeter = component$(() => {
   return <span>Hello World!</span>;
 });
 ```
@@ -184,7 +184,7 @@ const Greeter_onRender = () => <span>Hello World!</span>;
 The above is for simple cases where the extracted function closure does not capture any variables. Let's look at a more complicated case where the extracted function closure lexically captures variables.
 
 ```tsx
-const Greeter = component$((props: { name: string }) => {
+export const Greeter = component$((props: { name: string }) => {
   const salutation = 'Hello';
 
   return (

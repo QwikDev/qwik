@@ -12,12 +12,12 @@ In addition to standard Qwik components that have all of its lazy-loaded propert
 
 ```tsx
 // Lite component: declared using a standard function.
-function MyButton(props: { text: string }) {
+export const MyButton = (props: { text: string }) => {
   return <button>{props.text}</button>;
-}
+};
 
 // Component: declared using `component$()`.
-const MyApp = component$(() => {
+export const MyApp = component$(() => {
   return (
     <div>
       Some text:

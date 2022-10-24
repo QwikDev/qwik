@@ -14,7 +14,7 @@ contributors:
 For a web application to be interactive, there needs to be a way to respond to user events. This is done by registering callback functions in the JSX template.
 
 ```tsx
-const Counter = component$(() => {
+export const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
   return <button onClick$={() => store.count++}>{store.count}</button>;
@@ -32,7 +32,7 @@ You can also pass QRLs as values for event listeners. For instance, the above ex
 ```tsx
 import { component$, useStore, $ } from "@builder.io/qwik";
 
-const Counter = component$(() => {
+export const Counter = component$(() => {
   const store = useStore({ count: 0 });
   const incrementCount = $(() => store.count++)
 
@@ -45,7 +45,7 @@ const Counter = component$(() => {
 Because of the async nature of Qwik, an event's handler execution might be delayed because the implementation has not been downloaded yet. This introduces a problem when the event's handler needs to prevent the default behavior of the event. Traditional `event.preventDefault()` will not work, so instead use Qwik's `preventdefault:{eventName}` attribute:
 
 ```tsx
-const PreventDefaultExample = component$(() => {
+export const PreventDefaultExample = component$(() => {
   return (
     <a
       href="/about"
@@ -67,7 +67,7 @@ const PreventDefaultExample = component$(() => {
 So far, we have discussed how to listen to events that originate from elements. There are events (for example, `scroll` and `mousemove`) that require that we listen to them on the `window` or `document`. For this reason, Qwik allows for the `document:on` and `window:on` prefixes when listening for events.
 
 ```tsx
-const EventExample = component$(() => {
+export const EventExample = component$(() => {
   const store = useStore({
     scroll: 0,
     mouse: { x: 0, y: 0 },
@@ -109,7 +109,7 @@ interface CmpButtonProps {
   onClick$?: PropFunction<() => void>;
 }
 
-const CmpButton = component$((props: CmpButtonProps) => {
+export const CmpButton = component$((props: CmpButtonProps) => {
   return (
     <button onDblclick$={props.onClick$}>
       <Slot />
@@ -135,7 +135,7 @@ interface CmpButtonProps {
   onClick$?: PropFunction<() => number>;
 }
 
-const CmpButton = component$((props: CmpButtonProps) => {
+export const CmpButton = component$((props: CmpButtonProps) => {
   return (
     <button
       onDblclick$={props.onClick$}
@@ -162,7 +162,7 @@ However, it is not possible to pass `props.onClick$` to `onClick$` because the t
 ## State recovery
 
 ```tsx
-const Counter = component$(() => {
+export const Counter = component$(() => {
   const store = useStore({ count: 0 });
 
   return <button onClick$={() => store.count++}>{store.count}</button>;

@@ -126,8 +126,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         } else if (typeof qwikViteOpts.ssr?.input === 'string') {
           // entry.ssr.tsx input (exports render())
           pluginOpts.input = qwikViteOpts.ssr.input;
-        } else if (viteConfig.build?.ssr && Array.isArray(viteConfig.build?.rollupOptions?.input)) {
-          pluginOpts.input = viteConfig.build!.rollupOptions!.input;
         }
 
         pluginOpts.outDir = qwikViteOpts.ssr?.outDir;
@@ -280,11 +278,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           if (buildMode === 'production') {
             updatedViteConfig.build!.minify = 'esbuild';
           }
-        }
-        if (typeof viteConfig.build?.emptyOutDir === 'boolean') {
-          updatedViteConfig.build!.emptyOutDir = viteConfig.build!.emptyOutDir;
-        } else {
-          updatedViteConfig.build!.emptyOutDir = false;
         }
       } else if (opts.target === 'client') {
         if (buildMode === 'production') {
@@ -477,7 +470,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                   await fs.promises.mkdir(folder, { recursive: true });
                   await fs.promises.writeFile(
                     sys.path.join(folder, js),
-                    `import("./${moduleName}").catch((e) => { console.error(e); process.exit(1); });`
+                    `export * from "./${moduleName}";`
                   );
                 }
               }

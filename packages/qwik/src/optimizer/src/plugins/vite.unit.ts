@@ -223,7 +223,7 @@ vite('command: build, --ssr entry.server.tsx', async () => {
 
   equal(plugin.enforce, 'pre');
   equal(build.outDir, normalizePath(resolve(cwd, 'server')));
-  equal(build.emptyOutDir, false);
+  equal(build.emptyOutDir, undefined);
   equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'entry.server.tsx'))]);
   equal(outputOptions.assetFileNames, undefined);
   equal(outputOptions.chunkFileNames, undefined);
@@ -261,7 +261,7 @@ vite('command: serve, --mode ssr', async () => {
   equal(build.ssr, undefined);
   equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'renderz.tsx'))]);
   equal(c.build.outDir, normalizePath(resolve(cwd, 'ssr-dist')));
-  equal(build.emptyOutDir, true);
+  equal(build.emptyOutDir, undefined);
   equal(c.publicDir, undefined);
   equal(opts.resolveQwikBuild, false);
 });

@@ -84,24 +84,35 @@ Qwik是把"尽可能延迟加载和执行JS"理念发挥到极致的产物。
 是的，QWIK需要一个不同方式来思考和设计你的应用。
 结果是：几乎为0的初始JS量 和 当用户交互时渐进加载和执行其他JS代码。
 
-### Size should not be a developer problem
+### bundle Size不应该是开发者的问题
 
-Today, size is the developers' problem. If you follow best practices for each of the frameworks, tools, etc., you will have a large bundle size. It is at that time when developers start to mitigate the problem with some sort of lazy loading boundaries etc. (But as anyone who has tried will tell you, the options are limited.)
+今天，bundle Size是开发者的问题。
+如果你按照每个框架、工具等的最佳实践来开发，你仍会得到一个很大的bundle size。
+等到了bundle size很大的时候，开发者开始用一些懒加载技术缓解这个问题。
+（但是所有试过这些技术的人都会告诉你，那些技术（对解决bundle sized过大问题）起到的作用非常有限）
 
-Our industry best practices lead to large bundles, and the web is full of examples.
+我们行业的最佳实践就是会导致很大的bundle size，这样的例子在整个web界随处可见。
 
-The mantra of Qwik is that bundle size should not be something that developers should think about. It should just naturally emerge as part of how the framework is designed.
+Qwik的理念是bundle size不应该是开发者要解决的问题，而应该作为框架设计的一部分，是框架要解决的问题。
 
-Qwik is designed from the ground up to produce lots of lazy loadable boundaries. Tooling can break up your application into many lazy-loadable chunks, and the runtime can download them only when needed.
+Qwik从框架底层设计了许多可以懒加载的边界。可以把你的应用拆分成许许多多的chunks，应用运行的时候只需要按需加载这些chunks即可。
 
-### Why not fix existing frameworks/tools?
+### 为什么不改造现有框架或工具?
 
-In short, the lazy loading philosophy is at a low level and can not be retroactively added to the existing frameworks/tools without changing them fundamentally. Such fundamental change would be incompatible with the framework/tools and their respective ecosystems, rendering them useless.
+简言之，懒加载哲学是比较底层的，不太可能在不从根本上改变现有框架/工具的基础上添加进去。
+这样根本性的改变是和现有的框架/工具以及他们的生态不兼容的。
 
-When a framework makes certain assumptions, such as that all rendering is synchronous, adding asynchronous lazy loading becomes pretty close to impossible. Or, if a framework recovers the listener location from templates, then download and execution of those templates is a must before the site can be interactive. These are just some of the more obvious examples, but in practice, there is a long tail of endless reasons why the current mental model does not fit the requirements of resumability.
+当一个框架做了一个假设，比如所有渲染都是同步的，添加异步的懒加载基本上不可能。
+又或者，一个框架为了使页面可交互，就要从组件模板里恢复事件监听器，然后就必须下载和执行所有组件代码。
+这里只有举了两个例子，实际上，还有许许多多其他理由，使得当前框架的心智模型不具备 改造为可恢复性的框架 的条件。
 
-The above also means that it is not feasible for existing frameworks to add resumability as a feature. Existing frameworks will never be able to do what Qwik can (without breaking backward compatibility).
+上述理由意味着现有框架添加可恢复性作为一个特性基本上是不可行的。
+现有框架绝无可能做到目前Qwik所做到的（除非做 破坏性向后兼容）。
 
-### Why are we building Qwik?
+### 为什么要推出Qwik?
 
-Because we believe there is a better way to build sites. A way that does not involve massive amounts of JavaScript that must be downloaded eagerly on startup before your site becomes interactive. A way that allows the developer to think about adding features rather than how to break up the huge codebase into smaller chunks. A way to have instant-on sites for a better user experience. And all of that, in a way that is independent of the size of the application codebase.
+因为我们相信有更好的构建站点的方式。
+一种不需要在应用启动时就要急切地下载大量JS才能使站点可交互的方式。
+一种让开发者安心开发业务功能而不是还要让他们发愁拆分巨大代码库为小chunks的方式。
+一种可以拥有 瞬间启动且拥有更好的用户体验的站点 的方式。
+而所以以上这些优点，都是与仓库代码量无关的，即无论你的总代码量有多大，上述优点应一直存在。

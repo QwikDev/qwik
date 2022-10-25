@@ -9,17 +9,22 @@ export default defineConfig(() => {
   const routesDir = resolve('src', 'routes');
 
   return {
+    optimizeDeps: {
+      force: true,
+    },
     ssr: {
-      // SSR builds for the edge should use the "webworker" target
-      // SSG builds should use "node"
-      target: 'node',
-      format: 'cjs',
+      noExternal: [
+        '@algolia/autocomplete-core',
+        '@algolia/autocomplete-core/dist/esm/resolve.js',
+        '@algolia/autocomplete-shared',
+      ],
     },
     plugins: [
       qwikCity({
         trailingSlash: true,
       }),
       qwikVite({
+        debug: true,
         entryStrategy: {
           type: 'smart',
           manual: {
@@ -37,10 +42,6 @@ export default defineConfig(() => {
       playgroundData(routesDir),
       tutorialData(routesDir),
     ],
-    clearScreen: false,
-    optimizeDeps: {
-      force: true,
-    },
     server: {
       port: 3000,
     },

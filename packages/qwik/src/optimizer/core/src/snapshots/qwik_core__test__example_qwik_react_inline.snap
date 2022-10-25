@@ -1,0 +1,194 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useWatchQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
+import { jsx, Fragment } from '@builder.io/qwik/jsx-runtime';
+import { isBrowser, isServer } from '@builder.io/qwik/build';
+
+function qwikifyQrl(reactCmpQrl) {
+    return /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
+        const [reactCmpQrl] = useLexicalScope();
+        const hostElement = useHostElement();
+        const store = useStore({});
+        let run;
+        if (props['client:visible']) run = 'visible';
+        else if (props['client:load'] || props['client:only']) run = 'load';
+        useWatchQrl(inlinedQrl(async (track)=>{
+            const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
+            track(props);
+            if (isBrowser) {
+                if (store.data) store.data.root.render(store.data.client.Main(store.data.cmp, filterProps(props)));
+                else {
+                    const [Cmp, client] = await Promise.all([
+                        reactCmpQrl.resolve(),
+                        import('./client-f762f78c.js')
+                    ]);
+                    let root;
+                    if (hostElement.childElementCount > 0) root = client.hydrateRoot(hostElement, client.Main(Cmp, filterProps(props), store.event));
+                    else {
+                        root = client.createRoot(hostElement);
+                        root.render(client.Main(Cmp, filterProps(props)));
+                    }
+                    store.data = noSerialize({
+                        client,
+                        cmp: Cmp,
+                        root
+                    });
+                }
+            }
+        }, "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
+            hostElement,
+            props,
+            reactCmpQrl,
+            store
+        ]), {
+            run
+        });
+        if (isServer && !props['client:only']) {
+            const jsx$1 = Promise.all([
+                reactCmpQrl.resolve(),
+                import('./server-9ac6caad.js')
+            ]).then(([Cmp, server])=>{
+                const html = server.render(Cmp, filterProps(props));
+                return /*#__PURE__*/ jsx(Host, {
+                    dangerouslySetInnerHTML: html,
+                    [_IMMUTABLE]: [
+                        "dangerouslySetInnerHTML"
+                    ]
+                });
+            });
+            return /*#__PURE__*/ jsx(Fragment, {
+                children: jsx$1
+            });
+        }
+        return /*#__PURE__*/ jsx(Host, {
+            children: /*#__PURE__*/ jsx(SkipRerender, {})
+        });
+    }, "qwikifyQrl_component_zH94hIe0Ick", [
+        reactCmpQrl
+    ]), {
+        tagName: 'qwik-wrap'
+    });
+}
+const filterProps = (props)=>{
+    const obj = {};
+    Object.keys(props).forEach((key)=>{
+        if (!key.startsWith('client:')) obj[key] = props[key];
+    });
+    return obj;
+};
+const qwikify$ = implicit$FirstArg(qwikifyQrl);
+
+async function renderToString(rootNode, opts) {
+    const mod = await import('./server-9ac6caad.js');
+    const result = await mod.renderToString(rootNode, opts);
+    const styles = mod.getGlobalStyleTag(result.html);
+    const finalHtml = styles + result.html;
+    return {
+        ...result,
+        html: finalHtml
+    };
+}
+
+export { qwikify$, qwikifyQrl, renderToString };
+        
+============================= ../node_modules/@builder.io/qwik-react/index.qwik.mjs ==
+
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useWatchQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
+import { jsx, Fragment } from '@builder.io/qwik/jsx-runtime';
+import { isBrowser, isServer } from '@builder.io/qwik/build';
+function qwikifyQrl(reactCmpQrl) {
+    return /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
+        const [reactCmpQrl] = useLexicalScope();
+        const hostElement = useHostElement();
+        const store = useStore({});
+        let run;
+        if (props['client:visible']) run = 'visible';
+        else if (props['client:load'] || props['client:only']) run = 'load';
+        useWatchQrl(inlinedQrl(async (track)=>{
+            const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
+            track(props);
+            if (isBrowser) {
+                if (store.data) store.data.root.render(store.data.client.Main(store.data.cmp, filterProps(props)));
+                else {
+                    const [Cmp, client] = await Promise.all([
+                        reactCmpQrl.resolve(),
+                        import('./client-f762f78c.js')
+                    ]);
+                    let root;
+                    if (hostElement.childElementCount > 0) root = client.hydrateRoot(hostElement, client.Main(Cmp, filterProps(props), store.event));
+                    else {
+                        root = client.createRoot(hostElement);
+                        root.render(client.Main(Cmp, filterProps(props)));
+                    }
+                    store.data = noSerialize({
+                        client,
+                        cmp: Cmp,
+                        root
+                    });
+                }
+            }
+        }, "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
+            hostElement,
+            props,
+            reactCmpQrl,
+            store
+        ]), {
+            run
+        });
+        if (isServer && !props['client:only']) {
+            const jsx$1 = Promise.all([
+                reactCmpQrl.resolve(),
+                import('./server-9ac6caad.js')
+            ]).then(([Cmp, server])=>{
+                const html = server.render(Cmp, filterProps(props));
+                return /*#__PURE__*/ jsx(Host, {
+                    dangerouslySetInnerHTML: html,
+                    [_IMMUTABLE]: [
+                        "dangerouslySetInnerHTML"
+                    ]
+                });
+            });
+            return /*#__PURE__*/ jsx(Fragment, {
+                children: jsx$1
+            });
+        }
+        return /*#__PURE__*/ jsx(Host, {
+            children: /*#__PURE__*/ jsx(SkipRerender, {})
+        });
+    }, "qwikifyQrl_component_zH94hIe0Ick", [
+        reactCmpQrl
+    ]), {
+        tagName: 'qwik-wrap'
+    });
+}
+const filterProps = (props)=>{
+    const obj = {};
+    Object.keys(props).forEach((key)=>{
+        if (!key.startsWith('client:')) obj[key] = props[key];
+    });
+    return obj;
+};
+const qwikify$ = implicit$FirstArg(qwikifyQrl);
+async function renderToString(rootNode, opts) {
+    const mod = await import('./server-9ac6caad.js');
+    const result = await mod.renderToString(rootNode, opts);
+    const styles = mod.getGlobalStyleTag(result.html);
+    const finalHtml = styles + result.html;
+    return {
+        ...result,
+        html: finalHtml
+    };
+}
+export { qwikify$, qwikifyQrl, renderToString };
+export { filterProps };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-react/index.qwik.mjs\"],\"names\":[],\"mappings\":\"AACA,SAAS,YAAY,EAAE,UAAU,EAAE,eAAe,EAAE,cAAc,EAAE,QAAQ,EAAE,WAAW,EAAE,WAAW,EAAE,YAAY,EAAE,iBAAiB,QAAQ,kBAAkB,CAAC;AAClK,SAAS,GAAG,EAAE,QAAQ,QAAQ,8BAA8B,CAAC;AAC7D,SAAS,SAAS,EAAE,QAAQ,QAAQ,wBAAwB,CAAC;AAE7D,SAAS,UAAU,CAAC,WAAW,EAAE;IAC7B,OAAO,WAAW,GAAG,YAAY,YAAY,CAAC,KAAK,GAAG;QAClD,MAAM,CAAC,WAAW,CAAC,GAAG,eAAe,EAAE,AAAC;QACxC,MAAM,WAAW,GAAG,cAAc,EAAE,AAAC;QACrC,MAAM,KAAK,GAAG,QAAQ,CAAC,EAAE,CAAC,AAAC;QAC3B,IAAI,GAAG,AAAC;QACR,IAAI,KAAK,CAAC,gBAAgB,CAAC,EAAE,GAAG,GAAG,SAAS,CAAC;aACxC,IAAI,KAAK,CAAC,aAAa,CAAC,IAAI,KAAK,CAAC,aAAa,CAAC,EAAE,GAAG,GAAG,MAAM,CAAC;QACpE,WAAW,YAAY,OAAO,KAAK,GAAG;YAClC,MAAM,CAAC,WAAW,EAAE,KAAK,EAAE,WAAW,EAAE,KAAK,CAAC,GAAG,eAAe,EAAE,AAAC;YACnE,KAAK,CAAC,KAAK,CAAC,CAAC;YACb,IAAI,SAAS;gBACT,IAAI,KAAK,CAAC,IAAI,EAAE,KAAK,CAAC,IAAI,CAAC,IAAI,CAAC,MAAM,CAAC,KAAK,CAAC,IAAI,CAAC,MAAM,CAAC,IAAI,CAAC,KAAK,CAAC,IAAI,CAAC,GAAG,EAAE,WAAW,CAAC,KAAK,CAAC,CAAC,CAAC,CAAC;qBAC9F;oBACD,MAAM,CAAC,GAAG,EAAE,MAAM,CAAC,GAAG,MAAM,OAAO,CAAC,GAAG,CAAC;wBACpC,WAAW,CAAC,OAAO,EAAE;wBACrB,MAAM,CAAC,sBAAsB,CAAC;qBACjC,CAAC,AAAC;oBACH,IAAI,IAAI,AAAC;oBACT,IAAI,WAAW,CAAC,iBAAiB,GAAG,CAAC,EAAE,IAAI,GAAG,MAAM,CAAC,WAAW,CAAC,WAAW,EAAE,MAAM,CAAC,IAAI,CAAC,GAAG,EAAE,WAAW,CAAC,KAAK,CAAC,EAAE,KAAK,CAAC,KAAK,CAAC,CAAC,CAAC;yBAC5H;wBACD,IAAI,GAAG,MAAM,CAAC,UAAU,CAAC,WAAW,CAAC,CAAC;wBACtC,IAAI,CAAC,MAAM,CAAC,MAAM,CAAC,IAAI,CAAC,GAAG,EAAE,WAAW,CAAC,KAAK,CAAC,CAAC,CAAC,CAAC;oBACtD,CAAC;oBACD,KAAK,CAAC,IAAI,GAAG,WAAW,CAAC;wBACrB,MAAM;wBACN,GAAG,EAAE,GAAG;wBACR,IAAI;qBACP,CAAC,CAAC;gBACP,CAAC;aACJ;QACL,CAAC;;;;;YAKG;YACA,GAAG;SACN,CAAC,CAAC;QACH,IAAI,QAAQ,IAAI,CAAC,KAAK,CAAC,aAAa,CAAC,EAAE;YACnC,MAAM,KAAK,GAAG,OAAO,CAAC,GAAG,CAAC;gBACtB,WAAW,CAAC,OAAO,EAAE;gBACrB,MAAM,CAAC,sBAAsB,CAAC;aACjC,CAAC,CAAC,IAAI,CAAC,CAAC,CAAC,GAAG,EAAE,MAAM,CAAC,GAAG;gBACrB,MAAM,IAAI,GAAG,MAAM,CAAC,MAAM,CAAC,GAAG,EAAE,WAAW,CAAC,KAAK,CAAC,CAAC,AAAC;gBACpD,OAAO,WAAW,GAAG,GAAG,CAAC,IAAI,EAAE;oBAC3B,uBAAuB,EAAE,IAAI;oBAC7B,CAAC,UAAU,CAAC,EAAE;wBACV,yBAAyB;qBAC5B;iBACJ,CAAC,CAAC;YACP,CAAC,CAAC,AAAC;YACH,OAAO,WAAW,GAAG,GAAG,CAAC,QAAQ,EAAE;gBAC/B,QAAQ,EAAE,KAAK;aAClB,CAAC,CAAC;QACP,CAAC;QACD,OAAO,WAAW,GAAG,GAAG,CAAC,IAAI,EAAE;YAC3B,QAAQ,EAAE,WAAW,GAAG,GAAG,CAAC,YAAY,EAAE,EAAE,CAAC;SAChD,CAAC,CAAC;IACP,CAAC;QA3De,WAAW;QA6DvB;QACA,OAAO,EAAE,WAAW;KACvB,CAAC,CAAC;AACP,CAAC;AACD,MAAM,WAAW,GAAG,CAAC,KAAK,GAAG;IACzB,MAAM,GAAG,GAAG,EAAE,AAAC;IACf,MAAM,CAAC,IAAI,CAAC,KAAK,CAAC,CAAC,OAAO,CAAC,CAAC,GAAG,GAAG;QAC9B,IAAI,CAAC,GAAG,CAAC,UAAU,CAAC,SAAS,CAAC,EAAE,GAAG,CAAC,GAAG,CAAC,GAAG,KAAK,CAAC,GAAG,CAAC,CAAC;IAC1D,CAAC,CAAC,CAAC;IACH,OAAO,GAAG,CAAC;AACf,CAAC,AAAC;AACF,MAAM,QAAQ,GAAG,iBAAiB,CAAC,UAAU,CAAC,AAAC;AAE/C,eAAe,cAAc,CAAC,QAAQ,EAAE,IAAI,EAAE;IAC1C,MAAM,GAAG,GAAG,MAAM,MAAM,CAAC,sBAAsB,CAAC,AAAC;IACjD,MAAM,MAAM,GAAG,MAAM,GAAG,CAAC,cAAc,CAFb,QAAQ,EAAE,IAAI,CAEe,AAAC;IACxD,MAAM,MAAM,GAAG,GAAG,CAAC,iBAAiB,CAAC,MAAM,CAAC,IAAI,CAAC,AAAC;IAClD,MAAM,SAAS,GAAG,MAAM,GAAG,MAAM,CAAC,IAAI,AAAC;IACvC,OAAO;QACH,GAAG,MAAM;QACT,IAAI,EAAE,SAAS;KAClB,CAAC;AACN,CAAC;AAED,SAAS,QAAQ,EAAE,UAAU,EAAE,cAAc,GAAG\"}")
+== DIAGNOSTICS ==
+
+[]

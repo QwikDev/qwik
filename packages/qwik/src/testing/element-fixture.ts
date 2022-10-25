@@ -56,6 +56,7 @@ export interface ElementFixtureOptions {
  * @param selector
  * @param event
  * @returns
+ * @alpha
  */
 export async function trigger(
   root: Element,
@@ -71,6 +72,12 @@ export async function trigger(
   await getTestPlatform().flush();
 }
 
+/**
+ * Dispatch
+ * @param root
+ * @param attrName
+ * @param ev
+ */
 export const dispatch = async (root: Element | null, attrName: string, ev: any) => {
   while (root) {
     const elm = root;

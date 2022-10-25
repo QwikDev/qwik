@@ -16,6 +16,18 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
   async function generateBundles() {
     const qwikVitePluginApi = qwikVitePlugin!.api;
     const clientOutDir = qwikVitePluginApi.getClientOutDir()!;
+    const files = await fs.promises.readdir(clientOutDir, {withFileTypes: true})
+    const excludeStatic = files.map(file => {
+      if (file.name.startsWith('.')) {
+        return null;
+      }
+      if (file.isDirectory()) {
+        return `/${file.name}/*`;
+      } else if (file.isFile()) {
+        return `/${file.name}`;
+      }
+      return null;
+    }).filter(isNotNullable);
 
     const serverPackageJsonPath = join(serverOutDir!, 'package.json');
     const serverPackageJsonCode = `{"type":"module"}`;
@@ -40,13 +52,15 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
 
       const results = await staticGenerate.generate(generateOpts);
       const routesJsonPath = join(clientOutDir, '_routes.json');
-      console.log('staticPaths', results.staticPaths);
       const routesJson = {
         version: 1,
         includes: ['/*'],
-        excludes: ['/build/*', 'favicon.ico', 'manifest.ico', ...results.staticPaths],
+        excludes: [
+          ...excludeStatic,
+          ...results.staticPaths
+        ],
       };
-      await fs.promises.writeFile(routesJsonPath, JSON.stringify(routesJson));
+      await fs.promises.writeFile(routesJsonPath, JSON.stringify(routesJson, undefined, 2));
     }
   }
 
@@ -127,3 +141,7 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
 export interface CloudflarePagesAdaptorOptions {
   staticGenerate?: StaticGenerateRenderOptions | true;
 }
+
+const isNotNullable = <T>(v: T): v is NonNullable<T> => {
+  return v != null;
+};

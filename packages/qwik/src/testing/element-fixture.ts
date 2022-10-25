@@ -56,7 +56,6 @@ export interface ElementFixtureOptions {
  * @param selector
  * @param event
  * @returns
- * @alpha
  */
 export async function trigger(
   root: Element,

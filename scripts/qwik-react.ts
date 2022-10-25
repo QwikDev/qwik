@@ -1,5 +1,5 @@
 import { BuildConfig, copyDir, panic } from './util';
-import { join } from 'path';
+import { join } from 'node:path';
 import { execa } from 'execa';
 
 const PACKAGE = 'qwik-react';

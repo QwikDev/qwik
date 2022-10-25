@@ -6,11 +6,11 @@
 
 /// <reference types="node" />
 
-import type { IncomingMessage } from 'http';
+import type { IncomingMessage } from 'node:http';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RenderOptions as RenderOptions_2 } from '@builder.io/qwik';
-import type { ServerResponse } from 'http';
+import type { ServerResponse } from 'node:http';
 
 // @alpha (undocumented)
 export function createQwikCity(opts: QwikCityNodeRequestOptions): {

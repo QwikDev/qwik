@@ -1,4 +1,4 @@
 import { main } from './main';
-import { join } from 'path';
+import { join } from 'node:path';
 
 main(join(process.cwd(), 'packages'));

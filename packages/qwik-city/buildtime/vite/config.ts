@@ -1,4 +1,4 @@
-// import { basename } from 'path';
+// import { basename } from 'node:path';
 import { ConfigEnv, mergeConfig, UserConfigExport } from 'vite';
 
 /**

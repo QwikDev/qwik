@@ -1,4 +1,4 @@
-import { component$, $, useStore, mutable, noSerialize, useSignal, Signal } from '@builder.io/qwik';
+import { component$, $, useStore, noSerialize, useSignal, Signal } from '@builder.io/qwik';
 
 export const LexicalScope = component$(() => {
   const signal = useSignal(0);
@@ -6,11 +6,10 @@ export const LexicalScope = component$(() => {
     count: 0,
     signal,
   });
-
   return (
     <LexicalScopeChild
-      message={mutable('mutable message')}
-      message2={mutable(null)}
+      message={'mutable message'}
+      message2={null}
       signal={signal}
       signalValue={signal.value}
       store={store}
@@ -153,6 +152,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
         <p>{props.message}</p>
         <p>{JSON.stringify(propsCopy)}</p>
         <p>{promise}</p>
+        <p>{Object.keys(props).join(', ')}</p>
       </div>
       <button onClick$={onclick} id="rerender">
         Rerender {state.count}

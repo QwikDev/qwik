@@ -1,4 +1,4 @@
-import type { IncomingMessage, ServerResponse } from 'http';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { createHeaders } from '../request-handler/headers';
 import type { QwikCityRequestContext } from '../request-handler/types';
 

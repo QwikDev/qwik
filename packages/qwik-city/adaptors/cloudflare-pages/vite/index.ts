@@ -1,8 +1,8 @@
 import type { Plugin } from 'vite';
 import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import type { StaticGenerateOptions, StaticGenerateRenderOptions } from '../../../static';
-import { join } from 'path';
-import fs from 'fs';
+import { join } from 'node:path';
+import fs from 'node:fs';
 
 /**
  * @alpha
@@ -19,6 +19,7 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
 
     const serverPackageJsonPath = join(serverOutDir!, 'package.json');
     const serverPackageJsonCode = `{"type":"module"}`;
+    await fs.promises.mkdir(serverOutDir!, { recursive: true });
     await fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode);
 
     if (opts.staticGenerate) {
@@ -45,6 +46,21 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
     name: 'vite-plugin-qwik-city-cloudflare-pages',
     enforce: 'post',
     apply: 'build',
+
+    config() {
+      return {
+        build: {
+          rollupOptions: {
+            output: {
+              hoistTransitiveImports: false,
+            },
+          },
+        },
+        ssr: {
+          target: 'webworker',
+        },
+      };
+    },
 
     configResolved({ build, plugins }) {
       qwikVitePlugin = plugins.find((p) => p.name === 'vite-plugin-qwik') as QwikVitePlugin;

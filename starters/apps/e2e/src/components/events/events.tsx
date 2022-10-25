@@ -59,7 +59,7 @@ export const Buttons = component$((props: ButtonProps) => {
   return (
     <div>
       <span>some</span>
-      <button id="btn-transparent" onClick$={props.onTransparentClick$}>
+      <button id="btn-transparent" onClick$={props.onTransparentClick$ as any}>
         Transparent
       </button>
       <button

@@ -5,12 +5,12 @@
 
 import express, { NextFunction, Request, Response } from 'express';
 import { build, InlineConfig, PluginOption } from 'vite';
-import { join, resolve } from 'path';
-import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync, readFileSync } from 'fs';
+import { join, resolve } from 'node:path';
+import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync, readFileSync } from 'node:fs';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
 import type { PackageJSON } from 'scripts/util';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;

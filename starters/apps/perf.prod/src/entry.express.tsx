@@ -1,6 +1,6 @@
 import express from 'express';
-import { join } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import render from './entry.ssr';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));

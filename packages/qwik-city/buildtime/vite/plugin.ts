@@ -1,5 +1,5 @@
 import { createMdxTransformer, MdxTransform } from '../markdown/mdx';
-import { basename, join, resolve } from 'path';
+import { basename, join, resolve } from 'node:path';
 import type { Plugin, UserConfig } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
 import type { BuildContext } from '../types';
@@ -20,7 +20,7 @@ import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
 import { patchGlobalFetch } from '../../middleware/node/node-fetch';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import fs from 'fs';
+import fs from 'node:fs';
 import {
   generateServiceWorkerRegister,
   prependManifestToServiceWorker,

@@ -4,7 +4,8 @@
     "@builder.io/partytown": "^0.7.0"
   },
   "__qwik__": {
-    "priority": -1,
+    "displayName": "Integration: Partytown (3rd-party scripts)",
+    "priority": -20,
     "viteConfig": {
       "imports": [
         {
@@ -24,13 +25,19 @@
         "partytownVite({dest: join(__dirname, 'public', '~partytown')})"
       ]
     },
-    "nextSteps": [
-      "------------------------------------------------",
-      "You must add the next component <QwikPartytown/>;",
-      "If you check more arguments ",
-      "https://partytown.builder.io/configuration",
-      "root.tsx -------------------------------------",
-      ""
-    ]
+    "docs": [
+      "https://partytown.builder.io/",
+      "https://qwik.builder.io/qwikcity/integrations/partytown/"
+    ],
+    "nextSteps": {
+      "lines": [
+        "------------------------------------------------",
+        "You must add the next component <QwikPartytown/>;",
+        "If you check more arguments ",
+        "https://partytown.builder.io/configuration",
+        "root.tsx -------------------------------------",
+        ""
+      ]
+    }
   }
 }

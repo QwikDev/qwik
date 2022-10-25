@@ -81,7 +81,7 @@ export const SearchBox = component$((props: SearchBoxProps) => {
           onInput$={(event: Event) => {
             context.onInput?.(event);
           }}
-          onChange$={(event: Event) => {
+          onChange$={(event) => {
             context.onInput?.(event);
           }}
           // TODO: preventdefault:keydown by key's condition

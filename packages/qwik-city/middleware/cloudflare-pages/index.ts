@@ -71,15 +71,6 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
         platform: env,
       };
 
-      // check if the next middleware is able to handle this request
-      // useful if the request is for a static asset but app uses a catchall route
-      const nextResponse = await next();
-      if (nextResponse.ok) {
-        // next response is able to handle this request
-        return nextResponse;
-      }
-
-      // next middleware unable to handle request
       // send request to qwik city request handler
       const handledResponse = await requestHandler<Response>(requestCtx, opts);
       if (handledResponse) {

@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-react",
-  "version": "0.0.102",
+  "version": "0.1.1",
   "description": "QwikReact allows to apply inject React component into existing Qwik application",
   "scripts": {
     "build": "npm run build.lib",
@@ -12,7 +12,7 @@
     "dev.ssr": "vite --mode ssr",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
-    "lint": "eslint \"src/**/*.ts*\"",
+    "lint": "eslint src/**/*.ts*",
     "release": "np",
     "start": "npm run dev",
     "typecheck": "tsc --noEmit"
@@ -27,7 +27,7 @@
     "vite": "3.1.8"
   },
   "peerDependencies": {
-    "@builder.io/qwik": ">=0.0.38",
+    "@builder.io/qwik": ">=0.1.11",
     "@types/react": ">=18.0.1",
     "@types/react-dom": ">=18.0.0",
     "react": ">=18.0.0",
@@ -39,7 +39,8 @@
   "exports": {
     ".": {
       "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs"
+      "require": "./lib/index.qwik.cjs",
+      "types": "./lib/types/index.d.ts"
     }
   },
   "files": [
@@ -56,7 +57,7 @@
     "url": "https://github.com/BuilderIO/qwik/issues"
   },
   "type": "module",
-  "main": "./lib/index.qwik.cjs",
+  "main": "./lib/index.qwik.mjs",
   "module": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
   "types": "./lib/types/index.d.ts"

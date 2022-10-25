@@ -6,10 +6,10 @@ import type {
   WorkerOutputMessage,
   WorkerInputMessage,
 } from '../types';
-import fs from 'fs';
-import { cpus as nodeCpus } from 'os';
-import { Worker } from 'worker_threads';
-import { isAbsolute, resolve } from 'path';
+import fs from 'node:fs';
+import { cpus as nodeCpus } from 'node:os';
+import { Worker } from 'node:worker_threads';
+import { isAbsolute, resolve } from 'node:path';
 import { ensureDir } from './node-system';
 import { normalizePath } from '../../utils/fs';
 

@@ -1,19 +1,21 @@
 import { QRL, Signal, Slot, SSRRaw, SSRStream } from '@builder.io/qwik';
-import { main, getHostProps } from './slot';
+import { getHostProps, mainExactProps, getReactProps } from './slot';
 
 export async function renderFromServer(
   Host: any,
-  staticRender: boolean,
   reactCmp$: QRL<any>,
   scopeId: string,
   props: Record<string, any>,
   ref: Signal<Element | undefined>,
-  slotRef: Signal<Element | undefined>
+  slotRef: Signal<Element | undefined>,
+  hydrationProps: Record<string, any>
 ) {
   const [Cmp, server] = await Promise.all([reactCmp$.resolve(), import('./server')]);
 
-  const render = staticRender ? server.renderToStaticMarkup : server.renderToString;
-  const html = render(main(undefined, scopeId, Cmp, props));
+  const render = server.renderToString;
+  const newProps = getReactProps(props);
+  Object.assign(hydrationProps, newProps);
+  const html = render(mainExactProps(undefined, scopeId, Cmp, newProps));
   const index = html.indexOf('<!--SLOT-->');
   if (index > 0) {
     const part1 = html.slice(0, index);

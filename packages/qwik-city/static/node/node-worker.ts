@@ -1,4 +1,4 @@
-import { parentPort } from 'worker_threads';
+import { parentPort } from 'node:worker_threads';
 import type { WorkerInputMessage, WorkerOutputMessage } from '../types';
 
 export async function createNodeWorkerProcess(

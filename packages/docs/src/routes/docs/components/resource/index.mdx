@@ -18,8 +18,8 @@ const store = useStore({
   bar: 'foo'
 })
 const resource = useResource$(async (ctx) => {
-  ctx.track(store, 'bar'); // the resource will rerun when store.bar changes.
-  ctx.track(props, 'url'); // track() can be called multiple times, to track multiple values
+  ctx.track(() => store.bar); // the resource will rerun when store.bar changes.
+  ctx.track(() => props.url); // track() can be called multiple times, to track multiple values
   ctx.cleanup(() => {
     // In case the resource need to be cleaned up, this function will be called.
     // Allowing to clean resources like timers, subscriptions, fetch requests, etc.
@@ -72,7 +72,7 @@ export const Cmp = component$(() => {
   });
 
   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
-    const cityName = track(store, 'city');
+    const cityName = track(() => store.city);
     const abortController = new AbortController();
     cleanup(() => abortController.abort('cleanup'));
     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
@@ -107,7 +107,7 @@ export const Cmp = component$(() => {
   });
 
   const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
-    const cityName = track(store, 'city');
+    const cityName = track(() => store.city);
     const abortController = new AbortController();
     cleanup(() => abortController.abort('cleanup'));
     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {

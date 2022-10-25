@@ -13,7 +13,12 @@ import { logWarn } from '../util/log';
 import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QScopedStyle } from '../util/markers';
 import { qDev } from '../util/qdev';
 
-import { destroyWatch, isResourceWatch, ResourceReturnInternal, WatchFlagsIsDirty } from '../use/use-watch';
+import {
+  destroyWatch,
+  isResourceWatch,
+  ResourceReturnInternal,
+  WatchFlagsIsDirty,
+} from '../use/use-watch';
 import {
   qError,
   QError_containerAlreadyPaused,

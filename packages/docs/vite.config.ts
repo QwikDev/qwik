@@ -24,7 +24,6 @@ export default defineConfig(() => {
         trailingSlash: true,
       }),
       qwikVite({
-        debug: true,
         entryStrategy: {
           type: 'smart',
           manual: {

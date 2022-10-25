@@ -38,7 +38,15 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
         };
       }
 
-      await staticGenerate.generate(generateOpts);
+      const results = await staticGenerate.generate(generateOpts);
+      const routesJsonPath = join(clientOutDir, '_routes.json');
+      console.log('staticPaths', results.staticPaths);
+      const routesJson = {
+        version: 1,
+        includes: ['/*'],
+        excludes: ['/build/*', 'favicon.ico', 'manifest.ico', ...results.staticPaths],
+      };
+      await fs.promises.writeFile(routesJsonPath, JSON.stringify(routesJson));
     }
   }
 

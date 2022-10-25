@@ -29,6 +29,7 @@ export async function mainThread(sys: System) {
         duration: 0,
         rendered: 0,
         errors: 0,
+        staticPaths: [],
       };
 
       let isCompleted = false;
@@ -101,6 +102,10 @@ export async function mainThread(sys: System) {
             generatorResult.errors++;
           } else if (result.ok) {
             generatorResult.rendered++;
+            console.log('result.isStatic', result.isStatic);
+            if (result.isStatic) {
+              generatorResult.staticPaths.push(result.pathname);
+            }
           }
 
           flushQueue();

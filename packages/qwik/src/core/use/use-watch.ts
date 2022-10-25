@@ -758,7 +758,7 @@ export const runResource = <T>(
   );
 
   const timeout = resourceTarget._timeout;
-  if (timeout) {
+  if (timeout > 0) {
     return Promise.race([
       promise,
       delay(timeout).then(() => {

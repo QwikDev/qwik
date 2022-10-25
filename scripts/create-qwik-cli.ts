@@ -1,10 +1,10 @@
 import { BuildConfig, copyFile, emptyDir, mkdir, nodeTarget, stat } from './util';
 import { build } from 'esbuild';
-import { basename, join } from 'path';
+import { basename, join } from 'node:path';
 import { getBanner, readdir, watcher, run } from './util';
 import { readPackageJson, writePackageJson } from './package-json';
-import { existsSync } from 'fs';
-import { rm } from 'fs/promises';
+import { existsSync } from 'node:fs';
+import { rm } from 'node:fs/promises';
 
 const PACKAGE = 'create-qwik';
 
@@ -113,7 +113,7 @@ export async function publishCreateQwikCli(
 export async function copyStartersDir(
   config: BuildConfig,
   distCliDir: string,
-  typeDirs: ('apps' | 'features' | 'servers' | 'static-generators')[]
+  typeDirs: ('apps' | 'features' | 'adaptors')[]
 ) {
   const distStartersDir = join(distCliDir, 'starters');
   try {

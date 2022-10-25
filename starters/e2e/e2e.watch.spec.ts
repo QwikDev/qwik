@@ -42,4 +42,26 @@ test.describe('watch', () => {
     await expect(child).toHaveText('4 / 8');
     await expect(debounced).toHaveText('Debounced: 8');
   });
+
+  test('issue-1766', async ({ page }) => {
+    const result = page.locator('#issue-1766');
+    const loc = page.locator('#issue-1766-loc');
+
+    await expect(loc).toHaveText('Loc: /ROOT');
+    await expect(result).toHaveText('---');
+
+    const showBtn1 = page.locator('#show-btn');
+    await showBtn1.click();
+
+    const showBtn2 = page.locator('#show-btn-2');
+    await showBtn2.click();
+
+    await expect(loc).toHaveText('Loc: /ROOT');
+    await expect(result).toHaveText('watch ran');
+
+    const linkBtn = page.locator('#link-navigate');
+    await linkBtn.click();
+    await expect(loc).toHaveText('Loc: /PAGE');
+    await expect(result).toHaveText('watch ran');
+  });
 });

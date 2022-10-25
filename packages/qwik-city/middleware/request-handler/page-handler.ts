@@ -1,4 +1,4 @@
-import type { StreamWriter } from '@builder.io/qwik';
+import type { RenderOptions, StreamWriter } from '@builder.io/qwik';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type {
   PrefetchResource,
@@ -9,13 +9,13 @@ import type {
 import type { ClientPageData, QwikCityEnvData } from '../../runtime/src/library/types';
 import { getErrorHtml } from './error-handler';
 import { HttpStatus } from './http-status-codes';
-import type { QwikCityRequestContext, QwikCityRequestOptions, UserResponseContext } from './types';
+import type { QwikCityRequestContext, UserResponseContext } from './types';
 
 export function pageHandler<T = any>(
   requestCtx: QwikCityRequestContext,
   userResponse: UserResponseContext,
   render: Render,
-  opts?: QwikCityRequestOptions,
+  opts?: RenderOptions,
   routeBundleNames?: string[]
 ): Promise<T> {
   const { status, headers } = userResponse;

@@ -1,5 +1,5 @@
-import { tmpdir } from 'os';
-import { join } from 'path';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { test } from 'uvu';
 import { equal } from 'uvu/assert';
 import type { NormalizedPluginOptions } from '../buildtime/types';
@@ -44,6 +44,8 @@ test('isPageExt', () => {
     { ext: '.md', expect: true },
     { ext: '.mdx', expect: true },
     { ext: '.css', expect: false },
+    { ext: '.scss', expect: false },
+    { ext: '.sass', expect: false },
   ];
   t.forEach((c) => {
     equal(isPageExt(c.ext), c.expect, c.ext);
@@ -59,6 +61,8 @@ test('isModuleExt', () => {
     { ext: '.md', expect: false },
     { ext: '.mdx', expect: false },
     { ext: '.css', expect: false },
+    { ext: '.scss', expect: false },
+    { ext: '.sass', expect: false },
   ];
   t.forEach((c) => {
     equal(isModuleExt(c.ext), c.expect, c.ext);
@@ -74,6 +78,8 @@ test('isPageModuleExt', () => {
     { ext: '.md', expect: false },
     { ext: '.mdx', expect: false },
     { ext: '.css', expect: false },
+    { ext: '.scss', expect: false },
+    { ext: '.sass', expect: false },
   ];
   t.forEach((c) => {
     equal(isPageModuleExt(c.ext), c.expect, c.ext);
@@ -89,6 +95,8 @@ test('isMarkdownExt', () => {
     { ext: '.md', expect: true },
     { ext: '.mdx', expect: true },
     { ext: '.css', expect: false },
+    { ext: '.scss', expect: false },
+    { ext: '.sass', expect: false },
   ];
   t.forEach((c) => {
     equal(isMarkdownExt(c.ext), c.expect, c.ext);
@@ -243,6 +251,11 @@ test('getPathnameFromDirPath', () => {
       routesDir: routesDir,
       basePathname: c.basePathname,
       trailingSlash: c.trailingSlash,
+      mdxPlugins: {
+        remarkGfm: true,
+        rehypeSyntaxHighlight: true,
+        rehypeAutolinkHeadings: true,
+      },
       mdx: {},
       baseUrl: c.basePathname,
     };

@@ -6,7 +6,6 @@ export const LexicalScope = component$(() => {
     count: 0,
     signal,
   });
-
   return (
     <LexicalScopeChild
       message={mutable('mutable message')}
@@ -153,6 +152,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
         <p>{props.message}</p>
         <p>{JSON.stringify(propsCopy)}</p>
         <p>{promise}</p>
+        <p>{Object.keys(props).join(', ')}</p>
       </div>
       <button onClick$={onclick} id="rerender">
         Rerender {state.count}

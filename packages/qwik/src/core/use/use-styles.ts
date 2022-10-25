@@ -8,6 +8,7 @@ import { assertQrl } from '../qrl/qrl-class';
 import { isPromise } from '../util/promises';
 import { assertDefined } from '../error/assert';
 import { getContext } from '../state/context';
+import { ComponentStylesPrefixContent } from '../util/markers';
 
 /**
  * @alpha
@@ -96,7 +97,7 @@ export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
 // </docs>
 export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
   return {
-    scopeId: _useStyles(styles, getScopedStyles, true),
+    scopeId: ComponentStylesPrefixContent + _useStyles(styles, getScopedStyles, true),
   };
 };
 

@@ -1,5 +1,15 @@
 /* eslint-disable */
-import { component$, useServerMount$, useWatch$, useStore } from '@builder.io/qwik';
+import {
+  component$,
+  useServerMount$,
+  useWatch$,
+  useStore,
+  useSignal,
+  Signal,
+  createContext,
+  useContext,
+  useContextProvider,
+} from '@builder.io/qwik';
 
 interface State {
   count: number;
@@ -59,6 +69,7 @@ export const WatchShell = component$(({ store }: { nav: any; store: State }) => 
       <button id="add" onClick$={() => store.count++}>
         +
       </button>
+      <Issue1766Root />
     </div>
   );
 });
@@ -78,4 +89,96 @@ export const Child = component$((props: { state: State }) => {
 export const GrandChild = component$((props: { state: State }) => {
   console.log('GrandChild renders');
   return <div id="debounced">Debounced: {props.state.debounced}</div>;
+});
+
+export const LinkPath = createContext<{ value: string }>('link-path');
+
+export const Issue1766Root = component$(() => {
+  const loc = useStore({
+    value: '/root',
+  });
+
+  const final = useStore({
+    value: '/root',
+  });
+  useContextProvider(LinkPath, loc);
+
+  useWatch$(({ track }) => {
+    const path = track(() => loc.value);
+    final.value = path.toUpperCase();
+  });
+
+  return (
+    <>
+      <Issue1766 />
+      <div id="issue-1766-loc">Loc: {final.value}</div>
+    </>
+  );
+});
+
+export const Issue1766 = component$(() => {
+  const counter = useSignal(0);
+  const second = useSignal('---');
+
+  useWatch$(async ({ track }) => {
+    track(counter);
+    if (counter.value !== 0) {
+      second.value = 'watch ran';
+    }
+  });
+
+  return (
+    <div>
+      <p id="issue-1766">{second.value}</p>
+      <Issue1766Child counter={counter} />
+    </div>
+  );
+});
+
+type Props = {
+  counter: Signal<number>;
+};
+
+export const Issue1766Child = component$<Props>(({ counter }) => {
+  const state = useStore({ show: false });
+  return (
+    <>
+      {state.show ? (
+        <>
+          <button
+            id="show-btn-2"
+            onClick$={() => {
+              counter.value++;
+            }}
+          >
+            Bump In Child Component (Doesn't work)
+          </button>
+          <Link href="/page" />
+        </>
+      ) : (
+        <button
+          id="show-btn"
+          onClick$={() => {
+            state.show = true;
+          }}
+        >
+          Show Button
+        </button>
+      )}
+    </>
+  );
+});
+
+export const Link = component$((props: { href: string }) => {
+  const loc = useContext(LinkPath);
+  return (
+    <button
+      id="link-navigate"
+      onClick$={() => {
+        loc.value = props.href;
+      }}
+    >
+      Navigate
+    </button>
+  );
 });

@@ -1,4 +1,4 @@
-import { dirname } from 'path';
+import { dirname } from 'node:path';
 import { resolveMenu } from '../markdown/menu';
 import type {
   BuildEntry,

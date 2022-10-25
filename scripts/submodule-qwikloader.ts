@@ -9,7 +9,7 @@ import {
   terser,
   writeFile,
 } from './util';
-import { join } from 'path';
+import { join } from 'node:path';
 import { transform } from 'esbuild';
 import { writePackageJson } from './package-json';
 

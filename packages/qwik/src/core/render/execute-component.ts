@@ -12,7 +12,7 @@ import { seal } from '../util/qdev';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { SkipRender } from './jsx/utils.public';
 import { handleError } from './error-handling';
-import type { QContext } from '../state/context';
+import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, QContext } from '../state/context';
 
 export interface ExecuteComponentOutput {
   node: JSXNode | null;
@@ -23,8 +23,8 @@ export const executeComponent = (
   rCtx: RenderContext,
   elCtx: QContext
 ): ValueOrPromise<ExecuteComponentOutput> => {
-  elCtx.$dirty$ = false;
-  elCtx.$mounted$ = true;
+  elCtx.$flags$ &= ~HOST_FLAG_DIRTY;
+  elCtx.$flags$ |= HOST_FLAG_MOUNTED;
   elCtx.$slots$ = [];
   elCtx.li.length = 0;
 
@@ -53,7 +53,7 @@ export const executeComponent = (
     (jsxNode) => {
       if (waitOn.length > 0) {
         return Promise.all(waitOn).then(() => {
-          if (elCtx.$dirty$) {
+          if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
             return executeComponent(rCtx, elCtx);
           }
           return {
@@ -62,7 +62,7 @@ export const executeComponent = (
           };
         });
       }
-      if (elCtx.$dirty$) {
+      if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
         return executeComponent(rCtx, elCtx);
       }
       return {

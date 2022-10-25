@@ -1,7 +1,7 @@
 import { setPlatform } from '@builder.io/qwik';
 import type { TestPlatform } from './types';
-import { existsSync } from 'fs';
-import { fileURLToPath } from 'url';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 function createPlatform() {
   interface Queue<T> {

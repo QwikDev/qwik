@@ -1,6 +1,6 @@
 import { Resource, component$, useStore } from '@builder.io/qwik';
 import { Link, useEndpoint, useLocation, RequestHandler, DocumentHead } from '~qwik-city-runtime';
-import os from 'os';
+import os from 'node:os';
 
 export default component$(() => {
   const { params, pathname } = useLocation();

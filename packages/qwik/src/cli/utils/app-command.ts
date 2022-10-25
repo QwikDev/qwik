@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from 'fs';
-import { dirname, join, resolve } from 'path';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import type { PackageJSON } from '../../../../../scripts/util';
 
 export class AppCommand {

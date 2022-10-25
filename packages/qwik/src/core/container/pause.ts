@@ -33,7 +33,6 @@ import {
   intToStr,
   SHOW_COMMENT,
   SHOW_ELEMENT,
-  SnapshotListener,
   SnapshotMeta,
   SnapshotMetaValue,
   SnapshotResult,
@@ -52,8 +51,9 @@ import {
   serializeSubscription,
   Subscriptions,
 } from '../state/common';
-import { QContext, tryGetContext } from '../state/context';
+import { HOST_FLAG_DYNAMIC, QContext, tryGetContext } from '../state/context';
 import { SignalImpl } from '../state/signal';
+import type { QRL } from '../qrl/qrl.public';
 
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -137,7 +137,7 @@ export const _pauseFromContexts = async (
   fallbackGetObjId?: GetObjID
 ): Promise<SnapshotResult> => {
   const collector = createCollector(containerState);
-  const listeners: SnapshotListener[] = [];
+  let hasListeners = false;
 
   // TODO: optimize
   for (const ctx of allContexts) {
@@ -160,26 +160,22 @@ export const _pauseFromContexts = async (
     const el = ctx.$element$;
     const ctxListeners = ctx.li;
     for (const listener of ctxListeners) {
-      const key = listener[0];
-      const qrl = listener[1];
-      const captured = qrl.$captureRef$;
-      if (captured) {
-        for (const obj of captured) {
-          collectValue(obj, collector, true);
-        }
-      }
       if (isElement(el)) {
-        listeners.push({
-          key,
-          qrl,
-          el,
-        });
+        const qrl = listener[1];
+        const captured = qrl.$captureRef$;
+        if (captured) {
+          for (const obj of captured) {
+            collectValue(obj, collector, true);
+          }
+        }
+        collector.$qrls$.push(qrl);
+        hasListeners = true;
       }
     }
   }
 
   // No listeners implies static page
-  if (listeners.length === 0) {
+  if (!hasListeners) {
     return {
       state: {
         ctx: {},
@@ -187,7 +183,7 @@ export const _pauseFromContexts = async (
         subs: [],
       },
       objs: [],
-      listeners: [],
+      qrls: [],
       mode: 'static',
     };
   }
@@ -196,25 +192,18 @@ export const _pauseFromContexts = async (
   let promises: Promise<any>[];
   while ((promises = collector.$promises$).length > 0) {
     collector.$promises$ = [];
-    await Promise.allSettled(promises);
+    await Promise.all(promises);
   }
 
   // If at this point any component can render, we need to capture Context and Props
   const canRender = collector.$elements$.length > 0;
   if (canRender) {
-    for (const element of collector.$elements$) {
-      collectElementData(tryGetContext(element)!, collector);
+    for (const elCtx of collector.$deferElements$) {
+      collectElementData(elCtx, collector, false);
     }
 
     for (const ctx of allContexts) {
-      if (ctx.$props$) {
-        collectProps(ctx, collector);
-      }
-      if (ctx.$contexts$) {
-        for (const item of ctx.$contexts$.values()) {
-          collectValue(item, collector, false);
-        }
-      }
+      collectProps(ctx, collector);
     }
   }
 
@@ -243,7 +232,7 @@ export const _pauseFromContexts = async (
     return id;
   };
 
-  const getObjId = (obj: any): string | null => {
+  const getObjId: GetObjID = (obj) => {
     let suffix = '';
     if (isPromise(obj)) {
       const { value, resolved } = getPromiseValue(obj);
@@ -301,7 +290,7 @@ export const _pauseFromContexts = async (
     for (const sub of subs) {
       const host = sub[1];
       if (sub[0] === 0 && isNode(host) && isVirtualElement(host)) {
-        if (!collector.$elements$.includes(host)) {
+        if (!collector.$elements$.includes(tryGetContext(host)!)) {
           continue;
         }
       }
@@ -403,7 +392,7 @@ export const _pauseFromContexts = async (
     const renderQrl = ctx.$componentQrl$;
     const seq = ctx.$seq$;
     const metaValue: SnapshotMetaValue = {};
-    const elementCaptured = isVirtualElement(node) && collector.$elements$.includes(node);
+    const elementCaptured = isVirtualElement(node) && collector.$elements$.includes(ctx);
 
     let add = false;
     if (ref.length > 0) {
@@ -437,7 +426,10 @@ export const _pauseFromContexts = async (
       if (contexts) {
         const serializedContexts: string[] = [];
         contexts.forEach((value, key) => {
-          serializedContexts.push(`${key}=${mustGetObjId(value)}`);
+          const id = getObjId(value);
+          if (id) {
+            serializedContexts.push(`${key}=${id}`);
+          }
         });
         const value = serializedContexts.join(' ');
         if (value) {
@@ -470,7 +462,7 @@ export const _pauseFromContexts = async (
       subs,
     },
     objs,
-    listeners,
+    qrls: collector.$qrls$,
     mode: canRender ? 'render' : 'listeners',
   };
 };
@@ -505,7 +497,10 @@ export interface Collector {
   $seen$: Set<any>;
   $objSet$: Set<any>;
   $noSerialize$: any[];
-  $elements$: VirtualElement[];
+  $elements$: QContext[];
+  $qrls$: QRL[];
+  $prefetch$: number;
+  $deferElements$: QContext[];
   $containerState$: ContainerState;
   $promises$: Promise<any>[];
 }
@@ -526,50 +521,71 @@ const createCollector = (containerState: ContainerState): Collector => {
     $containerState$: containerState,
     $seen$: new Set(),
     $objSet$: new Set(),
+    $prefetch$: 0,
     $noSerialize$: [],
     $elements$: [],
+    $qrls$: [],
+    $deferElements$: [],
     $promises$: [],
   };
 };
 
 const collectDeferElement = (el: VirtualElement, collector: Collector) => {
-  if (collector.$elements$.includes(el)) {
+  const ctx = tryGetContext(el)!;
+  if (collector.$elements$.includes(ctx)) {
     return;
   }
-  collector.$elements$.push(el);
+  collector.$elements$.push(ctx);
+  collector.$prefetch$++;
+  if (ctx.$flags$ & HOST_FLAG_DYNAMIC) {
+    collectElementData(ctx, collector, true);
+  } else {
+    collector.$deferElements$.push(ctx);
+  }
+  collector.$prefetch$--;
 };
 
 const collectElement = (el: VirtualElement, collector: Collector) => {
-  if (collector.$elements$.includes(el)) {
-    return;
-  }
   const ctx = tryGetContext(el);
   if (ctx) {
-    collector.$elements$.push(el);
-    collectElementData(ctx, collector);
+    if (collector.$elements$.includes(ctx)) {
+      return;
+    }
+    collector.$elements$.push(ctx);
+    collectElementData(ctx, collector, false);
   }
 };
 
-export const collectElementData = (elCtx: QContext, collector: Collector) => {
+export const collectElementData = (elCtx: QContext, collector: Collector, dynamic: boolean) => {
   if (elCtx.$props$) {
-    collectValue(elCtx.$props$, collector, false);
+    collectValue(elCtx.$props$, collector, dynamic);
   }
   if (elCtx.$componentQrl$) {
-    collectValue(elCtx.$componentQrl$, collector, false);
+    collectValue(elCtx.$componentQrl$, collector, dynamic);
   }
   if (elCtx.$seq$) {
     for (const obj of elCtx.$seq$) {
-      collectValue(obj, collector, false);
+      collectValue(obj, collector, dynamic);
     }
   }
   if (elCtx.$watches$) {
     for (const obj of elCtx.$watches$) {
-      collectValue(obj, collector, false);
+      collectValue(obj, collector, dynamic);
     }
   }
-  if (elCtx.$contexts$) {
-    for (const obj of elCtx.$contexts$.values()) {
-      collectValue(obj, collector, false);
+
+  if (dynamic) {
+    let parent: QContext | null = elCtx;
+    while (parent) {
+      if (parent.$contexts$) {
+        for (const obj of parent.$contexts$.values()) {
+          collectValue(obj, collector, dynamic);
+        }
+        if (parent.$contexts$.get('_') === true) {
+          break;
+        }
+      }
+      parent = parent.$parent$;
     }
   }
 };

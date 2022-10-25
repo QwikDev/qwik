@@ -5,7 +5,9 @@ export interface CreateAppOptions {
   outDir: string;
 }
 
-export interface CreateAppResult extends CreateAppOptions {}
+export interface CreateAppResult extends CreateAppOptions {
+  docs: string[];
+}
 
 export interface UpdateAppOptions {
   rootDir: string;
@@ -36,19 +38,24 @@ export interface IntegrationData {
   pkgJson: IntegrationPackageJson;
   dir: string;
   priority: number;
+  docs: string[];
   viteConfig?: ViteConfigUpdates;
 }
 
-export type IntegrationType = 'app' | 'feature' | 'server' | 'static-generator';
+export type IntegrationType = 'app' | 'feature' | 'adaptor';
 
 export interface Feature {
   id: string;
   description: string;
-  type: 'server' | 'static';
   add: FeatureCmd;
 }
 
 export type FeatureCmd = (app: AppCommand) => Promise<void>;
+
+export interface NextSteps {
+  title?: string;
+  lines: string[];
+}
 
 export interface IntegrationPackageJson {
   name: string;
@@ -67,7 +74,9 @@ export interface IntegrationPackageJson {
   types?: string;
   type?: string;
   __qwik__?: {
-    nextSteps?: string[];
+    displayName?: string;
+    nextSteps?: NextSteps;
+    docs?: string[];
     priority: number;
     viteConfig?: ViteConfigUpdates;
   };

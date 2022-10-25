@@ -1,9 +1,9 @@
 import { BuildConfig, PackageJSON, panic } from './util';
 import { access, readFile } from './util';
-import { basename, extname, join } from 'path';
-import { pathToFileURL } from 'url';
-import { createRequire } from 'module';
-import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
+import { basename, extname, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { createRequire } from 'node:module';
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import ts from 'typescript';
 import { rollup } from 'rollup';
 

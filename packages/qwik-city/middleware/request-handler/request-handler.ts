@@ -1,9 +1,7 @@
 import { loadRoute } from '../../runtime/src/library/routing';
 import { loadUserResponse, updateRequestCtx } from './user-response';
-import type { QwikCityRequestContext, QwikCityRequestOptions } from './types';
-import type { Render } from '@builder.io/qwik/server';
+import type { QwikCityRequestContext, QwikCityHandlerOptions } from './types';
 import { errorHandler, ErrorResponse, errorResponse } from './error-handler';
-import { routes, menus, cacheModules, trailingSlash, basePathname } from '@qwik-city-plan';
 import { endpointHandler } from './endpoint-handler';
 import { pageHandler } from './page-handler';
 import { RedirectResponse, redirectResponse } from './redirect-handler';
@@ -13,11 +11,11 @@ import { RedirectResponse, redirectResponse } from './redirect-handler';
  */
 export async function requestHandler<T = any>(
   requestCtx: QwikCityRequestContext,
-  render: Render,
-  platform: Record<string, any>,
-  opts?: QwikCityRequestOptions
+  opts: QwikCityHandlerOptions
 ): Promise<T | null> {
   try {
+    const { render, qwikCityPlan } = opts;
+    const { routes, menus, cacheModules, trailingSlash, basePathname } = qwikCityPlan;
     updateRequestCtx(requestCtx, trailingSlash);
 
     const loadedRoute = await loadRoute(routes, menus, cacheModules, requestCtx.url.pathname);
@@ -30,7 +28,6 @@ export async function requestHandler<T = any>(
         requestCtx,
         params,
         mods,
-        platform,
         trailingSlash,
         basePathname
       );

@@ -1,17 +1,16 @@
 /* eslint-disable no-console */
-import type { System } from '../generator/types';
-import fs from 'fs';
-import { dirname, join } from 'path';
+import type { StaticGenerateOptions, System } from '../types';
+import fs from 'node:fs';
+import { dirname, join } from 'node:path';
 import { patchGlobalFetch } from '../../middleware/node/node-fetch';
-import type { NodeStaticGeneratorOptions } from './types';
 import { createNodeMainProcess } from './node-main';
 import { createNodeWorkerProcess } from './node-worker';
-import { isMainThread } from 'worker_threads';
 import { normalizePath } from '../../utils/fs';
 
-export async function createNodeSystem(opts: NodeStaticGeneratorOptions) {
-  opts = { ...opts };
-
+/**
+ * @alpha
+ */
+export async function createSystem(opts: StaticGenerateOptions) {
   patchGlobalFetch();
 
   const createWriteStream = (filePath: string) => {
@@ -63,13 +62,16 @@ export async function createNodeSystem(opts: NodeStaticGeneratorOptions) {
     createMainProcess: () => createNodeMainProcess(opts),
     createWorkerProcess: createNodeWorkerProcess,
     createLogger,
-    isMainThread: () => isMainThread,
     getOptions: () => opts,
     ensureDir,
     createWriteStream,
     createTimer,
     getPageFilePath,
     getDataFilePath,
+    platform: {
+      static: true,
+      node: process.versions.node,
+    },
   };
 
   return sys;

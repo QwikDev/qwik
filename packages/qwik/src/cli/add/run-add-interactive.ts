@@ -6,7 +6,7 @@ import color from 'kleur';
 import { getPackageManager, panic } from '../utils/utils';
 import { updateApp } from './update-app';
 import type { IntegrationData, UpdateAppResult } from '../types';
-import { relative } from 'path';
+import { relative } from 'node:path';
 import { logSuccessFooter, logNextStep } from '../utils/log';
 
 export async function runAddInteractive(app: AppCommand, id: string | undefined) {
@@ -33,21 +33,19 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
     console.log(`🦋 ${color.bgCyan(` Add Integration `)}`);
     console.log(``);
 
-    const staticGenerator = integrations.find((i) => i.type === 'static-generator')!;
-    const features = integrations.filter((i) => i.type === 'feature');
+    const integrationChoices = [
+      ...integrations.filter((i) => i.type === 'adaptor'),
+      ...integrations.filter((i) => i.type === 'feature'),
+    ].map((f) => {
+      return { title: f.name, value: f.id };
+    });
 
-    const featureAnswer = await prompts(
+    const integrationAnswer = await prompts(
       {
         type: 'select',
         name: 'featureType',
-        message: `What feature would you like to add?`,
-        choices: [
-          { title: 'Server Adaptors (SSR)', value: '__server' },
-          { title: 'Static Generator (SSG)', value: staticGenerator.id },
-          ...features.map((f) => {
-            return { title: f.name, value: f.id };
-          }),
-        ],
+        message: `What integration would you like to add?`,
+        choices: integrationChoices,
         hint: '(use ↓↑ arrows, hit enter)',
       },
       {
@@ -59,31 +57,8 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
     );
     console.log(``);
 
-    if (featureAnswer.featureType === '__server') {
-      // narrow list to just server integrations
-      const servers = integrations.filter((i) => i.type === 'server');
-      const serverAnswer = await prompts(
-        {
-          type: 'select',
-          name: 'id',
-          message: `Which server adaptor would you like to add?`,
-          choices: servers.map((f) => {
-            return { title: f.name, value: f.id, description: f.pkgJson.description };
-          }),
-          hint: ' ',
-        },
-        {
-          onCancel: () => {
-            console.log(``);
-            process.exit(0);
-          },
-        }
-      );
-      integration = integrations.find((i) => i.id === serverAnswer.id);
-      console.log(``);
-    } else {
-      integration = integrations.find((i) => i.id === featureAnswer.featureType);
-    }
+    integration = integrations.find((i) => i.id === integrationAnswer.featureType);
+
     if (!integration) {
       throw new Error(`Invalid integration: ${id}`);
     }
@@ -97,23 +72,7 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
 
   let runInstall = false;
   if (integrationHasDeps) {
-    const pkgManager = getPackageManager();
-    const runInstallAnswer = await prompts(
-      {
-        type: 'confirm',
-        name: 'runInstall',
-        message: `Would you like to install ${pkgManager} dependencies?`,
-        initial: true,
-      },
-      {
-        onCancel: async () => {
-          console.log('');
-          process.exit(0);
-        },
-      }
-    );
-    console.log(``);
-    runInstall = !!runInstallAnswer.runInstall;
+    runInstall = true;
   }
 
   const result = await updateApp({
@@ -218,7 +177,7 @@ function logUpdateAppCommitResult(result: UpdateAppResult) {
     )} to your app`
   );
   console.log(``);
-  const isNextSteps = result.integration.pkgJson.__qwik__?.nextSteps || [];
-  logNextStep(isNextSteps);
-  logSuccessFooter();
+  logSuccessFooter(result.integration.docs);
+  const nextSteps = result.integration.pkgJson.__qwik__?.nextSteps;
+  logNextStep(nextSteps);
 }

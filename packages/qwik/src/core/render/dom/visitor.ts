@@ -62,7 +62,14 @@ import {
 import { QOnce } from '../jsx/utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { addSignalSub, isSignal } from '../../state/signal';
-import { cleanupContext, getContext, QContext, tryGetContext } from '../../state/context';
+import {
+  cleanupContext,
+  getContext,
+  HOST_FLAG_DIRTY,
+  HOST_FLAG_NEED_ATTACH_LISTENER,
+  QContext,
+  tryGetContext,
+} from '../../state/context';
 import { getProxyManager, getProxyTarget, SubscriptionManager } from '../../state/common';
 import { createProxy } from '../../state/store';
 import {
@@ -687,9 +694,9 @@ const createElm = (
         (elm as Element).classList.add(styleId);
       });
     }
-    if (currentComponent.$needAttachListeners$) {
+    if (currentComponent.$flags$ & HOST_FLAG_NEED_ATTACH_LISTENER) {
       listeners.push(...currentComponent.li);
-      currentComponent.$needAttachListeners$ = false;
+      currentComponent.$flags$ &= ~HOST_FLAG_NEED_ATTACH_LISTENER;
     }
   }
 
@@ -702,6 +709,7 @@ const createElm = (
     currentComponent.$slots$.push(vnode);
     staticCtx.$addSlots$.push([elm, currentComponent.$element$]);
   }
+
   if (qSerialize) {
     setKey(elm, vnode.$key$);
 
@@ -729,7 +737,7 @@ const createElm = (
   }
   const nodes = children.map((ch) => createElm(rCtx, ch, flags, promises));
   for (const node of nodes) {
-    appendChild(rCtx.$static$, elm, node);
+    directAppendChild(elm, node);
   }
   return elm;
 };
@@ -1046,7 +1054,7 @@ export const setComponentProps = (
       }
     }
   }
-  return elCtx.$dirty$;
+  return !!(elCtx.$flags$ & HOST_FLAG_DIRTY);
 };
 
 export const cleanupTree = (

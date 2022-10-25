@@ -1,7 +1,7 @@
 /* eslint-disable */
 // @ts-ignore
 import Utils from '@typescript-eslint/utils';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 import { test } from 'uvu';
 import { rules } from './index';
 

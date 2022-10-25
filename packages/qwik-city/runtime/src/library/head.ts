@@ -44,6 +44,7 @@ const resolveDocumentHead = (
   mergeArray(resolvedHead.meta, updatedHead.meta);
   mergeArray(resolvedHead.links, updatedHead.links);
   mergeArray(resolvedHead.styles, updatedHead.styles);
+  Object.assign(resolvedHead.frontmatter, updatedHead.frontmatter);
 };
 
 const mergeArray = (existingArr: { key?: string }[], newArr: { key?: string }[] | undefined) => {

@@ -10,7 +10,7 @@ Please include a summary of the change and which issue is fixed. Please also inc
 
 # Use cases and why
 
-<!-- Actual / expected behaviour if it's a bug -->
+<!-- Actual / expected behavior if it's a bug -->
 
 - 1. One use case
 - 2. Another use case

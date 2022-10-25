@@ -4,10 +4,19 @@
 
 ```ts
 
-import type { IncomingMessage } from 'http';
+/// <reference types="node" />
+
+import type { IncomingMessage } from 'node:http';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
-import type { ServerResponse } from 'http';
+import type { RenderOptions as RenderOptions_2 } from '@builder.io/qwik';
+import type { ServerResponse } from 'node:http';
+
+// @alpha (undocumented)
+export function createQwikCity(opts: QwikCityNodeRequestOptions): {
+    router: (req: IncomingMessage, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
+    notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => Promise<void>;
+};
 
 // @alpha (undocumented)
 export interface NodeRequestNextFunction {
@@ -15,16 +24,16 @@ export interface NodeRequestNextFunction {
     (err?: any): void;
 }
 
-// @alpha (undocumented)
-export function qwikCity(render: Render, opts?: QwikCityNodeRequestOptions): {
-    router: (req: IncomingMessage, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
-    notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => Promise<void>;
+// @alpha @deprecated (undocumented)
+export function qwikCity(render: Render, opts?: RenderOptions_2): {
+    router: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: NodeRequestNextFunction) => Promise<void>;
+    notFound: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: (e: any) => void) => Promise<void>;
 };
 
-// Warning: (ae-forgotten-export) The symbol "QwikCityRequestOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "QwikCityHandlerOptions" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export interface QwikCityNodeRequestOptions extends QwikCityRequestOptions {
+export interface QwikCityNodeRequestOptions extends QwikCityHandlerOptions {
 }
 
 // (No @packageDocumentation comment for this package)

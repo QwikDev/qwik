@@ -35,7 +35,7 @@ import { parseSubscription, Subscriptions } from '../state/common';
 import { createProxy } from '../state/store';
 import { qSerialize } from '../util/qdev';
 import { pauseContainer } from './pause';
-import { getContext } from '../state/context';
+import { getContext, HOST_FLAG_MOUNTED } from '../state/context';
 import { QObjectFlagsSymbol } from '../state/constants';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
@@ -168,7 +168,7 @@ export const resumeContainer = (containerEl: Element) => {
       assertDefined(props, `resume: props missing in host metadata`, host);
       assertDefined(renderQrl, `resume: renderQRL missing in host metadata`, host);
       elCtx.$scopeIds$ = styleIds ? styleIds.split(' ') : null;
-      elCtx.$mounted$ = true;
+      elCtx.$flags$ = HOST_FLAG_MOUNTED;
       elCtx.$props$ = getObject(props);
       elCtx.$componentQrl$ = getObject(renderQrl);
     }

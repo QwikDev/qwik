@@ -57,7 +57,7 @@ export interface SnapshotListener {
  */
 export interface SnapshotResult {
   state: SnapshotState;
-  listeners: SnapshotListener[];
+  qrls: QRL[];
   objs: any[];
   mode: 'render' | 'listeners' | 'static';
 }

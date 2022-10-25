@@ -1,15 +1,20 @@
 import color from 'kleur';
-import fs from 'fs';
+import fs from 'node:fs';
 import ora from 'ora';
-import os from 'os';
-import path from 'path';
+import os from 'node:os';
+import path from 'node:path';
 import spawn from 'cross-spawn';
-import type { ChildProcess } from 'child_process';
+import type { ChildProcess } from 'node:child_process';
 import type { IntegrationData } from '../types';
 
 export function installDeps(pkgManager: string, dir: string) {
   let installChild: ChildProcess;
 
+  const errorMessage = `\n\n${color.bgRed(
+    `  ${pkgManager} install failed  `
+  )}\n\n  You might need to run "${color.green(
+    `${pkgManager} install`
+  )}" manually inside the root of your project to install the dependencies.\n`;
   const install = new Promise<void>((resolve) => {
     try {
       installChild = spawn(pkgManager, ['install'], {
@@ -18,13 +23,21 @@ export function installDeps(pkgManager: string, dir: string) {
       });
 
       installChild.on('error', () => {
+        console.error(errorMessage);
         resolve();
       });
 
-      installChild.on('close', () => {
-        resolve();
+      installChild.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          console.error(errorMessage);
+          resolve();
+        }
       });
     } catch (e) {
+      console.error(errorMessage);
+      resolve();
       //
     }
   });

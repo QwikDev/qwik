@@ -6,16 +6,23 @@
     "autoprefixer": "10.4.11"
   },
   "__qwik__": {
-    "priority": -1,
+    "displayName": "Integration: Tailwind (styling)",
+    "priority": -10,
     "viteConfig": {},
-    "nextSteps": [
-      "------------------------------------------------",
-      "You must add the next lines into global.css file",
-      "global.css -------------------------------------",
-      "",
-      "@tailwind base;",
-      "@tailwind components;",
-      "@tailwind utilities;"
-    ]
+    "docs": [
+      "https://qwik.builder.io/qwikcity/integrations/tailwind/",
+      "https://tailwindcss.com/docs/utility-first"
+    ],
+    "nextSteps": {
+      "lines": [
+        "------------------------------------------------",
+        "You must add the next lines into global.css file",
+        "global.css -------------------------------------",
+        "",
+        "@tailwind base;",
+        "@tailwind components;",
+        "@tailwind utilities;"
+      ]
+    }
   }
 }

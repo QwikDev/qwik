@@ -69,19 +69,22 @@ export const WeatherResults = component$((props: { weather: ResourceReturn<Weath
   console.log('rerender');
   return (
     <div>
-      {props.weather.state === 'pending' && <div>loading data...</div>}
-      {props.weather.state === 'rejected' && <div>error</div>}
-      {props.weather.state === 'resolved' && (
-        <ul>
-          <li>name: {props.weather.resolved.name}</li>
-          <li>temp: {props.weather.resolved.temp}</li>
-          <li>feels_like: {props.weather.resolved.feels_like}</li>
-          <li>humidity: {props.weather.resolved.humidity}</li>
-          <li>temp_max: {props.weather.resolved.temp_max}</li>
-          <li>temp_min: {props.weather.resolved.temp_min}</li>
-          <li>visibility: {props.weather.resolved.visibility}</li>
-        </ul>
-      )}
+      <Resource
+        value={props.weather}
+        onPending={() => <div>loading data...</div>}
+        onRejected={() => <div>error</div>}
+        onResolved={(resolved) => (
+          <ul>
+            <li>name: {resolved.name}</li>
+            <li>temp: {resolved.temp}</li>
+            <li>feels_like: {resolved.feels_like}</li>
+            <li>humidity: {resolved.humidity}</li>
+            <li>temp_max: {resolved.temp_max}</li>
+            <li>temp_min: {resolved.temp_min}</li>
+            <li>visibility: {resolved.visibility}</li>
+          </ul>
+        )}
+      />
     </div>
   );
 });

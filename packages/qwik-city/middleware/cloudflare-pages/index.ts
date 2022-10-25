@@ -1,13 +1,15 @@
-import type { QwikCityRequestOptions, QwikCityRequestContext } from '../request-handler/types';
+import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-handler/types';
 import { notFoundHandler, requestHandler } from '../request-handler';
+import type { RenderOptions } from '@builder.io/qwik';
 import type { Render } from '@builder.io/qwik/server';
+import qwikCityPlan from '@qwik-city-plan';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
 
 /**
  * @alpha
  */
-export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) {
+export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
   async function onRequest({ request, next, env, waitUntil }: EventPluginContext) {
     try {
       const url = new URL(request.url);
@@ -66,19 +68,11 @@ export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) 
             }
           });
         },
+        platform: env,
       };
 
-      // check if the next middleware is able to handle this request
-      // useful if the request is for a static asset but app uses a catchall route
-      const nextResponse = await next();
-      if (nextResponse.ok) {
-        // next response is able to handle this request
-        return nextResponse;
-      }
-
-      // next middleware unable to handle request
       // send request to qwik city request handler
-      const handledResponse = await requestHandler<Response>(requestCtx, render, env, opts);
+      const handledResponse = await requestHandler<Response>(requestCtx, opts);
       if (handledResponse) {
         return handledResponse;
       }
@@ -88,6 +82,7 @@ export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) 
       const notFoundResponse = await notFoundHandler<Response>(requestCtx);
       return notFoundResponse;
     } catch (e: any) {
+      console.error(e);
       return new Response(String(e || 'Error'), {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
@@ -101,7 +96,7 @@ export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) 
 /**
  * @alpha
  */
-export interface QwikCityCloudflarePagesOptions extends QwikCityRequestOptions {}
+export interface QwikCityCloudflarePagesOptions extends QwikCityHandlerOptions {}
 
 /**
  * @alpha
@@ -111,4 +106,22 @@ export interface EventPluginContext {
   waitUntil: (promise: Promise<any>) => void;
   next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
   env: Record<string, any>;
+}
+
+/**
+ * @alpha
+ * @deprecated Please use `createQwikCity()` instead.
+ *
+ * Example:
+ *
+ * ```ts
+ * import { createQwikCity } from '@builder.io/qwik-city/middleware/cloudflare-pages';
+ * import qwikCityPlan from '@qwik-city-plan';
+ * import render from './entry.ssr';
+ *
+ * export const onRequest = createQwikCity({ render, qwikCityPlan });
+ * ```
+ */
+export function qwikCity(render: Render, opts?: RenderOptions) {
+  return createQwikCity({ render, qwikCityPlan, ...opts });
 }

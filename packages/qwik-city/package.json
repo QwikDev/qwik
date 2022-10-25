@@ -1,16 +1,33 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.0.112",
+  "version": "0.0.117",
   "description": "The meta-framework for Qwik.",
-  "main": "./lib/index.qwik.cjs",
+  "main": "./lib/index.qwik.mjs",
   "module": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
   "types": "./lib/index.d.ts",
   "type": "module",
   "exports": {
     ".": {
+      "types": "./lib/index.d.ts",
       "import": "./lib/index.qwik.mjs",
       "require": "./lib/index.qwik.cjs"
+    },
+    "./adaptors/cloudflare-pages/vite": {
+      "import": "./lib/adaptors/cloudflare-pages/vite/index.mjs",
+      "require": "./lib/adaptors/cloudflare-pages/vite/index.cjs"
+    },
+    "./adaptors/express/vite": {
+      "import": "./lib/adaptors/express/vite/index.mjs",
+      "require": "./lib/adaptors/express/vite/index.cjs"
+    },
+    "./adaptors/netlify-edge/vite": {
+      "import": "./lib/adaptors/netlify-edge/vite/index.mjs",
+      "require": "./lib/adaptors/netlify-edge/vite/index.cjs"
+    },
+    "./adaptors/static/vite": {
+      "import": "./lib/adaptors/static/vite/index.mjs",
+      "require": "./lib/adaptors/static/vite/index.cjs"
     },
     "./middleware/cloudflare-pages": {
       "import": "./lib/middleware/cloudflare-pages/index.mjs"
@@ -22,9 +39,9 @@
       "import": "./lib/middleware/node/index.mjs",
       "require": "./lib/middleware/node/index.cjs"
     },
-    "./static/node": {
-      "import": "./lib/static/node/index.mjs",
-      "require": "./lib/static/node/index.cjs"
+    "./static": {
+      "import": "./lib/static/index.mjs",
+      "require": "./lib/static/index.cjs"
     },
     "./vite": {
       "import": "./lib/vite/index.mjs",
@@ -54,13 +71,13 @@
   },
   "dependencies": {
     "@mdx-js/mdx": "2.1.5",
-    "@types/mdx": "2.0.2",
+    "@types/mdx": "2.0.3",
     "source-map": "0.7.4",
     "vfile": "5.3.5"
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",
-    "@microsoft/api-extractor": "7.32.1",
+    "@microsoft/api-extractor": "7.33.4",
     "@netlify/edge-functions": "^1.0.2",
     "@types/github-slugger": "1.3.0",
     "@types/marked": "4.0.7",
@@ -80,7 +97,7 @@
     "unified": "10.1.2",
     "unist-util-visit": "4.1.1",
     "uvu": "0.5.6",
-    "vite": "3.1.7",
+    "vite": "3.1.8",
     "yaml": "2.1.3"
   },
   "license": "MIT",

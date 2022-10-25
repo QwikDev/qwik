@@ -37,6 +37,7 @@ export const validLexicalScope = createRule({
         },
       },
     ],
+
     messages: {
       referencesOutside:
         'Identifier ("{{varName}}") can not be captured inside the scope ({{dollarName}}) because {{reason}}. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
@@ -173,7 +174,6 @@ export const validLexicalScope = createRule({
             if (scope) {
               relevantScopes.set(scope, name);
             } else if (firstArg.expression.type === AST_NODE_TYPES.Identifier) {
-              console.log(firstArg.expression);
               const tsNode = esTreeNodeToTSNodeMap.get(firstArg.expression);
               const type = typeChecker.getTypeAtLocation(tsNode);
               if (!isTypeQRL(type)) {

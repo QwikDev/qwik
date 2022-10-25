@@ -1,4 +1,4 @@
-import type { IncomingMessage, ServerResponse } from 'http';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { createHeaders } from '../request-handler/headers';
 import type { QwikCityRequestContext } from '../request-handler/types';
 
@@ -57,6 +57,10 @@ export function fromNodeHttp(url: URL, req: IncomingMessage, res: ServerResponse
       return res;
     },
     url,
+    platform: {
+      ssr: true,
+      node: process.versions.node,
+    },
   };
 
   return requestCtx;

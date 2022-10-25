@@ -1,9 +1,13 @@
 {
   "name": "qwik-docs-starter",
-  "description": "Documentation site starter",
+  "description": "Basic start point to build a docs site with Qwik",
+  "type": "module",
   "__qwik__": {
     "priority": 0,
-    "qwikCity": true
-  },
-  "type": "module"
+    "displayName": "Documentation site (QwikCity)",
+    "qwikCity": true,
+    "docs": [
+      "https://qwik.builder.io/docs/overview/"
+    ]
+  }
 }

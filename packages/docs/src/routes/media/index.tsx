@@ -35,7 +35,7 @@ export const MEDIA = mediaObj({
       'Zddw6qy5pf0'
     ),
     youtube('Why the world needs Qwik with Miško Hevery', 'IRw9efkn9UA'),
-    youtube('Exploring Qwik City w/ Adam Bradley & Manu Martínez-Almeida', 'IRw9efkn9UA'),
+    youtube('Exploring Qwik City w/ Adam Bradley & Manu Martínez-Almeida', 'XoeJisRJjlo'),
   ],
   podcasts: [
     youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc'),
@@ -51,6 +51,7 @@ export const MEDIA = mediaObj({
       '0dC11DMR3fU',
       154
     ),
+    youtube('Qwik City: Reimangined meta-framework for the edge', 'Znd11rVHQOE', 34314),
     youtube('Qwik Workshop Part 1 - Live Coding', 'GHbNaDSWUX8'),
     youtube('Qwik framework overview', 'Jf_E1_19aB4', 629),
     youtube('Qwik Core Developers Training', 'Mi7udzhcCDQ'),

@@ -20,7 +20,7 @@ test('onRequest, async return callback, async callback data', async () => {
       },
     },
   ];
-  const userResponse = await loadUserResponse(requestCtx, {}, routeModules, {});
+  const userResponse = await loadUserResponse(requestCtx, {}, routeModules);
   instance(userResponse.pendingBody, Promise);
   equal(userResponse.resolvedBody, undefined);
 
@@ -45,7 +45,7 @@ test('onRequest, async return callback, sync callback data', async () => {
       },
     },
   ];
-  const userResponse = await loadUserResponse(requestCtx, {}, routeModules, {});
+  const userResponse = await loadUserResponse(requestCtx, {}, routeModules);
   instance(userResponse.pendingBody, Promise);
   equal(userResponse.resolvedBody, undefined);
 
@@ -70,7 +70,7 @@ test('onRequest, sync return callback, async callback data', async () => {
       },
     },
   ];
-  const userResponse = await loadUserResponse(requestCtx, {}, routeModules, {});
+  const userResponse = await loadUserResponse(requestCtx, {}, routeModules);
   instance(userResponse.pendingBody, Promise);
   equal(userResponse.resolvedBody, undefined);
 
@@ -94,7 +94,7 @@ test('onRequest, sync return callback, sync callback data', async () => {
       },
     },
   ];
-  const userResponse = await loadUserResponse(requestCtx, {}, routeModules, {});
+  const userResponse = await loadUserResponse(requestCtx, {}, routeModules);
   instance(userResponse.pendingBody, Promise);
   equal(userResponse.resolvedBody, undefined);
 
@@ -115,7 +115,7 @@ test('onRequest, sync return number', async () => {
       },
     },
   ];
-  const userResponse = await loadUserResponse(requestCtx, {}, routeModules, {});
+  const userResponse = await loadUserResponse(requestCtx, {}, routeModules);
   equal(userResponse.pendingBody, undefined);
   equal(userResponse.resolvedBody, 88);
 
@@ -138,7 +138,7 @@ test('onRequest, async return string', async () => {
       },
     },
   ];
-  const userResponse = await loadUserResponse(requestCtx, {}, routeModules, {});
+  const userResponse = await loadUserResponse(requestCtx, {}, routeModules);
   equal(userResponse.pendingBody, undefined);
   equal(userResponse.resolvedBody, `mph`);
 
@@ -159,7 +159,7 @@ test('onRequest, sync return string', async () => {
       },
     },
   ];
-  const userResponse = await loadUserResponse(requestCtx, {}, routeModules, {});
+  const userResponse = await loadUserResponse(requestCtx, {}, routeModules);
   equal(userResponse.pendingBody, undefined);
   equal(userResponse.resolvedBody, `mph`);
 
@@ -181,7 +181,7 @@ test('onRequest, async return object', async () => {
       },
     },
   ];
-  const userResponse = await loadUserResponse(requestCtx, {}, routeModules, {});
+  const userResponse = await loadUserResponse(requestCtx, {}, routeModules);
   equal(userResponse.pendingBody, undefined);
   equal(userResponse.resolvedBody, { mph: 88 });
 
@@ -202,7 +202,7 @@ test('onRequest, sync return object', async () => {
       },
     },
   ];
-  const userResponse = await loadUserResponse(requestCtx, {}, routeModules, {});
+  const userResponse = await loadUserResponse(requestCtx, {}, routeModules);
   equal(userResponse.pendingBody, undefined);
   equal(userResponse.resolvedBody, { mph: 88 });
 
@@ -224,7 +224,7 @@ test('onRequest, user manually set content-type', async () => {
       },
     },
   ];
-  const userResponse = await loadUserResponse(requestCtx, {}, routeModules, {});
+  const userResponse = await loadUserResponse(requestCtx, {}, routeModules);
   equal(userResponse.pendingBody, undefined);
   equal(userResponse.resolvedBody, 88);
 
@@ -250,7 +250,7 @@ test('onGet preference over onRequest', async () => {
       },
     },
   ];
-  const userResponse = await loadUserResponse(requestCtx, {}, routeModules, {});
+  const userResponse = await loadUserResponse(requestCtx, {}, routeModules);
   await endpointHandler(requestCtx, userResponse);
 
   equal(calledOnGet, true);

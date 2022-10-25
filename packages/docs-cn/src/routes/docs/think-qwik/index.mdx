@@ -6,64 +6,83 @@ contributors:
   - adamdbradley
 ---
 
-# Think Qwik
+# 构想Qwik
 
-Qwik is very similar to other web frameworks on a high level. Qwik is a framework that renders a tree of components resulting in an interactive application.
+从外观或功能上看，Qwik与其他web框架非常相似的。
+也是通过渲染一个组件树的方式来实现一个可交互的应用。
 
-The unique part of Qwik is not in what it does but in how it achieves its goals. Qwik's goal is to have instant-on applications, even on mobile devices. Qwik achieves this through two main strategies:
+但是Qwik和其他web框架不同的地方是：Qwik是怎么实现的。
+Qwik的目标是瞬间启动应用，即使在移动设备上。
+Qwik通过下面两个主要策略实现这一点：
 
-1. Delay execution and download of JavaScript for as long as possible.
-2. Serialize the execution state of the application and the framework on the server and resume it on the client.
+1. 尽可能的延迟下载和执行JS代码。
+2. 在服务端序列化应用和状态的执行状态，从而在客户端恢复执行。
 
-The goal of Qwik is having only to download and execute the bare minimum of the application.
+Qwik是目标是 只需要下载和执行应用最小限度的代码。
 
-## Core principle
+## 核心原则
 
-> Delay execution of JavaScript as much as possible.
+> 尽可能的延迟下载和执行JS代码
 
-Qwik applications startup fast because there is a minimal amount of JavaScript code to execute. (At its simplest, a Qwik application only needs about 1KB of JavaScript to become interactive.)
+Qwik应用启动的很快是因为只有一小撮JS代码执行了。（最简单时，一个Qwik应用只需要下载1KB大小的JS即可变的可交互）
 
-By aggressively delaying the application download and execution, Qwik can provide near-instant startup performance that current generations of web frameworks can't match.
+通过渐进式延迟加载JS的下载和执行，Qwik可以提供接近瞬时的启动性能，这是当前同类框架所不能的达到的。
 
-Qwik is fast not because it uses clever algorithms but because it is designed in a way where most of the JavaScript never needs to be downloaded or executed. Its speed comes from not doing things (such as hydration) that other frameworks have to do.
+Qwik很快不是因为它有什么聪明的算法，而是因为它认为大多数JS代码最终也不需要下载和执行，所以只下载和执行必要的JS就行了。
+它的速度来自于（它的设计让它可以）少做很多事（比如hydration），而这些事是其他框框必须要做的（所以他们慢）。
 
-## Resumability & Serialization
+## 可恢复性（Resumability） & 序列化
 
-Resumability is discussed in detail [here](../concepts/resumable/index.mdx). Resumability allows Qwik applications to continue execution where the server left off. All frameworks need to keep track of internal data structures about the application's state. The current generation of frameworks does not preserve this information from the server to browser transition. As a result, the framework's data structures need to be rebuilt in the browser. The rebuilding of data structures and attaching of listeners is called hydration.
+关于可恢复性的讨论在这里[here](../concepts/resumable/index.mdx)。
+可恢复性让Qwik应用在服务端渲染完毕以后，在客户端继续执行。
+所有框架都需要跟踪关于应用状态的一些内部数据结构。
+当前的一批框架不会在服务端保存这些信息然后将其发送到浏览器，这带来的结果是，框架数据结构需要在浏览器上重建。
+重建数据结构和给DOM添加事件的过程叫做hydration。
 
-Qwik serializes listeners, internal data structures, and application state into the HTML on server browser handoff. Because all of the information is serialized in HTML, the client can just resume execution where the server left off.
+Qwik就不一样了，Qwik在服务端将工作交手给浏览器时，会序列化事件监听器、内部数据结构、以及应用状态到HTML里面。
+因为所有信息都在HTML里序列化好了，浏览器就可以继续执行应用了（可恢复性）。
 
 
-## What is the problem?
+## 现代应用的问题在哪里?
 
-Modern websites require vast amounts of JavaScript to become interactive. Too much JavaScript manifests itself in two problems:
+现代应用或站点需要太多JS才能变得可交互。
+太多JS会带来两个问题：
 
-1. **Network bandwidth**: A large amount of code is shipped to the client, which may take a long time on slow networks.
-2. **Startup time**: Once on the client, the code needs to be executed (as part of hydration) to get the site interactive.
+1. **网络贷款**: 许多JS代码要下载到客户端，在弱网环境下，这可能需要很长一段时间。
+2. **启动时间**: 下载到客户端以后, 代码还需要执行 (hydration的一部分过程) 来使得站点变得可交互。
 
-As our applications get more complex with a higher fidelity of interactivity, the amount of code has steadily increased over the years with no sign of stopping. Simply put, our sites are getting more complex. An increase in site complexity, in turn, requires more code. All of this code negatively impacts site startup performance.
+随着应用的交互越来越多、应用越来越复杂，这些年JS代码数量持续增加且没有减小的趋势。
+简单来说，我们的站点越来越复杂，而随着复杂性的增加，就需要写更多的代码，而所有这些新增代码，
+都会拉低站点的启动性能。
 
-To make matters worse, JavaScript is single-threaded; therefore, our complex sites can't take advantage of modern multi-core CPUs.
+更糟糕的是，JS是单线程的，因此我们的复杂站点并不能充分利用多核CPU的优势。
 
-### How did we get here?
+### 我们是怎么一步步走到这里的?
 
-The solution to the above problem is both obvious and hard: Ship less JavaScript.
+上面两个问题的解决方案是非常明显的，但也是非常难的：减少JS数量。
+说明显是因为我们都同意网站的JS越少，网站性能越好。
+说难是因为我们的工具不支持让我们减少JS。
+几乎所有我们的工具都在解决问题，但与此同时带来更多的JS代码。
+这是因为大多数工具大多数工具都是用来解决特定问题的，并没有考虑它（工具）自身也会使网站JS代码量越来越多这件事。
 
-It's obvious because we all agree that sites with less JavaScript would perform better.
+你需要解决渲染、样式、动画、A/B测试、数据分析问题吗？
+都有对应的工具给你准备好了。你只需要引入一个`<script>`标签，这些工具就能帮你解决特定的问题，但是代价是你的站点的初始bundle更大了。
 
-It is hard because our tools don't help us to get there. Almost all of our tools solve problems in a way that makes shipping less JavaScript hard. This is because most of our tools are designed to solve a specific problem without thinking about the amount of JavaScript they generate.
+作为一个产业，我们未能仔细考量bundle size的问题。
+每个工具都在单独地解决特定问题，但是bundle size并没有放在天平的另一边进行衡量。
+只有当你把越来越多的工具堆积在一个应用里，bundle size的问题才突然显现出来，但此时，已经很少有开发者能为此做什么了。
 
-Do you need to solve rendering, styling, animation, A/B testing, analytics, etc.? There is a tool for that. Just import or add a `<script>` tag, and these tools will solve your problems, but at the expense of making the initial bundle bigger.
+### 怎么解决?
 
-As an industry, we have failed to think about the implication of bundle size. Each tool solves a specific problem individually, but the size is not part of the equation. Size is the problem that emerges when you put all of the tools together, and by that point, there is very little the developer can do about it.
+Qwik从设计之初就着眼于解决疯涨的bundle size问题。
+小的bundle size是Qwik的初始目标（初心），其他的设计决策都要首先屈从于此目标。
 
-### What's the solution?
+但Qwik也不一个能减少你JS代码量的框框。
+它的方式是不需要在应用启动时，把应用的全部JS代码都一次性地下载到客户端。
+Qwik是把"尽可能延迟加载和执行JS"理念发挥到极致的产物。
 
-Qwik is designed from the ground up to address the size problem. Small bundle size is its initial goal, and all other design decisions are subservient to that goal.
-
-Qwik is not about creating less JavaScript. Qwik is about not having to ship all of that JavaScript to the client at once on application startup. Qwik is what you end up with when you take the idea of delay loading of JavaScript to the extreme.
-
-Yes, Qwik requires a different way of thinking and designing your application, but the result is near zero initial JavaScript with progressive JavaScript download based on user interactions.
+是的，QWIK需要一个不同方式来思考和设计你的应用。
+结果是：几乎为0的初始JS量 和 当用户交互时渐进加载和执行其他JS代码。
 
 ### Size should not be a developer problem
 

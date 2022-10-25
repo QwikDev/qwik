@@ -3,7 +3,7 @@ import { ResetIcon } from './icons/ResetIcon';
 import { StarIcon } from './icons/StarIcon';
 import { Result } from './result';
 import type { ScreenStateProps } from './screen-state';
-import { component$, mutable, useContext } from '@builder.io/qwik';
+import { component$, useContext } from '@builder.io/qwik';
 import { SearchContext } from './context';
 
 export type StartScreenTranslations = Partial<{
@@ -106,7 +106,7 @@ export const StartScreen = component$((props: StartScreenProps) => {
           {favCollection &&
             favCollection.items.map((item, index) => {
               return (
-                <Result state={props.state} item={mutable(item)}>
+                <Result state={props.state} item={item}>
                   <div q:slot="start-action" className="DocSearch-Hit-icon">
                     <StarIcon />
                   </div>

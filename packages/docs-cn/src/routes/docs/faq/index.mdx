@@ -56,7 +56,7 @@ contributors:
 
 ## 那些$符号是啥？
 
-你可能注意到qwik app里面有很多$符号，比如component$(), useWatch$(), <div onClick$={() => console.log('click')} />.
+你可能注意到qwik app里面有很多$符号，比如component$(), useWatch$(), `<div onClick$={() => console.log('click')} />`.
 他们是代码拆分的边界。qwik会根据这些边界把代码拆成chunks碎片，这些碎片比组件的粒度还小。
 既提供给qwik的优化器，也提示开发者自己。
 
@@ -97,8 +97,6 @@ export const App_component_AkbU84a8zes = ()=>{
 ```js
 export const App_component_p_onClick_01pEgC10cpw = ()=>console.log('hello');
 ```
-
-
 
 ## Qwik 当用户交互时才下载JS吗?
 
@@ -244,4 +242,5 @@ MPA can be slow in existing frameworks when trying to do MPA with interactivity 
 是的, [MIT](https://github.com/BuilderIO/qwik/blob/main/LICENSE)
 和 [dependency-free](https://github.com/BuilderIO/qwik/blob/main/packages/qwik/package.json),
 installing Qwik will not bloat your node_modules nor your lawyers.
+
 

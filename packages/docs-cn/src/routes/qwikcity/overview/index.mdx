@@ -14,47 +14,55 @@ contributors:
 # Qwik City (routing)
 *aka. Qwik Router*
 
-Learning Qwik and Qwik City are not two different things, Qwik City is built on top of Qwik, bringing opinionated routing and goodies to make your life easier.
+学习 Qwik 和 Qwik City 不是两件事, Qwik City 是构建在 Qwik的基础上的, 带来了约定式路由和其他的好东西，
+这些东西可以使你的生活更容易。
 
 > Qwik¹ City²
 >
-> [**Qwik¹**](../../docs/overview/index.mdx): Core framework, stable, primitives, component model.
+> [**Qwik¹**](../../docs/overview/index.mdx): 核心框架, 稳定的, 原始的, 组件模型。
 >
-> [**City²**](../directory-layout/index.mdx): Opinionated file-based router, build fast.
+> [**City²**](../directory-layout/index.mdx): 约定式基于文件的路由, 构建很快。
 
-We call it a **meta-framework** for Qwik. Qwik City is to Qwik, what [Next.js](https://nextjs.org/) is to React, what [Nuxt](https://nuxtjs.org/) is to Vue, or [SvelteKit](https://kit.svelte.dev/) to Svelte.
+Qwik City是 QWIK的 **meta-framework**。
+Qwik City 之于 Qwik, 就像 [Next.js](https://nextjs.org/) 之于 React, 就像 [Nuxt](https://nuxtjs.org/) 之于 Vue,
+或者 [SvelteKit](https://kit.svelte.dev/) 之于 Svelte。
 
-Qwik (core) and Qwik City (routing) solve problems at two layers of abstraction. **Qwik can stay stable**, without breaking changes, focusing on long-term and stable primitives, while Qwik City brings an **opinionated and performant way to build sites at scale**. We don't want to lock the ecosystem into a single correct way of building sites, in fact we encourge the community to build alternative solutions on top Qwik.
+Qwik (core) 和 Qwik City (routing) 在两个不同抽象层级上 解决问题。
+**Qwik 可以保持稳定**, 没有breaking changes, 聚焦在 长期 and 稳定的 primitives,
+而 Qwik City 带来了 构建站点 的 **约定式 和 高性能的方式**。
+我们不想把生态锁死在构建站点的唯一正确的方式。
+事实上我们鼓励社区 在QWIK上构建其他解决方案。
 
 > As a user, using Qwik City today for your app is a no-brainer. Thanks to Qwik architecture, it comes with zero overhead, meaning that no extra JS will be delivered to the browser.
 
+使用Qwik City构建电商网站，博客站点，或任何其他 需要路由、layout、模板、数据获取/数据更新 的站点，
+Qwik City 构建在 Qwik之上, 因此 Qwik City 站点 是 可恢复的
+并且 因细粒度的懒加载可以只下载最少量的JS。
 
-Use Qwik City to build an e-commerce website, blog site, or any other website that needs routing, layouts, templating, or data retrieval/updates. Qwik City is built on Qwik, and therefore Qwik City sites are resumable and only download the minimal amount of JavaScript with fine-grained lazy loading.
+Qwik City 提供:
 
-Qwik City provides:
-
-- Directory-based routing
-- Nested layouts
+- 基于目录的路由
+- 嵌套 layouts
 - File-based menus
-- Breadcrumbs
-- Support authoring content with `.tsx` or `.mdx` file formats
+- 面包屑
+- 支持用 `.tsx` 或 `.mdx` 文件格式创作内容
 - Data endpoints
 
-By default, Qwik City sites are fast because they:
+默认下，QWIK city站点是很快的因为它：
 
-- Are resumable
-- Download minimal JavaScript
-- Come with [Partytown](https://partytown.builder.io)
+- 是 可恢复的
+- 下载很少的JS
+- 搭配了 [Partytown](https://partytown.builder.io)
 
-To follow along with this guide, run the Qwik CLI in your command line:
+为了跟上接下来的指导内容，请在你的命令行运行Qwik CLI：
 
 ```bash
 npm create qwik@latest
 ```
 
-When prompted, choose a name for your project and Basic as your starter.
+有提示后，请输入一个项目名 和 选择项目模板。
 
-> Note: the `start` script attempts to launch the site in system’s browser,
+> 注意:  `start` 脚本尝试在系统浏览器拉起站点,
 > which in headless environments (e.g., within a container)
-> could cause the command to fail with an error.
-> Edit `package.json` to remove the `--open` flag.
+> 可能导致命令失败.
+> 编辑 `package.json` 清除 `--open` flag。

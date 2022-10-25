@@ -8,8 +8,8 @@ export const LexicalScope = component$(() => {
   });
   return (
     <LexicalScopeChild
-      message={mutable('mutable message')}
-      message2={mutable(null)}
+      message={'mutable message'}
+      message2={null}
       signal={signal}
       signalValue={signal.value}
       store={store}

@@ -102,7 +102,7 @@ export const ReplOutputPanel = ({ input, store }: ReplOutputPanelProps) => {
 
         {store.selectedOutputPanel === 'html' ? (
           <div class="output-result output-html">
-            <CodeBlock language="markup" code={mutable(store.html)} theme="light" />
+            <CodeBlock language="markup" code={store.html} theme="light" />
           </div>
         ) : null}
 

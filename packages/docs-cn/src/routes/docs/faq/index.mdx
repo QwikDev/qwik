@@ -12,40 +12,55 @@ contributors:
   - jangerhofer
 ---
 
-# FAQ
+# 常见问答
 
-## Is *@QwikDev* a sentient AI?
+## *@QwikDev* 是一个有感情的 AI吗?
 
-Yes, and I am very funny too! [follow me](https://twitter.com/QwikDev)
+是的, 但我也很有趣! 欢迎在Twitter上关注我 [follow me](https://twitter.com/QwikDev)
 
-## Why is called Qwik?
+## 为什么叫 Qwik?
 
-Originally it was called *qoot*, but we thought it would be too hard to search for. One friend of us, [@patrickjs__](https://twitter.com/PatrickJS__) came up with Qwik and after some internal poll at [builder.io](https://www.builder.io/), we changed it!
-
-
-## Why another framework?
-
-The short answer is that Qwik solves a problem that other frameworks can't solve. Qwik has instant-on startup performance no matter the application complexity. Ie, Qwik apps deliver the same amount of initial JS regardless of the amount of components. [Qwik is the first open-source O(1) framework](https://www.builder.io/blog/our-current-frameworks-are-on-we-need-o1).
+最早其实叫qoot，但是团队成员觉得这个词可能比较难以搜索。
+团队成员的一个朋友提出qwik, 经过内部成员的一些讨论后，
+最终决定叫qwik。
 
 
-## What is Qwik City?
+## 为何不选其他框架？
 
-[Qwik City](../../qwikcity/overview/index.mdx) is just an extra set of APIs on top of Qwik, think of it like *Qwik* as the core, and *City* as the extra APIs (routing, data loading, endpoints...).
+最简单的回答是qwik解决了一些其他框架解决不了的问题。
+
+无论你的应用多复杂，qwik都提供了页面秒开的性能。
+
+它通过在应用加载时，只需网络传输非常少量的js完成这一点。
+并且即使当你的应用越来越复杂，组件越来越多，应用开启都仅仅需要网络传输一点点的js即可。
+
+这里有篇文章
+[Qwik is the first open-source O(1) framework](https://www.builder.io/blog/our-current-frameworks-are-on-we-need-o1).
 
 
-## Is Qwik complicated to learn?
+## Qwik city是什么？
 
-We designed Qwik to be [extremely easy to learn](../cheat/qwik-react/index.mdx) and become productive for React developers, component authoring is pretty much the same, and routing is inspired by Nextjs and others.
+可以把qwik想象成内核。qwik city是一些构建在Qwik之上的额外的API集合。
+比如路由、数据加载等。
+[Qwik City](../../qwikcity/overview/index.mdx)
 
-However, there are fundamentally [new concepts](../think-qwik/index.mdx) to learn, such as [Resumability](../concepts/resumable/index.mdx), fine grained reactivity, but we think the learning curve is not steep.
 
-We also have an interactive [tutorial](../../tutorial/welcome/overview/) to get you started.
+## Qwik学起来复杂吗?
 
-## What are all those `$`?
+很好学 [extremely easy to learn](../cheat/qwik-react/index.mdx)，
+因为跟react组件写法很像，所以对react开发者来说，更好学。路由的灵感来自于Nextjs和其他框架。
 
-You might have noticed there are more [`$`](../advanced/optimizer/index.mdx#the-meaning-of-) than usual in Qwik apps: `component$()`, `useWatch$()`, `<div onClick$={() => console.log('click')} />`. It's not for nothing. Qwik breaks your application into small chunks; these pieces are smaller than the component itself. For event handlers, hooks, etc... the `$` signals both to the [optimizer](../advanced/optimizer/index.mdx) and to the developer when it's happening.
+但是因为qwik创造了一些新概念，比如可恢复性、细粒度响应等，需要先了解这些概念。
 
-**Example:**
+我们也有一些教学demo帮助你快速上手 [tutorial](../../tutorial/welcome/overview/)。
+
+## 那些$符号是啥？
+
+你可能注意到qwik app里面有很多$符号，比如component$(), useWatch$(), <div onClick$={() => console.log('click')} />.
+他们是代码拆分的边界。qwik会根据这些边界把代码拆成chunks碎片，这些碎片比组件的粒度还小。
+既提供给qwik的优化器，也提示开发者自己。
+
+**举例:**
 ```tsx
 import { component$ } from '@builder.io/qwik';
 
@@ -54,8 +69,7 @@ export const App = component$(() => {
   return <p onClick$={() => console.log('hello')}>Hello Qwik</p>;
 });
 ```
-
-The component above is split thanks to the `$` syntax into:
+上面这个组件 由于$语法 会被拆为下面的：
 
 **app.js**
 ```js
@@ -86,61 +100,69 @@ export const App_component_p_onClick_01pEgC10cpw = ()=>console.log('hello');
 
 
 
-## Does Qwik download JS when the user interacts?
+## Qwik 当用户交互时才下载JS吗?
 
-Nope, in production Qwik uses a lot of information generated during SSR to start [prefetching](../../qwikcity/prefetching/overview/index.mdx) only the bits of interactivity of the current page as soon as possible (ASAP), this way when the user clicks or interacts, the JS is already downloaded.
+不是，生产环境下，QWIK在SSR阶段使用了很多信息以开始尽快[预取](../../qwikcity/prefetching/overview/index.mdx)当前页面交互需要的那部分JS。
+这样的话，当用户点击或交互时，JS已经下载过了。
 
-## If Qwik prefetches JS, then what's the difference?
+## 如果 Qwik 预取 JS, 那有什么不同?
 
+预取和解析执行JS不同，QWIK只有在用户交互时才执行JS。
 Prefetching is not the same as parsing and executing JS, Qwik does not execute JS until the user interacts.
 
-In addition [prefetching](../../qwikcity/prefetching/overview/index.mdx) enables Qwik to prioritize the important parts of interactivity first, and then the less important parts.
+另外 [prefetching](../../qwikcity/prefetching/overview/index.mdx) 让
+Qwik可以 优先考虑可交互的重要的部分，然后再考虑不重要的部分。
 
-For example, the "buy now" button is more important than the "add to cart" button, so Qwik will prefetch the "buy now" button first, and then the "add to cart" button.
+比如，购买按钮 比 添加到购物车按钮更重要，所以QWIK先预取购买按钮，再预取 添加到购物车按钮。
 
-Qwik does not need to prefetch everything to start running, while other frameworks do need to download the whole critical path before they can start running because of [hydration](https://www.builder.io/blog/hydration-is-pure-overhead).
+Qwik 不需要预取很多就能让应用运行, 而其他框架需要下载的更多才能让应用运行，因为其他框架需要
+[hydration](https://www.builder.io/blog/hydration-is-pure-overhead)。
 
-## Are Qwik apps slow on slow networks?
+## Qwik应用在弱网下会慢吗?
 
-Not at all, thanks to [prefetching](../../qwikcity/prefetching/overview/index.mdx) Qwik apps are not more affected by slow networks than other frameworks. In fact because of the fine grained bundling and resumability, Qwik apps can become interactive with much less JS, effectively making them faster on slow networks.
+一点也不, 由于 [prefetching](../../qwikcity/prefetching/overview/index.mdx) QWIK应用比其他框架更少受到弱网的影响。
+而且由于可恢复性和细粒度拆包，QWIK应用只需要很少JS就可以交互，所以弱网下QWIK应用依然很快。
 
 
-## Does Qwik generate too many small files?
+## QWIK会生成太多小文件吗?
 
-In dev mode Qwik generates a lot of small files because it uses the Dev [Vite.js](https://vitejs.dev/) server, but in production mode Qwik bundles files in a more efficient way.
+在开发模式下会生成很多小文件，因为使用了[Vite.js](https://vitejs.dev/) server，但在生产环境下，QWIK的bundle文件会组织的更高效一些。
 
-## Why does Qwik use JSX? Is it React under the hood?
+## 为什么Qwik 使用 JSX? 它底层是React吗?
 
-Nope, React is not used at all, but Qwik uses JSX as the template syntax.
+不, 跟React没关系, 但 Qwik 使用 JSX 作为模板语法。
 
-Notice that JSX is not React, in fact JSX is only syntax without semantic. We choose JSX for several reason:
+请注意 JSX 不是 React, 事实上 JSX 只是一种语法。 我们选JSX有几个原因:
 
-- **Very simple syntax:** It does not reinvent the wheel, but leverage existing JS for loops, conditions... [JSX spec is surprisinhly simple and small](https://facebook.github.io/jsx/)
-- **Ecosystem**: Well supported by IDEs, linters, security auditing tools, debugging tools, highlighting...
-- **Similar to HTML**: JSX is visually and conceptually similar to HTML, a tree. Other template systems like *html templates* (lit-html) are not trees but arrays of tokens, making it harder to build on top and transform.
-- **Popular**: Like it or not, JSX is the most widely used template syntax in the world.
+- **语法简单:** 它没有重新发明轮子, 而是使用JS语法做 循环, 条件... [JSX spec is surprisinhly simple and small](https://facebook.github.io/jsx/)
+- **生态系统**: 被IDEs很好支持, linters, security auditing tools, debugging tools, highlighting...
+- **跟HTML像**: JSX 视觉上和概念上跟 HTML一样，很像一棵树。 Other template systems like *html templates* (lit-html) are not trees but arrays of tokens, making it harder to build on top and transform.
+- **流行**: 不管你喜欢与否, JSX 是世界上最广泛使用的模板语法。
 
-## Is there a Router for Qwik available?
+## QWIK有无路由可用?
 
-YES! [Qwik City](../../qwikcity/overview/index.mdx) includes a directory-based router, and it is inspired by Nextjs and others.
+有! [Qwik City](../../qwikcity/overview/index.mdx) 包含了一个基于目录的路由, 灵感来自于Nextjs和其他框架。
 
-## Do I need a server to deploy Qwik apps?
+## 我需要服务器才能部署 Qwik 应用吗?
 
-You can deploy easily a Qwik App in any [serverless enviroment thanks to our adaptors](../../qwikcity/adaptors/overview/index.mdx), we also support a [vanilla-node adaptor](../../qwikcity/adaptors/node/index.mdx) for Nodejs-based servers, such as Express.
+你可以部署QWIK应用在任何[serverless enviroment thanks to our adaptors](../../qwikcity/adaptors/overview/index.mdx),
+我们也支持基于Node的服务器 [vanilla-node adaptor](../../qwikcity/adaptors/node/index.mdx) , 比如 Express.
 
-You can deploy your Qwik app as a static site, if there is no need for SSR, thanks to our [SSG adaptor](../../qwikcity/static-site-generation/overview/index.mdx).
+如果不需要SSR，你也可以把你的QWIK应用部署成静态站点，
+参考 [SSG adaptor](../../qwikcity/static-site-generation/overview/index.mdx)。
 
-## SPA is faster than MPA
+## SPA 比 MPA 更快吗？
 
-Depends, for SPAs most of the cost is payed upfront, by downloading everything at the beginning of the session. So when a user interacts with the app the cost is minimal.
+看情况，对SPA来说，成本都在前期，在会话开始之前要下载所有代码，所以它的用户交互的成本是最小的。
 
-## MPA is faster than SPA
+## MPA 比 SPA 更快吗？
 
-Depends, MPAs are extremelly fast to load, because they don't need to download that much JS, but when the user navigates it usually means a full page reload.
+看情况，MPAs快在加载，因为它不需要下载那么多JS。但是当用户导航的时候，它需要全页面reload。
 
-A full page reload is usually super fast, because browsers are extremelly fast to download and parse HTML, but the MPA approach is not for everyone since sometimes it's ideal to keep state between navigation, and SPA does that very well.
+全页面reload通常很快，因为浏览器可以很快下载和执行HTML，但是MPA也不是适合所有场景，因为有时候在导航时保持状态是最好的，
+这一点SPA做的很好。
 
-Qwik is the unique framework that is both MPA and SPA at the same time.
+QWIK是唯一一个可以同时是SPA和MPA的框架。
 
 
 ## Can Qwik do SPA?
@@ -150,9 +172,10 @@ With Qwik, developers don't need to choose between SPA and MPA, every site is bo
 
 MPA vs SPA is no longer an architectural decision taken at beginning of the project, but a decision made for every link.
 
-## Can Qwik do Static Site Generation (SSG)?
+##  Qwik 可以做 (SSG)吗?
 
-Yes! It's part of all Qwik City starters, learn how to do [Static Site Generation here](../../qwikcity/static-site-generation/overview/index.mdx).
+可以! It's part of all Qwik City starters,
+文档在这里 [Static Site Generation here](../../qwikcity/static-site-generation/overview/index.mdx).
 
 ## But... with other frameworks I can also do MPA and SPA
 
@@ -160,15 +183,16 @@ Not quite, other frameworks suggest removing all the `<Scripts>` at the root to 
 
 And if scripts are _not_ removed, then each full-page reload become very expensive, because every page reload means that the framework needs to hydrate the entire page. Qwik, however, does not have a [hydration cost](https://www.builder.io/blog/hydration-is-pure-overhead) for each page load.
 
-## Will migrate to Qwik be so much work?
+## 迁移到Qwik需要很多工作吗?
 
-Depends, if you are coming from React, porting your components to Qwik should be straight forward. But on top of that, thanks to `Qwik React` you can use all the React ecosystem, so you can use any of your React components, and any React library in a Qwik App.
+看情况，如果你来自于react生态，移植一个react组件到QWIK应该很简单。
+并且，由于`Qwik React`，你可以使用整个react生态，所有你可以 在你的QWIK应用里 使用任何react组件和react库。
 
-## Can I enjoy the rich React ecosystem?
+## 可以利用React的生态吗?
 
-YES! Qwik can run React components natively, [check out the docs](../../qwikcity/integrations/react/index.mdx).
+可以! Qwik 可以运行 React components, [check out the docs](../../qwikcity/integrations/react/index.mdx).
 
-You will be amazed!
+你一定会惊叹!
 
 ## Does Qwik do partial hydration?
 
@@ -180,16 +204,20 @@ Instead, Qwik components does not hydrate at all. Qwik achieves this through a p
 
 We think resumability scales without the negative trade-offs of partial hydration.
 
-## Does Qwik have community?
+## Qwik 有社区吗?
 
-YES, there is a growing community of Qwik developers at [Discord](https://qwik.builder.io/chat) and [Github](https://github.com/BuilderIO/qwik), they are making amazing contributions to the framework, building sites at scale and helping each other. [Join us](https://qwik.builder.io/chat).
+有, 有一个增长的开发者社区 [Discord](https://qwik.builder.io/chat)
+和 [Github](https://github.com/BuilderIO/qwik), 他们在为QWIK做出杰出的贡献、
+大规模构建站点、互帮互助。 [加入我们](https://qwik.builder.io/chat).
 
 
-## Is Qwik production ready?
+## Qwik可以应用到生产吗?
 
-YES! but it depends. Qwik has been in development for 2 years now, and we reached [the beta milestones](https://www.builder.io/blog/qwik-and-qwik-city-have-reached-beta), meaning that we are confident that Qwik is ready for production, and there are not expected breaking changes.
+可以! 取决于你。 Qwik已经开发两年了,
+也发布了 [the beta milestones](https://www.builder.io/blog/qwik-and-qwik-city-have-reached-beta),
+这就意味着我们很自信的说QWIK可以用到生产，并且不会有未预期的breaking changes。
 
-[Builder.io](https://www.builder.io/) and a lot of teams are already using Qwik at production, so you will not be alone.
+[Builder.io](https://www.builder.io/) 和许多团队已经在生产应用了QWIK, 所以你并不孤单。
 
 
 ## Are full page reloads slower than SPA?
@@ -199,17 +227,21 @@ Depends, full page reloads are extremelly fast, because browsers are extremelly 
 MPA can be slow in existing frameworks when trying to do MPA with interactivity because existing frameworks will need to run [hydration at load time, which can be very slow](https://www.builder.io/blog/hydration-is-pure-overhead).
 
 
-## Qwik serializes too much data in the HTML
+## Qwik 序列化了太多数据到HTML？
 
-False, Qwik serializes only the data that is needed for the current page, and only the data that is needed for the current page. If a page has 1000 components but only one is interactive the amount of data serialized is proportional to the amount of interactivity, not the amount of components.
-
-
-## Who builds Qwik?
-
-An amazing team of contributors around the world living in [Discord](https://qwik.builder.io/chat), and a few full time developers at [Builder.io](https://www.builder.io/): [Misko](https://twitter.com/mhevery), [Adam](https://twitter.com/adamdbradley) and [Manu Almeida](https://twitter.com/manucorporat).
+没有, Qwik只为当前页面序列化需要的数据。
+如果一个页面有1000个组件但只要1个组件是可交互的，那序列化的数据的数量是跟可交互组件的数量成正比的，而不是跟总组件数量成正比。
 
 
-## Is Qwik open source?
+## 谁开发的Qwik?
 
-Yes, [MIT](https://github.com/BuilderIO/qwik/blob/main/LICENSE) and [dependency-free](https://github.com/BuilderIO/qwik/blob/main/packages/qwik/package.json), installing Qwik will not bloat your node_modules nor your lawyers.
+一些全世界的贡献者，他们在这里讨论问题 [Discord](https://qwik.builder.io/chat),
+一些供职于 [Builder.io](https://www.builder.io/)的全职开发者: [Misko](https://twitter.com/mhevery), [Adam](https://twitter.com/adamdbradley) 和 [Manu Almeida](https://twitter.com/manucorporat).
+
+
+## Qwik是开源的吗?
+
+是的, [MIT](https://github.com/BuilderIO/qwik/blob/main/LICENSE)
+和 [dependency-free](https://github.com/BuilderIO/qwik/blob/main/packages/qwik/package.json),
+installing Qwik will not bloat your node_modules nor your lawyers.
 

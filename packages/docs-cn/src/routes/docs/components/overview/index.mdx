@@ -7,19 +7,19 @@ contributors:
   - adamdbradley
 ---
 
-# Components
+# 组件
 
-Components are basic building blocks of Qwik Applications. Qwik components are unique in that:
+组件是构建QWIK应用的基本块。QWIK组件是独特的因为：
 
-- Qwik components automatically get broken down into lazy-loaded chunks by the Optimizer. (See Optimizer discussion)
-- Are [resumable](../../concepts/resumable/index.mdx). (A component can get created on a server and continue its execution on the client.) (See resumable discussion)
-- Can render independently of other components on the page. (See rendering discussion)
+- Qwik 组件被Optimizer自动被拆分为多个懒加载的chunks。 (参考 Optimizer discussion)
+- 是 [可恢复的](../../concepts/resumable/index.mdx). (组件可以在服务端创建，在客户端继续执行) (参考 resumable discussion)
+- 可以独立于页面其他组件渲染。(参考 rendering discussion)
 
 ## `component$()`
 
-A component is a small, reusable piece of code that can be used to build a UI.
+组件是小的，可复用的代码段，用于构建一小块UI。
 
-In Qwik, they are declared using the `component$` method:
+Qwik中, 声明一个组件使用 `component$` 方法:
 
 ```tsx
 import { component$, useStore } from '@builder.io/qwik';
@@ -52,16 +52,17 @@ export const MyCmp = component$(async (props: MyCmpProps) => {
 });
 ```
 
-> **NOTE**
+> **注意**
 >
-> - For an explanation of `$` see [Lazy-loading](../../advanced/qrl/index.mdx) and [Optimizer](../../advanced/optimizer/index.mdx)  discussion.
-> - For a detailed discussion of props, see Component/props discussion.
+> - 关于 `$` 符号的解释请参考 [Lazy-loading](../../advanced/qrl/index.mdx) 和 [Optimizer](../../advanced/optimizer/index.mdx)。
+> - 更细节的关于props的讨论, 参考 Component/props。
 
 ## Props
 
-Props are used to pass data into the component. Props are declared as named arguments of the component.
+Props用于传递数据到组件。
+Props作为组件的命名参数被声明。
 
-In this example a component `Item` declares optional `name`, `quantity`, `description`, and `price`.
+下面例子里，`Item`组件声明了Props的可选字段`name`, `quantity`, `description`, 和 `price`。
 
 ```tsx
 interface ItemProps {
@@ -76,9 +77,9 @@ export const Item = component$((props: ItemProps) => {
 });
 ```
 
-## Using components
+## 使用 components
 
-Qwik components can use other components.
+Qwik 组件可以使用其他组件。
 
 ```tsx
 export const Counter = component$((props: {step?:number, initial?: number}) => {
@@ -95,23 +96,26 @@ export const MyApp = component$(() => {
 });
 ```
 
-The above example shows how the `MyApp` component can use the `Counter` component. The second example shows how one can use binding to pass values to the `Counter` component's props.
+上面例子展示了`MyApp` 组件使用了`Counter`组件。
+也展示了 使用组件的时候怎么传值到`Counter`组件的props。
 
 ## Re-rendering on Reactivity
 
-Qwik components are reactive on the component level. Component props, as well as stores, are proxies. These proxies track reads as well as writes.
+QWIK组件在组件级别是响应式的。
+组件的props、stores都是proxies，这些代理对象跟踪读和写。
 
 - A proxy-read during OnRender method execution lets Qwik know that the OnRender method depends on a given property. A read creates a subscription on that property. In our [example](../../concepts/reactivity/#counter-example), OnRender reads`{store.count}`, which creates a subscription that tells Qwik that whenever the `store.count` changes, the component should be invalidated.
-- A proxy-write notifies Qwik that all associated subscriptions should be invalidated.
+- 代理对象被赋值时，会被QWIK追踪到，然后会通知所有订阅者 组件invalidated。
 
-When components get invalidated, they are added to the invalidation queue, which is flushed (rendered) on the next `requestAnimationFrame`. This acts as a form of coalescing for component rendering.
+当组件get invalidated，他们会被添加到invalidation queue，这个队列会在下一次
+`requestAnimationFrame`时重新渲染，这是组件批量渲染的一种方式。
 
-For a detailed discussion of reactivity, see related discussion.
+关于响应式的更多讨论，请参考相关讨论。
 
 
-## Lazy Loading
+## 懒加载
 
-The component also serves an important role when breaking parent-child relationships for bundling purposes.
+组件在打包过程中，对于父子组件的拆分也起到了很重要的作用。
 
 ```tsx
 export const Child = () => <span>child</span>;
@@ -123,7 +127,10 @@ const Parent = () => (
 );
 ```
 
-In the above example, referring to the `Parent` component implies a transitive reference to the `Child` component. When the bundler is creating a chunk, a reference to `Parent` necessitates bundling `Child` as well. (`Parent` internally refers to `Child`.) These transitive dependencies are a problem because it means that having a reference to the root component will transitively refer to the remainder of the application—something which Qwik tries to avoid explicitly.
+上面例子，`Parent`组件暗含了对`Child`组件的引用。当打包器创建chunk时，
+引用了`Parent`组件的入口点，也要连带着打包`Child`的代码。
+这些连带的引用依赖是一个问题，因为这意味着如果引用了根组件，可能会连带着引用整个应用的其他部分。
+而这是QWIK本来尽力要避免的。
 
 ```tsx
 export const Child = component$(() => {
@@ -139,7 +146,7 @@ export const Parent = component$(() => {
 });
 ```
 
-In the above example the Optimizer transforms the above to:
+上面这个例子Optimizer可以发挥作用，把代码拆分为下面这样：
 
 ```tsx
 const Child = componentQrl(qrl('./chunk-a', 'Child_onMount'));
@@ -153,11 +160,14 @@ const Parent_onRender = () => (
 ```
 
 > **NOTE**
-> For simplicity, not all of the transformations are shown; all resulting symbols are kept in the same file for succinctness.
+> 为了简化, 不是所有 transformations 都列出来了; all resulting symbols are kept in the same file for succinctness.
 
-Notice that after the Optimizer transforms the code, the `Parent` no longer directly references `Child`. This is important because it allows the bundler (and tree shakers) to freely move the symbols into different chunks without pulling the rest of the application with it.
+你会注意到当Optimizer转换完代码以后，`Parent`组件不再直接引用`Child`。
+This is important because it allows the bundler (and tree shakers)
+to freely move the symbols into different chunks without pulling the rest of the application with it.
 
-So what happens when the `Parent` component renders and `Child` component has not yet been downloaded? First, the `Parent` component renders its JSX like so.
+所以，当`Parent`组件渲染了而`Child`组件还没有下载时会怎样呢？
+首先,  `Parent` 组件会像这样渲染它的JSX：
 
 ```html
 <div>
@@ -167,13 +177,15 @@ So what happens when the `Parent` component renders and `Child` component has no
 </div>
 ```
 
-As you can see in the above example, the `<div/>` acts as a marker where the `Child` component will be inserted once it is lazy-loaded.
+正如上面所示，`<div/>`就是`Child`组件的占位符，一旦`Child`组件懒加载完毕，它就会插入到这个位置。
 
-## Mental Model
+## 心智模型
 
-The Optimizer splits Qwik components into the host element and the behavior of the component. The host element gets bundled with the parent component's OnRender method, whereas the component's behavior is something that gets lazy-loaded on an as-needed basis.
+The Optimizer splits Qwik components into the host element and the behavior of the component.
+The host element gets bundled with the parent component's OnRender method,
+whereas the component's behavior is something that gets lazy-loaded on an as-needed basis.
 
-## API Overview
+## API 概览
 
 ### State
 

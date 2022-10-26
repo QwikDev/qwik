@@ -11,7 +11,8 @@ contributors:
 
 # Events
 
-For a web application to be interactive, there needs to be a way to respond to user events. This is done by registering callback functions in the JSX template.
+一个应用想要交互，就要有响应用户事件的方式。
+在QWIK里，通过 在JSX模板里注册回调函数 的方式添加事件处理。
 
 ```tsx
 export const Counter = component$(() => {
@@ -21,13 +22,20 @@ export const Counter = component$(() => {
 });
 ```
 
-In the above example, the `onClick$` attribute of the `<button>` element is used to let Qwik know that a callback `() => store.count++` should be executed whenever the `click` event is fired by the `<button>`.
+在上面的例子里，`<button>`元素的`onClick$`属性用于注册事件处理程序。
+当用户点击按钮时，`() => store.count++`应该被执行。
 
-Notice that `onClick$` ends with `$`. This is a hint to both the Qwik Optimizer and the developer that a special transformation occurs at this location. The presence of the `$` suffix implies a lazy-loaded boundary here. The code associated with the `click` handler will not download until the user triggers the `click` event. See [Optimizer Rules](../../advanced/optimizer/index.mdx) for more details.
+注意`onClick$`以`$`结尾。
+这是一个既给开发者也给QWIK Optimizer的提示，表面这个位置要有特殊的转换发生。
+`$`后缀的出现意味着这里有一个懒加载的边界。
+`click`的事件处理程序代码在用户触发`click`事件前 是不会下载的。
+更多细节请参考 [Optimizer Rules](../../advanced/optimizer/index.mdx) 。
 
-In the above example, the `click` listener is trivial in implementation. But in real applications, the listener may refer to complex code. By creating a lazy-loaded boundary, Qwik can tree-shake all of the code behind the click listener and delay its loading until the user clicks the button.
+上面例子里，`click`事件处理程序实现的太简单了。在真实的应用里，事件监听器可能是很复杂的一段代码。
+通过创建懒加载边界，QWIK可以tree-shake掉很大一段事件处理代码，直到用户点击按钮时再懒加载这段代码。
 
-You can also pass QRLs as values for event listeners. For instance, the above example could also be written in the following way:
+除了回调函数的方式，你也可以在`onClick$`后面传QRLs。
+即上面的例子也可以用下面的方式写：
 
 ```tsx
 import { component$, useStore, $ } from "@builder.io/qwik";
@@ -42,7 +50,9 @@ export const Counter = component$(() => {
 
 ## Prevent default
 
-Because of the async nature of Qwik, an event's handler execution might be delayed because the implementation has not been downloaded yet. This introduces a problem when the event's handler needs to prevent the default behavior of the event. Traditional `event.preventDefault()` will not work, so instead use Qwik's `preventdefault:{eventName}` attribute:
+由于QWIK的异步特性，事件处理程序的执行可能稍微有点延时，因为代码可能还没下载。
+这就引发了一个问题，当事件需要阻止事件默认行为时，传统的`event.preventDefault()`是不生效的，
+所以在QWIK里我们使用`preventdefault:{eventName}`属性。
 
 ```tsx
 export const PreventDefaultExample = component$(() => {
@@ -62,9 +72,11 @@ export const PreventDefaultExample = component$(() => {
 });
 ```
 
-## Window and Document events
+## Window 和 Document 事件
 
-So far, we have discussed how to listen to events that originate from elements. There are events (for example, `scroll` and `mousemove`) that require that we listen to them on the `window` or `document`. For this reason, Qwik allows for the `document:on` and `window:on` prefixes when listening for events.
+目前为止，我们讨论了怎么在元素自身上添加事件。
+有些事件（比如`scroll` 和 `mousemove`）需要挂在`window` 或者 `document`上进行监听。
+QWIK提供了`document:on` 和 `window:on`前缀来应对这种情况。
 
 ```tsx
 export const EventExample = component$(() => {
@@ -91,16 +103,17 @@ export const EventExample = component$(() => {
 });
 ```
 
-The purpose of the `window:on`/`document:` is to register an event at a current DOM location of the component but have it receive events from the `window`/`document`. There are two advantages to this:
+`window:on`/`document:`的目的是在组件当前DOM元素的位置注册事件，但是在`window`/`document`元素上收到事件，这样做有两个优点：
 
-1. The events can be registered declaratively in your JSX
-2. The events get automatically cleaned up when the component is destroyed. (No explicit bookkeeping and cleanup is needed)
+1. 事件可以写在 JSX 里
+2. 当组件销毁时事件自动清理掉。（不需要显示地去清除事件监听器）
 
-## Events and Components
+## Events 和 Components
 
-Components are functions, not elements. Since DOM events do not exist naturally, it's possible to define custom events as props.
+组件是函数，不是元素。
+因此可以通过传递props的方式传递自定义事件。
 
-Now let's look at how one declares a child component that can be used with events.
+现在让我们看看怎么声明一个 带事件的子组件。
 
 ```tsx
 import { PropFunction } from '@builder.io/qwik';
@@ -118,9 +131,11 @@ export const CmpButton = component$((props: CmpButtonProps) => {
 });
 ```
 
-As far as Qwik is concerned, passing events to a component is equivalent to passing as props. In our example, we declare all props in `CmpButtonProps` interface. Specifically, notice `onClick$: PropFunction<() => void>` declaration.
+As far as Qwik is concerned, passing events to a component is equivalent to passing as props.
+In our example, we declare all props in `CmpButtonProps` interface. Specifically,
+notice `onClick$: PropFunction<() => void>` declaration.
 
-On the usage side, when referring to the `<CmpButton>`:
+当需要调用这个组件时，这么写：
 
 ```tsx
 <CmpButton onClick$={() => store.cmpCount++}>{store.cmpCount}</CmpButton>
@@ -128,7 +143,11 @@ On the usage side, when referring to the `<CmpButton>`:
 
 ## Working with QRLs
 
-Let's look at a variation of the above `<CmpButton>` implementation. In this example, we would like to demonstrate the passing of callbacks to components. For this reason, we have created an additional listener `onClick$`
+让我们看一下上面`<CmpButton>`实现的变种。
+这个例子里，
+Let's look at a variation of the above `<CmpButton>` implementation.
+In this example, we would like to demonstrate the passing of callbacks to components.
+For this reason, we have created an additional listener `onClick$`
 
 ```tsx
 interface CmpButtonProps {
@@ -150,7 +169,10 @@ export const CmpButton = component$((props: CmpButtonProps) => {
 });
 ```
 
-Notice that we can pass the `props.onClick$` method directly to the `onDblclick$` attribute as seen on `<button>` element. (see attribute `onDblclick$={props.onClick$}`) This is because both the inputting prop `onClick$` as well as JSX prop `onDblclick` are of type `PropFunction<?>` (and both have `$` suffix).
+Notice that we can pass the `props.onClick$` method directly to the `onDblclick$` attribute as seen on `<button>` element.
+(see attribute `onDblclick$={props.onClick$}`)
+This is because both the inputting prop `onClick$` as well as JSX prop `onDblclick`
+are of type `PropFunction<?>` (and both have `$` suffix).
 
 However, it is not possible to pass `props.onClick$` to `onClick$` because the types don't match. (This would result in the type error: `onClick$={props.onClick$}`) Instead, the `$` is reserved for inlined closures. In our example, we would like to `console.log("clicked")` after we process the `props.onClick` callback. We can do so with the `props.onClick$()` method. This method will:
   1. Lazy load the code
@@ -159,7 +181,7 @@ However, it is not possible to pass `props.onClick$` to `onClick$` because the t
  
  The operation is asynchronous and therefore returns a promise, which we can resolve using the `await` statement.
 
-## State recovery
+## State 恢复
 
 ```tsx
 export const Counter = component$(() => {
@@ -169,11 +191,18 @@ export const Counter = component$(() => {
 });
 ```
 
-At first sight, it may appear that Qwik simply lazy loads the `onClick$` function. But upon closer inspection, it is important to realize that Qwik lazy loads a closure rather than a function. (A closure is a function that lexically captures the state inside its variables. In other words, closures carry state, whereas functions do not.) The capturing of the state is what allows the Qwik application to simply resume where the server left off because the recovered closure carries the state of the application with it.
+乍一看，QWIK仅仅是懒加载了这个`onClick$`函数。
+但是仔细观察，实际上懒加载的是一个闭包而非函数。
+(A closure is a function that lexically captures the state inside its variables.
+换句话说, 闭包携带 state, 而函数不携带)
+The capturing of the state is what allows the Qwik application
+to simply resume where the server left off because the recovered closure carries the state of the application with it.
 
-In our case, the `onClick$` closure captures `store`. The capturing of `store` allows the application to increment the `count` property on `click` without having to re-run the whole application. Let's look at how closure capturing works in Qwik.
+在我们的例子里,  `onClick$` 闭包 捕获了 `store`。
+捕获的 `store` 让应用 在不需要re-run整个应用的情况下，就能在点击时 增加 `count` 属性的值。
+让我们看看QWIK里的闭包捕获是如何工作的。
 
-The HTML generated by the above code would look something like this:
+上述代码生成的HTML基本上如下面展示的这样：
 
 ```html
 <div>
@@ -181,17 +210,23 @@ The HTML generated by the above code would look something like this:
 </div>
 ```
 
-Notice that `on:click` attribute contains three pieces of information:
+请注意 `on:click` 属性 包含三部分信息:
 
-1. `./chunk-a.js`: The file which needs to be lazy-loaded.
-2. `Counter_button_onClick`: The symbol which needs to be retrieved from the lazy-loaded chunk.
-3. `[0]`: An array of lexically captured variable references (State of the closure).
+1. `./chunk-a.js`: 需要去懒加载的文件。
+2. `Counter_button_onClick`: 需要从懒加载的chunk里获取的symbol。
+3. `[0]`: 一个闭包捕获到的变量引用的数组。(闭包里的state).
 
-In our case `() => store.count++` only captures `store`, and hence it contains only a single reference `0`. `0` is an index into the `q:obj` attribute that contains a reference to the actual serialized object, referring to `store`. (The exact mechanisms and syntax is an implementation detail that can change at any time)
+在这个例子里， `() => store.count++` 仅仅捕获了 `store`, 因此只包含一个引用 `0`.
+`0` 是 `q:obj` 属性所引用的对象的索引。`q:obj`是对实际序列化的对象的引用。
+在这里指的是 `store`。 (更准确的机制和语法是可能随时改变的实现细节。)
 
 ## Qwikloader
 
-For the browser to understand the `on:click` attribute syntax, a small JavaScript script known as the Qwikloader is needed. The Qwikloader is small (about 1kb) and fast (about 5ms) in execution. The Qwikloader script is inlined into the HTML so that it can be executed quickly.
-When a user interacts with the application, the browser fires relevant events that bubble up the DOM. At the root of the DOM, the Qwikloader listens for the events and then tries to locate the corresponding `on:<event>` attribute. If such an attribute is found, then the value of the attribute is used to resolve the location where code can be downloaded from and then executes it.
+为了让浏览器理解`on:click`语法，就有了仅包含一点点JS的Qwikloader。
+Qwikloader很小（大约1KB），执行很快（大约5ms）。
+Qwikloader的代码是内联到HTML里面的，所以可以很快执行到。
+当用户和应用交互时，浏览器会在相应的DOM上触发相关事件。
+在根DOM元素上，Qwikloader监听事件然后尝试定位`on:<event>`属性。
+如果找到了这个属性，那属性值就能解析到 待下载的chunk的位置，然后执行它。
 
-See [Qwikloader](../../advanced/qwikloader/index.mdx) for more details.
+更多细节请参考 [Qwikloader](../../advanced/qwikloader/index.mdx) 。

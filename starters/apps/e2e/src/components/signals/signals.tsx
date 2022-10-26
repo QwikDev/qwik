@@ -180,7 +180,6 @@ export const Issue1884 = component$(() => {
     bool: false,
     counter: 0,
   });
-  console.log('rerender');
   return (
     <>
       <button

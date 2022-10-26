@@ -8,6 +8,7 @@ import type { Context } from '@netlify/edge-functions';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RenderOptions as RenderOptions_2 } from '@builder.io/qwik';
+import type { RequestHandler as RequestHandler_2 } from '~qwik-city-runtime';
 
 // @alpha (undocumented)
 export function createQwikCity(opts: QwikCityNetlifyOptions): (request: Request, context: Context) => Promise<Response>;
@@ -24,6 +25,9 @@ export function qwikCity(render: Render, opts?: RenderOptions_2): (request: Requ
 // @alpha (undocumented)
 export interface QwikCityNetlifyOptions extends QwikCityHandlerOptions {
 }
+
+// @alpha (undocumented)
+export type RequestHandlerNetlify<T = unknown> = RequestHandler_2<T, Omit<Context, 'next'>>;
 
 // (No @packageDocumentation comment for this package)
 

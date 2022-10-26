@@ -36,3 +36,25 @@ export { onRequest } from '../server/entry.cloudflare-pages';
 
 - [Cloudflare Pages Middleware Source](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)
 - [Cloudflare Pages Functions](https://developers.cloudflare.com/pages/platform/functions/)
+
+## Usage
+
+### Context
+
+You may access Cloudflare Page's environment variables in the endpoint method's `platform` param:
+
+```javascript
+export const onRequest = async ({ platform }) => {
+  const secret = platform.env["SUPER_SECRET_TOKEN"];
+};
+```
+
+Additionally, you may import the `RequestHandlerCloudflarePages` type to have have type completions in your editor.
+
+```typescript
+import {type RequestHandlerCloudflarePages} from '@builder.io/qwik-city/middleware/cloudflare-pages';
+
+export const onGet: RequestHandlerCloudflarePages = (({ platform }) => {
+ //...
+})
+```

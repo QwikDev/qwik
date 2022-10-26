@@ -3,6 +3,7 @@ import { notFoundHandler, requestHandler } from '../request-handler';
 import type { RenderOptions } from '@builder.io/qwik';
 import type { Render } from '@builder.io/qwik/server';
 import qwikCityPlan from '@qwik-city-plan';
+import type { RequestHandler } from '~qwik-city-runtime';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
 
@@ -125,3 +126,11 @@ export interface EventPluginContext {
 export function qwikCity(render: Render, opts?: RenderOptions) {
   return createQwikCity({ render, qwikCityPlan, ...opts });
 }
+
+/**
+ * @alpha
+ */
+export type RequestHandlerCloudflarePages<T = unknown> = RequestHandler<
+  T,
+  { env: EventPluginContext['env'] }
+>;

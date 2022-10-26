@@ -86,9 +86,9 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
         } else {
           const errorMessage = `\n\n${color.bgRed(
             `  ${pkgManager} install failed  `
-          )}\n\n  You might need to run "${color.green(
+          )}\n  Automatic install failed. "${color.green(
             `${pkgManager} install`
-          )}" manually inside the root of your project to install the dependencies.\n`;
+          )}" must be manually executed to install deps.\n`;
 
           spinner.succeed();
           console.error(errorMessage);

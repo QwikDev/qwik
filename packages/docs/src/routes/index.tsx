@@ -7,7 +7,7 @@ export const MODEL = 'content-page';
 
 export default component$(() => {
   const location = useLocation();
-  const isSDK = true;
+  const isSDK = location.query.render === 'sdk';
 
   if (isSDK) {
     const builderContentRsrc = useResource$<any>(() => {
@@ -16,7 +16,7 @@ export default component$(() => {
         apiKey: BUILDER_PUBLIC_API_KEY,
         options: getBuilderSearchParams(location.query),
         userAttributes: {
-          urlPath: '/',
+          urlPath: '/betda',
         },
       });
     });

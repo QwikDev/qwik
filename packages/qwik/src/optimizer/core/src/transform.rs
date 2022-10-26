@@ -4,6 +4,7 @@ use crate::collector::{
 };
 use crate::entry_strategy::EntryPolicy;
 use crate::errors;
+use crate::inlined_fn::convert_inlined_fn;
 use crate::is_immutable::{is_immutable_children, is_immutable_expr};
 use crate::parse::{EmitMode, PathData};
 use crate::words::*;
@@ -95,6 +96,7 @@ pub struct QwikTransform<'a> {
     jsx_functions: HashSet<Id>,
     qcomponent_fn: Option<Id>,
     qhook_fn: Option<Id>,
+    qqhook_fn: Option<Id>,
     inlined_qrl_fn: Option<Id>,
     h_fn: Option<Id>,
     fragment_fn: Option<Id>,
@@ -171,6 +173,10 @@ impl<'a> QwikTransform<'a> {
             qhook_fn: options
                 .global_collect
                 .get_imported_local(&QHOOK, &BUILDER_IO_QWIK),
+            qqhook_fn: options
+                .global_collect
+                .get_imported_local(&QQHOOK, &BUILDER_IO_QWIK),
+
             inlined_qrl_fn: options
                 .global_collect
                 .get_imported_local(&_INLINED_QRL, &BUILDER_IO_QWIK),
@@ -359,6 +365,97 @@ impl<'a> QwikTransform<'a> {
         } else {
             node
         }
+    }
+
+    fn handle_qqhook(&mut self, node: ast::CallExpr) -> ast::CallExpr {
+        let mut node = node;
+
+        if let Some(ast::ExprOrSpread {
+            expr: first_arg, ..
+        }) = node.args.pop()
+        {
+            self.create_synthetic_qqhook(*first_arg)
+        } else {
+            node
+        }
+    }
+
+    fn create_synthetic_qqhook(&mut self, first_arg: ast::Expr) -> ast::CallExpr {
+        let can_capture = can_capture_scope(&first_arg);
+        let first_arg_span = first_arg.span();
+
+        // Collect descendent idents
+        let descendent_idents = {
+            let mut collector = IdentCollector::new();
+            first_arg.visit_with(&mut collector);
+            collector.get_words()
+        };
+
+        let (valid_decl, invalid_decl): (_, Vec<_>) = self
+            .decl_stack
+            .iter()
+            .flat_map(|v| v.iter())
+            .cloned()
+            .partition(|(_, t)| matches!(t, IdentType::Var(_)));
+
+        let decl_collect: HashSet<Id> = valid_decl.into_iter().map(|a| a.0).collect();
+        let invalid_decl: HashSet<Id> = invalid_decl.into_iter().map(|a| a.0).collect();
+
+        let folded = fold_expr(self, first_arg);
+
+        // Collect local idents
+        let local_idents = self.get_local_idents(&folded);
+
+        for id in &local_idents {
+            if !self.options.global_collect.exports.contains_key(id) {
+                if let Some(span) = self.options.global_collect.root.get(id) {
+                    HANDLER.with(|handler| {
+                        handler
+                            .struct_span_err_with_code(
+                                *span,
+                                &format!(
+                                    "Reference to identifier declared at the root '{}'. It needs to be exported in order to be used inside a Qrl($) scope.",
+                                    id.0
+                                ),
+                                errors::get_diagnostic_id(errors::Error::RootLevelReference)
+                            )
+                            .emit();
+
+                    });
+                    // }
+                }
+                if invalid_decl.contains(id) {
+                    HANDLER.with(|handler| {
+                        handler
+                            .struct_err_with_code(
+                                &format!(
+                                    "Reference to identifier '{}' can not be used inside a Qrl($) scope because it's a function",
+                                    id.0
+                                ),
+                                errors::get_diagnostic_id(errors::Error::FunctionReference),
+                            )
+                            .emit();
+                    });
+                }
+            }
+        }
+
+        let mut scoped_idents = compute_scoped_idents(&descendent_idents, &decl_collect);
+        if !can_capture && !scoped_idents.is_empty() {
+            HANDLER.with(|handler| {
+                let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
+                handler
+                    .struct_span_err_with_code(
+                        first_arg_span,
+                        &format!("Qrl($) scope is not a function, but it's capturing local identifiers: {}", ids.join(", ")),
+                        errors::get_diagnostic_id(errors::Error::CanNotCapture),
+                    )
+                    .emit();
+            });
+            scoped_idents = vec![];
+        }
+        let inlined_fn = self.ensure_import(_INLINED_FN.clone(), BUILDER_IO_QWIK.clone());
+        convert_inlined_fn(folded, scoped_idents, &inlined_fn)
     }
 
     fn create_synthetic_qhook(
@@ -1276,6 +1373,11 @@ impl<'a> Fold for QwikTransform<'a> {
                         comments.add_pure_comment(ident.span.lo);
                     }
                     return self.handle_qhook(node);
+                } else if id_eq!(ident, &self.qqhook_fn) {
+                    if let Some(comments) = self.options.comments {
+                        comments.add_pure_comment(ident.span.lo);
+                    }
+                    return self.handle_qqhook(node);
                 } else if self.jsx_functions.contains(&id!(ident)) {
                     return self.handle_jsx(node);
                 } else if id_eq!(ident, &self.inlined_qrl_fn) {

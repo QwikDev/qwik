@@ -14,6 +14,7 @@ import {
   verifySerializable,
 } from './common';
 import { QObjectManagerSymbol, _IMMUTABLE, _IMMUTABLE_PREFIX } from './constants';
+import type { InlinedFn } from '../qrl/inlined-fn';
 
 /**
  * @alpha
@@ -109,6 +110,14 @@ export class SignalWrapper<T extends Record<string, any>, P extends keyof T> {
 
   set value(value: T[P]) {
     this.ref[this.prop] = value;
+  }
+}
+
+export class SignalFn<T> {
+  constructor(public fn: InlinedFn<T>) {}
+
+  get value(): T {
+    return this.fn();
   }
 }
 

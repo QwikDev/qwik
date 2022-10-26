@@ -17,6 +17,7 @@ import { Collector, collectSubscriptions, collectValue } from './pause';
 import type { Subscriptions } from '../state/common';
 import { getOrCreateProxy } from '../state/store';
 import { QObjectManagerSymbol } from '../state/constants';
+import { InlinedFn, isInlinedFn, parseInlinedFn, serializeInlinedFn } from '../qrl/inlined-fn';
 
 /**
  * 0, 8, 9, A, B, C, D
@@ -219,18 +220,21 @@ const ComponentSerializer: Serializer<Component<any>> = {
   },
 };
 
-const PureFunctionSerializer: Serializer<Function> = {
+const PureFunctionSerializer: Serializer<InlinedFn> = {
   prefix: '\u0011',
-  test: (obj) => typeof obj === 'function' && obj.__qwik_serializable__ !== undefined,
-  serialize: (obj) => {
-    return obj.toString();
+  test: (obj) => isInlinedFn(obj),
+  serialize: (fn, getObj) => {
+    return serializeInlinedFn(fn, getObj);
   },
   prepare: (data) => {
-    const fn = new Function('return ' + data)();
-    fn.__qwik_serializable__ = true;
-    return fn;
+    return parseInlinedFn(data);
   },
-  fill: undefined,
+  fill: (fn, getObject) => {
+    const args = fn.$$;
+    for (let i = 0; i < args.length; i++) {
+      args[i] = getObject(args[i]);
+    }
+  },
 };
 
 const SignalSerializer: Serializer<SignalImpl<any>> = {

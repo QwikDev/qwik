@@ -25,7 +25,7 @@ import { RefRoot } from './components/ref/ref';
 import { Signals } from './components/signals/signals';
 import { Attributes } from './components/attributes/attributes';
 import { EventsClient } from './components/events/events-client';
-
+import { InlinedFn } from './components/inlined-fn/inlinedfn';
 /**
  * Entry point for server-side pre-rendering.
  *
@@ -58,6 +58,7 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/signals': () => <Signals />,
     '/e2e/attributes': () => <Attributes />,
     '/e2e/events-client': () => <EventsClient />,
+    '/e2e/inlined-fn': () => <InlinedFn />,
   };
 
   const url = new URL(opts.envData!.url);

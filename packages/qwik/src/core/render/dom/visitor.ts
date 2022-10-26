@@ -78,6 +78,7 @@ import {
   _IMMUTABLE,
   _IMMUTABLE_PREFIX,
 } from '../../state/constants';
+import { _inlinedFn } from '../../qrl/inlined-fn';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 

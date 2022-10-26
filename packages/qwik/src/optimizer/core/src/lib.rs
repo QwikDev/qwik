@@ -13,6 +13,7 @@ mod collector;
 mod entry_strategy;
 mod errors;
 mod filter_exports;
+mod inlined_fn;
 mod is_immutable;
 mod package_json;
 mod parse;

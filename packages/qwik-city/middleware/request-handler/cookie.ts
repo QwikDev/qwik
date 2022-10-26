@@ -75,10 +75,10 @@ export class Cookie {
   private readonly _headers: Record<string, string>;
 
   constructor(cookieString: string) {
-    let parsedCookie: Record<string, string> = cookieString
+    const parsedCookie: Record<string, string> = cookieString
       .split(';')
       .reduce((prev, cookie_value) => {
-        let split = cookie_value.split('=');
+        const split = cookie_value.split('=');
         return { ...prev, [split[0]]: split[1] };
       }, {});
     this._cookie = parsedCookie;
@@ -86,11 +86,11 @@ export class Cookie {
   }
 
   public get(name: string): CookieValue | null {
-    let cookie = this._cookie[name];
+    const cookie = this._cookie[name];
     if (!cookie) {
       return null;
     }
-    let value = cookie.split('=')[1];
+    const value = cookie.split('=')[1];
     return {
       value,
       json() {
@@ -111,7 +111,7 @@ export class Cookie {
   }
 
   public delete(name: string) {
-    let value = this._cookie[name];
+    const value = this._cookie[name];
     if (value) {
       this.set(name, value, { expires: new Date(0) });
     }

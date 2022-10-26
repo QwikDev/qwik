@@ -7,6 +7,7 @@ export const App = component$(() => {
       I am a static component, there is no reason to ever download me to the client.
       <br />
       <button onClick$={() => alert('Hello')}>greet!</button>
+      <hr />
       <Counter />
     </>
   );
@@ -20,6 +21,7 @@ export const Counter = component$(() => {
       user clicks on the <tt>+1</tt> button.
       <br />
       Current count: {store.count}
+      <br />
       <button onClick$={() => store.count++}>+1</button>
     </>
   );

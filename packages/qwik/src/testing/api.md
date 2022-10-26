@@ -14,7 +14,7 @@ export function createDocument(opts?: MockDocumentOptions): Document;
 export const createDOM: () => {
     render: (jsxElement: JSXNode) => Promise<void>;
     screen: HTMLElement;
-    userEvent: (element: HTMLElement | string | Element, event: string) => Promise<void>;
+    userEvent: (queryOrElement: string | Element | null, eventNameCamel: string) => Promise<void>;
 };
 
 // @alpha

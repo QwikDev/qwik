@@ -52,6 +52,7 @@ export interface ElementFixtureOptions {
 
 /**
  * Trigger an event in unit tests on an element.
+ * Posibly deprecated in the future
  * @param element
  * @param selector
  * @param event

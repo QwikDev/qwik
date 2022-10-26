@@ -5,7 +5,7 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@algolia/autocomplete-core@npm:1.7.2":
+"@algolia/autocomplete-core@npm:^1.7.2":
   version: 1.7.2
   resolution: "@algolia/autocomplete-core@npm:1.7.2"
   dependencies:
@@ -90,7 +90,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@algolia/client-search@npm:4.14.2":
+"@algolia/client-search@npm:4.14.2, @algolia/client-search@npm:^4.14.2":
   version: 4.14.2
   resolution: "@algolia/client-search@npm:4.14.2"
   dependencies:
@@ -207,7 +207,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/qwik-city@workspace:*, @builder.io/qwik-city@workspace:packages/qwik-city":
+"@builder.io/qwik-city@npm:0.0.112":
+  version: 0.0.112
+  resolution: "@builder.io/qwik-city@npm:0.0.112"
+  dependencies:
+    "@mdx-js/mdx": 2.1.3
+    "@types/mdx": 2.0.2
+    source-map: 0.7.4
+    vfile: 5.3.5
+  checksum: 7f39ac2f296a734c201efbbea227119e517a540bd7c54757832d33d18dc08b866501267dfc62757dd29f3b63a7165f9170407c67dbd41173810d05600d8230e5
+  languageName: node
+  linkType: hard
+
+"@builder.io/qwik-city@workspace:packages/qwik-city":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik-city@workspace:packages/qwik-city"
   dependencies:
@@ -268,6 +280,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@builder.io/qwik@npm:0.11.0":
+  version: 0.11.0
+  resolution: "@builder.io/qwik@npm:0.11.0"
+  bin:
+    qwik: qwik.cjs
+  checksum: 6420c368f5fbb19e9719ba558f2aee852c6721596e578a3dea27119494f1052e19cccc0c400d3cfe182a9f8a63fa3bf0b0f7863a85db9f9bd2d7ed9552b0148a
+  languageName: node
+  linkType: hard
+
 "@builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
@@ -276,12 +297,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/sdk-qwik@npm:0.0.30":
-  version: 0.0.30
-  resolution: "@builder.io/sdk-qwik@npm:0.0.30"
+"@builder.io/sdk-qwik@npm:^0.0.26":
+  version: 0.0.26
+  resolution: "@builder.io/sdk-qwik@npm:0.0.26"
   peerDependencies:
     "@builder.io/qwik": ">=0.0.108"
-  checksum: b0c6b83a8e5078b52f4b20ee50c913ef71c9ebcf2d26f73985ed582bc3de79115f788c0fbd9c27b4d5cffa819038a9b5ae37f0caf10d16c455356ce89c87f3f4
+  checksum: c6b7ef9db67b76f1af60fee44380fca7b62750d2c7137ac1de42fd57884d9e36aec6c75a34a689cb6fb133e292ff3f5d66faee3d73bdb87f0c6017d72eb28bf2
   languageName: node
   linkType: hard
 
@@ -615,6 +636,31 @@ __metadata:
     "@jridgewell/resolve-uri": ^3.0.3
     "@jridgewell/sourcemap-codec": ^1.4.10
   checksum: 38917e9c2b014d469a9f51c016ed506acbe44dd16ec2f6f99b553ebf3764d22abadbf992f2367b6d2b3511f3eae8ed3a8963f6c1030093fda23efd35ecab2bae
+  languageName: node
+  linkType: hard
+
+"@mdx-js/mdx@npm:2.1.3":
+  version: 2.1.3
+  resolution: "@mdx-js/mdx@npm:2.1.3"
+  dependencies:
+    "@types/estree-jsx": ^1.0.0
+    "@types/mdx": ^2.0.0
+    estree-util-build-jsx: ^2.0.0
+    estree-util-is-identifier-name: ^2.0.0
+    estree-util-to-js: ^1.1.0
+    estree-walker: ^3.0.0
+    hast-util-to-estree: ^2.0.0
+    markdown-extensions: ^1.0.0
+    periscopic: ^3.0.0
+    remark-mdx: ^2.0.0
+    remark-parse: ^10.0.0
+    remark-rehype: ^10.0.0
+    unified: ^10.0.0
+    unist-util-position-from-estree: ^1.0.0
+    unist-util-stringify-position: ^3.0.0
+    unist-util-visit: ^4.0.0
+    vfile: ^5.0.0
+  checksum: e13628758c47416beb38589036e9b3b96a647394afa9a93ce6f7b17b6f0bca07b8da6499ae3b9d2792b52e556e70ac099cb869119ecd0c024f284be3a1981c63
   languageName: node
   linkType: hard
 
@@ -1557,17 +1603,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/mdx@npm:2.0.2, @types/mdx@npm:^2.0.0":
+  version: 2.0.2
+  resolution: "@types/mdx@npm:2.0.2"
+  checksum: a10b78946019fe78f7dba749e90924c29a59b23171e7c6aa41f3220a491723c14729212b99eb4e9e1f847d5f4a574ddc4e03c49a2621470e9c822082874eeafc
+  languageName: node
+  linkType: hard
+
 "@types/mdx@npm:2.0.3":
   version: 2.0.3
   resolution: "@types/mdx@npm:2.0.3"
   checksum: 41deb51c29535913af01d25f0e1414cfb5a6948d0e60e77e4aca895694de48bf0ac69c5a81fe2d9617d726cb253001ef82a65b683d5ef51987d15aa1931d086b
-  languageName: node
-  linkType: hard
-
-"@types/mdx@npm:^2.0.0":
-  version: 2.0.2
-  resolution: "@types/mdx@npm:2.0.2"
-  checksum: a10b78946019fe78f7dba749e90924c29a59b23171e7c6aa41f3220a491723c14729212b99eb4e9e1f847d5f4a574ddc4e03c49a2621470e9c822082874eeafc
   languageName: node
   linkType: hard
 
@@ -2015,7 +2061,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"algoliasearch@npm:4.14.2":
+"algoliasearch@npm:^4.14.2":
   version: 4.14.2
   resolution: "algoliasearch@npm:4.14.2"
   dependencies:
@@ -7710,15 +7756,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "qwik-docs@workspace:packages/docs"
   dependencies:
-    "@algolia/autocomplete-core": 1.7.2
-    "@algolia/client-search": 4.14.2
+    "@algolia/autocomplete-core": ^1.7.2
+    "@algolia/client-search": ^4.14.2
     "@builder.io/partytown": ^0.7.1
-    "@builder.io/qwik": "workspace:*"
-    "@builder.io/qwik-city": "workspace:*"
-    "@builder.io/sdk-qwik": 0.0.30
+    "@builder.io/qwik": 0.11.0
+    "@builder.io/qwik-city": 0.0.112
+    "@builder.io/sdk-qwik": ^0.0.26
     "@cloudflare/kv-asset-handler": 0.2.0
     "@docsearch/css": ^3.2.1
-    algoliasearch: 4.14.2
+    algoliasearch: ^4.14.2
     autoprefixer: 10.4.12
     fflate: ^0.7.4
     gray-matter: ^4.0.3

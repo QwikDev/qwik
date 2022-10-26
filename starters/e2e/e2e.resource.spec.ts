@@ -87,13 +87,13 @@ test.describe('resource serialization', () => {
 
     await expect(button1).toHaveText('PASS: Success 1');
     await expect(button2).toHaveText('ERROR: Error: failed 1');
-    await expect(button3).toHaveText('ERROR: timeout 1');
+    await expect(button3).toHaveText('ERROR: Error: timeout 1');
 
     // Click button 2
     await button2.click();
 
     await expect(button1).toHaveText('PASS: Success 1');
     await expect(button2).toHaveText('ERROR: Error: failed 2');
-    await expect(button3).toHaveText('ERROR: timeout 2');
+    await expect(button3).toHaveText('ERROR: Error: timeout 2');
   });
 });

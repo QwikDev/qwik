@@ -518,7 +518,7 @@ export interface Collector {
 
 const collectProps = (elCtx: QContext, collector: Collector) => {
   const parentCtx = elCtx.$parent$;
-  if (parentCtx && elCtx.$props$ && collector.$elements$.includes(parentCtx.$element$ as any)) {
+  if (parentCtx && elCtx.$props$ && collector.$elements$.includes(parentCtx)) {
     const subs = getProxyManager(elCtx.$props$)?.$subs$;
     const el = elCtx.$element$ as VirtualElement;
     if (subs && subs.some((e) => e[0] === 0 && e[1] === el)) {

@@ -11,6 +11,7 @@ export default extendConfig(baseConfig, () => {
       },
     },
     ssr: {
+      target: 'webworker',
       noExternal: ['@algolia/autocomplete-shared', '@algolia/autocomplete-core', 'prismjs'],
     },
     plugins: [

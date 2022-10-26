@@ -48,6 +48,7 @@ export async function mainThread(sys: System) {
 
           generatorResult.duration = timer();
 
+          log.info('\nSSG results');
           if (generatorResult.rendered > 0) {
             log.info(
               `Generated: ${generatorResult.rendered} page${
@@ -98,7 +99,11 @@ export async function mainThread(sys: System) {
           active.delete(staticRoute.pathname);
 
           if (result.error) {
-            log.error(staticRoute.pathname, result.error);
+            log.error(
+              `ERROR: SSG failed for path: ${staticRoute.pathname}\n`,
+              result.error,
+              '\n\n'
+            );
             generatorResult.errors++;
           } else if (result.ok) {
             generatorResult.rendered++;

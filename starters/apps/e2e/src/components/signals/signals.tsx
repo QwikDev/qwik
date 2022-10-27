@@ -84,6 +84,7 @@ export const Signals = component$(() => {
       <Issue1681 />
       <Issue1733 />
       <SideEffect />
+      <Issue1884 />
     </div>
   );
 });
@@ -170,5 +171,41 @@ export const SideEffect = component$(() => {
     <>
       <div>{signal.value}</div>
     </>
+  );
+});
+
+export const Issue1884 = component$(() => {
+  const state = useStore({
+    value: '',
+    bool: false,
+    counter: 0,
+  });
+  return (
+    <>
+      <button
+        id="issue1884-btn"
+        onClick$={() => {
+          state.value = 'test';
+          state.counter++;
+          state.bool = true;
+        }}
+      >
+        Click me {state.counter}
+      </button>
+      <div>
+        <Test active={state.value === 'test'} />
+        <Test active={state.bool ? true : false} />
+        <Test active={state.bool} />
+        <Test active={state.value} />
+      </div>
+    </>
+  );
+});
+
+export const Test = component$(({ active }: { active: boolean | string }) => {
+  return (
+    <div class="issue1884-text" style={{ color: active && ('red' as any) }}>
+      Should turn red
+    </div>
   );
 });

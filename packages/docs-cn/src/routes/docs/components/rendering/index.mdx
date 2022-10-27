@@ -8,18 +8,18 @@ contributors:
   - adamdbradley
 ---
 
-# Rendering
+# Rendering 渲染过程
 
-Rendering is the process of updating the DOM based on
-  1. Changes in the state of the application
-  2. Component templates
+Rendering指的是（基于以下两点）更新DOM的过程：
+  1. 应用状态的变化
+  2. 组件模板
 
-Qwik is unique because it knows how to render templates out-of-order and asynchronously.
+QWIK是独特的因为它知道怎么无序和异步渲染模板。
 
-- **Out-of-order**: this means that Qwik does not require that the parent component or child component must also be rendered when rendering a component.
-- **Asynchronously**: this means that Qwik's `render` function understands that it may need to download child components, and therefore the rendering operation is asynchronous.
+- **无序**: 意味着Qwik在渲染一个组件时，不需要强制要求父组件或子组件也要渲染好。
+- **异步**: 意味着Qwik组件的渲染函数理解它可能需要下载子组件，因此渲染操作是异步的。
 
-Simple counter-example:
+简单的计数器例子:
 
 ```tsx
 export const Counter = component$(() => {
@@ -29,7 +29,7 @@ export const Counter = component$(() => {
 });
 ```
 
-Once rendered, the HTML fragment may look something like this:
+一旦渲染完，HTML片段大概长下面这样：
 
 ```html
 <div>
@@ -37,17 +37,20 @@ Once rendered, the HTML fragment may look something like this:
 </div>
 ```
 
-- For an explanation of `$`, see [`$` and optimizer rules](../../advanced/optimizer/index.mdx).
-- For an explanation of `q:obj`, see [serialization](../../concepts/resumable/index.mdx).
-- For an explanation of `on:click`, see [qwikloader](../../advanced/qwikloader/index.mdx).
+- 关于 `$` 符号的解释, 参考 [`$` and optimizer rules](../../advanced/optimizer/index.mdx).
+- 关于 `q:obj` 的解释, 参考 [serialization](../../concepts/resumable/index.mdx).
+- 关于 `on:click` 的解释, 参考 [qwikloader](../../advanced/qwikloader/index.mdx).
 
 ## JSX
 
-Qwik uses JSX to express the component's template. JSX discussion is outside of the scope of this document, but Qwik JSX should feel very familiar if you have used JSX with other frameworks. For this reason, let's focus on how Qwik JSX is different.
+Qwik 使用 JSX 编写组件模板。
+JSX 的讨论不在本文范畴。
+如果在其他框架里使用过JSX语法，那就会对QWIK的JSX很熟悉，不过QWIK里JSX的渲染过程是不同的，让我们来看看。
 
-## Rendering child components
+## 渲染子组件
 
-Qwik lazy loads components on an as-needed basis. To minimize the number of components to download, Qwik only descends into child components if the component's props have changed.
+Qwik 按需懒加载组件。
+为了最小化要下载的组件数量，QWIK只会当属性改变时才下载子组件。
 
 ```tsx
 export const Parent = component$(() => {
@@ -66,18 +69,30 @@ export const Greeter = component$((props: { name: string }) => {
   return <span>Hello {props.name}</span>;
 });
 ```
+上面例子，有两个按钮：
 
-In the above example, there are two buttons:
+1. 单击第一个按钮改变计数器的方向 (`store.step` 在 `+1` 和 `-1`直接切换)。
+改变`store`会引发组件的`OnRender`函数执行，JSX将会更新DOM以展示`+1` 和 `-1`（如果模板有引用store.step的话）。
+但是改变计数器方向不会改变`<Greeter name={'World_' + store.count}/>`的属性值。
+正是这个原因，组件`Greeter`的模板不需要下载或执行。
+这样渐进式的修剪让QWIK可以最小化 当下要渲染的组件 的代码量。
+2. 单击第二个按钮增加 (或减小) `store.count`.
+这会引起 `<Greeter name={'World_' + store.count}/>` 属性值的改变。
+属性的改变意味着QWIK也要渲染`<Greeter>`了。
+但是这时候可能子组件还没有下载，此时，QWIK会懒在家这个组件，当它的渲染函数已经可用时（子组件代码下载完了），就继续渲染。
 
-1. Clicking the first button changes the direction of the counter (`store.step` flips between `+1` and `-1`). Changing the `store` requires that the component's `OnRender` function executes. The resulting JSX updates the DOM to show `+1` and `-1`. However, changing the direction will not change the props on `<Greeter name={'World_' + store.count}/>`. For this reason, Qwik will not descend into the `<Greeter>` component, and therefore the `Greeter`'s template does not need to be downloaded or executed. Such aggressive pruning allows Qwik to minimize the amount of code that needs to be present to render a component.
-2. Clicking the second button increments (or decrements) `store.count`. This in turn causes the props on `<Greeter name={'World_' + store.count}/>` to change. A change in props means that Qwik will also descend and render `<Greeter>`. However, it is possible that Qwik does not have a reference to the child component. In that case, Qwik will lazy-load the component and continue the rendering once the component's render function is available.
+## `render()` 是异步的
 
-## `render()` is async
+上面例子展示了为什么渲染过程必须是异步的。
+渲染流水线可用懒加载子组件是重要的。
+懒加载是异步操作；因此渲染过程就需要是异步的。
+在实践上，这意味着`render()`函数是返回promise的。
 
-The above example demonstrates why the rendering process must be asynchronous. It is important that the rendering pipeline can lazy load child components. Lazy loading is an asynchronous operation; therefore, rendering needs to be asynchronous. In practice, this means that the `render()` function returns a promise.
+大多数现在的框架都是同步`render()`过程。
+同步渲染不能很容易地处理异步代码加载，所以同步渲染需要所有依赖的组件 在渲染前 就得早早地下载到浏览器。
 
-Most current-generation frameworks have a synchronous `render()` process. Synchronous rendering can't easily deal with asynchronous code loading, so synchronous rendering necessitates that all dependant components are eagerly present before rendering can commence.
+## DOM 更新缓冲
 
-## DOM update buffering
-
-The asynchronous nature of `render()` means that users may see an intermediate rendering of the UI as components download. Seeing an intermediate state is undesirable; therefore, Qwik will buffer all DOM updates and only flush the DOM operations once all of the components have been downloaded and their JSX functions executed. The result is that the UI will update as an atomic operation, and the user will not see the intermediate steps.
+`render()`的异步特性意味着在组件下载时 用户可能看到UI的中间渲染过程。
+看到中间状态是不好的；因此，QWIK会缓冲所有DOM的更新，一旦所有组件都下载好了，组件的JSX执行完了，再一次性地做DOM更新。
+因此UI更新是原子操作，用户不会看到中间步骤。

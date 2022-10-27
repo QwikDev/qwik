@@ -17,7 +17,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
       const requestCtx: QwikCityRequestContext<Response> = {
         url: new URL(request.url),
         request,
-        response: (status, headers, body) => {
+        response: (status, headers, cookie, body) => {
           return new Promise<Response>((resolve) => {
             let flushedHeaders = false;
             const { readable, writable } = new TransformStream();

@@ -21,6 +21,7 @@ export function parseRoutePathname(pathname: string): ParsedPathname {
 
   const pattern = new RegExp(
     `^${segments
+      .filter((segment) => segment.length > 0)
       .map((segment, i, segments) => {
         // special case — /[...rest]/ could contain zero segments
         const catchAll = /^\[\.\.\.(\w+)?\]$/.exec(segment);

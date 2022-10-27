@@ -58,7 +58,6 @@ vite('command: serve, mode: development', async () => {
   equal(outputOptions.chunkFileNames, 'build/[name].js');
   equal(outputOptions.entryFileNames, 'build/[name].js');
   equal(outputOptions.format, 'es');
-  equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, undefined);
   equal(c.optimizeDeps?.include, includeDeps);
@@ -93,7 +92,6 @@ vite('command: serve, mode: production', async () => {
   equal(outputOptions.chunkFileNames, 'build/q-[hash].js');
   equal(outputOptions.entryFileNames, 'build/q-[hash].js');
   equal(outputOptions.format, 'es');
-  equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, undefined);
   equal(c.optimizeDeps?.include, includeDeps);
@@ -130,7 +128,6 @@ vite('command: build, mode: development', async () => {
   equal(outputOptions.assetFileNames, 'build/[name].[ext]');
   equal(outputOptions.chunkFileNames, 'build/[name].js');
   equal(outputOptions.entryFileNames, 'build/[name].js');
-  equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, undefined);
   equal(c.optimizeDeps?.include, includeDeps);
@@ -165,7 +162,6 @@ vite('command: build, mode: production', async () => {
   equal(outputOptions.chunkFileNames, 'build/q-[hash].js');
   equal(outputOptions.entryFileNames, 'build/q-[hash].js');
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
-  equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, undefined);
   equal(c.optimizeDeps?.include, includeDeps);
@@ -229,7 +225,6 @@ vite('command: build, --ssr entry.server.tsx', async () => {
   equal(outputOptions.chunkFileNames, undefined);
   equal(outputOptions.entryFileNames, undefined);
   equal(build.outDir, normalizePath(resolve(cwd, 'server')));
-  equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, true);
   equal(c.optimizeDeps?.include, includeDeps);

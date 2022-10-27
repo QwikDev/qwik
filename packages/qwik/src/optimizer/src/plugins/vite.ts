@@ -249,7 +249,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               warn(warning);
             },
           },
-          polyfillModulePreload: false,
+          modulePreload: {
+            polyfill: false,
+          },
           dynamicImportVarsOptions: {
             exclude: [/./],
           },

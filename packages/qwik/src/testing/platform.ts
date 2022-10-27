@@ -73,8 +73,8 @@ function createPlatform() {
   return testPlatform;
 }
 
-export function setTestPlatform() {
-  setPlatform(testPlatform);
+export function setTestPlatform(_setPlatform: Function = setPlatform) {
+  _setPlatform(testPlatform);
 }
 
 /**

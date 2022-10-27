@@ -67,48 +67,48 @@ qComponent('should render Counter and accept events', async () => {
   );
 });
 
-// qComponent('should render a collection of todo items', async () => {
-//   const { screen } = createDOM();
+qComponent('should render a collection of todo items', async () => {
+  const { screen, render } = createDOM();
 
-//   const items = {
-//     items: [
-//       {
-//         done: true,
-//         title: 'Task 1',
-//       },
-//       {
-//         done: false,
-//         title: 'Task 2',
-//       },
-//     ],
-//   };
-//   await render(screen, <Items items={items} />);
-//   await delay(0);
-//   await expectDOM(
-//     screen,
-//     `
-//     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-//       <!--qv q:key=sX:-->
-//       <items>
-//         <!--qv q:key=sX:-->
-//         <item-detail>
-//           <input type="checkbox" checked="" />
-//           <span>Task 1</span>
-//         </item-detail>
-//         <!--/qv-->
-//         <!--qv q:key=sX:-->
-//         <item-detail>
-//           <input type="checkbox" />
-//           <span>Task 2</span>
-//         </item-detail>
-//         <!--/qv-->
-//         Total: 2
-//       </items>
-//       <!--/qv-->
-//     </host>
-//     `
-//   );
-// });
+  const items = {
+    items: [
+      {
+        done: true,
+        title: 'Task 1',
+      },
+      {
+        done: false,
+        title: 'Task 2',
+      },
+    ],
+  };
+  await render(<Items items={items} />);
+  await delay(0);
+  await expectDOM(
+    screen,
+    `
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
+      <!--qv q:key=sX:-->
+      <items>
+        <!--qv q:key=sX:-->
+        <item-detail>
+          <input type="checkbox" checked="" />
+          <span>Task 1</span>
+        </item-detail>
+        <!--/qv-->
+        <!--qv q:key=sX:-->
+        <item-detail>
+          <input type="checkbox" />
+          <span>Task 2</span>
+        </item-detail>
+        <!--/qv-->
+        Total: 2
+      </items>
+      <!--/qv-->
+    </host>
+    `
+  );
+});
 
 /////////////////////////////////////////////////////////////////////////////
 export const HelloWorld = component$(() => {

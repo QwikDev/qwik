@@ -3,7 +3,33 @@ import { ElementFixture, dispatch } from './element-fixture';
 import { setTestPlatform, getTestPlatform } from './platform';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { render as renderIn } from '@builder.io/qwik';
-import { render as renderDev } from '../core/render/dom/render.public';
+
+const RUNNER = (process?.argv || []).includes('--tsmconfig');
+/**
+ * Check runner. Because pipeline dosen't pass for set test platform
+ */
+const callSetPlatform = async () => {
+  if (RUNNER) {
+    const corePlatform = await import('../core/platform/platform');
+    return setTestPlatform(corePlatform.setPlatform);
+  }
+  setTestPlatform();
+};
+
+/**
+ * Check runner. For use right render
+ * @param host
+ * @param jsxElement
+ * @returns
+ */
+const renderPlatform = async (host: Element | Document, jsxElement: JSXNode) => {
+  if (RUNNER) {
+    const coreRender = await import('../core/render/dom/render.public');
+    return coreRender.render(host, jsxElement);
+  }
+  return renderIn(host, jsxElement);
+};
+
 /**
  *
  * @param root
@@ -28,12 +54,12 @@ async function triggerUserEvent(
  * CreatePlatfrom and CreateDocument
  * @alpha
  */
-export const createDOM = function (opts?: { dev: boolean }) {
-  setTestPlatform();
+export const createDOM = function () {
+  callSetPlatform();
   const host = new ElementFixture().host;
   return {
     render: function (jsxElement: JSXNode) {
-      return opts?.dev ? renderIn(host, jsxElement) : renderDev(host, jsxElement);
+      return renderPlatform(host, jsxElement);
     },
     screen: host,
     userEvent: async function (queryOrElement: string | Element | null, eventNameCamel: string) {

@@ -7,6 +7,10 @@ import { suite } from 'uvu';
 import { useStore } from '../use/use-store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 
+/**
+ * Appling new unit test library/layer
+ * `@builder.io/qwik/testing`  ==>  ../../testing/library
+ */
 const qComponent = suite('q-component');
 qComponent('should declare and render basic component', async () => {
   const { screen, render } = createDOM();

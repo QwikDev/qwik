@@ -6,9 +6,10 @@ contributors:
   - adamdbradley
 ---
 
-# Lite Components
+# Lite Components（小组件）
 
-In addition to standard Qwik components that have all of its lazy-loaded properties, Qwik also supports lightweight (lite) components that act more like traditional frameworks.
+除了Qwik标准组件（用`component$`声明的可以懒加载的组件），
+Qwik还提供了跟传统框架很像的轻量的小组件lite components。
 
 ```tsx
 // Lite component: declared using a standard function.
@@ -27,10 +28,12 @@ export const MyApp = component$(() => {
 });
 ```
 
-In the above example, the `MyButton` is a lite component. Lite components' lazy loading is merged with the regular component they are part of. In this case:
+上面例子里，`MyButton`按钮就是一个小组件（lite component）。
+小组件的懒加载会合并到Qwik标准组件里。
+在这个例子里：
 
-- `MyButton` will get bundled with the `MyApp` render function.
-- Whenever the render function of `MyApp` executes, it will also force the execution of `MyButton`.
-- `MyButton` does not have a host element.
+- `MyButton` 会和 `MyApp` 的渲染函数一起打包。
+- 无论什么时候`MyApp` 的渲染函数执行了, 都会强行执行 `MyButton`。
+- `MyButton` 没有 host element。
 
-You can think of lightweight components as being inlined into the component, where they are instantiated.
+你可以认为小组件是内联到Qwik标准组件里的。

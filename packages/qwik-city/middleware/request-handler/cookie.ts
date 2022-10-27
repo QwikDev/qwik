@@ -107,7 +107,7 @@ export class Cookie {
     value: string | number | Record<string, any>,
     options: CookieOptions = {}
   ) {
-    let resolvedValue = typeof value === 'string' ? value : JSON.stringify(value);
+    const resolvedValue = typeof value === 'string' ? value : JSON.stringify(value);
     this._headers[name] = createCookie(name, resolvedValue, options);
   }
 

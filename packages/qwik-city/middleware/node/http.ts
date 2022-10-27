@@ -48,7 +48,7 @@ export function fromNodeHttp(url: URL, req: IncomingMessage, res: ServerResponse
       headers.forEach((value, key) => res.setHeader(key, value));
       for (const header in cookie.headers()) {
         res.setHeader('Set-Cookie', header);
-      } 
+      }
       body({
         write: (chunk) => {
           res.write;

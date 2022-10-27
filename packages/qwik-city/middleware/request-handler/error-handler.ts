@@ -43,7 +43,7 @@ export function errorResponse(requestCtx: QwikCityRequestContext, errorResponse:
   return requestCtx.response(
     errorResponse.status,
     headers,
-    new Cookie(requestCtx.request.headers.get('cookie') || ''),    
+    new Cookie(requestCtx.request.headers.get('cookie') || ''),
     async (stream) => {
       stream.write(html);
     },

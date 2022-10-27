@@ -15,7 +15,7 @@ export class RedirectResponse {
     this.headers = headers || createHeaders();
     this.headers.set('Location', this.location);
     this.headers.delete('Cache-Control');
-    this.cookie = cookie || new Cookie("");
+    this.cookie = cookie || new Cookie('');
   }
 }
 
@@ -23,7 +23,12 @@ export function redirectResponse(
   requestCtx: QwikCityRequestContext,
   responseRedirect: RedirectResponse
 ) {
-  return requestCtx.response(responseRedirect.status, responseRedirect.headers, responseRedirect.cookie, async () => {});
+  return requestCtx.response(
+    responseRedirect.status,
+    responseRedirect.headers,
+    responseRedirect.cookie,
+    async () => {}
+  );
 }
 
 export function isRedirectStatus(status: number | undefined | null): status is number {

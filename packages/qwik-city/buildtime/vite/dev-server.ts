@@ -132,7 +132,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           res.statusCode = userResponse.status;
           userResponse.headers.forEach((value, key) => res.setHeader(key, value));
           for (const header in userResponse.cookie.headers()) {
-            res.setHeader('Set-Cookie', header)
+            res.setHeader('Set-Cookie', header);
           }
           next();
           return;

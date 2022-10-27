@@ -4,6 +4,7 @@ import { notFoundHandler, requestHandler } from '../request-handler';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik';
 import qwikCityPlan from '@qwik-city-plan';
+import type { RequestHandler } from '~qwik-city-runtime';
 
 // @builder.io/qwik-city/middleware/netlify-edge
 
@@ -97,3 +98,8 @@ export interface EventPluginContext extends Context {}
 export function qwikCity(render: Render, opts?: RenderOptions) {
   return createQwikCity({ render, qwikCityPlan, ...opts });
 }
+
+/**
+ * @alpha
+ */
+export type RequestHandlerNetlify<T = unknown> = RequestHandler<T, Omit<Context, 'next'>>;

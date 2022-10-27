@@ -216,7 +216,7 @@ __metadata:
   dependencies:
     "@builder.io/qwik": "workspace:*"
     "@mdx-js/mdx": 2.1.5
-    "@microsoft/api-extractor": 7.33.4
+    "@microsoft/api-extractor": 7.33.5
     "@netlify/edge-functions": ^1.0.2
     "@types/github-slugger": 1.3.0
     "@types/marked": 4.0.7
@@ -224,7 +224,7 @@ __metadata:
     "@types/node": latest
     "@types/refractor": 3.0.2
     estree-util-value-to-estree: 1.3.0
-    github-slugger: 1.4.0
+    github-slugger: 1.5.0
     hast-util-heading-rank: 2.1.0
     hast-util-to-string: 2.0.0
     marked: 4.1.1
@@ -239,7 +239,7 @@ __metadata:
     unist-util-visit: 4.1.1
     uvu: 0.5.6
     vfile: 5.3.5
-    vite: 3.1.8
+    vite: 3.2.0
     yaml: 2.1.3
   languageName: unknown
   linkType: soft
@@ -256,12 +256,12 @@ __metadata:
   resolution: "@builder.io/qwik-react@workspace:packages/qwik-react"
   dependencies:
     "@builder.io/qwik": "workspace:*"
-    "@types/react": 18.0.21
-    "@types/react-dom": 18.0.6
+    "@types/react": 18.0.23
+    "@types/react-dom": 18.0.7
     react: 18.2.0
     react-dom: 18.2.0
     typescript: 4.8.4
-    vite: 3.1.8
+    vite: 3.2.0
   peerDependencies:
     "@builder.io/qwik": ">=0.1.11"
     "@types/react": ">=18.0.1"
@@ -288,12 +288,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/sdk-qwik@npm:^0.0.26":
-  version: 0.0.26
-  resolution: "@builder.io/sdk-qwik@npm:0.0.26"
+"@builder.io/sdk-qwik@npm:^0.0.31":
+  version: 0.0.31
+  resolution: "@builder.io/sdk-qwik@npm:0.0.31"
   peerDependencies:
     "@builder.io/qwik": ">=0.0.108"
-  checksum: c6b7ef9db67b76f1af60fee44380fca7b62750d2c7137ac1de42fd57884d9e36aec6c75a34a689cb6fb133e292ff3f5d66faee3d73bdb87f0c6017d72eb28bf2
+  checksum: 7c1909508e45fd5b5cda0e68f64a8a2bda1c96b8edaf6287840f7343ab3a62a52c8c5910c159f3658246d2fb8c4dc21678fb8ef6a0b24aaf07a65b26f7562eb5
   languageName: node
   linkType: hard
 
@@ -666,17 +666,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/api-extractor-model@npm:7.25.1":
-  version: 7.25.1
-  resolution: "@microsoft/api-extractor-model@npm:7.25.1"
-  dependencies:
-    "@microsoft/tsdoc": 0.14.1
-    "@microsoft/tsdoc-config": ~0.16.1
-    "@rushstack/node-core-library": 3.53.2
-  checksum: fd63f794358b92de84dda95c545ad8147ebd0c71bb4aff63d2ef4f727243d5de7251aa3301f3f917dda1e84248683d9a569a5aa884124fc1f1f6e40444ba8633
-  languageName: node
-  linkType: hard
-
 "@microsoft/api-extractor-model@npm:7.25.2":
   version: 7.25.2
   resolution: "@microsoft/api-extractor-model@npm:7.25.2"
@@ -688,12 +677,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/api-extractor@npm:7.33.4":
-  version: 7.33.4
-  resolution: "@microsoft/api-extractor@npm:7.33.4"
+"@microsoft/api-extractor@npm:7.33.5":
+  version: 7.33.5
+  resolution: "@microsoft/api-extractor@npm:7.33.5"
   dependencies:
-    "@microsoft/api-extractor-model": 7.25.1
-    "@microsoft/tsdoc": 0.14.1
+    "@microsoft/api-extractor-model": 7.25.2
+    "@microsoft/tsdoc": 0.14.2
     "@microsoft/tsdoc-config": ~0.16.1
     "@rushstack/node-core-library": 3.53.2
     "@rushstack/rig-package": 0.3.17
@@ -706,7 +695,7 @@ __metadata:
     typescript: ~4.8.4
   bin:
     api-extractor: bin/api-extractor
-  checksum: 9462c36c00b3b718ddc00a3cee98236c1ec322244a677485ccec00f7bc2d487ac0e08610870db3aa72eb18eabd7d918c9e7f9909383b4eb56eb055471895c72b
+  checksum: 1e000c536bf5e21ac0cfb21bb00e67663835f604f2fce8b6321a40caa306f12b8bf728a669f6f3d40d105e2504eb35ecf0f48971481fc1abdd26aaa141c2fd79
   languageName: node
   linkType: hard
 
@@ -741,13 +730,6 @@ __metadata:
     jju: ~1.4.0
     resolve: ~1.19.0
   checksum: 12b0d703154076bcaac75ca42e804e4fc292672396441e54346d7eadd0d6b57f90980eda2b1bab89b224af86da34a2389f9054002e282011e795ca5919a4386f
-  languageName: node
-  linkType: hard
-
-"@microsoft/tsdoc@npm:0.14.1":
-  version: 0.14.1
-  resolution: "@microsoft/tsdoc@npm:0.14.1"
-  checksum: e4ad038ccff2cd96e0d53ee42e2136f0f5a925b16cfda14261f1c2eb55ba0088a0e3b08ff819b476ddc69b2242a391925fab7f6ae2afabb19b96f87e19c114fc
   languageName: node
   linkType: hard
 
@@ -1737,12 +1719,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:18.0.6":
-  version: 18.0.6
-  resolution: "@types/react-dom@npm:18.0.6"
+"@types/react-dom@npm:18.0.7":
+  version: 18.0.7
+  resolution: "@types/react-dom@npm:18.0.7"
   dependencies:
     "@types/react": "*"
-  checksum: db571047af1a567631758700b9f7d143e566df939cfe5fbf7535347cc0c726a1cdbb5e3f8566d076e54cf708b6c1166689de194a9ba09ee35efc9e1d45911685
+  checksum: 4fd47dd114d61e7228637de9bee685b81ea18b89b220a67662b05ebe74f69aad7cd929ebe69e8fd572cc8e0e9adf9bba1ea5586cfd37eb9045778851e78bcd66
   languageName: node
   linkType: hard
 
@@ -1764,7 +1746,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:18.0.21":
+"@types/react@npm:*":
   version: 18.0.21
   resolution: "@types/react@npm:18.0.21"
   dependencies:
@@ -1772,6 +1754,17 @@ __metadata:
     "@types/scheduler": "*"
     csstype: ^3.0.2
   checksum: 36c1a7c9d507e81e2e629c1ad3db51d7b84d8b010c2d5008da411874286c6a5ccc711ae1d4c470efc0bdc77153cc8804a40e927e929e5164c669ca41b84b846d
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:18.0.23":
+  version: 18.0.23
+  resolution: "@types/react@npm:18.0.23"
+  dependencies:
+    "@types/prop-types": "*"
+    "@types/scheduler": "*"
+    csstype: ^3.0.2
+  checksum: 8b915793b9d6d53c19d76aab35d50a407cac6f4fb1e349cf037196302e8a7661d6c75870dc2fcb0b029c6f0db89d23fee910b777d28dd0e26becf8b312ddb61b
   languageName: node
   linkType: hard
 
@@ -4741,10 +4734,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"github-slugger@npm:1.4.0":
-  version: 1.4.0
-  resolution: "github-slugger@npm:1.4.0"
-  checksum: 4f52e7a21f5c6a4c5328f01fe4fe13ae8881fea78bfe31f9e72c4038f97e3e70d52fb85aa7633a52c501dc2486874474d9abd22aa61cbe9b113099a495551c6b
+"github-slugger@npm:1.5.0":
+  version: 1.5.0
+  resolution: "github-slugger@npm:1.5.0"
+  checksum: c70988224578b3bdaa25df65973ffc8c24594a77a28550c3636e495e49d17aef5cdb04c04fa3f1744babef98c61eecc6a43299a13ea7f3cc33d680bf9053ffbe
   languageName: node
   linkType: hard
 
@@ -7597,7 +7590,7 @@ __metadata:
     "@builder.io/partytown": ^0.7.1
     "@builder.io/qwik": 0.11.0
     "@builder.io/qwik-city": 0.0.112
-    "@builder.io/sdk-qwik": ^0.0.26
+    "@builder.io/sdk-qwik": ^0.0.31
     "@cloudflare/kv-asset-handler": 0.2.0
     "@docsearch/css": ^3.2.1
     algoliasearch: ^4.14.2
@@ -7608,7 +7601,7 @@ __metadata:
     postcss: 8.4.18
     prism-themes: 1.9.0
     prismjs: ^1.29.0
-    tailwindcss: 3.2.0
+    tailwindcss: 3.2.1
     tsm: ^2.2.2
     typescript: 4.8.4
     uvu: 0.5.6
@@ -8630,9 +8623,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwindcss@npm:3.2.0":
-  version: 3.2.0
-  resolution: "tailwindcss@npm:3.2.0"
+"tailwindcss@npm:3.2.1":
+  version: 3.2.1
+  resolution: "tailwindcss@npm:3.2.1"
   dependencies:
     arg: ^5.0.2
     chokidar: ^3.5.3
@@ -8644,6 +8637,7 @@ __metadata:
     glob-parent: ^6.0.2
     is-glob: ^4.0.3
     lilconfig: ^2.0.6
+    micromatch: ^4.0.5
     normalize-path: ^3.0.0
     object-hash: ^3.0.0
     picocolors: ^1.0.0
@@ -8661,7 +8655,7 @@ __metadata:
   bin:
     tailwind: lib/cli.js
     tailwindcss: lib/cli.js
-  checksum: a5b48bba217bbc0bf3e8e644cbb4c0f91b9da048234f0b5a7bc1d9a296bc8ece7c70f7108ab9689c31539fdd716e20a39a05c5aaf11529298750ac2f1708bfe1
+  checksum: 8479f6e469b3ac3146fec5bf4b5ec411f24f481087d9db9a9e16bd5169cfe5f6af082b8fe656bbb8829faa8805765104843f549b08b4ba34e972d0743d0c7e94
   languageName: node
   linkType: hard
 

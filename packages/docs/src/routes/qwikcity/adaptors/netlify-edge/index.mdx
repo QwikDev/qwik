@@ -87,6 +87,16 @@ export const onRequest = async ({ platform }) => {
 };
 ```
 
+Additionally, you may import the `RequestHandlerNetlify` type to have have type completions in your editor.
+
+```typescript
+import {type RequestHandlerNetlify} from '@builder.io/qwik-city/middleware/netlify-edge';
+
+export const onGet: RequestHandlerNetlify = (({platform}) => {
+ //...
+})
+```
+
 ### Environment variables
 
 ```javascript

@@ -3,19 +3,36 @@ import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import type { StaticGenerateOptions, StaticGenerateRenderOptions } from '../../../static';
 import { join } from 'node:path';
 import fs from 'node:fs';
+import type { PluginContext } from 'rollup';
 
 /**
  * @alpha
  */
 export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {}): any {
   let qwikVitePlugin: QwikVitePlugin | null = null;
+
   let serverOutDir: string | null = null;
   let renderModulePath: string | null = null;
   let qwikCityPlanModulePath: string | null = null;
 
-  async function generateBundles() {
+  async function generateBundles(ctx: PluginContext) {
     const qwikVitePluginApi = qwikVitePlugin!.api;
     const clientOutDir = qwikVitePluginApi.getClientOutDir()!;
+    const files = await fs.promises.readdir(clientOutDir, { withFileTypes: true });
+    const exclude = files
+      .map((file) => {
+        if (file.name.startsWith('.')) {
+          return null;
+        }
+        if (file.isDirectory()) {
+          return `/${file.name}/*`;
+        } else if (file.isFile()) {
+          return `/${file.name}`;
+        }
+        return null;
+      })
+      .filter(isNotNullable);
+    const include: string[] = ['/*'];
 
     const serverPackageJsonPath = join(serverOutDir!, 'package.json');
     const serverPackageJsonCode = `{"type":"module"}`;
@@ -37,8 +54,40 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
           ...opts.staticGenerate,
         };
       }
+      const results = await staticGenerate.generate(generateOpts);
+      results.staticPaths.sort();
+      results.staticPaths.sort((a, b) => {
+        return a.length - b.length;
+      });
+      if (results.errors > 0) {
+        ctx.error('Error while runnning SSG. At least one path failed to render.');
+      }
+      exclude.push(...results.staticPaths);
+    }
+    const hasRoutesJson = exclude.includes('/_routes.json');
+    if (!hasRoutesJson) {
+      const routesJsonPath = join(clientOutDir, '_routes.json');
+      const total = include.length + exclude.length;
+      const maxRules = 100;
+      if (total > maxRules) {
+        const toRemove = total - maxRules;
+        const removed = exclude.splice(-toRemove, toRemove);
+        ctx.warn(
+          `Cloudflare pages does not support more than 100 static rules. Qwik SSG generated ${total}, the following rules were excluded: ${JSON.stringify(
+            removed,
+            undefined,
+            2
+          )}`
+        );
+        ctx.warn('Create an configure a "_routes.json" manually in the public.');
+      }
 
-      await staticGenerate.generate(generateOpts);
+      const routesJson = {
+        version: 1,
+        include,
+        exclude,
+      };
+      await fs.promises.writeFile(routesJsonPath, JSON.stringify(routesJson, undefined, 2));
     }
   }
 
@@ -107,7 +156,7 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
     },
 
     async closeBundle() {
-      await generateBundles();
+      await generateBundles(this);
     },
   };
   return plugin;
@@ -119,3 +168,7 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
 export interface CloudflarePagesAdaptorOptions {
   staticGenerate?: StaticGenerateRenderOptions | true;
 }
+
+const isNotNullable = <T>(v: T): v is NonNullable<T> => {
+  return v != null;
+};

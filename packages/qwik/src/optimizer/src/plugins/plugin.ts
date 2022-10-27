@@ -265,10 +265,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     );
     const optimizer = getOptimizer();
 
-    try {
-      linter = await createLinter(optimizer.sys, opts.rootDir);
-    } catch (err) {
-      console.error(err);
+    if (optimizer.sys.env === 'node' && opts.target !== 'ssr') {
+      try {
+        linter = await createLinter(optimizer.sys, opts.rootDir);
+      } catch (err) {
+        // Nothign
+      }
     }
 
     if (opts.forceFullBuild) {
@@ -330,6 +332,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     importer: string | undefined,
     _resolveIdOpts?: { ssr?: boolean }
   ) => {
+    if (id.startsWith('\0') || id.startsWith('/@fs/')) {
+      return;
+    }
     const path = getPath();
     if (opts.target === 'lib' && id.startsWith(QWIK_CORE_ID)) {
       return {
@@ -359,6 +364,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         id: normalizePath(path.resolve(opts.input[0], QWIK_CLIENT_MANIFEST_ID)),
         moduleSideEffects: false,
       };
+    }
+
+    // Only process relative links
+    if (!id.startsWith('.') && !id.startsWith('/')) {
+      return;
     }
 
     const parsedId = parseId(id);
@@ -395,6 +405,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const load = async (_ctx: any, id: string, loadOpts: { ssr?: boolean } = {}) => {
+    if (id.startsWith('\0') || id.startsWith('/@fs/')) {
+      return;
+    }
     if (opts.resolveQwikBuild && id.endsWith(QWIK_BUILD_ID)) {
       log(`load()`, QWIK_BUILD_ID, opts.buildMode);
       return {

@@ -8,17 +8,17 @@ contributors:
 
 import diagram from './diagram2.svg';
 
-# Lifecycles
+# 生命周期
 
 <img src={diagram}/>
 
-## Rules
+## 规则
 
-When using lifecycle hooks, you must adhere to the following rules:
+使用生命周期hooks时，必须遵守以下规则：
 
-  - They can only be called in `component$`
-  - They can only be called at the root level of a function / arrow function context, not inside of branches or conditional blocks
-  - They can only be called from another `use*$` method, allowing for composition
+  - 他们只能在 `component$`里调用
+  - 他们只能在普通函数根层级/箭头函数context里被调用, 不能在条件块语句里调用。
+  - 他们只能被其他 `use*$` 方法调用, 用于组合
 
 ```tsx
 useHook() // <-- ❌ does not work
@@ -39,11 +39,14 @@ const useCustomHook = () => {
 
 ## `useMount$()`
 
-`useMount$()` registers a hook to be executed upon component creation. `useMount$()` will block the rendering of the component until after the `useMount$()` callback resolves. (This is useful for fetching asynchronous data and delaying rendering until data is received, ensuring that the rendered component contains the data)
+`useMount$()` 可以注册一个hook，当组件创建完时，会执行这个hook。
+`useMount$()` 会阻塞组件渲染 直到 `useMount$()` 回调 解析完。
+(这对异步取数据和直到拿到数据再延迟渲染是有用的，保证了渲染的组件包含数据。）
 
-While `useMount$()` can execute on either the server or on the client, it runs exactly once. (Either on the server or on the client, depending on where the component got first rendered)
+同时 `useMount$()` 既可以在服务端也可以在客户端执行,
+它只执行一次。(或者在客户端或者在服务端, 取决于组件首先在哪里渲染)
 
-See also the `useServerMount$()` hook which has the same semantics but only runs on the server.
+还有一个 `useServerMount$()` hook 有同样的作用但只能在服务端使用。
 
 ### Example
 
@@ -76,9 +79,9 @@ export function User(props: { user: User }) {
 
 ## `useServerMount$()`
 
-`useServerMount$()` registers a server-mounted hook that only runs on the server when the component is first mounted.
+`useServerMount$()` 注册一个server-mounted hook，只在第一次mounted时在服务端运行。
 
-### Example
+### 例子
 
 ```tsx
 export const Cmp = component$(() => {
@@ -109,17 +112,20 @@ export function User(props: { user: User }) {
 
 ## `useWatch$()`
 
-Re-runs the `watchFn` when the tracked inputs change.
+当跟踪的输入改变时 `watchFn` 重新运行。
 
-Use `useWatch` to track changes on a set of inputs, and then re-execute the `watchFn` when those inputs change.
+使用 `useWatch` 跟踪一系列输入值的改变情况, 当这些输入有改变时，重新执行`watchFn`。
 
-The `watchFn` only executes if the tracked inputs change. To track the inputs, use the `track` function to wrap property reads. This will create subscriptions that will trigger the `watchFn` to re-run.
+`watchFn`只有在输入变化的时候才执行。
+为了跟踪这些输入，要使用`track`函数包裹这些属性。
+这样就会创建一个订阅。这个订阅会触发`watchFn`函数重新执行。
 
-See also the `useClientEffect$()` hook that has the same semantics but only runs on the client.
+还有一个 `useClientEffect$()` hook 有同样的作用但只在客户端运行。
 
-### Example
+### 例子
 
-The `useWatch` function is used to observe the `state.count` property. Any changes to the `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
+`useWatch`函数用来观察`state.count` 属性，`state.count`变化了就会引起`watchFn`执行。
+而`watchFn`执行又会更新`state.doubleCount`的值，使其变为`state.count`的两倍。
 
 ```tsx
 export const Cmp = component$(() => {
@@ -157,11 +163,11 @@ export const Cmp = component$(() => {
 
 ## `useClientEffect$()`
 
-Re-runs the `watchFn` when the tracked inputs change.
+当跟踪的输入改变时，重新运行`watchFn`。
 
-If no `track` is being used, it will execute exactly once.
+如果没有使用`track`，它只执行一次。
 
-### Example
+### 例子
 
 ```tsx
 export const Timer = component$(() => {

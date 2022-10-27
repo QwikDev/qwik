@@ -19,7 +19,6 @@ export const youtube = (title: string, id: string, start_time?: number): MediaEn
 
 export const MEDIA = mediaObj({
   videos: [
-    youtube("Construindo Apps instantâneos com Qwik", 'yrROy1vLwkE'),
     youtube("Qwik… the world's first O(1) JavaScript framework?", 'x2eF3YLiNhY'),
     youtube('Qwik JS and the future of frameworks', 'z14c3u9q8rI'),
     youtube('Qwik: Under-The-Hood of a Resumable JavaScript Framework', 'BxGbnLb5i9Q'),
@@ -37,6 +36,7 @@ export const MEDIA = mediaObj({
     ),
     youtube('Why the world needs Qwik with Miško Hevery', 'IRw9efkn9UA'),
     youtube('Exploring Qwik City w/ Adam Bradley & Manu Martínez-Almeida', 'XoeJisRJjlo'),
+    youtube("Construindo Apps instantâneos com Qwik", 'yrROy1vLwkE'),
   ],
   podcasts: [
     youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc'),

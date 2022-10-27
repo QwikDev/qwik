@@ -102,8 +102,13 @@ export class Cookie {
     };
   }
 
-  public set(name: string, value: string, options: CookieOptions = {}) {
-    this._headers[name] = createCookie(name, value, options);
+  public set(
+    name: string,
+    value: string | number | Record<string, any>,
+    options: CookieOptions = {}
+  ) {
+    let resolvedValue = typeof value === 'string' ? value : JSON.stringify(value);
+    this._headers[name] = createCookie(name, resolvedValue, options);
   }
 
   public has(name: string) {

@@ -1,5 +1,8 @@
 import { generate } from '@builder.io/qwik-city/static';
-import qwikCityPlan from '@qwik-city-plan';
-import render from './entry.ssr';
 
-generate({ render, qwikCityPlan });
+generate({
+  outDir: 'dist',
+  origin: 'https://my-site.local',
+  renderModulePath: './entry.ssr',
+  qwikCityPlanModulePath: '@qwik-city-plan',
+});

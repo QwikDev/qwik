@@ -3,7 +3,7 @@ import { ElementFixture, dispatch } from './element-fixture';
 import { setTestPlatform, getTestPlatform } from './platform';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { render as renderIn } from '@builder.io/qwik';
-
+import { render as renderDev } from '../core/render/dom/render.public';
 /**
  *
  * @param root
@@ -28,12 +28,12 @@ async function triggerUserEvent(
  * CreatePlatfrom and CreateDocument
  * @alpha
  */
-export const createDOM = function () {
+export const createDOM = function (opts?: { dev: boolean }) {
   setTestPlatform();
   const host = new ElementFixture().host;
   return {
     render: function (jsxElement: JSXNode) {
-      return renderIn(host, jsxElement);
+      return opts?.dev ? renderIn(host, jsxElement) : renderDev(host, jsxElement);
     },
     screen: host,
     userEvent: async function (queryOrElement: string | Element | null, eventNameCamel: string) {

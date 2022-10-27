@@ -1,4 +1,4 @@
-import { ElementFixture, trigger } from '../../testing/element-fixture';
+import { createDOM } from '../../testing/library';
 import { expectDOM } from '../../testing/expect-dom.unit';
 import { inlinedQrl } from '../qrl/qrl';
 import { useStylesQrl } from '../use/use-styles';
@@ -6,14 +6,13 @@ import { PropsOf, component$ } from './component.public';
 import { suite } from 'uvu';
 import { useStore } from '../use/use-store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { render } from '../render/dom/render.public';
 
 const qComponent = suite('q-component');
 qComponent('should declare and render basic component', async () => {
-  const fixture = new ElementFixture();
-  await render(fixture.host, <HelloWorld></HelloWorld>);
+  const { screen, render } = createDOM();
+  await render(<HelloWorld />);
   await expectDOM(
-    fixture.host,
+    screen,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
         <style q:style="pfkgyr-0">
@@ -28,10 +27,11 @@ qComponent('should declare and render basic component', async () => {
 });
 
 qComponent('should render Counter and accept events', async () => {
-  const fixture = new ElementFixture();
-  await render(fixture.host, <MyCounter step={5} value={15} />);
+  const { screen, render, userEvent } = createDOM();
+
+  await render(<MyCounter step={5} value={15} />);
   await expectDOM(
-    fixture.host,
+    screen,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
     <!--qv q:key=sX:-->
@@ -43,9 +43,9 @@ qComponent('should render Counter and accept events', async () => {
     <!--/qv-->
   </host>`
   );
-  await trigger(fixture.host, 'button.decrement', 'click');
+  await userEvent('button.decrement', 'click');
   await expectDOM(
-    fixture.host,
+    screen,
     `
 <host q:version="dev" q:container="resumed" q:render="dom-dev">
   <!--qv q:key=sX:-->
@@ -67,47 +67,48 @@ qComponent('should render Counter and accept events', async () => {
   );
 });
 
-qComponent('should render a collection of todo items', async () => {
-  const host = new ElementFixture().host;
-  const items = {
-    items: [
-      {
-        done: true,
-        title: 'Task 1',
-      },
-      {
-        done: false,
-        title: 'Task 2',
-      },
-    ],
-  };
-  await render(host, <Items items={items} />);
-  await delay(0);
-  await expectDOM(
-    host,
-    `
-    <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX:-->
-      <items>
-        <!--qv q:key=sX:-->
-        <item-detail>
-          <input type="checkbox" checked="" />
-          <span>Task 1</span>
-        </item-detail>
-        <!--/qv-->
-        <!--qv q:key=sX:-->
-        <item-detail>
-          <input type="checkbox" />
-          <span>Task 2</span>
-        </item-detail>
-        <!--/qv-->
-        Total: 2
-      </items>
-      <!--/qv-->
-    </host>
-    `
-  );
-});
+// qComponent('should render a collection of todo items', async () => {
+//   const { screen } = createDOM();
+
+//   const items = {
+//     items: [
+//       {
+//         done: true,
+//         title: 'Task 1',
+//       },
+//       {
+//         done: false,
+//         title: 'Task 2',
+//       },
+//     ],
+//   };
+//   await render(screen, <Items items={items} />);
+//   await delay(0);
+//   await expectDOM(
+//     screen,
+//     `
+//     <host q:version="dev" q:container="resumed" q:render="dom-dev">
+//       <!--qv q:key=sX:-->
+//       <items>
+//         <!--qv q:key=sX:-->
+//         <item-detail>
+//           <input type="checkbox" checked="" />
+//           <span>Task 1</span>
+//         </item-detail>
+//         <!--/qv-->
+//         <!--qv q:key=sX:-->
+//         <item-detail>
+//           <input type="checkbox" />
+//           <span>Task 2</span>
+//         </item-detail>
+//         <!--/qv-->
+//         Total: 2
+//       </items>
+//       <!--/qv-->
+//     </host>
+//     `
+//   );
+// });
 
 /////////////////////////////////////////////////////////////////////////////
 export const HelloWorld = component$(() => {

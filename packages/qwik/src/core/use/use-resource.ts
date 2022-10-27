@@ -300,7 +300,8 @@ export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn
     _resolved: undefined as never,
     _error: undefined as never,
     _state: 'pending',
-    _timeout: opts?.timeout,
+    _timeout: opts?.timeout ?? -1,
+    _cache: 0,
   };
   return resource;
 };

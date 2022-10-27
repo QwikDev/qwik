@@ -52,6 +52,7 @@ async function workerRender(
     url: url.href,
     ok: false,
     error: null,
+    isStatic: false,
   };
 
   try {
@@ -75,9 +76,6 @@ async function workerRender(
             status <= 299 &&
             (headers.get('Content-Type') || '').includes('text/html');
         }
-
-        // early callback with result, don't bother waiting on fs writes
-        callback(result);
 
         if (result.ok) {
           const writeHtmlEnabled = opts.emitHtml !== false;
@@ -105,6 +103,9 @@ async function workerRender(
                 // page data writer
                 if (dataWriter) {
                   dataWriter.write(JSON.stringify(data));
+                }
+                if (typeof data.isStatic === 'boolean') {
+                  result.isStatic = data.isStatic;
                 }
               },
             }).finally(() => {

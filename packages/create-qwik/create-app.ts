@@ -41,7 +41,6 @@ export async function runCreateCli(starterId: string, outDir: string) {
 
 export function logCreateAppResult(result: CreateAppResult, ranInstall: boolean) {
   console.log(``);
-  console.clear();
   console.log(``);
 
   const isCwdDir = process.cwd() === result.outDir;

@@ -38,7 +38,7 @@ import { _wrapSignal } from "@builder.io/qwik";
 import { jsx } from "@builder.io/qwik/jsx-runtime";
 import { jsxs } from "@builder.io/qwik/jsx-runtime";
 import { qrl } from "@builder.io/qwik";
-import { useData } from "../../node_modules/dep/dist/lib";
+import { useData } from "../../node_modules/dep/dist/lib.mjs";
 export const App_component_AkbU84a8zes = ()=>{
     const store = useData();
     return /*#__PURE__*/ jsxs("div", {

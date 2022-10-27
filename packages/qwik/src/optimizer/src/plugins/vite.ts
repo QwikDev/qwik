@@ -63,10 +63,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const sys = qwikPlugin.getSys();
       const path = qwikPlugin.getPath();
 
-      qwikPlugin.log(`vite config(), command: ${viteEnv.command}, env.mode: ${viteEnv.mode}`);
-
-      isClientDevOnly = viteEnv.command === 'serve' && viteEnv.mode !== 'ssr';
       viteCommand = viteEnv.command;
+      isClientDevOnly = viteCommand === 'serve' && viteEnv.mode !== 'ssr';
+
+      qwikPlugin.log(`vite config(), command: ${viteCommand}, env.mode: ${viteEnv.mode}`);
 
       let target: QwikBuildTarget;
       if (viteConfig.build?.ssr || viteEnv.mode === 'ssr') {
@@ -82,7 +82,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         buildMode = 'production';
       } else if (viteEnv.mode === 'development') {
         buildMode = 'development';
-      } else if (viteEnv.command === 'build' && target === 'client') {
+      } else if (viteCommand === 'build' && target === 'client') {
         // build (production)
         buildMode = 'production';
       } else {
@@ -91,10 +91,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
 
       let forceFullBuild = true;
-      if (viteEnv.command === 'serve') {
+      if (viteCommand === 'serve') {
         qwikViteOpts.entryStrategy = { type: 'hook' };
         forceFullBuild = false;
       } else {
+        if (target === 'ssr' || target === 'lib') {
+          qwikViteOpts.entryStrategy = { type: 'inline' };
+        }
         forceFullBuild = true;
       }
 
@@ -108,15 +111,12 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         debug: qwikViteOpts.debug,
         entryStrategy: qwikViteOpts.entryStrategy,
         rootDir: viteConfig.root,
-        resolveQwikBuild: viteEnv.command === 'build',
+        resolveQwikBuild: viteCommand === 'build',
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         forceFullBuild,
         vendorRoots: vendorRoots.map((v) => v.path),
       };
 
-      if (viteEnv.command === 'serve') {
-        qwikViteOpts.entryStrategy = { type: 'hook' };
-      }
       if (target === 'ssr') {
         // ssr
         if (typeof viteConfig.build?.ssr === 'string') {

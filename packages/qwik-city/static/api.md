@@ -39,6 +39,8 @@ export interface StaticGenerateResult {
     errors: number;
     // (undocumented)
     rendered: number;
+    // (undocumented)
+    staticPaths: string[];
 }
 
 // (No @packageDocumentation comment for this package)

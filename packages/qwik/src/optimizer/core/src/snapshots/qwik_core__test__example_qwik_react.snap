@@ -98,7 +98,7 @@ export { qwikify$, qwikifyQrl, renderToString };
         
 ============================= qwikifyqrl_component_usewatch_x04jc5xep1u.mjs (ENTRY POINT)==
 
-import { filterProps } from "../node_modules/@builder.io/qwik-react/index.qwik";
+import { filterProps } from "../node_modules/@builder.io/qwik-react/index.qwik.mjs";
 import { isBrowser } from "@builder.io/qwik/build";
 import { noSerialize } from "@builder.io/qwik";
 import { useLexicalScope } from "@builder.io/qwik";
@@ -153,7 +153,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
 
 import { Fragment } from "@builder.io/qwik/jsx-runtime";
 import { SkipRerender } from "@builder.io/qwik";
-import { filterProps } from "../node_modules/@builder.io/qwik-react/index.qwik";
+import { filterProps } from "../node_modules/@builder.io/qwik-react/index.qwik.mjs";
 import { isServer } from "@builder.io/qwik/build";
 import { jsx } from "@builder.io/qwik/jsx-runtime";
 import { qrl } from "@builder.io/qwik";
@@ -168,7 +168,7 @@ export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
     let run;
     if (props['client:visible']) run = 'visible';
     else if (props['client:load'] || props['client:only']) run = 'load';
-    useWatchQrl(qrl(()=>import("./qwikifyqrl_component_usewatch_x04jc5xep1u"), "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
+    useWatchQrl(qrl(()=>import("./qwikifyqrl_component_usewatch_x04jc5xep1u.mjs"), "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
         hostElement,
         props,
         reactCmpQrl,
@@ -224,7 +224,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
 import { qrl } from "@builder.io/qwik";
 import { componentQrl, implicit$FirstArg } from '@builder.io/qwik';
 function qwikifyQrl(reactCmpQrl) {
-    return /*#__PURE__*/ componentQrl(qrl(()=>import("../../../src/qwikifyqrl_component_zh94hie0ick"), "qwikifyQrl_component_zH94hIe0Ick", [
+    return /*#__PURE__*/ componentQrl(qrl(()=>import("../../../src/qwikifyqrl_component_zh94hie0ick.mjs"), "qwikifyQrl_component_zH94hIe0Ick", [
         reactCmpQrl
     ]), {
         tagName: 'qwik-wrap'

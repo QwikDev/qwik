@@ -326,7 +326,11 @@ impl<'a> QwikTransform<'a> {
             need_transform: false,
             hash,
         };
-        self.create_hook(hook_data, folded, symbol_name, span, 0)
+        if self.options.is_inline {
+            self.create_inline_qrl(hook_data, folded, symbol_name, span)
+        } else {
+            self.create_hook(hook_data, folded, symbol_name, span, 0)
+        }
     }
 
     fn handle_qhook(&mut self, node: ast::CallExpr) -> ast::CallExpr {

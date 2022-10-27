@@ -92,6 +92,11 @@ export const processNode = (
     textType = VIRTUAL;
   } else if (isFunction(nodeType)) {
     const res = invoke(invocationContext, nodeType, props, node.key);
+    if (qDev) {
+      if (isPromise(res)) {
+        logWarn('JSX components can not return a promise.', node);
+      }
+    }
     return processData(res, invocationContext);
   } else {
     throw qError(QError_invalidJsxNodeType, nodeType);

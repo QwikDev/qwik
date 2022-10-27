@@ -104,4 +104,24 @@ test.describe('signals', () => {
     await expect(h1).toBeVisible();
     await expect(h1).toHaveText('Message');
   });
+
+  test('issue 1884', async ({ page }) => {
+    const button = page.locator('#issue1884-btn');
+    const text0 = page.locator('.issue1884-text:nth-child(1)');
+    const text1 = page.locator('.issue1884-text:nth-child(2)');
+    const text2 = page.locator('.issue1884-text:nth-child(3)');
+    const text3 = page.locator('.issue1884-text:nth-child(4)');
+
+    await expect(text0).toHaveCSS('color', 'rgb(0, 0, 0)');
+    await expect(text1).toHaveCSS('color', 'rgb(0, 0, 0)');
+    await expect(text2).toHaveCSS('color', 'rgb(0, 0, 0)');
+    await expect(text3).toHaveCSS('color', 'rgb(0, 0, 0)');
+
+    await button.click();
+
+    await expect(text0).toHaveCSS('color', 'rgb(255, 0, 0)');
+    await expect(text1).toHaveCSS('color', 'rgb(255, 0, 0)');
+    await expect(text2).toHaveCSS('color', 'rgb(255, 0, 0)');
+    await expect(text3).toHaveCSS('color', 'rgb(255, 0, 0)');
+  });
 });

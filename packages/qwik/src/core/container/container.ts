@@ -1,7 +1,7 @@
 import { qError, QError_invalidRefValue } from '../error/error';
 import { isServer } from '../platform/platform';
 import type { Ref } from '../use/use-ref';
-import type { SubscriberEffect } from '../use/use-watch';
+import type { ResourceReturnInternal, SubscriberEffect } from '../use/use-watch';
 import { logWarn } from '../util/log';
 import { qSerialize, qTest, seal } from '../util/qdev';
 import { isFunction, isObject } from '../util/types';
@@ -59,6 +59,7 @@ export interface SnapshotResult {
   state: SnapshotState;
   qrls: QRL[];
   objs: any[];
+  resources: ResourceReturnInternal<any>[];
   mode: 'render' | 'listeners' | 'static';
 }
 

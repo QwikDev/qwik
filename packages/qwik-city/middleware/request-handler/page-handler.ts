@@ -71,6 +71,7 @@ async function getClientPageData(
 ) {
   const prefetchBundleNames = getPrefetchBundleNames(result, routeBundleNames);
 
+  const isStatic = !result.snapshotResult?.resources.some((r) => r._cache !== Infinity);
   const clientPage: ClientPageData = {
     body: userResponse.pendingBody ? await userResponse.pendingBody : userResponse.resolvedBody,
     status: userResponse.status !== 200 ? userResponse.status : undefined,
@@ -79,6 +80,7 @@ async function getClientPageData(
         userResponse.status <= 308 &&
         userResponse.headers.get('location')) ||
       undefined,
+    isStatic,
     prefetch: prefetchBundleNames.length > 0 ? prefetchBundleNames : undefined,
   };
 

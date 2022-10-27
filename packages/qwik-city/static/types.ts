@@ -131,6 +131,7 @@ export interface StaticWorkerRenderResult {
   url: string;
   ok: boolean;
   error: string | null;
+  isStatic: boolean;
 }
 
 /**
@@ -140,4 +141,5 @@ export interface StaticGenerateResult {
   duration: number;
   rendered: number;
   errors: number;
+  staticPaths: string[];
 }

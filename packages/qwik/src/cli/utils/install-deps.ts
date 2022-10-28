@@ -10,12 +10,7 @@ import type { IntegrationData } from '../types';
 export function installDeps(pkgManager: string, dir: string) {
   let installChild: ChildProcess;
 
-  const errorMessage = `\n\n${color.bgRed(
-    `  ${pkgManager} install failed  `
-  )}\n\n  You might need to run "${color.green(
-    `${pkgManager} install`
-  )}" manually inside the root of your project to install the dependencies.\n`;
-  const install = new Promise<void>((resolve) => {
+  const install = new Promise<boolean>((resolve) => {
     try {
       installChild = spawn(pkgManager, ['install'], {
         cwd: dir,
@@ -23,22 +18,18 @@ export function installDeps(pkgManager: string, dir: string) {
       });
 
       installChild.on('error', () => {
-        console.error(errorMessage);
-        resolve();
+        resolve(false);
       });
 
       installChild.on('close', (code) => {
         if (code === 0) {
-          resolve();
+          resolve(true);
         } else {
-          console.error(errorMessage);
-          resolve();
+          resolve(false);
         }
       });
     } catch (e) {
-      console.error(errorMessage);
-      resolve();
-      //
+      resolve(false);
     }
   });
 
@@ -67,31 +58,41 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
     if (runInstall) {
       const spinner = startSpinner(`Installing ${pkgManager} dependencies...`);
       try {
-        await install;
+        const installed = await install;
+        if (installed) {
+          const tmpNodeModules = path.join(tmpInstallDir, 'node_modules');
+          const appNodeModules = path.join(outDir, 'node_modules');
+          await fs.promises.rename(tmpNodeModules, appNodeModules);
 
-        const tmpNodeModules = path.join(tmpInstallDir, 'node_modules');
-        const appNodeModules = path.join(outDir, 'node_modules');
-        await fs.promises.rename(tmpNodeModules, appNodeModules);
+          try {
+            await fs.promises.rename(
+              path.join(tmpInstallDir, 'package-lock.json'),
+              path.join(outDir, 'package-lock.json')
+            );
+          } catch (e) {
+            //
+          }
+          try {
+            await fs.promises.rename(
+              path.join(tmpInstallDir, 'yarn.lock'),
+              path.join(outDir, 'yarn.lock')
+            );
+          } catch (e) {
+            //
+          }
 
-        try {
-          await fs.promises.rename(
-            path.join(tmpInstallDir, 'package-lock.json'),
-            path.join(outDir, 'package-lock.json')
-          );
-        } catch (e) {
-          //
+          spinner.succeed();
+          success = true;
+        } else {
+          const errorMessage = `\n\n${color.bgRed(
+            `  ${pkgManager} install failed  `
+          )}\n  Automatic install failed. "${color.green(
+            `${pkgManager} install`
+          )}" must be manually executed to install deps.\n`;
+
+          spinner.succeed();
+          console.error(errorMessage);
         }
-        try {
-          await fs.promises.rename(
-            path.join(tmpInstallDir, 'yarn.lock'),
-            path.join(outDir, 'yarn.lock')
-          );
-        } catch (e) {
-          //
-        }
-
-        spinner.succeed();
-        success = true;
       } catch (e) {
         spinner.fail();
       }

@@ -6,6 +6,7 @@ import { loadIntegrations } from '../utils/integrations';
 import { installDeps, startSpinner } from '../utils/install-deps';
 import { mergeIntegrationDir } from './update-files';
 import { updateViteConfigs } from './update-vite-config';
+import color from 'kleur';
 
 export async function updateApp(opts: UpdateAppOptions) {
   const integrations = await loadIntegrations();
@@ -34,9 +35,12 @@ export async function updateApp(opts: UpdateAppOptions) {
 
   const commit = async (showSpinner?: boolean) => {
     const isInstallingDeps = Object.keys(fileUpdates.installedDeps).length > 0;
+
     const spinner = showSpinner
       ? startSpinner(`Updating app${isInstallingDeps ? ' and installing dependencies' : ''}...`)
       : null;
+
+    let passed = true;
     try {
       const dirs = new Set(fileUpdates.files.map((f) => dirname(f.path)));
       for (const dir of Array.from(dirs)) {
@@ -53,14 +57,23 @@ export async function updateApp(opts: UpdateAppOptions) {
         })
       );
 
+      const pkgManager = getPackageManager();
       if (opts.installDeps && Object.keys(fileUpdates.installedDeps).length > 0) {
-        const pkgManager = getPackageManager();
         const { install } = installDeps(pkgManager, opts.rootDir);
-        await install;
+        passed = await install;
       }
 
       await fsWrites;
       spinner && spinner.succeed();
+      if (!passed) {
+        const errorMessage = `\n\n❌ ${color.bgRed(
+          `  ${pkgManager} install failed  `
+        )}\n\n   You might need to run "${color.green(
+          `${pkgManager} install`
+        )}" manually inside the root of the project.\n\n`;
+
+        console.error(errorMessage);
+      }
     } catch (e) {
       spinner && spinner.fail();
       panic(String(e));

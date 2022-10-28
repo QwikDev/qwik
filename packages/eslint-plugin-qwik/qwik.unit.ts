@@ -96,6 +96,7 @@ test('valid-lexical-scope', () => {
       export interface Value {
         value: number;
         fn: NoSerialize<() => void>;
+        other: Value;
       }
       export function getFn(): NoSerialize<() => void> {
         return () => {};

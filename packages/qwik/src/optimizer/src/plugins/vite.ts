@@ -212,7 +212,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           conditions: [],
         },
         esbuild:
-          opts.buildMode === 'development'
+          viteCommand === 'serve'
             ? false
             : {
                 logLevel: 'error',
@@ -277,7 +277,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         } else {
           updatedViteConfig.publicDir = false;
           updatedViteConfig.build!.ssr = true;
-          if (buildMode === 'production') {
+          if (viteConfig.build?.minify == null && buildMode === 'production') {
             updatedViteConfig.build!.minify = 'esbuild';
           }
         }

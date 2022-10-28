@@ -58,7 +58,7 @@ Creating a new callback for `<button>` and internally invoking the callback QRL.
 ```jsx
 <button
   onClick$={async () => {
-    await props.helloQrl?.invoke('World');
+    await props.hello$?.invoke('World');
   }}
 >
   hello

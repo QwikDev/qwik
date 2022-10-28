@@ -96,10 +96,7 @@ vite('command: serve, mode: production', async () => {
   equal(build.ssr, undefined);
   equal(c.optimizeDeps?.include, includeDeps);
   equal(c.optimizeDeps?.exclude, excludeDeps);
-  equal(c.esbuild, {
-    logLevel: 'error',
-    jsx: 'preserve',
-  });
+  equal(c.esbuild, false);
   equal(c.ssr, undefined);
 });
 
@@ -132,7 +129,10 @@ vite('command: build, mode: development', async () => {
   equal(build.ssr, undefined);
   equal(c.optimizeDeps?.include, includeDeps);
   equal(c.optimizeDeps?.exclude, excludeDeps);
-  equal(c.esbuild, false);
+  equal(c.esbuild, {
+    logLevel: 'error',
+    jsx: 'preserve',
+  });
   equal(c.ssr, undefined);
 });
 
@@ -229,7 +229,10 @@ vite('command: build, --ssr entry.server.tsx', async () => {
   equal(build.ssr, true);
   equal(c.optimizeDeps?.include, includeDeps);
   equal(c.optimizeDeps?.exclude, excludeDeps);
-  equal(c.esbuild, false);
+  equal(c.esbuild, {
+    logLevel: 'error',
+    jsx: 'preserve',
+  });
   equal(c.publicDir, false);
 });
 

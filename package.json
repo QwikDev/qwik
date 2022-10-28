@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "qwik-monorepo",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "scripts": {
     "build": "tsm scripts/index.ts --tsc --build --qwikcity --api --platform-binding-wasm-copy",
     "build.full": "tsm scripts/index.ts --tsc --build --api --eslint --qwikcity --qwikreact --cli --platform-binding --wasm",
@@ -96,7 +96,7 @@
     "tsm": "2.2.2",
     "typescript": "4.8.4",
     "uvu": "^0.5.6",
-    "vite": "3.2.0",
+    "vite": "3.2.1",
     "vite-tsconfig-paths": "3.5.2",
     "wasm-pack": "0.10.3",
     "watchlist": "^0.3.1",

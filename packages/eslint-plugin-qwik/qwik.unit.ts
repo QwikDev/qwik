@@ -91,11 +91,42 @@ test('valid-lexical-scope', () => {
   ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
     valid: [
       `
+      import { component$, SSRStream } from "@builder.io/qwik";
+import { Readable } from "stream";
+
+export const RemoteApp = component$(({ name }: { name: string }) => {
+  return (
+    <>
+      <SSRStream>
+        {async (stream) => {
+          const res = await fetch('path');
+          const reader = res.body as any as Readable;
+          reader.setEncoding("utf8");
+
+          // Readable streams emit 'data' events once a listener is added.
+          reader.on("data", (chunk) => {
+            chunk = String(chunk).replace(
+              'q:base="/build/"',
+            );
+            stream.write(chunk);
+          });
+
+          return new Promise((resolve) => {
+            reader.on("end", () => resolve());
+          });
+        }}
+      </SSRStream>
+    </>
+  );
+});
+`,
+      `
       export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
       import { useMethod, component$ } from 'stuff';
       export interface Value {
         value: number;
         fn: NoSerialize<() => void>;
+        other: Value;
       }
       export function getFn(): NoSerialize<() => void> {
         return () => {};

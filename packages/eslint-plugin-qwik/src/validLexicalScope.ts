@@ -87,21 +87,6 @@ export const validLexicalScope = createRule({
               return;
             }
             const identifier = ref.identifier;
-            if (
-              identifier.parent &&
-              identifier.parent.type === AST_NODE_TYPES.AssignmentExpression
-            ) {
-              if (identifier.parent.left === identifier) {
-                context.report({
-                  messageId: 'mutableIdentifier',
-                  node: ref.identifier,
-                  data: {
-                    varName: ref.identifier.name,
-                    dollarName: dollarIdentifier,
-                  },
-                });
-              }
-            }
             const tsNode = esTreeNodeToTSNodeMap.get(identifier);
             if (scopeType === 'module') {
               const s = typeChecker.getSymbolAtLocation(tsNode);
@@ -129,6 +114,21 @@ export const validLexicalScope = createRule({
             }
 
             if (ownerDeclared !== dollarScope) {
+              if (
+                identifier.parent &&
+                identifier.parent.type === AST_NODE_TYPES.AssignmentExpression
+              ) {
+                if (identifier.parent.left === identifier) {
+                  context.report({
+                    messageId: 'mutableIdentifier',
+                    node: ref.identifier,
+                    data: {
+                      varName: ref.identifier.name,
+                      dollarName: dollarIdentifier,
+                    },
+                  });
+                }
+              }
               const reason = canCapture(typeChecker, tsNode, ref.identifier, opts);
               if (reason) {
                 context.report({
@@ -214,7 +214,8 @@ function canCapture(
   opts: DetectorOptions
 ) {
   const type = checker.getTypeAtLocation(node);
-  return isTypeCapturable(checker, type, node, ident, opts);
+  const seen = new Set<any>();
+  return isTypeCapturable(checker, type, node, ident, opts, seen);
 }
 
 interface TypeReason {
@@ -240,9 +241,10 @@ function isTypeCapturable(
   type: ts.Type,
   tsnode: ts.Node,
   ident: Identifier,
-  opts: DetectorOptions
+  opts: DetectorOptions,
+  seen: Set<any>
 ): TypeReason | undefined {
-  const result = _isTypeCapturable(checker, type, tsnode, opts, 0);
+  const result = _isTypeCapturable(checker, type, tsnode, opts, 0, seen);
   if (result) {
     const loc = result.location;
     if (loc) {
@@ -257,9 +259,14 @@ function _isTypeCapturable(
   type: ts.Type,
   node: ts.Node,
   opts: DetectorOptions,
-  level: number
+  level: number,
+  seen: Set<any>
 ): TypeReason | undefined {
   // NoSerialize is ok
+  if (seen.has(type)) {
+    return;
+  }
+  seen.add(type);
   if (type.getProperty('__no_serialize__')) {
     return;
   }
@@ -322,7 +329,7 @@ function _isTypeCapturable(
 
   if (type.isUnion()) {
     for (const subType of type.types) {
-      const result = _isTypeCapturable(checker, subType, node, opts, level + 1);
+      const result = _isTypeCapturable(checker, subType, node, opts, level + 1, seen);
       if (result) {
         return result;
       }
@@ -335,7 +342,7 @@ function _isTypeCapturable(
 
     const arrayType = getElementTypeOfArrayType(type, checker);
     if (arrayType) {
-      return _isTypeCapturable(checker, arrayType, node, opts, level + 1);
+      return _isTypeCapturable(checker, arrayType, node, opts, level + 1, seen);
     }
 
     // Element is ok
@@ -387,7 +394,7 @@ function _isTypeCapturable(
     }
 
     for (const symbol of type.getProperties()) {
-      const result = isSymbolCapturable(checker, symbol, node, opts, level + 1);
+      const result = isSymbolCapturable(checker, symbol, node, opts, level + 1, seen);
       if (result) {
         const loc = result.location;
         result.location = `${symbol.name}${loc ? `.${loc}` : ''}`;
@@ -403,10 +410,11 @@ function isSymbolCapturable(
   symbol: ts.Symbol,
   node: ts.Node,
   opts: DetectorOptions,
-  level: number
+  level: number,
+  seen: Set<any>
 ) {
   const type = checker.getTypeOfSymbolAtLocation(symbol, node);
-  return _isTypeCapturable(checker, type, node, opts, level);
+  return _isTypeCapturable(checker, type, node, opts, level, seen);
 }
 
 function getElementTypeOfArrayType(type: ts.Type, checker: ts.TypeChecker): ts.Type | undefined {

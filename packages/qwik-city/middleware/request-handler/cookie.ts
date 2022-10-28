@@ -88,9 +88,10 @@ export class Cookie {
   constructor(cookieString: string) {
     const parsedCookie: Record<string, string> = cookieString
       .split(';')
-      .reduce((prev, cookie_value) => {
+      .reduce((prev: Record<string, string>, cookie_value) => {
         const split = cookie_value.split('=');
-        return { ...prev, [split[0]]: split[1] };
+        prev[decodeURIComponent(split[0].trim())] = decodeURIComponent(split[1].trim());
+        return prev;
       }, {});
     this._cookie = parsedCookie;
   }

@@ -27,4 +27,4 @@ export const removeToken = () => {
   return `${AUTHTOKEN_NAME}=; Secure; HttpOnly; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 };
 
-const AUTHTOKEN_NAME = 'qwikcity-auth-token';
+export const AUTHTOKEN_NAME = 'qwikcity-auth-token';

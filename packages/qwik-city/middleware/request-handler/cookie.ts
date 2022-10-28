@@ -1,5 +1,6 @@
-export type TimeUnit = 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks';
-
+/**
+ * @alpha
+ */
 export interface CookieOptions {
   domain?: string;
   expires?: Date | string;
@@ -10,6 +11,9 @@ export interface CookieOptions {
   secure?: boolean;
 }
 
+/**
+ * @alpha
+ */
 export interface CookieValue {
   value: string;
   json: <T = unknown>() => T;

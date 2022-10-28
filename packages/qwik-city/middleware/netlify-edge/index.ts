@@ -102,4 +102,4 @@ export function qwikCity(render: Render, opts?: RenderOptions) {
 /**
  * @alpha
  */
-export type RequestHandlerNetlify<T = unknown> = RequestHandler<T, Omit<Context, 'next'>>;
+export type RequestHandlerNetlify<T = unknown> = RequestHandler<T, Omit<Context, 'next' | 'cookies'>>;

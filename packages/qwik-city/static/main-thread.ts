@@ -29,6 +29,7 @@ export async function mainThread(sys: System) {
         duration: 0,
         rendered: 0,
         errors: 0,
+        staticPaths: [],
       };
 
       let isCompleted = false;
@@ -47,23 +48,24 @@ export async function mainThread(sys: System) {
 
           generatorResult.duration = timer();
 
+          log.info('\nSSG results');
           if (generatorResult.rendered > 0) {
             log.info(
-              `Generated: ${generatorResult.rendered} page${
+              `- Generated: ${generatorResult.rendered} page${
                 generatorResult.rendered === 1 ? '' : 's'
               }`
             );
           }
 
           if (generatorResult.errors > 0) {
-            log.info(`Errors: ${generatorResult.errors}`);
+            log.info(`- Errors: ${generatorResult.errors}`);
           }
 
-          log.info(`Duration: ${msToString(generatorResult.duration)}`);
+          log.info(`- Duration: ${msToString(generatorResult.duration)}`);
 
           const total = generatorResult.rendered + generatorResult.errors;
           if (total > 0) {
-            log.info(`Average: ${msToString(generatorResult.duration / total)} per page`);
+            log.info(`- Average: ${msToString(generatorResult.duration / total)} per page`);
           }
 
           log.info(``);
@@ -97,10 +99,17 @@ export async function mainThread(sys: System) {
           active.delete(staticRoute.pathname);
 
           if (result.error) {
-            log.error(staticRoute.pathname, result.error);
+            log.error(
+              `ERROR: SSG failed for path: ${staticRoute.pathname}\n`,
+              result.error,
+              '\n\n'
+            );
             generatorResult.errors++;
           } else if (result.ok) {
             generatorResult.rendered++;
+            if (result.isStatic) {
+              generatorResult.staticPaths.push(result.pathname);
+            }
           }
 
           flushQueue();

@@ -7,7 +7,7 @@ export interface QwikLinter {
 }
 
 export async function createLinter(sys: OptimizerSystem, rootDir: string): Promise<QwikLinter> {
-  const module = await sys.dynamicImport('eslint');
+  const module: typeof import('eslint') = await sys.dynamicImport('eslint');
   const options: ESLint.Options = {
     cache: true,
     useEslintrc: false,
@@ -18,6 +18,7 @@ export async function createLinter(sys: OptimizerSystem, rootDir: string): Promi
         es2021: true,
         node: true,
       },
+
       extends: ['plugin:qwik/recommended'],
       parser: '@typescript-eslint/parser',
       parserOptions: {

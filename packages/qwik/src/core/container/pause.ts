@@ -13,7 +13,12 @@ import { logWarn } from '../util/log';
 import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QScopedStyle } from '../util/markers';
 import { qDev } from '../util/qdev';
 
-import { destroyWatch, WatchFlagsIsDirty } from '../use/use-watch';
+import {
+  destroyWatch,
+  isResourceWatch,
+  ResourceReturnInternal,
+  WatchFlagsIsDirty,
+} from '../use/use-watch';
 import {
   qError,
   QError_containerAlreadyPaused,
@@ -151,6 +156,9 @@ export const _pauseFromContexts = async (
             logWarn('Serializing disconneted watch. Looks like an internal error.');
           }
         }
+        if (isResourceWatch(watch)) {
+          collector.$resources$.push(watch.$resource$);
+        }
         destroyWatch(watch);
       }
     }
@@ -184,6 +192,7 @@ export const _pauseFromContexts = async (
       },
       objs: [],
       qrls: [],
+      resources: collector.$resources$,
       mode: 'static',
     };
   }
@@ -462,6 +471,7 @@ export const _pauseFromContexts = async (
       subs,
     },
     objs,
+    resources: collector.$resources$,
     qrls: collector.$qrls$,
     mode: canRender ? 'render' : 'listeners',
   };
@@ -499,6 +509,7 @@ export interface Collector {
   $noSerialize$: any[];
   $elements$: QContext[];
   $qrls$: QRL[];
+  $resources$: ResourceReturnInternal<any>[];
   $prefetch$: number;
   $deferElements$: QContext[];
   $containerState$: ContainerState;
@@ -507,7 +518,7 @@ export interface Collector {
 
 const collectProps = (elCtx: QContext, collector: Collector) => {
   const parentCtx = elCtx.$parent$;
-  if (parentCtx && elCtx.$props$ && collector.$elements$.includes(parentCtx.$element$ as any)) {
+  if (parentCtx && elCtx.$props$ && collector.$elements$.includes(parentCtx)) {
     const subs = getProxyManager(elCtx.$props$)?.$subs$;
     const el = elCtx.$element$ as VirtualElement;
     if (subs && subs.some((e) => e[0] === 0 && e[1] === el)) {
@@ -523,6 +534,7 @@ const createCollector = (containerState: ContainerState): Collector => {
     $objSet$: new Set(),
     $prefetch$: 0,
     $noSerialize$: [],
+    $resources$: [],
     $elements$: [],
     $qrls$: [],
     $deferElements$: [],

@@ -82,15 +82,15 @@ const createCookie = (name: string, value: string, options: CookieOptions = {}) 
 };
 
 const parseCookieString = (cookieString: string) => {
-  if (cookieString === '') { return {} }
-  return cookieString
-      .split(';')
-      .reduce((prev: Record<string, string>, cookie_value) => {
-        const split = cookie_value.split('=');
-        prev[decodeURIComponent(split[0].trim())] = decodeURIComponent(split[1].trim());
-        return prev;
-      }, {})
-}
+  if (cookieString === '') {
+    return {};
+  }
+  return cookieString.split(';').reduce((prev: Record<string, string>, cookie_value) => {
+    const split = cookie_value.split('=');
+    prev[decodeURIComponent(split[0].trim())] = decodeURIComponent(split[1].trim());
+    return prev;
+  }, {});
+};
 
 export class Cookie {
   private _cookie: Record<string, string>;
@@ -118,7 +118,8 @@ export class Cookie {
   }
 
   set(name: string, value: string | number | Record<string, any>, options: CookieOptions = {}) {
-    const resolvedValue = typeof value === 'string' ? value : encodeURIComponent(JSON.stringify(value));
+    const resolvedValue =
+      typeof value === 'string' ? value : encodeURIComponent(JSON.stringify(value));
     this._headers[name] = createCookie(name, resolvedValue, options);
   }
 

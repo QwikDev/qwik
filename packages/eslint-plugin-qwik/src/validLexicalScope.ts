@@ -87,21 +87,6 @@ export const validLexicalScope = createRule({
               return;
             }
             const identifier = ref.identifier;
-            if (
-              identifier.parent &&
-              identifier.parent.type === AST_NODE_TYPES.AssignmentExpression
-            ) {
-              if (identifier.parent.left === identifier) {
-                context.report({
-                  messageId: 'mutableIdentifier',
-                  node: ref.identifier,
-                  data: {
-                    varName: ref.identifier.name,
-                    dollarName: dollarIdentifier,
-                  },
-                });
-              }
-            }
             const tsNode = esTreeNodeToTSNodeMap.get(identifier);
             if (scopeType === 'module') {
               const s = typeChecker.getSymbolAtLocation(tsNode);
@@ -129,6 +114,21 @@ export const validLexicalScope = createRule({
             }
 
             if (ownerDeclared !== dollarScope) {
+              if (
+                identifier.parent &&
+                identifier.parent.type === AST_NODE_TYPES.AssignmentExpression
+              ) {
+                if (identifier.parent.left === identifier) {
+                  context.report({
+                    messageId: 'mutableIdentifier',
+                    node: ref.identifier,
+                    data: {
+                      varName: ref.identifier.name,
+                      dollarName: dollarIdentifier,
+                    },
+                  });
+                }
+              }
               const reason = canCapture(typeChecker, tsNode, ref.identifier, opts);
               if (reason) {
                 context.report({
@@ -411,7 +411,7 @@ function isSymbolCapturable(
   node: ts.Node,
   opts: DetectorOptions,
   level: number,
-  seen: Set<any>,
+  seen: Set<any>
 ) {
   const type = checker.getTypeOfSymbolAtLocation(symbol, node);
   return _isTypeCapturable(checker, type, node, opts, level, seen);

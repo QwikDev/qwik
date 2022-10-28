@@ -28,7 +28,7 @@ export interface QwikCityNetlifyOptions extends QwikCityHandlerOptions {
 }
 
 // @alpha (undocumented)
-export type RequestHandlerNetlify<T = unknown> = RequestHandler_2<T, Omit<Context, 'next'>>;
+export type RequestHandlerNetlify<T = unknown> = RequestHandler_2<T, Omit<Context, 'next' | 'cookies'>>;
 
 // (No @packageDocumentation comment for this package)
 

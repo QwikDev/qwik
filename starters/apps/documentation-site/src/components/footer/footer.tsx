@@ -20,7 +20,7 @@ export default component$(() => {
           <a href="https://twitter.com/QwikDev">Twitter</a>
         </li>
         <li>
-          <a href="https://github.com/BuilderIO/qwik">Github</a>
+          <a href="https://github.com/BuilderIO/qwik">GitHub</a>
         </li>
         <li>
           <a href="https://qwik.builder.io/chat">Chat</a>

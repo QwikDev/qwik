@@ -40,15 +40,9 @@ export interface DocSearchProps {
 }
 
 export function isEditingContent(event: QwikKeyboardEvent<HTMLElement>): boolean {
-  const element = event.currentTarget;
-  const tagName = element.tagName;
+  const { isContentEditable, tagName } = event.target;
 
-  return (
-    element.isContentEditable ||
-    tagName === 'INPUT' ||
-    tagName === 'SELECT' ||
-    tagName === 'TEXTAREA'
-  );
+  return isContentEditable || tagName === 'INPUT' || tagName === 'SELECT' || tagName === 'TEXTAREA';
 }
 
 export const DocSearch = component$((props: DocSearchProps) => {

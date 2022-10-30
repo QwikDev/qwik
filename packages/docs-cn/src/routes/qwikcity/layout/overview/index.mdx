@@ -8,15 +8,16 @@ contributors:
   - nnelgxorz
 ---
 
-# Layout
+# 布局（Layout）
 
-When implementing routes, different routes usually share a common header, footer, and menu system. We call the common parts a layout.
+在实现路由时，不同的路由通常共享一个共同的页眉、页脚和菜单系统。我们称公共部分为布局（layout）。
 
-The developer could extract all of these into `<Header>`, `<Footer>`, and `<Menu>` components and manually add them to each page component, but that is repetitive and error-prone. Instead, we can use layouts to automatically reuse common parts.
+开发人员可以将所有这些提取到 `<Header>`、`<Footer>` 和 `<Menu>` 组件中，并手动将它们添加到每个页面组件中，但这是重复且容易出错的。
+相反，我们可以使用布局（Layout）来自动重用公共部分。
 
-### Example
+### 例子
 
-Let's say we would like our site to look like this:
+假设我们希望我们的网站看起来像这样：
 
 ```
 ┌───────────────────────────────────────────────────┐
@@ -31,7 +32,7 @@ Let's say we would like our site to look like this:
 └───────────────────────────────────────────────────┘
 ```
 
-We can define the above with these files.
+我们可以用这些文件定义上述内容：
 
 ```
 src/
@@ -46,7 +47,7 @@ src/
     └── index.tsx          # https://example.com
 ```
 
-### Component implementations
+### 组件实现
 
 ```typescript
 // File: src/components/header.tsx

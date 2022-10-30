@@ -5,6 +5,9 @@ contributors:
   - zahash
   - manucorporat
 ---
+
+import { helloWorldLink, buttonClickHandlerLink, declareLocalStateLink, counterExampleLink, clockExampleLink, fetchingRequestLink, contextExampleLink, debouncedInputLink, dynamicBackgroundLink, presidentListLink, PlaygroundLink} from "./playground_urls"
+
 # Cheat sheet
 
 ### Hello world component
@@ -16,6 +19,8 @@ export const HelloWorld = component$(() => {
   return <div>Hello world</div>;
 });
 ```
+
+<PlaygroundLink link={helloWorldLink} />
 
 #### ⚛️ React
 
@@ -34,6 +39,8 @@ export const Button = component$(() => {
   return <button onClick$={() => console.log('click')}>Click me</button>;
 });
 ```
+
+<PlaygroundLink link={buttonClickHandlerLink} />
 
 #### ⚛️ React
 
@@ -55,6 +62,8 @@ export const LocalStateExample = component$(() => {
   return <div>Value is: {state.value}</div>;
 });
 ```
+
+<PlaygroundLink link={declareLocalStateLink} />
 
 #### ⚛️ React
 
@@ -82,6 +91,8 @@ export const Counter = component$(() => {
   );
 });
 ```
+
+<PlaygroundLink link={counterExampleLink} />
 
 #### ⚛️ React
 
@@ -116,6 +127,8 @@ export const Clock = component$(() => {
   return <div>Seconds: {state.seconds}</div>;
 });
 ```
+
+<PlaygroundLink link={clockExampleLink} />
 
 #### ⚛️ React
 
@@ -158,6 +171,8 @@ export const Fetch = component$(() => {
   );
 });
 ```
+
+<PlaygroundLink link={fetchingRequestLink} />
 
 #### ⚛️ React
 
@@ -203,6 +218,8 @@ export const Child = component$(() => {
   return <span>{state.message}</span>;
 });
 ```
+
+<PlaygroundLink link={contextExampleLink} />
 
 #### ⚛️ React
 
@@ -251,6 +268,8 @@ export const DebouncedInput = component$(() => {
   );
 });
 ```
+
+<PlaygroundLink link={debouncedInputLink} />
 
 #### ⚛️ React
 
@@ -304,6 +323,8 @@ export const DynamicBackground = component$(() => {
   );
 });
 ```
+
+<PlaygroundLink link={dynamicBackgroundLink} />
 
 #### ⚛️ React
 
@@ -369,6 +390,8 @@ export const Presidents = component$(() => {
   );
 });
 ```
+
+<PlaygroundLink link={presidentListLink} />
 
 #### ⚛️ React
 

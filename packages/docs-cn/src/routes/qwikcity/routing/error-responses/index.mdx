@@ -7,11 +7,12 @@ contributors:
   - nnelgxorz
 ---
 
-# Non-200 Response
+# 状态码非200 响应
 
-At times it is necessary to respond with HTTP status codes other than 200. In such cases, response handler is the place to determine what status code should be returned.
+有时需要使用 200 以外的 HTTP 状态代码进行响应。
+在这种情况下，响应处理程序 是 确定应返回什么状态代码的地方。
 
-Assume this file layout.
+假定目录结构：
 
 ```
 src/
@@ -23,7 +24,10 @@ src/
 
 ## 404 - Not Found
 
-Let's say that a user does a request to an invalid `skuId` such as `https://example.com/product/999`. In this case, we would like to return a 404 HTTP status code and render a 404 page. The place where we determine if the request is valid or not is in the request handler by looking into the database. Even if the response is non-200, the component still gets a chance to render a page (Except in the redirect case.)
+假设用户向无效的 `skuId` 发出请求，例如 `https://example.com/product/999` 。
+在这种情况下，我们想返回一个 404 HTTP 状态码并渲染一个 404 页面。
+我们通过查看数据库来确定请求是否有效的地方是在 请求处理程序（request handler）中。
+即使响应不是 200，组件仍然有机会渲染页面（重定向情况除外。）
 
 ```typescript
 // File: src/routes/product/[skuId]/index.tsx

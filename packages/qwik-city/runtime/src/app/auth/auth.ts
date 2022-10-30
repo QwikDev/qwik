@@ -22,7 +22,7 @@ export const signIn = async (formData: FormData, cookie: Cookie): Promise<AuthRe
   }
 
   return {
-    status: 'invalid'
+    status: 'invalid',
   };
 };
 

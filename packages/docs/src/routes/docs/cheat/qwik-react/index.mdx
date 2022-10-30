@@ -152,7 +152,7 @@ export function Clock() {
 ```tsx
 export const Fetch = component$(() => {
   const state = useStore({
-    url: 'https://api.github.com/repos/qwikstart/qwikstart-docs',
+    url: 'https://api.github.com/repos/BuilderIO/qwik',
     responseJson: undefined,
   });
 
@@ -178,7 +178,7 @@ export const Fetch = component$(() => {
 
 ```tsx
 export function Fetch() {
-  const [url, setUrl] = useState('https://api.github.com/repos/qwikstart/qwikstart-docs');
+  const [url, setUrl] = useState('https://api.github.com/repos/BuilderIO/qwik');
   const [responseJson, setResponseJson] = useState(undefined);
   useEffect(() => {
     fetch(url)

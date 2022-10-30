@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       disttag:
-        description: 'Publish "@builder.io/qwik" to NPM using this dist-tag, push the git-tag to the repo and create a Github release. The "latest" and "next" dist-tags will use the version number already committed in package.json.'
+        description: 'Publish "@builder.io/qwik" to NPM using this dist-tag, push the git-tag to the repo and create a GitHub release. The "latest" and "next" dist-tags will use the version number already committed in package.json.'
         required: true
         type: choice
         default: 'dev'

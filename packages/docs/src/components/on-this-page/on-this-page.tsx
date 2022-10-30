@@ -84,7 +84,7 @@ export const OnThisPage = component$(() => {
         <li>
           <a href="https://github.com/BuilderIO/qwik" target="_blank" rel="nofollow noopener">
             <GithubLogo width={20} height={20} />
-            <span>Github</span>
+            <span>GitHub</span>
           </a>
         </li>
         <li>

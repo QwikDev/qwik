@@ -7,15 +7,18 @@ contributors:
 
 # File Layout
 
-The core responsibility of Qwik City is to provide a simple, intuitive, and efficient way to create content for your site. Qwik City achieves this through directory-based routing. In a nutshell layout of your directories determines the structure of your site.
+Qwik City 的核心职责是提供一种简单、直观、高效的方式来为您的网站创建内容。
+Qwik City 通过基于目录的路由来实现这一点。简而言之，您的目录布局(目录结构)决定了您网站的结构。
 
-## The `routes` directory
+## `routes` 目录
 
-All directory-based route information is placed in `src/routes` directory. This is the only directory where directory and file naming conventions have implications for your site. (In all other folders, the names have no meaning to Qwik City.)
+所有基于目录的路由信息都放在`src/routes`目录中。
+这是 目录和文件命名约定 对您的站点有影响的 唯一目录。
+（在所有其他目录中，目录名称对 Qwik City 没有任何意义。）
 
-(the `src` folder also typically contains `components`, but the name and location have no meaning to Qwik City.)
+（`src` 目录下通常也包含 `components`，但其名称和位置对 Qwik City 没有任何意义）
 
-## Sample `routes` directory example
+## 简单的 `routes` 目录示例
 
 ```
 ──src/
@@ -30,9 +33,9 @@ All directory-based route information is placed in `src/routes` directory. This 
     └─layout.tsx         # All nested pages use this layout
 ```
 
-## Sample Component
+## 示例 Component
 
-Qwik City expects that `index.tsx` files that are in the `src/routes` folder have a `default` export.
+位于`src/routes`目录下的`index.tsx`要用默认导出。
 
 ```typescript
 import { component$ } from '@builder.io/qwik';

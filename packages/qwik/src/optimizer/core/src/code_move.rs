@@ -33,6 +33,7 @@ pub struct NewModuleCtx<'a> {
     pub is_entry: bool,
     pub need_handle_watch: bool,
     pub need_transform: bool,
+    pub explicit_extensions: bool,
     pub leading_comments: SingleThreadedCommentsMap,
     pub trailing_comments: SingleThreadedCommentsMap,
 }
@@ -105,6 +106,11 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
                     },
                 )));
         } else if let Some(export) = ctx.global.exports.get(id) {
+            let filename = if ctx.explicit_extensions {
+                &ctx.path.file_name
+            } else {
+                &ctx.path.file_stem
+            };
             let imported = export
                 .as_ref()
                 .map(|e| ast::ModuleExportName::Ident(ast::Ident::new(e.clone(), DUMMY_SP)));
@@ -120,7 +126,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
                             value: fix_path(
                                 &ctx.path.abs_dir,
                                 &ctx.path.base_dir,
-                                &format!("./{}", ctx.path.file_stem),
+                                &format!("./{}", filename),
                             )?,
                             raw: None,
                         }),
@@ -202,8 +208,8 @@ fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {
 #[test]
 fn test_fix_path() {
     assert_eq!(
-        fix_path("src", "", "./state").unwrap(),
-        JsWord::from("./src/state")
+        fix_path("src", "", "./state.qwik.mjs").unwrap(),
+        JsWord::from("./src/state.qwik.mjs")
     );
 
     assert_eq!(

@@ -48,7 +48,7 @@ export default component$(() => {
         </li>
         <li>
           <a href="https://github.com/BuilderIO/qwik" target="_blank">
-            Github
+            GitHub
           </a>
         </li>
         <li>

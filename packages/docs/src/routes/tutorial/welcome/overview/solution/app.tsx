@@ -9,6 +9,7 @@ export const App = component$(() => {
       Qwik will never download me to the client. I am only rendered on the server.
       <br />
       <button onClick$={() => alert('Hello')}>greet!</button>
+      <hr />
       <Counter />
     </>
   );
@@ -22,6 +23,7 @@ export const Counter = component$(() => {
       user clicks on the <tt>+1</tt> button.
       <br />
       Current count: {store.count}
+      <br />
       <button onClick$={() => store.count++}>+1</button>
     </>
   );

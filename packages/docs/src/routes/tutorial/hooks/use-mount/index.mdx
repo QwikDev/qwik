@@ -17,11 +17,9 @@ Qwik is resumable. Resumability means that the application starts up on the serv
 
 ## `useMount$()` variations
 
-The `useMount$()` hook is subdivided into server and client versions:
+The `useMount$()` hook is also hase `useServerMount$()` version that executes on the component mount when in a server environment. This is useful because server often has different APIs for retrieving data.
 
-- `useServerMount$()`: Hook that executes on the component mount when in a server environment. This is useful because server often has different APIs for retrieving data.
-
-Use `useMount$()` if the code that needs to be executed is identical.
+Use `useMount$()` if the code that needs to be executed is identical between server and client.
 
 ## Server only imports
 

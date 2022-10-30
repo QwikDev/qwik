@@ -179,7 +179,7 @@ Results in:
 </my-app>
 ```
 
-Notice that the un-projected content is moved into inert `<q:template>`. This is done just in case the `Project` component re-renders and inserts a `<Slot>`. In that case, we don't want to re-render the parent component. The rendering of the two components needs to stay independent.
+Notice that the un-projected content is moved into an inert `<q:template>`. This is done just in case the `Project` component re-renders and inserts a `<Slot>`. In that case, we don't want to have to re-render the parent component just to generate the projected content. By persisting the un-projected content when the parent is initially rendered, the rendering of the two components can stay independent.
 
 ### Default slot content
 

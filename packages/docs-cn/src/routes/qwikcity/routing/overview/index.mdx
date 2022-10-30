@@ -9,17 +9,22 @@ contributors:
   - adamdbradley
 ---
 
-# Routing
+# 路由(Routing)
 
-Routing is a way to map public URLs for a site to specific components declared in your application.
+路由是一种将 站点的公共URL 映射到 代码中声明的特定组件 的方法。
 
-Qwik City uses directory-based routing. This means that the structure of your routes directory drives the public-facing URLs that the user will see for your application. However, it differs slightly from traditional file-based routing, which we will discuss shortly.
+Qwik City 使用基于目录的路由。
+这意味着您的routes目录的结构 驱动了 用户将看到的面向公众的URL。
+但是，它与传统的基于文件的路由略有不同，我们将在稍后讨论。
 
-## Directory-based Routing
+## 基于目录的路由（Directory-based Routing）
 
+Qwik City 支持下面的路径文件类型作为路由。
 Qwik City supports the following filetypes for routes
 
-In the Qwik City routes directory, `folder-path` plus an `index` file map to a URL path. For example, if the user sees `https://example.com/some/path`, the component exported at `src/routes/some/path/index` (either `.mdx` or `.tsx`) will be shown.
+在routes目录下，`folder-path`加上一个`index`文件，会映射一个URL路径。
+
+下面例子里，如果用户输入`https://example.com/some/path`， 则看到的是`src/routes/some/path/index`（可以是`.mdx` 或者 `.tsx`）这个组件。
 
 ```
 src/
@@ -29,11 +34,13 @@ src/
             └── index.tsx       # https://example.com/some/path
 ```
 
-Note that the leaf file at the end of the route is named index. This is **important**. In other meta-frameworks you may be familiar with, there is a distinction made between `pages` and `data endpoints` or `API routes`. In Qwik City, there is no distinction, they are all `endpoints`.
+请注意，路由末尾的叶子文件名为index.html。
+这个很重要。在您可能熟悉的其他元框架中，“pages”和“data endpoints”或“API routes”之间存在区别。
+在Qwik City，没有区别，都是`endpoints`。
 
-To define an endpoint, you must define an `index.[filetype]` where [filetype] can be one of `.ts`, `.tsx`, `.js`, `.jsx`, `.md`, or `.mdx`.
+要定义endpoint，您必须定义一个 `index.[filetype]` 其中 [filetype] 可以是 `.ts`、`.tsx`、`.js`、`.jsx`、`.md` 或`.mdx`。
 
-While the following directory structure:
+而下面的目录结构：
 
 ```
 src/
@@ -44,7 +51,9 @@ src/
     └── index.tsx
 ```
 
-may work in other meta-frameworks that use file-based routing, Qwik City will not register a route for any non-index files. In Qwik City, the equivalent file structure would look like this:
+可能在其他使用基于文件的路由的元框架中工作，
+Qwik City 不会为任何非index文件注册路由。
+在 Qwik City 中，等效的文件结构应该像下面这样写:
 
 ```
 src/
@@ -59,7 +68,9 @@ src/
         └── index.tsx          # https://example.com/index
 ```
 
-At first, this may seem like extra work, but there are advantages to this approach. One advantage is being able to define component files in a route directory without them being rendered. Consider the following:
+起初，这似乎是额外的工作，但这种方法有一些优点。
+一个优点是能够在路由目录中定义组件文件而无需渲染它们。
+考虑以下例子：
 
 ```
 src/
@@ -72,11 +83,13 @@ src/
             └── other_component.tsx   # this file is ignored and not mapped to any URL because it is not an index.
 ```
 
-The `other_component.tsx` file can be imported and used inside of `path/index.tsx`, but is otherwise ignored by Qwik City.
+这个`other_component.tsx`可以被`path/index.tsx`导入使用，但却是Qwik City（注册路由表）所忽略的文件。
 
-## Implementing a Component
+## 实现一个组件（Implementing a Component）
 
-To return HTML for a specific route you will need to implement a component. For `.tsx` files the component must be exported as `default`. Alternatively, you can use `.mdx` extension discussed [later](../../../qwikcity/content/mdx/index.mdx).
+要返回特定路由的 HTML，您需要实现一个组件。
+对于 `.tsx` 文件，组件必须导出为 `default`。
+或者，您可以使用 [稍后](../../../qwikcity/content/mdx/index.mdx) 会讨论的 `.mdx` 扩展名。
 
 ```typescript
 export default component$(() => {
@@ -86,20 +99,26 @@ export default component$(() => {
 
 ## `@qwik-city-plan`
 
-Qwik City stores route information in files on disk. This is great for developer ergonomics but not useful for creating bundles and chunks. Additionally, in some environments - such as edge functions - there is no file system that can be accessed. For this reason, it is necessary to serialize the route information into a single file. This is done through the `@qwik-city-plan` import.
+Qwik City 将路由信息存储在磁盘上的文件中。
+这对于开发人员的开发效率非常有用，但对于创建bundles和chunks没有用。
+此外，在某些环境中——例如边缘函数——没有可以访问的文件系统。
+为此，有必要将路由信息序列化到单独的文件中。
+这是通过import `@qwik-city-plan` 完成的。
 
 ```typescript
 import cityPlan from '@qwik-city-plan';
 ```
 
-The `@qwik-city-plan` import is synthetic, meaning that it is created as part of the build step. It contains all of the information in the `/src/routes` folder in JavaScript format. The synthetic import is provided by the `qwikCity()` vite plugin available from `@builder.io/qwik-city/vite`.
+`@qwik-city-plan` 导入是合成的，这意味着它是作为构建步骤的一部分创建的。
+它包含`/src/routes` 文件夹中的所有信息(它使用js格式)。
+The synthetic import is provided by the `qwikCity()` vite plugin available from `@builder.io/qwik-city/vite`.
 
-## Advanced routing
+## 高级路由（Advanced routing）
 
-Qwik City also supports:
+Qwik City 也支持:
 
 - [Route Parameters](../../../qwikcity/routing/route-parameters/index.mdx)
 - [Nested layouts](../../../qwikcity/layout/overview/index.mdx)
 - [Menus](../../../qwikcity/content/menu/index.mdx)
 
-These are discussed later.
+这些在后面讨论。

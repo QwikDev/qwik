@@ -74,6 +74,7 @@ const transformFsAsync = async (
       sourceMaps: fsOpts.sourceMaps,
       transpileTs: fsOpts.transpileTs,
       transpileJsx: fsOpts.transpileJsx,
+      explicitExtensions: fsOpts.explicitExtensions,
       preserveFilenames: fsOpts.preserveFilenames,
       mode: fsOpts.mode,
       scope: fsOpts.scope,

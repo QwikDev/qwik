@@ -1729,6 +1729,33 @@ export const App = component$((props: Stuff) => {
 }
 
 #[test]
+fn example_preserve_filenames_hooks() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    foo();
+    return (
+        <Cmp>
+            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+        </Cmp>
+    );
+});
+
+export const foo = () => console.log('foo');
+"#
+        .to_string(),
+        entry_strategy: EntryStrategy::Hook,
+        transpile_ts: true,
+        transpile_jsx: true,
+        preserve_filenames: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_getter_generation() {
     test_input!(TestInput {
         code: r#"

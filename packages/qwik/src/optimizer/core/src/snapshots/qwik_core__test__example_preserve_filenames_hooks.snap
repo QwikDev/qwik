@@ -1,0 +1,94 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    foo();
+    return (
+        <Cmp>
+            <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+        </Cmp>
+    );
+});
+
+export const foo = () => console.log('foo');
+
+============================= test.tsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0.js"), "App_component_ckEPmXZlub0"));
+export const foo = ()=>console.log('foo');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,4FAOjB,CAAC;AAEH,OAAO,MAAM,GAAG,GAAG,IAAM,OAAO,CAAC,GAAG,CAAC,KAAK,CAAC,CAAC\"}")
+============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { foo } from "./test.tsx";
+import { qrl } from "@builder.io/qwik";
+export const App_component_ckEPmXZlub0 = (props)=>{
+    foo();
+    return /*#__PURE__*/ _jsx(Cmp, {
+        children: /*#__PURE__*/ _jsx("p", {
+            class: "stuff",
+            onClick$: qrl(()=>import("./app_component_cmp_p_onclick_vuxzfutkpto.js"), "App_component_Cmp_p_onClick_vuXzfUTkpto"),
+            children: "Hello Qwik"
+        })
+    });
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B,CAAC,KAAY,GAAK;IAC5C,GAAG,EAAE,CAAC;IACN,qBACI,KAAC,GAAG;kBACA,cAAA,KAAC,GAAC;YAAC,KAAK,EAAC,OAAO;YAAC,QAAQ;sBAA6B,YAAU;UAAI;MAClE,CACR;AACN,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "app_component_ckepmxzlub0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    90,
+    252
+  ]
+}
+*/
+============================= app_component_cmp_p_onclick_vuxzfutkpto.js (ENTRY POINT)==
+
+export const App_component_Cmp_p_onClick_vuXzfUTkpto = ()=>console.log('warn');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDAOuC,IAAM,OAAO,CAAC,GAAG,CAAC,MAAM,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_Cmp_p_onClick_vuXzfUTkpto",
+  "entry": null,
+  "displayName": "App_component_Cmp_p_onClick",
+  "hash": "vuXzfUTkpto",
+  "canonicalFilename": "app_component_cmp_p_onclick_vuxzfutkpto",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    187,
+    212
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

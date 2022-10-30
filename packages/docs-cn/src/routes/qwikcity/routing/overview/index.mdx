@@ -15,12 +15,11 @@ contributors:
 
 Qwik City 使用基于目录的路由。
 这意味着您的routes目录的结构 驱动了 用户将看到的面向公众的URL。
-但是，它与传统的基于文件的路由略有不同，我们将在稍后讨论。
+它与传统的基于文件的路由略有不同，我们将在稍后讨论。
 
-## 基于目录的路由（Directory-based Routing）
+## 基于目录的路由
 
-Qwik City 支持下面的路径文件类型作为路由。
-Qwik City supports the following filetypes for routes
+Qwik City 支持下面的文件类型作为路由。
 
 在routes目录下，`folder-path`加上一个`index`文件，会映射一个URL路径。
 
@@ -85,7 +84,7 @@ src/
 
 这个`other_component.tsx`可以被`path/index.tsx`导入使用，但却是Qwik City（注册路由表）所忽略的文件。
 
-## 实现一个组件（Implementing a Component）
+## 实现一个组件
 
 要返回特定路由的 HTML，您需要实现一个组件。
 对于 `.tsx` 文件，组件必须导出为 `default`。
@@ -113,7 +112,7 @@ import cityPlan from '@qwik-city-plan';
 它包含`/src/routes` 文件夹中的所有信息(它使用js格式)。
 The synthetic import is provided by the `qwikCity()` vite plugin available from `@builder.io/qwik-city/vite`.
 
-## 高级路由（Advanced routing）
+## 高级路由
 
 Qwik City 也支持:
 

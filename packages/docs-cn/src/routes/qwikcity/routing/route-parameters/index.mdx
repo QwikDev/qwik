@@ -7,17 +7,19 @@ contributors:
   - adamdbradley
 ---
 
-# Route Parameters
+# 路由参数
 
-Route Parameters are parts of the URLs that are extracted into parameters.
+路由参数是URL的一部分，可以提取为参数在代码里使用。
 
-Imagine that you have a page with the following URLs where `[skuId]` can be any of the thousands of products that you have in your database. It would be impractical to create a route for each product. Instead, we need to define a Route Parameter (a part of the URL) that will be used to extract the `[skuId]`.
+想象一下，您有一个包含以下 URL 的页面，其中 `[skuId]` 可以是您数据库中数千种产品中的任何一种。
+为每个产品创建一条路由是不切实际的。
+因此，我们需要定义一个路由参数（URL 的一部分），其可用于提取`[skuId]`。
 
 - `https://example.com/sku/[skuId]`
-  - Will match: `https://example.com/sku/1234`
-  - Will match: `https://example.com/sku/xyz-567`
+  - 会匹配: `https://example.com/sku/1234`
+  - 会匹配: `https://example.com/sku/xyz-567`
 - `https://example.com/sku/[skuId]/details`
-  - Will match: `https://example.com/sku/1234/details`
+  - 会匹配: `https://example.com/sku/1234/details`
 
 ```
 src/
@@ -29,9 +31,9 @@ src/
                 └── index.tsx     # https://example.com/sku/1234/details
 ```
 
-## Retrieving the Route Parameter from the URL
+## 获取路由参数
 
-Once we have `[skuId]` in the URL, we need a way to retrieve it. This can be done by using `useLocation()` API.
+使用`useLocation()` API获取路由参数。
 
 ```typescript
 import { useLocation } from '@builder.io/qwik-city';
@@ -49,8 +51,11 @@ export default component$(() => {
 });
 ```
 
-## Catch All Routes
-It is also possible to create a catch-all routes by adding a directory like `[...slug]`. This works like the above described example but will also consider subsegments of the URI. It can also be applied on the `routes` root level.
+## 捕获所有路由（Catch All Routes）
+
+也可以通过添加像 `[...slug]` 这样的目录来创建一个catch-all routes。
+这与上面描述的示例类似，但也会考虑 URI 的子段（即URL后面可以一直追加如/a/b/c/d，都能匹配到这条路由）。
+它也可以应用于`routes`根目录级别。
 
 ```
 src/
@@ -60,13 +65,13 @@ src/
             └── index.tsx
 ```
 
-The above structure will match:
+上面目录结构会匹配:
 - `https://example.com/sku/1234`
 - `https://example.com/sku/1234/detail`
 - `https://example.com/sku/1234/detail/edit`
-- etc
+- 等
 
-It is possible to limit catch-all routes by adding a subdirectory say `end-of-route` in `[...slug]` directory.
+可以通过子目录来限制catch-all routes，比如在`[...slug]`目录下创建`end-of-route`目录。
 
 ```
 src/
@@ -78,5 +83,5 @@ src/
                 └──index.tsx
 ```
 
-The above structure will match:
+上面目录结构会匹配:
 - `https://example.com/sku/1234/5678/end-of-route`

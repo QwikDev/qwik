@@ -169,7 +169,7 @@ This is an advanced API that allows to hydrate the component whenever the passed
 
 ```tsx
 export default component$(() => {
-  const hydrateReact = useSignal$(false);
+  const hydrateReact = useSignal(false);
   return (
     <>
       <button onClick$={() => hydrateReact.value = true}>

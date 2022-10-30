@@ -30,7 +30,7 @@ export const presidentListLink =
 
 export const PlaygroundLink = ({ link }: { link: string }) => {
   return (
-    <a href={link} target={'_blank'} rel={'noreferrer'} ref={'noopener'}>
+    <a href={link} target={'_blank'} rel={'noopener noreferrer'}>
       Check out live here
     </a>
   );

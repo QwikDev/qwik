@@ -4,7 +4,7 @@
 
 import { component$ } from '@builder.io/qwik';
 import type { DocumentHead, RequestHandler } from '~qwik-city-runtime';
-import { signIn } from '../../../auth/auth';
+import { isUserAuthenticated, signIn } from '../../../auth/auth';
 import { AUTHTOKEN_NAME } from '../../../auth/cookies';
 
 export default component$(() => {
@@ -33,21 +33,16 @@ export const head: DocumentHead = {
 };
 
 export const onGet: RequestHandler = async ({ response, cookie }) => {
-  if (!cookie.has(AUTHTOKEN_NAME)) {
+  if (await isUserAuthenticated(cookie.get(AUTHTOKEN_NAME)?.value)) {
     throw response.redirect('/dashboard');
   }
 };
 
 export const onPost: RequestHandler = async ({ request, response, cookie }) => {
   const formdata = await request.formData();
-  const result = await signIn(formdata);
+  const result = await signIn(formdata, cookie);
 
   if (result.status === 'signed-in') {
-    cookie.set(AUTHTOKEN_NAME, Math.round(Math.random() * 9999999), {
-      secure: true,
-      httpOnly: true,
-      maxAge: [5, 'minutes'],
-    });
     throw response.redirect('/dashboard');
   }
 

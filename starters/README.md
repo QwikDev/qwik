@@ -17,7 +17,7 @@ Here are steps to try out the CLI in local environment.
 1. Run CLI:
 
    ```
-   # node ./packages/create-qwik/dist/create-qwik
+   # node ./packages/create-qwik/dist/create-qwik.cjs
    💫 Let's create a Qwik project 💫
 
    ✔ Project name … todo-express

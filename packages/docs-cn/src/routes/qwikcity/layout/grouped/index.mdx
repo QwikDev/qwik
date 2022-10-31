@@ -5,13 +5,16 @@ contributors:
   - Craiqser
 ---
 
-# Grouped Layouts
+# 分组布局（Grouped Layouts）
 
-Common purpose routes are often placed into directories so they can share layouts, and so related source files are logically grouped next to each other. However, it may be desirable that the directory, which was used to group similar files and share layouts, is excluded from the public-facing URL. This is where "grouped" layouts come in (also referred to as a "pathless" layout route).
+把一些路由放置在目录中，以便它们可以共享layouts，因此相关的源文件在逻辑上彼此相邻分组。
+但是，可能需要将 用于对类似文件进行分组和共享布局的 目录从URL中排除。
+这就是“分组”布局的用武之地（也称为“无路径”布局路由）。
 
-By surrounding any directory name with parentheses, such as `(name)`, then the directory name itself will not be included in the URL pathname.
+通过用括号括起任何目录名称，例如 `(name)`，则目录名称本身将不会包含在 URL 路径名中。
 
-For example, let's say an app placed all _account_ routes together in a directory, however, `/account/` could be dropped from the URL for cleaner, shorter URLs. In the example below, notice that the paths are within the `src/routes/(account)/` directory. However, the URL paths exclude `(account)/`.
+例如，假设一个应用将所有 _account_ 路由放在一个目录中，但是，可以从 URL 中删除 `account`，以获得更简洁、更短的 URL。
+在下面的示例中，请注意路径位于 `src/routes/(account)` 目录中。但是，URL 路径不包括 `(account)/`
 
 ```
 src/

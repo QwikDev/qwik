@@ -454,6 +454,8 @@ export const Resource: <T>(props: ResourceProps<T>) => JSXNode;
 // @public (undocumented)
 export interface ResourceCtx<T> {
     // (undocumented)
+    cache(policyOrMilliseconds: number | 'immutable'): void;
+    // (undocumented)
     cleanup(callback: () => void): void;
     // (undocumented)
     previous: T | undefined;
@@ -560,6 +562,10 @@ export interface SnapshotResult {
     objs: any[];
     // (undocumented)
     qrls: QRL[];
+    // Warning: (ae-forgotten-export) The symbol "ResourceReturnInternal" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    resources: ResourceReturnInternal<any>[];
     // (undocumented)
     state: SnapshotState;
 }

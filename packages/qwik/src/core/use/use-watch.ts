@@ -110,6 +110,7 @@ export interface WatchCtx {
 export interface ResourceCtx<T> {
   track: Tracker;
   cleanup(callback: () => void): void;
+  cache(policyOrMilliseconds: number | 'immutable'): void;
   previous: T | undefined;
 }
 
@@ -162,7 +163,8 @@ export interface ResourceReturnInternal<T> {
   _state: 'pending' | 'resolved' | 'rejected';
   _resolved: T | undefined;
   _error: any;
-  _timeout?: number;
+  _cache: number;
+  _timeout: number;
 
   promise: Promise<T>;
   loading: boolean;
@@ -690,6 +692,15 @@ export const runResource = <T>(
     cleanup(callback) {
       cleanups.push(callback);
     },
+    cache(policy) {
+      let milliseconds = 0;
+      if (policy === 'immutable') {
+        milliseconds = Infinity;
+      } else {
+        milliseconds = policy;
+      }
+      resource._cache = milliseconds;
+    },
     previous: resourceTarget._resolved,
   };
 
@@ -747,11 +758,11 @@ export const runResource = <T>(
   );
 
   const timeout = resourceTarget._timeout;
-  if (timeout) {
+  if (timeout > 0) {
     return Promise.race([
       promise,
       delay(timeout).then(() => {
-        if (setState(false, 'timeout')) {
+        if (setState(false, new Error('timeout'))) {
           cleanupWatch(watch);
         }
       }),

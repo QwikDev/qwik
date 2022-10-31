@@ -169,8 +169,6 @@ async function logUpdateAppResult(result: UpdateAppResult) {
 }
 
 function logUpdateAppCommitResult(result: UpdateAppResult) {
-  console.clear();
-
   console.log(
     `🦄 ${color.bgMagenta(` Success! `)} Added ${color.bold(
       color.cyan(result.integration.id)

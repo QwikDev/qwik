@@ -22,7 +22,7 @@ export const App = component$(() => {
       <br />
       Current value: {store.value}
       <br />
-      Debaunced value: {store.debouncedValue}
+      Debounced value: {store.debouncedValue}
     </>
   );
 });

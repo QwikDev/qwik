@@ -8,9 +8,10 @@ contributors:
   - nnelgxorz
 ---
 
-# Nested Layout
+# 嵌套布局（Nested Layout）
 
-Most times it is desirable to nest layouts into each other. A page's content can be nested in numerous wrapping layouts, which is determined by the directory structure.
+大多数时候，很适合将布局相互嵌套。
+一个页面的内容可以嵌套在许多布局中。
 
 ```
 src/
@@ -21,12 +22,12 @@ src/
         └── index.tsx        # https://example.com/about
 ```
 
-In the above example, there are two layouts that apply themselves around the `/about` page component.
+在上面的例子中，有两个布局应用于 `/about` 页面组件。
 
 1. `src/routes/layout.tsx`
 2. `src/routes/about/layout.tsx`
 
-In this case, the layouts will nest each other with the page within each of them.
+在这种情况下，多个layouts将相互嵌套。
 
 ```
 ┌────────────────────────────────────────────────┐
@@ -72,7 +73,7 @@ export default component$(() => {
 });
 ```
 
-The above example would render the html:
+上面例子会渲染下面的HTML：
 
 ```html
 <main>
@@ -82,4 +83,5 @@ The above example would render the html:
 </main>
 ```
 
-The default is that a page will create its layout stack by climbing up each directory until it gets to the `src/routes` directory. If at any point it should stop climbing up the directories you can use the [top layout](../top/index.mdx) feature.
+默认情况下，页面将通过向上递归每个目录直到到达 `/src/routes` 目录来创建其布局堆栈。
+如果在任何时候想让它停止向上递归目录，您可以使用 [top layout](../top/index.mdx) 功能。

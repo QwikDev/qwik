@@ -6,6 +6,7 @@
 
 /// <reference types="node" />
 
+import type { Cookie as Cookie_2 } from 'packages/qwik-city/middleware/request-handler/cookie';
 import type { IncomingMessage } from 'node:http';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';

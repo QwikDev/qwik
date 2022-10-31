@@ -33,7 +33,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       const requestCtx: QwikCityRequestContext<Response> = {
         url,
         request,
-        response: (status, headers, body) => {
+        response: (status, headers, cookie, body) => {
           return new Promise<Response>((resolve) => {
             let flushedHeaders = false;
             const { readable, writable } = new TransformStream();

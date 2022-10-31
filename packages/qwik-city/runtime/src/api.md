@@ -5,6 +5,7 @@
 ```ts
 
 import { Component } from '@builder.io/qwik';
+import type { Cookie as Cookie_2 } from 'packages/qwik-city/middleware/request-handler/cookie';
 import { JSXNode } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { ResourceReturn } from '@builder.io/qwik';
@@ -176,6 +177,8 @@ export interface RequestContext {
 export interface RequestEvent<PLATFORM = unknown> {
     // (undocumented)
     abort: () => void;
+    // (undocumented)
+    cookie: Cookie_2;
     // (undocumented)
     next: () => Promise<void>;
     params: RouteParams;

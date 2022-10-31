@@ -1,6 +1,7 @@
 import type { ErrorResponse } from '../../../middleware/request-handler/error-handler';
 import type { RedirectResponse } from '../../../middleware/request-handler/redirect-handler';
 import type { NoSerialize } from '@builder.io/qwik';
+import type { Cookie } from 'packages/qwik-city/middleware/request-handler/cookie';
 
 export interface RouteModule<BODY = unknown> {
   onDelete?: RequestHandler<BODY>;
@@ -286,6 +287,8 @@ export interface RequestEvent<PLATFORM = unknown> {
 
   /** Platform specific data and functions */
   platform: PLATFORM;
+
+  cookie: Cookie;
 
   next: () => Promise<void>;
   abort: () => void;

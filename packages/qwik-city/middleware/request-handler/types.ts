@@ -1,5 +1,6 @@
 import type { StreamWriter } from '@builder.io/qwik';
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
+import type { Cookie } from './cookie';
 import type {
   ClientPageData,
   QwikCityPlan,
@@ -25,6 +26,7 @@ export interface ResponseStreamWriter extends StreamWriter {
 export type ResponseHandler<T = any> = (
   status: number,
   headers: Headers,
+  cookie: Cookie,
   body: (stream: ResponseStreamWriter) => Promise<void>,
   error?: any
 ) => Promise<T>;
@@ -35,6 +37,7 @@ export interface UserResponseContext {
   params: RouteParams;
   status: number;
   headers: Headers;
+  cookie: Cookie;
   resolvedBody: string | number | boolean | null | undefined;
   pendingBody: Promise<string | number | boolean | null | undefined> | undefined;
   aborted: boolean;

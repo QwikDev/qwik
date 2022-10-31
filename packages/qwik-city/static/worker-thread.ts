@@ -61,7 +61,7 @@ async function workerRender(
     const requestCtx: QwikCityRequestContext<void> = {
       url,
       request,
-      response: async (status, headers, body, err) => {
+      response: async (status, headers, cookie, body, err) => {
         if (err) {
           if (err.stack) {
             result.error = String(err.stack);

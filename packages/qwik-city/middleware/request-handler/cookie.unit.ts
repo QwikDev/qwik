@@ -1,6 +1,7 @@
 import { test } from 'uvu';
 import { equal } from 'uvu/assert';
-import { Cookie, CookieOptions } from './cookie';
+import { Cookie } from './cookie';
+import type { CookieOptions } from './types';
 
 export interface TestData {
   key: string;

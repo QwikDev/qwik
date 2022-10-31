@@ -1,24 +1,7 @@
-/**
- * @alpha
- */
-export interface CookieOptions {
-  domain?: string;
-  expires?: Date | string;
-  httpOnly?: boolean;
-  maxAge?: number | [number, keyof typeof UNIT];
-  path?: string;
-  sameSite?: keyof typeof SAMESITE;
-  secure?: boolean;
-}
-
-/**
- * @alpha
- */
-export interface CookieValue {
-  value: string;
-  json: <T = unknown>() => T;
-  number: () => number;
-}
+import type {
+  Cookie as CookieInterface,
+  CookieOptions,
+} from '../../middleware/request-handler/types';
 
 const SAMESITE = {
   lax: 'Lax',
@@ -34,11 +17,11 @@ const UNIT = {
   weeks: 1 * 60 * 60 * 24 * 7,
 };
 
-const handleOptions = (options: CookieOptions): string[] => {
-  const opts: string[] = [];
+const createCookie = (cookieName: string, cookieValue: string, options: CookieOptions) => {
+  const c: string[] = [`${cookieName}=${cookieValue}`];
 
   if (options.domain) {
-    opts.push(`Domain=${options.domain}`);
+    c.push(`Domain=${options.domain}`);
   }
 
   if (options.expires) {
@@ -46,12 +29,12 @@ const handleOptions = (options: CookieOptions): string[] => {
       typeof options.expires === 'number' || typeof options.expires == 'string'
         ? options.expires
         : options.expires.toUTCString();
-    opts.push(`Expires=${resolvedValue}`);
+    c.push(`Expires=${resolvedValue}`);
     1;
   }
 
   if (options.httpOnly) {
-    opts.push('HttpOnly');
+    c.push('HttpOnly');
   }
 
   if (options.maxAge) {
@@ -59,50 +42,51 @@ const handleOptions = (options: CookieOptions): string[] => {
       typeof options.maxAge === 'number'
         ? options.maxAge
         : options.maxAge[0] * UNIT[options.maxAge[1]];
-    opts.push(`MaxAge=${resolvedValue}`);
+    c.push(`MaxAge=${resolvedValue}`);
   }
 
   if (options.path) {
-    opts.push(`Path=${options.path}`);
+    c.push(`Path=${options.path}`);
   }
 
   if (options.sameSite) {
-    opts.push(`SameSite=${SAMESITE[options.sameSite]}`);
+    c.push(`SameSite=${SAMESITE[options.sameSite]}`);
   }
 
   if (options.secure) {
-    opts.push('Secure');
+    c.push('Secure');
   }
 
-  return opts;
+  return c.join('; ');
 };
 
-const createCookie = (name: string, value: string, options: CookieOptions = {}) => {
-  return [`${name}=${value}`, ...handleOptions(options)].join('; ');
-};
-
-const parseCookieString = (cookieString: string) => {
-  if (cookieString === '') {
-    return {};
+const parseCookieString = (cookieString: string | undefined | null) => {
+  const cookie: Record<string, string> = {};
+  if (typeof cookieString === 'string' && cookieString !== '') {
+    const cookies = cookieString.split(';');
+    for (const cookieSegment of cookies) {
+      const cookieSplit = cookieSegment.split('=');
+      const cookieName = decodeURIComponent(cookieSplit[0].trim());
+      const cookieValue = decodeURIComponent(cookieSplit[1].trim());
+      cookie[cookieName] = cookieValue;
+    }
   }
-  return cookieString.split(';').reduce((prev: Record<string, string>, cookie_value) => {
-    const split = cookie_value.split('=');
-    prev[decodeURIComponent(split[0].trim())] = decodeURIComponent(split[1].trim());
-    return prev;
-  }, {});
+  return cookie;
 };
 
-export class Cookie {
-  private _cookie: Record<string, string>;
-  private _headers: Record<string, string> = {};
+const COOKIES = Symbol('cookies');
+const HEADERS = Symbol('headers');
 
-  constructor(cookieString: string) {
-    const parsedCookie: Record<string, string> = parseCookieString(cookieString);
-    this._cookie = parsedCookie;
+export class Cookie implements CookieInterface {
+  private [COOKIES]: Record<string, string>;
+  private [HEADERS]: Record<string, string> = {};
+
+  constructor(cookieString?: string | undefined | null) {
+    this[COOKIES] = parseCookieString(cookieString);
   }
 
-  get(name: string): CookieValue | null {
-    const value = this._cookie[name];
+  get(cookieName: string) {
+    const value = this[COOKIES][cookieName];
     if (!value) {
       return null;
     }
@@ -117,14 +101,20 @@ export class Cookie {
     };
   }
 
-  set(name: string, value: string | number | Record<string, any>, options: CookieOptions = {}) {
+  set(
+    cookieName: string,
+    cookieValue: string | number | Record<string, any>,
+    options: CookieOptions = {}
+  ) {
     const resolvedValue =
-      typeof value === 'string' ? value : encodeURIComponent(JSON.stringify(value));
-    this._headers[name] = createCookie(name, resolvedValue, options);
+      typeof cookieValue === 'string'
+        ? cookieValue
+        : encodeURIComponent(JSON.stringify(cookieValue));
+    this[HEADERS][cookieName] = createCookie(cookieName, resolvedValue, options);
   }
 
-  has(name: string) {
-    return !!this._cookie[name];
+  has(cookieName: string) {
+    return !!this[COOKIES][cookieName];
   }
 
   delete(name: string) {
@@ -132,7 +122,7 @@ export class Cookie {
   }
 
   *headers(): IterableIterator<string> {
-    for (const header of Object.values(this._headers)) {
+    for (const header of Object.values(this[HEADERS])) {
       yield header;
     }
   }

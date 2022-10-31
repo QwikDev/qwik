@@ -38,7 +38,7 @@ export async function loadUserResponse(
     headers: createHeaders(),
     resolvedBody: undefined,
     pendingBody: undefined,
-    cookie: new Cookie(requestCtx.request.headers.get('cookie') || ''),
+    cookie: new Cookie(request.headers.get('cookie')),
     aborted: false,
   };
 
@@ -71,7 +71,7 @@ export async function loadUserResponse(
   };
 
   const redirect = (url: string, status?: number) => {
-    return new RedirectResponse(url, status, userResponse.headers);
+    return new RedirectResponse(url, status, userResponse.headers, userResponse.cookie);
   };
 
   const error = (status: number, message?: string) => {

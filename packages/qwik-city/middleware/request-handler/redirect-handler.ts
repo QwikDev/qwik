@@ -1,21 +1,21 @@
 import { Cookie } from './cookie';
 import { createHeaders } from './headers';
 import { HttpStatus } from './http-status-codes';
-import type { QwikCityRequestContext } from './types';
+import type { Cookie as CookieInterface, QwikCityRequestContext } from './types';
 
 export class RedirectResponse {
   public status: number;
   public headers: Headers;
-  public cookie: Cookie;
+  public cookie: CookieInterface;
   public location: string;
 
-  constructor(public url: string, status?: number, headers?: Headers, cookie?: Cookie) {
+  constructor(public url: string, status?: number, headers?: Headers, cookie?: CookieInterface) {
     this.location = url;
     this.status = isRedirectStatus(status) ? status : HttpStatus.Found;
     this.headers = headers || createHeaders();
     this.headers.set('Location', this.location);
     this.headers.delete('Cache-Control');
-    this.cookie = cookie || new Cookie('');
+    this.cookie = cookie || new Cookie();
   }
 }
 

@@ -38,6 +38,11 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
             let flushedHeaders = false;
             const { readable, writable } = new TransformStream();
             const writer = writable.getWriter();
+
+            for (const cookieHeader in cookie.headers()) {
+              headers.append('Set-Cookie', cookieHeader);
+            }
+
             const response = new Response(readable, { status, headers });
 
             body({

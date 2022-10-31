@@ -5,7 +5,6 @@
 import { component$ } from '@builder.io/qwik';
 import type { DocumentHead, RequestHandler } from '~qwik-city-runtime';
 import { isUserAuthenticated, signIn } from '../../../auth/auth';
-import { AUTHTOKEN_NAME } from '../../../auth/cookies';
 
 export default component$(() => {
   return (
@@ -33,7 +32,7 @@ export const head: DocumentHead = {
 };
 
 export const onGet: RequestHandler = async ({ response, cookie }) => {
-  if (await isUserAuthenticated(cookie.get(AUTHTOKEN_NAME)?.value)) {
+  if (await isUserAuthenticated(cookie)) {
     throw response.redirect('/dashboard');
   }
 };

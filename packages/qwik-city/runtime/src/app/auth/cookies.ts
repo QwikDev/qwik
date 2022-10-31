@@ -2,7 +2,9 @@
  * Simple Auth For Testing Only!!!
  */
 
-export const getToken = (cookie: string | null): string | null => {
+import type { Cookie } from 'packages/qwik-city/middleware/request-handler/cookie';
+
+export const getToken = (cookie: string | undefined | null): string | null => {
   if (!cookie) {
     return null;
   }
@@ -17,14 +19,16 @@ export const getToken = (cookie: string | null): string | null => {
   );
 };
 
-export const createToken = () => {
-  return `${AUTHTOKEN_NAME}=${Math.round(Math.random() * 9999999)}; Secure; HttpOnly; Max-Age=${
-    60 * 5
-  }`;
+export const createToken = (cookie: Cookie) => {
+  cookie.set(AUTHTOKEN_NAME, Math.round(Math.random() * 9999999), {
+    secure: true,
+    httpOnly: true,
+    maxAge: [5, 'minutes'],
+  });
 };
 
-export const removeToken = () => {
-  return `${AUTHTOKEN_NAME}=; Secure; HttpOnly; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+export const removeToken = (cookie: Cookie) => {
+  cookie.delete(AUTHTOKEN_NAME);
 };
 
-const AUTHTOKEN_NAME = 'qwikcity-auth-token';
+export const AUTHTOKEN_NAME = 'qwikcity-auth-token';

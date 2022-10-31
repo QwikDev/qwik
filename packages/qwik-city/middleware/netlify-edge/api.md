@@ -5,6 +5,7 @@
 ```ts
 
 import type { Context } from '@netlify/edge-functions';
+import type { Cookie as Cookie_2 } from 'packages/qwik-city/middleware/request-handler/cookie';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RenderOptions as RenderOptions_2 } from '@builder.io/qwik';
@@ -27,7 +28,7 @@ export interface QwikCityNetlifyOptions extends QwikCityHandlerOptions {
 }
 
 // @alpha (undocumented)
-export type RequestHandlerNetlify<T = unknown> = RequestHandler_2<T, Omit<Context, 'next'>>;
+export type RequestHandlerNetlify<T = unknown> = RequestHandler_2<T, Omit<Context, 'next' | 'cookies'>>;
 
 // (No @packageDocumentation comment for this package)
 

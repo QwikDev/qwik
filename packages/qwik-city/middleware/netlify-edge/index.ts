@@ -17,7 +17,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
       const requestCtx: QwikCityRequestContext<Response> = {
         url: new URL(request.url),
         request,
-        response: (status, headers, body) => {
+        response: (status, headers, cookie, body) => {
           return new Promise<Response>((resolve) => {
             let flushedHeaders = false;
             const { readable, writable } = new TransformStream();
@@ -102,4 +102,7 @@ export function qwikCity(render: Render, opts?: RenderOptions) {
 /**
  * @alpha
  */
-export type RequestHandlerNetlify<T = unknown> = RequestHandler<T, Omit<Context, 'next'>>;
+export type RequestHandlerNetlify<T = unknown> = RequestHandler<
+  T,
+  Omit<Context, 'next' | 'cookies'>
+>;

@@ -36,6 +36,10 @@ const tests = {
     pattern: /^\/foo(?:\/(.*))?\/bar\/?$/,
     paramNames: ['rest'],
   },
+  '/base-pathname/': {
+    pattern: /^\/base-pathname\/?$/,
+    paramNames: [],
+  },
 };
 
 for (const [key, expected] of Object.entries(tests)) {

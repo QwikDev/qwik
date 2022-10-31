@@ -194,7 +194,7 @@ function resolveEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile
 function resolveServiceWorkerEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {
   const dirPathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
   const pathname = dirPathname + sourceFile.extlessName + '.js';
-  const chunkFileName = pathname.slice(1);
+  const chunkFileName = pathname.slice(opts.basePathname.length);
 
   const buildEntry: BuildEntry = {
     id: createFileId(opts.routesDir, sourceFile.filePath),

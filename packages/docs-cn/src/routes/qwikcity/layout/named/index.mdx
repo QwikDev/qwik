@@ -8,11 +8,16 @@ contributors:
   - nnelgxorz
 ---
 
-# Named Layout
+# 命名布局（Named Layout）
 
-At times related routes need to have drastically different layouts from their siblings. It is possible to define multiple layouts for different sibling routes. A single default layout and any number of named layouts. The child route can then request a specific named-layout.
+有时，相关路由的布局需要与其兄弟路由截然不同。
+可以为不同的兄弟路由定义多个布局。
+一个default布局和任意数量的named布局。
+子路由可以请求特定的named布局。
 
-Qwik City defines the convention that layouts are within `src/routes` and the filename starts with `layout`. That's why the default layout is named `layout.tsx`. A named layout also starts with `layout` followed by a dash `-` and a unique name, such as `layout-narrow.tsx`.
+Qwik City 定义了layouts在 `src/routes` 中的约定，其文件名要以 `layout` 开头。
+这就是为什么默认布局被命名为 `layout.tsx`。
+命名布局也以 `layout` 开头，后跟一个破折号 `-` 和一个唯一名称，例如 `layout-narrow.tsx`。
 
 ```
 src/

@@ -6,15 +6,20 @@ contributors:
 
 # Data Overview
 
-Each route has the ability to add HTTP request and response handlers, allowing for developers to [retrieve](../retrieve/index.mdx) and [modify](../modify/index.mdx) data. The handlers can also be used by [endpoints](../endpoints/index.mdx), which only respond with data rather than a page's HTML.
+每个路由都能够添加 HTTP 请求和响应处理程序，允许开发人员 [retrieve](../retrieve/index.mdx) 和 [modify](../modify/index.mdx) 数据。
+[endpoints](../endpoints/index.mdx) 也可以使用 请求和响应处理程序，它只响应数据而不是页面的 HTML。
 
-This feature enables you to handle any request event, have side effects on the request pipeline, just before you render the component and respond with custom content. It is available to pages, layouts and endpoint routes, but not on regular components.
+此功能使您能够 在渲染组件和使用自定义内容响应之前 处理任何请求事件，对请求pipeline使用side effects。
+它适用于pages、layouts和endpoint路由，但不适用于常规组件。
 
-## Request and Response Handlers
+## 请求和响应处理程序
 
-On pages, layouts, and [endpoints](../endpoints/index.mdx), we can access request data by implementing request handler functions such as `onGet`, `onPost`, `onPut`, etc. These functions are executed according to the [HTTP method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) used for this route.
+在pages、layouts和[endpoints](../endpoints/index.mdx)上，我们可以通过实现`onGet`、`onPost`、`onPut`等请求处理函数来访问请求数据。
+这些函数是按照[HTTP 方法](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) 用于此路由。
 
-Additonally, an `onRequest` function can be used to handle any request method, rather than a specific one. For example, if both `onGet` and `onRequest` is provided, for a `GET` request, the `onGet` will be called. However, in this scenario, if a `POST` request method came in, then the `onRequest` handler would be called since an `onPost` was not provided.
+此外，`onRequest` 函数可用于处理任何请求方法，而不是特定的方法。
+例如，如果同时提供了`onGet`和`onRequest`，对于`GET`请求，`onGet`将被调用。
+但是，在这种情况下，如果 `POST` 请求方法进来，则 `onRequest` 处理程序将被调用，因为没有提供 `onPost`。
 The `onRequest` is available as a catch-all to any request methods that do not have a specific method.
 
 ```typescript
@@ -32,9 +37,9 @@ export const onGet: RequestHandler<ProductData> = async ({ params }) => {
 
 ## Request Event
 
-The request handler functions receive a `RequestEvent` argument which has the following properties:
+请求处理函数接收一个 `RequestEvent` 参数，该参数具有以下属性：
 
-| Field      | Description                                                                   |
+| 字段      | 描述                                                                   |
 | ---------- | ----------------------------------------------------------------------------- |
 | `request`  | The request object                                                            |
 | `response` | The response object, which can be used to set response `headers` and `status` |

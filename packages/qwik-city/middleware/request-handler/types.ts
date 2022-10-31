@@ -1,6 +1,5 @@
 import type { StreamWriter } from '@builder.io/qwik';
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
-import type { Cookie } from './cookie';
 import type {
   ClientPageData,
   QwikCityPlan,
@@ -46,4 +45,37 @@ export interface UserResponseContext {
 export interface QwikCityHandlerOptions extends RenderOptions {
   render: Render;
   qwikCityPlan: QwikCityPlan;
+}
+
+/**
+ * @alpha
+ */
+export interface Cookie {
+  get(name: string): CookieValue | null;
+  set(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;
+  has(name: string): boolean;
+  delete(name: string): void;
+  headers(): IterableIterator<string>;
+}
+
+/**
+ * @alpha
+ */
+export interface CookieOptions {
+  domain?: string;
+  expires?: Date | string;
+  httpOnly?: boolean;
+  maxAge?: number | [number, 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks'];
+  path?: string;
+  sameSite?: 'strict' | 'lax' | 'none';
+  secure?: boolean;
+}
+
+/**
+ * @alpha
+ */
+export interface CookieValue {
+  value: string;
+  json: <T = unknown>() => T;
+  number: () => number;
 }

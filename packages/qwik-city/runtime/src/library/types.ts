@@ -1,7 +1,7 @@
+import type { Cookie, CookieOptions, CookieValue } from '../../../middleware/request-handler/types';
 import type { ErrorResponse } from '../../../middleware/request-handler/error-handler';
 import type { RedirectResponse } from '../../../middleware/request-handler/redirect-handler';
 import type { NoSerialize } from '@builder.io/qwik';
-import type { Cookie } from 'packages/qwik-city/middleware/request-handler/cookie';
 
 export interface RouteModule<BODY = unknown> {
   onDelete?: RequestHandler<BODY>;
@@ -359,3 +359,5 @@ export interface SimpleURL {
   search: string;
   hash: string;
 }
+
+export { Cookie, CookieOptions, CookieValue };

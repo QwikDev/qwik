@@ -1,17 +1,20 @@
 import express from 'express';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-import { qwikCity } from '../../middleware/node';
+import { createQwikCity } from '../../middleware/node';
 import render from './entry.ssr';
+import qwikCityPlan from '@qwik-city-plan';
 
 // Directories where the static assets are located
 const distDir = join(fileURLToPath(import.meta.url), '..', '..', 'dist');
 const buildDir = join(distDir, 'build');
 
 // Create the Qwik City express middleware
-const { router, notFound } = qwikCity(render);
+const { router, notFound } = createQwikCity({ render, qwikCityPlan });
+
 // Allow for dynamic port
 const PORT = process.env.PORT ?? 3000;
+
 // Create the express server
 const app = express();
 

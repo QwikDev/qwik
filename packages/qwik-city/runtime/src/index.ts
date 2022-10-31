@@ -1,6 +1,9 @@
 export type {
   ContentHeading,
   ContentMenu,
+  Cookie,
+  CookieOptions,
+  CookieValue,
   DocumentHead,
   DocumentHeadProps,
   DocumentHeadValue,

@@ -47,8 +47,8 @@ export const head: DocumentHead = ({ head }) => {
   };
 };
 
-export const onGet: RequestHandler = async ({ request, response }) => {
-  const isAuthenticated = await isUserAuthenticated(request.headers.get('cookie'));
+export const onGet: RequestHandler = async ({ response, cookie }) => {
+  const isAuthenticated = await isUserAuthenticated(cookie);
   if (!isAuthenticated) {
     throw response.redirect('/sign-in');
   }

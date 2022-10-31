@@ -17,7 +17,7 @@ target
 *.node
 todo-express/
 qwik-app/
-**/server/**/*.js
+**/server/
 .idea
 .eslintcache
 

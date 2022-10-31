@@ -5,7 +5,6 @@
 ```ts
 
 import { Component } from '@builder.io/qwik';
-import type { Cookie as Cookie_2 } from 'packages/qwik-city/middleware/request-handler/cookie';
 import { JSXNode } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { ResourceReturn } from '@builder.io/qwik';
@@ -31,6 +30,48 @@ export interface ContentMenu {
     items?: ContentMenu[];
     // (undocumented)
     text: string;
+}
+
+// @alpha (undocumented)
+export interface Cookie {
+    // (undocumented)
+    delete(name: string): void;
+    // (undocumented)
+    get(name: string): CookieValue | null;
+    // (undocumented)
+    has(name: string): boolean;
+    // (undocumented)
+    headers(): IterableIterator<string>;
+    // (undocumented)
+    set(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;
+}
+
+// @alpha (undocumented)
+export interface CookieOptions {
+    // (undocumented)
+    domain?: string;
+    // (undocumented)
+    expires?: Date | string;
+    // (undocumented)
+    httpOnly?: boolean;
+    // (undocumented)
+    maxAge?: number | [number, 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks'];
+    // (undocumented)
+    path?: string;
+    // (undocumented)
+    sameSite?: 'strict' | 'lax' | 'none';
+    // (undocumented)
+    secure?: boolean;
+}
+
+// @alpha (undocumented)
+export interface CookieValue {
+    // (undocumented)
+    json: <T = unknown>() => T;
+    // (undocumented)
+    number: () => number;
+    // (undocumented)
+    value: string;
 }
 
 // Warning: (ae-forgotten-export) The symbol "GetEndpointData" needs to be exported by the entry point index.d.ts
@@ -178,7 +219,7 @@ export interface RequestEvent<PLATFORM = unknown> {
     // (undocumented)
     abort: () => void;
     // (undocumented)
-    cookie: Cookie_2;
+    cookie: Cookie;
     // (undocumented)
     next: () => Promise<void>;
     params: RouteParams;

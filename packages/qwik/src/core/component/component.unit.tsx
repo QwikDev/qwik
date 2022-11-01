@@ -13,7 +13,7 @@ import { useLexicalScope } from '../use/use-lexical-scope.public';
  */
 const qComponent = suite('q-component');
 qComponent('should declare and render basic component', async () => {
-  const { screen, render } = createDOM();
+  const { screen, render } = await createDOM();
   await render(<HelloWorld />);
   await expectDOM(
     screen,
@@ -31,7 +31,7 @@ qComponent('should declare and render basic component', async () => {
 });
 
 qComponent('should render Counter and accept events', async () => {
-  const { screen, render, userEvent } = createDOM();
+  const { screen, render, userEvent } = await createDOM();
 
   await render(<MyCounter step={5} value={15} />);
   await expectDOM(
@@ -72,7 +72,7 @@ qComponent('should render Counter and accept events', async () => {
 });
 
 qComponent('should render a collection of todo items', async () => {
-  const { screen, render } = createDOM();
+  const { screen, render } = await createDOM();
 
   const items = {
     items: [

@@ -10,23 +10,23 @@
  * - npm run build
  *
  */
- import { renderToStream, RenderToStreamOptions } from '@builder.io/qwik/server';
+import { renderToStream, RenderToStreamOptions } from '@builder.io/qwik/server';
 
- // eslint-disable-next-line import/no-unresolved
- import { manifest } from '@qwik-client-manifest';
+// eslint-disable-next-line import/no-unresolved
+import { manifest } from '@qwik-client-manifest';
 
- import Root from './root';
+import Root from './root';
 
- export default function (opts: RenderToStreamOptions) {
-   return renderToStream(<Root />, {
-     manifest,
-     ...opts,
-     prefetchStrategy: {
-       implementation: {
-         linkInsert: null,
-         workerFetchInsert: null,
-         prefetchEvent: 'always',
-       },
-     },
-   });
- }
+export default function (opts: RenderToStreamOptions) {
+  return renderToStream(<Root />, {
+    manifest,
+    ...opts,
+    prefetchStrategy: {
+      implementation: {
+        linkInsert: null,
+        workerFetchInsert: null,
+        prefetchEvent: 'always',
+      },
+    },
+  });
+}

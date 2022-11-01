@@ -1,4 +1,3 @@
-import { setPlatform } from '../core/platform/platform';
 import type { TestPlatform } from './types';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -73,8 +72,8 @@ function createPlatform() {
   return testPlatform;
 }
 
-export function setTestPlatform() {
-  setPlatform(testPlatform);
+export function setTestPlatform(_setPlatform: Function) {
+  _setPlatform(testPlatform);
 }
 
 /**

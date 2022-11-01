@@ -33,6 +33,7 @@ export async function submoduleTesting(config: BuildConfig) {
     watch: watcher(config, submodule),
     define: {
       'globalThis.MODULE_EXT': `"mjs"`,
+      'globalThis.RUNNER': `false`,
     },
     target: 'es2020' /* needed for import.meta */,
   });
@@ -52,6 +53,7 @@ export async function submoduleTesting(config: BuildConfig) {
     watch: watcher(config),
     define: {
       'globalThis.MODULE_EXT': `"cjs"`,
+      'globalThis.RUNNER': `false`,
     },
     platform: 'node',
     target: nodeTarget,

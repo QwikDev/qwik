@@ -10,6 +10,7 @@
  * - Optimizer/Serialization/Deserialization code is not exercised!
  */
 import { render, RenderOptions } from '@builder.io/qwik';
+
 import Root from './root';
 
 export default function (opts: RenderOptions) {

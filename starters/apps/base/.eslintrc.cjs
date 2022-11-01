@@ -7,8 +7,11 @@ module.exports = {
   },
   extends: [
     'eslint:recommended',
+    'plugin:import/recommended',
+    'plugin:import/typescript',
     'plugin:@typescript-eslint/recommended',
     'plugin:qwik/recommended',
+    'prettier',
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -20,8 +23,19 @@ module.exports = {
       jsx: true,
     },
   },
-  plugins: ['@typescript-eslint'],
+  settings: {
+    'import/parsers': {
+      '@typescript-eslint/parser': ['.ts', '.tsx'],
+    },
+    'import/resolver': {
+      typescript: {
+        alwaysTryTypes: true,
+      },
+    },
+  },
+  plugins: ['@typescript-eslint', 'import', 'qwik', 'prettier'],
   rules: {
+    'prettier/prettier': 'error',
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-inferrable-types': 'off',
@@ -36,5 +50,31 @@ module.exports = {
     'no-case-declarations': 'off',
     'no-console': 'off',
     '@typescript-eslint/no-unused-vars': ['error'],
+    'import/no-cycle': 'error',
+    'import/newline-after-import': 'error',
+    'import/order': [
+      'error',
+      {
+        'newlines-between': 'always',
+        pathGroups: [
+          {
+            pattern: '@builder.io/**',
+            group: 'builtin',
+            position: 'before',
+          },
+          {
+            pattern: '~/**',
+            group: 'internal',
+            position: 'after',
+          },
+        ],
+        groups: [
+          ['builtin', 'external'],
+          ['internal', 'parent', 'index'],
+          ['object', 'type', 'sibling'],
+        ],
+        pathGroupsExcludedImportTypes: [],
+      },
+    ],
   },
 };

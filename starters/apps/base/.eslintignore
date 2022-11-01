@@ -29,3 +29,4 @@ build
 dist
 tsconfig.tsbuildinfo
 vite.config.ts
+.eslintrc.cjs

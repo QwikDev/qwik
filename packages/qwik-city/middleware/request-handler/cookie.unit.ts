@@ -29,6 +29,7 @@ test('parses cookie', () => {
     equal(cookie.get(key)?.value, value);
   });
 });
+
 test('creates correct headers', () => {
   const data: TestData[] = [
     { key: 'a', value: '1', options: {}, expect: 'a=1' },
@@ -47,9 +48,9 @@ test('creates correct headers', () => {
       key: 'h',
       value: '8',
       options: { maxAge: [60, 'minutes'] },
-      expect: `h=8; MaxAge=${60 * 60}`,
+      expect: `h=8; Max-Age=${60 * 60}`,
     },
-    { key: 'i', value: '9', options: { maxAge: 60 * 60 }, expect: `i=9; MaxAge=${60 * 60}` },
+    { key: 'i', value: '9', options: { maxAge: 60 * 60 }, expect: `i=9; Max-Age=${60 * 60}` },
     {
       key: 'j',
       value: '10',
@@ -82,7 +83,7 @@ test('creates correct headers', () => {
     cookie.set(key, value, options);
   });
 
-  const result = [...cookie.headers()];
+  const result = cookie.headers();
   equal(expect.length, result.length);
   for (let i = 0; i < expect.length; i++) {
     const expected = expect[i];

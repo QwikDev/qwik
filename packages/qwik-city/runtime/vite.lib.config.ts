@@ -5,7 +5,15 @@ import { qwikCity } from '@builder.io/qwik-city/vite';
 export default defineConfig(() => {
   return {
     build: {
+      target: 'es2020',
+      outDir: '../lib',
+      lib: {
+        entry: './src/index.ts',
+        formats: ['es', 'cjs'],
+        fileName: (format) => `index.qwik.${format === 'es' ? 'mjs' : 'cjs'}`,
+      },
       minify: false,
+      emptyOutDir: false,
     },
     resolve: {
       alias: {
@@ -22,9 +30,6 @@ export default defineConfig(() => {
     clearScreen: false,
     optimizeDeps: {
       force: true,
-    },
-    server: {
-      port: 3000,
     },
   };
 });

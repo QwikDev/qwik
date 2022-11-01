@@ -10,7 +10,7 @@ import type { RenderOptions as RenderOptions_2 } from '@builder.io/qwik';
 import type { RequestHandler as RequestHandler_2 } from '~qwik-city-runtime';
 
 // @alpha (undocumented)
-export function createQwikCity(opts: QwikCityCloudflarePagesOptions): ({ request, next, env, waitUntil }: EventPluginContext) => Promise<Response>;
+export function createQwikCity(opts: QwikCityCloudflarePagesOptions): ({ request, env, waitUntil }: EventPluginContext) => Promise<Response>;
 
 // @alpha (undocumented)
 export interface EventPluginContext {
@@ -25,7 +25,7 @@ export interface EventPluginContext {
 }
 
 // @alpha @deprecated (undocumented)
-export function qwikCity(render: Render, opts?: RenderOptions_2): ({ request, next, env, waitUntil }: EventPluginContext) => Promise<Response>;
+export function qwikCity(render: Render, opts?: RenderOptions_2): ({ request, env, waitUntil }: EventPluginContext) => Promise<Response>;
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityHandlerOptions" needs to be exported by the entry point index.d.ts
 //

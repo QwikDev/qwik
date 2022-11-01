@@ -1,5 +1,5 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
-import { Link } from '@builder.io/qwik-city';
+import { Link } from '~qwik-city-runtime';
 import styles from './footer.css?inline';
 
 export default component$(() => {

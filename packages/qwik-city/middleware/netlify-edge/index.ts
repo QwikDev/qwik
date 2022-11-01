@@ -17,15 +17,11 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
       const requestCtx: QwikCityRequestContext<Response> = {
         url: new URL(request.url),
         request,
-        response: (status, headers, cookie, body) => {
+        response: (status, headers, body) => {
           return new Promise<Response>((resolve) => {
             let flushedHeaders = false;
             const { readable, writable } = new TransformStream();
             const writer = writable.getWriter();
-
-            for (const cookieHeader in cookie.headers()) {
-              headers.append('Set-Cookie', cookieHeader);
-            }
 
             const response = new Response(readable, { status, headers });
 

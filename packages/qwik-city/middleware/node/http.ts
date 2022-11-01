@@ -43,12 +43,9 @@ export function fromNodeHttp(url: URL, req: IncomingMessage, res: ServerResponse
       text: getRequestBody,
       url: url.href,
     },
-    response: async (status, headers, cookie, body) => {
+    response: async (status, headers, body) => {
       res.statusCode = status;
       headers.forEach((value, key) => res.setHeader(key, value));
-      for (const header in cookie.headers()) {
-        res.setHeader('Set-Cookie', header);
-      }
       body({
         write: (chunk) => {
           res.write;

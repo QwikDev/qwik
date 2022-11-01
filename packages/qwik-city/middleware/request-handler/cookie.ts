@@ -17,39 +17,33 @@ const UNIT = {
   weeks: 1 * 60 * 60 * 24 * 7,
 };
 
-const createCookie = (cookieName: string, cookieValue: string, options: CookieOptions) => {
-  const c: string[] = [`${cookieName}=${cookieValue}`];
+const createSetCookieValue = (cookieName: string, cookieValue: string, options: CookieOptions) => {
+  const c = [`${cookieName}=${cookieValue}`];
 
-  if (options.domain) {
+  if (typeof options.domain === 'string') {
     c.push(`Domain=${options.domain}`);
   }
 
-  if (options.expires) {
-    const resolvedValue =
-      typeof options.expires === 'number' || typeof options.expires == 'string'
-        ? options.expires
-        : options.expires.toUTCString();
-    c.push(`Expires=${resolvedValue}`);
-    1;
+  // If both Expires and Max-Age are set, Max-Age has precedence.
+  if (typeof options.maxAge === 'number') {
+    c.push(`Max-Age=${options.maxAge}`);
+  } else if (Array.isArray(options.maxAge)) {
+    c.push(`Max-Age=${options.maxAge[0] * UNIT[options.maxAge[1]]}`);
+  } else if (typeof options.expires === 'number' || typeof options.expires == 'string') {
+    c.push(`Expires=${options.expires}`);
+  } else if (options.expires instanceof Date) {
+    c.push(`Expires=${options.expires.toUTCString()}`);
   }
 
   if (options.httpOnly) {
     c.push('HttpOnly');
   }
 
-  if (options.maxAge) {
-    const resolvedValue =
-      typeof options.maxAge === 'number'
-        ? options.maxAge
-        : options.maxAge[0] * UNIT[options.maxAge[1]];
-    c.push(`MaxAge=${resolvedValue}`);
-  }
-
-  if (options.path) {
+  if (typeof options.path === 'string') {
     c.push(`Path=${options.path}`);
   }
 
-  if (options.sameSite) {
+  if (options.sameSite && SAMESITE[options.sameSite]) {
     c.push(`SameSite=${SAMESITE[options.sameSite]}`);
   }
 
@@ -63,30 +57,32 @@ const createCookie = (cookieName: string, cookieValue: string, options: CookieOp
 const parseCookieString = (cookieString: string | undefined | null) => {
   const cookie: Record<string, string> = {};
   if (typeof cookieString === 'string' && cookieString !== '') {
-    const cookies = cookieString.split(';');
-    for (const cookieSegment of cookies) {
+    const cookieSegments = cookieString.split(';');
+    for (const cookieSegment of cookieSegments) {
       const cookieSplit = cookieSegment.split('=');
-      const cookieName = decodeURIComponent(cookieSplit[0].trim());
-      const cookieValue = decodeURIComponent(cookieSplit[1].trim());
-      cookie[cookieName] = cookieValue;
+      if (cookieSplit.length > 1) {
+        const cookieName = decodeURIComponent(cookieSplit[0].trim());
+        const cookieValue = decodeURIComponent(cookieSplit[1].trim());
+        cookie[cookieName] = cookieValue;
+      }
     }
   }
   return cookie;
 };
 
-const COOKIES = Symbol('cookies');
-const HEADERS = Symbol('headers');
+const REQ_COOKIE = Symbol('request-cookies');
+const RES_COOKIE = Symbol('response-cookies');
 
 export class Cookie implements CookieInterface {
-  private [COOKIES]: Record<string, string>;
-  private [HEADERS]: Record<string, string> = {};
+  private [REQ_COOKIE]: Record<string, string>;
+  private [RES_COOKIE]: Record<string, string> = {};
 
   constructor(cookieString?: string | undefined | null) {
-    this[COOKIES] = parseCookieString(cookieString);
+    this[REQ_COOKIE] = parseCookieString(cookieString);
   }
 
   get(cookieName: string) {
-    const value = this[COOKIES][cookieName];
+    const value = this[REQ_COOKIE][cookieName];
     if (!value) {
       return null;
     }
@@ -101,6 +97,10 @@ export class Cookie implements CookieInterface {
     };
   }
 
+  has(cookieName: string) {
+    return !!this[REQ_COOKIE][cookieName];
+  }
+
   set(
     cookieName: string,
     cookieValue: string | number | Record<string, any>,
@@ -110,20 +110,14 @@ export class Cookie implements CookieInterface {
       typeof cookieValue === 'string'
         ? cookieValue
         : encodeURIComponent(JSON.stringify(cookieValue));
-    this[HEADERS][cookieName] = createCookie(cookieName, resolvedValue, options);
-  }
-
-  has(cookieName: string) {
-    return !!this[COOKIES][cookieName];
+    this[RES_COOKIE][cookieName] = createSetCookieValue(cookieName, resolvedValue, options);
   }
 
   delete(name: string) {
     this.set(name, 'deleted', { expires: new Date(0) });
   }
 
-  *headers(): IterableIterator<string> {
-    for (const header of Object.values(this[HEADERS])) {
-      yield header;
-    }
+  headers() {
+    return Object.values(this[RES_COOKIE]);
   }
 }

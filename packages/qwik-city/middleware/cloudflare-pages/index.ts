@@ -11,7 +11,7 @@ import type { RequestHandler } from '~qwik-city-runtime';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
-  async function onRequest({ request, next, env, waitUntil }: EventPluginContext) {
+  async function onRequest({ request, env, waitUntil }: EventPluginContext) {
     try {
       const url = new URL(request.url);
 
@@ -33,15 +33,11 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       const requestCtx: QwikCityRequestContext<Response> = {
         url,
         request,
-        response: (status, headers, cookie, body) => {
+        response: (status, headers, body) => {
           return new Promise<Response>((resolve) => {
             let flushedHeaders = false;
             const { readable, writable } = new TransformStream();
             const writer = writable.getWriter();
-
-            for (const cookieHeader in cookie.headers()) {
-              headers.append('Set-Cookie', cookieHeader);
-            }
 
             const response = new Response(readable, { status, headers });
 

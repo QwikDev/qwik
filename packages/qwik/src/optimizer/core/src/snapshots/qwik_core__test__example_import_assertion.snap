@@ -19,7 +19,7 @@ import { qrl } from "@builder.io/qwik";
 export const Greeter = /*#__PURE__*/ componentQrl(qrl(()=>import("./greeter_component_n7hug2hhu0q"), "Greeter_component_n7HuG2hhU0Q"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,OAAO,iBAAG,iGAErB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,wBAAU,kGAEpB\"}")
 ============================= greeter_component_n7hug2hhu0q.js (ENTRY POINT)==
 
 import json from "./foo.json" assert {
@@ -30,7 +30,7 @@ export const Greeter_component_n7HuG2hhU0Q = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qCAEqC;IAAE,IAAI,EAAE,MAAM;CAAE;6CAEnB,IAAM;IACpC,OAAO,IAAI,CAAC;AAChB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qCAEqC;IAAE,MAAM;AAAO;6CAElB,IAAM;IACpC,OAAO;AACX\"}")
 /*
 {
   "origin": "test.tsx",

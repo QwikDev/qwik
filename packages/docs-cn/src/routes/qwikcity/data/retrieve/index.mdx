@@ -1,16 +1,16 @@
 ---
 title: Qwik City - Retrieving Data
 contributors:
-  - adamdbradley
+- adamdbradley
 ---
 
-# Retrieving Data
+# 取数据
 
-Let's implement `https://example.com/product/abc123` so that we can retrieve the details of a product.
+让我们实现`https://example.com/product/abc123`，以便我们可以获取产品的详细信息。
 
-## File Layout
+## 文件目录
 
-The first step is to structure the directories and files so that we can create the `/product/abc123` route.
+第一步是构建目录和文件，以便我们可以创建 `/product/abc123` 路由。
 
 ```
 ──src/
@@ -20,11 +20,13 @@ The first step is to structure the directories and files so that we can create t
             └─index.tsx     # https://example.com/product/1234
 ```
 
-## Implement onGet
+## 实现 onGet
 
-In a "page", an `onGet` function retrieves data (typically from a database, or other stores). The retrieved data can be returned directly as JSON (`Accept: application/json`) or used as an input to the component to render HTML (`Accept: text/html`). The `onGet` function receives the `params` to extract the parameters used to do data lookup.
+在“page”中，`onGet` 函数获取数据（通常来自数据库或其他存储）。
+检索到的数据可以直接返回为 JSON (`Accept: application/json`) 或用作组件的输入以渲染 HTML (`Accept: text/html`)。
+`onGet` 函数接收 `params` 以提取用于进行数据查找的参数。
 
-In this example, the `onGet` function returns the product data that is used inside of our component with the `useEndpoint()` function.
+在此示例中，`onGet` 函数通过 `useEndpoint()` 函数返回 在我们的组件内部使用的 产品数据。
 
 ```typescript
 // File: src/routes/product/[skuId]/details/index.tsx
@@ -46,9 +48,9 @@ export const onGet: RequestHandler<ProductData> = async ({ params }) => {
 };
 ```
 
-## Using `onGet` in a Component
+## 在组件使用 `onGet`
 
-An `onGet` function retrieves data and makes it available to the component using `useEndpoint()`.
+`onGet` 函数获取数据并使用 `useEndpoint()` 将其提供给组件。
 
 ```typescript
 import { Resource, component$, useStore } from '@builder.io/qwik';
@@ -78,11 +80,12 @@ export default component$(() => {
 });
 ```
 
-1. Notice that the data request handler and the component are defined in the same file. The data is serviced by the `onGet` function and the component is by the modules default export.
-2. The component uses `useEndpoint()` function to retrieve the data. The `useEndpoint()` function invokes `onGet` function directly on the server but using `fetch()` on the client. Your component does not need to think about server/client differences when using data. The `useEndpoint()` function returns an object of type `ResourceReturn`. `Resource`s are promise-like objects that can be serialized by Qwik.
-3. The `onGet` function is invoked before the component. This allows the `onGet` to return 404 or redirect in case the data is not available.
-4. Notice the use of `<Resource>` JSX element. The purpose of `Resource` is to allow the client to render different states of the `useEndpoint()` resource.
-5. On the server the `<Resource>` element will pause rendering until the `Resource` is resolved or rejected. This is because we don't want the server to render `loading...`. (The server needs to know when the component is ready for serialization into HTML.)
-6. You may use `typeof onGet` to keep your `onGet` function and `useEndpoint()` types in sync. TypeScript is smart enough to determine the types for you.
+1. 请注意，数据请求处理程序和组件是在同一个文件中定义的。数据由 `onGet` 函数提供，组件由模块默认导出。
+2. 组件使用 `useEndpoint()` 函数来获取数据。`useEndpoint()` 函数直接在服务器上调用 `onGet` 函数，但在客户端使用 `fetch()`。 您的组件在使用数据时不需要考虑服务器客户端的差异。 `useEndpoint()` 函数返回一个`ResourceReturn` 类型的对象。
+`Resource` 是类似 Promise 的对象，可以被 Qwik 序列化。
+3. `onGet` 函数在组件之前调用。这允许 `onGet` 返回 404 或重定向，以防数据不可用。
+4. 注意 `<Resource>` JSX 元素的使用。 `Resource` 的目的是允许客户端渲染 `useEndpoint()` 资源的不同状态。
+5. 在服务器上，`<Resource>` 元素将暂停渲染，直到 `Resource` resolved或rejected。这是因为我们不希望服务器渲染 `loading...`。 （服务器需要知道组件何时准备好序列化为 HTML。）
+6. 您可以使用 `typeof onGet` 来保持 `onGet` 函数和 `useEndpoint()` 类型同步。 TypeScript 足够聪明，可以为您确定类型。
 
-All of the above is done to abstract the data access from the component in a way that results in correct behavior on both the server and the client.
+上述所有操作都是为了从组件中抽象出数据访问，从而在服务器和客户端上都产生正确的行为。

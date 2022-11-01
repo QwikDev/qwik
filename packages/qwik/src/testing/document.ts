@@ -1,4 +1,3 @@
-import { setTestPlatform } from './platform';
 import type { MockDocumentOptions, MockWindow } from './types';
 import qwikDom from '@builder.io/qwik-dom';
 import { normalizeUrl } from './util';
@@ -13,7 +12,6 @@ import { normalizeUrl } from './util';
 export function createDocument(opts?: MockDocumentOptions) {
   const doc = qwikDom.createDocument(opts?.html);
   ensureGlobals(doc, opts);
-  setTestPlatform();
   return doc;
 }
 

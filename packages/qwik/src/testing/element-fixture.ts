@@ -52,11 +52,12 @@ export interface ElementFixtureOptions {
 
 /**
  * Trigger an event in unit tests on an element.
- *
+ * Posibly deprecated in the future
  * @param element
  * @param selector
  * @param event
  * @returns
+ * @alpha
  */
 export async function trigger(
   root: Element,
@@ -72,6 +73,12 @@ export async function trigger(
   await getTestPlatform().flush();
 }
 
+/**
+ * Dispatch
+ * @param root
+ * @param attrName
+ * @param ev
+ */
 export const dispatch = async (root: Element | null, attrName: string, ev: any) => {
   while (root) {
     const elm = root;
@@ -85,7 +92,6 @@ export const dispatch = async (root: Element | null, attrName: string, ev: any) 
     root = elm.parentElement;
   }
 };
-
 export function getEvent(elCtx: QContext, prop: string): any {
   return qPropReadQRL(elCtx, normalizeOnProp(prop));
 }

@@ -4,70 +4,14 @@
 
 ```ts
 
-import type { CorePlatform } from '@builder.io/qwik';
+import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 
 // @alpha
-export function createDocument(opts?: MockDocumentOptions): Document;
-
-// @alpha
-export function createWindow(opts?: MockDocumentOptions): MockWindow;
-
-// @alpha
-export class ElementFixture {
-    constructor(options?: ElementFixtureOptions);
-    // (undocumented)
-    child: HTMLElement;
-    // (undocumented)
-    document: MockDocument;
-    // (undocumented)
-    host: HTMLElement;
-    // (undocumented)
-    parent: HTMLElement;
-    // (undocumented)
-    superParent: HTMLElement;
-    // (undocumented)
-    window: MockWindow;
-}
-
-// @alpha (undocumented)
-export interface ElementFixtureOptions {
-    // (undocumented)
-    tagName?: string;
-}
-
-// @alpha (undocumented)
-export function getTestPlatform(): TestPlatform;
-
-// @alpha (undocumented)
-export interface MockDocument extends Document {
-}
-
-// @alpha
-export interface MockDocumentOptions {
-    // (undocumented)
-    html?: string;
-    // (undocumented)
-    url?: URL | string;
-}
-
-// @alpha (undocumented)
-export interface MockWindow extends Window {
-    // (undocumented)
-    document: MockDocument;
-}
-
-// @alpha
-export interface MockWindowOptions extends MockDocumentOptions {
-}
-
-// @alpha (undocumented)
-export interface TestPlatform extends CorePlatform {
-    // (undocumented)
-    flush: () => Promise<void>;
-}
-
-// @alpha (undocumented)
-export function toFileUrl(filePath: string): string;
+export const createDOM: () => Promise<{
+    render: (jsxElement: JSXNode) => Promise<void>;
+    screen: HTMLElement;
+    userEvent: (queryOrElement: string | Element | null, eventNameCamel: string) => Promise<void>;
+}>;
 
 // (No @packageDocumentation comment for this package)
 

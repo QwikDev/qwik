@@ -71,7 +71,7 @@ export async function loadUserResponse(
   };
 
   const redirect = (url: string, status?: number) => {
-    return new RedirectResponse(url, status, userResponse.headers, userResponse.cookie);
+    return new RedirectResponse(url, status, userResponse.headers);
   };
 
   const error = (status: number, message?: string) => {
@@ -179,7 +179,12 @@ export async function loadUserResponse(
   };
 
   await next();
+
   userResponse.aborted = routeModuleIndex >= ABORT_INDEX;
+
+  for (const setCookieValue of userResponse.cookie.headers()) {
+    userResponse.headers.set('Set-Cookie', setCookieValue);
+  }
 
   if (
     !isPageDataRequest &&

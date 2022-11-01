@@ -1,7 +1,7 @@
 /**
  * Simple Auth For Testing Only!!!
  */
-import type { Cookie } from '@builder.io/qwik-city';
+import type { Cookie } from '~qwik-city-runtime';
 
 export const isUserAuthenticated = async (cookie: Cookie) => {
   return cookie.has(AUTHTOKEN_NAME);

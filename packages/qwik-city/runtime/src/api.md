@@ -34,33 +34,21 @@ export interface ContentMenu {
 
 // @alpha (undocumented)
 export interface Cookie {
-    // (undocumented)
     delete(name: string): void;
-    // (undocumented)
     get(name: string): CookieValue | null;
-    // (undocumented)
     has(name: string): boolean;
-    // (undocumented)
-    headers(): IterableIterator<string>;
-    // (undocumented)
+    headers(): string[];
     set(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;
 }
 
-// @alpha (undocumented)
+// @alpha
 export interface CookieOptions {
-    // (undocumented)
     domain?: string;
-    // (undocumented)
     expires?: Date | string;
-    // (undocumented)
     httpOnly?: boolean;
-    // (undocumented)
     maxAge?: number | [number, 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks'];
-    // (undocumented)
     path?: string;
-    // (undocumented)
     sameSite?: 'strict' | 'lax' | 'none';
-    // (undocumented)
     secure?: boolean;
 }
 

@@ -23,7 +23,7 @@ export function mockRequestContext(opts?: {
     body: null as any,
   };
 
-  const response: ResponseHandler = async (status, headers, cookie, body) => {
+  const response: ResponseHandler = async (status, headers, body) => {
     const chunks: string[] = [];
     responseData.status = status;
     responseData.headers = headers as any;

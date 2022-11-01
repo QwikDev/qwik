@@ -42,4 +42,76 @@ The request handler functions receive a `RequestEvent` argument which has the fo
 | `next`     | Next middleware function                                                      |
 | `abort`    | Request abort function                                                        |
 | `params`   | Custom user params found within the URL                                       |
+| `cookie`   | Get and set cookies.                                                          |
 | `platform` | Platform data object (useful for Cloudflare, Netlify, etc)                    |
+
+
+### Cookie
+
+```typescript
+interface Cookie {
+  get: (key: string) => CookieValue | null,
+  set: (key: string, value: string | number | Record<string, any>, options?: CookieOptions) => void,
+  delete: (key: string) => void,
+  has: (key: string) => boolean
+}
+```
+
+The cookie class is used to get and set cookies in your Qwik City app. It exposes the following methods:
+
+**get**
+
+Takes a string with the cookie name and returns the `CookieValue`, if present and null if not.
+
+```typescript
+interface CookieValue {
+  value: string;
+  json: <T = unknown>() => T;
+  number: () => number;
+}
+```
+
+A cookie value is a simple record with three fields:
+  1. `value`: Contains the cookie value as a string
+  2. `json()`: Runs `JSON.parse()` on the value and returns the result
+  3. `number()`: Runs `Number()` on the value and returns the result
+
+**set**
+
+Takes a key and value and creates a header that will be appended to the response. Value can be a `string | number | Record<string, any>`
+
+As a third argument, you can optionally provide a `CookieOptions` record for setting additional fields.
+
+```typescript
+export interface CookieOptions {
+  domain?: string;
+  expires?: Date | string;
+  httpOnly?: boolean;
+  maxAge?: number | [number, 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks'];
+  path?: string;
+  sameSite?: 'lax' | 'none' | 'strict';
+  secure?: boolean;
+}
+```
+
+For more information on these attributes and their values, please refer to [the MDN article on the Set-Cookie header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#attributes).
+
+**delete**
+
+Appends a header with the provided key to the cookie. The new header will have an expired date in the `expires` field, telling the browers to remove it.
+
+Equivalent to calling:
+
+```typescript
+cookie.set('my-cookie', 'deleted', new Date(0))
+```
+
+**has**
+
+A convenience method which returns true or false based on the presence of the provided key in cookie.
+
+Equivalent to calling:
+
+```typescript
+!!cookie.get('my-cookie')
+```

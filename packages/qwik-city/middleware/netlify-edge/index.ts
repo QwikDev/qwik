@@ -22,6 +22,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
             let flushedHeaders = false;
             const { readable, writable } = new TransformStream();
             const writer = writable.getWriter();
+
             const response = new Response(readable, { status, headers });
 
             body({
@@ -102,4 +103,7 @@ export function qwikCity(render: Render, opts?: RenderOptions) {
 /**
  * @alpha
  */
-export type RequestHandlerNetlify<T = unknown> = RequestHandler<T, Omit<Context, 'next'>>;
+export type RequestHandlerNetlify<T = unknown> = RequestHandler<
+  T,
+  Omit<Context, 'next' | 'cookies'>
+>;

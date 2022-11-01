@@ -1,3 +1,4 @@
+import type { Cookie, CookieOptions, CookieValue } from '../../../middleware/request-handler/types';
 import type { ErrorResponse } from '../../../middleware/request-handler/error-handler';
 import type { RedirectResponse } from '../../../middleware/request-handler/redirect-handler';
 import type { NoSerialize } from '@builder.io/qwik';
@@ -287,6 +288,8 @@ export interface RequestEvent<PLATFORM = unknown> {
   /** Platform specific data and functions */
   platform: PLATFORM;
 
+  cookie: Cookie;
+
   next: () => Promise<void>;
   abort: () => void;
 }
@@ -356,3 +359,5 @@ export interface SimpleURL {
   search: string;
   hash: string;
 }
+
+export { Cookie, CookieOptions, CookieValue };

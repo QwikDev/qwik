@@ -26,13 +26,13 @@ import { test, expect } from 'vitest';
 import Card from './card.tsx';
 
 test(`[Card Component]: 🙌 Only render`, async () => {
-  const { screen, render } = createDOM();
+  const { screen, render } = await createDOM();
   await render(<Card />);
   expect(screen.outerHTML).toContain('Counter_0');
 });
 
 test(`[Card Component]: 🙌 Click counter +1 `, async () => {
-  const { screen, render, userEvent } = createDOM();
+  const { screen, render, userEvent } = await createDOM();
   await render(<Card />);
   expect(screen.outerHTML).toContain('Counter_0');
   await userEvent('button.btn-counter', 'click');

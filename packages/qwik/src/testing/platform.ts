@@ -1,4 +1,3 @@
-import { setPlatform } from '@builder.io/qwik';
 import type { TestPlatform } from './types';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -73,7 +72,7 @@ function createPlatform() {
   return testPlatform;
 }
 
-export function setTestPlatform(_setPlatform: Function = setPlatform) {
+export function setTestPlatform(_setPlatform: Function) {
   _setPlatform(testPlatform);
 }
 

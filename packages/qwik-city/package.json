@@ -59,7 +59,7 @@
     "build": "yarn build.client && yarn build.server",
     "build.client": "cd runtime && vite build -c vite.app.config.ts",
     "build.server": "cd runtime && vite build -c vite.express.config.ts",
-    "build.runtime": "cd runtime && vite build --mode lib",
+    "build.runtime": "cd runtime && vite build --mode lib -c vite.lib.config.ts",
     "serve": "node --inspect runtime/server/entry.express",
     "serve.debug": "node --inspect-brk runtime/server/entry.express",
     "test": "yarn test.unit && yarn test.e2e",

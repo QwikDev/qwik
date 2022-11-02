@@ -10,7 +10,7 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
   const srcInputs = options.srcInputs;
   const resolveId = (id: string) => {
     return srcInputs.find((i) => i.path === id)?.path;
-  }
+  };
 
   return {
     name: 'repl-resolver',

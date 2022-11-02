@@ -282,9 +282,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           }
         }
       } else if (opts.target === 'client') {
-        if (buildMode === 'production') {
-          updatedViteConfig.resolve!.conditions = ['min'];
-        }
         // Client Build
         if (isClientDevOnly) {
           updatedViteConfig.build!.rollupOptions!.input = clientDevInput;

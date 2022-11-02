@@ -794,12 +794,21 @@ function processPropKey(prop: string) {
   return prop;
 }
 
+function isAriaAttribute(prop: string): boolean {
+  return prop.startsWith('aria-');
+}
+
 function processPropValue(prop: string, value: any): string | null {
   if (prop === 'style') {
     return stringifyStyle(value);
   }
-  if (value === false || value == null) {
-    return null;
+  if (!isAriaAttribute(prop)) {
+    if (value === false || value == null) {
+      return null;
+    }
+    if (value === true) {
+      return '';
+    }
   }
   return String(value);
 }

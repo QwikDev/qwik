@@ -37,7 +37,7 @@ export const Header_component_UVBJuFYfvDo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";4CAciC,IAAM;IACnC,6FAKE;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";4CAciC,IAAM;IACnC;AAMJ\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -73,7 +73,7 @@ export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("../header_compo
 export const Footer = /*#__PURE__*/ componentQrl();
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,CAAC,CAAC,EAAE,EAAC,CAAC,CAAA,EAAE,EAAE,EAAE,CAAC,CAAC,CAAC,CAAA,EAAE,CAAC,EAAC,EAAE,CAAA,EAAE,GAAG,CAAC,EAAC,EAAE,CAAC,GAAC,EAAE,EAAE,GAAG,CAAC,CAAC,GAAG,GAAG,CAAC;AAE7D,MAAM,IAAI,GAAG,CAAC,AAAC;AACf,MAAM,QAAQ,GAAG,CAAC,AAAC;AACnB,SAAQ,IAAI,EAAE,QAAQ,IAAI,KAAK,GAAE;AAEjC,OAAO,SAAS,GAAG,GAAG,CAAE,CAAC;AACzB,OAAO,MAAM,GAAG;CAAG;AAEnB,eAAe,SAAS,SAAS,GAAG,CAAC,CAAC;AAEtC,OAAO,MAAM,MAAM,iBAAG,gGAOpB,CAAC;AAEH,OAAO,MAAM,MAAM,iBAAG,cAAY,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,CAAC,GAAG,EAAC,EAAC,EAAE,IAAI,CAAC,EAAE,CAAA,EAAE,GAAE,GAAE,EAAE,GAAG,GAAE,EAAE,IAAE,EAAE,EAAE,GAAG,EAAE,GAAG,IAAI;AAE7D,MAAM,OAAO;AACb,MAAM,WAAW;AACjB,SAAQ,IAAI,EAAE,YAAY,KAAK,GAAE;AAEjC,OAAO,SAAS,MAAM,CAAE,CAAC;AACzB,OAAO,MAAM;AAAK,CAAC;AAEnB,eAAe,SAAS,YAAY,CAAC,CAAC;AAEtC,OAAO,MAAM,uBAAS,iGAOnB;AAEH,OAAO,MAAM,uBAAS,eAAa\"}")
 ============================= header_component_1_uwm1kg0igo0.tsx (ENTRY POINT)==
 
 import { default as DefaultFn } from "./project/test";
@@ -98,7 +98,7 @@ export const Header_component_1_uWM1kg0IGO0 = ()=><Footer >
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;8CAea,KACJ,MAAM,EAAC;;YACJ,CAAC,GAAG,GAAE,CAAC,EAAE,CAAC,EAAE,CAAC,EAAE,CAAC,EAAE,CAAC,EAAE,CAAC,EAAE,IAAI,EAAE,QAAQ,EAAE,GAAG,EAAE,GAAG,EAAE,SAAS,GAAG,GAAG,CAAC;;YAClE,CAAC,GAAG,GAAE,EAAE,EAAE,EAAE,EAAE,EAAE,EAAE,GAAG,GAAG,GAAG,CAAC;;QAChC,EAAE,MAAM,CACX\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;8CAea,KACJ,QAAO;;YACJ,CAAC,MAAK,GAAG,GAAG,GAAG,GAAG,GAAG,GAAG,MAAM,UAAU,KAAK,KAAK,YAAY,IAAI;;YAClE,CAAC,MAAK,IAAI,IAAI,IAAI,MAAM,IAAI;;QAChC,EAAE\"}")
 /*
 {
   "origin": "project/test.tsx",

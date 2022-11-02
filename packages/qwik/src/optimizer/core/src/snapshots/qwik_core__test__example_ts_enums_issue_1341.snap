@@ -33,7 +33,7 @@ let Thing;
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;IAEA,KAGC;UAHI,KAAK;IAAL,KAAK,CAAL,KAAK,CACN,GAAC,IAAD,CAAC,IAAD,GAAC;IADA,KAAK,CAAL,KAAK,CAEN,GAAC,IAAD,CAAC,IAAD,GAAC;GAFA,KAAK,KAAL,KAAK;AAKV,OAAO,MAAM,GAAG,iBAAG,yFAOjB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;IAEA;UAAK,KAAK;IAAL,MAAA,MACD,OAAA,KAAA;IADC,MAAA,MAED,OAAA,KAAA;GAFC,UAAA;AAKL,OAAO,MAAM,oBAAM,0FAOhB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
@@ -49,7 +49,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAQ8B,IAAM;IAChC,OAAO,CAAC,GAAG,CAAC,KAAK,CAAC,CAAC,CAAC,CAAC;IACrB,qBACI;kBACI,cAAA,KAAC,GAAC;YAAC,KAAK,EAAC,OAAO;sBAAC,YAAU;UAAI;MAChC,CACL;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAQ8B,IAAM;IAChC,QAAQ,GAAG,CAAC,MAAM,CAAC;IACnB,qBACI;kBACI,cAAA,KAAC;YAAE,OAAM;sBAAQ;;;AAG7B\"}")
 /*
 {
   "origin": "test.tsx",

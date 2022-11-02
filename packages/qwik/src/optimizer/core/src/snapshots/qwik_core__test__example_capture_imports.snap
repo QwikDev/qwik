@@ -22,7 +22,7 @@ import { qrl } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,GAAG,iBAAG,yFAGjB,CAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,oBAAM,0FAGjB\"}")
 ============================= app_component_usestyles_t35nsa5uv7u.js (ENTRY POINT)==
 
 import css1 from "./global.css";
@@ -30,7 +30,7 @@ import css2 from "./style.css";
 export const App_component_useStyles_t35nSa5UV7U = `${css1}${css2}`;
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mDAOe,CAAC,EAAE,IAAI,CAAC,EAAE,IAAI,CAAC,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mDAOe,CAAC,EAAE,KAAK,EAAE,KAAK,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -60,7 +60,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAM8B,IAAM;IAChC,6GAA4B,CAAC;IAC7B,iHAAgB,CAAC;AACrB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAM8B,IAAM;IAChC;IACA;AACJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -86,7 +86,7 @@ import css3 from "./style.css";
 export const App_component_useStyles_1_xBK4W0ZKWe8 = css3;
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAQe,IAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAQe\"}")
 /*
 {
   "origin": "test.tsx",

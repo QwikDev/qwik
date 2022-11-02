@@ -30,7 +30,7 @@ export const App_component_ckEPmXZlub0 = (props: Stuff)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,KAAY,EAAL,KAAK,GAAK;IAC5C,qBACI,KAAC,GAAG;kBACA,cAAA,KAAC,GAAC;YAAC,KAAK,EAAC,OAAO;YAAC,QAAQ;sBAA6B,YAAU;UAAI;MAClE,CACR;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,OAAO,QAAU;IAC5C,qBACI,KAAC;kBACG,cAAA,KAAC;YAAE,OAAM;YAAQ,QAAQ;sBAA6B;;;AAGlE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -55,7 +55,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const App_component_Cmp_p_onClick_vuXzfUTkpto = ()=>console.log('warn');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDAMuC,IAAM,OAAO,CAAC,GAAG,CAAC,MAAM,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDAMuC,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -82,7 +82,7 @@ import { qrl } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0.ts"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,4FAMjB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,6FAMhB\"}")
 == DIAGNOSTICS ==
 
 []

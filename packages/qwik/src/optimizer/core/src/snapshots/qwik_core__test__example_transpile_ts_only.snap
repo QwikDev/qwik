@@ -28,7 +28,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
 }, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,wBAAW,CAAC,KAAY,GAAK;IAC5C,QACK,GAAG,EAAC;;YACD,CAAC,CAAC,CAAC,KAAK,CAAC,OAAO,CAAC,QAAQ,aAAE,IAAM,OAAO,CAAC,GAAG,CAAC,MAAM,CAAC,8CAAE,UAAU,EAAE,CAAC,CAAC;;QACxE,EAAE,GAAG,EACP;AACN,CAAC,+BAAC,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,wBAAW,CAAC,QAAiB;IAC5C,QACK,KAAI;;YACD,CAAC,EAAE,MAAM,QAAQ,qBAAU,IAAM,QAAQ,GAAG,CAAC,qDAAS,UAAU,EAAE,EAAE;;QACxE,EAAE;AAEV,iCAAG\"}")
 == DIAGNOSTICS ==
 
 []

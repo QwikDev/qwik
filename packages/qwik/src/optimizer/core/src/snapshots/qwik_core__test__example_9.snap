@@ -34,7 +34,7 @@ export const Header_WjUaUQN7Oxg = (decl1, { decl2  }, [decl3])=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,KAAK,EAAE,EAAC,KAAK,CAAA,EAAC,EAAE,CAAC,KAAK,CAAC,GAAK;IAC1C,MAAM,EAAC,KAAK,CAAA,EAAE,GAAG,EAAE,KAAK,CAAA,EAAC,GAAG,IAAI,AAAC;IACjC,IAAI,CAAC,KAAK,EAAE,GAAG,KAAK,CAAC,GAAG,KAAK,AAAC;IAC9B,MAAM,KAAK,GAAG,CAAC,EAAE,KAAK,AAAC;IACvB,SAAS,MAAM,CAAC,MAAM,EAAE,EAAC,MAAM,CAAA,EAAC,EAAE,CAAC,MAAM,CAAC,EAAE,CAAC,CAAC;IAC9C,MAAM,MAAM;QACR,MAAM,CAAC,MAAM,EAAE,EAAC,MAAM,CAAA,EAAC,EAAE,CAAC,MAAM,CAAC,EAAE,CAAC;KACvC;IACD,IAAG,CAAC,EAAC,OAAM,MAAM,EAAC,CAAC,CAAC;IACpB,IAAG,CAAC,EAAC,OAAM,EAAC,MAAM,CAAA,EAAC,EAAC,CAAC,CAAC;AAC1B,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,MAAK,EAAC,EAAE,CAAC,MAAM,GAAK;IAC1C,MAAM,EAAC,MAAK,EAAE,KAAK,MAAK,EAAC,GAAG,IAAI;IAChC,IAAI,CAAC,OAAO,GAAG,MAAM,GAAG;IACxB,MAAM,QAAQ,GAAG;IACjB,SAAS,OAAO,MAAM,EAAE,EAAC,OAAM,EAAC,EAAE,CAAC,OAAO,EAAE,CAAC;IAC7C,MAAM;QACF,OAAO,MAAM,EAAE,EAAC,OAAM,EAAC,EAAE,CAAC,OAAO,EAAE,CAAC;IACxC;IACA,IAAG,CAAC,EAAC,OAAM,QAAO,CAAC;IACnB,IAAG,CAAC,EAAC,OAAM,EAAC,OAAM,EAAC,EAAC,CAAC;AACzB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -60,7 +60,7 @@ import { qrl } from "@builder.io/qwik";
 qrl(()=>import("./header_wjuauqn7oxg"), "Header_WjUaUQN7Oxg");
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;8DAWG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA\"}")
 == DIAGNOSTICS ==
 
 []

@@ -31,7 +31,7 @@ export const onGet = ()=>{
 export default /*#__PURE__*/ componentQrl(qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;aAGa,KAAK;;;AASlB,6BAAe,2FAEb,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;aAGa;;;AASb,6BAAe,4FAEZ\"}")
 ============================= test_component_luxexe0dqrg.tsx (ENTRY POINT)==
 
 export const test_component_LUXeXe0DQrg = ()=>{
@@ -39,7 +39,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0CAa0B,IAAK;IAC3B,QAAQ,GAAG,EAAC,GAAG,EAAE,GAAG,EAAC;AACzB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0CAa0B,IAAK;IAC3B,QAAQ,KAAI,GAAG,EAAE;AACrB\"}")
 /*
 {
   "origin": "test.tsx",

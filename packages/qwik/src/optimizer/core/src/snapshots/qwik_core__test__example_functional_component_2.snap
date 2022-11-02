@@ -48,7 +48,7 @@ export const STEP = 1;
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAwB,QAAQ,QAAQ,kBAAkB,CAAC;AAC3D,OAAO,MAAM,UAAU,GAAG,IAAM;IAC5B,OAAO,QAAQ,CAAC;QAAC,KAAK,EAAE,CAAC;KAAC,CAAC,CAAC;AAChC,CAAC,CAAA;AAED,OAAO,MAAM,IAAI,GAAG,CAAC,CAAC;AAEtB,OAAO,MAAM,GAAG,iBAAG,yFAoBjB,CAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAwB,QAAQ,QAAQ,mBAAmB;AAC3D,OAAO,MAAM,aAAa,IAAM;IAC5B,OAAO,SAAS;QAAC,OAAO;IAAC;AAC7B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,0FAoBjB\"}")
 ============================= app_component_div_onclick_1cgetmfzx0g.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -58,7 +58,7 @@ export const App_component_div_onClick_1CGetmFZx0g = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAeuB;;WAAM,KAAK,CAAC,KAAK,IAAE,MAAM;CAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAeuB;;WAAM,MAAM,KAAK,IAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -88,7 +88,7 @@ export const App_component_div_button_onClick_f5NwW9e63a4 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;4DAmB8B;;WAAM,KAAK,CAAC,KAAK,IAAI,GAAG,CAAC,MAAM,GAAG,KAAK,GAAG,IAAI,GAAG,MAAM,GAAG,KAAK,CAAC,IAAI;CAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;4DAmB8B;;WAAM,MAAM,KAAK,IAAI,IAAI,MAAM,GAAG,QAAQ,OAAO,SAAS,MAAM,IAAI\"}")
 /*
 {
   "origin": "test.tsx",
@@ -147,7 +147,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAQ8B,CAAC,KAAK,GAAK;IACrC,MAAM,KAAK,GAAG,UAAU,EAAE,AAAC;IAC3B,MAAM,KAAK,GAAG,QAAQ,CAAC;QAAC,KAAK,EAAE,CAAC;KAAC,CAAC,AAAC;IACnC,MAAM,MAAM,GAAG,CAAC,AAAC;IAEjB,MAAM,MAAM,GAAG,KAAK,CAAC,KAAK,GAAG,CAAC,AAAC;IAC/B,qBACI,MAAC,KAAG;QAAC,QAAQ;;;;;0BACT,KAAC,MAAI;sCAAE,KAAK;cAAc;YACzB,OAAO,CAAC,GAAG,CAAC,CAAA,GAAG,iBACZ,KAAC,QAAM;oBACH,QAAQ;;;;;;;0CAEP,GAAG;kBACC,AACZ,CAAC;;MAEA,CAER;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAQ8B,CAAC,QAAU;IACrC,MAAM,QAAQ;IACd,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM,SAAS;IAEf,MAAM,SAAS,MAAM,KAAK,GAAG;IAC7B,qBACI,MAAC;QAAI,QAAQ;;;;;0BACT,KAAC;sCAAM;;YACN,QAAQ,GAAG,CAAC,CAAA,oBACT,KAAC;oBACG,QAAQ;;;;;;;0CAEP;;;;AAOrB\"}")
 /*
 {
   "origin": "test.tsx",

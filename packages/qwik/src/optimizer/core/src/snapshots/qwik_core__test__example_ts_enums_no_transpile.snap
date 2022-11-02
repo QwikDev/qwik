@@ -32,7 +32,7 @@ export enum Thing {
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,YAAY,KAAK;IACb,CAAC;IACD,CAAC;CACJ;AAED,OAAO,MAAM,GAAG,iBAAG,yFAOjB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,YAAY;IACR;IACA;CACH;AAED,OAAO,MAAM,oBAAM,0FAOhB\"}")
 ============================= app_component_ckepmxzlub0.tsx (ENTRY POINT)==
 
 import { Thing } from "./test";
@@ -46,7 +46,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAQ8B,IAAM;IAChC,OAAO,CAAC,GAAG,CAAC,KAAK,CAAC,CAAC,CAAC,CAAC;IACrB,SACM;;YACE,CAAC,CAAC,CAAC,KAAK,CAAC,OAAO,CAAC,UAAU,EAAE,CAAC,CAAC;;QACnC,IACF;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAQ8B,IAAM;IAChC,QAAQ,GAAG,CAAC,MAAM,CAAC;IACnB,SACM;;YACE,CAAC,EAAE,MAAM,QAAQ,UAAU,EAAE,EAAE;;QACnC;AAER\"}")
 /*
 {
   "origin": "test.tsx",

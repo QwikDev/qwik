@@ -26,7 +26,7 @@ export const renderHeader_zBbHWn4e8Cg = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAG8B,IAAM;IAChC,QACK,GAAG,CAAC,OAAO,uGACd;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAG8B,IAAM;IAChC,QACK,IAAI;AAEb\"}")
 /*
 {
   "origin": "test.tsx",
@@ -55,7 +55,7 @@ export const renderHeader_component_U6Kkv07sbpQ = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kDAQiC,IAAM;IACrC,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,CAAC;IACrB,OAAO,MAAM,CAAC;AAChB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kDAQiC,IAAM;IACrC,QAAQ,GAAG,CAAC;IACZ,OAAO;AACT\"}")
 /*
 {
   "origin": "test.tsx",
@@ -80,17 +80,17 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { qrl } from "@builder.io/qwik";
 import { component } from '@builder.io/qwik';
 export const renderHeader = qrl(()=>import("./renderheader_zbbhwn4e8cg"), "renderHeader_zBbHWn4e8Cg");
-component(qrl(()=>import("./renderheader_component_u6kkv07sbpq"), "renderHeader_component_U6Kkv07sbpQ"));
+const renderHeader = component(qrl(()=>import("./renderheader_component_u6kkv07sbpq"), "renderHeader_component_U6Kkv07sbpQ"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;AAAA,SAAY,SAAS,QAAkB,kBAAkB,CAAC;AAE1D,OAAO,MAAM,YAAY,4EAIvB,CAAC;AACkB,SAAS,+FAG3B,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;AAAA,SAAY,SAAS,QAAkB,mBAAmB;AAE1D,OAAO,MAAM,yFAIV;AACH,MAAM,eAAe\"}")
 ============================= renderheader_div_onclick_fv2uzal99u4.tsx (ENTRY POINT)==
 
 export const renderHeader_div_onClick_fV2uzAL99u4 = (ctx)=>console.log(ctx);
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAKwB,CAAC,GAAG,GAAK,OAAO,CAAC,GAAG,CAAC,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAKwB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

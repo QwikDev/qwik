@@ -28,7 +28,7 @@ export const App = ()=>/*#__PURE__*/ _jsx("div", {
 export const App2 = qwikifyQrl(qrl(()=>import("./app2_qwikify_rkjw7ocmds4.js"), "App2_qwikify_RKJW7oCMdS4"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,0BAA0B,GAE1B;;;AAEA,OAAO,MAAM,GAAG,GAAG,kBACf,KAAC,KAAG;QAAC,QAAQ,EAAE,IAAI,OAAO,CAAC,GAAG,CAAC,KAAK,CAAC;MAAQ,AAChD,CAAC;AAEF,OAAO,MAAM,IAAI,GAAG,wFAElB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,0BAA0B,GAE1B;;;AAEA,OAAO,MAAM,MAAM,kBACf,KAAC;QAAI,UAAU,IAAI,QAAQ,GAAG,CAAC;OACjC;AAEF,OAAO,MAAM,OAAO,yFAEjB\"}")
 ============================= app2_qwikify_rkjw7ocmds4.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "react/jsx-runtime";
@@ -37,7 +37,7 @@ export const App2_qwikify_RKJW7oCMdS4 = ()=>/*#__PURE__*/ _jsx("div", {
     });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAS6B,kBACzB,KAAC,KAAG;QAAC,QAAQ,EAAE,IAAI,OAAO,CAAC,GAAG,CAAC,MAAM,CAAC;MAAQ,AACjD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAS6B,kBACzB,KAAC;QAAI,UAAU,IAAI,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

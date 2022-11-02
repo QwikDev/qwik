@@ -33,7 +33,7 @@ export const s_HTDRsvUbLiE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAG8B,IAAM;IAChC,QACK,GAAG,EAAC;;YACD,CAAC,GAAG,CAAC,QAAQ,wDAA+B;;YAC5C,CAAC,GAAG,CAAC,QAAQ,wDAAgC;;YAC7C,CAAC,GAAG,CAAC,QAAQ,wDAA+B;;QAChD,EAAE,GAAG,EACP;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAG8B,IAAM;IAChC,QACK,KAAI;;YACD,CAAC,IAAI,gEAAuC;;YAC5C,CAAC,IAAI,gEAAwC;;YAC7C,CAAC,IAAI,gEAAuC;;QAChD,EAAE;AAEV\"}")
 /*
 {
   "origin": "test.tsx",
@@ -58,7 +58,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const s_9DcJc0uJDDo = ()=>console.log('first');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAM2B,IAAM,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAM2B,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -83,7 +83,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const s_w9ptFRBVK1E = ()=>console.log('third');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAQ2B,IAAM,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAQ2B,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -108,7 +108,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const s_RjQdy8I0MXc = ()=>console.log('second');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAO2B,IAAM,OAAO,CAAC,GAAG,CAAC,QAAQ,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAO2B,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -135,7 +135,7 @@ import { qrl } from "@builder.io/qwik";
 export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./s_htdrsvublie"), "s_HTDRsvUbLiE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,iEAQjB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,kEAQhB\"}")
 == DIAGNOSTICS ==
 
 []

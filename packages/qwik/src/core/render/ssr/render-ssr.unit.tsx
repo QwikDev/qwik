@@ -31,8 +31,8 @@ renderSSRSuite('render attributes', async () => {
 
 renderSSRSuite('render true value attribute', async () => {
   await testSSR(
-      <div id="stuff" aria-required={true} aria-busy={false} role=""></div>,
-      `
+    <div id="stuff" aria-required={true} aria-busy={false} role=""></div>,
+    `
         <html q:container="paused" q:version="dev" q:render="ssr-dev">
             <div id="stuff" aria-required="true" role></div>
         </html>

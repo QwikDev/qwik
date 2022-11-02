@@ -396,7 +396,7 @@ const renderQTemplates = (ssrContext: SSRContext, stream: StreamWriter) => {
         });
       }
     });
-    return processData(nodes, ssrContext, stream, 0, undefined);
+    return processData(nodes, ssrContext.projectedContext!, stream, 0, undefined);
   }
 };
 

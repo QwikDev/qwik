@@ -14,8 +14,8 @@ export default defineConfig(() => {
       minify: false,
       emptyOutDir: false,
       rollupOptions: {
-        external: ['@qwik-city-sw-register', '@qwik-city-plan']
-      }
+        external: ['@qwik-city-sw-register', '@qwik-city-plan'],
+      },
     },
     resolve: {
       alias: {
@@ -23,9 +23,7 @@ export default defineConfig(() => {
         '~qwik-city-runtime-service-worker': '/src/library/service-worker/index.ts',
       },
     },
-    plugins: [
-      qwikVite(),
-    ],
+    plugins: [qwikVite()],
     clearScreen: false,
     optimizeDeps: {
       force: true,

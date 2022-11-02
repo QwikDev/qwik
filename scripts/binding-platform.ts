@@ -13,7 +13,14 @@ export async function buildPlatformBinding(config: BuildConfig) {
       ensureDir(config.distBindingsDir);
 
       const cmd = `napi`;
-      const args = [`build`, `--cargo-name`, 'qwik_napi', `--platform`, `--config=packages/qwik/src/napi/napi.config.json`, config.distBindingsDir];
+      const args = [
+        `build`,
+        `--cargo-name`,
+        'qwik_napi',
+        `--platform`,
+        `--config=packages/qwik/src/napi/napi.config.json`,
+        config.distBindingsDir,
+      ];
 
       if (config.platformTarget) {
         args.push(`--target`, config.platformTarget);

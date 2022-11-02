@@ -27,31 +27,23 @@ export const parsePlaygroundShareUrl = (shareable: string) => {
         data.entryStrategy = entryStrategy;
       }
 
-      const filesBase64 = params.get('files')!;
-      if (typeof filesBase64 === 'string') {
-        const encoded = atob(filesBase64);
-        const compressedUint8Array = strToU8(encoded, true);
-
-        let filesStr = '';
-
-        try {
-          const filesBuf = decompressSync(compressedUint8Array);
-          filesStr = strFromU8(filesBuf);
-        } catch (error) {
-          // Treat string as not compressed
-          filesStr = decodeURIComponent(encoded);
+      if (params.has('files')) {
+        // Old URLs that didn't compress
+        // the files, used the `files` key
+        const filesBase64 = params.get('files')!;
+        if (typeof filesBase64 === 'string') {
+          data.files = parseUncompressedFiles(filesBase64);
         }
-
-        const files = JSON.parse(filesStr);
-
-        if (Array.isArray(files)) {
-          data.files = files.filter(
-            (f) => typeof f.code === 'string' && typeof f.path === 'string'
-          );
-          if (files.length > 0) {
-            return data;
-          }
+      } else if (params.has('f')) {
+        // New URLs that didn't compress
+        // the files, use the `f` key
+        const filesBase64 = params.get('f');
+        if (typeof filesBase64 === 'string') {
+          data.files = parseCompressedFiles(filesBase64);
         }
+      }
+      if (data.files.length > 0) {
+        return data;
       }
     } catch (e) {
       console.error(e);
@@ -72,10 +64,45 @@ export const createPlaygroundShareUrl = (data: PlaygroundShareUrl, pathname = '/
   const compressedString = strFromU8(compressedUint8Array, true);
   const filesBase64 = btoa(compressedString);
 
-  params.set('files', filesBase64);
+  params.set('f', filesBase64);
 
   return `${pathname}#${params.toString()}`;
 };
+
+function parseUncompressedFiles(filesBase64: string) {
+  const encoded = atob(filesBase64);
+  const filesStr = decodeURIComponent(encoded);
+  const files = JSON.parse(filesStr);
+
+  if (Array.isArray(files)) {
+    return files.filter((f) => typeof f.code === 'string' && typeof f.path === 'string');
+  }
+
+  return [];
+}
+
+function parseCompressedFiles(filesBase64: string) {
+  const encoded = atob(filesBase64);
+  const compressedUint8Array = strToU8(encoded, true);
+
+  let filesStr = '';
+
+  try {
+    const filesBuf = decompressSync(compressedUint8Array);
+    filesStr = strFromU8(filesBuf);
+  } catch (error) {
+    // Treat string as not compressed
+    filesStr = decodeURIComponent(encoded);
+  }
+
+  const files = JSON.parse(filesStr);
+
+  if (Array.isArray(files)) {
+    return files.filter((f) => typeof f.code === 'string' && typeof f.path === 'string');
+  }
+
+  return [];
+}
 
 interface PlaygroundShareUrl {
   version: any;

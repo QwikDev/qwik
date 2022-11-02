@@ -3,7 +3,6 @@
   "version": "0.0.118",
   "description": "The meta-framework for Qwik.",
   "main": "./lib/index.qwik.mjs",
-  "module": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
   "types": "./lib/index.d.ts",
   "type": "module",

@@ -167,7 +167,7 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
     symbol = '_';
   }
   if (!chunk) {
-    throw qError(QError_qrlMissingChunk, qrl);
+    throw qError(QError_qrlMissingChunk, qrl.$symbol$);
   }
   if (chunk.startsWith('./')) {
     chunk = chunk.slice(2);

@@ -13,16 +13,24 @@ export async function buildPlatformBinding(config: BuildConfig) {
       ensureDir(config.distBindingsDir);
 
       const cmd = `napi`;
-      const args = [`build`, `--platform`, `--config=napi.config.json`, config.distBindingsDir];
+      const args = [
+        `build`,
+        `--cargo-name`,
+        'qwik_napi',
+        `--platform`,
+        `--config=packages/qwik/src/napi/napi.config.json`,
+        config.distBindingsDir,
+      ];
 
       if (config.platformTarget) {
         args.push(`--target`, config.platformTarget);
       }
       if (!config.dev) {
         args.push(`--release`);
+        args.push(`--strip`);
       }
 
-      const napiCwd = join(config.srcDir, 'napi');
+      const napiCwd = join(config.rootDir);
 
       const child = spawn(cmd, args, { stdio: 'inherit', cwd: napiCwd });
       child.on('error', reject);

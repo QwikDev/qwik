@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
-import { qwikCity } from '@builder.io/qwik-city/vite';
 
 export default defineConfig(() => {
   return {
@@ -14,6 +13,9 @@ export default defineConfig(() => {
       },
       minify: false,
       emptyOutDir: false,
+      rollupOptions: {
+        external: ['@qwik-city-sw-register', '@qwik-city-plan']
+      }
     },
     resolve: {
       alias: {
@@ -22,9 +24,6 @@ export default defineConfig(() => {
       },
     },
     plugins: [
-      qwikCity({
-        routesDir: './src/app/routes',
-      }),
       qwikVite(),
     ],
     clearScreen: false,

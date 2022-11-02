@@ -29,7 +29,7 @@ renderSSRSuite('render attributes', async () => {
   );
 });
 
-renderSSRSuite('render true value attribute', async () => {
+renderSSRSuite('render aria value', async () => {
   await testSSR(
     <div id="stuff" aria-required={true} aria-busy={false} role="" preventdefault:click></div>,
     `

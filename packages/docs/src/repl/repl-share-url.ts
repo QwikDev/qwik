@@ -1,5 +1,5 @@
 import { BUILD_MODE_OPTIONS, ENTRY_STRATEGY_OPTIONS } from './repl-options';
-// import { compressSync, decompressSync, gzipSync, strFromU8, strToU8 } from 'fflate';
+import { compressSync, decompressSync, strFromU8, strToU8 } from 'fflate';
 
 export const parsePlaygroundShareUrl = (shareable: string) => {
   if (typeof shareable === 'string' && shareable.length > 0) {
@@ -30,10 +30,18 @@ export const parsePlaygroundShareUrl = (shareable: string) => {
       const filesBase64 = params.get('files')!;
       if (typeof filesBase64 === 'string') {
         const encoded = atob(filesBase64);
-        const filesStr = decodeURIComponent(encoded);
-        // const compressedUint8Array = strToU8(compressedString);
-        // const filesBuf = decompressSync(compressedUint8Array);
-        // const filesStr = strFromU8(filesBuf);
+        const compressedUint8Array = strToU8(encoded, true);
+
+        let filesStr = '';
+
+        try {
+          const filesBuf = decompressSync(compressedUint8Array);
+          filesStr = strFromU8(filesBuf);
+        } catch (error) {
+          // Treat string as not compressed
+          filesStr = decodeURIComponent(encoded);
+        }
+
         const files = JSON.parse(filesStr);
 
         if (Array.isArray(files)) {
@@ -59,11 +67,11 @@ export const createPlaygroundShareUrl = (data: PlaygroundShareUrl, pathname = '/
   params.set('entryStrategy', data.entryStrategy);
 
   const filesStr = JSON.stringify(data.files);
-  // const filesBuf = strToU8(filesStr);
-  // const compressedUint8Array = compressSync(filesBuf);
-  // const compressedString = strFromU8(compressedUint8Array);
-  const encodedURI = encodeURIComponent(filesStr);
-  const filesBase64 = btoa(encodedURI);
+  const filesBuf = strToU8(filesStr);
+  const compressedUint8Array = compressSync(filesBuf);
+  const compressedString = strFromU8(compressedUint8Array, true);
+  const filesBase64 = btoa(compressedString);
+
   params.set('files', filesBase64);
 
   return `${pathname}#${params.toString()}`;

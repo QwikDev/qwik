@@ -683,6 +683,36 @@ renderSSRSuite('component useStylesScoped()', async () => {
   );
 });
 
+renderSSRSuite('component useStylesScoped() + slot', async () => {
+  await testSSR(
+    <>
+      <RootStyles></RootStyles>
+    </>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <!--qv q:sstyle=⭐️lkei4s-0 q:id=0 q:key=sX:-->
+      <local class="⭐️lkei4s-0">
+        <!--qv q:sstyle=⭐️tdblg1-0 q:id=1 q:key=sX:-->
+        <style q:style="tdblg1-0">
+          .host.⭐️tdblg1-0 {
+            background: green;
+          }
+        </style>
+        <div class="⭐️tdblg1-0">
+          <!--qv q:s q:sref=1 q:key=one-->
+          <div q:slot="one" class="⭐️lkei4s-0">One</div>
+          <!--/qv-->
+        </div>
+        <q:template q:slot="two" hidden aria-hidden="true" class="⭐️lkei4s-0">
+          <div q:slot="two" class="⭐️lkei4s-0">Two</div>
+        </q:template>
+        <!--/qv-->
+      </local>
+      <!--/qv-->
+    </html>
+    `
+  );
+});
 renderSSRSuite('component useClientEffect()', async () => {
   await testSSR(
     <UseClientEffect />,
@@ -974,6 +1004,29 @@ export const ScopedStyles2 = component$(() => {
         Scoped2
         <p>Bien</p>
       </div>
+    </div>
+  );
+});
+
+export const RootStyles = component$(() => {
+  useStylesScopedQrl(inlinedQrl('.host {background: blue}', '20_stylesscopedblue'));
+
+  return (
+    <local>
+      <ComponentA>
+        <div q:slot="one">One</div>
+        <div q:slot="two">Two</div>
+      </ComponentA>
+    </local>
+  );
+});
+
+export const ComponentA = component$(() => {
+  useStylesScopedQrl(inlinedQrl('.host {background: green}', '20_stylesscopedgreen'));
+
+  return (
+    <div>
+      <Slot name="one" />
     </div>
   );
 });

@@ -22,7 +22,7 @@ import { qrl } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,yFAMjB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,0FAMhB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
@@ -36,7 +36,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IAChC,OAAO,CAAC,GAAG,CAAC,UAAU,EAAO,EAAE,CAAM,EAAE;QACvC,OAAO,CAAC,GAAG,CAAC,CAAA,MAAM,CAAC,MAAM,EAAE,CAAC,CAAC,CAAC,CAAC,IAAI,CAAC,CAAC,IAAI,CAAC,CAAC,CAAC,GAAK,CAAC,CAAC,IAAI,EAAE,CAAC,CAAA,CAAC,CAAC;IAC5D,CAAC,CAAC,CAAC;IAEH,qBAAO,KAAC,GAAC;kBAAC,YAAU;MAAI,CAAC;AAC7B,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IAChC,QAAQ,GAAG,CAAC,UAAU,EAAO,EAAE,CAAM,EAAE;QACvC,QAAQ,GAAG,CAAC,CAAA,MAAM,CAAC,MAAM,EAAE,EAAE,EAAE,IAAI,EAAE,IAAI,CAAC,CAAC,IAAM,EAAE,IAAI,GAAE;IACzD;IAEA,qBAAO,KAAC;kBAAE;;AACd\"}")
 /*
 {
   "origin": "test.tsx",

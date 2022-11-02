@@ -801,9 +801,6 @@ function processPropValue(prop: string, value: any): string | null {
   if (value === false || value == null) {
     return null;
   }
-  if (value === true) {
-    return '';
-  }
   return String(value);
 }
 

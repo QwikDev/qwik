@@ -178,3 +178,7 @@ export const hasStyle = (containerState: ContainerState, styleId: string) => {
 export const jsxToString = (data: any) => {
   return data == null || typeof data === 'boolean' ? '' : String(data);
 };
+
+export function isAriaAttribute(prop: string): boolean {
+  return prop.startsWith('aria-');
+}

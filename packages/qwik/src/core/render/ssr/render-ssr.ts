@@ -7,6 +7,7 @@ import {
   createRenderContext,
   executeComponent,
   getNextIndex,
+  isAriaAttribute,
   jsxToString,
   stringifyStyle,
 } from '../execute-component';
@@ -797,6 +798,9 @@ function processPropKey(prop: string) {
 function processPropValue(prop: string, value: any): string | null {
   if (prop === 'style') {
     return stringifyStyle(value);
+  }
+  if (isAriaAttribute(prop)) {
+    return value != null ? String(value) : value;
   }
   if (value === false || value == null) {
     return null;

@@ -17,6 +17,7 @@ test.describe('attributes', () => {
       await expect(input).toHaveAttribute('aria-hidden', 'true');
       await expect(input).toHaveAttribute('aria-label', 'even');
       await expect(input).toHaveAttribute('tabindex', '-1');
+      await expect(input).toHaveAttribute('aria-required', 'false');
       await expect(input).not.hasAttribute('required');
       await expect(input).not.hasAttribute('title');
 
@@ -72,6 +73,7 @@ test.describe('attributes', () => {
       await expect(input).toHaveAttribute('aria-hidden', 'true');
       await expect(input).toHaveAttribute('aria-label', 'odd');
       await expect(input).toHaveAttribute('tabindex', '-1');
+      await expect(input).toHaveAttribute('aria-required', 'false');
       await expect(input).not.hasAttribute('required');
       await expect(renders).toHaveText('1');
     });
@@ -105,6 +107,7 @@ test.describe('attributes', () => {
       await expect(input).toHaveAttribute('aria-hidden', 'false');
       await expect(input).toHaveAttribute('aria-label', 'even');
       await expect(input).toHaveAttribute('tabindex', '-1');
+      await expect(input).toHaveAttribute('aria-required', 'false');
       await expect(input).not.hasAttribute('required');
       await expect(svg).toHaveAttribute('aria-hidden', 'false');
       await expect(renders).toHaveText('1');
@@ -120,6 +123,7 @@ test.describe('attributes', () => {
       await expect(input).toHaveAttribute('aria-hidden', 'true');
       await expect(input).toHaveAttribute('aria-label', 'even');
       await expect(input).toHaveAttribute('tabindex', '-1');
+      await expect(input).toHaveAttribute('aria-required', 'true');
       await expect(input).hasAttribute('required');
       await expect(renders).toHaveText('1');
     });
@@ -140,6 +144,7 @@ test.describe('attributes', () => {
       await expect(input).not.hasAttribute('aria-label');
       await expect(input).not.hasAttribute('tabindex');
       await expect(input).not.hasAttribute('required');
+      await expect(input).not.hasAttribute('aria-required');
 
       await expect(renders).toHaveText('2');
     });
@@ -159,6 +164,7 @@ test.describe('attributes', () => {
       await expect(input).not.hasAttribute('aria-label');
       await expect(input).not.hasAttribute('tabindex');
       await expect(input).not.hasAttribute('required');
+      await expect(input).not.hasAttribute('aria-required');
       await expect(label).not.hasAttribute('for');
       await expect(label).not.hasAttribute('form');
       await expect(svg).not.hasAttribute('width');
@@ -175,6 +181,7 @@ test.describe('attributes', () => {
       await expect(input).toHaveAttribute('aria-label', 'even');
       await expect(input).toHaveAttribute('tabindex', '-1');
       await expect(input).not.hasAttribute('required');
+      await expect(input).toHaveAttribute('aria-required', 'false');
       await expect(label).toHaveAttribute('for', 'even');
       await expect(label).toHaveAttribute('form', 'my-form');
       await expect(svg).toHaveAttribute('width', '15');
@@ -191,6 +198,7 @@ test.describe('attributes', () => {
       await expect(input).not.hasAttribute('aria-label');
       await expect(input).not.hasAttribute('tabindex');
       await expect(input).not.hasAttribute('required');
+      await expect(input).not.hasAttribute('aria-required');
       await expect(label).not.hasAttribute('for');
       await expect(label).not.hasAttribute('form');
       await expect(svg).not.hasAttribute('width');
@@ -206,6 +214,7 @@ test.describe('attributes', () => {
       await expect(input).toHaveAttribute('aria-label', 'even');
       await expect(input).toHaveAttribute('tabindex', '-1');
       await expect(input).not.hasAttribute('required');
+      await expect(input).toHaveAttribute('aria-required', 'false');
       await expect(label).toHaveAttribute('for', 'even');
       await expect(label).toHaveAttribute('form', 'my-form');
       await expect(svg).toHaveAttribute('width', '15');

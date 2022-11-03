@@ -46,8 +46,6 @@ export interface GlobalInjections {
         [key: string]: string;
     };
     // (undocumented)
-    children?: string;
-    // (undocumented)
     location: 'head' | 'body';
     // (undocumented)
     tag: string;

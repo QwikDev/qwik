@@ -303,7 +303,6 @@ export interface GlobalInjections {
   tag: string;
   attributes?: { [key: string]: string };
   location: 'head' | 'body';
-  children?: string;
 }
 
 export interface GeneratedOutputBundle {

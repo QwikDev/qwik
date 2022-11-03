@@ -32,12 +32,12 @@ renderSSRSuite('render attributes', async () => {
 renderSSRSuite('render aria value', async () => {
   await testSSR(
     <div
-        id="stuff"
-        aria-required={true}
-        aria-busy={false}
-        role=""
-        preventdefault:click
-        aria-hidden={undefined}
+      id="stuff"
+      aria-required={true}
+      aria-busy={false}
+      role=""
+      preventdefault:click
+      aria-hidden={undefined}
     ></div>,
     `
         <html q:container="paused" q:version="dev" q:render="ssr-dev">

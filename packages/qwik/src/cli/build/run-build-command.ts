@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import color from 'kleur';
 import type { AppCommand } from '../utils/app-command';
-import { execa } from 'execa';
+import { execaCommand } from 'execa';
 import { pmRunCmd } from '../utils/utils';
 interface Step {
   title: string;
@@ -54,12 +54,12 @@ export async function runBuildCommand(app: AppCommand) {
   let typecheck: Promise<Step> | null = null;
 
   if (buildTypes && buildTypes.startsWith('tsc')) {
-    const tscScript = parseScript(buildTypes);
-    if (!tscScript.flags.includes('--pretty')) {
+    let copyScript = buildTypes;
+    if (!copyScript.includes('--pretty')) {
       // ensures colors flow throw when we console log the stdout
-      tscScript.flags.push('--pretty');
+      copyScript += ' --pretty';
     }
-    typecheck = execa(tscScript.cmd, tscScript.flags, {
+    typecheck = execaCommand(copyScript, {
       cwd: app.rootDir,
     })
     .then(() => ({
@@ -76,8 +76,7 @@ export async function runBuildCommand(app: AppCommand) {
   }
 
   if (buildClientScript) {
-    const clientScript = parseScript(buildClientScript);
-    await execa(clientScript.cmd, clientScript.flags, {
+    await execaCommand(buildClientScript, {
       stdio: 'inherit',
       cwd: app.rootDir,
     }).catch(() => {
@@ -91,8 +90,7 @@ export async function runBuildCommand(app: AppCommand) {
   const step2: Promise<Step>[] = [];
 
   if (buildLibScript) {
-    const libScript = parseScript(buildLibScript);
-    const libBuild = execa(libScript.cmd, libScript.flags, {
+    const libBuild = execaCommand(buildLibScript, {
       cwd: app.rootDir,
       env: {
         FORCE_COLOR: 'true',
@@ -116,8 +114,7 @@ export async function runBuildCommand(app: AppCommand) {
   }
 
   if (buildPreviewScript) {
-    const previewScript = parseScript(buildPreviewScript);
-    const previewBuild = execa(previewScript.cmd, previewScript.flags, {
+    const previewBuild = execaCommand(buildPreviewScript, {
       cwd: app.rootDir,
       env: {
         FORCE_COLOR: 'true',
@@ -141,8 +138,7 @@ export async function runBuildCommand(app: AppCommand) {
   }
 
   if (buildServerScript) {
-    const serverScript = parseScript(buildServerScript);
-    const serverBuild = execa(serverScript.cmd, serverScript.flags, {
+    const serverBuild = execaCommand(buildServerScript, {
       cwd: app.rootDir,
       env: {
         FORCE_COLOR: 'true',
@@ -166,8 +162,7 @@ export async function runBuildCommand(app: AppCommand) {
   }
 
   if (buildStaticScript) {
-    const staticScript = parseScript(buildStaticScript);
-    const staticBuild = execa(staticScript.cmd, staticScript.flags, {
+    const staticBuild = execaCommand(buildStaticScript, {
       cwd: app.rootDir,
       env: {
         FORCE_COLOR: 'true',
@@ -195,8 +190,7 @@ export async function runBuildCommand(app: AppCommand) {
   }
 
   if (lint) {
-    const lintScript = parseScript(lint);
-    const lintBuild = execa(lintScript.cmd, lintScript.flags, {
+    const lintBuild = execaCommand(lint, {
       cwd: app.rootDir,
       env: {
         FORCE_COLOR: 'true',
@@ -238,8 +232,7 @@ export async function runBuildCommand(app: AppCommand) {
       }
 
       if (isPreviewBuild && buildStaticScript && runSsgScript) {
-        const ssgScript = parseScript(buildStaticScript);
-        return execa(ssgScript.cmd, ssgScript.flags, {
+        return execaCommand(buildStaticScript, {
           cwd: app.rootDir,
           env: {
             FORCE_COLOR: 'true',
@@ -261,8 +254,3 @@ export async function runBuildCommand(app: AppCommand) {
   console.log(``);
 }
 
-function parseScript(s: string) {
-  const flags = s.split(' ');
-  const cmd = flags.shift()!;
-  return { cmd, flags };
-}

@@ -32,7 +32,7 @@ import { qrl } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0.js"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,4FAgBjB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,6FAgBhB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
@@ -106,7 +106,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B,CAAC,KAAY,GAAK;IAC5C,qBACI;;0BACI,KAAC,KAAG;0BAAE,IAAI,GAAG,CAAC,iBAAG,KAAC,GAAC;8BAAC,GAAC;kBAAI,iBAAG,KAAC,GAAC;8BAAC,GAAC;kBAAI;;;;cAAO;0BAC3C,KAAC,KAAG;0BAAE,IAAI,CAAC,KAAK,kBAAI,KAAC,KAAG,KAAO;;;;cAAO;0BACtC,KAAC,KAAG;0BAAE,IAAI,CAAC,KAAK,kBAAI,KAAC,KAAG,KAAO;;;;cAAO;0BACtC,KAAC,KAAG;0BAAE,IAAI,CAAC,KAAK,kBAAI,KAAC,KAAG,KAAO;;;;cAAO;0BACtC,MAAC,KAAG;;oBAAC,SAAO;oBAAC,CAAC,GAAG,CAAC,GAAG,CAAC;;;;;cAAO;0BAE7B,KAAC,KAAG;0BAAC,QAAM;cAAM;0BACjB,MAAC,KAAG;;oBAAC,SAAO;gCAAC,KAAK;;cAAa;0BAC/B,MAAC,KAAG;;oBAAC,SAAO;oBAAC,KAAK,EAAE;;cAAO;0BAC3B,MAAC,KAAG;;oBAAC,SAAO;oBAAC,KAAK,EAAE;;cAAO;;MAE5B,CACL;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B,CAAC,QAAiB;IAC5C,qBACI;;0BACI,KAAC;0BAAK,OAAO,kBAAI,KAAC;8BAAE;mCAAQ,KAAC;8BAAE;kBAAK;;;;;0BACpC,KAAC;0BAAK,KAAK,KAAK,kBAAI,KAAC;;;;;0BACrB,KAAC;0BAAK,KAAK,KAAK,kBAAI,KAAC;;;;;0BACrB,KAAC;0BAAK,KAAK,KAAK,kBAAI,KAAC;;;;;0BACrB,MAAC;;oBAAI;oBAAQ,IAAI,IAAI,CAAC;;;;;;0BAEtB,KAAC;0BAAI;;0BACL,MAAC;;oBAAI;gCAAQ;;;0BACb,MAAC;;oBAAI;oBAAQ;;;0BACb,MAAC;;oBAAI;oBAAQ;;;;;AAIzB\"}")
 /*
 {
   "origin": "test.tsx",

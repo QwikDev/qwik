@@ -85,8 +85,8 @@ export const Header = component$(() => {
             />
           </li>
           <li>
-            <a href="https://github.com/BuilderIO/qwik" target="_blank" title="Github">
-              <span class="md:hidden">Github</span>
+            <a href="https://github.com/BuilderIO/qwik" target="_blank" title="GitHub">
+              <span class="md:hidden">GitHub</span>
               <span class="hidden md:block">
                 <GithubLogo width={22} height={22} />
               </span>

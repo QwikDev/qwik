@@ -45,7 +45,7 @@ export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ck
 export const Cmp = /*#__PURE__*/ componentQrl(qrl(()=>import("./cmp_component_4rykjtokjwe"), "Cmp_component_4ryKJTOKjWE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,yFAmBjB,CAAC;AAEH,OAAO,MAAM,GAAG,iBAAG,yFAOjB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,0FAmBhB;AAEH,OAAO,MAAM,oBAAM,0FAOhB\"}")
 ============================= cmp_component_4rykjtokjwe.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
@@ -77,7 +77,7 @@ export const Cmp_component_4ryKJTOKjWE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAwB8B,CAAC,KAAK,GAAK;IACrC,qBACI;;0BACI,KAAC,GAAC;oBAAC,YAAU;2BAAE,KAAK,CAAC,KAAK;;sCAAG,KAAK,CAAC,MAAM;;oBAAtC,YAAU,cAAE,KAAK;;cAAgC;0BACpD,MAAC,GAAC;;oBAAC,QAAM;gCAAC,KAAK;kCAAO,KAAC,MAAI,KAAQ;;cAAI;;MACxC,CACL;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAwB8B,CAAC,QAAU;IACrC,qBACI;;0BACI,KAAC;oBAAE;2BAAY,MAAM,KAAK;;sCAAG,MAAM,MAAM;;oBAAtC,YAAU,cAAE;;;0BACf,MAAC;;oBAAE;gCAAO;kCAAY,KAAC;;;;;AAGnC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -133,7 +133,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B,IAAM;IAChC,MAAM,KAAK,GAAG,QAAQ,CAAC;QACnB,KAAK,EAAE,CAAC;QACR,KAAK,EAAE,CAAC;QACR,MAAM,EAAE;YACJ,KAAK,EAAE,CAAC;SACX;KACJ,CAAC,AAAC;IACH,MAAM,MAAM,GAAG,SAAS,CAAC,CAAC,CAAC,AAAC;IAC5B,qBACI,KAAC,GAAG;QACA,IAAI,EAAE,MAAM,GAAG,CAAC,GAAG,MAAM,GAAG,EAAE;YAC9B,KAAK;mBAAE,KAAK,CAAC,KAAK;;YAClB,MAAM;mBAAE,KAAK,CAAC,MAAM,CAAC,KAAK;;QAC1B,MAAM,EAAE,MAAM;QACd,KAAK,EAAE,KAAK,CAAC,KAAK,GAAG,EAAE;;YAJvB,IAAI;YACJ,KAAK,cAAE,KAAK;YACZ,MAAM,cAAE,KAAK,CAAC,MAAM;YACpB,MAAM;;MAGJ,CACR;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B,IAAM;IAChC,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,KAAC;QACG,MAAM,SAAS,IAAI,SAAS,EAAE;YAC9B;mBAAO,MAAM,KAAK;;YAClB;mBAAQ,MAAM,MAAM,CAAC,KAAK;;QAC1B,QAAQ;QACR,OAAO,MAAM,KAAK,GAAG;;YAJrB,IAAI;YACJ,KAAK,cAAE;YACP,MAAM,cAAE,MAAM,MAAM;YACpB,MAAM;;;AAKlB\"}")
 /*
 {
   "origin": "test.tsx",

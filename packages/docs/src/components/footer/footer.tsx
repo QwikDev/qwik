@@ -29,7 +29,7 @@ export const Footer = component$(() => {
             </a>
           </li>
           <li>
-            <a href="https://github.com/BuilderIO/qwik" target="_blank" title="Github">
+            <a href="https://github.com/BuilderIO/qwik" target="_blank" title="GitHub">
               <GithubLogo width={22} height={22} />
             </a>
           </li>

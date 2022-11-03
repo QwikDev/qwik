@@ -32,6 +32,36 @@ export interface ContentMenu {
     text: string;
 }
 
+// @alpha (undocumented)
+export interface Cookie {
+    delete(name: string): void;
+    get(name: string): CookieValue | null;
+    has(name: string): boolean;
+    headers(): string[];
+    set(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;
+}
+
+// @alpha
+export interface CookieOptions {
+    domain?: string;
+    expires?: Date | string;
+    httpOnly?: boolean;
+    maxAge?: number | [number, 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks'];
+    path?: string;
+    sameSite?: 'strict' | 'lax' | 'none';
+    secure?: boolean;
+}
+
+// @alpha (undocumented)
+export interface CookieValue {
+    // (undocumented)
+    json: <T = unknown>() => T;
+    // (undocumented)
+    number: () => number;
+    // (undocumented)
+    value: string;
+}
+
 // Warning: (ae-forgotten-export) The symbol "GetEndpointData" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
@@ -176,6 +206,8 @@ export interface RequestContext {
 export interface RequestEvent<PLATFORM = unknown> {
     // (undocumented)
     abort: () => void;
+    // (undocumented)
+    cookie: Cookie;
     // (undocumented)
     next: () => Promise<void>;
     params: RouteParams;

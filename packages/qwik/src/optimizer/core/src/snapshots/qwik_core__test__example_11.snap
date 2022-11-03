@@ -30,7 +30,7 @@ import dep3 from "dep3/something";
 export const Header_component_Header_onClick_KjD9TCNkNxY = (ev)=>dep3(ev);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";2DAQ2B,CAAC,EAAE,GAAK,IAAI,CAAC,EAAE,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";2DAQ2B,CAAC,KAAO,KAAK\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -65,7 +65,7 @@ export const Header_component_UVBJuFYfvDo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC,IAAM;IACnC,QACK,MAAM,CAAC,OAAO,mFAAuB;;YAClC,CAAC,IAAI,CAAC,KAAK,EAAE,EAAE,IAAI,EAAE,CAAC;;QAC1B,EAAE,MAAM,EACV;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC,IAAM;IACnC,QACK,OAAO,0FAA8B;;YAClC,CAAC,KAAK,KAAK,IAAI,OAAO;;QAC1B,EAAE;AAEV\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -94,7 +94,7 @@ export const App_component_wGkRHWXaqjs = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;yCAc8B,IAAM;IAChC,QACK,MAAM,GAAE,GAAG,EAAE,GAAG,MAAM,EACzB;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;yCAc8B,IAAM;IAChC,QACK,SAAQ,QAAQ;AAEzB\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -122,7 +122,7 @@ export const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("../entry_hooks"
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("../entry_hooks"), "App_component_wGkRHWXaqjs"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,MAAM,iBAAG,+EAMpB,CAAC;AAEH,OAAO,MAAM,GAAG,iBAAG,4EAIjB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,uBAAS,gFAMnB;AAEH,OAAO,MAAM,oBAAM,6EAIhB\"}")
 ============================= entry_hooks.js (ENTRY POINT)==
 
 export { Header_component_Header_onClick_KjD9TCNkNxY } from "./header_component_header_onclick_kjd9tcnknxy";

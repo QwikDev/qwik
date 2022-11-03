@@ -117,7 +117,7 @@ export default component$(() => {
         <li>
           <span>Open issues and contribute on </span>
           <a href="https://github.com/BuilderIO/qwik" target="_blank">
-            Github
+            GitHub
           </a>
         </li>
         <li>
@@ -136,4 +136,10 @@ export default component$(() => {
 
 export const head: DocumentHead = {
   title: 'Welcome to Qwik',
+  meta: [
+    {
+      name: 'description',
+      content: 'Qwik site description',
+    },
+  ],
 };

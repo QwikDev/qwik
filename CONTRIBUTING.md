@@ -32,7 +32,7 @@ Next the `start` command will:
 yarn start
 ```
 
-Finally you can use yarn workspace command to run packages' commands, for example:
+Finally, you can use yarn workspace command to run packages' commands, for example:
 
 ```
 yarn workspace qwik-docs dev.ssr
@@ -121,10 +121,10 @@ You'll be asked guiding questions which will eventually create a descriptive com
 1. Run `yarn release.prepare`, which will test, lint and build.
 2. Use the interactive UI to select the next version, which will update the `package.json` `version` property, add the git change, and start a commit message.
 3. Create a PR with the `package.json` change to merge to `main`.
-4. After the `package.json` with the updated version is in `main`, click the [Run Workflow](https://github.com/BuilderIO/qwik/actions/workflows/ci.yml) button from the "Qwik CI" Github Action workflow.
+4. After the `package.json` with the updated version is in `main`, click the [Run Workflow](https://github.com/BuilderIO/qwik/actions/workflows/ci.yml) button from the "Qwik CI" GitHub Action workflow.
 5. Select the NPM dist-tag that should be used for this version, then click "Run Workflow".
-6. The Github Action will dispatch the workflow to build `@builder.io/qwik` and each of the submodules, build WASM and native bindings, combine them into one package, and validate the package before publishing to NPM.
-7. If the build is successful and all tests and validation passes, the workflow will automatically publish to NPM, commit a git tag to the repo, and create a Github release.
+6. The GitHub Action will dispatch the workflow to build `@builder.io/qwik` and each of the submodules, build WASM and native bindings, combine them into one package, and validate the package before publishing to NPM.
+7. If the build is successful and all tests and validation passes, the workflow will automatically publish to NPM, commit a git tag to the repo, and create a GitHub release.
 8. 🚀
 
 ## Pre-submit hooks
@@ -135,7 +135,7 @@ The project has pre-submit hooks, which ensure that your code is correctly forma
 yarn lint
 ```
 
-Some of the issues can be fixed automatically by using:
+Some issues can be fixed automatically by using:
 
 ```
 yarn fmt

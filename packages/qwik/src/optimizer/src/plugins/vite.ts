@@ -301,10 +301,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const resolver = this.resolve.bind(this);
       await qwikPlugin.validateSource(resolver);
 
-      qwikPlugin.onAddWatchFile((ctx, path) => {
-        ctx.addWatchFile(path);
-      });
-
       qwikPlugin.onDiagnostics((diagnostics, optimizer, srcDir) => {
         diagnostics.forEach((d) => {
           const id = qwikPlugin.normalizePath(optimizer.sys.path.join(srcDir, d.file));
@@ -516,6 +512,18 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     handleHotUpdate(ctx) {
       qwikPlugin.log('handleHotUpdate()', ctx);
+
+      for (const mod of ctx.modules) {
+        const deps = mod.info?.meta?.qwikdeps;
+        if (deps) {
+          for (const dep of deps) {
+            const mod = ctx.server.moduleGraph.getModuleById(dep);
+            if (mod) {
+              ctx.server.moduleGraph.invalidateModule(mod);
+            }
+          }
+        }
+      }
 
       if (['.css', '.scss', '.sass'].some((ext) => ctx.file.endsWith(ext))) {
         qwikPlugin.log('handleHotUpdate()', 'force css reload');

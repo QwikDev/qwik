@@ -82,10 +82,6 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     async buildStart() {
-      qwikPlugin.onAddWatchFile((ctx, path) => {
-        ctx.addWatchFile(path);
-      });
-
       qwikPlugin.onDiagnostics((diagnostics, optimizer, srcDir) => {
         diagnostics.forEach((d) => {
           const id = qwikPlugin.normalizePath(optimizer.sys.path.join(srcDir, d.file));

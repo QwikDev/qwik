@@ -108,6 +108,7 @@
     "packages/qwik",
     "packages/qwik-city",
     "packages/qwik-react",
+    "packages/qwik-svelte",
     "packages/eslint-plugin-qwik"
   ],
   "contributors": [

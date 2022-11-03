@@ -198,19 +198,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/qwik-city@npm:0.0.112":
-  version: 0.0.112
-  resolution: "@builder.io/qwik-city@npm:0.0.112"
-  dependencies:
-    "@mdx-js/mdx": 2.1.3
-    "@types/mdx": 2.0.2
-    source-map: 0.7.4
-    vfile: 5.3.5
-  checksum: 7f39ac2f296a734c201efbbea227119e517a540bd7c54757832d33d18dc08b866501267dfc62757dd29f3b63a7165f9170407c67dbd41173810d05600d8230e5
-  languageName: node
-  linkType: hard
-
-"@builder.io/qwik-city@workspace:packages/qwik-city":
+"@builder.io/qwik-city@0.0.118, @builder.io/qwik-city@workspace:packages/qwik-city":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik-city@workspace:packages/qwik-city"
   dependencies:
@@ -604,31 +592,6 @@ __metadata:
     "@jridgewell/resolve-uri": 3.1.0
     "@jridgewell/sourcemap-codec": 1.4.14
   checksum: 9d703b859cff5cd83b7308fd457a431387db5db96bd781a63bf48e183418dd9d3d44e76b9e4ae13237f6abeeb25d739ec9215c1d5bfdd08f66f750a50074a339
-  languageName: node
-  linkType: hard
-
-"@mdx-js/mdx@npm:2.1.3":
-  version: 2.1.3
-  resolution: "@mdx-js/mdx@npm:2.1.3"
-  dependencies:
-    "@types/estree-jsx": ^1.0.0
-    "@types/mdx": ^2.0.0
-    estree-util-build-jsx: ^2.0.0
-    estree-util-is-identifier-name: ^2.0.0
-    estree-util-to-js: ^1.1.0
-    estree-walker: ^3.0.0
-    hast-util-to-estree: ^2.0.0
-    markdown-extensions: ^1.0.0
-    periscopic: ^3.0.0
-    remark-mdx: ^2.0.0
-    remark-parse: ^10.0.0
-    remark-rehype: ^10.0.0
-    unified: ^10.0.0
-    unist-util-position-from-estree: ^1.0.0
-    unist-util-stringify-position: ^3.0.0
-    unist-util-visit: ^4.0.0
-    vfile: ^5.0.0
-  checksum: e13628758c47416beb38589036e9b3b96a647394afa9a93ce6f7b17b6f0bca07b8da6499ae3b9d2792b52e556e70ac099cb869119ecd0c024f284be3a1981c63
   languageName: node
   linkType: hard
 
@@ -1563,13 +1526,6 @@ __metadata:
   dependencies:
     "@types/unist": "*"
   checksum: 3f587bfc0a9a2403ecadc220e61031b01734fedaf82e27eb4d5ba039c0eb54db8c85681ccc070ab4df3f7ec711b736a82b990e69caa14c74bf7ac0ccf2ac7313
-  languageName: node
-  linkType: hard
-
-"@types/mdx@npm:2.0.2":
-  version: 2.0.2
-  resolution: "@types/mdx@npm:2.0.2"
-  checksum: a10b78946019fe78f7dba749e90924c29a59b23171e7c6aa41f3220a491723c14729212b99eb4e9e1f847d5f4a574ddc4e03c49a2621470e9c822082874eeafc
   languageName: node
   linkType: hard
 
@@ -7576,7 +7532,7 @@ __metadata:
     "@algolia/client-search": ^4.14.2
     "@builder.io/partytown": ^0.7.1
     "@builder.io/qwik": 0.12.1
-    "@builder.io/qwik-city": 0.0.112
+    "@builder.io/qwik-city": 0.0.118
     "@builder.io/sdk-qwik": ^0.0.31
     "@cloudflare/kv-asset-handler": 0.2.0
     "@docsearch/css": ^3.3.0

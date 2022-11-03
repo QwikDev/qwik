@@ -27,6 +27,7 @@ import {
 import { getVdom, ProcessedJSXNode, ProcessedJSXNodeImpl, renderComponent } from './render-dom';
 import type { RenderContext, RenderStaticContext } from '../types';
 import {
+  isAriaAttribute,
   parseClassList,
   pushRenderContext,
   serializeClass,
@@ -909,6 +910,12 @@ export const smartSetProperty = (
   oldValue: any,
   isSvg: boolean
 ) => {
+  // aria attribute value should be rendered as string
+  if (isAriaAttribute(prop)) {
+    setAttribute(staticCtx, elm, prop, newValue != null ? String(newValue) : newValue);
+    return;
+  }
+
   // Check if its an exception
   const exception = PROP_HANDLER_MAP[prop];
   if (exception) {

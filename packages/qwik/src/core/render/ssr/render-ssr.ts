@@ -7,6 +7,7 @@ import {
   createRenderContext,
   executeComponent,
   getNextIndex,
+  isAriaAttribute,
   jsxToString,
   stringifyStyle,
 } from '../execute-component';
@@ -792,10 +793,6 @@ function processPropKey(prop: string) {
     return 'for';
   }
   return prop;
-}
-
-function isAriaAttribute(prop: string): boolean {
-  return prop.startsWith('aria-');
 }
 
 function processPropValue(prop: string, value: any): string | null {

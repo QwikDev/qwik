@@ -91,6 +91,7 @@ renderSuite('should render aria', async () => {
       aria-busy={false}
       role=""
       preventdefault:click
+      aria-hidden={undefined}
     ></div>
   );
   await expectRendered(

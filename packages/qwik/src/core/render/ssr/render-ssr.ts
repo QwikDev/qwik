@@ -799,13 +799,14 @@ function processPropValue(prop: string, value: any): string | null {
   if (prop === 'style') {
     return stringifyStyle(value);
   }
-  if (!isAriaAttribute(prop)) {
-    if (value === false || value == null) {
-      return null;
-    }
-    if (value === true) {
-      return '';
-    }
+  if (isAriaAttribute(prop)) {
+    return value != null ? String(value) : value;
+  }
+  if (value === false || value == null) {
+    return null;
+  }
+  if (value === true) {
+    return '';
   }
   return String(value);
 }

@@ -455,7 +455,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     ctx: PluginContext,
     code: string,
     id: string,
-    onChange?: (key: string) => void
   ) {
     if (opts.forceFullBuild) {
       // Only run when moduleIsolated === true

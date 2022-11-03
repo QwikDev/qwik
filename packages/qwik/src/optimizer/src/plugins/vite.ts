@@ -41,7 +41,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let viteCommand: 'build' | 'serve' = 'serve';
   let manifestInput: QwikManifest | null = null;
   let clientOutDir: string | null = null;
-  let server: ViteDevServer | null = null;
   const injections: GlobalInjections[] = [];
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
@@ -355,15 +354,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           code = updateEntryDev(code);
         }
       }
-      const onChange = server
-        ? (key: string) => {
-            const node = server?.moduleGraph.getModuleById(key);
-            if (node) {
-              server!.moduleGraph.invalidateModule(node);
-            }
-          }
-        : undefined;
-      return qwikPlugin.transform(this, code, id, onChange);
+      return qwikPlugin.transform(this, code, id);
     },
 
     generateBundle: {
@@ -503,11 +494,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
     },
 
-    async configureServer(s: ViteDevServer) {
+    async configureServer(server: ViteDevServer) {
       const opts = qwikPlugin.getOptions();
       const sys = qwikPlugin.getSys();
       const path = qwikPlugin.getPath();
-      server = s;
       await configureDevServer(server, opts, sys, path, isClientDevOnly, clientDevInput);
     },
 

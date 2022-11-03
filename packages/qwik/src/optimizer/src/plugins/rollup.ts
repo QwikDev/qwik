@@ -82,10 +82,6 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     async buildStart() {
-      qwikPlugin.onAddWatchFile((ctx, path) => {
-        ctx.addWatchFile(path);
-      });
-
       qwikPlugin.onDiagnostics((diagnostics, optimizer, srcDir) => {
         diagnostics.forEach((d) => {
           const id = qwikPlugin.normalizePath(optimizer.sys.path.join(srcDir, d.file));
@@ -121,52 +117,55 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
       return qwikPlugin.transform(this, code, id);
     },
 
-    async generateBundle(_, rollupBundle) {
-      const opts = qwikPlugin.getOptions();
+    generateBundle: {
+      order: 'post',
+      async handler(_, rollupBundle) {
+        const opts = qwikPlugin.getOptions();
 
-      if (opts.target === 'client') {
-        // client build
-        const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
+        if (opts.target === 'client') {
+          // client build
+          const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
 
-        for (const fileName in rollupBundle) {
-          const b = rollupBundle[fileName];
-          if (b.type === 'chunk') {
-            outputAnalyzer.addBundle({
-              fileName,
-              modules: b.modules,
-              imports: b.imports,
-              dynamicImports: b.dynamicImports,
-              size: b.code.length,
-            });
+          for (const fileName in rollupBundle) {
+            const b = rollupBundle[fileName];
+            if (b.type === 'chunk') {
+              outputAnalyzer.addBundle({
+                fileName,
+                modules: b.modules,
+                imports: b.imports,
+                dynamicImports: b.dynamicImports,
+                size: b.code.length,
+              });
+            }
           }
-        }
 
-        const optimizer = qwikPlugin.getOptimizer();
-        const manifest = await outputAnalyzer.generateManifest();
-        manifest.platform = {
-          ...versions,
-          rollup: this.meta?.rollupVersion || '',
-          env: optimizer.sys.env,
-          os: optimizer.sys.os,
-        };
-        if (optimizer.sys.env === 'node') {
-          manifest.platform.node = process.versions.node;
-        }
+          const optimizer = qwikPlugin.getOptimizer();
+          const manifest = await outputAnalyzer.generateManifest();
+          manifest.platform = {
+            ...versions,
+            rollup: this.meta?.rollupVersion || '',
+            env: optimizer.sys.env,
+            os: optimizer.sys.os,
+          };
+          if (optimizer.sys.env === 'node') {
+            manifest.platform.node = process.versions.node;
+          }
 
-        if (typeof opts.manifestOutput === 'function') {
-          await opts.manifestOutput(manifest);
-        }
+          if (typeof opts.manifestOutput === 'function') {
+            await opts.manifestOutput(manifest);
+          }
 
-        if (typeof opts.transformedModuleOutput === 'function') {
-          await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
-        }
+          if (typeof opts.transformedModuleOutput === 'function') {
+            await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
+          }
 
-        this.emitFile({
-          type: 'asset',
-          fileName: Q_MANIFEST_FILENAME,
-          source: JSON.stringify(manifest, null, 2),
-        });
-      }
+          this.emitFile({
+            type: 'asset',
+            fileName: Q_MANIFEST_FILENAME,
+            source: JSON.stringify(manifest, null, 2),
+          });
+        }
+      },
     },
   };
 

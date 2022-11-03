@@ -451,11 +451,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
 
-  const transform = async function (
-    ctx: PluginContext,
-    code: string,
-    id: string,
-  ) {
+  const transform = async function (ctx: PluginContext, code: string, id: string) {
     if (opts.forceFullBuild) {
       // Only run when moduleIsolated === true
       return null;

@@ -1,0 +1,58 @@
+---
+title: Qwik City and tRPC + Prisma
+contributors:
+  - gioboa
+
+---
+
+# tRPC
+
+tRPC is for full-stack TypeScript developers and it's an alternative to traditional REST or GraphQL.
+it allows you to easily build & consume fully typesafe APIs, without schemas or code generation.
+If your project is built with full-stack TypeScript, you can share types directly between your client and server, without relying on code generation.
+[tRPC Website](https://trpc.io/)
+
+# Prisma
+
+Next-generation Node.js and TypeScript ORM
+Prisma unlocks a new level of developer experience when working with databases thanks to its intuitive data model, automated migrations, type-safety & auto-completion.
+[Prisma](https://www.prisma.io/)
+
+## Usage
+
+You can add tRPC + Prisma easily by using the following Qwik starter script:
+
+```bash
+npm run qwik add trpc-prisma
+```
+
+The previous command updates your app and sets the correct configuration.
+
+It also adds new files inside to your project.
+
+```
+prisma/
+└── schema.prisma
+└── seed.ts
+src/
+└── client/
+|   └── trpc.ts
+└── trpc-server/
+|   └── context.ts
+|   └── trpc.ts
+|   └── router/
+|       └── framework.ts
+|       └── index.ts
+└── routes/
+    └── trpc-prisma/
+    |   └── index.tsx
+    └── api/
+        └── trpc/
+            └── [trpc]/
+                └── index.ts
+```
+
+## Action Required
+
+After execute command success you can use `npm run qwik-trpc-prisma:dev` command to run the app
+You can see the working example at /trpc-prisma route

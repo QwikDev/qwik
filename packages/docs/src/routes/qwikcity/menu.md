@@ -39,6 +39,7 @@
 - [React](integrations/react/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)
 - [Tailwind](integrations/tailwind/index.mdx)
+- [tRPC-Prisma](integrations/trpc-prisma/index.mdx)
 
 ## Server adaptors
 

@@ -1,0 +1,41 @@
+{
+  "description": "Use tRPC and Prisma into your Qwik app",
+  "scripts": {
+    "prisma:studio": "prisma studio --schema=./prisma/schema.prisma",
+    "prisma:migrate": "prisma migrate dev --name init --schema=./prisma/schema.prisma",
+    "prisma:generate": "prisma generate --schema=./prisma/schema.prisma",
+    "prisma:db-seed": "tsx prisma/seed.ts",
+    "qwik-trpc-prisma:dev": "run-s prisma:migrate prisma:generate prisma:db-seed && npm run dev"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5",
+    "tsx": "^3.11.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^4.5.0",
+    "@trpc/client": "^10.0.0-rc.3",
+    "@trpc/server": "^10.0.0-rc.3",
+    "prisma": "^4.5.0",
+    "superjson": "^1.11.0",
+    "zod": "^3.19.1"
+  },
+  "__qwik__": {
+    "displayName": "Integration: tRPC (APIs) and Prisma (ORM)",
+    "priority": -10,
+    "viteConfig": {},
+    "docs": [
+      "https://qwik.builder.io/qwikcity/integrations/trpc-prisma/",
+      "https://tRPC.io",
+      "https://prisma.io"
+    ],
+    "nextSteps": {
+      "lines": [
+        "------------------------------------------------------",
+        "Now use `npm run qwik-trpc-prisma:dev` command to run the app",
+        "",
+        "You can see the working example at /trpc-prisma route",
+        "------------------------------------------------------"
+      ]
+    }
+  }
+}

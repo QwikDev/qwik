@@ -271,7 +271,27 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/qwik@0.12.1, @builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
+"@builder.io/qwik-svelte@workspace:packages/qwik-svelte":
+  version: 0.0.0-use.local
+  resolution: "@builder.io/qwik-svelte@workspace:packages/qwik-svelte"
+  dependencies:
+    "@builder.io/qwik": "workspace:^"
+    "@builder.io/qwik-city": "workspace:^"
+    "@sveltejs/vite-plugin-svelte": ^1.1.0
+    "@types/react": ^18.0.24
+    react: ^18.2.0
+    svelte: ^3.52.0
+    typescript: 4.8.4
+    vite: 3.2.1
+  peerDependencies:
+    "@builder.io/qwik": ">=0.1.11"
+    "@builder.io/qwik-city": ">=0.1.118"
+    "@sveltejs/vite-plugin-svelte": ^1.1.0
+    svelte: ^3.52.0
+  languageName: unknown
+  linkType: soft
+
+"@builder.io/qwik@0.12.1, @builder.io/qwik@workspace:*, @builder.io/qwik@workspace:^, @builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   bin:
@@ -1748,7 +1768,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:18.0.24":
+"@types/react@npm:18.0.24, @types/react@npm:^18.0.24":
   version: 18.0.24
   resolution: "@types/react@npm:18.0.24"
   dependencies:
@@ -9293,6 +9313,41 @@ __metadata:
   bin:
     vite: bin/vite.js
   checksum: 982696ad134577dd9915c4c3548ad36ddcf5dc6d341058548a670a13d860e4cdaaf2b320a59221f178018df089d148b9980e9a344316bef12b698a1c1abc7390
+  languageName: node
+  linkType: hard
+
+"vite@npm:3.2.1":
+  version: 3.2.1
+  resolution: "vite@npm:3.2.1"
+  dependencies:
+    esbuild: ^0.15.9
+    fsevents: ~2.3.2
+    postcss: ^8.4.18
+    resolve: ^1.22.1
+    rollup: ^2.79.1
+  peerDependencies:
+    less: "*"
+    sass: "*"
+    stylus: "*"
+    sugarss: "*"
+    terser: ^5.4.0
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    less:
+      optional: true
+    sass:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    terser:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: d33f6f4c80f85f327cf74c56d2189f1ba1d808987501eae9455c65bbb1ba5ea96af0f68647e18fe0c61e82126ea91f10480c1e80964a6836a751502647a42f2b
   languageName: node
   linkType: hard
 

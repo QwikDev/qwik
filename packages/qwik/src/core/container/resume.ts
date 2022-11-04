@@ -17,26 +17,21 @@ import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { createParser, OBJECT_TRANSFORMS, Parser, UNDEFINED_PREFIX } from './serializers';
 import {
   ContainerState,
-  // FILTER_ACCEPT,
-  // FILTER_REJECT,
-  // FILTER_SKIP,
   getContainerState,
   GetObject,
   isContainer,
   SHOW_COMMENT,
-  // SHOW_ELEMENT,
   SnapshotState,
   strToInt,
 } from './container';
 import { findClose, QwikElement, VirtualElementImpl } from '../render/dom/virtual-element';
 import { getDomListeners } from '../state/listeners';
-// import { domToVnode } from '../render/dom/visitor';
 import { parseSubscription, Subscriptions } from '../state/common';
 import { createProxy } from '../state/store';
 import { qSerialize } from '../util/qdev';
 import { pauseContainer } from './pause';
 import { getContext, HOST_FLAG_MOUNTED } from '../state/context';
-import { QObjectFlagsSymbol } from '../state/constants';
+import { QObjectFlagsSymbol, QObjectImmutable } from '../state/constants';
 import { domToVnode } from '../render/dom/visitor';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
@@ -181,6 +176,13 @@ export const resumeContainer = (containerEl: Element) => {
       elCtx.$componentQrl$ = getObject(renderQrl);
       if (props) {
         elCtx.$props$ = getObject(props);
+      } else {
+        elCtx.$props$ = createProxy(
+          {
+            [QObjectFlagsSymbol]: QObjectImmutable,
+          },
+          containerState
+        );
       }
     }
   }

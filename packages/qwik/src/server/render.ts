@@ -19,7 +19,7 @@ import { getValidManifest } from '../optimizer/src/manifest';
 import { applyPrefetchImplementation } from './prefetch-implementation';
 import type { QContext } from '../core/state/context';
 
-const DOCTYPE = '<!DOCTYPE html><!--cq-->';
+const DOCTYPE = '<!DOCTYPE html>';
 
 /**
  * Creates a server-side `document`, renders to root node to the document,
@@ -101,6 +101,7 @@ export async function renderToStream(
   if (containerTagName === 'html') {
     stream.write(DOCTYPE);
   } else {
+    stream.write('<!--cq-->');
     if (opts.qwikLoader) {
       if (opts.qwikLoader.include === undefined) {
         opts.qwikLoader.include = 'never';
@@ -205,7 +206,9 @@ export async function renderToStream(
   });
 
   // End of container
-  stream.write('<!--/cq-->');
+  if (containerTagName !== 'html') {
+    stream.write('<!--/cq-->');
+  }
 
   // Flush remaining chunks in the buffer
   flush();

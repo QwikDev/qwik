@@ -277,7 +277,13 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
   assertQrl(qrl);
 
   const containerState = rCtx.$renderCtx$.$static$.$containerState$;
-  const watch = new Watch(WatchFlagsIsDirty | WatchFlagsIsWatch, i, elCtx.$element$, qrl, undefined);
+  const watch = new Watch(
+    WatchFlagsIsDirty | WatchFlagsIsWatch,
+    i,
+    elCtx.$element$,
+    qrl,
+    undefined
+  );
   set(true);
   qrl.$resolveLazy$(containerState.$containerEl$);
   if (!elCtx.$watches$) {

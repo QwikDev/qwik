@@ -43,7 +43,10 @@ export const tryGetContext = (element: QwikElement): QContext | undefined => {
   return (element as any)[Q_CTX];
 };
 
-export const getContext = (element: Element | VirtualElement, _containerState: ContainerState): QContext => {
+export const getContext = (
+  element: Element | VirtualElement,
+  _containerState: ContainerState
+): QContext => {
   const ctx = tryGetContext(element)!;
   if (ctx) {
     return ctx;

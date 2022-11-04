@@ -14,7 +14,13 @@ import {
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
 import { InternalSSRStream, Virtual, SSRRaw } from '../jsx/utils.public';
 import { logError, logWarn } from '../../util/log';
-import { groupListeners, isOnProp, Listener, PREVENT_DEFAULT, setEvent } from '../../state/listeners';
+import {
+  groupListeners,
+  isOnProp,
+  Listener,
+  PREVENT_DEFAULT,
+  setEvent,
+} from '../../state/listeners';
 import { version } from '../../version';
 import {
   addQwikEvent,
@@ -883,7 +889,7 @@ export const listenersNeedId = (listeners: Listener[]) => {
   if (listeners.length === 0) {
     return false;
   }
-  return listeners.some(l => l[1].$captureRef$ && l[1].$captureRef$.length > 0);
+  return listeners.some((l) => l[1].$captureRef$ && l[1].$captureRef$.length > 0);
 };
 
 const hasDynamicChildren = (node: JSXNode) => {

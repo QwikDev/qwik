@@ -569,7 +569,7 @@ const collectElement = (el: VirtualElement, collector: Collector) => {
 };
 
 export const collectElementData = (elCtx: QContext, collector: Collector, dynamic: boolean) => {
-  if (elCtx.$props$ && !isEmptyObj(elCtx.$props$)) {
+  if (elCtx.$props$) {
     collectValue(elCtx.$props$, collector, dynamic);
   }
   if (elCtx.$componentQrl$) {

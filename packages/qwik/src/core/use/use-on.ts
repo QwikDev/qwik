@@ -130,7 +130,10 @@ export const useOnWindow = (event: string | string[], eventQrl: QRL<(ev: Event) 
 
 const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: Event) => void>) => {
   const invokeCtx = useInvokeContext();
-  const elCtx = getContext(invokeCtx.$hostElement$, invokeCtx.$renderCtx$.$static$.$containerState$);
+  const elCtx = getContext(
+    invokeCtx.$hostElement$,
+    invokeCtx.$renderCtx$.$static$.$containerState$
+  );
   assertQrl(eventQrl);
   if (typeof eventName === 'string') {
     elCtx.li.push([normalizeOnProp(eventName), eventQrl]);

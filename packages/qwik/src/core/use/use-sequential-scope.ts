@@ -9,7 +9,6 @@ export interface SequentialScope<T> {
   readonly i: number;
   readonly rCtx: RenderInvokeContext;
   readonly elCtx: QContext;
-
 }
 
 export const useSequentialScope = <T>(): SequentialScope<T> => {

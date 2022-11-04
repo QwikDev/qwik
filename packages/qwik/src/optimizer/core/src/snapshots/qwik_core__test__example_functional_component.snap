@@ -25,7 +25,7 @@ export const Header_component_J4uyIhaBNR4 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAE0B,IAAM;IAC5B,MAAM,KAAK,GAAG,QAAQ,EAAE,AAAC;IACzB,MAAM,EAAC,GAAG,CAAA,EAAE,GAAG,CAAA,EAAC,GAAG,GAAG,EAAE,AAAC;IAEzB,QACK,GAAG,GAAE,KAAK,GAAG,GAAG,EACnB;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAE0B,IAAM;IAC5B,MAAM,QAAQ;IACd,MAAM,EAAC,IAAG,EAAE,IAAG,EAAC,GAAG;IAEnB,QACK,MAAK,QAAQ;AAEtB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -53,7 +53,7 @@ import { $, component$, useStore } from '@builder.io/qwik';
 const Header = /*#__PURE__*/ componentQrl(qrl(()=>import("./header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAS,CAAC,EAAE,UAAU,EAAE,QAAQ,QAAQ,kBAAkB,CAAC;AAC3D,MAAM,MAAM,iBAAG,+FAOb,AAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAS,CAAC,EAAE,UAAU,EAAE,QAAQ,QAAQ,mBAAmB;AAC3D,MAAM,uBAAS\"}")
 == DIAGNOSTICS ==
 
 []

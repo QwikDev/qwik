@@ -5,16 +5,6 @@ import { qwikCity } from '@builder.io/qwik-city/vite';
 export default defineConfig(() => {
   return {
     build: {
-      target: 'es2020',
-      outDir: '../lib',
-      lib: {
-        entry: './src/index.ts',
-        formats: ['es', 'cjs'],
-        fileName: (format) => `index.qwik.${format === 'es' ? 'mjs' : 'cjs'}`,
-      },
-      rollupOptions: {
-        external: ['@qwik-city-plan'],
-      },
       minify: false,
     },
     resolve: {

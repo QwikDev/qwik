@@ -6,6 +6,10 @@ import type { RenderOptions } from '@builder.io/qwik';
 import qwikCityPlan from '@qwik-city-plan';
 import type { RequestHandler } from '~qwik-city-runtime';
 
+const isNetlifyPath = (url: string) => {
+  return new URL(url).pathname.startsWith('/.netlify');
+};
+
 // @builder.io/qwik-city/middleware/netlify-edge
 
 /**
@@ -13,6 +17,9 @@ import type { RequestHandler } from '~qwik-city-runtime';
  */
 export function createQwikCity(opts: QwikCityNetlifyOptions) {
   async function onRequest(request: Request, context: Context) {
+    if (isNetlifyPath(request.url)) {
+      return context.next();
+    }
     try {
       const requestCtx: QwikCityRequestContext<Response> = {
         url: new URL(request.url),
@@ -22,6 +29,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
             let flushedHeaders = false;
             const { readable, writable } = new TransformStream();
             const writer = writable.getWriter();
+
             const response = new Response(readable, { status, headers });
 
             body({
@@ -102,4 +110,7 @@ export function qwikCity(render: Render, opts?: RenderOptions) {
 /**
  * @alpha
  */
-export type RequestHandlerNetlify<T = unknown> = RequestHandler<T, Omit<Context, 'next'>>;
+export type RequestHandlerNetlify<T = unknown> = RequestHandler<
+  T,
+  Omit<Context, 'next' | 'cookies'>
+>;

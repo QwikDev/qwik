@@ -41,7 +41,7 @@ export const Foo_component_HTDRsvUbLiE = ({ foo  })=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,CAAC,EAAC,GAAG,CAAA,EAAC,GAAK;IACrC,MAAM,IAAI,GAAG,EAAE,AAAC;IAChB;;;OAOG;AACP,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,CAAC,EAAC,IAAG,EAAC,GAAK;IACrC,MAAM,OAAO;IACb;;;;AAQJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -71,7 +71,7 @@ export const Bar_component_L80pS8Hxf1Y = ({ bar  })=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAe8B,CAAC,EAAC,GAAG,CAAA,EAAC,GAAK;IACrC;;OAMG;AACP,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAe8B,CAAC,EAAC,IAAG,EAAC,GAAK;IACrC;;;AAOJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -106,7 +106,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKa;;IACL,MAAM,EAAE,GAAG,CAAC,EAAC,GAAG,CAAA,EAAC,GAAK,GAAG,AAAC;IAC1B,QACK,GAAG,EAAC;;cACH,CAAC,GAAG,EAAE,EAAE,EAAE,EAAE,IAAI,CAAC;;YACnB,EAAE,GAAG,EACR;CACJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKa;;IACL,MAAM,KAAK,CAAC,EAAC,IAAG,EAAC,GAAK;IACtB,QACK,KAAI;;cACH,CAAC,KAAK,MAAM,KAAK;;YACnB,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -140,7 +140,7 @@ export const Bar_component_1_0xSyNSnVu3k = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAgBa;;IACL,QACK,GAAG,EAAC;;cACH,CAAC,GAAG,CAAC;;YACP,EAAE,GAAG,EACR;CACJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAgBa;;IACL,QACK,KAAI;;cACH,CAAC,IAAI;;YACP,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -168,7 +168,7 @@ export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_ht
 export const Bar = /*#__PURE__*/ componentQrl(qrl(()=>import("./bar_component_l80ps8hxf1y"), "Bar_component_L80pS8Hxf1Y"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,yFAUjB,CAAA;AAEF,OAAO,MAAM,GAAG,iBAAG,yFAQjB,CAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,0FAUjB;AAEF,OAAO,MAAM,oBAAM,0FAQjB\"}")
 == DIAGNOSTICS ==
 
 []

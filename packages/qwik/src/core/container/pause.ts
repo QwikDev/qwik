@@ -597,7 +597,7 @@ export const collectElementData = (elCtx: QContext, collector: Collector, dynami
           break;
         }
       }
-      parent = parent.$parent$;
+      parent = parent.$slotParent$ ?? parent.$parent$;
     }
   }
 };

@@ -11,6 +11,7 @@ import type { QwikCityRequestContext, UserResponseContext } from './types';
 import { HttpStatus } from './http-status-codes';
 import { isRedirectStatus, RedirectResponse } from './redirect-handler';
 import { ErrorResponse } from './error-handler';
+import { Cookie } from './cookie';
 
 export async function loadUserResponse(
   requestCtx: QwikCityRequestContext,
@@ -37,6 +38,7 @@ export async function loadUserResponse(
     headers: createHeaders(),
     resolvedBody: undefined,
     pendingBody: undefined,
+    cookie: new Cookie(request.headers.get('cookie')),
     aborted: false,
   };
 
@@ -141,6 +143,7 @@ export async function loadUserResponse(
           params: { ...params },
           response,
           platform,
+          cookie: userResponse.cookie,
           next,
           abort,
         };
@@ -176,7 +179,12 @@ export async function loadUserResponse(
   };
 
   await next();
+
   userResponse.aborted = routeModuleIndex >= ABORT_INDEX;
+
+  for (const setCookieValue of userResponse.cookie.headers()) {
+    userResponse.headers.set('Set-Cookie', setCookieValue);
+  }
 
   if (
     !isPageDataRequest &&

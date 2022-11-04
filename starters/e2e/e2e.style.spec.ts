@@ -6,34 +6,63 @@ test.describe('styles', () => {
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
   });
 
-  test('should load', async ({ page }) => {
-    const parent = page.locator('.parent');
-    const child2 = page.locator('text=Child 2');
-    const inline2 = page.locator('text=Inline 2');
+  runTests();
 
-    const addChild = page.locator('button');
-
-    await expect(parent).toHaveClass('⭐️yalzmy-0 parent count-10');
-    await expect(parent).toHaveCSS('font-size', '200px');
-    await expect(child2).toHaveCSS('font-size', '20px');
-    await expect(inline2).toHaveCSS('font-size', '40px');
-
-    const el = await page.$$('[q\\:style]');
-    await expect(el.length).toBe(4);
-    await addChild.click();
-    await page.waitForTimeout(100);
-
-    const child10 = page.locator('text=Child 10');
-    const inline10 = page.locator('text=Inline 10');
-
-    await expect(parent).toHaveClass('⭐️yalzmy-0 parent count-11');
-    await expect(parent).toHaveCSS('font-size', '200px');
-    await expect(child2).toHaveCSS('font-size', '20px');
-    await expect(inline2).toHaveCSS('font-size', '40px');
-    await expect(child10).toHaveCSS('font-size', '20px');
-    await expect(inline10).toHaveCSS('font-size', '40px');
-
-    const el2 = await page.$$('[q\\:style]');
-    await expect(el2.length).toBe(4);
+  test.describe('client side', () => {
+    test.beforeEach(async ({ page }) => {
+      const reload = page.locator('#reload');
+      await reload.click();
+    });
+    runTests();
   });
+
+  function runTests() {
+    test('should load', async ({ page }) => {
+      const parent = page.locator('.parent');
+      const child2 = page.locator('text=Child 2');
+      const inline2 = page.locator('text=Inline 2');
+
+      const addChild = page.locator('button#add-child');
+
+      await expect(parent).toHaveClass('⭐️k8e9w3-0 parent count-10');
+      await expect(parent).toHaveCSS('font-size', '200px');
+      await expect(child2).toHaveCSS('font-size', '20px');
+      await expect(inline2).toHaveCSS('font-size', '40px');
+
+      const el = await page.$$('[q\\:style]');
+      await expect(el.length).toBe(7);
+      await addChild.click();
+      await page.waitForTimeout(100);
+
+      const child10 = page.locator('text=Child 10');
+      const inline10 = page.locator('text=Inline 10');
+
+      await expect(parent).toHaveClass('⭐️k8e9w3-0 parent count-11');
+      await expect(parent).toHaveCSS('font-size', '200px');
+      await expect(child2).toHaveCSS('font-size', '20px');
+      await expect(inline2).toHaveCSS('font-size', '40px');
+      await expect(child10).toHaveCSS('font-size', '20px');
+      await expect(inline10).toHaveCSS('font-size', '40px');
+
+      const el2 = await page.$$('[q\\:style]');
+      await expect(el2.length).toBe(7);
+    });
+
+    test('issue 1945', async ({ page }) => {
+      const btn = page.locator('#issue1945-btn');
+      const h1 = page.locator('#issue1945-1');
+      const h2 = page.locator('#issue1945-2');
+      const h3 = page.locator('#issue1945-3');
+      const h4 = page.locator('#issue1945-4');
+      const h5 = page.locator('#issue1945-5');
+
+      await btn.click();
+
+      await expect(h1).toHaveCSS('background-color', 'rgb(0, 0, 255)');
+      await expect(h2).toHaveCSS('background-color', 'rgb(0, 0, 255)');
+      await expect(h3).toHaveCSS('background-color', 'rgb(0, 0, 255)');
+      await expect(h4).toHaveCSS('background-color', 'rgb(0, 0, 255)');
+      await expect(h5).toHaveCSS('background-color', 'rgb(0, 0, 255)');
+    });
+  }
 });

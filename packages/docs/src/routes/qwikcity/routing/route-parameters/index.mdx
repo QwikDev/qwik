@@ -80,3 +80,25 @@ src/
 
 The above structure will match:
 - `https://example.com/sku/1234/5678/end-of-route`
+
+
+## Groups
+In some cases you would like to move your routes into a subdirectory without affecting the pathname which qwik city is generating based on the folder structure. Or you have several routes on the same level which should use different layouts. In this case you can create directories in parentheses (eg. `(products)`). Let's have a look at an example:
+
+```
+src/
+└── routes/
+    └── (product)/
+            ├── detail/
+            |   └──index.tsx
+            ├── preview/
+            |   └──index.tsx                
+            └── promotion/
+                └──index.tsx
+```
+The above structure will match:
+- `https://example.com/detail`
+- `https://example.com/preview`
+- `https://example.com/promotion`
+
+Note that `product` is not part of the pathname.

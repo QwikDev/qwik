@@ -119,6 +119,14 @@ async function logUpdateAppResult(result: UpdateAppResult) {
     console.log(``);
   }
 
+  if (createFiles.length > 0) {
+    console.log(`🌟 ${color.cyan(`Create`)}`);
+    for (const f of createFiles) {
+      console.log(`   - ${relative(process.cwd(), f.path)}`);
+    }
+    console.log(``);
+  }
+
   if (overwriteFiles.length > 0) {
     console.log(`🐳 ${color.cyan(`Overwrite`)}`);
     for (const f of overwriteFiles) {

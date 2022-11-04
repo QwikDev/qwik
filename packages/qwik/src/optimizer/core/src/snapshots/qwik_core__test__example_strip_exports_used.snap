@@ -32,7 +32,7 @@ export const test_component_useResource_4a8wVY7wh38 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAciB,IAAM;IACf,OAAO,KAAK,EAAE,CAAC;AACnB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAciB,IAAM;IACf,OAAO;AACX\"}")
 /*
 {
   "origin": "test.tsx",
@@ -62,7 +62,7 @@ export const onGet = ()=>{
 export default /*#__PURE__*/ componentQrl(qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;aAGa,KAAK;;;AASlB,6BAAe,2FAKb,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;aAGa;;;AASb,6BAAe,4FAKZ\"}")
 ============================= test_component_luxexe0dqrg.tsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
@@ -73,7 +73,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAa0B,IAAK;IAC3B,qHAEE;IACF,QAAQ,GAAG,EAAC,GAAG,EAAE,GAAG,EAAC;AACzB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAa0B,IAAK;IAC3B;IAGA,QAAQ,KAAI,GAAG,EAAE;AACrB\"}")
 /*
 {
   "origin": "test.tsx",

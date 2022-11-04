@@ -15,6 +15,7 @@ import type {
   TransformOutput,
 } from '../types';
 import { createLinter, QwikLinter } from './eslint-plugin';
+import type { PluginContext } from 'rollup';
 
 export interface QwikPackages {
   id: string;
@@ -28,7 +29,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   let internalOptimizer: Optimizer | null = null;
   let linter: QwikLinter | undefined = undefined;
-  let addWatchFileCallback: (ctx: any, path: string) => void = () => {};
   let diagnosticsCallback: (
     d: Diagnostic[],
     optimizer: Optimizer,
@@ -309,6 +309,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transpileTs: true,
         transpileJsx: true,
         explicitExtensions: true,
+        preserveFilenames: true,
         mode,
         scope: opts.scope ? opts.scope : undefined,
       };
@@ -327,15 +328,17 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const resolveId = async (
-    _ctx: any,
+    _ctx: PluginContext,
     id: string,
     importer: string | undefined,
     _resolveIdOpts?: { ssr?: boolean }
   ) => {
-    if (id.startsWith('\0') || id.startsWith('/@fs/')) {
+    if (id.startsWith('\0')) {
       return;
     }
-    const path = getPath();
+    if (id.startsWith('/@fs')) {
+      return;
+    }
     if (opts.target === 'lib' && id.startsWith(QWIK_CORE_ID)) {
       return {
         external: true,
@@ -346,7 +349,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (opts.resolveQwikBuild && id === QWIK_BUILD_ID) {
       log(`resolveId()`, 'Resolved', QWIK_BUILD_ID);
       return {
-        id: normalizePath(path.resolve(opts.rootDir, QWIK_BUILD_ID)),
+        id: normalizePath(getPath().resolve(opts.rootDir, QWIK_BUILD_ID)),
         moduleSideEffects: false,
       };
     }
@@ -361,7 +364,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         };
       }
       return {
-        id: normalizePath(path.resolve(opts.input[0], QWIK_CLIENT_MANIFEST_ID)),
+        id: normalizePath(getPath().resolve(opts.input[0], QWIK_CLIENT_MANIFEST_ID)),
         moduleSideEffects: false,
       };
     }
@@ -371,36 +374,31 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return;
     }
 
-    const parsedId = parseId(id);
-    let importeePathId = normalizePath(parsedId.pathId);
-
     if (importer) {
-      importer = normalizePath(importer);
-      log(`resolveId("${importeePathId}", "${importer}")`);
-      const parsedImporterId = parseId(importer);
-      const dir = path.dirname(parsedImporterId.pathId);
-      if (parsedImporterId.pathId.endsWith('.html') && !importeePathId.endsWith('.html')) {
-        importeePathId = normalizePath(path.join(dir, importeePathId));
-      } else {
-        importeePathId = normalizePath(path.resolve(dir, importeePathId));
+      const parsedId = parseId(id);
+      let importeePathId = normalizePath(parsedId.pathId);
+      const path = getPath();
+      const ext = path.extname(importeePathId);
+      if (RESOLVE_EXTS[ext]) {
+        importer = normalizePath(importer);
+        log(`resolveId("${importeePathId}", "${importer}")`);
+        const parsedImporterId = parseId(importer);
+        const dir = path.dirname(parsedImporterId.pathId);
+        if (parsedImporterId.pathId.endsWith('.html') && !importeePathId.endsWith('.html')) {
+          importeePathId = normalizePath(path.join(dir, importeePathId));
+        } else {
+          importeePathId = normalizePath(path.resolve(dir, importeePathId));
+        }
+        const transformedOutput = transformedOutputs.get(importeePathId);
+        if (transformedOutput) {
+          log(`resolveId() Resolved ${importeePathId} from transformedOutputs`);
+          return {
+            id: importeePathId + parsedId.query,
+            moduleSideEffects: false,
+          };
+        }
       }
-    } else {
-      log(`resolveId("${importeePathId}"), No importer`);
     }
-
-    const tryImportPathIds = [forceJSExtension(importeePathId, path.extname(importeePathId))];
-    for (const tryId of tryImportPathIds) {
-      const transformedOutput = transformedOutputs.get(tryId);
-      if (transformedOutput) {
-        log(`resolveId() Resolved ${tryId} from transformedOutputs`);
-        return {
-          id: tryId + parsedId.query,
-          moduleSideEffects: false,
-        };
-      }
-      log(`resolveId() id ${tryId} not found in transformedOutputs`);
-    }
-
     return null;
   };
 
@@ -426,10 +424,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const parsedId = parseId(id);
     const path = getPath();
     id = normalizePath(parsedId.pathId);
-    if (opts.forceFullBuild) {
-      // On full build, lets normalize the ID
-      id = forceJSExtension(id, path.extname(id));
-    }
 
     const transformedModule = transformedOutputs.get(id);
     if (transformedModule) {
@@ -444,20 +438,20 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           normalizePath(path.resolve(opts.input[0], QWIK_CLIENT_MANIFEST_ID))
         );
       }
-
       return {
         code,
         map: transformedModule[0].map,
         moduleSideEffects: false,
+        meta: {
+          hook: transformedModule[0].hook,
+        },
       };
     }
-
-    log(`load()`, 'Not Found', id);
 
     return null;
   };
 
-  const transform = async function (ctx: any, code: string, id: string) {
+  const transform = async function (ctx: PluginContext, code: string, id: string) {
     if (opts.forceFullBuild) {
       // Only run when moduleIsolated === true
       return null;
@@ -469,21 +463,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const { pathId } = parseId(id);
     const { ext, dir, base } = path.parse(pathId);
 
-    const normalizedID = normalizePath(pathId);
-    const pregenerated = transformedOutputs.get(normalizedID);
-    if (pregenerated) {
-      log(`transform() pregenerated, addWatchFile`, normalizedID, pregenerated[1]);
-      addWatchFileCallback(ctx, pregenerated[1]);
-
-      return {
-        moduleSideEffects: false,
-        meta: {
-          hook: pregenerated[0].hook,
-        },
-      };
-    }
-
     if (TRANSFORM_EXTS[ext] || TRANSFORM_REGEX.test(pathId)) {
+      const normalizedID = normalizePath(pathId);
       log(`transform()`, 'Transforming', pathId);
 
       let filePath = base;
@@ -506,6 +487,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transpileTs: true,
         transpileJsx: true,
         explicitExtensions: true,
+        preserveFilenames: true,
         srcDir,
         mode,
         scope: opts.scope ? opts.scope : undefined,
@@ -516,19 +498,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       if (newOutput.diagnostics.length === 0 && linter) {
         await linter.lint(ctx, code, id);
       }
-      results.set(normalizePath(pathId), newOutput);
 
-      for (const [id, output] of results.entries()) {
-        const justChanged = newOutput === output;
-        const dir = normalizePath(opts.srcDir || path.dirname(id));
-
-        for (const mod of output.modules) {
-          if (mod.isEntry) {
-            const key = normalizePath(path.join(dir, mod.path));
-            transformedOutputs.set(key, [mod, id]);
-
-            log(`transform()`, 'emitting', justChanged, key);
-          }
+      results.set(normalizedID, newOutput);
+      const deps: string[] = [];
+      for (const mod of newOutput.modules) {
+        if (mod.isEntry) {
+          const key = normalizePath(path.join(srcDir, mod.path));
+          transformedOutputs.set(key, [mod, id]);
+          deps.push(key);
         }
       }
 
@@ -539,6 +516,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         moduleSideEffects: false,
         meta: {
           hook: module.hook,
+          qwikdeps: deps,
         },
       };
     }
@@ -603,10 +581,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
   };
 
-  const onAddWatchFile = (cb: (ctx: any, path: string) => void) => {
-    addWatchFileCallback = cb;
-  };
-
   const onDiagnostics = (cb: (d: Diagnostic[], optimizer: Optimizer, srcDir: string) => void) => {
     diagnosticsCallback = cb;
   };
@@ -662,7 +636,6 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     log,
     normalizeOptions,
     normalizePath,
-    onAddWatchFile,
     onDiagnostics,
     resolveId,
     transform,
@@ -681,21 +654,20 @@ export function parseId(originalId: string) {
   };
 }
 
-function forceJSExtension(id: string, ext: string) {
-  if (ext === '') {
-    return id + '.js';
-  }
-  if (TRANSFORM_EXTS[ext]) {
-    return removeExtension(id) + '.js';
-  }
-  return id;
-}
+const TRANSFORM_EXTS: { [ext: string]: boolean } = {
+  '.jsx': true,
+  '.ts': true,
+  '.tsx': true,
+};
 
-function removeExtension(id: string) {
-  return id.split('.').slice(0, -1).join('.');
-}
-
-const TRANSFORM_EXTS: { [ext: string]: boolean } = { '.jsx': true, '.ts': true, '.tsx': true };
+const RESOLVE_EXTS: { [ext: string]: boolean } = {
+  '.tsx': true,
+  '.ts': true,
+  '.jsx': true,
+  '.js': true,
+  '.mjs': true,
+  '.cjs': true,
+};
 
 const TRANSFORM_REGEX = /\.qwik\.(m|c)?js$/;
 

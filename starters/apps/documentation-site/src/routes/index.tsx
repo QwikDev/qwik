@@ -124,7 +124,7 @@ export default component$(() => {
         <li>
           <span>Open issues and contribute on </span>
           <a href="https://github.com/BuilderIO/qwik" target="_blank">
-            Github
+            GitHub
           </a>
         </li>
         <li>

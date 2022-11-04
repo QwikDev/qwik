@@ -11,7 +11,7 @@ import type { RequestHandler } from '~qwik-city-runtime';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
-  async function onRequest({ request, next, env, waitUntil }: EventPluginContext) {
+  async function onRequest({ request, env, waitUntil }: EventPluginContext) {
     try {
       const url = new URL(request.url);
 
@@ -38,6 +38,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
             let flushedHeaders = false;
             const { readable, writable } = new TransformStream();
             const writer = writable.getWriter();
+
             const response = new Response(readable, { status, headers });
 
             body({

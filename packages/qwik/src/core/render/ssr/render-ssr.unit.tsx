@@ -598,6 +598,48 @@ renderSSRSuite('component useContextProvider()', async () => {
   );
 });
 
+renderSSRSuite('component slotted context', async () => {
+  await testSSR(
+    <VariadicContext>
+      <ReadValue />
+      <ReadValue q:slot="start" />
+      <ReadValue q:slot="end" />
+    </VariadicContext>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <!--qv q:id=0 q:key=sX:-->
+      <!--qv q:id=1 q:key=sX:-->
+      <!--qv q:s q:sref=1 q:key=-->
+      <!--qv q:s q:sref=0 q:key=start-->
+      <!--qv q:id=2 q:key=sX:-->
+      <span>start</span>
+      <!--/qv-->
+      <!--/qv-->
+      <!--/qv-->
+      <!--/qv-->
+      <!--qv q:id=3 q:key=sX:-->
+      <!--qv q:s q:sref=3 q:key=-->
+      <!--qv q:s q:sref=0 q:key=-->
+      <!--qv q:id=4 q:key=sX:-->
+      <span>default</span>
+      <!--/qv-->
+      <!--/qv-->
+      <!--/qv-->
+      <!--/qv-->
+      <!--qv q:id=5 q:key=sX:-->
+      <!--qv q:s q:sref=5 q:key=-->
+      <!--qv q:s q:sref=0 q:key=end-->
+      <!--qv q:id=6 q:key=sX:-->
+      <span>end</span>
+      <!--/qv-->
+      <!--/qv-->
+      <!--/qv-->
+      <!--/qv-->
+      <!--/qv-->
+    </html>`
+  );
+});
+
 renderSSRSuite('component useOn()', async () => {
   await testSSR(
     <Events />,
@@ -713,6 +755,7 @@ renderSSRSuite('component useStylesScoped() + slot', async () => {
     `
   );
 });
+
 renderSSRSuite('component useClientEffect()', async () => {
   await testSSR(
     <UseClientEffect />,
@@ -1033,6 +1076,40 @@ export const ComponentA = component$(() => {
 
 const CTX_INTERNAL = createContext<{ value: string }>('internal');
 const CTX_QWIK_CITY = createContext<{ value: string }>('qwikcity');
+const CTX_VALUE = createContext<{ value: string }>('value');
+
+export const VariadicContext = component$(() => {
+  return (
+    <>
+      <ContextWithValue value="start">
+        <Slot name="start"></Slot>
+      </ContextWithValue>
+      <ContextWithValue value="default">
+        <Slot></Slot>
+      </ContextWithValue>
+      <ContextWithValue value="end">
+        <Slot name="end"></Slot>
+      </ContextWithValue>
+    </>
+  );
+});
+
+export const ReadValue = component$(() => {
+  const ctx = useContext(CTX_VALUE);
+  return <span>{ctx.value}</span>;
+});
+
+export const ContextWithValue = component$((props: { value: string }) => {
+  const value = {
+    value: props.value,
+  };
+  useContextProvider(CTX_VALUE, value);
+  return (
+    <>
+      <Slot />
+    </>
+  );
+});
 
 export const Context = component$(() => {
   useContextProvider(CTX_INTERNAL, {

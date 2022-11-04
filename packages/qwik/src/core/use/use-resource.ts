@@ -18,7 +18,6 @@ import { useBindInvokeContext } from './use-core';
 import { isObject } from '../util/types';
 import type { ContainerState, GetObjID } from '../container/container';
 import { useSequentialScope } from './use-sequential-scope';
-import { getContext } from '../state/context';
 import { createProxy } from '../state/store';
 import { getProxyTarget } from '../state/common';
 
@@ -98,15 +97,15 @@ export const useResourceQrl = <T>(
   qrl: QRL<ResourceFn<T>>,
   opts?: ResourceOptions
 ): ResourceReturn<T> => {
-  const { get, set, i, ctx } = useSequentialScope<ResourceReturn<T>>();
+  const { get, set, i, rCtx, elCtx } = useSequentialScope<ResourceReturn<T>>();
   if (get != null) {
     return get;
   }
   assertQrl(qrl);
 
-  const containerState = ctx.$renderCtx$.$static$.$containerState$;
+  const containerState = rCtx.$renderCtx$.$static$.$containerState$;
   const resource = createResourceReturn<T>(containerState, opts);
-  const el = ctx.$hostElement$;
+  const el = elCtx.$element$;
   const watch = new Watch(
     WatchFlagsIsDirty | WatchFlagsIsResource,
     i,
@@ -114,8 +113,7 @@ export const useResourceQrl = <T>(
     qrl,
     resource
   ) as ResourceDescriptor<any>;
-  const previousWait = Promise.all(ctx.$waitOn$.slice());
-  const elCtx = getContext(el);
+  const previousWait = Promise.all(rCtx.$waitOn$.slice());
   runResource(watch, containerState, previousWait);
   if (!elCtx.$watches$) {
     elCtx.$watches$ = [];

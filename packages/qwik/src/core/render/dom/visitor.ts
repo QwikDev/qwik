@@ -420,7 +420,7 @@ export const patchVnode = (
 
   const props = newVnode.$props$;
   const isComponent = isVirtual && OnRenderProp in props;
-  const elCtx = getContext(elm);
+  const elCtx = tryGetContext(elm)!;
   assertDefined(currentComponent, 'slots can not be rendered outside a component', elm);
   if (!isComponent) {
     const pendingListeners = currentComponent.li;
@@ -497,7 +497,6 @@ const renderContentProjection = (
   const newChildren = vnode.$children$;
   const staticCtx = rCtx.$static$;
   const splittedNewChidren = splitChildren(newChildren);
-  const slotRctx = pushRenderContext(rCtx, hostCtx);
   const slotMaps = getSlotMap(hostCtx);
 
   // Remove content from empty slots
@@ -531,8 +530,10 @@ const renderContentProjection = (
     Object.keys(splittedNewChidren).map((key) => {
       const newVdom = splittedNewChidren[key];
       const slotElm = getSlotElement(staticCtx, slotMaps, hostCtx.$element$, key);
-      const slotCtx = getContext(slotElm);
+      const slotCtx = getContext(slotElm, rCtx.$static$.$containerState$);
       const oldVdom = getVdom(slotCtx);
+      const slotRctx = pushRenderContext(rCtx);
+      slotRctx.$slotCtx$ = slotCtx;
       slotCtx.$vdom$ = newVdom;
       newVdom.$elm$ = slotElm;
       return smartUpdateChildren(slotRctx, oldVdom, newVdom, 'root', flags);
@@ -643,7 +644,7 @@ const createElm = (
     isSvg = false;
     flags &= ~IS_SVG;
   }
-  const elCtx = getContext(elm);
+  const elCtx = getContext(elm, staticCtx.$containerState$);
   if (isComponent) {
     setKey(elm, vnode.$key$);
     assertTrue(isVirtual, 'component must be a virtual element');
@@ -663,15 +664,16 @@ const createElm = (
       if (children.length === 1 && children[0].$type$ === SKIP_RENDER_TYPE) {
         children = children[0].$children$;
       }
-      const slotRctx = pushRenderContext(rCtx, elCtx);
       const slotMap = getSlotMap(elCtx);
       const p: Promise<void>[] = [];
       for (const node of children) {
+        const slotEl = getSlotElement(staticCtx, slotMap, elm, getSlotName(node));
+        const slotRctx = pushRenderContext(rCtx);
+        slotRctx.$slotCtx$ = getContext(slotEl, staticCtx.$containerState$);
         const nodeElm = createElm(slotRctx, node, flags, p);
         assertDefined(node.$elm$, 'vnode elm must be defined');
         assertEqual(nodeElm, node.$elm$, 'vnode elm must be defined');
-
-        appendChild(staticCtx, getSlotElement(staticCtx, slotMap, elm, getSlotName(node)), nodeElm);
+        appendChild(staticCtx, slotEl, nodeElm);
       }
 
       return promiseAllLazy(p);

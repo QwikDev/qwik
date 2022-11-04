@@ -86,6 +86,7 @@ export interface ContainerState {
 
   $envData$: Record<string, any>;
   $elementIndex$: number;
+  $pauseState$: SnapshotState | undefined;
 
   readonly $styleIds$: Set<string>;
   readonly $events$: Set<string>;
@@ -123,6 +124,7 @@ export const createContainerState = (containerEl: Element) => {
     $envData$: {},
     $renderPromise$: undefined,
     $hostsRendering$: undefined,
+    $pauseState$: undefined,
     $subsManager$: null as any,
   };
   seal(containerState);

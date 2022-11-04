@@ -4,7 +4,7 @@ import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
 import { getWrappingContainer } from '../core/use/use-core';
 import { assertDefined } from '../core/error/assert';
-import { getContext, QContext } from '../core/state/context';
+import { tryGetContext, QContext } from '../core/state/context';
 import { normalizeOnProp } from '../core/state/listeners';
 
 /**
@@ -82,7 +82,7 @@ export async function trigger(
 export const dispatch = async (root: Element | null, attrName: string, ev: any) => {
   while (root) {
     const elm = root;
-    const ctx = getContext(elm);
+    const ctx = tryGetContext(elm);
     const qrls = ctx?.li.filter((li) => li[0] === attrName);
     if (qrls && qrls.length > 0) {
       for (const q of qrls) {

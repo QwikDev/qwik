@@ -5,6 +5,8 @@ import {
   useContextProvider,
   useContext,
   Slot,
+  useSignal,
+  useClientEffect$,
 } from '@builder.io/qwik';
 
 export interface ContextI {
@@ -19,15 +21,15 @@ export const ContextSlot = createContext<ContextI>('slot');
 export const Unset = createContext<ContextI>('unset');
 
 export const ContextRoot = component$(() => {
-  const state1 = useStore({ displayName: 'ROOT / state1', count: 0 });
-  const state2 = useStore({ displayName: 'ROOT / state2', count: 0 });
+  // const state1 = useStore({ displayName: 'ROOT / state1', count: 0 });
+  // const state2 = useStore({ displayName: 'ROOT / state2', count: 0 });
 
-  useContextProvider(Context1, state1);
-  useContextProvider(Context2, state2);
+  // useContextProvider(Context1, state1);
+  // useContextProvider(Context2, state2);
 
   return (
     <div>
-      <button class="root-increment1" onClick$={() => state1.count++}>
+      {/* <button class="root-increment1" onClick$={() => state1.count++}>
         Increment State 1
       </button>
       <button class="root-increment2" onClick$={() => state2.count++}>
@@ -37,7 +39,9 @@ export const ContextRoot = component$(() => {
       <ContextFromSlot>
         <Level2 />
         <Level2 />
-      </ContextFromSlot>
+      </ContextFromSlot> */}
+
+      <Issue1971 />
     </div>
   );
 });
@@ -114,4 +118,40 @@ export const Level3 = component$(() => {
       </div>
     </div>
   );
+});
+
+export const Issue1971 = component$(() => {
+  return (
+    <Issue1971Provider>
+      <Issue1971Child />
+    </Issue1971Provider>
+  );
+});
+
+export const Issue1971Context = createContext<any>('issue-1971');
+
+export const Issue1971Provider = component$(() => {
+  useContextProvider(Issue1971Context, {
+    value: 'hello!',
+  });
+
+  return <Slot></Slot>;
+});
+
+export const Issue1971Child = component$(() => {
+  const show = useSignal(false);
+  useClientEffect$(() => {
+    show.value = true;
+  });
+  return (
+    <>
+      <button onClick$={() => (show.value = !show.value)}>Toggle</button>
+      <div>Test 1: {show.value && <Issue1971Consumer />}</div>
+    </>
+  );
+});
+
+export const Issue1971Consumer = component$(() => {
+  const ctx = useContext(Issue1971Context);
+  return <div>Value: {ctx.value}</div>;
 });

@@ -15,8 +15,8 @@ export interface RenderOperation {
  */
 export interface RenderContext {
   readonly $static$: RenderStaticContext;
-  readonly $localStack$: QContext[];
   $cmpCtx$: QContext | undefined;
+  $slotCtx$: QContext | undefined;
 }
 
 export interface RenderStaticContext {

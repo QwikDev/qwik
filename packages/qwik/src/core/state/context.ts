@@ -7,6 +7,7 @@ import type { ProcessedJSXNode } from '../render/dom/render-dom';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import type { SubscriptionManager } from './common';
 import type { Listener } from './listeners';
+import type { ContainerState } from '../container/container';
 
 export const Q_CTX = '_qc_';
 
@@ -35,33 +36,44 @@ export interface QContext {
   $vdom$: ProcessedJSXNode | null;
   $slots$: ProcessedJSXNode[] | null;
   $parent$: QContext | null;
+  $slotParent$: QContext | null;
 }
 
 export const tryGetContext = (element: QwikElement): QContext | undefined => {
   return (element as any)[Q_CTX];
 };
 
-export const getContext = (element: Element | VirtualElement): QContext => {
-  let ctx = tryGetContext(element)!;
-  if (!ctx) {
-    (element as any)[Q_CTX] = ctx = {
-      $flags$: 0,
-      $id$: '',
-      $element$: element,
-      $refMap$: [],
-      li: [],
-      $watches$: null,
-      $seq$: null,
-      $slots$: null,
-      $scopeIds$: null,
-      $appendStyles$: null,
-      $props$: null,
-      $vdom$: null,
-      $componentQrl$: null,
-      $contexts$: null,
-      $parent$: null,
-    };
+export const getContext = (
+  element: Element | VirtualElement,
+  _containerState: ContainerState
+): QContext => {
+  const ctx = tryGetContext(element)!;
+  if (ctx) {
+    return ctx;
   }
+  return createContext(element);
+};
+
+export const createContext = (element: Element | VirtualElement): QContext => {
+  const ctx = {
+    $flags$: 0,
+    $id$: '',
+    $element$: element,
+    $refMap$: [],
+    li: [],
+    $watches$: null,
+    $seq$: null,
+    $slots$: null,
+    $scopeIds$: null,
+    $appendStyles$: null,
+    $props$: null,
+    $vdom$: null,
+    $componentQrl$: null,
+    $contexts$: null,
+    $parent$: null,
+    $slotParent$: null,
+  };
+  (element as any)[Q_CTX] = ctx;
   return ctx;
 };
 

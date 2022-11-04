@@ -145,7 +145,6 @@ export const Issue1971Child = component$(() => {
   });
   return (
     <>
-      <button onClick$={() => (show.value = !show.value)}>Toggle</button>
       <div>Test 1: {show.value && <Issue1971Consumer />}</div>
     </>
   );
@@ -153,5 +152,5 @@ export const Issue1971Child = component$(() => {
 
 export const Issue1971Consumer = component$(() => {
   const ctx = useContext(Issue1971Context);
-  return <div>Value: {ctx.value}</div>;
+  return <div id="issue1971-value">Value: {ctx.value}</div>;
 });

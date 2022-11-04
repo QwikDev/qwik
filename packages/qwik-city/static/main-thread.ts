@@ -7,6 +7,7 @@ import type {
 } from './types';
 import { msToString } from '../utils/format';
 import { getPathnameForDynamicRoute, normalizePathname } from '../utils/pathname';
+import { pathToFileURL } from 'node:url';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();
@@ -14,7 +15,8 @@ export async function mainThread(sys: System) {
 
   const main = await sys.createMainProcess();
   const log = await sys.createLogger();
-  const qwikCityPlan: QwikCityPlan = (await import(opts.qwikCityPlanModulePath)).default;
+  const qwikCityPlan: QwikCityPlan = (await import(pathToFileURL(opts.qwikCityPlanModulePath).href))
+    .default;
 
   const queue: StaticRoute[] = [];
   const active = new Set<string>();

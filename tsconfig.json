@@ -39,6 +39,9 @@
       "@builder.io/qwik-city/adaptors/netlify-edge/vite": [
         "packages/qwik-city/adaptors/netlify-edge/vite/index.ts"
       ],
+      "@builder.io/qwik-city/adaptors/azure-swa/vite": [
+        "packages/qwik-city/adaptors/azure-swa/vite/index.ts"
+      ],
       "@builder.io/qwik-city/adaptors/static/vite": [
         "packages/qwik-city/adaptors/static/vite/index.ts"
       ],
@@ -46,6 +49,7 @@
       "@builder.io/qwik-city/middleware/netlify-edge": [
         "packages/qwik-city/middleware/netlify-edge"
       ],
+      "@builder.io/qwik-city/middleware/azure-swa": ["packages/qwik-city/middleware/azure-swa"],
       "@builder.io/qwik-city/static": ["packages/qwik-city/static/index.ts"],
       "@builder.io/qwik-city/vite": ["packages/qwik-city/buildtime/vite/index"],
       "@examples-data": ["packages/docs/src/routes/examples/apps/examples-data.ts"],

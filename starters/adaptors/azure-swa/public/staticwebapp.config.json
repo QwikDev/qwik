@@ -1,0 +1,26 @@
+{
+  "routes": [
+    {
+      "route": "/build/*"
+    },
+    {
+      "route": "/favicon.svg"
+    },
+    {
+      "route": "/manifest.json"
+    },
+    {
+      "route": "/.auth/*"
+    },
+    {
+      "route": "/*",
+      "rewrite": "/api/server"
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/api/server"
+  },
+  "platform": {
+    "apiRuntime": "node:18"
+  }
+}

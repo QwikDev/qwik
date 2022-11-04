@@ -39,6 +39,7 @@
 ## Deployments
 
 - [Overview](adaptors/overview/index.mdx)
+- [Azure Static Web Apps](adaptors/azure-swa/index.mdx)
 - [Netlify Edge](adaptors/netlify-edge/index.mdx)
 - [Cloudflare Pages](adaptors/cloudflare-pages/index.mdx)
 - [Vercel Edge](adaptors/vercel-edge/index.mdx)

@@ -126,7 +126,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   };
   if (root !== 'html') {
     containerAttributes.class =
-      'qc📦' + containerAttributes.class ? ' ' + containerAttributes.class : '';
+      'qc📦' + (containerAttributes.class ? ' ' + containerAttributes.class : '');
   }
   containerState.$envData$ = {
     url: opts.url,

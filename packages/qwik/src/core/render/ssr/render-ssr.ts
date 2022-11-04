@@ -124,6 +124,10 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
     'q:base': opts.base,
     children: root === 'html' ? [node] : [headNodes, node],
   };
+  if (root !== 'html') {
+    containerAttributes.class =
+      'qc📦' + containerAttributes.class ? ' ' + containerAttributes.class : '';
+  }
   containerState.$envData$ = {
     url: opts.url,
     ...opts.envData,

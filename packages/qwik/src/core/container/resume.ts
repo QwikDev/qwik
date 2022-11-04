@@ -101,6 +101,9 @@ export const resumeContainer = (containerEl: Element) => {
   }
 
   // Collect all elements
+  // If there are nested container, we are forced to take a slower path.
+  // In order to check if there are nested containers, we use the `'qc📦'` class.
+  // This is because checking for class is the fastest way for the browser to find it.
   const slotPath = containerEl.getElementsByClassName('qc📦').length !== 0;
   containerEl.querySelectorAll('[q\\:id]').forEach((el) => {
     if (slotPath && el.closest('[q\\:container]') !== containerEl) {

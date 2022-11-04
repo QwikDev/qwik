@@ -414,7 +414,7 @@ renderSSRSuite('using complex component', async () => {
     <MyCmpComplex></MyCmpComplex>,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
-      <div on:click="/runtimeQRL#_">
+      <div on:click="/runtimeQRL#_" q:id="1">
         <button on:click="/runtimeQRL#_">Click</button>
         <!--qv q:s q:sref=0 q:key=--><!--/qv-->
       </div>
@@ -429,7 +429,7 @@ renderSSRSuite('using complex component with slot', async () => {
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
-      <div on:click="/runtimeQRL#_">
+      <div on:click="/runtimeQRL#_" q:id="1">
         <button on:click="/runtimeQRL#_">Click</button>
         <!--qv q:s q:sref=0 q:key=-->
         Hola

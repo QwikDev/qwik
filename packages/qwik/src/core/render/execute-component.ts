@@ -39,7 +39,7 @@ export const executeComponent = (
 
   // Set component context
   newCtx.$cmpCtx$ = elCtx;
-  newCtx.$slotCtx$ = undefined;
+  newCtx.$slotCtx$ = null;
 
   // Invoke render hook
   invocatinContext.$subscriber$ = hostElement;
@@ -96,8 +96,8 @@ export const createRenderContext = (
       $addSlots$: [],
       $rmSlots$: [],
     },
-    $cmpCtx$: undefined,
-    $slotCtx$: undefined,
+    $cmpCtx$: null,
+    $slotCtx$: null,
   };
   seal(ctx);
   seal(ctx.$static$);

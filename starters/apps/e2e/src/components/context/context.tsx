@@ -21,15 +21,15 @@ export const ContextSlot = createContext<ContextI>('slot');
 export const Unset = createContext<ContextI>('unset');
 
 export const ContextRoot = component$(() => {
-  // const state1 = useStore({ displayName: 'ROOT / state1', count: 0 });
-  // const state2 = useStore({ displayName: 'ROOT / state2', count: 0 });
+  const state1 = useStore({ displayName: 'ROOT / state1', count: 0 });
+  const state2 = useStore({ displayName: 'ROOT / state2', count: 0 });
 
-  // useContextProvider(Context1, state1);
-  // useContextProvider(Context2, state2);
+  useContextProvider(Context1, state1);
+  useContextProvider(Context2, state2);
 
   return (
     <div>
-      {/* <button class="root-increment1" onClick$={() => state1.count++}>
+      <button class="root-increment1" onClick$={() => state1.count++}>
         Increment State 1
       </button>
       <button class="root-increment2" onClick$={() => state2.count++}>
@@ -39,7 +39,7 @@ export const ContextRoot = component$(() => {
       <ContextFromSlot>
         <Level2 />
         <Level2 />
-      </ContextFromSlot> */}
+      </ContextFromSlot>
 
       <Issue1971 />
     </div>

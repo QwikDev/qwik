@@ -420,7 +420,7 @@ export const patchVnode = (
 
   const props = newVnode.$props$;
   const isComponent = isVirtual && OnRenderProp in props;
-  const elCtx = tryGetContext(elm)!;
+  const elCtx = getContext(elm, rCtx.$static$.$containerState$);
   assertDefined(currentComponent, 'slots can not be rendered outside a component', elm);
   if (!isComponent) {
     const pendingListeners = currentComponent.li;
@@ -645,6 +645,8 @@ const createElm = (
     flags &= ~IS_SVG;
   }
   const elCtx = getContext(elm, staticCtx.$containerState$);
+  elCtx.$parent$ = rCtx.$cmpCtx$;
+  elCtx.$slotParent$ = rCtx.$slotCtx$;
   if (isComponent) {
     setKey(elm, vnode.$key$);
     assertTrue(isVirtual, 'component must be a virtual element');

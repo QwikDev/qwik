@@ -78,7 +78,7 @@ export const useStore = <STATE extends object>(
   initialState: STATE | (() => STATE),
   opts?: UseStoreOptions
 ): STATE => {
-  const { get, set, ctx } = useSequentialScope<STATE>();
+  const { get, set, rCtx: ctx } = useSequentialScope<STATE>();
   if (get != null) {
     return get;
   }

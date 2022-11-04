@@ -85,7 +85,7 @@ export const resumeContainer = (containerEl: Element) => {
           const virtual = new VirtualElementImpl(node, close);
           const id = directGetAttribute(virtual, ELEMENT_ID);
           if (id) {
-            const elCtx = getContext(virtual);
+            const elCtx = getContext(virtual, containerState);
             elCtx.$id$ = id;
             elements.set(ELEMENT_ID_PREFIX + id, virtual);
             maxId = Math.max(maxId, strToInt(id));
@@ -109,7 +109,7 @@ export const resumeContainer = (containerEl: Element) => {
     assertElement(el);
     const id = directGetAttribute(el, ELEMENT_ID);
     assertDefined(id, `resume: element missed q:id`, el);
-    const elCtx = getContext(el);
+    const elCtx = getContext(el, containerState);
     elCtx.$id$ = id;
     elCtx.$vdom$ = domToVnode(el);
     elements.set(ELEMENT_ID_PREFIX + id, el);
@@ -135,7 +135,7 @@ export const resumeContainer = (containerEl: Element) => {
     const el = elements.get(elementID);
     assertDefined(el, `resume: cant find dom node for id`, elementID);
     assertQwikElement(el);
-    const elCtx = getContext(el);
+    const elCtx = getContext(el, containerState);
     const refMap = ctxMeta.r;
     const seq = ctxMeta.s;
     const host = ctxMeta.h;

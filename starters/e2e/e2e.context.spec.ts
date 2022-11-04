@@ -87,4 +87,9 @@ test.describe('context', () => {
     ]);
     expect(await level3Slot.allTextContents()).toEqual(['bar = 0', 'bar = 0', 'bar = 0']);
   });
+
+  test('issue 1971', async ({ page }) => {
+    const value = page.locator('#issue1971-value');
+    await expect(value).toHaveText('Value: hello!');
+  });
 });

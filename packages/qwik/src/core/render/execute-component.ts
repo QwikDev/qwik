@@ -31,7 +31,7 @@ export const executeComponent = (
   const hostElement = elCtx.$element$;
   const componentQRL = elCtx.$componentQrl$;
   const props = elCtx.$props$;
-  const newCtx = pushRenderContext(rCtx, elCtx);
+  const newCtx = pushRenderContext(rCtx);
   const invocatinContext = newInvokeContext(hostElement, undefined, RenderEvent);
   const waitOn = (invocatinContext.$waitOn$ = []);
   assertDefined(componentQRL, `render: host element to render must has a $renderQrl$:`, elCtx);
@@ -39,6 +39,7 @@ export const executeComponent = (
 
   // Set component context
   newCtx.$cmpCtx$ = elCtx;
+  newCtx.$slotCtx$ = null;
 
   // Invoke render hook
   invocatinContext.$subscriber$ = hostElement;
@@ -95,19 +96,19 @@ export const createRenderContext = (
       $addSlots$: [],
       $rmSlots$: [],
     },
-    $cmpCtx$: undefined,
-    $localStack$: [],
+    $cmpCtx$: null,
+    $slotCtx$: null,
   };
   seal(ctx);
   seal(ctx.$static$);
   return ctx;
 };
 
-export const pushRenderContext = (ctx: RenderContext, elCtx: QContext): RenderContext => {
+export const pushRenderContext = (ctx: RenderContext): RenderContext => {
   const newCtx: RenderContext = {
     $static$: ctx.$static$,
     $cmpCtx$: ctx.$cmpCtx$,
-    $localStack$: ctx.$localStack$.concat(elCtx),
+    $slotCtx$: ctx.$slotCtx$,
   };
   return newCtx;
 };

@@ -19,7 +19,7 @@ import { getValidManifest } from '../optimizer/src/manifest';
 import { applyPrefetchImplementation } from './prefetch-implementation';
 import type { QContext } from '../core/state/context';
 
-const DOCTYPE = '<!DOCTYPE html>';
+const DOCTYPE = '<!DOCTYPE html><!--cq-->';
 
 /**
  * Creates a server-side `document`, renders to root node to the document,
@@ -203,6 +203,9 @@ export async function renderToStream(
       return jsx(Fragment, { children });
     },
   });
+
+  // End of container
+  stream.write('<!--/cq-->');
 
   // Flush remaining chunks in the buffer
   flush();

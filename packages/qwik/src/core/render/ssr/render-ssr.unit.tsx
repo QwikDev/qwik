@@ -128,19 +128,19 @@ renderSSRSuite('single simple children', async () => {
 renderSSRSuite('events', async () => {
   await testSSR(
     <div onClick$={() => console.warn('hol')}>hola</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div on:click="/runtimeQRL#_" q:id="0">hola</div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div on:click="/runtimeQRL#_">hola</div></html>'
   );
   await testSSR(
     <div document:onClick$={() => console.warn('hol')}>hola</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div on-document:click="/runtimeQRL#_" q:id="0">hola</div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div on-document:click="/runtimeQRL#_">hola</div></html>'
   );
   await testSSR(
     <div window:onClick$={() => console.warn('hol')}>hola</div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div on-window:click="/runtimeQRL#_" q:id="0">hola</div></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div on-window:click="/runtimeQRL#_">hola</div></html>'
   );
   await testSSR(
     <input onInput$={() => console.warn('hol')} />,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><input on:input="/runtimeQRL#_" q:id="0"></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><input on:input="/runtimeQRL#_"></html>'
   );
 });
 
@@ -433,7 +433,7 @@ renderSSRSuite('using complex component', async () => {
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       <div on:click="/runtimeQRL#_" q:id="1">
-        <button on:click="/runtimeQRL#_" q:id="2">Click</button>
+        <button on:click="/runtimeQRL#_">Click</button>
         <!--qv q:s q:sref=0 q:key=--><!--/qv-->
       </div>
       <!--/qv-->
@@ -448,7 +448,7 @@ renderSSRSuite('using complex component with slot', async () => {
     <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       <div on:click="/runtimeQRL#_" q:id="1">
-        <button on:click="/runtimeQRL#_" q:id="2">Click</button>
+        <button on:click="/runtimeQRL#_">Click</button>
         <!--qv q:s q:sref=0 q:key=-->
         Hola
         <!--/qv-->
@@ -616,12 +616,54 @@ renderSSRSuite('component useContextProvider()', async () => {
   );
 });
 
+renderSSRSuite('component slotted context', async () => {
+  await testSSR(
+    <VariadicContext>
+      <ReadValue />
+      <ReadValue q:slot="start" />
+      <ReadValue q:slot="end" />
+    </VariadicContext>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <!--qv q:id=0 q:key=sX:-->
+      <!--qv q:id=1 q:key=sX:-->
+      <!--qv q:s q:sref=1 q:key=-->
+      <!--qv q:s q:sref=0 q:key=start-->
+      <!--qv q:id=2 q:key=sX:-->
+      <span>start</span>
+      <!--/qv-->
+      <!--/qv-->
+      <!--/qv-->
+      <!--/qv-->
+      <!--qv q:id=3 q:key=sX:-->
+      <!--qv q:s q:sref=3 q:key=-->
+      <!--qv q:s q:sref=0 q:key=-->
+      <!--qv q:id=4 q:key=sX:-->
+      <span>default</span>
+      <!--/qv-->
+      <!--/qv-->
+      <!--/qv-->
+      <!--/qv-->
+      <!--qv q:id=5 q:key=sX:-->
+      <!--qv q:s q:sref=5 q:key=-->
+      <!--qv q:s q:sref=0 q:key=end-->
+      <!--qv q:id=6 q:key=sX:-->
+      <span>end</span>
+      <!--/qv-->
+      <!--/qv-->
+      <!--/qv-->
+      <!--/qv-->
+      <!--/qv-->
+    </html>`
+  );
+});
+
 renderSSRSuite('component useOn()', async () => {
   await testSSR(
     <Events />,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
-      <div on:click="/runtimeQRL#_\n/runtimeQRL#_" on-window:click="/runtimeQRL#_" on-document:click="/runtimeQRL#_" q:id="1"></div>
+      <div on:click="/runtimeQRL#_\n/runtimeQRL#_" on-window:click="/runtimeQRL#_" on-document:click="/runtimeQRL#_"></div>
       <!--/qv-->
     </html>`
   );
@@ -731,6 +773,7 @@ renderSSRSuite('component useStylesScoped() + slot', async () => {
     `
   );
 });
+
 renderSSRSuite('component useClientEffect()', async () => {
   await testSSR(
     <UseClientEffect />,
@@ -1051,6 +1094,40 @@ export const ComponentA = component$(() => {
 
 const CTX_INTERNAL = createContext<{ value: string }>('internal');
 const CTX_QWIK_CITY = createContext<{ value: string }>('qwikcity');
+const CTX_VALUE = createContext<{ value: string }>('value');
+
+export const VariadicContext = component$(() => {
+  return (
+    <>
+      <ContextWithValue value="start">
+        <Slot name="start"></Slot>
+      </ContextWithValue>
+      <ContextWithValue value="default">
+        <Slot></Slot>
+      </ContextWithValue>
+      <ContextWithValue value="end">
+        <Slot name="end"></Slot>
+      </ContextWithValue>
+    </>
+  );
+});
+
+export const ReadValue = component$(() => {
+  const ctx = useContext(CTX_VALUE);
+  return <span>{ctx.value}</span>;
+});
+
+export const ContextWithValue = component$((props: { value: string }) => {
+  const value = {
+    value: props.value,
+  };
+  useContextProvider(CTX_VALUE, value);
+  return (
+    <>
+      <Slot />
+    </>
+  );
+});
 
 export const Context = component$(() => {
   useContextProvider(CTX_INTERNAL, {

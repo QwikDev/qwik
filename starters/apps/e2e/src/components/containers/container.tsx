@@ -37,7 +37,7 @@ export const Container = component$((props: ContainerProps) => {
 
   const resource = useResource$<{ url: string; html: string }>(async ({ track }) => {
     track(props, 'url');
-    const url = `http://localhost:3300${props.url}?fragment&loader=false`;
+    const url = `http://localhost:${(globalThis as any).PORT}${props.url}?fragment&loader=false`;
     const res = await fetch(url);
     return {
       url,

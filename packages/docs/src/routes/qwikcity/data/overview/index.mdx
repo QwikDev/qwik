@@ -100,10 +100,20 @@ For more information on these attributes and their values, please refer to [the 
 
 Appends a header with the provided key to the cookie. The new header will have an expired date in the `expires` field, telling the browers to remove it.
 
+```typescript
+cookie.delete('my-cookie')
+```
+
 Equivalent to calling:
 
 ```typescript
 cookie.set('my-cookie', 'deleted', new Date(0))
+```
+
+Optionally, you can set the path and/or domain when deleting the cookie. If your cookie was created with a path/domain, you must set these fields for the deletion to take effect.
+
+```typescript
+cookie.delete('my-cookie', { domain: 'https://qwik.builder.io', path: '/docs/'})
 ```
 
 **has**

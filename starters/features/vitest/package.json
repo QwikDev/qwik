@@ -3,13 +3,13 @@
   "devDependencies": {
     "vitest": "^0.24.3"
   },
+  "scripts": {
+    "test.unit": "vitest components"
+  },
   "__qwik__": {
     "displayName": "Integration: Vitest (Unit Test)",
     "priority": -10,
     "viteConfig": {},
-    "docs": [],
-    "nextSteps": {
-      "lines": []
-    }
+    "docs": []
   }
 }

@@ -25,6 +25,7 @@ import { RefRoot } from './components/ref/ref';
 import { Signals } from './components/signals/signals';
 import { Attributes } from './components/attributes/attributes';
 import { EventsClient } from './components/events/events-client';
+import { NoResume } from './components/no-resume/no-resume';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -58,6 +59,7 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/signals': () => <Signals />,
     '/e2e/attributes': () => <Attributes />,
     '/e2e/events-client': () => <EventsClient />,
+    '/e2e/no-resume': () => <NoResume />,
   };
 
   const url = new URL(opts.envData!.url);

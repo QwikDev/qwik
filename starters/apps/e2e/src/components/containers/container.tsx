@@ -1,16 +1,15 @@
-import { component$, useStyles$, useStore, useWatch$ } from '@builder.io/qwik';
+import { component$, useStyles$, useResource$, Resource, useSignal } from '@builder.io/qwik';
 
 interface ContainerProps {
   url: string;
 }
 
 export const Containers = component$(() => {
+  const signal = useSignal(0);
   return (
-    <div class="my-app p-20">
-      <Container url="/e2e/slot"></Container>
+    <div>
+      <button onClick$={() => signal.value++}>{signal.value}</button>
       <Container url="/e2e/two-listeners"></Container>
-      <Container url="/e2e/lexical-scope"></Container>
-      <Container url="/e2e/await"></Container>
     </div>
   );
 });
@@ -35,23 +34,30 @@ export const Container = component$((props: ContainerProps) => {
       margin-bottom: 10px;
     }
     `);
-  const state = useStore({
-    url: '',
-    html: '',
-  });
 
-  useWatch$(async ({ track }) => {
+  const resource = useResource$<{ url: string; html: string }>(async ({ track }) => {
     track(props, 'url');
-    const url = `http://localhost:3300${props.url}?fragment&loader=false`;
+    const url = `http://localhost:${(globalThis as any).PORT}${props.url}?fragment&loader=false`;
     const res = await fetch(url);
-    state.url = await res.text();
-    state.html = await res.text();
+    return {
+      url,
+      html: await res.text(),
+    };
   });
 
   return (
     <div class="container">
-      <div class="url">{state.url}</div>
-      <div class="frame" dangerouslySetInnerHTML={state.html} />
+      <Resource
+        value={resource}
+        onResolved={({ url, html }) => {
+          return (
+            <>
+              <div class="url">{url}</div>
+              <div class="frame" dangerouslySetInnerHTML={html} />
+            </>
+          );
+        }}
+      />
     </div>
   );
 });

@@ -822,7 +822,7 @@ renderSSRSuite('containerTagName', async () => {
       <UseClientEffect></UseClientEffect>
       <section></section>
     </>,
-    `<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="/manu/folder">
+    `<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="/manu/folder" class="qc📦">
       <link rel="stylesheet" href="/global.css">
       <!--qv q:id=0 q:key=sX:-->
         <style q:style="17nc-0">.host {color: red}</style>
@@ -863,7 +863,7 @@ renderSSRSuite('containerAttributes', async () => {
       <div></div>
     </>,
     `
-    <app prefix="something" q:container="paused" q:version="dev" q:render="ssr-dev">
+    <app prefix="something" q:container="paused" q:version="dev" q:render="ssr-dev" class='qc📦 thing'>
      <div></div>
     </app>
     `,
@@ -871,6 +871,7 @@ renderSSRSuite('containerAttributes', async () => {
       containerTagName: 'app',
       containerAttributes: {
         prefix: 'something',
+        class: 'thing',
       },
     }
   );

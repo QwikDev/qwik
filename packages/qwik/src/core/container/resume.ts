@@ -1,6 +1,6 @@
 import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
-import { assertElement, assertQwikElement, isComment, isElement, isText } from '../util/element';
+import { assertElement, assertQwikElement, isElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
 import {
   ELEMENT_ID,
@@ -17,26 +17,22 @@ import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { createParser, OBJECT_TRANSFORMS, Parser, UNDEFINED_PREFIX } from './serializers';
 import {
   ContainerState,
-  FILTER_ACCEPT,
-  FILTER_REJECT,
-  FILTER_SKIP,
   getContainerState,
   GetObject,
   isContainer,
   SHOW_COMMENT,
-  SHOW_ELEMENT,
   SnapshotState,
   strToInt,
 } from './container';
 import { findClose, QwikElement, VirtualElementImpl } from '../render/dom/virtual-element';
 import { getDomListeners } from '../state/listeners';
-import { domToVnode } from '../render/dom/visitor';
 import { parseSubscription, Subscriptions } from '../state/common';
 import { createProxy } from '../state/store';
 import { qSerialize } from '../util/qdev';
 import { pauseContainer } from './pause';
 import { getContext, HOST_FLAG_MOUNTED } from '../state/context';
-import { QObjectFlagsSymbol } from '../state/constants';
+import { QObjectFlagsSymbol, QObjectImmutable } from '../state/constants';
+import { domToVnode } from '../render/dom/visitor';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
@@ -67,72 +63,84 @@ export const resumeContainer = (containerEl: Element) => {
 
   const containerState = getContainerState(containerEl);
   moveStyles(containerEl, containerState);
-  const meta = JSON.parse(unescapeText(script.textContent || '{}')) as SnapshotState;
+
+  const pauseState = JSON.parse(unescapeText(script.textContent || '{}')) as SnapshotState;
 
   // Collect all elements
-  const elements = new Map<string, QwikElement | Node>();
+  const elements = new Map<number, QwikElement | Node>();
+  let node: Comment | null = null;
+  let container = 0;
 
-  const getObject: GetObject = (id) => {
-    return getObjectImpl(id, elements, meta.objs, containerState);
-  };
+  // Collect all virtual elements
+  const elementWalker = doc.createNodeIterator(containerEl, SHOW_COMMENT);
 
-  const elementWalker = doc.createTreeWalker(containerEl, SHOW_COMMENT | SHOW_ELEMENT, {
-    acceptNode(node: Element | Comment) {
-      if (isComment(node)) {
-        const data = node.data;
-        if (data.startsWith('qv ')) {
-          const close = findClose(node);
-          const virtual = new VirtualElementImpl(node, close);
-          const id = directGetAttribute(virtual, ELEMENT_ID);
-          if (id) {
-            const elCtx = getContext(virtual, containerState);
-            elCtx.$id$ = id;
-            elements.set(ELEMENT_ID_PREFIX + id, virtual);
-            maxId = Math.max(maxId, strToInt(id));
-          }
-        } else if (data.startsWith('t=')) {
-          const id = data.slice(2);
-          elements.set(ELEMENT_ID_PREFIX + data.slice(2), getTextNode(node));
-          maxId = Math.max(maxId, strToInt(id));
+  while ((node = elementWalker.nextNode() as Comment)) {
+    const data = node.data;
+    if (container === 0) {
+      if (data.startsWith('qv ')) {
+        const close = findClose(node);
+        const virtual = new VirtualElementImpl(node, close);
+        const id = directGetAttribute(virtual, ELEMENT_ID);
+        if (id) {
+          const elCtx = getContext(virtual, containerState);
+          const index = strToInt(id);
+          elCtx.$id$ = id;
+          elements.set(index, virtual);
         }
-        return FILTER_SKIP;
+      } else if (data.startsWith('t=')) {
+        const id = data.slice(2);
+        const index = strToInt(id);
+        elements.set(index, getTextNode(node));
       }
-      if (isContainer(node)) {
-        return FILTER_REJECT;
-      }
-      return node.hasAttribute(ELEMENT_ID) ? FILTER_ACCEPT : FILTER_SKIP;
-    },
-  });
+    }
+    if (data === 'cq') {
+      container++;
+    } else if (data === '/cq') {
+      container--;
+    }
+  }
 
-  let el: Node | null = null;
-  while ((el = elementWalker.nextNode())) {
+  // Collect all elements
+  // If there are nested container, we are forced to take a slower path.
+  // In order to check if there are nested containers, we use the `'qc📦'` class.
+  // This is because checking for class is the fastest way for the browser to find it.
+  const slotPath = containerEl.getElementsByClassName('qc📦').length !== 0;
+  containerEl.querySelectorAll('[q\\:id]').forEach((el) => {
+    if (slotPath && el.closest('[q\\:container]') !== containerEl) {
+      return;
+    }
+
     assertElement(el);
     const id = directGetAttribute(el, ELEMENT_ID);
     assertDefined(id, `resume: element missed q:id`, el);
     const elCtx = getContext(el, containerState);
     elCtx.$id$ = id;
     elCtx.$vdom$ = domToVnode(el);
-    elements.set(ELEMENT_ID_PREFIX + id, el);
+    elements.set(strToInt(id), el);
     maxId = Math.max(maxId, strToInt(id));
-  }
+  });
+  containerState.$elementIndex$ = maxId;
 
-  containerState.$elementIndex$ = ++maxId;
+  const parser = createParser(containerState, doc);
 
-  const parser = createParser(getObject, containerState, doc);
+  const getObject: GetObject = (id) => {
+    return getObjectImpl(id, elements, pauseState.objs, containerState);
+  };
 
   // Revive proxies with subscriptions into the proxymap
-  reviveValues(meta.objs, parser);
-  reviveSubscriptions(meta.objs, meta.subs, getObject, containerState, parser);
+  reviveValues(pauseState.objs, parser);
+
+  reviveSubscriptions(pauseState.objs, pauseState.subs, getObject, containerState, parser);
 
   // Rebuild target objects
-  for (const obj of meta.objs) {
+  for (const obj of pauseState.objs) {
     reviveNestedObjects(obj, getObject, parser);
   }
 
-  for (const elementID of Object.keys(meta.ctx)) {
-    assertTrue(elementID.startsWith('#'), 'elementId must start with #');
-    const ctxMeta = meta.ctx[elementID];
-    const el = elements.get(elementID);
+  for (const elementID of Object.keys(pauseState.ctx)) {
+    const ctxMeta = pauseState.ctx[elementID];
+    const index = strToInt(elementID);
+    const el = elements.get(index);
     assertDefined(el, `resume: cant find dom node for id`, elementID);
     assertQwikElement(el);
     const elCtx = getContext(el, containerState);
@@ -163,14 +171,22 @@ export const resumeContainer = (containerEl: Element) => {
 
     // Restore sequence scoping
     if (host) {
-      const [props, renderQrl] = host.split(' ');
+      const [renderQrl, props] = host.split(' ') as [string | undefined, string | undefined];
       const styleIds = el.getAttribute(QScopedStyle);
-      assertDefined(props, `resume: props missing in host metadata`, host);
       assertDefined(renderQrl, `resume: renderQRL missing in host metadata`, host);
       elCtx.$scopeIds$ = styleIds ? styleIds.split(' ') : null;
       elCtx.$flags$ = HOST_FLAG_MOUNTED;
-      elCtx.$props$ = getObject(props);
       elCtx.$componentQrl$ = getObject(renderQrl);
+      if (props) {
+        elCtx.$props$ = getObject(props);
+      } else {
+        elCtx.$props$ = createProxy(
+          {
+            [QObjectFlagsSymbol]: QObjectImmutable,
+          },
+          containerState
+        );
+      }
     }
   }
 
@@ -219,7 +235,7 @@ const reviveSubscriptions = (
 };
 
 const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => {
-  if (parser.fill(obj)) {
+  if (parser.fill(obj, getObject)) {
     return;
   }
 
@@ -238,7 +254,7 @@ const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => 
 
 const getObjectImpl = (
   id: string,
-  elements: Map<string, QwikElement | Node>,
+  elements: Map<number, QwikElement | Node>,
   objs: any[],
   containerState: ContainerState
 ) => {
@@ -249,8 +265,9 @@ const getObjectImpl = (
   );
 
   if (id.startsWith(ELEMENT_ID_PREFIX)) {
-    assertTrue(elements.has(id), `missing element for id:`, id);
-    return elements.get(id);
+    const index = strToInt(id.slice(ELEMENT_ID_PREFIX.length));
+    assertTrue(elements.has(index), `missing element for id:`, index);
+    return elements.get(index);
   }
   const index = strToInt(id);
   assertTrue(objs.length > index, 'resume: index is out of bounds', id);
@@ -305,4 +322,12 @@ export const appendQwikDevTools = (containerEl: Element) => {
     pause: () => pauseContainer(containerEl),
     state: getContainerState(containerEl),
   };
+};
+
+export const getID = (stuff: string) => {
+  const index = stuff.indexOf('q:id=');
+  if (index > 0) {
+    return strToInt(stuff.slice(index + 5));
+  }
+  return -1;
 };

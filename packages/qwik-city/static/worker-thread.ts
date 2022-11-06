@@ -60,6 +60,7 @@ async function workerRender(
     const request = new SsgRequestContext(url);
 
     const requestCtx: QwikCityRequestContext<void> = {
+      locale: undefined,
       url,
       request,
       response: async (status, headers, body, err) => {
@@ -127,7 +128,7 @@ async function workerRender(
       platform: sys.platform,
     };
 
-    const promise = requestHandler(requestCtx, opts)
+    const promise = requestHandler('static', requestCtx, opts)
       .then((rsp) => {
         if (rsp == null) {
           callback(result);

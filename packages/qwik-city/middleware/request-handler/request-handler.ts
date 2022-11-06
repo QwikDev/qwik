@@ -1,15 +1,17 @@
 import { loadRoute } from '../../runtime/src/library/routing';
-import { loadUserResponse, updateRequestCtx } from './user-response';
-import type { QwikCityRequestContext, QwikCityHandlerOptions } from './types';
-import { errorHandler, ErrorResponse, errorResponse } from './error-handler';
+import type { QwikCityMode } from '../../runtime/src/library/types';
 import { endpointHandler } from './endpoint-handler';
+import { errorHandler, ErrorResponse, errorResponse } from './error-handler';
 import { pageHandler } from './page-handler';
 import { RedirectResponse, redirectResponse } from './redirect-handler';
+import type { QwikCityHandlerOptions, QwikCityRequestContext } from './types';
+import { loadUserResponse, updateRequestCtx } from './user-response';
 
 /**
  * @alpha
  */
 export async function requestHandler<T = any>(
+  mode: QwikCityMode,
   requestCtx: QwikCityRequestContext,
   opts: QwikCityHandlerOptions
 ): Promise<T | null> {
@@ -43,6 +45,7 @@ export async function requestHandler<T = any>(
       }
 
       const pageResult = await pageHandler(
+        mode,
         requestCtx,
         userResponse,
         render,

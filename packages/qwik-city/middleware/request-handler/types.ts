@@ -12,6 +12,7 @@ export interface QwikCityRequestContext<T = any> {
   response: ResponseHandler<T>;
   url: URL;
   platform: Record<string, any>;
+  locale: string | undefined;
 }
 
 export interface QwikCityDevRequestContext extends QwikCityRequestContext {

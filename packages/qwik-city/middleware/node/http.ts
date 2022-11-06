@@ -61,6 +61,7 @@ export function fromNodeHttp(url: URL, req: IncomingMessage, res: ServerResponse
       ssr: true,
       node: process.versions.node,
     },
+    locale: undefined,
   };
 
   return requestCtx;

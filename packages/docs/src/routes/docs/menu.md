@@ -39,6 +39,7 @@
 - [QRL](advanced/qrl/index.mdx)
 - [Qwikloader](advanced/qwikloader/index.mdx)
 - [Custom Build Directory](advanced/custom-build-dir/index.mdx)
+- [Internationalization](advanced/i18n/index.mdx)
 
 ## Community
 

@@ -1,5 +1,5 @@
 {
-  "description": "Use Tailwind into your Qwik app",
+  "description": "Use Tailwind in your Qwik app",
   "devDependencies": {
     "postcss": "^8.4.16",
     "tailwindcss": "^3.1.8",

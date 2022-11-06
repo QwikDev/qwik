@@ -31,6 +31,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       }
 
       const requestCtx: QwikCityRequestContext<Response> = {
+        locale: undefined,
         url,
         request,
         response: (status, headers, body) => {
@@ -74,7 +75,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler<Response>(requestCtx, opts);
+      const handledResponse = await requestHandler<Response>('server', requestCtx, opts);
       if (handledResponse) {
         return handledResponse;
       }

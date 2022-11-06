@@ -38,7 +38,7 @@ export function mockRequestContext(opts?: {
     });
   };
 
-  return { url, request, response, responseData, platform: { testing: true } };
+  return { url, request, response, responseData, platform: { testing: true }, locale: undefined };
 }
 
 export interface TestQwikCityRequestContext extends QwikCityRequestContext {
@@ -47,6 +47,7 @@ export interface TestQwikCityRequestContext extends QwikCityRequestContext {
     headers: Headers;
     body: any;
   };
+  locale: string | undefined;
 }
 
 export async function wait() {

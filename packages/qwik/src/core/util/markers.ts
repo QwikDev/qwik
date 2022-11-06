@@ -32,6 +32,7 @@ export const QStyle = 'q:style';
 export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';
 
+export const QLocaleAttr = 'q:locale';
 export const QContainerAttr = 'q:container';
 
 export const QContainerSelector = '[q\\:container]';

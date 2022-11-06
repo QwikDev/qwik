@@ -81,6 +81,7 @@ export interface RenderSSROptions {
 export interface SSRContext {
   projectedCtxs: [RenderContext, SSRContext] | undefined;
   projectedChildren: Record<string, any[] | undefined> | undefined;
+  locale: string;
   invocationContext?: InvokeContext | undefined;
   $contexts$: QContext[];
   $pendingListeners$: [string, QRLInternal][];
@@ -104,6 +105,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const root = opts.containerTagName;
   const containerEl = createSSRContext(1).$element$;
   const containerState = createContainerState(containerEl as Element);
+  containerState.$envData$.locale = opts.envData?.locale;
   const doc = createDocument();
   const rCtx = createRenderContext(doc as any, containerState);
   const headNodes = opts.beforeContent ?? [];
@@ -114,6 +116,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
     invocationContext: undefined,
     headNodes: root === 'html' ? headNodes : [],
     $pendingListeners$: [],
+    locale: opts.envData?.locale,
   };
 
   const containerAttributes: Record<string, any> = {
@@ -122,6 +125,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
     'q:version': version ?? 'dev',
     'q:render': qDev ? 'ssr-dev' : 'ssr',
     'q:base': opts.base,
+    'q:locale': opts.envData?.locale,
     children: root === 'html' ? [node] : [headNodes, node],
   };
   if (root !== 'html') {
@@ -333,7 +337,7 @@ export const renderSSRComponent = (
   return then(executeComponent(rCtx, elCtx), (res) => {
     const hostElement = elCtx.$element$;
     const newRCtx = res.rCtx;
-    const invocationContext = newInvokeContext(hostElement, undefined);
+    const invocationContext = newInvokeContext(ssrCtx.locale, hostElement, undefined);
     invocationContext.$subscriber$ = hostElement;
     invocationContext.$renderCtx$ = newRCtx;
     const newSSrContext: SSRContext = {

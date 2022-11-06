@@ -541,8 +541,6 @@ export interface SnapshotMetaValue {
     // (undocumented)
     h?: string;
     // (undocumented)
-    r?: string;
-    // (undocumented)
     s?: string;
     // (undocumented)
     w?: string;
@@ -570,6 +568,8 @@ export interface SnapshotState {
     ctx: SnapshotMeta;
     // (undocumented)
     objs: any[];
+    // (undocumented)
+    refs: Record<string, string>;
     // (undocumented)
     subs: any[];
 }

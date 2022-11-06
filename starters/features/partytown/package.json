@@ -1,5 +1,5 @@
 {
-  "description": "Use Partytown into your Qwik app",
+  "description": "Use Partytown in your Qwik app",
   "devDependencies": {
     "@builder.io/partytown": "^0.7.0"
   },

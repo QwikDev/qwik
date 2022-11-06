@@ -23,7 +23,7 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
     try {
       const requestCtx = fromNodeHttp(getUrl(req), req, res);
       try {
-        const rsp = await requestHandler(requestCtx, opts);
+        const rsp = await requestHandler('server', requestCtx, opts);
         if (!rsp) {
           next();
         }

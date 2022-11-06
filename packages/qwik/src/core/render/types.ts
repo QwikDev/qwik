@@ -20,6 +20,7 @@ export interface RenderContext {
 }
 
 export interface RenderStaticContext {
+  readonly $locale$: string;
   readonly $doc$: Document;
   readonly $roots$: QContext[];
   readonly $hostElements$: Set<QwikElement>;

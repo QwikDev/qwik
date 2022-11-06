@@ -54,6 +54,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
       const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
+      const requestHeaders: Record<string, string> = req.headers as any;
 
       if (skipRequest(url.pathname) || isVitePing(url.pathname, req.headers)) {
         next();
@@ -102,7 +103,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
           if (userResponse.type === 'pagedata') {
             // dev server endpoint handler
-            await pageHandler(requestCtx, userResponse, noopDevRender);
+            await pageHandler('dev', requestCtx, userResponse, noopDevRender);
             return;
           }
 
@@ -114,7 +115,12 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
           // qwik city vite plugin should handle dev ssr rendering
           // but add the qwik city user context to the response object
-          const envData = getQwikCityEnvData(userResponse);
+          const envData = getQwikCityEnvData(
+            requestHeaders,
+            userResponse,
+            requestCtx.locale,
+            'dev'
+          );
           if (ctx.isDevServerClientOnly) {
             // because we stringify this content for the client only
             // dev server, there's some potential stringify issues

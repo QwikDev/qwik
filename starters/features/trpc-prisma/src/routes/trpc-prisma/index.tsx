@@ -1,10 +1,18 @@
-import { component$, useClientEffect$, useStore } from '@builder.io/qwik';
+import {
+	component$,
+	useClientEffect$,
+	useMount$,
+	useStore,
+} from '@builder.io/qwik';
 import { Framework } from '@prisma/client';
 import { trpc } from '~/client/trpc';
+import { tServer } from '~/trpc-server/router';
 
 export default component$(() => {
 	const store = useStore({ items: [] as Framework[] });
 
+	// tRPC client side
+	//
 	useClientEffect$(async ({ cleanup }) => {
 		const controller = new AbortController();
 		cleanup(() => controller.abort());
@@ -13,6 +21,13 @@ export default component$(() => {
 		});
 		store.items = items;
 	});
+
+	// tRPC server side
+	//
+	// useMount$(async () => {
+	// 	const items = await tServer.framework.list('');
+	// 	store.items = items;
+	// });
 
 	return (
 		<div>

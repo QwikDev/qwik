@@ -233,8 +233,6 @@ export const _pauseFromContexts = async (
       id = getQId(el);
       if (!id) {
         console.warn('Missing ID', el);
-      } else {
-        id = ELEMENT_ID_PREFIX + id;
       }
       elementToIndex.set(el, id);
     }
@@ -261,7 +259,7 @@ export const _pauseFromContexts = async (
       } else if (isQwikElement(obj)) {
         const elID = getElementID(obj);
         if (elID) {
-          return elID + suffix;
+          return ELEMENT_ID_PREFIX + elID + suffix;
         }
         return null;
       }
@@ -413,8 +411,9 @@ export const _pauseFromContexts = async (
     }
 
     if (canRender) {
-      if (elementCaptured && props) {
-        metaValue.h = mustGetObjId(props) + ' ' + mustGetObjId(renderQrl);
+      if (elementCaptured && renderQrl) {
+        const propsId = getObjId(props);
+        metaValue.h = mustGetObjId(renderQrl) + (propsId ? ' ' + propsId : '');
         add = true;
       }
 
@@ -569,7 +568,7 @@ const collectElement = (el: VirtualElement, collector: Collector) => {
 };
 
 export const collectElementData = (elCtx: QContext, collector: Collector, dynamic: boolean) => {
-  if (elCtx.$props$) {
+  if (elCtx.$props$ && !isEmptyObj(elCtx.$props$)) {
     collectValue(elCtx.$props$, collector, dynamic);
   }
   if (elCtx.$componentQrl$) {
@@ -775,4 +774,8 @@ const getTextID = (node: Text, containerState: ContainerState) => {
   parent.insertBefore(open, node);
   parent.insertBefore(close, node.nextSibling);
   return ELEMENT_ID_PREFIX + id;
+};
+
+const isEmptyObj = (obj: Record<string, any>) => {
+  return Object.keys(obj).length === 0;
 };

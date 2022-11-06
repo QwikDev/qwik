@@ -124,6 +124,10 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
     'q:base': opts.base,
     children: root === 'html' ? [node] : [headNodes, node],
   };
+  if (root !== 'html') {
+    containerAttributes.class =
+      'qc📦' + (containerAttributes.class ? ' ' + containerAttributes.class : '');
+  }
   containerState.$envData$ = {
     url: opts.url,
     ...opts.envData,
@@ -539,10 +543,12 @@ export const renderNode = (
     if (key != null) {
       openingElement += ' q:key="' + key + '"';
     }
-    if ('ref' in props || useSignal || listenersNeedId(listeners)) {
-      const newID = getNextIndex(rCtx);
-      openingElement += ' q:id="' + newID + '"';
-      elCtx.$id$ = newID;
+    if ('ref' in props || useSignal || listeners.length > 0) {
+      if ('ref' in props || useSignal || listenersNeedId(listeners)) {
+        const newID = getNextIndex(rCtx);
+        openingElement += ' q:id="' + newID + '"';
+        elCtx.$id$ = newID;
+      }
       ssrCtx.$contexts$.push(elCtx);
     }
     if (flags & IS_HEAD) {
@@ -890,9 +896,6 @@ export const escapeAttr = (s: string) => {
 };
 
 export const listenersNeedId = (listeners: Listener[]) => {
-  if (listeners.length === 0) {
-    return false;
-  }
   return listeners.some((l) => l[1].$captureRef$ && l[1].$captureRef$.length > 0);
 };
 

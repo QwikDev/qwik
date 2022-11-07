@@ -122,7 +122,7 @@ export {
       qwikCityDistVite
     );
     plugins.push(qwikCityVite.qwikCity({
-      basePathname: '/qwikcity.test',
+      basePathname: '/qwikcity-test/',
       trailingSlash: true,
     }));
   }

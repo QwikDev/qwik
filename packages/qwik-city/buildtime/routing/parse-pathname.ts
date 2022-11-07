@@ -46,6 +46,7 @@ export function parseRoutePathname(pathname: string): ParsedPathname {
                 }
               }
 
+              // TODO, remove once basepath is refactored
               if (isLast && content.includes('.')) {
                 addTrailingSlash = false;
               }

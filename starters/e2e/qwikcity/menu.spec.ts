@@ -2,12 +2,12 @@ import { expect, test } from '@playwright/test';
 import { assertPage, linkNavigate, load, locator } from './util.js';
 
 test('Qwik City Menu', async ({ context, javaScriptEnabled }) => {
-  const ctx = await load(context, javaScriptEnabled, '/qwikcity.test');
+  const ctx = await load(context, javaScriptEnabled, '/qwikcity-test');
 
   /***********  Docs: home  ***********/
   await linkNavigate(ctx, '[data-test-link="docs-home"]');
   await assertPage(ctx, {
-    pathname: '/qwikcity.test/docs/',
+    pathname: '/qwikcity-test/docs/',
     title: 'Docs: Welcome! - Qwik',
     layoutHierarchy: ['docs'],
     h1: 'Welcome to the Docs!',
@@ -25,7 +25,7 @@ test('Qwik City Menu', async ({ context, javaScriptEnabled }) => {
   /***********  Docs: overview  ***********/
   await linkNavigate(ctx, '[data-test-menu-link="/docs/overview"]');
   await assertPage(ctx, {
-    pathname: '/qwikcity.test/docs/overview/',
+    pathname: '/qwikcity-test/docs/overview/',
     title: 'Docs: Overview - Qwik',
     layoutHierarchy: ['docs'],
     h1: 'Overview',
@@ -44,7 +44,7 @@ test('Qwik City Menu', async ({ context, javaScriptEnabled }) => {
   /***********  Docs: getting-started  ***********/
   await linkNavigate(ctx, '[data-test-menu-link="/docs/getting-started"]');
   await assertPage(ctx, {
-    pathname: '/qwikcity.test/docs/getting-started/',
+    pathname: '/qwikcity-test/docs/getting-started/',
     title: 'Docs: Getting Started - Qwik',
     layoutHierarchy: ['docs'],
     h1: 'Getting Started',
@@ -63,7 +63,7 @@ test('Qwik City Menu', async ({ context, javaScriptEnabled }) => {
   /***********  Docs: components/basics  ***********/
   await linkNavigate(ctx, '[data-test-menu-link="/docs/components/basics"]');
   await assertPage(ctx, {
-    pathname: '/qwikcity.test/docs/components/basics/',
+    pathname: '/qwikcity-test/docs/components/basics/',
     title: 'Docs: components basics - Qwik',
     layoutHierarchy: ['docs'],
     h1: 'Docs: components basics',
@@ -82,7 +82,7 @@ test('Qwik City Menu', async ({ context, javaScriptEnabled }) => {
   /***********  Docs: components/listeners  ***********/
   await linkNavigate(ctx, '[data-test-menu-link="/docs/components/listeners"]');
   await assertPage(ctx, {
-    pathname: '/qwikcity.test/docs/components/listeners/',
+    pathname: '/qwikcity-test/docs/components/listeners/',
     title: 'Docs: components listeners - Qwik',
     layoutHierarchy: ['docs'],
     h1: 'Docs: components listeners',

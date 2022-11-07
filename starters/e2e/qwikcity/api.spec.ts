@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('Qwik City API', async ({ page: api }) => {
-  const rsp = (await api.goto('/qwikcity.test/api/data.json'))!;
+  const rsp = (await api.goto('/qwikcity-test/api/data.json'))!;
   expect(rsp.status()).toBe(200);
   expect(rsp.headers()['content-type']).toBe('application/json; charset=utf-8');
 
@@ -11,7 +11,7 @@ test('Qwik City API', async ({ page: api }) => {
 });
 
 test('Qwik City API, params', async ({ page: api }) => {
-  const rsp = (await api.goto('/qwikcity.test/api/builder.io/oss.json'))!;
+  const rsp = (await api.goto('/qwikcity-test/api/builder.io/oss.json'))!;
   expect(rsp.status()).toBe(200);
   expect(rsp.headers()['content-type']).toBe('application/json; charset=utf-8');
 
@@ -23,7 +23,7 @@ test('Qwik City API, params', async ({ page: api }) => {
 });
 
 test('Page route, accept application/javascript', async ({ page: api }) => {
-  await api.route('/qwikcity.test/products/hat', (route, request) => {
+  await api.route('/qwikcity-test/products/hat', (route, request) => {
     route.continue({
       headers: {
         ...request.headers(),
@@ -32,7 +32,7 @@ test('Page route, accept application/javascript', async ({ page: api }) => {
     });
   });
 
-  const rsp = (await api.goto('/qwikcity.test/products/hat'))!;
+  const rsp = (await api.goto('/qwikcity-test/products/hat'))!;
   expect(rsp.status()).toBe(200);
   expect(rsp.headers()['content-type']).toBe('application/json; charset=utf-8');
 
@@ -43,7 +43,7 @@ test('Page route, accept application/javascript', async ({ page: api }) => {
 });
 
 test('Page q-data.json route', async ({ page: api }) => {
-  const rsp = (await api.goto('/qwikcity.test/products/hat/q-data.json'))!;
+  const rsp = (await api.goto('/qwikcity-test/products/hat/q-data.json'))!;
   expect(rsp.status()).toBe(200);
   expect(rsp.headers()['content-type']).toBe('application/json; charset=utf-8');
 

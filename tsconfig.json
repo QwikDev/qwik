@@ -78,7 +78,7 @@
     "packages/qwik-react/src",
     "scripts",
     "starters/apps/e2e",
-    "starters/apps/qwikcity.test/**/*"
+    "starters/apps/qwikcity-test/**/*"
   ],
   "exclude": [
     "packages/create-qwik/dist",

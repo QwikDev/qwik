@@ -113,8 +113,8 @@ export class Cookie implements CookieInterface {
     this[RES_COOKIE][cookieName] = createSetCookieValue(cookieName, resolvedValue, options);
   }
 
-  delete(name: string) {
-    this.set(name, 'deleted', { expires: new Date(0) });
+  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>) {
+    this.set(name, 'deleted', { ...options, expires: new Date(0) });
   }
 
   headers() {

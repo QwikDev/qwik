@@ -5,6 +5,7 @@ import {
   Slot,
   useContextProvider,
   useEnvData,
+  getLocale,
   useStore,
   useWatch$,
 } from '@builder.io/qwik';
@@ -93,8 +94,9 @@ export const QwikCity = component$<QwikCityProps>(() => {
   useContextProvider(RouteNavigateContext, routeNavigate);
 
   useWatch$(async ({ track }) => {
+    const locale = getLocale('');
     const { routes, menus, cacheModules } = await import('@qwik-city-plan');
-    const path = track(routeNavigate, 'path');
+    const path = track(() => routeNavigate.path);
     const url = new URL(path, routeLocation.href);
     const pathname = url.pathname;
 
@@ -121,7 +123,7 @@ export const QwikCity = component$<QwikCityProps>(() => {
       contentInternal.contents = noSerialize(contentModules);
 
       const clientPageData = await endpointResponse;
-      const resolvedHead = resolveHead(clientPageData, routeLocation, contentModules);
+      const resolvedHead = resolveHead(clientPageData, routeLocation, contentModules, locale);
 
       // Update document head
       documentHead.links = resolvedHead.links;

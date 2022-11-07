@@ -57,13 +57,17 @@ export function qwikifyQrl<PROPS extends {}>(
         const hostElement = hostRef.value;
         if (hostElement) {
           // hydration
-          root = client.flushSync(() => {
-            return client.hydrateRoot(
-              hostElement,
-              mainExactProps(slotRef.value, scopeId, Cmp, hydrationKeys)
-            );
-          });
-          if (signal.value === false) {
+          if (isClientOnly) {
+            root = client.createRoot(hostElement);
+          } else {
+            root = client.flushSync(() => {
+              return client.hydrateRoot(
+                hostElement,
+                mainExactProps(slotRef.value, scopeId, Cmp, hydrationKeys)
+              );
+            });
+          }
+          if (isClientOnly || signal.value === false) {
             root.render(main(slotRef.value, scopeId, Cmp, trackedProps));
           }
         }
@@ -92,13 +96,17 @@ export function qwikifyQrl<PROPS extends {}>(
         <TagName
           {...getHostProps(props)}
           ref={(el: Element) => {
-            queueMicrotask(() => {
-              const internalData = internalState.value;
-              if (internalData && !internalData.root) {
-                const root = (internalData.root = client.createRoot(el));
-                root.render(main(slotRef.value, scopeId, internalData.cmp, props));
-              }
-            });
+            if (isBrowser) {
+              queueMicrotask(() => {
+                const internalData = internalState.value;
+                if (internalData && !internalData.root) {
+                  const root = (internalData.root = client.createRoot(el));
+                  root.render(main(slotRef.value, scopeId, internalData.cmp, props));
+                }
+              });
+            } else {
+              hostRef.value = el;
+            }
           }}
         >
           {SkipRender}

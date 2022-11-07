@@ -5,6 +5,8 @@ import {
   useContextProvider,
   useContext,
   Slot,
+  useSignal,
+  useClientEffect$,
 } from '@builder.io/qwik';
 
 export interface ContextI {
@@ -38,6 +40,8 @@ export const ContextRoot = component$(() => {
         <Level2 />
         <Level2 />
       </ContextFromSlot>
+
+      <Issue1971 />
     </div>
   );
 });
@@ -114,4 +118,39 @@ export const Level3 = component$(() => {
       </div>
     </div>
   );
+});
+
+export const Issue1971 = component$(() => {
+  return (
+    <Issue1971Provider>
+      <Issue1971Child />
+    </Issue1971Provider>
+  );
+});
+
+export const Issue1971Context = createContext<any>('issue-1971');
+
+export const Issue1971Provider = component$(() => {
+  useContextProvider(Issue1971Context, {
+    value: 'hello!',
+  });
+
+  return <Slot></Slot>;
+});
+
+export const Issue1971Child = component$(() => {
+  const show = useSignal(false);
+  useClientEffect$(() => {
+    show.value = true;
+  });
+  return (
+    <>
+      <div>Test 1: {show.value && <Issue1971Consumer />}</div>
+    </>
+  );
+});
+
+export const Issue1971Consumer = component$(() => {
+  const ctx = useContext(Issue1971Context);
+  return <div id="issue1971-value">Value: {ctx.value}</div>;
 });

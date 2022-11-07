@@ -73,6 +73,8 @@ export interface DocumentHeadProps<T = unknown> extends RouteLocation {
     data: T;
     // (undocumented)
     head: ResolvedDocumentHead;
+    // (undocumented)
+    withLocale: <T>(fn: () => T) => T;
 }
 
 // @alpha (undocumented)
@@ -233,6 +235,7 @@ export interface ResponseContext {
     // Warning: (ae-forgotten-export) The symbol "ErrorResponse" needs to be exported by the entry point index.d.ts
     readonly error: (status: number) => ErrorResponse;
     readonly headers: Headers;
+    locale: string | undefined;
     // Warning: (ae-forgotten-export) The symbol "RedirectResponse" needs to be exported by the entry point index.d.ts
     readonly redirect: (url: string, status?: number) => RedirectResponse;
     status: number;

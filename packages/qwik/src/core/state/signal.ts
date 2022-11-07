@@ -46,6 +46,17 @@ export class SignalImpl<T> implements Signal<T> {
     this[QObjectManagerSymbol] = manager;
   }
 
+  // prevent accidental use as value
+  valueOf() {
+    throw new TypeError('Cannot coerce a Signal, use `.value` instead');
+  }
+  toString() {
+    return `[Signal ${String(this.value)}]`;
+  }
+  toJSON() {
+    return { value: this.value };
+  }
+
   get value() {
     const sub = tryGetInvokeContext()?.$subscriber$;
     if (sub) {

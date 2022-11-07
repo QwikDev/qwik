@@ -1,0 +1,83 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+    return (
+        <div onClick$={() => console.log(mongodb)}>
+        </div>
+    );
+});
+
+
+============================= src/components/mongo/404.tsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export default /*#__PURE__*/ componentQrl(qrl(()=>import("../../../_404_component_zrvowc98eqo"), "_404_component_zRvoWc98eqo"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,6BAAe,mGAKZ\"}")
+============================= _404_component_zrvowc98eqo.tsx (ENTRY POINT)==
+
+import { qrl } from "@builder.io/qwik";
+export const _404_component_zRvoWc98eqo = ()=>{
+    return <div onClick$={qrl(()=>import("./_404_component_div_onclick_oimo9dvew9q"), "_404_component_div_onClick_OiMo9dvEW9Q")}>
+
+        </div>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";0CAG0B,IAAM;IAC5B,QACK,IAAI,iHAAsC;;QAC3C,EAAE;AAEV\"}")
+/*
+{
+  "origin": "src/components/mongo/404.tsx",
+  "name": "_404_component_zRvoWc98eqo",
+  "entry": null,
+  "displayName": "_404_component",
+  "hash": "zRvoWc98eqo",
+  "canonicalFilename": "_404_component_zrvowc98eqo",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    76,
+    172
+  ]
+}
+*/
+============================= _404_component_div_onclick_oimo9dvew9q.tsx (ENTRY POINT)==
+
+export const _404_component_div_onClick_OiMo9dvEW9Q = ()=>console.log(mongodb);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\"sDAKuB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "src/components/mongo/404.tsx",
+  "name": "_404_component_div_onClick_OiMo9dvEW9Q",
+  "entry": null,
+  "displayName": "_404_component_div_onClick",
+  "hash": "OiMo9dvEW9Q",
+  "canonicalFilename": "_404_component_div_onclick_oimo9dvew9q",
+  "extension": "tsx",
+  "parent": "_404_component_zRvoWc98eqo",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    120,
+    146
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -26,6 +26,7 @@ const qwikDistDir = join(__dirname, '..', 'packages', 'qwik', 'dist');
 const qwikCityDistDir = join(__dirname, '..', 'packages', 'qwik-city', 'lib');
 const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.mjs');
 const qwikCityDistVite = join(qwikCityDistDir, 'vite', 'index.mjs');
+const qwikCityMjs = join(qwikCityDistDir, 'index.qwik.mjs');
 
 const qwikCityVirtualEntry = '@city-ssr-entry';
 const entrySsrFileName = 'entry.ssr.tsx';
@@ -61,7 +62,7 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
 
     res.set('Content-Type', 'text/html');
     if (enableCityServer) {
-      cityApp(req, res, next, appDir);
+      await cityApp(req, res, next, appDir);
     } else {
       await ssrApp(req, res, appName, appDir, resolved);
       res.end();
@@ -107,7 +108,7 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
           return `import { qwikCity } from '@builder.io/qwik-city/middleware/node';
 import render from '${resolve(appSrcDir, 'entry.ssr')}';
 const { router, notFound } = qwikCity(render, {
-  base: '${baseUrl}',
+  base: '${baseUrl}build/',
 });
 export {
   router,
@@ -120,7 +121,10 @@ export {
     const qwikCityVite: typeof import('@builder.io/qwik-city/vite') = await import(
       qwikCityDistVite
     );
-    plugins.push(qwikCityVite.qwikCity());
+    plugins.push(qwikCityVite.qwikCity({
+      basePathname: '/qwikcity.test',
+      trailingSlash: true,
+    }));
   }
   const getInlineConf = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,
@@ -131,6 +135,7 @@ export {
     resolve: {
       alias: {
         '@builder.io/qwik': join(qwikDistDir),
+        '@builder.io/qwik-city': join(qwikCityDistDir),
       },
     },
   });
@@ -148,10 +153,9 @@ export {
       plugins: [
         ...plugins,
         optimizer.qwikVite({
+          vendorDirs: enableCityServer ? [qwikCityMjs] : [],
           entryStrategy: {
-            // TODO: e2e example seems requiring 'single' in vite ?
-            // previous is 'hook' in rollup. don't know why
-            type: enableCityServer ? 'smart' : 'single',
+            type: 'single',
           },
           client: {
             // forceFullBuild: true,

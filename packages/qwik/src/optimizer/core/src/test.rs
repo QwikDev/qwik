@@ -1128,6 +1128,26 @@ export default component$(() => {
 }
 
 #[test]
+fn example_default_export_invalid_ident() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+    return (
+        <div onClick$={() => console.log(mongodb)}>
+        </div>
+    );
+});
+
+"#
+        .to_string(),
+        filename: "src/components/mongo/404.tsx".into(),
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_parsed_inlined_qrls() {
     test_input!(TestInput {
         code: r#"

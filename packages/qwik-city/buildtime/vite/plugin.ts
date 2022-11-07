@@ -40,6 +40,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
   let qwikPlugin: QwikVitePlugin | null;
 
   const api: QwikCityPluginApi = {
+    getBasePathname: () => ctx?.opts.basePathname ?? '/',
     getRoutes: () => {
       return ctx?.routes.slice() ?? [];
     },

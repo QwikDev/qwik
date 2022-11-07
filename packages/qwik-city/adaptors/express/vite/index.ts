@@ -1,4 +1,5 @@
 import type { Plugin } from 'vite';
+import type { QwikCityPlugin } from '@builder.io/qwik-city/vite';
 import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import type { StaticGenerateOptions, StaticGenerateRenderOptions } from '../../../static';
 import { join } from 'node:path';
@@ -8,6 +9,7 @@ import fs from 'node:fs';
  * @alpha
  */
 export function expressAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
+  let qwikCityPlugin: QwikCityPlugin | null = null;
   let qwikVitePlugin: QwikVitePlugin | null = null;
   let serverOutDir: string | null = null;
   let renderModulePath: string | null = null;
@@ -29,6 +31,7 @@ export function expressAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
         origin: process?.env?.URL || 'https://yoursitename.example.com',
         renderModulePath: renderModulePath!,
         qwikCityPlanModulePath: qwikCityPlanModulePath!,
+        basePathname: qwikCityPlugin!.api.getBasePathname(),
       };
 
       if (typeof opts.staticGenerate === 'object') {
@@ -48,10 +51,15 @@ export function expressAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
     apply: 'build',
 
     configResolved({ build, plugins }) {
+      qwikCityPlugin = plugins.find((p) => p.name === 'vite-plugin-qwik-city') as QwikCityPlugin;
+      if (!qwikCityPlugin) {
+        throw new Error('Missing vite-plugin-qwik-city');
+      }
       qwikVitePlugin = plugins.find((p) => p.name === 'vite-plugin-qwik') as QwikVitePlugin;
       if (!qwikVitePlugin) {
         throw new Error('Missing vite-plugin-qwik');
       }
+
       serverOutDir = build.outDir;
 
       if (build?.ssr !== true) {

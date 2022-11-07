@@ -10,6 +10,8 @@
     "displayName": "Integration: Vitest (Unit Test)",
     "priority": -10,
     "viteConfig": {},
-    "docs": []
+    "docs": [
+      "https://vitest.dev/guide/"
+    ]
   }
 }

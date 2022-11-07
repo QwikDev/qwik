@@ -115,10 +115,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         resolveQwikBuild: viteCommand === 'build',
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         forceFullBuild,
-        vendorRoots: [
-          ...(qwikViteOpts.vendorDirs ?? []),
-          ...vendorRoots.map((v) => v.path),
-        ]
+        vendorRoots: [...(qwikViteOpts.vendorDirs ?? []), ...vendorRoots.map((v) => v.path)],
       };
 
       if (target === 'ssr') {

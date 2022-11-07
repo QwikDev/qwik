@@ -121,10 +121,12 @@ export {
     const qwikCityVite: typeof import('@builder.io/qwik-city/vite') = await import(
       qwikCityDistVite
     );
-    plugins.push(qwikCityVite.qwikCity({
-      basePathname: '/qwikcity-test/',
-      trailingSlash: true,
-    }));
+    plugins.push(
+      qwikCityVite.qwikCity({
+        basePathname: '/qwikcity-test/',
+        trailingSlash: true,
+      })
+    );
   }
   const getInlineConf = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,

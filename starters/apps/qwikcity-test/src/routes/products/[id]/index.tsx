@@ -1,5 +1,11 @@
 import { Resource, component$, useStore } from '@builder.io/qwik';
-import { Link, useEndpoint, useLocation, RequestHandler, DocumentHead } from '@builder.io/qwik-city';
+import {
+  Link,
+  useEndpoint,
+  useLocation,
+  RequestHandler,
+  DocumentHead,
+} from '@builder.io/qwik-city';
 import os from 'node:os';
 
 export default component$(() => {

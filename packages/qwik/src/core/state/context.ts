@@ -8,7 +8,6 @@ import type { QwikElement, VirtualElement } from '../render/dom/virtual-element'
 import type { SubscriptionManager } from './common';
 import type { ContainerState } from '../container/container';
 import { getDomListeners, Listener } from './listeners';
-import { domToVnode } from '../render/dom/visitor';
 import { seal } from '../util/qdev';
 import { directGetAttribute } from '../render/fast-calls';
 import { isElement } from '../../testing/html';
@@ -66,7 +65,6 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
     if (pauseCtx) {
       const { getObject, meta, refs } = pauseCtx;
       if (isElement(el)) {
-        elCtx.$vdom$ = domToVnode(el);
         const refMap = refs[elementID];
         if (refMap) {
           assertTrue(isElement(el), 'el must be an actual DOM element');

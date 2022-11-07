@@ -1,6 +1,6 @@
 import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
-import { isComment, isText } from '../util/element';
+import { isComment, isElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
 import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QStyle } from '../util/markers';
 
@@ -19,12 +19,14 @@ import {
   strToInt,
 } from './container';
 import { findClose, VirtualElementImpl } from '../render/dom/virtual-element';
-import { parseSubscription, Subscriptions } from '../state/common';
+import { getProxyManager, parseSubscription, Subscriptions } from '../state/common';
 import { createProxy } from '../state/store';
 import { qSerialize } from '../util/qdev';
 import { pauseContainer } from './pause';
 import { QObjectFlagsSymbol } from '../state/constants';
 import { isPrimitive } from '../render/dom/render-dom';
+import { getContext } from '../state/context';
+import { domToVnode } from '../render/dom/visitor';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
@@ -43,7 +45,7 @@ export const getPauseState = (containerEl: Element): SnapshotState | undefined =
   const script = getQwikJSON(parentJSON);
   if (script) {
     const data = (script.firstChild! as any).data;
-    return JSON.parse(data || '{}') as SnapshotState;
+    return JSON.parse(unescapeText(data) || '{}') as SnapshotState;
   }
 };
 
@@ -69,7 +71,7 @@ export const resumeContainer = (containerEl: Element) => {
     return;
   }
   const containerState = getContainerState(containerEl);
-  // moveStyles(containerEl, containerState);
+  moveStyles(containerEl, containerState);
 
   // Collect all elements
   const elements = new Map<number, Node>();
@@ -143,21 +145,20 @@ export const resumeContainer = (containerEl: Element) => {
         const close = findClose(rawElement);
         const virtual = new VirtualElementImpl(rawElement, close);
         finalized.set(id, virtual);
+        getContext(virtual, containerState);
         return virtual;
+      } else if (isElement(rawElement)) {
+        finalized.set(id, rawElement);
+        getContext(rawElement, containerState).$vdom$ = domToVnode(rawElement);
+        return rawElement;
       }
       finalized.set(id, rawElement);
       return rawElement;
     }
-
     const index = strToInt(id);
     const objs = pauseState.objs;
     assertTrue(objs.length > index, 'resume: index is out of bounds', id);
     const value = objs[index];
-    if (!isPrimitive(value) && !revived.has(index)) {
-      revived.add(index);
-      reviveSubscriptions(value, index, pauseState.subs, getObject, containerState, parser);
-      reviveNestedObjects(value, getObject, parser);
-    }
     let obj = value;
     for (let i = id.length - 1; i >= 0; i--) {
       const code = id[i];
@@ -168,6 +169,12 @@ export const resumeContainer = (containerEl: Element) => {
       obj = transform(obj, containerState);
     }
     finalized.set(id, obj);
+
+    if (!isPrimitive(value) && !revived.has(index)) {
+      revived.add(index);
+      reviveSubscriptions(value, index, pauseState.subs, getObject, containerState, parser);
+      reviveNestedObjects(value, getObject, parser);
+    }
     return obj;
   };
 
@@ -216,7 +223,12 @@ const reviveSubscriptions = (
       value[QObjectFlagsSymbol] = flag;
     }
     if (!parser.subs(value, converted)) {
-      createProxy(value, containerState, converted);
+      const proxy = containerState.$proxyMap$.get(value);
+      if (proxy) {
+        getProxyManager(proxy)!.$addSubs$(converted);
+      } else {
+        createProxy(value, containerState, converted);
+      }
     }
   }
 };
@@ -247,7 +259,7 @@ export const moveStyles = (containerEl: Element, containerState: ContainerState)
   });
 };
 
-export const unescapeText = (str: string) => {
+const unescapeText = (str: string) => {
   return str.replace(/\\x3C(\/?script)/g, '<$1');
 };
 

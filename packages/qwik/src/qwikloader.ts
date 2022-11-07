@@ -44,8 +44,14 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     const parentJSON = isDocElement ? doc.body : containerEl;
     const script = getQwikJSON(parentJSON);
     if (script) {
-      (containerEl as any)['_qwikjson_'] = JSON.parse((script.firstChild as any).data);
+      (containerEl as any)['_qwikjson_'] = JSON.parse(
+        unescapeText((script.firstChild as any).data)
+      );
     }
+  };
+
+  const unescapeText = (str: string) => {
+    return str.replace(/\\x3C(\/?script)/g, '<$1');
   };
 
   const createEvent = (eventName: string, detail?: any) =>

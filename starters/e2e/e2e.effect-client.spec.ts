@@ -44,4 +44,10 @@ test.describe('effect-client', () => {
     await expect(value2).toHaveText('value 2');
     await expect(meta).toHaveText('Sub: 10 Renders: 2');
   });
+
+  test('issue 2015', async ({ page }) => {
+    const order = page.locator('#issue-2015-order');
+    await page.waitForTimeout(300);
+    await expect(order).toHaveText('Order: start 1 finish 1 start 2 finish 2 start 3 finish 3');
+  });
 });

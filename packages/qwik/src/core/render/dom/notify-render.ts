@@ -320,11 +320,9 @@ const executeWatchesAfter = async (
     if (watchPromises.length > 0) {
       const watches = await Promise.all(watchPromises);
       sortWatches(watches);
-      await Promise.all(
-        watches.map((watch) => {
-          return runSubscriber(watch, containerState);
-        })
-      );
+      for (const watch of watches) {
+        await runSubscriber(watch, containerState);
+      }
       watchPromises.length = 0;
     }
   } while (containerState.$watchStaging$.size > 0);

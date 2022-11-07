@@ -28,30 +28,18 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     return el.getAttribute(name);
   };
 
-  const getQwikJSON = (parentElm: Element): HTMLScriptElement | undefined => {
-    let child = parentElm.lastElementChild;
-    while (child) {
-      if (child.tagName === 'SCRIPT' && getAttribute(child, 'type') === 'qwik/json') {
-        return child as HTMLScriptElement;
-      }
-      child = child.previousElementSibling;
-    }
-    return undefined;
-  };
-
   const resolveContainer = (containerEl: Element) => {
-    const isDocElement = containerEl === doc.documentElement;
-    const parentJSON = isDocElement ? doc.body : containerEl;
-    const script = getQwikJSON(parentJSON);
-    if (script) {
-      (containerEl as any)['_qwikjson_'] = JSON.parse(
-        unescapeText((script.firstChild as any).data)
-      );
+    const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
+    let script = parentJSON.lastElementChild;
+    while (script) {
+      if (script.tagName === 'SCRIPT' && getAttribute(script, 'type') === 'qwik/json') {
+        (containerEl as any)['_qwikjson_'] = JSON.parse(
+          script.textContent!.replace(/\\x3C(\/?script)/g, '<$1')
+        );
+        break;
+      }
+      script = script.previousElementSibling;
     }
-  };
-
-  const unescapeText = (str: string) => {
-    return str.replace(/\\x3C(\/?script)/g, '<$1');
   };
 
   const createEvent = (eventName: string, detail?: any) =>
@@ -78,7 +66,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       const base = new URL(getAttribute(container, 'q:base')!, doc.baseURI);
       for (const qrl of attrValue.split('\n')) {
         const url = new URL(qrl, base);
-        const symbolName = getSymbolName(url);
+        const symbolName = url.hash.replace(/^#?([^?[|]*).*$/, '$1');
         const reqTime = performance.now();
         const module = import(url.href.split('#')[0]);
         resolveContainer(container);
@@ -115,14 +103,6 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       }
     }
   };
-
-  const getSymbolName = (url: URL) =>
-    // 1 - optional `#` at the start.
-    // 2 - capture group `$1` containing the export name, stopping at the first `?`.
-    // 3 - the rest from the first `?` to the end.
-    // The hash string is replaced by the captured group that contains only the export name.
-    // This is the same as in the `qExport()` function.
-    url.hash.replace(/^#?([^?[|]*).*$/, '$1') || 'default';
 
   const camelToKebab = (str: string) => str.replace(/([A-Z])/g, (a) => '-' + a.toLowerCase());
 

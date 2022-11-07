@@ -61,11 +61,10 @@ storeSuite('should serialize content', async () => {
   );
 
   equal(JSON.parse(script.textContent!), {
-    ctx: {
-      '1': {
-        r: '1 2 f m 8 i 7 6 k! m l 0',
-      },
+    refs: {
+      '1': '1 2 f m 8 i 7 6 k! m l 0',
     },
+    ctx: {},
     objs: [
       '\u0012j',
       1,

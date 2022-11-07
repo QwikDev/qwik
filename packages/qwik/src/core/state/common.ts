@@ -6,7 +6,7 @@ import { isArray, isFunction, isObject, isSerializableObject } from '../util/typ
 import { isPromise } from '../util/promises';
 import { canSerialize } from '../container/serializers';
 import type { ContainerState, GetObject, GetObjID } from '../container/container';
-import type { SubscriberEffect, SubscriberHost } from '../use/use-watch';
+import { isSubscriberDescriptor, SubscriberEffect, SubscriberHost } from '../use/use-watch';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { notifyChange } from '../render/dom/notify-render';
 import { logError } from '../util/log';
@@ -206,11 +206,18 @@ export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) =>
   return base;
 };
 
-export const parseSubscription = (sub: string, getObject: GetObject): Subscriptions => {
+export const parseSubscription = (sub: string, getObject: GetObject): Subscriptions | undefined => {
   const parts = sub.split(' ');
   const type = parseInt(parts[0], 10);
   assertTrue(parts.length >= 2, 'At least 2 parts');
-  const subscription = [type, getObject(parts[1])];
+  const host = getObject(parts[1]);
+  if (!host) {
+    return undefined;
+  }
+  if (isSubscriberDescriptor(host) && !host.$el$) {
+    return undefined;
+  }
+  const subscription = [type, host];
   if (type === 0) {
     assertTrue(parts.length <= 3, 'Max 3 parts');
     subscription.push(parts[2]);

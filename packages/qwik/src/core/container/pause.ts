@@ -186,6 +186,7 @@ export const _pauseFromContexts = async (
   if (!hasListeners) {
     return {
       state: {
+        refs: {},
         ctx: {},
         objs: [],
         subs: [],
@@ -387,11 +388,12 @@ export const _pauseFromContexts = async (
   });
 
   const meta: SnapshotMeta = {};
+  const refs: Record<string, string> = {};
 
   // Write back to the dom
   allContexts.forEach((ctx) => {
-    assertDefined(ctx, `pause: missing context for dom node`);
     const node = ctx.$element$;
+    const elementID = ctx.$id$;
     const ref = ctx.$refMap$;
     const props = ctx.$props$;
     const contexts = ctx.$contexts$;
@@ -400,57 +402,55 @@ export const _pauseFromContexts = async (
     const seq = ctx.$seq$;
     const metaValue: SnapshotMetaValue = {};
     const elementCaptured = isVirtualElement(node) && collector.$elements$.includes(ctx);
+    assertDefined(elementID, `pause: can not generate ID for dom node`, node);
 
-    let add = false;
     if (ref.length > 0) {
       const value = ref.map(mustGetObjId).join(' ');
       if (value) {
-        metaValue.r = value;
-        add = true;
+        refs[elementID] = value;
       }
-    }
-
-    if (canRender) {
-      if (elementCaptured && renderQrl) {
-        const propsId = getObjId(props);
-        metaValue.h = mustGetObjId(renderQrl) + (propsId ? ' ' + propsId : '');
-        add = true;
-      }
-
-      if (watches && watches.length > 0) {
-        const value = watches.map(getObjId).filter(isNotNullable).join(' ');
-        if (value) {
-          metaValue.w = value;
+    } else {
+      let add = false;
+      if (canRender) {
+        if (elementCaptured && renderQrl) {
+          const propsId = getObjId(props);
+          metaValue.h = mustGetObjId(renderQrl) + (propsId ? ' ' + propsId : '');
           add = true;
         }
-      }
 
-      if (elementCaptured && seq && seq.length > 0) {
-        const value = seq.map(mustGetObjId).join(' ');
-        metaValue.s = value;
-        add = true;
-      }
-
-      if (contexts) {
-        const serializedContexts: string[] = [];
-        contexts.forEach((value, key) => {
-          const id = getObjId(value);
-          if (id) {
-            serializedContexts.push(`${key}=${id}`);
+        if (watches && watches.length > 0) {
+          const value = watches.map(getObjId).filter(isNotNullable).join(' ');
+          if (value) {
+            metaValue.w = value;
+            add = true;
           }
-        });
-        const value = serializedContexts.join(' ');
-        if (value) {
-          metaValue.c = value;
+        }
+
+        if (elementCaptured && seq && seq.length > 0) {
+          const value = seq.map(mustGetObjId).join(' ');
+          metaValue.s = value;
           add = true;
         }
-      }
-    }
 
-    if (add) {
-      const elementID = getElementID(node);
-      assertDefined(elementID, `pause: can not generate ID for dom node`, node);
-      meta[elementID] = metaValue;
+        if (contexts) {
+          const serializedContexts: string[] = [];
+          contexts.forEach((value, key) => {
+            const id = getObjId(value);
+            if (id) {
+              serializedContexts.push(`${key}=${id}`);
+            }
+          });
+          const value = serializedContexts.join(' ');
+          if (value) {
+            metaValue.c = value;
+            add = true;
+          }
+        }
+      }
+
+      if (add) {
+        meta[elementID] = metaValue;
+      }
     }
   });
 
@@ -465,6 +465,7 @@ export const _pauseFromContexts = async (
 
   return {
     state: {
+      refs,
       ctx: meta,
       objs: convertedObjs,
       subs,

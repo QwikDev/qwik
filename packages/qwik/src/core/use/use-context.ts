@@ -7,7 +7,8 @@ import { getVirtualElement, QwikElement, VirtualElement } from '../render/dom/vi
 import { isComment } from '../util/element';
 import { assertTrue } from '../error/assert';
 import { verifySerializable } from '../state/common';
-import { tryGetContext } from '../state/context';
+import { getContext, QContext } from '../state/context';
+import type { ContainerState } from '../container/container';
 
 // <docs markdown="../readme.md#Context">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -211,7 +212,7 @@ export const useContextProvider = <STATE extends object>(
  * @alpha
  */
 export const useContextBoundary = (...ids: Context<any>[]) => {
-  const { get, set, elCtx } = useSequentialScope<boolean>();
+  const { get, set, elCtx, rCtx } = useSequentialScope<boolean>();
   if (get !== undefined) {
     return;
   }
@@ -220,7 +221,7 @@ export const useContextBoundary = (...ids: Context<any>[]) => {
     elCtx.$contexts$ = contexts = new Map();
   }
   for (const c of ids) {
-    const value = resolveContext(c, elCtx.$element$);
+    const value = resolveContext(c, elCtx, rCtx.$renderCtx$.$static$.$containerState$);
     if (value !== undefined) {
       contexts.set(c.id, value);
     }
@@ -287,7 +288,7 @@ export const useContext: UseContext = <STATE extends object>(
   context: Context<STATE>,
   defaultValue?: any
 ) => {
-  const { get, set, rCtx: ctx } = useSequentialScope<STATE>();
+  const { get, set, rCtx, elCtx } = useSequentialScope<STATE>();
   if (get !== undefined) {
     return get;
   }
@@ -295,7 +296,7 @@ export const useContext: UseContext = <STATE extends object>(
     validateContext(context);
   }
 
-  const value = resolveContext(context, ctx.$hostElement$);
+  const value = resolveContext(context, elCtx, rCtx.$renderCtx$.$static$.$containerState$);
   if (value !== undefined) {
     return set(value);
   }
@@ -307,11 +308,12 @@ export const useContext: UseContext = <STATE extends object>(
 
 export const resolveContext = <STATE extends object>(
   context: Context<STATE>,
-  hostElement: QwikElement
+  hostCtx: QContext,
+  containerState: ContainerState
 ): STATE | undefined => {
   const contextID = context.id;
-  const hostCtx = tryGetContext(hostElement);
   if (hostCtx) {
+    let hostElement: QwikElement = hostCtx.$element$;
     let ctx = hostCtx.$slotParent$ ?? hostCtx.$parent$;
     while (ctx) {
       hostElement = ctx.$element$;
@@ -327,7 +329,7 @@ export const resolveContext = <STATE extends object>(
       ctx = ctx.$slotParent$ ?? ctx.$parent$;
     }
     if ((hostElement as any).closest) {
-      const value = queryContextFromDom(hostElement, contextID);
+      const value = queryContextFromDom(hostElement, containerState, contextID);
       if (value !== undefined) {
         return value;
       }
@@ -336,13 +338,17 @@ export const resolveContext = <STATE extends object>(
   return undefined;
 };
 
-export const queryContextFromDom = (hostElement: QwikElement, contextId: string) => {
+export const queryContextFromDom = (
+  hostElement: QwikElement,
+  containerState: ContainerState,
+  contextId: string
+) => {
   let element: QwikElement | null = hostElement;
   while (element) {
     let node: Node | VirtualElement | null = element;
     let virtual: VirtualElement | null;
     while (node && (virtual = findVirtual(node))) {
-      const contexts = tryGetContext(virtual)?.$contexts$;
+      const contexts = getContext(virtual, containerState)?.$contexts$;
       if (contexts) {
         if (contexts.has(contextId)) {
           return contexts.get(contextId);

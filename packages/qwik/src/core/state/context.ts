@@ -6,8 +6,16 @@ import type { StyleAppend } from '../use/use-core';
 import type { ProcessedJSXNode } from '../render/dom/render-dom';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import type { SubscriptionManager } from './common';
-import type { Listener } from './listeners';
 import type { ContainerState } from '../container/container';
+import { getDomListeners, Listener } from './listeners';
+import { seal } from '../util/qdev';
+import { directGetAttribute } from '../render/fast-calls';
+import { isElement } from '../../testing/html';
+import { assertQwikElement } from '../util/element';
+import { assertDefined, assertTrue } from '../error/assert';
+import { QScopedStyle } from '../util/markers';
+import { createProxy } from './store';
+import { QObjectFlagsSymbol, QObjectImmutable } from './constants';
 
 export const Q_CTX = '_qc_';
 
@@ -43,15 +51,72 @@ export const tryGetContext = (element: QwikElement): QContext | undefined => {
   return (element as any)[Q_CTX];
 };
 
-export const getContext = (
-  element: Element | VirtualElement,
-  _containerState: ContainerState
-): QContext => {
-  const ctx = tryGetContext(element)!;
+export const getContext = (el: QwikElement, containerState: ContainerState): QContext => {
+  assertQwikElement(el);
+  const ctx = tryGetContext(el)!;
   if (ctx) {
     return ctx;
   }
-  return createContext(element);
+  const elCtx = createContext(el);
+  const elementID = directGetAttribute(el, 'q:id');
+  if (elementID) {
+    const pauseCtx = containerState.$pauseCtx$;
+    elCtx.$id$ = elementID;
+    if (pauseCtx) {
+      const { getObject, meta, refs } = pauseCtx;
+      if (isElement(el)) {
+        const refMap = refs[elementID];
+        if (refMap) {
+          assertTrue(isElement(el), 'el must be an actual DOM element');
+          elCtx.$refMap$ = refMap.split(' ').map(getObject);
+          elCtx.li = getDomListeners(elCtx, containerState.$containerEl$);
+        }
+      } else {
+        const ctxMeta = meta[elementID];
+        if (ctxMeta) {
+          const seq = ctxMeta.s;
+          const host = ctxMeta.h;
+          const contexts = ctxMeta.c;
+          const watches = ctxMeta.w;
+          if (seq) {
+            elCtx.$seq$ = seq.split(' ').map(getObject);
+          }
+          if (watches) {
+            elCtx.$watches$ = watches.split(' ').map(getObject);
+          }
+          if (contexts) {
+            elCtx.$contexts$ = new Map();
+            for (const part of contexts.split(' ')) {
+              const [key, value] = part.split('=');
+              elCtx.$contexts$.set(key, getObject(value));
+            }
+          }
+
+          // Restore sequence scoping
+          if (host) {
+            const [renderQrl, props] = host.split(' ') as [string | undefined, string | undefined];
+            const styleIds = el.getAttribute(QScopedStyle);
+            assertDefined(renderQrl, `resume: renderQRL missing in host metadata`, host);
+            elCtx.$scopeIds$ = styleIds ? styleIds.split(' ') : null;
+            elCtx.$flags$ = HOST_FLAG_MOUNTED;
+            elCtx.$componentQrl$ = getObject(renderQrl);
+            if (props) {
+              elCtx.$props$ = getObject(props);
+            } else {
+              elCtx.$props$ = createProxy(
+                {
+                  [QObjectFlagsSymbol]: QObjectImmutable,
+                },
+                containerState
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return elCtx;
 };
 
 export const createContext = (element: Element | VirtualElement): QContext => {
@@ -73,6 +138,7 @@ export const createContext = (element: Element | VirtualElement): QContext => {
     $parent$: null,
     $slotParent$: null,
   };
+  seal(ctx);
   (element as any)[Q_CTX] = ctx;
   return ctx;
 };

@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('no resume', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/no-resume');
+    page.on('pageerror', (err) => expect(err).toEqual(undefined));
   });
 
   test('should handle to click', async ({ page }) => {

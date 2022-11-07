@@ -24,15 +24,40 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     );
   };
 
+  const getAttribute = (el: Element, name: string) => {
+    return el.getAttribute(name);
+  };
+
+  const getQwikJSON = (parentElm: Element): HTMLScriptElement | undefined => {
+    let child = parentElm.lastElementChild;
+    while (child) {
+      if (child.tagName === 'SCRIPT' && getAttribute(child, 'type') === 'qwik/json') {
+        return child as HTMLScriptElement;
+      }
+      child = child.previousElementSibling;
+    }
+    return undefined;
+  };
+
+  const resolveContainer = (containerEl: Element) => {
+    const isDocElement = containerEl === doc.documentElement;
+    const parentJSON = isDocElement ? doc.body : containerEl;
+    const script = getQwikJSON(parentJSON);
+    if (script) {
+      (containerEl as any)['_qwikjson_'] = JSON.parse(
+        unescapeText((script.firstChild as any).data)
+      );
+    }
+  };
+
+  const unescapeText = (str: string) => {
+    return str.replace(/\\x3C(\/?script)/g, '<$1');
+  };
+
   const createEvent = (eventName: string, detail?: any) =>
     new CustomEvent(eventName, {
       detail,
     });
-
-  const qrlResolver = (element: Element, qrl: string): URL => {
-    element = element.closest('[q\\:container]')!;
-    return new URL(qrl, new URL(element.getAttribute('q:base')!, doc.baseURI));
-  };
 
   const dispatch = async (element: Element, onPrefix: string, ev: Event, eventName = ev.type) => {
     const attrName = 'on' + onPrefix + ':' + eventName;
@@ -47,13 +72,17 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       }
       return;
     }
-    const attrValue = element.getAttribute(attrName);
+    const attrValue = getAttribute(element, attrName);
     if (attrValue) {
+      const container = element.closest('[q\\:container]')!;
+      const base = new URL(getAttribute(container, 'q:base')!, doc.baseURI);
       for (const qrl of attrValue.split('\n')) {
-        const url = qrlResolver(element, qrl);
+        const url = new URL(qrl, base);
         const symbolName = getSymbolName(url);
         const reqTime = performance.now();
-        const handler = findSymbol(await import(url.href.split('#')[0]), symbolName);
+        const module = import(url.href.split('#')[0]);
+        resolveContainer(container);
+        const handler = findSymbol(await module, symbolName);
         const previousCtx = (doc as any)[Q_CONTEXT];
         if (element.isConnected) {
           try {

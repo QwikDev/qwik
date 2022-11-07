@@ -65,6 +65,7 @@ import { EMPTY_OBJ } from '../../util/flyweight';
 import { addSignalSub, isSignal } from '../../state/signal';
 import {
   cleanupContext,
+  createContext,
   getContext,
   HOST_FLAG_DIRTY,
   HOST_FLAG_NEED_ATTACH_LISTENER,
@@ -645,7 +646,7 @@ const createElm = (
     isSvg = false;
     flags &= ~IS_SVG;
   }
-  const elCtx = getContext(elm, staticCtx.$containerState$);
+  const elCtx = createContext(elm);
   elCtx.$parent$ = rCtx.$cmpCtx$;
   elCtx.$slotParent$ = rCtx.$slotCtx$;
   if (isComponent) {

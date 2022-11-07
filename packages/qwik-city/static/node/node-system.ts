@@ -40,21 +40,24 @@ export async function createSystem(opts: StaticGenerateOptions) {
 
   const outDir = normalizePath(opts.outDir);
 
-  const getPageFilePath = (pathname: string) => {
-    pathname = pathname.slice(1);
+  const basePathname = opts.basePathname || '/';
+  const basenameLen = basePathname.length;
+
+  const getFsDir = (pathname: string) => {
+    pathname = pathname.slice(basenameLen);
     if (!pathname.endsWith('/')) {
       pathname += '/';
     }
-    pathname += 'index.html';
+    return pathname;
+  };
+
+  const getPageFilePath = (pathname: string) => {
+    pathname = getFsDir(pathname) + 'index.html';
     return join(outDir, pathname);
   };
 
   const getDataFilePath = (pathname: string) => {
-    pathname = pathname.slice(1);
-    if (!pathname.endsWith('/')) {
-      pathname += '/';
-    }
-    pathname += 'q-data.json';
+    pathname = getFsDir(pathname) + 'q-data.json';
     return join(outDir, pathname);
   };
 

@@ -33,6 +33,7 @@ export interface QwikCityPlugin {
  * @alpha
  */
 export interface QwikCityPluginApi {
+  getBasePathname: () => string;
   getRoutes: () => BuildRoute[];
   getServiceWorkers: () => BuildEntry[];
 }

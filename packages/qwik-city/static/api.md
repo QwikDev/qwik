@@ -13,6 +13,7 @@ export function generate(opts: StaticGenerateOptions): Promise<StaticGenerateRes
 
 // @alpha (undocumented)
 export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
+    basePathname?: string;
     qwikCityPlanModulePath: string;
     renderModulePath: string;
 }

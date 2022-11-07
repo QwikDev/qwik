@@ -73,8 +73,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         target = 'ssr';
       } else if (viteEnv.mode === 'lib') {
         target = 'lib';
-      } else {
+      } else if (viteEnv.mode === 'client') {
         target = 'client';
+      } else {
+        target = 'test';
       }
 
       let buildMode: QwikBuildMode;
@@ -290,6 +292,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       } else if (opts.target === 'lib') {
         // Library Build
         updatedViteConfig.build!.minify = false;
+      } else {
+        // Test Build
+        const qDevKey = 'globalThis.qDev';
+        const qTestKey = 'globalThis.qTest';
+        updatedViteConfig.define = {
+          [qDevKey]: true,
+          [qTestKey]: true,
+        };
       }
 
       return updatedViteConfig;

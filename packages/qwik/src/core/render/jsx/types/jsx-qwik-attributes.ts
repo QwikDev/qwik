@@ -136,6 +136,29 @@ export type QwikEventMap<T> = {
   AnimationIterationCapture: QwikAnimationEvent<T>;
   TransitionEnd: QwikTransitionEvent<T>;
   TransitionEndCapture: QwikTransitionEvent<T>;
+
+  //Audio / Video Events
+  AudioProcess: Event;
+  CanPlay: Event;
+  CanPlayThrough: Event;
+  Complete: Event;
+  DurationChange: Event;
+  Emptied: Event;
+  Ended: Event;
+  LoadedData: Event;
+  LoadedMetadata: Event;
+  Pause: Event;
+  Play: Event;
+  Playing: Event;
+  Progress: Event;
+  RateChange: Event;
+  Seeked: Event;
+  Seeking: Event;
+  Stalled: Event;
+  Suspend: Event;
+  TimeUpdate: Event;
+  VolumeChange: Event;
+  Waiting: Event;
 };
 
 export type PreventDefault<T> = {

@@ -142,6 +142,10 @@ export const resumeContainer = (containerEl: Element) => {
       const rawElement = elements.get(index);
       assertDefined(rawElement, `missing element for id:`, elementId);
       if (isComment(rawElement)) {
+        if (!rawElement.isConnected) {
+          finalized.set(id, undefined);
+          return undefined;
+        }
         const close = findClose(rawElement);
         const virtual = new VirtualElementImpl(rawElement, close);
         finalized.set(id, virtual);
@@ -216,7 +220,10 @@ const reviveSubscriptions = (
       if (sub.startsWith('_')) {
         flag = parseInt(sub.slice(1), 10);
       } else {
-        converted.push(parseSubscription(sub, getObject));
+        const parsed = parseSubscription(sub, getObject);
+        if (parsed) {
+          converted.push(parsed);
+        }
       }
     }
     if (flag > 0) {

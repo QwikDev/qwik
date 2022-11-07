@@ -1,0 +1,36 @@
+---
+title: useSignal() Hook
+contributors:
+  - manucorporat
+  - adamdbradley
+---
+
+Use `useSignal()` to store any single value similar to `useStore()`. 
+
+Some examples would be:
+```
+const intStore = useSignal(0);
+const stringStore = useSignal('foo');
+const booleanStore = useSignal(true);
+const objectStore = useSignal({fruite: 'apple', color: 'green'});
+const arrayStore = useSignal(['banana','oranges']);
+```
+
+To read or update the values you can simple access the `value` property
+```
+<>
+  <button onClick$={() => intStore.value++}>Click me</button>
+  <div>{intStore.value}</div>
+</>
+```
+
+It is also able to hold a reference of a DOM element created by the component.
+
+There are two parts to retrieving a DOM element reference:
+
+1. `useSignal()` returns a store object that contains a `value` property which will eventually contain the reference.
+2. `ref={_ref_variable_}` is a prop binding that will set the `value` property of the `ref` object to the DOM element.
+
+### Example
+
+The example on the right uses `useSignal()` to get a reference to the `input` element. However, it is missing the `ref` prop binding. Add the `ref` prop binding to make the example work as expected.

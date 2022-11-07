@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { component$, useStore, useResource$, Resource } from '@builder.io/qwik';
+import { component$, useStore, useResource$, Resource, useClientEffect$, useSignal } from '@builder.io/qwik';
 import { delay } from './resource';
 
 export const ResourceSerialization = component$(() => {
@@ -32,6 +32,7 @@ export const ResourceSerialization = component$(() => {
 
   return (
     <>
+      <Issue2014 />
       <Resource
         value={resourceSuccess}
         onResolved={(data) => (
@@ -73,4 +74,28 @@ export const ResourceSerialization = component$(() => {
       />
     </>
   );
+});
+
+export const Issue2014 = component$(() => {
+
+  const count = useSignal(0);
+  useClientEffect$(({ cleanup }) => {
+    const intervalId = setInterval(() => count.value++, 1000);
+    cleanup(() => clearInterval(intervalId));
+  });
+
+  const resource = useResource$<any>(async ({ track }) => {
+    track(count);
+    return {
+      timestamp: new Date().toString(),
+    };
+  });
+
+  return (
+    <div>
+      <Resource value={resource} onResolved={(data) => <>{data.timestamp}</>} />
+      (count is here: {count.value})
+    </div>
+  );
+
 });

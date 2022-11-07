@@ -97,7 +97,7 @@ const notifySignalOperation = (op: SubscriberSignal, containerState: ContainerSt
       'render: while rendering, $renderPromise$ must be defined',
       containerState
     );
-    containerState.$opsNext$.add(op);
+    containerState.$opsStaging$.add(op);
   } else {
     containerState.$opsNext$.add(op);
     scheduleFrame(containerState);
@@ -233,6 +233,10 @@ export const postRendering = async (containerState: ContainerState, ctx: RenderS
   });
   containerState.$hostsStaging$.clear();
 
+  containerState.$opsStaging$.forEach((el) => {
+    containerState.$opsNext$.add(el);
+  });
+  containerState.$opsStaging$.clear();
   containerState.$hostsRendering$ = undefined;
   containerState.$renderPromise$ = undefined;
 
@@ -240,6 +244,7 @@ export const postRendering = async (containerState: ContainerState, ctx: RenderS
     containerState.$hostsNext$.size +
     containerState.$watchNext$.size +
     containerState.$opsNext$.size;
+
   if (pending > 0) {
     scheduleFrame(containerState);
   }

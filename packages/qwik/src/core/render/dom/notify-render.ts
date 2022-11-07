@@ -176,7 +176,11 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
       }
     }
 
-    containerState.$opsNext$.forEach((op) => executeSignalOperation(staticCtx, op));
+    containerState.$opsNext$.forEach((op) => {
+      if (!staticCtx.$hostElements$.has(op[1])) {
+        executeSignalOperation(staticCtx, op);
+      }
+    });
     containerState.$opsNext$.clear();
 
     // Add post operations

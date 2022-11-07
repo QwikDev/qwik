@@ -1,12 +1,5 @@
 /* eslint-disable */
-import {
-  component$,
-  useStore,
-  useResource$,
-  Resource,
-  useClientEffect$,
-  useSignal,
-} from '@builder.io/qwik';
+import { component$, useStore, useResource$, Resource, useSignal } from '@builder.io/qwik';
 import { delay } from './resource';
 
 export const ResourceSerialization = component$(() => {

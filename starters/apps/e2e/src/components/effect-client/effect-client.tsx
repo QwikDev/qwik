@@ -222,9 +222,5 @@ export const Issue2015 = component$(() => {
     state.logs = state.logs.slice();
   });
 
-  return (
-    <div id="issue-2015-order">
-      Order: {state.logs.join(' ')}
-    </div>
-  )
+  return <div id="issue-2015-order">Order: {state.logs.join(' ')}</div>;
 });

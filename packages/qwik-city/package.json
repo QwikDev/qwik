@@ -61,7 +61,7 @@
     "build.runtime": "cd runtime && vite build --mode lib -c vite.lib.config.ts",
     "serve": "node --inspect runtime/server/entry.express",
     "serve.debug": "node --inspect-brk runtime/server/entry.express",
-    "test": "yarn test.unit && yarn test.e2e",
+    "test": "yarn test.unit && yarn test.e2e.mpa",
     "test.unit": "tsm ../../node_modules/.bin/uvu . unit.ts --tsmconfig tsm.cjs",
     "test.e2e.mpa": "mode=mpa node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts",
     "test.e2e.spa": "mode=spa node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts"

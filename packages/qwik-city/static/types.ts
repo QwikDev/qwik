@@ -102,6 +102,10 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
    * Path to the Qwik City Plan module exporting the default `@qwik-city-plan`.
    */
   qwikCityPlanModulePath: string;
+  /**
+   * Defaults to `/`
+   */
+  basePathname?: string;
 }
 
 export interface StaticGenerateHandlerOptions

@@ -347,6 +347,9 @@ export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
  */
 export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
 
+/**
+ * @alpha
+ */
 export interface StaticGenerate {
   params?: RouteParams[];
 }

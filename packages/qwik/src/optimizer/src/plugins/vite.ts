@@ -73,10 +73,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         target = 'ssr';
       } else if (viteEnv.mode === 'lib') {
         target = 'lib';
-      } else if (viteEnv.mode === 'client') {
-        target = 'client';
-      } else {
+      } else if (viteEnv.mode === 'test') {
         target = 'test';
+      } else {
+        target = 'client';
       }
 
       let buildMode: QwikBuildMode;

@@ -16,17 +16,29 @@ interface BaseSyntheticEvent<E = object, C = any, T = any> {
   type: string;
 }
 
+/** @beta */
 export type NativeAnimationEvent = AnimationEvent;
+/** @beta */
 export type NativeClipboardEvent = ClipboardEvent;
+/** @beta */
 export type NativeCompositionEvent = CompositionEvent;
+/** @beta */
 export type NativeDragEvent = DragEvent;
+/** @beta */
 export type NativeFocusEvent = FocusEvent;
+/** @beta */
 export type NativeKeyboardEvent = KeyboardEvent;
+/** @beta */
 export type NativeMouseEvent = MouseEvent;
+/** @beta */
 export type NativeTouchEvent = TouchEvent;
+/** @beta */
 export type NativePointerEvent = PointerEvent;
+/** @beta */
 export type NativeTransitionEvent = TransitionEvent;
+/** @beta */
 export type NativeUIEvent = UIEvent;
+/** @beta */
 export type NativeWheelEvent = WheelEvent;
 
 /**

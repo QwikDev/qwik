@@ -304,40 +304,40 @@ export type MountFn<T> = () => ValueOrPromise<T>;
 // @alpha @deprecated (undocumented)
 export const mutable: <T>(v: T) => T;
 
-// @public (undocumented)
+// @beta (undocumented)
 export type NativeAnimationEvent = AnimationEvent;
 
-// @public (undocumented)
+// @beta (undocumented)
 export type NativeClipboardEvent = ClipboardEvent;
 
-// @public (undocumented)
+// @beta (undocumented)
 export type NativeCompositionEvent = CompositionEvent;
 
-// @public (undocumented)
+// @beta (undocumented)
 export type NativeDragEvent = DragEvent;
 
-// @public (undocumented)
+// @beta (undocumented)
 export type NativeFocusEvent = FocusEvent;
 
-// @public (undocumented)
+// @beta (undocumented)
 export type NativeKeyboardEvent = KeyboardEvent;
 
-// @public (undocumented)
+// @beta (undocumented)
 export type NativeMouseEvent = MouseEvent;
 
-// @public (undocumented)
+// @beta (undocumented)
 export type NativePointerEvent = PointerEvent;
 
-// @public (undocumented)
+// @beta (undocumented)
 export type NativeTouchEvent = TouchEvent;
 
-// @public (undocumented)
+// @beta (undocumented)
 export type NativeTransitionEvent = TransitionEvent;
 
-// @public (undocumented)
+// @beta (undocumented)
 export type NativeUIEvent = UIEvent;
 
-// @public (undocumented)
+// @beta (undocumented)
 export type NativeWheelEvent = WheelEvent;
 
 // @public

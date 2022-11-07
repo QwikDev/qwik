@@ -92,7 +92,7 @@ export default component$(() => {
         </tr>
         <tr>
           <td>
-            <code>npm run qwik add static-node</code>
+            <code>npm run qwik add static</code>
           </td>
           <td>
             <a

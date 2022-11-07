@@ -207,6 +207,9 @@ impl<'a> QwikTransform<'a> {
             display_name += "s_";
         }
         display_name = escape_sym(&display_name);
+        if display_name.starts_with(|c| matches!(c, '0'..='9')) {
+            display_name = format!("_{}", display_name);
+        }
         let index = match self.hooks_names.get_mut(&display_name) {
             Some(count) => {
                 *count += 1;

@@ -4,16 +4,95 @@ contributors:
   - manucorporat
 ---
 
-## `useStyles$()`
+## Global styles
+Many apps use a global stylesheet to do browser resets and/or defining global styles. This is a good practice, but it is not recommended to use it for styling your components. Qwik is optimized to let the browser just download the styles that are needed for the current view. If you use a global stylesheet, all the styles will be downloaded on the first load, even if they are not needed for the current view.
 
+```tsx
+import './global.css'
+```
+
+## Inline critical styles
+To reduce the blocking time of the first paint, Qwik can inline the critical styles for the current view. This means that the browser will not need to download the styles for the current view. To tell Qwik to inline styles, just add the `?inline` query parameter to the import.
+
+```tsx
+import from './my-component.css?inline'
+```
+
+## Why not inline styles using the `<style>` tag?
+
+A naive way to ensure that a component has the correct styles loaded is to inline the style information into a component like so.
+
+```typescript
+export const MyComponent = () => {
+  return (
+    <>
+    <style>.my-class { color: red; }</style
+      My Component
+    </>
+  );
+}
+```
+
+The problem with this approach is that we will load styles twice.
+
+1. The styles are inserted into the HTML as part of the SSR.
+2. Then when the component is invalidated and needs to be re-rendered, the styles are loaded again because they are inlined.
+
+What is needed is to load the styles independently from the component. This is what `useStyles$()` is for. There are two scenarios:
+
+1. The component is rendered on the server and the styles are inserted into `<head>` as part of the SSR.
+   - Adding a new instance of a component to the application does not require that we load the styles as they are already included as part of SSR.
+2. The component is rendered on the client for the first time. In that case, the new component does not have styles in the `<head>` as the component was not part of SSR.
+   - Adding a new component that was not part of SSR requires that styles are loaded and inserted into `<head>`.
+
+
+## `useStyles$()`
 A lazy-loadable reference to component's styles.
 
 Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
 
 ```tsx
-import styles from './code-block.css?inline';
+import {useStyles$} from '@builder.io/qwik';
+import styles from './code-block.css';
+
 export const CmpStyles = component$(() => {
   useStyles$(styles);
-  return <>Some text</>;
+  return <span class="my-text">Some text</span>;
 });
 ```
+
+```css
+// code-block.css
+.my-text {
+  color: red;
+}
+```
+
+## `useStylesScope$`
+In previous sections, we have discussed how styles can be loaded lazily as they are needed using the `useStyles$()` hook.
+Browser styles are global and apply to all DOM elements, for this reason, Qwik also provides a way to load styles that are specific to a specific component. 
+This is achieved by generating a unique class for each component and then inserting that unique class id into the stylesheet.
+
+```tsx
+import {useStylesScoped$} from '@builder.io/qwik';
+import styles from './code-block.css';
+
+export const CmpStyles = component$(() => {
+  useStylesScoped$(styles);
+  return <span class="my-text">Some text</span>;
+});
+```
+
+```css
+// code-block.css
+.my-text {
+  color: blue;
+}
+```
+
+## Preprocessors
+### SASS / SCSS
+Qwik works nicely with SCSS and SASS without any additional installs. Make sure that your files have the `.scss` or `.sass` extension.
+
+### Tailwind
+To use Tailwind on your app, follow these [instructions](../../../qwikcity/integrations/tailwind).

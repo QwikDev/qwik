@@ -22,7 +22,6 @@ export type MustGetObjID = (obj: any) => string;
  * @alpha
  */
 export interface SnapshotMetaValue {
-  r?: string; // q:obj
   w?: string; // q:watches
   s?: string; // q:seq
   h?: string; // q:host
@@ -39,6 +38,7 @@ export type SnapshotMeta = Record<string, SnapshotMetaValue>;
  */
 export interface SnapshotState {
   ctx: SnapshotMeta;
+  refs: Record<string, string>;
   objs: any[];
   subs: any[];
 }
@@ -68,6 +68,15 @@ export type ObjToProxyMap = WeakMap<any, any>;
 /**
  * @alpha
  */
+export interface PauseContext {
+  getObject: GetObject;
+  meta: SnapshotMeta;
+  refs: Record<string, string>;
+}
+
+/**
+ * @alpha
+ */
 export interface ContainerState {
   readonly $containerEl$: Element;
 
@@ -87,6 +96,7 @@ export interface ContainerState {
   $envData$: Record<string, any>;
   $elementIndex$: number;
 
+  $pauseCtx$: PauseContext | undefined;
   readonly $styleIds$: Set<string>;
   readonly $events$: Set<string>;
 }
@@ -123,6 +133,7 @@ export const createContainerState = (containerEl: Element) => {
     $envData$: {},
     $renderPromise$: undefined,
     $hostsRendering$: undefined,
+    $pauseCtx$: undefined,
     $subsManager$: null as any,
   };
   seal(containerState);

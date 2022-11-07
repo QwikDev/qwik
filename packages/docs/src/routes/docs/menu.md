@@ -19,6 +19,7 @@
 - [Lite components](components/lite-components/index.mdx)
 - [Content projection](components/projection/index.mdx)
 - [Rendering](components/rendering/index.mdx)
+- [Styling](components/styles/index.mdx)
 
 ## Cheat Sheet
 
@@ -39,6 +40,7 @@
 - [QRL](advanced/qrl/index.mdx)
 - [Qwikloader](advanced/qwikloader/index.mdx)
 - [Custom Build Directory](advanced/custom-build-dir/index.mdx)
+- [Internationalization](advanced/i18n/index.mdx)
 
 ## Community
 

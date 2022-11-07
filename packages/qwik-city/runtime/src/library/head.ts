@@ -1,3 +1,4 @@
+import { withLocale } from '@builder.io/qwik';
 import type {
   ContentModule,
   RouteLocation,
@@ -11,12 +12,14 @@ import type {
 export const resolveHead = (
   endpoint: EndpointResponse | ClientPageData | undefined | null,
   routeLocation: RouteLocation,
-  contentModules: ContentModule[]
+  contentModules: ContentModule[],
+  locale: string
 ) => {
   const head = createDocumentHead();
   const headProps: DocumentHeadProps = {
     data: endpoint ? endpoint.body : null,
     head,
+    withLocale: (fn) => withLocale(locale, fn),
     ...routeLocation,
   };
 
@@ -24,7 +27,10 @@ export const resolveHead = (
     const contentModuleHead = contentModules[i] && contentModules[i].head;
     if (contentModuleHead) {
       if (typeof contentModuleHead === 'function') {
-        resolveDocumentHead(head, contentModuleHead(headProps));
+        resolveDocumentHead(
+          head,
+          withLocale(locale, () => contentModuleHead(headProps))
+        );
       } else if (typeof contentModuleHead === 'object') {
         resolveDocumentHead(head, contentModuleHead);
       }

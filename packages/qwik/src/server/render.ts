@@ -9,6 +9,7 @@ import type {
   RenderToStringOptions,
   RenderToStringResult,
   StreamWriter,
+  RenderOptions,
 } from './types';
 import { getQwikLoaderScript } from './scripts';
 import { getPrefetchResources, ResolvedManifest } from './prefetch-strategy';
@@ -32,6 +33,7 @@ export async function renderToStream(
   rootNode: any,
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> {
+  opts = normalizeOptions(opts);
   let stream = opts.stream;
   let bufferSize = 0;
   let totalSize = 0;
@@ -101,6 +103,7 @@ export async function renderToStream(
   if (containerTagName === 'html') {
     stream.write(DOCTYPE);
   } else {
+    stream.write('<!--cq-->');
     if (opts.qwikLoader) {
       if (opts.qwikLoader.include === undefined) {
         opts.qwikLoader.include = 'never';
@@ -204,6 +207,11 @@ export async function renderToStream(
     },
   });
 
+  // End of container
+  if (containerTagName !== 'html') {
+    stream.write('<!--/cq-->');
+  }
+
   // Flush remaining chunks in the buffer
   flush();
 
@@ -288,4 +296,14 @@ function collectRenderSymbols(renderSymbols: string[], elements: QContext[]) {
       renderSymbols.push(symbol);
     }
   }
+}
+
+function normalizeOptions<T extends RenderOptions>(opts: T | undefined): T {
+  const normalizedOpts: T = { ...opts } as T;
+  if (opts) {
+    if (typeof opts.base === 'function') {
+      normalizedOpts.base = opts.base(normalizedOpts);
+    }
+  }
+  return normalizedOpts;
 }

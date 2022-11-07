@@ -21,7 +21,6 @@ import type { QwikElement } from '../render/dom/virtual-element';
 import { handleError } from '../render/error-handling';
 import type { RenderContext } from '../render/types';
 import { getProxyManager, noSerialize, NoSerialize, unwrapProxy } from '../state/common';
-import { getContext } from '../state/context';
 import { isSignal } from '../state/signal';
 
 export const WatchFlagsIsEffect = 1 << 0;
@@ -271,23 +270,27 @@ export interface UseWatchOptions {
  */
 // </docs>
 export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => {
-  const { get, set, ctx, i } = useSequentialScope<boolean>();
+  const { get, set, rCtx, i, elCtx } = useSequentialScope<boolean>();
   if (get) {
     return;
   }
   assertQrl(qrl);
 
-  const el = ctx.$hostElement$;
-  const containerState = ctx.$renderCtx$.$static$.$containerState$;
-  const watch = new Watch(WatchFlagsIsDirty | WatchFlagsIsWatch, i, el, qrl, undefined);
-  const elCtx = getContext(el);
+  const containerState = rCtx.$renderCtx$.$static$.$containerState$;
+  const watch = new Watch(
+    WatchFlagsIsDirty | WatchFlagsIsWatch,
+    i,
+    elCtx.$element$,
+    qrl,
+    undefined
+  );
   set(true);
   qrl.$resolveLazy$(containerState.$containerEl$);
   if (!elCtx.$watches$) {
     elCtx.$watches$ = [];
   }
   elCtx.$watches$.push(watch);
-  waitAndRun(ctx, () => runSubscriber(watch, containerState, ctx.$renderCtx$));
+  waitAndRun(rCtx, () => runSubscriber(watch, containerState, rCtx.$renderCtx$));
   if (isServer()) {
     useRunWatch(watch, opts?.eagerness);
   }
@@ -385,7 +388,7 @@ export const useWatch$ = /*#__PURE__*/ implicit$FirstArg(useWatchQrl);
  */
 // </docs>
 export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void => {
-  const { get, set, i, ctx } = useSequentialScope<Watch>();
+  const { get, set, i, rCtx: ctx, elCtx } = useSequentialScope<Watch>();
   const eagerness = opts?.eagerness ?? 'visible';
   if (get) {
     if (isServer()) {
@@ -394,9 +397,7 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
     return;
   }
   assertQrl(qrl);
-  const el = ctx.$hostElement$;
-  const watch = new Watch(WatchFlagsIsEffect, i, el, qrl, undefined);
-  const elCtx = getContext(el);
+  const watch = new Watch(WatchFlagsIsEffect, i, elCtx.$element$, qrl, undefined);
   const containerState = ctx.$renderCtx$.$static$.$containerState$;
   if (!elCtx.$watches$) {
     elCtx.$watches$ = [];
@@ -481,7 +482,7 @@ export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useClientEffectQ
  */
 // </docs>
 export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
-  const { get, set, ctx } = useSequentialScope<boolean>();
+  const { get, set, rCtx: ctx } = useSequentialScope<boolean>();
   if (get) {
     return;
   }
@@ -571,7 +572,7 @@ export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl
  */
 // </docs>
 export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
-  const { get, set, ctx } = useSequentialScope<boolean>();
+  const { get, set, rCtx: ctx } = useSequentialScope<boolean>();
   if (get) {
     return;
   }
@@ -636,7 +637,7 @@ export const runSubscriber = async (
 ) => {
   assertEqual(!!(watch.$flags$ & WatchFlagsIsDirty), true, 'Resource is not dirty', watch);
   if (isResourceWatch(watch)) {
-    return runResource(watch, containerState);
+    return runResource(watch, containerState, rctx);
   } else {
     return runWatch(watch, containerState, rctx);
   }
@@ -645,16 +646,17 @@ export const runSubscriber = async (
 export const runResource = <T>(
   watch: ResourceDescriptor<T>,
   containerState: ContainerState,
+  rctx?: RenderContext,
   waitOn?: Promise<any>
 ): ValueOrPromise<void> => {
   watch.$flags$ &= ~WatchFlagsIsDirty;
   cleanupWatch(watch);
 
   const el = watch.$el$;
-  const invokationContext = newInvokeContext(el, undefined, 'WatchEvent');
+  const invocationContext = newInvokeContext(rctx?.$static$.$locale$, el, undefined, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
   watch.$qrl$.$captureRef$;
-  const watchFn = watch.$qrl$.getFn(invokationContext, () => {
+  const watchFn = watch.$qrl$.getFn(invocationContext, () => {
     subsManager.$clearSub$(watch);
   });
 
@@ -733,7 +735,7 @@ export const runResource = <T>(
   };
 
   // Execute mutation inside empty invokation
-  invoke(invokationContext, () => {
+  invoke(invocationContext, () => {
     resource._state = 'pending';
     resource.loading = !isServer();
     resource._resolved = undefined as any;
@@ -780,9 +782,14 @@ export const runWatch = (
 
   cleanupWatch(watch);
   const hostElement = watch.$el$;
-  const invokationContext = newInvokeContext(hostElement, undefined, 'WatchEvent');
+  const invocationContext = newInvokeContext(
+    rctx?.$static$.$locale$,
+    hostElement,
+    undefined,
+    'WatchEvent'
+  );
   const { $subsManager$: subsManager } = containerState;
-  const watchFn = watch.$qrl$.getFn(invokationContext, () => {
+  const watchFn = watch.$qrl$.getFn(invocationContext, () => {
     subsManager.$clearSub$(watch);
   }) as WatchFn;
   const track: Tracker = (obj: any, prop?: string) => {

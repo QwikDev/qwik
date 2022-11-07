@@ -61,7 +61,7 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
     resumeIfNeeded(containerState.$containerEl$);
   }
 
-  const elCtx = getContext(hostElement);
+  const elCtx = getContext(hostElement, containerState);
   assertDefined(
     elCtx.$componentQrl$,
     `render: notified host element must have a defined $renderQrl$`,
@@ -161,7 +161,7 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
 
     for (const el of renderingQueue) {
       if (!staticCtx.$hostElements$.has(el)) {
-        const elCtx = getContext(el);
+        const elCtx = getContext(el, containerState);
         if (elCtx.$componentQrl$) {
           assertTrue(el.isConnected, 'element must be connected to the dom');
           staticCtx.$roots$.push(elCtx);
@@ -320,11 +320,9 @@ const executeWatchesAfter = async (
     if (watchPromises.length > 0) {
       const watches = await Promise.all(watchPromises);
       sortWatches(watches);
-      await Promise.all(
-        watches.map((watch) => {
-          return runSubscriber(watch, containerState);
-        })
-      );
+      for (const watch of watches) {
+        await runSubscriber(watch, containerState);
+      }
       watchPromises.length = 0;
     }
   } while (containerState.$watchStaging$.size > 0);

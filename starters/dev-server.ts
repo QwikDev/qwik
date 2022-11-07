@@ -143,6 +143,7 @@ export {
       define: {
         'globalThis.qSerialize': true,
         'globalThis.qDev': !isProd,
+        'globalThis.PORT': port,
       },
       plugins: [
         ...plugins,
@@ -172,6 +173,7 @@ export {
       plugins: [...plugins, optimizer.qwikVite()],
       define: {
         'globalThis.qDev': !isProd,
+        'globalThis.PORT': port,
       },
     })
   );

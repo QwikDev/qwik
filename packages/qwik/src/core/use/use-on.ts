@@ -19,12 +19,10 @@ import { Watch, WatchFlagsIsCleanup } from './use-watch';
  */
 // </docs>
 export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
-  const { get, set, i, ctx } = useSequentialScope<boolean>();
+  const { get, set, i, elCtx } = useSequentialScope<boolean>();
   if (!get) {
     assertQrl(unmountFn);
-    const el = ctx.$hostElement$;
-    const watch = new Watch(WatchFlagsIsCleanup, i, el, unmountFn, undefined);
-    const elCtx = getContext(el);
+    const watch = new Watch(WatchFlagsIsCleanup, i, elCtx.$element$, unmountFn, undefined);
     set(true);
     if (!elCtx.$watches$) {
       elCtx.$watches$ = [];
@@ -132,7 +130,10 @@ export const useOnWindow = (event: string | string[], eventQrl: QRL<(ev: Event) 
 
 const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: Event) => void>) => {
   const invokeCtx = useInvokeContext();
-  const elCtx = getContext(invokeCtx.$hostElement$);
+  const elCtx = getContext(
+    invokeCtx.$hostElement$,
+    invokeCtx.$renderCtx$.$static$.$containerState$
+  );
   assertQrl(eventQrl);
   if (typeof eventName === 'string') {
     elCtx.li.push([normalizeOnProp(eventName), eventQrl]);

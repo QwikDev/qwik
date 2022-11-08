@@ -1,6 +1,6 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
-  "extends": "../../api-extractor.json",
+  "extends": "../api-extractor.json",
   "mainEntryPointFilePath": "<projectFolder>/dist-dev/dts-out/packages/qwik-city/runtime/src/index.d.ts",
   "apiReport": {
     "enabled": true,

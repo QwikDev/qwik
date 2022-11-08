@@ -9,11 +9,8 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "browser": {
-        "production": "./dist/core.min.mjs",
-        "default": "./dist/core.mjs"
-      },
       "import": {
+        "min": "./dist/core.min.mjs",
         "production": "./dist/core.prod.mjs",
         "default": "./dist/core.mjs"
       },

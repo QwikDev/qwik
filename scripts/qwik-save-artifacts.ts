@@ -1,4 +1,5 @@
 import { execa } from 'execa';
+import { existsSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
@@ -21,6 +22,10 @@ const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
 })();
 
 async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifactsDir: string }) {
+  if (!existsSync(artifactsDir)) {
+    // if no artifacts, then nothing to do.
+    return () => null;
+  }
   const buildRepoDir = root + '/dist-dev/' + buildRepo;
   const repo = token
     ? `https://${token}:x-oauth-basic@github.com/BuilderIO/${buildRepo}.git`

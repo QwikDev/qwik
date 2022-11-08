@@ -26,7 +26,7 @@ export const noUseAfterAwait: Rule.RuleModule = {
           last.await = true;
         }
       },
-      'CallExpression[callee.name=/^use/]'(node: any) {
+      'CallExpression[callee.name=/^use[A-Z]/]'(node: any) {
         const last = stack[stack.length - 1];
         if (last && last.await) {
           context.report({

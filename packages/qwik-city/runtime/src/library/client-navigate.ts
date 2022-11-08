@@ -38,6 +38,16 @@ const handleScroll = async (win: Window, previousUrl: SimpleURL, newUrl: SimpleU
   const doc = win.document;
   const newHash = newUrl.hash;
 
+  const waitForDOMNodeInserted = () => {
+    return new Promise<void>((resolve) => {
+      const listener = () => {
+        resolve();
+        win.removeEventListener('DOMNodeInserted', listener);
+      };
+      win.addEventListener('DOMNodeInserted', listener);
+    });
+  };
+
   if (isSamePath(previousUrl, newUrl)) {
     // same route after path change
 
@@ -72,6 +82,8 @@ const handleScroll = async (win: Window, previousUrl: SimpleURL, newUrl: SimpleU
     } else {
       // different route and there isn't a hash
       await domWait();
+      // wait to scroll until the dom is meaningfully updated
+      await waitForDOMNodeInserted();
       win.scrollTo(0, 0);
     }
   }

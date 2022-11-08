@@ -24,11 +24,8 @@ export async function generatePackageJson(config: BuildConfig) {
     exports: {
       '.': {
         types: './core.d.ts',
-        browser: {
-          production: './core.min.mjs',
-          default: './core.mjs',
-        },
         import: {
+          min: './core.min.mjs',
           production: './core.prod.mjs',
           default: './core.mjs',
         },

@@ -17,7 +17,8 @@ const objectStore = useSignal({fruite: 'apple', color: 'green'});
 const arrayStore = useSignal(['banana','oranges']);
 ```
 
-To read or update the values you can simple access the `value` property
+To read or update the values you can simple access the `value` property:
+
 ```
 <>
   <button onClick$={() => intStore.value++}>Click me</button>

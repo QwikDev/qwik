@@ -163,7 +163,7 @@ export function resolveRoute(
     pathname,
     layouts: layouts.reverse(),
     ext: sourceFile.ext,
-    ...parseRoutePathname(pathname),
+    ...parseRoutePathname(opts.basePathname, pathname),
   };
 
   return buildRoute;
@@ -185,7 +185,7 @@ function resolveEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile
     id: createFileId(opts.routesDir, sourceFile.filePath),
     filePath: sourceFile.filePath,
     chunkFileName,
-    ...parseRoutePathname(pathname),
+    ...parseRoutePathname(opts.basePathname, pathname),
   };
 
   return buildEntry;
@@ -200,7 +200,7 @@ function resolveServiceWorkerEntry(opts: NormalizedPluginOptions, sourceFile: Ro
     id: createFileId(opts.routesDir, sourceFile.filePath),
     filePath: sourceFile.filePath,
     chunkFileName,
-    ...parseRoutePathname(pathname),
+    ...parseRoutePathname(opts.basePathname, pathname),
   };
 
   return buildEntry;

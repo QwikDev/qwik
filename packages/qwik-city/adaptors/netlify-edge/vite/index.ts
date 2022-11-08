@@ -1,6 +1,7 @@
 import type { Plugin } from 'vite';
 import type { QwikCityPlugin } from '@builder.io/qwik-city/vite';
 import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
+import { generateNetlifyEdgeManifest } from '../netlify-manifest';
 import type { StaticGenerateOptions, StaticGenerateRenderOptions } from '../../../static';
 import { join } from 'node:path';
 import fs from 'node:fs';
@@ -19,18 +20,26 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
     const qwikVitePluginApi = qwikVitePlugin!.api;
     const clientOutDir = qwikVitePluginApi.getClientOutDir()!;
 
+    // create server package.json to ensure mjs is used
     const serverPackageJsonPath = join(serverOutDir!, 'package.json');
     const serverPackageJsonCode = `{"type":"module"}`;
     await fs.promises.mkdir(serverOutDir!, { recursive: true });
     await fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode);
 
-    if (opts.staticGenerate) {
+    // create the netlify edge function manifest
+    // https://docs.netlify.com/edge-functions/create-integration/#generate-declarations
+    const routes = qwikCityPlugin!.api.getRoutes();
+    const netlifyManifest = generateNetlifyEdgeManifest(routes);
+    const netlifyManifestPath = join(serverOutDir!, 'manifest.json');
+    await fs.promises.writeFile(netlifyManifestPath, JSON.stringify(netlifyManifest, null, 2));
+
+    if (opts.staticGenerate && renderModulePath && qwikCityPlanModulePath) {
       const staticGenerate = await import('../../../static');
       let generateOpts: StaticGenerateOptions = {
         outDir: clientOutDir,
         origin: process?.env?.URL || 'https://yoursitename.netlify.app',
-        renderModulePath: renderModulePath!,
-        qwikCityPlanModulePath: qwikCityPlanModulePath!,
+        renderModulePath: renderModulePath,
+        qwikCityPlanModulePath: qwikCityPlanModulePath,
         basePathname: qwikCityPlugin!.api.getBasePathname(),
       };
 
@@ -49,6 +58,27 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
     name: 'vite-plugin-qwik-city-netlify-edge',
     enforce: 'post',
     apply: 'build',
+
+    config(config) {
+      const outDir = config.build?.outDir || '.netlify/edge-functions';
+
+      return {
+        ssr: {
+          target: 'webworker',
+          noExternal: true,
+        },
+        build: {
+          ssr: true,
+          outDir,
+          rollupOptions: {
+            output: {
+              format: 'es',
+            },
+          },
+        },
+        publicDir: false,
+      };
+    },
 
     configResolved({ build, plugins }) {
       qwikCityPlugin = plugins.find((p) => p.name === 'vite-plugin-qwik-city') as QwikCityPlugin;
@@ -88,12 +118,12 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
 
       if (!renderModulePath) {
         throw new Error(
-          'Unable to fine "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?'
+          'Unable to find "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?'
         );
       }
       if (!qwikCityPlanModulePath) {
         throw new Error(
-          'Unable to fine "@qwik-city-plan" entry point. Did you forget to add it to "build.rollupOptions.input"?'
+          'Unable to find "@qwik-city-plan" entry point. Did you forget to add it to "build.rollupOptions.input"?'
         );
       }
     },

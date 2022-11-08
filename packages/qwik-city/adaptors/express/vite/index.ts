@@ -87,12 +87,12 @@ export function expressAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
 
       if (!renderModulePath) {
         throw new Error(
-          'Unable to fine "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?'
+          'Unable to find "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?'
         );
       }
       if (!qwikCityPlanModulePath) {
         throw new Error(
-          'Unable to fine "@qwik-city-plan" entry point. Did you forget to add it to "build.rollupOptions.input"?'
+          'Unable to find "@qwik-city-plan" entry point. Did you forget to add it to "build.rollupOptions.input"?'
         );
       }
     },

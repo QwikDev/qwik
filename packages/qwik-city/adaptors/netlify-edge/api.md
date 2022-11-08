@@ -13,6 +13,7 @@ export function netifyEdgeAdaptor(opts?: NetlifyEdgeAdaptorOptions): any;
 
 // @alpha (undocumented)
 export interface NetlifyEdgeAdaptorOptions {
+    functionName?: 'entry.netlify-edge';
     // Warning: (ae-forgotten-export) The symbol "StaticGenerateRenderOptions" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)

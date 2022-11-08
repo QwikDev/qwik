@@ -241,6 +241,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           cssCodeSplit: false,
           rollupOptions: {
             input: opts.input,
+            preserveEntrySignatures: 'exports-only',
             output: normalizeRollupOutputOptions(path, opts, {}),
             treeshake: {
               moduleSideEffects: false,

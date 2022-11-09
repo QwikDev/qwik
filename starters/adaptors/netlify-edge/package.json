@@ -5,7 +5,6 @@
     "serve": "netlify deploy"
   },
   "devDependencies": {
-    "@netlify/vite-plugin-netlify-edge": "1.1.0",
     "netlify-cli": "^12.0.11"
   },
   "__qwik__": {

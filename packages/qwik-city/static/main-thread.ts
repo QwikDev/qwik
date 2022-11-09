@@ -1,10 +1,5 @@
 import type { PageModule, QwikCityPlan, RouteParams } from '../runtime/src/library/types';
-import type {
-  StaticGenerateRenderOptions,
-  StaticGenerateResult,
-  StaticRoute,
-  System,
-} from './types';
+import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from './types';
 import { msToString } from '../utils/format';
 import { getPathnameForDynamicRoute } from '../utils/pathname';
 import { pathToFileURL } from 'node:url';
@@ -194,7 +189,14 @@ export async function mainThread(sys: System) {
   });
 }
 
-function validateOptions(opts: StaticGenerateRenderOptions) {
+function validateOptions(opts: StaticGenerateOptions) {
+  if (!opts.qwikCityPlanModulePath) {
+    throw new Error(`Missing "qwikCityPlanModulePath" option`);
+  }
+  if (!opts.renderModulePath) {
+    throw new Error(`Missing "renderModulePath" option`);
+  }
+
   let siteOrigin = opts.origin;
   if (typeof siteOrigin !== 'string' || siteOrigin.trim().length === 0) {
     throw new Error(`Missing "origin" option`);

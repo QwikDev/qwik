@@ -11,12 +11,12 @@ export default component$(() => {
         <h2>API</h2>
         <ul>
           <li>
-            <a href="/api/builder.io/oss.json" data-test-link="api-org-user">
+            <a href="/qwikcity-test/api/builder.io/oss.json" data-test-link="api-org-user">
               Org/User
             </a>
           </li>
           <li>
-            <a href="/api/data.json" data-test-link="api-data">
+            <a href="/qwikcity-test/api/data.json" data-test-link="api-data">
               Data
             </a>
           </li>

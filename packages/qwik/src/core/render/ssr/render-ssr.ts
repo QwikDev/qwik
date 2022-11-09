@@ -82,7 +82,7 @@ export interface SSRContext {
   projectedCtxs: [RenderContext, SSRContext] | undefined;
   projectedChildren: Record<string, any[] | undefined> | undefined;
   locale: string;
-  invocationContext?: InvokeContext | undefined;
+  iCtx?: InvokeContext | undefined;
   $contexts$: QContext[];
   $pendingListeners$: [string, QRLInternal][];
   headNodes: JSXNode<string>[];
@@ -113,7 +113,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
     $contexts$: [],
     projectedChildren: undefined,
     projectedCtxs: undefined,
-    invocationContext: undefined,
+    iCtx: undefined,
     headNodes: root === 'html' ? headNodes : [],
     $pendingListeners$: [],
     locale: opts.envData?.locale,
@@ -176,7 +176,7 @@ export const renderRoot = async (
       );
     }
   }
-  return rCtx.$static$;
+  return rCtx;
 };
 
 export const renderGenerator = async (
@@ -344,7 +344,7 @@ export const renderSSRComponent = (
       ...ssrCtx,
       projectedChildren: splitProjectedChildren(props.children, ssrCtx),
       projectedCtxs: [rCtx, ssrCtx],
-      invocationContext,
+      iCtx: invocationContext,
     };
 
     const extraNodes: JSXNode<string>[] = [];
@@ -626,7 +626,7 @@ export const renderNode = (
     return renderGenerator(node as JSXNode<typeof InternalSSRStream>, rCtx, ssrCtx, stream, flags);
   }
 
-  const res = invoke(ssrCtx.invocationContext, tagName, node.props, node.key);
+  const res = invoke(ssrCtx.iCtx, tagName, node.props, node.key);
   return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
 };
 export const processData = (
@@ -658,7 +658,7 @@ export const processData = (
         stream.write(`<!--t=${id}-->${escapeHtml(jsxToString(value))}<!---->`);
         return;
       } else {
-        value = invoke(ssrCtx.invocationContext, () => node.value);
+        value = invoke(ssrCtx.iCtx, () => node.value);
       }
     }
     stream.write(escapeHtml(jsxToString(value)));
@@ -775,7 +775,7 @@ export const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => 
     children.type !== InternalSSRStream &&
     children.type !== Virtual
   ) {
-    const res = invoke(ssrCtx.invocationContext, children.type, children.props, children.key);
+    const res = invoke(ssrCtx.iCtx, children.type, children.props, children.key);
     return flatVirtualChildren(res, ssrCtx);
   }
   return children;

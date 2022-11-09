@@ -16,17 +16,17 @@ export default component$(() => {
           <h5>Dashboard Menu</h5>
           <ul>
             <li>
-              <a href="/dashboard/profile" data-test-link="dashboard-profile">
+              <a href="/qwikcity-test/dashboard/profile" data-test-link="dashboard-profile">
                 Profile
               </a>
             </li>
             <li>
-              <a href="/dashboard/settings" data-test-link="dashboard-settings">
+              <a href="/qwikcity-test/dashboard/settings" data-test-link="dashboard-settings">
                 Settings
               </a>
             </li>
             <li>
-              <a href="/sign-out" data-test-link="dashboard-sign-out">
+              <a href="/qwikcity-test/sign-out" data-test-link="dashboard-sign-out">
                 Sign Out
               </a>
             </li>

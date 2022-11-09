@@ -10,12 +10,18 @@ export default component$(() => {
       <aside class="blog-menu">
         <ul>
           <li>
-            <Link href="/blog/what-is-resumability" data-test-link="blog-resumability">
+            <Link
+              href="/qwikcity-test/blog/what-is-resumability"
+              data-test-link="blog-resumability"
+            >
               What Is Resumability?
             </Link>
           </li>
           <li>
-            <Link href="/blog/serializing-props" data-test-link="blog-serializing-props">
+            <Link
+              href="/qwikcity-test/blog/serializing-props"
+              data-test-link="blog-serializing-props"
+            >
               Serializing Props
             </Link>
           </li>

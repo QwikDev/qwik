@@ -79,7 +79,7 @@ export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
 
 export const processNode = (
   node: JSXNode,
-  invocationContext?: InvokeContext
+  iCtx?: InvokeContext
 ): ValueOrPromise<ProcessedJSXNode | ProcessedJSXNode[] | undefined> => {
   const key = node.key != null ? String(node.key) : null;
   const nodeType = node.type;
@@ -91,14 +91,14 @@ export const processNode = (
   } else if (nodeType === Virtual) {
     textType = VIRTUAL;
   } else if (isFunction(nodeType)) {
-    const res = invoke(invocationContext, nodeType, props, node.key);
-    return processData(res, invocationContext);
+    const res = invoke(iCtx, nodeType, props, node.key);
+    return processData(res, iCtx);
   } else {
     throw qError(QError_invalidJsxNodeType, nodeType);
   }
   let children: ProcessedJSXNode[] = EMPTY_ARRAY;
   if (originalChildren != null) {
-    return then(processData(originalChildren, invocationContext), (result) => {
+    return then(processData(originalChildren, iCtx), (result) => {
       if (result !== undefined) {
         children = isArray(result) ? result : [result];
       }
@@ -121,7 +121,7 @@ export const wrapJSX = (
 
 export const processData = (
   node: any,
-  invocationContext?: InvokeContext
+  iCtx?: InvokeContext
 ): ValueOrPromise<ProcessedJSXNode[] | ProcessedJSXNode | undefined> => {
   if (node == null || typeof node === 'boolean') {
     return undefined;
@@ -131,7 +131,7 @@ export const processData = (
     newNode.$text$ = String(node);
     return newNode;
   } else if (isJSXNode(node)) {
-    return processNode(node, invocationContext);
+    return processNode(node, iCtx);
   } else if (isSignal(node)) {
     const value = node.value;
     const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, EMPTY_ARRAY, null);
@@ -139,10 +139,10 @@ export const processData = (
     newNode.$signal$ = node;
     return newNode;
   } else if (isArray(node)) {
-    const output = promiseAll(node.flatMap((n) => processData(n, invocationContext)));
+    const output = promiseAll(node.flatMap((n) => processData(n, iCtx)));
     return then(output, (array) => array.flat(100).filter(isNotNullable));
   } else if (isPromise(node)) {
-    return node.then((node) => processData(node, invocationContext));
+    return node.then((node) => processData(node, iCtx));
   } else if (node === SkipRender) {
     return new ProcessedJSXNodeImpl(SKIP_RENDER_TYPE, EMPTY_OBJ, EMPTY_ARRAY, null);
   } else {

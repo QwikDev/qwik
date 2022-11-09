@@ -9,25 +9,25 @@ export default component$(() => {
     <footer>
       <ul>
         <li>
-          <Link href="/blog">Blog</Link>
+          <Link href="/qwikcity-test/blog">Blog</Link>
         </li>
         <li>
-          <Link href="/docs">Docs</Link>
+          <Link href="/qwikcity-test/docs">Docs</Link>
         </li>
         <li>
-          <Link href="/about-us">About Us</Link>
+          <Link href="/qwikcity-test/about-us">About Us</Link>
         </li>
         <li>
-          <Link href="/sign-in">Sign In</Link>
+          <Link href="/qwikcity-test/sign-in">Sign In</Link>
         </li>
         <li>
-          <Link href="/mit" target="_self" data-test-link="mit">
+          <Link href="/qwikcity-test/mit" target="_self" data-test-link="mit">
             {/* Should not use include preventdefault:client */}
             MIT
           </Link>
         </li>
         <li>
-          <Link class="footer-home" href="/">
+          <Link class="footer-home" href="/qwikcity-test/">
             Home
           </Link>
         </li>

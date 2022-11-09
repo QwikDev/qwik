@@ -59,20 +59,20 @@ export default component$(() => {
 
       <ul>
         <li>
-          <Link href="/products/jacket" data-test-link="products-jacket">
+          <Link href="/qwikcity-test/products/jacket" data-test-link="products-jacket">
             Jacket
           </Link>
         </li>
         <li>
-          <Link href="/products/hat">Hat</Link>
+          <Link href="/qwikcity-test/products/hat">Hat</Link>
         </li>
         <li>
-          <Link href="/products/shirt" data-test-link="products-shirt">
+          <Link href="/qwikcity-test/products/shirt" data-test-link="products-shirt">
             T-Shirt (Redirect to /products/tshirt)
           </Link>
         </li>
         <li>
-          <Link href="/products/hoodie" data-test-link="products-hoodie">
+          <Link href="/qwikcity-test/products/hoodie" data-test-link="products-hoodie">
             Hoodie (404 Not Found)
           </Link>
         </li>

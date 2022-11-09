@@ -11,13 +11,13 @@ export default component$(() => {
     <header>
       <div class="header-inner">
         <section class="logo">
-          <Link href="/" prefetch={true} data-test-link="header-home">
+          <Link href="/qwikcity-test" prefetch={true} data-test-link="header-home">
             Qwik City 🏙
           </Link>
         </section>
         <nav data-test-header-links>
           <Link
-            href="/blog"
+            href="/qwikcity-test/blog"
             prefetch={true}
             class={{ active: pathname.startsWith('/blog') }}
             data-test-link="blog-home"
@@ -25,7 +25,7 @@ export default component$(() => {
             Blog
           </Link>
           <Link
-            href="/docs"
+            href="/qwikcity-test/docs"
             prefetch={true}
             class={{ active: pathname.startsWith('/docs') }}
             data-test-link="docs-home"
@@ -33,7 +33,7 @@ export default component$(() => {
             Docs
           </Link>
           <Link
-            href="/api"
+            href="/qwikcity-test/api"
             prefetch={true}
             class={{ active: pathname.startsWith('/api') }}
             data-test-link="api-home"
@@ -41,7 +41,7 @@ export default component$(() => {
             API
           </Link>
           <Link
-            href="/products/hat"
+            href="/qwikcity-test/products/hat"
             prefetch={true}
             class={{ active: pathname.startsWith('/products') }}
             data-test-link="products-hat"
@@ -49,7 +49,7 @@ export default component$(() => {
             Products
           </Link>
           <Link
-            href="/about-us"
+            href="/qwikcity-test/about-us"
             prefetch={true}
             class={{ active: pathname.startsWith('/about-us') }}
             data-test-link="about-us"
@@ -57,7 +57,7 @@ export default component$(() => {
             About Us
           </Link>
           <Link
-            href="/sign-in"
+            href="/qwikcity-test/sign-in"
             prefetch={true}
             class={{ active: pathname.startsWith('/sign-in') }}
             data-test-link="sign-in"

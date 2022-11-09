@@ -119,18 +119,20 @@ export async function mainThread(sys: System) {
         if (pathname) {
           pathname = new URL(pathname, `https://qwik.builder.io`).pathname;
 
-          if (trailingSlash) {
-            if (!pathname.endsWith('/')) {
-              const segments = pathname.split('/');
-              const lastSegment = segments[segments.length - 1];
+          if (pathname !== opts.basePathname) {
+            if (trailingSlash) {
+              if (!pathname.endsWith('/')) {
+                const segments = pathname.split('/');
+                const lastSegment = segments[segments.length - 1];
 
-              if (!lastSegment.includes('.')) {
-                pathname += '/';
+                if (!lastSegment.includes('.')) {
+                  pathname += '/';
+                }
               }
-            }
-          } else {
-            if (pathname.endsWith('/')) {
-              pathname = pathname.slice(0, pathname.length - 1);
+            } else {
+              if (pathname.endsWith('/')) {
+                pathname = pathname.slice(0, pathname.length - 1);
+              }
             }
           }
 

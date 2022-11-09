@@ -53,13 +53,15 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
       staticPaths.push(...result.staticPaths);
     }
 
-    // create the netlify edge function manifest
-    // https://docs.netlify.com/edge-functions/create-integration/#generate-declarations
-    const routes = qwikCityPlugin!.api.getRoutes();
-    const netlifyManifest = generateNetlifyEdgeManifest(routes, staticPaths);
-    const edgeFnsDir = getEdgeFunctionsDir(serverOutDir!);
-    const netlifyManifestPath = join(edgeFnsDir, 'manifest.json');
-    await fs.promises.writeFile(netlifyManifestPath, JSON.stringify(netlifyManifest, null, 2));
+    if (opts.functionRoutes !== false) {
+      // create the netlify edge function manifest
+      // https://docs.netlify.com/edge-functions/create-integration/#generate-declarations
+      const routes = qwikCityPlugin!.api.getRoutes();
+      const netlifyManifest = generateNetlifyEdgeManifest(routes, staticPaths);
+      const edgeFnsDir = getEdgeFunctionsDir(serverOutDir!);
+      const netlifyManifestPath = join(edgeFnsDir, 'manifest.json');
+      await fs.promises.writeFile(netlifyManifestPath, JSON.stringify(netlifyManifest, null, 2));
+    }
   }
 
   const plugin: Plugin = {
@@ -204,5 +206,18 @@ interface NetlifyEdgePatternFunction {
  * @alpha
  */
 export interface NetlifyEdgeAdaptorOptions {
+  /**
+   * Determines if the build should generate the edge functions declarations `manifest.json` file.
+   *
+   * https://docs.netlify.com/edge-functions/declarations/
+   *
+   * Defaults to `true`.
+   */
+  functionRoutes?: boolean;
+  /**
+   * Determines if the adaptor should also run Static Site Generation (SSG).
+   */
   staticGenerate?: StaticGenerateRenderOptions | true;
 }
+
+export type { StaticGenerateRenderOptions } from '../../../static';

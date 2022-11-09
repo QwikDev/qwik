@@ -13,10 +13,22 @@ export function netifyEdgeAdaptor(opts?: NetlifyEdgeAdaptorOptions): any;
 
 // @alpha (undocumented)
 export interface NetlifyEdgeAdaptorOptions {
-    // Warning: (ae-forgotten-export) The symbol "StaticGenerateRenderOptions" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
+    functionRoutes?: boolean;
     staticGenerate?: StaticGenerateRenderOptions | true;
+}
+
+// Warning: (ae-forgotten-export) The symbol "RenderOptions" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export interface StaticGenerateRenderOptions extends RenderOptions {
+    emitData?: boolean;
+    emitHtml?: boolean;
+    log?: 'debug';
+    maxTasksPerWorker?: number;
+    maxWorkers?: number;
+    origin: string;
+    outDir: string;
+    sitemapOutFile?: string;
 }
 
 // (No @packageDocumentation comment for this package)

@@ -66,8 +66,9 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
       }
       exclude.push(...results.staticPaths);
     }
+
     const hasRoutesJson = exclude.includes('/_routes.json');
-    if (!hasRoutesJson) {
+    if (!hasRoutesJson && opts.functionRoutes !== false) {
       const routesJsonPath = join(clientOutDir, '_routes.json');
       const total = include.length + exclude.length;
       const maxRules = 100;
@@ -172,8 +173,21 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
  * @alpha
  */
 export interface CloudflarePagesAdaptorOptions {
+  /**
+   * Determines if the build should generate the function invocation routes `_routes.json` file.
+   *
+   * https://developers.cloudflare.com/pages/platform/functions/function-invocation-routes/
+   *
+   * Defaults to `true`.
+   */
+  functionRoutes?: boolean;
+  /**
+   * Determines if the adaptor should also run Static Site Generation (SSG).
+   */
   staticGenerate?: StaticGenerateRenderOptions | true;
 }
+
+export type { StaticGenerateRenderOptions } from '../../../static';
 
 const isNotNullable = <T>(v: T): v is NonNullable<T> => {
   return v != null;

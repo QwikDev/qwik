@@ -6,10 +6,6 @@ import type { RenderOptions } from '@builder.io/qwik';
 import qwikCityPlan from '@qwik-city-plan';
 import type { RequestHandler } from '~qwik-city-runtime';
 
-const isNetlifyPath = (url: string) => {
-  return new URL(url).pathname.startsWith('/.netlify');
-};
-
 // @builder.io/qwik-city/middleware/netlify-edge
 
 /**
@@ -17,13 +13,16 @@ const isNetlifyPath = (url: string) => {
  */
 export function createQwikCity(opts: QwikCityNetlifyOptions) {
   async function onRequest(request: Request, context: Context) {
-    if (isNetlifyPath(request.url)) {
-      return context.next();
-    }
     try {
+      const url = new URL(request.url);
+
+      if (url.pathname.startsWith('/.netlify')) {
+        return context.next();
+      }
+
       const requestCtx: QwikCityRequestContext<Response> = {
         locale: undefined,
-        url: new URL(request.url),
+        url,
         request,
         response: (status, headers, body) => {
           return new Promise<Response>((resolve) => {

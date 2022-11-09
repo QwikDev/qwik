@@ -1,9 +1,23 @@
 // https://docs.netlify.com/edge-functions/create-integration/#generate-declarations
 import type { BuildRoute } from '../../buildtime/types';
 
-export function generateNetlifyEdgeManifest(routes: BuildRoute[]) {
+export function generateNetlifyEdgeManifest(routes: BuildRoute[], staticPaths: string[]) {
+  const ssrRoutes = routes.filter((r) => !staticPaths.includes(r.pathname));
+
   const m: NetlifyEdgeManifest = {
-    functions: [],
+    functions: ssrRoutes.map((r) => {
+      if (r.paramNames.length > 0) {
+        return {
+          pattern: r.pattern.toString(),
+          function: 'entry.netlify-edge',
+        };
+      }
+
+      return {
+        path: r.pathname,
+        function: 'entry.netlify-edge',
+      };
+    }),
     version: 1,
   };
 

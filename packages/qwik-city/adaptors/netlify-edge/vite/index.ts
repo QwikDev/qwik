@@ -3,7 +3,7 @@ import type { QwikCityPlugin } from '@builder.io/qwik-city/vite';
 import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import { generateNetlifyEdgeManifest } from '../netlify-manifest';
 import type { StaticGenerateOptions, StaticGenerateRenderOptions } from '../../../static';
-import { join } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import fs from 'node:fs';
 
 /**
@@ -26,13 +26,7 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
     await fs.promises.mkdir(serverOutDir!, { recursive: true });
     await fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode);
 
-    // create the netlify edge function manifest
-    // https://docs.netlify.com/edge-functions/create-integration/#generate-declarations
-    const routes = qwikCityPlugin!.api.getRoutes();
-    const netlifyManifest = generateNetlifyEdgeManifest(routes);
-    const netlifyManifestPath = join(serverOutDir!, 'manifest.json');
-    await fs.promises.writeFile(netlifyManifestPath, JSON.stringify(netlifyManifest, null, 2));
-
+    const staticPaths: string[] = [];
     if (opts.staticGenerate && renderModulePath && qwikCityPlanModulePath) {
       const staticGenerate = await import('../../../static');
       let generateOpts: StaticGenerateOptions = {
@@ -50,8 +44,17 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
         };
       }
 
-      await staticGenerate.generate(generateOpts);
+      const result = await staticGenerate.generate(generateOpts);
+      staticPaths.push(...result.staticPaths);
     }
+
+    // create the netlify edge function manifest
+    // https://docs.netlify.com/edge-functions/create-integration/#generate-declarations
+    const routes = qwikCityPlugin!.api.getRoutes();
+    const netlifyManifest = generateNetlifyEdgeManifest(routes, staticPaths);
+    const edgeFnsDir = getEdgeFunctionsDir(serverOutDir!);
+    const netlifyManifestPath = join(edgeFnsDir, 'manifest.json');
+    await fs.promises.writeFile(netlifyManifestPath, JSON.stringify(netlifyManifest, null, 2));
   }
 
   const plugin: Plugin = {
@@ -60,7 +63,7 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
     apply: 'build',
 
     config(config) {
-      const outDir = config.build?.outDir || '.netlify/edge-functions';
+      const outDir = config.build?.outDir || '.netlify/edge-functions/entry.netlify-edge';
 
       return {
         ssr: {
@@ -133,6 +136,21 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
     },
   };
   return plugin;
+}
+
+function getEdgeFunctionsDir(serverOutDir: string) {
+  const root = resolve('/');
+  let dir = serverOutDir;
+  for (let i = 0; i < 20; i++) {
+    dir = dirname(dir);
+    if (basename(dir) === 'edge-functions') {
+      return dir;
+    }
+    if (dir === root) {
+      break;
+    }
+  }
+  throw new Error(`Unable to find edge functions dir from: ${serverOutDir}`);
 }
 
 /**

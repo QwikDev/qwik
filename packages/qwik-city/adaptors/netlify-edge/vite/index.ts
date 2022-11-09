@@ -1,7 +1,8 @@
 import type { Plugin } from 'vite';
+import type { BuildRoute } from '../../../buildtime/types';
 import type { QwikCityPlugin } from '@builder.io/qwik-city/vite';
 import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
-import { generateNetlifyEdgeManifest } from '../netlify-manifest';
+import type { PluginContext } from 'rollup';
 import type { StaticGenerateOptions, StaticGenerateRenderOptions } from '../../../static';
 import { basename, dirname, join, resolve } from 'node:path';
 import fs from 'node:fs';
@@ -16,7 +17,7 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
   let renderModulePath: string | null = null;
   let qwikCityPlanModulePath: string | null = null;
 
-  async function generateBundles() {
+  async function generateBundles(ctx: PluginContext) {
     const qwikVitePluginApi = qwikVitePlugin!.api;
     const clientOutDir = qwikVitePluginApi.getClientOutDir()!;
 
@@ -45,6 +46,10 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
       }
 
       const result = await staticGenerate.generate(generateOpts);
+      if (result.errors > 0) {
+        ctx.error('Error while runnning SSG. At least one path failed to render.');
+      }
+
       staticPaths.push(...result.staticPaths);
     }
 
@@ -132,7 +137,7 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
     },
 
     async closeBundle() {
-      await generateBundles();
+      await generateBundles(this);
     },
   };
   return plugin;
@@ -151,6 +156,48 @@ function getEdgeFunctionsDir(serverOutDir: string) {
     }
   }
   throw new Error(`Unable to find edge functions dir from: ${serverOutDir}`);
+}
+
+function generateNetlifyEdgeManifest(routes: BuildRoute[], staticPaths: string[]) {
+  const ssrRoutes = routes.filter((r) => !staticPaths.includes(r.pathname));
+
+  // https://docs.netlify.com/edge-functions/create-integration/#generate-declarations
+  const m: NetlifyEdgeManifest = {
+    functions: ssrRoutes.map((r) => {
+      if (r.paramNames.length > 0) {
+        return {
+          pattern: r.pattern.toString(),
+          function: 'entry.netlify-edge',
+        };
+      }
+
+      return {
+        path: r.pathname,
+        function: 'entry.netlify-edge',
+      };
+    }),
+    version: 1,
+  };
+
+  return m;
+}
+
+interface NetlifyEdgeManifest {
+  functions: (NetlifyEdgePathFunction | NetlifyEdgePatternFunction)[];
+  import_map?: string;
+  version: 1;
+}
+
+interface NetlifyEdgePathFunction {
+  path: string;
+  function: string;
+  name?: string;
+}
+
+interface NetlifyEdgePatternFunction {
+  pattern: string;
+  function: string;
+  name?: string;
 }
 
 /**

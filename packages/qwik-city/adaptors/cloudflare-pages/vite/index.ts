@@ -40,13 +40,13 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
     await fs.promises.mkdir(serverOutDir!, { recursive: true });
     await fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode);
 
-    if (opts.staticGenerate) {
+    if (opts.staticGenerate && renderModulePath && qwikCityPlanModulePath) {
       const staticGenerate = await import('../../../static');
       let generateOpts: StaticGenerateOptions = {
         outDir: clientOutDir,
         origin: process?.env?.CF_PAGES_URL || 'https://your.cloudflare.pages.dev',
-        renderModulePath: renderModulePath!,
-        qwikCityPlanModulePath: qwikCityPlanModulePath!,
+        renderModulePath: renderModulePath,
+        qwikCityPlanModulePath: qwikCityPlanModulePath,
         basePathname: qwikCityPlugin!.api.getBasePathname(),
       };
 
@@ -151,12 +151,12 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
 
       if (!renderModulePath) {
         throw new Error(
-          'Unable to fine "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?'
+          'Unable to find "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?'
         );
       }
       if (!qwikCityPlanModulePath) {
         throw new Error(
-          'Unable to fine "@qwik-city-plan" entry point. Did you forget to add it to "build.rollupOptions.input"?'
+          'Unable to find "@qwik-city-plan" entry point. Did you forget to add it to "build.rollupOptions.input"?'
         );
       }
     },

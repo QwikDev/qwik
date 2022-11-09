@@ -1,5 +1,5 @@
 ---
-title: Qwik City - Cloudflare Pages Middleware
+title: Qwik City - Cloudflare Pages Adaptor and Middleware
 contributors:
   - adamdbradley
 ---
@@ -28,7 +28,7 @@ Additionally, within the `package.json`, the `build.server` script will be updat
 
 ## Cloudflare Pages Entry Middleware
 
-Below is an example of using the built-in middleware within a user's app.
+When the `cloudflare-pages` adaptor is added, a new entry file will be created at `src/entry.cloudflare-pages.tsx`. Below is an example of using the built-in middleware within the entry file.
 
 ```typescript
 // src/entry.cloudflare-pages.tsx
@@ -41,7 +41,7 @@ const onRequest = createQwikCity({ render, qwikCityPlan });
 export { onRequest };
 ```
 
-The compiled middleware will be built to the `server/` directory and can then be used anywhere in the cloudflare pages `/functions` directory.
+The compiled middleware will be built in the `server/` directory and can then be used anywhere in the cloudflare pages `/functions` directory.
 
 ```typescript
 // export the compiled middleware where cloudflare pages can find it.
@@ -55,12 +55,13 @@ export { onRequest } from '../server/entry.cloudflare-pages';
 - [Cloudflare Pages Functions](https://developers.cloudflare.com/pages/platform/functions/)
 - [Function Invocation Route Config](https://developers.cloudflare.com/pages/platform/functions/function-invocation-routes/)
 
-## Function Invocation Routes
+## Cloudflare Pages Function Invocation Routes
 
 Cloudflare Page's [function-invocation-routes config](https://developers.cloudflare.com/pages/platform/functions/function-invocation-routes/) can be used to include, or exclude, certain paths to be used by the worker functions. Having a `_routes.json` file gives developers more granular control over when your Function is invoked.
-This is useful to determine if a page response should be Server-Side Rendered (SSR) or if the response should use a static-site generated (SSG) `index.html` file.
 
-By default, the Cloudflare pages adaptor _does not_ include a `public/_routes.json` config, but rather it is auto-generated from the build by the Cloudflare adaptor. An example of an auto-generate `dist/_routes.json` would be:
+This is useful to determine if a page response should be Server-Side Rendered (SSR) or if the response should use a static-site generated (SSG) `index.html` file instead.
+
+By default, the Cloudflare Pages adaptor _does not_ include a `public/_routes.json` config, but rather it is auto-generated from the build by the Cloudflare adaptor. An example of an auto-generate `dist/_routes.json` would be:
 
 ```
 {

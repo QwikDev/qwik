@@ -12,6 +12,25 @@ The [Netlify CLI](https://docs.netlify.com/cli/get-started/) can be used to prev
    In this project, `npm run serve` uses the `netlify dev` command to spin up a server that can handle Netlify's Edge Functions locally.
 4. Visit [http://localhost:8888/](http://localhost:8888/) to check out your site.
 
+### Edge Functions Declarations
+
+[Netlify Edge Functions declarations](https://docs.netlify.com/edge-functions/declarations/)
+can be configured to run on specific URL patterns. Each edge function declaration associates
+one site path pattern with one function to execute on requests that match the path. A single request can execute a chain of edge functions from a series of declarations. A single edge function can be associated with multiple paths across various declarations.
+
+This is useful to determine if a page response should be Server-Side Rendered (SSR) or
+if the response should use a static-site generated (SSG) `index.html` file instead.
+
+By default, the Netlify Edge adaptor will generate a `.netlify/edge-middleware/manifest.json` file, which is used by the Netlify deployment to determine which paths should, and should not, use edge functions.
+
+To override the generated manifest, you can [add a declaration](https://docs.netlify.com/edge-functions/declarations/#add-a-declaration) to the `netlify.toml` using the `[[edge_functions]]` config. For example:
+
+```toml
+[[edge_functions]]
+  path = "/admin"
+  function = "auth"
+```
+
 ### Deployments
 
 You can [deploy your site to Netlify](https://docs.netlify.com/site-deploys/create-deploys/) either via a Git provider integration or through the Netlify CLI. This starter site includes a `netlify.toml` file to configure your build for deployment.

@@ -262,8 +262,9 @@ async function noopDevRender() {
       render: 0,
       snapshot: 0,
     },
+    isStatic: false,
     prefetchResources: [],
-    snapshotResult: null,
+    snapshotResult: undefined,
   };
   return result;
 }

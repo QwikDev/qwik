@@ -77,8 +77,7 @@ async function getClientPageData(
   routeBundleNames: string[] | undefined
 ) {
   const prefetchBundleNames = getPrefetchBundleNames(result, routeBundleNames);
-
-  const isStatic = !result.snapshotResult?.resources.some((r) => r._cache !== Infinity);
+  const isStatic = result.isStatic;
   const clientPage: ClientPageData = {
     body: userResponse.pendingBody ? await userResponse.pendingBody : userResponse.resolvedBody,
     status: userResponse.status !== 200 ? userResponse.status : undefined,

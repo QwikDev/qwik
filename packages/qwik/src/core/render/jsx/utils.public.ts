@@ -60,7 +60,7 @@ export const SSRStreamBlock: FunctionComponent<{ children?: any }> = (props) => 
 /**
  * @alpha
  */
-export interface StreamProps {
+export interface SSRStreamProps {
   children:
     | AsyncGenerator<JSXChildren, void, any>
     | ((stream: StreamWriter) => Promise<void>)
@@ -70,7 +70,16 @@ export interface StreamProps {
 /**
  * @alpha
  */
-export const SSRStream: FunctionComponent<StreamProps> = (props, key) =>
+export const SSRStream: FunctionComponent<SSRStreamProps> = (props, key) =>
   jsx(RenderOnce, { children: jsx(InternalSSRStream, props) }, key);
 
-export const InternalSSRStream: FunctionComponent<StreamProps> = () => null;
+export interface SSRHintProps {
+  dynamic?: boolean;
+}
+
+/**
+ * @alpha
+ */
+export const SSRHint: FunctionComponent<SSRHintProps> = ((props: any) => props.children) as any;
+
+export const InternalSSRStream: FunctionComponent<SSRStreamProps> = () => null;

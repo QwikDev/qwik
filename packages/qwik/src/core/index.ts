@@ -43,7 +43,7 @@ export {
   SkipRender,
   RenderOnce,
 } from './render/jsx/utils.public';
-export type { StreamProps } from './render/jsx/utils.public';
+export type { SSRStreamProps } from './render/jsx/utils.public';
 export { Slot } from './render/jsx/slot.public';
 export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
 export type { HTMLAttributes, AriaAttributes, AriaRole } from './render/jsx/types/jsx-generated';

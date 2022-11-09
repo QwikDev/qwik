@@ -432,7 +432,7 @@ export interface RenderSSROptions {
     // (undocumented)
     base?: string;
     // (undocumented)
-    beforeClose?: (contexts: QContext[], containerState: ContainerState) => Promise<JSXNode>;
+    beforeClose?: (contexts: QContext[], containerState: ContainerState, containsDynamic: boolean) => Promise<JSXNode>;
     // (undocumented)
     beforeContent?: JSXNode<string>[];
     // (undocumented)
@@ -590,7 +590,7 @@ export const SSRRaw: FunctionComponent<{
 }>;
 
 // @alpha (undocumented)
-export const SSRStream: FunctionComponent<StreamProps>;
+export const SSRStream: FunctionComponent<SSRStreamProps>;
 
 // @alpha (undocumented)
 export const SSRStreamBlock: FunctionComponent<{
@@ -598,7 +598,7 @@ export const SSRStreamBlock: FunctionComponent<{
 }>;
 
 // @alpha (undocumented)
-export interface StreamProps {
+export interface SSRStreamProps {
     // (undocumented)
     children: AsyncGenerator<JSXChildren, void, any> | ((stream: StreamWriter) => Promise<void>) | (() => AsyncGenerator<JSXChildren, void, any>);
 }

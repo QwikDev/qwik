@@ -3,42 +3,33 @@ title: Static Site Generation Config
 contributors:
   - adamdbradley
   - wtho
+  - gmadar
 ---
 
 # Static Site Generation Config
 
-Below is an example of a `src/entry.static.tsx` file, which is the initial file used for a Static Site Generation (SSG) build. Just like a server's entry file for SSR, such as `src/entry.server.tsx`, it should import your app's `render` function from `./entry.ssr`.
-
-```typescript
-// file: src/entry.static.tsx
-import { qwikCityGenerate } from '@builder.io/qwik-city/static/node';
-import render from './entry.ssr';
-import { fileURLToPath } from 'node:url';
-import { join } from 'node:path';
-
-qwikCityGenerate(render, {
-  origin: 'https://qwik.builder.io',
-  outDir: join(fileURLToPath(import.meta.url), '..', '..', 'dist'),
-});
+Static site generation is created from the built in adapter, to create an adapter run:
+```bash
+npm run qwik add
 ```
+Select `Adaptor: Static site (.html files)`
+Done!
 
-You then can add the `build.ssg` script to `package.json` for building the generator code and add it to the `build` script to have it ready after each build:
-
-```json
-  "build": "npm run build.client && npm run build.ssr && npm run build.ssg",
-  "build.ssg": "vite build --ssr src/entry.static.tsx",
-```
+ ## Changes
+Running the above command will make the following changes to your project:
+  - A `build.server` script will be automatically added to your `package.json` file.
+  - A ``adaptors/vite.config.ts`` file will be created.
 
 In node you can run the generation after building using:
 ```bash
-node server/entry.static.js
+node server/enty.ssr.js
 ```
 
-Your build files will be generated into the `dist` folder, as configured in `src/entry.static.tsx`.
+Your build files will be generated into the `dist` folder.
 
 ## SSG Config
 
-The `src/entry.static.tsx` file also includes the SSG config, which would be custom for each implementation.
+The `adaptors/vite.config.ts` file also includes the SSG config, which would be custom for each implementation.
 
 ### `origin`
 

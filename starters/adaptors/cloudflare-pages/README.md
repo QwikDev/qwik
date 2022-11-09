@@ -16,7 +16,7 @@ If you don't already have an account, then [create a Cloudflare account here](ht
 
 Within the projects "Settings" for "Build and deployments", the "Build command" should be `npm run build`, and the "Build output directory" should be set to `dist`.
 
-## Function Invocation Routes
+### Function Invocation Routes
 
 Cloudflare Page's [function-invocation-routes config](https://developers.cloudflare.com/pages/platform/functions/function-invocation-routes/) can be used to include, or exclude, certain paths to be used by the worker functions. Having a `_routes.json` file gives developers more granular control over when your Function is invoked.
 This is useful to determine if a page response should be Server-Side Rendered (SSR) or if the response should use a static-site generated (SSG) `index.html` file.

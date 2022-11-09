@@ -73,6 +73,9 @@ export interface SSRStreamProps {
 export const SSRStream: FunctionComponent<SSRStreamProps> = (props, key) =>
   jsx(RenderOnce, { children: jsx(InternalSSRStream, props) }, key);
 
+/**
+ * @alpha
+ */
 export interface SSRHintProps {
   dynamic?: boolean;
 }

@@ -585,6 +585,15 @@ export const SSRComment: FunctionComponent<{
 }>;
 
 // @alpha (undocumented)
+export const SSRHint: FunctionComponent<SSRHintProps>;
+
+// @alpha (undocumented)
+export interface SSRHintProps {
+    // (undocumented)
+    dynamic?: boolean;
+}
+
+// @alpha (undocumented)
 export const SSRRaw: FunctionComponent<{
     data: string;
 }>;

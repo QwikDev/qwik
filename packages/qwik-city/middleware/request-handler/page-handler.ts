@@ -10,7 +10,7 @@ import type {
   ClientPageData,
   QwikCityEnvData,
   QwikCityMode,
-} from '../../runtime/src/library/types';
+} from '../../runtime/src/types';
 import { getErrorHtml } from './error-handler';
 import { HttpStatus } from './http-status-codes';
 import type { QwikCityRequestContext, UserResponseContext } from './types';

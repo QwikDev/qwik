@@ -1,7 +1,7 @@
 import { test } from 'uvu';
 import { equal, instance } from 'uvu/assert';
 import { mockRequestContext, wait } from './test-utils';
-import type { PageModule, RouteModule } from '../../runtime/src/library/types';
+import type { PageModule, RouteModule } from '../../runtime/src/types';
 import { loadUserResponse, updateRequestCtx } from './user-response';
 import { RedirectResponse } from './redirect-handler';
 import { ErrorResponse } from './error-handler';

@@ -1,6 +1,6 @@
-import type { Cookie, CookieOptions, CookieValue } from '../../../middleware/request-handler/types';
-import type { ErrorResponse } from '../../../middleware/request-handler/error-handler';
-import type { RedirectResponse } from '../../../middleware/request-handler/redirect-handler';
+import type { Cookie, CookieOptions, CookieValue } from '../../middleware/request-handler/types';
+import type { ErrorResponse } from '../../middleware/request-handler/error-handler';
+import type { RedirectResponse } from '../../middleware/request-handler/redirect-handler';
 import type { NoSerialize } from '@builder.io/qwik';
 
 export interface RouteModule<BODY = unknown> {

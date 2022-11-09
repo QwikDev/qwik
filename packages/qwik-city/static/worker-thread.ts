@@ -5,7 +5,7 @@ import type {
   System,
 } from './types';
 import type { QwikCityRequestContext } from '../middleware/request-handler/types';
-import type { RequestContext } from '../runtime/src/library/types';
+import type { RequestContext } from '../runtime/src/types';
 import { createHeaders } from '../middleware/request-handler/headers';
 import { requestHandler } from '../middleware/request-handler';
 import { pathToFileURL } from 'node:url';

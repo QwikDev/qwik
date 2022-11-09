@@ -5,7 +5,7 @@ import type {
   QwikCityPlan,
   RequestContext,
   RouteParams,
-} from '../../runtime/src/library/types';
+} from '../../runtime/src/types';
 
 export interface QwikCityRequestContext<T = any> {
   request: RequestContext;

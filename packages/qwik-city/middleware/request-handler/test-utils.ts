@@ -1,4 +1,4 @@
-import type { RequestContext } from '../../runtime/src/library/types';
+import type { RequestContext } from '../../runtime/src/types';
 import { createHeaders } from './headers';
 import type { QwikCityRequestContext, ResponseHandler } from './types';
 

@@ -3,7 +3,7 @@ import { notFoundHandler, requestHandler } from '../request-handler';
 import type { RenderOptions } from '@builder.io/qwik';
 import type { Render } from '@builder.io/qwik/server';
 import qwikCityPlan from '@qwik-city-plan';
-import type { RequestHandler } from '~qwik-city-runtime';
+import type { RequestHandler } from '../../runtime/src/types';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
 

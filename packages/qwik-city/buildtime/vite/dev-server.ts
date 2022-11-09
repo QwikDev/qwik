@@ -3,7 +3,7 @@ import type { ServerResponse } from 'node:http';
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import type { BuildContext } from '../types';
-import type { RouteModule } from '../../runtime/src/library/types';
+import type { RouteModule } from '../../runtime/src/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
 import { loadUserResponse, updateRequestCtx } from '../../middleware/request-handler/user-response';
 import { getQwikCityEnvData, pageHandler } from '../../middleware/request-handler/page-handler';
@@ -20,7 +20,7 @@ import {
 } from '../../middleware/request-handler/redirect-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
 import type { RenderToStringResult } from '@builder.io/qwik/server';
-import { getRouteParams } from '../../runtime/src/library/routing';
+import { getRouteParams } from '../../runtime/src/routing';
 import { fromNodeHttp } from '../../middleware/node/http';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {

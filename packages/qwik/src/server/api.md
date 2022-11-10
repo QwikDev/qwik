@@ -94,11 +94,13 @@ export interface RenderOptions extends SerializeDocumentOptions {
 // @alpha (undocumented)
 export interface RenderResult {
     // (undocumented)
+    isStatic: boolean;
+    // (undocumented)
     manifest?: QwikManifest;
     // (undocumented)
     prefetchResources: PrefetchResource[];
     // (undocumented)
-    snapshotResult: SnapshotResult | null;
+    snapshotResult: SnapshotResult | undefined;
     // @internal
     _symbols?: string[];
 }

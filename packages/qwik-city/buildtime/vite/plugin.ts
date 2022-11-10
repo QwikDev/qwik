@@ -40,6 +40,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
   let qwikPlugin: QwikVitePlugin | null;
 
   const api: QwikCityPluginApi = {
+    getBasePathname: () => ctx?.opts.basePathname ?? '/',
     getRoutes: () => {
       return ctx?.routes.slice() ?? [];
     },
@@ -234,14 +235,18 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
           for (const swEntry of ctx.serviceWorkers) {
             try {
               const swClientDistPath = join(clientOutDir, swEntry.chunkFileName);
-
               const swCode = await fs.promises.readFile(swClientDistPath, 'utf-8');
-              const swCodeUpdate = prependManifestToServiceWorker(ctx, manifest, swCode);
-              if (swCodeUpdate) {
-                await fs.promises.writeFile(swClientDistPath, swCodeUpdate);
+              try {
+                const swCodeUpdate = prependManifestToServiceWorker(ctx, manifest, swCode);
+                if (swCodeUpdate) {
+                  await fs.promises.mkdir(clientOutDir, { recursive: true });
+                  await fs.promises.writeFile(swClientDistPath, swCodeUpdate);
+                }
+              } catch (e2) {
+                console.error(e2);
               }
             } catch (e) {
-              console.error(e);
+              // safe to ignore if a service-worker.js not found
             }
           }
         }

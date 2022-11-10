@@ -837,7 +837,7 @@ const textOnlyElements: Record<string, true | undefined> = {
   style: true,
   script: true,
   noframes: true,
-  noscript: true,
+  textarea: true,
 };
 
 const emptyElements: Record<string, true | undefined> = {

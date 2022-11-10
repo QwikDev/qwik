@@ -124,4 +124,9 @@ test.describe('signals', () => {
     await expect(text2).toHaveCSS('color', 'rgb(255, 0, 0)');
     await expect(text3).toHaveCSS('color', 'rgb(255, 0, 0)');
   });
+
+  test('issue 2000', async ({ page }) => {
+    const textArea = page.locator('textarea');
+    await expect(textArea).toHaveText('body { background: white}');
+  });
 });

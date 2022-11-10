@@ -19,6 +19,7 @@
 - [Lite components](components/lite-components/index.mdx)
 - [Content projection](components/projection/index.mdx)
 - [Rendering](components/rendering/index.mdx)
+- [Styling](components/styles/index.mdx)
 
 ## Cheat Sheet
 

@@ -1,16 +1,17 @@
 import type { Plugin } from 'vite';
+import type { PluginContext } from 'rollup';
+import type { QwikCityPlugin } from '@builder.io/qwik-city/vite';
 import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import type { StaticGenerateOptions, StaticGenerateRenderOptions } from '../../../static';
 import { join } from 'node:path';
 import fs from 'node:fs';
-import type { PluginContext } from 'rollup';
 
 /**
  * @alpha
  */
 export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {}): any {
+  let qwikCityPlugin: QwikCityPlugin | null = null;
   let qwikVitePlugin: QwikVitePlugin | null = null;
-
   let serverOutDir: string | null = null;
   let renderModulePath: string | null = null;
   let qwikCityPlanModulePath: string | null = null;
@@ -39,13 +40,14 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
     await fs.promises.mkdir(serverOutDir!, { recursive: true });
     await fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode);
 
-    if (opts.staticGenerate) {
+    if (opts.staticGenerate && renderModulePath && qwikCityPlanModulePath) {
       const staticGenerate = await import('../../../static');
       let generateOpts: StaticGenerateOptions = {
         outDir: clientOutDir,
         origin: process?.env?.CF_PAGES_URL || 'https://your.cloudflare.pages.dev',
-        renderModulePath: renderModulePath!,
-        qwikCityPlanModulePath: qwikCityPlanModulePath!,
+        renderModulePath: renderModulePath,
+        qwikCityPlanModulePath: qwikCityPlanModulePath,
+        basePathname: qwikCityPlugin!.api.getBasePathname(),
       };
 
       if (typeof opts.staticGenerate === 'object') {
@@ -64,8 +66,9 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
       }
       exclude.push(...results.staticPaths);
     }
+
     const hasRoutesJson = exclude.includes('/_routes.json');
-    if (!hasRoutesJson) {
+    if (!hasRoutesJson && opts.functionRoutes !== false) {
       const routesJsonPath = join(clientOutDir, '_routes.json');
       const total = include.length + exclude.length;
       const maxRules = 100;
@@ -112,6 +115,10 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
     },
 
     configResolved({ build, plugins }) {
+      qwikCityPlugin = plugins.find((p) => p.name === 'vite-plugin-qwik-city') as QwikCityPlugin;
+      if (!qwikCityPlugin) {
+        throw new Error('Missing vite-plugin-qwik-city');
+      }
       qwikVitePlugin = plugins.find((p) => p.name === 'vite-plugin-qwik') as QwikVitePlugin;
       if (!qwikVitePlugin) {
         throw new Error('Missing vite-plugin-qwik');
@@ -145,12 +152,12 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
 
       if (!renderModulePath) {
         throw new Error(
-          'Unable to fine "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?'
+          'Unable to find "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?'
         );
       }
       if (!qwikCityPlanModulePath) {
         throw new Error(
-          'Unable to fine "@qwik-city-plan" entry point. Did you forget to add it to "build.rollupOptions.input"?'
+          'Unable to find "@qwik-city-plan" entry point. Did you forget to add it to "build.rollupOptions.input"?'
         );
       }
     },
@@ -166,8 +173,21 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
  * @alpha
  */
 export interface CloudflarePagesAdaptorOptions {
+  /**
+   * Determines if the build should generate the function invocation routes `_routes.json` file.
+   *
+   * https://developers.cloudflare.com/pages/platform/functions/function-invocation-routes/
+   *
+   * Defaults to `true`.
+   */
+  functionRoutes?: boolean;
+  /**
+   * Determines if the adaptor should also run Static Site Generation (SSG).
+   */
   staticGenerate?: StaticGenerateRenderOptions | true;
 }
+
+export type { StaticGenerateRenderOptions } from '../../../static';
 
 const isNotNullable = <T>(v: T): v is NonNullable<T> => {
   return v != null;

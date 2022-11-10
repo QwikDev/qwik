@@ -46,7 +46,7 @@ storeSuite('should serialize content', async () => {
     <body q:version="dev" q:container="paused" q:render="dom-dev">
       <div>
         <!--qv q:key=sX: q:id=0-->
-        <div q:id="1" on:click="/runtimeQRL#_[0 1 2 3 4 5 6 7 8 9 10 11]">
+        <div q:id="1" on:click="/runtimeQRL#_[0 1 2 3 4 5 6 7 8 9 10 11 12]">
           <!--t=2-->
           0
           <!---->
@@ -104,6 +104,8 @@ storeSuite('should serialize content', async () => {
         count: 'j',
       },
       '\u0002/runtimeQRL#_',
+      'ok',
+      '\u0012m',
       '\u0001',
     ],
     subs: [['2 #0 0 #2 data']],
@@ -133,6 +135,7 @@ export const LexicalScope = component$(() => {
     count: 0,
   });
   const signal = useSignal(0);
+  const signalFromFn = useSignal(() => 'ok');
   const nu = 1;
   const str = 'hola';
   const obj = {
@@ -166,6 +169,7 @@ export const LexicalScope = component$(() => {
     noserialize,
     qrl,
     signal,
+    signalFromFn,
   ]);
   return <div onClick$={thing}>{signal as any}</div>;
 });

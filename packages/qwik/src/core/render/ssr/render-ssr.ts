@@ -13,7 +13,7 @@ import {
   stringifyStyle,
 } from '../execute-component';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
-import { InternalSSRStream, Virtual, SSRRaw } from '../jsx/utils.public';
+import { InternalSSRStream, Virtual, SSRRaw, SSRHint } from '../jsx/utils.public';
 import { logError, logWarn } from '../../util/log';
 import {
   groupListeners,
@@ -39,7 +39,6 @@ import { serializeQRLs } from '../../qrl/qrl';
 import type { QwikElement } from '../dom/virtual-element';
 import { assertElement } from '../../util/element';
 import { EMPTY_OBJ } from '../../util/flyweight';
-import type { QRLInternal } from '../../qrl/qrl-class';
 import {
   createContext,
   HOST_FLAG_DYNAMIC,
@@ -75,16 +74,24 @@ export interface RenderSSROptions {
   envData?: Record<string, any>;
   url?: string;
   beforeContent?: JSXNode<string>[];
-  beforeClose?: (contexts: QContext[], containerState: ContainerState) => Promise<JSXNode>;
+  beforeClose?: (
+    contexts: QContext[],
+    containerState: ContainerState,
+    containsDynamic: boolean
+  ) => Promise<JSXNode>;
 }
 
 export interface SSRContext {
   projectedCtxs: [RenderContext, SSRContext] | undefined;
   projectedChildren: Record<string, any[] | undefined> | undefined;
+  invocationContext: InvokeContext | undefined;
+  $static$: SSRContextStatic;
+}
+
+export interface SSRContextStatic {
   locale: string;
-  invocationContext?: InvokeContext | undefined;
   $contexts$: QContext[];
-  $pendingListeners$: [string, QRLInternal][];
+  $dynamic$: boolean;
   headNodes: JSXNode<string>[];
 }
 
@@ -110,13 +117,15 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const rCtx = createRenderContext(doc as any, containerState);
   const headNodes = opts.beforeContent ?? [];
   const ssrCtx: SSRContext = {
-    $contexts$: [],
+    $static$: {
+      $contexts$: [],
+      $dynamic$: false,
+      headNodes: root === 'html' ? headNodes : [],
+      locale: opts.envData?.locale,
+    },
     projectedChildren: undefined,
     projectedCtxs: undefined,
     invocationContext: undefined,
-    headNodes: root === 'html' ? headNodes : [],
-    $pendingListeners$: [],
-    locale: opts.envData?.locale,
   };
 
   const containerAttributes: Record<string, any> = {
@@ -163,14 +172,18 @@ export const renderRoot = async (
     0,
     beforeClose
       ? (stream: StreamWriter) => {
-          const result = beforeClose(ssrCtx.$contexts$, containerState);
+          const result = beforeClose(
+            ssrCtx.$static$.$contexts$,
+            containerState,
+            ssrCtx.$static$.$dynamic$
+          );
           return processData(result, rCtx, ssrCtx, stream, 0, undefined);
         }
       : undefined
   );
 
   if (qDev) {
-    if (ssrCtx.headNodes.length > 0) {
+    if (ssrCtx.$static$.headNodes.length > 0) {
       logError(
         'Missing <head>. Global styles could not be rendered. Please render a <head> element at the root of the app'
       );
@@ -337,7 +350,7 @@ export const renderSSRComponent = (
   return then(executeComponent(rCtx, elCtx), (res) => {
     const hostElement = elCtx.$element$;
     const newRCtx = res.rCtx;
-    const invocationContext = newInvokeContext(ssrCtx.locale, hostElement, undefined);
+    const invocationContext = newInvokeContext(ssrCtx.$static$.locale, hostElement, undefined);
     invocationContext.$subscriber$ = hostElement;
     invocationContext.$renderCtx$ = newRCtx;
     const newSSrContext: SSRContext = {
@@ -350,7 +363,7 @@ export const renderSSRComponent = (
     const extraNodes: JSXNode<string>[] = [];
     if (elCtx.$appendStyles$) {
       const isHTML = !!(flags & IS_HTML);
-      const array = isHTML ? ssrCtx.headNodes : extraNodes;
+      const array = isHTML ? ssrCtx.$static$.headNodes : extraNodes;
       for (const style of elCtx.$appendStyles$) {
         array.push(
           jsx('style', {
@@ -373,7 +386,7 @@ export const renderSSRComponent = (
     );
 
     elCtx.$id$ = newID;
-    ssrCtx.$contexts$.push(elCtx);
+    ssrCtx.$static$.$contexts$.push(elCtx);
 
     return renderNodeVirtual(
       processedNode,
@@ -553,7 +566,7 @@ export const renderNode = (
         openingElement += ' q:id="' + newID + '"';
         elCtx.$id$ = newID;
       }
-      ssrCtx.$contexts$.push(elCtx);
+      ssrCtx.$static$.$contexts$.push(elCtx);
     }
     if (flags & IS_HEAD) {
       openingElement += ' q:head';
@@ -584,10 +597,10 @@ export const renderNode = (
     return then(promise, () => {
       // If head inject base styles
       if (isHead) {
-        for (const node of ssrCtx.headNodes) {
+        for (const node of ssrCtx.$static$.headNodes) {
           renderNodeElementSync(node.type, node.props, stream);
         }
-        ssrCtx.headNodes.length = 0;
+        ssrCtx.$static$.headNodes.length = 0;
       }
       // Fast path
       if (!beforeClose) {
@@ -626,6 +639,9 @@ export const renderNode = (
     return renderGenerator(node as JSXNode<typeof InternalSSRStream>, rCtx, ssrCtx, stream, flags);
   }
 
+  if (tagName === SSRHint && (node as JSXNode<typeof SSRHint>).props.dynamic === true) {
+    ssrCtx.$static$.$dynamic$ = true;
+  }
   const res = invoke(ssrCtx.invocationContext, tagName, node.props, node.key);
   return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
 };

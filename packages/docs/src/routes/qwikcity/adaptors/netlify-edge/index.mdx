@@ -43,9 +43,7 @@ The compiled middleware will be built in the `.netlify/edge-functions` directory
 
 ## Netlify Edge Functions Declarations
 
-[Netlify Edge Functions declarations](https://docs.netlify.com/edge-functions/declarations/) 
-can be configured to run on specific URL patterns. Each edge function declaration associates 
-one site path pattern with one function to execute on requests that match the path. A single request can execute a chain of edge functions from a series of declarations. A single edge function can be associated with multiple paths across various declarations.
+[Netlify Edge Functions declarations](https://docs.netlify.com/edge-functions/declarations/) can be configured to run on specific URL patterns. Each edge function declaration associates one site path pattern with one function to execute on requests that match the path. A single request can execute a chain of edge functions from a series of declarations. A single edge function can be associated with multiple paths across various declarations.
 
 This is useful to determine if a page response should be Server-Side Rendered (SSR) or if the response should use a static-site generated (SSG) `index.html` file instead.
 
@@ -90,7 +88,7 @@ export default defineConfig(() => {
 });
 ```
 
-Remove the catch-all `edge_functions`` config from `netlify.toml`
+Remove the catch-all `edge_functions` config from `netlify.toml`
 
 ```diff
 -[[edge_functions]]

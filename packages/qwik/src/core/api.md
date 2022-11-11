@@ -701,7 +701,7 @@ export interface UseSignal {
     // (undocumented)
     <T>(): Signal<T | undefined>;
     // (undocumented)
-    <T>(value: T): Signal<T>;
+    <T>(value: T | (() => T)): Signal<T>;
 }
 
 // @alpha (undocumented)

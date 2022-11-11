@@ -42,7 +42,6 @@ import { EMPTY_OBJ } from '../../util/flyweight';
 import {
   createContext,
   HOST_FLAG_DYNAMIC,
-  HOST_FLAG_DYNAMIC_SLOT,
   HOST_FLAG_NEED_ATTACH_LISTENER,
   QContext,
   Q_CTX,
@@ -626,7 +625,6 @@ const renderNode = (
     elCtx.$parent$ = rCtx.$cmpCtx$;
     elCtx.$slotParent$ = rCtx.$slotCtx$;
     if (dynamicChildren) {
-      elCtx.$flags$ |= HOST_FLAG_DYNAMIC_SLOT;
       if (hostCtx) {
         addDynamicSlot(hostCtx, elCtx);
       }

@@ -50,7 +50,7 @@ export const Clock = component$(() => {
 
   console.log('Render Clock');
   return (
-    <clock class="clock">
+    <div class="clock">
       <div class="twelve"></div>
       <div class="three"></div>
       <div class="six"></div>
@@ -58,6 +58,6 @@ export const Clock = component$(() => {
       <div class="hour" style={store.hour}></div>
       <div class="minute" style={store.minute}></div>
       <div class="second" style={store.second}></div>
-    </clock>
+    </div>
   );
 });

@@ -8,6 +8,18 @@
         "title": "Hello World",
         "description": "The simplest Qwik app.",
         "icon": "🌎"
+      },
+      {
+        "id": "runtime-less",
+        "title": "Runtime-less",
+        "description": "An app interactive app without runtime.",
+        "icon": "🪶"
+      },
+      {
+        "id": "streaming",
+        "title": "Streaming",
+        "description": "HTML in-order streaming.",
+        "icon": "🚰"
       }
     ]
   },

@@ -27,6 +27,7 @@ export const HOST_FLAG_DIRTY = 1 << 0;
 export const HOST_FLAG_NEED_ATTACH_LISTENER = 1 << 1;
 export const HOST_FLAG_MOUNTED = 1 << 2;
 export const HOST_FLAG_DYNAMIC = 1 << 3;
+export const HOST_FLAG_DYNAMIC_SLOT = 1 << 4;
 
 export interface QContext {
   $element$: QwikElement;
@@ -43,6 +44,7 @@ export interface QContext {
   $scopeIds$: string[] | null;
   $vdom$: ProcessedJSXNode | null;
   $slots$: ProcessedJSXNode[] | null;
+  $dynamicSlots$: QContext[] | null;
   $parent$: QContext | null;
   $slotParent$: QContext | null;
 }
@@ -135,6 +137,7 @@ export const createContext = (element: Element | VirtualElement): QContext => {
     $vdom$: null,
     $componentQrl$: null,
     $contexts$: null,
+    $dynamicSlots$: null,
     $parent$: null,
     $slotParent$: null,
   };

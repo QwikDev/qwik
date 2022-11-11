@@ -8,7 +8,50 @@ contributors:
 
 # Containers
 
-Containers are a way to break up an application into smaller parts. We call these parts containers. Containers brings several benefits. Each container on the page can independently be:
+Every Qwik application is contained inside a element, usually the `<html>` element. This element becomes the container for the application. The container is the root element for the application and all components, state and events are contained within.
+
+```html
+<html q:container="paused" q:version="0.12.1" q:base="/build">
+  ...
+</html>
+```
+
+## Container Attributes
+
+Since containers are implicitally rendered by the Qwik runtime, it's not possible to define custom HTML attributes using JSX, however, the SSR render APIs, like `renderToString` and `renderToStream`, provide the `containerAttributes` option to define custom attributes:
+
+```tsx
+renderToStream(<Root />, {
+  containerAttributes: {
+    lang: 'en',
+  },
+});
+```
+
+The code above will render the following HTML:
+
+```html
+<html lang="en" q:container="paused" q:version="0.12.1" q:base="/build">
+  ...
+</html>
+```
+
+In the example above, the `lang` attribute is added to the `<html>` container element.
+
+> Note that this attribute will not be reactive, if the app needs to change this value dynamically, it will need to do though manual DOM manipulation.
+
+Along with the custom attributes, Qwik will automatically render the `q:container`, `q:version`, `q:render` and `q:base` attributes.
+
+- `q:container` - The container state. This attribute is used by the Qwik runtime to determine if the container is in a paused state or not. The value of this attribute is either `paused` or `resumed`.
+
+- `q:version` - The version of the Qwik runtime.
+
+- `q:render` - Indicated how the container was rendered. The value of this attribute is either `ssr`, `ssr-dev`, `dom` or `dom-dev`.
+
+
+## Properties
+
+Since the runtime ensures isolation across containers, several containers can coexist within the same document, a container can even contain another nested container, this property allows containers to break up an application into smaller parts.
 
 - **resumed**: Each container can be resumed independently from all other components on the page. Independent resumability further reduces the amount of state which resume deserializes.
 - **updated**: Each container can be updated/replaced at any point using `innerHTML`. This allows a portion of the page to update without forcing a full re-fetch of a complete HTML document without downloading or executing JavaScript.
@@ -16,6 +59,27 @@ Containers are a way to break up an application into smaller parts. We call thes
 - **versioned**: Each container can run a different version of the Qwik framework. Allowing for the composability of the website from many small containers.
 
 Containers can be nested in a tree and can communicate and share data. The inter-component communication requires that the components have well-defined boundaries, which we call container protocols.
+
+```html
+<html q:container="paused" q:version="0.12.1" q:base="/build">
+    <head>
+    <title>My Qwik Application</title>
+  </head>
+  <body>
+    <header q:container="resumed" q:version="0.11.1" q:base="https://server.a/build">
+      <div>
+        <h1>This is a header form a container</h1>
+      </div>
+    </header>
+
+    <footer q:container="paused" q:version="0.13.0" q:base="https://footer.server.b/">
+      <div>
+        <h1>This is a footer</h1>
+      </div>
+    </header>
+  </body>
+</html>
+```
 
 ## Containers vs. Components
 

@@ -10,7 +10,7 @@ export function delayQrl<T>(fn: QRL<() => T>, delayInMs: number): Promise<T> {
 
 export const delay$ = implicit$FirstArg(delayQrl);
 
-export const App = component$(() => {
+export default component$(() => {
   const store = useStore({ count: 0, delay: 0 });
   return (
     <>

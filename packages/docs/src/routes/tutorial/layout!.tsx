@@ -128,7 +128,7 @@ export const ensureDefaultFiles = (appFiles: ReplModuleInput[]) => {
 import { renderToString, RenderOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
 
-export default function(opts: RenderOptions) {
+export default function (opts: RenderOptions) {
   return renderToString(<Root />, opts);
 }
 `;

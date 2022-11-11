@@ -14,12 +14,6 @@
         "title": "Runtime-less",
         "description": "An app interactive app without runtime.",
         "icon": "🪶"
-      },
-      {
-        "id": "streaming",
-        "title": "Streaming",
-        "description": "HTML in-order streaming.",
-        "icon": "🚰"
       }
     ]
   },

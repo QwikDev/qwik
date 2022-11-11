@@ -1,7 +1,5 @@
 /* eslint-disable no-console */
-import type {
-  RenderToStreamOptions,
-} from '@builder.io/qwik/server';
+import type { RenderOptions, RenderToStringResult } from '@builder.io/qwik/server';
 import type { ReplInputOptions, ReplResult } from '../types';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 
@@ -68,55 +66,45 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
 
   const appUrl = `/repl/` + result.clientId + `/`;
   const baseUrl = appUrl + `build/`;
-  const { writable, readable } = new TransformStream();
-  const stream = writable.getWriter();
-  let html = '';
-  const ssrResult = render({
+  const ssrResult = await render({
     base: baseUrl,
-    stream: {
-      write: (chunk: string) => {
-        html += chunk;
-        stream.write(chunk);
-      },
-    },
     manifest: result.manifest,
     prefetchStrategy: null as any,
   });
 
-  ssrResult.then(() => {
-    console.log = log;
-    console.warn = warn;
-    console.error = error;
-    console.debug = debug;
+  console.log = log;
+  console.warn = warn;
+  console.error = error;
+  console.debug = debug;
 
-    result.html = html;
+  result.html = ssrResult.html;
 
-    result.events.push({
-      kind: 'pause',
-      scope: 'ssr',
-      start,
-      end: performance.now(),
-      message: [],
-    });
-
-    if (options.buildMode !== 'production') {
-      try {
-        const html = self.prettier?.format(result.html, {
-          parser: 'html',
-          plugins: self.prettierPlugins,
-        });
-        if (html) {
-          result.html = html;
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    writable.close();
+  result.events.push({
+    kind: 'pause',
+    scope: 'ssr',
+    start,
+    end: performance.now(),
+    message: [],
   });
+
+  if (options.buildMode !== 'production') {
+    try {
+      const html = self.prettier?.format(result.html, {
+        parser: 'html',
+        plugins: self.prettierPlugins,
+      });
+      if (html) {
+        result.html = html;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   const url = new URL(appUrl, options.serverUrl);
   const req = new Request(url.href);
-  const rsp = new Response(readable, {
+
+  const rsp = new Response(ssrResult.html, {
     headers: { 'Content-Type': 'text/html; charset=utf-8' },
   });
   await cache.put(req, rsp);
@@ -127,8 +115,8 @@ const noopRequire = (path: string) => {
 };
 
 interface ServerModule {
-  render: (opts: RenderToStreamOptions) => Promise<RenderToStreamOptions>;
-  default?: (opts: RenderToStreamOptions) => Promise<RenderToStreamOptions>;
+  render: (opts: RenderOptions) => Promise<RenderToStringResult>;
+  default?: (opts: RenderOptions) => Promise<RenderToStringResult>;
 }
 
 declare const self: QwikWorkerGlobal;

@@ -134,7 +134,7 @@ export default function(opts: RenderOptions) {
 `;
 
   const DEFAULT_ROOT = `
-import { App } from './app';
+import App from './app';
 
 export const Root = () => {
   return (

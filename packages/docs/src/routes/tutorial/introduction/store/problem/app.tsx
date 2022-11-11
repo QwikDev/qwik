@@ -1,6 +1,6 @@
 import { component$ } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   // `github` is just a constant object.
   // Convert it to a Store that can be serialized to JSON on application pause.
   const github = {

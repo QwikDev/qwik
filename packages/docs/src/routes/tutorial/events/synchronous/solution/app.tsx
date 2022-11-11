@@ -1,6 +1,6 @@
 import { component$, useClientEffect$, useRef } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   const aHref = useRef();
   useClientEffect$(() => {
     const handler = (event: Event) => {

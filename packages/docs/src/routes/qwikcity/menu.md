@@ -39,12 +39,13 @@
 - [React](integrations/react/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)
 - [Tailwind](integrations/tailwind/index.mdx)
+- [Vitest](integrations/vitest/index.mdx)
 
 ## Server adaptors
 
 - [Overview](adaptors/overview/index.mdx)
-- [Cloudflare Pages](adaptors/cloudflare-pages/index.mdx)
 - [Netlify Edge](adaptors/netlify-edge/index.mdx)
+- [Cloudflare Pages](adaptors/cloudflare-pages/index.mdx)
 - [Node](adaptors/node/index.mdx)
 
 ## Prefetching

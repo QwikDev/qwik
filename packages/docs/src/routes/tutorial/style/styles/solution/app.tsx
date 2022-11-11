@@ -1,6 +1,6 @@
 import { component$, useStyles$, useStore } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   useStyles$(AppCSS);
   const store = useStore({ open: false, siblings: [0] }, { recursive: true });
 

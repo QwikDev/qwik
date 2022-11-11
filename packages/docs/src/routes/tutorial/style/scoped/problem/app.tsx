@@ -1,6 +1,6 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   return (
     <>
       <ComponentA />

@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { component$, Slot, useStore } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   const store = useStore({ count: 0 });
   console.log('Render: <App>');
   return (

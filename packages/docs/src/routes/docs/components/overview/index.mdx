@@ -177,43 +177,43 @@ The Optimizer splits Qwik components into the host element and the behavior of t
 
 ### State
 
-- `useStore(initialState)` - creates a reactive store
-- `useRef$(initialState)` - creates a ref
-- `createContext(contentName)` - creates a context
-- `useContextProvider$()` - creates a context provider
-- `useContext$()` - use a context
+- [`useStore(initialState)`](../state/index.mdx) - creates a reactive object that can be used to store state.
+- [`useSignal$(initialState)`](../state/index.mdx)  - creates a reactive value
+- [`createContext(contentName)`](../context/index.mdx)  - creates a context refences
+- [`useContextProvider$()`](../context/index.mdx) - provides a value to a given context
+- [`useContext$()`](../context/index.mdx) - reads the value of the current context
 
 ### Styles
 
-- `useStylesScoped$()` - creates a scoped style
-- `useStyles$()` - creates a global style
+- [`useStylesScoped$()`](../styles/index.mdx) - appends scoped styles to the component
+- [`useStyles$()`](../styles/index.mdx) - appends unscoped styles to the component
 
 ### Events
 
-- `useOn()` - creates an event listener
-- `useOnWindow()` - creates a window event listener
-- `useOnDocument()` - creates a document event listener
+- [`useOn()`](../events/index.mdx) styles - appends a listener to the component programatically
+- [`useOnWindow()`](../events/index.mdx) - appends a window listener to the component programatically
+- [`useOnDocument()`](../events/index.mdx) - appends a document listener to the component programatically
 
 ### Lifecycles
 
-- `useMount$()` - creates a post rendering
-- `useServerMount$()` - creates a post rendering
-- `useWatch$()` - creates a watch
-- `useClientEffect$()` - creates a post rendering
-- `useResource$()` - creates a resource
+- [`useMount$()`](../lifecycle/index.mdx) - defines a callback that will be executed on mount time
+- [`useServerMount$()`](../lifecycle/index.mdx) - defines a callback that will be executed on mount time on the server only
+- [`useWatch$()`](../lifecycle/index.mdx) - defines a callback that will be called before render and/or a watched store changes
+- [`useClientEffect$()`](../lifecycle/index.mdx) - defines a callback that will be called after the render, only in the client (browser)
+- [`useResource$()`](../resource/index.mdx) - creates a resource to asyncronously load data
 
 ### Other
 
-- `$()` - creates a QRL
+- [`$()`](../../advanced/qrl/index.mdx) - creates a QRL
 - `noSerialize()`
 - `useErrorBoundary()`
 
 ### Components
 
-- `<Slot>` - creates a slot
-- `<SSRStreamBlock>` - creates a stream block
-- `<SSRStream>` - creates a stream
-- `<Fragment>` - creates a fragment
+- [`<Slot>`](../projection/index.mdx) - declared a content projection slot
+- `<SSRStreamBlock>` - declares a stream block
+- `<SSRStream>` - declares a stream
+- `<Fragment>` - declares a JSX fragment
 
 ## See Also
 

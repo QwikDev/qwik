@@ -1,6 +1,6 @@
 import { component$, useStore } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   return (
     <>
       <h1>Hello World!</h1>

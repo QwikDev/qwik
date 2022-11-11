@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { component$, useStore, Resource, useResource$ } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   const github = useStore({
     org: 'BuilderIO',
   });

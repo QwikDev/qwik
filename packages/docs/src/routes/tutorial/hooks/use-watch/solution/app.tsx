@@ -1,6 +1,6 @@
 import { component$, useWatch$, useStore } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   const store = useStore({
     value: '',
     debouncedValue: '',

@@ -4,7 +4,7 @@ interface TodosStore {
   items: string[];
 }
 export const TodosContext = createContext<TodosStore>('Todos');
-export const App = component$(() => {
+export default component$(() => {
   useContextProvider(
     TodosContext,
     useStore<TodosStore>({

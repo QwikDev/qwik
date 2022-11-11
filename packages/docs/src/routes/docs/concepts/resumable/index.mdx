@@ -28,7 +28,7 @@ Qwik is different because it does not require hydration to resume an application
 
 All other frameworks' hydration **replays** all the application logic in the client. Qwik instead pauses execution in the server, and resumes execution in the client.
 
-# Introducing Resumability
+## Introducing Resumability
 
 Resumability is about pausing execution in the server and resuming execution in the client without having to replay and download all of the application logic.
 
@@ -36,7 +36,7 @@ A good mental model is that Qwik applications at any point in their lifecycle ca
 
 In order to achieve this, Qwik needs to solve the 3 problems (listeners, component tree, application state) in a way that is compatible with a no-code startup.
 
-## Listeners
+### Listeners
 
 DOM without event listeners is just a static page; it is not an application. Today's standard for all sites is quite a high level of interactivity, so even the most static-looking sites are full of event listeners. These include menus, hovers, expanding details, or even full-on interactive apps.
 
@@ -60,7 +60,7 @@ Qwik still needs to collect the listener information, but this step is done as p
 2. The HTML contains a URL to the chunk and symbol name. The attribute tells Qwikloader which code chunk to download and which symbol to retrieve from the chunk.
 3. Finally, to make all of the above possible, Qwik's event processing implementation understands asynchronicity which allows insertion of asynchronous lazy loading.
 
-## Component Trees
+### Component Trees
 
 Frameworks work with component trees. To that end, frameworks need a complete understanding of the component trees to know which components need to be rerendered and when. If you look into the existing framework SSR/SSG output, the component boundary information has been destroyed. There is no way of knowing where component boundaries are by looking at the resulting HTML. To recreate this information, frameworks re-execute the component templates and memoize the component boundary location. Re-execution is what hydration is. Hydration is expensive as it requires both the download of component templates and their execution.
 
@@ -70,11 +70,11 @@ Qwik collects component boundary information as part of the SSR/SSG and then ser
 2. Qwik can do this lazily only for the components which need to be re-rendered rather than all upfront.
 3. Qwik collects relationship information between stores and components. This creates a subscription model that informs Qwik which components need to be re-rendered as a result of state change. The subscription information also gets serialized into HTML.
 
-## Application State
+### Application State
 
 Existing frameworks usually have a way of serializing the application state into HTML so that the state can be restored as part of hydration. In this way, they are very similar to Qwik. However, Qwik has state management more tightly integrated into the lifecycle of the components. In practice, this means that component can be delay-loaded independently from the state of the component. This is not easily achievable in existing frameworks because component props are usually created by the parent component. This creates a chain reaction. In order to restore component X, its parents need to be restored as well. Qwik allows any component to be resumed without the parent component code being present.
 
-### Serialization
+#### Serialization
 
 The simplest way to think about serialization is through `JSON.stringify`. However, JSON has several limitations. Qwik can overcome some limitations, but some can't be overcome, and they place limitations on what the developer can do. Understanding these limitations is important when building Qwik applications.
 
@@ -91,13 +91,13 @@ Limitations of JSON that Qwik does not solve:
 - Serialization of classes (`instanceof` and prototype)
 - Serialization of `Promise`s, Streams, etc...
 
-## Writing applications with serializability in mind
+### Writing applications with serializability in mind
 
 The resumability property of the framework must extend to resumability of the application as well. This means that the framework must provide mechanisms for the developer to express Components and Entities of the applications in a way which can be serialized and then resumed (without re-bootstrapping). This necessitates that applications are written with resumability constraints in mind. It is simply not possible for developers to continue to write applications in a heap-centric way and expect that a better framework can somehow make up for this sub-optimal approach.
 
 Developers must write their applications in a DOM-centric way. This will require a change of behavior and retooling of web developers' skills. Frameworks need to provide guidance and APIs to make it easy for developers to write the applications in this way.
 
-## Other benefits of resumability
+### Other benefits of resumability
 
 The most obvious benefit of using resumability is for server-side-rendering. However, there are secondary benefits:
 

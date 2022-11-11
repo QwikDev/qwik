@@ -134,7 +134,7 @@ The main thing to note is the `on:click` attribute. This attribute gets read by 
 
 > **NOTE:** For performance reasons the `q:obj` and `<script type="qwik/json">` are only updated when the application is deserialized into HTML. When the application is running, these attributes may have stale values.
 
-# Why not just dynamic `import()`?
+## Why not just dynamic `import()`?
 
 Browsers already have dynamic import mechanisms available from `import()`. Why not use that instead of inventing a new QRL format?
 
@@ -149,7 +149,7 @@ There are several reasons:
 
 Because of the above differences, Qwik introduces QRLs as a mechanism for lazy load closures into a Qwik application.
 
-# See Also
+## See Also
 
 - `qrl`: API used to create QRLs.
 - `qImport`: API used to lazy load symbols from QRLs.

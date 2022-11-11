@@ -6,13 +6,13 @@ contributors:
   - adamdbradley
 ---
 
-# The meaning of `$` sign
+# The dollar `$` sign
 
 Qwik breaks your application into small chunks; these pieces are smaller than the component itself, this process is performed by the [Qwik Optimizer](../optimizer/index.mdx).
 
 The `$` prefix is used to signal both the optimizer and the developer when this transformation occurs.
 
-## Qwik Optimizer
+## Compiler-time implications
 
 [Optimizer](../optimizer/index.mdx) runs as a Vite plugin during bundling. The purpose of the Optimizer is to break up the application into many small lazy-loadable chunks. The Optimizer moves expressions (usually functions) into new files and leaves behind a reference pointing to where the expression was moved.
 
@@ -60,9 +60,9 @@ export const App_component_p_onClick_01pEgC10cpw = ()=>console.log('hello');
 ```
 
 
-## The dollar rules
+## Rules
 
-We show before that the `$` is used by the optimizer, but it's important for the developers to also known when the optimizer magic happens, because it comes with some constrains and rules.
+We know now that the `$` is used by the optimizer, but it's important for the developers to also known when the optimizer magic happens, because it comes with some constrains and rules.
 
 > The worst kind of code magic is the kind it's invisible for the developer.
 
@@ -70,7 +70,7 @@ We show before that the `$` is used by the optimizer, but it's important for the
 
 The first argument of any function that end with `$` have certain restrictions:
 
-### Literals that contains no local identifiers
+#### 1. Literals without local identifiers
 
 **Invalid**
 ```tsx
@@ -97,7 +97,7 @@ foo$({ value: 'stuff' })
 foo$(1 + 3)
 ```
 
-### Importable identifiers
+#### 2. Importable identifiers
 
 **Invalid**
 ```tsx
@@ -117,13 +117,13 @@ import {bar} from './bar';
 foo$(bar)
 ```
 
-### Closures
+### 3. Closures
 
 For closures, the rules are a bit relaxed, and local identifier can be referenced and captured.
 
 >**RULE**: If a function lexically captures a variable (or parameter), that variable must be (1) a `const` and (2) the value must be serializable.
 
-#### Captured variables must be declared as a `const`.
+#### 3.1. Captured variables must be declared as a `const`.
 
 **Invalid**
 ```tsx
@@ -141,7 +141,7 @@ component$(() => {
 });
 ```
 
-#### Local captured variables must be serializable
+#### 3.2. Local captured variables must be serializable
 
 **Invalid**
 ```tsx
@@ -159,7 +159,7 @@ component$(() => {
 });
 ```
 
-#### Module declared variables can be importable
+#### 3.3. Module declared variables can be importable
 
 > **RULE**: If a function that is being extracted by Optimizer refers to a top-level symbol, that symbol must either be imported or exported.
 

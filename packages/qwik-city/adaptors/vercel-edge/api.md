@@ -6,15 +6,15 @@
 
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 
-// @alpha (undocumented)
-export function cloudflarePagesAdaptor(opts?: CloudflarePagesAdaptorOptions): any;
+export { StaticGenerateRenderOptions }
 
 // @alpha (undocumented)
-export interface CloudflarePagesAdaptorOptions {
+export function vercelEdgeAdaptor(opts?: VercelEdgeAdaptorOptions): any;
+
+// @alpha (undocumented)
+export interface VercelEdgeAdaptorOptions {
     staticGenerate?: StaticGenerateRenderOptions | true;
 }
-
-export { StaticGenerateRenderOptions }
 
 // (No @packageDocumentation comment for this package)
 

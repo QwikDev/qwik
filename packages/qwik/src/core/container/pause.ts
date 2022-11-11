@@ -587,18 +587,26 @@ export const collectElementData = (elCtx: QContext, collector: Collector, dynami
   }
 
   if (dynamic) {
-    let parent: QContext | null = elCtx;
-    while (parent) {
-      if (parent.$contexts$) {
-        for (const obj of parent.$contexts$.values()) {
-          collectValue(obj, collector, dynamic);
-        }
-        if (parent.$contexts$.get('_') === true) {
-          break;
-        }
+    collectContext(elCtx, collector);
+    if (elCtx.$dynamicSlots$) {
+      for (const slotCtx of elCtx.$dynamicSlots$) {
+        collectContext(slotCtx, collector);
       }
-      parent = parent.$slotParent$ ?? parent.$parent$;
     }
+  }
+};
+
+const collectContext = (elCtx: QContext | null, collector: Collector) => {
+  while (elCtx) {
+    if (elCtx.$contexts$) {
+      for (const obj of elCtx.$contexts$.values()) {
+        collectValue(obj, collector, true);
+      }
+      if (elCtx.$contexts$.get('_') === true) {
+        break;
+      }
+    }
+    elCtx = elCtx.$slotParent$ ?? elCtx.$parent$;
   }
 };
 

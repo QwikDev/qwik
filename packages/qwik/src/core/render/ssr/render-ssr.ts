@@ -99,7 +99,7 @@ const IS_HEAD = 1 << 0;
 const IS_HTML = 1 << 2;
 const IS_TEXT = 1 << 3;
 
-export const createDocument = () => {
+const createDocument = () => {
   const doc = { nodeType: 9 };
   seal(doc);
   return doc;
@@ -154,7 +154,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   await containerState.$renderPromise$;
 };
 
-export const renderRoot = async (
+const renderRoot = async (
   node: JSXNode,
   rCtx: RenderContext,
   ssrCtx: SSRContext,
@@ -192,7 +192,7 @@ export const renderRoot = async (
   return rCtx.$static$;
 };
 
-export const renderGenerator = async (
+const renderGenerator = async (
   node: JSXNode<typeof InternalSSRStream>,
   rCtx: RenderContext,
   ssrCtx: SSRContext,
@@ -222,7 +222,7 @@ export const renderGenerator = async (
   }
 };
 
-export const renderNodeVirtual = (
+const renderNodeVirtual = (
   node: JSXNode<typeof Virtual>,
   elCtx: QContext,
   extraNodes: JSXNode<string>[] | undefined,
@@ -289,7 +289,7 @@ export const renderNodeVirtual = (
 
 const CLOSE_VIRTUAL = `<!--/qv-->`;
 
-export const renderAttributes = (attributes: Record<string, string>): string => {
+const renderAttributes = (attributes: Record<string, string>): string => {
   let text = '';
   for (const prop of Object.keys(attributes)) {
     if (prop === 'dangerouslySetInnerHTML') {
@@ -303,7 +303,7 @@ export const renderAttributes = (attributes: Record<string, string>): string => 
   return text;
 };
 
-export const renderVirtualAttributes = (attributes: Record<string, string>): string => {
+const renderVirtualAttributes = (attributes: Record<string, string>): string => {
   let text = '';
   for (const prop of Object.keys(attributes)) {
     if (prop === 'children') {
@@ -317,7 +317,7 @@ export const renderVirtualAttributes = (attributes: Record<string, string>): str
   return text;
 };
 
-export const renderNodeElementSync = (
+const renderNodeElementSync = (
   tagName: string,
   attributes: Record<string, string>,
   stream: StreamWriter
@@ -336,7 +336,7 @@ export const renderNodeElementSync = (
   stream.write(`</${tagName}>`);
 };
 
-export const renderSSRComponent = (
+const renderSSRComponent = (
   rCtx: RenderContext,
   ssrCtx: SSRContext,
   stream: StreamWriter,
@@ -449,7 +449,7 @@ const splitProjectedChildren = (children: any, ssrCtx: SSRContext) => {
   return slotMap;
 };
 
-export const createSSRContext = (nodeType: 1 | 111) => {
+const createSSRContext = (nodeType: 1 | 111) => {
   const elm = {
     nodeType,
     [Q_CTX]: null,
@@ -458,7 +458,7 @@ export const createSSRContext = (nodeType: 1 | 111) => {
   return createContext(elm as any);
 };
 
-export const renderNode = (
+const renderNode = (
   node: JSXNode,
   rCtx: RenderContext,
   ssrCtx: SSRContext,
@@ -468,8 +468,13 @@ export const renderNode = (
 ) => {
   const tagName = node.type;
   const hostCtx = rCtx.$cmpCtx$;
-  if (hostCtx && hasDynamicChildren(node)) {
+  const dynamicChildren = hasDynamicChildren(node);
+  if (dynamicChildren && hostCtx) {
     hostCtx.$flags$ |= HOST_FLAG_DYNAMIC;
+    const slotCtx = rCtx.$slotCtx$;
+    if (slotCtx) {
+      addDynamicSlot(hostCtx, slotCtx);
+    }
   }
   if (typeof tagName === 'string') {
     const key = node.key;
@@ -617,8 +622,13 @@ export const renderNode = (
 
   if (tagName === Virtual) {
     const elCtx = createSSRContext(111);
-    elCtx.$parent$ = rCtx.$cmpCtx$!;
-    elCtx.$slotParent$ = rCtx.$slotCtx$!; // TODO
+    elCtx.$parent$ = rCtx.$cmpCtx$;
+    elCtx.$slotParent$ = rCtx.$slotCtx$;
+    if (dynamicChildren) {
+      if (hostCtx) {
+        addDynamicSlot(hostCtx, elCtx);
+      }
+    }
     return renderNodeVirtual(
       node as JSXNode<typeof Virtual>,
       elCtx,
@@ -645,7 +655,8 @@ export const renderNode = (
   const res = invoke(ssrCtx.invocationContext, tagName, node.props, node.key);
   return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
 };
-export const processData = (
+
+const processData = (
   node: any,
   rCtx: RenderContext,
   ssrCtx: SSRContext,
@@ -687,13 +698,13 @@ export const processData = (
   }
 };
 
-function walkChildren(
+const walkChildren = (
   children: any,
   rCtx: RenderContext,
   ssrContext: SSRContext,
   stream: StreamWriter,
   flags: number
-): ValueOrPromise<void> {
+): ValueOrPromise<void> => {
   if (children == null) {
     return;
   }
@@ -742,9 +753,9 @@ function walkChildren(
       return undefined;
     }
   }, undefined);
-}
+};
 
-export const flatVirtualChildren = (children: any, ssrCtx: SSRContext): any[] | null => {
+const flatVirtualChildren = (children: any, ssrCtx: SSRContext): any[] | null => {
   if (children == null) {
     return null;
   }
@@ -756,7 +767,7 @@ export const flatVirtualChildren = (children: any, ssrCtx: SSRContext): any[] | 
   return nodes;
 };
 
-export const stringifyClass = (str: any) => {
+const stringifyClass = (str: any) => {
   if (!str) {
     return '';
   }
@@ -778,7 +789,7 @@ export const stringifyClass = (str: any) => {
   return output.join(' ');
 };
 
-export const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => {
+const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => {
   if (children == null) {
     return null;
   }
@@ -825,14 +836,14 @@ const setComponentProps = (
   }
 };
 
-function processPropKey(prop: string) {
+const processPropKey = (prop: string) => {
   if (prop === 'htmlFor') {
     return 'for';
   }
   return prop;
-}
+};
 
-function processPropValue(prop: string, value: any): string | null {
+const processPropValue = (prop: string, value: any): string | null => {
   if (prop === 'style') {
     return stringifyStyle(value);
   }
@@ -846,7 +857,7 @@ function processPropValue(prop: string, value: any): string | null {
     return '';
   }
   return String(value);
-}
+};
 
 const textOnlyElements: Record<string, true | undefined> = {
   title: true,
@@ -887,7 +898,7 @@ export interface ServerDocument {
 const ESCAPE_HTML = /[&<>]/g;
 const ESCAPE_ATTRIBUTES = /[&"]/g;
 
-export const escapeHtml = (s: string) => {
+const escapeHtml = (s: string) => {
   return s.replace(ESCAPE_HTML, (c) => {
     switch (c) {
       case '&':
@@ -902,7 +913,7 @@ export const escapeHtml = (s: string) => {
   });
 };
 
-export const escapeAttr = (s: string) => {
+const escapeAttr = (s: string) => {
   return s.replace(ESCAPE_ATTRIBUTES, (c) => {
     switch (c) {
       case '&':
@@ -915,8 +926,18 @@ export const escapeAttr = (s: string) => {
   });
 };
 
-export const listenersNeedId = (listeners: Listener[]) => {
+const listenersNeedId = (listeners: Listener[]) => {
   return listeners.some((l) => l[1].$captureRef$ && l[1].$captureRef$.length > 0);
+};
+
+const addDynamicSlot = (hostCtx: QContext, elCtx: QContext) => {
+  let dynamicSlots = hostCtx.$dynamicSlots$;
+  if (!dynamicSlots) {
+    hostCtx.$dynamicSlots$ = dynamicSlots = [];
+  }
+  if (!dynamicSlots.includes(elCtx)) {
+    dynamicSlots.push(elCtx);
+  }
 };
 
 const hasDynamicChildren = (node: JSXNode) => {

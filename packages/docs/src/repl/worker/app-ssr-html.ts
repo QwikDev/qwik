@@ -1,8 +1,6 @@
 /* eslint-disable no-console */
 import type {
-  RenderOptions,
   RenderToStreamOptions,
-  RenderToStringResult,
 } from '@builder.io/qwik/server';
 import type { ReplInputOptions, ReplResult } from '../types';
 import type { QwikWorkerGlobal } from './repl-service-worker';
@@ -86,7 +84,6 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
   });
 
   ssrResult.then(() => {
-    stream.close();
     console.log = log;
     console.warn = warn;
     console.error = error;
@@ -115,6 +112,7 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
         console.error(e);
       }
     }
+    writable.close();
   });
   const url = new URL(appUrl, options.serverUrl);
   const req = new Request(url.href);

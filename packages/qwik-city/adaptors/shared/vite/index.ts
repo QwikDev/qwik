@@ -165,7 +165,7 @@ interface ViteAdaptorPluginOptions {
   name: string;
   origin: string;
   staticGenerate: true | StaticGenerateRenderOptions | undefined;
-  config: (config: UserConfig) => UserConfig;
+  config?: (config: UserConfig) => UserConfig;
   generateRoutes?: (generateOpts: {
     clientOutDir: string;
     serverOutDir: string;

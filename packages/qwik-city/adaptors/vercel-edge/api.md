@@ -13,7 +13,10 @@ export function vercelEdgeAdaptor(opts?: VercelEdgeAdaptorOptions): any;
 
 // @alpha (undocumented)
 export interface VercelEdgeAdaptorOptions {
+    outputConfig?: boolean;
     staticGenerate?: StaticGenerateRenderOptions | true;
+    vcConfigEntryPoint?: string;
+    vcConfigEnvVarsInUse?: string[];
 }
 
 // (No @packageDocumentation comment for this package)

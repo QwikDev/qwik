@@ -11,6 +11,7 @@ export function netifyEdgeAdaptor(opts?: NetlifyEdgeAdaptorOptions): any;
 
 // @alpha (undocumented)
 export interface NetlifyEdgeAdaptorOptions {
+    functionRoutes?: boolean;
     staticGenerate?: StaticGenerateRenderOptions | true;
 }
 

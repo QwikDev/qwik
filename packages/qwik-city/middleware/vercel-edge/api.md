@@ -6,33 +6,15 @@
 
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
-import type { RequestHandler as RequestHandler_2 } from '@builder.io/qwik-city';
 
 // @alpha (undocumented)
-export function createQwikCity(opts: QwikCityVercelEdgeOptions): ({ request, env }: EventPluginContext) => Promise<Response>;
-
-// @alpha (undocumented)
-export interface EventPluginContext {
-    // (undocumented)
-    env: Record<string, any>;
-    // (undocumented)
-    next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
-    // (undocumented)
-    request: Request;
-    // (undocumented)
-    waitUntil: (promise: Promise<any>) => void;
-}
+export function createQwikCity(opts: QwikCityVercelEdgeOptions): (request: Request) => Promise<Response>;
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityHandlerOptions" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
 export interface QwikCityVercelEdgeOptions extends QwikCityHandlerOptions {
 }
-
-// @alpha (undocumented)
-export type RequestHandlerVercelEdge<T = unknown> = RequestHandler_2<T, {
-    env: EventPluginContext['env'];
-}>;
 
 // (No @packageDocumentation comment for this package)
 

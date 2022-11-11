@@ -111,7 +111,6 @@ async function submoduleCoreProd(config: BuildConfig) {
   await writeFile(esmMinFile, esmMinCode);
   const esmCleanCode = esmMinCode.replace(/__self__/g, '__SELF__');
 
-  // const windowIdx = esmCleanCode.indexOf('window');
   const selfIdx = esmCleanCode.indexOf('self');
   const indx = Math.max(selfIdx);
   if (indx !== -1) {

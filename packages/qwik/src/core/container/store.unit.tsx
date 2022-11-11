@@ -62,7 +62,7 @@ storeSuite('should serialize content', async () => {
 
   equal(JSON.parse(script.textContent!), {
     refs: {
-      '1': '1 2 f m 8 i 7 6 k! m l 0',
+      '1': '1 2 f o 8 i 7 6 k! o l 0 n',
     },
     ctx: {},
     objs: [
@@ -92,7 +92,7 @@ storeSuite('should serialize content', async () => {
         d: '6',
         e: '7',
         f: '8',
-        g: 'm',
+        g: 'o',
         h: 'd',
         i: 'e',
       },

@@ -94,6 +94,11 @@ export function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.packagesDir, 'qwik-city', 'adaptors', 'vercel-edge', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'vercel-edge', 'vite', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.packagesDir, 'qwik-city', 'middleware', 'cloudflare-pages'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'cloudflare-pages', 'index.d.ts')
   );
@@ -111,6 +116,11 @@ export function apiExtractor(config: BuildConfig) {
     config,
     join(config.packagesDir, 'qwik-city', 'static'),
     join(config.packagesDir, 'qwik-city', 'lib', 'static', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'middleware', 'vercel-edge'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'vercel-edge', 'index.d.ts')
   );
   generateQwikCityReferenceModules(config);
 

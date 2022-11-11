@@ -9,7 +9,7 @@
   },
   "__qwik__": {
     "priority": 40,
-    "displayName": "Adaptor: Cloudflare Pages (serverless)",
+    "displayName": "Adaptor: Cloudflare Pages",
     "docs": [
       "https://qwik.builder.io/qwikcity/adaptors/cloudflare-pages/",
       "https://developers.cloudflare.com/pages"

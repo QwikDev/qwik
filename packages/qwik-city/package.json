@@ -28,6 +28,10 @@
       "import": "./lib/adaptors/static/vite/index.mjs",
       "require": "./lib/adaptors/static/vite/index.cjs"
     },
+    "./adaptors/vercel-edge/vite": {
+      "import": "./lib/adaptors/vercel-edge/vite/index.mjs",
+      "require": "./lib/adaptors/vercel-edge/vite/index.cjs"
+    },
     "./middleware/cloudflare-pages": {
       "import": "./lib/middleware/cloudflare-pages/index.mjs"
     },

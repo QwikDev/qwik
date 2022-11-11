@@ -2,8 +2,8 @@ import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-
 import { notFoundHandler, requestHandler } from '../request-handler';
 import type { RenderOptions } from '@builder.io/qwik';
 import type { Render } from '@builder.io/qwik/server';
+import type { RequestHandler } from '@builder.io/qwik-city';
 import qwikCityPlan from '@qwik-city-plan';
-import type { RequestHandler } from '~qwik-city-runtime';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
 

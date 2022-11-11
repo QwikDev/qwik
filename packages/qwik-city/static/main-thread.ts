@@ -205,7 +205,9 @@ function validateOptions(opts: StaticGenerateOptions) {
   }
   siteOrigin = siteOrigin.trim();
   if (!siteOrigin.startsWith('https://') && !siteOrigin.startsWith('http://')) {
-    throw new Error(`"origin" must start with a valid protocol, such as "https://" or "http://"`);
+    throw new Error(
+      `"origin" must start with a valid protocol, such as "https://" or "http://", received "${siteOrigin}"`
+    );
   }
   try {
     new URL(siteOrigin);

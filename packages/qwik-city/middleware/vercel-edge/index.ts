@@ -1,24 +1,15 @@
-import type { Context } from '@netlify/edge-functions';
 import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-handler/types';
 import { notFoundHandler, requestHandler } from '../request-handler';
-import type { Render } from '@builder.io/qwik/server';
-import type { RenderOptions } from '@builder.io/qwik';
-import type { RequestHandler } from '@builder.io/qwik-city';
-import qwikCityPlan from '@qwik-city-plan';
 
-// @builder.io/qwik-city/middleware/netlify-edge
+// @builder.io/qwik-city/middleware/vercel-edge
 
 /**
  * @alpha
  */
-export function createQwikCity(opts: QwikCityNetlifyOptions) {
-  async function onRequest(request: Request, context: Context) {
+export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
+  async function onRequest(request: Request) {
     try {
       const url = new URL(request.url);
-
-      if (url.pathname.startsWith('/.netlify')) {
-        return context.next();
-      }
 
       const requestCtx: QwikCityRequestContext<Response> = {
         locale: undefined,
@@ -54,7 +45,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
             });
           });
         },
-        platform: context,
+        platform: process.env,
       };
 
       // send request to qwik city request handler
@@ -82,35 +73,4 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
 /**
  * @alpha
  */
-export interface QwikCityNetlifyOptions extends QwikCityHandlerOptions {}
-
-/**
- * @alpha
- */
-export interface EventPluginContext extends Context {}
-
-/**
- * @alpha
- * @deprecated Please use `createQwikCity()` instead.
- *
- * Example:
- *
- * ```ts
- * import { createQwikCity } from '@builder.io/qwik-city/middleware/netlify-edge';
- * import qwikCityPlan from '@qwik-city-plan';
- * import render from './entry.ssr';
- *
- * export default createQwikCity({ render, qwikCityPlan });
- * ```
- */
-export function qwikCity(render: Render, opts?: RenderOptions) {
-  return createQwikCity({ render, qwikCityPlan, ...opts });
-}
-
-/**
- * @alpha
- */
-export type RequestHandlerNetlify<T = unknown> = RequestHandler<
-  T,
-  Omit<Context, 'next' | 'cookies'>
->;
+export interface QwikCityVercelEdgeOptions extends QwikCityHandlerOptions {}

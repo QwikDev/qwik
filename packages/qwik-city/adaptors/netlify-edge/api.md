@@ -4,9 +4,7 @@
 
 ```ts
 
-import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import type { SymbolMapper } from '@builder.io/qwik/optimizer';
-import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
+import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 
 // @alpha (undocumented)
 export function netifyEdgeAdaptor(opts?: NetlifyEdgeAdaptorOptions): any;
@@ -17,19 +15,7 @@ export interface NetlifyEdgeAdaptorOptions {
     staticGenerate?: StaticGenerateRenderOptions | true;
 }
 
-// Warning: (ae-forgotten-export) The symbol "RenderOptions" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export interface StaticGenerateRenderOptions extends RenderOptions {
-    emitData?: boolean;
-    emitHtml?: boolean;
-    log?: 'debug';
-    maxTasksPerWorker?: number;
-    maxWorkers?: number;
-    origin: string;
-    outDir: string;
-    sitemapOutFile?: string;
-}
+export { StaticGenerateRenderOptions }
 
 // (No @packageDocumentation comment for this package)
 

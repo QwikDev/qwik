@@ -11,6 +11,7 @@ import { assertQrl } from '../qrl/qrl-class';
 import type { ValueOrPromise } from '../util/types';
 import { invoke, newInvokeContext } from '../use/use-core';
 import { verifySerializable } from '../state/common';
+import { _IMMUTABLE } from '../state/constants';
 
 /**
  * Infers `Props` from the component.
@@ -155,6 +156,7 @@ export const componentQrl = <PROPS extends {}>(
       {
         [OnRenderProp]: componentQrl,
         [QSlot]: props[QSlot],
+        [_IMMUTABLE]: (props as any)[_IMMUTABLE],
         children: props.children,
         props,
       },

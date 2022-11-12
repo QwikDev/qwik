@@ -137,8 +137,9 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           // but do not end() it, call next() so qwik plugin handles rendering
           res.statusCode = userResponse.status;
           userResponse.headers.forEach((value, key) => res.setHeader(key, value));
-          for (const header in userResponse.cookie.headers()) {
-            res.setHeader('Set-Cookie', header);
+          const cookies = userResponse.cookie.headers();
+          if (cookies.length > 0) {
+            res.setHeader('Set-Cookie', cookies);
           }
           next();
           return;

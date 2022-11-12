@@ -23,7 +23,7 @@ export function pageHandler<T = any>(
   opts?: RenderOptions,
   routeBundleNames?: string[]
 ): Promise<T> {
-  const { status, headers } = userResponse;
+  const { status, headers, cookie } = userResponse;
   const { response } = requestCtx;
   const isPageData = userResponse.type === 'pagedata';
   const requestHeaders: Record<string, string> = {};
@@ -37,7 +37,7 @@ export function pageHandler<T = any>(
     headers.set('Content-Type', 'text/html; charset=utf-8');
   }
 
-  return response(isPageData ? 200 : status, headers, async (stream) => {
+  return response(isPageData ? 200 : status, headers, cookie, async (stream) => {
     // begin http streaming the page content as it's rendering html
     try {
       const result = await render({

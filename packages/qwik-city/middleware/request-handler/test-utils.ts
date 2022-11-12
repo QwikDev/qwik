@@ -1,4 +1,5 @@
 import type { RequestContext } from '../../runtime/src/library/types';
+import { mergeHeadersCookies } from './cookie';
 import { createHeaders } from './headers';
 import type { QwikCityRequestContext, ResponseHandler } from './types';
 
@@ -23,10 +24,10 @@ export function mockRequestContext(opts?: {
     body: null as any,
   };
 
-  const response: ResponseHandler = async (status, headers, body) => {
+  const response: ResponseHandler = async (status, headers, cookie, body) => {
     const chunks: string[] = [];
     responseData.status = status;
-    responseData.headers = headers as any;
+    responseData.headers = mergeHeadersCookies(headers, cookie);
     responseData.body = new Promise<string>((resolve) => {
       body({
         write: (chunk) => {

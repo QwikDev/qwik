@@ -4,12 +4,12 @@ export function endpointHandler<T = any>(
   requestCtx: QwikCityRequestContext,
   userResponse: UserResponseContext
 ): Promise<T> {
-  const { pendingBody, resolvedBody, status, headers } = userResponse;
+  const { pendingBody, resolvedBody, status, headers, cookie } = userResponse;
   const { response } = requestCtx;
 
   if (pendingBody === undefined && resolvedBody === undefined) {
     // undefined body
-    return response(status, headers, asyncNoop);
+    return response(status, headers, cookie, asyncNoop);
   }
 
   if (!headers.has('Content-Type')) {
@@ -20,7 +20,7 @@ export function endpointHandler<T = any>(
   // check so we can know later on if we should JSON.stringify the body
   const isJson = headers.get('Content-Type')!.includes('json');
 
-  return response(status, headers, async ({ write }) => {
+  return response(status, headers, cookie, async ({ write }) => {
     const body = pendingBody !== undefined ? await pendingBody : resolvedBody;
     if (body !== undefined) {
       if (isJson) {

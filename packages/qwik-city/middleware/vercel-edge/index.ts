@@ -1,5 +1,6 @@
 import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-handler/types';
 import { notFoundHandler, requestHandler } from '../request-handler';
+import { mergeHeadersCookies } from '../request-handler/cookie';
 
 // @builder.io/qwik-city/middleware/vercel-edge
 
@@ -15,13 +16,16 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
         locale: undefined,
         url,
         request,
-        response: (status, headers, body) => {
+        response: (status, headers, cookies, body) => {
           return new Promise<Response>((resolve) => {
             let flushedHeaders = false;
             const { readable, writable } = new TransformStream();
             const writer = writable.getWriter();
 
-            const response = new Response(readable, { status, headers });
+            const response = new Response(readable, {
+              status,
+              headers: mergeHeadersCookies(headers, cookies),
+            });
 
             body({
               write: (chunk) => {

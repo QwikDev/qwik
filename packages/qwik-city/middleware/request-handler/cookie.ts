@@ -121,3 +121,15 @@ export class Cookie implements CookieInterface {
     return Object.values(this[RES_COOKIE]);
   }
 }
+
+export const mergeHeadersCookies = (headers: Headers, cookies: CookieInterface) => {
+  const cookieHeaders = cookies.headers();
+  if (cookieHeaders.length > 0) {
+    const newHeaders = new Headers(headers);
+    for (const cookie of cookieHeaders) {
+      newHeaders.append('Set-Cookie', cookie);
+    }
+    return newHeaders;
+  }
+  return headers;
+};

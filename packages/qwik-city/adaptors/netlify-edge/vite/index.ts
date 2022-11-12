@@ -42,7 +42,8 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
           functions: ssrRoutes.map((r) => {
             if (r.paramNames.length > 0) {
               return {
-                pattern: r.pattern.toString(),
+                // Replace opening and closing "/" if present
+                pattern: r.pattern.toString().replace(/^\//, '').replace(/\/$/, ''),
                 function: 'entry.netlify-edge',
               };
             }

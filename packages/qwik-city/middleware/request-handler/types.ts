@@ -26,6 +26,7 @@ export interface ResponseStreamWriter extends StreamWriter {
 export type ResponseHandler<T = any> = (
   status: number,
   headers: Headers,
+  cookies: Cookie,
   body: (stream: ResponseStreamWriter) => Promise<void>,
   error?: any
 ) => Promise<T>;

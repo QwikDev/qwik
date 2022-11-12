@@ -131,6 +131,8 @@ export interface DocumentMeta {
     // (undocumented)
     httpEquiv?: string;
     // (undocumented)
+    itemprop?: string;
+    // (undocumented)
     key?: string;
     // (undocumented)
     name?: string;

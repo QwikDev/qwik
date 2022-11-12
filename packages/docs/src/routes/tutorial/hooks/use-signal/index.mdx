@@ -5,9 +5,10 @@ contributors:
   - adamdbradley
 ---
 
-Use `useSignal()` to store any single value similar to `useStore()`. 
+Use `useSignal()` to store any single value similar to `useStore()`. `useSignal` is heavely optimized when it comes to re-rendering components. It is able to skip re-renderings of parent components even when the signal itself is defined in the parent.
 
 Some examples would be:
+
 ```
 const intStore = useSignal(0);
 const stringStore = useSignal('foo');
@@ -16,7 +17,8 @@ const objectStore = useSignal({fruite: 'apple', color: 'green'});
 const arrayStore = useSignal(['banana','oranges']);
 ```
 
-To read or update the values you can simple access the `value` property
+To read or update the values you can simple access the `value` property:
+
 ```
 <>
   <button onClick$={() => intStore.value++}>Click me</button>

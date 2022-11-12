@@ -43,14 +43,9 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
         const netlifyEdgeManifest = {
           functions: ssrRoutes.map((r) => {
             if (r.paramNames.length > 0) {
-              const patternString = r.pattern.toString(); 
-              // Check if stringified pattern matches what netlify is expecting.
-              const pattern = NETLIFY_ROUTE_REGEX.exec(r.pattern.toString()) === null
-                ? patternString.slice(1,-1) // Remove open and closing /
-                : patternString
-                ;
               return {
-                pattern,
+                // Replace opening and closing "/" if present
+                pattern: r.pattern.toString().replace(/^\//, "").replace(/\/$/, ""),
                 function: 'entry.netlify-edge',
               };
             }

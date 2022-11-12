@@ -259,16 +259,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/qwik@npm:0.13.1":
-  version: 0.13.1
-  resolution: "@builder.io/qwik@npm:0.13.1"
-  bin:
-    qwik: qwik.cjs
-  checksum: 1198d65497deadbd0ca4f9b2e89ef3819301cdc2b31a74397e4b8ce626197dab27b0156193ded09767c31912e4feb65c0ecdb111b964f879eb91a16b8248b594
-  languageName: node
-  linkType: hard
-
-"@builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
+"@builder.io/qwik@0.13.3, @builder.io/qwik@workspace:*, @builder.io/qwik@workspace:packages/qwik":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik@workspace:packages/qwik"
   bin:
@@ -7540,7 +7531,7 @@ __metadata:
     "@algolia/autocomplete-core": ^1.7.2
     "@algolia/client-search": ^4.14.2
     "@builder.io/partytown": ^0.7.1
-    "@builder.io/qwik": 0.13.1
+    "@builder.io/qwik": 0.13.3
     "@builder.io/qwik-city": 0.0.122
     "@builder.io/sdk-qwik": ^0.0.34
     "@docsearch/css": ^3.3.0

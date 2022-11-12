@@ -129,10 +129,10 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   };
 
   const containerAttributes: Record<string, any> = {
-    'q:render': qDev ? 'ssr-dev' : 'ssr',
     ...opts.containerAttributes,
     'q:container': 'paused',
     'q:version': version ?? 'dev',
+    'q:render': qDev ? 'ssr-dev' : 'ssr',
     'q:base': opts.base,
     'q:locale': opts.envData?.locale,
     children: root === 'html' ? [node] : [headNodes, node],

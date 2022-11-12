@@ -29,16 +29,18 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
   };
 
   const resolveContainer = (containerEl: Element) => {
-    const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
-    let script = parentJSON.lastElementChild;
-    while (script) {
-      if (script.tagName === 'SCRIPT' && getAttribute(script, 'type') === 'qwik/json') {
-        (containerEl as any)['_qwikjson_'] = JSON.parse(
-          script.textContent!.replace(/\\x3C(\/?script)/g, '<$1')
-        );
-        break;
+    if ((containerEl as any)['_qwikjson_'] === undefined) {
+      const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
+      let script = parentJSON.lastElementChild;
+      while (script) {
+        if (script.tagName === 'SCRIPT' && getAttribute(script, 'type') === 'qwik/json') {
+          (containerEl as any)['_qwikjson_'] = JSON.parse(
+            script.textContent!.replace(/\\x3C(\/?script)/g, '<$1')
+          );
+          break;
+        }
+        script = script.previousElementSibling;
       }
-      script = script.previousElementSibling;
     }
   };
 
@@ -66,7 +68,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       const base = new URL(getAttribute(container, 'q:base')!, doc.baseURI);
       for (const qrl of attrValue.split('\n')) {
         const url = new URL(qrl, base);
-        const symbolName = url.hash.replace(/^#?([^?[|]*).*$/, '$1');
+        const symbolName = url.hash.replace(/^#?([^?[|]*).*$/, '$1') || 'default';
         const reqTime = performance.now();
         const module = import(url.href.split('#')[0]);
         resolveContainer(container);

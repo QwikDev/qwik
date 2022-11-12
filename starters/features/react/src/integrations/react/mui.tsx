@@ -1,11 +1,10 @@
 /** @jsxImportSource react */
 
 import { qwikify$ } from '@builder.io/qwik-react';
-import { Alert, Button, Slider } from '@mui/material';
+import { Button, Slider } from '@mui/material';
 import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
 
 export const MUIButton = qwikify$(Button);
-export const MUIAlert = qwikify$(Alert);
 export const MUISlider = qwikify$(Slider, { eagerness: 'hover' });
 
 export const TableApp = qwikify$(() => {

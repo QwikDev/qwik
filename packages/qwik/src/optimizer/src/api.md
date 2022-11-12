@@ -46,8 +46,6 @@ export interface GlobalInjections {
         [key: string]: string;
     };
     // (undocumented)
-    children?: string;
-    // (undocumented)
     location: 'head' | 'body';
     // (undocumented)
     tag: string;
@@ -177,7 +175,7 @@ export interface Path {
 export type QwikBuildMode = 'production' | 'development';
 
 // @alpha (undocumented)
-export type QwikBuildTarget = 'client' | 'ssr' | 'lib';
+export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 
 // @alpha (undocumented)
 export interface QwikBundle {

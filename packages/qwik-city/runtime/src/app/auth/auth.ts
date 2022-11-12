@@ -1,39 +1,42 @@
 /**
  * Simple Auth For Testing Only!!!
  */
+import type { Cookie } from '~qwik-city-runtime';
 
-import { createToken, getToken, removeToken } from './cookies';
-
-export const isUserAuthenticated = async (cookie: string | null) => {
-  const token = getToken(cookie);
-  return !!token;
+export const isUserAuthenticated = async (cookie: Cookie) => {
+  return cookie.has(AUTHTOKEN_NAME);
 };
 
-export const signIn = async (formData: FormData): Promise<AuthResult> => {
+export const signIn = async (formData: FormData, cookie: Cookie): Promise<AuthResult> => {
   const username = formData.get('username');
   const password = formData.get('password');
 
   if (username == 'qwik' && password == 'dev') {
+    // super secret username/password (Testing purposes only, DO NOT DO THIS!!)
+    cookie.set(AUTHTOKEN_NAME, Math.round(Math.random() * 9999999), {
+      secure: true,
+      httpOnly: true,
+      maxAge: [5, 'minutes'],
+    });
     return {
       status: 'signed-in',
-      cookie: createToken(),
     };
   }
 
   return {
     status: 'invalid',
-    cookie: '',
   };
 };
 
-export const signOut = async () => {
+export const signOut = async (cookie: Cookie) => {
+  cookie.delete(AUTHTOKEN_NAME);
   return {
     status: 'signed-out',
-    cookie: removeToken(),
   };
 };
 
 export interface AuthResult {
   status: 'signed-in' | 'signed-out' | 'invalid';
-  cookie: string;
 }
+
+const AUTHTOKEN_NAME = 'qwikcity-auth-token';

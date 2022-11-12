@@ -73,6 +73,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         target = 'ssr';
       } else if (viteEnv.mode === 'lib') {
         target = 'lib';
+      } else if (viteEnv.mode === 'test') {
+        target = 'test';
       } else {
         target = 'client';
       }
@@ -115,6 +117,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         forceFullBuild,
         vendorRoots: vendorRoots.map((v) => v.path),
+        outDir: viteConfig.build?.outDir,
       };
 
       if (target === 'ssr') {
@@ -128,18 +131,21 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           pluginOpts.input = qwikViteOpts.ssr.input;
         }
 
-        pluginOpts.outDir = qwikViteOpts.ssr?.outDir;
+        if (qwikViteOpts.ssr?.outDir) {
+          pluginOpts.outDir = qwikViteOpts.ssr.outDir;
+        }
         pluginOpts.manifestInput = qwikViteOpts.ssr?.manifestInput;
       } else if (target === 'client') {
         // client
         pluginOpts.input = qwikViteOpts.client?.input;
-        pluginOpts.outDir = qwikViteOpts.client?.outDir;
+        if (qwikViteOpts.client?.outDir) {
+          pluginOpts.outDir = qwikViteOpts.client.outDir;
+        }
         pluginOpts.manifestOutput = qwikViteOpts.client?.manifestOutput;
       } else {
         if (typeof viteConfig.build?.lib === 'object') {
           pluginOpts.input = viteConfig.build?.lib.entry;
         }
-        pluginOpts.outDir = viteConfig.build?.outDir;
       }
 
       if (sys.env === 'node') {
@@ -209,7 +215,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const updatedViteConfig: UserConfig = {
         resolve: {
           dedupe: [...DEDUPE, ...vendorIds],
-          conditions: [],
+          conditions: buildMode === 'production' && target === 'client' ? ['min'] : [],
         },
         esbuild:
           viteCommand === 'serve'
@@ -232,6 +238,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         },
         build: {
           outDir: opts.outDir,
+          cssCodeSplit: false,
           rollupOptions: {
             input: opts.input,
             preserveEntrySignatures: 'exports-only',
@@ -282,9 +289,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           }
         }
       } else if (opts.target === 'client') {
-        if (buildMode === 'production') {
-          updatedViteConfig.resolve!.conditions = ['min'];
-        }
         // Client Build
         if (isClientDevOnly) {
           updatedViteConfig.build!.rollupOptions!.input = clientDevInput;
@@ -292,6 +296,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       } else if (opts.target === 'lib') {
         // Library Build
         updatedViteConfig.build!.minify = false;
+      } else {
+        // Test Build
+        const qDevKey = 'globalThis.qDev';
+        const qTestKey = 'globalThis.qTest';
+        updatedViteConfig.define = {
+          [qDevKey]: true,
+          [qTestKey]: true,
+        };
       }
 
       return updatedViteConfig;
@@ -302,10 +314,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       // for example input might be virtual file
       const resolver = this.resolve.bind(this);
       await qwikPlugin.validateSource(resolver);
-
-      qwikPlugin.onAddWatchFile((ctx, path) => {
-        ctx.addWatchFile(path);
-      });
 
       qwikPlugin.onDiagnostics((diagnostics, optimizer, srcDir) => {
         diagnostics.forEach((d) => {
@@ -363,76 +371,90 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       return qwikPlugin.transform(this, code, id);
     },
 
-    async generateBundle(_, rollupBundle) {
-      const opts = qwikPlugin.getOptions();
+    generateBundle: {
+      order: 'post',
+      async handler(_, rollupBundle) {
+        const opts = qwikPlugin.getOptions();
 
-      if (opts.target === 'client') {
-        // client build
-        const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
+        if (opts.target === 'client') {
+          // client build
+          const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
 
-        for (const fileName in rollupBundle) {
-          const b = rollupBundle[fileName];
-          if (b.type === 'chunk') {
-            outputAnalyzer.addBundle({
-              fileName,
-              modules: b.modules,
-              imports: b.imports,
-              dynamicImports: b.dynamicImports,
-              size: b.code.length,
-            });
-          } else {
-            if (['.css', '.scss', '.sass'].some((ext) => fileName.endsWith(ext))) {
-              injections.push({
-                tag: 'link',
-                location: 'head',
-                attributes: {
-                  rel: 'stylesheet',
-                  href: `/${fileName}`,
-                },
+          for (const fileName in rollupBundle) {
+            const b = rollupBundle[fileName];
+            if (b.type === 'chunk') {
+              outputAnalyzer.addBundle({
+                fileName,
+                modules: b.modules,
+                imports: b.imports,
+                dynamicImports: b.dynamicImports,
+                size: b.code.length,
               });
+            } else {
+              if (['.css', '.scss', '.sass', '.less'].some((ext) => fileName.endsWith(ext))) {
+                if (typeof b.source === 'string' && b.source.length < 20000) {
+                  injections.push({
+                    tag: 'style',
+                    location: 'head',
+                    attributes: {
+                      'data-src': `/${fileName}`,
+                      dangerouslySetInnerHTML: b.source,
+                    },
+                  });
+                } else {
+                  injections.push({
+                    tag: 'link',
+                    location: 'head',
+                    attributes: {
+                      rel: 'stylesheet',
+                      href: `/${fileName}`,
+                    },
+                  });
+                }
+              }
             }
           }
-        }
 
-        for (const i of injections) {
-          outputAnalyzer.addInjection(i);
-        }
+          for (const i of injections) {
+            outputAnalyzer.addInjection(i);
+          }
 
-        const optimizer = qwikPlugin.getOptimizer();
-        const manifest = await outputAnalyzer.generateManifest();
-        manifest.platform = {
-          ...versions,
-          vite: '',
-          rollup: this.meta?.rollupVersion || '',
-          env: optimizer.sys.env,
-          os: optimizer.sys.os,
-        };
-        if (optimizer.sys.env === 'node') {
-          manifest.platform.node = process.versions.node;
-        }
+          const optimizer = qwikPlugin.getOptimizer();
+          const manifest = await outputAnalyzer.generateManifest();
+          manifest.platform = {
+            ...versions,
+            vite: '',
+            rollup: this.meta?.rollupVersion || '',
+            env: optimizer.sys.env,
+            os: optimizer.sys.os,
+          };
+          if (optimizer.sys.env === 'node') {
+            manifest.platform.node = process.versions.node;
+          }
 
-        const clientManifestStr = JSON.stringify(manifest, null, 2);
-        this.emitFile({
-          type: 'asset',
-          fileName: Q_MANIFEST_FILENAME,
-          source: clientManifestStr,
-        });
+          const clientManifestStr = JSON.stringify(manifest, null, 2);
+          this.emitFile({
+            type: 'asset',
+            fileName: Q_MANIFEST_FILENAME,
+            source: clientManifestStr,
+          });
 
-        if (typeof opts.manifestOutput === 'function') {
-          await opts.manifestOutput(manifest);
-        }
+          if (typeof opts.manifestOutput === 'function') {
+            await opts.manifestOutput(manifest);
+          }
 
-        if (typeof opts.transformedModuleOutput === 'function') {
-          await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
-        }
+          if (typeof opts.transformedModuleOutput === 'function') {
+            await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
+          }
 
-        const sys = qwikPlugin.getSys();
-        if (tmpClientManifestPath && sys.env === 'node') {
-          // Client build should write the manifest to a tmp dir
-          const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-          await fs.promises.writeFile(tmpClientManifestPath, clientManifestStr);
+          const sys = qwikPlugin.getSys();
+          if (tmpClientManifestPath && sys.env === 'node') {
+            // Client build should write the manifest to a tmp dir
+            const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+            await fs.promises.writeFile(tmpClientManifestPath, clientManifestStr);
+          }
         }
-      }
+      },
     },
 
     async writeBundle(_, rollupBundle) {
@@ -504,6 +526,18 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     handleHotUpdate(ctx) {
       qwikPlugin.log('handleHotUpdate()', ctx);
+
+      for (const mod of ctx.modules) {
+        const deps = mod.info?.meta?.qwikdeps;
+        if (deps) {
+          for (const dep of deps) {
+            const mod = ctx.server.moduleGraph.getModuleById(dep);
+            if (mod) {
+              ctx.server.moduleGraph.invalidateModule(mod);
+            }
+          }
+        }
+      }
 
       if (['.css', '.scss', '.sass'].some((ext) => ctx.file.endsWith(ext))) {
         qwikPlugin.log('handleHotUpdate()', 'force css reload');

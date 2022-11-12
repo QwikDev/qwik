@@ -33,7 +33,7 @@ export let Thing;
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;WAEO,KAGN;UAHW,KAAK;IAAL,KAAK,CAAL,KAAK,CACb,GAAC,IAAD,CAAC,IAAD,GAAC;IADO,KAAK,CAAL,KAAK,CAEb,GAAC,IAAD,CAAC,IAAD,GAAC;GAFO,KAAK,KAAL,KAAK;AAKjB,OAAO,MAAM,GAAG,iBAAG,yFAOjB,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;WAEO;UAAK,KAAK;IAAL,MAAA,MACR,OAAA,KAAA;IADQ,MAAA,MAER,OAAA,KAAA;GAFQ,UAAA;AAKZ,OAAO,MAAM,oBAAM,0FAOhB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { Thing } from "./test";
@@ -50,7 +50,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAQ8B,IAAM;IAChC,OAAO,CAAC,GAAG,CAAC,KAAK,CAAC,CAAC,CAAC,CAAC;IACrB,qBACI;kBACI,cAAA,KAAC,GAAC;YAAC,KAAK,EAAC,OAAO;sBAAC,YAAU;UAAI;MAChC,CACL;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAQ8B,IAAM;IAChC,QAAQ,GAAG,CAAC,MAAM,CAAC;IACnB,qBACI;kBACI,cAAA,KAAC;YAAE,OAAM;sBAAQ;;;AAG7B\"}")
 /*
 {
   "origin": "test.tsx",

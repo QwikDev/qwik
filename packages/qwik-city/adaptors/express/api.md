@@ -9,10 +9,10 @@ import type { SymbolMapper } from '@builder.io/qwik/optimizer';
 import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
 
 // @alpha (undocumented)
-export function expressAdaptor(opts?: NetlifyEdgeAdaptorOptions): any;
+export function expressAdaptor(opts?: ExpressAdaptorOptions): any;
 
 // @alpha (undocumented)
-export interface NetlifyEdgeAdaptorOptions {
+export interface ExpressAdaptorOptions {
     // Warning: (ae-forgotten-export) The symbol "StaticGenerateRenderOptions" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)

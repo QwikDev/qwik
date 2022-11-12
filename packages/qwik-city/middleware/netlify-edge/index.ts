@@ -3,8 +3,9 @@ import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-
 import { notFoundHandler, requestHandler } from '../request-handler';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik';
+import type { RequestHandler } from '@builder.io/qwik-city';
 import qwikCityPlan from '@qwik-city-plan';
-import type { RequestHandler } from '~qwik-city-runtime';
+import { mergeHeadersCookies } from '../request-handler/cookie';
 
 // @builder.io/qwik-city/middleware/netlify-edge
 
@@ -14,15 +15,25 @@ import type { RequestHandler } from '~qwik-city-runtime';
 export function createQwikCity(opts: QwikCityNetlifyOptions) {
   async function onRequest(request: Request, context: Context) {
     try {
+      const url = new URL(request.url);
+
+      if (url.pathname.startsWith('/.netlify')) {
+        return context.next();
+      }
+
       const requestCtx: QwikCityRequestContext<Response> = {
-        url: new URL(request.url),
+        locale: undefined,
+        url,
         request,
-        response: (status, headers, body) => {
+        response: (status, headers, cookies, body) => {
           return new Promise<Response>((resolve) => {
             let flushedHeaders = false;
             const { readable, writable } = new TransformStream();
             const writer = writable.getWriter();
-            const response = new Response(readable, { status, headers });
+            const response = new Response(readable, {
+              status,
+              headers: mergeHeadersCookies(headers, cookies),
+            });
 
             body({
               write: (chunk) => {
@@ -50,7 +61,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler<Response>(requestCtx, opts);
+      const handledResponse = await requestHandler<Response>('server', requestCtx, opts);
       if (handledResponse) {
         return handledResponse;
       }
@@ -102,4 +113,7 @@ export function qwikCity(render: Render, opts?: RenderOptions) {
 /**
  * @alpha
  */
-export type RequestHandlerNetlify<T = unknown> = RequestHandler<T, Omit<Context, 'next'>>;
+export type RequestHandlerNetlify<T = unknown> = RequestHandler<
+  T,
+  Omit<Context, 'next' | 'cookies'>
+>;

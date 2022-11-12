@@ -128,6 +128,11 @@ export interface FunctionComponent<P = Record<string, any>> {
     (props: P, key: string | null): JSXNode | null;
 }
 
+// Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export function getLocale(defaultLocale?: string): string;
+
 // @alpha
 export const getPlatform: () => CorePlatform;
 
@@ -433,7 +438,7 @@ export interface RenderSSROptions {
     // (undocumented)
     base?: string;
     // (undocumented)
-    beforeClose?: (contexts: QContext[], containerState: ContainerState) => Promise<JSXNode>;
+    beforeClose?: (contexts: QContext[], containerState: ContainerState, containsDynamic: boolean) => Promise<JSXNode>;
     // (undocumented)
     beforeContent?: JSXNode<string>[];
     // (undocumented)
@@ -547,8 +552,6 @@ export interface SnapshotMetaValue {
     // (undocumented)
     h?: string;
     // (undocumented)
-    r?: string;
-    // (undocumented)
     s?: string;
     // (undocumented)
     w?: string;
@@ -577,6 +580,8 @@ export interface SnapshotState {
     // (undocumented)
     objs: any[];
     // (undocumented)
+    refs: Record<string, string>;
+    // (undocumented)
     subs: any[];
 }
 
@@ -586,12 +591,21 @@ export const SSRComment: FunctionComponent<{
 }>;
 
 // @alpha (undocumented)
+export const SSRHint: FunctionComponent<SSRHintProps>;
+
+// @alpha (undocumented)
+export interface SSRHintProps {
+    // (undocumented)
+    dynamic?: boolean;
+}
+
+// @alpha (undocumented)
 export const SSRRaw: FunctionComponent<{
     data: string;
 }>;
 
 // @alpha (undocumented)
-export const SSRStream: FunctionComponent<StreamProps>;
+export const SSRStream: FunctionComponent<SSRStreamProps>;
 
 // @alpha (undocumented)
 export const SSRStreamBlock: FunctionComponent<{
@@ -599,7 +613,7 @@ export const SSRStreamBlock: FunctionComponent<{
 }>;
 
 // @alpha (undocumented)
-export interface StreamProps {
+export interface SSRStreamProps {
     // (undocumented)
     children: AsyncGenerator<JSXChildren, void, any> | ((stream: StreamWriter) => Promise<void>) | (() => AsyncGenerator<JSXChildren, void, any>);
 }
@@ -693,7 +707,7 @@ export interface UseSignal {
     // (undocumented)
     <T>(): Signal<T | undefined>;
     // (undocumented)
-    <T>(value: T): Signal<T>;
+    <T>(value: T | (() => T)): Signal<T>;
 }
 
 // @alpha (undocumented)
@@ -758,6 +772,11 @@ export interface WatchCtx {
 
 // @public (undocumented)
 export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
+
+// Warning: (ae-internal-missing-underscore) The name "withLocale" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export function withLocale<T>(locale: string, fn: () => T): T;
 
 // @internal (undocumented)
 export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;

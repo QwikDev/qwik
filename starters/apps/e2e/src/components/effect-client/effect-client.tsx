@@ -23,6 +23,7 @@ export const EffectClient = component$(() => {
     <div>
       <Issue1413 />
       <Issue1717 />
+      <Issue2015 />
       <div class="box" />
       <div class="box" />
       <div class="box" />
@@ -195,4 +196,31 @@ export const Issue1717 = component$(() => {
       <div id="issue-1717-value2">{val2.value}</div>
     </>
   );
+});
+
+export const Issue2015 = component$(() => {
+  const state = useStore({
+    logs: [] as string[],
+  });
+
+  useClientEffect$(async () => {
+    state.logs.push('start 1');
+    await delay(100);
+    state.logs.push('finish 1');
+  });
+
+  useClientEffect$(async () => {
+    state.logs.push('start 2');
+    await delay(100);
+    state.logs.push('finish 2');
+  });
+
+  useClientEffect$(async () => {
+    state.logs.push('start 3');
+    await delay(100);
+    state.logs.push('finish 3');
+    state.logs = state.logs.slice();
+  });
+
+  return <div id="issue-2015-order">Order: {state.logs.join(' ')}</div>;
 });

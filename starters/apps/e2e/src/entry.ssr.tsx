@@ -26,6 +26,9 @@ import { Signals } from './components/signals/signals';
 import { Attributes } from './components/attributes/attributes';
 import { EventsClient } from './components/events/events-client';
 import { InlinedFn } from './components/inlined-fn/inlinedfn';
+import { NoResume } from './components/no-resume/no-resume';
+import { Resuming1 } from './components/resuming/resuming';
+
 /**
  * Entry point for server-side pre-rendering.
  *
@@ -59,6 +62,8 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/attributes': () => <Attributes />,
     '/e2e/events-client': () => <EventsClient />,
     '/e2e/inlined-fn': () => <InlinedFn />,
+    '/e2e/no-resume': () => <NoResume />,
+    '/e2e/resuming': () => <Resuming1 />,
   };
 
   const url = new URL(opts.envData!.url);

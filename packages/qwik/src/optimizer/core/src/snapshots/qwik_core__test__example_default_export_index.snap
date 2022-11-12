@@ -26,7 +26,7 @@ export default /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
 }, "mongo_component_ouWLj4jA2oI"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/index.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,6BAAe,wBAAW,IAAM;IAC5B,QACK,GAAG,CAAC,QAAQ,aAAE,IAAM,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,8CAAE;;QAC3C,EAAE,GAAG,EACP;AACN,CAAC,iCAAC,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/index.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,6BAAe,wBAAW,IAAM;IAC5B,QACK,IAAI,qBAAU,IAAM,QAAQ,GAAG,CAAC,sDAAU;;QAC3C,EAAE;AAEV,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

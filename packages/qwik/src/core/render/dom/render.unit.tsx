@@ -79,6 +79,27 @@ renderSuite('should serialize boolean attributes correctly', async () => {
   await render(fixture.host, <input required={true} disabled={false}></input>);
   await expectRendered(fixture, '<input required="" />');
 });
+
+renderSuite('should render aria', async () => {
+  const fixture = new ElementFixture();
+  await render(
+    fixture.host,
+    <div
+      id="abc"
+      title="bar"
+      aria-required={true}
+      aria-busy={false}
+      role=""
+      preventdefault:click
+      aria-hidden={undefined}
+    ></div>
+  );
+  await expectRendered(
+    fixture,
+    '<div id="abc" title="bar" aria-required="true" aria-busy="false" role="" preventdefault:click=""></div>'
+  );
+});
+
 renderSuite('should render into a document', async () => {
   const fixture = new ElementFixture();
   fixture.document.head.appendChild(fixture.document.createElement('existing'));

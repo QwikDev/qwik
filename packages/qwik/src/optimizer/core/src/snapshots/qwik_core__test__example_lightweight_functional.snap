@@ -45,7 +45,7 @@ export const Foo_component_HTDRsvUbLiE = ({ color  })=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,EAAC,KAAK,CAAA,EAAC,GAAK;IACvC,QACK,GAAG,EAAC;;YACD,CAAC,MAAM,EAAE,GAAG,KAAK,GAAI;;YACrB,CAAC,WAAW,EAAE,GAAG,KAAK,GAAI;;QAC9B,EAAE,GAAG,EACP;AACN,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,EAAC,MAAK,EAAC,GAAK;IACvC,QACK,KAAI;;YACD,CAAC,QAAQ,GAAG,KAAK,GAAI;;YACrB,CAAC,aAAa,GAAG,KAAK,GAAI;;QAC9B,EAAE;AAEV\"}")
 /*
 {
   "origin": "test.tsx",
@@ -74,7 +74,7 @@ export const ButtonArrow_button_onClick_9npo43fIGik = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAsB2C;;WAAI,OAAO,CAAC,GAAG,CAAC,IAAI,EAAE,KAAK,CAAC;CAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAsB2C;;WAAI,QAAQ,GAAG,CAAC,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -103,7 +103,7 @@ export const Button_button_onClick_NsM0JYV00Jw = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iDAgB2C;;WAAI,OAAO,CAAC,GAAG,CAAC,IAAI,EAAE,KAAK,CAAC;CAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iDAgB2C;;WAAI,QAAQ,GAAG,CAAC,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -144,7 +144,7 @@ export const ButtonArrow = ({ text , color  })=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,GAAG,iBAAG,0FAOhB;IACC,OAAO,EAAE,QAAQ;CACpB,CAAC,CAAC;AAEH,OAAO,SAAS,MAAM,CAAC,EAAC,IAAI,CAAA,EAAE,KAAK,CAAA,EAAC,EAAE;IAClC,QACK,MAAM,CAAC,QAAQ,EAAE,KAAK,EAAE,QAAQ;;;SAAiC,IAAI,GAAG,MAAM,EACjF;AACN,CAAC;AAED,OAAO,MAAM,WAAW,GAAG,CAAC,EAAC,IAAI,CAAA,EAAE,KAAK,CAAA,EAAC,GAAK;IAC1C,QACK,MAAM,CAAC,QAAQ,EAAE,KAAK,EAAE,QAAQ;;;SAAiC,IAAI,GAAG,MAAM,EACjF;AACN,CAAC,CAAA\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,0FAOhB;IACC,SAAS;AACb,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,KAAI,EAAE,MAAK,EAAC,EAAE;IAClC,QACK,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAEjF,CAAC;AAED,OAAO,MAAM,cAAc,CAAC,EAAC,KAAI,EAAE,MAAK,EAAC,GAAK;IAC1C,QACK,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAEjF,EAAC\"}")
 == DIAGNOSTICS ==
 
 []

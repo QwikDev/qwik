@@ -5,7 +5,7 @@ interface State {
   debounced: number;
 }
 
-export const App = component$(() => {
+export default component$(() => {
   const store = useStore<State>({
     count: 0,
     debounced: 0,

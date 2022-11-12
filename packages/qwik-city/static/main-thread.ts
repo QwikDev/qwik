@@ -1,12 +1,8 @@
 import type { PageModule, QwikCityPlan, RouteParams } from '../runtime/src/library/types';
-import type {
-  StaticGenerateRenderOptions,
-  StaticGenerateResult,
-  StaticRoute,
-  System,
-} from './types';
+import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from './types';
 import { msToString } from '../utils/format';
-import { getPathnameForDynamicRoute, normalizePathname } from '../utils/pathname';
+import { getPathnameForDynamicRoute } from '../utils/pathname';
+import { pathToFileURL } from 'node:url';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();
@@ -14,12 +10,12 @@ export async function mainThread(sys: System) {
 
   const main = await sys.createMainProcess();
   const log = await sys.createLogger();
-  const qwikCityPlan: QwikCityPlan = (await import(opts.qwikCityPlanModulePath)).default;
+  const qwikCityPlan: QwikCityPlan = (await import(pathToFileURL(opts.qwikCityPlanModulePath).href))
+    .default;
 
   const queue: StaticRoute[] = [];
   const active = new Set<string>();
   const routes = qwikCityPlan.routes || [];
-  const basePathname = qwikCityPlan.basePathname || '/';
   const trailingSlash = !!qwikCityPlan.trailingSlash;
 
   return new Promise<StaticGenerateResult>((resolve, reject) => {
@@ -120,13 +116,33 @@ export async function mainThread(sys: System) {
       };
 
       const addToQueue = (pathname: string | undefined | null, params: RouteParams | undefined) => {
-        pathname = normalizePathname(pathname, basePathname, trailingSlash);
-        if (pathname && !queue.some((s) => s.pathname === pathname)) {
-          queue.push({
-            pathname,
-            params,
-          });
-          flushQueue();
+        if (pathname) {
+          pathname = new URL(pathname, `https://qwik.builder.io`).pathname;
+
+          if (pathname !== opts.basePathname) {
+            if (trailingSlash) {
+              if (!pathname.endsWith('/')) {
+                const segments = pathname.split('/');
+                const lastSegment = segments[segments.length - 1];
+
+                if (!lastSegment.includes('.')) {
+                  pathname += '/';
+                }
+              }
+            } else {
+              if (pathname.endsWith('/')) {
+                pathname = pathname.slice(0, pathname.length - 1);
+              }
+            }
+          }
+
+          if (!queue.some((s) => s.pathname === pathname)) {
+            queue.push({
+              pathname,
+              params,
+            });
+            flushQueue();
+          }
         }
       };
 
@@ -175,14 +191,23 @@ export async function mainThread(sys: System) {
   });
 }
 
-function validateOptions(opts: StaticGenerateRenderOptions) {
+function validateOptions(opts: StaticGenerateOptions) {
+  if (!opts.qwikCityPlanModulePath) {
+    throw new Error(`Missing "qwikCityPlanModulePath" option`);
+  }
+  if (!opts.renderModulePath) {
+    throw new Error(`Missing "renderModulePath" option`);
+  }
+
   let siteOrigin = opts.origin;
   if (typeof siteOrigin !== 'string' || siteOrigin.trim().length === 0) {
     throw new Error(`Missing "origin" option`);
   }
   siteOrigin = siteOrigin.trim();
   if (!siteOrigin.startsWith('https://') && !siteOrigin.startsWith('http://')) {
-    throw new Error(`"origin" must start with a valid protocol, such as "https://" or "http://"`);
+    throw new Error(
+      `"origin" must start with a valid protocol, such as "https://" or "http://", received "${siteOrigin}"`
+    );
   }
   try {
     new URL(siteOrigin);

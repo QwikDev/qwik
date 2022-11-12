@@ -49,7 +49,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrlDEV(()=>{
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;AAEA,OAAO,MAAM,GAAG,iBAAG,2BAAW,IAAM;IAChC,qBACI,QAAC,GAAG;kBACA,cAAA,QAAC,GAAC;YAAC,KAAK,EAAC,OAAO;YAAC,QAAQ,gBAAE,IAAM,OAAO,CAAC,GAAG,CAAC,MAAM,CAAC;;;;;;sBAAE,YAAU;;;;;gBAAI;;;;;YAClE,CACR;AACN,CAAC;;;;;GAAC,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;AAEA,OAAO,MAAM,oBAAM,2BAAW,IAAM;IAChC,qBACI,QAAC;kBACG,cAAA,QAAC;YAAE,OAAM;YAAQ,QAAQ,gBAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;sBAAS;;;;;;;;;;;AAGlE;;;;;IAAG\"}")
 == DIAGNOSTICS ==
 
 []

@@ -1,3 +1,4 @@
+import type { Cookie, CookieOptions, CookieValue } from '../../../middleware/request-handler/types';
 import type { ErrorResponse } from '../../../middleware/request-handler/error-handler';
 import type { RedirectResponse } from '../../../middleware/request-handler/redirect-handler';
 import type { NoSerialize } from '@builder.io/qwik';
@@ -131,6 +132,7 @@ export interface DocumentStyle {
 export interface DocumentHeadProps<T = unknown> extends RouteLocation {
   data: T;
   head: ResolvedDocumentHead;
+  withLocale: <T>(fn: () => T) => T;
 }
 
 /**
@@ -247,6 +249,13 @@ export interface ResponseContext {
   status: number;
 
   /**
+   * Which locale the content is in.
+   *
+   * The locale value can be retrieved from selected methods using `getLocale()`:
+   */
+  locale: string | undefined;
+
+  /**
    * HTTP response headers.
    *
    * https://developer.mozilla.org/en-US/docs/Glossary/Response_header
@@ -286,6 +295,8 @@ export interface RequestEvent<PLATFORM = unknown> {
 
   /** Platform specific data and functions */
   platform: PLATFORM;
+
+  cookie: Cookie;
 
   next: () => Promise<void>;
   abort: () => void;
@@ -336,6 +347,9 @@ export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
  */
 export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenerate;
 
+/**
+ * @alpha
+ */
 export interface StaticGenerate {
   params?: RouteParams[];
 }
@@ -343,9 +357,12 @@ export interface StaticGenerate {
 export interface QwikCityRenderDocument extends Document {}
 
 export interface QwikCityEnvData {
+  mode: QwikCityMode;
   params: RouteParams;
   response: EndpointResponse;
 }
+
+export type QwikCityMode = 'dev' | 'static' | 'server';
 
 export type GetEndpointData<T> = T extends RequestHandler<infer U> ? U : T;
 
@@ -356,3 +373,5 @@ export interface SimpleURL {
   search: string;
   hash: string;
 }
+
+export { Cookie, CookieOptions, CookieValue };

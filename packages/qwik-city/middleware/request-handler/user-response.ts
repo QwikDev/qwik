@@ -11,6 +11,7 @@ import type { QwikCityRequestContext, UserResponseContext } from './types';
 import { HttpStatus } from './http-status-codes';
 import { isRedirectStatus, RedirectResponse } from './redirect-handler';
 import { ErrorResponse } from './error-handler';
+import { Cookie } from './cookie';
 
 export async function loadUserResponse(
   requestCtx: QwikCityRequestContext,
@@ -37,6 +38,7 @@ export async function loadUserResponse(
     headers: createHeaders(),
     resolvedBody: undefined,
     pendingBody: undefined,
+    cookie: new Cookie(request.headers.get('cookie')),
     aborted: false,
   };
 
@@ -69,7 +71,7 @@ export async function loadUserResponse(
   };
 
   const redirect = (url: string, status?: number) => {
-    return new RedirectResponse(url, status, userResponse.headers);
+    return new RedirectResponse(url, status, userResponse.headers, userResponse.cookie);
   };
 
   const error = (status: number, message?: string) => {
@@ -130,6 +132,12 @@ export async function loadUserResponse(
           get headers() {
             return userResponse.headers;
           },
+          get locale() {
+            return requestCtx.locale;
+          },
+          set locale(locale) {
+            requestCtx.locale = locale;
+          },
           redirect,
           error,
         };
@@ -141,6 +149,7 @@ export async function loadUserResponse(
           params: { ...params },
           response,
           platform,
+          cookie: userResponse.cookie,
           next,
           abort,
         };
@@ -176,6 +185,7 @@ export async function loadUserResponse(
   };
 
   await next();
+
   userResponse.aborted = routeModuleIndex >= ABORT_INDEX;
 
   if (
@@ -188,7 +198,8 @@ export async function loadUserResponse(
     throw new RedirectResponse(
       userResponse.headers.get('Location')!,
       userResponse.status,
-      userResponse.headers
+      userResponse.headers,
+      userResponse.cookie
     );
   }
 

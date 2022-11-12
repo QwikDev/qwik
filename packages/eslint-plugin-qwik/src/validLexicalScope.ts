@@ -86,9 +86,12 @@ export const validLexicalScope = createRule({
             if (scopeType === 'global') {
               return;
             }
-            const identifier = ref.identifier;
-            const tsNode = esTreeNodeToTSNodeMap.get(identifier);
             if (scopeType === 'module') {
+              const identifier =
+                declaredVariable.identifiers.length === 1
+                  ? declaredVariable.identifiers[0]
+                  : ref.identifier;
+              const tsNode = esTreeNodeToTSNodeMap.get(identifier);
               const s = typeChecker.getSymbolAtLocation(tsNode);
               if (s && exports.includes(s)) {
                 return;
@@ -105,6 +108,8 @@ export const validLexicalScope = createRule({
               });
               return;
             }
+            const identifier = ref.identifier;
+            const tsNode = esTreeNodeToTSNodeMap.get(identifier);
             let ownerDeclared: Scope | null = declaredScope;
             while (ownerDeclared) {
               if (relevantScopes.has(ownerDeclared)) {

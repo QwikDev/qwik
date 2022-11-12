@@ -39,7 +39,7 @@ export function updateClock(store: ClockStore) {
   store.hour = now.getHours() * (360 / 12);
 }
 
-export const App = component$(() => {
+export default component$(() => {
   return (
     <div>
       <p>This is an example of Lazy executing code on component when component becomes visible.</p>

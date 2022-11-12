@@ -40,10 +40,11 @@ export {
   SSRRaw,
   SSRStream,
   SSRComment,
+  SSRHint,
   SkipRender,
   RenderOnce,
 } from './render/jsx/utils.public';
-export type { StreamProps } from './render/jsx/utils.public';
+export type { SSRStreamProps, SSRHintProps } from './render/jsx/utils.public';
 export { Slot } from './render/jsx/slot.public';
 export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
 export type { HTMLAttributes, AriaAttributes, AriaRole } from './render/jsx/types/jsx-generated';
@@ -74,6 +75,7 @@ export { useEnvData, useUserContext } from './use/use-env-data';
 export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
 export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
 export { useSignal } from './use/use-signal';
+export { withLocale, getLocale } from './use/use-locale';
 
 export type { UseStylesScoped } from './use/use-styles';
 export type { UseSignal } from './use/use-signal';

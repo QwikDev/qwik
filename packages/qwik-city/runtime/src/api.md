@@ -32,6 +32,36 @@ export interface ContentMenu {
     text: string;
 }
 
+// @alpha (undocumented)
+export interface Cookie {
+    delete(name: string): void;
+    get(name: string): CookieValue | null;
+    has(name: string): boolean;
+    headers(): string[];
+    set(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;
+}
+
+// @alpha
+export interface CookieOptions {
+    domain?: string;
+    expires?: Date | string;
+    httpOnly?: boolean;
+    maxAge?: number | [number, 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks'];
+    path?: string;
+    sameSite?: 'strict' | 'lax' | 'none';
+    secure?: boolean;
+}
+
+// @alpha (undocumented)
+export interface CookieValue {
+    // (undocumented)
+    json: <T = unknown>() => T;
+    // (undocumented)
+    number: () => number;
+    // (undocumented)
+    value: string;
+}
+
 // Warning: (ae-forgotten-export) The symbol "GetEndpointData" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
@@ -43,6 +73,8 @@ export interface DocumentHeadProps<T = unknown> extends RouteLocation {
     data: T;
     // (undocumented)
     head: ResolvedDocumentHead;
+    // (undocumented)
+    withLocale: <T>(fn: () => T) => T;
 }
 
 // @alpha (undocumented)
@@ -177,6 +209,8 @@ export interface RequestEvent<PLATFORM = unknown> {
     // (undocumented)
     abort: () => void;
     // (undocumented)
+    cookie: Cookie;
+    // (undocumented)
     next: () => Promise<void>;
     params: RouteParams;
     platform: PLATFORM;
@@ -201,6 +235,7 @@ export interface ResponseContext {
     // Warning: (ae-forgotten-export) The symbol "ErrorResponse" needs to be exported by the entry point index.d.ts
     readonly error: (status: number) => ErrorResponse;
     readonly headers: Headers;
+    locale: string | undefined;
     // Warning: (ae-forgotten-export) The symbol "RedirectResponse" needs to be exported by the entry point index.d.ts
     readonly redirect: (url: string, status?: number) => RedirectResponse;
     status: number;

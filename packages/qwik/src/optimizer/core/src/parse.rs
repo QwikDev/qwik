@@ -502,7 +502,7 @@ pub fn emit_source_code(
     let mut map_buf = vec![];
     if source_maps
         && source_map
-            .build_source_map(&mut src_map_buf)
+            .build_source_map(&src_map_buf)
             .to_writer(&mut map_buf)
             .is_ok()
     {

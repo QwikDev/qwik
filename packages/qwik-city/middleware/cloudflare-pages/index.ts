@@ -2,8 +2,9 @@ import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-
 import { notFoundHandler, requestHandler } from '../request-handler';
 import type { RenderOptions } from '@builder.io/qwik';
 import type { Render } from '@builder.io/qwik/server';
+import type { RequestHandler } from '@builder.io/qwik-city';
 import qwikCityPlan from '@qwik-city-plan';
-import type { RequestHandler } from '~qwik-city-runtime';
+import { mergeHeadersCookies } from '../request-handler/cookie';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
 
@@ -11,7 +12,7 @@ import type { RequestHandler } from '~qwik-city-runtime';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
-  async function onRequest({ request, next, env, waitUntil }: EventPluginContext) {
+  async function onRequest({ request, env, waitUntil }: EventPluginContext) {
     try {
       const url = new URL(request.url);
 
@@ -31,15 +32,19 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       }
 
       const requestCtx: QwikCityRequestContext<Response> = {
+        locale: undefined,
         url,
         request,
-        response: (status, headers, body) => {
+        response: (status, headers, cookies, body) => {
           return new Promise<Response>((resolve) => {
             let flushedHeaders = false;
             const { readable, writable } = new TransformStream();
             const writer = writable.getWriter();
-            const response = new Response(readable, { status, headers });
 
+            const response = new Response(readable, {
+              status,
+              headers: mergeHeadersCookies(headers, cookies),
+            });
             body({
               write: (chunk) => {
                 if (!flushedHeaders) {
@@ -73,7 +78,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler<Response>(requestCtx, opts);
+      const handledResponse = await requestHandler<Response>('server', requestCtx, opts);
       if (handledResponse) {
         return handledResponse;
       }

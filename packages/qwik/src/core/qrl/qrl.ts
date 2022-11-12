@@ -211,7 +211,6 @@ export const parseQRL = (qrl: string, containerEl?: Element): QRLInternal => {
 
   const symbolStartIdx = hashIdx == endIdx ? hashIdx : hashIdx + 1;
   const symbolEndIdx = captureIdx;
-  // TODO
   const symbol =
     symbolStartIdx == symbolEndIdx ? 'default' : qrl.substring(symbolStartIdx, symbolEndIdx);
 

@@ -13,7 +13,7 @@ import {
   stringifyStyle,
 } from '../execute-component';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
-import { InternalSSRStream, Virtual, SSRRaw } from '../jsx/utils.public';
+import { InternalSSRStream, Virtual, SSRRaw, SSRHint } from '../jsx/utils.public';
 import { logError, logWarn } from '../../util/log';
 import {
   groupListeners,
@@ -39,7 +39,6 @@ import { serializeQRLs } from '../../qrl/qrl';
 import type { QwikElement } from '../dom/virtual-element';
 import { assertElement } from '../../util/element';
 import { EMPTY_OBJ } from '../../util/flyweight';
-import type { QRLInternal } from '../../qrl/qrl-class';
 import {
   createContext,
   HOST_FLAG_DYNAMIC,
@@ -75,16 +74,24 @@ export interface RenderSSROptions {
   envData?: Record<string, any>;
   url?: string;
   beforeContent?: JSXNode<string>[];
-  beforeClose?: (contexts: QContext[], containerState: ContainerState) => Promise<JSXNode>;
+  beforeClose?: (
+    contexts: QContext[],
+    containerState: ContainerState,
+    containsDynamic: boolean
+  ) => Promise<JSXNode>;
 }
 
 export interface SSRContext {
   projectedCtxs: [RenderContext, SSRContext] | undefined;
   projectedChildren: Record<string, any[] | undefined> | undefined;
+  invocationContext: InvokeContext | undefined;
+  $static$: SSRContextStatic;
+}
+
+export interface SSRContextStatic {
   locale: string;
-  invocationContext?: InvokeContext | undefined;
   $contexts$: QContext[];
-  $pendingListeners$: [string, QRLInternal][];
+  $dynamic$: boolean;
   headNodes: JSXNode<string>[];
 }
 
@@ -92,7 +99,7 @@ const IS_HEAD = 1 << 0;
 const IS_HTML = 1 << 2;
 const IS_TEXT = 1 << 3;
 
-export const createDocument = () => {
+const createDocument = () => {
   const doc = { nodeType: 9 };
   seal(doc);
   return doc;
@@ -110,13 +117,15 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const rCtx = createRenderContext(doc as any, containerState);
   const headNodes = opts.beforeContent ?? [];
   const ssrCtx: SSRContext = {
-    $contexts$: [],
+    $static$: {
+      $contexts$: [],
+      $dynamic$: false,
+      headNodes: root === 'html' ? headNodes : [],
+      locale: opts.envData?.locale,
+    },
     projectedChildren: undefined,
     projectedCtxs: undefined,
     invocationContext: undefined,
-    headNodes: root === 'html' ? headNodes : [],
-    $pendingListeners$: [],
-    locale: opts.envData?.locale,
   };
 
   const containerAttributes: Record<string, any> = {
@@ -145,7 +154,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   await containerState.$renderPromise$;
 };
 
-export const renderRoot = async (
+const renderRoot = async (
   node: JSXNode,
   rCtx: RenderContext,
   ssrCtx: SSRContext,
@@ -163,14 +172,18 @@ export const renderRoot = async (
     0,
     beforeClose
       ? (stream: StreamWriter) => {
-          const result = beforeClose(ssrCtx.$contexts$, containerState);
+          const result = beforeClose(
+            ssrCtx.$static$.$contexts$,
+            containerState,
+            ssrCtx.$static$.$dynamic$
+          );
           return processData(result, rCtx, ssrCtx, stream, 0, undefined);
         }
       : undefined
   );
 
   if (qDev) {
-    if (ssrCtx.headNodes.length > 0) {
+    if (ssrCtx.$static$.headNodes.length > 0) {
       logError(
         'Missing <head>. Global styles could not be rendered. Please render a <head> element at the root of the app'
       );
@@ -179,7 +192,7 @@ export const renderRoot = async (
   return rCtx.$static$;
 };
 
-export const renderGenerator = async (
+const renderGenerator = async (
   node: JSXNode<typeof InternalSSRStream>,
   rCtx: RenderContext,
   ssrCtx: SSRContext,
@@ -209,7 +222,7 @@ export const renderGenerator = async (
   }
 };
 
-export const renderNodeVirtual = (
+const renderNodeVirtual = (
   node: JSXNode<typeof Virtual>,
   elCtx: QContext,
   extraNodes: JSXNode<string>[] | undefined,
@@ -276,7 +289,7 @@ export const renderNodeVirtual = (
 
 const CLOSE_VIRTUAL = `<!--/qv-->`;
 
-export const renderAttributes = (attributes: Record<string, string>): string => {
+const renderAttributes = (attributes: Record<string, string>): string => {
   let text = '';
   for (const prop of Object.keys(attributes)) {
     if (prop === 'dangerouslySetInnerHTML') {
@@ -290,7 +303,7 @@ export const renderAttributes = (attributes: Record<string, string>): string => 
   return text;
 };
 
-export const renderVirtualAttributes = (attributes: Record<string, string>): string => {
+const renderVirtualAttributes = (attributes: Record<string, string>): string => {
   let text = '';
   for (const prop of Object.keys(attributes)) {
     if (prop === 'children') {
@@ -304,7 +317,7 @@ export const renderVirtualAttributes = (attributes: Record<string, string>): str
   return text;
 };
 
-export const renderNodeElementSync = (
+const renderNodeElementSync = (
   tagName: string,
   attributes: Record<string, string>,
   stream: StreamWriter
@@ -323,7 +336,7 @@ export const renderNodeElementSync = (
   stream.write(`</${tagName}>`);
 };
 
-export const renderSSRComponent = (
+const renderSSRComponent = (
   rCtx: RenderContext,
   ssrCtx: SSRContext,
   stream: StreamWriter,
@@ -337,7 +350,7 @@ export const renderSSRComponent = (
   return then(executeComponent(rCtx, elCtx), (res) => {
     const hostElement = elCtx.$element$;
     const newRCtx = res.rCtx;
-    const invocationContext = newInvokeContext(ssrCtx.locale, hostElement, undefined);
+    const invocationContext = newInvokeContext(ssrCtx.$static$.locale, hostElement, undefined);
     invocationContext.$subscriber$ = hostElement;
     invocationContext.$renderCtx$ = newRCtx;
     const newSSrContext: SSRContext = {
@@ -350,7 +363,7 @@ export const renderSSRComponent = (
     const extraNodes: JSXNode<string>[] = [];
     if (elCtx.$appendStyles$) {
       const isHTML = !!(flags & IS_HTML);
-      const array = isHTML ? ssrCtx.headNodes : extraNodes;
+      const array = isHTML ? ssrCtx.$static$.headNodes : extraNodes;
       for (const style of elCtx.$appendStyles$) {
         array.push(
           jsx('style', {
@@ -373,7 +386,7 @@ export const renderSSRComponent = (
     );
 
     elCtx.$id$ = newID;
-    ssrCtx.$contexts$.push(elCtx);
+    ssrCtx.$static$.$contexts$.push(elCtx);
 
     return renderNodeVirtual(
       processedNode,
@@ -436,7 +449,7 @@ const splitProjectedChildren = (children: any, ssrCtx: SSRContext) => {
   return slotMap;
 };
 
-export const createSSRContext = (nodeType: 1 | 111) => {
+const createSSRContext = (nodeType: 1 | 111) => {
   const elm = {
     nodeType,
     [Q_CTX]: null,
@@ -445,7 +458,7 @@ export const createSSRContext = (nodeType: 1 | 111) => {
   return createContext(elm as any);
 };
 
-export const renderNode = (
+const renderNode = (
   node: JSXNode,
   rCtx: RenderContext,
   ssrCtx: SSRContext,
@@ -455,8 +468,13 @@ export const renderNode = (
 ) => {
   const tagName = node.type;
   const hostCtx = rCtx.$cmpCtx$;
-  if (hostCtx && hasDynamicChildren(node)) {
+  const dynamicChildren = hasDynamicChildren(node);
+  if (dynamicChildren && hostCtx) {
     hostCtx.$flags$ |= HOST_FLAG_DYNAMIC;
+    const slotCtx = rCtx.$slotCtx$;
+    if (slotCtx) {
+      addDynamicSlot(hostCtx, slotCtx);
+    }
   }
   if (typeof tagName === 'string') {
     const key = node.key;
@@ -553,7 +571,7 @@ export const renderNode = (
         openingElement += ' q:id="' + newID + '"';
         elCtx.$id$ = newID;
       }
-      ssrCtx.$contexts$.push(elCtx);
+      ssrCtx.$static$.$contexts$.push(elCtx);
     }
     if (flags & IS_HEAD) {
       openingElement += ' q:head';
@@ -584,10 +602,10 @@ export const renderNode = (
     return then(promise, () => {
       // If head inject base styles
       if (isHead) {
-        for (const node of ssrCtx.headNodes) {
+        for (const node of ssrCtx.$static$.headNodes) {
           renderNodeElementSync(node.type, node.props, stream);
         }
-        ssrCtx.headNodes.length = 0;
+        ssrCtx.$static$.headNodes.length = 0;
       }
       // Fast path
       if (!beforeClose) {
@@ -604,8 +622,13 @@ export const renderNode = (
 
   if (tagName === Virtual) {
     const elCtx = createSSRContext(111);
-    elCtx.$parent$ = rCtx.$cmpCtx$!;
-    elCtx.$slotParent$ = rCtx.$slotCtx$!; // TODO
+    elCtx.$parent$ = rCtx.$cmpCtx$;
+    elCtx.$slotParent$ = rCtx.$slotCtx$;
+    if (dynamicChildren) {
+      if (hostCtx) {
+        addDynamicSlot(hostCtx, elCtx);
+      }
+    }
     return renderNodeVirtual(
       node as JSXNode<typeof Virtual>,
       elCtx,
@@ -626,10 +649,14 @@ export const renderNode = (
     return renderGenerator(node as JSXNode<typeof InternalSSRStream>, rCtx, ssrCtx, stream, flags);
   }
 
+  if (tagName === SSRHint && (node as JSXNode<typeof SSRHint>).props.dynamic === true) {
+    ssrCtx.$static$.$dynamic$ = true;
+  }
   const res = invoke(ssrCtx.invocationContext, tagName, node.props, node.key);
   return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
 };
-export const processData = (
+
+const processData = (
   node: any,
   rCtx: RenderContext,
   ssrCtx: SSRContext,
@@ -671,13 +698,13 @@ export const processData = (
   }
 };
 
-function walkChildren(
+const walkChildren = (
   children: any,
   rCtx: RenderContext,
   ssrContext: SSRContext,
   stream: StreamWriter,
   flags: number
-): ValueOrPromise<void> {
+): ValueOrPromise<void> => {
   if (children == null) {
     return;
   }
@@ -726,9 +753,9 @@ function walkChildren(
       return undefined;
     }
   }, undefined);
-}
+};
 
-export const flatVirtualChildren = (children: any, ssrCtx: SSRContext): any[] | null => {
+const flatVirtualChildren = (children: any, ssrCtx: SSRContext): any[] | null => {
   if (children == null) {
     return null;
   }
@@ -740,7 +767,7 @@ export const flatVirtualChildren = (children: any, ssrCtx: SSRContext): any[] | 
   return nodes;
 };
 
-export const stringifyClass = (str: any) => {
+const stringifyClass = (str: any) => {
   if (!str) {
     return '';
   }
@@ -762,7 +789,7 @@ export const stringifyClass = (str: any) => {
   return output.join(' ');
 };
 
-export const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => {
+const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => {
   if (children == null) {
     return null;
   }
@@ -809,14 +836,14 @@ const setComponentProps = (
   }
 };
 
-function processPropKey(prop: string) {
+const processPropKey = (prop: string) => {
   if (prop === 'htmlFor') {
     return 'for';
   }
   return prop;
-}
+};
 
-function processPropValue(prop: string, value: any): string | null {
+const processPropValue = (prop: string, value: any): string | null => {
   if (prop === 'style') {
     return stringifyStyle(value);
   }
@@ -830,7 +857,7 @@ function processPropValue(prop: string, value: any): string | null {
     return '';
   }
   return String(value);
-}
+};
 
 const textOnlyElements: Record<string, true | undefined> = {
   title: true,
@@ -871,7 +898,7 @@ export interface ServerDocument {
 const ESCAPE_HTML = /[&<>]/g;
 const ESCAPE_ATTRIBUTES = /[&"]/g;
 
-export const escapeHtml = (s: string) => {
+const escapeHtml = (s: string) => {
   return s.replace(ESCAPE_HTML, (c) => {
     switch (c) {
       case '&':
@@ -886,7 +913,7 @@ export const escapeHtml = (s: string) => {
   });
 };
 
-export const escapeAttr = (s: string) => {
+const escapeAttr = (s: string) => {
   return s.replace(ESCAPE_ATTRIBUTES, (c) => {
     switch (c) {
       case '&':
@@ -899,8 +926,18 @@ export const escapeAttr = (s: string) => {
   });
 };
 
-export const listenersNeedId = (listeners: Listener[]) => {
+const listenersNeedId = (listeners: Listener[]) => {
   return listeners.some((l) => l[1].$captureRef$ && l[1].$captureRef$.length > 0);
+};
+
+const addDynamicSlot = (hostCtx: QContext, elCtx: QContext) => {
+  let dynamicSlots = hostCtx.$dynamicSlots$;
+  if (!dynamicSlots) {
+    hostCtx.$dynamicSlots$ = dynamicSlots = [];
+  }
+  if (!dynamicSlots.includes(elCtx)) {
+    dynamicSlots.push(elCtx);
+  }
 };
 
 const hasDynamicChildren = (node: JSXNode) => {

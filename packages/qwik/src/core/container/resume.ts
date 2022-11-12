@@ -57,6 +57,8 @@ export const resumeContainer = (containerEl: Element) => {
 
   const pauseState =
     (containerEl as any)['_qwikjson_'] ?? (getPauseState(containerEl) as SnapshotState);
+
+  (containerEl as any)['_qwikjson_'] = null;
   if (!pauseState) {
     logWarn('Skipping hydration qwik/json metadata was not found.');
     return;

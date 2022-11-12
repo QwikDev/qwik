@@ -1,6 +1,6 @@
 import { component$, useSignal, useClientEffect$, useStore } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   const store = useStore({
     width: 0,
     height: 0,

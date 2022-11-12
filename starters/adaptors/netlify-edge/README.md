@@ -1,16 +1,35 @@
 ## Netlify
 
-This starter site is configured to deploy to [Netlify Edge Functions](https://www.netlify.com/products/edge/), which means it will be rendered at an edge location near to your users.
+This starter site is configured to deploy to [Netlify Edge Functions](https://docs.netlify.com/edge-functions/overview/), which means it will be rendered at an edge location near to your users.
 
 ### Local development
 
 The [Netlify CLI](https://docs.netlify.com/cli/get-started/) can be used to preview a production build locally. To do so: First build your site, then to start a local server, run:
 
-1. install Netlify CLI globally `npm i -g netlify-cli`
-2. Build your site both ssr and client `npm run build`.
+1. Install Netlify CLI globally `npm i -g netlify-cli`.
+2. Build your site with both ssr and static `npm run build`.
 3. Start a local server with `npm run serve`.
    In this project, `npm run serve` uses the `netlify dev` command to spin up a server that can handle Netlify's Edge Functions locally.
 4. Visit [http://localhost:8888/](http://localhost:8888/) to check out your site.
+
+### Edge Functions Declarations
+
+[Netlify Edge Functions declarations](https://docs.netlify.com/edge-functions/declarations/)
+can be configured to run on specific URL patterns. Each edge function declaration associates
+one site path pattern with one function to execute on requests that match the path. A single request can execute a chain of edge functions from a series of declarations. A single edge function can be associated with multiple paths across various declarations.
+
+This is useful to determine if a page response should be Server-Side Rendered (SSR) or
+if the response should use a static-site generated (SSG) `index.html` file instead.
+
+By default, the Netlify Edge adaptor will generate a `.netlify/edge-middleware/manifest.json` file, which is used by the Netlify deployment to determine which paths should, and should not, use edge functions.
+
+To override the generated manifest, you can [add a declaration](https://docs.netlify.com/edge-functions/declarations/#add-a-declaration) to the `netlify.toml` using the `[[edge_functions]]` config. For example:
+
+```toml
+[[edge_functions]]
+  path = "/admin"
+  function = "auth"
+```
 
 ### Deployments
 

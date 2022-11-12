@@ -1,6 +1,6 @@
 import { component$, useClientEffect$, useSignal } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   const aHref = useSignal<Element>();
   useClientEffect$(() => {
     const handler = (event: Event) => {

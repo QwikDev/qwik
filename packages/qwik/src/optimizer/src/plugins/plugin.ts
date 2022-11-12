@@ -719,7 +719,7 @@ export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions>
 /**
  * @alpha
  */
-export type QwikBuildTarget = 'client' | 'ssr' | 'lib';
+export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 
 /**
  * @alpha

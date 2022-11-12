@@ -4,12 +4,6 @@
 
 ```ts
 
-import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import type { SnapshotResult } from '@builder.io/qwik';
-import type { StreamWriter } from '@builder.io/qwik';
-import type { SymbolMapper } from '@builder.io/qwik/optimizer';
-import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
-
 // @alpha
 export function getQwikLoaderScript(opts?: {
     events?: string[];
@@ -95,10 +89,14 @@ export interface RenderOptions extends SerializeDocumentOptions {
 export interface RenderResult {
     // (undocumented)
     isStatic: boolean;
+    // Warning: (ae-forgotten-export) The symbol "QwikManifest" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     manifest?: QwikManifest;
     // (undocumented)
     prefetchResources: PrefetchResource[];
+    // Warning: (ae-forgotten-export) The symbol "SnapshotResult" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     snapshotResult: SnapshotResult | undefined;
     // @internal
@@ -113,6 +111,8 @@ export function renderToStream(rootNode: any, opts: RenderToStreamOptions): Prom
 
 // @alpha (undocumented)
 export interface RenderToStreamOptions extends RenderOptions {
+    // Warning: (ae-forgotten-export) The symbol "StreamWriter" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     stream: StreamWriter;
     // (undocumented)
@@ -165,6 +165,8 @@ export interface SerializeDocumentOptions {
     debug?: boolean;
     // (undocumented)
     manifest?: QwikManifest | ResolvedManifest;
+    // Warning: (ae-forgotten-export) The symbol "SymbolMapperFn" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     symbolMapper?: SymbolMapperFn;
 }

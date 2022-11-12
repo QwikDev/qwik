@@ -4,9 +4,21 @@
   "compiler": {
     "overrideTsconfig": {
       "compilerOptions": {
+        "target": "ES2020",
+        "module": "ES2020",
+        "resolveJsonModule": true,
         "isolatedModules": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true
+        "moduleResolution": "node",
+        "skipLibCheck": true,
+        "paths": {
+          "@builder.io/qwik": ["dist-dev/dts-out/packages/qwik/src/core/index.d.ts"],
+          "@builder.io/qwik/build": ["dist-dev/dts-out/packages/qwik/src/build/index.d.ts"],
+          "@builder.io/qwik/jsx-runtime": ["dist-dev/dts-out/packages/qwik/src/jsx-runtime/index.d.ts"],
+          "@builder.io/qwik/jsx-dev-runtime": ["dist-dev/dts-out/packages/qwik/src/jsx-runtime/index.d.ts"],
+          "@builder.io/qwik/optimizer": ["dist-dev/dts-out/packages/qwik/src/optimizer/src/index.d.ts"],
+          "@builder.io/qwik/server": ["dist-dev/dts-out/packages/qwik/src/server/index.d.ts"],
+          "@builder.io/qwik/testing": ["dist-dev/dts-out/packages/qwik/src/testing/index.d.ts"]
+        }
       },
       "include": ["dist-dev/dts-out/packages/qwik/src"]
     }

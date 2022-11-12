@@ -4,17 +4,13 @@
 
 ```ts
 
-import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import type { SymbolMapper } from '@builder.io/qwik/optimizer';
-import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
+import type { StaticGenerateRenderOptions } from '../../../static';
 
 // @alpha (undocumented)
 export function expressAdaptor(opts?: ExpressAdaptorOptions): any;
 
 // @alpha (undocumented)
 export interface ExpressAdaptorOptions {
-    // Warning: (ae-forgotten-export) The symbol "StaticGenerateRenderOptions" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     staticGenerate?: StaticGenerateRenderOptions | true;
 }

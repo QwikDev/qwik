@@ -198,19 +198,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@builder.io/qwik-city@npm:0.0.112":
-  version: 0.0.112
-  resolution: "@builder.io/qwik-city@npm:0.0.112"
-  dependencies:
-    "@mdx-js/mdx": 2.1.3
-    "@types/mdx": 2.0.2
-    source-map: 0.7.4
-    vfile: 5.3.5
-  checksum: 7f39ac2f296a734c201efbbea227119e517a540bd7c54757832d33d18dc08b866501267dfc62757dd29f3b63a7165f9170407c67dbd41173810d05600d8230e5
-  languageName: node
-  linkType: hard
-
-"@builder.io/qwik-city@workspace:packages/qwik-city":
+"@builder.io/qwik-city@0.0.122, @builder.io/qwik-city@workspace:packages/qwik-city":
   version: 0.0.0-use.local
   resolution: "@builder.io/qwik-city@workspace:packages/qwik-city"
   dependencies:
@@ -271,12 +259,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/qwik@npm:0.12.1":
-  version: 0.12.1
-  resolution: "@builder.io/qwik@npm:0.12.1"
+"@builder.io/qwik@npm:0.13.1":
+  version: 0.13.1
+  resolution: "@builder.io/qwik@npm:0.13.1"
   bin:
     qwik: qwik.cjs
-  checksum: 65bb5a84c43318db5f39a5282e9fbb183d94b2c7c61b3b1675a38f8b5bd47a81d4a0a3107d0190dafba2cf5fe93e8ffac41d6aa9fd74461b90f3d2c002bbfcfb
+  checksum: 1198d65497deadbd0ca4f9b2e89ef3819301cdc2b31a74397e4b8ce626197dab27b0156193ded09767c31912e4feb65c0ecdb111b964f879eb91a16b8248b594
   languageName: node
   linkType: hard
 
@@ -288,16 +276,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@builder.io/sdk-qwik@npm:^0.0.31":
-  version: 0.0.31
-  resolution: "@builder.io/sdk-qwik@npm:0.0.31"
+"@builder.io/sdk-qwik@npm:^0.0.34":
+  version: 0.0.34
+  resolution: "@builder.io/sdk-qwik@npm:0.0.34"
   peerDependencies:
     "@builder.io/qwik": ">=0.0.108"
-  checksum: 7c1909508e45fd5b5cda0e68f64a8a2bda1c96b8edaf6287840f7343ab3a62a52c8c5910c159f3658246d2fb8c4dc21678fb8ef6a0b24aaf07a65b26f7562eb5
+  checksum: 149c90e4f218c14803fa232adb0046b9ed9d7a4d9c3594c387f8cc88c2413a353850a8241e93f967738d70828c5e6603066c320a1a3449048ca6cdd38917a7ed
   languageName: node
   linkType: hard
 
-"@cloudflare/kv-asset-handler@npm:0.2.0, @cloudflare/kv-asset-handler@npm:^0.2.0":
+"@cloudflare/kv-asset-handler@npm:^0.2.0":
   version: 0.2.0
   resolution: "@cloudflare/kv-asset-handler@npm:0.2.0"
   dependencies:
@@ -613,31 +601,6 @@ __metadata:
     "@jridgewell/resolve-uri": 3.1.0
     "@jridgewell/sourcemap-codec": 1.4.14
   checksum: 9d703b859cff5cd83b7308fd457a431387db5db96bd781a63bf48e183418dd9d3d44e76b9e4ae13237f6abeeb25d739ec9215c1d5bfdd08f66f750a50074a339
-  languageName: node
-  linkType: hard
-
-"@mdx-js/mdx@npm:2.1.3":
-  version: 2.1.3
-  resolution: "@mdx-js/mdx@npm:2.1.3"
-  dependencies:
-    "@types/estree-jsx": ^1.0.0
-    "@types/mdx": ^2.0.0
-    estree-util-build-jsx: ^2.0.0
-    estree-util-is-identifier-name: ^2.0.0
-    estree-util-to-js: ^1.1.0
-    estree-walker: ^3.0.0
-    hast-util-to-estree: ^2.0.0
-    markdown-extensions: ^1.0.0
-    periscopic: ^3.0.0
-    remark-mdx: ^2.0.0
-    remark-parse: ^10.0.0
-    remark-rehype: ^10.0.0
-    unified: ^10.0.0
-    unist-util-position-from-estree: ^1.0.0
-    unist-util-stringify-position: ^3.0.0
-    unist-util-visit: ^4.0.0
-    vfile: ^5.0.0
-  checksum: e13628758c47416beb38589036e9b3b96a647394afa9a93ce6f7b17b6f0bca07b8da6499ae3b9d2792b52e556e70ac099cb869119ecd0c024f284be3a1981c63
   languageName: node
   linkType: hard
 
@@ -1572,13 +1535,6 @@ __metadata:
   dependencies:
     "@types/unist": "*"
   checksum: 3f587bfc0a9a2403ecadc220e61031b01734fedaf82e27eb4d5ba039c0eb54db8c85681ccc070ab4df3f7ec711b736a82b990e69caa14c74bf7ac0ccf2ac7313
-  languageName: node
-  linkType: hard
-
-"@types/mdx@npm:2.0.2":
-  version: 2.0.2
-  resolution: "@types/mdx@npm:2.0.2"
-  checksum: a10b78946019fe78f7dba749e90924c29a59b23171e7c6aa41f3220a491723c14729212b99eb4e9e1f847d5f4a574ddc4e03c49a2621470e9c822082874eeafc
   languageName: node
   linkType: hard
 
@@ -7421,7 +7377,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:8.4.18, postcss@npm:^8.4.16, postcss@npm:^8.4.17, postcss@npm:^8.4.18":
+"postcss@npm:8.4.18, postcss@npm:^8.4.17, postcss@npm:^8.4.18":
   version: 8.4.18
   resolution: "postcss@npm:8.4.18"
   dependencies:
@@ -7584,10 +7540,9 @@ __metadata:
     "@algolia/autocomplete-core": ^1.7.2
     "@algolia/client-search": ^4.14.2
     "@builder.io/partytown": ^0.7.1
-    "@builder.io/qwik": 0.12.1
-    "@builder.io/qwik-city": 0.0.112
-    "@builder.io/sdk-qwik": ^0.0.31
-    "@cloudflare/kv-asset-handler": 0.2.0
+    "@builder.io/qwik": 0.13.1
+    "@builder.io/qwik-city": 0.0.122
+    "@builder.io/sdk-qwik": ^0.0.34
     "@docsearch/css": ^3.3.0
     algoliasearch: ^4.14.2
     autoprefixer: 10.4.13
@@ -7601,8 +7556,8 @@ __metadata:
     tsm: ^2.2.2
     typescript: 4.8.4
     uvu: 0.5.6
-    vite: 3.1.8
-    wrangler: beta
+    vite: 3.2.2
+    wrangler: latest
   languageName: unknown
   linkType: soft
 
@@ -8091,20 +8046,6 @@ __metadata:
   bin:
     rollup: dist/bin/rollup
   checksum: 6a2bf167b3587d4df709b37d149ad0300692cc5deb510f89ac7bdc77c8738c9546ae3de9322b0968e1ed2b0e984571f5f55aae28fa7de4cfcb1bc5402a4e2be6
-  languageName: node
-  linkType: hard
-
-"rollup@npm:~2.78.0":
-  version: 2.78.1
-  resolution: "rollup@npm:2.78.1"
-  dependencies:
-    fsevents: ~2.3.2
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  bin:
-    rollup: dist/bin/rollup
-  checksum: 9034814383ca5bdb4bea6d499270aeb31cdb0bb884f81b0c6a1d19c63cc973f040e6ee09b7af8a7169dd231c090f4b44ef8b99c4bfdf884aceeb3dcefb8cfa14
   languageName: node
   linkType: hard
 
@@ -9221,38 +9162,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:3.1.8":
-  version: 3.1.8
-  resolution: "vite@npm:3.1.8"
-  dependencies:
-    esbuild: ^0.15.9
-    fsevents: ~2.3.2
-    postcss: ^8.4.16
-    resolve: ^1.22.1
-    rollup: ~2.78.0
-  peerDependencies:
-    less: "*"
-    sass: "*"
-    stylus: "*"
-    terser: ^5.4.0
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  peerDependenciesMeta:
-    less:
-      optional: true
-    sass:
-      optional: true
-    stylus:
-      optional: true
-    terser:
-      optional: true
-  bin:
-    vite: bin/vite.js
-  checksum: 982696ad134577dd9915c4c3548ad36ddcf5dc6d341058548a670a13d860e4cdaaf2b320a59221f178018df089d148b9980e9a344316bef12b698a1c1abc7390
-  languageName: node
-  linkType: hard
-
 "vite@npm:3.2.2":
   version: 3.2.2
   resolution: "vite@npm:3.2.2"
@@ -9407,9 +9316,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wrangler@npm:beta":
-  version: 0.0.0-965ab19b
-  resolution: "wrangler@npm:0.0.0-965ab19b"
+"wrangler@npm:latest":
+  version: 2.2.1
+  resolution: "wrangler@npm:2.2.1"
   dependencies:
     "@cloudflare/kv-asset-handler": ^0.2.0
     "@esbuild-plugins/node-globals-polyfill": ^0.1.1
@@ -9433,7 +9342,7 @@ __metadata:
   bin:
     wrangler: bin/wrangler.js
     wrangler2: bin/wrangler.js
-  checksum: 4c0ad4b76481c98e392b75a723b79bb2126d6916c4b8cf57b251e9595a1e4065dce0878e8e3e43f0bd40dc51bd5ce60423c3376c89ebecccdf111f2860ddbd94
+  checksum: 0fc230783aa9d45e71237d72673fa9aab349955041422f62ac66ce259733e62f7d565ed3750536dd8a590ecd57003d718fb17d972ef8951aa3d16eb00fa9539b
   languageName: node
   linkType: hard
 

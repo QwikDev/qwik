@@ -3,6 +3,8 @@ import { getParentDir, viteAdaptor } from '../../shared/vite';
 import fs from 'node:fs';
 import { join } from 'node:path';
 
+const NETLIFY_ROUTE_REGEX = /^\^.*\$$/;
+
 /**
  * @alpha
  */
@@ -41,8 +43,14 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
         const netlifyEdgeManifest = {
           functions: ssrRoutes.map((r) => {
             if (r.paramNames.length > 0) {
+              const patternString = r.pattern.toString(); 
+              // Check if stringified pattern matches what netlify is expecting.
+              const pattern = NETLIFY_ROUTE_REGEX.exec(r.pattern.toString()) === null
+                ? patternString.slice(1,-1) // Remove open and closing /
+                : patternString
+                ;
               return {
-                pattern: r.pattern.toString(),
+                pattern,
                 function: 'entry.netlify-edge',
               };
             }

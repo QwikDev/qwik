@@ -8,15 +8,15 @@ contributors:
 
 # The dollar `$` sign
 
-Qwik breaks your application into small chunks; these pieces are smaller than the component itself, this process is performed by the [Qwik Optimizer](../optimizer/index.mdx).
+Qwik splits up your application into many small pieces we call symbols. A component can be broken up into many symbols, so a symbol is smaller than a component. The splitting up is performed by the [Qwik Optimizer](../optimizer/index.mdx).
 
-The `$` prefix is used to signal both the optimizer and the developer when this transformation occurs.
+The `$` prefix is used to signal both the optimizer and the developer when this transformation occurs. As a developer, you need to understand that special rules apply whenever you see `$` (not all valid JavaScript is a valid Qwik Optimizer transform.)
 
 ## Compiler-time implications
 
-[Optimizer](../optimizer/index.mdx) runs as a Vite plugin during bundling. The purpose of the Optimizer is to break up the application into many small lazy-loadable chunks. The Optimizer moves expressions (usually functions) into new files and leaves behind a reference pointing to where the expression was moved.
+[Optimizer](../optimizer/index.mdx) runs as a Vite plugin during bundling. The purpose of the Optimizer is to break up the application into many small lazy-loadable chunks. The Optimizer moves expressions (usually functions) into new files and leaves behind a reference pointing to where the expression was moved from.
 
-The `$` tells the optimizer which functions to break up and which ones to leave untouched. Since the optimizer does not need to keep an internal list of magic functions, but instead it can solely rely on the `$` prefix to know which functions to transform, the system is extendable and developers can create their own `$` functions, like `myCustomFunction$()`.
+The `$` tells the optimizer which functions to extract into a separate file up and which ones to leave untouched. The optimizer does not keep an internal list of magic functions, instead, it solely relies on the `$` suffix to know which functions to transform. The system is extendable and developers can create their own `$` functions, such as `myCustomFunction$()`.
 
 
 ### Example
@@ -62,13 +62,13 @@ export const App_component_p_onClick_01pEgC10cpw = ()=>console.log('hello');
 
 ## Rules
 
-We know now that the `$` is used by the optimizer, but it's important for the developers to also known when the optimizer magic happens, because it comes with some constrains and rules.
+The optimizer uses `$` as a signal to extract the code. The developer needs to understand that the extraction comes with constraints and therefore special rules apply whenever the `$` is present. (Not all valid JavaScript code is valid code for the Optimizer.)
 
-> The worst kind of code magic is the kind it's invisible for the developer.
+> The worst kind of code magic is the kind it's invisible to the developer.
 
-### Allowed expresions
+### Allowed expressions
 
-The first argument of any function that end with `$` have certain restrictions:
+The first argument of any function that ends with `$` have certain restrictions:
 
 #### 1. Literals without local identifiers
 
@@ -119,9 +119,11 @@ foo$(bar)
 
 ### 3. Closures
 
-For closures, the rules are a bit relaxed, and local identifier can be referenced and captured.
+For closures, the rules are a bit relaxed, and local identifiers can be referenced and captured.
 
->**RULE**: If a function lexically captures a variable (or parameter), that variable must be (1) a `const` and (2) the value must be serializable.
+> **RULE**: If a function lexically captures a variable (or parameter), that variable must be:
+> 1. a `const` and 
+> 2. the value must be serializable.
 
 #### 3.1. Captured variables must be declared as a `const`.
 
@@ -159,7 +161,7 @@ component$(() => {
 });
 ```
 
-#### 3.3. Module declared variables can be importable
+#### 3.3. Module-declared variables can be importable
 
 > **RULE**: If a function that is being extracted by Optimizer refers to a top-level symbol, that symbol must either be imported or exported.
 
@@ -190,7 +192,7 @@ component$(() => {
 
 ## Deep dive
 
-Let's look at the hypothetical problem of acting on scroll. You may be tempted to write the code like so:
+Let's look at the hypothetical problem of acting on a scroll event. You may be tempted to write the code like so:
 
 ```tsx
 function onScroll(fn: () => void) {
@@ -238,7 +240,7 @@ export const onScroll_1 = () => alert('scroll');
 Notice:
 
 1. All that the developer had to do was to wrap the function in the `$()` to signal to the Optimizer that the function should be moved to a new file and therefore lazy-loaded.
-2. The `onScroll` had to be implemented slightly differently as it needs to take into account the fact that the `QRL` of the function needs to be loaded before it can be used. In practice using `qImport` is rare in Qwik application as the Qwik framework provides higher-level APIs that rarely expect the developer to work with `qImport` directly.
+2. The `onScroll` had to be implemented slightly differently as it needs to take into account the fact that the `QRL` of the function needs to be loaded before it can be used. In practice using `qImport` is rare in Qwik applications as the Qwik framework provides higher-level APIs that rarely expect the developer to work with `qImport` directly.
 
 However, wrapping code in `$()` is a bit inconvenient. For this reason, Optimizer implicitly wraps the first argument of any function call, which ends with `$`. (Additionally, one can use `implicit$FirstArg()` to automatically perform the wrapping and type matching of the function taking the `QRL`.)
 
@@ -248,7 +250,7 @@ const onScroll$ = implicit$FirstArg(onScroll);
 onScroll$(() => alert('scroll'));
 ```
 
-Now the developer has a very easy syntax for expressing that a particular function should be lazy-loaded.
+Now the developer has an easy syntax for expressing that a particular function should be lazy-loaded.
 
 ## Symbol extraction
 

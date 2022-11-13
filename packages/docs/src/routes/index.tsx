@@ -16,7 +16,7 @@ export default component$(() => {
         apiKey: BUILDER_PUBLIC_API_KEY,
         options: getBuilderSearchParams(location.query),
         userAttributes: {
-          urlPath: '/betda',
+          urlPath: '/',
         },
       });
     });

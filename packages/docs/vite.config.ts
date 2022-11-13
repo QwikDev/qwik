@@ -9,12 +9,6 @@ export default defineConfig(() => {
   const routesDir = resolve('src', 'routes');
 
   return {
-    ssr: {
-      // SSR builds for the edge should use the "webworker" target
-      // SSG builds should use "node"
-      target: 'node',
-      format: 'cjs',
-    },
     plugins: [
       qwikCity({
         trailingSlash: true,

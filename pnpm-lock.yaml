@@ -53,7 +53,7 @@ importers:
       uvu: ^0.5.6
       vite: 3.2.3
       vite-tsconfig-paths: 3.5.2
-      wasm-pack: 0.10.3
+      wasm-pack: 0.10.2
       watchlist: ^0.3.1
       which-pm-runs: ^1.1.0
     devDependencies:
@@ -106,7 +106,7 @@ importers:
       uvu: 0.5.6
       vite: 3.2.3_vt5mbdnyaskrzqlb5l6kjsnhi4
       vite-tsconfig-paths: 3.5.2_vite@3.2.3
-      wasm-pack: 0.10.3
+      wasm-pack: 0.10.2
       watchlist: 0.3.1
       which-pm-runs: 1.1.0
 
@@ -6553,8 +6553,8 @@ packages:
       acorn-walk: 8.2.0
     dev: true
 
-  /wasm-pack/0.10.3:
-    resolution: {integrity: sha512-dg1PPyp+QwWrhfHsgG12K/y5xzwfaAoK1yuVC/DUAuQsDy5JywWDuA7Y/ionGwQz+JBZVw8jknaKBnaxaJfwTA==}
+  /wasm-pack/0.10.2:
+    resolution: {integrity: sha512-Kuh8XAArQNVoikMUenjDs4+g6LpktgfXgqlp03G2dJKDBokA7Y8Cx6MDCnvREzNnmprk9IohHytwycVSemwe/w==}
     hasBin: true
     requiresBuild: true
     dependencies:

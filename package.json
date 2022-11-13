@@ -94,7 +94,7 @@
     "vite": "3.2.3",
     "ora": "^6.1.2",
     "vite-tsconfig-paths": "3.5.2",
-    "wasm-pack": "0.10.3",
+    "wasm-pack": "0.10.2",
     "watchlist": "^0.3.1",
     "which-pm-runs": "^1.1.0",
     "@types/prompts": "2.0.14",

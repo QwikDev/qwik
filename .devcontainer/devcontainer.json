@@ -2,16 +2,9 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.217.2/containers/docker-existing-dockerfile
 {
   "name": "Qwik devcontainer",
-
-  // Sets the run context to one level up instead of the .devcontainer folder.
-  "context": "..",
-
-  // Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
-  "dockerFile": "./Dockerfile",
-
-  // Set *default* container specific settings.json values on container create.
-  "settings": {},
-
+  "hostRequirements": {
+    "cpus": 4
+  },
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
     "esbenp.prettier-vscode",
@@ -24,5 +17,22 @@
     "silvenon.mdx",
     "csstools.postcss"
   ],
-  "postStartCommand": "yarn install"
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/devcontainers/features/rust:1": {}
+  },
+  "waitFor": "onCreateCommand",
+  "updateContentCommand": "yarn",
+  "forwardPorts": [3300, 9229],
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["CONTRIBUTING.md"]
+    }
+  },
+  "portsAttributes": {
+    "3300": {
+      "label": "Serve",
+      "onAutoForward": "openPreview"
+    }
+  }
 }

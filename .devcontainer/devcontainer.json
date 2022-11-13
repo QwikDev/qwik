@@ -26,9 +26,7 @@
   "forwardPorts": [3300, 9229],
   "customizations": {
     "codespaces": {
-      "openFiles": [
-        "CONTRIBYTING.md"
-      ]
+      "openFiles": ["CONTRIBUTING.md"]
     }
   },
   "portsAttributes": {

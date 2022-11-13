@@ -22,5 +22,6 @@ qwik-app/
 .eslintcache
 
 # Yarn
+pnpm-lock.yaml
 .yarn/*
 !.yarn/releases

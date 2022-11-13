@@ -22,7 +22,7 @@
     "ghcr.io/devcontainers/features/rust:1": {}
   },
   "waitFor": "onCreateCommand",
-  "updateContentCommand": "yarn",
+  "updateContentCommand": "pnpm install",
   "forwardPorts": [3300, 9229],
   "customizations": {
     "codespaces": {

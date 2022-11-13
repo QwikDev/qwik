@@ -15,7 +15,7 @@
     "fmt.check": "prettier --check .",
     "preview": "qwik build preview && vite preview --open",
     "serve": "wrangler pages dev ./dist",
-    "start": "yarn dev"
+    "start": "pnpm dev"
   },
   "devDependencies": {
     "@algolia/autocomplete-core": "^1.7.3",

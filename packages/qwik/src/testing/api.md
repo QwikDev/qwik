@@ -4,16 +4,14 @@
 
 ```ts
 
+import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+
 // @alpha
 export const createDOM: () => Promise<{
     render: (jsxElement: JSXNode) => Promise<void>;
     screen: HTMLElement;
     userEvent: (queryOrElement: string | Element | null, eventNameCamel: string) => Promise<void>;
 }>;
-
-// Warnings were encountered during analysis:
-//
-// /Users/manualmeida/repos/builderio/qwik/dist-dev/dts-out/packages/qwik/src/testing/library.d.ts:7:5 - (ae-forgotten-export) The symbol "JSXNode" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

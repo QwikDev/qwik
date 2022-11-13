@@ -16,10 +16,10 @@
 - [Lifecycle](components/lifecycle/index.mdx)
 - [Context](components/context/index.mdx)
 - [Resource](components/resource/index.mdx)
-- [Lite components](components/lite-components/index.mdx)
-- [Content projection](components/projection/index.mdx)
+- [Slots](components/projection/index.mdx)
 - [Rendering](components/rendering/index.mdx)
 - [Styling](components/styles/index.mdx)
+- [Lite components](components/lite-components/index.mdx)
 
 ## Cheat Sheet
 

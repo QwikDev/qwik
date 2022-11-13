@@ -107,7 +107,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
     let iterator = paths.iter();
     let mut final_output = iterator
         .map(|path| -> Result<TransformOutput, Error> {
-            let code = fs::read_to_string(&path)
+            let code = fs::read_to_string(path)
                 .with_context(|| format!("Opening {}", &path.to_string_lossy()))?;
 
             let relative_path = pathdiff::diff_paths(path, &config.src_dir).unwrap();

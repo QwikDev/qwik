@@ -63,6 +63,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -126,6 +130,9 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v3
@@ -211,6 +218,10 @@ jobs:
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -345,6 +356,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -419,6 +434,10 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
+
       - name: Setup Node ${{ matrix.settings.node }}
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v3
@@ -471,6 +490,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -559,6 +582,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
 
       - name: Setup Node
         uses: actions/setup-node@v3

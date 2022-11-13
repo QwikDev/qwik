@@ -25,7 +25,7 @@ export async function buildWasmBinding(config: BuildConfig) {
         env: {
           ...process.env,
           ...env,
-        }
+        },
       });
       child.on('error', reject);
 

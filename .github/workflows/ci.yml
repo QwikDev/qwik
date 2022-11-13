@@ -173,13 +173,11 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: pnpm install --frozen-lockfile
 
-      - name: Install wasm-pack
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-
       - name: Build WASM
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm tsm scripts/index.ts --wasm --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: |
+          curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+          pnpm tsm scripts/index.ts --wasm --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print WASM Dist Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}

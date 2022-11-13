@@ -1,6 +1,7 @@
 ---
 title: Lite components
 contributors:
+  - voluntadpear
   - RATIU5
   - ykou
   - adamdbradley
@@ -34,3 +35,6 @@ In the above example, the `MyButton` is a lite component. Lite components' lazy 
 - `MyButton` does not have a host element.
 
 You can think of lightweight components as being inlined into the component, where they are instantiated.
+
+> **Limitations**
+> Unlike regular Qwik components, lite components can not use `use` methods, such as `useSignal` or `useStore`. As it name implies, lite components are better used sparkly for lightweight pieces of markup since they offer the convenience of being bundled with the parent component.

@@ -12,8 +12,8 @@ export async function buildWasmBinding(config: BuildConfig) {
   emptyDir(tmpBuildDir);
 
   async function buildForTarget(env = {}) {
-    const cmd = `wasm-pack`;
-    const args = [`build`, '--target', 'web', `--out-dir`, tmpBuildDir];
+    const cmd = `pnpm`;
+    const args = [`wasm-pack`, `build`, '--target', 'web', `--out-dir`, tmpBuildDir, srcWasmDir];
     if (!config.dev) {
       args.push(`--release`);
     }
@@ -21,11 +21,11 @@ export async function buildWasmBinding(config: BuildConfig) {
     await new Promise((resolve, reject) => {
       const child = spawn(cmd, args, {
         stdio: 'inherit',
+        shell: true,
         env: {
           ...process.env,
           ...env,
-        },
-        cwd: srcWasmDir,
+        }
       });
       child.on('error', reject);
 

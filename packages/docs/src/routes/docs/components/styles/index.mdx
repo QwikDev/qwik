@@ -53,7 +53,7 @@ Component styles allow Qwik to lazy load the style information for the component
 
 ```tsx
 import {useStyles$} from '@builder.io/qwik';
-import styles from './code-block.css';
+import styles from './code-block.css?inline';
 
 export const CmpStyles = component$(() => {
   useStyles$(styles);

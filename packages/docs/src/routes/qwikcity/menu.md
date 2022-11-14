@@ -43,6 +43,7 @@
 
 ## Integrations
 
+- [Overview](integrations/overview/index.mdx)
 - [React](integrations/react/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)
 - [Tailwind](integrations/tailwind/index.mdx)

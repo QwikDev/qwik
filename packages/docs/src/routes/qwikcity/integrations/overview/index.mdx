@@ -1,56 +1,27 @@
 ---
-title: Qwik City and Partytown
-contributors:
-  - manucorporat
-  - leifermendez
-  - shairez
+title: Qwik City Integration
 ---
 
-# Partytown
+# Integrations
 
-Third party scripts slow down your initial page load substantially by blocking the main thread.
+Qwik comes with built-in integrations to make it easy to connect to your favorite services, use your favorite styling or testing tools and deploy your aplication to common services such as Cloudflare, Netlify or Express server, and the [Static Site Generator (SSG)](https://qwik.builder.io/qwikcity/static-site-generation/static-site-config/).
 
-Partytown is a tool that allows you to defer third party scripts like Google Analytics, Facebook Pixel, etc off the main thread by using a web worker.
-For more information about this tool visit the [Partytown docs](https://partytown.builder.io/).
-
-## Usage
-
-You can add Partytown easily by using the following Qwik starter script:
+Once you create a Qwik City application, run the following command to add new integrations:
 
 ```shell
-npm run qwik add partytown
+npm run qwik add
 ```
 
-The previous command updates your app and sets the correct configuration in `vite.config.ts`.
+It will prompt you to select the integration you want to add. Once you select an integration, it will be added to your application and you can start using it.
 
-It also adds new files inside to your `components` folder.
+## Available Integrations
 
-```typescript
-// file root.tsx
+- [Cloudflare Pages](/qwikcity/adaptors/cloudflare-pages/index.mdx)
+- [Express](/qwikcity/adaptors/node/index.mdx)
+- [Netlify Edge](/qwikcity/adaptors/netlify-edge/index.mdx)
+- [Static Site Generator (SSG)](/qwikcity/static-site-generation/overview/index.mdx)
+- [Tailwind CSS](/qwikcity/integrations/tailwind/index.mdx)
+- [Vitest](/qwikcity/integrations/vitest/index.mdx)
+- [React](/qwikcity/integrations/react/index.mdx)
+- [Partytown](/qwikcity/integrations/partytown/index.mdx)
 
-import { QwikPartytown } from './components/partytown/partytown';
-
-export default component$(() => {
-  return (
-    <QwikCity>
-      <head>
-        <meta charSet="utf-8" />
-        <QwikPartytown forward={["dataLayer.push"]} />;
-
-        <script
-        async
-        type="text/partytown"
-        src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"
-        />;
-
-      </head>
-      <body lang="en">
-      </body>
-    </QwikCity>
-  );
-});
-```
-
-## Advanced
-
-To further configure Partytown with more options, please visit the [Partytown Documentation](https://partytown.builder.io/configuration)

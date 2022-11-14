@@ -11,14 +11,14 @@ To build platform binding and wasm, make sure you have installed [Rust](https://
 > On Windows, Rust requires [C++ build tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/). You can also select _Desktop development with C++_
 > while installing Visual Studio.
 
-> Alternatively, if Rust is not available you can run `yarn build.platform.copy` to download bindings from CDN
+> Alternatively, if Rust is not available you can run `pnpm build.platform.copy` to download bindings from CDN
 
-To build Qwik for local development, first install the dev dependencies using [yarn](https://yarnpkg.com/):
+To build Qwik for local development, first install the dev dependencies using [pnpm](https://pnpm.io/):
 
 ## Development
 
-```
-yarn
+```shell
+pnpm install
 ```
 
 Next the `start` command will:
@@ -28,15 +28,15 @@ Next the `start` command will:
 - Run the type checking watch process with [tsc](https://www.typescriptlang.org/docs/handbook/compiler-options.html)
 - Run the unit test watch process
 
-```
-yarn start
+```shell
+pnpm start
 ```
 
-Finally, you can use yarn workspace command to run packages' commands, for example:
+Finally, you can use pnpm workspace command to run packages' commands, for example:
 
-```
-yarn workspace qwik-docs dev.ssr
-yarn workspace @builder.io/qwik-city dev.ssr
+```shell
+pnpm workspace qwik-docs dev.ssr
+pnpm workspace @builder.io/qwik-city dev.ssr
 ```
 
 More commands can be found in each package's package.json scripts section.
@@ -49,8 +49,8 @@ More commands can be found in each package's package.json scripts section.
 
 To run all Unit tests ([uvu](https://github.com/lukeed/uvu)) and E2E tests ([Playwright](https://playwright.dev/)), run:
 
-```
-yarn test
+```shell
+pnpm test
 ```
 
 The `test` command will also ensure a build was completed.
@@ -59,23 +59,17 @@ The `test` command will also ensure a build was completed.
 
 Unit tests use [uvu](https://github.com/lukeed/uvu)
 
-```
-yarn test.unit
+```shell
+pnpm test.unit
 ```
 
 To keep _uvu_ open with the watch mode, run:
 
+```shell
+pnpm test.watch
 ```
-yarn test.watch
-```
 
-> Note that the `test.watch` command isn't necessary if you're running the `yarn start` command, since `start` will also concurrently run the _uvu_ watch process.
-
-### Pull Request
-
-- [Open Qwik in Stackblitz Codeflow](https://pr.new/github.com/BuilderIO/qwik/)
-- Review PR in Stackblitz
-  ![image](https://user-images.githubusercontent.com/4918140/195581745-8dfca1f9-2dcd-4f6a-b7aa-705f3627f8fa.png)
+> Note that the `test.watch` command isn't necessary if you're running the `pnpm start` command, since `start` will also concurrently run the _uvu_ watch process.
 
 ### E2E Tests Only
 
@@ -83,13 +77,19 @@ E2E tests use [Playwright](https://playwright.dev/).
 
 To run the Playwright tests headless, from start to finish, run:
 
+```shell
+pnpm test.e2e
 ```
-yarn test.e2e
-```
+
+## Pull Request
+
+- [Open Qwik in Stackblitz Codeflow](https://pr.new/github.com/BuilderIO/qwik/)
+- Review PR in Stackblitz
+  ![image](https://user-images.githubusercontent.com/4918140/195581745-8dfca1f9-2dcd-4f6a-b7aa-705f3627f8fa.png)
 
 ## Production Build
 
-The `yarn start` command will run development builds, type check, watch unit tests, and watch the files for changes.
+The `pnpm start` command will run development builds, type check, watch unit tests, and watch the files for changes.
 
 A full production build will:
 
@@ -99,26 +99,25 @@ A full production build will:
 - Builds a minified `core.min.mjs` file
 - Generates the publishing `package.json`
 
-```
-yarn build
+```shell
+pnpm build
 ```
 
-The build output will be written to `packages/qwik/dist`, which will be the directory that is published
-to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
+The build output will be written to `packages/qwik/dist`, which will be the directory that is published to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
 
 ## Committing using "Commitizen":
 
 Instead of using `git commit` please use the following command:
 
 ```shell
-yarn commit
+pnpm commit
 ```
 
 You'll be asked guiding questions which will eventually create a descriptive commit message and necessary to generate meaningful release notes / CHANGELOG automatically.
 
 ## Releasing
 
-1. Run `yarn release.prepare`, which will test, lint and build.
+1. Run `pnpm release.prepare`, which will test, lint and build.
 2. Use the interactive UI to select the next version, which will update the `package.json` `version` property, add the git change, and start a commit message.
 3. Create a PR with the `package.json` change to merge to `main`.
 4. After the `package.json` with the updated version is in `main`, click the [Run Workflow](https://github.com/BuilderIO/qwik/actions/workflows/ci.yml) button from the "Qwik CI" GitHub Action workflow.
@@ -131,12 +130,12 @@ You'll be asked guiding questions which will eventually create a descriptive com
 
 The project has pre-submit hooks, which ensure that your code is correctly formatted. You can run them manually like so:
 
-```
-yarn lint
+```shell
+pnpm lint
 ```
 
 Some issues can be fixed automatically by using:
 
-```
-yarn fmt
+```shell
+pnpm fmt
 ```

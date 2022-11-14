@@ -6,12 +6,12 @@ importers:
     specifiers:
       '@builder.io/partytown': 0.7.1
       '@microsoft/api-extractor': 7.33.6
-      '@napi-rs/cli': 2.12.0
+      '@napi-rs/cli': 2.12.1
       '@napi-rs/triples': 1.1.0
       '@node-rs/helper': 1.3.3
       '@octokit/action': 3.18.1
       '@playwright/test': 1.27.1
-      '@types/brotli': ^1.3.1
+      '@types/brotli': 1.3.1
       '@types/cross-spawn': 6.0.2
       '@types/eslint': 8.4.10
       '@types/express': 4.17.14
@@ -20,9 +20,9 @@ importers:
       '@types/node-fetch': 2.6.2
       '@types/path-browserify': 1.0.0
       '@types/prettier': 2.7.1
-      '@types/prompts': 2.0.14
+      '@types/prompts': 2.4.1
       '@types/semver': 7.3.13
-      '@types/which-pm-runs': ^1.0.0
+      '@types/which-pm-runs': 1.0.0
       '@typescript-eslint/eslint-plugin': 5.42.1
       '@typescript-eslint/parser': 5.42.1
       '@typescript-eslint/utils': 5.42.1
@@ -30,8 +30,8 @@ importers:
       brotli: 1.3.3
       commitizen: 4.2.5
       concurrently: 7.5.0
-      create-qwik: workspace:*
-      cross-spawn: ^7.0.3
+      create-qwik: workspace:0.13.3
+      cross-spawn: 7.0.3
       cz-conventional-changelog: 3.3.0
       esbuild: 0.15.13
       eslint: 8.27.0
@@ -41,7 +41,7 @@ importers:
       monaco-editor: ^0.34.1
       mri: 1.2.0
       node-fetch: 3.3.0
-      ora: ^6.1.2
+      ora: 6.1.2
       path-browserify: 1.0.1
       prettier: 2.7.1
       prompts: 2.4.2
@@ -51,15 +51,15 @@ importers:
       terser: 5.15.1
       tsm: 2.2.2
       typescript: 4.8.4
-      uvu: ^0.5.6
+      uvu: 0.5.6
       vite: 3.2.3
       vite-tsconfig-paths: 3.5.2
-      watchlist: ^0.3.1
-      which-pm-runs: ^1.1.0
+      watchlist: 0.3.1
+      which-pm-runs: 1.1.0
     devDependencies:
       '@builder.io/partytown': 0.7.1
       '@microsoft/api-extractor': 7.33.6
-      '@napi-rs/cli': 2.12.0
+      '@napi-rs/cli': 2.12.1
       '@napi-rs/triples': 1.1.0
       '@node-rs/helper': 1.3.3
       '@octokit/action': 3.18.1
@@ -73,7 +73,7 @@ importers:
       '@types/node-fetch': 2.6.2
       '@types/path-browserify': 1.0.0
       '@types/prettier': 2.7.1
-      '@types/prompts': 2.0.14
+      '@types/prompts': 2.4.1
       '@types/semver': 7.3.13
       '@types/which-pm-runs': 1.0.0
       '@typescript-eslint/eslint-plugin': 5.42.1_2udltptbznfmezdozpdoa2aemq
@@ -112,12 +112,12 @@ importers:
 
   packages/create-qwik:
     specifiers:
-      '@types/prompts': 2.0.14
+      '@types/prompts': 2.4.1
       kleur: 4.1.5
       ora: ^6.1.2
       prompts: 2.4.2
     devDependencies:
-      '@types/prompts': 2.0.14
+      '@types/prompts': 2.4.1
       kleur: 4.1.5
       ora: 6.1.2
       prompts: 2.4.2
@@ -420,7 +420,7 @@ packages:
     engines: {node: '>=v14'}
     dependencies:
       '@commitlint/types': 17.0.0
-      ajv: 8.11.0
+      ajv: 8.11.2
     dev: true
     optional: true
 
@@ -866,8 +866,8 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@napi-rs/cli/2.12.0:
-    resolution: {integrity: sha512-DWx9jDpun9JqDBypiXKjcYMm7gEnh83bry7b6UkItpmVE3w3tNrj91fOEPKDbFQZ7EULfFt+aQBbqtUHq5oNzQ==}
+  /@napi-rs/cli/2.12.1:
+    resolution: {integrity: sha512-tbOWIWeLcxb6Ih8oJNwnjXE1sT5LBLSniE6SA6qZa/4Wk6iVMvz3RAAQOzPGwpgWmE2gO0rwjYVmfvmcf+22rw==}
     engines: {node: '>= 10'}
     hasBin: true
     dev: true
@@ -1247,8 +1247,8 @@ packages:
     resolution: {integrity: sha512-ZTaqn/qSqUuAq1YwvOFQfVW1AR/oQJlLSZVustdjwI+GZ8kr0MSHBj0tsXPW1EqHubx50gtBEjbPGsdZwQwCjQ==}
     dev: true
 
-  /@types/prompts/2.0.14:
-    resolution: {integrity: sha512-HZBd99fKxRWpYCErtm2/yxUZv6/PBI9J7N4TNFffl5JbrYMHBwF25DjQGTW3b3jmXq+9P6/8fCIb2ee57BFfYA==}
+  /@types/prompts/2.4.1:
+    resolution: {integrity: sha512-1Mqzhzi9W5KlooNE4o0JwSXGUDeQXKldbGn9NO4tpxwZbHXYd+WcKpCksG2lbhH7U9I9LigfsdVsP2QAY0lNPA==}
     dependencies:
       '@types/node': 18.11.9
     dev: true
@@ -1502,8 +1502,8 @@ packages:
       uri-js: 4.4.1
     dev: true
 
-  /ajv/8.11.0:
-    resolution: {integrity: sha512-wGgprdCvMalC0BztXvitD2hC04YffAvtsUn93JbGXYLAtCUO4xd17mCCZQxUOItiBwZvJScWo8NIvQMQ71rdpg==}
+  /ajv/8.11.2:
+    resolution: {integrity: sha512-E4bfmKAhGiSTvMfL1Myyycaub+cUEU2/IvpylXkUu7CHBkBj1f/ikdzbD7YQ6FKUbixDxeYvB/xY4fvyroDlQg==}
     dependencies:
       fast-deep-equal: 3.1.3
       json-schema-traverse: 1.0.0

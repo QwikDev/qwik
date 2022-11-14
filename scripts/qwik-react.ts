@@ -7,7 +7,7 @@ const PACKAGE = 'qwik-react';
 export async function buildQwikReact(config: BuildConfig) {
   const input = join(config.packagesDir, PACKAGE);
 
-  const result = await execa('yarn', ['build'], {
+  const result = await execa('pnpm', ['build'], {
     stdout: 'inherit',
     cwd: input,
   });

@@ -65,7 +65,7 @@ export function getPackageManager() {
 
 export function pmRunCmd() {
   const pm = getPackageManager();
-  if (pm === 'yarn') {
+  if (pm !== 'npm') {
     return pm;
   }
   return `${pm} run`;

@@ -16,20 +16,20 @@
     "build.watch": "tsm scripts/index.ts --build  --qwikcity --watch --dev --platform-binding",
     "commit": "git-cz",
     "link.dist": "cd packages/qwik/dist && npm link && cd ../../qwik-city/lib && npm link && cd ../../eslint-plugin-qwik/dist && npm link && cd ../../qwik-react && npm link",
-    "cli": "yarn build.cli && node packages/create-qwik/dist/create-qwik.cjs && tsm scripts/validate-cli.ts --copy-local-qwik-dist",
+    "cli": "pnpm build.cli && node packages/create-qwik/dist/create-qwik.cjs && tsm scripts/validate-cli.ts --copy-local-qwik-dist",
     "cli.validate": "tsm scripts/validate-cli.ts",
     "api.update": "tsm scripts/index.ts --tsc --api --dev",
     "tsc.check": "tsc --noEmit",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
     "tsc.trace": "tsc -p tsconfig.json --traceResolution > tsc.log",
     "start": "concurrently \"npm:build.watch\" \"npm:test.watch\" \"npm:tsc.watch\" -n build,test,tsc -c green,magenta,cyan",
-    "release.prepare": "yarn lint && yarn test.unit && tsm scripts/index.ts --tsc --build --api --eslint --platform-binding --wasm --prepare-release",
-    "test": "yarn build.full && yarn test.unit && yarn test.e2e",
+    "release.prepare": "pnpm lint && pnpm test.unit && tsm scripts/index.ts --tsc --build --api --eslint --platform-binding --wasm --prepare-release",
+    "test": "pnpm build.full && pnpm test.unit && pnpm test.e2e",
     "test.unit": "tsm node_modules/uvu/bin.js packages unit.ts --tsmconfig tsm.cjs",
     "test.unit.debug": "tsm --inspect-brk node_modules/uvu/bin.js packages unit.ts --tsmconfig tsm.cjs",
-    "test.watch": "watchlist packages unit.ts -- yarn test.unit",
+    "test.watch": "watchlist packages unit.ts -- pnpm test.unit",
     "test.rust": "make test",
-    "test.e2e": "yarn test.e2e.chromium && yarn test.e2e.firefox && yarn test.e2e.webkit",
+    "test.e2e": "pnpm test.e2e.chromium && pnpm test.e2e.firefox && pnpm test.e2e.webkit",
     "test.e2e.chromium": "playwright test starters --browser=chromium --config starters/playwright.config.ts",
     "test.e2e.chromium.debug": "PWDEBUG=1 playwright test starters --browser=chromium --config starters/playwright.config.ts",
     "test.e2e.firefox": "playwright test starters --browser=firefox --config starters/playwright.config.ts",
@@ -37,20 +37,18 @@
     "serve": "tsm --inspect starters/dev-server.ts 3300",
     "serve.debug": "tsm --inspect-brk starters/dev-server.ts 3300",
     "docs.sync": "tsm scripts/docs_sync/index.ts",
-    "lint": "yarn lint.eslint && yarn lint.prettier && yarn lint.rust",
+    "lint": "pnpm lint.eslint && pnpm lint.prettier && pnpm lint.rust",
     "lint.eslint": "eslint --cache \"**/*.ts*\"",
     "lint.rust": "make lint",
     "lint.prettier": "prettier --check .",
     "prettier.fix": "prettier --write .",
-    "fmt": "yarn prettier.fix",
+    "fmt": "pnpm prettier.fix",
     "qwik-save-artifacts": "tsm ./scripts/qwik-save-artifacts.ts",
-    "preinstall": "yarn node scripts/tools/preinstall-script.js"
+    "preinstall": "npx only-allow pnpm"
   },
   "devDependencies": {
     "@builder.io/partytown": "0.7.1",
-    "@builder.io/qwik-dom": "2.1.19",
     "@microsoft/api-extractor": "7.33.6",
-    "@mui/material": "^5.10.13",
     "@napi-rs/cli": "2.12.0",
     "@napi-rs/triples": "1.1.0",
     "@node-rs/helper": "1.3.3",
@@ -72,6 +70,7 @@
     "@typescript-eslint/utils": "5.42.1",
     "all-contributors-cli": "6.24.0",
     "brotli": "1.3.3",
+    "create-qwik": "workspace:*",
     "commitizen": "4.2.5",
     "concurrently": "7.5.0",
     "cross-spawn": "^7.0.3",
@@ -89,27 +88,18 @@
     "rollup": "2.79.1",
     "semver": "7.3.8",
     "snoop": "^1.0.4",
-    "tailwindcss": "3.2.4",
     "terser": "5.15.1",
-    "todomvc-app-css": "2.4.2",
-    "todomvc-common": "1.0.5",
     "tsm": "2.2.2",
     "typescript": "4.8.4",
     "uvu": "^0.5.6",
     "vite": "3.2.3",
+    "ora": "^6.1.2",
     "vite-tsconfig-paths": "3.5.2",
-    "wasm-pack": "0.10.3",
     "watchlist": "^0.3.1",
-    "which-pm-runs": "^1.1.0"
+    "which-pm-runs": "^1.1.0",
+    "@types/prompts": "2.0.14",
+    "prompts": "2.4.2"
   },
-  "workspaces": [
-    "packages/docs",
-    "packages/create-qwik",
-    "packages/qwik",
-    "packages/qwik-city",
-    "packages/qwik-react",
-    "packages/eslint-plugin-qwik"
-  ],
   "contributors": [
     {
       "name": "Miško Hevery",
@@ -127,9 +117,12 @@
       "url": "https://twitter.com/manucorporat"
     }
   ],
-  "packageManager": "yarn@3.2.0",
+  "packageManager": "pnpm@7.15.0",
   "engines": {
-    "node": ">=16"
+    "node": ">=16",
+    "npm": "please-use-pnpm",
+    "yarn": "please-use-pnpm",
+    "pnpm": ">=7"
   },
   "config": {
     "commitizen": {

@@ -75,7 +75,7 @@ This is achieved by generating a unique class for each component and then insert
 
 ```tsx
 import {useStylesScoped$} from '@builder.io/qwik';
-import styles from './code-block.css?inline';
+import styles from './code-block.css';
 
 export const CmpStyles = component$(() => {
   useStylesScoped$(styles);

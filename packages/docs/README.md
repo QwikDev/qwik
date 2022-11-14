@@ -74,7 +74,7 @@ Setup in https://crawler.algolia.com/
 
 To crawl localhost site for testing index settings for content hierarchy. use this docker command
 
-```bash
+```shell
 # create apiKey via https://www.algolia.com/account/api-keys
 touch .env
 # APPLICATION_ID=APPLICATION_ID

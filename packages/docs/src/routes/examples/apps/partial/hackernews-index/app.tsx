@@ -1,5 +1,5 @@
 import { component$, useServerMount$, useStore, useStyles$ } from '@builder.io/qwik';
-import HackerNewsCSS from './hacker-news.css';
+import HackerNewsCSS from './hacker-news.css?inline';
 
 export const HackerNews = component$(() => {
   useStyles$(HackerNewsCSS);

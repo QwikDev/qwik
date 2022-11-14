@@ -8,12 +8,21 @@ import type { ChildProcess } from 'node:child_process';
 import type { IntegrationData } from '../types';
 
 export function installDeps(pkgManager: string, dir: string) {
+  return runCommand(pkgManager, ['install'], dir);
+}
+
+export function runInPkg(pkgManager: string, args: string[], cwd: string) {
+  const cmd = pkgManager === 'npm' ? 'npx' : pkgManager;
+  return runCommand(cmd, args, cwd);
+}
+
+export function runCommand(cmd: string, args: string[], cwd: string) {
   let installChild: ChildProcess;
 
   const install = new Promise<boolean>((resolve) => {
     try {
-      installChild = spawn(pkgManager, ['install'], {
-        cwd: dir,
+      installChild = spawn(cmd, args, {
+        cwd,
         stdio: 'ignore',
       });
 
@@ -76,6 +85,14 @@ export function backgroundInstallDeps(pkgManager: string, baseApp: IntegrationDa
             await fs.promises.rename(
               path.join(tmpInstallDir, 'yarn.lock'),
               path.join(outDir, 'yarn.lock')
+            );
+          } catch (e) {
+            //
+          }
+          try {
+            await fs.promises.rename(
+              path.join(tmpInstallDir, 'pnpm-lock.yaml'),
+              path.join(outDir, 'pnpm-lock.yaml')
             );
           } catch (e) {
             //

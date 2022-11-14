@@ -27,6 +27,8 @@ export async function runCreateCli(starterId: string, outDir: string) {
     }
   }
 
+  const pkgManager = getPackageManager();
+
   const opts: CreateAppOptions = {
     starterId,
     outDir,
@@ -34,12 +36,12 @@ export async function runCreateCli(starterId: string, outDir: string) {
 
   const result = await createApp(opts);
 
-  logCreateAppResult(result, false);
+  logCreateAppResult(pkgManager, result, false);
 
   return result;
 }
 
-export function logCreateAppResult(result: CreateAppResult, ranInstall: boolean) {
+export function logCreateAppResult(pkgManager: string, result: CreateAppResult, ranInstall: boolean) {
   console.log(``);
   console.log(``);
 
@@ -61,7 +63,6 @@ export function logCreateAppResult(result: CreateAppResult, ranInstall: boolean)
   if (!isCwdDir) {
     console.log(`   cd ${relativeProjectPath}`);
   }
-  const pkgManager = getPackageManager();
   if (!ranInstall) {
     console.log(`   ${pkgManager} install`);
   }
@@ -81,6 +82,7 @@ export function logCreateAppResult(result: CreateAppResult, ranInstall: boolean)
 }
 
 export async function createApp(opts: CreateAppOptions) {
+  const pkgManager = getPackageManager();
   if (!isValidOption(opts.starterId)) {
     throw new Error(`Missing starter id`);
   }
@@ -107,7 +109,7 @@ export async function createApp(opts: CreateAppOptions) {
     if (!baseApp) {
       throw new Error(`Unable to find base app`);
     }
-    await createFromStarter(result, baseApp);
+    await createFromStarter(pkgManager, result, baseApp);
   } else {
     const baseApp = starterApps.find((a) => a.id === 'base');
     if (!baseApp) {
@@ -122,12 +124,13 @@ export async function createApp(opts: CreateAppOptions) {
       );
     }
 
-    await createFromStarter(result, baseApp, starterApp);
+    await createFromStarter(pkgManager, result, baseApp, starterApp);
   }
   return result;
 }
 
 async function createFromStarter(
+  pkgManager: string,
   result: CreateAppResult,
   baseApp: IntegrationData,
   starterApp?: IntegrationData
@@ -147,7 +150,7 @@ async function createFromStarter(
   const readmePath = join(result.outDir, 'README.md');
   await fs.promises.writeFile(readmePath, '');
 
-  const baseUpdate = await updateApp({
+  const baseUpdate = await updateApp(pkgManager, {
     rootDir: result.outDir,
     integration: baseApp.id,
     installDeps: false,
@@ -156,7 +159,7 @@ async function createFromStarter(
 
   if (starterApp) {
     result.docs.push(...starterApp.docs);
-    const starterUpdate = await updateApp({
+    const starterUpdate = await updateApp(pkgManager, {
       rootDir: result.outDir,
       integration: starterApp.id,
       installDeps: false,

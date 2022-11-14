@@ -10,8 +10,9 @@
     "displayName": "Integration: Playwright (E2E Test)",
     "priority": -10,
     "viteConfig": {},
+    "postInstall": "playwright install",
     "docs": [
-      "https://playwright.dev/"
+      "https://playwright.dev/docs/writing-tests"
     ]
   }
 }

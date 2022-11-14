@@ -90,6 +90,10 @@ export interface SSRContext {
 
 export interface SSRContextStatic {
   locale: string;
+<<<<<<< HEAD
+  iCtx?: InvokeContext | undefined;
+=======
+>>>>>>> main
   $contexts$: QContext[];
   $dynamic$: boolean;
   headNodes: JSXNode<string>[];
@@ -125,7 +129,14 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
     },
     projectedChildren: undefined,
     projectedCtxs: undefined,
+<<<<<<< HEAD
+    iCtx: undefined,
+    headNodes: root === 'html' ? headNodes : [],
+    $pendingListeners$: [],
+    locale: opts.envData?.locale,
+=======
     invocationContext: undefined,
+>>>>>>> main
   };
 
   const containerAttributes: Record<string, any> = {
@@ -649,10 +660,14 @@ const renderNode = (
     return renderGenerator(node as JSXNode<typeof InternalSSRStream>, rCtx, ssrCtx, stream, flags);
   }
 
+<<<<<<< HEAD
+  const res = invoke(ssrCtx.iCtx, tagName, node.props, node.key);
+=======
   if (tagName === SSRHint && (node as JSXNode<typeof SSRHint>).props.dynamic === true) {
     ssrCtx.$static$.$dynamic$ = true;
   }
   const res = invoke(ssrCtx.invocationContext, tagName, node.props, node.key);
+>>>>>>> main
   return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
 };
 

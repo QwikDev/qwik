@@ -12,7 +12,7 @@ import './global.css'
 ```
 
 ## Inline critical styles
-To reduce the blocking time of the first paint, Qwik can inline the critical styles for the current view. This means that the browser will not need to download the styles for the current view. To tell Qwik to inline styles, just add the `?inline` query parameter to the import.
+To reduce the blocking time of the first paint, Vite can [inline the critical styles](https://vitejs.dev/guide/features.html#disabling-css-injection-into-the-page) for the current view. This means that the browser will not need to download any referenced `*.css` files separately. To tell Vite to inline styles, just add the `?inline` query parameter to the import.
 
 ```tsx
 import from './my-component.css?inline'
@@ -91,8 +91,8 @@ export const CmpStyles = component$(() => {
 ```
 
 ## Preprocessors
-### SASS / SCSS
-Qwik works nicely with SCSS and SASS without any additional installs. Make sure that your files have the `.scss` or `.sass` extension.
+### `.scss`, `.sass`, `.less`, `.styl`, `.stylus`
+Vite works nicely with many preprocessors. Just make sure, that you install the required [plugins](https://vitejs.dev/guide/features.html#css-pre-processors).
 
 ### Tailwind
 To use Tailwind on your app, follow these [instructions](../../../qwikcity/integrations/tailwind).

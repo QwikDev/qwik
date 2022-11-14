@@ -15,10 +15,11 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
 
   pathname = pathname.slice(1);
 
-  const segments = pathname.split('/');
-  const paramNames: string[] = [];
   let addTrailingSlash = true;
   let lastCatchAll = false;
+
+  const segments = pathname.split('/');
+  const paramNames: string[] = [];
   const pattern = new RegExp(
     `^${segments
       .filter((segment) => segment.length > 0)

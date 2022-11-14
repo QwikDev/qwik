@@ -71,7 +71,6 @@ pnpm test.watch
 
 > Note that the `test.watch` command isn't necessary if you're running the `pnpm start` command, since `start` will also concurrently run the _uvu_ watch process.
 
-
 ### E2E Tests Only
 
 E2E tests use [Playwright](https://playwright.dev/).
@@ -81,6 +80,7 @@ To run the Playwright tests headless, from start to finish, run:
 ```shell
 pnpm test.e2e
 ```
+
 ## Pull Request
 
 - [Open Qwik in Stackblitz Codeflow](https://pr.new/github.com/BuilderIO/qwik/)

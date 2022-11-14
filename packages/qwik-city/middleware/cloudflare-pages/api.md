@@ -33,10 +33,8 @@ export function qwikCity(render: Render, opts?: RenderOptions_2): ({ request, en
 export interface QwikCityCloudflarePagesOptions extends QwikCityHandlerOptions {
 }
 
-// Warning: (ae-forgotten-export) The symbol "RequestHandler" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
-export type RequestHandlerCloudflarePages<T = unknown> = RequestHandler<T, {
+export type RequestHandlerCloudflarePages<T = unknown> = RequestHandler_2<T, {
     env: EventPluginContext['env'];
 }>;
 

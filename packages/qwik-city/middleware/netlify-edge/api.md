@@ -26,10 +26,8 @@ export function qwikCity(render: Render, opts?: RenderOptions_2): (request: Requ
 export interface QwikCityNetlifyOptions extends QwikCityHandlerOptions {
 }
 
-// Warning: (ae-forgotten-export) The symbol "RequestHandler" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
-export type RequestHandlerNetlify<T = unknown> = RequestHandler<T, Omit<Context, 'next' | 'cookies'>>;
+export type RequestHandlerNetlify<T = unknown> = RequestHandler_2<T, Omit<Context, 'next' | 'cookies'>>;
 
 // (No @packageDocumentation comment for this package)
 

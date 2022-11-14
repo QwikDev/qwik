@@ -65,3 +65,23 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
     },
   });
 }
+
+/**
+ * @alpha
+ */
+export interface NetlifyEdgeAdaptorOptions {
+  /**
+   * Determines if the build should generate the edge functions declarations `manifest.json` file.
+   *
+   * https://docs.netlify.com/edge-functions/declarations/
+   *
+   * Defaults to `true`.
+   */
+  functionRoutes?: boolean;
+  /**
+   * Determines if the adaptor should also run Static Site Generation (SSG).
+   */
+  staticGenerate?: StaticGenerateRenderOptions | true;
+}
+
+export type { StaticGenerateRenderOptions };

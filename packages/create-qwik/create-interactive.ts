@@ -137,7 +137,7 @@ export async function runCreateInteractiveCli() {
 
   const successfulDepsInstall = await backgroundInstall.complete(runInstall, result.outDir);
 
-  logCreateAppResult(result, successfulDepsInstall);
+  logCreateAppResult(pkgManager, result, successfulDepsInstall);
 
   return result;
 }

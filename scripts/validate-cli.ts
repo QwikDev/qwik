@@ -66,6 +66,7 @@ async function validateStarter(
   console.log(`${emoji} ${appDir}`);
   rmSync(appDir, { force: true, recursive: true });
 
+  api;
   const result = await api.createApp({
     starterId,
     outDir: appDir,

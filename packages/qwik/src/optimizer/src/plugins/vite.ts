@@ -107,7 +107,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const vendorRoots = shouldFindVendors
         ? await findQwikRoots(sys, path.join(sys.cwd(), 'package.json'))
         : [];
-
       const pluginOpts: QwikPluginOptions = {
         target,
         buildMode,
@@ -659,7 +658,6 @@ export interface QwikVitePluginOptions {
    * Default `{ type: "smart" }`)
    */
   entryStrategy?: EntryStrategy;
-  vendorDirs?: string[];
   /**
    * The source directory to find all the Qwik components. Since Qwik
    * does not have a single input, the `srcDir` is use to recursively

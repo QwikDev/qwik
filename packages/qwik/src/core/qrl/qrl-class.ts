@@ -37,7 +37,7 @@ export interface QRLInternalMethods<TYPE> {
   getSymbol(): string;
   getHash(): string;
   getFn(
-    iCtx?: InvokeContext | InvokeTuple,
+    currentCtx?: InvokeContext | InvokeTuple,
     beforeFn?: () => void
   ): TYPE extends (...args: infer ARGS) => infer Return
     ? (...args: ARGS) => ValueOrPromise<Return>
@@ -97,7 +97,7 @@ export const createQRL = <TYPE>(
     return symbolRef !== null ? symbolRef : resolve(containerEl);
   };
 
-  const invokeFn = (currentICtx?: InvokeContext | InvokeTuple, beforeFn?: () => void | boolean) => {
+  const invokeFn = (currentCtx?: InvokeContext | InvokeTuple, beforeFn?: () => void | boolean) => {
     return ((...args: any[]): any => {
       const start = now();
       const fn = resolveLazy() as TYPE;
@@ -106,13 +106,13 @@ export const createQRL = <TYPE>(
           if (beforeFn && beforeFn() === false) {
             return;
           }
-          const baseContext = createInvokationContext(currentICtx);
-          const iCtx: InvokeContext = {
+          const baseContext = createInvokationContext(currentCtx);
+          const context: InvokeContext = {
             ...baseContext,
             $qrl$: QRL as QRLInternal<any>,
           };
-          emitUsedSymbol(symbol, iCtx.$element$, start);
-          return invoke(iCtx, fn as any, ...args);
+          emitUsedSymbol(symbol, context.$element$, start);
+          return invoke(context, fn as any, ...args);
         }
         throw qError(QError_qrlIsNotFunction);
       });

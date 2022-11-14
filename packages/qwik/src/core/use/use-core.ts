@@ -63,11 +63,11 @@ export const tryGetInvokeContext = (): InvokeContext | undefined => {
 };
 
 export const getInvokeContext = (): InvokeContext => {
-  const iCtx = tryGetInvokeContext();
-  if (!iCtx) {
+  const ctx = tryGetInvokeContext();
+  if (!ctx) {
     throw qError(QError_useMethodOutsideContext);
   }
-  return iCtx;
+  return ctx;
 };
 
 export const useInvokeContext = (): RenderInvokeContext => {
@@ -95,14 +95,14 @@ export const useBindInvokeContext = <T extends ((...args: any[]) => any) | undef
   }) as T;
 };
 export const invoke = <ARGS extends any[] = any[], RET = any>(
-  iCtx: InvokeContext | undefined,
+  context: InvokeContext | undefined,
   fn: (...args: ARGS) => RET,
   ...args: ARGS
 ): RET => {
   const previousContext = _context;
   let returnValue: RET;
   try {
-    _context = iCtx;
+    _context = context;
     returnValue = fn.apply(null, args);
   } finally {
     _context = previousContext;

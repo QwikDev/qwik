@@ -15,7 +15,7 @@ import { then } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { renderComponent } from './render-dom';
-import type { RenderContext } from '../types';
+import type { RenderStaticContext } from '../types';
 import { ContainerState, getContainerState } from '../../container/container';
 import { createRenderContext } from '../execute-component';
 import { getRootNode, QwikElement } from './virtual-element';
@@ -123,7 +123,7 @@ export const notifyWatch = (watch: SubscriberEffect, containerState: ContainerSt
   }
 };
 
-const scheduleFrame = (containerState: ContainerState): Promise<RenderContext> => {
+const scheduleFrame = (containerState: ContainerState): Promise<RenderStaticContext> => {
   if (containerState.$renderPromise$ === undefined) {
     containerState.$renderPromise$ = getPlatform().nextTick(() => renderMarked(containerState));
   }
@@ -145,11 +145,11 @@ export const _hW = () => {
 const renderMarked = async (containerState: ContainerState): Promise<void> => {
   const doc = getDocument(containerState.$containerEl$);
   try {
-    const rCtx = createRenderContext(doc, containerState);
-    const staticCtx = rCtx.$static$;
+    const ctx = createRenderContext(doc, containerState);
+    const staticCtx = ctx.$static$;
     const hostsRendering = (containerState.$hostsRendering$ = new Set(containerState.$hostsNext$));
     containerState.$hostsNext$.clear();
-    await executeWatchesBefore(containerState, rCtx);
+    await executeWatchesBefore(containerState);
 
     containerState.$hostsStaging$.forEach((host) => {
       hostsRendering.add(host);
@@ -166,7 +166,7 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
           assertTrue(el.isConnected, 'element must be connected to the dom');
           staticCtx.$roots$.push(elCtx);
           try {
-            await renderComponent(rCtx, elCtx, getFlags(el.parentElement));
+            await renderComponent(ctx, elCtx, getFlags(el.parentElement));
           } catch (err) {
             if (qDev) {
               throw err;
@@ -189,14 +189,14 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
     // Early exist, no dom operations
     if (staticCtx.$operations$.length === 0) {
       printRenderStats(staticCtx);
-      await postRendering(containerState, rCtx);
+      await postRendering(containerState, staticCtx);
       return;
     }
 
     await getPlatform().raf(() => {
-      executeContextWithSlots(rCtx);
+      executeContextWithSlots(ctx);
       printRenderStats(staticCtx);
-      return postRendering(containerState, rCtx);
+      return postRendering(containerState, staticCtx);
     });
   } catch (err) {
     logError(err);
@@ -216,13 +216,13 @@ const getFlags = (el: Element | null) => {
   return flags;
 };
 
-export const postRendering = async (containerState: ContainerState, rCtx: RenderContext) => {
-  await executeWatchesAfter(containerState, rCtx, (watch, stage) => {
+export const postRendering = async (containerState: ContainerState, ctx: RenderStaticContext) => {
+  await executeWatchesAfter(containerState, (watch, stage) => {
     if ((watch.$flags$ & WatchFlagsIsEffect) === 0) {
       return false;
     }
     if (stage) {
-      return rCtx.$static$.$hostElements$.has(watch.$el$);
+      return ctx.$hostElements$.has(watch.$el$);
     }
     return true;
   });
@@ -250,7 +250,7 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
   }
 };
 
-const executeWatchesBefore = async (containerState: ContainerState, rCtx: RenderContext) => {
+const executeWatchesBefore = async (containerState: ContainerState) => {
   const containerEl = containerState.$containerEl$;
   const resourcesPromises: ValueOrPromise<SubscriberEffect>[] = [];
   const watchPromises: ValueOrPromise<SubscriberEffect>[] = [];
@@ -287,7 +287,7 @@ const executeWatchesBefore = async (containerState: ContainerState, rCtx: Render
       sortWatches(watches);
       await Promise.all(
         watches.map((watch) => {
-          return runSubscriber(watch, containerState, rCtx);
+          return runSubscriber(watch, containerState);
         })
       );
       watchPromises.length = 0;
@@ -297,13 +297,12 @@ const executeWatchesBefore = async (containerState: ContainerState, rCtx: Render
   if (resourcesPromises.length > 0) {
     const resources = await Promise.all(resourcesPromises);
     sortWatches(resources);
-    resources.forEach((watch) => runSubscriber(watch, containerState, rCtx));
+    resources.forEach((watch) => runSubscriber(watch, containerState));
   }
 };
 
 const executeWatchesAfter = async (
   containerState: ContainerState,
-  rCtx: RenderContext,
   watchPred: (watch: SubscriberEffect, staging: boolean) => boolean
 ) => {
   const watchPromises: ValueOrPromise<SubscriberEffect>[] = [];
@@ -331,7 +330,7 @@ const executeWatchesAfter = async (
       const watches = await Promise.all(watchPromises);
       sortWatches(watches);
       for (const watch of watches) {
-        await runSubscriber(watch, containerState, rCtx);
+        await runSubscriber(watch, containerState);
       }
       watchPromises.length = 0;
     }

@@ -313,8 +313,6 @@ export interface QwikVitePluginOptions {
         manifestInput?: QwikManifest;
     };
     transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
-    // (undocumented)
-    vendorDirs?: string[];
 }
 
 // @alpha (undocumented)

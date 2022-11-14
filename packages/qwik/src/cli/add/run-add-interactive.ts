@@ -8,12 +8,14 @@ import { updateApp } from './update-app';
 import type { IntegrationData, UpdateAppResult } from '../types';
 import { relative } from 'node:path';
 import { logSuccessFooter, logNextStep } from '../utils/log';
+import { runInPkg, startSpinner } from '../utils/install-deps';
 
 export async function runAddInteractive(app: AppCommand, id: string | undefined) {
   console.log(``);
   console.clear();
   console.log(``);
 
+  const pkgManager = getPackageManager();
   const integrations = await loadIntegrations();
   let integration: IntegrationData | undefined;
 
@@ -75,16 +77,26 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
     runInstall = true;
   }
 
-  const result = await updateApp({
+  const result = await updateApp(pkgManager, {
     rootDir: app.rootDir,
     integration: integration.id,
     installDeps: runInstall,
   });
 
-  await logUpdateAppResult(result);
+  const commit = await logUpdateAppResult(pkgManager, result);
+  if (commit) {
+    await result.commit(true);
+    const postInstall = result.integration.pkgJson.__qwik__?.postInstall;
+    if (postInstall) {
+      const spinner = startSpinner(`Running post install script: ${postInstall}`);
+      await runInPkg(pkgManager, postInstall.split(' '), app.rootDir);
+      spinner.succeed();
+    }
+    logUpdateAppCommitResult(result);
+  }
 }
 
-async function logUpdateAppResult(result: UpdateAppResult) {
+async function logUpdateAppResult(pkgManager: string, result: UpdateAppResult) {
   const modifyFiles = result.updates.files.filter((f) => f.type === 'modify');
   const overwriteFiles = result.updates.files.filter((f) => f.type === 'overwrite');
   const createFiles = result.updates.files.filter((f) => f.type === 'create');
@@ -136,7 +148,6 @@ async function logUpdateAppResult(result: UpdateAppResult) {
   }
 
   if (installDeps) {
-    const pkgManager = getPackageManager();
     console.log(
       `💾 ${color.cyan(
         `Install ${pkgManager} dependenc${installDepNames.length > 1 ? 'ies' : 'y'}:`
@@ -170,10 +181,7 @@ async function logUpdateAppResult(result: UpdateAppResult) {
   );
   console.log(``);
 
-  if (commitAnswer.commit) {
-    await result.commit(true);
-    logUpdateAppCommitResult(result);
-  }
+  return commitAnswer.commit as boolean;
 }
 
 function logUpdateAppCommitResult(result: UpdateAppResult) {

@@ -21,7 +21,7 @@ const config: PlaywrightTestConfig = {
       height: 600,
     },
   },
-  testIgnore: /.*example.spec.tsx/,
+  testIgnore: /.*example.spec.tsx?$/,
   retries: 3,
   webServer: {
     command: 'pnpm tsm ./starters/dev-server.ts 3301',

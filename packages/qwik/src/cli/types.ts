@@ -78,6 +78,7 @@ export interface IntegrationPackageJson {
     nextSteps?: NextSteps;
     docs?: string[];
     priority: number;
+    postInstall?: string;
     viteConfig?: ViteConfigUpdates;
   };
 }

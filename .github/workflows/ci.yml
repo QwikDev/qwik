@@ -131,8 +131,10 @@ jobs:
         uses: actions/checkout@v3
 
       - uses: pnpm/action-setup@v2.2.4
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         with:
           version: 7
+
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v3
@@ -224,6 +226,7 @@ jobs:
         uses: actions/checkout@v3
 
       - uses: pnpm/action-setup@v2.2.4
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         with:
           version: 7
 
@@ -439,6 +442,7 @@ jobs:
         uses: actions/checkout@v3
 
       - uses: pnpm/action-setup@v2.2.4
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         with:
           version: 7
 

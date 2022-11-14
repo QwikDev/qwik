@@ -41,7 +41,11 @@ export async function runCreateCli(starterId: string, outDir: string) {
   return result;
 }
 
-export function logCreateAppResult(pkgManager: string, result: CreateAppResult, ranInstall: boolean) {
+export function logCreateAppResult(
+  pkgManager: string,
+  result: CreateAppResult,
+  ranInstall: boolean
+) {
   console.log(``);
   console.log(``);
 

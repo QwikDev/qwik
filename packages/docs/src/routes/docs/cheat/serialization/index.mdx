@@ -5,6 +5,7 @@ contributors:
   - wuweiweiwu
   - manucorporat
   - adamdbradley
+  - voluntadpear
 ---
 
 # `$` Boundaries
@@ -22,6 +23,14 @@ import { component$ } from '@builder.io/qwik';
 
 export const topLevel = Promise.resolve('nonserializable data');
 
+export class MyCustomClass {
+  val: string;
+  
+  constructor(val: string) {
+    this.val = val;
+  }
+}
+
 export const Greeter = component$(() => {
   // BEGIN component serialization boundary
 
@@ -29,7 +38,9 @@ export const Greeter = component$(() => {
   console.log(topLevel); // OK
 
   const captureSerializable = 'serializable data';
-  const captureNonSerializable = Promise.resolve('nonserializable data');
+  const capturePromise = Promise.resolve('Qwik serializes promises');
+  // Instances of custom classes are not serializable.
+  const captureNonSerializable = new MyCustomClass('non serializable');
 
   return (
     <button
@@ -44,6 +55,7 @@ export const Greeter = component$(() => {
         // - declared as `const`
         // - is serializable (runtime error)
         console.log(captureSerializable); // OK
+        console.log(capturePromise); // OK
 
         // Referring to captureNonSerializable will pass static analysis but
         // will fail at runtime because Qwik does not know how to serialize it.

@@ -43,6 +43,7 @@ export interface QContext {
   $scopeIds$: string[] | null;
   $vdom$: ProcessedJSXNode | null;
   $slots$: ProcessedJSXNode[] | null;
+  $dynamicSlots$: QContext[] | null;
   $parent$: QContext | null;
   $slotParent$: QContext | null;
 }
@@ -135,6 +136,7 @@ export const createContext = (element: Element | VirtualElement): QContext => {
     $vdom$: null,
     $componentQrl$: null,
     $contexts$: null,
+    $dynamicSlots$: null,
     $parent$: null,
     $slotParent$: null,
   };

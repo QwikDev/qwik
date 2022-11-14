@@ -1,4 +1,4 @@
-import type { PageModule, QwikCityPlan, RouteParams } from '../runtime/src/types';
+import type { PageModule, QwikCityPlan, RouteParams } from '../runtime/src/library/types';
 import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from './types';
 import { msToString } from '../utils/format';
 import { getPathnameForDynamicRoute } from '../utils/pathname';
@@ -205,7 +205,9 @@ function validateOptions(opts: StaticGenerateOptions) {
   }
   siteOrigin = siteOrigin.trim();
   if (!siteOrigin.startsWith('https://') && !siteOrigin.startsWith('http://')) {
-    throw new Error(`"origin" must start with a valid protocol, such as "https://" or "http://"`);
+    throw new Error(
+      `"origin" must start with a valid protocol, such as "https://" or "http://", received "${siteOrigin}"`
+    );
   }
   try {
     new URL(siteOrigin);

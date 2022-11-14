@@ -19,6 +19,7 @@ import { EMPTY_OBJ } from '../core/util/flyweight';
 import { getValidManifest } from '../optimizer/src/manifest';
 import { applyPrefetchImplementation } from './prefetch-implementation';
 import type { QContext } from '../core/state/context';
+import { assertDefined } from '../core/error/assert';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -126,7 +127,7 @@ export async function renderToStream(
   await setServerPlatform(opts, resolvedManifest);
 
   // Render
-  let snapshotResult: SnapshotResult | null = null;
+  let snapshotResult: SnapshotResult | undefined;
 
   const injections = resolvedManifest?.manifest.injections;
   const beforeContent = injections
@@ -137,6 +138,8 @@ export async function renderToStream(
   const renderSymbols: string[] = [];
   let renderTime = 0;
   let snapshotTime = 0;
+  let containsDynamic = false;
+
   await renderSSR(rootNode, {
     stream,
     containerTagName,
@@ -144,10 +147,11 @@ export async function renderToStream(
     envData: opts.envData,
     base: buildBase,
     beforeContent,
-    beforeClose: async (contexts, containerState) => {
+    beforeClose: async (contexts, containerState, dynamic) => {
       renderTime = renderTimer();
       const snapshotTimer = createTimer();
 
+      containsDynamic = dynamic;
       snapshotResult = await _pauseFromContexts(contexts, containerState);
 
       const jsonData = JSON.stringify(snapshotResult.state, undefined, qDev ? '  ' : undefined);
@@ -215,12 +219,16 @@ export async function renderToStream(
   // Flush remaining chunks in the buffer
   flush();
 
+  assertDefined(snapshotResult, 'snapshotResult must be defined');
+
+  const isStatic = !containsDynamic && !snapshotResult.resources.some((r) => r._cache !== Infinity);
   const result: RenderToStreamResult = {
     prefetchResources: undefined as any,
     snapshotResult,
     flushes: networkFlushes,
     manifest: resolvedManifest?.manifest,
     size: totalSize,
+    isStatic,
     timing: {
       render: renderTime,
       snapshot: snapshotTime,

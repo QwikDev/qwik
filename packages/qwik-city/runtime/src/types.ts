@@ -92,6 +92,7 @@ export interface DocumentMeta {
   name?: string;
   property?: string;
   key?: string;
+  itemprop?: string;
 }
 
 /**

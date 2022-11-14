@@ -1,14 +1,14 @@
 import type { FsUpdates, UpdateAppOptions, UpdateAppResult } from '../types';
 import { dirname } from 'node:path';
 import fs from 'node:fs';
-import { getPackageManager, panic } from '../utils/utils';
+import { panic } from '../utils/utils';
 import { loadIntegrations } from '../utils/integrations';
 import { installDeps, startSpinner } from '../utils/install-deps';
 import { mergeIntegrationDir } from './update-files';
 import { updateViteConfigs } from './update-vite-config';
 import color from 'kleur';
 
-export async function updateApp(opts: UpdateAppOptions) {
+export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
   const integrations = await loadIntegrations();
   const integration = integrations.find((s) => s.id === opts.integration);
   if (!integration) {
@@ -57,7 +57,6 @@ export async function updateApp(opts: UpdateAppOptions) {
         })
       );
 
-      const pkgManager = getPackageManager();
       if (opts.installDeps && Object.keys(fileUpdates.installedDeps).length > 0) {
         const { install } = installDeps(pkgManager, opts.rootDir);
         passed = await install;

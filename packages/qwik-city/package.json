@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.0.120",
+  "version": "0.0.122",
   "description": "The meta-framework for Qwik.",
   "main": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
@@ -28,6 +28,10 @@
       "import": "./lib/adaptors/static/vite/index.mjs",
       "require": "./lib/adaptors/static/vite/index.cjs"
     },
+    "./adaptors/vercel-edge/vite": {
+      "import": "./lib/adaptors/vercel-edge/vite/index.mjs",
+      "require": "./lib/adaptors/vercel-edge/vite/index.cjs"
+    },
     "./middleware/cloudflare-pages": {
       "import": "./lib/middleware/cloudflare-pages/index.mjs"
     },
@@ -52,8 +56,19 @@
     }
   },
   "scripts": {
-    "build.runtime": "cd runtime && vite build --mode lib",
-    "test.unit": "tsm ../../node_modules/.bin/uvu . unit.ts --tsmconfig tsm.cjs"
+    "start": "cd runtime && node --inspect ../../../node_modules/vite/bin/vite.js",
+    "dev.ssr": "cd runtime && node --inspect ../../../node_modules/vite/bin/vite.js --mode ssr",
+    "dev.debug": "cd runtime && node --inspect-brk ../../../node_modules/vite/bin/vite.js --mode ssr --force",
+    "build": "pnpm build.client && pnpm build.server",
+    "build.client": "cd runtime && vite build -c vite.app.config.ts",
+    "build.server": "cd runtime && vite build -c vite.express.config.ts",
+    "build.runtime": "cd runtime && vite build --mode lib -c vite.lib.config.ts",
+    "serve": "node --inspect runtime/server/entry.express",
+    "serve.debug": "node --inspect-brk runtime/server/entry.express",
+    "test": "pnpm test.unit && pnpm test.e2e.mpa",
+    "test.unit": "tsm ../../node_modules/.bin/uvu . unit.ts --tsmconfig tsm.cjs",
+    "test.e2e.mpa": "mode=mpa node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts",
+    "test.e2e.spa": "mode=spa node ../../node_modules/.bin/playwright test runtime/src/app/tests --config runtime/playwright.config.ts"
   },
   "dependencies": {
     "@mdx-js/mdx": "2.1.5",
@@ -63,17 +78,18 @@
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",
-    "@microsoft/api-extractor": "7.33.5",
+    "@microsoft/api-extractor": "7.33.6",
     "@netlify/edge-functions": "^2.0.0",
-    "@types/github-slugger": "2.0.0",
     "@types/marked": "4.0.7",
+    "@types/mdast": "^3.0.10",
     "@types/node": "latest",
     "@types/refractor": "3.0.2",
     "estree-util-value-to-estree": "2.1.0",
     "github-slugger": "2.0.0",
     "hast-util-heading-rank": "2.1.0",
     "hast-util-to-string": "2.0.0",
-    "marked": "4.2.0",
+    "marked": "4.2.2",
+    "mdast-util-mdx": "^2.0.0",
     "refractor": "4.8.0",
     "rehype-autolink-headings": "6.1.1",
     "remark-frontmatter": "4.0.1",
@@ -83,7 +99,7 @@
     "unified": "10.1.2",
     "unist-util-visit": "4.1.1",
     "uvu": "0.5.6",
-    "vite": "3.2.2",
+    "vite": "3.2.3",
     "yaml": "2.1.3"
   },
   "license": "MIT",

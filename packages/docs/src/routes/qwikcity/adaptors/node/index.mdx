@@ -12,38 +12,42 @@ Qwik City Node middleware allows you to connect Qwik City to an Nodejs server wh
 - [Connect](https://www.npmjs.com/package/connect)
 - [Polka](https://www.npmjs.com/package/polka)
 
-Below is an example of using the built-in Node middleware within a user's [Express](https://expressjs.com/) app. Note that the user can decide the order of the middleware, including handling static assets, and how to handle 404 responses.
+## Installation
 
-```typescript
-import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
-import qwikCityPlan from '@qwik-city-plan';
-import render from './entry.ssr';
-import express from 'express';
-import { fileURLToPath } from 'node:url';
-import { join } from 'node:path';
+To integrate the `node` adaptor, use the `add` command:
 
-// Directories where the static assets are located
-const distDir = join(fileURLToPath(import.meta.url), '..', '..', 'dist');
-const buildDir = join(distDir, 'build');
-
-// Create the Qwik City middleware
-const { router, notFound } = createQwikCity({ render, qwikCityPlan });
-
-// Create the express server
-const app = express();
-
-// Use Qwik City's page and endpoint router
-app.use(router);
-
-// Static asset handlers
-app.use(`/build`, express.static(buildDir, { immutable: true, maxAge: '1y', index: false }));
-app.use(express.static(distDir, { index: false }));
-
-// Use Qwik City's 404 handler
-app.use(notFound);
-
-// Start the express server
-app.listen(3000);
+```shell
+npm run qwik add express
 ```
 
-- [Node Middleware Source](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/node/index.ts)
+## Production build
+
+To build the application for production, use the `build` command, this command will automatically run `npm run build.server` and `npm run build.client`:
+
+```shell
+npm run build
+```
+
+[Read the full guide here](https://github.com/BuilderIO/qwik/blob/main/starters/adaptors/netlify-edge/README.md)
+
+
+## Dev deploy
+
+To deploy the application for development:
+
+```shell
+npm run deploy
+```
+
+Notice that you might need a [Netlify account](https://docs.netlify.com/get-started/) in order to complete this step!
+
+
+## Production deploy
+
+Since you are choosing Node, here you are in your own, after running `npm run build`:
+
+- The `dist` folder will be created including all the static files.
+- The `server` folder will be created including all node server files.
+
+In order to deploy the server, you need to run the `server/entry.express.js` file in the server of your choice.
+

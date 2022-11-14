@@ -1,3 +1,4 @@
+import { Cookie } from './cookie';
 import { createHeaders } from './headers';
 import { HttpStatus } from './http-status-codes';
 import type { QwikCityRequestContext } from './types';
@@ -21,6 +22,7 @@ export function errorHandler(requestCtx: QwikCityRequestContext, e: any) {
   return requestCtx.response(
     status,
     headers,
+    new Cookie(),
     async (stream) => {
       stream.write(html);
     },
@@ -41,6 +43,7 @@ export function errorResponse(requestCtx: QwikCityRequestContext, errorResponse:
   return requestCtx.response(
     errorResponse.status,
     headers,
+    new Cookie(),
     async (stream) => {
       stream.write(html);
     },

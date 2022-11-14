@@ -1,6 +1,6 @@
 import { component$, useServerMount$, useStore } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   const github = useStore({
     org: 'BuilderIO',
     repos: null as string[] | null,

@@ -43,12 +43,15 @@ export function fromNodeHttp(url: URL, req: IncomingMessage, res: ServerResponse
       text: getRequestBody,
       url: url.href,
     },
-    response: async (status, headers, body) => {
+    response: async (status, headers, cookies, body) => {
       res.statusCode = status;
       headers.forEach((value, key) => res.setHeader(key, value));
+      const cookieHeaders = cookies.headers();
+      if (cookieHeaders.length > 0) {
+        res.setHeader('Set-Cookie', cookieHeaders);
+      }
       body({
         write: (chunk) => {
-          res.write;
           res.write(chunk);
         },
       }).finally(() => {

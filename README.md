@@ -14,7 +14,7 @@ As users interact with the site, only the necessary parts of the site load on-de
 
 ## Getting Started
 
-```bash
+```shell
 npm create qwik@latest
 ```
 

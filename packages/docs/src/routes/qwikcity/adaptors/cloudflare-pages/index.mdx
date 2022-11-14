@@ -8,9 +8,11 @@ contributors:
 
 Qwik City Cloudflare Pages adaptor allows you to connect Qwik City to [Cloudflare Pages](https://pages.cloudflare.com/).
 
-To integrate the `cloudflare-pages` adaptor, use the `npm run qwik add` command:
+## Installation
 
-```bash
+To integrate the `cloudflare-pages` adaptor, use the `add` command:
+
+```shell
 npm run qwik add cloudflare-pages
 ```
 
@@ -26,7 +28,39 @@ The adaptor will add a new `vite.config.ts` within the `adaptors/` directory, an
 
 Additionally, within the `package.json`, the `build.server` script will be updated with the Cloudflare build.
 
-## Cloudflare Pages Entry Middleware
+
+## Production build
+
+To build the application for production, use the `build` command, this command will automatically run `npm run build.server` and `npm run build.client`:
+
+```shell
+npm run build
+```
+
+[Read the full guide here](https://github.com/BuilderIO/qwik/blob/main/starters/adaptors/netlify-edge/README.md)
+
+
+## Dev deploy
+
+To deploy the application for development:
+
+```shell
+npm run deploy
+```
+
+Notice that you might need a [Netlify account](https://docs.netlify.com/get-started/) in order to complete this step!
+
+
+## Production deploy
+
+After installing the integration using `npm run qwik add`. The project is ready to be deployed to Netlify. However, you will need to create a git repository and push the code to it.
+
+Please refer to the Netlify docs for more information on how to deploy your site: [Netlify docs](https://docs.netlify.com/site-deploys/create-deploys/)
+
+
+## Advanced
+
+### Cloudflare Pages Entry Middleware
 
 When the `cloudflare-pages` adaptor is added, a new entry file will be created at `src/entry.cloudflare-pages.tsx`. Below is an example of using the built-in middleware within the entry file.
 
@@ -54,7 +88,7 @@ export { onRequest } from '../server/entry.cloudflare-pages';
 - [Cloudflare Pages Functions](https://developers.cloudflare.com/pages/platform/functions/)
 - [Function Invocation Route Config](https://developers.cloudflare.com/pages/platform/functions/function-invocation-routes/)
 
-## Cloudflare Pages Function Invocation Routes
+### Cloudflare Pages Function Invocation Routes
 
 Cloudflare Page's [function-invocation-routes config](https://developers.cloudflare.com/pages/platform/functions/function-invocation-routes/) can be used to include, or exclude, certain paths to be used by the worker functions. Having a `_routes.json` file gives developers more granular control over when your Function is invoked.
 
@@ -83,8 +117,6 @@ By default, the Cloudflare Pages adaptor _does not_ include a `public/_routes.js
 In the above example, it's saying _all_ pages should be SSR'd. However, the root static files such as `/favicon.ico` and any static assets in `/build/*` should be excluded from the Functions, and instead treated as a static file.
 
 In most cases the generated `dist/_routes.json` file is ideal. However, if you need more granular control over each path, you can instead provide you're own `public/_routes.json` file. When the project provides its own `public/_routes.json` file, then the Cloudflare adaptor will not auto-generate the routes config and instead use the committed one within the `public` directory.
-
-## Usage
 
 ### Context
 

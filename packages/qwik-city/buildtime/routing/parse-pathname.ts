@@ -18,7 +18,7 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
   const segments = pathname.split('/');
   const paramNames: string[] = [];
   let addTrailingSlash = true;
-
+  let lastCatchAll = false;
   const pattern = new RegExp(
     `^${segments
       .filter((segment) => segment.length > 0)
@@ -29,7 +29,10 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
         const catchAll = /^\[\.\.\.(\w+)?\]$/.exec(segment);
         if (catchAll) {
           paramNames.push(catchAll[1]);
+          lastCatchAll = true;
           return '(?:/(.*))?';
+        } else {
+          lastCatchAll = false;
         }
 
         const isLast = i === segments.length - 1;
@@ -73,7 +76,7 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
             .join('')
         );
       })
-      .join('')}${addTrailingSlash ? '/?' : ''}$`
+      .join('')}${lastCatchAll ? `(?:/([^.]*)(\\.json)?)` : ''}${addTrailingSlash ? '/?' : ''}$`
   );
 
   return {

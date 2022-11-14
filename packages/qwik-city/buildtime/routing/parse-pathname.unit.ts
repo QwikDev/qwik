@@ -50,7 +50,7 @@ const tests = {
   },
   '/[...rest]': {
     basePathname: '/',
-    pattern: /^(?:\/(.*))?\/?$/,
+    pattern: /^(?:\/(.*))?(?:\/([^.]*)(\.json)?)\/?$/,
     paramNames: ['rest'],
   },
   '/foo/[...rest]/bar': {

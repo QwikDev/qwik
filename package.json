@@ -44,7 +44,7 @@
     "prettier.fix": "prettier --write .",
     "fmt": "pnpm prettier.fix",
     "qwik-save-artifacts": "tsm ./scripts/qwik-save-artifacts.ts",
-    "preinstall": "pnpm node scripts/tools/preinstall-script.js"
+    "preinstall": "npx only-allow pnpm"
   },
   "devDependencies": {
     "@builder.io/partytown": "0.7.1",
@@ -119,7 +119,10 @@
   ],
   "packageManager": "pnpm@7.15.0",
   "engines": {
-    "node": ">=16"
+    "node": ">=16",
+    "npm": "please-use-pnpm",
+    "yarn": "please-use-pnpm",
+    "pnpm": ">=7"
   },
   "config": {
     "commitizen": {

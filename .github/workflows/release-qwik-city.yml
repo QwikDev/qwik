@@ -21,25 +21,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-          cache: 'yarn'
+          cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - run: corepack enable
 
       - name: Install NPM Dependencies
-        run: yarn install --immutable --network-timeout 300000
+        run: pnpm install --frozen-lockfile
 
       - name: Test Qwik City
-        run: cd packages/qwik-city && yarn test
+        run: cd packages/qwik-city && pnpm test
 
       - name: Build Qwik City
-        run: cd packages/qwik-city && yarn build
+        run: cd packages/qwik-city && pnpm build
 
       - name: Publish Qwik City
-        run: cd packages/qwik-city && yarn tsm scripts/release.ts --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: cd packages/qwik-city && pnpm tsm scripts/release.ts --set-dist-tag="${{ github.event.inputs.disttag }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

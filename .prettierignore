@@ -6,6 +6,7 @@
 .history
 .yarn
 .yarnrc.yml
+pnpm-lock.yaml
 .mf
 dist
 dist-dev
@@ -26,4 +27,4 @@ packages/docs/src/routes/**/*.mdx
 starters/**/*.js
 
 # TODO: Figure out why this doesn't pass in CI
-packages/qwik/src/core/props/props.ts 
+packages/qwik/src/core/props/props.ts

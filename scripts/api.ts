@@ -150,7 +150,7 @@ function createTypesApi(config: BuildConfig, inPath: string, outPath: string, co
   });
   if (!result.succeeded) {
     panic(
-      `Use "yarn api.update" to automatically update the .md files if the api changes were expected`
+      `Use "pnpm api.update" to automatically update the .md files if the api changes were expected`
     );
   }
   const srcPath = result.extractorConfig.untrimmedFilePath;

@@ -355,4 +355,5 @@ const IGNORE: { [path: string]: boolean } = {
   'starter.tsconfig.json': true,
   'tsconfig.tsbuildinfo': true,
   'yarn.lock': true,
+  'pnpm-lock.yaml': true,
 };

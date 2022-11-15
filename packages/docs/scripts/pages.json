@@ -1,17 +1,78 @@
 [
-  { "url": "https://www.builder.io/", "size": "small" },
-  { "url": "https://cursos.codigoencasa.com/node", "size": "small" },
-  { "url": "https://qwik-storefront.vendure.io/", "size": "small" },
-  { "url": "https://www.imgmodels.com/", "size": "large" },
-  { "url": "https://soundy.cloud/", "size": "small" },
-  { "url": "https://usaibis.com/", "size": "small" },
-  { "url": "https://pasha-app.com/", "size": "small" },
-  { "url": "https://pricing.oasisdigital.com/", "size": "small" },
-  { "url": "https://pulsestax.com/", "size": "small" },
-  { "url": "https://qwik-city-movies-wm.netlify.app/", "size": "large" },
-  { "url": "https://goshi.dev/", "size": "small" },
-  { "url": "https://jbnado.dev/", "size": "small" },
-  { "url": "https://reduced.to", "size": "small" },
-  { "url": "https://sanyamjainqwik.vercel.app/", "size": "small" },
-  { "url": "https://qwik.builder.io", "size": "small" }
+  {
+    "href": "https://www.builder.io/",
+    "size": "small",
+    "tags": "sass"
+  },
+  {
+    "href": "https://cursos.codigoencasa.com/node",
+    "size": "small",
+    "tags": "learning"
+  },
+  {
+    "href": "https://qwik-storefront.vendure.io/",
+    "size": "small",
+    "tags": "ecommerce"
+  },
+  {
+    "href": "https://www.imgmodels.com/",
+    "size": "large",
+    "tags": "ecommerce"
+  },
+  {
+    "href": "https://soundy.cloud/",
+    "size": "small",
+    "tags": "sass"
+  },
+  {
+    "href": "https://usaibis.com/",
+    "size": "small",
+    "tags": "sass"
+  },
+  {
+    "href": "https://pasha-app.com/",
+    "size": "small",
+    "tags": "sass"
+  },
+  {
+    "href": "https://pricing.oasisdigital.com/",
+    "size": "small",
+    "tags": "sass"
+  },
+  {
+    "href": "https://pulsestax.com/",
+    "size": "small",
+    "tags": "sass"
+  },
+  {
+    "href": "https://qwik-city-movies-wm.netlify.app/",
+    "size": "large",
+    "tags": "app"
+  },
+  {
+    "href": "https://goshi.dev/",
+    "size": "small",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://jbnado.dev/",
+    "size": "small",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://reduced.to",
+    "size": "small",
+    "tags": "app"
+  },
+  {
+    "href": "https://sanyamjainqwik.vercel.app/",
+    "size": "small",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://qwik.builder.io",
+    "size": "small",
+    "tags": "site",
+    "repo": "https://github.com/BuilderIO/qwik/tree/main/packages/docs"
+  }
 ]

@@ -34,21 +34,22 @@ async function captureMultipleScreenshots() {
       // ignore
     }
 
-    for (const { url, size } of pages) {
-      const existing = existingJson.find((item) => item.href === url);
+    for (const page of pages) {
+      const href = page.href;
+      const existing = existingJson.find((item) => item.href === href);
       if (existing) {
-        console.log('Skipping page', url);
+        console.log('Skipping page', href);
 
         output.push({
           ...existing,
-          size,
+          ...page,
         });
         continue;
       }
-      console.log('Opening page', url);
-      await page.goto(url);
+      console.log('Opening page', href);
+      await page.goto(href);
       const title = await page.title();
-      const filename = url
+      const filename = href
         .replace('https://', '')
         .replace('/', '_')
         .replace('.', '_')
@@ -57,7 +58,7 @@ async function captureMultipleScreenshots() {
 
       const path = `public/showcases/${filename}.webp`;
       const [pagespeedOutput, _] = await Promise.all([
-        getPagespeedData(url),
+        getPagespeedData(href),
         page.screenshot({
           path: path,
           type: 'webp',
@@ -91,12 +92,11 @@ async function captureMultipleScreenshots() {
       };
       output.push({
         title,
-        href: url,
         imgSrc: `/showcases/${filename}.webp`,
         perf,
-        size,
+        ...page,
       });
-      console.log(`✅ ${title} - (${url})`);
+      console.log(`✅ ${title} - (${href})`);
     }
   } catch (err) {
     console.log(`❌ Error: ${err.message}`);

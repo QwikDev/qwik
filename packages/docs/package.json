@@ -15,7 +15,7 @@
     "fmt.check": "prettier --check .",
     "preview": "qwik build preview && vite preview --open",
     "serve": "wrangler pages dev ./dist",
-    "build.screenshots": "pnpm node scripts/showcase.js",
+    "build.showcase": "pnpm node scripts/showcase.js",
     "start": "pnpm dev"
   },
   "devDependencies": {

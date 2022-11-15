@@ -43,9 +43,11 @@
     "lint.prettier": "prettier --check .",
     "prettier.fix": "prettier --write .",
     "fmt": "pnpm prettier.fix",
+    "fmt.staged": "pretty-quick --staged",
     "qwik-save-artifacts": "tsm ./scripts/qwik-save-artifacts.ts",
     "preinstall": "npx only-allow pnpm",
-    "deps": "pnpm upgrade -i -r --latest"
+    "deps": "pnpm upgrade -i -r --latest",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@builder.io/partytown": "0.7.1",
@@ -82,12 +84,14 @@
     "eslint-plugin-no-only-tests": "3.1.0",
     "execa": "6.1.0",
     "express": "4.18.2",
+    "husky": "^8.0.0",
     "monaco-editor": "^0.34.1",
     "mri": "1.2.0",
     "node-fetch": "3.3.0",
     "ora": "6.1.2",
     "path-browserify": "1.0.1",
     "prettier": "2.7.1",
+    "pretty-quick": "^3.1.3",
     "prompts": "2.4.2",
     "rollup": "2.79.1",
     "semver": "7.3.8",

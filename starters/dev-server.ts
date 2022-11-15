@@ -9,7 +9,7 @@ import { join, resolve } from 'node:path';
 import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync, readFileSync } from 'node:fs';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
-import type { PackageJSON } from 'scripts/util';
+import type { PackageJSON } from '../scripts/util';
 import { fileURLToPath } from 'node:url';
 
 const app = express();

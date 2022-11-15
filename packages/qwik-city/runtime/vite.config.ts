@@ -12,7 +12,6 @@ export default defineConfig(() => {
         fileName: (format) => `index.qwik.${format === 'es' ? 'mjs' : 'cjs'}`,
       },
       minify: false,
-      emptyOutDir: false,
       rollupOptions: {
         external: ['@qwik-city-sw-register', '@qwik-city-plan'],
       },

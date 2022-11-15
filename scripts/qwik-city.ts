@@ -140,7 +140,7 @@ export async function buildQwikCity(config: BuildConfig) {
 }
 
 async function buildRuntime(input: string) {
-  const result = await execa('pnpm', ['build.runtime'], {
+  const result = await execa('pnpm', ['build'], {
     stdout: 'inherit',
     cwd: input,
   });

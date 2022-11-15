@@ -27,7 +27,6 @@ async function captureMultipleScreenshots() {
     try {
       const data = fs.readFileSync('src/routes/showcase/pages.json', 'utf8');
       existingJson = JSON.parse(data);
-      console.log('Found existing pages.json', existingJson);
     } catch (e) {}
 
     for (const { url, size } of pages) {
@@ -102,7 +101,7 @@ async function captureMultipleScreenshots() {
     }
     console.log(`\n🎉 ${pages.length} screenshots captured.`);
   }
-  fs.writeFileSync('src/routes/showcase/pages.json', JSON.stringify(output));
+  fs.writeFileSync('src/routes/showcase/pages.json', JSON.stringify(output, undefined, 2));
 }
 
 async function getPagespeedData(url) {

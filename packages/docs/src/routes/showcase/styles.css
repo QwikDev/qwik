@@ -1,14 +1,14 @@
 .showcase {
   margin: 10px auto;
-  padding: 0 20px;
+  padding: 0 30px;
   max-width: 1060px;
 }
 
 .showcase h1 {
-  font-size: 70px;
+  font-size: 60px;
   font-weight: 800;
   text-align: center;
-  margin-bottom: 80px;
+  margin-bottom: 70px;
 }
 
 .showcase .grid {

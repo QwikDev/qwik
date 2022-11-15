@@ -291,7 +291,7 @@ export const App = component$(() => {
   });
 
   useClientEffect$(() => {
-    // Monaco is not serializable, so we can't store it in the state using `noSerialize()``
+    // Monaco is not serializable, so we can't store it in the state using `noSerialize()`
     state.monacoInstance = noSerialize(new Monaco());
   });
   return (

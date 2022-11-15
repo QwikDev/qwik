@@ -1,7 +1,7 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import styles from './styles.css?inline';
-import pages from './pages.json';
+import pages from './generated-pages.json';
 
 export interface MediaEntry {
   title: string;
@@ -20,11 +20,39 @@ export interface MediaEntry {
   };
 }
 
+export default component$(() => {
+  useStyles$(styles);
+  return (
+    <article class="showcase">
+      <h1>Showcase</h1>
+
+      <ul class="grid">
+        {pages.map((entry) => (
+          <SiteLink entry={entry as any} />
+        ))}
+      </ul>
+      <section>
+        <h2>Add Media</h2>
+        <p>This page missing any great resources or in need of an update?</p>
+        <p>
+          <a
+            href="https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/media/index.tsx"
+            target="_blank"
+            class="edit-page"
+          >
+            Edit this page!
+          </a>
+        </p>
+      </section>
+    </article>
+  );
+});
+
 export const SiteLink = component$((props: { entry: MediaEntry }) => {
   return (
     <li class={props.entry.size}>
       <Score speedScore={props.entry.perf.score} url={props.entry.href}></Score>
-      <a href={props.entry.href} target="_blank" rel="noreferrer">
+      <a class="card" href={props.entry.href} target="_blank" rel="noreferrer">
         <img width="1440" height="980" loading="lazy" src={props.entry.imgSrc} aria-hidden="true" />
         <div class="backdrop">
           <div class="metrics">
@@ -57,21 +85,6 @@ export const SiteLink = component$((props: { entry: MediaEntry }) => {
         </div>
       </a>
     </li>
-  );
-});
-
-export default component$(() => {
-  useStyles$(styles);
-  return (
-    <article class="showcase">
-      <h1>Showcase</h1>
-
-      <ul class="grid">
-        {pages.map((entry) => (
-          <SiteLink entry={entry as any} />
-        ))}
-      </ul>
-    </article>
   );
 });
 

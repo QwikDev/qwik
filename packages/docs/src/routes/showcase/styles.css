@@ -39,7 +39,7 @@
   display: block;
   position: relative;
 }
-.showcase a {
+.showcase .card {
   position: relative;
   border-radius: 11px;
   overflow: hidden;
@@ -170,4 +170,23 @@
   animation-delay: 250ms;
   stroke-linecap: round;
   stroke: var(--color);
+}
+
+.showcase .edit-page {
+  font-weight: 400;
+  display: inline-block;
+  padding: 12px 0;
+  color: var(--qwik-dark-blue);
+}
+
+.showcase section {
+  margin: 40px 0;
+}
+
+.showcase h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0 0 15px 0;
+  padding: 0 0 5px 0;
+  border-bottom: 1px solid #ddd;
 }

@@ -204,11 +204,11 @@ export default component$(() => {
       <Section id="resources" listStyle="bullets" />
 
       <section>
-        <h2>Add Media</h2>
-        <p>This page missing any great resources or in need of an update?</p>
+        <h2>Add a new site</h2>
+        <p>This page missing any great site or in need of an update?</p>
         <p>
           <a
-            href="https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/media/index.tsx"
+            href="https://github.com/BuilderIO/qwik/edit/main/packages/docs/scripts/pages.json"
             target="_blank"
             class="edit-page"
           >

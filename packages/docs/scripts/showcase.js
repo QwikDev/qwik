@@ -1,7 +1,10 @@
+/* eslint-disable no-console */
+
 const fs = require('fs');
 const puppeteer = require('puppeteer');
 const pages = require('./pages.json');
 
+const OUTPUT_JSON = 'src/routes/showcase/generated-pages.json';
 async function captureMultipleScreenshots() {
   if (!fs.existsSync('public/showcases')) {
     fs.mkdirSync('public/showcases');
@@ -25,9 +28,11 @@ async function captureMultipleScreenshots() {
 
     let existingJson = [];
     try {
-      const data = fs.readFileSync('src/routes/showcase/pages.json', 'utf8');
+      const data = fs.readFileSync(OUTPUT_JSON, 'utf8');
       existingJson = JSON.parse(data);
-    } catch (e) {}
+    } catch (e) {
+      // ignore
+    }
 
     for (const { url, size } of pages) {
       const existing = existingJson.find((item) => item.href === url);
@@ -101,7 +106,7 @@ async function captureMultipleScreenshots() {
     }
     console.log(`\n🎉 ${pages.length} screenshots captured.`);
   }
-  fs.writeFileSync('src/routes/showcase/pages.json', JSON.stringify(output, undefined, 2));
+  fs.writeFileSync(OUTPUT_JSON, JSON.stringify(output, undefined, 2));
 }
 
 async function getPagespeedData(url) {

@@ -132,5 +132,5 @@ export function getPagespeedInsightsUrl(url: string) {
   return `https://pagespeed.web.dev/report?url=${encodeURIComponent(url)}`;
 }
 export const head: DocumentHead = {
-  title: 'Qwik Presentations, Talks, Videos and Podcasts',
+  title: 'Qwik Sites Showcase',
 };

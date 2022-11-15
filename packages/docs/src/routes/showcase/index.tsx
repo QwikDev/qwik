@@ -109,6 +109,7 @@ export const Score = ({ speedScore, url }: { speedScore: number; url: string }) 
       style={{
         '--color': getLighthouseColorForScore(speedScore),
       }}
+      title="Mobile perf score from PageSpeed Insights"
       target="_blank"
       rel="noreferrer"
       href={getPagespeedInsightsUrl(url)}

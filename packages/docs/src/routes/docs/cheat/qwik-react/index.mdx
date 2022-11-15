@@ -235,7 +235,7 @@ export const DebouncedInput = component$(() => {
     debouncedValue: '',
   });
 
-  useWatch$(({ track }) => {
+  useClientEffect$(({ track }) => {
     track(() => state.value);
     const debounced = setTimeout(() => {
       state.debouncedValue = state.value;

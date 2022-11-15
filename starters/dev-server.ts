@@ -22,8 +22,9 @@ const appNames = readdirSync(startersAppsDir).filter(
   (p) => statSync(join(startersAppsDir, p)).isDirectory() && p !== 'base'
 );
 
-const qwikDistDir = join(__dirname, '..', 'packages', 'qwik', 'dist');
-const qwikCityDistDir = join(__dirname, '..', 'packages', 'qwik-city', 'lib');
+const packagesDir = resolve(__dirname, '..', 'packages');
+const qwikDistDir = join(packagesDir, 'qwik', 'dist');
+const qwikCityDistDir = join(packagesDir, 'qwik-city', 'lib');
 const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.mjs');
 const qwikCityDistVite = join(qwikCityDistDir, 'vite', 'index.mjs');
 const qwikCityMjs = join(qwikCityDistDir, 'index.qwik.mjs');
@@ -105,9 +106,12 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
       },
       load(id) {
         if (id.endsWith(qwikCityVirtualEntry)) {
-          return `import { qwikCity } from '@builder.io/qwik-city/middleware/node';
+          return `import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
 import render from '${resolve(appSrcDir, 'entry.ssr')}';
-const { router, notFound } = qwikCity(render, {
+import qwikCityPlan from '@qwik-city-plan';
+const { router, notFound } = createQwikCity({
+  render,
+  qwikCityPlan,
   base: '${baseUrl}build/',
 });
 export {
@@ -136,8 +140,8 @@ export {
     ...extra,
     resolve: {
       alias: {
-        '@builder.io/qwik': join(qwikDistDir),
-        '@builder.io/qwik-city': join(qwikCityDistDir),
+        '@builder.io/qwik': qwikDistDir,
+        '@builder.io/qwik-city': qwikCityDistDir,
       },
     },
   });
@@ -184,7 +188,6 @@ export {
     })
   );
 
-  console.log('appServerDir', appServerDir);
   return clientManifest!;
 }
 

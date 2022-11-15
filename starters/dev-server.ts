@@ -159,7 +159,7 @@ export {
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          vendorDirs: enableCityServer ? [qwikCityMjs] : [],
+          vendorRoots: enableCityServer ? [qwikCityMjs] : [],
           entryStrategy: {
             type: 'single',
           },

@@ -297,7 +297,7 @@ appNames.forEach((appName) => {
 
 app.get('/', startersHomepage);
 app.get('/favicon.ico', favicon);
-app.get('/*', handleApp);
+app.all('/*', handleApp);
 
 const server = app.listen(port, () => {
   console.log(`Starter Dir: ${startersDir}`);

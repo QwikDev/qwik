@@ -23,6 +23,14 @@ routingTest('matches paths with patterns', () => {
         param: 'thing',
       },
     },
+    {
+      basenamePath: '/',
+      pattern: '/stuff/[...param]',
+      path: '/stuff/thing/',
+      result: {
+        param: 'thing/',
+      },
+    },
   ];
 
   for (const t of tests) {

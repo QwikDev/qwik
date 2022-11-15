@@ -66,7 +66,7 @@ export const SiteLink = component$((props: { entry: MediaEntry }) => {
   return (
     <li class={props.entry.size}>
       <Score speedScore={props.entry.perf.score} url={props.entry.href}></Score>
-      <a class="card" href={props.entry.href} target="_blank" rel="noreferrer">
+      <a class="card" href={props.entry.href} target="_blank" rel="nofollow noreferrer">
         <img width="1440" height="980" loading="lazy" src={props.entry.imgSrc} aria-hidden="true" />
         <div class="backdrop">
           <div class="metrics">

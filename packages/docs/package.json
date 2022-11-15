@@ -15,6 +15,7 @@
     "fmt.check": "prettier --check .",
     "preview": "qwik build preview && vite preview --open",
     "serve": "wrangler pages dev ./dist",
+    "build.screenshots": "pnpm node scripts/showcase.js",
     "start": "pnpm dev"
   },
   "devDependencies": {
@@ -26,6 +27,7 @@
     "@builder.io/qwik-city": "0.0.122",
     "@builder.io/sdk-qwik": "0.0.34",
     "@docsearch/css": "3.3.0",
+    "@types/prismjs": "^1.26.0",
     "algoliasearch": "4.14.2",
     "autoprefixer": "10.4.13",
     "fflate": "0.7.4",
@@ -34,6 +36,7 @@
     "postcss": "8.4.19",
     "prism-themes": "1.9.0",
     "prismjs": "1.29.0",
+    "puppeteer": "^19.2.2",
     "tailwindcss": "3.2.4",
     "tsm": "2.2.2",
     "typescript": "4.8.4",

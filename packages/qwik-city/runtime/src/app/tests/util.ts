@@ -85,7 +85,7 @@ export async function linkNavigate(ctx: TestContext, linkSelector: string, respo
   }
 
   const href = await link.getAttribute('href')!;
-  console.log(`Navigate: ${href}`);
+  console.log(`       ${href}`);
 
   if (ctx.javaScriptEnabled) {
     // SPA

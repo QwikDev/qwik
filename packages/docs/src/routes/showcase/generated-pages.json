@@ -1,0 +1,242 @@
+[
+  {
+    "title": "Builder.io - Drag and drop Visual CMS",
+    "href": "https://www.builder.io/",
+    "imgSrc": "/showcases/www_builder_io_.webp",
+    "perf": {
+      "score": 0.97,
+      "fcpDisplay": "2.0 s",
+      "fcpScore": 0.84,
+      "lcpDisplay": "2.1 s",
+      "lcpScore": 0.95,
+      "ttiDisplay": "2.4 s",
+      "ttiScore": 0.98,
+      "ttiTime": 2430.028850551951
+    },
+    "size": "small"
+  },
+  {
+    "title": "La programación es el ahora y el futuro",
+    "href": "https://cursos.codigoencasa.com/node",
+    "imgSrc": "/showcases/cursos_codigoencasa_com_node.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "lcpDisplay": "0.9 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.1 s",
+      "ttiScore": 1,
+      "ttiTime": 1085.420796962091
+    },
+    "size": "small"
+  },
+  {
+    "title": "Vendure Qwik Storefront",
+    "href": "https://qwik-storefront.vendure.io/",
+    "imgSrc": "/showcases/qwik-storefront_vendure_io_.webp",
+    "perf": {
+      "score": 0.99,
+      "fcpDisplay": "1.0 s",
+      "fcpScore": 1,
+      "lcpDisplay": "2.0 s",
+      "lcpScore": 0.97,
+      "ttiDisplay": "1.2 s",
+      "ttiScore": 1,
+      "ttiTime": 1152
+    },
+    "size": "small"
+  },
+  {
+    "title": "IMG Models",
+    "href": "https://www.imgmodels.com/",
+    "imgSrc": "/showcases/www_imgmodels_com_.webp",
+    "perf": {
+      "score": 0.99,
+      "fcpDisplay": "1.7 s",
+      "fcpScore": 0.92,
+      "lcpDisplay": "1.7 s",
+      "lcpScore": 0.99,
+      "ttiDisplay": "1.7 s",
+      "ttiScore": 1,
+      "ttiTime": 1710
+    },
+    "size": "large"
+  },
+  {
+    "title": "Improve your focus, sleep, and working sessions - Soundy",
+    "href": "https://soundy.cloud/",
+    "imgSrc": "/showcases/soundy_cloud_.webp",
+    "perf": {
+      "score": 0.99,
+      "fcpDisplay": "1.8 s",
+      "fcpScore": 0.91,
+      "lcpDisplay": "1.8 s",
+      "lcpScore": 0.99,
+      "ttiDisplay": "1.8 s",
+      "ttiScore": 1,
+      "ttiTime": 1751.6493382728552
+    },
+    "size": "small"
+  },
+  {
+    "title": "La mejor forma de cambiar — Ibis",
+    "href": "https://usaibis.com/",
+    "imgSrc": "/showcases/usaibis_com_.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "1.0 s",
+      "fcpScore": 1,
+      "lcpDisplay": "2.1 s",
+      "lcpScore": 0.96,
+      "ttiDisplay": "2.2 s",
+      "ttiScore": 0.99,
+      "ttiTime": 2197.709
+    },
+    "size": "small"
+  },
+  {
+    "title": "Pasha | Gagnez et économisez sur tout",
+    "href": "https://pasha-app.com/",
+    "imgSrc": "/showcases/pasha-app_com_.webp",
+    "perf": {
+      "score": 0.94,
+      "fcpDisplay": "1.1 s",
+      "fcpScore": 1,
+      "lcpDisplay": "1.1 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.7 s",
+      "ttiScore": 1,
+      "ttiTime": 1691.5601293472332
+    },
+    "size": "small"
+  },
+  {
+    "title": "Private Training Package Builder - Oasis Digital",
+    "href": "https://pricing.oasisdigital.com/",
+    "imgSrc": "/showcases/pricing_oasisdigital_com_.webp",
+    "perf": {
+      "score": 0.91,
+      "fcpDisplay": "2.4 s",
+      "fcpScore": 0.7,
+      "lcpDisplay": "3.0 s",
+      "lcpScore": 0.78,
+      "ttiDisplay": "2.5 s",
+      "ttiScore": 0.98,
+      "ttiTime": 2484
+    },
+    "size": "small"
+  },
+  {
+    "title": "Pulsestax | Check the uptime and pulse of any website",
+    "href": "https://pulsestax.com/",
+    "imgSrc": "/showcases/pulsestax_com_.webp",
+    "perf": {
+      "score": 0.82,
+      "fcpDisplay": "2.6 s",
+      "fcpScore": 0.62,
+      "lcpDisplay": "3.1 s",
+      "lcpScore": 0.74,
+      "ttiDisplay": "2.7 s",
+      "ttiScore": 0.97,
+      "ttiTime": 2657
+    },
+    "size": "small"
+  },
+  {
+    "title": "Qwik City Movies",
+    "href": "https://qwik-city-movies-wm.netlify.app/",
+    "imgSrc": "/showcases/qwik-city-movies-wm_netlify_app_.webp",
+    "perf": {
+      "score": 0.99,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "lcpDisplay": "2.0 s",
+      "lcpScore": 0.97,
+      "ttiDisplay": "0.9 s",
+      "ttiScore": 1,
+      "ttiTime": 911.5
+    },
+    "size": "large"
+  },
+  {
+    "title": "Guillermo Peralta Scura",
+    "href": "https://goshi.dev/",
+    "imgSrc": "/showcases/goshi_dev_.webp",
+    "perf": {
+      "score": 1,
+      "fcpDisplay": "1.1 s",
+      "fcpScore": 0.99,
+      "lcpDisplay": "1.5 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.3 s",
+      "ttiScore": 1,
+      "ttiTime": 1305
+    },
+    "size": "small"
+  },
+  {
+    "title": "Jbnado - João Bernardo",
+    "href": "https://jbnado.dev/",
+    "imgSrc": "/showcases/jbnado_dev_.webp",
+    "perf": {
+      "score": 0.95,
+      "fcpDisplay": "2.3 s",
+      "fcpScore": 0.73,
+      "lcpDisplay": "2.3 s",
+      "lcpScore": 0.92,
+      "ttiDisplay": "2.3 s",
+      "ttiScore": 0.99,
+      "ttiTime": 2340
+    },
+    "size": "small"
+  },
+  {
+    "title": "The FREE Open-Source URL Shortener | Reduced.to",
+    "href": "https://reduced.to",
+    "imgSrc": "/showcases/reduced_to.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "1.7 s",
+      "fcpScore": 0.91,
+      "lcpDisplay": "2.0 s",
+      "lcpScore": 0.97,
+      "ttiDisplay": "2.2 s",
+      "ttiScore": 0.99,
+      "ttiTime": 2238.5
+    },
+    "size": "small"
+  },
+  {
+    "title": "Sanyam Jain",
+    "href": "https://sanyamjainqwik.vercel.app/",
+    "imgSrc": "/showcases/sanyamjainqwik_vercel_app_.webp",
+    "perf": {
+      "score": 0.97,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "lcpDisplay": "0.9 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.3 s",
+      "ttiScore": 1,
+      "ttiTime": 1264.509
+    },
+    "size": "small"
+  },
+  {
+    "title": "Framework reimagined for the edge! - Qwik",
+    "href": "https://qwik.builder.io",
+    "imgSrc": "/showcases/qwik_builder_io.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "1.1 s",
+      "fcpScore": 0.99,
+      "lcpDisplay": "2.3 s",
+      "lcpScore": 0.93,
+      "ttiDisplay": "1.3 s",
+      "ttiScore": 1,
+      "ttiTime": 1295.1120874307753
+    },
+    "size": "small"
+  }
+]

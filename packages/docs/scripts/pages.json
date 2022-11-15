@@ -1,17 +1,69 @@
 [
-  { "url": "https://www.builder.io/", "size": "small" },
-  { "url": "https://cursos.codigoencasa.com/node", "size": "small" },
-  { "url": "https://qwik-storefront.vendure.io/", "size": "small" },
-  { "url": "https://www.imgmodels.com/", "size": "large" },
-  { "url": "https://soundy.cloud/", "size": "small" },
-  { "url": "https://usaibis.com/", "size": "small" },
-  { "url": "https://pasha-app.com/", "size": "small" },
-  { "url": "https://pricing.oasisdigital.com/", "size": "small" },
-  { "url": "https://pulsestax.com/", "size": "small" },
-  { "url": "https://qwik-city-movies-wm.netlify.app/", "size": "large" },
-  { "url": "https://goshi.dev/", "size": "small" },
-  { "url": "https://jbnado.dev/", "size": "small" },
-  { "url": "https://reduced.to", "size": "small" },
-  { "url": "https://sanyamjainqwik.vercel.app/", "size": "small" },
-  { "url": "https://qwik.builder.io", "size": "small" }
+  {
+    "href": "https://www.builder.io/",
+    "tags": "saas"
+  },
+  {
+    "href": "https://cursos.codigoencasa.com/node",
+    "tags": "learning"
+  },
+  {
+    "href": "https://qwik-storefront.vendure.io/",
+    "tags": "ecommerce"
+  },
+  {
+    "href": "https://www.imgmodels.com/",
+    "size": "large",
+    "tags": "ecommerce"
+  },
+  {
+    "href": "https://soundy.cloud/",
+    "tags": "saas"
+  },
+  {
+    "href": "https://usaibis.com/",
+    "tags": "saas"
+  },
+  {
+    "href": "https://pasha-app.com/",
+    "tags": "saas"
+  },
+  {
+    "href": "https://pricing.oasisdigital.com/",
+    "tags": "saas"
+  },
+  {
+    "href": "https://www.burgersonfleek.ca/",
+    "tags": "site"
+  },
+  {
+    "href": "https://goshi.dev/",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://qwik-city-movies-wm.netlify.app/",
+    "size": "large",
+    "tags": "app"
+  },
+  {
+    "href": "https://jbnado.dev/",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://reduced.to",
+    "tags": "app"
+  },
+  {
+    "href": "https://sanyamjainqwik.vercel.app/",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://qwik.builder.io",
+    "tags": "site",
+    "repo": "https://github.com/BuilderIO/qwik/tree/main/packages/docs"
+  },
+  {
+    "href": "https://pulsestax.com/",
+    "tags": "saas"
+  }
 ]

@@ -1,19 +1,19 @@
 [
   {
     "title": "Builder.io - Drag and drop Visual CMS",
-    "href": "https://www.builder.io/",
     "imgSrc": "/showcases/www_builder_io_.webp",
     "perf": {
-      "score": 0.97,
+      "score": 0.96,
       "fcpDisplay": "2.0 s",
-      "fcpScore": 0.84,
-      "lcpDisplay": "2.1 s",
-      "lcpScore": 0.95,
+      "fcpScore": 0.85,
+      "lcpDisplay": "2.4 s",
+      "lcpScore": 0.91,
       "ttiDisplay": "2.4 s",
       "ttiScore": 0.98,
-      "ttiTime": 2430.028850551951
+      "ttiTime": 2424.2056589872454
     },
-    "size": "small"
+    "href": "https://www.builder.io/",
+    "tags": "saas"
   },
   {
     "title": "La programación es el ahora y el futuro",
@@ -29,7 +29,7 @@
       "ttiScore": 1,
       "ttiTime": 1085.420796962091
     },
-    "size": "small"
+    "tags": "learning"
   },
   {
     "title": "Vendure Qwik Storefront",
@@ -45,7 +45,7 @@
       "ttiScore": 1,
       "ttiTime": 1152
     },
-    "size": "small"
+    "tags": "ecommerce"
   },
   {
     "title": "IMG Models",
@@ -61,7 +61,8 @@
       "ttiScore": 1,
       "ttiTime": 1710
     },
-    "size": "large"
+    "size": "large",
+    "tags": "ecommerce"
   },
   {
     "title": "Improve your focus, sleep, and working sessions - Soundy",
@@ -77,7 +78,7 @@
       "ttiScore": 1,
       "ttiTime": 1751.6493382728552
     },
-    "size": "small"
+    "tags": "saas"
   },
   {
     "title": "La mejor forma de cambiar — Ibis",
@@ -93,7 +94,7 @@
       "ttiScore": 0.99,
       "ttiTime": 2197.709
     },
-    "size": "small"
+    "tags": "saas"
   },
   {
     "title": "Pasha | Gagnez et économisez sur tout",
@@ -109,7 +110,7 @@
       "ttiScore": 1,
       "ttiTime": 1691.5601293472332
     },
-    "size": "small"
+    "tags": "saas"
   },
   {
     "title": "Private Training Package Builder - Oasis Digital",
@@ -125,39 +126,23 @@
       "ttiScore": 0.98,
       "ttiTime": 2484
     },
-    "size": "small"
+    "tags": "saas"
   },
   {
-    "title": "Pulsestax | Check the uptime and pulse of any website",
-    "href": "https://pulsestax.com/",
-    "imgSrc": "/showcases/pulsestax_com_.webp",
+    "title": "Burgers on Fleek - Home",
+    "imgSrc": "/showcases/www_burgersonfleek_ca_.webp",
     "perf": {
-      "score": 0.82,
-      "fcpDisplay": "2.6 s",
-      "fcpScore": 0.62,
-      "lcpDisplay": "3.1 s",
-      "lcpScore": 0.74,
-      "ttiDisplay": "2.7 s",
-      "ttiScore": 0.97,
-      "ttiTime": 2657
-    },
-    "size": "small"
-  },
-  {
-    "title": "Qwik City Movies",
-    "href": "https://qwik-city-movies-wm.netlify.app/",
-    "imgSrc": "/showcases/qwik-city-movies-wm_netlify_app_.webp",
-    "perf": {
-      "score": 0.99,
-      "fcpDisplay": "0.9 s",
+      "score": 0.95,
+      "fcpDisplay": "0.8 s",
       "fcpScore": 1,
-      "lcpDisplay": "2.0 s",
-      "lcpScore": 0.97,
-      "ttiDisplay": "0.9 s",
+      "lcpDisplay": "0.8 s",
+      "lcpScore": 1,
+      "ttiDisplay": "0.8 s",
       "ttiScore": 1,
-      "ttiTime": 911.5
+      "ttiTime": 836
     },
-    "size": "large"
+    "href": "https://www.burgersonfleek.ca/",
+    "tags": "site"
   },
   {
     "title": "Guillermo Peralta Scura",
@@ -173,7 +158,24 @@
       "ttiScore": 1,
       "ttiTime": 1305
     },
-    "size": "small"
+    "tags": "portfolio"
+  },
+  {
+    "title": "Qwik City Movies",
+    "href": "https://qwik-city-movies-wm.netlify.app/",
+    "imgSrc": "/showcases/qwik-city-movies-wm_netlify_app_.webp",
+    "perf": {
+      "score": 0.99,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "lcpDisplay": "2.0 s",
+      "lcpScore": 0.97,
+      "ttiDisplay": "0.9 s",
+      "ttiScore": 1,
+      "ttiTime": 911.5
+    },
+    "size": "large",
+    "tags": "app"
   },
   {
     "title": "Jbnado - João Bernardo",
@@ -189,7 +191,7 @@
       "ttiScore": 0.99,
       "ttiTime": 2340
     },
-    "size": "small"
+    "tags": "portfolio"
   },
   {
     "title": "The FREE Open-Source URL Shortener | Reduced.to",
@@ -205,7 +207,7 @@
       "ttiScore": 0.99,
       "ttiTime": 2238.5
     },
-    "size": "small"
+    "tags": "app"
   },
   {
     "title": "Sanyam Jain",
@@ -221,7 +223,7 @@
       "ttiScore": 1,
       "ttiTime": 1264.509
     },
-    "size": "small"
+    "tags": "portfolio"
   },
   {
     "title": "Framework reimagined for the edge! - Qwik",
@@ -237,6 +239,23 @@
       "ttiScore": 1,
       "ttiTime": 1295.1120874307753
     },
-    "size": "small"
+    "tags": "site",
+    "repo": "https://github.com/BuilderIO/qwik/tree/main/packages/docs"
+  },
+  {
+    "title": "Pulsestax | Check the uptime and pulse of any website",
+    "href": "https://pulsestax.com/",
+    "imgSrc": "/showcases/pulsestax_com_.webp",
+    "perf": {
+      "score": 0.82,
+      "fcpDisplay": "2.6 s",
+      "fcpScore": 0.62,
+      "lcpDisplay": "3.1 s",
+      "lcpScore": 0.74,
+      "ttiDisplay": "2.7 s",
+      "ttiScore": 0.97,
+      "ttiTime": 2657
+    },
+    "tags": "saas"
   }
 ]

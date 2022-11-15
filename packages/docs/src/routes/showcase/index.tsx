@@ -44,6 +44,20 @@ export default component$(() => {
           </a>
         </p>
       </section>
+      <section>
+        <h2>How are the scores calculated?</h2>
+        <p>
+          The scores are calculated using the{' '}
+          <a href="https://developers.google.com/speed/docs/insights/v5/get-started">
+            PageSpeed Insights API
+          </a>
+          , analyzed with the{' '}
+          <a href="https://developers.google.com/speed/docs/insights/rest/v5/pagespeedapi/runpagespeed#strategy">
+            MOBILE strategy
+          </a>
+          .
+        </p>
+      </section>
     </article>
   );
 });
@@ -95,6 +109,7 @@ export const Score = ({ speedScore, url }: { speedScore: number; url: string }) 
       style={{
         '--color': getLighthouseColorForScore(speedScore),
       }}
+      title="Mobile perf score from PageSpeed Insights"
       target="_blank"
       rel="noreferrer"
       href={getPagespeedInsightsUrl(url)}
@@ -131,6 +146,7 @@ export function getLighthouseColorForScore(score: number) {
 export function getPagespeedInsightsUrl(url: string) {
   return `https://pagespeed.web.dev/report?url=${encodeURIComponent(url)}`;
 }
+
 export const head: DocumentHead = {
-  title: 'Qwik Presentations, Talks, Videos and Podcasts',
+  title: 'Qwik Sites Showcase',
 };

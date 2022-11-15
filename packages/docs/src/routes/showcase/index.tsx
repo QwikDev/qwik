@@ -44,6 +44,20 @@ export default component$(() => {
           </a>
         </p>
       </section>
+      <section>
+        <h2>How are the scores calculated?</h2>
+        <p>
+          The scores are calculated using the{' '}
+          <a href="https://developers.google.com/speed/docs/insights/v5/get-started">
+            PageSpeed Insights API
+          </a>
+          , analyzed with the{' '}
+          <a href="https://developers.google.com/speed/docs/insights/rest/v5/pagespeedapi/runpagespeed#strategy">
+            MOBILE strategy
+          </a>
+          .
+        </p>
+      </section>
     </article>
   );
 });

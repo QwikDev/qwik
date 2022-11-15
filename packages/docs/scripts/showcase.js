@@ -17,14 +17,7 @@ async function captureMultipleScreenshots() {
     browser = await puppeteer.launch({
       headless: true,
     });
-    // create new page object
-    const page = await browser.newPage();
-
-    // set viewport width and height
-    await page.setViewport({
-      width: 1440,
-      height: 980,
-    });
+    const incognito = await browser.createIncognitoBrowserContext();
 
     let existingJson = [];
     try {
@@ -34,69 +27,94 @@ async function captureMultipleScreenshots() {
       // ignore
     }
 
-    for (const page of pages) {
-      const href = page.href;
-      const existing = existingJson.find((item) => item.href === href);
-      if (existing) {
-        console.log('Skipping page', href);
+    for (const pageData of pages) {
+      let page;
+      try {
+        page = await incognito.newPage();
 
-        output.push({
-          ...existing,
-          ...page,
+        // set viewport width and height
+        await page.setViewport({
+          width: 1440,
+          height: 980,
         });
-        continue;
+
+        const href = pageData.href;
+        const existing = existingJson.find((item) => item.href === href);
+        if (existing) {
+          console.log('Skipping page', href);
+
+          output.push({
+            ...existing,
+            ...pageData,
+          });
+          continue;
+        }
+        console.log('Opening page', href);
+        await page.goto(href);
+
+        const title = await page.title();
+        const html = await page.$('html');
+        const hasContainer = await html.evaluate((node) => node.hasAttribute('q:container'));
+        if (!hasContainer) {
+          console.warn('❌ Not Qwik Site', href);
+          continue;
+        }
+        const filename = href
+          .replace('https://', '')
+          .replace('/', '_')
+          .replace('.', '_')
+          .replace('.', '_')
+          .toLowerCase();
+
+        const path = `public/showcases/${filename}.webp`;
+        const [pagespeedOutput, _] = await Promise.all([
+          getPagespeedData(href),
+          page.screenshot({
+            path: path,
+            type: 'webp',
+            quality: 50,
+          }),
+        ]);
+        const fcpDisplay =
+          pagespeedOutput.lighthouseResult?.audits?.['first-contentful-paint']?.displayValue;
+        const fcpScore =
+          pagespeedOutput?.lighthouseResult?.audits?.['first-contentful-paint']?.score;
+
+        const lcpDisplay =
+          pagespeedOutput?.lighthouseResult?.audits?.['largest-contentful-paint']?.displayValue;
+        const lcpScore =
+          pagespeedOutput?.lighthouseResult?.audits?.['largest-contentful-paint']?.score;
+
+        const ttiDisplay = pagespeedOutput?.lighthouseResult?.audits?.interactive?.displayValue;
+        const ttiScore = pagespeedOutput?.lighthouseResult?.audits?.interactive?.score;
+
+        const ttiTime = pagespeedOutput?.lighthouseResult?.audits?.interactive?.numericValue;
+
+        const score = pagespeedOutput?.lighthouseResult?.categories?.performance?.score;
+        const perf = {
+          score,
+          fcpDisplay,
+          fcpScore,
+          lcpDisplay,
+          lcpScore,
+          ttiDisplay,
+          ttiScore,
+          ttiTime,
+        };
+        output.push({
+          title,
+          imgSrc: `/showcases/${filename}.webp`,
+          perf,
+          ...pageData,
+        });
+        console.log(`✅ ${title} - (${href})`);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (page) {
+          await page.close();
+        }
       }
-      console.log('Opening page', href);
-      await page.goto(href);
-      const title = await page.title();
-      const filename = href
-        .replace('https://', '')
-        .replace('/', '_')
-        .replace('.', '_')
-        .replace('.', '_')
-        .toLowerCase();
-
-      const path = `public/showcases/${filename}.webp`;
-      const [pagespeedOutput, _] = await Promise.all([
-        getPagespeedData(href),
-        page.screenshot({
-          path: path,
-          type: 'webp',
-          quality: 50,
-        }),
-      ]);
-      const fcpDisplay =
-        pagespeedOutput.lighthouseResult?.audits?.['first-contentful-paint']?.displayValue;
-      const fcpScore = pagespeedOutput?.lighthouseResult?.audits?.['first-contentful-paint']?.score;
-
-      const lcpDisplay =
-        pagespeedOutput?.lighthouseResult?.audits?.['largest-contentful-paint']?.displayValue;
-      const lcpScore =
-        pagespeedOutput?.lighthouseResult?.audits?.['largest-contentful-paint']?.score;
-
-      const ttiDisplay = pagespeedOutput?.lighthouseResult?.audits?.interactive?.displayValue;
-      const ttiScore = pagespeedOutput?.lighthouseResult?.audits?.interactive?.score;
-
-      const ttiTime = pagespeedOutput?.lighthouseResult?.audits?.interactive?.numericValue;
-
-      const score = pagespeedOutput?.lighthouseResult?.categories?.performance?.score;
-      const perf = {
-        score,
-        fcpDisplay,
-        fcpScore,
-        lcpDisplay,
-        lcpScore,
-        ttiDisplay,
-        ttiScore,
-        ttiTime,
-      };
-      output.push({
-        title,
-        imgSrc: `/showcases/${filename}.webp`,
-        perf,
-        ...page,
-      });
-      console.log(`✅ ${title} - (${href})`);
     }
   } catch (err) {
     console.log(`❌ Error: ${err.message}`);

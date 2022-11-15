@@ -75,7 +75,7 @@ The first argument of any function that ends with `$` have certain restrictions:
 **Invalid**
 ```tsx
 const foo = 'foo';
-foo$({ value: foo }) // it contains a local identifier "bar"
+foo$({ value: foo }) // it contains a local identifier "foo"
 ```
 
 **Invalid**
@@ -87,7 +87,7 @@ foo$(`Hello, ${bar}`) // it contains a local identifier "bar"
 **Invalid**
 ```tsx
 const count = 0;
-foo$(count + 1) // it contains a local identifier "bar"
+foo$(count + 1) // it contains a local identifier "count"
 ```
 
 **Valid**

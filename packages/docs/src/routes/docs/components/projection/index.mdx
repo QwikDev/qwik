@@ -69,7 +69,7 @@ export const Button = component$(() => {
 });
 ```
 
-Now, when consuming the `<Button>` component, we can pass children and specify in which slot they should be placed, using the `q:slot`` attribute:
+Now, when consuming the `<Button>` component, we can pass children and specify in which slot they should be placed, using the `q:slot` attribute:
 
 ```tsx
 <Button>
@@ -92,8 +92,8 @@ The result will be:
   <!-- Slot (default) -->
   <div>Default</div>
   <div>
-    <!-- Slot name=start -->
-    <div q:slot="end">Start</div>
+    <!-- Slot name=end -->
+    <div q:slot="end">End</div>
     <icon q:slot="end"></icon>
   </div>
 </button>

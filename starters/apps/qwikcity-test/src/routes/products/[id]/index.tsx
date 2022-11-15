@@ -95,7 +95,7 @@ export const onGet: RequestHandler<EndpointData> = async ({ params, response }) 
 
   if (params.id === 'shirt') {
     // Redirect, which will skip any rendering and the server will immediately redirect
-    throw response.redirect('/products/tshirt');
+    throw response.redirect('/qwikcity-test/products/tshirt');
   }
 
   const productPrice = PRODUCT_DB[params.id];

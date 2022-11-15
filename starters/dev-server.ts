@@ -128,7 +128,6 @@ export {
     plugins.push(
       qwikCityVite.qwikCity({
         basePathname: '/qwikcity-test/',
-        trailingSlash: true,
       })
     );
   }

@@ -6,5 +6,5 @@ import type { RequestHandler } from '@builder.io/qwik-city';
 
 export const onGet: RequestHandler = async ({ response, cookie }) => {
   cookie.delete('qwikcity-auth-token');
-  throw response.redirect('/sign-in');
+  throw response.redirect('/qwikcity-test/sign-in');
 };

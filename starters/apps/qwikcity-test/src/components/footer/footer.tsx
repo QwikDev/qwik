@@ -27,7 +27,7 @@ export default component$(() => {
           </Link>
         </li>
         <li>
-          <Link class="footer-home" href="/qwikcity-test/">
+          <Link class="footer-home" href="/qwikcity-test">
             Home
           </Link>
         </li>

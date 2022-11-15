@@ -7,7 +7,7 @@
     "displayName": "Documentation site (QwikCity)",
     "qwikCity": true,
     "docs": [
-      "https://qwik.builder.io/docs/overview/"
+      "https://qwik.builder.io/docs/getting-started/"
     ]
   }
 }

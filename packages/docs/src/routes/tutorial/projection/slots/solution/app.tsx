@@ -1,6 +1,6 @@
 import { component$, Slot, useStore } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   console.log('Render: <App>');
   return (
     <Collapsable>

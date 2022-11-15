@@ -8,10 +8,11 @@
   },
   "__qwik__": {
     "displayName": "Integration: Vitest (Unit Test)",
-    "priority": -10,
+    "priority": -15,
     "viteConfig": {},
     "docs": [
-      "https://vitest.dev/guide/"
+      "https://vitest.dev/guide/",
+      "https://qwik.builder.io/qwikcity/integrations/vitest/"
     ]
   }
 }

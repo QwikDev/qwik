@@ -108,8 +108,8 @@ async function mergeReadmes(fileUpdates: FsUpdates, srcPath: string, destPath: s
   }
 
   const pkgManager = getPackageManager();
-  if (pkgManager === 'yarn') {
-    destContent = destContent.replace(/npm run/g, 'yarn');
+  if (pkgManager !== 'npm') {
+    destContent = destContent.replace(/npm run/g, pkgManager);
   }
 
   fileUpdates.files.push({

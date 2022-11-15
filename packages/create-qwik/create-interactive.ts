@@ -137,18 +137,28 @@ export async function runCreateInteractiveCli() {
 
   const successfulDepsInstall = await backgroundInstall.complete(runInstall, result.outDir);
 
-  logCreateAppResult(result, successfulDepsInstall);
+  logCreateAppResult(pkgManager, result, successfulDepsInstall);
 
   return result;
 }
 
 function checkNodeVersion() {
   const version = process.version;
-  const majorVersion = Number(version.replace('v', '').split('.')[0]);
-  if (majorVersion < 16) {
+  const [majorVersion, minorVersion] = version.replace('v', '').split('.');
+  if (Number(majorVersion) < 16) {
     console.error(
-      color.red(`Qwik requires Node.js 16 or higher. You are currently running Node.js ${version}.`)
+      color.red(
+        `Qwik requires Node.js 16.8 or higher. You are currently running Node.js ${version}.`
+      )
     );
     process.exit(1);
+  } else if (Number(majorVersion) === 16) {
+    if (Number(minorVersion) < 8) {
+      console.warn(
+        color.yellow(
+          `Node.js 16.8 or higher is recommended. You are currently running Node.js ${version}.`
+        )
+      );
+    }
   }
 }

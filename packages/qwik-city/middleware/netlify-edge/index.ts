@@ -3,8 +3,9 @@ import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-
 import { notFoundHandler, requestHandler } from '../request-handler';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik';
+import type { RequestHandler } from '@builder.io/qwik-city';
 import qwikCityPlan from '@qwik-city-plan';
-import type { RequestHandler } from '~qwik-city-runtime';
+import { mergeHeadersCookies } from '../request-handler/cookie';
 
 // @builder.io/qwik-city/middleware/netlify-edge
 
@@ -24,13 +25,15 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
         locale: undefined,
         url,
         request,
-        response: (status, headers, body) => {
+        response: (status, headers, cookies, body) => {
           return new Promise<Response>((resolve) => {
             let flushedHeaders = false;
             const { readable, writable } = new TransformStream();
             const writer = writable.getWriter();
-
-            const response = new Response(readable, { status, headers });
+            const response = new Response(readable, {
+              status,
+              headers: mergeHeadersCookies(headers, cookies),
+            });
 
             body({
               write: (chunk) => {

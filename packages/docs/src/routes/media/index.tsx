@@ -204,7 +204,7 @@ export default component$(() => {
       <Section id="resources" listStyle="bullets" />
 
       <section>
-        <h2>Add a new site</h2>
+        <h2>Add Site</h2>
         <p>This page missing any great site or in need of an update?</p>
         <p>
           <a

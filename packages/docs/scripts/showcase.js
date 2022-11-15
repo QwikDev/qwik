@@ -46,6 +46,8 @@ async function captureMultipleScreenshots() {
           output.push({
             ...existing,
             ...pageData,
+            tags: pageData.tags,
+            size: pageData.size,
           });
           continue;
         }
@@ -124,7 +126,7 @@ async function captureMultipleScreenshots() {
     }
     console.log(`\n🎉 ${pages.length} screenshots captured.`);
   }
-  fs.writeFileSync(OUTPUT_JSON, JSON.stringify(output, undefined, 2));
+  fs.writeFileSync(OUTPUT_JSON, JSON.stringify(output, undefined, 2) + '\n');
 }
 
 async function getPagespeedData(url) {

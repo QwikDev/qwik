@@ -1,7 +1,7 @@
 import { test } from 'uvu';
 import { equal } from 'uvu/assert';
 import { getPathnameForDynamicRoute, isSameOriginUrl, normalizePathname } from './pathname';
-import type { RouteParams } from '../runtime/src/library/types';
+import type { RouteParams } from '../runtime/src/types';
 import { parseRoutePathname } from '../buildtime/routing/parse-pathname';
 
 test('isSameOriginUrl', () => {

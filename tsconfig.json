@@ -17,10 +17,6 @@
     "baseUrl": ".",
     "noUnusedLocals": true,
     "paths": {
-      "~qwik-city-runtime": ["packages/qwik-city/runtime/src/index.ts"],
-      "~qwik-city-runtime-service-worker": [
-        "packages/qwik-city/runtime/src/library/service-worker/index.ts"
-      ],
       "@builder.io/qwik": ["packages/qwik/src/core/index.ts"],
       "@builder.io/qwik/build": ["packages/qwik/src/build/index.ts"],
       "@builder.io/qwik/jsx-runtime": ["packages/qwik/src/jsx-runtime/index.ts"],
@@ -31,7 +27,7 @@
       "@builder.io/qwik-react": ["packages/qwik-react/src/index.ts"],
       "@builder.io/qwik-city": ["packages/qwik-city/runtime/src/index.ts"],
       "@builder.io/qwik-city/service-worker": [
-        "packages/qwik-city/runtime/src/library/service-worker/index.ts"
+        "packages/qwik-city/runtime/src/service-worker/index.ts"
       ],
       "@builder.io/qwik-city/adaptors/cloudflare-pages/vite": [
         "packages/qwik-city/adaptors/cloudflare-pages/vite/index.ts"
@@ -55,11 +51,11 @@
       "@playground-data": ["packages/docs/src/routes/playground/playground-data.ts"],
       "@tutorial-data": ["packages/docs/src/routes/tutorial/tutorial-data.ts"],
       "@qwik-client-manifest": ["packages/qwik/src/server/server-modules.d.ts"],
-      "@qwik-city-plan": ["packages/qwik-city/runtime/src/library/qwik-city-plan.ts"],
+      "@qwik-city-plan": ["packages/qwik-city/runtime/src/qwik-city-plan.ts"],
       "@qwik-city-sw-register-build": [
         "packages/qwik-city/buildtime/runtime-generation/sw-register-build.ts"
       ],
-      "@qwik-city-sw-register": ["packages/qwik-city/runtime/src/library/sw-register-runtime.ts"],
+      "@qwik-city-sw-register": ["packages/qwik-city/runtime/src/sw-register-runtime.ts"],
       "create-qwik": ["packages/create-qwik/api/index.ts"]
     },
     "types": ["node", "vite/client"],
@@ -77,7 +73,8 @@
     "packages/qwik-city",
     "packages/qwik-react/src",
     "scripts",
-    "starters/apps/e2e"
+    "starters/apps/e2e",
+    "starters/apps/qwikcity-test/**/*"
   ],
   "exclude": [
     "packages/create-qwik/dist",

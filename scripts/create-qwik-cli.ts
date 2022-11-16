@@ -206,7 +206,7 @@ async function updatePackageJson(config: BuildConfig, destDir: string) {
 }
 
 function isValidFsItem(fsItemName: string) {
-  return !IGNORE[fsItemName] && !fsItemName.includes('.prod') && !fsItemName.includes('.test');
+  return !IGNORE[fsItemName] && !fsItemName.includes('.prod') && !fsItemName.endsWith('test');
 }
 
 const IGNORE: { [path: string]: boolean } = {

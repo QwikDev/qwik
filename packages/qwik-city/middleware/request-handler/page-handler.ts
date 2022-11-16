@@ -6,11 +6,7 @@ import type {
   RenderResult,
   RenderToStringResult,
 } from '@builder.io/qwik/server';
-import type {
-  ClientPageData,
-  QwikCityEnvData,
-  QwikCityMode,
-} from '../../runtime/src/library/types';
+import type { ClientPageData, QwikCityEnvData, QwikCityMode } from '../../runtime/src/types';
 import { getErrorHtml } from './error-handler';
 import { HttpStatus } from './http-status-codes';
 import type { QwikCityRequestContext, UserResponseContext } from './types';

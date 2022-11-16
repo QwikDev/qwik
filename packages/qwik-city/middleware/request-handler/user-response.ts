@@ -6,7 +6,7 @@ import type {
   ResponseContext,
   RouteModule,
   RouteParams,
-} from '../../runtime/src/library/types';
+} from '../../runtime/src/types';
 import type { QwikCityRequestContext, UserResponseContext } from './types';
 import { HttpStatus } from './http-status-codes';
 import { isRedirectStatus, RedirectResponse } from './redirect-handler';

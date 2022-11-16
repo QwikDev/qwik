@@ -20,15 +20,15 @@ export type {
   RouteData,
   RouteLocation,
   StaticGenerateHandler,
-} from './library/types';
+} from './types';
 
-export { RouterOutlet, Content } from './library/router-outlet-component';
-export { Html, QwikCity } from './library/qwik-city-component';
-export { Link } from './library/link-component';
-export type { LinkProps } from './library/link-component';
-export { ServiceWorkerRegister } from './library/sw-component';
-export { useDocumentHead, useLocation, useContent, useNavigate } from './library/use-functions';
-export { useEndpoint } from './library/use-endpoint';
+export { RouterOutlet, Content } from './router-outlet-component';
+export { Html, QwikCity } from './qwik-city-component';
+export { Link } from './link-component';
+export type { LinkProps } from './link-component';
+export { ServiceWorkerRegister } from './sw-component';
+export { useDocumentHead, useLocation, useContent, useNavigate } from './use-functions';
+export { useEndpoint } from './use-endpoint';
 
 // @deprecated
-export type { EndpointHandler } from './library/types';
+export type { EndpointHandler } from './types';

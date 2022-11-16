@@ -5,7 +5,7 @@ import {
   useStyles$,
   _wrapSignal,
 } from '@builder.io/qwik';
-import { QwikCity, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
+import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
 import { GlobalStore, SiteStore } from './context';
@@ -23,7 +23,7 @@ export default component$(() => {
   useContextProvider(GlobalStore, store);
 
   return (
-    <QwikCity>
+    <QwikCityProvider>
       <head>
         <meta charSet="utf-8" />
         <RouterHead />
@@ -38,6 +38,6 @@ export default component$(() => {
         <ServiceWorkerRegister />
         <RealMetricsOptimization builderApiKey={BUILDER_PUBLIC_API_KEY} />
       </body>
-    </QwikCity>
+    </QwikCityProvider>
   );
 });

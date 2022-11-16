@@ -40,12 +40,12 @@ export interface QwikCityProps {
    * The QwikCity component must have only two direct children: `<head>` and `<body>`, like the following example:
    *
    * ```tsx
-   * <QwikCity>
+   * <QwikCityProvider>
    *   <head>
    *     <meta charSet="utf-8" />
    *   </head>
    *   <body lang="en"></body>
-   * </QwikCity>
+   * </QwikCityProvider>
    * ```
    */
   children?: [JSXNode, JSXNode];

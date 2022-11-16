@@ -102,16 +102,6 @@ jobs:
           path: packages/create-qwik/dist/
           if-no-files-found: error
 
-      - name: Print QwikCity Dist Build
-        run: tree packages/qwik-city/lib/
-
-      - name: Upload Package Build Artifacts
-        uses: actions/upload-artifact@master
-        with:
-          name: dist-dev-builder-io-qwik-city
-          path: packages/qwik-city/lib/
-          if-no-files-found: error
-
       - name: Build Eslint rules
         run: pnpm tsm scripts/index.ts --eslint
 
@@ -307,8 +297,6 @@ jobs:
           path: packages/qwik/dist/bindings/*.node
           if-no-files-found: error
 
-  ############ BUILD  ############
-  build-package:
     name: Build Package
     runs-on: ubuntu-latest
     steps:

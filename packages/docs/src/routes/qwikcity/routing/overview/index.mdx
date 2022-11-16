@@ -78,7 +78,7 @@ The `other_component.tsx` file can be imported and used inside of `path/index.ts
 
 To return HTML for a specific route you will need to implement a component. For `.tsx` files the component must be exported as `default`. Alternatively, you can use `.mdx` extension discussed [later](../../../qwikcity/content/mdx/index.mdx).
 
-```typescript
+```tsx
 export default component$(() => {
   return <H1>Hello World!</H1>;
 });
@@ -88,7 +88,7 @@ export default component$(() => {
 
 Qwik City stores route information in files on disk. This is great for developer ergonomics but not useful for creating bundles and chunks. Additionally, in some environments - such as edge functions - there is no file system that can be accessed. For this reason, it is necessary to serialize the route information into a single file. This is done through the `@qwik-city-plan` import.
 
-```typescript
+```tsx
 import cityPlan from '@qwik-city-plan';
 ```
 
@@ -98,8 +98,8 @@ The `@qwik-city-plan` import is synthetic, meaning that it is created as part of
 
 Qwik City also supports:
 
-- [Route Parameters](../../../qwikcity/routing/route-parameters/index.mdx)
-- [Nested layouts](../../../qwikcity/layout/overview/index.mdx)
-- [Menus](../../../qwikcity/content/menu/index.mdx)
+- [Route Parameters](/qwikcity/routing/route-parameters/index.mdx)
+- [Nested layouts](/qwikcity/layout/overview/index.mdx)
+- [Menus](/qwikcity/content/menu/index.mdx)
 
 These are discussed later.

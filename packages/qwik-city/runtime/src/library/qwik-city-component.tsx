@@ -54,7 +54,7 @@ export interface QwikCityProps {
 /**
  * @alpha
  */
-export const QwikCity = component$<QwikCityProps>(() => {
+export const QwikCityProvider = component$<QwikCityProps>(() => {
   const env = useQwikCityEnv();
   if (!env?.params) {
     throw new Error(`Missing Qwik City Env Data`);
@@ -140,6 +140,12 @@ export const QwikCity = component$<QwikCityProps>(() => {
 
   return <Slot />;
 });
+
+/**
+ * @alpha
+ * @deprecated - The "QwikCity" component has been renamed to "QwikCityProvider".
+ */
+export const QwikCity = QwikCityProvider;
 
 /**
  * @alpha

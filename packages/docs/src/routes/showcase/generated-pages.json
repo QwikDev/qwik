@@ -257,5 +257,21 @@
       "ttiTime": 2657
     },
     "tags": "saas"
+  },
+  {
+    "title": "Forge Qwik tools | Welcome",
+    "imgSrc": "/showcases/qwik_forgemytech_com_.webp",
+    "perf": {
+      "score": 0.35,
+      "fcpDisplay": "2.5 s",
+      "fcpScore": 0.68,
+      "lcpDisplay": "4.0 s",
+      "lcpScore": 0.5,
+      "ttiDisplay": "11.6 s",
+      "ttiScore": 0.18,
+      "ttiTime": 11619.8162116208
+    },
+    "href": "https://qwik.forgemytech.com/",
+    "tags": "learning"
   }
 ]

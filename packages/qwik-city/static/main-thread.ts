@@ -1,4 +1,4 @@
-import type { PageModule, QwikCityPlan, RouteParams } from '../runtime/src/library/types';
+import type { PageModule, QwikCityPlan, RouteParams } from '../runtime/src/types';
 import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from './types';
 import { msToString } from '../utils/format';
 import { getPathnameForDynamicRoute } from '../utils/pathname';

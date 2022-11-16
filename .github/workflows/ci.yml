@@ -82,10 +82,10 @@ jobs:
       - name: Build Package
         run: pnpm tsm scripts/index.ts --tsc --build --cli --api --set-dist-tag="${{ github.event.inputs.disttag }}"
 
-      - name: Print Package Dist Build
+      - name: Print Qwik Dist Build
         run: tree packages/qwik/dist/
 
-      - name: Upload Package Build Artifacts
+      - name: Upload Qwik Build Artifacts
         uses: actions/upload-artifact@master
         with:
           name: dist-dev-builder-io-qwik
@@ -476,9 +476,12 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: pnpm install --frozen-lockfile
 
+      - name: Build QwikCity
+        run: pnpm tsm scripts/index.ts --tsc --qwikcity --set-dist-tag="${{ github.event.inputs.disttag }}"
+
       - name: Install Playwright
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: npx playwright install ${{ matrix.settings.browser }} && npx playwright install-deps ${{ matrix.settings.browser }}
+        run: npx playwright install ${{ matrix.settings.browser }} --with-deps
 
       - name: Playwright E2E Tests
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}

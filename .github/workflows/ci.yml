@@ -80,7 +80,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Package
-        run: pnpm tsm scripts/index.ts --tsc --build --cli --qwikcity --api --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: pnpm tsm scripts/index.ts --tsc --build --cli --api --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print Qwik Dist Build
         run: tree packages/qwik/dist/
@@ -307,6 +307,43 @@ jobs:
           path: packages/qwik/dist/bindings/*.node
           if-no-files-found: error
 
+  ############ BUILD  ############
+  build-package:
+    name: Build Package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - run: corepack enable
+
+      - name: Install NPM Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Package
+        run: pnpm tsm scripts/index.ts --tsc --build --cli --qwikcity --api --set-dist-tag="${{ github.event.inputs.disttag }}"
+
+      - name: Print QwikCity Dist Build
+        run: tree packages/qwik-city/lib/
+
+      - name: Upload Package Build Artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: dist-dev-builder-io-qwik-city
+          path: packages/qwik-city/lib/
+          if-no-files-found: error
+
   ############ BUILD DISTRIBUTION ############
   build-distribution:
     name: Build Distribution
@@ -487,6 +524,9 @@ jobs:
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: pnpm install --frozen-lockfile
+
+      - name: Build Package
+        run: pnpm tsm scripts/index.ts --qwikcity --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Install Playwright
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}

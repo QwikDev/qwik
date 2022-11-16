@@ -66,14 +66,22 @@
 
 .repl-commands {
   float: right;
-  padding: 12px 15px 0 15px;
+  padding: 8px 15px 0 15px;
   color: var(--qwik-blue);
 }
 
 .repl-commands svg {
   width: 22px;
   height: 22px;
-  margin-left: 15px;
+}
+
+.repl-commands .copy-to-playground {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  border: 1px solid;
+  padding: 2px 8px;
+  border-radius: 5px;
 }
 
 .repl-input-panel .repl-tab-button.active-tab {

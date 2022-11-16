@@ -80,9 +80,9 @@ Because it does not hold any state, it's ok to call it and make it a singleton, 
 
 ### `useContextProvider()`
 
-Like all use- methods, it can only be called at the root of `component$()` (not inside branches). This method is called by some higher level component and it's what assigns (provides) a value to the context. The provided value will not be globally available across the whole render tree, but only to descendant components in the tree.
+Like all use- methods, it can only be called at the root of [`component$()`](/docs/components/overview/index.mdx#component) (not inside branches). This method is called by some higher level component and it's what assigns (provides) a value to the context. The provided value will not be globally available across the whole render tree, but only to descendant components in the tree.
 
-The value passed to `useContextProvider()` can be any primitive, object (including from useStore), or array that contains serializable values.
+The value passed to [`useContextProvider()`](/docs/components/context/index.mdx#usecontextprovider) can be any primitive, object (including from useStore), or array that contains serializable values.
 
 ```tsx
 export const Parent = component$(() => {
@@ -136,7 +136,7 @@ export interface SharedState {
 export const MyContext = createContext<SharedState>('my-context');
 ```
 
-This way, when using `MyContext` in `useContextProvider()` and `useContext()`, the provided value will have the `SharedState` type.
+This way, when using `MyContext` in [`useContextProvider()`](/docs/components/context/index.mdx#usecontextprovider) and `useContext()`, the provided value will have the `SharedState` type.
 
 Let's see a working example:
 

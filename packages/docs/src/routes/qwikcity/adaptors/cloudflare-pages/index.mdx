@@ -64,7 +64,7 @@ Please refer to the Netlify docs for more information on how to deploy your site
 
 When the `cloudflare-pages` adaptor is added, a new entry file will be created at `src/entry.cloudflare-pages.tsx`. Below is an example of using the built-in middleware within the entry file.
 
-```typescript
+```tsx
 // src/entry.cloudflare-pages.tsx
 import { createQwikCity } from '@builder.io/qwik-city/middleware/cloudflare-pages';
 import qwikCityPlan from '@qwik-city-plan';
@@ -77,7 +77,7 @@ export { onRequest };
 
 The compiled middleware will be built in the `server/` directory and can then be used anywhere in the cloudflare pages `/functions` directory.
 
-```typescript
+```tsx
 // export the compiled middleware where cloudflare pages can find it.
 // for example use /functions/[[path]].ts or /functions/_middleware.ts
 // to have qwik city handle all requests.
@@ -130,7 +130,7 @@ export const onRequest = async ({ platform }) => {
 
 Additionally, you may import the `RequestHandlerCloudflarePages` type to have have type completions in your editor.
 
-```typescript
+```tsx
 import {type RequestHandlerCloudflarePages} from '@builder.io/qwik-city/middleware/cloudflare-pages';
 
 export const onGet: RequestHandlerCloudflarePages = (({ platform }) => {

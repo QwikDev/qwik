@@ -23,3 +23,8 @@
 /qwikcity/routing/modify/ /qwikcity/data/modify/ 308
 /qwikcity/routing/retrieve/ /qwikcity/data/retrieve/ 308
 /qwikcity/routing/redirects/ /qwikcity/data/redirects/ 308
+
+/qwikcity/head/title/ /qwikcity/api/ 308
+/qwikcity/api/use-content/ /qwikcity/api/ 308
+/qwikcity/api/use-document-head/ /qwikcity/api/ 308
+/qwikcity/api/use-location/ /qwikcity/api/ 308

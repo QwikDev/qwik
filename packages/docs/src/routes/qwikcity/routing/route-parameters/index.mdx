@@ -31,9 +31,9 @@ src/
 
 ## Retrieving the Route Parameter from the URL
 
-Once we have `[skuId]` in the URL, we need a way to retrieve it. This can be done by using `useLocation()` API.
+Once we have `[skuId]` in the URL, we need a way to retrieve it. This can be done by using [`useLocation()`](/qwikcity/api/index.mdx#uselocation) API.
 
-```typescript
+```tsx
 import { useLocation } from '@builder.io/qwik-city';
 
 export default component$(() => {
@@ -92,7 +92,7 @@ src/
             ├── detail/
             |   └──index.tsx
             ├── preview/
-            |   └──index.tsx                
+            |   └──index.tsx
             └── promotion/
                 └──index.tsx
 ```

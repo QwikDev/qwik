@@ -23,7 +23,7 @@ export type {
 } from './types';
 
 export { RouterOutlet, Content } from './router-outlet-component';
-export { Html, QwikCity } from './qwik-city-component';
+export { Html, QwikCity, QwikCityProvider } from './qwik-city-component';
 export { Link } from './link-component';
 export type { LinkProps } from './link-component';
 export { ServiceWorkerRegister } from './sw-component';

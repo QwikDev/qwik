@@ -53,7 +53,7 @@ Works very similary to `useSignal()`, but it takes an object as its initial valu
 
 `const reactive = useStore(initialState)` is a hook that creates a reactive object. It takes an initial object as a parameter, and returns a reactive object.
 
-The reactive object returned by `useStore()` is just like any other object, but it's reactive. If you change a property of the object, any component that depends on it will be updated.
+The reactive object returned by [`useStore()`](/docs/components/state/index.mdx#usestore) is just like any other object, but it's reactive. If you change a property of the object, any component that depends on it will be updated.
 
 > **NOTE**
 > Make sure to keep a reference to the reactive object and not only to its properties, for reactivity to work. e.g. doing `let { count } = useStore({ count: 0 })` and then mutating `count` won't trigger updates of components that depends on it.
@@ -76,13 +76,13 @@ export default component$(() => {
 
 ```
 
-The example above, the App component is using `useStore()` to create a reactive object. The object is then used to keep track of the count. The count is then displayed in the component.
+The example above, the App component is using [`useStore()`](/docs/components/state/index.mdx#usestore) to create a reactive object. The object is then used to keep track of the count. The count is then displayed in the component.
 
 Just accessing the `state.count` property will cause the component to be updated if the count changes, when the property is changed in the click handler.
 
 ### Recursive values
 
-By default, `useStore()` only tracks the top level fields in your store, which means that for any updates to register, you have to update values at the top level field.
+By default, [`useStore()`](/docs/components/state/index.mdx#usestore) only tracks the top level fields in your store, which means that for any updates to register, you have to update values at the top level field.
 
 For example, this will not work:
 
@@ -217,14 +217,14 @@ export const Child = component$(() => {
 
 Computed values are values that are derived from other values. They are useful when you have a value that is derived from other values, and you want to keep it in sync with the other values.
 
-In Qwik there are two ways to create computed values, using `useWatch$()` or `useResource$()`.
+In Qwik there are two ways to create computed values, using [`useWatch$()`](/docs/components/lifecycle/index.mdx#usewatch) or [`useResource$()`](/docs/components/resource/index.mdx).
 
-The main difference between the two is that `useWatch$()` allows side effects and the execution is serialized, while `useResource$()` is asynchronous and multiple useResource calls can happen in parallel.
+The main difference between the two is that [`useWatch$()`](/docs/components/lifecycle/index.mdx#usewatch) allows side effects and the execution is serialized, while [`useResource$()`](/docs/components/resource/index.mdx) is asynchronous and multiple useResource calls can happen in parallel.
 
-`useWatch$()` is usually used to compute intermediate state, while `useResource$()` has better ergonomics to compute the final state, used for rendering. Let's see some examples:
+`useWatch$()` is usually used to compute intermediate state, while [`useResource$()`](/docs/components/resource/index.mdx) has better ergonomics to compute the final state, used for rendering. Let's see some examples:
 
 
-### `useWatch$()` example
+### [`useWatch$()`](/docs/components/lifecycle/index.mdx#usewatch) example
 
 ```tsx
 export default component$(() => {
@@ -248,7 +248,7 @@ export default component$(() => {
 });
 ```
 
-### `useResource$()` example
+### [`useResource$()`](/docs/components/resource/index.mdx) example
 
 ```tsx
 export default component$(() => {

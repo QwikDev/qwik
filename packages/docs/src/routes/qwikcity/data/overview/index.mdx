@@ -17,7 +17,7 @@ On pages, layouts, and [endpoints](../endpoints/index.mdx), we can access reques
 Additonally, an `onRequest` function can be used to handle any request method, rather than a specific one. For example, if both `onGet` and `onRequest` is provided, for a `GET` request, the `onGet` will be called. However, in this scenario, if a `POST` request method came in, then the `onRequest` handler would be called since an `onPost` was not provided.
 The `onRequest` is available as a catch-all to any request methods that do not have a specific method.
 
-```typescript
+```tsx
 import type { RequestHandler } from '@builder.io/qwik-city';
 
 export const onGet: RequestHandler<ProductData> = async ({ params }) => {
@@ -48,7 +48,7 @@ The request handler functions receive a `RequestEvent` argument which has the fo
 
 ### Cookie
 
-```typescript
+```tsx
 interface Cookie {
   get: (key: string) => CookieValue | null,
   set: (key: string, value: string | number | Record<string, any>, options?: CookieOptions) => void,
@@ -63,7 +63,7 @@ The cookie class is used to get and set cookies in your Qwik City app. It expose
 
 Takes a string with the cookie name and returns the `CookieValue`, if present and null if not.
 
-```typescript
+```tsx
 interface CookieValue {
   value: string;
   json: <T = unknown>() => T;
@@ -82,7 +82,7 @@ Takes a key and value and creates a header that will be appended to the response
 
 As a third argument, you can optionally provide a `CookieOptions` record for setting additional fields.
 
-```typescript
+```tsx
 export interface CookieOptions {
   domain?: string;
   expires?: Date | string;
@@ -100,19 +100,19 @@ For more information on these attributes and their values, please refer to [the 
 
 Appends a header with the provided key to the cookie. The new header will have an expired date in the `expires` field, telling the browers to remove it.
 
-```typescript
+```tsx
 cookie.delete('my-cookie')
 ```
 
 Equivalent to calling:
 
-```typescript
+```tsx
 cookie.set('my-cookie', 'deleted', new Date(0))
 ```
 
 Optionally, you can set the path and/or domain when deleting the cookie. If your cookie was created with a path/domain, you must set these fields for the deletion to take effect.
 
-```typescript
+```tsx
 cookie.delete('my-cookie', { domain: 'https://qwik.builder.io', path: '/docs/'})
 ```
 
@@ -122,6 +122,6 @@ A convenience method which returns true or false based on the presence of the pr
 
 Equivalent to calling:
 
-```typescript
+```tsx
 !!cookie.get('my-cookie')
 ```

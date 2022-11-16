@@ -10,7 +10,7 @@ Sometimes you want to redirect a user from the current page to another page.
 
 Let's say a user tries to go to a dashboard page but has not logged in yet. We want them to be redirected to a login page so they can be authenticated.
 
-```typescript
+```tsx
 // File: src/routes/dashboard.js
 import { component$ } from '@builder.io/qwik';
 import { checkAuthorization } from '../auth'; // Your authorization code

@@ -25,7 +25,7 @@ src/
 
 Let's say that a user does a request to an invalid `skuId` such as `https://example.com/product/999`. In this case, we would like to return a 404 HTTP status code and render a 404 page. The place where we determine if the request is valid or not is in the request handler by looking into the database. Even if the response is non-200, the component still gets a chance to render a page (Except in the redirect case.)
 
-```typescript
+```tsx
 // File: src/routes/product/[skuId]/index.tsx
 import { component$ } from '@builder.io/qwik';
 

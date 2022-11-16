@@ -43,7 +43,7 @@ In this case, the layouts will nest each other with the page within each of them
 └────────────────────────────────────────────────┘
 ```
 
-```typescript
+```tsx
 // File: src/routes/layout.tsx
 export default component$(() => {
   return (
@@ -54,7 +54,7 @@ export default component$(() => {
 });
 ```
 
-```typescript
+```tsx
 // File: src/routes/about/layout.tsx
 export default component$(() => {
   return (
@@ -65,7 +65,7 @@ export default component$(() => {
 });
 ```
 
-```typescript
+```tsx
 // File: src/routes/about/index.tsx
 export default component$(() => {
   return <h1>About</h1>;

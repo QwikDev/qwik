@@ -11,7 +11,7 @@ contributors:
 
 This method allows you to generate computed values asynchronously. The asynchronous function passed as its first argument will be called when the component is mounted and when the tracked values change.
 
-Just like all the `use-` methods, it must be called within the context of `component$()`, and all the [hook rules apply](../../../docs/components/lifecycle/index.mdx#rules).
+Just like all the `use-` methods, it must be called within the context of [`component$()`](/docs/components/overview/index.mdx#component), and all the [hook rules apply](../../../docs/components/lifecycle/index.mdx#rules).
 
 ```tsx
 const store = useStore({
@@ -42,7 +42,7 @@ The state `resource.state` can be one of the following strings:
 - `'resolved'` - the data is available.
 - `'rejected'` - the data is not available due to an error or timeout.
 
-The callback passed to `useResource$()` runs right after the `useMount$()` and `useWatch$()` callbacks complete. Please refer to the [Lifecycle](../lifecycle/index.mdx) section for more details.
+The callback passed to [`useResource$()`](/docs/components/resource/index.mdx) runs right after the `useMount$()` and [`useWatch$()`](/docs/components/lifecycle/index.mdx#usewatch) callbacks complete. Please refer to the [Lifecycle](../lifecycle/index.mdx) section for more details.
 
 ## `<Resource />`
 
@@ -62,7 +62,8 @@ The callback passed to `useResource$()` runs right after the `useMount$()` and `
 It is worth noting that `<Resource />` is not required when using `useResource$()`. It is just a convenient way to render the resource state.
 
 ### Examples :
-- #### `useResource$()` with `<Resource />`
+
+- #### [`useResource$()`](/docs/components/resource/index.mdx) with `<Resource />`
 
 Example showing how `useResource$` is used to perform a fetch call to the agify.io API. This will guess a person's age
 based on the name typed by the user, and will update whenever the user types in the name input.
@@ -111,7 +112,7 @@ export default component$(() => {
 The `<Resource />` component is highly optimized for avoiding unnecessary re-renders and for SSR.
 We strongly recommend that you use `<Resource />` wherever possible. Occasionally, you may
 encounter an edge case in which you need more control. For these situations, Qwik also lets you use
-the data returned from `useResource()` directly in your TSX code, as shown below.
+the data returned from [`useResource$()`](/docs/components/resource/index.mdx) directly in your TSX code, as shown below.
 
 ```tsx
 export default component$(() => {

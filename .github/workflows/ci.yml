@@ -477,6 +477,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build QwikCity
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: pnpm tsm scripts/index.ts --tsc --qwikcity --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Install Playwright

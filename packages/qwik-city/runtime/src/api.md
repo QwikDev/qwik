@@ -171,7 +171,7 @@ export interface LinkProps extends AnchorAttributes {
     prefetch?: boolean;
 }
 
-// @alpha (undocumented)
+// @alpha @deprecated (undocumented)
 export const QwikCity: Component<QwikCityProps>;
 
 // @alpha (undocumented)
@@ -189,6 +189,9 @@ export interface QwikCityPlan {
     // (undocumented)
     trailingSlash?: boolean;
 }
+
+// @alpha (undocumented)
+export const QwikCityProvider: Component<QwikCityProps>;
 
 // @alpha (undocumented)
 export interface RequestContext {

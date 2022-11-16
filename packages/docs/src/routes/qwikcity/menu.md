@@ -5,6 +5,7 @@
 - [Overview](overview/index.mdx)
 - [Directory Layout](directory-layout/index.mdx)
 - [Static Assets](static-assets/index.mdx)
+- [API reference](api/index.mdx)
 
 ## Routing
 
@@ -33,6 +34,7 @@
 - [Components](content/component/index.mdx)
 - [MDX](content/mdx/index.mdx)
 - [Menu](content/menu/index.mdx)
+- [<head>](content/head/index.mdx)
 
 ## Deployments
 
@@ -62,10 +64,3 @@
 - [Service Worker](prefetching/service-worker-prefetching/index.mdx)
 - [Response Caching](prefetching/request-response-cache/index.mdx)
 - [Parallelizing Requests](prefetching/parallelizing-network-requests/index.mdx)
-
-## APIs
-
-- [Custom <head>](head/title/index.mdx)
-- [useContent()](api/use-content/index.mdx)
-- [useDocumentHead()](api/use-document-head/index.mdx)
-- [useLocation()](api/use-location/index.mdx)

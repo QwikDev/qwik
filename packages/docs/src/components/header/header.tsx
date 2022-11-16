@@ -78,11 +78,6 @@ export const Header = component$(() => {
             </a>
           </li>
           <li>
-            <a href="/playground/" class={{ active: pathname.startsWith('/playground') }}>
-              <span>Playground</span>
-            </a>
-          </li>
-          <li>
             <DocSearch
               appId={import.meta.env.VITE_ALGOLIA_APP_ID}
               apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}

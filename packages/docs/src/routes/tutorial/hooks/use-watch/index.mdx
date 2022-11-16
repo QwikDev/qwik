@@ -5,14 +5,14 @@ contributors:
   - adamdbradley
 ---
 
-Use `useWatch$()` to execute a function before the initial render and whenever the tracking values change. The function executes before rendering, but it can't delay rendering, so if `useWatch$()` is asynchronous, the rendering will happen before the `useWatch$()` is fully executed.
+Use [`useWatch$()`](/docs/components/lifecycle/index.mdx#usewatch) to execute a function before the initial render and whenever the tracking values change. The function executes before rendering, but it can't delay rendering, so if [`useWatch$()`](/docs/components/lifecycle/index.mdx#usewatch) is asynchronous, the rendering will happen before the [`useWatch$()`](/docs/components/lifecycle/index.mdx#usewatch) is fully executed.
 
 ## Tracking store changes
 
-The `useWatch$()` hook receives a `track()` function used for setting up subscriptions that will automatically rerun the `useWatch$()` hook. The set of `track()` properties resets on each `useWatch$()` execution, therefore it is important to always use `track()` to set up subscriptions anew. Because of this it is possible for the `useWatch$()` to subscribe to different properties over time.
+The [`useWatch$()`](/docs/components/lifecycle/index.mdx#usewatch) hook receives a `track()` function used for setting up subscriptions that will automatically rerun the [`useWatch$()`](/docs/components/lifecycle/index.mdx#usewatch) hook. The set of `track()` properties resets on each [`useWatch$()`](/docs/components/lifecycle/index.mdx#usewatch) execution, therefore it is important to always use `track()` to set up subscriptions anew. Because of this it is possible for the [`useWatch$()`](/docs/components/lifecycle/index.mdx#usewatch) to subscribe to different properties over time.
 
 ## Cleanup
 
-The `useWatch$()` hook can return a cleanup callback. This is useful for cleaning up any resources before new execution.
+The [`useWatch$()`](/docs/components/lifecycle/index.mdx#usewatch) hook can return a cleanup callback. This is useful for cleaning up any resources before new execution.
 
 ### Example

@@ -29,7 +29,7 @@ Qwik uses proxies for a few reasons:
 
 Because of the above constraints, Qwik uses proxies to keep track of the reactivity graph.
 
-- use `useStore()` to create a store proxy.
+- use [`useStore()`](/docs/components/state/index.mdx#usestore) to create a store proxy.
 - the proxy notices the reads and creates subscriptions that are serializable.
 - the proxy notices the writes and uses the subscription information to invalidate the relevant components.
 

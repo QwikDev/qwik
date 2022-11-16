@@ -116,7 +116,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         resolveQwikBuild: viteCommand === 'build',
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         forceFullBuild,
-        vendorRoots: vendorRoots.map((v) => v.path),
+        vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
         outDir: viteConfig.build?.outDir,
       };
 
@@ -665,6 +665,9 @@ export interface QwikVitePluginOptions {
    * Default `src`
    */
   srcDir?: string;
+
+  vendorRoots?: string[];
+
   client?: {
     /**
      * The entry point for the client builds. Typically this would be

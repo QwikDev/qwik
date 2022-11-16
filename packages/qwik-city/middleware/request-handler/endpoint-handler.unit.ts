@@ -1,4 +1,4 @@
-import type { RouteModule } from '../../runtime/src/library/types';
+import type { RouteModule } from '../../runtime/src/types';
 import { test } from 'uvu';
 import { equal, instance } from 'uvu/assert';
 import { mockRequestContext, wait } from './test-utils';

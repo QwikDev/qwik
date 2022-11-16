@@ -481,7 +481,7 @@ jobs:
 
       - name: Install Playwright
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: npx playwright install ${{ matrix.settings.browser }} && npx playwright install-deps ${{ matrix.settings.browser }}
+        run: npx playwright install ${{ matrix.settings.browser }} --with-deps
 
       - name: Playwright E2E Tests
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}

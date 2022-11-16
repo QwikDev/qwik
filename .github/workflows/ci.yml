@@ -80,12 +80,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Package
-        run: pnpm tsm scripts/index.ts --tsc --build --cli --api --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: pnpm tsm scripts/index.ts --tsc --build --cli --qwikcity --api --set-dist-tag="${{ github.event.inputs.disttag }}"
 
-      - name: Print Package Dist Build
+      - name: Print Qwik Dist Build
         run: tree packages/qwik/dist/
 
-      - name: Upload Package Build Artifacts
+      - name: Upload Qwik Build Artifacts
         uses: actions/upload-artifact@master
         with:
           name: dist-dev-builder-io-qwik
@@ -100,6 +100,16 @@ jobs:
         with:
           name: dist-dev-create-qwik
           path: packages/create-qwik/dist/
+          if-no-files-found: error
+
+      - name: Print QwikCity Dist Build
+        run: tree packages/qwik-city/lib/
+
+      - name: Upload Package Build Artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: dist-dev-builder-io-qwik-city
+          path: packages/qwik-city/lib/
           if-no-files-found: error
 
       - name: Build Eslint rules
@@ -471,6 +481,8 @@ jobs:
           mv dist-dev-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
           mv dist-dev-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
+          mkdir -p packages/qwik-city/lib/
+          mv dist-dev-builder-io-qwik-city/* packages/qwik-city/lib/
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}

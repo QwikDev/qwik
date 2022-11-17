@@ -1,23 +1,11 @@
 .header-container {
   height: calc(var(--header-height));
-  margin-bottom: 6px;
-  background: white;
-  position: relative;
-  z-index: 100;
-}
-
-@media (min-width: 1024px) {
-  .header-container {
-    background: #ffffff9e;
-    backdrop-filter: blur(23px) saturate(4.5);
-  }
-}
-
-.fixed-header .header-container {
-  position: fixed;
+  position: sticky;
+  background: rgb(255 255 255 / 50%);
+  backdrop-filter: blur(2rem) saturate(4);
   top: 0;
-  width: 100%;
-  z-index: 40;
+  box-shadow: 0 0 1rem #0001;
+  border-bottom: 1px solid rgb(255 255 255 / 15%);
 }
 
 header li {

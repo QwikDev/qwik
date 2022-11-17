@@ -1,5 +1,5 @@
 import { component$, useStore, useStyles$, useClientEffect$ } from '@builder.io/qwik';
-import styles from './clock.css?inline';
+import styles from './clock.css';
 
 export default component$(() => {
   const items = new Array(60).fill(null).map((_, index) => 'item ' + index);

@@ -13,7 +13,7 @@ export default extendConfig(baseConfig, () => {
     plugins: [
       cloudflarePagesAdaptor({
         staticGenerate: {
-          origin: process.env.CF_PAGES_BRANCH === 'main' ? 'https://qwik.builder.io' : undefined,
+          origin: process.env.CF_PAGES_BRANCH === 'main' ? 'https://qwik.builder.io' : process.env.CF_PAGES_URL,
         },
       }),
     ],

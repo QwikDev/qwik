@@ -3,6 +3,7 @@ import { extendConfig } from '@builder.io/qwik-city/vite';
 import baseConfig from '../../vite.config';
 
 export default extendConfig(baseConfig, () => {
+  console.log(process.env.CF_PAGES_BRANCH);
   return {
     build: {
       ssr: true,
@@ -12,7 +13,12 @@ export default extendConfig(baseConfig, () => {
     },
     plugins: [
       cloudflarePagesAdaptor({
-        staticGenerate: true,
+        staticGenerate: {
+          origin:
+            process.env.CF_PAGES_BRANCH === 'main'
+              ? 'https://qwik.builder.io'
+              : process.env.CF_PAGES_URL,
+        },
       }),
     ],
   };

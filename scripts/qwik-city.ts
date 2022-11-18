@@ -140,7 +140,7 @@ export async function buildQwikCity(config: BuildConfig) {
 }
 
 async function buildRuntime(input: string) {
-  const result = await execa('pnpm', ['build.runtime'], {
+  const result = await execa('pnpm', ['build'], {
     stdout: 'inherit',
     cwd: input,
   });
@@ -163,7 +163,7 @@ async function buildVite(config: BuildConfig, inputDir: string, outputDir: strin
     'typescript',
   ];
 
-  const swRegisterPath = join(inputDir, 'runtime', 'src', 'library', 'sw-register.ts');
+  const swRegisterPath = join(inputDir, 'runtime', 'src', 'sw-register.ts');
   let swRegisterCode = await readFile(swRegisterPath, 'utf-8');
 
   const swResult = await transform(swRegisterCode, { loader: 'ts', minify: true });
@@ -224,7 +224,6 @@ async function buildServiceWorker(config: BuildConfig, inputDir: string, outputD
       'qwik-city',
       'runtime',
       'src',
-      'library',
       'service-worker',
       'index.js'
     ),

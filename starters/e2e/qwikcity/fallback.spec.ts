@@ -7,5 +7,5 @@ test('Qwik City Fallback', async ({ context, javaScriptEnabled }) => {
   expect(response.status()).toBe(404);
 
   const title = page.locator('title');
-  expect(await title.innerText()).toBe(`404 Not Found`);
+  expect(await title.innerText()).toBe(`Resource Not Found`);
 });

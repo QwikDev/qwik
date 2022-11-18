@@ -10,7 +10,7 @@ test.describe('Qwik City Page', () => {
 
 function tests() {
   test('Qwik City Page', async ({ context, javaScriptEnabled }) => {
-    const ctx = await load(context, javaScriptEnabled, '/qwikcity-test');
+    const ctx = await load(context, javaScriptEnabled, '/qwikcity-test/');
 
     /***********  Home Page  ***********/
     await assertPage(ctx, {
@@ -35,9 +35,9 @@ function tests() {
     await linkNavigate(ctx, '[data-test-link="blog-resumability"]');
     await assertPage(ctx, {
       pathname: '/qwikcity-test/blog/what-is-resumability/',
-      title: 'Blog: what-is-resumability - Qwik',
+      title: 'Blog: what-is-resumability/ - Qwik',
       layoutHierarchy: ['root', 'blog'],
-      h1: 'Blog: what-is-resumability',
+      h1: 'Blog: what-is-resumability/',
       activeHeaderLink: 'Blog',
     });
 
@@ -45,9 +45,9 @@ function tests() {
     await linkNavigate(ctx, '[data-test-link="blog-serializing-props"]');
     await assertPage(ctx, {
       pathname: '/qwikcity-test/blog/serializing-props/',
-      title: 'Blog: serializing-props - Qwik',
+      title: 'Blog: serializing-props/ - Qwik',
       layoutHierarchy: ['root', 'blog'],
-      h1: 'Blog: serializing-props',
+      h1: 'Blog: serializing-props/',
       activeHeaderLink: 'Blog',
     });
 
@@ -62,7 +62,7 @@ function tests() {
     });
 
     /***********  Docs: overview  ***********/
-    await linkNavigate(ctx, '[data-test-menu-link="/qwikcity-test/docs/overview"]');
+    await linkNavigate(ctx, '[data-test-menu-link="/qwikcity-test/docs/overview/"]');
     await assertPage(ctx, {
       pathname: '/qwikcity-test/docs/overview/',
       title: 'Docs: Overview - Qwik',
@@ -127,7 +127,7 @@ function tests() {
     await linkNavigate(ctx, '[data-test-link="api-home"]');
     await assertPage(ctx, {
       pathname: '/qwikcity-test/api/',
-      title: 'API: /qwikcity-test/api - Qwik',
+      title: 'API: /qwikcity-test/api/ - Qwik',
       layoutHierarchy: ['api'],
       h1: 'Qwik City Test API!',
       activeHeaderLink: 'API',

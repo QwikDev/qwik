@@ -19,8 +19,6 @@ export function expressAdaptor(opts: ExpressAdaptorOptions = {}): any {
         publicDir: false,
       };
     },
-
-    async generate() {},
   });
 }
 

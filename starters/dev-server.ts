@@ -11,6 +11,8 @@ import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
 import type { PackageJSON } from '../scripts/util';
 import { fileURLToPath } from 'node:url';
+import nodeFetch, { Headers, Request as R, Response as RE } from 'node-fetch';
+import { getErrorHtml } from '../packages/qwik-city/middleware/request-handler/error-handler';
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
@@ -129,7 +131,8 @@ export {
           return `export function isStaticPath(){ return false; };`;
         }
         if (id.endsWith(qwikCityNotFoundPaths)) {
-          return `export function getNotFound(){ return 'Resource Not Found'; };`;
+          const notFoundHtml = getErrorHtml(404, 'Resource Not Found');
+          return `export function getNotFound(){ return ${JSON.stringify(notFoundHtml)}; };`;
         }
       },
     });
@@ -282,8 +285,6 @@ function startersHomepage(_: Request, res: Response) {
   </html>
   `);
 }
-
-import nodeFetch, { Headers, Request as R, Response as RE } from 'node-fetch';
 
 (global as any).fetch = nodeFetch;
 (global as any).Headers = Headers;

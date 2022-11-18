@@ -69,7 +69,7 @@ export interface Cookie {
   /**
    * Deletes cookie value by name using the `Response` cookie header.
    */
-  delete(name: string): void;
+  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
   /**
    * Returns an array of all the set `Response` `Set-Cookie` header values.
    */

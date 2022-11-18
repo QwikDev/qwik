@@ -33,7 +33,7 @@ export const head: DocumentHead = {
 
 export const onGet: RequestHandler = async ({ response, cookie }) => {
   if (await isUserAuthenticated(cookie)) {
-    throw response.redirect('/qwikcity-test/dashboard');
+    throw response.redirect('/qwikcity-test/dashboard/');
   }
 };
 
@@ -42,7 +42,7 @@ export const onPost: RequestHandler = async ({ request, response, cookie }) => {
   const result = await signIn(formdata, cookie);
 
   if (result.status === 'signed-in') {
-    throw response.redirect('/qwikcity-test/dashboard');
+    throw response.redirect('/qwikcity-test/dashboard/');
   }
 
   response.status = 403;

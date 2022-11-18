@@ -51,47 +51,13 @@ export async function postBuild(
 
   await loadDir(clientOutDir, basePathname);
 
-  const staticPathsCode = createStaticPathsModule(basePathname, staticPaths, format);
   const notFoundPathsCode = createNotFoundPathsModule(basePathname, notFounds, format);
+  const staticPathsCode = createStaticPathsModule(basePathname, staticPaths, format);
 
   return {
-    staticPathsCode,
     notFoundPathsCode,
+    staticPathsCode,
   };
-}
-
-function createStaticPathsModule(basePathname: string, staticPaths: Set<string>, format: string) {
-  const assetsPath = basePathname + 'assets/';
-  const baseBuildPath = basePathname + 'build/';
-
-  const c: string[] = [];
-
-  c.push(
-    `const staticPaths = new Set(${JSON.stringify(
-      Array.from(new Set<string>(staticPaths)).sort()
-    )});`
-  );
-
-  c.push(`function isStaticPath(p) {`);
-  c.push(`  if (p.startsWith(${JSON.stringify(baseBuildPath)})) {`);
-  c.push(`    return true;`);
-  c.push(`  }`);
-  c.push(`  if (p.startsWith(${JSON.stringify(assetsPath)})) {`);
-  c.push(`    return true;`);
-  c.push(`  }`);
-  c.push(`  if (staticPaths.has(p)) {`);
-  c.push(`    return true;`);
-  c.push(`  }`);
-  c.push(`  return false;`);
-  c.push(`}`);
-
-  if (format === 'cjs') {
-    c.push('module.exports = { isStaticPath: isStaticPath };');
-  } else {
-    c.push('export default { isStaticPath };');
-  }
-
-  return c.join('\n');
 }
 
 function createNotFoundPathsModule(basePathname: string, notFounds: string[][], format: string) {
@@ -122,9 +88,43 @@ function createNotFoundPathsModule(basePathname: string, notFounds: string[][], 
   c.push(`}`);
 
   if (format === 'cjs') {
-    c.push('module.exports = { getNotFound: getNotFound };');
+    c.push('exports.getNotFound = getNotFound;');
   } else {
-    c.push('export default { getNotFound };');
+    c.push('export { getNotFound };');
+  }
+
+  return c.join('\n');
+}
+
+function createStaticPathsModule(basePathname: string, staticPaths: Set<string>, format: string) {
+  const assetsPath = basePathname + 'assets/';
+  const baseBuildPath = basePathname + 'build/';
+
+  const c: string[] = [];
+
+  c.push(
+    `const staticPaths = new Set(${JSON.stringify(
+      Array.from(new Set<string>(staticPaths)).sort()
+    )});`
+  );
+
+  c.push(`function isStaticPath(p) {`);
+  c.push(`  if (p.startsWith(${JSON.stringify(baseBuildPath)})) {`);
+  c.push(`    return true;`);
+  c.push(`  }`);
+  c.push(`  if (p.startsWith(${JSON.stringify(assetsPath)})) {`);
+  c.push(`    return true;`);
+  c.push(`  }`);
+  c.push(`  if (staticPaths.has(p)) {`);
+  c.push(`    return true;`);
+  c.push(`  }`);
+  c.push(`  return false;`);
+  c.push(`}`);
+
+  if (format === 'cjs') {
+    c.push('exports.isStaticPath = isStaticPath;');
+  } else {
+    c.push('export { isStaticPath };');
   }
 
   return c.join('\n');

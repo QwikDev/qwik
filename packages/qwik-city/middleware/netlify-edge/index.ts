@@ -3,8 +3,8 @@ import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { requestHandler } from '../request-handler';
 import { mergeHeadersCookies } from '../request-handler/cookie';
-import qwikCityStaticPaths from '@qwik-city-static-paths';
-import qwikCityNotFoundPaths from '@qwik-city-not-found-paths';
+import { getNotFound } from '@qwik-city-not-found-paths';
+import { isStaticPath } from '@qwik-city-static-paths';
 
 // @builder.io/qwik-city/middleware/netlify-edge
 
@@ -12,8 +12,6 @@ import qwikCityNotFoundPaths from '@qwik-city-not-found-paths';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityNetlifyOptions) {
-  const { isStaticPath } = qwikCityStaticPaths;
-
   async function onRequest(request: Request, context: Context) {
     try {
       const url = new URL(request.url);
@@ -71,7 +69,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
 
       // qwik city did not have a route for this request
       // response with 404 for this pathname
-      const notFoundHtml = qwikCityNotFoundPaths.getNotFound(url.pathname);
+      const notFoundHtml = getNotFound(url.pathname);
       return new Response(notFoundHtml, {
         status: 404,
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },

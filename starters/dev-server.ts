@@ -31,6 +31,8 @@ const qwikCityMjs = join(qwikCityDistDir, 'index.qwik.mjs');
 
 const qwikCityVirtualEntry = '@city-ssr-entry';
 const entrySsrFileName = 'entry.ssr.tsx';
+const qwikCityNotFoundPaths = '@qwik-city-not-found-paths';
+const qwikCityStaticPaths = '@qwik-city-static-paths';
 
 Error.stackTraceLimit = 1000;
 
@@ -103,6 +105,9 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
         if (id.endsWith(qwikCityVirtualEntry)) {
           return qwikCityVirtualEntry;
         }
+        if (id === qwikCityStaticPaths || id === qwikCityNotFoundPaths) {
+          return './' + id;
+        }
       },
       load(id) {
         if (id.endsWith(qwikCityVirtualEntry)) {
@@ -119,6 +124,12 @@ export {
   notFound
 }
 `;
+        }
+        if (id.endsWith(qwikCityStaticPaths)) {
+          return `export function isStaticPath(){ return false; };`;
+        }
+        if (id.endsWith(qwikCityNotFoundPaths)) {
+          return `export function getNotFound(){ return 'Resource Not Found'; };`;
         }
       },
     });

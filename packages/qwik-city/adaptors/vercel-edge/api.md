@@ -15,6 +15,7 @@ export function vercelEdgeAdaptor(opts?: VercelEdgeAdaptorOptions): any;
 export interface VercelEdgeAdaptorOptions {
     outputConfig?: boolean;
     staticGenerate?: StaticGenerateRenderOptions | true;
+    staticPaths?: string[];
     vcConfigEntryPoint?: string;
     vcConfigEnvVarsInUse?: string[];
 }

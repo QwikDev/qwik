@@ -29,12 +29,6 @@ export function resolveSourceFiles(opts: NormalizedPluginOptions, sourceFiles: R
     .map((s) => resolveRoute(opts, layouts, s))
     .sort(routeSortCompare);
 
-  const errors = sourceFiles
-    .filter((s) => s.type === 'error')
-    .map((s) => resolveError(opts, layouts, s))
-    .filter((s) => s)
-    .sort(routeSortCompare);
-
   const entries = sourceFiles
     .filter((s) => s.type === 'entry')
     .map((s) => resolveEntry(opts, s))
@@ -71,11 +65,10 @@ export function resolveSourceFiles(opts: NormalizedPluginOptions, sourceFiles: R
 
   uniqueIds(layouts);
   uniqueIds(routes);
-  uniqueIds(errors);
   uniqueIds(entries);
   uniqueIds(serviceWorkers);
 
-  return { layouts, routes, errors, entries, menus, serviceWorkers };
+  return { layouts, routes, entries, menus, serviceWorkers };
 }
 
 export function resolveLayout(opts: NormalizedPluginOptions, layoutSourceFile: RouteSourceFile) {
@@ -123,7 +116,11 @@ export function resolveRoute(
   const layouts: BuildLayout[] = [];
   const routesDir = opts.routesDir;
   const { layoutName, layoutStop } = parseRouteIndexName(sourceFile.extlessName);
-  const pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
+  let pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
+
+  if (sourceFile.extlessName === '404') {
+    pathname += sourceFile.extlessName + '.html';
+  }
 
   if (!layoutStop) {
     let currentDir = normalizePath(dirname(filePath));
@@ -167,14 +164,6 @@ export function resolveRoute(
   };
 
   return buildRoute;
-}
-
-export function resolveError(
-  opts: NormalizedPluginOptions,
-  appLayouts: BuildLayout[],
-  sourceFile: RouteSourceFile
-) {
-  return resolveRoute(opts, appLayouts, sourceFile);
 }
 
 function resolveEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {

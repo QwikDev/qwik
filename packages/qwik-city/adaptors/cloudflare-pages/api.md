@@ -13,6 +13,7 @@ export function cloudflarePagesAdaptor(opts?: CloudflarePagesAdaptorOptions): an
 export interface CloudflarePagesAdaptorOptions {
     functionRoutes?: boolean;
     staticGenerate?: StaticGenerateRenderOptions | true;
+    staticPaths?: string[];
 }
 
 export { StaticGenerateRenderOptions }

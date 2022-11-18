@@ -9,6 +9,7 @@ export function expressAdaptor(opts: ExpressAdaptorOptions = {}): any {
     name: 'express',
     origin: process?.env?.URL || 'https://yoursitename.qwik.builder.io',
     staticGenerate: opts.staticGenerate,
+    cleanStaticGenerated: true,
 
     config() {
       return {
@@ -18,6 +19,8 @@ export function expressAdaptor(opts: ExpressAdaptorOptions = {}): any {
         publicDir: false,
       };
     },
+
+    async generate() {},
   });
 }
 

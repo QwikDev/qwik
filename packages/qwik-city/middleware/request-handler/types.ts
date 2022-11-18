@@ -2,6 +2,7 @@ import type { StreamWriter } from '@builder.io/qwik';
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
 import type {
   ClientPageData,
+  QwikCityMode,
   QwikCityPlan,
   RequestContext,
   RouteParams,
@@ -13,6 +14,7 @@ export interface QwikCityRequestContext<T = any> {
   url: URL;
   platform: Record<string, any>;
   locale: string | undefined;
+  mode: QwikCityMode;
 }
 
 export interface QwikCityDevRequestContext extends QwikCityRequestContext {

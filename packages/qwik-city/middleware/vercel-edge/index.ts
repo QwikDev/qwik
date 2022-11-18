@@ -1,6 +1,8 @@
 import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-handler/types';
-import { notFoundHandler, requestHandler } from '../request-handler';
+import { requestHandler } from '../request-handler';
 import { mergeHeadersCookies } from '../request-handler/cookie';
+import qwikCityStaticPaths from '@qwik-city-static-paths';
+import qwikCityNotFoundPaths from '@qwik-city-not-found-paths';
 
 // @builder.io/qwik-city/middleware/vercel-edge
 
@@ -8,11 +10,23 @@ import { mergeHeadersCookies } from '../request-handler/cookie';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
+  const { isStaticPath } = qwikCityStaticPaths;
+
   async function onRequest(request: Request) {
     try {
       const url = new URL(request.url);
 
+      if (isStaticPath(url.pathname)) {
+        // known static path, let vercel handle it
+        return new Response(null, {
+          headers: {
+            'x-middleware-next': '1',
+          },
+        });
+      }
+
       const requestCtx: QwikCityRequestContext<Response> = {
+        mode: 'server',
         locale: undefined,
         url,
         request,
@@ -53,20 +67,23 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler<Response>('server', requestCtx, opts);
+      const handledResponse = await requestHandler<Response>(requestCtx, opts);
       if (handledResponse) {
         return handledResponse;
       }
 
       // qwik city did not have a route for this request
-      // respond with qwik city's 404 handler
-      const notFoundResponse = await notFoundHandler<Response>(requestCtx);
-      return notFoundResponse;
+      // response with 404 for this pathname
+      const notFoundHtml = qwikCityNotFoundPaths.getNotFound(url.pathname);
+      return new Response(notFoundHtml, {
+        status: 404,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
+      });
     } catch (e: any) {
       console.error(e);
       return new Response(String(e || 'Error'), {
         status: 500,
-        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'vercel-edge' },
       });
     }
   }

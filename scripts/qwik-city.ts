@@ -409,7 +409,7 @@ async function buildMiddlewareCloudflarePages(
 ) {
   const entryPoints = [join(inputDir, 'middleware', 'cloudflare-pages', 'index.ts')];
 
-  const external = ['@qwik-city-plan'];
+  const external = ['@qwik-city-plan', '@qwik-city-static-paths', '@qwik-city-not-found-paths'];
 
   await build({
     entryPoints,
@@ -430,7 +430,7 @@ async function buildMiddlewareNetlifyEdge(
 ) {
   const entryPoints = [join(inputDir, 'middleware', 'netlify-edge', 'index.ts')];
 
-  const external = ['@qwik-city-plan'];
+  const external = ['@qwik-city-plan', '@qwik-city-static-paths', '@qwik-city-not-found-paths'];
 
   await build({
     entryPoints,
@@ -447,7 +447,13 @@ async function buildMiddlewareNetlifyEdge(
 async function buildMiddlewareNode(config: BuildConfig, inputDir: string, outputDir: string) {
   const entryPoints = [join(inputDir, 'middleware', 'node', 'index.ts')];
 
-  const external = ['node-fetch', 'path', '@qwik-city-plan'];
+  const external = [
+    'node-fetch',
+    'path',
+    '@qwik-city-plan',
+    '@qwik-city-static-paths',
+    '@qwik-city-not-found-paths',
+  ];
 
   await build({
     entryPoints,
@@ -475,6 +481,8 @@ async function buildMiddlewareNode(config: BuildConfig, inputDir: string, output
 async function buildMiddlewareVercelEdge(config: BuildConfig, inputDir: string, outputDir: string) {
   const entryPoints = [join(inputDir, 'middleware', 'vercel-edge', 'index.ts')];
 
+  const external = ['@qwik-city-plan', '@qwik-city-static-paths', '@qwik-city-not-found-paths'];
+
   await build({
     entryPoints,
     outfile: join(outputDir, 'middleware', 'vercel-edge', 'index.mjs'),
@@ -482,6 +490,7 @@ async function buildMiddlewareVercelEdge(config: BuildConfig, inputDir: string, 
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
+    external,
     watch: watcher(config),
   });
 }

@@ -189,10 +189,6 @@ export type RouteData =
       routeBundleNames: string[]
     ];
 
-export type FallbackRouteData =
-  | [pattern: RegExp, loaders: ModuleLoader[]]
-  | [pattern: RegExp, loaders: ModuleLoader[], paramNames: string[]];
-
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 
 /**

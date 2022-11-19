@@ -210,7 +210,7 @@ interface ViteAdaptorPluginOptions {
   name: string;
   origin: string;
   staticPaths?: string[];
-  staticGenerate: true | StaticGenerateRenderOptions | undefined;
+  staticGenerate: true | Omit<StaticGenerateRenderOptions, 'outDir'> | undefined;
   cleanStaticGenerated?: boolean;
   config?: (config: UserConfig) => UserConfig;
   generate?: (generateOpts: {

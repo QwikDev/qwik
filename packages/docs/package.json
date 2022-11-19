@@ -14,7 +14,7 @@
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "preview": "qwik build preview && vite preview --open",
-    "serve": "wrangler pages dev ./dist",
+    "deploy": "wrangler pages dev ./dist",
     "build.showcase": "pnpm node scripts/showcase.js",
     "start": "pnpm dev"
   },

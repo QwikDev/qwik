@@ -92,7 +92,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     }
     if (immutable) {
       const hiddenSignal = target[_IMMUTABLE_PREFIX + prop];
-      if (!(prop in target) || !!hiddenSignal || !!target[_IMMUTABLE]?.[prop]) {
+      if (!(prop in target) || !!hiddenSignal || isSignal(target[_IMMUTABLE]?.[prop])) {
         subscriber = null;
       }
       if (hiddenSignal) {

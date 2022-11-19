@@ -12,7 +12,7 @@ import { seal } from '../util/qdev';
 import { directGetAttribute } from '../render/fast-calls';
 import { isElement } from '../../testing/html';
 import { assertQwikElement } from '../util/element';
-import { assertDefined, assertTrue } from '../error/assert';
+import { assertTrue } from '../error/assert';
 import { QScopedStyle } from '../util/markers';
 import { createProxy } from './store';
 import { QObjectFlagsSymbol, QObjectImmutable } from './constants';
@@ -97,10 +97,11 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
           if (host) {
             const [renderQrl, props] = host.split(' ') as [string | undefined, string | undefined];
             const styleIds = el.getAttribute(QScopedStyle);
-            assertDefined(renderQrl, `resume: renderQRL missing in host metadata`, host);
             elCtx.$scopeIds$ = styleIds ? styleIds.split(' ') : null;
             elCtx.$flags$ = HOST_FLAG_MOUNTED;
-            elCtx.$componentQrl$ = getObject(renderQrl);
+            if (renderQrl) {
+              elCtx.$componentQrl$ = getObject(renderQrl);
+            }
             if (props) {
               elCtx.$props$ = getObject(props);
             } else {

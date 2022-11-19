@@ -1,5 +1,5 @@
-import fs from 'fs';
-import { basename, join } from 'path';
+import fs from 'node:fs';
+import { basename, join } from 'node:path';
 import type { RouteSourceFile } from '../types';
 import { normalizePath } from '../../utils/fs';
 import { getSourceFile } from './source-file';

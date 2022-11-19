@@ -5,7 +5,7 @@ export const noUseAfterAwait: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Object destructuring is not recomended for component$',
+      description: 'Object destructuring is not recommended for component$',
       category: 'Variables',
       recommended: true,
       url: 'https://github.com/BuilderIO/qwik',
@@ -26,7 +26,7 @@ export const noUseAfterAwait: Rule.RuleModule = {
           last.await = true;
         }
       },
-      'CallExpression[callee.name=/^use/]'(node: any) {
+      'CallExpression[callee.name=/^use[A-Z]/]'(node: any) {
         const last = stack[stack.length - 1];
         if (last && last.await) {
           context.report({

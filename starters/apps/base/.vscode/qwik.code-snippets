@@ -1,47 +1,45 @@
 {
-	"Qwik component": {
-		"scope": "typescriptreact",
-		"prefix": "component$",
-		"description": "Qwik counter component",
+	"Qwik component (simple)": {
+		"scope": "javascriptreact,typescriptreact",
+		"prefix": "q:component",
+		"description": "Simple Qwik component",
 		"body": [
-			"export interface ${1:MyCmp}Props {",
-			"  step: number;",
+			"export const ${1:${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/}} = component$(() => {",
+			"  return <${2:div}>$4</$2>",
+			"});"
+		]
+	},
+	"Qwik component (props)": {
+		"scope": "typescriptreact",
+		"prefix": "q:component w/props",
+		"description": "Qwik component w/ props",
+		"body": [
+			"export interface ${1:${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/}}Props {",
+			"  $2",
 			"}",
 			"",
-			"export const ${1:MyCmp} = component$((props: ${1:MyCmp}Props) => {",
-			"  const state = useStore({",
-			"    count: 0",
-			"  });",
-			"  $0",
+			"export const $1 = component$<$1Props>((props) => {",
+			"  const ${2:count} = useSignal(0);",
 			"  return (",
-			"    <div>",
-			"      <button onClick$={() => state.count += props.step}>",
-			"        {state.count}",
-			"      </button>",
-			"    </div>",
+			"    <${3:div} on${4:Click}$={(ev) => {$5}}>",
+			"      $6",
+			"    </${3}>",
 			"  );",
 			"});"
 		]
 	},
-	"Qwik component (basic)": {
+	"Qwik signal": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "component$basic",
-		"description": "Basic Qwik component",
+		"prefix": "q:useSignal",
+		"description": "useSignal() declaration",
 		"body": [
-			"export const ${1:MyCmp} = component$(() => {",
-			"  return (",
-			"    <div>",
-			"      <div>",
-			"        ${1:MyCmp}",
-			"      </div>",
-			"    </div>",
-			"  );",
-			"});"
+			"const ${1:foo} = useSignal($2);",
+			"$0"
 		]
 	},
-	"Qwik state": {
+	"Qwik store": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "useStore$",
+		"prefix": "q:useStore",
 		"description": "useStore() declaration",
 		"body": [
 			"const ${1:state} = useStore({",
@@ -52,7 +50,7 @@
 	},
 	"$ hook": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "$",
+		"prefix": "q:$",
 		"description": "$() function hook",
 		"body": [
 			"$(() => {",
@@ -63,7 +61,7 @@
 	},
 	"useClientEffect": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "useClientEffect",
+		"prefix": "q:useClientEffect",
 		"description": "useClientEffect$() function hook",
 		"body": [
 			"useClientEffect$(({ track }) => {",
@@ -74,11 +72,22 @@
 	},
 	"useWatch": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "useWatch",
+		"prefix": "q:useWatch",
 		"description": "useWatch$() function hook",
 		"body": [
 			"useWatch$(({ track }) => {",
-			"  track($1);",
+			"  track(() => $1);",
+			"  $0",
+			"});",
+			""
+		]
+	},
+	"useResource": {
+		"scope": "javascriptreact,typescriptreact",
+		"prefix": "q:useResource",
+		"description": "useResource$() declaration",
+		"body": [
+			"const $1 = useResource$(({ track, cleanup }) => {",
 			"  $0",
 			"});",
 			""
@@ -86,7 +95,7 @@
 	},
 	"useServerMount": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "useServerMount",
+		"prefix": "q:useServerMount",
 		"description": "useServerMount$() function hook",
 		"body": [
 			"useServerMount$(() => {",

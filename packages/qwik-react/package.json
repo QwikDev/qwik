@@ -1,7 +1,7 @@
 {
   "name": "@builder.io/qwik-react",
-  "version": "0.0.100",
-  "description": "QwikReact allows to apply inject React component into existing Qwik application",
+  "version": "0.1.1",
+  "description": "QwikReact allows adding React components into existing Qwik application",
   "scripts": {
     "build": "npm run build.lib",
     "build.client": "vite build",
@@ -12,41 +12,35 @@
     "dev.ssr": "vite --mode ssr",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
-    "lint": "eslint \"src/**/*.ts*\"",
+    "lint": "eslint src/**/*.ts*",
     "release": "np",
     "start": "npm run dev",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",
-    "@emotion/react": "11.10.0",
-    "@emotion/server": "11.10.0",
-    "@emotion/styled": "11.10.0",
-    "@mui/material": "5.10.2",
-    "@types/react": "18.0.17",
-    "@types/react-dom": "18.0.6",
+    "@types/react": "18.0.25",
+    "@types/react-dom": "18.0.8",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "typescript": "4.7.4",
-    "vite": "3.0.9"
+    "typescript": "4.8.4",
+    "vite": "3.2.3"
   },
   "peerDependencies": {
-    "@builder.io/qwik": ">=0.0.38",
-    "@emotion/react": ">=11.9.0",
-    "@emotion/server": ">=11.4.0",
-    "@emotion/styled": ">=11.9.3",
+    "@builder.io/qwik": ">=0.1.11",
     "@types/react": ">=18.0.1",
     "@types/react-dom": ">=18.0.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=16"
   },
   "exports": {
     ".": {
       "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs"
+      "require": "./lib/index.qwik.cjs",
+      "types": "./lib/types/index.d.ts"
     }
   },
   "files": [
@@ -63,8 +57,7 @@
     "url": "https://github.com/BuilderIO/qwik/issues"
   },
   "type": "module",
-  "main": "./lib/index.qwik.cjs",
-  "module": "./lib/index.qwik.mjs",
+  "main": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
   "types": "./lib/types/index.d.ts"
 }

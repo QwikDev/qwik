@@ -4,7 +4,7 @@ export const App = component$(() => {
   const state = useStore({ name: 'World', running: true });
 
   return (
-    <div id="my-app" onDocumentExpensiveComputationDone$={() => (state.running = false)}>
+    <div id="my-app" document:on-expensiveComputationDone$={() => (state.running = false)}>
       <p style={{ 'text-align': 'center' }}>
         <a href="https://github.com/builderio/qwik">
           <img
@@ -22,11 +22,11 @@ export const App = component$(() => {
       <p>
         Expensive script running in <a href="https://partytown.builder.io/">Partytown</a> is{' '}
         {state.running ? (
-          <span style={{ 'background-color': 'red', color: 'white', padding: '.1em' }}>
+          <span id="state" style={{ 'background-color': 'red', color: 'white', padding: '.1em' }}>
             running
           </span>
         ) : (
-          <span style={{ 'background-color': 'green', color: 'white', padding: '.1em' }}>
+          <span id="state" style={{ 'background-color': 'green', color: 'white', padding: '.1em' }}>
             finished
           </span>
         )}
@@ -56,7 +56,7 @@ export const App = component$(() => {
           Try interacting with this component by changing{' '}
           <input
             value={state.name}
-            onKeyUp$={(event) => {
+            onInput$={(event) => {
               const input = event.target as HTMLInputElement;
               state.name = input.value;
             }}
@@ -72,7 +72,7 @@ export const App = component$(() => {
           large apps instant on behavior.)
         </li>
         <li>
-          Read the docs <a href="https://github.com/builderio/qwik">here</a>.
+          Read the docs <a href="https://qwik.builder.io/">here</a>.
         </li>
         <li>Replace the content of this component with your code.</li>
         <li>Build amazing web-sites with unbeatable startup performance.</li>

@@ -5,8 +5,8 @@ interface AppStore {
   count: number;
   delayCount: number;
 }
-export const App = component$(() => {
-  const store = useStore({
+export default component$(() => {
+  const store = useStore<AppStore>({
     count: 0,
     delayCount: 0,
   });

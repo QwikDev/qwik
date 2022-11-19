@@ -1,22 +1,24 @@
 ---
 title: Getting Started
-fetch: https://hackmd.io/@mhevery/S1_pV3Cl9
+contributors:
+  - manucorporat
+  - jesperp
+  - adamdbradley
 ---
-
-<img class="mb-5" src="/banner.svg" />
 
 # Getting Started Qwikly
 
-Qwik is a new kind of framework that is [resumable](../concepts/resumable/index.mdx) (No JS and no hydration), built for the edge and familiar for React developers.
+Qwik is a new kind of framework that is [resumable](../concepts/resumable/index.mdx) (no JS and no hydration), built for the edge and [familiar for React developers](../cheat/qwik-react/index.mdx).
 
-- [Stackblitz Qwik + Vite](https://stackblitz.com/edit/qwik-vite-todoapp?file=index.html)
+- [Stackblitz Qwik + Vite](https://qwik.new)
 - [Examples playground](/examples/reactivity/counter/)
 
 ## Prerequisites
 
-- `node.js` v14 or higher (with `npm`)
-- Your favorite IDE (vscode recommended)
+- [node.js v16](https://nodejs.org/en/download/) or higher
+- Your favorite IDE ([vscode](https://code.visualstudio.com/) recommended)
 - Start to [think qwik](../think-qwik/index.mdx)
+
 
 ## Creating an app using the CLI
 
@@ -25,12 +27,10 @@ The first step is to create an application. Qwik comes with a CLI that allows yo
 ### Run the Qwik CLI in your shell
 
 ```shell
-$ npm init qwik@latest
+npm create qwik@latest
 ```
 
 The CLI will guide you through an interactive menu to set the project-name and select one of the starters:
-
-<script id="asciicast-514542" src="https://asciinema.org/a/514542.js" async></script>
 
 After your new app is created, you will see an output like the following in your terminal:
 
@@ -38,19 +38,24 @@ After your new app is created, you will see an output like the following in your
 💫 Let's create a Qwik app 💫
 
 ✔ Project name … qwik-app
-✔ Select a starter › Blank
-✔ Features › Prettier
+✔ Select a starter › Basic
 
-⭐️ Success! Project saved in qwik-app directory
+🦄  Success!  Project created in portfolio directory
 
-🤖 Next steps:
+🐰 Next steps:
    cd qwik-app
    npm install
    npm start
 
+💬 Integration? Add Netlify, Cloudflare, Tailwind...:
+   npm run qwik add
+
 💬 Questions? Start the conversation at:
    https://qwik.builder.io/chat
    https://twitter.com/QwikDev
+
+📺 Presentations, Podcasts and Videos:
+   https://qwik.builder.io/media/
 ```
 
 At this point, you will have `qwik-app` directory, that contains the starter app.
@@ -59,19 +64,14 @@ At this point, you will have `qwik-app` directory, that contains the starter app
 
 Once the application is download.
 
-1. Change into the directory created by the `npm init qwik@latest`.
+1. Change into the directory created by the `npm create qwik`.
 
 ```shell
 cd qwik-app
 ```
 
-2. Install NPM modules:
 
-```shell
-npm install
-```
-
-3. Invoke the dev server
+2. Invoke the dev server
 
 ```shell
 npm start
@@ -81,21 +81,39 @@ npm start
 
 ```shell
 
-  VITE v3.0.2  ready in 140 ms
+  VITE v3.1.1  ready in 140 ms
 
   ➜  Local:   http://localhost:5174/
   ➜  Network: use --host to expose
-
 
 ```
 
 5. Visit http://localhost:5174/ to explore the app.
 
-## Commands
 
-Here are some useful commands to get you started. For a complete list please refer to `package.json`.
+## Running in production
 
-- `npm start`: alias to `npm run dev` (this currently defaults to running dev.ssr)
-- `npm run dev.client`: starts the dev server in client bootstrap mode
-- `npm run dev.ssr`: starts the dev server with SSR
-- `npm run build`: builds the application for production
+To run the application locally in production, run the following command:
+
+```shell
+npm run preview
+```
+
+It will build your application and the [Vite preview server](https://vitejs.dev/config/preview-options.html) to serve the application.
+
+
+## Deployment
+
+It's very easy to deploy your Qwik application to the cloud, as static files, or your own server.
+
+Please checkout the [deployment](/qwikcity/adaptors/overview/index.mdx) section for more details.
+
+## Other integrations
+
+Qwik is designed to be integrated with other tools. Such as `vitest`, `tailwind`, `partytown`... run the following command to see the list of available integrations:
+
+```shell
+npm run qwik add
+```
+
+and dont forget to check the [integrations](/qwikcity/integrations/overview/index.mdx) section for more details.

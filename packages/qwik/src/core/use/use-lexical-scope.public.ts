@@ -1,8 +1,10 @@
-import { assertDefined, assertTrue } from '../assert/assert';
-import { parseQRL } from '../import/qrl';
-import { getContext, QContext, resumeIfNeeded } from '../props/props';
-import { getContainer, getInvokeContext } from './use-core';
-import { assertQrl } from '../import/qrl-class';
+import { assertDefined } from '../error/assert';
+import { inflateQrl, parseQRL } from '../qrl/qrl';
+import { getWrappingContainer, getInvokeContext } from './use-core';
+import { assertQrl } from '../qrl/qrl-class';
+import { getContext } from '../state/context';
+import { resumeIfNeeded } from '../container/resume';
+import { getContainerState } from '../container/container';
 
 // <docs markdown="../readme.md#useLexicalScope">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -20,37 +22,24 @@ import { assertQrl } from '../import/qrl-class';
 // </docs>
 export const useLexicalScope = <VARS extends any[]>(): VARS => {
   const context = getInvokeContext();
-  const hostElement = context.$hostElement$;
-  const qrl = context.$qrl$ ?? parseQRL(decodeURIComponent(String(context.$url$)), hostElement);
-  assertQrl(qrl);
-
-  if (qrl.$captureRef$ == null) {
+  let qrl = context.$qrl$;
+  if (!qrl) {
     const el = context.$element$;
     assertDefined(el, 'invoke: element must be defined inside useLexicalScope()', context);
+    const container = getWrappingContainer(el);
+    assertDefined(container, `invoke: cant find parent q:container of`, el);
+    qrl = parseQRL(decodeURIComponent(String(context.$url$)), container);
+    assertQrl(qrl);
+    resumeIfNeeded(container);
+    const elCtx = getContext(el, getContainerState(container));
+    inflateQrl(qrl, elCtx);
+  } else {
+    assertQrl(qrl);
     assertDefined(
-      qrl.$capture$,
-      'invoke: qrl capture must be defined inside useLexicalScope()',
+      qrl.$captureRef$,
+      'invoke: qrl $captureRef$ must be defined inside useLexicalScope()',
       qrl
     );
-
-    const container = getContainer(el);
-    assertDefined(container, `invoke: cant find parent q:container of`, el);
-
-    resumeIfNeeded(container);
-    const ctx = getContext(el);
-
-    qrl.$captureRef$ = qrl.$capture$!.map((idx) => qInflate(idx, ctx));
-  }
-  const subscriber = context.$subscriber$;
-  if (subscriber) {
-    return qrl.$captureRef$ as VARS;
   }
   return qrl.$captureRef$ as VARS;
-};
-
-const qInflate = (ref: string, hostCtx: QContext) => {
-  const int = parseInt(ref, 10);
-  const obj = hostCtx.$refMap$[int];
-  assertTrue(hostCtx.$refMap$.length > int, 'out of bounds inflate access', ref);
-  return obj;
 };

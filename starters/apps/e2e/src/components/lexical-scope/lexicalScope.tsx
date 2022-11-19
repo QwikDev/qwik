@@ -1,14 +1,44 @@
-import { component$, $, useStore, mutable, noSerialize } from '@builder.io/qwik';
+import { component$, $, useStore, noSerialize, useSignal, Signal } from '@builder.io/qwik';
 
 export const LexicalScope = component$(() => {
-  return <LexicalScopeChild message={mutable('mutable message')}></LexicalScopeChild>;
+  const signal = useSignal(0);
+  const store = useStore({
+    count: 0,
+    signal,
+  });
+  return (
+    <LexicalScopeChild
+      message={'mutable message'}
+      message2={null}
+      signal={signal}
+      signalValue={signal.value}
+      store={store}
+      storeCount={store.count}
+      storeSignal={store.signal}
+    />
+  );
 });
 
 interface LexicalScopeProps {
   message: string;
+  message2: string | null;
+  signal: Signal;
+  signalValue: number;
+  store: Record<string, any>;
+  storeCount: number;
+  storeSignal: Signal;
 }
 
 export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
+  const immutable = useStore(
+    {
+      stuff: 'foo',
+    },
+    {
+      recursive: true,
+    }
+  );
+  Object.freeze(immutable);
   const state = useStore({
     count: 0,
     result: '',
@@ -42,6 +72,13 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
     i: noSerialize(() => console.warn()),
     promise,
   };
+  const propsCopy = {
+    signal: props.signal,
+    signalValue: props.signalValue,
+    store: props.store,
+    storeCount: props.storeCount,
+    storeSignal: props.storeSignal,
+  };
   const d = undefined;
   const e = null;
   const g = true;
@@ -53,8 +90,18 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   const regex = /hola()\//gi;
   const nullPrototype = Object.create(null);
   nullPrototype.value = 12;
+  const infinite = Infinity;
+  const negativeInfinite = -Infinity;
+  const nan = NaN;
 
   const onclick = $(async () => {
+    // eslint-disable-next-line
+    console.assert(infinite === Infinity);
+    // eslint-disable-next-line
+    console.assert(negativeInfinite === -Infinity);
+    // eslint-disable-next-line
+    console.assert(isNaN(nan));
+
     rejected.catch((reason) => {
       promise.then((promiseValue) => {
         state.result = JSON.stringify([
@@ -68,6 +115,12 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
           h,
           i,
           props.message,
+          props.message2,
+          props.signal,
+          props.signalValue,
+          props.store,
+          props.storeCount,
+          props.storeSignal,
           promiseValue,
           url.href,
           date.toISOString(),
@@ -75,6 +128,9 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
           nullPrototype.value,
           reason.message,
           specialStrings,
+          String(infinite),
+          String(negativeInfinite),
+          String(nan),
         ]);
         state.count++;
       });
@@ -94,12 +150,14 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
         <p>{JSON.stringify(h)}</p>
         <p>{String(i)}</p>
         <p>{props.message}</p>
+        <p>{JSON.stringify(propsCopy)}</p>
         <p>{promise}</p>
+        <p>{Object.keys(props).join(', ')}</p>
       </div>
       <button onClick$={onclick} id="rerender">
         Rerender {state.count}
       </button>
-      <div id="result">{state.result}</div>
+      <div id="result">{'' + state.result}</div>
     </section>
   );
 });

@@ -40,7 +40,7 @@ export default component$(() => {
   });
 
   useWatch$(({ track }) => {
-    const appId = track(store, 'appId');
+    const appId = track(() => store.appId);
     const t = getTutorial(appId)!;
 
     store.files = ensureDefaultFiles(t.app.problemInputs);
@@ -128,13 +128,13 @@ export const ensureDefaultFiles = (appFiles: ReplModuleInput[]) => {
 import { renderToString, RenderOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
 
-export default function(opts: RenderOptions) {
+export default function (opts: RenderOptions) {
   return renderToString(<Root />, opts);
 }
 `;
 
   const DEFAULT_ROOT = `
-import { App } from './app';
+import App from './app';
 
 export const Root = () => {
   return (

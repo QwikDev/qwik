@@ -5,7 +5,7 @@ interface State {
   debounced: number;
 }
 
-export const App = component$(() => {
+export default component$(() => {
   const store = useStore<State>({
     count: 0,
     debounced: 0,
@@ -13,7 +13,7 @@ export const App = component$(() => {
 
   useWatch$(({ track }) => {
     // track changes in store.count
-    track(store, 'count');
+    track(() => store.count);
     console.log('count changed');
 
     const timer = setTimeout(() => {

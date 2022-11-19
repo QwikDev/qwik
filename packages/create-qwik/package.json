@@ -1,11 +1,12 @@
 {
   "name": "create-qwik",
-  "version": "0.0.105",
-  "description": "Interactive CLI and API for generating Qwik projects.",
-  "bin": "create-qwik",
-  "main": "index.js",
+  "version": "0.13.3",
+  "description": "Interactive CLI for create Qwik projects and adding features.",
+  "bin": "./create-qwik.cjs",
+  "main": "./index.cjs",
   "files": [
-    "create-qwik",
+    "create-qwik.cjs",
+    "index.cjs",
     "starters/"
   ],
   "author": "Builder.io Team",
@@ -13,7 +14,9 @@
   "keywords": [
     "qwik",
     "generator",
-    "builder.io"
+    "builder.io",
+    "starters",
+    "template"
   ],
   "homepage": "https://qwik.builder.io/",
   "repository": {
@@ -25,12 +28,13 @@
     "url": "https://github.com/BuilderIO/qwik/issues"
   },
   "devDependencies": {
-    "@types/prompts": "2.0.14",
+    "@types/prompts": "2.4.1",
     "kleur": "4.1.5",
+    "ora": "^6.1.2",
     "prompts": "2.4.2"
   },
   "engines": {
-    "node": ">=14",
+    "node": ">=16",
     "npm": ">=6.0.0"
   }
 }

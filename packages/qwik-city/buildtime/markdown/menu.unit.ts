@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import * as assert from 'uvu/assert';
 import { createMenu, parseMenu } from './menu';
 import { suite } from '../../utils/test-suite';
@@ -24,9 +24,9 @@ test('parse menu.md menu', ({ opts }) => {
 
   `;
   const menu = createMenu(opts, filePath);
-  assert.is(menu.pathname, '/guide');
+  assert.is(menu.pathname, '/guide/');
 
-  const i = parseMenu(opts, filePath, content);
+  const i = parseMenu(opts, filePath, content, false);
   assert.is(i.text, 'Heading');
 
   assert.is(i.items![0].text, 'Section A');
@@ -38,7 +38,7 @@ test('parse menu.md menu', ({ opts }) => {
   assert.is(i.items![1].text, 'Section B');
   assert.is(i.items![1].items?.length, 2);
   assert.is(i.items![1].items![0].text, 'Link B1');
-  assert.is(i.items![1].items![0].href, '/guide/link-b1');
+  assert.is(i.items![1].items![0].href, '/guide/link-b1/');
   assert.is(i.items![1].items![1].text, 'Text B1');
 
   assert.is(i.items![2].text, 'Section C');

@@ -12,6 +12,18 @@ export const SlotParent = component$(() => {
     <section class="todoapp">
       {state.render && (
         <>
+          <Issue1630>
+            <Child id="slot-child" q:slot="slot-content">
+              Component Slot Content
+            </Child>
+            <p q:slot="slot-content" id="slot-p">
+              P Slot Content
+            </p>
+            <p id="noslot-p">Non-Slotted Content</p>
+          </Issue1630>
+          <Issue1410>
+            <span id="modal-content">Model content</span>
+          </Issue1410>
           <Projector state={state} id="btn1">
             {!state.removeContent && <>DEFAULT {state.count}</>}
             <span q:slot="ignore">IGNORE</span>
@@ -70,6 +82,47 @@ export const SlotParent = component$(() => {
         </button>
       </div>
     </section>
+  );
+});
+
+export const Issue1630 = component$(() => {
+  const store = useStore({ open: true });
+
+  return (
+    <>
+      <button id="toggle-child-slot" onClick$={() => (store.open = !store.open)}>
+        Toggle Non-Slotted Content
+      </button>
+      <Slot name="slot-content" />
+      {store.open && <Slot />}
+    </>
+  );
+});
+
+export const Child = component$((props: { id?: string }) => {
+  return (
+    <p id={props.id}>
+      <Slot />
+    </p>
+  );
+});
+
+export const Issue1410 = component$(() => {
+  const store = useStore({ open: true });
+
+  return (
+    <>
+      <button id="toggle-modal" onClick$={() => (store.open = !store.open)}>
+        Toggle modal
+      </button>
+      {store.open && (
+        <>
+          <Child>
+            <Slot />
+          </Child>
+        </>
+      )}
+    </>
   );
 });
 

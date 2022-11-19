@@ -1,9 +1,9 @@
 import { BuildConfig, ensureDir } from './util';
 import spawn from 'cross-spawn';
-import { join } from 'path';
+import { join } from 'node:path';
 import nodeFetch from 'node-fetch';
 import semver from 'semver';
-import { existsSync } from 'fs';
+import { existsSync } from 'node:fs';
 import { copyFile, readdir, writeFile } from 'fs/promises';
 
 export async function buildPlatformBinding(config: BuildConfig) {
@@ -13,16 +13,24 @@ export async function buildPlatformBinding(config: BuildConfig) {
       ensureDir(config.distBindingsDir);
 
       const cmd = `napi`;
-      const args = [`build`, `--platform`, `--config=napi.config.json`, config.distBindingsDir];
+      const args = [
+        `build`,
+        `--cargo-name`,
+        'qwik_napi',
+        `--platform`,
+        `--config=packages/qwik/src/napi/napi.config.json`,
+        config.distBindingsDir,
+      ];
 
       if (config.platformTarget) {
         args.push(`--target`, config.platformTarget);
       }
       if (!config.dev) {
         args.push(`--release`);
+        args.push(`--strip`);
       }
 
-      const napiCwd = join(config.srcDir, 'napi');
+      const napiCwd = join(config.rootDir);
 
       const child = spawn(cmd, args, { stdio: 'inherit', cwd: napiCwd });
       child.on('error', reject);

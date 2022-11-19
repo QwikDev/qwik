@@ -4,112 +4,119 @@ import {
   NoSerialize,
   noSerialize,
   QRL,
-  SkipRerender,
   useWatch$,
-  useStore,
-  EagernessOptions,
-  useRef,
+  SkipRender,
+  useSignal,
+  Slot,
+  RenderOnce,
+  useStylesScoped$,
 } from '@builder.io/qwik';
 
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import type { Root } from 'react-dom/client';
 import type { FunctionComponent } from 'react';
-
-export interface Internal<PROPS> {
-  root: Root;
-  client: typeof import('./client');
-  cmp: FunctionComponent<PROPS>;
-}
-
-export interface QwikifyCmp<PROPS extends {}> {
-  data?: NoSerialize<Internal<PROPS>>;
-  event?: NoSerialize<any>;
-}
-
-export type QwikifyProps<PROPS extends {}> = PROPS & {
-  'client:load'?: boolean;
-  'client:visible'?: boolean;
-  'client:only'?: boolean;
-};
-
-export interface QwikifyOptions {
-  tagName?: string;
-  eagerness?: 'load' | 'visible';
-  clientOnly?: boolean;
-}
+import * as client from './client';
+import { renderFromServer } from './server-render';
+import { getHostProps, main, mainExactProps, useWakeupSignal } from './slot';
+import type { Internal, QwikifyOptions, QwikifyProps } from './types';
 
 export function qwikifyQrl<PROPS extends {}>(
-  reactCmp$: QRL<FunctionComponent<PROPS>>,
+  reactCmp$: QRL<FunctionComponent<PROPS & { children?: any }>>,
   opts?: QwikifyOptions
 ) {
   return component$<QwikifyProps<PROPS>>((props) => {
-    const ref = useRef();
-    const store = useStore<QwikifyCmp<PROPS>>({});
-    const Host = opts?.tagName ?? ('qwik-react' as any);
-    const clientOnly = !!(props['client:only'] || opts?.clientOnly);
-    let eagerness: EagernessOptions | undefined;
-    if (props['client:visible'] || opts?.eagerness === 'visible') {
-      eagerness = 'visible';
-    } else if (props['client:load'] || clientOnly || opts?.eagerness === 'load') {
-      eagerness = 'load';
-    }
+    const { scopeId } = useStylesScoped$(
+      `q-slot{display:none} q-slotc,q-slotc>q-slot{display:contents}`
+    );
+    const hostRef = useSignal<Element>();
+    const slotRef = useSignal<Element>();
+    const internalState = useSignal<NoSerialize<Internal<PROPS>>>();
+    const [signal, isClientOnly] = useWakeupSignal(props, opts);
+    const hydrationKeys = {};
+    const TagName = opts?.tagName ?? ('qwik-react' as any);
 
-    useWatch$(
-      async ({ track }) => {
-        track(props);
+    // Watch takes cares of updates and partial hydration
+    useWatch$(async ({ track }) => {
+      const trackedProps = track(() => ({ ...props }));
+      track(signal);
 
-        const hostElement = ref.current;
-        if (isBrowser && hostElement) {
-          if (store.data) {
-            store.data.root.render(store.data.client.Main(store.data.cmp, filterProps(props)));
+      if (!isBrowser) {
+        return;
+      }
+
+      // Update
+      if (internalState.value) {
+        if (internalState.value.root) {
+          internalState.value.root.render(
+            main(slotRef.value, scopeId, internalState.value.cmp, trackedProps)
+          );
+        }
+      } else {
+        let root: Root | undefined = undefined;
+        const Cmp = await reactCmp$.resolve();
+        const hostElement = hostRef.value;
+        if (hostElement) {
+          // hydration
+          if (isClientOnly) {
+            root = client.createRoot(hostElement);
           } else {
-            const [Cmp, client] = await Promise.all([reactCmp$.resolve(), import('./client')]);
-
-            let root: Root;
-            if (hostElement.childElementCount > 0) {
-              root = client.hydrateRoot(
+            root = client.flushSync(() => {
+              return client.hydrateRoot(
                 hostElement,
-                client.Main(Cmp, filterProps(props), store.event)
+                mainExactProps(slotRef.value, scopeId, Cmp, hydrationKeys)
               );
-            } else {
-              root = client.createRoot(hostElement);
-              root.render(client.Main(Cmp, filterProps(props)));
-            }
-            store.data = noSerialize({
-              client,
-              cmp: Cmp,
-              root,
             });
           }
+          if (isClientOnly || signal.value === false) {
+            root.render(main(slotRef.value, scopeId, Cmp, trackedProps));
+          }
         }
-      },
-      { eagerness }
-    );
+        internalState.value = noSerialize({
+          cmp: Cmp,
+          root,
+        });
+      }
+    });
 
-    if (isServer && !clientOnly) {
-      const jsx = Promise.all([reactCmp$.resolve(), import('./server')]).then(([Cmp, server]) => {
-        const html = server.render(Cmp, filterProps(props));
-        return <Host ref={ref} dangerouslySetInnerHTML={html} />;
-      });
-      return <>{jsx}</>;
+    if (isServer && !isClientOnly) {
+      const jsx = renderFromServer(
+        TagName,
+        reactCmp$,
+        scopeId,
+        props,
+        hostRef,
+        slotRef,
+        hydrationKeys
+      );
+      return <RenderOnce>{jsx}</RenderOnce>;
     }
 
     return (
-      <Host ref={ref}>
-        <SkipRerender />
-      </Host>
+      <RenderOnce>
+        <TagName
+          {...getHostProps(props)}
+          ref={(el: Element) => {
+            if (isBrowser) {
+              queueMicrotask(() => {
+                const internalData = internalState.value;
+                if (internalData && !internalData.root) {
+                  const root = (internalData.root = client.createRoot(el));
+                  root.render(main(slotRef.value, scopeId, internalData.cmp, props));
+                }
+              });
+            } else {
+              hostRef.value = el;
+            }
+          }}
+        >
+          {SkipRender}
+        </TagName>
+        <q-slot ref={slotRef}>
+          <Slot></Slot>
+        </q-slot>
+      </RenderOnce>
     );
   });
 }
-
-export const filterProps = (props: Record<string, any>): Record<string, any> => {
-  const obj: Record<string, any> = {};
-  Object.keys(props).forEach((key) => {
-    if (!key.startsWith('client:')) {
-      obj[key] = props[key];
-    }
-  });
-  return obj;
-};
 
 export const qwikify$ = /*#__PURE__*/ implicit$FirstArg(qwikifyQrl);

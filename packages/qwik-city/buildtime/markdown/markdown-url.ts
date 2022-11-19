@@ -1,8 +1,8 @@
-import { dirname, join, basename } from 'path';
+import { dirname, join, basename } from 'node:path';
 import { getSourceFile } from '../routing/source-file';
 import type { NormalizedPluginOptions } from '../types';
 import { getExtension, getPathnameFromDirPath, isMarkdownExt, normalizePath } from '../../utils/fs';
-import { existsSync } from 'fs';
+import { existsSync } from 'node:fs';
 import { isSameOriginUrl } from '../../utils/pathname';
 
 export function getMarkdownRelativeUrl(
@@ -29,12 +29,10 @@ export function getMarkdownRelativeUrl(
       ? join(opts.routesDir, ...parts)
       : join(dirname(containingFilePath), ...parts);
 
-    if (checkFileExists) {
-      if (!existsSync(filePath)) {
-        console.warn(
-          `\nThe link "${url}", found within "${containingFilePath}" does not have a matching source file.\n`
-        );
-      }
+    if (checkFileExists && !existsSync(filePath)) {
+      console.warn(
+        `\nThe link "${url}", found within "${containingFilePath}" does not have a matching source file.\n`
+      );
     }
 
     const fileName = basename(filePath);

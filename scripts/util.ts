@@ -1,5 +1,5 @@
 import type { Plugin, WatchMode } from 'esbuild';
-import { join } from 'path';
+import { join } from 'node:path';
 import mri from 'mri';
 import {
   access as fsAccess,
@@ -16,12 +16,12 @@ import {
   unlinkSync,
   writeFile as fsWriteFile,
   mkdir as fsMkdir,
-} from 'fs';
+} from 'node:fs';
 import { promisify } from 'util';
 import { minify, MinifyOptions } from 'terser';
 import type { Plugin as RollupPlugin } from 'rollup';
 import { execa, Options } from 'execa';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Contains information about the build we're generating by parsing
@@ -240,14 +240,14 @@ function formatFileSize(bytes: number) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + '' + sizes[i];
 }
 
-export const access = /*@__PURE__*/ promisify(fsAccess);
-export const copyFile = /*@__PURE__*/ promisify(fsCopyFile);
-export const readFile = /*@__PURE__*/ promisify(fsReadFile);
-export const readdir = /*@__PURE__*/ promisify(fsReaddir);
-export const unlink = /*@__PURE__*/ promisify(fsUnlink);
-export const stat = /*@__PURE__*/ promisify(fsStat);
-export const writeFile = /*@__PURE__*/ promisify(fsWriteFile);
-export const mkdir = /*@__PURE__*/ promisify(fsMkdir);
+export const access = /*#__PURE__*/ promisify(fsAccess);
+export const copyFile = /*#__PURE__*/ promisify(fsCopyFile);
+export const readFile = /*#__PURE__*/ promisify(fsReadFile);
+export const readdir = /*#__PURE__*/ promisify(fsReaddir);
+export const unlink = /*#__PURE__*/ promisify(fsUnlink);
+export const stat = /*#__PURE__*/ promisify(fsStat);
+export const writeFile = /*#__PURE__*/ promisify(fsWriteFile);
+export const mkdir = /*#__PURE__*/ promisify(fsMkdir);
 
 export function emptyDir(dir: string) {
   if (existsSync(dir)) {
@@ -323,18 +323,6 @@ export interface PackageJSON {
   keywords?: string[];
   engines?: { [key: string]: string };
   private?: boolean;
-  __qwik__?: {
-    priority: number;
-    featureOptions?: string[];
-    featureEnabled?: string[];
-    selectServer?: boolean;
-    vite?: {
-      VITE_IMPORTS?: string;
-      VITE_CONFIG?: string;
-      VITE_QWIK?: string;
-      VITE_PLUGINS?: string;
-    };
-  };
   [key: string]: any;
 }
 
@@ -367,4 +355,5 @@ const IGNORE: { [path: string]: boolean } = {
   'starter.tsconfig.json': true,
   'tsconfig.tsbuildinfo': true,
   'yarn.lock': true,
+  'pnpm-lock.yaml': true,
 };

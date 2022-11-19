@@ -74,9 +74,11 @@ export interface TransformOptions {
   entryStrategy?: EntryStrategy;
   minify?: MinifyMode;
   sourceMaps?: boolean;
-  transpile?: boolean;
+  transpileTs?: boolean;
+  transpileJsx?: boolean;
+  preserveFilenames?: boolean;
   explicitExtensions?: boolean;
-  dev?: boolean;
+  mode?: EmitMode;
   scope?: string;
 }
 
@@ -188,8 +190,7 @@ export type EntryStrategy =
   | SingleEntryStrategy
   | HookEntryStrategy
   | ComponentEntryStrategy
-  | SmartEntryStrategy
-  | ManualEntryStrategy;
+  | SmartEntryStrategy;
 
 /**
  * @alpha
@@ -199,15 +200,13 @@ export type MinifyMode = 'simplify' | 'none';
 /**
  * @alpha
  */
-export interface InlineEntryStrategy {
-  type: 'inline';
-}
+export type EmitMode = 'dev' | 'prod' | 'lib';
 
 /**
  * @alpha
  */
-export interface SingleEntryStrategy {
-  type: 'single';
+export interface InlineEntryStrategy {
+  type: 'inline';
 }
 
 /**
@@ -220,8 +219,17 @@ export interface HookEntryStrategy {
 /**
  * @alpha
  */
+export interface SingleEntryStrategy {
+  type: 'single';
+  manual?: Record<string, string>;
+}
+
+/**
+ * @alpha
+ */
 export interface ComponentEntryStrategy {
   type: 'component';
+  manual?: Record<string, string>;
 }
 
 /**
@@ -229,14 +237,7 @@ export interface ComponentEntryStrategy {
  */
 export interface SmartEntryStrategy {
   type: 'smart';
-}
-
-/**
- * @alpha
- */
-export interface ManualEntryStrategy {
-  type: 'manual';
-  entries: string[][];
+  manual?: Record<string, string>;
 }
 
 /**
@@ -289,9 +290,10 @@ export interface QwikSymbol {
  */
 export interface QwikBundle {
   size: number;
-  symbols: string[];
+  symbols?: string[];
   imports?: string[];
   dynamicImports?: string[];
+  origins?: string[];
 }
 
 /**
@@ -301,7 +303,6 @@ export interface GlobalInjections {
   tag: string;
   attributes?: { [key: string]: string };
   location: 'head' | 'body';
-  children?: string;
 }
 
 export interface GeneratedOutputBundle {

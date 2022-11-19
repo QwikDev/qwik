@@ -1,15 +1,15 @@
-import { component$, useStore, mutable } from '@builder.io/qwik';
+import { component$, useStore } from '@builder.io/qwik';
 
 interface CountStore {
   count: number;
 }
-export const App = component$(() => {
+export default component$(() => {
   const store = useStore<CountStore>({ count: 0 });
 
   return (
     <>
       <button onClick$={() => store.count++}>+1</button>
-      <Display count={mutable(store.count)} />
+      <Display count={store.count} />
     </>
   );
 });

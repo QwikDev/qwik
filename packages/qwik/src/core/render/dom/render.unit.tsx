@@ -1,18 +1,18 @@
 import { ElementFixture, trigger } from '../../../testing/element-fixture';
 import { expectDOM } from '../../../testing/expect-dom.unit';
 import { component$ } from '../../component/component.public';
-import { inlinedQrl, runtimeQrl } from '../../import/qrl';
-import { pauseContainer } from '../../object/store';
+import { inlinedQrl } from '../../qrl/qrl';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
-import { useClientEffect$, useServerMount$, useWatch$ } from '../../use/use-watch';
+import { useClientEffect$, useWatch$ } from '../../use/use-watch';
 import { useCleanup$, useOn } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
-import { useStylesQrl } from '../../use/use-styles';
+import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
 import { equal, match } from 'uvu/assert';
 import { suite } from 'uvu';
 import { useRef } from '../../use/use-ref';
+import { pauseContainer } from '../../container/pause';
 
 const renderSuite = suite('render');
 renderSuite('should render basic content', async () => {
@@ -65,17 +65,11 @@ renderSuite('should serialize events correctly', async () => {
     fixture,
     `
       <div
-        q:id="0"
-        on:mousedown="/runtimeQRL#_"
-        on:keyup="/runtimeQRL#_"
-        on:dblclick="/runtimeQRL#_"
-        on:-dbl-click="/runtimeQRL#_"
-        on:qvisible="/runtimeQRL#_"
-        on-document:load="/runtimeQRL#_"
-        on-document:thing="/runtimeQRL#_"
-        on-document:-thing="/runtimeQRL#_"
-        on-window:scroll="/runtimeQRL#_"
-        on-window:-scroll="/runtimeQRL#_"
+        on-document:load=""
+        on-document:thing=""
+        on-document:-thing=""
+        on-window:scroll=""
+        on-window:-scroll=""
     ></div>
     `
   );
@@ -85,6 +79,27 @@ renderSuite('should serialize boolean attributes correctly', async () => {
   await render(fixture.host, <input required={true} disabled={false}></input>);
   await expectRendered(fixture, '<input required="" />');
 });
+
+renderSuite('should render aria', async () => {
+  const fixture = new ElementFixture();
+  await render(
+    fixture.host,
+    <div
+      id="abc"
+      title="bar"
+      aria-required={true}
+      aria-busy={false}
+      role=""
+      preventdefault:click
+      aria-hidden={undefined}
+    ></div>
+  );
+  await expectRendered(
+    fixture,
+    '<div id="abc" title="bar" aria-required="true" aria-busy="false" role="" preventdefault:click=""></div>'
+  );
+});
+
 renderSuite('should render into a document', async () => {
   const fixture = new ElementFixture();
   fixture.document.head.appendChild(fixture.document.createElement('existing'));
@@ -104,9 +119,10 @@ renderSuite('should render into a document', async () => {
     fixture.document.documentElement,
     `
   <html q:version="dev" q:container="resumed" q:render="dom-dev">
-  <!--qv q:key=sX: q:id=0-->
-  <!--qv q:key q:sref=0 q:sname-->
+  <!--qv q:key=sX:-->
+  <!--qv q:key q:sref=0 q:s-->
     <head q:head="">
+      <title></title>
       <existing></existing>
       <title q:head="">Replace</title>
       <div q:head=""><div></div></div>
@@ -145,6 +161,20 @@ renderSuite('should render style only for defined attributes', async () => {
   );
 });
 
+renderSuite('should render style css variables correctly', async () => {
+  const fixture = new ElementFixture();
+  await render(
+    fixture.host,
+    <div
+      style={{
+        '--stuff-hey': 'hey',
+        '--stuffCase': 'foo',
+      }}
+    />
+  );
+  await expectRendered(fixture, `<div style="--stuff-hey: hey; --stuffCase: foo"></div>`);
+});
+
 renderSuite('should render children', async () => {
   const fixture = new ElementFixture();
   await render(
@@ -174,6 +204,57 @@ renderSuite('should render a component', async () => {
   await expectRendered(fixture, '<span>Hello World</span>');
 });
 
+renderSuite('should render a component with scoped styles', async () => {
+  const fixture = new ElementFixture();
+
+  await render(fixture.host, <HelloWorldScoped />);
+  await expectDOM(
+    fixture.host,
+    `
+  <host q:version="dev" q:container="resumed" q:render="dom-dev">
+    <style q:style="ml52vk-0" hidden="">
+      .stuff.⭐️ml52vk-0 {
+        color: red;
+      }
+    </style>
+    <!--qv q:key=sX:-->
+    <div class="⭐️ml52vk-0">
+      <div class="⭐️ml52vk-0 stuff" aria-hidden="true">
+        Hello
+        <button class="⭐️ml52vk-0">
+          Toggle
+        </button>
+      </div>
+    </div>
+    <!--/qv-->
+  </host>
+  `
+  );
+  await trigger(fixture.host, 'button', 'click');
+  await expectDOM(
+    fixture.host,
+    `
+  <host q:version="dev" q:container="resumed" q:render="dom-dev">
+    <style q:style="ml52vk-0" hidden="">
+      .stuff.⭐️ml52vk-0 {
+        color: red;
+      }
+    </style>
+    <!--qv q:key=sX:-->
+    <div class="⭐️ml52vk-0">
+      <div class="⭐️ml52vk-0">
+        Hello
+        <button class="⭐️ml52vk-0">
+          Toggle
+        </button>
+      </div>
+    </div>
+    <!--/qv-->
+  </host>
+  `
+  );
+});
+
 renderSuite('should render component external props', async () => {
   const fixture = new ElementFixture();
 
@@ -198,30 +279,33 @@ renderSuite('should render a div then a component', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <ToggleRootComponent />);
-  await expectRendered(
-    fixture,
+  await expectDOM(
+    fixture.host,
     `
-    <div aria-hidden="false">
-      <div class="normal">Normal div</div>
-      <button q:id="1" on:click="/runtimeQRL#_">toggle</button>
-    </div>`
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
+      <!--qv q:key=sX:-->
+      <div aria-hidden="false">
+        <div class="normal">Normal div</div>
+        <button>toggle</button>
+      </div>
+      <!--/qv-->
+    </host>`
   );
   await trigger(fixture.host, 'button', 'click');
-  await expectRendered(
-    fixture,
+  await expectDOM(
+    fixture.host,
     `
-    <div aria-hidden="true">
-      <!--qv q:key=sX: q:id=2-->
-      <div><div>this is ToggleChild</div></div>
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
+      <!--qv q:key=sX:-->
+      <div aria-hidden="true">
+        <!--qv q:key=sX:-->
+        <div><div>this is ToggleChild</div></div>
+        <!--/qv-->
+        <button>toggle</button>
+      </div>
       <!--/qv-->
-      <button
-        q:id="1"
-        on:click="/runtimeQRL#_
-/runtimeQRL#_"
-      >
-        toggle
-      </button>
-    </div>`
+    </host>
+    `
   );
 });
 
@@ -229,22 +313,28 @@ renderSuite('should process clicks', async () => {
   const fixture = new ElementFixture();
 
   await render(fixture.host, <Counter step={5} />);
-  await expectRendered(
-    fixture,
-    '<button q:id="1" class="decrement" on:click="/runtimeQRL#_[0 1]">-</button>'
+  await expectDOM(
+    fixture.host,
+    `
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
+      <!--qv q:key=sX:-->
+      <button class="decrement">-</button>
+      <span>0</span>
+      <button class="increment">+</button>
+      <!--/qv-->
+    </host>`
   );
   await trigger(fixture.host, 'button.increment', 'click');
-  await expectRendered(
-    fixture,
+  await expectDOM(
+    fixture.host,
     `
-      <button
-        q:id="1"
-        class="decrement"
-        on:click="/runtimeQRL#_[0 1]
-/runtimeQRL#_[0 2]"
-    >
-       -
-      </button>`
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
+      <!--qv q:key=sX:-->
+      <button class="decrement">-</button>
+      <span>5</span>
+      <button class="increment">+</button>
+      <!--/qv-->
+    </host>`
   );
 });
 
@@ -256,11 +346,11 @@ renderSuite('should project no content', async () => {
     fixture,
     `
       <section>
-        <!--qv q:key q:sref=0 q:sname-->
+        <!--qv q:key q:sref=0 q:s-->
         <!--/qv-->
-        <!--qv q:key=details q:sref=0 q:sname=details-->
+        <!--qv q:key=details q:sref=0 q:s-->
         <!--/qv-->
-        <!--qv q:key=description q:sref=0 q:sname=description-->
+        <!--qv q:key=description q:sref=0 q:s-->
         <!--/qv-->
       </section>`
   );
@@ -274,12 +364,12 @@ renderSuite('should project un-named slot text', async () => {
     fixture,
     `
       <section>
-        <!--qv q:key q:sref=0 q:sname-->
+        <!--qv q:key q:sref=0 q:s-->
         projection
         <!--/qv-->
-        <!--qv q:key=details q:sref=0 q:sname=details-->
+        <!--qv q:key=details q:sref=0 q:s-->
         <!--/qv-->
-        <!--qv q:key=description q:sref=0 q:sname=description-->
+        <!--qv q:key=description q:sref=0 q:s-->
         <!--/qv-->
       </section>`
   );
@@ -304,13 +394,9 @@ renderSuite('should render host events on the first element', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX: q:id=0-->
+    <!--qv q:key=sX:-->
     hello
-    <div
-      q:id="1"
-      on:qvisible="/runtimeQRL#_[0]"
-      on:click="/inlinedQRL#use-on-click"
-    >
+    <div>
       thing
     </div>
     stuff
@@ -334,13 +420,13 @@ renderSuite('should project named slot component', async () => {
     fixture,
     `
       <section>
-        <!--qv q:key q:sref=0 q:sname-->
+        <!--qv q:key q:sref=0 q:s-->
         PROJECTION
         <!--/qv-->
-        <!--qv q:key=details q:sref=0 q:sname=details-->
+        <!--qv q:key=details q:sref=0 q:s-->
         <span q:slot="details">DETAILS</span>
         <!--/qv-->
-        <!--qv q:key=description q:sref=0 q:sname=description-->
+        <!--qv q:key=description q:sref=0 q:s-->
         <span q:slot="description">DESCRIPTION</span>
         <!--/qv-->
       </section>`
@@ -358,12 +444,27 @@ renderSuite('should project multiple slot with same name', async () => {
       <span q:slot="ignore">IGNORE</span>
     </Project>
   );
-  await expectRendered(
-    fixture,
+  await expectDOM(
+    fixture.host,
     `
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
+      <!--qv q:key=sX:-->
+      <section>
+        <!--qv q:key q:sref=0 q:s-->
+        <!--/qv-->
+        <!--qv q:key=details q:sref=0 q:s-->
+        <span q:slot="details">DETAILS1</span>
+        <span q:slot="details">DETAILS2</span>
+        <!--/qv-->
+        <!--qv q:key=description q:sref=0 q:s-->
+        <!--/qv-->
+      </section>
       <q:template q:slot="ignore" hidden="" aria-hidden="true">
         <span q:slot="ignore">IGNORE</span>
-      </q:template>`
+      </q:template>
+      <!--/qv-->
+    </host>
+    `
   );
 });
 renderSuite('should not destroy projection when <Project> reruns', async () => {
@@ -379,7 +480,7 @@ renderSuite('should not destroy projection when <Project> reruns', async () => {
     fixture,
     `
       <section>
-        <!--qv q:key q:sref=0 q:sname-->
+        <!--qv q:key q:sref=0 q:s-->
         <span>PROJECTION</span>
         <!--/qv-->
       </section>`
@@ -392,6 +493,8 @@ renderSuite('should render into host component', async () => {
   await render(
     fixture.host,
     <divfixture
+      on:click="./lazy.js"
+      onscrolling="./test.js"
       hostAttrs={JSON.stringify({
         id: 'TEST',
         class: { thing: true },
@@ -404,6 +507,8 @@ renderSuite('should render into host component', async () => {
     fixture,
     `
       <divfixture
+        on:click="./lazy.js"
+        onscrolling="./test.js"
         hostattrs='{"id":"TEST","class":{"thing":true},"name":"NAME"}'
         content="CONTENT"
       >
@@ -424,13 +529,13 @@ renderSuite('should render a component with hooks', async () => {
   await expectRendered(
     fixture,
     `
-    <div q:id="1" on:qvisible="/runtimeQRL#_[0]">
-      <div q:id="2" id="effect"></div>
-      <div q:id="3" id="effect-destroy"></div>
+    <div>
+      <div id="effect">true</div>
+      <div id="effect-destroy"></div>
       <div id="watch">true</div>
-      <div q:id="4" id="watch-destroy"></div>
-      <div id="server-mount">true</div>
-      <div q:id="5" id="cleanup"></div>
+      <div id="watch-destroy"></div>
+      <div id="server-mount">false</div>
+      <div id="cleanup"></div>
       <div id="reference">true</div>
     </div>`
   );
@@ -440,12 +545,12 @@ renderSuite('should render a component with hooks', async () => {
     fixture,
     `
     <div q:id="1" on:qvisible="/runtimeQRL#_[0]">
-      <div q:id="2" id="effect"></div>
-      <div q:id="3" id="effect-destroy"></div>
+      <div id="effect" q:id="2">true</div>
+      <div id="effect-destroy" q:id="3">true</div>
       <div id="watch">true</div>
-      <div q:id="4" id="watch-destroy">true</div>
-      <div id="server-mount">true</div>
-      <div q:id="5" id="cleanup">true</div>
+      <div id="watch-destroy" q:id="4">true</div>
+      <div id="server-mount">false</div>
+      <div id="cleanup" q:id="5">true</div>
       <div id="reference">true</div>
     </div>`
   );
@@ -489,6 +594,63 @@ renderSuite('should render #text nodes', async () => {
     (e: any) => e.namespaceURI
   );
   equal(namespaces, ['http://www.w3.org/2000/svg', 'http://www.w3.org/2000/svg']);
+});
+
+renderSuite('should render class object correctly', async () => {
+  const fixture = new ElementFixture();
+
+  await render(
+    fixture.host,
+    <div
+      class={{
+        stuff: true,
+        other: false,
+        'm-0 p-2': true,
+      }}
+    ></div>
+  );
+  await expectRendered(fixture, `<div class="stuff m-0 p-2"></div>`);
+});
+
+renderSuite('should render class array correctly', async () => {
+  const fixture = new ElementFixture();
+
+  await render(
+    fixture.host,
+    <div class={['stuff', '', 'm-0 p-2', null, 'active', undefined, 'container'] as any}></div>
+  );
+  await expectRendered(fixture, `<div class="stuff m-0 p-2 active container"></div>`);
+});
+
+renderSuite('should re-render classes correctly', async () => {
+  const fixture = new ElementFixture();
+
+  await render(fixture.host, <RenderClasses></RenderClasses>);
+  await expectDOM(
+    fixture.host,
+    `
+  <host q:version="dev" q:container="resumed" q:render="dom-dev">
+    <!--qv q:key=sX:-->
+    <button class="increment">+</button>
+    <div class="stuff m-0 p-2">Div 1</div>
+    <div class="stuff m-0 p-2 active container">Div 2</div>
+    <!--/qv-->
+  </host>`
+  );
+
+  await trigger(fixture.host, 'button', 'click');
+
+  await expectDOM(
+    fixture.host,
+    `
+  <host q:version="dev" q:container="resumed" q:render="dom-dev">
+    <!--qv q:key=sX:-->
+    <button class="increment">+</button>
+    <div class="other">Div 1</div>
+    <div class="stuff m-0 p-2 active container almost-null">Div 2</div>
+    <!--/qv-->
+  </host>`
+  );
 });
 
 renderSuite('should render camelCase attributes', async () => {
@@ -637,11 +799,78 @@ export const HelloWorld = component$((props: { name?: string }) => {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Hello World
 //////////////////////////////////////////////////////////////////////////////////////////
+export const HelloWorldScoped = component$(() => {
+  useStylesScopedQrl(inlinedQrl(`.stuff { color: red; }`, 'style-scoped-1'));
+  const state = useStore({ cond: false });
+  return (
+    <div>
+      {state.cond && (
+        <div>
+          Hello
+          <button onClick$={() => (state.cond = !state.cond)}>Toggle</button>
+        </div>
+      )}
+      {!state.cond && (
+        <div class="stuff" aria-hidden="true">
+          Hello
+          <button onClick$={() => (state.cond = !state.cond)}>Toggle</button>
+        </div>
+      )}
+    </div>
+  );
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Hello World
+//////////////////////////////////////////////////////////////////////////////////////////
 export const RenderProps = component$((props: Record<string, any>) => {
   return (
     <render-props href={props.href}>
       <span>{JSON.stringify(props)}</span>
     </render-props>
+  );
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Render Classes
+//////////////////////////////////////////////////////////////////////////////////////////
+export const RenderClasses = component$(() => {
+  const state = useStore({
+    count: 0,
+  });
+  return (
+    <>
+      <button
+        className="increment"
+        onClick$={inlinedQrl(Counter_add, 'Counteradd', [state, { value: 1 }])}
+      >
+        +
+      </button>
+      <div
+        class={{
+          stuff: state.count % 2 === 0,
+          other: state.count % 2 === 1,
+          'm-0 p-2': state.count % 2 === 0,
+        }}
+      >
+        Div 1
+      </div>
+      <div
+        class={
+          [
+            'stuff',
+            '',
+            'm-0 p-2',
+            state.count % 2 === 0 ? null : 'almost-null',
+            'active',
+            undefined,
+            'container',
+          ] as any
+        }
+      >
+        Div 2
+      </div>
+    </>
   );
 });
 
@@ -654,11 +883,17 @@ export const Counter = component$((props: { step?: number }) => {
   const step = Number(props.step || 1);
   return (
     <>
-      <button class="decrement" onClick$={runtimeQrl(Counter_add, [state, { value: -step }])}>
+      <button
+        class="decrement"
+        onClick$={inlinedQrl(Counter_add, 'Counteradd', [state, { value: -step }])}
+      >
         -
       </button>
       <span>{state.count}</span>
-      <button class="increment" onClick$={runtimeQrl(Counter_add, [state, { value: step }])}>
+      <button
+        className="increment"
+        onClick$={inlinedQrl(Counter_add, 'Counteradd', [state, { value: step }])}
+      >
         +
       </button>
     </>
@@ -780,10 +1015,6 @@ export const Hooks = component$(() => {
     return () => {
       effectDestroyDiv.current!.textContent = 'true';
     };
-  });
-
-  useServerMount$(() => {
-    state.server = 'true';
   });
 
   return (

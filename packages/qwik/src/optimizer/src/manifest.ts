@@ -200,12 +200,16 @@ function updateSortAndPriorities(manifest: QwikManifest) {
     if (Array.isArray(bundle.dynamicImports)) {
       bundle.dynamicImports.sort(sortAlphabetical);
     }
+    const symbols: string[] = [];
     for (const symbolName of prioritorizedSymbolNames) {
       if (bundleName === prioritorizedMapping[symbolName]) {
-        bundle.symbols.push(symbolName);
+        symbols.push(symbolName);
       }
     }
-    bundle.symbols.sort(sortAlphabetical);
+    if (symbols.length > 0) {
+      symbols.sort(sortAlphabetical);
+      bundle.symbols = symbols;
+    }
   }
 
   manifest.symbols = prioritorizedSymbols;
@@ -305,7 +309,6 @@ function addBundleToManifest(
     const buildDirName = path.dirname(outputBundle.fileName);
     const bundle: QwikBundle = {
       size: outputBundle.size,
-      symbols: [],
     };
 
     const bundleImports = outputBundle.imports
@@ -320,6 +323,11 @@ function addBundleToManifest(
       .map((i) => path.relative(buildDirName, i));
     if (bundleDynamicImports.length > 0) {
       bundle.dynamicImports = bundleDynamicImports;
+    }
+
+    const modulePaths = Object.keys(outputBundle.modules);
+    if (modulePaths.length > 0) {
+      bundle.origins = modulePaths;
     }
 
     manifest.bundles[bundleFileName] = bundle;

@@ -1,15 +1,24 @@
 /**
  * @public
  */
-export interface FunctionComponent<P = {}> {
-  (props: P, key?: string): JSXNode | null;
+export interface FunctionComponent<P = Record<string, any>> {
+  (props: P, key: string | null): JSXNode | null;
+}
+
+export interface DevJSX {
+  ctx: any;
+  isStatic: boolean;
+  fileName: string;
+  lineNumber: number;
+  columnNumber: number;
 }
 
 /**
  * @public
  */
-export interface JSXNode<T = any> {
+export interface JSXNode<T = string | FunctionComponent> {
   type: T;
-  props: Record<string, any>;
-  key: string | number | null;
+  props: T extends FunctionComponent<infer B> ? B : Record<string, any>;
+  key: string | null;
+  dev?: DevJSX;
 }

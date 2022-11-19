@@ -1,8 +1,13 @@
 ---
 title: Qwik City - Route Parameters
+contributors:
+  - manucorporat
+  - Oyemade
+  - mhevery
+  - adamdbradley
 ---
 
-# Qwik City - Route Parameters
+# Route Parameters
 
 Route Parameters are parts of the URLs that are extracted into parameters.
 
@@ -15,20 +20,20 @@ Imagine that you have a page with the following URLs where `[skuId]` can be any 
   - Will match: `https://example.com/sku/1234/details`
 
 ```
-──src/
-  └─routes/
-    └─sku/
-      └─[skuId]/
-        ├─index.js       # https://example.com/sku/1234
-        └─details/
-          └─index.js     # https://example.com/sku/1234/details
+src/
+└── routes/
+    └── sku/
+        └── [skuId]/
+            ├── index.tsx         # https://example.com/sku/1234
+            └── details/
+                └── index.tsx     # https://example.com/sku/1234/details
 ```
 
 ## Retrieving the Route Parameter from the URL
 
-Once we have `[skuId]` in the URL, we need a way to retrieve it. This can be done by using `useLocation()` API.
+Once we have `[skuId]` in the URL, we need a way to retrieve it. This can be done by using [`useLocation()`](/qwikcity/api/index.mdx#uselocation) API.
 
-```typescript
+```tsx
 import { useLocation } from '@builder.io/qwik-city';
 
 export default component$(() => {
@@ -43,3 +48,57 @@ export default component$(() => {
   );
 });
 ```
+
+## Catch All Routes
+It is also possible to create a catch-all routes by adding a directory like `[...slug]`. This works like the above described example but will also consider subsegments of the URI. It can also be applied on the `routes` root level.
+
+```
+src/
+└── routes/
+    └── sku/
+        └── [...slug]/
+            └── index.tsx
+```
+
+The above structure will match:
+- `https://example.com/sku/1234`
+- `https://example.com/sku/1234/detail`
+- `https://example.com/sku/1234/detail/edit`
+- etc
+
+It is possible to limit catch-all routes by adding a subdirectory say `end-of-route` in `[...slug]` directory.
+
+```
+src/
+└── routes/
+    └── sku/
+        └── [...slug]/
+            ├── index.tsx
+            └── end-of-route/
+                └──index.tsx
+```
+
+The above structure will match:
+- `https://example.com/sku/1234/5678/end-of-route`
+
+
+## Groups
+In some cases you would like to move your routes into a subdirectory without affecting the pathname which qwik city is generating based on the folder structure. Or you have several routes on the same level which should use different layouts. In this case you can create directories in parentheses (eg. `(products)`). Let's have a look at an example:
+
+```
+src/
+└── routes/
+    └── (product)/
+            ├── detail/
+            |   └──index.tsx
+            ├── preview/
+            |   └──index.tsx
+            └── promotion/
+                └──index.tsx
+```
+The above structure will match:
+- `https://example.com/detail`
+- `https://example.com/preview`
+- `https://example.com/promotion`
+
+Note that `product` is not part of the pathname.

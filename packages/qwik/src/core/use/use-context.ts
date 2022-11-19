@@ -1,16 +1,14 @@
 import { fromCamelToKebabCase } from '../util/case';
-import { getContext, tryGetContext } from '../props/props';
 import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
-import { verifySerializable } from '../object/q-object';
 import { qDev } from '../util/qdev';
 import { isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
-import {
-  getVirtualElement,
-  isComment,
-  QwikElement,
-  VirtualElement,
-} from '../render/dom/virtual-element';
+import { getVirtualElement, QwikElement, VirtualElement } from '../render/dom/virtual-element';
+import { isComment } from '../util/element';
+import { assertTrue } from '../error/assert';
+import { verifySerializable } from '../state/common';
+import { getContext, QContext } from '../state/context';
+import type { ContainerState } from '../container/container';
 
 // <docs markdown="../readme.md#Context">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -25,7 +23,7 @@ import {
  * for the values. Qwik needs a serializable ID for the context so that the it can track context
  * providers and consumers in a way that survives resumability.
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * // Declare the Context type.
@@ -88,7 +86,7 @@ export interface Context<STATE extends object> {
  * for the values. Qwik needs a serializable ID for the context so that the it can track context
  * providers and consumers in a way that survives resumability.
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * // Declare the Context type.
@@ -129,7 +127,8 @@ export interface Context<STATE extends object> {
  */
 // </docs>
 export const createContext = <STATE extends object>(name: string): Context<STATE> => {
-  return Object.freeze({
+  assertTrue(/^[\w/.-]+$/.test(name), 'Context name must only contain A-Z,a-z,0-9, _', name);
+  return /*#__PURE__*/ Object.freeze({
     id: fromCamelToKebabCase(name),
   } as any);
 };
@@ -146,7 +145,7 @@ export const createContext = <STATE extends object>(name: string): Context<STATE
  *
  * Context is a way to pass stores to the child components without prop-drilling.
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * // Declare the Context type.
@@ -191,18 +190,16 @@ export const useContextProvider = <STATE extends object>(
   context: Context<STATE>,
   newValue: STATE
 ) => {
-  const { get, set, ctx } = useSequentialScope<boolean>();
-  if (get) {
+  const { get, set, elCtx } = useSequentialScope<boolean>();
+  if (get !== undefined) {
     return;
   }
   if (qDev) {
     validateContext(context);
   }
-  const hostElement = ctx.$hostElement$!;
-  const hostCtx = getContext(hostElement);
-  let contexts = hostCtx.$contexts$;
+  let contexts = elCtx.$contexts$;
   if (!contexts) {
-    hostCtx.$contexts$ = contexts = new Map();
+    elCtx.$contexts$ = contexts = new Map();
   }
   if (qDev) {
     verifySerializable(newValue);
@@ -210,6 +207,33 @@ export const useContextProvider = <STATE extends object>(
   contexts.set(context.id, newValue);
   set(true);
 };
+
+/**
+ * @alpha
+ */
+export const useContextBoundary = (...ids: Context<any>[]) => {
+  const { get, set, elCtx, rCtx } = useSequentialScope<boolean>();
+  if (get !== undefined) {
+    return;
+  }
+  let contexts = elCtx.$contexts$;
+  if (!contexts) {
+    elCtx.$contexts$ = contexts = new Map();
+  }
+  for (const c of ids) {
+    const value = resolveContext(c, elCtx, rCtx.$renderCtx$.$static$.$containerState$);
+    if (value !== undefined) {
+      contexts.set(c.id, value);
+    }
+  }
+  contexts.set('_', true);
+  set(true);
+};
+
+export interface UseContext {
+  <STATE extends object, T>(context: Context<STATE>, defaultValue: T): STATE | T;
+  <STATE extends object>(context: Context<STATE>): STATE;
+}
 
 // <docs markdown="../readme.md#useContext">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -220,7 +244,7 @@ export const useContextProvider = <STATE extends object>(
  * Use `useContext()` to retrieve the value of context in a component. To retrieve a value a
  * parent component needs to invoke `useContextProvider()` to assign a value.
  *
- * ## Example
+ * ### Example
  *
  * ```tsx
  * // Declare the Context type.
@@ -260,46 +284,71 @@ export const useContextProvider = <STATE extends object>(
  * @public
  */
 // </docs>
-export const useContext = <STATE extends object>(context: Context<STATE>): STATE => {
-  const { get, set, ctx } = useSequentialScope<STATE>();
-  if (get) {
+export const useContext: UseContext = <STATE extends object>(
+  context: Context<STATE>,
+  defaultValue?: any
+) => {
+  const { get, set, rCtx, elCtx } = useSequentialScope<STATE>();
+  if (get !== undefined) {
     return get;
   }
   if (qDev) {
     validateContext(context);
   }
 
-  let hostElement: QwikElement = ctx.$hostElement$;
-  const contexts = ctx.$renderCtx$.$localStack$;
-  for (let i = contexts.length - 1; i >= 0; i--) {
-    const ctx = contexts[i];
-    hostElement = ctx.$element$;
-    if (ctx.$contexts$) {
-      const found = ctx.$contexts$.get(context.id);
-      if (found) {
-        set(found);
-        return found;
-      }
-    }
+  const value = resolveContext(context, elCtx, rCtx.$renderCtx$.$static$.$containerState$);
+  if (value !== undefined) {
+    return set(value);
   }
-
-  if ((hostElement as any).closest) {
-    const value = queryContextFromDom(hostElement, context.id);
-    if (value !== undefined) {
-      set(value);
-      return value;
-    }
+  if (defaultValue !== undefined) {
+    return set(defaultValue);
   }
   throw qError(QError_notFoundContext, context.id);
 };
 
-export const queryContextFromDom = (hostElement: QwikElement, contextId: string) => {
+export const resolveContext = <STATE extends object>(
+  context: Context<STATE>,
+  hostCtx: QContext,
+  containerState: ContainerState
+): STATE | undefined => {
+  const contextID = context.id;
+  if (hostCtx) {
+    let hostElement: QwikElement = hostCtx.$element$;
+    let ctx = hostCtx.$slotParent$ ?? hostCtx.$parent$;
+    while (ctx) {
+      hostElement = ctx.$element$;
+      if (ctx.$contexts$) {
+        const found = ctx.$contexts$.get(contextID);
+        if (found) {
+          return found;
+        }
+        if (ctx.$contexts$.get('_') === true) {
+          break;
+        }
+      }
+      ctx = ctx.$slotParent$ ?? ctx.$parent$;
+    }
+    if ((hostElement as any).closest) {
+      const value = queryContextFromDom(hostElement, containerState, contextID);
+      if (value !== undefined) {
+        return value;
+      }
+    }
+  }
+  return undefined;
+};
+
+export const queryContextFromDom = (
+  hostElement: QwikElement,
+  containerState: ContainerState,
+  contextId: string
+) => {
   let element: QwikElement | null = hostElement;
   while (element) {
     let node: Node | VirtualElement | null = element;
     let virtual: VirtualElement | null;
     while (node && (virtual = findVirtual(node))) {
-      const contexts = tryGetContext(virtual)?.$contexts$;
+      const contexts = getContext(virtual, containerState)?.$contexts$;
       if (contexts) {
         if (contexts.has(contextId)) {
           return contexts.get(contextId);

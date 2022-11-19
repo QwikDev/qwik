@@ -1,5 +1,8 @@
 ---
 title: Projection
+contributors:
+  - manucorporat
+  - adamdbradley
 ---
 
 Projection is a way of passing content to a child component that in turn controls where the content is rendered. Projection is a collaboration between the parent and child component. The parent component decides what is the content that needs to be rendered, child component decides where and if the content should be rendered.
@@ -15,7 +18,7 @@ Why is Qwik opting to use `<Slot/>` rather than `children` property? The use of 
 
 For Qwik, the `<Slot>` approach is preferable because it declaratively controls the content and location of the projection. This allows the parent component to change the projection content, without forcing the child component to re-render.
 
-## Example
+### Example
 
 Change the `<Panel>` component to project the `<App>` content using the `<Slot>` element.
 

@@ -21,18 +21,23 @@ import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_nuxfthrjvxe"), "App_Component_NuXFTHRjvXE"));
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,0FAMhB\"}")
 ============================= app_component_1_a08txhb9pek.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _wrapSignal } from "@builder.io/qwik";
 export const App_Component_1_A08tXHb9pEk = ()=>{
     const [state] = useLexicalScope();
     return /*#__PURE__*/ _jsx("div", {
-        children: state.thing
+        children: _wrapSignal(state, "thing")
     });
 };
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMoB;;yBACZ,KAAC;8BAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -65,6 +70,8 @@ export const App_Component_NuXFTHRjvXE = (props)=>{
     ]);
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG6B,CAAC,QAAU;IACpC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAEhC;;;AAGJ\"}")
 /*
 {
   "origin": "test.tsx",

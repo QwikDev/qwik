@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use clap::{Arg, Command};
 use path_absolutize::Absolutize;
-use qwik_core::{transform_fs, EntryStrategy, MinifyMode, TransformFsOptions};
+use qwik_core::{transform_fs, EmitMode, EntryStrategy, MinifyMode, TransformFsOptions};
 
 struct OptimizerInput {
     glob: Option<String>,
@@ -14,7 +14,9 @@ struct OptimizerInput {
     src: PathBuf,
     dest: PathBuf,
     strategy: EntryStrategy,
-    transpile: bool,
+    transpile_ts: bool,
+    transpile_jsx: bool,
+    preserve_filenames: bool,
     minify: MinifyMode,
     sourcemaps: bool,
     explicit_extensions: bool,
@@ -52,7 +54,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .arg(
                     Arg::new("strategy")
                     .long("strategy")
-                        .possible_values(["single", "hook", "smart", "component"])
+                        .possible_values(["inline","single", "hook", "smart", "component"])
                         .takes_value(true)
                         .help("entry strategy used to group hooks"),
                 )
@@ -64,10 +66,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .help("filename of the manifest"),
                 )
                 .arg(
-                    Arg::new("no-transpile")
-                    .long("no-transpile")
-                    .help("transpile TS and JSX into JS").takes_value(false)
+                    Arg::new("no-ts")
+                    .long("no-ts")
+                    .help("no transpile TS").takes_value(false)
                  )
+                 .arg(
+                    Arg::new("no-jsx")
+                    .long("no-jsx")
+                    .help("no transpile JSX").takes_value(false)
+                 )
+                 .arg(Arg::new("preserve-filenames").long("preserve-filenames").help("preserves original filename").takes_value(false))
                 .arg(Arg::new("minify").long("minify").possible_values(["minify", "simplify", "none"]).takes_value(true).help("outputs minified source code"))
                 .arg(Arg::new("sourcemaps").long("sourcemaps").help("generates sourcemaps").takes_value(false))
                 .arg(Arg::new("extensions").long("extensions").help("keep explicit extensions on imports").takes_value(false)),
@@ -100,7 +108,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             strategy,
             minify,
             explicit_extensions: matches.is_present("extensions"),
-            transpile: !matches.is_present("no-transpile"),
+            transpile_jsx: !matches.is_present("no-jsx"),
+            transpile_ts: !matches.is_present("no-ts"),
+            preserve_filenames: matches.is_present("preserve-filenames"),
             sourcemaps: matches.is_present("sourcemaps"),
         })?;
     }
@@ -119,10 +129,13 @@ fn optimize(
         glob: optimizer_input.glob,
         source_maps: optimizer_input.sourcemaps,
         minify: optimizer_input.minify,
-        transpile: optimizer_input.transpile,
+        transpile_jsx: optimizer_input.transpile_jsx,
+        transpile_ts: optimizer_input.transpile_ts,
+        preserve_filenames: optimizer_input.preserve_filenames,
+        manual_chunks: None,
         entry_strategy: optimizer_input.strategy,
         explicit_extensions: optimizer_input.explicit_extensions,
-        dev: true,
+        mode: EmitMode::Lib,
         scope: None,
 
         strip_exports: None,

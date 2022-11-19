@@ -1,5 +1,13 @@
-// minification can replace the `globalThis.qDev` with `false`
-// which will remove all dev code within from the build
-export const qDev = (globalThis as any).qDev === true;
-export const qDynamicPlatform = (globalThis as any).qDynamicPlatform !== false;
-export const qTest = (globalThis as any).qTest === true;
+export const qDev = globalThis.qDev === true;
+export const qSerialize = globalThis.qSerialize !== false;
+export const qDynamicPlatform = globalThis.qDynamicPlatform !== false;
+export const qTest = globalThis.qTest === true;
+export const qRuntimeQrl = globalThis.qRuntimeQrl === true;
+
+export const seal = (obj: any) => {
+  if (qDev) {
+    Object.seal(obj);
+  }
+};
+
+declare const globalThis: any;

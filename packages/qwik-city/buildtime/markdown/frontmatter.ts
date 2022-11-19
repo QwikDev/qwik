@@ -32,22 +32,50 @@ export function parseFrontmatterAttrs(yaml: string) {
   return null;
 }
 
-export function frontmatterAttrsToDocumentHead(attrs: FrontmatterAttrs | undefined) {
-  if (attrs && Object.keys(attrs).length > 0) {
-    const head: Required<ResolvedDocumentHead> = { title: '', meta: [], styles: [], links: [] };
+// https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta/name
+const metaNames: { [attrName: string]: boolean } = {
+  author: true,
+  creator: true,
+  'color-scheme': true,
+  description: true,
+  generator: true,
+  keywords: true,
+  publisher: true,
+  referrer: true,
+  robots: true,
+  'theme-color': true,
+  viewport: true,
+};
 
-    for (const attrName in attrs) {
-      const attrValue = attrs[attrName];
-      if (attrName === 'title' && attrValue) {
-        head.title = attrValue.toString();
-      } else if (attrName === 'description' && attrValue) {
-        head.meta.push({
-          name: attrName,
-          content: attrValue.toString(),
-        });
+export function frontmatterAttrsToDocumentHead(attrs: FrontmatterAttrs | undefined) {
+  if (attrs != null && typeof attrs === 'object') {
+    const attrNames = Object.keys(attrs);
+    if (attrNames.length > 0) {
+      const head: Required<ResolvedDocumentHead> = {
+        title: '',
+        meta: [],
+        styles: [],
+        links: [],
+        frontmatter: {},
+      };
+
+      for (const attrName of attrNames) {
+        const attrValue = attrs[attrName];
+        if (attrValue != null) {
+          if (attrName === 'title') {
+            head.title = attrValue.toString();
+          } else if (metaNames[attrName]) {
+            head.meta.push({
+              name: attrName,
+              content: attrValue.toString(),
+            });
+          } else {
+            head.frontmatter[attrName] = attrValue;
+          }
+        }
       }
+      return head;
     }
-    return head;
   }
   return null;
 }

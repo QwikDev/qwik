@@ -1,15 +1,22 @@
-import type { RequestContext } from '../../runtime/src/library/types';
+import type { RequestContext } from '../../runtime/src/types';
+import { mergeHeadersCookies } from './cookie';
 import { createHeaders } from './headers';
-import type { ResponseHandler } from './types';
+import type { QwikCityRequestContext, ResponseHandler } from './types';
 
-export function mockRequestContext(opts?: { method?: string; url?: string | URL }) {
+export function mockRequestContext(opts?: {
+  method?: string;
+  url?: string | URL;
+}): TestQwikCityRequestContext {
   const url = new URL(opts?.url || '/', 'https://qwik.builder.io');
 
   const request: RequestContext = {
     method: opts?.method || 'GET',
-    url,
+    url: url.href,
     headers: createHeaders(),
-  } as any;
+    formData: () => Promise.resolve(new URLSearchParams()),
+    json: () => Promise.resolve({}),
+    text: () => Promise.resolve(''),
+  };
 
   const responseData: { status: number; headers: Headers; body: Promise<string> } = {
     status: 200,
@@ -17,10 +24,10 @@ export function mockRequestContext(opts?: { method?: string; url?: string | URL 
     body: null as any,
   };
 
-  const response: ResponseHandler = async (status, headers, body) => {
+  const response: ResponseHandler = async (status, headers, cookie, body) => {
     const chunks: string[] = [];
     responseData.status = status;
-    responseData.headers = headers as any;
+    responseData.headers = mergeHeadersCookies(headers, cookie);
     responseData.body = new Promise<string>((resolve) => {
       body({
         write: (chunk) => {
@@ -32,7 +39,24 @@ export function mockRequestContext(opts?: { method?: string; url?: string | URL 
     });
   };
 
-  return { url, request, response, responseData };
+  return {
+    url,
+    request,
+    response,
+    responseData,
+    platform: { testing: true },
+    locale: undefined,
+    mode: 'dev',
+  };
+}
+
+export interface TestQwikCityRequestContext extends QwikCityRequestContext {
+  responseData: {
+    status: number;
+    headers: Headers;
+    body: any;
+  };
+  locale: string | undefined;
 }
 
 export async function wait() {

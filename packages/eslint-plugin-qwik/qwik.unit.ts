@@ -1,7 +1,7 @@
 /* eslint-disable */
 // @ts-ignore
 import Utils from '@typescript-eslint/utils';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 import { test } from 'uvu';
 import { rules } from './index';
 
@@ -31,8 +31,10 @@ test('no-use-after-await', () => {
       export const HelloWorld = component$(async () => {
           useMethod();
           await something();
+          let a;
+          a = 2;
           return $(() => {
-            return <div></div>
+            return <div>{a}</div>
           });
         });
         const A = () => { console.log('A') };
@@ -89,11 +91,42 @@ test('valid-lexical-scope', () => {
   ruleTester.run('valid-lexical-scope', rules['valid-lexical-scope'], {
     valid: [
       `
+      import { component$, SSRStream } from "@builder.io/qwik";
+import { Readable } from "stream";
+
+export const RemoteApp = component$(({ name }: { name: string }) => {
+  return (
+    <>
+      <SSRStream>
+        {async (stream) => {
+          const res = await fetch('path');
+          const reader = res.body as any as Readable;
+          reader.setEncoding("utf8");
+
+          // Readable streams emit 'data' events once a listener is added.
+          reader.on("data", (chunk) => {
+            chunk = String(chunk).replace(
+              'q:base="/build/"',
+            );
+            stream.write(chunk);
+          });
+
+          return new Promise((resolve) => {
+            reader.on("end", () => resolve());
+          });
+        }}
+      </SSRStream>
+    </>
+  );
+});
+`,
+      `
       export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
       import { useMethod, component$ } from 'stuff';
       export interface Value {
         value: number;
         fn: NoSerialize<() => void>;
+        other: Value;
       }
       export function getFn(): NoSerialize<() => void> {
         return () => {};
@@ -223,6 +256,31 @@ test('valid-lexical-scope', () => {
       await props.method$();
     }}></div>;
   });
+      `,
+      ``,
+      `
+import { component$ } from "@builder.io/qwik";
+
+export const version = "0.13";
+
+export default component$(() => {
+  return {
+    version,
+  };
+});
+`,
+      `
+        import { component$ } from "@builder.io/qwik";
+        
+        export interface Props {
+          serializableTuple: [string, number, boolean];
+        }
+
+        export const HelloWorld = component$((props: Props) => {
+          return (
+            <button onClick$={() => props.serializableTuple}></button>
+          );
+        });
       `,
     ],
     invalid: [
@@ -365,6 +423,40 @@ test('valid-lexical-scope', () => {
         });`,
         errors: [
           'JSX attributes that end with $ can only take an inlined arrow function of a QRL identifier. Make sure the value is created using $()',
+        ],
+      },
+      {
+        code: `
+        import { component$ } from 'stuff';
+        export const HelloWorld = component$(() => {
+          let click: string = '';
+          return (
+            <button onClick$={() => {
+              click = '';
+
+            }}>
+            </button>
+          );
+        });`,
+        errors: [
+          'The value of the identifier ("click") can not be changed once it is captured the scope (onClick$). Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+        ],
+      },
+      {
+        code: `
+        import { component$ } from "@builder.io/qwik";
+        
+        export interface Props {
+          nonserializableTuple: [string, number, boolean, Function];
+        }
+
+        export const HelloWorld = component$((props: Props) => {
+          return (
+            <button onClick$={() => props.nonserializableTuple}></button>
+          );
+        });`,
+        errors: [
+          'Identifier ("props") can not be captured inside the scope (onClick$) because "props.nonserializableTuple" is an instance of the "Function" class, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
         ],
       },
     ],

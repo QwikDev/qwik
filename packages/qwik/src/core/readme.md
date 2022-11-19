@@ -12,7 +12,7 @@ Side note: You can also declare regular (standard JSX) components that will have
 
 Qwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
 
-### Example:
+### Example
 
 An example showing how to create a counter component:
 
@@ -36,11 +36,34 @@ Creates an object that Qwik can track across serializations.
 
 Use `useStore` to create a state for your application. The returned object is a proxy that has a unique ID. The ID of the object is used in the `QRL`s to refer to the store.
 
-## Example
+### Example
 
 Example showing how `useStore` is used in Counter example to keep track of the count.
 
 <docs code="./examples.tsx#use-store"/>
+
+@public
+
+# `useResource`
+
+This method works like an async memoized function that runs whenever some tracked value changes and returns some data.
+
+`useResouce` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.
+
+The status can be one of the following:
+
+- 'pending' - the data is not yet available.
+- 'resolved' - the data is available.
+- 'rejected' - the data is not available due to an error or timeout.
+
+### Example
+
+Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
+
+<docs code="./examples.tsx#use-resource"/>
+
+@see Resource
+@see ResourceReturn
 
 @public
 
@@ -54,11 +77,12 @@ export function useRef<T = Element>(current?: T): Ref<T> {
 }
 ```
 
-## Example
+### Example
 
 <docs code="./examples.tsx#use-ref"/>
 
-@public
+@deprecated Use `useSignal` instead.
+@alpha
 
 # `useWatch`
 
@@ -72,7 +96,7 @@ The `watchFn` only executes if the observed inputs change. To observe the inputs
 
 @public
 
-## Example
+### Example
 
 The `useWatch` function is used to observe the `state.count` property. Any changes to the `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
 
@@ -87,7 +111,7 @@ Used to signal to Qwik which state should be watched for changes.
 
 The `Tracker` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap state objects in a read proxy which signals to Qwik which properties should be watched for changes. A change to any of the properties causes the `watchFn` to rerun.
 
-## Example
+### Example
 
 The `obs` passed into the `watchFn` is used to mark `state.count` as a property of interest. Any changes to the `state.count` property will cause the `watchFn` to rerun.
 
@@ -105,9 +129,9 @@ The `obs` passed into the `watchFn` is used to mark `state.count` as a property 
 
 # `useMount`
 
-Register a server mount hook that runs only in the server when the component is first mounted.
+Registers a hook to execute code when the component is mounted into the rendering tree (on component creation).
 
-## Example
+### Example
 
 <docs code="./examples.tsx#use-mount"/>
 
@@ -116,9 +140,9 @@ Register a server mount hook that runs only in the server when the component is 
 
 # `useServerMount`
 
-Register's a server mount hook that runs only in the server when the component is first mounted.
+Registers a server mount hook that runs only in the server when the component is first mounted.
 
-## Example
+### Example
 
 <docs code="./examples.tsx#use-server-mount"/>
 
@@ -151,15 +175,10 @@ Component styles allow Qwik to lazy load the style information for the component
 
 # `useCleanup`
 
-A lazy-loadable reference to a component's cleanup hook.
-
-Invoked when the component is destroyed (removed from render tree), or paused as part of the SSR serialization.
-
 It can be used to release resources, abort network requests, stop timers...
 
-<docs code="./examples.tsx#use-cleanup"/>
-
 @alpha
+@deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or `useClientEffect$()` instead.
 
 # `useOn`
 
@@ -332,7 +351,7 @@ This means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Q
 
 For example, these function calls are equivalent:
 
-- `component$(() => {...})` is same as `onRender($(() => {...}))`
+- `component$(() => {...})` is same as `component($(() => {...}))`
 
 <docs code="./examples.tsx#implicit$FirstArg"/>
 
@@ -368,7 +387,7 @@ Context is a way to pass stores to the child components without prop-drilling.
 
 Use `createContext()` to create a `Context`. `Context` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
-## Example
+### Example
 
 <docs code="./examples.tsx#context"/>
 @public
@@ -381,7 +400,7 @@ Context is a way to pass stores to the child components without prop-drilling.
 
 Use `createContext()` to create a `Context`. `Context` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
-## Example
+### Example
 
 <docs code="./examples.tsx#context"/>
 @param name - The name of the context.
@@ -395,7 +414,7 @@ Use `useContextProvider()` to assign a value to a context. The assignment happen
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-## Example
+### Example
 
 <docs code="./examples.tsx#context"/>
 @param context - The context to assign a value to.
@@ -408,37 +427,8 @@ Retrive Context value.
 
 Use `useContext()` to retrieve the value of context in a component. To retrieve a value a parent component needs to invoke `useContextProvider()` to assign a value.
 
-## Example
+### Example
 
 <docs code="./examples.tsx#context"/>
 @param context - The context to retrieve a value from.
 @public
-
-# `pauseContainer`
-
-Serialize the current state of the application into DOM
-
-@alpha
-
-# `mutable`
-
-Mark property as mutable.
-
-Qwik assumes that all bindings in components are immutable by default. This is done for two reasons:
-
-1. JSX does not allow Qwik runtime to know if a binding is static or mutable.
-   `<Example valueA={123} valueB={exp}>` At runtime there is no way to know if `valueA` is immutable.
-2. If Qwik assumes that properties are immutable, then it can do a better job data-shaking the amount of code that needs to be serialized to the client.
-
-Because Qwik assumes that bindings are immutable by default, it needs a way for a developer to let it know that binding is mutable. `mutable()` function serves that purpose.
-`<Example valueA={123} valueB={mutable(exp)}>`. In this case, the Qwik runtime can correctly recognize that the `Example` props are mutable and need to be serialized.
-
-See: [Mutable Props Tutorial](http://qwik.builder.io/tutorial/props/mutable) for an example
-
-@alpha
-
-# `MutableWrapper`
-
-A marker object returned by `mutable()` to identify that the binding is mutable.
-
-@alpha

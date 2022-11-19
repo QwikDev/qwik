@@ -1,7 +1,7 @@
-import { getBanner, importPath, nodeBuiltIns, nodeTarget, target, watcher } from './util';
+import { getBanner, importPath, nodeTarget, target, watcher } from './util';
 import { build, BuildOptions } from 'esbuild';
 import { BuildConfig, injectGlobalThisPoly, PackageJSON } from './util';
-import { join } from 'path';
+import { join } from 'node:path';
 import { writePackageJson } from './package-json';
 
 /**
@@ -16,7 +16,8 @@ export async function submoduleTesting(config: BuildConfig) {
     sourcemap: config.dev,
     bundle: true,
     target,
-    external: [...nodeBuiltIns],
+    platform: 'node',
+    // external: [...nodeBuiltIns],
   };
 
   const esm = build({
@@ -32,6 +33,7 @@ export async function submoduleTesting(config: BuildConfig) {
     watch: watcher(config, submodule),
     define: {
       'globalThis.MODULE_EXT': `"mjs"`,
+      'globalThis.RUNNER': `false`,
     },
     target: 'es2020' /* needed for import.meta */,
   });
@@ -51,6 +53,7 @@ export async function submoduleTesting(config: BuildConfig) {
     watch: watcher(config),
     define: {
       'globalThis.MODULE_EXT': `"cjs"`,
+      'globalThis.RUNNER': `false`,
     },
     platform: 'node',
     target: nodeTarget,
@@ -67,10 +70,10 @@ async function generateTestingPackageJson(config: BuildConfig) {
   const pkg: PackageJSON = {
     name: '@builder.io/qwik/testing',
     version: config.distVersion,
-    main: 'index.cjs',
-    module: 'index.mjs',
+    main: 'index.mjs',
     types: 'index.d.ts',
     private: true,
+    type: 'module',
   };
   const testingDistDir = join(config.distPkgDir, 'testing');
   await writePackageJson(testingDistDir, pkg);

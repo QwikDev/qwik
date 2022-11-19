@@ -1,16 +1,6 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "bundledPackages": [],
-  "compiler": {
-    "overrideTsconfig": {
-      "compilerOptions": {
-        "isolatedModules": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true
-      },
-      "include": ["dist-dev/dts-out/packages/qwik-react/src"]
-    }
-  },
   "docModel": {
     "enabled": false
   },

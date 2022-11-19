@@ -1,9 +1,6 @@
-/* eslint-disable */
-
 import type { DOMAttributes } from './jsx-qwik-attributes';
 interface HTMLWebViewElement extends HTMLElement {}
-interface ClassAttributes<T> {}
-export type Booleanish = 'true' | 'false';
+export type Booleanish = boolean | `${boolean}`;
 
 /**
  * @public
@@ -315,7 +312,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   placeholder?: string | undefined;
   slot?: string | undefined;
   spellCheck?: Booleanish | undefined;
-  style?: Record<string, string | number> | string | undefined;
+  style?: Record<string, string | number | undefined> | string | undefined;
   tabIndex?: number | undefined;
   title?: string | undefined;
   translate?: 'yes' | 'no' | undefined;
@@ -648,7 +645,7 @@ export interface KeygenHTMLAttributes<T> extends HTMLAttributes<T> {
 }
 export interface LabelHTMLAttributes<T> extends HTMLAttributes<T> {
   form?: string | undefined;
-  htmlFor?: string | undefined;
+  for?: string | undefined;
 }
 export interface LiHTMLAttributes<T> extends HTMLAttributes<T> {
   value?: string | ReadonlyArray<string> | number | undefined;
@@ -661,6 +658,7 @@ export interface LinkHTMLAttributes<T> extends HTMLAttributes<T> {
   integrity?: string | undefined;
   media?: string | undefined;
   imageSrcSet?: string | undefined;
+  imageSizes?: string | undefined;
   referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
   rel?: string | undefined;
   sizes?: string | undefined;
@@ -717,7 +715,7 @@ export interface OptionHTMLAttributes<T> extends HTMLAttributes<T> {
 }
 export interface OutputHTMLAttributes<T> extends HTMLAttributes<T> {
   form?: string | undefined;
-  htmlFor?: string | undefined;
+  for?: string | undefined;
   name?: string | undefined;
 }
 export interface ParamHTMLAttributes<T> extends HTMLAttributes<T> {
@@ -1135,8 +1133,10 @@ export interface SVGAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   z?: number | string | undefined;
   zoomAndPan?: string | undefined;
 }
-export interface SVGProps<T> extends SVGAttributes<T>, ClassAttributes<T> {}
-export interface IntrinsicElements {
+export interface SVGProps<T> extends SVGAttributes<T> {}
+
+export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGElements {}
+export interface IntrinsicHTMLElements {
   a: AnchorHTMLAttributes<HTMLAnchorElement>;
   abbr: HTMLAttributes<HTMLElement>;
   address: HTMLAttributes<HTMLElement>;
@@ -1248,11 +1248,15 @@ export interface IntrinsicElements {
   title: HTMLAttributes<HTMLTitleElement>;
   tr: HTMLAttributes<HTMLTableRowElement>;
   track: TrackHTMLAttributes<HTMLTrackElement>;
+  tt: HTMLAttributes<HTMLElement>;
   u: HTMLAttributes<HTMLElement>;
   ul: HTMLAttributes<HTMLUListElement>;
   video: VideoHTMLAttributes<HTMLVideoElement>;
   wbr: HTMLAttributes<HTMLElement>;
   webview: WebViewHTMLAttributes<HTMLWebViewElement>;
+}
+
+export interface IntrinsicSVGElements {
   svg: SVGProps<SVGSVGElement>;
   animate: SVGProps<SVGElement>;
   animateMotion: SVGProps<SVGElement>;

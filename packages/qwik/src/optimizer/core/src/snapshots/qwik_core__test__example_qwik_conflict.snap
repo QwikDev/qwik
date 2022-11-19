@@ -53,6 +53,8 @@ export const Root = /*#__PURE__*/ componentQrl(qrl(()=>import("./root_component_
     tagName: "my-foo"
 });
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AACA,SAAS,OAAA,IAAG,QAAQ,wBAAwB;AAE5C,OAAO,MAAM,KAAK,GAAG;AACrB,OAAO,MAAM,cAAc,GAAG;AAE9B,MAAM,gBAAe,IAAM,QAAQ,GAAG,CAAC,YAAY;AAEnD;AACA,OAAO,MAAM,oBAAM,0FAQhB;IACC,SAAS;AACb,GAAG;AAEH,OAAO,MAAM,qBAAO,4FAOjB;IACC,SAAS;AACb,GAAG\"}")
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
@@ -71,6 +73,8 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
     });
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAU8B,IAAM;IAChC,WAAW;IACX,MAAM,OAAO,KAAK;IAClB,QAAQ,GAAG,CAAC;IACZ,MAAM,OAAM;IACZ,qBACI,KAAC;QAAI,QAAQ;;;;AAErB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -95,6 +99,8 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
 export const Root_component_useStyles_u5DkUxGrGnU = 'thing';
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAuBgB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -123,6 +129,8 @@ export const Root_component_royhjYaCbYE = ()=>{
     return qrl(()=>import("./root_component_1_cbpqnyduhi4"), "Root_component_1_cBpQNYDUHI4");
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAsB+B,IAAM;IACjC;IACA;AAKJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -150,6 +158,8 @@ export const Root_component_1_cBpQNYDUHI4 = ()=>{
 };
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAwBa,IAAM;IACX,qBACI,KAAC;AAET\"}")
 /*
 {
   "origin": "test.tsx",
@@ -177,6 +187,8 @@ export const Foo_component_div_onClick_M48DYiidSJw = ()=>{
     return console.log(qrl);
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAgBuB;;WAAK,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",

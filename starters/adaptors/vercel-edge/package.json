@@ -1,0 +1,19 @@
+{
+  "description": "Vercel Edge Functions",
+  "scripts": {
+    "build.server": "vite build -c adaptors/vercel-edge/vite.config.ts",
+    "deploy": "vercel deploy"
+  },
+  "devDependencies": {
+    "vercel": "^28.4.17"
+  },
+  "__qwik__": {
+    "priority": 30,
+    "displayName": "Adaptor: Vercel Edge",
+    "docs": [
+      "https://qwik.builder.io/qwikcity/adaptors/vercel-edge/",
+      "https://vercel.com/docs/concepts/functions/edge-functions",
+      "https://vercel.com/docs"
+    ]
+  }
+}

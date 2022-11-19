@@ -1,16 +1,21 @@
 ---
 title: Qwik City - Static Assets
+contributors:
+  - manucorporat
+  - Oyemade
+  - mhevery
+  - adamdbradley
 ---
 
-# Qwik City - Static Assets
+# Static Assets
 
 Use `/public` folder to store all static assets such as images, fonts, etc.
 
-All static assets are served from your server's root (`/` as in `https://example.com/`) folder and superimposed under your routes (routes have priority.)
+All static assets are served from your server's root (`/` as in `https://example.com/`) folder and superimposed under your routes (routes have priority).
 
 ```
-──public/
-  ├─favicon.ico         # http://localhost:3002/favicon.ico
-  └─images/
-    └─logo.png          # http://localhost:3002/images/logo.png
+public/
+├── favicon.ico           # https://example.com/favicon.ico
+└── images/
+    └── logo.png          # https://example.com/images/logo.png
 ```

@@ -41,7 +41,13 @@ test('resolveLayout', () => {
       routesDir: '',
       basePathname: '/',
       trailingSlash: false,
+      mdxPlugins: {
+        remarkGfm: true,
+        rehypeSyntaxHighlight: true,
+        rehypeAutolinkHeadings: true,
+      },
       mdx: {},
+      baseUrl: '/',
     };
     const sourceFile: RouteSourceFile = {
       ...getSourceFile(c.fileName)!,

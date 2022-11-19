@@ -46,7 +46,7 @@ Open the `examples-menu.json` and add your new example in the right section:
 
 At the root of the qwik repo, run:
 
-```bash
+```shell
 yarn
 yarn build
 yarn lint

@@ -43,15 +43,15 @@ npm run build.client
 Production build that creates the server-side render (SSR) module that is used by the server to render the HTML.
 
 ```
-npm run build.ssr
+npm run build.server
 ```
 
 ---
 
 ## Related
 
-- [Qwik Docs](https://qwik.builder.io/)
-- [Qwik Github](https://github.com/BuilderIO/qwik)
+- [Qwik Docs](https://qwik.builder.io/docs/overview/)
+- [Qwik on GitHub](https://github.com/BuilderIO/qwik)
 - [@QwikDev](https://twitter.com/QwikDev)
 - [Discord](https://qwik.builder.io/chat)
 - [Vite](https://vitejs.dev/)

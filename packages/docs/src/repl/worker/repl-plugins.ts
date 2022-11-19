@@ -7,6 +7,11 @@ import { depResponse } from './repl-dependencies';
 import { QWIK_REPL_DEPS_CACHE } from './repl-constants';
 
 export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 'ssr'): Plugin => {
+  const srcInputs = options.srcInputs;
+  const resolveId = (id: string) => {
+    return srcInputs.find((i) => i.path === id)?.path;
+  };
+
   return {
     name: 'repl-resolver',
 
@@ -14,11 +19,25 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       if (!importer) {
         return id;
       }
-      if (id === '@builder.io/qwik' || id === '@builder.io/qwik/jsx-runtime') {
+      if (
+        id === '@builder.io/qwik' ||
+        id === '@builder.io/qwik/jsx-runtime' ||
+        id === '@builder.io/qwik/jsx-dev-runtime'
+      ) {
         return '\0qwikCore';
       }
       if (id === '@builder.io/qwik/server') {
         return '\0qwikServer';
+      }
+      if (id.startsWith('./')) {
+        const extensions = ['', '.tsx', '.ts'];
+        id = id.slice(1);
+        for (const ext of extensions) {
+          const path = resolveId(id + ext);
+          if (path) {
+            return path;
+          }
+        }
       }
       return {
         id,
@@ -79,18 +98,20 @@ const getRuntimeBundle = (runtimeBundle: string) => {
 };
 
 export const replCss = (options: ReplInputOptions): Plugin => {
+  const isStylesheet = (id: string) => ['.css', '.scss', '.sass'].some((ext) => id.endsWith(ext));
+
   return {
     name: 'repl-css',
 
     resolveId(id) {
-      if (id.endsWith('.css')) {
+      if (isStylesheet(id)) {
         return id.startsWith('.') ? id.slice(1) : id;
       }
       return null;
     },
 
     load(id) {
-      if (id.endsWith('.css')) {
+      if (isStylesheet(id)) {
         const input = options.srcInputs.find((i) => i.path.endsWith(id));
         if (input && typeof input.code === 'string') {
           return `const css = ${JSON.stringify(input.code)}; export default css;`;

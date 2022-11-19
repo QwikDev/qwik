@@ -1,10 +1,8 @@
 import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
-/* VITE_IMPORTS */
 
 export default defineConfig(() => {
   return {
-    /* VITE_CONFIG */
     build: {
       target: 'es2020',
       lib: {
@@ -13,9 +11,6 @@ export default defineConfig(() => {
         fileName: (format) => `index.qwik.${format === 'es' ? 'mjs' : 'cjs'}`,
       },
     },
-    plugins: [
-      qwikVite(/* VITE_QWIK */),
-      /* VITE_PLUGINS */
-    ],
+    plugins: [qwikVite()],
   };
 });

@@ -50,7 +50,7 @@ export const Repl = component$((props: ReplProps) => {
   });
 
   useWatch$(({ track }) => {
-    track(input, 'files');
+    track(() => input.files);
 
     if (!input.files.some((i) => i.path === props.selectedInputPath) && input.files.length > 0) {
       store.selectedInputPath = input.files[0].path;
@@ -91,12 +91,12 @@ export const Repl = component$((props: ReplProps) => {
   });
 
   useWatch$(({ track }) => {
-    track(input, 'buildId');
-    track(input, 'buildMode');
-    track(input, 'entryStrategy');
-    track(input, 'files');
-    track(input, 'version');
-    track(store, 'serverWindow');
+    track(() => input.buildId);
+    track(() => input.buildMode);
+    track(() => input.entryStrategy);
+    track(() => input.files);
+    track(() => input.version);
+    track(() => store.serverWindow);
 
     sendUserUpdateToReplServer(input, store);
   });

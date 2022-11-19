@@ -1,6 +1,6 @@
 /* eslint-disable */
 import * as assert from 'uvu/assert';
-import { join } from 'path';
+import { join } from 'node:path';
 import { suite as uvuSuite } from 'uvu';
 import type {
   BuildContext,
@@ -9,11 +9,11 @@ import type {
   MarkdownAttributes,
   NormalizedPluginOptions,
 } from '../buildtime/types';
-import { createBuildContext } from './context';
-import { tmpdir } from 'os';
+import { createBuildContext } from '../buildtime/context';
+import { tmpdir } from 'node:os';
 import { normalizePath } from './fs';
 import { build } from '../buildtime/build';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 
 export function suite(title?: string) {
   const s = uvuSuite<TestContext>(title);
@@ -42,13 +42,11 @@ export function testAppSuite(title: string) {
   s.before.each(async (testCtx) => {
     if (!buildCtx) {
       const __dirname = fileURLToPath(new URL('.', import.meta.url));
-      const testAppRootDir = join(__dirname, '..', 'runtime', 'src');
-      const ctx = createBuildContext(testAppRootDir, {
-        routesDir: join(testAppRootDir, 'app', 'routes'),
-      });
+      const testAppRootDir = join(__dirname, '..', '..', '..', 'starters', 'apps', 'qwikcity-test');
+      const ctx = createBuildContext(testAppRootDir);
 
       assert.is(normalizePath(testAppRootDir), ctx.rootDir);
-      assert.is(normalizePath(join(testAppRootDir, 'app', 'routes')), ctx.opts.routesDir);
+      assert.is(normalizePath(join(testAppRootDir, 'src', 'routes')), ctx.opts.routesDir);
 
       await build(ctx);
 

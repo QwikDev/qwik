@@ -1,0 +1,69 @@
+[
+  {
+    "href": "https://www.builder.io/",
+    "tags": "saas"
+  },
+  {
+    "href": "https://cursos.codigoencasa.com/node",
+    "tags": "learning"
+  },
+  {
+    "href": "https://qwik-storefront.vendure.io/",
+    "tags": "ecommerce"
+  },
+  {
+    "href": "https://www.imgmodels.com/",
+    "size": "large",
+    "tags": "ecommerce"
+  },
+  {
+    "href": "https://soundy.cloud/",
+    "tags": "saas"
+  },
+  {
+    "href": "https://usaibis.com/",
+    "tags": "saas"
+  },
+  {
+    "href": "https://pasha-app.com/",
+    "tags": "saas"
+  },
+  {
+    "href": "https://pricing.oasisdigital.com/",
+    "tags": "saas"
+  },
+  {
+    "href": "https://www.burgersonfleek.ca/",
+    "tags": "site"
+  },
+  {
+    "href": "https://goshi.dev/",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://qwik-city-movies-wm.netlify.app/",
+    "size": "large",
+    "tags": "app"
+  },
+  {
+    "href": "https://jbnado.dev/",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://reduced.to",
+    "tags": "app"
+  },
+  {
+    "href": "https://sanyamjainqwik.vercel.app/",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://qwik.builder.io",
+    "tags": "site",
+    "repo": "https://github.com/BuilderIO/qwik/tree/main/packages/docs"
+  },
+  {
+    "href": "https://pulsestax.com/",
+    "tags": "saas"
+  }
+]

@@ -46,7 +46,7 @@ impl<'a> VisitMut for StripExportsVisitor<'a> {
 fn empty_module_item(ident: ast::Ident) -> ast::ModuleItem {
     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
         span: DUMMY_SP,
-        decl: ast::Decl::Var(ast::VarDecl {
+        decl: ast::Decl::Var(Box::new(ast::VarDecl {
             span: DUMMY_SP,
             kind: ast::VarDeclKind::Const,
             declare: false,
@@ -77,6 +77,6 @@ fn empty_module_item(ident: ast::Ident) -> ast::ModuleItem {
                     }),
                 }))),
             }],
-        }),
+        })),
     }))
 }

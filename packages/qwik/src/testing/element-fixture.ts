@@ -1,11 +1,11 @@
-import { getContext, normalizeOnProp, QContext } from '../core/props/props';
-import type { QwikDocument } from '../core/document';
 import { fromCamelToKebabCase } from '../core/util/case';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
-import { getDocument } from '../core/util/dom';
-import type { QRLInternal } from '../core/import/qrl-class';
+import { getWrappingContainer } from '../core/use/use-core';
+import { assertDefined } from '../core/error/assert';
+import { tryGetContext, QContext } from '../core/state/context';
+import { normalizeOnProp } from '../core/state/listeners';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -52,66 +52,63 @@ export interface ElementFixtureOptions {
 
 /**
  * Trigger an event in unit tests on an element.
- *
+ * Posibly deprecated in the future
  * @param element
  * @param selector
  * @param event
  * @returns
+ * @alpha
  */
 export async function trigger(
-  element: Element,
+  root: Element,
   selector: string,
   eventNameCamel: string
-): Promise<Element[]> {
-  const elements: Promise<Element>[] = [];
-  Array.from(element.querySelectorAll(selector)).forEach((element) => {
+): Promise<void> {
+  for (const element of Array.from(root.querySelectorAll(selector))) {
     const kebabEventName = fromCamelToKebabCase(eventNameCamel);
-    const qrlAttr = element.getAttribute('on:' + kebabEventName);
-    if (qrlAttr) {
-      qrlAttr.split('/n').forEach((qrl) => {
-        const event = { type: kebabEventName };
-        const url = new URL(qrl, 'http://mock-test/');
+    const event = { type: kebabEventName };
+    const attrName = 'on:' + kebabEventName;
+    await dispatch(element, attrName, event);
+  }
+  await getTestPlatform().flush();
+}
 
-        // Create a mock document to simulate `qwikloader` environment.
-        const previousQDocument: QwikDocument = (globalThis as any).document;
-        const document: QwikDocument = ((globalThis as any).document =
-          element.ownerDocument as any);
-        document.__q_context__ = [element, event, url];
-        try {
-          const ctx = getContext(element);
-          const handler = getEvent(ctx, 'on-' + eventNameCamel);
-          if (handler) {
-            elements.push(handler());
-          } else {
-            console.error('handler not available');
-          }
-        } finally {
-          document.__q_context__ = undefined;
-          (globalThis as any).document = previousQDocument;
-        }
-      });
+/**
+ * Dispatch
+ * @param root
+ * @param attrName
+ * @param ev
+ */
+export const dispatch = async (root: Element | null, attrName: string, ev: any) => {
+  while (root) {
+    const elm = root;
+    const ctx = tryGetContext(elm);
+    const qrls = ctx?.li.filter((li) => li[0] === attrName);
+    if (qrls && qrls.length > 0) {
+      for (const q of qrls) {
+        await q[1].getFn([elm, ev], () => elm.isConnected)(ev, elm);
+      }
     }
-  });
-  await getTestPlatform(getDocument(element)).flush();
-  return Promise.all(elements);
+    root = elm.parentElement;
+  }
+};
+export function getEvent(elCtx: QContext, prop: string): any {
+  return qPropReadQRL(elCtx, normalizeOnProp(prop));
 }
 
-export function getEvent(ctx: QContext, prop: string): any {
-  return qPropReadQRL(ctx, normalizeOnProp(prop));
-}
+export function qPropReadQRL(elCtx: QContext, prop: string): ((event: Event) => void) | null {
+  const allListeners = elCtx.li;
+  const containerEl = getWrappingContainer(elCtx.$element$);
+  assertDefined(containerEl, 'container element must be defined');
 
-export function qPropReadQRL(ctx: QContext, prop: string): ((event: Event) => void) | null {
-  const listeners = !ctx.$listeners$
-    ? (ctx.$listeners$ = new Map<string, QRLInternal<any>[]>())
-    : ctx.$listeners$;
-
-  return async (event) => {
-    const qrls = listeners.get(prop) ?? [];
-    await Promise.all(
-      qrls.map((qrl) => {
-        const fn = qrl.$invokeFn$(ctx.$element$);
-        return fn(event);
-      })
+  return (event) => {
+    return Promise.all(
+      allListeners
+        .filter((li) => li[0] === prop)
+        .map(([_, qrl]) => {
+          qrl.$setContainer$(containerEl);
+          return qrl(event);
+        })
     );
   };
 }

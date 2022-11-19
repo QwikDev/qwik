@@ -1,0 +1,7 @@
+{
+  "description": "Qwik Performance starter app.",
+  "type": "module",
+  "__qwik__": {
+    "priority": 0
+  }
+}

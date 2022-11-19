@@ -26,64 +26,65 @@ export async function transformMenu(
   return `${code} export default ${id}`;
 }
 
-export function parseMenu(opts: NormalizedPluginOptions, filePath: string, content: string) {
-  const parsedMenu: ParsedMenuItem = {
-    text: '',
-  };
-
+export function parseMenu(
+  opts: NormalizedPluginOptions,
+  filePath: string,
+  content: string,
+  checkFileExists = true
+) {
   const tokens = marked.lexer(content, {});
-  let hasH1 = false;
-  let h2: ParsedMenuItem | null = null;
-
+  let currentDepth = 0;
+  const stack: ParsedMenuItem[] = [];
   for (const t of tokens) {
     if (t.type === 'heading') {
-      if (t.depth === 1) {
-        if (!hasH1) {
-          parsedMenu.text = t.text;
-          hasH1 = true;
+      const diff = currentDepth - t.depth;
+      if (diff >= 0) {
+        stack.length -= diff + 1;
+      }
+      if (diff < -1) {
+        throw new Error(
+          `Menu hierarchy skipped a level, went from <h${'#'.repeat(
+            currentDepth
+          )}> to <h${'#'.repeat(t.depth)}>, in menu: ${filePath}`
+        );
+      }
+      currentDepth = t.depth;
+      const parentNode = stack[stack.length - 1];
+      for (const h2Token of t.tokens) {
+        const lastNode: ParsedMenuItem = {
+          text: '',
+        };
+        if (h2Token.type === 'text') {
+          lastNode.text = h2Token.text;
+        } else if (h2Token.type === 'link') {
+          lastNode.text = h2Token.text;
+          lastNode.href = getMarkdownRelativeUrl(opts, filePath, h2Token.href, checkFileExists);
         } else {
-          throw new Error(`Only one h1 can be used in the menu: ${filePath}`);
+          throw new Error(
+            `Headings can only be a text or link. Received "${h2Token.type}", value "${h2Token.raw}", in menu: ${filePath}`
+          );
         }
-      } else if (t.depth === 2) {
-        if (!hasH1) {
-          throw new Error(`Menu must start with an h1 in the index: ${filePath}`);
+        if (parentNode) {
+          parentNode.items = parentNode.items || [];
+          parentNode.items.push(lastNode);
         }
-        for (const h2Token of t.tokens) {
-          if (h2Token.type === 'text') {
-            h2 = {
-              text: h2Token.text,
-            };
-            parsedMenu.items = parsedMenu.items || [];
-            parsedMenu.items!.push(h2);
-          } else if (h2Token.type === 'link') {
-            h2 = {
-              text: h2Token.text,
-              href: getMarkdownRelativeUrl(opts, filePath, h2Token.href, true),
-            };
-            parsedMenu.items!.push(h2);
-          } else {
-            `Headings can only be a text or link. Received "${h2Token.type}", value "${h2Token.raw}", in menu: ${filePath}`;
-          }
-        }
-      } else {
-        throw new Error(`Only h1 and h2 headings can be used in the menu: ${filePath}`);
+        stack.push(lastNode);
       }
     } else if (t.type === 'list') {
-      if (!h2) {
-        throw new Error(`Lists must be after an h2 heading in the menu: ${filePath}`);
-      }
-      h2.items = h2.items || [];
+      const parentNode = stack[stack.length - 1];
+
+      parentNode.items = parentNode.items || [];
       for (const li of t.items) {
         if (li.type === 'list_item') {
           for (const liToken of li.tokens) {
             if (liToken.type === 'text') {
               for (const liItem of (liToken as any).tokens) {
                 if (liItem.type === 'text') {
-                  h2.items.push({ text: liItem.text });
+                  parentNode.items.push({ text: liItem.text });
                 } else if (liItem.type === 'link') {
-                  h2.items.push({
+                  parentNode.items.push({
                     text: liItem.text,
-                    href: getMarkdownRelativeUrl(opts, filePath, liItem.href, true),
+                    href: getMarkdownRelativeUrl(opts, filePath, liItem.href, checkFileExists),
                   });
                 } else {
                   throw new Error(
@@ -92,9 +93,9 @@ export function parseMenu(opts: NormalizedPluginOptions, filePath: string, conte
                 }
               }
             } else if (liToken.type === 'link') {
-              h2.items.push({
+              parentNode.items.push({
                 text: liToken.text,
-                href: getMarkdownRelativeUrl(opts, filePath, liToken.href, true),
+                href: getMarkdownRelativeUrl(opts, filePath, liToken.href, checkFileExists),
               });
             } else {
               throw new Error(
@@ -117,5 +118,8 @@ export function parseMenu(opts: NormalizedPluginOptions, filePath: string, conte
     }
   }
 
-  return parsedMenu;
+  if (stack.length === 0) {
+    throw new Error(`Menu must start with an h1 in the index: ${filePath}`);
+  }
+  return stack[0];
 }

@@ -60,6 +60,7 @@ async function workerRender(
     const request = new SsgRequestContext(url);
 
     const requestCtx: QwikCityRequestContext<void> = {
+      mode: 'static',
       locale: undefined,
       url,
       request,
@@ -80,11 +81,11 @@ async function workerRender(
         }
 
         if (result.ok) {
-          const writeHtmlEnabled = opts.emitHtml !== false;
-          const writeDataEnabled = opts.emitData !== false;
-
           const htmlFilePath = sys.getPageFilePath(staticRoute.pathname);
           const dataFilePath = sys.getDataFilePath(staticRoute.pathname);
+
+          const writeHtmlEnabled = opts.emitHtml !== false;
+          const writeDataEnabled = opts.emitData !== false && !!dataFilePath;
 
           if (writeHtmlEnabled || writeDataEnabled) {
             await sys.ensureDir(htmlFilePath);
@@ -128,7 +129,7 @@ async function workerRender(
       platform: sys.platform,
     };
 
-    const promise = requestHandler('static', requestCtx, opts)
+    const promise = requestHandler(requestCtx, opts)
       .then((rsp) => {
         if (rsp == null) {
           callback(result);

@@ -14,7 +14,7 @@
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "preview": "qwik build preview && vite preview --open",
-    "serve": "wrangler pages dev ./dist",
+    "deploy": "wrangler pages dev ./dist",
     "build.showcase": "pnpm node scripts/showcase.js",
     "start": "pnpm dev"
   },
@@ -24,7 +24,7 @@
     "@algolia/client-search": "4.14.2",
     "@builder.io/partytown": "0.7.1",
     "@builder.io/qwik": "0.13.3",
-    "@builder.io/qwik-city": "0.0.122",
+    "@builder.io/qwik-city": "0.0.123",
     "@builder.io/sdk-qwik": "0.0.34",
     "@docsearch/css": "3.3.0",
     "@types/prismjs": "^1.26.0",

@@ -12,7 +12,8 @@ export function cloudflarePagesAdaptor(opts?: CloudflarePagesAdaptorOptions): an
 // @alpha (undocumented)
 export interface CloudflarePagesAdaptorOptions {
     functionRoutes?: boolean;
-    staticGenerate?: StaticGenerateRenderOptions | true;
+    staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
+    staticPaths?: string[];
 }
 
 export { StaticGenerateRenderOptions }

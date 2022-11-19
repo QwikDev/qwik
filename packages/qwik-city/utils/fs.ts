@@ -26,15 +26,15 @@ export function getPathnameFromDirPath(opts: NormalizedPluginOptions, dirPath: s
   const relFilePath = relative(opts.routesDir, dirPath);
 
   // ensure file system path uses / (POSIX) instead of \\ (windows)
-  const pathname = normalizePath(relFilePath);
+  let pathname = normalizePath(relFilePath);
 
-  return (
-    normalizePathname(pathname, opts.basePathname, opts.trailingSlash)!
-      .split('/')
-      // remove grouped layout segments
-      .filter((segment) => !isGroupedLayoutName(segment))
-      .join('/')
-  );
+  pathname = normalizePathname(pathname, opts.basePathname, opts.trailingSlash)!
+    .split('/')
+    // remove grouped layout segments
+    .filter((segment) => !isGroupedLayoutName(segment))
+    .join('/');
+
+  return pathname;
 }
 
 export function getMenuPathname(opts: NormalizedPluginOptions, filePath: string) {

@@ -1,6 +1,7 @@
-import type { PageModule, QwikCityPlan, RouteParams } from '../runtime/src/types';
+import type { PageModule, QwikCityPlan, RouteData, RouteParams } from '../runtime/src/types';
 import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from './types';
 import { msToString } from '../utils/format';
+import { generateNotFoundPages } from './not-found';
 import { getPathnameForDynamicRoute } from '../utils/pathname';
 import { pathToFileURL } from 'node:url';
 
@@ -31,6 +32,42 @@ export async function mainThread(sys: System) {
       let isCompleted = false;
       let isRoutesLoaded = false;
 
+      const completed = async () => {
+        const closePromise = main.close();
+
+        await generateNotFoundPages(sys, opts, routes);
+
+        generatorResult.duration = timer();
+
+        log.info('\nSSG results');
+        if (generatorResult.rendered > 0) {
+          log.info(
+            `- Generated: ${generatorResult.rendered} page${
+              generatorResult.rendered === 1 ? '' : 's'
+            }`
+          );
+        }
+
+        if (generatorResult.errors > 0) {
+          log.info(`- Errors: ${generatorResult.errors}`);
+        }
+
+        log.info(`- Duration: ${msToString(generatorResult.duration)}`);
+
+        const total = generatorResult.rendered + generatorResult.errors;
+        if (total > 0) {
+          log.info(`- Average: ${msToString(generatorResult.duration / total)} per page`);
+        }
+
+        log.info(``);
+
+        closePromise
+          .then(() => {
+            setTimeout(() => resolve(generatorResult));
+          })
+          .catch(reject);
+      };
+
       const next = () => {
         while (!isCompleted && main.hasAvailableWorker() && queue.length > 0) {
           const staticRoute = queue.shift();
@@ -41,37 +78,7 @@ export async function mainThread(sys: System) {
 
         if (!isCompleted && isRoutesLoaded && queue.length === 0 && active.size === 0) {
           isCompleted = true;
-
-          generatorResult.duration = timer();
-
-          log.info('\nSSG results');
-          if (generatorResult.rendered > 0) {
-            log.info(
-              `- Generated: ${generatorResult.rendered} page${
-                generatorResult.rendered === 1 ? '' : 's'
-              }`
-            );
-          }
-
-          if (generatorResult.errors > 0) {
-            log.info(`- Errors: ${generatorResult.errors}`);
-          }
-
-          log.info(`- Duration: ${msToString(generatorResult.duration)}`);
-
-          const total = generatorResult.rendered + generatorResult.errors;
-          if (total > 0) {
-            log.info(`- Average: ${msToString(generatorResult.duration / total)} per page`);
-          }
-
-          log.info(``);
-
-          main
-            .close()
-            .then(() => {
-              setTimeout(() => resolve(generatorResult));
-            })
-            .catch(reject);
+          completed();
         }
       };
 
@@ -146,41 +153,39 @@ export async function mainThread(sys: System) {
         }
       };
 
-      const loadStaticRoutes = async () => {
-        await Promise.all(
-          routes.map(async (route) => {
-            const [_, loaders, paramNames, originalPathname] = route;
-            const modules = await Promise.all(loaders.map((loader) => loader()));
-            const pageModule: PageModule = modules[modules.length - 1] as any;
+      const loadStaticRoute = async (route: RouteData) => {
+        const [_, loaders, paramNames, originalPathname] = route;
+        const modules = await Promise.all(loaders.map((loader) => loader()));
+        const pageModule: PageModule = modules[modules.length - 1] as any;
 
-            if (pageModule.default) {
-              // page module (not an endpoint)
+        if (pageModule.default) {
+          // page module (not an endpoint)
 
-              if (Array.isArray(paramNames) && paramNames.length > 0) {
-                if (typeof pageModule.onStaticGenerate === 'function' && paramNames.length > 0) {
-                  // dynamic route page module
-                  const staticGenerate = await pageModule.onStaticGenerate();
-                  if (Array.isArray(staticGenerate.params)) {
-                    for (const params of staticGenerate.params) {
-                      const pathname = getPathnameForDynamicRoute(
-                        originalPathname!,
-                        paramNames,
-                        params
-                      );
-                      addToQueue(pathname, params);
-                    }
-                  }
+          if (Array.isArray(paramNames) && paramNames.length > 0) {
+            if (typeof pageModule.onStaticGenerate === 'function' && paramNames.length > 0) {
+              // dynamic route page module
+              const staticGenerate = await pageModule.onStaticGenerate();
+              if (Array.isArray(staticGenerate.params)) {
+                for (const params of staticGenerate.params) {
+                  const pathname = getPathnameForDynamicRoute(
+                    originalPathname!,
+                    paramNames,
+                    params
+                  );
+                  addToQueue(pathname, params);
                 }
-              } else {
-                // static route page module
-                addToQueue(originalPathname, undefined);
               }
             }
-          })
-        );
+          } else {
+            // static route page module
+            addToQueue(originalPathname, undefined);
+          }
+        }
+      };
 
+      const loadStaticRoutes = async () => {
+        await Promise.all(routes.map(loadStaticRoute));
         isRoutesLoaded = true;
-
         flushQueue();
       };
 

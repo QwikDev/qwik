@@ -65,7 +65,7 @@ Please refer to the Netlify docs for more information on how to deploy your site
 
 When the `netlify-edge` adaptor is added, a new entry file will be created at `src/entry.netlify-edge.tsx`. Below is an example of using the built-in middleware within the entry file.
 
-```typescript
+```tsx
 // src/entry.netlify-edge.tsx
 import { createQwikCity } from '@builder.io/qwik-city/middleware/netlify-edge';
 import qwikCityPlan from '@qwik-city-plan';
@@ -105,7 +105,7 @@ export const onRequest = async ({ platform }) => {
 
 Additionally, you may import the `RequestHandlerNetlify` type to have have type completions in your editor.
 
-```typescript
+```tsx
 import {type RequestHandlerNetlify} from '@builder.io/qwik-city/middleware/netlify-edge';
 
 export const onGet: RequestHandlerNetlify = (({platform}) => {

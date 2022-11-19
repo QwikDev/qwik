@@ -12,12 +12,12 @@
     "lint": "eslint src/**/*.ts*",
     "preview": "qwik build preview && vite preview --open",
     "start": "vite --open --mode ssr",
-    "serve": "echo 'Run \"npm run qwik add\" to install a server adaptor'",
+    "deploy": "echo 'Run \"npm run qwik add\" to install a server adaptor'",
     "qwik": "qwik"
   },
   "devDependencies": {
     "@builder.io/qwik": "latest",
-    "@builder.io/qwik-city": "0.0.122",
+    "@builder.io/qwik-city": "0.0.123",
     "@types/eslint": "8.4.1",
     "@types/node": "latest",
     "@typescript-eslint/eslint-plugin": "5.14.0",

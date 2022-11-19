@@ -19,7 +19,7 @@ qComponent('should declare and render basic component', async () => {
     screen,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-        <style q:style="pfkgyr-0">
+        <style q:style="pfkgyr-0" hidden="">
            {
           }
         </style>

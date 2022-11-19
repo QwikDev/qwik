@@ -18,6 +18,7 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
 
 // @alpha (undocumented)
 export interface StaticGenerateRenderOptions extends RenderOptions {
+    emit404Pages?: boolean;
     emitData?: boolean;
     emitHtml?: boolean;
     log?: 'debug';

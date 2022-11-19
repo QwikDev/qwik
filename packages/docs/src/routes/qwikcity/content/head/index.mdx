@@ -15,7 +15,7 @@ HTML places the `<head>` tag as the first element within `<html>` (at the very t
 
 If all we need to do is set the title of the page, we can do it in the `head` (and optional `meta`, `links` and `styles`) export of the component like so:
 
-```typescript
+```tsx
 // File: src/routes/product/[skuId]/index.tsx
 import { component$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
@@ -34,7 +34,7 @@ export const head: DocumentHead = {
 
 The above case works for simple situations where we just want to set the document's title of the page with a static value. In a case where we need to set the title dynamically, for example, to include the product title, we can use a function:
 
-```typescript
+```tsx
 // File: src/routes/product/[skuId]/index.tsx
 import { component$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
@@ -71,14 +71,14 @@ An advanced case is that a [layout](../../layout/overview/index.mdx) may want to
     └─layout.tsx
 ```
 
-```typescript
+```tsx
 // File: src/routes/index.tsx
 export const head: DocumentHead = {
   title: `Foo`,
 };
 ```
 
-```typescript
+```tsx
 // File: src/routes/layout.tsx
 export const head: DocumentHead<EndpointData> = ({ head }) => {
   return {

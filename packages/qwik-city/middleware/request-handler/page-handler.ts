@@ -12,7 +12,6 @@ import { HttpStatus } from './http-status-codes';
 import type { QwikCityRequestContext, UserResponseContext } from './types';
 
 export function pageHandler<T = any>(
-  mode: QwikCityMode,
   requestCtx: QwikCityRequestContext,
   userResponse: UserResponseContext,
   render: Render,
@@ -38,7 +37,12 @@ export function pageHandler<T = any>(
     try {
       const result = await render({
         stream: isPageData ? noopStream : stream,
-        envData: getQwikCityEnvData(requestHeaders, userResponse, requestCtx.locale, mode),
+        envData: getQwikCityEnvData(
+          requestHeaders,
+          userResponse,
+          requestCtx.locale,
+          requestCtx.mode
+        ),
         ...opts,
       });
 

@@ -28,7 +28,7 @@ A component can declare a callback in its props by:
 - Property that ends in `$` (as in `goodbye$`)
 - The type of the property is `PropFunction<T>` where `T` is the lazy reference type that the QRL points to (function signature).
 
-```typescript
+```tsx
 interface MyComponentProps {
   goodbye$: PropFunction<() => void>;
   hello$: PropFunction<() => void>;

@@ -28,7 +28,6 @@ export async function updateBuildContext(ctx: BuildContext) {
           const resolved = resolveSourceFiles(ctx.opts, sourceFiles);
           ctx.layouts = resolved.layouts;
           ctx.routes = resolved.routes;
-          ctx.errors = resolved.errors;
           ctx.entries = resolved.entries;
           ctx.serviceWorkers = resolved.serviceWorkers;
           ctx.menus = resolved.menus;

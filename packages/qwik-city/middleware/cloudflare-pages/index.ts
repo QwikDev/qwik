@@ -1,10 +1,9 @@
 import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-handler/types';
-import { notFoundHandler, requestHandler } from '../request-handler';
-import type { RenderOptions } from '@builder.io/qwik';
-import type { Render } from '@builder.io/qwik/server';
 import type { RequestHandler } from '@builder.io/qwik-city';
-import qwikCityPlan from '@qwik-city-plan';
+import { requestHandler } from '../request-handler';
 import { mergeHeadersCookies } from '../request-handler/cookie';
+import { getNotFound } from '@qwik-city-not-found-paths';
+import { isStaticPath } from '@qwik-city-static-paths';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
 
@@ -12,9 +11,14 @@ import { mergeHeadersCookies } from '../request-handler/cookie';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
-  async function onRequest({ request, env, waitUntil }: EventPluginContext) {
+  async function onRequest({ request, env, waitUntil, next }: EventPluginContext) {
     try {
       const url = new URL(request.url);
+
+      if (isStaticPath(url.pathname)) {
+        // known static path, let cloudflare handle it
+        return next();
+      }
 
       // https://developers.cloudflare.com/workers/runtime-apis/cache/
       const useCache =
@@ -32,6 +36,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       }
 
       const requestCtx: QwikCityRequestContext<Response> = {
+        mode: 'server',
         locale: undefined,
         url,
         request,
@@ -78,20 +83,23 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler<Response>('server', requestCtx, opts);
+      const handledResponse = await requestHandler<Response>(requestCtx, opts);
       if (handledResponse) {
         return handledResponse;
       }
 
       // qwik city did not have a route for this request
-      // respond with qwik city's 404 handler
-      const notFoundResponse = await notFoundHandler<Response>(requestCtx);
-      return notFoundResponse;
+      // response with 404 for this pathname
+      const notFoundHtml = getNotFound(url.pathname);
+      return new Response(notFoundHtml, {
+        status: 404,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
+      });
     } catch (e: any) {
       console.error(e);
       return new Response(String(e || 'Error'), {
         status: 500,
-        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'cloudflare-pages' },
       });
     }
   }
@@ -112,24 +120,6 @@ export interface EventPluginContext {
   waitUntil: (promise: Promise<any>) => void;
   next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
   env: Record<string, any>;
-}
-
-/**
- * @alpha
- * @deprecated Please use `createQwikCity()` instead.
- *
- * Example:
- *
- * ```ts
- * import { createQwikCity } from '@builder.io/qwik-city/middleware/cloudflare-pages';
- * import qwikCityPlan from '@qwik-city-plan';
- * import render from './entry.ssr';
- *
- * export const onRequest = createQwikCity({ render, qwikCityPlan });
- * ```
- */
-export function qwikCity(render: Render, opts?: RenderOptions) {
-  return createQwikCity({ render, qwikCityPlan, ...opts });
 }
 
 /**

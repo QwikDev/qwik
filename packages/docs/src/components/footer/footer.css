@@ -1,30 +1,34 @@
 footer {
   padding: 20px 0;
 }
+
 .made-with-love {
   font-size: 12px;
   margin-bottom: 9px;
-  color: #333;
+  color: var(--made-with-love-text-color);
 }
 
 .footer-top {
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px solid black;
+  border-bottom: 1px solid var(--text-color);
   padding-bottom: 15px;
-}
-.builder-logo {
-  width: 160px;
 }
 
 .footer-social {
   list-style: none;
   display: flex;
 }
+
 .footer-social li {
   padding: 10px;
 }
+
 .footer-bottom {
   padding-top: 5px;
   font-size: 12px;
+}
+
+.builder-logo {
+  margin-right: 10px;
 }

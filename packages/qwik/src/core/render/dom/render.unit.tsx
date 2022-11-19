@@ -161,6 +161,20 @@ renderSuite('should render style only for defined attributes', async () => {
   );
 });
 
+renderSuite('should render style css variables correctly', async () => {
+  const fixture = new ElementFixture();
+  await render(
+    fixture.host,
+    <div
+      style={{
+        '--stuff-hey': 'hey',
+        '--stuffCase': 'foo',
+      }}
+    />
+  );
+  await expectRendered(fixture, `<div style="--stuff-hey: hey; --stuffCase: foo"></div>`);
+});
+
 renderSuite('should render children', async () => {
   const fixture = new ElementFixture();
   await render(
@@ -198,7 +212,7 @@ renderSuite('should render a component with scoped styles', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <style q:style="ml52vk-0">
+    <style q:style="ml52vk-0" hidden="">
       .stuff.⭐️ml52vk-0 {
         color: red;
       }
@@ -221,7 +235,7 @@ renderSuite('should render a component with scoped styles', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <style q:style="ml52vk-0">
+    <style q:style="ml52vk-0" hidden="">
       .stuff.⭐️ml52vk-0 {
         color: red;
       }

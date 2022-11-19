@@ -52,29 +52,129 @@ pre[class*='language-'] {
   -webkit-touch-callout: none;
 }
 
-html {
-  font-family: Poppins, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI,
-    Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-    Segoe UI Symbol, 'Noto Color Emoji';
-  color: #0e201a;
-
+:root {
+  color-scheme: light;
+  --header-height: 118px;
+  --panel-toggle-height: 0px;
   --scroll-margin-top: 120px;
+
   --qwik-blue: #0093ee;
   --qwik-dark-blue: #006ce9;
   --qwik-light-blue: #daf0ff;
   --qwik-purple: #ac7ef4;
+  --qwik-dark-purple: #6000ff;
 
-  --header-height: 118px;
+  --bg-color: #ffffff;
+  --bg-secondary-color: #f7f8fb;
+  --bg-header-color: #ffffff9e;
+  --text-color: #0e201a;
+  --secondary-text-color: #171a19;
+  --interactive-text-color: var(--qwik-dark-blue);
+
+  --code-bg-color: #e0e0e0;
+  --code-border-color: #bfbfbf;
+  --blockquote-bg-color: #f1f5fe;
+
+  --repl-tab-button-hover-bg-color: #ffffff75;
+  --repl-tab-button-hover-border-color: #0084ff75;
+  --repl-tab-button-input-hover-border-color: #564ce175;
+  --repl-tab-button-input-active-border-color: var(--qwik-purple);
+  --repl-tab-button-active-border-color: var(--qwik-blue);
+  --repl-diagnostics-hover-border-color: #ff009075;
+  --repl-diagnostics-active-border-color: #ff0090;
+  --repl-commands-color: var(--qwik-blue);
   --repl-tab-height: 56px;
   --repl-tab-bg-color: var(--qwik-light-blue);
-  --panel-toggle-height: 0px;
+  --repl-diagnostics-text-color: #c90674;
+  --repl-log-build: #f3f4cb;
+  --repl-log-ssr: #e3e400;
+  --repl-log-client: #78fa83;
+  --repl-log-network: #f4f4f4;
+  --repl-log-warning: #d9d900;
+  --repl-log-text: #0e201a;
+  --repl-border-color: #e3e3e3;
+
+  --tutorial-nav-button-bg-color: var(--bg-color);
+  --tutorial-nav-button-hover-bg-color: var(--qwik-blue);
+  --tutorial-nav-button-text-color: var(--qwik-dark-blue);
+
+  --examples-header-text-color: #494949;
+  --examples-active-bg-color: #e2ebff;
+  --examples-hover-bg-color: #f7f7f7;
+  --examples-border-color: #e3e3e3;
+  --examples-main-border-color: #dfdede;
+
+  --content-nav-button-text-color: var(--interactive-text-color);
+  --content-nav-button-bg-color: var(--qwik-dark-blue);
+  --content-nav-button-hover-bg-color: var(--bg-color);
+
+  --made-with-love-text-color: #333333;
+
+  --on-this-page-hover-bg-color: #0093ee17;
+
+  --media-separator-color: #dddddd;
+  --media-video-shadow-color: var(--qwik-dark-blue);
+
+  --panel-toggle-background-color: var(--qwik-light-blue);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --qwik-blue: #009dfd;
+
+  --bg-color: #2a2a2a;
+  --bg-secondary-color: #232323;
+  --bg-header-color: #ffffff06;
+  --text-color: #e3e2e9;
+  --secondary-text-color: #ffffffc3;
+  --interactive-text-color: var(--qwik-blue);
+
+  --code-bg-color: #1d1d1d;
+  --code-border-color: #525252;
+  --blockquote-bg-color: #353639;
+
+  --tutorial-nav-button-bg-color: var(--qwik-dark-blue);
+  --tutorial-nav-button-hover-bg-color: var(--bg-color);
+
+  --repl-tab-button-hover-bg-color: #ffffff25;
+  --repl-tab-button-input-hover-border-color: #c3c1de75;
+  --repl-tab-button-input-active-border-color: #d8c2fa;
+  --repl-tab-button-active-border-color: var(--qwik-light-blue);
+  --repl-diagnostics-hover-border-color: rgba(255, 0, 144, 0.46);
+  --repl-diagnostics-active-border-color: rgb(255, 0, 144);
+  --repl-commands-color: var(--qwik-light-blue);
+  --repl-tab-bg-color: var(--qwik-dark-blue);
+  --repl-border-color: rgba(255, 255, 255, 0.2);
+
+  --tutorial-nav-button-text-color: #ffffff;
+
+  --examples-header-text-color: var(--text-color);
+  --examples-active-bg-color: #1d1d1d;
+  --examples-hover-bg-color: #353639;
+  --examples-border-color: rgba(255, 255, 255, 0.2);
+  --examples-main-border-color: rgba(255, 255, 255, 0.1);
+
+  --made-with-love-text-color: #c6c5cb;
+
+  --media-separator-color: rgba(255, 255, 255, 0.1);
+  --media-video-shadow-color: var(--qwik-blue);
+
+  --panel-toggle-background-color: var(--qwik-dark-blue);
 }
 
 @media (max-width: 768px) {
-  html {
+  :root {
     --panel-toggle-height: 56px;
     --header-height: 80px;
   }
+}
+
+html {
+  font-family: Poppins, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI,
+    Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    Segoe UI Symbol, 'Noto Color Emoji';
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 a,
@@ -103,7 +203,7 @@ body {
     @apply pr-16;
     width: 360px;
 
-    background: white;
+    background: var(--bg-color);
   }
 
   .menu-open .menu h5 {
@@ -161,10 +261,6 @@ body {
 }
 
 @media (max-width: 540px) {
-  body {
-    @apply bg-white;
-  }
-
   .menu-open .menu {
     -webkit-user-select: none;
     user-select: none;
@@ -174,4 +270,19 @@ body {
     @apply bg-transparent;
     color: rgb(241 245 249 / var(--tw-text-opacity)) !important;
   }
+}
+
+/* Builder */
+:root[data-theme='dark'] .builder .dark-mode {
+  filter: invert(90%) hue-rotate(180deg);
+}
+
+:root[data-theme='dark'] .builder .dark-mode :is(img, iframe, video) {
+  filter: invert(100%) hue-rotate(180deg);
+}
+
+/* Temporary workaround */
+:root[data-theme='dark'] .builder .csoetdv,
+:root[data-theme='dark'] .builder .cvha93q {
+  filter: invert(90%) hue-rotate(180deg);
 }

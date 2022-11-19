@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { createHeaders } from '../request-handler/headers';
+import type { QwikCityMode } from '../../runtime/src/types';
 import type { QwikCityRequestContext } from '../request-handler/types';
+import { createHeaders } from '../request-handler/headers';
 
 export function getUrl(req: IncomingMessage) {
   const protocol =
@@ -8,7 +9,12 @@ export function getUrl(req: IncomingMessage) {
   return new URL(req.url || '/', `${protocol}://${req.headers.host}`);
 }
 
-export function fromNodeHttp(url: URL, req: IncomingMessage, res: ServerResponse) {
+export function fromNodeHttp(
+  url: URL,
+  req: IncomingMessage,
+  res: ServerResponse,
+  mode: QwikCityMode
+) {
   const requestHeaders = createHeaders();
   const nodeRequestHeaders = req.headers;
   for (const key in nodeRequestHeaders) {
@@ -31,6 +37,7 @@ export function fromNodeHttp(url: URL, req: IncomingMessage, res: ServerResponse
   };
 
   const requestCtx: QwikCityRequestContext = {
+    mode,
     request: {
       headers: requestHeaders,
       formData: async () => {

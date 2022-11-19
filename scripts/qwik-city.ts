@@ -90,14 +90,6 @@ export async function buildQwikCity(config: BuildConfig) {
         import: './middleware/node/index.mjs',
         require: './middleware/node/index.cjs',
       },
-      './middleware/request-handler/utils/not-found-paths': {
-        import: './middleware/request-handler/utils/not-found-paths.mjs',
-        require: './middleware/request-handler/utils/not-found-paths.cjs',
-      },
-      './middleware/request-handler/utils/static-paths': {
-        import: './middleware/request-handler/utils/static-paths.mjs',
-        require: './middleware/request-handler/utils/static-paths.cjs',
-      },
       './middleware/vercel-edge': {
         types: './middleware/vercel-edge/index.d.ts',
         import: './middleware/vercel-edge/index.mjs',

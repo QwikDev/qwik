@@ -133,7 +133,7 @@ importers:
       '@algolia/client-search': 4.14.2
       '@builder.io/partytown': 0.7.1
       '@builder.io/qwik': 0.13.3
-      '@builder.io/qwik-city': 0.0.122
+      '@builder.io/qwik-city': 0.0.123
       '@builder.io/sdk-qwik': 0.0.34
       '@docsearch/css': 3.3.0
       '@types/prismjs': ^1.26.0
@@ -176,7 +176,7 @@ importers:
       typescript: 4.8.4
       uvu: 0.5.6
       vite: 3.2.3
-      wrangler: 2.2.2
+      wrangler: 2.4.2
 
   packages/eslint-plugin-qwik:
     specifiers: {}
@@ -6794,8 +6794,8 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /wrangler/2.2.2:
-    resolution: {integrity: sha512-llllqefz3/qyRI9NeEzMpRbfnNcjM+oJ0Z16q0A6FwpfQxPY2zkNBJvrZsscSmY9Hc259FMXGUZ0Q+LMtBso/A==}
+  /wrangler/2.4.2:
+    resolution: {integrity: sha512-fgcP+y4aEXozeP0hGKohfodxBm1ah/qwclw499TvoBogLKEhkPHH2w+MHh2PBFek467I4iaOLpSh4Sho+J6GuQ==}
     engines: {node: '>=16.13.0'}
     hasBin: true
     dependencies:

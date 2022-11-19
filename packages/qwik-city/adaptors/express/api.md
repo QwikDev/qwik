@@ -12,7 +12,7 @@ export function expressAdaptor(opts?: ExpressAdaptorOptions): any;
 // @alpha (undocumented)
 export interface ExpressAdaptorOptions {
     // (undocumented)
-    staticGenerate?: StaticGenerateRenderOptions | true;
+    staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
 }
 
 // (No @packageDocumentation comment for this package)

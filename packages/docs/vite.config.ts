@@ -10,9 +10,7 @@ export default defineConfig(() => {
 
   return {
     plugins: [
-      qwikCity({
-        trailingSlash: true,
-      }),
+      qwikCity(),
       qwikVite({
         entryStrategy: {
           type: 'smart',

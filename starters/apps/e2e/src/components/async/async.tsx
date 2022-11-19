@@ -1,4 +1,4 @@
-import { useStore, component$, mutable } from '@builder.io/qwik';
+import { useStore, component$ } from '@builder.io/qwik';
 
 export function delay(time: number) {
   return new Promise<void>((resolve) => {
@@ -27,7 +27,7 @@ export const Async = component$(() => {
   return (
     <div class="my-app p-20">
       {stuff()}
-      <Inner value={mutable(state.count)} />
+      <Inner value={state.count} />
     </div>
   );
 });
@@ -38,7 +38,7 @@ export const Inner = component$((props: { value: number }) => {
     await delay(1000);
     return (
       <>
-        <Inner2 value={mutable(props.value)} />
+        <Inner2 value={props.value} />
       </>
     );
   }

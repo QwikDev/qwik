@@ -1,19 +1,10 @@
-import { getPlatform, setPlatform } from '../core/platform/platform';
 import type { TestPlatform } from './types';
-import { existsSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { getContainer } from '../core/use/use-core';
-import type { QwikElement } from '../core/render/dom/virtual-element';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
-function createPlatform(document: any) {
-  if (!document || (document as Document).nodeType !== 9) {
-    throw new Error(`Invalid Document implementation`);
-  }
-
-  const doc: Document = document;
-
+function createPlatform() {
   interface Queue<T> {
-    fn: (doc: Document) => Promise<T>;
+    fn: () => Promise<T>;
     promise: Promise<T>;
     resolve: (value: T) => void;
     reject: (value: any) => void;
@@ -23,9 +14,9 @@ function createPlatform(document: any) {
 
   const moduleCache = new Map<string, { [symbol: string]: any }>();
   const testPlatform: TestPlatform = {
-    isServer: true,
-    importSymbol(element, url, symbolName) {
-      const urlDoc = toUrl(element.ownerDocument, element, url);
+    isServer: false,
+    importSymbol(containerEl, url, symbolName) {
+      const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url);
       const importPath = toPath(urlDoc);
       const mod = moduleCache.get(importPath);
       if (mod) {
@@ -67,7 +58,7 @@ function createPlatform(document: any) {
       await Promise.resolve();
       if (render) {
         try {
-          render.resolve(await render.fn(doc));
+          render.resolve(await render.fn());
         } catch (e) {
           render.reject(e);
         }
@@ -81,9 +72,8 @@ function createPlatform(document: any) {
   return testPlatform;
 }
 
-export function setTestPlatform(document: any) {
-  const platform = createPlatform(document);
-  setPlatform(document, platform);
+export function setTestPlatform(_setPlatform: Function) {
+  _setPlatform(testPlatform);
 }
 
 /**
@@ -97,8 +87,7 @@ export function setTestPlatform(document: any) {
  * @param url - relative URL
  * @returns fully qualified URL.
  */
-export function toUrl(doc: Document, element: QwikElement, url: string | URL): URL {
-  const containerEl = getContainer(element);
+export function toUrl(doc: Document, containerEl: Element, url: string | URL): URL {
   const base = new URL(containerEl?.getAttribute('q:base') ?? doc.baseURI, doc.baseURI);
   return new URL(url, base);
 }
@@ -119,17 +108,12 @@ function toPath(url: URL) {
   throw new Error(`Unable to find path for import "${url}"`);
 }
 
+const testPlatform = createPlatform();
+
 /**
  * @alpha
  */
-export function getTestPlatform(document: any): TestPlatform {
-  const testPlatform: TestPlatform = getPlatform(document) as any;
-  if (!testPlatform) {
-    throw new Error(`Test platform was not applied to the document`);
-  }
-  if (typeof testPlatform.flush !== 'function') {
-    throw new Error(`Invalid Test platform applied to the document`);
-  }
+export function getTestPlatform(): TestPlatform {
   return testPlatform;
 }
 

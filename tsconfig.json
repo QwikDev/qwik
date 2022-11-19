@@ -17,7 +17,6 @@
     "baseUrl": ".",
     "noUnusedLocals": true,
     "paths": {
-      "~qwik-city-runtime": ["packages/qwik-city/runtime/src/index.ts"],
       "@builder.io/qwik": ["packages/qwik/src/core/index.ts"],
       "@builder.io/qwik/build": ["packages/qwik/src/build/index.ts"],
       "@builder.io/qwik/jsx-runtime": ["packages/qwik/src/jsx-runtime/index.ts"],
@@ -27,24 +26,42 @@
       "@builder.io/qwik/testing": ["packages/qwik/src/testing/index.ts"],
       "@builder.io/qwik-react": ["packages/qwik-react/src/index.ts"],
       "@builder.io/qwik-city": ["packages/qwik-city/runtime/src/index.ts"],
-      "@builder.io/qwik-city/middleware/cloudflare-pages": [
-        "packages/qwik-city/middleware/cloudflare-pages"
+      "@builder.io/qwik-city/service-worker": [
+        "packages/qwik-city/runtime/src/service-worker/index.ts"
       ],
-      "@builder.io/qwik-city/middleware/express": ["packages/qwik-city/middleware/express"],
+      "@builder.io/qwik-city/adaptors/cloudflare-pages/vite": [
+        "packages/qwik-city/adaptors/cloudflare-pages/vite/index.ts"
+      ],
+      "@builder.io/qwik-city/adaptors/express/vite": [
+        "packages/qwik-city/adaptors/express/vite/index.ts"
+      ],
+      "@builder.io/qwik-city/adaptors/netlify-edge/vite": [
+        "packages/qwik-city/adaptors/netlify-edge/vite/index.ts"
+      ],
+      "@builder.io/qwik-city/adaptors/static/vite": [
+        "packages/qwik-city/adaptors/static/vite/index.ts"
+      ],
+      "@builder.io/qwik-city/middleware/node": ["packages/qwik-city/middleware/node"],
       "@builder.io/qwik-city/middleware/netlify-edge": [
         "packages/qwik-city/middleware/netlify-edge"
       ],
-      "@builder.io/qwik-city/static/node": ["packages/qwik-city/static/node"],
+      "@builder.io/qwik-city/static": ["packages/qwik-city/static/index.ts"],
       "@builder.io/qwik-city/vite": ["packages/qwik-city/buildtime/vite/index"],
       "@examples-data": ["packages/docs/src/routes/examples/apps/examples-data.ts"],
       "@playground-data": ["packages/docs/src/routes/playground/playground-data.ts"],
       "@tutorial-data": ["packages/docs/src/routes/tutorial/tutorial-data.ts"],
       "@qwik-client-manifest": ["packages/qwik/src/server/server-modules.d.ts"],
-      "@qwik-city-plan": ["packages/qwik-city/runtime/src/library/qwik-city-plan.ts"],
+      "@qwik-city-plan": ["packages/qwik-city/runtime/src/qwik-city-plan.ts"],
       "@qwik-city-sw-register-build": [
         "packages/qwik-city/buildtime/runtime-generation/sw-register-build.ts"
       ],
-      "@qwik-city-sw-register": ["packages/qwik-city/runtime/src/library/sw-register-runtime.ts"],
+      "@qwik-city-sw-register": ["packages/qwik-city/runtime/src/sw-register-runtime.ts"],
+      "@qwik-city-not-found-paths": [
+        "packages/qwik-city/middleware/request-handler/generated/not-found-paths.ts"
+      ],
+      "@qwik-city-static-paths": [
+        "packages/qwik-city/middleware/request-handler/generated/static-paths.ts"
+      ],
       "create-qwik": ["packages/create-qwik/api/index.ts"]
     },
     "types": ["node", "vite/client"],
@@ -56,22 +73,21 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "packages/qwik",
-    "packages/qwik-city",
-    "packages/qwik-react",
     "packages/create-qwik",
-    "packages/docs",
+    // "packages/docs",
+    "packages/qwik/src",
+    "packages/qwik-city",
+    "packages/qwik-react/src",
     "scripts",
-    "starters"
+    "starters/apps/e2e",
+    "starters/apps/qwikcity-test/**/*",
+    "starters/dev-server.ts"
   ],
   "exclude": [
     "packages/create-qwik/dist",
+    "packages/docs/dist",
+    "packages/docs/server",
     "**/lib",
-    "starters/**/entry.netlify.ts",
-    "starters/**/entry.cloudflare.tsx",
-    "starters/**/entry.express.tsx",
-    "starters/**/entry.ssr.tsx",
-    "packages/qwik/**/*.d.ts",
-    "packages/qwik-dom"
+    "packages/qwik/**/*.d.ts"
   ]
 }

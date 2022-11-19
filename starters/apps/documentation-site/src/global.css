@@ -1,0 +1,66 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --user-font-scale: 1rem - 16px;
+  --max-width: calc(100% - 1rem);
+
+  --font-body: system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif,
+    Apple Color Emoji, Segoe UI Emoji;
+  --font-mono: 'IBM Plex Mono', Consolas, 'Andale Mono WT', 'Andale Mono', 'Lucida Console',
+    'Lucida Sans Typewriter', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Liberation Mono',
+    'Nimbus Mono L', Monaco, 'Courier New', Courier, monospace;
+
+  color-scheme: light;
+  --theme-accent: #006ce9;
+  --theme-text: #181818;
+}
+
+@media (min-width: 50em) {
+  :root {
+    --max-width: 46em;
+  }
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-size: clamp(0.9rem, 0.75rem + 0.375vw + var(--user-font-scale), 1rem);
+  line-height: 1.5;
+  max-width: 100vw;
+  background: var(--theme-bg);
+  color: var(--theme-text);
+}
+
+main {
+  padding: 10px 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+a {
+  color: var(--theme-accent);
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
+}
+
+code {
+  background-color: rgb(224, 224, 224);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.9em;
+  border-bottom: 2px solid #bfbfbf;
+}

@@ -1,5 +1,5 @@
 import { component$, useServerMount$, useStore, useStyles$ } from '@builder.io/qwik';
-import HackerNewsCSS from './hacker-news.css';
+import HackerNewsCSS from './hacker-news.css?inline';
 
 export const HackerNews = component$(() => {
   useStyles$(HackerNewsCSS);
@@ -40,7 +40,7 @@ export const Nav = component$(() => {
           </a>
           <a
             class="github"
-            href="http://github.com/builderio/qwikdev"
+            href="http://github.com/builderio/qwik"
             target="_blank"
             rel="noreferrer"
           >

@@ -1,6 +1,6 @@
 import { component$ } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   return (
     <div>
       Insert Greeter component here. By composing components together large applications can be

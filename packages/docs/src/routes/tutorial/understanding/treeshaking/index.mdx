@@ -1,5 +1,8 @@
 ---
 title: Understanding Qwik Difference - Tree-shaking
+contributors:
+  - manucorporat
+  - adamdbradley
 ---
 
 A key concept of Qwik is that Qwik only loads code for components in the client that need to be re-rendered. If a component is static (does not need to be re-rendered), Qwik will not load the component. This is a form of dynamic tree-shaking. Here word dynamic is used to differentiate it from the classical static tree-shaking.
@@ -12,7 +15,7 @@ Dynamic tree-shaking refers to the fact that after the initial render, the compo
 
 Static tree-shaking has the disadvantage that it does not take the runtime context into account when deciding if a particular component is reachable. It must assume a worst-case scenario and therefore retain the component as it is reachable on the server during SSR.
 
-## Example
+### Example
 
 Interact with the example by clicking on the `+1` button. Few things to notice:
 

@@ -1,41 +1,65 @@
-## Development Builds
+# Qwik City App ⚡️
 
-### Client only
+- [Qwik Docs](https://qwik.builder.io/)
+- [Discord](https://qwik.builder.io/chat)
+- [Qwik GitHub](https://github.com/BuilderIO/qwik)
+- [@QwikDev](https://twitter.com/QwikDev)
+- [Vite](https://vitejs.dev/)
 
-During development, the index.html is not a result of server-side rendering, but rather the Qwik app is built using client-side JavaScript only. This is ideal for development with Vite and its ability to reload modules quickly and on-demand. However, this mode is only for development and does not showcase "how" Qwik works since JavaScript is required to execute, and Vite imports many development modules for the app to work.
+---
 
-```
-npm run dev
-```
+## Project Structure
 
-### Server-side Rendering (SSR) and Client
+This project is using Qwik with [QwikCity](https://qwik.builder.io/qwikcity/overview/). QwikCity is just a extra set of tools on top of Qwik to make it easier to build a full site, including directory-based routing, layouts, and more.
 
-Server-side rendered index.html, with client-side modules prefetched and loaded by the browser. This can be used to test out server-side rendered content during development, but will be slower than the client-only development builds.
-
-```
-npm run dev.ssr
-```
-
-## Production Builds
-
-A production build should generate the client and server modules by running both client and server build commands.
+Inside your project, you'll see the following directory structure:
 
 ```
-npm run build
+├── public/
+│   └── ...
+└── src/
+    ├── components/
+    │   └── ...
+    └── routes/
+        └── ...
 ```
 
-### Client Modules
+- `src/routes`: Provides the directory based routing, which can include a hierarchy of `layout.tsx` layout files, and an `index.tsx` file as the page. Additionally, `index.ts` files are endpoints. Please see the [routing docs](https://qwik.builder.io/qwikcity/routing/overview/) for more info.
 
-Production build that creates only the client-side modules that are dynamically imported by the browser.
+- `src/components`: Recommended directory for components.
 
+- `public`: Any static assets, like images, can be placed in the public directory. Please see the [Vite public directory](https://vitejs.dev/guide/assets.html#the-public-directory) for more info.
+
+## Add Integrations and deployment
+
+Use the `npm run qwik add` command to add additional integrations. Some examples of integrations include: Cloudflare, Netlify or Express server, and the [Static Site Generator (SSG)](https://qwik.builder.io/qwikcity/static-site-generation/static-site-config/).
+
+```shell
+npm run qwik add # or `yarn qwik add`
 ```
-npm run build.client
+
+## Development
+
+Development mode uses [Vite's development server](https://vitejs.dev/). During development, the `dev` command will server-side render (SSR) the output.
+
+```shell
+npm start # or `yarn start`
 ```
 
-### Server Modules
+> Note: during dev mode, Vite may request a significant number of `.js` files. This does not represent a Qwik production build.
 
-Production build that creates the server-side render (SSR) module that is used by the server to render the HTML.
+## Preview
 
+The preview command will create a production build of the client modules, a production build of `src/entry.preview.tsx`, and run a local server. The preview server is only for convenience to locally preview a production build, and it should not be used as a production server.
+
+```shell
+npm run preview # or `yarn preview`
 ```
-npm run build.ssr
+
+## Production
+
+The production build will generate client and server modules by running both client and server build commands. Additionally, the build command will use Typescript to run a type check on the source code.
+
+```shell
+npm run build # or `yarn build`
 ```

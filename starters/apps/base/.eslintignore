@@ -12,6 +12,7 @@ bazel-testlogs
 dist
 dist-dev
 lib
+lib-types
 etc
 external
 node_modules
@@ -28,3 +29,5 @@ build
 dist
 tsconfig.tsbuildinfo
 vite.config.ts
+*.spec.tsx
+*.spec.ts

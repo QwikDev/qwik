@@ -8,9 +8,10 @@ import { toString } from 'hast-util-to-string';
 import { visit } from 'unist-util-visit';
 import type { ContentHeading } from '../../runtime/src';
 import type { BuildContext, NormalizedPluginOptions } from '../types';
-import { getExtension, isMarkdownExt, normalizePath } from '../utils/fs';
+import { getExtension, isMarkdownExt, normalizePath } from '../../utils/fs';
 import { frontmatterAttrsToDocumentHead } from './frontmatter';
-import { getMarkdownRelativeUrl, isSameOriginUrl } from '../routing/pathname';
+import { isSameOriginUrl } from '../../utils/pathname';
+import { getMarkdownRelativeUrl } from './markdown-url';
 
 export function rehypePage(ctx: BuildContext): Transformer {
   return (ast, vfile) => {
@@ -65,14 +66,16 @@ function exportContentHeadings(mdast: Root) {
 
   visit(mdast, 'element', (node: any) => {
     const level = headingRank(node);
-    if (level && node.properties && !hasProperty(node, 'id')) {
+    if (level && node.properties) {
       const text = toString(node);
-      const id = slugs.slug(text);
-      node.properties.id = id;
+
+      if (!hasProperty(node, 'id')) {
+        node.properties.id = slugs.slug(text);
+      }
 
       headings.push({
         text,
-        id,
+        id: node.properties.id,
         level,
       });
     }

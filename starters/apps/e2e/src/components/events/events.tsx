@@ -23,14 +23,23 @@ export const Events = component$(() => {
         </a>
       </p>
       <p>
-        <a
-          href="/"
-          preventdefault:click
-          id="prevent-default-2"
-          onClick$={() => store.countAnchor++}
+        <div
+          onClick$={() => {
+            throw new Error('event was not stopped');
+          }}
         >
-          Should count
-        </a>
+          <a
+            href="/"
+            preventdefault:click
+            id="prevent-default-2"
+            onClick$={(ev) => {
+              ev.stopPropagation();
+              store.countAnchor++;
+            }}
+          >
+            Should count
+          </a>
+        </div>
       </p>
 
       <p id="count-transparent">countTransparent: {store.countTransparent}</p>
@@ -50,7 +59,7 @@ export const Buttons = component$((props: ButtonProps) => {
   return (
     <div>
       <span>some</span>
-      <button id="btn-transparent" onClick$={props.onTransparentClick$}>
+      <button id="btn-transparent" onClick$={props.onTransparentClick$ as any}>
         Transparent
       </button>
       <button

@@ -3,7 +3,7 @@ import { ResetIcon } from './icons/ResetIcon';
 import { StarIcon } from './icons/StarIcon';
 import { Result } from './result';
 import type { ScreenStateProps } from './screen-state';
-import { component$, mutable, useContext } from '@builder.io/qwik';
+import { component$, useContext } from '@builder.io/qwik';
 import { SearchContext } from './context';
 
 export type StartScreenTranslations = Partial<{
@@ -19,7 +19,7 @@ type StartScreenProps = Pick<ScreenStateProps, 'state' | 'disableUserPersonaliza
   translations?: StartScreenTranslations;
 };
 
-export const StartScreen = component$(({ translations = {}, ...props }: StartScreenProps) => {
+export const StartScreen = component$((props: StartScreenProps) => {
   const {
     recentSearchesTitle = 'Recent',
     noRecentSearchesText = 'No recent searches',
@@ -27,7 +27,7 @@ export const StartScreen = component$(({ translations = {}, ...props }: StartScr
     removeRecentSearchButtonTitle = 'Remove this search from history',
     favoriteSearchesTitle = 'Favorite',
     removeFavoriteSearchButtonTitle = 'Remove this search from favorites',
-  } = translations;
+  } = props.translations ?? {};
   const context: any = useContext(SearchContext);
   const hasCollections = props.state.collections.some((collection) => collection.items.length > 0);
   if (props.state.status === 'idle' && hasCollections === false) {
@@ -53,80 +53,82 @@ export const StartScreen = component$(({ translations = {}, ...props }: StartScr
         <div class="DocSearch-Hit-source">{recentSearchesTitle}</div>
 
         <ul role="listbox" aria-labelledby="docsearch-label" id="docsearch-list">
-          {recentCollection.items.map((item, index) => {
-            return (
-              <Result state={props.state} item={mutable(item)}>
-                <div q:slot="start-action" className="DocSearch-Hit-icon">
-                  <RecentIcon />
-                </div>
-                <div q:slot="end-action" class="DocSearch-Hit-action">
-                  <button
-                    className="DocSearch-Hit-action-button"
-                    title={saveRecentSearchButtonTitle}
-                    type="submit"
-                    preventDefault:click
-                    onClick$={(event) => {
-                      // @ts-ignore
-                      props.state.favoriteSearches?.add(item);
-                      // @ts-ignore
-                      props.state.recentSearches?.remove(item);
-                      // @ts-ignore
-                      context.onInput({ target: { value: '' } });
-                    }}
-                  >
-                    <StarIcon />
-                  </button>
-                </div>
-                <div className="DocSearch-Hit-action">
-                  <button
-                    className="DocSearch-Hit-action-button"
-                    title={removeRecentSearchButtonTitle}
-                    type="submit"
-                    preventDefault:click
-                    onClick$={(event) => {
-                      // @ts-ignore
-                      props.state.recentSearches?.remove(item);
-                      // @ts-ignore
-                      context.onInput({ target: { value: '' } });
-                    }}
-                  >
-                    <ResetIcon />
-                  </button>
-                </div>
-              </Result>
-            );
-          })}
+          {recentCollection &&
+            recentCollection.items.map((item, index) => {
+              return (
+                <Result state={props.state} item={item} key={item.objectID}>
+                  <div q:slot="start-action" className="DocSearch-Hit-icon">
+                    <RecentIcon />
+                  </div>
+                  <div q:slot="end-action" class="DocSearch-Hit-action">
+                    <button
+                      className="DocSearch-Hit-action-button"
+                      title={saveRecentSearchButtonTitle}
+                      type="button"
+                      preventdefault:click
+                      onClick$={(event) => {
+                        // @ts-ignore
+                        props.state.favoriteSearches?.add(item);
+                        // @ts-ignore
+                        props.state.recentSearches?.remove(item);
+                        // @ts-ignore
+                        context.onInput({ target: { value: '' } });
+                      }}
+                    >
+                      <StarIcon />
+                    </button>
+                  </div>
+                  <div className="DocSearch-Hit-action">
+                    <button
+                      className="DocSearch-Hit-action-button"
+                      title={removeRecentSearchButtonTitle}
+                      type="submit"
+                      preventdefault:click
+                      onClick$={(event) => {
+                        // @ts-ignore
+                        props.state.recentSearches?.remove(item);
+                        // @ts-ignore
+                        context.onInput({ target: { value: '' } });
+                      }}
+                    >
+                      <ResetIcon />
+                    </button>
+                  </div>
+                </Result>
+              );
+            })}
         </ul>
       </section>
       <section class="DocSearch-Hits">
         <div class="DocSearch-Hit-source">{favoriteSearchesTitle}</div>
 
         <ul role="listbox" aria-labelledby="docsearch-label" id="docsearch-list">
-          {favCollection.items.map((item, index) => {
-            return (
-              <Result state={props.state} item={mutable(item)}>
-                <div q:slot="start-action" className="DocSearch-Hit-icon">
-                  <StarIcon />
-                </div>
-                <div q:slot="end-action" class="DocSearch-Hit-action">
-                  <button
-                    className="DocSearch-Hit-action-button"
-                    title={removeFavoriteSearchButtonTitle}
-                    type="submit"
-                    preventDefault:click
-                    onClick$={(event) => {
-                      // @ts-ignore
-                      props.state.favoriteSearches?.remove(item);
-                      // @ts-ignore
-                      context.onInput({ target: { value: '' } });
-                    }}
-                  >
-                    <ResetIcon />
-                  </button>
-                </div>
-              </Result>
-            );
-          })}
+          {favCollection &&
+            favCollection.items.map((item, index) => {
+              return (
+                <Result state={props.state} item={item}>
+                  <div q:slot="start-action" className="DocSearch-Hit-icon">
+                    <StarIcon />
+                  </div>
+                  <div q:slot="end-action" class="DocSearch-Hit-action">
+                    <button
+                      className="DocSearch-Hit-action-button"
+                      title={removeFavoriteSearchButtonTitle}
+                      type="submit"
+                      preventdefault:click
+                      onClick$={(event) => {
+                        // @ts-ignore
+                        props.state.favoriteSearches?.remove(item);
+                        // @ts-ignore
+                        context.onInput({ target: { value: '' } });
+                      }}
+                    >
+                      <ResetIcon />
+                    </button>
+                  </div>
+                </Result>
+              );
+            })}
         </ul>
       </section>
     </div>

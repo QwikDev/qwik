@@ -8,6 +8,7 @@ import type { ReplAppInput } from '../../repl/types';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/repl-share-url';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
+import type { QwikPointerEvent } from 'packages/qwik/src/core/render/jsx/types/jsx-qwik-events';
 
 export default component$(() => {
   useStyles$(styles);
@@ -43,11 +44,11 @@ export default component$(() => {
   });
 
   useClientEffect$(({ track }) => {
-    track(store, 'buildId');
-    track(store, 'buildMode');
-    track(store, 'entryStrategy');
-    track(store, 'files');
-    track(store, 'version');
+    track(() => store.buildId);
+    track(() => store.buildMode);
+    track(() => store.entryStrategy);
+    track(() => store.files);
+    track(() => store.version);
 
     if (store.version) {
       clearTimeout(store.shareUrlTmr);
@@ -63,7 +64,7 @@ export default component$(() => {
     store.colResizeActive = true;
   });
 
-  const pointerMove = $((ev: PointerEvent) => {
+  const pointerMove = $((ev: QwikPointerEvent) => {
     if (store.colResizeActive) {
       store.colLeft = (ev.clientX, ev.clientX / window.innerWidth) * 100;
       store.colLeft = Math.max(25, store.colLeft);

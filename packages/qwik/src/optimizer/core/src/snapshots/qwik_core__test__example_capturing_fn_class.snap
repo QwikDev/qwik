@@ -29,6 +29,8 @@ import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM,0FAcjB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
@@ -43,6 +45,8 @@ export const App_component_ckEPmXZlub0 = ()=>{
     return qrl(()=>import("./app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU");
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IAChC,SAAS,OAAO;QACd,QAAQ,GAAG,CAAC;IACd;IACA,MAAM;IAAO;IACb,MAAM;IAAO;IAEb;AAOJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -72,6 +76,8 @@ export const App_component_1_w0t0o3QMovU = ()=>{
 };
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAUa,IAAM;IACb;IACA,IAAI;IACJ,qBACI,KAAC;AAEP\"}")
 /*
 {
   "origin": "test.tsx",

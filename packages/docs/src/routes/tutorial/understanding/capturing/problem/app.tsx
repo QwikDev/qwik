@@ -5,7 +5,7 @@ interface AppStore {
   counter: { count: number };
   largeData: any;
 }
-export const App = component$(() => {
+export default component$(() => {
   const store = useStore<AppStore>(
     {
       counter: { count: 1 },

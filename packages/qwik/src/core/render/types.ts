@@ -1,36 +1,37 @@
-import type { ComponentCtx, QContext } from '../props/props';
-import type { ContainerState } from './container';
-import type { QwikElement, VirtualElement } from './dom/virtual-element';
+import type { ContainerState } from '../container/container';
+import type { QContext } from '../state/context';
+import type { QwikElement } from './dom/virtual-element';
 
 /**
  * @alpha
  */
 export interface RenderOperation {
-  $el$: Node | VirtualElement;
-  $operation$: string;
+  $operation$: (...args: any[]) => void;
   $args$: any[];
-  $fn$: () => void;
-}
-
-/**
- * @alpha
- */
-export interface RenderPerf {
-  $visited$: number;
 }
 
 /**
  * @alpha
  */
 export interface RenderContext {
-  $doc$: Document;
-  $roots$: QwikElement[];
-  $hostElements$: Set<QwikElement>;
-  $operations$: RenderOperation[];
-  $postOperations$: RenderOperation[];
-  $localStack$: QContext[];
-  $currentComponent$: ComponentCtx | undefined;
-  $containerState$: ContainerState;
-  $containerEl$: Element;
-  $perf$: RenderPerf;
+  readonly $static$: RenderStaticContext;
+  $cmpCtx$: QContext | null;
+  $slotCtx$: QContext | null;
 }
+
+export interface RenderStaticContext {
+  readonly $locale$: string;
+  readonly $doc$: Document;
+  readonly $roots$: QContext[];
+  readonly $hostElements$: Set<QwikElement>;
+  readonly $operations$: RenderOperation[];
+  readonly $postOperations$: RenderOperation[];
+  readonly $containerState$: ContainerState;
+  readonly $addSlots$: [QwikElement, QwikElement][];
+  readonly $rmSlots$: QwikElement[];
+}
+
+/**
+ * @alpha
+ */
+export interface RenderContext2 {}

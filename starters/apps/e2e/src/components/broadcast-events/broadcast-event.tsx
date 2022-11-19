@@ -103,16 +103,42 @@ export const MouseEvents = component$(() => {
   const mouseWin = useWindowMouse();
   const mouseSelf = useSelfMouse();
 
+  const mouseDoc2 = useStore({ x: 0, y: 0 });
+  const mouseWin2 = useStore({ x: 0, y: 0 });
+  const mouseSelf2 = useStore({ x: 0, y: 0 });
+
   return (
-    <div>
+    <div
+      onMouseMove$={(event) => {
+        mouseSelf2.x = event.clientX;
+        mouseSelf2.y = event.clientY;
+      }}
+      window:onMouseMove$={(event) => {
+        mouseWin2.x = event.clientX;
+        mouseWin2.y = event.clientY;
+      }}
+      document:onMouseMove$={(event) => {
+        mouseDoc2.x = event.clientX;
+        mouseDoc2.y = event.clientY;
+      }}
+    >
       <p class="document">
         (Document: x: {mouseDoc.x}, y: {mouseDoc.y})
+      </p>
+      <p class="document2">
+        (Document2: x: {mouseDoc2.x}, y: {mouseDoc2.y})
       </p>
       <p class="window">
         (Window: x: {mouseWin.x}, y: {mouseWin.y})
       </p>
+      <p class="window2">
+        (Window2: x: {mouseWin2.x}, y: {mouseWin2.y})
+      </p>
       <p class="self">
         (Host: x: {mouseSelf.x}, y: {mouseSelf.y}, inside: {mouseSelf.inside})
+      </p>
+      <p class="self2">
+        (Host2: x: {mouseSelf2.x}, y: {mouseSelf2.y})
       </p>
     </div>
   );

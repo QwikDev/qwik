@@ -20,12 +20,7 @@ fn find_files(dir: &std::path::Path, files: &mut Vec<std::path::PathBuf>) -> std
             let entry = entry?;
             let path = entry.path();
             if path.is_dir() {
-                match path.file_name().and_then(|p| p.to_str()) {
-                    Some("node_modules" | "dist" | "build") => {}
-                    _ => {
-                        find_files(&path, files)?;
-                    }
-                }
+                find_files(&path, files)?;
             } else if should_capture_file(&path) {
                 files.push(path);
             }

@@ -54,7 +54,7 @@ export const ResourceApp = component$(() => {
 
   useWatch$(async ({ track }) => {
     logs.content += '[WATCH] 2 before\n';
-    const city = track(state, 'countDouble');
+    const city = track(() => state.countDouble);
     await delay(100);
     state.countDoubleDouble = city * 2;
     logs.content += '[WATCH] 2 after\n';
@@ -62,7 +62,7 @@ export const ResourceApp = component$(() => {
 
   const resource = useResource$<number>(async ({ track }) => {
     logs.content += '[RESOURCE] 1 before\n';
-    const count = track(state, 'countDoubleDouble');
+    const count = track(() => state.countDoubleDouble);
     await delay(2000);
 
     logs.content += '[RESOURCE] 1 after\n';
@@ -77,12 +77,14 @@ export const ResourceApp = component$(() => {
   //   logs.content += '[RESOURCE] 2 after\n';
   //   return count * 4;
   // });
+  const resouceState = resource.loading ? 'pending' : 'resolved';
 
   return (
     <div>
-      <button type="button" class="increment" onClick$={() => state.count++}>
+      <button type="button" className="increment" onClick$={() => state.count++}>
         Increment
       </button>
+      <div id="outside-state">{resouceState}</div>
       <Results result={resource} />
     </div>
   );
@@ -99,8 +101,10 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
   const state = useStore({
     count: 0,
   });
+  const resouceState = props.result.loading ? 'pending' : 'resolved';
   return (
     <div>
+      <div id="inside-state">{resouceState}</div>
       <Resource
         value={props.result}
         onPending={() => <div class="resource1">loading resource 1...</div>}
@@ -108,9 +112,9 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
         onResolved={(number) => {
           return (
             <>
-              <div class="resource1">resource 1 is {number}</div>
+              <div className="resource1">resource 1 is {number}</div>
               <button class="count" onClick$={() => state.count++}>
-                count is {state.count}
+                count is {state.count + 0}
               </button>
             </>
           );

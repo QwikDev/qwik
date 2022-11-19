@@ -1,6 +1,6 @@
-import { component$, useStyles$ } from '@builder.io/qwik';
+import { component$, useStylesScoped$ } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   return (
     <>
       <ComponentA />
@@ -10,8 +10,8 @@ export const App = component$(() => {
 });
 
 export const ComponentA = component$(() => {
-  useStyles$(`
-    .component .⭐️� {
+  useStylesScoped$(`
+    .component {
       background-color: red;
     }`);
   return (
@@ -22,8 +22,8 @@ export const ComponentA = component$(() => {
 });
 
 export const ComponentB = component$(() => {
-  useStyles$(`
-    .component .⭐️� {
+  useStylesScoped$(`
+    .component {
       background-color: green;
     }`);
 

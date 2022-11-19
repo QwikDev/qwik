@@ -3,7 +3,6 @@ import type { RenderToStringOptions } from './types';
 /**
  * Utility timer function for performance profiling.
  * Returns a duration of 0 in environments that do not support performance.
- * @alpha
  */
 export function createTimer() {
   if (typeof performance === 'undefined') {

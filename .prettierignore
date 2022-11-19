@@ -6,6 +6,7 @@
 .history
 .yarn
 .yarnrc.yml
+pnpm-lock.yaml
 .mf
 dist
 dist-dev
@@ -20,12 +21,10 @@ build
 .cache
 .vscode
 .rollup.cache
-build
-node_modules
 tsconfig.tsbuildinfo
 packages/docs/src/routes/**/*.mdx
 **/server/**/*.js
 starters/**/*.js
 
 # TODO: Figure out why this doesn't pass in CI
-packages/qwik/src/core/props/props.ts 
+packages/qwik/src/core/props/props.ts

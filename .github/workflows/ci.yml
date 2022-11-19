@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       disttag:
-        description: 'Publish "@builder.io/qwik" to NPM using this dist-tag, push the git-tag to the repo and create a Github release. The "latest" and "next" dist-tags will use the version number already committed in package.json.'
+        description: 'Publish "@builder.io/qwik" to NPM using this dist-tag, push the git-tag to the repo and create a GitHub release. The "latest" and "next" dist-tags will use the version number already committed in package.json.'
         required: true
         type: choice
         default: 'dev'
@@ -63,33 +63,34 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-          cache: 'yarn'
+          cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - run: corepack enable
 
       - name: Install NPM Dependencies
-        run: yarn install --immutable --network-timeout 300000
+        run: pnpm install --frozen-lockfile
 
       - name: Build Package
-        run: yarn tsm scripts/index.ts --tsc --build --api --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: pnpm tsm scripts/index.ts --tsc --build --cli --api --set-dist-tag="${{ github.event.inputs.disttag }}"
 
-      - name: Print Package Dist Build
+      - name: Print Qwik Dist Build
         run: tree packages/qwik/dist/
 
-      - name: Upload Package Build Artifacts
+      - name: Upload Qwik Build Artifacts
         uses: actions/upload-artifact@master
         with:
           name: dist-dev-builder-io-qwik
           path: packages/qwik/dist/
           if-no-files-found: error
-
-      - name: Build Create Qwik CLI
-        run: yarn tsm scripts/index.ts --cli
 
       - name: Print Create Qwik CLI Dist Build
         run: tree packages/create-qwik/dist/
@@ -102,7 +103,7 @@ jobs:
           if-no-files-found: error
 
       - name: Build Eslint rules
-        run: yarn tsm scripts/index.ts --eslint
+        run: pnpm tsm scripts/index.ts --eslint
 
       - name: Print Eslint rules Dist Build
         run: tree packages/eslint-plugin-qwik/dist/
@@ -129,12 +130,17 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2.2.4
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        with:
+          version: 7
+
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-          cache: 'yarn'
+          cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -149,26 +155,33 @@ jobs:
 
       - name: Cache cargo dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
-            ~/.cargo
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
           key: cargo-deps-wasm-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Cache cargo build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: packages/qwik/src/wasm/target
           key: cargo-build-wasm-${{ runner.os }}-${{ hashFiles('./packages/qwik/src/wasm/Cargo.lock') }}
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: yarn install --immutable --network-timeout 300000
+        run: pnpm install --frozen-lockfile
+
+      - uses: jetli/wasm-pack-action@v0.3.0
+        with:
+          version: 'v0.10.3'
 
       - name: Build WASM
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: yarn tsm scripts/index.ts --wasm --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: pnpm tsm scripts/index.ts --wasm --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print WASM Dist Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -189,18 +202,18 @@ jobs:
         settings:
           - host: macos-latest
             target: x86_64-apple-darwin
-            build: yarn tsm scripts/index.ts --platform-binding
+            build: pnpm tsm scripts/index.ts --platform-binding
 
           - host: macos-latest
             target: aarch64-apple-darwin
             build: |
               export SDKROOT=$(xcrun -sdk macosx11.1 --show-sdk-path)
               export MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx11.1 --show-sdk-platform-version)
-              yarn tsm scripts/index.ts --platform-binding --platform-target=aarch64-apple-darwin
+              pnpm tsm scripts/index.ts --platform-binding --platform-target=aarch64-apple-darwin
 
           - host: windows-latest
             target: x86_64-pc-windows-msvc
-            build: yarn tsm scripts/index.ts --platform-binding
+            build: pnpm tsm scripts/index.ts --platform-binding
 
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
@@ -212,12 +225,17 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2.2.4
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        with:
+          version: 7
+
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-          cache: 'yarn'
+          cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -241,15 +259,18 @@ jobs:
 
       - name: Cache cargo dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
-            ~/.cargo
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
           key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Cache cargo build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: target
           key: cargo-build-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
@@ -261,7 +282,7 @@ jobs:
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: yarn install --immutable --network-timeout 300000
+        run: pnpm install --frozen-lockfile
 
       - name: Build Platform Binding
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -342,11 +363,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-          cache: 'yarn'
+          cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - run: corepack enable
@@ -370,18 +395,18 @@ jobs:
           mv dist-dev-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
 
       - name: Install NPM Dependencies
-        run: yarn install --immutable --network-timeout 300000
+        run: pnpm install --frozen-lockfile
 
       - name: Dry-Run Publish @builder.io/qwik
         if: ${{ github.event_name != 'workflow_dispatch' }}
-        run: yarn tsm scripts/index.ts --set-dist-tag="${{ github.event.inputs.disttag }}" --release --dry-run
+        run: pnpm tsm scripts/index.ts --set-dist-tag="${{ github.event.inputs.disttag }}" --release --dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @builder.io/qwik
         if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: yarn tsm scripts/index.ts --set-dist-tag="${{ github.event.inputs.disttag }}" --release
+        run: pnpm tsm scripts/index.ts --set-dist-tag="${{ github.event.inputs.disttag }}" --release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -390,7 +415,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' && github.event_name == 'push' }}
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        run: yarn run qwik-save-artifacts
+        run: pnpm run qwik-save-artifacts
 
   ############ E2E TEST ############
   test-e2e:
@@ -416,12 +441,17 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2.2.4
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        with:
+          version: 7
+
       - name: Setup Node ${{ matrix.settings.node }}
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.settings.node }}
-          cache: 'yarn'
+          cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -444,19 +474,23 @@ jobs:
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: yarn install --immutable --network-timeout 300000
+        run: pnpm install --frozen-lockfile
+
+      - name: Build QwikCity
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: pnpm tsm scripts/index.ts --tsc --qwikcity --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Install Playwright
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: npx playwright install ${{ matrix.settings.browser }} && npx playwright install-deps ${{ matrix.settings.browser }}
+        run: npx playwright install ${{ matrix.settings.browser }} --with-deps
 
       - name: Playwright E2E Tests
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: yarn run test.e2e.${{ matrix.settings.browser }}
+        run: pnpm run test.e2e.${{ matrix.settings.browser }}
 
       - name: Validate Create Qwik Cli
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: yarn cli.validate
+        run: pnpm cli.validate
 
   ############ UNIT TEST ############
   test-unit:
@@ -469,20 +503,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-          cache: 'yarn'
+          cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - run: corepack enable
 
       - name: Install NPM Dependencies
-        run: yarn install --immutable --network-timeout 300000
+        run: pnpm install --frozen-lockfile
 
       - name: Unit Tests
-        run: yarn run test.unit
+        run: pnpm run test.unit
 
   ########### VALIDATE RUST ############
   validate-rust:
@@ -505,15 +543,18 @@ jobs:
 
       - name: Cache cargo dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
-            ~/.cargo
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
           key: cargo-deps-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Cache cargo build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: target
           key: cargo-build-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
@@ -554,22 +595,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-          cache: 'yarn'
+          cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - run: corepack enable
 
       - name: Install NPM Dependencies
-        run: yarn install --immutable --network-timeout 300000
+        run: pnpm install --frozen-lockfile
 
       - name: Prettier Check
         if: ${{ always() }}
-        run: yarn run lint.prettier
+        run: pnpm run lint.prettier
 
       - name: ESLint Check
         if: ${{ always() }}
-        run: yarn run lint.eslint
+        run: pnpm run lint.eslint

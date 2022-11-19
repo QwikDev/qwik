@@ -1,6 +1,6 @@
 import { component$, useOn, $ } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   useOn(
     'click',
     $(() => alert('Hello World!'))

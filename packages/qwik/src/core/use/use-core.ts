@@ -1,14 +1,15 @@
-import { isArray, ValueOrPromise } from '../util/types';
-import type { Props } from '../props/props.public';
-import { assertDefined } from '../assert/assert';
 import type { QwikDocument } from '../document';
-import { QContainerSelector, RenderEvent } from '../util/markers';
-import { getDocument } from '../util/dom';
-import type { QRL } from '../import/qrl.public';
+import { assertDefined } from '../error/assert';
 import { qError, QError_useInvokeContext, QError_useMethodOutsideContext } from '../error/error';
-import type { RenderContext } from '../render/types';
-import type { Subscriber } from './use-watch';
+import type { QRL } from '../qrl/qrl.public';
 import type { QwikElement } from '../render/dom/virtual-element';
+import type { RenderContext } from '../render/types';
+import { QContainerSelector, QLocaleAttr, RenderEvent } from '../util/markers';
+import { isPromise } from '../util/promises';
+import { seal } from '../util/qdev';
+import { isArray } from '../util/types';
+import { setLocale } from './use-locale';
+import type { SubscriberEffect, SubscriberHost } from './use-watch';
 
 declare const document: QwikDocument;
 
@@ -17,25 +18,35 @@ export interface StyleAppend {
   content: string | null;
 }
 
-export interface InvokeContext {
-  $url$: URL | null;
+export interface RenderInvokeContext extends InvokeContext {
+  $url$: URL;
   $seq$: number;
-  $doc$?: Document;
-  $hostElement$?: QwikElement;
-  $element$?: Element;
+  $doc$: Document;
+  $hostElement$: QwikElement;
+  $element$: Element;
   $event$: any;
-  $qrl$?: QRL<any>;
-  $waitOn$?: ValueOrPromise<any>[];
-  $props$?: Props;
-  $subscriber$?: Subscriber | null;
-  $renderCtx$?: RenderContext;
+  $qrl$: QRL<any>;
+  $waitOn$: Promise<any>[];
+  $subscriber$: SubscriberEffect | SubscriberHost | null;
+  $renderCtx$: RenderContext;
 }
 
-export type RenderInvokeContext = Required<InvokeContext>;
+export type InvokeTuple = [Element, Event, URL?];
+
+export interface InvokeContext {
+  $url$: URL | undefined;
+  $seq$: number;
+  $hostElement$: QwikElement | undefined;
+  $element$: Element | undefined;
+  $event$: any | undefined;
+  $qrl$: QRL<any> | undefined;
+  $waitOn$: Promise<any>[] | undefined;
+  $subscriber$: SubscriberEffect | SubscriberHost | null | undefined;
+  $renderCtx$: RenderContext | undefined;
+  $locale$: string | undefined;
+}
 
 let _context: InvokeContext | undefined;
-
-export const CONTAINER = Symbol('container');
 
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
@@ -44,14 +55,7 @@ export const tryGetInvokeContext = (): InvokeContext | undefined => {
       return undefined;
     }
     if (isArray(context)) {
-      const element = context[0];
-      return (document.__q_context__ = newInvokeContext(
-        getDocument(element),
-        undefined,
-        element,
-        context[1],
-        context[2]
-      ));
+      return (document.__q_context__ = newInvokeContextFromTuple(context as any));
     }
     return context as InvokeContext;
   }
@@ -74,7 +78,6 @@ export const useInvokeContext = (): RenderInvokeContext => {
   assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`, ctx);
   assertDefined(ctx.$waitOn$, `invoke: $waitOn$ must be defined`, ctx);
   assertDefined(ctx.$renderCtx$, `invoke: $renderCtx$ must be defined`, ctx);
-  assertDefined(ctx.$doc$, `invoke: $doc$ must be defined`, ctx);
   assertDefined(ctx.$subscriber$, `invoke: $subscriber$ must be defined`, ctx);
 
   return ctx as any;
@@ -92,7 +95,7 @@ export const useBindInvokeContext = <T extends ((...args: any[]) => any) | undef
   }) as T;
 };
 export const invoke = <ARGS extends any[] = any[], RET = any>(
-  context: InvokeContext,
+  context: InvokeContext | undefined,
   fn: (...args: ARGS) => RET,
   ...args: ARGS
 ): RET => {
@@ -107,34 +110,50 @@ export const invoke = <ARGS extends any[] = any[], RET = any>(
   return returnValue;
 };
 
-export const waitAndRun = (ctx: Required<InvokeContext>, callback: () => any) => {
-  const previousWait = ctx.$waitOn$.slice();
-  ctx.$waitOn$.push(Promise.allSettled(previousWait).then(callback));
+export const waitAndRun = (ctx: RenderInvokeContext, callback: () => any) => {
+  const waitOn = ctx.$waitOn$;
+  if (waitOn.length === 0) {
+    const result = callback();
+    if (isPromise(result)) {
+      waitOn.push(result);
+    }
+  } else {
+    waitOn.push(Promise.all(waitOn).then(callback));
+  }
+};
+
+export const newInvokeContextFromTuple = (context: InvokeTuple) => {
+  const element = context[0];
+  const container = element.closest(QContainerSelector);
+  const locale = container?.getAttribute(QLocaleAttr) || undefined;
+  locale && setLocale(locale);
+  return newInvokeContext(locale, undefined, element, context[1], context[2]);
 };
 
 export const newInvokeContext = (
-  doc?: Document,
+  locale?: string,
   hostElement?: QwikElement,
   element?: Element,
   event?: any,
   url?: URL
 ): InvokeContext => {
-  return {
+  const ctx = {
     $seq$: 0,
-    $doc$: doc,
     $hostElement$: hostElement,
     $element$: element,
     $event$: event,
-    $url$: url || null,
+    $url$: url,
     $qrl$: undefined,
+    $props$: undefined,
+    $renderCtx$: undefined,
+    $subscriber$: undefined,
+    $waitOn$: undefined,
+    $locale$: locale,
   };
+  seal(ctx);
+  return ctx;
 };
 
-export const getContainer = (el: QwikElement): Element | null => {
-  let container = (el as any)[CONTAINER];
-  if (!container) {
-    container = el.closest(QContainerSelector);
-    (el as any)[CONTAINER] = container;
-  }
-  return container;
+export const getWrappingContainer = (el: QwikElement): Element | null => {
+  return el.closest(QContainerSelector);
 };

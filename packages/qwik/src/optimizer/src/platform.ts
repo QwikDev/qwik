@@ -45,7 +45,7 @@ export async function getSystem() {
       if (typeof TextEncoder === 'undefined') {
         // TextEncoder/TextDecoder needs to be on the global scope for the WASM file
         // https://nodejs.org/api/util.html#class-utiltextdecoder
-        const nodeUtil: typeof import('util') = await sys.dynamicImport('util');
+        const nodeUtil: typeof import('util') = await sys.dynamicImport('node:util');
         global.TextEncoder = nodeUtil.TextEncoder;
         global.TextDecoder = nodeUtil.TextDecoder;
       }
@@ -63,7 +63,7 @@ export async function getSystem() {
   }
 
   if (sysEnv === 'node') {
-    sys.path = await sys.dynamicImport('path');
+    sys.path = await sys.dynamicImport('node:path');
     sys.cwd = () => process.cwd();
     sys.os = process.platform;
   }
@@ -77,7 +77,7 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
   }
 
   if (sys.env === 'node') {
-    const fs: typeof import('fs') = await sys.dynamicImport('fs');
+    const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
 
     return async (rootDir: string) => {
       const getChildFilePaths = async (dir: string): Promise<string[]> => {
@@ -141,7 +141,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
           // NodeJS - Native Binding
           try {
             if (globalThis.IS_ESM) {
-              const module = await sys.dynamicImport('module');
+              const module = await sys.dynamicImport('node:module');
               const mod = module.default.createRequire(import.meta.url)(
                 `./bindings/${triple.platformArchABI}`
               );
@@ -164,7 +164,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
       // CJS WASM NodeJS
       const wasmPath = sys.path.join(__dirname, 'bindings', 'qwik_wasm_bg.wasm');
       const mod = await sys.dynamicImport(`./bindings/qwik.wasm.cjs`);
-      const fs: typeof import('fs') = await sys.dynamicImport('fs');
+      const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
 
       return new Promise<Buffer>((resolve, reject) => {
         fs.readFile(wasmPath, (err, buf) => {
@@ -222,11 +222,11 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
   if (globalThis.IS_ESM) {
     if (sysEnv === 'node') {
       // CJS WASM NodeJS
-      const url: typeof import('url') = await sys.dynamicImport('url');
+      const url: typeof import('url') = await sys.dynamicImport('node:url');
       const __dirname = sys.path.dirname(url.fileURLToPath(import.meta.url));
       const wasmPath = sys.path.join(__dirname, 'bindings', 'qwik_wasm_bg.wasm');
       const mod = await sys.dynamicImport(`./bindings/qwik.wasm.mjs`);
-      const fs: typeof import('fs') = await sys.dynamicImport('fs');
+      const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
 
       return new Promise<Buffer>((resolve, reject) => {
         fs.readFile(wasmPath, (err, buf) => {

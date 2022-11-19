@@ -1,9 +1,16 @@
 .header-container {
   height: calc(var(--header-height));
   margin-bottom: 6px;
-  color: white;
-  background: var(--qwik-blue);
-  box-shadow: 0px 2px 5px #0000003d;
+  background: var(--bg-color);
+  position: relative;
+  z-index: 100;
+}
+
+@media (min-width: 1024px) {
+  .header-container {
+    background: var(--bg-header-color);
+    backdrop-filter: blur(23px) saturate(4.5);
+  }
 }
 
 .fixed-header .header-container {
@@ -14,8 +21,15 @@
 }
 
 header li {
-  @apply font-semibold px-2 mx-2 text-right;
+  @apply px-2 text-right;
   @apply py-4 md:py-0;
+
+  font-size: 14px;
+  font-weight: 500;
+}
+
+header a.active {
+  color: var(--interactive-text-color);
 }
 
 header a:hover {
@@ -29,12 +43,14 @@ header li a:hover svg {
 header .mobile-menu {
   position: absolute;
   right: 0;
-  @apply p-3 md:hidden;
+  @apply p-5 md:hidden;
 }
 
 header ul {
   @apply hidden md:block;
   @apply pt-0 pb-6 md:pt-0;
+  height: 100%;
+  align-items: center;
 }
 
 header .more-icon {
@@ -46,13 +62,18 @@ header .close-icon {
 }
 
 @media (max-width: 767px) {
+  .header-container {
+    padding-top: 5px;
+  }
+
   .header-open header ul {
     position: absolute;
     z-index: 10;
     display: block;
     top: var(--header-height);
     width: 100%;
-    background: var(--qwik-blue);
+    background: var(--bg-color);
+    height: auto;
   }
 
   .header-open header .more-icon {
@@ -62,6 +83,10 @@ header .close-icon {
   .header-open header .close-icon {
     display: block;
   }
+
+  .header-open .menu-toolkit li {
+    text-align: center;
+  }
 }
 
 header .header-inner {
@@ -69,6 +94,7 @@ header .header-inner {
   margin-left: auto;
   margin-right: auto;
   position: relative;
+  height: 100%;
 }
 
 .full-width header .header-inner {

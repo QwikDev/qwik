@@ -1,26 +1,29 @@
-import { ElementFixture, trigger } from '../../testing/element-fixture';
+import { createDOM } from '../../testing/library';
 import { expectDOM } from '../../testing/expect-dom.unit';
-import { inlinedQrl, runtimeQrl } from '../import/qrl';
+import { inlinedQrl } from '../qrl/qrl';
 import { useStylesQrl } from '../use/use-styles';
 import { PropsOf, component$ } from './component.public';
 import { suite } from 'uvu';
 import { useStore } from '../use/use-store.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { render } from '../render/dom/render.public';
 
+/**
+ * Appling new unit test library/layer
+ * `@builder.io/qwik/testing`  ==>  ../../testing/library
+ */
 const qComponent = suite('q-component');
 qComponent('should declare and render basic component', async () => {
-  const fixture = new ElementFixture();
-  await render(fixture.host, <HelloWorld></HelloWorld>);
+  const { screen, render } = await createDOM();
+  await render(<HelloWorld />);
   await expectDOM(
-    fixture.host,
+    screen,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-        <style q:style="pfkgyr-0">
+        <style q:style="pfkgyr-0" hidden="">
            {
           }
         </style>
-        <!--qv q:key=sX: q:id=0-->
+        <!--qv q:key=sX:-->
         <span>Hello World</span>
         <!--/qv-->
       </host>`
@@ -28,41 +31,37 @@ qComponent('should declare and render basic component', async () => {
 });
 
 qComponent('should render Counter and accept events', async () => {
-  const fixture = new ElementFixture();
-  await render(fixture.host, <MyCounter step={5} value={15} />);
+  const { screen, render, userEvent } = await createDOM();
+
+  await render(<MyCounter step={5} value={15} />);
   await expectDOM(
-    fixture.host,
-    `          <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <!--qv q:key=sX: q:id=0-->
+    screen,
+    `
+    <host q:version="dev" q:container="resumed" q:render="dom-dev">
+    <!--qv q:key=sX:-->
     <my-counter>
-      <button q:id="1" class="decrement" on:click="/runtimeQRL#_[0 1 2]">-</button>
+      <button class="decrement">-</button>
       <span>15</span>
-      <button q:id="2" class="increment" on:click="/runtimeQRL#_[0 1 2]">+</button>
+      <button class="increment">+</button>
     </my-counter>
     <!--/qv-->
   </host>`
   );
-  await trigger(fixture.host, 'button.decrement', 'click');
+  await userEvent('button.decrement', 'click');
   await expectDOM(
-    fixture.host,
+    screen,
     `
 <host q:version="dev" q:container="resumed" q:render="dom-dev">
-  <!--qv q:key=sX: q:id=0-->
+  <!--qv q:key=sX:-->
   <my-counter>
     <button
-      q:id="1"
       class="decrement"
-      on:click="/runtimeQRL#_[0 1 2]
-/runtimeQRL#_[0 1 3]"
     >
       -
     </button>
     <span>10</span>
     <button
-      q:id="2"
       class="increment"
-      on:click="/runtimeQRL#_[0 1 2]
-/runtimeQRL#_[0 1 3]"
     >
       +
     </button>
@@ -73,7 +72,8 @@ qComponent('should render Counter and accept events', async () => {
 });
 
 qComponent('should render a collection of todo items', async () => {
-  const host = new ElementFixture().host;
+  const { screen, render } = await createDOM();
+
   const items = {
     items: [
       {
@@ -86,21 +86,21 @@ qComponent('should render a collection of todo items', async () => {
       },
     ],
   };
-  await render(host, <Items items={items} />);
+  await render(<Items items={items} />);
   await delay(0);
   await expectDOM(
-    host,
+    screen,
     `
     <host q:version="dev" q:container="resumed" q:render="dom-dev">
-      <!--qv q:key=sX: q:id=0-->
+      <!--qv q:key=sX:-->
       <items>
-        <!--qv q:key=sX: q:id=1-->
+        <!--qv q:key=sX:-->
         <item-detail>
           <input type="checkbox" checked="" />
           <span>Task 1</span>
         </item-detail>
         <!--/qv-->
-        <!--qv q:key=sX: q:id=2-->
+        <!--qv q:key=sX:-->
         <item-detail>
           <input type="checkbox" />
           <span>Task 2</span>
@@ -150,14 +150,14 @@ export const MyCounter = component$((props: { step?: number; value?: number }) =
     <my-counter>
       <button
         class="decrement"
-        onClick$={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
+        onClick$={inlinedQrl(MyCounter_update, 'update', [props, state, { dir: -1 }])}
       >
         -
       </button>
       <span>{state.count}</span>
       <button
         class="increment"
-        onClick$={runtimeQrl(MyCounter_update, [props, state, { dir: -1 }])}
+        onClick$={inlinedQrl(MyCounter_update, 'update', [props, state, { dir: 1 }])}
       >
         +
       </button>

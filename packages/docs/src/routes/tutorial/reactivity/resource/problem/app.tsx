@@ -1,13 +1,27 @@
 /* eslint-disable no-console */
 import { component$, useStore, Resource, useResource$ } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   const github = useStore({
     org: 'BuilderIO',
   });
 
   // Use useResource$() to set up how the data is fetched from the server.
   // See the example for Fetching Data in the text on the left.
+  const reposResource = useResource$<string[]>(({ track, cleanup }) => {
+    // We need a way to re-run fetching data whenever the `github.org` changes.
+    // Use `track` to trigger re-running of the this data fetching function.
+    track(() => github.org);
+
+    // A good practice is to use `AbortController` to abort the fetching of data if
+    // new request comes in. We create a new `AbortController` and register a `cleanup`
+    // function which is called when this function re-runs.
+    const controller = new AbortController();
+    cleanup(() => controller.abort());
+
+    // Fetch the data and return the promises.
+    return getRepositories(github.org, controller);
+  });
 
   console.log('Render');
   return (
@@ -16,7 +30,7 @@ export const App = component$(() => {
         GitHub username:
         <input
           value={github.org}
-          onKeyUp$={(ev) => (github.org = (ev.target as HTMLInputElement).value)}
+          onInput$={(ev) => (github.org = (ev.target as HTMLInputElement).value)}
         />
       </span>
       <div>

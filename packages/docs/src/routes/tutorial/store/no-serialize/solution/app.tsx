@@ -4,7 +4,7 @@ interface AppStore {
   time: null | string;
   cleanup: NoSerialize<() => void>;
 }
-export const App = component$(() => {
+export default component$(() => {
   const store = useStore<AppStore>({
     time: null,
     cleanup: undefined,

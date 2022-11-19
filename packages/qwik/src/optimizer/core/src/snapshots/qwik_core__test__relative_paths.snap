@@ -11,6 +11,8 @@ export const App_component_div_p_button_onClick_8dWUa0cJAr4 = ()=>{
     return store.count++;
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\";8DAuByC,IAAI;IACrB,MAAM,CAAC,MAAM,GAAG;IAChB,OAAO,MAAM,KAAK;AACtB\"}")
 /*
 {
   "origin": "../../node_modules/dep/dist/lib.mjs",
@@ -32,10 +34,11 @@ export const App_component_div_p_button_onClick_8dWUa0cJAr4 = ()=>{
 */
 ============================= app_component_akbu84a8zes.js (ENTRY POINT)==
 
+import { _wrapSignal } from "@builder.io/qwik";
 import { jsx } from "@builder.io/qwik/jsx-runtime";
 import { jsxs } from "@builder.io/qwik/jsx-runtime";
 import { qrl } from "@builder.io/qwik";
-import { useData } from "../../node_modules/dep/dist/lib";
+import { useData } from "../../node_modules/dep/dist/lib.mjs";
 export const App_component_AkbU84a8zes = ()=>{
     const store = useData();
     return /*#__PURE__*/ jsxs("div", {
@@ -43,7 +46,7 @@ export const App_component_AkbU84a8zes = ()=>{
             /*#__PURE__*/ jsxs("p", {
                 children: [
                     "Count: ",
-                    store.count
+                    _wrapSignal(store, "count")
                 ]
             }),
             /*#__PURE__*/ jsx("p", {
@@ -58,6 +61,8 @@ export const App_component_AkbU84a8zes = ()=>{
     });
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\";;;;;yCAWyD,IAAI;IACzD,MAAM,QAAQ;IACd,OAAO,WAAW,GAAG,KAAK,OAAO;QAC7B,UAAU;YACN,WAAW,GAAG,KAAK,KAAK;gBACpB,UAAU;oBACN;gCACA;iBACH;YACL;YACA,WAAW,GAAG,IAAI,KAAK;gBACnB,UAAU,WAAW,GAAG,IAAI,UAAU;oBAClC,QAAQ;;;oBAMR,UAAU;gBACd;YACJ;SACH;IACL;AACJ\"}")
 /*
 {
   "origin": "../../node_modules/dep/dist/lib.mjs",
@@ -89,6 +94,8 @@ const useData = ()=>{
 export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("../../../src/thing/app_component_akbu84a8zes.js"), "App_component_AkbU84a8zes"));
 export { useData };
 
+
+Some("{\"version\":3,\"sources\":[\"/path/to/app/node_modules/dep/dist/lib.mjs\"],\"names\":[],\"mappings\":\"AACA;AAAA,SAAS,YAAY,EAAc,QAAQ,QAAyB,mBAAmB;AAIvF,MAAM,UAAU,IAAM;IAClB,OAAO,SAAS;QACZ,OAAO;IACX;AACJ;AAEA,OAAO,MAAM,MAAM,WAAW,GAAG,8GAuBA\"}")
 ============================= local_component_jj0v28bs0p8.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
@@ -99,6 +106,8 @@ export const Local_component_jJ0v28bs0p8 = ()=>{
     });
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/path/to/app/src/thing/components/main.tsx\"],\"names\":[],\"mappings\":\";;2CAIgC,IAAM;IAClC,qBACI,KAAC;kBAAK;;AAEd\"}")
 /*
 {
   "origin": "components/main.tsx",
@@ -124,6 +133,8 @@ import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const Local = /*#__PURE__*/ componentQrl(qrl(()=>import("../local_component_jj0v28bs0p8.js"), "Local_component_jJ0v28bs0p8"));
 
+
+Some("{\"version\":3,\"sources\":[\"/path/to/app/src/thing/components/main.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,sBAAQ,kGAIlB\"}")
 == DIAGNOSTICS ==
 
 []

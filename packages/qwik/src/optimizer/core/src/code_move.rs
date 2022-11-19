@@ -33,6 +33,7 @@ pub struct NewModuleCtx<'a> {
     pub is_entry: bool,
     pub need_handle_watch: bool,
     pub need_transform: bool,
+    pub explicit_extensions: bool,
     pub leading_comments: SingleThreadedCommentsMap,
     pub trailing_comments: SingleThreadedCommentsMap,
 }
@@ -91,8 +92,8 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
                     ast::ImportDecl {
                         span: DUMMY_SP,
                         type_only: false,
-                        asserts: None,
-                        src: ast::Str {
+                        asserts: import.asserts.clone(),
+                        src: Box::new(ast::Str {
                             span: DUMMY_SP,
                             value: fix_path(
                                 &ctx.path.abs_dir,
@@ -100,11 +101,16 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
                                 import.source.as_ref(),
                             )?,
                             raw: None,
-                        },
+                        }),
                         specifiers: vec![specifier],
                     },
                 )));
         } else if let Some(export) = ctx.global.exports.get(id) {
+            let filename = if ctx.explicit_extensions {
+                &ctx.path.file_name
+            } else {
+                &ctx.path.file_stem
+            };
             let imported = export
                 .as_ref()
                 .map(|e| ast::ModuleExportName::Ident(ast::Ident::new(e.clone(), DUMMY_SP)));
@@ -115,15 +121,15 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
                         span: DUMMY_SP,
                         type_only: false,
                         asserts: None,
-                        src: ast::Str {
+                        src: Box::new(ast::Str {
                             span: DUMMY_SP,
                             value: fix_path(
                                 &ctx.path.abs_dir,
                                 &ctx.path.base_dir,
-                                &format!("./{}", ctx.path.file_stem),
+                                &format!("./{}", filename),
                             )?,
                             raw: None,
-                        },
+                        }),
                         specifiers: vec![ast::ImportSpecifier::Named(ast::ImportNamedSpecifier {
                             is_type_only: false,
                             span: DUMMY_SP,
@@ -182,7 +188,7 @@ pub fn fix_path<S: AsRef<Path>, D: AsRef<Path>>(
 fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {
     ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
         span: DUMMY_SP,
-        decl: ast::Decl::Var(ast::VarDecl {
+        decl: ast::Decl::Var(Box::new(ast::VarDecl {
             span: DUMMY_SP,
             kind: ast::VarDeclKind::Const,
             declare: false,
@@ -195,15 +201,15 @@ fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {
                 ))),
                 init: Some(expr),
             }],
-        }),
+        })),
     }))
 }
 
 #[test]
 fn test_fix_path() {
     assert_eq!(
-        fix_path("src", "", "./state").unwrap(),
-        JsWord::from("./src/state")
+        fix_path("src", "", "./state.qwik.mjs").unwrap(),
+        JsWord::from("./src/state.qwik.mjs")
     );
 
     assert_eq!(
@@ -280,11 +286,11 @@ fn new_entry_module(hooks: &[&HookAnalysis], explicit_extensions: bool) -> ast::
                     span: DUMMY_SP,
                     type_only: false,
                     asserts: None,
-                    src: Some(ast::Str {
+                    src: Some(Box::new(ast::Str {
                         span: DUMMY_SP,
                         value: JsWord::from(src),
                         raw: None,
-                    }),
+                    })),
                     specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
                         is_type_only: false,
                         span: DUMMY_SP,
@@ -367,13 +373,13 @@ fn transform_fn(node: ast::FnExpr, use_lexical_scope: &Id, scoped_idents: &[Id])
         stmts.append(&mut body.stmts);
     }
     ast::FnExpr {
-        function: ast::Function {
+        function: Box::new(ast::Function {
             body: Some(ast::BlockStmt {
                 span: DUMMY_SP,
                 stmts,
             }),
-            ..node.function
-        },
+            ..*node.function
+        }),
         ..node
     }
 }
@@ -386,7 +392,7 @@ const fn create_return_stmt(expr: Box<ast::Expr>) -> ast::Stmt {
 }
 
 fn create_use_lexical_scope(use_lexical_scope: &Id, scoped_idents: &[Id]) -> ast::Stmt {
-    ast::Stmt::Decl(ast::Decl::Var(ast::VarDecl {
+    ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
         span: DUMMY_SP,
         declare: false,
         kind: ast::VarDeclKind::Const,
@@ -415,5 +421,5 @@ fn create_use_lexical_scope(use_lexical_scope: &Id, scoped_idents: &[Id]) -> ast
                     .collect(),
             }),
         }],
-    }))
+    })))
 }

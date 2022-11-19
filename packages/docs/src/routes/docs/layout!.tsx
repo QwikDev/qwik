@@ -1,5 +1,5 @@
 import { component$, Slot, useStyles$ } from '@builder.io/qwik';
-import type { RequestHandler } from '@builder.io/qwik-city';
+import { RequestHandler, useLocation } from '@builder.io/qwik-city';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
@@ -8,13 +8,21 @@ import { SideBar } from '../../components/sidebar/sidebar';
 import styles from './docs.css?inline';
 
 export default component$(() => {
+  const loc = useLocation();
+  const noRightMenu = ['/docs/getting-started/', '/docs/overview/', '/docs/think-qwik/'].includes(
+    loc.pathname
+  );
   useStyles$(styles);
 
   return (
     <div class="docs fixed-header">
       <Header />
       <SideBar />
-      <main>
+      <main
+        class={{
+          'no-right-menu': noRightMenu,
+        }}
+      >
         <div class="docs-container">
           <article>
             <Slot />

@@ -1,0 +1,33 @@
+.on-this-page {
+  padding-bottom: 20px;
+  font-size: 0.9em;
+}
+
+.on-this-page h6 {
+  margin: 10px 0;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.on-this-page ul {
+  margin: 0;
+  padding: 0 0 20px 0;
+  list-style: none;
+}
+
+.on-this-page a {
+  position: relative;
+  display: block;
+  border: 0 solid #ddd;
+  border-left-width: 2px;
+  padding: 4px 2px 4px 8px;
+  text-decoration: none;
+}
+
+.on-this-page a.indent {
+  padding-left: 30px;
+}
+
+.on-this-page a:hover {
+  border-color: var(--theme-accent);
+}

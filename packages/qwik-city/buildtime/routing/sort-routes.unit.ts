@@ -1,7 +1,7 @@
 import { test } from 'uvu';
 import { equal } from 'uvu/assert';
 import type { BuildRoute } from '../types';
-import { createFileId } from '../utils/fs';
+import { createFileId } from '../../utils/fs';
 import { parseRoutePathname } from './parse-pathname';
 import { routeSortCompare } from './sort-routes';
 
@@ -51,7 +51,7 @@ function route(r: TestRoute) {
     pathname,
     ext: '.tsx',
     layouts: [],
-    ...parseRoutePathname(pathname),
+    ...parseRoutePathname('/', pathname),
   };
   return route;
 }

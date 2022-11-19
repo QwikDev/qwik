@@ -1,6 +1,4 @@
-import { component$ } from '@builder.io/qwik';
-
-export const ResetIcon = component$(() => {
+export const ResetIcon = () => {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20">
       <path
@@ -13,4 +11,4 @@ export const ResetIcon = component$(() => {
       />
     </svg>
   );
-});
+};

@@ -161,6 +161,20 @@ renderSuite('should render style only for defined attributes', async () => {
   );
 });
 
+renderSuite('should render style css variables correctly', async () => {
+  const fixture = new ElementFixture();
+  await render(
+    fixture.host,
+    <div
+      style={{
+        '--stuff-hey': 'hey',
+        '--stuffCase': 'foo',
+      }}
+    />
+  );
+  await expectRendered(fixture, `<div style="--stuff-hey: hey; --stuffCase: foo"></div>`);
+});
+
 renderSuite('should render children', async () => {
   const fixture = new ElementFixture();
   await render(

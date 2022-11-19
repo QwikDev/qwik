@@ -354,7 +354,7 @@ renderSSRSuite('DelayResource', async () => {
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
     <ul>
       <!--qv q:id=0 q:key=sX:-->
-        <style q:style="fio5tb-0">.cmp {background: blue}</style>
+        <style q:style="fio5tb-0" hidden>.cmp {background: blue}</style>
         <div class="cmp"><!--qkssr-f--><span>thing</span></div>
       <!--/qv-->
       <!--qv q:id=1 q:key=sX:-->
@@ -378,7 +378,7 @@ renderSSRSuite('using promises with DelayResource', async () => {
         <!--qkssr-f-->
         <li>thing</li>
         <!--qv q:id=0 q:key=sX:-->
-          <style q:style="fio5tb-0">.cmp {background: blue}</style>
+          <style q:style="fio5tb-0" hidden>.cmp {background: blue}</style>
           <div class="cmp"><!--qkssr-f--><span>thing</span></div>
         <!--/qv-->
       </ul>
@@ -702,7 +702,7 @@ renderSSRSuite('component useStyles()', async () => {
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <body>
         <!--qv q:id=0 q:key=sX:-->
-          <style q:style="17nc-0">.host {color: red}</style>
+          <style q:style="17nc-0" hidden>.host {color: red}</style>
           <div class="host">
             Text
           </div>
@@ -725,7 +725,7 @@ renderSSRSuite('component useStylesScoped()', async () => {
     <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <body>
         <!--qv q:sstyle=⭐️1d-0 q:id=0 q:key=sX:-->
-        <style q:style="1d-0">
+        <style q:style="1d-0" hidden>
           .host.⭐️1d-0 {
             color: red;
           }
@@ -739,7 +739,7 @@ renderSSRSuite('component useStylesScoped()', async () => {
             <p class="⭐️1d-0">Que tal?</p>
           </div>
           <!--qv q:sstyle=⭐️f0gmsw-0 q:id=1 q:key=sX:-->
-          <style q:style="f0gmsw-0">
+          <style q:style="f0gmsw-0" hidden>
             .host.⭐️f0gmsw-0 {
               color: blue;
             }
@@ -776,7 +776,7 @@ renderSSRSuite('component useStylesScoped() + slot', async () => {
       <!--qv q:sstyle=⭐️lkei4s-0 q:id=0 q:key=sX:-->
       <local class="⭐️lkei4s-0">
         <!--qv q:sstyle=⭐️tdblg1-0 q:id=1 q:key=sX:-->
-        <style q:style="tdblg1-0">
+        <style q:style="tdblg1-0" hidden>
           .host.⭐️tdblg1-0 {
             background: green;
           }
@@ -848,7 +848,7 @@ renderSSRSuite('containerTagName', async () => {
     `<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="/manu/folder" class="qc📦">
       <link rel="stylesheet" href="/global.css">
       <!--qv q:id=0 q:key=sX:-->
-        <style q:style="17nc-0">.host {color: red}</style>
+        <style q:style="17nc-0" hidden>.host {color: red}</style>
         <div class="host">Text</div>
       <!--/qv-->
       <!--qv q:id=1 q:key=sX:-->
@@ -951,7 +951,7 @@ renderSSRSuite('html slot', async () => {
         <meta charset="utf-8" q:head />
         <title q:head>Qwik</title>
         <link rel="stylesheet" href="/global.css" />
-        <style q:style="fio5tb-1">
+        <style q:style="fio5tb-1" hidden>
           body {
             background: blue;
           }

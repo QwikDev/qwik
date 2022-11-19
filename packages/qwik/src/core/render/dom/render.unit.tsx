@@ -212,7 +212,7 @@ renderSuite('should render a component with scoped styles', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <style q:style="ml52vk-0">
+    <style q:style="ml52vk-0" hidden="">
       .stuff.⭐️ml52vk-0 {
         color: red;
       }
@@ -235,7 +235,7 @@ renderSuite('should render a component with scoped styles', async () => {
     fixture.host,
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
-    <style q:style="ml52vk-0">
+    <style q:style="ml52vk-0" hidden="">
       .stuff.⭐️ml52vk-0 {
         color: red;
       }

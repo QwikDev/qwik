@@ -36,7 +36,7 @@ export default component$(() => {
       <div>
         {/* Use <Resource> to display the data from the useResource$() function. */}
         {/* To help, here's a callback function to display the data on resolved. */}
-          {/* (repos) => (
+        {/* (repos) => (
             <ul>
               {repos.map((repo) => (
                 <li>

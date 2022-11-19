@@ -124,6 +124,8 @@ export async function renderToStream(
       `Missing client manifest, loading symbols in the client might 404. Please ensure the client build has run and generated the manifest for the server build.`
     );
   }
+  const includeMode = opts.qwikLoader?.include ?? 'auto';
+  const positionMode = opts.qwikLoader?.position ?? 'bottom';
   const buildBase = getBuildBase(opts);
   const resolvedManifest = resolveManifest(opts.manifest);
   await setServerPlatform(opts, resolvedManifest);
@@ -134,7 +136,24 @@ export async function renderToStream(
   const injections = resolvedManifest?.manifest.injections;
   const beforeContent = injections
     ? injections.map((injection) => jsx(injection.tag, injection.attributes ?? EMPTY_OBJ))
-    : undefined;
+    : [];
+
+  if (positionMode === 'top' && includeMode !== 'never') {
+    const qwikLoaderScript = getQwikLoaderScript({
+      debug: opts.debug,
+    });
+    beforeContent.push(
+      jsx('script', {
+        id: 'qwikloader',
+        dangerouslySetInnerHTML: qwikLoaderScript,
+      })
+    );
+    beforeContent.push(
+      jsx('script', {
+        dangerouslySetInnerHTML: `window.qwikevents.push('click')`,
+      })
+    );
+  }
 
   const renderTimer = createTimer();
   const renderSymbols: string[] = [];
@@ -179,11 +198,11 @@ export async function renderToStream(
       }
 
       const needLoader = !snapshotResult || snapshotResult.mode !== 'static';
-      const includeMode = opts.qwikLoader?.include ?? 'auto';
-      const includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
+      const includeLoader =
+        (positionMode === 'bottom' && includeMode === 'always') ||
+        (includeMode === 'auto' && needLoader);
       if (includeLoader) {
         const qwikLoaderScript = getQwikLoaderScript({
-          events: opts.qwikLoader?.events,
           debug: opts.debug,
         });
         children.push(

@@ -10,6 +10,7 @@ import type { QContext } from './core/state/context';
  *     determine all of the browser supported events.
  */
 export const qwikLoader = (doc: Document, hasInitialized?: number) => {
+  const readyPromise = new Promise<void>((resolve) => (resolveReady = resolve));
   const Q_CONTEXT = '__q_context__';
   const win = window as any;
   const events = new Set();
@@ -56,7 +57,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     }
     const ctx = (element as any)['_qc_'] as QContext | undefined;
     const qrls = ctx?.li.filter((li) => li[0] === attrName);
-    if (qrls && qrls.length > 0) {
+    if (qrls) {
       for (const q of qrls) {
         await q[1].getFn([element, ev], () => element.isConnected)(ev, element);
       }
@@ -74,6 +75,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
         resolveContainer(container);
         const handler = findSymbol(await module, symbolName);
         const previousCtx = (doc as any)[Q_CONTEXT];
+        await readyPromise;
         if (element.isConnected) {
           try {
             (doc as any)[Q_CONTEXT] = [element, ev, url];

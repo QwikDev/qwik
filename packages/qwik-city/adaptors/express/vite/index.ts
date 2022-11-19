@@ -26,5 +26,5 @@ export function expressAdaptor(opts: ExpressAdaptorOptions = {}): any {
  * @alpha
  */
 export interface ExpressAdaptorOptions {
-  staticGenerate?: StaticGenerateRenderOptions | true;
+  staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
 }

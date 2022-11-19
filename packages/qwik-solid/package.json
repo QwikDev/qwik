@@ -1,0 +1,60 @@
+{
+  "name": "@builder.io/qwik-solid",
+  "version": "0.1.1",
+  "description": "QwikSolid allows adding Solid components into existing Qwik application",
+  "scripts": {
+    "build": "npm run build.lib",
+    "build.client": "vite build",
+    "build.lib": "vite build --mode lib",
+    "build.ssr": "vite build --ssr src/entry.ssr.tsx",
+    "dev": "vite",
+    "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr --force",
+    "dev.ssr": "vite --mode ssr",
+    "fmt": "prettier --write .",
+    "fmt.check": "prettier --check .",
+    "lint": "eslint src/**/*.ts*",
+    "release": "np",
+    "start": "npm run dev",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@builder.io/qwik": "workspace:*",
+    "@builder.io/solid-example": "workspace:*",
+    "typescript": "4.8.4",
+    "vite": "3.2.3"
+  },
+  "peerDependencies": {
+    "@builder.io/qwik": ">=0.1.11",
+    "@builder.io/solid-example": ">=0.1.1"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "exports": {
+    ".": {
+      "import": "./lib/index.qwik.mjs",
+      "require": "./lib/index.qwik.cjs",
+      "types": "./lib/types/index.d.ts"
+    }
+  },
+  "files": [
+    "lib"
+  ],
+  "license": "MIT",
+  "homepage": "https://qwik.builder.io/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BuilderIO/qwik.git",
+    "directory": "packages/qwik-react"
+  },
+  "bugs": {
+    "url": "https://github.com/BuilderIO/qwik/issues"
+  },
+  "type": "module",
+  "main": "./lib/index.qwik.mjs",
+  "qwik": "./lib/index.qwik.mjs",
+  "types": "./lib/types/index.d.ts",
+  "dependencies": {
+    "solid-js": "^1.6.2"
+  }
+}

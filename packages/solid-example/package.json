@@ -1,0 +1,47 @@
+{
+  "name": "@builder.io/solid-example",
+  "version": "0.1.1",
+  "description": "QwikSolid allows adding Solid components into existing Qwik application",
+  "scripts": {
+    "dev": "",
+    "build": "rollup -c"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.2",
+    "@builder.io/qwik": "workspace:*",
+    "@rollup/plugin-babel": "^6.0.2",
+    "rollup": "2.79.1",
+    "rollup-preset-solid": "^1.4.0",
+    "typescript": "4.8.4"
+  },
+  "peerDependencies": {
+    "@builder.io/qwik": ">=0.1.11"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "license": "MIT",
+  "homepage": "https://qwik.builder.io/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BuilderIO/qwik.git",
+    "directory": "packages/qwik-react"
+  },
+  "bugs": {
+    "url": "https://github.com/BuilderIO/qwik/issues"
+  },
+  "type": "module",
+  "main": "./dist/esm/App.js",
+  "module": "./dist/esm/App.js",
+  "exports": {
+    ".": {
+      "browser": "./dist/esm/App.js",
+      "node": "./dist/esm/App.ssr.js",
+      "default": "./dist/esm/App.ssr.js"
+    }
+  },
+  "types": "./lib/types/index.d.ts",
+  "dependencies": {
+    "solid-js": "^1.6.2"
+  }
+}

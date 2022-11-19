@@ -19,7 +19,10 @@ export function getSourceFile(fileName: string) {
   const isMarkdown = isMarkdownExt(ext);
   let type: RouteSourceType | null = null;
 
-  if (extlessName.startsWith('index') && (isPageModule || isModule || isMarkdown)) {
+  if (
+    (extlessName.startsWith('index') || isErrorName(extlessName)) &&
+    (isPageModule || isModule || isMarkdown)
+  ) {
     // route page or endpoint
     // index@layoutname or index! - ts|tsx|js|jsx|md|mdx
     type = 'route';
@@ -29,9 +32,6 @@ export function getSourceFile(fileName: string) {
   } else if (isEntryName(extlessName) && isModule) {
     // entry module - ts|js
     type = 'entry';
-  } else if (isErrorName(extlessName) && (isPageModule || isMarkdown)) {
-    // 404 or 500 - ts|tsx|js|jsx|md|mdx
-    type = 'error';
   } else if (isMenuFileName(fileName)) {
     // menu.md
     type = 'menu';

@@ -39,7 +39,15 @@ export function mockRequestContext(opts?: {
     });
   };
 
-  return { url, request, response, responseData, platform: { testing: true }, locale: undefined };
+  return {
+    url,
+    request,
+    response,
+    responseData,
+    platform: { testing: true },
+    locale: undefined,
+    mode: 'dev',
+  };
 }
 
 export interface TestQwikCityRequestContext extends QwikCityRequestContext {

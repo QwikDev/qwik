@@ -44,7 +44,7 @@ export async function loadUserResponse(
 
   let hasRequestMethodHandler = false;
 
-  if (isPageModule && pathname !== basePathname) {
+  if (isPageModule && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (trailingSlash) {
       // must have a trailing slash

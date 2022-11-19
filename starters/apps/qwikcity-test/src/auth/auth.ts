@@ -16,6 +16,7 @@ export const signIn = async (formData: FormData, cookie: Cookie): Promise<AuthRe
     cookie.set(AUTHTOKEN_NAME, Math.round(Math.random() * 9999999), {
       httpOnly: true,
       maxAge: [5, 'minutes'],
+      path: '/',
     });
     return {
       status: 'signed-in',
@@ -27,8 +28,8 @@ export const signIn = async (formData: FormData, cookie: Cookie): Promise<AuthRe
   };
 };
 
-export const signOut = async (cookie: Cookie) => {
-  cookie.delete(AUTHTOKEN_NAME);
+export const signOut = (cookie: Cookie) => {
+  cookie.delete(AUTHTOKEN_NAME, { path: '/' });
   return {
     status: 'signed-out',
   };

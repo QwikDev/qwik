@@ -94,14 +94,11 @@ function minimalHtmlResponse(status: number, message?: string, stack?: string) {
   </style>
 </head>
 <body>
-  <p>
-    <strong>${status}</strong>
-    <span>${message}</span>
-  </p>
-  ${stack ? `<pre><code>${stack}</code></pre>` : ``}
+  <p><strong>${status}</strong> <span>${message}</span></p>${
+    stack ? `\n  <pre><code>${stack}</code></pre>` : ``
+  }
 </body>
-</html>
-`;
+</html>`;
 }
 
 const COLOR_400 = '#006ce9';

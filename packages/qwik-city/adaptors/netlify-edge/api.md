@@ -13,6 +13,7 @@ export function netifyEdgeAdaptor(opts?: NetlifyEdgeAdaptorOptions): any;
 export interface NetlifyEdgeAdaptorOptions {
     functionRoutes?: boolean;
     staticGenerate?: StaticGenerateRenderOptions | true;
+    staticPaths?: string[];
 }
 
 export { StaticGenerateRenderOptions }

@@ -56,6 +56,12 @@
         "packages/qwik-city/buildtime/runtime-generation/sw-register-build.ts"
       ],
       "@qwik-city-sw-register": ["packages/qwik-city/runtime/src/sw-register-runtime.ts"],
+      "@qwik-city-not-found-paths": [
+        "packages/qwik-city/middleware/request-handler/generated/not-found-paths.ts"
+      ],
+      "@qwik-city-static-paths": [
+        "packages/qwik-city/middleware/request-handler/generated/static-paths.ts"
+      ],
       "create-qwik": ["packages/create-qwik/api/index.ts"]
     },
     "types": ["node", "vite/client"],
@@ -74,7 +80,8 @@
     "packages/qwik-react/src",
     "scripts",
     "starters/apps/e2e",
-    "starters/apps/qwikcity-test/**/*"
+    "starters/apps/qwikcity-test/**/*",
+    "starters/dev-server.ts"
   ],
   "exclude": [
     "packages/create-qwik/dist",

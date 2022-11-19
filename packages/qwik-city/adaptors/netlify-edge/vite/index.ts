@@ -2,6 +2,7 @@ import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 import { getParentDir, viteAdaptor } from '../../shared/vite';
 import fs from 'node:fs';
 import { join } from 'node:path';
+import { basePathname } from '@qwik-city-plan';
 
 /**
  * @alpha
@@ -11,6 +12,8 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
     name: 'netlify-edge',
     origin: process?.env?.URL || 'https://yoursitename.netlify.app',
     staticGenerate: opts.staticGenerate,
+    staticPaths: opts.staticPaths,
+    cleanStaticGenerated: true,
 
     config(config) {
       const outDir = config.build?.outDir || '.netlify/edge-functions/entry.netlify-edge';
@@ -33,26 +36,16 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
       };
     },
 
-    async generateRoutes({ serverOutDir, routes, staticPaths }) {
+    async generate({ serverOutDir }) {
       if (opts.functionRoutes !== false) {
-        const ssrRoutes = routes.filter((r) => !staticPaths.includes(r.pathname));
-
         // https://docs.netlify.com/edge-functions/create-integration/#generate-declarations
         const netlifyEdgeManifest = {
-          functions: ssrRoutes.map((r) => {
-            if (r.paramNames.length > 0) {
-              return {
-                // Replace opening and closing "/" if present
-                pattern: r.pattern.toString().replace(/^\//, '').replace(/\/$/, ''),
-                function: 'entry.netlify-edge',
-              };
-            }
-
-            return {
-              path: r.pathname,
+          functions: [
+            {
+              path: basePathname + '*',
               function: 'entry.netlify-edge',
-            };
-          }),
+            },
+          ],
           version: 1,
         };
 
@@ -82,6 +75,12 @@ export interface NetlifyEdgeAdaptorOptions {
    * Determines if the adaptor should also run Static Site Generation (SSG).
    */
   staticGenerate?: StaticGenerateRenderOptions | true;
+  /**
+   * Manually add pathnames that should be treated as static paths and not SSR.
+   * For example, when these pathnames are requested, their response should
+   * come from a static file, rather than a server-side rendered response.
+   */
+  staticPaths?: string[];
 }
 
 export type { StaticGenerateRenderOptions };

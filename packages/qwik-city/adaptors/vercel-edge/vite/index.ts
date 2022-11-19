@@ -11,6 +11,8 @@ export function vercelEdgeAdaptor(opts: VercelEdgeAdaptorOptions = {}): any {
     name: 'vercel-edge',
     origin: process?.env?.VERCEL_URL || 'https://yoursitename.vercel.app',
     staticGenerate: opts.staticGenerate,
+    staticPaths: opts.staticPaths,
+    cleanStaticGenerated: true,
 
     config(config) {
       const outDir = config.build?.outDir || '.vercel/output/functions/_qwik-city.func';
@@ -33,24 +35,19 @@ export function vercelEdgeAdaptor(opts: VercelEdgeAdaptorOptions = {}): any {
       };
     },
 
-    async generateRoutes({ clientOutDir, serverOutDir, routes, staticPaths }) {
+    async generate({ clientOutDir, serverOutDir, basePathname }) {
       const vercelOutputDir = getParentDir(serverOutDir, 'output');
 
       if (opts.outputConfig !== false) {
-        const ssrRoutes = routes.filter((r) => !staticPaths.includes(r.pathname));
-
         // https://vercel.com/docs/build-output-api/v3#features/edge-middleware
         const vercelOutputConfig = {
-          routes: ssrRoutes.map((r) => {
-            let src = r.pattern.toString().slice(1, -2).replace(/\\\//g, '/');
-            if (src === '^/') {
-              src = '^/?';
-            }
-            return {
-              src,
+          routes: [
+            { handle: 'filesystem' },
+            {
+              src: basePathname + '(.*)',
               middlewarePath: '_qwik-city',
-            };
-          }),
+            },
+          ],
           version: 3,
         };
 
@@ -107,6 +104,12 @@ export interface VercelEdgeAdaptorOptions {
    * Determines if the adaptor should also run Static Site Generation (SSG).
    */
   staticGenerate?: StaticGenerateRenderOptions | true;
+  /**
+   * Manually add pathnames that should be treated as static paths and not SSR.
+   * For example, when these pathnames are requested, their response should
+   * come from a static file, rather than a server-side rendered response.
+   */
+  staticPaths?: string[];
 }
 
 export type { StaticGenerateRenderOptions };

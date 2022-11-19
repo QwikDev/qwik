@@ -4,7 +4,7 @@ import { testAppSuite } from '../utils/test-suite';
 const test = testAppSuite('Build Pages');
 
 test('layoutStop file', ({ assertRoute }) => {
-  const r = assertRoute('/mit');
+  const r = assertRoute('/mit/');
   assert.equal(r.id, 'Mit');
   assert.equal(r.pattern, /^\/mit\/?$/);
   assert.equal(r.paramNames.length, 0);
@@ -12,7 +12,7 @@ test('layoutStop file', ({ assertRoute }) => {
 });
 
 test('pathless directory', ({ assertRoute }) => {
-  const r = assertRoute('/sign-in');
+  const r = assertRoute('/sign-in/');
   assert.equal(r.id, 'AuthSignin');
   assert.equal(r.pattern, /^\/sign-in\/?$/);
   assert.equal(r.paramNames.length, 0);
@@ -24,7 +24,7 @@ test('pathless directory', ({ assertRoute }) => {
 test('index file w/ nested named layout, in directory w/ nested named layout', ({
   assertRoute,
 }) => {
-  const r = assertRoute('/api');
+  const r = assertRoute('/api/');
   assert.equal(r.id, 'ApiIndexapi');
   assert.equal(r.pattern, /^\/api\/?$/);
   assert.equal(r.paramNames.length, 0);
@@ -38,7 +38,7 @@ test('index file w/ nested named layout, in directory w/ nested named layout', (
 });
 
 test('index file w/out named layout, in directory w/ named layout', ({ assertRoute }) => {
-  const r = assertRoute('/dashboard');
+  const r = assertRoute('/dashboard/');
   assert.equal(r.id, 'Dashboard');
   assert.equal(r.pattern, /^\/dashboard\/?$/);
   assert.equal(r.paramNames.length, 0);
@@ -48,7 +48,7 @@ test('index file w/out named layout, in directory w/ named layout', ({ assertRou
 });
 
 test('index file in directory w/ nested named layout file', ({ assertRoute }) => {
-  const r = assertRoute('/dashboard/profile');
+  const r = assertRoute('/dashboard/profile/');
   assert.equal(r.id, 'DashboardProfile');
   assert.equal(r.pattern, /^\/dashboard\/profile\/?$/);
   assert.equal(r.paramNames.length, 0);
@@ -58,7 +58,7 @@ test('index file in directory w/ nested named layout file', ({ assertRoute }) =>
 });
 
 test('index file in directory w/ top named layout file', ({ assertRoute }) => {
-  const r = assertRoute('/dashboard/settings');
+  const r = assertRoute('/dashboard/settings/');
   assert.equal(r.id, 'DashboardSettings');
   assert.equal(r.pattern, /^\/dashboard\/settings\/?$/);
   assert.equal(r.paramNames.length, 0);
@@ -70,7 +70,7 @@ test('index file in directory w/ top named layout file', ({ assertRoute }) => {
 test('params route, index file w/out named layout, in directory w/ top layout directory', ({
   assertRoute,
 }) => {
-  const r = assertRoute('/docs/[category]/[id]');
+  const r = assertRoute('/docs/[category]/[id]/');
   assert.equal(r.id, 'DocsCategoryId');
   assert.equal(r.pattern, /^\/docs\/([^/]+?)\/([^/]+?)\/?$/);
   assert.equal(r.paramNames.length, 2);
@@ -83,7 +83,7 @@ test('params route, index file w/out named layout, in directory w/ top layout di
 test('markdown index file w/out named layout, in directory w/ top layout directory', ({
   assertRoute,
 }) => {
-  const r = assertRoute('/docs/overview');
+  const r = assertRoute('/docs/overview/');
   assert.equal(r.id, 'DocsOverview');
   assert.equal(r.pattern, /^\/docs\/overview\/?$/);
   assert.equal(r.paramNames.length, 0);
@@ -94,7 +94,7 @@ test('markdown index file w/out named layout, in directory w/ top layout directo
 test('markdown file w/out named layout, in directory w/ top layout directory', ({
   assertRoute,
 }) => {
-  const r = assertRoute('/docs/getting-started');
+  const r = assertRoute('/docs/getting-started/');
   assert.equal(r.id, 'DocsGettingstarted');
   assert.equal(r.pattern, /^\/docs\/getting-started\/?$/);
   assert.equal(r.paramNames.length, 0);
@@ -103,7 +103,7 @@ test('markdown file w/out named layout, in directory w/ top layout directory', (
 });
 
 test('index file w/out named layout, in directory w/ top layout directory', ({ assertRoute }) => {
-  const r = assertRoute('/docs');
+  const r = assertRoute('/docs/');
   assert.equal(r.id, 'Docs');
   assert.equal(r.pattern, /^\/docs\/?$/);
   assert.equal(r.paramNames.length, 0);
@@ -114,7 +114,7 @@ test('index file w/out named layout, in directory w/ top layout directory', ({ a
 });
 
 test('named file w/out named layout, in directory w/ layout directory', ({ assertRoute }) => {
-  const r = assertRoute('/about-us');
+  const r = assertRoute('/about-us/');
   assert.equal(r.id, 'Aboutus');
   assert.equal(r.pattern, /^\/about-us\/?$/);
   assert.equal(r.paramNames.length, 0);
@@ -124,7 +124,7 @@ test('named file w/out named layout, in directory w/ layout directory', ({ asser
 });
 
 test('named tsx file', ({ assertRoute }) => {
-  const r = assertRoute('/about-us');
+  const r = assertRoute('/about-us/');
   assert.equal(r.id, 'Aboutus');
   assert.equal(r.pattern, /^\/about-us\/?$/);
   assert.equal(r.paramNames.length, 0);

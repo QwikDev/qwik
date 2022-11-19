@@ -1,5 +1,4 @@
 import { loadRoute } from '../../runtime/src/routing';
-import type { QwikCityMode } from '../../runtime/src/types';
 import { endpointHandler } from './endpoint-handler';
 import { errorHandler, ErrorResponse, errorResponse } from './error-handler';
 import { pageHandler } from './page-handler';
@@ -11,7 +10,6 @@ import { loadUserResponse, updateRequestCtx } from './user-response';
  * @alpha
  */
 export async function requestHandler<T = any>(
-  mode: QwikCityMode,
   requestCtx: QwikCityRequestContext,
   opts: QwikCityHandlerOptions
 ): Promise<T | null> {
@@ -45,7 +43,6 @@ export async function requestHandler<T = any>(
       }
 
       const pageResult = await pageHandler(
-        mode,
         requestCtx,
         userResponse,
         render,

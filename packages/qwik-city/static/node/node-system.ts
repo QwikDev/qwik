@@ -52,13 +52,20 @@ export async function createSystem(opts: StaticGenerateOptions) {
   };
 
   const getPageFilePath = (pathname: string) => {
-    pathname = getFsDir(pathname) + 'index.html';
+    if (pathname.endsWith('.html')) {
+      pathname = pathname.slice(basenameLen);
+    } else {
+      pathname = getFsDir(pathname) + 'index.html';
+    }
     return join(outDir, pathname);
   };
 
   const getDataFilePath = (pathname: string) => {
-    pathname = getFsDir(pathname) + 'q-data.json';
-    return join(outDir, pathname);
+    if (!pathname.endsWith('.html')) {
+      pathname = getFsDir(pathname) + 'q-data.json';
+      return join(outDir, pathname);
+    }
+    return null;
   };
 
   const sys: System = {
@@ -69,6 +76,7 @@ export async function createSystem(opts: StaticGenerateOptions) {
     ensureDir,
     createWriteStream,
     createTimer,
+    access,
     getPageFilePath,
     getDataFilePath,
     platform: {
@@ -81,9 +89,14 @@ export async function createSystem(opts: StaticGenerateOptions) {
 }
 
 export const ensureDir = async (filePath: string) => {
+  await fs.promises.mkdir(dirname(filePath), { recursive: true });
+};
+
+export const access = async (path: string) => {
   try {
-    await fs.promises.mkdir(dirname(filePath), { recursive: true });
+    await fs.promises.access(path);
+    return true;
   } catch (e) {
-    //
+    return false;
   }
 };

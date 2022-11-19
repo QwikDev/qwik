@@ -3,13 +3,21 @@ import {
   NoSerialize,
   PropFunction,
   useClientEffect$,
+  useContext,
   useRef,
   useStore,
   useWatch$,
 } from '@builder.io/qwik';
 import type { IStandaloneCodeEditor } from './monaco';
-import { addQwikLibs, ICodeEditorViewState, initMonacoEditor, updateMonacoEditor } from './monaco';
+import {
+  addQwikLibs,
+  getEditorTheme,
+  ICodeEditorViewState,
+  initMonacoEditor,
+  updateMonacoEditor,
+} from './monaco';
 import type { ReplAppInput, ReplStore } from './types';
+import { GlobalStore } from '../context';
 
 export const Editor = component$((props: EditorProps) => {
   const hostRef = useRef();
@@ -21,6 +29,8 @@ export const Editor = component$((props: EditorProps) => {
     viewStates: {},
   });
 
+  const globalStore = useContext(GlobalStore);
+
   useClientEffect$(async () => {
     if (!store.editor) {
       await initMonacoEditor(hostRef.current, props, store, props.store);
@@ -30,6 +40,15 @@ export const Editor = component$((props: EditorProps) => {
         store.editor.dispose();
       }
     };
+  });
+
+  useClientEffect$(({ track }) => {
+    track(globalStore, 'theme');
+    if (globalStore.theme !== 'auto') {
+      store.editor?.updateOptions({
+        theme: getEditorTheme(globalStore.theme === 'dark'),
+      });
+    }
   });
 
   useWatch$(async ({ track }) => {

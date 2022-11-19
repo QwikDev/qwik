@@ -11,6 +11,8 @@ import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
 import type { PackageJSON } from '../scripts/util';
 import { fileURLToPath } from 'node:url';
+import nodeFetch, { Headers, Request as R, Response as RE } from 'node-fetch';
+import { getErrorHtml } from '../packages/qwik-city/middleware/request-handler/error-handler';
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
@@ -31,6 +33,8 @@ const qwikCityMjs = join(qwikCityDistDir, 'index.qwik.mjs');
 
 const qwikCityVirtualEntry = '@city-ssr-entry';
 const entrySsrFileName = 'entry.ssr.tsx';
+const qwikCityNotFoundPaths = '@qwik-city-not-found-paths';
+const qwikCityStaticPaths = '@qwik-city-static-paths';
 
 Error.stackTraceLimit = 1000;
 
@@ -103,6 +107,9 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
         if (id.endsWith(qwikCityVirtualEntry)) {
           return qwikCityVirtualEntry;
         }
+        if (id === qwikCityStaticPaths || id === qwikCityNotFoundPaths) {
+          return './' + id;
+        }
       },
       load(id) {
         if (id.endsWith(qwikCityVirtualEntry)) {
@@ -119,6 +126,13 @@ export {
   notFound
 }
 `;
+        }
+        if (id.endsWith(qwikCityStaticPaths)) {
+          return `export function isStaticPath(){ return false; };`;
+        }
+        if (id.endsWith(qwikCityNotFoundPaths)) {
+          const notFoundHtml = getErrorHtml(404, 'Resource Not Found');
+          return `export function getNotFound(){ return ${JSON.stringify(notFoundHtml)}; };`;
         }
       },
     });
@@ -271,8 +285,6 @@ function startersHomepage(_: Request, res: Response) {
   </html>
   `);
 }
-
-import nodeFetch, { Headers, Request as R, Response as RE } from 'node-fetch';
 
 (global as any).fetch = nodeFetch;
 (global as any).Headers = Headers;

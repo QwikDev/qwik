@@ -11,7 +11,6 @@ export function createBuildContext(
     rootDir: normalizePath(rootDir),
     opts: normalizeOptions(rootDir, userOpts),
     routes: [],
-    errors: [],
     layouts: [],
     entries: [],
     serviceWorkers: [],
@@ -30,7 +29,6 @@ export function createBuildContext(
 export function resetBuildContext(ctx: BuildContext | null) {
   if (ctx) {
     ctx.routes.length = 0;
-    ctx.errors.length = 0;
     ctx.layouts.length = 0;
     ctx.entries.length = 0;
     ctx.menus.length = 0;
@@ -66,7 +64,7 @@ function normalizeOptions(rootDir: string, userOpts: PluginOptions | undefined) 
   }
 
   if (typeof opts.trailingSlash !== 'boolean') {
-    opts.trailingSlash = false;
+    opts.trailingSlash = true;
   }
 
   opts.mdx = opts.mdx || {};

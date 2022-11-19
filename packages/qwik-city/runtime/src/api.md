@@ -34,7 +34,7 @@ export interface ContentMenu {
 
 // @alpha (undocumented)
 export interface Cookie {
-    delete(name: string): void;
+    delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
     get(name: string): CookieValue | null;
     has(name: string): boolean;
     headers(): string[];

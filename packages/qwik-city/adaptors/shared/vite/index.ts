@@ -6,9 +6,10 @@ import type {
   StaticGenerateRenderOptions,
   StaticGenerateResult,
 } from '@builder.io/qwik-city/static';
+import type { BuildRoute } from '../../../buildtime/types';
 import fs from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
-import type { BuildRoute } from 'packages/qwik-city/buildtime/types';
+import { postBuild } from './post-build';
 
 export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
   let qwikCityPlugin: QwikCityPlugin | null = null;
@@ -17,6 +18,7 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
   let renderModulePath: string | null = null;
   let qwikCityPlanModulePath: string | null = null;
   let isSsrBuild = false;
+  let format = 'esm';
 
   const plugin: Plugin = {
     name: `vite-plugin-qwik-city-${opts.name}`,
@@ -29,31 +31,54 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
       }
     },
 
-    configResolved({ build, plugins }) {
-      isSsrBuild = !!build.ssr;
+    configResolved(config) {
+      isSsrBuild = !!config.build.ssr;
 
       if (isSsrBuild) {
-        qwikCityPlugin = plugins.find((p) => p.name === 'vite-plugin-qwik-city') as QwikCityPlugin;
+        qwikCityPlugin = config.plugins.find(
+          (p) => p.name === 'vite-plugin-qwik-city'
+        ) as QwikCityPlugin;
         if (!qwikCityPlugin) {
           throw new Error('Missing vite-plugin-qwik-city');
         }
-        qwikVitePlugin = plugins.find((p) => p.name === 'vite-plugin-qwik') as QwikVitePlugin;
+        qwikVitePlugin = config.plugins.find(
+          (p) => p.name === 'vite-plugin-qwik'
+        ) as QwikVitePlugin;
         if (!qwikVitePlugin) {
           throw new Error('Missing vite-plugin-qwik');
         }
-        serverOutDir = build.outDir;
+        serverOutDir = config.build.outDir;
 
-        if (build?.ssr !== true) {
+        if (config.build?.ssr !== true) {
           throw new Error(
             `"build.ssr" must be set to "true" in order to use the "${opts.name}" adaptor.`
           );
         }
 
-        if (!build?.rollupOptions?.input) {
+        if (!config.build?.rollupOptions?.input) {
           throw new Error(
             `"build.rollupOptions.input" must be set in order to use the "${opts.name}" adaptor.`
           );
         }
+
+        if (config.ssr?.format === 'cjs') {
+          format = 'cjs';
+        }
+      }
+    },
+
+    resolveId(id) {
+      if (id === STATIC_PATHS_ID) {
+        return {
+          id: './' + RESOLVED_STATIC_PATHS_ID,
+          external: true,
+        };
+      }
+      if (id === NOT_FOUND_PATHS_ID) {
+        return {
+          id: './' + RESOLVED_NOT_FOUND_PATHS_ID,
+          external: true,
+        };
       }
     },
 
@@ -91,6 +116,11 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
         await fs.promises.mkdir(serverOutDir, { recursive: true });
         await fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode);
 
+        const staticPaths: string[] = opts.staticPaths || [];
+        const routes = qwikCityPlugin.api.getRoutes();
+        const basePathname = qwikCityPlugin.api.getBasePathname();
+        const clientOutDir = qwikVitePlugin.api.getClientOutDir()!;
+
         let staticGenerateResult: StaticGenerateResult | null = null;
         if (opts.staticGenerate && renderModulePath && qwikCityPlanModulePath) {
           let origin = opts.origin;
@@ -107,8 +137,8 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
 
           const staticGenerate = await import('../../../static');
           let generateOpts: StaticGenerateOptions = {
-            basePathname: qwikCityPlugin.api.getBasePathname(),
-            outDir: qwikVitePlugin.api.getClientOutDir()!,
+            basePathname,
+            outDir: clientOutDir,
             origin,
             renderModulePath,
             qwikCityPlanModulePath,
@@ -127,14 +157,29 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
               `Error while runnning SSG from "${opts.name}" adaptor. At least one path failed to render.`
             );
           }
+
+          staticPaths.push(...staticGenerateResult.staticPaths);
         }
 
-        if (typeof opts.generateRoutes === 'function') {
-          await opts.generateRoutes({
+        const { staticPathsCode, notFoundPathsCode } = await postBuild(
+          clientOutDir,
+          basePathname,
+          staticPaths,
+          format,
+          !!opts.cleanStaticGenerated
+        );
+
+        await Promise.all([
+          fs.promises.writeFile(join(serverOutDir, RESOLVED_STATIC_PATHS_ID), staticPathsCode),
+          fs.promises.writeFile(join(serverOutDir, RESOLVED_NOT_FOUND_PATHS_ID), notFoundPathsCode),
+        ]);
+
+        if (typeof opts.generate === 'function') {
+          await opts.generate({
             serverOutDir,
-            clientOutDir: qwikVitePlugin.api.getClientOutDir()!,
-            routes: qwikCityPlugin.api.getRoutes(),
-            staticPaths: staticGenerateResult?.staticPaths ?? [],
+            clientOutDir,
+            basePathname,
+            routes,
             warn: (message) => this.warn(message),
             error: (message) => this.error(message),
           });
@@ -164,14 +209,22 @@ export function getParentDir(startDir: string, dirName: string) {
 interface ViteAdaptorPluginOptions {
   name: string;
   origin: string;
+  staticPaths?: string[];
   staticGenerate: true | StaticGenerateRenderOptions | undefined;
+  cleanStaticGenerated?: boolean;
   config?: (config: UserConfig) => UserConfig;
-  generateRoutes?: (generateOpts: {
+  generate?: (generateOpts: {
     clientOutDir: string;
     serverOutDir: string;
+    basePathname: string;
     routes: BuildRoute[];
-    staticPaths: string[];
     warn: (message: string) => void;
     error: (message: string) => void;
   }) => Promise<void>;
 }
+
+const STATIC_PATHS_ID = '@qwik-city-static-paths';
+const RESOLVED_STATIC_PATHS_ID = `${STATIC_PATHS_ID}.js`;
+
+const NOT_FOUND_PATHS_ID = '@qwik-city-not-found-paths';
+const RESOLVED_NOT_FOUND_PATHS_ID = `${NOT_FOUND_PATHS_ID}.js`;

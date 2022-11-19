@@ -81,6 +81,29 @@ renderSSRSuite('render contentEditable', async () => {
   );
 });
 
+renderSSRSuite('render styles', async () => {
+  await testSSR(
+    <div
+      style={{
+        'padding-top': '10px',
+        paddingBottom: '10px',
+        '--stuff-hey': 'hey',
+        '--stuffCase': 'foo',
+      }}
+    ></div>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <div style="
+          padding-top: 10px;
+          padding-bottom: 10px;
+          --stuff-hey: hey;
+          --stuffCase: foo;
+        "
+      ></div>
+    </html>`
+  );
+});
+
 renderSSRSuite('render fake click handler', async () => {
   const Div = 'div' as any;
   await testSSR(

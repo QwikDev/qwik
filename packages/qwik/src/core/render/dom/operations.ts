@@ -141,6 +141,8 @@ export const _appendHeadStyle = (containerEl: Element, styleTask: StyleAppend) =
     logWarn('document.head is undefined');
   }
   directSetAttribute(style, QStyle, styleTask.styleId);
+  directSetAttribute(style, 'hidden', '');
+
   style.textContent = styleTask.content;
   if (isDoc && headEl) {
     directAppendChild(headEl, style);

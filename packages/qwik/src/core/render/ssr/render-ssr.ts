@@ -368,6 +368,7 @@ const renderSSRComponent = (
         array.push(
           jsx('style', {
             [QStyle]: style.styleId,
+            hidden: '',
             dangerouslySetInnerHTML: style.content,
           })
         );

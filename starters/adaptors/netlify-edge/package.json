@@ -2,7 +2,7 @@
   "description": "Netlify Edge Functions",
   "scripts": {
     "build.server": "vite build -c adaptors/netlify-edge/vite.config.ts",
-    "serve": "netlify deploy"
+    "deploy": "netlify deploy"
   },
   "devDependencies": {
     "netlify-cli": "^12.0.11"

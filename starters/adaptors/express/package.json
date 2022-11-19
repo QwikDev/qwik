@@ -2,7 +2,7 @@
   "description": "Express.js server",
   "scripts": {
     "build.server": "vite build -c adaptors/express/vite.config.ts",
-    "serve": "node server/entry.express"
+    "deploy": "node server/entry.express"
   },
   "devDependencies": {
     "@types/compression": "^1.7.2",

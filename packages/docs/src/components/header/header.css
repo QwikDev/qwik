@@ -1,14 +1,14 @@
 .header-container {
   height: calc(var(--header-height));
   margin-bottom: 6px;
-  background: white;
+  background: var(--bg-color);
   position: relative;
   z-index: 100;
 }
 
 @media (min-width: 1024px) {
   .header-container {
-    background: #ffffff9e;
+    background: var(--bg-header-color);
     backdrop-filter: blur(23px) saturate(4.5);
   }
 }
@@ -29,7 +29,7 @@ header li {
 }
 
 header a.active {
-  color: var(--qwik-dark-blue);
+  color: var(--interactive-text-color);
 }
 
 header a:hover {
@@ -72,7 +72,7 @@ header .close-icon {
     display: block;
     top: var(--header-height);
     width: 100%;
-    background: white;
+    background: var(--bg-color);
     height: auto;
   }
 

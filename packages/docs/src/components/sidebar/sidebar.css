@@ -26,13 +26,16 @@
 .breadcrumbs {
   @apply fixed z-10 w-[100%];
   top: var(--header-height);
-  @apply border-b border-slate-300;
+  @apply border-b;
   @apply px-1;
   @apply flex;
-  @apply text-slate-600 bg-white;
 
   /* large */
   @apply lg:hidden;
+
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  border-color: var(--bg-secondary-color);
 }
 
 .breadcrumbs button {
@@ -83,7 +86,7 @@
 
 .menu h5 {
   @apply px-3 py-1 mb-1 rounded-md whitespace-nowrap;
-  color: var(--qwik-dark-blue);
+  color: var(--interactive-text-color);
 }
 
 .menu ul {
@@ -97,14 +100,19 @@
 }
 
 details li {
-  @apply py-1 pl-3 hover:bg-slate-200;
+  @apply py-1 pl-3 block overflow-hidden text-ellipsis;
 }
+
+details li:hover {
+  background-color: var(--bg-secondary-color);
+}
+
 details li a {
   @apply block overflow-hidden text-ellipsis;
 }
 
 .menu li a {
-  @apply text-slate-900;
+  color: var(--secondary-text-color);
 }
 
 .menu li a.is-active {

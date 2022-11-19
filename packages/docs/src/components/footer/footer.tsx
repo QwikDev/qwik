@@ -1,9 +1,9 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
 import styles from './footer.css?inline';
-import builder from './builder.svg';
 import { TwitterLogo } from '../svgs/twitter-logo';
 import { GithubLogo } from '../svgs/github-logo';
 import { DiscordLogo } from '../svgs/discord-logo';
+import { BuilderLogo } from '../svgs/builder-logo';
 
 export const Footer = component$(() => {
   useStyles$(styles);
@@ -12,15 +12,8 @@ export const Footer = component$(() => {
     <footer class="container mx-auto px-4 md:px-0 mt-4">
       <div class="made-with-love">Made with ❤️ by</div>
       <div class="footer-top">
-        <a href="https://www.builder.io" target="_blank">
-          <img
-            class="builder-logo"
-            width="312"
-            height="67"
-            src={builder}
-            alt="Builder.io logo"
-            loading="lazy"
-          />
+        <a href="https://www.builder.io" target="_blank" class="builder-logo">
+          <BuilderLogo width={160} height={34} />
         </a>
         <ul class="footer-social">
           <li>

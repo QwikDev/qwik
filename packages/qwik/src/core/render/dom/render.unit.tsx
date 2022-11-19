@@ -146,7 +146,7 @@ renderSuite('should render style only for defined attributes', async () => {
   const fixture = new ElementFixture();
   await render(
     fixture.host,
-    <div id="both" style={{color: 'red', display: 'block' }}>
+    <div id="both" style={{ color: 'red', display: 'block' }}>
       <div id="only-color" style={{ display: undefined as unknown as string, color: 'red' }}></div>
       <div id="no-style" style={{ display: undefined as unknown as string }}></div>
     </div>
@@ -166,15 +166,13 @@ renderSuite('should render style css variables correctly', async () => {
   await render(
     fixture.host,
     <div
-    style={{
-      '--stuff-hey': 'hey',
-      '--stuffCase': 'foo',
-    }}/>,
+      style={{
+        '--stuff-hey': 'hey',
+        '--stuffCase': 'foo',
+      }}
+    />
   );
-  await expectRendered(
-    fixture,
-    `<div style="--stuff-hey: hey; --stuffCase: foo"></div>`
-  );
+  await expectRendered(fixture, `<div style="--stuff-hey: hey; --stuffCase: foo"></div>`);
 });
 
 renderSuite('should render children', async () => {

@@ -89,7 +89,8 @@ renderSSRSuite('render styles', async () => {
         paddingBottom: '10px',
         '--stuff-hey': 'hey',
         '--stuffCase': 'foo',
-      }}></div>,
+      }}
+    ></div>,
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <div style="

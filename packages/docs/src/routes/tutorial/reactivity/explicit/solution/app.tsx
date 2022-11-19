@@ -5,14 +5,14 @@ interface AppStore {
   count: number;
   delayCount: number;
 }
-export const App = component$(() => {
+export default component$(() => {
   const store = useStore({
     count: 0,
     delayCount: 0,
   });
   console.log('Render: <App>');
   useWatch$(({ track }) => {
-    track(store, 'count');
+    track(() => store.count);
     const id = setTimeout(() => (store.delayCount = store.count), 2000);
     return () => clearTimeout(id);
   });

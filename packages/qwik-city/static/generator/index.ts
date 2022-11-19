@@ -1,1 +1,0 @@
-export { staticGenerate } from './generate';

@@ -1,5 +1,6 @@
-import { tryGetContext } from '../props/props';
-import { isElement } from './element';
+import type { QwikElement } from '../render/dom/virtual-element';
+import type { QContext } from '../state/context';
+import { isElement, isNode } from './element';
 import { qDev } from './qdev';
 
 const STYLE = qDev
@@ -34,10 +35,14 @@ export const logDebug = (message?: string, ...optionalParams: any[]) => {
   }
 };
 
+export const tryGetContext = (element: QwikElement): QContext | undefined => {
+  return (element as any)['_qc_'];
+};
+
 const printParams = (optionalParams: any[]) => {
   if (qDev) {
     return optionalParams.map((p) => {
-      if (isElement(p)) {
+      if (isNode(p) && isElement(p)) {
         return printElement(p);
       }
       return p;
@@ -53,7 +58,7 @@ const printElement = (el: Element) => {
 
   return {
     tagName: el.tagName,
-    renderQRL: ctx?.$renderQrl$?.getSymbol(),
+    renderQRL: ctx?.$componentQrl$?.getSymbol(),
     element: isServer ? undefined : el,
     ctx: isServer ? undefined : ctx,
   };

@@ -1,13 +1,15 @@
 import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
-/* VITE_IMPORTS */
+import { qwikCity } from '@builder.io/qwik-city/vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig(() => {
   return {
-    /* VITE_CONFIG */
-    plugins: [
-      qwikVite(/* VITE_QWIK */),
-      /* VITE_PLUGINS */
-    ],
+    plugins: [qwikCity(), qwikVite(), tsconfigPaths()],
+    preview: {
+      headers: {
+        'Cache-Control': 'public, max-age=600',
+      },
+    },
   };
 });

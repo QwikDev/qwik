@@ -7,6 +7,8 @@
 // @alpha (undocumented)
 export interface ComponentEntryStrategy {
     // (undocumented)
+    manual?: Record<string, string>;
+    // (undocumented)
     type: 'component';
 }
 
@@ -35,7 +37,7 @@ export interface Diagnostic {
 export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 
 // @alpha (undocumented)
-export type EntryStrategy = InlineEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy | ManualEntryStrategy;
+export type EntryStrategy = InlineEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;
 
 // @alpha (undocumented)
 export interface GlobalInjections {
@@ -43,8 +45,6 @@ export interface GlobalInjections {
     attributes?: {
         [key: string]: string;
     };
-    // (undocumented)
-    children?: string;
     // (undocumented)
     location: 'head' | 'body';
     // (undocumented)
@@ -87,14 +87,6 @@ export interface HookEntryStrategy {
 export interface InlineEntryStrategy {
     // (undocumented)
     type: 'inline';
-}
-
-// @alpha (undocumented)
-export interface ManualEntryStrategy {
-    // (undocumented)
-    entries: string[][];
-    // (undocumented)
-    type: 'manual';
 }
 
 // @alpha (undocumented)
@@ -183,7 +175,7 @@ export interface Path {
 export type QwikBuildMode = 'production' | 'development';
 
 // @alpha (undocumented)
-export type QwikBuildTarget = 'client' | 'ssr' | 'lib';
+export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 
 // @alpha (undocumented)
 export interface QwikBundle {
@@ -192,9 +184,11 @@ export interface QwikBundle {
     // (undocumented)
     imports?: string[];
     // (undocumented)
+    origins?: string[];
+    // (undocumented)
     size: number;
     // (undocumented)
-    symbols: string[];
+    symbols?: string[];
 }
 
 // @alpha (undocumented)
@@ -275,6 +269,30 @@ export interface QwikSymbol {
 export function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;
 
 // @alpha (undocumented)
+export interface QwikVitePlugin {
+    // (undocumented)
+    api: QwikVitePluginApi;
+    // (undocumented)
+    name: 'vite-plugin-qwik';
+}
+
+// @alpha (undocumented)
+export interface QwikVitePluginApi {
+    // (undocumented)
+    getClientOutDir: () => string | null;
+    // (undocumented)
+    getManifest: () => QwikManifest | null;
+    // (undocumented)
+    getOptimizer: () => Optimizer | null;
+    // Warning: (ae-forgotten-export) The symbol "NormalizedQwikPluginOptions" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    getOptions: () => NormalizedQwikPluginOptions;
+    // (undocumented)
+    getRootDir: () => string | null;
+}
+
+// @alpha (undocumented)
 export interface QwikVitePluginOptions {
     // (undocumented)
     client?: {
@@ -295,16 +313,22 @@ export interface QwikVitePluginOptions {
         manifestInput?: QwikManifest;
     };
     transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
+    // (undocumented)
+    vendorRoots?: string[];
 }
 
 // @alpha (undocumented)
 export interface SingleEntryStrategy {
+    // (undocumented)
+    manual?: Record<string, string>;
     // (undocumented)
     type: 'single';
 }
 
 // @alpha (undocumented)
 export interface SmartEntryStrategy {
+    // (undocumented)
+    manual?: Record<string, string>;
     // (undocumented)
     type: 'smart';
 }
@@ -374,13 +398,17 @@ export interface TransformModulesOptions extends TransformOptions {
 // @alpha (undocumented)
 export interface TransformOptions {
     // (undocumented)
-    dev?: boolean;
-    // (undocumented)
     entryStrategy?: EntryStrategy;
     // (undocumented)
     explicitExtensions?: boolean;
     // (undocumented)
     minify?: MinifyMode;
+    // Warning: (ae-forgotten-export) The symbol "EmitMode" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    mode?: EmitMode;
+    // (undocumented)
+    preserveFilenames?: boolean;
     // (undocumented)
     scope?: string;
     // (undocumented)
@@ -388,7 +416,9 @@ export interface TransformOptions {
     // (undocumented)
     srcDir: string;
     // (undocumented)
-    transpile?: boolean;
+    transpileJsx?: boolean;
+    // (undocumented)
+    transpileTs?: boolean;
 }
 
 // @alpha (undocumented)

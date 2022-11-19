@@ -1,94 +1,87 @@
-import { assertDefined } from '../assert/assert';
-import {
-  ComponentStylesPrefixContent,
-  ELEMENT_ID,
-  OnRenderProp,
-  QSlot,
-  RenderEvent,
-} from '../util/markers';
-import { promiseAll, safeCall, then } from '../util/promises';
+import { assertDefined } from '../error/assert';
+import { RenderEvent } from '../util/markers';
+import { safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
-import { logError } from '../util/log';
-import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../util/types';
-import { QContext, tryGetContext } from '../props/props';
+import { isArray, isObject, isString, ValueOrPromise } from '../util/types';
 import type { JSXNode } from './jsx/types/jsx-node';
 import type { RenderContext } from './types';
-import type { ContainerState } from './container';
+import { ContainerState, intToStr } from '../container/container';
 import { fromCamelToKebabCase } from '../util/case';
 import { qError, QError_stringifyClassOrStyle } from '../error/error';
-import { intToStr } from '../object/store';
-import { directSetAttribute } from './fast-calls';
-import type { QwikElement } from './dom/virtual-element';
+import { seal } from '../util/qdev';
+import { EMPTY_ARRAY } from '../util/flyweight';
+import { SkipRender } from './jsx/utils.public';
+import { handleError } from './error-handling';
+import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, QContext } from '../state/context';
 
 export interface ExecuteComponentOutput {
   node: JSXNode | null;
-  rctx: RenderContext;
+  rCtx: RenderContext;
 }
 
 export const executeComponent = (
-  rctx: RenderContext,
-  ctx: QContext
-): ValueOrPromise<ExecuteComponentOutput | void> => {
-  ctx.$dirty$ = false;
-  ctx.$mounted$ = true;
+  rCtx: RenderContext,
+  elCtx: QContext
+): ValueOrPromise<ExecuteComponentOutput> => {
+  elCtx.$flags$ &= ~HOST_FLAG_DIRTY;
+  elCtx.$flags$ |= HOST_FLAG_MOUNTED;
+  elCtx.$slots$ = [];
+  elCtx.li.length = 0;
 
-  const hostElement = ctx.$element$;
-  const onRenderQRL = ctx.$renderQrl$!;
-  assertDefined(onRenderQRL, `render: host element to render must has a $renderQrl$:`, ctx);
+  const hostElement = elCtx.$element$;
+  const componentQRL = elCtx.$componentQrl$;
+  const props = elCtx.$props$;
+  const newCtx = pushRenderContext(rCtx);
+  const invocationContext = newInvokeContext(
+    rCtx.$static$.$locale$,
+    hostElement,
+    undefined,
+    RenderEvent
+  );
+  const waitOn = (invocationContext.$waitOn$ = []);
+  assertDefined(componentQRL, `render: host element to render must has a $renderQrl$:`, elCtx);
+  assertDefined(props, `render: host element to render must has defined props`, elCtx);
 
-  const props = ctx.$props$;
-  assertDefined(props, `render: host element to render must has defined props`, ctx);
-
-  // Component is not dirty any more
-  rctx.$containerState$.$hostsStaging$.delete(hostElement);
-
-  const newCtx = copyRenderContext(rctx);
+  // Set component context
+  newCtx.$cmpCtx$ = elCtx;
+  newCtx.$slotCtx$ = null;
 
   // Invoke render hook
-  const invocatinContext = newInvokeContext(rctx.$doc$, hostElement, undefined, RenderEvent);
-  invocatinContext.$subscriber$ = hostElement;
-  invocatinContext.$renderCtx$ = newCtx;
-  const waitOn = (invocatinContext.$waitOn$ = [] as any[]);
-
-  // Clean current subscription before render
-  rctx.$containerState$.$subsManager$.$clearSub$(hostElement);
+  invocationContext.$subscriber$ = hostElement;
+  invocationContext.$renderCtx$ = rCtx;
 
   // Resolve render function
-  const onRenderFn = onRenderQRL.$invokeFn$(rctx.$containerEl$, invocatinContext);
+  componentQRL.$setContainer$(rCtx.$static$.$containerState$.$containerEl$);
+  const componentFn = componentQRL.getFn(invocationContext);
 
   return safeCall(
-    () => onRenderFn(props) as JSXNode | Function,
+    () => componentFn(props),
     (jsxNode) => {
-      rctx.$hostElements$.add(hostElement);
-      const waitOnPromise = promiseAll(waitOn);
-      return then(waitOnPromise, () => {
-        if (isFunction(jsxNode)) {
-          ctx.$dirty$ = false;
-          jsxNode = jsxNode();
-        } else if (ctx.$dirty$) {
-          return executeComponent(rctx, ctx);
-        }
-
-        let componentCtx = ctx.$component$;
-        if (!componentCtx) {
-          componentCtx = ctx.$component$ = {
-            $ctx$: ctx,
-            $slots$: [],
-            $attachedListeners$: false,
+      if (waitOn.length > 0) {
+        return Promise.all(waitOn).then(() => {
+          if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
+            return executeComponent(rCtx, elCtx);
+          }
+          return {
+            node: jsxNode,
+            rCtx: newCtx,
           };
-        }
-        componentCtx.$attachedListeners$ = false;
-        componentCtx.$slots$ = [];
-        newCtx.$localStack$.push(ctx);
-        newCtx.$currentComponent$ = componentCtx;
-        return {
-          node: jsxNode as JSXNode,
-          rctx: newCtx,
-        };
-      });
+        });
+      }
+      if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
+        return executeComponent(rCtx, elCtx);
+      }
+      return {
+        node: jsxNode,
+        rCtx: newCtx,
+      };
     },
     (err) => {
-      logError(err);
+      handleError(err, hostElement, rCtx);
+      return {
+        node: SkipRender,
+        rCtx: newCtx,
+      };
     }
   );
 };
@@ -98,71 +91,62 @@ export const createRenderContext = (
   containerState: ContainerState
 ): RenderContext => {
   const ctx: RenderContext = {
-    $doc$: doc,
-    $containerState$: containerState,
-    $containerEl$: containerState.$containerEl$,
-    $hostElements$: new Set(),
-    $operations$: [],
-    $postOperations$: [],
-    $roots$: [],
-    $localStack$: [],
-    $currentComponent$: undefined,
-    $perf$: {
-      $visited$: 0,
+    $static$: {
+      $doc$: doc,
+      $locale$: containerState.$envData$.locale,
+      $containerState$: containerState,
+      $hostElements$: new Set(),
+      $operations$: [],
+      $postOperations$: [],
+      $roots$: [],
+      $addSlots$: [],
+      $rmSlots$: [],
     },
+    $cmpCtx$: null,
+    $slotCtx$: null,
   };
+  seal(ctx);
+  seal(ctx.$static$);
   return ctx;
 };
 
-export const copyRenderContext = (ctx: RenderContext): RenderContext => {
+export const pushRenderContext = (ctx: RenderContext): RenderContext => {
   const newCtx: RenderContext = {
-    ...ctx,
-    $localStack$: [...ctx.$localStack$],
+    $static$: ctx.$static$,
+    $cmpCtx$: ctx.$cmpCtx$,
+    $slotCtx$: ctx.$slotCtx$,
   };
   return newCtx;
 };
 
-export const stringifyClass = (obj: any, oldValue: string | undefined): string => {
-  const oldParsed = parseClassAny(oldValue);
-  const newParsed = parseClassAny(obj);
-  return [...oldParsed.filter((s) => s.includes(ComponentStylesPrefixContent)), ...newParsed].join(
-    ' '
-  );
-};
-
-export const joinClasses = (...input: any[]): string => {
-  const set = new Set();
-  input.forEach((value) => {
-    parseClassAny(value).forEach((v) => set.add(v));
-  });
-  return Array.from(set).join(' ');
-};
-
-export const parseClassAny = (obj: any): string[] => {
+export const serializeClass = (obj: any) => {
   if (isString(obj)) {
-    return parseClassList(obj);
+    return obj;
   } else if (isObject(obj)) {
     if (isArray(obj)) {
-      return obj;
+      return obj.join(' ');
     } else {
-      const output: string[] = [];
-      for (const key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-          const value = obj[key];
-          if (value) {
-            output.push(key);
+      let buffer = '';
+      let previous = false;
+      for (const key of Object.keys(obj)) {
+        const value = obj[key];
+        if (value) {
+          if (previous) {
+            buffer += ' ';
           }
+          buffer += key;
+          previous = true;
         }
       }
-      return output;
+      return buffer;
     }
   }
-  return [];
+  return '';
 };
 
 const parseClassListRegex = /\s/;
-const parseClassList = (value: string | undefined | null): string[] =>
-  !value ? [] : value.split(parseClassListRegex);
+export const parseClassList = (value: string | undefined | null): string[] =>
+  !value ? EMPTY_ARRAY : value.split(parseClassListRegex);
 
 export const stringifyStyle = (obj: any): string => {
   if (obj == null) return '';
@@ -175,7 +159,8 @@ export const stringifyStyle = (obj: any): string => {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           const value = obj[key];
           if (value) {
-            chunks.push(fromCamelToKebabCase(key) + ':' + value);
+            const normalizedKey = key.startsWith('--') ? key : fromCamelToKebabCase(key);
+            chunks.push(normalizedKey + ':' + value);
           }
         }
       }
@@ -186,26 +171,22 @@ export const stringifyStyle = (obj: any): string => {
 };
 
 export const getNextIndex = (ctx: RenderContext) => {
-  return intToStr(ctx.$containerState$.$elementIndex$++);
+  return intToStr(ctx.$static$.$containerState$.$elementIndex$++);
 };
 
-export const getQId = (el: QwikElement): string | null => {
-  const ctx = tryGetContext(el);
-  if (ctx) {
-    return ctx.$id$;
-  }
-  return null;
-};
-
-export const setQId = (rctx: RenderContext, ctx: QContext) => {
-  const id = getNextIndex(rctx);
-  ctx.$id$ = id;
-  directSetAttribute(ctx.$element$, ELEMENT_ID, id);
+export const setQId = (rCtx: RenderContext, elCtx: QContext) => {
+  const id = getNextIndex(rCtx);
+  elCtx.$id$ = id;
 };
 
 export const hasStyle = (containerState: ContainerState, styleId: string) => {
   return containerState.$styleIds$.has(styleId);
 };
 
-export const ALLOWS_PROPS = [QSlot];
-export const SKIPS_PROPS = [QSlot, OnRenderProp, 'children'];
+export const jsxToString = (data: any) => {
+  return data == null || typeof data === 'boolean' ? '' : String(data);
+};
+
+export function isAriaAttribute(prop: string): boolean {
+  return prop.startsWith('aria-');
+}

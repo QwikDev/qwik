@@ -1,7 +1,7 @@
-import { assertQrl } from '../import/qrl-class';
-import type { QRL } from '../import/qrl.public';
-import { getContext } from '../props/props';
-import { addQRLListener } from '../props/props-on';
+import { assertQrl } from '../qrl/qrl-class';
+import type { QRL } from '../qrl/qrl.public';
+import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
+import { Listener, normalizeOnProp } from '../state/listeners';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { useInvokeContext } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
@@ -11,35 +11,23 @@ import { Watch, WatchFlagsIsCleanup } from './use-watch';
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useCleanup instead)
 /**
- * A lazy-loadable reference to a component's cleanup hook.
- *
- * Invoked when the component is destroyed (removed from render tree), or paused as part of the
- * SSR serialization.
- *
  * It can be used to release resources, abort network requests, stop timers...
  *
- * ```tsx
- * const Cmp = component$(() => {
- *   useCleanup$(() => {
- *     // Executed after SSR (pause) or when the component gets removed from the DOM.
- *     // Can be used to release resouces, abort network requets, stop timers...
- *     console.log('component is destroyed');
- *   });
- *   return <div>Hello world</div>;
- * });
- * ```
- *
  * @alpha
+ * @deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or
+ * `useClientEffect$()` instead.
  */
 // </docs>
 export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
-  const { get, set, i, ctx } = useSequentialScope<boolean>();
+  const { get, set, i, elCtx } = useSequentialScope<boolean>();
   if (!get) {
     assertQrl(unmountFn);
-    const el = ctx.$hostElement$;
-    const watch = new Watch(WatchFlagsIsCleanup, i, el, unmountFn, undefined);
+    const watch = new Watch(WatchFlagsIsCleanup, i, elCtx.$element$, unmountFn, undefined);
     set(true);
-    getContext(el).$watches$.push(watch);
+    if (!elCtx.$watches$) {
+      elCtx.$watches$ = [];
+    }
+    elCtx.$watches$.push(watch);
   }
 };
 
@@ -47,25 +35,11 @@ export const useCleanupQrl = (unmountFn: QRL<() => void>): void => {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useCleanup instead)
 /**
- * A lazy-loadable reference to a component's cleanup hook.
- *
- * Invoked when the component is destroyed (removed from render tree), or paused as part of the
- * SSR serialization.
- *
  * It can be used to release resources, abort network requests, stop timers...
  *
- * ```tsx
- * const Cmp = component$(() => {
- *   useCleanup$(() => {
- *     // Executed after SSR (pause) or when the component gets removed from the DOM.
- *     // Can be used to release resouces, abort network requets, stop timers...
- *     console.log('component is destroyed');
- *   });
- *   return <div>Hello world</div>;
- * });
- * ```
- *
  * @alpha
+ * @deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or
+ * `useClientEffect$()` instead.
  */
 // </docs>
 export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);
@@ -77,16 +51,15 @@ export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);
  * Register a listener on the current component's host element.
  *
  * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
- * have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better
- * idea.
+ * have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.
  *
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
  *
  * @alpha
  */
 // </docs>
-export const useOn = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
-  _useOn(`on:${event}`, eventQrl);
+export const useOn = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
+  _useOn(`on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnDocument">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -118,8 +91,8 @@ export const useOn = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
  * @alpha
  */
 // </docs>
-export const useOnDocument = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
-  _useOn(`on-document:${event}`, eventQrl);
+export const useOnDocument = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
+  _useOn(`document:on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnWindow">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -152,12 +125,20 @@ export const useOnDocument = (event: string, eventQrl: QRL<(ev: Event) => void>)
  * @alpha
  */
 // </docs>
-export const useOnWindow = (event: string, eventQrl: QRL<(ev: Event) => void>) =>
-  _useOn(`on-window:${event}`, eventQrl);
+export const useOnWindow = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
+  _useOn(`window:on-${event}`, eventQrl);
 
-const _useOn = (eventName: string, eventQrl: QRL<(ev: Event) => void>) => {
+const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: Event) => void>) => {
   const invokeCtx = useInvokeContext();
-  const ctx = getContext(invokeCtx.$hostElement$);
+  const elCtx = getContext(
+    invokeCtx.$hostElement$,
+    invokeCtx.$renderCtx$.$static$.$containerState$
+  );
   assertQrl(eventQrl);
-  addQRLListener(ctx, eventName, eventQrl);
+  if (typeof eventName === 'string') {
+    elCtx.li.push([normalizeOnProp(eventName), eventQrl]);
+  } else {
+    elCtx.li.push(...eventName.map((name) => [normalizeOnProp(name), eventQrl] as Listener));
+  }
+  elCtx.$flags$ |= HOST_FLAG_NEED_ATTACH_LISTENER;
 };

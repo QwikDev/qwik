@@ -76,13 +76,11 @@ export interface ComponentBaseProps {
     // (undocumented)
     'q:slot'?: string;
     // (undocumented)
-    children?: JSXChildren;
-    // (undocumented)
     key?: string | number;
 }
 
 // @public
-export const componentQrl: <PROPS extends {}>(onRenderQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
+export const componentQrl: <PROPS extends {}>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
 
 // @public
 export interface Context<STATE extends object> {
@@ -93,8 +91,7 @@ export interface Context<STATE extends object> {
 // @alpha
 export interface CorePlatform {
     chunkForSymbol: (symbolName: string) => [symbol: string, chunk: string] | undefined;
-    // Warning: (ae-forgotten-export) The symbol "QwikElement" needs to be exported by the entry point index.d.ts
-    importSymbol: (element: QwikElement, url: string | URL, symbol: string) => ValueOrPromise<any>;
+    importSymbol: (containerEl: Element, url: string | URL, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
     nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
@@ -107,7 +104,7 @@ export const createContext: <STATE extends object>(name: string) => Context<STAT
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export interface DOMAttributes<T> extends QwikProps, QwikEvents {
+export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
     // (undocumented)
     children?: JSXChildren;
     // (undocumented)
@@ -115,7 +112,7 @@ export interface DOMAttributes<T> extends QwikProps, QwikEvents {
 }
 
 // @public (undocumented)
-export type EagernessOptions = 'visible' | 'load';
+export type EagernessOptions = 'visible' | 'load' | 'idle';
 
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
@@ -123,13 +120,18 @@ export const Fragment: FunctionComponent<{
 }>;
 
 // @public (undocumented)
-export interface FunctionComponent<P = {}> {
+export interface FunctionComponent<P = Record<string, any>> {
     // (undocumented)
-    (props: P, key?: string): JSXNode | null;
+    (props: P, key: string | null): JSXNode | null;
 }
 
+// Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export function getLocale(defaultLocale?: string): string;
+
 // @alpha
-export const getPlatform: (docOrNode: Document | QwikElement) => CorePlatform;
+export const getPlatform: () => CorePlatform;
 
 // @public (undocumented)
 export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props: PROPS | null, ...children: any[]): JSXNode<TYPE>;
@@ -236,7 +238,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
     spellCheck?: Booleanish | undefined;
     // (undocumented)
-    style?: Record<string, string | number> | string | undefined;
+    style?: Record<string, string | number | undefined> | string | undefined;
     // (undocumented)
     tabIndex?: number | undefined;
     // (undocumented)
@@ -254,27 +256,46 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
 // @internal
 export const _hW: () => void;
 
+// @internal (undocumented)
+export const _IMMUTABLE: unique symbol;
+
 // @alpha
 export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET;
 
-// @alpha (undocumented)
+// Warning: (ae-internal-missing-underscore) The name "inlinedQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export const inlinedQrl: <T>(symbol: T, symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
 
+// Warning: (ae-forgotten-export) The symbol "QRLDev" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "inlinedQrlDEV" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
+
 // @public (undocumented)
-const jsx: <T extends string | FunctionComponent<PROPS>, PROPS>(type: T, props: PROPS, key?: string | number | null) => JSXNode<T>;
+const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key?: string | number | null) => JSXNode<T>;
 export { jsx }
-export { jsx as jsxDEV }
 export { jsx as jsxs }
 
 // @public (undocumented)
-export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | JSXNode<any>;
+export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | JSXNode;
+
+// Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>, key: string | number | null | undefined, isStatic: boolean, opts: JsxDevOpts, ctx: any) => JSXNode<T>;
 
 // @public (undocumented)
-export interface JSXNode<T = any> {
+export interface JSXNode<T = string | FunctionComponent> {
+    // Warning: (ae-forgotten-export) The symbol "DevJSX" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    key: string | number | null;
+    dev?: DevJSX;
     // (undocumented)
-    props: Record<string, any>;
+    key: string | null;
+    // (undocumented)
+    props: T extends FunctionComponent<infer B> ? B : Record<string, any>;
     // (undocumented)
     type: T;
 }
@@ -285,16 +306,10 @@ export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLEl
 // @public (undocumented)
 export type MountFn<T> = () => ValueOrPromise<T>;
 
-// @alpha
-export const mutable: <T>(v: T) => MutableWrapper<T>;
+// @alpha @deprecated (undocumented)
+export const mutable: <T>(v: T) => T;
 
-// @alpha
-export interface MutableWrapper<T> {
-    [MUTABLE]: true;
-    v: T;
-}
-
-// @public (undocumented)
+// @public
 export type NoSerialize<T> = (T & {
     __no_serialize__: true;
 }) | undefined;
@@ -303,13 +318,14 @@ export type NoSerialize<T> = (T & {
 export const noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 
 // @public (undocumented)
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null | (() => JSXNode<any>);
+export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
 
 // Warning: (ae-forgotten-export) The symbol "QContext" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "GetObjID" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _pauseFromContexts: (elements: QContext[], containerState: ContainerState) => Promise<SnapshotResult>;
+export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState, fallbackGetObjId?: GetObjID) => Promise<SnapshotResult>;
 
 // @public (undocumented)
 export interface PropFnInterface<ARGS extends any[], RET> {
@@ -320,16 +336,14 @@ export interface PropFnInterface<ARGS extends any[], RET> {
 // @public (undocumented)
 export type PropFunction<T extends Function> = T extends (...args: infer ARGS) => infer RET ? PropFnInterface<ARGS, RET> : never;
 
-// @public (undocumented)
-export type Props<T extends {} = {}> = Record<string, any> & T;
-
 // @public
 export type PropsOf<COMP extends Component<any>> = COMP extends Component<infer PROPS> ? NonNullable<PROPS> : never;
 
-// Warning: (ae-forgotten-export) The symbol "MutableProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "TransformProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ComponentChildren" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
-export type PublicProps<PROPS extends {}> = MutableProps<PROPS> & ComponentBaseProps;
+// @public
+export type PublicProps<PROPS extends {}> = TransformProps<PROPS> & ComponentBaseProps & ComponentChildren<PROPS>;
 
 // @public
 export interface QRL<TYPE = any> {
@@ -340,20 +354,25 @@ export interface QRL<TYPE = any> {
     getHash(): string;
     // (undocumented)
     getSymbol(): string;
-    resolve(el?: QwikElement): Promise<TYPE>;
+    resolve(): Promise<TYPE>;
 }
 
 // @alpha
-export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[]) => QRL<T>;
+export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[], stackOffset?: number) => QRL<T>;
+
+// Warning: (ae-internal-missing-underscore) The name "qrlDEV" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public (undocumented)
 export interface QwikDOMAttributes extends DOMAttributes<any> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "IntrinsicElements" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "IntrinsicHTMLElements" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export interface QwikIntrinsicElements extends IntrinsicElements {
+export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
     // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLAttributes" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "QwikCustomHTMLElement" needs to be exported by the entry point index.d.ts
     //
@@ -385,14 +404,19 @@ export namespace QwikJSX {
     }
 }
 
-// @public (undocumented)
-export interface Ref<T> {
+// @alpha
+export interface Ref<T = Element> {
     // (undocumented)
     current: T | undefined;
 }
 
 // @alpha
-export const render: (parent: Element | Document, jsxNode: JSXNode<unknown> | FunctionComponent<any>, opts?: RenderOptions) => Promise<void>;
+export const render: (parent: Element | Document, jsxNode: JSXNode | FunctionComponent<any>, opts?: RenderOptions) => Promise<void>;
+
+// @alpha (undocumented)
+export const RenderOnce: FunctionComponent<{
+    children?: any;
+}>;
 
 // @alpha (undocumented)
 export interface RenderOptions {
@@ -401,16 +425,16 @@ export interface RenderOptions {
 }
 
 // @alpha (undocumented)
-export const renderSSR: (doc: Document, node: JSXNode, opts: RenderSSROptions) => Promise<void>;
+export const renderSSR: (node: JSXNode, opts: RenderSSROptions) => Promise<void>;
 
 // @alpha (undocumented)
 export interface RenderSSROptions {
     // (undocumented)
     base?: string;
     // (undocumented)
-    beforeClose?: (contexts: QContext[], containerState: ContainerState) => Promise<JSXNode>;
+    beforeClose?: (contexts: QContext[], containerState: ContainerState, containsDynamic: boolean) => Promise<JSXNode>;
     // (undocumented)
-    beforeContent?: JSXNode[];
+    beforeContent?: JSXNode<string>[];
     // (undocumented)
     containerAttributes: Record<string, string>;
     // (undocumented)
@@ -423,11 +447,13 @@ export interface RenderSSROptions {
     url?: string;
 }
 
-// @public (undocumented)
+// @public
 export const Resource: <T>(props: ResourceProps<T>) => JSXNode;
 
 // @public (undocumented)
 export interface ResourceCtx<T> {
+    // (undocumented)
+    cache(policyOrMilliseconds: number | 'immutable'): void;
     // (undocumented)
     cleanup(callback: () => void): void;
     // (undocumented)
@@ -439,26 +465,17 @@ export interface ResourceCtx<T> {
 // @public (undocumented)
 export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
 
-// @public (undocumented)
+// @public
 export interface ResourceOptions {
-    // (undocumented)
     timeout?: number;
 }
 
 // @public (undocumented)
 export interface ResourcePending<T> {
     // (undocumented)
-    __brand: 'resource';
-    // (undocumented)
-    error: undefined;
+    loading: boolean;
     // (undocumented)
     promise: Promise<T>;
-    // (undocumented)
-    resolved: undefined;
-    // (undocumented)
-    state: 'pending';
-    // (undocumented)
-    timeout?: number;
 }
 
 // @public (undocumented)
@@ -476,45 +493,35 @@ export interface ResourceProps<T> {
 // @public (undocumented)
 export interface ResourceRejected<T> {
     // (undocumented)
-    __brand: 'resource';
-    // (undocumented)
-    error: any;
+    loading: boolean;
     // (undocumented)
     promise: Promise<T>;
-    // (undocumented)
-    resolved: undefined;
-    // (undocumented)
-    state: 'rejected';
-    // (undocumented)
-    timeout?: number;
 }
 
 // @public (undocumented)
 export interface ResourceResolved<T> {
     // (undocumented)
-    __brand: 'resource';
-    // (undocumented)
-    error: undefined;
+    loading: boolean;
     // (undocumented)
     promise: Promise<T>;
-    // (undocumented)
-    resolved: T;
-    // (undocumented)
-    state: 'resolved';
-    // (undocumented)
-    timeout?: number;
 }
 
 // @public (undocumented)
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
 // @alpha
-export const setPlatform: (doc: Document, plt: CorePlatform) => CorePlatform;
+export const setPlatform: (plt: CorePlatform) => CorePlatform;
 
 // @alpha (undocumented)
-export const SkipRerender: FunctionComponent<{}>;
+export interface Signal<T = any> {
+    // (undocumented)
+    value: T;
+}
 
-// @public (undocumented)
+// @alpha (undocumented)
+export const SkipRender: JSXNode;
+
+// @public
 export const Slot: FunctionComponent<{
     name?: string;
 }>;
@@ -539,8 +546,6 @@ export interface SnapshotMetaValue {
     // (undocumented)
     h?: string;
     // (undocumented)
-    r?: string;
-    // (undocumented)
     s?: string;
     // (undocumented)
     w?: string;
@@ -549,13 +554,15 @@ export interface SnapshotMetaValue {
 // @alpha (undocumented)
 export interface SnapshotResult {
     // (undocumented)
-    listeners: SnapshotListener[];
-    // (undocumented)
     mode: 'render' | 'listeners' | 'static';
     // (undocumented)
     objs: any[];
     // (undocumented)
-    pendingContent: Promise<string>[];
+    qrls: QRL[];
+    // Warning: (ae-forgotten-export) The symbol "ResourceReturnInternal" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    resources: ResourceReturnInternal<any>[];
     // (undocumented)
     state: SnapshotState;
 }
@@ -567,6 +574,8 @@ export interface SnapshotState {
     // (undocumented)
     objs: any[];
     // (undocumented)
+    refs: Record<string, string>;
+    // (undocumented)
     subs: any[];
 }
 
@@ -576,9 +585,32 @@ export const SSRComment: FunctionComponent<{
 }>;
 
 // @alpha (undocumented)
+export const SSRHint: FunctionComponent<SSRHintProps>;
+
+// @alpha (undocumented)
+export interface SSRHintProps {
+    // (undocumented)
+    dynamic?: boolean;
+}
+
+// @alpha (undocumented)
+export const SSRRaw: FunctionComponent<{
+    data: string;
+}>;
+
+// @alpha (undocumented)
+export const SSRStream: FunctionComponent<SSRStreamProps>;
+
+// @alpha (undocumented)
 export const SSRStreamBlock: FunctionComponent<{
     children?: any;
 }>;
+
+// @alpha (undocumented)
+export interface SSRStreamProps {
+    // (undocumented)
+    children: AsyncGenerator<JSXChildren, void, any> | ((stream: StreamWriter) => Promise<void>) | (() => AsyncGenerator<JSXChildren, void, any>);
+}
 
 // @alpha (undocumented)
 export type StreamWriter = {
@@ -587,16 +619,16 @@ export type StreamWriter = {
 
 // @public
 export interface Tracker {
-    // (undocumented)
+    <T>(ctx: () => T): T;
     <T extends {}>(obj: T): T;
-    // (undocumented)
+    // @deprecated (undocumented)
     <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
 }
 
-// @alpha
+// @alpha @deprecated
 export const useCleanup$: (first: () => void) => void;
 
-// @alpha
+// @alpha @deprecated
 export const useCleanupQrl: (unmountFn: QRL<() => void>) => void;
 
 // @public
@@ -605,8 +637,10 @@ export const useClientEffect$: (first: WatchFn, opts?: UseEffectOptions | undefi
 // @public
 export const useClientEffectQrl: (qrl: QRL<WatchFn>, opts?: UseEffectOptions) => void;
 
+// Warning: (ae-forgotten-export) The symbol "UseContext" needs to be exported by the entry point index.d.ts
+//
 // @public
-export const useContext: <STATE extends object>(context: Context<STATE>) => STATE;
+export const useContext: UseContext;
 
 // @public
 export const useContextProvider: <STATE extends object>(context: Context<STATE>, newValue: STATE) => void;
@@ -622,6 +656,11 @@ export function useEnvData<T>(key: string): T | undefined;
 // @alpha (undocumented)
 export function useEnvData<T, B = T>(key: string, defaultValue: B): T | B;
 
+// Warning: (ae-forgotten-export) The symbol "ErrorBoundaryStore" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
+
 // Warning: (ae-internal-missing-underscore) The name "useLexicalScope" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
@@ -633,25 +672,22 @@ export const useMount$: <T>(first: MountFn<T>) => void;
 // @public
 export const useMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
 
-// @internal (undocumented)
-export const _useMutableProps: (element: Element, mutable: boolean) => void;
+// @alpha
+export const useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
 
 // @alpha
-export const useOn: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
 
 // @alpha
-export const useOnDocument: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
 
-// @alpha
-export const useOnWindow: (event: string, eventQrl: QRL<(ev: Event) => void>) => void;
-
-// @public
+// @alpha @deprecated
 export const useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;
 
-// @public (undocumented)
+// @public
 export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;
 
-// @public (undocumented)
+// @public
 export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) => ResourceReturn<T>;
 
 // @public
@@ -659,6 +695,17 @@ export const useServerMount$: <T>(first: MountFn<T>) => void;
 
 // @public
 export const useServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
+
+// @alpha (undocumented)
+export interface UseSignal {
+    // (undocumented)
+    <T>(): Signal<T | undefined>;
+    // (undocumented)
+    <T>(value: T | (() => T)): Signal<T>;
+}
+
+// @alpha (undocumented)
+export const useSignal: UseSignal;
 
 // @public
 export const useStore: <STATE extends object>(initialState: STATE | (() => STATE), opts?: UseStoreOptions) => STATE;
@@ -678,10 +725,16 @@ export const useStyles$: (first: string) => void;
 export const useStylesQrl: (styles: QRL<string>) => void;
 
 // @alpha
-export const useStylesScoped$: (first: string) => void;
+export const useStylesScoped$: (first: string) => UseStylesScoped;
+
+// @alpha (undocumented)
+export interface UseStylesScoped {
+    // (undocumented)
+    scopeId: string;
+}
 
 // @alpha
-export const useStylesScopedQrl: (styles: QRL<string>) => void;
+export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 
 // @alpha @deprecated (undocumented)
 export const useUserContext: typeof useEnvData;
@@ -713,6 +766,14 @@ export interface WatchCtx {
 
 // @public (undocumented)
 export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
+
+// Warning: (ae-internal-missing-underscore) The name "withLocale" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export function withLocale<T>(locale: string, fn: () => T): T;
+
+// @internal (undocumented)
+export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
 
 // (No @packageDocumentation comment for this package)
 

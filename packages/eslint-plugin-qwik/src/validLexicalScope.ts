@@ -37,11 +37,14 @@ export const validLexicalScope = createRule({
         },
       },
     ],
+
     messages: {
       referencesOutside:
         'Identifier ("{{varName}}") can not be captured inside the scope ({{dollarName}}) because {{reason}}. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
       unvalidJsxDollar:
         'JSX attributes that end with $ can only take an inlined arrow function of a QRL identifier. Make sure the value is created using $()',
+      mutableIdentifier:
+        'The value of the identifier ("{{varName}}") can not be changed once it is captured the scope ({{dollarName}}). Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
     },
   },
   create(context) {
@@ -83,8 +86,12 @@ export const validLexicalScope = createRule({
             if (scopeType === 'global') {
               return;
             }
-            const tsNode = esTreeNodeToTSNodeMap.get(ref.identifier);
             if (scopeType === 'module') {
+              const identifier =
+                declaredVariable.identifiers.length === 1
+                  ? declaredVariable.identifiers[0]
+                  : ref.identifier;
+              const tsNode = esTreeNodeToTSNodeMap.get(identifier);
               const s = typeChecker.getSymbolAtLocation(tsNode);
               if (s && exports.includes(s)) {
                 return;
@@ -101,6 +108,8 @@ export const validLexicalScope = createRule({
               });
               return;
             }
+            const identifier = ref.identifier;
+            const tsNode = esTreeNodeToTSNodeMap.get(identifier);
             let ownerDeclared: Scope | null = declaredScope;
             while (ownerDeclared) {
               if (relevantScopes.has(ownerDeclared)) {
@@ -110,6 +119,21 @@ export const validLexicalScope = createRule({
             }
 
             if (ownerDeclared !== dollarScope) {
+              if (
+                identifier.parent &&
+                identifier.parent.type === AST_NODE_TYPES.AssignmentExpression
+              ) {
+                if (identifier.parent.left === identifier) {
+                  context.report({
+                    messageId: 'mutableIdentifier',
+                    node: ref.identifier,
+                    data: {
+                      varName: ref.identifier.name,
+                      dollarName: dollarIdentifier,
+                    },
+                  });
+                }
+              }
               const reason = canCapture(typeChecker, tsNode, ref.identifier, opts);
               if (reason) {
                 context.report({
@@ -155,7 +179,6 @@ export const validLexicalScope = createRule({
             if (scope) {
               relevantScopes.set(scope, name);
             } else if (firstArg.expression.type === AST_NODE_TYPES.Identifier) {
-              console.log(firstArg.expression);
               const tsNode = esTreeNodeToTSNodeMap.get(firstArg.expression);
               const type = typeChecker.getTypeAtLocation(tsNode);
               if (!isTypeQRL(type)) {
@@ -170,7 +193,17 @@ export const validLexicalScope = createRule({
       },
       Program(node) {
         const module = esTreeNodeToTSNodeMap.get(node);
-        exports = typeChecker.getExportsOfModule(typeChecker.getSymbolAtLocation(module)!);
+        const moduleSymbol = typeChecker.getSymbolAtLocation(module);
+
+        /**
+         * Despite what the type signature says,
+         * {@link typeChecker.getSymbolAtLocation} can return undefined for
+         * empty modules. This happens, for example, when creating a brand new
+         * file.
+         */
+        if (moduleSymbol) {
+          exports = typeChecker.getExportsOfModule(moduleSymbol);
+        }
       },
       'Program:exit'() {
         walkScope(scopeManager.globalScope! as any);
@@ -186,7 +219,8 @@ function canCapture(
   opts: DetectorOptions
 ) {
   const type = checker.getTypeAtLocation(node);
-  return isTypeCapturable(checker, type, node, ident, opts);
+  const seen = new Set<any>();
+  return isTypeCapturable(checker, type, node, ident, opts, seen);
 }
 
 interface TypeReason {
@@ -212,9 +246,10 @@ function isTypeCapturable(
   type: ts.Type,
   tsnode: ts.Node,
   ident: Identifier,
-  opts: DetectorOptions
+  opts: DetectorOptions,
+  seen: Set<any>
 ): TypeReason | undefined {
-  const result = _isTypeCapturable(checker, type, tsnode, opts, 0);
+  const result = _isTypeCapturable(checker, type, tsnode, opts, 0, seen);
   if (result) {
     const loc = result.location;
     if (loc) {
@@ -229,9 +264,14 @@ function _isTypeCapturable(
   type: ts.Type,
   node: ts.Node,
   opts: DetectorOptions,
-  level: number
+  level: number,
+  seen: Set<any>
 ): TypeReason | undefined {
   // NoSerialize is ok
+  if (seen.has(type)) {
+    return;
+  }
+  seen.add(type);
   if (type.getProperty('__no_serialize__')) {
     return;
   }
@@ -294,7 +334,7 @@ function _isTypeCapturable(
 
   if (type.isUnion()) {
     for (const subType of type.types) {
-      const result = _isTypeCapturable(checker, subType, node, opts, level + 1);
+      const result = _isTypeCapturable(checker, subType, node, opts, level + 1, seen);
       if (result) {
         return result;
       }
@@ -303,12 +343,23 @@ function _isTypeCapturable(
   }
   const isObject = (type.flags & ts.TypeFlags.Object) !== 0;
   if (isObject) {
-    const symbolName = type.symbol.name;
-
     const arrayType = getElementTypeOfArrayType(type, checker);
     if (arrayType) {
-      return _isTypeCapturable(checker, arrayType, node, opts, level + 1);
+      return _isTypeCapturable(checker, arrayType, node, opts, level + 1, seen);
     }
+
+    const tupleTypes = getTypesOfTupleType(type, checker);
+    if (tupleTypes) {
+      for (const subType of tupleTypes) {
+        const result = _isTypeCapturable(checker, subType, node, opts, level + 1, seen);
+        if (result) {
+          return result;
+        }
+      }
+      return;
+    }
+
+    const symbolName = type.symbol.name;
 
     // Element is ok
     if (type.getProperty('nextElementSibling')) {
@@ -359,7 +410,7 @@ function _isTypeCapturable(
     }
 
     for (const symbol of type.getProperties()) {
-      const result = isSymbolCapturable(checker, symbol, node, opts, level + 1);
+      const result = isSymbolCapturable(checker, symbol, node, opts, level + 1, seen);
       if (result) {
         const loc = result.location;
         result.location = `${symbol.name}${loc ? `.${loc}` : ''}`;
@@ -375,14 +426,24 @@ function isSymbolCapturable(
   symbol: ts.Symbol,
   node: ts.Node,
   opts: DetectorOptions,
-  level: number
+  level: number,
+  seen: Set<any>
 ) {
   const type = checker.getTypeOfSymbolAtLocation(symbol, node);
-  return _isTypeCapturable(checker, type, node, opts, level);
+  return _isTypeCapturable(checker, type, node, opts, level, seen);
 }
 
 function getElementTypeOfArrayType(type: ts.Type, checker: ts.TypeChecker): ts.Type | undefined {
   return (checker as any).getElementTypeOfArrayType(type);
+}
+
+function getTypesOfTupleType(
+  type: ts.Type,
+  checker: ts.TypeChecker
+): readonly ts.Type[] | undefined {
+  return (checker as any).isTupleType(type)
+    ? checker.getTypeArguments(type as ts.TupleType)
+    : undefined;
 }
 
 function isTypeQRL(type: ts.Type): boolean {

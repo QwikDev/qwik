@@ -6,42 +6,51 @@ import type {
   ResponseContext,
   RouteModule,
   RouteParams,
-} from '../../runtime/src/library/types';
+} from '../../runtime/src/types';
 import type { QwikCityRequestContext, UserResponseContext } from './types';
 import { HttpStatus } from './http-status-codes';
 import { isRedirectStatus, RedirectResponse } from './redirect-handler';
 import { ErrorResponse } from './error-handler';
+import { Cookie } from './cookie';
 
 export async function loadUserResponse(
   requestCtx: QwikCityRequestContext,
   params: RouteParams,
   routeModules: RouteModule[],
-  platform: Record<string, any>,
   trailingSlash?: boolean,
-  base: string = '/'
+  basePathname: string = '/'
 ) {
-  const { request, url } = requestCtx;
+  if (routeModules.length === 0) {
+    throw new ErrorResponse(HttpStatus.NotFound, `Not Found`);
+  }
+
+  const { request, url, platform } = requestCtx;
   const { pathname } = url;
+  const isPageModule = isLastModulePageRoute(routeModules);
+  const isPageDataRequest = isPageModule && request.headers.get('Accept') === 'application/json';
+  const type = isPageDataRequest ? 'pagedata' : isPageModule ? 'pagehtml' : 'endpoint';
+
   const userResponse: UserResponseContext = {
-    type: 'endpoint',
+    type,
     url,
     params,
     status: HttpStatus.Ok,
     headers: createHeaders(),
     resolvedBody: undefined,
     pendingBody: undefined,
+    cookie: new Cookie(request.headers.get('cookie')),
+    aborted: false,
   };
 
   let hasRequestMethodHandler = false;
-  const hasPageRenderer = isLastModulePageRoute(routeModules);
 
-  if (hasPageRenderer && pathname !== base) {
+  if (isPageModule && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (trailingSlash) {
       // must have a trailing slash
       if (!pathname.endsWith('/')) {
         // add slash to existing pathname
-        throw new RedirectResponse(pathname + '/' + url.search, HttpStatus.TemporaryRedirect);
+        throw new RedirectResponse(pathname + '/' + url.search, HttpStatus.Found);
       }
     } else {
       // should not have a trailing slash
@@ -49,20 +58,20 @@ export async function loadUserResponse(
         // remove slash from existing pathname
         throw new RedirectResponse(
           pathname.slice(0, pathname.length - 1) + url.search,
-          HttpStatus.TemporaryRedirect
+          HttpStatus.Found
         );
       }
     }
   }
 
-  let middlewareIndex = -1;
+  let routeModuleIndex = -1;
 
   const abort = () => {
-    middlewareIndex = ABORT_INDEX;
+    routeModuleIndex = ABORT_INDEX;
   };
 
   const redirect = (url: string, status?: number) => {
-    return new RedirectResponse(url, status, userResponse.headers);
+    return new RedirectResponse(url, status, userResponse.headers, userResponse.cookie);
   };
 
   const error = (status: number, message?: string) => {
@@ -70,10 +79,10 @@ export async function loadUserResponse(
   };
 
   const next = async () => {
-    middlewareIndex++;
+    routeModuleIndex++;
 
-    while (middlewareIndex < routeModules.length) {
-      const endpointModule = routeModules[middlewareIndex];
+    while (routeModuleIndex < routeModules.length) {
+      const endpointModule = routeModules[routeModuleIndex];
 
       let reqHandler: RequestHandler | undefined = undefined;
 
@@ -123,6 +132,12 @@ export async function loadUserResponse(
           get headers() {
             return userResponse.headers;
           },
+          get locale() {
+            return requestCtx.locale;
+          },
+          set locale(locale) {
+            requestCtx.locale = locale;
+          },
           redirect,
           error,
         };
@@ -134,6 +149,7 @@ export async function loadUserResponse(
           params: { ...params },
           response,
           platform,
+          cookie: userResponse.cookie,
           next,
           abort,
         };
@@ -164,40 +180,34 @@ export async function loadUserResponse(
         }
       }
 
-      middlewareIndex++;
+      routeModuleIndex++;
     }
   };
 
   await next();
 
-  if (isRedirectStatus(userResponse.status) && userResponse.headers.has('Location')) {
+  userResponse.aborted = routeModuleIndex >= ABORT_INDEX;
+
+  if (
+    !isPageDataRequest &&
+    isRedirectStatus(userResponse.status) &&
+    userResponse.headers.has('Location')
+  ) {
     // user must have manually set redirect instead of throw response.redirect()
     // never render the page if the user manually set the status to be a redirect
     throw new RedirectResponse(
       userResponse.headers.get('Location')!,
       userResponse.status,
-      userResponse.headers
+      userResponse.headers,
+      userResponse.cookie
     );
   }
 
-  if (request.headers.get('Accept')?.includes('text/html')) {
-    // this is a page module
-    // user can force the respond to be an endpoint with Accept request header
-    // response should be a page
-    userResponse.type = 'page';
-
-    // TODO: need to figure out work with HMR
-    // if (!hasPageRenderer) {
-    //   throw new ErrorResponse(HttpStatus.NotFound, 'Not Found')
-    // }
-  } else {
-    // this is only an endpoint, and not a page module
-    if (!hasRequestMethodHandler) {
-      // didn't find any handlers
-      throw new ErrorResponse(HttpStatus.MethodNotAllowed, `Method Not Allowed`);
-    }
+  // this is only an endpoint, and not a page module
+  if (type === 'endpoint' && !hasRequestMethodHandler) {
+    // didn't find any handlers
+    throw new ErrorResponse(HttpStatus.MethodNotAllowed, `Method Not Allowed`);
   }
-
   return userResponse;
 }
 
@@ -223,5 +233,27 @@ function isLastModulePageRoute(routeModules: RouteModule[]) {
   const lastRouteModule = routeModules[routeModules.length - 1];
   return lastRouteModule && typeof (lastRouteModule as PageModule).default === 'function';
 }
+
+export function updateRequestCtx(
+  requestCtx: QwikCityRequestContext,
+  trailingSlash: boolean | undefined
+) {
+  let pathname = requestCtx.url.pathname;
+
+  if (pathname.endsWith(QDATA_JSON)) {
+    requestCtx.request.headers.set('Accept', 'application/json');
+
+    const trimEnd = pathname.length - QDATA_JSON_LEN + (trailingSlash ? 1 : 0);
+
+    pathname = pathname.slice(0, trimEnd);
+    if (pathname === '') {
+      pathname = '/';
+    }
+    requestCtx.url.pathname = pathname;
+  }
+}
+
+const QDATA_JSON = '/q-data.json';
+const QDATA_JSON_LEN = QDATA_JSON.length;
 
 const ABORT_INDEX = 999999999;

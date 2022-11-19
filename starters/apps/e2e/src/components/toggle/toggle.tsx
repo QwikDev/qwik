@@ -7,7 +7,6 @@ import {
   useContextProvider,
   useContext,
   useMount$,
-  mutable,
   useWatch$,
 } from '@builder.io/qwik';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
@@ -74,7 +73,7 @@ export const Logs0 = component$((props: Record<string, any>) => {
 export const Logs1 = component$((props: Record<string, any>) => {
   return (
     <div>
-      <Logs2 message={mutable(props.store.logs)} />
+      <Logs2 message={props.store.logs} />
     </div>
   );
 });
@@ -139,8 +138,7 @@ export const ToggleB = component$((props: { root: { logs: string } }) => {
   });
 
   useWatch$(({ track }) => {
-    track(rootState, 'count');
-    state.copyCount = rootState.count;
+    state.copyCount = track(() => rootState.count);
   });
 
   useMount$(() => {

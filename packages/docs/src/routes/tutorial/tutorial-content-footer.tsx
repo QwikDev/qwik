@@ -6,7 +6,7 @@ export const TutorialContentFooter = component$(({ store }: TutorialContentFoote
     <div class="content-footer">
       <div>
         <button
-          preventDefault:click
+          preventdefault:click
           class="show-me"
           onClick$={() => {
             store.files = ensureDefaultFiles(store.app.solutionInputs);

@@ -1,6 +1,6 @@
-import { readdir, readFile, stat, writeFile } from 'fs';
-import { get } from 'https';
-import { join } from 'path';
+import { readdir, readFile, stat, writeFile } from 'node:fs';
+import { get } from 'node:https';
+import { join } from 'node:path';
 
 export async function scanFiles(
   dir: string,

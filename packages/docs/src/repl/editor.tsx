@@ -3,13 +3,21 @@ import {
   NoSerialize,
   PropFunction,
   useClientEffect$,
+  useContext,
   useRef,
   useStore,
   useWatch$,
 } from '@builder.io/qwik';
 import type { IStandaloneCodeEditor } from './monaco';
-import { addQwikLibs, ICodeEditorViewState, initMonacoEditor, updateMonacoEditor } from './monaco';
+import {
+  addQwikLibs,
+  getEditorTheme,
+  ICodeEditorViewState,
+  initMonacoEditor,
+  updateMonacoEditor,
+} from './monaco';
 import type { ReplAppInput, ReplStore } from './types';
+import { GlobalStore } from '../context';
 
 export const Editor = component$((props: EditorProps) => {
   const hostRef = useRef();
@@ -20,6 +28,8 @@ export const Editor = component$((props: EditorProps) => {
     onChangeSubscription: undefined,
     viewStates: {},
   });
+
+  const globalStore = useContext(GlobalStore);
 
   useClientEffect$(async () => {
     if (!store.editor) {
@@ -32,9 +42,18 @@ export const Editor = component$((props: EditorProps) => {
     };
   });
 
+  useClientEffect$(({ track }) => {
+    track(globalStore, 'theme');
+    if (globalStore.theme !== 'auto') {
+      store.editor?.updateOptions({
+        theme: getEditorTheme(globalStore.theme === 'dark'),
+      });
+    }
+  });
+
   useWatch$(async ({ track }) => {
-    track(props.input, 'version');
-    track(store, 'editor');
+    track(() => props.input.version);
+    track(() => store.editor);
 
     if (props.input.version && store.editor) {
       await addQwikLibs(props.input.version);
@@ -42,10 +61,10 @@ export const Editor = component$((props: EditorProps) => {
   });
 
   useWatch$(async ({ track }) => {
-    track(store, 'editor');
-    track(props.input, 'version');
-    track(props.input, 'files');
-    track(props.store, 'selectedInputPath');
+    track(() => store.editor);
+    track(() => props.input.version);
+    track(() => props.input.files);
+    track(() => props.store.selectedInputPath);
 
     if (props.input.version && store.editor) {
       await updateMonacoEditor(props, store);

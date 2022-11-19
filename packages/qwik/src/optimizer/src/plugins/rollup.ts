@@ -3,7 +3,6 @@ import type { OutputOptions, Plugin as RollupPlugin, RollupError } from 'rollup'
 import type {
   Diagnostic,
   EntryStrategy,
-  Optimizer,
   OptimizerOptions,
   QwikManifest,
   TransformModuleInput,
@@ -83,16 +82,13 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     async buildStart() {
-      qwikPlugin.onAddWatchFile((ctx, path) => {
-        ctx.addWatchFile(path);
-      });
-
-      qwikPlugin.onDiagnostics((diagnostics, optimizer) => {
+      qwikPlugin.onDiagnostics((diagnostics, optimizer, srcDir) => {
         diagnostics.forEach((d) => {
+          const id = qwikPlugin.normalizePath(optimizer.sys.path.join(srcDir, d.file));
           if (d.category === 'error') {
-            this.error(createRollupError(optimizer, d));
+            this.error(createRollupError(id, d));
           } else {
-            this.warn(createRollupError(optimizer, d));
+            this.warn(createRollupError(id, d));
           }
         });
       });
@@ -184,7 +180,6 @@ export function normalizeRollupOutputOptions(
 
   if (opts.target === 'ssr') {
     // ssr output
-    outputOpts.inlineDynamicImports = true;
     if (opts.buildMode === 'production') {
       if (!outputOpts.assetFileNames) {
         outputOpts.assetFileNames = 'build/q-[hash].[ext]';
@@ -234,11 +229,8 @@ export function normalizeRollupOutputOptions(
   return outputOpts;
 }
 
-export function createRollupError(optimizer: Optimizer, diagnostic: Diagnostic) {
+export function createRollupError(id: string, diagnostic: Diagnostic) {
   const loc = diagnostic.highlights[0] ?? {};
-  const id = optimizer
-    ? optimizer.sys.path.join(optimizer.sys.cwd(), diagnostic.file)
-    : diagnostic.file;
   const err: RollupError = Object.assign(new Error(diagnostic.message), {
     id,
     plugin: 'qwik',

@@ -6,11 +6,19 @@ expression: output
 
 
 import { component$, $ } from '@builder.io/qwik';
+import { hola } from 'sdfds';
 
 export const Greeter = component$(() => {
+    const stuff = useStore();
     return $(() => {
         return (
-            <div/>
+            <div
+                class={{
+                    'foo': true,
+                    'bar': stuff.condition,
+                    'baz': hola ? 'true' : 'false',
+                }}
+            />
         )
     });
 });
@@ -24,11 +32,15 @@ import { qrl } from "@builder.io/qwik";
 export const Greeter = /*#__PURE__*/ componentQrl(qrl(()=>import("./greeter_component_n7hug2hhu0q"), "Greeter_component_n7HuG2hhU0Q"));
 qrl(()=>import("./d_wknfjeiqvua"), "d_wKNFJEIQVUA");
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAGA,OAAO,MAAM,wBAAU,kGAapB\"}")
 ============================= d_wknfjeiqvua.js (ENTRY POINT)==
 
 export const d_wKNFJEIQVUA = ()=>console.log('thing');
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAmBY,IAAI,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -43,19 +55,30 @@ export { _hW } from "@builder.io/qwik";
   "ctxName": "$",
   "captures": false,
   "loc": [
-    187,
-    211
+    433,
+    457
   ]
 }
 */
 ============================= greeter_component_1_krcndswhx4u.js (ENTRY POINT)==
 
+import { useLexicalScope } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { hola } from "sdfds";
 export const Greeter_component_1_krCndSwhX4U = ()=>{
-    return /*#__PURE__*/ _jsx("div", {});
+    const [stuff] = useLexicalScope();
+    return /*#__PURE__*/ _jsx("div", {
+        class: {
+            'foo': true,
+            'bar': stuff.condition,
+            'baz': hola ? 'true' : 'false'
+        }
+    });
 };
 export { _hW } from "@builder.io/qwik";
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;+CAMa;;IACL,qBACI,KAAC;QACG,OAAO;YACH,OAAO,IAAI;YACX,OAAO,MAAM,SAAS;YACtB,OAAO,OAAO,SAAS,OAAO;QAClC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -68,10 +91,10 @@ export { _hW } from "@builder.io/qwik";
   "parent": "Greeter_component_n7HuG2hhU0Q",
   "ctxKind": "function",
   "ctxName": "$",
-  "captures": false,
+  "captures": true,
   "loc": [
-    108,
-    167
+    168,
+    413
   ]
 }
 */
@@ -79,9 +102,14 @@ export { _hW } from "@builder.io/qwik";
 
 import { qrl } from "@builder.io/qwik";
 export const Greeter_component_n7HuG2hhU0Q = ()=>{
-    return qrl(()=>import("./greeter_component_1_krcndswhx4u"), "Greeter_component_1_krCndSwhX4U");
+    const stuff = useStore();
+    return qrl(()=>import("./greeter_component_1_krcndswhx4u"), "Greeter_component_1_krCndSwhX4U", [
+        stuff
+    ]);
 };
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6CAIkC,IAAM;IACpC,MAAM,QAAQ;IACd;;;AAWJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -96,8 +124,8 @@ export const Greeter_component_n7HuG2hhU0Q = ()=>{
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    87,
-    171
+    117,
+    417
   ]
 }
 */

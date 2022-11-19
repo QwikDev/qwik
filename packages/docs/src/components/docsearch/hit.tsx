@@ -5,9 +5,9 @@ interface HitProps {
   hit: InternalDocSearchHit | StoredDocSearchHit;
 }
 
-export const Hit = component$(({ hit }: HitProps) => {
+export const Hit = component$((props: HitProps) => {
   return (
-    <a href={hit.url}>
+    <a href={props.hit.url}>
       <Slot />
     </a>
   );

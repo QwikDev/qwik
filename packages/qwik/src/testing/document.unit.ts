@@ -1,5 +1,5 @@
 import { createDocument, createWindow, ensureGlobals } from './document';
-import { pathToFileURL } from 'url';
+import { pathToFileURL } from 'node:url';
 import { suite, test } from 'uvu';
 import { equal, match, not, throws } from 'uvu/assert';
 

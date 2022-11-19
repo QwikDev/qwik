@@ -1,6 +1,6 @@
 import { BuildConfig, ensureDir, PackageJSON } from './util';
 import { readFile, writeFile } from './util';
-import { join } from 'path';
+import { join } from 'node:path';
 
 /**
  * The published build does not use the package.json found in the root directory.
@@ -15,46 +15,64 @@ export async function generatePackageJson(config: BuildConfig) {
     version: config.distVersion,
     description: rootPkg.description,
     license: rootPkg.license,
-    main: './core.cjs',
+    main: './core.mjs',
     types: './core.d.ts',
+    bin: {
+      qwik: './qwik.cjs',
+    },
     type: 'module',
     exports: {
       '.': {
+        types: './core.d.ts',
         import: {
           min: './core.min.mjs',
+          production: './core.prod.mjs',
           default: './core.mjs',
         },
-        require: './core.cjs',
+        require: {
+          production: './core.prod.cjs',
+          default: './core.cjs',
+        },
+      },
+      './cli': {
+        require: './cli.cjs',
       },
       './jsx-runtime': {
+        types: './jsx-runtime.d.ts',
         import: './jsx-runtime.mjs',
         require: './jsx-runtime.cjs',
       },
       './jsx-dev-runtime': {
+        types: './jsx-runtime.d.ts',
         import: './jsx-runtime.mjs',
         require: './jsx-runtime.cjs',
       },
       './build': {
+        types: './build/index.d.ts',
         import: './build/index.mjs',
         require: './build/index.cjs',
       },
       './loader': {
+        types: './loader/index.d.ts',
         import: './loader/index.mjs',
         require: './loader/index.cjs',
       },
       './optimizer.cjs': './optimizer.cjs',
       './optimizer.mjs': './optimizer.mjs',
       './optimizer': {
+        types: './optimizer.d.ts',
         import: './optimizer.mjs',
         require: './optimizer.cjs',
       },
       './server.cjs': './server.cjs',
       './server.mjs': './server.mjs',
       './server': {
+        types: './server.d.ts',
         import: './server.mjs',
         require: './server.cjs',
       },
       './testing': {
+        types: './testing/index.d.ts',
         import: './testing/index.mjs',
         require: './testing/index.cjs',
       },
@@ -80,23 +98,36 @@ export async function generatePackageJson(config: BuildConfig) {
 
   await generateLegacyCjsSubmodule(config, 'core');
   await generateLegacyCjsSubmodule(config, 'jsx-runtime');
+  await generateLegacyCjsSubmodule(config, 'jsx-dev-runtime', 'jsx-runtime');
   await generateLegacyCjsSubmodule(config, 'optimizer');
   await generateLegacyCjsSubmodule(config, 'server');
 
   console.log(`🐷 generated package.json`);
 }
 
-export async function generateLegacyCjsSubmodule(config: BuildConfig, pkgName: string) {
+export async function generateLegacyCjsSubmodule(
+  config: BuildConfig,
+  pkgName: string,
+  index = pkgName
+) {
   // Modern nodejs will resolve the submodule packages using "exports": https://nodejs.org/api/packages.html#subpath-exports
   // however, legacy nodejs still needs a directory and its own package.json
   // this can be removed once node12 is in the distant past
   const pkg: PackageJSON = {
     name: `@builder.io/qwik/${pkgName}`,
     version: config.distVersion,
-    main: `../${pkgName}.cjs`,
-    module: `../${pkgName}.mjs`,
-    types: `../${pkgName}.d.ts`,
+    main: `../${index}.mjs`,
+    module: `../${index}.mjs`,
+    types: `../${index}.d.ts`,
+    type: 'module',
     private: true,
+    exports: {
+      '.': {
+        types: `../${index}.d.ts`,
+        require: `../${index}.cjs`,
+        import: `../${index}.mjs`,
+      },
+    },
   };
   const submoduleDistDir = join(config.distPkgDir, pkgName);
   ensureDir(submoduleDistDir);

@@ -1,5 +1,5 @@
 import { equal } from 'uvu/assert';
-import { testAppSuite } from './utils/test-suite';
+import { testAppSuite } from '../utils/test-suite';
 
 const test = testAppSuite('Build Endpoints');
 

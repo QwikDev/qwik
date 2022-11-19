@@ -1,19 +1,31 @@
-import type { QwikCityRequestOptions, QwikCityRequestContext } from '../request-handler/types';
-import { notFoundHandler, requestHandler } from '../request-handler';
-import type { Render } from '@builder.io/qwik/server';
+import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-handler/types';
+import type { RequestHandler } from '@builder.io/qwik-city';
+import { requestHandler } from '../request-handler';
+import { mergeHeadersCookies } from '../request-handler/cookie';
+import { getNotFound } from '@qwik-city-not-found-paths';
+import { isStaticPath } from '@qwik-city-static-paths';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
 
 /**
  * @alpha
  */
-export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) {
-  async function onRequest({ request, next, env, waitUntil }: EventPluginContext) {
+export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
+  async function onRequest({ request, env, waitUntil, next }: EventPluginContext) {
     try {
       const url = new URL(request.url);
 
+      if (isStaticPath(url.pathname)) {
+        // known static path, let cloudflare handle it
+        return next();
+      }
+
       // https://developers.cloudflare.com/workers/runtime-apis/cache/
-      const useCache = url.hostname !== 'localhost' && request.method === 'GET';
+      const useCache =
+        url.hostname !== '127.0.0.1' &&
+        url.hostname !== 'localhost' &&
+        url.port === '' &&
+        request.method === 'GET';
       const cacheKey = new Request(url.href, request);
       const cache = useCache ? await caches.open('custom:qwikcity') : null;
       if (cache) {
@@ -24,15 +36,20 @@ export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) 
       }
 
       const requestCtx: QwikCityRequestContext<Response> = {
+        mode: 'server',
+        locale: undefined,
         url,
         request,
-        response: (status, headers, body) => {
+        response: (status, headers, cookies, body) => {
           return new Promise<Response>((resolve) => {
             let flushedHeaders = false;
             const { readable, writable } = new TransformStream();
             const writer = writable.getWriter();
-            const response = new Response(readable, { status, headers });
 
+            const response = new Response(readable, {
+              status,
+              headers: mergeHeadersCookies(headers, cookies),
+            });
             body({
               write: (chunk) => {
                 if (!flushedHeaders) {
@@ -62,25 +79,27 @@ export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) 
             }
           });
         },
+        platform: env,
       };
 
-      const handledResponse = await requestHandler<Response>(requestCtx, render, env, opts);
+      // send request to qwik city request handler
+      const handledResponse = await requestHandler<Response>(requestCtx, opts);
       if (handledResponse) {
         return handledResponse;
       }
 
-      const nextResponse = await next();
-      if (nextResponse.status === 404) {
-        const notFoundResponse = await notFoundHandler<Response>(requestCtx);
-        return notFoundResponse;
-      }
-
-      // use the next middleware's response
-      return nextResponse;
+      // qwik city did not have a route for this request
+      // response with 404 for this pathname
+      const notFoundHtml = getNotFound(url.pathname);
+      return new Response(notFoundHtml, {
+        status: 404,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
+      });
     } catch (e: any) {
+      console.error(e);
       return new Response(String(e || 'Error'), {
         status: 500,
-        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'cloudflare-pages' },
       });
     }
   }
@@ -91,7 +110,7 @@ export function qwikCity(render: Render, opts?: QwikCityCloudflarePagesOptions) 
 /**
  * @alpha
  */
-export interface QwikCityCloudflarePagesOptions extends QwikCityRequestOptions {}
+export interface QwikCityCloudflarePagesOptions extends QwikCityHandlerOptions {}
 
 /**
  * @alpha
@@ -102,3 +121,11 @@ export interface EventPluginContext {
   next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
   env: Record<string, any>;
 }
+
+/**
+ * @alpha
+ */
+export type RequestHandlerCloudflarePages<T = unknown> = RequestHandler<
+  T,
+  { env: EventPluginContext['env'] }
+>;

@@ -149,7 +149,7 @@ const injectDevHtml = (clientId: string, html?: string) => {
             anchor.setAttribute('target', '_blank');
           }
         }
-      } 
+      }
     } catch (e) {
       console.error('repl-request-handler', e);
     }

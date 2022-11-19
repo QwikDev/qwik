@@ -1,5 +1,5 @@
-const { join } = require('path');
-const { pathToFileURL } = require('url');
+const { join } = require('node:path');
+const { pathToFileURL } = require('node:url');
 
 const corePath = pathToFileURL(join(__dirname, 'packages', 'qwik', 'src', 'core', 'index.ts'));
 
@@ -14,6 +14,7 @@ module.exports = {
       jsxFragment: 'qwikJsx.Fragment',
       banner: `
       globalThis.qTest = true;
+      globalThis.qRuntimeQrl = true;
       globalThis.qDev = true;
       import * as qwikJsx from "${corePath}";`,
       target: 'es2020',
@@ -24,6 +25,7 @@ module.exports = {
       loader: 'ts',
       banner: `
 globalThis.qTest = true;
+globalThis.qRuntimeQrl = true;
 globalThis.qDev = true;
 `,
       minify: false,

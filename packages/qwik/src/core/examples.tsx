@@ -7,9 +7,9 @@
 //
 
 import { component$ } from './component/component.public';
-import { qrl } from './import/qrl';
-import { $, QRL } from './import/qrl.public';
-import { useCleanup$, useOn, useOnDocument, useOnWindow } from './use/use-on';
+import { qrl } from './qrl/qrl';
+import { $, QRL } from './qrl/qrl.public';
+import { useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
 import { useClientEffect$, useMount$, useServerMount$, useWatch$ } from './use/use-watch';
@@ -46,22 +46,6 @@ export const OtherComponent = component$(() => {
 });
 // </docs>
 //
-
-() => {
-  //
-  // <docs anchor="use-cleanup">
-  const Cmp = component$(() => {
-    useCleanup$(() => {
-      // Executed after SSR (pause) or when the component gets removed from the DOM.
-      // Can be used to release resouces, abort network requets, stop timers...
-      console.log('component is destroyed');
-    });
-    return <div>Hello world</div>;
-  });
-  // </docs>
-  //
-  return Cmp;
-};
 
 // <docs anchor="use-styles">
 import styles from './code-block.css?inline';
@@ -162,13 +146,13 @@ export const CmpInline = component$(() => {
 
     // Double count watch
     useWatch$(({ track }) => {
-      const count = track(store, 'count');
+      const count = track(() => store.count);
       store.doubleCount = 2 * count;
     });
 
     // Debouncer watch
     useWatch$(({ track }) => {
-      const doubleCount = track(store, 'doubleCount');
+      const doubleCount = track(() => store.doubleCount);
       const timer = setTimeout(() => {
         store.debounced = doubleCount;
       }, 2000);
@@ -177,12 +161,46 @@ export const CmpInline = component$(() => {
       };
     });
     return (
-      <>
+      <div>
         <div>
           {store.count} / {store.doubleCount}
         </div>
         <div>{store.debounced}</div>
-      </>
+      </div>
+    );
+  });
+  // </docs>
+  return Cmp;
+};
+
+() => {
+  // <docs anchor="use-resource">
+  const Cmp = component$(() => {
+    const store = useStore({
+      city: '',
+    });
+
+    const weatherResource = useResource$<any>(async ({ track, cleanup }) => {
+      const cityName = track(() => store.city);
+      const abortController = new AbortController();
+      cleanup(() => abortController.abort('cleanup'));
+      const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
+        signal: abortController.signal,
+      });
+      const data = res.json();
+      return data;
+    });
+
+    return (
+      <div>
+        <input name="city" onInput$={(ev: any) => (store.city = ev.target.value)} />
+        <Resource
+          value={weatherResource}
+          onResolved={(weather) => {
+            return <div>Temperature: {weather.temp}</div>;
+          }}
+        />
+      </div>
     );
   });
   // </docs>
@@ -194,7 +212,7 @@ export const CmpInline = component$(() => {
   const Cmp = component$(() => {
     const store = useStore({ count: 0, doubleCount: 0 });
     useWatch$(({ track }) => {
-      const count = track(store, 'count');
+      const count = track(() => store.count);
       store.doubleCount = 2 * count;
     });
     return (
@@ -313,10 +331,10 @@ export const CmpInline = component$(() => {
     });
 
     return (
-      <>
+      <div>
         <div>Counter: {counter.value}</div>
         <Child userData={userData} state={state} />
-      </>
+      </div>
     );
   });
 
@@ -354,14 +372,14 @@ export const CmpInline = component$(() => {
     const input = useRef<HTMLInputElement>();
 
     useClientEffect$(({ track }) => {
-      const el = track(input, 'current')!;
+      const el = track(() => input.current)!;
       el.focus();
     });
 
     return (
-      <>
+      <div>
         <input type="text" ref={input} />
-      </>
+      </div>
     );
   });
 
@@ -449,9 +467,10 @@ function doExtraStuff() {
 })();
 
 // <docs anchor="qrl-capturing-rules">
-import { importedFn } from './import/example';
+
 import { createContext, useContext, useContextProvider } from './use/use-context';
 import { useRef } from './use/use-ref';
+import { Resource, useResource$ } from './use/use-resource';
 
 export const greet = () => console.log('greet');
 function topLevelFn() {}
@@ -461,9 +480,7 @@ function myCode() {
   function localFn() {}
   // Valid Examples
   $(greet); // greet is importable
-  $(importedFn); // importedFn is importable
   $(() => greet()); // greet is importable;
-  $(() => importedFn()); // importedFn is importable
   $(() => console.log(store)); // store is serializable.
 
   // Compile time errors

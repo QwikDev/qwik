@@ -1,0 +1,34 @@
+header {
+  position: sticky;
+  top: 0;
+  z-index: 11;
+  display: grid;
+  grid-template-columns: minmax(130px, auto) 1fr;
+  gap: 30px;
+  height: 80px;
+  width: 100%;
+  padding: 10px;
+  background-color: white;
+  overflow: hidden;
+}
+
+header a.logo {
+  display: block;
+}
+
+header a {
+  text-decoration: none;
+}
+
+header nav {
+  text-align: right;
+}
+
+header nav a {
+  display: inline-block;
+  padding: 5px 15px;
+}
+
+header nav a:hover {
+  text-decoration: underline;
+}

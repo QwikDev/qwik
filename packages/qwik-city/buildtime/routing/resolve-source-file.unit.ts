@@ -39,9 +39,15 @@ test('resolveLayout', () => {
   t.forEach((c) => {
     const opts: NormalizedPluginOptions = {
       routesDir: '',
-      baseUrl: '/',
+      basePathname: '/',
       trailingSlash: false,
+      mdxPlugins: {
+        remarkGfm: true,
+        rehypeSyntaxHighlight: true,
+        rehypeAutolinkHeadings: true,
+      },
       mdx: {},
+      baseUrl: '/',
     };
     const sourceFile: RouteSourceFile = {
       ...getSourceFile(c.fileName)!,

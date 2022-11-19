@@ -2,7 +2,7 @@ import { BuildConfig, injectGlobalThisPoly, rollupOnWarn } from './util';
 import { build, BuildOptions } from 'esbuild';
 import { getBanner, fileSize, readFile, target, watcher, writeFile } from './util';
 import { InputOptions, OutputOptions, rollup } from 'rollup';
-import { join } from 'path';
+import { join } from 'node:path';
 import { minify } from 'terser';
 
 /**
@@ -83,8 +83,10 @@ async function submoduleCoreProd(config: BuildConfig) {
         // developer production builds could use core.min.js directly, or setup
         // their own build tools to define the globa `qwikDev` to false
         'globalThis.qDev': false,
+        'globalThis.qSerialize': false,
         'globalThis.qDynamicPlatform': false,
         'globalThis.qTest': false,
+        'globalThis.qRuntimeQrl': false,
         'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       },
       ecma: 2020,
@@ -109,7 +111,6 @@ async function submoduleCoreProd(config: BuildConfig) {
   await writeFile(esmMinFile, esmMinCode);
   const esmCleanCode = esmMinCode.replace(/__self__/g, '__SELF__');
 
-  // const windowIdx = esmCleanCode.indexOf('window');
   const selfIdx = esmCleanCode.indexOf('self');
   const indx = Math.max(selfIdx);
   if (indx !== -1) {
@@ -119,6 +120,50 @@ async function submoduleCoreProd(config: BuildConfig) {
     );
   }
   console.log('🐭 core.min.mjs:', await fileSize(esmMinFile));
+
+  await writeFile(join(config.distPkgDir, 'core.mjs'), esmCode);
+
+  // always set the cjs version (probably imported serverside) to dev mode
+  let cjsCode = await readFile(join(config.distPkgDir, 'core.cjs'), 'utf-8');
+  await writeFile(join(config.distPkgDir, 'core.cjs'), cjsCode);
+
+  await submoduleCoreProduction(config, esmCode, join(config.distPkgDir, 'core.prod.mjs'));
+  await submoduleCoreProduction(config, cjsCode, join(config.distPkgDir, 'core.prod.cjs'));
+}
+
+async function submoduleCoreProduction(config: BuildConfig, code: string, outPath: string) {
+  const result = await minify(code, {
+    compress: {
+      booleans: false,
+      collapse_vars: true,
+      dead_code: true,
+      inline: true,
+      join_vars: false,
+      passes: 3,
+      reduce_vars: true,
+      side_effects: true,
+      toplevel: true,
+      unused: true,
+      global_defs: {
+        'globalThis.qDev': false,
+        'globalThis.qSerialize': true,
+        'globalThis.qDynamicPlatform': true,
+        'globalThis.qTest': false,
+        'globalThis.qRuntimeQrl': false,
+        'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+      },
+    },
+    format: {
+      comments: false,
+      beautify: true,
+      braces: true,
+      preamble: getBanner('@builder.io/qwik', config.distVersion),
+    },
+    mangle: false,
+  });
+  code = result.code!;
+
+  await writeFile(outPath, code + '\n');
 }
 
 async function submoduleCoreDev(config: BuildConfig) {

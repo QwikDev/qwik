@@ -1,6 +1,6 @@
 import { component$, useStore, useWatch$ } from '@builder.io/qwik';
 
-export const App = component$(() => {
+export default component$(() => {
   return (
     <div>
       This example features an auto-complete component with a debounce of 150 ms.
@@ -29,7 +29,7 @@ export const AutoComplete = component$(() => {
   });
 
   useWatch$(async ({ track }) => {
-    const searchInput = track(state, 'searchInput');
+    const searchInput = track(() => state.searchInput);
 
     if (!searchInput) {
       state.searchResults = [];
@@ -48,7 +48,7 @@ export const AutoComplete = component$(() => {
     <div>
       <input
         type="text"
-        onKeyup$={(ev) => (state.searchInput = (ev.target as HTMLInputElement).value)}
+        onInput$={(ev) => (state.searchInput = (ev.target as HTMLInputElement).value)}
       />
       <SuggestionsListComponent state={state}></SuggestionsListComponent>
     </div>

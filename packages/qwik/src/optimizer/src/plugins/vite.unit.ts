@@ -1,6 +1,5 @@
-import path, { resolve } from 'path';
+import path, { resolve } from 'node:path';
 import { qwikVite } from './vite';
-import type { Plugin as VitePlugin } from 'vite';
 import type { OptimizerOptions } from '../types';
 import type { OutputOptions } from 'rollup';
 import { suite } from 'uvu';
@@ -31,6 +30,7 @@ const excludeDeps = [
   '@vite/env',
   '@builder.io/qwik',
   '@builder.io/qwik/jsx-runtime',
+  '@builder.io/qwik/jsx-dev-runtime',
   '@builder.io/qwik/build',
   '@qwik-client-manifest',
 ];
@@ -39,8 +39,8 @@ vite('command: serve, mode: development', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin: VitePlugin = qwikVite(initOpts);
-  const c = (await plugin.config!({}, { command: 'serve', mode: 'development' }))!;
+  const plugin = qwikVite(initOpts);
+  const c = (await plugin.config({}, { command: 'serve', mode: 'development' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -58,13 +58,12 @@ vite('command: serve, mode: development', async () => {
   equal(outputOptions.chunkFileNames, 'build/[name].js');
   equal(outputOptions.entryFileNames, 'build/[name].js');
   equal(outputOptions.format, 'es');
-  equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, undefined);
   equal(c.optimizeDeps?.include, includeDeps);
   equal(c.optimizeDeps?.exclude, excludeDeps);
 
-  equal(c.esbuild, undefined);
+  equal(c.esbuild, false);
   equal(c.ssr, undefined);
 });
 
@@ -72,8 +71,8 @@ vite('command: serve, mode: production', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin: VitePlugin = qwikVite(initOpts);
-  const c = (await plugin.config!({}, { command: 'serve', mode: 'production' }))!;
+  const plugin = qwikVite(initOpts);
+  const c = (await plugin.config({}, { command: 'serve', mode: 'production' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -93,12 +92,11 @@ vite('command: serve, mode: production', async () => {
   equal(outputOptions.chunkFileNames, 'build/q-[hash].js');
   equal(outputOptions.entryFileNames, 'build/q-[hash].js');
   equal(outputOptions.format, 'es');
-  equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, undefined);
   equal(c.optimizeDeps?.include, includeDeps);
   equal(c.optimizeDeps?.exclude, excludeDeps);
-  equal(c.esbuild, undefined);
+  equal(c.esbuild, false);
   equal(c.ssr, undefined);
 });
 
@@ -106,8 +104,8 @@ vite('command: build, mode: development', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin: VitePlugin = qwikVite(initOpts);
-  const c = (await plugin.config!({}, { command: 'build', mode: 'development' }))!;
+  const plugin = qwikVite(initOpts);
+  const c = (await plugin.config({}, { command: 'build', mode: 'development' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -127,12 +125,14 @@ vite('command: build, mode: development', async () => {
   equal(outputOptions.assetFileNames, 'build/[name].[ext]');
   equal(outputOptions.chunkFileNames, 'build/[name].js');
   equal(outputOptions.entryFileNames, 'build/[name].js');
-  equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, undefined);
   equal(c.optimizeDeps?.include, includeDeps);
   equal(c.optimizeDeps?.exclude, excludeDeps);
-  equal(c.esbuild, undefined);
+  equal(c.esbuild, {
+    logLevel: 'error',
+    jsx: 'preserve',
+  });
   equal(c.ssr, undefined);
 });
 
@@ -140,8 +140,8 @@ vite('command: build, mode: production', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin: VitePlugin = qwikVite(initOpts);
-  const c = (await plugin.config!({}, { command: 'build', mode: 'production' }))!;
+  const plugin = qwikVite(initOpts);
+  const c = (await plugin.config({}, { command: 'build', mode: 'production' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -162,12 +162,14 @@ vite('command: build, mode: production', async () => {
   equal(outputOptions.chunkFileNames, 'build/q-[hash].js');
   equal(outputOptions.entryFileNames, 'build/q-[hash].js');
   equal(build.outDir, normalizePath(resolve(cwd, 'dist')));
-  equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, undefined);
   equal(c.optimizeDeps?.include, includeDeps);
   equal(c.optimizeDeps?.exclude, excludeDeps);
-  equal(c.esbuild, undefined);
+  equal(c.esbuild, {
+    logLevel: 'error',
+    jsx: 'preserve',
+  });
   equal(c.ssr, undefined);
 });
 
@@ -180,8 +182,8 @@ vite('command: build, --mode production (client)', async () => {
     },
   };
 
-  const plugin: VitePlugin = qwikVite(initOpts);
-  const c: any = (await plugin.config!({}, { command: 'build', mode: 'production' }))!;
+  const plugin = qwikVite(initOpts);
+  const c: any = (await plugin.config({}, { command: 'build', mode: 'production' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -194,13 +196,13 @@ vite('command: build, --mode production (client)', async () => {
   equal(build.emptyOutDir, undefined);
 });
 
-vite('command: build, --ssr entry.express.tsx', async () => {
+vite('command: build, --ssr entry.server.tsx', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin: VitePlugin = qwikVite(initOpts);
-  const c = (await plugin.config!(
-    { build: { ssr: resolve(cwd, 'src', 'entry.express.tsx') } },
+  const plugin = qwikVite(initOpts);
+  const c = (await plugin.config(
+    { build: { ssr: resolve(cwd, 'src', 'entry.server.tsx') } },
     { command: 'build', mode: '' }
   ))!;
   const opts = await plugin.api?.getOptions();
@@ -217,18 +219,20 @@ vite('command: build, --ssr entry.express.tsx', async () => {
 
   equal(plugin.enforce, 'pre');
   equal(build.outDir, normalizePath(resolve(cwd, 'server')));
-  equal(build.emptyOutDir, false);
-  equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'entry.express.tsx'))]);
+  equal(build.emptyOutDir, undefined);
+  equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'entry.server.tsx'))]);
   equal(outputOptions.assetFileNames, undefined);
   equal(outputOptions.chunkFileNames, undefined);
   equal(outputOptions.entryFileNames, undefined);
   equal(build.outDir, normalizePath(resolve(cwd, 'server')));
-  equal(build.polyfillModulePreload, false);
   equal(build.dynamicImportVarsOptions?.exclude, [/./]);
   equal(build.ssr, true);
   equal(c.optimizeDeps?.include, includeDeps);
   equal(c.optimizeDeps?.exclude, excludeDeps);
-  equal(c.esbuild, undefined);
+  equal(c.esbuild, {
+    logLevel: 'error',
+    jsx: 'preserve',
+  });
   equal(c.publicDir, false);
 });
 
@@ -240,8 +244,8 @@ vite('command: serve, --mode ssr', async () => {
       outDir: resolve(cwd, 'ssr-dist'),
     },
   };
-  const plugin: VitePlugin = qwikVite(initOpts);
-  const c: any = (await plugin.config!(
+  const plugin = qwikVite(initOpts);
+  const c: any = (await plugin.config(
     { build: { emptyOutDir: true } },
     { command: 'serve', mode: 'ssr' }
   ))!;
@@ -255,7 +259,7 @@ vite('command: serve, --mode ssr', async () => {
   equal(build.ssr, undefined);
   equal(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'renderz.tsx'))]);
   equal(c.build.outDir, normalizePath(resolve(cwd, 'ssr-dist')));
-  equal(build.emptyOutDir, true);
+  equal(build.emptyOutDir, undefined);
   equal(c.publicDir, undefined);
   equal(opts.resolveQwikBuild, false);
 });
@@ -264,8 +268,8 @@ vite('command: build, --mode lib', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin: VitePlugin = qwikVite(initOpts);
-  const c: any = (await plugin.config!(
+  const plugin = qwikVite(initOpts);
+  const c: any = (await plugin.config(
     {
       build: {
         lib: {

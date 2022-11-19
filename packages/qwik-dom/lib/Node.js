@@ -59,6 +59,23 @@ Node.prototype = Object.create(EventTarget.prototype, {
 
   lastChild: { get: utils.shouldOverride },
 
+  isConnected: {
+    get: function () {
+      let node = this;
+      while (node != null) {
+        if (node.nodeType === Node.DOCUMENT_NODE) {
+          return true;
+        }
+
+        node = node.parentNode;
+        if (node != null && node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+          node = node.host;
+        }
+      }
+      return false;
+    },
+  },
+
   previousSibling: {
     get: function () {
       var parent = this.parentNode;

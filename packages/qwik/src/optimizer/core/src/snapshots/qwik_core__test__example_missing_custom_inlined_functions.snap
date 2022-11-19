@@ -24,6 +24,7 @@ export const App = component$((props) => {
 
 ============================= test.js ==
 
+import { _wrapSignal } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { useStore, useEffect } from '@builder.io/qwik';
 export const useMemo$ = (qrt)=>{
@@ -37,10 +38,12 @@ export const App = component$((props)=>{
         console.log(state.count);
     });
     return $(()=>/*#__PURE__*/ _jsx("div", {
-            children: state.count
+            children: _wrapSignal(state, "count")
         }));
 });
 
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAAA,SAAiD,QAAQ,EAAQ,SAAS,QAAQ,mBAAmB;AAGrG,OAAO,MAAM,WAAW,CAAC,MAAQ;IAC7B,UAAU;AACd,EAAE;AAEF,OAAO,MAAM,MAAM,WAAW,CAAC,QAAU;IACrC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,SAAS,IAAM;QACX,QAAQ,GAAG,CAAC,MAAM,KAAK;IAC3B;IACA,OAAO,EAAE,kBACL,KAAC;kCAAK;;AAEd,GAAG\"}")
 == DIAGNOSTICS ==
 
 [

@@ -1,10 +1,11 @@
 import { BuildConfig, PackageJSON, panic } from './util';
 import { access, readFile } from './util';
-import { extname, join } from 'path';
-import { pathToFileURL } from 'url';
-import { createRequire } from 'module';
-import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
+import { basename, extname, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { createRequire } from 'node:module';
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import ts from 'typescript';
+import { rollup } from 'rollup';
 
 /**
  * This will validate a completed production build by triple checking all the
@@ -29,8 +30,11 @@ export async function validateBuild(config: BuildConfig) {
 
       switch (ext) {
         case '.cjs':
-          require(filePath);
-          console.log(`✅ ${filePath}`);
+          const f = basename(filePath);
+          if (f !== 'qwik.cjs') {
+            require(filePath);
+            console.log(`✅ ${filePath}`);
+          }
           break;
         case '.mjs':
           if (config.esmNode) {
@@ -52,9 +56,14 @@ export async function validateBuild(config: BuildConfig) {
           break;
         default:
           if (existsSync(filePath)) {
-            const content = readFileSync(filePath, 'utf-8');
-            if (content.trim() === '') {
-              errors.push(`Expected package.json file is empty: ${filePath}`);
+            const s = statSync(filePath);
+            if (s.isFile()) {
+              const content = readFileSync(filePath, 'utf-8');
+              if (content.trim() === '') {
+                errors.push(`Expected package.json file is empty: ${filePath}`);
+              } else {
+                console.log(`✅ ${filePath}`);
+              }
             } else {
               console.log(`✅ ${filePath}`);
             }
@@ -72,6 +81,7 @@ export async function validateBuild(config: BuildConfig) {
   }
 
   await validatePackageJson(config, pkg, errors);
+  await validateModuleTreeshake(config, join(config.distPkgDir, 'core.min.mjs'));
 
   const allFiles: string[] = [];
   function getFiles(dir: string) {
@@ -80,7 +90,10 @@ export async function validateBuild(config: BuildConfig) {
       .forEach((filePath) => {
         const s = statSync(filePath);
         if (s.isDirectory()) {
-          getFiles(filePath);
+          const dirName = basename(filePath);
+          if (dirName !== 'starters') {
+            getFiles(filePath);
+          }
         } else if (s.isFile()) {
           allFiles.push(filePath);
         } else {
@@ -173,4 +186,49 @@ async function validatePackageJson(config: BuildConfig, pkg: PackageJSON, errors
   }
 
   validateExports(pkg.exports!);
+}
+
+async function validateModuleTreeshake(
+  config: BuildConfig,
+  entryModulePath: string
+): Promise<void> {
+  const virtualInputId = `@index`;
+  const bundle = await rollup({
+    input: virtualInputId,
+    treeshake: true,
+    plugins: [
+      {
+        name: 'resolver',
+        resolveId(id) {
+          if (id === virtualInputId) {
+            return id;
+          }
+        },
+        load(id) {
+          if (id === virtualInputId) {
+            return `import "${entryModulePath}";`;
+          }
+        },
+      },
+    ],
+    onwarn(warning) {
+      if (warning.code !== 'EMPTY_BUNDLE') {
+        throw warning;
+      }
+    },
+  });
+
+  const o = await bundle.generate({
+    format: 'es',
+  });
+
+  const output = o.output[0];
+  const outputCode = output.code.trim();
+
+  if (outputCode !== '') {
+    console.log(outputCode);
+    throw new Error(`🧨  Not all code was not treeshaken (treeshooken? treeshaked?)`);
+  }
+
+  console.log(`🌳  validated treeshake`);
 }

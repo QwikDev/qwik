@@ -5,6 +5,11 @@
 ```ts
 
 import { CompileOptions } from '@mdx-js/mdx/lib/compile';
+import { ConfigEnv } from 'vite';
+import { UserConfigExport } from 'vite';
+
+// @alpha (undocumented)
+export function extendConfig(baseConfigExport: UserConfigExport, serverConfigExport: UserConfigExport): (env: ConfigEnv) => Promise<Record<string, any>>;
 
 // @alpha (undocumented)
 export type MdxOptions = CompileOptions;
@@ -12,12 +17,26 @@ export type MdxOptions = CompileOptions;
 // @alpha (undocumented)
 export function qwikCity(userOpts?: QwikCityVitePluginOptions): any;
 
+// @alpha (undocumented)
+export interface QwikCityPlugin {
+    // Warning: (ae-forgotten-export) The symbol "QwikCityPluginApi" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    api: QwikCityPluginApi;
+    // (undocumented)
+    name: 'vite-plugin-qwik-city';
+}
+
 // Warning: (ae-forgotten-export) The symbol "PluginOptions" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
 export interface QwikCityVitePluginOptions extends PluginOptions {
     // (undocumented)
     mdx?: MdxOptions;
+    // Warning: (ae-forgotten-export) The symbol "MdxPlugins" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    mdxPlugins?: MdxPlugins;
 }
 
 // (No @packageDocumentation comment for this package)

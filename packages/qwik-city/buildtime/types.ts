@@ -2,7 +2,6 @@ export interface BuildContext {
   rootDir: string;
   opts: NormalizedPluginOptions;
   routes: BuildRoute[];
-  errors: BuildRoute[];
   layouts: BuildLayout[];
   entries: BuildEntry[];
   serviceWorkers: BuildEntry[];
@@ -13,6 +12,7 @@ export interface BuildContext {
   isDevServer: boolean;
   isDevServerClientOnly: boolean;
   isDirty: boolean;
+  activeBuild: Promise<void> | null;
 }
 
 export type Yaml = string | number | boolean | null | { [attrName: string]: Yaml } | Yaml[];
@@ -45,7 +45,7 @@ export interface RouteSourceFileName {
   ext: string;
 }
 
-export type RouteSourceType = 'route' | 'layout' | 'entry' | 'menu' | 'error' | 'service-worker';
+export type RouteSourceType = 'route' | 'layout' | 'entry' | 'menu' | 'service-worker';
 
 export interface BuildRoute extends ParsedPathname {
   /**
@@ -86,7 +86,7 @@ export interface BuildLayout {
   layoutName: string;
 }
 
-export interface BuildEntry {
+export interface BuildEntry extends ParsedPathname {
   id: string;
   chunkFileName: string;
   filePath: string;
@@ -112,18 +112,34 @@ export interface PluginOptions {
    */
   routesDir?: string;
   /**
-   * The base url is used to create absolute URL paths to
-   * the hostname.  Defaults to `/`.
+   * The base pathname is used to create absolute URL paths up to
+   * the `hostname`, and must always start and end with a
+   * `/`.  Defaults to `/`.
    */
-  baseUrl?: string;
+  basePathname?: string;
   /**
-   * Ensure a trailing slash ends page urls. Defaults to `false`.
+   * Ensure a trailing slash ends page urls. Defaults to `true`.
+   * (Note: Previous versions defaulted to `false`).
    */
   trailingSlash?: boolean;
+  /**
+   * Enable or disable MDX plugins included by default in qwik-city.
+   */
+  mdxPlugins?: MdxPlugins;
   /**
    * MDX Options https://mdxjs.com/
    */
   mdx?: any;
+  /**
+   * @deprecated Please use "basePathname" instead.
+   */
+  baseUrl?: string;
+}
+
+export interface MdxPlugins {
+  remarkGfm: boolean;
+  rehypeSyntaxHighlight: boolean;
+  rehypeAutolinkHeadings: boolean;
 }
 
 export interface NormalizedPluginOptions extends Required<PluginOptions> {}

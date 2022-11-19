@@ -1,5 +1,4 @@
 import { component$ } from '@builder.io/qwik';
-import { AlgoliaLogo } from './algolia-logo';
 
 export type FooterTranslations = Partial<{
   selectText: string;
@@ -46,14 +45,10 @@ export const Footer = component$(({ translations = {} }: FooterProps) => {
     navigateDownKeyAriaLabel = 'Arrow down',
     closeText = 'to close',
     closeKeyAriaLabel = 'Escape key',
-    searchByText = 'Search by',
   } = translations;
 
   return (
     <>
-      <div class="DocSearch-Logo">
-        <AlgoliaLogo translations={{ searchByText }} />
-      </div>
       <ul class="DocSearch-Commands">
         <li>
           <kbd class="DocSearch-Commands-Key">

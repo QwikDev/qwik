@@ -1,5 +1,5 @@
 import { build, BuildOptions, Plugin } from 'esbuild';
-import { join } from 'path';
+import { join } from 'node:path';
 import {
   BuildConfig,
   getBanner,

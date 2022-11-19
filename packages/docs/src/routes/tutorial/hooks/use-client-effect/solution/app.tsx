@@ -15,7 +15,7 @@ export const Clock = component$(() => {
     second: 0,
   });
 
-  useClientEffect$(({track}) => {
+  useClientEffect$(({ track }) => {
     track(store);
     updateClock(store);
     const tmrId = setTimeout(() => updateClock(store), 1000);

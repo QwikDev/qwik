@@ -7,6 +7,7 @@ import {
   useStore,
   useClientEffect$,
   useWatch$,
+  Slot,
 } from '@builder.io/qwik';
 import { delay } from '../resource/resource';
 
@@ -85,6 +86,7 @@ export const Signals = component$(() => {
       <Issue1733 />
       <SideEffect />
       <Issue1884 />
+      <Issue2176 />
     </div>
   );
 });
@@ -208,5 +210,170 @@ export const Test = component$(({ active }: { active: boolean | string }) => {
     <div class="issue1884-text" style={{ color: active && ('red' as any) }}>
       Should turn red
     </div>
+  );
+});
+
+export const Issue2176 = component$(() => {
+  const data = useSignal({ text: 'testing', flag: false, num: 1 });
+  const store = useStore({ text: 'testing', flag: false, num: 1 });
+  return (
+    <div>
+      <button
+        id="issue-2176-btn"
+        onClick$={() => {
+          const nu = data.value.num + 1;
+          const text = 'testing' + nu;
+          data.value = { text, flag: !data.value.flag, num: nu };
+          store.num = nu;
+          store.text = text;
+          store.flag = !store.flag;
+        }}
+      >
+        Click me to change the data
+      </button>
+      {/* <code>{JSON.stringify(data.value)}</code> */}
+
+      <h2>Signal</h2>
+      <ul>
+        <li>
+          <Test1 text={data.value.text} flag={data.value.flag} num={data.value.num}>
+            Nested value
+          </Test1>
+        </li>
+        <li>
+          <Test1Sig sig={data}>Raw </Test1Sig>
+        </li>
+        <li>
+          <Test2
+            text={`${data.value.text} flag=${data.value.flag ? 'T' : 'F'} num=${data.value.num}`}
+          >
+            Computed prop
+          </Test2>
+        </li>
+        <li>
+          <Test2Sig sig={data}>Raw + Computed</Test2Sig>
+        </li>
+        <li>
+          <Test2Child>
+            Slot{' '}
+            <span class="issue-2176-result">
+              {data.value.text} flag={data.value.flag ? 'T' : 'F'} num={data.value.num}
+            </span>
+          </Test2Child>
+        </li>
+        <li>
+          <Test2Child>
+            Computed + Slot{' '}
+            <span class="issue-2176-result">
+              {`${data.value.text} flag=${data.value.flag ? 'T' : 'F'} num=${data.value.num}`}
+            </span>
+          </Test2Child>
+        </li>
+      </ul>
+
+      <h2>Store</h2>
+      <ul>
+        <li>
+          <Test1 text={store.text} flag={store.flag} num={store.num}>
+            Nested value
+          </Test1>
+        </li>
+        <li>
+          <TestStore store={store}>Raw</TestStore>
+        </li>
+        <li>
+          <Test2 text={`${store.text} flag=${store.flag ? 'T' : 'F'} num=${store.num}`}>
+            Computed prop
+          </Test2>
+        </li>
+        <li>
+          <Test2Store store={store}>Raw + Computed</Test2Store>
+        </li>
+        <li>
+          <Test2Child>
+            Slot{' '}
+            <span class="issue-2176-result">
+              {store.text} flag={store.flag ? 'T' : 'F'} num={store.num}
+            </span>
+          </Test2Child>
+        </li>
+        <li>
+          <Test2Child>
+            Computed + Slot{' '}
+            <span class="issue-2176-result">
+              {`${store.text} flag=${store.flag ? 'T' : 'F'} num=${store.num}`}
+            </span>
+          </Test2Child>
+        </li>
+      </ul>
+    </div>
+  );
+});
+
+export const Test1 = component$((props: { text: string; flag: boolean; num: number }) => {
+  return (
+    <p>
+      <Slot />{' '}
+      <span class="issue-2176-result">
+        {props.text} flag={props.flag ? 'T' : 'F'} num={props.num}
+      </span>
+    </p>
+  );
+});
+export const Test1Sig = component$((props: { sig: Signal }) => {
+  return (
+    <p>
+      <Slot />{' '}
+      <span class="issue-2176-result">
+        {props.sig.value.text} flag={props.sig.value.flag ? 'T' : 'F'} num=
+        {props.sig.value.num}
+      </span>
+    </p>
+  );
+});
+export const TestStore = component$((props: { store: any }) => {
+  return (
+    <p>
+      <Slot />{' '}
+      <span class="issue-2176-result">
+        {props.store.text} flag={props.store.flag ? 'T' : 'F'} num={props.store.num}
+      </span>
+    </p>
+  );
+});
+export const Test2 = component$((props: { text: string }) => {
+  return (
+    <p>
+      <Slot /> <span class="issue-2176-result">{props.text}</span>
+    </p>
+  );
+});
+export const Test2Sig = component$((props: { sig: Signal }) => {
+  return (
+    <p>
+      <Slot />{' '}
+      <span class="issue-2176-result">
+        {`${props.sig.value.text} flag=${props.sig.value.flag ? 'T' : 'F'} num=${
+          props.sig.value.num
+        }`}
+      </span>
+    </p>
+  );
+});
+export const Test2Store = component$((props: { store: any }) => {
+  return (
+    <p>
+      <Slot />{' '}
+      <span class="issue-2176-result">
+        {`${props.store.text} flag=${props.store.flag ? 'T' : 'F'} num=${props.store.num}`}
+      </span>
+    </p>
+  );
+});
+export const Test2Child = component$(() => {
+  return (
+    <p>
+      <Slot />
+    </p>
   );
 });

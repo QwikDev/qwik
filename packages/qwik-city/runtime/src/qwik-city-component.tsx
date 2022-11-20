@@ -28,7 +28,11 @@ import {
 import { createDocumentHead, resolveHead } from './head';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import { useQwikCityEnv } from './use-functions';
-import { clientNavigate } from './client-navigate';
+import {
+  clientNavigate,
+  dispatchNavigationEndEvent,
+  dispatchNavigationStartEvent,
+} from './client-navigate';
 import { loadClientData } from './use-endpoint';
 import { toPath } from './utils';
 
@@ -100,6 +104,9 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     const url = new URL(path, routeLocation.href);
     const pathname = url.pathname;
 
+    const navigationEventData = { path };
+    dispatchNavigationStartEvent(navigationEventData);
+
     const loadRoutePromise = loadRoute(routes, menus, cacheModules, pathname);
 
     const endpointResponse = isServer ? env.response : loadClientData(url.href);
@@ -134,6 +141,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
 
       if (isBrowser) {
         clientNavigate(window, routeNavigate);
+        dispatchNavigationEndEvent(navigationEventData);
       }
     }
   });

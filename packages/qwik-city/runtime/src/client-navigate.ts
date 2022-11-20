@@ -89,6 +89,23 @@ const scrollToHashId = (doc: Document, hash: string) => {
   return elm;
 };
 
+export const dispatchNavigationStartEvent = (data: RouteNavigate) => {
+  if (typeof document !== 'undefined')
+    document.dispatchEvent(
+      new CustomEvent('qnavigatestart', {
+        detail: data,
+      })
+    );
+};
+export const dispatchNavigationEndEvent = (data: RouteNavigate) => {
+  if (typeof document !== 'undefined')
+    document.dispatchEvent(
+      new CustomEvent('qnavigateend', {
+        detail: data,
+      })
+    );
+};
+
 export const dispatchPrefetchEvent = (prefetchData: QPrefetchData) => {
   if (typeof document !== 'undefined') {
     document.dispatchEvent(new CustomEvent('qprefetch', { detail: prefetchData }));

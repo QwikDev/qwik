@@ -36,7 +36,6 @@ export const StylesChildren = component$(() => {
         ))}
       </div>
       <Issue1945 />
-      <Issue2189 />
     </div>
   );
 });
@@ -119,12 +118,4 @@ export const ComponentB = component$(() => {
       <Slot />
     </div>
   );
-});
-
-export const Issue2189 = component$(() => {
-  useStylesScoped$(`span::before {
-    content: " not ";
-    user-select: all;
-  }`);
-  return <div id='issue-2189-result'>This is <span>broken.</span></div>;
 });

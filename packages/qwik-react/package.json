@@ -12,7 +12,7 @@
     "dev.ssr": "vite --mode ssr",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
-    "lint": "eslint src/**/*.ts*",
+    "lint": "eslint \"src/**/*.ts*\"",
     "release": "np",
     "start": "npm run dev",
     "typecheck": "tsc --noEmit"

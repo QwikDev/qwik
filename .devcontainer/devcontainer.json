@@ -8,21 +8,20 @@
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
     "esbenp.prettier-vscode",
-    "rust-lang.rust",
+    "rust-lang.rust-analyzer",
     "hdevalke.rust-test-lens",
-    "bradlc.vscode-tailwindcss",
+    "ms-playwright.playwright",
     "manucorporat.vermoji",
     "ms-azuretools.vscode-docker",
     "mitsuhiko.insta",
     "silvenon.mdx",
     "csstools.postcss"
   ],
-  "features": {
-    "ghcr.io/devcontainers/features/node:1": {},
-    "ghcr.io/devcontainers/features/rust:1": {}
+  "build": {
+    "dockerfile": "Dockerfile"
   },
   "waitFor": "onCreateCommand",
-  "updateContentCommand": "pnpm install",
+  "updateContentCommand": "corepack prepare & pnpm install",
   "forwardPorts": [3300, 9229],
   "customizations": {
     "codespaces": {

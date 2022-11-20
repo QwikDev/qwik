@@ -7,4 +7,4 @@ RUN rustup --version; \
     rustup target add wasm32-unknown-unknown; \
     cargo install cargo-insta; \
     rustup component add clippy; \
-    corepack enable
+    corepack enable --install-directory ~/bin

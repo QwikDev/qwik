@@ -21,39 +21,36 @@ To build Qwik for local development, first install the dev dependencies using [p
 pnpm install
 ```
 
-Next the `start` command will:
+### Fast build
 
-- Build the source files
-- Begin the watch process so any changes will rebuild
-- Run the type checking watch process with [tsc](https://www.typescriptlang.org/docs/handbook/compiler-options.html)
-- Run the unit test watch process
+It will build all JS and all packages, but Rust.
 
 ```shell
-pnpm start
+pnpm build
 ```
 
-Finally, you can use pnpm workspace command to run packages' commands, for example:
+### Full build
+
+It will build absolutely everything, including Rust packages and WASM.
+First build might be very slow.
+
+- Builds each submodule
+- Generates bundled `.d.ts` files for each submodule with [API Extractor](https://api-extractor.com/)
+- Checks the public API hasn't changed
+- Builds a minified `core.min.mjs` file
+- Generates the publishing `package.json`
 
 ```shell
-pnpm workspace qwik-docs dev.ssr
-pnpm workspace @builder.io/qwik-city dev.ssr
+pnpm build.full
 ```
 
-More commands can be found in each package's package.json scripts section.
+The build output will be written to `packages/qwik/dist`, which will be the directory that is published to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
 
-## Starter CLI `create-qwik`
-
-- [Starter CLI](https://github.com/BuilderIO/qwik/blob/main/starters/README.md)
-
-## Running All Tests
-
-To run all Unit tests ([uvu](https://github.com/lukeed/uvu)) and E2E tests ([Playwright](https://playwright.dev/)), run:
+### Open E2E locally for debugging
 
 ```shell
-pnpm test
+pnpm serve
 ```
-
-The `test` command will also ensure a build was completed.
 
 ### Unit Tests Only
 
@@ -78,8 +75,33 @@ E2E tests use [Playwright](https://playwright.dev/).
 To run the Playwright tests headless, from start to finish, run:
 
 ```shell
-pnpm test.e2e
+pnpm test.e2e.chromium
 ```
+
+### Bonus: pnpm start
+
+Next the `start` command will:
+
+- Build the source files
+- Begin the watch process so any changes will rebuild
+- Run the type checking watch process with [tsc](https://www.typescriptlang.org/docs/handbook/compiler-options.html)
+- Run the unit test watch process
+
+```shell
+pnpm start
+```
+
+Finally, you can use pnpm workspace command to run packages' commands, for example:
+
+```shell
+pnpm workspace qwik-docs start
+```
+
+More commands can be found in each package's package.json scripts section.
+
+## Starter CLI `create-qwik`
+
+- [Starter CLI](https://github.com/BuilderIO/qwik/blob/main/starters/README.md)
 
 ## Pull Request
 
@@ -87,25 +109,7 @@ pnpm test.e2e
 - Review PR in Stackblitz
   ![image](https://user-images.githubusercontent.com/4918140/195581745-8dfca1f9-2dcd-4f6a-b7aa-705f3627f8fa.png)
 
-## Production Build
-
-The `pnpm start` command will run development builds, type check, watch unit tests, and watch the files for changes.
-
-A full production build will:
-
-- Builds each submodule
-- Generates bundled `.d.ts` files for each submodule with [API Extractor](https://api-extractor.com/)
-- Checks the public API hasn't changed
-- Builds a minified `core.min.mjs` file
-- Generates the publishing `package.json`
-
-```shell
-pnpm build
-```
-
-The build output will be written to `packages/qwik/dist`, which will be the directory that is published to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
-
-## Committing using "Commitizen":
+### Committing using "Commitizen":
 
 Instead of using `git commit` please use the following command:
 
@@ -115,18 +119,7 @@ pnpm commit
 
 You'll be asked guiding questions which will eventually create a descriptive commit message and necessary to generate meaningful release notes / CHANGELOG automatically.
 
-## Releasing
-
-1. Run `pnpm release.prepare`, which will test, lint and build.
-2. Use the interactive UI to select the next version, which will update the `package.json` `version` property, add the git change, and start a commit message.
-3. Create a PR with the `package.json` change to merge to `main`.
-4. After the `package.json` with the updated version is in `main`, click the [Run Workflow](https://github.com/BuilderIO/qwik/actions/workflows/ci.yml) button from the "Qwik CI" GitHub Action workflow.
-5. Select the NPM dist-tag that should be used for this version, then click "Run Workflow".
-6. The GitHub Action will dispatch the workflow to build `@builder.io/qwik` and each of the submodules, build WASM and native bindings, combine them into one package, and validate the package before publishing to NPM.
-7. If the build is successful and all tests and validation passes, the workflow will automatically publish to NPM, commit a git tag to the repo, and create a GitHub release.
-8. 🚀
-
-## Pre-submit hooks
+### Pre-submit hooks
 
 The project has pre-submit hooks, which ensure that your code is correctly formatted. You can run them manually like so:
 
@@ -139,3 +132,14 @@ Some issues can be fixed automatically by using:
 ```shell
 pnpm fmt
 ```
+
+## Releasing (core-team only)
+
+1. Run `pnpm release.prepare`, which will test, lint and build.
+2. Use the interactive UI to select the next version, which will update the `package.json` `version` property, add the git change, and start a commit message.
+3. Create a PR with the `package.json` change to merge to `main`.
+4. After the `package.json` with the updated version is in `main`, click the [Run Workflow](https://github.com/BuilderIO/qwik/actions/workflows/ci.yml) button from the "Qwik CI" GitHub Action workflow.
+5. Select the NPM dist-tag that should be used for this version, then click "Run Workflow".
+6. The GitHub Action will dispatch the workflow to build `@builder.io/qwik` and each of the submodules, build WASM and native bindings, combine them into one package, and validate the package before publishing to NPM.
+7. If the build is successful and all tests and validation passes, the workflow will automatically publish to NPM, commit a git tag to the repo, and create a GitHub release.
+8. 🚀

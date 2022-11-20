@@ -863,6 +863,12 @@ export const useClientEffect$: (first: WatchFn, opts?: UseEffectOptions | undefi
 // @public
 export const useClientEffectQrl: (qrl: QRL<WatchFn>, opts?: UseEffectOptions) => void;
 
+// @public
+export const useClientMount$: <T>(first: MountFn<T>) => void;
+
+// @public
+export const useClientMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
+
 // Warning: (ae-forgotten-export) The symbol "UseContext" needs to be exported by the entry point index.d.ts
 //
 // @public

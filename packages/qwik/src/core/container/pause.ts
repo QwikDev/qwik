@@ -65,8 +65,6 @@ import type { QRL } from '../qrl/qrl.public';
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#pauseContainer instead)
 /**
- * Serialize the current state of the application into DOM
- *
  */
 // </docs>
 export const pauseContainer = async (

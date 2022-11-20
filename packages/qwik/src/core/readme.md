@@ -146,7 +146,18 @@ Registers a server mount hook that runs only in the server when the component is
 
 <docs code="./examples.tsx#use-server-mount"/>
 
-@see `useMount`
+@see `useMount`, `useClientMount`
+@public
+
+# `useClientMount`
+
+Registers a client mount hook that runs only in the browser when the component is first mounted.
+
+### Example
+
+<docs code="./examples.tsx#use-client-mount"/>
+
+@see `useMount`, `useServerMount`
 @public
 
 # `useStyles`

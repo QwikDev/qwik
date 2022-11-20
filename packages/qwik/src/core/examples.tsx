@@ -12,7 +12,8 @@ import { $, QRL } from './qrl/qrl.public';
 import { useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
-import { useClientEffect$, useMount$, useServerMount$, useWatch$ } from './use/use-watch';
+import { useClientEffect$, useWatch$ } from './use/use-watch';
+import { useClientMount$, useMount$, useServerMount$ } from './use/use-mount';
 import { implicit$FirstArg } from './util/implicit_dollar';
 
 //////////////////////////////////////////////////////////
@@ -257,6 +258,19 @@ export const CmpInline = component$(() => {
   function User(props: { user: User }) {
     return <div>Name: {props.user.name}</div>;
   }
+  // </docs>
+  return Cmp;
+};
+
+() => {
+  // <docs anchor="use-client-mount">
+  const Cmp = component$(() => {
+    useClientMount$(async () => {
+      // This code will ONLY run once in the client, when the component is mounted
+    });
+
+    return <div>Cmp</div>;
+  });
   // </docs>
   return Cmp;
 };

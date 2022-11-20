@@ -7,12 +7,7 @@ import { implicit$FirstArg } from '../util/implicit_dollar';
 import { assertDefined, assertEqual } from '../error/assert';
 import type { QRL } from '../qrl/qrl.public';
 import { assertQrl, createQRL, QRLInternal } from '../qrl/qrl-class';
-import {
-  codeToText,
-  qError,
-  QError_canNotMountUseServerMount,
-  QError_trackUseStore,
-} from '../error/error';
+import { codeToText, QError_trackUseStore } from '../error/error';
 import { useOn, useOnDocument } from './use-on';
 import { ContainerState, intToStr, MustGetObjID, strToInt } from '../container/container';
 import { notifyWatch, _hW } from '../render/dom/notify-render';
@@ -122,11 +117,6 @@ export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
  * @public
  */
 export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
-
-/**
- * @public
- */
-export type MountFn<T> = () => ValueOrPromise<T>;
 
 /**
  * @public
@@ -439,183 +429,6 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
  */
 // </docs>
 export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useClientEffectQrl);
-
-// <docs markdown="../readme.md#useServerMount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useServerMount instead)
-/**
- * Register's a server mount hook that runs only in the server when the component is first
- * mounted.
- *
- * ### Example
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     users: [],
- *   });
- *
- *   useServerMount$(async () => {
- *     // This code will ONLY run once in the server, when the component is mounted
- *     store.users = await db.requestUsers();
- *   });
- *
- *   return (
- *     <div>
- *       {store.users.map((user) => (
- *         <User user={user} />
- *       ))}
- *     </div>
- *   );
- * });
- *
- * interface User {
- *   name: string;
- * }
- * function User(props: { user: User }) {
- *   return <div>Name: {props.user.name}</div>;
- * }
- * ```
- *
- * @see `useMount`
- * @public
- */
-// </docs>
-export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
-  const { get, set, rCtx: ctx } = useSequentialScope<boolean>();
-  if (get) {
-    return;
-  }
-
-  if (isServer()) {
-    waitAndRun(ctx, mountQrl);
-    set(true);
-  } else {
-    throw qError(QError_canNotMountUseServerMount, ctx.$hostElement$);
-  }
-};
-
-// <docs markdown="../readme.md#useServerMount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useServerMount instead)
-/**
- * Register's a server mount hook that runs only in the server when the component is first
- * mounted.
- *
- * ### Example
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     users: [],
- *   });
- *
- *   useServerMount$(async () => {
- *     // This code will ONLY run once in the server, when the component is mounted
- *     store.users = await db.requestUsers();
- *   });
- *
- *   return (
- *     <div>
- *       {store.users.map((user) => (
- *         <User user={user} />
- *       ))}
- *     </div>
- *   );
- * });
- *
- * interface User {
- *   name: string;
- * }
- * function User(props: { user: User }) {
- *   return <div>Name: {props.user.name}</div>;
- * }
- * ```
- *
- * @see `useMount`
- * @public
- */
-// </docs>
-export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl);
-
-// <docs markdown="../readme.md#useMount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useMount instead)
-/**
- * Register a server mount hook that runs only in the server when the component is first mounted.
- *
- * ### Example
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     temp: 0,
- *   });
- *
- *   useMount$(async () => {
- *     // This code will run once whenever a component is mounted in the server, or in the client
- *     const res = await fetch('weather-api.example');
- *     const json = (await res.json()) as any;
- *     store.temp = json.temp;
- *   });
- *
- *   return (
- *     <div>
- *       <p>The temperature is: ${store.temp}</p>
- *     </div>
- *   );
- * });
- * ```
- *
- * @see `useServerMount`
- * @public
- */
-// </docs>
-export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
-  const { get, set, rCtx: ctx } = useSequentialScope<boolean>();
-  if (get) {
-    return;
-  }
-  assertQrl(mountQrl);
-  mountQrl.$resolveLazy$(ctx.$renderCtx$.$static$.$containerState$.$containerEl$);
-  waitAndRun(ctx, mountQrl);
-  set(true);
-};
-
-// <docs markdown="../readme.md#useMount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useMount instead)
-/**
- * Register a server mount hook that runs only in the server when the component is first mounted.
- *
- * ### Example
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     temp: 0,
- *   });
- *
- *   useMount$(async () => {
- *     // This code will run once whenever a component is mounted in the server, or in the client
- *     const res = await fetch('weather-api.example');
- *     const json = (await res.json()) as any;
- *     store.temp = json.temp;
- *   });
- *
- *   return (
- *     <div>
- *       <p>The temperature is: ${store.temp}</p>
- *     </div>
- *   );
- * });
- * ```
- *
- * @see `useServerMount`
- * @public
- */
-// </docs>
-export const useMount$ = /*#__PURE__*/ implicit$FirstArg(useMountQrl);
 
 export type WatchDescriptor = DescriptorBase<WatchFn>;
 

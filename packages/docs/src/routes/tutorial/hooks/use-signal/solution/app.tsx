@@ -1,14 +1,14 @@
-import { component$, useRef, useClientEffect$, useStore } from '@builder.io/qwik';
+import { component$, useClientEffect$, useSignal, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
   const store = useStore({
     width: 0,
     height: 0,
   });
-  const outputRef = useRef();
+  const outputRef = useSignal<Element>();
   useClientEffect$(() => {
-    if (outputRef.current) {
-      const rect = outputRef.current.getBoundingClientRect();
+    if (outputRef.value) {
+      const rect = outputRef.value.getBoundingClientRect();
       store.width = Math.round(rect.width);
       store.height = Math.round(rect.height);
     }

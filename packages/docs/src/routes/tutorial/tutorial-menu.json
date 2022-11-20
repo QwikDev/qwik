@@ -255,8 +255,8 @@
         "enableSsrOutput": false
       },
       {
-        "id": "use-ref",
-        "title": "useRef()",
+        "id": "use-signal",
+        "title": "useSignal()",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false

@@ -8,9 +8,9 @@
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
     "esbenp.prettier-vscode",
-    "rust-lang.rust",
+    "rust-lang.rust-analyzer",
     "hdevalke.rust-test-lens",
-    "bradlc.vscode-tailwindcss",
+    "ms-playwright.playwright",
     "manucorporat.vermoji",
     "ms-azuretools.vscode-docker",
     "mitsuhiko.insta",

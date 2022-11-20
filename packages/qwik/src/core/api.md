@@ -309,6 +309,42 @@ export type MountFn<T> = () => ValueOrPromise<T>;
 // @alpha @deprecated (undocumented)
 export const mutable: <T>(v: T) => T;
 
+// @beta (undocumented)
+export type NativeAnimationEvent = AnimationEvent;
+
+// @beta (undocumented)
+export type NativeClipboardEvent = ClipboardEvent;
+
+// @beta (undocumented)
+export type NativeCompositionEvent = CompositionEvent;
+
+// @beta (undocumented)
+export type NativeDragEvent = DragEvent;
+
+// @beta (undocumented)
+export type NativeFocusEvent = FocusEvent;
+
+// @beta (undocumented)
+export type NativeKeyboardEvent = KeyboardEvent;
+
+// @beta (undocumented)
+export type NativeMouseEvent = MouseEvent;
+
+// @beta (undocumented)
+export type NativePointerEvent = PointerEvent;
+
+// @beta (undocumented)
+export type NativeTouchEvent = TouchEvent;
+
+// @beta (undocumented)
+export type NativeTransitionEvent = TransitionEvent;
+
+// @beta (undocumented)
+export type NativeUIEvent = UIEvent;
+
+// @beta (undocumented)
+export type NativeWheelEvent = WheelEvent;
+
 // @public
 export type NoSerialize<T> = (T & {
     __no_serialize__: true;
@@ -365,8 +401,56 @@ export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: st
 // @internal (undocumented)
 export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
+// Warning: (ae-forgotten-export) The symbol "SyntheticEvent" needs to be exported by the entry point index.d.ts
+//
+// @beta (undocumented)
+export interface QwikAnimationEvent<T = Element> extends SyntheticEvent<T, NativeAnimationEvent> {
+    // (undocumented)
+    animationName: string;
+    // (undocumented)
+    elapsedTime: number;
+    // (undocumented)
+    pseudoElement: string;
+}
+
+// @beta (undocumented)
+export interface QwikChangeEvent<T = Element> extends SyntheticEvent<T> {
+    // (undocumented)
+    target: EventTarget & T;
+}
+
+// @beta (undocumented)
+export interface QwikClipboardEvent<T = Element> extends SyntheticEvent<T, NativeClipboardEvent> {
+    // (undocumented)
+    clipboardData: DataTransfer;
+}
+
+// @beta (undocumented)
+export interface QwikCompositionEvent<T = Element> extends SyntheticEvent<T, NativeCompositionEvent> {
+    // (undocumented)
+    data: string;
+}
+
 // @public (undocumented)
 export interface QwikDOMAttributes extends DOMAttributes<any> {
+}
+
+// @beta (undocumented)
+export interface QwikDragEvent<T = Element> extends QwikMouseEvent<T, NativeDragEvent> {
+    // (undocumented)
+    dataTransfer: DataTransfer;
+}
+
+// @beta (undocumented)
+export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFocusEvent> {
+    // (undocumented)
+    relatedTarget: EventTarget | null;
+    // (undocumented)
+    target: EventTarget & T;
+}
+
+// @beta (undocumented)
+export interface QwikFormEvent<T = Element> extends SyntheticEvent<T> {
 }
 
 // Warning: (ae-forgotten-export) The symbol "IntrinsicHTMLElements" needs to be exported by the entry point index.d.ts
@@ -382,6 +466,12 @@ export interface QwikIntrinsicElements extends IntrinsicHTMLElements {
     //
     // (undocumented)
     script: QwikScriptHTMLAttributes<HTMLScriptElement>;
+}
+
+// @beta (undocumented)
+export interface QwikInvalidEvent<T = Element> extends SyntheticEvent<T> {
+    // (undocumented)
+    target: EventTarget & T;
 }
 
 // @public (undocumented)
@@ -402,6 +492,142 @@ export namespace QwikJSX {
     // (undocumented)
     export interface IntrinsicElements extends QwikIntrinsicElements {
     }
+}
+
+// @beta (undocumented)
+export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent> {
+    // (undocumented)
+    altKey: boolean;
+    // (undocumented)
+    charCode: number;
+    // (undocumented)
+    ctrlKey: boolean;
+    getModifierState(key: string): boolean;
+    key: string;
+    // (undocumented)
+    keyCode: number;
+    // (undocumented)
+    locale: string;
+    // (undocumented)
+    location: number;
+    // (undocumented)
+    metaKey: boolean;
+    // (undocumented)
+    repeat: boolean;
+    // (undocumented)
+    shiftKey: boolean;
+    // (undocumented)
+    which: number;
+}
+
+// @beta (undocumented)
+export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends SyntheticEvent<T, E> {
+    // (undocumented)
+    altKey: boolean;
+    // (undocumented)
+    button: number;
+    // (undocumented)
+    buttons: number;
+    // (undocumented)
+    clientX: number;
+    // (undocumented)
+    clientY: number;
+    // (undocumented)
+    ctrlKey: boolean;
+    getModifierState(key: string): boolean;
+    // (undocumented)
+    metaKey: boolean;
+    // (undocumented)
+    movementX: number;
+    // (undocumented)
+    movementY: number;
+    // (undocumented)
+    pageX: number;
+    // (undocumented)
+    pageY: number;
+    // (undocumented)
+    relatedTarget: EventTarget | null;
+    // (undocumented)
+    screenX: number;
+    // (undocumented)
+    screenY: number;
+    // (undocumented)
+    shiftKey: boolean;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @beta (undocumented)
+export interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativePointerEvent> {
+    // (undocumented)
+    height: number;
+    // (undocumented)
+    isPrimary: boolean;
+    // (undocumented)
+    pointerId: number;
+    // (undocumented)
+    pointerType: 'mouse' | 'pen' | 'touch';
+    // (undocumented)
+    pressure: number;
+    // (undocumented)
+    tiltX: number;
+    // (undocumented)
+    tiltY: number;
+    // (undocumented)
+    width: number;
+}
+
+// @beta (undocumented)
+export interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTouchEvent> {
+    // (undocumented)
+    altKey: boolean;
+    // (undocumented)
+    changedTouches: TouchList;
+    // (undocumented)
+    ctrlKey: boolean;
+    getModifierState(key: string): boolean;
+    // (undocumented)
+    metaKey: boolean;
+    // (undocumented)
+    shiftKey: boolean;
+    // (undocumented)
+    targetTouches: TouchList;
+    // (undocumented)
+    touches: TouchList;
+}
+
+// @beta (undocumented)
+export interface QwikTransitionEvent<T = Element> extends SyntheticEvent<T, NativeTransitionEvent> {
+    // (undocumented)
+    elapsedTime: number;
+    // (undocumented)
+    propertyName: string;
+    // (undocumented)
+    pseudoElement: string;
+}
+
+// @beta (undocumented)
+export interface QwikUIEvent<T = Element> extends SyntheticEvent<T, NativeUIEvent> {
+    // (undocumented)
+    detail: number;
+    // Warning: (ae-forgotten-export) The symbol "AbstractView" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    view: AbstractView;
+}
+
+// @beta (undocumented)
+export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWheelEvent> {
+    // (undocumented)
+    deltaMode: number;
+    // (undocumented)
+    deltaX: number;
+    // (undocumented)
+    deltaY: number;
+    // (undocumented)
+    deltaZ: number;
 }
 
 // @alpha

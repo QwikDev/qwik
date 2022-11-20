@@ -116,3 +116,36 @@ export { noSerialize, mutable } from './state/common';
 export { _IMMUTABLE } from './state/constants';
 
 export { version } from './version';
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Qwik Events
+//////////////////////////////////////////////////////////////////////////////////////////
+export type {
+  NativeAnimationEvent,
+  NativeClipboardEvent,
+  NativeCompositionEvent,
+  NativeDragEvent,
+  NativeFocusEvent,
+  NativeKeyboardEvent,
+  NativeMouseEvent,
+  NativePointerEvent,
+  NativeTouchEvent,
+  NativeTransitionEvent,
+  NativeUIEvent,
+  NativeWheelEvent,
+  QwikAnimationEvent,
+  QwikClipboardEvent,
+  QwikCompositionEvent,
+  QwikDragEvent,
+  QwikPointerEvent,
+  QwikFocusEvent,
+  QwikFormEvent,
+  QwikInvalidEvent,
+  QwikChangeEvent,
+  QwikKeyboardEvent,
+  QwikMouseEvent,
+  QwikTouchEvent,
+  QwikUIEvent,
+  QwikWheelEvent,
+  QwikTransitionEvent,
+} from './render/jsx/types/jsx-qwik-events';

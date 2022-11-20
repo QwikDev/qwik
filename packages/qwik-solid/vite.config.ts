@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
-import solidPlugin from 'vite-plugin-solid';
 
 export default defineConfig(() => {
   return {

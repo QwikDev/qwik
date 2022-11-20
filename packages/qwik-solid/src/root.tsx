@@ -1,4 +1,5 @@
 import { App } from './examples/app';
+import { generateHydrationScript } from 'solid-js/web';
 
 export const Root = () => {
   return (
@@ -6,6 +7,7 @@ export const Root = () => {
       <head>
         <meta charSet="utf-8" />
         <title>Qwik Blank App</title>
+        <div dangerouslySetInnerHTML={generateHydrationScript()} />
       </head>
 
       <body>

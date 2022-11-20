@@ -9,18 +9,15 @@ import {
   useSignal,
   useWatch$,
 } from '@builder.io/qwik';
-
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import { renderFromServer } from './server-render';
 import { hydrate } from 'solid-js/web';
 
 export function qwikifyQrl<PROPS extends {}>(solidCmp$: any, opts?: any) {
-  console.log('solidCmp$: ', solidCmp$);
 
-  return component$(async (props) => {
+  return component$((props) => {
     const [wakeUp] = useWakeupSignal(props);
-
-    console.log('wakeup: ', wakeUp);
+    const hostRef = useSignal<HTMLElement>();
 
     useWatch$(async ({ track }) => {
       track(() => wakeUp.value);
@@ -29,28 +26,24 @@ export function qwikifyQrl<PROPS extends {}>(solidCmp$: any, opts?: any) {
         return;
       }
 
-      const element = document.getElementById('root-solid');
+      const element = hostRef.value;
       if (element) {
         const Cmp = await solidCmp$.resolve();
-        // debugger
-        hydrate(Cmp, element);
-        console.log('Hydrated');
+        hydrate(() => Cmp, element);
+        console.log("Hydrated 💦")
       }
     });
     if (isServer) {
-      const jsx = renderFromServer('qwik-solid', solidCmp$);
-      console.log('Solid JSX: ', jsx);
+      const jsx = renderFromServer('qwik-solid', solidCmp$, hostRef);
 
       return (
-        <RenderOnce>
-          {jsx}
-        </RenderOnce>
+          <RenderOnce>{jsx}</RenderOnce>
       );
     }
 
     return (
       <RenderOnce>
-        <div id="root-solid"></div>
+        <div></div>
       </RenderOnce>
     );
   });

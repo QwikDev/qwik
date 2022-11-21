@@ -14,9 +14,9 @@ Slots allows a component to treat the JSX children of the component as a form of
 
 This concept has different names in different frameworks:
 
- - In Angular is called Content Projection
- - In React, it's the `children` of the props
- - In Vue, and web components it's called slots as well
+- In Angular is called Content Projection
+- In React, it's the `children` of the props
+- In Vue, and web components it's called slots as well
 
 Slots in Qwik are symbolic, allowing Qwik to render parents and children in perfect isolation, allowing to render the parent component without ever rerender the childrens and vice versa.
 
@@ -41,12 +41,12 @@ export const Button = component$(() => {
 The `<Slot>` component is a placeholder for the children of the component. The `<Slot>` component will be replaced by the children of the component, when rendering the app.
 
 Let's see the usage of this component:
+
 ```tsx
 <Button>
   {... this will be placed where the <Slot> is used inside the Button component ...}
 </Button>
 ```
-
 
 ### Named slots
 
@@ -59,11 +59,11 @@ export const Button = component$(() => {
   return (
     <button>
       <div>
-        <Slot name="start"/>  {/* "start" slot */}
+        <Slot name="start" /> {/* "start" slot */}
       </div>
       <Slot /> {/* default slot */}
       <div>
-        <Slot name="end"/> {/* "end" slot */}
+        <Slot name="end" /> {/* "end" slot */}
       </div>
     </button>
   );
@@ -78,7 +78,6 @@ Now, when consuming the `<Button>` component, we can pass children and specify i
   <div>Default</div>
   <div q:slot="end">End</div>
   <icon q:slot="end"></icon>
-
 </Button>
 ```
 
@@ -105,7 +104,6 @@ Notice that:
 - If `q:slot` is not specified or it's an empty string, the content will be projected into the default `<Slot>`, ie. the `<Slot>` without a `name` property.
 - Multiple `q:slot="end"` attributes coalesce items together in the content projection.
 
-
 ### Not projecting content
 
 Qwik keeps all content around, even if not projected. This is because the content could be projected in the future.
@@ -131,7 +129,6 @@ Results in:
 ```
 
 Notice that the un-projected content is moved into an inert `<q:template>`. This is done just in case the `Project` component re-renders and inserts a `<Slot>`. In that case, we don't want to have to re-render the parent component just to generate the projected content. By persisting the un-projected content when the parent is initially rendered, the rendering of the two components can stay independent.
-
 
 ### Invalid projection
 
@@ -172,9 +169,8 @@ In order for the two components to have an independent lifecycle, the projection
 
 With `children` approach, the component can imperatively modify the `children` in endless ways. This would make it extremely difficult to build a framework that would not force re-rendering both parent and children.
 
-
-
 ## Advanced Example
+
 An example of a collapsible component which conditionally projects its content.
 
 ```tsx

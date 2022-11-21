@@ -115,14 +115,9 @@ export const Cmp = component$(() => {
     // This code will ONLY run once in the browser, when the component is mounted
     store.option = localStorage.getItem('option');
   });
-  return (
-    <>
-      Localstore: {store.option}
-    </>
-  );
+  return <>Localstore: {store.option}</>;
 });
 ```
-
 
 ## `useWatch$()`
 
@@ -169,13 +164,11 @@ The example above uses the `track` function to watch changes in `() => store.cou
 
 > See also the `useClientEffect$()` hook that shares similar semantics but only runs on the client after rendering.
 
-
 ### When to use `useWatch$()`
 
 You wanna mutate some state, or perform some action when some state changes. Ie, you need to have some side effects.
 
 > Note, if you wanna load some data (for example a fetch()), to later use that in your component, look at [`useResource$()`](/docs/components/resource/index.mdx). This API will be even more efficiently leveraging SSR streaming and parallelisim.
-
 
 ## `useClientEffect$()`
 
@@ -190,7 +183,7 @@ For all components that got mounted during SSR (in the server), the `useClientEf
 
 ```tsx
 useClientEffect$(() => console.log('runs in the browser'), {
-  eagerness: 'visible' // 'load' | 'visible' | 'idle'
+  eagerness: 'visible', // 'load' | 'visible' | 'idle'
 });
 ```
 
@@ -235,32 +228,31 @@ You need to run JS right at loading time of the page, even if the user never int
 - Read some `localStorage`
 - Runs some code without user interaction
 
-
 ## Diagram flow
 
-<img src={diagram}/>
+<img src={diagram} />
 
 ## Use Method Rules
 
 When using lifecycle hooks, you must adhere to the following rules:
 
-  - They can only be called in `component$`
-  - They can only be called at the root level of a function / arrow function context, not inside of branches or conditional blocks
-  - They can only be called from another `use*$` method, allowing for composition
+- They can only be called in `component$`
+- They can only be called at the root level of a function / arrow function context, not inside of branches or conditional blocks
+- They can only be called from another `use*$` method, allowing for composition
 
 ```tsx
-useHook() // <-- ❌ does not work
+useHook(); // <-- ❌ does not work
 
 export default component$(() => {
-  useCustomHook() // <-- ✅ does work
+  useCustomHook(); // <-- ✅ does work
   if (condition) {
-    useHook() // <-- ❌ does not work
+    useHook(); // <-- ❌ does not work
   }
-  const myQrl = $(() => useHook()) // <-- ❌ does not work
-  return <button onClick$={() => useHook()}></button> // <-- ❌ does not work
-})
+  const myQrl = $(() => useHook()); // <-- ❌ does not work
+  return <button onClick$={() => useHook()}></button>; // <-- ❌ does not work
+});
 
 const useCustomHook = () => {
-  useHook() // <-- ✅ does work
-}
+  useHook(); // <-- ✅ does work
+};
 ```

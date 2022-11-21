@@ -18,7 +18,6 @@ The `$` prefix is used to signal both the optimizer and the developer when this 
 
 The `$` tells the optimizer which functions to extract into a separate file up and which ones to leave untouched. The optimizer does not keep an internal list of magic functions, instead, it solely relies on the `$` suffix to know which functions to transform. The system is extendable and developers can create their own `$` functions, such as `myCustomFunction$()`.
 
-
 ### Example
 
 ```tsx
@@ -33,32 +32,39 @@ export default component$(() => {
 The component above is split thanks to the `$` syntax into:
 
 **app.js**
-```js
-import { componentQrl, qrl } from "@builder.io/qwik";
 
-const App = /*#__PURE__*/ componentQrl(qrl(()=>import('./app_component_akbu84a8zes.js'), "App_component_AkbU84a8zes"));
+```js
+import { componentQrl, qrl } from '@builder.io/qwik';
+
+const App = /*#__PURE__*/ componentQrl(
+  qrl(() => import('./app_component_akbu84a8zes.js'), 'App_component_AkbU84a8zes')
+);
 
 export { App };
 ```
 
 **app_component_akbu84a8zes.js**
+
 ```js
-import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
-import { qrl } from "@builder.io/qwik";
-export const App_component_AkbU84a8zes = ()=>{
-    console.log('render');
-    return /*#__PURE__*/ _jsx("p", {
-        onClick$: qrl(()=>import("./app_component_p_onclick_01pegc10cpw"), "App_component_p_onClick_01pEgC10cpw"),
-        children: "Hello Qwik"
-    });
+import { jsx as _jsx } from '@builder.io/qwik/jsx-runtime';
+import { qrl } from '@builder.io/qwik';
+export const App_component_AkbU84a8zes = () => {
+  console.log('render');
+  return /*#__PURE__*/ _jsx('p', {
+    onClick$: qrl(
+      () => import('./app_component_p_onclick_01pegc10cpw'),
+      'App_component_p_onClick_01pEgC10cpw'
+    ),
+    children: 'Hello Qwik',
+  });
 };
 ```
 
 **app_component_p_onclick_01pegc10cpw.js**
-```js
-export const App_component_p_onClick_01pEgC10cpw = ()=>console.log('hello');
-```
 
+```js
+export const App_component_p_onClick_01pEgC10cpw = () => console.log('hello');
+```
 
 ## Rules
 
@@ -73,48 +79,55 @@ The first argument of any function that ends with `$` have certain restrictions:
 #### 1. Literals without local identifiers
 
 **Invalid**
+
 ```tsx
 const foo = 'foo';
-foo$({ value: foo }) // it contains a local identifier "foo"
+foo$({ value: foo }); // it contains a local identifier "foo"
 ```
 
 **Invalid**
+
 ```tsx
 const bar = 'bar';
-foo$(`Hello, ${bar}`) // it contains a local identifier "bar"
+foo$(`Hello, ${bar}`); // it contains a local identifier "bar"
 ```
 
 **Invalid**
+
 ```tsx
 const count = 0;
-foo$(count + 1) // it contains a local identifier "count"
+foo$(count + 1); // it contains a local identifier "count"
 ```
 
 **Valid**
+
 ```tsx
-foo$(`Hello, bar`)
-foo$({ value: 'stuff' })
-foo$(1 + 3)
+foo$(`Hello, bar`);
+foo$({ value: 'stuff' });
+foo$(1 + 3);
 ```
 
 #### 2. Importable identifiers
 
 **Invalid**
+
 ```tsx
 const foo = 'foo';
-foo$(foo) // foo is not exported, so it's not importable
+foo$(foo); // foo is not exported, so it's not importable
 ```
 
 **Valid**
+
 ```tsx
 export const bar = 'bar';
-foo$(bar)
+foo$(bar);
 ```
 
 **Valid**
+
 ```tsx
-import {bar} from './bar';
-foo$(bar)
+import { bar } from './bar';
+foo$(bar);
 ```
 
 ### 3. Closures
@@ -122,12 +135,14 @@ foo$(bar)
 For closures, the rules are a bit relaxed, and local identifiers can be referenced and captured.
 
 > **RULE**: If a function lexically captures a variable (or parameter), that variable must be:
-> 1. a `const` and 
+>
+> 1. a `const` and
 > 2. the value must be serializable.
 
 #### 3.1. Captured variables must be declared as a `const`.
 
 **Invalid**
+
 ```tsx
 component$(() => {
   let foo = 'value'; // variable is not a const
@@ -136,6 +151,7 @@ component$(() => {
 ```
 
 **Valid**
+
 ```tsx
 component$(() => {
   const foo = 'value';
@@ -146,6 +162,7 @@ component$(() => {
 #### 3.2. Local captured variables must be serializable
 
 **Invalid**
+
 ```tsx
 component$(() => {
   const foo = new MyCustomClass(12); // MyCustomClass is not serializable
@@ -154,6 +171,7 @@ component$(() => {
 ```
 
 **Valid**
+
 ```tsx
 component$(() => {
   const foo = { data: 12 };
@@ -166,6 +184,7 @@ component$(() => {
 > **RULE**: If a function that is being extracted by Optimizer refers to a top-level symbol, that symbol must either be imported or exported.
 
 **Valid**
+
 ```tsx
 import { foo } from './foo';
 component$(() => {
@@ -174,6 +193,7 @@ component$(() => {
 ```
 
 **Valid**
+
 ```tsx
 export const foo = new MyCustomClass(12);
 component$(() => {
@@ -182,6 +202,7 @@ component$(() => {
 ```
 
 **Invalid**
+
 ```tsx
 // Foo is declared at the module level, but it's not exported
 const foo = new MyCustomClass(12);

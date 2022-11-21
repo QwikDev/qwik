@@ -146,7 +146,6 @@ There are several reasons:
 4. Finally, QRLs encode information about the lexically scoped variables captured in the closure and need to be restored.
 5. Requires that the developer writes `import('./file-a.js')`, which means the developer is in charge of deciding where the lazy-loaded boundaries are. This limits our ability of the tooling to move code around in an automated way.
 
-
 Because of the above differences, Qwik introduces QRLs as a mechanism for lazy load closures into a Qwik application.
 
 ## See Also

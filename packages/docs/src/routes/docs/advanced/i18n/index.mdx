@@ -11,15 +11,18 @@ Internationalization is a complex problem. Qwik does not solve the international
 ## Runtime vs compile time translation
 
 At a high level there are two ways in which the translation problem can be solved:
+
 - Runtime: load a translation map and look up the translations at runtime.
 - Compile time: Have a compile step inline the translations into the output string.
 
 Both of the above approaches have trade-offs that one should take into consideration.
 
 The advantages of runtime approaches are:
+
 - Simplicity. Does not require an additional build step.
 
 Disadvantages of the runtime approach are:
+
 - Each string is present in triplicate:
   1. Once as the original string in the code.
   2. Once as a key in a translation map.
@@ -28,10 +31,12 @@ Disadvantages of the runtime approach are:
 - There is a runtime cost to translation lookups.
 
 The advantages of compile-time approaches are:
+
 - Qwik's lazy loading of code now extends to the lazy loading of translation strings. (No unnecessary translation text is loaded)
 - No runtime translation map means strings are not in triplicate.
 
 Disadvantages of compile time approaches are:
+
 - Extra build step.
 - Changing languages requires a page reload.
 

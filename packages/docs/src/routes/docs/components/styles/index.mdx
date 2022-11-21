@@ -7,13 +7,15 @@ contributors:
 # Styles
 
 ## Global styles
+
 Many apps use a global stylesheet to do browser resets and/or defining global styles. This is a good practice, but it is not recommended to use it for styling your components. Qwik is optimized to let the browser just download the styles that are needed for the current view. If you use a global stylesheet, all the styles will be downloaded on the first load, even if they are not needed for the current view.
 
 ```tsx
-import './global.css'
+import './global.css';
 ```
 
 ## Inline critical styles
+
 To reduce the blocking time of the first paint, Vite can [inline the critical styles](https://vitejs.dev/guide/features.html#disabling-css-injection-into-the-page) for the current view. This means that the browser will not need to download any referenced `*.css` files separately. To tell Vite to inline styles, just add the `?inline` query parameter to the import.
 
 ```tsx
@@ -47,14 +49,14 @@ What is needed is to load the styles independently from the component. This is w
 2. The component is rendered on the client for the first time. In that case, the new component does not have styles in the `<head>` as the component was not part of SSR.
    - Adding a new component that was not part of SSR requires that styles are loaded and inserted into `<head>`.
 
-
 ## `useStyles$()`
+
 A lazy-loadable reference to component's styles.
 
 Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
 
 ```tsx
-import {useStyles$} from '@builder.io/qwik';
+import { useStyles$ } from '@builder.io/qwik';
 import styles from './code-block.css?inline';
 
 export const CmpStyles = component$(() => {
@@ -71,12 +73,13 @@ export const CmpStyles = component$(() => {
 ```
 
 ## `useStylesScope$`
+
 In previous sections, we have discussed how styles can be loaded lazily as they are needed using the [`useStyles$()`](/docs/components/styles/index.mdx#usestyles) hook.
 Browser styles are global and apply to all DOM elements, for this reason, Qwik also provides a way to load styles that are specific to a specific component.
 This is achieved by generating a unique class for each component and then inserting that unique class id into the stylesheet. Please note that you need to add `?inline` to your styles import.
 
 ```tsx
-import {useStylesScoped$} from '@builder.io/qwik';
+import { useStylesScoped$ } from '@builder.io/qwik';
 import styles from './code-block.css?inline';
 
 export const CmpStyles = component$(() => {
@@ -93,8 +96,11 @@ export const CmpStyles = component$(() => {
 ```
 
 ## Preprocessors
+
 ### `.scss`, `.sass`, `.less`, `.styl`, `.stylus`
+
 Vite works nicely with many preprocessors. Just make sure, that you install the required [plugins](https://vitejs.dev/guide/features.html#css-pre-processors).
 
 ### Tailwind
+
 To use Tailwind on your app, follow these [instructions](../../../qwikcity/integrations/tailwind).

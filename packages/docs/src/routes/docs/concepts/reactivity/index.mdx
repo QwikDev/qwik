@@ -59,7 +59,9 @@ export const ComplexCounter = component$(() => {
 
   return (
     <>
-      <button onClick$={() => (store.visible = !store.visible)}>{store.visible ? 'hide' : 'show'}</button>
+      <button onClick$={() => (store.visible = !store.visible)}>
+        {store.visible ? 'hide' : 'show'}
+      </button>
       <button onClick$={() => store.count++}>increment</button>
       {store.visible ? <span>{store.count}</span> : null}
     </>

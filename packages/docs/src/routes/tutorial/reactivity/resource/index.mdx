@@ -47,12 +47,12 @@ Use `<Resource>` to display the data of the [`useResource$()`](/docs/components/
 On the server the `<Resource>` does not render `loading` state, instead, it pauses rendering until the resource is resolved and will always render as either `resolved` or `rejected`. (On the client, the `<Resource>` renders all states including `pending`.)
 
 ```jsx
-  <Resource
-     value={resourceToRender}
-     onPending={() => <div>Loading...</div>}
-     onError={(reason) => <div>Error: {reason}</div>}
-     onResolved={(data) => <div>{data}</div>}
-  />
+<Resource
+  value={resourceToRender}
+  onPending={() => <div>Loading...</div>}
+  onError={(reason) => <div>Error: {reason}</div>}
+  onResolved={(data) => <div>{data}</div>}
+/>
 ```
 
 ## SSR vs Client

@@ -28,7 +28,6 @@ The adaptor will add a new `vite.config.ts` within the `adaptors/` directory, an
 
 Additionally, within the `package.json`, the `build.server` script will be updated with the Cloudflare build.
 
-
 ## Production build
 
 To build the application for production, use the `build` command, this command will automatically run `npm run build.server` and `npm run build.client`:
@@ -38,7 +37,6 @@ npm run build
 ```
 
 [Read the full guide here](https://github.com/BuilderIO/qwik/tree/main/starters/adaptors/cloudflare-pages/README.md)
-
 
 ## Local development deployment
 
@@ -97,9 +95,7 @@ By default, the Cloudflare Pages adaptor _does not_ include a `public/_routes.js
 
 ```json
 {
-  "include": [
-    "/*"
-  ],
+  "include": ["/*"],
   "exclude": [
     "/_headers",
     "/_redirects",
@@ -123,16 +119,16 @@ You may access Cloudflare Page's environment variables in the endpoint method's 
 
 ```javascript
 export const onRequest = async ({ platform }) => {
-  const secret = platform.env["SUPER_SECRET_TOKEN"];
+  const secret = platform.env['SUPER_SECRET_TOKEN'];
 };
 ```
 
 Additionally, you may import the `RequestHandlerCloudflarePages` type to have have type completions in your editor.
 
 ```tsx
-import {type RequestHandlerCloudflarePages} from '@builder.io/qwik-city/middleware/cloudflare-pages';
+import { type RequestHandlerCloudflarePages } from '@builder.io/qwik-city/middleware/cloudflare-pages';
 
-export const onGet: RequestHandlerCloudflarePages = (({ platform }) => {
- //...
-})
+export const onGet: RequestHandlerCloudflarePages = ({ platform }) => {
+  //...
+};
 ```

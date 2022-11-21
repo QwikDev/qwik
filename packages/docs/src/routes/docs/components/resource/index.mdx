@@ -16,8 +16,8 @@ Just like all the `use-` methods, it must be called within the context of [`comp
 
 ```tsx
 const store = useStore({
-  bar: 'foo'
-})
+  bar: 'foo',
+});
 const resource = useResource$(async (ctx) => {
   ctx.track(() => store.bar); // the resource will rerun when store.bar changes.
   ctx.track(() => props.url); // track() can be called multiple times, to track multiple values
@@ -50,14 +50,14 @@ The callback passed to [`useResource$()`](/docs/components/resource/index.mdx) r
 `<Resource />` is a component that renders its children when the resource is resolved, and renders a fallback when the resource is pending or rejected.
 
 ```tsx
-  <Resource
-    value={weatherResource}
-    onPending={() => <div>Loading...</div>}
-    onRejected={() => <div>Failed to load weather</div>}
-    onResolved={(weather) => {
-      return <div>Temperature: {weather.temp}</div>;
-    }}
-  />
+<Resource
+  value={weatherResource}
+  onPending={() => <div>Loading...</div>}
+  onRejected={() => <div>Failed to load weather</div>}
+  onResolved={(weather) => {
+    return <div>Temperature: {weather.temp}</div>;
+  }}
+/>
 ```
 
 It is worth noting that `<Resource />` is not required when using `useResource$()`. It is just a convenient way to render the resource state.
@@ -72,19 +72,19 @@ based on the name typed by the user, and will update whenever the user types in 
 ```tsx
 export default component$(() => {
   const store = useStore<{ name?: string }>({
-    name: undefined
-  })
+    name: undefined,
+  });
 
   const ageResource = useResource$<{
     name: string;
     age: number;
     count: number;
-  }>(async ({track, cleanup}) => {
+  }>(async ({ track, cleanup }) => {
     track(() => store.name);
     const abortController = new AbortController();
-    cleanup(() => abortController.abort("cleanup"));
+    cleanup(() => abortController.abort('cleanup'));
     const res = await fetch(`https://api.agify.io?name=${store.name}`, {
-      signal: abortController.signal
+      signal: abortController.signal,
     });
     return res.json();
   });
@@ -92,15 +92,21 @@ export default component$(() => {
   return (
     <div>
       <h1>Enter your name, and I'll guess your age!</h1>
-      <input onInput$={(e: Event) => store.name = (e.target as HTMLInputElement).value}/>
+      <input onInput$={(e: Event) => (store.name = (e.target as HTMLInputElement).value)} />
       <Resource
         value={ageResource}
         onPending={() => <div>Loading...</div>}
         onRejected={() => <div>Failed to person data</div>}
         onResolved={(ageGuess) => {
-          return <div>
-            {store.name && <>{ageGuess.name} {ageGuess.age} years</>}
-          </div>;
+          return (
+            <div>
+              {store.name && (
+                <>
+                  {ageGuess.name} {ageGuess.age} years
+                </>
+              )}
+            </div>
+          );
         }}
       />
     </div>
@@ -118,19 +124,19 @@ the data returned from [`useResource$()`](/docs/components/resource/index.mdx) d
 ```tsx
 export default component$(() => {
   const store = useStore<{ name?: string }>({
-    name: undefined
-  })
+    name: undefined,
+  });
 
   const ageResource = useResource$<{
     name: string;
     age: number;
     count: number;
-  }>(async ({track, cleanup}) => {
+  }>(async ({ track, cleanup }) => {
     track(() => store.name);
     const abortController = new AbortController();
-    cleanup(() => abortController.abort("cleanup"));
+    cleanup(() => abortController.abort('cleanup'));
     const res = await fetch(`https://api.agify.io?name=${store.name}`, {
-      signal: abortController.signal
+      signal: abortController.signal,
     });
     return res.json();
   });
@@ -138,12 +144,18 @@ export default component$(() => {
   return (
     <div>
       <h1>Enter your name, and I'll guess your age!</h1>
-      <input onInput$={(e: Event) => store.name = (e.target as HTMLInputElement).value}/>
+      <input onInput$={(e: Event) => (store.name = (e.target as HTMLInputElement).value)} />
       <div>
         {ageResource.loading && <div>Loading age guess...</div>}
-        {!ageResource.loading && store.name && <div>{ageResource.promise.then(ageGuess => (
-          <div>{ageGuess.name} {ageGuess.age} years</div>
-        ))}</div>}
+        {!ageResource.loading && store.name && (
+          <div>
+            {ageResource.promise.then((ageGuess) => (
+              <div>
+                {ageGuess.name} {ageGuess.age} years
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

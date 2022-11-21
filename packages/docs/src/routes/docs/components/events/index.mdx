@@ -30,11 +30,11 @@ In the above example, the `click` listener is trivial in implementation. But in 
 You can also pass QRLs as values for event listeners. For instance, the above example could also be written in the following way:
 
 ```tsx
-import { component$, useStore, $ } from "@builder.io/qwik";
+import { component$, useStore, $ } from '@builder.io/qwik';
 
 export const Counter = component$(() => {
   const store = useStore({ count: 0 });
-  const incrementCount = $(() => store.count++)
+  const incrementCount = $(() => store.count++);
 
   return <button onClick$={incrementCount}>{store.count}</button>;
 });
@@ -153,11 +153,12 @@ export const CmpButton = component$((props: CmpButtonProps) => {
 Notice that we can pass the `props.onClick$` method directly to the `onDblclick$` attribute as seen on `<button>` element. (see attribute `onDblclick$={props.onClick$}`) This is because both the inputting prop `onClick$` as well as JSX prop `onDblclick` are of type `PropFunction<?>` (and both have `$` suffix).
 
 However, it is not possible to pass `props.onClick$` to `onClick$` because the types don't match. (This would result in the type error: `onClick$={props.onClick$}`) Instead, the `$` is reserved for inlined closures. In our example, we would like to `console.log("clicked")` after we process the `props.onClick` callback. We can do so with the `props.onClick$()` method. This method will:
-  1. Lazy load the code
-  2. Restore the closure state
-  3. Invoke the closure
- 
- The operation is asynchronous and therefore returns a promise, which we can resolve using the `await` statement.
+
+1. Lazy load the code
+2. Restore the closure state
+3. Invoke the closure
+
+The operation is asynchronous and therefore returns a promise, which we can resolve using the `await` statement.
 
 ## State recovery
 

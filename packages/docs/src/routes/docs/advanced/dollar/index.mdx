@@ -130,7 +130,7 @@ import { bar } from './bar';
 foo$(bar);
 ```
 
-### 3. Closures
+#### 3. Closures
 
 For closures, the rules are a bit relaxed, and local identifiers can be referenced and captured.
 
@@ -139,7 +139,7 @@ For closures, the rules are a bit relaxed, and local identifiers can be referenc
 > 1. a `const` and
 > 2. the value must be serializable.
 
-#### 3.1. Captured variables must be declared as a `const`.
+##### 3.1. Captured variables must be declared as a `const`.
 
 **Invalid**
 
@@ -159,7 +159,7 @@ component$(() => {
 });
 ```
 
-#### 3.2. Local captured variables must be serializable
+##### 3.2. Local captured variables must be serializable
 
 **Invalid**
 
@@ -179,7 +179,7 @@ component$(() => {
 });
 ```
 
-#### 3.3. Module-declared variables can be importable
+##### 3.3. Module-declared variables can be importable
 
 > **RULE**: If a function that is being extracted by Optimizer refers to a top-level symbol, that symbol must either be imported or exported.
 

@@ -92,6 +92,18 @@ import { getSourceFile } from './source-file';
     },
   },
   {
+    fileName: 'layout@name.jsx',
+    expect: null,
+  },
+  {
+    fileName: 'layout!.jsx',
+    expect: {
+      type: 'layout',
+      extlessName: 'layout!',
+      ext: '.jsx',
+    },
+  },
+  {
     fileName: 'layout.jsx',
     expect: {
       type: 'layout',
@@ -121,6 +133,14 @@ import { getSourceFile } from './source-file';
   },
   {
     fileName: 'index.css',
+    expect: null,
+  },
+  {
+    fileName: 'index.css.ts',
+    expect: null,
+  },
+  {
+    fileName: 'index.scss.ts',
     expect: null,
   },
   {

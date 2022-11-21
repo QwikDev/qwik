@@ -11,7 +11,7 @@ import type { ValueOrPromise } from '../../util/types';
 import { isPromise, promiseAll, promiseAllLazy, then } from '../../util/promises';
 import { assertDefined, assertEqual, assertTrue } from '../../error/assert';
 import { logWarn } from '../../util/log';
-import { qDev, qSerialize } from '../../util/qdev';
+import { qDev, qSerialize, qTest } from '../../util/qdev';
 import type { OnRenderFn } from '../../component/component.public';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
@@ -667,10 +667,10 @@ const createElm = (
     setComponentProps(elCtx, rCtx, props.props);
     setQId(rCtx, elCtx);
 
-    if (qDev) {
+    if (qDev && !qTest) {
       const symbol = renderQRL.$symbol$;
       if (symbol) {
-        directSetAttribute(elm, 'data-symbol', symbol);
+        directSetAttribute(elm, 'data-qrl', symbol);
       }
     }
 

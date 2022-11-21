@@ -128,6 +128,14 @@ const MARKDOWN_EXTS: { [type: string]: boolean } = {
   '.mdx': true,
 };
 
+export function isIndexModule(extlessName: string) {
+  return /^index(|!|@.+)$/.test(extlessName);
+}
+
+export function isLayoutModule(extlessName: string) {
+  return /^layout(|!|-.+)$/.test(extlessName);
+}
+
 export function isPageModuleExt(ext: string) {
   return !!PAGE_MODULE_EXTS[ext];
 }

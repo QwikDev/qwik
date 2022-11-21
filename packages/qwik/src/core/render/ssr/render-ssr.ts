@@ -46,13 +46,8 @@ import {
   QContext,
   Q_CTX,
 } from '../../state/context';
-import { createProxy } from '../../state/store';
-import {
-  QObjectFlagsSymbol,
-  QObjectImmutable,
-  _IMMUTABLE,
-  _IMMUTABLE_PREFIX,
-} from '../../state/constants';
+import { createPropsState, createProxy } from '../../state/store';
+import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
@@ -815,9 +810,8 @@ const setComponentProps = (
   expectProps: Record<string, any>
 ) => {
   const keys = Object.keys(expectProps);
-  const target = {
-    [QObjectFlagsSymbol]: QObjectImmutable,
-  } as Record<string, any>;
+  const target = createPropsState();
+
   elCtx.$props$ = createProxy(target, rCtx.$static$.$containerState$);
 
   if (keys.length === 0) {

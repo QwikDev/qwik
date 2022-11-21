@@ -14,8 +14,7 @@ import { isElement } from '../../testing/html';
 import { assertQwikElement } from '../util/element';
 import { assertTrue } from '../error/assert';
 import { QScopedStyle } from '../util/markers';
-import { createProxy } from './store';
-import { QObjectFlagsSymbol, QObjectImmutable } from './constants';
+import { createPropsState, createProxy } from './store';
 
 export const Q_CTX = '_qc_';
 
@@ -105,12 +104,7 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
             if (props) {
               elCtx.$props$ = getObject(props);
             } else {
-              elCtx.$props$ = createProxy(
-                {
-                  [QObjectFlagsSymbol]: QObjectImmutable,
-                },
-                containerState
-              );
+              elCtx.$props$ = createProxy(createPropsState(), containerState);
             }
           }
         }

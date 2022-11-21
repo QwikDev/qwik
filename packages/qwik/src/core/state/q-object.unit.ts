@@ -1,9 +1,9 @@
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
 import { getContainerState } from '../container/container';
-import { createSubscriptionManager, unwrapProxy } from './common';
+import { createSubscriptionManager, getProxyFlags, unwrapProxy } from './common';
 import { QObjectRecursive } from './constants';
-import { getOrCreateProxy } from './store';
+import { createPropsState, createProxy, getOrCreateProxy } from './store';
 
 const qObject = suite('q-object');
 const container = getContainerState({} as any);
@@ -15,6 +15,18 @@ const map: any = {
 qObject('should create QObject', () => {
   const obj = getOrCreateProxy({ salutation: 'Hello', name: 'World' }, map);
   equal(obj, { salutation: 'Hello', name: 'World' });
+});
+
+qObject('should not copy proxy flags metadata', () => {
+  const target = createPropsState();
+  const proxy = createProxy(target, container);
+  equal(getProxyFlags(proxy), 2);
+  equal(getProxyFlags(target), 2);
+
+  const targetCopy = Object.assign({}, target);
+  const proxyCopy = Object.assign({}, proxy);
+  equal(getProxyFlags(targetCopy), undefined);
+  equal(getProxyFlags(proxyCopy), undefined);
 });
 
 qObject('should support basic operations', () => {

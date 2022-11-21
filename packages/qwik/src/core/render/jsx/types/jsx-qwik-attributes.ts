@@ -166,7 +166,11 @@ export type PreventDefault<T> = {
 };
 
 export interface QwikProps<T> extends PreventDefault<T> {
-  class?: string | { [className: string]: boolean } | string[];
+  class?:
+    | Signal<string>
+    | string
+    | { [className: string]: boolean }
+    | (string | { [className: string]: boolean })[];
   dangerouslySetInnerHTML?: string;
   ref?: Ref<Element> | Signal<Element | undefined> | ((el: Element) => void);
 

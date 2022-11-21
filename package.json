@@ -29,7 +29,7 @@
     "test.unit.debug": "tsm --inspect-brk node_modules/uvu/bin.js packages unit.ts --tsmconfig tsm.cjs",
     "test.watch": "watchlist packages unit.ts -- pnpm test.unit",
     "test.rust": "make test",
-    "test.e2e": "pnpm test.e2e.chromium && pnpm test.e2e.firefox && pnpm test.e2e.webkit",
+    "test.e2e": "pnpm test.e2e.chromium && pnpm test.e2e.webkit",
     "test.e2e.city": "playwright test starters/e2e/qwikcity --browser=chromium --config starters/playwright.config.ts",
     "test.e2e.chromium": "playwright test starters --browser=chromium --config starters/playwright.config.ts",
     "test.e2e.chromium.debug": "PWDEBUG=1 playwright test starters --browser=chromium --config starters/playwright.config.ts",

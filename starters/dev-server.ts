@@ -292,7 +292,7 @@ function startersHomepage(_: Request, res: Response) {
 (global as any).Response = RE;
 
 function favicon(_: Request, res: Response) {
-  const path = join(startersAppsDir, 'base', 'public', 'favicon.ico');
+  const path = join(startersAppsDir, 'base', 'public', 'favicon.svg');
   res.sendFile(path);
 }
 
@@ -308,7 +308,7 @@ appNames.forEach((appName) => {
 });
 
 app.get('/', startersHomepage);
-app.get('/favicon.ico', favicon);
+app.get('/favicon*', favicon);
 app.all('/*', handleApp);
 
 const server = app.listen(port, () => {

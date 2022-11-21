@@ -28,7 +28,7 @@ function partyTownExampleWhichBlocksMainThreadForOneSecond() {
   // eslint-disable-next-line no-console
   console.log('Expensive computation started at:', start);
   let end = 0;
-  while (end < start + 2500) {
+  while (end < start + 500) {
     end = new Date().getTime();
   }
   // eslint-disable-next-line no-console

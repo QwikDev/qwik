@@ -11,7 +11,7 @@ export const RouterHead = component$(() => {
     <>
       <title>{head.title ? `${head.title} - Qwik` : `Qwik`}</title>
       <link rel="canonical" href={loc.href} />
-
+      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
       <meta name="viewport" content="width=device-width" />
 
       <Social loc={loc} head={head} />

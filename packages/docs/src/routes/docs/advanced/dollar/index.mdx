@@ -304,8 +304,6 @@ The result of Optimizer is that the `MyComp`'s `onMount` method was extracted in
 - A Parent component can refer to `MyComp` without pulling in `MyComp` implementation details.
 - The application now has more entry points, giving the bundler more ways to chunk up the codebase.
 
-See also: Capturing Lexical Scope.
-
 ## Capturing the lexical scope
 
 The Optimizer extracts expressions (usually functions) into new files and leaves behind a `QRL` pointing to the lazy-loaded location.

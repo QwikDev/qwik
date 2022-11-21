@@ -174,6 +174,11 @@ export interface LinkProps extends AnchorAttributes {
 // @alpha @deprecated (undocumented)
 export const QwikCity: Component<QwikCityProps>;
 
+// Warning: (ae-forgotten-export) The symbol "QwikCityMockProps" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const QwikCityMockProvider: Component<QwikCityMockProps>;
+
 // @alpha (undocumented)
 export interface QwikCityPlan {
     // (undocumented)

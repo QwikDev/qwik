@@ -6,7 +6,7 @@ import type {
   RenderResult,
   RenderToStringResult,
 } from '@builder.io/qwik/server';
-import type { ClientPageData, QwikCityEnvData } from '../../runtime/src/library/types';
+import type { ClientPageData, QwikCityEnvData, QwikCityMode } from '../../runtime/src/types';
 import { getErrorHtml } from './error-handler';
 import { HttpStatus } from './http-status-codes';
 import type { QwikCityRequestContext, UserResponseContext } from './types';
@@ -18,9 +18,11 @@ export function pageHandler<T = any>(
   opts?: RenderOptions,
   routeBundleNames?: string[]
 ): Promise<T> {
-  const { status, headers } = userResponse;
+  const { status, headers, cookie } = userResponse;
   const { response } = requestCtx;
   const isPageData = userResponse.type === 'pagedata';
+  const requestHeaders: Record<string, string> = {};
+  requestCtx.request.headers.forEach((value, key) => (requestHeaders[key] = value));
 
   if (isPageData) {
     // page data should always be json
@@ -30,12 +32,17 @@ export function pageHandler<T = any>(
     headers.set('Content-Type', 'text/html; charset=utf-8');
   }
 
-  return response(isPageData ? 200 : status, headers, async (stream) => {
+  return response(isPageData ? 200 : status, headers, cookie, async (stream) => {
     // begin http streaming the page content as it's rendering html
     try {
       const result = await render({
         stream: isPageData ? noopStream : stream,
-        envData: getQwikCityEnvData(userResponse),
+        envData: getQwikCityEnvData(
+          requestHeaders,
+          userResponse,
+          requestCtx.locale,
+          requestCtx.mode
+        ),
         ...opts,
       });
 
@@ -70,8 +77,7 @@ async function getClientPageData(
   routeBundleNames: string[] | undefined
 ) {
   const prefetchBundleNames = getPrefetchBundleNames(result, routeBundleNames);
-
-  const isStatic = !result.snapshotResult?.resources.some((r) => r._cache !== Infinity);
+  const isStatic = result.isStatic;
   const clientPage: ClientPageData = {
     body: userResponse.pendingBody ? await userResponse.pendingBody : userResponse.resolvedBody,
     status: userResponse.status !== 200 ? userResponse.status : undefined,
@@ -132,14 +138,24 @@ function getPrefetchBundleNames(result: RenderResult, routeBundleNames: string[]
   return bundleNames;
 }
 
-export function getQwikCityEnvData(userResponse: UserResponseContext): {
+export function getQwikCityEnvData(
+  requestHeaders: Record<string, string>,
+  userResponse: UserResponseContext,
+  locale: string | undefined,
+  mode: QwikCityMode
+): {
   url: string;
+  requestHeaders: Record<string, string>;
+  locale: string | undefined;
   qwikcity: QwikCityEnvData;
 } {
   const { url, params, pendingBody, resolvedBody, status } = userResponse;
   return {
     url: url.href,
+    requestHeaders: requestHeaders,
+    locale: locale,
     qwikcity: {
+      mode: mode,
       params: { ...params },
       response: {
         body: pendingBody || resolvedBody,

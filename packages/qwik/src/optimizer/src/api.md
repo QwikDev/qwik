@@ -175,7 +175,7 @@ export interface Path {
 export type QwikBuildMode = 'production' | 'development';
 
 // @alpha (undocumented)
-export type QwikBuildTarget = 'client' | 'ssr' | 'lib';
+export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 
 // @alpha (undocumented)
 export interface QwikBundle {
@@ -313,6 +313,8 @@ export interface QwikVitePluginOptions {
         manifestInput?: QwikManifest;
     };
     transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
+    // (undocumented)
+    vendorRoots?: string[];
 }
 
 // @alpha (undocumented)

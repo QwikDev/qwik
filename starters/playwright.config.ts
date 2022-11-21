@@ -21,9 +21,10 @@ const config: PlaywrightTestConfig = {
       height: 600,
     },
   },
+  testIgnore: /.*example.spec.tsx?$/,
   retries: 3,
   webServer: {
-    command: 'yarn tsm ./dev-server.ts 3301',
+    command: 'pnpm tsm ./starters/dev-server.ts 3301',
     port: 3301,
     reuseExistingServer: !process.env.CI,
   },

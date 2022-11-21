@@ -1,5 +1,5 @@
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { test } from 'uvu';
 import { equal } from 'uvu/assert';
 import type { NormalizedPluginOptions } from '../buildtime/types';
@@ -186,81 +186,79 @@ test('createFileId, Layout', () => {
   equal(p, 'DashboardSettingsLayout');
 });
 
-test('getPathnameFromDirPath', () => {
-  const routesDir = tmpdir();
-
-  const t = [
-    {
-      dirPath: join(routesDir, '(a)', 'about', '(b)', 'info', '(c)'),
-      basePathname: '/',
-      trailingSlash: true,
-      expect: '/about/info/',
-    },
-    {
-      dirPath: join(routesDir, 'about'),
-      basePathname: '/app/',
-      trailingSlash: true,
-      expect: '/app/about/',
-    },
-    {
-      dirPath: join(routesDir, 'about'),
-      basePathname: '/app/',
-      trailingSlash: false,
-      expect: '/app/about',
-    },
-    {
-      dirPath: join(routesDir, 'about'),
-      basePathname: '/',
-      trailingSlash: true,
-      expect: '/about/',
-    },
-    {
-      dirPath: join(routesDir, 'about'),
-      basePathname: '/',
-      trailingSlash: false,
-      expect: '/about',
-    },
-    {
-      dirPath: routesDir,
-      basePathname: '/',
-      trailingSlash: false,
-      expect: '/',
-    },
-    {
-      dirPath: routesDir,
-      basePathname: '/',
-      trailingSlash: true,
-      expect: '/',
-    },
-    {
-      dirPath: routesDir,
-      basePathname: '/app/',
-      trailingSlash: false,
-      expect: '/app/',
-    },
-    {
-      dirPath: routesDir,
-      basePathname: '/app/',
-      trailingSlash: true,
-      expect: '/app/',
-    },
-  ];
-
-  t.forEach((c) => {
+[
+  {
+    dirPath: join(routesDir, '(a)', 'about', '(b)', 'info', '(c)'),
+    basePathname: '/',
+    trailingSlash: true,
+    expect: '/about/info/',
+  },
+  {
+    dirPath: join(routesDir, 'about'),
+    basePathname: '/app/',
+    trailingSlash: true,
+    expect: '/app/about/',
+  },
+  {
+    dirPath: join(routesDir, 'about'),
+    basePathname: '/app/',
+    trailingSlash: false,
+    expect: '/app/about',
+  },
+  {
+    dirPath: join(routesDir, 'about'),
+    basePathname: '/',
+    trailingSlash: true,
+    expect: '/about/',
+  },
+  {
+    dirPath: join(routesDir, 'about'),
+    basePathname: '/',
+    trailingSlash: false,
+    expect: '/about',
+  },
+  {
+    dirPath: routesDir,
+    basePathname: '/',
+    trailingSlash: false,
+    expect: '/',
+  },
+  {
+    dirPath: routesDir,
+    basePathname: '/',
+    trailingSlash: true,
+    expect: '/',
+  },
+  {
+    dirPath: routesDir,
+    basePathname: '/app/',
+    trailingSlash: false,
+    expect: '/app/',
+  },
+  {
+    dirPath: routesDir,
+    basePathname: '/app/',
+    trailingSlash: true,
+    expect: '/app/',
+  },
+].forEach((t) => {
+  test(`getPathnameFromDirPath, dirPath: ${basename(t.dirPath)}, basePathname: ${
+    t.basePathname
+  }`, () => {
     const opts: NormalizedPluginOptions = {
       routesDir: routesDir,
-      basePathname: c.basePathname,
-      trailingSlash: c.trailingSlash,
+      basePathname: t.basePathname,
+      trailingSlash: t.trailingSlash,
       mdxPlugins: {
         remarkGfm: true,
         rehypeSyntaxHighlight: true,
         rehypeAutolinkHeadings: true,
       },
       mdx: {},
-      baseUrl: c.basePathname,
+      baseUrl: t.basePathname,
     };
-    const pathname = getPathnameFromDirPath(opts, c.dirPath);
-    equal(pathname, c.expect, c.dirPath);
+    const pathname = getPathnameFromDirPath(opts, t.dirPath);
+    equal(pathname, t.expect, t.dirPath);
   });
 });
 

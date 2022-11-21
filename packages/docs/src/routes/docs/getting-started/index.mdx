@@ -32,8 +32,6 @@ npm create qwik@latest
 
 The CLI will guide you through an interactive menu to set the project-name and select one of the starters:
 
-<script id="asciicast-514542" src="https://asciinema.org/a/514542.js" async></script>
-
 After your new app is created, you will see an output like the following in your terminal:
 
 ```shell
@@ -66,19 +64,14 @@ At this point, you will have `qwik-app` directory, that contains the starter app
 
 Once the application is download.
 
-1. Change into the directory created by the `npm create qwik@latest`.
+1. Change into the directory created by the `npm create qwik`.
 
 ```shell
 cd qwik-app
 ```
 
-2. Install NPM modules:
 
-```shell
-npm install
-```
-
-3. Invoke the dev server
+2. Invoke the dev server
 
 ```shell
 npm start
@@ -97,11 +90,30 @@ npm start
 
 5. Visit http://localhost:5174/ to explore the app.
 
-## Commands
 
-Here are some useful commands to get you started. For a complete list please refer to `package.json`.
+## Running in production
 
-- `npm start`: alias to `npm run dev` (this currently defaults to running SSR)
-- `npm run preview`: Production build and start preview server.
-- `npm run build`: builds the application for production.
-- `npm run qwik add`: Select an integration to add.
+To run the application locally in production, run the following command:
+
+```shell
+npm run preview
+```
+
+It will build your application and the [Vite preview server](https://vitejs.dev/config/preview-options.html) to serve the application.
+
+
+## Deployment
+
+It's very easy to deploy your Qwik application to the cloud, as static files, or your own server.
+
+Please checkout the [deployment](/qwikcity/adaptors/overview/index.mdx) section for more details.
+
+## Other integrations
+
+Qwik is designed to be integrated with other tools. Such as `vitest`, `tailwind`, `partytown`... run the following command to see the list of available integrations:
+
+```shell
+npm run qwik add
+```
+
+and dont forget to check the [integrations](/qwikcity/integrations/overview/index.mdx) section for more details.

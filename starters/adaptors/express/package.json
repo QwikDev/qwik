@@ -2,7 +2,7 @@
   "description": "Express.js server",
   "scripts": {
     "build.server": "vite build -c adaptors/express/vite.config.ts",
-    "serve": "node server/entry.express"
+    "deploy": "node server/entry.express"
   },
   "devDependencies": {
     "@types/compression": "^1.7.2",
@@ -12,7 +12,7 @@
   },
   "__qwik__": {
     "priority": 20,
-    "displayName": "Adaptor: Express (server)",
+    "displayName": "Adaptor: Nodejs Express Server",
     "docs": [
       "https://qwik.builder.io/qwikcity/adaptors/node/",
       "https://expressjs.com/"

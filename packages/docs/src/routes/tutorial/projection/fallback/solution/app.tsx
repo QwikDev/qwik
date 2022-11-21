@@ -14,7 +14,7 @@ export const Card = component$(() => {
   );
 });
 
-export const App = component$(() => {
+export default component$(() => {
   return (
     <>
       <Card>

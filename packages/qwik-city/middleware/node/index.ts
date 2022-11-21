@@ -1,10 +1,11 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { QwikCityHandlerOptions } from '../request-handler/types';
-import { errorHandler, notFoundHandler, requestHandler } from '../request-handler';
+import { errorHandler, requestHandler } from '../request-handler';
 import { fromNodeHttp, getUrl } from './http';
 import { patchGlobalFetch } from './node-fetch';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik';
+import { getNotFound } from '@qwik-city-not-found-paths';
 import qwikCityPlan from '@qwik-city-plan';
 
 // @builder.io/qwik-city/middleware/node
@@ -21,7 +22,7 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
     next: NodeRequestNextFunction
   ) => {
     try {
-      const requestCtx = fromNodeHttp(getUrl(req), req, res);
+      const requestCtx = fromNodeHttp(getUrl(req), req, res, 'server');
       try {
         const rsp = await requestHandler(requestCtx, opts);
         if (!rsp) {
@@ -38,8 +39,13 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
 
   const notFound = async (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => {
     try {
-      const requestCtx = fromNodeHttp(getUrl(req), req, res);
-      await notFoundHandler(requestCtx);
+      const url = getUrl(req);
+      const notFoundHtml = getNotFound(url.pathname);
+      res.writeHead(404, {
+        'Content-Type': 'text/html; charset=utf-8',
+        'X-Not-Found': url.pathname,
+      });
+      res.end(notFoundHtml);
     } catch (e) {
       console.error(e);
       next(e);

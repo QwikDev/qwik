@@ -5,6 +5,8 @@ import {
   useContextProvider,
   useContext,
   Slot,
+  useSignal,
+  useClientEffect$,
 } from '@builder.io/qwik';
 
 export interface ContextI {
@@ -38,6 +40,9 @@ export const ContextRoot = component$(() => {
         <Level2 />
         <Level2 />
       </ContextFromSlot>
+
+      <Issue1971 />
+      <Issue2087 />
     </div>
   );
 });
@@ -114,4 +119,91 @@ export const Level3 = component$(() => {
       </div>
     </div>
   );
+});
+
+export const Issue1971 = component$(() => {
+  return (
+    <Issue1971Provider>
+      <Issue1971Child />
+    </Issue1971Provider>
+  );
+});
+
+export const Issue1971Context = createContext<any>('issue-1971');
+
+export const Issue1971Provider = component$(() => {
+  useContextProvider(Issue1971Context, {
+    value: 'hello!',
+  });
+
+  return <Slot></Slot>;
+});
+
+export const Issue1971Child = component$(() => {
+  const show = useSignal(false);
+  useClientEffect$(() => {
+    show.value = true;
+  });
+  return (
+    <>
+      <div>Test 1: {show.value && <Issue1971Consumer />}</div>
+    </>
+  );
+});
+
+export const Issue1971Consumer = component$(() => {
+  const ctx = useContext(Issue1971Context);
+  return <div id="issue1971-value">Value: {ctx.value}</div>;
+});
+
+export const Ctx = createContext<{ t: string }>('issue-2087');
+
+export const Issue2087 = component$(() => {
+  return (
+    <>
+      <Issue2087_Root />
+      <Issue2087_Nested />
+    </>
+  );
+});
+
+export const Issue2087_Root = component$(() => {
+  const t = useSignal(0);
+  return (
+    <Provider>
+      <Symbol id="RootA" />
+      <button id="issue2087_btn1" onClick$={() => t.value++}>
+        Click me
+      </button>
+      {!!t.value && <Symbol id="RootB" />}
+    </Provider>
+  );
+});
+
+export const Issue2087_Nested = component$(() => {
+  const t = useSignal(0);
+  return (
+    <Provider>
+      <Symbol id="NestedA" />
+      <button id="issue2087_btn2" onClick$={() => t.value++}>
+        Click me
+      </button>
+      <div>{!!t.value && <Symbol id="NestedB" />}</div>
+    </Provider>
+  );
+});
+
+export const Symbol = component$(({ id }: any) => {
+  const s = useContext(Ctx);
+  return (
+    <p id={`issue2087_symbol_${id}`}>
+      Symbol {id}, context value: {s.t}
+    </p>
+  );
+});
+
+export const Provider = component$(() => {
+  const s = useStore({ t: 'yes' });
+  useContextProvider(Ctx, s);
+  return <Slot />;
 });

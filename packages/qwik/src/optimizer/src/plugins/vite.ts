@@ -73,6 +73,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         target = 'ssr';
       } else if (viteEnv.mode === 'lib') {
         target = 'lib';
+      } else if (viteEnv.mode === 'test') {
+        target = 'test';
       } else {
         target = 'client';
       }
@@ -114,7 +116,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         resolveQwikBuild: viteCommand === 'build',
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         forceFullBuild,
-        vendorRoots: vendorRoots.map((v) => v.path),
+        vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
+        outDir: viteConfig.build?.outDir,
       };
 
       if (target === 'ssr') {
@@ -128,18 +131,21 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           pluginOpts.input = qwikViteOpts.ssr.input;
         }
 
-        pluginOpts.outDir = qwikViteOpts.ssr?.outDir;
+        if (qwikViteOpts.ssr?.outDir) {
+          pluginOpts.outDir = qwikViteOpts.ssr.outDir;
+        }
         pluginOpts.manifestInput = qwikViteOpts.ssr?.manifestInput;
       } else if (target === 'client') {
         // client
         pluginOpts.input = qwikViteOpts.client?.input;
-        pluginOpts.outDir = qwikViteOpts.client?.outDir;
+        if (qwikViteOpts.client?.outDir) {
+          pluginOpts.outDir = qwikViteOpts.client.outDir;
+        }
         pluginOpts.manifestOutput = qwikViteOpts.client?.manifestOutput;
       } else {
         if (typeof viteConfig.build?.lib === 'object') {
           pluginOpts.input = viteConfig.build?.lib.entry;
         }
-        pluginOpts.outDir = viteConfig.build?.outDir;
       }
 
       if (sys.env === 'node') {
@@ -209,7 +215,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const updatedViteConfig: UserConfig = {
         resolve: {
           dedupe: [...DEDUPE, ...vendorIds],
-          conditions: [],
+          conditions: buildMode === 'production' && target === 'client' ? ['min'] : [],
         },
         esbuild:
           viteCommand === 'serve'
@@ -290,6 +296,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       } else if (opts.target === 'lib') {
         // Library Build
         updatedViteConfig.build!.minify = false;
+      } else {
+        // Test Build
+        const qDevKey = 'globalThis.qDev';
+        const qTestKey = 'globalThis.qTest';
+        updatedViteConfig.define = {
+          [qDevKey]: true,
+          [qTestKey]: true,
+        };
       }
 
       return updatedViteConfig;
@@ -651,6 +665,9 @@ export interface QwikVitePluginOptions {
    * Default `src`
    */
   srcDir?: string;
+
+  vendorRoots?: string[];
+
   client?: {
     /**
      * The entry point for the client builds. Typically this would be

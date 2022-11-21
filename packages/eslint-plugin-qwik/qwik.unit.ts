@@ -258,6 +258,30 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
   });
       `,
       ``,
+      `
+import { component$ } from "@builder.io/qwik";
+
+export const version = "0.13";
+
+export default component$(() => {
+  return {
+    version,
+  };
+});
+`,
+      `
+        import { component$ } from "@builder.io/qwik";
+        
+        export interface Props {
+          serializableTuple: [string, number, boolean];
+        }
+
+        export const HelloWorld = component$((props: Props) => {
+          return (
+            <button onClick$={() => props.serializableTuple}></button>
+          );
+        });
+      `,
     ],
     invalid: [
       {
@@ -416,6 +440,23 @@ export const RemoteApp = component$(({ name }: { name: string }) => {
         });`,
         errors: [
           'The value of the identifier ("click") can not be changed once it is captured the scope (onClick$). Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+        ],
+      },
+      {
+        code: `
+        import { component$ } from "@builder.io/qwik";
+        
+        export interface Props {
+          nonserializableTuple: [string, number, boolean, Function];
+        }
+
+        export const HelloWorld = component$((props: Props) => {
+          return (
+            <button onClick$={() => props.nonserializableTuple}></button>
+          );
+        });`,
+        errors: [
+          'Identifier ("props") can not be captured inside the scope (onClick$) because "props.nonserializableTuple" is an instance of the "Function" class, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
         ],
       },
     ],

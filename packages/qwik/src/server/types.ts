@@ -132,7 +132,8 @@ export interface RenderToStringResult extends RenderResult {
  */
 export interface RenderResult {
   prefetchResources: PrefetchResource[];
-  snapshotResult: SnapshotResult | null;
+  snapshotResult: SnapshotResult | undefined;
+  isStatic: boolean;
   manifest?: QwikManifest;
   /** @internal TODO: Move to snapshotResult */
   _symbols?: string[];
@@ -160,7 +161,12 @@ export interface RenderOptions extends SerializeDocumentOptions {
    * Specifies the root of the JS files of the client build.
    * Setting a base, will cause the render of the `q:base` attribute in the `q:container` element.
    */
-  base?: string;
+  base?: string | ((options: RenderOptions) => string);
+
+  /**
+   * Language to use when rendering the document.
+   */
+  locale?: string | ((options: RenderOptions) => string);
 
   /**
    * Specifies if the Qwik Loader script is added to the document or not. Defaults to `{ include: true }`.

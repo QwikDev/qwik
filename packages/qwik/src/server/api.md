@@ -78,12 +78,13 @@ export type Render = RenderToString | RenderToStream;
 
 // @alpha (undocumented)
 export interface RenderOptions extends SerializeDocumentOptions {
-    base?: string;
+    base?: string | ((options: RenderOptions) => string);
     // (undocumented)
     containerAttributes?: Record<string, string>;
     containerTagName?: string;
     // (undocumented)
     envData?: Record<string, any>;
+    locale?: string | ((options: RenderOptions) => string);
     // (undocumented)
     prefetchStrategy?: PrefetchStrategy | null;
     qwikLoader?: QwikLoaderOptions;
@@ -93,11 +94,13 @@ export interface RenderOptions extends SerializeDocumentOptions {
 // @alpha (undocumented)
 export interface RenderResult {
     // (undocumented)
+    isStatic: boolean;
+    // (undocumented)
     manifest?: QwikManifest;
     // (undocumented)
     prefetchResources: PrefetchResource[];
     // (undocumented)
-    snapshotResult: SnapshotResult | null;
+    snapshotResult: SnapshotResult | undefined;
     // @internal
     _symbols?: string[];
 }

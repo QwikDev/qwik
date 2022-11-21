@@ -7,12 +7,7 @@ import { implicit$FirstArg } from '../util/implicit_dollar';
 import { assertDefined, assertEqual } from '../error/assert';
 import type { QRL } from '../qrl/qrl.public';
 import { assertQrl, createQRL, QRLInternal } from '../qrl/qrl-class';
-import {
-  codeToText,
-  qError,
-  QError_canNotMountUseServerMount,
-  QError_trackUseStore,
-} from '../error/error';
+import { codeToText, QError_trackUseStore } from '../error/error';
 import { useOn, useOnDocument } from './use-on';
 import { ContainerState, intToStr, MustGetObjID, strToInt } from '../container/container';
 import { notifyWatch, _hW } from '../render/dom/notify-render';
@@ -21,7 +16,6 @@ import type { QwikElement } from '../render/dom/virtual-element';
 import { handleError } from '../render/error-handling';
 import type { RenderContext } from '../render/types';
 import { getProxyManager, noSerialize, NoSerialize, unwrapProxy } from '../state/common';
-import { getContext } from '../state/context';
 import { isSignal } from '../state/signal';
 
 export const WatchFlagsIsEffect = 1 << 0;
@@ -123,11 +117,6 @@ export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
  * @public
  */
 export type ResourceFn<T> = (ctx: ResourceCtx<T>) => ValueOrPromise<T>;
-
-/**
- * @public
- */
-export type MountFn<T> = () => ValueOrPromise<T>;
 
 /**
  * @public
@@ -271,23 +260,27 @@ export interface UseWatchOptions {
  */
 // </docs>
 export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => {
-  const { get, set, ctx, i } = useSequentialScope<boolean>();
+  const { get, set, rCtx, i, elCtx } = useSequentialScope<boolean>();
   if (get) {
     return;
   }
   assertQrl(qrl);
 
-  const el = ctx.$hostElement$;
-  const containerState = ctx.$renderCtx$.$static$.$containerState$;
-  const watch = new Watch(WatchFlagsIsDirty | WatchFlagsIsWatch, i, el, qrl, undefined);
-  const elCtx = getContext(el);
+  const containerState = rCtx.$renderCtx$.$static$.$containerState$;
+  const watch = new Watch(
+    WatchFlagsIsDirty | WatchFlagsIsWatch,
+    i,
+    elCtx.$element$,
+    qrl,
+    undefined
+  );
   set(true);
   qrl.$resolveLazy$(containerState.$containerEl$);
   if (!elCtx.$watches$) {
     elCtx.$watches$ = [];
   }
   elCtx.$watches$.push(watch);
-  waitAndRun(ctx, () => runSubscriber(watch, containerState, ctx.$renderCtx$));
+  waitAndRun(rCtx, () => runSubscriber(watch, containerState, rCtx.$renderCtx$));
   if (isServer()) {
     useRunWatch(watch, opts?.eagerness);
   }
@@ -385,7 +378,7 @@ export const useWatch$ = /*#__PURE__*/ implicit$FirstArg(useWatchQrl);
  */
 // </docs>
 export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void => {
-  const { get, set, i, ctx } = useSequentialScope<Watch>();
+  const { get, set, i, rCtx: ctx, elCtx } = useSequentialScope<Watch>();
   const eagerness = opts?.eagerness ?? 'visible';
   if (get) {
     if (isServer()) {
@@ -394,9 +387,7 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
     return;
   }
   assertQrl(qrl);
-  const el = ctx.$hostElement$;
-  const watch = new Watch(WatchFlagsIsEffect, i, el, qrl, undefined);
-  const elCtx = getContext(el);
+  const watch = new Watch(WatchFlagsIsEffect, i, elCtx.$element$, qrl, undefined);
   const containerState = ctx.$renderCtx$.$static$.$containerState$;
   if (!elCtx.$watches$) {
     elCtx.$watches$ = [];
@@ -439,183 +430,6 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
 // </docs>
 export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useClientEffectQrl);
 
-// <docs markdown="../readme.md#useServerMount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useServerMount instead)
-/**
- * Register's a server mount hook that runs only in the server when the component is first
- * mounted.
- *
- * ### Example
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     users: [],
- *   });
- *
- *   useServerMount$(async () => {
- *     // This code will ONLY run once in the server, when the component is mounted
- *     store.users = await db.requestUsers();
- *   });
- *
- *   return (
- *     <div>
- *       {store.users.map((user) => (
- *         <User user={user} />
- *       ))}
- *     </div>
- *   );
- * });
- *
- * interface User {
- *   name: string;
- * }
- * function User(props: { user: User }) {
- *   return <div>Name: {props.user.name}</div>;
- * }
- * ```
- *
- * @see `useMount`
- * @public
- */
-// </docs>
-export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
-  const { get, set, ctx } = useSequentialScope<boolean>();
-  if (get) {
-    return;
-  }
-
-  if (isServer()) {
-    waitAndRun(ctx, mountQrl);
-    set(true);
-  } else {
-    throw qError(QError_canNotMountUseServerMount, ctx.$hostElement$);
-  }
-};
-
-// <docs markdown="../readme.md#useServerMount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useServerMount instead)
-/**
- * Register's a server mount hook that runs only in the server when the component is first
- * mounted.
- *
- * ### Example
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     users: [],
- *   });
- *
- *   useServerMount$(async () => {
- *     // This code will ONLY run once in the server, when the component is mounted
- *     store.users = await db.requestUsers();
- *   });
- *
- *   return (
- *     <div>
- *       {store.users.map((user) => (
- *         <User user={user} />
- *       ))}
- *     </div>
- *   );
- * });
- *
- * interface User {
- *   name: string;
- * }
- * function User(props: { user: User }) {
- *   return <div>Name: {props.user.name}</div>;
- * }
- * ```
- *
- * @see `useMount`
- * @public
- */
-// </docs>
-export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl);
-
-// <docs markdown="../readme.md#useMount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useMount instead)
-/**
- * Register a server mount hook that runs only in the server when the component is first mounted.
- *
- * ### Example
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     temp: 0,
- *   });
- *
- *   useMount$(async () => {
- *     // This code will run once whenever a component is mounted in the server, or in the client
- *     const res = await fetch('weather-api.example');
- *     const json = (await res.json()) as any;
- *     store.temp = json.temp;
- *   });
- *
- *   return (
- *     <div>
- *       <p>The temperature is: ${store.temp}</p>
- *     </div>
- *   );
- * });
- * ```
- *
- * @see `useServerMount`
- * @public
- */
-// </docs>
-export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
-  const { get, set, ctx } = useSequentialScope<boolean>();
-  if (get) {
-    return;
-  }
-  assertQrl(mountQrl);
-  mountQrl.$resolveLazy$(ctx.$renderCtx$.$static$.$containerState$.$containerEl$);
-  waitAndRun(ctx, mountQrl);
-  set(true);
-};
-
-// <docs markdown="../readme.md#useMount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useMount instead)
-/**
- * Register a server mount hook that runs only in the server when the component is first mounted.
- *
- * ### Example
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     temp: 0,
- *   });
- *
- *   useMount$(async () => {
- *     // This code will run once whenever a component is mounted in the server, or in the client
- *     const res = await fetch('weather-api.example');
- *     const json = (await res.json()) as any;
- *     store.temp = json.temp;
- *   });
- *
- *   return (
- *     <div>
- *       <p>The temperature is: ${store.temp}</p>
- *     </div>
- *   );
- * });
- * ```
- *
- * @see `useServerMount`
- * @public
- */
-// </docs>
-export const useMount$ = /*#__PURE__*/ implicit$FirstArg(useMountQrl);
-
 export type WatchDescriptor = DescriptorBase<WatchFn>;
 
 export interface ResourceDescriptor<T>
@@ -636,7 +450,7 @@ export const runSubscriber = async (
 ) => {
   assertEqual(!!(watch.$flags$ & WatchFlagsIsDirty), true, 'Resource is not dirty', watch);
   if (isResourceWatch(watch)) {
-    return runResource(watch, containerState);
+    return runResource(watch, containerState, rctx);
   } else {
     return runWatch(watch, containerState, rctx);
   }
@@ -645,16 +459,17 @@ export const runSubscriber = async (
 export const runResource = <T>(
   watch: ResourceDescriptor<T>,
   containerState: ContainerState,
+  rctx?: RenderContext,
   waitOn?: Promise<any>
 ): ValueOrPromise<void> => {
   watch.$flags$ &= ~WatchFlagsIsDirty;
   cleanupWatch(watch);
 
   const el = watch.$el$;
-  const invokationContext = newInvokeContext(el, undefined, 'WatchEvent');
+  const invocationContext = newInvokeContext(rctx?.$static$.$locale$, el, undefined, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
   watch.$qrl$.$captureRef$;
-  const watchFn = watch.$qrl$.getFn(invokationContext, () => {
+  const watchFn = watch.$qrl$.getFn(invocationContext, () => {
     subsManager.$clearSub$(watch);
   });
 
@@ -733,7 +548,7 @@ export const runResource = <T>(
   };
 
   // Execute mutation inside empty invokation
-  invoke(invokationContext, () => {
+  invoke(invocationContext, () => {
     resource._state = 'pending';
     resource.loading = !isServer();
     resource._resolved = undefined as any;
@@ -780,9 +595,14 @@ export const runWatch = (
 
   cleanupWatch(watch);
   const hostElement = watch.$el$;
-  const invokationContext = newInvokeContext(hostElement, undefined, 'WatchEvent');
+  const invocationContext = newInvokeContext(
+    rctx?.$static$.$locale$,
+    hostElement,
+    undefined,
+    'WatchEvent'
+  );
   const { $subsManager$: subsManager } = containerState;
-  const watchFn = watch.$qrl$.getFn(invokationContext, () => {
+  const watchFn = watch.$qrl$.getFn(invocationContext, () => {
     subsManager.$clearSub$(watch);
   }) as WatchFn;
   const track: Tracker = (obj: any, prop?: string) => {

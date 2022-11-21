@@ -16,38 +16,65 @@ interface BaseSyntheticEvent<E = object, C = any, T = any> {
   type: string;
 }
 
-type NativeAnimationEvent = AnimationEvent;
-type NativeClipboardEvent = ClipboardEvent;
-type NativeCompositionEvent = CompositionEvent;
-type NativeDragEvent = DragEvent;
-type NativeFocusEvent = FocusEvent;
-type NativeKeyboardEvent = KeyboardEvent;
-type NativeMouseEvent = MouseEvent;
-type NativeTouchEvent = TouchEvent;
-type NativePointerEvent = PointerEvent;
-type NativeTransitionEvent = TransitionEvent;
-type NativeUIEvent = UIEvent;
-type NativeWheelEvent = WheelEvent;
+/** @beta */
+export type NativeAnimationEvent = AnimationEvent;
+/** @beta */
+export type NativeClipboardEvent = ClipboardEvent;
+/** @beta */
+export type NativeCompositionEvent = CompositionEvent;
+/** @beta */
+export type NativeDragEvent = DragEvent;
+/** @beta */
+export type NativeFocusEvent = FocusEvent;
+/** @beta */
+export type NativeKeyboardEvent = KeyboardEvent;
+/** @beta */
+export type NativeMouseEvent = MouseEvent;
+/** @beta */
+export type NativeTouchEvent = TouchEvent;
+/** @beta */
+export type NativePointerEvent = PointerEvent;
+/** @beta */
+export type NativeTransitionEvent = TransitionEvent;
+/** @beta */
+export type NativeUIEvent = UIEvent;
+/** @beta */
+export type NativeWheelEvent = WheelEvent;
 
+/**
+ * @beta
+ */
 export interface QwikAnimationEvent<T = Element> extends SyntheticEvent<T, NativeAnimationEvent> {
   animationName: string;
   elapsedTime: number;
   pseudoElement: string;
 }
 
+/**
+ * @beta
+ */
 export interface QwikClipboardEvent<T = Element> extends SyntheticEvent<T, NativeClipboardEvent> {
   clipboardData: DataTransfer;
 }
 
+/**
+ * @beta
+ */
 export interface QwikCompositionEvent<T = Element>
   extends SyntheticEvent<T, NativeCompositionEvent> {
   data: string;
 }
 
+/**
+ * @beta
+ */
 export interface QwikDragEvent<T = Element> extends QwikMouseEvent<T, NativeDragEvent> {
   dataTransfer: DataTransfer;
 }
 
+/**
+ * @beta
+ */
 export interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativePointerEvent> {
   pointerId: number;
   pressure: number;
@@ -59,21 +86,36 @@ export interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativeP
   isPrimary: boolean;
 }
 
+/**
+ * @beta
+ */
 export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFocusEvent> {
   relatedTarget: EventTarget | null;
   target: EventTarget & T;
 }
 
+/**
+ * @beta
+ */
 export interface QwikFormEvent<T = Element> extends SyntheticEvent<T> {}
 
+/**
+ * @beta
+ */
 export interface QwikInvalidEvent<T = Element> extends SyntheticEvent<T> {
   target: EventTarget & T;
 }
 
+/**
+ * @beta
+ */
 export interface QwikChangeEvent<T = Element> extends SyntheticEvent<T> {
   target: EventTarget & T;
 }
 
+/**
+ * @beta
+ */
 export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, NativeKeyboardEvent> {
   altKey: boolean;
   charCode: number;
@@ -95,6 +137,9 @@ export interface QwikKeyboardEvent<T = Element> extends SyntheticEvent<T, Native
   which: number;
 }
 
+/**
+ * @beta
+ */
 export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends SyntheticEvent<T, E> {
   altKey: boolean;
   button: number;
@@ -119,6 +164,9 @@ export interface QwikMouseEvent<T = Element, E = NativeMouseEvent> extends Synth
   y: number;
 }
 
+/**
+ * @beta
+ */
 export interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTouchEvent> {
   altKey: boolean;
   changedTouches: TouchList;
@@ -133,11 +181,17 @@ export interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTou
   touches: TouchList;
 }
 
+/**
+ * @beta
+ */
 export interface QwikUIEvent<T = Element> extends SyntheticEvent<T, NativeUIEvent> {
   detail: number;
   view: AbstractView;
 }
 
+/**
+ * @beta
+ */
 export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWheelEvent> {
   deltaMode: number;
   deltaX: number;
@@ -145,6 +199,9 @@ export interface QwikWheelEvent<T = Element> extends QwikMouseEvent<T, NativeWhe
   deltaZ: number;
 }
 
+/**
+ * @beta
+ */
 export interface QwikTransitionEvent<T = Element> extends SyntheticEvent<T, NativeTransitionEvent> {
   elapsedTime: number;
   propertyName: string;

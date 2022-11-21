@@ -4,20 +4,19 @@
 
 ```ts
 
-import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import type { SymbolMapper } from '@builder.io/qwik/optimizer';
-import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
+import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 
 // @alpha (undocumented)
 export function cloudflarePagesAdaptor(opts?: CloudflarePagesAdaptorOptions): any;
 
 // @alpha (undocumented)
 export interface CloudflarePagesAdaptorOptions {
-    // Warning: (ae-forgotten-export) The symbol "StaticGenerateRenderOptions" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    staticGenerate?: StaticGenerateRenderOptions | true;
+    functionRoutes?: boolean;
+    staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
+    staticPaths?: string[];
 }
+
+export { StaticGenerateRenderOptions }
 
 // (No @packageDocumentation comment for this package)
 

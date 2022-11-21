@@ -4,16 +4,16 @@ import type { ParsedPathname, PathnameSegmentPart } from '../types';
  * Adopted from SvelteKit
  * https://github.com/sveltejs/kit/blob/master/LICENSE
  */
-export function parseRoutePathname(pathname: string): ParsedPathname {
-  if (pathname === '/') {
+export function parseRoutePathname(basePathname: string, pathname: string): ParsedPathname {
+  if (pathname === basePathname) {
     return {
-      pattern: /^\/$/,
+      pattern: new RegExp('^' + pathname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'),
       paramNames: [],
       segments: [[{ content: '', dynamic: false, rest: false }]],
     };
   }
 
-  pathname = decodeURIComponent(pathname.slice(1));
+  pathname = pathname.slice(1);
 
   const segments = pathname.split('/');
   const paramNames: string[] = [];
@@ -22,7 +22,9 @@ export function parseRoutePathname(pathname: string): ParsedPathname {
   const pattern = new RegExp(
     `^${segments
       .filter((segment) => segment.length > 0)
-      .map((segment, i, segments) => {
+      .map((s, i, segments) => {
+        const segment = decodeURIComponent(s);
+
         // special case — /[...rest]/ could contain zero segments
         const catchAll = /^\[\.\.\.(\w+)?\]$/.exec(segment);
         if (catchAll) {
@@ -46,6 +48,7 @@ export function parseRoutePathname(pathname: string): ParsedPathname {
                 }
               }
 
+              // TODO, remove once basepath is refactored
               if (isLast && content.includes('.')) {
                 addTrailingSlash = false;
               }

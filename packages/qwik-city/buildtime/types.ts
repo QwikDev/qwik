@@ -2,7 +2,6 @@ export interface BuildContext {
   rootDir: string;
   opts: NormalizedPluginOptions;
   routes: BuildRoute[];
-  errors: BuildRoute[];
   layouts: BuildLayout[];
   entries: BuildEntry[];
   serviceWorkers: BuildEntry[];
@@ -46,7 +45,7 @@ export interface RouteSourceFileName {
   ext: string;
 }
 
-export type RouteSourceType = 'route' | 'layout' | 'entry' | 'menu' | 'error' | 'service-worker';
+export type RouteSourceType = 'route' | 'layout' | 'entry' | 'menu' | 'service-worker';
 
 export interface BuildRoute extends ParsedPathname {
   /**
@@ -119,7 +118,8 @@ export interface PluginOptions {
    */
   basePathname?: string;
   /**
-   * Ensure a trailing slash ends page urls. Defaults to `false`.
+   * Ensure a trailing slash ends page urls. Defaults to `true`.
+   * (Note: Previous versions defaulted to `false`).
    */
   trailingSlash?: boolean;
   /**

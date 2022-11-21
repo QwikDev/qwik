@@ -24,15 +24,30 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     );
   };
 
+  const getAttribute = (el: Element, name: string) => {
+    return el.getAttribute(name);
+  };
+
+  const resolveContainer = (containerEl: Element) => {
+    if ((containerEl as any)['_qwikjson_'] === undefined) {
+      const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
+      let script = parentJSON.lastElementChild;
+      while (script) {
+        if (script.tagName === 'SCRIPT' && getAttribute(script, 'type') === 'qwik/json') {
+          (containerEl as any)['_qwikjson_'] = JSON.parse(
+            script.textContent!.replace(/\\x3C(\/?script)/g, '<$1')
+          );
+          break;
+        }
+        script = script.previousElementSibling;
+      }
+    }
+  };
+
   const createEvent = (eventName: string, detail?: any) =>
     new CustomEvent(eventName, {
       detail,
     });
-
-  const qrlResolver = (element: Element, qrl: string): URL => {
-    element = element.closest('[q\\:container]')!;
-    return new URL(qrl, new URL(element.getAttribute('q:base')!, doc.baseURI));
-  };
 
   const dispatch = async (element: Element, onPrefix: string, ev: Event, eventName = ev.type) => {
     const attrName = 'on' + onPrefix + ':' + eventName;
@@ -47,13 +62,17 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       }
       return;
     }
-    const attrValue = element.getAttribute(attrName);
+    const attrValue = getAttribute(element, attrName);
     if (attrValue) {
+      const container = element.closest('[q\\:container]')!;
+      const base = new URL(getAttribute(container, 'q:base')!, doc.baseURI);
       for (const qrl of attrValue.split('\n')) {
-        const url = qrlResolver(element, qrl);
-        const symbolName = getSymbolName(url);
+        const url = new URL(qrl, base);
+        const symbolName = url.hash.replace(/^#?([^?[|]*).*$/, '$1') || 'default';
         const reqTime = performance.now();
-        const handler = findSymbol(await import(url.href.split('#')[0]), symbolName);
+        const module = import(url.href.split('#')[0]);
+        resolveContainer(container);
+        const handler = findSymbol(await module, symbolName);
         const previousCtx = (doc as any)[Q_CONTEXT];
         if (element.isConnected) {
           try {
@@ -86,14 +105,6 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       }
     }
   };
-
-  const getSymbolName = (url: URL) =>
-    // 1 - optional `#` at the start.
-    // 2 - capture group `$1` containing the export name, stopping at the first `?`.
-    // 3 - the rest from the first `?` to the end.
-    // The hash string is replaced by the captured group that contains only the export name.
-    // This is the same as in the `qExport()` function.
-    url.hash.replace(/^#?([^?[|]*).*$/, '$1') || 'default';
 
   const camelToKebab = (str: string) => str.replace(/([A-Z])/g, (a) => '-' + a.toLowerCase());
 

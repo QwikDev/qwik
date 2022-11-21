@@ -1,106 +1,86 @@
-import type { Plugin } from 'vite';
-import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
-import type { StaticGenerateOptions, StaticGenerateRenderOptions } from '../../../static';
-import { join } from 'node:path';
+import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
+import { getParentDir, viteAdaptor } from '../../shared/vite';
 import fs from 'node:fs';
+import { join } from 'node:path';
+import { basePathname } from '@qwik-city-plan';
 
 /**
  * @alpha
  */
 export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
-  let qwikVitePlugin: QwikVitePlugin | null = null;
-  let serverOutDir: string | null = null;
-  let renderModulePath: string | null = null;
-  let qwikCityPlanModulePath: string | null = null;
+  return viteAdaptor({
+    name: 'netlify-edge',
+    origin: process?.env?.URL || 'https://yoursitename.netlify.app',
+    staticGenerate: opts.staticGenerate,
+    staticPaths: opts.staticPaths,
+    cleanStaticGenerated: true,
 
-  async function generateBundles() {
-    const qwikVitePluginApi = qwikVitePlugin!.api;
-    const clientOutDir = qwikVitePluginApi.getClientOutDir()!;
-
-    const serverPackageJsonPath = join(serverOutDir!, 'package.json');
-    const serverPackageJsonCode = `{"type":"module"}`;
-    await fs.promises.mkdir(serverOutDir!, { recursive: true });
-    await fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode);
-
-    if (opts.staticGenerate) {
-      const staticGenerate = await import('../../../static');
-      let generateOpts: StaticGenerateOptions = {
-        outDir: clientOutDir,
-        origin: process?.env?.URL || 'https://yoursitename.netlify.app',
-        renderModulePath: renderModulePath!,
-        qwikCityPlanModulePath: qwikCityPlanModulePath!,
+    config(config) {
+      const outDir = config.build?.outDir || '.netlify/edge-functions/entry.netlify-edge';
+      return {
+        ssr: {
+          target: 'webworker',
+          noExternal: true,
+        },
+        build: {
+          ssr: true,
+          outDir,
+          rollupOptions: {
+            output: {
+              format: 'es',
+              hoistTransitiveImports: false,
+            },
+          },
+        },
+        publicDir: false,
       };
+    },
 
-      if (typeof opts.staticGenerate === 'object') {
-        generateOpts = {
-          ...generateOpts,
-          ...opts.staticGenerate,
+    async generate({ serverOutDir }) {
+      if (opts.functionRoutes !== false) {
+        // https://docs.netlify.com/edge-functions/create-integration/#generate-declarations
+        const netlifyEdgeManifest = {
+          functions: [
+            {
+              path: basePathname + '*',
+              function: 'entry.netlify-edge',
+            },
+          ],
+          version: 1,
         };
-      }
 
-      await staticGenerate.generate(generateOpts);
-    }
-  }
-
-  const plugin: Plugin = {
-    name: 'vite-plugin-qwik-city-netlify-edge',
-    enforce: 'post',
-    apply: 'build',
-
-    configResolved({ build, plugins }) {
-      qwikVitePlugin = plugins.find((p) => p.name === 'vite-plugin-qwik') as QwikVitePlugin;
-      if (!qwikVitePlugin) {
-        throw new Error('Missing vite-plugin-qwik');
-      }
-      serverOutDir = build.outDir;
-
-      if (build?.ssr !== true) {
-        throw new Error(
-          '"build.ssr" must be set to `true` in order to use the Netlify Edge adaptor.'
-        );
-      }
-
-      if (!build?.rollupOptions?.input) {
-        throw new Error(
-          '"build.rollupOptions.input" must be set in order to use the Netlify Edge adaptor.'
+        const netlifyEdgeFnsDir = getParentDir(serverOutDir, 'edge-functions');
+        await fs.promises.writeFile(
+          join(netlifyEdgeFnsDir, 'manifest.json'),
+          JSON.stringify(netlifyEdgeManifest, null, 2)
         );
       }
     },
-
-    generateBundle(_, bundles) {
-      for (const fileName in bundles) {
-        const chunk = bundles[fileName];
-        if (chunk.type === 'chunk' && chunk.isEntry) {
-          if (chunk.name === 'entry.ssr') {
-            renderModulePath = join(serverOutDir!, fileName);
-          } else if (chunk.name === '@qwik-city-plan') {
-            qwikCityPlanModulePath = join(serverOutDir!, fileName);
-          }
-        }
-      }
-
-      if (!renderModulePath) {
-        throw new Error(
-          'Unable to fine "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?'
-        );
-      }
-      if (!qwikCityPlanModulePath) {
-        throw new Error(
-          'Unable to fine "@qwik-city-plan" entry point. Did you forget to add it to "build.rollupOptions.input"?'
-        );
-      }
-    },
-
-    async closeBundle() {
-      await generateBundles();
-    },
-  };
-  return plugin;
+  });
 }
 
 /**
  * @alpha
  */
 export interface NetlifyEdgeAdaptorOptions {
-  staticGenerate?: StaticGenerateRenderOptions | true;
+  /**
+   * Determines if the build should generate the edge functions declarations `manifest.json` file.
+   *
+   * https://docs.netlify.com/edge-functions/declarations/
+   *
+   * Defaults to `true`.
+   */
+  functionRoutes?: boolean;
+  /**
+   * Determines if the adaptor should also run Static Site Generation (SSG).
+   */
+  staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
+  /**
+   * Manually add pathnames that should be treated as static paths and not SSR.
+   * For example, when these pathnames are requested, their response should
+   * come from a static file, rather than a server-side rendered response.
+   */
+  staticPaths?: string[];
 }
+
+export type { StaticGenerateRenderOptions };

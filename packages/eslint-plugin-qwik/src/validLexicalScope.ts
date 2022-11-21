@@ -86,9 +86,12 @@ export const validLexicalScope = createRule({
             if (scopeType === 'global') {
               return;
             }
-            const identifier = ref.identifier;
-            const tsNode = esTreeNodeToTSNodeMap.get(identifier);
             if (scopeType === 'module') {
+              const identifier =
+                declaredVariable.identifiers.length === 1
+                  ? declaredVariable.identifiers[0]
+                  : ref.identifier;
+              const tsNode = esTreeNodeToTSNodeMap.get(identifier);
               const s = typeChecker.getSymbolAtLocation(tsNode);
               if (s && exports.includes(s)) {
                 return;
@@ -105,6 +108,8 @@ export const validLexicalScope = createRule({
               });
               return;
             }
+            const identifier = ref.identifier;
+            const tsNode = esTreeNodeToTSNodeMap.get(identifier);
             let ownerDeclared: Scope | null = declaredScope;
             while (ownerDeclared) {
               if (relevantScopes.has(ownerDeclared)) {
@@ -338,12 +343,23 @@ function _isTypeCapturable(
   }
   const isObject = (type.flags & ts.TypeFlags.Object) !== 0;
   if (isObject) {
-    const symbolName = type.symbol.name;
-
     const arrayType = getElementTypeOfArrayType(type, checker);
     if (arrayType) {
       return _isTypeCapturable(checker, arrayType, node, opts, level + 1, seen);
     }
+
+    const tupleTypes = getTypesOfTupleType(type, checker);
+    if (tupleTypes) {
+      for (const subType of tupleTypes) {
+        const result = _isTypeCapturable(checker, subType, node, opts, level + 1, seen);
+        if (result) {
+          return result;
+        }
+      }
+      return;
+    }
+
+    const symbolName = type.symbol.name;
 
     // Element is ok
     if (type.getProperty('nextElementSibling')) {
@@ -419,6 +435,15 @@ function isSymbolCapturable(
 
 function getElementTypeOfArrayType(type: ts.Type, checker: ts.TypeChecker): ts.Type | undefined {
   return (checker as any).getElementTypeOfArrayType(type);
+}
+
+function getTypesOfTupleType(
+  type: ts.Type,
+  checker: ts.TypeChecker
+): readonly ts.Type[] | undefined {
+  return (checker as any).isTupleType(type)
+    ? checker.getTypeArguments(type as ts.TupleType)
+    : undefined;
 }
 
 function isTypeQRL(type: ts.Type): boolean {

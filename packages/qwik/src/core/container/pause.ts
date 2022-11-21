@@ -1,6 +1,7 @@
 import { assertDefined, assertEqual, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
 import {
+  assertElement,
   isComment,
   isDocument,
   isElement,
@@ -64,8 +65,6 @@ import type { QRL } from '../qrl/qrl.public';
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#pauseContainer instead)
 /**
- * Serialize the current state of the application into DOM
- *
  */
 // </docs>
 export const pauseContainer = async (
@@ -186,6 +185,7 @@ export const _pauseFromContexts = async (
   if (!hasListeners) {
     return {
       state: {
+        refs: {},
         ctx: {},
         objs: [],
         subs: [],
@@ -233,8 +233,6 @@ export const _pauseFromContexts = async (
       id = getQId(el);
       if (!id) {
         console.warn('Missing ID', el);
-      } else {
-        id = ELEMENT_ID_PREFIX + id;
       }
       elementToIndex.set(el, id);
     }
@@ -261,7 +259,7 @@ export const _pauseFromContexts = async (
       } else if (isQwikElement(obj)) {
         const elID = getElementID(obj);
         if (elID) {
-          return elID + suffix;
+          return ELEMENT_ID_PREFIX + elID + suffix;
         }
         return null;
       }
@@ -389,11 +387,12 @@ export const _pauseFromContexts = async (
   });
 
   const meta: SnapshotMeta = {};
+  const refs: Record<string, string> = {};
 
   // Write back to the dom
   allContexts.forEach((ctx) => {
-    assertDefined(ctx, `pause: missing context for dom node`);
     const node = ctx.$element$;
+    const elementID = ctx.$id$;
     const ref = ctx.$refMap$;
     const props = ctx.$props$;
     const contexts = ctx.$contexts$;
@@ -402,20 +401,27 @@ export const _pauseFromContexts = async (
     const seq = ctx.$seq$;
     const metaValue: SnapshotMetaValue = {};
     const elementCaptured = isVirtualElement(node) && collector.$elements$.includes(ctx);
+    assertDefined(elementID, `pause: can not generate ID for dom node`, node);
 
-    let add = false;
     if (ref.length > 0) {
+      assertElement(node);
       const value = ref.map(mustGetObjId).join(' ');
       if (value) {
-        metaValue.r = value;
-        add = true;
+        refs[elementID] = value;
       }
-    }
-
-    if (canRender) {
-      if (elementCaptured && props) {
-        metaValue.h = mustGetObjId(props) + ' ' + mustGetObjId(renderQrl);
+    } else if (canRender) {
+      let add = false;
+      if (elementCaptured) {
+        assertDefined(renderQrl, 'renderQrl must be defined');
+        const propsId = getObjId(props);
+        metaValue.h = mustGetObjId(renderQrl) + (propsId ? ' ' + propsId : '');
         add = true;
+      } else {
+        const propsId = getObjId(props);
+        if (propsId) {
+          metaValue.h = ' ' + propsId;
+          add = true;
+        }
       }
 
       if (watches && watches.length > 0) {
@@ -446,12 +452,9 @@ export const _pauseFromContexts = async (
           add = true;
         }
       }
-    }
-
-    if (add) {
-      const elementID = getElementID(node);
-      assertDefined(elementID, `pause: can not generate ID for dom node`, node);
-      meta[elementID] = metaValue;
+      if (add) {
+        meta[elementID] = metaValue;
+      }
     }
   });
 
@@ -466,6 +469,7 @@ export const _pauseFromContexts = async (
 
   return {
     state: {
+      refs,
       ctx: meta,
       objs: convertedObjs,
       subs,
@@ -518,11 +522,21 @@ export interface Collector {
 
 const collectProps = (elCtx: QContext, collector: Collector) => {
   const parentCtx = elCtx.$parent$;
-  if (parentCtx && elCtx.$props$ && collector.$elements$.includes(parentCtx)) {
-    const subs = getProxyManager(elCtx.$props$)?.$subs$;
+  const props = elCtx.$props$;
+  if (parentCtx && props && !isEmptyObj(props) && collector.$elements$.includes(parentCtx)) {
+    const subs = getProxyManager(props)?.$subs$;
     const el = elCtx.$element$ as VirtualElement;
-    if (subs && subs.some((e) => e[0] === 0 && e[1] === el)) {
-      collectElement(el, collector);
+    if (subs) {
+      for (const sub of subs) {
+        if (sub[1] === el) {
+          if (sub[0] === 0) {
+            collectElement(el, collector);
+            return;
+          } else {
+            collectValue(props, collector, false);
+          }
+        }
+      }
     }
   }
 };
@@ -569,7 +583,7 @@ const collectElement = (el: VirtualElement, collector: Collector) => {
 };
 
 export const collectElementData = (elCtx: QContext, collector: Collector, dynamic: boolean) => {
-  if (elCtx.$props$) {
+  if (elCtx.$props$ && !isEmptyObj(elCtx.$props$)) {
     collectValue(elCtx.$props$, collector, dynamic);
   }
   if (elCtx.$componentQrl$) {
@@ -587,18 +601,26 @@ export const collectElementData = (elCtx: QContext, collector: Collector, dynami
   }
 
   if (dynamic) {
-    let parent: QContext | null = elCtx;
-    while (parent) {
-      if (parent.$contexts$) {
-        for (const obj of parent.$contexts$.values()) {
-          collectValue(obj, collector, dynamic);
-        }
-        if (parent.$contexts$.get('_') === true) {
-          break;
-        }
+    collectContext(elCtx, collector);
+    if (elCtx.$dynamicSlots$) {
+      for (const slotCtx of elCtx.$dynamicSlots$) {
+        collectContext(slotCtx, collector);
       }
-      parent = parent.$parent$;
     }
+  }
+};
+
+const collectContext = (elCtx: QContext | null, collector: Collector) => {
+  while (elCtx) {
+    if (elCtx.$contexts$) {
+      for (const obj of elCtx.$contexts$.values()) {
+        collectValue(obj, collector, true);
+      }
+      if (elCtx.$contexts$.get('_') === true) {
+        break;
+      }
+    }
+    elCtx = elCtx.$slotParent$ ?? elCtx.$parent$;
   }
 };
 
@@ -775,4 +797,8 @@ const getTextID = (node: Text, containerState: ContainerState) => {
   parent.insertBefore(open, node);
   parent.insertBefore(close, node.nextSibling);
   return ELEMENT_ID_PREFIX + id;
+};
+
+const isEmptyObj = (obj: Record<string, any>) => {
+  return Object.keys(obj).length === 0;
 };

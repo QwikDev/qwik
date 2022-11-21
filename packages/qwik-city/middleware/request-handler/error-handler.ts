@@ -1,3 +1,4 @@
+import { Cookie } from './cookie';
 import { createHeaders } from './headers';
 import { HttpStatus } from './http-status-codes';
 import type { QwikCityRequestContext } from './types';
@@ -21,6 +22,7 @@ export function errorHandler(requestCtx: QwikCityRequestContext, e: any) {
   return requestCtx.response(
     status,
     headers,
+    new Cookie(),
     async (stream) => {
       stream.write(html);
     },
@@ -41,6 +43,7 @@ export function errorResponse(requestCtx: QwikCityRequestContext, errorResponse:
   return requestCtx.response(
     errorResponse.status,
     headers,
+    new Cookie(),
     async (stream) => {
       stream.write(html);
     },
@@ -91,14 +94,11 @@ function minimalHtmlResponse(status: number, message?: string, stack?: string) {
   </style>
 </head>
 <body>
-  <p>
-    <strong>${status}</strong>
-    <span>${message}</span>
-  </p>
-  ${stack ? `<pre><code>${stack}</code></pre>` : ``}
+  <p><strong>${status}</strong> <span>${message}</span></p>${
+    stack ? `\n  <pre><code>${stack}</code></pre>` : ``
+  }
 </body>
-</html>
-`;
+</html>`;
 }
 
 const COLOR_400 = '#006ce9';

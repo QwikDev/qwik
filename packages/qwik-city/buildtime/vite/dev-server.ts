@@ -3,7 +3,7 @@ import type { ServerResponse } from 'node:http';
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import type { BuildContext } from '../types';
-import type { RouteModule } from '../../runtime/src/library/types';
+import type { RouteModule } from '../../runtime/src/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
 import { loadUserResponse, updateRequestCtx } from '../../middleware/request-handler/user-response';
 import { getQwikCityEnvData, pageHandler } from '../../middleware/request-handler/page-handler';
@@ -20,7 +20,7 @@ import {
 } from '../../middleware/request-handler/redirect-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
 import type { RenderToStringResult } from '@builder.io/qwik/server';
-import { getRouteParams } from '../../runtime/src/library/routing';
+import { getRouteParams } from '../../runtime/src/routing';
 import { fromNodeHttp } from '../../middleware/node/http';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
@@ -54,13 +54,14 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
       const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
+      const requestHeaders: Record<string, string> = req.headers as any;
 
       if (skipRequest(url.pathname) || isVitePing(url.pathname, req.headers)) {
         next();
         return;
       }
 
-      const requestCtx = fromNodeHttp(url, req, res);
+      const requestCtx = fromNodeHttp(url, req, res, 'dev');
       updateRequestCtx(requestCtx, ctx.opts.trailingSlash);
 
       await updateBuildContext(ctx);
@@ -114,7 +115,12 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
           // qwik city vite plugin should handle dev ssr rendering
           // but add the qwik city user context to the response object
-          const envData = getQwikCityEnvData(userResponse);
+          const envData = getQwikCityEnvData(
+            requestHeaders,
+            userResponse,
+            requestCtx.locale,
+            'dev'
+          );
           if (ctx.isDevServerClientOnly) {
             // because we stringify this content for the client only
             // dev server, there's some potential stringify issues
@@ -131,8 +137,9 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           // but do not end() it, call next() so qwik plugin handles rendering
           res.statusCode = userResponse.status;
           userResponse.headers.forEach((value, key) => res.setHeader(key, value));
-          for (const header in userResponse.cookie.headers()) {
-            res.setHeader('Set-Cookie', header);
+          const cookies = userResponse.cookie.headers();
+          if (cookies.length > 0) {
+            res.setHeader('Set-Cookie', cookies);
           }
           next();
           return;
@@ -192,7 +199,7 @@ export function dev404Middleware() {
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
       const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
-      const requestCtx = fromNodeHttp(url, req, res);
+      const requestCtx = fromNodeHttp(url, req, res, 'dev');
       await notFoundHandler(requestCtx);
     } catch (e) {
       next(e);
@@ -256,8 +263,9 @@ async function noopDevRender() {
       render: 0,
       snapshot: 0,
     },
+    isStatic: false,
     prefetchResources: [],
-    snapshotResult: null,
+    snapshotResult: undefined,
   };
   return result;
 }

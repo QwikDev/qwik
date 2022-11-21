@@ -113,11 +113,23 @@ export class Cookie implements CookieInterface {
     this[RES_COOKIE][cookieName] = createSetCookieValue(cookieName, resolvedValue, options);
   }
 
-  delete(name: string) {
-    this.set(name, 'deleted', { expires: new Date(0) });
+  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>) {
+    this.set(name, 'deleted', { ...options, maxAge: 0 });
   }
 
   headers() {
     return Object.values(this[RES_COOKIE]);
   }
 }
+
+export const mergeHeadersCookies = (headers: Headers, cookies: CookieInterface) => {
+  const cookieHeaders = cookies.headers();
+  if (cookieHeaders.length > 0) {
+    const newHeaders = new Headers(headers);
+    for (const cookie of cookieHeaders) {
+      newHeaders.append('Set-Cookie', cookie);
+    }
+    return newHeaders;
+  }
+  return headers;
+};

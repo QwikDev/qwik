@@ -40,22 +40,32 @@ export async function createSystem(opts: StaticGenerateOptions) {
 
   const outDir = normalizePath(opts.outDir);
 
-  const getPageFilePath = (pathname: string) => {
-    pathname = pathname.slice(1);
+  const basePathname = opts.basePathname || '/';
+  const basenameLen = basePathname.length;
+
+  const getFsDir = (pathname: string) => {
+    pathname = pathname.slice(basenameLen);
     if (!pathname.endsWith('/')) {
       pathname += '/';
     }
-    pathname += 'index.html';
+    return pathname;
+  };
+
+  const getPageFilePath = (pathname: string) => {
+    if (pathname.endsWith('.html')) {
+      pathname = pathname.slice(basenameLen);
+    } else {
+      pathname = getFsDir(pathname) + 'index.html';
+    }
     return join(outDir, pathname);
   };
 
   const getDataFilePath = (pathname: string) => {
-    pathname = pathname.slice(1);
-    if (!pathname.endsWith('/')) {
-      pathname += '/';
+    if (!pathname.endsWith('.html')) {
+      pathname = getFsDir(pathname) + 'q-data.json';
+      return join(outDir, pathname);
     }
-    pathname += 'q-data.json';
-    return join(outDir, pathname);
+    return null;
   };
 
   const sys: System = {
@@ -66,6 +76,7 @@ export async function createSystem(opts: StaticGenerateOptions) {
     ensureDir,
     createWriteStream,
     createTimer,
+    access,
     getPageFilePath,
     getDataFilePath,
     platform: {
@@ -78,9 +89,14 @@ export async function createSystem(opts: StaticGenerateOptions) {
 }
 
 export const ensureDir = async (filePath: string) => {
+  await fs.promises.mkdir(dirname(filePath), { recursive: true });
+};
+
+export const access = async (path: string) => {
   try {
-    await fs.promises.mkdir(dirname(filePath), { recursive: true });
+    await fs.promises.access(path);
+    return true;
   } catch (e) {
-    //
+    return false;
   }
 };

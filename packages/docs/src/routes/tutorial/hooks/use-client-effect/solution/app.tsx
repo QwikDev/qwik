@@ -1,5 +1,5 @@
 import { component$, useStore, useStyles$, useClientEffect$ } from '@builder.io/qwik';
-import styles from './clock.css';
+import styles from './clock.css?inline';
 
 interface ClockStore {
   hour: number;
@@ -15,10 +15,11 @@ export const Clock = component$(() => {
     second: 0,
   });
 
-  useClientEffect$(() => {
+  useClientEffect$(({ track }) => {
+    track(store);
     updateClock(store);
-    const tmrId = setInterval(() => updateClock(store), 1000);
-    return () => clearInterval(tmrId);
+    const tmrId = setTimeout(() => updateClock(store), 1000);
+    return () => clearTimeout(tmrId);
   });
 
   return (
@@ -41,7 +42,7 @@ export function updateClock(store: ClockStore) {
   store.hour = now.getHours() * (360 / 12);
 }
 
-export const App = component$(() => {
+export default component$(() => {
   return (
     <div>
       <p>This is an example of Lazy executing code on component when component becomes visible.</p>

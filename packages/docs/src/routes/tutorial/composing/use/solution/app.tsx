@@ -12,7 +12,7 @@ export function useMousePosition() {
   return mousePosition;
 }
 
-export const App = component$(() => {
+export default component$(() => {
   const mousePosition = useMousePosition();
   return (
     <div>

@@ -4,23 +4,21 @@
 
 ```ts
 
-import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import type { SymbolMapper } from '@builder.io/qwik/optimizer';
-import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
+import type { RenderOptions } from '../../qwik/src/server';
 
 // @alpha
 export function generate(opts: StaticGenerateOptions): Promise<StaticGenerateResult>;
 
 // @alpha (undocumented)
 export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
+    basePathname?: string;
     qwikCityPlanModulePath: string;
     renderModulePath: string;
 }
 
-// Warning: (ae-forgotten-export) The symbol "RenderOptions" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
 export interface StaticGenerateRenderOptions extends RenderOptions {
+    emit404Pages?: boolean;
     emitData?: boolean;
     emitHtml?: boolean;
     log?: 'debug';

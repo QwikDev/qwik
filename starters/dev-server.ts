@@ -9,8 +9,10 @@ import { join, resolve } from 'node:path';
 import { readdirSync, statSync, unlinkSync, rmdirSync, existsSync, readFileSync } from 'node:fs';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
-import type { PackageJSON } from 'scripts/util';
+import type { PackageJSON } from '../scripts/util';
 import { fileURLToPath } from 'node:url';
+import nodeFetch, { Headers, Request as R, Response as RE } from 'node-fetch';
+import { getErrorHtml } from '../packages/qwik-city/middleware/request-handler/error-handler';
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
@@ -22,13 +24,17 @@ const appNames = readdirSync(startersAppsDir).filter(
   (p) => statSync(join(startersAppsDir, p)).isDirectory() && p !== 'base'
 );
 
-const qwikDistDir = join(__dirname, '..', 'packages', 'qwik', 'dist');
-const qwikCityDistDir = join(__dirname, '..', 'packages', 'qwik-city', 'lib');
+const packagesDir = resolve(__dirname, '..', 'packages');
+const qwikDistDir = join(packagesDir, 'qwik', 'dist');
+const qwikCityDistDir = join(packagesDir, 'qwik-city', 'lib');
 const qwikDistOptimizerPath = join(qwikDistDir, 'optimizer.mjs');
 const qwikCityDistVite = join(qwikCityDistDir, 'vite', 'index.mjs');
+const qwikCityMjs = join(qwikCityDistDir, 'index.qwik.mjs');
 
 const qwikCityVirtualEntry = '@city-ssr-entry';
 const entrySsrFileName = 'entry.ssr.tsx';
+const qwikCityNotFoundPaths = '@qwik-city-not-found-paths';
+const qwikCityStaticPaths = '@qwik-city-static-paths';
 
 Error.stackTraceLimit = 1000;
 
@@ -61,7 +67,7 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
 
     res.set('Content-Type', 'text/html');
     if (enableCityServer) {
-      cityApp(req, res, next, appDir);
+      await cityApp(req, res, next, appDir);
     } else {
       await ssrApp(req, res, appName, appDir, resolved);
       res.end();
@@ -101,13 +107,19 @@ async function buildApp(appDir: string, appName: string, enableCityServer: boole
         if (id.endsWith(qwikCityVirtualEntry)) {
           return qwikCityVirtualEntry;
         }
+        if (id === qwikCityStaticPaths || id === qwikCityNotFoundPaths) {
+          return './' + id;
+        }
       },
       load(id) {
         if (id.endsWith(qwikCityVirtualEntry)) {
-          return `import { qwikCity } from '@builder.io/qwik-city/middleware/node';
+          return `import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
 import render from '${resolve(appSrcDir, 'entry.ssr')}';
-const { router, notFound } = qwikCity(render, {
-  base: '${baseUrl}',
+import qwikCityPlan from '@qwik-city-plan';
+const { router, notFound } = createQwikCity({
+  render,
+  qwikCityPlan,
+  base: '${baseUrl}build/',
 });
 export {
   router,
@@ -115,12 +127,23 @@ export {
 }
 `;
         }
+        if (id.endsWith(qwikCityStaticPaths)) {
+          return `export function isStaticPath(){ return false; };`;
+        }
+        if (id.endsWith(qwikCityNotFoundPaths)) {
+          const notFoundHtml = getErrorHtml(404, 'Resource Not Found');
+          return `export function getNotFound(){ return ${JSON.stringify(notFoundHtml)}; };`;
+        }
       },
     });
     const qwikCityVite: typeof import('@builder.io/qwik-city/vite') = await import(
       qwikCityDistVite
     );
-    plugins.push(qwikCityVite.qwikCity());
+    plugins.push(
+      qwikCityVite.qwikCity({
+        basePathname: '/qwikcity-test/',
+      })
+    );
   }
   const getInlineConf = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,
@@ -130,7 +153,8 @@ export {
     ...extra,
     resolve: {
       alias: {
-        '@builder.io/qwik': join(qwikDistDir),
+        '@builder.io/qwik': qwikDistDir,
+        '@builder.io/qwik-city': qwikCityDistDir,
       },
     },
   });
@@ -143,14 +167,14 @@ export {
       define: {
         'globalThis.qSerialize': true,
         'globalThis.qDev': !isProd,
+        'globalThis.PORT': port,
       },
       plugins: [
         ...plugins,
         optimizer.qwikVite({
+          vendorRoots: enableCityServer ? [qwikCityMjs] : [],
           entryStrategy: {
-            // TODO: e2e example seems requiring 'single' in vite ?
-            // previous is 'hook' in rollup. don't know why
-            type: enableCityServer ? 'smart' : 'single',
+            type: 'single',
           },
           client: {
             // forceFullBuild: true,
@@ -172,11 +196,11 @@ export {
       plugins: [...plugins, optimizer.qwikVite()],
       define: {
         'globalThis.qDev': !isProd,
+        'globalThis.PORT': port,
       },
     })
   );
 
-  console.log('appServerDir', appServerDir);
   return clientManifest!;
 }
 
@@ -262,8 +286,6 @@ function startersHomepage(_: Request, res: Response) {
   `);
 }
 
-import nodeFetch, { Headers, Request as R, Response as RE } from 'node-fetch';
-
 (global as any).fetch = nodeFetch;
 (global as any).Headers = Headers;
 (global as any).Request = R;
@@ -287,7 +309,7 @@ appNames.forEach((appName) => {
 
 app.get('/', startersHomepage);
 app.get('/favicon.ico', favicon);
-app.get('/*', handleApp);
+app.all('/*', handleApp);
 
 const server = app.listen(port, () => {
   console.log(`Starter Dir: ${startersDir}`);

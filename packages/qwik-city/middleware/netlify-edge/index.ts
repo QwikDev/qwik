@@ -1,14 +1,10 @@
 import type { Context } from '@netlify/edge-functions';
 import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-handler/types';
-import { notFoundHandler, requestHandler } from '../request-handler';
-import type { Render } from '@builder.io/qwik/server';
-import type { RenderOptions } from '@builder.io/qwik';
-import qwikCityPlan from '@qwik-city-plan';
-import type { RequestHandler } from '~qwik-city-runtime';
-
-const isNetlifyPath = (url: string) => {
-  return new URL(url).pathname.startsWith('/.netlify');
-};
+import type { RequestHandler } from '@builder.io/qwik-city';
+import { requestHandler } from '../request-handler';
+import { mergeHeadersCookies } from '../request-handler/cookie';
+import { getNotFound } from '@qwik-city-not-found-paths';
+import { isStaticPath } from '@qwik-city-static-paths';
 
 // @builder.io/qwik-city/middleware/netlify-edge
 
@@ -17,20 +13,28 @@ const isNetlifyPath = (url: string) => {
  */
 export function createQwikCity(opts: QwikCityNetlifyOptions) {
   async function onRequest(request: Request, context: Context) {
-    if (isNetlifyPath(request.url)) {
-      return context.next();
-    }
     try {
+      const url = new URL(request.url);
+
+      if (isStaticPath(url.pathname) || url.pathname.startsWith('/.netlify')) {
+        // known static path, let netlify handle it
+        return context.next();
+      }
+
       const requestCtx: QwikCityRequestContext<Response> = {
-        url: new URL(request.url),
+        mode: 'server',
+        locale: undefined,
+        url,
         request,
-        response: (status, headers, body) => {
+        response: (status, headers, cookies, body) => {
           return new Promise<Response>((resolve) => {
             let flushedHeaders = false;
             const { readable, writable } = new TransformStream();
             const writer = writable.getWriter();
-
-            const response = new Response(readable, { status, headers });
+            const response = new Response(readable, {
+              status,
+              headers: mergeHeadersCookies(headers, cookies),
+            });
 
             body({
               write: (chunk) => {
@@ -64,14 +68,17 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
       }
 
       // qwik city did not have a route for this request
-      // respond with qwik city's 404 handler
-      const notFoundResponse = await notFoundHandler<Response>(requestCtx);
-      return notFoundResponse;
+      // response with 404 for this pathname
+      const notFoundHtml = getNotFound(url.pathname);
+      return new Response(notFoundHtml, {
+        status: 404,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
+      });
     } catch (e: any) {
       console.error(e);
       return new Response(String(e || 'Error'), {
         status: 500,
-        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Error': 'netlify-edge' },
       });
     }
   }
@@ -88,24 +95,6 @@ export interface QwikCityNetlifyOptions extends QwikCityHandlerOptions {}
  * @alpha
  */
 export interface EventPluginContext extends Context {}
-
-/**
- * @alpha
- * @deprecated Please use `createQwikCity()` instead.
- *
- * Example:
- *
- * ```ts
- * import { createQwikCity } from '@builder.io/qwik-city/middleware/netlify-edge';
- * import qwikCityPlan from '@qwik-city-plan';
- * import render from './entry.ssr';
- *
- * export default createQwikCity({ render, qwikCityPlan });
- * ```
- */
-export function qwikCity(render: Render, opts?: RenderOptions) {
-  return createQwikCity({ render, qwikCityPlan, ...opts });
-}
 
 /**
  * @alpha

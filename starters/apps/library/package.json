@@ -26,7 +26,7 @@
     "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
-    "lint": "eslint src/**/*.ts*",
+    "lint": "eslint \"src/**/*.ts*\"",
     "start": "vite --open --mode ssr",
     "qwik": "qwik",
     "release": "np"
@@ -49,7 +49,7 @@
     "displayName": "Component library",
     "priority": -1,
     "docs": [
-      "https://qwik.builder.io/docs/overview/"
+      "https://qwik.builder.io/docs/getting-started/"
     ]
   }
 }

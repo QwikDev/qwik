@@ -6,7 +6,7 @@ import type {
   ResponseContext,
   RouteModule,
   RouteParams,
-} from '../../runtime/src/library/types';
+} from '../../runtime/src/types';
 import type { QwikCityRequestContext, UserResponseContext } from './types';
 import { HttpStatus } from './http-status-codes';
 import { isRedirectStatus, RedirectResponse } from './redirect-handler';
@@ -44,7 +44,7 @@ export async function loadUserResponse(
 
   let hasRequestMethodHandler = false;
 
-  if (isPageModule && pathname !== basePathname) {
+  if (isPageModule && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (trailingSlash) {
       // must have a trailing slash
@@ -71,7 +71,7 @@ export async function loadUserResponse(
   };
 
   const redirect = (url: string, status?: number) => {
-    return new RedirectResponse(url, status, userResponse.headers);
+    return new RedirectResponse(url, status, userResponse.headers, userResponse.cookie);
   };
 
   const error = (status: number, message?: string) => {
@@ -132,6 +132,12 @@ export async function loadUserResponse(
           get headers() {
             return userResponse.headers;
           },
+          get locale() {
+            return requestCtx.locale;
+          },
+          set locale(locale) {
+            requestCtx.locale = locale;
+          },
           redirect,
           error,
         };
@@ -182,10 +188,6 @@ export async function loadUserResponse(
 
   userResponse.aborted = routeModuleIndex >= ABORT_INDEX;
 
-  for (const setCookieValue of userResponse.cookie.headers()) {
-    userResponse.headers.set('Set-Cookie', setCookieValue);
-  }
-
   if (
     !isPageDataRequest &&
     isRedirectStatus(userResponse.status) &&
@@ -196,7 +198,8 @@ export async function loadUserResponse(
     throw new RedirectResponse(
       userResponse.headers.get('Location')!,
       userResponse.status,
-      userResponse.headers
+      userResponse.headers,
+      userResponse.cookie
     );
   }
 

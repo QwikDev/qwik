@@ -61,7 +61,7 @@ const notifyRender = (hostElement: QwikElement, containerState: ContainerState):
     resumeIfNeeded(containerState.$containerEl$);
   }
 
-  const elCtx = getContext(hostElement);
+  const elCtx = getContext(hostElement, containerState);
   assertDefined(
     elCtx.$componentQrl$,
     `render: notified host element must have a defined $renderQrl$`,
@@ -97,7 +97,7 @@ const notifySignalOperation = (op: SubscriberSignal, containerState: ContainerSt
       'render: while rendering, $renderPromise$ must be defined',
       containerState
     );
-    containerState.$opsNext$.add(op);
+    containerState.$opsStaging$.add(op);
   } else {
     containerState.$opsNext$.add(op);
     scheduleFrame(containerState);
@@ -161,7 +161,7 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
 
     for (const el of renderingQueue) {
       if (!staticCtx.$hostElements$.has(el)) {
-        const elCtx = getContext(el);
+        const elCtx = getContext(el, containerState);
         if (elCtx.$componentQrl$) {
           assertTrue(el.isConnected, 'element must be connected to the dom');
           staticCtx.$roots$.push(elCtx);
@@ -176,7 +176,11 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
       }
     }
 
-    containerState.$opsNext$.forEach((op) => executeSignalOperation(staticCtx, op));
+    containerState.$opsNext$.forEach((op) => {
+      if (!staticCtx.$hostElements$.has(op[1])) {
+        executeSignalOperation(staticCtx, op);
+      }
+    });
     containerState.$opsNext$.clear();
 
     // Add post operations
@@ -229,6 +233,10 @@ export const postRendering = async (containerState: ContainerState, ctx: RenderS
   });
   containerState.$hostsStaging$.clear();
 
+  containerState.$opsStaging$.forEach((el) => {
+    containerState.$opsNext$.add(el);
+  });
+  containerState.$opsStaging$.clear();
   containerState.$hostsRendering$ = undefined;
   containerState.$renderPromise$ = undefined;
 
@@ -236,6 +244,7 @@ export const postRendering = async (containerState: ContainerState, ctx: RenderS
     containerState.$hostsNext$.size +
     containerState.$watchNext$.size +
     containerState.$opsNext$.size;
+
   if (pending > 0) {
     scheduleFrame(containerState);
   }
@@ -320,11 +329,9 @@ const executeWatchesAfter = async (
     if (watchPromises.length > 0) {
       const watches = await Promise.all(watchPromises);
       sortWatches(watches);
-      await Promise.all(
-        watches.map((watch) => {
-          return runSubscriber(watch, containerState);
-        })
-      );
+      for (const watch of watches) {
+        await runSubscriber(watch, containerState);
+      }
       watchPromises.length = 0;
     }
   } while (containerState.$watchStaging$.size > 0);

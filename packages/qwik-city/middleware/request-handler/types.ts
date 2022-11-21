@@ -2,16 +2,19 @@ import type { StreamWriter } from '@builder.io/qwik';
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
 import type {
   ClientPageData,
+  QwikCityMode,
   QwikCityPlan,
   RequestContext,
   RouteParams,
-} from '../../runtime/src/library/types';
+} from '../../runtime/src/types';
 
 export interface QwikCityRequestContext<T = any> {
   request: RequestContext;
   response: ResponseHandler<T>;
   url: URL;
   platform: Record<string, any>;
+  locale: string | undefined;
+  mode: QwikCityMode;
 }
 
 export interface QwikCityDevRequestContext extends QwikCityRequestContext {
@@ -25,6 +28,7 @@ export interface ResponseStreamWriter extends StreamWriter {
 export type ResponseHandler<T = any> = (
   status: number,
   headers: Headers,
+  cookies: Cookie,
   body: (stream: ResponseStreamWriter) => Promise<void>,
   error?: any
 ) => Promise<T>;
@@ -65,7 +69,7 @@ export interface Cookie {
   /**
    * Deletes cookie value by name using the `Response` cookie header.
    */
-  delete(name: string): void;
+  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
   /**
    * Returns an array of all the set `Response` `Set-Cookie` header values.
    */

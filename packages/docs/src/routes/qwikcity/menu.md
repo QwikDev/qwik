@@ -5,6 +5,7 @@
 - [Overview](overview/index.mdx)
 - [Directory Layout](directory-layout/index.mdx)
 - [Static Assets](static-assets/index.mdx)
+- [API reference](api/index.mdx)
 
 ## Routing
 
@@ -20,7 +21,7 @@
 - [Named](layout/named/index.mdx)
 - [Top](layout/top/index.mdx)
 
-## Data
+## Data fetching
 
 - [Overview](data/overview/index.mdx)
 - [Retrieving Data](data/retrieve/index.mdx)
@@ -28,32 +29,29 @@
 - [Endpoints](data/endpoints/index.mdx)
 - [Redirects](data/redirects/index.mdx)
 
-## Authoring Content
+## Pages
 
 - [Components](content/component/index.mdx)
 - [MDX](content/mdx/index.mdx)
 - [Menu](content/menu/index.mdx)
+- [<head>](content/head/index.mdx)
+
+## Deployments
+
+- [Overview](adaptors/overview/index.mdx)
+- [Netlify Edge](adaptors/netlify-edge/index.mdx)
+- [Cloudflare Pages](adaptors/cloudflare-pages/index.mdx)
+- [Node](adaptors/node/index.mdx)
 
 ## Integrations
 
+- [Overview](integrations/overview/index.mdx)
 - [React](integrations/react/index.mdx)
 - [Partytown](integrations/partytown/index.mdx)
 - [Tailwind](integrations/tailwind/index.mdx)
 - [tRPC-Prisma](integrations/trpc-prisma/index.mdx)
-
-## Server adaptors
-
-- [Overview](adaptors/overview/index.mdx)
-- [Cloudflare Pages](adaptors/cloudflare-pages/index.mdx)
-- [Netlify Edge](adaptors/netlify-edge/index.mdx)
-- [Node](adaptors/node/index.mdx)
-
-## Prefetching
-
-- [Overview](prefetching/overview/index.mdx)
-- [Service Worker](prefetching/service-worker-prefetching/index.mdx)
-- [Response Caching](prefetching/request-response-cache/index.mdx)
-- [Parallelizing Requests](prefetching/parallelizing-network-requests/index.mdx)
+- [Vitest](integrations/vitest/index.mdx)
+- [Servers](adaptors/overview/index.mdx)
 
 ## Static Site Generation
 
@@ -61,12 +59,9 @@
 - [Static Site Config](static-site-generation/static-site-config/index.mdx)
 - [Dynamic Routes](static-site-generation/dynamic-routes/index.mdx)
 
-## Head
+## Prefetching
 
-- [Title](head/title/index.mdx)
-
-## APIs
-
-- [useContent()](api/use-content/index.mdx)
-- [useDocumentHead()](api/use-document-head/index.mdx)
-- [useLocation()](api/use-location/index.mdx)
+- [Overview](prefetching/overview/index.mdx)
+- [Service Worker](prefetching/service-worker-prefetching/index.mdx)
+- [Response Caching](prefetching/request-response-cache/index.mdx)
+- [Parallelizing Requests](prefetching/parallelizing-network-requests/index.mdx)

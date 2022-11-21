@@ -1,5 +1,5 @@
 import { useLocation } from '@builder.io/qwik-city';
-import { component$, useStyles$, useContext } from '@builder.io/qwik';
+import { component$, useStyles$, useContext, useClientEffect$ } from '@builder.io/qwik';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
@@ -9,11 +9,25 @@ import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './header.css?inline';
 import { GlobalStore } from '../../context';
+import {
+  colorSchemeChangeListener,
+  getColorPreference,
+  setPreference,
+  ThemeToggle,
+} from '../theme-toggle/theme-toggle';
 
 export const Header = component$(() => {
   useStyles$(styles);
   const globalStore = useContext(GlobalStore);
   const pathname = useLocation().pathname;
+
+  useClientEffect$(() => {
+    globalStore.theme = getColorPreference();
+    return colorSchemeChangeListener((isDark) => {
+      globalStore.theme = isDark ? 'dark' : 'light';
+      setPreference(globalStore.theme);
+    });
+  });
 
   return (
     <header class="header-container">
@@ -52,6 +66,11 @@ export const Header = component$(() => {
             </a>
           </li>
           <li>
+            <a href="/showcase/" class={{ active: pathname.startsWith('/showcase') }}>
+              <span>Showcase</span>
+            </a>
+          </li>
+          <li>
             <a href="/media/" class={{ active: pathname.startsWith('/media') }}>
               <span>Media</span>
             </a>
@@ -73,16 +92,14 @@ export const Header = component$(() => {
             </a>
           </li>
           <li>
-            <a href="/playground/" class={{ active: pathname.startsWith('/playground') }}>
-              <span>Playground</span>
-            </a>
-          </li>
-          <li>
             <DocSearch
               appId={import.meta.env.VITE_ALGOLIA_APP_ID}
               apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
               indexName={import.meta.env.VITE_ALGOLIA_INDEX}
             />
+          </li>
+          <li>
+            <ThemeToggle />
           </li>
           <li>
             <a href="https://github.com/BuilderIO/qwik" target="_blank" title="GitHub">

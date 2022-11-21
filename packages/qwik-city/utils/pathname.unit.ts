@@ -1,7 +1,7 @@
 import { test } from 'uvu';
 import { equal } from 'uvu/assert';
 import { getPathnameForDynamicRoute, isSameOriginUrl, normalizePathname } from './pathname';
-import type { RouteParams } from '../runtime/src/library/types';
+import type { RouteParams } from '../runtime/src/types';
 import { parseRoutePathname } from '../buildtime/routing/parse-pathname';
 
 test('isSameOriginUrl', () => {
@@ -124,6 +124,7 @@ test('normalizePathname', () => {
 test('dynamic, rest pathname in segment', () => {
   const p = getPathname({
     originalPathname: '/blog/start-[...slugId]-end',
+    basePathname: '/',
     params: {
       slugId: 'what-is-resumability',
     },
@@ -134,6 +135,7 @@ test('dynamic, rest pathname in segment', () => {
 test('dynamic rest pathname', () => {
   const p = getPathname({
     originalPathname: '/blog/[...slugId]',
+    basePathname: '/',
     params: {
       slugId: 'what-is-resumability',
     },
@@ -144,6 +146,7 @@ test('dynamic rest pathname', () => {
 test('dynamic, empty rest pathname in root', () => {
   const p = getPathname({
     originalPathname: '/[...id]',
+    basePathname: '/',
     params: {
       id: '',
     },
@@ -154,6 +157,7 @@ test('dynamic, empty rest pathname in root', () => {
 test('dynamic, empty rest pathname in root with nested page', () => {
   const p = getPathname({
     originalPathname: '/[...id]/page',
+    basePathname: '/',
     params: {
       id: '',
     },
@@ -164,6 +168,7 @@ test('dynamic, empty rest pathname in root with nested page', () => {
 test('dynamic pathname', () => {
   const p = getPathname({
     originalPathname: '/docs/[category]/[slugId]',
+    basePathname: '/',
     params: {
       category: 'introduction',
       slugId: 'basics',
@@ -172,8 +177,8 @@ test('dynamic pathname', () => {
   equal(p, '/docs/introduction/basics');
 });
 
-function getPathname(t: { originalPathname: string; params?: RouteParams }) {
-  const p = parseRoutePathname(t.originalPathname);
+function getPathname(t: { originalPathname: string; basePathname: string; params?: RouteParams }) {
+  const p = parseRoutePathname(t.basePathname, t.originalPathname);
   const d = getPathnameForDynamicRoute(t.originalPathname, p.paramNames, t.params);
   return normalizePathname(d, '/', false);
 }

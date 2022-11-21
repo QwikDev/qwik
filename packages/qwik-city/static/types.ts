@@ -11,10 +11,11 @@ export interface System {
   createLogger: () => Promise<Logger>;
   getOptions: () => StaticGenerateOptions;
   ensureDir: (filePath: string) => Promise<void>;
+  access: (path: string) => Promise<boolean>;
   createWriteStream: (filePath: string) => StaticStreamWriter;
   createTimer: () => () => number;
   getPageFilePath: (pathname: string) => string;
-  getDataFilePath: (pathname: string) => string;
+  getDataFilePath: (pathname: string) => string | null;
   platform: { [key: string]: any };
 }
 
@@ -87,6 +88,11 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
    * Defaults to `true`.
    */
   emitData?: boolean;
+  /**
+   * Set to `false` if the static build should not write custom or default `404.html` pages.
+   * Defaults to `true`.
+   */
+  emit404Pages?: boolean;
 }
 
 /**
@@ -102,6 +108,10 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
    * Path to the Qwik City Plan module exporting the default `@qwik-city-plan`.
    */
   qwikCityPlanModulePath: string;
+  /**
+   * Defaults to `/`
+   */
+  basePathname?: string;
 }
 
 export interface StaticGenerateHandlerOptions

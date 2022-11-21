@@ -1,12 +1,9 @@
-import type { PageModule, QwikCityPlan, RouteParams } from '../runtime/src/library/types';
-import type {
-  StaticGenerateRenderOptions,
-  StaticGenerateResult,
-  StaticRoute,
-  System,
-} from './types';
+import type { PageModule, QwikCityPlan, RouteData, RouteParams } from '../runtime/src/types';
+import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from './types';
 import { msToString } from '../utils/format';
-import { getPathnameForDynamicRoute, normalizePathname } from '../utils/pathname';
+import { generateNotFoundPages } from './not-found';
+import { getPathnameForDynamicRoute } from '../utils/pathname';
+import { pathToFileURL } from 'node:url';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();
@@ -14,12 +11,12 @@ export async function mainThread(sys: System) {
 
   const main = await sys.createMainProcess();
   const log = await sys.createLogger();
-  const qwikCityPlan: QwikCityPlan = (await import(opts.qwikCityPlanModulePath)).default;
+  const qwikCityPlan: QwikCityPlan = (await import(pathToFileURL(opts.qwikCityPlanModulePath).href))
+    .default;
 
   const queue: StaticRoute[] = [];
   const active = new Set<string>();
   const routes = qwikCityPlan.routes || [];
-  const basePathname = qwikCityPlan.basePathname || '/';
   const trailingSlash = !!qwikCityPlan.trailingSlash;
 
   return new Promise<StaticGenerateResult>((resolve, reject) => {
@@ -35,6 +32,42 @@ export async function mainThread(sys: System) {
       let isCompleted = false;
       let isRoutesLoaded = false;
 
+      const completed = async () => {
+        const closePromise = main.close();
+
+        await generateNotFoundPages(sys, opts, routes);
+
+        generatorResult.duration = timer();
+
+        log.info('\nSSG results');
+        if (generatorResult.rendered > 0) {
+          log.info(
+            `- Generated: ${generatorResult.rendered} page${
+              generatorResult.rendered === 1 ? '' : 's'
+            }`
+          );
+        }
+
+        if (generatorResult.errors > 0) {
+          log.info(`- Errors: ${generatorResult.errors}`);
+        }
+
+        log.info(`- Duration: ${msToString(generatorResult.duration)}`);
+
+        const total = generatorResult.rendered + generatorResult.errors;
+        if (total > 0) {
+          log.info(`- Average: ${msToString(generatorResult.duration / total)} per page`);
+        }
+
+        log.info(``);
+
+        closePromise
+          .then(() => {
+            setTimeout(() => resolve(generatorResult));
+          })
+          .catch(reject);
+      };
+
       const next = () => {
         while (!isCompleted && main.hasAvailableWorker() && queue.length > 0) {
           const staticRoute = queue.shift();
@@ -45,37 +78,7 @@ export async function mainThread(sys: System) {
 
         if (!isCompleted && isRoutesLoaded && queue.length === 0 && active.size === 0) {
           isCompleted = true;
-
-          generatorResult.duration = timer();
-
-          log.info('\nSSG results');
-          if (generatorResult.rendered > 0) {
-            log.info(
-              `- Generated: ${generatorResult.rendered} page${
-                generatorResult.rendered === 1 ? '' : 's'
-              }`
-            );
-          }
-
-          if (generatorResult.errors > 0) {
-            log.info(`- Errors: ${generatorResult.errors}`);
-          }
-
-          log.info(`- Duration: ${msToString(generatorResult.duration)}`);
-
-          const total = generatorResult.rendered + generatorResult.errors;
-          if (total > 0) {
-            log.info(`- Average: ${msToString(generatorResult.duration / total)} per page`);
-          }
-
-          log.info(``);
-
-          main
-            .close()
-            .then(() => {
-              setTimeout(() => resolve(generatorResult));
-            })
-            .catch(reject);
+          completed();
         }
       };
 
@@ -120,51 +123,69 @@ export async function mainThread(sys: System) {
       };
 
       const addToQueue = (pathname: string | undefined | null, params: RouteParams | undefined) => {
-        pathname = normalizePathname(pathname, basePathname, trailingSlash);
-        if (pathname && !queue.some((s) => s.pathname === pathname)) {
-          queue.push({
-            pathname,
-            params,
-          });
-          flushQueue();
+        if (pathname) {
+          pathname = new URL(pathname, `https://qwik.builder.io`).pathname;
+
+          if (pathname !== opts.basePathname) {
+            if (trailingSlash) {
+              if (!pathname.endsWith('/')) {
+                const segments = pathname.split('/');
+                const lastSegment = segments[segments.length - 1];
+
+                if (!lastSegment.includes('.')) {
+                  pathname += '/';
+                }
+              }
+            } else {
+              if (pathname.endsWith('/')) {
+                pathname = pathname.slice(0, pathname.length - 1);
+              }
+            }
+          }
+
+          if (!queue.some((s) => s.pathname === pathname)) {
+            queue.push({
+              pathname,
+              params,
+            });
+            flushQueue();
+          }
+        }
+      };
+
+      const loadStaticRoute = async (route: RouteData) => {
+        const [_, loaders, paramNames, originalPathname] = route;
+        const modules = await Promise.all(loaders.map((loader) => loader()));
+        const pageModule: PageModule = modules[modules.length - 1] as any;
+
+        if (pageModule.default) {
+          // page module (not an endpoint)
+
+          if (Array.isArray(paramNames) && paramNames.length > 0) {
+            if (typeof pageModule.onStaticGenerate === 'function' && paramNames.length > 0) {
+              // dynamic route page module
+              const staticGenerate = await pageModule.onStaticGenerate();
+              if (Array.isArray(staticGenerate.params)) {
+                for (const params of staticGenerate.params) {
+                  const pathname = getPathnameForDynamicRoute(
+                    originalPathname!,
+                    paramNames,
+                    params
+                  );
+                  addToQueue(pathname, params);
+                }
+              }
+            }
+          } else {
+            // static route page module
+            addToQueue(originalPathname, undefined);
+          }
         }
       };
 
       const loadStaticRoutes = async () => {
-        await Promise.all(
-          routes.map(async (route) => {
-            const [_, loaders, paramNames, originalPathname] = route;
-            const modules = await Promise.all(loaders.map((loader) => loader()));
-            const pageModule: PageModule = modules[modules.length - 1] as any;
-
-            if (pageModule.default) {
-              // page module (not an endpoint)
-
-              if (Array.isArray(paramNames) && paramNames.length > 0) {
-                if (typeof pageModule.onStaticGenerate === 'function' && paramNames.length > 0) {
-                  // dynamic route page module
-                  const staticGenerate = await pageModule.onStaticGenerate();
-                  if (Array.isArray(staticGenerate.params)) {
-                    for (const params of staticGenerate.params) {
-                      const pathname = getPathnameForDynamicRoute(
-                        originalPathname!,
-                        paramNames,
-                        params
-                      );
-                      addToQueue(pathname, params);
-                    }
-                  }
-                }
-              } else {
-                // static route page module
-                addToQueue(originalPathname, undefined);
-              }
-            }
-          })
-        );
-
+        await Promise.all(routes.map(loadStaticRoute));
         isRoutesLoaded = true;
-
         flushQueue();
       };
 
@@ -175,14 +196,23 @@ export async function mainThread(sys: System) {
   });
 }
 
-function validateOptions(opts: StaticGenerateRenderOptions) {
+function validateOptions(opts: StaticGenerateOptions) {
+  if (!opts.qwikCityPlanModulePath) {
+    throw new Error(`Missing "qwikCityPlanModulePath" option`);
+  }
+  if (!opts.renderModulePath) {
+    throw new Error(`Missing "renderModulePath" option`);
+  }
+
   let siteOrigin = opts.origin;
   if (typeof siteOrigin !== 'string' || siteOrigin.trim().length === 0) {
     throw new Error(`Missing "origin" option`);
   }
   siteOrigin = siteOrigin.trim();
   if (!siteOrigin.startsWith('https://') && !siteOrigin.startsWith('http://')) {
-    throw new Error(`"origin" must start with a valid protocol, such as "https://" or "http://"`);
+    throw new Error(
+      `"origin" must start with a valid protocol, such as "https://" or "http://", received "${siteOrigin}"`
+    );
   }
   try {
     new URL(siteOrigin);

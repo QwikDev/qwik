@@ -33,10 +33,10 @@ export const renderComponent = (
   return then(executeComponent(rCtx, elCtx), (res) => {
     const staticCtx = rCtx.$static$;
     const newCtx = res.rCtx;
-    const invocatinContext = newInvokeContext(hostElement);
+    const invocationContext = newInvokeContext(rCtx.$static$.$locale$, hostElement);
     staticCtx.$hostElements$.add(hostElement);
-    invocatinContext.$subscriber$ = hostElement;
-    invocatinContext.$renderCtx$ = newCtx;
+    invocationContext.$subscriber$ = hostElement;
+    invocationContext.$renderCtx$ = newCtx;
     if (justMounted) {
       if (elCtx.$appendStyles$) {
         for (const style of elCtx.$appendStyles$) {
@@ -44,7 +44,7 @@ export const renderComponent = (
         }
       }
     }
-    const processedJSXNode = processData(res.node, invocatinContext);
+    const processedJSXNode = processData(res.node, invocationContext);
     return then(processedJSXNode, (processedJSXNode) => {
       const newVdom = wrapJSX(hostElement, processedJSXNode);
       const oldVdom = getVdom(elCtx);
@@ -92,11 +92,6 @@ export const processNode = (
     textType = VIRTUAL;
   } else if (isFunction(nodeType)) {
     const res = invoke(invocationContext, nodeType, props, node.key);
-    if (qDev) {
-      if (isPromise(res)) {
-        logWarn('JSX components can not return a promise.', node);
-      }
-    }
     return processData(res, invocationContext);
   } else {
     throw qError(QError_invalidJsxNodeType, nodeType);

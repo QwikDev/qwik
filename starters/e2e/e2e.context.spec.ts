@@ -87,4 +87,36 @@ test.describe('context', () => {
     ]);
     expect(await level3Slot.allTextContents()).toEqual(['bar = 0', 'bar = 0', 'bar = 0']);
   });
+
+  test('issue 1971', async ({ page }) => {
+    const value = page.locator('#issue1971-value');
+    await expect(value).toHaveText('Value: hello!');
+  });
+
+  test('issue 2087', async ({ page }) => {
+    const btn1 = page.locator('#issue2087_btn1');
+    const btn2 = page.locator('#issue2087_btn2');
+    const rootA = page.locator('#issue2087_symbol_RootA');
+    const rootB = page.locator('#issue2087_symbol_RootB');
+    const nestedA = page.locator('#issue2087_symbol_NestedA');
+    const nestedB = page.locator('#issue2087_symbol_NestedB');
+
+    // Initial state
+    await expect(rootA).toHaveText('Symbol RootA, context value: yes');
+    await expect(rootB).not.toBeVisible();
+    await expect(nestedA).toHaveText('Symbol NestedA, context value: yes');
+    await expect(nestedB).not.toBeVisible();
+
+    // Click a
+    await btn1.click();
+    await expect(rootB).toBeVisible();
+    await expect(rootA).toHaveText('Symbol RootA, context value: yes');
+    await expect(rootB).toHaveText('Symbol RootB, context value: yes');
+
+    // Click b
+    await btn2.click();
+    await expect(nestedB).toBeVisible();
+    await expect(nestedA).toHaveText('Symbol NestedA, context value: yes');
+    await expect(nestedB).toHaveText('Symbol NestedB, context value: yes');
+  });
 });

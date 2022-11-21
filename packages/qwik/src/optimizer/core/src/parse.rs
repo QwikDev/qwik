@@ -153,7 +153,7 @@ impl TransformOutput {
     ) -> Result<usize, Error> {
         for module in &self.modules {
             let write_path = destination.join(&module.path);
-            fs::create_dir_all(&write_path.parent().with_context(|| {
+            fs::create_dir_all(write_path.parent().with_context(|| {
                 format!("Computing path parent of {}", write_path.to_string_lossy())
             })?)?;
             fs::write(write_path, &module.code)?;
@@ -309,7 +309,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
                     let comments_maps = comments.clone().take_all();
                     for h in hooks.into_iter() {
-                        let is_entry = h.entry == None;
+                        let is_entry = h.entry.is_none();
                         let hook_path = [&h.canonical_filename, ".", &h.data.extension].concat();
                         let need_handle_watch =
                             might_need_handle_watch(&h.data.ctx_kind, &h.data.ctx_name) && is_entry;

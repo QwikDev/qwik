@@ -207,6 +207,9 @@ impl<'a> QwikTransform<'a> {
             display_name += "s_";
         }
         display_name = escape_sym(&display_name);
+        if display_name.starts_with(|c| matches!(c, '0'..='9')) {
+            display_name = format!("_{}", display_name);
+        }
         let index = match self.hooks_names.get_mut(&display_name) {
             Some(count) => {
                 *count += 1;
@@ -1448,9 +1451,7 @@ const fn can_capture_scope(expr: &ast::Expr) -> bool {
 }
 
 fn base64(nu: u64) -> String {
-    base64::encode_config(nu.to_le_bytes(), base64::URL_SAFE_NO_PAD)
-        .replace('-', "0")
-        .replace('_', "0")
+    base64::encode_config(nu.to_le_bytes(), base64::URL_SAFE_NO_PAD).replace(['-', '_'], "0")
 }
 
 fn compute_scoped_idents(all_idents: &[Id], all_decl: &HashSet<Id>) -> Vec<Id> {

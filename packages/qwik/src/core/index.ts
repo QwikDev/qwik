@@ -40,10 +40,11 @@ export {
   SSRRaw,
   SSRStream,
   SSRComment,
+  SSRHint,
   SkipRender,
   RenderOnce,
 } from './render/jsx/utils.public';
-export type { StreamProps } from './render/jsx/utils.public';
+export type { SSRStreamProps, SSRHintProps } from './render/jsx/utils.public';
 export { Slot } from './render/jsx/slot.public';
 export { Fragment, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
 export type { HTMLAttributes, AriaAttributes, AriaRole } from './render/jsx/types/jsx-generated';
@@ -74,6 +75,7 @@ export { useEnvData, useUserContext } from './use/use-env-data';
 export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
 export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
 export { useSignal } from './use/use-signal';
+export { withLocale, getLocale } from './use/use-locale';
 
 export type { UseStylesScoped } from './use/use-styles';
 export type { UseSignal } from './use/use-signal';
@@ -83,7 +85,6 @@ export type { UseStoreOptions } from './use/use-store.public';
 export type {
   Tracker,
   WatchFn,
-  MountFn,
   UseEffectOptions,
   EagernessOptions,
   ResourceReturn,
@@ -95,12 +96,14 @@ export type {
   UseWatchOptions,
   ResourceFn,
 } from './use/use-watch';
+export type { MountFn } from './use/use-mount';
 export { useWatch$, useWatchQrl } from './use/use-watch';
 export type { ResourceProps, ResourceOptions } from './use/use-resource';
 export { useResource$, useResourceQrl, Resource } from './use/use-resource';
 export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
-export { useServerMount$, useServerMountQrl } from './use/use-watch';
-export { useMount$, useMountQrl } from './use/use-watch';
+export { useServerMount$, useServerMountQrl } from './use/use-mount';
+export { useMount$, useMountQrl } from './use/use-mount';
+export { useClientMount$, useClientMountQrl } from './use/use-mount';
 export { useErrorBoundary } from './use/use-error-boundary';
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -114,3 +117,36 @@ export { noSerialize, mutable } from './state/common';
 export { _IMMUTABLE } from './state/constants';
 
 export { version } from './version';
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Qwik Events
+//////////////////////////////////////////////////////////////////////////////////////////
+export type {
+  NativeAnimationEvent,
+  NativeClipboardEvent,
+  NativeCompositionEvent,
+  NativeDragEvent,
+  NativeFocusEvent,
+  NativeKeyboardEvent,
+  NativeMouseEvent,
+  NativePointerEvent,
+  NativeTouchEvent,
+  NativeTransitionEvent,
+  NativeUIEvent,
+  NativeWheelEvent,
+  QwikAnimationEvent,
+  QwikClipboardEvent,
+  QwikCompositionEvent,
+  QwikDragEvent,
+  QwikPointerEvent,
+  QwikFocusEvent,
+  QwikFormEvent,
+  QwikInvalidEvent,
+  QwikChangeEvent,
+  QwikKeyboardEvent,
+  QwikMouseEvent,
+  QwikTouchEvent,
+  QwikUIEvent,
+  QwikWheelEvent,
+  QwikTransitionEvent,
+} from './render/jsx/types/jsx-qwik-events';

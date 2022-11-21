@@ -31,22 +31,28 @@ export const executeComponent = (
   const hostElement = elCtx.$element$;
   const componentQRL = elCtx.$componentQrl$;
   const props = elCtx.$props$;
-  const newCtx = pushRenderContext(rCtx, elCtx);
-  const invocatinContext = newInvokeContext(hostElement, undefined, RenderEvent);
-  const waitOn = (invocatinContext.$waitOn$ = []);
+  const newCtx = pushRenderContext(rCtx);
+  const invocationContext = newInvokeContext(
+    rCtx.$static$.$locale$,
+    hostElement,
+    undefined,
+    RenderEvent
+  );
+  const waitOn = (invocationContext.$waitOn$ = []);
   assertDefined(componentQRL, `render: host element to render must has a $renderQrl$:`, elCtx);
   assertDefined(props, `render: host element to render must has defined props`, elCtx);
 
   // Set component context
   newCtx.$cmpCtx$ = elCtx;
+  newCtx.$slotCtx$ = null;
 
   // Invoke render hook
-  invocatinContext.$subscriber$ = hostElement;
-  invocatinContext.$renderCtx$ = rCtx;
+  invocationContext.$subscriber$ = hostElement;
+  invocationContext.$renderCtx$ = rCtx;
 
   // Resolve render function
   componentQRL.$setContainer$(rCtx.$static$.$containerState$.$containerEl$);
-  const componentFn = componentQRL.getFn(invocatinContext);
+  const componentFn = componentQRL.getFn(invocationContext);
 
   return safeCall(
     () => componentFn(props),
@@ -87,6 +93,7 @@ export const createRenderContext = (
   const ctx: RenderContext = {
     $static$: {
       $doc$: doc,
+      $locale$: containerState.$envData$.locale,
       $containerState$: containerState,
       $hostElements$: new Set(),
       $operations$: [],
@@ -95,19 +102,19 @@ export const createRenderContext = (
       $addSlots$: [],
       $rmSlots$: [],
     },
-    $cmpCtx$: undefined,
-    $localStack$: [],
+    $cmpCtx$: null,
+    $slotCtx$: null,
   };
   seal(ctx);
   seal(ctx.$static$);
   return ctx;
 };
 
-export const pushRenderContext = (ctx: RenderContext, elCtx: QContext): RenderContext => {
+export const pushRenderContext = (ctx: RenderContext): RenderContext => {
   const newCtx: RenderContext = {
     $static$: ctx.$static$,
     $cmpCtx$: ctx.$cmpCtx$,
-    $localStack$: ctx.$localStack$.concat(elCtx),
+    $slotCtx$: ctx.$slotCtx$,
   };
   return newCtx;
 };
@@ -152,7 +159,8 @@ export const stringifyStyle = (obj: any): string => {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           const value = obj[key];
           if (value) {
-            chunks.push(fromCamelToKebabCase(key) + ':' + value);
+            const normalizedKey = key.startsWith('--') ? key : fromCamelToKebabCase(key);
+            chunks.push(normalizedKey + ':' + value);
           }
         }
       }

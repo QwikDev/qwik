@@ -5,9 +5,10 @@ import type {
   System,
 } from './types';
 import type { QwikCityRequestContext } from '../middleware/request-handler/types';
-import type { RequestContext } from '../runtime/src/library/types';
+import type { RequestContext } from '../runtime/src/types';
 import { createHeaders } from '../middleware/request-handler/headers';
 import { requestHandler } from '../middleware/request-handler';
+import { pathToFileURL } from 'node:url';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
@@ -15,8 +16,8 @@ export async function workerThread(sys: System) {
 
   const opts: StaticGenerateHandlerOptions = {
     ...ssgOpts,
-    render: (await import(ssgOpts.renderModulePath)).default,
-    qwikCityPlan: (await import(ssgOpts.qwikCityPlanModulePath)).default,
+    render: (await import(pathToFileURL(ssgOpts.renderModulePath).href)).default,
+    qwikCityPlan: (await import(pathToFileURL(ssgOpts.qwikCityPlanModulePath).href)).default,
   };
 
   sys.createWorkerProcess(async (msg) => {
@@ -59,9 +60,11 @@ async function workerRender(
     const request = new SsgRequestContext(url);
 
     const requestCtx: QwikCityRequestContext<void> = {
+      mode: 'static',
+      locale: undefined,
       url,
       request,
-      response: async (status, headers, body, err) => {
+      response: async (status, headers, _, body, err) => {
         if (err) {
           if (err.stack) {
             result.error = String(err.stack);
@@ -78,11 +81,11 @@ async function workerRender(
         }
 
         if (result.ok) {
-          const writeHtmlEnabled = opts.emitHtml !== false;
-          const writeDataEnabled = opts.emitData !== false;
-
           const htmlFilePath = sys.getPageFilePath(staticRoute.pathname);
           const dataFilePath = sys.getDataFilePath(staticRoute.pathname);
+
+          const writeHtmlEnabled = opts.emitHtml !== false;
+          const writeDataEnabled = opts.emitData !== false && !!dataFilePath;
 
           if (writeHtmlEnabled || writeDataEnabled) {
             await sys.ensureDir(htmlFilePath);

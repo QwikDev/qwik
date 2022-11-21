@@ -45,15 +45,14 @@ The request handler functions receive a `RequestEvent` argument which has the fo
 | `cookie`   | Get and set cookies.                                                          |
 | `platform` | Platform data object (useful for Cloudflare, Netlify, etc)                    |
 
-
 ### Cookie
 
 ```tsx
 interface Cookie {
-  get: (key: string) => CookieValue | null,
-  set: (key: string, value: string | number | Record<string, any>, options?: CookieOptions) => void,
-  delete: (key: string) => void,
-  has: (key: string) => boolean
+  get: (key: string) => CookieValue | null;
+  set: (key: string, value: string | number | Record<string, any>, options?: CookieOptions) => void;
+  delete: (key: string) => void;
+  has: (key: string) => boolean;
 }
 ```
 
@@ -72,9 +71,10 @@ interface CookieValue {
 ```
 
 A cookie value is a simple record with three fields:
-  1. `value`: Contains the cookie value as a string
-  2. `json()`: Runs `JSON.parse()` on the value and returns the result
-  3. `number()`: Runs `Number()` on the value and returns the result
+
+1. `value`: Contains the cookie value as a string
+2. `json()`: Runs `JSON.parse()` on the value and returns the result
+3. `number()`: Runs `Number()` on the value and returns the result
 
 **set**
 
@@ -101,19 +101,19 @@ For more information on these attributes and their values, please refer to [the 
 Appends a header with the provided key to the cookie. The new header will have an expired date in the `expires` field, telling the browers to remove it.
 
 ```tsx
-cookie.delete('my-cookie')
+cookie.delete('my-cookie');
 ```
 
 Equivalent to calling:
 
 ```tsx
-cookie.set('my-cookie', 'deleted', new Date(0))
+cookie.set('my-cookie', 'deleted', new Date(0));
 ```
 
 Optionally, you can set the path and/or domain when deleting the cookie. If your cookie was created with a path/domain, you must set these fields for the deletion to take effect.
 
 ```tsx
-cookie.delete('my-cookie', { domain: 'https://qwik.builder.io', path: '/docs/'})
+cookie.delete('my-cookie', { domain: 'https://qwik.builder.io', path: '/docs/' });
 ```
 
 **has**
@@ -123,5 +123,5 @@ A convenience method which returns true or false based on the presence of the pr
 Equivalent to calling:
 
 ```tsx
-!!cookie.get('my-cookie')
+!!cookie.get('my-cookie');
 ```

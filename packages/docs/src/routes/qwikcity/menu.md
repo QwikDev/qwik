@@ -41,7 +41,8 @@
 - [Overview](adaptors/overview/index.mdx)
 - [Netlify Edge](adaptors/netlify-edge/index.mdx)
 - [Cloudflare Pages](adaptors/cloudflare-pages/index.mdx)
-- [Node](adaptors/node/index.mdx)
+- [Vercel Edge](adaptors/vercel-edge/index.mdx)
+- [NodeJs](adaptors/node/index.mdx)
 
 ## Integrations
 

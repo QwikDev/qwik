@@ -1,0 +1,27 @@
+{
+  "description": "Zero-cost CSS-in-JS for Qwik",
+  "devDependencies": {
+    "@vanilla-extract/css": "^1.9.2",
+    "qwik-styled-ve": "^0.3.2"
+  },
+  "__qwik__": {
+    "displayName": "Integration: Styled-Extract (styling)",
+    "priority": -10,
+    "viteConfig": {
+      "imports": [
+        {
+          "namedImports": [
+            "vanillaExtractPlugin"
+          ],
+          "importPath": "qwik-styled-ve/vite"
+        }
+      ],
+      "vitePlugins": [
+        "vanillaExtractPlugin()"
+      ]
+    },
+    "docs": [
+      "https://vanilla-extract.style/"
+    ]
+  }
+}

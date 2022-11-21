@@ -1,10 +1,13 @@
-import { style } from '@vanilla-extract/css';
-import { styled, css } from 'qwik-styled-ve';
+import { style } from 'styled-vanilla-extract';
+import { styled } from 'styled-vanilla-extract/qwik';
+
+export const header = style({});
 
 export const pride = style({});
+
 export const odd = style({});
 
-export const Host = styled.div(css`
+export const Host = styled.div`
   display: grid;
 
   align-items: center;
@@ -21,13 +24,13 @@ export const Host = styled.div(css`
   height: 500px;
 
   contain: strict;
-`);
+`;
 
-export const Range = styled.input(css`
+export const Range = styled.input`
   width: 100%;
-`);
+`;
 
-export const Square = styled.div(css`
+export const Square = styled.div`
   --size: calc(40px + var(--index) * var(--size-step));
 
   display: block;
@@ -74,4 +77,4 @@ export const Square = styled.div(css`
   ${pride} &:nth-child(12n + 11) {
     background: #760089;
   }
-`);
+`;

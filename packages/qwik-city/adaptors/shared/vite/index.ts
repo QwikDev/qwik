@@ -67,21 +67,6 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
       }
     },
 
-    resolveId(id) {
-      if (id === STATIC_PATHS_ID) {
-        return {
-          id: './' + RESOLVED_STATIC_PATHS_ID,
-          external: true,
-        };
-      }
-      if (id === NOT_FOUND_PATHS_ID) {
-        return {
-          id: './' + RESOLVED_NOT_FOUND_PATHS_ID,
-          external: true,
-        };
-      }
-    },
-
     generateBundle(_, bundles) {
       if (isSsrBuild) {
         for (const fileName in bundles) {
@@ -108,83 +93,83 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
       }
     },
 
-    async closeBundle() {
-      if (isSsrBuild && serverOutDir && qwikCityPlugin?.api && qwikVitePlugin?.api) {
-        // create server package.json to ensure mjs is used
-        const serverPackageJsonPath = join(serverOutDir, 'package.json');
-        const serverPackageJsonCode = `{"type":"module"}`;
-        await fs.promises.mkdir(serverOutDir, { recursive: true });
-        await fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode);
+    closeBundle: {
+      sequential: true,
+      async handler() {
+        if (isSsrBuild && serverOutDir && qwikCityPlugin?.api && qwikVitePlugin?.api) {
+          const staticPaths: string[] = opts.staticPaths || [];
+          const routes = qwikCityPlugin.api.getRoutes();
+          const basePathname = qwikCityPlugin.api.getBasePathname();
+          const clientOutDir = qwikVitePlugin.api.getClientOutDir()!;
 
-        const staticPaths: string[] = opts.staticPaths || [];
-        const routes = qwikCityPlugin.api.getRoutes();
-        const basePathname = qwikCityPlugin.api.getBasePathname();
-        const clientOutDir = qwikVitePlugin.api.getClientOutDir()!;
+          let staticGenerateResult: StaticGenerateResult | null = null;
+          if (opts.staticGenerate && renderModulePath && qwikCityPlanModulePath) {
+            let origin = opts.origin;
+            if (!origin) {
+              origin = `https://yoursite.qwik.builder.io`;
+            }
+            if (
+              origin.length > 0 &&
+              !origin.startsWith('https://') &&
+              !origin.startsWith('http://')
+            ) {
+              origin = `https://${origin}`;
+            }
 
-        let staticGenerateResult: StaticGenerateResult | null = null;
-        if (opts.staticGenerate && renderModulePath && qwikCityPlanModulePath) {
-          let origin = opts.origin;
-          if (!origin) {
-            origin = `https://yoursite.qwik.builder.io`;
-          }
-          if (
-            origin.length > 0 &&
-            !origin.startsWith('https://') &&
-            !origin.startsWith('http://')
-          ) {
-            origin = `https://${origin}`;
-          }
-
-          const staticGenerate = await import('../../../static');
-          let generateOpts: StaticGenerateOptions = {
-            basePathname,
-            outDir: clientOutDir,
-            origin,
-            renderModulePath,
-            qwikCityPlanModulePath,
-          };
-
-          if (opts.staticGenerate && typeof opts.staticGenerate === 'object') {
-            generateOpts = {
-              ...generateOpts,
-              ...opts.staticGenerate,
+            const staticGenerate = await import('../../../static');
+            let generateOpts: StaticGenerateOptions = {
+              basePathname,
+              outDir: clientOutDir,
+              origin,
+              renderModulePath,
+              qwikCityPlanModulePath,
             };
+
+            if (opts.staticGenerate && typeof opts.staticGenerate === 'object') {
+              generateOpts = {
+                ...generateOpts,
+                ...opts.staticGenerate,
+              };
+            }
+
+            staticGenerateResult = await staticGenerate.generate(generateOpts);
+            if (staticGenerateResult.errors > 0) {
+              this.error(
+                `Error while runnning SSG from "${opts.name}" adaptor. At least one path failed to render.`
+              );
+            }
+
+            staticPaths.push(...staticGenerateResult.staticPaths);
           }
 
-          staticGenerateResult = await staticGenerate.generate(generateOpts);
-          if (staticGenerateResult.errors > 0) {
-            this.error(
-              `Error while runnning SSG from "${opts.name}" adaptor. At least one path failed to render.`
-            );
-          }
-
-          staticPaths.push(...staticGenerateResult.staticPaths);
-        }
-
-        const { staticPathsCode, notFoundPathsCode } = await postBuild(
-          clientOutDir,
-          basePathname,
-          staticPaths,
-          format,
-          !!opts.cleanStaticGenerated
-        );
-
-        await Promise.all([
-          fs.promises.writeFile(join(serverOutDir, RESOLVED_STATIC_PATHS_ID), staticPathsCode),
-          fs.promises.writeFile(join(serverOutDir, RESOLVED_NOT_FOUND_PATHS_ID), notFoundPathsCode),
-        ]);
-
-        if (typeof opts.generate === 'function') {
-          await opts.generate({
-            serverOutDir,
+          const { staticPathsCode, notFoundPathsCode } = await postBuild(
             clientOutDir,
             basePathname,
-            routes,
-            warn: (message) => this.warn(message),
-            error: (message) => this.error(message),
-          });
+            staticPaths,
+            format,
+            !!opts.cleanStaticGenerated
+          );
+
+          await Promise.all([
+            fs.promises.writeFile(join(serverOutDir, RESOLVED_STATIC_PATHS_ID), staticPathsCode),
+            fs.promises.writeFile(
+              join(serverOutDir, RESOLVED_NOT_FOUND_PATHS_ID),
+              notFoundPathsCode
+            ),
+          ]);
+
+          if (typeof opts.generate === 'function') {
+            await opts.generate({
+              serverOutDir,
+              clientOutDir,
+              basePathname,
+              routes,
+              warn: (message) => this.warn(message),
+              error: (message) => this.error(message),
+            });
+          }
         }
-      }
+      },
     },
   };
 
@@ -223,8 +208,8 @@ interface ViteAdaptorPluginOptions {
   }) => Promise<void>;
 }
 
-const STATIC_PATHS_ID = '@qwik-city-static-paths';
-const RESOLVED_STATIC_PATHS_ID = `${STATIC_PATHS_ID}.js`;
+export const STATIC_PATHS_ID = '@qwik-city-static-paths';
+export const RESOLVED_STATIC_PATHS_ID = `${STATIC_PATHS_ID}.js`;
 
-const NOT_FOUND_PATHS_ID = '@qwik-city-not-found-paths';
-const RESOLVED_NOT_FOUND_PATHS_ID = `${NOT_FOUND_PATHS_ID}.js`;
+export const NOT_FOUND_PATHS_ID = '@qwik-city-not-found-paths';
+export const RESOLVED_NOT_FOUND_PATHS_ID = `${NOT_FOUND_PATHS_ID}.js`;

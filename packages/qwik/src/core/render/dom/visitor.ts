@@ -73,13 +73,8 @@ import {
   tryGetContext,
 } from '../../state/context';
 import { getProxyManager, getProxyTarget, SubscriptionManager } from '../../state/common';
-import { createProxy } from '../../state/store';
-import {
-  QObjectFlagsSymbol,
-  QObjectImmutable,
-  _IMMUTABLE,
-  _IMMUTABLE_PREFIX,
-} from '../../state/constants';
+import { createPropsState, createProxy } from '../../state/store';
+import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -1032,12 +1027,7 @@ export const setComponentProps = (
   const keys = Object.keys(expectProps);
   let props = elCtx.$props$;
   if (!props) {
-    elCtx.$props$ = props = createProxy(
-      {
-        [QObjectFlagsSymbol]: QObjectImmutable,
-      },
-      rCtx.$static$.$containerState$
-    );
+    elCtx.$props$ = props = createProxy(createPropsState(), rCtx.$static$.$containerState$);
   }
   if (keys.length === 0) {
     return false;

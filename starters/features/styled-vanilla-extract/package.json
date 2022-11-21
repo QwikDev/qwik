@@ -2,7 +2,7 @@
   "description": "Zero-cost CSS-in-JS for Qwik",
   "devDependencies": {
     "@vanilla-extract/css": "^1.9.2",
-    "qwik-styled-ve": "^0.3.2"
+    "styled-vanilla-extract": "^0.4.3"
   },
   "__qwik__": {
     "displayName": "Integration: Styled-Vanilla-Extract (styling)",

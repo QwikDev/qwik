@@ -640,6 +640,16 @@ const createElm = (
     elm = createElement(doc, tag, isSvg);
     flags &= ~IS_HEAD;
   }
+  if (qDev) {
+    const dev = vnode.$dev$;
+    if (dev) {
+      directSetAttribute(
+        elm,
+        'data-source',
+        `${dev.fileName}:${dev.lineNumber}:${dev.columnNumber}`
+      );
+    }
+  }
 
   vnode.$elm$ = elm;
   if (isSvg && tag === 'foreignObject') {
@@ -656,6 +666,13 @@ const createElm = (
     assertQrl<OnRenderFn<any>>(renderQRL);
     setComponentProps(elCtx, rCtx, props.props);
     setQId(rCtx, elCtx);
+
+    if (qDev) {
+      const symbol = renderQRL.$symbol$;
+      if (symbol) {
+        directSetAttribute(elm, 'data-symbol', symbol);
+      }
+    }
 
     // Run mount hook
     elCtx.$componentQrl$ = renderQRL;

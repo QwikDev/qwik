@@ -577,6 +577,9 @@ const renderNode = (
     if (flags & IS_HEAD) {
       openingElement += ' q:head';
     }
+    if (qDev && node.dev) {
+      openingElement += ` data-source="${node.dev.fileName}:${node.dev.lineNumber}:${node.dev.columnNumber}"`;
+    }
     openingElement += '>';
     stream.write(openingElement);
 

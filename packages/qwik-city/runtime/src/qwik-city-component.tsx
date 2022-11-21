@@ -165,7 +165,7 @@ export interface QwikCityMockProps {
  * @alpha
  */
 export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
-  const urlEnv = props.url ?? '/';
+  const urlEnv = props.url ?? 'http://localhost/';
   const url = new URL(urlEnv);
   const routeLocation = useStore<MutableRouteLocation>({
     href: url.href,

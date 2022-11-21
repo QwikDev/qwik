@@ -152,3 +152,48 @@ export const QwikCity = QwikCityProvider;
  * @deprecated - The "Html" component has been renamed to "QwikCity".
  */
 export const Html = QwikCity;
+
+/**
+ * @alpha
+ */
+export interface QwikCityMockProps {
+  url?: string;
+  params?: Record<string, string>;
+}
+
+/**
+ * @alpha
+ */
+export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
+  const urlEnv = props.url ?? 'http://localhost/';
+  const url = new URL(urlEnv);
+  const routeLocation = useStore<MutableRouteLocation>({
+    href: url.href,
+    pathname: url.pathname,
+    query: Object.fromEntries(url.searchParams.entries()),
+    params: props.params ?? {},
+  });
+
+  const routeNavigate = useStore<RouteNavigate>({
+    path: toPath(url),
+  });
+
+  const documentHead = useStore(createDocumentHead);
+
+  const content = useStore<ContentState>({
+    headings: undefined,
+    menu: undefined,
+  });
+
+  const contentInternal = useStore<ContentStateInternal>({
+    contents: undefined,
+  });
+
+  useContextProvider(ContentContext, content);
+  useContextProvider(ContentInternalContext, contentInternal);
+  useContextProvider(DocumentHeadContext, documentHead);
+  useContextProvider(RouteLocationContext, routeLocation);
+  useContextProvider(RouteNavigateContext, routeNavigate);
+
+  return <Slot />;
+});

@@ -6,7 +6,7 @@ export default component$(() => {
     <div>
       <h1>About Us</h1>
       <p>
-        <a href="/qwikcity-test">Home</a>
+        <a href="/qwikcity-test/">Home</a>
       </p>
     </div>
   );

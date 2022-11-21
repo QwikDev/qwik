@@ -277,6 +277,9 @@ const internalPrefixes = [FS_PREFIX, VALID_ID_PREFIX, VITE_PUBLIC_PATH];
 const InternalPrefixRE = new RegExp(`^(?:${internalPrefixes.join('|')})`);
 
 function skipRequest(pathname: string) {
+  if (pathname.startsWith('/@qwik-city-')) {
+    return true;
+  }
   if (pathname.includes('__open-in-editor') || InternalPrefixRE.test(pathname)) {
     return true;
   }

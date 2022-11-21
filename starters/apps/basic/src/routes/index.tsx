@@ -127,7 +127,7 @@ export default component$(() => {
           </a>
         </li>
       </ul>
-      <Link class="mindblow" href="/flower">
+      <Link class="mindblow" href="/flower/">
         Blow my mind 🤯
       </Link>
     </div>

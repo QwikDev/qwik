@@ -55,7 +55,6 @@ In a nutshell, the rules are:
 3. Add `/** @jsxImportSource react */` at the top of the files containing React code.
 4. Use `qwikify$()` to convert React components into Qwik components, which you can import from Qwik modules.
 
-
 Now your Qwik can import `MUIButton` and use it as any other Qwik component:
 
 ```tsx
@@ -65,24 +64,19 @@ import { MUIAlert, MUIButton } from '~/integrations/react/mui';
 export default component$(() => {
   return (
     <>
-      <MUIButton client:hover>
-        Hello this is a button
-      </MUIButton>
+      <MUIButton client:hover>Hello this is a button</MUIButton>
 
-      <MUIAlert severity="warning">
-        This is a warning from Qwik
-      </MUIAlert>
+      <MUIAlert severity="warning">This is a warning from Qwik</MUIAlert>
     </>
   );
 });
 ```
 
-
 ## `qwikify$()`
 
 The `qwikify$(ReactCmp, options?): QwikCmp` allows to implement partial hydration of React components. It works by wrapping the SSR and hydration logic of React into a Qwik component that can execute React's `renderToString()` during SSR and dynamically call `hydrateRoot()` when specified.
 
-Notice that by default no React code will run in the browser, meaning that React component will NOT be interactive by default, for example, in the following example, we *qwikify* the [Slider](https://mui.com/material-ui/react-slider/) component from MUI, but it will not be interactive.
+Notice that by default no React code will run in the browser, meaning that React component will NOT be interactive by default, for example, in the following example, we _qwikify_ the [Slider](https://mui.com/material-ui/react-slider/) component from MUI, but it will not be interactive.
 
 ```tsx
 /** @jsxImportSource react */
@@ -100,6 +94,149 @@ export default component$(() => {
     <>
       <MUISlider></MUISlider>
     </>
+  );
+});
+```
+
+## Limitations
+
+### Every qwikified react component is isolated
+
+Each instance of a qwikified react component becomes an independent React app. Fully isolated.
+
+```tsx
+export const MUISlider = qwikify$(Slider);
+
+<MUISlider></MUISlider>
+<MUISlider></MUISlider>
+```
+
+- Each `MUISlider` is a fully isolated React application, with its own state, lifecycle, etc.
+- Styles will be duplicated
+- State will not be shared
+- [Context](https://reactjs.org/docs/context.html) will not be inherited.
+- Islands will [hydrate]https://beta.reactjs.org/apis/react-dom/client/hydrateRoot independently
+
+### By default interactivity is disabled
+
+By default, qwikified components will not be interactive, please look at the next section to learn how to enable interactivity.
+
+### Use `qwikify$()` as a migration strategy
+
+Using React components in Qwik is a great way to migrate your application to Qwik, but it's not a silver bullet, you will need to rewrite your components to take advantage of Qwik's features.
+
+It's also a great way to enjoy the React ecosystem, like [threejs](https://github.com/pmndrs/react-three-fiber) or [data-grid libs](https://mui.com/x/react-data-grid/).
+
+> Dont abuse of `qwikify$()` to build your own application, all performance gains will be lost.
+
+### Build wide islands, not leaf nodes
+
+For example, if you need to use several MUI components, to build a list, dont qwikify each individual MUI component, instead, build the whole list as a single qwikified React component.
+
+#### GOOD: Wide island
+
+A single qwikified component, with all the MUI components inside. Styles will not be duplicated, and context and theming will work as expected.
+
+```tsx
+import * as React from 'react';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import Avatar from '@mui/material/Avatar';
+import ImageIcon from '@mui/icons-material/Image';
+import WorkIcon from '@mui/icons-material/Work';
+import BeachAccessIcon from '@mui/icons-material/BeachAccess';
+
+// Qwikify the whole list
+export const FolderList = qwikify$(() {
+  return (
+    <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
+      <ListItem>
+        <ListItemAvatar>
+          <Avatar>
+            <ImageIcon />
+          </Avatar>
+        </ListItemAvatar>
+        <ListItemText primary="Photos" secondary="Jan 9, 2014" />
+      </ListItem>
+      <ListItem>
+        <ListItemAvatar>
+          <Avatar>
+            <WorkIcon />
+          </Avatar>
+        </ListItemAvatar>
+        <ListItemText primary="Work" secondary="Jan 7, 2014" />
+      </ListItem>
+      <ListItem>
+        <ListItemAvatar>
+          <Avatar>
+            <BeachAccessIcon />
+          </Avatar>
+        </ListItemAvatar>
+        <ListItemText primary="Vacation" secondary="July 20, 2014" />
+      </ListItem>
+    </List>
+  );
+});
+```
+
+#### BAD: Leaf nodes
+
+Leaf nodes are qwikified independently, effectively rendering dozens of nested react applications, each fully isolated from the others, and styles being duplicated.
+
+```tsx
+import * as React from 'react';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import Avatar from '@mui/material/Avatar';
+import ImageIcon from '@mui/icons-material/Image';
+import WorkIcon from '@mui/icons-material/Work';
+import BeachAccessIcon from '@mui/icons-material/BeachAccess';
+
+export const MUIList = qwikify$(List);
+export const MUIListItem = qwikify$(ListItem);
+export const MUIListItemText = qwikify$(ListItemText);
+export const MUIListItemAvatar = qwikify$(ListItemAvatar);
+export const MUIAvatar = qwikify$(Avatar);
+export const MUIImageIcon = qwikify$(ImageIcon);
+export const MUIWorkIcon = qwikify$(WorkIcon);
+export const MUIBeachAccessIcon = qwikify$(BeachAccessIcon);
+```
+
+```tsx
+// Qwik component using dozens of nested React islands
+// Each MUI-* it's an independent React application
+export const FolderList = component$(() {
+  return (
+    <MUIList sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
+      <MUIListItem>
+        <MUIListItemAvatar>
+          <MUIAvatar>
+            <MUIImageIcon />
+          </MUIAvatar>
+        </MUIListItemAvatar>
+        <MUIListItemText primary="Photos" secondary="Jan 9, 2014" />
+      </MUIListItem>
+      <MUIListItem>
+        <MUIListItemAvatar>
+          <MUIAvatar>
+            <MUIWorkIcon />
+          </MUIAvatar>
+        </MUIListItemAvatar>
+        <MUIListItemText primary="Work" secondary="Jan 7, 2014" />
+      </MUIListItem>
+      <MUIListItem>
+        <MUIListItemAvatar>
+          <MUIAvatar>
+            <MUIBeachAccessIcon />
+          </MUIAvatar>
+        </MUIListItemAvatar>
+        <MUIListItemText primary="Vacation" secondary="July 20, 2014" />
+      </MUIListItem>
+    </MUIList>
   );
 });
 ```
@@ -172,9 +309,7 @@ export default component$(() => {
   const hydrateReact = useSignal(false);
   return (
     <>
-      <button onClick$={() => hydrateReact.value = true}>
-        Hydrate Slider when click
-      </button>
+      <button onClick$={() => (hydrateReact.value = true)}>Hydrate Slider when click</button>
 
       <MUISlider client:signal={hydrateReact}></MUISlider>
     </>
@@ -183,7 +318,6 @@ export default component$(() => {
 ```
 
 This effectively allows you to implement custom strategies for hydration.
-
 
 ### `client:event`
 
@@ -210,7 +344,7 @@ Events in React are handled by passing a function as a property to the component
 
 import { Slider } from '@mui/material';
 
-<Slider onChange={() => console.log('value changed')}></Slider>
+<Slider onChange={() => console.log('value changed')}></Slider>;
 ```
 
 The `qwikify()` function will convert this into a Qwik component that will also expose the React events as Qwik [QRLs](../../../docs/advanced/qrl/index.mdx):
@@ -220,10 +354,7 @@ import { Slider } from '@mui/material';
 import { qwikify$ } from '@builder.io/qwik-react';
 const MUISlider = qwikify$(Slider);
 
-<MUISlider
-  client:visible
-  onChange$={() => console.log('value changed')}
-/>
+<MUISlider client:visible onChange$={() => console.log('value changed')} />;
 ```
 
 > Notice that we use the `client:visible` property to eagerly hydrate the component, otherwise the component would not be interactive and the events would never be dispatched.
@@ -245,9 +376,11 @@ When wrapping a React component with `qwikify$()`, under the hood, a new DOM ele
 The host element is not part of React, meaning that hydration is not necessary to listen for events, in order to add custom attributes and events to the host element, you can use the `host:` prefix in the JSX properties, such as:
 
 ```tsx
-<MUIButton host:onClick$={() => {
-  console.log('click a react component without hydration!!');
-}} />
+<MUIButton
+  host:onClick$={() => {
+    console.log('click a react component without hydration!!');
+  }}
+/>
 ```
 
 This will effectively allow you to respond to a click in a [MUI button](https://mui.com/material-ui/react-button/) without downloading a single byte of React code.

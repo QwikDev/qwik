@@ -8,7 +8,7 @@ contributors:
 
 # Prefetching
 
-Prefetching is a way for applications to begin downloading modules in a background task, before the user may actually require these modules. The ideal solution is to only prefetch the smallest amount of code that is highly likely to be executed from a user's interaction, but avoiding any JavaScript that's _couldn't_ be used.
+Prefetching is a way for applications to begin downloading modules in a background task, before the user may actually require these modules. The ideal solution is to only prefetch the smallest amount of code that is highly likely to be executed from a user's interaction, but avoiding any JavaScript that _couldn't_ be used.
 
 Only downloading and executing a minimal amount of JavaScript is an area where Qwik applications excel. And since Qwik is able to understand how individual components are used (and what's not used), it can also best decide which bundles should be prefetched.
 

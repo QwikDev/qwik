@@ -2,11 +2,31 @@ import { test } from 'uvu';
 import { equal, instance } from 'uvu/assert';
 import { mockRequestContext, wait } from './test-utils';
 import type { PageModule, RouteModule } from '../../runtime/src/types';
-import { loadUserResponse, updateRequestCtx } from './user-response';
+import { isEndPointRequest, loadUserResponse, updateRequestCtx } from './user-response';
 import { RedirectResponse } from './redirect-handler';
 import { ErrorResponse } from './error-handler';
 
-test('endpoint type cuz no default module export', async () => {
+test('endpoint type cuz non-get method, and method handler, and with default module export', async () => {
+  const requestCtx = mockRequestContext({
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+  const trailingSlash = false;
+
+  const endpoints: PageModule[] = [
+    {
+      onPost: () => {},
+      default: () => {},
+    },
+  ];
+
+  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+  equal(u.type, 'endpoint');
+});
+
+test('endpoint type cuz and default module export', async () => {
   const requestCtx = mockRequestContext();
   const trailingSlash = false;
 
@@ -268,6 +288,93 @@ test('updateRequestCtx, root, no trailing slash', () => {
   updateRequestCtx(requestCtx, false);
   equal(requestCtx.url.pathname, '/');
   equal(requestCtx.request.headers.get('Accept'), 'application/json');
+});
+
+[
+  {
+    method: 'PUT',
+    acceptHeader: 'text/html',
+    expect: true,
+  },
+  {
+    method: 'PUT',
+    acceptHeader: null,
+    expect: true,
+  },
+  {
+    method: 'HEAD',
+    acceptHeader: null,
+    expect: true,
+  },
+  {
+    method: 'DELETE',
+    acceptHeader: null,
+    expect: true,
+  },
+  {
+    method: 'PATCH',
+    acceptHeader: null,
+    expect: true,
+  },
+  {
+    method: 'POST',
+    acceptHeader: null,
+    expect: false,
+  },
+  {
+    method: 'POST',
+    acceptHeader: 'application/json',
+    expect: true,
+  },
+  {
+    method: 'POST',
+    acceptHeader: 'application/json,text/html',
+    expect: true,
+  },
+  {
+    method: 'POST',
+    acceptHeader: 'text/html, application/json',
+    expect: false,
+  },
+  {
+    method: 'POST',
+    acceptHeader: 'text/html',
+    expect: false,
+  },
+  {
+    method: 'GET',
+    acceptHeader: 'application/json',
+    expect: true,
+  },
+  {
+    method: 'GET',
+    acceptHeader: 'application/json,text/html',
+    expect: true,
+  },
+  {
+    method: 'GET',
+    acceptHeader: 'text/html, application/json',
+    expect: false,
+  },
+  {
+    method: 'GET',
+    acceptHeader: 'text/html',
+    expect: false,
+  },
+  {
+    method: 'GET',
+    acceptHeader: '*/*',
+    expect: false,
+  },
+  {
+    method: 'GET',
+    acceptHeader: null,
+    expect: false,
+  },
+].forEach((t) => {
+  test(`isEndPointRequest ${t.method}, Accept: ${t.acceptHeader}`, () => {
+    equal(isEndPointRequest(t.method, t.acceptHeader), t.expect);
+  });
 });
 
 test.run();

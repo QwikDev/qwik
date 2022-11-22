@@ -91,10 +91,10 @@ Next the `start` command will:
 pnpm start
 ```
 
-Finally, you can use pnpm workspace command to run packages' commands, for example:
+Finally, you can use `pnpm --filter` command to run packages' commands, for example:
 
 ```shell
-pnpm workspace qwik-docs start
+pnpm --filter qwik-docs start
 ```
 
 More commands can be found in each package's package.json scripts section.

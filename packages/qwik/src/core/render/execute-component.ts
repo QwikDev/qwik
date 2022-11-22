@@ -2,7 +2,7 @@ import { assertDefined } from '../error/assert';
 import { RenderEvent } from '../util/markers';
 import { safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
-import { isArray, isObject, isString, ValueOrPromise } from '../util/types';
+import { isArray, isString, ValueOrPromise } from '../util/types';
 import type { JSXNode } from './jsx/types/jsx-node';
 import type { RenderContext } from './types';
 import { ContainerState, intToStr } from '../container/container';
@@ -119,29 +119,22 @@ export const pushRenderContext = (ctx: RenderContext): RenderContext => {
   return newCtx;
 };
 
-export const serializeClass = (obj: any) => {
-  if (isString(obj)) {
-    return obj;
-  } else if (isObject(obj)) {
-    if (isArray(obj)) {
-      return obj.join(' ');
-    } else {
-      let buffer = '';
-      let previous = false;
-      for (const key of Object.keys(obj)) {
-        const value = obj[key];
-        if (value) {
-          if (previous) {
-            buffer += ' ';
-          }
-          buffer += key;
-          previous = true;
-        }
-      }
-      return buffer;
-    }
-  }
-  return '';
+export const serializeClass = (
+  obj: string | { [className: string]: boolean } | (string | { [className: string]: boolean })[]
+): string => {
+  if (!obj) return '';
+  if (isString(obj)) return obj.trim();
+
+  if (isArray(obj))
+    return obj.reduce((result: string, o) => {
+      const classList = serializeClass(o);
+      return classList ? (result ? `${result} ${classList}` : classList) : result;
+    }, '');
+
+  return Object.entries(obj).reduce(
+    (result, [key, value]) => (value ? (result ? `${result} ${key.trim()}` : key.trim()) : result),
+    ''
+  );
 };
 
 const parseClassListRegex = /\s/;

@@ -2,38 +2,48 @@ import {
   $,
   component$,
   implicit$FirstArg,
+  QRL,
   RenderOnce,
-  useClientEffect$,
-  useOn,
-  useOnDocument,
   useSignal,
   useWatch$,
 } from '@builder.io/qwik';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import { renderFromServer } from './server-render';
-import { hydrate } from 'solid-js/web';
+import { hydrate, render } from 'solid-js/web';
+import type { Component } from 'solid-js'
+import { getHostProps, useWakeupSignal } from './slot';
+import type { QwikifyOptions, QwikifyProps } from './types';
 
-export function qwikifyQrl<PROPS extends {}>(solidCmp$: any, opts?: any) {
+export function qwikifyQrl<PROPS extends {}>(solidCmp$: QRL<Component<PROPS>>, opts?: QwikifyOptions) {
 
-  return component$((props) => {
-    const [wakeUp] = useWakeupSignal(props);
-    const hostRef = useSignal<HTMLElement>();
+  return component$<QwikifyProps<PROPS>>((props) => {
+    const hostRef = useSignal<Element>();
+    const slotRef = useSignal<Element>();
+    const [signal, isClientOnly] = useWakeupSignal(props);
+    const TagName = opts?.tagName ?? ('qwik-solid' as any);
 
+    // Watch takes cares of updates and partial hydration
     useWatch$(async ({ track }) => {
-      track(() => wakeUp.value);
+      const trackedProps = track(() => ({ ...props }));
+      track(signal);
 
-      if (isServer) {
+      if (!isBrowser) {
         return;
       }
 
-      const element = hostRef.value;
-      if (element) {
-        const Cmp = await solidCmp$.resolve();
-        hydrate(() => Cmp, element);
+      const Cmp = await solidCmp$.resolve();
+      const hostElement = hostRef.value;
+      if (hostElement) {
+        // hydration
         console.log("Hydrated 💦")
+        hydrate(() => Cmp, hostElement);
+
+        if(isClientOnly || signal.value === false) {
+          render(() => Cmp, hostElement)
+        }
       }
     });
-    if (isServer) {
+    if (isServer && !isClientOnly) {
       const jsx = renderFromServer('qwik-solid', solidCmp$, hostRef);
 
       return (
@@ -43,37 +53,17 @@ export function qwikifyQrl<PROPS extends {}>(solidCmp$: any, opts?: any) {
 
     return (
       <RenderOnce>
-        <div></div>
+        <TagName
+          {...getHostProps(props)}
+        >
+          {SkipRender}
+        </TagName>
+        <q-slot ref={slotRef}>
+          <Slot></Slot>
+        </q-slot>
       </RenderOnce>
     );
   });
 }
 
 export const qwikify$ = /*#__PURE__*/ implicit$FirstArg(qwikifyQrl);
-
-export const useWakeupSignal = (props: any, opts: any) => {
-  const signal = useSignal(false);
-  const activate = $(() => (signal.value = true));
-  const clientOnly = !!(props['client:only'] || opts?.clientOnly);
-  if (isServer) {
-    if (props['client:visible'] || opts?.eagerness === 'visible') {
-      useOn('qvisible', activate);
-    }
-    if (props['client:idle'] || opts?.eagerness === 'idle') {
-      useOnDocument('qidle', activate);
-    }
-    if (props['client:load'] || clientOnly || opts?.eagerness === 'load') {
-      useOnDocument('qinit', activate);
-    }
-    if (props['client:hover'] || opts?.eagerness === 'hover') {
-      useOn('mouseover', activate);
-    }
-    if (props['client:event']) {
-      useOn(props['client:event'], activate);
-    }
-    if (opts?.event) {
-      useOn(opts?.event, activate);
-    }
-  }
-  return [signal, clientOnly] as const;
-};

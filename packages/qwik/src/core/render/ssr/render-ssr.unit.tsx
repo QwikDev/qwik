@@ -66,8 +66,26 @@ renderSSRSuite('render class', async () => {
     '<html q:container="paused" q:version="dev" q:render="ssr-dev"><div class="stuff m-0 p-2"></div></html>'
   );
 
+  const Test = component$(() => {
+    // Extra spaces to ensure signal hasn't changed
+    const sigClass = useSignal(' myClass ');
+    return <div class={sigClass} />;
+  });
   await testSSR(
-    <div class={['stuff', '', 'm-0 p-2', null, 'active', undefined, 'container'] as any}></div>,
+    <Test />,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <!--qv q:id=0 q:key=sX:-->
+      <div class=" myClass "></div>
+      <!--/qv-->
+    </html>`
+  );
+
+  await testSSR(
+    <div
+      class={
+        ['stuff', '', 'm-0 p-2', null, { active: 1 }, undefined, [{ container: 'yup' }]] as any
+      }
+    ></div>,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <div class="stuff m-0 p-2 active container"></div>
     </html>`

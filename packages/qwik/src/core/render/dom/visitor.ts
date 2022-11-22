@@ -1005,14 +1005,17 @@ export const setProperties = (
     if (prop === 'className') {
       prop = 'class';
     }
-    if (hostElm && isSignal(newValue)) {
-      addSignalSub(1, hostElm, newValue, elm, prop);
+    const sig = isSignal(newValue);
+    if (sig) {
+      if (hostElm) addSignalSub(1, hostElm, newValue, elm, prop);
       newValue = newValue.value;
     }
-    if (prop === 'class') {
-      newValue = serializeClass(newValue);
-    }
     const normalizedProp = isSvg ? prop : prop.toLowerCase();
+    if (normalizedProp === 'class') {
+      if (qDev && values.class) throw new TypeError('Can only provide one of class or className');
+      // Signals shouldn't be changed
+      if (!sig) newValue = serializeClass(newValue);
+    }
     values[normalizedProp] = newValue;
     smartSetProperty(staticCtx, elm, prop, newValue, undefined, isSvg);
   }

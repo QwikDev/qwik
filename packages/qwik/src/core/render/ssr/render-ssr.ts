@@ -10,6 +10,7 @@ import {
   isAriaAttribute,
   jsxToString,
   pushRenderContext,
+  serializeClass,
   stringifyStyle,
 } from '../execute-component';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
@@ -520,8 +521,15 @@ const renderNode = (
       }
     }
     const listeners = elCtx.li;
-    const classValue = props.class ?? props.className;
-    let classStr = stringifyClass(classValue);
+    if (qDev && props.class && props.className)
+      throw new TypeError('Can only have one of class or className');
+    const classVal = props.class || props.className;
+    const classIsSignal = isSignal(classVal);
+    let classStr = classVal
+      ? classIsSignal
+        ? classVal.value
+        : serializeClass(classVal)
+      : undefined;
 
     if (hostCtx) {
       if (qDev) {
@@ -529,8 +537,11 @@ const renderNode = (
           throw qError(QError_canNotRenderHTML);
         }
       }
-      if (hostCtx.$scopeIds$) {
-        classStr = hostCtx.$scopeIds$.join(' ') + ' ' + classStr;
+      if (hostCtx.$scopeIds$?.length) {
+        const extra = hostCtx.$scopeIds$.join(' ');
+        if (qDev && classIsSignal)
+          throw new TypeError('Cannot use signal class when using scoped styles');
+        classStr = classStr ? `${extra} ${classStr}` : extra;
       }
       if (hostCtx.$flags$ & HOST_FLAG_NEED_ATTACH_LISTENER) {
         listeners.push(...hostCtx.li);
@@ -546,7 +557,6 @@ const renderNode = (
       flags |= IS_TEXT;
     }
 
-    classStr = classStr.trim();
     if (classStr) {
       openingElement += ' class="' + classStr + '"';
     }
@@ -761,28 +771,6 @@ const flatVirtualChildren = (children: any, ssrCtx: SSRContext): any[] | null =>
     return null;
   }
   return nodes;
-};
-
-const stringifyClass = (str: any) => {
-  if (!str) {
-    return '';
-  }
-  if (typeof str === 'string') {
-    return str;
-  }
-  if (Array.isArray(str)) {
-    return str.join(' ');
-  }
-  const output: string[] = [];
-  for (const key in str) {
-    if (Object.prototype.hasOwnProperty.call(str, key)) {
-      const value = str[key];
-      if (value) {
-        output.push(key);
-      }
-    }
-  }
-  return output.join(' ');
 };
 
 const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => {

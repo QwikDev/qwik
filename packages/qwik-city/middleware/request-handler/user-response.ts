@@ -3,7 +3,7 @@ import type {
   RequestHandler,
   PageModule,
   RequestEvent,
-  ResponseContext,
+  ResponseContext as ResponseContextInterface,
   RouteModule,
   RouteParams,
 } from '../../runtime/src/types';
@@ -26,19 +26,22 @@ export async function loadUserResponse(
 
   const { request, url, platform } = requestCtx;
   const { pathname } = url;
+  const { method, headers } = request;
   const isPageModule = isLastModulePageRoute(routeModules);
-  const isPageDataRequest = isPageModule && request.headers.get('Accept') === 'application/json';
-  const type = isPageDataRequest ? 'pagedata' : isPageModule ? 'pagehtml' : 'endpoint';
+  const isEndpointReq = isEndPointRequest(method, headers.get('Accept'));
+  const isPageDataReq = isPageModule && isEndpointReq;
+
+  const cookie = new Cookie(headers.get('cookie'));
 
   const userResponse: UserResponseContext = {
-    type,
+    type: isPageDataReq ? 'pagedata' : isPageModule ? 'pagehtml' : 'endpoint',
     url,
     params,
     status: HttpStatus.Ok,
     headers: createHeaders(),
     resolvedBody: undefined,
     pendingBody: undefined,
-    cookie: new Cookie(request.headers.get('cookie')),
+    cookie,
     aborted: false,
   };
 
@@ -70,14 +73,6 @@ export async function loadUserResponse(
     routeModuleIndex = ABORT_INDEX;
   };
 
-  const redirect = (url: string, status?: number) => {
-    return new RedirectResponse(url, status, userResponse.headers, userResponse.cookie);
-  };
-
-  const error = (status: number, message?: string) => {
-    return new ErrorResponse(status, message);
-  };
-
   const next = async () => {
     routeModuleIndex++;
 
@@ -86,7 +81,7 @@ export async function loadUserResponse(
 
       let reqHandler: RequestHandler | undefined = undefined;
 
-      switch (request.method) {
+      switch (method) {
         case 'GET': {
           reqHandler = endpointModule.onGet;
           break;
@@ -122,25 +117,11 @@ export async function loadUserResponse(
       if (typeof reqHandler === 'function') {
         hasRequestMethodHandler = true;
 
-        const response: ResponseContext = {
-          get status() {
-            return userResponse.status;
-          },
-          set status(code) {
-            userResponse.status = code;
-          },
-          get headers() {
-            return userResponse.headers;
-          },
-          get locale() {
-            return requestCtx.locale;
-          },
-          set locale(locale) {
-            requestCtx.locale = locale;
-          },
-          redirect,
-          error,
-        };
+        if (isEndpointReq && method !== 'GET') {
+          userResponse.type = 'endpoint';
+        }
+
+        const response = new ResponseContext(userResponse, requestCtx);
 
         // create user request event, which is a narrowed down request context
         const requestEv: RequestEvent = {
@@ -149,7 +130,7 @@ export async function loadUserResponse(
           params: { ...params },
           response,
           platform,
-          cookie: userResponse.cookie,
+          cookie,
           next,
           abort,
         };
@@ -189,7 +170,7 @@ export async function loadUserResponse(
   userResponse.aborted = routeModuleIndex >= ABORT_INDEX;
 
   if (
-    !isPageDataRequest &&
+    !isPageDataReq &&
     isRedirectStatus(userResponse.status) &&
     userResponse.headers.has('Location')
   ) {
@@ -204,11 +185,78 @@ export async function loadUserResponse(
   }
 
   // this is only an endpoint, and not a page module
-  if (type === 'endpoint' && !hasRequestMethodHandler) {
+  if (userResponse.type === 'endpoint' && !hasRequestMethodHandler) {
     // didn't find any handlers
     throw new ErrorResponse(HttpStatus.MethodNotAllowed, `Method Not Allowed`);
   }
   return userResponse;
+}
+
+const UserRsp = Symbol('UserResponse');
+const RequestCtx = Symbol('RequestContext');
+
+class ResponseContext implements ResponseContextInterface {
+  [UserRsp]: UserResponseContext;
+  [RequestCtx]: QwikCityRequestContext;
+
+  constructor(userResponse: UserResponseContext, requestCtx: QwikCityRequestContext) {
+    this[UserRsp] = userResponse;
+    this[RequestCtx] = requestCtx;
+  }
+  get status() {
+    return this[UserRsp].status;
+  }
+  set status(code) {
+    this[UserRsp].status = code;
+  }
+  get headers() {
+    return this[UserRsp].headers;
+  }
+  get locale() {
+    return this[RequestCtx].locale;
+  }
+  set locale(locale) {
+    this[RequestCtx].locale = locale;
+  }
+  redirect(url: string, status?: number) {
+    return new RedirectResponse(url, status, this[UserRsp].headers, this[UserRsp].cookie);
+  }
+  error(status: number, message?: string) {
+    return new ErrorResponse(status, message);
+  }
+}
+
+export function isEndPointRequest(method: string, acceptHeader: string | null) {
+  if (method === 'GET' || method === 'POST') {
+    // further check if GET or POST is an endpoint request
+    // check if there's an Accept request header
+    if (acceptHeader) {
+      const htmlIndex = acceptHeader.indexOf('text/html');
+      if (htmlIndex === 0) {
+        // starts with text/html
+        // not an endpoint GET/POST request
+        return false;
+      }
+
+      const jsonIndex = acceptHeader.indexOf('application/json');
+      if (jsonIndex > -1) {
+        // has application/json Accept header
+        if (htmlIndex > -1) {
+          // if application/json before text/html
+          // then it's an endpoint GET/POST request
+          return jsonIndex < htmlIndex;
+        }
+        return true;
+      }
+    }
+
+    // not an endpoint GET/POST request
+    return false;
+  } else {
+    // always endpoint for non-GET/POST request
+    // PUT, PATCH, DELETE, OPTIONS, HEAD, etc
+    return true;
+  }
 }
 
 function createPendingBody(cb: () => any) {

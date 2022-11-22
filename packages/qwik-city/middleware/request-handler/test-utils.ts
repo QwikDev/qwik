@@ -6,6 +6,7 @@ import type { QwikCityRequestContext, ResponseHandler } from './types';
 export function mockRequestContext(opts?: {
   method?: string;
   url?: string | URL;
+  headers?: Record<string, string>;
 }): TestQwikCityRequestContext {
   const url = new URL(opts?.url || '/', 'https://qwik.builder.io');
 
@@ -17,6 +18,11 @@ export function mockRequestContext(opts?: {
     json: () => Promise.resolve({}),
     text: () => Promise.resolve(''),
   };
+  if (opts?.headers) {
+    for (const key in opts.headers) {
+      request.headers.set(key, opts.headers[key]);
+    }
+  }
 
   const responseData: { status: number; headers: Headers; body: Promise<string> } = {
     status: 200,

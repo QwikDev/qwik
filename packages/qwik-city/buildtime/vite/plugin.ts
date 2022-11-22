@@ -104,13 +104,13 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
 
     configureServer(server) {
       if (ctx) {
+        // handles static files physically found in the dist directory
+        server.middlewares.use(staticDistMiddleware(server));
+
         // qwik city middleware injected BEFORE vite internal middlewares
         // and BEFORE @builder.io/qwik/optimizer/vite middlewares
         // handles only known user defined routes
         server.middlewares.use(ssrDevMiddleware(ctx, server));
-
-        // handles static files physically found in the dist directory
-        server.middlewares.use(staticDistMiddleware(server));
       }
 
       return () => {

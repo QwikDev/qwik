@@ -1,6 +1,7 @@
 name: ✨ Feature Request
 description: Suggest an idea for this project.
 labels: [enhancement, triage]
+title: '[✨]'
 body:
   - type: textarea
     id: use_case
@@ -19,7 +20,7 @@ body:
       required: true
 
   - type: textarea
-    id: alterntives
+    id: alternatives
     attributes:
       label: "Describe alternatives you've considered"
       description: "A clear and concise description of any alternative solutions or features you've considered."

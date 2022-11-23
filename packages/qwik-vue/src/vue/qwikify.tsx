@@ -1,136 +1,76 @@
 import {
-  $,
   component$,
   implicit$FirstArg,
+  NoSerialize,
   QRL,
   RenderOnce,
-  Signal,
   Slot,
-  SSRRaw,
-  useOn,
-  useOnDocument,
   useSignal,
-  useWatch$,
+  useTask$,
 } from '@builder.io/qwik';
 
-import { isServer } from '@builder.io/qwik/build';
-import type { QwikifyOptions, QwikifyProps, VueProps } from './types';
+import { isBrowser, isServer } from '@builder.io/qwik/build';
+import type { Internal, QwikifyOptions, QwikifyProps, VueProps } from './types';
+import { mountApp } from './client';
+import { serverRenderVueQrl } from './server';
+import { getHostProps } from './vue.utils';
+import { useWakeupSignal } from './wakeUpSignal';
+import type { Component } from 'vue';
 
-import { createSSRApp, defineComponent, h } from 'vue';
-import { renderToString } from 'vue/server-renderer';
-// @ts-ignore
-import { setup } from 'virtual:@qwik/vue/app';
-
-export function qwikifyQrl<PROPS extends VueProps>(vueCmpQrl: QRL<any>) {
+export function qwikifyQrl<PROPS extends VueProps>(
+  vueCmpQrl: QRL<Component>,
+  opts?: QwikifyOptions
+) {
   return component$<QwikifyProps<PROPS>>((props) => {
-    const hostRef = useSignal<HTMLElement>();
+    const hostRef = useSignal<Element>();
+    const internalState = useSignal<NoSerialize<Internal<VueProps>>>();
+    const slotRef = useSignal<Element>();
+    const TagName = opts?.tagName ?? ('qwik-vue' as any);
 
-    const [wakeUp] = useWakeupSignal(props);
+    const [wakeUp, isClientOnly] = useWakeupSignal(props);
 
-    useWatch$(async ({ track }) => {
+    useTask$(async ({ track }) => {
       track(() => wakeUp.value);
+      const trackedProps = track(() => ({ ...props }));
 
-      if (isServer) {
-        return; // early exit
+      if (isServer) return; // early exit
+
+      // Update Props
+      if (internalState.value?.app._instance && internalState.value.updateProps) {
+        internalState.value.updateProps(trackedProps);
+        internalState.value.app._instance.update();
+
+        return;
       }
 
       // Mount / hydrate Vue
-      const element = hostRef.value;
-      if (element) {
-        const vueCmp = await vueCmpQrl.resolve();
-        const slots = {
-          default: () => h(StaticHtml, {}),
-        };
-        const app = createSSRApp({ render: () => h(vueCmp, props, slots) });
-        setup(app);
-        app.mount(element, true);
-      }
+      mountApp(vueCmpQrl, trackedProps, !isClientOnly, hostRef, slotRef, internalState);
     });
 
     if (isServer) {
-      const jsx = renderVueQrl(vueCmpQrl, props, hostRef);
-      return <>{jsx}</>;
+      const jsx = serverRenderVueQrl(vueCmpQrl, props, opts, hostRef, slotRef, isClientOnly);
+      return <RenderOnce>{jsx}</RenderOnce>;
     }
 
     return (
-      <RenderOnce>
-        <div></div>
-      </RenderOnce>
+      <>
+        <RenderOnce>
+          <TagName
+            {...getHostProps(props)}
+            ref={async (el: Element) => {
+              hostRef.value = el;
+              if (isBrowser) {
+                mountApp(vueCmpQrl, props, false, hostRef, slotRef, internalState);
+              }
+            }}
+          ></TagName>
+        </RenderOnce>
+        <q-slot style="display: none" ref={slotRef}>
+          <Slot />
+        </q-slot>
+      </>
     );
   });
 }
-
-export const renderVueQrl = async (
-  vueCmpQrl: QRL<any>,
-  props: VueProps,
-  hostRef: Signal<HTMLElement | undefined>
-) => {
-  const vueCmp = await vueCmpQrl.resolve();
-
-  const slots = {
-    default: () => h(StaticHtml, {}),
-  };
-  const app = createSSRApp({ render: () => h(vueCmp, props, slots) });
-  setup(app);
-
-  const html = await renderToString(app);
-
-  const mark = '<!--SLOT-->';
-  const startSlotComment = html.indexOf(mark);
-
-  if (startSlotComment >= 0) {
-    // Comment found
-    const beforeSlot = html.slice(0, startSlotComment);
-    const afterSlot = html.slice(startSlotComment + mark.length);
-    return (
-      <>
-        <div ref={hostRef}>
-          <SSRRaw data={beforeSlot} />
-          <Slot />
-          <SSRRaw data={afterSlot} />
-        </div>
-      </>
-    );
-  }
-  return (
-    <div ref={hostRef}>
-      <SSRRaw data={html} />
-    </div>
-  );
-};
-
-export const useWakeupSignal = (props: QwikifyProps<{}>, opts: QwikifyOptions = {}) => {
-  const signal = useSignal(false);
-  const activate = $(() => (signal.value = true));
-
-  const clientOnly = !!(props['client:only'] || opts?.clientOnly);
-  if (isServer) {
-    if (props['client:visible'] || opts?.eagerness === 'visible') {
-      useOn('qvisible', activate);
-    }
-    if (props['client:idle'] || opts?.eagerness === 'idle') {
-      useOnDocument('qidle', activate);
-    }
-    if (props['client:load'] || clientOnly || opts?.eagerness === 'load') {
-      useOnDocument('qinit', activate);
-    }
-    if (props['client:hover'] || opts?.eagerness === 'hover') {
-      useOn('mouseover', activate);
-    }
-    if (props['client:event']) {
-      useOn(props['client:event'], activate);
-    }
-    if (opts?.event) {
-      useOn(opts?.event, activate);
-    }
-  }
-  return [signal, clientOnly] as const;
-};
-
-export const StaticHtml = defineComponent({
-  setup() {
-    return () => h('qwik-slot', { innerHTML: '<!--SLOT-->' });
-  },
-});
 
 export const qwikify$ = /*#__PURE__*/ implicit$FirstArg(qwikifyQrl);

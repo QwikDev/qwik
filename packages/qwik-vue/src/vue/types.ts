@@ -1,7 +1,9 @@
 import type { PropFunction, Signal } from '@builder.io/qwik';
+import type { App, Component } from 'vue';
 
-export interface Internal {
-  cmp: any;
+export interface Internal<PROPS> {
+  app: App<Component>;
+  updateProps: (props: VueProps) => void;
 }
 
 export interface QwikifyBase {
@@ -73,8 +75,6 @@ export interface QwikifyBase {
    * Adds a `mouseover` event listener to the host element, this event will be dispatched even if the Vue component is not hydrated.
    */
   'host:onMouseOver$'?: PropFunction<(ev: Event) => void>;
-
-  children?: any;
 }
 
 export type TransformProps<PROPS extends {}> = {

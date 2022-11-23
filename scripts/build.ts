@@ -5,6 +5,7 @@ import { buildEslint } from './eslint';
 import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform';
 import { buildQwikCity } from './qwik-city';
 import { buildQwikReact } from './qwik-react';
+import { buildQwikVue } from './qwik-vue';
 import { buildWasmBinding } from './binding-wasm';
 import { copyFiles } from './copy-files';
 import { emptyDir } from './util';
@@ -107,6 +108,10 @@ export async function build(config: BuildConfig) {
 
     if (config.qwikauth) {
       await buildQwikAuth(config);
+    }
+
+    if (config.qwikvue) {
+      await buildQwikVue(config);
     }
 
     if (config.api) {

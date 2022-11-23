@@ -1,7 +1,7 @@
 {
   "name": "@builder.io/qwik-vue",
   "version": "0.0.1",
-  "description": "QwikVue allows adding Vue components into existing Qwik applications\"",
+  "description": "QwikVue allows adding Vue components into existing Qwik applications",
   "scripts": {
     "build": "npm run build.lib",
     "build.client": "vite build",
@@ -22,6 +22,7 @@
     "@builder.io/qwik": "workspace:*",
     "@vitejs/plugin-vue": "^3.2.0",
     "typescript": "4.8.4",
+    "vant": "^4.0.1",
     "vite": "3.2.1",
     "vite-tsconfig-paths": "3.5.0",
     "vue": "3.2.45"

@@ -2,9 +2,11 @@
 title: Qwik Vue
 contributors:
   - dominuskelvin
+  - jcfauchet
+  - manucorporat
 ---
 
-# Qwik Vue ⚛️
+# Qwik Vue
 
 QwikVue allows you to use Vue components in Qwik, including the whole ecosystem of component libraries.
 
@@ -23,7 +25,341 @@ npm create qwik
 cd to-my-app
 npm run qwik add vue
 ```
-
 ## Usage
+
+
+### App entry point
+
+Qwik Vue works with app-level functionality, like plugins, provide, libraries ... To get it work, you will need to provide an app setup file to the qwikVue Vite Plugin.
+
+
+```js
+// Vite qwikVue Plugin
+qwikVue({
+  appEntrypoint: '/src/setup.ts',
+}),
+
+// src/setup.ts
+export default (app: App) => {
+  app.provide('injected', 'Lorem ipsum');
+};
+```
+
+
+## Limitations
+
+### Every qwikified Vue component is isolated
+
+Each instance of a qwikified Vue component becomes an independent Vue app. Fully isolated.
+
+```tsx
+export const VueSlider = qwikify$(Slider);
+
+<VueSlider></VueSlider>
+```
+
+- Each `VueSlider` is a fully isolated Vue application, with its own state, lifecycle, etc.
+- Styles will be duplicated
+- State will not be shared exept if you provide a store manager (Pinia) in the setup of your app.
+- Islands will hydrate independently
+
+### Use `qwikify$()` as a migration strategy
+
+Using Vue components in Qwik is a great way to migrate your application to Qwik, but it's not a silver bullet, you will need to rewrite your components to take advantage of Qwik's features.
+
+It's also a great way to enjoy the Vue ecosystem.
+
+> Dont abuse of `qwikify$()` to build your own application, all performance gains will be lost.
+
+### Build wide islands, not leaf nodes
+
+For example, if you need to use several Vue components, to build a list, dont qwikify each individual Vue component, instead, build the whole list as a single qwikified Vue component.
+
+#### GOOD: Wide island
+
+A single qwikified component, with all the Vue components inside. Styles will not be duplicated, and context and theming will work as expected.
+
+```tsx
+import List from './List.vue';
+import ListItem from './ListItem.vue';
+import ListItemText from './ListItemText.vue';
+import ListItemAvatar from './ListItemAvatar.vue';
+import Avatar from './Avatar.vue';
+import ImageIcon from './icons-material/Image.vue';
+import WorkIcon from './icons-material/Work.vue';
+import BeachAccessIcon from './icons-material/BeachAccess.vue';
+
+// Qwikify the whole list
+export const FolderList = qwikify$(() {
+  return (
+    <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
+      <ListItem>
+        <ListItemAvatar>
+          <Avatar>
+            <ImageIcon />
+          </Avatar>
+        </ListItemAvatar>
+        <ListItemText primary="Photos" secondary="Jan 9, 2014" />
+      </ListItem>
+      <ListItem>
+        <ListItemAvatar>
+          <Avatar>
+            <WorkIcon />
+          </Avatar>
+        </ListItemAvatar>
+        <ListItemText primary="Work" secondary="Jan 7, 2014" />
+      </ListItem>
+      <ListItem>
+        <ListItemAvatar>
+          <Avatar>
+            <BeachAccessIcon />
+          </Avatar>
+        </ListItemAvatar>
+        <ListItemText primary="Vacation" secondary="July 20, 2014" />
+      </ListItem>
+    </List>
+  );
+});
+```
+
+#### BAD: Leaf nodes
+
+Leaf nodes are qwikified independently, effectively rendering dozens of nested Vue applications, each fully isolated from the others, and styles being duplicated.
+
+```tsx
+import List from './List.vue';
+import ListItem from './ListItem.vue';
+import ListItemText from './ListItemText.vue';
+import ListItemAvatar from './ListItemAvatar.vue';
+import Avatar from './Avatar.vue';
+import ImageIcon from ./Image.vue';
+import WorkIcon from ./Work.vue';
+import BeachAccessIcon from ./BeachAccess.vue';
+
+export const VueList = qwikify$(List);
+export const VueListItem = qwikify$(ListItem);
+export const VueListItemText = qwikify$(ListItemText);
+export const VueListItemAvatar = qwikify$(ListItemAvatar);
+export const VueAvatar = qwikify$(Avatar);
+export const VueImageIcon = qwikify$(ImageIcon);
+export const VueWorkIcon = qwikify$(WorkIcon);
+export const VueBeachAccessIcon = qwikify$(BeachAccessIcon);
+```
+
+```tsx
+// Qwik component using dozens of nested Vue islands
+// Each Vue-* it's an independent Vue application
+export const FolderList = component$(() {
+  return (
+    <VueList sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
+      <VueListItem>
+        <VueListItemAvatar>
+          <VueAvatar>
+            <VueImageIcon />
+          </VueAvatar>
+        </VueListItemAvatar>
+        <VueListItemText primary="Photos" secondary="Jan 9, 2014" />
+      </VueListItem>
+      <VueListItem>
+        <VueListItemAvatar>
+          <VueAvatar>
+            <VueWorkIcon />
+          </VueAvatar>
+        </VueListItemAvatar>
+        <VueListItemText primary="Work" secondary="Jan 7, 2014" />
+      </VueListItem>
+      <VueListItem>
+        <VueListItemAvatar>
+          <VueAvatar>
+            <VueBeachAccessIcon />
+          </VueAvatar>
+        </VueListItemAvatar>
+        <VueListItemText primary="Vacation" secondary="July 20, 2014" />
+      </VueListItem>
+    </VueList>
+  );
+});
+```
+
+
+### Slots
+At the moment QwikVue will only work with default slot, named slot are not supported.
+
+## Adding interactivity
+
+In order to add interactivity, in Vue terminology we need to, usually in Vue applications this hydration task happens unconditionally at load time, [adding a massive overhead](https://www.builder.io/blog/hydration-is-pure-overhead) and making sites slow.
+
+Qwik allows you decide when to hydrate your components, by using the `client:` JSX properties, this technique is commonly called partial hydration, popularized by [Astro](https://astro.build/).
+
+```diff
+export default component$(() => {
+  return (
+    <>
+-      <VueComponent></VueComponent>
++      <VueComponent client:visible></VueComponent>
+    </>
+  );
+});
+```
+
+Qwik comes with different strategies out of the box:
+
+### `client:load`
+
+The component eagerly hydrates when the document loads.
+
+```tsx
+<VueComponent client:load></VueComponent>
+```
+
+**Use case:** Immediately-visible UI elements that need to be interactive as soon as possible.
+
+### `client:idle`
+
+The component eagerly hydrates when the browser first become idle, ie, when everything important as already run before.
+
+```tsx
+<VueComponent client:idle><VueComponentlider>
+```
+
+**Use case:** Lower-priority UI elements that don’t need to be immediately interactive.
+
+### `client:visible`
+
+The component eagerly hydrates when it becomes visible in the viewport.
+
+```tsx
+<VueComponent client:visible></VueComponent>
+```
+
+**Use case:** Low-priority UI elements that are either far down the page (“below the fold”) or so resource-intensive to load that you would prefer not to load them at all if the user never saw the element.
+
+### `client:hover`
+
+The component eagerly hydrates when the mouse is over the component.
+
+```tsx
+<VueComponent client:hover></VueComponent>
+```
+
+**Use case:** Lowest-priority UI elements which interactivity is not crucial, and only needs to run in desktop.
+
+### `client:signal`
+
+This is an advanced API that allows to hydrate the component whenever the passed signal becomes `true`.
+
+```tsx
+export default component$(() => {
+  const hydrateVue = useSignal(false);
+  return (
+    <>
+      <button onClick$={() => (hydrateVue.value = true)}>Hydrate Slider when click</button>
+
+      <VueComponent client:signal={hydrateVue}></VueComponent>
+    </>
+  );
+});
+```
+
+This effectively allows you to implement custom strategies for hydration.
+
+### `client:event`
+
+The component eagerly hydrates when specified DOM events are dispatched.
+
+```tsx
+<VueComponent client:event="click"></VueComponent>
+```
+
+### `client:only`
+
+When `true`, the component will not run in SSR, only in the browser.
+
+```tsx
+<VueComponent client:only></VueComponent>
+```
+
+
+## Listening to Vue events
+
+Events in Vue are handled by using emits:
+
+```tsx
+// Vue code (won't work in Qwik)
+
+import { Slider } from './components';
+
+<Slider @change={() => console.log('value changed')}></Slider>;
+```
+
+The `qwikify()` function will convert this into a Qwik component that will also expose the Vue events as Qwik [QRLs](../../../docs/advanced/qrl/index.mdx):
+
+```tsx
+import { Slider } from './components';
+import { qwikify$ } from '@builder.io/qwik-vue';
+const VueSlider = qwikify$(Slider);
+
+<VueSlider client:visible onChange$={() => console.log('value changed')} />;
+```
+
+> Notice that we use the `client:visible` property to eagerly hydrate the component, otherwise the component would not be interactive and the events would never be dispatched.
+
+### Working with v-model
+
+`v-model` in Vue is a syntactic sugar for two way binding pattern.
+[Vue v-model documentation](https://vuejs.org/guide/extras/render-function.html#v-model).
+
+Basically This:
+
+```html
+<MyVueComponent v-model="message" placeholder="edit me" />
+```
+
+is equivalent to:
+
+```html
+<MyVueComponent
+  :modelValue="message"
+  @update:modelValue="message = $event"
+  placeholder="edit me"
+/>
+```
+
+To make `v-model` works in Qwik, you need to provide a `modelValue` prop and an `onUpdate:modelValue` event separately like bellow.
+
+```tsx
+<MyQwikifiedVueComponent
+  modelValue={message.value}
+  onUpdate:modelValue={(value) => (message.value = value)}
+  placeholder="edit me"
+/>
+```
+
+## Host element
+
+When wrapping a Vue component with `qwikify$()`, under the hood, a new DOM element is created, such as:
+
+```html
+<qwik-vue>
+  <button class="button"></button>
+</qwik-vue>
+```
+
+> Notice, that the tag name of the wrapper element is configurable via `tagName`: `qwikify$(VueCmp, { tagName: 'my-vue' })`.
+
+### Listen to DOM events without hydration
+
+The host element is not part of Vue, meaning that hydration is not necessary to listen for events, in order to add custom attributes and events to the host element, you can use the `host:` prefix in the JSX properties, such as:
+
+```tsx
+<MUIButton
+  host:onClick$={() => {
+    console.log('click a Vue component without hydration!!');
+  }}
+/>
+```
+
+This will effectively allow you to respond to a click in a Vue button without downloading a single byte of Vue code.
+
 
 Happy hacking!

@@ -1,29 +1,39 @@
 <template>
   <div>
-    <button @click="onClick">{{ label }}: {{ count }}</button>
+    <p>Vue Label: {{ label }}</p>
+    <van-button type="primary" @click="onClick">Vue Button: {{ count }}</van-button>
     <br />
     <slot />
-    <br />
-    {{ injected }}
+    <p>Data provided by global App passed to vue QwikVue Vite Plugin : {{ injected }}</p>
   </div>
 </template>
 
 <script lang="ts">
-import { inject, ref } from 'vue';
+import { inject, onMounted, ref } from 'vue';
+import { Button } from 'vant';
 
 export default {
+  components: {
+    VanButton: Button,
+  },
   props: {
     label: {
       type: String,
       default: 'No label',
     },
   },
-  setup() {
+  emits: ['click', 'mounted'],
+  setup(props, { emit }) {
     const injected = inject('injected');
     const count = ref(0);
     function onClick() {
       count.value++;
+      emit('click', count.value);
     }
+
+    onMounted(() => {
+      emit('mounted');
+    });
 
     return {
       count,
@@ -33,3 +43,9 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+p {
+  color: red;
+}
+</style>

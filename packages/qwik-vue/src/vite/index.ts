@@ -1,8 +1,14 @@
-export function qwikVue(options?: any): any {
-  const OPTIMIZE_DEPS = ['vue'];
-  const DEDUPE = ['vue'];
+import type { Plugin } from 'vite';
+
+interface Options {
+  appEntrypoint?: string;
+}
+
+export function qwikVue(options?: Options): Plugin {
   const virtualModuleId = 'virtual:@qwik/vue/app';
   const resolvedVirtualModuleId = '\0' + virtualModuleId;
+  const OPTIMIZE_DEPS = ['vue'];
+  const DEDUPE = ['vue'];
 
   return {
     name: 'vite-plugin-qwik-vue',

@@ -1,0 +1,60 @@
+{
+  "name": "@builder.io/qwik-vue",
+  "version": "0.0.1",
+  "description": "QwikVue allows adding Vue components into existing Qwik applications\"",
+  "scripts": {
+    "build": "npm run build.lib",
+    "build.client": "vite build",
+    "build.lib": "vite build --mode lib",
+    "build.ssr": "vite build --ssr src/entry.ssr.tsx",
+    "dev": "vite",
+    "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr --force",
+    "dev.ssr": "vite --mode ssr",
+    "fmt": "prettier --write .",
+    "fmt.check": "prettier --check .",
+    "lint": "eslint src/**/*.{vue,ts}",
+    "release": "np",
+    "start": "npm run dev",
+    "typecheck": "tsc --noEmit"
+  },
+  "homepage": "https://qwik.builder.io/",
+  "devDependencies": {
+    "@builder.io/qwik": "workspace:*",
+    "@vitejs/plugin-vue": "^3.1.2",
+    "typescript": "4.8.4",
+    "vite": "3.2.1",
+    "vite-tsconfig-paths": "3.5.0",
+    "vue": "3.2.45"
+  },
+  "peerDependencies": {
+    "@builder.io/qwik": ">=0.1.11",
+    "vue": "3.2.45"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "exports": {
+    ".": {
+      "import": "./lib/index.qwik.mjs",
+      "require": "./lib/index.qwik.cjs",
+      "types": "./lib/types/index.d.ts"
+    }
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BuilderIO/qwik.git",
+    "directory": "packages/qwik-vue"
+  },
+  "bugs": {
+    "url": "https://github.com/BuilderIO/qwik/issues"
+  },
+  "type": "module",
+  "main": "./lib/index.qwik.mjs",
+  "module": "./lib/index.qwik.mjs",
+  "qwik": "./lib/index.qwik.mjs",
+  "types": "./lib/types/index.d.ts",
+  "license": "MIT"
+}

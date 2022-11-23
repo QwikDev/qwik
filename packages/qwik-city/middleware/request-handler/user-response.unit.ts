@@ -6,6 +6,83 @@ import { getRouteMatchPathname, isEndPointRequest, loadUserResponse } from './us
 import { RedirectResponse } from './redirect-handler';
 import { ErrorResponse } from './error-handler';
 
+test('do not add Vary response header for GET if its already added', async () => {
+  const requestCtx = mockRequestContext({
+    method: 'GET',
+  });
+  const trailingSlash = false;
+
+  const endpoints: PageModule[] = [
+    {
+      onRequest: ({ response }) => {
+        response.headers.set('Vary', 'X-CUSTOM');
+      },
+      default: () => {},
+    },
+  ];
+
+  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+  equal(u.type, 'pagehtml');
+  equal(u.headers.get('Vary'), 'X-CUSTOM');
+});
+
+test('add Vary response header for GET w/ default export and onRequest for html', async () => {
+  const requestCtx = mockRequestContext({
+    method: 'GET',
+  });
+  const trailingSlash = false;
+
+  const endpoints: PageModule[] = [
+    {
+      onRequest: () => {},
+      default: () => {},
+    },
+  ];
+
+  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+  equal(u.type, 'pagehtml');
+  equal(u.headers.get('Vary'), 'Content-Type, Accept');
+});
+
+test('add Vary response header for GET w/ default export and onGet for html', async () => {
+  const requestCtx = mockRequestContext({
+    method: 'GET',
+  });
+  const trailingSlash = false;
+
+  const endpoints: PageModule[] = [
+    {
+      onGet: () => {},
+      default: () => {},
+    },
+  ];
+
+  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+  equal(u.type, 'pagehtml');
+  equal(u.headers.get('Vary'), 'Content-Type, Accept');
+});
+
+test('add Vary response header for GET w/ default export and onGet for application/json request', async () => {
+  const requestCtx = mockRequestContext({
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+  const trailingSlash = false;
+
+  const endpoints: PageModule[] = [
+    {
+      onGet: () => {},
+      default: () => {},
+    },
+  ];
+
+  const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
+  equal(u.type, 'endpoint');
+  equal(u.headers.get('Vary'), 'Content-Type, Accept');
+});
+
 test('endpoint type cuz non-get method, and method handler, and with default module export', async () => {
   const requestCtx = mockRequestContext({
     method: 'POST',
@@ -38,6 +115,7 @@ test('endpoint type cuz no default module export', async () => {
 
   const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
   equal(u.type, 'endpoint');
+  equal(u.headers.get('Vary'), null);
 });
 
 test('no redirect for q-data.json when trailing slash required', async () => {
@@ -345,6 +423,7 @@ test('handle GET w/ default export', async () => {
   const u = await loadUserResponse(requestCtx, {}, routeModules, trailingSlash);
   equal(u.type, 'pagehtml');
   equal(u.status, 200);
+  equal(u.headers.get('Vary'), null);
 });
 
 test('no handler for non-GET/POST endpoint w/ default export', async () => {

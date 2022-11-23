@@ -45,7 +45,6 @@ export async function loadUserResponse(
     cookie,
     aborted: false,
   };
-  userResponse.headers.set('Vary', 'content-type, accept');
   let hasRequestMethodHandler = false;
 
   if (isPageModule && !isPageDataReq && pathname !== basePathname && !pathname.endsWith('.html')) {
@@ -181,17 +180,23 @@ export async function loadUserResponse(
     );
   }
 
-  // this is only an endpoint, and not a page module
-  if (!hasRequestMethodHandler) {
-    if (
-      (isEndpointReq && !isPageDataReq) ||
-      !isPageModule ||
-      (isPageModule && !isPageDataReq && method !== 'GET' && method !== 'POST')
-    ) {
+  if (hasRequestMethodHandler) {
+    // this request/method has a handler
+    if (isPageModule && method === 'GET') {
+      if (!userResponse.headers.has('Vary')) {
+        // if a page also has a GET handler, then auto-add the Accept Vary header
+        userResponse.headers.set('Vary', 'Content-Type, Accept');
+      }
+    }
+  } else {
+    // this request/method does NOT have a handler
+    if ((isEndpointReq && !isPageDataReq) || !isPageModule) {
       // didn't find any handlers
+      // endpoints should respond with 405 Method Not Allowed
       throw new ErrorResponse(HttpStatus.MethodNotAllowed, `Method Not Allowed`);
     }
   }
+
   return userResponse;
 }
 

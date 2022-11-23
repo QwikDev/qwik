@@ -22,7 +22,7 @@ export default defineConfig(() => {
       qwikVite(),
       vue(),
       qwikVue({
-        appEntrypoint: '/src/appSetup.ts',
+        appEntrypoint: '/src/setup.ts',
       }),
       tsconfigPaths(),
     ],

@@ -1,6 +1,7 @@
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
-import { ClientHistoryWindow, clientNavigate, CLIENT_HISTORY_INITIALIZED } from './client-navigate';
+import { ClientHistoryWindow, clientNavigate } from './client-navigate';
+import { CLIENT_HISTORY_INITIALIZED } from './constants';
 import type { RouteNavigate, SimpleURL } from './types';
 import { toPath } from './utils';
 
@@ -60,9 +61,9 @@ navTest('add only one popstate listener', () => {
   const win = createTestWindow('http://qwik.dev/');
   const routeNav = createRouteNavigate(win);
   clientNavigate(win, routeNav);
-  equal(win.listeners.length, 1);
+  equal(win.listeners.get('popstate')!.length, 1);
   clientNavigate(win, routeNav);
-  equal(win.listeners.length, 1);
+  equal(win.listeners.get('popstate')!.length, 1);
   equal(win[CLIENT_HISTORY_INITIALIZED], 1);
 });
 
@@ -89,13 +90,27 @@ navTest('test mock window', () => {
 });
 
 function createTestWindow(href: string): TestClientHistoryWindow {
-  const listeners: (() => void)[] = [];
+  const listeners = new Map<string, (() => void)[]>();
   const location = new URL(href);
   const historyPaths: string[] = [toPath(location)];
 
   return {
     addEventListener: (evName: string, cb: () => void) => {
-      listeners.push(cb);
+      let evListeners = listeners.get(evName);
+      if (!evListeners) {
+        evListeners = [];
+        listeners.set(evName, evListeners);
+      }
+      evListeners.push(cb);
+    },
+    removeEventListener: (evName: string, cb: () => void) => {
+      const evListeners = listeners.get(evName);
+      if (evListeners) {
+        const index = evListeners.indexOf(cb);
+        if (index > -1) {
+          evListeners.splice(index, 1);
+        }
+      }
     },
     get location() {
       return location;
@@ -112,8 +127,11 @@ function createTestWindow(href: string): TestClientHistoryWindow {
         if (historyPaths.length > 1) {
           historyPaths.pop()!;
           location.href = new URL(historyPaths[historyPaths.length - 1], href).href;
-          const cb = listeners[listeners.length - 1];
-          cb && cb();
+          const evListeners = listeners.get('popstate');
+          if (evListeners) {
+            const cb = evListeners[evListeners.length - 1];
+            cb && cb();
+          }
         }
       },
       get length() {
@@ -126,17 +144,22 @@ function createTestWindow(href: string): TestClientHistoryWindow {
     listeners,
     historyPaths,
     firePopstate: () => {
-      listeners[listeners.length - 1]();
+      const evListeners = listeners.get('popstate');
+      if (evListeners) {
+        evListeners[evListeners.length - 1]();
+      }
     },
     scrollTo: (x: number, y: number) => {},
   } as any;
 }
 
 interface TestClientHistoryWindow extends ClientHistoryWindow {
-  listeners: (() => void)[];
+  listeners: TestListeners;
   historyPaths: string[];
   firePopstate: () => void;
 }
+
+type TestListeners = Map<string, (() => void)[]>;
 
 function createRouteNavigate(win: { location: SimpleURL }) {
   const routeNav: RouteNavigate = { path: toPath(win.location) };

@@ -104,5 +104,5 @@
     "packages/docs/server",
     "**/lib",
     "packages/qwik/**/*.d.ts"
-  ]
+ ]
 }

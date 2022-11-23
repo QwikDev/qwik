@@ -80,6 +80,8 @@ export interface TransformOptions {
   explicitExtensions?: boolean;
   mode?: EmitMode;
   scope?: string;
+  stripCtxName?: string[];
+  stripCtxKind?: 'function' | 'event';
 }
 
 /**

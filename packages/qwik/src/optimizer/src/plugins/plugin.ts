@@ -314,6 +314,13 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         scope: opts.scope ? opts.scope : undefined,
       };
 
+      if (opts.target === 'client') {
+        transformOpts.stripCtxName = ['useServerMount$'];
+      } else if (opts.target === 'ssr') {
+        transformOpts.stripCtxName = ['useClientMount$', 'useClientEffect$'];
+        transformOpts.stripCtxKind = 'event';
+      }
+
       const result = await optimizer.transformFs(transformOpts);
       for (const output of result.modules) {
         const key = normalizePath(path.join(srcDir, output.path)!);

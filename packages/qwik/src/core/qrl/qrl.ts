@@ -113,6 +113,16 @@ export const inlinedQrl = <T>(
 /**
  * @internal
  */
+export const _noopQrl = <T>(
+  symbolName: string,
+  lexicalScopeCapture: any[] = EMPTY_ARRAY
+): QRL<T> => {
+  return createQRL<T>(null, symbolName, null, null, null, lexicalScopeCapture, null);
+};
+
+/**
+ * @internal
+ */
 export const qrlDEV = <T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,

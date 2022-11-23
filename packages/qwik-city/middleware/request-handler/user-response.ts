@@ -44,7 +44,7 @@ export async function loadUserResponse(
     cookie,
     aborted: false,
   };
-
+  userResponse.headers.set('Vary', 'content-type, accept');
   let hasRequestMethodHandler = false;
 
   if (isPageModule && pathname !== basePathname && !pathname.endsWith('.html')) {
@@ -290,6 +290,7 @@ export function updateRequestCtx(
 
   if (pathname.endsWith(QDATA_JSON)) {
     requestCtx.request.headers.set('Accept', 'application/json');
+    requestCtx.request.headers.set('Vary', 'Accept');
 
     const trimEnd = pathname.length - QDATA_JSON_LEN + (trailingSlash ? 1 : 0);
 

@@ -178,7 +178,7 @@ No, Partial hydration (or island architecture) popularized by [Astro](https://as
 
 Islands that developers need to manually define, and then manually describe in which situations they should be hydrated. Islands that can not communicate between each other.
 
-Instead, Qwik components does not hydrate at all. Qwik achieves this through a powerful serialization system, that serializes only the necesary state the reactivity graph, so app can resumes without eagarly running any JS.
+Instead, Qwik components does not hydrate at all. Qwik achieves this through a powerful serialization system, that serializes only the necessary state the reactivity graph, so app can resumes without eagarly running any JS.
 
 We think resumability scales without the negative trade-offs of partial hydration.
 
@@ -194,7 +194,7 @@ YES! but it depends. Qwik has been in development for 2 years now, and we reache
 
 ## Are full page reloads slower than SPA?
 
-Depends, full page reloads are extremelly fast, because browsers are extremelly fast to download and parse HTML, but the MPA approach is not for everyone since sometimes it's necesary to keep state between pages, and SPA does that very well.
+Depends, full page reloads are extremelly fast, because browsers are extremelly fast to download and parse HTML, but the MPA approach is not for everyone since sometimes it's necessary to keep state between pages, and SPA does that very well.
 
 MPA can be slow in existing frameworks when trying to do MPA with interactivity because existing frameworks will need to run [hydration at load time, which can be very slow](https://www.builder.io/blog/hydration-is-pure-overhead).
 

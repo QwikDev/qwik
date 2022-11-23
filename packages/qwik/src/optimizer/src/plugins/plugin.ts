@@ -316,6 +316,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       if (opts.target === 'client') {
         transformOpts.stripCtxName = ['useServerMount$'];
+        transformOpts.stripExports = ['onGet', 'onPost', 'onPut', 'onRequest'];
       } else if (opts.target === 'ssr') {
         transformOpts.stripCtxName = ['useClientMount$', 'useClientEffect$'];
         transformOpts.stripCtxKind = 'event';

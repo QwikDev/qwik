@@ -42,7 +42,9 @@ export default component$(() => {
         <button
           onClick$={async () => {
             const rsp = await fetch(pathname, {
-              headers: { accept: 'application/json' },
+              headers: {
+                accept: 'application/json',
+              },
             });
             store.productFetchData = JSON.stringify(await rsp.json(), null, 2);
           }}
@@ -87,7 +89,10 @@ export const head: DocumentHead<ProductData | null> = ({ params }) => {
   };
 };
 
+// export const value = process.env.VARIABLE;
+
 export const onGet: RequestHandler<EndpointData> = async ({ params, response }) => {
+  // console.warn('process.env.VARIABLE', value);
   // Serverside Endpoint
   // During SSR, this method is called directly on the server and returns the data object
   // On the client, this same data can be requested with fetch() at the same URL, but also

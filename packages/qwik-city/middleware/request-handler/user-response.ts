@@ -45,7 +45,7 @@ export async function loadUserResponse(
     cookie,
     aborted: false,
   };
-
+  userResponse.headers.set('Vary', 'content-type, accept');
   let hasRequestMethodHandler = false;
 
   if (isPageModule && !isPageDataReq && pathname !== basePathname && !pathname.endsWith('.html')) {

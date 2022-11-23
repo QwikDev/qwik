@@ -1,4 +1,6 @@
-import { component$, Slot, QwikIntrinsicElements } from '@builder.io/qwik';
+import type { ClientHistoryWindow } from './client-navigate';
+import { component$, Slot, QwikIntrinsicElements, $, useOnDocument } from '@builder.io/qwik';
+import { CLIENT_HISTORY_INITIALIZED, POPSTATE_FALLBACK_INITIALIZED } from './constants';
 import { getClientNavPath, getPrefetchUrl } from './utils';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
@@ -16,6 +18,30 @@ export const Link = component$<LinkProps>((props) => {
 
   linkProps['preventdefault:click'] = !!clientNavPath;
   linkProps.href = clientNavPath || originalHref;
+
+  useOnDocument(
+    'qinit',
+    $(() => {
+      if (!(window as ClientHistoryWindow)[POPSTATE_FALLBACK_INITIALIZED]) {
+        (window as ClientHistoryWindow)[POPSTATE_FALLBACK_INITIALIZED] = () => {
+          if (!(window as ClientHistoryWindow)[CLIENT_HISTORY_INITIALIZED]) {
+            // possible for page reload then hit back button to
+            // navigate to a client route added with history.pushState()
+            // in this scenario we need to reload the page
+            location.reload();
+          }
+        };
+
+        setTimeout(() => {
+          // this popstate listener will be removed when the client history is initialized
+          addEventListener(
+            'popstate',
+            (window as ClientHistoryWindow)[POPSTATE_FALLBACK_INITIALIZED]!
+          );
+        }, 0);
+      }
+    })
+  );
 
   return (
     <a

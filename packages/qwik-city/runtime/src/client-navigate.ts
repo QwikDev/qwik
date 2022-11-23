@@ -1,5 +1,6 @@
 import type { QPrefetchData } from './service-worker/types';
 import type { RouteNavigate, SimpleURL } from './types';
+import { CLIENT_HISTORY_INITIALIZED, POPSTATE_FALLBACK_INITIALIZED } from './constants';
 import { isSameOriginDifferentPathname, isSamePath, toPath, toUrl } from './utils';
 
 export const clientNavigate = (win: ClientHistoryWindow, routeNavigate: RouteNavigate) => {
@@ -31,6 +32,8 @@ export const clientNavigate = (win: ClientHistoryWindow, routeNavigate: RouteNav
         routeNavigate.path = toPath(currentUrl);
       }
     });
+
+    win.removeEventListener('popstate', win[POPSTATE_FALLBACK_INITIALIZED]!);
   }
 };
 
@@ -95,8 +98,7 @@ export const dispatchPrefetchEvent = (prefetchData: QPrefetchData) => {
   }
 };
 
-export const CLIENT_HISTORY_INITIALIZED = /* @__PURE__ */ Symbol();
-
 export interface ClientHistoryWindow extends Window {
   [CLIENT_HISTORY_INITIALIZED]?: 1;
+  [POPSTATE_FALLBACK_INITIALIZED]?: () => void;
 }

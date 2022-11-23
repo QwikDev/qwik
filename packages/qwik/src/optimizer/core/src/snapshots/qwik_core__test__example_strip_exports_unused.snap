@@ -26,7 +26,7 @@ export default component$(()=> {
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const onGet = ()=>{
-    throw "removed by optimizer";
+    throw "Symbol removed by Qwik Optimizer, it can not be called from current platform";
 };
 export default /*#__PURE__*/ componentQrl(qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
 

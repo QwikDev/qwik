@@ -15,7 +15,6 @@ import { validatePlugin } from './validate-plugin';
 import type { QwikCityPluginApi, QwikCityVitePluginOptions } from './types';
 import { build } from '../build';
 import { dev404Middleware, ssrDevMiddleware, staticDistMiddleware } from './dev-server';
-import { SERVER_ENDPOINT_FNS, stripServerEndpoints } from '../../utils/strip-server-endpoints';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
 import { patchGlobalFetch } from '../../middleware/node/node-fetch';
@@ -202,20 +201,6 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
               stack: '',
             });
             this.error(err);
-          }
-        }
-
-        if (ctx.target === 'client') {
-          if (ext === '.js') {
-            id = normalizePath(id);
-            if (id.startsWith(ctx.opts.routesDir)) {
-              if (SERVER_ENDPOINT_FNS.some((fnName) => code.includes(fnName))) {
-                const modifiedCode = stripServerEndpoints(code, id);
-                if (typeof modifiedCode === 'string') {
-                  return modifiedCode;
-                }
-              }
-            }
           }
         }
       }

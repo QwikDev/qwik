@@ -316,6 +316,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       if (opts.target === 'client') {
         transformOpts.stripCtxName = ['useServerMount$'];
+        transformOpts.stripExports = [
+          'onGet',
+          'onPost',
+          'onPut',
+          'onRequest',
+          'onDelete',
+          'onHead',
+          'onOptions',
+          'onPatch',
+        ];
       } else if (opts.target === 'ssr') {
         transformOpts.stripCtxName = ['useClientMount$', 'useClientEffect$'];
         transformOpts.stripCtxKind = 'event';
@@ -401,7 +411,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           log(`resolveId() Resolved ${importeePathId} from transformedOutputs`);
           return {
             id: importeePathId + parsedId.query,
-            moduleSideEffects: false,
           };
         }
       }
@@ -520,7 +529,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return {
         code: module.code,
         map: module.map,
-        moduleSideEffects: false,
         meta: {
           hook: module.hook,
           qwikdeps: deps,

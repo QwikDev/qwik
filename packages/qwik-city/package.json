@@ -60,7 +60,6 @@
   },
   "dependencies": {
     "@mdx-js/mdx": "2.1.5",
-    "@playwright/test": "1.28.0",
     "@types/mdx": "2.0.3",
     "source-map": "0.7.4",
     "vfile": "5.3.6"

@@ -420,6 +420,8 @@ export interface TransformOptions {
     // (undocumented)
     stripCtxName?: string[];
     // (undocumented)
+    stripExports?: string[];
+    // (undocumented)
     transpileJsx?: boolean;
     // (undocumented)
     transpileTs?: boolean;

@@ -333,12 +333,10 @@ impl<'a> QwikTransform<'a> {
         };
         if !self.should_emit_hook(&hook_data) {
             self.create_noop_qrl(&symbol_name, hook_data)
+        } else if self.options.is_inline {
+            self.create_inline_qrl(hook_data, folded, symbol_name, span)
         } else {
-            if self.options.is_inline {
-                self.create_inline_qrl(hook_data, folded, symbol_name, span)
-            } else {
-                self.create_hook(hook_data, folded, symbol_name, span, 0)
-            }
+            self.create_hook(hook_data, folded, symbol_name, span, 0)
         }
     }
 
@@ -474,19 +472,17 @@ impl<'a> QwikTransform<'a> {
         };
         if !self.should_emit_hook(&hook_data) {
             self.create_noop_qrl(&symbol_name, hook_data)
-        } else {
-            if self.options.is_inline {
-                let folded = if !hook_data.scoped_idents.is_empty() {
-                    let new_local =
-                        self.ensure_import(USE_LEXICAL_SCOPE.clone(), BUILDER_IO_QWIK.clone());
-                    transform_function_expr(folded, &new_local, &hook_data.scoped_idents)
-                } else {
-                    folded
-                };
-                self.create_inline_qrl(hook_data, folded, symbol_name, span)
+        } else if self.options.is_inline {
+            let folded = if !hook_data.scoped_idents.is_empty() {
+                let new_local =
+                    self.ensure_import(USE_LEXICAL_SCOPE.clone(), BUILDER_IO_QWIK.clone());
+                transform_function_expr(folded, &new_local, &hook_data.scoped_idents)
             } else {
-                self.create_hook(hook_data, folded, symbol_name, span, hook_hash)
-            }
+                folded
+            };
+            self.create_inline_qrl(hook_data, folded, symbol_name, span)
+        } else {
+            self.create_hook(hook_data, folded, symbol_name, span, hook_hash)
         }
     }
 

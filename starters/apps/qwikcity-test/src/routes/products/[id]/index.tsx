@@ -87,7 +87,10 @@ export const head: DocumentHead<ProductData | null> = ({ params }) => {
   };
 };
 
+export const value = process.env.NODE_ENV;
+
 export const onGet: RequestHandler<EndpointData> = async ({ params, response }) => {
+  console.warn('process.env.NODE_ENV', value);
   // Serverside Endpoint
   // During SSR, this method is called directly on the server and returns the data object
   // On the client, this same data can be requested with fetch() at the same URL, but also

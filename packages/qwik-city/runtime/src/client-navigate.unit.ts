@@ -1,6 +1,7 @@
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
-import { ClientHistoryWindow, clientNavigate, CLIENT_HISTORY_INITIALIZED } from './client-navigate';
+import { ClientHistoryWindow, clientNavigate } from './client-navigate';
+import { CLIENT_HISTORY_INITIALIZED } from './constants';
 import type { RouteNavigate, SimpleURL } from './types';
 import { toPath } from './utils';
 

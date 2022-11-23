@@ -26,7 +26,7 @@
       "@builder.io/qwik/server": ["packages/qwik/src/server/index.ts"],
       "@builder.io/qwik/testing": ["packages/qwik/src/testing/index.ts"],
       "@builder.io/qwik-react": ["packages/qwik-react/src/index.ts"],
-      "@builder.io/qwik-vue": ["packages/qwik-react/src/index.ts"],
+      "@builder.io/qwik-vue": ["packages/qwik-vue/src/index.ts"],
       "@builder.io/qwik-city": ["packages/qwik-city/runtime/src/index.ts"],
       "@builder.io/qwik-city/service-worker": [
         "packages/qwik-city/runtime/src/service-worker/index.ts"

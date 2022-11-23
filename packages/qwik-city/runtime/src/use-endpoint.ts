@@ -29,8 +29,10 @@ export const useEndpoint = <T = unknown>() => {
 };
 
 export const loadClientData = async (href: string) => {
-  const pagePathname = new URL(href).pathname;
-  const endpointUrl = getClientEndpointPath(pagePathname);
+  const url = new URL(href);
+  const pagePathname = url.pathname;
+  const pageSearch = url.search;
+  const endpointUrl = getClientEndpointPath(pagePathname, pageSearch);
 
   dispatchPrefetchEvent({
     links: [pagePathname],

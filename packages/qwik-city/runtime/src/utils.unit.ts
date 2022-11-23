@@ -77,6 +77,18 @@ import {
 });
 
 [
+  { pathname: '/', search: '?foo=bar', expect: '/q-data.json?foo=bar' },
+  { pathname: '/about', search: '?foo=bar', expect: '/about/q-data.json?foo=bar' },
+  { pathname: '/about/', search: '?foo=bar', expect: '/about/q-data.json?foo=bar' },
+  { pathname: '/about/', search: '?foo=bar&baz=qux', expect: '/about/q-data.json?foo=bar&baz=qux' },
+].forEach((t) => {
+  test(`getClientEndpointUrl("${t.pathname}", "${t.search}")`, () => {
+    const endpointPath = getClientEndpointPath(t.pathname, t.search);
+    equal(endpointPath, t.expect);
+  });
+});
+
+[
   {
     url: 'http://qwik.builder.io/',
     expect: '/',

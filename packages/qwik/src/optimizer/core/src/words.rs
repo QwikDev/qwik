@@ -11,6 +11,7 @@ lazy_static! {
     pub static ref _QRL_DEV: JsWord = JsWord::from("qrlDEV");
     pub static ref _INLINED_QRL: JsWord = JsWord::from("inlinedQrl");
     pub static ref _INLINED_QRL_DEV: JsWord = JsWord::from("inlinedQrlDEV");
+    pub static ref _NOOP_QRL: JsWord = JsWord::from("_noopQrl");
     pub static ref QHOOK: JsWord = JsWord::from("$");
     pub static ref QWIK_INTERNAL: JsWord = JsWord::from("qwik");
     pub static ref BUILDER_IO_QWIK: JsWord = JsWord::from("@builder.io/qwik");

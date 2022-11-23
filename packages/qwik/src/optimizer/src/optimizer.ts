@@ -99,6 +99,8 @@ const convertOptions = (opts: any) => {
     manualChunks: undefined,
     scope: undefined,
     stripExports: undefined,
+    stripCtxName: undefined,
+    stripCtxKind: undefined,
   };
   Object.entries(opts).forEach(([key, value]) => {
     if (value != null) {

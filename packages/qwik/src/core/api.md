@@ -345,6 +345,9 @@ export type NativeUIEvent = UIEvent;
 // @beta (undocumented)
 export type NativeWheelEvent = WheelEvent;
 
+// @internal (undocumented)
+export const _noopQrl: <T>(symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
+
 // @public
 export type NoSerialize<T> = (T & {
     __no_serialize__: true;

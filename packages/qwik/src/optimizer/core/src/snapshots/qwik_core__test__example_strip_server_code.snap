@@ -1,0 +1,142 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useServerMount$, useStore, useWatch$ } from '@builder.io/qwik';
+import mongo from 'mongodb';
+import redis from 'redis';
+
+export const Parent = component$(() => {
+    const state = useStore({
+        text: ''
+    });
+
+    // Double count watch
+    useServerMount$(async () => {
+        state.text = await mongo.users();
+        redis.set(state.text);
+    });
+
+    useWatch$(() => {
+        // Code
+    });
+
+    return (
+        <div onClick$={() => console.log('parent')}>
+            {state.text}
+        </div>
+    );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Parent = /*#__PURE__*/ componentQrl(qrl(()=>import("./parent_component_0taidayhrlo"), "Parent_component_0TaiDayHrlo"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAIA,OAAO,MAAM,uBAAS,gGAoBnB\"}")
+============================= parent_component_0taidayhrlo.js (ENTRY POINT)==
+
+import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
+import { _noopQrl } from "@builder.io/qwik";
+import { _wrapSignal } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+import { useServerMountQrl } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
+import { useWatchQrl } from "@builder.io/qwik";
+export const Parent_component_0TaiDayHrlo = ()=>{
+    const state = useStore({
+        text: ''
+    });
+    // Double count watch
+    useServerMountQrl(_noopQrl("Parent_component_useServerMount_cQrQm0HrrM8", [
+        state
+    ]));
+    useWatchQrl(qrl(()=>import("./parent_component_usewatch_zm0arff10mw"), "Parent_component_useWatch_ZM0ARFf10mw"));
+    return /*#__PURE__*/ _jsx("div", {
+        onClick$: qrl(()=>import("./parent_component_div_onclick_c5xe49nqd3a"), "Parent_component_div_onClick_C5XE49Nqd3A"),
+        children: _wrapSignal(state, "text")
+    });
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;4CAKiC,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA;IAIA,qBACI,KAAC;QAAI,QAAQ;8BACR;;AAGb\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_0TaiDayHrlo",
+  "entry": null,
+  "displayName": "Parent_component",
+  "hash": "0TaiDayHrlo",
+  "canonicalFilename": "parent_component_0taidayhrlo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    177,
+    543
+  ]
+}
+*/
+============================= parent_component_usewatch_zm0arff10mw.js (ENTRY POINT)==
+
+export const Parent_component_useWatch_ZM0ARFf10mw = ()=>{
+// Code
+};
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qDAgBc,IAAM;AACZ,OAAO;AACX\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_useWatch_ZM0ARFf10mw",
+  "entry": null,
+  "displayName": "Parent_component_useWatch",
+  "hash": "ZM0ARFf10mw",
+  "canonicalFilename": "parent_component_usewatch_zm0arff10mw",
+  "extension": "js",
+  "parent": "Parent_component_0TaiDayHrlo",
+  "ctxKind": "function",
+  "ctxName": "useWatch$",
+  "captures": false,
+  "loc": [
+    396,
+    425
+  ]
+}
+*/
+============================= parent_component_div_onclick_c5xe49nqd3a.js (ENTRY POINT)==
+
+export const Parent_component_div_onClick_C5XE49Nqd3A = ()=>console.log('parent');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAqBuB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_div_onClick_C5XE49Nqd3A",
+  "entry": null,
+  "displayName": "Parent_component_div_onClick",
+  "hash": "C5XE49Nqd3A",
+  "canonicalFilename": "parent_component_div_onclick_c5xe49nqd3a",
+  "extension": "js",
+  "parent": "Parent_component_0TaiDayHrlo",
+  "ctxKind": "event",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    465,
+    492
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

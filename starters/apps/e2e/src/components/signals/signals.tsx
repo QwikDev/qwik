@@ -446,7 +446,6 @@ p { padding: 0.5em; border:1px solid; margin:0.2em }
           <TestACN color={store.color}>[ClassName] = OK (though JSX complains</TestACN>
           <TestCNStr color={store.color}>{`{ClassName}`} = OK</TestCNStr>
           <TestACNStr color={store.color}>{`[{ClassName}]`} = OK</TestACNStr>
-
         </div>
 
         <div class="column issue-2245-results">

@@ -301,6 +301,7 @@ export type AriaRole =
  */
 export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   accessKey?: string | undefined;
+  /** @deprecated - Use `class` instead */
   className?: string | undefined;
   contentEditable?: Booleanish | 'inherit' | undefined;
   contextMenu?: string | undefined;

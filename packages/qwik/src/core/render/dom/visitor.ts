@@ -888,7 +888,7 @@ export const updateProperties = (
       newValue = newValue.value;
     }
     if (prop === 'class') {
-      newProps['class'] = newValue = serializeClass(newValue);
+      newValue = serializeClass(newValue);
     }
     const normalizedProp = isSvg ? prop : prop.toLowerCase();
     const oldValue = oldProps[normalizedProp];

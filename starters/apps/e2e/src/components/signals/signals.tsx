@@ -8,8 +8,20 @@ import {
   useClientEffect$,
   useWatch$,
   Slot,
+  useStyles$,
 } from '@builder.io/qwik';
 import { delay } from '../resource/resource';
+import {
+  TestAC,
+  TestACN,
+  TestACNStr,
+  TestACStr,
+  TestC,
+  TestCN,
+  TestCNStr,
+  TestCStr,
+  TestCWithFlag,
+} from './test/test';
 
 export const Signals = component$(() => {
   const ref = useRef();
@@ -87,6 +99,8 @@ export const Signals = component$(() => {
       <SideEffect />
       <Issue1884 />
       <Issue2176 />
+      <Issue2245 />
+      <Issue2245_B />
     </div>
   );
 });
@@ -375,5 +389,117 @@ export const Test2Child = component$(() => {
     <p>
       <Slot />
     </p>
+  );
+});
+
+export const Issue2245 = component$(() => {
+  useStyles$(`
+span.true { font-weight: bold; }
+span.false { font-style: italic; }
+.row { display:flex; flex-direction: row; }
+.column { display:flex; flex-direction: column; }
+p { padding: 0.5em; border:1px solid; margin:0.2em }
+.black { color: black; border-color: black; }
+.red { color: red; border-color: red; }
+.blue { color: blue; border-color: blue; }
+.green { color: green; border-color: green; }
+.purple { color: purple; border-color: purple; }
+`);
+
+  const colors = ['black', 'red', 'blue', 'green', 'purple'];
+  const store = useStore({ color: 'black', n: 0, flag: false });
+  const colorSignal = useSignal('black');
+  return (
+    <div>
+      <button
+        id="issue-2245-btn"
+        onClick$={() => {
+          store.n++;
+          store.flag = !store.flag;
+          if (store.n >= colors.length) store.n = 0;
+          store.color = colors[store.n];
+          colorSignal.value = colors[store.n];
+        }}
+      >
+        Click me to change the color
+      </button>
+      <div>
+        unused FLAG: *no issue*: <code> {store.flag ? 'bold' : 'italic'} </code>
+      </div>
+      <div>
+        STORE *no issue*: <code> {JSON.stringify(store)} </code>
+      </div>
+      <div>
+        <code>STORE *no issue*: {JSON.stringify(store)} </code>
+      </div>
+
+      <div class="row">
+        <div class="column issue-2245-results">
+          <h3>Store - class</h3>
+          <TestC color={store.color}>Class = OK</TestC>
+          <TestAC color={store.color}>[Class] = OK</TestAC>
+          <TestCStr color={store.color}>{`{Class}`} = OK</TestCStr>
+          <TestACStr color={store.color}>{`[{Class}]`} = OK</TestACStr>
+
+          <h3>Store - className</h3>
+          <TestCN color={store.color}>ClassName = OK</TestCN>
+          <TestACN color={store.color}>[ClassName] = OK (though JSX complains</TestACN>
+          <TestCNStr color={store.color}>{`{ClassName}`} = OK</TestCNStr>
+          <TestACNStr color={store.color}>{`[{ClassName}]`} = OK</TestACNStr>
+
+        </div>
+
+        <div class="column issue-2245-results">
+          <h3>Signal - class</h3>
+          <TestC color={colorSignal.value}>Class = OK</TestC>
+          <TestAC color={colorSignal.value}>[Class] = OK</TestAC>
+          <TestCStr color={colorSignal.value}>{`{Class}`} = OK</TestCStr>
+          <TestACStr color={colorSignal.value}>{`[{Class}]`} = OK</TestACStr>
+
+          <h3>Signal - className</h3>
+          <TestCN color={colorSignal.value}>ClassName = Fail</TestCN>
+          <TestACN color={colorSignal.value}>[ClassName] = OK (JSX complains)</TestACN>
+          <TestCNStr color={colorSignal.value}>{`{ClassName}`} = OK</TestCNStr>
+          <TestACNStr color={colorSignal.value}>{`[{ClassName}]`} = OK (JSX complains)</TestACNStr>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+export const Issue2245_B = component$(() => {
+  const colors = ['black', 'red', 'blue', 'green', 'purple'];
+  const store = useStore({ color: 'black', n: 0, flag: false });
+  const colorSignal = useSignal('black');
+  const flagSignal = useSignal(false);
+  return (
+    <div>
+      <button
+        id="issue-2245-b-btn"
+        onClick$={() => {
+          store.n++;
+          store.flag = !store.flag;
+          flagSignal.value = !flagSignal.value;
+          if (store.n >= colors.length) store.n = 0;
+          store.color = colors[store.n];
+          colorSignal.value = colors[store.n];
+        }}
+      >
+        Click me to change the color
+      </button>
+      <div>
+        FLAG: <code>{store.flag ? 'bold' : 'italic'} </code>
+      </div>
+      <div>
+        <code>STORE: {JSON.stringify(store.color)}</code>
+      </div>
+
+      <div class="column issue-2245-b-results">
+        <h3>Trying to assign a class=&#123;props.flag ? 'bold' : 'italic'&#125;</h3>
+        <TestCWithFlag color={store.color} flag={store.flag}>
+          Class = Fail
+        </TestCWithFlag>
+      </div>
+    </div>
   );
 });

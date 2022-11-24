@@ -3,10 +3,6 @@ import { isServer } from '../../../../../../packages/qwik/src/build';
 import type { Framework } from '@prisma/client';
 
 export default component$(() => {
-
-
-  // tRPC client side
-  //
   const trpcResource = useResource$(async () => {
     if (isServer) {
       const { tServer } = await import('../../trpc-server/router');
@@ -26,18 +22,15 @@ export default component$(() => {
         onResolved={(data: Framework[]) => {
           return (
             <>
-              {
-                data.map((item ) => {
-                  return(
-                    <>
-                      <div>Id: {item.id}</div>
-                      <div>Name: {item.name}</div>
-                      <hr />
-                    </>
-                  )
-
-                })
-              }
+              {data.map((item) => {
+                return (
+                  <>
+                    <div>Id: {item.id}</div>
+                    <div>Name: {item.name}</div>
+                    <hr />
+                  </>
+                );
+              })}
             </>
           );
         }}

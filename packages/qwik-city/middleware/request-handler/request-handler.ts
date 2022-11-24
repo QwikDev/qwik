@@ -1,10 +1,10 @@
-import { loadRoute } from '../../runtime/src/routing';
+import type { QwikCityHandlerOptions, QwikCityRequestContext } from './types';
 import { endpointHandler } from './endpoint-handler';
 import { errorHandler, ErrorResponse, errorResponse } from './error-handler';
+import { getRouteMatchPathname, loadUserResponse } from './user-response';
+import { loadRoute } from '../../runtime/src/routing';
 import { pageHandler } from './page-handler';
 import { RedirectResponse, redirectResponse } from './redirect-handler';
-import type { QwikCityHandlerOptions, QwikCityRequestContext } from './types';
-import { loadUserResponse, updateRequestCtx } from './user-response';
 
 /**
  * @alpha
@@ -16,9 +16,9 @@ export async function requestHandler<T = any>(
   try {
     const { render, qwikCityPlan } = opts;
     const { routes, menus, cacheModules, trailingSlash, basePathname } = qwikCityPlan;
-    updateRequestCtx(requestCtx, trailingSlash);
 
-    const loadedRoute = await loadRoute(routes, menus, cacheModules, requestCtx.url.pathname);
+    const matchPathname = getRouteMatchPathname(requestCtx.url.pathname, trailingSlash);
+    const loadedRoute = await loadRoute(routes, menus, cacheModules, matchPathname);
     if (loadedRoute) {
       // found and loaded the route for this pathname
       const [params, mods, _, routeBundleNames] = loadedRoute;

@@ -5,7 +5,10 @@ import { join, resolve } from 'node:path';
 import type { BuildContext } from '../types';
 import type { RouteModule } from '../../runtime/src/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
-import { loadUserResponse, updateRequestCtx } from '../../middleware/request-handler/user-response';
+import {
+  getRouteMatchPathname,
+  loadUserResponse,
+} from '../../middleware/request-handler/user-response';
 import { getQwikCityEnvData, pageHandler } from '../../middleware/request-handler/page-handler';
 import { updateBuildContext } from '../build';
 import { endpointHandler } from '../../middleware/request-handler/endpoint-handler';
@@ -62,7 +65,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
       }
 
       const requestCtx = fromNodeHttp(url, req, res, 'dev');
-      updateRequestCtx(requestCtx, ctx.opts.trailingSlash);
 
       await updateBuildContext(ctx);
 
@@ -74,7 +76,8 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         }
       }
 
-      const routeResult = matchRouteRequest(requestCtx.url.pathname);
+      const matchPathname = getRouteMatchPathname(url.pathname, ctx.opts.trailingSlash);
+      const routeResult = matchRouteRequest(matchPathname);
       if (routeResult) {
         // found a matching route
         const { route, params } = routeResult;

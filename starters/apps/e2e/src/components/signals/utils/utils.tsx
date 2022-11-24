@@ -2,26 +2,6 @@
 
 import { component$, Slot } from '@builder.io/qwik';
 
-export const TestLinks = component$(() => {
-  return (
-    <>
-      <div>
-        <a href="/noflag">Setting Class / ClassName directly does not react</a>
-      </div>
-      <div>
-        <a href="/withflag-classbug">
-          Setting Class from a ternary condition on a boolean prop causes a runtime error
-        </a>
-      </div>
-      <div>
-        <a href="/withflag-onlyclassname">
-          Setting ClassName from a ternary condition on a boolean prop does work
-        </a>
-      </div>
-    </>
-  );
-});
-
 export const TestC = component$((props: { color: string }) => {
   console.log('TestC');
   return (

@@ -21,7 +21,7 @@ import {
   TestCNStr,
   TestCStr,
   TestCWithFlag,
-} from './test/test';
+} from './utils/utils';
 
 export const Signals = component$(() => {
   const ref = useRef();
@@ -100,7 +100,7 @@ export const Signals = component$(() => {
       <Issue1884 />
       <Issue2176 />
       <Issue2245 />
-      <Issue2245_B />
+      <Issue2245B />
     </div>
   );
 });
@@ -423,15 +423,6 @@ p { padding: 0.5em; border:1px solid; margin:0.2em }
       >
         Click me to change the color
       </button>
-      <div>
-        unused FLAG: *no issue*: <code> {store.flag ? 'bold' : 'italic'} </code>
-      </div>
-      <div>
-        STORE *no issue*: <code> {JSON.stringify(store)} </code>
-      </div>
-      <div>
-        <code>STORE *no issue*: {JSON.stringify(store)} </code>
-      </div>
 
       <div class="row">
         <div class="column issue-2245-results">
@@ -466,7 +457,7 @@ p { padding: 0.5em; border:1px solid; margin:0.2em }
   );
 });
 
-export const Issue2245_B = component$(() => {
+export const Issue2245B = component$(() => {
   const colors = ['black', 'red', 'blue', 'green', 'purple'];
   const store = useStore({ color: 'black', n: 0, flag: false });
   const colorSignal = useSignal('black');
@@ -494,7 +485,6 @@ export const Issue2245_B = component$(() => {
       </div>
 
       <div class="column issue-2245-b-results">
-        <h3>Trying to assign a class=&#123;props.flag ? 'bold' : 'italic'&#125;</h3>
         <TestCWithFlag color={store.color} flag={store.flag}>
           Class = Fail
         </TestCWithFlag>

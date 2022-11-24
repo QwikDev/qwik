@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
-import * as trpc from '@trpc/server';
+import type {inferAsyncReturnType} from '@trpc/server';
 
 export const createContext = async () => {
+  const {PrismaClient} = await import('@prisma/client')
   return {
     prisma: new PrismaClient({
       log: import.meta.env.DEV ? ['query', 'error', 'warn'] : ['error'],
@@ -9,4 +9,4 @@ export const createContext = async () => {
   };
 };
 
-export type Context = trpc.inferAsyncReturnType<typeof createContext>;
+export type Context = inferAsyncReturnType<typeof createContext>;

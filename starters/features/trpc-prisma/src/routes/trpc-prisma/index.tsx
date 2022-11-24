@@ -1,39 +1,47 @@
-import { component$, useClientEffect$, useMount$, useStore } from '@builder.io/qwik';
-import { Framework } from '@prisma/client';
-import { trpc } from '~/client/trpc';
-import { tServer } from '~/trpc-server/router';
+import { component$, Resource, useResource$ } from '@builder.io/qwik';
+import { isServer } from '../../../../../../packages/qwik/src/build';
+import type { Framework } from '@prisma/client';
 
 export default component$(() => {
-  const store = useStore({ items: [] as Framework[] });
+
 
   // tRPC client side
   //
-  useClientEffect$(async ({ cleanup }) => {
-    const controller = new AbortController();
-    cleanup(() => controller.abort());
-    const items = await trpc.framework.list.query('', {
-      signal: controller.signal,
-    });
-    store.items = items;
+  const trpcResource = useResource$(async () => {
+    if (isServer) {
+      const { tServer } = await import('../../trpc-server/router');
+      return tServer.framework.list('');
+    }
+    const { trpc } = await import('../../client/trpc');
+    return trpc.framework.list.query('');
   });
-
-  // tRPC server side
-  //
-  // useMount$(async () => {
-  // 	const items = await tServer.framework.list('');
-  // 	store.items = items;
-  // });
 
   return (
     <div>
       Records:
-      {store.items.map((item) => (
-        <>
-          <div>Id: {item.id}</div>
-          <div>Name: {item.name}</div>
-          <hr />
-        </>
-      ))}
+      <Resource
+        value={trpcResource}
+        onPending={() => <div>loading</div>}
+        onRejected={() => <div>error</div>}
+        onResolved={(data: Framework[]) => {
+          return (
+            <>
+              {
+                data.map((item ) => {
+                  return(
+                    <>
+                      <div>Id: {item.id}</div>
+                      <div>Name: {item.name}</div>
+                      <hr />
+                    </>
+                  )
+
+                })
+              }
+            </>
+          );
+        }}
+      />
     </div>
   );
 });

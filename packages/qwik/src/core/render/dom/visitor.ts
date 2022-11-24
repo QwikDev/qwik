@@ -867,7 +867,7 @@ export const updateProperties = (
   }
   const immutableMeta = (newProps as any)[_IMMUTABLE] ?? EMPTY_OBJ;
   const elm = elCtx.$element$;
-  for (let prop of keys) {
+  for (const prop of keys) {
     if (prop === 'ref') {
       assertElement(elm);
       setRef(newProps[prop], elm);
@@ -880,9 +880,6 @@ export const updateProperties = (
       continue;
     }
 
-    if (prop === 'className') {
-      prop = 'class';
-    }
     if (isSignal(newValue)) {
       addSignalSub(1, hostElm, newValue, elm, prop);
       newValue = newValue.value;
@@ -986,7 +983,7 @@ export const setProperties = (
     return values;
   }
   const immutableMeta = (newProps as any)[_IMMUTABLE] ?? EMPTY_OBJ;
-  for (let prop of keys) {
+  for (const prop of keys) {
     if (prop === 'children') {
       continue;
     }
@@ -1002,9 +999,6 @@ export const setProperties = (
       continue;
     }
 
-    if (prop === 'className') {
-      prop = 'class';
-    }
     const sig = isSignal(newValue);
     if (sig) {
       if (hostElm) addSignalSub(1, hostElm, newValue, elm, prop);

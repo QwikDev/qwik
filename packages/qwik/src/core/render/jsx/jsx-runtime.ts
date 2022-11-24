@@ -6,6 +6,8 @@ import { isFunction, isObject, isString } from '../../util/types';
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
 import { isQrl } from '../../qrl/qrl-class';
 
+let warnClassname = false;
+
 /**
  * @public
  */
@@ -14,18 +16,6 @@ export const jsx = <T extends string | FunctionComponent<any>>(
   props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>,
   key?: string | number | null
 ): JSXNode<T> => {
-  if (qDev) {
-    if (!isString(type) && !isFunction(type)) {
-      throw qError(QError_invalidJsxNodeType, type);
-    }
-    if (!qRuntimeQrl && props) {
-      for (const prop of Object.keys(props)) {
-        if (prop.endsWith('$') && !isQrl(props[prop])) {
-          throw qError(QError_invalidJsxNodeType, type);
-        }
-      }
-    }
-  }
   const processed = key == null ? null : String(key);
   const node = new JSXNodeImpl<T>(type, props, processed);
   seal(node);
@@ -40,7 +30,28 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
     public type: T,
     public props: T extends FunctionComponent<infer PROPS> ? PROPS : Record<string, any>,
     public key: string | null = null
-  ) {}
+  ) {
+    if (qDev) {
+      if (!isString(type) && !isFunction(type)) {
+        throw qError(QError_invalidJsxNodeType, type);
+      }
+      if (!qRuntimeQrl && props) {
+        for (const prop of Object.keys(props)) {
+          if (prop.endsWith('$') && !isQrl((props as any)[prop])) {
+            throw qError(QError_invalidJsxNodeType, type);
+          }
+        }
+      }
+    }
+    if (typeof type === 'string' && 'className' in (props as any)) {
+      (props as any)['class'] = (props as any)['className'];
+      delete (props as any)['className'];
+      if (qDev && !warnClassname) {
+        warnClassname = true;
+        logWarn('jsx: `className` is deprecated. Use `class` instead.');
+      }
+    }
+  }
 }
 
 export const isJSXNode = (n: any): n is JSXNode => {
@@ -80,11 +91,6 @@ export const jsxDEV = <T extends string | FunctionComponent<any>>(
   opts: JsxDevOpts,
   ctx: any
 ): JSXNode<T> => {
-  if (qDev) {
-    if (!isString(type) && !isFunction(type)) {
-      throw qError(QError_invalidJsxNodeType, type);
-    }
-  }
   const processed = key == null ? null : String(key);
   const node = new JSXNodeImpl<T>(type, props, processed);
   node.dev = {

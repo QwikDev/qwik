@@ -813,9 +813,6 @@ const processPropKey = (prop: string) => {
   if (prop === 'htmlFor') {
     return 'for';
   }
-  if (prop === 'className') {
-    return 'class';
-  }
   return prop;
 };
 

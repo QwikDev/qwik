@@ -75,7 +75,7 @@ renderSSRSuite('render class', async () => {
     <Test />,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
-      <div class=" myClass "></div>
+      <div class="myClass" q:id="1"></div>
       <!--/qv-->
     </html>`
   );

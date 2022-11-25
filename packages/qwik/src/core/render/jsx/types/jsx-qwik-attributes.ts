@@ -165,7 +165,7 @@ export type PreventDefault<T> = {
   [K in keyof QwikEventMap<T> as `preventdefault:${Lowercase<K>}`]?: boolean;
 };
 
-export type BaseClassList = string | string[] | {[cl: string]: boolean};
+export type BaseClassList = string | string[] | { [cl: string]: boolean };
 export type ClassList = BaseClassList | BaseClassList[];
 
 export interface QwikProps<T> extends PreventDefault<T> {

@@ -1,4 +1,4 @@
-import type { DOMAttributes } from './jsx-qwik-attributes';
+import type { DOMAttributes, ClassList } from './jsx-qwik-attributes';
 interface HTMLWebViewElement extends HTMLElement {}
 export type Booleanish = boolean | `${boolean}`;
 
@@ -301,6 +301,7 @@ export type AriaRole =
  */
 export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   accessKey?: string | undefined;
+  /** @deprecated - Use `class` instead */
   className?: string | undefined;
   contentEditable?: Booleanish | 'inherit' | undefined;
   contextMenu?: string | undefined;
@@ -857,8 +858,9 @@ export interface WebViewHTMLAttributes<T> extends HTMLAttributes<T> {
   webpreferences?: string | undefined;
 }
 export interface SVGAttributes<T> extends AriaAttributes, DOMAttributes<T> {
-  class?: string | { [className: string]: boolean } | undefined;
-  className?: string;
+  class?: ClassList | undefined;
+  /** @deprecated - Use `class` instead */
+  className?: string | undefined;
   color?: string | undefined;
   height?: number | string | undefined;
   id?: string | undefined;

@@ -69,13 +69,13 @@ renderSSRSuite('render class', async () => {
   const Test = component$(() => {
     // Extra spaces to ensure signal hasn't changed
     const sigClass = useSignal(' myClass ');
-    return <div class={sigClass} />;
+    return <div class={sigClass as any} />;
   });
   await testSSR(
     <Test />,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
-      <div class=" myClass "></div>
+      <div class="myClass" q:id="1"></div>
       <!--/qv-->
     </html>`
   );

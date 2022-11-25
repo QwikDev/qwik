@@ -165,14 +165,13 @@ export type PreventDefault<T> = {
   [K in keyof QwikEventMap<T> as `preventdefault:${Lowercase<K>}`]?: boolean;
 };
 
+export type BaseClassList = string | string[] | { [cl: string]: boolean };
+export type ClassList = BaseClassList | BaseClassList[];
+
 export interface QwikProps<T> extends PreventDefault<T> {
-  class?:
-    | Signal<string>
-    | string
-    | { [className: string]: boolean }
-    | (string | { [className: string]: boolean })[];
-  dangerouslySetInnerHTML?: string;
-  ref?: Ref<Element> | Signal<Element | undefined> | ((el: Element) => void);
+  class?: ClassList | undefined;
+  dangerouslySetInnerHTML?: string | undefined;
+  ref?: Ref<Element> | Signal<Element | undefined> | ((el: Element) => void) | undefined;
 
   /**
    *

@@ -482,15 +482,13 @@ const renderNode = (
     const isHead = tagName === 'head';
     let openingElement = '<' + tagName;
     let useSignal = false;
+    let classStr = '';
     assertElement(elm);
+    if (qDev && props.class && props.className) {
+      throw new TypeError('Can only have one of class or className');
+    }
     for (const prop of Object.keys(props)) {
-      if (
-        prop === 'children' ||
-        prop === 'key' ||
-        prop === 'class' ||
-        prop === 'className' ||
-        prop === 'dangerouslySetInnerHTML'
-      ) {
+      if (prop === 'children' || prop === 'dangerouslySetInnerHTML') {
         continue;
       }
       if (prop === 'ref') {
@@ -516,21 +514,15 @@ const renderNode = (
       }
       const attrValue = processPropValue(attrName, value);
       if (attrValue != null) {
-        openingElement +=
-          ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
+        if (attrName === 'class') {
+          classStr = attrValue;
+        } else {
+          openingElement +=
+            ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
+        }
       }
     }
     const listeners = elCtx.li;
-    if (qDev && props.class && props.className)
-      throw new TypeError('Can only have one of class or className');
-    const classVal = props.class || props.className;
-    const classIsSignal = isSignal(classVal);
-    let classStr = classVal
-      ? classIsSignal
-        ? classVal.value
-        : serializeClass(classVal)
-      : undefined;
-
     if (hostCtx) {
       if (qDev) {
         if (tagName === 'html') {
@@ -539,8 +531,6 @@ const renderNode = (
       }
       if (hostCtx.$scopeIds$?.length) {
         const extra = hostCtx.$scopeIds$.join(' ');
-        if (qDev && classIsSignal)
-          throw new TypeError('Cannot use signal class when using scoped styles');
         classStr = classStr ? `${extra} ${classStr}` : extra;
       }
       if (hostCtx.$flags$ & HOST_FLAG_NEED_ATTACH_LISTENER) {
@@ -829,6 +819,9 @@ const processPropKey = (prop: string) => {
 const processPropValue = (prop: string, value: any): string | null => {
   if (prop === 'style') {
     return stringifyStyle(value);
+  }
+  if (prop === 'class') {
+    return serializeClass(value);
   }
   if (isAriaAttribute(prop)) {
     return value != null ? String(value) : value;

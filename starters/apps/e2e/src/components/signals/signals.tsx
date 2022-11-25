@@ -101,6 +101,7 @@ export const Signals = component$(() => {
       <Issue2176 />
       <Issue2245 />
       <Issue2245B />
+      <ComplexClassSignals />
     </div>
   );
 });
@@ -488,6 +489,25 @@ export const Issue2245B = component$(() => {
         <TestCWithFlag color={store.color} flag={store.flag}>
           Class = Fail
         </TestCWithFlag>
+      </div>
+    </div>
+  );
+});
+
+export const ComplexClassSignals = component$(() => {
+  const classes = useSignal(['initial', { hidden: false, visible: true }]);
+  return (
+    <div>
+      <button
+        id="complex-classes-btn"
+        onClick$={() => {
+          classes.value = ['change', { hidden: true, visible: false }];
+        }}
+      >
+        Change classses
+      </button>
+      <div id="complex-classes-results" class={classes.value}>
+        Div with classes
       </div>
     </div>
   );

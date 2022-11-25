@@ -69,7 +69,7 @@ renderSSRSuite('render class', async () => {
   const Test = component$(() => {
     // Extra spaces to ensure signal hasn't changed
     const sigClass = useSignal(' myClass ');
-    return <div class={sigClass} />;
+    return <div class={sigClass as any} />;
   });
   await testSSR(
     <Test />,

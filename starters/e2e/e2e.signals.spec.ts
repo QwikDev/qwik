@@ -211,4 +211,13 @@ test.describe('signals', () => {
     await btn.click();
     await expect(results).toHaveCSS('color', 'rgb(0, 0, 255)');
   });
+
+  test('complex classes with signals', async ({ page }) => {
+    const btn = page.locator('#complex-classes-btn');
+    const results = page.locator('#complex-classes-results');
+
+    await expect(results).toHaveClass('initial visible');
+    await btn.click();
+    await expect(results).toHaveClass('change hidden');
+  });
 });

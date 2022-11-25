@@ -5,6 +5,7 @@ import { logWarn } from '../../util/log';
 import { isFunction, isObject, isString } from '../../util/types';
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
 import { isQrl } from '../../qrl/qrl-class';
+import { invoke } from '../../use/use-core';
 
 let warnClassname = false;
 
@@ -32,16 +33,21 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
     public key: string | null = null
   ) {
     if (qDev) {
-      if (!isString(type) && !isFunction(type)) {
-        throw qError(QError_invalidJsxNodeType, type);
-      }
-      if (!qRuntimeQrl && props) {
-        for (const prop of Object.keys(props)) {
-          if (prop.endsWith('$') && !isQrl((props as any)[prop])) {
-            throw qError(QError_invalidJsxNodeType, type);
+      invoke(undefined, () => {
+        if (!isString(type) && !isFunction(type)) {
+          throw qError(QError_invalidJsxNodeType, type);
+        }
+        if (!qRuntimeQrl && props) {
+          for (const prop of Object.keys(props)) {
+            const value = (props as any)[prop];
+            if (prop.endsWith('$') && value) {
+              if (!isQrl(value) && !Array.isArray(value)) {
+                throw qError(QError_invalidJsxNodeType, type);
+              }
+            }
           }
         }
-      }
+      });
     }
     if (typeof type === 'string' && 'className' in (props as any)) {
       (props as any)['class'] = (props as any)['className'];

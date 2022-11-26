@@ -1,6 +1,7 @@
 /** @jsxImportSource solid-js */
 
 import { Component, createSignal, JSX } from 'solid-js';
+export * from "./Slot.tsx"
 
 // import styles from './App.module.css';
 

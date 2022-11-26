@@ -67,6 +67,11 @@ export async function getSystem() {
     sys.os = process.platform;
   }
 
+  if ('deno' === sysEnv) {
+    sys.cwd = () => Deno.cwd();
+    sys.os = Deno.build.os;
+  }
+
   return sys;
 }
 
@@ -108,6 +113,47 @@ export const getPlatformInputFiles = async (sys: OptimizerSystem) => {
           filePaths.map(async (filePath) => {
             const input: TransformModuleInput = {
               code: await fs.promises.readFile(filePath, 'utf8'),
+              path: filePath,
+            };
+            return input;
+          })
+        )
+      ).sort((a, b) => {
+        if (a.path < b.path) return -1;
+        if (a.path > b.path) return 1;
+        return 0;
+      });
+
+      return inputs;
+    };
+  }
+
+  if (sys.env === 'deno') {
+    return async (rootDir: string) => {
+      const getChildFilePaths = async (dir: string): Promise<string[]> => {
+        const stats = await Deno.stat(dir);
+        const flatted = [];
+        if (stats.isDirectory) {
+          for await (const subdirStats of Deno.readDir(dir)) {
+            const resolvedPath = sys.path.resolve(dir, subdirStats.name);
+            const files = subdirStats.isDirectory
+              ? await getChildFilePaths(resolvedPath)
+              : [resolvedPath];
+            flatted.push(...files);
+          }
+        } else {
+          flatted.push(dir);
+        }
+        return flatted.filter((a) => extensions[sys.path.extname(a)]);
+      };
+
+      const filePaths = await getChildFilePaths(rootDir);
+
+      const inputs = (
+        await Promise.all(
+          filePaths.map(async (filePath) => {
+            const input = {
+              code: await Deno.readTextFile(filePath),
               path: filePath,
             };
             return input;

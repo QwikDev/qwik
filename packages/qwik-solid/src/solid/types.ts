@@ -1,4 +1,10 @@
 import type { PropFunction } from '@builder.io/qwik';
+import type { Component } from 'solid-js';
+
+
+export interface Internal<PROPS> {
+  component: Component<PROPS>;
+}
 
 export interface QwikifyBase {
   /**
@@ -95,3 +101,5 @@ export interface QwikifyOptions {
   event?: string | string[];
   clientOnly?: boolean;
 }
+
+export type SolidProps = Record<string, unknown>;

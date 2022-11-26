@@ -1,5 +1,5 @@
 import { component$, useStore, useStyles$, useClientEffect$ } from '@builder.io/qwik';
-import styles from './clock.css?inline';
+import styles from './clock.css';
 
 interface ClockStore {
   hour: number;

@@ -1,4 +1,4 @@
-# Qwik qwik-react ⚡️
+# Qwik qwik-solid ⚡️
 
 - Create a component library
 - Vite.js tooling.

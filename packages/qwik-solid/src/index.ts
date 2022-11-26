@@ -1,4 +1,4 @@
-export { qwikify$, qwikifyQrl } from './react/qwikify';
+export { qwikify$, qwikifyQrl } from './solid/qwikify';
 export { qwikSolid } from './vite/index';
 
-export type { QwikifyProps } from './react/types';
+export type { QwikifyProps } from './solid/types';

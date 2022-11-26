@@ -14,13 +14,13 @@ import {
 } from '@builder.io/qwik';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import { renderFromServer } from './server-render';
-import { createComponent, hydrate, render, ssr } from 'solid-js/web';
+import { createComponent, hydrate, render } from 'solid-js/web';
 import type { Component } from 'solid-js';
 import { getHostProps, main, mainExactProps, useWakeupSignal } from './slot';
-import type { Internal, QwikifyOptions, QwikifyProps, SolidProps } from './types';
+import type { Internal, QwikifyOptions, QwikifyProps } from './types';
 
-export function qwikifyQrl<PROPS extends SolidProps>(
-  solidCmp$: QRL<Component<PROPS>>,
+export function qwikifyQrl<PROPS extends {}>(
+  solidCmp$: QRL<Component<PROPS & { children?: JSX.Element }>>,
   opts?: QwikifyOptions
 ) {
   return component$<QwikifyProps<PROPS>>((props) => {
@@ -44,13 +44,11 @@ export function qwikifyQrl<PROPS extends SolidProps>(
       }
 
       // Update
-      if (internalState.value) {
-        if (internalState.value.cmp) {
-          render(
-            () => main(slotRef, scopeId, internalState.value.cmp, trackedProps),
-            hostRef.value
-          );
-        }
+      if (internalState.value && hostRef.value) {
+        render(
+          () => main(slotRef.value, scopeId, internalState.value!.component, trackedProps),
+          hostRef.value
+        );
       } else {
         const Cmp = await solidCmp$.resolve();
         const hostElement = hostRef.value;
@@ -60,16 +58,13 @@ export function qwikifyQrl<PROPS extends SolidProps>(
 
           console.log(isClientOnly ? 'Client rendered' : 'Hydrated from server-rendered markup 💦');
 
-          solidFn(
-            () => {
-              return mainExactProps(slotRef.value, scopeId, Cmp, hydrationKeys);
-            },
-            hostElement
-          );
+          solidFn(() => {
+            return mainExactProps(slotRef.value, scopeId, Cmp, hydrationKeys);
+          }, hostElement);
         }
 
         internalState.value = noSerialize({
-          cmp: Cmp,
+          component: Cmp,
         });
       }
     });
@@ -97,7 +92,7 @@ export function qwikifyQrl<PROPS extends SolidProps>(
               const internalData = internalState.value;
               hostRef.value = el;
 
-              if (internalData && !internalData.cmp) {
+              if (internalData && !internalData.component) {
                 const Cmp = await solidCmp$.resolve();
 
                 console.log('Rendering on callback');
@@ -105,8 +100,9 @@ export function qwikifyQrl<PROPS extends SolidProps>(
                 render(() => {
                   const slotEl = slotRef.value;
 
+                  // @ts-expect-error
                   return createComponent(Cmp, { children: slotEl });
-                });
+                }, hostRef.value);
               }
             } else {
               console.log('Setting hostRef by server');

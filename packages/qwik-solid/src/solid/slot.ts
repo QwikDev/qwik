@@ -1,7 +1,7 @@
 import { $, useOn, useOnDocument, useSignal } from '@builder.io/qwik';
 import { isServer } from '@builder.io/qwik/build';
 import type { QwikifyOptions, QwikifyProps } from './types';
-import { Context, createContext, onMount, useContext } from 'solid-js';
+import { createContext, onMount, useContext } from 'solid-js';
 import {
   createComponent,
   mergeProps,
@@ -30,7 +30,12 @@ export function main(slotEl: Element | undefined, scopeId: string, RootCmp: any,
   return mainExactProps(slotEl, scopeId, RootCmp, newProps);
 }
 
-export function mainExactProps(slotEl, scopeId, RootCmp, props) {
+export function mainExactProps(
+  slotEl: Element | undefined,
+  scopeId: string,
+  RootCmp: any,
+  props: any
+) {
   return createComponent(SlotCtx.Provider, {
     value: {
       el: slotEl,
@@ -42,7 +47,7 @@ export function mainExactProps(slotEl, scopeId, RootCmp, props) {
         RootCmp,
         mergeProps(props, {
           get children() {
-            return createComponent(SlotElement, {});
+            return createComponent(SlotElement as (props: {}) => Element, {});
           },
         })
       );
@@ -52,7 +57,7 @@ export function mainExactProps(slotEl, scopeId, RootCmp, props) {
 
 const SlotElement = () => {
   const context = useContext(SlotCtx);
-  let slotC;
+  let slotC: Element | undefined;
 
   onMount(() => {
     if (slotC) {
@@ -71,12 +76,15 @@ const SlotElement = () => {
   return isServer
     ? ssr(
         ['<q-slotc', '><!--SLOT--></q-slotc>'],
+        // @ts-expect-error
         ssrHydrationKey() + ssrAttribute('class', escape(context.scopeId, true), false)
       )
     : (() => {
+        // @ts-expect-error
         const _el$ = getNextElement(template(`<q-slotc></q-slotc>`, 2));
         slotC = _el$;
         innerHTML(_el$, '<!--SLOT-->');
+        // @ts-expect-error
         _el$._$owner = getOwner();
         effect(() => className(_el$, context.scopeId));
         return _el$;

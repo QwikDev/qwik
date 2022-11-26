@@ -1,8 +1,9 @@
 export function qwikSolid(): any {
   const OPTIMIZE_DEPS = [
+    'solid-js',
     'solid-js/web'
   ];
-  const DEDUPE = ['solid-js'];
+  const DEDUPE = ['solid-js', 'solid-js/web'];
 
   return {
     name: 'vite-plugin-qwik-solid',

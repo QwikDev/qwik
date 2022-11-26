@@ -1,26 +1,23 @@
 import { QRL, Signal, Slot, SSRRaw, SSRStream } from '@builder.io/qwik';
-import { createSignal } from 'solid-js';
-import { createComponent, renderToString, ssr } from 'solid-js/web';
+import { renderToString } from 'solid-js/web';
+import { getHostProps, getSolidProps, mainExactProps } from './slot';
 
 export async function renderFromServer(
   Host: any,
   solidCmp$: QRL<any>,
-  hostRef: Signal<HTMLElement | undefined>
+  scopeId: string,
+  props: Record<string, any>,
+  ref: Signal<Element | undefined>,
+  slotRef: Signal<Element | undefined>,
+  hydrationProps: Record<string, any>
 ) {
   const Cmp = await solidCmp$.resolve();
+  const newProps = getSolidProps(props);
+  Object.assign(hydrationProps, newProps);
 
-  let html = renderToString(
-    () => {
-      const props = {
-        children: ssr(`<q-slot><!--SLOT--></q-slot>`),
-      };
-
-      return createComponent(Cmp, props);
-    },
-    {
-      renderId: 'foo', // TODO: Make it properly dynamic
-    }
-  );
+  let html = renderToString(() => {
+    return mainExactProps(undefined, scopeId, Cmp, newProps);
+  });
 
   const mark = '<!--SLOT-->';
   const beginningHTML = html.indexOf(mark);
@@ -30,13 +27,30 @@ export async function renderFromServer(
     const afterSlot = html.slice(beginningHTML + mark.length);
 
     return (
-      <div ref={hostRef}>
-        <SSRRaw data={beforeSlot} />
-        <Slot />
-        <SSRRaw data={afterSlot} />
-      </div>
+      <Host ref={ref} {...getHostProps(props)}>
+        <SSRStream>
+          {async function* () {
+            yield <SSRRaw data={beforeSlot} />;
+            yield (
+              <q-slot ref={slotRef}>
+                <Slot />
+              </q-slot>
+            );
+            yield <SSRRaw data={afterSlot} />;
+          }}
+        </SSRStream>
+      </Host>
     );
   }
 
-  return <div ref={hostRef} dangerouslySetInnerHTML={html} />;
+  return (
+    <>
+      <Host ref={ref}>
+        <SSRRaw data={html}></SSRRaw>
+      </Host>
+      <q-slot ref={slotRef}>
+        <Slot />
+      </q-slot>
+    </>
+  );
 }

@@ -1,7 +1,87 @@
 import { $, useOn, useOnDocument, useSignal } from '@builder.io/qwik';
 import { isServer } from '@builder.io/qwik/build';
 import type { QwikifyOptions, QwikifyProps } from './types';
+import { Context, createContext, onMount, useContext } from 'solid-js';
+import {
+  createComponent,
+  mergeProps,
+  ssr,
+  ssrHydrationKey,
+  ssrAttribute,
+  escape,
+  getNextElement,
+  innerHTML,
+  getOwner,
+  effect,
+  className,
+  template,
+} from 'solid-js/web';
 
+interface SlotState {
+  el?: Element;
+  scopeId: string;
+  attachedEl?: Element;
+}
+
+const SlotCtx = createContext<SlotState>({ scopeId: '' });
+
+export function main(slotEl: Element | undefined, scopeId: string, RootCmp: any, props: any) {
+  const newProps = getSolidProps(props);
+  return mainExactProps(slotEl, scopeId, RootCmp, newProps);
+}
+
+export function mainExactProps(slotEl, scopeId, RootCmp, props) {
+  return createComponent(SlotCtx.Provider, {
+    value: {
+      el: slotEl,
+      scopeId,
+      attachedEl: undefined,
+    },
+    get children() {
+      return createComponent(
+        RootCmp,
+        mergeProps(props, {
+          get children() {
+            return createComponent(SlotElement, {});
+          },
+        })
+      );
+    },
+  });
+}
+
+const SlotElement = () => {
+  const context = useContext(SlotCtx);
+  let slotC;
+
+  onMount(() => {
+    if (slotC) {
+      const { attachedEl, el } = context;
+      if (el) {
+        if (!attachedEl) {
+          slotC.appendChild(el);
+        } else if (attachedEl !== slotC) {
+          throw new Error('already attached');
+        }
+      }
+    }
+  });
+
+  // Solid components are compiled differently for server and client
+  return isServer
+    ? ssr(
+        ['<q-slotc', '><!--SLOT--></q-slotc>'],
+        ssrHydrationKey() + ssrAttribute('class', escape(context.scopeId, true), false)
+      )
+    : (() => {
+        const _el$ = getNextElement(template(`<q-slotc></q-slotc>`, 2));
+        slotC = _el$;
+        innerHTML(_el$, '<!--SLOT-->');
+        _el$._$owner = getOwner();
+        effect(() => className(_el$, context.scopeId));
+        return _el$;
+      })();
+};
 
 export const getSolidProps = (props: Record<string, any>): Record<string, any> => {
   const obj: Record<string, any> = {};

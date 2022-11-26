@@ -9,13 +9,14 @@ import {
   SkipRender,
   Slot,
   useSignal,
+  useStylesScoped$,
   useWatch$,
 } from '@builder.io/qwik';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import { renderFromServer } from './server-render';
 import { createComponent, hydrate, render, ssr } from 'solid-js/web';
 import type { Component } from 'solid-js';
-import { getHostProps, useWakeupSignal } from './slot';
+import { getHostProps, main, mainExactProps, useWakeupSignal } from './slot';
 import type { Internal, QwikifyOptions, QwikifyProps, SolidProps } from './types';
 
 export function qwikifyQrl<PROPS extends SolidProps>(
@@ -23,10 +24,14 @@ export function qwikifyQrl<PROPS extends SolidProps>(
   opts?: QwikifyOptions
 ) {
   return component$<QwikifyProps<PROPS>>((props) => {
+    const { scopeId } = useStylesScoped$(
+      `q-slot{display:none} q-slotc,q-slotc>q-slot{display:contents}`
+    );
     const hostRef = useSignal<Element>();
-    const internalState = useSignal<NoSerialize<Internal<PROPS>>>();
     const slotRef = useSignal<Element>();
+    const internalState = useSignal<NoSerialize<Internal<PROPS>>>();
     const [signal, isClientOnly] = useWakeupSignal(props);
+    const hydrationKeys = {};
     const TagName = opts?.tagName ?? ('qwik-solid' as any);
 
     // Watch takes cares of updates and partial hydration
@@ -40,7 +45,12 @@ export function qwikifyQrl<PROPS extends SolidProps>(
 
       // Update
       if (internalState.value) {
-        // TODO
+        if (internalState.value.cmp) {
+          render(
+            () => main(slotRef, scopeId, internalState.value.cmp, trackedProps),
+            hostRef.value
+          );
+        }
       } else {
         const Cmp = await solidCmp$.resolve();
         const hostElement = hostRef.value;
@@ -52,15 +62,9 @@ export function qwikifyQrl<PROPS extends SolidProps>(
 
           solidFn(
             () => {
-              const slotEl = document.querySelector('q-slot');
-              const children = slotEl;
-
-              return createComponent(Cmp, { children });
+              return mainExactProps(slotRef.value, scopeId, Cmp, hydrationKeys);
             },
-            hostElement,
-            {
-              renderId: 'foo', // TODO: Make it properly dynamic
-            }
+            hostElement
           );
         }
 
@@ -71,7 +75,15 @@ export function qwikifyQrl<PROPS extends SolidProps>(
     });
 
     if (isServer && !isClientOnly) {
-      const jsx = renderFromServer('qwik-solid', solidCmp$, hostRef);
+      const jsx = renderFromServer(
+        TagName,
+        solidCmp$,
+        scopeId,
+        props,
+        hostRef,
+        slotRef,
+        hydrationKeys
+      );
 
       return <RenderOnce>{jsx}</RenderOnce>;
     }
@@ -87,9 +99,9 @@ export function qwikifyQrl<PROPS extends SolidProps>(
 
               if (internalData && !internalData.cmp) {
                 const Cmp = await solidCmp$.resolve();
-                
-                console.log("Rendering on callback")
-                
+
+                console.log('Rendering on callback');
+
                 render(() => {
                   const slotEl = slotRef.value;
 
@@ -97,14 +109,14 @@ export function qwikifyQrl<PROPS extends SolidProps>(
                 });
               }
             } else {
-              console.log("Setting hostRef by server")
+              console.log('Setting hostRef by server');
               hostRef.value = el;
             }
           }}
         >
           {SkipRender}
         </TagName>
-        <q-slot ref={slotRef} style="display: none">
+        <q-slot ref={slotRef}>
           <Slot></Slot>
         </q-slot>
       </RenderOnce>

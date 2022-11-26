@@ -210,7 +210,7 @@ export type PropFunction<T extends Function> = T extends (...args: infer ARGS) =
  *    - Must be runtime serializable.
  *
  * ```tsx
- * import { importedFn } from './import/example';
+ *
  * import { createContext, useContext, useContextProvider } from './use/use-context';
  * import { useRef } from './use/use-ref';
  * import { Resource, useResource$ } from './use/use-resource';
@@ -223,9 +223,7 @@ export type PropFunction<T extends Function> = T extends (...args: infer ARGS) =
  *   function localFn() {}
  *   // Valid Examples
  *   $(greet); // greet is importable
- *   $(importedFn); // importedFn is importable
  *   $(() => greet()); // greet is importable;
- *   $(() => importedFn()); // importedFn is importable
  *   $(() => console.log(store)); // store is serializable.
  *
  *   // Compile time errors

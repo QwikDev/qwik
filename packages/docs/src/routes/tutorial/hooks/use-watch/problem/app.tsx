@@ -6,12 +6,14 @@ export default component$(() => {
     debouncedValue: '',
   });
   useWatch$(({ track }) => {
-    // rerun this function  when `value` property changes.
-    track(() => store.value);
-    // Set up timeout for debounced value.
-    const id = setTimeout(() => (store.debouncedValue = store.value), 500);
-    // return cleanup function in case `value` property changes before time is up.
-    return () => clearTimeout(id);
+    // Use track to rerun this function when store's `value` property changes.
+
+    // Setup a timer to copy `value => debouncedValue` after half a second.
+
+    // Return cleanup function in case `value` property changes before time is up.
+    return () => {
+      // cleanup code
+    };
   });
   return (
     <>

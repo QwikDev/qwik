@@ -9,6 +9,8 @@ import {
   isServiceWorkerName,
   getExtension,
   removeExtension,
+  isIndexModule,
+  isLayoutModule,
 } from '../../utils/fs';
 
 export function getSourceFile(fileName: string) {
@@ -20,13 +22,13 @@ export function getSourceFile(fileName: string) {
   let type: RouteSourceType | null = null;
 
   if (
-    (extlessName.startsWith('index') || isErrorName(extlessName)) &&
+    (isIndexModule(extlessName) || isErrorName(extlessName)) &&
     (isPageModule || isModule || isMarkdown)
   ) {
     // route page or endpoint
     // index@layoutname or index! - ts|tsx|js|jsx|md|mdx
     type = 'route';
-  } else if (extlessName.startsWith('layout') && (isPageModule || isModule)) {
+  } else if (isLayoutModule(extlessName) && (isPageModule || isModule)) {
     // layout-name or layout! - ts|tsx|js|jsx
     type = 'layout';
   } else if (isEntryName(extlessName) && isModule) {

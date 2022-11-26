@@ -2,7 +2,7 @@
 import color from 'kleur';
 import type { AppCommand } from '../utils/app-command';
 import { execaCommand } from 'execa';
-import { pmRunCmd } from '../utils/utils';
+import { getPackageManager, pmRunCmd } from '../utils/utils';
 interface Step {
   title: string;
   stdout?: string;
@@ -12,17 +12,25 @@ export async function runBuildCommand(app: AppCommand) {
   if (!pkgJsonScripts) {
     throw new Error(`No "scripts" property found in package.json`);
   }
+  const pkgManager = getPackageManager();
+
+  const getScript = (name: string) => {
+    if (pkgJsonScripts[name]) {
+      return `${pkgManager} run ${name}`;
+    }
+    return undefined;
+  };
 
   const isPreviewBuild = app.args.includes('preview');
-  const buildLibScript = pkgJsonScripts['build.lib'];
+  const buildLibScript = getScript('build.lib');
   const isLibraryBuild = !!buildLibScript;
-  const buildClientScript = pkgJsonScripts['build.client'];
-  const buildPreviewScript = isPreviewBuild ? pkgJsonScripts['build.preview'] : undefined;
-  const buildServerScript = !isPreviewBuild ? pkgJsonScripts['build.server'] : undefined;
-  const buildStaticScript = pkgJsonScripts['build.static'];
-  const runSsgScript = pkgJsonScripts['ssg'];
-  const buildTypes = pkgJsonScripts['build.types'];
-  const lint = pkgJsonScripts['lint'];
+  const buildClientScript = getScript('build.client');
+  const buildPreviewScript = isPreviewBuild ? getScript('build.preview') : undefined;
+  const buildServerScript = !isPreviewBuild ? getScript('build.server') : undefined;
+  const buildStaticScript = getScript('build.static');
+  const runSsgScript = getScript('ssg');
+  const buildTypes = getScript('build.types');
+  const lint = getScript('lint');
 
   const scripts = [
     buildTypes,

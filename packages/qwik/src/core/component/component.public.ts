@@ -9,7 +9,7 @@ import { qDev, qTest } from '../util/qdev';
 import { Virtual } from '../render/jsx/utils.public';
 import { assertQrl } from '../qrl/qrl-class';
 import type { ValueOrPromise } from '../util/types';
-import { invoke, newInvokeContext } from '../use/use-core';
+import { invoke } from '../use/use-core';
 import { verifySerializable } from '../state/common';
 import { _IMMUTABLE } from '../state/constants';
 
@@ -141,7 +141,7 @@ export const componentQrl = <PROPS extends {}>(
   function QwikComponent(props: PublicProps<PROPS>, key: string | null): JSXNode {
     assertQrl(componentQrl);
     if (qDev) {
-      invoke(newInvokeContext(), () => {
+      invoke(undefined, () => {
         for (const key of Object.keys(props)) {
           if (key !== 'children') {
             verifySerializable((props as any)[key]);

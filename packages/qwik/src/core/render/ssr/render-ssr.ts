@@ -10,6 +10,7 @@ import {
   isAriaAttribute,
   jsxToString,
   pushRenderContext,
+  serializeClass,
   stringifyStyle,
 } from '../execute-component';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
@@ -46,13 +47,8 @@ import {
   QContext,
   Q_CTX,
 } from '../../state/context';
-import { createProxy } from '../../state/store';
-import {
-  QObjectFlagsSymbol,
-  QObjectImmutable,
-  _IMMUTABLE,
-  _IMMUTABLE_PREFIX,
-} from '../../state/constants';
+import { createPropsState, createProxy } from '../../state/store';
+import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
@@ -486,15 +482,13 @@ const renderNode = (
     const isHead = tagName === 'head';
     let openingElement = '<' + tagName;
     let useSignal = false;
+    let classStr = '';
     assertElement(elm);
+    if (qDev && props.class && props.className) {
+      throw new TypeError('Can only have one of class or className');
+    }
     for (const prop of Object.keys(props)) {
-      if (
-        prop === 'children' ||
-        prop === 'key' ||
-        prop === 'class' ||
-        prop === 'className' ||
-        prop === 'dangerouslySetInnerHTML'
-      ) {
+      if (prop === 'children' || prop === 'dangerouslySetInnerHTML') {
         continue;
       }
       if (prop === 'ref') {
@@ -520,22 +514,24 @@ const renderNode = (
       }
       const attrValue = processPropValue(attrName, value);
       if (attrValue != null) {
-        openingElement +=
-          ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
+        if (attrName === 'class') {
+          classStr = attrValue;
+        } else {
+          openingElement +=
+            ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
+        }
       }
     }
     const listeners = elCtx.li;
-    const classValue = props.class ?? props.className;
-    let classStr = stringifyClass(classValue);
-
     if (hostCtx) {
       if (qDev) {
         if (tagName === 'html') {
           throw qError(QError_canNotRenderHTML);
         }
       }
-      if (hostCtx.$scopeIds$) {
-        classStr = hostCtx.$scopeIds$.join(' ') + ' ' + classStr;
+      if (hostCtx.$scopeIds$?.length) {
+        const extra = hostCtx.$scopeIds$.join(' ');
+        classStr = classStr ? `${extra} ${classStr}` : extra;
       }
       if (hostCtx.$flags$ & HOST_FLAG_NEED_ATTACH_LISTENER) {
         listeners.push(...hostCtx.li);
@@ -551,7 +547,6 @@ const renderNode = (
       flags |= IS_TEXT;
     }
 
-    classStr = classStr.trim();
     if (classStr) {
       openingElement += ' class="' + classStr + '"';
     }
@@ -768,28 +763,6 @@ const flatVirtualChildren = (children: any, ssrCtx: SSRContext): any[] | null =>
   return nodes;
 };
 
-const stringifyClass = (str: any) => {
-  if (!str) {
-    return '';
-  }
-  if (typeof str === 'string') {
-    return str;
-  }
-  if (Array.isArray(str)) {
-    return str.join(' ');
-  }
-  const output: string[] = [];
-  for (const key in str) {
-    if (Object.prototype.hasOwnProperty.call(str, key)) {
-      const value = str[key];
-      if (value) {
-        output.push(key);
-      }
-    }
-  }
-  return output.join(' ');
-};
-
 const _flatVirtualChildren = (children: any, ssrCtx: SSRContext): any => {
   if (children == null) {
     return null;
@@ -815,9 +788,8 @@ const setComponentProps = (
   expectProps: Record<string, any>
 ) => {
   const keys = Object.keys(expectProps);
-  const target = {
-    [QObjectFlagsSymbol]: QObjectImmutable,
-  } as Record<string, any>;
+  const target = createPropsState();
+
   elCtx.$props$ = createProxy(target, rCtx.$static$.$containerState$);
 
   if (keys.length === 0) {
@@ -847,6 +819,9 @@ const processPropKey = (prop: string) => {
 const processPropValue = (prop: string, value: any): string | null => {
   if (prop === 'style') {
     return stringifyStyle(value);
+  }
+  if (prop === 'class') {
+    return serializeClass(value);
   }
   if (isAriaAttribute(prop)) {
     return value != null ? String(value) : value;

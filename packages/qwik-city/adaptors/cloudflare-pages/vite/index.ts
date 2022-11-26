@@ -40,7 +40,11 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
         const routesJson = {
           version: 1,
           include: [basePathname + '*'],
-          exclude: [basePathname + 'build/*', basePathname + 'assets/*'],
+          exclude: [
+            basePathname + 'build/*',
+            basePathname + 'assets/*',
+            basePathname + '*/q-data.json',
+          ],
         };
         await fs.promises.writeFile(routesJsonPath, JSON.stringify(routesJson, undefined, 2));
       }

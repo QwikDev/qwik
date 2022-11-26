@@ -1,28 +1,12 @@
 name: 🐞 Bug Report
 description: Something does not work or is flaky! let us know!
 labels: [bug, triage]
+title: '[🐞]'
 body:
-  - type: input
-    id: version
+  - type: markdown
     attributes:
-      label: Qwik Version
-      placeholder: e.g. vX.Y.Z
-    validations:
-      required: true
-
-  - type: input
-    id: os_version
-    attributes:
-      label: Operating System (or Browser)
-    validations:
-      required: true
-
-  - type: input
-    id: node_version
-    attributes:
-      label: Node Version (if applicable)
-    validations:
-      required: false
+      value: |
+        Thanks for taking the time to fill out this bug report!
 
   - type: dropdown
     id: component
@@ -33,23 +17,44 @@ body:
         - Qwik Rollup / Vite plugin
         - Qwik Optimizer (rust)
         - Qwik React
-        - Qwik City
+        - Qwik City (routing)
         - Starters / CLI
     validations:
       required: true
 
   - type: textarea
-    id: expected_behaviour
+    id: description
     attributes:
-      description: 'A clear and concise description of what you expected to happen.'
-      label: Expected Behaviour
+      description: 'A clear and concise description of what you expected to happen instead. If you intend to submit a PR for this issue, tell us in the description. Thanks!'
+      label: Describe the bug
+      placeholder: I am doing ... What I expect is ... What actually happening is ...
+
+    validations:
+      required: true
+
+  - type: input
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Please provide a link via [qwik.new](https://qwik.new/) or a link to a repo that can reproduce the problem you ran into. `npm create qwik@latest` can be used as a starter template. A [minimal reproduction](https://stackoverflow.com/help/minimal-reproducible-example) is required ([Why?](https://antfu.me/posts/why-reproductions-are-required)). If a report is vague (e.g. just a generic error message) and has no reproduction, it will receive a "need reproduction" label. If no reproduction is provided after 3 days, it will be auto-closed.
+      placeholder: Reproduction URL
     validations:
       required: true
 
   - type: textarea
-    id: actual_behaviour
+    id: reproduction-steps
     attributes:
-      label: Actual Behaviour
+      label: Steps to reproduce
+      description: Please provide any reproduction steps that may need to be described. E.g. if it happens only when running the dev or build script make sure it's clear which one to use.
+      placeholder: Run `npm install` followed by `npm run dev`
+
+  - type: textarea
+    id: system-info
+    attributes:
+      label: System Info
+      description: Output of `npx envinfo --system --npmPackages '{vite,@builder.io/*}' --binaries --browsers`
+      render: shell
+      placeholder: System, Binaries, Browsers
     validations:
       required: true
 

@@ -15,10 +15,11 @@ export const Clock = component$(() => {
     second: 0,
   });
 
-  useClientEffect$(() => {
+  useClientEffect$(({ track }) => {
+    track(store);
     updateClock(store);
-    const tmrId = setInterval(() => updateClock(store), 1000);
-    return () => clearInterval(tmrId);
+    const tmrId = setTimeout(() => updateClock(store), 1000);
+    return () => clearTimeout(tmrId);
   });
 
   return (

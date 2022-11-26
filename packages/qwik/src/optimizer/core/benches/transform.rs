@@ -195,11 +195,13 @@ fn transform_todo_app(b: &mut Bencher) {
           transpile_ts: true,
           transpile_jsx: true,
           preserve_filenames: false,
-          manual_chunks: vec![],
+          manual_chunks: None,
           entry_strategy: EntryStrategy::Single,
           mode: EmitMode::Prod,
           scope: None,
           strip_exports: None,
+          strip_ctx_name: None,
+          strip_ctx_kind: None,
       })
   });
 }

@@ -20,10 +20,9 @@ import {
 } from './container';
 import { findClose, VirtualElementImpl } from '../render/dom/virtual-element';
 import { getProxyManager, parseSubscription, Subscriptions } from '../state/common';
-import { createProxy } from '../state/store';
+import { createProxy, setObjectFlags } from '../state/store';
 import { qSerialize } from '../util/qdev';
 import { pauseContainer } from './pause';
-import { QObjectFlagsSymbol } from '../state/constants';
 import { isPrimitive } from '../render/dom/render-dom';
 import { getContext } from '../state/context';
 import { domToVnode } from '../render/dom/visitor';
@@ -229,7 +228,7 @@ const reviveSubscriptions = (
       }
     }
     if (flag > 0) {
-      value[QObjectFlagsSymbol] = flag;
+      setObjectFlags(value, flag);
     }
     if (!parser.subs(value, converted)) {
       const proxy = containerState.$proxyMap$.get(value);

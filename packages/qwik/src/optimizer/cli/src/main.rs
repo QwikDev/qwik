@@ -139,6 +139,8 @@ fn optimize(
         scope: None,
 
         strip_exports: None,
+        strip_ctx_name: None,
+        strip_ctx_kind: None,
     })?;
 
     result.write_to_fs(

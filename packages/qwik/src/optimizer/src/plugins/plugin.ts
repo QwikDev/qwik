@@ -314,6 +314,23 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         scope: opts.scope ? opts.scope : undefined,
       };
 
+      if (opts.target === 'client') {
+        transformOpts.stripCtxName = ['useServerMount$'];
+        transformOpts.stripExports = [
+          'onGet',
+          'onPost',
+          'onPut',
+          'onRequest',
+          'onDelete',
+          'onHead',
+          'onOptions',
+          'onPatch',
+        ];
+      } else if (opts.target === 'ssr') {
+        transformOpts.stripCtxName = ['useClientMount$', 'useClientEffect$'];
+        transformOpts.stripCtxKind = 'event';
+      }
+
       const result = await optimizer.transformFs(transformOpts);
       for (const output of result.modules) {
         const key = normalizePath(path.join(srcDir, output.path)!);
@@ -394,7 +411,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           log(`resolveId() Resolved ${importeePathId} from transformedOutputs`);
           return {
             id: importeePathId + parsedId.query,
-            moduleSideEffects: false,
           };
         }
       }
@@ -513,7 +529,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return {
         code: module.code,
         map: module.map,
-        moduleSideEffects: false,
         meta: {
           hook: module.hook,
           qwikdeps: deps,

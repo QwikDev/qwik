@@ -44,27 +44,45 @@ export function qwikifyQrl<PROPS extends {}>(
       }
 
       // Update
+      if(internalState.value?.disposeFn) {
+        console.log("Will run dispose function")
+        internalState.value.disposeFn()
+      }
+
       if (internalState.value && hostRef.value) {
-        render(
+        console.log('Should update with existing internalState.value');
+        console.log("Will run render!")
+        internalState.value.disposeFn = render(
           () => main(slotRef.value, scopeId, internalState.value!.component, trackedProps),
           hostRef.value
         );
       } else {
+        console.log('Should update without existing internalState.value');
         const Cmp = await solidCmp$.resolve();
         const hostElement = hostRef.value;
+
+        console.log("hostElement: ", hostElement?.innerHTML)
+
+        let disposeFn;
+
         if (hostElement) {
           // hydration
           const solidFn = isClientOnly ? render : hydrate;
 
           console.log(isClientOnly ? 'Client rendered' : 'Hydrated from server-rendered markup 💦');
 
-          solidFn(() => {
-            return mainExactProps(slotRef.value, scopeId, Cmp, hydrationKeys);
-          }, hostElement);
+          disposeFn = solidFn(() => mainExactProps(slotRef.value, scopeId, Cmp, hydrationKeys), hostElement);
+
+          if (isClientOnly || signal.value === false) {
+            disposeFn()
+            console.log("Will render")
+            disposeFn = render(() => mainExactProps(slotRef.value, scopeId, Cmp, trackedProps), hostElement);
+          }
         }
 
         internalState.value = noSerialize({
           component: Cmp,
+          disposeFn
         });
       }
     });

@@ -20,12 +20,18 @@ export const Root = () => {
 
 export const MyQwikComponent = component$(() => {
   const counter = useStore({value: 0})
+  const label = useSignal('Hello')
 
   return (
     <div>
-      <h1>Hello from Qwik</h1>
+      <button onClick$={() => {label.value = 'Hello from QwikSolid'}}>
+        Update Label ({label.value})
+      </button>
+      <br />
       <button onClick$={() => counter.value++}>Increment from Qwik</button>
-      <App client:hover>&nbsp;Qwik count: {counter.value}</App>
+      <br />
+      <App client:hover label={label.value}>&nbsp;Qwik count: {counter.value}</App>
+      <br />
       <h1>More qwik!</h1>
     </div>
   );

@@ -232,6 +232,7 @@ export interface RequestContext {
   method: string;
   text(): Promise<string>;
   url: string;
+  query: Record<string, string | string[] | undefined>;
 }
 
 /**

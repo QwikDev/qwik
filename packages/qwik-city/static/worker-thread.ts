@@ -9,6 +9,7 @@ import type { RequestContext } from '../runtime/src/types';
 import { createHeaders } from '../middleware/request-handler/headers';
 import { requestHandler } from '../middleware/request-handler';
 import { pathToFileURL } from 'node:url';
+import querystring from 'node:querystring';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
@@ -173,6 +174,7 @@ async function workerRender(
 class SsgRequestContext implements RequestContext {
   url: string;
   headers: Headers;
+  query: Record<string, string | string[] | undefined> = {};
 
   constructor(url: URL) {
     this.url = url.href;
@@ -182,6 +184,8 @@ class SsgRequestContext implements RequestContext {
     headers.set('Accept', 'text/html,application/json');
     headers.set('User-Agent', 'Qwik City SSG');
     this.headers = headers;
+
+    this.query = querystring.decode(url.searchParams.toString());
   }
 
   get method() {

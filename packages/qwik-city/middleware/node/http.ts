@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import querystring from 'node:querystring';
 import type { QwikCityMode } from '../../runtime/src/types';
 import type { QwikCityRequestContext } from '../request-handler/types';
 import { createHeaders } from '../request-handler/headers';
@@ -49,6 +50,7 @@ export function fromNodeHttp(
       method: req.method || 'GET',
       text: getRequestBody,
       url: url.href,
+      query: querystring.decode(url.searchParams.toString()),
     },
     response: async (status, headers, cookies, body) => {
       res.statusCode = status;

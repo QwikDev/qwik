@@ -5,6 +5,7 @@ import { requestHandler } from '../request-handler';
 import { mergeHeadersCookies } from '../request-handler/cookie';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
+import { decode as decodeQueryString } from 'node:querystring';
 
 // @builder.io/qwik-city/middleware/netlify-edge
 
@@ -21,11 +22,16 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
         return context.next();
       }
 
+      const qwikRequest = {
+        ...request,
+        query: decodeQueryString(url.search),
+      };
+
       const requestCtx: QwikCityRequestContext<Response> = {
         mode: 'server',
         locale: undefined,
         url,
-        request,
+        request: qwikRequest,
         response: (status, headers, cookies, body) => {
           return new Promise<Response>((resolve) => {
             let flushedHeaders = false;

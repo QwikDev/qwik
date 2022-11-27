@@ -17,6 +17,7 @@ export function mockRequestContext(opts?: {
     formData: () => Promise.resolve(new URLSearchParams()),
     json: () => Promise.resolve({}),
     text: () => Promise.resolve(''),
+    query: {},
   };
   if (opts?.headers) {
     for (const key in opts.headers) {

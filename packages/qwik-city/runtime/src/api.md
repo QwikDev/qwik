@@ -209,6 +209,8 @@ export interface RequestContext {
     // (undocumented)
     method: string;
     // (undocumented)
+    query: Record<string, string | string[] | undefined>;
+    // (undocumented)
     text(): Promise<string>;
     // (undocumented)
     url: string;

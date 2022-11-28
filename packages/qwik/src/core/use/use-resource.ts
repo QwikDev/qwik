@@ -97,13 +97,13 @@ export const useResourceQrl = <T>(
   qrl: QRL<ResourceFn<T>>,
   opts?: ResourceOptions
 ): ResourceReturn<T> => {
-  const { get, set, i, rCtx, elCtx } = useSequentialScope<ResourceReturn<T>>();
+  const { get, set, i, iCtx, elCtx } = useSequentialScope<ResourceReturn<T>>();
   if (get != null) {
     return get;
   }
   assertQrl(qrl);
 
-  const containerState = rCtx.$renderCtx$.$static$.$containerState$;
+  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   const resource = createResourceReturn<T>(containerState, opts);
   const el = elCtx.$element$;
   const watch = new Watch(
@@ -113,8 +113,8 @@ export const useResourceQrl = <T>(
     qrl,
     resource
   ) as ResourceDescriptor<any>;
-  const previousWait = Promise.all(rCtx.$waitOn$.slice());
-  runResource(watch, containerState, rCtx.$renderCtx$, previousWait);
+  const previousWait = Promise.all(iCtx.$waitOn$.slice());
+  runResource(watch, containerState, iCtx.$renderCtx$, previousWait);
   if (!elCtx.$watches$) {
     elCtx.$watches$ = [];
   }

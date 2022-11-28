@@ -260,13 +260,13 @@ export interface UseWatchOptions {
  */
 // </docs>
 export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => {
-  const { get, set, rCtx, i, elCtx } = useSequentialScope<boolean>();
+  const { get, set, iCtx, i, elCtx } = useSequentialScope<boolean>();
   if (get) {
     return;
   }
   assertQrl(qrl);
 
-  const containerState = rCtx.$renderCtx$.$static$.$containerState$;
+  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   const watch = new Watch(
     WatchFlagsIsDirty | WatchFlagsIsWatch,
     i,
@@ -280,7 +280,7 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
     elCtx.$watches$ = [];
   }
   elCtx.$watches$.push(watch);
-  waitAndRun(rCtx, () => runSubscriber(watch, containerState, rCtx.$renderCtx$));
+  waitAndRun(iCtx, () => runSubscriber(watch, containerState, iCtx.$renderCtx$));
   if (isServer()) {
     useRunWatch(watch, opts?.eagerness);
   }
@@ -378,7 +378,7 @@ export const useWatch$ = /*#__PURE__*/ implicit$FirstArg(useWatchQrl);
  */
 // </docs>
 export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void => {
-  const { get, set, i, rCtx: ctx, elCtx } = useSequentialScope<Watch>();
+  const { get, set, i, iCtx, elCtx } = useSequentialScope<Watch>();
   const eagerness = opts?.eagerness ?? 'visible';
   if (get) {
     if (isServer()) {
@@ -388,7 +388,7 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
   }
   assertQrl(qrl);
   const watch = new Watch(WatchFlagsIsEffect, i, elCtx.$element$, qrl, undefined);
-  const containerState = ctx.$renderCtx$.$static$.$containerState$;
+  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   if (!elCtx.$watches$) {
     elCtx.$watches$ = [];
   }
@@ -446,27 +446,27 @@ export const isResourceWatch = (watch: SubscriberEffect): watch is ResourceDescr
 export const runSubscriber = async (
   watch: SubscriberEffect,
   containerState: ContainerState,
-  rctx?: RenderContext
+  rCtx: RenderContext
 ) => {
   assertEqual(!!(watch.$flags$ & WatchFlagsIsDirty), true, 'Resource is not dirty', watch);
   if (isResourceWatch(watch)) {
-    return runResource(watch, containerState, rctx);
+    return runResource(watch, containerState, rCtx);
   } else {
-    return runWatch(watch, containerState, rctx);
+    return runWatch(watch, containerState, rCtx);
   }
 };
 
 export const runResource = <T>(
   watch: ResourceDescriptor<T>,
   containerState: ContainerState,
-  rctx?: RenderContext,
+  rCtx: RenderContext,
   waitOn?: Promise<any>
 ): ValueOrPromise<void> => {
   watch.$flags$ &= ~WatchFlagsIsDirty;
   cleanupWatch(watch);
 
   const el = watch.$el$;
-  const invocationContext = newInvokeContext(rctx?.$static$.$locale$, el, undefined, 'WatchEvent');
+  const invocationContext = newInvokeContext(rCtx.$static$.$locale$, el, undefined, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
   watch.$qrl$.$captureRef$;
   const watchFn = watch.$qrl$.getFn(invocationContext, () => {
@@ -589,14 +589,14 @@ export const runResource = <T>(
 export const runWatch = (
   watch: WatchDescriptor,
   containerState: ContainerState,
-  rctx?: RenderContext
+  rCtx: RenderContext
 ): ValueOrPromise<void> => {
   watch.$flags$ &= ~WatchFlagsIsDirty;
 
   cleanupWatch(watch);
   const hostElement = watch.$el$;
   const invocationContext = newInvokeContext(
-    rctx?.$static$.$locale$,
+    rCtx.$static$.$locale$,
     hostElement,
     undefined,
     'WatchEvent'
@@ -642,7 +642,7 @@ export const runWatch = (
       }
     },
     (reason) => {
-      handleError(reason, hostElement, rctx);
+      handleError(reason, hostElement, rCtx);
     }
   );
 };

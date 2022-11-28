@@ -12,7 +12,7 @@ export interface ErrorBoundaryStore {
 
 export const ERROR_CONTEXT = /*#__PURE__*/ createContext<ErrorBoundaryStore>('qk-error');
 
-export const handleError = (err: any, hostElement: QwikElement, rctx?: RenderContext) => {
+export const handleError = (err: any, hostElement: QwikElement, rCtx: RenderContext) => {
   const elCtx = tryGetContext(hostElement)!;
   if (qDev) {
     // Clean vdom
@@ -39,7 +39,7 @@ export const handleError = (err: any, hostElement: QwikElement, rctx?: RenderCon
   if (isServer()) {
     throw err;
   } else {
-    const errorStore = resolveContext(ERROR_CONTEXT, elCtx, rctx!.$static$.$containerState$);
+    const errorStore = resolveContext(ERROR_CONTEXT, elCtx, rCtx.$static$.$containerState$);
     if (errorStore === undefined) {
       throw err;
     }

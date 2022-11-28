@@ -185,7 +185,7 @@ const renderRoot = async (
       );
     }
   }
-  return rCtx.$static$;
+  return rCtx;
 };
 
 const renderGenerator = async (

@@ -81,14 +81,13 @@ const renderRoot = async (
   containerState: ContainerState,
   containerEl: Element
 ) => {
-  const ctx = createRenderContext(doc, containerState);
-  const staticCtx = ctx.$static$;
-  // staticCtx.$roots$.push(parent as Element);
+  const rCtx = createRenderContext(doc, containerState);
+  const staticCtx = rCtx.$static$;
 
   try {
     const processedNodes = await processData(jsxNode);
     const rootJsx = domToVnode(parent);
-    await visitJsxNode(ctx, rootJsx, wrapJSX(parent, processedNodes), 0);
+    await visitJsxNode(rCtx, rootJsx, wrapJSX(parent, processedNodes), 0);
   } catch (err) {
     logError(err);
   }
@@ -100,7 +99,7 @@ const renderRoot = async (
     appendQwikDevTools(containerEl);
     printRenderStats(staticCtx);
   }
-  return staticCtx;
+  return rCtx;
 };
 
 export const getElement = (docOrElm: Document | Element): Element => {

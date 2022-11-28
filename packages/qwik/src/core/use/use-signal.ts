@@ -14,12 +14,12 @@ export interface UseSignal {
  * @alpha
  */
 export const useSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE> => {
-  const { get, set, rCtx: ctx } = useSequentialScope<Signal<STATE>>();
+  const { get, set, iCtx } = useSequentialScope<Signal<STATE>>();
   if (get != null) {
     return get;
   }
 
-  const containerState = ctx.$renderCtx$.$static$.$containerState$;
+  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   const value = isFunction(initialState) ? (initialState as Function)() : initialState;
   const signal = createSignal(value, containerState, undefined) as Signal<STATE>;
   set(signal);

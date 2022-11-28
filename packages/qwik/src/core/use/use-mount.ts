@@ -53,14 +53,14 @@ export type MountFn<T> = () => ValueOrPromise<T>;
  */
 // </docs>
 export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
-  const { get, set, rCtx: ctx } = useSequentialScope<boolean>();
+  const { get, set, iCtx } = useSequentialScope<boolean>();
   if (get) {
     return;
   }
   if (isServer()) {
     assertQrl(mountQrl);
-    mountQrl.$resolveLazy$(ctx.$renderCtx$.$static$.$containerState$.$containerEl$);
-    waitAndRun(ctx, mountQrl);
+    mountQrl.$resolveLazy$(iCtx.$renderCtx$.$static$.$containerState$.$containerEl$);
+    waitAndRun(iCtx, mountQrl);
   }
   set(true);
 };
@@ -132,14 +132,14 @@ export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl
  */
 // </docs>
 export const useClientMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
-  const { get, set, rCtx: ctx } = useSequentialScope<boolean>();
+  const { get, set, iCtx } = useSequentialScope<boolean>();
   if (get) {
     return;
   }
   if (!isServer()) {
     assertQrl(mountQrl);
-    mountQrl.$resolveLazy$(ctx.$renderCtx$.$static$.$containerState$.$containerEl$);
-    waitAndRun(ctx, mountQrl);
+    mountQrl.$resolveLazy$(iCtx.$renderCtx$.$static$.$containerState$.$containerEl$);
+    waitAndRun(iCtx, mountQrl);
   }
   set(true);
 };
@@ -204,13 +204,13 @@ export const useClientMount$ = /*#__PURE__*/ implicit$FirstArg(useClientMountQrl
  */
 // </docs>
 export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
-  const { get, set, rCtx: ctx } = useSequentialScope<boolean>();
+  const { get, set, iCtx } = useSequentialScope<boolean>();
   if (get) {
     return;
   }
   assertQrl(mountQrl);
-  mountQrl.$resolveLazy$(ctx.$renderCtx$.$static$.$containerState$.$containerEl$);
-  waitAndRun(ctx, mountQrl);
+  mountQrl.$resolveLazy$(iCtx.$renderCtx$.$static$.$containerState$.$containerEl$);
+  waitAndRun(iCtx, mountQrl);
   set(true);
 };
 

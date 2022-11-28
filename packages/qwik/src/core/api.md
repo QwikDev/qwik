@@ -188,7 +188,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
     color?: string | undefined;
     // (undocumented)
-    contentEditable?: Booleanish | 'inherit' | undefined;
+    contentEditable?: 'true' | 'false' | 'inherit' | undefined;
     // (undocumented)
     contextMenu?: string | undefined;
     // (undocumented)
@@ -196,7 +196,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
     dir?: 'ltr' | 'rtl' | 'auto' | undefined;
     // (undocumented)
-    draggable?: Booleanish | undefined;
+    draggable?: boolean | undefined;
     // (undocumented)
     hidden?: boolean | undefined;
     // (undocumented)
@@ -236,7 +236,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     // (undocumented)
     slot?: string | undefined;
     // (undocumented)
-    spellCheck?: Booleanish | undefined;
+    spellcheck?: boolean | undefined;
     // (undocumented)
     style?: Record<string, string | number | undefined> | string | undefined;
     // (undocumented)

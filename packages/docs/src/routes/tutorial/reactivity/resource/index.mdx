@@ -50,7 +50,7 @@ On the server the `<Resource>` does not render `loading` state, instead, it paus
 <Resource
   value={resourceToRender}
   onPending={() => <div>Loading...</div>}
-  onError={(reason) => <div>Error: {reason}</div>}
+  onRejected={(reason) => <div>Error: {reason}</div>}
   onResolved={(data) => <div>{data}</div>}
 />
 ```

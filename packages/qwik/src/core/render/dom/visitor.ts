@@ -848,6 +848,7 @@ export const PROP_HANDLER_MAP: Record<string, PropHandler | undefined> = {
   form: forceAttribute,
   tabIndex: forceAttribute,
   download: forceAttribute,
+  draggable: forceAttribute,
   [dangerouslySetInnerHTML]: setInnerHTML,
   innerHTML: noop,
 };

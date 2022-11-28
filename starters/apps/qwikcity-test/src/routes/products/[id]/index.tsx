@@ -42,7 +42,9 @@ export default component$(() => {
         <button
           onClick$={async () => {
             const rsp = await fetch(pathname, {
-              headers: { accept: 'application/json' },
+              headers: {
+                accept: 'application/json',
+              },
             });
             store.productFetchData = JSON.stringify(await rsp.json(), null, 2);
           }}
@@ -59,20 +61,20 @@ export default component$(() => {
 
       <ul>
         <li>
-          <Link href="/qwikcity-test/products/jacket" data-test-link="products-jacket">
+          <Link href="/qwikcity-test/products/jacket/" data-test-link="products-jacket">
             Jacket
           </Link>
         </li>
         <li>
-          <Link href="/qwikcity-test/products/hat">Hat</Link>
+          <Link href="/qwikcity-test/products/hat/">Hat</Link>
         </li>
         <li>
-          <Link href="/qwikcity-test/products/shirt" data-test-link="products-shirt">
+          <Link href="/qwikcity-test/products/shirt/" data-test-link="products-shirt">
             T-Shirt (Redirect to /products/tshirt)
           </Link>
         </li>
         <li>
-          <Link href="/qwikcity-test/products/hoodie" data-test-link="products-hoodie">
+          <Link href="/qwikcity-test/products/hoodie/" data-test-link="products-hoodie">
             Hoodie (404 Not Found)
           </Link>
         </li>
@@ -87,7 +89,10 @@ export const head: DocumentHead<ProductData | null> = ({ params }) => {
   };
 };
 
+// export const value = process.env.VARIABLE;
+
 export const onGet: RequestHandler<EndpointData> = async ({ params, response }) => {
+  // console.warn('process.env.VARIABLE', value);
   // Serverside Endpoint
   // During SSR, this method is called directly on the server and returns the data object
   // On the client, this same data can be requested with fetch() at the same URL, but also
@@ -95,7 +100,7 @@ export const onGet: RequestHandler<EndpointData> = async ({ params, response }) 
 
   if (params.id === 'shirt') {
     // Redirect, which will skip any rendering and the server will immediately redirect
-    throw response.redirect('/qwikcity-test/products/tshirt');
+    throw response.redirect('/qwikcity-test/products/tshirt/');
   }
 
   const productPrice = PRODUCT_DB[params.id];

@@ -80,6 +80,8 @@ pub struct TransformCodeOptions<'a> {
     pub is_inline: bool,
 
     pub strip_exports: Option<&'a [JsWord]>,
+    pub strip_ctx_name: Option<&'a [JsWord]>,
+    pub strip_ctx_kind: Option<HookKind>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -290,6 +292,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         scope: config.scope,
                         mode: config.mode,
                         is_inline: config.is_inline,
+                        strip_ctx_name: config.strip_ctx_name,
+                        strip_ctx_kind: config.strip_ctx_kind,
                     });
 
                     // Run main transform

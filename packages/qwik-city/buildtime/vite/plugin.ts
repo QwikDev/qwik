@@ -15,7 +15,6 @@ import { validatePlugin } from './validate-plugin';
 import type { QwikCityPluginApi, QwikCityVitePluginOptions } from './types';
 import { build } from '../build';
 import { dev404Middleware, ssrDevMiddleware, staticDistMiddleware } from './dev-server';
-import { SERVER_ENDPOINT_FNS, stripServerEndpoints } from '../../utils/strip-server-endpoints';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
 import { patchGlobalFetch } from '../../middleware/node/node-fetch';
@@ -27,6 +26,13 @@ import {
 } from '../runtime-generation/generate-service-worker';
 import type { RollupError } from 'rollup';
 import type { QwikVitePlugin } from '../../../qwik/src/optimizer/src';
+import {
+  NOT_FOUND_PATHS_ID,
+  RESOLVED_NOT_FOUND_PATHS_ID,
+  RESOLVED_STATIC_PATHS_ID,
+  STATIC_PATHS_ID,
+} from '../../adaptors/shared/vite';
+import { postBuild } from '../../adaptors/shared/vite/post-build';
 
 /**
  * @alpha
@@ -38,6 +44,8 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;
   let qwikPlugin: QwikVitePlugin | null;
+  let ssrFormat = 'esm';
+  let outDir: string | null = null;
 
   const api: QwikCityPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
@@ -86,17 +94,22 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
       if (!qwikPlugin) {
         throw new Error('Missing vite-plugin-qwik');
       }
+
+      if (config.ssr?.format === 'cjs') {
+        ssrFormat = 'cjs';
+      }
+      outDir = config.build?.outDir;
     },
 
     configureServer(server) {
       if (ctx) {
+        // handles static files physically found in the dist directory
+        server.middlewares.use(staticDistMiddleware(server));
+
         // qwik city middleware injected BEFORE vite internal middlewares
         // and BEFORE @builder.io/qwik/optimizer/vite middlewares
         // handles only known user defined routes
         server.middlewares.use(ssrDevMiddleware(ctx, server));
-
-        // handles static files physically found in the dist directory
-        server.middlewares.use(staticDistMiddleware(server));
       }
 
       return () => {
@@ -113,6 +126,18 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     resolveId(id) {
       if (id === QWIK_CITY_PLAN_ID || id === QWIK_CITY_ENTRIES_ID || id === QWIK_CITY_SW_REGISTER) {
         return join(rootDir!, id);
+      }
+      if (id === STATIC_PATHS_ID) {
+        return {
+          id: './' + RESOLVED_STATIC_PATHS_ID,
+          external: true,
+        };
+      }
+      if (id === NOT_FOUND_PATHS_ID) {
+        return {
+          id: './' + RESOLVED_NOT_FOUND_PATHS_ID,
+          external: true,
+        };
       }
       return null;
     },
@@ -178,20 +203,6 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
             this.error(err);
           }
         }
-
-        if (ctx.target === 'client') {
-          if (ext === '.js') {
-            id = normalizePath(id);
-            if (id.startsWith(ctx.opts.routesDir)) {
-              if (SERVER_ENDPOINT_FNS.some((fnName) => code.includes(fnName))) {
-                const modifiedCode = stripServerEndpoints(code, id);
-                if (typeof modifiedCode === 'string') {
-                  return modifiedCode;
-                }
-              }
-            }
-          }
-        }
       }
 
       return null;
@@ -222,35 +233,60 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
       }
     },
 
-    async closeBundle() {
-      if (ctx?.target === 'ssr') {
-        // ssr build
-        // TODO: Remove globalThis that was previously used. Left in for backwards compatibility.
-        const manifest: QwikManifest =
-          (globalThis as any).QWIK_MANIFEST || qwikPlugin!.api.getManifest();
-        const clientOutDir: string =
-          (globalThis as any).QWIK_CLIENT_OUT_DIR || qwikPlugin!.api.getClientOutDir();
+    closeBundle: {
+      sequential: true,
+      async handler() {
+        if (ctx?.target === 'ssr') {
+          // ssr build
+          // TODO: Remove globalThis that was previously used. Left in for backwards compatibility.
+          const manifest: QwikManifest =
+            (globalThis as any).QWIK_MANIFEST || qwikPlugin!.api.getManifest();
+          const clientOutDir: string =
+            (globalThis as any).QWIK_CLIENT_OUT_DIR || qwikPlugin!.api.getClientOutDir();
 
-        if (manifest && clientOutDir) {
-          for (const swEntry of ctx.serviceWorkers) {
-            try {
-              const swClientDistPath = join(clientOutDir, swEntry.chunkFileName);
-              const swCode = await fs.promises.readFile(swClientDistPath, 'utf-8');
+          if (manifest && clientOutDir) {
+            for (const swEntry of ctx.serviceWorkers) {
               try {
-                const swCodeUpdate = prependManifestToServiceWorker(ctx, manifest, swCode);
-                if (swCodeUpdate) {
-                  await fs.promises.mkdir(clientOutDir, { recursive: true });
-                  await fs.promises.writeFile(swClientDistPath, swCodeUpdate);
+                const swClientDistPath = join(clientOutDir, swEntry.chunkFileName);
+                const swCode = await fs.promises.readFile(swClientDistPath, 'utf-8');
+                try {
+                  const swCodeUpdate = prependManifestToServiceWorker(ctx, manifest, swCode);
+                  if (swCodeUpdate) {
+                    await fs.promises.mkdir(clientOutDir, { recursive: true });
+                    await fs.promises.writeFile(swClientDistPath, swCodeUpdate);
+                  }
+                } catch (e2) {
+                  console.error(e2);
                 }
-              } catch (e2) {
-                console.error(e2);
+              } catch (e) {
+                // safe to ignore if a service-worker.js not found
               }
-            } catch (e) {
-              // safe to ignore if a service-worker.js not found
             }
           }
+
+          const { staticPathsCode, notFoundPathsCode } = await postBuild(
+            clientOutDir,
+            api.getBasePathname(),
+            [],
+            ssrFormat,
+            false
+          );
+
+          if (outDir) {
+            await fs.promises.mkdir(outDir, { recursive: true });
+
+            // create server package.json to ensure mjs is used
+            const serverPackageJsonPath = join(outDir, 'package.json');
+            const serverPackageJsonCode = `{"type":"module"}`;
+
+            await Promise.all([
+              fs.promises.writeFile(join(outDir, RESOLVED_STATIC_PATHS_ID), staticPathsCode),
+              fs.promises.writeFile(join(outDir, RESOLVED_NOT_FOUND_PATHS_ID), notFoundPathsCode),
+              fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode),
+            ]);
+          }
         }
-      }
+      },
     },
   };
 

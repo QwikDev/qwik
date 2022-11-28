@@ -70,7 +70,7 @@ fn empty_module_item(ident: ast::Ident) -> ast::ModuleItem {
                             span: DUMMY_SP,
                             arg: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
                                 span: DUMMY_SP,
-                                value: JsWord::from("removed by optimizer"),
+                                value: JsWord::from("Symbol removed by Qwik Optimizer, it can not be called from current platform"),
                                 raw: None,
                             }))),
                         })],

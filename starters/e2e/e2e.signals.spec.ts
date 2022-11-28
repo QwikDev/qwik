@@ -180,4 +180,44 @@ test.describe('signals', () => {
       'testing3 flag=F num=3',
     ]);
   });
+
+  test('issue 2245', async ({ page }) => {
+    const btn = page.locator('#issue-2245-btn');
+    const results = page.locator('.issue-2245-results p');
+    expect(await results.count()).toBe(16);
+    for (let i = 0; i < 16; i++) {
+      await expect(results.nth(i)).toHaveCSS('color', 'rgb(0, 0, 0)');
+    }
+
+    await btn.click();
+    for (let i = 0; i < 16; i++) {
+      await expect(results.nth(i)).toHaveCSS('color', 'rgb(255, 0, 0)');
+    }
+
+    await btn.click();
+    for (let i = 0; i < 16; i++) {
+      await expect(results.nth(i)).toHaveCSS('color', 'rgb(0, 0, 255)');
+    }
+  });
+
+  test('issue 2245-b', async ({ page }) => {
+    const btn = page.locator('#issue-2245-b-btn');
+    const results = page.locator('.issue-2245-b-results p');
+    await expect(results).toHaveCSS('color', 'rgb(0, 0, 0)');
+
+    await btn.click();
+    await expect(results).toHaveCSS('color', 'rgb(255, 0, 0)');
+
+    await btn.click();
+    await expect(results).toHaveCSS('color', 'rgb(0, 0, 255)');
+  });
+
+  test('complex classes with signals', async ({ page }) => {
+    const btn = page.locator('#complex-classes-btn');
+    const results = page.locator('#complex-classes-results');
+
+    await expect(results).toHaveClass('initial visible');
+    await btn.click();
+    await expect(results).toHaveClass('change hidden');
+  });
 });

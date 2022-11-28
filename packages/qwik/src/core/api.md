@@ -183,7 +183,7 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     autoCorrect?: string | undefined;
     // (undocumented)
     autoSave?: string | undefined;
-    // (undocumented)
+    // @deprecated (undocumented)
     className?: string | undefined;
     // (undocumented)
     color?: string | undefined;
@@ -344,6 +344,9 @@ export type NativeUIEvent = UIEvent;
 
 // @beta (undocumented)
 export type NativeWheelEvent = WheelEvent;
+
+// @internal (undocumented)
+export const _noopQrl: <T>(symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public
 export type NoSerialize<T> = (T & {

@@ -33,8 +33,8 @@ export const isSamePathname = (a: SimpleURL, b: SimpleURL) => a.pathname === b.p
 export const isSameOriginDifferentPathname = (a: SimpleURL, b: SimpleURL) =>
   isSameOrigin(a, b) && !isSamePath(a, b);
 
-export const getClientEndpointPath = (pathname: string) =>
-  pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json';
+export const getClientEndpointPath = (pathname: string, pageSearch?: string) =>
+  pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json' + (pageSearch ?? '');
 
 export const getClientNavPath = (props: Record<string, any>, baseUrl: { href: string }) => {
   const href = props.href;

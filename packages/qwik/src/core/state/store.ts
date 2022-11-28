@@ -42,7 +42,7 @@ export const getOrCreateProxy = <T extends object>(
     return proxy;
   }
   if (flags !== 0) {
-    (target as any)[QObjectFlagsSymbol] = flags;
+    setObjectFlags(target, flags);
   }
   return createProxy(target, containerState, undefined);
 };
@@ -64,6 +64,16 @@ export const createProxy = <T extends object>(
   const proxy = new Proxy(target, new ReadWriteProxyHandler(containerState, manager)) as any as T;
   containerState.$proxyMap$.set(target, proxy);
   return proxy;
+};
+
+export const createPropsState = (): Record<string, any> => {
+  const props = {};
+  setObjectFlags(props, QObjectImmutable);
+  return props;
+};
+
+export const setObjectFlags = (obj: object, flags: number) => {
+  Object.defineProperty(obj, QObjectFlagsSymbol, { value: flags, enumerable: false });
 };
 
 export type TargetType = Record<string | symbol, any>;
@@ -178,7 +188,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   getOwnPropertyDescriptor(target: TargetType, prop: string) {
-    if (isArray(target)) {
+    if (isArray(target) || typeof prop === 'symbol') {
       return Object.getOwnPropertyDescriptor(target, prop);
     }
     return {

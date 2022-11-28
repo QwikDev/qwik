@@ -26,7 +26,7 @@ npm run qwik add react
 
 ## Usage
 
-The `@builder.io/qwik-react` package exports the `qwikify$()` function that allows to convert React components into Qwik components, you can use across your application.
+The `@builder.io/qwik-react` package exports the `qwikify$()` function that lets you convert React components into Qwik components, that you can use across your application.
 
 > **Note:** You CAN NOT use React components in Qwik without converting them first, using `qwikify$()`. Even though [React and Qwik component look similar](../../../docs/cheat/qwik-react/index.mdx), they are fundamentally very different.
 
@@ -115,7 +115,7 @@ export const MUISlider = qwikify$(Slider);
 - Styles will be duplicated
 - State will not be shared
 - [Context](https://reactjs.org/docs/context.html) will not be inherited.
-- Islands will [hydrate]https://beta.reactjs.org/apis/react-dom/client/hydrateRoot independently
+- Islands will [hydrate](https://beta.reactjs.org/apis/react-dom/client/hydrateRoot) independently
 
 ### By default interactivity is disabled
 

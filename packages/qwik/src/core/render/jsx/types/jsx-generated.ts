@@ -303,16 +303,16 @@ export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
   accessKey?: string | undefined;
   /** @deprecated - Use `class` instead */
   className?: string | undefined;
-  contentEditable?: Booleanish | 'inherit' | undefined;
+  contentEditable?: 'true' | 'false' | 'inherit' | undefined;
   contextMenu?: string | undefined;
   dir?: 'ltr' | 'rtl' | 'auto' | undefined;
-  draggable?: Booleanish | undefined;
+  draggable?: boolean | undefined;
   hidden?: boolean | undefined;
   id?: string | undefined;
   lang?: string | undefined;
   placeholder?: string | undefined;
   slot?: string | undefined;
-  spellCheck?: Booleanish | undefined;
+  spellcheck?: boolean | undefined;
   style?: Record<string, string | number | undefined> | string | undefined;
   tabIndex?: number | undefined;
   title?: string | undefined;

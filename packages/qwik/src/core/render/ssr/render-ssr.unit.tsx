@@ -99,6 +99,40 @@ renderSSRSuite('render contentEditable', async () => {
   );
 });
 
+renderSSRSuite('render draggable', async () => {
+  await testSSR(
+    <>
+      <div draggable={true}></div>
+      <div draggable={false}></div>
+      <div draggable={undefined}></div>
+    </>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <div draggable="true"></div>
+      <div draggable="false"></div>
+      <div></div>
+    </html>
+    `
+  );
+});
+
+renderSSRSuite('render spellcheck', async () => {
+  await testSSR(
+    <>
+      <div spellcheck={true}></div>
+      <div spellcheck={false}></div>
+      <div spellcheck={undefined}></div>
+    </>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <div spellcheck="true"></div>
+      <div spellcheck="false"></div>
+      <div></div>
+    </html>
+    `
+  );
+});
+
 renderSSRSuite('render styles', async () => {
   await testSSR(
     <div

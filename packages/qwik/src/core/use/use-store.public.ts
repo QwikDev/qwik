@@ -78,7 +78,7 @@ export const useStore = <STATE extends object>(
   initialState: STATE | (() => STATE),
   opts?: UseStoreOptions
 ): STATE => {
-  const { get, set, rCtx: ctx } = useSequentialScope<STATE>();
+  const { get, set, iCtx } = useSequentialScope<STATE>();
   if (get != null) {
     return get;
   }
@@ -87,7 +87,7 @@ export const useStore = <STATE extends object>(
     set(value);
     return value;
   } else {
-    const containerState = ctx.$renderCtx$.$static$.$containerState$;
+    const containerState = iCtx.$renderCtx$.$static$.$containerState$;
     const recursive = opts?.recursive ?? false;
     const flags = recursive ? QObjectRecursive : 0;
     const newStore = getOrCreateProxy(value, containerState, flags);

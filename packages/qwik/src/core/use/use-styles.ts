@@ -133,12 +133,12 @@ const _useStyles = (
 ): string => {
   assertQrl(styleQrl);
 
-  const { get, set, rCtx, i, elCtx } = useSequentialScope<string>();
+  const { get, set, iCtx, i, elCtx } = useSequentialScope<string>();
   if (get) {
     return get;
   }
   const styleId = styleKey(styleQrl, i);
-  const containerState = rCtx.$renderCtx$.$static$.$containerState$;
+  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   set(styleId);
 
   if (!elCtx.$appendStyles$) {
@@ -163,7 +163,7 @@ const _useStyles = (
     });
   };
   if (isPromise(value)) {
-    rCtx.$waitOn$.push(value.then(appendStyle));
+    iCtx.$waitOn$.push(value.then(appendStyle));
   } else {
     appendStyle(value);
   }

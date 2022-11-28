@@ -283,7 +283,11 @@ function skipRequest(pathname: string) {
   if (pathname.startsWith('/@qwik-city-')) {
     return true;
   }
-  if (pathname.includes('__open-in-editor') || InternalPrefixRE.test(pathname)) {
+  if (
+    pathname.includes('__open-in-editor') ||
+    InternalPrefixRE.test(pathname) ||
+    pathname.startsWith('/node_modules/')
+  ) {
     return true;
   }
   if (pathname.includes('favicon')) {

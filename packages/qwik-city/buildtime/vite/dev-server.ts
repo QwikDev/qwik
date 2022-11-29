@@ -1,10 +1,11 @@
 import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'node:http';
-import fs from 'node:fs';
-import { join, resolve } from 'node:path';
+import type { RenderToStringResult } from '@builder.io/qwik/server';
 import type { BuildContext } from '../types';
 import type { RouteModule } from '../../runtime/src/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
+import fs from 'node:fs';
+import { join, resolve } from 'node:path';
 import {
   getRouteMatchPathname,
   loadUserResponse,
@@ -22,9 +23,9 @@ import {
   RedirectResponse,
 } from '../../middleware/request-handler/redirect-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
-import type { RenderToStringResult } from '@builder.io/qwik/server';
 import { getRouteParams } from '../../runtime/src/routing';
 import { fromNodeHttp } from '../../middleware/node/http';
+import { generateCodeFrame } from '../../../qwik/src/optimizer/src/plugins/vite-utils';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
@@ -83,17 +84,20 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         const { route, params } = routeResult;
 
         // use vite to dynamically load each layout/page module in this route's hierarchy
+        const routeModulePaths = new WeakMap<RouteModule, string>();
         const routeModules: RouteModule[] = [];
         for (const layout of route.layouts) {
           const layoutModule = await server.ssrLoadModule(layout.filePath, {
             fixStacktrace: true,
           });
           routeModules.push(layoutModule);
+          routeModulePaths.set(layoutModule, layout.filePath);
         }
         const endpointModule = await server.ssrLoadModule(route.filePath, {
           fixStacktrace: true,
         });
         routeModules.push(endpointModule);
+        routeModulePaths.set(endpointModule, route.filePath);
 
         try {
           const userResponse = await loadUserResponse(
@@ -151,6 +155,8 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             redirectResponse(requestCtx, e);
           } else if (e instanceof ErrorResponse) {
             errorResponse(requestCtx, e);
+          } else if (e instanceof Error && (e as any).id === 'DEV_SERIALIZE') {
+            next(formatDevSerializeError(e, routeModulePaths));
           } else {
             next(e);
           }
@@ -271,6 +277,43 @@ async function noopDevRender() {
     snapshotResult: undefined,
   };
   return result;
+}
+
+function formatDevSerializeError(err: any, routeModulePaths: WeakMap<RouteModule, string>) {
+  const requestHandler = err.requestHandler;
+
+  if (requestHandler?.name) {
+    let errMessage = `Data returned from the ${requestHandler.name}() endpoint must be serializable `;
+    errMessage += `so it can also be transferred over the network in an HTTP response. `;
+    errMessage += `Please ensure that the data returned from ${requestHandler.name}() is limited to only strings, numbers, booleans, arrays or objects, and does not have any circular references. `;
+    errMessage += `Error: ${err.message}`;
+    err.message = errMessage;
+
+    const endpointModule = err.endpointModule;
+    const filePath = routeModulePaths.get(endpointModule);
+    if (filePath) {
+      try {
+        const code = fs.readFileSync(filePath, 'utf-8');
+        err.plugin = 'vite-plugin-eslint';
+        err.id = normalizePath(filePath);
+        err.loc = {
+          file: err.id,
+          line: undefined,
+          column: undefined,
+        };
+        err.stack = '';
+        const lines = code.split('\n');
+        const line = lines.findIndex((line) => line.includes(requestHandler.name));
+        if (line > -1) {
+          err.loc.line = line + 1;
+          err.frame = generateCodeFrame(code, err.loc);
+        }
+      } catch (e) {
+        // nothing
+      }
+    }
+  }
+  return err;
 }
 
 const FS_PREFIX = `/@fs/`;

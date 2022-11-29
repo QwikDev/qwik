@@ -31,6 +31,7 @@ import { useQwikCityEnv } from './use-functions';
 import { clientNavigate } from './client-navigate';
 import { loadClientData } from './use-endpoint';
 import { toPath } from './utils';
+import { CLIENT_DATA_CACHE } from './constants';
 
 /**
  * @alpha
@@ -102,7 +103,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
 
     const loadRoutePromise = loadRoute(routes, menus, cacheModules, pathname);
 
-    const endpointResponse = isServer ? env.response : loadClientData(url.href);
+    const endpointResponse = isServer ? env.response : loadClientData(url.href, true);
 
     const loadedRoute = await loadRoutePromise;
 
@@ -124,6 +125,8 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
 
       const clientPageData = await endpointResponse;
       const resolvedHead = resolveHead(clientPageData, routeLocation, contentModules, locale);
+
+      CLIENT_DATA_CACHE.clear();
 
       // Update document head
       documentHead.links = resolvedHead.links;

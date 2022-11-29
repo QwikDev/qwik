@@ -2,9 +2,9 @@ import { test } from 'uvu';
 import { equal } from 'uvu/assert';
 import type { LinkProps } from './link-component';
 import {
-  getClientEndpointPath,
+  getClientDataPath,
   getClientNavPath,
-  getPrefetchUrl,
+  getPrefetchDataset,
   isSameOrigin,
   isSameOriginDifferentPathname,
   isSamePath,
@@ -71,7 +71,7 @@ import {
   { pathname: '/about/', expect: '/about/q-data.json' },
 ].forEach((t) => {
   test(`getClientEndpointUrl("${t.pathname}")`, () => {
-    const endpointPath = getClientEndpointPath(t.pathname);
+    const endpointPath = getClientDataPath(t.pathname);
     equal(endpointPath, t.expect);
   });
 });
@@ -83,7 +83,7 @@ import {
   { pathname: '/about/', search: '?foo=bar&baz=qux', expect: '/about/q-data.json?foo=bar&baz=qux' },
 ].forEach((t) => {
   test(`getClientEndpointUrl("${t.pathname}", "${t.search}")`, () => {
-    const endpointPath = getClientEndpointPath(t.pathname, t.search);
+    const endpointPath = getClientDataPath(t.pathname, t.search);
     equal(endpointPath, t.expect);
   });
 });
@@ -190,35 +190,56 @@ test('no prefetch, missing clientNavPath', () => {
   const props: LinkProps = { prefetch: true };
   const clientNavPath = null;
   const currentLoc = new URL('https://qwik.builder.io/contact');
-  equal(getPrefetchUrl(props, clientNavPath, currentLoc), null);
+  equal(getPrefetchDataset(props, clientNavPath, currentLoc), null);
 });
 
-test('prefetch prop not set', () => {
+test('no prefetch, path and current path the same, has querystring and hash', () => {
+  const props: LinkProps = {};
+  const clientNavPath = '/about?qs#hash';
+  const currentLoc = new URL('https://qwik.builder.io/about');
+  equal(getPrefetchDataset(props, clientNavPath, currentLoc), null);
+});
+
+test('no prefetch, path and current path the same', () => {
+  const props: LinkProps = {};
+  const clientNavPath = '/about';
+  const currentLoc = new URL('https://qwik.builder.io/about');
+  equal(getPrefetchDataset(props, clientNavPath, currentLoc), null);
+});
+
+test('valid prefetchUrl, has querystring and hash', () => {
+  const props: LinkProps = {};
+  const clientNavPath = '/about?qs#hash';
+  const currentLoc = new URL('https://qwik.builder.io/contact');
+  equal(getPrefetchDataset(props, clientNavPath, currentLoc), '');
+});
+
+test('valid prefetchUrl, trailing slash', () => {
+  const props: LinkProps = {};
+  const clientNavPath = '/about/';
+  const currentLoc = new URL('https://qwik.builder.io/contact');
+  equal(getPrefetchDataset(props, clientNavPath, currentLoc), '');
+});
+
+test('valid prefetchUrl, prefetch true', () => {
+  const props: LinkProps = { prefetch: true };
+  const clientNavPath = '/about';
+  const currentLoc = new URL('https://qwik.builder.io/contact');
+  equal(getPrefetchDataset(props, clientNavPath, currentLoc), '');
+});
+
+test('valid prefetchUrl, add by default', () => {
   const props: LinkProps = {};
   const clientNavPath = '/about';
   const currentLoc = new URL('https://qwik.builder.io/contact');
-  equal(getPrefetchUrl(props, clientNavPath, currentLoc), null);
+  equal(getPrefetchDataset(props, clientNavPath, currentLoc), '');
 });
 
-test('no prefetch, path and current path the same', () => {
-  const props: LinkProps = { prefetch: true };
-  const clientNavPath = '/about?qs#hash';
-  const currentLoc = new URL('https://qwik.builder.io/about');
-  equal(getPrefetchUrl(props, clientNavPath, currentLoc), null);
-});
-
-test('no prefetch, path and current path the same', () => {
-  const props: LinkProps = { prefetch: true };
-  const clientNavPath = '/about';
-  const currentLoc = new URL('https://qwik.builder.io/about');
-  equal(getPrefetchUrl(props, clientNavPath, currentLoc), null);
-});
-
-test('valid prefetchUrl', () => {
-  const props: LinkProps = { prefetch: true };
+test('prefetch false', () => {
+  const props: LinkProps = { prefetch: false };
   const clientNavPath = '/about';
   const currentLoc = new URL('https://qwik.builder.io/contact');
-  equal(getPrefetchUrl(props, clientNavPath, currentLoc), 'https://qwik.builder.io/about');
+  equal(getPrefetchDataset(props, clientNavPath, currentLoc), null);
 });
 
 test.run();

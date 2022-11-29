@@ -33,7 +33,7 @@ export const isSamePathname = (a: SimpleURL, b: SimpleURL) => a.pathname === b.p
 export const isSameOriginDifferentPathname = (a: SimpleURL, b: SimpleURL) =>
   isSameOrigin(a, b) && !isSamePath(a, b);
 
-export const getClientEndpointPath = (pathname: string, pageSearch?: string) =>
+export const getClientDataPath = (pathname: string, pageSearch?: string) =>
   pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json' + (pageSearch ?? '');
 
 export const getClientNavPath = (props: Record<string, any>, baseUrl: { href: string }) => {
@@ -52,15 +52,15 @@ export const getClientNavPath = (props: Record<string, any>, baseUrl: { href: st
   return null;
 };
 
-export const getPrefetchUrl = (
+export const getPrefetchDataset = (
   props: LinkProps,
   clientNavPath: string | null,
   currentLoc: { href: string }
 ) => {
-  if (props.prefetch && clientNavPath) {
+  if (props.prefetch !== false && clientNavPath) {
     const prefetchUrl = toUrl(clientNavPath, currentLoc);
     if (!isSamePathname(prefetchUrl, toUrl('', currentLoc))) {
-      return prefetchUrl + '';
+      return '';
     }
   }
   return null;

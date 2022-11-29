@@ -1,7 +1,7 @@
 import type { ClientHistoryWindow } from './client-navigate';
 import { component$, Slot, QwikIntrinsicElements, $, useOnDocument } from '@builder.io/qwik';
 import { CLIENT_HISTORY_INITIALIZED, POPSTATE_FALLBACK_INITIALIZED } from './constants';
-import { getClientNavPath, getPrefetchUrl } from './utils';
+import { getClientNavPath, getPrefetchDataset } from './utils';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
 
@@ -14,7 +14,7 @@ export const Link = component$<LinkProps>((props) => {
   const originalHref = props.href;
   const linkProps = { ...props };
   const clientNavPath = getClientNavPath(linkProps, loc);
-  const prefetchUrl = getPrefetchUrl(props, clientNavPath, loc);
+  const prefetchDataset = getPrefetchDataset(props, clientNavPath, loc);
 
   linkProps['preventdefault:click'] = !!clientNavPath;
   linkProps.href = clientNavPath || originalHref;
@@ -51,26 +51,28 @@ export const Link = component$<LinkProps>((props) => {
           nav.path = linkProps.href as any;
         }
       }}
-      data-prefetch={prefetchUrl}
-      onMouseOver$={(_, elm) => prefetchLinkResources(elm as HTMLElement)}
-      onQVisible$={(_, elm) => prefetchLinkResources(elm as HTMLElement, true)}
+      data-prefetch={prefetchDataset}
+      onMouseOver$={(_, elm) => prefetchLinkResources(elm as HTMLAnchorElement)}
+      onQVisible$={(_, elm) => prefetchLinkResources(elm as HTMLAnchorElement, true)}
     >
       <Slot />
     </a>
   );
 });
 
-export const prefetchLinkResources = (elm: HTMLElement, isOnVisible?: boolean) => {
-  const prefetchUrl = elm?.dataset?.prefetch;
-  if (prefetchUrl) {
+/**
+ * Client-side only
+ */
+export const prefetchLinkResources = (elm: HTMLAnchorElement, isOnVisible?: boolean) => {
+  if (elm && elm.href && elm.hasAttribute('data-prefetch')) {
     if (!windowInnerWidth) {
-      windowInnerWidth = window.innerWidth;
+      windowInnerWidth = innerWidth;
     }
 
     if (!isOnVisible || (isOnVisible && windowInnerWidth < 520)) {
       // either this is a mouseover event, probably on desktop
       // or the link is visible, and the viewport width is less than X
-      loadClientData(prefetchUrl);
+      loadClientData(elm.href);
     }
   }
 };

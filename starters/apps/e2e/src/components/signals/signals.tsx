@@ -135,6 +135,8 @@ export const Child = component$((props: ChildProps) => {
       <div id="stuff" ref={props.ref2}>
         Stuff: {props.count}
       </div>
+      <style>{props.styles}</style>
+      <textarea value={props.styles}></textarea>
     </>
   );
 });

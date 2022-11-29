@@ -119,7 +119,7 @@ renderSSRSuite('render draggable', async () => {
 renderSSRSuite('render <textarea>', async () => {
   await testSSR(
     <>
-      <textarea value='some text'></textarea>
+      <textarea value="some text"></textarea>
     </>,
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev">

@@ -1,9 +1,11 @@
 import type { PropFunction } from '@builder.io/qwik';
 import type { Component, Signal } from 'solid-js';
+import type { SetStoreFunction } from 'solid-js/store';
 
 
 export interface Internal<PROPS> {
   component: Component<PROPS>;
+  setProps: SetStoreFunction<{}>
 }
 
 export interface QwikifyBase {

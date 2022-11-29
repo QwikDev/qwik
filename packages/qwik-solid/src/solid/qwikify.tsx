@@ -15,8 +15,9 @@ import {
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import { renderFromServer } from './server-render';
 import { createComponent, hydrate, render } from 'solid-js/web';
+import { createStore } from 'solid-js/store';
 import type { Component } from 'solid-js';
-import { getHostProps, main, mainExactProps, useWakeupSignal } from './slot';
+import { getHostProps, mainExactProps, useWakeupSignal } from './slot';
 import type { Internal, QwikifyOptions, QwikifyProps } from './types';
 
 export function qwikifyQrl<PROPS extends {}>(
@@ -44,45 +45,28 @@ export function qwikifyQrl<PROPS extends {}>(
       }
 
       // Update
-      if(internalState.value?.disposeFn) {
-        console.log("Will run dispose function")
-        internalState.value.disposeFn()
-      }
-
       if (internalState.value && hostRef.value) {
-        console.log('Should update with existing internalState.value');
-        console.log("Will run render!")
-        internalState.value.disposeFn = render(
-          () => main(slotRef.value, scopeId, internalState.value!.component, trackedProps),
-          hostRef.value
-        );
+        internalState.value.setProps(trackedProps)
       } else {
-        console.log('Should update without existing internalState.value');
         const Cmp = await solidCmp$.resolve();
         const hostElement = hostRef.value;
-
-        console.log("hostElement: ", hostElement?.innerHTML)
-
-        let disposeFn;
+        const [wrappedProps, setProps] = createStore({})
 
         if (hostElement) {
           // hydration
           const solidFn = isClientOnly ? render : hydrate;
 
-          console.log(isClientOnly ? 'Client rendered' : 'Hydrated from server-rendered markup 💦');
-
-          disposeFn = solidFn(() => mainExactProps(slotRef.value, scopeId, Cmp, hydrationKeys), hostElement);
+          setProps(hydrationKeys)
+          solidFn(() => mainExactProps(slotRef.value, scopeId, Cmp, wrappedProps), hostElement);
 
           if (isClientOnly || signal.value === false) {
-            disposeFn()
-            console.log("Will render")
-            disposeFn = render(() => mainExactProps(slotRef.value, scopeId, Cmp, trackedProps), hostElement);
+            setProps(trackedProps)
           }
         }
 
         internalState.value = noSerialize({
           component: Cmp,
-          disposeFn
+          setProps
         });
       }
     });
@@ -113,8 +97,6 @@ export function qwikifyQrl<PROPS extends {}>(
               if (internalData && !internalData.component) {
                 const Cmp = await solidCmp$.resolve();
 
-                console.log('Rendering on callback');
-
                 render(() => {
                   const slotEl = slotRef.value;
 
@@ -123,7 +105,6 @@ export function qwikifyQrl<PROPS extends {}>(
                 }, hostRef.value);
               }
             } else {
-              console.log('Setting hostRef by server');
               hostRef.value = el;
             }
           }}

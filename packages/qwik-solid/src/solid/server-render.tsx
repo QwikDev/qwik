@@ -15,7 +15,7 @@ export async function renderFromServer(
   const newProps = getSolidProps(props);
   Object.assign(hydrationProps, newProps);
 
-  let html = renderToString(() => {
+  const html = renderToString(() => {
     return mainExactProps(undefined, scopeId, Cmp, newProps);
   });
 

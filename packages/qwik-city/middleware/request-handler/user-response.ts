@@ -12,6 +12,7 @@ import { HttpStatus } from './http-status-codes';
 import { isRedirectStatus, RedirectResponse } from './redirect-handler';
 import { ErrorResponse } from './error-handler';
 import { Cookie } from './cookie';
+import { validateSerializable } from '../../utils/format';
 
 export async function loadUserResponse(
   requestCtx: QwikCityRequestContext,
@@ -79,42 +80,42 @@ export async function loadUserResponse(
     while (routeModuleIndex < routeModules.length) {
       const endpointModule = routeModules[routeModuleIndex];
 
-      let reqHandler: RequestHandler | undefined = undefined;
+      let requestHandler: RequestHandler | undefined = undefined;
 
       switch (method) {
         case 'GET': {
-          reqHandler = endpointModule.onGet;
+          requestHandler = endpointModule.onGet;
           break;
         }
         case 'POST': {
-          reqHandler = endpointModule.onPost;
+          requestHandler = endpointModule.onPost;
           break;
         }
         case 'PUT': {
-          reqHandler = endpointModule.onPut;
+          requestHandler = endpointModule.onPut;
           break;
         }
         case 'PATCH': {
-          reqHandler = endpointModule.onPatch;
+          requestHandler = endpointModule.onPatch;
           break;
         }
         case 'DELETE': {
-          reqHandler = endpointModule.onDelete;
+          requestHandler = endpointModule.onDelete;
           break;
         }
         case 'OPTIONS': {
-          reqHandler = endpointModule.onOptions;
+          requestHandler = endpointModule.onOptions;
           break;
         }
         case 'HEAD': {
-          reqHandler = endpointModule.onHead;
+          requestHandler = endpointModule.onHead;
           break;
         }
       }
 
-      reqHandler = reqHandler || endpointModule.onRequest;
+      requestHandler = requestHandler || endpointModule.onRequest;
 
-      if (typeof reqHandler === 'function') {
+      if (typeof requestHandler === 'function') {
         hasRequestMethodHandler = true;
 
         const response = new ResponseContext(userResponse, requestCtx);
@@ -132,7 +133,7 @@ export async function loadUserResponse(
         };
 
         // get the user's endpoint returned data
-        const syncData = reqHandler(requestEv) as any;
+        const syncData = requestHandler(requestEv) as any;
 
         if (typeof syncData === 'function') {
           // sync returned function
@@ -154,6 +155,25 @@ export async function loadUserResponse(
         } else {
           // sync returned data
           userResponse.resolvedBody = syncData;
+        }
+
+        if (requestCtx.mode === 'dev') {
+          const body =
+            userResponse.resolvedBody != null
+              ? userResponse.resolvedBody
+              : userResponse.pendingBody != null
+              ? await userResponse.pendingBody
+              : null;
+          try {
+            validateSerializable(body);
+          } catch (e: any) {
+            throw Object.assign(e, {
+              id: 'DEV_SERIALIZE',
+              endpointModule,
+              requestHandler,
+              method,
+            });
+          }
         }
       }
 

@@ -136,7 +136,7 @@ export const Child = component$((props: ChildProps) => {
         Stuff: {props.count}
       </div>
       <style>{props.styles}</style>
-      <textarea>{props.styles}</textarea>
+      <textarea value={props.styles}></textarea>
     </>
   );
 });

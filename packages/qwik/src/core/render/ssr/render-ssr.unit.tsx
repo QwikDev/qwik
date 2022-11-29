@@ -116,6 +116,19 @@ renderSSRSuite('render draggable', async () => {
   );
 });
 
+renderSSRSuite('render <textarea>', async () => {
+  await testSSR(
+    <>
+      <textarea value="some text"></textarea>
+    </>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <textarea>some text</textarea>
+    </html>
+    `
+  );
+});
+
 renderSSRSuite('render spellcheck', async () => {
   await testSSR(
     <>
@@ -873,7 +886,7 @@ renderSSRSuite('nested html', async () => {
 renderSSRSuite('root html component', async () => {
   await testSSR(
     <HeadCmp host:aria-hidden="true">
-      <link>Stuff</link>
+      <link></link>
     </HeadCmp>,
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev">

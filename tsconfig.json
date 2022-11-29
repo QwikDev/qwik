@@ -81,7 +81,8 @@
     "scripts",
     "starters/apps/e2e",
     "starters/apps/qwikcity-test/**/*",
-    "starters/dev-server.ts"
+    "starters/dev-server.ts",
+    "packages/qwik-react/vite"
   ],
   "exclude": [
     "packages/create-qwik/dist",

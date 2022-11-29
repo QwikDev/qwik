@@ -32,7 +32,7 @@
           "namedImports": [
             "qwikReact"
           ],
-          "importPath": "@builder.io/qwik-react"
+          "importPath": "@builder.io/qwik-react/vite"
         }
       ],
       "vitePlugins": [

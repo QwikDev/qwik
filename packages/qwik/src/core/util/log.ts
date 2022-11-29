@@ -8,9 +8,20 @@ const STYLE = qDev
   : '';
 
 export const logError = (message?: any, ...optionalParams: any[]) => {
-  const err = message instanceof Error ? message : new Error(message);
+  const err = message instanceof Error ? message : createError(message);
   // eslint-disable-next-line no-console
   console.error('%cQWIK ERROR', STYLE, err.message, ...printParams(optionalParams), err.stack);
+  return err;
+};
+
+const createError = (message?: string) => {
+  const err = new Error(message);
+  if (err.stack) {
+    err.stack = err.stack
+      .split('\n')
+      .filter((l) => !l.includes('/node_modules/@builder.io/qwik'))
+      .join('\n');
+  }
   return err;
 };
 

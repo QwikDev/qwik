@@ -42,7 +42,7 @@ export const TestACStr = component$((props: { color: string }) => {
 export const TestCN = component$((props: { color: string }) => {
   console.log('TestCN');
   return (
-    <p className={props.color}>
+    <p class={props.color}>
       {' '}
       <Slot />
     </p>
@@ -51,7 +51,7 @@ export const TestCN = component$((props: { color: string }) => {
 export const TestACN = component$((props: { color: string }) => {
   console.log('TestACN');
   return (
-    <p className={[props.color] as any}>
+    <p class={[props.color] as any}>
       {' '}
       <Slot />
     </p>
@@ -60,7 +60,7 @@ export const TestACN = component$((props: { color: string }) => {
 export const TestCNStr = component$((props: { color: string }) => {
   console.log('TestCNStr');
   return (
-    <p className={`${props.color}`}>
+    <p class={`${props.color}`}>
       {' '}
       <Slot />
     </p>
@@ -69,7 +69,7 @@ export const TestCNStr = component$((props: { color: string }) => {
 export const TestACNStr = component$((props: { color: string }) => {
   console.log('TestACNStr');
   return (
-    <p className={[`${props.color}`] as any}>
+    <p class={[`${props.color}`] as any}>
       {' '}
       <Slot />
     </p>
@@ -112,32 +112,32 @@ export const TestACStrWithFlag = component$((props: { color: string; flag: boole
 export const TestCNWithFlag = component$((props: { color: string; flag: boolean }) => {
   console.log('TestCNWithFlag');
   return (
-    <p className={props.color}>
-      <span className={props.flag ? 'true' : 'false'}>In {props.color}</span> <Slot />
+    <p class={props.color}>
+      <span class={props.flag ? 'true' : 'false'}>In {props.color}</span> <Slot />
     </p>
   );
 });
 export const TestACNWithFlag = component$((props: { color: string; flag: boolean }) => {
   console.log('TestACNWithFlag');
   return (
-    <p className={[props.color] as any}>
-      <span className={[props.flag ? 'true' : 'false'] as any}>In {props.color}</span> <Slot />
+    <p class={[props.color] as any}>
+      <span class={[props.flag ? 'true' : 'false'] as any}>In {props.color}</span> <Slot />
     </p>
   );
 });
 export const TestCNStrWithFlag = component$((props: { color: string; flag: boolean }) => {
   console.log('TestCNStrWithFlag');
   return (
-    <p className={`${props.color}`}>
-      <span className={`${props.flag ? 'true' : 'false'}`}>In {props.color}</span> <Slot />
+    <p class={`${props.color}`}>
+      <span class={`${props.flag ? 'true' : 'false'}`}>In {props.color}</span> <Slot />
     </p>
   );
 });
 export const TestACNStrWithFlag = component$((props: { color: string; flag: boolean }) => {
   console.log('TestACNStrWithFlag');
   return (
-    <p className={[`${props.color}`] as any}>
-      <span className={[`${props.flag ? 'true' : 'false'}`] as any}>In {props.color}</span> <Slot />
+    <p class={[`${props.color}`] as any}>
+      <span class={[`${props.flag ? 'true' : 'false'}`] as any}>In {props.color}</span> <Slot />
     </p>
   );
 });

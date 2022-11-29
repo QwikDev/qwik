@@ -16,12 +16,12 @@ export const ErrorScreen = component$(({ translations = {} }: ErrorScreenProps) 
     helpText = 'You might want to check your network connection.',
   } = translations;
   return (
-    <div className="DocSearch-ErrorScreen">
-      <div className="DocSearch-Screen-Icon">
+    <div class="DocSearch-ErrorScreen">
+      <div class="DocSearch-Screen-Icon">
         <ErrorIcon />
       </div>
-      <p className="DocSearch-Title">{titleText}</p>
-      <p className="DocSearch-Help">{helpText}</p>
+      <p class="DocSearch-Title">{titleText}</p>
+      <p class="DocSearch-Help">{helpText}</p>
     </div>
   );
 });

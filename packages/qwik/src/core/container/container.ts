@@ -87,7 +87,6 @@ export interface ContainerState {
   readonly $watchStaging$: Set<SubscriberEffect>;
 
   readonly $opsNext$: Set<SubscriberSignal>;
-  readonly $opsStaging$: Set<SubscriberSignal>;
 
   readonly $hostsNext$: Set<QwikElement>;
   readonly $hostsStaging$: Set<QwikElement>;
@@ -121,7 +120,6 @@ export const createContainerState = (containerEl: Element) => {
     $proxyMap$: new WeakMap(),
 
     $opsNext$: new Set(),
-    $opsStaging$: new Set(),
 
     $watchNext$: new Set(),
     $watchStaging$: new Set(),

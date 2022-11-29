@@ -97,7 +97,7 @@ const notifySignalOperation = (op: SubscriberSignal, containerState: ContainerSt
       'render: while rendering, $renderPromise$ must be defined',
       containerState
     );
-    containerState.$opsStaging$.add(op);
+    containerState.$opsNext$.add(op);
   } else {
     containerState.$opsNext$.add(op);
     scheduleFrame(containerState);
@@ -159,6 +159,11 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
     const renderingQueue = Array.from(hostsRendering);
     sortNodes(renderingQueue);
 
+    containerState.$opsNext$.forEach((op) => {
+      executeSignalOperation(staticCtx, op);
+    });
+    containerState.$opsNext$.clear();
+
     for (const el of renderingQueue) {
       if (!staticCtx.$hostElements$.has(el)) {
         const elCtx = getContext(el, containerState);
@@ -177,13 +182,6 @@ const renderMarked = async (containerState: ContainerState): Promise<void> => {
         }
       }
     }
-
-    containerState.$opsNext$.forEach((op) => {
-      if (!staticCtx.$hostElements$.has(op[1])) {
-        executeSignalOperation(staticCtx, op);
-      }
-    });
-    containerState.$opsNext$.clear();
 
     // Add post operations
     staticCtx.$operations$.push(...staticCtx.$postOperations$);
@@ -219,12 +217,14 @@ const getFlags = (el: Element | null) => {
 };
 
 export const postRendering = async (containerState: ContainerState, rCtx: RenderContext) => {
+  const hostElements = rCtx.$static$.$hostElements$;
+
   await executeWatchesAfter(containerState, rCtx, (watch, stage) => {
     if ((watch.$flags$ & WatchFlagsIsEffect) === 0) {
       return false;
     }
     if (stage) {
-      return rCtx.$static$.$hostElements$.has(watch.$el$);
+      return hostElements.has(watch.$el$);
     }
     return true;
   });
@@ -235,10 +235,6 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
   });
   containerState.$hostsStaging$.clear();
 
-  containerState.$opsStaging$.forEach((el) => {
-    containerState.$opsNext$.add(el);
-  });
-  containerState.$opsStaging$.clear();
   containerState.$hostsRendering$ = undefined;
   containerState.$renderPromise$ = undefined;
 

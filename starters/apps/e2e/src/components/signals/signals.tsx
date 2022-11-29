@@ -102,6 +102,7 @@ export const Signals = component$(() => {
       <Issue2245 />
       <Issue2245B />
       <ComplexClassSignals />
+      <Issue2311 />
     </div>
   );
 });
@@ -508,6 +509,59 @@ export const ComplexClassSignals = component$(() => {
       </button>
       <div id="complex-classes-results" class={classes.value}>
         Div with classes
+      </div>
+    </div>
+  );
+});
+
+type MyStore = {
+  condition: boolean;
+  text: string;
+};
+
+export const Issue2311 = component$(() => {
+  const store = useStore<MyStore>({
+    condition: false,
+    text: 'Hello',
+  });
+
+  useWatch$(({ track }) => {
+    const v = track(() => store.condition);
+    if (v) {
+      store.text = 'Bye bye 👻';
+    }
+  });
+
+  return (
+    <div>
+      <h1>Weird DOM update bug?</h1>
+
+      <div>
+        <button
+          id="issue-2311-btn"
+          onClick$={() => {
+            store.condition = true;
+          }}
+        >
+          Make it so
+        </button>
+      </div>
+
+      <div id="issue-2311-results">
+        <p>This text should not change</p>
+        <>{store.condition ? <b>Done!</b> : <p>{store.text}</p>}</>
+
+        <p>This text should not change</p>
+        <>{store.condition ? <b>Done!</b> : <p>{store.text}</p>}</>
+
+        <p>This text should not change</p>
+        <>{store.condition ? <b>Done!</b> : <p>{store.text}</p>}</>
+
+        <p>This text should not change</p>
+        <>{store.condition ? <b>Done!</b> : <p>{store.text}</p>}</>
+
+        <p>This text should not change</p>
+        <>{store.condition ? <b>Done!</b> : <p>{store.text}</p>}</>
       </div>
     </div>
   );

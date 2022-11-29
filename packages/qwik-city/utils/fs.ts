@@ -40,7 +40,7 @@ export function getPathnameFromDirPath(opts: NormalizedPluginOptions, dirPath: s
 export function getMenuPathname(opts: NormalizedPluginOptions, filePath: string) {
   let pathname = normalizePath(relative(opts.routesDir, filePath));
   pathname = `/` + normalizePath(dirname(pathname));
-  return normalizePathname(pathname, opts.basePathname, opts.trailingSlash)!;
+  return normalizePathname(pathname, opts.basePathname, true)!;
 }
 
 export function getExtension(fileName: string) {

@@ -83,8 +83,9 @@ const loadModule = <T>(
   }
 };
 
-const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) => {
+export const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) => {
   if (menus) {
+    pathname = pathname.endsWith('/') ? pathname : pathname + '/';
     const menu = menus.find(
       (m) => m[0] === pathname || pathname.startsWith(m[0] + (pathname.endsWith('/') ? '' : '/'))
     );
@@ -92,7 +93,6 @@ const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) => {
       return menu[1];
     }
   }
-  return undefined;
 };
 
 export const getRouteParams = (paramNames: string[] | undefined, match: RegExpExecArray | null) => {

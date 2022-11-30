@@ -31,7 +31,7 @@ export function qwikifyQrl<PROPS extends {}>(
     const hostRef = useSignal<Element>();
     const slotRef = useSignal<Element>();
     const internalState = useSignal<NoSerialize<Internal<PROPS>>>();
-    const [signal, isClientOnly] = useWakeupSignal(props);
+    const [signal, isClientOnly] = useWakeupSignal(props, opts);
     const hydrationKeys = {};
     const TagName = opts?.tagName ?? ('qwik-solid' as any);
 

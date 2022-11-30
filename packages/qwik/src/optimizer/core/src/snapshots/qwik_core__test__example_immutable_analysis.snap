@@ -126,7 +126,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                     immutable4$: true,
                     immutable5: true
                 }
-            }),
+            }, "u6_0"),
             /*#__PURE__*/ _jsx(Div, {
                 class: state,
                 mutable1: {
@@ -145,9 +145,9 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                     class: true,
                     mutable3: true
                 }
-            })
+            }, "u6_1")
         ]
-    });
+    }, "u6_2");
 };
 
 

@@ -73,7 +73,7 @@ export const Cmp_component_4ryKJTOKjWE = (props)=>{
                 ]
             })
         ]
-    });
+    }, "u6_1");
 };
 
 
@@ -129,7 +129,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
             nested: _wrapSignal(store.nested, "count"),
             signal: true
         }
-    });
+    }, "u6_0");
 };
 
 

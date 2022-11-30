@@ -149,7 +149,7 @@ export const componentQrl = <PROPS extends {}>(
         }
       });
     }
-    const hash = qTest ? 'sX' : componentQrl.$hash$;
+    const hash = qTest ? 'sX' : componentQrl.$hash$.slice(0, 4);
     const finalKey = hash + ':' + (key ? key : '');
     return jsx(
       Virtual,

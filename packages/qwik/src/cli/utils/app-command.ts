@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import type { PackageJSON } from '../../../../../scripts/util';
+import { getProjectMetadataFileName } from './dev-platform';
 
 export class AppCommand {
   args: string[];
@@ -20,8 +21,9 @@ export class AppCommand {
     if (!this._rootDir) {
       const fsRoot = resolve('/');
       let testDir = process.cwd();
+      const projectMetadataFileName = getProjectMetadataFileName();
       for (let i = 0; i < 20; i++) {
-        const pkgPath = join(testDir, 'package.json');
+        const pkgPath = join(testDir, projectMetadataFileName);
         if (existsSync(pkgPath)) {
           this._rootDir = testDir;
           break;
@@ -32,7 +34,7 @@ export class AppCommand {
         testDir = dirname(testDir);
       }
       if (!this._rootDir) {
-        throw new Error(`Unable to find Qwik app package.json`);
+        throw new Error(`Unable to find Qwik app ${projectMetadataFileName}`);
       }
     }
     return this._rootDir;
@@ -44,7 +46,8 @@ export class AppCommand {
 
   get packageJson(): PackageJSON {
     if (!this._rootPkgJson) {
-      const pkgJsonPath = join(this.rootDir, 'package.json');
+      const projectMetadataFileName = getProjectMetadataFileName();
+      const pkgJsonPath = join(this.rootDir, projectMetadataFileName);
       this._rootPkgJson = JSON.parse(readFileSync(pkgJsonPath, 'utf-8'));
     }
     return this._rootPkgJson!;

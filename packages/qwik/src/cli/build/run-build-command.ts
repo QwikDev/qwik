@@ -3,20 +3,28 @@ import color from 'kleur';
 import type { AppCommand } from '../utils/app-command';
 import { execaCommand } from 'execa';
 import { getPackageManager, pmRunCmd } from '../utils/utils';
+import { isDeno } from '../utils/dev-platform';
 interface Step {
   title: string;
   stdout?: string;
 }
 export async function runBuildCommand(app: AppCommand) {
-  const pkgJsonScripts = app.packageJson.scripts;
+  const pkgJsonScripts = isDeno() ? app.packageJson.tasks : app.packageJson.scripts;
   if (!pkgJsonScripts) {
-    throw new Error(`No "scripts" property found in package.json`);
+    throw new Error(isDeno() ? `No "tasks" property found in deno.json` : `No "scripts" property found in package.json`);
   }
   const pkgManager = getPackageManager();
 
   const getScript = (name: string) => {
     if (pkgJsonScripts[name]) {
       return `${pkgManager} run ${name}`;
+    }
+    if (isDeno() && name.includes('.')) {
+      // in Deno, "." are not allowed in task names, we use ":" instead
+      const denoTaskName = name.replace('.', ':');
+      if (pkgJsonScripts[denoTaskName]) {
+        return `${pkgManager} run ${denoTaskName}`;
+      }
     }
     return undefined;
   };
@@ -44,12 +52,12 @@ export async function runBuildCommand(app: AppCommand) {
 
   if (!isLibraryBuild && !buildClientScript) {
     console.log(pkgJsonScripts);
-    throw new Error(`"build.client" script not found in package.json`);
+    throw new Error(isDeno() ? `"build:client" script not found in deno.json` : `"build.client" script not found in package.json`);
   }
 
   if (isPreviewBuild && !buildPreviewScript && !buildStaticScript) {
     throw new Error(
-      `Neither "build.preview" or "build.static" script found in package.json for preview`
+      isDeno() ? `Neither "build:preview" or "build:static" script found in deno.json for preview` : `Neither "build.preview" or "build.static" script found in package.json for preview`
     );
   }
 

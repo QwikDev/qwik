@@ -53,7 +53,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
             /*#__PURE__*/ _jsxDEV(Cmp, {
                 prop: "23",
                 [_IMMUTABLE]: {
-                    prop: true
+                    prop: _IMMUTABLE
                 }
             }, "u6_1", false, {
                 fileName: "/user/qwik/src/test.tsx",
@@ -63,7 +63,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
             /*#__PURE__*/ _jsxDEV(Cmp, {
                 prop: "23",
                 [_IMMUTABLE]: {
-                    prop: true
+                    prop: _IMMUTABLE
                 }
             }, props.stuff, false, {
                 fileName: "/user/qwik/src/test.tsx",

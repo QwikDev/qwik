@@ -41,13 +41,13 @@ export const App_component_ckEPmXZlub0 = (props)=>{
             /*#__PURE__*/ _jsx(Cmp, {
                 prop: "23",
                 [_IMMUTABLE]: {
-                    prop: true
+                    prop: _IMMUTABLE
                 }
             }, "u6_1"),
             /*#__PURE__*/ _jsx(Cmp, {
                 prop: "23",
                 [_IMMUTABLE]: {
-                    prop: true
+                    prop: _IMMUTABLE
                 }
             }, props.stuff),
             /*#__PURE__*/ _jsx("p", {

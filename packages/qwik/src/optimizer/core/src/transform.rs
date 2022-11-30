@@ -905,8 +905,11 @@ impl<'a> QwikTransform<'a> {
                                             immutable_props.push(ast::PropOrSpread::Prop(
                                                 Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
                                                     key: node.key.clone(),
-                                                    value: Box::new(ast::Expr::Lit(
-                                                        ast::Lit::Bool(ast::Bool::from(true)),
+                                                    value: Box::new(ast::Expr::Ident(
+                                                        new_ident_from_id(&self.ensure_import(
+                                                            _IMMUTABLE.clone(),
+                                                            BUILDER_IO_QWIK.clone(),
+                                                        )),
                                                     )),
                                                 })),
                                             ));
@@ -980,8 +983,11 @@ impl<'a> QwikTransform<'a> {
                                     immutable_props.push(ast::PropOrSpread::Prop(Box::new(
                                         ast::Prop::KeyValue(ast::KeyValueProp {
                                             key: node.key.clone(),
-                                            value: Box::new(ast::Expr::Lit(ast::Lit::Bool(
-                                                ast::Bool::from(true),
+                                            value: Box::new(ast::Expr::Ident(new_ident_from_id(
+                                                &self.ensure_import(
+                                                    _IMMUTABLE.clone(),
+                                                    BUILDER_IO_QWIK.clone(),
+                                                ),
                                             ))),
                                         }),
                                     )));

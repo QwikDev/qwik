@@ -264,6 +264,80 @@ document.addEventListener('qerror', ev => {
 });
 </script>`;
 
+const DEV_QWIK_INSPECTOR = `
+<script>
+window.__qwik_inspector_state = {}
+
+const overlay = document.createElement('div')
+overlay.id = 'qwik-inspector-overlay'
+document.body.appendChild(overlay)
+overlay.style.setProperty('position', 'fixed')
+overlay.style.setProperty('background-color', 'rgba(24, 182, 246, 0.27)')
+overlay.style.setProperty('pointer-events', 'none')
+overlay.style.setProperty('box-sizing', 'border-box')
+
+document.addEventListener('mouseover', event => {
+  if (event.target && event.target instanceof HTMLElement && event.target.dataset.qwikInspector) {
+    window.__qwik_inspector_state.hoveredElement = event.target
+
+    const rect = event.target.getBoundingClientRect()
+
+    const overlay = document.getElementById('qwik-inspector-overlay')
+
+    overlay.style.setProperty('height', rect.height + 'px')
+    overlay.style.setProperty('width', rect.width + 'px')
+
+    overlay.style.setProperty('top', rect.top + 'px')
+    overlay.style.setProperty('left', rect.left + 'px')
+
+    overlay.style.setProperty('border', '2px solid rgba(172, 126, 244, 0.46)')
+    overlay.style.setProperty('border-radius', '4px')
+
+  }
+}, {capture: true})
+
+document.addEventListener('mouseleave', event => {
+  if (event.target && event.target instanceof HTMLElement) {
+    window.__qwik_inspector_state.hoveredElement = null
+  }
+})
+
+document.addEventListener('keydown', event => {
+  if (event.code) {
+    window.__qwik_inspector_state.pressedKey = event.code
+  }
+})
+
+document.addEventListener('keyup', event => {
+  if (event.code === window.__qwik_inspector_state.pressedKey) {
+    window.__qwik_inspector_state.pressedKey = null
+  }
+})
+
+document.addEventListener('click', event => {
+  if (window.__qwik_inspector_state.pressedKey?.includes('Alt')) {
+    if (event.target && event.target instanceof HTMLElement) {
+      if (event.target.dataset.qwikInspector) {
+        fetch('/__open-in-editor?file=' + event.target.dataset.qwikInspector)
+      }
+    }
+  }
+})
+
+function hideOverlay() {
+  const overlay = document.getElementById('qwik-inspector-overlay')
+  if (overlay) {
+    overlay.style.setProperty('height', '0px')
+    overlay.style.setProperty('width', '0px')
+  }
+}
+
+window.addEventListener('resize', hideOverlay)
+
+document.addEventListener('scroll', hideOverlay)
+</script>
+`;
+
 const PERF_WARNING = `
 <script>
 if (!window.__qwikViteLog) {
@@ -277,6 +351,7 @@ const END_SSR_SCRIPT = `
 ${DEV_ERROR_HANDLING}
 ${ERROR_HOST}
 ${PERF_WARNING}
+${DEV_QWIK_INSPECTOR}
 `;
 
 function getViteDevIndexHtml(entryUrl: string, envData: Record<string, any>) {

@@ -573,7 +573,12 @@ const renderNode = (
       openingElement += ' q:head';
     }
     if (qDev && !qTest && node.dev) {
-      openingElement += ` data-source="${node.dev.fileName}:${node.dev.lineNumber}:${node.dev.columnNumber}"`;
+      const sanitizedFileName = node?.dev?.fileName?.replace(/\\/g, '/');
+      if (sanitizedFileName) {
+        openingElement += ` data-qwik-inspector="${encodeURIComponent(sanitizedFileName)}:${
+          node.dev.lineNumber
+        }:${node.dev.columnNumber}"`;
+      }
     }
     openingElement += '>';
     stream.write(openingElement);

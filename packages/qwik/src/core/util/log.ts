@@ -8,10 +8,27 @@ const STYLE = qDev
   : '';
 
 export const logError = (message?: any, ...optionalParams: any[]) => {
-  const err = message instanceof Error ? message : new Error(message);
+  const err = message instanceof Error ? message : createError(message);
   // eslint-disable-next-line no-console
-  console.error('%cQWIK ERROR', STYLE, err.message, ...printParams(optionalParams), err.stack);
+  const messageStr = err.stack || err.message;
+  console.error('%cQWIK ERROR', STYLE, messageStr, ...printParams(optionalParams));
   return err;
+};
+
+const createError = (message?: string) => {
+  const err = new Error(message);
+  if (err.stack) {
+    err.stack = filterStack(err.stack);
+  }
+  return err;
+};
+
+export const filterStack = (stack: string, offset: number = 0) => {
+  return stack
+    .split('\n')
+    .slice(offset)
+    .filter((l) => !l.includes('/node_modules/@builder.io/qwik'))
+    .join('\n');
 };
 
 export const logErrorAndStop = (message?: any, ...optionalParams: any[]) => {

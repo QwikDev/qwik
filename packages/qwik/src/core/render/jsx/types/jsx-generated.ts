@@ -397,6 +397,7 @@ export interface AreaHTMLAttributes<T> extends HTMLAttributes<T> {
   rel?: string | undefined;
   shape?: string | undefined;
   target?: string | undefined;
+  children?: undefined;
 }
 export interface MediaHTMLAttributes<T> extends HTMLAttributes<T> {
   autoPlay?: boolean | undefined;
@@ -414,6 +415,7 @@ export interface AudioHTMLAttributes<T> extends MediaHTMLAttributes<T> {}
 export interface BaseHTMLAttributes<T> extends HTMLAttributes<T> {
   href?: string | undefined;
   target?: string | undefined;
+  children?: undefined;
 }
 export interface BlockquoteHTMLAttributes<T> extends HTMLAttributes<T> {
   cite?: string | undefined;
@@ -438,6 +440,7 @@ export interface CanvasHTMLAttributes<T> extends HTMLAttributes<T> {
 export interface ColHTMLAttributes<T> extends HTMLAttributes<T> {
   span?: number | undefined;
   width?: number | string | undefined;
+  children?: undefined;
 }
 export interface ColgroupHTMLAttributes<T> extends HTMLAttributes<T> {
   span?: number | undefined;
@@ -461,6 +464,7 @@ export interface EmbedHTMLAttributes<T> extends HTMLAttributes<T> {
   src?: string | undefined;
   type?: string | undefined;
   width?: number | string | undefined;
+  children?: undefined;
 }
 export interface FieldsetHTMLAttributes<T> extends HTMLAttributes<T> {
   disabled?: boolean | undefined;
@@ -501,6 +505,7 @@ export interface IframeHTMLAttributes<T> extends HTMLAttributes<T> {
   src?: string | undefined;
   srcDoc?: string | undefined;
   width?: number | string | undefined;
+  children?: undefined;
 }
 export interface ImgHTMLAttributes<T> extends HTMLAttributes<T> {
   alt?: string | undefined;
@@ -514,6 +519,11 @@ export interface ImgHTMLAttributes<T> extends HTMLAttributes<T> {
   srcSet?: string | undefined;
   useMap?: string | undefined;
   width?: number | string | undefined;
+  children?: undefined;
+}
+
+export interface HrHTMLAttributes<T> extends HTMLAttributes<T> {
+  children?: undefined;
 }
 
 export type HTMLCrossOriginAttribute = 'anonymous' | 'use-credentials' | '' | undefined;
@@ -630,6 +640,7 @@ export interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
   type?: HTMLInputTypeAttribute | undefined;
   value?: string | ReadonlyArray<string> | number | undefined;
   width?: number | string | undefined;
+  children?: undefined;
 }
 export interface InsHTMLAttributes<T> extends HTMLAttributes<T> {
   cite?: string | undefined;
@@ -643,6 +654,7 @@ export interface KeygenHTMLAttributes<T> extends HTMLAttributes<T> {
   keyType?: string | undefined;
   keyParams?: string | undefined;
   name?: string | undefined;
+  children?: undefined;
 }
 export interface LabelHTMLAttributes<T> extends HTMLAttributes<T> {
   form?: string | undefined;
@@ -665,6 +677,7 @@ export interface LinkHTMLAttributes<T> extends HTMLAttributes<T> {
   sizes?: string | undefined;
   type?: string | undefined;
   charSet?: string | undefined;
+  children?: undefined;
 }
 export interface MapHTMLAttributes<T> extends HTMLAttributes<T> {
   name?: string | undefined;
@@ -678,6 +691,7 @@ export interface MetaHTMLAttributes<T> extends HTMLAttributes<T> {
   httpEquiv?: string | undefined;
   name?: string | undefined;
   media?: string | undefined;
+  children?: undefined;
 }
 export interface MeterHTMLAttributes<T> extends HTMLAttributes<T> {
   form?: string | undefined;
@@ -713,6 +727,7 @@ export interface OptionHTMLAttributes<T> extends HTMLAttributes<T> {
   label?: string | undefined;
   selected?: boolean | undefined;
   value?: string | ReadonlyArray<string> | number | undefined;
+  children?: string;
 }
 export interface OutputHTMLAttributes<T> extends HTMLAttributes<T> {
   form?: string | undefined;
@@ -722,6 +737,7 @@ export interface OutputHTMLAttributes<T> extends HTMLAttributes<T> {
 export interface ParamHTMLAttributes<T> extends HTMLAttributes<T> {
   name?: string | undefined;
   value?: string | ReadonlyArray<string> | number | undefined;
+  children?: undefined;
 }
 export interface ProgressHTMLAttributes<T> extends HTMLAttributes<T> {
   max?: number | string | undefined;
@@ -768,12 +784,14 @@ export interface SourceHTMLAttributes<T> extends HTMLAttributes<T> {
   srcSet?: string | undefined;
   type?: string | undefined;
   width?: number | string | undefined;
+  children?: undefined;
 }
 export interface StyleHTMLAttributes<T> extends HTMLAttributes<T> {
   media?: string | undefined;
   nonce?: string | undefined;
   scoped?: boolean | undefined;
   type?: string | undefined;
+  children?: string;
 }
 export interface TableHTMLAttributes<T> extends HTMLAttributes<T> {
   cellPadding?: number | string | undefined;
@@ -811,6 +829,9 @@ export interface TextareaHTMLAttributes<T> extends HTMLAttributes<T> {
   rows?: number | undefined;
   value?: string | ReadonlyArray<string> | number | undefined;
   wrap?: string | undefined;
+
+  /** @deprecated - Use the `value` property instead */
+  children?: undefined;
 }
 export interface ThHTMLAttributes<T> extends HTMLAttributes<T> {
   align?: 'left' | 'center' | 'right' | 'justify' | 'char' | undefined;
@@ -823,12 +844,16 @@ export interface ThHTMLAttributes<T> extends HTMLAttributes<T> {
 export interface TimeHTMLAttributes<T> extends HTMLAttributes<T> {
   dateTime?: string | undefined;
 }
+export interface TitleHTMLAttributes<T> extends HTMLAttributes<T> {
+  children?: string;
+}
 export interface TrackHTMLAttributes<T> extends HTMLAttributes<T> {
   default?: boolean | undefined;
   kind?: string | undefined;
   label?: string | undefined;
   src?: string | undefined;
   srcLang?: string | undefined;
+  children?: undefined;
 }
 export interface VideoHTMLAttributes<T> extends MediaHTMLAttributes<T> {
   height?: number | string | undefined;
@@ -1187,7 +1212,7 @@ export interface IntrinsicHTMLElements {
   head: HTMLAttributes<HTMLHeadElement>;
   header: HTMLAttributes<HTMLElement>;
   hgroup: HTMLAttributes<HTMLElement>;
-  hr: HTMLAttributes<HTMLHRElement>;
+  hr: HrHTMLAttributes<HTMLHRElement>;
   html: HtmlHTMLAttributes<HTMLHtmlElement>;
   i: HTMLAttributes<HTMLElement>;
   iframe: IframeHTMLAttributes<HTMLIFrameElement>;
@@ -1247,7 +1272,7 @@ export interface IntrinsicHTMLElements {
   th: ThHTMLAttributes<HTMLTableHeaderCellElement>;
   thead: HTMLAttributes<HTMLTableSectionElement>;
   time: TimeHTMLAttributes<HTMLElement>;
-  title: HTMLAttributes<HTMLTitleElement>;
+  title: TitleHTMLAttributes<HTMLTitleElement>;
   tr: HTMLAttributes<HTMLTableRowElement>;
   track: TrackHTMLAttributes<HTMLTrackElement>;
   tt: HTMLAttributes<HTMLElement>;

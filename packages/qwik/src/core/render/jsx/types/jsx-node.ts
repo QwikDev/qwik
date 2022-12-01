@@ -11,6 +11,7 @@ export interface DevJSX {
   fileName: string;
   lineNumber: number;
   columnNumber: number;
+  stack?: string;
 }
 
 /**

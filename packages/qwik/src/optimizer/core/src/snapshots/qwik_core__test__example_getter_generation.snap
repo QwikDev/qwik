@@ -73,7 +73,7 @@ export const Cmp_component_4ryKJTOKjWE = (props)=>{
                 ]
             })
         ]
-    });
+    }, "u6_1");
 };
 
 
@@ -124,12 +124,12 @@ export const App_component_ckEPmXZlub0 = ()=>{
         signal: signal,
         store: store.stuff + 12,
         [_IMMUTABLE]: {
-            prop: true,
+            prop: _IMMUTABLE,
             count: _wrapSignal(store, "count"),
             nested: _wrapSignal(store.nested, "count"),
-            signal: true
+            signal: _IMMUTABLE
         }
-    });
+    }, "u6_0");
 };
 
 

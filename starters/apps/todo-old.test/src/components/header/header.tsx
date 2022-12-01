@@ -23,6 +23,7 @@ export const Header = component$((props: { todos: Todos }) => {
             props.todos.items.push({
               completed: false,
               title: state.text,
+              id: `${props.todos.nextItemId++}`,
             });
             state.text = '';
           }

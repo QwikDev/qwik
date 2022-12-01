@@ -33,7 +33,7 @@ import {
 import type { RenderContext } from '../types';
 import { assertDefined } from '../../error/assert';
 import { serializeSStyle } from '../../style/qrl-styles';
-import { qDev, seal } from '../../util/qdev';
+import { qDev, qInspector, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
 import { addSignalSub, isSignal, Signal } from '../../state/signal';
 import { serializeQRLs } from '../../qrl/qrl';
@@ -483,6 +483,7 @@ const renderNode = (
     let openingElement = '<' + tagName;
     let useSignal = false;
     let classStr = '';
+    let htmlStr = null;
     assertElement(elm);
     if (qDev && props.class && props.className) {
       throw new TypeError('Can only have one of class or className');
@@ -516,6 +517,8 @@ const renderNode = (
       if (attrValue != null) {
         if (attrName === 'class') {
           classStr = attrValue;
+        } else if (attrName === 'value' && tagName === 'textarea') {
+          htmlStr = escapeHtml(attrValue);
         } else {
           openingElement +=
             ' ' + (value === '' ? attrName : attrName + '="' + escapeAttr(attrValue) + '"');
@@ -572,6 +575,14 @@ const renderNode = (
     if (flags & IS_HEAD) {
       openingElement += ' q:head';
     }
+    if (qDev && qInspector && node.dev) {
+      const sanitizedFileName = node?.dev?.fileName?.replace(/\\/g, '/');
+      if (sanitizedFileName) {
+        openingElement += ` data-qwik-inspector="${encodeURIComponent(sanitizedFileName)}:${
+          node.dev.lineNumber
+        }:${node.dev.columnNumber}"`;
+      }
+    }
     openingElement += '>';
     stream.write(openingElement);
 
@@ -579,7 +590,7 @@ const renderNode = (
       return;
     }
 
-    const innerHTML = props.dangerouslySetInnerHTML;
+    const innerHTML = props.dangerouslySetInnerHTML ?? htmlStr;
     if (innerHTML != null) {
       stream.write(String(innerHTML));
       stream.write(`</${tagName}>`);

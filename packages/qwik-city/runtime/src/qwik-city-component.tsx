@@ -31,6 +31,7 @@ import { useQwikCityEnv } from './use-functions';
 import { clientNavigate } from './client-navigate';
 import { loadClientData } from './use-endpoint';
 import { toPath } from './utils';
+import { CLIENT_DATA_CACHE } from './constants';
 
 /**
  * @alpha
@@ -95,14 +96,14 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
 
   useWatch$(async ({ track }) => {
     const locale = getLocale('');
-    const { routes, menus, cacheModules } = await import('@qwik-city-plan');
+    const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
     const path = track(() => routeNavigate.path);
     const url = new URL(path, routeLocation.href);
     const pathname = url.pathname;
 
     const loadRoutePromise = loadRoute(routes, menus, cacheModules, pathname);
 
-    const endpointResponse = isServer ? env.response : loadClientData(url.href);
+    const endpointResponse = isServer ? env.response : loadClientData(url.href, true);
 
     const loadedRoute = await loadRoutePromise;
 
@@ -110,6 +111,19 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       const [params, mods, menu] = loadedRoute;
       const contentModules = mods as ContentModule[];
       const pageModule = contentModules[contentModules.length - 1] as PageModule;
+
+      // ensure correct trailing slash
+      if (pathname.endsWith('/')) {
+        if (!trailingSlash) {
+          url.pathname = pathname.slice(0, -1);
+          routeNavigate.path = toPath(url);
+          return;
+        }
+      } else if (trailingSlash) {
+        url.pathname += '/';
+        routeNavigate.path = toPath(url);
+        return;
+      }
 
       // Update route location
       routeLocation.href = url.href;
@@ -124,6 +138,8 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
 
       const clientPageData = await endpointResponse;
       const resolvedHead = resolveHead(clientPageData, routeLocation, contentModules, locale);
+
+      CLIENT_DATA_CACHE.clear();
 
       // Update document head
       documentHead.links = resolvedHead.links;

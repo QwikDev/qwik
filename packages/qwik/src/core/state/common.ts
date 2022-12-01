@@ -131,7 +131,7 @@ export const mutable = <T>(v: T): T => {
  * @internal
  * @deprecated Remove it, not needed anymore
  */
-export const _useMutableProps = () => { };
+export const _useMutableProps = () => {};
 
 export const isConnected = (sub: SubscriberEffect | SubscriberHost): boolean => {
   if (isQwikElement(sub)) {

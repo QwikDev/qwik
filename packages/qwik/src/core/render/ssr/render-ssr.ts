@@ -169,13 +169,13 @@ const renderRoot = async (
     0,
     beforeClose
       ? (stream: StreamWriter) => {
-        const result = beforeClose(
-          ssrCtx.$static$.$contexts$,
-          containerState,
-          ssrCtx.$static$.$dynamic$
-        );
-        return processData(result, rCtx, ssrCtx, stream, 0, undefined);
-      }
+          const result = beforeClose(
+            ssrCtx.$static$.$contexts$,
+            containerState,
+            ssrCtx.$static$.$dynamic$
+          );
+          return processData(result, rCtx, ssrCtx, stream, 0, undefined);
+        }
       : undefined
   );
 
@@ -725,14 +725,14 @@ const walkChildren = (
     buffers.push(buffer);
     const localStream: StreamWriter = prevPromise
       ? {
-        write(chunk) {
-          if (currentIndex === index) {
-            stream.write(chunk);
-          } else {
-            buffer.push(chunk);
-          }
-        },
-      }
+          write(chunk) {
+            if (currentIndex === index) {
+              stream.write(chunk);
+            } else {
+              buffer.push(chunk);
+            }
+          },
+        }
       : stream;
 
     const rendered = processData(child, rCtx, ssrContext, localStream, flags);

@@ -36,7 +36,7 @@ export const isBoolean = (v: any): v is boolean => {
 
 export const isSymbol = (v: any): v is symbol => {
   return typeof v === 'symbol';
-}
+};
 
 export const isDef = (v: any): v is any => {
   return v !== undefined;

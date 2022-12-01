@@ -123,11 +123,7 @@ export const resumeContainer = (containerEl: Element) => {
   const revived = new Set<number>();
 
   const getObject: GetObject = (id) => {
-    assertTrue(
-      isString(id) && id.length > 0,
-      'resume: id must be an non-empty string, got:',
-      id
-    );
+    assertTrue(isString(id) && id.length > 0, 'resume: id must be an non-empty string, got:', id);
     if (finalized.has(id)) {
       return finalized.get(id);
     }

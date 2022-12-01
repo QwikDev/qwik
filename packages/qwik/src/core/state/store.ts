@@ -83,7 +83,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   constructor(
     private $containerState$: ContainerState,
     private $manager$: LocalSubscriptionManager
-  ) { }
+  ) {}
 
   get(target: TargetType, prop: string | symbol): any {
     if (isSymbol(prop)) {
@@ -182,9 +182,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       return Reflect.ownKeys(target);
     }
     return Reflect.ownKeys(target).map((a) => {
-      return isString(a) && a.startsWith(_IMMUTABLE_PREFIX)
-        ? a.slice(_IMMUTABLE_PREFIX.length)
-        : a;
+      return isString(a) && a.startsWith(_IMMUTABLE_PREFIX) ? a.slice(_IMMUTABLE_PREFIX.length) : a;
     });
   }
 

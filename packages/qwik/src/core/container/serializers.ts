@@ -44,8 +44,8 @@ export interface Serializer<T> {
    * Convert the object to a string.
    */
   serialize:
-  | ((obj: T, getObjID: MustGetObjID, containerState: ContainerState) => string)
-  | undefined;
+    | ((obj: T, getObjID: MustGetObjID, containerState: ContainerState) => string)
+    | undefined;
 
   /**
    * Return of
@@ -389,14 +389,14 @@ export const createParser = (containerState: ContainerState, doc: Document): Par
 };
 
 export const OBJECT_TRANSFORMS: Record<string, (obj: any, containerState: ContainerState) => any> =
-{
-  '!': (obj: any, containerState: ContainerState) => {
-    return containerState.$proxyMap$.get(obj) ?? getOrCreateProxy(obj, containerState);
-  },
-  '~': (obj: any) => {
-    return Promise.resolve(obj);
-  },
-  _: (obj: any) => {
-    return Promise.reject(obj);
-  },
-};
+  {
+    '!': (obj: any, containerState: ContainerState) => {
+      return containerState.$proxyMap$.get(obj) ?? getOrCreateProxy(obj, containerState);
+    },
+    '~': (obj: any) => {
+      return Promise.resolve(obj);
+    },
+    _: (obj: any) => {
+      return Promise.reject(obj);
+    },
+  };

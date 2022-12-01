@@ -43,15 +43,16 @@ jobs:
             fullbuild:
               - 'packages/qwik/src/**/*.ts'
               - 'packages/qwik/src/**/*.tsx'
-              - 'packages/qwik/src/**/*.js'
-              - 'packages/qwik/src/**/*.mjs'
-              - 'packages/qwik/src/**/*.cjs'
-              - 'packages/qwik/src/**/*.jsx'
-              - 'packages/qwik/src/**/*.toml'
               - 'packages/qwik/src/**/*.rs'
-              - 'packages/qwik/src/**/*.lock'
+              - 'packages/qwik-city/src/**/*.ts'
+              - 'packages/qwik-city/src/**/*.tsx'
               - 'packages/eslint-plugin-qwik/**/*.ts'
+              - 'starters/apps/**/*.ts'
+              - 'starters/apps/**/*.tsx'
+              - 'starters/e2e/**/*.ts'
               - 'tsconfig.json'
+              - 'pnpm-lock.yaml'
+              - 'Cargo.yaml'
       - name: Print fullbuild output
         run: echo ${{ steps.filter.outputs.fullbuild == 'true' || github.event.inputs.disttag != '' }}
 

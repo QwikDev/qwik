@@ -51,7 +51,7 @@ importers:
       semver: 7.3.8
       snoop: ^1.0.4
       terser: 5.16.0
-      tsm: 2.3.0
+      tsm: 2.2.2
       typescript: 4.9.3
       uvu: 0.5.6
       vite: 3.2.4
@@ -106,7 +106,7 @@ importers:
       semver: 7.3.8
       snoop: 1.0.4
       terser: 5.16.0
-      tsm: 2.3.0
+      tsm: 2.2.2
       typescript: 4.9.3
       uvu: 0.5.6
       vite: 3.2.4_l3ac6cnmsik2gmfcatpr7qo74y
@@ -6414,6 +6414,14 @@ packages:
 
   /tslib/2.4.1:
     resolution: {integrity: sha512-tGyy4dAjRIEwI7BzsB0lynWgOpfqjUdq91XXAlIWD2OwKBH7oCl/GZG/HT4BOHrTlPMOASlMQ7veyTqpmRcrNA==}
+    dev: true
+
+  /tsm/2.2.2:
+    resolution: {integrity: sha512-bXkt675NbbqfwRHSSn8kSNEEHvoIUFDM9G6tUENkjEKpAEbrEzieO3PxUiRJylMw8fEGpcf5lSjadzzz12pc2A==}
+    engines: {node: '>=12'}
+    hasBin: true
+    dependencies:
+      esbuild: 0.14.51
     dev: true
 
   /tsm/2.3.0:

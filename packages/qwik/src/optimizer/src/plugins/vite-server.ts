@@ -282,6 +282,8 @@ const DEV_QWIK_INSPECTOR = `
   box-sizing: border-box;
   border: 2px solid rgba(172, 126, 244, 0.46);
   border-radius: 4px;
+  contain: strict;
+  cursor: pointer;
 }
 #qwik-inspector-info-popup {
   position: fixed;
@@ -297,8 +299,8 @@ const DEV_QWIK_INSPECTOR = `
   -webkit-animation: fadeOut 0.3s 3s ease-in-out forwards;
   animation: fadeOut 0.3s 3s ease-in-out forwards;
 }
-#qwik-inspector-info-popup p { 
-  margin: 0px; 
+#qwik-inspector-info-popup p {
+  margin: 0px;
 }
 @-webkit-keyframes fadeOut {
   0% {opacity: 1;}
@@ -311,97 +313,119 @@ const DEV_QWIK_INSPECTOR = `
 }
 </style>
 <script>
-console.debug(
-  'Hold-press the Alt key and click on a component in order to jump directly to the source code in your IDE'
-);
-window.__qwik_inspector_state = {
-  pressedKeys: [],
-};
+(function() {
+  console.debug(
+    'Click-to-Source: Hold-press the ⌥ Option/Alt key and click a component to jump directly to the source code in your IDE!'
+  );
+  window.__qwik_inspector_state = {
+    pressedKeys: new Set(),
+  };
 
-const overlay = document.createElement('div');
-overlay.id = 'qwik-inspector-overlay';
-document.body.appendChild(overlay);
+  const body = document.body;
+  const overlay = document.createElement('div');
+  overlay.id = 'qwik-inspector-overlay';
+  overlay.setAttribute('aria-hidden', 'true');
+  body.appendChild(overlay);
 
-document.addEventListener(
-  'keydown',
-  (event) => {
-    if (event.code && !window.__qwik_inspector_state.pressedKeys.includes(event.code)) {
-      window.__qwik_inspector_state.pressedKeys.push(event.code);
-    }
-  },
-  { capture: true }
-);
+  document.addEventListener(
+    'keydown',
+    (event) => {
+      window.__qwik_inspector_state.pressedKeys.add(event.code);
+      updateOverlay();
+    },
+    { capture: true }
+  );
 
-document.addEventListener(
-  'keyup',
-  (event) => {
-    if (window.__qwik_inspector_state.pressedKeys.includes(event.code)) {
-      window.__qwik_inspector_state.pressedKeys = window.__qwik_inspector_state.pressedKeys.filter(
-        (key) => key !== event.code
-      );
-      hideOverlay();
-    }
-  },
-  { capture: true }
-);
+  document.addEventListener(
+    'keyup',
+    (event) => {
+      window.__qwik_inspector_state.pressedKeys.delete(event.code);
+      updateOverlay();
+    },
+    { capture: true }
+  );
 
-document.addEventListener(
-  'mouseover',
-  (event) => {
-    if (event.target && event.target instanceof HTMLElement && event.target.dataset.qwikInspector) {
-      window.__qwik_inspector_state.hoveredElement = event.target;
-
-      const rect = event.target.getBoundingClientRect();
-
-      if (overlay && checkKeysArePressed(['Shift', 'Control'])) {
-        overlay.style.setProperty('height', rect.height + 'px');
-        overlay.style.setProperty('width', rect.width + 'px');
-        overlay.style.setProperty('top', rect.top + 'px');
-        overlay.style.setProperty('left', rect.left + 'px');
-        overlay.style.setProperty('visibility', 'visible');
+  document.addEventListener(
+    'mouseover',
+    (event) => {
+      if (event.target && event.target instanceof HTMLElement && event.target.dataset.qwikInspector) {
+        window.__qwik_inspector_state.hoveredElement = event.target;
+      } else {
+        window.__qwik_inspector_state.hoveredElement = undefined;
       }
-    }
-  },
-  { capture: true }
-);
+      updateOverlay();
+    },
+    { capture: true }
+  );
 
-document.addEventListener(
-  'click',
-  (event) => {
-    if (checkKeysArePressed(['Shift', 'Control'])) {
-      if (event.target && event.target instanceof HTMLElement) {
-        if (event.target.dataset.qwikInspector) {
-          event.preventDefault();
-          fetch('/__open-in-editor?file=' + event.target.dataset.qwikInspector);
+  document.addEventListener(
+    'click',
+    (event) => {
+      if (isActive()) {
+        window.__qwik_inspector_state.pressedKeys.clear();
+        if (event.target && event.target instanceof HTMLElement) {
+          if (event.target.dataset.qwikInspector) {
+            event.preventDefault();
+            body.style.setProperty('cursor', 'progress');
+
+            fetch('/__open-in-editor?file=' + event.target.dataset.qwikInspector);
+          }
         }
       }
-    }
-  },
-  { capture: true }
-);
-
-function hideOverlay() {
-  const overlay = document.getElementById('qwik-inspector-overlay');
-  if (overlay) {
-    overlay.style.setProperty('height', '0px');
-    overlay.style.setProperty('width', '0px');
-    overlay.style.setProperty('visibility', 'hidden');
-  }
-}
-
-function checkKeysArePressed(keys) {
-  return keys.every((key) =>
-    window.__qwik_inspector_state.pressedKeys
-      .map((key) => key.replace(/(Left|Right)$/g, ''))
-      .includes(key)
+    },
+    { capture: true }
   );
-}
 
-window.addEventListener('resize', hideOverlay);
+  document.addEventListener(
+    'contextmenu',
+    (event) => {
+      if (isActive()) {
+        window.__qwik_inspector_state.pressedKeys.clear();
+        if (event.target && event.target instanceof HTMLElement) {
+          if (event.target.dataset.qwikInspector) {
+            event.preventDefault();
+          }
+        }
+      }
+    },
+    { capture: true }
+  );
 
-document.addEventListener('scroll', hideOverlay);
+  function updateOverlay() {
+    const hoverElement = window.__qwik_inspector_state.hoveredElement;
+    if (hoverElement && isActive()) {
+      const rect = hoverElement.getBoundingClientRect();
+      overlay.style.setProperty('height', rect.height + 'px');
+      overlay.style.setProperty('width', rect.width + 'px');
+      overlay.style.setProperty('top', rect.top + 'px');
+      overlay.style.setProperty('left', rect.left + 'px');
+      overlay.style.setProperty('visibility', 'visible');
+      body.style.setProperty('cursor', 'pointer');
+    } else {
+      overlay.style.setProperty('height', '0px');
+      overlay.style.setProperty('width', '0px');
+      overlay.style.setProperty('visibility', 'hidden');
+      body.style.removeProperty('cursor');
+    }
+  }
+
+  function checkKeysArePressed(keys) {
+    const activeKeys = Array.from(window.__qwik_inspector_state.pressedKeys)
+      .map((key) => key.replace(/(Left|Right)$/g, ''));
+
+    return keys.every((key) => activeKeys.includes(key));
+  }
+
+  function isActive() {
+    return checkKeysArePressed(['Alt']);
+  }
+
+  window.addEventListener('resize', updateOverlay);
+  document.addEventListener('scroll', updateOverlay);
+
+})();
 </script>
-<div id="qwik-inspector-info-popup"><p>Ctrl + Shift + Click ✨</p></div>
+<div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ⌥ Option</p></div>
 `;
 
 const PERF_WARNING = `

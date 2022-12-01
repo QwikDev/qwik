@@ -14,7 +14,7 @@ import {
   newInvokeContextFromTuple,
 } from '../use/use-core';
 import { then } from '../util/promises';
-import { qDev, qTest, seal } from '../util/qdev';
+import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, ValueOrPromise } from '../util/types';
 import type { QRLDev } from './qrl';
 import type { QRL } from './qrl.public';
@@ -58,7 +58,7 @@ export const createQRL = <TYPE>(
   captureRef: any[] | null,
   refSymbol: string | null
 ): QRLInternal<TYPE> => {
-  if (qDev) {
+  if (qDev && qSerialize) {
     verifySerializable(captureRef);
   }
 

@@ -1,7 +1,7 @@
 import { assertEqual, assertTrue } from '../error/assert';
 import { tryGetInvokeContext } from '../use/use-core';
 import { logWarn } from '../util/log';
-import { qDev } from '../util/qdev';
+import { qDev, qSerialize } from '../util/qdev';
 import { RenderEvent } from '../util/markers';
 import { isObject } from '../util/types';
 import type { ContainerState } from '../container/container';
@@ -66,7 +66,9 @@ export class SignalImpl<T> implements Signal<T> {
   }
   set value(v: T) {
     if (qDev) {
-      verifySerializable(v);
+      if (qSerialize) {
+        verifySerializable(v);
+      }
       const invokeCtx = tryGetInvokeContext();
       if (invokeCtx && invokeCtx.$event$ === RenderEvent) {
         logWarn(

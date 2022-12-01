@@ -4,7 +4,7 @@ import { isQrl } from '../qrl/qrl-class';
 import { tryGetInvokeContext } from '../use/use-core';
 import { isNode } from '../util/element';
 import { logWarn } from '../util/log';
-import { qDev } from '../util/qdev';
+import { qDev, qSerialize } from '../util/qdev';
 import { RenderEvent } from '../util/markers';
 import { isArray, isObject, isSerializableObject } from '../util/types';
 import type { ContainerState } from '../container/container';
@@ -137,7 +137,9 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     const recursive = (flags & QObjectRecursive) !== 0;
     const unwrappedNewValue = recursive ? unwrapProxy(newValue) : newValue;
     if (qDev) {
-      verifySerializable(unwrappedNewValue);
+      if (qSerialize) {
+        verifySerializable(unwrappedNewValue);
+      }
       const invokeCtx = tryGetInvokeContext();
       if (invokeCtx && invokeCtx.$event$ === RenderEvent) {
         logWarn(

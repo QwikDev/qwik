@@ -11,7 +11,7 @@ import type { ValueOrPromise } from '../../util/types';
 import { isPromise, promiseAll, promiseAllLazy, then } from '../../util/promises';
 import { assertDefined, assertEqual, assertTrue } from '../../error/assert';
 import { logWarn } from '../../util/log';
-import { qDev, qSerialize, qTest } from '../../util/qdev';
+import { qDev, qInspector, qSerialize, qTest } from '../../util/qdev';
 import type { OnRenderFn } from '../../component/component.public';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
@@ -635,7 +635,7 @@ const createElm = (
     elm = createElement(doc, tag, isSvg);
     flags &= ~IS_HEAD;
   }
-  if (qDev) {
+  if (qDev && qInspector) {
     const dev = vnode.$dev$;
     if (dev) {
       directSetAttribute(

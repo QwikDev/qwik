@@ -1,8 +1,8 @@
 import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
-import { logWarn } from '../../util/log';
-import { isFunction, isObject, isString } from '../../util/types';
+import { filterStack, logError, logWarn } from '../../util/log';
+import { isArray, isFunction, isObject, isString } from '../../util/types';
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
 import { isQrl } from '../../qrl/qrl-class';
 import { invoke } from '../../use/use-core';
@@ -36,6 +36,24 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
       invoke(undefined, () => {
         if (!isString(type) && !isFunction(type)) {
           throw qError(QError_invalidJsxNodeType, type);
+        }
+        if (isArray((props as any).children)) {
+          const keys: Record<string, boolean> = {};
+          (props as any).children.flat().forEach((child: any) => {
+            if (isJSXNode(child) && child.key != null) {
+              if (keys[child.key]) {
+                const err = createJSXError(
+                  `Multiple JSX sibling nodes with the same key.\nThis is likely caused by missing a custom key in a for loop`,
+                  child
+                );
+                if (err) {
+                  logError(err);
+                }
+              } else {
+                keys[child.key] = true;
+              }
+            }
+          });
         }
         if (!qRuntimeQrl && props) {
           for (const prop of Object.keys(props)) {
@@ -102,6 +120,7 @@ export const jsxDEV = <T extends string | FunctionComponent<any>>(
   node.dev = {
     isStatic,
     ctx,
+    stack: new Error().stack,
     ...opts,
   };
   seal(node);
@@ -109,5 +128,24 @@ export const jsxDEV = <T extends string | FunctionComponent<any>>(
 };
 
 export type { QwikJSX as JSX };
+
+const ONCE_JSX = new Set<string>();
+
+const createJSXError = (message: string, node: JSXNode) => {
+  if (!node.dev) {
+    return undefined;
+  }
+  const key = `${message}${node.dev.fileName}:${node.dev.lineNumber}:${node.dev.columnNumber}`;
+  if (ONCE_JSX.has(key)) {
+    return undefined;
+  }
+  const error = new Error(message);
+  const name = isFunction(node.type) ? node.type.name : String(node.type);
+  error.stack = `JSXError: ${message}\n    at <${name}> (${node.dev.fileName}:${
+    node.dev.lineNumber
+  }:${node.dev.columnNumber})\n${filterStack(node.dev.stack!, 1)}`;
+  ONCE_JSX.add(key);
+  return error;
+};
 
 export { jsx as jsxs };

@@ -49,18 +49,18 @@
   },
   {
     "title": "IMG Models",
-    "href": "https://www.imgmodels.com/",
-    "imgSrc": "/showcases/www_imgmodels_com_.webp",
+    "imgSrc": "/showcases/img-models_vercel_app_.webp",
     "perf": {
-      "score": 0.99,
+      "score": 0.98,
       "fcpDisplay": "1.7 s",
       "fcpScore": 0.92,
-      "lcpDisplay": "1.7 s",
-      "lcpScore": 0.99,
+      "lcpDisplay": "2.1 s",
+      "lcpScore": 0.95,
       "ttiDisplay": "1.7 s",
       "ttiScore": 1,
       "ttiTime": 1710
     },
+    "href": "https://img-models.vercel.app/",
     "size": "large",
     "tags": "ecommerce"
   },

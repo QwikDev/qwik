@@ -38,7 +38,7 @@ export const Footer = component$(() => {
           </span>
           <ul class="filters">
             {FilterStates.map((f) => (
-              <Filter filter={f} />
+              <Filter filter={f} key={f} />
             ))}
           </ul>
           {remaining > 0 ? (

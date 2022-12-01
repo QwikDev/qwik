@@ -59,7 +59,7 @@ export const Lightweight = (props)=>{
                     ...props
                 })
             ]
-        })
+        }, "u6_0")
     });
 };
 export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
@@ -122,12 +122,12 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
                         children: "12"
                     })
                 ]
-            }),
+            }, "u6_1"),
             /*#__PURE__*/ _jsx("div", {
                 class: "class",
                 children: /*#__PURE__*/ _jsx(Lightweight, {
                     ...props
-                })
+                }, "u6_2")
             }),
             /*#__PURE__*/ _jsxs("div", {
                 class: "class",

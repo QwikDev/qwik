@@ -46,7 +46,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
             class: "stuff",
             children: "Hello Qwik"
         })
-    });
+    }, "u6_0");
 };
 
 

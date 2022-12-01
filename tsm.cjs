@@ -16,6 +16,7 @@ module.exports = {
       globalThis.qTest = true;
       globalThis.qRuntimeQrl = true;
       globalThis.qDev = true;
+      globalThis.qInspector = false;
       import * as qwikJsx from "${corePath}";`,
       target: 'es2020',
       loader: 'tsx',

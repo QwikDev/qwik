@@ -100,6 +100,8 @@ pub struct QwikTransform<'a> {
     fragment_fn: Option<Id>,
 
     hook_stack: Vec<JsWord>,
+    file_hash: u64,
+    jsx_key_counter: u32,
 }
 
 pub struct QwikTransformOptions<'a> {
@@ -142,6 +144,13 @@ impl<'a> QwikTransform<'a> {
             }
         }
 
+        let mut hasher = DefaultHasher::new();
+        let local_file_name = options.path_data.rel_path.to_slash_lossy();
+        if let Some(scope) = options.scope {
+            hasher.write(scope.as_bytes());
+        }
+        hasher.write(local_file_name.as_bytes());
+
         let jsx_functions = options
             .global_collect
             .imports
@@ -159,6 +168,8 @@ impl<'a> QwikTransform<'a> {
             .collect();
 
         QwikTransform {
+            file_hash: hasher.finish(),
+            jsx_key_counter: 0,
             stack_ctxt: Vec::with_capacity(16),
             decl_stack: Vec::with_capacity(32),
             in_component: false,
@@ -582,7 +593,7 @@ impl<'a> QwikTransform<'a> {
                 _ => {}
             }
         }
-        let o = ast::CallExpr {
+        let mut o = ast::CallExpr {
             callee: node.callee.fold_with(self),
             args: node
                 .args
@@ -598,6 +609,31 @@ impl<'a> QwikTransform<'a> {
                 .collect(),
             ..node
         };
+        if is_fn {
+            if o.args.len() == 2 {
+                let new_key = format!("{}_{}", &base64(self.file_hash)[0..2], self.jsx_key_counter);
+                self.jsx_key_counter += 1;
+                o.args.push(ast::ExprOrSpread {
+                    spread: None,
+                    expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+                        span: DUMMY_SP,
+                        value: new_key.into(),
+                        raw: None,
+                    }))),
+                });
+            } else if o.args.len() == 6 && is_undefined(&o.args[2].expr) {
+                let new_key = format!("{}_{}", &base64(self.file_hash)[0..2], self.jsx_key_counter);
+                self.jsx_key_counter += 1;
+                o.args[2] = ast::ExprOrSpread {
+                    spread: None,
+                    expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+                        span: DUMMY_SP,
+                        value: new_key.into(),
+                        raw: None,
+                    }))),
+                };
+            }
+        }
         if name_token {
             self.stack_ctxt.pop();
         }
@@ -869,8 +905,11 @@ impl<'a> QwikTransform<'a> {
                                             immutable_props.push(ast::PropOrSpread::Prop(
                                                 Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
                                                     key: node.key.clone(),
-                                                    value: Box::new(ast::Expr::Lit(
-                                                        ast::Lit::Bool(ast::Bool::from(true)),
+                                                    value: Box::new(ast::Expr::Ident(
+                                                        new_ident_from_id(&self.ensure_import(
+                                                            _IMMUTABLE.clone(),
+                                                            BUILDER_IO_QWIK.clone(),
+                                                        )),
                                                     )),
                                                 })),
                                             ));
@@ -944,8 +983,11 @@ impl<'a> QwikTransform<'a> {
                                     immutable_props.push(ast::PropOrSpread::Prop(Box::new(
                                         ast::Prop::KeyValue(ast::KeyValueProp {
                                             key: node.key.clone(),
-                                            value: Box::new(ast::Expr::Lit(ast::Lit::Bool(
-                                                ast::Bool::from(true),
+                                            value: Box::new(ast::Expr::Ident(new_ident_from_id(
+                                                &self.ensure_import(
+                                                    _IMMUTABLE.clone(),
+                                                    BUILDER_IO_QWIK.clone(),
+                                                ),
                                             ))),
                                         }),
                                     )));
@@ -1579,6 +1621,16 @@ fn prop_to_string(prop: &ast::MemberProp) -> Option<JsWord> {
         }) => Some(str.value.clone()),
         _ => None,
     }
+}
+
+const fn is_undefined(expr: &ast::Expr) -> bool {
+    matches!(
+        expr,
+        ast::Expr::Unary(ast::UnaryExpr {
+            op: ast::UnaryOp::Void,
+            ..
+        })
+    )
 }
 
 fn make_wrap(method: &Id, obj: Box<ast::Expr>, prop: JsWord) -> ast::Expr {

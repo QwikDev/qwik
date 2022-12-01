@@ -1,0 +1,107 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    return (
+        <>
+            <Cmp key="stuff"></Cmp>
+            <Cmp></Cmp>
+            <Cmp prop="23"></Cmp>
+            <Cmp prop="23" key={props.stuff}></Cmp>
+            <p key={props.stuff}>Hello Qwik</p>
+        </>
+    );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrlDEV } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qrlDEV(()=>import("./app_component_ckepmxzlub0.js"), "App_component_ckEPmXZlub0", {
+    file: "/user/qwik/src/test.tsx",
+    lo: 90,
+    hi: 348,
+    displayName: "App_component"
+}));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAEA,OAAO,MAAM,oBAAM;;;;;IAUhB\"}")
+============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-dev-runtime";
+import { _IMMUTABLE } from "@builder.io/qwik";
+import { jsxDEV as _jsxDEV } from "@builder.io/qwik/jsx-dev-runtime";
+export const App_component_ckEPmXZlub0 = (props)=>{
+    return /*#__PURE__*/ _jsxDEV(_Fragment, {
+        children: [
+            /*#__PURE__*/ _jsxDEV(Cmp, {}, "stuff", false, {
+                fileName: "/user/qwik/src/test.tsx",
+                lineNumber: 7,
+                columnNumber: 13
+            }, this),
+            /*#__PURE__*/ _jsxDEV(Cmp, {}, "u6_0", false, {
+                fileName: "/user/qwik/src/test.tsx",
+                lineNumber: 8,
+                columnNumber: 13
+            }, this),
+            /*#__PURE__*/ _jsxDEV(Cmp, {
+                prop: "23",
+                [_IMMUTABLE]: {
+                    prop: _IMMUTABLE
+                }
+            }, "u6_1", false, {
+                fileName: "/user/qwik/src/test.tsx",
+                lineNumber: 9,
+                columnNumber: 13
+            }, this),
+            /*#__PURE__*/ _jsxDEV(Cmp, {
+                prop: "23",
+                [_IMMUTABLE]: {
+                    prop: _IMMUTABLE
+                }
+            }, props.stuff, false, {
+                fileName: "/user/qwik/src/test.tsx",
+                lineNumber: 10,
+                columnNumber: 13
+            }, this),
+            /*#__PURE__*/ _jsxDEV("p", {
+                children: "Hello Qwik"
+            }, props.stuff, false, {
+                fileName: "/user/qwik/src/test.tsx",
+                lineNumber: 11,
+                columnNumber: 13
+            }, this)
+        ]
+    }, void 0, true);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B,CAAC,QAAiB;IAC5C,qBACI;;0BACI,QAAC,SAAQ;;;;;0BACT,QAAC;;;;;0BACD,QAAC;gBAAI,MAAK;;oBAAL,IAAI;;;;;;;0BACT,QAAC;gBAAI,MAAK;;oBAAL,IAAI;;eAAW,MAAM,KAAK;;;;;0BAC/B,QAAC;0BAAoB;eAAb,MAAM,KAAK;;;;;;;AAG/B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "app_component_ckepmxzlub0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    90,
+    348
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

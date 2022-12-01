@@ -1,3 +1,4 @@
+import { isNumber } from './../util/types';
 import { logErrorAndStop } from '../util/log';
 import { qDev } from '../util/qdev';
 
@@ -33,7 +34,7 @@ export function assertTrue(value1: any, text: string, ...parts: any[]): asserts 
 
 export function assertNumber(value1: any, text: string, ...parts: any[]): asserts value1 is number {
   if (qDev) {
-    if (typeof value1 === 'number') return;
+    if (isNumber(value1)) return;
     throw logErrorAndStop(text, ...parts);
   }
 }

@@ -1,3 +1,4 @@
+import { isString, isSymbol } from './../util/types';
 import { assertEqual, assertNumber, assertTrue } from '../error/assert';
 import { qError, QError_immutableProps } from '../error/error';
 import { isQrl } from '../qrl/qrl-class';
@@ -82,10 +83,10 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   constructor(
     private $containerState$: ContainerState,
     private $manager$: LocalSubscriptionManager
-  ) {}
+  ) { }
 
   get(target: TargetType, prop: string | symbol): any {
-    if (typeof prop === 'symbol') {
+    if (isSymbol(prop)) {
       if (prop === QOjectTargetSymbol) return target;
       if (prop === QObjectManagerSymbol) return this.$manager$;
       return target[prop];
@@ -118,7 +119,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   set(target: TargetType, prop: string | symbol, newValue: any): boolean {
-    if (typeof prop === 'symbol') {
+    if (isSymbol(prop)) {
       target[prop] = newValue;
       return true;
     }
@@ -162,7 +163,7 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (hasOwnProperty.call(target, property)) {
       return true;
     }
-    if (typeof property === 'string' && hasOwnProperty.call(target, _IMMUTABLE_PREFIX + property)) {
+    if (isString(property) && hasOwnProperty.call(target, _IMMUTABLE_PREFIX + property)) {
       return true;
     }
     return false;
@@ -181,14 +182,14 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       return Reflect.ownKeys(target);
     }
     return Reflect.ownKeys(target).map((a) => {
-      return typeof a === 'string' && a.startsWith(_IMMUTABLE_PREFIX)
+      return isString(a) && a.startsWith(_IMMUTABLE_PREFIX)
         ? a.slice(_IMMUTABLE_PREFIX.length)
         : a;
     });
   }
 
   getOwnPropertyDescriptor(target: TargetType, prop: string) {
-    if (isArray(target) || typeof prop === 'symbol') {
+    if (isArray(target) || isSymbol(prop)) {
       return Object.getOwnPropertyDescriptor(target, prop);
     }
     return {

@@ -1,3 +1,4 @@
+import { isObject } from './../util/types';
 import {
   qError,
   QError_qrlIsNotFunction,
@@ -20,7 +21,7 @@ import type { QRLDev } from './qrl';
 import type { QRL } from './qrl.public';
 
 export const isQrl = (value: any): value is QRLInternal => {
-  return typeof value === 'function' && typeof value.getSymbol === 'function';
+  return isFunction(value) && isFunction(value.getSymbol);
 };
 
 export interface QRLInternalMethods<TYPE> {
@@ -47,7 +48,7 @@ export interface QRLInternalMethods<TYPE> {
   $resolveLazy$(containerEl?: Element): ValueOrPromise<TYPE>;
 }
 
-export interface QRLInternal<TYPE = any> extends QRL<TYPE>, QRLInternalMethods<TYPE> {}
+export interface QRLInternal<TYPE = any> extends QRL<TYPE>, QRLInternalMethods<TYPE> { }
 
 export const createQRL = <TYPE>(
   chunk: string | null,
@@ -184,7 +185,7 @@ export const emitUsedSymbol = (symbol: string, element: Element | undefined, req
 };
 
 export const emitEvent = (eventName: string, detail: any) => {
-  if (!qTest && !isServer() && typeof document === 'object') {
+  if (!qTest && !isServer() && isObject(document)) {
     document.dispatchEvent(
       new CustomEvent(eventName, {
         bubbles: false,
@@ -198,7 +199,7 @@ const now = () => {
   if (qTest || isServer()) {
     return 0;
   }
-  if (typeof performance === 'object') {
+  if (isObject(performance)) {
     return performance.now();
   }
   return 0;

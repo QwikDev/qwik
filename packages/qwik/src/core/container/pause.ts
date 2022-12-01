@@ -26,7 +26,7 @@ import {
   QError_missingObjectId,
   QError_verifySerializable,
 } from '../error/error';
-import { isArray, isObject, isSerializableObject } from '../util/types';
+import { isArray, isObject, isSerializableObject, isNumber } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { isNotNullable, isPromise } from '../util/promises';
 import { collectDeps, serializeValue, UNDEFINED_PREFIX } from './serializers';
@@ -339,7 +339,7 @@ export const _pauseFromContexts = async (
     subs.push(
       value
         .map((s) => {
-          if (typeof s === 'number') {
+          if (isNumber(s)) {
             return `_${s}`;
           }
           return serializeSubscription(s, getObjId);

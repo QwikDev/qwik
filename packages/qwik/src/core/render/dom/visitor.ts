@@ -1,3 +1,4 @@
+import { isString } from './../../util/types';
 import {
   ComponentStylesPrefixContent,
   ELEMENT_ID,
@@ -789,12 +790,12 @@ const handleStyle: PropHandler = (ctx, elm, _, newValue) => {
 
 const handleClass: PropHandler = (ctx, elm, _, newValue, oldValue) => {
   assertTrue(
-    oldValue == null || typeof oldValue === 'string',
+    oldValue == null || isString(oldValue),
     'class oldValue must be either nullish or string',
     oldValue
   );
   assertTrue(
-    newValue == null || typeof newValue === 'string',
+    newValue == null || isString(newValue),
     'class newValue must be either nullish or string',
     newValue
   );

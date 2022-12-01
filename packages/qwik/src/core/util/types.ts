@@ -26,6 +26,22 @@ export const isFunction = (v: any): v is Function => {
   return typeof v === 'function';
 };
 
+export const isNumber = (v: any): v is number => {
+  return typeof v === 'number';
+};
+
+export const isBoolean = (v: any): v is boolean => {
+  return typeof v === 'boolean';
+};
+
+export const isSymbol = (v: any): v is symbol => {
+  return typeof v === 'symbol';
+}
+
+export const isDef = (v: any): v is any => {
+  return v !== undefined;
+};
+
 /**
  * Type representing a value which is either resolve or a promise.
  * @public

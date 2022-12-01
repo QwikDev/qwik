@@ -1,3 +1,4 @@
+import { isBoolean, isNumber } from './../../util/types';
 import { isPromise, then } from '../../util/promises';
 import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
 import { isJSXNode, jsx } from '../jsx/jsx-runtime';
@@ -168,13 +169,13 @@ const renderRoot = async (
     0,
     beforeClose
       ? (stream: StreamWriter) => {
-          const result = beforeClose(
-            ssrCtx.$static$.$contexts$,
-            containerState,
-            ssrCtx.$static$.$dynamic$
-          );
-          return processData(result, rCtx, ssrCtx, stream, 0, undefined);
-        }
+        const result = beforeClose(
+          ssrCtx.$static$.$contexts$,
+          containerState,
+          ssrCtx.$static$.$dynamic$
+        );
+        return processData(result, rCtx, ssrCtx, stream, 0, undefined);
+      }
       : undefined
   );
 
@@ -473,7 +474,7 @@ const renderNode = (
       addDynamicSlot(hostCtx, slotCtx);
     }
   }
-  if (typeof tagName === 'string') {
+  if (isString(tagName)) {
     const key = node.key;
     const props = node.props;
     const immutableMeta: Record<string, boolean | Signal> = (props as any)[_IMMUTABLE] ?? EMPTY_OBJ;
@@ -663,10 +664,10 @@ const processData = (
   flags: number,
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ): ValueOrPromise<void> => {
-  if (node == null || typeof node === 'boolean') {
+  if (node == null || isBoolean(node)) {
     return;
   }
-  if (isString(node) || typeof node === 'number') {
+  if (isString(node) || isNumber(node)) {
     stream.write(escapeHtml(String(node)));
   } else if (isJSXNode(node)) {
     return renderNode(node, rCtx, ssrCtx, stream, flags, beforeClose);
@@ -724,14 +725,14 @@ const walkChildren = (
     buffers.push(buffer);
     const localStream: StreamWriter = prevPromise
       ? {
-          write(chunk) {
-            if (currentIndex === index) {
-              stream.write(chunk);
-            } else {
-              buffer.push(chunk);
-            }
-          },
-        }
+        write(chunk) {
+          if (currentIndex === index) {
+            stream.write(chunk);
+          } else {
+            buffer.push(chunk);
+          }
+        },
+      }
       : stream;
 
     const rendered = processData(child, rCtx, ssrContext, localStream, flags);

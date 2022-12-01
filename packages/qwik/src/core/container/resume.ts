@@ -6,7 +6,7 @@ import { ELEMENT_ID, ELEMENT_ID_PREFIX, QContainerAttr, QStyle } from '../util/m
 
 import { emitEvent } from '../util/event';
 
-import { isArray, isSerializableObject, isString } from '../util/types';
+import { isArray, isSerializableObject, isString, isObject } from '../util/types';
 import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { createParser, OBJECT_TRANSFORMS, Parser, UNDEFINED_PREFIX } from './serializers';
 import {
@@ -124,7 +124,7 @@ export const resumeContainer = (containerEl: Element) => {
 
   const getObject: GetObject = (id) => {
     assertTrue(
-      typeof id === 'string' && id.length > 0,
+      isString(id) && id.length > 0,
       'resume: id must be an non-empty string, got:',
       id
     );
@@ -246,7 +246,7 @@ const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => 
     return;
   }
 
-  if (obj && typeof obj == 'object') {
+  if (isObject(obj)) {
     if (isArray(obj)) {
       for (let i = 0; i < obj.length; i++) {
         obj[i] = getObject(obj[i]);

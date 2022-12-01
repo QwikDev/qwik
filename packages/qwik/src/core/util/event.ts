@@ -1,10 +1,11 @@
+import { isFunction } from './types';
 export const emitEvent = (
   el: Element | undefined,
   eventName: string,
   detail: any,
   bubbles: boolean
 ) => {
-  if (el && typeof CustomEvent === 'function') {
+  if (el && isFunction(CustomEvent)) {
     el.dispatchEvent(
       new CustomEvent(eventName, {
         detail,

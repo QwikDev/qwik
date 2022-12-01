@@ -1,3 +1,4 @@
+import { isString } from './../util/types';
 import { assertQrl } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
@@ -135,7 +136,7 @@ const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: Event) => void>
     invokeCtx.$renderCtx$.$static$.$containerState$
   );
   assertQrl(eventQrl);
-  if (typeof eventName === 'string') {
+  if (isString(eventName)) {
     elCtx.li.push([normalizeOnProp(eventName), eventQrl]);
   } else {
     elCtx.li.push(...eventName.map((name) => [normalizeOnProp(name), eventQrl] as Listener));

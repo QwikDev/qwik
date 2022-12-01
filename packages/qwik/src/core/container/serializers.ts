@@ -1,3 +1,4 @@
+import { isFunction, isNumber } from './../util/types';
 import { Component, componentQrl, isQwikComponent } from '../component/component.public';
 import { parseQRL, serializeQRL } from '../qrl/qrl';
 import { isQrl, QRLInternal } from '../qrl/qrl-class';
@@ -43,8 +44,8 @@ export interface Serializer<T> {
    * Convert the object to a string.
    */
   serialize:
-    | ((obj: T, getObjID: MustGetObjID, containerState: ContainerState) => string)
-    | undefined;
+  | ((obj: T, getObjID: MustGetObjID, containerState: ContainerState) => string)
+  | undefined;
 
   /**
    * Return of
@@ -221,7 +222,7 @@ const ComponentSerializer: Serializer<Component<any>> = {
 
 const PureFunctionSerializer: Serializer<Function> = {
   prefix: '\u0011',
-  test: (obj) => typeof obj === 'function' && obj.__qwik_serializable__ !== undefined,
+  test: (obj) => isFunction(obj) && obj.__qwik_serializable__ !== undefined,
   serialize: (obj) => {
     return obj.toString();
   },
@@ -278,7 +279,7 @@ const SignalWrapperSerializer: Serializer<SignalWrapper<any, any>> = {
 
 const NoFiniteNumberSerializer: Serializer<number> = {
   prefix: '\u0014',
-  test: (v) => typeof v === 'number',
+  test: (v) => isNumber(v),
   serialize: (v) => {
     return String(v);
   },
@@ -388,14 +389,14 @@ export const createParser = (containerState: ContainerState, doc: Document): Par
 };
 
 export const OBJECT_TRANSFORMS: Record<string, (obj: any, containerState: ContainerState) => any> =
-  {
-    '!': (obj: any, containerState: ContainerState) => {
-      return containerState.$proxyMap$.get(obj) ?? getOrCreateProxy(obj, containerState);
-    },
-    '~': (obj: any) => {
-      return Promise.resolve(obj);
-    },
-    _: (obj: any) => {
-      return Promise.reject(obj);
-    },
-  };
+{
+  '!': (obj: any, containerState: ContainerState) => {
+    return containerState.$proxyMap$.get(obj) ?? getOrCreateProxy(obj, containerState);
+  },
+  '~': (obj: any) => {
+    return Promise.resolve(obj);
+  },
+  _: (obj: any) => {
+    return Promise.reject(obj);
+  },
+};

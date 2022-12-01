@@ -12,6 +12,7 @@ import type { ValueOrPromise } from '../util/types';
 import { invoke } from '../use/use-core';
 import { verifySerializable } from '../state/common';
 import { _IMMUTABLE } from '../state/constants';
+import { isFunction } from '../util/types';
 
 /**
  * Infers `Props` from the component.
@@ -168,7 +169,7 @@ export const componentQrl = <PROPS extends {}>(
 };
 
 export const isQwikComponent = (component: any): component is Component<any> => {
-  return typeof component == 'function' && component[SERIALIZABLE_STATE] !== undefined;
+  return isFunction(component) && component[SERIALIZABLE_STATE] !== undefined;
 };
 
 // <docs markdown="../readme.md#component">

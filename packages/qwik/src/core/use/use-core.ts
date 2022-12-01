@@ -1,3 +1,4 @@
+import { isDef } from './../util/types';
 import type { QwikDocument } from '../document';
 import { assertDefined } from '../error/assert';
 import { qError, QError_useInvokeContext, QError_useMethodOutsideContext } from '../error/error';
@@ -50,7 +51,7 @@ let _context: InvokeContext | undefined;
 
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
-    const context = typeof document !== 'undefined' && document && document.__q_context__;
+    const context = isDef(document) && document && document.__q_context__;
     if (!context) {
       return undefined;
     }

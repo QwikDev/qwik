@@ -1,3 +1,4 @@
+import { isObject, isBoolean } from './../util/types';
 import { assertDefined } from '../error/assert';
 import { RenderEvent } from '../util/markers';
 import { safeCall } from '../util/promises';
@@ -143,7 +144,7 @@ export const parseClassList = (value: string | undefined | null): string[] =>
 
 export const stringifyStyle = (obj: any): string => {
   if (obj == null) return '';
-  if (typeof obj == 'object') {
+  if (isObject(obj)) {
     if (isArray(obj)) {
       throw qError(QError_stringifyClassOrStyle, obj, 'style');
     } else {
@@ -177,7 +178,7 @@ export const hasStyle = (containerState: ContainerState, styleId: string) => {
 };
 
 export const jsxToString = (data: any) => {
-  return data == null || typeof data === 'boolean' ? '' : String(data);
+  return data == null || isBoolean(data) ? '' : String(data);
 };
 
 export function isAriaAttribute(prop: string): boolean {

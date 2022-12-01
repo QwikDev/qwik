@@ -2,7 +2,7 @@ import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
 import { logWarn } from '../../util/log';
-import { isFunction, isObject, isString } from '../../util/types';
+import { isFunction, isObject, isString, isArray } from '../../util/types';
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
 import { isQrl } from '../../qrl/qrl-class';
 import { invoke } from '../../use/use-core';
@@ -41,7 +41,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
           for (const prop of Object.keys(props)) {
             const value = (props as any)[prop];
             if (prop.endsWith('$') && value) {
-              if (!isQrl(value) && !Array.isArray(value)) {
+              if (!isQrl(value) && !isArray(value)) {
                 throw qError(QError_invalidJsxNodeType, type);
               }
             }
@@ -49,7 +49,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
         }
       });
     }
-    if (typeof type === 'string' && 'className' in (props as any)) {
+    if (isString(type) && 'className' in (props as any)) {
       (props as any)['class'] = (props as any)['className'];
       delete (props as any)['className'];
       if (qDev && !warnClassname) {

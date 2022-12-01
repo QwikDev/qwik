@@ -1,3 +1,4 @@
+import { isBoolean, isNumber } from './../../util/types';
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
 import { InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
@@ -123,7 +124,7 @@ export const processData = (
   node: any,
   invocationContext?: InvokeContext
 ): ValueOrPromise<ProcessedJSXNode[] | ProcessedJSXNode | undefined> => {
-  if (node == null || typeof node === 'boolean') {
+  if (node == null || isBoolean(node)) {
     return undefined;
   }
   if (isPrimitive(node)) {
@@ -166,7 +167,7 @@ export const isProcessedJSXNode = (n: any): n is ProcessedJSXNode => {
 };
 
 export const isPrimitive = (obj: any) => {
-  return isString(obj) || typeof obj === 'number';
+  return isString(obj) || isNumber(obj);
 };
 
 export interface ProcessedJSXNode {

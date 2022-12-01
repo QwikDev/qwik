@@ -1,3 +1,4 @@
+import { isString } from './../util/types';
 import { assertTrue } from '../error/assert';
 import { qError, QError_verifySerializable } from '../error/error';
 import { isDocument, isQwikElement } from '../util/element';
@@ -130,7 +131,7 @@ export const mutable = <T>(v: T): T => {
  * @internal
  * @deprecated Remove it, not needed anymore
  */
-export const _useMutableProps = () => {};
+export const _useMutableProps = () => { };
 
 export const isConnected = (sub: SubscriberEffect | SubscriberHost): boolean => {
   if (isQwikElement(sub)) {
@@ -197,7 +198,7 @@ export const serializeSubscription = (sub: Subscriptions, getObjId: GetObjID) =>
       base += ' ' + sub[2];
     }
   } else {
-    const nodeID = typeof sub[3] === 'string' ? sub[3] : must(getObjId(sub[3]));
+    const nodeID = isString(sub[3]) ? sub[3] : must(getObjId(sub[3]));
     base += ` ${must(getObjId(sub[2]))} ${nodeID} ${sub[4]}`;
     if (sub[5]) {
       base += ` ${sub[5]}`;

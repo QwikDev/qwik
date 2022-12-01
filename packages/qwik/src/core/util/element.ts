@@ -1,8 +1,9 @@
+import { isNumber } from './types';
 import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
 import { qDev } from './qdev';
 
 export const isNode = (value: any): value is Node => {
-  return value && typeof value.nodeType === 'number';
+  return value && isNumber(value.nodeType);
 };
 
 export const isDocument = (value: any): value is Document => {

@@ -1,3 +1,4 @@
+import { isString } from './../util/types';
 import { fromCamelToKebabCase } from '../util/case';
 import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
 import { qDev } from '../util/qdev';
@@ -380,7 +381,7 @@ export const findVirtual = (el: Node | VirtualElement) => {
 };
 
 export const validateContext = (context: Context<any>) => {
-  if (!isObject(context) || typeof context.id !== 'string' || context.id.length === 0) {
+  if (!isObject(context) || !isString(context.id) || context.id.length === 0) {
     throw qError(QError_invalidContext, context);
   }
 };

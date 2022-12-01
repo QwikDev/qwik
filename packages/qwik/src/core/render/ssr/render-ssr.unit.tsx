@@ -20,6 +20,7 @@ import { jsx } from '../jsx/jsx-runtime';
 import { renderSSR, RenderSSROptions } from './render-ssr';
 import { useStore } from '../../use/use-store.public';
 import { useSignal } from '../../use/use-signal';
+import { isString } from '../../util/types';
 
 const renderSSRSuite = suite('renderSSR');
 renderSSRSuite('render attributes', async () => {
@@ -1307,7 +1308,7 @@ async function testSSR(
     containerAttributes: {},
     ...opts,
   });
-  if (typeof expected === 'string') {
+  if (isString(expected)) {
     const options = { parser: 'html', htmlWhitespaceSensitivity: 'ignore' } as const;
     snapshot(
       format(chunks.join(''), options),

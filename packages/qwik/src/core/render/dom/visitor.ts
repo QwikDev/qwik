@@ -640,8 +640,8 @@ const createElm = (
     if (dev) {
       directSetAttribute(
         elm,
-        'data-source',
-        `${dev.fileName}:${dev.lineNumber}:${dev.columnNumber}`
+        'data-qwik-inspector',
+        `${encodeURIComponent(dev.fileName)}:${dev.lineNumber}:${dev.columnNumber}`
       );
     }
   }

@@ -120,9 +120,9 @@ export const jsxDEV = <T extends string | FunctionComponent<any>>(
   node.dev = {
     isStatic,
     ctx,
+    stack: new Error().stack,
     ...opts,
   };
-  Error.captureStackTrace(node.dev);
   seal(node);
   return node;
 };

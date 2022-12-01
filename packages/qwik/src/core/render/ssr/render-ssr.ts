@@ -33,7 +33,7 @@ import {
 import type { RenderContext } from '../types';
 import { assertDefined } from '../../error/assert';
 import { serializeSStyle } from '../../style/qrl-styles';
-import { qDev, seal } from '../../util/qdev';
+import { qDev, qInspector, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
 import { addSignalSub, isSignal, Signal } from '../../state/signal';
 import { serializeQRLs } from '../../qrl/qrl';
@@ -574,6 +574,14 @@ const renderNode = (
     }
     if (flags & IS_HEAD) {
       openingElement += ' q:head';
+    }
+    if (qDev && qInspector && node.dev) {
+      const sanitizedFileName = node?.dev?.fileName?.replace(/\\/g, '/');
+      if (sanitizedFileName) {
+        openingElement += ` data-qwik-inspector="${encodeURIComponent(sanitizedFileName)}:${
+          node.dev.lineNumber
+        }:${node.dev.columnNumber}"`;
+      }
     }
     openingElement += '>';
     stream.write(openingElement);

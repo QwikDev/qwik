@@ -268,9 +268,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (buildMode === 'development') {
         (globalThis as any).qDev = true;
         const qDevKey = 'globalThis.qDev';
+        const qInspectorKey = 'globalThis.qInspectorKey';
         const qSerializeKey = 'globalThis.qSerialize';
         updatedViteConfig.define = {
           [qDevKey]: viteConfig?.define?.[qDevKey] ?? true,
+          [qInspectorKey]: viteConfig?.define?.[qInspectorKey] ?? true,
           [qSerializeKey]: viteConfig?.define?.[qSerializeKey] ?? true,
         };
       }
@@ -300,9 +302,12 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // Test Build
         const qDevKey = 'globalThis.qDev';
         const qTestKey = 'globalThis.qTest';
+        const qInspectorKey = 'globalThis.qInspectorKey';
+
         updatedViteConfig.define = {
           [qDevKey]: true,
           [qTestKey]: true,
+          [qInspectorKey]: false,
         };
       }
 

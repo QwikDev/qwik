@@ -264,6 +264,146 @@ document.addEventListener('qerror', ev => {
 });
 </script>`;
 
+declare global {
+  interface Window {
+    __qwik_inspector_state: {
+      pressedKeys: string[];
+      hoveredElement?: EventTarget | null;
+    };
+  }
+}
+
+const DEV_QWIK_INSPECTOR = `
+<style>
+#qwik-inspector-overlay {
+  position: fixed;
+  background: rgba(24, 182, 246, 0.27);
+  pointer-events: none;
+  box-sizing: border-box;
+  border: 2px solid rgba(172, 126, 244, 0.46);
+  border-radius: 4px;
+}
+#qwik-inspector-info-popup {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  font-family: monospace;
+  background: #000000c2;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 34%), 0 8px 10px -6px rgb(0 0 0 / 24%);
+  backdrop-filter: blur(4px);
+  -webkit-animation: fadeOut 0.3s 3s ease-in-out forwards;
+  animation: fadeOut 0.3s 3s ease-in-out forwards;
+}
+#qwik-inspector-info-popup p { 
+  margin: 0px; 
+}
+@-webkit-keyframes fadeOut {
+  0% {opacity: 1;}
+  100% {opacity: 0;}
+}
+
+@keyframes fadeOut {
+  0% {opacity: 1;}
+  100% {opacity: 0; visibility: hidden;}
+}
+</style>
+<script>
+console.debug(
+  'Hold-press the Alt key and click on a component in order to jump directly to the source code in your IDE'
+);
+window.__qwik_inspector_state = {
+  pressedKeys: [],
+};
+
+const overlay = document.createElement('div');
+overlay.id = 'qwik-inspector-overlay';
+document.body.appendChild(overlay);
+
+document.addEventListener(
+  'keydown',
+  (event) => {
+    if (event.code && !window.__qwik_inspector_state.pressedKeys.includes(event.code)) {
+      window.__qwik_inspector_state.pressedKeys.push(event.code);
+    }
+  },
+  { capture: true }
+);
+
+document.addEventListener(
+  'keyup',
+  (event) => {
+    if (window.__qwik_inspector_state.pressedKeys.includes(event.code)) {
+      window.__qwik_inspector_state.pressedKeys = window.__qwik_inspector_state.pressedKeys.filter(
+        (key) => key !== event.code
+      );
+      hideOverlay();
+    }
+  },
+  { capture: true }
+);
+
+document.addEventListener(
+  'mouseover',
+  (event) => {
+    if (event.target && event.target instanceof HTMLElement && event.target.dataset.qwikInspector) {
+      window.__qwik_inspector_state.hoveredElement = event.target;
+
+      const rect = event.target.getBoundingClientRect();
+
+      if (overlay && checkKeysArePressed(['Shift', 'Control'])) {
+        overlay.style.setProperty('height', rect.height + 'px');
+        overlay.style.setProperty('width', rect.width + 'px');
+        overlay.style.setProperty('top', rect.top + 'px');
+        overlay.style.setProperty('left', rect.left + 'px');
+        overlay.style.setProperty('visibility', 'visible');
+      }
+    }
+  },
+  { capture: true }
+);
+
+document.addEventListener(
+  'click',
+  (event) => {
+    if (checkKeysArePressed(['Shift', 'Control'])) {
+      if (event.target && event.target instanceof HTMLElement) {
+        if (event.target.dataset.qwikInspector) {
+          event.preventDefault();
+          fetch('/__open-in-editor?file=' + event.target.dataset.qwikInspector);
+        }
+      }
+    }
+  },
+  { capture: true }
+);
+
+function hideOverlay() {
+  const overlay = document.getElementById('qwik-inspector-overlay');
+  if (overlay) {
+    overlay.style.setProperty('height', '0px');
+    overlay.style.setProperty('width', '0px');
+    overlay.style.setProperty('visibility', 'hidden');
+  }
+}
+
+function checkKeysArePressed(keys) {
+  return keys.every((key) =>
+    window.__qwik_inspector_state.pressedKeys
+      .map((key) => key.replace(/(Left|Right)$/g, ''))
+      .includes(key)
+  );
+}
+
+window.addEventListener('resize', hideOverlay);
+
+document.addEventListener('scroll', hideOverlay);
+</script>
+<div id="qwik-inspector-info-popup"><p>Ctrl + Shift + Click ✨</p></div>
+`;
+
 const PERF_WARNING = `
 <script>
 if (!window.__qwikViteLog) {
@@ -277,6 +417,7 @@ const END_SSR_SCRIPT = `
 ${DEV_ERROR_HANDLING}
 ${ERROR_HOST}
 ${PERF_WARNING}
+${DEV_QWIK_INSPECTOR}
 `;
 
 function getViteDevIndexHtml(entryUrl: string, envData: Record<string, any>) {

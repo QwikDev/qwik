@@ -176,9 +176,9 @@ The Optimizer splits Qwik components into the host element and the behavior of t
 
 ### State
 
-- [`useStore(initialState)`](../state/index.mdx) - creates a reactive object that can be used to store state.
+- [`useStore(initialState)`](../state/index.mdx) - creates a reactive object that can be used to store state
 - [`useSignal$(initialState)`](../state/index.mdx) - creates a reactive value
-- [`createContext(contentName)`](../context/index.mdx) - creates a context refences
+- [`createContext(contentName)`](../context/index.mdx) - creates a context reference
 - [`useContextProvider$()`](../context/index.mdx) - provides a value to a given context
 - [`useContext$()`](../context/index.mdx) - reads the value of the current context
 
@@ -189,16 +189,16 @@ The Optimizer splits Qwik components into the host element and the behavior of t
 
 ### Events
 
-- [`useOn()`](../events/index.mdx) - appends a listener to the component programatically
-- [`useOnWindow()`](../events/index.mdx) - appends a window listener to the component programatically
-- [`useOnDocument()`](../events/index.mdx) - appends a document listener to the component programatically
+- [`useOn()`](../events/index.mdx) - appends a listener to the current component programatically
+- [`useOnWindow()`](../events/index.mdx) - appends a listener to the window object programatically
+- [`useOnDocument()`](../events/index.mdx) - appends a listener to the document object programatically
 
 ### Lifecycles
 
 - [`useMount$()`](../lifecycle/index.mdx) - defines a callback that will be executed on mount time
-- [`useServerMount$()`](../lifecycle/index.mdx) - defines a callback that will be executed on mount time on the server only
-- [`useWatch$()`](../lifecycle/index.mdx) - defines a callback that will be called before render and/or a watched store changes
-- [`useClientEffect$()`](../lifecycle/index.mdx) - defines a callback that will be called after the render, only in the client (browser)
+- [`useServerMount$()`](../lifecycle/index.mdx) - defines a callback that will be executed on mount time in the server only
+- [`useWatch$()`](../lifecycle/index.mdx) - defines a callback that will be called before render and/or when a watched store changes
+- [`useClientEffect$()`](../lifecycle/index.mdx) - defines a callback that will be called after render in the client only (browser)
 - [`useResource$()`](../resource/index.mdx) - creates a resource to asyncronously load data
 
 ### Other
@@ -209,7 +209,7 @@ The Optimizer splits Qwik components into the host element and the behavior of t
 
 ### Components
 
-- [`<Slot>`](../projection/index.mdx) - declared a content projection slot
+- [`<Slot>`](../projection/index.mdx) - declares a content projection slot
 - `<SSRStreamBlock>` - declares a stream block
 - `<SSRStream>` - declares a stream
 - `<Fragment>` - declares a JSX fragment

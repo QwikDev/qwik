@@ -96,7 +96,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
 
   useWatch$(async ({ track }) => {
     const locale = getLocale('');
-    const { routes, menus, cacheModules } = await import('@qwik-city-plan');
+    const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
     const path = track(() => routeNavigate.path);
     const url = new URL(path, routeLocation.href);
     const pathname = url.pathname;
@@ -111,6 +111,19 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       const [params, mods, menu] = loadedRoute;
       const contentModules = mods as ContentModule[];
       const pageModule = contentModules[contentModules.length - 1] as PageModule;
+
+      // ensure correct trailing slash
+      if (pathname.endsWith('/')) {
+        if (!trailingSlash) {
+          url.pathname = pathname.slice(0, -1);
+          routeNavigate.path = toPath(url);
+          return;
+        }
+      } else if (trailingSlash) {
+        url.pathname += '/';
+        routeNavigate.path = toPath(url);
+        return;
+      }
 
       // Update route location
       routeLocation.href = url.href;

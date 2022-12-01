@@ -27,19 +27,19 @@ export const Breadcrumbs = component$(() => {
 export function createBreadcrumbs(menu: ContentMenu | undefined, pathname: string) {
   if (menu?.items) {
     for (const breadcrumbA of menu.items) {
-      if (breadcrumbA.href === pathname) {
+      if (matchesHref(breadcrumbA.href, pathname)) {
         return [breadcrumbA];
       }
 
       if (breadcrumbA.items) {
         for (const breadcrumbB of breadcrumbA.items) {
-          if (breadcrumbB.href === pathname) {
+          if (matchesHref(breadcrumbB.href, pathname)) {
             return [breadcrumbA, breadcrumbB];
           }
 
           if (breadcrumbB.items) {
             for (const breadcrumbC of breadcrumbB.items) {
-              if (breadcrumbC.href === pathname) {
+              if (matchesHref(breadcrumbC.href, pathname)) {
                 return [breadcrumbA, breadcrumbB, breadcrumbC];
               }
             }
@@ -50,4 +50,15 @@ export function createBreadcrumbs(menu: ContentMenu | undefined, pathname: strin
   }
 
   return [];
+}
+
+function matchesHref(href: string | undefined, pathname: string) {
+  if (href) {
+    if (href.endsWith('/') && !pathname.endsWith('/')) {
+      pathname += '/';
+    } else if (!href.endsWith('/') && pathname.endsWith('/')) {
+      href += '/';
+    }
+  }
+  return href === pathname;
 }

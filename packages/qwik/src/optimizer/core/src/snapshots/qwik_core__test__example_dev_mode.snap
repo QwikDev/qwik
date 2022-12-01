@@ -48,7 +48,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
             lineNumber: 7,
             columnNumber: 13
         }, this)
-    }, void 0, false, {
+    }, "u6_0", false, {
         fileName: "/user/qwik/src/test.tsx",
         lineNumber: 6,
         columnNumber: 9

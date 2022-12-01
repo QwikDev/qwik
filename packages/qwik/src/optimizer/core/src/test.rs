@@ -1756,6 +1756,59 @@ export const App = component$((props: Stuff) => {
 }
 
 #[test]
+fn example_jsx_keyed() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    return (
+        <>
+            <Cmp key="stuff"></Cmp>
+            <Cmp></Cmp>
+            <Cmp prop="23"></Cmp>
+            <Cmp prop="23" key={props.stuff}></Cmp>
+            <p key={props.stuff}>Hello Qwik</p>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_jsx_keyed_dev() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+
+export const App = component$((props: Stuff) => {
+    return (
+        <>
+            <Cmp key="stuff"></Cmp>
+            <Cmp></Cmp>
+            <Cmp prop="23"></Cmp>
+            <Cmp prop="23" key={props.stuff}></Cmp>
+            <p key={props.stuff}>Hello Qwik</p>
+        </>
+    );
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        mode: EmitMode::Dev,
+        explicit_extensions: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_mutable_children() {
     test_input!(TestInput {
         code: r#"

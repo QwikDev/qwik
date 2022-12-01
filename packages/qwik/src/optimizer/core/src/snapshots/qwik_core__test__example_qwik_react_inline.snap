@@ -151,15 +151,15 @@ function qwikifyQrl(reactCmpQrl) {
                     [_IMMUTABLE]: [
                         "dangerouslySetInnerHTML"
                     ]
-                });
+                }, "mR_0");
             });
             return /*#__PURE__*/ jsx(Fragment, {
                 children: jsx$1
-            });
+            }, "mR_1");
         }
         return /*#__PURE__*/ jsx(Host, {
-            children: /*#__PURE__*/ jsx(SkipRerender, {})
-        });
+            children: /*#__PURE__*/ jsx(SkipRerender, {}, "mR_2")
+        }, "mR_3");
     }, "qwikifyQrl_component_zH94hIe0Ick", [
         reactCmpQrl
     ]), {

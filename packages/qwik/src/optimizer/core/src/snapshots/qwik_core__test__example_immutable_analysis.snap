@@ -120,13 +120,13 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                     children: "Hello Qwik"
                 }),
                 [_IMMUTABLE]: {
-                    transparent$: true,
-                    immutable1: true,
-                    immutable3: true,
-                    immutable4$: true,
-                    immutable5: true
+                    transparent$: _IMMUTABLE,
+                    immutable1: _IMMUTABLE,
+                    immutable3: _IMMUTABLE,
+                    immutable4$: _IMMUTABLE,
+                    immutable5: _IMMUTABLE
                 }
-            }),
+            }, "u6_0"),
             /*#__PURE__*/ _jsx(Div, {
                 class: state,
                 mutable1: {
@@ -142,12 +142,12 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                     {}
                 ],
                 [_IMMUTABLE]: {
-                    class: true,
-                    mutable3: true
+                    class: _IMMUTABLE,
+                    mutable3: _IMMUTABLE
                 }
-            })
+            }, "u6_1")
         ]
-    });
+    }, "u6_2");
 };
 
 

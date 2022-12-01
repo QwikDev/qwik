@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 export interface TodoItem {
+  id: string;
   completed: boolean;
   title: string;
 }
@@ -10,6 +11,7 @@ export interface TodoItem {
 export interface Todos {
   filter: FilterStates;
   items: TodoItem[];
+  nextItemId: number;
 }
 
 export type FilterStates = 'all' | 'active' | 'completed';

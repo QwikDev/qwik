@@ -60,4 +60,21 @@ test.describe('render', () => {
       useInnerText: true,
     });
   });
+
+  test('counter toggle', async ({ page }) => {
+    const button = await page.locator('#counter-toggle-btn');
+    const show1 = await page.locator('#counter-toggle-show');
+    const show2 = await page.locator('#counter-toggle-show-2');
+    await expect(show1).toHaveText('even');
+    await expect(show2).toHaveText('true');
+    await button.click();
+    await expect(show1).toHaveText('odd');
+    await expect(show2).toHaveText('false');
+    await button.click();
+    await expect(show1).toHaveText('even');
+    await expect(show2).toHaveText('true');
+    await button.click();
+    await expect(show1).toHaveText('odd');
+    await expect(show2).toHaveText('false');
+  });
 });

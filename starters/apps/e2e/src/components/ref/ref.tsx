@@ -14,8 +14,8 @@ export const RefRoot = component$(() => {
         <Ref id="static" key={'1'}></Ref>
         {state.visible && <Ref id="dynamic" key={'2'}></Ref>}
 
-        <Ref2 id="static-2" key={1}></Ref2>
-        {state.visible && <Ref2 id="dynamic-2" key={'2'}></Ref2>}
+        <Ref2 id="static-2" key={11}></Ref2>
+        {state.visible && <Ref2 id="dynamic-2" key={'22'}></Ref2>}
       </div>
     </>
   );

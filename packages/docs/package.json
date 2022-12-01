@@ -36,13 +36,13 @@
     "postcss": "8.4.19",
     "prism-themes": "1.9.0",
     "prismjs": "1.29.0",
-    "puppeteer": "^19.2.2",
+    "puppeteer": "^19.3.0",
     "tailwindcss": "3.2.4",
-    "tsm": "2.2.2",
+    "tsm": "2.3.0",
     "typescript": "4.9.3",
     "uvu": "0.5.6",
     "vite": "3.2.4",
-    "wrangler": "latest"
+    "wrangler": "^2.5.0"
   },
   "author": "Builder.io Team",
   "bugs": {

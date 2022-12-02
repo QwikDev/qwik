@@ -179,7 +179,7 @@ You wanna mutate some state, or perform some action when some state changes. Ie,
 
 Similarly to `useWatch$()` or `useMount$()` this hook will also run at least once, but it will never RUN in the server, that is, it will run only in the browser.
 
-For all components that got mounted during SSR (in the server), the `useClientEffect$()` will run eagarly, that means, without user interaction, but the eagernesseagerness can be configured!
+For all components that got mounted during SSR (in the server), the `useClientEffect$()` will run eagarly, that means, without user interaction, but the eagerness can be configured!
 
 ```tsx
 useClientEffect$(() => console.log('runs in the browser'), {

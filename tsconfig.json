@@ -15,6 +15,7 @@
     "importsNotUsedAsValues": "error",
     "moduleResolution": "node",
     "baseUrl": ".",
+    "assumeChangesOnlyAffectDirectDependencies": true,
     "noUnusedLocals": true,
     "paths": {
       "@builder.io/qwik": ["packages/qwik/src/core/index.ts"],

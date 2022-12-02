@@ -4,6 +4,7 @@
   "version": "0.15.0",
   "scripts": {
     "build": "tsm scripts/index.ts --tsc --build --qwikcity --api --platform-binding-wasm-copy",
+    "build.vite": "tsm scripts/index.ts --tsc --build --qwikcity --platform-binding-wasm-copy",
     "build.full": "tsm scripts/index.ts --tsc --build --api --eslint --qwikcity --qwikreact --cli --platform-binding --wasm",
     "build.qwik-city": "tsm scripts/index.ts --tsc --qwikcity",
     "build.platform": "tsm scripts/index.ts --platform-binding",
@@ -32,6 +33,7 @@
     "test.e2e": "pnpm test.e2e.chromium && pnpm test.e2e.webkit",
     "test.e2e.city": "playwright test starters/e2e/qwikcity --browser=chromium --config starters/playwright.config.ts",
     "test.e2e.chromium": "playwright test starters --browser=chromium --config starters/playwright.config.ts",
+    "test.vite": "playwright test starters/e2e/qwikcity --browser=chromium --config starters/playwright.config.ts",
     "test.e2e.chromium.debug": "PWDEBUG=1 playwright test starters --browser=chromium --config starters/playwright.config.ts",
     "test.e2e.firefox": "playwright test starters --browser=firefox --config starters/playwright.config.ts",
     "test.e2e.webkit": "playwright test starters --browser=webkit --config starters/playwright.config.ts",

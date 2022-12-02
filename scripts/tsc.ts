@@ -7,7 +7,7 @@ export async function tsc(config: BuildConfig) {
     emptyDir(config.dtsDir);
   }
 
-  const result = await execa('tsc', ['--incremental'], {
+  const result = await execa('tsc', {
     stdout: 'inherit',
   });
   if (result.failed) {

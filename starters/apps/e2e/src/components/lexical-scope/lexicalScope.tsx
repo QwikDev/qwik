@@ -93,6 +93,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   const infinite = Infinity;
   const negativeInfinite = -Infinity;
   const nan = NaN;
+  const urlSearchParams = new URLSearchParams('mph=88');
 
   const onclick = $(async () => {
     // eslint-disable-next-line
@@ -131,6 +132,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
           String(infinite),
           String(negativeInfinite),
           String(nan),
+          urlSearchParams.get('mph'),
         ]);
         state.count++;
       });

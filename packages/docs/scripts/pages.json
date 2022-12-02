@@ -72,6 +72,7 @@
   },
   {
     "href": "https://qwind.pages.dev/",
-    "tags": "template"
+    "tags": "template",
+    "repo": "https://github.com/onwidget/qwind"
   },
 ]

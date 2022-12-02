@@ -10,7 +10,7 @@ export const Body = component$(({ todos }: BodyProps) => {
     <div class="main">
       <ul class="todo-list">
         {todos.items.filter(FILTERS[todos.filter]).map((key) => (
-          <Item item={key} todos={todos} />
+          <Item item={key} todos={todos} key={key.id} />
         ))}
       </ul>
     </div>

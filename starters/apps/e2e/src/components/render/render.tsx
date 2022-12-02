@@ -23,6 +23,7 @@ export const Render = component$(() => {
       </button>
       <Child counter={state.counter}></Child>
       <Issue1475 />
+      <CounterToggle />
     </>
   );
 });
@@ -112,4 +113,33 @@ export const LazyIssue1475 = component$(() => {
   });
 
   return <div>Middle</div>;
+});
+
+export const CounterToggle = component$(() => {
+  const cond = useSignal({ cond: true });
+  return (
+    <>
+      <button id="counter-toggle-btn" onClick$={() => (cond.value = { cond: !cond.value.cond })}>
+        Toggle
+      </button>
+      {cond.value.cond ? <CounterToggleShow text="even" /> : <CounterToggleShow text="odd" />}
+      <CounterToggleShow2 cond={cond.value.cond} />
+    </>
+  );
+});
+
+export const CounterToggleShow = component$((props: { text: string }) => {
+  return (
+    <>
+      <div id="counter-toggle-show">{props.text}</div>
+    </>
+  );
+});
+
+export const CounterToggleShow2 = component$((props: { cond: boolean }) => {
+  return (
+    <>
+      <div id="counter-toggle-show-2">{String(props.cond)}</div>
+    </>
+  );
 });

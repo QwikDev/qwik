@@ -264,6 +264,170 @@ document.addEventListener('qerror', ev => {
 });
 </script>`;
 
+declare global {
+  interface Window {
+    __qwik_inspector_state: {
+      pressedKeys: string[];
+      hoveredElement?: EventTarget | null;
+    };
+  }
+}
+
+const DEV_QWIK_INSPECTOR = `
+<style>
+#qwik-inspector-overlay {
+  position: fixed;
+  background: rgba(24, 182, 246, 0.27);
+  pointer-events: none;
+  box-sizing: border-box;
+  border: 2px solid rgba(172, 126, 244, 0.46);
+  border-radius: 4px;
+  contain: strict;
+  cursor: pointer;
+}
+#qwik-inspector-info-popup {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  font-family: monospace;
+  background: #000000c2;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 34%), 0 8px 10px -6px rgb(0 0 0 / 24%);
+  backdrop-filter: blur(4px);
+  -webkit-animation: fadeOut 0.3s 3s ease-in-out forwards;
+  animation: fadeOut 0.3s 3s ease-in-out forwards;
+}
+#qwik-inspector-info-popup p {
+  margin: 0px;
+}
+@-webkit-keyframes fadeOut {
+  0% {opacity: 1;}
+  100% {opacity: 0;}
+}
+
+@keyframes fadeOut {
+  0% {opacity: 1;}
+  100% {opacity: 0; visibility: hidden;}
+}
+</style>
+<script>
+(function() {
+  console.debug(
+    'Click-to-Source: Hold-press the ⌥ Option/Alt key and click a component to jump directly to the source code in your IDE!'
+  );
+  window.__qwik_inspector_state = {
+    pressedKeys: new Set(),
+  };
+
+  const body = document.body;
+  const overlay = document.createElement('div');
+  overlay.id = 'qwik-inspector-overlay';
+  overlay.setAttribute('aria-hidden', 'true');
+  body.appendChild(overlay);
+
+  document.addEventListener(
+    'keydown',
+    (event) => {
+      window.__qwik_inspector_state.pressedKeys.add(event.code);
+      updateOverlay();
+    },
+    { capture: true }
+  );
+
+  document.addEventListener(
+    'keyup',
+    (event) => {
+      window.__qwik_inspector_state.pressedKeys.delete(event.code);
+      updateOverlay();
+    },
+    { capture: true }
+  );
+
+  document.addEventListener(
+    'mouseover',
+    (event) => {
+      if (event.target && event.target instanceof HTMLElement && event.target.dataset.qwikInspector) {
+        window.__qwik_inspector_state.hoveredElement = event.target;
+      } else {
+        window.__qwik_inspector_state.hoveredElement = undefined;
+      }
+      updateOverlay();
+    },
+    { capture: true }
+  );
+
+  document.addEventListener(
+    'click',
+    (event) => {
+      if (isActive()) {
+        window.__qwik_inspector_state.pressedKeys.clear();
+        if (event.target && event.target instanceof HTMLElement) {
+          if (event.target.dataset.qwikInspector) {
+            event.preventDefault();
+            body.style.setProperty('cursor', 'progress');
+
+            fetch('/__open-in-editor?file=' + event.target.dataset.qwikInspector);
+          }
+        }
+      }
+    },
+    { capture: true }
+  );
+
+  document.addEventListener(
+    'contextmenu',
+    (event) => {
+      if (isActive()) {
+        window.__qwik_inspector_state.pressedKeys.clear();
+        if (event.target && event.target instanceof HTMLElement) {
+          if (event.target.dataset.qwikInspector) {
+            event.preventDefault();
+          }
+        }
+      }
+    },
+    { capture: true }
+  );
+
+  function updateOverlay() {
+    const hoverElement = window.__qwik_inspector_state.hoveredElement;
+    if (hoverElement && isActive()) {
+      const rect = hoverElement.getBoundingClientRect();
+      overlay.style.setProperty('height', rect.height + 'px');
+      overlay.style.setProperty('width', rect.width + 'px');
+      overlay.style.setProperty('top', rect.top + 'px');
+      overlay.style.setProperty('left', rect.left + 'px');
+      overlay.style.setProperty('visibility', 'visible');
+      body.style.setProperty('cursor', 'pointer');
+    } else {
+      overlay.style.setProperty('height', '0px');
+      overlay.style.setProperty('width', '0px');
+      overlay.style.setProperty('visibility', 'hidden');
+      body.style.removeProperty('cursor');
+    }
+  }
+
+  function checkKeysArePressed(keys) {
+    const activeKeys = Array.from(window.__qwik_inspector_state.pressedKeys)
+      .map((key) => key.replace(/(Left|Right)$/g, ''));
+
+    return keys.every((key) => activeKeys.includes(key));
+  }
+
+  function isActive() {
+    return checkKeysArePressed(['Alt']);
+  }
+
+  window.addEventListener('resize', updateOverlay);
+  document.addEventListener('scroll', updateOverlay);
+
+})();
+</script>
+<div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ⌥ Option</p></div>
+`;
+
 const PERF_WARNING = `
 <script>
 if (!window.__qwikViteLog) {
@@ -277,6 +441,7 @@ const END_SSR_SCRIPT = `
 ${DEV_ERROR_HANDLING}
 ${ERROR_HOST}
 ${PERF_WARNING}
+${DEV_QWIK_INSPECTOR}
 `;
 
 function getViteDevIndexHtml(entryUrl: string, envData: Record<string, any>) {

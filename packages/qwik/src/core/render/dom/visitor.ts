@@ -12,7 +12,7 @@ import type { ValueOrPromise } from '../../util/types';
 import { isPromise, promiseAll, promiseAllLazy, then } from '../../util/promises';
 import { assertDefined, assertEqual, assertTrue } from '../../error/assert';
 import { logWarn } from '../../util/log';
-import { qDev, qSerialize } from '../../util/qdev';
+import { qDev, qInspector, qSerialize, qTest } from '../../util/qdev';
 import type { OnRenderFn } from '../../component/component.public';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
@@ -636,6 +636,16 @@ const createElm = (
     elm = createElement(doc, tag, isSvg);
     flags &= ~IS_HEAD;
   }
+  if (qDev && qInspector) {
+    const dev = vnode.$dev$;
+    if (dev) {
+      directSetAttribute(
+        elm,
+        'data-qwik-inspector',
+        `${encodeURIComponent(dev.fileName)}:${dev.lineNumber}:${dev.columnNumber}`
+      );
+    }
+  }
 
   vnode.$elm$ = elm;
   if (isSvg && tag === 'foreignObject') {
@@ -652,6 +662,13 @@ const createElm = (
     assertQrl<OnRenderFn<any>>(renderQRL);
     setComponentProps(elCtx, rCtx, props.props);
     setQId(rCtx, elCtx);
+
+    if (qDev && !qTest) {
+      const symbol = renderQRL.$symbol$;
+      if (symbol) {
+        directSetAttribute(elm, 'data-qrl', symbol);
+      }
+    }
 
     // Run mount hook
     elCtx.$componentQrl$ = renderQRL;

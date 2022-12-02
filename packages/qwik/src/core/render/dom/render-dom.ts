@@ -9,7 +9,7 @@ import { isArray, isFunction, isObject, isString, ValueOrPromise } from '../../u
 import { domToVnode, visitJsxNode } from './visitor';
 import { SkipRender, Virtual } from '../jsx/utils.public';
 import { isJSXNode, SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
-import type { JSXNode } from '../jsx/types/jsx-node';
+import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
 import { executeComponent, jsxToString } from '../execute-component';
 import type { RenderContext } from '../types';
 import { QwikElement, VIRTUAL, VirtualElement } from './virtual-element';
@@ -178,4 +178,5 @@ export interface ProcessedJSXNode {
   $elm$: Node | VirtualElement | null;
   $text$: string;
   $signal$: Signal<any> | null;
+  $dev$?: DevJSX;
 }

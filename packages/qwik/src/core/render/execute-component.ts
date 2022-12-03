@@ -4,6 +4,7 @@ import { safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { isArray, isString, ValueOrPromise } from '../util/types';
 import type { JSXNode } from './jsx/types/jsx-node';
+import type { ClassList } from './jsx/types/jsx-qwik-attributes';
 import type { RenderContext } from './types';
 import { ContainerState, intToStr } from '../container/container';
 import { fromCamelToKebabCase } from '../util/case';
@@ -119,9 +120,7 @@ export const pushRenderContext = (ctx: RenderContext): RenderContext => {
   return newCtx;
 };
 
-export const serializeClass = (
-  obj: string | { [className: string]: boolean } | (string | { [className: string]: boolean })[]
-): string => {
+export const serializeClass = (obj: ClassList): string => {
   if (!obj) return '';
   if (isString(obj)) return obj.trim();
 

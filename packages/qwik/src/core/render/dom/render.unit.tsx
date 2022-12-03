@@ -617,7 +617,7 @@ renderSuite('should render class array correctly', async () => {
 
   await render(
     fixture.host,
-    <div class={['stuff', '', 'm-0 p-2', null, 'active', undefined, 'container'] as any}></div>
+    <div class={['stuff', '', 'm-0 p-2', null, 'active', undefined, 'container']}></div>
   );
   await expectRendered(fixture, `<div class="stuff m-0 p-2 active container"></div>`);
 });
@@ -856,17 +856,15 @@ export const RenderClasses = component$(() => {
         Div 1
       </div>
       <div
-        class={
-          [
-            'stuff',
-            '',
-            'm-0 p-2',
-            state.count % 2 === 0 ? null : 'almost-null',
-            'active',
-            undefined,
-            'container',
-          ] as any
-        }
+        class={[
+          'stuff',
+          '',
+          'm-0 p-2',
+          state.count % 2 === 0 ? null : 'almost-null',
+          'active',
+          undefined,
+          'container',
+        ]}
       >
         Div 2
       </div>

@@ -274,10 +274,23 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
 
           if (outDir) {
             await fs.promises.mkdir(outDir, { recursive: true });
-
-            // create server package.json to ensure mjs is used
             const serverPackageJsonPath = join(outDir, 'package.json');
-            const serverPackageJsonCode = `{"type":"module"}`;
+
+            let packageJson = {};
+
+            // we want to keep the content of an existing file:
+            const packageJsonExists = fs.existsSync(serverPackageJsonPath);
+            if (packageJsonExists) {
+              const content = await (await fs.promises.readFile(serverPackageJsonPath))?.toString();
+              const contentAsJson = JSON.parse(content);
+              packageJson = {
+                ...contentAsJson,
+              };
+            }
+
+            // set to type module to ensure mjs is used
+            packageJson = { ...packageJson, type: 'module' };
+            const serverPackageJsonCode = JSON.stringify(packageJson, null, 2);
 
             await Promise.all([
               fs.promises.writeFile(join(outDir, RESOLVED_STATIC_PATHS_ID), staticPathsCode),

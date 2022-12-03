@@ -32,23 +32,6 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
         publicDir: false,
       };
     },
-
-    async generate({ clientOutDir, basePathname }) {
-      const routesJsonPath = join(clientOutDir, '_routes.json');
-      const hasRoutesJson = fs.existsSync(routesJsonPath);
-      if (!hasRoutesJson && opts.functionRoutes !== false) {
-        const routesJson = {
-          version: 1,
-          include: [basePathname + '*'],
-          exclude: [
-            basePathname + 'build/*',
-            basePathname + 'assets/*',
-            basePathname + '*/q-data.json',
-          ],
-        };
-        await fs.promises.writeFile(routesJsonPath, JSON.stringify(routesJson, undefined, 2));
-      }
-    },
   });
 }
 
@@ -56,14 +39,6 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
  * @alpha
  */
 export interface CloudflarePagesAdaptorOptions {
-  /**
-   * Determines if the build should generate the function invocation routes `_routes.json` file.
-   *
-   * https://developers.cloudflare.com/pages/platform/functions/function-invocation-routes/
-   *
-   * Defaults to `true`.
-   */
-  functionRoutes?: boolean;
   /**
    * Determines if the adaptor should also run Static Site Generation (SSG).
    */

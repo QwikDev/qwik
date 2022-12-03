@@ -9,11 +9,10 @@ import type { RenderContext } from './types';
 import { ContainerState, intToStr } from '../container/container';
 import { fromCamelToKebabCase } from '../util/case';
 import { qError, QError_stringifyClassOrStyle } from '../error/error';
-import { seal, qDev } from '../util/qdev';
+import { seal } from '../util/qdev';
 import { EMPTY_ARRAY } from '../util/flyweight';
 import { SkipRender } from './jsx/utils.public';
 import { handleError } from './error-handling';
-import { verifySerializable } from '../state/common';
 import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, QContext } from '../state/context';
 
 export interface ExecuteComponentOutput {
@@ -124,10 +123,6 @@ export const pushRenderContext = (ctx: RenderContext): RenderContext => {
 export const serializeClass = (obj: ClassList): string => {
   if (!obj) return '';
   if (isString(obj)) return obj.trim();
-
-  if (qDev) {
-    verifySerializable(obj);
-  }
 
   if (isArray(obj))
     return obj.reduce((result: string, o) => {

@@ -103,6 +103,7 @@ export const Signals = component$(() => {
       <Issue2245B />
       <ComplexClassSignals />
       <Issue2311 />
+      <Issue2344 />
     </div>
   );
 });
@@ -137,7 +138,7 @@ export const Child = component$((props: ChildProps) => {
         Stuff: {props.count}
       </div>
       <style>{props.styles}</style>
-      <textarea value={props.styles}></textarea>
+      <textarea id="textarea" value={props.styles}></textarea>
     </>
   );
 });
@@ -564,5 +565,25 @@ export const Issue2311 = component$(() => {
         <>{store.condition ? <b>Done!</b> : <p>{store.text}</p>}</>
       </div>
     </div>
+  );
+});
+
+export const Issue2344 = component$(() => {
+  const classSig = useSignal('abc');
+  return (
+    <>
+      <textarea id="issue-2344-results" value="Content" rows={5}></textarea>
+      {classSig.value + ''}
+      <p>
+        <button
+          id="issue-2344-btn"
+          onClick$={() => {
+            classSig.value = 'bar';
+          }}
+        >
+          Should not error
+        </button>
+      </p>
+    </>
   );
 });

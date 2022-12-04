@@ -436,7 +436,7 @@ export const patchVnode = (
       pendingListeners.length = 0;
     }
 
-    if (isSvg && newVnode.$type$ === 'foreignObject') {
+    if (isSvg && tag === 'foreignObject') {
       flags &= ~IS_SVG;
       isSvg = false;
     }
@@ -456,6 +456,9 @@ export const patchVnode = (
     }
     const isRenderOnce = isVirtual && QOnce in props;
     if (isRenderOnce) {
+      return;
+    }
+    if (tag === 'textarea') {
       return;
     }
     return smartUpdateChildren(rCtx, oldVnode, newVnode, 'root', flags);

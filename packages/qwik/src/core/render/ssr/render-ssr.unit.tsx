@@ -879,7 +879,7 @@ renderSSRSuite('component useClientEffect() without elements', async () => {
     <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
       Hola
-      <script type="placeholder" hidden on-document:qinit="/runtimeQRL#_[0]\n/runtimeQRL#_[1]"></script>
+      <script type="placeholder" hidden q:id="1" on-document:qinit="/runtimeQRL#_[0]\n/runtimeQRL#_[1]"></script>
       <!--/qv-->
     </html>
     `

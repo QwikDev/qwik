@@ -50,4 +50,10 @@ test.describe('effect-client', () => {
     await page.waitForTimeout(300);
     await expect(order).toHaveText('Order: start 1 finish 1 start 2 finish 2 start 3 finish 3');
   });
+
+  test('issue 1955', async ({ page }) => {
+    const results = page.locator('#issue-1955-results');
+    await page.waitForTimeout(300);
+    await expect(results).toHaveText('run');
+  });
 });

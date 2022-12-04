@@ -94,6 +94,7 @@ export interface SSRContextStatic {
 const IS_HEAD = 1 << 0;
 const IS_HTML = 1 << 2;
 const IS_TEXT = 1 << 3;
+const IS_INVISIBLE = 1 << 4;
 
 const createDocument = () => {
   const doc = { nodeType: 9 };
@@ -395,7 +396,27 @@ const renderSSRComponent = (
       flags,
       (stream) => {
         if (elCtx.$flags$ & HOST_FLAG_NEED_ATTACH_LISTENER) {
-          logWarn('Component registered some events, some component use useStyles$()');
+          const placeholderCtx = createSSRContext(1);
+          const listeners = placeholderCtx.li;
+          listeners.push(...elCtx.li);
+          elCtx.$flags$ &= ~HOST_FLAG_NEED_ATTACH_LISTENER;
+          placeholderCtx.$id$ = getNextIndex(rCtx);
+          const attributes: Record<string, string> = {
+            type: 'placeholder',
+            hidden: '',
+            'q:id': placeholderCtx.$id$,
+          };
+          ssrCtx.$static$.$contexts$.push(placeholderCtx);
+
+          const groups = groupListeners(listeners);
+          for (const listener of groups) {
+            const eventName = normalizeInvisibleEvents(listener[0]);
+            attributes[eventName] = serializeQRLs(listener[1], placeholderCtx);
+            addQwikEvent(eventName, rCtx.$static$.$containerState$);
+          }
+          renderNodeElementSync('script', attributes, stream);
+          logWarn(`Component has listeners attached, but it does not render any elements, injecting a new <script> element to attach listeners.
+          This is likely to the usage of useClientEffect$() in a component that renders no elements.`);
         }
         if (beforeClose) {
           return then(renderQTemplates(rCtx, newSSrContext, stream), () => beforeClose(stream));
@@ -546,6 +567,9 @@ const renderNode = (
     if (isHead) {
       flags |= IS_HEAD;
     }
+    if (invisibleElements[tagName]) {
+      flags |= IS_INVISIBLE;
+    }
     if (textOnlyElements[tagName]) {
       flags |= IS_TEXT;
     }
@@ -556,9 +580,11 @@ const renderNode = (
 
     if (listeners.length > 0) {
       const groups = groupListeners(listeners);
+      const isInvisible = (flags & IS_INVISIBLE) !== 0;
       for (const listener of groups) {
-        openingElement += ' ' + listener[0] + '="' + serializeQRLs(listener[1], elCtx) + '"';
-        addQwikEvent(listener[0], rCtx.$static$.$containerState$);
+        const eventName = isInvisible ? normalizeInvisibleEvents(listener[0]) : listener[0];
+        openingElement += ' ' + eventName + '="' + serializeQRLs(listener[1], elCtx) + '"';
+        addQwikEvent(eventName, rCtx.$static$.$containerState$);
       }
     }
     if (key != null) {
@@ -846,6 +872,14 @@ const processPropValue = (prop: string, value: any): string | null => {
   return String(value);
 };
 
+const invisibleElements: Record<string, true | undefined> = {
+  head: true,
+  style: true,
+  script: true,
+  link: true,
+  meta: true,
+};
+
 const textOnlyElements: Record<string, true | undefined> = {
   title: true,
   style: true,
@@ -925,6 +959,10 @@ const addDynamicSlot = (hostCtx: QContext, elCtx: QContext) => {
   if (!dynamicSlots.includes(elCtx)) {
     dynamicSlots.push(elCtx);
   }
+};
+
+const normalizeInvisibleEvents = (eventName: string) => {
+  return eventName === 'on:qvisible' ? 'on-document:qinit' : eventName;
 };
 
 const hasDynamicChildren = (node: JSXNode) => {

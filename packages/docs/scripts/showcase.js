@@ -18,7 +18,6 @@ async function captureMultipleScreenshots() {
       headless: true,
     });
     const incognito = await browser.createIncognitoBrowserContext();
-
     let existingJson = [];
     try {
       const data = fs.readFileSync(OUTPUT_JSON, 'utf8');
@@ -31,6 +30,9 @@ async function captureMultipleScreenshots() {
       let page;
       try {
         page = await incognito.newPage();
+        page.setUserAgent(
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36'
+        );
 
         // set viewport width and height
         await page.setViewport({

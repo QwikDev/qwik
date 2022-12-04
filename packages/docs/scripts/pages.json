@@ -4,17 +4,18 @@
     "tags": "saas"
   },
   {
-    "href": "https://cursos.codigoencasa.com/node",
-    "tags": "learning"
+    "href": "https://img-models.vercel.app/",
+    "tags": "ecommerce"
   },
   {
     "href": "https://qwik-storefront.vendure.io/",
     "tags": "ecommerce"
   },
   {
-    "href": "https://img-models.vercel.app/",
-    "size": "large",
-    "tags": "ecommerce"
+    "href": "https://qwind.pages.dev/",
+    "tags": "template",
+    "repo": "https://github.com/onwidget/qwind",
+    "size": "large"
   },
   {
     "href": "https://soundy.cloud/",
@@ -50,6 +51,10 @@
     "tags": "portfolio"
   },
   {
+    "href": "https://cursos.codigoencasa.com/node",
+    "tags": "learning"
+  },
+  {
     "href": "https://reduced.to",
     "tags": "app"
   },
@@ -69,10 +74,5 @@
   {
     "href": "https://www.stockideashq.com/",
     "tags": "investing"
-  },
-  {
-    "href": "https://qwind.pages.dev/",
-    "tags": "template",
-    "repo": "https://github.com/onwidget/qwind"
   }
 ]

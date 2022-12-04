@@ -14,13 +14,144 @@ Many apps use a global stylesheet to do browser resets and/or defining global st
 import './global.css';
 ```
 
-## Inline critical styles
+> Automatically, Qwik will try to inline this file in production mode if the amount of CSS is less than 10KB. If the file is larger than 10KB, it will be loaded as a separate file.
 
-To reduce the blocking time of the first paint, Vite can [inline the critical styles](https://vitejs.dev/guide/features.html#disabling-css-injection-into-the-page) for the current view. This means that the browser will not need to download any referenced `*.css` files separately. To tell Vite to inline styles, just add the `?inline` query parameter to the import.
+
+## CSS-in-JS
+
+Qwik has first-class CSS-in-JS support using [styled-vanilla-extract](https://github.com/wmertens/styled-vanilla-extract), which provides a extremelly efficient css-in-js solution without any runtime!
+
+**styles.css.ts:**
+```tsx
+import { style } from 'styled-vanilla-extract/qwik';
+
+export const blueClass = style({
+  'display': 'block',
+  'width': '100%',
+  'height': '500px',
+  'background': 'blue',
+});
+```
+
+**component.tsx:**
+```tsx
+import { blueClass } from './styles.css';
+
+export const Cmp = component$(() => {
+  return <div class={blueClass} />;
+});
+```
+
+```shell
+npm run qwik add styled-vanilla-extract
+```
+
+Please refer to the [docs of our official integration](/qwikcity/integrations/styled-vanilla-extract/index.mdx) for more information.
+
+> **How about emotion or other CSS-in-JS libs?** While extremelly popular, emotion and other CSS-in-JS libs are not the best choice for Qwik. [They are not optimized for runtime performance and they dont have a good SSR streaming support](https://dev.to/srmagura/why-were-breaking-up-wiht-css-in-js-4g9b), leading to a degraded server and client performance.
+
+
+## Styled-components
+
+Styled components is a popular tool in React-land to write CSS-in-JS. Thanks to the same [styled-vanilla-extract](https://github.com/wmertens/styled-vanilla-extract) plugin, you can write your styles with styled-components syntax in Qwik with zero-runtime cost!
+
+```shell
+npm run qwik add styled-vanilla-extract
+```
+
+Like this:
+
+**styles.css.ts:**
+```tsx
+import { styled } from 'styled-vanilla-extract/qwik';
+
+export const BlueBox = styled.div`
+  display: block;
+  width: 100%;
+  height: 500px;
+  background: blue;
+`;
+```
+
+**component.tsx:**
+```tsx
+import { BlueBox } from './styles.css';
+
+export const Cmp = component$(() => {
+  return <BlueBox />;
+});
+```
+
+## Per-component styles
+
+Qwik provided built-in support for per-component styles, this technology allows Qwik to only inject the provided styles only if the component is used in the current page, this can be achieved by using the `useStyles$()` and `useStylesScoped$()` hook.
+
+### `useStyles$()`
+
+A lazy-loadable reference to component's styles.
+
+Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
 
 ```tsx
-import from './my-component.css?inline'
+import { useStyles$ } from '@builder.io/qwik';
+import styles from './code-block.css?inline';
+
+export const CmpStyles = component$(() => {
+  useStyles$(styles);
+  return <span class="my-text">Some text</span>;
+});
 ```
+
+```css
+// code-block.css
+.my-text {
+  color: red;
+}
+```
+
+> Notice that in order to import CSS as a string in Vite, you need to add the `?inline` query parameter to the import, like this: `import styles from './code-block.css?inline';`
+
+### `useStylesScope$`
+
+In previous sections, we have discussed how styles can be loaded lazily as they are needed using the [`useStyles$()`](/docs/components/styles/index.mdx#usestyles) hook.
+Browser styles are global and apply to all DOM elements, for this reason, Qwik also provides a way to load styles that are specific to a specific component.
+This is achieved by generating a unique class for each component and then inserting that unique class id into the stylesheet.
+
+```tsx
+import { useStylesScoped$ } from '@builder.io/qwik';
+import styles from './code-block.css?inline';
+
+export const CmpStyles = component$(() => {
+  useStylesScoped$(styles);
+  return <span class="my-text">Some text</span>;
+});
+```
+
+```css
+// code-block.css
+.my-text {
+  color: blue;
+}
+```
+
+> Please note that you need to add `?inline` to your styles import.
+
+## Preprocessors
+
+### `.scss`, `.sass`, `.less`, `.styl`, `.stylus`
+
+Vite works nicely with many preprocessors. Just make sure, that you install the required [plugins](https://vitejs.dev/guide/features.html#css-pre-processors).
+
+### Tailwind
+
+To use Tailwind on your app, you can add it to you app with our built-in integration:
+
+```shell
+npm run qwik add tailwind
+```
+
+Check our [the integration docs](../../../qwikcity/integrations/tailwind) for more information.
+
 
 ## Why not inline styles using the `<style>` tag?
 
@@ -48,59 +179,3 @@ What is needed is to load the styles independently from the component. This is w
    - Adding a new instance of a component to the application does not require that we load the styles as they are already included as part of SSR.
 2. The component is rendered on the client for the first time. In that case, the new component does not have styles in the `<head>` as the component was not part of SSR.
    - Adding a new component that was not part of SSR requires that styles are loaded and inserted into `<head>`.
-
-## `useStyles$()`
-
-A lazy-loadable reference to component's styles.
-
-Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
-
-```tsx
-import { useStyles$ } from '@builder.io/qwik';
-import styles from './code-block.css?inline';
-
-export const CmpStyles = component$(() => {
-  useStyles$(styles);
-  return <span class="my-text">Some text</span>;
-});
-```
-
-```css
-// code-block.css
-.my-text {
-  color: red;
-}
-```
-
-## `useStylesScope$`
-
-In previous sections, we have discussed how styles can be loaded lazily as they are needed using the [`useStyles$()`](/docs/components/styles/index.mdx#usestyles) hook.
-Browser styles are global and apply to all DOM elements, for this reason, Qwik also provides a way to load styles that are specific to a specific component.
-This is achieved by generating a unique class for each component and then inserting that unique class id into the stylesheet. Please note that you need to add `?inline` to your styles import.
-
-```tsx
-import { useStylesScoped$ } from '@builder.io/qwik';
-import styles from './code-block.css?inline';
-
-export const CmpStyles = component$(() => {
-  useStylesScoped$(styles);
-  return <span class="my-text">Some text</span>;
-});
-```
-
-```css
-// code-block.css
-.my-text {
-  color: blue;
-}
-```
-
-## Preprocessors
-
-### `.scss`, `.sass`, `.less`, `.styl`, `.stylus`
-
-Vite works nicely with many preprocessors. Just make sure, that you install the required [plugins](https://vitejs.dev/guide/features.html#css-pre-processors).
-
-### Tailwind
-
-To use Tailwind on your app, follow these [instructions](../../../qwikcity/integrations/tailwind).

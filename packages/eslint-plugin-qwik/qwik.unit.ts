@@ -271,7 +271,7 @@ export default component$(() => {
 `,
       `
         import { component$ } from "@builder.io/qwik";
-        
+
         export interface Props {
           serializableTuple: [string, number, boolean];
         }
@@ -445,7 +445,7 @@ export default component$(() => {
       {
         code: `
         import { component$ } from "@builder.io/qwik";
-        
+
         export interface Props {
           nonserializableTuple: [string, number, boolean, Function];
         }
@@ -457,6 +457,30 @@ export default component$(() => {
         });`,
         errors: [
           'Identifier ("props") can not be captured inside the scope (onClick$) because "props.nonserializableTuple" is an instance of the "Function" class, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+        ],
+      },
+    ],
+  });
+});
+
+test('single-jsx-root', () => {
+  ruleTester.run('my-rule', rules['single-jsx-root'] as any, {
+    valid: [``],
+    invalid: [
+      {
+        code: `export const HelloWorld = component$(async () => {
+            return isLoading ? <>Loading...</> : <div>The value is loaded</div>;
+          });`,
+        errors: [
+          'Components in Qwik must have a single JSX root element. Your component has multiple roots on lines: 2, 2. Rewrite your component with a single root such as (`return <>{...}</>`.) and keep all JSX within',
+        ],
+      },
+      {
+        code: `export const HelloWorld = component$(async () => {
+          return isLoading ? <div>Loading...</div> : <div>The value is loaded</div>
+          });`,
+        errors: [
+          'Components in Qwik must have a single JSX root element. Your component has multiple roots on lines: 2, 2. Rewrite your component with a single root such as (`return <>{...}</>`.) and keep all JSX within',
         ],
       },
     ],

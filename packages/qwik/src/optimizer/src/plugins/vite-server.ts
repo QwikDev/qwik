@@ -1,11 +1,10 @@
-import type { Connect, ViteDevServer } from 'vite';
-import { NormalizedQwikPluginOptions, parseId } from './plugin';
-import type { OptimizerSystem, Path, QwikManifest } from '../types';
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
-
-import { ERROR_HOST } from './errored-host';
 import type { IncomingMessage } from 'http';
+import type { Connect, ViteDevServer } from 'vite';
+import type { OptimizerSystem, Path, QwikManifest } from '../types';
+import { ERROR_HOST } from './errored-host';
+import { NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
 

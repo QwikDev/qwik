@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 
 test.describe('Todo', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/todo-old.test/');
+    await page.goto('/todo-old-test/');
     page.on('pageerror', (err) => expect(err).toEqual(undefined));
   });
 

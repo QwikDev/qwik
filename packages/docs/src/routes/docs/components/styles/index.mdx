@@ -111,7 +111,7 @@ export const CmpStyles = component$(() => {
 
 > Notice that in order to import CSS as a string in Vite, you need to add the `?inline` query parameter to the import, like this: `import styles from './code-block.css?inline';`
 
-### `useStylesScope$`
+### `useStylesScoped$`
 
 In previous sections, we have discussed how styles can be loaded lazily as they are needed using the [`useStyles$()`](/docs/components/styles/index.mdx#usestyles) hook.
 Browser styles are global and apply to all DOM elements, for this reason, Qwik also provides a way to load styles that are specific to a specific component.

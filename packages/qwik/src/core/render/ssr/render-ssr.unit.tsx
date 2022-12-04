@@ -886,6 +886,27 @@ renderSSRSuite('component useClientEffect() without elements', async () => {
   );
 });
 
+renderSSRSuite('component useClientEffect() inside <head>', async () => {
+  await testSSR(
+    <head>
+      <UseEmptyClientEffect />
+      <UseClientEffect />
+    </head>,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <head q:head>
+        <!--qv q:id=0 q:key=sX:-->
+        Hola
+        <script type="placeholder" hidden q:id="1" on-document:qinit="/runtimeQRL#_[0]\n/runtimeQRL#_[1]"></script>
+        <!--/qv-->
+        <!--qv q:id=2 q:key=sX:-->
+        <div on-document:qinit="/runtimeQRL#_[0]\n/runtimeQRL#_[1]" q:id="3" q:head></div>
+        <!--/qv-->
+      </head>
+    </html>`
+  );
+});
+
 renderSSRSuite('nested html', async () => {
   await testSSR(
     <>
@@ -903,7 +924,7 @@ renderSSRSuite('root html component', async () => {
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev">
       <!--qv q:id=0 q:key=sX:-->
-      <head on:qvisible="/runtimeQRL#_[0]" q:id="1" q:head>
+      <head on-document:qinit="/runtimeQRL#_[0]" q:id="1" q:head>
         <title q:head>hola</title>
         <!--qv q:s q:sref=0 q:key=-->
         <link q:head />

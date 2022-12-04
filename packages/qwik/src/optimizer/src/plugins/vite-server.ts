@@ -319,7 +319,7 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['inspectorConfig']
 (function() {
   console.debug(
     'Click-to-Source: Hold-press the "${opts.hotKeys?.join(' + ')}" key${
-  opts.hotKeys?.length && opts.hotKeys?.length > 1 && 's'
+  (opts.hotKeys?.length && opts.hotKeys?.length > 1 && 's') || ''
 } and click a component to jump directly to the source code in your IDE!'
   );
   window.__qwik_inspector_state = {
@@ -430,7 +430,9 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['inspectorConfig']
 
 })();
 </script>
-<div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ⌥ Option</p></div>
+<div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ${opts.hotKeys?.join(
+  ' + '
+)}</p></div>
 `;
 
 const PERF_WARNING = `

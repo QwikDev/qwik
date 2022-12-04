@@ -205,7 +205,6 @@ async function updatePackageJson(config: BuildConfig, destDir: string) {
   await writePackageJson(destDir, pkgJson);
 }
 
-
 function isValidFsItem(fsItemName: string) {
   return !IGNORE[fsItemName] && !fsItemName.includes('.prod') && !fsItemName.endsWith('-test');
 }

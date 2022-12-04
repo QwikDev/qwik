@@ -395,7 +395,27 @@ const renderSSRComponent = (
       flags,
       (stream) => {
         if (elCtx.$flags$ & HOST_FLAG_NEED_ATTACH_LISTENER) {
-          logWarn('Component registered some events, some component use useStyles$()');
+          const placeholderCtx = createSSRContext(1);
+          const listeners = placeholderCtx.li;
+          listeners.push(...elCtx.li);
+          elCtx.$flags$ &= ~HOST_FLAG_NEED_ATTACH_LISTENER;
+          placeholderCtx.$id$ = getNextIndex(rCtx);
+          const attributes: Record<string, string> = {
+            type: 'placeholder',
+            hidden: '',
+            'q:id': placeholderCtx.$id$,
+          };
+          ssrCtx.$static$.$contexts$.push(placeholderCtx);
+
+          const groups = groupListeners(listeners);
+          for (const listener of groups) {
+            const eventName = listener[0] === 'on:qvisible' ? 'on-document:qinit' : listener[0];
+            attributes[eventName] = serializeQRLs(listener[1], placeholderCtx);
+            addQwikEvent(eventName, rCtx.$static$.$containerState$);
+          }
+          renderNodeElementSync('script', attributes, stream);
+          logWarn(`Component has listeners attached, but it does not render any elements, injecting a new <script> element to attach listeners.
+          This is likely to the usage of useClientEffect$() in a component that renders no elements.`);
         }
         if (beforeClose) {
           return then(renderQTemplates(rCtx, newSSrContext, stream), () => beforeClose(stream));

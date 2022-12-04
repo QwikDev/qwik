@@ -872,6 +872,20 @@ renderSSRSuite('component useClientEffect()', async () => {
   );
 });
 
+renderSSRSuite('component useClientEffect() without elements', async () => {
+  await testSSR(
+    <UseEmptyClientEffect />,
+    `
+    <html q:container="paused" q:version="dev" q:render="ssr-dev">
+      <!--qv q:id=0 q:key=sX:-->
+      Hola
+      <script type="placeholder" hidden on-document:qinit="/runtimeQRL#_[0]\n/runtimeQRL#_[1]"></script>
+      <!--/qv-->
+    </html>
+    `
+  );
+});
+
 renderSSRSuite('nested html', async () => {
   await testSSR(
     <>
@@ -1254,6 +1268,20 @@ export const UseClientEffect = component$(() => {
   });
 
   return <div />;
+});
+
+export const UseEmptyClientEffect = component$(() => {
+  useClientEffect$(() => {
+    console.warn('client effect');
+  });
+  useClientEffect$(() => {
+    console.warn('second client effect');
+  });
+  useWatch$(async () => {
+    await delay(10);
+  });
+
+  return <>Hola</>;
 });
 
 export const HeadCmp = component$(() => {

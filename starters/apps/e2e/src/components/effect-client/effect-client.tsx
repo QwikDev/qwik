@@ -24,6 +24,7 @@ export const EffectClient = component$(() => {
       <Issue1413 />
       <Issue1717 />
       <Issue2015 />
+      <Issue1955 />
       <div class="box" />
       <div class="box" />
       <div class="box" />
@@ -223,4 +224,21 @@ export const Issue2015 = component$(() => {
   });
 
   return <div id="issue-2015-order">Order: {state.logs.join(' ')}</div>;
+});
+
+export const Issue1955Helper = component$(() => {
+  return (
+    <div id="issue-1955-results">
+      <Slot />
+    </div>
+  );
+});
+
+export const Issue1955 = component$(() => {
+  const signal = useSignal('empty');
+  useClientEffect$(() => {
+    debugger;
+    signal.value = 'run';
+  });
+  return <Issue1955Helper>{signal.value + ''}</Issue1955Helper>;
 });

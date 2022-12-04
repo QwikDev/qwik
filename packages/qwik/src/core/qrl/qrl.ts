@@ -10,11 +10,10 @@ import {
 } from '../error/error';
 import { qRuntimeQrl, qSerialize } from '../util/qdev';
 import { getPlatform } from '../platform/platform';
-import type { QwikElement } from '../render/dom/virtual-element';
 import { assertDefined, assertTrue } from '../error/assert';
-import { assertElement } from '../util/element';
 import type { MustGetObjID } from '../container/container';
 import type { QContext } from '../state/context';
+import { assertElement } from '../util/element';
 
 // https://regexr.com/68v72
 const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
@@ -149,7 +148,6 @@ export const inlinedQrlDEV = <T = any>(
 };
 
 export interface QRLSerializeOptions {
-  $element$?: QwikElement;
   $getObjId$?: MustGetObjID;
   $addRefMap$?: (obj: any) => number;
 }
@@ -202,7 +200,6 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
 export const serializeQRLs = (existingQRLs: QRLInternal<any>[], elCtx: QContext): string => {
   assertElement(elCtx.$element$);
   const opts: QRLSerializeOptions = {
-    $element$: elCtx.$element$,
     $addRefMap$: (obj) => addToArray(elCtx.$refMap$, obj),
   };
   return existingQRLs.map((qrl) => serializeQRL(qrl, opts)).join('\n');

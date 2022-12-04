@@ -67,6 +67,12 @@ export const singleJsxRoot: Rule.RuleModule = {
           current.depth--;
         }
       },
+      'JSXFragment:exit'() {
+        const current = stack[stack.length - 1];
+        if (current) {
+          current.depth--;
+        }
+      },
     };
   },
 };

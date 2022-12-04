@@ -157,9 +157,9 @@ importers:
       '@algolia/autocomplete-shared': 1.7.3
       '@algolia/client-search': 4.14.2
       '@builder.io/partytown': 0.7.2
-      '@builder.io/qwik': link:../qwik
+      '@builder.io/qwik': 0.15.0
       '@builder.io/qwik-city': link:../qwik-city
-      '@builder.io/sdk-qwik': 0.0.36_57atdkqjbkulndxrlkskqpl6yi
+      '@builder.io/sdk-qwik': 0.0.36_@builder.io+qwik@0.15.0
       '@docsearch/css': 3.3.0
       '@types/prismjs': 1.26.0
       algoliasearch: 4.14.2
@@ -406,12 +406,18 @@ packages:
     hasBin: true
     dev: true
 
-  /@builder.io/sdk-qwik/0.0.36_57atdkqjbkulndxrlkskqpl6yi:
+  /@builder.io/qwik/0.15.0:
+    resolution: {integrity: sha512-J2d0plXzG6pyIJRLtp3E/jLeoo0AXRjb5jne+iWqbtnR4ZwzTLo/OmEonbQIRv+IHQey3DsNbYr7z/ddkYR9/w==}
+    engines: {node: '>=16'}
+    hasBin: true
+    dev: true
+
+  /@builder.io/sdk-qwik/0.0.36_@builder.io+qwik@0.15.0:
     resolution: {integrity: sha512-YSAlNiTS6SofovYpj/T9RoFQIBqihZKYavGDTkxMOHzF8PN1mJcPSqdIDW8SdQPUq6XJM355bawhjflIzh9Y0Q==}
     peerDependencies:
       '@builder.io/qwik': '>=0.13.3'
     dependencies:
-      '@builder.io/qwik': link:packages/qwik
+      '@builder.io/qwik': 0.15.0
     dev: true
 
   /@cloudflare/kv-asset-handler/0.2.0:

@@ -273,7 +273,7 @@ declare global {
   }
 }
 
-const DEV_QWIK_INSPECTOR = `
+const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['inspectorConfig']) => `
 <style>
 #qwik-inspector-overlay {
   position: fixed;
@@ -419,7 +419,7 @@ const DEV_QWIK_INSPECTOR = `
   }
 
   function isActive() {
-    return checkKeysArePressed(['Alt']);
+    return checkKeysArePressed(${opts.hotKeys});
   }
 
   window.addEventListener('resize', updateOverlay);
@@ -438,12 +438,12 @@ if (!window.__qwikViteLog) {
 }
 </script>`;
 
-const END_SSR_SCRIPT = `
+const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions) => `
 <script type="module" src="/@vite/client"></script>
 ${DEV_ERROR_HANDLING}
 ${ERROR_HOST}
 ${PERF_WARNING}
-${DEV_QWIK_INSPECTOR}
+${opts.inspectorConfig.enabled && DEV_QWIK_INSPECTOR(opts.inspectorConfig)}
 `;
 
 function getViteDevIndexHtml(entryUrl: string, envData: Record<string, any>) {

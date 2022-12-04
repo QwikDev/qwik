@@ -52,6 +52,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     transformedModuleOutput: null,
     vendorRoots: [],
     scope: null,
+    inspectorConfig: {
+      enabled: true,
+      hotKeys: ['Alt'],
+    },
   };
 
   const init = async () => {
@@ -225,6 +229,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     if (typeof updatedOpts.resolveQwikBuild === 'boolean') {
       opts.resolveQwikBuild = updatedOpts.resolveQwikBuild;
+    }
+
+    if (typeof updatedOpts.inspectorConfig === 'object') {
+      if ('enabled' in updatedOpts.inspectorConfig) {
+        opts.inspectorConfig.enabled = updatedOpts.inspectorConfig.enabled;
+      }
+      if ('hotKeys' in updatedOpts.inspectorConfig) {
+        opts.inspectorConfig.hotKeys = updatedOpts.inspectorConfig.hotKeys;
+      }
     }
 
     return { ...opts };
@@ -725,6 +738,10 @@ export interface QwikPluginOptions {
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
+  inspectorConfig?: {
+    enabled?: boolean;
+    hotKeys?: string[];
+  };
 }
 
 export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions> {

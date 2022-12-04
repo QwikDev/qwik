@@ -81,7 +81,7 @@ export const ResourceApp = component$(() => {
 
   return (
     <div>
-      <button type="button" className="increment" onClick$={() => state.count++}>
+      <button type="button" class="increment" onClick$={() => state.count++}>
         Increment
       </button>
       <div id="outside-state">{resouceState}</div>
@@ -112,7 +112,7 @@ export const Results = component$((props: { result: ResourceReturn<number> }) =>
         onResolved={(number) => {
           return (
             <>
-              <div className="resource1">resource 1 is {number}</div>
+              <div class="resource1">resource 1 is {number}</div>
               <button class="count" onClick$={() => state.count++}>
                 count is {state.count + 0}
               </button>

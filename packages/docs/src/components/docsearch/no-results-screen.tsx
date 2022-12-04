@@ -22,24 +22,24 @@ export const NoResultsScreen = component$((props: NoResultsScreenProps) => {
   const context: any = useContext(SearchContext);
 
   return (
-    <div className="DocSearch-NoResults">
-      <div className="DocSearch-Screen-Icon">
+    <div class="DocSearch-NoResults">
+      <div class="DocSearch-Screen-Icon">
         <NoResultsIcon />
       </div>
-      <p className="DocSearch-Title">
+      <p class="DocSearch-Title">
         {noResultsText} "<strong>{props.state.query}</strong>"
       </p>
 
       {searchSuggestions && searchSuggestions.length > 0 && (
-        <div className="DocSearch-NoResults-Prefill-List">
-          <p className="DocSearch-Help">{suggestedQueryText}:</p>
+        <div class="DocSearch-NoResults-Prefill-List">
+          <p class="DocSearch-Help">{suggestedQueryText}:</p>
           <ul>
             {searchSuggestions.slice(0, 3).reduce<any[]>(
               (acc, search) => [
                 ...acc,
                 <li key={search}>
                   <button
-                    className="DocSearch-Prefill"
+                    class="DocSearch-Prefill"
                     key={search}
                     type="button"
                     onClick$={() => {

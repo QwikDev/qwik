@@ -34,7 +34,7 @@ export const Header = component$(() => {
       <div class="header-inner">
         <div class="header-logo">
           <a href="/">
-            <span className="sr-only">Qwik Homepage</span>
+            <span class="sr-only">Qwik Homepage</span>
             <QwikLogo width={180} height={50} />
           </a>
         </div>
@@ -54,7 +54,7 @@ export const Header = component$(() => {
             <CloseIcon width={30} height={30} />
           </span>
         </button>
-        <ul className="md:grow md:flex md:justify-end md:p-4 menu-toolkit">
+        <ul class="md:grow md:flex md:justify-end md:p-4 menu-toolkit">
           <li>
             <a href="/docs/overview/" class={{ active: pathname.startsWith('/docs') }}>
               <span>Docs</span>

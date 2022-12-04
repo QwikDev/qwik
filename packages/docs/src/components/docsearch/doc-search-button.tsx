@@ -29,9 +29,9 @@ export const DocSearchButton = component$((props: DocSearchButtonProps) => {
       class="DocSearch DocSearch-Button"
       aria-label={buttonAriaLabel}
     >
-      <span className="DocSearch-Button-Container">
+      <span class="DocSearch-Button-Container">
         <SearchIcon />
-        <span className="DocSearch-Button-Placeholder">{buttonText}</span>
+        <span class="DocSearch-Button-Placeholder">{buttonText}</span>
       </span>
     </button>
   );

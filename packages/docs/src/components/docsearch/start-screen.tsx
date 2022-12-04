@@ -36,8 +36,8 @@ export const StartScreen = component$((props: StartScreenProps) => {
     }
 
     return (
-      <div className="DocSearch-StartScreen">
-        <p className="DocSearch-Help">{noRecentSearchesText}</p>
+      <div class="DocSearch-StartScreen">
+        <p class="DocSearch-Help">{noRecentSearchesText}</p>
       </div>
     );
   }
@@ -48,7 +48,7 @@ export const StartScreen = component$((props: StartScreenProps) => {
   const recentCollection = props.state.collections[0];
   const favCollection = props.state.collections[1];
   return (
-    <div className="DocSearch-Dropdown-Container">
+    <div class="DocSearch-Dropdown-Container">
       <section class="DocSearch-Hits">
         <div class="DocSearch-Hit-source">{recentSearchesTitle}</div>
 
@@ -57,12 +57,12 @@ export const StartScreen = component$((props: StartScreenProps) => {
             recentCollection.items.map((item, index) => {
               return (
                 <Result state={props.state} item={item} key={item.objectID}>
-                  <div q:slot="start-action" className="DocSearch-Hit-icon">
+                  <div q:slot="start-action" class="DocSearch-Hit-icon">
                     <RecentIcon />
                   </div>
                   <div q:slot="end-action" class="DocSearch-Hit-action">
                     <button
-                      className="DocSearch-Hit-action-button"
+                      class="DocSearch-Hit-action-button"
                       title={saveRecentSearchButtonTitle}
                       type="button"
                       preventdefault:click
@@ -78,9 +78,9 @@ export const StartScreen = component$((props: StartScreenProps) => {
                       <StarIcon />
                     </button>
                   </div>
-                  <div className="DocSearch-Hit-action">
+                  <div class="DocSearch-Hit-action">
                     <button
-                      className="DocSearch-Hit-action-button"
+                      class="DocSearch-Hit-action-button"
                       title={removeRecentSearchButtonTitle}
                       type="submit"
                       preventdefault:click
@@ -107,12 +107,12 @@ export const StartScreen = component$((props: StartScreenProps) => {
             favCollection.items.map((item, index) => {
               return (
                 <Result state={props.state} item={item}>
-                  <div q:slot="start-action" className="DocSearch-Hit-icon">
+                  <div q:slot="start-action" class="DocSearch-Hit-icon">
                     <StarIcon />
                   </div>
                   <div q:slot="end-action" class="DocSearch-Hit-action">
                     <button
-                      className="DocSearch-Hit-action-button"
+                      class="DocSearch-Hit-action-button"
                       title={removeFavoriteSearchButtonTitle}
                       type="submit"
                       preventdefault:click

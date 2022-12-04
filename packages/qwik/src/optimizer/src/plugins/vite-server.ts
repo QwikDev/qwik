@@ -284,6 +284,7 @@ const DEV_QWIK_INSPECTOR = `
   border-radius: 4px;
   contain: strict;
   cursor: pointer;
+  z-index: 999999;
 }
 #qwik-inspector-info-popup {
   position: fixed;
@@ -298,6 +299,7 @@ const DEV_QWIK_INSPECTOR = `
   backdrop-filter: blur(4px);
   -webkit-animation: fadeOut 0.3s 3s ease-in-out forwards;
   animation: fadeOut 0.3s 3s ease-in-out forwards;
+  z-index: 999999;
 }
 #qwik-inspector-info-popup p {
   margin: 0px;

@@ -71,7 +71,7 @@ export const Editor = component$((props: EditorProps) => {
     }
   });
 
-  return <div ref={hostRef} className="editor-container" />;
+  return <div ref={hostRef} class="editor-container" />;
 });
 
 export interface EditorProps {

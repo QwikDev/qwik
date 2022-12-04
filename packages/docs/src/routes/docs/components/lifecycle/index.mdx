@@ -99,7 +99,7 @@ export function User(props: { user: User }) {
 
 - **Trigger:** component mount
 - **When:** before rendering and resources
-- **Times:** exactly once per component instance
+- **Times:** exactly once per component instance, or never if the component was present in the initial page load
 - **Platform:** browser only
 
 `useClientMount$()` registers a client-mounted hook that only runs on the browser when the component is first mounted.
@@ -109,13 +109,16 @@ export function User(props: { user: User }) {
 ```tsx
 export const Cmp = component$(() => {
   const store = useStore({
-    option: string,
+    location: '',
+  });
+  useServerMount$(() => {
+    store.location = 'server'
   });
   useClientMount$(() => {
-    // This code will ONLY run once in the browser, when the component is mounted
-    store.option = localStorage.getItem('option');
+    // This code will ONLY run once in the browser, if useServerMount$ didn't already run.
+    store.location = 'client'
   });
-  return <>Localstore: {store.option}</>;
+  return <>I mounted {store.location} side!</>;
 });
 ```
 

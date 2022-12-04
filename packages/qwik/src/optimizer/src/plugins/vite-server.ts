@@ -1,10 +1,11 @@
+import type { Connect, ViteDevServer } from 'vite';
+import { NormalizedQwikPluginOptions, parseId } from './plugin';
+import type { OptimizerSystem, Path, QwikManifest } from '../types';
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
-import type { IncomingMessage } from 'http';
-import type { Connect, ViteDevServer } from 'vite';
-import type { OptimizerSystem, Path, QwikManifest } from '../types';
+
 import { ERROR_HOST } from './errored-host';
-import { NormalizedQwikPluginOptions, parseId } from './plugin';
+import type { IncomingMessage } from 'http';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
 
@@ -317,7 +318,9 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['inspectorConfig']
 <script>
 (function() {
   console.debug(
-    'Click-to-Source: Hold-press the ⌥ Option/Alt key and click a component to jump directly to the source code in your IDE!'
+    'Click-to-Source: Hold-press the "${opts.hotKeys?.join(' + ')}" key${
+  opts.hotKeys?.length && opts.hotKeys?.length > 1 && 's'
+} and click a component to jump directly to the source code in your IDE!'
   );
   window.__qwik_inspector_state = {
     pressedKeys: new Set(),

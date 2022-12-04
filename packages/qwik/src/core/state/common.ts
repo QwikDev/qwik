@@ -46,13 +46,14 @@ const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
         if (isQwikElement(unwrapped)) return value;
         if (isDocument(unwrapped)) return value;
         if (isArray(unwrapped)) {
-          let lastIndex = 0;
+          let expectIndex = 0;
+          // Make sure the array has no holes
           unwrapped.forEach((v, i) => {
-            if (i - lastIndex !== 0) {
+            if (i !== expectIndex) {
               throw qError(QError_verifySerializable, unwrapped);
             }
             _verifySerializable(v, seen);
-            lastIndex = i + 1;
+            expectIndex = i + 1;
           });
           return value;
         }

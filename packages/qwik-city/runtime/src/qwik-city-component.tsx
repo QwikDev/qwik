@@ -7,7 +7,7 @@ import {
   useEnvData,
   getLocale,
   useStore,
-  useWatch$,
+  useTask$,
 } from '@builder.io/qwik';
 import { loadRoute } from './routing';
 import type {
@@ -94,7 +94,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
   useContextProvider(RouteLocationContext, routeLocation);
   useContextProvider(RouteNavigateContext, routeNavigate);
 
-  useWatch$(async ({ track }) => {
+  useTask$(async ({ track }) => {
     const locale = getLocale('');
     const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
     const path = track(() => routeNavigate.path);

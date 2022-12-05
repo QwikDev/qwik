@@ -1,4 +1,3 @@
-import { isDef } from './../../util/types';
 import { assertDefined } from '../../error/assert';
 import { codeToText, QError_setProperty } from '../../error/error';
 import type { StyleAppend } from '../../use/use-core';
@@ -255,7 +254,7 @@ export const createTextNode = (doc: Document, text: string): Text => {
 
 export const printRenderStats = (ctx: RenderStaticContext) => {
   if (qDev) {
-    if (isDef(window) && window.document != null) {
+    if (typeof window !== 'undefined' && window.document != null) {
       const byOp: Record<string, number> = {};
       for (const op of ctx.$operations$) {
         byOp[op.$operation$.name] = (byOp[op.$operation$.name] ?? 0) + 1;

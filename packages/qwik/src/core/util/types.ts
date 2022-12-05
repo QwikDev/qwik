@@ -38,8 +38,8 @@ export const isSymbol = (v: any): v is symbol => {
   return typeof v === 'symbol';
 };
 
-export const isDef = (v: any): v is any => {
-  return v !== undefined;
+export const isDef = <T = any>(v: T | undefined): v is T => {
+  return typeof v !== 'undefined';
 };
 
 /**

@@ -1,4 +1,3 @@
-import { isDef } from './types';
 import { assertDefined } from '../error/assert';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { qDynamicPlatform } from './qdev';
@@ -7,7 +6,7 @@ export const getDocument = (node: QwikElement | Document): Document => {
   if (!qDynamicPlatform) {
     return document;
   }
-  if (isDef(document)) {
+  if (typeof document !== 'undefined') {
     return document;
   }
   if (node.nodeType === 9) {

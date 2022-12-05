@@ -1,4 +1,3 @@
-import { isDef } from './types';
 import type { QwikElement } from '../render/dom/virtual-element';
 import type { QContext } from '../state/context';
 import { isElement, isNode } from './element';
@@ -72,7 +71,7 @@ const printParams = (optionalParams: any[]) => {
 const printElement = (el: Element) => {
   const ctx = tryGetContext(el);
   const isServer: boolean = /*#__PURE__*/ (() =>
-    isDef(process) && !!process.versions && !!process.versions.node)();
+    typeof process !== 'undefined' && !!process.versions && !!process.versions.node)();
 
   return {
     tagName: el.tagName,

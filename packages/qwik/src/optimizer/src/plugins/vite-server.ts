@@ -279,12 +279,7 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
     return '';
   }
 
-  // make sure that key matches even if shift is pressed
-  let hotKeys: string[] = opts.clickToSource;
-  const hotKeysIncludeShift = hotKeys.some((key) => key.includes('Shift') || key.includes('shift'));
-  if (hotKeysIncludeShift) {
-    hotKeys = hotKeys.map((key) => key.charAt(0).toUpperCase() + key.slice(1));
-  }
+  const hotKeys: string[] = opts.clickToSource;
 
   return `
 <style>
@@ -347,7 +342,7 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
   document.addEventListener(
     'keydown',
     (event) => {
-      window.__qwik_inspector_state.pressedKeys.add(event.key);
+      window.__qwik_inspector_state.pressedKeys.add(event.code);
       updateOverlay();
     },
     { capture: true }
@@ -356,7 +351,7 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
   document.addEventListener(
     'keyup',
     (event) => {
-      window.__qwik_inspector_state.pressedKeys.delete(event.key);
+      window.__qwik_inspector_state.pressedKeys.delete(event.code);
       updateOverlay();
     },
     { capture: true }
@@ -427,7 +422,8 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
   }
 
   function checkKeysArePressed() {
-    const activeKeys = Array.from(window.__qwik_inspector_state.pressedKeys);
+    const activeKeys = Array.from(window.__qwik_inspector_state.pressedKeys)
+      .map((key) => key.replace(/(Left|Right)$/g, ''));
     const clickToSourceKeys = ${JSON.stringify(hotKeys)};
     return clickToSourceKeys.every((key) => activeKeys.includes(key));
   }

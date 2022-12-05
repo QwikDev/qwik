@@ -126,7 +126,7 @@ export const Cmp = component$(() => {
 - **Times:** at least once
 - **Platform:** server and browser
 
-Just like `useMount$()`, the hook is called the first time when the component mounts, however it can be called multiple times if (and only if) it tracks a [signal and store](/docs/components/state/index.mdx) for changes.
+Just like `useMount$()`, the hook is called the first time when the component mounts, however it can be called multiple times if (and only if) it tracks a [signal or store](/docs/components/state/index.mdx) for changes.
 
 > `useWatch$()` is different from React's useEffect in that, `useWatch` also runs during SSR and before rendering.
 
@@ -149,24 +149,22 @@ export const Cmp = component$(() => {
   });
 
   return (
-    <>
       <div>
         {store.count} / {store.doubleCount}
       </div>
-    </>
   );
 });
 ```
 
 The example above uses the `track` function to watch changes in `() => store.count`. The callback will run once in the SSR when the component is mounted and every time `store.count` changes.
 
-> Notice that `useWatch$()` runs BEFORE the actual rendering and in the server, so manual DOM manipulation need to be done with carefulness.
+> Notice that `useWatch$()` runs **BEFORE** the actual rendering and in the server, thus manual DOM manipulation must be done with caution.
 
 > See also the `useClientEffect$()` hook that shares similar semantics but only runs on the client after rendering.
 
 ### When to use `useWatch$()`
 
-You wanna mutate some state, or perform some action when some state changes. Ie, you need to have some side effects.
+You wanna mutate some state, or perform some action when some state changes. i.e, you need to have some side effects.
 
 > Note, if you wanna load some data (for example a fetch()), to later use that in your component, look at [`useResource$()`](/docs/components/resource/index.mdx). This API will be even more efficiently leveraging SSR streaming and parallelisim.
 

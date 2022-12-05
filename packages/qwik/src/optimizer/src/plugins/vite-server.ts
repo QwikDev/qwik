@@ -129,10 +129,10 @@ export async function configureDevServer(
 
           const result = await render(renderOpts);
           if ('html' in result) {
-            res.write(END_SSR_SCRIPT);
+            res.write(END_SSR_SCRIPT(opts));
             res.end((result as any).html);
           } else {
-            res.write(END_SSR_SCRIPT);
+            res.write(END_SSR_SCRIPT(opts));
             res.end();
           }
         } else {
@@ -279,6 +279,13 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
     return '';
   }
 
+  // make sure that key matches even if shift is pressed
+  let hotKeys: string[] = opts.clickToSource;
+  const hotKeysIncludeShift = hotKeys.some((key) => key.includes('Shift') || key.includes('shift'));
+  if (hotKeysIncludeShift) {
+    hotKeys = hotKeys.map((key) => key.charAt(0).toUpperCase() + key.slice(1));
+  }
+
   return `
 <style>
 #qwik-inspector-overlay {
@@ -322,11 +329,11 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
 </style>
 <script>
 (function() {
-  console.debug(
-    'Click-to-Source: Hold-press the "${opts.clickToSource?.join(' + ')}" key${
-    (opts.clickToSource?.length > 1 && 's') || ''
-  } and click a component to jump directly to the source code in your IDE!'
-  );
+  console.debug("%c🔍 Qwik Click-To-Source","background: #564CE0; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;","Hold-press the '${hotKeys.join(
+    ' + '
+  )}' key${
+    (hotKeys.length > 1 && 's') || ''
+  } and click a component to jump directly to the source code in your IDE!");
   window.__qwik_inspector_state = {
     pressedKeys: new Set(),
   };
@@ -340,7 +347,7 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
   document.addEventListener(
     'keydown',
     (event) => {
-      window.__qwik_inspector_state.pressedKeys.add(event.code);
+      window.__qwik_inspector_state.pressedKeys.add(event.key);
       updateOverlay();
     },
     { capture: true }
@@ -349,7 +356,7 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
   document.addEventListener(
     'keyup',
     (event) => {
-      window.__qwik_inspector_state.pressedKeys.delete(event.code);
+      window.__qwik_inspector_state.pressedKeys.delete(event.key);
       updateOverlay();
     },
     { capture: true }
@@ -419,15 +426,14 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
     }
   }
 
-  function checkKeysArePressed(keys) {
-    const activeKeys = Array.from(window.__qwik_inspector_state.pressedKeys)
-      .map((key) => key.replace(/(Left|Right)$/g, ''));
-
-    return keys.every((key) => activeKeys.includes(key));
+  function checkKeysArePressed() {
+    const activeKeys = Array.from(window.__qwik_inspector_state.pressedKeys);
+    const clickToSourceKeys = ${JSON.stringify(hotKeys)};
+    return clickToSourceKeys.every((key) => activeKeys.includes(key));
   }
 
   function isActive() {
-    return checkKeysArePressed(${opts.clickToSource});
+    return checkKeysArePressed();
   }
 
   window.addEventListener('resize', updateOverlay);
@@ -435,7 +441,7 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
 
 })();
 </script>
-<div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ${opts.clickToSource?.join(
+<div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ${hotKeys.join(
     ' + '
   )}</p></div>
 `;

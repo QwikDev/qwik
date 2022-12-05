@@ -118,6 +118,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         forceFullBuild,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
         outDir: viteConfig.build?.outDir,
+        devTools: qwikViteOpts.devTools,
       };
 
       if (target === 'ssr') {
@@ -733,6 +734,14 @@ export interface QwikVitePluginOptions {
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
+  devTools?: {
+    /**
+     * Press-hold the defined keys (event.key values) to enable qwik dev inspector.
+     * Default: `Alt`
+     * If set to false, qwik dev inspector will be disabled.
+     */
+    clickToSource: string[] | false;
+  };
 }
 
 /**

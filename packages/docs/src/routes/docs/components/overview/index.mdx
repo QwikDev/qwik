@@ -24,8 +24,7 @@ In Qwik, they are declared using the `component$` method:
 ```tsx
 import { component$, useStore } from '@builder.io/qwik';
 
-// Qwik components can be asynchronous
-export const MyCmp = component$(async (props: MyCmpProps) => {
+export const MyCmp = component$((props: MyCmpProps) => {
   // Declare local state
   const state = useStore({
     count: 0,

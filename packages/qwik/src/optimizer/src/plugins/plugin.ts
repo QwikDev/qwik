@@ -1,3 +1,5 @@
+import { createOptimizer } from '../optimizer';
+import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import type {
   Diagnostic,
   EntryStrategy,
@@ -12,11 +14,8 @@ import type {
   TransformModuleInput,
   TransformOutput,
 } from '../types';
-import { QwikLinter, createLinter } from './eslint-plugin';
-import { generateManifestFromBundles, getValidManifest } from '../manifest';
-
+import { createLinter, QwikLinter } from './eslint-plugin';
 import type { PluginContext } from 'rollup';
-import { createOptimizer } from '../optimizer';
 
 export interface QwikPackages {
   id: string;

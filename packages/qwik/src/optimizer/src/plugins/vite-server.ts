@@ -1,10 +1,11 @@
+import type { Connect, ViteDevServer } from 'vite';
+import { NormalizedQwikPluginOptions, parseId } from './plugin';
+import type { OptimizerSystem, Path, QwikManifest } from '../types';
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
-import type { IncomingMessage } from 'http';
-import type { Connect, ViteDevServer } from 'vite';
-import type { OptimizerSystem, Path, QwikManifest } from '../types';
+
 import { ERROR_HOST } from './errored-host';
-import { NormalizedQwikPluginOptions, parseId } from './plugin';
+import type { IncomingMessage } from 'http';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
 
@@ -273,7 +274,13 @@ declare global {
   }
 }
 
-const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['inspectorConfig']) => `
+const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
+  if (!opts.clickToSource) {
+    // click to source set to false means no inspector
+    return '';
+  }
+
+  return `
 <style>
 #qwik-inspector-overlay {
   position: fixed;
@@ -317,9 +324,9 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['inspectorConfig']
 <script>
 (function() {
   console.debug(
-    'Click-to-Source: Hold-press the "${opts.hotKeys?.join(' + ')}" key${
-  (opts.hotKeys?.length && opts.hotKeys?.length > 1 && 's') || ''
-} and click a component to jump directly to the source code in your IDE!'
+    'Click-to-Source: Hold-press the "${opts.clickToSource?.join(' + ')}" key${
+    (opts.clickToSource?.length > 1 && 's') || ''
+  } and click a component to jump directly to the source code in your IDE!'
   );
   window.__qwik_inspector_state = {
     pressedKeys: new Set(),
@@ -421,7 +428,7 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['inspectorConfig']
   }
 
   function isActive() {
-    return checkKeysArePressed(${opts.hotKeys});
+    return checkKeysArePressed(${opts.clickToSource});
   }
 
   window.addEventListener('resize', updateOverlay);
@@ -429,10 +436,11 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['inspectorConfig']
 
 })();
 </script>
-<div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ${opts.hotKeys?.join(
-  ' + '
-)}</p></div>
+<div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ${opts.clickToSource?.join(
+    ' + '
+  )}</p></div>
 `;
+};
 
 const PERF_WARNING = `
 <script>
@@ -447,7 +455,7 @@ const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions) => `
 ${DEV_ERROR_HANDLING}
 ${ERROR_HOST}
 ${PERF_WARNING}
-${opts.inspectorConfig.enabled && DEV_QWIK_INSPECTOR(opts.inspectorConfig)}
+${DEV_QWIK_INSPECTOR(opts.devTools)}
 `;
 
 function getViteDevIndexHtml(entryUrl: string, envData: Record<string, any>) {

@@ -1,5 +1,3 @@
-import { createOptimizer } from '../optimizer';
-import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import type {
   Diagnostic,
   EntryStrategy,
@@ -14,8 +12,11 @@ import type {
   TransformModuleInput,
   TransformOutput,
 } from '../types';
-import { createLinter, QwikLinter } from './eslint-plugin';
+import { QwikLinter, createLinter } from './eslint-plugin';
+import { generateManifestFromBundles, getValidManifest } from '../manifest';
+
 import type { PluginContext } from 'rollup';
+import { createOptimizer } from '../optimizer';
 
 export interface QwikPackages {
   id: string;
@@ -52,9 +53,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     transformedModuleOutput: null,
     vendorRoots: [],
     scope: null,
-    inspectorConfig: {
-      enabled: true,
-      hotKeys: ['Alt'],
+    devTools: {
+      clickToSource: ['Alt'],
     },
   };
 
@@ -231,12 +231,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.resolveQwikBuild = updatedOpts.resolveQwikBuild;
     }
 
-    if (typeof updatedOpts.inspectorConfig === 'object') {
-      if ('enabled' in updatedOpts.inspectorConfig) {
-        opts.inspectorConfig.enabled = updatedOpts.inspectorConfig.enabled;
-      }
-      if ('hotKeys' in updatedOpts.inspectorConfig) {
-        opts.inspectorConfig.hotKeys = updatedOpts.inspectorConfig.hotKeys;
+    if (typeof updatedOpts.devTools === 'object') {
+      if ('clickToSource' in updatedOpts.devTools) {
+        opts.devTools.clickToSource = updatedOpts.devTools.clickToSource;
       }
     }
 
@@ -738,9 +735,8 @@ export interface QwikPluginOptions {
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
-  inspectorConfig?: {
-    enabled?: boolean;
-    hotKeys?: string[];
+  devTools?: {
+    clickToSource?: string[] | false;
   };
 }
 

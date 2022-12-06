@@ -368,7 +368,7 @@ export const Presidents = component$(() => {
   return (
     <ul>
       {presidents.map((president) => (
-        <li>
+        <li key={president.name + president.years}>
           {president.name} ({president.years})
         </li>
       ))}

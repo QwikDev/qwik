@@ -42,30 +42,30 @@ Sometimes a component will be first mounted/rendered in the browser, for example
 - **Times:** at least once
 - **Platform:** server and browser
 
-`useTask$()` registers a hook to be executed upon component creation, it will run at least one either in the server or in the browser, depending where the component is initially rendered.
+`useTask$()` registers a hook to be executed upon component creation, it will run at least once either in the server or in the browser, depending where the component is initially rendered.
 
 Additionally, this task can be reactive and re-execute when some **tracked** [signal or store](/docs/components/state/index.mdx) changes, like this:
 
 ```tsx
 useTask$(({track}) => {
   track(() => store.count));
-  // will run at mount and every time "store.count" changes
+  // will run when the component mounts and every time "store.count" changes
 })
 ```
 
 **Notice that any subsequent execution will always happen in the browser**, because reactivity is a client-only thing.
 
 ```
-  useTask$(track) -> RENDER -> CLICK (state changes) -> useTask$(track)
+  useTask$(track signal) -> RENDER -> CLICK (signal changes) -> RE-RUN useTask$(track)
   ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔            |                          ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
 | --------- SERVER --------- | --------------- BROWSER --------------- |
                              |
                         pause|resume
 ```
 
-> If a `useTask$()` does not track any state, it will run **exactly once**, either in the server or in the browser, depending where the component is initially rendered. Effectively behaving like a on mount hook.
+> If `useTask$()` does not track any state, it will run **exactly once**, either in the server **or** in the browser (**not both**), depending where the component is initially rendered. Effectively behaving like an "on mount" hook.
 
-`useTask$()` will block the rendering of the component until after the async callback resolves. (This is useful for fetching asynchronous data and delaying rendering until data is received, ensuring that the rendered component contains the data)
+`useTask$()` will block the rendering of the component until after its async callback resolves. (This is useful for fetching asynchronous data and delaying rendering until data is received, ensuring that the rendered component contains the data)
 
 
 ### Example

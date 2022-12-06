@@ -56,7 +56,7 @@ useTask$(({track}) => {
 **Notice that any subsequent execution will always happen in the browser**, because reactivity is a client-only thing.
 
 ```
-  useTask$(track signal) -> RENDER -> CLICK (signal changes) -> RE-RUN useTask$(track)
+  useTask$(track state) -> RENDER -> CLICK (state changes) -> RE-RUN useTask$(track state)
   ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔            |                          ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
 | --------- SERVER --------- | --------------- BROWSER --------------- |
                              |
@@ -102,22 +102,20 @@ export const Cmp = component$(() => {
 
 The example above uses the `track` function to watch changes in `() => store.count`. The callback will run once in the SSR when the component is mounted and every time `store.count` changes.
 
-> Notice that `useTask$()` runs **BEFORE** the actual rendering and in the server, thus manual DOM manipulation must be done with caution.
+> Notice that `useTask$()` runs **BEFORE** the actual rendering and in the server, so if you need to do any DOM manipulation, use `useClientDOM$()` instead, which runs on the client after rendering.
 
-> See also the `useClientDOM$()` hook that shares similar semantics but only runs on the client after rendering.
-
-### When to use `useTask$()`
+### Use `useTask$()` when you need to
 
 - Run async tasks before rendering
 - Run code only once before component is first rendered
-- Compute derived state from tracked state
-- Programatically run code when state changes
+- Compute derived state from tracked state (without causing potential re-rendering like in `useClientDOM$`)
+- Programmatically run code when state changes
 
-> Note, if you wanna load some data (for example a fetch()), to later use that in your component, look at [`useResource$()`](/docs/components/resource/index.mdx). This API will be even more efficiently leveraging SSR streaming and parallelisim.
+> Note, if you're thinking about load data (like using `fetch()`) inside of `useTask$`, consider using [`useResource$()`](/docs/components/resource/index.mdx) instead. This API is more efficient in terms of leveraging SSR streaming and parallel data fetching.
 
 ### Server/Client only task
 
-Sometimes is desired to only run code either in the server or in the client. This can be achieved by using the `isServer` and `isBrowser` conditionals exported in  `@builder.io/qwik/build`.
+Sometimes it is required to only run code either in the server or in the client. This can be achieved by using the `isServer` and `isBrowser` booleans exported from `@builder.io/qwik/build`.
 
 ```tsx
 import { isServer, isBrowser } from '@builder.io/qwik/build';
@@ -126,14 +124,14 @@ export const Cmp = component$(() => {
   const store = useStore({
     users: [],
   });
-  useTalk$(async () => {
+  useTask$(async () => {
     if (isServer) {
       // If the component is mounted on the server, call DB directly.
       store.users = await db.requestUsers();
     }
     if (isBrowser) {
       // If the component is mounted on the browser, fetch users through API.
-      store.users = await fetchGetUser();
+      store.users = await fetchGetUsers();
     }
   });
 
@@ -146,6 +144,8 @@ export const Cmp = component$(() => {
   );
 });
 ```
+
+> But as mentioned above - for data fetching, consider using [`useResource$()`](/docs/components/resource/index.mdx) instead.
 
 ## `useClientDOM$()`
 
@@ -161,13 +161,12 @@ useClientDOM$(() => console.log('runs in the browser'), {
 });
 ```
 
-This is a unique feature of Qwik, any other frameworks would execute this and other code as part of hydration, but in Qwik, we can even specify when it happens:
+This is a unique feature of Qwik, any other frameworks would execute this and other code as part of hydration, but in Qwik, you can actually specify when it happens:
 
-- `"visible"`: when the component becomes visible in the viewport (uses [Intersection Observer](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) under the hood). This is the default value.
+- `"visible"`: (this is the default) when the component becomes visible in the viewport (uses [Intersection Observer](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) under the hood). 
 - `"load"`: when the documents finish loading (the document's "load" event)
 - `"idle"`: after load the first moment the site becomes idle. It uses [`requestIdleCallback()`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback) under the hood.
 
-Like `useWatch`
 
 ### Example
 
@@ -191,17 +190,20 @@ export const Timer = component$(() => {
 
 > **NOTE:** Don't abuse `useClientDOM$()` when the same logic can be achieved using `useTask$()` or other means. Ask to yourself: Does this code really need to run at the beginning in the browser? If the answer is no, `useClientDOM$()` is probably not the right answer.
 
-> How does it compare with React's `useEffect()`? Both APIs share a lot of semantics, but while both run AFTER rendering,`useClientDOM$()` can run also independently from rendering.
+#### How does it compare with React's `useEffect()`?
+ Both APIs share a lot of semantics, but while both run AFTER rendering, `useClientDOM$()` can run also independently from rendering.
 
 ### When to use `useClientDOM$()`
 
-You need to run JS right at loading time of the page, even if the user never interacts with the page.
+Use this hook when you need to run JS right at loading time of the page, even if the user never interacts with the page.
+
+For example:
 
 - Read the DOM after rendering
 - Initialize some animations
 - WebGL logic
 - Use DOM APIs like `localStorage`
-- Runs some code without user interaction, like a setInterval()
+- Run some code without user interaction, like a setInterval()
 
 ## Diagram flow
 

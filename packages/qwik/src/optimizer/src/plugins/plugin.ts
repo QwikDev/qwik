@@ -52,6 +52,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     transformedModuleOutput: null,
     vendorRoots: [],
     scope: null,
+    devTools: {
+      clickToSource: ['Alt'],
+    },
   };
 
   const init = async () => {
@@ -225,6 +228,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     if (typeof updatedOpts.resolveQwikBuild === 'boolean') {
       opts.resolveQwikBuild = updatedOpts.resolveQwikBuild;
+    }
+
+    if (typeof updatedOpts.devTools === 'object') {
+      if ('clickToSource' in updatedOpts.devTools) {
+        opts.devTools.clickToSource = updatedOpts.devTools.clickToSource;
+      }
     }
 
     return { ...opts };
@@ -725,6 +734,9 @@ export interface QwikPluginOptions {
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
+  devTools?: {
+    clickToSource?: string[] | false;
+  };
 }
 
 export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions> {

@@ -129,10 +129,10 @@ export async function configureDevServer(
 
           const result = await render(renderOpts);
           if ('html' in result) {
-            res.write(END_SSR_SCRIPT);
+            res.write(END_SSR_SCRIPT(opts));
             res.end((result as any).html);
           } else {
-            res.write(END_SSR_SCRIPT);
+            res.write(END_SSR_SCRIPT(opts));
             res.end();
           }
         } else {
@@ -273,7 +273,15 @@ declare global {
   }
 }
 
-const DEV_QWIK_INSPECTOR = `
+const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
+  if (!opts.clickToSource) {
+    // click to source set to false means no inspector
+    return '';
+  }
+
+  const hotKeys: string[] = opts.clickToSource;
+
+  return `
 <style>
 #qwik-inspector-overlay {
   position: fixed;
@@ -316,9 +324,11 @@ const DEV_QWIK_INSPECTOR = `
 </style>
 <script>
 (function() {
-  console.debug(
-    'Click-to-Source: Hold-press the ⌥ Option/Alt key and click a component to jump directly to the source code in your IDE!'
-  );
+  console.debug("%c🔍 Qwik Click-To-Source","background: #564CE0; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;","Hold-press the '${hotKeys.join(
+    ' + '
+  )}' key${
+    (hotKeys.length > 1 && 's') || ''
+  } and click a component to jump directly to the source code in your IDE!");
   window.__qwik_inspector_state = {
     pressedKeys: new Set(),
   };
@@ -411,15 +421,15 @@ const DEV_QWIK_INSPECTOR = `
     }
   }
 
-  function checkKeysArePressed(keys) {
+  function checkKeysArePressed() {
     const activeKeys = Array.from(window.__qwik_inspector_state.pressedKeys)
       .map((key) => key.replace(/(Left|Right)$/g, ''));
-
-    return keys.every((key) => activeKeys.includes(key));
+    const clickToSourceKeys = ${JSON.stringify(hotKeys)};
+    return clickToSourceKeys.every((key) => activeKeys.includes(key));
   }
 
   function isActive() {
-    return checkKeysArePressed(['Alt']);
+    return checkKeysArePressed();
   }
 
   window.addEventListener('resize', updateOverlay);
@@ -427,8 +437,11 @@ const DEV_QWIK_INSPECTOR = `
 
 })();
 </script>
-<div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ⌥ Option</p></div>
+<div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source: ${hotKeys.join(
+    ' + '
+  )}</p></div>
 `;
+};
 
 const PERF_WARNING = `
 <script>
@@ -438,12 +451,12 @@ if (!window.__qwikViteLog) {
 }
 </script>`;
 
-const END_SSR_SCRIPT = `
+const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions) => `
 <script type="module" src="/@vite/client"></script>
 ${DEV_ERROR_HANDLING}
 ${ERROR_HOST}
 ${PERF_WARNING}
-${DEV_QWIK_INSPECTOR}
+${DEV_QWIK_INSPECTOR(opts.devTools)}
 `;
 
 function getViteDevIndexHtml(entryUrl: string, envData: Record<string, any>) {

@@ -302,6 +302,10 @@ export interface QwikVitePluginOptions {
         manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
     };
     debug?: boolean;
+    // (undocumented)
+    devTools?: {
+        clickToSource: string[] | false;
+    };
     entryStrategy?: EntryStrategy;
     // (undocumented)
     optimizerOptions?: OptimizerOptions;

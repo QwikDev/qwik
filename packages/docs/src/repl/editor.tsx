@@ -6,7 +6,7 @@ import {
   useContext,
   useRef,
   useStore,
-  useTask$,
+  useWatch$,
 } from '@builder.io/qwik';
 import type { IStandaloneCodeEditor } from './monaco';
 import {
@@ -51,7 +51,7 @@ export const Editor = component$((props: EditorProps) => {
     }
   });
 
-  useTask$(async ({ track }) => {
+  useWatch$(async ({ track }) => {
     track(() => props.input.version);
     track(() => store.editor);
 
@@ -60,7 +60,7 @@ export const Editor = component$((props: EditorProps) => {
     }
   });
 
-  useTask$(async ({ track }) => {
+  useWatch$(async ({ track }) => {
     track(() => store.editor);
     track(() => props.input.version);
     track(() => props.input.files);

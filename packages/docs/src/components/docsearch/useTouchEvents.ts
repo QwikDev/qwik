@@ -1,5 +1,5 @@
 import type { AutocompleteApi } from '@algolia/autocomplete-core';
-import { useTask$ } from '@builder.io/qwik';
+import { useWatch$ } from '@builder.io/qwik';
 
 interface UseTouchEventsProps {
   getEnvironmentProps: AutocompleteApi<any>['getEnvironmentProps'];
@@ -14,7 +14,7 @@ export function useTouchEvents({
   formElement,
   inputElement,
 }: UseTouchEventsProps) {
-  useTask$(() => {
+  useWatch$(() => {
     // TODO:
     // if (!(panelElement && formElement && inputElement)) {
     //   return undefined;

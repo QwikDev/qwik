@@ -28,7 +28,7 @@ export default component$(() => {
           <p>
             <span>resource weather.temperature: </span>
             <code data-test-params="temperature">{weather.temperature}</code>
-            <code>&deg;</code>
+            <code>&deg; </code>
           </p>
           <p>
             <span>loc.query.get('unit'): </span>

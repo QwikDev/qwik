@@ -1,0 +1,61 @@
+---
+title: Qwik City and Storybook
+keywords: storybook, components, preview, testing, docs
+contributors:
+  - DustinJSilk
+---
+
+# Storybook
+
+Storybook is a frontend tool for building UI components and pages in isolation.
+It helps you develop hard-to-reach states and edge cases without needing to run
+the whole app. You can test and preview components in a local Storybook UI or
+deploy a preview of Storybook to a server to share with your team.
+
+## Usage
+
+You can add Storybook easily by using the following Qwik starter script:
+
+```shell
+npm run qwik add storybook
+```
+
+> The default configuration for Storybook requires Nodejs v17 or higher
+
+The previous command will add a folder under `.storybook` that holds the
+Storybook configuration. Essential dependencies and scripts are added to your
+package.json, and a new component is added to `src/components/story-example`
+with a Story to get you started.
+
+You can add stories to your components by adding a `component.stories.tsx` which
+Storybook will pick up on automatically.
+
+```tsx
+import { Meta } from '@storybook/html';
+import { StoryExample, StoryExampleProps } from './story-example';
+
+export default {
+  title: 'Story Example',
+  args: {
+    label: 'Example label',
+    color: 'red',
+  },
+  argTypes: {
+    color: {
+      options: ['red', 'green', 'blue'],
+      control: {
+        type: 'select',
+      },
+    },
+  },
+} as Meta;
+
+type Options = StoryExampleProps & { label: string };
+
+const Template = ({ label, color }: Options) =>
+    <StoryExample color={color}>
+      {label}
+    </StoryExample>;
+
+export const Default = Template.bind({});
+```

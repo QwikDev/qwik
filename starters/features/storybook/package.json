@@ -1,0 +1,22 @@
+{
+  "description": "Use Storybook with your Qwik app",
+  "devDependencies": {
+    "@storybook/addon-essentials": "^6.5.14",
+    "@storybook/builder-vite": "^0.2.5",
+    "@storybook/core-server": "^6.5.14",
+    "@storybook/html": "^6.5.14",
+    "@storybook/theming": "^6.5.14"
+  },
+  "scripts": {
+    "storybook": "NODE_OPTIONS=--openssl-legacy-provider start-storybook -p 6005"
+  },
+  "__qwik__": {
+    "displayName": "Integration: Storybook",
+    "priority": -10,
+    "viteConfig": {},
+    "docs": [
+      "https://storybook.js.org/docs/react/get-started/introduction",
+      "https://qwik.builder.io/qwikcity/integrations/storybook/"
+    ]
+  }
+}

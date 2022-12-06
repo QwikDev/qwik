@@ -1,8 +1,6 @@
-import { qwikCity } from '@builder.io/qwik-city/vite';
-import { qwikVite } from '@builder.io/qwik/optimizer';
 import type { StorybookViteConfig } from '@storybook/builder-vite';
-import { mergeConfig } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
+import { mergeConfig, UserConfig } from 'vite';
+import baseConfig from '../vite.config';
 
 const config: StorybookViteConfig = {
   addons: ['@storybook/addon-essentials'],
@@ -14,8 +12,8 @@ const config: StorybookViteConfig = {
   features: {
     storyStoreV7: true,
   },
-  viteFinal: async (config) => {
-    const overridenConfig = mergeConfig(config, {
+  viteFinal: async (defaultConfig) => {
+    const config = mergeConfig(defaultConfig, {
       build: {
         target: 'es2020',
         rollupOptions: {
@@ -24,9 +22,11 @@ const config: StorybookViteConfig = {
       },
     });
 
-    overridenConfig.plugins = [qwikCity(), qwikVite(), tsconfigPaths(), ...overridenConfig.plugins];
+    const projectConfig = (baseConfig as () => UserConfig)();
 
-    return overridenConfig;
+    config.plugins = [...(projectConfig.plugins ?? []), ...(defaultConfig.plugins ?? [])];
+
+    return config;
   },
 };
 

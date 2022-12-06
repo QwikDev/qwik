@@ -10,6 +10,9 @@ import type {
   RouteParams,
 } from './types';
 
+/**
+ * loadRoute() runs in both client and server.
+ */
 export const loadRoute = async (
   routes: RouteData[] | undefined,
   menus: MenuData[] | undefined,
@@ -97,10 +100,13 @@ export const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) =
 
 export const getRouteParams = (paramNames: string[] | undefined, match: RegExpExecArray | null) => {
   const params: RouteParams = {};
+  let i: number;
+  let param: string;
 
   if (paramNames) {
-    for (let i = 0; i < paramNames.length; i++) {
-      params[paramNames[i]] = match ? match[i + 1] : '';
+    for (i = 0; i < paramNames.length; i++) {
+      param = match ? match[i + 1] : '';
+      params[paramNames[i]] = param.endsWith('/') ? param.slice(0, -1) : param;
     }
   }
 

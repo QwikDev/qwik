@@ -224,6 +224,7 @@ export interface RequestEvent<PLATFORM = unknown> {
     next: () => Promise<void>;
     params: RouteParams;
     platform: PLATFORM;
+    query: URLSearchParams;
     // (undocumented)
     request: RequestContext;
     // (undocumented)
@@ -267,11 +268,11 @@ export interface RouteLocation {
     // (undocumented)
     readonly href: string;
     // (undocumented)
-    readonly params: RouteParams;
+    readonly params: Record<string, string>;
     // (undocumented)
     readonly pathname: string;
     // (undocumented)
-    readonly query: Record<string, string>;
+    readonly query: URLSearchParams;
 }
 
 // @alpha (undocumented)

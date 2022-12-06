@@ -70,7 +70,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
   const routeLocation = useStore<MutableRouteLocation>({
     href: url.href,
     pathname: url.pathname,
-    query: Object.fromEntries(url.searchParams.entries()),
+    query: url.searchParams,
     params: env.params,
   });
 
@@ -129,7 +129,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       routeLocation.href = url.href;
       routeLocation.pathname = pathname;
       routeLocation.params = { ...params };
-      routeLocation.query = Object.fromEntries(url.searchParams.entries());
+      routeLocation.query = url.searchParams;
 
       // Update content
       content.headings = pageModule.headings;
@@ -186,7 +186,7 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   const routeLocation = useStore<MutableRouteLocation>({
     href: url.href,
     pathname: url.pathname,
-    query: Object.fromEntries(url.searchParams.entries()),
+    query: url.searchParams,
     params: props.params ?? {},
   });
 

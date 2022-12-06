@@ -124,6 +124,7 @@ export async function loadUserResponse(
         const requestEv: RequestEvent = {
           request,
           url: new URL(url),
+          query: new URLSearchParams(url.search),
           params: { ...params },
           response,
           platform,

@@ -91,12 +91,15 @@ export const head: DocumentHead<ProductData | null> = ({ params }) => {
 
 // export const value = process.env.VARIABLE;
 
-export const onGet: RequestHandler<EndpointData> = async ({ params, response }) => {
-  // console.warn('process.env.VARIABLE', value);
+export const onGet: RequestHandler<EndpointData> = async ({ params, response, query }) => {
   // Serverside Endpoint
   // During SSR, this method is called directly on the server and returns the data object
   // On the client, this same data can be requested with fetch() at the same URL, but also
   // requires the "accept: application/json" request header.
+
+  if (query.has('querystring-test')) {
+    throw response.redirect('/qwikcity-test/');
+  }
 
   if (params.id === 'shirt') {
     // Redirect, which will skip any rendering and the server will immediately redirect

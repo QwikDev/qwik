@@ -34,10 +34,10 @@ export interface MenuModule {
  * @alpha
  */
 export interface RouteLocation {
-  readonly params: RouteParams;
+  readonly params: Record<string, string>;
   readonly href: string;
   readonly pathname: string;
-  readonly query: Record<string, string>;
+  readonly query: URLSearchParams;
 }
 
 export interface RouteNavigate {
@@ -287,8 +287,17 @@ export interface RequestEvent<PLATFORM = unknown> {
   response: ResponseContext;
   url: URL;
 
-  /** URL Route params which have been parsed from the current url pathname. */
+  /**
+   * URL Route params which have been parsed from the current url pathname.
+   * Use `query` to instead retrieve the query string search params.
+   */
   params: RouteParams;
+
+  /**
+   * URL Query Strings (URL Search Pararms).
+   * Use `params` to instead retrieve the route params found in the url pathname.
+   */
+  query: URLSearchParams;
 
   /** Platform specific data and functions */
   platform: PLATFORM;

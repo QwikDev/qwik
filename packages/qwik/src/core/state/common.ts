@@ -46,9 +46,15 @@ const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
         if (isQwikElement(unwrapped)) return value;
         if (isDocument(unwrapped)) return value;
         if (isArray(unwrapped)) {
-          for (const item of unwrapped) {
-            _verifySerializable(item, seen);
-          }
+          let expectIndex = 0;
+          // Make sure the array has no holes
+          unwrapped.forEach((v, i) => {
+            if (i !== expectIndex) {
+              throw qError(QError_verifySerializable, unwrapped);
+            }
+            _verifySerializable(v, seen);
+            expectIndex = i + 1;
+          });
           return value;
         }
         if (isSerializableObject(unwrapped)) {

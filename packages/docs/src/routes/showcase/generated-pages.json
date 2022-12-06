@@ -16,20 +16,20 @@
     "tags": "saas"
   },
   {
-    "title": "La programación es el ahora y el futuro",
-    "href": "https://cursos.codigoencasa.com/node",
-    "imgSrc": "/showcases/cursos_codigoencasa_com_node.webp",
+    "title": "IMG Models",
+    "imgSrc": "/showcases/img-models_vercel_app_.webp",
     "perf": {
       "score": 0.98,
-      "fcpDisplay": "0.9 s",
-      "fcpScore": 1,
-      "lcpDisplay": "0.9 s",
-      "lcpScore": 1,
-      "ttiDisplay": "1.1 s",
+      "fcpDisplay": "1.7 s",
+      "fcpScore": 0.92,
+      "lcpDisplay": "2.1 s",
+      "lcpScore": 0.95,
+      "ttiDisplay": "1.7 s",
       "ttiScore": 1,
-      "ttiTime": 1085.420796962091
+      "ttiTime": 1710
     },
-    "tags": "learning"
+    "href": "https://img-models.vercel.app/",
+    "tags": "ecommerce"
   },
   {
     "title": "Vendure Qwik Storefront",
@@ -48,21 +48,22 @@
     "tags": "ecommerce"
   },
   {
-    "title": "IMG Models",
-    "imgSrc": "/showcases/img-models_vercel_app_.webp",
+    "title": "Qwind — Free template for starts a website using Qwik + Tailwind CSS",
+    "imgSrc": "/showcases/qwind_pages_dev_.webp",
     "perf": {
-      "score": 0.98,
-      "fcpDisplay": "1.7 s",
-      "fcpScore": 0.92,
-      "lcpDisplay": "2.1 s",
-      "lcpScore": 0.95,
-      "ttiDisplay": "1.7 s",
+      "score": 1,
+      "fcpDisplay": "1.0 s",
+      "fcpScore": 1,
+      "lcpDisplay": "1.0 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.1 s",
       "ttiScore": 1,
-      "ttiTime": 1710
+      "ttiTime": 1098.5
     },
-    "href": "https://img-models.vercel.app/",
-    "size": "large",
-    "tags": "ecommerce"
+    "href": "https://qwind.pages.dev/",
+    "tags": "template",
+    "repo": "https://github.com/onwidget/qwind",
+    "size": "large"
   },
   {
     "title": "Improve your focus, sleep, and working sessions - Soundy",
@@ -194,6 +195,22 @@
     "tags": "portfolio"
   },
   {
+    "title": "La programación es el ahora y el futuro",
+    "href": "https://cursos.codigoencasa.com/node",
+    "imgSrc": "/showcases/cursos_codigoencasa_com_node.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "lcpDisplay": "0.9 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.1 s",
+      "ttiScore": 1,
+      "ttiTime": 1085.420796962091
+    },
+    "tags": "learning"
+  },
+  {
     "title": "The FREE Open-Source URL Shortener | Reduced.to",
     "href": "https://reduced.to",
     "imgSrc": "/showcases/reduced_to.webp",
@@ -257,5 +274,21 @@
       "ttiTime": 2657
     },
     "tags": "saas"
+  },
+  {
+    "title": "Get Stockideas!",
+    "imgSrc": "/showcases/www_stockideashq_com_.webp",
+    "perf": {
+      "score": 0.86,
+      "fcpDisplay": "1.7 s",
+      "fcpScore": 0.91,
+      "lcpDisplay": "1.8 s",
+      "lcpScore": 0.98,
+      "ttiDisplay": "2.8 s",
+      "ttiScore": 0.97,
+      "ttiTime": 2837.649483829424
+    },
+    "href": "https://www.stockideashq.com/",
+    "tags": "investing"
   }
 ]

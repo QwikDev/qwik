@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test';
-import { assertPage, linkNavigate, load, locator } from './util.js';
 
 test.describe('Qwik City Catchall', () => {
   test.describe('mpa', () => {

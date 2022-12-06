@@ -12,10 +12,6 @@ export default component$(() => {
         <code data-test-params="catchall">{loc.params.catchall}</code>
       </p>
       <p>
-        <span>loc.query.mph: </span>
-        <code data-test-query="mph">{loc.query.get('88')}</code>
-      </p>
-      <p>
         <a href="/qwikcity-test/">Home</a>
       </p>
     </div>

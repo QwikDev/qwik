@@ -91,7 +91,7 @@ export default function (opts: RenderToStreamOptions) {
   }
 
   return renderToStream(
-    <html>
+    <>
       <head>
         <meta charSet="utf-8" />
         <title>Qwik Blank App</title>
@@ -99,7 +99,7 @@ export default function (opts: RenderToStreamOptions) {
       <body>
         <Test />
       </body>
-    </html>,
+    </>,
     {
       debug: true,
       ...opts,

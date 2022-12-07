@@ -1,21 +1,22 @@
 import {
-  createContext,
   implicit$FirstArg,
   QRL,
   ResourceReturn,
-  Signal,
   useContext,
   useResource$,
   ValueOrPromise,
 } from '@builder.io/qwik';
 import { isBrowser } from '@builder.io/qwik/build';
 import { RouteStateContext } from './contexts';
-import type { Cookie, PathParams, RequestContext } from './types';
+import type { RequestEvent } from './types';
 
 export interface ServerAction<T extends any[], B> {
   (...body: T): Promise<B>;
 }
 
+/**
+ * @alpha
+ */
 export const serverActionQrl = <T extends any[], B>(
   actionQrl: QRL<(...body: T) => ValueOrPromise<B>>
 ) => {
@@ -35,17 +36,15 @@ export const serverActionQrl = <T extends any[], B>(
 /**
  * @alpha
  */
-export declare interface SectionLoaderEvent<PLATFORM = unknown> {
-  request: RequestContext;
-  url: URL;
-  params: PathParams;
-  query: URLSearchParams;
-  platform: PLATFORM;
-  cookie: Cookie;
+export const serverAction$ = implicit$FirstArg(serverActionQrl);
+
+export interface ServerLoader<RETURN> {
+  use(): ResourceReturn<RETURN>;
 }
 
-export class ServerLoader<RETURN> {
-  constructor(public qrl: QRL<(event: SectionLoaderEvent) => ValueOrPromise<RETURN>>) {}
+export class ServerLoaderImpl<RETURN> implements ServerLoader<RETURN>  {
+  constructor(public qrl: QRL<(event: RequestEvent) => ValueOrPromise<RETURN>>) {}
+  __brand_server_loader = true;
   use(): ResourceReturn<RETURN> {
     const state = useContext(RouteStateContext);
     const hash = this.qrl.getHash();
@@ -56,10 +55,17 @@ export class ServerLoader<RETURN> {
   }
 }
 
+/**
+ * @alpha
+ */
 export const serverLoaderQrl = <PLATFORM, B>(
-  loaderQrl: QRL<(event: SectionLoaderEvent<PLATFORM>) => ValueOrPromise<B>>
-) => {
-  return new ServerLoader(loaderQrl as any);
+  loaderQrl: QRL<(event: RequestEvent<PLATFORM>) => B>
+): ServerLoader<Awaited<B>> => {
+  return new ServerLoaderImpl<Awaited<B>>(loaderQrl as any);
 };
 
+/**
+ * @alpha
+ */
 export const serverLoader$ = implicit$FirstArg(serverLoaderQrl);
+

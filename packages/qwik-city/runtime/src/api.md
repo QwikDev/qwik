@@ -6,8 +6,10 @@
 
 import { Component } from '@builder.io/qwik';
 import { JSXNode } from '@builder.io/qwik';
+import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { ResourceReturn } from '@builder.io/qwik';
+import { ValueOrPromise } from '@builder.io/qwik';
 
 // @alpha @deprecated (undocumented)
 export const Content: Component<    {}>;
@@ -283,6 +285,20 @@ export type RouteParams = Record<string, string>;
 
 // @alpha (undocumented)
 export const RouterOutlet: Component<    {}>;
+
+// @alpha (undocumented)
+export const serverAction$: <T extends any[], B>(first: (...body: T) => ValueOrPromise<B>) => () => void;
+
+// @alpha (undocumented)
+export const serverActionQrl: <T extends any[], B>(actionQrl: QRL<(...body: T) => ValueOrPromise<B>>) => () => void;
+
+// Warning: (ae-forgotten-export) The symbol "ServerLoader" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const serverLoader$: <PLATFORM, B>(first: (event: RequestEvent<PLATFORM>) => B) => ServerLoader<Awaited<B>>;
+
+// @alpha (undocumented)
+export const serverLoaderQrl: <PLATFORM, B>(loaderQrl: QRL<(event: RequestEvent<PLATFORM>) => B>) => ServerLoader<Awaited<B>>;
 
 // @alpha (undocumented)
 export const ServiceWorkerRegister: () => JSXNode<"script">;

@@ -13,7 +13,7 @@ import { isRedirectStatus, RedirectResponse } from './redirect-handler';
 import { ErrorResponse } from './error-handler';
 import { Cookie } from './cookie';
 import { validateSerializable } from '../../utils/format';
-import { SectionLoaderEvent, ServerLoader } from 'packages/qwik-city/runtime/src/server-functions';
+import type { ServerLoaderImpl } from '../../runtime/src/server-functions';
 
 export async function loadUserResponse(
   requestCtx: QwikCityRequestContext,
@@ -36,7 +36,6 @@ export async function loadUserResponse(
 
   const cookie = new Cookie(headers.get('cookie'));
 
-  const serverLoaders: ServerLoader<any>[] = [];
   const userResponse: UserResponseContext = {
     type: isPageDataReq ? 'pagedata' : isPageModule && !isEndpointReq ? 'pagehtml' : 'endpoint',
     url,
@@ -118,23 +117,23 @@ export async function loadUserResponse(
 
       requestHandler = requestHandler || endpointModule.onRequest;
 
+      const response = new ResponseContext(userResponse, requestCtx);
+
+      // create user request event, which is a narrowed down request context
+      const requestEv: RequestEvent = {
+        request,
+        url: new URL(url),
+        query: new URLSearchParams(url.search),
+        params: { ...params },
+        response,
+        platform,
+        cookie,
+        next,
+        abort,
+      };
+
       if (typeof requestHandler === 'function') {
         hasRequestMethodHandler = true;
-
-        const response = new ResponseContext(userResponse, requestCtx);
-
-        // create user request event, which is a narrowed down request context
-        const requestEv: RequestEvent = {
-          request,
-          url: new URL(url),
-          query: new URLSearchParams(url.search),
-          params: { ...params },
-          response,
-          platform,
-          cookie,
-          next,
-          abort,
-        };
 
         // get the user's endpoint returned data
         const syncData = requestHandler(requestEv) as any;
@@ -180,12 +179,15 @@ export async function loadUserResponse(
           }
         }
       }
-
       if (routeModuleIndex < ABORT_INDEX) {
-        serverLoaders.push(
-          ...Object.values(endpointModule).filter((e) => e instanceof ServerLoader)
+        const serverLoaders = Object.values(endpointModule).filter((e) => '__brand_server_loader' in e) as ServerLoaderImpl<any>[];
+        await Promise.all(
+          serverLoaders.map(async (loader) => {
+            userResponse.loaders[loader.qrl.getHash()] = await loader.qrl(requestEv)
+          })
         );
       }
+
 
       routeModuleIndex++;
     }
@@ -225,19 +227,6 @@ export async function loadUserResponse(
       // endpoints should respond with 405 Method Not Allowed
       throw new ErrorResponse(HttpStatus.MethodNotAllowed, `Method Not Allowed`);
     }
-  }
-  if (!userResponse.aborted) {
-    const requestEv: SectionLoaderEvent = {
-      request,
-      url: new URL(url),
-      query: new URLSearchParams(url.search),
-      params: { ...params },
-      platform,
-      cookie,
-    };
-    serverLoaders.forEach((loader) => {
-      userResponse.loaders[loader.qrl.getHash()] = loader.qrl(requestEv);
-    });
   }
 
   return userResponse;

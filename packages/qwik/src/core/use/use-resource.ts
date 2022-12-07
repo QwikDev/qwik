@@ -192,12 +192,21 @@ export const useResource$ = <T>(
 /**
  * @public
  */
-export interface ResourceProps<T> {
-  value: ResourceReturn<T>;
-  onResolved: (value: T) => JSXNode;
+export interface ResourcePropsSingle<T> {
+  readonly value: Readonly<T>;
+  onResolved: (value: T extends ResourceReturn<infer VALUE> ? VALUE : never) => JSXNode;
   onPending?: () => JSXNode;
   onRejected?: (reason: any) => JSXNode;
 }
+
+export interface ResourcePropsWithArray<ARGS> {
+  readonly value: ARGS;
+  onResolved: (value: {[K in keyof ARGS]: ARGS[K] extends ResourceReturn<infer VALUE> ? VALUE : never}) => JSXNode;
+  onPending?: () => JSXNode;
+  onRejected?: (reason: any) => JSXNode;
+}
+
+export type ResourceProps<T> = T extends Iterable<infer ARGS> ? ResourcePropsWithArray<ARGS> : ResourcePropsSingle<T>;
 
 // <docs markdown="../readme.md#useResource">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

@@ -144,6 +144,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       const clientPageData = await endpointResponse;
       const resolvedHead = resolveHead(clientPageData, routeLocation, contentModules, locale);
 
+      loaderState.value = clientPageData?.loaders || {};
       CLIENT_DATA_CACHE.clear();
 
       // Update document head

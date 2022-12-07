@@ -38,6 +38,7 @@ export function qwikCity(render: Render, opts?: RenderOptions_2): {
 export interface QwikCityNodeRequestOptions extends QwikCityHandlerOptions {
     static?: {
         root?: string;
+        cacheControl?: string;
     };
 }
 

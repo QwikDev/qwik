@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test';
-import { assertPage, linkNavigate, load, locator } from './util.js';
 
 test.describe('Qwik City Catchall', () => {
   test.describe('mpa', () => {
@@ -14,6 +13,7 @@ function tests() {
     const response = (await page.goto('/qwikcity-test/catchall/'))!;
     const status = response.status();
     expect(status).toBe(200);
+    await expect(page.locator('[data-test-params="catchall"]')).toHaveText('catchall');
   });
 
   test('Aborted Catchall', async ({ context }) => {

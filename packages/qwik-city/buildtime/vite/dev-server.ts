@@ -23,7 +23,7 @@ import {
   RedirectResponse,
 } from '../../middleware/request-handler/redirect-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
-import { getRouteParams } from '../../runtime/src/routing';
+import { getPathParams } from '../../runtime/src/routing';
 import { fromNodeHttp } from '../../middleware/node/http';
 import { generateCodeFrame } from '../../../qwik/src/optimizer/src/plugins/vite-utils';
 
@@ -34,7 +34,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
       if (match) {
         return {
           route,
-          params: getRouteParams(route.paramNames, match),
+          params: getPathParams(route.paramNames, match),
         };
       }
     }
@@ -46,7 +46,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         if (match) {
           return {
             route,
-            params: getRouteParams(route.paramNames, match),
+            params: getPathParams(route.paramNames, match),
           };
         }
       }

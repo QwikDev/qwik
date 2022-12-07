@@ -1,4 +1,4 @@
-import type { PageModule, QwikCityPlan, RouteData, RouteParams } from '../runtime/src/types';
+import type { PageModule, QwikCityPlan, RouteData, PathParams } from '../runtime/src/types';
 import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from './types';
 import { msToString } from '../utils/format';
 import { generateNotFoundPages } from './not-found';
@@ -122,7 +122,7 @@ export async function mainThread(sys: System) {
         }
       };
 
-      const addToQueue = (pathname: string | undefined | null, params: RouteParams | undefined) => {
+      const addToQueue = (pathname: string | undefined | null, params: PathParams | undefined) => {
         if (pathname) {
           pathname = new URL(pathname, `https://qwik.builder.io`).pathname;
 

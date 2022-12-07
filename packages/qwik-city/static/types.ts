@@ -1,5 +1,4 @@
 import type { StreamWriter } from '@builder.io/qwik';
-import type { RouteParams } from '../runtime/src';
 import type { RenderOptions } from '../../qwik/src/server';
 import type { QwikCityHandlerOptions } from '../middleware/request-handler/types';
 
@@ -128,7 +127,7 @@ export interface StaticRenderInput extends StaticRoute {
 
 export interface StaticRoute {
   pathname: string;
-  params: RouteParams | undefined;
+  params: Record<string, string> | undefined;
 }
 
 export interface WorkerCloseMessage {

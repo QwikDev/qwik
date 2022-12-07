@@ -34,10 +34,10 @@ export interface MenuModule {
  * @alpha
  */
 export interface RouteLocation {
-  readonly params: RouteParams;
+  readonly params: Record<string, string>;
   readonly href: string;
   readonly pathname: string;
-  readonly query: Record<string, string>;
+  readonly query: URLSearchParams;
 }
 
 export interface RouteNavigate {
@@ -204,15 +204,21 @@ export interface QwikCityPlan {
 
 /**
  * @alpha
+ * @deprecated Please update to `PathParams` instead
  */
-export type RouteParams = Record<string, string>;
+export declare type RouteParams = Record<string, string>;
+
+/**
+ * @alpha
+ */
+export declare type PathParams = Record<string, string>;
 
 export type ContentModule = PageModule | LayoutModule;
 
 export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
 
 export type LoadedRoute = [
-  params: RouteParams,
+  params: PathParams,
   mods: (RouteModule | ContentModule)[],
   menu: ContentMenu | undefined,
   routeBundleNames: string[] | undefined
@@ -287,8 +293,17 @@ export interface RequestEvent<PLATFORM = unknown> {
   response: ResponseContext;
   url: URL;
 
-  /** URL Route params which have been parsed from the current url pathname. */
-  params: RouteParams;
+  /**
+   * URL path params which have been parsed from the current url pathname.
+   * Use `query` to instead retrieve the query string search params.
+   */
+  params: PathParams;
+
+  /**
+   * URL Query Strings (URL Search Params).
+   * Use `params` to instead retrieve the route params found in the url pathname.
+   */
+  query: URLSearchParams;
 
   /** Platform specific data and functions */
   platform: PLATFORM;
@@ -348,14 +363,14 @@ export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenera
  * @alpha
  */
 export interface StaticGenerate {
-  params?: RouteParams[];
+  params?: PathParams[];
 }
 
 export interface QwikCityRenderDocument extends Document {}
 
 export interface QwikCityEnvData {
   mode: QwikCityMode;
-  params: RouteParams;
+  params: PathParams;
   response: EndpointResponse;
 }
 

@@ -1,10 +1,16 @@
 import { component$ } from '@builder.io/qwik';
-import type { DocumentHead, RequestHandler } from '@builder.io/qwik-city';
+import { DocumentHead, RequestHandler, useLocation } from '@builder.io/qwik-city';
 
 export default component$(() => {
+  const loc = useLocation();
+
   return (
     <div>
       <h1>Catch All</h1>
+      <p>
+        <span>loc.params.catchall: </span>
+        <code data-test-params="catchall">{loc.params.catchall}</code>
+      </p>
       <p>
         <a href="/qwikcity-test/">Home</a>
       </p>

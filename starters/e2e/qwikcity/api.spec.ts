@@ -76,4 +76,9 @@ test.describe('Qwik City API', () => {
     await page.waitForSelector('.onpost-success');
     expect(await btnPut.textContent()).toBe('POST test');
   });
+
+  test('redirect from product page because of "querystring-test" exists', async ({ page }) => {
+    const rsp = (await page.goto('/qwikcity-test/products/hat/?querystring-test=true'))!;
+    expect(new URL(rsp.url()).pathname).toBe('/qwikcity-test/');
+  });
 });

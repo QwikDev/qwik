@@ -125,8 +125,10 @@ export const useOnDocument = (event: string | string[], eventQrl: QRL<(ev: Event
  * @alpha
  */
 // </docs>
-export const useOnWindow = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
-  _useOn(`window:on-${event}`, eventQrl);
+export const useOnWindow = (
+  event: useOnWindowTypes[] | useOnWindowTypes,
+  eventQrl: QRL<(ev: Event) => void>
+) => _useOn(`window:on-${event}`, eventQrl);
 
 const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: Event) => void>) => {
   const invokeCtx = useInvokeContext();
@@ -142,3 +144,38 @@ const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: Event) => void>
   }
   elCtx.$flags$ |= HOST_FLAG_NEED_ATTACH_LISTENER;
 };
+
+type useOnWindowTypes =
+  | 'afterprint'
+  | 'appinstalled'
+  | 'beforeinstallprompt'
+  | 'beforeprint'
+  | 'beforeunload'
+  | 'blur'
+  | 'copy'
+  | 'cut'
+  | 'devicemotion'
+  | 'deviceorientation'
+  | 'deviceorientationabsolute'
+  | 'DOMContentLoaded'
+  | 'error'
+  | 'focus'
+  | 'gamepadconnected'
+  | 'gamepaddisconnected'
+  | 'hashchange'
+  | 'languagechange'
+  | 'load'
+  | 'message'
+  | 'messageerror'
+  | 'offline'
+  | 'online'
+  | 'orientationchange'
+  | 'pagehide'
+  | 'pageshow'
+  | 'paste'
+  | 'popstate'
+  | 'rejectionhandled'
+  | 'resize'
+  | 'storage'
+  | 'unhandledrejection'
+  | 'unload';

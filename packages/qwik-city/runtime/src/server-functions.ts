@@ -59,17 +59,7 @@ export class ServerLoader<RETURN> {
 export const serverLoaderQrl = <PLATFORM, B>(
   loaderQrl: QRL<(event: SectionLoaderEvent<PLATFORM>) => ValueOrPromise<B>>
 ) => {
-  const hash = loaderQrl.getHash();
-  return {
-    qrl: loaderQrl,
-    use() {
-      const state = useContext(RouteStateContext);
-      return useResource$(({ track }) => {
-        track(state);
-        return state.value[hash];
-      });
-    },
-  };
+  return new ServerLoader(loaderQrl as any);
 };
 
 export const serverLoader$ = implicit$FirstArg(serverLoaderQrl);

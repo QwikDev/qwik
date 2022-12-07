@@ -1,16 +1,7 @@
 .header-container {
   height: calc(var(--header-height));
-  margin-bottom: 6px;
-  background: var(--bg-color);
-  position: relative;
-  z-index: 100;
-}
-
-@media (min-width: 1024px) {
-  .header-container {
-    background: var(--bg-header-color);
-    backdrop-filter: blur(23px) saturate(4.5);
-  }
+  background: var(--bg-header-color);
+  @apply backdrop-blur-xl backdrop-saturate-200 sticky top-0 mb-2 z-20;
 }
 
 .fixed-header .header-container {
@@ -21,9 +12,7 @@
 }
 
 header li {
-  @apply px-2 text-right;
-  @apply py-4 md:py-0;
-
+  @apply px-2 text-right py-4 md:py-0;
   font-size: 14px;
   font-weight: 500;
 }

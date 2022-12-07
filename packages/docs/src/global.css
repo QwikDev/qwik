@@ -186,7 +186,7 @@ select {
 }
 
 body {
-  @apply antialiased h-screen;
+  @apply antialiased;
 }
 
 @media (max-width: 1023px) {

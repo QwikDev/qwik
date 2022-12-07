@@ -136,14 +136,20 @@ export const createJSXError = (message: string, node: JSXNode) => {
   if (!node.dev) {
     return error;
   }
-  const key = `${message}${node.dev.fileName}:${node.dev.lineNumber}:${node.dev.columnNumber}`;
+  const id = node.dev.fileName;
+  const key = `${message}${id}:${node.dev.lineNumber}:${node.dev.columnNumber}`;
   if (ONCE_JSX.has(key)) {
     return undefined;
   }
-  const name = isFunction(node.type) ? node.type.name : String(node.type);
-  error.stack = `JSXError: ${message}\n    at <${name}> (${node.dev.fileName}:${
-    node.dev.lineNumber
-  }:${node.dev.columnNumber})\n${filterStack(node.dev.stack!, 1)}`;
+  Object.assign(error, {
+    id,
+    loc: {
+      file: id,
+      column: node.dev.columnNumber,
+      line: node.dev.lineNumber,
+    },
+  });
+  error.stack = `JSXError: ${message}\n${filterStack(node.dev.stack!, 1)}`;
   ONCE_JSX.add(key);
   return error;
 };

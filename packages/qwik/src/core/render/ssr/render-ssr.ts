@@ -572,8 +572,8 @@ const renderNode = (
       if (flags & IS_PHASING) {
         if (!phasingContent[tagName]) {
           throw createJSXError(
-            `<${tagName}> can not be rendered because it's ancestor is a <p> or a <pre>.
-          This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html#phrasing-content-2`,
+            `<${tagName}> can not be rendered because one of its ancestor is a <p> or a <pre>.\n
+This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html#phrasing-content-2`,
             node
           );
         }
@@ -581,8 +581,8 @@ const renderNode = (
       if (tagName === 'button') {
         if (flags & IS_BUTTON) {
           throw createJSXError(
-            `<${tagName}> can not be rendered because it's ancestor is already a <button>.
-          This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html#interactive-content`,
+            `<${tagName}> can not be rendered because one of its ancestor is already a <button>.\n
+This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html#interactive-content`,
             node
           );
         } else {
@@ -592,8 +592,8 @@ const renderNode = (
       if (tagName === 'a') {
         if (flags & IS_ANCHOR) {
           throw createJSXError(
-            `<${tagName}> can not be rendered because it's ancestor is already a <a>.
-          This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html#interactive-content`,
+            `<${tagName}> can not be rendered because one of its ancestor is already a <a>.\n
+This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html#interactive-content`,
             node
           );
         } else {
@@ -603,8 +603,7 @@ const renderNode = (
       if (flags & IS_HEAD) {
         if (!headContent[tagName]) {
           throw createJSXError(
-            `<${tagName}> can not be rendered because it's not a valid descendant of the <head> element.
-          https://html.spec.whatwg.org/multipage/dom.html#metadata-content`,
+            `<${tagName}> can not be rendered because it's not a valid children of the <head> element. https://html.spec.whatwg.org/multipage/dom.html#metadata-content`,
             node
           );
         }

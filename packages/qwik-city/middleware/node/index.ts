@@ -67,8 +67,11 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
         const target = join(staticFolder, url.pathname);
         const stream = createReadStream(target);
 
-        stream.on('error', next);
+        if (opts.static?.cacheControl) {
+          res.setHeader('Cache-Control', opts.static.cacheControl);
+        }
 
+        stream.on('error', next);
         stream.pipe(res);
 
         return;
@@ -96,6 +99,8 @@ export interface QwikCityNodeRequestOptions extends QwikCityHandlerOptions {
   static?: {
     /** The root folder for statics files. Defaults to /dist */
     root?: string;
+    /** Set the Cache-Control header for all static files */
+    cacheControl?: string;
   };
 }
 

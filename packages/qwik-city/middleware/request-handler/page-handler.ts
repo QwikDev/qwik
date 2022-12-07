@@ -79,6 +79,7 @@ async function getClientPageData(
   const prefetchBundleNames = getPrefetchBundleNames(result, routeBundleNames);
   const isStatic = result.isStatic;
   const clientPage: ClientPageData = {
+    loaders: userResponse.loaders,
     body: userResponse.pendingBody ? await userResponse.pendingBody : userResponse.resolvedBody,
     status: userResponse.status !== 200 ? userResponse.status : undefined,
     redirect:
@@ -149,7 +150,7 @@ export function getQwikCityEnvData(
   locale: string | undefined;
   qwikcity: QwikCityEnvData;
 } {
-  const { url, params, pendingBody, resolvedBody, status } = userResponse;
+  const { url, params, pendingBody, resolvedBody, status, loaders } = userResponse;
   return {
     url: url.href,
     requestHeaders: requestHeaders,
@@ -160,6 +161,7 @@ export function getQwikCityEnvData(
       response: {
         body: pendingBody || resolvedBody,
         status: status,
+        loaders,
       },
     },
   };

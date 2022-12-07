@@ -8,6 +8,7 @@ import {
   getLocale,
   useStore,
   useWatch$,
+  useSignal,
 } from '@builder.io/qwik';
 import { loadRoute } from './routing';
 import type {
@@ -24,6 +25,7 @@ import {
   DocumentHeadContext,
   RouteLocationContext,
   RouteNavigateContext,
+  RouteStateContext,
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
@@ -74,6 +76,8 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     params: env.params,
   });
 
+  const loaderState = useSignal(env.response.loaders);
+
   const routeNavigate = useStore<RouteNavigate>({
     path: toPath(url),
   });
@@ -93,6 +97,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
   useContextProvider(DocumentHeadContext, documentHead);
   useContextProvider(RouteLocationContext, routeLocation);
   useContextProvider(RouteNavigateContext, routeNavigate);
+  useContextProvider(RouteStateContext, loaderState);
 
   useWatch$(async ({ track }) => {
     const locale = getLocale('');
@@ -190,6 +195,7 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
     params: props.params ?? {},
   });
 
+  const loaderState = useSignal({});
   const routeNavigate = useStore<RouteNavigate>({
     path: toPath(url),
   });
@@ -210,6 +216,6 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   useContextProvider(DocumentHeadContext, documentHead);
   useContextProvider(RouteLocationContext, routeLocation);
   useContextProvider(RouteNavigateContext, routeNavigate);
-
+  useContextProvider(RouteStateContext, loaderState);
   return <Slot />;
 });

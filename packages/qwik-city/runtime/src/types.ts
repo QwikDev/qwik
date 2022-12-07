@@ -345,6 +345,7 @@ export type RequestHandlerResult<BODY> =
 export interface EndpointResponse {
   body: any;
   status: number;
+  loaders: Record<string, Promise<any>>;
 }
 
 export interface ClientPageData extends Omit<EndpointResponse, 'status'> {

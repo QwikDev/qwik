@@ -1,7 +1,7 @@
 import { parseRoutePathname } from '../../buildtime/routing/parse-pathname';
 import { suite, test } from 'uvu';
 import { equal } from 'uvu/assert';
-import { getRouteParams, getMenuLoader } from './routing';
+import { getPathParams, getMenuLoader } from './routing';
 import type { MenuData } from './types';
 
 const routingTest = suite('routing');
@@ -27,9 +27,33 @@ routingTest('matches paths with patterns', () => {
     {
       basenamePath: '/',
       pattern: '/stuff/[...param]',
-      path: '/stuff/thing/',
+      path: '/stuff/a/b/c/',
       result: {
-        param: 'thing/',
+        param: 'a/b/c',
+      },
+    },
+    {
+      basenamePath: '/',
+      pattern: '/stuff/[...param]',
+      path: '/stuff/a/b/c',
+      result: {
+        param: 'a/b/c',
+      },
+    },
+    {
+      basenamePath: '/',
+      pattern: '/[...param]',
+      path: '/thing/',
+      result: {
+        param: 'thing',
+      },
+    },
+    {
+      basenamePath: '/',
+      pattern: '/[...param]',
+      path: '/thing',
+      result: {
+        param: 'thing',
       },
     },
   ];
@@ -50,7 +74,7 @@ const testMatch = (
   if (matched === null) {
     equal(result, null);
   } else {
-    equal(getRouteParams(actual.paramNames, matched), result);
+    equal(getPathParams(actual.paramNames, matched), result);
   }
 };
 

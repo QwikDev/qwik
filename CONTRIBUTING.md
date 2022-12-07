@@ -6,7 +6,7 @@ If you're not able to use the dev container, follow these instructions:
 
 ## Prerequisite
 
-To build platform binding and wasm, make sure you have installed [Rust](https://www.rust-lang.org/tools/install).
+To build platform binding and wasm, make sure you have installed [Rust](https://www.rust-lang.org/tools/install). Also follow directions for your platform to install [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/).
 
 > On Windows, Rust requires [C++ build tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/). You can also select _Desktop development with C++_
 > while installing Visual Studio.

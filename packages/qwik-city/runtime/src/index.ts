@@ -10,6 +10,7 @@ export type {
   DocumentLink,
   DocumentMeta,
   DocumentStyle,
+  PathParams,
   RequestHandler,
   RequestEvent,
   RouteParams,

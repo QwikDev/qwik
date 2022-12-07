@@ -5,7 +5,7 @@ import type {
   RequestEvent,
   ResponseContext as ResponseContextInterface,
   RouteModule,
-  RouteParams,
+  PathParams,
 } from '../../runtime/src/types';
 import type { QwikCityRequestContext, UserResponseContext } from './types';
 import { HttpStatus } from './http-status-codes';
@@ -16,7 +16,7 @@ import { validateSerializable } from '../../utils/format';
 
 export async function loadUserResponse(
   requestCtx: QwikCityRequestContext,
-  params: RouteParams,
+  params: PathParams,
   routeModules: RouteModule[],
   trailingSlash?: boolean,
   basePathname: string = '/'

@@ -171,6 +171,9 @@ export interface LinkProps extends AnchorAttributes {
     prefetch?: boolean;
 }
 
+// @alpha (undocumented)
+export type PathParams = Record<string, string>;
+
 // @alpha @deprecated (undocumented)
 export const QwikCity: Component<QwikCityProps>;
 
@@ -222,7 +225,7 @@ export interface RequestEvent<PLATFORM = unknown> {
     cookie: Cookie;
     // (undocumented)
     next: () => Promise<void>;
-    params: RouteParams;
+    params: PathParams;
     platform: PLATFORM;
     query: URLSearchParams;
     // (undocumented)
@@ -275,7 +278,7 @@ export interface RouteLocation {
     readonly query: URLSearchParams;
 }
 
-// @alpha (undocumented)
+// @alpha @deprecated (undocumented)
 export type RouteParams = Record<string, string>;
 
 // @alpha (undocumented)

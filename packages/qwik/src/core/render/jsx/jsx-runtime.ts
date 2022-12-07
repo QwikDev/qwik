@@ -131,15 +131,15 @@ export type { QwikJSX as JSX };
 
 const ONCE_JSX = new Set<string>();
 
-const createJSXError = (message: string, node: JSXNode) => {
+export const createJSXError = (message: string, node: JSXNode) => {
+  const error = new Error(message);
   if (!node.dev) {
-    return undefined;
+    return error;
   }
   const key = `${message}${node.dev.fileName}:${node.dev.lineNumber}:${node.dev.columnNumber}`;
   if (ONCE_JSX.has(key)) {
     return undefined;
   }
-  const error = new Error(message);
   const name = isFunction(node.type) ? node.type.name : String(node.type);
   error.stack = `JSXError: ${message}\n    at <${name}> (${node.dev.fileName}:${
     node.dev.lineNumber

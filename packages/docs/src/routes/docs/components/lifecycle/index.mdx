@@ -16,21 +16,21 @@ Thanks to [Resumability](/docs/concepts/resumable/index.mdx), components life an
 Usually **the life of a component starts on the server** (during SSR or SSG), in that case, the hooks will run like this:
 
 ```
-  useTask$ --> RENDER --> useClientDOM$
+  useTask$ --> RENDER --> useClientEffect$
                        |
-| ------ SERVER ------ | --- BROWSER --- |
+| ------ SERVER ------ | ---- BROWSER ---- |
                        |
                   pause|resume
 ```
 
-> **Notice** that because the component was mounted in the server, **only useClientDOM$() runs in the browser**. This is because the browser continues the same lifecycle, that was paused in the server right after the render and resumed in the browser.
+> **Notice** that because the component was mounted in the server, **only useClientEffect$() runs in the browser**. This is because the browser continues the same lifecycle, that was paused in the server right after the render and resumed in the browser.
 
 Sometimes a component will be first mounted/rendered in the browser, for example when the user SPA navigates to a new page, or a "modal" component first appears in the page. In that case, the lifecycle will run like this:
 
 ```
-  useTask$ --> RENDER --> useClientDOM$
+  useTask$ --> RENDER --> useClientEffect$
 
-| -------------- BROWSER -------------- |
+| --------------- BROWSER --------------- |
 ```
 
 > **Notice** that the lifecycle is exactly the same, but this time all the hooks run in the browser, and non in the server.
@@ -65,12 +65,12 @@ useTask$(({track}) => {
 
 > If `useTask$()` does not track any state, it will run **exactly once**, either in the server **or** in the browser (**not both**), depending where the component is initially rendered. Effectively behaving like an "on mount" hook.
 
-`useTask$()` will block the rendering of the component until after its async callback resolves. (This is useful for fetching asynchronous data and delaying rendering until data is received, ensuring that the rendered component contains the data)
+`useTask$()` will block the rendering of the component until after its async callback resolves, in another words, tasks execute sequentially even if they are asynchronous. (Only one task executes at a time / Tasks block rendering).
 
 
 ### Example
 
-The `useTask$()` function is used to observe the `state.count` property. Any changes to the `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
+The `useTask$()` function is used to observe the `state.count` property. Any changes to the `state.count` cause the arrow function to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
 
 ```tsx
 import { component$, useStore, useTask$ } from '@builder.io/qwik';
@@ -102,18 +102,18 @@ export const Cmp = component$(() => {
 
 The example above uses the `track` function to watch changes in `() => store.count`. The callback will run once in the SSR when the component is mounted and every time `store.count` changes.
 
-> Notice that `useTask$()` runs **BEFORE** the actual rendering and in the server, so if you need to do any DOM manipulation, use `useClientDOM$()` instead, which runs on the client after rendering.
+> Notice that `useTask$()` runs **BEFORE** the actual rendering and in the server, so if you need to do any DOM manipulation, use `useClientEffect$()` instead, which runs on the client after rendering.
 
 ### Use `useTask$()` when you need to
 
 - Run async tasks before rendering
 - Run code only once before component is first rendered
-- Compute derived state from tracked state (without causing potential re-rendering like in `useClientDOM$`)
+- Compute derived state from tracked state (without causing potential re-rendering like in `useClientEffect$`)
 - Programmatically run code when state changes
 
 > Note, if you're thinking about load data (like using `fetch()`) inside of `useTask$`, consider using [`useResource$()`](/docs/components/resource/index.mdx) instead. This API is more efficient in terms of leveraging SSR streaming and parallel data fetching.
 
-### Server/Client only task
+### Server/Browser only task
 
 Sometimes it is required to only run code either in the server or in the client. This can be achieved by using the `isServer` and `isBrowser` booleans exported from `@builder.io/qwik/build`.
 
@@ -147,23 +147,23 @@ export const Cmp = component$(() => {
 
 > But as mentioned above - for data fetching, consider using [`useResource$()`](/docs/components/resource/index.mdx) instead.
 
-## `useClientDOM$()`
+## `useClientEffect$()`
 
 - **When:** AFTER component's first render and on tracked state changes
 - **Times:** at least once
 - **Platform:** browser only
 
-For all components that got mounted during SSR (in the server), the `useClientDOM$()` will run eagarly, that means, without user interaction, but the eagerness can be configured!
+For all components that got mounted during SSR (in the server), the `useClientEffect$()` will run eagarly, that means, without user interaction, but the eagerness can be configured!
 
 ```tsx
-useClientDOM$(() => console.log('runs in the browser'), {
+useClientEffect$(() => console.log('runs in the browser'), {
   eagerness: 'visible', // 'load' | 'visible' | 'idle'
 });
 ```
 
 This is a unique feature of Qwik, any other frameworks would execute this and other code as part of hydration, but in Qwik, you can actually specify when it happens:
 
-- `"visible"`: (this is the default) when the component becomes visible in the viewport (uses [Intersection Observer](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) under the hood). 
+- `"visible"`: (this is the default) when the component becomes visible in the viewport (uses [Intersection Observer](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) under the hood).
 - `"load"`: when the documents finish loading (the document's "load" event)
 - `"idle"`: after load the first moment the site becomes idle. It uses [`requestIdleCallback()`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback) under the hood.
 
@@ -175,7 +175,7 @@ export const Timer = component$(() => {
   const store = useStore({
     count: 0,
   });
-  useClientDOM$(() => {
+  useClientEffect$(() => {
     // Only runs in the client
     const timer = setInterval(() => {
       store.count++;
@@ -188,12 +188,10 @@ export const Timer = component$(() => {
 });
 ```
 
-> **NOTE:** Don't abuse `useClientDOM$()` when the same logic can be achieved using `useTask$()` or other means. Ask to yourself: Does this code really need to run at the beginning in the browser? If the answer is no, `useClientDOM$()` is probably not the right answer.
+> **NOTE:** Don't abuse `useClientEffect$()` when the same logic can be achieved using `useTask$()` or other means. Ask to yourself: Does this code really need to run at the beginning in the browser? If the answer is no, `useClientEffect$()` is probably not the right answer.
 
-#### How does it compare with React's `useEffect()`?
- Both APIs share a lot of semantics, but while both run AFTER rendering, `useClientDOM$()` can run also independently from rendering.
 
-### When to use `useClientDOM$()`
+### When to use `useClientEffect$()`
 
 Use this hook when you need to run JS right at loading time of the page, even if the user never interacts with the page.
 
@@ -205,9 +203,11 @@ For example:
 - Use DOM APIs like `localStorage`
 - Run some code without user interaction, like a setInterval()
 
-## Diagram flow
 
-<img src={diagram} />
+#### How does it compare with React's `useEffect()`?
+
+Both APIs share a lot of semantics, but while both run AFTER rendering, `useClientEffect$()` can run also independently from rendering.
+
 
 ## Use Method Rules
 

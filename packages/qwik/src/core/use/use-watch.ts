@@ -30,14 +30,14 @@ export const WatchFlagsIsResource = 1 << 4;
 /**
  * Used to signal to Qwik which state should be watched for changes.
  *
- * The `Tracker` is passed into the `watchFn` of `useTask`. It is intended to be used to wrap
+ * The `Tracker` is passed into the `taskFn` of `useTask`. It is intended to be used to wrap
  * state objects in a read proxy which signals to Qwik which properties should be watched for
- * changes. A change to any of the properties causes the `watchFn` to rerun.
+ * changes. A change to any of the properties causes the `taskFn` to rerun.
  *
  * ### Example
  *
- * The `obs` passed into the `watchFn` is used to mark `state.count` as a property of interest.
- * Any changes to the `state.count` property will cause the `watchFn` to rerun.
+ * The `obs` passed into the `taskFn` is used to mark `state.count` as a property of interest.
+ * Any changes to the `state.count` property will cause the `taskFn` to rerun.
  *
  * ```tsx
  * const Cmp = component$(() => {
@@ -201,14 +201,14 @@ export interface UseTaskOptions {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useTask instead)
 /**
- * Reruns the `watchFn` when the observed inputs change.
+ * Reruns the `taskFn` when the observed inputs change.
  *
- * Use `useTask` to observe changes on a set of inputs, and then re-execute the `watchFn` when
+ * Use `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when
  * those inputs change.
  *
- * The `watchFn` only executes if the observed inputs change. To observe the inputs, use the
+ * The `taskFn` only executes if the observed inputs change. To observe the inputs, use the
  * `obs` function to wrap property reads. This creates subscriptions that will trigger the
- * `watchFn` to rerun.
+ * `taskFn` to rerun.
  *
  * @see `Tracker`
  *
@@ -217,7 +217,7 @@ export interface UseTaskOptions {
  * ### Example
  *
  * The `useTask` function is used to observe the `state.count` property. Any changes to the
- * `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to
+ * `state.count` cause the `taskFn` to execute which in turn updates the `state.doubleCount` to
  * the double of `state.count`.
  *
  * ```tsx
@@ -284,14 +284,14 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useTask instead)
 /**
- * Reruns the `watchFn` when the observed inputs change.
+ * Reruns the `taskFn` when the observed inputs change.
  *
- * Use `useTask` to observe changes on a set of inputs, and then re-execute the `watchFn` when
+ * Use `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when
  * those inputs change.
  *
- * The `watchFn` only executes if the observed inputs change. To observe the inputs, use the
+ * The `taskFn` only executes if the observed inputs change. To observe the inputs, use the
  * `obs` function to wrap property reads. This creates subscriptions that will trigger the
- * `watchFn` to rerun.
+ * `taskFn` to rerun.
  *
  * @see `Tracker`
  *
@@ -300,7 +300,7 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
  * ### Example
  *
  * The `useTask` function is used to observe the `state.count` property. Any changes to the
- * `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to
+ * `state.count` cause the `taskFn` to execute which in turn updates the `state.doubleCount` to
  * the double of `state.count`.
  *
  * ```tsx

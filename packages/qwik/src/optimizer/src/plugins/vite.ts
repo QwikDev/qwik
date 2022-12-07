@@ -244,9 +244,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             input: opts.input,
             preserveEntrySignatures: 'exports-only',
             output: normalizeRollupOutputOptions(path, opts, {}),
-            treeshake: {
-              moduleSideEffects: false,
-            },
             onwarn: (warning, warn) => {
               if (
                 warning.plugin === 'typescript' &&

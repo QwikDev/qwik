@@ -466,7 +466,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return {
         code,
         map: transformedModule[0].map,
-        moduleSideEffects: false,
         meta: {
           hook: transformedModule[0].hook,
         },

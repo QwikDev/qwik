@@ -1,8 +1,11 @@
 import type { OptimizerSystem } from '../types';
 
 export async function formatError(sys: OptimizerSystem, err: any) {
-  if (!err.loc && !err.frame) {
-    const loc = findLocation(err);
+  let loc = err.loc;
+  if (!err.frame && !err.plugin) {
+    if (!loc) {
+      loc = findLocation(err);
+    }
     if (loc) {
       err.loc = loc;
       if (loc.file) {

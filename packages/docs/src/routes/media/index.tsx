@@ -22,6 +22,7 @@ export const MEDIA = mediaObj({
     youtube("Qwik… the world's first O(1) JavaScript framework?", 'x2eF3YLiNhY'),
     youtube('Qwik JS and the future of frameworks', 'z14c3u9q8rI'),
     youtube('Qwik: Under-The-Hood of a Resumable JavaScript Framework', 'BxGbnLb5i9Q'),
+    youtube('Qwik City for Resumable, Dynamic Apps', 'cJJdrYnsl6U'),
     youtube('Is Qwik + RxJS actually possible?', 'qKCX7Qz1oG8'),
     youtube('Qwik-ifying React SPA to create the fastest possible website', 'dbxP9FX5j2o'),
     youtube('Exploring Qwik, the Resumable Framework', 'gT5NWKZZPQM'),

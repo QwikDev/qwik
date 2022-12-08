@@ -191,6 +191,7 @@ importers:
 
   packages/qwik-city:
     specifiers:
+      '@azure/functions': ^3.2.0
       '@builder.io/qwik': workspace:*
       '@mdx-js/mdx': 2.1.5
       '@microsoft/api-extractor': 7.33.6
@@ -225,6 +226,7 @@ importers:
       source-map: 0.7.4
       vfile: 5.3.6
     devDependencies:
+      '@azure/functions': 3.2.0
       '@builder.io/qwik': link:../qwik
       '@microsoft/api-extractor': 7.33.6
       '@netlify/edge-functions': 2.0.0
@@ -371,6 +373,10 @@ packages:
       '@algolia/cache-common': 4.14.2
       '@algolia/logger-common': 4.14.2
       '@algolia/requester-common': 4.14.2
+    dev: true
+
+  /@azure/functions/3.2.0:
+    resolution: {integrity: sha512-HbE7iORnYcjLzKNf5mIQRJQDTsVxhoXHRWEZ6KWdGh4e7+F9xTloiBicavbSoVmlAYivenIVpryHanVwsQaHUw==}
     dev: true
 
   /@babel/code-frame/7.18.6:

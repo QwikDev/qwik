@@ -24,6 +24,10 @@
       "import": "./lib/adaptors/netlify-edge/vite/index.mjs",
       "require": "./lib/adaptors/netlify-edge/vite/index.cjs"
     },
+    "./adaptors/azure-swa/vite": {
+      "import": "./lib/adaptors/azure-swa/vite/index.mjs",
+      "require": "./lib/adaptors/azure-swa/vite/index.cjs"
+    },
     "./adaptors/static/vite": {
       "import": "./lib/adaptors/static/vite/index.mjs",
       "require": "./lib/adaptors/static/vite/index.cjs"
@@ -37,6 +41,9 @@
     },
     "./middleware/netlify-edge": {
       "import": "./lib/middleware/netlify-edge/index.mjs"
+    },
+    "./middleware/azure-swa": {
+      "import": "./lib/middleware/azure-swa/index.mjs"
     },
     "./middleware/node": {
       "import": "./lib/middleware/node/index.mjs",
@@ -65,6 +72,7 @@
     "vfile": "5.3.6"
   },
   "devDependencies": {
+    "@azure/functions": "^3.2.0",
     "@builder.io/qwik": "workspace:*",
     "@microsoft/api-extractor": "7.33.6",
     "@netlify/edge-functions": "^2.0.0",

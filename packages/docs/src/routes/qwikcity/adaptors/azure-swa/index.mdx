@@ -1,0 +1,70 @@
+---
+title: Qwik City - Azure Static Web Apps
+contributors:
+  - derkoe
+---
+
+# Azure Static Web Apps Middleware
+
+Qwik City Azure Static Web Apps middleware allows you to connect Qwik City to [Azure Static Web Apps](https://learn.microsoft.com/azure/static-web-apps/).
+
+## Installation
+
+To integrate the `azure-swa` adaptor, use the `add` command:
+
+```shell
+npm run qwik add azure-swa
+```
+
+The adaptor will add a new `vite.config.ts` within the `adaptors/` directory, and a new entry file will be created, such as:
+
+```
+└── adaptors/
+    └── azure-swa/
+        └── vite.config.ts
+└── src/
+    └── entry.azure-swa.tsx
+```
+
+Additionally, within the `package.json`, the `build.server` script will be updated with the Azure Static Web Apps build.
+
+## Production build
+
+To build the application for production, use the `build` command, this command will automatically run `npm run build.server` and `npm run build.client`:
+
+```shell
+npm run build
+```
+
+## Local development deployment
+
+To deploy the application for local development:
+
+```shell
+npm run build
+npm run serve
+```
+
+## Deploy to Azure
+
+After installing the integration using `npm run qwik add` the project is ready to be deployed to Azure Static Web Apps.
+
+There are two ways to deploy:
+
+1. Deploy with [Static Web Apps CLI](https://azure.github.io/static-web-apps-cli/)  
+   
+   You can deploy your application from your local environment with:
+
+    ```shell
+    npx swa deploy
+    ```
+
+    This will start a wizard which will guide you through login and deployment to Azure.
+
+2. Deploy from GitHub
+
+   You can deploy your application via GitHub. Create a Git repository, commit all your code and then publish your branch to GitHub. 
+   When setting up an Azure Static Webapp via the Azure Portal you can choose the GitHub repository to deploy.
+   This will setup a GitHub workflow deploying your application automatically. Read the [Azure Static Web Apps quickstart](https://learn.microsoft.com/azure/static-web-apps/get-started-portal?pivots=github) for more information.
+
+Notice that you will need an [Azure account](https://signup.azure.com/) in order to complete this step!

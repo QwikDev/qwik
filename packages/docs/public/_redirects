@@ -13,6 +13,7 @@
 
 /qwikcity/routing/pathless/ /qwikcity/layout/grouped/ 308
 
+/qwikcity/middleware/azure-swa/ /qwikcity/adaptors/azure-swa/ 308
 /qwikcity/middleware/cloudflare-pages/ /qwikcity/adaptors/cloudflare-pages/ 308
 /qwikcity/middleware/netlify-edge/ /qwikcity/adaptors/netlify-edge/ 308
 /qwikcity/middleware/node/ /qwikcity/adaptors/node/ 308

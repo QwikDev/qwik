@@ -55,6 +55,16 @@ export default component$(() => {
       <table class="commands">
         <tr>
           <td>
+            <code>npm run qwik add azure-swa</code>
+          </td>
+          <td>
+            <a href="https://learn.microsoft.com/azure/static-web-apps/overview" target="_blank">
+              Azure Static Web Apps
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td>
             <code>npm run qwik add cloudflare-pages</code>
           </td>
           <td>

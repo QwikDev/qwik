@@ -89,6 +89,11 @@ export function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.packagesDir, 'qwik-city', 'adaptors', 'azure-swa', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'azure-swa', 'vite', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.packagesDir, 'qwik-city', 'adaptors', 'static', 'vite'),
     join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'static', 'vite', 'index.d.ts')
   );
@@ -106,6 +111,11 @@ export function apiExtractor(config: BuildConfig) {
     config,
     join(config.packagesDir, 'qwik-city', 'middleware', 'netlify-edge'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'netlify-edge', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'middleware', 'azure-swa'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'azure-swa', 'index.d.ts')
   );
   createTypesApi(
     config,

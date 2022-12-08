@@ -10,6 +10,9 @@
       "route": "/manifest.json"
     },
     {
+      "route": "/service-worker.js"
+    },
+    {
       "route": "/.auth/*"
     },
     {

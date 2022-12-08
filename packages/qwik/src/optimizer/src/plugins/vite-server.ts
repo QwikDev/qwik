@@ -14,7 +14,8 @@ export async function configureDevServer(
   sys: OptimizerSystem,
   path: Path,
   isClientDevOnly: boolean,
-  clientDevInput: string | undefined
+  clientDevInput: string | undefined,
+  viteBase: string
 ) {
   if (typeof fetch !== 'function' && sys.env === 'node') {
     // polyfill fetch() when not available in NodeJS
@@ -86,7 +87,7 @@ export async function configureDevServer(
                 url += `?t=${v.lastHMRTimestamp}`;
               }
               if (hook) {
-                manifest.mapping[hook.name] = url;
+                manifest.mapping[hook.name] = makeRelative(url);
               }
 
               const { pathId, query } = parseId(v.url);
@@ -107,6 +108,7 @@ export async function configureDevServer(
             debug: true,
             locale: envData.locale,
             stream: res,
+            base: viteBase,
             snapshot: !isClientDevOnly,
             manifest: isClientDevOnly ? undefined : manifest,
             symbolMapper: isClientDevOnly
@@ -149,6 +151,13 @@ export async function configureDevServer(
       next(e);
     }
   });
+}
+
+function makeRelative(url: string) {
+  if (url.startsWith('/')) {
+    return '.' + url;
+  }
+  return url;
 }
 
 export async function configurePreviewServer(

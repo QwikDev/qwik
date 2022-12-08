@@ -14,7 +14,7 @@ import type {
 // still further optimize the priorities depending on the user/document.
 // This also helps ensure a stable q-manifest.json file.
 
-function prioritorizeSymbolNames(manifest: QwikManifest) {
+function prioritizeSymbolNames(manifest: QwikManifest) {
   const symbols = manifest.symbols;
 
   return Object.keys(symbols).sort((symbolNameA, symbolNameB) => {
@@ -180,13 +180,13 @@ function sortBundleNames(manifest: QwikManifest) {
 }
 
 function updateSortAndPriorities(manifest: QwikManifest) {
-  const prioritorizedSymbolNames = prioritorizeSymbolNames(manifest);
-  const prioritorizedSymbols: { [symbolName: string]: QwikSymbol } = {};
-  const prioritorizedMapping: { [symbolName: string]: string } = {};
+  const prioritizedSymbolNames = prioritizeSymbolNames(manifest);
+  const prioritizedSymbols: { [symbolName: string]: QwikSymbol } = {};
+  const prioritizedMapping: { [symbolName: string]: string } = {};
 
-  for (const symbolName of prioritorizedSymbolNames) {
-    prioritorizedSymbols[symbolName] = manifest.symbols[symbolName];
-    prioritorizedMapping[symbolName] = manifest.mapping[symbolName];
+  for (const symbolName of prioritizedSymbolNames) {
+    prioritizedSymbols[symbolName] = manifest.symbols[symbolName];
+    prioritizedMapping[symbolName] = manifest.mapping[symbolName];
   }
 
   const sortedBundleNames = sortBundleNames(manifest);
@@ -201,8 +201,8 @@ function updateSortAndPriorities(manifest: QwikManifest) {
       bundle.dynamicImports.sort(sortAlphabetical);
     }
     const symbols: string[] = [];
-    for (const symbolName of prioritorizedSymbolNames) {
-      if (bundleName === prioritorizedMapping[symbolName]) {
+    for (const symbolName of prioritizedSymbolNames) {
+      if (bundleName === prioritizedMapping[symbolName]) {
         symbols.push(symbolName);
       }
     }
@@ -212,8 +212,8 @@ function updateSortAndPriorities(manifest: QwikManifest) {
     }
   }
 
-  manifest.symbols = prioritorizedSymbols;
-  manifest.mapping = prioritorizedMapping;
+  manifest.symbols = prioritizedSymbols;
+  manifest.mapping = prioritizedMapping;
   manifest.bundles = sortedBundles;
 
   return manifest;

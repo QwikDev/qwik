@@ -52,10 +52,15 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getClientOutDir: () => clientOutDir,
   };
 
+  let viteBase: string;
   const vitePlugin: VitePlugin = {
     name: 'vite-plugin-qwik',
     enforce: 'pre',
     api,
+
+    configResolved(config) {
+      viteBase = config.base;
+    },
 
     async config(viteConfig, viteEnv) {
       await qwikPlugin.init();
@@ -526,7 +531,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const opts = qwikPlugin.getOptions();
       const sys = qwikPlugin.getSys();
       const path = qwikPlugin.getPath();
-      await configureDevServer(server, opts, sys, path, isClientDevOnly, clientDevInput);
+      await configureDevServer(server, opts, sys, path, isClientDevOnly, clientDevInput, viteBase);
     },
 
     configurePreviewServer(server) {

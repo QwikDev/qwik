@@ -44,6 +44,7 @@
 - [Cloudflare Pages](adaptors/cloudflare-pages/index.mdx)
 - [Vercel Edge](adaptors/vercel-edge/index.mdx)
 - [NodeJs](adaptors/node/index.mdx)
+- [Google Cloud Run](adaptors/cloud-run/index.mdx)
 
 ## Integrations
 

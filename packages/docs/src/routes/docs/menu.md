@@ -25,7 +25,7 @@
 
 - [Qwik vs React](cheat/qwik-react/index.mdx)
 - [Serialization](cheat/serialization/index.mdx)
-- [Anti-Patterns](cheat/anti-patterns/index.mdx)
+- [Best Practices](cheat/best-practices/index.mdx)
 
 ## Concepts
 

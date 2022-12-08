@@ -707,17 +707,11 @@ export interface ResourcePending<T> {
     promise: Promise<T>;
 }
 
+// Warning: (ae-forgotten-export) The symbol "ResourcePropsWithArray" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ResourcePropsSingle" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export interface ResourceProps<T> {
-    // (undocumented)
-    onPending?: () => JSXNode;
-    // (undocumented)
-    onRejected?: (reason: any) => JSXNode;
-    // (undocumented)
-    onResolved: (value: T) => JSXNode;
-    // (undocumented)
-    value: ResourceReturn<T>;
-}
+export type ResourceProps<T> = T extends readonly ResourceReturn<any>[] ? ResourcePropsWithArray<T> : (T extends ResourceReturn<infer TYPE> ? ResourcePropsSingle<TYPE> : never);
 
 // @public (undocumented)
 export interface ResourceRejected<T> {

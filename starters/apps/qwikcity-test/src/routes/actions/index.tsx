@@ -2,9 +2,15 @@ import { component$, Resource, useStyles$ } from '@builder.io/qwik';
 import { DocumentHead, serverLoader$ } from '@builder.io/qwik-city';
 import styles from './actions.css';
 
-export const data = serverLoader$(() => {
+export const preference = serverLoader$(() => {
   return {
     title: 'Actions',
+  }
+});
+
+export const data = serverLoader$(() => {
+  return {
+    title: 'Actions 1',
   }
 });
 
@@ -14,9 +20,7 @@ export const data2 = serverLoader$(() => {
   }
 });
 
-export const head: DocumentHead = ({readLoader}) => {
-  // TODO
-  const a = await readLoader(data);
+export const head: DocumentHead = () => {
   return {
     title: 'Actions',
   };
@@ -32,14 +36,14 @@ export default component$(() => {
   Promise.all
   return (
     <Resource
-      value={[resource, resource2]}
+      value={[resource, resource2] as const}
       onResolved={([value1, value2]) => {
         return (
 
           <div class="actions">
 
             <section class="input">
-              <h1>{value1.title}</h1>
+              <h1>{value1.title} {value2.value}</h1>
 
               <form method="post" data-test-toppings>
                 <h2>Toppings</h2>

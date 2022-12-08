@@ -324,7 +324,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
 
       if (opts.target === 'client') {
-        transformOpts.stripCtxName = ['useServerMount$'];
+        transformOpts.stripCtxName = ['useServerMount$', 'serverAction$', 'serverLoader$'];
         transformOpts.stripExports = [
           'onGet',
           'onPost',

@@ -15,7 +15,7 @@ import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { isServer } from '../platform/platform';
 import { useBindInvokeContext } from './use-core';
 
-import { isObject } from '../util/types';
+import { isArray, isObject } from '../util/types';
 import type { ContainerState, GetObjID } from '../container/container';
 import { useSequentialScope } from './use-sequential-scope';
 import { createProxy } from '../state/store';
@@ -189,24 +189,26 @@ export const useResource$ = <T>(
   return useResourceQrl<T>($(generatorFn), opts);
 };
 
+export interface ResourcePropsSingle<T> {
+  readonly value: ResourceReturn<T>;
+  onResolved: (value: T) => JSXNode;
+  onPending?: () => JSXNode;
+  onRejected?: (reason: any) => JSXNode;
+}
+
+export interface ResourcePropsWithArray<T extends readonly ResourceReturn<any>[]> {
+  readonly value: T;
+  onResolved: (value: { -readonly [K in keyof T]: T[K] extends ResourceReturn<infer VALUE> ? VALUE : never}) => JSXNode;
+  onPending?: () => JSXNode;
+  onRejected?: (reason: any) => JSXNode;
+}
+
 /**
  * @public
  */
-export interface ResourcePropsSingle<T> {
-  readonly value: Readonly<T>;
-  onResolved: (value: T extends ResourceReturn<infer VALUE> ? VALUE : never) => JSXNode;
-  onPending?: () => JSXNode;
-  onRejected?: (reason: any) => JSXNode;
-}
-
-export interface ResourcePropsWithArray<ARGS> {
-  readonly value: ARGS;
-  onResolved: (value: {[K in keyof ARGS]: ARGS[K] extends ResourceReturn<infer VALUE> ? VALUE : never}) => JSXNode;
-  onPending?: () => JSXNode;
-  onRejected?: (reason: any) => JSXNode;
-}
-
-export type ResourceProps<T> = T extends Iterable<infer ARGS> ? ResourcePropsWithArray<ARGS> : ResourcePropsSingle<T>;
+export type ResourceProps<T> = T extends readonly ResourceReturn<any>[]
+  ? ResourcePropsWithArray<T>
+  : (T extends ResourceReturn<infer TYPE> ? ResourcePropsSingle<TYPE> : never);
 
 // <docs markdown="../readme.md#useResource">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -267,6 +269,10 @@ export type ResourceProps<T> = T extends Iterable<infer ARGS> ? ResourcePropsWit
  */
 // </docs>
 export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
+  return isArray(props.value) ? ResourceArray(props as any) : ResourceSingle(props as any);
+}
+
+export const ResourceSingle = <T>(props: ResourcePropsSingle<T>): JSXNode => {
   const isBrowser = !isServer();
   const resource = props.value as ResourceReturnInternal<T>;
   if (isBrowser) {
@@ -278,10 +284,10 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
     }
     if (props.onPending) {
       const state = resource._state;
-      if (state === 'pending') {
-        return props.onPending();
-      } else if (state === 'resolved') {
+      if (state === 'resolved') {
         return props.onResolved(resource._resolved!);
+      } else if (state === 'pending') {
+        return props.onPending();
       } else if (state === 'rejected') {
         throw resource._error;
       }
@@ -290,6 +296,38 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
 
   const promise: any = resource.promise.then(
     useBindInvokeContext(props.onResolved),
+    useBindInvokeContext(props.onRejected)
+  );
+
+  // Resource path
+  return jsx(Fragment, {
+    children: promise,
+  });
+};
+
+export const ResourceArray = <T extends readonly ResourceReturn<any>[]>(props: ResourcePropsWithArray<T>): JSXNode => {
+  const isBrowser = !isServer();
+  const resources = props.value as any as ResourceReturnInternal<T>[];
+  if (isBrowser) {
+    if (props.onRejected) {
+      resources.forEach((resource) => resource.promise.catch(() => {}));
+      if (resources.some((resource) => resource._state === 'rejected')) {
+        return props.onRejected(resources.map(a => a._error));
+      }
+    }
+    if (props.onPending) {
+      if (resources.every((resource) => resource._state === 'resolved')) {
+        return props.onResolved(resources.map(a => a._resolved) as any);
+      } else if (resources.some((resource) => resource._state === 'rejected')) {
+        throw resources.find((resource) => resource._state === 'rejected')!._error;
+      } else {
+        return props.onPending();
+      }
+    }
+  }
+
+  const promise: any = Promise.all(resources.map(r => r.promise)).then(
+    useBindInvokeContext(props.onResolved as any),
     useBindInvokeContext(props.onRejected)
   );
 

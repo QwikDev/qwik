@@ -16,6 +16,7 @@ import type { ServerResponse } from 'node:http';
 export function createQwikCity(opts: QwikCityNodeRequestOptions): {
     router: (req: IncomingMessage, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
     notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => Promise<void>;
+    staticFile: (req: IncomingMessage, res: ServerResponse, next: (e?: any) => void) => Promise<void>;
 };
 
 // @alpha (undocumented)
@@ -28,12 +29,17 @@ export interface NodeRequestNextFunction {
 export function qwikCity(render: Render, opts?: RenderOptions_2): {
     router: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: NodeRequestNextFunction) => Promise<void>;
     notFound: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: (e: any) => void) => Promise<void>;
+    staticFile: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: (e?: any) => void) => Promise<void>;
 };
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityHandlerOptions" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
 export interface QwikCityNodeRequestOptions extends QwikCityHandlerOptions {
+    static?: {
+        root?: string;
+        cacheControl?: string;
+    };
 }
 
 // (No @packageDocumentation comment for this package)

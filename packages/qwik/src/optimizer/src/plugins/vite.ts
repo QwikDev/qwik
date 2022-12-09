@@ -175,7 +175,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // Client build will write to this path, and SSR will read from it. For this reason,
         // the Client build should always start and finish before the SSR build.
         const nodeOs: typeof import('os') = await sys.dynamicImport('node:os');
-        tmpClientManifestPath = path.join(nodeOs.tmpdir(), `vite-plugin-qwik-q-manifest.json`);
+        // Additional we add a prefix to scope the file to the current application so that different
+        // applications can be run in parallel without generating conflicts
+        const scopePrefix = pluginOpts.scope ? `${pluginOpts.scope}-` : '';
+        tmpClientManifestPath = path.join(
+          nodeOs.tmpdir(),
+          `${scopePrefix}vite-plugin-qwik-q-manifest.json`
+        );
 
         if (target === 'ssr' && !pluginOpts.manifestInput) {
           // This is a SSR build so we should load the client build's manifest

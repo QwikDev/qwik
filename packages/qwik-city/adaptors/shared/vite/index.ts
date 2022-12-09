@@ -118,6 +118,7 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
 
             const staticGenerate = await import('../../../static');
             let generateOpts: StaticGenerateOptions = {
+              ...opts,
               basePathname,
               outDir: clientOutDir,
               origin,

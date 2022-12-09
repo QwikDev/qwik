@@ -24,7 +24,7 @@ export default component$(() => {
   );
 });
 
-export const onGet: RequestHandler<BlogData> = async ({ params, request, response }) => {
+export const onGet: RequestHandler = async ({ params, request, response }) => {
   response.json({
     title: `Blog: ${params.slug}`,
     content: `${params.slug}, ${request.url}`,
@@ -41,7 +41,9 @@ export const onStaticGenerate: StaticGenerateHandler = async () => {
   };
 };
 
-export const head: DocumentHead<BlogData> = ({ data }) => {
+export const head: DocumentHead = () => {
+  // const data = await getData(loader)
+
   return { title: data?.title };
 };
 

@@ -700,21 +700,7 @@ export interface ResourceOptions {
 }
 
 // @public (undocumented)
-export interface ResourcePending<T> {
-    // (undocumented)
-    loading: boolean;
-    // (undocumented)
-    promise: Promise<T>;
-}
-
-// Warning: (ae-forgotten-export) The symbol "ResourcePropsWithArray" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ResourcePropsSingle" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export type ResourceProps<T> = T extends readonly ResourceReturn<any>[] ? ResourcePropsWithArray<T> : (T extends ResourceReturn<infer TYPE> ? ResourcePropsSingle<TYPE> : never);
-
-// @public (undocumented)
-export interface ResourceRejected<T> {
+export interface ResourcePending<T> extends PromiseLike<T> {
     // (undocumented)
     loading: boolean;
     // (undocumented)
@@ -722,7 +708,25 @@ export interface ResourceRejected<T> {
 }
 
 // @public (undocumented)
-export interface ResourceResolved<T> {
+export interface ResourceProps<T> {
+    // (undocumented)
+    onPending?: () => JSXNode;
+    // (undocumented)
+    onRejected?: (reason: any) => JSXNode;
+    // (undocumented)
+    onResolved: (value: T) => JSXNode;
+    // (undocumented)
+    readonly value: ResourceReturn<T>;
+}
+
+// @public (undocumented)
+export interface ResourceRejected<T> extends PromiseLike<T> {
+    // (undocumented)
+    loading: boolean;
+}
+
+// @public (undocumented)
+export interface ResourceResolved<T> extends PromiseLike<T> {
     // (undocumented)
     loading: boolean;
     // (undocumented)

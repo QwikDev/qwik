@@ -9,6 +9,7 @@ import { JSXNode } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { ResourceReturn } from '@builder.io/qwik';
+import { Signal } from '@builder.io/qwik';
 import { ValueOrPromise } from '@builder.io/qwik';
 
 // @alpha @deprecated (undocumented)
@@ -316,7 +317,7 @@ export const useContent: () => ContentState;
 // @alpha (undocumented)
 export const useDocumentHead: () => Required<ResolvedDocumentHead>;
 
-// @alpha (undocumented)
+// @alpha @deprecated (undocumented)
 export const useEndpoint: <T = unknown>() => ResourceReturn<GetEndpointData<T>>;
 
 // @alpha (undocumented)

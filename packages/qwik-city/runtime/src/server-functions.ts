@@ -1,17 +1,31 @@
 import {
+  $,
   implicit$FirstArg,
   QRL,
-  ResourceReturn,
+  Signal,
   useContext,
-  useResource$,
   ValueOrPromise,
+  _wrapSignal,
 } from '@builder.io/qwik';
 import { isBrowser } from '@builder.io/qwik/build';
 import { RouteStateContext } from './contexts';
 import type { RequestEvent } from './types';
 
-export interface ServerAction<T extends any[], B> {
-  (...body: T): Promise<B>;
+export interface ServerAction<ARGS extends any[], RETURN> {
+  readonly [isServerLoader]: true;
+
+  use(): QRL<(...event: ARGS) => Promise<RETURN>>;
+}
+
+export class ServerActionImpl {
+  __brand_server_loader = true;
+  constructor(public __qrl: QRL<(...event: any[]) => ValueOrPromise<any>>) {}
+  use(): QRL<Function> {
+    return $(() => {
+      // perform action
+      return 'result';
+    });
+  }
 }
 
 /**
@@ -22,13 +36,13 @@ export const serverActionQrl = <T extends any[], B>(
 ) => {
   if (isBrowser) {
     const action = function () {};
-    Object.assign(action, { qrl: actionQrl });
+    Object.assign(action, { __qrl: actionQrl });
     return action;
   } else {
     const action = function () {
       throw new Error('you cant call a server action from the server');
     };
-    Object.assign(action, { qrl: actionQrl });
+    Object.assign(action, { __qrl: actionQrl });
     return action;
   }
 };
@@ -38,20 +52,20 @@ export const serverActionQrl = <T extends any[], B>(
  */
 export const serverAction$ = implicit$FirstArg(serverActionQrl);
 
+declare const isServerLoader: unique symbol;
+
 export interface ServerLoader<RETURN> {
-  use(): ResourceReturn<RETURN>;
+  readonly [isServerLoader]: true;
+  use(): Signal<RETURN>;
 }
 
-export class ServerLoaderImpl<RETURN> implements ServerLoader<RETURN>  {
-  constructor(public qrl: QRL<(event: RequestEvent) => ValueOrPromise<RETURN>>) {}
+export class ServerLoaderImpl {
   __brand_server_loader = true;
-  use(): ResourceReturn<RETURN> {
+  constructor(public __qrl: QRL<(event: RequestEvent) => ValueOrPromise<any>>) {}
+  use(): Signal<any> {
     const state = useContext(RouteStateContext);
-    const hash = this.qrl.getHash();
-    return useResource$<RETURN>(({ track }) => {
-      track(state);
-      return state.value[hash] as RETURN;
-    });
+    const hash = this.__qrl.getHash();
+    return _wrapSignal(state, hash);
   }
 }
 
@@ -61,11 +75,10 @@ export class ServerLoaderImpl<RETURN> implements ServerLoader<RETURN>  {
 export const serverLoaderQrl = <PLATFORM, B>(
   loaderQrl: QRL<(event: RequestEvent<PLATFORM>) => B>
 ): ServerLoader<Awaited<B>> => {
-  return new ServerLoaderImpl<Awaited<B>>(loaderQrl as any);
+  return new ServerLoaderImpl(loaderQrl as any) as any as ServerLoader<Awaited<B>>;
 };
 
 /**
  * @alpha
  */
 export const serverLoader$ = implicit$FirstArg(serverLoaderQrl);
-

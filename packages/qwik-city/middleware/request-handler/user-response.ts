@@ -13,7 +13,6 @@ import { isRedirectStatus, RedirectResponse } from './redirect-handler';
 import { ErrorResponse } from './error-handler';
 import { Cookie } from './cookie';
 import { validateSerializable } from '../../utils/format';
-import type { ServerLoaderImpl } from '../../runtime/src/server-functions';
 
 export async function loadUserResponse(
   requestCtx: QwikCityRequestContext,
@@ -180,14 +179,15 @@ export async function loadUserResponse(
         }
       }
       if (routeModuleIndex < ABORT_INDEX) {
-        const serverLoaders = Object.values(endpointModule).filter((e) => '__brand_server_loader' in e) as ServerLoaderImpl<any>[];
+        const serverLoaders = Object.values(endpointModule).filter(
+          (e) => '__brand_server_loader' in e
+        ) as any[];
         await Promise.all(
           serverLoaders.map(async (loader) => {
-            userResponse.loaders[loader.qrl.getHash()] = await loader.qrl(requestEv)
+            userResponse.loaders[loader.__qrl.getHash()] = await loader.__qrl(requestEv);
           })
         );
       }
-
 
       routeModuleIndex++;
     }

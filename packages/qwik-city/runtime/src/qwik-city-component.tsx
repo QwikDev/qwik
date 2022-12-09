@@ -76,7 +76,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     params: env.params,
   });
 
-  const loaderState = useSignal(env.response.loaders);
+  const loaderState = useStore(env.response.loaders);
 
   const routeNavigate = useStore<RouteNavigate>({
     path: toPath(url),
@@ -144,7 +144,10 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       const clientPageData = await endpointResponse;
       const resolvedHead = resolveHead(clientPageData, routeLocation, contentModules, locale);
 
-      loaderState.value = clientPageData?.loaders || {};
+      const loaders = clientPageData?.loaders;
+      if (loaders) {
+        Object.assign(loaderState, loaders);
+      }
       CLIENT_DATA_CACHE.clear();
 
       // Update document head

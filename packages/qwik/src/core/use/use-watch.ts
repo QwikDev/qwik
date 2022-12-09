@@ -126,7 +126,7 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 /**
  * @public
  */
-export interface ResourcePending<T> {
+export interface ResourcePending<T> extends PromiseLike<T> {
   promise: Promise<T>;
   loading: boolean;
 }
@@ -134,7 +134,7 @@ export interface ResourcePending<T> {
 /**
  * @public
  */
-export interface ResourceResolved<T> {
+export interface ResourceResolved<T> extends PromiseLike<T> {
   promise: Promise<T>;
   loading: boolean;
 }
@@ -142,20 +142,17 @@ export interface ResourceResolved<T> {
 /**
  * @public
  */
-export interface ResourceRejected<T> {
-  promise: Promise<T>;
+export interface ResourceRejected<T> extends PromiseLike<T> {
   loading: boolean;
 }
 
-export interface ResourceReturnInternal<T> {
-  __brand: 'resource';
+export interface ResourceReturnInternal<T> extends PromiseLike<T> {
   _state: 'pending' | 'resolved' | 'rejected';
   _resolved: T | undefined;
   _error: any;
   _cache: number;
   _timeout: number;
-
-  promise: Promise<T>;
+  _promise: Promise<T>;
   loading: boolean;
 }
 /**
@@ -552,7 +549,7 @@ export const runResource = <T>(
     resource._state = 'pending';
     resource.loading = !isServer();
     resource._resolved = undefined as any;
-    resource.promise = new Promise((r, re) => {
+    resource._promise = new Promise((r, re) => {
       resolve = r;
       reject = re;
     });

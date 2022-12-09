@@ -1,4 +1,4 @@
-import { createContext, Signal } from '@builder.io/qwik';
+import { createContext } from '@builder.io/qwik';
 import type {
   ContentState,
   ContentStateInternal,
@@ -7,7 +7,7 @@ import type {
   RouteNavigate,
 } from './types';
 
-export const RouteStateContext = createContext<Signal<Record<string, any>>>('qc-s');
+export const RouteStateContext = createContext<Record<string, any>>('qc-s');
 
 export const ContentContext = /*#__PURE__*/ createContext<ContentState>('qc-c');
 export const ContentInternalContext = /*#__PURE__*/ createContext<ContentStateInternal>('qc-ic');

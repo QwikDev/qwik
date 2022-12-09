@@ -8,6 +8,7 @@ import { CLIENT_DATA_CACHE } from './constants';
 
 /**
  * @alpha
+ * @deprecated - use `useLoader(loader)` instead
  */
 export const useEndpoint = <T = unknown>() => {
   const loc = useLocation();

@@ -15,6 +15,9 @@ export default component$(() => {
           <Link href="/qwikcity-test/docs/">Docs</Link>
         </li>
         <li>
+          <Link href="/qwikcity-test/actions/">Actions</Link>
+        </li>
+        <li>
           <Link href="/qwikcity-test/about-us/">About Us</Link>
         </li>
         <li>

@@ -83,13 +83,11 @@ export default component$(() => {
   );
 });
 
-export const head: DocumentHead<ProductData | null> = ({ params }) => {
+export const head: DocumentHead = ({ params }) => {
   return {
     title: `Product ${params.id}`,
   };
 };
-
-// export const value = process.env.VARIABLE;
 
 export const onGet: RequestHandler<EndpointData> = async ({ params, response, query }) => {
   // Serverside Endpoint
@@ -114,26 +112,25 @@ export const onGet: RequestHandler<EndpointData> = async ({ params, response, qu
     response.status = 404;
     // never cache
     response.headers.set('Cache-Control', 'no-cache, no-store, no-fun');
-    return null;
+    response.json(null);
+    return;
   }
 
   // cache for a super long time of 15 seconds
   response.headers.set('Cache-Control', 'max-age=15');
 
-  return async () => {
-    await new Promise<void>((resolve) => setTimeout(resolve, 200));
+  await new Promise<void>((resolve) => setTimeout(resolve, 200));
 
-    return {
-      // Found the product data
-      // This same data is passed to the head() function
-      // and in the component$() it can be access with useEndpoint()
-      productId: params.id,
-      price: productPrice,
-      description: `Node ${process.versions.node} ${os.platform()} ${os.arch()} ${
-        os.cpus()[0].model
-      }`,
-    };
-  };
+  response.json({
+    // Found the product data
+    // This same data is passed to the head() function
+    // and in the component$() it can be access with useEndpoint()
+    productId: params.id,
+    price: productPrice,
+    description: `Node ${process.versions.node} ${os.platform()} ${os.arch()} ${
+      os.cpus()[0].model
+    }`,
+  });
 };
 
 // Our pretty awesome database of prices

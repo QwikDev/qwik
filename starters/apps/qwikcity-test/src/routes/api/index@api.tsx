@@ -78,18 +78,18 @@ export default component$(() => {
   );
 });
 
-export const onPut: RequestHandler = async ({ request }) => {
+export const onPut: RequestHandler = async ({ request, response }) => {
   const requestData = await request.json();
-  return {
+  response.json({
     test: 'PUT ' + requestData.data,
     method: request.method,
-  };
+  });
 };
 
-export const onPost: RequestHandler = async ({ request }) => {
+export const onPost: RequestHandler = async ({ request, response }) => {
   const requestData = await request.json();
-  return {
+  response.json({
     test: 'POST ' + requestData.data,
     method: request.method,
-  };
+  });
 };

@@ -30,7 +30,7 @@ export interface QwikCityCloudflarePagesOptions extends QwikCityHandlerOptions {
 }
 
 // @alpha (undocumented)
-export type RequestHandlerCloudflarePages<T = unknown> = RequestHandler_2<T, {
+export type RequestHandlerCloudflarePages = RequestHandler_2<{
     env: EventPluginContext['env'];
 }>;
 

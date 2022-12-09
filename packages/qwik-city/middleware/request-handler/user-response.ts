@@ -1,17 +1,17 @@
-import { createHeaders } from './headers';
+import type { QwikCityRequestContext, UserResponseContext } from './types';
 import type {
   RequestHandler,
   PageModule,
-  RequestEvent,
-  ResponseContext as ResponseContextInterface,
-  RouteModule,
   PathParams,
+  RequestEvent,
+  RouteModule,
 } from '../../runtime/src/types';
-import type { QwikCityRequestContext, UserResponseContext } from './types';
+import { Cookie } from './cookie';
+import { createHeaders } from './headers';
+import { ErrorResponse } from './error-handler';
 import { HttpStatus } from './http-status-codes';
 import { isRedirectStatus, RedirectResponse } from './redirect-handler';
-import { ErrorResponse } from './error-handler';
-import { Cookie } from './cookie';
+import { ResponseContext } from './response-context';
 import { validateSerializable } from '../../utils/format';
 
 export async function loadUserResponse(
@@ -46,6 +46,7 @@ export async function loadUserResponse(
     cookie,
     aborted: false,
     loaders: {},
+    bodySent: false,
   };
   let hasRequestMethodHandler = false;
 
@@ -81,112 +82,95 @@ export async function loadUserResponse(
     while (routeModuleIndex < routeModules.length) {
       const endpointModule = routeModules[routeModuleIndex];
 
-      let requestHandler: RequestHandler | undefined = undefined;
-
-      switch (method) {
-        case 'GET': {
-          requestHandler = endpointModule.onGet;
-          break;
-        }
-        case 'POST': {
-          requestHandler = endpointModule.onPost;
-          break;
-        }
-        case 'PUT': {
-          requestHandler = endpointModule.onPut;
-          break;
-        }
-        case 'PATCH': {
-          requestHandler = endpointModule.onPatch;
-          break;
-        }
-        case 'DELETE': {
-          requestHandler = endpointModule.onDelete;
-          break;
-        }
-        case 'OPTIONS': {
-          requestHandler = endpointModule.onOptions;
-          break;
-        }
-        case 'HEAD': {
-          requestHandler = endpointModule.onHead;
-          break;
-        }
-      }
-
-      requestHandler = requestHandler || endpointModule.onRequest;
-
-      const response = new ResponseContext(userResponse, requestCtx);
-
       // create user request event, which is a narrowed down request context
       const requestEv: RequestEvent = {
         request,
         url: new URL(url),
         query: new URLSearchParams(url.search),
         params: { ...params },
-        response,
+        response: new ResponseContext(userResponse, requestCtx),
         platform,
         cookie,
         next,
         abort,
       };
 
-      if (typeof requestHandler === 'function') {
+      if (typeof endpointModule.onRequest === 'function') {
         hasRequestMethodHandler = true;
-
-        // get the user's endpoint returned data
-        const syncData = requestHandler(requestEv) as any;
-
-        if (typeof syncData === 'function') {
-          // sync returned function
-          userResponse.pendingBody = createPendingBody(syncData);
-        } else if (
-          syncData !== null &&
-          typeof syncData === 'object' &&
-          typeof syncData.then === 'function'
-        ) {
-          // async returned promise
-          const asyncResolved = await syncData;
-          if (typeof asyncResolved === 'function') {
-            // async resolved function
-            userResponse.pendingBody = createPendingBody(asyncResolved);
-          } else {
-            // async resolved data
-            userResponse.resolvedBody = asyncResolved;
-          }
-        } else {
-          // sync returned data
-          userResponse.resolvedBody = syncData;
-        }
-
-        if (requestCtx.mode === 'dev') {
-          const body =
-            userResponse.resolvedBody != null
-              ? userResponse.resolvedBody
-              : userResponse.pendingBody != null
-              ? await userResponse.pendingBody
-              : null;
-          try {
-            validateSerializable(body);
-          } catch (e: any) {
-            throw Object.assign(e, {
-              id: 'DEV_SERIALIZE',
-              endpointModule,
-              requestHandler,
-              method,
-            });
-          }
-        }
+        await endpointModule.onRequest(requestEv);
       }
+
       if (routeModuleIndex < ABORT_INDEX) {
-        const serverLoaders = Object.values(endpointModule).filter(
-          (e) => '__brand_server_loader' in e
-        ) as any[];
-        await Promise.all(
-          serverLoaders.map(async (loader) => {
-            userResponse.loaders[loader.__qrl.getHash()] = await loader.__qrl(requestEv);
-          })
-        );
+        let methodReqHandler: RequestHandler | undefined = undefined;
+        switch (method) {
+          case 'GET': {
+            methodReqHandler = endpointModule.onGet;
+            break;
+          }
+          case 'POST': {
+            methodReqHandler = endpointModule.onPost;
+            break;
+          }
+          case 'PUT': {
+            methodReqHandler = endpointModule.onPut;
+            break;
+          }
+          case 'PATCH': {
+            methodReqHandler = endpointModule.onPatch;
+            break;
+          }
+          case 'DELETE': {
+            methodReqHandler = endpointModule.onDelete;
+            break;
+          }
+          case 'OPTIONS': {
+            methodReqHandler = endpointModule.onOptions;
+            break;
+          }
+          case 'HEAD': {
+            methodReqHandler = endpointModule.onHead;
+            break;
+          }
+        }
+
+        if (typeof methodReqHandler === 'function') {
+          hasRequestMethodHandler = true;
+          await methodReqHandler(requestEv);
+        }
+
+        if (routeModuleIndex < ABORT_INDEX) {
+          const serverLoaders = Object.values(endpointModule).filter(
+            (e) => '__brand_server_loader' in e
+          ) as any[];
+
+          if (serverLoaders.length > 0) {
+            if (userResponse.bodySent) {
+              throw new Error('Body already sent');
+            }
+
+            hasRequestMethodHandler = true;
+            await Promise.all(
+              serverLoaders.map(async (loader) => {
+                const loaderId = loader.__qrl.getHash();
+                const loaderData = await loader.__qrl(requestEv);
+
+                userResponse.loaders[loaderId] = loaderData;
+
+                if (requestCtx.mode === 'dev') {
+                  try {
+                    validateSerializable(loaderData);
+                  } catch (e: any) {
+                    throw Object.assign(e, {
+                      id: 'DEV_SERIALIZE',
+                      endpointModule,
+                      method,
+                    });
+                  }
+                }
+              })
+            );
+          }
+        }
       }
 
       routeModuleIndex++;
@@ -232,40 +216,6 @@ export async function loadUserResponse(
   return userResponse;
 }
 
-const UserRsp = Symbol('UserResponse');
-const RequestCtx = Symbol('RequestContext');
-
-class ResponseContext implements ResponseContextInterface {
-  [UserRsp]: UserResponseContext;
-  [RequestCtx]: QwikCityRequestContext;
-
-  constructor(userResponse: UserResponseContext, requestCtx: QwikCityRequestContext) {
-    this[UserRsp] = userResponse;
-    this[RequestCtx] = requestCtx;
-  }
-  get status() {
-    return this[UserRsp].status;
-  }
-  set status(code) {
-    this[UserRsp].status = code;
-  }
-  get headers() {
-    return this[UserRsp].headers;
-  }
-  get locale() {
-    return this[RequestCtx].locale;
-  }
-  set locale(locale) {
-    this[RequestCtx].locale = locale;
-  }
-  redirect(url: string, status?: number) {
-    return new RedirectResponse(url, status, this[UserRsp].headers, this[UserRsp].cookie);
-  }
-  error(status: number, message?: string) {
-    return new ErrorResponse(status, message);
-  }
-}
-
 export function isEndPointRequest(
   method: string,
   acceptHeader: string | null,
@@ -307,23 +257,23 @@ export function isEndPointRequest(
   }
 }
 
-function createPendingBody(cb: () => any) {
-  return new Promise<any>((resolve, reject) => {
-    try {
-      const rtn = cb();
-      if (rtn !== null && typeof rtn === 'object' && typeof rtn.then === 'function') {
-        // callback return promise
-        rtn.then(resolve, reject);
-      } else {
-        // callback returned data
-        resolve(rtn);
-      }
-    } catch (e) {
-      // sync callback errored
-      reject(e);
-    }
-  });
-}
+// function createPendingBody(cb: () => any) {
+//   return new Promise<any>((resolve, reject) => {
+//     try {
+//       const rtn = cb();
+//       if (rtn !== null && typeof rtn === 'object' && typeof rtn.then === 'function') {
+//         // callback return promise
+//         rtn.then(resolve, reject);
+//       } else {
+//         // callback returned data
+//         resolve(rtn);
+//       }
+//     } catch (e) {
+//       // sync callback errored
+//       reject(e);
+//     }
+//   });
+// }
 
 function isLastModulePageRoute(routeModules: RouteModule[]) {
   const lastRouteModule = routeModules[routeModules.length - 1];

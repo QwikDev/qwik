@@ -223,26 +223,24 @@ export interface RequestContext {
 // @alpha (undocumented)
 export interface RequestEvent<PLATFORM = unknown> {
     // (undocumented)
-    abort: () => void;
+    readonly abort: () => void;
     // (undocumented)
-    cookie: Cookie;
+    readonly cookie: Cookie;
     // (undocumented)
-    next: () => Promise<void>;
-    params: PathParams;
-    platform: PLATFORM;
-    query: URLSearchParams;
+    readonly next: () => Promise<void>;
+    readonly params: Record<string, string>;
+    readonly platform: PLATFORM;
+    readonly query: URLSearchParams;
     // (undocumented)
-    request: RequestContext;
+    readonly request: RequestContext;
     // (undocumented)
-    response: ResponseContext;
+    readonly response: ResponseContext;
     // (undocumented)
-    url: URL;
+    readonly url: URL;
 }
 
-// Warning: (ae-forgotten-export) The symbol "RequestHandlerResult" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
-export type RequestHandler<BODY = unknown, PLATFORM = unknown> = (ev: RequestEvent<PLATFORM>) => RequestHandlerResult<BODY>;
+export type RequestHandler<PLATFORM = unknown> = (ev: RequestEvent<PLATFORM>) => void;
 
 // @alpha (undocumented)
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
@@ -252,9 +250,12 @@ export interface ResponseContext {
     // Warning: (ae-forgotten-export) The symbol "ErrorResponse" needs to be exported by the entry point index.d.ts
     readonly error: (status: number) => ErrorResponse;
     readonly headers: Headers;
+    readonly html: (html: string) => void;
+    readonly json: (data: any) => void;
     locale: string | undefined;
     // Warning: (ae-forgotten-export) The symbol "RedirectResponse" needs to be exported by the entry point index.d.ts
     readonly redirect: (url: string, status?: number) => RedirectResponse;
+    readonly send: (data: any) => void;
     status: number;
 }
 

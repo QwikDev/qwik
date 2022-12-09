@@ -125,7 +125,4 @@ export interface EventPluginContext {
 /**
  * @alpha
  */
-export type RequestHandlerCloudflarePages<T = unknown> = RequestHandler<
-  T,
-  { env: EventPluginContext['env'] }
->;
+export type RequestHandlerCloudflarePages = RequestHandler<{ env: EventPluginContext['env'] }>;

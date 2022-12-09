@@ -2,49 +2,38 @@ import { component$, useStyles$ } from '@builder.io/qwik';
 import { DocumentHead, serverLoader$ } from '@builder.io/qwik-city';
 import styles from './actions.css';
 
-export const getData = serverLoader$(() => {
-  return {
-    title: 'Actions 1',
-  };
+export const toppingsLoader = serverLoader$(() => {
+  return ['Pepperoni', 'Sausage', 'Bacon'];
 });
 
-export const getData2 = serverLoader$(() => {
-  return {
-    value: 'Actions 2',
-  };
+export const crustLoader = serverLoader$(() => {
+  return ['Thin', 'Deep Dish'];
+});
+
+export const sizeLoader = serverLoader$(() => {
+  return ['Small', 'Medium', 'Large'];
 });
 
 export default component$(() => {
   useStyles$(styles);
 
-  const data1 = getData.use();
-  const data2 = getData2.use();
+  const toppings = toppingsLoader.use();
+  const crusts = crustLoader.use();
+  const sizes = sizeLoader.use();
 
   return (
     <div class="actions">
       <section class="input">
-        <h1>
-          {data1.value.title} {data2.value.value}
-        </h1>
+        <h1>Qwik Pizza</h1>
 
         <form method="post" data-test-toppings>
           <h2>Toppings</h2>
-          <label>
-            <input type="checkbox" name="toppings" value="Pepperoni" />
-            <span>Pepperoni</span>
-          </label>
-          <label>
-            <input type="checkbox" name="toppings" value="Sausage" />
-            <span>Sausage</span>
-          </label>
-          <label>
-            <input type="checkbox" name="toppings" value="Mushrooms" />
-            <span>Mushrooms</span>
-          </label>
-          <label>
-            <input type="checkbox" name="toppings" value="Bacon" />
-            <span>Bacon</span>
-          </label>
+          {toppings.value.map((topping) => (
+            <label>
+              <input type="checkbox" name="toppings" value={topping} />
+              <span>{topping}</span>
+            </label>
+          ))}
           <p>
             <button>Set Toppings</button>
           </p>
@@ -52,14 +41,12 @@ export default component$(() => {
 
         <form method="post" data-test-crust>
           <h2>Crust</h2>
-          <label>
-            <input type="radio" name="crust" value="Pan" />
-            <span>Thin</span>
-          </label>
-          <label>
-            <input type="radio" name="crust" value="Mushrooms" />
-            <span>Deep Dish</span>
-          </label>
+          {crusts.value.map((crust) => (
+            <label>
+              <input type="radio" name="crust" value={crust} />
+              <span>{crust}</span>
+            </label>
+          ))}
           <p>
             <button>Set Crust</button>
           </p>
@@ -69,9 +56,9 @@ export default component$(() => {
           <h2>Size</h2>
           <label>
             <select name="size">
-              <option value="Small">Small</option>
-              <option value="Medium">Medium</option>
-              <option value="Large">Large</option>
+              {sizes.value.map((size) => (
+                <option value={size}>{size}</option>
+              ))}
             </select>
           </label>
           <p>

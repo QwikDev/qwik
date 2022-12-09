@@ -99,7 +99,4 @@ export interface EventPluginContext extends Context {}
 /**
  * @alpha
  */
-export type RequestHandlerNetlify<T = unknown> = RequestHandler<
-  T,
-  Omit<Context, 'next' | 'cookies'>
->;
+export type RequestHandlerNetlify = RequestHandler<Omit<Context, 'next' | 'cookies'>>;

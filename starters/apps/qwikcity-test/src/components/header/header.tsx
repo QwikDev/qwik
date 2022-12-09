@@ -18,7 +18,6 @@ export default component$(() => {
         <nav data-test-header-links>
           <Link
             href="/qwikcity-test/blog/"
-            prefetch={true}
             class={{ active: pathname.startsWith('/qwikcity-test/blog/') }}
             data-test-link="blog-home"
           >
@@ -26,15 +25,20 @@ export default component$(() => {
           </Link>
           <Link
             href="/qwikcity-test/docs/"
-            prefetch={true}
             class={{ active: pathname.startsWith('/qwikcity-test/docs/') }}
             data-test-link="docs-home"
           >
             Docs
           </Link>
           <Link
+            href="/qwikcity-test/actions/"
+            class={{ active: pathname.startsWith('/qwikcity-test/actions/') }}
+            data-test-link="docs-home"
+          >
+            Actions
+          </Link>
+          <Link
             href="/qwikcity-test/api/"
-            prefetch={true}
             class={{ active: pathname.startsWith('/qwikcity-test/api/') }}
             data-test-link="api-home"
           >
@@ -42,7 +46,6 @@ export default component$(() => {
           </Link>
           <Link
             href="/qwikcity-test/products/hat/"
-            prefetch={true}
             class={{ active: pathname.startsWith('/qwikcity-test/products/') }}
             data-test-link="products-hat"
           >
@@ -50,7 +53,6 @@ export default component$(() => {
           </Link>
           <Link
             href="/qwikcity-test/about-us/"
-            prefetch={true}
             class={{ active: pathname.startsWith('/qwikcity-test/about-us/') }}
             data-test-link="about-us"
           >
@@ -58,7 +60,6 @@ export default component$(() => {
           </Link>
           <Link
             href="/qwikcity-test/sign-in/"
-            prefetch={true}
             class={{ active: pathname.startsWith('/qwikcity-test/sign-in/') }}
             data-test-link="sign-in"
           >

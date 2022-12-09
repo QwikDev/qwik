@@ -24,11 +24,11 @@ export default component$(() => {
   );
 });
 
-export const onGet: RequestHandler<BlogData> = async ({ params, request }) => {
-  return {
+export const onGet: RequestHandler<BlogData> = async ({ params, request, response }) => {
+  response.json({
     title: `Blog: ${params.slug}`,
     content: `${params.slug}, ${request.url}`,
-  };
+  });
 };
 
 export const onStaticGenerate: StaticGenerateHandler = async () => {

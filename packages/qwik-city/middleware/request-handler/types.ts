@@ -44,6 +44,7 @@ export interface UserResponseContext {
   pendingBody: Promise<string | number | boolean | null | undefined> | undefined;
   loaders: Record<string, Promise<any>>;
   aborted: boolean;
+  bodySent: boolean;
 }
 
 export interface QwikCityHandlerOptions extends RenderOptions {

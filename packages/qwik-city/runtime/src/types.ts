@@ -130,8 +130,7 @@ export interface DocumentStyle {
 /**
  * @alpha
  */
-export interface DocumentHeadProps<T = unknown> extends RouteLocation {
-  data: T;
+export interface DocumentHeadProps extends RouteLocation {
   head: ResolvedDocumentHead;
   withLocale: <T>(fn: () => T) => T;
 }
@@ -139,9 +138,7 @@ export interface DocumentHeadProps<T = unknown> extends RouteLocation {
 /**
  * @alpha
  */
-export type DocumentHead<T = unknown> =
-  | DocumentHeadValue
-  | ((props: DocumentHeadProps<GetEndpointData<T>>) => DocumentHeadValue);
+export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);
 
 export interface ContentStateInternal {
   contents: NoSerialize<ContentModule[]>;
@@ -283,35 +280,55 @@ export interface ResponseContext {
    * for which status code should be used.
    */
   readonly error: (status: number) => ErrorResponse;
+
+  /**
+   * Convenience method to send an HTML body response. The response will be automatically JSON
+   * stringify the data and set the `Content-Type` header to
+   * `text/html; charset=utf-8`. A send response can only be called once.
+   */
+  readonly html: (html: string) => void;
+
+  /**
+   * Convenience method to send a JSON body response. The response will be automatically
+   * set the `Content-Type` header to `application/json; charset=utf-8`.
+   * A send response can only be called once.
+   */
+  readonly json: (data: any) => void;
+
+  /**
+   * Send a body response. The `Content-Type` response header is not automatically set
+   * when using `send()` and must be set manually. A send response can only be called once.
+   */
+  readonly send: (data: any) => void;
 }
 
 /**
  * @alpha
  */
 export interface RequestEvent<PLATFORM = unknown> {
-  request: RequestContext;
-  response: ResponseContext;
-  url: URL;
+  readonly request: RequestContext;
+  readonly response: ResponseContext;
+  readonly url: URL;
 
   /**
-   * URL path params which have been parsed from the current url pathname.
+   * URL path params which have been parsed from the current url pathname segments.
    * Use `query` to instead retrieve the query string search params.
    */
-  params: PathParams;
+  readonly params: Record<string, string>;
 
   /**
    * URL Query Strings (URL Search Params).
    * Use `params` to instead retrieve the route params found in the url pathname.
    */
-  query: URLSearchParams;
+  readonly query: URLSearchParams;
 
   /** Platform specific data and functions */
-  platform: PLATFORM;
+  readonly platform: PLATFORM;
 
-  cookie: Cookie;
+  readonly cookie: Cookie;
 
-  next: () => Promise<void>;
-  abort: () => void;
+  readonly next: () => Promise<void>;
+  readonly abort: () => void;
 }
 
 /**
@@ -322,9 +339,7 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 
 /**
  * @alpha
  */
-export type RequestHandler<BODY = unknown, PLATFORM = unknown> = (
-  ev: RequestEvent<PLATFORM>
-) => RequestHandlerResult<BODY>;
+export type RequestHandler<PLATFORM = unknown> = (ev: RequestEvent<PLATFORM>) => void;
 
 /**
  * @alpha
@@ -338,9 +353,9 @@ export type RequestHandlerBodyFunction<BODY> = () =>
   | RequestHandlerBody<BODY>
   | Promise<RequestHandlerBody<BODY>>;
 
-export type RequestHandlerResult<BODY> =
-  | (RequestHandlerBody<BODY> | RequestHandlerBodyFunction<BODY>)
-  | Promise<RequestHandlerBody<BODY> | RequestHandlerBodyFunction<BODY>>;
+// export type RequestHandlerResult<BODY> =
+//   | (RequestHandlerBody<BODY> | RequestHandlerBodyFunction<BODY>)
+//   | Promise<RequestHandlerBody<BODY> | RequestHandlerBodyFunction<BODY>>;
 
 export interface EndpointResponse {
   body: any;
@@ -376,8 +391,6 @@ export interface QwikCityEnvData {
 }
 
 export type QwikCityMode = 'dev' | 'static' | 'server';
-
-export type GetEndpointData<T> = T extends RequestHandler<infer U> ? U : T;
 
 export interface SimpleURL {
   origin: string;

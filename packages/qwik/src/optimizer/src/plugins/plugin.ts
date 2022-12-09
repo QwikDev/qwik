@@ -522,7 +522,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         mode: mode,
         scope: opts.scope ? opts.scope : void 0,
       };
-      if (!ctx.ssr) {
+      const isSSR = (ctx as any).ssr;
+      if (!isSSR) {
         transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
         transformOpts.stripExports = SERVER_STRIP_EXPORTS;
       }

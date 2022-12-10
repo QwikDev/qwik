@@ -11,7 +11,7 @@ Use `useClientEffect$()` to execute code after the component is resumed. This is
 
 ## `track()` and `useClientEffect$()`
 
-`useClientEffect$()` receives a `track()` function just like `useWatch$()`. Use the `track()` function to trigger the effect when the store is updated. See [reactivity](../../../tutorial/reactivity/explicit/index.mdx) for more information.
+`useClientEffect$()` receives a `track()` function just like `useTask$()`. Use the `track()` function to trigger the effect when the store is updated. See [reactivity](../../../tutorial/reactivity/explicit/index.mdx) for more information.
 
 ## Component Life Cycle and SSR
 
@@ -19,7 +19,7 @@ Qwik is resumable. Resumability means that the application starts on the server 
 
 `useClientEffect$()` is a client only method. (There is no equivalent on the server.)
 
-> **NOTE** See [`useWatch$()`](/docs/components/lifecycle/index.mdx#usewatch) for behavior that needs to be executed on both client and server.
+> **NOTE** See [`useTask$()`](/docs/components/lifecycle/index.mdx#usewatch) for behavior that needs to be executed on both client and server.
 
 ## When is `useClientEffect$()` executed?
 

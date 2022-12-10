@@ -5,7 +5,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useServerMount$, useStore, useWatch$ } from '@builder.io/qwik';
+import { component$, useServerMount$, useStore, useTask$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
 
@@ -20,7 +20,7 @@ export const Parent = component$(() => {
         redis.set(state.text);
     });
 
-    useWatch$(() => {
+    useTask$(() => {
         // Code
     });
 
@@ -31,6 +31,34 @@ export const Parent = component$(() => {
     );
 });
 
+============================= parent_component_usetask_gdh1etuwqbu.js (ENTRY POINT)==
+
+export const Parent_component_useTask_gDH1EtUWqBU = ()=>{
+// Code
+};
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAgBa,IAAM;AACX,OAAO;AACX\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_useTask_gDH1EtUWqBU",
+  "entry": null,
+  "displayName": "Parent_component_useTask",
+  "hash": "gDH1EtUWqBU",
+  "canonicalFilename": "parent_component_usetask_gdh1etuwqbu",
+  "extension": "js",
+  "parent": "Parent_component_0TaiDayHrlo",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": false,
+  "loc": [
+    394,
+    423
+  ]
+}
+*/
 ============================= test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
@@ -47,7 +75,7 @@ import { _wrapSignal } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { useServerMountQrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
-import { useWatchQrl } from "@builder.io/qwik";
+import { useTaskQrl } from "@builder.io/qwik";
 export const Parent_component_0TaiDayHrlo = ()=>{
     const state = useStore({
         text: ''
@@ -56,7 +84,7 @@ export const Parent_component_0TaiDayHrlo = ()=>{
     useServerMountQrl(_noopQrl("Parent_component_useServerMount_cQrQm0HrrM8", [
         state
     ]));
-    useWatchQrl(qrl(()=>import("./parent_component_usewatch_zm0arff10mw"), "Parent_component_useWatch_ZM0ARFf10mw"));
+    useTaskQrl(qrl(()=>import("./parent_component_usetask_gdh1etuwqbu"), "Parent_component_useTask_gDH1EtUWqBU"));
     return /*#__PURE__*/ _jsx("div", {
         onClick$: qrl(()=>import("./parent_component_div_onclick_c5xe49nqd3a"), "Parent_component_div_onClick_C5XE49Nqd3A"),
         children: _wrapSignal(state, "text")
@@ -79,36 +107,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    177,
-    543
-  ]
-}
-*/
-============================= parent_component_usewatch_zm0arff10mw.js (ENTRY POINT)==
-
-export const Parent_component_useWatch_ZM0ARFf10mw = ()=>{
-// Code
-};
-export { _hW } from "@builder.io/qwik";
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qDAgBc,IAAM;AACZ,OAAO;AACX\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Parent_component_useWatch_ZM0ARFf10mw",
-  "entry": null,
-  "displayName": "Parent_component_useWatch",
-  "hash": "ZM0ARFf10mw",
-  "canonicalFilename": "parent_component_usewatch_zm0arff10mw",
-  "extension": "js",
-  "parent": "Parent_component_0TaiDayHrlo",
-  "ctxKind": "function",
-  "ctxName": "useWatch$",
-  "captures": false,
-  "loc": [
-    396,
-    425
+    176,
+    541
   ]
 }
 */
@@ -132,8 +132,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    465,
-    492
+    463,
+    490
   ]
 }
 */

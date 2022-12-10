@@ -846,6 +846,17 @@ export type StreamWriter = {
     write: (chunk: string) => void;
 };
 
+// @public (undocumented)
+export interface TaskCtx {
+    // (undocumented)
+    cleanup(callback: () => void): void;
+    // (undocumented)
+    track: Tracker;
+}
+
+// @public (undocumented)
+export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
+
 // @public
 export interface Tracker {
     <T>(ctx: () => T): T;
@@ -861,15 +872,15 @@ export const useCleanup$: (first: () => void) => void;
 export const useCleanupQrl: (unmountFn: QRL<() => void>) => void;
 
 // @public
-export const useClientEffect$: (first: WatchFn, opts?: UseEffectOptions | undefined) => void;
+export const useClientEffect$: (first: TaskFn, opts?: UseEffectOptions | undefined) => void;
 
 // @public
-export const useClientEffectQrl: (qrl: QRL<WatchFn>, opts?: UseEffectOptions) => void;
+export const useClientEffectQrl: (qrl: QRL<TaskFn>, opts?: UseEffectOptions) => void;
 
-// @public
+// @public @deprecated
 export const useClientMount$: <T>(first: MountFn<T>) => void;
 
-// @public
+// @public @deprecated
 export const useClientMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
 
 // Warning: (ae-forgotten-export) The symbol "UseContext" needs to be exported by the entry point index.d.ts
@@ -901,11 +912,11 @@ export const useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
 // @internal
 export const useLexicalScope: <VARS extends any[]>() => VARS;
 
-// @public
-export const useMount$: <T>(first: MountFn<T>) => void;
+// @beta @deprecated (undocumented)
+export const useMount$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void;
 
-// @public
-export const useMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
+// @beta @deprecated (undocumented)
+export const useMountQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions | undefined) => void;
 
 // @alpha
 export const useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
@@ -925,10 +936,10 @@ export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOption
 // @public
 export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) => ResourceReturn<T>;
 
-// @public
+// @public @deprecated
 export const useServerMount$: <T>(first: MountFn<T>) => void;
 
-// @public
+// @public @deprecated
 export const useServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
 
 // @alpha (undocumented)
@@ -971,36 +982,31 @@ export interface UseStylesScoped {
 // @alpha
 export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 
-// @alpha @deprecated (undocumented)
-export const useUserContext: typeof useEnvData;
-
 // @public
-export const useWatch$: (first: WatchFn, opts?: UseWatchOptions | undefined) => void;
+export const useTask$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void;
 
 // @public (undocumented)
-export interface UseWatchOptions {
+export interface UseTaskOptions {
     eagerness?: EagernessOptions;
 }
 
 // @public
-export const useWatchQrl: (qrl: QRL<WatchFn>, opts?: UseWatchOptions) => void;
+export const useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
+
+// @alpha @deprecated (undocumented)
+export const useUserContext: typeof useEnvData;
+
+// @beta @deprecated (undocumented)
+export const useWatch$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void;
+
+// @beta @deprecated (undocumented)
+export const useWatchQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;
 
 // @public
 export const version: string;
-
-// @public (undocumented)
-export interface WatchCtx {
-    // (undocumented)
-    cleanup(callback: () => void): void;
-    // (undocumented)
-    track: Tracker;
-}
-
-// @public (undocumented)
-export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
 
 // Warning: (ae-internal-missing-underscore) The name "withLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //

@@ -30,19 +30,19 @@ export const WatchFlagsIsResource = 1 << 4;
 /**
  * Used to signal to Qwik which state should be watched for changes.
  *
- * The `Tracker` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap
+ * The `Tracker` is passed into the `taskFn` of `useTask`. It is intended to be used to wrap
  * state objects in a read proxy which signals to Qwik which properties should be watched for
- * changes. A change to any of the properties causes the `watchFn` to rerun.
+ * changes. A change to any of the properties causes the `taskFn` to rerun.
  *
  * ### Example
  *
- * The `obs` passed into the `watchFn` is used to mark `state.count` as a property of interest.
- * Any changes to the `state.count` property will cause the `watchFn` to rerun.
+ * The `obs` passed into the `taskFn` is used to mark `state.count` as a property of interest.
+ * Any changes to the `state.count` property will cause the `taskFn` to rerun.
  *
  * ```tsx
  * const Cmp = component$(() => {
  *   const store = useStore({ count: 0, doubleCount: 0 });
- *   useWatch$(({ track }) => {
+ *   useTask$(({ track }) => {
  *     const count = track(() => store.count);
  *     store.doubleCount = 2 * count;
  *   });
@@ -57,7 +57,7 @@ export const WatchFlagsIsResource = 1 << 4;
  * });
  * ```
  *
- * @see `useWatch`
+ * @see `useTask`
  *
  * @public
  */
@@ -93,7 +93,7 @@ export interface Tracker {
 /**
  * @public
  */
-export interface WatchCtx {
+export interface TaskCtx {
   track: Tracker;
   cleanup(callback: () => void): void;
 }
@@ -111,7 +111,7 @@ export interface ResourceCtx<T> {
 /**
  * @public
  */
-export type WatchFn = (ctx: WatchCtx) => ValueOrPromise<void | (() => void)>;
+export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
 /**
  * @public
@@ -189,7 +189,7 @@ export interface UseEffectOptions {
 /**
  * @public
  */
-export interface UseWatchOptions {
+export interface UseTaskOptions {
   /**
    * - `visible`: run the effect when the element is visible.
    * - `load`: eagerly run the effect when the application resumes.
@@ -197,18 +197,18 @@ export interface UseWatchOptions {
   eagerness?: EagernessOptions;
 }
 
-// <docs markdown="../readme.md#useWatch">
+// <docs markdown="../readme.md#useTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useWatch instead)
+// (edit ../readme.md#useTask instead)
 /**
- * Reruns the `watchFn` when the observed inputs change.
+ * Reruns the `taskFn` when the observed inputs change.
  *
- * Use `useWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when
+ * Use `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when
  * those inputs change.
  *
- * The `watchFn` only executes if the observed inputs change. To observe the inputs, use the
+ * The `taskFn` only executes if the observed inputs change. To observe the inputs, use the
  * `obs` function to wrap property reads. This creates subscriptions that will trigger the
- * `watchFn` to rerun.
+ * `taskFn` to rerun.
  *
  * @see `Tracker`
  *
@@ -216,8 +216,8 @@ export interface UseWatchOptions {
  *
  * ### Example
  *
- * The `useWatch` function is used to observe the `state.count` property. Any changes to the
- * `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to
+ * The `useTask` function is used to observe the `state.count` property. Any changes to the
+ * `state.count` cause the `taskFn` to execute which in turn updates the `state.doubleCount` to
  * the double of `state.count`.
  *
  * ```tsx
@@ -229,13 +229,13 @@ export interface UseWatchOptions {
  *   });
  *
  *   // Double count watch
- *   useWatch$(({ track }) => {
+ *   useTask$(({ track }) => {
  *     const count = track(() => store.count);
  *     store.doubleCount = 2 * count;
  *   });
  *
  *   // Debouncer watch
- *   useWatch$(({ track }) => {
+ *   useTask$(({ track }) => {
  *     const doubleCount = track(() => store.doubleCount);
  *     const timer = setTimeout(() => {
  *       store.debounced = doubleCount;
@@ -259,7 +259,7 @@ export interface UseWatchOptions {
  * @public
  */
 // </docs>
-export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => {
+export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
   const { get, set, iCtx, i, elCtx } = useSequentialScope<boolean>();
   if (get) {
     return;
@@ -267,13 +267,7 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
   assertQrl(qrl);
 
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-  const watch = new Watch(
-    WatchFlagsIsDirty | WatchFlagsIsWatch,
-    i,
-    elCtx.$element$,
-    qrl,
-    undefined
-  );
+  const watch = new Task(WatchFlagsIsDirty | WatchFlagsIsWatch, i, elCtx.$element$, qrl, undefined);
   set(true);
   qrl.$resolveLazy$(containerState.$containerEl$);
   if (!elCtx.$watches$) {
@@ -286,18 +280,18 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
   }
 };
 
-// <docs markdown="../readme.md#useWatch">
+// <docs markdown="../readme.md#useTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useWatch instead)
+// (edit ../readme.md#useTask instead)
 /**
- * Reruns the `watchFn` when the observed inputs change.
+ * Reruns the `taskFn` when the observed inputs change.
  *
- * Use `useWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when
+ * Use `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when
  * those inputs change.
  *
- * The `watchFn` only executes if the observed inputs change. To observe the inputs, use the
+ * The `taskFn` only executes if the observed inputs change. To observe the inputs, use the
  * `obs` function to wrap property reads. This creates subscriptions that will trigger the
- * `watchFn` to rerun.
+ * `taskFn` to rerun.
  *
  * @see `Tracker`
  *
@@ -305,8 +299,8 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
  *
  * ### Example
  *
- * The `useWatch` function is used to observe the `state.count` property. Any changes to the
- * `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to
+ * The `useTask` function is used to observe the `state.count` property. Any changes to the
+ * `state.count` cause the `taskFn` to execute which in turn updates the `state.doubleCount` to
  * the double of `state.count`.
  *
  * ```tsx
@@ -318,13 +312,13 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
  *   });
  *
  *   // Double count watch
- *   useWatch$(({ track }) => {
+ *   useTask$(({ track }) => {
  *     const count = track(() => store.count);
  *     store.doubleCount = 2 * count;
  *   });
  *
  *   // Debouncer watch
- *   useWatch$(({ track }) => {
+ *   useTask$(({ track }) => {
  *     const doubleCount = track(() => store.doubleCount);
  *     const timer = setTimeout(() => {
  *       store.debounced = doubleCount;
@@ -348,7 +342,19 @@ export const useWatchQrl = (qrl: QRL<WatchFn>, opts?: UseWatchOptions): void => 
  * @public
  */
 // </docs>
-export const useWatch$ = /*#__PURE__*/ implicit$FirstArg(useWatchQrl);
+export const useTask$ = /*#__PURE__*/ implicit$FirstArg(useTaskQrl);
+
+/**
+ * @beta
+ * @deprecated - use `useTask$()` instead
+ */
+export const useWatch$ = /*#__PURE__*/ useTask$;
+
+/**
+ * @beta
+ * @deprecated - use `useTask$()` instead
+ */
+export const useWatchQrl = /*#__PURE__*/ useTaskQrl;
 
 // <docs markdown="../readme.md#useClientEffect">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -377,8 +383,8 @@ export const useWatch$ = /*#__PURE__*/ implicit$FirstArg(useWatchQrl);
  * @public
  */
 // </docs>
-export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): void => {
-  const { get, set, i, iCtx, elCtx } = useSequentialScope<Watch>();
+export const useClientEffectQrl = (qrl: QRL<TaskFn>, opts?: UseEffectOptions): void => {
+  const { get, set, i, iCtx, elCtx } = useSequentialScope<Task>();
   const eagerness = opts?.eagerness ?? 'visible';
   if (get) {
     if (isServer()) {
@@ -387,7 +393,7 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
     return;
   }
   assertQrl(qrl);
-  const watch = new Watch(WatchFlagsIsEffect, i, elCtx.$element$, qrl, undefined);
+  const watch = new Task(WatchFlagsIsEffect, i, elCtx.$element$, qrl, undefined);
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   if (!elCtx.$watches$) {
     elCtx.$watches$ = [];
@@ -430,7 +436,7 @@ export const useClientEffectQrl = (qrl: QRL<WatchFn>, opts?: UseEffectOptions): 
 // </docs>
 export const useClientEffect$ = /*#__PURE__*/ implicit$FirstArg(useClientEffectQrl);
 
-export type WatchDescriptor = DescriptorBase<WatchFn>;
+export type WatchDescriptor = DescriptorBase<TaskFn>;
 
 export interface ResourceDescriptor<T>
   extends DescriptorBase<ResourceFn<T>, ResourceReturnInternal<T>> {}
@@ -439,7 +445,7 @@ export type SubscriberHost = QwikElement;
 
 export type SubscriberEffect = WatchDescriptor | ResourceDescriptor<any>;
 
-export const isResourceWatch = (watch: SubscriberEffect): watch is ResourceDescriptor<any> => {
+export const isResourceTask = (watch: SubscriberEffect): watch is ResourceDescriptor<any> => {
   return !!watch.$resource$;
 };
 
@@ -449,7 +455,7 @@ export const runSubscriber = async (
   rCtx: RenderContext
 ) => {
   assertEqual(!!(watch.$flags$ & WatchFlagsIsDirty), true, 'Resource is not dirty', watch);
-  if (isResourceWatch(watch)) {
+  if (isResourceTask(watch)) {
     return runResource(watch, containerState, rCtx);
   } else {
     return runWatch(watch, containerState, rCtx);
@@ -604,7 +610,7 @@ export const runWatch = (
   const { $subsManager$: subsManager } = containerState;
   const watchFn = watch.$qrl$.getFn(invocationContext, () => {
     subsManager.$clearSub$(watch);
-  }) as WatchFn;
+  }) as TaskFn;
   const track: Tracker = (obj: any, prop?: string) => {
     if (isFunction(obj)) {
       const ctx = newInvokeContext();
@@ -628,7 +634,7 @@ export const runWatch = (
     cleanups.forEach((fn) => fn());
   });
 
-  const opts: WatchCtx = {
+  const opts: TaskCtx = {
     track,
     cleanup(callback) {
       cleanups.push(callback);
@@ -698,25 +704,25 @@ export const isWatchCleanup = (obj: any): obj is WatchDescriptor => {
 };
 
 export const isSubscriberDescriptor = (obj: any): obj is SubscriberEffect => {
-  return isObject(obj) && obj instanceof Watch;
+  return isObject(obj) && obj instanceof Task;
 };
 
 export const serializeWatch = (watch: SubscriberEffect, getObjId: MustGetObjID) => {
   let value = `${intToStr(watch.$flags$)} ${intToStr(watch.$index$)} ${getObjId(
     watch.$qrl$
   )} ${getObjId(watch.$el$)}`;
-  if (isResourceWatch(watch)) {
+  if (isResourceTask(watch)) {
     value += ` ${getObjId(watch.$resource$)}`;
   }
   return value;
 };
 
-export const parseWatch = (data: string) => {
+export const parseTask = (data: string) => {
   const [flags, index, qrl, el, resource] = data.split(' ');
-  return new Watch(strToInt(flags), strToInt(index), el as any, qrl as any, resource as any);
+  return new Task(strToInt(flags), strToInt(index), el as any, qrl as any, resource as any);
 };
 
-export class Watch implements DescriptorBase<any, any> {
+export class Task implements DescriptorBase<any, any> {
   constructor(
     public $flags$: number,
     public $index$: number,

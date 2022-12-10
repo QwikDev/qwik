@@ -13,6 +13,11 @@ import { HttpStatus } from './http-status-codes';
 import { isRedirectStatus, RedirectResponse } from './redirect-handler';
 import { ResponseContext } from './response-context';
 import { validateSerializable } from '../../utils/format';
+import type {
+  ServerActionInternal,
+  ServerLoaderInternal,
+} from 'packages/qwik-city/runtime/src/server-functions';
+import { isFunction } from 'packages/qwik/src/core/util/types';
 
 export async function loadUserResponse(
   requestCtx: QwikCityRequestContext,
@@ -34,7 +39,8 @@ export async function loadUserResponse(
     !isPageDataReq && isEndPointRequest(method, headers.get('Accept'), headers.get('Content-Type'));
 
   const cookie = new Cookie(headers.get('cookie'));
-
+  const serverLoaders: ServerLoaderInternal[] = [];
+  const serverActions: ServerActionInternal[] = [];
   const userResponse: UserResponseContext = {
     type: isPageDataReq ? 'pagedata' : isPageModule && !isEndpointReq ? 'pagehtml' : 'endpoint',
     url,
@@ -76,24 +82,23 @@ export async function loadUserResponse(
     routeModuleIndex = ABORT_INDEX;
   };
 
-  const next = async () => {
+  // create user request event, which is a narrowed down request context
+  const requestEv: RequestEvent = {
+    request,
+    url: new URL(url),
+    query: new URLSearchParams(url.search),
+    params: { ...params },
+    response: new ResponseContext(userResponse, requestCtx),
+    platform,
+    cookie,
+    next,
+    abort,
+  };
+  async function next() {
     routeModuleIndex++;
 
     while (routeModuleIndex < routeModules.length) {
       const endpointModule = routeModules[routeModuleIndex];
-
-      // create user request event, which is a narrowed down request context
-      const requestEv: RequestEvent = {
-        request,
-        url: new URL(url),
-        query: new URLSearchParams(url.search),
-        params: { ...params },
-        response: new ResponseContext(userResponse, requestCtx),
-        platform,
-        cookie,
-        next,
-        abort,
-      };
 
       if (typeof endpointModule.onRequest === 'function') {
         hasRequestMethodHandler = true;
@@ -139,43 +144,33 @@ export async function loadUserResponse(
         }
 
         if (routeModuleIndex < ABORT_INDEX) {
-          const serverLoaders = Object.values(endpointModule).filter(
+          const loaders = Object.values(endpointModule).filter(
             (e) => '__brand_server_loader' in e
           ) as any[];
-
-          if (serverLoaders.length > 0) {
+          const actions = Object.values(endpointModule).filter(
+            (e) => '__brand_server_action' in e
+          ) as any[];
+          if (actions.length > 0) {
             if (userResponse.bodySent) {
               throw new Error('Body already sent');
             }
-
             hasRequestMethodHandler = true;
-            await Promise.all(
-              serverLoaders.map(async (loader) => {
-                const loaderId = loader.__qrl.getHash();
-                const loaderData = await loader.__qrl(requestEv);
+            serverActions.push(...actions);
+          }
 
-                userResponse.loaders[loaderId] = loaderData;
-
-                if (requestCtx.mode === 'dev') {
-                  try {
-                    validateSerializable(loaderData);
-                  } catch (e: any) {
-                    throw Object.assign(e, {
-                      id: 'DEV_SERIALIZE',
-                      endpointModule,
-                      method,
-                    });
-                  }
-                }
-              })
-            );
+          if (loaders.length > 0) {
+            if (userResponse.bodySent) {
+              throw new Error('Body already sent');
+            }
+            hasRequestMethodHandler = true;
+            serverLoaders.push(...loaders);
           }
         }
       }
 
       routeModuleIndex++;
     }
-  };
+  }
 
   await next();
 
@@ -210,6 +205,36 @@ export async function loadUserResponse(
       // didn't find any handlers
       // endpoints should respond with 405 Method Not Allowed
       throw new ErrorResponse(HttpStatus.MethodNotAllowed, `Method Not Allowed`);
+    }
+  }
+
+  if (routeModuleIndex < ABORT_INDEX) {
+    if (serverLoaders.length > 0) {
+      if (userResponse.bodySent) {
+        throw new Error('Body already sent');
+      }
+
+      hasRequestMethodHandler = true;
+      await Promise.all(
+        serverLoaders.map(async (loader) => {
+          const loaderId = loader.__qrl.getHash();
+          const loaderResolved = await loader.__qrl(requestEv);
+          userResponse.loaders[loaderId] = isFunction(loaderResolved)
+            ? loaderResolved()
+            : loaderResolved;
+
+          if (requestCtx.mode === 'dev') {
+            try {
+              validateSerializable(loaderResolved);
+            } catch (e: any) {
+              throw Object.assign(e, {
+                id: 'DEV_SERIALIZE',
+                method,
+              });
+            }
+          }
+        })
+      );
     }
   }
 

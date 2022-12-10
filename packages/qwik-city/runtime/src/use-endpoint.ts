@@ -1,34 +1,6 @@
-import { useResource$ } from '@builder.io/qwik';
-import { useLocation, useQwikCityEnv } from './use-functions';
-import { isServer } from '@builder.io/qwik/build';
-import type { GetEndpointData } from './types';
 import { getClientDataPath } from './utils';
 import { dispatchPrefetchEvent } from './client-navigate';
 import { CLIENT_DATA_CACHE } from './constants';
-
-/**
- * @alpha
- * @deprecated - use `useLoader(loader)` instead
- */
-export const useEndpoint = <T = unknown>() => {
-  const loc = useLocation();
-  const env = useQwikCityEnv();
-
-  return useResource$<GetEndpointData<T>>(async ({ track }) => {
-    const href = track(() => loc.href);
-
-    if (isServer) {
-      if (!env) {
-        throw new Error('Endpoint response body is missing');
-      }
-      return env.response.body;
-    } else {
-      // fetch() for new data when the pathname has changed
-      const clientData = await loadClientData(href, true);
-      return clientData && clientData.body;
-    }
-  });
-};
 
 export const loadClientData = async (href: string, clearCache?: boolean) => {
   const url = new URL(href);

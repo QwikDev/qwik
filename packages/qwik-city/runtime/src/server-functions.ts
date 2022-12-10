@@ -1,6 +1,6 @@
 import {
-  $,
   implicit$FirstArg,
+  JSXNode,
   QRL,
   ResourceReturn,
   Signal,
@@ -12,20 +12,28 @@ import { isBrowser } from '@builder.io/qwik/build';
 import { RouteStateContext } from './contexts';
 import type { RequestEvent } from './types';
 
-export interface ServerAction<ARGS extends any[], RETURN> {
-  readonly [isServerLoader]: true;
-
-  use(): QRL<(...event: ARGS) => Promise<RETURN>>;
+export interface ServerActionInternal {
+  readonly __brand: 'server_action';
+  __qrl: QRL<(...event: any[]) => ValueOrPromise<any>>;
+  use(): ServerActionUtils<any, any>;
 }
 
-export class ServerActionImpl {
-  __brand_server_loader = true;
+export interface ServerActionUtils<ARG, RETURN> {
+  Form: () => JSXNode;
+  action: QRL<(event: ARG) => Promise<RETURN>>;
+}
+
+export interface ServerAction<ARG, RETURN> {
+  readonly [isServerLoader]: true;
+
+  use(): ServerActionUtils<ARG, RETURN>;
+}
+
+export class ServerActionImpl implements ServerActionInternal {
+  readonly __brand = 'server_action';
   constructor(public __qrl: QRL<(...event: any[]) => ValueOrPromise<any>>) {}
-  use(): QRL<Function> {
-    return $(() => {
-      // perform action
-      return 'result';
-    });
+  use(): ServerActionUtils<any, any> {
+    return {} as any;
   }
 }
 
@@ -55,13 +63,23 @@ export const serverAction$ = implicit$FirstArg(serverActionQrl);
 
 declare const isServerLoader: unique symbol;
 
-export interface ServerLoader<RETURN> {
-  readonly [isServerLoader]: true;
-  use(): RETURN;
+export interface ServerLoaderInternal {
+  readonly __brand: 'server_loader';
+  __qrl: QRL<(event: RequestEvent) => ValueOrPromise<any>>;
+  use(): Signal<any>;
 }
 
-export class ServerLoaderImpl {
-  __brand_server_loader = true;
+export type ServerLoaderUse<T> = Awaited<T> extends () => ValueOrPromise<infer B>
+  ? ResourceReturn<B>
+  : Signal<Awaited<T>>;
+
+export interface ServerLoader<RETURN> {
+  readonly [isServerLoader]: true;
+  use(): ServerLoaderUse<RETURN>;
+}
+
+export class ServerLoaderImpl implements ServerLoaderInternal {
+  readonly __brand = 'server_loader';
   constructor(public __qrl: QRL<(event: RequestEvent) => ValueOrPromise<any>>) {}
   use(): Signal<any> {
     const state = useContext(RouteStateContext);
@@ -70,14 +88,12 @@ export class ServerLoaderImpl {
   }
 }
 
-
-export type ServerLoaderReturn<T> = Awaited<T> extends () => ValueOrPromise<infer B> ? ResourceReturn<B> : Signal<Awaited<T>>;
 /**
  * @alpha
  */
 export const serverLoaderQrl = <PLATFORM, B>(
   loaderQrl: QRL<(event: RequestEvent<PLATFORM>) => B>
-): ServerLoader<ServerLoaderReturn<B>> => {
+): ServerLoader<B> => {
   return new ServerLoaderImpl(loaderQrl as any) as any;
 };
 

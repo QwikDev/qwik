@@ -119,7 +119,7 @@ const ResourceSerializer: Serializer<ResourceReturnInternal<any>> = {
   prefix: '\u0004',
   test: (v) => isResourceReturn(v),
   collect: (obj, collector, leaks) => {
-    collectValue(obj._promise, collector, leaks);
+    collectValue(obj.value, collector, leaks);
     collectValue(obj._resolved, collector, leaks);
   },
   serialize: (obj, getObjId) => {
@@ -131,12 +131,12 @@ const ResourceSerializer: Serializer<ResourceReturnInternal<any>> = {
   fill: (resource, getObject) => {
     if (resource._state === 'resolved') {
       resource._resolved = getObject(resource._resolved);
-      resource._promise = Promise.resolve(resource._resolved);
+      resource.value = Promise.resolve(resource._resolved);
     } else if (resource._state === 'rejected') {
       const p = Promise.reject(resource._error);
       p.catch(() => null);
       resource._error = getObject(resource._error);
-      resource._promise = p;
+      resource.value = p;
     }
   },
 };

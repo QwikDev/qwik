@@ -29,7 +29,6 @@ export { Link } from './link-component';
 export type { LinkProps } from './link-component';
 export { ServiceWorkerRegister } from './sw-component';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './use-functions';
-export { useEndpoint } from './use-endpoint';
 export { serverAction$, serverActionQrl } from './server-functions';
 export { serverLoader$, serverLoaderQrl } from './server-functions';
 

@@ -2,6 +2,7 @@ import type { Cookie, CookieOptions, CookieValue } from '../../middleware/reques
 import type { ErrorResponse } from '../../middleware/request-handler/error-handler';
 import type { RedirectResponse } from '../../middleware/request-handler/redirect-handler';
 import type { NoSerialize } from '@builder.io/qwik';
+import type { ServerLoader } from './server-functions';
 
 export interface RouteModule<BODY = unknown> {
   onDelete?: RequestHandler<BODY>;
@@ -131,8 +132,9 @@ export interface DocumentStyle {
  * @alpha
  */
 export interface DocumentHeadProps extends RouteLocation {
-  head: ResolvedDocumentHead;
-  withLocale: <T>(fn: () => T) => T;
+  readonly head: ResolvedDocumentHead;
+  readonly withLocale: <T>(fn: () => T) => T;
+  readonly getLoaderData: <T>(loader: ServerLoader<T>) => T;
 }
 
 /**

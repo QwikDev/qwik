@@ -19,6 +19,7 @@ import type { ContainerState, GetObjID } from '../container/container';
 import { useSequentialScope } from './use-sequential-scope';
 import { createProxy } from '../state/store';
 import { getProxyTarget } from '../state/common';
+import type { Signal } from '../state/signal';
 
 /**
  * Options to pass to `useResource$()`
@@ -192,7 +193,7 @@ export const useResource$ = <T>(
  * @public
  */
 export interface ResourceProps<T> {
-  readonly value: ResourceReturn<T> | Promise<T> | T;
+  readonly value: ResourceReturn<T> | Signal<T> | Promise<T> | T;
   onResolved: (value: T) => JSXNode;
   onPending?: () => JSXNode;
   onRejected?: (reason: any) => JSXNode;
@@ -261,7 +262,7 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
   const resource = props.value as ResourceReturnInternal<T> | Promise<T>;
   if (isBrowser && resource instanceof ResourceImpl) {
     if (props.onRejected) {
-      resource._promise.catch(() => {});
+      resource.value.catch(() => {});
       if (resource._state === 'rejected') {
         return props.onRejected(resource._error);
       }
@@ -294,7 +295,7 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
 
 export class ResourceImpl<T> implements ResourceReturnInternal<T> {
   loading: boolean = isServer() ? false : true;
-  _promise: Promise<T> = undefined as never;
+  value: Promise<T> = undefined as never;
   _resolved: T | undefined = undefined;
   _error: any = undefined;
   _state: 'pending' | 'resolved' | 'rejected' = 'pending';
@@ -309,7 +310,7 @@ export class ResourceImpl<T> implements ResourceReturnInternal<T> {
     onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
   ): Promise<TResult1 | TResult2> {
-    return this._promise.then(onfulfilled, onrejected);
+    return this.value.then(onfulfilled, onrejected);
   }
 }
 
@@ -319,7 +320,7 @@ export const createResourceReturn = <T>(
   initialPromise?: Promise<T>
 ): ResourceReturnInternal<T> => {
   const result = new ResourceImpl<T>(opts);
-  result._promise = initialPromise as any;
+  result.value = initialPromise as any;
   const resource = createProxy(result, containerState, undefined);
   return resource;
 };
@@ -346,14 +347,14 @@ export const serializeResource = (resource: ResourceReturnInternal<any>, getObjI
 export const parseResourceReturn = <T>(data: string): ResourceReturnInternal<T> => {
   const [first, id] = data.split(' ');
   const result = new ResourceImpl<T>(undefined);
-  result._promise = Promise.resolve() as any;
+  result.value = Promise.resolve() as any;
   if (first === '0') {
     result._state = 'resolved';
     result._resolved = id as any;
     result.loading = false;
   } else if (first === '1') {
     result._state = 'pending';
-    result._promise = new Promise(() => {});
+    result.value = new Promise(() => {});
     result.loading = true;
   } else if (first === '2') {
     result._state = 'rejected';

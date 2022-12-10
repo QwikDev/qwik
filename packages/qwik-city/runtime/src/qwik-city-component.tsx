@@ -142,7 +142,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       contentInternal.contents = noSerialize(contentModules);
 
       const clientPageData = await endpointResponse;
-      const resolvedHead = resolveHead(clientPageData, routeLocation, contentModules, locale);
+      const resolvedHead = await resolveHead(clientPageData, routeLocation, contentModules, locale);
 
       const loaders = clientPageData?.loaders;
       if (loaders) {

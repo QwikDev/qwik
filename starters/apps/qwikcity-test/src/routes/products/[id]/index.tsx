@@ -1,40 +1,24 @@
-import { Resource, component$, useStore } from '@builder.io/qwik';
-import {
-  Link,
-  useEndpoint,
-  useLocation,
-  RequestHandler,
-  DocumentHead,
-} from '@builder.io/qwik-city';
+import { component$, useStore } from '@builder.io/qwik';
+import { Link, useLocation, DocumentHead, serverLoader$ } from '@builder.io/qwik-city';
 import os from 'node:os';
 
 export default component$(() => {
   const { params, pathname } = useLocation();
   const store = useStore({ productFetchData: '' });
 
-  const resource = useEndpoint<typeof onGet>();
+  const product = getProduct.use();
 
   return (
     <div>
       <h1>Product: {params.id}</h1>
 
-      <Resource
-        value={resource}
-        onPending={() => <p>Loading</p>}
-        onRejected={(e) => <p>{e}</p>}
-        onResolved={(product) => {
-          if (product == null) {
-            return <p>Not Found</p>;
-          }
-
-          return (
-            <>
-              <p>Price: {product.price}</p>
-              <p>{product.description}</p>
-            </>
-          );
-        }}
-      />
+      {product.value == null && <p>Not Found</p>}
+      {product.value != null && (
+        <>
+          <p>Price: {product.value.price}</p>
+          <p>{product.value.description}</p>
+        </>
+      )}
 
       <p>(Artificial response delay of 200ms)</p>
 
@@ -89,7 +73,7 @@ export const head: DocumentHead = ({ params }) => {
   };
 };
 
-export const onGet: RequestHandler<EndpointData> = async ({ params, response, query }) => {
+export const getProduct = serverLoader$(async ({ params, response, query }) => {
   // Serverside Endpoint
   // During SSR, this method is called directly on the server and returns the data object
   // On the client, this same data can be requested with fetch() at the same URL, but also
@@ -112,8 +96,7 @@ export const onGet: RequestHandler<EndpointData> = async ({ params, response, qu
     response.status = 404;
     // never cache
     response.headers.set('Cache-Control', 'no-cache, no-store, no-fun');
-    response.json(null);
-    return;
+    return null;
   }
 
   // cache for a super long time of 15 seconds
@@ -121,7 +104,7 @@ export const onGet: RequestHandler<EndpointData> = async ({ params, response, qu
 
   await new Promise<void>((resolve) => setTimeout(resolve, 200));
 
-  response.json({
+  return {
     // Found the product data
     // This same data is passed to the head() function
     // and in the component$() it can be access with useEndpoint()
@@ -130,8 +113,8 @@ export const onGet: RequestHandler<EndpointData> = async ({ params, response, qu
     description: `Node ${process.versions.node} ${os.platform()} ${os.arch()} ${
       os.cpus()[0].model
     }`,
-  });
-};
+  };
+});
 
 // Our pretty awesome database of prices
 const PRODUCT_DB: Record<string, string> = {
@@ -139,11 +122,3 @@ const PRODUCT_DB: Record<string, string> = {
   jacket: '$48.96',
   tshirt: '$18.96',
 };
-
-type EndpointData = ProductData | null;
-
-interface ProductData {
-  productId: string;
-  price: string;
-  description: string;
-}

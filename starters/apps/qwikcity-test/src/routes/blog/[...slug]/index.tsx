@@ -1,34 +1,32 @@
-import { component$, Resource } from '@builder.io/qwik';
-import {
-  useEndpoint,
-  DocumentHead,
-  RequestHandler,
-  StaticGenerateHandler,
-} from '@builder.io/qwik-city';
+import { component$ } from '@builder.io/qwik';
+import { DocumentHead, StaticGenerateHandler, serverLoader$ } from '@builder.io/qwik-city';
 
 export default component$(() => {
-  const resource = useEndpoint<typeof onGet>();
+  const blog = loader.use();
 
   return (
     <div>
-      <Resource
-        value={resource}
-        onResolved={(blog) => (
-          <>
-            <h1>{blog.title}</h1>
-            <p>{blog.content}</p>
-          </>
-        )}
-      />
+      <h1>{blog.value.title}</h1>
+      <p>{blog.value.content}</p>
     </div>
   );
 });
 
-export const onGet: RequestHandler = async ({ params, request, response }) => {
-  response.json({
+export interface BlogData {
+  title: string;
+  content: string;
+}
+
+export const loader = serverLoader$(({ params, request }) => {
+  return {
     title: `Blog: ${params.slug}`,
     content: `${params.slug}, ${request.url}`,
-  });
+  };
+});
+
+export const head: DocumentHead = ({ getLoaderData }) => {
+  const data = getLoaderData(loader);
+  return { title: data?.title };
 };
 
 export const onStaticGenerate: StaticGenerateHandler = async () => {
@@ -40,14 +38,3 @@ export const onStaticGenerate: StaticGenerateHandler = async () => {
     ],
   };
 };
-
-export const head: DocumentHead = () => {
-  // const data = await getData(loader)
-
-  return { title: data?.title };
-};
-
-export interface BlogData {
-  title: string;
-  content: string;
-}

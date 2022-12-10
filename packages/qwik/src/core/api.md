@@ -702,9 +702,9 @@ export interface ResourceOptions {
 // @public (undocumented)
 export interface ResourcePending<T> extends PromiseLike<T> {
     // (undocumented)
-    loading: boolean;
+    readonly loading: boolean;
     // (undocumented)
-    promise: Promise<T>;
+    readonly value: Promise<T>;
 }
 
 // @public (undocumented)
@@ -715,22 +715,24 @@ export interface ResourceProps<T> {
     onRejected?: (reason: any) => JSXNode;
     // (undocumented)
     onResolved: (value: T) => JSXNode;
+    // Warning: (ae-incompatible-release-tags) The symbol "value" is marked as @public, but its signature references "Signal" which is marked as @alpha
+    //
     // (undocumented)
-    readonly value: ResourceReturn<T>;
+    readonly value: ResourceReturn<T> | Signal<T> | Promise<T> | T;
 }
 
 // @public (undocumented)
 export interface ResourceRejected<T> extends PromiseLike<T> {
     // (undocumented)
-    loading: boolean;
+    readonly loading: boolean;
 }
 
 // @public (undocumented)
 export interface ResourceResolved<T> extends PromiseLike<T> {
     // (undocumented)
-    loading: boolean;
+    readonly loading: boolean;
     // (undocumented)
-    promise: Promise<T>;
+    readonly value: Promise<T>;
 }
 
 // @public (undocumented)

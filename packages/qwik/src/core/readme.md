@@ -84,13 +84,13 @@ export function useRef<T = Element>(current?: T): Ref<T> {
 @deprecated Use `useSignal` instead.
 @alpha
 
-# `useWatch`
+# `useTask`
 
-Reruns the `watchFn` when the observed inputs change.
+Reruns the `taskFn` when the observed inputs change.
 
-Use `useWatch` to observe changes on a set of inputs, and then re-execute the `watchFn` when those inputs change.
+Use `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when those inputs change.
 
-The `watchFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `watchFn` to rerun.
+The `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.
 
 @see `Tracker`
 
@@ -98,7 +98,7 @@ The `watchFn` only executes if the observed inputs change. To observe the inputs
 
 ### Example
 
-The `useWatch` function is used to observe the `state.count` property. Any changes to the `state.count` cause the `watchFn` to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
+The `useTask` function is used to observe the `state.count` property. Any changes to the `state.count` cause the `taskFn` to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
 
 <docs code="./examples.tsx#use-watch"/>
 
@@ -109,15 +109,15 @@ The `useWatch` function is used to observe the `state.count` property. Any chang
 
 Used to signal to Qwik which state should be watched for changes.
 
-The `Tracker` is passed into the `watchFn` of `useWatch`. It is intended to be used to wrap state objects in a read proxy which signals to Qwik which properties should be watched for changes. A change to any of the properties causes the `watchFn` to rerun.
+The `Tracker` is passed into the `taskFn` of `useTask`. It is intended to be used to wrap state objects in a read proxy which signals to Qwik which properties should be watched for changes. A change to any of the properties causes the `taskFn` to rerun.
 
 ### Example
 
-The `obs` passed into the `watchFn` is used to mark `state.count` as a property of interest. Any changes to the `state.count` property will cause the `watchFn` to rerun.
+The `obs` passed into the `taskFn` is used to mark `state.count` as a property of interest. Any changes to the `state.count` property will cause the `taskFn` to rerun.
 
 <docs code="./examples.tsx#use-watch-simple"/>
 
-@see `useWatch`
+@see `useTask`
 
 @public
 
@@ -129,36 +129,54 @@ The `obs` passed into the `watchFn` is used to mark `state.count` as a property 
 
 # `useMount`
 
-Registers a hook to execute code when the component is mounted into the rendering tree (on component creation).
+Deprecated API, equivalent of doing:
 
-### Example
+```tsx
+import { useTask$ } from '@builder.io/qwik';
+useTask$(() => {
+  // do something
+});
+```
 
-<docs code="./examples.tsx#use-mount"/>
-
-@see `useServerMount`
+@see `useTask`
 @public
+@deprecated - use `useTask$()` instead. See https://qwik.builder.io/docs/components/lifecycle/#usetask
 
 # `useServerMount`
 
-Registers a server mount hook that runs only in the server when the component is first mounted.
+Deprecated API, equivalent of doing:
 
-### Example
+```tsx
+import { useTask$ } from '@builder.io/qwik';
+import { isServer } from '@builder.io/qwik/build';
+useTask$(() => {
+  if (isServer) {
+    // only runs on server
+  }
+});
+```
 
-<docs code="./examples.tsx#use-server-mount"/>
-
-@see `useMount`, `useClientMount`
+@see `useTask`
 @public
+@deprecated - use `useTask$()` with `isServer` instead. See https://qwik.builder.io/docs/components/lifecycle/#usemountserver
 
 # `useClientMount`
 
-Registers a client mount hook that runs only in the browser when the component is first mounted.
+Deprecated API, equivalent of doing:
 
-### Example
+```tsx
+import { useTask$ } from '@builder.io/qwik';
+import { isBrowser } from '@builder.io/qwik/build';
+useTask$(() => {
+  if (isBrowser) {
+    // only runs on server
+  }
+});
+```
 
-<docs code="./examples.tsx#use-client-mount"/>
-
-@see `useMount`, `useServerMount`
+@see `useTask`
 @public
+@deprecated - use `useTask$()` with `isBrowser` instead. See https://qwik.builder.io/docs/components/lifecycle/#usemountserver
 
 # `useStyles`
 
@@ -189,7 +207,7 @@ Component styles allow Qwik to lazy load the style information for the component
 It can be used to release resources, abort network requests, stop timers...
 
 @alpha
-@deprecated Use the cleanup() function of `useWatch$()`, `useResource$()` or `useClientEffect$()` instead.
+@deprecated Use the cleanup() function of `useTask$()`, `useResource$()` or `useClientEffect$()` instead.
 
 # `useOn`
 

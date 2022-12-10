@@ -12,7 +12,7 @@ import { $, QRL } from './qrl/qrl.public';
 import { useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
-import { useClientEffect$, useWatch$ } from './use/use-watch';
+import { useClientEffect$, useTask$ } from './use/use-watch';
 import { useClientMount$, useMount$, useServerMount$ } from './use/use-mount';
 import { implicit$FirstArg } from './util/implicit_dollar';
 
@@ -146,13 +146,13 @@ export const CmpInline = component$(() => {
     });
 
     // Double count watch
-    useWatch$(({ track }) => {
+    useTask$(({ track }) => {
       const count = track(() => store.count);
       store.doubleCount = 2 * count;
     });
 
     // Debouncer watch
-    useWatch$(({ track }) => {
+    useTask$(({ track }) => {
       const doubleCount = track(() => store.doubleCount);
       const timer = setTimeout(() => {
         store.debounced = doubleCount;
@@ -212,7 +212,7 @@ export const CmpInline = component$(() => {
   // <docs anchor="use-watch-simple">
   const Cmp = component$(() => {
     const store = useStore({ count: 0, doubleCount: 0 });
-    useWatch$(({ track }) => {
+    useTask$(({ track }) => {
       const count = track(() => store.count);
       store.doubleCount = 2 * count;
     });

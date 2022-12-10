@@ -195,7 +195,7 @@
       },
       {
         "id": "explicit",
-        "title": "useWatch$() - Explicit Reactivity",
+        "title": "useTask$() - Explicit Reactivity",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false
@@ -249,7 +249,7 @@
       },
       {
         "id": "use-watch",
-        "title": "useWatch$()",
+        "title": "useTask$()",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false

@@ -5,6 +5,7 @@ import { implicit$FirstArg } from '../util/implicit_dollar';
 import type { ValueOrPromise } from '../util/types';
 import { waitAndRun } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
+import { useTask$, useTaskQrl } from './use-watch';
 
 /**
  * @public
@@ -15,41 +16,22 @@ export type MountFn<T> = () => ValueOrPromise<T>;
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useServerMount instead)
 /**
- * Registers a server mount hook that runs only in the server when the component is first
- * mounted.
- *
- * ### Example
+ * Deprecated API, equivalent of doing:
  *
  * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     users: [],
- *   });
- *
- *   useServerMount$(async () => {
- *     // This code will ONLY run once in the server, when the component is mounted
- *     store.users = await db.requestUsers();
- *   });
- *
- *   return (
- *     <div>
- *       {store.users.map((user) => (
- *         <User user={user} />
- *       ))}
- *     </div>
- *   );
+ * import { useTask$ } from '@builder.io/qwik';
+ * import { isServer } from '@builder.io/qwik/build';
+ * useTask$(() => {
+ *   if (isServer) {
+ *     // only runs on server
+ *   }
  * });
- *
- * interface User {
- *   name: string;
- * }
- * function User(props: { user: User }) {
- *   return <div>Name: {props.user.name}</div>;
- * }
  * ```
  *
- * @see `useMount`, `useClientMount`
+ * @see `useTask`
  * @public
+ * @deprecated - use `useTask$()` with `isServer` instead. See
+ * https://qwik.builder.io/docs/components/lifecycle/#usemountserver
  */
 // </docs>
 export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
@@ -69,41 +51,22 @@ export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useServerMount instead)
 /**
- * Registers a server mount hook that runs only in the server when the component is first
- * mounted.
- *
- * ### Example
+ * Deprecated API, equivalent of doing:
  *
  * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     users: [],
- *   });
- *
- *   useServerMount$(async () => {
- *     // This code will ONLY run once in the server, when the component is mounted
- *     store.users = await db.requestUsers();
- *   });
- *
- *   return (
- *     <div>
- *       {store.users.map((user) => (
- *         <User user={user} />
- *       ))}
- *     </div>
- *   );
+ * import { useTask$ } from '@builder.io/qwik';
+ * import { isServer } from '@builder.io/qwik/build';
+ * useTask$(() => {
+ *   if (isServer) {
+ *     // only runs on server
+ *   }
  * });
- *
- * interface User {
- *   name: string;
- * }
- * function User(props: { user: User }) {
- *   return <div>Name: {props.user.name}</div>;
- * }
  * ```
  *
- * @see `useMount`, `useClientMount`
+ * @see `useTask`
  * @public
+ * @deprecated - use `useTask$()` with `isServer` instead. See
+ * https://qwik.builder.io/docs/components/lifecycle/#usemountserver
  */
 // </docs>
 export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl);
@@ -112,23 +75,22 @@ export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useClientMount instead)
 /**
- * Registers a client mount hook that runs only in the browser when the component is first
- * mounted.
- *
- * ### Example
+ * Deprecated API, equivalent of doing:
  *
  * ```tsx
- * const Cmp = component$(() => {
- *   useClientMount$(async () => {
- *     // This code will ONLY run once in the client, when the component is mounted
- *   });
- *
- *   return <div>Cmp</div>;
+ * import { useTask$ } from '@builder.io/qwik';
+ * import { isBrowser } from '@builder.io/qwik/build';
+ * useTask$(() => {
+ *   if (isBrowser) {
+ *     // only runs on server
+ *   }
  * });
  * ```
  *
- * @see `useMount`, `useServerMount`
+ * @see `useTask`
  * @public
+ * @deprecated - use `useTask$()` with `isBrowser` instead. See
+ * https://qwik.builder.io/docs/components/lifecycle/#usemountserver
  */
 // </docs>
 export const useClientMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
@@ -148,104 +110,34 @@ export const useClientMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useClientMount instead)
 /**
- * Registers a client mount hook that runs only in the browser when the component is first
- * mounted.
- *
- * ### Example
+ * Deprecated API, equivalent of doing:
  *
  * ```tsx
- * const Cmp = component$(() => {
- *   useClientMount$(async () => {
- *     // This code will ONLY run once in the client, when the component is mounted
- *   });
- *
- *   return <div>Cmp</div>;
+ * import { useTask$ } from '@builder.io/qwik';
+ * import { isBrowser } from '@builder.io/qwik/build';
+ * useTask$(() => {
+ *   if (isBrowser) {
+ *     // only runs on server
+ *   }
  * });
  * ```
  *
- * @see `useMount`, `useServerMount`
+ * @see `useTask`
  * @public
+ * @deprecated - use `useTask$()` with `isBrowser` instead. See
+ * https://qwik.builder.io/docs/components/lifecycle/#usemountserver
  */
 // </docs>
 export const useClientMount$ = /*#__PURE__*/ implicit$FirstArg(useClientMountQrl);
 
-// <docs markdown="../readme.md#useMount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useMount instead)
 /**
- * Registers a hook to execute code when the component is mounted into the rendering tree (on
- * component creation).
- *
- * ### Example
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     temp: 0,
- *   });
- *
- *   useMount$(async () => {
- *     // This code will run once whenever a component is mounted in the server, or in the client
- *     const res = await fetch('weather-api.example');
- *     const json = (await res.json()) as any;
- *     store.temp = json.temp;
- *   });
- *
- *   return (
- *     <div>
- *       <p>The temperature is: ${store.temp}</p>
- *     </div>
- *   );
- * });
- * ```
- *
- * @see `useServerMount`
- * @public
+ * @beta
+ * @deprecated - use `useTask$()` instead
  */
-// </docs>
-export const useMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
-  const { get, set, iCtx } = useSequentialScope<boolean>();
-  if (get) {
-    return;
-  }
-  assertQrl(mountQrl);
-  mountQrl.$resolveLazy$(iCtx.$renderCtx$.$static$.$containerState$.$containerEl$);
-  waitAndRun(iCtx, mountQrl);
-  set(true);
-};
+export const useMountQrl = useTaskQrl;
 
-// <docs markdown="../readme.md#useMount">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useMount instead)
 /**
- * Registers a hook to execute code when the component is mounted into the rendering tree (on
- * component creation).
- *
- * ### Example
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     temp: 0,
- *   });
- *
- *   useMount$(async () => {
- *     // This code will run once whenever a component is mounted in the server, or in the client
- *     const res = await fetch('weather-api.example');
- *     const json = (await res.json()) as any;
- *     store.temp = json.temp;
- *   });
- *
- *   return (
- *     <div>
- *       <p>The temperature is: ${store.temp}</p>
- *     </div>
- *   );
- * });
- * ```
- *
- * @see `useServerMount`
- * @public
+ * @beta
+ * @deprecated - use `useTask$()` instead
  */
-// </docs>
-export const useMount$ = /*#__PURE__*/ implicit$FirstArg(useMountQrl);
+export const useMount$ = /*#__PURE__*/ useTask$;

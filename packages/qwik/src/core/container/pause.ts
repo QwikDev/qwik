@@ -16,7 +16,7 @@ import { qDev } from '../util/qdev';
 
 import {
   destroyWatch,
-  isResourceWatch,
+  isResourceTask,
   ResourceReturnInternal,
   WatchFlagsIsDirty,
 } from '../use/use-watch';
@@ -155,7 +155,7 @@ export const _pauseFromContexts = async (
             logWarn('Serializing disconneted watch. Looks like an internal error.');
           }
         }
-        if (isResourceWatch(watch)) {
+        if (isResourceTask(watch)) {
           collector.$resources$.push(watch.$resource$);
         }
         destroyWatch(watch);

@@ -33,10 +33,10 @@ export const sizeLoader = serverLoader$(() => {
 export default component$(() => {
   useStyles$(styles);
 
-  const toppings = toppingsLoader.use();
   const crusts = crustLoader.use();
   const sizes = sizeLoader.use();
 
+  const toppings = toppingsLoader.use();
   const { Form } = toppingsAction.use();
 
   return (

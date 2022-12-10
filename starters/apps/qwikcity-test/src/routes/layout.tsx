@@ -1,20 +1,24 @@
-import { component$, Slot } from '@builder.io/qwik';
+import { component$, Slot, useTask$ } from '@builder.io/qwik';
 import { RequestHandler, serverLoader$ } from '@builder.io/qwik-city';
 import Footer from '../components/footer/footer';
 import Header from '../components/header/header';
 
-export const rootLoader = serverLoader$((r) => {
+export const rootLoader = serverLoader$(() => {
   return {
     serverTime: new Date().toISOString(),
   };
 });
 
 export default component$(() => {
-  const { value } = rootLoader.use();
+  const serverData = rootLoader.use();
+  useTask$(({ track }) => {
+    track(serverData);
+    // run everytime it updates
+  });
   return (
     <div data-test-layout="root">
       <Header />
-      <div>{value.serverTime}</div>
+      <div>{serverData.value.serverTime}</div>
       <main>
         <Slot />
       </main>

@@ -96,6 +96,96 @@ The purpose of the `window:on`/`document:` is to register an event at a current 
 1. The events can be registered declaratively in your JSX
 2. The events get automatically cleaned up when the component is destroyed. (No explicit bookkeeping and cleanup is needed)
 
+## useOn Hooks
+
+- [useOn](../../../docs/components/events/index.mdx#useon)
+- [useOnWindow](../../../docs/components/events/index.mdx#useonwindow)
+- [useOnDocument](../../../docs/components/events/index.mdx#useondocument)
+
+### useOn
+
+`useOn` hook will add a DOM based event listener at component level.
+
+```tsx
+export const ClickableComponent = component$(() => {
+  useOn(
+    'click',
+    $(() => {
+      alert('Alert from Clickable Component.');
+    })
+  );
+  return <div>click from other component 1</div>;
+});
+
+export const HoverComponent = component$(() => {
+  const store = useStore({ isHover: false });
+  useOn(
+    'mouseover',
+    $(() => {
+      store.isHover = true;
+    })
+  );
+  return <div>{store.isHover ? 'Now Hovering' : 'Not Hovering'}</div>;
+});
+
+export default component$(() => {
+  return (
+    <>
+      <ClickableComponent />
+      <HoverComponent />
+    </>
+  );
+});
+```
+
+### useOnWindow
+
+`useOnWindow` hook will add a event listener to window.
+
+```tsx
+export const Online = component$(() => {
+  useOnWindow(
+    'online',
+    $(() => {
+      alert('Your Device is now Online');
+    })
+  );
+  useOnWindow(
+    'offline',
+    $(() => {
+      alert('Your Device is now Offline');
+    })
+  );
+  return <div></div>;
+});
+
+export default component$(() => {
+  return <Online />;
+});
+
+```
+
+### useOnDocument
+
+`useOnDocument` hook will add a event listener to document.
+
+```tsx
+export const KeyBoard = component$(() => {
+  const store = useStore({ keyPressed: '' });
+  useOnDocument(
+    'keydown',
+    $((event) => {
+      store.keyPressed = store.keyPressed + event.key;
+    })
+  );
+  return <div>{store.keyPressed}</div>;
+});
+
+export default component$(() => {
+  return <KeyBoard />;
+});
+```
+
 ## Events and Components
 
 Components are functions, not elements. Since DOM events do not exist naturally, it's possible to define custom events as props.

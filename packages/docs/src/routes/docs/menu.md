@@ -18,7 +18,6 @@
 - [Resource](components/resource/index.mdx)
 - [Slots](components/projection/index.mdx)
 - [Rendering](components/rendering/index.mdx)
-- [Hooks](components/hooks/index.mdx)
 - [Styling](components/styles/index.mdx)
 - [Lite components](components/lite-components/index.mdx)
 

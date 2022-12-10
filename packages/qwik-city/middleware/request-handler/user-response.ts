@@ -208,6 +208,16 @@ export async function loadUserResponse(
   }
 
   if (routeModuleIndex < ABORT_INDEX) {
+    const selectedAction = url.searchParams.get('qaction');
+    if (method === 'POST' && selectedAction) {
+      const action = serverActions.find((a) => a.__qrl.getHash() === selectedAction);
+      if (action) {
+        const form = await requestEv.request.formData();
+        const actionResolved = await action.__qrl(form, requestEv);
+        userResponse.loaders[selectedAction] = actionResolved;
+      }
+    }
+
     if (serverLoaders.length > 0) {
       if (userResponse.bodySent) {
         throw new Error('Body already sent');

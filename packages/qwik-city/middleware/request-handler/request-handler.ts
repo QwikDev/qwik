@@ -44,6 +44,7 @@ export async function requestHandler<T = any>(
 
       const pageResult = await pageHandler(
         requestCtx,
+        matchPathname,
         userResponse,
         render,
         opts,

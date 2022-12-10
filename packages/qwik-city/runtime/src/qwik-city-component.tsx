@@ -17,12 +17,14 @@ import type {
   ContentStateInternal,
   MutableRouteLocation,
   PageModule,
+  RouteActionValue,
   RouteNavigate,
 } from './types';
 import {
   ContentContext,
   ContentInternalContext,
   DocumentHeadContext,
+  RouteActionContext,
   RouteLocationContext,
   RouteNavigateContext,
   RouteStateContext,
@@ -74,6 +76,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     pathname: url.pathname,
     query: url.searchParams,
     params: env.params,
+    isPending: false,
   });
 
   const loaderState = useStore(env.response.loaders);
@@ -92,23 +95,29 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     contents: undefined,
   });
 
+  const actionState = useSignal<RouteActionValue>();
+
   useContextProvider(ContentContext, content);
   useContextProvider(ContentInternalContext, contentInternal);
   useContextProvider(DocumentHeadContext, documentHead);
   useContextProvider(RouteLocationContext, routeLocation);
   useContextProvider(RouteNavigateContext, routeNavigate);
   useContextProvider(RouteStateContext, loaderState);
+  useContextProvider(RouteActionContext, actionState);
 
   useWatch$(async ({ track }) => {
+    const path = track(() => routeNavigate.path);
+    const action = track(() => actionState.value);
     const locale = getLocale('');
     const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
-    const path = track(() => routeNavigate.path);
     const url = new URL(path, routeLocation.href);
     const pathname = url.pathname;
-
+    if (isBrowser) {
+      routeLocation.isPending = true;
+    }
     const loadRoutePromise = loadRoute(routes, menus, cacheModules, pathname);
 
-    const endpointResponse = isServer ? env.response : loadClientData(url.href, true);
+    const endpointResponse = isServer ? env.response : loadClientData(url.href, true, action);
 
     const loadedRoute = await loadRoutePromise;
 
@@ -121,13 +130,15 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       if (pathname.endsWith('/')) {
         if (!trailingSlash) {
           url.pathname = pathname.slice(0, -1);
-          routeNavigate.path = toPath(url);
-          return;
+          // TODO
+          // routeNavigate.path = toPath(url);
+          // return;
         }
       } else if (trailingSlash) {
         url.pathname += '/';
-        routeNavigate.path = toPath(url);
-        return;
+        // TODO
+        // routeNavigate.path = toPath(url);
+        // return;
       }
 
       // Update route location
@@ -144,12 +155,6 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       const clientPageData = await endpointResponse;
       const resolvedHead = await resolveHead(clientPageData, routeLocation, contentModules, locale);
 
-      const loaders = clientPageData?.loaders;
-      if (loaders) {
-        Object.assign(loaderState, loaders);
-      }
-      CLIENT_DATA_CACHE.clear();
-
       // Update document head
       documentHead.links = resolvedHead.links;
       documentHead.meta = resolvedHead.meta;
@@ -158,7 +163,14 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       documentHead.frontmatter = resolvedHead.frontmatter;
 
       if (isBrowser) {
+        const loaders = clientPageData?.loaders;
+        if (loaders) {
+          Object.assign(loaderState, loaders);
+        }
+        CLIENT_DATA_CACHE.clear();
+
         clientNavigate(window, routeNavigate);
+        routeLocation.isPending = false;
       }
     }
   });
@@ -197,6 +209,7 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
     pathname: url.pathname,
     query: url.searchParams,
     params: props.params ?? {},
+    isPending: false,
   });
 
   const loaderState = useSignal({});

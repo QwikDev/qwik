@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+
 import type { QwikCityMode } from '../../runtime/src/types';
 import type { QwikCityRequestContext } from '../request-handler/types';
-import { createHeaders } from '../request-handler/headers';
 
 export function getUrl(req: IncomingMessage) {
   const protocol =
@@ -9,13 +9,15 @@ export function getUrl(req: IncomingMessage) {
   return new URL(req.url || '/', `${protocol}://${req.headers.host}`);
 }
 
-export function fromNodeHttp(
+export async function fromNodeHttp(
   url: URL,
   req: IncomingMessage,
   res: ServerResponse,
   mode: QwikCityMode
 ) {
-  const requestHeaders = createHeaders();
+  const { Request, Headers } = await import('undici');
+
+  const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
   for (const key in nodeRequestHeaders) {
     const value = nodeRequestHeaders[key];
@@ -28,28 +30,21 @@ export function fromNodeHttp(
     }
   }
 
-  const getRequestBody = async () => {
-    const buffers = [];
+  const getRequestBody = async function* () {
     for await (const chunk of req as any) {
-      buffers.push(chunk);
+      yield chunk;
     }
-    return Buffer.concat(buffers).toString();
   };
 
+  const body = req.method === 'HEAD' || req.method === 'GET' ? undefined : getRequestBody();
   const requestCtx: QwikCityRequestContext = {
     mode,
-    request: {
+    request: new Request(url.href, {
+      method: req.method,
       headers: requestHeaders,
-      formData: async () => {
-        return new URLSearchParams(await getRequestBody());
-      },
-      json: async () => {
-        return JSON.parse(await getRequestBody()!);
-      },
-      method: req.method || 'GET',
-      text: getRequestBody,
-      url: url.href,
-    },
+      body,
+      duplex: 'half',
+    }) as any,
     response: async (status, headers, cookies, body) => {
       res.statusCode = status;
       headers.forEach((value, key) => res.setHeader(key, value));

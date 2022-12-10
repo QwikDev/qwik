@@ -1,9 +1,25 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
-import { DocumentHead, serverLoader$ } from '@builder.io/qwik-city';
+import { DocumentHead, serverAction$, serverLoader$ } from '@builder.io/qwik-city';
 import styles from './actions.css';
 
+export const toppings = [
+  { name: 'Pepperoni', selected: false },
+  { name: 'Sausage', selected: false },
+  { name: 'Bacon', selected: false },
+];
+
 export const toppingsLoader = serverLoader$(() => {
-  return ['Pepperoni', 'Sausage', 'Bacon'];
+  return toppings;
+});
+
+export const toppingsAction = serverAction$((form) => {
+  const newToppings = form.getAll('toppings');
+  toppings.forEach((value) => {
+    value.selected = newToppings.includes(value.name);
+  });
+  return {
+    success: true,
+  };
 });
 
 export const crustLoader = serverLoader$(() => {
@@ -21,23 +37,36 @@ export default component$(() => {
   const crusts = crustLoader.use();
   const sizes = sizeLoader.use();
 
+  const { Form } = toppingsAction.use();
+
   return (
     <div class="actions">
       <section class="input">
         <h1>Qwik Pizza</h1>
 
-        <form method="post" data-test-toppings>
+        <Form data-test-toppings>
           <h2>Toppings</h2>
+          <p>
+            {toppings.value
+              .filter((s) => s.selected)
+              .map((s) => s.name)
+              .join(', ')}
+          </p>
           {toppings.value.map((topping) => (
             <label>
-              <input type="checkbox" name="toppings" value={topping} />
-              <span>{topping}</span>
+              <input
+                type="checkbox"
+                name="toppings"
+                value={topping.name}
+                checked={topping.selected}
+              />
+              <span>{topping.name}</span>
             </label>
           ))}
           <p>
             <button>Set Toppings</button>
           </p>
-        </form>
+        </Form>
 
         <form method="post" data-test-crust>
           <h2>Crust</h2>

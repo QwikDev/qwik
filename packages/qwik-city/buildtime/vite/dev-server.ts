@@ -65,7 +65,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         return;
       }
 
-      const requestCtx = fromNodeHttp(url, req, res, 'dev');
+      const requestCtx = await fromNodeHttp(url, req, res, 'dev');
 
       await updateBuildContext(ctx);
 
@@ -110,7 +110,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
           if (userResponse.type === 'pagedata') {
             // dev server endpoint handler
-            await pageHandler(requestCtx, userResponse, noopDevRender);
+            await pageHandler(requestCtx, matchPathname, userResponse, noopDevRender);
             return;
           }
 
@@ -124,6 +124,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           // but add the qwik city user context to the response object
           const envData = getQwikCityEnvData(
             requestHeaders,
+            matchPathname,
             userResponse,
             requestCtx.locale,
             'dev'
@@ -209,7 +210,7 @@ export function dev404Middleware() {
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
       const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
-      const requestCtx = fromNodeHttp(url, req, res, 'dev');
+      const requestCtx = await fromNodeHttp(url, req, res, 'dev');
       await notFoundHandler(requestCtx);
     } catch (e) {
       next(e);

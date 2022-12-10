@@ -1,5 +1,5 @@
 import type { LinkProps } from './link-component';
-import type { SimpleURL } from './types';
+import type { RouteActionValue, SimpleURL } from './types';
 
 /**
  * Gets an absolute url path string (url.pathname + url.search + url.hash)
@@ -33,8 +33,17 @@ export const isSamePathname = (a: SimpleURL, b: SimpleURL) => a.pathname === b.p
 export const isSameOriginDifferentPathname = (a: SimpleURL, b: SimpleURL) =>
   isSameOrigin(a, b) && !isSamePath(a, b);
 
-export const getClientDataPath = (pathname: string, pageSearch?: string) =>
-  pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json' + (pageSearch ?? '');
+export const getClientDataPath = (
+  pathname: string,
+  pageSearch?: string,
+  action?: RouteActionValue
+) => {
+  let search = pageSearch ?? '';
+  if (action) {
+    search += (search ? '&' : '?') + 'qaction=' + encodeURIComponent(action.id);
+  }
+  return pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json' + search;
+};
 
 export const getClientNavPath = (props: Record<string, any>, baseUrl: { href: string }) => {
   const href = props.href;

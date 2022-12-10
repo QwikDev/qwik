@@ -5,9 +5,11 @@
 ```ts
 
 import { Component } from '@builder.io/qwik';
+import { FunctionComponent } from '@builder.io/qwik';
 import { JSXNode } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
+import { QwikJSX } from '@builder.io/qwik';
 import { ResourceReturn } from '@builder.io/qwik';
 import { Signal } from '@builder.io/qwik';
 import { ValueOrPromise } from '@builder.io/qwik';
@@ -275,6 +277,8 @@ export interface RouteLocation {
     // (undocumented)
     readonly href: string;
     // (undocumented)
+    readonly isPending: boolean;
+    // (undocumented)
     readonly params: Record<string, string>;
     // (undocumented)
     readonly pathname: string;
@@ -288,11 +292,13 @@ export type RouteParams = Record<string, string>;
 // @alpha (undocumented)
 export const RouterOutlet: Component<    {}>;
 
+// Warning: (ae-forgotten-export) The symbol "ServerAction" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export const serverAction$: <T extends any[], B>(first: (...body: T) => ValueOrPromise<B>) => () => void;
+export const serverAction$: <B>(first: (form: FormData, event: RequestEvent) => ValueOrPromise<B>) => ServerAction<B>;
 
 // @alpha (undocumented)
-export const serverActionQrl: <T extends any[], B>(actionQrl: QRL<(...body: T) => ValueOrPromise<B>>) => () => void;
+export const serverActionQrl: <B>(actionQrl: QRL<(form: FormData, event: RequestEvent) => ValueOrPromise<B>>) => ServerAction<B>;
 
 // @alpha (undocumented)
 export const serverLoader$: <PLATFORM, B>(first: (event: RequestEvent<PLATFORM>) => B) => ServerLoader<B>;

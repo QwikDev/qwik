@@ -11,7 +11,7 @@ import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
 import type { PackageJSON } from '../scripts/util';
 import { fileURLToPath } from 'node:url';
-import nodeFetch, { Headers, Request as R, Response as RE } from 'node-fetch';
+import { fetch, Headers, Request as R, Response as RE } from 'undici';
 import { getErrorHtml } from '../packages/qwik-city/middleware/request-handler/error-handler';
 
 const app = express();
@@ -288,7 +288,7 @@ function startersHomepage(_: Request, res: Response) {
   `);
 }
 
-(global as any).fetch = nodeFetch;
+(global as any).fetch = fetch;
 (global as any).Headers = Headers;
 (global as any).Request = R;
 (global as any).Response = RE;

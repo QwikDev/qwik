@@ -21,11 +21,11 @@ export async function configureDevServer(
 
     try {
       if (!globalThis.fetch) {
-        const nodeFetch = await sys.strictDynamicImport('node-fetch');
-        global.fetch = nodeFetch;
-        global.Headers = nodeFetch.Headers;
-        global.Request = nodeFetch.Request;
-        global.Response = nodeFetch.Response;
+        const undici = await sys.strictDynamicImport('undici');
+        global.fetch = undici;
+        global.Headers = undici.Headers;
+        global.Request = undici.Request;
+        global.Response = undici.Response;
       }
     } catch {
       console.warn('Global fetch() was not installed');

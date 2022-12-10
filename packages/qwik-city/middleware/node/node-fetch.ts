@@ -1,12 +1,11 @@
-import fetch, { Headers, Request, Response } from 'node-fetch';
-
-export function patchGlobalFetch() {
+export async function patchGlobalFetch() {
   if (
     typeof global !== 'undefined' &&
     typeof globalThis.fetch !== 'function' &&
     typeof process !== 'undefined' &&
     process.versions.node
   ) {
+    const { fetch, Headers, Request, Response } = await import('undici');
     if (!globalThis.fetch) {
       globalThis.fetch = fetch as any;
       globalThis.Headers = Headers as any;

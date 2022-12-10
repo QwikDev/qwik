@@ -13,6 +13,7 @@ import type { QwikCityRequestContext, UserResponseContext } from './types';
 
 export function pageHandler<T = any>(
   requestCtx: QwikCityRequestContext,
+  matchPathname: string,
   userResponse: UserResponseContext,
   render: Render,
   opts?: RenderOptions,
@@ -39,6 +40,7 @@ export function pageHandler<T = any>(
         stream: isPageData ? noopStream : stream,
         envData: getQwikCityEnvData(
           requestHeaders,
+          matchPathname,
           userResponse,
           requestCtx.locale,
           requestCtx.mode
@@ -140,6 +142,7 @@ function getPrefetchBundleNames(result: RenderResult, routeBundleNames: string[]
 
 export function getQwikCityEnvData(
   requestHeaders: Record<string, string>,
+  matchPathname: string,
   userResponse: UserResponseContext,
   locale: string | undefined,
   mode: QwikCityMode
@@ -151,7 +154,7 @@ export function getQwikCityEnvData(
 } {
   const { url, params, status, loaders } = userResponse;
   return {
-    url: url.href,
+    url: new URL(matchPathname + url.search, url).href,
     requestHeaders: requestHeaders,
     locale: locale,
     qwikcity: {

@@ -32,7 +32,7 @@
     "autoprefixer": "10.4.13",
     "fflate": "0.7.4",
     "gray-matter": "4.0.3",
-    "node-fetch": "3.3.0",
+    "undici": "5.14.0",
     "postcss": "8.4.19",
     "prism-themes": "1.9.0",
     "prismjs": "1.29.0",

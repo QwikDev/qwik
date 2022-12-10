@@ -1,7 +1,7 @@
 import type { Cookie, CookieOptions, CookieValue } from '../../middleware/request-handler/types';
 import type { ErrorResponse } from '../../middleware/request-handler/error-handler';
 import type { RedirectResponse } from '../../middleware/request-handler/redirect-handler';
-import type { NoSerialize } from '@builder.io/qwik';
+import type { NoSerialize, Signal } from '@builder.io/qwik';
 import type { ServerLoader } from './server-functions';
 
 export interface RouteModule<BODY = unknown> {
@@ -39,11 +39,20 @@ export interface RouteLocation {
   readonly href: string;
   readonly pathname: string;
   readonly query: URLSearchParams;
+  readonly isPending: boolean;
 }
 
 export interface RouteNavigate {
   path: string;
 }
+
+export type RouteAction = Signal<RouteActionValue>;
+
+export type RouteActionValue = NoSerialize<{
+  data: FormData;
+  id: string;
+  resolve: (result: any) => void;
+}>;
 
 export type MutableRouteLocation = Mutable<RouteLocation>;
 

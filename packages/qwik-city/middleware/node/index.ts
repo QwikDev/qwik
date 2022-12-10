@@ -18,8 +18,6 @@ import { patchGlobalFetch } from './node-fetch';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityNodeRequestOptions) {
-  patchGlobalFetch();
-
   const staticFolder =
     opts.static?.root ?? join(fileURLToPath(import.meta.url), '..', '..', 'dist');
 
@@ -29,7 +27,8 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
     next: NodeRequestNextFunction
   ) => {
     try {
-      const requestCtx = fromNodeHttp(getUrl(req), req, res, 'server');
+      await patchGlobalFetch();
+      const requestCtx = await fromNodeHttp(getUrl(req), req, res, 'server');
       try {
         const rsp = await requestHandler(requestCtx, opts);
         if (!rsp) {

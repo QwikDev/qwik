@@ -6,7 +6,7 @@ import type { ContainerState, GetObject, MustGetObjID } from './container';
 import { isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
 import {
   isSubscriberDescriptor,
-  parseWatch,
+  parseTask,
   ResourceReturnInternal,
   serializeWatch,
   SubscriberEffect,
@@ -105,7 +105,7 @@ const WatchSerializer: Serializer<SubscriberEffect> = {
     }
   },
   serialize: (obj, getObjId) => serializeWatch(obj, getObjId),
-  prepare: (data) => parseWatch(data) as any,
+  prepare: (data) => parseTask(data) as any,
   fill: (watch, getObject) => {
     watch.$el$ = getObject(watch.$el$ as any);
     watch.$qrl$ = getObject(watch.$qrl$ as any);

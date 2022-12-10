@@ -16,24 +16,25 @@ import './global.css';
 
 > Automatically, Qwik will try to inline this file in production mode if the amount of CSS is less than 10KB. If the file is larger than 10KB, it will be loaded as a separate file.
 
-
 ## CSS-in-JS
 
 Qwik has first-class CSS-in-JS support using [styled-vanilla-extract](https://github.com/wmertens/styled-vanilla-extract), which provides a extremelly efficient css-in-js solution without any runtime!
 
 **styles.css.ts:**
+
 ```tsx
 import { style } from 'styled-vanilla-extract/qwik';
 
 export const blueClass = style({
-  'display': 'block',
-  'width': '100%',
-  'height': '500px',
-  'background': 'blue',
+  display: 'block',
+  width: '100%',
+  height: '500px',
+  background: 'blue',
 });
 ```
 
 **component.tsx:**
+
 ```tsx
 import { blueClass } from './styles.css';
 
@@ -50,7 +51,6 @@ Please refer to the [docs of our official integration](/qwikcity/integrations/st
 
 > **How about emotion or other CSS-in-JS libs?** While extremelly popular, emotion and other CSS-in-JS libs are not the best choice for Qwik. [They are not optimized for runtime performance and they dont have a good SSR streaming support](https://dev.to/srmagura/why-were-breaking-up-wiht-css-in-js-4g9b), leading to a degraded server and client performance.
 
-
 ## Styled-components
 
 Styled components is a popular tool in React-land to write CSS-in-JS. Thanks to the same [styled-vanilla-extract](https://github.com/wmertens/styled-vanilla-extract) plugin, you can write your styles with styled-components syntax in Qwik with zero-runtime cost!
@@ -62,6 +62,7 @@ npm run qwik add styled-vanilla-extract
 Like this:
 
 **styles.css.ts:**
+
 ```tsx
 import { styled } from 'styled-vanilla-extract/qwik';
 
@@ -74,6 +75,7 @@ export const BlueBox = styled.div`
 ```
 
 **component.tsx:**
+
 ```tsx
 import { BlueBox } from './styles.css';
 
@@ -151,7 +153,6 @@ npm run qwik add tailwind
 ```
 
 Check our [the integration docs](../../../qwikcity/integrations/tailwind) for more information.
-
 
 ## Why not inline styles using the `<style>` tag?
 

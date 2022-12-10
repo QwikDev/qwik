@@ -7,7 +7,7 @@ import {
   runResource,
   WatchFlagsIsDirty,
   WatchFlagsIsResource,
-  Watch,
+  Task,
   ResourceReturnInternal,
 } from './use-watch';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
@@ -106,7 +106,7 @@ export const useResourceQrl = <T>(
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;
   const resource = createResourceReturn<T>(containerState, opts);
   const el = elCtx.$element$;
-  const watch = new Watch(
+  const watch = new Task(
     WatchFlagsIsDirty | WatchFlagsIsResource,
     i,
     el,

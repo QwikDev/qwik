@@ -84,7 +84,7 @@ export type { Ref } from './use/use-ref';
 export type { UseStoreOptions } from './use/use-store.public';
 export type {
   Tracker,
-  WatchFn,
+  TaskFn,
   UseEffectOptions,
   EagernessOptions,
   ResourceReturn,
@@ -92,17 +92,18 @@ export type {
   ResourcePending,
   ResourceRejected,
   ResourceResolved,
-  WatchCtx,
-  UseWatchOptions,
+  TaskCtx,
+  UseTaskOptions,
   ResourceFn,
 } from './use/use-watch';
 export type { MountFn } from './use/use-mount';
 export { useWatch$, useWatchQrl } from './use/use-watch';
 export type { ResourceProps, ResourceOptions } from './use/use-resource';
 export { useResource$, useResourceQrl, Resource } from './use/use-resource';
+export { useTask$, useTaskQrl } from './use/use-watch';
 export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
-export { useServerMount$, useServerMountQrl } from './use/use-mount';
 export { useMount$, useMountQrl } from './use/use-mount';
+export { useServerMount$, useServerMountQrl } from './use/use-mount';
 export { useClientMount$, useClientMountQrl } from './use/use-mount';
 export { useErrorBoundary } from './use/use-error-boundary';
 

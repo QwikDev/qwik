@@ -1,4 +1,4 @@
-import { component$, useSignal, useStore, useStylesScoped$, useWatch$ } from '@builder.io/qwik';
+import { component$, useSignal, useStore, useStylesScoped$, useTask$ } from '@builder.io/qwik';
 import { delay } from '../streaming/demo';
 
 export const Render = component$(() => {
@@ -108,7 +108,7 @@ export const Issue1475 = component$(() => {
 });
 
 export const LazyIssue1475 = component$(() => {
-  useWatch$(async () => {
+  useTask$(async () => {
     await delay(50);
   });
 

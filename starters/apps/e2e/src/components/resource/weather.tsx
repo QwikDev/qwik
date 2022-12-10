@@ -4,7 +4,7 @@ import {
   useStore,
   useResource$,
   Resource,
-  useWatch$,
+  useTask$,
   ResourceReturn,
 } from '@builder.io/qwik';
 
@@ -28,7 +28,7 @@ export const Weather = component$(() => {
   });
 
   // Debounce city
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const city = track(state, 'city');
     const timer = setTimeout(() => {
       state.debouncedCity = city;

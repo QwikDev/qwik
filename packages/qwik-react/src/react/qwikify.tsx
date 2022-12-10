@@ -4,7 +4,7 @@ import {
   NoSerialize,
   noSerialize,
   QRL,
-  useWatch$,
+  useTask$,
   SkipRender,
   useSignal,
   Slot,
@@ -36,7 +36,7 @@ export function qwikifyQrl<PROPS extends {}>(
     const TagName = opts?.tagName ?? ('qwik-react' as any);
 
     // Watch takes cares of updates and partial hydration
-    useWatch$(async ({ track }) => {
+    useTask$(async ({ track }) => {
       const trackedProps = track(() => ({ ...props }));
       track(signal);
 

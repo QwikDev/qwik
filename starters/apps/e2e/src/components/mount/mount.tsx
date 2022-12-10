@@ -1,4 +1,4 @@
-import { component$, useMount$, useServerMount$, useStore, useWatch$ } from '@builder.io/qwik';
+import { component$, useMount$, useServerMount$, useStore, useTask$ } from '@builder.io/qwik';
 import { delay } from '../async/async';
 
 export const MountRoot = component$(() => {
@@ -25,7 +25,7 @@ export const MountRoot = component$(() => {
     store.logs += 'AFTER useMount2()\n';
   });
 
-  useWatch$(async () => {
+  useTask$(async () => {
     store.logs += 'BEFORE useWatch3()\n';
     await delay(20);
     store.logs += 'AFTER useWatch3()\n';

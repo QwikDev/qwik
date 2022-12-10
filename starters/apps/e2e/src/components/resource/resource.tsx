@@ -4,7 +4,7 @@ import {
   useStore,
   useResource$,
   Resource,
-  useWatch$,
+  useTask$,
   createContext,
   useContextProvider,
   useContext,
@@ -44,7 +44,7 @@ export const ResourceApp = component$(() => {
     countDoubleDouble: 0,
   });
 
-  useWatch$(async ({ track }) => {
+  useTask$(async ({ track }) => {
     logs.content += '[WATCH] 1 before\n';
     const count = track(state, 'count');
     await delay(100);
@@ -52,7 +52,7 @@ export const ResourceApp = component$(() => {
     logs.content += '[WATCH] 1 after\n';
   });
 
-  useWatch$(async ({ track }) => {
+  useTask$(async ({ track }) => {
     logs.content += '[WATCH] 2 before\n';
     const city = track(() => state.countDouble);
     await delay(100);

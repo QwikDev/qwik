@@ -1249,7 +1249,7 @@ export const Child = component$(() => {
 fn example_manual_chunks() {
     test_input!(TestInput {
         code: r#"
-import { component$, useWatch$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useTask$, useStore, useStyles$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
 
@@ -1259,7 +1259,7 @@ export const Parent = component$(() => {
     });
 
     // Double count watch
-    useWatch$(async () => {
+    useTask$(async () => {
         state.text = await mongo.users();
         redis.set(state.text);
     });
@@ -1277,7 +1277,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useWatch$(async () => {
+    useTask$(async () => {
         state.text = await mongo.users();
     });
 
@@ -1359,7 +1359,7 @@ export default component$(()=> {
 fn example_strip_server_code() {
     test_input!(TestInput {
         code: r#"
-import { component$, useServerMount$, useStore, useWatch$ } from '@builder.io/qwik';
+import { component$, useServerMount$, useStore, useTask$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
 
@@ -1374,7 +1374,7 @@ export const Parent = component$(() => {
         redis.set(state.text);
     });
 
-    useWatch$(() => {
+    useTask$(() => {
         // Code
     });
 
@@ -1398,7 +1398,7 @@ export const Parent = component$(() => {
 fn example_strip_client_code() {
     test_input!(TestInput {
         code: r#"
-import { component$, useClientMount$, useStore, useWatch$ } from '@builder.io/qwik';
+import { component$, useClientMount$, useStore, useTask$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
 import threejs from 'threejs';
@@ -1414,7 +1414,7 @@ export const Parent = component$(() => {
         redis.set(state.text);
     });
 
-    useWatch$(() => {
+    useTask$(() => {
         // Code
     });
 
@@ -1961,7 +1961,7 @@ export const Cmp = component$((props) => {
 fn example_qwik_react() {
     test_input!(TestInput {
         code: r#"
-import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useWatchQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
 import { jsx, Fragment } from '@builder.io/qwik/jsx-runtime';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 
@@ -1973,7 +1973,7 @@ function qwikifyQrl(reactCmpQrl) {
         let run;
         if (props['client:visible']) run = 'visible';
         else if (props['client:load'] || props['client:only']) run = 'load';
-        useWatchQrl(inlinedQrl(async (track)=>{
+        useTaskQrl(inlinedQrl(async (track)=>{
             const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
             track(props);
             if (isBrowser) {
@@ -2064,7 +2064,7 @@ export { qwikify$, qwikifyQrl, renderToString };
 fn example_qwik_react_inline() {
     test_input!(TestInput {
         code: r#"
-import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useWatchQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
 import { jsx, Fragment } from '@builder.io/qwik/jsx-runtime';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 
@@ -2076,7 +2076,7 @@ function qwikifyQrl(reactCmpQrl) {
         let run;
         if (props['client:visible']) run = 'visible';
         else if (props['client:load'] || props['client:only']) run = 'load';
-        useWatchQrl(inlinedQrl(async (track)=>{
+        useTaskQrl(inlinedQrl(async (track)=>{
             const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
             track(props);
             if (isBrowser) {

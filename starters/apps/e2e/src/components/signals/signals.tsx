@@ -6,7 +6,7 @@ import {
   useSignal,
   useStore,
   useClientEffect$,
-  useWatch$,
+  useTask$,
   Slot,
   useStyles$,
 } from '@builder.io/qwik';
@@ -183,7 +183,7 @@ export const Issue1733 = component$(() => {
 
 export const SideEffect = component$(() => {
   const signal = useSignal('initial');
-  useWatch$(async () => {
+  useTask$(async () => {
     await delay(100);
     signal.value = 'set';
   });
@@ -526,7 +526,7 @@ export const Issue2311 = component$(() => {
     text: 'Hello',
   });
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const v = track(() => store.condition);
     if (v) {
       store.text = 'Bye bye 👻';

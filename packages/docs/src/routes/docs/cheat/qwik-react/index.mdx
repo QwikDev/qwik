@@ -144,7 +144,7 @@ export const Fetch = component$(() => {
     responseJson: undefined,
   });
 
-  useWatch$(async ({ track }) => {
+  useTask$(async ({ track }) => {
     track(() => state.url);
     const res = await fetch(state.url);
     const json = await res.json();
@@ -235,7 +235,7 @@ export const DebouncedInput = component$(() => {
     debouncedValue: '',
   });
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     track(() => state.value);
     const debounced = setTimeout(() => {
       state.debouncedValue = state.value;

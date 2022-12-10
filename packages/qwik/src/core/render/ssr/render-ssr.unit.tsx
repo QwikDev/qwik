@@ -12,7 +12,7 @@ import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Ref, useRef } from '../../use/use-ref';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
-import { useClientEffect$, useWatch$ } from '../../use/use-watch';
+import { useClientEffect$, useTask$ } from '../../use/use-watch';
 import { delay } from '../../util/promises';
 import { SSRComment } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
@@ -1466,7 +1466,7 @@ export const UseClientEffect = component$((props: any) => {
   useClientEffect$(() => {
     console.warn('second client effect');
   });
-  useWatch$(async () => {
+  useTask$(async () => {
     await delay(10);
   });
 
@@ -1481,7 +1481,7 @@ export const UseEmptyClientEffect = component$(() => {
   useClientEffect$(() => {
     console.warn('second client effect');
   });
-  useWatch$(async () => {
+  useTask$(async () => {
     await delay(10);
   });
 

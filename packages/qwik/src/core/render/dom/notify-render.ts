@@ -131,7 +131,7 @@ const scheduleFrame = (containerState: ContainerState): Promise<RenderContext> =
 };
 
 /**
- * Low-level API used by the Optimizer to process `useWatch$()` API. This method
+ * Low-level API used by the Optimizer to process `useTask$()` API. This method
  * is not intended to be used by developers.
  *
  * @internal

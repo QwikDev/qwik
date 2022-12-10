@@ -7,7 +7,7 @@ import {
   useContextProvider,
   useContext,
   useMount$,
-  useWatch$,
+  useTask$,
 } from '@builder.io/qwik';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 
@@ -56,7 +56,7 @@ export const Logs0 = component$((props: Record<string, any>) => {
   const rootState = useContext(CTX);
   const logs = useContext(CTX_LOCAL);
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const count = track(rootState, 'count');
     console.log('changed');
     logs.logs += `Log(${count})`;
@@ -107,7 +107,7 @@ export const ToggleA = component$((props: { root: { logs: string } }) => {
     }
   });
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     track(rootState, 'count');
     state.copyCount = rootState.count;
   });
@@ -137,7 +137,7 @@ export const ToggleB = component$((props: { root: { logs: string } }) => {
     props.root.logs += 'ToggleB()';
   });
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     state.copyCount = track(() => rootState.count);
   });
 
@@ -151,7 +151,6 @@ export const ToggleB = component$((props: { root: { logs: string } }) => {
     if (isBrowser) {
       state.mount = 'mounted in client';
     }
-    return 32;
   });
 
   return (
@@ -170,7 +169,7 @@ export const Child = component$(() => {
   const rootState = useContext(CTX);
   const logs = useContext(CTX_LOCAL);
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const count = track(rootState, 'count');
     console.log('Child', count);
     logs.logs += `Child(${count})`;

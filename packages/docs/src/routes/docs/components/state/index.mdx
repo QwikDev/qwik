@@ -224,13 +224,13 @@ export const Child = component$(() => {
 
 Computed values are values that are derived from other values. They are useful when you have a value that is derived from other values, and you want to keep it in sync with the other values.
 
-In Qwik there are two ways to create computed values, using [`useWatch$()`](/docs/components/lifecycle/index.mdx#usewatch) or [`useResource$()`](/docs/components/resource/index.mdx).
+In Qwik there are two ways to create computed values, using [`useTask$()`](/docs/components/lifecycle/index.mdx#usewatch) or [`useResource$()`](/docs/components/resource/index.mdx).
 
-The main difference between the two is that [`useWatch$()`](/docs/components/lifecycle/index.mdx#usewatch) allows side effects and the execution is serialized, while [`useResource$()`](/docs/components/resource/index.mdx) is asynchronous and multiple `useResource$()` calls can happen in parallel.
+The main difference between the two is that [`useTask$()`](/docs/components/lifecycle/index.mdx#usewatch) allows side effects and the execution is serialized, while [`useResource$()`](/docs/components/resource/index.mdx) is asynchronous and multiple `useResource$()` calls can happen in parallel.
 
-`useWatch$()` is usually used to compute intermediate state, while [`useResource$()`](/docs/components/resource/index.mdx) has better ergonomics to compute the final state, used for rendering. Let's see some examples:
+`useTask$()` is usually used to compute intermediate state, while [`useResource$()`](/docs/components/resource/index.mdx) has better ergonomics to compute the final state, used for rendering. Let's see some examples:
 
-### [`useWatch$()`](/docs/components/lifecycle/index.mdx#usewatch) example
+### [`useTask$()`](/docs/components/lifecycle/index.mdx#usewatch) example
 
 ```tsx
 export default component$(() => {
@@ -239,7 +239,7 @@ export default component$(() => {
     doubleCount: 0,
   });
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     track(() => state.count);
     state.doubleCount = state.count * 2;
   });

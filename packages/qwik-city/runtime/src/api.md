@@ -65,19 +65,19 @@ export interface CookieValue {
     value: string;
 }
 
-// Warning: (ae-forgotten-export) The symbol "GetEndpointData" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
-export type DocumentHead<T = unknown> = DocumentHeadValue | ((props: DocumentHeadProps<GetEndpointData<T>>) => DocumentHeadValue);
+export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);
 
 // @alpha (undocumented)
-export interface DocumentHeadProps<T = unknown> extends RouteLocation {
+export interface DocumentHeadProps extends RouteLocation {
+    // Warning: (ae-forgotten-export) The symbol "ServerLoader" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    data: T;
+    readonly getLoaderData: <T>(loader: ServerLoader<T>) => T;
     // (undocumented)
-    head: ResolvedDocumentHead;
+    readonly head: ResolvedDocumentHead;
     // (undocumented)
-    withLocale: <T>(fn: () => T) => T;
+    readonly withLocale: <T>(fn: () => T) => T;
 }
 
 // @alpha (undocumented)
@@ -294,13 +294,11 @@ export const serverAction$: <T extends any[], B>(first: (...body: T) => ValueOrP
 // @alpha (undocumented)
 export const serverActionQrl: <T extends any[], B>(actionQrl: QRL<(...body: T) => ValueOrPromise<B>>) => () => void;
 
-// Warning: (ae-forgotten-export) The symbol "ServerLoader" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
-export const serverLoader$: <PLATFORM, B>(first: (event: RequestEvent<PLATFORM>) => B) => ServerLoader<Awaited<B>>;
+export const serverLoader$: <PLATFORM, B>(first: (event: RequestEvent<PLATFORM>) => B) => ServerLoader<B>;
 
 // @alpha (undocumented)
-export const serverLoaderQrl: <PLATFORM, B>(loaderQrl: QRL<(event: RequestEvent<PLATFORM>) => B>) => ServerLoader<Awaited<B>>;
+export const serverLoaderQrl: <PLATFORM, B>(loaderQrl: QRL<(event: RequestEvent<PLATFORM>) => B>) => ServerLoader<B>;
 
 // @alpha (undocumented)
 export const ServiceWorkerRegister: () => JSXNode<"script">;
@@ -317,9 +315,6 @@ export const useContent: () => ContentState;
 
 // @alpha (undocumented)
 export const useDocumentHead: () => Required<ResolvedDocumentHead>;
-
-// @alpha @deprecated (undocumented)
-export const useEndpoint: <T = unknown>() => ResourceReturn<GetEndpointData<T>>;
 
 // @alpha (undocumented)
 export const useLocation: () => RouteLocation;

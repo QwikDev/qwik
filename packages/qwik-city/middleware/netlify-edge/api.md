@@ -8,6 +8,9 @@ import type { Context } from '@netlify/edge-functions';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RequestHandler as RequestHandler_2 } from '@builder.io/qwik-city';
+import { ResourceReturn } from '@builder.io/qwik';
+import { Signal } from '@builder.io/qwik';
+import { ValueOrPromise } from '@builder.io/qwik';
 
 // @alpha (undocumented)
 export function createQwikCity(opts: QwikCityNetlifyOptions): (request: Request, context: Context) => Promise<Response>;

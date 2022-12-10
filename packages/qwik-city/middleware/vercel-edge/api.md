@@ -6,6 +6,9 @@
 
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
+import { ResourceReturn } from '@builder.io/qwik';
+import { Signal } from '@builder.io/qwik';
+import { ValueOrPromise } from '@builder.io/qwik';
 
 // @alpha (undocumented)
 export function createQwikCity(opts: QwikCityVercelEdgeOptions): (request: Request) => Promise<Response>;

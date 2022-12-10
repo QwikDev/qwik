@@ -235,8 +235,6 @@ test('sync endpoint, undefined body', async () => {
   const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
   equal(u.status, 204);
   equal(u.headers.get('name'), 'value');
-  equal(u.pendingBody, undefined);
-  equal(u.resolvedBody, undefined);
 });
 
 test('async endpoint, resolved data, render blocking', async () => {
@@ -257,7 +255,6 @@ test('async endpoint, resolved data, render blocking', async () => {
   const u = await loadUserResponse(requestCtx, {}, endpoints, trailingSlash);
   equal(u.status, 204);
   equal(u.headers.get('name'), 'value');
-  equal(u.pendingBody, undefined);
   equal(u.resolvedBody, { mph: 88 });
 });
 

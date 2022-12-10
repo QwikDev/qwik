@@ -41,7 +41,6 @@ export interface UserResponseContext {
   headers: Headers;
   cookie: Cookie;
   resolvedBody: string | number | boolean | null | undefined;
-  pendingBody: Promise<string | number | boolean | null | undefined> | undefined;
   loaders: Record<string, Promise<any>>;
   aborted: boolean;
   bodySent: boolean;

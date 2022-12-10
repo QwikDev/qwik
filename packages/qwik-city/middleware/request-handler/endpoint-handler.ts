@@ -4,27 +4,26 @@ export function endpointHandler<T = any>(
   requestCtx: QwikCityRequestContext,
   userResponse: UserResponseContext
 ): Promise<T> {
-  const { pendingBody, resolvedBody, status, headers, cookie } = userResponse;
+  const { resolvedBody, status, headers, cookie } = userResponse;
   const { response } = requestCtx;
 
-  if (pendingBody === undefined && resolvedBody === undefined) {
+  if (resolvedBody === undefined) {
     // undefined body
     return response(status, headers, cookie, asyncNoop);
   }
 
   return response(status, headers, cookie, async ({ write }) => {
-    const body = pendingBody !== undefined ? await pendingBody : resolvedBody;
-    if (body !== undefined) {
-      const type = typeof body;
+    if (resolvedBody !== undefined) {
+      const type = typeof resolvedBody;
       if (type === 'string') {
         // string body
-        write(body as any);
+        write(resolvedBody as any);
       } else if (type === 'number' || type === 'boolean') {
         // convert to string body
-        write(String(body));
+        write(String(resolvedBody));
       } else {
         // unknown content type, do not assume how to serialize
-        write(body as any);
+        write(resolvedBody as any);
       }
     }
   });

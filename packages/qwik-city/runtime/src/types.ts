@@ -360,12 +360,11 @@ export type RequestHandlerBodyFunction<BODY> = () =>
 //   | Promise<RequestHandlerBody<BODY> | RequestHandlerBodyFunction<BODY>>;
 
 export interface EndpointResponse {
-  body: any;
   status: number;
   loaders: Record<string, Promise<any>>;
 }
 
-export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
+export interface ClientPageData extends Omit<EndpointResponse, 'status' | 'body'> {
   status?: number;
   prefetch?: string[];
   redirect?: string;

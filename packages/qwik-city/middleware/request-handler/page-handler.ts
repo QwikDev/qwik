@@ -80,7 +80,6 @@ async function getClientPageData(
   const isStatic = result.isStatic;
   const clientPage: ClientPageData = {
     loaders: userResponse.loaders,
-    body: userResponse.pendingBody ? await userResponse.pendingBody : userResponse.resolvedBody,
     status: userResponse.status !== 200 ? userResponse.status : undefined,
     redirect:
       (userResponse.status >= 301 &&
@@ -150,7 +149,7 @@ export function getQwikCityEnvData(
   locale: string | undefined;
   qwikcity: QwikCityEnvData;
 } {
-  const { url, params, pendingBody, resolvedBody, status, loaders } = userResponse;
+  const { url, params, status, loaders } = userResponse;
   return {
     url: url.href,
     requestHeaders: requestHeaders,
@@ -159,7 +158,6 @@ export function getQwikCityEnvData(
       mode: mode,
       params: { ...params },
       response: {
-        body: pendingBody || resolvedBody,
         status: status,
         loaders,
       },

@@ -132,7 +132,8 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             // because we stringify this content for the client only
             // dev server, there's some potential stringify issues
             // client only dev server will re-fetch anyways, so reset
-            envData.qwikcity.response.body = undefined;
+            // TODO
+            // envData.qwikcity.response.body = undefined;
           }
 
           (res as QwikViteDevResponse)._qwikEnvData = {

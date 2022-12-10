@@ -48,7 +48,6 @@ export async function loadUserResponse(
     status: HttpStatus.Ok,
     headers: createHeaders(),
     resolvedBody: undefined,
-    pendingBody: undefined,
     cookie,
     aborted: false,
     loaders: {},
@@ -145,10 +144,10 @@ export async function loadUserResponse(
 
         if (routeModuleIndex < ABORT_INDEX) {
           const loaders = Object.values(endpointModule).filter(
-            (e) => '__brand_server_loader' in e
+            (e) => e.__brand === 'server_loader'
           ) as any[];
           const actions = Object.values(endpointModule).filter(
-            (e) => '__brand_server_action' in e
+            (e) => e.__brand === 'server_action'
           ) as any[];
           if (actions.length > 0) {
             if (userResponse.bodySent) {

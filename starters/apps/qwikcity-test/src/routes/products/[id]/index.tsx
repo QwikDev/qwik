@@ -73,6 +73,13 @@ export const head: DocumentHead = ({ params }) => {
   };
 };
 
+// Our pretty awesome database of prices
+export const PRODUCT_DB: Record<string, string> = {
+  hat: '$21.96',
+  jacket: '$48.96',
+  tshirt: '$18.96',
+};
+
 export const getProduct = serverLoader$(async ({ params, response, query }) => {
   // Serverside Endpoint
   // During SSR, this method is called directly on the server and returns the data object
@@ -115,10 +122,3 @@ export const getProduct = serverLoader$(async ({ params, response, query }) => {
     }`,
   };
 });
-
-// Our pretty awesome database of prices
-const PRODUCT_DB: Record<string, string> = {
-  hat: '$21.96',
-  jacket: '$48.96',
-  tshirt: '$18.96',
-};

@@ -1,6 +1,5 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
 import { Link, useLocation } from '@builder.io/qwik-city';
-import { rootLoader } from '../../routes/layout';
 import styles from './header.css?inline';
 
 export default component$(() => {

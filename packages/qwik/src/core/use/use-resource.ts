@@ -192,7 +192,7 @@ export const useResource$ = <T>(
  * @public
  */
 export interface ResourceProps<T> {
-  readonly value: ResourceReturn<T>;
+  readonly value: ResourceReturn<T> | Promise<T> | T;
   onResolved: (value: T) => JSXNode;
   onPending?: () => JSXNode;
   onRejected?: (reason: any) => JSXNode;
@@ -258,8 +258,8 @@ export interface ResourceProps<T> {
 // </docs>
 export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
   const isBrowser = !isServer();
-  const resource = props.value as ResourceReturnInternal<T>;
-  if (isBrowser) {
+  const resource = props.value as ResourceReturnInternal<T> | Promise<T>;
+  if (isBrowser && resource instanceof ResourceImpl) {
     if (props.onRejected) {
       resource._promise.catch(() => {});
       if (resource._state === 'rejected') {
@@ -277,8 +277,11 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
       }
     }
   }
+  if (!('then' in resource)) {
+    return props.onResolved(resource as T);
+  }
 
-  const promise: any = resource._promise.then(
+  const promise: any = resource.then(
     useBindInvokeContext(props.onResolved),
     useBindInvokeContext(props.onRejected)
   );

@@ -2,6 +2,7 @@ import {
   $,
   implicit$FirstArg,
   QRL,
+  ResourceReturn,
   Signal,
   useContext,
   ValueOrPromise,
@@ -56,7 +57,7 @@ declare const isServerLoader: unique symbol;
 
 export interface ServerLoader<RETURN> {
   readonly [isServerLoader]: true;
-  use(): Signal<RETURN>;
+  use(): RETURN;
 }
 
 export class ServerLoaderImpl {
@@ -69,13 +70,15 @@ export class ServerLoaderImpl {
   }
 }
 
+
+export type ServerLoaderReturn<T> = Awaited<T> extends () => ValueOrPromise<infer B> ? ResourceReturn<B> : Signal<Awaited<T>>;
 /**
  * @alpha
  */
 export const serverLoaderQrl = <PLATFORM, B>(
   loaderQrl: QRL<(event: RequestEvent<PLATFORM>) => B>
-): ServerLoader<Awaited<B>> => {
-  return new ServerLoaderImpl(loaderQrl as any) as any as ServerLoader<Awaited<B>>;
+): ServerLoader<ServerLoaderReturn<B>> => {
+  return new ServerLoaderImpl(loaderQrl as any) as any;
 };
 
 /**

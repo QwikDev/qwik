@@ -1,8 +1,8 @@
 # What is it?
 
-- [ ] Feature / enhancement
-- [ ] Bug
-- [ ] Docs / tests
+- [] Feature / enhancement
+- [] Bug
+- [] Docs / tests
 
 # Description
 
@@ -17,7 +17,7 @@ Please include a summary of the change and which issue is fixed. Please also inc
 
 # Checklist:
 
-- [ ] My code follows the [developer guidelines of this project](https://github.com/BuilderIO/qwik/blob/main/CONTRIBUTING.md)
-- [ ] I have performed a self-review of my own code
-- [ ] I have made corresponding changes to the documentation
-- [ ] Added new tests to cover the fix / functionality
+- [] My code follows the [developer guidelines of this project](https://github.com/BuilderIO/qwik/blob/main/CONTRIBUTING.md)
+- [] I have performed a self-review of my own code
+- [] I have made corresponding changes to the documentation
+- [] Added new tests to cover the fix / functionality

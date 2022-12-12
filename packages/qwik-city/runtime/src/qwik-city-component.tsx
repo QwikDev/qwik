@@ -9,6 +9,7 @@ import {
   useStore,
   useWatch$,
   useSignal,
+  $,
 } from '@builder.io/qwik';
 import { loadRoute } from './routing';
 import type {
@@ -80,9 +81,21 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
   });
 
   const loaderState = useStore(env.response.loaders);
+  const navPath = useSignal(toPath(url));
 
-  const routeNavigate = useStore<RouteNavigate>({
-    path: toPath(url),
+  const goto: RouteNavigate = $(async (path) => {
+    const value = navPath.value;
+    if (path) {
+      if (value === path) {
+        return;
+      }
+      navPath.value = path;
+    } else {
+      // force a change
+      navPath.value = '';
+      navPath.value = value;
+    }
+    routeLocation.isPending = true;
   });
 
   const documentHead = useStore(createDocumentHead);
@@ -101,20 +114,17 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
   useContextProvider(ContentInternalContext, contentInternal);
   useContextProvider(DocumentHeadContext, documentHead);
   useContextProvider(RouteLocationContext, routeLocation);
-  useContextProvider(RouteNavigateContext, routeNavigate);
+  useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
 
   useWatch$(async ({ track }) => {
-    const path = track(() => routeNavigate.path);
+    const path = track(() => navPath.value);
     const action = track(() => actionState.value);
     const locale = getLocale('');
     const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
     const url = new URL(path, routeLocation.href);
     const pathname = url.pathname;
-    if (isBrowser) {
-      routeLocation.isPending = true;
-    }
     const loadRoutePromise = loadRoute(routes, menus, cacheModules, pathname);
 
     const endpointResponse = isServer ? env.response : loadClientData(url.href, true, action);
@@ -169,7 +179,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         }
         CLIENT_DATA_CACHE.clear();
 
-        clientNavigate(window, routeNavigate);
+        clientNavigate(window, navPath);
         routeLocation.isPending = false;
       }
     }
@@ -213,8 +223,9 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   });
 
   const loaderState = useSignal({});
-  const routeNavigate = useStore<RouteNavigate>({
-    path: toPath(url),
+
+  const goto: RouteNavigate = $(async (path) => {
+    throw new Error('Not implemented');
   });
 
   const documentHead = useStore(createDocumentHead);
@@ -232,7 +243,7 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   useContextProvider(ContentInternalContext, contentInternal);
   useContextProvider(DocumentHeadContext, documentHead);
   useContextProvider(RouteLocationContext, routeLocation);
-  useContextProvider(RouteNavigateContext, routeNavigate);
+  useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
   return <Slot />;
 });

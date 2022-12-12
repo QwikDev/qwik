@@ -5,14 +5,14 @@ import type { NoSerialize, Signal } from '@builder.io/qwik';
 import type { ServerAction, ServerLoader } from './server-functions';
 
 export interface RouteModule<BODY = unknown> {
-  onDelete?: RequestHandler<BODY>;
-  onGet?: RequestHandler<BODY>;
-  onHead?: RequestHandler<BODY>;
-  onOptions?: RequestHandler<BODY>;
-  onPatch?: RequestHandler<BODY>;
-  onPost?: RequestHandler<BODY>;
-  onPut?: RequestHandler<BODY>;
-  onRequest?: RequestHandler<BODY>;
+  onDelete?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onGet?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onHead?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onOptions?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onPatch?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onPost?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onPut?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onRequest?: RequestHandler<BODY> | RequestHandler<BODY>[];
 }
 
 export interface PageModule extends RouteModule {
@@ -325,7 +325,6 @@ export interface GetData {
   <T>(loader: ServerLoader<T>): Promise<T>;
   <T>(loader: ServerAction<T>): Promise<T | undefined>;
 }
-
 
 export interface GetSyncData {
   <T>(loader: ServerLoader<T>): T;

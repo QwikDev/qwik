@@ -37,7 +37,9 @@ export interface ServerAction<RETURN> {
 
 export class ServerActionImpl implements ServerActionInternal {
   readonly __brand = 'server_action';
-  constructor(public __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>) {}
+  constructor(
+    public __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>
+  ) {}
   use(): ServerActionUtils<any> {
     const loc = useLocation();
     const currentAction = useAction();

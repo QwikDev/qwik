@@ -1,6 +1,6 @@
 import type { QwikCityHandlerOptions, QwikCityRequestContext } from './types';
 import { endpointHandler } from './endpoint-handler';
-import { errorHandler, ErrorResponse, errorResponse } from './error-handler';
+import { ErrorResponse, errorResponse } from './error-handler';
 import { getRouteMatchPathname, loadUserResponse } from './user-response';
 import { loadRoute } from '../../runtime/src/routing';
 import { pageHandler } from './page-handler';
@@ -59,7 +59,8 @@ export async function requestHandler<T = any>(
     if (e instanceof ErrorResponse) {
       return errorResponse(requestCtx, e);
     }
-    return errorHandler(requestCtx, e);
+    // TODO: review
+    throw e;
   }
 
   // route not found, return null so other server middlewares

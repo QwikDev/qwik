@@ -25,7 +25,10 @@ import {
 import { getExtension, normalizePath } from '../../utils/fs';
 import { getPathParams } from '../../runtime/src/routing';
 import { fromNodeHttp } from '../../middleware/node/http';
-import { generateCodeFrame } from '../../../qwik/src/optimizer/src/plugins/vite-utils';
+import {
+  findLocation,
+  generateCodeFrame,
+} from '../../../qwik/src/optimizer/src/plugins/vite-utils';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
@@ -86,20 +89,16 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         // use vite to dynamically load each layout/page module in this route's hierarchy
         const routeModulePaths = new WeakMap<RouteModule, string>();
         const routeModules: RouteModule[] = [];
-        for (const layout of route.layouts) {
-          const layoutModule = await server.ssrLoadModule(layout.filePath, {
-            fixStacktrace: true,
-          });
-          routeModules.push(layoutModule);
-          routeModulePaths.set(layoutModule, layout.filePath);
-        }
-        const endpointModule = await server.ssrLoadModule(route.filePath, {
-          fixStacktrace: true,
-        });
-        routeModules.push(endpointModule);
-        routeModulePaths.set(endpointModule, route.filePath);
-
         try {
+          for (const layout of route.layouts) {
+            const layoutModule = await server.ssrLoadModule(layout.filePath);
+            routeModules.push(layoutModule);
+            routeModulePaths.set(layoutModule, layout.filePath);
+          }
+          const endpointModule = await server.ssrLoadModule(route.filePath);
+          routeModules.push(endpointModule);
+          routeModulePaths.set(endpointModule, route.filePath);
+
           const userResponse = await loadUserResponse(
             requestCtx,
             params,
@@ -153,6 +152,9 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           next();
           return;
         } catch (e: any) {
+          server.ssrFixStacktrace(e);
+          formatError(e);
+
           if (e instanceof RedirectResponse) {
             redirectResponse(requestCtx, e);
           } else if (e instanceof ErrorResponse) {
@@ -296,7 +298,7 @@ function formatDevSerializeError(err: any, routeModulePaths: WeakMap<RouteModule
     if (filePath) {
       try {
         const code = fs.readFileSync(filePath, 'utf-8');
-        err.plugin = 'vite-plugin-eslint';
+        err.plugin = 'vite-plugin-qwik-city';
         err.id = normalizePath(filePath);
         err.loc = {
           file: err.id,
@@ -308,7 +310,6 @@ function formatDevSerializeError(err: any, routeModulePaths: WeakMap<RouteModule
         const line = lines.findIndex((line) => line.includes(requestHandler.name));
         if (line > -1) {
           err.loc.line = line + 1;
-          err.frame = generateCodeFrame(code, err.loc);
         }
       } catch (e) {
         // nothing
@@ -381,3 +382,28 @@ const DEV_SERVICE_WORKER = `/* Qwik City Dev Service Worker */
 addEventListener('install', () => self.skipWaiting());
 addEventListener('activate', () => self.clients.claim());
 `;
+
+export function formatError(e: any) {
+  if (e instanceof Error) {
+    const err = e as any;
+    let loc = err.loc;
+    if (!err.frame && !err.plugin) {
+      if (!loc) {
+        loc = findLocation(err);
+      }
+      if (loc) {
+        err.loc = loc;
+        if (loc.file) {
+          err.id = normalizePath(err.loc.file);
+          try {
+            const code = fs.readFileSync(err.loc.file, 'utf-8');
+            err.frame = generateCodeFrame(code, err.loc);
+          } catch {
+            // nothing
+          }
+        }
+      }
+    }
+  }
+  return e;
+}

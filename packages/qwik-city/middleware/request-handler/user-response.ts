@@ -19,6 +19,74 @@ import type {
 } from 'packages/qwik-city/runtime/src/server-functions';
 import { isFunction } from 'packages/qwik/src/core/util/types';
 
+export const resolveRequestHandlers = (routeModules: RouteModule[], method: string) => {
+  const requestHandlers: RequestHandler[] = [];
+  const serverLoaders: ServerLoaderInternal[] = [];
+  const serverActions: ServerActionInternal[] = [];
+  for (const endpointModule of routeModules) {
+    if (typeof endpointModule.onRequest === 'function') {
+      requestHandlers.push(endpointModule.onRequest);
+    }
+    if (typeof endpointModule.onRequest === 'function') {
+      requestHandlers.push(endpointModule.onRequest);
+    } else if (Array.isArray(endpointModule.onRequest)) {
+      requestHandlers.push(...endpointModule.onRequest);
+    }
+
+    let methodReqHandler: RequestHandler | RequestHandler[] | undefined;
+    switch (method) {
+      case 'GET': {
+        methodReqHandler = endpointModule.onGet;
+        break;
+      }
+      case 'POST': {
+        methodReqHandler = endpointModule.onPost;
+        break;
+      }
+      case 'PUT': {
+        methodReqHandler = endpointModule.onPut;
+        break;
+      }
+      case 'PATCH': {
+        methodReqHandler = endpointModule.onPatch;
+        break;
+      }
+      case 'DELETE': {
+        methodReqHandler = endpointModule.onDelete;
+        break;
+      }
+      case 'OPTIONS': {
+        methodReqHandler = endpointModule.onOptions;
+        break;
+      }
+      case 'HEAD': {
+        methodReqHandler = endpointModule.onHead;
+        break;
+      }
+    }
+    if (typeof methodReqHandler === 'function') {
+      requestHandlers.push(methodReqHandler);
+    } else if (Array.isArray(methodReqHandler)) {
+      requestHandlers.push(...methodReqHandler);
+    }
+
+    const loaders = Object.values(endpointModule).filter(
+      (e) => e.__brand === 'server_loader'
+    ) as any[];
+    const actions = Object.values(endpointModule).filter(
+      (e) => e.__brand === 'server_action'
+    ) as any[];
+
+    serverLoaders.push(...loaders);
+    serverActions.push(...actions);
+  }
+  return {
+    requestHandlers,
+    serverLoaders,
+    serverActions,
+  };
+};
+
 export async function loadUserResponse(
   requestCtx: QwikCityRequestContext,
   params: PathParams,
@@ -39,8 +107,6 @@ export async function loadUserResponse(
     !isPageDataReq && isEndPointRequest(method, headers.get('Accept'), headers.get('Content-Type'));
 
   const cookie = new Cookie(headers.get('cookie'));
-  const serverLoaders: ServerLoaderInternal[] = [];
-  const serverActions: ServerActionInternal[] = [];
   const userResponse: UserResponseContext = {
     type: isPageDataReq ? 'pagedata' : isPageModule && !isEndpointReq ? 'pagehtml' : 'endpoint',
     url,
@@ -53,8 +119,6 @@ export async function loadUserResponse(
     loaders: {},
     bodySent: false,
   };
-  let hasRequestMethodHandler = false;
-
   if (isPageModule && !isPageDataReq && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (trailingSlash) {
@@ -93,6 +157,7 @@ export async function loadUserResponse(
       return userResponse.loaders[id];
     }
   }) as any;
+
   const requestEv = {
     request,
     url: new URL(url),
@@ -105,80 +170,18 @@ export async function loadUserResponse(
     abort,
     getData,
   };
+
+  const { requestHandlers, serverLoaders, serverActions } = resolveRequestHandlers(
+    routeModules,
+    method
+  );
+
   async function next() {
     routeModuleIndex++;
 
-    while (routeModuleIndex < routeModules.length) {
-      const endpointModule = routeModules[routeModuleIndex];
-
-      if (typeof endpointModule.onRequest === 'function') {
-        hasRequestMethodHandler = true;
-        await endpointModule.onRequest(requestEv);
-      }
-
-      if (routeModuleIndex < ABORT_INDEX) {
-        let methodReqHandler: RequestHandler | undefined = undefined;
-        switch (method) {
-          case 'GET': {
-            methodReqHandler = endpointModule.onGet;
-            break;
-          }
-          case 'POST': {
-            methodReqHandler = endpointModule.onPost;
-            break;
-          }
-          case 'PUT': {
-            methodReqHandler = endpointModule.onPut;
-            break;
-          }
-          case 'PATCH': {
-            methodReqHandler = endpointModule.onPatch;
-            break;
-          }
-          case 'DELETE': {
-            methodReqHandler = endpointModule.onDelete;
-            break;
-          }
-          case 'OPTIONS': {
-            methodReqHandler = endpointModule.onOptions;
-            break;
-          }
-          case 'HEAD': {
-            methodReqHandler = endpointModule.onHead;
-            break;
-          }
-        }
-
-        if (typeof methodReqHandler === 'function') {
-          hasRequestMethodHandler = true;
-          await methodReqHandler(requestEv);
-        }
-
-        if (routeModuleIndex < ABORT_INDEX) {
-          const loaders = Object.values(endpointModule).filter(
-            (e) => e.__brand === 'server_loader'
-          ) as any[];
-          const actions = Object.values(endpointModule).filter(
-            (e) => e.__brand === 'server_action'
-          ) as any[];
-          if (actions.length > 0) {
-            if (userResponse.bodySent) {
-              throw new Error('Body already sent');
-            }
-            hasRequestMethodHandler = true;
-            serverActions.push(...actions);
-          }
-
-          if (loaders.length > 0) {
-            if (userResponse.bodySent) {
-              throw new Error('Body already sent');
-            }
-            hasRequestMethodHandler = true;
-            serverLoaders.push(...loaders);
-          }
-        }
-      }
-
+    while (routeModuleIndex < requestHandlers.length) {
+      const endpointModule = requestHandlers[routeModuleIndex];
+      await endpointModule(requestEv);
       routeModuleIndex++;
     }
   }
@@ -202,6 +205,7 @@ export async function loadUserResponse(
     );
   }
 
+  const hasRequestMethodHandler = requestHandlers.length > 0 || serverLoaders.length > 0;
   if (hasRequestMethodHandler) {
     // this request/method has a handler
     if (isPageModule && method === 'GET') {
@@ -235,7 +239,6 @@ export async function loadUserResponse(
         throw new Error('Body already sent');
       }
 
-      hasRequestMethodHandler = true;
       await Promise.all(
         serverLoaders.map(async (loader) => {
           const loaderId = loader.__qrl.getHash();

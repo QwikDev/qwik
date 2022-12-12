@@ -143,9 +143,7 @@ export async function configureDevServer(
       }
     } catch (e: any) {
       server.ssrFixStacktrace(e);
-      if (e instanceof Error) {
-        await formatError(sys, e);
-      }
+      await formatError(sys, e);
       next(e);
     }
   });

@@ -45,7 +45,7 @@ export class ServerActionImpl implements ServerActionInternal {
     const currentAction = useAction();
     const id = this.__qrl.getHash();
 
-    const path = loc.pathname + `?qaction=${id}`;
+    const actionPath = loc.pathname + `?qaction=${id}`;
     const execute = $((input: FormData | SubmitEvent) => {
       const data =
         input instanceof SubmitEvent ? new FormData(input.target as HTMLFormElement) : input;
@@ -60,10 +60,10 @@ export class ServerActionImpl implements ServerActionInternal {
 
     return {
       id,
-      actionPath: path,
+      actionPath,
       Form: (props: any) => {
         return jsx('form', {
-          action: path,
+          action: actionPath,
           method: 'POST',
           'preventdefault:submit': true,
           onSubmit$: execute,

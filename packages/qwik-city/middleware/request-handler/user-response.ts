@@ -148,14 +148,12 @@ export async function loadUserResponse(
   // create user request event, which is a narrowed down request context
   const getData: GetData = (async (loaderOrAction: ServerActionInternal | ServerLoaderInternal) => {
     const id = loaderOrAction.__qrl.getHash();
-    if (loaderOrAction.__brand === 'server_action') {
-      return userResponse.loaders[id];
-    } else {
+    if (loaderOrAction.__brand === 'server_loader') {
       if (id in userResponse.loaders) {
         throw new Error('Loader data does not exist');
       }
-      return userResponse.loaders[id];
     }
+    return userResponse.loaders[id];
   }) as any;
 
   const requestEv = {

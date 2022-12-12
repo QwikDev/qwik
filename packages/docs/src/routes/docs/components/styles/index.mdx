@@ -138,6 +138,36 @@ export const CmpStyles = component$(() => {
 
 > Please note that you need to add `?inline` to your styles import.
 
+### `:global()` selector
+
+Using `useStylesScoped$` will scope all child selectors in a ruleset to the component. If you need to style child components rendered through a `<Slot />`, you will need to break out of the scoped styles using the `:global()` selector.
+
+```
+import { useStylesScoped$ } from '@builder.io/qwik';
+
+export const List = component$(() => {
+  useStylesScoped$(`
+    .list {
+      display: flex;
+
+      > :global(*nth-child(3)) {
+        width: 100%
+      }
+    }
+  `);
+
+  return (
+    <div class="list">
+      <Slot />
+    </div>;
+  );
+});
+```
+
+This will render a css selector of `.list.⭐️8vzca0-0 > *:nth-child(3)`, allowing you to target child components. This could be considered the equivalent of using `::ng-deep` in Angular.
+
+> Beware that this may have unintended effects that cascade down your component tree.
+
 ## Preprocessors
 
 ### `.scss`, `.sass`, `.less`, `.styl`, `.stylus`

@@ -72,10 +72,10 @@ export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => Do
 
 // @alpha (undocumented)
 export interface DocumentHeadProps extends RouteLocation {
-    // Warning: (ae-forgotten-export) The symbol "ServerLoader" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "GetSyncData" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    readonly getLoaderData: <T>(loader: ServerLoader<T>) => T;
+    readonly getData: GetSyncData;
     // (undocumented)
     readonly head: ResolvedDocumentHead;
     // (undocumented)
@@ -222,23 +222,14 @@ export interface RequestContext {
     url: string;
 }
 
+// Warning: (ae-forgotten-export) The symbol "RequestEventBase" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export interface RequestEvent<PLATFORM = unknown> {
+export interface RequestEvent<PLATFORM = unknown> extends RequestEventBase<PLATFORM> {
     // (undocumented)
     readonly abort: () => void;
     // (undocumented)
-    readonly cookie: Cookie;
-    // (undocumented)
     readonly next: () => Promise<void>;
-    readonly params: Record<string, string>;
-    readonly platform: PLATFORM;
-    readonly query: URLSearchParams;
-    // (undocumented)
-    readonly request: RequestContext;
-    // (undocumented)
-    readonly response: ResponseContext;
-    // (undocumented)
-    readonly url: URL;
 }
 
 // @alpha (undocumented)
@@ -292,19 +283,22 @@ export type RouteParams = Record<string, string>;
 // @alpha (undocumented)
 export const RouterOutlet: Component<    {}>;
 
+// Warning: (ae-forgotten-export) The symbol "RequestEventLoader" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ServerAction" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export const serverAction$: <B>(first: (form: FormData, event: RequestEvent) => ValueOrPromise<B>) => ServerAction<B>;
+export const serverAction$: <B>(first: (form: FormData, event: RequestEventLoader) => ValueOrPromise<B>) => ServerAction<B>;
 
 // @alpha (undocumented)
-export const serverActionQrl: <B>(actionQrl: QRL<(form: FormData, event: RequestEvent) => ValueOrPromise<B>>) => ServerAction<B>;
+export const serverActionQrl: <B>(actionQrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<B>>) => ServerAction<B>;
+
+// Warning: (ae-forgotten-export) The symbol "ServerLoader" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const serverLoader$: <PLATFORM, B>(first: (event: RequestEventLoader<PLATFORM>) => B) => ServerLoader<B>;
 
 // @alpha (undocumented)
-export const serverLoader$: <PLATFORM, B>(first: (event: RequestEvent<PLATFORM>) => B) => ServerLoader<B>;
-
-// @alpha (undocumented)
-export const serverLoaderQrl: <PLATFORM, B>(loaderQrl: QRL<(event: RequestEvent<PLATFORM>) => B>) => ServerLoader<B>;
+export const serverLoaderQrl: <PLATFORM, B>(loaderQrl: QRL<(event: RequestEventLoader<PLATFORM>) => B>) => ServerLoader<B>;
 
 // @alpha (undocumented)
 export const ServiceWorkerRegister: () => JSXNode<"script">;

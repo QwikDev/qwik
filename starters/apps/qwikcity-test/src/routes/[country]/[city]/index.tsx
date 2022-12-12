@@ -53,8 +53,8 @@ export default component$(() => {
   );
 });
 
-export const head: DocumentHead = ({ getLoaderData, params, query }) => {
-  const weather = getLoaderData(weatherLoader);
+export const head: DocumentHead = ({ getData, params, query }) => {
+  const weather = getData(weatherLoader);
   const forecast = query.get('forecast') || '10day';
 
   return {

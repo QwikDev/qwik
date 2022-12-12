@@ -3,8 +3,8 @@ import type {
   RequestHandler,
   PageModule,
   PathParams,
-  RequestEvent,
   RouteModule,
+  GetData,
 } from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { createHeaders } from './headers';
@@ -82,7 +82,18 @@ export async function loadUserResponse(
   };
 
   // create user request event, which is a narrowed down request context
-  const requestEv: RequestEvent = {
+  const getData: GetData = (async (loaderOrAction: ServerActionInternal | ServerLoaderInternal) => {
+    const id = loaderOrAction.__qrl.getHash();
+    if (loaderOrAction.__brand === 'server_action') {
+      return userResponse.loaders[id];
+    } else {
+      if (id in userResponse.loaders) {
+        throw new Error('Loader data does not exist');
+      }
+      return userResponse.loaders[id];
+    }
+  }) as any;
+  const requestEv = {
     request,
     url: new URL(url),
     query: new URLSearchParams(url.search),
@@ -92,6 +103,7 @@ export async function loadUserResponse(
     cookie,
     next,
     abort,
+    getData,
   };
   async function next() {
     routeModuleIndex++;

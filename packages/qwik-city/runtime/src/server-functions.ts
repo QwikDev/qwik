@@ -13,12 +13,12 @@ import {
   QwikJSX,
 } from '@builder.io/qwik';
 import { RouteStateContext } from './contexts';
-import type { RequestEvent } from './types';
+import type { RequestEventLoader } from './types';
 import { useAction, useLocation } from './use-functions';
 
 export interface ServerActionInternal {
   readonly __brand: 'server_action';
-  __qrl: QRL<(form: FormData, event: RequestEvent) => ValueOrPromise<any>>;
+  __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>;
   use(): ServerActionUtils<any>;
 }
 
@@ -37,7 +37,7 @@ export interface ServerAction<RETURN> {
 
 export class ServerActionImpl implements ServerActionInternal {
   readonly __brand = 'server_action';
-  constructor(public __qrl: QRL<(form: FormData, event: RequestEvent) => ValueOrPromise<any>>) {}
+  constructor(public __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>) {}
   use(): ServerActionUtils<any> {
     const loc = useLocation();
     const currentAction = useAction();
@@ -77,7 +77,7 @@ export class ServerActionImpl implements ServerActionInternal {
  * @alpha
  */
 export const serverActionQrl = <B>(
-  actionQrl: QRL<(form: FormData, event: RequestEvent) => ValueOrPromise<B>>
+  actionQrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<B>>
 ): ServerAction<B> => {
   return new ServerActionImpl(actionQrl as any) as any;
 };
@@ -91,7 +91,7 @@ declare const isServerLoader: unique symbol;
 
 export interface ServerLoaderInternal {
   readonly __brand: 'server_loader';
-  __qrl: QRL<(event: RequestEvent) => ValueOrPromise<any>>;
+  __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>;
   use(): Signal<any>;
 }
 
@@ -106,7 +106,7 @@ export interface ServerLoader<RETURN> {
 
 export class ServerLoaderImpl implements ServerLoaderInternal {
   readonly __brand = 'server_loader';
-  constructor(public __qrl: QRL<(event: RequestEvent) => ValueOrPromise<any>>) {}
+  constructor(public __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>) {}
   use(): Signal<any> {
     const state = useContext(RouteStateContext);
     const hash = this.__qrl.getHash();
@@ -118,7 +118,7 @@ export class ServerLoaderImpl implements ServerLoaderInternal {
  * @alpha
  */
 export const serverLoaderQrl = <PLATFORM, B>(
-  loaderQrl: QRL<(event: RequestEvent<PLATFORM>) => B>
+  loaderQrl: QRL<(event: RequestEventLoader<PLATFORM>) => B>
 ): ServerLoader<B> => {
   return new ServerLoaderImpl(loaderQrl as any) as any;
 };

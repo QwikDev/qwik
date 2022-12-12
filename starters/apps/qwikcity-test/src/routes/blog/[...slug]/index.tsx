@@ -24,8 +24,8 @@ export const loader = serverLoader$(({ params, request }) => {
   };
 });
 
-export const head: DocumentHead = ({ getLoaderData }) => {
-  const data = getLoaderData(loader);
+export const head: DocumentHead = ({ getData }) => {
+  const data = getData(loader);
   return { title: data?.title };
 };
 

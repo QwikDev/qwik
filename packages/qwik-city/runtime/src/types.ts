@@ -2,7 +2,7 @@ import type { Cookie, CookieOptions, CookieValue } from '../../middleware/reques
 import type { ErrorResponse } from '../../middleware/request-handler/error-handler';
 import type { RedirectResponse } from '../../middleware/request-handler/redirect-handler';
 import type { NoSerialize, Signal } from '@builder.io/qwik';
-import type { ServerLoader } from './server-functions';
+import type { ServerAction, ServerLoader } from './server-functions';
 
 export interface RouteModule<BODY = unknown> {
   onDelete?: RequestHandler<BODY>;
@@ -143,7 +143,7 @@ export interface DocumentStyle {
 export interface DocumentHeadProps extends RouteLocation {
   readonly head: ResolvedDocumentHead;
   readonly withLocale: <T>(fn: () => T) => T;
-  readonly getLoaderData: <T>(loader: ServerLoader<T>) => T;
+  readonly getData: GetSyncData;
 }
 
 /**
@@ -316,7 +316,33 @@ export interface ResponseContext {
 /**
  * @alpha
  */
-export interface RequestEvent<PLATFORM = unknown> {
+export interface RequestEvent<PLATFORM = unknown> extends RequestEventBase<PLATFORM> {
+  readonly next: () => Promise<void>;
+  readonly abort: () => void;
+}
+
+export interface GetData {
+  <T>(loader: ServerLoader<T>): Promise<T>;
+  <T>(loader: ServerAction<T>): Promise<T | undefined>;
+}
+
+
+export interface GetSyncData {
+  <T>(loader: ServerLoader<T>): T;
+  <T>(loader: ServerAction<T>): T | undefined;
+}
+
+/**
+ * @alpha
+ */
+export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventBase<PLATFORM> {
+  getData: GetData;
+}
+
+/**
+ * @alpha
+ */
+export interface RequestEventBase<PLATFORM> {
   readonly request: RequestContext;
   readonly response: ResponseContext;
   readonly url: URL;
@@ -337,9 +363,6 @@ export interface RequestEvent<PLATFORM = unknown> {
   readonly platform: PLATFORM;
 
   readonly cookie: Cookie;
-
-  readonly next: () => Promise<void>;
-  readonly abort: () => void;
 }
 
 /**

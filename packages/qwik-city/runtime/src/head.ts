@@ -8,6 +8,7 @@ import type {
   DocumentHeadProps,
   DocumentHeadValue,
   ClientPageData,
+  GetData,
 } from './types';
 
 export const resolveHead = async (
@@ -17,12 +18,12 @@ export const resolveHead = async (
   locale: string
 ) => {
   const head = createDocumentHead();
-  const getLoaderData = ((loader: ServerLoaderInternal) =>
-    endpoint?.loaders[loader.__qrl.getHash()]) as any;
+  const getData = ((loader: ServerLoaderInternal) =>
+    endpoint?.loaders[loader.__qrl.getHash()]) as any as GetData;
   const headProps: DocumentHeadProps = {
     head,
     withLocale: (fn) => withLocale(locale, fn),
-    getLoaderData,
+    getData,
     ...routeLocation,
   };
 

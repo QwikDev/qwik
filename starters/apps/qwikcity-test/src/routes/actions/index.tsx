@@ -1,5 +1,5 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
-import { DocumentHead, serverAction$, serverLoader$ } from '@builder.io/qwik-city';
+import { DocumentHead, Form, serverAction$, serverLoader$ } from '@builder.io/qwik-city';
 import styles from './actions.css';
 
 export const toppings = [
@@ -37,14 +37,14 @@ export default component$(() => {
   const sizes = sizeLoader.use();
 
   const toppings = toppingsLoader.use();
-  const { Form } = toppingsAction.use();
+  const toppingAction = toppingsAction.use();
 
   return (
     <div class="actions">
       <section class="input">
         <h1>Qwik Pizza</h1>
 
-        <Form data-test-toppings>
+        <Form action={toppingAction} data-test-toppings>
           <h2>Toppings</h2>
           <p>
             {toppings.value

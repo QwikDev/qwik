@@ -4,9 +4,7 @@
 
 ```ts
 
-import { FunctionComponent } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
-import { QwikJSX } from '@builder.io/qwik';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import { ResourceReturn } from '@builder.io/qwik';

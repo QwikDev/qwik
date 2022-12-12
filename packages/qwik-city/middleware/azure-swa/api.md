@@ -6,10 +6,8 @@
 
 import type { AzureFunction } from '@azure/functions';
 import type { Context } from '@azure/functions';
-import { FunctionComponent } from '@builder.io/qwik';
 import type { HttpRequest } from '@azure/functions';
 import { QRL } from '@builder.io/qwik';
-import { QwikJSX } from '@builder.io/qwik';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RenderOptions as RenderOptions_2 } from '@builder.io/qwik';

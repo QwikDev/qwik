@@ -5,7 +5,6 @@
 ```ts
 
 import { Component } from '@builder.io/qwik';
-import { FunctionComponent } from '@builder.io/qwik';
 import { JSXNode } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
@@ -159,6 +158,17 @@ export interface DocumentStyle {
 
 // @alpha @deprecated (undocumented)
 export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
+
+// @alpha (undocumented)
+export const Form: <T>({ action, ...rest }: FormProps<T>) => JSXNode<"form">;
+
+// @alpha (undocumented)
+export interface FormProps<T> extends Omit<QwikJSX.IntrinsicElements['form'], 'action'> {
+    // Warning: (ae-forgotten-export) The symbol "ServerActionUtils" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    action: ServerActionUtils<T>;
+}
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityProps" needs to be exported by the entry point index.d.ts
 //

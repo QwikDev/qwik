@@ -5,9 +5,7 @@
 ```ts
 
 import type { Context } from '@netlify/edge-functions';
-import { FunctionComponent } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
-import { QwikJSX } from '@builder.io/qwik';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RequestHandler as RequestHandler_2 } from '@builder.io/qwik-city';

@@ -865,6 +865,9 @@ export interface Tracker {
     <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
 }
 
+// @alpha (undocumented)
+export const untrack: <T>(fn: () => T) => T;
+
 // @alpha @deprecated
 export const useCleanup$: (first: () => void) => void;
 

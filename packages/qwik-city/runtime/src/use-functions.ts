@@ -35,9 +35,6 @@ export const useLocation = (): RouteLocation => useContext(RouteLocationContext)
  */
 export const useNavigate = (): RouteNavigate => useContext(RouteNavigateContext);
 
-/**
- * @alpha
- */
 export const useAction = (): RouteAction => useContext(RouteActionContext);
 
 export const useQwikCityEnv = () => noSerialize(useEnvData<QwikCityEnvData>('qwikcity'));

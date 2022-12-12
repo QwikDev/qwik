@@ -1,6 +1,5 @@
 import {
   $,
-  FunctionComponent,
   implicit$FirstArg,
   jsx,
   noSerialize,
@@ -11,9 +10,11 @@ import {
   ValueOrPromise,
   _wrapSignal,
   QwikJSX,
+  useStore,
+  untrack,
 } from '@builder.io/qwik';
 import { RouteStateContext } from './contexts';
-import type { RequestEventLoader } from './types';
+import type { RequestEventLoader, RouteActionResolver } from './types';
 import { useAction, useLocation } from './use-functions';
 
 export interface ServerActionInternal {
@@ -22,11 +23,15 @@ export interface ServerActionInternal {
   use(): ServerActionUtils<any>;
 }
 
+export type ServerActionExecute<RETURN> = QRL<(form: FormData | Record<string, string | string[] | Blob | Blob[]> | SubmitEvent) => Promise<RETURN>>;
+
 export interface ServerActionUtils<RETURN> {
   id: string;
-  Form: FunctionComponent<QwikJSX.IntrinsicElements['form']>;
   actionPath: string;
-  execute: QRL<(form: FormData | Record<string, string> | SubmitEvent) => Promise<RETURN>>;
+  isPending: boolean;
+  status: 'initial' | 'success' | 'fail';
+  value: RETURN | undefined;
+  execute: ServerActionExecute<RETURN>;
 }
 
 export interface ServerAction<RETURN> {
@@ -43,35 +48,68 @@ export class ServerActionImpl implements ServerActionInternal {
   use(): ServerActionUtils<any> {
     const loc = useLocation();
     const currentAction = useAction();
-    const id = this.__qrl.getHash();
+    const state = useStore<ServerActionUtils<any>>(() => {
+      return untrack(() => {
+        const id = this.__qrl.getHash();
 
-    const actionPath = loc.pathname + `?qaction=${id}`;
-    const execute = $((input: FormData | SubmitEvent) => {
-      const data =
-        input instanceof SubmitEvent ? new FormData(input.target as HTMLFormElement) : input;
-      return new Promise<any>((resolve) => {
-        currentAction.value = noSerialize({
-          data,
+        const actionPath = loc.pathname + `?qaction=${id}`;
+        const execute: ServerActionExecute<any> = $((input) => {
+          let data: FormData;
+          if (input instanceof SubmitEvent) {
+            data = new FormData(input.target as HTMLFormElement);
+          } else if (input instanceof FormData) {
+            data = input;
+          } else {
+            data = new FormData();
+            for (const key in input) {
+              const value = input[key];
+              if (Array.isArray(value)) {
+                for (const item of value) {
+                  data.append(key, item);
+                }
+              } else {
+                data.append(key, value);
+              }
+            }
+          }
+
+          return new Promise<RouteActionResolver>((resolve) => {
+            state.isPending = true;
+            (loc as any).isPending = true;
+            currentAction.value = noSerialize({
+              data,
+              id,
+              resolve,
+            });
+          }).then((value) => {
+            state.isPending = false;
+            state.status = value.status >= 300 ? 'fail' : 'success';
+            state.value = value.result;
+          });
+        });
+
+        let statusStr: 'initial' | 'success' | 'fail' = 'initial';
+        let value = undefined;
+        if (currentAction.value?.output) {
+          const { status, result } = currentAction.value.output;
+          if (status >= 300) {
+            statusStr = 'fail';
+          } else {
+            statusStr = 'success';
+          }
+          value = result;
+        }
+        return {
           id,
-          resolve,
-        });
-      });
+          actionPath,
+          isPending: false,
+          execute,
+          status: statusStr,
+          value,
+        };
+      })
     });
-
-    return {
-      id,
-      actionPath,
-      Form: (props: any) => {
-        return jsx('form', {
-          action: actionPath,
-          method: 'POST',
-          'preventdefault:submit': true,
-          onSubmit$: execute,
-          ...props,
-        });
-      },
-      execute: execute,
-    } as any;
+    return state;
   }
 }
 
@@ -129,3 +167,23 @@ export const serverLoaderQrl = <PLATFORM, B>(
  * @alpha
  */
 export const serverLoader$ = implicit$FirstArg(serverLoaderQrl);
+
+/**
+ * @alpha
+ */
+export interface FormProps<T> extends Omit<QwikJSX.IntrinsicElements['form'], 'action'> {
+  action: ServerActionUtils<T>
+}
+
+/**
+ * @alpha
+ */
+export const Form = <T>({action, ...rest}: FormProps<T>) => {
+  return jsx('form', {
+    action: action.actionPath,
+    method: 'POST',
+    'preventdefault:submit': true,
+    onSubmit$: action.execute,
+    ...rest,
+  });
+};

@@ -26,7 +26,7 @@ export const loadClientData = async (
         }
       : undefined;
     qData = fetch(clientDataPath, options).then((rsp) => {
-      if (rsp.ok && (rsp.headers.get('content-type') || '').includes('json')) {
+      if ((rsp.headers.get('content-type') || '').includes('json')) {
         return rsp.json().then((clientData: ClientPageData) => {
           dispatchPrefetchEvent({
             bundles: clientData.prefetch,
@@ -36,7 +36,7 @@ export const loadClientData = async (
           }
           if (action) {
             const actionData = clientData.loaders[action.id];
-            action.resolve(actionData);
+            action.resolve({status: rsp.status, result: actionData});
           }
           return clientData;
         });

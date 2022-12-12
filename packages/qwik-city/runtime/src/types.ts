@@ -46,10 +46,12 @@ export type RouteNavigate = QRL<(path?: string) => Promise<void>>;
 
 export type RouteAction = Signal<RouteActionValue>;
 
+export type RouteActionResolver = {status: number, result: any};
 export type RouteActionValue = NoSerialize<{
   data: FormData;
   id: string;
-  resolve: (result: any) => void;
+  output?: RouteActionResolver;
+  resolve: (data: RouteActionResolver) => void;
 }>;
 
 export type MutableRouteLocation = Mutable<RouteLocation>;

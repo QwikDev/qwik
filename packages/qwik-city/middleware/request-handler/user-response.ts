@@ -48,7 +48,8 @@ async function runNext(requestEv: RequestEvent, resolve: (value: any) => void) {
   try {
     await requestEv.next();
   } finally {
-    resolve(null);
+    requestEv.getWriter();
+    resolve(true)
   }
 }
 

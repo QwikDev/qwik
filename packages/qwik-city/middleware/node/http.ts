@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { QwikCityMode } from '../../runtime/src/types';
-import type { ServerRequestEvent } from '../request-handler/types';
+import type { ResponseStreamWriter, ServerRequestEvent } from '../request-handler/types';
 
 export function getUrl(req: IncomingMessage) {
   const protocol =
@@ -52,7 +52,11 @@ export async function fromNodeHttp(
       if (cookieHeaders.length > 0) {
         res.setHeader('Set-Cookie', cookieHeaders);
       }
-      return res;
+      const stream: ResponseStreamWriter = {
+        write: (chunk) => res.write(chunk),
+        close: () => res.end(),
+      };
+      return stream;
     },
     platform: {
       ssr: true,

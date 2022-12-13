@@ -40,7 +40,7 @@ export function mockRequestContext(opts?: {
         write: (chunk) => {
           chunks.push(chunk);
         },
-        end: () => {
+        close: () => {
           resolve(chunks.join(''));
         },
       };

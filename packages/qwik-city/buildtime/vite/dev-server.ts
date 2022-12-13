@@ -104,7 +104,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             if (isPageDataReq) {
               return responseQData(requestEv);
             } else {
-              const envData = getQwikCityEnvData(requestEv);
+              const envData = getQwikCityEnvData(requestEv, 'dev');
 
               (res as QwikViteDevResponse)._qwikEnvData = {
                 ...(res as QwikViteDevResponse)._qwikEnvData,

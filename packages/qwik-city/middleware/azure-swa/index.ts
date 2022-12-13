@@ -61,7 +61,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
                 res.body = chunk;
               }
             },
-            end() {},
+            close() {},
           };
           return stream;
         },

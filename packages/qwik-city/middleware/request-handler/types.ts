@@ -27,7 +27,7 @@ export type ServerResponseHandler<T = any> = (
 
 export interface ResponseStreamWriter extends StreamWriter {
   clientData?: (data: ClientPageData) => void;
-  end: () => void;
+  close: () => void;
 }
 
 export interface ServerRenderOptions extends RenderOptions {
@@ -133,11 +133,6 @@ export interface RequestEventCommon<PLATFORM = unknown> {
   readonly request: RequestContext;
 
   /**
-   * Low-level access to write to the HTTP response stream.
-   */
-  readonly stream: ResponseStreamWriter;
-
-  /**
    * Platform specific data and functions
    */
   readonly platform: PLATFORM;
@@ -149,20 +144,25 @@ export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLA
    * stringify the data and set the `Content-Type` header to
    * `text/html; charset=utf-8`. A send response can only be called once.
    */
-  html(status: number, html: string): void;
+  readonly html: (status: number, html: string) => void;
 
   /**
    * Convenience method to JSON stringify the data and send it in the response.
    * The response will be automatically set the `Content-Type` header to `application/json; charset=utf-8`.
    * A send response can only be called once.
    */
-  json(status: number, data: any): void;
+  readonly json: (status: number, data: any) => void;
 
   /**
    * Send a body response. The `Content-Type` response header is not automatically set
    * when using `send()` and must be set manually. A send response can only be called once.
    */
-  send(status: number, data: any): void;
+  readonly send: (status: number, data: any) => void;
+
+  /**
+   * Low-level access to write to the HTTP response stream.
+   */
+  readonly getWriter: () => ResponseStreamWriter;
 }
 
 /**

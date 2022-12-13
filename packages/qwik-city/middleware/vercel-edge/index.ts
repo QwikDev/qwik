@@ -50,7 +50,7 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
                 writer.write(chunk);
               }
             },
-            end: () => {
+            close: () => {
               writer.close();
             },
           };

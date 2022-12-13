@@ -56,6 +56,16 @@ async function workerRender(
     isStatic: false,
   };
 
+  const htmlFilePath = sys.getPageFilePath(staticRoute.pathname);
+  const dataFilePath = sys.getDataFilePath(staticRoute.pathname);
+
+  const writeHtmlEnabled = opts.emitHtml !== false;
+  const writeDataEnabled = opts.emitData !== false && !!dataFilePath;
+
+  if (writeHtmlEnabled || writeDataEnabled) {
+    await sys.ensureDir(htmlFilePath);
+  }
+
   try {
     const request = new SsgRequestContext(url);
 
@@ -85,20 +95,10 @@ async function workerRender(
             write() {
               // do nothing
             },
-            end() {
+            close() {
               // do nothing
             },
           };
-        }
-
-        const htmlFilePath = sys.getPageFilePath(staticRoute.pathname);
-        const dataFilePath = sys.getDataFilePath(staticRoute.pathname);
-
-        const writeHtmlEnabled = opts.emitHtml !== false;
-        const writeDataEnabled = opts.emitData !== false && !!dataFilePath;
-
-        if (writeHtmlEnabled || writeDataEnabled) {
-          await sys.ensureDir(htmlFilePath);
         }
 
         const htmlWriter = writeHtmlEnabled ? sys.createWriteStream(htmlFilePath) : null;
@@ -120,7 +120,7 @@ async function workerRender(
             //   result.isStatic = data.isStatic;
             // }
           },
-          end: () => {
+          close: () => {
             if (htmlWriter) {
               if (dataWriter) {
                 dataWriter.close();

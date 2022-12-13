@@ -7,7 +7,7 @@ export function responseQData(requestEv: RequestEvent) {
   requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
 
   const qData = getClientPageData(requestEv);
-  const stream = requestEv.stream;
+  const stream = requestEv.getWriter();
 
   // write just the page json data to the response body
   stream.write(JSON.stringify(qData));
@@ -17,7 +17,7 @@ export function responseQData(requestEv: RequestEvent) {
     // useful for writing q-data.json during SSG
     stream.clientData(qData);
   }
-  stream.end();
+  stream.close();
 }
 
 function getClientPageData(requestEv: RequestEvent) {

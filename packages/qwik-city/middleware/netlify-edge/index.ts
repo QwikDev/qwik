@@ -16,6 +16,8 @@ import { isStaticPath } from '@qwik-city-static-paths';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityNetlifyOptions) {
+  const encoder = new TextEncoder();
+
   async function onRequest(request: Request, context: Context) {
     try {
       const url = new URL(request.url);
@@ -25,7 +27,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
         return context.next();
       }
 
-      const requestCtx: ServerRequestEvent<Response> = {
+      const serverRequestEv: ServerRequestEvent<Response> = {
         mode: 'server',
         locale: undefined,
         url,
@@ -41,13 +43,12 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
           const stream: ResponseStreamWriter = {
             write: (chunk) => {
               if (typeof chunk === 'string') {
-                const encoder = new TextEncoder();
                 writer.write(encoder.encode(chunk));
               } else {
                 writer.write(chunk);
               }
             },
-            end: () => {
+            close: () => {
               writer.close();
             },
           };
@@ -58,7 +59,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler(requestCtx, opts);
+      const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
         return handledResponse;
       }

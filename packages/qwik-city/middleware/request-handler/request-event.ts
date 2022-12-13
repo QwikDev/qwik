@@ -50,6 +50,12 @@ export function createRequestEvent(
     }
   };
 
+  const check = () => {
+    if (streamInternal) {
+      throw new Error('Response already sent');
+    }
+  };
+
   const loaders: Record<string, Promise<any>> = {};
 
   const requestEv: RequestEventInternal = {
@@ -89,6 +95,7 @@ export function createRequestEvent(
 
     status: (statusCode?: number) => {
       if (typeof statusCode === 'number') {
+        check();
         requestEv.statusCode = statusCode;
       }
       return requestEv.statusCode;
@@ -108,37 +115,44 @@ export function createRequestEvent(
     },
 
     redirect: (statusCode: number, url: string) => {
+      check();
       requestEv.statusCode = statusCode;
       headers.set('Location', url);
       headers.delete('Cache-Control');
-      requestEv.stream.end();
+      requestEv.getWriter().close();
       return new RedirectResponse();
     },
 
     html: (statusCode: number, html: string) => {
+      check();
+
       requestEv.statusCode = statusCode;
       headers.set('Content-Type', 'text/html; charset=utf-8');
-      const stream = requestEv.stream;
-      stream.write(JSON.stringify(html));
-      stream.end();
+      const stream = requestEv.getWriter();
+      stream.write(html);
+      stream.close();
     },
 
     json: (statusCode: number, data: any) => {
+      check();
+
       requestEv.statusCode = statusCode;
       headers.set('Content-Type', 'application/json; charset=utf-8');
-      const stream = requestEv.stream;
+      const stream = requestEv.getWriter();
       stream.write(JSON.stringify(data));
-      stream.end();
+      stream.close();
     },
 
     send: (statusCode: number, body: any) => {
+      check();
+
       requestEv.statusCode = statusCode;
-      const stream = requestEv.stream;
+      const stream = requestEv.getWriter();
       stream.write(body);
-      stream.end();
+      stream.close();
     },
 
-    get stream() {
+    getWriter: () => {
       if (streamInternal === null) {
         streamInternal = serverRequestEv.sendHeaders(
           requestEv.statusCode,

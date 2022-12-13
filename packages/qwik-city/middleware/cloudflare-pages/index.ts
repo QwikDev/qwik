@@ -62,7 +62,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
                 writer.write(chunk);
               }
             },
-            end: () => {
+            close: () => {
               writer.close();
             },
           };

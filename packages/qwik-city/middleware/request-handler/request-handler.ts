@@ -1,6 +1,25 @@
+import type { RouteData } from '@builder.io/qwik-city';
+import type { Render } from '@builder.io/qwik/server';
+import { loadRoute } from 'packages/qwik-city/runtime/src/routing';
+import type { MenuData } from 'packages/qwik-city/runtime/src/types';
+import { resolveRequestHandlers } from './resolve-request-handlers';
 import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import { getRouteMatchPathname, runQwikCity } from './user-response';
-import { loadRequestHandlers } from '../../runtime/src/routing';
+
+export const loadRequestHandlers = async (
+  routes: RouteData[] | undefined,
+  menus: MenuData[] | undefined,
+  cacheModules: boolean | undefined,
+  pathname: string,
+  method: string,
+  render: Render
+) => {
+  const route = await loadRoute(routes, menus, cacheModules, pathname);
+  if (route) {
+    return [route[0], resolveRequestHandlers(route[1], method, render)] as const;
+  }
+  return null;
+};
 
 /**
  * @alpha

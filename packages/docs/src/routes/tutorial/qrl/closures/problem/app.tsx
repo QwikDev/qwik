@@ -10,7 +10,7 @@ export default component$(() => {
           const input = event.target as HTMLInputElement;
           store.name = input.value;
         })}
-        onChange$={$(async (event: KeyboardEvent) => {
+        onChange$={$(async () => {
           if (store.name) alert(store.name);
         })}
         value={store.name}

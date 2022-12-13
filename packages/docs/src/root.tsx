@@ -10,7 +10,7 @@ import RealMetricsOptimization from './components/real-metrics-optimization/real
 import { RouterHead } from './components/router-head/router-head';
 import { GlobalStore, SiteStore } from './context';
 import styles from './global.css?inline';
-import { BUILDER_PUBLIC_API_KEY } from './routes';
+import { BUILDER_PUBLIC_API_KEY } from './constants';
 
 export default component$(() => {
   useStyles$(styles);

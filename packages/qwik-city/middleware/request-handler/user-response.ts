@@ -1,13 +1,15 @@
 import type { ResponseStreamWriter, ServerRequestEvent, UserResponseContext } from './types';
-import type { PageModule, PathParams, RouteModule } from '../../runtime/src/types';
+import type { PageModule, PathParams, RequestEvent, RouteModule } from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { createHeaders } from './headers';
 import { createRequestEvent } from './request-event';
 import { ErrorResponse } from './error-handler';
 import { HttpStatus } from './http-status-codes';
+import { resolveRequestHandlers } from './resolve-request-handlers';
+import { createRequestEvent } from './request-event';
 
-export async function loadUserResponse(
-  serverRequestEv: ServerRequestEvent,
+export async function loadUserResponse<T>(
+  serverRequestEv: ServerRequestEvent<T>,
   params: PathParams,
   routeModules: RouteModule[],
   trailingSlash?: boolean,
@@ -35,8 +37,8 @@ export async function loadUserResponse(
     },
   };
 
-  return new Promise((resolve) => {
-    const requestEv = createRequestEvent(serverRequestEv, params, routeModules, resolve);
+  return new Promise<T>((resolve) => {
+    const requestEv = createRequestEvent(serverRequestEv, params, userResponseCtx, resolve);
 
     // this request/method does NOT have a handler
     if (isEndpointReq && requestHandlers.length === 0) {
@@ -70,13 +72,16 @@ export async function loadUserResponse(
         }
       }
     }
-
-    await requestEv.next();
-
-    userResponseCtx.aborted = userResponseCtx.routeModuleIndex >= ABORT_INDEX;
-
-    return userResponseCtx;
+    runNext(requestEv, resolve);
   });
+}
+
+async function runNext(requestEv: RequestEvent, resolve: (value: any) => void) {
+  try {
+    await requestEv.next();
+  } finally {
+    resolve(null);
+  }
 }
 
 // export function isEndPointRequest(

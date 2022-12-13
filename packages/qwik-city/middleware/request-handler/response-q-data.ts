@@ -1,42 +1,28 @@
-import type { ServerRequestEvent, UserResponseContext } from './types';
-import type { ClientPageData, QwikCityEnvData, QwikCityMode } from '../../runtime/src/types';
-import { getErrorHtml } from './error-handler';
-import { HttpStatus } from './http-status-codes';
+import type { UserResponseContext } from './types';
+import type {
+  ClientPageData,
+  QwikCityEnvData,
+  QwikCityMode,
+  RequestEvent,
+} from '../../runtime/src/types';
 
-export function responseQData<T = unknown>(
-  serverRequestEv: ServerRequestEvent,
-  userResponseCtx: UserResponseContext
-): T {
+export function responseQData(requestEv: RequestEvent) {
   const requestHeaders: Record<string, string> = {};
-  serverRequestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
+  requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
+  requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
 
-  const responseHeaders = userResponseCtx.headers;
-  responseHeaders.set('Content-Type', 'application/json; charset=utf-8');
+  const qData = getClientPageData(userResponseCtx);
+  const stream = requestEv.stream;
 
-  return serverRequestEv.sendHeaders(200, responseHeaders, userResponseCtx.cookie, (stream) => {
-    // begin http streaming the page content as it's rendering html
-    try {
-      userResponseCtx.stream = stream;
-      while (userResponseCtx.writeQueue.length > 0) {
-        stream.write(userResponseCtx.writeQueue.shift());
-      }
+  // write just the page json data to the response body
+  stream.write(JSON.stringify(qData));
 
-      const qData = getClientPageData(userResponseCtx);
-
-      // write just the page json data to the response body
-      stream.write(JSON.stringify(qData));
-
-      if (typeof stream.clientData === 'function') {
-        // a data fn was provided by the request context
-        // useful for writing q-data.json during SSG
-        stream.clientData(qData);
-      }
-    } catch (e) {
-      const errorHtml = getErrorHtml(HttpStatus.InternalServerError, e);
-      stream.write(errorHtml);
-    }
-    stream.end();
-  });
+  if (typeof stream.clientData === 'function') {
+    // a data fn was provided by the request context
+    // useful for writing q-data.json during SSG
+    stream.clientData(qData);
+  }
+  stream.end();
 }
 
 function getClientPageData(userResponseCtx: UserResponseContext) {

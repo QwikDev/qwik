@@ -1,61 +1,38 @@
 import type { RenderOptions } from '@builder.io/qwik';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
-import type { QwikCityEnvData, QwikCityMode } from '../../runtime/src/types';
-import type { ServerRequestEvent, UserResponseContext } from './types';
-import { getErrorHtml } from './error-handler';
-import { HttpStatus } from './http-status-codes';
+import type { QwikCityEnvData, QwikCityMode, RequestEvent } from '../../runtime/src/types';
+import type { UserResponseContext } from './types';
 
-export function responsePage<T = unknown>(
-  serverRequestEv: ServerRequestEvent,
-  matchPathname: string,
-  userResponseCtx: UserResponseContext,
+export async function responsePage<T = unknown>(
+  requestEv: RequestEvent,
   render: Render,
   opts?: RenderOptions
-): T {
+) {
   const requestHeaders: Record<string, string> = {};
-  serverRequestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
+  requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
 
-  const responseHeaders = userResponseCtx.headers;
+  const stream = requestEv.stream;
+  const responseHeaders = requestEv.headers;
   if (!responseHeaders.has('Content-Type')) {
     responseHeaders.set('Content-Type', 'text/html; charset=utf-8');
   }
 
-  return serverRequestEv.sendHeaders(
-    userResponseCtx.status,
-    responseHeaders,
-    userResponseCtx.cookie,
-
-    async (stream) => {
-      // begin http streaming the page content as it's rendering html
-      try {
-        userResponseCtx.stream = stream;
-        while (userResponseCtx.writeQueue.length > 0) {
-          stream.write(userResponseCtx.writeQueue.shift());
-        }
-
-        const result = await render({
-          stream: stream,
-          envData: getQwikCityEnvData(
-            requestHeaders,
-            matchPathname,
-            userResponseCtx,
-            serverRequestEv.mode
-          ),
-          ...opts,
-        });
-
-        if ((typeof result as any as RenderToStringResult).html === 'string') {
-          // render result used renderToString(), so none of it was streamed
-          // write the already completed html to the stream
-          stream.write((result as any as RenderToStringResult).html);
-        }
-      } catch (e) {
-        const errorHtml = getErrorHtml(HttpStatus.InternalServerError, e);
-        stream.write(errorHtml);
-      }
-      stream.end();
-    }
-  );
+  const result = await render({
+    stream,
+    envData: getQwikCityEnvData(
+      requestHeaders,
+      matchPathname,
+      userResponseCtx,
+      serverRequestEv.mode
+    ),
+    ...opts,
+  });
+  if ((typeof result as any as RenderToStringResult).html === 'string') {
+    // render result used renderToString(), so none of it was streamed
+    // write the already completed html to the stream
+    stream.write((result as any as RenderToStringResult).html);
+  }
+  stream.end();
 }
 
 export function getQwikCityEnvData(

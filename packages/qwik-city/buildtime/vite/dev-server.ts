@@ -11,17 +11,9 @@ import {
 } from '../../middleware/request-handler/user-response';
 import { getQwikCityEnvData } from '../../middleware/request-handler/response-page';
 import { responseQData } from '../../middleware/request-handler/response-q-data';
-import { responseEndpoint } from '../../middleware/request-handler/response-endpoint';
 import { updateBuildContext } from '../build';
-import {
-  errorResponse,
-  ErrorResponse,
-  notFoundHandler,
-} from '../../middleware/request-handler/error-handler';
-import {
-  redirectResponse,
-  RedirectResponse,
-} from '../../middleware/request-handler/redirect-handler';
+import { ErrorResponse, notFoundHandler } from '../../middleware/request-handler/error-handler';
+import { RedirectResponse } from '../../middleware/request-handler/redirect-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
 import { getPathParams } from '../../runtime/src/routing';
 import { fromNodeHttp } from '../../middleware/node/http';

@@ -1,47 +1,30 @@
-import type { ResponseStreamWriter, ServerRequestEvent, UserResponseContext } from './types';
-import type { PageModule, PathParams, RequestEvent, RouteModule } from '../../runtime/src/types';
-import { Cookie } from './cookie';
-import { createHeaders } from './headers';
+import type { ServerRequestEvent } from './types';
+import type { PathParams, RequestEvent, RequestHandler } from '../../runtime/src/types';
 import { createRequestEvent } from './request-event';
 import { ErrorResponse } from './error-handler';
 import { HttpStatus } from './http-status-codes';
-import { resolveRequestHandlers } from './resolve-request-handlers';
-import { createRequestEvent } from './request-event';
 
 export async function loadUserResponse<T>(
   serverRequestEv: ServerRequestEvent<T>,
   params: PathParams,
-  routeModules: RouteModule[],
+  requestHandlers: RequestHandler<unknown>[],
   trailingSlash?: boolean,
   basePathname: string = '/'
 ) {
-  if (routeModules.length === 0) {
+  if (requestHandlers.length === 0) {
     throw new ErrorResponse(HttpStatus.NotFound, `Not Found`);
   }
 
   const { url } = serverRequestEv;
   const { pathname } = url;
-  const isPageModule = isLastModulePageRoute(routeModules);
-  const isPageDataReq = isPageModule && pathname.endsWith(QDATA_JSON);
-  const isEndpointReq = !isPageModule && !isPageDataReq;
+  // const isPageModule = isLastModulePageRoute(routeModules);
+  // const isPageDataReq = isPageModule && pathname.endsWith(QDATA_JSON);
+  // const isEndpointReq = !isPageModule && !isPageDataReq;
 
   return new Promise<T>((resolve) => {
-    const requestEv = createRequestEvent(serverRequestEv, params, routeModules, resolve);
-
-    // this request/method does NOT have a handler
-    if (isEndpointReq && requestHandlers.length === 0) {
-      // didn't find any handlers
-      // endpoints should respond with 405 Method Not Allowed
-      throw requestEv.error(HttpStatus.MethodNotAllowed, `Method Not Allowed`);
-    }
-
+    const requestEv = createRequestEvent(serverRequestEv, params, requestHandlers, resolve);
     // Handle trailing slash redirect
-    if (
-      isPageModule &&
-      !isPageDataReq &&
-      pathname !== basePathname &&
-      !pathname.endsWith('.html')
-    ) {
+    if (pathname !== basePathname && !pathname.endsWith('.html')) {
       // only check for slash redirect on pages
       if (trailingSlash) {
         // must have a trailing slash
@@ -131,11 +114,6 @@ async function runNext(requestEv: RequestEvent, resolve: (value: any) => void) {
 //   });
 // }
 
-function isLastModulePageRoute(routeModules: RouteModule[]) {
-  const lastRouteModule = routeModules[routeModules.length - 1];
-  return lastRouteModule && typeof (lastRouteModule as PageModule).default === 'function';
-}
-
 /**
  * The pathname used to match in the route regex array.
  * A pathname ending with /q-data.json should be treated as a pathname without it.
@@ -151,7 +129,5 @@ export function getRouteMatchPathname(pathname: string, trailingSlash: boolean |
   return pathname;
 }
 
-const QDATA_JSON = '/q-data.json';
+export const QDATA_JSON = '/q-data.json';
 const QDATA_JSON_LEN = QDATA_JSON.length;
-
-const ABORT_INDEX = 999999999;

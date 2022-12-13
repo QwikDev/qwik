@@ -1,4 +1,4 @@
-import type { RequestEvent, RouteModule } from '../../runtime/src/types';
+import type { PageModule, RequestEvent, RouteModule } from '../../runtime/src/types';
 import type {
   ServerActionInternal,
   ServerLoaderInternal,
@@ -6,8 +6,17 @@ import type {
 import type { RequestHandler, ServerRequestEvent, UserResponseContext } from './types';
 import { validateSerializable } from 'packages/qwik-city/utils/format';
 import { isFunction } from 'packages/qwik/src/core/util/types';
+import type { Render } from '@builder.io/qwik/server';
+import { QDATA_JSON } from './user-response';
+import type { RenderOptions } from '@builder.io/qwik';
+import { responseQData } from './response-q-data';
+import { responsePage } from './response-page';
 
-export const resolveRequestHandlers = (routeModules: RouteModule[], method: string) => {
+export const resolveRequestHandlers = (
+  routeModules: RouteModule[],
+  method: string,
+  render: Render
+) => {
   const requestHandlers: RequestHandler[] = [];
   const serverLoaders: ServerLoaderInternal[] = [];
   const serverActions: ServerActionInternal[] = [];
@@ -72,7 +81,9 @@ export const resolveRequestHandlers = (routeModules: RouteModule[], method: stri
   if (serverLoaders.length + actionsMiddleware.length > 0) {
     requestHandlers.push(actionsMiddleware(serverLoaders, serverActions) as any);
   }
-
+  if (isLastModulePageRoute(routeModules)) {
+    requestHandlers.push(renderQwikMiddleware(render));
+  }
   return requestHandlers;
 };
 
@@ -123,6 +134,22 @@ export function actionsMiddleware(
           }
         })
       );
+    }
+  };
+}
+
+function isLastModulePageRoute(routeModules: RouteModule[]) {
+  const lastRouteModule = routeModules[routeModules.length - 1];
+  return lastRouteModule && typeof (lastRouteModule as PageModule).default === 'function';
+}
+
+export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
+  return async (requestEv: RequestEvent) => {
+    const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
+    if (isPageDataReq) {
+      return responseQData(requestEv);
+    } else {
+      return responsePage(requestEv, render, opts);
     }
   };
 }

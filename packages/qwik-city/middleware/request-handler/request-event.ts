@@ -10,24 +10,22 @@ import type {
   RequestEventLoader,
   ServerRequestEvent,
   ResponseStreamWriter,
+  RequestHandler,
 } from './types';
-import type { RouteModule } from '../../runtime/src/types';
 import { ErrorResponse } from './error-handler';
 import { RedirectResponse } from './redirect-handler';
 import { Cookie } from './cookie';
 import { createHeaders } from './headers';
-import { resolveRequestHandlers } from './resolve-request-handlers';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   params: PathParams,
-  routeModules: RouteModule[],
+  requestHandlers: RequestHandler<unknown>[],
   resolved: (response: any) => void
 ) {
   const { request, platform } = serverRequestEv;
-  const requestHandlers = resolveRequestHandlers(routeModules, request.method);
 
   const cookie = new Cookie(request.headers.get('cookie'));
   const headers = createHeaders();

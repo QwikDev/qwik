@@ -1,3 +1,5 @@
+import type { Render } from '@builder.io/qwik/server';
+import { resolveRequestHandlers } from 'packages/qwik-city/middleware/request-handler/resolve-request-handlers';
 import { MODULE_CACHE } from './constants';
 import type {
   ContentMenu,
@@ -10,6 +12,7 @@ import type {
   PathParams,
 } from './types';
 
+export const CACHE = new Map<RouteData, Promise<any>>();
 /**
  * loadRoute() runs in both client and server.
  */
@@ -54,6 +57,21 @@ export const loadRoute = async (
         return [params, mods, menu, routeBundleNames];
       }
     }
+  }
+  return null;
+};
+
+export const loadRequestHandlers = async (
+  routes: RouteData[] | undefined,
+  menus: MenuData[] | undefined,
+  cacheModules: boolean | undefined,
+  pathname: string,
+  method: string,
+  render: Render
+) => {
+  const route = await loadRoute(routes, menus, cacheModules, pathname);
+  if (route) {
+    return [route[0], resolveRequestHandlers(route[1], method, render)] as const;
   }
   return null;
 };

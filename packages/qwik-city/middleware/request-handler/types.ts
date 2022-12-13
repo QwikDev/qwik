@@ -1,11 +1,6 @@
 import type { StreamWriter } from '@builder.io/qwik';
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
-import type {
-  ServerAction,
-  ServerActionInternal,
-  ServerLoader,
-  ServerLoaderInternal,
-} from '../../runtime/src/server-functions';
+import type { ServerAction, ServerLoader } from '../../runtime/src/server-functions';
 import type {
   ClientPageData,
   QwikCityMode,
@@ -24,16 +19,16 @@ export interface ServerRequestEvent<T = any> {
   locale: string | undefined;
   platform: any;
   request: RequestContext;
-  response: ServerResponseHandler<T>;
+  sendHeaders: ServerResponseHandler<T>;
 }
 
 export type ServerResponseHandler<T = any> = (
   status: number,
   headers: Headers,
   cookies: Cookie,
-  body: (stream: ResponseStreamWriter) => Promise<void> | void,
+  resolve: (response: T) => void,
   error?: any
-) => T;
+) => ResponseStreamWriter;
 
 export interface ResponseStreamWriter extends StreamWriter {
   clientData?: (data: ClientPageData) => void;
@@ -244,8 +239,6 @@ export interface UserResponseContext {
   loaders: Record<string, Promise<any>>;
   aborted: boolean;
   requestHandlers: RequestHandler[];
-  serverLoaders: ServerLoaderInternal[];
-  serverActions: ServerActionInternal[];
   routeModuleIndex: number;
   stream: ResponseStreamWriter;
   writeQueue: any[];

@@ -5,8 +5,6 @@ import { createHeaders } from './headers';
 import { ErrorResponse } from './error-handler';
 import { HttpStatus } from './http-status-codes';
 import { isRedirectStatus, RedirectResponse } from './redirect-handler';
-import { validateSerializable } from '../../utils/format';
-import { isFunction } from '../../../qwik/src/core/util/types';
 import { resolveRequestHandlers } from './resolve-request-handlers';
 import { createRequestEvent } from './request-event';
 
@@ -22,16 +20,13 @@ export async function loadUserResponse(
   }
 
   const { locale, url } = serverRequestEv;
-  const { pathname } = url;
   const { method, headers } = serverRequestEv.request;
+  const { pathname } = url;
   const isPageModule = isLastModulePageRoute(routeModules);
   const isPageDataReq = isPageModule && pathname.endsWith(QDATA_JSON);
   const isEndpointReq = !isPageModule && !isPageDataReq;
 
-  const { requestHandlers, serverLoaders, serverActions } = resolveRequestHandlers(
-    routeModules,
-    method
-  );
+  const requestHandlers = resolveRequestHandlers(routeModules, method);
 
   const stream: ResponseStreamWriter = {
     write: (chunk: any) => {
@@ -57,103 +52,53 @@ export async function loadUserResponse(
     loaders: {},
     routeModuleIndex: -1,
     requestHandlers,
-    serverLoaders,
-    serverActions,
     stream,
     writeQueue: [],
     isEnded: false,
   };
 
-  if (isPageModule && !isPageDataReq && pathname !== basePathname && !pathname.endsWith('.html')) {
-    // only check for slash redirect on pages
-    if (trailingSlash) {
-      // must have a trailing slash
-      if (!pathname.endsWith('/')) {
-        // add slash to existing pathname
-        throw new RedirectResponse(pathname + '/' + url.search, HttpStatus.Found);
-      }
-    } else {
-      // should not have a trailing slash
-      if (pathname.endsWith('/')) {
-        // remove slash from existing pathname
-        throw new RedirectResponse(
-          pathname.slice(0, pathname.length - 1) + url.search,
-          HttpStatus.Found
-        );
-      }
+  return new Promise((resolve) => {
+    const requestEv = createRequestEvent(serverRequestEv, params, userResponseCtx, resolve);
+
+    // this request/method does NOT have a handler
+    if (isEndpointReq && requestHandlers.length === 0) {
+      // didn't find any handlers
+      // endpoints should respond with 405 Method Not Allowed
+      throw requestEv.error(HttpStatus.MethodNotAllowed, `Method Not Allowed`);
     }
-  }
 
-  const requestEv = createRequestEvent(serverRequestEv, params, userResponseCtx);
-
-  await requestEv.next();
-
-  userResponseCtx.aborted = userResponseCtx.routeModuleIndex >= ABORT_INDEX;
-
-  if (
-    !isPageDataReq &&
-    isRedirectStatus(userResponseCtx.status) &&
-    userResponseCtx.headers.has('Location')
-  ) {
-    // user must have manually set redirect instead of throw response.redirect()
-    // never render the page if the user manually set the status to be a redirect
-    throw new RedirectResponse(
-      userResponseCtx.headers.get('Location')!,
-      userResponseCtx.status,
-      userResponseCtx.headers,
-      userResponseCtx.cookie
-    );
-  }
-
-  // this request/method does NOT have a handler
-  if (isEndpointReq && requestHandlers.length === 0) {
-    // didn't find any handlers
-    // endpoints should respond with 405 Method Not Allowed
-    throw new ErrorResponse(HttpStatus.MethodNotAllowed, `Method Not Allowed`);
-  }
-
-  if (!userResponseCtx.aborted) {
-    const selectedAction = url.searchParams.get('qaction');
-    if (method === 'POST' && selectedAction) {
-      const action = serverActions.find((a) => a.__qrl.getHash() === selectedAction);
-      if (action) {
-        const form = await serverRequestEv.request.formData();
-        const actionResolved = await action.__qrl(form, requestEv);
-        userResponseCtx.loaders[selectedAction] = actionResolved;
+    // Handle trailing slash redirect
+    if (
+      isPageModule &&
+      !isPageDataReq &&
+      pathname !== basePathname &&
+      !pathname.endsWith('.html')
+    ) {
+      // only check for slash redirect on pages
+      if (trailingSlash) {
+        // must have a trailing slash
+        if (!pathname.endsWith('/')) {
+          // add slash to existing pathname
+          throw requestEv.redirect(HttpStatus.Found, pathname + '/' + url.search);
+        }
+      } else {
+        // should not have a trailing slash
+        if (pathname.endsWith('/')) {
+          // remove slash from existing pathname
+          throw requestEv.redirect(
+            HttpStatus.Found,
+            pathname.slice(0, pathname.length - 1) + url.search
+          );
+        }
       }
     }
 
-    if (serverLoaders.length > 0) {
-      // if (userResponse.bodySent) {
-      //   throw new Error('Body already sent');
-      // }
+    await requestEv.next();
 
-      const isDevMode = serverRequestEv.mode === 'dev';
+    userResponseCtx.aborted = userResponseCtx.routeModuleIndex >= ABORT_INDEX;
 
-      await Promise.all(
-        serverLoaders.map(async (loader) => {
-          const loaderId = loader.__qrl.getHash();
-          const loaderResolved = await loader.__qrl(requestEv);
-          userResponseCtx.loaders[loaderId] = isFunction(loaderResolved)
-            ? loaderResolved()
-            : loaderResolved;
-
-          if (isDevMode) {
-            try {
-              validateSerializable(loaderResolved);
-            } catch (e: any) {
-              throw Object.assign(e, {
-                id: 'DEV_SERIALIZE',
-                method,
-              });
-            }
-          }
-        })
-      );
-    }
-  }
-
-  return userResponseCtx;
+    return userResponseCtx;
+  });
 }
 
 // export function isEndPointRequest(

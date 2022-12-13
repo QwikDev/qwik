@@ -1,12 +1,40 @@
-import type { ServerRenderOptions, ServerRequestEvent } from './types';
+import type {
+  RequestEvent,
+  ServerRenderOptions,
+  ServerRequestEvent,
+  UserResponseContext,
+} from './types';
 import { ErrorResponse, errorResponse } from './error-handler';
 import { getRouteMatchPathname, loadUserResponse } from './user-response';
 import { loadRoute } from '../../runtime/src/routing';
 import { RedirectResponse, redirectResponse } from './redirect-handler';
-import { responsePage } from './response-page';
+import { getQwikCityEnvData, responsePage } from './response-page';
 import { responseQData } from './response-q-data';
 import { responseEndpoint } from './response-endpoint';
+import type { Render } from '@builder.io/qwik/server';
+import type { RenderOptions } from '@builder.io/qwik';
 
+export async function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
+  return async (
+    request: RequestEvent,
+    userResponseCtx: UserResponseContext,
+    serverRequestEv: ServerRequestEvent
+  ) => {
+    const requestHeaders: Record<string, string> = {};
+    serverRequestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
+
+    const result = await render({
+      stream: request.stream,
+      envData: getQwikCityEnvData(
+        requestHeaders,
+        matchPathname,
+        userResponseCtx,
+        serverRequestEv.mode
+      ),
+      ...opts,
+    });
+  };
+}
 /**
  * @alpha
  */
@@ -50,13 +78,12 @@ export async function requestHandler<T = unknown>(
     }
   } catch (e: any) {
     if (e instanceof RedirectResponse) {
-      return redirectResponse(serverRequestEv, e);
+      // return redirectResponse(serverRequestEv, e);
+    } else if (e instanceof ErrorResponse) {
+      // return errorResponse(serverRequestEv, e);
+    } else {
+      throw e;
     }
-    if (e instanceof ErrorResponse) {
-      return errorResponse(serverRequestEv, e);
-    }
-    // TODO: review
-    throw e;
   }
 
   // route not found, return null so other server middlewares

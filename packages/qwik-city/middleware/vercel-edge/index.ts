@@ -28,7 +28,7 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
         locale: undefined,
         url,
         request,
-        response: (status, headers, cookies, body) => {
+        sendHeaders: (status, headers, cookies, body) => {
           const { readable, writable } = new TransformStream();
           const writer = writable.getWriter();
 

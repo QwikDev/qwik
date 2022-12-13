@@ -13,7 +13,7 @@ export function responseQData<T = unknown>(
   const responseHeaders = userResponseCtx.headers;
   responseHeaders.set('Content-Type', 'application/json; charset=utf-8');
 
-  return serverRequestEv.response(200, responseHeaders, userResponseCtx.cookie, (stream) => {
+  return serverRequestEv.sendHeaders(200, responseHeaders, userResponseCtx.cookie, (stream) => {
     // begin http streaming the page content as it's rendering html
     try {
       userResponseCtx.stream = stream;

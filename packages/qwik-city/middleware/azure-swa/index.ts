@@ -5,6 +5,7 @@ import qwikCityPlan from '@qwik-city-plan';
 import { notFoundHandler, requestHandler } from '../request-handler';
 import { createHeaders } from '../request-handler/headers';
 import type { RequestContext, ServerRenderOptions, ServerRequestEvent } from '../request-handler';
+import { resolve } from 'path';
 
 // @builder.io/qwik-city/middleware/azure-swa
 
@@ -36,7 +37,7 @@ interface AzureResponse {
  * @alpha
  */
 export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
-  async function onRequest(context: Context, req: HttpRequest): Promise<void> {
+  async function onRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
     try {
       const qwikRequest = createQwikRequest(req);
 
@@ -46,13 +47,13 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
         url: new URL(qwikRequest.url),
         platform: context,
         request: qwikRequest,
-        response: (status, headers, _cookies, body) => {
+        sendHeaders: (status, headers, _cookies) => {
           const res: AzureResponse = (context.res = {
             status,
             headers: {},
           });
           headers.forEach((value, key) => (res.headers[key] = value));
-          body({
+          const stream = {
             write(chunk: string) {
               // simple concat because streaming not supported - see https://github.com/Azure/azure-functions-host/issues/1361
               if (res.body) {
@@ -61,14 +62,16 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
                 res.body = chunk;
               }
             },
-            end() {},
-          });
-          return res;
+            end() {
+              resolve(res);
+            },
+          };
+          return stream;
         },
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler<void>(serverRequestEv, opts);
+      const handledResponse = await requestHandler<AzureResponse>(serverRequestEv, opts);
       if (handledResponse !== null) {
         return handledResponse;
       }

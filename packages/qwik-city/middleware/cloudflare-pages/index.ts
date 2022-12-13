@@ -1,4 +1,9 @@
-import type { ServerRenderOptions, ServerRequestEvent } from '../request-handler/types';
+import type {
+  ResponseStreamWriter,
+  ServerRenderOptions,
+  ServerRequestEvent,
+  ServerResponseHandler,
+} from '../request-handler/types';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { requestHandler } from '../request-handler';
 import { mergeHeadersCookies } from '../request-handler/cookie';
@@ -40,7 +45,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
         locale: undefined,
         url,
         request,
-        response: (status, headers, cookies, body) => {
+        sendHeaders: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream();
           const writer = writable.getWriter();
 
@@ -49,7 +54,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
             headers: mergeHeadersCookies(headers, cookies),
           });
 
-          body({
+          const stream: ResponseStreamWriter = {
             write: (chunk) => {
               if (typeof chunk === 'string') {
                 const encoder = new TextEncoder();
@@ -61,7 +66,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
             end: () => {
               writer.close();
             },
-          });
+          };
 
           if (response.ok && cache && response.headers.has('Cache-Control')) {
             // Store the fetched response as cacheKey
@@ -69,8 +74,8 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
             // writing to cache
             waitUntil(cache.put(cacheKey, response.clone()));
           }
-
-          return response;
+          resolve(response);
+          return stream;
         },
         platform: env,
       };

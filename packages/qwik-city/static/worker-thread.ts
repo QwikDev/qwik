@@ -63,7 +63,7 @@ async function workerRender(
       locale: undefined,
       url,
       request,
-      response: async (status, headers, _, body, err) => {
+      sendHeaders: async (status, headers, _, body, err) => {
         if (err) {
           if (err.stack) {
             result.error = String(err.stack);

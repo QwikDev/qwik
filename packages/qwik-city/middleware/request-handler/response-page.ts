@@ -20,7 +20,7 @@ export function responsePage<T = unknown>(
     responseHeaders.set('Content-Type', 'text/html; charset=utf-8');
   }
 
-  return serverRequestEv.response(
+  return serverRequestEv.sendHeaders(
     userResponseCtx.status,
     responseHeaders,
     userResponseCtx.cookie,

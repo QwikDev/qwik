@@ -1,5 +1,9 @@
 import type { Context } from '@netlify/edge-functions';
-import type { ServerRenderOptions, ServerRequestEvent } from '../request-handler/types';
+import type {
+  ResponseStreamWriter,
+  ServerRenderOptions,
+  ServerRequestEvent,
+} from '../request-handler/types';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { requestHandler } from '../request-handler';
 import { mergeHeadersCookies } from '../request-handler/cookie';
@@ -26,7 +30,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
         locale: undefined,
         url,
         request,
-        response: (status, headers, cookies, body) => {
+        sendHeaders: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream();
           const writer = writable.getWriter();
           const response = new Response(readable, {
@@ -34,7 +38,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
             headers: mergeHeadersCookies(headers, cookies),
           });
 
-          body({
+          const stream: ResponseStreamWriter = {
             write: (chunk) => {
               if (typeof chunk === 'string') {
                 const encoder = new TextEncoder();
@@ -46,15 +50,15 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
             end: () => {
               writer.close();
             },
-          });
-
-          return response;
+          };
+          resolve(response);
+          return stream;
         },
         platform: context,
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler<Response>(requestCtx, opts);
+      const handledResponse = await requestHandler(requestCtx, opts);
       if (handledResponse) {
         return handledResponse;
       }

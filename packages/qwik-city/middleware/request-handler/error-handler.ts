@@ -19,7 +19,7 @@ export function errorHandler(serverRequestEv: ServerRequestEvent, e: any) {
   const headers = createHeaders();
   headers.set('Content-Type', 'text/html; charset=utf-8');
 
-  return serverRequestEv.response(
+  return serverRequestEv.sendHeaders(
     status,
     headers,
     new Cookie(),
@@ -32,25 +32,23 @@ export function errorHandler(serverRequestEv: ServerRequestEvent, e: any) {
 }
 
 export function errorResponse(stream: ServerRequestEvent, errorResponse: ErrorResponse) {
-  const html = minimalHtmlResponse(
-    errorResponse.status,
-    errorResponse.message,
-    errorResponse.stack
-  );
-
-  const headers = createHeaders();
-  headers.set('Content-Type', 'text/html; charset=utf-8');
-
-  return stream.response(
-    errorResponse.status,
-    headers,
-    new Cookie(),
-    (stream) => {
-      stream.write(html);
-      stream.end();
-    },
-    errorResponse
-  );
+  // const html = minimalHtmlResponse(
+  //   errorResponse.status,
+  //   errorResponse.message,
+  //   errorResponse.stack
+  // );
+  // const headers = createHeaders();
+  // headers.set('Content-Type', 'text/html; charset=utf-8');
+  // return stream.sendHeaders(
+  //   errorResponse.status,
+  //   headers,
+  //   new Cookie(),
+  //   (stream) => {
+  //     stream.write(html);
+  //     stream.end();
+  //   },
+  //   errorResponse
+  // );
 }
 
 export function getErrorHtml(status: number, e: any) {

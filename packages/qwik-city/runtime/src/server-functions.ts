@@ -15,7 +15,7 @@ import {
 } from '@builder.io/qwik';
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
 import { RouteStateContext } from './contexts';
-import type { RouteActionResolver } from './types';
+import type { RouteActionResolver, RouteLocation } from './types';
 import { useAction, useLocation } from './use-functions';
 
 export type ServerActionExecute<RETURN> = QRL<
@@ -25,12 +25,12 @@ export type ServerActionExecute<RETURN> = QRL<
 >;
 
 export interface ServerActionUtils<RETURN> {
-  id: string;
-  actionPath: string;
-  isPending: boolean;
-  status: 'initial' | 'success' | 'fail';
-  value: RETURN | undefined;
-  execute: ServerActionExecute<RETURN>;
+  readonly id: string;
+  readonly actionPath: string;
+  readonly isPending: boolean;
+  readonly status: 'initial' | 'success' | 'fail';
+  readonly value: RETURN | undefined;
+  readonly execute: ServerActionExecute<RETURN>;
 }
 
 export interface ServerAction<RETURN> {
@@ -44,53 +44,27 @@ export interface ServerActionInternal extends ServerAction<any> {
   use(): ServerActionUtils<any>;
 }
 
+type Editable<T> = {
+  -readonly [P in keyof T]: T[P];
+};
+
 export class ServerActionImpl implements ServerActionInternal {
   readonly __brand = 'server_action';
   constructor(
     public __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>
   ) {}
   use(): ServerActionUtils<any> {
-    const loc = useLocation();
+    const loc = useLocation() as Editable<RouteLocation>;
     const currentAction = useAction();
-    const state = useStore<ServerActionUtils<any>>(() => {
+    const initialState: Editable<Partial<ServerActionUtils<any>>> = {
+      status: 'initial',
+      isPending: false,
+    };
+
+    const state = useStore<Editable<ServerActionUtils<any>>>(() => {
       return untrack(() => {
         const id = this.__qrl.getHash();
-
         const actionPath = loc.pathname + `?qaction=${id}`;
-        const execute: ServerActionExecute<any> = $((input) => {
-          let data: FormData;
-          if (input instanceof SubmitEvent) {
-            data = new FormData(input.target as HTMLFormElement);
-          } else if (input instanceof FormData) {
-            data = input;
-          } else {
-            data = new FormData();
-            for (const key in input) {
-              const value = input[key];
-              if (Array.isArray(value)) {
-                for (const item of value) {
-                  data.append(key, item);
-                }
-              } else {
-                data.append(key, value);
-              }
-            }
-          }
-
-          return new Promise<RouteActionResolver>((resolve) => {
-            state.isPending = true;
-            (loc as any).isPending = true;
-            currentAction.value = noSerialize({
-              data,
-              id,
-              resolve,
-            });
-          }).then((value) => {
-            state.isPending = false;
-            state.status = value.status >= 300 ? 'fail' : 'success';
-            state.value = value.result;
-          });
-        });
 
         let statusStr: 'initial' | 'success' | 'fail' = 'initial';
         let value = undefined;
@@ -103,14 +77,47 @@ export class ServerActionImpl implements ServerActionInternal {
           }
           value = result;
         }
-        return {
-          id,
-          actionPath,
-          isPending: false,
-          execute,
-          status: statusStr,
-          value,
-        };
+        initialState.id = id;
+        initialState.actionPath = actionPath;
+        initialState.status = statusStr;
+        initialState.value = value;
+        initialState.isPending = false;
+        return initialState as ServerActionUtils<any>;
+      });
+    });
+
+    initialState.execute = $((input) => {
+      let data: FormData;
+      if (input instanceof SubmitEvent) {
+        data = new FormData(input.target as HTMLFormElement);
+      } else if (input instanceof FormData) {
+        data = input;
+      } else {
+        data = new FormData();
+        for (const key in input) {
+          const value = input[key];
+          if (Array.isArray(value)) {
+            for (const item of value) {
+              data.append(key, item);
+            }
+          } else {
+            data.append(key, value);
+          }
+        }
+      }
+
+      return new Promise<RouteActionResolver>((resolve) => {
+        state.isPending = true;
+        loc.isPending = true;
+        currentAction.value = noSerialize({
+          data,
+          id: state.id,
+          resolve,
+        });
+      }).then((value) => {
+        state.isPending = false;
+        state.status = value.status >= 300 ? 'fail' : 'success';
+        state.value = value.result;
       });
     });
     return state;

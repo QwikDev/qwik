@@ -4,7 +4,7 @@ export function responseEndpoint<T = unknown>(
   serverRequestEv: ServerRequestEvent,
   userResponseCtx: UserResponseContext
 ): T {
-  return serverRequestEv.response(
+  return serverRequestEv.sendHeaders(
     userResponseCtx.status,
     userResponseCtx.headers,
     userResponseCtx.cookie,

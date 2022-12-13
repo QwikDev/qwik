@@ -10,6 +10,7 @@ import type {
   RequestEventLoader,
   UserResponseContext,
   ServerRequestEvent,
+  ResponseStreamWriter,
 } from './types';
 import { ErrorResponse } from './error-handler';
 import { RedirectResponse } from './redirect-handler';
@@ -19,7 +20,8 @@ const UserResponseContext = Symbol('UserResponseContext');
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   params: PathParams,
-  userResponseCtx: UserResponseContext
+  userResponseCtx: UserResponseContext,
+  resolved: (response: any) => void
 ) {
   const { request, platform } = serverRequestEv;
   const { cookie, headers, requestHandlers } = userResponseCtx;
@@ -30,12 +32,14 @@ export function createRequestEvent(
 
     while (routeModuleIndex < requestHandlers.length) {
       const requestHandler = requestHandlers[routeModuleIndex];
-      await requestHandler(requestEv);
+      // TODO
+      await (requestHandler as any)(requestEv, userResponseCtx, serverRequestEv);
       routeModuleIndex++;
     }
   };
 
   let routeModuleIndex = -1;
+  let stream: ResponseStreamWriter | undefined;
 
   const requestEv: RequestEvent & RequestEventLoader = {
     cookie,
@@ -78,11 +82,17 @@ export function createRequestEvent(
     },
 
     error: (status: number, message: string) => {
+      userResponseCtx.status = status;
+      headers.delete('Cache-Control');
       return new ErrorResponse(status, message);
     },
 
     redirect: (status: number, url: string) => {
-      return new RedirectResponse(url, status, headers, cookie);
+      userResponseCtx.status = status;
+      headers.set('Location', url);
+      headers.delete('Cache-Control');
+      userResponseCtx.stream.end();
+      return new RedirectResponse();
     },
 
     html: (statusCode: number, html: string) => {
@@ -105,13 +115,16 @@ export function createRequestEvent(
       userResponseCtx.stream.end();
     },
 
-    stream: {
-      write: (data: any) => {
-        userResponseCtx.writeQueue.push(data);
-      },
-      end: () => {
-        userResponseCtx.isEnded = true;
-      },
+    get stream() {
+      if (!stream) {
+        stream = serverRequestEv.sendHeaders(
+          userResponseCtx.status,
+          userResponseCtx.headers,
+          userResponseCtx.cookie,
+          resolved
+        );
+      }
+      return stream;
     },
   };
 

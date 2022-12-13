@@ -45,15 +45,14 @@ export async function fromNodeHttp(
       body,
       duplex: 'half',
     }) as any,
-    response: (status, headers, cookies, body) => {
+    sendHeaders: (status, headers, cookies) => {
       res.statusCode = status;
       headers.forEach((value, key) => res.setHeader(key, value));
       const cookieHeaders = cookies.headers();
       if (cookieHeaders.length > 0) {
         res.setHeader('Set-Cookie', cookieHeaders);
       }
-      body(res);
-      return true;
+      return res;
     },
     platform: {
       ssr: true,

@@ -150,9 +150,9 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           formatError(e);
 
           if (e instanceof RedirectResponse) {
-            redirectResponse(serverRequestEv, e);
+            // redirectResponse(serverRequestEv, e);
           } else if (e instanceof ErrorResponse) {
-            errorResponse(serverRequestEv, e);
+            // errorResponse(serverRequestEv, e);
           } else if (e instanceof Error && (e as any).id === 'DEV_SERIALIZE') {
             next(formatDevSerializeError(e, routeModulePaths));
           } else {

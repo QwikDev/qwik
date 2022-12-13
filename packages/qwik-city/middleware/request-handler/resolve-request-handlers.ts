@@ -3,7 +3,7 @@ import type {
   ServerActionInternal,
   ServerLoaderInternal,
 } from '../../runtime/src/server-functions';
-import type { RequestHandler, ServerRequestEvent, UserResponseContext } from './types';
+import type { RequestHandler, ServerRequestEvent } from './types';
 import { validateSerializable } from 'packages/qwik-city/utils/format';
 import { isFunction } from 'packages/qwik/src/core/util/types';
 import type { Render } from '@builder.io/qwik/server';
@@ -11,6 +11,7 @@ import { QDATA_JSON } from './user-response';
 import type { RenderOptions } from '@builder.io/qwik';
 import { responseQData } from './response-q-data';
 import { responsePage } from './response-page';
+import { getLoaders } from './request-event';
 
 export const resolveRequestHandlers = (
   routeModules: RouteModule[],
@@ -91,19 +92,17 @@ export function actionsMiddleware(
   serverLoaders: ServerLoaderInternal[],
   serverActions: ServerActionInternal[]
 ) {
-  return async (
-    requestEv: RequestEvent,
-    userResponseCtx: UserResponseContext,
-    serverRequestEv: ServerRequestEvent
-  ) => {
+  return async (requestEv: RequestEvent, serverRequestEv: ServerRequestEvent) => {
     const { method } = requestEv;
     const selectedAction = requestEv.url.searchParams.get('qaction');
+    const loaders = getLoaders(requestEv);
+
     if (method === 'POST' && selectedAction) {
       const action = serverActions.find((a) => a.__qrl.getHash() === selectedAction);
       if (action) {
         const form = await requestEv.request.formData();
         const actionResolved = await action.__qrl(form, requestEv as any);
-        userResponseCtx.loaders[selectedAction] = actionResolved;
+        loaders[selectedAction] = actionResolved;
       }
     }
 
@@ -118,9 +117,7 @@ export function actionsMiddleware(
         serverLoaders.map(async (loader) => {
           const loaderId = loader.__qrl.getHash();
           const loaderResolved = await loader.__qrl(requestEv as any);
-          userResponseCtx.loaders[loaderId] = isFunction(loaderResolved)
-            ? loaderResolved()
-            : loaderResolved;
+          loaders[loaderId] = isFunction(loaderResolved) ? loaderResolved() : loaderResolved;
 
           if (isDevMode) {
             try {

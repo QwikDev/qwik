@@ -1,10 +1,4 @@
-import type { UserResponseContext } from './types';
-import type {
-  ClientPageData,
-  QwikCityEnvData,
-  QwikCityMode,
-  RequestEvent,
-} from '../../runtime/src/types';
+import type { ClientPageData, RequestEvent } from '../../runtime/src/types';
 import { getLoaders } from './request-event';
 
 export function responseQData(requestEv: RequestEvent) {
@@ -34,32 +28,4 @@ function getClientPageData(requestEv: RequestEvent) {
     redirect: (status >= 301 && status <= 308 && requestEv.headers.get('location')) || undefined,
   };
   return clientPage;
-}
-
-export function getQwikCityEnvData(
-  requestHeaders: Record<string, string>,
-  matchPathname: string,
-  userResponseCtx: UserResponseContext,
-  locale: string | undefined,
-  mode: QwikCityMode
-): {
-  url: string;
-  requestHeaders: Record<string, string>;
-  locale: string | undefined;
-  qwikcity: QwikCityEnvData;
-} {
-  const { url, params, status, loaders } = userResponseCtx;
-  return {
-    url: new URL(matchPathname + url.search, url).href,
-    requestHeaders: requestHeaders,
-    locale: locale,
-    qwikcity: {
-      mode: mode,
-      params: { ...params },
-      response: {
-        status: status,
-        loaders,
-      },
-    },
-  };
 }

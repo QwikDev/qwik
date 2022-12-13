@@ -229,26 +229,6 @@ export interface RequestContext {
   text(): Promise<string>;
 }
 
-/**
- * Internal data modified by the user.
- */
-export interface UserResponseContext {
-  type: 'endpoint' | 'pagehtml' | 'pagedata';
-  url: URL;
-  locale: string | undefined;
-  params: PathParams;
-  status: number;
-  headers: Headers;
-  cookie: Cookie;
-  loaders: Record<string, Promise<any>>;
-  aborted: boolean;
-  requestHandlers: RequestHandler[];
-  routeModuleIndex: number;
-  stream: ResponseStreamWriter;
-  writeQueue: any[];
-  isEnded: boolean;
-}
-
 // export interface QwikCityDevRequestContext extends QwikCityRequestContext {
 //   routesDir: string;
 // }

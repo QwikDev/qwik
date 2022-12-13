@@ -17,9 +17,6 @@ export async function loadUserResponse<T>(
 
   const { url } = serverRequestEv;
   const { pathname } = url;
-  // const isPageModule = isLastModulePageRoute(routeModules);
-  // const isPageDataReq = isPageModule && pathname.endsWith(QDATA_JSON);
-  // const isEndpointReq = !isPageModule && !isPageDataReq;
 
   return new Promise<T>((resolve) => {
     const requestEv = createRequestEvent(serverRequestEv, params, requestHandlers, resolve);
@@ -54,65 +51,6 @@ async function runNext(requestEv: RequestEvent, resolve: (value: any) => void) {
     resolve(null);
   }
 }
-
-// export function isEndPointRequest(
-//   method: string,
-//   acceptHeader: string | null,
-//   contentTypeHeader: string | null
-// ) {
-//   if (method === 'GET' || method === 'POST') {
-//     // further check if GET or POST is an endpoint request
-//     // check if there's an Accept request header
-//     if (contentTypeHeader && contentTypeHeader.includes('application/json')) {
-//       return true;
-//     }
-
-//     if (acceptHeader) {
-//       const htmlIndex = acceptHeader.indexOf('text/html');
-//       if (htmlIndex === 0) {
-//         // starts with text/html
-//         // not an endpoint GET/POST request
-//         return false;
-//       }
-
-//       const jsonIndex = acceptHeader.indexOf('application/json');
-//       if (jsonIndex > -1) {
-//         // has application/json Accept header
-//         if (htmlIndex > -1) {
-//           // if application/json before text/html
-//           // then it's an endpoint GET/POST request
-//           return jsonIndex < htmlIndex;
-//         }
-//         return true;
-//       }
-//     }
-
-//     // not an endpoint GET/POST request
-//     return false;
-//   } else {
-//     // always endpoint for non-GET/POST request
-//     // PUT, PATCH, DELETE, OPTIONS, HEAD, etc
-//     return true;
-//   }
-// }
-
-// function createPendingBody(cb: () => any) {
-//   return new Promise<any>((resolve, reject) => {
-//     try {
-//       const rtn = cb();
-//       if (rtn !== null && typeof rtn === 'object' && typeof rtn.then === 'function') {
-//         // callback return promise
-//         rtn.then(resolve, reject);
-//       } else {
-//         // callback returned data
-//         resolve(rtn);
-//       }
-//     } catch (e) {
-//       // sync callback errored
-//       reject(e);
-//     }
-//   });
-// }
 
 /**
  * The pathname used to match in the route regex array.

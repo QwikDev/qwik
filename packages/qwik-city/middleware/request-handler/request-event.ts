@@ -11,6 +11,7 @@ import type {
   ServerRequestEvent,
   ResponseStreamWriter,
   RequestHandler,
+  RequestEventCommon,
 } from './types';
 import { ErrorResponse } from './error-handler';
 import { RedirectResponse } from './redirect-handler';
@@ -159,7 +160,7 @@ interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvLoaders]: Record<string, Promise<any>>;
 }
 
-export function getLoaders(requestEv: RequestEvent & RequestEventLoader) {
+export function getLoaders(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvLoaders];
 }
 

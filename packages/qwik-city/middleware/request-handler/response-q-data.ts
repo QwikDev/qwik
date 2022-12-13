@@ -5,13 +5,14 @@ import type {
   QwikCityMode,
   RequestEvent,
 } from '../../runtime/src/types';
+import { getLoaders } from './request-event';
 
 export function responseQData(requestEv: RequestEvent) {
   const requestHeaders: Record<string, string> = {};
   requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
   requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
 
-  const qData = getClientPageData(userResponseCtx);
+  const qData = getClientPageData(requestEv);
   const stream = requestEv.stream;
 
   // write just the page json data to the response body
@@ -25,15 +26,12 @@ export function responseQData(requestEv: RequestEvent) {
   stream.end();
 }
 
-function getClientPageData(userResponseCtx: UserResponseContext) {
+function getClientPageData(requestEv: RequestEvent) {
+  const status = requestEv.status();
   const clientPage: ClientPageData = {
-    loaders: userResponseCtx.loaders,
-    status: userResponseCtx.status !== 200 ? userResponseCtx.status : undefined,
-    redirect:
-      (userResponseCtx.status >= 301 &&
-        userResponseCtx.status <= 308 &&
-        userResponseCtx.headers.get('location')) ||
-      undefined,
+    loaders: getLoaders(requestEv),
+    status: status !== 200 ? status : undefined,
+    redirect: (status >= 301 && status <= 308 && requestEv.headers.get('location')) || undefined,
   };
   return clientPage;
 }

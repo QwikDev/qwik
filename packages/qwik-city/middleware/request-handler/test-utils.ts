@@ -1,6 +1,6 @@
 import { mergeHeadersCookies } from './cookie';
 import { createHeaders } from './headers';
-import type { RequestContext, ServerRequestEvent } from './types';
+import type { RequestContext, ResponseStreamWriter, ServerRequestEvent } from './types';
 
 export function mockRequestContext(opts?: {
   method?: string;
@@ -32,20 +32,20 @@ export function mockRequestContext(opts?: {
   return {
     url,
     request,
-    sendHeaders: async (status, headers, cookie, body) => {
+    sendHeaders: async (status, headers, cookie, resolve) => {
       const chunks: string[] = [];
       responseData.status = status;
       responseData.headers = mergeHeadersCookies(headers, cookie);
-      responseData.body = new Promise<string>((resolve) => {
-        body({
-          write: (chunk) => {
-            chunks.push(chunk);
-          },
-          end: () => {
-            resolve(chunks.join(''));
-          },
-        });
-      });
+      const stream: ResponseStreamWriter = {
+        write: (chunk) => {
+          chunks.push(chunk);
+        },
+        end: () => {
+          resolve(chunks.join(''));
+        },
+      };
+
+      return stream;
     },
     responseData,
     platform: { testing: true },

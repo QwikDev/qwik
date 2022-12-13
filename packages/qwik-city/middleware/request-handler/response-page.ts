@@ -1,7 +1,7 @@
 import type { RenderOptions } from '@builder.io/qwik';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
-import type { QwikCityEnvData, QwikCityMode, RequestEvent } from '../../runtime/src/types';
-import type { UserResponseContext } from './types';
+import type { QwikCityEnvData, RequestEvent } from '../../runtime/src/types';
+import { getLoaders } from './request-event';
 
 export async function responsePage<T = unknown>(
   requestEv: RequestEvent,
@@ -19,12 +19,7 @@ export async function responsePage<T = unknown>(
 
   const result = await render({
     stream,
-    envData: getQwikCityEnvData(
-      requestHeaders,
-      matchPathname,
-      userResponseCtx,
-      serverRequestEv.mode
-    ),
+    envData: getQwikCityEnvData(requestEv),
     ...opts,
   });
   if ((typeof result as any as RenderToStringResult).html === 'string') {
@@ -35,27 +30,26 @@ export async function responsePage<T = unknown>(
   stream.end();
 }
 
-export function getQwikCityEnvData(
-  requestHeaders: Record<string, string>,
-  matchPathname: string,
-  userResponseCtx: UserResponseContext,
-  mode: QwikCityMode
-): {
+export function getQwikCityEnvData(requestEv: RequestEvent<unknown>): {
   url: string;
   requestHeaders: Record<string, string>;
   locale: string | undefined;
   qwikcity: QwikCityEnvData;
 } {
-  const { url, params, status, loaders, locale } = userResponseCtx;
+  const { url, params, request, status, locale } = requestEv;
+  const requestHeaders: Record<string, string> = {};
+  const loaders = getLoaders(requestEv);
+  request.headers.forEach((value, key) => (requestHeaders[key] = value));
+
   return {
-    url: new URL(matchPathname + url.search, url).href,
+    url: new URL(url.pathname + url.search, url).href,
     requestHeaders,
-    locale,
+    locale: locale(),
     qwikcity: {
-      mode: mode,
+      mode: 'server', // todo
       params: { ...params },
       response: {
-        status: status,
+        status: status(),
         loaders,
       },
     },

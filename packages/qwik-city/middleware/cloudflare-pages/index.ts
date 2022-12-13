@@ -2,7 +2,6 @@ import type {
   ResponseStreamWriter,
   ServerRenderOptions,
   ServerRequestEvent,
-  ServerResponseHandler,
 } from '../request-handler/types';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { requestHandler } from '../request-handler';

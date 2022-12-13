@@ -1,4 +1,4 @@
-export { getErrorHtml, errorHandler, notFoundHandler } from './error-handler';
+export { getErrorHtml } from './error-handler';
 export { requestHandler } from './request-handler';
 export type {
   Cookie,

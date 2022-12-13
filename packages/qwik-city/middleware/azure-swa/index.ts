@@ -5,7 +5,6 @@ import qwikCityPlan from '@qwik-city-plan';
 import { notFoundHandler, requestHandler } from '../request-handler';
 import { createHeaders } from '../request-handler/headers';
 import type { RequestContext, ServerRenderOptions, ServerRequestEvent } from '../request-handler';
-import { resolve } from 'path';
 
 // @builder.io/qwik-city/middleware/azure-swa
 
@@ -62,9 +61,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
                 res.body = chunk;
               }
             },
-            end() {
-              resolve(res);
-            },
+            end() {},
           };
           return stream;
         },

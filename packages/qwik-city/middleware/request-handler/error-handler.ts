@@ -1,54 +1,7 @@
-import { Cookie } from './cookie';
-import { createHeaders } from './headers';
-import { HttpStatus } from './http-status-codes';
-import type { ServerRequestEvent } from './types';
-
 export class ErrorResponse extends Error {
   constructor(public status: number, message?: string) {
     super(message);
   }
-}
-
-export function notFoundHandler<T = any>(stream: ServerRequestEvent): Promise<T> {
-  return errorResponse(stream, new ErrorResponse(404, 'Not Found'));
-}
-
-export function errorHandler(serverRequestEv: ServerRequestEvent, e: any) {
-  const status = HttpStatus.InternalServerError;
-  const html = getErrorHtml(status, e);
-  const headers = createHeaders();
-  headers.set('Content-Type', 'text/html; charset=utf-8');
-
-  return serverRequestEv.sendHeaders(
-    status,
-    headers,
-    new Cookie(),
-    (stream) => {
-      stream.write(html);
-      stream.end();
-    },
-    e
-  );
-}
-
-export function errorResponse(stream: ServerRequestEvent, errorResponse: ErrorResponse) {
-  // const html = minimalHtmlResponse(
-  //   errorResponse.status,
-  //   errorResponse.message,
-  //   errorResponse.stack
-  // );
-  // const headers = createHeaders();
-  // headers.set('Content-Type', 'text/html; charset=utf-8');
-  // return stream.sendHeaders(
-  //   errorResponse.status,
-  //   headers,
-  //   new Cookie(),
-  //   (stream) => {
-  //     stream.write(html);
-  //     stream.end();
-  //   },
-  //   errorResponse
-  // );
 }
 
 export function getErrorHtml(status: number, e: any) {

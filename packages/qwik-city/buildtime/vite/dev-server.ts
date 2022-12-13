@@ -10,9 +10,8 @@ import {
   loadUserResponse,
 } from '../../middleware/request-handler/user-response';
 import { getQwikCityEnvData } from '../../middleware/request-handler/response-page';
-import { responseQData } from '../../middleware/request-handler/response-q-data';
 import { updateBuildContext } from '../build';
-import { ErrorResponse, notFoundHandler } from '../../middleware/request-handler/error-handler';
+import { ErrorResponse } from '../../middleware/request-handler/error-handler';
 import { RedirectResponse } from '../../middleware/request-handler/redirect-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
 import { getPathParams } from '../../runtime/src/routing';
@@ -21,6 +20,7 @@ import {
   findLocation,
   generateCodeFrame,
 } from '../../../qwik/src/optimizer/src/plugins/vite-utils';
+import { resolveRequestHandlers } from 'packages/qwik-city/middleware/request-handler/resolve-request-handlers';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
@@ -91,25 +91,19 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           routeModules.push(endpointModule);
           routeModulePaths.set(endpointModule, route.filePath);
 
+          const requestHandlers = resolveRequestHandlers(
+            routeModules,
+            serverRequestEv.request.method,
+            undefined
+          );
+
           const userResponseCtx = await loadUserResponse(
             serverRequestEv,
             params,
-            routeModules,
+            requestHandlers,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname
           );
-
-          if (userResponseCtx.type === 'pagedata') {
-            // dev server endpoint handler
-            responseQData(serverRequestEv, userResponseCtx);
-            return;
-          }
-
-          if (userResponseCtx.type === 'endpoint') {
-            // dev server endpoint handler
-            responseEndpoint(serverRequestEv, userResponseCtx);
-            return;
-          }
 
           // qwik city vite plugin should handle dev ssr rendering
           // but add the qwik city user context to the response object

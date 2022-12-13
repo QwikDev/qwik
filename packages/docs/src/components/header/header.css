@@ -1,5 +1,5 @@
 .header-container {
-  height: calc(var(--header-height));
+  height: calc(var(--header-height) + var(--builder-bar-height));
   margin-bottom: 6px;
   background: var(--bg-color);
   position: relative;
@@ -94,7 +94,7 @@ header .header-inner {
   margin-left: auto;
   margin-right: auto;
   position: relative;
-  height: 100%;
+  height: var(--header-height);
 }
 
 .full-width header .header-inner {

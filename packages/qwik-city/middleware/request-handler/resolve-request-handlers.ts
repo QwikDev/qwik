@@ -3,7 +3,7 @@ import type {
   ServerActionInternal,
   ServerLoaderInternal,
 } from '../../runtime/src/server-functions';
-import type { RequestHandler, ServerRequestEvent } from './types';
+import type { RequestHandler } from './types';
 import { validateSerializable } from 'packages/qwik-city/utils/format';
 import { isFunction } from 'packages/qwik/src/core/util/types';
 import type { Render } from '@builder.io/qwik/server';
@@ -92,7 +92,7 @@ export function actionsMiddleware(
   serverLoaders: ServerLoaderInternal[],
   serverActions: ServerActionInternal[]
 ) {
-  return async (requestEv: RequestEvent, serverRequestEv: ServerRequestEvent) => {
+  return async (requestEv: RequestEvent) => {
     const { method } = requestEv;
     const selectedAction = requestEv.url.searchParams.get('qaction');
     const loaders = getLoaders(requestEv);
@@ -111,7 +111,7 @@ export function actionsMiddleware(
       //   throw new Error('Body already sent');
       // }
 
-      const isDevMode = serverRequestEv.mode === 'dev';
+      const isDevMode = false; // TODO
 
       await Promise.all(
         serverLoaders.map(async (loader) => {

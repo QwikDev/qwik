@@ -6,7 +6,13 @@ export function responseQData(requestEv: RequestEvent) {
   requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
   requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
 
-  const qData = getClientPageData(requestEv);
+  const status = requestEv.status();
+  const qData: ClientPageData = {
+    loaders: getLoaders(requestEv),
+    status: status !== 200 ? status : undefined,
+    redirect: (status >= 301 && status <= 308 && requestEv.headers.get('location')) || undefined,
+  };
+
   const stream = requestEv.getWriter();
 
   // write just the page json data to the response body
@@ -17,15 +23,6 @@ export function responseQData(requestEv: RequestEvent) {
     // useful for writing q-data.json during SSG
     stream.clientData(qData);
   }
-  stream.close();
-}
 
-function getClientPageData(requestEv: RequestEvent) {
-  const status = requestEv.status();
-  const clientPage: ClientPageData = {
-    loaders: getLoaders(requestEv),
-    status: status !== 200 ? status : undefined,
-    redirect: (status >= 301 && status <= 308 && requestEv.headers.get('location')) || undefined,
-  };
-  return clientPage;
+  stream.close();
 }

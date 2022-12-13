@@ -91,14 +91,7 @@ async function workerRender(
         }
 
         if (!result.ok) {
-          return {
-            write() {
-              // do nothing
-            },
-            close() {
-              // do nothing
-            },
-          };
+          return noopWriter;
         }
 
         const htmlWriter = writeHtmlEnabled ? sys.createWriteStream(htmlFilePath) : null;
@@ -116,9 +109,9 @@ async function workerRender(
             if (dataWriter) {
               dataWriter.write(JSON.stringify(data));
             }
-            // if (typeof data.isStatic === 'boolean') {
-            //   result.isStatic = data.isStatic;
-            // }
+            if (typeof data.isStatic === 'boolean') {
+              result.isStatic = data.isStatic;
+            }
           },
           close: () => {
             if (htmlWriter) {
@@ -178,6 +171,11 @@ async function workerRender(
     callback(result);
   }
 }
+
+const noopWriter: ResponseStreamWriter = {
+  write() {},
+  close() {},
+};
 
 class SsgRequestContext implements RequestContext {
   url: string;

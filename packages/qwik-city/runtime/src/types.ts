@@ -262,9 +262,8 @@ export interface EndpointResponse {
 
 export interface ClientPageData extends Omit<EndpointResponse, 'status' | 'body'> {
   status?: number;
-  // prefetch?: string[];
   redirect?: string;
-  // isStatic: boolean;
+  isStatic?: boolean;
 }
 
 /**

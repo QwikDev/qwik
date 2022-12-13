@@ -34,7 +34,7 @@ export function createRequestEvent(
   const url = new URL(request.url);
 
   let routeModuleIndex = -1;
-  let stream: ResponseStreamWriter | undefined;
+  let streamInternal: ResponseStreamWriter | null = null;
 
   const next = async () => {
     routeModuleIndex++;
@@ -112,35 +112,43 @@ export function createRequestEvent(
       requestEv.statusCode = statusCode;
       headers.set('Location', url);
       headers.delete('Cache-Control');
-      userResponseCtx.stream.end();
+      requestEv.stream.end();
       return new RedirectResponse();
     },
 
     html: (statusCode: number, html: string) => {
       requestEv.statusCode = statusCode;
       headers.set('Content-Type', 'text/html; charset=utf-8');
-      userResponseCtx.stream.write(html);
-      userResponseCtx.stream.end();
+      const stream = requestEv.stream;
+      stream.write(JSON.stringify(html));
+      stream.end();
     },
 
     json: (statusCode: number, data: any) => {
       requestEv.statusCode = statusCode;
       headers.set('Content-Type', 'application/json; charset=utf-8');
-      userResponseCtx.stream.write(JSON.stringify(data));
-      userResponseCtx.stream.end();
+      const stream = requestEv.stream;
+      stream.write(JSON.stringify(data));
+      stream.end();
     },
 
     send: (statusCode: number, body: any) => {
       requestEv.statusCode = statusCode;
-      userResponseCtx.stream.write(body);
-      userResponseCtx.stream.end();
+      const stream = requestEv.stream;
+      stream.write(body);
+      stream.end();
     },
 
     get stream() {
-      if (!stream) {
-        stream = serverRequestEv.sendHeaders(requestEv.statusCode, headers, cookie, resolved);
+      if (streamInternal === null) {
+        streamInternal = serverRequestEv.sendHeaders(
+          requestEv.statusCode,
+          headers,
+          cookie,
+          resolved
+        );
       }
-      return stream;
+      return streamInternal;
     },
   };
 

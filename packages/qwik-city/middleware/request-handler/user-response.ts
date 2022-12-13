@@ -19,26 +19,14 @@ export async function loadUserResponse<T>(
     throw new ErrorResponse(HttpStatus.NotFound, `Not Found`);
   }
 
-  const { locale, url } = serverRequestEv;
+  const { url } = serverRequestEv;
   const { pathname } = url;
   const isPageModule = isLastModulePageRoute(routeModules);
   const isPageDataReq = isPageModule && pathname.endsWith(QDATA_JSON);
   const isEndpointReq = !isPageModule && !isPageDataReq;
 
-  const stream: ResponseStreamWriter = {
-    write: (chunk: any) => {
-      if (userResponseCtx.isEnded) {
-        throw new Error(`Response has already been ended`);
-      }
-      userResponseCtx.writeQueue.push(chunk);
-    },
-    end: () => {
-      userResponseCtx.isEnded = true;
-    },
-  };
-
   return new Promise<T>((resolve) => {
-    const requestEv = createRequestEvent(serverRequestEv, params, userResponseCtx, resolve);
+    const requestEv = createRequestEvent(serverRequestEv, params, routeModules, resolve);
 
     // this request/method does NOT have a handler
     if (isEndpointReq && requestHandlers.length === 0) {

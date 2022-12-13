@@ -5,7 +5,7 @@
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { signOut } from '../../../auth/auth';
 
-export const onGet: RequestHandler = async ({ response, cookie }) => {
+export const onGet: RequestHandler = async ({ redirect, cookie }) => {
   signOut(cookie);
-  throw response.redirect('/qwikcity-test/sign-in/');
+  throw redirect(302, '/qwikcity-test/sign-in/');
 };

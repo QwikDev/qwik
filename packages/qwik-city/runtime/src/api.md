@@ -5,12 +5,19 @@
 ```ts
 
 import { Component } from '@builder.io/qwik';
+import { Cookie } from '../../middleware/request-handler';
+import { CookieOptions } from '../../middleware/request-handler';
+import { CookieValue } from '../../middleware/request-handler';
+import type { GetSyncData } from '../../middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
+import { RequestEvent } from '../../middleware/request-handler';
+import { RequestHandler } from '../../middleware/request-handler';
 import { ResourceReturn } from '@builder.io/qwik';
 import { Signal } from '@builder.io/qwik';
+import type { StreamWriter } from '@builder.io/qwik';
 import { ValueOrPromise } from '@builder.io/qwik';
 
 // @alpha @deprecated (undocumented)
@@ -36,43 +43,17 @@ export interface ContentMenu {
     text: string;
 }
 
-// @alpha (undocumented)
-export interface Cookie {
-    delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
-    get(name: string): CookieValue | null;
-    has(name: string): boolean;
-    headers(): string[];
-    set(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;
-}
+export { Cookie }
 
-// @alpha
-export interface CookieOptions {
-    domain?: string;
-    expires?: Date | string;
-    httpOnly?: boolean;
-    maxAge?: number | [number, 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks'];
-    path?: string;
-    sameSite?: 'strict' | 'lax' | 'none';
-    secure?: boolean;
-}
+export { CookieOptions }
 
-// @alpha (undocumented)
-export interface CookieValue {
-    // (undocumented)
-    json: <T = unknown>() => T;
-    // (undocumented)
-    number: () => number;
-    // (undocumented)
-    value: string;
-}
+export { CookieValue }
 
 // @alpha (undocumented)
 export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);
 
 // @alpha (undocumented)
 export interface DocumentHeadProps extends RouteLocation {
-    // Warning: (ae-forgotten-export) The symbol "GetSyncData" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     readonly getData: GetSyncData;
     // (undocumented)
@@ -216,51 +197,12 @@ export interface QwikCityPlan {
 // @alpha (undocumented)
 export const QwikCityProvider: Component<QwikCityProps>;
 
-// @alpha (undocumented)
-export interface RequestContext {
-    // (undocumented)
-    formData(): Promise<FormData>;
-    // (undocumented)
-    headers: Headers;
-    // (undocumented)
-    json(): Promise<any>;
-    // (undocumented)
-    method: string;
-    // (undocumented)
-    text(): Promise<string>;
-    // (undocumented)
-    url: string;
-}
+export { RequestEvent }
 
-// Warning: (ae-forgotten-export) The symbol "RequestEventBase" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export interface RequestEvent<PLATFORM = unknown> extends RequestEventBase<PLATFORM> {
-    // (undocumented)
-    readonly abort: () => void;
-    // (undocumented)
-    readonly next: () => Promise<void>;
-}
-
-// @alpha (undocumented)
-export type RequestHandler<PLATFORM = unknown> = (ev: RequestEvent<PLATFORM>) => void;
+export { RequestHandler }
 
 // @alpha (undocumented)
 export type ResolvedDocumentHead = Required<DocumentHeadValue>;
-
-// @alpha (undocumented)
-export interface ResponseContext {
-    // Warning: (ae-forgotten-export) The symbol "ErrorResponse" needs to be exported by the entry point index.d.ts
-    readonly error: (status: number) => ErrorResponse;
-    readonly headers: Headers;
-    readonly html: (html: string) => void;
-    readonly json: (data: any) => void;
-    locale: string | undefined;
-    // Warning: (ae-forgotten-export) The symbol "RedirectResponse" needs to be exported by the entry point index.d.ts
-    readonly redirect: (url: string, status?: number) => RedirectResponse;
-    readonly send: (data: any) => void;
-    status: number;
-}
 
 // Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
 //

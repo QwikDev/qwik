@@ -1,8 +1,8 @@
 import type { RequestHandler } from '@builder.io/qwik-city';
 import os from 'node:os';
 
-export const onGet: RequestHandler = ({ request, response }) => {
-  response.json({
+export const onGet: RequestHandler = ({ request, json }) => {
+  json(200, {
     timestamp: Date.now(),
     method: request.method,
     url: request.url,

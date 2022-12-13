@@ -1,18 +1,14 @@
 import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import type { RenderOptions } from '@builder.io/qwik';
-import type { RequestContext } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 import qwikCityPlan from '@qwik-city-plan';
 import { notFoundHandler, requestHandler } from '../request-handler';
 import { createHeaders } from '../request-handler/headers';
-import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-handler/types';
+import type { RequestContext, ServerRenderOptions, ServerRequestEvent } from '../request-handler';
 
 // @builder.io/qwik-city/middleware/azure-swa
 
-/**
- * @alpha
- */
-export function createQwikRequest(req: HttpRequest): RequestContext {
+function createQwikRequest(req: HttpRequest): RequestContext {
   const url = req.headers['x-ms-original-url']!;
 
   const headers = createHeaders();
@@ -44,18 +40,19 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
     try {
       const qwikRequest = createQwikRequest(req);
 
-      const requestCtx: QwikCityRequestContext<void> = {
+      const serverRequestEv: ServerRequestEvent<AzureResponse> = {
         mode: 'server',
         locale: undefined,
         url: new URL(qwikRequest.url),
+        platform: context,
         request: qwikRequest,
-        response: (status, headers, cookies, body) => {
+        response: (status, headers, _cookies, body) => {
           const res: AzureResponse = (context.res = {
             status,
             headers: {},
           });
           headers.forEach((value, key) => (res.headers[key] = value));
-          return body({
+          body({
             write(chunk: string) {
               // simple concat because streaming not supported - see https://github.com/Azure/azure-functions-host/issues/1361
               if (res.body) {
@@ -64,20 +61,21 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
                 res.body = chunk;
               }
             },
+            end() {},
           });
+          return res;
         },
-        platform: context,
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler<void>(requestCtx, opts);
+      const handledResponse = await requestHandler<void>(serverRequestEv, opts);
       if (handledResponse !== null) {
         return handledResponse;
       }
 
       // qwik city did not have a route for this request
       // respond with qwik city's 404 handler
-      const notFoundResponse = await notFoundHandler<void>(requestCtx);
+      const notFoundResponse = await notFoundHandler<void>(serverRequestEv);
       return notFoundResponse;
     } catch (e: any) {
       console.error(e);
@@ -95,7 +93,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
 /**
  * @alpha
  */
-export interface QwikCityAzureOptions extends QwikCityHandlerOptions {}
+export interface QwikCityAzureOptions extends ServerRenderOptions {}
 
 /**
  * @alpha

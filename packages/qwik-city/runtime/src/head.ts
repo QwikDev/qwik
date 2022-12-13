@@ -2,13 +2,13 @@ import { withLocale } from '@builder.io/qwik';
 import type { ServerLoaderInternal } from './server-functions';
 import type {
   ContentModule,
+  GetData,
   RouteLocation,
   EndpointResponse,
   ResolvedDocumentHead,
   DocumentHeadProps,
   DocumentHeadValue,
   ClientPageData,
-  GetData,
 } from './types';
 
 export const resolveHead = async (

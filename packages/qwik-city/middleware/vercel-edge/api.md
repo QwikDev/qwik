@@ -4,20 +4,18 @@
 
 ```ts
 
-import { QRL } from '@builder.io/qwik';
+import type { GetSyncData } from '../../middleware/request-handler';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
-import { ResourceReturn } from '@builder.io/qwik';
-import { Signal } from '@builder.io/qwik';
-import { ValueOrPromise } from '@builder.io/qwik';
+import type { RequestHandler } from '../../middleware/request-handler';
 
 // @alpha (undocumented)
 export function createQwikCity(opts: QwikCityVercelEdgeOptions): (request: Request) => Promise<Response>;
 
-// Warning: (ae-forgotten-export) The symbol "QwikCityHandlerOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ServerRenderOptions" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export interface QwikCityVercelEdgeOptions extends QwikCityHandlerOptions {
+export interface QwikCityVercelEdgeOptions extends ServerRenderOptions {
 }
 
 // (No @packageDocumentation comment for this package)

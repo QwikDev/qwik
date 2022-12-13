@@ -8,7 +8,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { errorHandler, requestHandler } from '../request-handler';
-import type { QwikCityHandlerOptions } from '../request-handler/types';
+import type { ServerRenderOptions } from '../request-handler/types';
 import { fromNodeHttp, getUrl } from './http';
 import { patchGlobalFetch } from './node-fetch';
 
@@ -28,14 +28,14 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
   ) => {
     try {
       await patchGlobalFetch();
-      const requestCtx = await fromNodeHttp(getUrl(req), req, res, 'server');
+      const serverRequestEv = await fromNodeHttp(getUrl(req), req, res, 'server');
       try {
-        const rsp = await requestHandler(requestCtx, opts);
-        if (!rsp) {
+        const handled = await requestHandler<boolean>(serverRequestEv, opts);
+        if (!handled) {
           next();
         }
       } catch (e) {
-        await errorHandler(requestCtx, e);
+        await errorHandler(serverRequestEv, e);
       }
     } catch (e) {
       console.error(e);
@@ -93,7 +93,7 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
 /**
  * @alpha
  */
-export interface QwikCityNodeRequestOptions extends QwikCityHandlerOptions {
+export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
   /** Options for serving static files */
   static?: {
     /** The root folder for statics files. Defaults to /dist */

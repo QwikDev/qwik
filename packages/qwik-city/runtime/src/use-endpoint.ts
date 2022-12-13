@@ -28,15 +28,12 @@ export const loadClientData = async (
     qData = fetch(clientDataPath, options).then((rsp) => {
       if ((rsp.headers.get('content-type') || '').includes('json')) {
         return rsp.json().then((clientData: ClientPageData) => {
-          dispatchPrefetchEvent({
-            bundles: clientData.prefetch,
-          });
           if (clearCache) {
             CLIENT_DATA_CACHE.delete(clientDataPath);
           }
           if (action) {
             const actionData = clientData.loaders[action.id];
-            action.resolve({status: rsp.status, result: actionData});
+            action.resolve({ status: rsp.status, result: actionData });
           }
           return clientData;
         });

@@ -1,7 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-
 import type { QwikCityMode } from '../../runtime/src/types';
-import type { QwikCityRequestContext } from '../request-handler/types';
+import type { ServerRequestEvent } from '../request-handler/types';
 
 export function getUrl(req: IncomingMessage) {
   const protocol =
@@ -37,31 +36,25 @@ export async function fromNodeHttp(
   };
 
   const body = req.method === 'HEAD' || req.method === 'GET' ? undefined : getRequestBody();
-  const requestCtx: QwikCityRequestContext = {
+  const serverRequestEv: ServerRequestEvent<boolean> = {
     mode,
+    url,
     request: new Request(url.href, {
       method: req.method,
       headers: requestHeaders,
       body,
       duplex: 'half',
     }) as any,
-    response: async (status, headers, cookies, body) => {
+    response: (status, headers, cookies, body) => {
       res.statusCode = status;
       headers.forEach((value, key) => res.setHeader(key, value));
       const cookieHeaders = cookies.headers();
       if (cookieHeaders.length > 0) {
         res.setHeader('Set-Cookie', cookieHeaders);
       }
-      body({
-        write: (chunk) => {
-          res.write(chunk);
-        },
-      }).finally(() => {
-        res.end();
-      });
-      return res;
+      body(res);
+      return true;
     },
-    url,
     platform: {
       ssr: true,
       node: process.versions.node,
@@ -69,5 +62,5 @@ export async function fromNodeHttp(
     locale: undefined,
   };
 
-  return requestCtx;
+  return serverRequestEv;
 }

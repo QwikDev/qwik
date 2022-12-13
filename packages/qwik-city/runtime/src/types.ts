@@ -1,8 +1,15 @@
-import type { Cookie, CookieOptions, CookieValue } from '../../middleware/request-handler/types';
-import type { ErrorResponse } from '../../middleware/request-handler/error-handler';
-import type { RedirectResponse } from '../../middleware/request-handler/redirect-handler';
+import type { GetSyncData, RequestHandler } from '../../middleware/request-handler';
 import type { NoSerialize, QRL, Signal } from '@builder.io/qwik';
-import type { ServerAction, ServerLoader } from './server-functions';
+
+export type {
+  Cookie,
+  CookieOptions,
+  CookieValue,
+  GetData,
+  GetSyncData,
+  RequestEvent,
+  RequestHandler,
+} from '../../middleware/request-handler';
 
 export interface RouteModule<BODY = unknown> {
   onDelete?: RequestHandler<BODY> | RequestHandler<BODY>[];
@@ -46,7 +53,7 @@ export type RouteNavigate = QRL<(path?: string) => Promise<void>>;
 
 export type RouteAction = Signal<RouteActionValue>;
 
-export type RouteActionResolver = {status: number, result: any};
+export type RouteActionResolver = { status: number; result: any };
 export type RouteActionValue = NoSerialize<{
   data: FormData;
   id: string;
@@ -238,144 +245,6 @@ export interface LoadedContent extends LoadedRoute {
 
 /**
  * @alpha
- */
-export interface RequestContext {
-  formData(): Promise<FormData>;
-  headers: Headers;
-  json(): Promise<any>;
-  method: string;
-  text(): Promise<string>;
-  url: string;
-}
-
-/**
- * @alpha
- */
-export interface ResponseContext {
-  /**
-   * HTTP response status code.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-   */
-  status: number;
-
-  /**
-   * Which locale the content is in.
-   *
-   * The locale value can be retrieved from selected methods using `getLocale()`:
-   */
-  locale: string | undefined;
-
-  /**
-   * HTTP response headers.
-   *
-   * https://developer.mozilla.org/en-US/docs/Glossary/Response_header
-   */
-  readonly headers: Headers;
-
-  /**
-   * URL to redirect to. When called, the response will immediately
-   * end with the correct redirect status and headers.
-   * Defaults to use the `307` response status code, but can be
-   * overridden by setting the `status` argument.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
-   */
-  readonly redirect: (url: string, status?: number) => RedirectResponse;
-
-  /**
-   * When called, the response will immediately end with the given
-   * status code. This could be useful to end a response with `404`,
-   * and use the 404 handler in the routes directory.
-   * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-   * for which status code should be used.
-   */
-  readonly error: (status: number) => ErrorResponse;
-
-  /**
-   * Convenience method to send an HTML body response. The response will be automatically JSON
-   * stringify the data and set the `Content-Type` header to
-   * `text/html; charset=utf-8`. A send response can only be called once.
-   */
-  readonly html: (html: string) => void;
-
-  /**
-   * Convenience method to send a JSON body response. The response will be automatically
-   * set the `Content-Type` header to `application/json; charset=utf-8`.
-   * A send response can only be called once.
-   */
-  readonly json: (data: any) => void;
-
-  /**
-   * Send a body response. The `Content-Type` response header is not automatically set
-   * when using `send()` and must be set manually. A send response can only be called once.
-   */
-  readonly send: (data: any) => void;
-}
-
-/**
- * @alpha
- */
-export interface RequestEvent<PLATFORM = unknown> extends RequestEventBase<PLATFORM> {
-  readonly next: () => Promise<void>;
-  readonly abort: () => void;
-}
-
-export interface GetData {
-  <T>(loader: ServerLoader<T>): Promise<T>;
-  <T>(loader: ServerAction<T>): Promise<T | undefined>;
-}
-
-export interface GetSyncData {
-  <T>(loader: ServerLoader<T>): T;
-  <T>(loader: ServerAction<T>): T | undefined;
-}
-
-/**
- * @alpha
- */
-export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventBase<PLATFORM> {
-  getData: GetData;
-}
-
-/**
- * @alpha
- */
-export interface RequestEventBase<PLATFORM> {
-  readonly request: RequestContext;
-  readonly response: ResponseContext;
-  readonly url: URL;
-
-  /**
-   * URL path params which have been parsed from the current url pathname segments.
-   * Use `query` to instead retrieve the query string search params.
-   */
-  readonly params: Record<string, string>;
-
-  /**
-   * URL Query Strings (URL Search Params).
-   * Use `params` to instead retrieve the route params found in the url pathname.
-   */
-  readonly query: URLSearchParams;
-
-  /** Platform specific data and functions */
-  readonly platform: PLATFORM;
-
-  readonly cookie: Cookie;
-}
-
-/**
- * @alpha
- */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
-
-/**
- * @alpha
- */
-export type RequestHandler<PLATFORM = unknown> = (ev: RequestEvent<PLATFORM>) => void;
-
-/**
- * @alpha
  * @deprecated Please use `RequestHandler` instead.
  */
 export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
@@ -386,10 +255,6 @@ export type RequestHandlerBodyFunction<BODY> = () =>
   | RequestHandlerBody<BODY>
   | Promise<RequestHandlerBody<BODY>>;
 
-// export type RequestHandlerResult<BODY> =
-//   | (RequestHandlerBody<BODY> | RequestHandlerBodyFunction<BODY>)
-//   | Promise<RequestHandlerBody<BODY> | RequestHandlerBodyFunction<BODY>>;
-
 export interface EndpointResponse {
   status: number;
   loaders: Record<string, Promise<any>>;
@@ -397,9 +262,9 @@ export interface EndpointResponse {
 
 export interface ClientPageData extends Omit<EndpointResponse, 'status' | 'body'> {
   status?: number;
-  prefetch?: string[];
+  // prefetch?: string[];
   redirect?: string;
-  isStatic: boolean;
+  // isStatic: boolean;
 }
 
 /**
@@ -431,5 +296,3 @@ export interface SimpleURL {
   search: string;
   hash: string;
 }
-
-export { Cookie, CookieOptions, CookieValue };

@@ -6,15 +6,13 @@
 
 /// <reference types="node" />
 
+import type { GetSyncData } from '../../middleware/request-handler';
 import type { IncomingMessage } from 'node:http';
-import { QRL } from '@builder.io/qwik';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RenderOptions as RenderOptions_2 } from '@builder.io/qwik';
-import { ResourceReturn } from '@builder.io/qwik';
+import type { RequestHandler } from '../../middleware/request-handler';
 import type { ServerResponse } from 'node:http';
-import { Signal } from '@builder.io/qwik';
-import { ValueOrPromise } from '@builder.io/qwik';
 
 // @alpha (undocumented)
 export function createQwikCity(opts: QwikCityNodeRequestOptions): {
@@ -36,10 +34,10 @@ export function qwikCity(render: Render, opts?: RenderOptions_2): {
     staticFile: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: (e?: any) => void) => Promise<void>;
 };
 
-// Warning: (ae-forgotten-export) The symbol "QwikCityHandlerOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ServerRenderOptions" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export interface QwikCityNodeRequestOptions extends QwikCityHandlerOptions {
+export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
     static?: {
         root?: string;
         cacheControl?: string;

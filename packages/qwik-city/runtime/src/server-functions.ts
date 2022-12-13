@@ -13,17 +13,16 @@ import {
   useStore,
   untrack,
 } from '@builder.io/qwik';
+import type { RequestEventLoader } from '../../middleware/request-handler/types';
 import { RouteStateContext } from './contexts';
-import type { RequestEventLoader, RouteActionResolver } from './types';
+import type { RouteActionResolver } from './types';
 import { useAction, useLocation } from './use-functions';
 
-export interface ServerActionInternal {
-  readonly __brand: 'server_action';
-  __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>;
-  use(): ServerActionUtils<any>;
-}
-
-export type ServerActionExecute<RETURN> = QRL<(form: FormData | Record<string, string | string[] | Blob | Blob[]> | SubmitEvent) => Promise<RETURN>>;
+export type ServerActionExecute<RETURN> = QRL<
+  (
+    form: FormData | Record<string, string | string[] | Blob | Blob[]> | SubmitEvent
+  ) => Promise<RETURN>
+>;
 
 export interface ServerActionUtils<RETURN> {
   id: string;
@@ -35,9 +34,14 @@ export interface ServerActionUtils<RETURN> {
 }
 
 export interface ServerAction<RETURN> {
-  readonly [isServerLoader]: true;
-
+  readonly [isServerLoader]?: true;
   use(): ServerActionUtils<RETURN>;
+}
+
+export interface ServerActionInternal extends ServerAction<any> {
+  readonly __brand: 'server_action';
+  __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>;
+  use(): ServerActionUtils<any>;
 }
 
 export class ServerActionImpl implements ServerActionInternal {
@@ -107,7 +111,7 @@ export class ServerActionImpl implements ServerActionInternal {
           status: statusStr,
           value,
         };
-      })
+      });
     });
     return state;
   }
@@ -127,21 +131,21 @@ export const serverActionQrl = <B>(
  */
 export const serverAction$ = implicit$FirstArg(serverActionQrl);
 
-declare const isServerLoader: unique symbol;
-
-export interface ServerLoaderInternal {
-  readonly __brand: 'server_loader';
-  __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>;
-  use(): Signal<any>;
-}
-
 export type ServerLoaderUse<T> = Awaited<T> extends () => ValueOrPromise<infer B>
   ? ResourceReturn<B>
   : Signal<Awaited<T>>;
 
 export interface ServerLoader<RETURN> {
-  readonly [isServerLoader]: true;
+  readonly [isServerLoader]?: true;
   use(): ServerLoaderUse<RETURN>;
+}
+
+declare const isServerLoader: unique symbol;
+
+export interface ServerLoaderInternal extends ServerLoader<any> {
+  readonly __brand?: 'server_loader';
+  __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>;
+  use(): Signal<any>;
 }
 
 export class ServerLoaderImpl implements ServerLoaderInternal {
@@ -172,13 +176,13 @@ export const serverLoader$ = implicit$FirstArg(serverLoaderQrl);
  * @alpha
  */
 export interface FormProps<T> extends Omit<QwikJSX.IntrinsicElements['form'], 'action'> {
-  action: ServerActionUtils<T>
+  action: ServerActionUtils<T>;
 }
 
 /**
  * @alpha
  */
-export const Form = <T>({action, ...rest}: FormProps<T>) => {
+export const Form = <T>({ action, ...rest }: FormProps<T>) => {
   return jsx('form', {
     action: action.actionPath,
     method: 'POST',

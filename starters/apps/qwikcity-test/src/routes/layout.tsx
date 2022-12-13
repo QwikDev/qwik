@@ -27,7 +27,7 @@ export default component$(() => {
   );
 });
 
-export const onGet: RequestHandler = ({ response }) => {
+export const onGet: RequestHandler = ({ headers }) => {
   // cache for a super long time of 10 seconds for pages using this layout
-  response.headers.set('Cache-Control', 'max-age=10');
+  headers.set('Cache-Control', 'max-age=10');
 };

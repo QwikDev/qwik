@@ -5,13 +5,11 @@
 ```ts
 
 import type { Context } from '@netlify/edge-functions';
-import { QRL } from '@builder.io/qwik';
+import type { GetSyncData } from '../../middleware/request-handler';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
+import type { RequestHandler } from '../../middleware/request-handler';
 import type { RequestHandler as RequestHandler_2 } from '@builder.io/qwik-city';
-import { ResourceReturn } from '@builder.io/qwik';
-import { Signal } from '@builder.io/qwik';
-import { ValueOrPromise } from '@builder.io/qwik';
 
 // @alpha (undocumented)
 export function createQwikCity(opts: QwikCityNetlifyOptions): (request: Request, context: Context) => Promise<Response>;
@@ -20,10 +18,10 @@ export function createQwikCity(opts: QwikCityNetlifyOptions): (request: Request,
 export interface EventPluginContext extends Context {
 }
 
-// Warning: (ae-forgotten-export) The symbol "QwikCityHandlerOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ServerRenderOptions" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export interface QwikCityNetlifyOptions extends QwikCityHandlerOptions {
+export interface QwikCityNetlifyOptions extends ServerRenderOptions {
 }
 
 // @alpha (undocumented)

@@ -6,7 +6,7 @@ export default component$(() => {
   const { params, pathname } = useLocation();
   const store = useStore({ productFetchData: '' });
 
-  const product = getProduct.use();
+  const product = productLoader.use();
 
   return (
     <div>
@@ -80,19 +80,19 @@ export const PRODUCT_DB: Record<string, string> = {
   tshirt: '$18.96',
 };
 
-export const getProduct = serverLoader$(async ({ params, response, query }) => {
+export const productLoader = serverLoader$(async ({ headers, params, query, redirect, status }) => {
   // Serverside Endpoint
   // During SSR, this method is called directly on the server and returns the data object
   // On the client, this same data can be requested with fetch() at the same URL, but also
   // requires the "accept: application/json" request header.
 
   if (query.has('querystring-test')) {
-    throw response.redirect('/qwikcity-test/');
+    throw redirect(301, '/qwikcity-test/');
   }
 
   if (params.id === 'shirt') {
     // Redirect, which will skip any rendering and the server will immediately redirect
-    throw response.redirect('/qwikcity-test/products/tshirt/');
+    throw redirect(301, '/qwikcity-test/products/tshirt/');
   }
 
   const productPrice = PRODUCT_DB[params.id];
@@ -100,14 +100,14 @@ export const getProduct = serverLoader$(async ({ params, response, query }) => {
     // Product data not found, but purposely not throwing a response.error(404)
     // instead the renderer will still run with the returned `null` data
     // and the component will decide how to render it
-    response.status = 404;
+    status(404);
     // never cache
-    response.headers.set('Cache-Control', 'no-cache, no-store, no-fun');
+    headers.set('Cache-Control', 'no-cache, no-store, no-fun');
     return null;
   }
 
   // cache for a super long time of 15 seconds
-  response.headers.set('Cache-Control', 'max-age=15');
+  headers.set('Cache-Control', 'max-age=15');
 
   await new Promise<void>((resolve) => setTimeout(resolve, 200));
 

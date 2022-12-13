@@ -1,6 +1,5 @@
 import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'node:http';
-import type { RenderToStringResult } from '@builder.io/qwik/server';
 import type { BuildContext } from '../types';
 import type { RouteModule } from '../../runtime/src/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
@@ -10,9 +9,10 @@ import {
   getRouteMatchPathname,
   loadUserResponse,
 } from '../../middleware/request-handler/user-response';
-import { getQwikCityEnvData, pageHandler } from '../../middleware/request-handler/page-handler';
+import { getQwikCityEnvData } from '../../middleware/request-handler/response-page';
+import { responseQData } from '../../middleware/request-handler/response-q-data';
+import { responseEndpoint } from '../../middleware/request-handler/response-endpoint';
 import { updateBuildContext } from '../build';
-import { endpointHandler } from '../../middleware/request-handler/endpoint-handler';
 import {
   errorResponse,
   ErrorResponse,
@@ -68,7 +68,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         return;
       }
 
-      const requestCtx = await fromNodeHttp(url, req, res, 'dev');
+      const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
 
       await updateBuildContext(ctx);
 
@@ -99,35 +99,29 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           routeModules.push(endpointModule);
           routeModulePaths.set(endpointModule, route.filePath);
 
-          const userResponse = await loadUserResponse(
-            requestCtx,
+          const userResponseCtx = await loadUserResponse(
+            serverRequestEv,
             params,
             routeModules,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname
           );
 
-          if (userResponse.type === 'pagedata') {
+          if (userResponseCtx.type === 'pagedata') {
             // dev server endpoint handler
-            await pageHandler(requestCtx, matchPathname, userResponse, noopDevRender);
+            responseQData(serverRequestEv, userResponseCtx);
             return;
           }
 
-          if (userResponse.type === 'endpoint') {
+          if (userResponseCtx.type === 'endpoint') {
             // dev server endpoint handler
-            await endpointHandler(requestCtx, userResponse);
+            responseEndpoint(serverRequestEv, userResponseCtx);
             return;
           }
 
           // qwik city vite plugin should handle dev ssr rendering
           // but add the qwik city user context to the response object
-          const envData = getQwikCityEnvData(
-            requestHeaders,
-            matchPathname,
-            userResponse,
-            requestCtx.locale,
-            'dev'
-          );
+          const envData = getQwikCityEnvData(requestHeaders, matchPathname, userResponseCtx, 'dev');
           if (ctx.isDevServerClientOnly) {
             // because we stringify this content for the client only
             // dev server, there's some potential stringify issues
@@ -143,9 +137,9 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
           // update node response with status and headers
           // but do not end() it, call next() so qwik plugin handles rendering
-          res.statusCode = userResponse.status;
-          userResponse.headers.forEach((value, key) => res.setHeader(key, value));
-          const cookies = userResponse.cookie.headers();
+          res.statusCode = userResponseCtx.status;
+          userResponseCtx.headers.forEach((value, key) => res.setHeader(key, value));
+          const cookies = userResponseCtx.cookie.headers();
           if (cookies.length > 0) {
             res.setHeader('Set-Cookie', cookies);
           }
@@ -156,9 +150,9 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           formatError(e);
 
           if (e instanceof RedirectResponse) {
-            redirectResponse(requestCtx, e);
+            redirectResponse(serverRequestEv, e);
           } else if (e instanceof ErrorResponse) {
-            errorResponse(requestCtx, e);
+            errorResponse(serverRequestEv, e);
           } else if (e instanceof Error && (e as any).id === 'DEV_SERIALIZE') {
             next(formatDevSerializeError(e, routeModulePaths));
           } else {
@@ -171,7 +165,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
         // test if this is a dev service-worker.js request
         for (const sw of ctx.serviceWorkers) {
-          const match = sw.pattern.exec(requestCtx.url.pathname);
+          const match = sw.pattern.exec(serverRequestEv.url.pathname);
           if (match) {
             res.setHeader('Content-Type', 'text/javascript');
             res.end(DEV_SERVICE_WORKER);
@@ -181,7 +175,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
       }
 
       // simple test if it's a static file
-      const ext = getExtension(requestCtx.url.pathname);
+      const ext = getExtension(serverRequestEv.url.pathname);
       if (STATIC_CONTENT_TYPES[ext]) {
         // let the static asset middleware handle this
         next();
@@ -197,7 +191,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         //       there's two ways handling HMR for page endpoint with error
         // 1. Html response inject `import.meta.hot.accept('./pageEndpoint_FILE_URL', () => { location.reload })`
         // 2. watcher, diff previous & current file content, a bit expensive
-        notFoundHandler(requestCtx);
+        notFoundHandler(serverRequestEv);
         return;
       }
 
@@ -267,20 +261,6 @@ export function staticDistMiddleware({ config }: ViteDevServer) {
 
     next();
   };
-}
-
-async function noopDevRender() {
-  const result: RenderToStringResult = {
-    html: '',
-    timing: {
-      render: 0,
-      snapshot: 0,
-    },
-    isStatic: false,
-    prefetchResources: [],
-    snapshotResult: undefined,
-  };
-  return result;
 }
 
 function formatDevSerializeError(err: any, routeModulePaths: WeakMap<RouteModule, string>) {

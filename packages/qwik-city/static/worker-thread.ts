@@ -4,8 +4,7 @@ import type {
   StaticWorkerRenderResult,
   System,
 } from './types';
-import type { QwikCityRequestContext } from '../middleware/request-handler/types';
-import type { RequestContext } from '../runtime/src/types';
+import type { ServerRequestEvent, RequestContext } from '../middleware/request-handler';
 import { createHeaders } from '../middleware/request-handler/headers';
 import { requestHandler } from '../middleware/request-handler';
 import { pathToFileURL } from 'node:url';
@@ -59,7 +58,7 @@ async function workerRender(
   try {
     const request = new SsgRequestContext(url);
 
-    const requestCtx: QwikCityRequestContext<void> = {
+    const requestCtx: ServerRequestEvent<void> = {
       mode: 'static',
       locale: undefined,
       url,
@@ -107,21 +106,22 @@ async function workerRender(
                 if (dataWriter) {
                   dataWriter.write(JSON.stringify(data));
                 }
-                if (typeof data.isStatic === 'boolean') {
-                  result.isStatic = data.isStatic;
+                // if (typeof data.isStatic === 'boolean') {
+                //   result.isStatic = data.isStatic;
+                // }
+              },
+              end: () => {
+                if (htmlWriter) {
+                  if (dataWriter) {
+                    dataWriter.close();
+                  }
+                  htmlWriter.close(resolve);
+                } else if (dataWriter) {
+                  dataWriter.close(resolve);
+                } else {
+                  resolve();
                 }
               },
-            }).finally(() => {
-              if (htmlWriter) {
-                if (dataWriter) {
-                  dataWriter.close();
-                }
-                htmlWriter.close(resolve);
-              } else if (dataWriter) {
-                dataWriter.close(resolve);
-              } else {
-                resolve();
-              }
             });
           });
         }

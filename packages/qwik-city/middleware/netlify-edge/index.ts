@@ -1,5 +1,5 @@
 import type { Context } from '@netlify/edge-functions';
-import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-handler/types';
+import type { ServerRenderOptions, ServerRequestEvent } from '../request-handler/types';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { requestHandler } from '../request-handler';
 import { mergeHeadersCookies } from '../request-handler/cookie';
@@ -21,42 +21,34 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
         return context.next();
       }
 
-      const requestCtx: QwikCityRequestContext<Response> = {
+      const requestCtx: ServerRequestEvent<Response> = {
         mode: 'server',
         locale: undefined,
         url,
         request,
         response: (status, headers, cookies, body) => {
-          return new Promise<Response>((resolve) => {
-            let flushedHeaders = false;
-            const { readable, writable } = new TransformStream();
-            const writer = writable.getWriter();
-            const response = new Response(readable, {
-              status,
-              headers: mergeHeadersCookies(headers, cookies),
-            });
-
-            body({
-              write: (chunk) => {
-                if (!flushedHeaders) {
-                  flushedHeaders = true;
-                  resolve(response);
-                }
-                if (typeof chunk === 'string') {
-                  const encoder = new TextEncoder();
-                  writer.write(encoder.encode(chunk));
-                } else {
-                  writer.write(chunk);
-                }
-              },
-            }).finally(() => {
-              if (!flushedHeaders) {
-                flushedHeaders = true;
-                resolve(response);
-              }
-              writer.close();
-            });
+          const { readable, writable } = new TransformStream();
+          const writer = writable.getWriter();
+          const response = new Response(readable, {
+            status,
+            headers: mergeHeadersCookies(headers, cookies),
           });
+
+          body({
+            write: (chunk) => {
+              if (typeof chunk === 'string') {
+                const encoder = new TextEncoder();
+                writer.write(encoder.encode(chunk));
+              } else {
+                writer.write(chunk);
+              }
+            },
+            end: () => {
+              writer.close();
+            },
+          });
+
+          return response;
         },
         platform: context,
       };
@@ -89,7 +81,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
 /**
  * @alpha
  */
-export interface QwikCityNetlifyOptions extends QwikCityHandlerOptions {}
+export interface QwikCityNetlifyOptions extends ServerRenderOptions {}
 
 /**
  * @alpha

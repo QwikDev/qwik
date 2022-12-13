@@ -1,7 +1,7 @@
 import { Cookie as CookieI } from './cookie';
 import { createHeaders } from './headers';
 import { HttpStatus } from './http-status-codes';
-import type { Cookie, QwikCityRequestContext } from './types';
+import type { Cookie, ServerRequestEvent } from './types';
 
 export class RedirectResponse {
   public status: number;
@@ -20,10 +20,10 @@ export class RedirectResponse {
 }
 
 export function redirectResponse(
-  requestCtx: QwikCityRequestContext,
+  serverRequestEv: ServerRequestEvent,
   responseRedirect: RedirectResponse
 ) {
-  return requestCtx.response(
+  return serverRequestEv.response(
     responseRedirect.status,
     responseRedirect.headers,
     responseRedirect.cookies,

@@ -1,63 +1,59 @@
-import type { QwikCityHandlerOptions, QwikCityRequestContext } from './types';
-import { endpointHandler } from './endpoint-handler';
+import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import { ErrorResponse, errorResponse } from './error-handler';
 import { getRouteMatchPathname, loadUserResponse } from './user-response';
 import { loadRoute } from '../../runtime/src/routing';
-import { pageHandler } from './page-handler';
 import { RedirectResponse, redirectResponse } from './redirect-handler';
+import { responsePage } from './response-page';
+import { responseQData } from './response-q-data';
+import { responseEndpoint } from './response-endpoint';
 
 /**
  * @alpha
  */
-export async function requestHandler<T = any>(
-  requestCtx: QwikCityRequestContext,
-  opts: QwikCityHandlerOptions
+export async function requestHandler<T = unknown>(
+  serverRequestEv: ServerRequestEvent<T>,
+  opts: ServerRenderOptions
 ): Promise<T | null> {
   try {
     const { render, qwikCityPlan } = opts;
     const { routes, menus, cacheModules, trailingSlash, basePathname } = qwikCityPlan;
 
-    const matchPathname = getRouteMatchPathname(requestCtx.url.pathname, trailingSlash);
+    const matchPathname = getRouteMatchPathname(serverRequestEv.url.pathname, trailingSlash);
     const loadedRoute = await loadRoute(routes, menus, cacheModules, matchPathname);
     if (loadedRoute) {
       // found and loaded the route for this pathname
-      const [params, mods, _, routeBundleNames] = loadedRoute;
+      const [params, mods] = loadedRoute;
 
       // build endpoint response from each module in the hierarchy
-      const userResponse = await loadUserResponse(
-        requestCtx,
+      const userResponseCtx = await loadUserResponse(
+        serverRequestEv,
         params,
         mods,
         trailingSlash,
         basePathname
       );
-      if (userResponse.aborted) {
+
+      if (userResponseCtx.aborted) {
+        // response was aborted, early exit
         return null;
       }
 
-      // status and headers should be immutable in at this point
-      // body may not have resolved yet
-      if (userResponse.type === 'endpoint') {
-        const endpointResult = await endpointHandler(requestCtx, userResponse);
-        return endpointResult;
+      if (userResponseCtx.type === 'endpoint') {
+        return responseEndpoint(serverRequestEv, userResponseCtx);
       }
 
-      const pageResult = await pageHandler(
-        requestCtx,
-        matchPathname,
-        userResponse,
-        render,
-        opts,
-        routeBundleNames
-      );
-      return pageResult;
+      if (userResponseCtx.type === 'pagedata') {
+        return responseQData(serverRequestEv, userResponseCtx);
+      }
+
+      return responsePage(serverRequestEv, matchPathname, userResponseCtx, render, opts);
     }
   } catch (e: any) {
     if (e instanceof RedirectResponse) {
-      return redirectResponse(requestCtx, e);
+      return redirectResponse(serverRequestEv, e);
     }
     if (e instanceof ErrorResponse) {
-      return errorResponse(requestCtx, e);
+      return errorResponse(serverRequestEv, e);
     }
     // TODO: review
     throw e;

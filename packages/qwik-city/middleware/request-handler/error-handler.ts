@@ -1,7 +1,7 @@
 import { Cookie } from './cookie';
 import { createHeaders } from './headers';
 import { HttpStatus } from './http-status-codes';
-import type { QwikCityRequestContext } from './types';
+import type { ServerRequestEvent } from './types';
 
 export class ErrorResponse extends Error {
   constructor(public status: number, message?: string) {
@@ -9,28 +9,29 @@ export class ErrorResponse extends Error {
   }
 }
 
-export function notFoundHandler<T = any>(requestCtx: QwikCityRequestContext): Promise<T> {
-  return errorResponse(requestCtx, new ErrorResponse(404, 'Not Found'));
+export function notFoundHandler<T = any>(stream: ServerRequestEvent): Promise<T> {
+  return errorResponse(stream, new ErrorResponse(404, 'Not Found'));
 }
 
-export function errorHandler(requestCtx: QwikCityRequestContext, e: any) {
+export function errorHandler(serverRequestEv: ServerRequestEvent, e: any) {
   const status = HttpStatus.InternalServerError;
   const html = getErrorHtml(status, e);
   const headers = createHeaders();
   headers.set('Content-Type', 'text/html; charset=utf-8');
 
-  return requestCtx.response(
+  return serverRequestEv.response(
     status,
     headers,
     new Cookie(),
-    async (stream) => {
+    (stream) => {
       stream.write(html);
+      stream.end();
     },
     e
   );
 }
 
-export function errorResponse(requestCtx: QwikCityRequestContext, errorResponse: ErrorResponse) {
+export function errorResponse(stream: ServerRequestEvent, errorResponse: ErrorResponse) {
   const html = minimalHtmlResponse(
     errorResponse.status,
     errorResponse.message,
@@ -40,12 +41,13 @@ export function errorResponse(requestCtx: QwikCityRequestContext, errorResponse:
   const headers = createHeaders();
   headers.set('Content-Type', 'text/html; charset=utf-8');
 
-  return requestCtx.response(
+  return stream.response(
     errorResponse.status,
     headers,
     new Cookie(),
-    async (stream) => {
+    (stream) => {
       stream.write(html);
+      stream.end();
     },
     errorResponse
   );

@@ -31,19 +31,19 @@ export const head: DocumentHead = {
   title: 'Sign In',
 };
 
-export const onGet: RequestHandler = async ({ response, cookie }) => {
+export const onGet: RequestHandler = async ({ redirect, cookie }) => {
   if (await isUserAuthenticated(cookie)) {
-    throw response.redirect('/qwikcity-test/dashboard/');
+    throw redirect(301, '/qwikcity-test/dashboard/');
   }
 };
 
-export const onPost: RequestHandler = async ({ request, response, cookie }) => {
+export const onPost: RequestHandler = async ({ request, redirect, cookie, status }) => {
   const formdata = await request.formData();
   const result = await signIn(formdata, cookie);
 
   if (result.status === 'signed-in') {
-    throw response.redirect('/qwikcity-test/dashboard/');
+    throw redirect(301, '/qwikcity-test/dashboard/');
   }
 
-  response.status = 403;
+  status(403);
 };

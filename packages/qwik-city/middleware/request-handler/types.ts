@@ -1,55 +1,260 @@
 import type { StreamWriter } from '@builder.io/qwik';
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
 import type {
+  ServerAction,
+  ServerActionInternal,
+  ServerLoader,
+  ServerLoaderInternal,
+} from '../../runtime/src/server-functions';
+import type {
   ClientPageData,
   QwikCityMode,
   QwikCityPlan,
-  RequestContext,
   PathParams,
 } from '../../runtime/src/types';
+import type { ErrorResponse } from './error-handler';
+import type { RedirectResponse } from './redirect-handler';
 
-export interface QwikCityRequestContext<T = any> {
-  request: RequestContext;
-  response: ResponseHandler<T>;
-  url: URL;
-  platform: Record<string, any>;
-  locale: string | undefined;
+/**
+ * Request event created by the server.
+ */
+export interface ServerRequestEvent<T = any> {
   mode: QwikCityMode;
+  url: URL;
+  locale: string | undefined;
+  platform: any;
+  request: RequestContext;
+  response: ServerResponseHandler<T>;
 }
 
-export interface QwikCityDevRequestContext extends QwikCityRequestContext {
-  routesDir: string;
-}
-
-export interface ResponseStreamWriter extends StreamWriter {
-  clientData?: (data: ClientPageData) => void;
-}
-
-export type ResponseHandler<T = any> = (
+export type ServerResponseHandler<T = any> = (
   status: number,
   headers: Headers,
   cookies: Cookie,
-  body: (stream: ResponseStreamWriter) => Promise<void>,
+  body: (stream: ResponseStreamWriter) => Promise<void> | void,
   error?: any
-) => Promise<T>;
+) => T;
 
+export interface ResponseStreamWriter extends StreamWriter {
+  clientData?: (data: ClientPageData) => void;
+  end: () => void;
+}
+
+export interface ServerRenderOptions extends RenderOptions {
+  render: Render;
+  qwikCityPlan: QwikCityPlan;
+}
+
+/**
+ * @alpha
+ */
+export type RequestHandler<PLATFORM = unknown> = (ev: RequestEvent<PLATFORM>) => void;
+
+/**
+ * @alpha
+ */
+export interface RequestEventCommon<PLATFORM = unknown> {
+  /**
+   * HTTP response status code.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+   */
+  status: (statusCode: number) => void;
+
+  /**
+   * Which locale the content is in.
+   *
+   * The locale value can be retrieved from selected methods using `getLocale()`:
+   */
+  locale: (local: string) => void;
+
+  /**
+   * URL to redirect to. When called, the response will immediately
+   * end with the correct redirect status and headers.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
+   */
+  redirect(status: number, url: string): RedirectResponse;
+
+  /**
+   * When called, the response will immediately end with the given
+   * status code. This could be useful to end a response with `404`,
+   * and use the 404 handler in the routes directory.
+   * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+   * for which status code should be used.
+   */
+  error(status: number, message: string): ErrorResponse;
+
+  next(): Promise<void>;
+
+  abort(): void;
+
+  /**
+   * HTTP response headers.
+   *
+   * https://developer.mozilla.org/en-US/docs/Glossary/Response_header
+   */
+  readonly headers: Headers;
+
+  /**
+   * HTTP request and response cookie. Use the `get()` method to retrieve a request cookie value.
+   * Use the `set()` method to set a response cookie value.
+   */
+  readonly cookie: Cookie;
+
+  /**
+   * HTTP request method.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+   */
+  readonly method: string;
+
+  /**
+   * URL pathname. Does not include the protocol, domain, query string (search params) or hash.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/API/URL/pathname
+   */
+  readonly pathname: string;
+
+  /**
+   * URL path params which have been parsed from the current url pathname segments.
+   * Use `query` to instead retrieve the query string search params.
+   */
+  readonly params: Record<string, string>;
+
+  /**
+   * URL Query Strings (URL Search Params).
+   * Use `params` to instead retrieve the route params found in the url pathname.
+   */
+  readonly query: URLSearchParams;
+
+  /**
+   * HTTP request URL.
+   */
+  readonly url: URL;
+
+  /**
+   * HTTP request information.
+   */
+  readonly request: RequestContext;
+
+  /**
+   * Low-level access to write to the HTTP response stream.
+   */
+  readonly stream: ResponseStreamWriter;
+
+  /**
+   * Platform specific data and functions
+   */
+  readonly platform: PLATFORM;
+}
+
+export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
+  /**
+   * Convenience method to send an HTML body response. The response will be automatically JSON
+   * stringify the data and set the `Content-Type` header to
+   * `text/html; charset=utf-8`. A send response can only be called once.
+   */
+  html(status: number, html: string): void;
+
+  /**
+   * Convenience method to JSON stringify the data and send it in the response.
+   * The response will be automatically set the `Content-Type` header to `application/json; charset=utf-8`.
+   * A send response can only be called once.
+   */
+  json(status: number, data: any): void;
+
+  /**
+   * Send a body response. The `Content-Type` response header is not automatically set
+   * when using `send()` and must be set manually. A send response can only be called once.
+   */
+  send(status: number, data: any): void;
+}
+
+/**
+ * @alpha
+ */
+export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
+  getData: GetData;
+}
+
+export interface GetData {
+  <T>(loader: ServerLoader<T>): Promise<T>;
+  <T>(loader: ServerAction<T>): Promise<T | undefined>;
+}
+
+export interface GetSyncData {
+  <T>(loader: ServerLoader<T>): T;
+  <T>(loader: ServerAction<T>): T | undefined;
+}
+
+export interface RequestContext {
+  /**
+   * HTTP request headers.
+   *
+   * https://developer.mozilla.org/en-US/docs/Glossary/Request_header
+   */
+  readonly headers: Headers;
+
+  /**
+   * HTTP request method.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+   */
+  readonly method: string;
+
+  /**
+   * HTTP request URL.
+   */
+  readonly url: string;
+
+  /**
+   * HTTP request form data.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/API/FormData
+   */
+  formData(): Promise<FormData>;
+
+  /**
+   * HTTP request json data.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/API/Request/json
+   */
+  json(): Promise<any>;
+
+  /**
+   * HTTP request text data.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/API/Request/text
+   */
+  text(): Promise<string>;
+}
+
+/**
+ * Internal data modified by the user.
+ */
 export interface UserResponseContext {
   type: 'endpoint' | 'pagehtml' | 'pagedata';
   url: URL;
+  locale: string | undefined;
   params: PathParams;
   status: number;
   headers: Headers;
   cookie: Cookie;
-  resolvedBody: string | number | boolean | null | undefined;
   loaders: Record<string, Promise<any>>;
   aborted: boolean;
-  bodySent: boolean;
+  requestHandlers: RequestHandler[];
+  serverLoaders: ServerLoaderInternal[];
+  serverActions: ServerActionInternal[];
+  routeModuleIndex: number;
+  stream: ResponseStreamWriter;
+  writeQueue: any[];
+  isEnded: boolean;
 }
 
-export interface QwikCityHandlerOptions extends RenderOptions {
-  render: Render;
-  qwikCityPlan: QwikCityPlan;
-}
+// export interface QwikCityDevRequestContext extends QwikCityRequestContext {
+//   routesDir: string;
+// }
 
 /**
  * @alpha
@@ -127,3 +332,17 @@ export interface CookieValue {
   json: <T = unknown>() => T;
   number: () => number;
 }
+
+/**
+ * @alpha
+ */
+export type HttpMethod =
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'DELETE'
+  | 'PATCH'
+  | 'HEAD'
+  | 'OPTIONS'
+  | 'CONNECT'
+  | 'TRACE';

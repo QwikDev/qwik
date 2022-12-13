@@ -1,8 +1,8 @@
 import type { RequestHandler } from '@builder.io/qwik-city';
 import os from 'node:os';
 
-export const onGet: RequestHandler = ({ request, params, response }) => {
-  response.json({
+export const onGet: RequestHandler = ({ request, params, json }) => {
+  json(200, {
     timestamp: Date.now(),
     method: request.method,
     url: request.url,
@@ -13,9 +13,10 @@ export const onGet: RequestHandler = ({ request, params, response }) => {
   });
 };
 
-export const onPost: RequestHandler = async ({ request, response }) => {
-  response.headers.set('Content-Type', 'text/plain');
-  response.send(
+export const onPost: RequestHandler = async ({ request, headers, send }) => {
+  headers.set('Content-Type', 'text/plain');
+  send(
+    200,
     `Platform: ${os.platform()}, Node: ${process.versions.node}, HTTP Method: ${request.method}`
   );
 };

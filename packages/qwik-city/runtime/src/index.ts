@@ -14,8 +14,6 @@ export type {
   RequestHandler,
   RequestEvent,
   RouteParams,
-  ResponseContext,
-  RequestContext,
   QwikCityPlan,
   ResolvedDocumentHead,
   RouteData,

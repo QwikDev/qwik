@@ -1,9 +1,16 @@
-import { component$, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$, useTask$ } from '@builder.io/qwik';
 import { Link } from '@builder.io/qwik-city';
+import { rootLoader } from '../../routes/layout';
 import styles from './footer.css?inline';
 
 export default component$(() => {
+  const serverData = rootLoader.use();
   useStyles$(styles);
+
+  useTask$(({ track }) => {
+    track(serverData);
+    // run everytime it updates
+  });
 
   return (
     <footer>
@@ -34,6 +41,10 @@ export default component$(() => {
             Home
           </Link>
         </li>
+      </ul>
+      <ul>
+        <li>{serverData.value.serverTime}</li>
+        <li>Node {serverData.value.nodeVersion}</li>
       </ul>
     </footer>
   );

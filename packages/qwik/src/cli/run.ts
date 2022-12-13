@@ -1,9 +1,11 @@
 /* eslint-disable no-console */
 import color from 'kleur';
-import { AppCommand } from './utils/app-command';
 import { runAddCommand } from './add/run-add-command';
-import { panic, pmRunCmd } from './utils/utils';
 import { runBuildCommand } from './build/run-build-command';
+import { runEnableCommand } from './enable/run-enable-command';
+import { runNewCommand } from './new/run-new-command';
+import { AppCommand } from './utils/app-command';
+import { panic, pmRunCmd } from './utils/utils';
 
 export async function runCli() {
   try {
@@ -28,8 +30,16 @@ async function runCommand(app: AppCommand) {
       await runBuildCommand(app);
       return;
     }
+    case 'enable': {
+      await runEnableCommand(app);
+      return;
+    }
     case 'help': {
       printHelp();
+      return;
+    }
+    case 'new': {
+      await runNewCommand(app);
       return;
     }
     case 'version': {

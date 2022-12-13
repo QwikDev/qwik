@@ -1,6 +1,6 @@
-import type { FsUpdates, UpdateAppOptions } from '../types';
 import fs from 'node:fs';
 import { join } from 'node:path';
+import type { FsUpdates, UpdateAppOptions } from '../types';
 import { getPackageManager } from '../utils/utils';
 
 export async function mergeIntegrationDir(

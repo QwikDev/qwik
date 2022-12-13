@@ -1,6 +1,6 @@
+import color from 'kleur';
 import fs from 'node:fs';
 import { join } from 'node:path';
-import color from 'kleur';
 import detectPackageManager from 'which-pm-runs';
 import type { IntegrationPackageJson } from '../types';
 
@@ -74,4 +74,29 @@ export function pmRunCmd() {
 export function panic(msg: string) {
   console.error(`\n❌ ${color.red(msg)}\n`);
   process.exit(1);
+}
+
+export async function getFilesDeep(root: string) {
+  const files: string[] = [];
+
+  async function getFiles(directory: string) {
+    if (!fs.existsSync(directory)) {
+      return;
+    }
+
+    const filesInDirectory = await fs.promises.readdir(directory);
+    for (const file of filesInDirectory) {
+      const absolute = join(directory, file);
+
+      if (fs.statSync(absolute).isDirectory()) {
+        await getFiles(absolute);
+      } else {
+        files.push(absolute);
+      }
+    }
+  }
+
+  await getFiles(root);
+
+  return files;
 }

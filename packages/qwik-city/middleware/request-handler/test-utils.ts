@@ -32,7 +32,7 @@ export function mockRequestContext(opts?: {
   return {
     url,
     request,
-    sendHeaders: async (status, headers, cookie, resolve) => {
+    sendHeaders: (status, headers, cookie, resolve) => {
       const chunks: string[] = [];
       responseData.status = status;
       responseData.headers = mergeHeadersCookies(headers, cookie);

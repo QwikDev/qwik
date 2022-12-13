@@ -1,12 +1,7 @@
 import type { StreamWriter } from '@builder.io/qwik';
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
 import type { ServerAction, ServerLoader } from '../../runtime/src/server-functions';
-import type {
-  ClientPageData,
-  QwikCityMode,
-  QwikCityPlan,
-  PathParams,
-} from '../../runtime/src/types';
+import type { ClientPageData, QwikCityMode, QwikCityPlan } from '../../runtime/src/types';
 import type { ErrorResponse } from './error-handler';
 import type { RedirectResponse } from './redirect-handler';
 

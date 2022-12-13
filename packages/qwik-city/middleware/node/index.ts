@@ -7,7 +7,7 @@ import { createReadStream } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { errorHandler, requestHandler } from '../request-handler';
+import { getErrorHtml, requestHandler } from '../request-handler';
 import type { ServerRenderOptions } from '../request-handler/types';
 import { fromNodeHttp, getUrl } from './http';
 import { patchGlobalFetch } from './node-fetch';
@@ -35,7 +35,9 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
           next();
         }
       } catch (e) {
-        await errorHandler(serverRequestEv, e);
+        const html = getErrorHtml(res.statusCode, e);
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.write(html);
       }
     } catch (e) {
       console.error(e);

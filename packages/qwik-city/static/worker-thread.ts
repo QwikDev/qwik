@@ -8,6 +8,7 @@ import type { ServerRequestEvent, RequestContext } from '../middleware/request-h
 import { createHeaders } from '../middleware/request-handler/headers';
 import { requestHandler } from '../middleware/request-handler';
 import { pathToFileURL } from 'node:url';
+import type { ResponseStreamWriter } from '../middleware/request-handler/types';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
@@ -63,7 +64,7 @@ async function workerRender(
       locale: undefined,
       url,
       request,
-      sendHeaders: async (status, headers, _, body, err) => {
+      sendHeaders: (status, headers, _, resolve, err) => {
         if (err) {
           if (err.stack) {
             result.error = String(err.stack);
@@ -79,52 +80,60 @@ async function workerRender(
             (headers.get('Content-Type') || '').includes('text/html');
         }
 
-        if (result.ok) {
-          const htmlFilePath = sys.getPageFilePath(staticRoute.pathname);
-          const dataFilePath = sys.getDataFilePath(staticRoute.pathname);
-
-          const writeHtmlEnabled = opts.emitHtml !== false;
-          const writeDataEnabled = opts.emitData !== false && !!dataFilePath;
-
-          if (writeHtmlEnabled || writeDataEnabled) {
-            await sys.ensureDir(htmlFilePath);
-          }
-
-          return new Promise((resolve) => {
-            const htmlWriter = writeHtmlEnabled ? sys.createWriteStream(htmlFilePath) : null;
-            const dataWriter = writeDataEnabled ? sys.createWriteStream(dataFilePath) : null;
-
-            body({
-              write: (chunk) => {
-                // page html writer
-                if (htmlWriter) {
-                  htmlWriter.write(chunk);
-                }
-              },
-              clientData: (data) => {
-                // page data writer
-                if (dataWriter) {
-                  dataWriter.write(JSON.stringify(data));
-                }
-                // if (typeof data.isStatic === 'boolean') {
-                //   result.isStatic = data.isStatic;
-                // }
-              },
-              end: () => {
-                if (htmlWriter) {
-                  if (dataWriter) {
-                    dataWriter.close();
-                  }
-                  htmlWriter.close(resolve);
-                } else if (dataWriter) {
-                  dataWriter.close(resolve);
-                } else {
-                  resolve();
-                }
-              },
-            });
-          });
+        if (!result.ok) {
+          return {
+            write() {
+              // do nothing
+            },
+            end() {
+              // do nothing
+            },
+          };
         }
+
+        const htmlFilePath = sys.getPageFilePath(staticRoute.pathname);
+        const dataFilePath = sys.getDataFilePath(staticRoute.pathname);
+
+        const writeHtmlEnabled = opts.emitHtml !== false;
+        const writeDataEnabled = opts.emitData !== false && !!dataFilePath;
+
+        if (writeHtmlEnabled || writeDataEnabled) {
+          await sys.ensureDir(htmlFilePath);
+        }
+
+        const htmlWriter = writeHtmlEnabled ? sys.createWriteStream(htmlFilePath) : null;
+        const dataWriter = writeDataEnabled ? sys.createWriteStream(dataFilePath) : null;
+
+        const stream: ResponseStreamWriter = {
+          write: (chunk) => {
+            // page html writer
+            if (htmlWriter) {
+              htmlWriter.write(chunk);
+            }
+          },
+          clientData: (data) => {
+            // page data writer
+            if (dataWriter) {
+              dataWriter.write(JSON.stringify(data));
+            }
+            // if (typeof data.isStatic === 'boolean') {
+            //   result.isStatic = data.isStatic;
+            // }
+          },
+          end: () => {
+            if (htmlWriter) {
+              if (dataWriter) {
+                dataWriter.close();
+              }
+              htmlWriter.close(resolve);
+            } else if (dataWriter) {
+              dataWriter.close(resolve);
+            } else {
+              resolve();
+            }
+          },
+        };
+        return stream;
       },
       platform: sys.platform,
     };

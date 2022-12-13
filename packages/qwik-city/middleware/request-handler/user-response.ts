@@ -4,7 +4,7 @@ import { createRequestEvent } from './request-event';
 import { ErrorResponse } from './error-handler';
 import { HttpStatus } from './http-status-codes';
 
-export async function loadUserResponse<T>(
+export async function runQwikCity<T>(
   serverRequestEv: ServerRequestEvent<T>,
   params: PathParams,
   requestHandlers: RequestHandler<unknown>[],

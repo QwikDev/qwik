@@ -16,7 +16,7 @@ import { getLoaders } from './request-event';
 export const resolveRequestHandlers = (
   routeModules: RouteModule[],
   method: string,
-  render: Render
+  renderFn?: Render
 ) => {
   const requestHandlers: RequestHandler[] = [];
   const serverLoaders: ServerLoaderInternal[] = [];
@@ -82,8 +82,8 @@ export const resolveRequestHandlers = (
   if (serverLoaders.length + actionsMiddleware.length > 0) {
     requestHandlers.push(actionsMiddleware(serverLoaders, serverActions) as any);
   }
-  if (isLastModulePageRoute(routeModules)) {
-    requestHandlers.push(renderQwikMiddleware(render));
+  if (isLastModulePageRoute(routeModules) && renderFn) {
+    requestHandlers.push(renderQwikMiddleware(renderFn));
   }
   return requestHandlers;
 };

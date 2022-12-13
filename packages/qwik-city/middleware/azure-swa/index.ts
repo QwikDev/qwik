@@ -2,7 +2,7 @@ import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import type { RenderOptions } from '@builder.io/qwik';
 import type { Render } from '@builder.io/qwik/server';
 import qwikCityPlan from '@qwik-city-plan';
-import { notFoundHandler, requestHandler } from '../request-handler';
+import { requestHandler } from '../request-handler';
 import { createHeaders } from '../request-handler/headers';
 import type { RequestContext, ServerRenderOptions, ServerRequestEvent } from '../request-handler';
 
@@ -37,9 +37,12 @@ interface AzureResponse {
  */
 export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
   async function onRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
+    const res: AzureResponse = (context.res = {
+      status: 200,
+      headers: {},
+    });
     try {
       const qwikRequest = createQwikRequest(req);
-
       const serverRequestEv: ServerRequestEvent<AzureResponse> = {
         mode: 'server',
         locale: undefined,
@@ -47,10 +50,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
         platform: context,
         request: qwikRequest,
         sendHeaders: (status, headers, _cookies) => {
-          const res: AzureResponse = (context.res = {
-            status,
-            headers: {},
-          });
+          res.status = status;
           headers.forEach((value, key) => (res.headers[key] = value));
           const stream = {
             write(chunk: string) {
@@ -75,15 +75,16 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
 
       // qwik city did not have a route for this request
       // respond with qwik city's 404 handler
-      const notFoundResponse = await notFoundHandler<void>(serverRequestEv);
-      return notFoundResponse;
+      // const notFoundResponse = await notFoundHandler<void>(serverRequestEv);
+      // return notFoundResponse;
+      return res;
     } catch (e: any) {
       console.error(e);
       context.res = {
         status: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
       };
-      return Promise.resolve();
+      return res;
     }
   }
 

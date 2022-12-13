@@ -7,11 +7,12 @@ import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
   getRouteMatchPathname,
-  loadUserResponse,
+  QDATA_JSON,
+  runQwikCity,
 } from '../../middleware/request-handler/user-response';
 import { getQwikCityEnvData } from '../../middleware/request-handler/response-page';
 import { updateBuildContext } from '../build';
-import { ErrorResponse } from '../../middleware/request-handler/error-handler';
+import { getErrorHtml } from '../../middleware/request-handler/error-handler';
 import { RedirectResponse } from '../../middleware/request-handler/redirect-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
 import { getPathParams } from '../../runtime/src/routing';
@@ -21,6 +22,7 @@ import {
   generateCodeFrame,
 } from '../../../qwik/src/optimizer/src/plugins/vite-utils';
 import { resolveRequestHandlers } from 'packages/qwik-city/middleware/request-handler/resolve-request-handlers';
+import { responseQData } from 'packages/qwik-city/middleware/request-handler/response-q-data';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
@@ -53,7 +55,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
       const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
-      const requestHeaders: Record<string, string> = req.headers as any;
 
       if (skipRequest(url.pathname) || isVitePing(url.pathname, req.headers)) {
         next();
@@ -97,55 +98,41 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             undefined
           );
 
-          const userResponseCtx = await loadUserResponse(
+          // Create a fake last request middleware
+          requestHandlers.push((requestEv) => {
+            const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
+            if (isPageDataReq) {
+              return responseQData(requestEv);
+            } else {
+              const envData = getQwikCityEnvData(requestEv);
+
+              (res as QwikViteDevResponse)._qwikEnvData = {
+                ...(res as QwikViteDevResponse)._qwikEnvData,
+                ...envData,
+              };
+
+              return next();
+            }
+          });
+
+          await runQwikCity(
             serverRequestEv,
             params,
             requestHandlers,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname
           );
-
-          // qwik city vite plugin should handle dev ssr rendering
-          // but add the qwik city user context to the response object
-          const envData = getQwikCityEnvData(requestHeaders, matchPathname, userResponseCtx, 'dev');
-          if (ctx.isDevServerClientOnly) {
-            // because we stringify this content for the client only
-            // dev server, there's some potential stringify issues
-            // client only dev server will re-fetch anyways, so reset
-            // TODO
-            // envData.qwikcity.response.body = undefined;
-          }
-
-          (res as QwikViteDevResponse)._qwikEnvData = {
-            ...(res as QwikViteDevResponse)._qwikEnvData,
-            ...envData,
-          };
-
-          // update node response with status and headers
-          // but do not end() it, call next() so qwik plugin handles rendering
-          res.statusCode = userResponseCtx.status;
-          userResponseCtx.headers.forEach((value, key) => res.setHeader(key, value));
-          const cookies = userResponseCtx.cookie.headers();
-          if (cookies.length > 0) {
-            res.setHeader('Set-Cookie', cookies);
-          }
-          next();
-          return;
         } catch (e: any) {
           server.ssrFixStacktrace(e);
           formatError(e);
 
-          if (e instanceof RedirectResponse) {
-            // redirectResponse(serverRequestEv, e);
-          } else if (e instanceof ErrorResponse) {
-            // errorResponse(serverRequestEv, e);
-          } else if (e instanceof Error && (e as any).id === 'DEV_SERIALIZE') {
+          if (e instanceof Error && (e as any).id === 'DEV_SERIALIZE') {
             next(formatDevSerializeError(e, routeModulePaths));
-          } else {
+          } else if (!(e instanceof RedirectResponse)) {
             next(e);
           }
-          return;
         }
+        return;
       } else {
         // no matching route
 
@@ -177,7 +164,10 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         //       there's two ways handling HMR for page endpoint with error
         // 1. Html response inject `import.meta.hot.accept('./pageEndpoint_FILE_URL', () => { location.reload })`
         // 2. watcher, diff previous & current file content, a bit expensive
-        notFoundHandler(serverRequestEv);
+        const html = getErrorHtml(404, new Error('not found'));
+        res.statusCode = 404;
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.write(html);
         return;
       }
 
@@ -191,9 +181,10 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 export function dev404Middleware() {
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
-      const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
-      const requestCtx = await fromNodeHttp(url, req, res, 'dev');
-      await notFoundHandler(requestCtx);
+      const html = getErrorHtml(404, new Error('not found'));
+      res.statusCode = 404;
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.write(html);
     } catch (e) {
       next(e);
     }

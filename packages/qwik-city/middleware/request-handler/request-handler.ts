@@ -1,5 +1,5 @@
 import type { ServerRenderOptions, ServerRequestEvent } from './types';
-import { getRouteMatchPathname, loadUserResponse } from './user-response';
+import { getRouteMatchPathname, runQwikCity } from './user-response';
 import { loadRequestHandlers } from '../../runtime/src/routing';
 
 /**
@@ -22,14 +22,11 @@ export async function requestHandler<T = unknown>(
     render
   );
   if (loadedRoute) {
-    // found and loaded the route for this pathname
-    const [params, requestHandlers] = loadedRoute;
-
     // build endpoint response from each module in the hierarchy
-    return loadUserResponse<T>(
+    return runQwikCity<T>(
       serverRequestEv,
-      params,
-      requestHandlers,
+      loadedRoute[0],
+      loadedRoute[1],
       trailingSlash,
       basePathname
     );

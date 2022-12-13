@@ -23,7 +23,7 @@
     "@algolia/autocomplete-shared": "1.7.3",
     "@algolia/client-search": "4.14.2",
     "@builder.io/partytown": "0.7.2",
-    "@builder.io/qwik": "0.15.0",
+    "@builder.io/qwik": "0.15.2",
     "@builder.io/qwik-city": "0.0.128",
     "@builder.io/sdk-qwik": "0.0.36",
     "@docsearch/css": "3.3.0",

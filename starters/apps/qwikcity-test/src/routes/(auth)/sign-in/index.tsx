@@ -3,15 +3,33 @@
  */
 
 import { component$ } from '@builder.io/qwik';
-import type { DocumentHead, RequestHandler } from '@builder.io/qwik-city';
+import { DocumentHead, RequestHandler, serverAction$ } from '@builder.io/qwik-city';
 import { isUserAuthenticated, signIn } from '../../../auth/auth';
 
+export const onGet: RequestHandler = async ({ redirect, cookie }) => {
+  if (await isUserAuthenticated(cookie)) {
+    throw redirect(301, '/qwikcity-test/dashboard/');
+  }
+};
+
+export const signinAction = serverAction$(async (formData, { cookie, redirect, status }) => {
+  const result = await signIn(formData, cookie);
+
+  if (result.status === 'signed-in') {
+    throw redirect(301, '/qwikcity-test/dashboard/');
+  }
+
+  status(403);
+});
+
 export default component$(() => {
+  const signIn = signinAction.use();
+
   return (
     <div>
       <h1>Sign In</h1>
 
-      <form method="post">
+      <form method="post" action={signIn.actionPath}>
         <label>
           <span>Username</span>
           <input name="username" type="text" />
@@ -29,21 +47,4 @@ export default component$(() => {
 
 export const head: DocumentHead = {
   title: 'Sign In',
-};
-
-export const onGet: RequestHandler = async ({ redirect, cookie }) => {
-  if (await isUserAuthenticated(cookie)) {
-    throw redirect(301, '/qwikcity-test/dashboard/');
-  }
-};
-
-export const onPost: RequestHandler = async ({ request, redirect, cookie, status }) => {
-  const formdata = await request.formData();
-  const result = await signIn(formdata, cookie);
-
-  if (result.status === 'signed-in') {
-    throw redirect(301, '/qwikcity-test/dashboard/');
-  }
-
-  status(403);
 };

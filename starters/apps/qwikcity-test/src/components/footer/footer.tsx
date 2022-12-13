@@ -1,15 +1,18 @@
 import { component$, useStyles$, useTask$ } from '@builder.io/qwik';
 import { Link } from '@builder.io/qwik-city';
-import { rootLoader } from '../../routes/layout';
+import { rootLoader, userLoader } from '../../routes/layout';
 import styles from './footer.css?inline';
 
 export default component$(() => {
   const serverData = rootLoader.use();
+  const userData = userLoader.use();
+
   useStyles$(styles);
 
   useTask$(({ track }) => {
-    track(serverData);
     // run everytime it updates
+    track(serverData);
+    track(userData);
   });
 
   return (
@@ -28,7 +31,11 @@ export default component$(() => {
           <Link href="/qwikcity-test/about-us/">About Us</Link>
         </li>
         <li>
-          <Link href="/qwikcity-test/sign-in/">Sign In</Link>
+          {userData.value.isAuthenticated ? (
+            <Link href="/qwikcity-test/sign-out/">Sign Out</Link>
+          ) : (
+            <Link href="/qwikcity-test/sign-in/">Sign In</Link>
+          )}
         </li>
         <li>
           <Link href="/qwikcity-test/mit/" target="_self" data-test-link="mit">

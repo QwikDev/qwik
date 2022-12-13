@@ -1,11 +1,17 @@
-import { component$, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$, useTask$ } from '@builder.io/qwik';
 import { Link, useLocation } from '@builder.io/qwik-city';
+import { userLoader } from '../../routes/layout';
 import styles from './header.css?inline';
 
 export default component$(() => {
+  const userData = userLoader.use();
+  const pathname = useLocation().pathname;
+
   useStyles$(styles);
 
-  const pathname = useLocation().pathname;
+  useTask$(({ track }) => {
+    track(userData);
+  });
 
   return (
     <header>
@@ -58,13 +64,20 @@ export default component$(() => {
           >
             About Us
           </Link>
-          <Link
-            href="/qwikcity-test/sign-in/"
-            class={{ active: pathname.startsWith('/qwikcity-test/sign-in/') }}
-            data-test-link="sign-in"
-          >
-            Sign In
-          </Link>
+
+          {userData.value.isAuthenticated ? (
+            <Link href="/qwikcity-test/sign-in/" data-test-link="sign-in">
+              Sign Out
+            </Link>
+          ) : (
+            <Link
+              href="/qwikcity-test/sign-in/"
+              class={{ active: pathname.startsWith('/qwikcity-test/sign-in/') }}
+              data-test-link="sign-out"
+            >
+              Sign In
+            </Link>
+          )}
         </nav>
       </div>
     </header>

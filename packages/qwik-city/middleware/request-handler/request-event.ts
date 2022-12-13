@@ -8,49 +8,64 @@ import type {
 import type {
   RequestEvent,
   RequestEventLoader,
-  UserResponseContext,
   ServerRequestEvent,
   ResponseStreamWriter,
 } from './types';
+import type { RouteModule } from '../../runtime/src/types';
 import { ErrorResponse } from './error-handler';
 import { RedirectResponse } from './redirect-handler';
+import { Cookie } from './cookie';
+import { createHeaders } from './headers';
+import { resolveRequestHandlers } from './resolve-request-handlers';
 
-const UserResponseContext = Symbol('UserResponseContext');
+const RequestEvLoaders = Symbol('RequestEvLoaders');
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   params: PathParams,
-  userResponseCtx: UserResponseContext,
+  routeModules: RouteModule[],
   resolved: (response: any) => void
 ) {
   const { request, platform } = serverRequestEv;
-  const { cookie, headers, requestHandlers } = userResponseCtx;
+  const requestHandlers = resolveRequestHandlers(routeModules, request.method);
+
+  const cookie = new Cookie(request.headers.get('cookie'));
+  const headers = createHeaders();
   const url = new URL(request.url);
+
+  let routeModuleIndex = -1;
+  let stream: ResponseStreamWriter | undefined;
 
   const next = async () => {
     routeModuleIndex++;
 
     while (routeModuleIndex < requestHandlers.length) {
       const requestHandler = requestHandlers[routeModuleIndex];
-      // TODO
-      await (requestHandler as any)(requestEv, userResponseCtx, serverRequestEv);
+      if (typeof requestHandler === 'function') {
+        const result = requestHandler(requestEv);
+        if (result instanceof Promise) {
+          await result;
+        }
+      }
       routeModuleIndex++;
     }
   };
 
-  let routeModuleIndex = -1;
-  let stream: ResponseStreamWriter | undefined;
+  const loaders: Record<string, Promise<any>> = {};
 
-  const requestEv: RequestEvent & RequestEventLoader = {
+  const requestEv: RequestEventInternal = {
     cookie,
     headers,
+    language: serverRequestEv.locale,
     method: request.method,
     params,
     pathname: url.pathname,
     platform,
     query: url.searchParams,
     request,
+    statusCode: 200,
     url,
+    [RequestEvLoaders]: loaders,
 
     next,
 
@@ -65,30 +80,36 @@ export function createRequestEvent(
       if (
         (loaderOrAction as ServerLoaderInternal | ServerActionInternal).__brand === 'server_loader'
       ) {
-        if (id in userResponseCtx.loaders) {
+        if (id in loaders) {
           throw new Error('Loader data does not exist');
         }
       }
 
-      return userResponseCtx.loaders[id];
+      return loaders[id];
     },
 
-    status: (statusCode: number) => {
-      userResponseCtx.status = statusCode;
+    status: (statusCode?: number) => {
+      if (typeof statusCode === 'number') {
+        requestEv.statusCode = statusCode;
+      }
+      return requestEv.statusCode;
     },
 
-    locale: (locale: string) => {
-      userResponseCtx.locale = locale;
+    locale: (locale?: string) => {
+      if (typeof locale === 'string') {
+        requestEv.language = locale;
+      }
+      return requestEv.language || '';
     },
 
-    error: (status: number, message: string) => {
-      userResponseCtx.status = status;
+    error: (statusCode: number, message: string) => {
+      requestEv.statusCode = statusCode;
       headers.delete('Cache-Control');
-      return new ErrorResponse(status, message);
+      return new ErrorResponse(statusCode, message);
     },
 
-    redirect: (status: number, url: string) => {
-      userResponseCtx.status = status;
+    redirect: (statusCode: number, url: string) => {
+      requestEv.statusCode = statusCode;
       headers.set('Location', url);
       headers.delete('Cache-Control');
       userResponseCtx.stream.end();
@@ -96,39 +117,44 @@ export function createRequestEvent(
     },
 
     html: (statusCode: number, html: string) => {
+      requestEv.statusCode = statusCode;
       headers.set('Content-Type', 'text/html; charset=utf-8');
-      userResponseCtx.status = statusCode;
       userResponseCtx.stream.write(html);
       userResponseCtx.stream.end();
     },
 
     json: (statusCode: number, data: any) => {
+      requestEv.statusCode = statusCode;
       headers.set('Content-Type', 'application/json; charset=utf-8');
-      userResponseCtx.status = statusCode;
       userResponseCtx.stream.write(JSON.stringify(data));
       userResponseCtx.stream.end();
     },
 
     send: (statusCode: number, body: any) => {
-      userResponseCtx.status = statusCode;
+      requestEv.statusCode = statusCode;
       userResponseCtx.stream.write(body);
       userResponseCtx.stream.end();
     },
 
     get stream() {
       if (!stream) {
-        stream = serverRequestEv.sendHeaders(
-          userResponseCtx.status,
-          userResponseCtx.headers,
-          userResponseCtx.cookie,
-          resolved
-        );
+        stream = serverRequestEv.sendHeaders(requestEv.statusCode, headers, cookie, resolved);
       }
       return stream;
     },
   };
 
   return requestEv;
+}
+
+interface RequestEventInternal extends RequestEvent, RequestEventLoader {
+  statusCode: number;
+  language: string | undefined;
+  [RequestEvLoaders]: Record<string, Promise<any>>;
+}
+
+export function getLoaders(requestEv: RequestEvent & RequestEventLoader) {
+  return (requestEv as RequestEventInternal)[RequestEvLoaders];
 }
 
 const ABORT_INDEX = 999999999;

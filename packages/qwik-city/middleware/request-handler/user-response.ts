@@ -2,11 +2,9 @@ import type { ResponseStreamWriter, ServerRequestEvent, UserResponseContext } fr
 import type { PageModule, PathParams, RouteModule } from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { createHeaders } from './headers';
+import { createRequestEvent } from './request-event';
 import { ErrorResponse } from './error-handler';
 import { HttpStatus } from './http-status-codes';
-import { isRedirectStatus, RedirectResponse } from './redirect-handler';
-import { resolveRequestHandlers } from './resolve-request-handlers';
-import { createRequestEvent } from './request-event';
 
 export async function loadUserResponse(
   serverRequestEv: ServerRequestEvent,
@@ -20,13 +18,10 @@ export async function loadUserResponse(
   }
 
   const { locale, url } = serverRequestEv;
-  const { method, headers } = serverRequestEv.request;
   const { pathname } = url;
   const isPageModule = isLastModulePageRoute(routeModules);
   const isPageDataReq = isPageModule && pathname.endsWith(QDATA_JSON);
   const isEndpointReq = !isPageModule && !isPageDataReq;
-
-  const requestHandlers = resolveRequestHandlers(routeModules, method);
 
   const stream: ResponseStreamWriter = {
     write: (chunk: any) => {
@@ -40,25 +35,8 @@ export async function loadUserResponse(
     },
   };
 
-  const userResponseCtx: UserResponseContext = {
-    type: isPageDataReq ? 'pagedata' : isPageModule && !isEndpointReq ? 'pagehtml' : 'endpoint',
-    url,
-    params,
-    locale,
-    status: HttpStatus.Ok,
-    headers: createHeaders(),
-    cookie: new Cookie(headers.get('cookie')),
-    aborted: false,
-    loaders: {},
-    routeModuleIndex: -1,
-    requestHandlers,
-    stream,
-    writeQueue: [],
-    isEnded: false,
-  };
-
   return new Promise((resolve) => {
-    const requestEv = createRequestEvent(serverRequestEv, params, userResponseCtx, resolve);
+    const requestEv = createRequestEvent(serverRequestEv, params, routeModules, resolve);
 
     // this request/method does NOT have a handler
     if (isEndpointReq && requestHandlers.length === 0) {

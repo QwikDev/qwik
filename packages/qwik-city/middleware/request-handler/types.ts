@@ -43,25 +43,29 @@ export interface ServerRenderOptions extends RenderOptions {
 /**
  * @alpha
  */
-export type RequestHandler<PLATFORM = unknown> = (ev: RequestEvent<PLATFORM>) => void;
+export type RequestHandler<PLATFORM = unknown> = (
+  ev: RequestEvent<PLATFORM>
+) => Promise<void> | void;
 
 /**
  * @alpha
  */
 export interface RequestEventCommon<PLATFORM = unknown> {
   /**
-   * HTTP response status code.
+   * HTTP response status code. Sets the status code when called with an
+   * argument. Always returns the status code, so calling `status()` without
+   * an argument will can be used to return the current status code.
    *
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
    */
-  status: (statusCode: number) => void;
+  status: (statusCode?: number) => number;
 
   /**
    * Which locale the content is in.
    *
    * The locale value can be retrieved from selected methods using `getLocale()`:
    */
-  locale: (local: string) => void;
+  locale: (local?: string) => string;
 
   /**
    * URL to redirect to. When called, the response will immediately

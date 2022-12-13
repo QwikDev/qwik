@@ -21,12 +21,15 @@ export async function loadTemplates() {
       })
     );
 
+    // Sort qwik templates first so they can be overridden, then alphabetical
     allTemplates.sort((a, b) => {
       if (a.id === 'qwik') {
+        return -1;
+      } else if (b.id === 'qwik') {
         return 1;
       }
 
-      return a.id > b.id ? -1 : 1;
+      return a.id > b.id ? 1 : -1;
     });
 
     templates = allTemplates;

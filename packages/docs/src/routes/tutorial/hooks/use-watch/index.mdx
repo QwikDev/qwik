@@ -5,14 +5,14 @@ contributors:
   - adamdbradley
 ---
 
-Use [`useTask$()`](/docs/components/lifecycle/index.mdx#usewatch) to execute a function before the initial render and whenever the tracking values change. The function executes before rendering, but it can't delay rendering, so if [`useTask$()`](/docs/components/lifecycle/index.mdx#usewatch) is asynchronous, the rendering will happen before the [`useTask$()`](/docs/components/lifecycle/index.mdx#usewatch) is fully executed.
+Use [`useTask$()`](/docs/components/lifecycle/index.mdx#usetask) to execute a function before the initial render and whenever the tracking values change. The function executes before rendering, but it can't delay rendering, so if [`useTask$()`](/docs/components/lifecycle/index.mdx#usetask) is asynchronous, the rendering will happen before the [`useTask$()`](/docs/components/lifecycle/index.mdx#usetask) is fully executed.
 
 ## Tracking store changes
 
-The [`useTask$()`](/docs/components/lifecycle/index.mdx#usewatch) hook receives a `track()` function used for setting up subscriptions that will automatically rerun the [`useTask$()`](/docs/components/lifecycle/index.mdx#usewatch) hook. The set of `track()` properties resets on each [`useTask$()`](/docs/components/lifecycle/index.mdx#usewatch) execution, therefore it is important to always use `track()` to set up subscriptions anew. Because of this it is possible for the [`useTask$()`](/docs/components/lifecycle/index.mdx#usewatch) to subscribe to different properties over time.
+The [`useTask$()`](/docs/components/lifecycle/index.mdx#usetask) hook receives a `track()` function used for setting up subscriptions that will automatically rerun the [`useTask$()`](/docs/components/lifecycle/index.mdx#usetask) hook. The set of `track()` properties resets on each [`useTask$()`](/docs/components/lifecycle/index.mdx#usetask) execution, therefore it is important to always use `track()` to set up subscriptions anew. Because of this it is possible for the [`useTask$()`](/docs/components/lifecycle/index.mdx#usetask) to subscribe to different properties over time.
 
 ## Cleanup
 
-The [`useTask$()`](/docs/components/lifecycle/index.mdx#usewatch) hook can return a cleanup callback. This is useful for cleaning up any resources before new execution.
+The [`useTask$()`](/docs/components/lifecycle/index.mdx#usetask) hook can return a cleanup callback. This is useful for cleaning up any resources before new execution.
 
 ### Example

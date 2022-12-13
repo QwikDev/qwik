@@ -142,7 +142,7 @@ export const CmpStyles = component$(() => {
 
 Using `useStylesScoped$` will scope all child selectors in a ruleset to the component. If you need to style child components rendered through a `<Slot />`, you will need to break out of the scoped styles using the `:global()` selector.
 
-```
+```tsx
 import { useStylesScoped$ } from '@builder.io/qwik';
 
 export const List = component$(() => {

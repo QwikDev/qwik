@@ -1,4 +1,3 @@
-import type { StreamWriter } from '@builder.io/qwik';
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
 import type { ServerAction, ServerLoader } from '../../runtime/src/server-functions';
 import type { ClientPageData, QwikCityMode, QwikCityPlan } from '../../runtime/src/types';
@@ -25,7 +24,8 @@ export type ServerResponseHandler<T = any> = (
   error?: any
 ) => ResponseStreamWriter;
 
-export interface ResponseStreamWriter extends StreamWriter {
+export interface ResponseStreamWriter {
+  write: (chunk: any) => void;
   clientData?: (data: ClientPageData) => void;
   close: () => void;
 }

@@ -53,14 +53,14 @@ export interface RequestEventCommon<PLATFORM = unknown> {
    *
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
    */
-  status: (statusCode?: number) => number;
+  readonly status: (statusCode?: number) => number;
 
   /**
    * Which locale the content is in.
    *
    * The locale value can be retrieved from selected methods using `getLocale()`:
    */
-  locale: (local?: string) => string;
+  readonly locale: (local?: string) => string;
 
   /**
    * URL to redirect to. When called, the response will immediately
@@ -68,7 +68,7 @@ export interface RequestEventCommon<PLATFORM = unknown> {
    *
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
    */
-  redirect(status: number, url: string): RedirectResponse;
+  readonly redirect: (statusCode: number, url: string) => RedirectResponse;
 
   /**
    * When called, the response will immediately end with the given
@@ -77,11 +77,11 @@ export interface RequestEventCommon<PLATFORM = unknown> {
    * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
    * for which status code should be used.
    */
-  error(status: number, message: string): ErrorResponse;
+  readonly error: (statusCode: number, message: string) => ErrorResponse;
 
-  next(): Promise<void>;
+  readonly next: () => Promise<void>;
 
-  abort(): void;
+  readonly abort: () => void;
 
   /**
    * HTTP response headers.
@@ -140,29 +140,30 @@ export interface RequestEventCommon<PLATFORM = unknown> {
 
 export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
   /**
-   * Convenience method to send an HTML body response. The response will be automatically JSON
-   * stringify the data and set the `Content-Type` header to
-   * `text/html; charset=utf-8`. A send response can only be called once.
+   * Low-level access to write to the HTTP response stream. Once `getWriter()` is called,
+   * the status and headers can no longer be modified and will be sent over the network.
    */
-  readonly html: (status: number, html: string) => void;
+  readonly getWriter: () => ResponseStreamWriter;
+
+  /**
+   * Convenience method to send an HTML body response. The response will be automatically
+   * set the `Content-Type` header to`text/html; charset=utf-8`.
+   *  An `html()` response can only be called once.
+   */
+  readonly html: (statusCode: number, html: string) => void;
 
   /**
    * Convenience method to JSON stringify the data and send it in the response.
-   * The response will be automatically set the `Content-Type` header to `application/json; charset=utf-8`.
-   * A send response can only be called once.
+   * The response will be automatically set the `Content-Type` header to
+   * `application/json; charset=utf-8`. A `json()` response can only be called once.
    */
-  readonly json: (status: number, data: any) => void;
+  readonly json: (statusCode: number, data: any) => void;
 
   /**
    * Send a body response. The `Content-Type` response header is not automatically set
-   * when using `send()` and must be set manually. A send response can only be called once.
+   * when using `send()` and must be set manually. A `send()` response can only be called once.
    */
-  readonly send: (status: number, data: any) => void;
-
-  /**
-   * Low-level access to write to the HTTP response stream.
-   */
-  readonly getWriter: () => ResponseStreamWriter;
+  readonly send: (statusCode: number, data: any) => void;
 }
 
 /**

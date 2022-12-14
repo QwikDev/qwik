@@ -29,8 +29,8 @@ export { ServiceWorkerRegister } from './sw-component';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './use-functions';
 export { serverAction$, serverActionQrl } from './server-functions';
 export { serverLoader$, serverLoaderQrl } from './server-functions';
-export { Form } from './server-functions';
-export type { FormProps } from './server-functions';
+export { Form } from './form-component';
+export type { FormProps } from './form-component';
 
 // @deprecated
 export type { EndpointHandler } from './types';

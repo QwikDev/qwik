@@ -1,11 +1,5 @@
 import type { PathParams } from '@builder.io/qwik-city';
 import type {
-  ServerAction,
-  ServerActionInternal,
-  ServerLoader,
-  ServerLoaderInternal,
-} from '../../runtime/src/server-functions';
-import type {
   RequestEvent,
   RequestEventLoader,
   ServerRequestEvent,
@@ -13,12 +7,22 @@ import type {
   RequestHandler,
   RequestEventCommon,
 } from './types';
-import { ErrorResponse } from './error-handler';
-import { RedirectResponse } from './redirect-handler';
+import type {
+  ServerAction,
+  ServerActionInternal,
+  ServerLoader,
+  ServerLoaderInternal,
+} from '../../runtime/src/server-functions';
+import type { QwikCityMode } from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { createHeaders } from './headers';
+import { ErrorResponse } from './error-handler';
+import { RedirectResponse } from './redirect-handler';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
+const RequestEvLocale = Symbol('RequestEvLocale');
+const RequestEvMode = Symbol('RequestEvMode');
+const RequestEvStatus = Symbol('RequestEvStatus');
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
@@ -51,7 +55,7 @@ export function createRequestEvent(
   };
 
   const check = () => {
-    if (streamInternal) {
+    if (streamInternal !== null) {
       throw new Error('Response already sent');
     }
   };
@@ -59,18 +63,19 @@ export function createRequestEvent(
   const loaders: Record<string, Promise<any>> = {};
 
   const requestEv: RequestEventInternal = {
+    [RequestEvLoaders]: loaders,
+    [RequestEvLocale]: serverRequestEv.locale,
+    [RequestEvMode]: serverRequestEv.mode,
+    [RequestEvStatus]: 200,
     cookie,
     headers,
-    language: serverRequestEv.locale,
     method: request.method,
     params,
     pathname: url.pathname,
     platform,
     query: url.searchParams,
     request,
-    statusCode: 200,
     url,
-    [RequestEvLoaders]: loaders,
 
     next,
 
@@ -96,27 +101,28 @@ export function createRequestEvent(
     status: (statusCode?: number) => {
       if (typeof statusCode === 'number') {
         check();
-        requestEv.statusCode = statusCode;
+        requestEv[RequestEvStatus] = statusCode;
+        return statusCode;
       }
-      return requestEv.statusCode;
+      return requestEv[RequestEvStatus];
     },
 
     locale: (locale?: string) => {
       if (typeof locale === 'string') {
-        requestEv.language = locale;
+        requestEv[RequestEvLocale] = locale;
       }
-      return requestEv.language || '';
+      return requestEv[RequestEvLocale] || '';
     },
 
     error: (statusCode: number, message: string) => {
-      requestEv.statusCode = statusCode;
+      requestEv[RequestEvStatus] = statusCode;
       headers.delete('Cache-Control');
       return new ErrorResponse(statusCode, message);
     },
 
     redirect: (statusCode: number, url: string) => {
       check();
-      requestEv.statusCode = statusCode;
+      requestEv[RequestEvStatus] = statusCode;
       headers.set('Location', url);
       headers.delete('Cache-Control');
       requestEv.getWriter().close();
@@ -126,7 +132,7 @@ export function createRequestEvent(
     html: (statusCode: number, html: string) => {
       check();
 
-      requestEv.statusCode = statusCode;
+      requestEv[RequestEvStatus] = statusCode;
       headers.set('Content-Type', 'text/html; charset=utf-8');
       const stream = requestEv.getWriter();
       stream.write(html);
@@ -136,7 +142,7 @@ export function createRequestEvent(
     json: (statusCode: number, data: any) => {
       check();
 
-      requestEv.statusCode = statusCode;
+      requestEv[RequestEvStatus] = statusCode;
       headers.set('Content-Type', 'application/json; charset=utf-8');
       const stream = requestEv.getWriter();
       stream.write(JSON.stringify(data));
@@ -146,7 +152,7 @@ export function createRequestEvent(
     send: (statusCode: number, body: any) => {
       check();
 
-      requestEv.statusCode = statusCode;
+      requestEv[RequestEvStatus] = statusCode;
       const stream = requestEv.getWriter();
       stream.write(body);
       stream.close();
@@ -155,7 +161,7 @@ export function createRequestEvent(
     getWriter: () => {
       if (streamInternal === null) {
         streamInternal = serverRequestEv.sendHeaders(
-          requestEv.statusCode,
+          requestEv[RequestEvStatus],
           headers,
           cookie,
           resolved
@@ -168,14 +174,19 @@ export function createRequestEvent(
   return requestEv;
 }
 
-interface RequestEventInternal extends RequestEvent, RequestEventLoader {
-  statusCode: number;
-  language: string | undefined;
+export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvLoaders]: Record<string, Promise<any>>;
+  [RequestEvLocale]: string | undefined;
+  [RequestEvMode]: QwikCityMode;
+  [RequestEvStatus]: number;
 }
 
-export function getLoaders(requestEv: RequestEventCommon) {
+export function getRequestLoaders(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvLoaders];
+}
+
+export function getRequestMode(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvMode];
 }
 
 const ABORT_INDEX = 999999999;

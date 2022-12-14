@@ -1,5 +1,5 @@
 import type { ClientPageData, RequestEvent } from '../../runtime/src/types';
-import { getLoaders } from './request-event';
+import { getRequestLoaders } from './request-event';
 
 export function responseQData(requestEv: RequestEvent) {
   const requestHeaders: Record<string, string> = {};
@@ -8,7 +8,7 @@ export function responseQData(requestEv: RequestEvent) {
 
   const status = requestEv.status();
   const qData: ClientPageData = {
-    loaders: getLoaders(requestEv),
+    loaders: getRequestLoaders(requestEv),
     status: status !== 200 ? status : undefined,
     redirect: (status >= 301 && status <= 308 && requestEv.headers.get('location')) || undefined,
   };

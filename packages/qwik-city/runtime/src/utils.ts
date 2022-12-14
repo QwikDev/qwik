@@ -1,5 +1,6 @@
 import type { LinkProps } from './link-component';
 import type { RouteActionValue, SimpleURL } from './types';
+import { QACTION_KEY } from './constants';
 
 /**
  * Gets an absolute url path string (url.pathname + url.search + url.hash)
@@ -40,7 +41,7 @@ export const getClientDataPath = (
 ) => {
   let search = pageSearch ?? '';
   if (action) {
-    search += (search ? '&' : '?') + 'qaction=' + encodeURIComponent(action.id);
+    search += (search ? '&' : '?') + QACTION_KEY + '=' + encodeURIComponent(action.id);
   }
   return pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json' + search;
 };

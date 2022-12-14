@@ -1,7 +1,7 @@
 import type { RenderOptions } from '@builder.io/qwik';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
-import type { QwikCityEnvData, QwikCityMode, RequestEvent } from '../../runtime/src/types';
-import { getLoaders } from './request-event';
+import type { QwikCityEnvData, RequestEvent } from '../../runtime/src/types';
+import { getRequestLoaders } from './request-event';
 
 export async function responsePage<T = unknown>(
   requestEv: RequestEvent,
@@ -19,7 +19,7 @@ export async function responsePage<T = unknown>(
 
   const result = await render({
     stream,
-    envData: getQwikCityEnvData(requestEv, 'server'),
+    envData: getQwikCityEnvData(requestEv),
     ...opts,
   });
   if ((typeof result as any as RenderToStringResult).html === 'string') {
@@ -30,10 +30,7 @@ export async function responsePage<T = unknown>(
   stream.close();
 }
 
-export function getQwikCityEnvData(
-  requestEv: RequestEvent<unknown>,
-  mode: QwikCityMode
-): {
+export function getQwikCityEnvData(requestEv: RequestEvent<unknown>): {
   url: string;
   requestHeaders: Record<string, string>;
   locale: string | undefined;
@@ -41,7 +38,7 @@ export function getQwikCityEnvData(
 } {
   const { url, params, request, status, locale } = requestEv;
   const requestHeaders: Record<string, string> = {};
-  const loaders = getLoaders(requestEv);
+  const loaders = getRequestLoaders(requestEv);
   request.headers.forEach((value, key) => (requestHeaders[key] = value));
 
   return {
@@ -49,7 +46,7 @@ export function getQwikCityEnvData(
     requestHeaders,
     locale: locale(),
     qwikcity: {
-      mode,
+      // mode: getRequestMode(requestEv),
       params: { ...params },
       response: {
         status: status(),

@@ -148,6 +148,8 @@ export interface FormProps<T> extends Omit<QwikJSX.IntrinsicElements['form'], 'a
     //
     // (undocumented)
     action: ServerActionUtils<T>;
+    // (undocumented)
+    method?: 'post';
 }
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityProps" needs to be exported by the entry point index.d.ts

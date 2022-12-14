@@ -1,7 +1,6 @@
 import {
   $,
   implicit$FirstArg,
-  jsx,
   noSerialize,
   QRL,
   ResourceReturn,
@@ -9,11 +8,11 @@ import {
   useContext,
   ValueOrPromise,
   _wrapSignal,
-  QwikJSX,
   useStore,
   untrack,
 } from '@builder.io/qwik';
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
+import { QACTION_KEY } from './constants';
 import { RouteStateContext } from './contexts';
 import type { RouteActionResolver, RouteLocation } from './types';
 import { useAction, useLocation } from './use-functions';
@@ -64,7 +63,6 @@ export class ServerActionImpl implements ServerActionInternal {
     const state = useStore<Editable<ServerActionUtils<any>>>(() => {
       return untrack(() => {
         const id = this.__qrl.getHash();
-        const actionPath = loc.pathname + `?qaction=${id}`;
 
         let statusStr: 'initial' | 'success' | 'fail' = 'initial';
         let value = undefined;
@@ -77,8 +75,9 @@ export class ServerActionImpl implements ServerActionInternal {
           }
           value = result;
         }
+
         initialState.id = id;
-        initialState.actionPath = actionPath;
+        initialState.actionPath = `${loc.pathname}?${QACTION_KEY}=${id}`;
         initialState.status = statusStr;
         initialState.value = value;
         initialState.isPending = false;
@@ -178,23 +177,3 @@ export const serverLoaderQrl = <PLATFORM, B>(
  * @alpha
  */
 export const serverLoader$ = implicit$FirstArg(serverLoaderQrl);
-
-/**
- * @alpha
- */
-export interface FormProps<T> extends Omit<QwikJSX.IntrinsicElements['form'], 'action'> {
-  action: ServerActionUtils<T>;
-}
-
-/**
- * @alpha
- */
-export const Form = <T>({ action, ...rest }: FormProps<T>) => {
-  return jsx('form', {
-    action: action.actionPath,
-    method: 'POST',
-    'preventdefault:submit': true,
-    onSubmit$: action.execute,
-    ...rest,
-  });
-};

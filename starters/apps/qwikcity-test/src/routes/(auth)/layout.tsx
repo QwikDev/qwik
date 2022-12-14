@@ -11,9 +11,6 @@ export default component$(() => {
       </section>
       <aside class="auth-menu">
         <h3>Account Help</h3>
-        <ul>
-          <li>Forgot password</li>
-        </ul>
       </aside>
     </div>
   );

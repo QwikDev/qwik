@@ -3,15 +3,15 @@ import type {
   ServerActionInternal,
   ServerLoaderInternal,
 } from '../../runtime/src/server-functions';
-import type { RequestHandler } from './types';
-import { validateSerializable } from 'packages/qwik-city/utils/format';
-import { isFunction } from 'packages/qwik/src/core/util/types';
 import type { Render } from '@builder.io/qwik/server';
-import { QDATA_JSON } from './user-response';
 import type { RenderOptions } from '@builder.io/qwik';
+import type { RequestHandler } from './types';
+import { getRequestLoaders, getRequestMode, RequestEventInternal } from './request-event';
 import { responseQData } from './response-q-data';
 import { responsePage } from './response-page';
-import { getLoaders } from './request-event';
+import { QACTION_KEY } from '../../runtime/src/constants';
+import { QDATA_JSON } from './user-response';
+import { validateSerializable } from '../../utils/format';
 
 export const resolveRequestHandlers = (
   routeModules: RouteModule[],
@@ -82,9 +82,11 @@ export const resolveRequestHandlers = (
   if (serverLoaders.length + actionsMiddleware.length > 0) {
     requestHandlers.push(actionsMiddleware(serverLoaders, serverActions) as any);
   }
+
   if (isLastModulePageRoute(routeModules) && renderFn) {
     requestHandlers.push(renderQwikMiddleware(renderFn));
   }
+
   return requestHandlers;
 };
 
@@ -92,32 +94,31 @@ export function actionsMiddleware(
   serverLoaders: ServerLoaderInternal[],
   serverActions: ServerActionInternal[]
 ) {
-  return async (requestEv: RequestEvent) => {
+  return async (requestEv: RequestEventInternal) => {
     const { method } = requestEv;
-    const selectedAction = requestEv.url.searchParams.get('qaction');
-    const loaders = getLoaders(requestEv);
+    const loaders = getRequestLoaders(requestEv);
 
-    if (method === 'POST' && selectedAction) {
-      const action = serverActions.find((a) => a.__qrl.getHash() === selectedAction);
-      if (action) {
-        const form = await requestEv.request.formData();
-        const actionResolved = await action.__qrl(form, requestEv as any);
-        loaders[selectedAction] = actionResolved;
+    if (method === 'POST') {
+      const selectedAction = requestEv.url.searchParams.get(QACTION_KEY);
+      if (selectedAction) {
+        const action = serverActions.find((a) => a.__qrl.getHash() === selectedAction);
+        if (action) {
+          const form = await requestEv.request.formData();
+          const actionResolved = await action.__qrl(form, requestEv);
+          loaders[selectedAction] = actionResolved;
+        }
       }
     }
 
     if (serverLoaders.length > 0) {
-      // if (userResponse.bodySent) {
-      //   throw new Error('Body already sent');
-      // }
-
-      const isDevMode = false; // TODO
+      const isDevMode = getRequestMode(requestEv) === 'dev';
 
       await Promise.all(
         serverLoaders.map(async (loader) => {
           const loaderId = loader.__qrl.getHash();
           const loaderResolved = await loader.__qrl(requestEv as any);
-          loaders[loaderId] = isFunction(loaderResolved) ? loaderResolved() : loaderResolved;
+          loaders[loaderId] =
+            typeof loaderResolved === 'function' ? loaderResolved() : loaderResolved;
 
           if (isDevMode) {
             try {

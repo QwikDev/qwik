@@ -13,10 +13,7 @@ import { QACTION_KEY } from '../../runtime/src/constants';
 import { QDATA_JSON } from './user-response';
 import { validateSerializable } from '../../utils/format';
 
-export const resolveRequestHandlers = (
-  routeModules: RouteModule[],
-  method: string,
-) => {
+export const resolveRequestHandlers = (routeModules: RouteModule[], method: string) => {
   const requestHandlers: RequestHandler[] = [];
   const serverLoaders: ServerLoaderInternal[] = [];
   const serverActions: ServerActionInternal[] = [];

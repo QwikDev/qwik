@@ -3,7 +3,11 @@ import type { Render } from '@builder.io/qwik/server';
 import { loadRoute } from 'packages/qwik-city/runtime/src/routing';
 import type { MenuData } from 'packages/qwik-city/runtime/src/types';
 import { getErrorHtml } from './error-handler';
-import { isLastModulePageRoute, renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
+import {
+  isLastModulePageRoute,
+  renderQwikMiddleware,
+  resolveRequestHandlers,
+} from './resolve-request-handlers';
 import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import { getRouteMatchPathname, QwikCityRun, runQwikCity } from './user-response';
 
@@ -18,12 +22,12 @@ export const loadRequestHandlers = async (
   const route = await loadRoute(routes, menus, cacheModules, pathname);
   if (route) {
     let isPageRoute = false;
-    const requestHandlers =resolveRequestHandlers(route[1], method);
+    const requestHandlers = resolveRequestHandlers(route[1], method);
     if (isLastModulePageRoute(route[1])) {
       requestHandlers.push(renderQwikMiddleware(renderFn));
       isPageRoute = true;
     }
-    return [route[0], resolveRequestHandlers(route[1], method), isPageRoute] as const;
+    return [route[0], requestHandlers, isPageRoute] as const;
   }
   return null;
 };
@@ -48,10 +52,15 @@ export async function requestHandler<T = unknown>(
     render
   );
   if (loadedRoute) {
-    const isPage = loadedRoute[2];
-    const shouldTrailing = trailingSlash && isPage &&
     return handleErrors(
-      runQwikCity(serverRequestEv, loadedRoute[0], loadedRoute[1], trailingSlash, basePathname)
+      runQwikCity(
+        serverRequestEv,
+        loadedRoute[0],
+        loadedRoute[1],
+        loadedRoute[2],
+        trailingSlash,
+        basePathname
+      )
     );
   }
   return null;

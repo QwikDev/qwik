@@ -15,8 +15,9 @@ export function runQwikCity<T>(
   serverRequestEv: ServerRequestEvent<T>,
   params: PathParams,
   requestHandlers: RequestHandler<unknown>[],
+  isPage: boolean,
   trailingSlash = true,
-  basePathname: string = '/'
+  basePathname = '/'
 ): QwikCityRun<T> {
   if (requestHandlers.length === 0) {
     throw new ErrorResponse(HttpStatus.NotFound, `Not Found`);
@@ -28,12 +29,13 @@ export function runQwikCity<T>(
   return {
     response: responsePromise,
     requestEv,
-    completion: runNext(requestEv, trailingSlash, basePathname, resolve!),
+    completion: runNext(requestEv, isPage, trailingSlash, basePathname, resolve!),
   };
 }
 
 async function runNext(
   requestEv: RequestEvent,
+  isPage: boolean,
   trailingSlash: boolean,
   basePathname: string,
   resolve: (value: any) => void
@@ -42,7 +44,12 @@ async function runNext(
     const { pathname, url } = requestEv;
 
     // Handle trailing slash redirect
-    if (pathname !== basePathname && !pathname.endsWith('.html')) {
+    if (
+      isPage &&
+      !isQDataJson(pathname) &&
+      pathname !== basePathname &&
+      !pathname.endsWith('.html')
+    ) {
       // only check for slash redirect on pages
       if (trailingSlash) {
         // must have a trailing slash
@@ -89,7 +96,7 @@ export function getRouteMatchPathname(pathname: string, trailingSlash: boolean |
 
 export const isQDataJson = (pathname: string) => {
   return pathname.endsWith(QDATA_JSON);
-}
+};
 
 export const QDATA_JSON = '/q-data.json';
 const QDATA_JSON_LEN = QDATA_JSON.length;

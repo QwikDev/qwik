@@ -21,7 +21,10 @@ import {
   findLocation,
   generateCodeFrame,
 } from '../../../qwik/src/optimizer/src/plugins/vite-utils';
-import { resolveRequestHandlers } from 'packages/qwik-city/middleware/request-handler/resolve-request-handlers';
+import {
+  isLastModulePageRoute,
+  resolveRequestHandlers,
+} from 'packages/qwik-city/middleware/request-handler/resolve-request-handlers';
 import { responseQData } from 'packages/qwik-city/middleware/request-handler/response-q-data';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
@@ -94,30 +97,35 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
           const requestHandlers = resolveRequestHandlers(
             routeModules,
-            serverRequestEv.request.method,
+            serverRequestEv.request.method
           );
 
+          const isPage = isLastModulePageRoute(routeModules);
+
           // Create a fake last request middleware
-          requestHandlers.push((requestEv) => {
-            const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
-            if (isPageDataReq) {
-              return responseQData(requestEv);
-            } else {
-              const envData = getQwikCityEnvData(requestEv);
+          if (isPage) {
+            requestHandlers.push((requestEv) => {
+              const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
+              if (isPageDataReq) {
+                return responseQData(requestEv);
+              } else {
+                const envData = getQwikCityEnvData(requestEv);
 
-              (res as QwikViteDevResponse)._qwikEnvData = {
-                ...(res as QwikViteDevResponse)._qwikEnvData,
-                ...envData,
-              };
+                (res as QwikViteDevResponse)._qwikEnvData = {
+                  ...(res as QwikViteDevResponse)._qwikEnvData,
+                  ...envData,
+                };
 
-              return next();
-            }
-          });
+                return next();
+              }
+            });
+          }
 
           const { requestEv } = runQwikCity(
             serverRequestEv,
             params,
             requestHandlers,
+            isPage,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname
           );

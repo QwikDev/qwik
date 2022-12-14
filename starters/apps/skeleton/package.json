@@ -1,0 +1,13 @@
+{
+  "name": "qwik-skeleton-starter",
+  "description": "Skeleton app with Routing built-in",
+  "type": "module",
+  "__qwik__": {
+    "priority": 1,
+    "displayName": "Skeleton App (QwikCity)",
+    "qwikCity": true,
+    "docs": [
+      "https://qwik.builder.io/docs/getting-started/"
+    ]
+  }
+}

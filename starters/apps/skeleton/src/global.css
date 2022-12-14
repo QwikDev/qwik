@@ -1,0 +1,23 @@
+/**
+ * WHAT IS THIS FILE?
+ *
+ * Globally applied styles. No matter which components are in the page or matching route,
+ * the styles in here will be applied to the Document, without any sort of CSS scoping.
+ *
+ */
+
+:root {
+  --qwik-primary: #006ce9;
+  --qwik-secondary: #18b6f6;
+}
+
+body {
+  background-color: #fafafa;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 0;
+  margin: 0;
+}
+
+.container {
+  margin: 8px;
+}

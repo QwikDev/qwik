@@ -7,10 +7,13 @@
 import type { GetSyncData } from '../../middleware/request-handler';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
+import { RequestEvent } from '../../middleware/request-handler';
 import type { RequestHandler } from '../../middleware/request-handler';
 
+// Warning: (ae-forgotten-export) The symbol "QwikCityRun" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export function createQwikCity(opts: QwikCityVercelEdgeOptions): (request: Request) => Promise<Response>;
+export function createQwikCity(opts: QwikCityVercelEdgeOptions): (request: Request) => Promise<Response | QwikCityRun<Response>>;
 
 // Warning: (ae-forgotten-export) The symbol "ServerRenderOptions" needs to be exported by the entry point index.d.ts
 //

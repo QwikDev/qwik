@@ -3,7 +3,7 @@ import type { Render, RenderOptions } from '@builder.io/qwik/server';
 import type { ServerAction, ServerLoader } from '../../runtime/src/server-functions';
 import type { ClientPageData, QwikCityMode, QwikCityPlan } from '../../runtime/src/types';
 import type { ErrorResponse } from './error-handler';
-import type { RedirectResponse } from './redirect-handler';
+import type { AbortError } from './redirect-handler';
 
 /**
  * Request event created by the server.
@@ -68,7 +68,7 @@ export interface RequestEventCommon<PLATFORM = unknown> {
    *
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
    */
-  readonly redirect: (statusCode: number, url: string) => RedirectResponse;
+  readonly redirect: (statusCode: number, url: string) => AbortError;
 
   /**
    * When called, the response will immediately end with the given
@@ -81,7 +81,7 @@ export interface RequestEventCommon<PLATFORM = unknown> {
 
   readonly next: () => Promise<void>;
 
-  readonly abort: () => void;
+  readonly exitMiddlewares: () => void;
 
   /**
    * HTTP response headers.
@@ -136,14 +136,29 @@ export interface RequestEventCommon<PLATFORM = unknown> {
    * Platform specific data and functions
    */
   readonly platform: PLATFORM;
+
+  /**
+   * Shared Map across all the request handlers. Every HTTP request will get a new instance of
+   * the shared map. The shared map is useful for sharing data between request handlers.
+   */
+  readonly sharedMap: Map<string, any>;
 }
 
 export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
+  readonly headersSent: boolean;
+
   /**
    * Low-level access to write to the HTTP response stream. Once `getWriter()` is called,
    * the status and headers can no longer be modified and will be sent over the network.
    */
   readonly getWriter: () => ResponseStreamWriter;
+
+  /**
+   * Convenience method to send an text body response. The response will be automatically
+   * set the `Content-Type` header to`text/plain; charset=utf-8`.
+   *  An `text()` response can only be called once.
+   */
+  readonly text: (statusCode: number, text: string) => void;
 
   /**
    * Convenience method to send an HTML body response. The response will be automatically

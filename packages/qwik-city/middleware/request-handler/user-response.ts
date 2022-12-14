@@ -3,23 +3,44 @@ import type { PathParams, RequestEvent, RequestHandler } from '../../runtime/src
 import { createRequestEvent } from './request-event';
 import { ErrorResponse } from './error-handler';
 import { HttpStatus } from './http-status-codes';
+import { AbortError } from './redirect-handler';
 
-export async function runQwikCity<T>(
+export interface QwikCityRun<T> {
+  response: Promise<T | null>;
+  requestEv: RequestEvent;
+  completion: Promise<RequestEvent>;
+}
+
+export function runQwikCity<T>(
   serverRequestEv: ServerRequestEvent<T>,
   params: PathParams,
   requestHandlers: RequestHandler<unknown>[],
-  trailingSlash?: boolean,
+  trailingSlash = true,
   basePathname: string = '/'
-) {
+): QwikCityRun<T> {
   if (requestHandlers.length === 0) {
     throw new ErrorResponse(HttpStatus.NotFound, `Not Found`);
   }
 
-  const { url } = serverRequestEv;
-  const { pathname } = url;
+  let resolve: (value: T) => void;
+  const responsePromise = new Promise<T>((r) => (resolve = r));
+  const requestEv = createRequestEvent(serverRequestEv, params, requestHandlers, resolve!);
+  return {
+    response: responsePromise,
+    requestEv,
+    completion: runNext(requestEv, trailingSlash, basePathname, resolve!),
+  };
+}
 
-  return new Promise<T>((resolve) => {
-    const requestEv = createRequestEvent(serverRequestEv, params, requestHandlers, resolve);
+async function runNext(
+  requestEv: RequestEvent,
+  trailingSlash: boolean,
+  basePathname: string,
+  resolve: (value: any) => void
+) {
+  try {
+    const { pathname, url } = requestEv;
+
     // Handle trailing slash redirect
     if (pathname !== basePathname && !pathname.endsWith('.html')) {
       // only check for slash redirect on pages
@@ -40,17 +61,15 @@ export async function runQwikCity<T>(
         }
       }
     }
-    runNext(requestEv, resolve);
-  });
-}
-
-async function runNext(requestEv: RequestEvent, resolve: (value: any) => void) {
-  try {
     await requestEv.next();
+  } catch (e) {
+    if (!(e instanceof AbortError)) {
+      throw e;
+    }
   } finally {
-    requestEv.getWriter();
-    resolve(true)
+    resolve(null);
   }
+  return requestEv;
 }
 
 /**
@@ -66,6 +85,10 @@ export function getRouteMatchPathname(pathname: string, trailingSlash: boolean |
     }
   }
   return pathname;
+}
+
+export const isQDataJson = (pathname: string) => {
+  return pathname.endsWith(QDATA_JSON);
 }
 
 export const QDATA_JSON = '/q-data.json';

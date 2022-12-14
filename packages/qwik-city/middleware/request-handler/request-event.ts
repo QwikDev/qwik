@@ -17,7 +17,7 @@ import type { QwikCityMode } from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { createHeaders } from './headers';
 import { ErrorResponse } from './error-handler';
-import { RedirectResponse } from './redirect-handler';
+import { AbortError } from './redirect-handler';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvLocale = Symbol('RequestEvLocale');
@@ -76,10 +76,14 @@ export function createRequestEvent(
     query: url.searchParams,
     request,
     url,
+    sharedMap: new Map(),
+    get headersSent() {
+      return streamInternal !== null;
+    },
 
     next,
 
-    abort: () => {
+    exitMiddlewares: () => {
       routeModuleIndex = ABORT_INDEX;
     },
 
@@ -126,7 +130,17 @@ export function createRequestEvent(
       headers.set('Location', url);
       headers.delete('Cache-Control');
       requestEv.getWriter().close();
-      return new RedirectResponse();
+      return new AbortError();
+    },
+
+    text: (statusCode: number, text: string) => {
+      check();
+
+      requestEv[RequestEvStatus] = statusCode;
+      headers.set('Content-Type', 'text/plain; charset=utf-8');
+      const stream = requestEv.getWriter();
+      stream.write(text);
+      stream.close();
     },
 
     html: (statusCode: number, html: string) => {

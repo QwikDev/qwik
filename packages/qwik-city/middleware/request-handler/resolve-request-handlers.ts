@@ -16,7 +16,6 @@ import { validateSerializable } from '../../utils/format';
 export const resolveRequestHandlers = (
   routeModules: RouteModule[],
   method: string,
-  renderFn?: Render
 ) => {
   const requestHandlers: RequestHandler[] = [];
   const serverLoaders: ServerLoaderInternal[] = [];
@@ -83,10 +82,6 @@ export const resolveRequestHandlers = (
     requestHandlers.push(actionsMiddleware(serverLoaders, serverActions) as any);
   }
 
-  if (isLastModulePageRoute(routeModules) && renderFn) {
-    requestHandlers.push(renderQwikMiddleware(renderFn));
-  }
-
   return requestHandlers;
 };
 
@@ -136,7 +131,7 @@ export function actionsMiddleware(
   };
 }
 
-function isLastModulePageRoute(routeModules: RouteModule[]) {
+export function isLastModulePageRoute(routeModules: RouteModule[]) {
   const lastRouteModule = routeModules[routeModules.length - 1];
   return lastRouteModule && typeof (lastRouteModule as PageModule).default === 'function';
 }

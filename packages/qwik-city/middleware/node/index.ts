@@ -7,7 +7,7 @@ import { createReadStream } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getErrorHtml, requestHandler } from '../request-handler';
+import { requestHandler } from '../request-handler';
 import type { ServerRenderOptions } from '../request-handler/types';
 import { fromNodeHttp, getUrl } from './http';
 import { patchGlobalFetch } from './node-fetch';
@@ -29,16 +29,14 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
     try {
       await patchGlobalFetch();
       const serverRequestEv = await fromNodeHttp(getUrl(req), req, res, 'server');
-      try {
-        const handled = await requestHandler<boolean>(serverRequestEv, opts);
-        if (!handled) {
-          next();
+      const handled = await requestHandler(serverRequestEv, opts);
+      if (handled) {
+        const requestEv = await handled.completion;
+        if (requestEv.headersSent) {
+          return;
         }
-      } catch (e) {
-        const html = getErrorHtml(res.statusCode, e);
-        res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        res.write(html);
       }
+      next();
     } catch (e) {
       console.error(e);
       next(e);

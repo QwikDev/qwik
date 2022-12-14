@@ -13,7 +13,7 @@ import {
 import { getQwikCityEnvData } from '../../middleware/request-handler/response-page';
 import { updateBuildContext } from '../build';
 import { getErrorHtml } from '../../middleware/request-handler/error-handler';
-import { RedirectResponse } from '../../middleware/request-handler/redirect-handler';
+import { AbortError } from '../../middleware/request-handler/redirect-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
 import { getPathParams } from '../../runtime/src/routing';
 import { fromNodeHttp } from '../../middleware/node/http';
@@ -95,7 +95,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           const requestHandlers = resolveRequestHandlers(
             routeModules,
             serverRequestEv.request.method,
-            undefined
           );
 
           // Create a fake last request middleware
@@ -115,20 +114,21 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             }
           });
 
-          await runQwikCity(
+          const { requestEv } = runQwikCity(
             serverRequestEv,
             params,
             requestHandlers,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname
           );
+          await requestEv;
         } catch (e: any) {
           server.ssrFixStacktrace(e);
           formatError(e);
 
           if (e instanceof Error && (e as any).id === 'DEV_SERIALIZE') {
             next(formatDevSerializeError(e, routeModulePaths));
-          } else if (!(e instanceof RedirectResponse)) {
+          } else if (!(e instanceof AbortError)) {
             next(e);
           }
         }

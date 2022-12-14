@@ -1,1 +1,1 @@
-export class RedirectResponse {}
+export class AbortError {}

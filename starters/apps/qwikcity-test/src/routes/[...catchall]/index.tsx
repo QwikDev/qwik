@@ -24,11 +24,11 @@ export const head: DocumentHead = () => {
   };
 };
 
-export const onGet: RequestHandler = ({ url, abort }) => {
+export const onGet: RequestHandler = ({ url, exitMiddlewares }) => {
   if (url.pathname === '/qwikcity-test/catchall/') {
     // special case catchall
     return;
   }
 
-  abort();
+  exitMiddlewares();
 };

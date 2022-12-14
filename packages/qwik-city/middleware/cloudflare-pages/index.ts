@@ -80,9 +80,12 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler<Response>(serverRequestEv, opts);
+      const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
-        return handledResponse;
+        const response = await handledResponse.response;
+        if (response) {
+          return response;
+        }
       }
 
       // qwik city did not have a route for this request

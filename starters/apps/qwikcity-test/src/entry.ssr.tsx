@@ -5,6 +5,7 @@ import Root from './root';
 export default function (opts: RenderToStreamOptions) {
   return renderToStream(<Root />, {
     manifest,
+    base: '/qwikcity-test/build/',
     ...opts,
   });
 }

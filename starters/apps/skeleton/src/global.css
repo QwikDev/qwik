@@ -21,3 +21,12 @@ body {
 .container {
   margin: 8px;
 }
+
+main h1 {
+  color: var(--qwik-primary);
+}
+
+footer a {
+  color: var(--qwik-secondary);
+  text-decoration: none;
+}

@@ -99,12 +99,12 @@ export function actionsMiddleware(
     const loaders = getRequestLoaders(requestEv);
 
     if (method === 'POST') {
-      const selectedAction = requestEv.url.searchParams.get(QACTION_KEY);
+      const selectedAction = requestEv.query.get(QACTION_KEY);
       if (selectedAction) {
         const action = serverActions.find((a) => a.__qrl.getHash() === selectedAction);
         if (action) {
-          const form = await requestEv.request.formData();
-          const actionResolved = await action.__qrl(form, requestEv);
+          const formData = await requestEv.request.formData();
+          const actionResolved = await action.__qrl(formData, requestEv);
           loaders[selectedAction] = actionResolved;
         }
       }

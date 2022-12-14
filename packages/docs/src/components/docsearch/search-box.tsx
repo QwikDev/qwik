@@ -73,7 +73,7 @@ export const SearchBox = component$((props: SearchBoxProps) => {
           autoCapitalize="off"
           maxLength={MAX_QUERY_SIZE}
           enterKeyHint={props.state.activeItemId ? 'go' : 'search'}
-          spellcheck={false}
+          spellCheck="false"
           autoFocus={props.autoFocus}
           placeholder="Search docs"
           type="search"

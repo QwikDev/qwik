@@ -1,4 +1,3 @@
-// @ts-ignore: Unused import
 import { component$, useStore, $ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -11,7 +10,7 @@ export default component$(() => {
           const input = event.target as HTMLInputElement;
           store.name = input.value;
         }}
-        onChange$={() => {
+        onChange$={(_) => {
           if (store.name) alert(store.name);
         }}
         value={store.name}

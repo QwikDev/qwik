@@ -1,4 +1,4 @@
-import { defineConfig, UserConfigExport } from 'vite';
+import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 
 export default defineConfig(() => {
@@ -22,4 +22,4 @@ export default defineConfig(() => {
       force: true,
     },
   };
-}) as UserConfigExport;
+});

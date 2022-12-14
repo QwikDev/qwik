@@ -14,12 +14,19 @@ export const onGet: RequestHandler = ({
   const format = query.get('format');
 
   if (format === 'csv') {
-    headers.set('Content-Type', 'text/csv');
     status(203);
     headers.set('Content-Type', 'text/csv');
     const writer = getWriter();
-    writer.write(format + ',' + request.method + ',' + Date.now().toString());
-    writer.close();
+    setTimeout(() => {
+      writer.write('0,' + Date.now().toString());
+      setTimeout(() => {
+        writer.write('1,' + Date.now().toString());
+        setTimeout(() => {
+          writer.write('2,' + Date.now().toString());
+          writer.close();
+        }, 500);
+      }, 500);
+    }, 500);
     return;
   }
 

@@ -32,7 +32,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
         locale: undefined,
         url,
         request,
-        sendHeaders: (status, headers, cookies, resolve) => {
+        getWritableStream: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream();
           const writer = writable.getWriter();
           const response = new Response(readable, {

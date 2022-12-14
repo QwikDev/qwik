@@ -14,7 +14,7 @@ export interface ServerRequestEvent<T = any> {
   locale: string | undefined;
   platform: any;
   request: RequestContext;
-  sendHeaders: ServerResponseHandler<T>;
+  getWritableStream: ServerResponseHandler<T>;
 }
 
 export type ServerResponseHandler<T = any> = (

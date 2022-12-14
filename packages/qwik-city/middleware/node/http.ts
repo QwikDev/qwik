@@ -45,7 +45,7 @@ export async function fromNodeHttp(
       body,
       duplex: 'half',
     }) as any,
-    sendHeaders: (status, headers, cookies) => {
+    getWritableStream: (status, headers, cookies) => {
       res.statusCode = status;
       headers.forEach((value, key) => res.setHeader(key, value));
       const cookieHeaders = cookies.headers();

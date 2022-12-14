@@ -44,11 +44,9 @@ export function createRequestEvent(
 
     while (routeModuleIndex < requestHandlers.length) {
       const requestHandler = requestHandlers[routeModuleIndex];
-      if (typeof requestHandler === 'function') {
-        const result = requestHandler(requestEv);
-        if (result instanceof Promise) {
-          await result;
-        }
+      const result = requestHandler(requestEv);
+      if (result instanceof Promise) {
+        await result;
       }
       routeModuleIndex++;
     }
@@ -174,7 +172,7 @@ export function createRequestEvent(
 
     getWriter: () => {
       if (streamInternal === null) {
-        streamInternal = serverRequestEv.sendHeaders(
+        streamInternal = serverRequestEv.getWritableStream(
           requestEv[RequestEvStatus],
           headers,
           cookie,

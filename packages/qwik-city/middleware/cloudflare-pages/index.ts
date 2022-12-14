@@ -44,7 +44,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
         locale: undefined,
         url,
         request,
-        sendHeaders: (status, headers, cookies, resolve) => {
+        getWritableStream: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream();
           const writer = writable.getWriter();
 

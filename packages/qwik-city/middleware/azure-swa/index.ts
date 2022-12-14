@@ -49,7 +49,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
         url: new URL(qwikRequest.url),
         platform: context,
         request: qwikRequest,
-        sendHeaders: (status, headers, _cookies) => {
+        getWritableStream: (status, headers, _cookies) => {
           res.status = status;
           headers.forEach((value, key) => (res.headers[key] = value));
           const stream = {

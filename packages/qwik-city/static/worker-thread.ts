@@ -74,7 +74,7 @@ async function workerRender(
       locale: undefined,
       url,
       request,
-      sendHeaders: (status, headers, _, resolve, err) => {
+      getWritableStream: (status, headers, _, resolve, err) => {
         if (err) {
           if (err.stack) {
             result.error = String(err.stack);

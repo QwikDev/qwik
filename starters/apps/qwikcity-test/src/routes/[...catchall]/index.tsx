@@ -24,7 +24,7 @@ export const head: DocumentHead = () => {
   };
 };
 
-export const onGet: RequestHandler = ({ url, exitMiddlewares }) => {
+export const onGet: RequestHandler = ({ url, exit: exitMiddlewares }) => {
   if (url.pathname === '/qwikcity-test/catchall/') {
     // special case catchall
     return;

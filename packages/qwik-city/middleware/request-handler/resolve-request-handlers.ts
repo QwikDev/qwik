@@ -87,6 +87,10 @@ export function actionsMiddleware(
   serverActions: ServerActionInternal[]
 ) {
   return async (requestEv: RequestEventInternal) => {
+    if (requestEv.headersSent) {
+      requestEv.exit();
+      return;
+    }
     const { method } = requestEv;
     const loaders = getRequestLoaders(requestEv);
 
@@ -135,6 +139,10 @@ export function isLastModulePageRoute(routeModules: RouteModule[]) {
 
 export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
   return async (requestEv: RequestEvent) => {
+    if (requestEv.headersSent) {
+      requestEv.exit();
+      return;
+    }
     const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
     if (isPageDataReq) {
       return responseQData(requestEv);

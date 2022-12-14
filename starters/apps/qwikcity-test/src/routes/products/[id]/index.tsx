@@ -62,6 +62,17 @@ export default component$(() => {
             Hoodie (404 Not Found)
           </Link>
         </li>
+        <li>
+          <a href="/qwikcity-test/products/hat/?json=true" data-test-link="products-hat-json">
+            Hat (200 json)
+          </a>
+        </li>
+
+        <li>
+          <a href="/qwikcity-test/products/error" data-test-link="products-error">
+            Error
+          </a>
+        </li>
       </ul>
     </div>
   );
@@ -80,22 +91,28 @@ export const PRODUCT_DB: Record<string, string> = {
   tshirt: '$18.96',
 };
 
-export const productLoader = serverLoader$(async ({ headers, params, query, redirect, status }) => {
+export const productLoader = serverLoader$(async ({ headers, json, error, params, query, redirect, status }) => {
   // Serverside Endpoint
   // During SSR, this method is called directly on the server and returns the data object
   // On the client, this same data can be requested with fetch() at the same URL, but also
   // requires the "accept: application/json" request header.
 
+  const id = params.id;
   if (query.has('querystring-test')) {
     throw redirect(301, '/qwikcity-test/');
   }
 
-  if (params.id === 'shirt') {
+  if (id === 'shirt') {
     // Redirect, which will skip any rendering and the server will immediately redirect
     throw redirect(301, '/qwikcity-test/products/tshirt/');
   }
 
-  const productPrice = PRODUCT_DB[params.id];
+  if (id === 'error') {
+    throw error(500, 'Error from server')
+  }
+
+
+  const productPrice = PRODUCT_DB[id];
   if (!productPrice) {
     // Product data not found, but purposely not throwing a response.error(404)
     // instead the renderer will still run with the returned `null` data
@@ -111,14 +128,18 @@ export const productLoader = serverLoader$(async ({ headers, params, query, redi
 
   await new Promise<void>((resolve) => setTimeout(resolve, 200));
 
-  return {
+  const data = {
     // Found the product data
     // This same data is passed to the head() function
     // and in the component$() it can be access with useEndpoint()
-    productId: params.id,
+    productId: id,
     price: productPrice,
     description: `Node ${process.versions.node} ${os.platform()} ${os.arch()} ${
       os.cpus()[0].model
     }`,
   };
+  if (query.get('json') === 'true') {
+    json(200, data);
+  }
+  return data;
 });

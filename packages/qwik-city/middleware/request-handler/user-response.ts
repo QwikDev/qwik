@@ -1,7 +1,7 @@
 import type { ServerRequestEvent } from './types';
 import type { PathParams, RequestEvent, RequestHandler } from '../../runtime/src/types';
 import { createRequestEvent } from './request-event';
-import { ErrorResponse } from './error-handler';
+import { ErrorResponse, getErrorHtml } from './error-handler';
 import { HttpStatus } from './http-status-codes';
 import { AbortError } from './redirect-handler';
 
@@ -70,7 +70,13 @@ async function runNext(
     }
     await requestEv.next();
   } catch (e) {
-    if (!(e instanceof AbortError)) {
+    if (e instanceof ErrorResponse) {
+      if (!requestEv.headersSent) {
+        const html = getErrorHtml(e.status, e);
+        requestEv.html(e.status, html);
+      }
+      console.error(e);
+    } else if (!(e instanceof AbortError)) {
       throw e;
     }
   } finally {

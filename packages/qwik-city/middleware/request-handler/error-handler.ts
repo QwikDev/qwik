@@ -44,6 +44,7 @@ function minimalHtmlResponse(status: number, message?: string, stack?: string) {
     strong { display: inline-block; padding: 15px; background: ${color}; color: white; }
     span { display: inline-block; padding: 15px; }
     pre { max-width: 580px; margin: 0 auto; }
+    code { display: block; overflow: scroll; }
   </style>
 </head>
 <body>

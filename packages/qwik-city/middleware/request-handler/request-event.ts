@@ -83,7 +83,7 @@ export function createRequestEvent(
 
     next,
 
-    exitMiddlewares: () => {
+    exit: () => {
       routeModuleIndex = ABORT_INDEX;
     },
 

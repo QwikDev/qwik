@@ -79,9 +79,34 @@ export interface RequestEventCommon<PLATFORM = unknown> {
    */
   readonly error: (statusCode: number, message: string) => ErrorResponse;
 
-  readonly next: () => Promise<void>;
+  /**
+   * Convenience method to send an text body response. The response will be automatically
+   * set the `Content-Type` header to`text/plain; charset=utf-8`.
+   *  An `text()` response can only be called once.
+   */
+  readonly text: (statusCode: number, text: string) => void;
 
-  readonly exitMiddlewares: () => void;
+  /**
+   * Convenience method to send an HTML body response. The response will be automatically
+   * set the `Content-Type` header to`text/html; charset=utf-8`.
+   *  An `html()` response can only be called once.
+   */
+  readonly html: (statusCode: number, html: string) => void;
+
+  /**
+   * Convenience method to JSON stringify the data and send it in the response.
+   * The response will be automatically set the `Content-Type` header to
+   * `application/json; charset=utf-8`. A `json()` response can only be called once.
+   */
+  readonly json: (statusCode: number, data: any) => void;
+
+  /**
+   * Send a body response. The `Content-Type` response header is not automatically set
+   * when using `send()` and must be set manually. A `send()` response can only be called once.
+   */
+  readonly send: (statusCode: number, data: any) => void;
+
+  readonly exit: () => void;
 
   /**
    * HTTP response headers.
@@ -153,32 +178,7 @@ export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLA
    */
   readonly getWriter: () => ResponseStreamWriter;
 
-  /**
-   * Convenience method to send an text body response. The response will be automatically
-   * set the `Content-Type` header to`text/plain; charset=utf-8`.
-   *  An `text()` response can only be called once.
-   */
-  readonly text: (statusCode: number, text: string) => void;
-
-  /**
-   * Convenience method to send an HTML body response. The response will be automatically
-   * set the `Content-Type` header to`text/html; charset=utf-8`.
-   *  An `html()` response can only be called once.
-   */
-  readonly html: (statusCode: number, html: string) => void;
-
-  /**
-   * Convenience method to JSON stringify the data and send it in the response.
-   * The response will be automatically set the `Content-Type` header to
-   * `application/json; charset=utf-8`. A `json()` response can only be called once.
-   */
-  readonly json: (statusCode: number, data: any) => void;
-
-  /**
-   * Send a body response. The `Content-Type` response header is not automatically set
-   * when using `send()` and must be set manually. A `send()` response can only be called once.
-   */
-  readonly send: (statusCode: number, data: any) => void;
+  readonly next: () => Promise<void>;
 }
 
 /**

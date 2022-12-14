@@ -5,7 +5,10 @@ import { getBuilderSearchParams, getContent, RenderContent } from '@builder.io/s
 export default component$<{ html?: any; apiKey: string; model: string; tag: 'main' | 'div' }>(
   (props) => {
     const location = useLocation();
-    const isSDK = location.query.get('render') === 'sdk';
+    const query = location.query;
+    const render =
+      typeof query.get === 'function' ? query.get('render') : (query as { render?: string }).render;
+    const isSDK = render === 'sdk';
     const builderContentRsrc = useResource$<any>(() => {
       if (isSDK) {
         return getContent({
@@ -17,22 +20,23 @@ export default component$<{ html?: any; apiKey: string; model: string; tag: 'mai
           },
         });
       } else if (props.html) {
-        return null;
+        return { html: props.html };
       } else {
         return getBuilderContent(props.apiKey, props.model, location.pathname);
       }
     });
 
-    if (props.html && !isSDK) {
-      return <props.tag class="builder" dangerouslySetInnerHTML={props.html} />;
-    }
     return (
       <Resource
         value={builderContentRsrc}
         onPending={() => <div>Loading...</div>}
-        onResolved={(content) => (
-          <RenderContent model={props.model} content={content} apiKey={props.apiKey} />
-        )}
+        onResolved={(content) =>
+          content.html ? (
+            <props.tag class="builder" dangerouslySetInnerHTML={content.html} />
+          ) : (
+            <RenderContent model={props.model} content={content} apiKey={props.apiKey} />
+          )
+        }
       />
     );
   }

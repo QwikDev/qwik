@@ -72,11 +72,16 @@ function handleErrors<T>(run: QwikCityRun<T>): QwikCityRun<T> {
     response: run.response,
     requestEv: requestEv,
     completion: run.completion.catch((e) => {
+      const status = requestEv.status();
+      const html = getErrorHtml(status, e);
       if (!requestEv.headersSent) {
-        const status = requestEv.status();
-        const html = getErrorHtml(status, e);
         requestEv.send(status, html);
+      } else {
+        const stream = requestEv.getWriter();
+        stream.write(html);
+        stream.close();
       }
+      console.error(e);
       return requestEv;
     }),
   };

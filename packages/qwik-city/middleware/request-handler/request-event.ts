@@ -141,6 +141,7 @@ export function createRequestEvent(
       const stream = requestEv.getWriter();
       stream.write(text);
       stream.close();
+      return new AbortError();
     },
 
     html: (statusCode: number, html: string) => {
@@ -151,6 +152,7 @@ export function createRequestEvent(
       const stream = requestEv.getWriter();
       stream.write(html);
       stream.close();
+      return new AbortError();
     },
 
     json: (statusCode: number, data: any) => {
@@ -161,6 +163,7 @@ export function createRequestEvent(
       const stream = requestEv.getWriter();
       stream.write(JSON.stringify(data));
       stream.close();
+      return new AbortError();
     },
 
     send: (statusCode: number, body: any) => {
@@ -170,6 +173,7 @@ export function createRequestEvent(
       const stream = requestEv.getWriter();
       stream.write(body);
       stream.close();
+      return new AbortError();
     },
 
     getWriter: () => {

@@ -5,6 +5,7 @@ import Header from '../components/header/header';
 import { isUserAuthenticated } from '../auth/auth';
 
 export const rootLoader = loader$(() => {
+  debugger;
   return {
     serverTime: new Date().toISOString(),
     nodeVersion: process.version,
@@ -12,6 +13,7 @@ export const rootLoader = loader$(() => {
 });
 
 export const userLoader = loader$(async ({ cookie }) => {
+  debugger;
   return {
     isAuthenticated: await isUserAuthenticated(cookie),
   };

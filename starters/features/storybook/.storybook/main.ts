@@ -1,14 +1,11 @@
-import type { StorybookViteConfig } from '@storybook/builder-vite';
+import type { StorybookConfig } from '@storybook/builder-vite';
 import { mergeConfig, UserConfig } from 'vite';
 import baseConfig from '../vite.config';
 
-const config: StorybookViteConfig = {
+const config: StorybookConfig = {
   addons: ['@storybook/addon-essentials'],
   stories: ['../src/**/*.stories.mdx', '../src/**/*.stories.@(js|jsx|ts|tsx)'],
-  framework: '@storybook/html',
-  core: {
-    builder: '@storybook/builder-vite',
-  },
+  framework: '@storybook/html-vite',
   features: {
     storyStoreV7: true,
   },

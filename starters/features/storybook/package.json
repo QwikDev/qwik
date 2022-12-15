@@ -1,14 +1,21 @@
 {
   "description": "Use Storybook with your Qwik app",
   "devDependencies": {
-    "@storybook/addon-essentials": "^6.5.14",
-    "@storybook/builder-vite": "^0.2.5",
-    "@storybook/core-server": "^6.5.14",
-    "@storybook/html": "^6.5.14",
-    "@storybook/theming": "^6.5.14"
+    "@storybook/addon-actions": "^7.0.0-beta.8",
+    "@storybook/addon-essentials": "^7.0.0-beta.8",
+    "@storybook/addon-interactions": "^7.0.0-beta.8",
+    "@storybook/addon-links": "^7.0.0-beta.8",
+    "@storybook/builder-vite": "7.0.0-beta.8",
+    "@storybook/html": "7.0.0-beta.8",
+    "@storybook/html-vite": "7.0.0-beta.8",
+    "@storybook/node-logger": "^7.0.0-beta.8",
+    "@storybook/testing-library": "^0.0.14-next.1",
+    "@storybook/theming": "7.0.0-beta.8",
+    "storybook": "^7.0.0-beta.8"
   },
   "scripts": {
-    "storybook": "NODE_OPTIONS=--openssl-legacy-provider start-storybook -p 6005"
+    "storybook": "storybook dev -p 6006 -s public",
+    "storybook.build": "storybook build -s public"
   },
   "__qwik__": {
     "displayName": "Integration: Storybook",

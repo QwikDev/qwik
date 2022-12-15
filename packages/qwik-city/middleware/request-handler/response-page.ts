@@ -17,19 +17,15 @@ export async function responsePage<T = unknown>(
     responseHeaders.set('Content-Type', 'text/html; charset=utf-8');
   }
 
-  try {
-    const result = await render({
-      stream,
-      envData: getQwikCityEnvData(requestEv),
-      ...opts,
-    });
-    if ((typeof result as any as RenderToStringResult).html === 'string') {
-      // render result used renderToString(), so none of it was streamed
-      // write the already completed html to the stream
-      stream.write((result as any as RenderToStringResult).html);
-    }
-  } finally {
-    stream.close();
+  const result = await render({
+    stream,
+    envData: getQwikCityEnvData(requestEv),
+    ...opts,
+  });
+  if ((typeof result as any as RenderToStringResult).html === 'string') {
+    // render result used renderToString(), so none of it was streamed
+    // write the already completed html to the stream
+    stream.write((result as any as RenderToStringResult).html);
   }
 }
 

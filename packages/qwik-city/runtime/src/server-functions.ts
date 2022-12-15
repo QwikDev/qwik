@@ -142,6 +142,11 @@ export class ServerLoaderImpl implements ServerLoaderInternal {
   use(): Signal<any> {
     const state = useContext(RouteStateContext);
     const hash = this.__qrl.getHash();
+    untrack(() => {
+      if (!(hash in state)) {
+        throw new Error(`Loader not found: ${hash}`);
+      }
+    });
     return _wrapSignal(state, hash);
   }
 }

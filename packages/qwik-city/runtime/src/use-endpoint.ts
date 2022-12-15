@@ -1,7 +1,7 @@
 import { getClientDataPath } from './utils';
 import { dispatchPrefetchEvent } from './client-navigate';
 import { CLIENT_DATA_CACHE } from './constants';
-import type { ClientPageData, RouteActionValue } from './types';
+import type { RouteActionValue } from './types';
 
 export const loadClientData = async (
   href: string,
@@ -27,13 +27,14 @@ export const loadClientData = async (
       : undefined;
     qData = fetch(clientDataPath, options).then((rsp) => {
       if ((rsp.headers.get('content-type') || '').includes('json')) {
-        return rsp.json().then((clientData: ClientPageData) => {
+        return rsp.text().then((text) => {
+          const clientData = parseData(text);
           if (clearCache) {
             CLIENT_DATA_CACHE.delete(clientDataPath);
           }
           if (action) {
             const actionData = clientData.loaders[action.id];
-            action.resolve({ status: rsp.status, result: actionData });
+            action.resolve!({ status: rsp.status, result: actionData });
           }
           return clientData;
         });
@@ -49,3 +50,20 @@ export const loadClientData = async (
 
   return qData;
 };
+
+function parseData(str: string) {
+  return JSON.parse(str, (_, value) => {
+    if (value && typeof value === 'object' && value.__brand === 'formdata') {
+      return formDataFromArray(value.value);
+    }
+    return value;
+  });
+}
+
+function formDataFromArray(array: [string, string][]): FormData {
+  const formData = new FormData();
+  for (const [key, value] of array) {
+    formData.append(key, value);
+  }
+  return formData;
+}

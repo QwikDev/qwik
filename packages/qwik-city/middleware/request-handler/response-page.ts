@@ -1,7 +1,7 @@
 import type { RenderOptions } from '@builder.io/qwik';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import type { QwikCityEnvData, RequestEvent } from '../../runtime/src/types';
-import { getRequestLoaders } from './request-event';
+import { getRequestAction, getRequestLoaders } from './request-event';
 
 export async function responsePage<T = unknown>(
   requestEv: RequestEvent,
@@ -38,7 +38,6 @@ export function getQwikCityEnvData(requestEv: RequestEvent<unknown>): {
 } {
   const { url, params, request, status, locale } = requestEv;
   const requestHeaders: Record<string, string> = {};
-  const loaders = getRequestLoaders(requestEv);
   request.headers.forEach((value, key) => (requestHeaders[key] = value));
 
   return {
@@ -50,7 +49,8 @@ export function getQwikCityEnvData(requestEv: RequestEvent<unknown>): {
       params: { ...params },
       response: {
         status: status(),
-        loaders,
+        loaders: getRequestLoaders(requestEv),
+        action: getRequestAction(requestEv),
       },
     },
   };

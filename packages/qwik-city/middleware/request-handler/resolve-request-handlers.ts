@@ -6,7 +6,12 @@ import type {
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik';
 import type { RequestHandler } from './types';
-import { getRequestLoaders, getRequestMode, RequestEventInternal } from './request-event';
+import {
+  getRequestLoaders,
+  getRequestMode,
+  RequestEventInternal,
+  setRequestAction,
+} from './request-event';
 import { responseQData } from './response-q-data';
 import { responsePage } from './response-page';
 import { QACTION_KEY } from '../../runtime/src/constants';
@@ -99,6 +104,7 @@ export function actionsMiddleware(
       if (selectedAction) {
         const action = serverActions.find((a) => a.__qrl.getHash() === selectedAction);
         if (action) {
+          setRequestAction(requestEv, selectedAction);
           const formData = await requestEv.request.formData();
           const actionResolved = await action.__qrl(formData, requestEv);
           loaders[selectedAction] = actionResolved;

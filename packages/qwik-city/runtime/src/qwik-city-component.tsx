@@ -108,7 +108,20 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     contents: undefined,
   });
 
-  const actionState = useSignal<RouteActionValue>();
+  const currentActionId = env.response.action;
+  const currentAction = currentActionId ? env.response.loaders[currentActionId] : undefined;
+  const actionState = useSignal<RouteActionValue>(
+    currentAction
+      ? {
+          id: currentActionId!,
+          data: undefined,
+          output: {
+            result: currentAction,
+            status: env.response.status,
+          },
+        }
+      : undefined
+  );
 
   useContextProvider(ContentContext, content);
   useContextProvider(ContentInternalContext, contentInternal);

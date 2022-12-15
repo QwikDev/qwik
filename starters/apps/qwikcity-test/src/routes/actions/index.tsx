@@ -2,23 +2,23 @@ import { component$, useStyles$ } from '@builder.io/qwik';
 import { DocumentHead, Form, action$, loader$ } from '@builder.io/qwik-city';
 import styles from './actions.css';
 
-export const toppings = [
-  { name: 'Pepperoni', selected: false },
-  { name: 'Sausage', selected: false },
-  { name: 'Bacon', selected: false },
-];
-
 export const toppingsLoader = loader$(() => {
-  return toppings;
+  return ['Pepperoni', 'Sausage', 'Bacon'];
 });
+
+export function delay(nu: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, nu);
+  });
+}
 
 export const toppingsAction = action$((form) => {
   const newToppings = form.getAll('toppings');
-  toppings.forEach((value) => {
-    value.selected = newToppings.includes(value.name);
-  });
+  console.log('Selected toppings:', newToppings);
+  // await delay(1000);
   return {
     success: true,
+    form,
   };
 });
 
@@ -48,8 +48,7 @@ export default component$(() => {
           <h2>Toppings</h2>
           <p>
             {toppings.value
-              .filter((s) => s.selected)
-              .map((s) => s.name)
+              .filter((s) => toppingAction.value?.form.getAll('toppings').includes(s))
               .join(', ')}
           </p>
           {toppings.value.map((topping) => (
@@ -57,14 +56,14 @@ export default component$(() => {
               <input
                 type="checkbox"
                 name="toppings"
-                value={topping.name}
-                checked={topping.selected}
+                value={topping}
+                checked={toppingAction.value?.form.getAll('toppings').includes(topping)}
               />
-              <span>{topping.name}</span>
+              <span>{topping}</span>
             </label>
           ))}
           <p>
-            <button>Set Toppings</button>
+            <button disabled={toppingAction.isPending}>Set Toppings</button>
           </p>
         </Form>
 

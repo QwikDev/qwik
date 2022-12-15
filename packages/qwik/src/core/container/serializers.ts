@@ -296,6 +296,31 @@ const URLSearchParamsSerializer: Serializer<URLSearchParams> = {
   fill: undefined,
 };
 
+const FormDataSerializer: Serializer<FormData> = {
+  prefix: '\u0015',
+  test: (v) => v instanceof FormData,
+  serialize: (formData) => {
+    const array: [string, string][] = [];
+    formData.forEach((value, key) => {
+      if (typeof value === 'string') {
+        array.push([key, value]);
+      } else {
+        array.push([key, value.name]);
+      }
+    });
+    return JSON.stringify(array);
+  },
+  prepare: (data) => {
+    const array = JSON.parse(data);
+    const formData = new FormData();
+    for (const [key, value] of array) {
+      formData.append(key, value);
+    }
+    return formData;
+  },
+  fill: undefined,
+};
+
 const serializers: Serializer<any>[] = [
   QRLSerializer,
   SignalSerializer,
@@ -311,6 +336,7 @@ const serializers: Serializer<any>[] = [
   PureFunctionSerializer,
   NoFiniteNumberSerializer,
   URLSearchParamsSerializer,
+  FormDataSerializer,
 ];
 
 const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.collect);

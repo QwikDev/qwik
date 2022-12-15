@@ -27,7 +27,7 @@ export interface ServerActionUtils<RETURN> {
   readonly id: string;
   readonly actionPath: string;
   readonly isPending: boolean;
-  readonly status: 'initial' | 'success' | 'fail';
+  readonly status?: number;
   readonly value: RETURN | undefined;
   readonly execute: ServerActionExecute<RETURN>;
 }
@@ -56,30 +56,23 @@ export class ServerActionImpl implements ServerActionInternal {
     const loc = useLocation() as Editable<RouteLocation>;
     const currentAction = useAction();
     const initialState: Editable<Partial<ServerActionUtils<any>>> = {
-      status: 'initial',
+      status: undefined,
       isPending: false,
     };
 
     const state = useStore<Editable<ServerActionUtils<any>>>(() => {
       return untrack(() => {
         const id = this.__qrl.getHash();
-
-        let statusStr: 'initial' | 'success' | 'fail' = 'initial';
-        let value = undefined;
         if (currentAction.value?.output) {
           const { status, result } = currentAction.value.output;
-          if (status >= 300) {
-            statusStr = 'fail';
-          } else {
-            statusStr = 'success';
-          }
-          value = result;
+          initialState.status = status;
+          initialState.value = result;
+        } else {
+          initialState.status = undefined;
+          initialState.value = undefined;
         }
-
         initialState.id = id;
         initialState.actionPath = `${loc.pathname}?${QACTION_KEY}=${id}`;
-        initialState.status = statusStr;
-        initialState.value = value;
         initialState.isPending = false;
         return initialState as ServerActionUtils<any>;
       });
@@ -92,30 +85,19 @@ export class ServerActionImpl implements ServerActionInternal {
       } else if (input instanceof FormData) {
         data = input;
       } else {
-        data = new FormData();
-        for (const key in input) {
-          const value = input[key];
-          if (Array.isArray(value)) {
-            for (const item of value) {
-              data.append(key, item);
-            }
-          } else {
-            data.append(key, value);
-          }
-        }
+        data = formDataFromObject(input);
       }
-
       return new Promise<RouteActionResolver>((resolve) => {
         state.isPending = true;
         loc.isPending = true;
-        currentAction.value = noSerialize({
+        currentAction.value = {
           data,
           id: state.id,
-          resolve,
-        });
+          resolve: noSerialize(resolve),
+        };
       }).then((value) => {
         state.isPending = false;
-        state.status = value.status >= 300 ? 'fail' : 'success';
+        state.status = value.status;
         state.value = value.result;
       });
     });
@@ -177,3 +159,18 @@ export const loaderQrl = <PLATFORM, B>(
  * @alpha
  */
 export const loader$ = implicit$FirstArg(loaderQrl);
+
+export function formDataFromObject(obj: Record<string, string | string[] | Blob | Blob[]>) {
+  const formData = new FormData();
+  for (const key in obj) {
+    const value = obj[key];
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        formData.append(key, item);
+      }
+    } else {
+      formData.append(key, value);
+    }
+  }
+  return formData;
+}

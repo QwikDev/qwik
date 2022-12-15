@@ -171,6 +171,7 @@ async function buildVite(config: BuildConfig, inputDir: string, outputDir: strin
     'source-map',
     'vfile',
     '@mdx-js/mdx',
+    'undici',
     'typescript',
   ];
 

@@ -23,6 +23,7 @@ const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvLocale = Symbol('RequestEvLocale');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvStatus = Symbol('RequestEvStatus');
+export const RequestEvAction = Symbol('RequestEvAction');
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
@@ -65,6 +66,7 @@ export function createRequestEvent(
     [RequestEvLocale]: serverRequestEv.locale,
     [RequestEvMode]: serverRequestEv.mode,
     [RequestEvStatus]: 200,
+    [RequestEvAction]: undefined,
     cookie,
     headers,
     method: request.method,
@@ -191,10 +193,19 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvLocale]: string | undefined;
   [RequestEvMode]: QwikCityMode;
   [RequestEvStatus]: number;
+  [RequestEvAction]: string | undefined;
 }
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvLoaders];
+}
+
+export function getRequestAction(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvAction];
+}
+
+export function setRequestAction(requestEv: RequestEventCommon, id: string) {
+  (requestEv as RequestEventInternal)[RequestEvAction] = id;
 }
 
 export function getRequestMode(requestEv: RequestEventCommon) {

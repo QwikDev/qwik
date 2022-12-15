@@ -47,7 +47,7 @@ export default component$(() => {
         <p>(Username: qwik, Password: dev)</p>
       </form>
 
-      <h1>Reset Password</h1>
+      <h2>Reset Password</h2>
 
       <Form action={resetPassword}>
         <label>

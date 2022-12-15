@@ -700,7 +700,7 @@ export interface ResourceOptions {
 }
 
 // @public (undocumented)
-export interface ResourcePending<T> extends PromiseLike<T> {
+export interface ResourcePending<T> {
     // (undocumented)
     readonly loading: boolean;
     // (undocumented)
@@ -722,13 +722,15 @@ export interface ResourceProps<T> {
 }
 
 // @public (undocumented)
-export interface ResourceRejected<T> extends PromiseLike<T> {
+export interface ResourceRejected<T> {
     // (undocumented)
     readonly loading: boolean;
+    // (undocumented)
+    readonly value: Promise<T>;
 }
 
 // @public (undocumented)
-export interface ResourceResolved<T> extends PromiseLike<T> {
+export interface ResourceResolved<T> {
     // (undocumented)
     readonly loading: boolean;
     // (undocumented)

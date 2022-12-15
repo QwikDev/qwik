@@ -1,5 +1,5 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
-import { DocumentHead, Form, serverAction$, serverLoader$ } from '@builder.io/qwik-city';
+import { DocumentHead, Form, action$, loader$ } from '@builder.io/qwik-city';
 import styles from './actions.css';
 
 export const toppings = [
@@ -8,11 +8,11 @@ export const toppings = [
   { name: 'Bacon', selected: false },
 ];
 
-export const toppingsLoader = serverLoader$(() => {
+export const toppingsLoader = loader$(() => {
   return toppings;
 });
 
-export const toppingsAction = serverAction$((form) => {
+export const toppingsAction = action$((form) => {
   const newToppings = form.getAll('toppings');
   toppings.forEach((value) => {
     value.selected = newToppings.includes(value.name);
@@ -22,11 +22,11 @@ export const toppingsAction = serverAction$((form) => {
   };
 });
 
-export const crustLoader = serverLoader$(() => {
+export const crustLoader = loader$(() => {
   return ['Thin', 'Deep Dish'];
 });
 
-export const sizeLoader = serverLoader$(() => {
+export const sizeLoader = loader$(() => {
   return ['Small', 'Medium', 'Large'];
 });
 

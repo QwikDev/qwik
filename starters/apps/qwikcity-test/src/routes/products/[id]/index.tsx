@@ -1,5 +1,5 @@
 import { component$, useStore } from '@builder.io/qwik';
-import { Link, useLocation, DocumentHead, serverLoader$ } from '@builder.io/qwik-city';
+import { Link, useLocation, DocumentHead, loader$ } from '@builder.io/qwik-city';
 import os from 'node:os';
 
 export default component$(() => {
@@ -91,55 +91,56 @@ export const PRODUCT_DB: Record<string, string> = {
   tshirt: '$18.96',
 };
 
-export const productLoader = serverLoader$(async ({ headers, json, error, params, query, redirect, status }) => {
-  // Serverside Endpoint
-  // During SSR, this method is called directly on the server and returns the data object
-  // On the client, this same data can be requested with fetch() at the same URL, but also
-  // requires the "accept: application/json" request header.
+export const productLoader = loader$(
+  async ({ headers, json, error, params, query, redirect, status }) => {
+    // Serverside Endpoint
+    // During SSR, this method is called directly on the server and returns the data object
+    // On the client, this same data can be requested with fetch() at the same URL, but also
+    // requires the "accept: application/json" request header.
 
-  const id = params.id;
-  if (query.has('querystring-test')) {
-    throw redirect(301, '/qwikcity-test/');
+    const id = params.id;
+    if (query.has('querystring-test')) {
+      throw redirect(301, '/qwikcity-test/');
+    }
+
+    if (id === 'shirt') {
+      // Redirect, which will skip any rendering and the server will immediately redirect
+      throw redirect(301, '/qwikcity-test/products/tshirt/');
+    }
+
+    if (id === 'error') {
+      throw error(500, 'Error from server');
+    }
+
+    const productPrice = PRODUCT_DB[id];
+    if (!productPrice) {
+      // Product data not found, but purposely not throwing a response.error(404)
+      // instead the renderer will still run with the returned `null` data
+      // and the component will decide how to render it
+      status(404);
+      // never cache
+      headers.set('Cache-Control', 'no-cache, no-store, no-fun');
+      return null;
+    }
+
+    // cache for a super long time of 15 seconds
+    headers.set('Cache-Control', 'max-age=15');
+
+    await new Promise<void>((resolve) => setTimeout(resolve, 200));
+
+    const data = {
+      // Found the product data
+      // This same data is passed to the head() function
+      // and in the component$() it can be access with useEndpoint()
+      productId: id,
+      price: productPrice,
+      description: `Node ${process.versions.node} ${os.platform()} ${os.arch()} ${
+        os.cpus()[0].model
+      }`,
+    };
+    if (query.get('json') === 'true') {
+      json(200, data);
+    }
+    return data;
   }
-
-  if (id === 'shirt') {
-    // Redirect, which will skip any rendering and the server will immediately redirect
-    throw redirect(301, '/qwikcity-test/products/tshirt/');
-  }
-
-  if (id === 'error') {
-    throw error(500, 'Error from server')
-  }
-
-
-  const productPrice = PRODUCT_DB[id];
-  if (!productPrice) {
-    // Product data not found, but purposely not throwing a response.error(404)
-    // instead the renderer will still run with the returned `null` data
-    // and the component will decide how to render it
-    status(404);
-    // never cache
-    headers.set('Cache-Control', 'no-cache, no-store, no-fun');
-    return null;
-  }
-
-  // cache for a super long time of 15 seconds
-  headers.set('Cache-Control', 'max-age=15');
-
-  await new Promise<void>((resolve) => setTimeout(resolve, 200));
-
-  const data = {
-    // Found the product data
-    // This same data is passed to the head() function
-    // and in the component$() it can be access with useEndpoint()
-    productId: id,
-    price: productPrice,
-    description: `Node ${process.versions.node} ${os.platform()} ${os.arch()} ${
-      os.cpus()[0].model
-    }`,
-  };
-  if (query.get('json') === 'true') {
-    json(200, data);
-  }
-  return data;
-});
+);

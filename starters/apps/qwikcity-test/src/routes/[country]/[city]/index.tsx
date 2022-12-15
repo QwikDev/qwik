@@ -1,7 +1,7 @@
 import { component$ } from '@builder.io/qwik';
-import { DocumentHead, Link, serverLoader$, useLocation } from '@builder.io/qwik-city';
+import { DocumentHead, Link, loader$, useLocation } from '@builder.io/qwik-city';
 
-export const weatherLoader = serverLoader$(({ params, query }) => {
+export const weatherLoader = loader$(({ params, query }) => {
   return {
     city: params.city,
     country: params.country,

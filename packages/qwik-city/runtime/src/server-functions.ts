@@ -126,7 +126,7 @@ export class ServerActionImpl implements ServerActionInternal {
 /**
  * @alpha
  */
-export const serverActionQrl = <B>(
+export const actionQrl = <B>(
   actionQrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<B>>
 ): ServerAction<B> => {
   return new ServerActionImpl(actionQrl as any) as any;
@@ -135,7 +135,7 @@ export const serverActionQrl = <B>(
 /**
  * @alpha
  */
-export const serverAction$ = implicit$FirstArg(serverActionQrl);
+export const action$ = implicit$FirstArg(actionQrl);
 
 export type ServerLoaderUse<T> = Awaited<T> extends () => ValueOrPromise<infer B>
   ? ResourceReturn<B>
@@ -167,7 +167,7 @@ export class ServerLoaderImpl implements ServerLoaderInternal {
 /**
  * @alpha
  */
-export const serverLoaderQrl = <PLATFORM, B>(
+export const loaderQrl = <PLATFORM, B>(
   loaderQrl: QRL<(event: RequestEventLoader<PLATFORM>) => B>
 ): ServerLoader<B> => {
   return new ServerLoaderImpl(loaderQrl as any) as any;
@@ -176,4 +176,4 @@ export const serverLoaderQrl = <PLATFORM, B>(
 /**
  * @alpha
  */
-export const serverLoader$ = implicit$FirstArg(serverLoaderQrl);
+export const loader$ = implicit$FirstArg(loaderQrl);

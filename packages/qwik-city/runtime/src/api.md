@@ -19,6 +19,15 @@ import { ResourceReturn } from '@builder.io/qwik';
 import { Signal } from '@builder.io/qwik';
 import { ValueOrPromise } from '@builder.io/qwik';
 
+// Warning: (ae-forgotten-export) The symbol "RequestEventLoader" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ServerAction" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const action$: <B>(first: (form: FormData, event: RequestEventLoader) => ValueOrPromise<B>) => ServerAction<B>;
+
+// @alpha (undocumented)
+export const actionQrl: <B>(actionQrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<B>>) => ServerAction<B>;
+
 // @alpha @deprecated (undocumented)
 export const Content: Component<    {}>;
 
@@ -168,6 +177,14 @@ export interface LinkProps extends AnchorAttributes {
     prefetch?: boolean;
 }
 
+// Warning: (ae-forgotten-export) The symbol "ServerLoader" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const loader$: <PLATFORM, B>(first: (event: RequestEventLoader<PLATFORM>) => B) => ServerLoader<B>;
+
+// @alpha (undocumented)
+export const loaderQrl: <PLATFORM, B>(loaderQrl: QRL<(event: RequestEventLoader<PLATFORM>) => B>) => ServerLoader<B>;
+
 // @alpha (undocumented)
 export type PathParams = Record<string, string>;
 
@@ -235,23 +252,6 @@ export type RouteParams = Record<string, string>;
 
 // @alpha (undocumented)
 export const RouterOutlet: Component<    {}>;
-
-// Warning: (ae-forgotten-export) The symbol "RequestEventLoader" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ServerAction" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export const serverAction$: <B>(first: (form: FormData, event: RequestEventLoader) => ValueOrPromise<B>) => ServerAction<B>;
-
-// @alpha (undocumented)
-export const serverActionQrl: <B>(actionQrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<B>>) => ServerAction<B>;
-
-// Warning: (ae-forgotten-export) The symbol "ServerLoader" needs to be exported by the entry point index.d.ts
-//
-// @alpha (undocumented)
-export const serverLoader$: <PLATFORM, B>(first: (event: RequestEventLoader<PLATFORM>) => B) => ServerLoader<B>;
-
-// @alpha (undocumented)
-export const serverLoaderQrl: <PLATFORM, B>(loaderQrl: QRL<(event: RequestEventLoader<PLATFORM>) => B>) => ServerLoader<B>;
 
 // @alpha (undocumented)
 export const ServiceWorkerRegister: () => JSXNode<"script">;

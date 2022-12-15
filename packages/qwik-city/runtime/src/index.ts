@@ -27,8 +27,8 @@ export { Link } from './link-component';
 export type { LinkProps } from './link-component';
 export { ServiceWorkerRegister } from './sw-component';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './use-functions';
-export { serverAction$, serverActionQrl } from './server-functions';
-export { serverLoader$, serverLoaderQrl } from './server-functions';
+export { action$, actionQrl } from './server-functions';
+export { loader$, loaderQrl } from './server-functions';
 export { Form } from './form-component';
 export type { FormProps } from './form-component';
 

@@ -1,17 +1,17 @@
 import { component$, Slot } from '@builder.io/qwik';
-import { RequestHandler, serverLoader$ } from '@builder.io/qwik-city';
+import { RequestHandler, loader$ } from '@builder.io/qwik-city';
 import Footer from '../components/footer/footer';
 import Header from '../components/header/header';
 import { isUserAuthenticated } from '../auth/auth';
 
-export const rootLoader = serverLoader$(() => {
+export const rootLoader = loader$(() => {
   return {
     serverTime: new Date().toISOString(),
     nodeVersion: process.version,
   };
 });
 
-export const userLoader = serverLoader$(async ({ cookie }) => {
+export const userLoader = loader$(async ({ cookie }) => {
   return {
     isAuthenticated: await isUserAuthenticated(cookie),
   };

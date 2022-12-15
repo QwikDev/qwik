@@ -3,7 +3,7 @@
  */
 
 import { component$ } from '@builder.io/qwik';
-import { DocumentHead, Form, RequestHandler, serverAction$ } from '@builder.io/qwik-city';
+import { DocumentHead, Form, RequestHandler, action$ } from '@builder.io/qwik-city';
 import { isUserAuthenticated, signIn } from '../../../auth/auth';
 
 export const onGet: RequestHandler = async ({ redirect, cookie }) => {
@@ -12,7 +12,7 @@ export const onGet: RequestHandler = async ({ redirect, cookie }) => {
   }
 };
 
-export const signinAction = serverAction$(async (formData, { cookie, redirect, status }) => {
+export const signinAction = action$(async (formData, { cookie, redirect, status }) => {
   const result = await signIn(formData, cookie);
 
   if (result.status === 'signed-in') {
@@ -22,7 +22,7 @@ export const signinAction = serverAction$(async (formData, { cookie, redirect, s
   status(403);
 });
 
-export const resetPasswordAction = serverAction$(async (formData) => {
+export const resetPasswordAction = action$(async (formData) => {
   console.log('resetPasswordAction', formData.get('email'));
 });
 

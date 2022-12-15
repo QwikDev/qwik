@@ -5,6 +5,13 @@ import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
 import styles from './dashboard.css?inline';
 
+export const onGet: RequestHandler = async ({ redirect, cookie }) => {
+  const isAuthenticated = await isUserAuthenticated(cookie);
+  if (!isAuthenticated) {
+    throw redirect(301, '/qwikcity-test/sign-in/');
+  }
+};
+
 export default component$(() => {
   useStyles$(styles);
 
@@ -45,11 +52,4 @@ export const head: DocumentHead = ({ head }) => {
   return {
     title: `Dashboard ${head.title}`,
   };
-};
-
-export const onGet: RequestHandler = async ({ redirect, cookie }) => {
-  const isAuthenticated = await isUserAuthenticated(cookie);
-  if (!isAuthenticated) {
-    throw redirect(301, '/qwikcity-test/sign-in/');
-  }
 };

@@ -20,6 +20,7 @@ import { useSequentialScope } from './use-sequential-scope';
 import { createProxy } from '../state/store';
 import { getProxyTarget } from '../state/common';
 import type { Signal } from '../state/signal';
+import { isObject } from '../util/types';
 
 /**
  * Options to pass to `useResource$()`
@@ -259,67 +260,63 @@ export interface ResourceProps<T> {
 // </docs>
 export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
   const isBrowser = !isServer();
-  const resource = props.value as ResourceReturnInternal<T> | Promise<T>;
-  if (isBrowser && resource instanceof ResourceImpl) {
-    if (props.onRejected) {
-      resource.value.catch(() => {});
-      if (resource._state === 'rejected') {
-        return props.onRejected(resource._error);
+  const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
+  let promise: Promise<T> | undefined;
+  if (isResourceReturn(resource)) {
+    if (isBrowser) {
+      if (props.onRejected) {
+        resource.value.catch(() => {});
+        if (resource._state === 'rejected') {
+          return props.onRejected(resource._error);
+        }
+      }
+      if (props.onPending) {
+        const state = resource._state;
+        if (state === 'resolved') {
+          return props.onResolved(resource._resolved!);
+        } else if (state === 'pending') {
+          return props.onPending();
+        } else if (state === 'rejected') {
+          throw resource._error;
+        }
       }
     }
-    if (props.onPending) {
-      const state = resource._state;
-      if (state === 'resolved') {
-        return props.onResolved(resource._resolved!);
-      } else if (state === 'pending') {
-        return props.onPending();
-      } else if (state === 'rejected') {
-        throw resource._error;
-      }
-    }
-  }
-  if (!('then' in resource)) {
+    promise = resource.value;
+  } else if (resource instanceof Promise) {
+    promise = resource;
+  } else {
     return props.onResolved(resource as T);
   }
 
-  const promise: any = resource.then(
-    useBindInvokeContext(props.onResolved),
-    useBindInvokeContext(props.onRejected)
-  );
-
   // Resource path
   return jsx(Fragment, {
-    children: promise,
+    children: promise.then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    ),
   });
 };
 
-export class ResourceImpl<T> implements ResourceReturnInternal<T> {
-  loading: boolean = isServer() ? false : true;
-  value: Promise<T> = undefined as never;
-  _resolved: T | undefined = undefined;
-  _error: any = undefined;
-  _state: 'pending' | 'resolved' | 'rejected' = 'pending';
-  _timeout = -1;
-  _cache = 0;
-
-  constructor(opts?: ResourceOptions) {
-    this._timeout = opts?.timeout ?? -1;
-  }
-
-  then<TResult1 = T, TResult2 = never>(
-    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
-    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
-  ): Promise<TResult1 | TResult2> {
-    return this.value.then(onfulfilled, onrejected);
-  }
-}
+export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturnInternal<T> => {
+  const resource: ResourceReturnInternal<T> = {
+    __brand: 'resource',
+    value: undefined as never,
+    loading: isServer() ? false : true,
+    _resolved: undefined as never,
+    _error: undefined as never,
+    _state: 'pending',
+    _timeout: opts?.timeout ?? -1,
+    _cache: 0,
+  };
+  return resource;
+};
 
 export const createResourceReturn = <T>(
   containerState: ContainerState,
   opts?: ResourceOptions,
   initialPromise?: Promise<T>
 ): ResourceReturnInternal<T> => {
-  const result = new ResourceImpl<T>(opts);
+  const result = _createResourceReturn<T>(opts);
   result.value = initialPromise as any;
   const resource = createProxy(result, containerState, undefined);
   return resource;
@@ -330,7 +327,7 @@ export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceRet
 };
 
 export const isResourceReturn = (obj: any): obj is ResourceReturn<any> => {
-  return obj instanceof ResourceImpl;
+  return isObject(obj) && obj.__brand === 'resource';
 };
 
 export const serializeResource = (resource: ResourceReturnInternal<any>, getObjId: GetObjID) => {
@@ -346,7 +343,7 @@ export const serializeResource = (resource: ResourceReturnInternal<any>, getObjI
 
 export const parseResourceReturn = <T>(data: string): ResourceReturnInternal<T> => {
   const [first, id] = data.split(' ');
-  const result = new ResourceImpl<T>(undefined);
+  const result = _createResourceReturn<T>(undefined);
   result.value = Promise.resolve() as any;
   if (first === '0') {
     result._state = 'resolved';

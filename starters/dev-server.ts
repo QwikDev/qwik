@@ -292,30 +292,61 @@ function favicon(_: Request, res: Response) {
   res.sendFile(path);
 }
 
-const partytownPath = resolve(startersDir, '..', 'node_modules', '@builder.io', 'partytown', 'lib');
-app.use(`/~partytown`, express.static(partytownPath));
+async function main() {
+  await patchGlobalFetch();
 
-appNames.forEach((appName) => {
-  const buildPath = join(startersAppsDir, appName, 'dist', 'build');
-  app.use(`/${appName}/build`, express.static(buildPath));
+  const partytownPath = resolve(
+    startersDir,
+    '..',
+    'node_modules',
+    '@builder.io',
+    'partytown',
+    'lib'
+  );
+  app.use(`/~partytown`, express.static(partytownPath));
 
-  const publicPath = join(startersAppsDir, appName, 'public');
-  app.use(`/${appName}`, express.static(publicPath));
-});
-
-app.get('/', startersHomepage);
-app.get('/favicon*', favicon);
-app.all('/*', handleApp);
-
-const server = app.listen(port, () => {
-  console.log(`Starter Dir: ${startersDir}`);
-  console.log(`Dev Server: ${address}\n`);
-
-  console.log(`Starters:`);
   appNames.forEach((appName) => {
-    console.log(`  ${address}${appName}/`);
-  });
-  console.log(``);
-});
+    const buildPath = join(startersAppsDir, appName, 'dist', 'build');
+    app.use(`/${appName}/build`, express.static(buildPath));
 
-process.on('SIGTERM', () => server.close());
+    const publicPath = join(startersAppsDir, appName, 'public');
+    app.use(`/${appName}`, express.static(publicPath));
+  });
+
+  app.get('/', startersHomepage);
+  app.get('/favicon*', favicon);
+  app.all('/*', handleApp);
+
+  const server = app.listen(port, () => {
+    console.log(`Starter Dir: ${startersDir}`);
+    console.log(`Dev Server: ${address}\n`);
+
+    console.log(`Starters:`);
+    appNames.forEach((appName) => {
+      console.log(`  ${address}${appName}/`);
+    });
+    console.log(``);
+  });
+
+  process.on('SIGTERM', () => server.close());
+}
+
+main();
+
+async function patchGlobalFetch() {
+  if (
+    typeof global !== 'undefined' &&
+    typeof globalThis.fetch !== 'function' &&
+    typeof process !== 'undefined' &&
+    process.versions.node
+  ) {
+    const { fetch, Headers, Request, Response, FormData } = await import('undici');
+    if (!globalThis.fetch) {
+      globalThis.fetch = fetch as any;
+      globalThis.Headers = Headers as any;
+      globalThis.Request = Request as any;
+      globalThis.Response = Response as any;
+      globalThis.FormData = FormData as any;
+    }
+  }
+}

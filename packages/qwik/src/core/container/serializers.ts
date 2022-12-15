@@ -297,7 +297,7 @@ const URLSearchParamsSerializer: Serializer<URLSearchParams> = {
 };
 
 const FormDataSerializer: Serializer<FormData> = {
-  prefix: '\u0015',
+  prefix: '\u0016',
   test: (v) => v instanceof FormData,
   serialize: (formData) => {
     const array: [string, string][] = [];

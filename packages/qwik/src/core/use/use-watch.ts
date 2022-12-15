@@ -126,7 +126,7 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 /**
  * @public
  */
-export interface ResourcePending<T> extends PromiseLike<T> {
+export interface ResourcePending<T> {
   readonly value: Promise<T>;
   readonly loading: boolean;
 }
@@ -134,7 +134,7 @@ export interface ResourcePending<T> extends PromiseLike<T> {
 /**
  * @public
  */
-export interface ResourceResolved<T> extends PromiseLike<T> {
+export interface ResourceResolved<T> {
   readonly value: Promise<T>;
   readonly loading: boolean;
 }
@@ -142,11 +142,13 @@ export interface ResourceResolved<T> extends PromiseLike<T> {
 /**
  * @public
  */
-export interface ResourceRejected<T> extends PromiseLike<T> {
+export interface ResourceRejected<T> {
+  readonly value: Promise<T>;
   readonly loading: boolean;
 }
 
-export interface ResourceReturnInternal<T> extends PromiseLike<T> {
+export interface ResourceReturnInternal<T> {
+  __brand: 'resource';
   _state: 'pending' | 'resolved' | 'rejected';
   _resolved: T | undefined;
   _error: any;

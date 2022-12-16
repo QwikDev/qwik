@@ -1,3 +1,4 @@
+export type { CachePolicy } from './request-event';
 export { getErrorHtml } from './error-handler';
 export { requestHandler } from './request-handler';
 export type {

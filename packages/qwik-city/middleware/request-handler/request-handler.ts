@@ -1,7 +1,7 @@
 import type { RouteData } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
-import { loadRoute } from 'packages/qwik-city/runtime/src/routing';
-import type { MenuData } from 'packages/qwik-city/runtime/src/types';
+import { loadRoute } from '../../runtime/src/routing';
+import type { MenuData } from '../../runtime/src/types';
 import { getErrorHtml } from './error-handler';
 import {
   isLastModulePageRoute,

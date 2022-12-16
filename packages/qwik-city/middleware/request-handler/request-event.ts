@@ -229,6 +229,9 @@ export function setRequestAction(requestEv: RequestEventCommon, id: string) {
   (requestEv as RequestEventInternal)[RequestEvAction] = id;
 }
 
+/**
+ * @alpha
+ */
 export class CachePolicy {
   private policies: string[] = [];
   constructor(private headers: Headers) {}

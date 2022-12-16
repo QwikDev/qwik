@@ -4,22 +4,24 @@
 
 import { component$ } from '@builder.io/qwik';
 import { DocumentHead, Form, RequestHandler, action$ } from '@builder.io/qwik-city';
-import { isUserAuthenticated, signIn } from '../../../auth/auth';
+import { isUserAuthenticated, signIn } from '../../../../auth/auth';
 
 export const onGet: RequestHandler = async ({ redirect, cookie }) => {
   if (await isUserAuthenticated(cookie)) {
-    throw redirect(301, '/qwikcity-test/dashboard/');
+    throw redirect(302, '/qwikcity-test/dashboard/');
   }
 };
 
-export const signinAction = action$(async (formData, { cookie, redirect, status }) => {
+export const signinAction = action$(async (formData, { cookie, redirect, status, fail }) => {
   const result = await signIn(formData, cookie);
 
   if (result.status === 'signed-in') {
-    throw redirect(301, '/qwikcity-test/dashboard/');
+    throw redirect(302, '/qwikcity-test/dashboard/');
   }
 
-  status(403);
+  return fail(403, {
+    message: 'Invalid username or password',
+  });
 });
 
 export const resetPasswordAction = action$(async (formData) => {
@@ -34,7 +36,8 @@ export default component$(() => {
     <div>
       <h1>Sign In</h1>
 
-      <form method="post" action={signIn.actionPath}>
+      <Form action={signIn}>
+        {signIn.value?.message && <p style="color:red">{signIn.value.message}</p>}
         <label>
           <span>Username</span>
           <input name="username" type="text" autoComplete="username" required />
@@ -45,17 +48,17 @@ export default component$(() => {
         </label>
         <button data-test-sign-in>Sign In</button>
         <p>(Username: qwik, Password: dev)</p>
-      </form>
+      </Form>
 
       <h2>Reset Password</h2>
 
-      <Form action={resetPassword}>
+      <form method="post" action={resetPassword.actionPath}>
         <label>
           <span>Email</span>
           <input name="email" type="text" required />
         </label>
         <button data-test-reset-password>Reset Password</button>
-      </Form>
+      </form>
     </div>
   );
 });

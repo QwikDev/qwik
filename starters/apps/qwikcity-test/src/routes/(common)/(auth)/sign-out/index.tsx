@@ -3,7 +3,7 @@
  */
 
 import type { RequestHandler } from '@builder.io/qwik-city';
-import { signOut } from '../../../auth/auth';
+import { signOut } from '../../../../auth/auth';
 
 export const onGet: RequestHandler = async ({ redirect, cookie }) => {
   signOut(cookie);

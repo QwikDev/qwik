@@ -1,1 +1,2 @@
-export class AbortError {}
+export class AbortMessage {}
+export class RedirectMessage extends AbortMessage {}

@@ -17,7 +17,7 @@ import type { QwikCityMode } from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { createHeaders } from './headers';
 import { ErrorResponse } from './error-handler';
-import { AbortError } from './redirect-handler';
+import { AbortMessage, RedirectMessage } from './redirect-handler';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvLocale = Symbol('RequestEvLocale');
@@ -80,11 +80,15 @@ export function createRequestEvent(
     get headersSent() {
       return streamInternal !== null;
     },
+    get exited() {
+      return routeModuleIndex >= ABORT_INDEX;
+    },
 
     next,
 
     exit: () => {
       routeModuleIndex = ABORT_INDEX;
+      return new AbortMessage();
     },
 
     getData: (loaderOrAction: ServerAction<any> | ServerLoader<any>) => {
@@ -129,8 +133,17 @@ export function createRequestEvent(
       requestEv[RequestEvStatus] = statusCode;
       headers.set('Location', url);
       headers.delete('Cache-Control');
-      requestEv.getWriter().close();
-      return new AbortError();
+      if (statusCode > 301) {
+        headers.set('Cache-Control', 'no-store');
+      }
+      return new RedirectMessage();
+    },
+
+    fail: (statusCode: number, data: any) => {
+      check();
+      requestEv[RequestEvStatus] = statusCode;
+      headers.delete('Cache-Control');
+      return data;
     },
 
     text: (statusCode: number, text: string) => {
@@ -141,7 +154,7 @@ export function createRequestEvent(
       const stream = requestEv.getWriter();
       stream.write(text);
       stream.close();
-      return new AbortError();
+      return new AbortMessage();
     },
 
     html: (statusCode: number, html: string) => {
@@ -152,7 +165,7 @@ export function createRequestEvent(
       const stream = requestEv.getWriter();
       stream.write(html);
       stream.close();
-      return new AbortError();
+      return new AbortMessage();
     },
 
     json: (statusCode: number, data: any) => {
@@ -163,7 +176,7 @@ export function createRequestEvent(
       const stream = requestEv.getWriter();
       stream.write(JSON.stringify(data));
       stream.close();
-      return new AbortError();
+      return new AbortMessage();
     },
 
     send: (statusCode: number, body: any) => {
@@ -173,7 +186,7 @@ export function createRequestEvent(
       const stream = requestEv.getWriter();
       stream.write(body);
       stream.close();
-      return new AbortError();
+      return new AbortMessage();
     },
 
     getWriter: () => {

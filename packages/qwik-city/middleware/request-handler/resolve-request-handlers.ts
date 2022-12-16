@@ -1,22 +1,28 @@
-import type { PageModule, RequestEvent, RouteModule } from '../../runtime/src/types';
+import type {
+  ClientPageData,
+  PageModule,
+  RequestEvent,
+  RouteModule,
+} from '../../runtime/src/types';
 import type {
   ServerActionInternal,
   ServerLoaderInternal,
 } from '../../runtime/src/server-functions';
-import type { Render } from '@builder.io/qwik/server';
+import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik';
 import type { RequestHandler } from './types';
 import {
+  getRequestAction,
   getRequestLoaders,
   getRequestMode,
   RequestEventInternal,
   setRequestAction,
 } from './request-event';
-import { responseQData } from './response-q-data';
-import { responsePage } from './response-page';
+import { getQwikCityEnvData } from './response-page';
 import { QACTION_KEY } from '../../runtime/src/constants';
 import { QDATA_JSON } from './user-response';
 import { validateSerializable } from '../../utils/format';
+import { RedirectMessage } from './redirect-handler';
 
 export const resolveRequestHandlers = (routeModules: RouteModule[], method: string) => {
   const requestHandlers: RequestHandler[] = [];
@@ -146,14 +152,96 @@ export function isLastModulePageRoute(routeModules: RouteModule[]) {
 export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
   return async (requestEv: RequestEvent) => {
     if (requestEv.headersSent) {
-      requestEv.exit();
       return;
     }
     const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
     if (isPageDataReq) {
-      return responseQData(requestEv);
-    } else {
-      return responsePage(requestEv, render, opts);
+      return;
+    }
+    const requestHeaders: Record<string, string> = {};
+    requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
+
+    const stream = requestEv.getWriter();
+    const responseHeaders = requestEv.headers;
+    if (!responseHeaders.has('Content-Type')) {
+      responseHeaders.set('Content-Type', 'text/html; charset=utf-8');
+    }
+
+    const result = await render({
+      stream,
+      envData: getQwikCityEnvData(requestEv),
+      ...opts,
+    });
+    if ((typeof result as any as RenderToStringResult).html === 'string') {
+      // render result used renderToString(), so none of it was streamed
+      // write the already completed html to the stream
+      stream.write((result as any as RenderToStringResult).html);
     }
   };
+}
+
+export async function renderQData(requestEv: RequestEvent) {
+  const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
+  if (isPageDataReq) {
+    try {
+      await requestEv.next();
+    } catch (err) {
+      if (!(err instanceof RedirectMessage)) {
+        throw err;
+      }
+    }
+    if (requestEv.headersSent || requestEv.exited) {
+      return;
+    }
+    const requestHeaders: Record<string, string> = {};
+    const location = requestEv.headers.get('Location');
+    requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
+    requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
+
+    const status = requestEv.status();
+    const qData: ClientPageData = {
+      loaders: getRequestLoaders(requestEv),
+      action: getRequestAction(requestEv),
+      status: status !== 200 ? status : undefined,
+      redirect: (status >= 301 && status <= 308 && location) || undefined,
+    };
+    requestEv.status(200);
+    requestEv.headers.delete('Location');
+    const stream = requestEv.getWriter();
+
+    // write just the page json data to the response body
+    stream.write(serializeData(qData));
+
+    if (typeof stream.clientData === 'function') {
+      // a data fn was provided by the request context
+      // useful for writing q-data.json during SSG
+      stream.clientData(qData);
+    }
+
+    stream.close();
+  }
+}
+
+function serializeData(data: any) {
+  return JSON.stringify(data, (_, value) => {
+    if (value instanceof FormData) {
+      return {
+        __brand: 'formdata',
+        value: formDataToArray(value),
+      };
+    }
+    return value;
+  });
+}
+
+function formDataToArray(formData: FormData) {
+  const array: [string, string][] = [];
+  formData.forEach((value, key) => {
+    if (typeof value === 'string') {
+      array.push([key, value]);
+    } else {
+      array.push([key, value.name]);
+    }
+  });
+  return array;
 }

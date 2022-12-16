@@ -3,7 +3,7 @@ import type { PathParams, RequestEvent, RequestHandler } from '../../runtime/src
 import { createRequestEvent } from './request-event';
 import { ErrorResponse, getErrorHtml } from './error-handler';
 import { HttpStatus } from './http-status-codes';
-import { AbortError } from './redirect-handler';
+import { AbortMessage, RedirectMessage } from './redirect-handler';
 
 export interface QwikCityRun<T> {
   response: Promise<T | null>;
@@ -70,13 +70,15 @@ async function runNext(
     }
     await requestEv.next();
   } catch (e) {
-    if (e instanceof ErrorResponse) {
+    if (e instanceof RedirectMessage) {
+      requestEv.getWriter().close();
+    } else if (e instanceof ErrorResponse) {
       if (!requestEv.headersSent) {
         const html = getErrorHtml(e.status, e);
         requestEv.html(e.status, html);
       }
       console.error(e);
-    } else if (!(e instanceof AbortError)) {
+    } else if (!(e instanceof AbortMessage)) {
       throw e;
     }
   } finally {

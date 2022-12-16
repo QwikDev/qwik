@@ -13,9 +13,11 @@ import {
 } from '@builder.io/qwik';
 import { loadRoute } from './routing';
 import type {
+  ClientPageData,
   ContentModule,
   ContentState,
   ContentStateInternal,
+  EndpointResponse,
   MutableRouteLocation,
   PageModule,
   RouteActionValue,
@@ -136,33 +138,34 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     const action = track(() => actionState.value);
     const locale = getLocale('');
     const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
-    const url = new URL(path, routeLocation.href);
+    let url = new URL(path, routeLocation.href);
+    let loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
+    let clientPageData: EndpointResponse | ClientPageData | undefined;
+    if (isServer) {
+      clientPageData = env.response;
+    } else {
+      clientPageData = await loadClientData(url.href, true, action);
+      const redirect = clientPageData?.redirect;
+      if (redirect) {
+        url = new URL(redirect, routeLocation.href);
+        loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
+      }
+    }
+    // ensure correct trailing slash
+    if (url.pathname.endsWith('/')) {
+      if (!trailingSlash) {
+        url.pathname = url.pathname.slice(0, -1);
+      }
+    } else if (trailingSlash) {
+      url.pathname += '/';
+    }
     const pathname = url.pathname;
-    const loadRoutePromise = loadRoute(routes, menus, cacheModules, pathname);
-
-    const endpointResponse = isServer ? env.response : loadClientData(url.href, true, action);
-
     const loadedRoute = await loadRoutePromise;
-
     if (loadedRoute) {
       const [params, mods, menu] = loadedRoute;
       const contentModules = mods as ContentModule[];
       const pageModule = contentModules[contentModules.length - 1] as PageModule;
-
-      // ensure correct trailing slash
-      if (pathname.endsWith('/')) {
-        if (!trailingSlash) {
-          url.pathname = pathname.slice(0, -1);
-          // TODO
-          // routeNavigate.path = toPath(url);
-          // return;
-        }
-      } else if (trailingSlash) {
-        url.pathname += '/';
-        // TODO
-        // routeNavigate.path = toPath(url);
-        // return;
-      }
+      const resolvedHead = await resolveHead(clientPageData, routeLocation, contentModules, locale);
 
       // Update route location
       routeLocation.href = url.href;
@@ -174,9 +177,6 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       content.headings = pageModule.headings;
       content.menu = menu;
       contentInternal.contents = noSerialize(contentModules);
-
-      const clientPageData = await endpointResponse;
-      const resolvedHead = await resolveHead(clientPageData, routeLocation, contentModules, locale);
 
       // Update document head
       documentHead.links = resolvedHead.links;

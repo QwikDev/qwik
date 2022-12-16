@@ -5,6 +5,7 @@ import type { MenuData } from 'packages/qwik-city/runtime/src/types';
 import { getErrorHtml } from './error-handler';
 import {
   isLastModulePageRoute,
+  renderQData,
   renderQwikMiddleware,
   resolveRequestHandlers,
 } from './resolve-request-handlers';
@@ -24,6 +25,7 @@ export const loadRequestHandlers = async (
     let isPageRoute = false;
     const requestHandlers = resolveRequestHandlers(route[1], method);
     if (isLastModulePageRoute(route[1])) {
+      requestHandlers.unshift(renderQData);
       requestHandlers.push(renderQwikMiddleware(renderFn));
       isPageRoute = true;
     }
@@ -71,18 +73,26 @@ function handleErrors<T>(run: QwikCityRun<T>): QwikCityRun<T> {
   return {
     response: run.response,
     requestEv: requestEv,
-    completion: run.completion.catch((e) => {
-      const status = requestEv.status();
-      const html = getErrorHtml(status, e);
-      if (!requestEv.headersSent) {
-        requestEv.send(status, html);
-      } else {
-        const stream = requestEv.getWriter();
-        stream.write(html);
-        stream.close();
+    completion: run.completion.then(
+      () => {
+        if (requestEv.headersSent) {
+          requestEv.getWriter().close();
+        }
+        return requestEv;
+      },
+      (e) => {
+        const status = requestEv.status();
+        const html = getErrorHtml(status, e);
+        if (!requestEv.headersSent) {
+          requestEv.send(status, html);
+        } else {
+          const stream = requestEv.getWriter();
+          stream.write(html);
+          stream.close();
+        }
+        console.error(e);
+        return requestEv;
       }
-      console.error(e);
-      return requestEv;
-    }),
+    ),
   };
 }

@@ -67,7 +67,7 @@ export default component$(() => {
 
           {userData.value.isAuthenticated ? (
             <Link href="/qwikcity-test/sign-in/" data-test-link="sign-in">
-              Sign Out
+              Dashboard
             </Link>
           ) : (
             <Link

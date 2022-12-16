@@ -5,7 +5,7 @@ import { ContentNav } from '../../components/content-nav/content-nav';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
 import { Menu } from '../../components/menu/menu';
-import styles from './layout!.css?inline';
+import styles from './layout.css?inline';
 
 export default component$(() => {
   useStyles$(styles);

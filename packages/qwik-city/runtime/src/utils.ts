@@ -67,7 +67,7 @@ export const getPrefetchDataset = (
   clientNavPath: string | null,
   currentLoc: { href: string }
 ) => {
-  if (props.prefetch !== false && clientNavPath) {
+  if (props.prefetch === true && clientNavPath) {
     const prefetchUrl = toUrl(clientNavPath, currentLoc);
     if (!isSamePathname(prefetchUrl, toUrl('', currentLoc))) {
       return '';

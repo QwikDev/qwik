@@ -1,7 +1,7 @@
 import { getClientDataPath } from './utils';
 import { dispatchPrefetchEvent } from './client-navigate';
 import { CLIENT_DATA_CACHE } from './constants';
-import type { RouteActionValue } from './types';
+import type { ClientPageData, RouteActionValue } from './types';
 
 export const loadClientData = async (
   href: string,
@@ -28,7 +28,7 @@ export const loadClientData = async (
     qData = fetch(clientDataPath, options).then((rsp) => {
       if ((rsp.headers.get('content-type') || '').includes('json')) {
         return rsp.text().then((text) => {
-          const clientData = parseData(text);
+          const clientData = parseData(text) as ClientPageData;
           if (clearCache) {
             CLIENT_DATA_CACHE.delete(clientDataPath);
           }

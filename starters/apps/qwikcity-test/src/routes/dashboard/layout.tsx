@@ -8,7 +8,7 @@ import styles from './dashboard.css?inline';
 export const onGet: RequestHandler = async ({ redirect, cookie }) => {
   const isAuthenticated = await isUserAuthenticated(cookie);
   if (!isAuthenticated) {
-    throw redirect(301, '/qwikcity-test/sign-in/');
+    throw redirect(302, '/qwikcity-test/sign-in/');
   }
 };
 

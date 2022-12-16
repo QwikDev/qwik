@@ -22,9 +22,9 @@ import {
 } from '../../../qwik/src/optimizer/src/plugins/vite-utils';
 import {
   isLastModulePageRoute,
+  renderQData,
   resolveRequestHandlers,
 } from 'packages/qwik-city/middleware/request-handler/resolve-request-handlers';
-import { responseQData } from 'packages/qwik-city/middleware/request-handler/response-q-data';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
@@ -103,11 +103,10 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
           // Create a fake last request middleware
           if (isPage) {
+            requestHandlers.unshift(renderQData);
             requestHandlers.push((requestEv) => {
               const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
-              if (isPageDataReq) {
-                return responseQData(requestEv);
-              } else {
+              if (!isPageDataReq) {
                 const envData = getQwikCityEnvData(requestEv);
 
                 (res as QwikViteDevResponse)._qwikEnvData = {

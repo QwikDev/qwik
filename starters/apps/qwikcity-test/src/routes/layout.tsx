@@ -1,11 +1,8 @@
 import { component$, Slot } from '@builder.io/qwik';
 import { RequestHandler, loader$ } from '@builder.io/qwik-city';
-import Footer from '../components/footer/footer';
-import Header from '../components/header/header';
 import { isUserAuthenticated } from '../auth/auth';
 
 export const rootLoader = loader$(() => {
-  debugger;
   return {
     serverTime: new Date().toISOString(),
     nodeVersion: process.version,
@@ -13,22 +10,13 @@ export const rootLoader = loader$(() => {
 });
 
 export const userLoader = loader$(async ({ cookie }) => {
-  debugger;
   return {
     isAuthenticated: await isUserAuthenticated(cookie),
   };
 });
 
 export default component$(() => {
-  return (
-    <div data-test-layout="root">
-      <Header />
-      <main>
-        <Slot />
-      </main>
-      <Footer />
-    </div>
-  );
+  return <Slot />;
 });
 
 export const onGet: RequestHandler = ({ headers }) => {

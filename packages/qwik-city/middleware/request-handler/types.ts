@@ -2,7 +2,7 @@ import type { Render, RenderOptions } from '@builder.io/qwik/server';
 import type { ServerAction, ServerLoader } from '../../runtime/src/server-functions';
 import type { ClientPageData, QwikCityMode, QwikCityPlan } from '../../runtime/src/types';
 import type { ErrorResponse } from './error-handler';
-import type { AbortError } from './redirect-handler';
+import type { AbortMessage, RedirectMessage } from './redirect-handler';
 
 /**
  * Request event created by the server.
@@ -68,7 +68,7 @@ export interface RequestEventCommon<PLATFORM = unknown> {
    *
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
    */
-  readonly redirect: (statusCode: number, url: string) => AbortError;
+  readonly redirect: (statusCode: number, url: string) => RedirectMessage;
 
   /**
    * When called, the response will immediately end with the given
@@ -84,29 +84,29 @@ export interface RequestEventCommon<PLATFORM = unknown> {
    * set the `Content-Type` header to`text/plain; charset=utf-8`.
    *  An `text()` response can only be called once.
    */
-  readonly text: (statusCode: number, text: string) => void;
+  readonly text: (statusCode: number, text: string) => AbortMessage;
 
   /**
    * Convenience method to send an HTML body response. The response will be automatically
    * set the `Content-Type` header to`text/html; charset=utf-8`.
    *  An `html()` response can only be called once.
    */
-  readonly html: (statusCode: number, html: string) => void;
+  readonly html: (statusCode: number, html: string) => AbortMessage;
 
   /**
    * Convenience method to JSON stringify the data and send it in the response.
    * The response will be automatically set the `Content-Type` header to
    * `application/json; charset=utf-8`. A `json()` response can only be called once.
    */
-  readonly json: (statusCode: number, data: any) => void;
+  readonly json: (statusCode: number, data: any) => AbortMessage;
 
   /**
    * Send a body response. The `Content-Type` response header is not automatically set
    * when using `send()` and must be set manually. A `send()` response can only be called once.
    */
-  readonly send: (statusCode: number, data: any) => void;
+  readonly send: (statusCode: number, data: any) => AbortMessage;
 
-  readonly exit: () => void;
+  readonly exit: () => AbortMessage;
 
   /**
    * HTTP response headers.
@@ -171,6 +171,7 @@ export interface RequestEventCommon<PLATFORM = unknown> {
 
 export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
   readonly headersSent: boolean;
+  readonly exited: boolean;
 
   /**
    * Low-level access to write to the HTTP response stream. Once `getWriter()` is called,
@@ -186,6 +187,7 @@ export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLA
  */
 export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
   getData: GetData;
+  fail: <T>(status: number, returnData: T) => T;
 }
 
 export interface GetData {

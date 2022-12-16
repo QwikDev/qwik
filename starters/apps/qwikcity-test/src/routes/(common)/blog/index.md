@@ -11,4 +11,4 @@ contributors:
 
 Enjoy.
 
-[Docs](../docs/getting-started/index.md#hash)
+[Docs](../../docs/getting-started/index.md#hash)

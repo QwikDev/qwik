@@ -5,11 +5,12 @@ import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
 import styles from './dashboard.css?inline';
 
-export const onGet: RequestHandler = async ({ redirect, cookie }) => {
+export const onGet: RequestHandler = async ({ cache, redirect, cookie }) => {
   const isAuthenticated = await isUserAuthenticated(cookie);
   if (!isAuthenticated) {
     throw redirect(302, '/qwikcity-test/sign-in/');
   }
+  cache.private().noCache();
 };
 
 export default component$(() => {

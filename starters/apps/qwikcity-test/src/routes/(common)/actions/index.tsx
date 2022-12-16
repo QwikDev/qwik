@@ -14,7 +14,7 @@ export function delay(nu: number) {
 
 export const toppingsAction = action$((form) => {
   const newToppings = form.getAll('toppings');
-  console.log('Selected toppings:', newToppings);
+  console.warn('Selected toppings:', newToppings);
   // await delay(1000);
   return {
     success: true,

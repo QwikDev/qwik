@@ -39,7 +39,7 @@ export default component$(() => {
           <Link
             href="/qwikcity-test/actions/"
             class={{ active: loc.pathname.startsWith('/qwikcity-test/actions/') }}
-            data-test-link="docs-home"
+            data-test-link="docs-actions"
           >
             Actions
           </Link>

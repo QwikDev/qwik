@@ -25,7 +25,7 @@ export const signinAction = action$(async (formData, { cookie, redirect, status,
 });
 
 export const resetPasswordAction = action$(async (formData) => {
-  console.log('resetPasswordAction', formData.get('email'));
+  console.warn('resetPasswordAction', formData.get('email'));
 });
 
 export default component$(() => {

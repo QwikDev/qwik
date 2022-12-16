@@ -3,6 +3,7 @@ import type { ServerAction, ServerLoader } from '../../runtime/src/server-functi
 import type { ClientPageData, QwikCityMode, QwikCityPlan } from '../../runtime/src/types';
 import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
+import type { CachePolicy } from './request-event';
 
 /**
  * Request event created by the server.
@@ -172,6 +173,7 @@ export interface RequestEventCommon<PLATFORM = unknown> {
 export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
   readonly headersSent: boolean;
   readonly exited: boolean;
+  readonly cache: CachePolicy;
 
   /**
    * Low-level access to write to the HTTP response stream. Once `getWriter()` is called,

@@ -4,9 +4,13 @@ import { CLIENT_HISTORY_INITIALIZED, POPSTATE_FALLBACK_INITIALIZED } from './con
 import { isSameOriginDifferentPathname, isSamePath, toPath, toUrl } from './utils';
 import type { Signal } from '@builder.io/qwik';
 
-export const clientNavigate = (win: ClientHistoryWindow, routeNavigate: Signal<string>) => {
+export const clientNavigate = (
+  win: ClientHistoryWindow,
+  pathname: string,
+  routeNavigate: Signal<string>
+) => {
   const currentUrl = win.location;
-  const newUrl = toUrl(routeNavigate.value, currentUrl)!;
+  const newUrl = toUrl(pathname, currentUrl)!;
 
   if (isSameOriginDifferentPathname(currentUrl, newUrl)) {
     // current browser url and route path are different

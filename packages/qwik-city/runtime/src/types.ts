@@ -264,8 +264,8 @@ export interface EndpointResponse {
 }
 
 export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
-  status?: number;
-  redirect?: string;
+  status: number;
+  href: string;
   isStatic?: boolean;
 }
 

@@ -20,7 +20,7 @@ import {
 } from './request-event';
 import { getQwikCityEnvData } from './response-page';
 import { QACTION_KEY } from '../../runtime/src/constants';
-import { QDATA_JSON } from './user-response';
+import { isQDataJson, QDATA_JSON } from './user-response';
 import { validateSerializable } from '../../utils/format';
 import { RedirectMessage } from './redirect-handler';
 
@@ -181,7 +181,7 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
 }
 
 export async function renderQData(requestEv: RequestEvent) {
-  const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
+  const isPageDataReq = isQDataJson(requestEv.pathname);
   if (isPageDataReq) {
     try {
       await requestEv.next();
@@ -193,20 +193,27 @@ export async function renderQData(requestEv: RequestEvent) {
     if (requestEv.headersSent || requestEv.exited) {
       return;
     }
-    const requestHeaders: Record<string, string> = {};
+
+    const status = requestEv.status();
     const location = requestEv.headers.get('Location');
+    const isRedirect = status >= 301 && status <= 308 && location;
+    if (isRedirect) {
+      requestEv.headers.set('Location', makeQDataPath(location));
+      requestEv.getWriter().close();
+
+      return;
+    }
+
+    const requestHeaders: Record<string, string> = {};
     requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
     requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
 
-    const status = requestEv.status();
     const qData: ClientPageData = {
       loaders: getRequestLoaders(requestEv),
       action: getRequestAction(requestEv),
-      status: status !== 200 ? status : undefined,
-      redirect: (status >= 301 && status <= 308 && location) || undefined,
+      status: status !== 200 ? status : 200,
+      href: getPathname(requestEv.url, true), // todo
     };
-    requestEv.status(200);
-    requestEv.headers.delete('Location');
     const stream = requestEv.getWriter();
 
     // write just the page json data to the response body
@@ -244,4 +251,19 @@ function formDataToArray(formData: FormData) {
     }
   });
   return array;
+}
+
+function makeQDataPath(href: string) {
+  const append = QDATA_JSON;
+  const url = new URL(href, 'http://localhost');
+
+  const pathname = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname;
+  return pathname + (append.startsWith('/') ? '' : '/') + append + url.search;
+}
+
+export function getPathname(url: URL, trailingSlash: boolean | undefined) {
+  if (url.pathname.endsWith(QDATA_JSON)) {
+    return url.pathname.slice(0, -QDATA_JSON.length + (trailingSlash ? 1 : 0)) + url.search;
+  }
+  return url.pathname;
 }

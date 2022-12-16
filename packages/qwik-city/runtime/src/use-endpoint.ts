@@ -27,6 +27,12 @@ export const loadClientData = async (
       : undefined;
     qData = fetch(clientDataPath, options).then((rsp) => {
       if ((rsp.headers.get('content-type') || '').includes('json')) {
+        const redirectedURL = new URL(rsp.url);
+        if (redirectedURL.origin !== location.origin || !isQDataJson(redirectedURL.pathname)) {
+          location.href = redirectedURL.href;
+          return;
+        }
+        // we are safe we are reading a q-data.json
         return rsp.text().then((text) => {
           const clientData = parseData(text) as ClientPageData;
           if (clearCache) {
@@ -67,3 +73,9 @@ function formDataFromArray(array: [string, string][]): FormData {
   }
   return formData;
 }
+
+export const isQDataJson = (pathname: string) => {
+  return pathname.endsWith(QDATA_JSON);
+};
+
+export const QDATA_JSON = '/q-data.json';

@@ -144,11 +144,14 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     if (isServer) {
       clientPageData = env.response;
     } else {
-      clientPageData = await loadClientData(url.href, true, action);
-      const redirect = clientPageData?.redirect;
-      if (redirect) {
-        url = new URL(redirect, routeLocation.href);
-        loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
+      const pageData = (clientPageData = await loadClientData(url.href, true, action));
+      const newHref = pageData?.href;
+      if (newHref) {
+        const newURL = new URL(newHref, url.href);
+        if (newURL.pathname !== url.pathname) {
+          url = newURL;
+          loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
+        }
       }
     }
     // ensure correct trailing slash
@@ -192,7 +195,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         }
         CLIENT_DATA_CACHE.clear();
 
-        clientNavigate(window, navPath);
+        clientNavigate(window, pathname, navPath);
         routeLocation.isPending = false;
       }
     }

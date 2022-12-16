@@ -1,4 +1,4 @@
-import { component$, useStyles$, useTask$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@builder.io/qwik';
 import { Link, useLocation } from '@builder.io/qwik-city';
 import { userLoader } from '../../routes/layout';
 import styles from './header.css?inline';
@@ -8,10 +8,6 @@ export default component$(() => {
   const loc = useLocation();
 
   useStyles$(styles);
-
-  useTask$(({ track }) => {
-    track(userData);
-  });
 
   return (
     <header>

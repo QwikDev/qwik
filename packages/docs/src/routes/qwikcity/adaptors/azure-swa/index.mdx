@@ -26,7 +26,7 @@ The adaptor will add a new `vite.config.ts` within the `adaptors/` directory, an
     └── entry.azure-swa.tsx
 ```
 
-Additionally, within the `package.json`, the `build.server` script will be updated with the Azure Static Web Apps build.
+Additionally, within the `package.json`, the `build.server` and `deploy` scripts will be updated.
 
 ## Production build
 
@@ -36,18 +36,9 @@ To build the application for production, use the `build` command, this command w
 npm run build
 ```
 
-## Local development deployment
-
-To deploy the application for local development:
-
-```shell
-npm run build
-npm run serve
-```
-
 ## Deploy to Azure
 
-After installing the integration using `npm run qwik add` the project is ready to be deployed to Azure Static Web Apps.
+After installing the integration using `npm run qwik add azure-swa` the project is ready to be deployed to Azure Static Web Apps.
 
 There are two ways to deploy:
 

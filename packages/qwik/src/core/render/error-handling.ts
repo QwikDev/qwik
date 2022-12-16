@@ -16,7 +16,7 @@ export const handleError = (err: any, hostElement: QwikElement, rCtx: RenderCont
   const elCtx = tryGetContext(hostElement)!;
   if (qDev) {
     // Clean vdom
-    if (!isServer() && isVirtualElement(hostElement)) {
+    if (!isServer() && typeof document !== 'undefined' && isVirtualElement(hostElement)) {
       elCtx.$vdom$ = null;
       const errorDiv = document.createElement('errored-host');
       if (err && err instanceof Error) {

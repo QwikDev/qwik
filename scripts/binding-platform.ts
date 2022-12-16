@@ -1,7 +1,7 @@
 import { BuildConfig, ensureDir } from './util';
 import spawn from 'cross-spawn';
 import { join } from 'node:path';
-import nodeFetch from 'node-fetch';
+import { fetch } from 'undici';
 import semver from 'semver';
 import { existsSync } from 'node:fs';
 import { copyFile, readdir, writeFile } from 'fs/promises';
@@ -58,7 +58,7 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
   let buildVersion = '0.0.0';
   try {
     const releaseDataUrl = `https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik`;
-    const releaseRsp = await nodeFetch(releaseDataUrl);
+    const releaseRsp = await fetch(releaseDataUrl);
     const releases = (await releaseRsp.json()) as any;
     buildVersion = releases.tags.latest;
     Object.values(releases.tags).forEach((version: any) => {
@@ -95,7 +95,7 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
 
         if (!existsSync(cachedPath)) {
           const cdnUrl = `https://cdn.jsdelivr.net/npm/@builder.io/qwik@${buildVersion}/bindings/${bindingFilename}`;
-          const rsp = (await nodeFetch(cdnUrl)) as any;
+          const rsp = (await fetch(cdnUrl)) as any;
           await writeFile(cachedPath, rsp.body);
         }
 

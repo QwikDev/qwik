@@ -381,6 +381,15 @@ function _isTypeCapturable(
     if (symbolName === 'Date') {
       return;
     }
+    if (symbolName === 'FormData') {
+      return;
+    }
+    if (symbolName === 'URLSearchParams') {
+      return;
+    }
+    if (symbolName === 'Error') {
+      return;
+    }
     if (type.isClass()) {
       return {
         type,

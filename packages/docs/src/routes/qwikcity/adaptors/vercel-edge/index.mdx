@@ -28,7 +28,7 @@ The adaptor will add a new `vite.config.ts` within the `adaptors/` directory, an
     └── entry.vercel-edge.tsx
 ```
 
-Additionally, within the `package.json`, the `build.server` script will be updated with the Vercel Edge build.
+Additionally, within the `package.json`, the `build.server` and `deploy` scripts will be updated.
 
 ## Production build
 
@@ -52,7 +52,7 @@ Notice that you might need a [Vercel account](https://vercel.com/docs/concepts/g
 
 ## Production deploy
 
-After installing the integration using `npm run qwik add`. The project is ready to be deployed to Vercel. However, you will need to create a git repository and push the code to it.
+After installing the integration using `npm run qwik add vercel-edge`, the project is ready to be deployed to Vercel. However, you will need to create a git repository and push the code to it.
 
 Please refer to the Vercel docs for more information on how to deploy your site: [Vercel docs](https://vercel.com/docs/concepts/deployments/overview)
 

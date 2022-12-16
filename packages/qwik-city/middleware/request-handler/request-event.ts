@@ -91,8 +91,34 @@ export function createRequestEvent(
       return new AbortMessage();
     },
 
-    get cache() {
-      return new CachePolicy(headers);
+    cacheControl: (cacheControl) => {
+      check();
+      const policies: string[] = [];
+      if (cacheControl.immutable) {
+        policies.push('immutable');
+      }
+      if (cacheControl.maxAge) {
+        policies.push(`max-age=${cacheControl.maxAge}`);
+      }
+      if (cacheControl.sMaxAge) {
+        policies.push(`s-maxage=${cacheControl.sMaxAge}`);
+      }
+      if (cacheControl.noStore) {
+        policies.push('no-store');
+      }
+      if (cacheControl.noCache) {
+        policies.push('no-cache');
+      }
+      if (cacheControl.private) {
+        policies.push('private');
+      }
+      if (cacheControl.public) {
+        policies.push('public');
+      }
+      if (cacheControl.staleWhileRevalidate) {
+        policies.push(`stale-while-revalidate=${cacheControl.staleWhileRevalidate}`);
+      }
+      headers.set('Cache-Control', policies.join(', '));
     },
 
     getData: (loaderOrAction: ServerAction<any> | ServerLoader<any>) => {

@@ -28,6 +28,7 @@ const includeDeps = undefined;
 const excludeDeps = [
   '@vite/client',
   '@vite/env',
+  'undici',
   '@builder.io/qwik',
   '@builder.io/qwik/jsx-runtime',
   '@builder.io/qwik/jsx-dev-runtime',

@@ -1,5 +1,9 @@
 import type { Context } from '@netlify/edge-functions';
-import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-handler/types';
+import type {
+  ResponseStreamWriter,
+  ServerRenderOptions,
+  ServerRequestEvent,
+} from '../request-handler/types';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { requestHandler } from '../request-handler';
 import { mergeHeadersCookies } from '../request-handler/cookie';
@@ -12,6 +16,8 @@ import { isStaticPath } from '@qwik-city-static-paths';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityNetlifyOptions) {
+  const encoder = new TextEncoder();
+
   async function onRequest(request: Request, context: Context) {
     try {
       const url = new URL(request.url);
@@ -21,50 +27,44 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
         return context.next();
       }
 
-      const requestCtx: QwikCityRequestContext<Response> = {
+      const serverRequestEv: ServerRequestEvent<Response> = {
         mode: 'server',
         locale: undefined,
         url,
         request,
-        response: (status, headers, cookies, body) => {
-          return new Promise<Response>((resolve) => {
-            let flushedHeaders = false;
-            const { readable, writable } = new TransformStream();
-            const writer = writable.getWriter();
-            const response = new Response(readable, {
-              status,
-              headers: mergeHeadersCookies(headers, cookies),
-            });
-
-            body({
-              write: (chunk) => {
-                if (!flushedHeaders) {
-                  flushedHeaders = true;
-                  resolve(response);
-                }
-                if (typeof chunk === 'string') {
-                  const encoder = new TextEncoder();
-                  writer.write(encoder.encode(chunk));
-                } else {
-                  writer.write(chunk);
-                }
-              },
-            }).finally(() => {
-              if (!flushedHeaders) {
-                flushedHeaders = true;
-                resolve(response);
-              }
-              writer.close();
-            });
+        getWritableStream: (status, headers, cookies, resolve) => {
+          const { readable, writable } = new TransformStream();
+          const writer = writable.getWriter();
+          const response = new Response(readable, {
+            status,
+            headers: mergeHeadersCookies(headers, cookies),
           });
+
+          const stream: ResponseStreamWriter = {
+            write: (chunk) => {
+              if (typeof chunk === 'string') {
+                writer.write(encoder.encode(chunk));
+              } else {
+                writer.write(chunk);
+              }
+            },
+            close: () => {
+              writer.close();
+            },
+          };
+          resolve(response);
+          return stream;
         },
         platform: context,
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler<Response>(requestCtx, opts);
+      const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
-        return handledResponse;
+        const response = await handledResponse.response;
+        if (response) {
+          return response;
+        }
       }
 
       // qwik city did not have a route for this request
@@ -89,7 +89,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
 /**
  * @alpha
  */
-export interface QwikCityNetlifyOptions extends QwikCityHandlerOptions {}
+export interface QwikCityNetlifyOptions extends ServerRenderOptions {}
 
 /**
  * @alpha
@@ -99,7 +99,4 @@ export interface EventPluginContext extends Context {}
 /**
  * @alpha
  */
-export type RequestHandlerNetlify<T = unknown> = RequestHandler<
-  T,
-  Omit<Context, 'next' | 'cookies'>
->;
+export type RequestHandlerNetlify = RequestHandler<Omit<Context, 'next' | 'cookies'>>;

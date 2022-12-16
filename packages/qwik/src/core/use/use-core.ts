@@ -157,3 +157,10 @@ export const newInvokeContext = (
 export const getWrappingContainer = (el: QwikElement): Element | null => {
   return el.closest(QContainerSelector);
 };
+
+/**
+ * @alpha
+ */
+export const untrack = <T>(fn: () => T): T => {
+  return invoke(undefined, fn);
+};

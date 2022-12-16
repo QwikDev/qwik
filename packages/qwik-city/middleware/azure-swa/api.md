@@ -6,29 +6,22 @@
 
 import type { AzureFunction } from '@azure/functions';
 import type { Context } from '@azure/functions';
-import type { HttpRequest } from '@azure/functions';
 import type { Render } from '@builder.io/qwik/server';
-import type { RenderOptions } from '@builder.io/qwik/server';
-import type { RenderOptions as RenderOptions_2 } from '@builder.io/qwik';
-import type { RequestContext } from '@builder.io/qwik-city';
+import type { RenderOptions } from '@builder.io/qwik';
+import type { ServerRenderOptions } from '../request-handler';
 
 // @alpha (undocumented)
 export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction;
-
-// @alpha (undocumented)
-export function createQwikRequest(req: HttpRequest): RequestContext;
 
 // @alpha (undocumented)
 export interface EventPluginContext extends Context {
 }
 
 // @alpha @deprecated (undocumented)
-export function qwikCity(render: Render, opts?: RenderOptions_2): AzureFunction;
+export function qwikCity(render: Render, opts?: RenderOptions): AzureFunction;
 
-// Warning: (ae-forgotten-export) The symbol "QwikCityHandlerOptions" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
-export interface QwikCityAzureOptions extends QwikCityHandlerOptions {
+export interface QwikCityAzureOptions extends ServerRenderOptions {
 }
 
 // (No @packageDocumentation comment for this package)

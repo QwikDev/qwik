@@ -38,8 +38,6 @@ import { postBuild } from '../../adaptors/shared/vite/post-build';
  * @alpha
  */
 export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
-  patchGlobalFetch();
-
   let ctx: BuildContext | null = null;
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;
@@ -62,7 +60,9 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     enforce: 'pre',
     api,
 
-    config() {
+    async config() {
+      await patchGlobalFetch();
+
       const updatedViteConfig: UserConfig = {
         appType: 'custom',
         base: userOpts?.basePathname,

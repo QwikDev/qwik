@@ -1,7 +1,6 @@
-import type { RequestContext } from '../../runtime/src/types';
 import { mergeHeadersCookies } from './cookie';
 import { createHeaders } from './headers';
-import type { QwikCityRequestContext, ResponseHandler } from './types';
+import type { RequestContext, ResponseStreamWriter, ServerRequestEvent } from './types';
 
 export function mockRequestContext(opts?: {
   method?: string;
@@ -30,25 +29,24 @@ export function mockRequestContext(opts?: {
     body: null as any,
   };
 
-  const response: ResponseHandler = async (status, headers, cookie, body) => {
-    const chunks: string[] = [];
-    responseData.status = status;
-    responseData.headers = mergeHeadersCookies(headers, cookie);
-    responseData.body = new Promise<string>((resolve) => {
-      body({
-        write: (chunk) => {
-          chunks.push(chunk);
-        },
-      }).finally(() => {
-        resolve(chunks.join(''));
-      });
-    });
-  };
-
   return {
     url,
     request,
-    response,
+    getWritableStream: (status, headers, cookie, resolve) => {
+      const chunks: string[] = [];
+      responseData.status = status;
+      responseData.headers = mergeHeadersCookies(headers, cookie);
+      const stream: ResponseStreamWriter = {
+        write: (chunk) => {
+          chunks.push(chunk);
+        },
+        close: () => {
+          resolve(chunks.join(''));
+        },
+      };
+
+      return stream;
+    },
     responseData,
     platform: { testing: true },
     locale: undefined,
@@ -56,7 +54,7 @@ export function mockRequestContext(opts?: {
   };
 }
 
-export interface TestQwikCityRequestContext extends QwikCityRequestContext {
+export interface TestQwikCityRequestContext extends ServerRequestEvent {
   responseData: {
     status: number;
     headers: Headers;

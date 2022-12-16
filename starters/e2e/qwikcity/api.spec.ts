@@ -23,34 +23,14 @@ test.describe('Qwik City API', () => {
     expect(data.params.user).toBe('oss');
   });
 
-  test('Page route GET, accept application/javascript', async ({ page: api }) => {
-    await api.route('/qwikcity-test/products/hat/', (route, request) => {
-      route.continue({
-        headers: {
-          ...request.headers(),
-          accept: 'application/json',
-        },
-      });
-    });
-
-    const rsp = (await api.goto('/qwikcity-test/products/hat/'))!;
+  test('Page route GET, custom json response', async ({ page: api }) => {
+    const rsp = (await api.goto('/qwikcity-test/products/hat/?json=true'))!;
     expect(rsp.status()).toBe(200);
     expect(rsp.headers()['content-type']).toBe('application/json; charset=utf-8');
 
     const clientData = await rsp.json();
     expect(clientData.productId).toBe('hat');
     expect(clientData.price).toBe('$21.96');
-  });
-
-  test('Page q-data.json route', async ({ page: api }) => {
-    const rsp = (await api.goto('/qwikcity-test/products/hat/q-data.json'))!;
-    expect(rsp.status()).toBe(200);
-    expect(rsp.headers()['content-type']).toBe('application/json; charset=utf-8');
-
-    const clientData = await rsp.json();
-    expect(clientData.body.productId).toBe('hat');
-    expect(clientData.body.price).toBe('$21.96');
-    expect(clientData.prefetch).toBeDefined();
   });
 
   test('PUT endpoint on page', async ({ page }) => {

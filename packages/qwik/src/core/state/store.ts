@@ -3,7 +3,6 @@ import { qError, QError_immutableProps } from '../error/error';
 import { isQrl } from '../qrl/qrl-class';
 import { tryGetInvokeContext } from '../use/use-core';
 import { isNode } from '../util/element';
-import { logWarn } from '../util/log';
 import { qDev } from '../util/qdev';
 import { RenderEvent } from '../util/markers';
 import { isArray, isObject, isSerializableObject } from '../util/types';
@@ -26,6 +25,7 @@ import {
   _IMMUTABLE,
   _IMMUTABLE_PREFIX,
 } from './constants';
+import { logError } from '../util/log';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
@@ -140,9 +140,8 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       verifySerializable(unwrappedNewValue);
       const invokeCtx = tryGetInvokeContext();
       if (invokeCtx && invokeCtx.$event$ === RenderEvent) {
-        logWarn(
+        logError(
           'State mutation inside render function. Move mutation to useWatch(), useClientEffect() or useServerMount()',
-          invokeCtx.$hostElement$,
           prop
         );
       }

@@ -324,7 +324,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
 
       if (opts.target === 'client') {
-        transformOpts.stripCtxName = ['useServerMount$'];
+        transformOpts.stripCtxName = ['useServerMount$', 'action$', 'loader$'];
         transformOpts.stripExports = [
           'onGet',
           'onPost',
@@ -708,7 +708,7 @@ export const SRC_DIR_DEFAULT = 'src';
 
 export const CLIENT_OUT_DIR = 'dist';
 
-const SSR_OUT_DIR = 'server';
+export const SSR_OUT_DIR = 'server';
 
 const LIB_OUT_DIR = 'lib';
 

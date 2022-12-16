@@ -702,9 +702,9 @@ export interface ResourceOptions {
 // @public (undocumented)
 export interface ResourcePending<T> {
     // (undocumented)
-    loading: boolean;
+    readonly loading: boolean;
     // (undocumented)
-    promise: Promise<T>;
+    readonly value: Promise<T>;
 }
 
 // @public (undocumented)
@@ -715,24 +715,26 @@ export interface ResourceProps<T> {
     onRejected?: (reason: any) => JSXNode;
     // (undocumented)
     onResolved: (value: T) => JSXNode;
+    // Warning: (ae-incompatible-release-tags) The symbol "value" is marked as @public, but its signature references "Signal" which is marked as @alpha
+    //
     // (undocumented)
-    value: ResourceReturn<T>;
+    readonly value: ResourceReturn<T> | Signal<T> | Promise<T> | T;
 }
 
 // @public (undocumented)
 export interface ResourceRejected<T> {
     // (undocumented)
-    loading: boolean;
+    readonly loading: boolean;
     // (undocumented)
-    promise: Promise<T>;
+    readonly value: Promise<T>;
 }
 
 // @public (undocumented)
 export interface ResourceResolved<T> {
     // (undocumented)
-    loading: boolean;
+    readonly loading: boolean;
     // (undocumented)
-    promise: Promise<T>;
+    readonly value: Promise<T>;
 }
 
 // @public (undocumented)
@@ -864,6 +866,9 @@ export interface Tracker {
     // @deprecated (undocumented)
     <T extends {}, B extends keyof T>(obj: T, prop: B): T[B];
 }
+
+// @alpha (undocumented)
+export const untrack: <T>(fn: () => T) => T;
 
 // @alpha @deprecated
 export const useCleanup$: (first: () => void) => void;

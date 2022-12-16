@@ -127,24 +127,24 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
  * @public
  */
 export interface ResourcePending<T> {
-  promise: Promise<T>;
-  loading: boolean;
+  readonly value: Promise<T>;
+  readonly loading: boolean;
 }
 
 /**
  * @public
  */
 export interface ResourceResolved<T> {
-  promise: Promise<T>;
-  loading: boolean;
+  readonly value: Promise<T>;
+  readonly loading: boolean;
 }
 
 /**
  * @public
  */
 export interface ResourceRejected<T> {
-  promise: Promise<T>;
-  loading: boolean;
+  readonly value: Promise<T>;
+  readonly loading: boolean;
 }
 
 export interface ResourceReturnInternal<T> {
@@ -154,8 +154,7 @@ export interface ResourceReturnInternal<T> {
   _error: any;
   _cache: number;
   _timeout: number;
-
-  promise: Promise<T>;
+  value: Promise<T>;
   loading: boolean;
 }
 /**
@@ -558,7 +557,7 @@ export const runResource = <T>(
     resource._state = 'pending';
     resource.loading = !isServer();
     resource._resolved = undefined as any;
-    resource.promise = new Promise((r, re) => {
+    resource.value = new Promise((r, re) => {
       resolve = r;
       reject = re;
     });

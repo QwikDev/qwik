@@ -15,11 +15,12 @@ import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { isServer } from '../platform/platform';
 import { useBindInvokeContext } from './use-core';
 
-import { isObject } from '../util/types';
 import type { ContainerState, GetObjID } from '../container/container';
 import { useSequentialScope } from './use-sequential-scope';
 import { createProxy } from '../state/store';
 import { getProxyTarget } from '../state/common';
+import type { Signal } from '../state/signal';
+import { isObject } from '../util/types';
 
 /**
  * Options to pass to `useResource$()`
@@ -193,7 +194,7 @@ export const useResource$ = <T>(
  * @public
  */
 export interface ResourceProps<T> {
-  value: ResourceReturn<T>;
+  readonly value: ResourceReturn<T> | Signal<T> | Promise<T> | T;
   onResolved: (value: T) => JSXNode;
   onPending?: () => JSXNode;
   onRejected?: (reason: any) => JSXNode;
@@ -259,41 +260,47 @@ export interface ResourceProps<T> {
 // </docs>
 export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
   const isBrowser = !isServer();
-  const resource = props.value as ResourceReturnInternal<T>;
-  if (isBrowser) {
-    if (props.onRejected) {
-      resource.promise.catch(() => {});
-      if (resource._state === 'rejected') {
-        return props.onRejected(resource._error);
+  const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
+  let promise: Promise<T> | undefined;
+  if (isResourceReturn(resource)) {
+    if (isBrowser) {
+      if (props.onRejected) {
+        resource.value.catch(() => {});
+        if (resource._state === 'rejected') {
+          return props.onRejected(resource._error);
+        }
+      }
+      if (props.onPending) {
+        const state = resource._state;
+        if (state === 'resolved') {
+          return props.onResolved(resource._resolved!);
+        } else if (state === 'pending') {
+          return props.onPending();
+        } else if (state === 'rejected') {
+          throw resource._error;
+        }
       }
     }
-    if (props.onPending) {
-      const state = resource._state;
-      if (state === 'pending') {
-        return props.onPending();
-      } else if (state === 'resolved') {
-        return props.onResolved(resource._resolved!);
-      } else if (state === 'rejected') {
-        throw resource._error;
-      }
-    }
+    promise = resource.value;
+  } else if (resource instanceof Promise) {
+    promise = resource;
+  } else {
+    return props.onResolved(resource as T);
   }
-
-  const promise: any = resource.promise.then(
-    useBindInvokeContext(props.onResolved),
-    useBindInvokeContext(props.onRejected)
-  );
 
   // Resource path
   return jsx(Fragment, {
-    children: promise,
+    children: promise.then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    ),
   });
 };
 
 export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturnInternal<T> => {
   const resource: ResourceReturnInternal<T> = {
     __brand: 'resource',
-    promise: undefined as never,
+    value: undefined as never,
     loading: isServer() ? false : true,
     _resolved: undefined as never,
     _error: undefined as never,
@@ -310,7 +317,7 @@ export const createResourceReturn = <T>(
   initialPromise?: Promise<T>
 ): ResourceReturnInternal<T> => {
   const result = _createResourceReturn<T>(opts);
-  result.promise = initialPromise as any;
+  result.value = initialPromise as any;
   const resource = createProxy(result, containerState, undefined);
   return resource;
 };
@@ -337,14 +344,14 @@ export const serializeResource = (resource: ResourceReturnInternal<any>, getObjI
 export const parseResourceReturn = <T>(data: string): ResourceReturnInternal<T> => {
   const [first, id] = data.split(' ');
   const result = _createResourceReturn<T>(undefined);
-  result.promise = Promise.resolve() as any;
+  result.value = Promise.resolve() as any;
   if (first === '0') {
     result._state = 'resolved';
     result._resolved = id as any;
     result.loading = false;
   } else if (first === '1') {
     result._state = 'pending';
-    result.promise = new Promise(() => {});
+    result.value = new Promise(() => {});
     result.loading = true;
   } else if (first === '2') {
     result._state = 'rejected';

@@ -21,11 +21,12 @@ export async function configureDevServer(
 
     try {
       if (!globalThis.fetch) {
-        const nodeFetch = await sys.strictDynamicImport('node-fetch');
-        global.fetch = nodeFetch;
-        global.Headers = nodeFetch.Headers;
-        global.Request = nodeFetch.Request;
-        global.Response = nodeFetch.Response;
+        const undici = await sys.strictDynamicImport('undici');
+        global.fetch = undici.fetch;
+        global.Headers = undici.Headers;
+        global.Request = undici.Request;
+        global.Response = undici.Response;
+        global.FormData = undici.FormData;
       }
     } catch {
       console.warn('Global fetch() was not installed');
@@ -143,9 +144,7 @@ export async function configureDevServer(
       }
     } catch (e: any) {
       server.ssrFixStacktrace(e);
-      if (e instanceof Error) {
-        await formatError(sys, e);
-      }
+      await formatError(sys, e);
       next(e);
     }
   });
@@ -153,7 +152,7 @@ export async function configureDevServer(
 
 export async function configurePreviewServer(
   middlewares: Connect.Server,
-  opts: NormalizedQwikPluginOptions,
+  ssrOutDir: string,
   sys: OptimizerSystem,
   path: Path
 ) {
@@ -161,14 +160,14 @@ export async function configurePreviewServer(
   const url: typeof import('url') = await sys.dynamicImport('node:url');
 
   const entryPreviewPaths = ['mjs', 'cjs', 'js'].map((ext) =>
-    path.join(opts.rootDir, 'server', `entry.preview.${ext}`)
+    path.join(ssrOutDir, `entry.preview.${ext}`)
   );
 
   const entryPreviewModulePath = entryPreviewPaths.find((p) => fs.existsSync(p));
   if (!entryPreviewModulePath) {
     return invalidPreviewMessage(
       middlewares,
-      `Unable to find output "server/entry.preview" module.\n\nPlease ensure "src/entry.preview.tsx" has been built before the "preview" command.`
+      `Unable to find output "${ssrOutDir}/entry.preview" module.\n\nPlease ensure "src/entry.preview.tsx" has been built before the "preview" command.`
     );
   }
 

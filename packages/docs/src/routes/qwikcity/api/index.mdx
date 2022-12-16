@@ -205,7 +205,7 @@ export const Link = component$<LinkProps>((props) => {
     <a
       preventdefault:click
       onClick$={() => {
-        nav.path = props.href;
+        nav(props.href);
       }}
       {...props}
     >

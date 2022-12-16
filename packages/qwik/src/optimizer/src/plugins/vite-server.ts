@@ -153,7 +153,7 @@ export async function configureDevServer(
 
 export async function configurePreviewServer(
   middlewares: Connect.Server,
-  opts: NormalizedQwikPluginOptions,
+  ssrOutDir: string,
   sys: OptimizerSystem,
   path: Path
 ) {
@@ -161,14 +161,14 @@ export async function configurePreviewServer(
   const url: typeof import('url') = await sys.dynamicImport('node:url');
 
   const entryPreviewPaths = ['mjs', 'cjs', 'js'].map((ext) =>
-    path.join(opts.rootDir, 'server', `entry.preview.${ext}`)
+    path.join(ssrOutDir, `entry.preview.${ext}`)
   );
 
   const entryPreviewModulePath = entryPreviewPaths.find((p) => fs.existsSync(p));
   if (!entryPreviewModulePath) {
     return invalidPreviewMessage(
       middlewares,
-      `Unable to find output "server/entry.preview" module.\n\nPlease ensure "src/entry.preview.tsx" has been built before the "preview" command.`
+      `Unable to find output "${ssrOutDir}/entry.preview" module.\n\nPlease ensure "src/entry.preview.tsx" has been built before the "preview" command.`
     );
   }
 

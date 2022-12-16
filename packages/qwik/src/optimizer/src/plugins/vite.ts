@@ -23,6 +23,7 @@ import {
   QWIK_JSX_RUNTIME_ID,
   CLIENT_OUT_DIR,
   QWIK_JSX_DEV_RUNTIME_ID,
+  SSR_OUT_DIR,
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { configureDevServer, configurePreviewServer, VITE_DEV_CLIENT_QS } from './vite-server';
@@ -41,6 +42,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let viteCommand: 'build' | 'serve' = 'serve';
   let manifestInput: QwikManifest | null = null;
   let clientOutDir: string | null = null;
+  let ssrOutDir: string | null = null;
   const injections: GlobalInjections[] = [];
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
@@ -201,6 +203,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       clientOutDir = qwikPlugin.normalizePath(
         sys.path.resolve(opts.rootDir, qwikViteOpts.client?.outDir || CLIENT_OUT_DIR)
+      );
+
+      ssrOutDir = qwikPlugin.normalizePath(
+        sys.path.resolve(opts.rootDir, qwikViteOpts.ssr?.outDir || SSR_OUT_DIR)
       );
 
       // TODO: Remove globalThis that was previously used. Left in for backwards compatibility.
@@ -531,10 +537,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     configurePreviewServer(server) {
       return async () => {
-        const opts = qwikPlugin.getOptions();
         const sys = qwikPlugin.getSys();
         const path = qwikPlugin.getPath();
-        await configurePreviewServer(server.middlewares, opts, sys, path);
+        await configurePreviewServer(server.middlewares, ssrOutDir!, sys, path);
       };
     },
 

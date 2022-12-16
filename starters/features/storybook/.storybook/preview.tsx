@@ -1,10 +1,8 @@
 import { JSXNode, render } from '@builder.io/qwik';
 import { QwikCityMockProvider } from '@builder.io/qwik-city';
 import { jsx as _jsx } from '@builder.io/qwik/jsx-runtime';
-import { QWIK_LOADER } from '@builder.io/qwik/loader/index';
-import '../src/global.css';
 
-eval(QWIK_LOADER);
+import '../src/global.css';
 
 export const parameters = {
   actions: { argTypesRegex: '^on[A-Z].*' },

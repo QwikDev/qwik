@@ -1,19 +1,21 @@
 {
   "description": "Use Storybook with your Qwik app",
   "devDependencies": {
-    "@storybook/addon-actions": "^7.0.0-beta.8",
-    "@storybook/addon-essentials": "^7.0.0-beta.8",
-    "@storybook/addon-interactions": "^7.0.0-beta.8",
-    "@storybook/addon-links": "^7.0.0-beta.8",
+    "@storybook/addon-a11y": "7.0.0-beta.8",
+    "@storybook/addon-actions": "7.0.0-beta.8",
+    "@storybook/addon-essentials": "7.0.0-beta.8",
+    "@storybook/addon-interactions": "7.0.0-beta.8",
+    "@storybook/addon-links": "7.0.0-beta.8",
     "@storybook/builder-vite": "7.0.0-beta.8",
+    "@storybook/cli": "7.0.0-beta.8",
     "@storybook/html": "7.0.0-beta.8",
     "@storybook/html-vite": "7.0.0-beta.8",
-    "@storybook/node-logger": "^7.0.0-beta.8",
+    "@storybook/node-logger": "7.0.0-beta.8",
     "@storybook/testing-library": "^0.0.14-next.1",
     "@storybook/theming": "7.0.0-beta.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "storybook": "^7.0.0-beta.8"
+    "storybook": "7.0.0-beta.8"
   },
   "scripts": {
     "storybook": "storybook dev -p 6006 -s public",

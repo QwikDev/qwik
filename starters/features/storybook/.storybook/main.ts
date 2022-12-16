@@ -1,29 +1,19 @@
 import type { StorybookConfig } from '@storybook/builder-vite';
-import { mergeConfig, UserConfig } from 'vite';
-import baseConfig from '../vite.config';
+import { mergeConfig } from 'vite';
 
 const config: StorybookConfig = {
-  addons: ['@storybook/addon-essentials'],
+  addons: ['@storybook/addon-essentials', '@storybook/addon-a11y'],
   stories: ['../src/**/*.stories.mdx', '../src/**/*.stories.@(js|jsx|ts|tsx)'],
   framework: '@storybook/html-vite',
-  features: {
-    storyStoreV7: true,
-  },
-  viteFinal: async (defaultConfig) => {
-    const config = mergeConfig(defaultConfig, {
+  viteFinal: (config) => {
+    return mergeConfig(config, {
       build: {
         target: 'es2020',
         rollupOptions: {
-          external: ['@qwik-city-sw-register', '@qwik-city-plan'],
+          external: ['@qwik-city-plan'],
         },
       },
     });
-
-    const projectConfig = (baseConfig as () => UserConfig)();
-
-    config.plugins = [...(projectConfig.plugins ?? []), ...(defaultConfig.plugins ?? [])];
-
-    return config;
   },
 };
 

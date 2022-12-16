@@ -1,4 +1,8 @@
-import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-handler/types';
+import type {
+  ResponseStreamWriter,
+  ServerRenderOptions,
+  ServerRequestEvent,
+} from '../request-handler/types';
 import { requestHandler } from '../request-handler';
 import { mergeHeadersCookies } from '../request-handler/cookie';
 import { getNotFound } from '@qwik-city-not-found-paths';
@@ -23,49 +27,42 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
         });
       }
 
-      const requestCtx: QwikCityRequestContext<Response> = {
+      const serverRequestEv: ServerRequestEvent<Response> = {
         mode: 'server',
         locale: undefined,
         url,
         request,
-        response: (status, headers, cookies, body) => {
-          return new Promise<Response>((resolve) => {
-            let flushedHeaders = false;
-            const { readable, writable } = new TransformStream();
-            const writer = writable.getWriter();
+        getWritableStream: (status, headers, cookies, resolve) => {
+          const { readable, writable } = new TransformStream();
+          const writer = writable.getWriter();
 
-            const response = new Response(readable, {
-              status,
-              headers: mergeHeadersCookies(headers, cookies),
-            });
-
-            body({
-              write: (chunk) => {
-                if (!flushedHeaders) {
-                  flushedHeaders = true;
-                  resolve(response);
-                }
-                if (typeof chunk === 'string') {
-                  const encoder = new TextEncoder();
-                  writer.write(encoder.encode(chunk));
-                } else {
-                  writer.write(chunk);
-                }
-              },
-            }).finally(() => {
-              if (!flushedHeaders) {
-                flushedHeaders = true;
-                resolve(response);
-              }
-              writer.close();
-            });
+          const response = new Response(readable, {
+            status,
+            headers: mergeHeadersCookies(headers, cookies),
           });
+
+          const stream: ResponseStreamWriter = {
+            write: (chunk) => {
+              if (typeof chunk === 'string') {
+                const encoder = new TextEncoder();
+                writer.write(encoder.encode(chunk));
+              } else {
+                writer.write(chunk);
+              }
+            },
+            close: () => {
+              writer.close();
+            },
+          };
+
+          resolve(response);
+          return stream;
         },
         platform: process.env,
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler<Response>(requestCtx, opts);
+      const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
         return handledResponse;
       }
@@ -92,4 +89,4 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
 /**
  * @alpha
  */
-export interface QwikCityVercelEdgeOptions extends QwikCityHandlerOptions {}
+export interface QwikCityVercelEdgeOptions extends ServerRenderOptions {}

@@ -24,7 +24,7 @@
     "@typescript-eslint/parser": "5.14.0",
     "eslint-plugin-qwik": "latest",
     "eslint": "8.12.0",
-    "node-fetch": "latest",
+    "undici": "latest",
     "prettier": "latest",
     "typescript": "latest",
     "vite": "latest",

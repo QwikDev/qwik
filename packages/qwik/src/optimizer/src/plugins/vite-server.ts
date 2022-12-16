@@ -21,11 +21,12 @@ export async function configureDevServer(
 
     try {
       if (!globalThis.fetch) {
-        const nodeFetch = await sys.strictDynamicImport('node-fetch');
-        global.fetch = nodeFetch;
-        global.Headers = nodeFetch.Headers;
-        global.Request = nodeFetch.Request;
-        global.Response = nodeFetch.Response;
+        const undici = await sys.strictDynamicImport('undici');
+        global.fetch = undici.fetch;
+        global.Headers = undici.Headers;
+        global.Request = undici.Request;
+        global.Response = undici.Response;
+        global.FormData = undici.FormData;
       }
     } catch {
       console.warn('Global fetch() was not installed');
@@ -143,9 +144,7 @@ export async function configureDevServer(
       }
     } catch (e: any) {
       server.ssrFixStacktrace(e);
-      if (e instanceof Error) {
-        await formatError(sys, e);
-      }
+      await formatError(sys, e);
       next(e);
     }
   });

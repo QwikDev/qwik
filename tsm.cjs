@@ -3,6 +3,21 @@ const { pathToFileURL } = require('node:url');
 
 const corePath = pathToFileURL(join(__dirname, 'packages', 'qwik', 'src', 'core', 'index.ts'));
 
+if (
+  typeof global !== 'undefined' &&
+  typeof globalThis.fetch !== 'function' &&
+  typeof process !== 'undefined' &&
+  process.versions.node
+) {
+  const { fetch, Headers, Request, Response, FormData } = require('undici');
+  if (!globalThis.fetch) {
+    globalThis.fetch = fetch;
+    globalThis.Headers = Headers;
+    globalThis.Request = Request;
+    globalThis.Response = Response;
+    globalThis.FormData = FormData;
+  }
+}
 module.exports = {
   common: {
     minifyWhitespace: true,

@@ -119,7 +119,7 @@ const ResourceSerializer: Serializer<ResourceReturnInternal<any>> = {
   prefix: '\u0004',
   test: (v) => isResourceReturn(v),
   collect: (obj, collector, leaks) => {
-    collectValue(obj.promise, collector, leaks);
+    collectValue(obj.value, collector, leaks);
     collectValue(obj._resolved, collector, leaks);
   },
   serialize: (obj, getObjId) => {
@@ -131,12 +131,12 @@ const ResourceSerializer: Serializer<ResourceReturnInternal<any>> = {
   fill: (resource, getObject) => {
     if (resource._state === 'resolved') {
       resource._resolved = getObject(resource._resolved);
-      resource.promise = Promise.resolve(resource._resolved);
+      resource.value = Promise.resolve(resource._resolved);
     } else if (resource._state === 'rejected') {
       const p = Promise.reject(resource._error);
       p.catch(() => null);
       resource._error = getObject(resource._error);
-      resource.promise = p;
+      resource.value = p;
     }
   },
 };
@@ -296,6 +296,31 @@ const URLSearchParamsSerializer: Serializer<URLSearchParams> = {
   fill: undefined,
 };
 
+const FormDataSerializer: Serializer<FormData> = {
+  prefix: '\u0016',
+  test: (v) => v instanceof FormData,
+  serialize: (formData) => {
+    const array: [string, string][] = [];
+    formData.forEach((value, key) => {
+      if (typeof value === 'string') {
+        array.push([key, value]);
+      } else {
+        array.push([key, value.name]);
+      }
+    });
+    return JSON.stringify(array);
+  },
+  prepare: (data) => {
+    const array = JSON.parse(data);
+    const formData = new FormData();
+    for (const [key, value] of array) {
+      formData.append(key, value);
+    }
+    return formData;
+  },
+  fill: undefined,
+};
+
 const serializers: Serializer<any>[] = [
   QRLSerializer,
   SignalSerializer,
@@ -311,6 +336,7 @@ const serializers: Serializer<any>[] = [
   PureFunctionSerializer,
   NoFiniteNumberSerializer,
   URLSearchParamsSerializer,
+  FormDataSerializer,
 ];
 
 const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.collect);

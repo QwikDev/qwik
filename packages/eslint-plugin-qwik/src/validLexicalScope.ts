@@ -369,16 +369,7 @@ function _isTypeCapturable(
     if (type.getProperty('activeElement')) {
       return;
     }
-    if (symbolName === 'Promise') {
-      return;
-    }
-    if (symbolName === 'URL') {
-      return;
-    }
-    if (symbolName === 'RegExp') {
-      return;
-    }
-    if (symbolName === 'Date') {
+    if (ALLOWED_CLASSES[symbolName]) {
       return;
     }
     if (type.isClass()) {
@@ -449,3 +440,13 @@ function getTypesOfTupleType(
 function isTypeQRL(type: ts.Type): boolean {
   return !!type.getProperty('__brand__QRL__');
 }
+
+const ALLOWED_CLASSES = {
+  Promise: true,
+  URL: true,
+  RegExp: true,
+  Date: true,
+  FormData: true,
+  URLSearchParams: true,
+  Error: true,
+};

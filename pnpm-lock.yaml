@@ -45,7 +45,7 @@ importers:
       prettier: 2.8.1
       pretty-quick: ^3.1.3
       prompts: 2.4.2
-      rollup: 3.7.5
+      rollup: 3.7.4
       semver: 7.3.8
       snoop: ^1.0.4
       terser: 5.16.1
@@ -99,7 +99,7 @@ importers:
       prettier: 2.8.1
       pretty-quick: 3.1.3_prettier@2.8.1
       prompts: 2.4.2
-      rollup: 3.7.5
+      rollup: 3.7.4
       semver: 7.3.8
       snoop: 1.0.4
       terser: 5.16.1
@@ -6229,14 +6229,6 @@ packages:
 
   /rollup/3.7.4:
     resolution: {integrity: sha512-jN9rx3k5pfg9H9al0r0y1EYKSeiRANZRYX32SuNXAnKzh6cVyf4LZVto1KAuDnbHT03E1CpsgqDKaqQ8FZtgxw==}
-    engines: {node: '>=14.18.0', npm: '>=8.0.0'}
-    hasBin: true
-    optionalDependencies:
-      fsevents: 2.3.2
-    dev: true
-
-  /rollup/3.7.5:
-    resolution: {integrity: sha512-z0ZbqHBtS/et2EEUKMrAl2CoSdwN7ZPzL17UMiKN9RjjqHShTlv7F9J6ZJZJNREYjBh3TvBrdfjkFDIXFNeuiQ==}
     engines: {node: '>=14.18.0', npm: '>=8.0.0'}
     hasBin: true
     optionalDependencies:

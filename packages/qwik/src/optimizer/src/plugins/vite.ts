@@ -241,6 +241,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           exclude: [
             '@vite/client',
             '@vite/env',
+            'node-fetch',
             'undici',
             QWIK_CORE_ID,
             QWIK_JSX_RUNTIME_ID,

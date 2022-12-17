@@ -941,10 +941,10 @@ export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOption
 // @public
 export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) => ResourceReturn<T>;
 
-// @public @deprecated
+// @public
 export const useServerMount$: <T>(first: MountFn<T>) => void;
 
-// @public @deprecated
+// @public
 export const useServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
 
 // @alpha (undocumented)

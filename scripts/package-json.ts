@@ -21,6 +21,9 @@ export async function generatePackageJson(config: BuildConfig) {
       qwik: './qwik.cjs',
     },
     type: 'module',
+    dependencies: {
+      undici: '^5.14.0',
+    },
     exports: {
       '.': {
         types: './core.d.ts',

@@ -155,9 +155,9 @@ importers:
       '@algolia/autocomplete-shared': 1.7.3
       '@algolia/client-search': 4.14.2
       '@builder.io/partytown': 0.7.3
-      '@builder.io/qwik': link:../qwik
+      '@builder.io/qwik': 0.15.2
       '@builder.io/qwik-city': link:../qwik-city
-      '@builder.io/sdk-qwik': 0.0.37_57atdkqjbkulndxrlkskqpl6yi
+      '@builder.io/sdk-qwik': 0.0.37_@builder.io+qwik@0.15.2
       '@docsearch/css': 3.3.0
       '@types/prismjs': 1.26.0
       algoliasearch: 4.14.2
@@ -190,7 +190,7 @@ importers:
   packages/qwik-city:
     specifiers:
       '@azure/functions': ^3.5.0
-      '@builder.io/qwik': workspace:0.15.2
+      '@builder.io/qwik': workspace:*
       '@mdx-js/mdx': 2.2.1
       '@microsoft/api-extractor': 7.33.7
       '@netlify/edge-functions': ^2.0.0
@@ -255,7 +255,7 @@ importers:
 
   packages/qwik-react:
     specifiers:
-      '@builder.io/qwik': workspace:0.15.2
+      '@builder.io/qwik': workspace:*
       '@types/react': 18.0.26
       '@types/react-dom': 18.0.9
       react: 18.2.0
@@ -414,12 +414,18 @@ packages:
     hasBin: true
     dev: true
 
-  /@builder.io/sdk-qwik/0.0.37_57atdkqjbkulndxrlkskqpl6yi:
+  /@builder.io/qwik/0.15.2:
+    resolution: {integrity: sha512-zLdpDbOqKn66JHp8+xjnt0O3Tr/Q3C0p73gfRmuHD3VkDMohfmboVBDDOZmvoKYtC+V8V+t4DYPxpDkQ/nHrBw==}
+    engines: {node: '>=16'}
+    hasBin: true
+    dev: true
+
+  /@builder.io/sdk-qwik/0.0.37_@builder.io+qwik@0.15.2:
     resolution: {integrity: sha512-LIl/t7DK//zjjqbm2pTqLBik+sjZg13ISmpFCJoiCWsndsTGWIeFxAQPNDpWlGBqOMZC7GSFhr8JV+8TWhnymw==}
     peerDependencies:
       '@builder.io/qwik': '>=0.0.108'
     dependencies:
-      '@builder.io/qwik': link:packages/qwik
+      '@builder.io/qwik': 0.15.2
     dev: true
 
   /@cloudflare/kv-asset-handler/0.2.0:

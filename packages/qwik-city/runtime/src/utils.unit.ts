@@ -208,14 +208,18 @@ test('no prefetch, path and current path the same', () => {
 });
 
 test('valid prefetchUrl, has querystring and hash', () => {
-  const props: LinkProps = {};
+  const props: LinkProps = {
+    prefetch: true,
+  };
   const clientNavPath = '/about?qs#hash';
   const currentLoc = new URL('https://qwik.builder.io/contact');
   equal(getPrefetchDataset(props, clientNavPath, currentLoc), '');
 });
 
 test('valid prefetchUrl, trailing slash', () => {
-  const props: LinkProps = {};
+  const props: LinkProps = {
+    prefetch: true,
+  };
   const clientNavPath = '/about/';
   const currentLoc = new URL('https://qwik.builder.io/contact');
   equal(getPrefetchDataset(props, clientNavPath, currentLoc), '');
@@ -229,7 +233,9 @@ test('valid prefetchUrl, prefetch true', () => {
 });
 
 test('valid prefetchUrl, add by default', () => {
-  const props: LinkProps = {};
+  const props: LinkProps = {
+    prefetch: true,
+  };
   const clientNavPath = '/about';
   const currentLoc = new URL('https://qwik.builder.io/contact');
   equal(getPrefetchDataset(props, clientNavPath, currentLoc), '');

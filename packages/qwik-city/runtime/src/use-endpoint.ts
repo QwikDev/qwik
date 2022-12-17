@@ -1,54 +1,46 @@
-import { useResource$ } from '@builder.io/qwik';
-import { useLocation, useQwikCityEnv } from './use-functions';
-import { isServer } from '@builder.io/qwik/build';
-import type { GetEndpointData } from './types';
 import { getClientDataPath } from './utils';
 import { dispatchPrefetchEvent } from './client-navigate';
 import { CLIENT_DATA_CACHE } from './constants';
+import type { ClientPageData, RouteActionValue } from './types';
 
-/**
- * @alpha
- */
-export const useEndpoint = <T = unknown>() => {
-  const loc = useLocation();
-  const env = useQwikCityEnv();
-
-  return useResource$<GetEndpointData<T>>(async ({ track }) => {
-    const href = track(() => loc.href);
-
-    if (isServer) {
-      if (!env) {
-        throw new Error('Endpoint response body is missing');
-      }
-      return env.response.body;
-    } else {
-      // fetch() for new data when the pathname has changed
-      const clientData = await loadClientData(href, true);
-      return clientData && clientData.body;
-    }
-  });
-};
-
-export const loadClientData = async (href: string, clearCache?: boolean) => {
+export const loadClientData = async (
+  href: string,
+  clearCache?: boolean,
+  action?: RouteActionValue
+) => {
   const url = new URL(href);
   const pagePathname = url.pathname;
   const pageSearch = url.search;
-  const clientDataPath = getClientDataPath(pagePathname, pageSearch);
-  let qData = CLIENT_DATA_CACHE.get(clientDataPath);
+  const clientDataPath = getClientDataPath(pagePathname, pageSearch, action);
+  let qData = action ? undefined : CLIENT_DATA_CACHE.get(clientDataPath);
 
   dispatchPrefetchEvent({
     links: [pagePathname],
   });
 
   if (!qData) {
-    qData = fetch(clientDataPath).then((rsp) => {
-      if (rsp.ok && (rsp.headers.get('content-type') || '').includes('json')) {
-        return rsp.json().then((clientData) => {
-          dispatchPrefetchEvent({
-            bundles: clientData.prefetch,
-          });
+    const options: RequestInit | undefined = action
+      ? {
+          method: 'POST',
+          body: action.data,
+        }
+      : undefined;
+    qData = fetch(clientDataPath, options).then((rsp) => {
+      if ((rsp.headers.get('content-type') || '').includes('json')) {
+        const redirectedURL = new URL(rsp.url);
+        if (redirectedURL.origin !== location.origin || !isQDataJson(redirectedURL.pathname)) {
+          location.href = redirectedURL.href;
+          return;
+        }
+        // we are safe we are reading a q-data.json
+        return rsp.text().then((text) => {
+          const clientData = parseData(text) as ClientPageData;
           if (clearCache) {
             CLIENT_DATA_CACHE.delete(clientDataPath);
+          }
+          if (action) {
+            const actionData = clientData.loaders[action.id];
+            action.resolve!({ status: rsp.status, result: actionData });
           }
           return clientData;
         });
@@ -57,8 +49,33 @@ export const loadClientData = async (href: string, clearCache?: boolean) => {
       }
     });
 
-    CLIENT_DATA_CACHE.set(clientDataPath, qData);
+    if (!action) {
+      CLIENT_DATA_CACHE.set(clientDataPath, qData);
+    }
   }
 
   return qData;
 };
+
+function parseData(str: string) {
+  return JSON.parse(str, (_, value) => {
+    if (value && typeof value === 'object' && value.__brand === 'formdata') {
+      return formDataFromArray(value.value);
+    }
+    return value;
+  });
+}
+
+function formDataFromArray(array: [string, string][]): FormData {
+  const formData = new FormData();
+  for (const [key, value] of array) {
+    formData.append(key, value);
+  }
+  return formData;
+}
+
+export const isQDataJson = (pathname: string) => {
+  return pathname.endsWith(QDATA_JSON);
+};
+
+export const QDATA_JSON = '/q-data.json';

@@ -63,9 +63,9 @@
 	"useWatch": {
 		"scope": "javascriptreact,typescriptreact",
 		"prefix": "q:useWatch",
-		"description": "useWatch$() function hook",
+		"description": "useTask$() function hook",
 		"body": [
-			"useWatch$(({ track }) => {",
+			"useTask$(({ track }) => {",
 			"  track($1);",
 			"  $0",
 			"});",

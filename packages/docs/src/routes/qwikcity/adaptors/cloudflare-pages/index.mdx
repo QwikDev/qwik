@@ -26,7 +26,7 @@ The adaptor will add a new `vite.config.ts` within the `adaptors/` directory, an
     └── entry.cloudflare-pages.tsx
 ```
 
-Additionally, within the `package.json`, the `build.server` script will be updated with the Cloudflare build.
+Additionally, within the `package.json`, the `build.server` and `deploy` scripts will be updated.
 
 ## Production build
 
@@ -38,18 +38,9 @@ npm run build
 
 [Read the full guide here](https://github.com/BuilderIO/qwik/tree/main/starters/adaptors/cloudflare-pages/README.md)
 
-## Local development deployment
-
-To deploy the application for local development:
-
-```shell
-npm run build
-npm run serve
-```
-
 ## Deploy to Cloudflare Pages
 
-After installing the integration using `npm run qwik add`. The project is ready to be deployed to Cloudflare Pages. However, you will need to create a git repository and push the code to it.
+After installing the integration using `npm run qwik add cloudflare-pages`, the project is ready to be deployed to Cloudflare Pages. However, you will need to create a git repository and push the code to it.
 
 Please refer to the [Cloudflare Pages docs](https://developers.cloudflare.com/pages/framework-guides/deploy-a-qwik-site/) for more information on how to deploy your site.
 

@@ -1,4 +1,4 @@
-import { component$, useStore, useRef, useWatch$ } from '@builder.io/qwik';
+import { component$, useStore, useRef, useTask$ } from '@builder.io/qwik';
 
 import type { TodoItem, Todos } from '../../state/state';
 
@@ -17,7 +17,7 @@ export const Item = component$((props: ItemProps) => {
   const state = useStore({ editing: false });
   const editInput = useRef<HTMLInputElement>();
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const current = track(editInput, 'current');
     if (current) {
       current.focus();

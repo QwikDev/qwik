@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+// @ts-ignore: Unused import
 import { component$, useStore, Resource, useResource$ } from '@builder.io/qwik';
 
 export default component$(() => {
@@ -8,6 +8,7 @@ export default component$(() => {
 
   // Use useResource$() to set up how the data is fetched from the server.
   // See the example for Fetching Data in the text on the left.
+  // @ts-ignore: Unused declaration
   const reposResource = useResource$<string[]>(({ track, cleanup }) => {
     // We need a way to re-run fetching data whenever the `github.org` changes.
     // Use `track` to trigger re-running of the this data fetching function.

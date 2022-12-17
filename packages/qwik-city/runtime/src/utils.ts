@@ -1,5 +1,6 @@
 import type { LinkProps } from './link-component';
-import type { SimpleURL } from './types';
+import type { RouteActionValue, SimpleURL } from './types';
+import { QACTION_KEY } from './constants';
 
 /**
  * Gets an absolute url path string (url.pathname + url.search + url.hash)
@@ -33,8 +34,17 @@ export const isSamePathname = (a: SimpleURL, b: SimpleURL) => a.pathname === b.p
 export const isSameOriginDifferentPathname = (a: SimpleURL, b: SimpleURL) =>
   isSameOrigin(a, b) && !isSamePath(a, b);
 
-export const getClientDataPath = (pathname: string, pageSearch?: string) =>
-  pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json' + (pageSearch ?? '');
+export const getClientDataPath = (
+  pathname: string,
+  pageSearch?: string,
+  action?: RouteActionValue
+) => {
+  let search = pageSearch ?? '';
+  if (action) {
+    search += (search ? '&' : '?') + QACTION_KEY + '=' + encodeURIComponent(action.id);
+  }
+  return pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json' + search;
+};
 
 export const getClientNavPath = (props: Record<string, any>, baseUrl: { href: string }) => {
   const href = props.href;
@@ -57,7 +67,7 @@ export const getPrefetchDataset = (
   clientNavPath: string | null,
   currentLoc: { href: string }
 ) => {
-  if (props.prefetch !== false && clientNavPath) {
+  if (props.prefetch === true && clientNavPath) {
     const prefetchUrl = toUrl(clientNavPath, currentLoc);
     if (!isSamePathname(prefetchUrl, toUrl('', currentLoc))) {
       return '';

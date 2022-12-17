@@ -30,7 +30,7 @@ const SERVER_STRIP_EXPORTS = [
   'onStaticGenerate',
 ];
 
-const SERVER_STRIP_CTX_NAME = ['useServerMount$'];
+const SERVER_STRIP_CTX_NAME = ['useServerMount$', 'action$', 'loader$'];
 
 export interface QwikPackages {
   id: string;
@@ -720,7 +720,7 @@ export const SRC_DIR_DEFAULT = 'src';
 
 export const CLIENT_OUT_DIR = 'dist';
 
-const SSR_OUT_DIR = 'server';
+export const SSR_OUT_DIR = 'server';
 
 const LIB_OUT_DIR = 'lib';
 

@@ -167,12 +167,17 @@ renderSuite('should render style css variables correctly', async () => {
     fixture.host,
     <div
       style={{
+        top: 0,
+        '--stuff-nu': -1,
         '--stuff-hey': 'hey',
         '--stuffCase': 'foo',
       }}
     />
   );
-  await expectRendered(fixture, `<div style="--stuff-hey: hey; --stuffCase: foo"></div>`);
+  await expectRendered(
+    fixture,
+    `<div style="top: 0; --stuff-nu: -1; --stuff-hey: hey; --stuffCase: foo"></div>`
+  );
 });
 
 renderSuite('should render children', async () => {

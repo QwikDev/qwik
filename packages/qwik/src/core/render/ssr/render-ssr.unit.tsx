@@ -252,6 +252,8 @@ renderSSRSuite('render styles', async () => {
       style={{
         'padding-top': '10px',
         paddingBottom: '10px',
+        top: 0,
+        '--stuff-nu': -1,
         '--stuff-hey': 'hey',
         '--stuffCase': 'foo',
       }}
@@ -261,6 +263,8 @@ renderSSRSuite('render styles', async () => {
       <body style="
           padding-top: 10px;
           padding-bottom: 10px;
+          top: 0;
+          --stuff-nu: -1;
           --stuff-hey: hey;
           --stuffCase: foo;
         "

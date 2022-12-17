@@ -15,6 +15,10 @@ export const other = loader$(() => {
     return { name: 'other' };
   };
 });
+
+export const another = loader$(() => {
+  return { name: 'another' };
+});
 export default component$(() => {
   const resourceThing = thing.use();
   const resourceOther = other.use();

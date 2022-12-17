@@ -27,6 +27,7 @@ import { Attributes } from './components/attributes/attributes';
 import { EventsClient } from './components/events/events-client';
 import { NoResume } from './components/no-resume/no-resume';
 import { Resuming1 } from './components/resuming/resuming';
+import { ResourceFn } from './components/resource/resource-fn';
 
 /**
  * Entry point for server-side pre-rendering.
@@ -53,6 +54,7 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/weather': () => <Weather />,
     '/e2e/resource': () => <ResourceApp />,
     '/e2e/resource-serialization': () => <ResourceSerialization />,
+    '/e2e/resource-fn': () => <ResourceFn />,
     '/e2e/treeshaking': () => <TreeshakingApp />,
     '/e2e/streaming': () => <StreamingRoot />,
     '/e2e/mount': () => <MountRoot />,

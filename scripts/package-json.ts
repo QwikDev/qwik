@@ -22,7 +22,7 @@ export async function generatePackageJson(config: BuildConfig) {
     },
     type: 'module',
     dependencies: {
-      "undici": "^5.14.0",
+      undici: '^5.14.0',
     },
     exports: {
       '.': {

@@ -74,7 +74,7 @@ async function workerRender(
       locale: undefined,
       url,
       request,
-      getWritableStream: (status, headers, _, resolve, err) => {
+      getWritableStream: (status, headers, _, _r, err) => {
         if (err) {
           if (err.stack) {
             result.error = String(err.stack);
@@ -118,11 +118,9 @@ async function workerRender(
               if (dataWriter) {
                 dataWriter.close();
               }
-              htmlWriter.close(resolve);
+              htmlWriter.close();
             } else if (dataWriter) {
-              dataWriter.close(resolve);
-            } else {
-              resolve();
+              dataWriter.close();
             }
           },
         };
@@ -133,8 +131,8 @@ async function workerRender(
 
     const promise = requestHandler(requestCtx, opts)
       .then((rsp) => {
-        if (rsp == null) {
-          callback(result);
+        if (rsp != null) {
+          return rsp.completion;
         }
       })
       .catch((e) => {
@@ -149,10 +147,10 @@ async function workerRender(
         } else {
           result.error = `Error`;
         }
-        callback(result);
       })
       .finally(() => {
         pendingPromises.delete(promise);
+        callback(result);
       });
 
     pendingPromises.add(promise);

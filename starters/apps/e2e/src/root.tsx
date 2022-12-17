@@ -57,6 +57,9 @@ export const Root = component$(() => {
         <a href="/e2e/resource-serialization">Resource serialization</a>
       </p>
       <p>
+        <a href="/e2e/resource-fn">Resource Fn</a>
+      </p>
+      <p>
         <a href="/e2e/mount">Mount</a>
       </p>
       <p>

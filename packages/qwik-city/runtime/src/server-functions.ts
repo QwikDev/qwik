@@ -3,7 +3,6 @@ import {
   implicit$FirstArg,
   noSerialize,
   QRL,
-  ResourceReturn,
   Signal,
   useContext,
   ValueOrPromise,
@@ -120,7 +119,7 @@ export const actionQrl = <B>(
 export const action$ = implicit$FirstArg(actionQrl);
 
 export type ServerLoaderUse<T> = Awaited<T> extends () => ValueOrPromise<infer B>
-  ? ResourceReturn<B>
+  ? Signal<ValueOrPromise<B>>
   : Signal<Awaited<T>>;
 
 export interface ServerLoader<RETURN> {

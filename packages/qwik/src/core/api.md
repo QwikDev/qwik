@@ -718,7 +718,7 @@ export interface ResourceProps<T> {
     // Warning: (ae-incompatible-release-tags) The symbol "value" is marked as @public, but its signature references "Signal" which is marked as @alpha
     //
     // (undocumented)
-    readonly value: ResourceReturn<T> | Signal<T> | Promise<T> | T;
+    readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
 }
 
 // @public (undocumented)

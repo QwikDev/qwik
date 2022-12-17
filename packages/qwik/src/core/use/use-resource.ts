@@ -19,7 +19,7 @@ import type { ContainerState, GetObjID } from '../container/container';
 import { useSequentialScope } from './use-sequential-scope';
 import { createProxy } from '../state/store';
 import { getProxyTarget } from '../state/common';
-import type { Signal } from '../state/signal';
+import { isSignal, Signal } from '../state/signal';
 import { isObject } from '../util/types';
 
 /**
@@ -194,7 +194,7 @@ export const useResource$ = <T>(
  * @public
  */
 export interface ResourceProps<T> {
-  readonly value: ResourceReturn<T> | Signal<T> | Promise<T> | T;
+  readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
   onResolved: (value: T) => JSXNode;
   onPending?: () => JSXNode;
   onRejected?: (reason: any) => JSXNode;
@@ -284,6 +284,8 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
     promise = resource.value;
   } else if (resource instanceof Promise) {
     promise = resource;
+  } else if (isSignal(resource)) {
+    promise = Promise.resolve(resource.value);
   } else {
     return props.onResolved(resource as T);
   }

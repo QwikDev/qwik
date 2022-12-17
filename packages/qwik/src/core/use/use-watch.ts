@@ -205,9 +205,9 @@ export interface UseTaskOptions {
  * Use `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when
  * those inputs change.
  *
- * The `taskFn` only executes if the observed inputs change. To observe the inputs, use the
- * `obs` function to wrap property reads. This creates subscriptions that will trigger the
- * `taskFn` to rerun.
+ * The `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs`
+ * function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to
+ * rerun.
  *
  * @see `Tracker`
  *
@@ -288,9 +288,9 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
  * Use `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when
  * those inputs change.
  *
- * The `taskFn` only executes if the observed inputs change. To observe the inputs, use the
- * `obs` function to wrap property reads. This creates subscriptions that will trigger the
- * `taskFn` to rerun.
+ * The `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs`
+ * function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to
+ * rerun.
  *
  * @see `Tracker`
  *

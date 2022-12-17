@@ -158,7 +158,6 @@ useTask$(() => {
 
 @see `useTask`
 @public
-@deprecated - use `useTask$()` with `isServer` instead. See https://qwik.builder.io/docs/components/lifecycle/#usemountserver
 
 # `useClientMount`
 

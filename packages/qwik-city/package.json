@@ -73,7 +73,7 @@
   },
   "devDependencies": {
     "@azure/functions": "^3.5.0",
-    "@builder.io/qwik": "workspace:0.15.2",
+    "@builder.io/qwik": "workspace:*",
     "@microsoft/api-extractor": "7.33.7",
     "@netlify/edge-functions": "^2.0.0",
     "@types/marked": "4.0.8",

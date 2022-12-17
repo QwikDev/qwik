@@ -1,8 +1,6 @@
 import { component$ } from '@builder.io/qwik';
 import { DocumentHead, loader$ } from '@builder.io/qwik-city';
-import BuilderContentComp, {
-  getBuilderContent,
-} from '../components/builder-content';
+import BuilderContentComp, { getBuilderContent } from '../components/builder-content';
 import { QWIK_MODEL, QWIK_PUBLIC_API_KEY } from '../constants';
 
 export default component$(() => {
@@ -18,10 +16,9 @@ export default component$(() => {
   );
 });
 
-export const getBuilder = loader$(({pathname}) => {
+export const getBuilder = loader$(({ pathname }) => {
   return getBuilderContent(QWIK_PUBLIC_API_KEY, QWIK_MODEL, pathname);
-})
-
+});
 
 export const head: DocumentHead = {
   title: 'Framework reimagined for the edge!',

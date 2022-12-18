@@ -30,6 +30,7 @@ export type MountFn<T> = () => ValueOrPromise<T>;
  *
  * @see `useTask`
  * @public
+ * @deprecated - use `useTask$()` with `isServer` instead. See
  */
 // </docs>
 export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
@@ -63,6 +64,7 @@ export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
  *
  * @see `useTask`
  * @public
+ * @deprecated - use `useTask$()` with `isServer` instead. See
  */
 // </docs>
 export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl);

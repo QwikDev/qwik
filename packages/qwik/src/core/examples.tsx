@@ -12,7 +12,7 @@ import { $, QRL } from './qrl/qrl.public';
 import { useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
-import { useClientEffect$, useTask$ } from './use/use-watch';
+import { useClientEffect$, useTask$ } from './use/use-task';
 import { useClientMount$, useMount$, useServerMount$ } from './use/use-mount';
 import { implicit$FirstArg } from './util/implicit_dollar';
 
@@ -137,7 +137,7 @@ export const CmpInline = component$(() => {
 };
 
 () => {
-  // <docs anchor="use-watch">
+  // <docs anchor="use-task">
   const Cmp = component$(() => {
     const store = useStore({
       count: 0,
@@ -209,7 +209,7 @@ export const CmpInline = component$(() => {
 };
 
 () => {
-  // <docs anchor="use-watch-simple">
+  // <docs anchor="use-task-simple">
   const Cmp = component$(() => {
     const store = useStore({ count: 0, doubleCount: 0 });
     useTask$(({ track }) => {

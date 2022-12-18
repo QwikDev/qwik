@@ -5,7 +5,7 @@ import { implicit$FirstArg } from '../util/implicit_dollar';
 import type { ValueOrPromise } from '../util/types';
 import { waitAndRun } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
-import { useTask$, useTaskQrl } from './use-watch';
+import { useTask$, useTaskQrl } from './use-task';
 
 /**
  * @public

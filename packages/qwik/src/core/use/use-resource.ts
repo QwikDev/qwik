@@ -9,7 +9,7 @@ import {
   WatchFlagsIsResource,
   Task,
   ResourceReturnInternal,
-} from './use-watch';
+} from './use-task';
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { isServer } from '../platform/platform';

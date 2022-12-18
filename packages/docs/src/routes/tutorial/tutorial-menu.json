@@ -248,7 +248,7 @@
         "enableSsrOutput": false
       },
       {
-        "id": "use-watch",
+        "id": "use-task",
         "title": "useTask$()",
         "enableHtmlOutput": false,
         "enableClientOutput": false,

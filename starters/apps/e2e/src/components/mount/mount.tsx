@@ -26,9 +26,9 @@ export const MountRoot = component$(() => {
   });
 
   useTask$(async () => {
-    store.logs += 'BEFORE useTrack3()\n';
+    store.logs += 'BEFORE useTask()\n';
     await delay(20);
-    store.logs += 'AFTER useTrack3()\n';
+    store.logs += 'AFTER useTask()\n';
   });
 
   useServerMount$(async () => {

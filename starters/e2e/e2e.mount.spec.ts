@@ -15,8 +15,8 @@ test.describe('mount', () => {
 AFTER useServerMount1()
 BEFORE useMount2()
 AFTER useMount2()
-BEFORE useWatch3()
-AFTER useWatch3()
+BEFORE useTrack3()
+AFTER useTrack3()
 BEFORE useServerMount4()
 AFTER useServerMount4()`);
 
@@ -26,8 +26,8 @@ AFTER useServerMount4()`);
 AFTER useServerMount1()
 BEFORE useMount2()
 AFTER useMount2()
-BEFORE useWatch3()
-AFTER useWatch3()
+BEFORE useTrack3()
+AFTER useTrack3()
 BEFORE useServerMount4()
 AFTER useServerMount4()
 Click`);

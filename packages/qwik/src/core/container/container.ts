@@ -13,6 +13,8 @@ import { QContainerAttr } from '../util/markers';
 import { isElement } from '../util/element';
 import { createSubscriptionManager, SubscriberSignal, SubscriptionManager } from '../state/common';
 import type { Signal } from '../state/signal';
+import { directGetAttribute } from '../render/fast-calls';
+import { assertTrue } from '../error/assert';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -90,6 +92,8 @@ export interface ContainerState {
 
   readonly $hostsNext$: Set<QwikElement>;
   readonly $hostsStaging$: Set<QwikElement>;
+  readonly $base$: string;
+
   $hostsRendering$: Set<QwikElement> | undefined;
   $renderPromise$: Promise<RenderContext> | undefined;
 
@@ -106,12 +110,16 @@ const CONTAINER_STATE = Symbol('ContainerState');
 export const getContainerState = (containerEl: Element): ContainerState => {
   let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
   if (!set) {
-    (containerEl as any)[CONTAINER_STATE] = set = createContainerState(containerEl);
+    assertTrue(!isServer(), 'Container state can only be created lazily on the browser');
+    (containerEl as any)[CONTAINER_STATE] = set = createContainerState(
+      containerEl,
+      directGetAttribute(containerEl, 'q:base') ?? '/'
+    );
   }
   return set;
 };
 
-export const createContainerState = (containerEl: Element) => {
+export const createContainerState = (containerEl: Element, base: string) => {
   const containerState: ContainerState = {
     $containerEl$: containerEl,
 
@@ -131,6 +139,7 @@ export const createContainerState = (containerEl: Element) => {
     $events$: new Set(),
 
     $envData$: {},
+    $base$: base,
     $renderPromise$: undefined,
     $hostsRendering$: undefined,
     $pauseCtx$: undefined,

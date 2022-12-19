@@ -168,9 +168,11 @@ export interface TutorialStore extends ReplAppInput {
 }
 
 export const PANELS = ['Tutorial', 'Input', 'Output'];
-export const onGet: RequestHandler = ({ response }) => {
-  response.headers.set(
-    'Cache-Control',
-    'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
-  );
+export const onGet: RequestHandler = ({ cacheControl }) => {
+  cacheControl({
+    public: true,
+    maxAge: 3600,
+    sMaxAge: 3600,
+    staleWhileRevalidate: 86400,
+  });
 };

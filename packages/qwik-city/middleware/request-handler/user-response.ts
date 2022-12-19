@@ -71,7 +71,7 @@ async function runNext(
     await requestEv.next();
   } catch (e) {
     if (e instanceof RedirectMessage) {
-      requestEv.getWriter().close();
+      requestEv.getStream().close();
     } else if (e instanceof ErrorResponse) {
       if (!requestEv.headersSent) {
         const html = getErrorHtml(e.status, e);

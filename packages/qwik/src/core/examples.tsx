@@ -12,8 +12,7 @@ import { $, QRL } from './qrl/qrl.public';
 import { useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
-import { useClientEffect$, useTask$ } from './use/use-watch';
-import { useClientMount$, useMount$, useServerMount$ } from './use/use-mount';
+import { useClientEffect$, useTask$ } from './use/use-task';
 import { implicit$FirstArg } from './util/implicit_dollar';
 
 //////////////////////////////////////////////////////////
@@ -137,7 +136,7 @@ export const CmpInline = component$(() => {
 };
 
 () => {
-  // <docs anchor="use-watch">
+  // <docs anchor="use-task">
   const Cmp = component$(() => {
     const store = useStore({
       count: 0,
@@ -209,7 +208,7 @@ export const CmpInline = component$(() => {
 };
 
 () => {
-  // <docs anchor="use-watch-simple">
+  // <docs anchor="use-task-simple">
   const Cmp = component$(() => {
     const store = useStore({ count: 0, doubleCount: 0 });
     useTask$(({ track }) => {
@@ -238,9 +237,11 @@ export const CmpInline = component$(() => {
       users: [],
     });
 
-    useServerMount$(async () => {
-      // This code will ONLY run once in the server, when the component is mounted
-      store.users = await db.requestUsers();
+    useTask$(async () => {
+      if (isServer) {
+        // This code will ONLY run once in the server, when the component is mounted
+        store.users = await db.requestUsers();
+      }
     });
 
     return (
@@ -265,8 +266,10 @@ export const CmpInline = component$(() => {
 () => {
   // <docs anchor="use-client-mount">
   const Cmp = component$(() => {
-    useClientMount$(async () => {
-      // This code will ONLY run once in the client, when the component is mounted
+    useTask$(async () => {
+      if (isBrowser) {
+        // This code will ONLY run once in the client, when the component is mounted
+      }
     });
 
     return <div>Cmp</div>;
@@ -282,7 +285,7 @@ export const CmpInline = component$(() => {
       temp: 0,
     });
 
-    useMount$(async () => {
+    useTask$(async () => {
       // This code will run once whenever a component is mounted in the server, or in the client
       const res = await fetch('weather-api.example');
       const json = (await res.json()) as any;
@@ -485,6 +488,7 @@ function doExtraStuff() {
 import { createContext, useContext, useContextProvider } from './use/use-context';
 import { useRef } from './use/use-ref';
 import { Resource, useResource$ } from './use/use-resource';
+import { isServer, isBrowser } from '../build';
 
 export const greet = () => console.log('greet');
 function topLevelFn() {}

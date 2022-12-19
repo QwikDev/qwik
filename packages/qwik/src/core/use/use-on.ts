@@ -5,7 +5,7 @@ import { Listener, normalizeOnProp } from '../state/listeners';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { useInvokeContext } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
-import { Task, WatchFlagsIsCleanup } from './use-watch';
+import { Task, WatchFlagsIsCleanup } from './use-task';
 
 // <docs markdown="../readme.md#useCleanup">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

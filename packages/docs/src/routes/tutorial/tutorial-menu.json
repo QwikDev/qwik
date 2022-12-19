@@ -227,28 +227,7 @@
     "title": "Lifecycle Hooks",
     "apps": [
       {
-        "id": "use-mount",
-        "title": "useMount$()",
-        "enableHtmlOutput": false,
-        "enableClientOutput": false,
-        "enableSsrOutput": false
-      },
-      {
-        "id": "use-un-mount",
-        "title": "useUnMount$()",
-        "enableHtmlOutput": false,
-        "enableClientOutput": false,
-        "enableSsrOutput": false
-      },
-      {
-        "id": "use-client-effect",
-        "title": "useClientEffect$()",
-        "enableHtmlOutput": false,
-        "enableClientOutput": false,
-        "enableSsrOutput": false
-      },
-      {
-        "id": "use-watch",
+        "id": "use-task",
         "title": "useTask$()",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
@@ -262,8 +241,22 @@
         "enableSsrOutput": false
       },
       {
+        "id": "use-client-effect",
+        "title": "useClientEffect$()",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
         "id": "use-on",
         "title": "useOn() / useOnDocument() / useOnWindow()",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
+        "id": "use-un-mount",
+        "title": "useUnMount$()",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false

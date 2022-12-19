@@ -1,11 +1,11 @@
-import { component$, useStore, useWatch$ } from '@builder.io/qwik';
+import { component$, useStore, useTask$ } from '@builder.io/qwik';
 
 export default component$(() => {
   return (
     <div>
       This example features an auto-complete component with a debounce of 150 ms.
       <br />
-      The function `debouncedGetPeople` needs to be exported because it is used in `useWatch$`.
+      The function `debouncedGetPeople` needs to be exported because it is used in `useTask$`.
       <br />
       <br />
       Go ahead, search for Star Wars characters such as "Luke Skywalker", it uses the{' '}
@@ -28,7 +28,7 @@ export const AutoComplete = component$(() => {
     selectedValue: '',
   });
 
-  useWatch$(async ({ track }) => {
+  useTask$(async ({ track }) => {
     const searchInput = track(() => state.searchInput);
 
     if (!searchInput) {

@@ -1,5 +1,5 @@
 import type { OnRenderFn } from '../component/component.public';
-import { destroyWatch, SubscriberEffect } from '../use/use-watch';
+import { destroyWatch, SubscriberEffect } from '../use/use-task';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import type { StyleAppend } from '../use/use-core';

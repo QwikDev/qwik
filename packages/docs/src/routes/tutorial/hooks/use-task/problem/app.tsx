@@ -1,11 +1,11 @@
-import { component$, useWatch$, useStore } from '@builder.io/qwik';
+import { component$, useTask$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
   const store = useStore({
     value: '',
     debouncedValue: '',
   });
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     // Use track to rerun this function when store's `value` property changes.
 
     // Setup a timer to copy `value => debouncedValue` after half a second.

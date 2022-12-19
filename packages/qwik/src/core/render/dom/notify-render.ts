@@ -10,7 +10,7 @@ import {
   WatchFlagsIsEffect,
   WatchFlagsIsResource,
   WatchFlagsIsWatch,
-} from '../../use/use-watch';
+} from '../../use/use-task';
 import { then } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';

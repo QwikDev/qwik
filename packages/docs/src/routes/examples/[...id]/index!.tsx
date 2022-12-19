@@ -1,4 +1,4 @@
-import { component$, useStyles$, useWatch$, useStore } from '@builder.io/qwik';
+import { component$, useStyles$, useTask$, useStore } from '@builder.io/qwik';
 import type { RequestHandler, RouteParams, StaticGenerateHandler } from '@builder.io/qwik-city';
 import { Repl } from '../../../repl/repl';
 import styles from './examples.css?inline';
@@ -30,7 +30,7 @@ export default component$(() => {
     return initStore;
   });
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const appId = track(() => store.appId);
     const app = getExampleApp(appId);
     store.files = app?.inputs || [];

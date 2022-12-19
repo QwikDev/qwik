@@ -1,4 +1,4 @@
-import { component$, Slot, useStore, useStyles$, useWatch$ } from '@builder.io/qwik';
+import { component$, Slot, useStore, useStyles$, useTask$ } from '@builder.io/qwik';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { useLocation } from '@builder.io/qwik-city';
 import { Repl } from '../../repl/repl';
@@ -39,7 +39,7 @@ export default component$(() => {
     return initStore;
   });
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const appId = track(() => store.appId);
     const t = getTutorial(appId)!;
 

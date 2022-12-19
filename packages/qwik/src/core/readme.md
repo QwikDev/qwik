@@ -100,7 +100,7 @@ The `taskFn` only executes if the observed inputs change. To observe the inputs,
 
 The `useTask` function is used to observe the `state.count` property. Any changes to the `state.count` cause the `taskFn` to execute which in turn updates the `state.doubleCount` to the double of `state.count`.
 
-<docs code="./examples.tsx#use-watch"/>
+<docs code="./examples.tsx#use-task"/>
 
 @param watch - Function which should be re-executed when changes to the inputs are detected
 @public
@@ -115,7 +115,7 @@ The `Tracker` is passed into the `taskFn` of `useTask`. It is intended to be use
 
 The `obs` passed into the `taskFn` is used to mark `state.count` as a property of interest. Any changes to the `state.count` property will cause the `taskFn` to rerun.
 
-<docs code="./examples.tsx#use-watch-simple"/>
+<docs code="./examples.tsx#use-task-simple"/>
 
 @see `useTask`
 

@@ -7,7 +7,7 @@ import { qDev } from '../util/qdev';
 import { RenderEvent } from '../util/markers';
 import { isArray, isObject, isSerializableObject } from '../util/types';
 import type { ContainerState } from '../container/container';
-import type { SubscriberEffect, SubscriberHost } from '../use/use-watch';
+import type { SubscriberEffect, SubscriberHost } from '../use/use-task';
 import {
   LocalSubscriptionManager,
   shouldSerialize,

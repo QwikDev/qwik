@@ -11,7 +11,7 @@ export const onRequest: RequestHandler = ({
   json,
   html,
   send,
-  getWriter,
+  getStream,
   status,
 }) => {
   const format = query.get('format');
@@ -27,10 +27,10 @@ export const onRequest: RequestHandler = ({
     status(200);
     headers.set('Content-Type', 'image/x-icon');
 
-    const stream = getWriter();
+    const stream = getStream().getWriter();
     fs.createReadStream(faviconPath)
       .on('data', (chunk) => {
-        stream.write(chunk);
+        stream.write(chunk as any);
       })
       .on('end', () => {
         stream.close();
@@ -42,7 +42,9 @@ export const onRequest: RequestHandler = ({
   if (format === 'csv') {
     status(203);
     headers.set('Content-Type', 'text/plain');
-    const stream = getWriter();
+    const { writable, readable } = new TextEncoderStream();
+    readable.pipeTo(getStream());
+    const stream = writable.getWriter();
     setTimeout(() => {
       stream.write(csvLine(0));
       setTimeout(() => {

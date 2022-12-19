@@ -8,7 +8,7 @@ import type { ServerRequestEvent, RequestContext } from '../middleware/request-h
 import { createHeaders } from '../middleware/request-handler/headers';
 import { requestHandler } from '../middleware/request-handler';
 import { pathToFileURL } from 'node:url';
-import type { ResponseStreamWriter } from '../middleware/request-handler/types';
+import { WritableStream } from 'node:stream/web';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
@@ -96,34 +96,56 @@ async function workerRender(
 
         const htmlWriter = writeHtmlEnabled ? sys.createWriteStream(htmlFilePath) : null;
         const dataWriter = writeDataEnabled ? sys.createWriteStream(dataFilePath) : null;
-
-        const stream: ResponseStreamWriter = {
-          write: (chunk) => {
+        const stream = new WritableStream<Uint8Array>({
+          write(chunk) {
             // page html writer
             if (htmlWriter) {
-              htmlWriter.write(chunk);
+              htmlWriter.write(Buffer.from(chunk.buffer));
             }
           },
-          clientData: (data) => {
-            // page data writer
-            if (dataWriter) {
-              dataWriter.write(JSON.stringify(data));
-            }
-            if (typeof data.isStatic === 'boolean') {
-              result.isStatic = data.isStatic;
-            }
-          },
-          close: () => {
-            if (htmlWriter) {
-              if (dataWriter) {
-                dataWriter.close();
+          close() {
+            return new Promise<void>((resolve) => {
+              if (htmlWriter) {
+                if (dataWriter) {
+                  dataWriter.close();
+                }
+                console.log('end');
+                htmlWriter.close(resolve);
+              } else if (dataWriter) {
+                dataWriter.close(resolve);
               }
-              htmlWriter.close();
-            } else if (dataWriter) {
-              dataWriter.close();
-            }
+            });
           },
-        };
+        });
+        // }) = {
+        //   write: (chunk) => {
+        //     // page html writer
+        //     if (htmlWriter) {
+        //       htmlWriter.write(chunk);
+        //     }
+        //   },
+        //   clientData: (data) => {
+        //     // page data writer
+        //     if (dataWriter) {
+        //       dataWriter.write(JSON.stringify(data));
+        //     }
+        //     if (typeof data.isStatic === 'boolean') {
+        //       result.isStatic = data.isStatic;
+        //     }
+        //   },
+        //   close: () => {
+        //     return new Promise<void>(resolve => {
+        //       if (htmlWriter) {
+        //         if (dataWriter) {
+        //           dataWriter.close();
+        //         }
+        //         htmlWriter.close(resolve);
+        //       } else if (dataWriter) {
+        //         dataWriter.close(resolve);
+        //       }
+        //     })
+        //   },
+        // };
         return stream;
       },
       platform: sys.platform,
@@ -170,10 +192,10 @@ async function workerRender(
   }
 }
 
-const noopWriter: ResponseStreamWriter = {
+const noopWriter = /*#__PURE__*/ new WritableStream({
   write() {},
   close() {},
-};
+});
 
 class SsgRequestContext implements RequestContext {
   url: string;

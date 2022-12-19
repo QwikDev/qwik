@@ -19,6 +19,7 @@ export interface System {
 }
 
 export interface StaticStreamWriter extends StreamWriter {
+  write: (chunk: string | Buffer) => void;
   close(callback?: () => void): void;
 }
 

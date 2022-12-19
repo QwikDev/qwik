@@ -11,6 +11,12 @@ import { requestHandler } from '../request-handler';
 import type { ServerRenderOptions } from '../request-handler/types';
 import { fromNodeHttp, getUrl } from './http';
 import { patchGlobalFetch } from './node-fetch';
+import {
+  TextEncoderStream,
+  TextDecoderStream,
+  WritableStream,
+  ReadableStream,
+} from 'node:stream/web';
 
 // @builder.io/qwik-city/middleware/node
 
@@ -18,6 +24,12 @@ import { patchGlobalFetch } from './node-fetch';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityNodeRequestOptions) {
+  // Patch Stream APIs
+  globalThis.TextEncoderStream = TextEncoderStream;
+  globalThis.TextDecoderStream = TextDecoderStream;
+  globalThis.WritableStream = WritableStream as any;
+  globalThis.ReadableStream = ReadableStream as any;
+
   const staticFolder =
     opts.static?.root ?? join(fileURLToPath(import.meta.url), '..', '..', 'dist');
 

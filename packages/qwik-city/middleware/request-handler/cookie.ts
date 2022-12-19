@@ -97,6 +97,10 @@ export class Cookie implements CookieInterface {
     };
   }
 
+  getAll() {
+    return this[REQ_COOKIE];
+  }
+
   has(cookieName: string) {
     return !!this[REQ_COOKIE][cookieName];
   }

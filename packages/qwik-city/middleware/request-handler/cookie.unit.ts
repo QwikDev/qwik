@@ -30,6 +30,23 @@ test('parses cookie', () => {
   });
 });
 
+test('get all cookies', () => {
+  const cookieValues = {
+    a: 'Algorithmic Almond',
+    b: 'Code Crunchies',
+    c: 'Bug Bites',
+    d: '{"Syntax": "Snacks"}',
+  };
+  const cookieString = Object.entries(cookieValues)
+    .reduce((prev: string[], [key, value]) => {
+      return [...prev, `${key}=${value}`];
+    }, [])
+    .join(';');
+  const cookie = new Cookie(cookieString);
+  const cookies = cookie.getAll();
+  equal(cookieValues, cookies);
+});
+
 test('creates correct headers', () => {
   const data: TestData[] = [
     { key: 'a', value: '1', options: {}, expect: 'a=1' },

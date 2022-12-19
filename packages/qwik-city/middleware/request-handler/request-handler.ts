@@ -77,10 +77,12 @@ function handleErrors<T>(run: QwikCityRun<T>): QwikCityRun<T> {
       .then(
         () => {
           if (requestEv.headersSent) {
-            const stream = requestEv.getStream();
-            if (!stream.locked) {
-              return stream.close();
-            }
+            requestEv.getStream();
+            // TODO
+            // if (!stream.locked) {
+            //   stream.getWriter().closed
+            //   return stream.close();
+            // }
           }
         },
         (e) => {

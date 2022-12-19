@@ -167,7 +167,7 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
     }
 
     const { readable, writable } = new TextEncoderStream();
-    readable.pipeTo(requestEv.getStream());
+    const pipe = readable.pipeTo(requestEv.getStream());
     const stream = writable.getWriter();
     try {
       const result = await render({
@@ -183,6 +183,7 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
     } finally {
       await stream.ready;
       await stream.close();
+      await pipe;
     }
   };
 }

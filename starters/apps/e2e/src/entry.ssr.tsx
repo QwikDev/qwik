@@ -1,6 +1,7 @@
 import type { FunctionComponent } from '@builder.io/qwik';
 import { renderToStream, RenderToStreamOptions } from '@builder.io/qwik/server';
 import { Root } from './root';
+import { UseId } from './components/useid/useid';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
 import { SlotParent } from './components/slot/slot';
 import { TwoListeners } from './components/two-listeners/twolisteners';
@@ -38,6 +39,7 @@ export default function (opts: RenderToStreamOptions) {
   const tests: Record<string, FunctionComponent> = {
     '/e2e/': () => <Root />,
     '/e2e/two-listeners': () => <TwoListeners />,
+    '/e2e/use-id': () => <UseId />,
     '/e2e/slot': () => <SlotParent />,
     '/e2e/lexical-scope': () => <LexicalScope />,
     '/e2e/render': () => <Render />,

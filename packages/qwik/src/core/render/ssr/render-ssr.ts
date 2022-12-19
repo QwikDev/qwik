@@ -111,7 +111,7 @@ const createDocument = () => {
 export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const root = opts.containerTagName;
   const containerEl = createSSRContext(1).$element$;
-  const containerState = createContainerState(containerEl as Element);
+  const containerState = createContainerState(containerEl as Element, opts.base ?? '/');
   containerState.$envData$.locale = opts.envData?.locale;
   const doc = createDocument();
   const rCtx = createRenderContext(doc as any, containerState);

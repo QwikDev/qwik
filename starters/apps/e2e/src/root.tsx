@@ -18,6 +18,9 @@ export const Root = component$(() => {
         <a href="/e2e/two-listeners">Two listener</a>
       </p>
       <p>
+        <a href="/e2e/use-id">Use Ids</a>
+      </p>
+      <p>
         <a href="/e2e/events">Events</a>
       </p>
       <p>

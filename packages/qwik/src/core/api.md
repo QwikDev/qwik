@@ -912,6 +912,9 @@ export function useEnvData<T, B = T>(key: string, defaultValue: B): T | B;
 // @alpha (undocumented)
 export const useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
 
+// @alpha (undocumented)
+export const useId: () => string;
+
 // Warning: (ae-internal-missing-underscore) The name "useLexicalScope" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal

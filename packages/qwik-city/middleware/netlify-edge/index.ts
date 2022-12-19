@@ -1,9 +1,5 @@
 import type { Context } from '@netlify/edge-functions';
-import type {
-  ResponseStreamWriter,
-  ServerRenderOptions,
-  ServerRequestEvent,
-} from '../request-handler/types';
+import type { ServerRenderOptions, ServerRequestEvent } from '../request-handler/types';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { requestHandler } from '../request-handler';
 import { mergeHeadersCookies } from '../request-handler/cookie';
@@ -16,8 +12,6 @@ import { isStaticPath } from '@qwik-city-static-paths';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityNetlifyOptions) {
-  const encoder = new TextEncoder();
-
   async function onRequest(request: Request, context: Context) {
     try {
       const url = new URL(request.url);
@@ -33,27 +27,13 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
         url,
         request,
         getWritableStream: (status, headers, cookies, resolve) => {
-          const { readable, writable } = new TransformStream();
-          const writer = writable.getWriter();
+          const { readable, writable } = new TransformStream<Uint8Array>();
           const response = new Response(readable, {
             status,
             headers: mergeHeadersCookies(headers, cookies),
           });
-
-          const stream: ResponseStreamWriter = {
-            write: (chunk) => {
-              if (typeof chunk === 'string') {
-                writer.write(encoder.encode(chunk));
-              } else {
-                writer.write(chunk);
-              }
-            },
-            close: () => {
-              writer.close();
-            },
-          };
           resolve(response);
-          return stream;
+          return writable;
         },
         platform: context,
       };

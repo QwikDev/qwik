@@ -3,7 +3,6 @@ import type {
   RequestEvent,
   RequestEventLoader,
   ServerRequestEvent,
-  ResponseStreamWriter,
   RequestHandler,
   RequestEventCommon,
 } from './types';
@@ -18,6 +17,7 @@ import { Cookie } from './cookie';
 import { createHeaders } from './headers';
 import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
+import { encoder } from './resolve-request-handlers';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvLocale = Symbol('RequestEvLocale');
@@ -38,7 +38,7 @@ export function createRequestEvent(
   const url = new URL(request.url);
 
   let routeModuleIndex = -1;
-  let streamInternal: ResponseStreamWriter | null = null;
+  let streamInternal: WritableStream<Uint8Array> | null = null;
 
   const next = async () => {
     routeModuleIndex++;
@@ -57,6 +57,16 @@ export function createRequestEvent(
     if (streamInternal !== null) {
       throw new Error('Response already sent');
     }
+  };
+
+  const send = (statusCode: number, body: string | Uint8Array) => {
+    check();
+
+    requestEv[RequestEvStatus] = statusCode;
+    const stream = requestEv.getStream().getWriter();
+    stream.write(typeof body === 'string' ? encoder.encode(body) : body);
+    stream.close();
+    return new AbortMessage();
   };
 
   const loaders: Record<string, Promise<any>> = {};
@@ -177,55 +187,30 @@ export function createRequestEvent(
     },
 
     text: (statusCode: number, text: string) => {
-      check();
-
-      requestEv[RequestEvStatus] = statusCode;
       headers.set('Content-Type', 'text/plain; charset=utf-8');
-      const stream = requestEv.getWriter();
-      stream.write(text);
-      stream.close();
-      return new AbortMessage();
+      return send(statusCode, text);
     },
 
     html: (statusCode: number, html: string) => {
-      check();
-
-      requestEv[RequestEvStatus] = statusCode;
       headers.set('Content-Type', 'text/html; charset=utf-8');
-      const stream = requestEv.getWriter();
-      stream.write(html);
-      stream.close();
-      return new AbortMessage();
+      return send(statusCode, html);
     },
 
     json: (statusCode: number, data: any) => {
-      check();
-
-      requestEv[RequestEvStatus] = statusCode;
       headers.set('Content-Type', 'application/json; charset=utf-8');
-      const stream = requestEv.getWriter();
-      stream.write(JSON.stringify(data));
-      stream.close();
-      return new AbortMessage();
+      return send(statusCode, JSON.stringify(data));
     },
 
-    send: (statusCode: number, body: any) => {
-      check();
+    send,
 
-      requestEv[RequestEvStatus] = statusCode;
-      const stream = requestEv.getWriter();
-      stream.write(body);
-      stream.close();
-      return new AbortMessage();
-    },
-
-    getWriter: () => {
+    getStream: () => {
       if (streamInternal === null) {
         streamInternal = serverRequestEv.getWritableStream(
           requestEv[RequestEvStatus],
           headers,
           cookie,
-          resolved
+          resolved,
+          requestEv
         );
       }
       return streamInternal;

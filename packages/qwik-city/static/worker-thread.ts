@@ -8,7 +8,7 @@ import type { ServerRequestEvent, RequestContext } from '../middleware/request-h
 import { createHeaders } from '../middleware/request-handler/headers';
 import { requestHandler } from '../middleware/request-handler';
 import { pathToFileURL } from 'node:url';
-import type { ResponseStreamWriter } from '../middleware/request-handler/types';
+import { WritableStream } from 'node:stream/web';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
@@ -53,7 +53,7 @@ async function workerRender(
     url: url.href,
     ok: false,
     error: null,
-    isStatic: false,
+    isStatic: true,
   };
 
   const htmlFilePath = sys.getPageFilePath(staticRoute.pathname);
@@ -74,58 +74,54 @@ async function workerRender(
       locale: undefined,
       url,
       request,
-      getWritableStream: (status, headers, _, resolve, err) => {
-        if (err) {
-          if (err.stack) {
-            result.error = String(err.stack);
-          } else if (err.message) {
-            result.error = String(err.message);
-          } else {
-            result.error = String(err);
-          }
-        } else {
-          result.ok =
-            status >= 200 &&
-            status <= 299 &&
-            (headers.get('Content-Type') || '').includes('text/html');
-        }
+      getWritableStream: (status, headers, _, _r, requestEv) => {
+        // if (err) {
+        //   if (err.stack) {
+        //     result.error = String(err.stack);
+        //   } else if (err.message) {
+        //     result.error = String(err.message);
+        //   } else {
+        //     result.error = String(err);
+        //   }
+        // } else {
+        result.ok =
+          status >= 200 &&
+          status <= 299 &&
+          (headers.get('Content-Type') || '').includes('text/html');
+        // }
 
         if (!result.ok) {
           return noopWriter;
         }
 
         const htmlWriter = writeHtmlEnabled ? sys.createWriteStream(htmlFilePath) : null;
-        const dataWriter = writeDataEnabled ? sys.createWriteStream(dataFilePath) : null;
-
-        const stream: ResponseStreamWriter = {
-          write: (chunk) => {
+        const stream = new WritableStream<Uint8Array>({
+          write(chunk) {
             // page html writer
             if (htmlWriter) {
-              htmlWriter.write(chunk);
+              htmlWriter.write(Buffer.from(chunk.buffer));
             }
           },
-          clientData: (data) => {
-            // page data writer
-            if (dataWriter) {
-              dataWriter.write(JSON.stringify(data));
-            }
-            if (typeof data.isStatic === 'boolean') {
-              result.isStatic = data.isStatic;
-            }
-          },
-          close: () => {
-            if (htmlWriter) {
-              if (dataWriter) {
-                dataWriter.close();
+          close() {
+            if (writeDataEnabled) {
+              const data = requestEv.sharedMap.get('qData');
+              if (data) {
+                if (typeof data.isStatic === 'boolean') {
+                  result.isStatic = data.isStatic;
+                }
+                const dataWriter = sys.createWriteStream(dataFilePath);
+                dataWriter.write(JSON.stringify(data));
+                dataWriter.end();
               }
-              htmlWriter.close(resolve);
-            } else if (dataWriter) {
-              dataWriter.close(resolve);
-            } else {
-              resolve();
             }
+            if (requestEv.sharedMap.get('qData'))
+              return new Promise<void>((resolve) => {
+                if (htmlWriter) {
+                  htmlWriter.end(resolve);
+                }
+              });
           },
-        };
+        });
         return stream;
       },
       platform: sys.platform,
@@ -133,8 +129,8 @@ async function workerRender(
 
     const promise = requestHandler(requestCtx, opts)
       .then((rsp) => {
-        if (rsp == null) {
-          callback(result);
+        if (rsp != null) {
+          return rsp.completion;
         }
       })
       .catch((e) => {
@@ -149,10 +145,10 @@ async function workerRender(
         } else {
           result.error = `Error`;
         }
-        callback(result);
       })
       .finally(() => {
         pendingPromises.delete(promise);
+        callback(result);
       });
 
     pendingPromises.add(promise);
@@ -172,10 +168,10 @@ async function workerRender(
   }
 }
 
-const noopWriter: ResponseStreamWriter = {
+const noopWriter = /*#__PURE__*/ new WritableStream({
   write() {},
   close() {},
-};
+});
 
 class SsgRequestContext implements RequestContext {
   url: string;

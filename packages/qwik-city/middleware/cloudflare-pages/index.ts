@@ -1,8 +1,4 @@
-import type {
-  ResponseStreamWriter,
-  ServerRenderOptions,
-  ServerRequestEvent,
-} from '../request-handler/types';
+import type { ServerRenderOptions, ServerRequestEvent } from '../request-handler/types';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { requestHandler } from '../request-handler';
 import { mergeHeadersCookies } from '../request-handler/cookie';
@@ -45,27 +41,11 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
         url,
         request,
         getWritableStream: (status, headers, cookies, resolve) => {
-          const { readable, writable } = new TransformStream();
-          const writer = writable.getWriter();
-
+          const { readable, writable } = new TransformStream<Uint8Array>();
           const response = new Response(readable, {
             status,
             headers: mergeHeadersCookies(headers, cookies),
           });
-
-          const stream: ResponseStreamWriter = {
-            write: (chunk) => {
-              if (typeof chunk === 'string') {
-                const encoder = new TextEncoder();
-                writer.write(encoder.encode(chunk));
-              } else {
-                writer.write(chunk);
-              }
-            },
-            close: () => {
-              writer.close();
-            },
-          };
 
           if (response.ok && cache && response.headers.has('Cache-Control')) {
             // Store the fetched response as cacheKey
@@ -74,7 +54,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
             waitUntil(cache.put(cacheKey, response.clone()));
           }
           resolve(response);
-          return stream;
+          return writable;
         },
         platform: env,
       };

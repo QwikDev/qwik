@@ -22,7 +22,7 @@ export async function generateNotFoundPages(
       return new Promise<void>((resolve) => {
         const writer = sys.createWriteStream(filePath);
         writer.write(html);
-        writer.close(resolve);
+        writer.end(resolve);
       });
     }
   }

@@ -1,8 +1,9 @@
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
 import type { ServerAction, ServerLoader } from '../../runtime/src/server-functions';
-import type { ClientPageData, QwikCityMode, QwikCityPlan } from '../../runtime/src/types';
+import type { QwikCityMode, QwikCityPlan } from '../../runtime/src/types';
 import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
+import type { RequestEventInternal } from './request-event';
 
 /**
  * Request event created by the server.
@@ -21,14 +22,8 @@ export type ServerResponseHandler<T = any> = (
   headers: Headers,
   cookies: Cookie,
   resolve: (response: T) => void,
-  error?: any
-) => ResponseStreamWriter;
-
-export interface ResponseStreamWriter {
-  write: (chunk: any) => void;
-  clientData?: (data: ClientPageData) => void;
-  close: () => void;
-}
+  requestEv: RequestEventInternal
+) => WritableStream<Uint8Array>;
 
 export interface ServerRenderOptions extends RenderOptions {
   render: Render;
@@ -226,7 +221,7 @@ export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLA
    * Low-level access to write to the HTTP response stream. Once `getWriter()` is called,
    * the status and headers can no longer be modified and will be sent over the network.
    */
-  readonly getWriter: () => ResponseStreamWriter;
+  readonly getStream: () => WritableStream<Uint8Array>;
 
   readonly next: () => Promise<void>;
 }

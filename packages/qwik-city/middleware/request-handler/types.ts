@@ -3,6 +3,7 @@ import type { ServerAction, ServerLoader } from '../../runtime/src/server-functi
 import type { QwikCityMode, QwikCityPlan } from '../../runtime/src/types';
 import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
+import type { RequestEventInternal } from './request-event';
 
 /**
  * Request event created by the server.
@@ -21,7 +22,7 @@ export type ServerResponseHandler<T = any> = (
   headers: Headers,
   cookies: Cookie,
   resolve: (response: T) => void,
-  error?: any
+  requestEv: RequestEventInternal
 ) => WritableStream<Uint8Array>;
 
 export interface ServerRenderOptions extends RenderOptions {

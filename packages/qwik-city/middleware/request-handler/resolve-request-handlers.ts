@@ -226,12 +226,7 @@ export async function renderQData(requestEv: RequestEvent) {
 
     // write just the page json data to the response body
     stream.write(encoder.encode(serializeData(qData)));
-
-    // if (typeof stream.clientData === 'function') {
-    //   // a data fn was provided by the request context
-    //   // useful for writing q-data.json during SSG
-    //   stream.clientData(qData);
-    // }
+    requestEv.sharedMap.set('qData', qData);
 
     stream.close();
   }

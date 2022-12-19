@@ -53,7 +53,7 @@ async function workerRender(
     url: url.href,
     ok: false,
     error: null,
-    isStatic: false,
+    isStatic: true,
   };
 
   const htmlFilePath = sys.getPageFilePath(staticRoute.pathname);
@@ -74,28 +74,27 @@ async function workerRender(
       locale: undefined,
       url,
       request,
-      getWritableStream: (status, headers, _, _r, err) => {
-        if (err) {
-          if (err.stack) {
-            result.error = String(err.stack);
-          } else if (err.message) {
-            result.error = String(err.message);
-          } else {
-            result.error = String(err);
-          }
-        } else {
-          result.ok =
-            status >= 200 &&
-            status <= 299 &&
-            (headers.get('Content-Type') || '').includes('text/html');
-        }
+      getWritableStream: (status, headers, _, _r, requestEv) => {
+        // if (err) {
+        //   if (err.stack) {
+        //     result.error = String(err.stack);
+        //   } else if (err.message) {
+        //     result.error = String(err.message);
+        //   } else {
+        //     result.error = String(err);
+        //   }
+        // } else {
+        result.ok =
+          status >= 200 &&
+          status <= 299 &&
+          (headers.get('Content-Type') || '').includes('text/html');
+        // }
 
         if (!result.ok) {
           return noopWriter;
         }
 
         const htmlWriter = writeHtmlEnabled ? sys.createWriteStream(htmlFilePath) : null;
-        const dataWriter = writeDataEnabled ? sys.createWriteStream(dataFilePath) : null;
         const stream = new WritableStream<Uint8Array>({
           write(chunk) {
             // page html writer
@@ -104,48 +103,25 @@ async function workerRender(
             }
           },
           close() {
+            if (writeDataEnabled) {
+              const data = requestEv.sharedMap.get('qData');
+              if (data) {
+                if (typeof data.isStatic === 'boolean') {
+                  result.isStatic = data.isStatic;
+                }
+                const dataWriter = sys.createWriteStream(dataFilePath);
+                dataWriter.write(JSON.stringify(data));
+                dataWriter.end();
+              }
+            }
+            if (requestEv.sharedMap.get('qData'))
             return new Promise<void>((resolve) => {
               if (htmlWriter) {
-                if (dataWriter) {
-                  dataWriter.close();
-                }
-                console.log('end');
-                htmlWriter.close(resolve);
-              } else if (dataWriter) {
-                dataWriter.close(resolve);
+                htmlWriter.end(resolve);
               }
             });
           },
         });
-        // }) = {
-        //   write: (chunk) => {
-        //     // page html writer
-        //     if (htmlWriter) {
-        //       htmlWriter.write(chunk);
-        //     }
-        //   },
-        //   clientData: (data) => {
-        //     // page data writer
-        //     if (dataWriter) {
-        //       dataWriter.write(JSON.stringify(data));
-        //     }
-        //     if (typeof data.isStatic === 'boolean') {
-        //       result.isStatic = data.isStatic;
-        //     }
-        //   },
-        //   close: () => {
-        //     return new Promise<void>(resolve => {
-        //       if (htmlWriter) {
-        //         if (dataWriter) {
-        //           dataWriter.close();
-        //         }
-        //         htmlWriter.close(resolve);
-        //       } else if (dataWriter) {
-        //         dataWriter.close(resolve);
-        //       }
-        //     })
-        //   },
-        // };
         return stream;
       },
       platform: sys.platform,

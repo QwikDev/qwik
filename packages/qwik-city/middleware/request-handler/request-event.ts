@@ -209,7 +209,8 @@ export function createRequestEvent(
           requestEv[RequestEvStatus],
           headers,
           cookie,
-          resolved
+          resolved,
+          requestEv
         );
       }
       return streamInternal;

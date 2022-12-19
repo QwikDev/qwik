@@ -17,11 +17,11 @@
     },
     {
       "route": "/*",
-      "rewrite": "/api/server"
+      "rewrite": "/api/render"
     }
   ],
   "navigationFallback": {
-    "rewrite": "/api/server"
+    "rewrite": "/api/render"
   },
   "platform": {
     "apiRuntime": "node:18"

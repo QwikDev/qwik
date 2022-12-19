@@ -14,7 +14,7 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
     try {
       const url = new URL(request.url);
 
-      if (isStaticPath(url.pathname)) {
+      if (isStaticPath(url)) {
         // known static path, let vercel handle it
         return new Response(null, {
           headers: {

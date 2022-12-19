@@ -5,7 +5,7 @@ import { implicit$FirstArg } from '../util/implicit_dollar';
 import type { ValueOrPromise } from '../util/types';
 import { waitAndRun } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
-import { useTask$, useTaskQrl } from './use-watch';
+import { useTask$, useTaskQrl } from './use-task';
 
 /**
  * @public
@@ -30,6 +30,7 @@ export type MountFn<T> = () => ValueOrPromise<T>;
  *
  * @see `useTask`
  * @public
+ * @deprecated - use `useTask$()` with `isServer` instead. See
  */
 // </docs>
 export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
@@ -63,6 +64,7 @@ export const useServerMountQrl = <T>(mountQrl: QRL<MountFn<T>>): void => {
  *
  * @see `useTask`
  * @public
+ * @deprecated - use `useTask$()` with `isServer` instead. See
  */
 // </docs>
 export const useServerMount$ = /*#__PURE__*/ implicit$FirstArg(useServerMountQrl);

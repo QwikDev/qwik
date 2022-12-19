@@ -10,7 +10,7 @@ import {
   ResourceReturnInternal,
   serializeWatch,
   SubscriberEffect,
-} from '../use/use-watch';
+} from '../use/use-task';
 import { isDocument } from '../util/element';
 import { SignalImpl, SignalWrapper } from '../state/signal';
 import { Collector, collectSubscriptions, collectValue } from './pause';

@@ -110,7 +110,7 @@ You may access Cloudflare Page's environment variables in the endpoint method's 
 
 ```javascript
 export const onRequest = async ({ platform }) => {
-  const secret = platform.env['SUPER_SECRET_TOKEN'];
+  const secret = platform['SUPER_SECRET_TOKEN'];
 };
 ```
 

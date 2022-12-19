@@ -19,7 +19,6 @@
 - [Nested](layout/nested/index.mdx)
 - [Grouped](layout/grouped/index.mdx)
 - [Named](layout/named/index.mdx)
-- [Top](layout/top/index.mdx)
 
 ## Data fetching
 

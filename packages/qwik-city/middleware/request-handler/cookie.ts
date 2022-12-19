@@ -1,6 +1,7 @@
 import type {
   Cookie as CookieInterface,
   CookieOptions,
+  CookieValue,
 } from '../../middleware/request-handler/types';
 
 const SAMESITE = {
@@ -95,6 +96,13 @@ export class Cookie implements CookieInterface {
         return Number(value);
       },
     };
+  }
+
+  getAll() {
+    return Object.keys(this[REQ_COOKIE]).reduce((cookies, cookieName) => {
+      cookies[cookieName] = this.get(cookieName)!;
+      return cookies;
+    }, {} as Record<string, CookieValue>);
   }
 
   has(cookieName: string) {

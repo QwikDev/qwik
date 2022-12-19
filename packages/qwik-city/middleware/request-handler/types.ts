@@ -299,6 +299,10 @@ export interface Cookie {
    */
   get(name: string): CookieValue | null;
   /**
+   * Gets all `Request` cookie headers.
+   */
+  getAll(): Record<string, CookieValue>;
+  /**
    * Checks if the `Request` cookie header name exists.
    */
   has(name: string): boolean;

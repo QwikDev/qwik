@@ -115,11 +115,11 @@ async function workerRender(
               }
             }
             if (requestEv.sharedMap.get('qData'))
-            return new Promise<void>((resolve) => {
-              if (htmlWriter) {
-                htmlWriter.end(resolve);
-              }
-            });
+              return new Promise<void>((resolve) => {
+                if (htmlWriter) {
+                  htmlWriter.end(resolve);
+                }
+              });
           },
         });
         return stream;

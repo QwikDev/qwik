@@ -12,10 +12,25 @@ import type {
   TransformFsOptions,
   TransformModule,
   TransformModuleInput,
+  TransformModulesOptions,
   TransformOutput,
 } from '../types';
 import { createLinter, QwikLinter } from './eslint-plugin';
 import type { PluginContext } from 'rollup';
+
+const SERVER_STRIP_EXPORTS = [
+  'onGet',
+  'onPost',
+  'onPut',
+  'onRequest',
+  'onDelete',
+  'onHead',
+  'onOptions',
+  'onPatch',
+  'onStaticGenerate',
+];
+
+const SERVER_STRIP_CTX_NAME = ['useServerMount$', 'action$', 'loader$'];
 
 export interface QwikPackages {
   id: string;
@@ -324,17 +339,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
 
       if (opts.target === 'client') {
-        transformOpts.stripCtxName = ['useServerMount$', 'action$', 'loader$'];
-        transformOpts.stripExports = [
-          'onGet',
-          'onPost',
-          'onPut',
-          'onRequest',
-          'onDelete',
-          'onHead',
-          'onOptions',
-          'onPatch',
-        ];
+        transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
+        transformOpts.stripExports = SERVER_STRIP_EXPORTS;
       } else if (opts.target === 'ssr') {
         transformOpts.stripCtxName = ['useClientMount$', 'useClientEffect$'];
         transformOpts.stripCtxKind = 'event';
@@ -498,24 +504,30 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       filePath = normalizePath(filePath);
       const srcDir = opts.srcDir ? opts.srcDir : normalizePath(dir);
       const mode = opts.buildMode === 'development' ? 'dev' : 'prod';
-      const newOutput = optimizer.transformModulesSync({
+      const transformOpts: TransformModulesOptions = {
         input: [
           {
-            code,
+            code: code,
             path: filePath,
           },
         ],
         entryStrategy: opts.entryStrategy,
         minify: 'simplify',
-        sourceMaps: opts.buildMode === 'development',
+        sourceMaps: 'development' === opts.buildMode,
         transpileTs: true,
         transpileJsx: true,
         explicitExtensions: true,
         preserveFilenames: true,
-        srcDir,
-        mode,
-        scope: opts.scope ? opts.scope : undefined,
-      });
+        srcDir: srcDir,
+        mode: mode,
+        scope: opts.scope ? opts.scope : void 0,
+      };
+      const isSSR = (ctx as any).ssr;
+      if (!isSSR) {
+        transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
+        transformOpts.stripExports = SERVER_STRIP_EXPORTS;
+      }
+      const newOutput = optimizer.transformModulesSync(transformOpts);
 
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
 

@@ -1262,6 +1262,37 @@ renderSSRSuite('null component', async () => {
     `<html q:container="paused" q:version="dev" q:render="ssr-dev"><!--qv q:id=0 q:key=sX:--><!--/qv--></html>`
   );
 });
+
+renderSSRSuite('cleanse attribute name', async () => {
+  const o = {
+    '"><script>alert("ಠ~ಠ")</script>': 'xss',
+  };
+  await testSSR(
+    <body {...o}></body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body></body></html>'
+  );
+});
+
+renderSSRSuite('cleanse class attribute', async () => {
+  const o = {
+    class: '"><script>alert("ಠ~ಠ")</script>',
+  };
+  await testSSR(
+    <body {...o}></body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body class="&quot;><script>alert(&quot;ಠ~ಠ&quot;)</script>"></body></html>'
+  );
+});
+
+renderSSRSuite('class emoji valid', async () => {
+  const o = {
+    class: 'package📦',
+  };
+  await testSSR(
+    <body {...o}></body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body class="package📦"></body></html>'
+  );
+});
+
 // TODO
 // Merge props on host
 // - host events

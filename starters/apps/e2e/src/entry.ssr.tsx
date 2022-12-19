@@ -39,7 +39,7 @@ export default function (opts: RenderToStreamOptions) {
   const tests: Record<string, FunctionComponent> = {
     '/e2e/': () => <Root />,
     '/e2e/two-listeners': () => <TwoListeners />,
-    '/e2e/use-id': () => <UseId/>,
+    '/e2e/use-id': () => <UseId />,
     '/e2e/slot': () => <SlotParent />,
     '/e2e/lexical-scope': () => <LexicalScope />,
     '/e2e/render': () => <Render />,

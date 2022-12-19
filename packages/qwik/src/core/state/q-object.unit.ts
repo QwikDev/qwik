@@ -6,7 +6,7 @@ import { QObjectRecursive } from './constants';
 import { createPropsState, createProxy, getOrCreateProxy } from './store';
 
 const qObject = suite('q-object');
-const container = getContainerState({ getAttribute: () => null });
+const container = getContainerState({ getAttribute: () => null } as any);
 const map: any = {
   $subsManager$: createSubscriptionManager(container),
   $proxyMap$: new WeakMap(),

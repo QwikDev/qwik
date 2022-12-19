@@ -227,13 +227,6 @@
     "title": "Lifecycle Hooks",
     "apps": [
       {
-        "id": "use-client-effect",
-        "title": "useClientEffect$()",
-        "enableHtmlOutput": false,
-        "enableClientOutput": false,
-        "enableSsrOutput": false
-      },
-      {
         "id": "use-task",
         "title": "useTask$()",
         "enableHtmlOutput": false,
@@ -243,6 +236,13 @@
       {
         "id": "use-signal",
         "title": "useSignal()",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
+        "id": "use-client-effect",
+        "title": "useClientEffect$()",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false

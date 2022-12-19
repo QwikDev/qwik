@@ -55,7 +55,14 @@ There are two ways to deploy:
 2. Deploy from GitHub
 
    You can deploy your application via GitHub. Create a Git repository, commit all your code and then publish your branch to GitHub.
-   When setting up an Azure Static Webapp via the Azure Portal you can choose the GitHub repository to deploy.
+   
+   Create an Azure Static Webapp via the Azure Portal and choose the GitHub repository in the deployment details. When prompted for the build details choose "Custom" and set the following values:
+
+   * App location: "."
+   * Api location: "./azure-functions"
+   * Output location: "./dist"
+
    This will setup a GitHub workflow deploying your application automatically. Read the [Azure Static Web Apps quickstart](https://learn.microsoft.com/azure/static-web-apps/get-started-portal?pivots=github) for more information.
+
 
 Notice that you will need an [Azure account](https://signup.azure.com/) in order to complete this step!

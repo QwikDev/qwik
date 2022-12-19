@@ -3,10 +3,9 @@
   "configurations": {
     "qwik-app": {
       "appLocation": ".",
-      "apiLocation": ".",
+      "apiLocation": "./azure-functions",
       "outputLocation": "./dist",
-      "appBuildCommand": "npm run build",
-      "apiBuildCommand": "npm run build.server"
+      "appBuildCommand": "npm run build"
     }
   }
 }

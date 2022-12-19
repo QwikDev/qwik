@@ -19,16 +19,4 @@ test('nested layout', ({ assertLayout }) => {
   equal(l.layoutName, '');
 });
 
-// test('top layout', ({ assertLayout }) => {
-//   const l = assertLayout('DashboardLayout');
-//   equal(l.layoutType, 'top');
-//   equal(l.layoutName, '');
-// });
-
-// test('top layout', ({ assertLayout }) => {
-//   const l = assertLayout('DocsLayout');
-//   equal(l.layoutType, 'top');
-//   equal(l.layoutName, '');
-// });
-
 test.run();

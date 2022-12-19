@@ -1,4 +1,4 @@
-import type { QwikCityHandlerOptions, QwikCityRequestContext } from '../request-handler/types';
+import type { ServerRenderOptions, ServerRequestEvent } from '../request-handler/types';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { requestHandler } from '../request-handler';
 import { mergeHeadersCookies } from '../request-handler/cookie';
@@ -35,57 +35,37 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
         }
       }
 
-      const requestCtx: QwikCityRequestContext<Response> = {
+      const serverRequestEv: ServerRequestEvent<Response> = {
         mode: 'server',
         locale: undefined,
         url,
         request,
-        response: (status, headers, cookies, body) => {
-          return new Promise<Response>((resolve) => {
-            let flushedHeaders = false;
-            const { readable, writable } = new TransformStream();
-            const writer = writable.getWriter();
-
-            const response = new Response(readable, {
-              status,
-              headers: mergeHeadersCookies(headers, cookies),
-            });
-            body({
-              write: (chunk) => {
-                if (!flushedHeaders) {
-                  flushedHeaders = true;
-                  resolve(response);
-                }
-                if (typeof chunk === 'string') {
-                  const encoder = new TextEncoder();
-                  writer.write(encoder.encode(chunk));
-                } else {
-                  writer.write(chunk);
-                }
-              },
-            }).finally(() => {
-              if (!flushedHeaders) {
-                flushedHeaders = true;
-                resolve(response);
-              }
-              writer.close();
-            });
-
-            if (response.ok && cache && response.headers.has('Cache-Control')) {
-              // Store the fetched response as cacheKey
-              // Use waitUntil so you can return the response without blocking on
-              // writing to cache
-              waitUntil(cache.put(cacheKey, response.clone()));
-            }
+        getWritableStream: (status, headers, cookies, resolve) => {
+          const { readable, writable } = new TransformStream<Uint8Array>();
+          const response = new Response(readable, {
+            status,
+            headers: mergeHeadersCookies(headers, cookies),
           });
+
+          if (response.ok && cache && response.headers.has('Cache-Control')) {
+            // Store the fetched response as cacheKey
+            // Use waitUntil so you can return the response without blocking on
+            // writing to cache
+            waitUntil(cache.put(cacheKey, response.clone()));
+          }
+          resolve(response);
+          return writable;
         },
         platform: env,
       };
 
       // send request to qwik city request handler
-      const handledResponse = await requestHandler<Response>(requestCtx, opts);
+      const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
-        return handledResponse;
+        const response = await handledResponse.response;
+        if (response) {
+          return response;
+        }
       }
 
       // qwik city did not have a route for this request
@@ -110,7 +90,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
 /**
  * @alpha
  */
-export interface QwikCityCloudflarePagesOptions extends QwikCityHandlerOptions {}
+export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {}
 
 /**
  * @alpha
@@ -125,7 +105,4 @@ export interface EventPluginContext {
 /**
  * @alpha
  */
-export type RequestHandlerCloudflarePages<T = unknown> = RequestHandler<
-  T,
-  { env: EventPluginContext['env'] }
->;
+export type RequestHandlerCloudflarePages = RequestHandler<{ env: EventPluginContext['env'] }>;

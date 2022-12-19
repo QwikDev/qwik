@@ -1,6 +1,6 @@
 import type { StreamWriter } from '@builder.io/qwik';
 import type { RenderOptions } from '../../qwik/src/server';
-import type { QwikCityHandlerOptions } from '../middleware/request-handler/types';
+import type { ServerRenderOptions } from '../middleware/request-handler';
 
 export interface System {
   createMainProcess: () => Promise<MainContext>;
@@ -19,7 +19,8 @@ export interface System {
 }
 
 export interface StaticStreamWriter extends StreamWriter {
-  close(callback?: () => void): void;
+  write: (chunk: string | Buffer) => void;
+  end(callback?: () => void): void;
 }
 
 export interface MainContext {
@@ -115,7 +116,7 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
 
 export interface StaticGenerateHandlerOptions
   extends StaticGenerateRenderOptions,
-    QwikCityHandlerOptions {}
+    ServerRenderOptions {}
 
 export type WorkerInputMessage = StaticRenderInput | WorkerCloseMessage;
 

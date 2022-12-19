@@ -3,6 +3,12 @@ import { createSystem } from './node-system';
 import { isMainThread, workerData } from 'node:worker_threads';
 import { mainThread } from '../main-thread';
 import { workerThread } from '../worker-thread';
+import {
+  TextEncoderStream,
+  TextDecoderStream,
+  WritableStream,
+  ReadableStream,
+} from 'node:stream/web';
 
 export async function generate(opts: StaticGenerateOptions) {
   if (isMainThread) {
@@ -16,6 +22,10 @@ export async function generate(opts: StaticGenerateOptions) {
 
 if (!isMainThread && workerData) {
   (async () => {
+    globalThis.TextEncoderStream = TextEncoderStream;
+    globalThis.TextDecoderStream = TextDecoderStream;
+    globalThis.WritableStream = WritableStream as any;
+    globalThis.ReadableStream = ReadableStream as any;
     // self initializing worker thread with workerData
     const sys = await createSystem(workerData);
     await workerThread(sys);

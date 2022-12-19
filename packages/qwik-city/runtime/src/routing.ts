@@ -10,6 +10,7 @@ import type {
   PathParams,
 } from './types';
 
+export const CACHE = new Map<RouteData, Promise<any>>();
 /**
  * loadRoute() runs in both client and server.
  */

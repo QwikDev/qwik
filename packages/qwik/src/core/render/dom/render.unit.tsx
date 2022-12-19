@@ -4,7 +4,7 @@ import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../qrl/qrl';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
-import { useClientEffect$, useTask$ } from '../../use/use-watch';
+import { useClientEffect$, useTask$ } from '../../use/use-task';
 import { useCleanup$, useOn } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
@@ -167,12 +167,17 @@ renderSuite('should render style css variables correctly', async () => {
     fixture.host,
     <div
       style={{
+        top: 0,
+        '--stuff-nu': -1,
         '--stuff-hey': 'hey',
         '--stuffCase': 'foo',
       }}
     />
   );
-  await expectRendered(fixture, `<div style="--stuff-hey: hey; --stuffCase: foo"></div>`);
+  await expectRendered(
+    fixture,
+    `<div style="top: 0; --stuff-nu: -1; --stuff-hey: hey; --stuffCase: foo"></div>`
+  );
 });
 
 renderSuite('should render children', async () => {

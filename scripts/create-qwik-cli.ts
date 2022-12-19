@@ -41,6 +41,7 @@ async function bundleCreateQwikCli(config: BuildConfig, srcCliDir: string, distC
           build.onResolve({ filter: /^chalk$/ }, async (args) => {
             const result = await build.resolve('kleur', {
               resolveDir: args.resolveDir,
+              kind: 'import-statement',
             });
             if (result.errors.length > 0) {
               return { errors: result.errors };
@@ -200,6 +201,7 @@ async function updatePackageJson(config: BuildConfig, destDir: string) {
   setVersionFromRoot('prettier');
   setVersionFromRoot('typescript');
   setVersionFromRoot('node-fetch');
+  setVersionFromRoot('undici');
   setVersionFromRoot('vite');
 
   await writePackageJson(destDir, pkgJson);

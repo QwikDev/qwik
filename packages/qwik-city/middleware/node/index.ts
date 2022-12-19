@@ -7,10 +7,16 @@ import { createReadStream } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { errorHandler, requestHandler } from '../request-handler';
-import type { QwikCityHandlerOptions } from '../request-handler/types';
+import { requestHandler } from '../request-handler';
+import type { ServerRenderOptions } from '../request-handler/types';
 import { fromNodeHttp, getUrl } from './http';
 import { patchGlobalFetch } from './node-fetch';
+import {
+  TextEncoderStream,
+  TextDecoderStream,
+  WritableStream,
+  ReadableStream,
+} from 'node:stream/web';
 
 // @builder.io/qwik-city/middleware/node
 
@@ -18,7 +24,11 @@ import { patchGlobalFetch } from './node-fetch';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityNodeRequestOptions) {
-  patchGlobalFetch();
+  // Patch Stream APIs
+  globalThis.TextEncoderStream = TextEncoderStream;
+  globalThis.TextDecoderStream = TextDecoderStream;
+  globalThis.WritableStream = WritableStream as any;
+  globalThis.ReadableStream = ReadableStream as any;
 
   const staticFolder =
     opts.static?.root ?? join(fileURLToPath(import.meta.url), '..', '..', 'dist');
@@ -29,15 +39,16 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
     next: NodeRequestNextFunction
   ) => {
     try {
-      const requestCtx = fromNodeHttp(getUrl(req), req, res, 'server');
-      try {
-        const rsp = await requestHandler(requestCtx, opts);
-        if (!rsp) {
-          next();
+      await patchGlobalFetch();
+      const serverRequestEv = await fromNodeHttp(getUrl(req), req, res, 'server');
+      const handled = await requestHandler(serverRequestEv, opts);
+      if (handled) {
+        const requestEv = await handled.completion;
+        if (requestEv.headersSent) {
+          return;
         }
-      } catch (e) {
-        await errorHandler(requestCtx, e);
       }
+      next();
     } catch (e) {
       console.error(e);
       next(e);
@@ -94,7 +105,7 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
 /**
  * @alpha
  */
-export interface QwikCityNodeRequestOptions extends QwikCityHandlerOptions {
+export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
   /** Options for serving static files */
   static?: {
     /** The root folder for statics files. Defaults to /dist */

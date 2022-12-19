@@ -106,3 +106,22 @@ test.describe('resource serialization', () => {
     await expect(button1).toHaveText('4(count is here: 2)');
   });
 });
+
+test.describe('resource fn', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/e2e/resource-fn');
+    page.on('pageerror', (err) => expect(err).toEqual(undefined));
+  });
+
+  test('should load', async ({ page }) => {
+    const asyncSignal = page.locator('#asyncSignal');
+    const promise = page.locator('#promise');
+    const signal = page.locator('#signal');
+    const resource = page.locator('#resource');
+
+    await expect(resource).toHaveText('resource');
+    await expect(asyncSignal).toHaveText('asyncSignal');
+    await expect(promise).toHaveText('promise');
+    await expect(signal).toHaveText('signal');
+  });
+});

@@ -12,7 +12,7 @@ import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Ref, useRef } from '../../use/use-ref';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
-import { useClientEffect$, useTask$ } from '../../use/use-watch';
+import { useClientEffect$, useTask$ } from '../../use/use-task';
 import { delay } from '../../util/promises';
 import { SSRComment } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
@@ -252,6 +252,8 @@ renderSSRSuite('render styles', async () => {
       style={{
         'padding-top': '10px',
         paddingBottom: '10px',
+        top: 0,
+        '--stuff-nu': -1,
         '--stuff-hey': 'hey',
         '--stuffCase': 'foo',
       }}
@@ -261,6 +263,8 @@ renderSSRSuite('render styles', async () => {
       <body style="
           padding-top: 10px;
           padding-bottom: 10px;
+          top: 0;
+          --stuff-nu: -1;
           --stuff-hey: hey;
           --stuffCase: foo;
         "

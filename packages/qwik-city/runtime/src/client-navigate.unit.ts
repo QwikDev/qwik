@@ -1,8 +1,9 @@
+import type { Signal } from '@builder.io/qwik';
 import { suite } from 'uvu';
 import { equal } from 'uvu/assert';
 import { ClientHistoryWindow, clientNavigate } from './client-navigate';
 import { CLIENT_HISTORY_INITIALIZED } from './constants';
-import type { RouteNavigate, SimpleURL } from './types';
+import type { SimpleURL } from './types';
 import { toPath } from './utils';
 
 const navTest = suite('clientNavigate');
@@ -10,59 +11,59 @@ const navTest = suite('clientNavigate');
 navTest('do not popstate if location is the same', () => {
   const win = createTestWindow('http://qwik.dev/');
   const routeNav = createRouteNavigate(win);
-  routeNav.path = '/page-a';
-  clientNavigate(win, routeNav);
+  routeNav.value = '/page-a';
+  clientNavigate(win, routeNav.value, routeNav);
   equal(win.location.href, 'http://qwik.dev/page-a');
   win.firePopstate();
   win.firePopstate();
   win.firePopstate();
-  routeNav.path = '/page-a';
+  routeNav.value = '/page-a';
 });
 
 navTest('pushState, popstate', () => {
   const win = createTestWindow('http://qwik.dev/');
   const routeNav = createRouteNavigate(win);
-  clientNavigate(win, routeNav);
-  routeNav.path = '/page-a';
-  clientNavigate(win, routeNav);
+  clientNavigate(win, routeNav.value, routeNav);
+  routeNav.value = '/page-a';
+  clientNavigate(win, routeNav.value, routeNav);
   win.history.back();
   equal(win.historyPaths.length, 1);
   equal(win.historyPaths[0], '/');
   equal(win.location.href, 'http://qwik.dev/');
-  equal(routeNav.path, '/');
+  equal(routeNav.value, '/');
 });
 
 navTest('pushState for different path', () => {
   const win = createTestWindow('http://qwik.dev/');
   const routeNav = createRouteNavigate(win);
-  clientNavigate(win, routeNav);
+  clientNavigate(win, routeNav.value, routeNav);
   equal(win.historyPaths.length, 1);
-  equal(routeNav.path, '/');
-  routeNav.path = '/page-a';
-  clientNavigate(win, routeNav);
-  equal(routeNav.path, '/page-a');
+  equal(routeNav.value, '/');
+  routeNav.value = '/page-a';
+  clientNavigate(win, routeNav.value, routeNav);
+  equal(routeNav.value, '/page-a');
   equal(win.historyPaths.length, 2);
   equal(win.historyPaths[1], '/page-a');
   equal(win.location.href, 'http://qwik.dev/page-a');
-  equal(routeNav.path, '/page-a');
+  equal(routeNav.value, '/page-a');
 });
 
 navTest('do not pushState for same path', () => {
   const win = createTestWindow('http://qwik.dev/');
   const routeNav = createRouteNavigate(win);
-  clientNavigate(win, routeNav);
+  clientNavigate(win, routeNav.value, routeNav);
   equal(win.historyPaths.length, 1);
-  clientNavigate(win, routeNav);
+  clientNavigate(win, routeNav.value, routeNav);
   equal(win.historyPaths.length, 1);
-  equal(routeNav.path, '/');
+  equal(routeNav.value, '/');
 });
 
 navTest('add only one popstate listener', () => {
   const win = createTestWindow('http://qwik.dev/');
   const routeNav = createRouteNavigate(win);
-  clientNavigate(win, routeNav);
+  clientNavigate(win, routeNav.value, routeNav);
   equal(win.listeners.get('popstate')!.length, 1);
-  clientNavigate(win, routeNav);
+  clientNavigate(win, routeNav.value, routeNav);
   equal(win.listeners.get('popstate')!.length, 1);
   equal(win[CLIENT_HISTORY_INITIALIZED], 1);
 });
@@ -162,7 +163,7 @@ interface TestClientHistoryWindow extends ClientHistoryWindow {
 type TestListeners = Map<string, (() => void)[]>;
 
 function createRouteNavigate(win: { location: SimpleURL }) {
-  const routeNav: RouteNavigate = { path: toPath(win.location) };
+  const routeNav: Signal<string> = { value: toPath(win.location) };
   return routeNav;
 }
 

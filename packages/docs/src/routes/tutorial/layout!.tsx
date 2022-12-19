@@ -1,4 +1,4 @@
-import { component$, Slot, useStore, useStyles$, useWatch$ } from '@builder.io/qwik';
+import { component$, Slot, useStore, useStyles$, useTask$ } from '@builder.io/qwik';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { useLocation } from '@builder.io/qwik-city';
 import { Repl } from '../../repl/repl';
@@ -39,7 +39,7 @@ export default component$(() => {
     return initStore;
   });
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const appId = track(() => store.appId);
     const t = getTutorial(appId)!;
 
@@ -168,9 +168,11 @@ export interface TutorialStore extends ReplAppInput {
 }
 
 export const PANELS = ['Tutorial', 'Input', 'Output'];
-export const onGet: RequestHandler = ({ response }) => {
-  response.headers.set(
-    'Cache-Control',
-    'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
-  );
+export const onGet: RequestHandler = ({ cacheControl }) => {
+  cacheControl({
+    public: true,
+    maxAge: 3600,
+    sMaxAge: 3600,
+    staleWhileRevalidate: 86400,
+  });
 };

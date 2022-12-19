@@ -171,6 +171,8 @@ async function buildVite(config: BuildConfig, inputDir: string, outputDir: strin
     'source-map',
     'vfile',
     '@mdx-js/mdx',
+    'node-fetch',
+    'undici',
     'typescript',
   ];
 
@@ -474,7 +476,7 @@ async function buildMiddlewareNetlifyEdge(
 async function buildMiddlewareNode(config: BuildConfig, inputDir: string, outputDir: string) {
   const entryPoints = [join(inputDir, 'middleware', 'node', 'index.ts')];
 
-  const external = ['node-fetch', 'path', ...MIDDLEWARE_EXTERNALS];
+  const external = ['node-fetch', 'undici', 'path', ...MIDDLEWARE_EXTERNALS];
 
   await build({
     entryPoints,
@@ -570,7 +572,7 @@ async function buildStaticDeno(config: BuildConfig, inputDir: string, outputDir:
 async function buildStaticNode(config: BuildConfig, inputDir: string, outputDir: string) {
   const entryPoints = [join(inputDir, 'static', 'node', 'index.ts')];
 
-  const external = ['fs', 'node-fetch', 'os', 'path', 'url', 'worker_threads'];
+  const external = ['fs', 'node-fetch', 'undici', 'os', 'path', 'url', 'worker_threads'];
 
   await build({
     entryPoints,

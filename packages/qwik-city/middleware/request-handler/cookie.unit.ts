@@ -28,6 +28,10 @@ test('parses cookie', () => {
   Object.entries(cookieValues).forEach(([key, value]) => {
     equal(cookie.get(key)?.value, value);
   });
+  equal(Object.keys(cookie.getAll()).length, 3);
+  equal(cookie.getAll().a.value, 'hello');
+  equal(cookie.getAll().b.number(), 25);
+  equal(cookie.getAll().c.json(), { hello: 'world' });
 });
 
 test('creates correct headers', () => {

@@ -1,6 +1,7 @@
 import { mergeHeadersCookies } from './cookie';
 import { createHeaders } from './headers';
-import type { RequestContext, ResponseStreamWriter, ServerRequestEvent } from './types';
+import type { RequestContext, ServerRequestEvent } from './types';
+import { WritableStream } from 'node:stream/web';
 
 export function mockRequestContext(opts?: {
   method?: string;
@@ -33,18 +34,17 @@ export function mockRequestContext(opts?: {
     url,
     request,
     getWritableStream: (status, headers, cookie, resolve) => {
-      const chunks: string[] = [];
+      const chunks: Uint8Array[] = [];
       responseData.status = status;
       responseData.headers = mergeHeadersCookies(headers, cookie);
-      const stream: ResponseStreamWriter = {
+      const stream = new WritableStream<Uint8Array>({
         write: (chunk) => {
           chunks.push(chunk);
         },
-        close: () => {
+        close: async () => {
           resolve(chunks.join(''));
         },
-      };
-
+      });
       return stream;
     },
     responseData,

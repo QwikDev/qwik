@@ -41,6 +41,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
       status: 200,
       headers: {},
     });
+    const decoder = new TextDecoder();
     try {
       const qwikRequest = createQwikRequest(req);
       const serverRequestEv: ServerRequestEvent<AzureResponse> = {
@@ -52,18 +53,17 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
         getWritableStream: (status, headers, _cookies) => {
           res.status = status;
           headers.forEach((value, key) => (res.headers[key] = value));
-          const stream = {
-            write(chunk: string) {
-              // simple concat because streaming not supported - see https://github.com/Azure/azure-functions-host/issues/1361
+          const writable = new WritableStream<Uint8Array>({
+            write(chunk) {
               if (res.body) {
-                res.body += chunk;
+                res.body += decoder.decode(chunk);
               } else {
-                res.body = chunk;
+                res.body = decoder.decode(chunk);
               }
             },
             close() {},
-          };
-          return stream;
+          });
+          return writable;
         },
       };
 

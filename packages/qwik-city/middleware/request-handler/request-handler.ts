@@ -73,26 +73,32 @@ function handleErrors<T>(run: QwikCityRun<T>): QwikCityRun<T> {
   return {
     response: run.response,
     requestEv: requestEv,
-    completion: run.completion.then(
-      () => {
-        if (requestEv.headersSent) {
-          requestEv.getWriter().close();
+    completion: run.completion
+      .then(
+        () => {
+          if (requestEv.headersSent) {
+            requestEv.getStream();
+            // TODO
+            // if (!stream.locked) {
+            //   stream.getWriter().closed
+            //   return stream.close();
+            // }
+          }
+        },
+        (e) => {
+          console.error(e);
+          const status = requestEv.status();
+          const html = getErrorHtml(status, e);
+          if (requestEv.headersSent) {
+            const stream = requestEv.getStream();
+            if (!stream.locked) {
+              return stream.close();
+            }
+          } else {
+            requestEv.html(status, html);
+          }
         }
-        return requestEv;
-      },
-      (e) => {
-        const status = requestEv.status();
-        const html = getErrorHtml(status, e);
-        if (!requestEv.headersSent) {
-          requestEv.send(status, html);
-        } else {
-          const stream = requestEv.getWriter();
-          stream.write(html);
-          stream.close();
-        }
-        console.error(e);
-        return requestEv;
-      }
-    ),
+      )
+      .then(() => requestEv),
   };
 }

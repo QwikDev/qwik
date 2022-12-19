@@ -5,7 +5,7 @@ contributors:
   - adamdbradley
 ---
 
-Projection is a way of passing content to a child component that in turn controls where the content is rendered. Projection is a collaboration between the parent and child component. The parent component decides what is the content that needs to be rendered, child component decides where and if the content should be rendered.
+Projection is a way of passing content to a child component that in turn controls where the content is rendered. Projection is a collaboration between the parent and child component. The child component decides what is the content that needs to be rendered, parent component decides where and if the content should be rendered.
 
 In our example, the content of the `<Panel>` element (inside the `<App>`) is the content that needs to be projected. The `<Panel>` component wraps the content in a `<div>` tag and should project it using the `<Slot>` element.
 

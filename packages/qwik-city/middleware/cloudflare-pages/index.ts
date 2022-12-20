@@ -1,7 +1,10 @@
-import type { ServerRenderOptions, ServerRequestEvent } from '../request-handler/types';
+import type {
+  ServerRenderOptions,
+  ServerRequestEvent,
+} from '@builder.io/qwik-city/middleware/request-handler';
 import type { RequestHandler } from '@builder.io/qwik-city';
-import { requestHandler } from '../request-handler';
-import { mergeHeadersCookies } from '../request-handler/cookie';
+import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
+import { mergeHeadersCookies } from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
 

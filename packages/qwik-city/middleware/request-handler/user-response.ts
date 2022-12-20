@@ -1,5 +1,5 @@
 import type { ServerRequestEvent } from './types';
-import type { PathParams, RequestEvent, RequestHandler } from '../../runtime/src/types';
+import type { PathParams, RequestEvent, RequestHandler } from '@builder.io/qwik-city';
 import { createRequestEvent } from './request-event';
 import { ErrorResponse, getErrorHtml } from './error-handler';
 import { HttpStatus } from './http-status-codes';

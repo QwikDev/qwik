@@ -1,7 +1,9 @@
-export type { CachePolicy } from './request-event';
+export { createHeaders } from './headers';
 export { getErrorHtml } from './error-handler';
+export { mergeHeadersCookies } from './cookie';
 export { requestHandler } from './request-handler';
 export type {
+  CacheControl,
   Cookie,
   CookieOptions,
   CookieValue,
@@ -10,6 +12,7 @@ export type {
   RequestContext,
   RequestEvent,
   RequestHandler,
+  ServerRequestMode,
   ServerRenderOptions,
   ServerRequestEvent,
   ServerResponseHandler,

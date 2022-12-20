@@ -36,18 +36,22 @@
       "import": "./lib/adaptors/vercel-edge/vite/index.mjs",
       "require": "./lib/adaptors/vercel-edge/vite/index.cjs"
     },
+    "./middleware/azure-swa": {
+      "import": "./lib/middleware/azure-swa/index.mjs"
+    },
     "./middleware/cloudflare-pages": {
       "import": "./lib/middleware/cloudflare-pages/index.mjs"
     },
     "./middleware/netlify-edge": {
       "import": "./lib/middleware/netlify-edge/index.mjs"
     },
-    "./middleware/azure-swa": {
-      "import": "./lib/middleware/azure-swa/index.mjs"
-    },
     "./middleware/node": {
       "import": "./lib/middleware/node/index.mjs",
       "require": "./lib/middleware/node/index.cjs"
+    },
+    "./middleware/request-handler": {
+      "import": "./lib/middleware/request-handler/index.mjs",
+      "require": "./lib/middleware/request-handler/index.cjs"
     },
     "./static": {
       "import": "./lib/static/index.mjs",

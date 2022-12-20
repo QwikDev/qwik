@@ -6,12 +6,10 @@
 
 /// <reference types="node" />
 
-import type { GetSyncData } from '../../middleware/request-handler';
 import type { IncomingMessage } from 'node:http';
 import type { Render } from '@builder.io/qwik/server';
-import type { RenderOptions } from '@builder.io/qwik/server';
-import type { RenderOptions as RenderOptions_2 } from '@builder.io/qwik';
-import type { RequestHandler } from '../../middleware/request-handler';
+import type { RenderOptions } from '@builder.io/qwik';
+import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ServerResponse } from 'node:http';
 
 // @alpha (undocumented)
@@ -28,14 +26,12 @@ export interface NodeRequestNextFunction {
 }
 
 // @alpha @deprecated (undocumented)
-export function qwikCity(render: Render, opts?: RenderOptions_2): {
+export function qwikCity(render: Render, opts?: RenderOptions): {
     router: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: NodeRequestNextFunction) => Promise<void>;
     notFound: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: (e: any) => void) => Promise<void>;
     staticFile: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: (e?: any) => void) => Promise<void>;
 };
 
-// Warning: (ae-forgotten-export) The symbol "ServerRenderOptions" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
 export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
     static?: {

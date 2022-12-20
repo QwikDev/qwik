@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
-import { getErrorHtml } from '../../../middleware/request-handler';
+import { getErrorHtml } from '@builder.io/qwik-city/middleware/request-handler';
 
 export async function postBuild(
   clientOutDir: string,
@@ -109,15 +109,15 @@ function createStaticPathsModule(basePathname: string, staticPaths: Set<string>,
   );
 
   c.push(`function isStaticPath(url) {`);
-  c.push(`  if (url.searchParams.get('qwikcity.static') === "false") {`);
-  c.push(`    return false;`);
-  c.push(`  }`);
   c.push(`  const p = url.pathname;`);
   c.push(`  if (p.startsWith(${JSON.stringify(baseBuildPath)})) {`);
   c.push(`    return true;`);
   c.push(`  }`);
   c.push(`  if (p.startsWith(${JSON.stringify(assetsPath)})) {`);
   c.push(`    return true;`);
+  c.push(`  }`);
+  c.push(`  if (url.searchParams.get('qwikcity.static') === "false") {`);
+  c.push(`    return false;`);
   c.push(`  }`);
   c.push(`  if (staticPaths.has(p)) {`);
   c.push(`    return true;`);

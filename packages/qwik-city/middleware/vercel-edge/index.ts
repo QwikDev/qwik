@@ -1,6 +1,11 @@
-import type { ServerRenderOptions, ServerRequestEvent } from '../request-handler/types';
-import { requestHandler } from '../request-handler';
-import { mergeHeadersCookies } from '../request-handler/cookie';
+import type {
+  ServerRenderOptions,
+  ServerRequestEvent,
+} from '@builder.io/qwik-city/middleware/request-handler';
+import {
+  mergeHeadersCookies,
+  requestHandler,
+} from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
 
@@ -45,7 +50,10 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
       // send request to qwik city request handler
       const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
-        return handledResponse;
+        const response = await handledResponse.response;
+        if (response) {
+          return response;
+        }
       }
 
       // qwik city did not have a route for this request

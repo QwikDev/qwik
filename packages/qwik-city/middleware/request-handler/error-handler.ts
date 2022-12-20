@@ -4,6 +4,9 @@ export class ErrorResponse extends Error {
   }
 }
 
+/**
+ * @alpha
+ */
 export function getErrorHtml(status: number, e: any) {
   let message = 'Server Error';
   let stack: string | undefined = undefined;

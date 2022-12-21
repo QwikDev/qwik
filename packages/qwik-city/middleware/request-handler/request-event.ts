@@ -18,6 +18,7 @@ import { createHeaders } from './headers';
 import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
+import { createCacheControl } from './cache-control';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvLocale = Symbol('RequestEvLocale');
@@ -103,32 +104,7 @@ export function createRequestEvent(
 
     cacheControl: (cacheControl) => {
       check();
-      const controls: string[] = [];
-      if (cacheControl.immutable) {
-        controls.push('immutable');
-      }
-      if (cacheControl.maxAge) {
-        controls.push(`max-age=${cacheControl.maxAge}`);
-      }
-      if (cacheControl.sMaxAge) {
-        controls.push(`s-maxage=${cacheControl.sMaxAge}`);
-      }
-      if (cacheControl.noStore) {
-        controls.push('no-store');
-      }
-      if (cacheControl.noCache) {
-        controls.push('no-cache');
-      }
-      if (cacheControl.private) {
-        controls.push('private');
-      }
-      if (cacheControl.public) {
-        controls.push('public');
-      }
-      if (cacheControl.staleWhileRevalidate) {
-        controls.push(`stale-while-revalidate=${cacheControl.staleWhileRevalidate}`);
-      }
-      headers.set('Cache-Control', controls.join(', '));
+      headers.set('Cache-Control', createCacheControl(cacheControl));
     },
 
     getData: (loaderOrAction: ServerAction<any> | ServerLoader<any>) => {

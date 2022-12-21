@@ -12,28 +12,6 @@ import {
 import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import { getRouteMatchPathname, QwikCityRun, runQwikCity } from './user-response';
 
-export const loadRequestHandlers = async (
-  routes: RouteData[] | undefined,
-  menus: MenuData[] | undefined,
-  cacheModules: boolean | undefined,
-  pathname: string,
-  method: string,
-  renderFn: Render
-) => {
-  const route = await loadRoute(routes, menus, cacheModules, pathname);
-  if (route) {
-    let isPageRoute = false;
-    const requestHandlers = resolveRequestHandlers(route[1], method);
-    if (isLastModulePageRoute(route[1])) {
-      requestHandlers.unshift(renderQData);
-      requestHandlers.push(renderQwikMiddleware(renderFn));
-      isPageRoute = true;
-    }
-    return [route[0], requestHandlers, isPageRoute] as const;
-  }
-  return null;
-};
-
 /**
  * @alpha
  */
@@ -64,6 +42,28 @@ export async function requestHandler<T = unknown>(
         basePathname
       )
     );
+  }
+  return null;
+}
+
+async function loadRequestHandlers(
+  routes: RouteData[] | undefined,
+  menus: MenuData[] | undefined,
+  cacheModules: boolean | undefined,
+  pathname: string,
+  method: string,
+  renderFn: Render
+) {
+  const route = await loadRoute(routes, menus, cacheModules, pathname);
+  if (route) {
+    let isPageRoute = false;
+    const requestHandlers = resolveRequestHandlers(route[1], method);
+    if (isLastModulePageRoute(route[1])) {
+      requestHandlers.unshift(renderQData);
+      requestHandlers.push(renderQwikMiddleware(renderFn));
+      isPageRoute = true;
+    }
+    return [route[0], requestHandlers, isPageRoute] as const;
   }
   return null;
 }

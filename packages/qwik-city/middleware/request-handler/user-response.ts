@@ -81,9 +81,8 @@ async function runNext(
     } else if (!(e instanceof AbortMessage)) {
       throw e;
     }
-  } finally {
-    resolve(null);
   }
+  resolve(null);
   return requestEv;
 }
 

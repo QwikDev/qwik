@@ -14,7 +14,7 @@ import { isStaticPath } from '@qwik-city-static-paths';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
-  async function onRequest({ request, env, waitUntil, next }: EventPluginContext) {
+  async function onCloudflarePagesRequest({ request, env, waitUntil, next }: EventPluginContext) {
     try {
       const url = new URL(request.url);
 
@@ -87,7 +87,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
     }
   }
 
-  return onRequest;
+  return onCloudflarePagesRequest;
 }
 
 /**

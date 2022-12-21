@@ -17,7 +17,7 @@ import { isStaticPath } from '@qwik-city-static-paths';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityNetlifyOptions) {
-  async function onRequest(request: Request, context: Context) {
+  async function onNetlifyEdgeRequest(request: Request, context: Context) {
     try {
       const url = new URL(request.url);
 
@@ -68,7 +68,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
     }
   }
 
-  return onRequest;
+  return onNetlifyEdgeRequest;
 }
 
 /**

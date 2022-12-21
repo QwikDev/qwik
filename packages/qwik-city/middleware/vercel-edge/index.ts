@@ -15,7 +15,7 @@ import { isStaticPath } from '@qwik-city-static-paths';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
-  async function onRequest(request: Request) {
+  async function onVercelEdgeRequest(request: Request) {
     try {
       const url = new URL(request.url);
 
@@ -72,7 +72,7 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
     }
   }
 
-  return onRequest;
+  return onVercelEdgeRequest;
 }
 
 /**

@@ -39,7 +39,7 @@ interface AzureResponse {
  * @alpha
  */
 export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
-  async function onRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
+  async function onAzureSwaRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
     const res: AzureResponse = (context.res = {
       status: 200,
       headers: {},
@@ -95,7 +95,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
     }
   }
 
-  return onRequest;
+  return onAzureSwaRequest;
 }
 
 /**

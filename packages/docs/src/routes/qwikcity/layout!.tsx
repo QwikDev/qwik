@@ -6,20 +6,12 @@ import { Header } from '../../components/header/header';
 import { OnThisPage } from '../../components/on-this-page/on-this-page';
 import { SideBar } from '../../components/sidebar/sidebar';
 import styles from '../docs/docs.css?inline';
-import BuilderContentComp from '../../components/builder-content';
-import { BUILDER_MODEL, BUILDER_PUBLIC_API_KEY } from '../../constants';
 
 export default component$(() => {
   useStyles$(styles);
 
   return (
     <div class="docs fixed-header">
-      <BuilderContentComp
-        apiKey={BUILDER_PUBLIC_API_KEY}
-        model={BUILDER_MODEL}
-        tag="div"
-        fixed={true}
-      />
       <Header />
       <SideBar />
       <main>

@@ -154,7 +154,7 @@ export const Fetch = component$(() => {
   return (
     <>
       <div>{state.responseJson?.name}</div>
-      <input name="url" onInput$={(ev) => (state.url = ev.target.value)} />
+      <input name="url" onInput$={(ev) => (state.url = (ev.target as HTMLInputElement).value))} />
     </>
   );
 });
@@ -174,7 +174,7 @@ export function Fetch() {
   return (
     <>
       <div>{responseJson?.name}</div>
-      <input name="url" onInput={(ev) => setUrl(ev.target.value)} />
+      <input name="url" onInput={(ev) => setUrl((ev.target as HTMLInputElement).value))} />
     </>
   );
 }
@@ -245,7 +245,7 @@ export const DebouncedInput = component$(() => {
 
   return (
     <>
-      <input value={state.value} onInput$={(e) => (state.value = e.target.value)} />
+      <input value={state.value} onInput$={(ev) => (state.value = (ev.target as HTMLInputElement).value))} />
       <span>{state.debouncedValue}</span>
     </>
   );
@@ -269,7 +269,7 @@ export const DebouncedInput = () => {
 
   return (
     <>
-      <input value={value} onChange={(e) => setValue(e.target.value)} />
+      <input value={value} onChange={(ev) => setValue((ev.target as HTMLInputElement).value))} />
       <span>{debouncedValue}</span>
     </>
   );

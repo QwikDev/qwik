@@ -1,4 +1,4 @@
-import { component$, useStyles$, useWatch$, useStore } from '@builder.io/qwik';
+import { component$, useStyles$, useTask$, useStore } from '@builder.io/qwik';
 import type { RequestHandler, RouteParams, StaticGenerateHandler } from '@builder.io/qwik-city';
 import { Repl } from '../../../repl/repl';
 import styles from './examples.css?inline';
@@ -30,7 +30,7 @@ export default component$(() => {
     return initStore;
   });
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const appId = track(() => store.appId);
     const app = getExampleApp(appId);
     store.files = app?.inputs || [];
@@ -136,11 +136,13 @@ interface ExamplesStore extends ReplAppInput {
 
 type ActivePanel = 'Examples' | 'Input' | 'Output' | 'Console';
 
-export const onGet: RequestHandler = ({ response }) => {
-  response.headers.set(
-    'Cache-Control',
-    'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
-  );
+export const onGet: RequestHandler = ({ cacheControl }) => {
+  cacheControl({
+    public: true,
+    maxAge: 3600,
+    sMaxAge: 3600,
+    staleWhileRevalidate: 86400,
+  });
 };
 
 export const onStaticGenerate: StaticGenerateHandler = () => {

@@ -19,7 +19,7 @@ import {
   isResourceTask,
   ResourceReturnInternal,
   WatchFlagsIsDirty,
-} from '../use/use-watch';
+} from '../use/use-task';
 import {
   qError,
   QError_containerAlreadyPaused,

@@ -6,7 +6,7 @@ export default extendConfig(baseConfig, () => {
   return {
     build: {
       ssr: true,
-      outDir: 'server',
+      outDir: 'azure-functions/render',
       rollupOptions: {
         input: ['src/entry.azure-swa.tsx', '@qwik-city-plan'],
         output: {
@@ -18,7 +18,6 @@ export default extendConfig(baseConfig, () => {
     ssr: {
       target: 'webworker',
       noExternal: true,
-      outDir: 'dist/server',
     },
     plugins: [
       azureSwaAdaptor({

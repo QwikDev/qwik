@@ -12,7 +12,7 @@ import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Ref, useRef } from '../../use/use-ref';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
-import { useClientEffect$, useTask$ } from '../../use/use-watch';
+import { useClientEffect$, useTask$ } from '../../use/use-task';
 import { delay } from '../../util/promises';
 import { SSRComment } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
@@ -252,6 +252,8 @@ renderSSRSuite('render styles', async () => {
       style={{
         'padding-top': '10px',
         paddingBottom: '10px',
+        top: 0,
+        '--stuff-nu': -1,
         '--stuff-hey': 'hey',
         '--stuffCase': 'foo',
       }}
@@ -261,6 +263,8 @@ renderSSRSuite('render styles', async () => {
       <body style="
           padding-top: 10px;
           padding-bottom: 10px;
+          top: 0;
+          --stuff-nu: -1;
           --stuff-hey: hey;
           --stuffCase: foo;
         "
@@ -1258,6 +1262,37 @@ renderSSRSuite('null component', async () => {
     `<html q:container="paused" q:version="dev" q:render="ssr-dev"><!--qv q:id=0 q:key=sX:--><!--/qv--></html>`
   );
 });
+
+renderSSRSuite('cleanse attribute name', async () => {
+  const o = {
+    '"><script>alert("ಠ~ಠ")</script>': 'xss',
+  };
+  await testSSR(
+    <body {...o}></body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body></body></html>'
+  );
+});
+
+renderSSRSuite('cleanse class attribute', async () => {
+  const o = {
+    class: '"><script>alert("ಠ~ಠ")</script>',
+  };
+  await testSSR(
+    <body {...o}></body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body class="&quot;><script>alert(&quot;ಠ~ಠ&quot;)</script>"></body></html>'
+  );
+});
+
+renderSSRSuite('class emoji valid', async () => {
+  const o = {
+    class: 'package📦',
+  };
+  await testSSR(
+    <body {...o}></body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body class="package📦"></body></html>'
+  );
+});
+
 // TODO
 // Merge props on host
 // - host events

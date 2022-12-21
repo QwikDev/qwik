@@ -15,7 +15,6 @@ import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
 import { RequestEvent } from '../../middleware/request-handler';
 import { RequestHandler } from '../../middleware/request-handler';
-import { ResourceReturn } from '@builder.io/qwik';
 import { Signal } from '@builder.io/qwik';
 import { ValueOrPromise } from '@builder.io/qwik';
 

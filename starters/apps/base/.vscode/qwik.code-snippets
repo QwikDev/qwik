@@ -70,9 +70,9 @@
 			""
 		]
 	},
-	"useWatch": {
+	"useTask": {
 		"scope": "javascriptreact,typescriptreact",
-		"prefix": "q:useWatch",
+		"prefix": "q:useTask",
 		"description": "useTask$() function hook",
 		"body": [
 			"useTask$(({ track }) => {",

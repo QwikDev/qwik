@@ -78,8 +78,8 @@ export const EventExample = component$(() => {
     <button
       window:onScroll$={(e) => (store.scroll = window.scrollY)}
       document:onMouseMove$={(e) => {
-        store.mouse.x = e.x;
-        store.mouse.y = e.y;
+        const { x, y } = e;
+        store.mouse = { x, y };
       }}
       onClick$={() => store.clickCount++}
     >

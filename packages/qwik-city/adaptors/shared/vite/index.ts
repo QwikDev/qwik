@@ -118,7 +118,7 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
 
             const staticGenerate = await import('../../../static');
             let generateOpts: StaticGenerateOptions = {
-              ...opts,
+              maxWorkers: opts.maxWorkers,
               basePathname,
               outDir: clientOutDir,
               origin,
@@ -198,6 +198,7 @@ interface ViteAdaptorPluginOptions {
   staticPaths?: string[];
   staticGenerate: true | Omit<StaticGenerateRenderOptions, 'outDir'> | undefined;
   cleanStaticGenerated?: boolean;
+  maxWorkers?: number;
   config?: (config: UserConfig) => UserConfig;
   generate?: (generateOpts: {
     clientOutDir: string;

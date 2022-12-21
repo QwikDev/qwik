@@ -161,21 +161,29 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
     const requestHeaders: Record<string, string> = {};
     requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
 
-    const stream = requestEv.getWriter();
     const responseHeaders = requestEv.headers;
     if (!responseHeaders.has('Content-Type')) {
       responseHeaders.set('Content-Type', 'text/html; charset=utf-8');
     }
 
-    const result = await render({
-      stream,
-      envData: getQwikCityEnvData(requestEv),
-      ...opts,
-    });
-    if ((typeof result as any as RenderToStringResult).html === 'string') {
-      // render result used renderToString(), so none of it was streamed
-      // write the already completed html to the stream
-      stream.write((result as any as RenderToStringResult).html);
+    const { readable, writable } = new TextEncoderStream();
+    const pipe = readable.pipeTo(requestEv.getStream());
+    const stream = writable.getWriter();
+    try {
+      const result = await render({
+        stream: stream,
+        envData: getQwikCityEnvData(requestEv),
+        ...opts,
+      });
+      if ((typeof result as any as RenderToStringResult).html === 'string') {
+        // render result used renderToString(), so none of it was streamed
+        // write the already completed html to the stream
+        await stream.write((result as any as RenderToStringResult).html);
+      }
+    } finally {
+      await stream.ready;
+      await stream.close();
+      await pipe;
     }
   };
 }
@@ -199,7 +207,7 @@ export async function renderQData(requestEv: RequestEvent) {
     const isRedirect = status >= 301 && status <= 308 && location;
     if (isRedirect) {
       requestEv.headers.set('Location', makeQDataPath(location));
-      requestEv.getWriter().close();
+      requestEv.getStream().close();
 
       return;
     }
@@ -214,16 +222,11 @@ export async function renderQData(requestEv: RequestEvent) {
       status: status !== 200 ? status : 200,
       href: getPathname(requestEv.url, true), // todo
     };
-    const stream = requestEv.getWriter();
+    const stream = requestEv.getStream().getWriter();
 
     // write just the page json data to the response body
-    stream.write(serializeData(qData));
-
-    if (typeof stream.clientData === 'function') {
-      // a data fn was provided by the request context
-      // useful for writing q-data.json during SSG
-      stream.clientData(qData);
-    }
+    stream.write(encoder.encode(serializeData(qData)));
+    requestEv.sharedMap.set('qData', qData);
 
     stream.close();
   }
@@ -267,3 +270,5 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
   }
   return url.pathname;
 }
+
+export const encoder = /*@__PURE__*/ new TextEncoder();

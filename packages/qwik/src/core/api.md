@@ -718,7 +718,7 @@ export interface ResourceProps<T> {
     // Warning: (ae-incompatible-release-tags) The symbol "value" is marked as @public, but its signature references "Signal" which is marked as @alpha
     //
     // (undocumented)
-    readonly value: ResourceReturn<T> | Signal<T> | Promise<T> | T;
+    readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
 }
 
 // @public (undocumented)
@@ -911,6 +911,9 @@ export function useEnvData<T, B = T>(key: string, defaultValue: B): T | B;
 //
 // @alpha (undocumented)
 export const useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
+
+// @alpha (undocumented)
+export const useId: () => string;
 
 // Warning: (ae-internal-missing-underscore) The name "useLexicalScope" should be prefixed with an underscore because the declaration is marked as @internal
 //

@@ -35,7 +35,6 @@ Sometimes a component will be first mounted/rendered in the browser, for example
 
 > **Notice** that the lifecycle is exactly the same, but this time all the hooks run in the browser, and non in the server.
 
-
 ## `useTask$()`
 
 - **When:** BEFORE component's first render, and when tracked state changes
@@ -66,7 +65,6 @@ useTask$(({track}) => {
 > If `useTask$()` does not track any state, it will run **exactly once**, either in the server **or** in the browser (**not both**), depending where the component is initially rendered. Effectively behaving like an "on mount" hook.
 
 `useTask$()` will block the rendering of the component until after its async callback resolves, in another words, tasks execute sequentially even if they are asynchronous. (Only one task executes at a time / Tasks block rendering).
-
 
 ### Example
 
@@ -167,7 +165,6 @@ This is a unique feature of Qwik, any other frameworks would execute this and ot
 - `"load"`: when the documents finish loading (the document's "load" event)
 - `"idle"`: after load the first moment the site becomes idle. It uses [`requestIdleCallback()`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback) under the hood.
 
-
 ### Example
 
 ```tsx
@@ -190,7 +187,6 @@ export const Timer = component$(() => {
 
 > **NOTE:** Don't abuse `useClientEffect$()` when the same logic can be achieved using `useTask$()` or other means. Ask to yourself: Does this code really need to run at the beginning in the browser? If the answer is no, `useClientEffect$()` is probably not the right answer.
 
-
 ### When to use `useClientEffect$()`
 
 Use this hook when you need to run JS right at loading time of the page, even if the user never interacts with the page.
@@ -203,11 +199,9 @@ For example:
 - Use DOM APIs like `localStorage`
 - Run some code without user interaction, like a setInterval()
 
-
 #### How does it compare with React's `useEffect()`?
 
 Both APIs share a lot of semantics, but while both run AFTER rendering, `useClientEffect$()` can run also independently from rendering.
-
 
 ## Use Method Rules
 

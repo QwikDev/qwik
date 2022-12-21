@@ -71,6 +71,7 @@ export { useLexicalScope } from './use/use-lexical-scope.public';
 export { useStore } from './use/use-store.public';
 export { useRef } from './use/use-ref';
 export { untrack } from './use/use-core';
+export { useId } from './use/use-id';
 export { useContext, useContextProvider, createContext } from './use/use-context';
 export { useEnvData, useUserContext } from './use/use-env-data';
 export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
@@ -96,13 +97,13 @@ export type {
   TaskCtx,
   UseTaskOptions,
   ResourceFn,
-} from './use/use-watch';
+} from './use/use-task';
 export type { MountFn } from './use/use-mount';
-export { useWatch$, useWatchQrl } from './use/use-watch';
+export { useWatch$, useWatchQrl } from './use/use-task';
 export type { ResourceProps, ResourceOptions } from './use/use-resource';
 export { useResource$, useResourceQrl, Resource } from './use/use-resource';
-export { useTask$, useTaskQrl } from './use/use-watch';
-export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
+export { useTask$, useTaskQrl } from './use/use-task';
+export { useClientEffect$, useClientEffectQrl } from './use/use-task';
 export { useMount$, useMountQrl } from './use/use-mount';
 export { useServerMount$, useServerMountQrl } from './use/use-mount';
 export { useClientMount$, useClientMountQrl } from './use/use-mount';

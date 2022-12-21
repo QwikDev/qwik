@@ -9,7 +9,7 @@ import { isPromise } from '../util/promises';
 import { seal } from '../util/qdev';
 import { isArray } from '../util/types';
 import { setLocale } from './use-locale';
-import type { SubscriberEffect, SubscriberHost } from './use-watch';
+import type { SubscriberEffect, SubscriberHost } from './use-task';
 
 declare const document: QwikDocument;
 

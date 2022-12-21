@@ -1,8 +1,4 @@
-import type {
-  ResponseStreamWriter,
-  ServerRenderOptions,
-  ServerRequestEvent,
-} from '../request-handler/types';
+import type { ServerRenderOptions, ServerRequestEvent } from '../request-handler/types';
 import { requestHandler } from '../request-handler';
 import { mergeHeadersCookies } from '../request-handler/cookie';
 import { getNotFound } from '@qwik-city-not-found-paths';
@@ -18,7 +14,7 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
     try {
       const url = new URL(request.url);
 
-      if (isStaticPath(url.pathname)) {
+      if (isStaticPath(url)) {
         // known static path, let vercel handle it
         return new Response(null, {
           headers: {
@@ -34,29 +30,14 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
         request,
         getWritableStream: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream();
-          const writer = writable.getWriter();
 
           const response = new Response(readable, {
             status,
             headers: mergeHeadersCookies(headers, cookies),
           });
 
-          const stream: ResponseStreamWriter = {
-            write: (chunk) => {
-              if (typeof chunk === 'string') {
-                const encoder = new TextEncoder();
-                writer.write(encoder.encode(chunk));
-              } else {
-                writer.write(chunk);
-              }
-            },
-            close: () => {
-              writer.close();
-            },
-          };
-
           resolve(response);
-          return stream;
+          return writable;
         },
         platform: process.env,
       };

@@ -79,6 +79,7 @@ async function runNext(
       }
       console.error(e);
     } else if (!(e instanceof AbortMessage)) {
+      requestEv.status(HttpStatus.InternalServerError);
       throw e;
     }
   }

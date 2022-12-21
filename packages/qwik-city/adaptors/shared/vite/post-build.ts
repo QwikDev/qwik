@@ -49,7 +49,9 @@ export async function postBuild(
     await Promise.all(itemNames.map((i) => loadItem(fsDir, i, pathname)));
   };
 
-  await loadDir(clientOutDir, basePathname);
+  if (fs.existsSync(clientOutDir)) {
+    await loadDir(clientOutDir, basePathname);
+  }
 
   const notFoundPathsCode = createNotFoundPathsModule(basePathname, notFounds, format);
   const staticPathsCode = createStaticPathsModule(basePathname, staticPaths, format);

@@ -17,7 +17,12 @@ export default component$(() => {
 });
 
 export const getBuilder = loader$(({ pathname }) => {
-  return getBuilderContent(QWIK_PUBLIC_API_KEY, QWIK_MODEL, pathname);
+  return getBuilderContent({
+    apiKey: QWIK_PUBLIC_API_KEY,
+    model: QWIK_MODEL,
+    urlPath: pathname,
+    cacheBust: true,
+  });
 });
 
 export const head: DocumentHead = {

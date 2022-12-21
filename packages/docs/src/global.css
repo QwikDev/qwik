@@ -55,6 +55,7 @@ pre[class*='language-'] {
 :root {
   color-scheme: light;
   --header-height: 118px;
+  --builder-bar-height: 56px;
   --panel-toggle-height: 0px;
   --scroll-margin-top: 120px;
 

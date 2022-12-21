@@ -82,6 +82,7 @@
   padding-top: 30px;
   top: 8rem;
   border-right: 2px solid #18b6f6;
+  margin-top: var(--builder-bar-height);
 }
 
 .menu h5 {

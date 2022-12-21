@@ -1,8 +1,8 @@
 .examples {
   position: fixed;
-  top: var(--header-height);
+  top: calc(var(--header-height) + var(--builder-bar-height));
   width: 100%;
-  height: calc(100% - var(--header-height));
+  height: calc(100% - var(--header-height)-var(--builder-bar-height));
 }
 
 .examples-menu-container {
@@ -10,7 +10,7 @@
   grid-template-rows: 100%;
   grid-template-columns: 100vw 100vw;
   grid-template-areas: 'example-content-panel example-repl-panel';
-  height: calc(100% - var(--header-height));
+  height: calc(100% - var(--header-height) - var(--builder-bar-height));
   transform: translate3d(0, 0, 0);
   transition: transform 500ms;
   height: 100%;

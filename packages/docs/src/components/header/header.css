@@ -62,10 +62,6 @@ header .close-icon {
 }
 
 @media (max-width: 767px) {
-  .header-container {
-    padding-top: 5px;
-  }
-
   .header-open header ul {
     position: absolute;
     z-index: 10;

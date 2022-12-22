@@ -71,7 +71,7 @@ async function runNext(
     await requestEv.next();
   } catch (e) {
     if (e instanceof RedirectMessage) {
-      requestEv.getStream().close();
+      requestEv.getWritableStream().close();
     } else if (e instanceof ErrorResponse) {
       if (!requestEv.headersSent) {
         const html = getErrorHtml(e.status, e);
@@ -79,7 +79,9 @@ async function runNext(
       }
       console.error(e);
     } else if (!(e instanceof AbortMessage)) {
-      requestEv.status(HttpStatus.InternalServerError);
+      if (!requestEv.headersSent) {
+        requestEv.status(HttpStatus.InternalServerError);
+      }
       throw e;
     }
   }

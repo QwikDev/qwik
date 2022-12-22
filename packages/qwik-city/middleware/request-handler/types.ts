@@ -236,10 +236,10 @@ export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLA
   readonly cacheControl: (cacheControl: CacheControl) => void;
 
   /**
-   * Low-level access to write to the HTTP response stream. Once `getWriter()` is called,
+   * Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called,
    * the status and headers can no longer be modified and will be sent over the network.
    */
-  readonly getStream: () => WritableStream<Uint8Array>;
+  readonly getWritableStream: () => WritableStream<Uint8Array>;
 
   readonly next: () => Promise<void>;
 }

@@ -35,12 +35,10 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
         request,
         getWritableStream: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream();
-
           const response = new Response(readable, {
             status,
             headers: mergeHeadersCookies(headers, cookies),
           });
-
           resolve(response);
           return writable;
         },

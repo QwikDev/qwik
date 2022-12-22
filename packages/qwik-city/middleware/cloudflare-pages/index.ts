@@ -49,13 +49,6 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
             status,
             headers: mergeHeadersCookies(headers, cookies),
           });
-
-          if (response.ok && cache && response.headers.has('Cache-Control')) {
-            // Store the fetched response as cacheKey
-            // Use waitUntil so you can return the response without blocking on
-            // writing to cache
-            waitUntil(cache.put(cacheKey, response.clone()));
-          }
           resolve(response);
           return writable;
         },
@@ -67,6 +60,12 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       if (handledResponse) {
         const response = await handledResponse.response;
         if (response) {
+          if (response.ok && cache && response.headers.has('Cache-Control')) {
+            // Store the fetched response as cacheKey
+            // Use waitUntil so you can return the response without blocking on
+            // writing to cache
+            waitUntil(cache.put(cacheKey, response.clone()));
+          }
           return response;
         }
       }

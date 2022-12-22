@@ -102,7 +102,7 @@ export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLA
     readonly cacheControl: (cacheControl: CacheControl) => void;
     // (undocumented)
     readonly exited: boolean;
-    readonly getStream: () => WritableStream<Uint8Array>;
+    readonly getWritableStream: () => WritableStream<Uint8Array>;
     // (undocumented)
     readonly headersSent: boolean;
     // (undocumented)

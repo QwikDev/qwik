@@ -1,16 +1,12 @@
 import type { RouteData } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
-import { loadRoute } from '../../runtime/src/routing';
+import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import type { MenuData } from '../../runtime/src/types';
 import { getErrorHtml } from './error-handler';
-import {
-  isLastModulePageRoute,
-  renderQData,
-  renderQwikMiddleware,
-  resolveRequestHandlers,
-} from './resolve-request-handlers';
-import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import { getRouteMatchPathname, QwikCityRun, runQwikCity } from './user-response';
+import { isLastModulePageRoute, resolveRequestHandlers } from './resolve-request-handlers';
+import { loadRoute } from '../../runtime/src/routing';
+import { renderQData, renderQwikMiddleware } from './render-middleware';
 
 /**
  * @alpha
@@ -77,7 +73,7 @@ function handleErrors<T>(run: QwikCityRun<T>): QwikCityRun<T> {
       .then(
         () => {
           if (requestEv.headersSent) {
-            requestEv.getStream();
+            requestEv.getWritableStream();
             // TODO
             // if (!stream.locked) {
             //   stream.getWriter().closed
@@ -90,9 +86,9 @@ function handleErrors<T>(run: QwikCityRun<T>): QwikCityRun<T> {
           const status = requestEv.status();
           const html = getErrorHtml(status, e);
           if (requestEv.headersSent) {
-            const stream = requestEv.getStream();
-            if (!stream.locked) {
-              return stream.close();
+            const writableStream = requestEv.getWritableStream();
+            if (!writableStream.locked) {
+              return writableStream.close();
             }
           } else {
             requestEv.html(status, html);

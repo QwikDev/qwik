@@ -39,7 +39,7 @@ export function createRequestEvent(
   const url = new URL(request.url);
 
   let routeModuleIndex = -1;
-  let streamInternal: WritableStream<Uint8Array> | null = null;
+  let writableStream: WritableStream<Uint8Array> | null = null;
 
   const next = async () => {
     routeModuleIndex++;
@@ -55,7 +55,7 @@ export function createRequestEvent(
   };
 
   const check = () => {
-    if (streamInternal !== null) {
+    if (writableStream !== null) {
       throw new Error('Response already sent');
     }
   };
@@ -64,9 +64,10 @@ export function createRequestEvent(
     check();
 
     requestEv[RequestEvStatus] = statusCode;
-    const stream = requestEv.getStream().getWriter();
-    stream.write(typeof body === 'string' ? encoder.encode(body) : body);
-    stream.close();
+    const writableStream = requestEv.getWritableStream();
+    const writer = writableStream.getWriter();
+    writer.write(typeof body === 'string' ? encoder.encode(body) : body);
+    writer.close();
     return new AbortMessage();
   };
 
@@ -89,7 +90,7 @@ export function createRequestEvent(
     url,
     sharedMap: new Map(),
     get headersSent() {
-      return streamInternal !== null;
+      return writableStream !== null;
     },
     get exited() {
       return routeModuleIndex >= ABORT_INDEX;
@@ -179,9 +180,9 @@ export function createRequestEvent(
 
     send,
 
-    getStream: () => {
-      if (streamInternal === null) {
-        streamInternal = serverRequestEv.getWritableStream(
+    getWritableStream: () => {
+      if (writableStream === null) {
+        writableStream = serverRequestEv.getWritableStream(
           requestEv[RequestEvStatus],
           headers,
           cookie,
@@ -189,7 +190,7 @@ export function createRequestEvent(
           requestEv
         );
       }
-      return streamInternal;
+      return writableStream;
     },
   };
 

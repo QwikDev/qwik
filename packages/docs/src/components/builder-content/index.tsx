@@ -68,6 +68,7 @@ export async function getBuilderContent({
   const qwikUrl = new URL('https://cdn.builder.io/api/v1/qwik/' + model);
   qwikUrl.searchParams.set('apiKey', apiKey);
   qwikUrl.searchParams.set('userAttributes.urlPath', urlPath);
+  qwikUrl.searchParams.set('userAttributes.site', 'qwik.builder.io');
   if (cacheBust) {
     qwikUrl.searchParams.set('cachebust', 'true');
   }

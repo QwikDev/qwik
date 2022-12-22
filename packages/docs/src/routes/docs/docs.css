@@ -4,7 +4,7 @@
 }
 
 .docs .docs-container {
-  @apply pt-[20px];
+  @apply pt-[80px];
   @apply px-8;
 
   /* medium */

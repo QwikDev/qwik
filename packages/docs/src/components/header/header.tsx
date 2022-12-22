@@ -70,15 +70,7 @@ export const Header = component$(() => {
           </li>
           <li>
             <a
-              href="/deployments/overview/"
-              class={{ active: pathname.startsWith('/deployments') }}
-            >
-              <span>Deployments</span>
-            </a>
-          </li>
-          <li>
-            <a
-              href="/integrations/overview/"
+              href="/integrations/deployments/overview/"
               class={{ active: pathname.startsWith('/integrations') }}
             >
               <span>Integrations</span>

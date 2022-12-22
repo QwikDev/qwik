@@ -1,10 +1,19 @@
 # Integrations Guide
 
-## Integrations
+## Deployments
 
-- [Overview](overview/index.mdx)
-- [React](react/index.mdx)
-- [Partytown](partytown/index.mdx)
-- [Tailwind CSS](tailwind/index.mdx)
-- [Vitest](vitest/index.mdx)
-- [Servers](/deployments/overview/index.mdx)
+- [Overview](deployments/overview/index.mdx)
+- [Azure Static Web Apps](deployments/azure-swa/index.mdx)
+- [Netlify Edge](deployments/netlify-edge/index.mdx)
+- [Cloudflare Pages](deployments/cloudflare-pages/index.mdx)
+- [Vercel](deployments/vercel-edge/index.mdx)
+- [NodeJs](deployments/node/index.mdx)
+- [Google Cloud Run](deployments/gcp-cloud-run/index.mdx)
+
+## Integration
+
+- [Overview](integration/overview/index.mdx)
+- [React](integration/react/index.mdx)
+- [Partytown](integration/partytown/index.mdx)
+- [Tailwind CSS](integration/tailwind/index.mdx)
+- [Vitest](integration/vitest/index.mdx)

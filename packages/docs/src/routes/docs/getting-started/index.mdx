@@ -21,33 +21,44 @@ Qwik is a new kind of framework that is [resumable](../concepts/resumable/index.
 
 ## Creating an app using the CLI
 
-The first step is to create an application. Qwik comes with a CLI that allows you to create a basic working skeleton of an application. We will use the CLI to create a blank starter so that you can quickly familiarize yourself with it.
+The first step is to create an application. Qwik comes with a CLI that allows you to create a basic working skeleton of an application. We will use the CLI to create a blank starter so that you can quickly familiarize yourself with it. Qwik supports NPM, yarn and pnpm.
 
 ### Run the Qwik CLI in your shell
+Choose the package manager you prefer and run the following command:
 
 ```shell
 npm create qwik@latest
+pnpm create qwik@latest
+yarn create qwik
 ```
 
-The CLI will guide you through an interactive menu to set the project-name and select one of the starters:
+The CLI will guide you through an interactive menu to set the project-name, select one of the starters and asks if you want to install the dependencies.
 
 After your new app is created, you will see an output like the following in your terminal:
 
 ```shell
-💫 Let's create a Qwik app 💫
+🐰 Let's create a Qwik app 🐇   v0.16.1
 
-✔ Project name … qwik-app
-✔ Select a starter › Basic
+✔ Where would you like to create your new project? … qwik-app
 
-🦄  Success!  Project created in portfolio directory
+✔ Select a starter › Basic App (QwikCity)
+
+✔ Would you like to install pnpm dependencies? … yes
+
+✔ Installing pnpm dependencies...
+
+
+🦄  Success!  Project created in qwik-app directory
 
 🐰 Next steps:
    cd qwik-app
-   npm install
-   npm start
+   pnpm start
 
-💬 Integration? Add Netlify, Cloudflare, Tailwind...:
-   npm run qwik add
+🔌 Integrations? Add Netlify, Cloudflare, Tailwind...
+   pnpm qwik add
+
+📚 Relevant docs:
+   https://qwik.builder.io/docs/getting-started/
 
 💬 Questions? Start the conversation at:
    https://qwik.builder.io/chat
@@ -57,13 +68,13 @@ After your new app is created, you will see an output like the following in your
    https://qwik.builder.io/media/
 ```
 
-At this point, you will have `qwik-app` directory, that contains the starter app.
+At this point, you will have a `qwik-app` directory, that contains the starter app.
 
 ## Running in development
 
 Once the application is download.
 
-1. Change into the directory created by the `npm create qwik`.
+1. Change into the directory created.
 
 ```shell
 cd qwik-app
@@ -73,20 +84,23 @@ cd qwik-app
 
 ```shell
 npm start
+pnpm start
+yarn start
 ```
 
-4. You should see a server running with your To-do application
+4. You should see a server running with your starter application
 
 ```shell
 
-  VITE v3.1.1  ready in 140 ms
+  VITE v4.0.1  ready in 515 ms
 
-  ➜  Local:   http://localhost:5174/
+  ➜  Local:   http://127.0.0.1:5173/
   ➜  Network: use --host to expose
+  ➜  press h to show help
 
 ```
 
-5. Visit http://localhost:5174/ to explore the app.
+5. Visit http://localhost:5173/ to explore the app.
 
 ## Running in production
 
@@ -112,4 +126,4 @@ Qwik is designed to be integrated with other tools. Such as `vitest`, `tailwind`
 npm run qwik add
 ```
 
-and dont forget to check the [integrations](/qwikcity/integrations/overview/index.mdx) section for more details.
+and don't forget to check the [integrations](/integrations/integration/overview/index.mdx) section for more details.

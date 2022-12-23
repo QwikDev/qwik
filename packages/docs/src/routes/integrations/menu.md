@@ -7,6 +7,7 @@
 - [Partytown](integration/partytown/index.mdx)
 - [Tailwind CSS](integration/tailwind/index.mdx)
 - [Vitest](integration/vitest/index.mdx)
+
 ## Deployments
 
 - [Overview](deployments/overview/index.mdx)

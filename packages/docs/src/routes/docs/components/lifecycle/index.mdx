@@ -47,7 +47,7 @@ Additionally, this task can be reactive and re-execute when some **tracked** [si
 
 ```tsx
 useTask$(({track}) => {
-  track(() => store.count));
+  track(() => store.count);
   // will run when the component mounts and every time "store.count" changes
 })
 ```

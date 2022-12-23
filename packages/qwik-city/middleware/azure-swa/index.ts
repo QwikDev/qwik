@@ -2,9 +2,12 @@ import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import type { RenderOptions } from '@builder.io/qwik';
 import type { Render } from '@builder.io/qwik/server';
 import qwikCityPlan from '@qwik-city-plan';
-import { requestHandler } from '../request-handler';
-import { createHeaders } from '../request-handler/headers';
-import type { RequestContext, ServerRenderOptions, ServerRequestEvent } from '../request-handler';
+import { createHeaders, requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
+import type {
+  RequestContext,
+  ServerRenderOptions,
+  ServerRequestEvent,
+} from '@builder.io/qwik-city/middleware/request-handler';
 
 // @builder.io/qwik-city/middleware/azure-swa
 
@@ -36,7 +39,7 @@ interface AzureResponse {
  * @alpha
  */
 export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
-  async function onRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
+  async function onAzureSwaRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
     const res: AzureResponse = (context.res = {
       status: 200,
       headers: {},
@@ -92,7 +95,7 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
     }
   }
 
-  return onRequest;
+  return onAzureSwaRequest;
 }
 
 /**

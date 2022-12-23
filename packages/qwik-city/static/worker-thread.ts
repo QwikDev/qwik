@@ -4,9 +4,11 @@ import type {
   StaticWorkerRenderResult,
   System,
 } from './types';
-import type { ServerRequestEvent, RequestContext } from '../middleware/request-handler';
-import { createHeaders } from '../middleware/request-handler/headers';
-import { requestHandler } from '../middleware/request-handler';
+import type {
+  ServerRequestEvent,
+  RequestContext,
+} from '@builder.io/qwik-city/middleware/request-handler';
+import { createHeaders, requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { pathToFileURL } from 'node:url';
 import { WritableStream } from 'node:stream/web';
 

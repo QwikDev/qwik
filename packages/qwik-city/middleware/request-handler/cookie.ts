@@ -1,8 +1,4 @@
-import type {
-  Cookie as CookieInterface,
-  CookieOptions,
-  CookieValue,
-} from '../../middleware/request-handler/types';
+import type { Cookie as CookieInterface, CookieOptions, CookieValue } from './types';
 
 const SAMESITE = {
   lax: 'Lax',
@@ -62,9 +58,9 @@ const parseCookieString = (cookieString: string | undefined | null) => {
     for (const cookieSegment of cookieSegments) {
       const cookieSplit = cookieSegment.split('=');
       if (cookieSplit.length > 1) {
-        const cookieName = decodeURIComponent(cookieSplit[0].trim());
-        const cookieValue = decodeURIComponent(cookieSplit[1].trim());
-        cookie[cookieName] = cookieValue;
+        cookie[decodeURIComponent(cookieSplit[0].trim())] = decodeURIComponent(
+          cookieSplit[1].trim()
+        );
       }
     }
   }
@@ -130,6 +126,9 @@ export class Cookie implements CookieInterface {
   }
 }
 
+/**
+ * @alpha
+ */
 export const mergeHeadersCookies = (headers: Headers, cookies: CookieInterface) => {
   const cookieHeaders = cookies.headers();
   if (cookieHeaders.length > 0) {

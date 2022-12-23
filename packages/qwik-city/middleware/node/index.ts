@@ -7,8 +7,8 @@ import { createReadStream } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { requestHandler } from '../request-handler';
-import type { ServerRenderOptions } from '../request-handler/types';
+import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
+import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import { fromNodeHttp, getUrl } from './http';
 import { patchGlobalFetch } from './node-fetch';
 import {

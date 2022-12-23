@@ -1,18 +1,28 @@
-import type { PageModule, RouteModule } from '../../runtime/src/types';
+import type {
+  ClientPageData,
+  PageModule,
+  RequestEvent,
+  RouteModule,
+} from '../../runtime/src/types';
 import type {
   ServerActionInternal,
   ServerLoaderInternal,
 } from '../../runtime/src/server-functions';
+import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
+import type { RenderOptions } from '@builder.io/qwik';
 import type { RequestHandler } from './types';
 import {
+  getRequestAction,
   getRequestLoaders,
   getRequestMode,
   RequestEventInternal,
   setRequestAction,
 } from './request-event';
+import { getQwikCityEnvData } from './response-page';
 import { QACTION_KEY } from '../../runtime/src/constants';
-import { QDATA_JSON } from './user-response';
+import { isQDataJson, QDATA_JSON } from './user-response';
 import { validateSerializable } from '../../utils/format';
+import { RedirectMessage } from './redirect-handler';
 
 export const resolveRequestHandlers = (routeModules: RouteModule[], method: string) => {
   const requestHandlers: RequestHandler[] = [];
@@ -137,6 +147,121 @@ export function actionsMiddleware(
 export function isLastModulePageRoute(routeModules: RouteModule[]) {
   const lastRouteModule = routeModules[routeModules.length - 1];
   return lastRouteModule && typeof (lastRouteModule as PageModule).default === 'function';
+}
+
+export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
+  return async (requestEv: RequestEvent) => {
+    if (requestEv.headersSent) {
+      return;
+    }
+    const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
+    if (isPageDataReq) {
+      return;
+    }
+    const requestHeaders: Record<string, string> = {};
+    requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
+
+    const responseHeaders = requestEv.headers;
+    if (!responseHeaders.has('Content-Type')) {
+      responseHeaders.set('Content-Type', 'text/html; charset=utf-8');
+    }
+
+    const { readable, writable } = new TextEncoderStream();
+    const writableStream = requestEv.getWritableStream();
+    const pipe = readable.pipeTo(writableStream);
+    const stream = writable.getWriter();
+    try {
+      const result = await render({
+        stream: stream,
+        envData: getQwikCityEnvData(requestEv),
+        ...opts,
+      });
+      if ((typeof result as any as RenderToStringResult).html === 'string') {
+        // render result used renderToString(), so none of it was streamed
+        // write the already completed html to the stream
+        await stream.write((result as any as RenderToStringResult).html);
+      }
+    } finally {
+      await stream.ready;
+      await stream.close();
+      await pipe;
+    }
+  };
+}
+
+export async function renderQData(requestEv: RequestEvent) {
+  const isPageDataReq = isQDataJson(requestEv.pathname);
+  if (isPageDataReq) {
+    try {
+      await requestEv.next();
+    } catch (err) {
+      if (!(err instanceof RedirectMessage)) {
+        throw err;
+      }
+    }
+    if (requestEv.headersSent || requestEv.exited) {
+      return;
+    }
+
+    const status = requestEv.status();
+    const location = requestEv.headers.get('Location');
+    const isRedirect = status >= 301 && status <= 308 && location;
+    if (isRedirect) {
+      requestEv.headers.set('Location', makeQDataPath(location));
+      requestEv.getWritableStream().close();
+      return;
+    }
+
+    const requestHeaders: Record<string, string> = {};
+    requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
+    requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
+
+    const qData: ClientPageData = {
+      loaders: getRequestLoaders(requestEv),
+      action: getRequestAction(requestEv),
+      status: status !== 200 ? status : 200,
+      href: getPathname(requestEv.url, true), // todo
+    };
+    const writer = requestEv.getWritableStream().getWriter();
+
+    // write just the page json data to the response body
+    writer.write(encoder.encode(serializeData(qData)));
+    requestEv.sharedMap.set('qData', qData);
+
+    writer.close();
+  }
+}
+
+function serializeData(data: any) {
+  return JSON.stringify(data, (_, value) => {
+    if (value instanceof FormData) {
+      return {
+        __brand: 'formdata',
+        value: formDataToArray(value),
+      };
+    }
+    return value;
+  });
+}
+
+function formDataToArray(formData: FormData) {
+  const array: [string, string][] = [];
+  formData.forEach((value, key) => {
+    if (typeof value === 'string') {
+      array.push([key, value]);
+    } else {
+      array.push([key, value.name]);
+    }
+  });
+  return array;
+}
+
+function makeQDataPath(href: string) {
+  const append = QDATA_JSON;
+  const url = new URL(href, 'http://localhost');
+
+  const pathname = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname;
+  return pathname + (append.startsWith('/') ? '' : '/') + append + url.search;
 }
 
 export function getPathname(url: URL, trailingSlash: boolean | undefined) {

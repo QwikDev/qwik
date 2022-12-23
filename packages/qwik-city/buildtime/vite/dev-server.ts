@@ -22,9 +22,9 @@ import {
 } from '../../../qwik/src/optimizer/src/plugins/vite-utils';
 import {
   isLastModulePageRoute,
-  renderQData,
   resolveRequestHandlers,
-} from 'packages/qwik-city/middleware/request-handler/resolve-request-handlers';
+} from '../../middleware/request-handler/resolve-request-handlers';
+import { renderQData } from '../../middleware/request-handler/render-middleware';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {

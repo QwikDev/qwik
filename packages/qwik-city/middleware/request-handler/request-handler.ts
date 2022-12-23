@@ -1,38 +1,12 @@
 import type { RouteData } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
-import { loadRoute } from '../../runtime/src/routing';
+import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import type { MenuData } from '../../runtime/src/types';
 import { getErrorHtml } from './error-handler';
-import {
-  isLastModulePageRoute,
-  renderQData,
-  renderQwikMiddleware,
-  resolveRequestHandlers,
-} from './resolve-request-handlers';
-import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import { getRouteMatchPathname, QwikCityRun, runQwikCity } from './user-response';
-
-export const loadRequestHandlers = async (
-  routes: RouteData[] | undefined,
-  menus: MenuData[] | undefined,
-  cacheModules: boolean | undefined,
-  pathname: string,
-  method: string,
-  renderFn: Render
-) => {
-  const route = await loadRoute(routes, menus, cacheModules, pathname);
-  if (route) {
-    let isPageRoute = false;
-    const requestHandlers = resolveRequestHandlers(route[1], method);
-    if (isLastModulePageRoute(route[1])) {
-      requestHandlers.unshift(renderQData);
-      requestHandlers.push(renderQwikMiddleware(renderFn));
-      isPageRoute = true;
-    }
-    return [route[0], requestHandlers, isPageRoute] as const;
-  }
-  return null;
-};
+import { isLastModulePageRoute, resolveRequestHandlers } from './resolve-request-handlers';
+import { loadRoute } from '../../runtime/src/routing';
+import { renderQData, renderQwikMiddleware } from './render-middleware';
 
 /**
  * @alpha
@@ -68,6 +42,28 @@ export async function requestHandler<T = unknown>(
   return null;
 }
 
+async function loadRequestHandlers(
+  routes: RouteData[] | undefined,
+  menus: MenuData[] | undefined,
+  cacheModules: boolean | undefined,
+  pathname: string,
+  method: string,
+  renderFn: Render
+) {
+  const route = await loadRoute(routes, menus, cacheModules, pathname);
+  if (route) {
+    let isPageRoute = false;
+    const requestHandlers = resolveRequestHandlers(route[1], method);
+    if (isLastModulePageRoute(route[1])) {
+      requestHandlers.unshift(renderQData);
+      requestHandlers.push(renderQwikMiddleware(renderFn));
+      isPageRoute = true;
+    }
+    return [route[0], requestHandlers, isPageRoute] as const;
+  }
+  return null;
+}
+
 function handleErrors<T>(run: QwikCityRun<T>): QwikCityRun<T> {
   const requestEv = run.requestEv;
   return {
@@ -77,7 +73,7 @@ function handleErrors<T>(run: QwikCityRun<T>): QwikCityRun<T> {
       .then(
         () => {
           if (requestEv.headersSent) {
-            requestEv.getStream();
+            requestEv.getWritableStream();
             // TODO
             // if (!stream.locked) {
             //   stream.getWriter().closed
@@ -90,9 +86,9 @@ function handleErrors<T>(run: QwikCityRun<T>): QwikCityRun<T> {
           const status = requestEv.status();
           const html = getErrorHtml(status, e);
           if (requestEv.headersSent) {
-            const stream = requestEv.getStream();
-            if (!stream.locked) {
-              return stream.close();
+            const writableStream = requestEv.getWritableStream();
+            if (!writableStream.locked) {
+              return writableStream.close();
             }
           } else {
             requestEv.html(status, html);

@@ -42,11 +42,11 @@ export function vercelEdgeAdaptor(opts: VercelEdgeAdaptorOptions = {}): any {
         // https://vercel.com/docs/build-output-api/v3#features/edge-middleware
         const vercelOutputConfig = {
           routes: [
-            { handle: 'filesystem' },
             {
               src: basePathname + '(.*)',
               middlewarePath: '_qwik-city',
             },
+            { handle: 'filesystem' },
           ],
           version: 3,
         };

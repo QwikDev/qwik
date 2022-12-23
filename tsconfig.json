@@ -45,11 +45,14 @@
       "@builder.io/qwik-city/adaptors/static/vite": [
         "packages/qwik-city/adaptors/static/vite/index.ts"
       ],
+      "@builder.io/qwik-city/middleware/azure-swa": ["packages/qwik-city/middleware/azure-swa"],
+      "@builder.io/qwik-city/middleware/request-handler": [
+        "packages/qwik-city/middleware/request-handler"
+      ],
       "@builder.io/qwik-city/middleware/node": ["packages/qwik-city/middleware/node"],
       "@builder.io/qwik-city/middleware/netlify-edge": [
         "packages/qwik-city/middleware/netlify-edge"
       ],
-      "@builder.io/qwik-city/middleware/azure-swa": ["packages/qwik-city/middleware/azure-swa"],
       "@builder.io/qwik-city/static": ["packages/qwik-city/static/index.ts"],
       "@builder.io/qwik-city/vite": ["packages/qwik-city/buildtime/vite/index"],
       "@examples-data": ["packages/docs/src/routes/examples/apps/examples-data.ts"],

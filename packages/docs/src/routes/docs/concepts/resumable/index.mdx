@@ -82,7 +82,7 @@ The simplest way to think about serialization is through `JSON.stringify`. Howev
 Limitations of JSON which Qwik solves:
 
 - JSON produces DAG. DAG stands for Directed Acyclic Graph, which means that the object which is being serialized can't have circular references. This is a big limitation because the application state is often circular. Qwik ensures that when the graph of objects gets serialized, the circular references get properly saved and then restored.
-- JSON can't serialize some object types. For example, DOM references, Dates, etc... Qwik serialization format ensures that such objects can correctly be serialized and restored. Here is a list of types that can be serialized with Qwik:
+- JSON can't serialize some object types. For example, DOM references, Dates, etc... Qwik serialization format ensures that such objects can correctly be serialized and restored. Here is a list of types that can't be serialized with Qwik:
   - DOM references
   - Promises (See [resources](../../components/resource/))
   - Function closures (if wrapped in QRL)

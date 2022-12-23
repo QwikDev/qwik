@@ -25,7 +25,7 @@
 
 .breadcrumbs {
   @apply fixed z-10 w-[100%];
-  top: var(--header-height);
+  top: calc(var(--header-height) + var(--builder-bar-height));
   @apply border-b;
   @apply px-1;
   @apply flex;

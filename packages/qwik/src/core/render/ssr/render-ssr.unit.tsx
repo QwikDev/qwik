@@ -49,7 +49,7 @@ renderSSRSuite('render aria value', async () => {
 
 renderSSRSuite('render className', async () => {
   await testSSR(
-    <body className="stuff"></body>,
+    <body class="stuff"></body>,
     '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body class="stuff"></body></html>'
   );
 });
@@ -1384,7 +1384,7 @@ export const ScopedStyles1 = component$(() => {
 
   return (
     <div class="host">
-      <div className="div">
+      <div class="div">
         Scoped1
         <Slot></Slot>
         <p>Que tal?</p>

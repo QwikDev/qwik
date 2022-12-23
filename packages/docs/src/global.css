@@ -254,7 +254,7 @@ body {
 
   .menu-close svg {
     position: fixed;
-    top: 20px;
+    top: calc(20px + var(--builder-bar-height));
     width: 24px;
     height: 24px;
     cursor: pointer;

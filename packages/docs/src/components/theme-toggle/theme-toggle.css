@@ -1,12 +1,7 @@
-.theme-toggle-container {
-  display: flex;
-  justify-content: flex-end;
-}
-
 .theme-toggle {
-  --size: 2rem;
-  --icon-fill: hsl(210 10% 30%);
-  --icon-fill-hover: hsl(210 10% 15%);
+  --size: 22px;
+  --icon-fill: hsl(210 10% 15%);
+  --icon-fill-hover: hsl(210 10% 30%);
 
   display: block;
 
@@ -27,14 +22,8 @@
 }
 
 [data-theme='dark'] .theme-toggle {
-  --icon-fill: hsl(210 10% 70%);
-  --icon-fill-hover: hsl(210 15% 90%);
-}
-
-@media (hover: none) {
-  .theme-toggle {
-    --size: 48px;
-  }
+  --icon-fill: hsl(210 10% 100%);
+  --icon-fill-hover: hsl(210 15% 70%);
 }
 
 .theme-toggle > svg {

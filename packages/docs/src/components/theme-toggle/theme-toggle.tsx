@@ -45,18 +45,23 @@ export const ThemeToggle = component$(() => {
   });
 
   return (
-    <div class={'theme-toggle-container'}>
-      <button
-        type="button"
-        class={'theme-toggle'}
-        id="theme-toggle"
-        title="Toggles light & dark"
-        aria-label={state.theme}
-        aria-live="polite"
-        onClick$={onClick$}
-      >
-        <SunAndMoon />
-      </button>
-    </div>
+    <>
+      <span class="md:hidden">
+        <button onClick$={onClick$}>{state.theme === 'light' ? 'Dark' : 'Light'} theme</button>
+      </span>
+      <span class="hidden md:block">
+        <button
+          type="button"
+          class="theme-toggle"
+          id="theme-toggle"
+          title="Toggles light & dark"
+          aria-label={state.theme}
+          aria-live="polite"
+          onClick$={onClick$}
+        >
+          <SunAndMoon />
+        </button>
+      </span>
+    </>
   );
 });

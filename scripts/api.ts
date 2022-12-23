@@ -104,6 +104,11 @@ export function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.packagesDir, 'qwik-city', 'middleware', 'azure-swa'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'azure-swa', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.packagesDir, 'qwik-city', 'middleware', 'cloudflare-pages'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'cloudflare-pages', 'index.d.ts')
   );
@@ -114,13 +119,13 @@ export function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'middleware', 'azure-swa'),
-    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'azure-swa', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'middleware', 'node'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'node', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'middleware', 'node'),
-    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'node', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'middleware', 'request-handler'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'request-handler', 'index.d.ts')
   );
   createTypesApi(
     config,

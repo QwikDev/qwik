@@ -117,6 +117,9 @@ function normalizeHeaderName(name: string): string {
   return name.toLowerCase();
 }
 
+/**
+ * @alpha
+ */
 export function createHeaders(): Headers {
   // Remove polyfill when it's safe to use the nodejs Headers global
   // https://nodejs.org/api/globals.html#class-headers

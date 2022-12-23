@@ -1,8 +1,13 @@
 import type { Context } from '@netlify/edge-functions';
-import type { ServerRenderOptions, ServerRequestEvent } from '../request-handler/types';
+import type {
+  ServerRenderOptions,
+  ServerRequestEvent,
+} from '@builder.io/qwik-city/middleware/request-handler';
 import type { RequestHandler } from '@builder.io/qwik-city';
-import { requestHandler } from '../request-handler';
-import { mergeHeadersCookies } from '../request-handler/cookie';
+import {
+  mergeHeadersCookies,
+  requestHandler,
+} from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
 
@@ -12,7 +17,7 @@ import { isStaticPath } from '@qwik-city-static-paths';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityNetlifyOptions) {
-  async function onRequest(request: Request, context: Context) {
+  async function onNetlifyEdgeRequest(request: Request, context: Context) {
     try {
       const url = new URL(request.url);
 
@@ -63,7 +68,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
     }
   }
 
-  return onRequest;
+  return onNetlifyEdgeRequest;
 }
 
 /**

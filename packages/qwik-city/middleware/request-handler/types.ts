@@ -1,15 +1,16 @@
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
 import type { ServerAction, ServerLoader } from '../../runtime/src/server-functions';
-import type { QwikCityMode, QwikCityPlan } from '../../runtime/src/types';
+import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
 
 /**
+ * @alpha
  * Request event created by the server.
  */
 export interface ServerRequestEvent<T = any> {
-  mode: QwikCityMode;
+  mode: ServerRequestMode;
   url: URL;
   locale: string | undefined;
   platform: any;
@@ -17,6 +18,14 @@ export interface ServerRequestEvent<T = any> {
   getWritableStream: ServerResponseHandler<T>;
 }
 
+/**
+ * @alpha
+ */
+export type ServerRequestMode = 'dev' | 'static' | 'server';
+
+/**
+ * @alpha
+ */
 export type ServerResponseHandler<T = any> = (
   status: number,
   headers: Headers,
@@ -25,6 +34,9 @@ export type ServerResponseHandler<T = any> = (
   requestEv: RequestEventInternal
 ) => WritableStream<Uint8Array>;
 
+/**
+ * @alpha
+ */
 export interface ServerRenderOptions extends RenderOptions {
   render: Render;
   qwikCityPlan: QwikCityPlan;
@@ -164,6 +176,9 @@ export interface RequestEventCommon<PLATFORM = unknown> {
   readonly sharedMap: Map<string, any>;
 }
 
+/**
+ * @alpha
+ */
 export interface CacheControl {
   /**
    * The max-age=N response directive indicates that the response remains fresh until N seconds after the response is generated.
@@ -212,16 +227,19 @@ export interface CacheControl {
   immutable?: boolean;
 }
 
+/**
+ * @alpha
+ */
 export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
   readonly headersSent: boolean;
   readonly exited: boolean;
   readonly cacheControl: (cacheControl: CacheControl) => void;
 
   /**
-   * Low-level access to write to the HTTP response stream. Once `getWriter()` is called,
+   * Low-level access to write to the HTTP response stream. Once `getWritableStream()` is called,
    * the status and headers can no longer be modified and will be sent over the network.
    */
-  readonly getStream: () => WritableStream<Uint8Array>;
+  readonly getWritableStream: () => WritableStream<Uint8Array>;
 
   readonly next: () => Promise<void>;
 }
@@ -234,16 +252,25 @@ export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventComm
   fail: <T>(status: number, returnData: T) => T;
 }
 
+/**
+ * @alpha
+ */
 export interface GetData {
   <T>(loader: ServerLoader<T>): Promise<T>;
   <T>(loader: ServerAction<T>): Promise<T | undefined>;
 }
 
+/**
+ * @alpha
+ */
 export interface GetSyncData {
   <T>(loader: ServerLoader<T>): T;
   <T>(loader: ServerAction<T>): T | undefined;
 }
 
+/**
+ * @alpha
+ */
 export interface RequestContext {
   /**
    * HTTP request headers.
@@ -319,6 +346,10 @@ export interface Cookie {
    */
   headers(): string[];
 }
+
+/**
+ * @alpha
+ */
 
 /**
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie

@@ -1,5 +1,5 @@
 import type { ServerRequestEvent } from './types';
-import type { PathParams, RequestEvent, RequestHandler } from '../../runtime/src/types';
+import type { PathParams, RequestEvent, RequestHandler } from '@builder.io/qwik-city';
 import { createRequestEvent } from './request-event';
 import { ErrorResponse, getErrorHtml } from './error-handler';
 import { HttpStatus } from './http-status-codes';
@@ -71,7 +71,7 @@ async function runNext(
     await requestEv.next();
   } catch (e) {
     if (e instanceof RedirectMessage) {
-      requestEv.getStream().close();
+      requestEv.getWritableStream().close();
     } else if (e instanceof ErrorResponse) {
       if (!requestEv.headersSent) {
         const html = getErrorHtml(e.status, e);
@@ -79,11 +79,13 @@ async function runNext(
       }
       console.error(e);
     } else if (!(e instanceof AbortMessage)) {
+      if (!requestEv.headersSent) {
+        requestEv.status(HttpStatus.InternalServerError);
+      }
       throw e;
     }
-  } finally {
-    resolve(null);
   }
+  resolve(null);
   return requestEv;
 }
 

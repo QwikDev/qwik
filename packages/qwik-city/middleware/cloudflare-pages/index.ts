@@ -3,8 +3,10 @@ import type {
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import type { RequestHandler } from '@builder.io/qwik-city';
-import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
-import { mergeHeadersCookies } from '@builder.io/qwik-city/middleware/request-handler';
+import {
+  mergeHeadersCookies,
+  requestHandler,
+} from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
 
@@ -14,6 +16,8 @@ import { isStaticPath } from '@qwik-city-static-paths';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
+  (globalThis as any).TextEncoderStream = TextEncoderStream;
+
   async function onCloudflarePagesRequest({ request, env, waitUntil, next }: EventPluginContext) {
     try {
       const url = new URL(request.url);
@@ -108,3 +112,39 @@ export interface EventPluginContext {
  * @alpha
  */
 export type RequestHandlerCloudflarePages = RequestHandler<{ env: EventPluginContext['env'] }>;
+
+const resolved = Promise.resolve();
+
+class TextEncoderStream {
+  // minimal polyfill implementation of TextEncoderStream
+  // since Cloudflare Pages doesn't support readable.pipeTo()
+  _writer: any;
+  readable: any;
+  writable: any;
+
+  constructor() {
+    this._writer = null;
+    this.readable = {
+      pipeTo: (writableStream: any) => {
+        this._writer = writableStream.getWriter();
+      },
+    };
+    this.writable = {
+      getWriter: () => {
+        if (!this._writer) {
+          throw new Error('No writable stream');
+        }
+        const encoder = new TextEncoder();
+        return {
+          write: async (chunk: any) => {
+            if (chunk != null) {
+              await this._writer.write(encoder.encode(chunk));
+            }
+          },
+          close: () => this._writer.close(),
+          ready: resolved,
+        };
+      },
+    };
+  }
+}

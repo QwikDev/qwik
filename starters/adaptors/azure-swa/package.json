@@ -11,7 +11,7 @@
     "priority": 30,
     "displayName": "Adaptor: Azure Static Web Apps",
     "docs": [
-      "https://qwik.builder.io/qwikcity/adaptors/azure-swa/",
+      "https://qwik.builder.io/integrations/deployments/azure-swa/",
       "https://docs.netlify.com/"
     ]
   }

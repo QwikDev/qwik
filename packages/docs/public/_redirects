@@ -13,11 +13,11 @@
 
 /qwikcity/routing/pathless/ /qwikcity/layout/grouped/ 308
 
-/qwikcity/middleware/azure-swa/ /qwikcity/adaptors/azure-swa/ 308
-/qwikcity/middleware/cloudflare-pages/ /qwikcity/adaptors/cloudflare-pages/ 308
-/qwikcity/middleware/netlify-edge/ /qwikcity/adaptors/netlify-edge/ 308
-/qwikcity/middleware/node/ /qwikcity/adaptors/node/ 308
-/qwikcity/middleware/express/ /qwikcity/adaptors/node/ 308
+/qwikcity/middleware/azure-swa/ /integrations/deployments/azure-swa/ 308
+/qwikcity/middleware/cloudflare-pages/ /integrations/deployments/cloudflare-pages/ 308
+/qwikcity/middleware/netlify-edge/ /integrations/deployments/netlify-edge/ 308
+/qwikcity/middleware/node/ /integrations/deployments/node/ 308
+/qwikcity/middleware/express/ /integrations/deployments/node/ 308
 
 /qwikcity/routing/data/ /qwikcity/data/overview/ 308
 /qwikcity/routing/endpoints/ /qwikcity/data/endpoints/ 308

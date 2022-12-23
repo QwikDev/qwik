@@ -4,7 +4,7 @@
  * It's the  entry point for the express server when building for production.
  *
  * Learn more about the cloudflare integration here:
- * - https://qwik.builder.io/qwikcity/adaptors/node/
+ * - https://qwik.builder.io/integrations/deployments/node/
  *
  */
 import { createQwikCity } from '@builder.io/qwik-city/middleware/node';

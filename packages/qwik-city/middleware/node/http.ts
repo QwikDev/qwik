@@ -1,6 +1,8 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import type { QwikCityMode } from '../../runtime/src/types';
-import type { ServerRequestEvent } from '../request-handler/types';
+import type {
+  ServerRequestMode,
+  ServerRequestEvent,
+} from '@builder.io/qwik-city/middleware/request-handler';
 
 export function getUrl(req: IncomingMessage) {
   const protocol =
@@ -12,7 +14,7 @@ export async function fromNodeHttp(
   url: URL,
   req: IncomingMessage,
   res: ServerResponse,
-  mode: QwikCityMode
+  mode: ServerRequestMode
 ) {
   const { Request, Headers } = await import('undici');
 

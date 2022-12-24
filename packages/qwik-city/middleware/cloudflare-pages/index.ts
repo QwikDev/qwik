@@ -1,7 +1,12 @@
-import type { ServerRenderOptions, ServerRequestEvent } from '../request-handler/types';
+import type {
+  ServerRenderOptions,
+  ServerRequestEvent,
+} from '@builder.io/qwik-city/middleware/request-handler';
 import type { RequestHandler } from '@builder.io/qwik-city';
-import { requestHandler } from '../request-handler';
-import { mergeHeadersCookies } from '../request-handler/cookie';
+import {
+  mergeHeadersCookies,
+  requestHandler,
+} from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
 
@@ -11,7 +16,9 @@ import { isStaticPath } from '@qwik-city-static-paths';
  * @alpha
  */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
-  async function onRequest({ request, env, waitUntil, next }: EventPluginContext) {
+  (globalThis as any).TextEncoderStream = TextEncoderStream;
+
+  async function onCloudflarePagesRequest({ request, env, waitUntil, next }: EventPluginContext) {
     try {
       const url = new URL(request.url);
 
@@ -46,13 +53,6 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
             status,
             headers: mergeHeadersCookies(headers, cookies),
           });
-
-          if (response.ok && cache && response.headers.has('Cache-Control')) {
-            // Store the fetched response as cacheKey
-            // Use waitUntil so you can return the response without blocking on
-            // writing to cache
-            waitUntil(cache.put(cacheKey, response.clone()));
-          }
           resolve(response);
           return writable;
         },
@@ -64,6 +64,12 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       if (handledResponse) {
         const response = await handledResponse.response;
         if (response) {
+          if (response.ok && cache && response.headers.has('Cache-Control')) {
+            // Store the fetched response as cacheKey
+            // Use waitUntil so you can return the response without blocking on
+            // writing to cache
+            waitUntil(cache.put(cacheKey, response.clone()));
+          }
           return response;
         }
       }
@@ -84,7 +90,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
     }
   }
 
-  return onRequest;
+  return onCloudflarePagesRequest;
 }
 
 /**
@@ -106,3 +112,39 @@ export interface EventPluginContext {
  * @alpha
  */
 export type RequestHandlerCloudflarePages = RequestHandler<{ env: EventPluginContext['env'] }>;
+
+const resolved = Promise.resolve();
+
+class TextEncoderStream {
+  // minimal polyfill implementation of TextEncoderStream
+  // since Cloudflare Pages doesn't support readable.pipeTo()
+  _writer: any;
+  readable: any;
+  writable: any;
+
+  constructor() {
+    this._writer = null;
+    this.readable = {
+      pipeTo: (writableStream: any) => {
+        this._writer = writableStream.getWriter();
+      },
+    };
+    this.writable = {
+      getWriter: () => {
+        if (!this._writer) {
+          throw new Error('No writable stream');
+        }
+        const encoder = new TextEncoder();
+        return {
+          write: async (chunk: any) => {
+            if (chunk != null) {
+              await this._writer.write(encoder.encode(chunk));
+            }
+          },
+          close: () => this._writer.close(),
+          ready: resolved,
+        };
+      },
+    };
+  }
+}

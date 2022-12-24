@@ -1,4 +1,4 @@
-import type { GetSyncData, RequestHandler } from '../../middleware/request-handler';
+import type { GetSyncData, RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type { NoSerialize, QRL, Signal } from '@builder.io/qwik';
 
 export type {
@@ -9,7 +9,7 @@ export type {
   GetSyncData,
   RequestEvent,
   RequestHandler,
-} from '../../middleware/request-handler';
+} from '@builder.io/qwik-city/middleware/request-handler';
 
 export interface RouteModule<BODY = unknown> {
   onDelete?: RequestHandler<BODY> | RequestHandler<BODY>[];
@@ -22,6 +22,9 @@ export interface RouteModule<BODY = unknown> {
   onRequest?: RequestHandler<BODY> | RequestHandler<BODY>[];
 }
 
+/**
+ * @alpha
+ */
 export interface PageModule extends RouteModule {
   readonly default: any;
   readonly head?: ContentModuleHead;
@@ -284,12 +287,9 @@ export interface StaticGenerate {
 export interface QwikCityRenderDocument extends Document {}
 
 export interface QwikCityEnvData {
-  // mode: QwikCityMode;
   params: PathParams;
   response: EndpointResponse;
 }
-
-export type QwikCityMode = 'dev' | 'static' | 'server';
 
 export interface SimpleURL {
   origin: string;

@@ -5,16 +5,16 @@
 ```ts
 
 import { Component } from '@builder.io/qwik';
-import { Cookie } from '../../middleware/request-handler';
-import { CookieOptions } from '../../middleware/request-handler';
-import { CookieValue } from '../../middleware/request-handler';
-import type { GetSyncData } from '../../middleware/request-handler';
+import { Cookie } from '@builder.io/qwik-city/middleware/request-handler';
+import { CookieOptions } from '@builder.io/qwik-city/middleware/request-handler';
+import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
+import type { GetSyncData } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
-import { RequestEvent } from '../../middleware/request-handler';
-import { RequestHandler } from '../../middleware/request-handler';
+import { RequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
+import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { Signal } from '@builder.io/qwik';
 import { ValueOrPromise } from '@builder.io/qwik';
 
@@ -183,6 +183,22 @@ export const loader$: <PLATFORM, B>(first: (event: RequestEventLoader<PLATFORM>)
 
 // @alpha (undocumented)
 export const loaderQrl: <PLATFORM, B>(loaderQrl: QRL<(event: RequestEventLoader<PLATFORM>) => B>) => ServerLoader<B>;
+
+// Warning: (ae-forgotten-export) The symbol "RouteModule" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export interface PageModule extends RouteModule {
+    // (undocumented)
+    readonly default: any;
+    // Warning: (ae-forgotten-export) The symbol "ContentModuleHead" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly head?: ContentModuleHead;
+    // (undocumented)
+    readonly headings?: ContentHeading[];
+    // (undocumented)
+    readonly onStaticGenerate?: StaticGenerateHandler;
+}
 
 // @alpha (undocumented)
 export type PathParams = Record<string, string>;

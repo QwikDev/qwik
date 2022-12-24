@@ -737,8 +737,8 @@ renderSuite('should render foreignObject properly', async () => {
           </svg>
           <feGaussianBlur class="is-html">bye</feGaussianBlur>
         </foreignObject>
-        <text className="is-svg">Hello</text>
-        <text className="is-svg">Bye</text>
+        <text class="is-svg">Hello</text>
+        <text class="is-svg">Bye</text>
       </svg>
       <text class="is-html">end</text>
     </div>
@@ -846,7 +846,7 @@ export const RenderClasses = component$(() => {
   return (
     <>
       <button
-        className="increment"
+        class="increment"
         onClick$={inlinedQrl(Counter_add, 'Counteradd', [state, { value: 1 }])}
       >
         +
@@ -894,7 +894,7 @@ export const Counter = component$((props: { step?: number }) => {
       </button>
       <span>{state.count}</span>
       <button
-        className="increment"
+        class="increment"
         onClick$={inlinedQrl(Counter_add, 'Counteradd', [state, { value: step }])}
       >
         +

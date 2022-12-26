@@ -179,7 +179,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         const nodeOs: typeof import('os') = await sys.dynamicImport('node:os');
         // Additional we add a prefix to scope the file to the current application so that different
         // applications can be run in parallel without generating conflicts
-        const scopePrefix = pluginOpts.scope ? `${pluginOpts.scope}-` : '';
+        const scopePrefix = pluginOpts.scope ? `${pluginOpts.scope.replaceAll('/', '--')}-` : '';
         tmpClientManifestPath = path.join(
           nodeOs.tmpdir(),
           `${scopePrefix}vite-plugin-qwik-q-manifest.json`

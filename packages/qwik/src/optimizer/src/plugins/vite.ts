@@ -178,13 +178,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // the Client build should always start and finish before the SSR build.
         const nodeOs: typeof import('os') = await sys.dynamicImport('node:os');
 
-        // Additionally, we add a prefix to scope the file to the current application so that
+        // Additionally, we add a suffix to scope the file to the current application so that
         // different applications can be run in parallel without generating conflicts.
-        const scopePrefix = pluginOpts.scope ? `${pluginOpts.scope.replaceAll('/', '--')}-` : '';
+        const scopeSuffix = pluginOpts.scope ? `-${pluginOpts.scope.replaceAll('/', '--')}` : '';
 
         tmpClientManifestPath = path.join(
           nodeOs.tmpdir(),
-          `${scopePrefix}vite-plugin-qwik-q-manifest.json`
+          `vite-plugin-qwik-q-manifest${scopeSuffix}.json`
         );
 
         if (target === 'ssr' && !pluginOpts.manifestInput) {

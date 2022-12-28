@@ -7,6 +7,7 @@ use std::str;
 
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
+use crate::const_replace::ConstReplacerVisitor;
 use crate::entry_strategy::EntryPolicy;
 use crate::filter_exports::StripExportsVisitor;
 use crate::transform::{HookKind, QwikTransform, QwikTransformOptions};
@@ -82,6 +83,7 @@ pub struct TransformCodeOptions<'a> {
     pub strip_exports: Option<&'a [JsWord]>,
     pub strip_ctx_name: Option<&'a [JsWord]>,
     pub strip_ctx_kind: Option<HookKind>,
+    pub is_server: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -282,6 +284,11 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
                     // Collect import/export metadata
                     let collect = global_collect(&main_module);
+
+                    if let Some(is_server) = config.is_server {
+                        let mut const_replacer = ConstReplacerVisitor::new(is_server, &collect);
+                        main_module.visit_mut_with(&mut const_replacer);
+                    }
                     let mut qwik_transform = QwikTransform::new(QwikTransformOptions {
                         path_data: &path_data,
                         entry_policy: config.entry_policy,
@@ -332,6 +339,12 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             leading_comments: comments_maps.0.clone(),
                             trailing_comments: comments_maps.1.clone(),
                         })?;
+                        if config.minify != MinifyMode::None {
+                            hook_module = hook_module.fold_with(&mut simplify::simplifier(
+                                unresolved_mark,
+                                Default::default(),
+                            ));
+                        }
                         hook_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
                         hook_module.visit_mut_with(&mut fixer(None));
 

@@ -5,6 +5,8 @@
 - [Overview](integration/overview/index.mdx)
 - [React](integration/react/index.mdx)
 - [Partytown](integration/partytown/index.mdx)
+- [Playwright](integration/playwright/index.mdx)
+- [Styled-Vanilla-Extract](integration/styled-vanilla-extract/index.mdx)
 - [Tailwind CSS](integration/tailwind/index.mdx)
 - [Vitest](integration/vitest/index.mdx)
 

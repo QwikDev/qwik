@@ -35,18 +35,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { qrl } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
-    function hola() {
-        console.log('hola');
-    }
-    class Thing {
-    }
-    class Other {
-    }
     return qrl(()=>import("./app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IAChC,SAAS,OAAO;QACd,QAAQ,GAAG,CAAC;IACd;IACA,MAAM;IAAO;IACb,MAAM;IAAO;IAEb;AAOJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IAOhC;AAOJ\"}")
 /*
 {
   "origin": "test.tsx",

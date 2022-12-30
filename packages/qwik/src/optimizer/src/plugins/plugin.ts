@@ -341,9 +341,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       if (opts.target === 'client') {
         transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
         transformOpts.stripExports = SERVER_STRIP_EXPORTS;
+        transformOpts.isServer = false;
       } else if (opts.target === 'ssr') {
         transformOpts.stripCtxName = ['useClientMount$', 'useClientEffect$'];
         transformOpts.stripCtxKind = 'event';
+        transformOpts.isServer = true;
       }
 
       const result = await optimizer.transformFs(transformOpts);

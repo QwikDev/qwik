@@ -22,10 +22,14 @@ export async function generate(opts: StaticGenerateOptions) {
 
 if (!isMainThread && workerData) {
   (async () => {
-    globalThis.TextEncoderStream = TextEncoderStream;
-    globalThis.TextDecoderStream = TextDecoderStream;
-    globalThis.WritableStream = WritableStream as any;
-    globalThis.ReadableStream = ReadableStream as any;
+    if (typeof TextEncoderStream === 'undefined') {
+      globalThis.TextEncoderStream = TextEncoderStream;
+      globalThis.TextDecoderStream = TextDecoderStream;
+    }
+    if (typeof WritableStream === 'undefined') {
+      globalThis.WritableStream = WritableStream as any;
+      globalThis.ReadableStream = ReadableStream as any;
+    }
     // self initializing worker thread with workerData
     const sys = await createSystem(workerData);
     await workerThread(sys);

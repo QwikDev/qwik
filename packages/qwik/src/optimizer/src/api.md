@@ -406,6 +406,8 @@ export interface TransformOptions {
     // (undocumented)
     explicitExtensions?: boolean;
     // (undocumented)
+    isServer?: boolean;
+    // (undocumented)
     minify?: MinifyMode;
     // Warning: (ae-forgotten-export) The symbol "EmitMode" needs to be exported by the entry point index.d.ts
     //

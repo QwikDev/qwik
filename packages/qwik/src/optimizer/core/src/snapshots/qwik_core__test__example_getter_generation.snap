@@ -114,7 +114,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
     });
     const signal = useSignal(0);
     return /*#__PURE__*/ _jsx(Cmp, {
-        prop: 'true' + 1 ? 'true' : '',
+        prop: 'true',
         get count () {
             return store.count;
         },
@@ -133,7 +133,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B,IAAM;IAChC,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,KAAC;QACG,MAAM,SAAS,IAAI,SAAS,EAAE;YAC9B;mBAAO,MAAM,KAAK;;YAClB;mBAAQ,MAAM,MAAM,CAAC,KAAK;;QAC1B,QAAQ;QACR,OAAO,MAAM,KAAK,GAAG;;YAJrB,IAAI;YACJ,KAAK,cAAE;YACP,MAAM,cAAE,MAAM,MAAM;YACpB,MAAM;;;AAKlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B,IAAM;IAChC,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,KAAC;QACG,MAAmB;YACnB;mBAAO,MAAM,KAAK;;YAClB;mBAAQ,MAAM,MAAM,CAAC,KAAK;;QAC1B,QAAQ;QACR,OAAO,MAAM,KAAK,GAAG;;YAJrB,IAAI;YACJ,KAAK,cAAE;YACP,MAAM,cAAE,MAAM,MAAM;YACpB,MAAM;;;AAKlB\"}")
 /*
 {
   "origin": "test.tsx",

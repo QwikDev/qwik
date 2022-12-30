@@ -1,0 +1,77 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useStore } from '@builder.io/qwik';
+import { isServer, isBrowser } from '@builder.io/qwik/build';
+import { mongodb } from 'mondodb';
+import { threejs } from 'threejs';
+
+export const App = component$(() => {
+    useMount$(() => {
+        if (isServer) {
+            console.log('server', mongodb());
+        }
+        if (isBrowser) {
+            console.log('browser', new threejs());
+        }
+    });
+    return (
+        <Cmp>
+            {isServer && <p>server</p>}
+            {isBrowser && <p>server</p>}
+        </Cmp>
+    );
+});
+
+============================= test.tsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,oBAAM,0FAehB\"}")
+============================= app_component_ckepmxzlub0.tsx (ENTRY POINT)==
+
+import { mongodb } from "mondodb";
+export const App_component_ckEPmXZlub0 = ()=>{
+    useMount$(()=>{
+        console.log('server', mongodb());
+    });
+    return <Cmp >
+
+            {<p >server</p>}
+
+            {false}
+
+        </Cmp>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAM8B,IAAM;IAChC,UAAU,IAAM;QAER,QAAQ,GAAG,CAAC,UAAU;IAK9B;IACA,QACK,KAAI;;YACD,EAAc,GAAE,MAAM,EAAE,GAAG;;YAC3B,OAA4B;;QAChC,EAAE;AAEV\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "app_component_ckepmxzlub0",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    222,
+    557
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

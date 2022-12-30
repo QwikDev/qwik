@@ -45,7 +45,7 @@ rollup('rollup default input options, ssr', async () => {
   const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
 
   equal(typeof rollupInputOpts.onwarn, 'function');
-  equal(rollupInputOpts.treeshake, false);
+  equal(rollupInputOpts.treeshake, undefined);
   equal(rollupInputOpts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr.tsx'))]);
   equal(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr.tsx'))]);
 });
@@ -62,7 +62,7 @@ rollup('rollup default set input options, ssr', async () => {
   const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
 
   equal(typeof rollupInputOpts.onwarn, 'function');
-  equal(rollupInputOpts.treeshake, false);
+  equal(rollupInputOpts.treeshake, undefined);
   equal(rollupInputOpts.input, normalizePath(resolve(cwd, 'src', 'my.ssr.tsx')));
   equal(opts.input, [normalizePath(resolve(cwd, 'src', 'my.ssr.tsx'))]);
 });

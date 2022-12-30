@@ -10,6 +10,7 @@ mod test;
 
 mod code_move;
 mod collector;
+mod const_replace;
 mod entry_strategy;
 mod errors;
 mod filter_exports;
@@ -67,6 +68,7 @@ pub struct TransformFsOptions {
     pub strip_exports: Option<Vec<JsWord>>,
     pub strip_ctx_name: Option<Vec<JsWord>>,
     pub strip_ctx_kind: Option<HookKind>,
+    pub is_server: Option<bool>,
 }
 
 #[derive(Serialize, Debug, Deserialize)]
@@ -95,6 +97,7 @@ pub struct TransformModulesOptions {
     pub strip_exports: Option<Vec<JsWord>>,
     pub strip_ctx_name: Option<Vec<JsWord>>,
     pub strip_ctx_kind: Option<HookKind>,
+    pub is_server: Option<bool>,
 }
 
 #[cfg(feature = "fs")]
@@ -133,6 +136,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
                 strip_exports: config.strip_exports.as_deref(),
                 strip_ctx_name: config.strip_ctx_name.as_deref(),
                 strip_ctx_kind: config.strip_ctx_kind,
+                is_server: config.is_server,
             })
         })
         .reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
@@ -170,6 +174,7 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
             strip_exports: config.strip_exports.as_deref(),
             strip_ctx_name: config.strip_ctx_name.as_deref(),
             strip_ctx_kind: config.strip_ctx_kind,
+            is_server: config.is_server,
         })
     });
 

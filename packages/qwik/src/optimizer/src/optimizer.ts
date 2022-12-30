@@ -82,6 +82,7 @@ const transformFsAsync = async (
       stripCtxKind: fsOpts.stripCtxKind!,
       stripCtxName: fsOpts.stripCtxName!,
       stripExports: fsOpts.stripExports!,
+      isServer: fsOpts.isServer!,
     };
     return binding.transform_modules(convertOptions(modulesOpts));
   }
@@ -103,6 +104,7 @@ const convertOptions = (opts: any) => {
     stripExports: undefined,
     stripCtxName: undefined,
     stripCtxKind: undefined,
+    isServer: undefined,
   };
   Object.entries(opts).forEach(([key, value]) => {
     if (value != null) {

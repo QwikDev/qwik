@@ -36,13 +36,12 @@ export default component$(() => {
     <QwikCityProvider>
       <head>
         <meta charSet="utf-8" />
-        <QwikPartytown forward={['dataLayer.push']} />;
+        <QwikPartytown forward={['dataLayer.push']} />
         <script
           async
           type="text/partytown"
           src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"
         />
-        ;
       </head>
       <body lang="en"></body>
     </QwikCityProvider>

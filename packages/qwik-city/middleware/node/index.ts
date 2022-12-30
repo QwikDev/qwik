@@ -25,11 +25,14 @@ import {
  */
 export function createQwikCity(opts: QwikCityNodeRequestOptions) {
   // Patch Stream APIs
-  globalThis.TextEncoderStream = TextEncoderStream;
-  globalThis.TextDecoderStream = TextDecoderStream;
-  globalThis.WritableStream = WritableStream as any;
-  globalThis.ReadableStream = ReadableStream as any;
-
+  if (typeof globalThis.TextEncoderStream === 'undefined') {
+    globalThis.TextEncoderStream = TextEncoderStream;
+    globalThis.TextDecoderStream = TextDecoderStream;
+  }
+  if (typeof globalThis.WritableStream === 'undefined') {
+    globalThis.WritableStream = WritableStream as any;
+    globalThis.ReadableStream = ReadableStream as any;
+  }
   const staticFolder =
     opts.static?.root ?? join(fileURLToPath(import.meta.url), '..', '..', 'dist');
 

@@ -33,6 +33,7 @@ macro_rules! test_input {
             strip_exports,
             strip_ctx_name,
             strip_ctx_kind: input.strip_ctx_kind,
+            is_server: input.is_server,
         });
         if input.snapshot {
             let input = input.code.to_string();
@@ -430,6 +431,30 @@ export const Bar = component$(({bar}) => {
 })
 "#
         .to_string(),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_dead_code() {
+    test_input!(TestInput {
+        code: r#"
+import { component$ } from '@builder.io/qwik';
+import { deps } from 'deps';
+
+export const Foo = component$(({foo}) => {
+    useMount$(() => {
+        if (false) {
+            deps();
+        }
+    });
+    return (
+        <div />
+    );
+})
+"#
+        .to_string(),
+        minify: MinifyMode::Simplify,
         ..TestInput::default()
     });
 }
@@ -1915,6 +1940,38 @@ export const foo = () => console.log('foo');
 }
 
 #[test]
+fn example_build_server() {
+    test_input!(TestInput {
+        code: r#"
+import { component$, useStore } from '@builder.io/qwik';
+import { isServer, isBrowser } from '@builder.io/qwik/build';
+import { mongodb } from 'mondodb';
+import { threejs } from 'threejs';
+
+export const App = component$(() => {
+    useMount$(() => {
+        if (isServer) {
+            console.log('server', mongodb());
+        }
+        if (isBrowser) {
+            console.log('browser', new threejs());
+        }
+    });
+    return (
+        <Cmp>
+            {isServer && <p>server</p>}
+            {isBrowser && <p>server</p>}
+        </Cmp>
+    );
+});
+"#
+        .to_string(),
+        is_server: Some(true),
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_getter_generation() {
     test_input!(TestInput {
         code: r#"
@@ -2237,6 +2294,7 @@ export const Local = component$(() => {
         strip_exports: None,
         strip_ctx_name: None,
         strip_ctx_kind: None,
+        is_server: None,
     });
     snapshot_res!(&res, "".into());
 }
@@ -2313,6 +2371,7 @@ export const Greeter = component$(() => {
         strip_exports: None,
         strip_ctx_name: None,
         strip_ctx_kind: None,
+        is_server: None,
     });
     let ref_hooks: Vec<_> = res
         .unwrap()
@@ -2347,6 +2406,7 @@ export const Greeter = component$(() => {
             strip_exports: None,
             strip_ctx_name: None,
             strip_ctx_kind: None,
+            is_server: None,
         });
 
         let hooks: Vec<_> = res
@@ -2394,6 +2454,7 @@ struct TestInput {
     pub strip_exports: Option<Vec<String>>,
     pub strip_ctx_name: Option<Vec<String>>,
     pub strip_ctx_kind: Option<HookKind>,
+    pub is_server: Option<bool>,
 }
 
 impl TestInput {
@@ -2415,6 +2476,7 @@ impl TestInput {
             strip_exports: None,
             strip_ctx_name: None,
             strip_ctx_kind: None,
+            is_server: None,
         }
     }
 }

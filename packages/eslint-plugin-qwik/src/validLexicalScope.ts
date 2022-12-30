@@ -438,7 +438,7 @@ function getTypesOfTupleType(
 }
 
 function isTypeQRL(type: ts.Type): boolean {
-  return !!type.getProperty('__brand__QRL__');
+  return !!(type.flags & ts.TypeFlags.Any) || !!type.getProperty('__brand__QRL__');
 }
 
 const ALLOWED_CLASSES = {

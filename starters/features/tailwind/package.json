@@ -10,7 +10,7 @@
     "priority": -10,
     "viteConfig": {},
     "docs": [
-      "https://qwik.builder.io/qwikcity/integrations/tailwind/",
+      "https://qwik.builder.io/integrations/integration/tailwind/",
       "https://tailwindcss.com/docs/utility-first"
     ],
     "nextSteps": {

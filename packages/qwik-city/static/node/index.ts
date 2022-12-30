@@ -25,6 +25,8 @@ if (!isMainThread && workerData) {
     if (typeof TextEncoderStream === 'undefined') {
       globalThis.TextEncoderStream = TextEncoderStream;
       globalThis.TextDecoderStream = TextDecoderStream;
+    }
+    if (typeof WritableStream === 'undefined') {
       globalThis.WritableStream = WritableStream as any;
       globalThis.ReadableStream = ReadableStream as any;
     }

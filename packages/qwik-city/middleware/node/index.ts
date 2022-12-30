@@ -25,9 +25,11 @@ import {
  */
 export function createQwikCity(opts: QwikCityNodeRequestOptions) {
   // Patch Stream APIs
-  if (typeof TextEncoderStream === 'undefined') {
+  if (typeof globalThis.TextEncoderStream === 'undefined') {
     globalThis.TextEncoderStream = TextEncoderStream;
     globalThis.TextDecoderStream = TextDecoderStream;
+  }
+  if (typeof globalThis.WritableStream === 'undefined') {
     globalThis.WritableStream = WritableStream as any;
     globalThis.ReadableStream = ReadableStream as any;
   }

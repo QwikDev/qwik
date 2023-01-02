@@ -87,11 +87,16 @@ test.describe('render', () => {
     const message2 = await page.locator('#props-destructuring-no > span');
     const renders2 = await page.locator('#props-destructuring-no > .renders');
 
+    const message3 = await page.locator('#props-destructuring-count > span');
+    const renders3 = await page.locator('#props-destructuring-count > .renders');
 
     await expect(message1).toHaveText('Hello 0');
     await expect(renders1).toHaveText('1');
     await expect(message2).toHaveText('Default 0');
     await expect(renders2).toHaveText('1');
+    await expect(message3).toHaveText('Count 0');
+    await expect(message3).toHaveAttribute('aria-count', '0');
+    await expect(renders3).toHaveText('1');
 
     await button.click();
 
@@ -99,6 +104,9 @@ test.describe('render', () => {
     await expect(renders1).toHaveText('1');
     await expect(message2).toHaveText('Default 1');
     await expect(renders2).toHaveText('2');
+    await expect(message3).toHaveText('Count 1');
+    await expect(message3).toHaveAttribute('aria-count', '1');
+    await expect(renders3).toHaveText('2');
 
     await button.click();
 
@@ -106,5 +114,8 @@ test.describe('render', () => {
     await expect(renders1).toHaveText('1');
     await expect(message2).toHaveText('Default 2');
     await expect(renders2).toHaveText('3');
+    await expect(message3).toHaveText('Count 2');
+    await expect(message3).toHaveAttribute('aria-count', '2');
+    await expect(renders3).toHaveText('3');
   });
 });

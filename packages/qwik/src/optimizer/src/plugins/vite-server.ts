@@ -422,7 +422,7 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools']) => {
 
   function checkKeysArePressed() {
     const activeKeys = Array.from(window.__qwik_inspector_state.pressedKeys)
-      .map((key) => key.replace(/(Left|Right)$/g, ''));
+      .map((key) => key ? key.replace(/(Left|Right)$/g, '') : undefined);
     const clickToSourceKeys = ${JSON.stringify(hotKeys)};
     return clickToSourceKeys.every((key) => activeKeys.includes(key));
   }

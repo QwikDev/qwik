@@ -502,6 +502,53 @@ export const Foo = component$(() => {
 }
 
 #[test]
+fn example_props_optimization() {
+    test_input!(TestInput {
+        code: r#"
+import { $, component$, useTask$ } from '@builder.io/qwik';
+
+export const Works = component$(({count, stuff: hey, ...rest}) => {
+    console.log(hey);
+    useTask$(({track}) => {
+        track(() => count);
+        console.log(count, rest, hey);
+    });
+    return (
+        <div class={count} {...rest}>{count}</div>
+    );
+});
+
+export const NoWorks1 = component$(({count, stuff = 0}) => {
+    console.log(stuff);
+    useTask$(({track}) => {
+        track(() => count);
+        console.log(count);
+    });
+    return (
+        <div class={count}>{count}</div>
+    );
+});
+
+export const NoWorks2 = component$(({count, stuff: {hey}}) => {
+    console.log(hey);
+    useTask$(({track}) => {
+        track(() => count);
+        console.log(count);
+    });
+    return (
+        <div class={count}>{count}</div>
+    );
+});
+"#
+        .to_string(),
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Inline,
+        transpile_ts: true,
+        ..TestInput::default()
+    });
+}
+
+#[test]
 fn example_lightweight_functional() {
     test_input!(TestInput {
         code: r#"

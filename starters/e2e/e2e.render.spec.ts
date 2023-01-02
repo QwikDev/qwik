@@ -8,7 +8,7 @@ test.describe('render', () => {
 
   test('should load', async ({ page }) => {
     const button = page.locator('button#increment');
-    const text = page.locator('span');
+    const text = page.locator('#rerenders');
 
     await expect(text).toHaveText('Rerender 0');
     await button.click();
@@ -76,5 +76,35 @@ test.describe('render', () => {
     await button.click();
     await expect(show1).toHaveText('odd');
     await expect(show2).toHaveText('false');
+  });
+
+  test('handle props destructuring', async ({ page }) => {
+    const button = page.locator('button#increment');
+
+    const message1 = await page.locator('#props-destructuring > span');
+    const renders1 = await page.locator('#props-destructuring > .renders');
+
+    const message2 = await page.locator('#props-destructuring-no > span');
+    const renders2 = await page.locator('#props-destructuring-no > .renders');
+
+
+    await expect(message1).toHaveText('Hello 0');
+    await expect(renders1).toHaveText('1');
+    await expect(message2).toHaveText('Default 0');
+    await expect(renders2).toHaveText('1');
+
+    await button.click();
+
+    await expect(message1).toHaveText('Hello 1');
+    await expect(renders1).toHaveText('1');
+    await expect(message2).toHaveText('Default 1');
+    await expect(renders2).toHaveText('2');
+
+    await button.click();
+
+    await expect(message1).toHaveText('Hello 2');
+    await expect(renders1).toHaveText('1');
+    await expect(message2).toHaveText('Default 2');
+    await expect(renders2).toHaveText('3');
   });
 });

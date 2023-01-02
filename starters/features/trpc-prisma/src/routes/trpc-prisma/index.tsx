@@ -1,5 +1,5 @@
 import { component$, Resource, useResource$ } from '@builder.io/qwik';
-import { isServer } from '../../../../../../packages/qwik/src/build';
+import { isServer } from '@builder.io/qwik/build';
 import type { Framework } from '@prisma/client';
 
 export default component$(() => {

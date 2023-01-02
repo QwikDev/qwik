@@ -63,8 +63,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         return;
       }
 
-      const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
-
       await updateBuildContext(ctx);
 
       for (const d of ctx.diagnostics) {
@@ -79,6 +77,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
       const routeResult = matchRouteRequest(matchPathname);
       if (routeResult) {
         // found a matching route
+        const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
         const { route, params } = routeResult;
 
         // use vite to dynamically load each layout/page module in this route's hierarchy
@@ -144,7 +143,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
         // test if this is a dev service-worker.js request
         for (const sw of ctx.serviceWorkers) {
-          const match = sw.pattern.exec(serverRequestEv.url.pathname);
+          const match = sw.pattern.exec(req.originalUrl!);
           if (match) {
             res.setHeader('Content-Type', 'text/javascript');
             res.end(DEV_SERVICE_WORKER);
@@ -154,7 +153,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
       }
 
       // simple test if it's a static file
-      const ext = getExtension(serverRequestEv.url.pathname);
+      const ext = getExtension(req.originalUrl!);
       if (STATIC_CONTENT_TYPES[ext]) {
         // let the static asset middleware handle this
         next();

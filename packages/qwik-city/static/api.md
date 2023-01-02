@@ -4,7 +4,9 @@
 
 ```ts
 
-import type { RenderOptions } from '../../qwik/src/server';
+/// <reference types="node" />
+
+import type { RenderOptions } from '@builder.io/qwik/server';
 
 // @alpha
 export function generate(opts: StaticGenerateOptions): Promise<StaticGenerateResult>;

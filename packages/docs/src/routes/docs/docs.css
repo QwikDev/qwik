@@ -1,6 +1,6 @@
 .docs main {
   @apply mx-auto min-h-[100vh] xl:max-w-[1300px];
-  margin-top: calc(var(--header-height) + 10px);
+  margin-top: calc(var(--header-height) + var(--builder-bar-height) + 10px);
 }
 
 .docs .docs-container {
@@ -110,7 +110,7 @@
   font-size: 42px;
   font-weight: 800;
   scroll-margin-top: var(--scroll-margin-top);
-  margin-top: 70px;
+  margin-top: 45px;
 }
 
 .docs article h3 {

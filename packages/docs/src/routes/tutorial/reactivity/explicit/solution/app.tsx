@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { component$, useStore, useWatch$ } from '@builder.io/qwik';
+import { component$, useStore, useTask$ } from '@builder.io/qwik';
 
 interface AppStore {
   count: number;
@@ -11,7 +11,7 @@ export default component$(() => {
     delayCount: 0,
   });
   console.log('Render: <App>');
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     track(() => store.count);
     const id = setTimeout(() => (store.delayCount = store.count), 2000);
     return () => clearTimeout(id);

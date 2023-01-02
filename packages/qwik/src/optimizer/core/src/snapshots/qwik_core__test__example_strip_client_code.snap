@@ -5,7 +5,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useClientMount$, useStore, useWatch$ } from '@builder.io/qwik';
+import { component$, useClientMount$, useStore, useTask$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
 import threejs from 'threejs';
@@ -21,7 +21,7 @@ export const Parent = component$(() => {
         redis.set(state.text);
     });
 
-    useWatch$(() => {
+    useTask$(() => {
         // Code
     });
 
@@ -39,7 +39,7 @@ import { _wrapSignal } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { useClientMountQrl } from "@builder.io/qwik";
-import { useWatchQrl } from "@builder.io/qwik";
+import { useTaskQrl } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { useStore } from '@builder.io/qwik';
 export const Parent = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
@@ -50,9 +50,9 @@ export const Parent = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
     useClientMountQrl(_noopQrl("Parent_component_useClientMount_FX2jiJMePJA", [
         state
     ]));
-    useWatchQrl(inlinedQrl(()=>{
+    useTaskQrl(inlinedQrl(()=>{
     // Code
-    }, "Parent_component_useWatch_ZM0ARFf10mw"));
+    }, "Parent_component_useTask_gDH1EtUWqBU"));
     return /*#__PURE__*/ _jsx("div", {
         onClick$: _noopQrl("Parent_component_div_onClick_C5XE49Nqd3A", [
             state
@@ -62,7 +62,7 @@ export const Parent = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
 }, "Parent_component_0TaiDayHrlo"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;AAAA,SAAsC,QAAQ,QAAmB,mBAAmB;AAKpF,OAAO,MAAM,uBAAS,wBAAW,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA,uBAAU,IAAM;IACZ,OAAO;IACX;IAEA,qBACI,KAAC;QAAI,QAAQ;;;8BACR;;AAGb,oCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;AAAA,SAAsC,QAAQ,QAAkB,mBAAmB;AAKnF,OAAO,MAAM,uBAAS,wBAAW,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA,sBAAS,IAAM;IACX,OAAO;IACX;IAEA,qBACI,KAAC;QAAI,QAAQ;;;8BACR;;AAGb,oCAAG\"}")
 == DIAGNOSTICS ==
 
 []

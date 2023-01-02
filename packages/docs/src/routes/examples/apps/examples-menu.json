@@ -22,8 +22,8 @@
     "title": "Reactivity",
     "apps": [
       {
-        "id": "watch",
-        "title": "Simple useWatch()",
+        "id": "task",
+        "title": "Simple useTask()",
         "description": "Learn how to react to changes in variables.",
         "icon": "👀"
       },

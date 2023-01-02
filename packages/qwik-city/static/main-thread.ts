@@ -1,4 +1,4 @@
-import type { PageModule, QwikCityPlan, RouteData, PathParams } from '../runtime/src/types';
+import type { PageModule, QwikCityPlan, RouteData, PathParams } from '@builder.io/qwik-city';
 import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from './types';
 import { msToString } from '../utils/format';
 import { generateNotFoundPages } from './not-found';

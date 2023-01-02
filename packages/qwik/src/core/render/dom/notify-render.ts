@@ -10,7 +10,7 @@ import {
   WatchFlagsIsEffect,
   WatchFlagsIsResource,
   WatchFlagsIsWatch,
-} from '../../use/use-watch';
+} from '../../use/use-task';
 import { then } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
@@ -131,7 +131,7 @@ const scheduleFrame = (containerState: ContainerState): Promise<RenderContext> =
 };
 
 /**
- * Low-level API used by the Optimizer to process `useWatch$()` API. This method
+ * Low-level API used by the Optimizer to process `useTask$()` API. This method
  * is not intended to be used by developers.
  *
  * @internal

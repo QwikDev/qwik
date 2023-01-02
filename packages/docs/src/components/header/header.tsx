@@ -15,6 +15,8 @@ import {
   setPreference,
   ThemeToggle,
 } from '../theme-toggle/theme-toggle';
+import BuilderContentComp from '../../components/builder-content';
+import { BUILDER_MODEL, BUILDER_PUBLIC_API_KEY } from '../../constants';
 
 export const Header = component$(() => {
   useStyles$(styles);
@@ -31,6 +33,7 @@ export const Header = component$(() => {
 
   return (
     <header class="header-container">
+      <BuilderContentComp apiKey={BUILDER_PUBLIC_API_KEY} model={BUILDER_MODEL} tag="div" />
       <div class="header-inner">
         <div class="header-logo">
           <a href="/">
@@ -63,6 +66,14 @@ export const Header = component$(() => {
           <li>
             <a href="/qwikcity/overview/" class={{ active: pathname.startsWith('/qwikcity') }}>
               <span>Qwik City</span>
+            </a>
+          </li>
+          <li>
+            <a
+              href="/integrations/integration/overview/"
+              class={{ active: pathname.startsWith('/integrations') }}
+            >
+              <span>Integrations</span>
             </a>
           </li>
           <li>

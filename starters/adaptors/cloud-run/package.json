@@ -8,7 +8,7 @@
     "priority": 20,
     "displayName": "Adaptor: Google Cloud Run server",
     "docs": [
-      "https://qwik.builder.io/qwikcity/adaptors/cloud-run/",
+      "https://qwik.builder.io/integrations/deployments/gcp-cloud-run/",
       "https://cloud.google.com/run"
     ]
   }

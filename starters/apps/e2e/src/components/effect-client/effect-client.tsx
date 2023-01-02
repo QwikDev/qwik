@@ -7,7 +7,7 @@ import {
   useStyles$,
   Slot,
   useSignal,
-  useWatch$,
+  useTask$,
 } from '@builder.io/qwik';
 import { delay } from '../streaming/streaming';
 
@@ -183,7 +183,7 @@ export const Issue1717 = component$(() => {
     { reactive: false }
   );
   const signal = useSignal(0);
-  useWatch$(async () => {
+  useTask$(async () => {
     await delay(500);
     signal.value = 10;
   });

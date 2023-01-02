@@ -670,26 +670,7 @@ impl<'a> QwikTransform<'a> {
     }
 
     pub fn ensure_import(&mut self, new_specifier: JsWord, source: JsWord) -> Id {
-        let new_local = self
-            .options
-            .global_collect
-            .import(new_specifier, source.clone());
-
-        // let is_synthetic = self
-        //     .options
-        //     .global_collect
-        //     .imports
-        //     .get(&new_local)
-        //     .unwrap()
-        //     .synthetic;
-
-        // if is_synthetic && self.is_inside_module() {
-        //     self.extra_top_items.insert(
-        //         new_local.clone(),
-        //         create_synthetic_named_import(&new_local, &source),
-        //     );
-        // }
-        new_local
+        self.options.global_collect.import(new_specifier, source)
     }
 
     fn ensure_export(&mut self, id: &Id) {
@@ -1130,7 +1111,7 @@ impl<'a> Fold for QwikTransform<'a> {
                 .synthetic
                 .iter()
                 .map(|(new_local, import)| {
-                    create_synthetic_named_import(&new_local, &import.source)
+                    create_synthetic_named_import(new_local, &import.source)
                 }),
         );
         // body.extend(self.extra_top_items.values().cloned());

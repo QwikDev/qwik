@@ -7,25 +7,14 @@ expression: output
 
 import { $, component$, useTask$ } from '@builder.io/qwik';
 
-export const Works = component$(({count, stuff: hey, ...rest}) => {
-    console.log(hey);
+export const Works = component$(({count, some = false, stuff: hey, ...rest}) => {
+    console.log(hey, some);
     useTask$(({track}) => {
         track(() => count);
-        console.log(count, rest, hey);
+        console.log(count, rest, hey, some);
     });
     return (
-        <div class={count} {...rest}>{count}</div>
-    );
-});
-
-export const NoWorks1 = component$(({count, stuff = 0}) => {
-    console.log(stuff);
-    useTask$(({track}) => {
-        track(() => count);
-        console.log(count);
-    });
-    return (
-        <div class={count}>{count}</div>
+        <div some={some} class={count} {...rest}>{count}</div>
     );
 });
 
@@ -53,18 +42,20 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const Works = /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
     const rest = _restProps(props, [
         "count",
+        "some",
         "stuff"
     ]);
-    console.log(props.stuff);
+    console.log(props.stuff, props.some ?? false);
     useTaskQrl(inlinedQrl(({ track  })=>{
         const [props, rest] = useLexicalScope();
         track(()=>props.count);
-        console.log(props.count, rest, props.stuff);
+        console.log(props.count, rest, props.stuff, props.some ?? false);
     }, "Works_component_useTask_pjo5U5Ikll0", [
         props,
         rest
     ]));
     return /*#__PURE__*/ _jsx("div", {
+        some: props.some ?? false,
         get class () {
             return props.count;
         },
@@ -75,20 +66,6 @@ export const Works = /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
         }
     });
 }, "Works_component_t45qL4vNGv0"));
-export const NoWorks1 = /*#__PURE__*/ componentQrl(inlinedQrl(({ count , stuff =0  })=>{
-    console.log(stuff);
-    useTaskQrl(inlinedQrl(({ track  })=>{
-        const [count] = useLexicalScope();
-        track(()=>count);
-        console.log(count);
-    }, "NoWorks1_component_useTask_37bweHaaACE", [
-        count
-    ]));
-    return /*#__PURE__*/ _jsx("div", {
-        class: count,
-        children: count
-    });
-}, "NoWorks1_component_EGbSEls1pJc"));
 export const NoWorks2 = /*#__PURE__*/ componentQrl(inlinedQrl(({ count , stuff: { hey  }  })=>{
     console.log(hey);
     useTaskQrl(inlinedQrl(({ track  })=>{
@@ -105,7 +82,7 @@ export const NoWorks2 = /*#__PURE__*/ componentQrl(inlinedQrl(({ count , stuff: 
 }, "NoWorks2_component_JPD9t2HyEKg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;;AAEA,OAAO,MAAM,sBAAQ,wBAAW,SAAkC;;;;;IAC9D,QAAQ,GAAG,OAD0B;IAErC,sBAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,UAHoB;QAI1B,QAAQ,GAAG,OAJe,OAIP,YAJc;;;;;IAMrC,qBACI,KAAC;YAAI;yBAPqB;;QAON,GAAG,IAAI;;;YAAtB,KAAK;;;AAElB,mCAAG;AAEH,OAAO,MAAM,yBAAW,wBAAW,CAAC,EAAC,MAAK,EAAE,OAAQ,EAAC,EAAC,GAAK;IACvD,QAAQ,GAAG,CAAC;IACZ,sBAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,KAAC;QAAI,OAAO;kBAAQ;;AAE5B,sCAAG;AAEH,OAAO,MAAM,yBAAW,wBAAW,CAAC,EAAC,MAAK,EAAE,OAAO,EAAC,IAAG,EAAC,CAAA,EAAC,GAAK;IAC1D,QAAQ,GAAG,CAAC;IACZ,sBAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,KAAC;QAAI,OAAO;kBAAQ;;AAE5B,sCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;;;;;;;AAEA,OAAO,MAAM,sBAAQ,wBAAW,SAAgD;;;;;;IAC5E,QAAQ,GAAG,OADwC,aAAd,QAAO,KAAK;IAEjD,sBAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,UAHoB;QAI1B,QAAQ,GAAG,OAJe,OAIP,YAJ4B,aAAd,QAAO,KAAK;;;;;IAMjD,qBACI,KAAC;QAAI,IAAI,QAPwB,QAAO,KAAK;YAO5B;yBAPS;;QAOM,GAAG,IAAI;;;YAAtB,KAAK;;;AAE9B,mCAAG;AAEH,OAAO,MAAM,yBAAW,wBAAW,CAAC,EAAC,MAAK,EAAE,OAAO,EAAC,IAAG,EAAC,CAAA,EAAC,GAAK;IAC1D,QAAQ,GAAG,CAAC;IACZ,sBAAS,CAAC,EAAC,MAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,KAAC;QAAI,OAAO;kBAAQ;;AAE5B,sCAAG\"}")
 == DIAGNOSTICS ==
 
 []

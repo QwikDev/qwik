@@ -507,25 +507,14 @@ fn example_props_optimization() {
         code: r#"
 import { $, component$, useTask$ } from '@builder.io/qwik';
 
-export const Works = component$(({count, stuff: hey, ...rest}) => {
-    console.log(hey);
+export const Works = component$(({count, some = false, stuff: hey, ...rest}) => {
+    console.log(hey, some);
     useTask$(({track}) => {
         track(() => count);
-        console.log(count, rest, hey);
+        console.log(count, rest, hey, some);
     });
     return (
-        <div class={count} {...rest}>{count}</div>
-    );
-});
-
-export const NoWorks1 = component$(({count, stuff = 0}) => {
-    console.log(stuff);
-    useTask$(({track}) => {
-        track(() => count);
-        console.log(count);
-    });
-    return (
-        <div class={count}>{count}</div>
+        <div some={some} class={count} {...rest}>{count}</div>
     );
 });
 

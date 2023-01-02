@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::code_move::create_return_stmt;
 use crate::collector::{new_ident_from_id, GlobalCollect, Id};
+use crate::is_immutable::is_immutable_expr;
 use crate::words::*;
 use swc_atoms::JsWord;
 use swc_common::DUMMY_SP;
@@ -72,22 +73,51 @@ impl<'a> VisitMut for PropsDestructuing<'a> {
 
 fn transform_component_props(arrow: &mut ast::ArrowExpr, props_transform: &mut PropsDestructuing) {
     if let Some(ast::Pat::Object(obj)) = arrow.params.first() {
+        let new_ident = private_ident!("props");
         let mut local = vec![];
         let mut skip = false;
         let mut rest_id = None;
         for prop in &obj.props {
             match prop {
                 ast::ObjectPatProp::Assign(ref v) => {
-                    if v.value.is_none() {
-                        local.push((id!(v.key), v.key.clone()));
+                    let access = ast::Expr::Member(ast::MemberExpr {
+                        obj: Box::new(ast::Expr::Ident(new_ident.clone())),
+                        prop: ast::MemberProp::Ident(v.key.clone()),
+                        span: DUMMY_SP,
+                    });
+                    if let Some(value) = &v.value {
+                        if is_immutable_expr(
+                            &*value,
+                            &*COMPONENT,
+                            &props_transform.global_collect,
+                            None,
+                        ) {
+                            local.push((
+                                id!(v.key),
+                                v.key.sym.clone(),
+                                ast::Expr::Bin(ast::BinExpr {
+                                    span: DUMMY_SP,
+                                    op: ast::BinaryOp::NullishCoalescing,
+                                    left: Box::new(access),
+                                    right: value.clone(),
+                                }),
+                            ));
+                        } else {
+                            skip = true;
+                        }
                     } else {
-                        skip = true;
+                        local.push((id!(v.key), v.key.sym.clone(), access));
                     }
                 }
                 ast::ObjectPatProp::KeyValue(ref v) => {
                     if let ast::PropName::Ident(ref key) = v.key {
                         if let ast::Pat::Ident(ref ident) = *v.value {
-                            local.push((id!(ident), key.clone()));
+                            let access = ast::Expr::Member(ast::MemberExpr {
+                                obj: Box::new(ast::Expr::Ident(new_ident.clone())),
+                                prop: ast::MemberProp::Ident(key.clone()),
+                                span: DUMMY_SP,
+                            });
+                            local.push((id!(ident), key.sym.clone(), access));
                         } else {
                             skip = true;
                         }
@@ -107,21 +137,15 @@ fn transform_component_props(arrow: &mut ast::ArrowExpr, props_transform: &mut P
         if skip || local.is_empty() {
             return;
         }
-        let new_ident = private_ident!("props");
         if let Some(rest_id) = rest_id {
             let props_id = id!(new_ident);
             let omit_fn = props_transform
                 .global_collect
                 .import(_REST_PROPS.clone(), BUILDER_IO_QWIK.clone());
-            let omit = local.iter().map(|(_, id)| id.sym.clone()).collect();
+            let omit = local.iter().map(|(_, id, _)| id.clone()).collect();
             transform_rest(arrow, &omit_fn, &rest_id, &props_id, omit);
         }
-        for (id, ident) in local {
-            let expr = ast::Expr::Member(ast::MemberExpr {
-                obj: Box::new(ast::Expr::Ident(new_ident.clone())),
-                prop: ast::MemberProp::Ident(ident),
-                span: DUMMY_SP,
-            });
+        for (id, _, expr) in local {
             props_transform.identifiers.insert(id, expr);
         }
         arrow.params[0] = ast::Pat::Ident(ast::BindingIdent::from(new_ident));

@@ -103,7 +103,7 @@ test.describe('render', () => {
     await expect(message1).toHaveText('Hello 1');
     await expect(renders1).toHaveText('1');
     await expect(message2).toHaveText('Default 1');
-    await expect(renders2).toHaveText('2');
+    await expect(renders2).toHaveText('1');
     await expect(message3).toHaveText('Count 1');
     await expect(message3).toHaveAttribute('aria-count', '1');
     await expect(renders3).toHaveText('2');
@@ -113,7 +113,7 @@ test.describe('render', () => {
     await expect(message1).toHaveText('Hello 2');
     await expect(renders1).toHaveText('1');
     await expect(message2).toHaveText('Default 2');
-    await expect(renders2).toHaveText('3');
+    await expect(renders2).toHaveText('1');
     await expect(message3).toHaveText('Count 2');
     await expect(message3).toHaveAttribute('aria-count', '2');
     await expect(renders3).toHaveText('3');

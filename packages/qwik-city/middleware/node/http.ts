@@ -16,8 +16,6 @@ export async function fromNodeHttp(
   res: ServerResponse,
   mode: ServerRequestMode
 ) {
-  const { Request, Headers } = await import('undici');
-
   const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
   for (const key in nodeRequestHeaders) {
@@ -41,7 +39,7 @@ export async function fromNodeHttp(
   const serverRequestEv: ServerRequestEvent<boolean> = {
     mode,
     url,
-    request: new Request(url.href, {
+    request: new (Request as any)(url.href, {
       method: req.method,
       headers: requestHeaders,
       body,

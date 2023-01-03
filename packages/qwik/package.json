@@ -158,6 +158,6 @@
     "Builder.io"
   ],
   "engines": {
-    "node": ">=16"
+    "node": ">=16.8.0"
   }
 }

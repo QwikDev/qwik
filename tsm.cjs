@@ -9,8 +9,8 @@ if (
   typeof process !== 'undefined' &&
   process.versions.node
 ) {
-  const { fetch, Headers, Request, Response, FormData } = require('undici');
   if (!globalThis.fetch) {
+    const { fetch, Headers, Request, Response, FormData } = require('undici');
     globalThis.fetch = fetch;
     globalThis.Headers = Headers;
     globalThis.Request = Request;

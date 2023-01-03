@@ -340,8 +340,8 @@ async function patchGlobalFetch() {
     typeof process !== 'undefined' &&
     process.versions.node
   ) {
-    const { fetch, Headers, Request, Response, FormData } = await import('undici');
     if (!globalThis.fetch) {
+      const { fetch, Headers, Request, Response, FormData } = await import('undici');
       globalThis.fetch = fetch as any;
       globalThis.Headers = Headers as any;
       globalThis.Request = Request as any;

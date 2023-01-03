@@ -33,6 +33,12 @@ import {
   STATIC_PATHS_ID,
 } from '../../adaptors/shared/vite';
 import { postBuild } from '../../adaptors/shared/vite/post-build';
+import {
+  TextEncoderStream,
+  TextDecoderStream,
+  WritableStream,
+  ReadableStream,
+} from 'node:stream/web';
 
 /**
  * @alpha
@@ -44,6 +50,16 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
   let qwikPlugin: QwikVitePlugin | null;
   let ssrFormat = 'esm';
   let outDir: string | null = null;
+
+  // Patch Stream APIs
+  if (typeof globalThis.TextEncoderStream === 'undefined') {
+    globalThis.TextEncoderStream = TextEncoderStream;
+    globalThis.TextDecoderStream = TextDecoderStream;
+  }
+  if (typeof globalThis.WritableStream === 'undefined') {
+    globalThis.WritableStream = WritableStream as any;
+    globalThis.ReadableStream = ReadableStream as any;
+  }
 
   const api: QwikCityPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',

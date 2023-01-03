@@ -34,12 +34,12 @@ export const Parent = component$(() => {
 
 ============================= test.js ==
 
-import { _noopQrl } from "@builder.io/qwik";
-import { _wrapSignal } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
 import { useClientMountQrl } from "@builder.io/qwik";
+import { _noopQrl } from "@builder.io/qwik";
 import { useTaskQrl } from "@builder.io/qwik";
+import { inlinedQrl } from "@builder.io/qwik";
+import { _wrapSignal } from "@builder.io/qwik";
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { useStore } from '@builder.io/qwik';
 export const Parent = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{

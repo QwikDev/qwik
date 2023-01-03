@@ -14,7 +14,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt::Write as _;
 use std::hash::Hash;
 use std::hash::Hasher; // import without risk of name clashing
-use std::path::Path;
+use std::path::Path; // 0.8.2
 
 use swc_atoms::{js_word, JsWord};
 use swc_common::comments::{Comments, SingleThreadedComments};
@@ -86,7 +86,7 @@ pub struct QwikTransform<'a> {
     pub options: QwikTransformOptions<'a>,
 
     hooks_names: HashMap<String, u32>,
-    extra_top_items: BTreeMap<Id, ast::ModuleItem>,
+    // extra_top_items: BTreeMap<Id, ast::ModuleItem>,
     extra_bottom_items: BTreeMap<Id, ast::ModuleItem>,
     stack_ctxt: Vec<String>,
     decl_stack: Vec<Vec<IdPlusType>>,
@@ -175,7 +175,7 @@ impl<'a> QwikTransform<'a> {
             in_component: false,
             hooks: Vec::with_capacity(16),
             hook_stack: Vec::with_capacity(16),
-            extra_top_items: BTreeMap::new(),
+            // extra_top_items: BTreeMap::new(),
             extra_bottom_items: BTreeMap::new(),
             hooks_names: HashMap::new(),
             qcomponent_fn: options
@@ -669,27 +669,8 @@ impl<'a> QwikTransform<'a> {
         }
     }
 
-    fn ensure_import(&mut self, new_specifier: JsWord, source: JsWord) -> Id {
-        let new_local = self
-            .options
-            .global_collect
-            .import(new_specifier, source.clone());
-
-        let is_synthetic = self
-            .options
-            .global_collect
-            .imports
-            .get(&new_local)
-            .unwrap()
-            .synthetic;
-
-        if is_synthetic && self.is_inside_module() {
-            self.extra_top_items.insert(
-                new_local.clone(),
-                create_synthetic_named_import(&new_local, &source),
-            );
-        }
-        new_local
+    pub fn ensure_import(&mut self, new_specifier: JsWord, source: JsWord) -> Id {
+        self.options.global_collect.import(new_specifier, source)
     }
 
     fn ensure_export(&mut self, id: &Id) {
@@ -1124,7 +1105,16 @@ impl<'a> Fold for QwikTransform<'a> {
     fn fold_module(&mut self, node: ast::Module) -> ast::Module {
         let mut body = Vec::with_capacity(node.body.len() + 10);
         let mut module_body = node.body.into_iter().map(|i| i.fold_with(self)).collect();
-        body.extend(self.extra_top_items.values().cloned());
+        body.extend(
+            self.options
+                .global_collect
+                .synthetic
+                .iter()
+                .map(|(new_local, import)| {
+                    create_synthetic_named_import(new_local, &import.source)
+                }),
+        );
+        // body.extend(self.extra_top_items.values().cloned());
         body.append(&mut module_body);
         body.extend(self.extra_bottom_items.values().cloned());
 

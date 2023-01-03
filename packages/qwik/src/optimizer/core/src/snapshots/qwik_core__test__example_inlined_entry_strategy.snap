@@ -31,10 +31,10 @@ export const Child = component$(() => {
 ============================= test.tsx ==
 
 import { componentQrl } from "@builder.io/qwik";
+import { useStylesQrl } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { useClientEffectQrl } from "@builder.io/qwik";
 import { useLexicalScope } from "@builder.io/qwik";
-import { useStylesQrl } from "@builder.io/qwik";
 import { useStore } from '@builder.io/qwik';
 import { thing } from './sibling';
 import mongodb from 'mongodb';

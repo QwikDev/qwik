@@ -43,7 +43,7 @@
     "typescript": "4.9.4",
     "undici": "5.14.0",
     "uvu": "0.5.6",
-    "vite": "4.0.1",
+    "vite": "4.0.3",
     "wrangler": "^2.6.2"
   },
   "author": "Builder.io Team",

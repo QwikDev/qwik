@@ -87,9 +87,9 @@ fn transform_component_props(arrow: &mut ast::ArrowExpr, props_transform: &mut P
                     });
                     if let Some(value) = &v.value {
                         if is_immutable_expr(
-                            &*value,
-                            &*COMPONENT,
-                            &props_transform.global_collect,
+                            value.as_ref(),
+                            &COMPONENT,
+                            props_transform.global_collect,
                             None,
                         ) {
                             local.push((

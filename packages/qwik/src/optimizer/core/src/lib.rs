@@ -17,6 +17,7 @@ mod filter_exports;
 mod is_immutable;
 mod package_json;
 mod parse;
+mod props_destructuring;
 mod transform;
 mod utils;
 mod words;

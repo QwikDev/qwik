@@ -10,6 +10,7 @@ use crate::collector::global_collect;
 use crate::const_replace::ConstReplacerVisitor;
 use crate::entry_strategy::EntryPolicy;
 use crate::filter_exports::StripExportsVisitor;
+use crate::props_destructuring::transform_props_destructuring;
 use crate::transform::{HookKind, QwikTransform, QwikTransformOptions};
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
 use path_slash::PathExt;
@@ -283,8 +284,11 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     ));
 
                     // Collect import/export metadata
-                    let collect = global_collect(&main_module);
+                    let mut collect = global_collect(&main_module);
 
+                    transform_props_destructuring(&mut main_module, &mut collect);
+
+                    // Replace const values
                     if let Some(is_server) = config.is_server {
                         let mut const_replacer = ConstReplacerVisitor::new(is_server, &collect);
                         main_module.visit_mut_with(&mut const_replacer);

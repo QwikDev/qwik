@@ -740,6 +740,9 @@ export interface ResourceResolved<T> {
 // @public (undocumented)
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
+// @internal (undocumented)
+export const _restProps: (props: Record<string, any>, omit: string[]) => Record<string, any>;
+
 // @alpha
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
 

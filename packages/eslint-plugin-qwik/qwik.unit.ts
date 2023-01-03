@@ -302,7 +302,7 @@ export default component$(() => {
             return <div></div>
           });`,
         errors: [
-          'Identifier ("useMethod") can not be captured inside the scope (component$) because it\'s declared at the root of the module and it is not exported. Add export. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+          'Identifier ("useMethod") can not be captured inside the scope (component$) because it\'s declared at the root of the module and it is not exported. Add export. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
         ],
       },
       {
@@ -318,7 +318,7 @@ export default component$(() => {
             return <div></div>;
           });`,
         errors: [
-          'Identifier ("useMethod") can not be captured inside the scope (useTask$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+          'Identifier ("useMethod") can not be captured inside the scope (useTask$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
         ],
       },
       {
@@ -334,7 +334,7 @@ export default component$(() => {
           });`,
 
         errors: [
-          'Identifier ("useMethod") can not be captured inside the scope (useTask$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+          'Identifier ("useMethod") can not be captured inside the scope (useTask$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
         ],
       },
       {
@@ -348,7 +348,7 @@ export default component$(() => {
           });`,
 
         errors: [
-          'Identifier ("Stuff") can not be captured inside the scope (useTask$) because it is a class constructor, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+          'Identifier ("Stuff") can not be captured inside the scope (useTask$) because it is a class constructor, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
         ],
       },
       {
@@ -363,7 +363,7 @@ export default component$(() => {
           });`,
 
         errors: [
-          'Identifier ("stuff") can not be captured inside the scope (useTask$) because it is an instance of the "Stuff" class, which is not serializable. Use a simple object literal instead. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+          'Identifier ("stuff") can not be captured inside the scope (useTask$) because it is an instance of the "Stuff" class, which is not serializable. Use a simple object literal instead. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
         ],
       },
       {
@@ -378,7 +378,7 @@ export default component$(() => {
           });`,
 
         errors: [
-          'Identifier ("a") can not be captured inside the scope (useTask$) because it is Symbol, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+          'Identifier ("a") can not be captured inside the scope (useTask$) because it is Symbol, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
         ],
       },
       {
@@ -400,7 +400,7 @@ export default component$(() => {
           });`,
 
         errors: [
-          'Identifier ("a") can not be captured inside the scope (useTask$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+          'Identifier ("a") can not be captured inside the scope (useTask$) because it is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
         ],
       },
       {
@@ -417,7 +417,7 @@ export default component$(() => {
           return <div></div>
         });`,
         errors: [
-          'Identifier ("state") can not be captured inside the scope (useTask$) because "state.value" is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+          'Identifier ("state") can not be captured inside the scope (useTask$) because "state.value" is a function, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
         ],
       },
       {
@@ -448,7 +448,7 @@ export default component$(() => {
           );
         });`,
         errors: [
-          'The value of the identifier ("click") can not be changed once it is captured the scope (onClick$). Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+          'The value of the identifier ("click") can not be changed once it is captured the scope (onClick$). Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
         ],
       },
       {
@@ -465,7 +465,7 @@ export default component$(() => {
           );
         });`,
         errors: [
-          'Identifier ("props") can not be captured inside the scope (onClick$) because "props.nonserializableTuple" is an instance of the "Function" class, which is not serializable. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+          'Identifier ("props") can not be captured inside the scope (onClick$) because "props.nonserializableTuple" is an instance of the "Function" class, which is not serializable. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
         ],
       },
     ],

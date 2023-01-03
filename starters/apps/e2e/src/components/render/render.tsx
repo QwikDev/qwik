@@ -6,6 +6,7 @@ export const Render = component$(() => {
     counter: {
       count: 0,
     },
+    count: 0,
     children: [] as any[],
   };
   parent.children.push(parent);
@@ -17,6 +18,7 @@ export const Render = component$(() => {
         id="increment"
         onClick$={() => {
           state.counter.count++;
+          state.count++;
         }}
       >
         Increment
@@ -24,6 +26,22 @@ export const Render = component$(() => {
       <Child counter={state.counter}></Child>
       <Issue1475 />
       <CounterToggle />
+
+      <PropsDestructuring
+        message="Hello"
+        count={state.count}
+        id="props-destructuring"
+        aria-hidden="true"
+      />
+
+      <PropsDestructuringNo count={state.count} id="props-destructuring-no" aria-hidden="true" />
+
+      <PropsDestructuring
+        message="Count"
+        count={state.count}
+        id="props-destructuring-count"
+        aria-count={state.count}
+      />
     </>
   );
 });
@@ -45,7 +63,7 @@ export const Child = component$((props: { counter: { count: number } }) => {
     const count = props.counter.count;
     return (
       <>
-        <span>Rerender {count}</span>
+        <span id="rerenders">Rerender {count}</span>
         <div id="attributes">
           <button id="toggle" onClick$={() => (state.hideAttributes = !state.hideAttributes)}>
             Toggle attributes
@@ -57,7 +75,7 @@ export const Child = component$((props: { counter: { count: number } }) => {
   const count = props.counter.count;
   return (
     <>
-      <span>Rerender {count}</span>
+      <span id="rerenders">Rerender {count}</span>
       <div
         id="attributes"
         preventdefault:click
@@ -143,3 +161,43 @@ export const CounterToggleShow2 = component$((props: { cond: boolean }) => {
     </>
   );
 });
+
+export const PropsDestructuring = component$(
+  ({ message, id, count: c, ...rest }: Record<string, any>) => {
+    const renders = useStore(
+      { renders: 0 },
+      {
+        reactive: false,
+      }
+    );
+    renders.renders++;
+    return (
+      <div id={id}>
+        <span {...rest}>
+          {message} {c}
+        </span>
+        <div class="renders">{renders.renders}</div>
+      </div>
+    );
+  }
+);
+
+export const PropsDestructuringNo = component$(
+  ({ message = 'Default', count, id, ...rest }: Record<string, any>) => {
+    const renders = useStore(
+      { renders: 0 },
+      {
+        reactive: false,
+      }
+    );
+    renders.renders++;
+    return (
+      <div id={id}>
+        <span {...rest}>
+          {message} {count}
+        </span>
+        <div class="renders">{renders.renders}</div>
+      </div>
+    );
+  }
+);

@@ -34,7 +34,7 @@ export const ButtonArrow = ({text, color}) => {
 
 import { Button } from "./test";
 import { ButtonArrow } from "./test";
-export const Foo_component_HTDRsvUbLiE = ({ color  })=>{
+export const Foo_component_HTDRsvUbLiE = (props1)=>{
     return <div >
 
             <Button {...props}/>
@@ -45,7 +45,7 @@ export const Foo_component_HTDRsvUbLiE = ({ color  })=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,EAAC,MAAK,EAAC,GAAK;IACvC,QACK,KAAI;;YACD,CAAC,QAAQ,GAAG,KAAK,GAAI;;YACrB,CAAC,aAAa,GAAG,KAAK,GAAI;;QAC9B,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,UAAa;IACvC,QACK,KAAI;;YACD,CAAC,QAAQ,GAAG,KAAK,GAAI;;YACrB,CAAC,aAAa,GAAG,KAAK,GAAI;;QAC9B,EAAE;AAEV\"}")
 /*
 {
   "origin": "test.tsx",

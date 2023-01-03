@@ -78,6 +78,19 @@ export const setObjectFlags = (obj: object, flags: number) => {
 
 export type TargetType = Record<string | symbol, any>;
 
+/**
+ * @internal
+ */
+export const _restProps = (props: Record<string, any>, omit: string[]) => {
+  const rest: Record<string, any> = {};
+  for (const key in props) {
+    if (!omit.includes(key)) {
+      rest[key] = props[key];
+    }
+  }
+  return rest;
+};
+
 class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   constructor(
     private $containerState$: ContainerState,
@@ -174,14 +187,6 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   ownKeys(target: TargetType): ArrayLike<string | symbol> {
-    let subscriber: SubscriberHost | SubscriberEffect | null | undefined = null;
-    const invokeCtx = tryGetInvokeContext();
-    if (invokeCtx) {
-      subscriber = invokeCtx.$subscriber$;
-    }
-    if (subscriber) {
-      this.$manager$.$addSub$([0, subscriber, undefined]);
-    }
     if (isArray(target)) {
       return Reflect.ownKeys(target);
     }

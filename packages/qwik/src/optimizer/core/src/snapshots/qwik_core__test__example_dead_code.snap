@@ -21,13 +21,13 @@ export const Foo = component$(({foo}) => {
 
 ============================= foo_component_htdrsvublie.tsx (ENTRY POINT)==
 
-export const Foo_component_HTDRsvUbLiE = ({ foo  })=>{
+export const Foo_component_HTDRsvUbLiE = (props)=>{
     useMount$(()=>{});
     return <div />;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yCAI8B,CAAC,EAAC,IAAG,EAAC,GAAK;IACrC,UAAU,IAAM,CAIhB;IACA,QACK;AAET\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yCAI8B,SAAW;IACrC,UAAU,IAAM,CAIhB;IACA,QACK;AAET\"}")
 /*
 {
   "origin": "test.tsx",

@@ -384,7 +384,7 @@ fn transform_fn(node: ast::FnExpr, use_lexical_scope: &Id, scoped_idents: &[Id])
     }
 }
 
-const fn create_return_stmt(expr: Box<ast::Expr>) -> ast::Stmt {
+pub const fn create_return_stmt(expr: Box<ast::Expr>) -> ast::Stmt {
     ast::Stmt::Return(ast::ReturnStmt {
         arg: Some(expr),
         span: DUMMY_SP,

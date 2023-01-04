@@ -24,8 +24,12 @@ const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
 async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifactsDir: string }) {
   if (!existsSync(artifactsDir)) {
     // if no artifacts, then nothing to do.
+    console.log('No artifacts to save. (no artifacts found at ' + artifactsDir);
     return () => null;
   }
+  console.log(
+    'preparing to save artifacts to ' + artifactsDir + ' into BuilderIO/' + buildRepo + ' repo.'
+  );
   const buildRepoDir = root + '/dist-dev/' + buildRepo;
   const repo = token
     ? `https://${token}:x-oauth-basic@github.com/BuilderIO/${buildRepo}.git`

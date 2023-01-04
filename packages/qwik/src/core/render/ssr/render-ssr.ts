@@ -738,7 +738,6 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
   if (tagName === InternalSSRStream) {
     return renderGenerator(node as JSXNode<typeof InternalSSRStream>, rCtx, ssrCtx, stream, flags);
   }
-
   if (tagName === SSRHint && (node as JSXNode<typeof SSRHint>).props.dynamic === true) {
     ssrCtx.$static$.$dynamic$ = true;
   }

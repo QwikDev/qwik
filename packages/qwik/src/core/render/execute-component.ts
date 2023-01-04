@@ -27,6 +27,7 @@ export const executeComponent = (
   elCtx.$flags$ &= ~HOST_FLAG_DIRTY;
   elCtx.$flags$ |= HOST_FLAG_MOUNTED;
   elCtx.$slots$ = [];
+  elCtx.$extraRender$ = null;
   elCtx.li.length = 0;
 
   const hostElement = elCtx.$element$;
@@ -64,7 +65,7 @@ export const executeComponent = (
             return executeComponent(rCtx, elCtx);
           }
           return {
-            node: jsxNode,
+            node: addExtraItems(jsxNode, elCtx),
             rCtx: newCtx,
           };
         });
@@ -73,7 +74,7 @@ export const executeComponent = (
         return executeComponent(rCtx, elCtx);
       }
       return {
-        node: jsxNode,
+        node: addExtraItems(jsxNode, elCtx),
         rCtx: newCtx,
       };
     },
@@ -85,6 +86,13 @@ export const executeComponent = (
       };
     }
   );
+};
+
+export const addExtraItems = (node: JSXNode | null, elCtx: QContext): JSXNode | null => {
+  if (elCtx.$extraRender$) {
+    return [node, elCtx.$extraRender$] as any as JSXNode;
+  }
+  return node;
 };
 
 export const createRenderContext = (

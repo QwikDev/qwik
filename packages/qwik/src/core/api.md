@@ -4,6 +4,8 @@
 
 ```ts
 
+import type { JSXNode as JSXNode_2 } from '@builder.io/qwik/jsx-runtime';
+
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 

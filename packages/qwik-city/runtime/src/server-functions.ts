@@ -9,6 +9,9 @@ import {
   _wrapSignal,
   useStore,
   untrack,
+  SSRHint,
+  useRender,
+  jsx,
 } from '@builder.io/qwik';
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
 import { QACTION_KEY } from './constants';
@@ -139,6 +142,8 @@ export class ServerLoaderImpl implements ServerLoaderInternal {
   readonly __brand = 'server_loader';
   constructor(public __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>) {}
   use(): Signal<any> {
+    useRender(jsx(SSRHint, { dynamic: true }));
+
     const state = useContext(RouteStateContext);
     const hash = this.__qrl.getHash();
     untrack(() => {

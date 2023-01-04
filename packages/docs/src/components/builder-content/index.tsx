@@ -13,7 +13,8 @@ export default component$<{
   const render =
     typeof query.get === 'function' ? query.get('render') : (query as { render?: string }).render;
   const isSDK = render === 'sdk';
-  const builderContentRsrc = useResource$<any>(() => {
+  const builderContentRsrc = useResource$<any>(({ cache }) => {
+    cache('immutable');
     if (isSDK) {
       return getContent({
         model: props.model!,

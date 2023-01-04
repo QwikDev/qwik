@@ -180,7 +180,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
         // Additionally, we add a suffix to scope the file to the current application so that
         // different applications can be run in parallel without generating conflicts.
-        const scopeSuffix = pluginOpts.scope ? `-${pluginOpts.scope.replaceAll('/', '--')}` : '';
+        const scopeSuffix = pluginOpts.scope ? `-${pluginOpts.scope.replace(/\//g, '--')}` : '';
 
         tmpClientManifestPath = path.join(
           nodeOs.tmpdir(),

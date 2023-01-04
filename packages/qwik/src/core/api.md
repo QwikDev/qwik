@@ -943,6 +943,9 @@ export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) =
 // @alpha @deprecated
 export const useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;
 
+// @alpha (undocumented)
+export const useRender: (jsx: JSXNode_2) => void;
+
 // @public
 export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;
 

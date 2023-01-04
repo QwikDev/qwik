@@ -4,15 +4,13 @@
 
 ```ts
 
-import type { StaticGenerateRenderOptions } from '../../../static';
+import { ServerAdaptorOptions } from '../../shared/vite';
 
 // @alpha (undocumented)
 export function expressAdaptor(opts?: ExpressAdaptorOptions): any;
 
 // @alpha (undocumented)
-export interface ExpressAdaptorOptions {
-    // (undocumented)
-    staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
+export interface ExpressAdaptorOptions extends ServerAdaptorOptions {
 }
 
 // (No @packageDocumentation comment for this package)

@@ -7,7 +7,9 @@ import { viteAdaptor } from '../../shared/vite';
 export function staticAdaptor(opts: StaticGenerateAdaptorOptions): any {
   return viteAdaptor({
     name: 'static-generate',
-    staticGenerate: true,
+    ssg: {
+      filter: 'all',
+    },
     ...opts,
   });
 }

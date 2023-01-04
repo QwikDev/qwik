@@ -18,6 +18,7 @@ export async function mainThread(sys: System) {
   const active = new Set<string>();
   const routes = qwikCityPlan.routes || [];
   const trailingSlash = !!qwikCityPlan.trailingSlash;
+  const filter = opts.filter || 'all';
 
   return new Promise<StaticGenerateResult>((resolve, reject) => {
     try {
@@ -141,6 +142,10 @@ export async function mainThread(sys: System) {
                 pathname = pathname.slice(0, pathname.length - 1);
               }
             }
+          }
+
+          if (typeof filter === 'function' && !filter({ pathname, params })) {
+            return;
           }
 
           if (!queue.some((s) => s.pathname === pathname)) {

@@ -4,6 +4,7 @@ import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import type {
   StaticGenerateOptions,
   StaticGenerateRenderOptions,
+  StaticGeneratePathFilter,
 } from '@builder.io/qwik-city/static';
 import type { BuildRoute } from '../../../buildtime/types';
 import fs from 'node:fs';
@@ -101,13 +102,19 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
     closeBundle: {
       sequential: true,
       async handler() {
-        if (isSsrBuild && serverOutDir && qwikCityPlugin?.api && qwikVitePlugin?.api) {
+        if (
+          isSsrBuild &&
+          opts.ssg !== null &&
+          serverOutDir &&
+          qwikCityPlugin?.api &&
+          qwikVitePlugin?.api
+        ) {
           const staticPaths: string[] = opts.staticPaths || [];
           const routes = qwikCityPlugin.api.getRoutes();
           const basePathname = qwikCityPlugin.api.getBasePathname();
           const clientOutDir = qwikVitePlugin.api.getClientOutDir()!;
 
-          if (opts.ssg !== null && renderModulePath && qwikCityPlanModulePath && clientOutDir) {
+          if (renderModulePath && qwikCityPlanModulePath && clientOutDir) {
             if (opts.staticGenerate) {
               this.warn(`Option "staticGenerate" is deprecated. Please use "ssg" option instead.`);
               opts.ssg = opts.ssg || {};
@@ -139,13 +146,23 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
               ssgOrigin = `https://yoursite.qwik.builder.io`;
             }
 
+            let pathFilter: StaticGeneratePathFilter;
+            if (typeof opts.ssg?.filter === 'function') {
+              pathFilter = opts.ssg.filter;
+            } else if (opts.ssg?.filter === 'all') {
+              pathFilter = () => true;
+            } else {
+              pathFilter = () => true;
+            }
+
             const staticGenerate = await import('../../../static');
             const generateOpts: StaticGenerateOptions = {
               maxWorkers: opts.maxWorkers,
               basePathname,
               outDir: clientOutDir,
-              origin: ssgOrigin,
               ...opts.ssg,
+              origin: ssgOrigin,
+              filter: pathFilter,
               renderModulePath,
               qwikCityPlanModulePath,
             };
@@ -254,19 +271,23 @@ export interface ServerAdaptorOptions {
 /**
  * @alpha
  */
-export interface AdaptorSSGOptions extends Omit<StaticGenerateRenderOptions, 'outDir' | 'origin'> {
+export interface AdaptorSSGOptions
+  extends Omit<StaticGenerateRenderOptions, 'outDir' | 'origin' | 'filter'> {
   /**
    * The `filter` option can be used to determine which pages should be statically
    * generated rather than server-side rendered (SSR). Defaults to `"auto"`.
    *
-   * `"auto"` - Attempts to automatically decide if a page shiould be statically generated if it
-   * does not have dynamic data.
+   * `"auto"` - Attempts to automatically decide if a page shiould be statically generated
+   * if it does not have dynamic data.
    *
    * `"all"` - All pages will be statically generated.
    *
-   * `Function` - A function that returns an array of paths that should be statically generated.
+   * `Function` - Callback function can be used to determine if a page should be statically
+   * generated or not. The filter function is passed the `pathname` and `params` data,
+   * and should return `true` if the page should be statically generated. Returning `false`
+   * will prevent the page from being statically generated.
    */
-  filter?: 'auto' | 'all' | (() => string[]);
+  filter?: 'auto' | 'all' | StaticGeneratePathFilter;
   /**
    * The URL `origin`, which is a combination of the scheme (protocol) and hostname (domain).
    * For example, `https://qwik.builder.io` has the protocol `https://` and domain `qwik.builder.io`.

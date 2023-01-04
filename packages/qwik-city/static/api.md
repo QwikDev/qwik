@@ -19,10 +19,17 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
 }
 
 // @alpha (undocumented)
+export type StaticGeneratePathFilter = (filterOpts: {
+    pathname: string;
+    params: Record<string, string> | undefined;
+}) => boolean;
+
+// @alpha (undocumented)
 export interface StaticGenerateRenderOptions extends RenderOptions {
     emit404Pages?: boolean;
     emitData?: boolean;
     emitHtml?: boolean;
+    filter?: StaticGeneratePathFilter;
     log?: 'debug';
     maxTasksPerWorker?: number;
     maxWorkers?: number;

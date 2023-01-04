@@ -149,9 +149,8 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
             let pathFilter: StaticGeneratePathFilter;
             if (typeof opts.ssg?.filter === 'function') {
               pathFilter = opts.ssg.filter;
-            } else if (opts.ssg?.filter === 'all') {
-              pathFilter = () => true;
             } else {
+              // defaults to always render all paths
               pathFilter = () => true;
             }
 

@@ -16,7 +16,7 @@ The `$` prefix is used to signal both the optimizer and the developer when this 
 
 [Optimizer](../optimizer/index.mdx) runs as a Vite plugin during bundling. The purpose of the Optimizer is to break up the application into many small lazy-loadable chunks. The Optimizer moves expressions (usually functions) into new files and leaves behind a reference pointing to where the expression was moved from.
 
-The `$` tells the optimizer which functions to extract into a separate file up and which ones to leave untouched. The optimizer does not keep an internal list of magic functions, instead, it solely relies on the `$` suffix to know which functions to transform. The system is extendable and developers can create their own `$` functions, such as `myCustomFunction$()`.
+The `$` tells the optimizer which functions to extract into a separate file and which ones to leave untouched. The optimizer does not keep an internal list of magic functions, instead, it solely relies on the `$` suffix to know which functions to transform. The system is extendable and developers can create their own `$` functions, such as `myCustomFunction$()`.
 
 ### Example
 
@@ -74,7 +74,7 @@ The optimizer uses `$` as a signal to extract the code. The developer needs to u
 
 ### Allowed expressions
 
-The first argument of any function that ends with `$` have certain restrictions:
+The first argument of any function that ends with `$` has certain restrictions:
 
 #### 1. Literals without local identifiers
 
@@ -238,7 +238,7 @@ This works but is a lot of work. The developer is responsible for putting the co
 ```tsx
 function onScroll(fnQrl: QRL<() => void>) {
   document.addEventListener('scroll', async () => {
-    fn = await qImport(document, fnQrl);
+    const fn = await qImport.resolve();
     fn();
   });
 }
@@ -260,13 +260,13 @@ export const onScroll_1 = () => alert('scroll');
 
 Notice:
 
-1. All that the developer had to do was to wrap the function in the `$()` to signal to the Optimizer that the function should be moved to a new file and therefore lazy-loaded.
-2. The `onScroll` had to be implemented slightly differently as it needs to take into account the fact that the `QRL` of the function needs to be loaded before it can be used. In practice using `qImport` is rare in Qwik applications as the Qwik framework provides higher-level APIs that rarely expect the developer to work with `qImport` directly.
+1. All that the developer had to do was to wrap the function in the `$()` to signal to the Optimizer that the function should be moved to a new file and therefore be lazy-loaded.
+2. The `onScroll` function had to be implemented slightly differently as it needs to take into account the fact that the `QRL` of the function needs to be loaded before it can be used. In practice using `QRL.resolve()` is rare in Qwik applications as the Qwik framework provides higher-level APIs that rarely expect the developer to work with `QRL.resolve()` directly.
 
-However, wrapping code in `$()` is a bit inconvenient. For this reason, Optimizer implicitly wraps the first argument of any function call, which ends with `$`. (Additionally, one can use `implicit$FirstArg()` to automatically perform the wrapping and type matching of the function taking the `QRL`.)
+However, wrapping code in `$()` is a bit inconvenient. For this reason, one can use `implicit$FirstArg()` to automatically perform the wrapping and type matching of the function taking the `QRL`. The function passed into `implicit$FirstArg()` should have a suffix of `Qrl`, and the result of that function should be set to a value with a suffix of `$`;
 
 ```tsx
-const onScroll$ = implicit$FirstArg(onScroll);
+const onScroll$ = implicit$FirstArg(onScrollQrl); 
 
 onScroll$(() => alert('scroll'));
 ```

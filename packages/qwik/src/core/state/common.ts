@@ -80,7 +80,7 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
       message += ` in ${ctx},`;
     }
     if (typeObj === 'object') {
-      message += ` because it's an instance of "${value?.constructor.name}". You might need to use 'noSerialize()' or use a object literal instead. Check out https://qwik.builder.io/docs/advanced/dollar/`;
+      message += ` because it's an instance of "${value?.constructor.name}". You might need to use 'noSerialize()' or use an object literal instead. Check out https://qwik.builder.io/docs/advanced/dollar/`;
     } else if (typeObj === 'function') {
       const fnName = (value as Function).name;
       message += ` because it's a function named "${fnName}". You might need to convert it to a QRL using $(fn):\n\nconst ${fnName} = $(${String(

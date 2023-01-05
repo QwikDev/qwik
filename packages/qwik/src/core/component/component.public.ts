@@ -5,12 +5,10 @@ import type { ComponentBaseProps, JSXChildren } from '../render/jsx/types/jsx-qw
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
 import { jsx } from '../render/jsx/jsx-runtime';
 import { SERIALIZABLE_STATE } from '../container/serializers';
-import { qDev, qTest } from '../util/qdev';
+import { qTest } from '../util/qdev';
 import { Virtual } from '../render/jsx/utils.public';
 import { assertQrl } from '../qrl/qrl-class';
 import type { ValueOrPromise } from '../util/types';
-import { invoke } from '../use/use-core';
-import { verifySerializable } from '../state/common';
 import { _IMMUTABLE } from '../state/constants';
 
 /**
@@ -140,15 +138,6 @@ export const componentQrl = <PROPS extends {}>(
   // Return a QComponent Factory function.
   function QwikComponent(props: PublicProps<PROPS>, key: string | null): JSXNode {
     assertQrl(componentQrl);
-    if (qDev) {
-      invoke(undefined, () => {
-        for (const key of Object.keys(props)) {
-          if (key !== 'children') {
-            verifySerializable((props as any)[key]);
-          }
-        }
-      });
-    }
     const hash = qTest ? 'sX' : componentQrl.$hash$.slice(0, 4);
     const finalKey = hash + ':' + (key ? key : '');
     return jsx(

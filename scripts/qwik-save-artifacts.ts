@@ -1,21 +1,22 @@
 import { execa } from 'execa';
 import { existsSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const token = process.env.API_TOKEN_GITHUB;
-const root = __dirname + '/..';
+const root = join(__dirname, '..');
 const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
 
 (async () => {
   const finishQwik = await prepare({
     buildRepo: 'qwik-build',
-    artifactsDir: root + '/packages/qwik/dist',
+    artifactsDir: join(root, 'package', 'qwik', 'dist'),
   });
   const finishQwikCity = await prepare({
     buildRepo: 'qwik-city-build',
-    artifactsDir: root + '/packages/qwik-city/lib',
+    artifactsDir: join(root, 'package', 'qwik-city', 'lib'),
   });
   await finishQwik();
   await finishQwikCity();
@@ -30,17 +31,17 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
   console.log(
     'preparing to save artifacts to ' + artifactsDir + ' into BuilderIO/' + buildRepo + ' repo.'
   );
-  const buildRepoDir = root + '/dist-dev/' + buildRepo;
+  const buildRepoDir = join(root, 'dist-dev', buildRepo);
   const repo = token
     ? `https://${token}:x-oauth-basic@github.com/BuilderIO/${buildRepo}.git`
     : `git@github.com:BuilderIO/${buildRepo}.git`;
 
   await $('rm', '-rf', buildRepoDir);
   const SHA = await $('git', 'rev-parse', 'HEAD');
-  await mkdir(`${root}/dist-dev`, {
+  await mkdir(join(root, 'dist-dev'), {
     recursive: true,
   });
-  process.chdir(`${root}/dist-dev`);
+  process.chdir(join(root, 'dist-dev'));
   await $('git', 'clone', repo);
   const branch = await $('git', 'branch', '--show-current');
   const msg = await $('git', 'log', '--oneline', '-1', '--no-decorate');

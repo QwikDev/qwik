@@ -10,6 +10,7 @@ export interface System {
   createLogger: () => Promise<Logger>;
   getOptions: () => StaticGenerateOptions;
   ensureDir: (filePath: string) => Promise<void>;
+  removeFile: (filePath: string) => Promise<void>;
   access: (path: string) => Promise<boolean>;
   createWriteStream: (filePath: string) => StaticStreamWriter;
   createTimer: () => () => number;
@@ -109,6 +110,7 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
 export type StaticGeneratePathFilter = (filterOpts: {
   pathname: string;
   params: Record<string, string> | undefined;
+  isStatic: boolean | undefined;
 }) => boolean;
 
 /**

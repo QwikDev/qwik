@@ -149,9 +149,17 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
             let pathFilter: StaticGeneratePathFilter;
             if (typeof opts.ssg?.filter === 'function') {
               pathFilter = opts.ssg.filter;
-            } else {
-              // defaults to always render all paths
+            } else if (opts.ssg?.filter === 'all') {
+              // render all paths
               pathFilter = () => true;
+            } else {
+              // "auto" is the default
+              // determine if a path is static by checking if the render said it was static or not
+              pathFilter = ({ isStatic }) => {
+                // only keep if it's a static path
+                // returning false will skip the path from being written to disk
+                return !!isStatic;
+              };
             }
 
             const staticGenerate = await import('../../../static');

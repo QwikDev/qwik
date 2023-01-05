@@ -37,6 +37,7 @@ export const MEDIA = mediaObj({
     youtube('Construindo Apps instantâneos com Qwik', 'yrROy1vLwkE'),
     youtube('Après Angular : place à Qwik!', 'Ts2IWXMYiXk'),
     youtube('🇪🇸 Hablemos de Qwik', 'XMLMS2NVC1g'),
+    youtube('🇪🇸 Qwik el framework más rápido para aplicaciones web', 'On5P_xw8zSw'),
     youtube('🇪🇸 ¿Qué onda Qwik?', 'H7TL4SqcC3E'),
     youtube('Qwik: The Lightest, Fastest Way to Build Web Apps', 'l2mBk9meSvc'),
   ],

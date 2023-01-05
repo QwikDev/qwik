@@ -98,9 +98,9 @@ export async function buildQwikCity(config: BuildConfig) {
         require: './middleware/node/index.cjs',
       },
       './middleware/request-handler': {
-        types: './middleware/node/request-handler/index.d.ts',
-        import: './middleware/node/request-handler/index.mjs',
-        require: './middleware/node/request-handler/index.cjs',
+        types: './middleware/request-handler/index.d.ts',
+        import: './middleware/request-handler/index.mjs',
+        require: './middleware/request-handler/index.cjs',
       },
       './middleware/vercel-edge': {
         types: './middleware/vercel-edge/index.d.ts',

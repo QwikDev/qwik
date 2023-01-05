@@ -77,7 +77,7 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
     try {
       const url = getUrl(req);
 
-      if (isStaticPath(url)) {
+      if (isStaticPath(req.method || 'GET', url)) {
         const target = join(staticFolder, url.pathname);
         const stream = createReadStream(target);
 

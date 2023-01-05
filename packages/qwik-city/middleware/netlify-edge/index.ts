@@ -21,7 +21,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
     try {
       const url = new URL(request.url);
 
-      if (isStaticPath(url) || url.pathname.startsWith('/.netlify')) {
+      if (isStaticPath(request.method, url) || url.pathname.startsWith('/.netlify')) {
         // known static path, let netlify handle it
         return context.next();
       }

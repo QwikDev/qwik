@@ -22,11 +22,11 @@ export async function generate(opts: StaticGenerateOptions) {
 
 if (!isMainThread && workerData) {
   (async () => {
-    if (typeof TextEncoderStream === 'undefined') {
+    if (typeof globalThis.TextEncoderStream === 'undefined') {
       globalThis.TextEncoderStream = TextEncoderStream;
       globalThis.TextDecoderStream = TextDecoderStream;
     }
-    if (typeof WritableStream === 'undefined') {
+    if (typeof globalThis.WritableStream === 'undefined') {
       globalThis.WritableStream = WritableStream as any;
       globalThis.ReadableStream = ReadableStream as any;
     }

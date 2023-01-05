@@ -44,8 +44,8 @@ jobs:
               - 'packages/qwik/src/**/*.ts'
               - 'packages/qwik/src/**/*.tsx'
               - 'packages/qwik/src/**/*.rs'
-              - 'packages/qwik-city/src/**/*.ts'
-              - 'packages/qwik-city/src/**/*.tsx'
+              - 'packages/qwik-city/**/*.ts'
+              - 'packages/qwik-city/**/*.tsx'
               - 'packages/eslint-plugin-qwik/**/*.ts'
               - 'starters/apps/**/*.ts'
               - 'starters/apps/**/*.tsx'
@@ -177,6 +177,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - uses: jetli/wasm-pack-action@v0.3.0
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         with:
           version: 'v0.10.3'
 

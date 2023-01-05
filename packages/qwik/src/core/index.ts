@@ -108,6 +108,7 @@ export { useMount$, useMountQrl } from './use/use-mount';
 export { useServerMount$, useServerMountQrl } from './use/use-mount';
 export { useClientMount$, useClientMountQrl } from './use/use-mount';
 export { useErrorBoundary } from './use/use-error-boundary';
+export { useRender } from './use/use-render';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

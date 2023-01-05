@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.1.0-beta6",
+  "version": "0.1.0-beta8",
   "description": "The meta-framework for Qwik.",
   "main": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
@@ -103,7 +103,7 @@
     "yaml": "2.2.1"
   },
   "peerDependencies": {
-    "@builder.io/qwik": ">=0.16.0"
+    "@builder.io/qwik": ">=0.16.2"
   },
   "license": "MIT",
   "homepage": "https://qwik.builder.io/",

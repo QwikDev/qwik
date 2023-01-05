@@ -170,17 +170,26 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
     const writableStream = requestEv.getWritableStream();
     const pipe = readable.pipeTo(writableStream);
     const stream = writable.getWriter();
+    const status = requestEv.status();
     try {
       const result = await render({
         stream: stream,
         envData: getQwikCityEnvData(requestEv),
         ...opts,
       });
+      const qData: ClientPageData = {
+        loaders: getRequestLoaders(requestEv),
+        action: getRequestAction(requestEv),
+        status: status !== 200 ? status : 200,
+        href: getPathname(requestEv.url, true), // todo
+        isStatic: result.isStatic,
+      };
       if ((typeof result as any as RenderToStringResult).html === 'string') {
         // render result used renderToString(), so none of it was streamed
         // write the already completed html to the stream
         await stream.write((result as any as RenderToStringResult).html);
       }
+      requestEv.sharedMap.set('qData', qData);
     } finally {
       await stream.ready;
       await stream.close();

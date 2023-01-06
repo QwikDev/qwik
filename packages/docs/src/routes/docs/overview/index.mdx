@@ -7,6 +7,8 @@ contributors:
   - gabrielgrant
 ---
 
+import { SSRHint } from '@builder.io/qwik';
+
 import { getCommunity } from './community';
 
 # Welcome to Qwik
@@ -33,7 +35,9 @@ Qwik is a new kind of web framework that can deliver instant loading web applica
     <h3>API</h3>
   </a>
   <a class="card card-center" href="https://qwik.builder.io/chat">
-    <p class="icon">{getCommunity()}</p>
+    <SSRHint dynamic>
+      <p class="icon">{getCommunity()}</p>
+    </SSRHint>
     <h3>Community</h3>
   </a>
   <a class="card card-center" href="/qwikcity/overview/">

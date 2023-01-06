@@ -22,7 +22,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
     try {
       const url = new URL(request.url);
 
-      if (isStaticPath(url)) {
+      if (isStaticPath(request.method, url)) {
         // known static path, let cloudflare handle it
         return next();
       }

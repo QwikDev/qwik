@@ -391,7 +391,7 @@ jobs:
           if-no-files-found: error
 
       - name: Commit Build Artifacts
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        if: ${{ needs.changes.outputs.fullbuild == 'true' && github.event_name == 'push' }}
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         run: pnpm run qwik-save-artifacts

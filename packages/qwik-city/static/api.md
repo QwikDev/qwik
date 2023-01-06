@@ -22,6 +22,7 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
 export type StaticGeneratePathFilter = (filterOpts: {
     pathname: string;
     params: Record<string, string> | undefined;
+    isStatic: boolean | undefined;
 }) => boolean;
 
 // @alpha (undocumented)

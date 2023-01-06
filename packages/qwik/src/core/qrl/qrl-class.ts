@@ -59,7 +59,11 @@ export const createQRL = <TYPE>(
   refSymbol: string | null
 ): QRLInternal<TYPE> => {
   if (qDev) {
-    verifySerializable(captureRef);
+    if (captureRef) {
+      for (const item of captureRef) {
+        verifySerializable(item, 'Captured variable in the closure can not be serialized');
+      }
+    }
   }
 
   let _containerEl: Element | undefined;

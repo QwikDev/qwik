@@ -6,6 +6,8 @@ import { isArray, isFunction, isObject, isString } from '../../util/types';
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
 import { isQrl } from '../../qrl/qrl-class';
 import { invoke } from '../../use/use-core';
+import { verifySerializable } from '../../state/common';
+import { isQwikComponent } from '../../component/component.public';
 
 let warnClassname = false;
 
@@ -62,6 +64,12 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
               if (!isQrl(value) && !Array.isArray(value)) {
                 throw qError(QError_invalidJsxNodeType, type);
               }
+            }
+            if (prop !== 'children' && isQwikComponent(type) && value) {
+              verifySerializable(
+                value,
+                `The value of the JSX property "${prop}" can not be serialized`
+              );
             }
           }
         }

@@ -76,7 +76,10 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
   console.log(`### ${srcRepoRef}/${dstSHA}`);
   console.log('##############################################################');
   console.log('##############################################################');
+  const cwd = process.cwd();
   return async () => {
+    process.chdir(cwd);
+    console.log('PUSHING:', repo, `HEAD:${branch}`, 'in', cwd);
     await $('git', 'push', repo, `HEAD:${branch}`);
     await $('rm', '-rf', buildRepoDir);
   };

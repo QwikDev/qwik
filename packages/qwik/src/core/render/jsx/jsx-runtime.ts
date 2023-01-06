@@ -65,7 +65,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
                 throw qError(QError_invalidJsxNodeType, type);
               }
             }
-            if (isQwikComponent(type)) {
+            if (prop !== 'children' && isQwikComponent(type) && value) {
               verifySerializable(
                 value,
                 `The value of the JSX property "${prop}" can not be serialized`

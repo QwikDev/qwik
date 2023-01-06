@@ -1,8 +1,8 @@
 /**
  * Generated function which returns whether a given request past is a static path.
  *
- * @param method
- * @param url
+ * @param method - HTTP method
+ * @param url - HTTP request URL
  * @returns
  */
 export function isStaticPath(method: string, url: URL) {

@@ -8,6 +8,8 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const token = process.env.API_TOKEN_GITHUB;
 const root = join(__dirname, '..');
 const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
+const GITHUB_REF = process.env.GITHUB_REF;
+const PR_BRANCH = GITHUB_REF?.replace(/^refs\/pull\/(\d+)\/merge$/, (_, pr) => `pr_${pr}`);
 
 (async () => {
   const finishQwik = await prepare({
@@ -43,7 +45,10 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
   });
   process.chdir(join(root, 'dist-dev'));
   await $('git', 'clone', repo);
-  const branch = await $('git', 'branch', '--show-current');
+  const branch = PR_BRANCH || (await $('git', 'branch', '--show-current'));
+  if (!branch) {
+    throw new Error('No branch found.');
+  }
   const msg = await $('git', 'log', '--oneline', '-1', '--no-decorate');
   const userName = await $('git', 'log', '-1', "--pretty=format:'%an'");
   const userEmail = await $('git', 'log', '-1', "--pretty=format:'%ae'");

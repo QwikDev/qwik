@@ -6,7 +6,7 @@ import {
   useSignal,
   useStore,
   useClientEffect$,
-  useWatch$,
+  useTask$,
   Slot,
   useStyles$,
 } from '@builder.io/qwik';
@@ -102,6 +102,8 @@ export const Signals = component$(() => {
       <Issue2245 />
       <Issue2245B />
       <ComplexClassSignals />
+      <Issue2311 />
+      <Issue2344 />
     </div>
   );
 });
@@ -136,7 +138,7 @@ export const Child = component$((props: ChildProps) => {
         Stuff: {props.count}
       </div>
       <style>{props.styles}</style>
-      <textarea>{props.styles}</textarea>
+      <textarea id="textarea" value={props.styles}></textarea>
     </>
   );
 });
@@ -181,7 +183,7 @@ export const Issue1733 = component$(() => {
 
 export const SideEffect = component$(() => {
   const signal = useSignal('initial');
-  useWatch$(async () => {
+  useTask$(async () => {
     await delay(100);
     signal.value = 'set';
   });
@@ -510,5 +512,78 @@ export const ComplexClassSignals = component$(() => {
         Div with classes
       </div>
     </div>
+  );
+});
+
+type MyStore = {
+  condition: boolean;
+  text: string;
+};
+
+export const Issue2311 = component$(() => {
+  const store = useStore<MyStore>({
+    condition: false,
+    text: 'Hello',
+  });
+
+  useTask$(({ track }) => {
+    const v = track(() => store.condition);
+    if (v) {
+      store.text = 'Bye bye 👻';
+    }
+  });
+
+  return (
+    <div>
+      <h1>Weird DOM update bug?</h1>
+
+      <div>
+        <button
+          id="issue-2311-btn"
+          onClick$={() => {
+            store.condition = true;
+          }}
+        >
+          Make it so
+        </button>
+      </div>
+
+      <div id="issue-2311-results">
+        <p>This text should not change</p>
+        <>{store.condition ? <b>Done!</b> : <p>{store.text}</p>}</>
+
+        <p>This text should not change</p>
+        <>{store.condition ? <b>Done!</b> : <p>{store.text}</p>}</>
+
+        <p>This text should not change</p>
+        <>{store.condition ? <b>Done!</b> : <p>{store.text}</p>}</>
+
+        <p>This text should not change</p>
+        <>{store.condition ? <b>Done!</b> : <p>{store.text}</p>}</>
+
+        <p>This text should not change</p>
+        <>{store.condition ? <b>Done!</b> : <p>{store.text}</p>}</>
+      </div>
+    </div>
+  );
+});
+
+export const Issue2344 = component$(() => {
+  const classSig = useSignal('abc');
+  return (
+    <>
+      <textarea id="issue-2344-results" value="Content" rows={5}></textarea>
+      {classSig.value + ''}
+      <p>
+        <button
+          id="issue-2344-btn"
+          onClick$={() => {
+            classSig.value = 'bar';
+          }}
+        >
+          Should not error
+        </button>
+      </p>
+    </>
   );
 });

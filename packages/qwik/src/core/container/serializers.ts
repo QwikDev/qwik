@@ -6,11 +6,11 @@ import type { ContainerState, GetObject, MustGetObjID } from './container';
 import { isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
 import {
   isSubscriberDescriptor,
-  parseWatch,
+  parseTask,
   ResourceReturnInternal,
   serializeWatch,
   SubscriberEffect,
-} from '../use/use-watch';
+} from '../use/use-task';
 import { isDocument } from '../util/element';
 import { SignalImpl, SignalWrapper } from '../state/signal';
 import { Collector, collectSubscriptions, collectValue } from './pause';
@@ -105,7 +105,7 @@ const WatchSerializer: Serializer<SubscriberEffect> = {
     }
   },
   serialize: (obj, getObjId) => serializeWatch(obj, getObjId),
-  prepare: (data) => parseWatch(data) as any,
+  prepare: (data) => parseTask(data) as any,
   fill: (watch, getObject) => {
     watch.$el$ = getObject(watch.$el$ as any);
     watch.$qrl$ = getObject(watch.$qrl$ as any);
@@ -119,7 +119,7 @@ const ResourceSerializer: Serializer<ResourceReturnInternal<any>> = {
   prefix: '\u0004',
   test: (v) => isResourceReturn(v),
   collect: (obj, collector, leaks) => {
-    collectValue(obj.promise, collector, leaks);
+    collectValue(obj.value, collector, leaks);
     collectValue(obj._resolved, collector, leaks);
   },
   serialize: (obj, getObjId) => {
@@ -131,12 +131,12 @@ const ResourceSerializer: Serializer<ResourceReturnInternal<any>> = {
   fill: (resource, getObject) => {
     if (resource._state === 'resolved') {
       resource._resolved = getObject(resource._resolved);
-      resource.promise = Promise.resolve(resource._resolved);
+      resource.value = Promise.resolve(resource._resolved);
     } else if (resource._state === 'rejected') {
       const p = Promise.reject(resource._error);
       p.catch(() => null);
       resource._error = getObject(resource._error);
-      resource.promise = p;
+      resource.value = p;
     }
   },
 };
@@ -287,6 +287,40 @@ const NoFiniteNumberSerializer: Serializer<number> = {
   },
   fill: undefined,
 };
+
+const URLSearchParamsSerializer: Serializer<URLSearchParams> = {
+  prefix: '\u0015',
+  test: (v) => v instanceof URLSearchParams,
+  serialize: (obj) => obj.toString(),
+  prepare: (data) => new URLSearchParams(data),
+  fill: undefined,
+};
+
+const FormDataSerializer: Serializer<FormData> = {
+  prefix: '\u0016',
+  test: (v) => typeof FormData !== 'undefined' && v instanceof globalThis.FormData,
+  serialize: (formData) => {
+    const array: [string, string][] = [];
+    formData.forEach((value, key) => {
+      if (typeof value === 'string') {
+        array.push([key, value]);
+      } else {
+        array.push([key, value.name]);
+      }
+    });
+    return JSON.stringify(array);
+  },
+  prepare: (data) => {
+    const array = JSON.parse(data);
+    const formData = new FormData();
+    for (const [key, value] of array) {
+      formData.append(key, value);
+    }
+    return formData;
+  },
+  fill: undefined,
+};
+
 const serializers: Serializer<any>[] = [
   QRLSerializer,
   SignalSerializer,
@@ -301,6 +335,8 @@ const serializers: Serializer<any>[] = [
   ComponentSerializer,
   PureFunctionSerializer,
   NoFiniteNumberSerializer,
+  URLSearchParamsSerializer,
+  FormDataSerializer,
 ];
 
 const collectorSerializers = /*#__PURE__*/ serializers.filter((a) => a.collect);

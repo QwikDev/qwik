@@ -49,6 +49,11 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   const rejected = Promise.reject(new Error('failed message'));
   rejected.catch(() => null);
 
+  const formData = new FormData();
+  formData.append('name', 'qwik');
+  formData.append('age', '1');
+  formData.append('age', '2');
+
   const specialStrings = [
     '\b: backspace',
     '\f: form feed',
@@ -93,6 +98,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
   const infinite = Infinity;
   const negativeInfinite = -Infinity;
   const nan = NaN;
+  const urlSearchParams = new URLSearchParams('mph=88');
 
   const onclick = $(async () => {
     // eslint-disable-next-line
@@ -131,6 +137,9 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
           String(infinite),
           String(negativeInfinite),
           String(nan),
+          urlSearchParams.get('mph'),
+          formData.get('name'),
+          formData.getAll('age'),
         ]);
         state.count++;
       });

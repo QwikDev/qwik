@@ -22,6 +22,7 @@ export const MEDIA = mediaObj({
     youtube("Qwik… the world's first O(1) JavaScript framework?", 'x2eF3YLiNhY'),
     youtube('Qwik JS and the future of frameworks', 'z14c3u9q8rI'),
     youtube('Qwik: Under-The-Hood of a Resumable JavaScript Framework', 'BxGbnLb5i9Q'),
+    youtube('Qwik City for Resumable, Dynamic Apps', 'cJJdrYnsl6U'),
     youtube('Is Qwik + RxJS actually possible?', 'qKCX7Qz1oG8'),
     youtube('Qwik-ifying React SPA to create the fastest possible website', 'dbxP9FX5j2o'),
     youtube('Exploring Qwik, the Resumable Framework', 'gT5NWKZZPQM'),
@@ -36,7 +37,9 @@ export const MEDIA = mediaObj({
     youtube('Construindo Apps instantâneos com Qwik', 'yrROy1vLwkE'),
     youtube('Après Angular : place à Qwik!', 'Ts2IWXMYiXk'),
     youtube('🇪🇸 Hablemos de Qwik', 'XMLMS2NVC1g'),
+    youtube('🇪🇸 Qwik el framework más rápido para aplicaciones web', 'On5P_xw8zSw'),
     youtube('🇪🇸 ¿Qué onda Qwik?', 'H7TL4SqcC3E'),
+    youtube('Qwik: The Lightest, Fastest Way to Build Web Apps', 'l2mBk9meSvc'),
   ],
   podcasts: [
     youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc'),

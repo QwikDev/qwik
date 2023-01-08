@@ -6,10 +6,10 @@ import { isArray, isFunction, isObject, isSerializableObject } from '../util/typ
 import { isPromise } from '../util/promises';
 import { canSerialize } from '../container/serializers';
 import type { ContainerState, GetObject, GetObjID } from '../container/container';
-import { isSubscriberDescriptor, SubscriberEffect, SubscriberHost } from '../use/use-watch';
+import { isSubscriberDescriptor, SubscriberEffect, SubscriberHost } from '../use/use-task';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { notifyChange } from '../render/dom/notify-render';
-import { logError } from '../util/log';
+import { createError, logError } from '../util/log';
 import { tryGetContext } from './context';
 import { QObjectFlagsSymbol, QObjectManagerSymbol, QOjectTargetSymbol } from './constants';
 
@@ -22,12 +22,12 @@ export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
 export type TargetType = Record<string | symbol, any>;
 
-export const verifySerializable = <T>(value: T): T => {
+export const verifySerializable = <T>(value: T, preMessage?: string): T => {
   const seen = new Set();
-  return _verifySerializable(value, seen);
+  return _verifySerializable(value, seen, '_', preMessage);
 };
 
-const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
+const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessage?: string): T => {
   const unwrapped = unwrapProxy(value);
   if (unwrapped == null) {
     return value;
@@ -40,20 +40,27 @@ const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
     if (canSerialize(unwrapped)) {
       return value;
     }
-    switch (typeof unwrapped) {
+    const typeObj = typeof unwrapped;
+    switch (typeObj) {
       case 'object':
         if (isPromise(unwrapped)) return value;
         if (isQwikElement(unwrapped)) return value;
         if (isDocument(unwrapped)) return value;
         if (isArray(unwrapped)) {
-          for (const item of unwrapped) {
-            _verifySerializable(item, seen);
-          }
+          let expectIndex = 0;
+          // Make sure the array has no holes
+          unwrapped.forEach((v, i) => {
+            if (i !== expectIndex) {
+              throw qError(QError_verifySerializable, unwrapped);
+            }
+            _verifySerializable(v, seen, ctx + '[' + i + ']');
+            expectIndex = i + 1;
+          });
           return value;
         }
         if (isSerializableObject(unwrapped)) {
-          for (const item of Object.values(unwrapped)) {
-            _verifySerializable(item, seen);
+          for (const [key, item] of Object.entries(unwrapped)) {
+            _verifySerializable(item, seen, ctx + '.' + key);
           }
           return value;
         }
@@ -63,7 +70,25 @@ const _verifySerializable = <T>(value: T, seen: Set<any>): T => {
       case 'number':
         return value;
     }
-    throw qError(QError_verifySerializable, unwrapped);
+    let message = '';
+    if (preMessage) {
+      message = preMessage;
+    } else {
+      message = 'Value cannot be serialized';
+    }
+    if (ctx !== '_') {
+      message += ` in ${ctx},`;
+    }
+    if (typeObj === 'object') {
+      message += ` because it's an instance of "${value?.constructor.name}". You might need to use 'noSerialize()' or use an object literal instead. Check out https://qwik.builder.io/docs/advanced/dollar/`;
+    } else if (typeObj === 'function') {
+      const fnName = (value as Function).name;
+      message += ` because it's a function named "${fnName}". You might need to convert it to a QRL using $(fn):\n\nconst ${fnName} = $(${String(
+        value
+      )});\n\nPlease check out https://qwik.builder.io/docs/advanced/qrl/ for more information.`;
+    }
+    console.error('Trying to serialize', value);
+    throw createError(message);
   }
   return value;
 };

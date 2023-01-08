@@ -15,6 +15,8 @@ import {
   setPreference,
   ThemeToggle,
 } from '../theme-toggle/theme-toggle';
+import BuilderContentComp from '../../components/builder-content';
+import { BUILDER_MODEL, BUILDER_PUBLIC_API_KEY } from '../../constants';
 
 export const Header = component$(() => {
   useStyles$(styles);
@@ -31,10 +33,11 @@ export const Header = component$(() => {
 
   return (
     <header class="header-container">
+      <BuilderContentComp apiKey={BUILDER_PUBLIC_API_KEY} model={BUILDER_MODEL} tag="div" />
       <div class="header-inner">
         <div class="header-logo">
           <a href="/">
-            <span className="sr-only">Qwik Homepage</span>
+            <span class="sr-only">Qwik Homepage</span>
             <QwikLogo width={180} height={50} />
           </a>
         </div>
@@ -54,7 +57,7 @@ export const Header = component$(() => {
             <CloseIcon width={30} height={30} />
           </span>
         </button>
-        <ul className="md:grow md:flex md:justify-end md:p-4 menu-toolkit">
+        <ul class="md:grow md:flex md:justify-end md:p-4 menu-toolkit">
           <li>
             <a href="/docs/overview/" class={{ active: pathname.startsWith('/docs') }}>
               <span>Docs</span>
@@ -63,6 +66,14 @@ export const Header = component$(() => {
           <li>
             <a href="/qwikcity/overview/" class={{ active: pathname.startsWith('/qwikcity') }}>
               <span>Qwik City</span>
+            </a>
+          </li>
+          <li>
+            <a
+              href="/integrations/integration/overview/"
+              class={{ active: pathname.startsWith('/integrations') }}
+            >
+              <span>Integrations</span>
             </a>
           </li>
           <li>

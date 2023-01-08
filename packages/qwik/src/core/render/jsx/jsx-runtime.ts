@@ -1,11 +1,13 @@
 import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
-import { logWarn } from '../../util/log';
-import { isFunction, isObject, isString } from '../../util/types';
+import { filterStack, logError, logWarn } from '../../util/log';
+import { isArray, isFunction, isObject, isString } from '../../util/types';
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
 import { isQrl } from '../../qrl/qrl-class';
 import { invoke } from '../../use/use-core';
+import { verifySerializable } from '../../state/common';
+import { isQwikComponent } from '../../component/component.public';
 
 let warnClassname = false;
 
@@ -37,6 +39,24 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
         if (!isString(type) && !isFunction(type)) {
           throw qError(QError_invalidJsxNodeType, type);
         }
+        if (isArray((props as any).children)) {
+          const keys: Record<string, boolean> = {};
+          (props as any).children.flat().forEach((child: any) => {
+            if (isJSXNode(child) && child.key != null) {
+              if (keys[child.key]) {
+                const err = createJSXError(
+                  `Multiple JSX sibling nodes with the same key.\nThis is likely caused by missing a custom key in a for loop`,
+                  child
+                );
+                if (err) {
+                  logError(err);
+                }
+              } else {
+                keys[child.key] = true;
+              }
+            }
+          });
+        }
         if (!qRuntimeQrl && props) {
           for (const prop of Object.keys(props)) {
             const value = (props as any)[prop];
@@ -44,6 +64,12 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
               if (!isQrl(value) && !Array.isArray(value)) {
                 throw qError(QError_invalidJsxNodeType, type);
               }
+            }
+            if (prop !== 'children' && isQwikComponent(type) && value) {
+              verifySerializable(
+                value,
+                `The value of the JSX property "${prop}" can not be serialized`
+              );
             }
           }
         }
@@ -102,6 +128,7 @@ export const jsxDEV = <T extends string | FunctionComponent<any>>(
   node.dev = {
     isStatic,
     ctx,
+    stack: new Error().stack,
     ...opts,
   };
   seal(node);
@@ -109,5 +136,30 @@ export const jsxDEV = <T extends string | FunctionComponent<any>>(
 };
 
 export type { QwikJSX as JSX };
+
+const ONCE_JSX = new Set<string>();
+
+export const createJSXError = (message: string, node: JSXNode) => {
+  const error = new Error(message);
+  if (!node.dev) {
+    return error;
+  }
+  const id = node.dev.fileName;
+  const key = `${message}${id}:${node.dev.lineNumber}:${node.dev.columnNumber}`;
+  if (ONCE_JSX.has(key)) {
+    return undefined;
+  }
+  Object.assign(error, {
+    id,
+    loc: {
+      file: id,
+      column: node.dev.columnNumber,
+      line: node.dev.lineNumber,
+    },
+  });
+  error.stack = `JSXError: ${message}\n${filterStack(node.dev.stack!, 1)}`;
+  ONCE_JSX.add(key);
+  return error;
+};
 
 export { jsx as jsxs };

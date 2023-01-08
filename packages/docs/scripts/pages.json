@@ -4,17 +4,22 @@
     "tags": "saas"
   },
   {
-    "href": "https://cursos.codigoencasa.com/node",
-    "tags": "learning"
+    "href": "https://shaunchander.me",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://img-models.vercel.app/",
+    "tags": "ecommerce"
   },
   {
     "href": "https://qwik-storefront.vendure.io/",
     "tags": "ecommerce"
   },
   {
-    "href": "https://www.imgmodels.com/",
-    "size": "large",
-    "tags": "ecommerce"
+    "href": "https://qwind.pages.dev/",
+    "tags": "template",
+    "repo": "https://github.com/onwidget/qwind",
+    "size": "large"
   },
   {
     "href": "https://soundy.cloud/",
@@ -48,6 +53,10 @@
   {
     "href": "https://jbnado.dev/",
     "tags": "portfolio"
+  },
+  {
+    "href": "https://cursos.codigoencasa.com/node",
+    "tags": "learning"
   },
   {
     "href": "https://reduced.to",

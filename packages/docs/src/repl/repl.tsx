@@ -4,7 +4,7 @@ import {
   noSerialize,
   useStyles$,
   useStore,
-  useWatch$,
+  useTask$,
   useClientEffect$,
   $,
 } from '@builder.io/qwik';
@@ -49,7 +49,7 @@ export const Repl = component$((props: ReplProps) => {
     return initStore;
   });
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     track(() => input.files);
 
     if (!input.files.some((i) => i.path === props.selectedInputPath) && input.files.length > 0) {
@@ -90,7 +90,7 @@ export const Repl = component$((props: ReplProps) => {
     }
   });
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     track(() => input.buildId);
     track(() => input.buildMode);
     track(() => input.entryStrategy);

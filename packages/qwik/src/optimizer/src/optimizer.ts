@@ -67,20 +67,23 @@ const transformFsAsync = async (
     input.forEach((file) => {
       file.path = sys.path.relative(fsOpts.srcDir, file.path);
     });
-    const modulesOpts: TransformModulesOptions = {
+    const modulesOpts: Required<TransformModulesOptions> = {
       srcDir: fsOpts.srcDir,
-      entryStrategy: fsOpts.entryStrategy,
-      minify: fsOpts.minify,
-      sourceMaps: fsOpts.sourceMaps,
-      transpileTs: fsOpts.transpileTs,
-      transpileJsx: fsOpts.transpileJsx,
-      explicitExtensions: fsOpts.explicitExtensions,
-      preserveFilenames: fsOpts.preserveFilenames,
-      mode: fsOpts.mode,
-      scope: fsOpts.scope,
+      entryStrategy: fsOpts.entryStrategy!,
+      minify: fsOpts.minify!,
+      sourceMaps: fsOpts.sourceMaps!,
+      transpileTs: fsOpts.transpileTs!,
+      transpileJsx: fsOpts.transpileJsx!,
+      explicitExtensions: fsOpts.explicitExtensions!,
+      preserveFilenames: fsOpts.preserveFilenames!,
+      mode: fsOpts.mode!,
+      scope: fsOpts.scope!,
       input,
+      stripCtxKind: fsOpts.stripCtxKind!,
+      stripCtxName: fsOpts.stripCtxName!,
+      stripExports: fsOpts.stripExports!,
+      isServer: fsOpts.isServer!,
     };
-
     return binding.transform_modules(convertOptions(modulesOpts));
   }
 
@@ -101,6 +104,7 @@ const convertOptions = (opts: any) => {
     stripExports: undefined,
     stripCtxName: undefined,
     stripCtxKind: undefined,
+    isServer: undefined,
   };
   Object.entries(opts).forEach(([key, value]) => {
     if (value != null) {

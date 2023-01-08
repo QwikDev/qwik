@@ -40,11 +40,11 @@ export const validLexicalScope = createRule({
 
     messages: {
       referencesOutside:
-        'Identifier ("{{varName}}") can not be captured inside the scope ({{dollarName}}) because {{reason}}. Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+        'Identifier ("{{varName}}") can not be captured inside the scope ({{dollarName}}) because {{reason}}. Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
       unvalidJsxDollar:
         'JSX attributes that end with $ can only take an inlined arrow function of a QRL identifier. Make sure the value is created using $()',
       mutableIdentifier:
-        'The value of the identifier ("{{varName}}") can not be changed once it is captured the scope ({{dollarName}}). Check out https://qwik.builder.io/docs/advanced/optimizer for more details.',
+        'The value of the identifier ("{{varName}}") can not be changed once it is captured the scope ({{dollarName}}). Check out https://qwik.builder.io/docs/advanced/dollar/ for more details.',
     },
   },
   create(context) {
@@ -369,16 +369,7 @@ function _isTypeCapturable(
     if (type.getProperty('activeElement')) {
       return;
     }
-    if (symbolName === 'Promise') {
-      return;
-    }
-    if (symbolName === 'URL') {
-      return;
-    }
-    if (symbolName === 'RegExp') {
-      return;
-    }
-    if (symbolName === 'Date') {
+    if (ALLOWED_CLASSES[symbolName]) {
       return;
     }
     if (type.isClass()) {
@@ -447,5 +438,15 @@ function getTypesOfTupleType(
 }
 
 function isTypeQRL(type: ts.Type): boolean {
-  return !!type.getProperty('__brand__QRL__');
+  return !!(type.flags & ts.TypeFlags.Any) || !!type.getProperty('__brand__QRL__');
 }
+
+const ALLOWED_CLASSES = {
+  Promise: true,
+  URL: true,
+  RegExp: true,
+  Date: true,
+  FormData: true,
+  URLSearchParams: true,
+  Error: true,
+};

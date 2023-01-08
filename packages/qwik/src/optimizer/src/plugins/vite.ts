@@ -23,6 +23,7 @@ import {
   QWIK_JSX_RUNTIME_ID,
   CLIENT_OUT_DIR,
   QWIK_JSX_DEV_RUNTIME_ID,
+  SSR_OUT_DIR,
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { configureDevServer, configurePreviewServer, VITE_DEV_CLIENT_QS } from './vite-server';
@@ -41,6 +42,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let viteCommand: 'build' | 'serve' = 'serve';
   let manifestInput: QwikManifest | null = null;
   let clientOutDir: string | null = null;
+  let ssrOutDir: string | null = null;
   const injections: GlobalInjections[] = [];
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
@@ -118,6 +120,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         forceFullBuild,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
         outDir: viteConfig.build?.outDir,
+        devTools: qwikViteOpts.devTools,
       };
 
       if (target === 'ssr') {
@@ -174,7 +177,15 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // Client build will write to this path, and SSR will read from it. For this reason,
         // the Client build should always start and finish before the SSR build.
         const nodeOs: typeof import('os') = await sys.dynamicImport('node:os');
-        tmpClientManifestPath = path.join(nodeOs.tmpdir(), `vite-plugin-qwik-q-manifest.json`);
+
+        // Additionally, we add a suffix to scope the file to the current application so that
+        // different applications can be run in parallel without generating conflicts.
+        const scopeSuffix = pluginOpts.scope ? `-${pluginOpts.scope.replace(/\//g, '--')}` : '';
+
+        tmpClientManifestPath = path.join(
+          nodeOs.tmpdir(),
+          `vite-plugin-qwik-q-manifest${scopeSuffix}.json`
+        );
 
         if (target === 'ssr' && !pluginOpts.manifestInput) {
           // This is a SSR build so we should load the client build's manifest
@@ -194,6 +205,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       clientOutDir = qwikPlugin.normalizePath(
         sys.path.resolve(opts.rootDir, qwikViteOpts.client?.outDir || CLIENT_OUT_DIR)
+      );
+
+      ssrOutDir = qwikPlugin.normalizePath(
+        sys.path.resolve(opts.rootDir, qwikViteOpts.ssr?.outDir || SSR_OUT_DIR)
       );
 
       // TODO: Remove globalThis that was previously used. Left in for backwards compatibility.
@@ -228,6 +243,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           exclude: [
             '@vite/client',
             '@vite/env',
+            'node-fetch',
+            'undici',
             QWIK_CORE_ID,
             QWIK_JSX_RUNTIME_ID,
             QWIK_JSX_DEV_RUNTIME_ID,
@@ -243,9 +260,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             input: opts.input,
             preserveEntrySignatures: 'exports-only',
             output: normalizeRollupOutputOptions(path, opts, {}),
-            treeshake: {
-              moduleSideEffects: false,
-            },
             onwarn: (warning, warn) => {
               if (
                 warning.plugin === 'typescript' &&
@@ -266,13 +280,20 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       };
 
       if (buildMode === 'development') {
-        (globalThis as any).qDev = true;
         const qDevKey = 'globalThis.qDev';
+        const qInspectorKey = 'globalThis.qInspector';
         const qSerializeKey = 'globalThis.qSerialize';
+        const qDev = viteConfig?.define?.[qDevKey] ?? true;
+        const qInspector = viteConfig?.define?.[qInspectorKey] ?? true;
+        const qSerialize = viteConfig?.define?.[qSerializeKey] ?? true;
+
         updatedViteConfig.define = {
-          [qDevKey]: viteConfig?.define?.[qDevKey] ?? true,
-          [qSerializeKey]: viteConfig?.define?.[qSerializeKey] ?? true,
+          [qDevKey]: qDev,
+          [qInspectorKey]: qInspector,
+          [qSerializeKey]: qSerialize,
         };
+        (globalThis as any).qDev = qDev;
+        (globalThis as any).qInspector = qInspector;
       }
 
       if (opts.target === 'ssr') {
@@ -300,9 +321,12 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // Test Build
         const qDevKey = 'globalThis.qDev';
         const qTestKey = 'globalThis.qTest';
+        const qInspectorKey = 'globalThis.qInspector';
+
         updatedViteConfig.define = {
           [qDevKey]: true,
           [qTestKey]: true,
+          [qInspectorKey]: false,
         };
       }
 
@@ -517,10 +541,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     configurePreviewServer(server) {
       return async () => {
-        const opts = qwikPlugin.getOptions();
         const sys = qwikPlugin.getSys();
         const path = qwikPlugin.getPath();
-        await configurePreviewServer(server.middlewares, opts, sys, path);
+        await configurePreviewServer(server.middlewares, ssrOutDir!, sys, path);
       };
     },
 
@@ -723,6 +746,16 @@ export interface QwikVitePluginOptions {
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
+  devTools?: {
+    /**
+     * Press-hold the defined keys to enable qwik dev inspector.
+     * By default the behavior is activated by pressing the left or right `Alt` key.
+     * If set to `false`, qwik dev inspector will be disabled.
+     * Valid values are `KeyboardEvent.code` values.
+     * Please note that the 'Left' and 'Right' suffixes are ignored.
+     */
+    clickToSource: string[] | false;
+  };
 }
 
 /**

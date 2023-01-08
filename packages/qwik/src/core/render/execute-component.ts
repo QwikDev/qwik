@@ -4,6 +4,7 @@ import { safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { isArray, isString, ValueOrPromise } from '../util/types';
 import type { JSXNode } from './jsx/types/jsx-node';
+import type { ClassList } from './jsx/types/jsx-qwik-attributes';
 import type { RenderContext } from './types';
 import { ContainerState, intToStr } from '../container/container';
 import { fromCamelToKebabCase } from '../util/case';
@@ -26,6 +27,7 @@ export const executeComponent = (
   elCtx.$flags$ &= ~HOST_FLAG_DIRTY;
   elCtx.$flags$ |= HOST_FLAG_MOUNTED;
   elCtx.$slots$ = [];
+  elCtx.$extraRender$ = null;
   elCtx.li.length = 0;
 
   const hostElement = elCtx.$element$;
@@ -63,7 +65,7 @@ export const executeComponent = (
             return executeComponent(rCtx, elCtx);
           }
           return {
-            node: jsxNode,
+            node: addExtraItems(jsxNode, elCtx),
             rCtx: newCtx,
           };
         });
@@ -72,7 +74,7 @@ export const executeComponent = (
         return executeComponent(rCtx, elCtx);
       }
       return {
-        node: jsxNode,
+        node: addExtraItems(jsxNode, elCtx),
         rCtx: newCtx,
       };
     },
@@ -84,6 +86,13 @@ export const executeComponent = (
       };
     }
   );
+};
+
+export const addExtraItems = (node: JSXNode | null, elCtx: QContext): JSXNode | null => {
+  if (elCtx.$extraRender$) {
+    return [node, elCtx.$extraRender$] as any as JSXNode;
+  }
+  return node;
 };
 
 export const createRenderContext = (
@@ -119,9 +128,7 @@ export const pushRenderContext = (ctx: RenderContext): RenderContext => {
   return newCtx;
 };
 
-export const serializeClass = (
-  obj: string | { [className: string]: boolean } | (string | { [className: string]: boolean })[]
-): string => {
+export const serializeClass = (obj: ClassList): string => {
   if (!obj) return '';
   if (isString(obj)) return obj.trim();
 
@@ -151,7 +158,7 @@ export const stringifyStyle = (obj: any): string => {
       for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           const value = obj[key];
-          if (value) {
+          if (value != null) {
             const normalizedKey = key.startsWith('--') ? key : fromCamelToKebabCase(key);
             chunks.push(normalizedKey + ':' + value);
           }

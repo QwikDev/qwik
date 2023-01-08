@@ -126,7 +126,7 @@ test.describe('signals', () => {
   });
 
   test('issue 2000', async ({ page }) => {
-    const textArea = page.locator('textarea');
+    const textArea = page.locator('#textarea');
     await expect(textArea).toHaveText('body { background: white}');
   });
 
@@ -219,5 +219,45 @@ test.describe('signals', () => {
     await expect(results).toHaveClass('initial visible');
     await btn.click();
     await expect(results).toHaveClass('change hidden');
+  });
+
+  test('issue 2311', async ({ page }) => {
+    const btn = page.locator('#issue-2311-btn');
+    const results = page.locator('#issue-2311-results > *');
+    await expect(results).toHaveText([
+      'This text should not change',
+      'Hello',
+      'This text should not change',
+      'Hello',
+      'This text should not change',
+      'Hello',
+      'This text should not change',
+      'Hello',
+      'This text should not change',
+      'Hello',
+    ]);
+
+    await btn.click();
+
+    await expect(results).toHaveText([
+      'This text should not change',
+      'Done!',
+      'This text should not change',
+      'Done!',
+      'This text should not change',
+      'Done!',
+      'This text should not change',
+      'Done!',
+      'This text should not change',
+      'Done!',
+    ]);
+  });
+
+  test('issue 2344', async ({ page }) => {
+    const btn = page.locator('#issue-2344-btn');
+    const results = page.locator('#issue-2344-results');
+    await expect(results).toHaveText('Content');
+    await btn.click();
+    await expect(results).toHaveText('Content');
   });
 });

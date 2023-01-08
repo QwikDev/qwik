@@ -28,7 +28,7 @@ export default component$(() => {
 
       <ul class="grid">
         {pages.map((entry) => (
-          <SiteLink entry={entry as any} />
+          <SiteLink entry={entry as any} key={entry.href} />
         ))}
       </ul>
       <section>

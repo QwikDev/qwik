@@ -4,11 +4,13 @@ import type {
   StaticWorkerRenderResult,
   System,
 } from './types';
-import type { QwikCityRequestContext } from '../middleware/request-handler/types';
-import type { RequestContext } from '../runtime/src/types';
-import { createHeaders } from '../middleware/request-handler/headers';
-import { requestHandler } from '../middleware/request-handler';
+import type {
+  ServerRequestEvent,
+  RequestContext,
+} from '@builder.io/qwik-city/middleware/request-handler';
+import { createHeaders, requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { pathToFileURL } from 'node:url';
+import { WritableStream } from 'node:stream/web';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
@@ -53,86 +55,84 @@ async function workerRender(
     url: url.href,
     ok: false,
     error: null,
-    isStatic: false,
+    isStatic: true,
   };
+
+  const htmlFilePath = sys.getPageFilePath(staticRoute.pathname);
+  const dataFilePath = sys.getDataFilePath(staticRoute.pathname);
+
+  const writeHtmlEnabled = opts.emitHtml !== false;
+  const writeDataEnabled = opts.emitData !== false && !!dataFilePath;
+
+  if (writeHtmlEnabled || writeDataEnabled) {
+    await sys.ensureDir(htmlFilePath);
+  }
 
   try {
     const request = new SsgRequestContext(url);
 
-    const requestCtx: QwikCityRequestContext<void> = {
+    const requestCtx: ServerRequestEvent<void> = {
       mode: 'static',
       locale: undefined,
       url,
       request,
-      response: async (status, headers, _, body, err) => {
-        if (err) {
-          if (err.stack) {
-            result.error = String(err.stack);
-          } else if (err.message) {
-            result.error = String(err.message);
-          } else {
-            result.error = String(err);
-          }
-        } else {
-          result.ok =
-            status >= 200 &&
-            status <= 299 &&
-            (headers.get('Content-Type') || '').includes('text/html');
+      getWritableStream: (status, headers, _, _r, requestEv) => {
+        // if (err) {
+        //   if (err.stack) {
+        //     result.error = String(err.stack);
+        //   } else if (err.message) {
+        //     result.error = String(err.message);
+        //   } else {
+        //     result.error = String(err);
+        //   }
+        // } else {
+        result.ok =
+          status >= 200 &&
+          status <= 299 &&
+          (headers.get('Content-Type') || '').includes('text/html');
+        // }
+
+        if (!result.ok) {
+          return noopWriter;
         }
 
-        if (result.ok) {
-          const htmlFilePath = sys.getPageFilePath(staticRoute.pathname);
-          const dataFilePath = sys.getDataFilePath(staticRoute.pathname);
-
-          const writeHtmlEnabled = opts.emitHtml !== false;
-          const writeDataEnabled = opts.emitData !== false && !!dataFilePath;
-
-          if (writeHtmlEnabled || writeDataEnabled) {
-            await sys.ensureDir(htmlFilePath);
-          }
-
-          return new Promise((resolve) => {
-            const htmlWriter = writeHtmlEnabled ? sys.createWriteStream(htmlFilePath) : null;
-            const dataWriter = writeDataEnabled ? sys.createWriteStream(dataFilePath) : null;
-
-            body({
-              write: (chunk) => {
-                // page html writer
-                if (htmlWriter) {
-                  htmlWriter.write(chunk);
-                }
-              },
-              clientData: (data) => {
-                // page data writer
-                if (dataWriter) {
-                  dataWriter.write(JSON.stringify(data));
-                }
+        const htmlWriter = writeHtmlEnabled ? sys.createWriteStream(htmlFilePath) : null;
+        const stream = new WritableStream<Uint8Array>({
+          write(chunk) {
+            // page html writer
+            if (htmlWriter) {
+              htmlWriter.write(Buffer.from(chunk.buffer));
+            }
+          },
+          close() {
+            if (writeDataEnabled) {
+              const data = requestEv.sharedMap.get('qData');
+              if (data) {
                 if (typeof data.isStatic === 'boolean') {
                   result.isStatic = data.isStatic;
                 }
-              },
-            }).finally(() => {
-              if (htmlWriter) {
-                if (dataWriter) {
-                  dataWriter.close();
-                }
-                htmlWriter.close(resolve);
-              } else if (dataWriter) {
-                dataWriter.close(resolve);
-              } else {
-                resolve();
+                const dataWriter = sys.createWriteStream(dataFilePath);
+                dataWriter.write(JSON.stringify(data));
+                dataWriter.end();
               }
-            });
-          });
-        }
+            }
+            if (requestEv.sharedMap.get('qData'))
+              return new Promise<void>((resolve) => {
+                if (htmlWriter) {
+                  htmlWriter.end(resolve);
+                }
+              });
+          },
+        });
+        return stream;
       },
       platform: sys.platform,
     };
 
     const promise = requestHandler(requestCtx, opts)
       .then((rsp) => {
-        if (rsp == null) {
-          callback(result);
+        if (rsp != null) {
+          return rsp.completion;
         }
       })
       .catch((e) => {
@@ -147,10 +147,10 @@ async function workerRender(
         } else {
           result.error = `Error`;
         }
-        callback(result);
       })
       .finally(() => {
         pendingPromises.delete(promise);
+        callback(result);
       });
 
     pendingPromises.add(promise);
@@ -169,6 +169,11 @@ async function workerRender(
     callback(result);
   }
 }
+
+const noopWriter = /*#__PURE__*/ new WritableStream({
+  write() {},
+  close() {},
+});
 
 class SsgRequestContext implements RequestContext {
   url: string;

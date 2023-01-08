@@ -284,14 +284,14 @@ importers:
       '@builder.io/qwik': workspace:*
       '@builder.io/solid-example': workspace:*
       solid-js: ^1.6.2
-      typescript: 4.8.4
-      vite: 3.2.3
+      typescript: 4.9.4
+      vite: 4.0.3
     devDependencies:
       '@builder.io/qwik': link:../qwik
       '@builder.io/solid-example': link:../solid-example
       solid-js: 1.6.2
-      typescript: 4.8.4
-      vite: 3.2.3
+      typescript: 4.9.4
+      vite: 4.0.3
 
   packages/solid-example:
     specifiers:
@@ -7601,7 +7601,7 @@ packages:
       merge-anything: 5.1.3
       rollup: 2.79.1
       rollup-plugin-terser: 7.0.2_rollup@2.79.1
-      typescript: 4.8.4
+      typescript: 4.9.4
     transitivePeerDependencies:
       - '@types/babel__core'
       - supports-color
@@ -8447,39 +8447,6 @@ packages:
     transitivePeerDependencies:
       - supports-color
       - typescript
-    dev: true
-
-  /vite/3.2.3:
-    resolution: {integrity: sha512-h8jl1TZ76eGs3o2dIBSsvXDLb1m/Ec1iej8ZMdz+PsaFUsftZeWe2CZOI3qogEsMNaywc17gu0q6cQDzh/weCQ==}
-    engines: {node: ^14.18.0 || >=16.0.0}
-    hasBin: true
-    peerDependencies:
-      '@types/node': '>= 14'
-      less: '*'
-      sass: '*'
-      stylus: '*'
-      sugarss: '*'
-      terser: ^5.4.0
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-      less:
-        optional: true
-      sass:
-        optional: true
-      stylus:
-        optional: true
-      sugarss:
-        optional: true
-      terser:
-        optional: true
-    dependencies:
-      esbuild: 0.15.16
-      postcss: 8.4.20
-      resolve: 1.22.1
-      rollup: 2.79.1
-    optionalDependencies:
-      fsevents: 2.3.2
     dev: true
 
   /vite/4.0.3:

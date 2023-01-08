@@ -20,8 +20,8 @@
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",
     "@builder.io/solid-example": "workspace:*",
-    "typescript": "4.8.4",
-    "vite": "3.2.3",
+    "typescript": "4.9.4",
+    "vite": "4.0.3",
     "solid-js": "^1.6.2"
   },
   "peerDependencies": {
@@ -37,10 +37,16 @@
       "import": "./lib/index.qwik.mjs",
       "require": "./lib/index.qwik.cjs",
       "types": "./lib/types/index.d.ts"
+    },
+    "./vite": {
+      "import": "./lib/vite.mjs",
+      "require": "./lib/vite.cjs",
+      "types": "./lib/types/vite.d.ts"
     }
   },
   "files": [
-    "lib"
+    "lib",
+    "vite"
   ],
   "license": "MIT",
   "homepage": "https://qwik.builder.io/",
@@ -55,5 +61,5 @@
   "type": "module",
   "main": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
-  "types": "./lib/types/index.d.ts"
+  "types": "./lib/types/index.qwik.d.ts"
 }

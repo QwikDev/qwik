@@ -1,5 +1,4 @@
 import {
-  $,
   component$,
   implicit$FirstArg,
   noSerialize,
@@ -10,7 +9,7 @@ import {
   Slot,
   useSignal,
   useStylesScoped$,
-  useWatch$,
+  useTask$,
 } from '@builder.io/qwik';
 import { isBrowser, isServer } from '@builder.io/qwik/build';
 import { renderFromServer } from './server-render';
@@ -36,7 +35,7 @@ export function qwikifyQrl<PROPS extends {}>(
     const TagName = opts?.tagName ?? ('qwik-solid' as any);
 
     // Watch takes cares of updates and partial hydration
-    useWatch$(async ({ track }) => {
+    useTask$(async ({ track }) => {
       const trackedProps = track(() => ({ ...props }));
       track(signal);
 

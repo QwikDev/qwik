@@ -4,7 +4,7 @@ import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import type {
   StaticGenerateOptions,
   StaticGenerateRenderOptions,
-  StaticGenerateResult,
+  StaticGeneratePathFilter,
 } from '@builder.io/qwik-city/static';
 import type { BuildRoute } from '../../../buildtime/types';
 import fs from 'node:fs';
@@ -19,6 +19,7 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
   let qwikCityPlanModulePath: string | null = null;
   let isSsrBuild = false;
   let format = 'esm';
+  const outputEntries: string[] = [];
 
   const plugin: Plugin = {
     name: `vite-plugin-qwik-city-${opts.name}`,
@@ -69,9 +70,13 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
 
     generateBundle(_, bundles) {
       if (isSsrBuild) {
+        outputEntries.length = 0;
+
         for (const fileName in bundles) {
           const chunk = bundles[fileName];
           if (chunk.type === 'chunk' && chunk.isEntry) {
+            outputEntries.push(fileName);
+
             if (chunk.name === 'entry.ssr') {
               renderModulePath = join(serverOutDir!, fileName);
             } else if (chunk.name === '@qwik-city-plan') {
@@ -85,6 +90,7 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
             'Unable to find "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?'
           );
         }
+
         if (!qwikCityPlanModulePath) {
           throw new Error(
             'Unable to find "@qwik-city-plan" entry point. Did you forget to add it to "build.rollupOptions.input"?'
@@ -96,44 +102,79 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
     closeBundle: {
       sequential: true,
       async handler() {
-        if (isSsrBuild && serverOutDir && qwikCityPlugin?.api && qwikVitePlugin?.api) {
+        if (
+          isSsrBuild &&
+          opts.ssg !== null &&
+          serverOutDir &&
+          qwikCityPlugin?.api &&
+          qwikVitePlugin?.api
+        ) {
           const staticPaths: string[] = opts.staticPaths || [];
           const routes = qwikCityPlugin.api.getRoutes();
           const basePathname = qwikCityPlugin.api.getBasePathname();
           const clientOutDir = qwikVitePlugin.api.getClientOutDir()!;
 
-          let staticGenerateResult: StaticGenerateResult | null = null;
-          if (opts.staticGenerate && renderModulePath && qwikCityPlanModulePath) {
-            let origin = opts.origin;
-            if (!origin) {
-              origin = `https://yoursite.qwik.builder.io`;
+          if (renderModulePath && qwikCityPlanModulePath && clientOutDir) {
+            if (opts.staticGenerate) {
+              this.warn(`Option "staticGenerate" is deprecated. Please use "ssg" option instead.`);
+              opts.ssg = opts.ssg || {};
+              if (typeof opts.staticGenerate === 'object') {
+                opts.ssg = {
+                  ...opts.staticGenerate,
+                  ...opts.ssg,
+                };
+              }
+            }
+
+            let ssgOrigin = opts.origin;
+            if (!ssgOrigin) {
+              ssgOrigin = `https://yoursite.qwik.builder.io`;
             }
             if (
-              origin.length > 0 &&
-              !origin.startsWith('https://') &&
-              !origin.startsWith('http://')
+              ssgOrigin.length > 0 &&
+              !ssgOrigin.startsWith('https://') &&
+              !ssgOrigin.startsWith('http://')
             ) {
-              origin = `https://${origin}`;
+              ssgOrigin = `https://${ssgOrigin}`;
+            }
+            try {
+              ssgOrigin = new URL(ssgOrigin).origin;
+            } catch (e) {
+              this.warn(
+                `Invalid "origin" option: "${ssgOrigin}". Using default origin: "https://yoursite.qwik.builder.io"`
+              );
+              ssgOrigin = `https://yoursite.qwik.builder.io`;
+            }
+
+            let pathFilter: StaticGeneratePathFilter;
+            if (typeof opts.ssg?.filter === 'function') {
+              pathFilter = opts.ssg.filter;
+            } else if (opts.ssg?.filter === 'all') {
+              // render all paths
+              pathFilter = () => true;
+            } else {
+              // "auto" is the default
+              // determine if a path is static by checking if the render said it was static or not
+              pathFilter = ({ isStatic }) => {
+                // only keep if it's a static path
+                // returning false will skip the path from being written to disk
+                return !!isStatic;
+              };
             }
 
             const staticGenerate = await import('../../../static');
-            let generateOpts: StaticGenerateOptions = {
+            const generateOpts: StaticGenerateOptions = {
               maxWorkers: opts.maxWorkers,
               basePathname,
               outDir: clientOutDir,
-              origin,
+              ...opts.ssg,
+              origin: ssgOrigin,
+              filter: pathFilter,
               renderModulePath,
               qwikCityPlanModulePath,
             };
 
-            if (opts.staticGenerate && typeof opts.staticGenerate === 'object') {
-              generateOpts = {
-                ...generateOpts,
-                ...opts.staticGenerate,
-              };
-            }
-
-            staticGenerateResult = await staticGenerate.generate(generateOpts);
+            const staticGenerateResult = await staticGenerate.generate(generateOpts);
             if (staticGenerateResult.errors > 0) {
               this.error(
                 `Error while runnning SSG from "${opts.name}" adaptor. At least one path failed to render.`
@@ -141,33 +182,34 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
             }
 
             staticPaths.push(...staticGenerateResult.staticPaths);
-          }
 
-          const { staticPathsCode, notFoundPathsCode } = await postBuild(
-            clientOutDir,
-            basePathname,
-            staticPaths,
-            format,
-            !!opts.cleanStaticGenerated
-          );
-
-          await Promise.all([
-            fs.promises.writeFile(join(serverOutDir, RESOLVED_STATIC_PATHS_ID), staticPathsCode),
-            fs.promises.writeFile(
-              join(serverOutDir, RESOLVED_NOT_FOUND_PATHS_ID),
-              notFoundPathsCode
-            ),
-          ]);
-
-          if (typeof opts.generate === 'function') {
-            await opts.generate({
-              serverOutDir,
+            const { staticPathsCode, notFoundPathsCode } = await postBuild(
               clientOutDir,
               basePathname,
-              routes,
-              warn: (message) => this.warn(message),
-              error: (message) => this.error(message),
-            });
+              staticPaths,
+              format,
+              !!opts.cleanStaticGenerated
+            );
+
+            await Promise.all([
+              fs.promises.writeFile(join(serverOutDir, RESOLVED_STATIC_PATHS_ID), staticPathsCode),
+              fs.promises.writeFile(
+                join(serverOutDir, RESOLVED_NOT_FOUND_PATHS_ID),
+                notFoundPathsCode
+              ),
+            ]);
+
+            if (typeof opts.generate === 'function') {
+              await opts.generate({
+                outputEntries,
+                serverOutDir,
+                clientOutDir,
+                basePathname,
+                routes,
+                warn: (message) => this.warn(message),
+                error: (message) => this.error(message),
+              });
+            }
           }
         }
       },
@@ -196,11 +238,16 @@ interface ViteAdaptorPluginOptions {
   name: string;
   origin: string;
   staticPaths?: string[];
-  staticGenerate: true | Omit<StaticGenerateRenderOptions, 'outDir'> | undefined;
+  /**
+   * @deprecated Please use `ssg` instead.
+   */
+  staticGenerate?: true | Omit<StaticGenerateRenderOptions, 'outDir'> | undefined;
+  ssg?: AdaptorSSGOptions | null;
   cleanStaticGenerated?: boolean;
   maxWorkers?: number;
   config?: (config: UserConfig) => UserConfig;
   generate?: (generateOpts: {
+    outputEntries: string[];
     clientOutDir: string;
     serverOutDir: string;
     basePathname: string;
@@ -208,6 +255,60 @@ interface ViteAdaptorPluginOptions {
     warn: (message: string) => void;
     error: (message: string) => void;
   }) => Promise<void>;
+}
+
+/**
+ * @alpha
+ */
+export interface ServerAdaptorOptions {
+  /**
+   * Options the adaptor should use when running Static Site Generation (SSG).
+   * Defaults the `filter` to "auto" which will attempt to automatically decides if
+   * a page can be statically generated and does not have dynamic data, or if it the page
+   * should instead be rendered on the server (SSR). Setting to `null` will prevent any
+   * pages from being statically generated.
+   */
+  ssg?: AdaptorSSGOptions | null;
+  /**
+   * @deprecated Please use `ssg` instead.
+   */
+  staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
+}
+
+/**
+ * @alpha
+ */
+export interface AdaptorSSGOptions
+  extends Omit<StaticGenerateRenderOptions, 'outDir' | 'origin' | 'filter'> {
+  /**
+   * The `filter` option can be used to determine which pages should be statically
+   * generated rather than server-side rendered (SSR). Defaults to `"auto"`.
+   *
+   * `"auto"` - Attempts to automatically decide if a page shiould be statically generated
+   * if it does not have dynamic data.
+   *
+   * `"all"` - All pages will be statically generated.
+   *
+   * `Function` - Callback function can be used to determine if a page should be statically
+   * generated or not. The filter function is passed the `pathname` and `params` data,
+   * and should return `true` if the page should be statically generated. Returning `false`
+   * will prevent the page from being statically generated.
+   */
+  filter?: 'auto' | 'all' | StaticGeneratePathFilter;
+  /**
+   * The URL `origin`, which is a combination of the scheme (protocol) and hostname (domain).
+   * For example, `https://qwik.builder.io` has the protocol `https://` and domain `qwik.builder.io`.
+   * However, the `origin` does not include a `pathname`.
+   *
+   * The `origin` is used to provide a full URL during Static Site Generation (SSG), and to
+   * simulate a complete URL rather than just the `pathname`. For example, in order to
+   * render a correct canonical tag URL or URLs within the `sitemap.xml`, the `origin` must
+   * be provided too.
+   *
+   * If the site also starts with a pathname other than `/`, please use the `basePathname`
+   * option in the Qwik City config options.
+   */
+  origin?: string;
 }
 
 export const STATIC_PATHS_ID = '@qwik-city-static-paths';

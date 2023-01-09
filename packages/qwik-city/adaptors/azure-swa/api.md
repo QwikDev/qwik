@@ -4,15 +4,13 @@
 
 ```ts
 
-import type { StaticGenerateRenderOptions } from '../../../static';
+import { ServerAdaptorOptions } from '../../shared/vite';
 
 // @alpha (undocumented)
 export function azureSwaAdaptor(opts?: AzureSwaAdaptorOptions): any;
 
 // @alpha (undocumented)
-export interface AzureSwaAdaptorOptions {
-    // (undocumented)
-    staticGenerate?: StaticGenerateRenderOptions | true;
+export interface AzureSwaAdaptorOptions extends ServerAdaptorOptions {
 }
 
 // (No @packageDocumentation comment for this package)

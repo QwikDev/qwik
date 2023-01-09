@@ -4,6 +4,7 @@
 
 ```ts
 
+import { ServerAdaptorOptions } from '../../shared/vite';
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 
 export { StaticGenerateRenderOptions }
@@ -12,9 +13,8 @@ export { StaticGenerateRenderOptions }
 export function vercelEdgeAdaptor(opts?: VercelEdgeAdaptorOptions): any;
 
 // @alpha (undocumented)
-export interface VercelEdgeAdaptorOptions {
+export interface VercelEdgeAdaptorOptions extends ServerAdaptorOptions {
     outputConfig?: boolean;
-    staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
     staticPaths?: string[];
     vcConfigEntryPoint?: string;
     vcConfigEnvVarsInUse?: string[];

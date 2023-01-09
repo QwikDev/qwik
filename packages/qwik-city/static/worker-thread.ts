@@ -11,6 +11,7 @@ import type {
 import { createHeaders, requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { pathToFileURL } from 'node:url';
 import { WritableStream } from 'node:stream/web';
+import type { ClientPageData } from '../runtime/src/types';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
@@ -105,8 +106,9 @@ async function workerRender(
             }
           },
           close() {
+            const data: ClientPageData = requestEv.sharedMap.get('qData');
+
             if (writeDataEnabled) {
-              const data = requestEv.sharedMap.get('qData');
               if (data) {
                 if (typeof data.isStatic === 'boolean') {
                   result.isStatic = data.isStatic;
@@ -116,12 +118,27 @@ async function workerRender(
                 dataWriter.end();
               }
             }
-            if (requestEv.sharedMap.get('qData'))
-              return new Promise<void>((resolve) => {
-                if (htmlWriter) {
-                  htmlWriter.end(resolve);
-                }
-              });
+
+            if (data) {
+              if (htmlWriter) {
+                return new Promise<void>((resolve) => {
+                  htmlWriter.end(() => {
+                    if (typeof opts.filter === 'function') {
+                      const shouldRetain = opts.filter({
+                        pathname: staticRoute.pathname,
+                        params: staticRoute.params,
+                        isStatic: data.isStatic,
+                      });
+
+                      if (shouldRetain === false) {
+                        sys.removeFile(htmlFilePath);
+                      }
+                    }
+                    resolve();
+                  });
+                });
+              }
+            }
           },
         });
         return stream;

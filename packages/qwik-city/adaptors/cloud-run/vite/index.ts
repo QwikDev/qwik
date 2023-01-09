@@ -1,5 +1,4 @@
-import type { StaticGenerateRenderOptions } from '../../../static';
-import { viteAdaptor } from '../../shared/vite';
+import { ServerAdaptorOptions, viteAdaptor } from '../../shared/vite';
 
 /**
  * @alpha
@@ -9,6 +8,7 @@ export function cloudRunAdaptor(opts: CloudRunAdaptorOptions = {}): any {
     name: 'cloud-run',
     origin: process?.env?.URL || 'https://your-app-name.run.app',
     staticGenerate: opts.staticGenerate,
+    ssg: opts.ssg,
     cleanStaticGenerated: true,
 
     config() {
@@ -25,9 +25,4 @@ export function cloudRunAdaptor(opts: CloudRunAdaptorOptions = {}): any {
 /**
  * @alpha
  */
-export interface CloudRunAdaptorOptions {
-  /**
-   * Determines if the adaptor should also run Static Site Generation (SSG).
-   */
-  staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
-}
+export interface CloudRunAdaptorOptions extends ServerAdaptorOptions {}

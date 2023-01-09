@@ -111,7 +111,7 @@ function createStaticPathsModule(basePathname: string, staticPaths: Set<string>,
   );
 
   c.push(`function isStaticPath(method, url) {`);
-  c.push(`  if (method.toUppercase() !== 'GET') return false;`);
+  c.push(`  if (method.toUpperCase() !== 'GET') return false;`);
   c.push(`  const p = url.pathname;`);
   c.push(`  if (p.startsWith(${JSON.stringify(baseBuildPath)})) {`);
   c.push(`    return true;`);

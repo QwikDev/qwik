@@ -16,23 +16,29 @@ export default component$<{
   const builderContentRsrc = useResource$<any>(({ cache }) => {
     cache('immutable');
     if (isSDK) {
-      return getContent({
-        model: props.model!,
-        apiKey: props.apiKey!,
-        options: getBuilderSearchParams(location.query),
-        userAttributes: {
-          urlPath: location.pathname,
+      return getCachedValue(
+        {
+          model: props.model!,
+          apiKey: props.apiKey!,
+          options: getBuilderSearchParams(location.query),
+          userAttributes: {
+            urlPath: location.pathname,
+          },
         },
-      });
+        getContent
+      );
     } else if (props.html) {
       return { html: props.html };
     } else {
-      return getBuilderContent({
-        apiKey: props.apiKey,
-        model: props.model,
-        urlPath: location.pathname,
-        cacheBust: true,
-      });
+      return getCachedValue(
+        {
+          apiKey: props.apiKey,
+          model: props.model,
+          urlPath: location.pathname,
+          cacheBust: true,
+        },
+        getBuilderContent
+      );
     }
   });
 
@@ -50,6 +56,35 @@ export default component$<{
     />
   );
 });
+
+export const isDev = import.meta.env.DEV;
+export const CACHE = new Map<string, { timestamp: number; content: Promise<any> }>();
+export function getCachedValue<T>(
+  key: T,
+  factory: (key: T) => Promise<any>,
+  cacheTime = 1000 * 60 * 5 // 5 minutes
+) {
+  const now = Date.now();
+  const keyString = JSON.stringify({
+    ...key,
+    // HACK
+    // We ignore the urlPath for caching purposes as it would create way to many requests.
+    // and we know that all of them are the same
+    urlPath: '*',
+  });
+  const cacheValue = CACHE.get(keyString);
+  if (cacheValue && cacheValue.timestamp + cacheTime > now) {
+    // eslint-disable-next-line no-console
+    isDev && console.log('cache hit', keyString);
+    return cacheValue.content;
+  } else {
+    // eslint-disable-next-line no-console
+    isDev && console.log('cache miss', keyString);
+    const content = factory(key);
+    CACHE.set(keyString, { timestamp: now, content });
+    return content;
+  }
+}
 
 export interface BuilderContent {
   html: string;

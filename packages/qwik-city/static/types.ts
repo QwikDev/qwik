@@ -10,6 +10,7 @@ export interface System {
   createLogger: () => Promise<Logger>;
   getOptions: () => StaticGenerateOptions;
   ensureDir: (filePath: string) => Promise<void>;
+  removeFile: (filePath: string) => Promise<void>;
   access: (path: string) => Promise<boolean>;
   createWriteStream: (filePath: string) => StaticStreamWriter;
   createTimer: () => () => number;
@@ -93,7 +94,24 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
    * Defaults to `true`.
    */
   emit404Pages?: boolean;
+  /**
+   * The `filter` callback function can be used to determine if a page should be statically
+   * generated or not. The filter function is passed the `pathname` and `params` data,
+   * and should return `true` if the page should be statically generated. Returning `false`
+   * will prevent the page from being statically generated. If a `filter` function is not
+   * provided then all pages will be statically generated.
+   */
+  filter?: StaticGeneratePathFilter;
 }
+
+/**
+ * @alpha
+ */
+export type StaticGeneratePathFilter = (filterOpts: {
+  pathname: string;
+  params: Record<string, string> | undefined;
+  isStatic: boolean | undefined;
+}) => boolean;
 
 /**
  * @alpha

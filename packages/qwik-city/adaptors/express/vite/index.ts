@@ -1,5 +1,4 @@
-import type { StaticGenerateRenderOptions } from '../../../static';
-import { viteAdaptor } from '../../shared/vite';
+import { ServerAdaptorOptions, viteAdaptor } from '../../shared/vite';
 
 /**
  * @alpha
@@ -9,6 +8,7 @@ export function expressAdaptor(opts: ExpressAdaptorOptions = {}): any {
     name: 'express',
     origin: process?.env?.URL || 'https://yoursitename.qwik.builder.io',
     staticGenerate: opts.staticGenerate,
+    ssg: opts.ssg,
     cleanStaticGenerated: true,
 
     config() {
@@ -25,6 +25,4 @@ export function expressAdaptor(opts: ExpressAdaptorOptions = {}): any {
 /**
  * @alpha
  */
-export interface ExpressAdaptorOptions {
-  staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
-}
+export interface ExpressAdaptorOptions extends ServerAdaptorOptions {}

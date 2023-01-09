@@ -4,15 +4,15 @@
 
 ```ts
 
+import { ServerAdaptorOptions } from '../../shared/vite';
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 
 // @alpha (undocumented)
 export function cloudflarePagesAdaptor(opts?: CloudflarePagesAdaptorOptions): any;
 
 // @alpha (undocumented)
-export interface CloudflarePagesAdaptorOptions {
+export interface CloudflarePagesAdaptorOptions extends ServerAdaptorOptions {
     functionRoutes?: boolean;
-    staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
     staticPaths?: string[];
 }
 

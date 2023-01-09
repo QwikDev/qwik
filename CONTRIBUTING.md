@@ -4,18 +4,26 @@ If you are using VSCode, you can install the [Remote Containers](https://marketp
 
 If you're not able to use the dev container, follow these instructions:
 
-## Prerequisite
+## Installation
 
-To build platform binding and wasm, make sure you have installed [Rust](https://www.rust-lang.org/tools/install). Also follow directions for your platform to install [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/).
+> These are for a full build that includes Rust binaries.
+
+1. Make sure [Rust](https://www.rust-lang.org/tools/install) is installed.
+2. Install [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/) with `cargo install wasm-pack` .
+3. Node version >= `16.8.0`.
+4. Make sure you have [pnpm](https://pnpm.io/installation) installed.
+5. run `pnpm install`
 
 > On Windows, Rust requires [C++ build tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/). You can also select _Desktop development with C++_
 > while installing Visual Studio.
 
 > Alternatively, if Rust is not available you can run `pnpm build.platform.copy` to download bindings from CDN
 
-To build Qwik for local development, first install the dev dependencies using [pnpm](https://pnpm.io/):
+---
 
 ## Development
+
+To build Qwik for local development, install the dev dependencies using [pnpm](https://pnpm.io/):
 
 ```shell
 pnpm install
@@ -23,7 +31,7 @@ pnpm install
 
 ### Fast build
 
-It will build all JS and all packages, but Rust.
+It will build all JS and all packages, but not Rust.
 
 ```shell
 pnpm build
@@ -31,8 +39,9 @@ pnpm build
 
 ### Full build
 
-It will build absolutely everything, including Rust packages and WASM.
-First build might be very slow.
+It will build **everything**, including Rust packages and WASM.
+
+> First build might be very slow.
 
 - Builds each submodule
 - Generates bundled `.d.ts` files for each submodule with [API Extractor](https://api-extractor.com/)
@@ -46,7 +55,53 @@ pnpm build.full
 
 The build output will be written to `packages/qwik/dist`, which will be the directory that is published to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
 
-### Open E2E locally for debugging
+### Run in your own app:
+
+Say you made changes to the repo. After you finished you'd need to run the build command (`pnpm build.full`/`pnpm build`).
+
+To use your build in your project, follow these steps:
+
+1. Inside the root of the `qwik` project run:
+
+   ```shell
+   pnpm link.dist
+   ```
+
+2. Inside the root of your project run:
+
+   ```shell
+   npm install
+   npm link @builder.io/qwik @builder.io/qwik-city
+   ```
+
+If you can't use package linking (npm link) just copy the contents of `package/qwik/dist` into your projects' `node_modules/@builder.io/qwik` folder.
+
+### Test against the docs site:
+
+1. Go to `packages/docs/package.json` and update:
+
+   ```diff
+
+   -- "@builder.io/qwik": "0.16.2",
+   -- "@builder.io/qwik-city": "0.1.0-beta8",
+
+   ++ "@builder.io/qwik": "workspace:*",
+   ++ "@builder.io/qwik-city": "workspace:*",
+   ```
+
+2. At the root of the Qwik repo folder run:
+
+```shell
+pnpm install
+```
+
+3. Run the docs site:
+
+```shell
+cd packages/docs && pnpm start
+```
+
+### To open the test apps for debugging run:
 
 ```shell
 pnpm serve
@@ -76,19 +131,6 @@ To run the Playwright tests headless, from start to finish, run:
 
 ```shell
 pnpm test.e2e.chromium
-```
-
-### Bonus: pnpm start
-
-Next the `start` command will:
-
-- Build the source files
-- Begin the watch process so any changes will rebuild
-- Run the type checking watch process with [tsc](https://www.typescriptlang.org/docs/handbook/compiler-options.html)
-- Run the unit test watch process
-
-```shell
-pnpm start
 ```
 
 Finally, you can use `pnpm --filter` command to run packages' commands, for example:

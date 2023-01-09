@@ -97,6 +97,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       navPath.value = '';
       navPath.value = value;
     }
+    actionState.value = undefined;
     routeLocation.isPending = true;
   });
 
@@ -106,9 +107,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     menu: undefined,
   });
 
-  const contentInternal = useStore<ContentStateInternal>({
-    contents: undefined,
-  });
+  const contentInternal = useSignal<ContentStateInternal>();
 
   const currentActionId = env.response.action;
   const currentAction = currentActionId ? env.response.loaders[currentActionId] : undefined;
@@ -134,8 +133,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
   useContextProvider(RouteActionContext, actionState);
 
   useTask$(async ({ track }) => {
-    const path = track(() => navPath.value);
-    const action = track(() => actionState.value);
+    const [path, action] = track(() => [navPath.value, actionState.value]);
     const locale = getLocale('');
     const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
     let url = new URL(path, routeLocation.href);
@@ -179,7 +177,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       // Update content
       content.headings = pageModule.headings;
       content.menu = menu;
-      contentInternal.contents = noSerialize(contentModules);
+      contentInternal.value = noSerialize(contentModules);
 
       // Update document head
       documentHead.links = resolvedHead.links;
@@ -251,9 +249,7 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
     menu: undefined,
   });
 
-  const contentInternal = useStore<ContentStateInternal>({
-    contents: undefined,
-  });
+  const contentInternal = useSignal<ContentStateInternal>();
 
   useContextProvider(ContentContext, content);
   useContextProvider(ContentInternalContext, contentInternal);

@@ -163,9 +163,7 @@ export interface DocumentHeadProps extends RouteLocation {
  */
 export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);
 
-export interface ContentStateInternal {
-  contents: NoSerialize<ContentModule[]>;
-}
+export type ContentStateInternal = NoSerialize<ContentModule[]>;
 
 export interface ContentState {
   headings: ContentHeading[] | undefined;

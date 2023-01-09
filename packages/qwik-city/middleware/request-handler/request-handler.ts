@@ -85,13 +85,10 @@ function handleErrors<T>(run: QwikCityRun<T>): QwikCityRun<T> {
           console.error(e);
           const status = requestEv.status();
           const html = getErrorHtml(status, e);
-          if (requestEv.headersSent) {
-            const writableStream = requestEv.getWritableStream();
-            if (!writableStream.locked) {
-              return writableStream.close();
-            }
-          } else {
+          if (!requestEv.headersSent) {
             requestEv.html(status, html);
+          } else {
+            // STREAM CLOSED
           }
         }
       )

@@ -12,17 +12,24 @@ export const loadClientData = async (
   const pagePathname = url.pathname;
   const pageSearch = url.search;
   const clientDataPath = getClientDataPath(pagePathname, pageSearch, action);
-  let qData = action ? undefined : CLIENT_DATA_CACHE.get(clientDataPath);
+  let qData = undefined;
+  if (!action) {
+    qData = CLIENT_DATA_CACHE.get(clientDataPath);
+  }
 
   dispatchPrefetchEvent({
     links: [pagePathname],
   });
 
   if (!qData) {
-    const options: RequestInit | undefined = action
+    const actionData = action?.data;
+    if (action) {
+      action.data = undefined;
+    }
+    const options: RequestInit | undefined = actionData
       ? {
           method: 'POST',
-          body: action.data,
+          body: actionData,
         }
       : undefined;
     qData = fetch(clientDataPath, options).then((rsp) => {

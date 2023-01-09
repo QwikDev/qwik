@@ -97,6 +97,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
       navPath.value = '';
       navPath.value = value;
     }
+    actionState.value = undefined;
     routeLocation.isPending = true;
   });
 

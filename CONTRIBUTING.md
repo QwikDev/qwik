@@ -5,6 +5,7 @@ If you are using VSCode, you can install the [Remote Containers](https://marketp
 If you're not able to use the dev container, follow these instructions:
 
 ## Installation
+
 > These are for a full build that includes Rust binaries.
 
 1. Make sure [Rust](https://www.rust-lang.org/tools/install) is installed.
@@ -23,6 +24,7 @@ If you're not able to use the dev container, follow these instructions:
 ## Development
 
 To build Qwik for local development, install the dev dependencies using [pnpm](https://pnpm.io/):
+
 ```shell
 pnpm install
 ```
@@ -53,36 +55,38 @@ pnpm build.full
 
 The build output will be written to `packages/qwik/dist`, which will be the directory that is published to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
 
-
 ### Run in your own app:
+
 Say you made changes to the repo. After you finished you'd need to run the build command (`pnpm build.full`/`pnpm build`).
 
 To use your build in your project, follow these steps:
 
 1. Inside the root of the `qwik` project run:
+
    ```shell
    pnpm link.dist
    ```
 
 2. Inside the root of your project run:
-   
-    ```shell
-    npm install
-    npm link @builder.io/qwik @builder.io/qwik-city
-    ```
 
-If you can't use package linking (npm link) just copy the contents of  `package/qwik/dist` into your projects' `node_modules/@builder.io/qwik` folder.
+   ```shell
+   npm install
+   npm link @builder.io/qwik @builder.io/qwik-city
+   ```
+
+If you can't use package linking (npm link) just copy the contents of `package/qwik/dist` into your projects' `node_modules/@builder.io/qwik` folder.
 
 ### Test against the docs site:
 
 1. Go to `packages/docs/package.json` and update:
-    ```diff
 
-    -- "@builder.io/qwik": "0.16.2",
-    -- "@builder.io/qwik-city": "0.1.0-beta8",
+   ```diff
 
-    ++ "@builder.io/qwik": "workspace:*",
-    ++ "@builder.io/qwik-city": "workspace:*",
+   -- "@builder.io/qwik": "0.16.2",
+   -- "@builder.io/qwik-city": "0.1.0-beta8",
+
+   ++ "@builder.io/qwik": "workspace:*",
+   ++ "@builder.io/qwik-city": "workspace:*",
    ```
 
 2. At the root of the Qwik repo folder run:
@@ -90,12 +94,12 @@ If you can't use package linking (npm link) just copy the contents of  `package/
 ```shell
 pnpm install
 ```
-3. Run the docs site: 
+
+3. Run the docs site:
+
 ```shell
 cd packages/docs && pnpm start
 ```
-
-
 
 ### To open the test apps for debugging run:
 

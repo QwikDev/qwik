@@ -207,9 +207,8 @@ Both APIs share a lot of semantics, but while both run AFTER rendering, `useClie
 
 When using lifecycle hooks, you must adhere to the following rules:
 
-- They can only be called in `component$`
-- They can only be called at the root level of a function / arrow function context, not inside of branches or conditional blocks
-- They can only be called from another `use*$` method, allowing for composition
+- They can only be called at the root level of `component$` (not inside conditional blocks)
+- They can only be called at the root of another `use*` method, allowing for composition.
 
 ```tsx
 useHook(); // <-- ❌ does not work
@@ -219,11 +218,17 @@ export default component$(() => {
   if (condition) {
     useHook(); // <-- ❌ does not work
   }
+  useTask$(() => {
+    useNavigate(); // <-- ❌ does not work
+  });
   const myQrl = $(() => useHook()); // <-- ❌ does not work
   return <button onClick$={() => useHook()}></button>; // <-- ❌ does not work
 });
 
-const useCustomHook = () => {
+function useCustomHook() {
   useHook(); // <-- ✅ does work
-};
+  if (condition) {
+    useHook(); // <-- ❌ does not work
+  }
+}
 ```

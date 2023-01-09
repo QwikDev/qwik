@@ -1,13 +1,16 @@
-import { component$, useServerMount$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useTask$, useStore, useStyles$ } from '@builder.io/qwik';
+import { isServer } from '@builder.io/qwik/build';
 import HackerNewsCSS from './hacker-news.css?inline';
 
 export const HackerNews = component$(() => {
   useStyles$(HackerNewsCSS);
   const store = useStore({ data: null });
 
-  useServerMount$(async () => {
-    const response = await fetch('https://node-hnapi.herokuapp.com/news?page=0');
-    store.data = await response.json();
+  useTask$(async () => {
+    if (isServer) {
+      const response = await fetch('https://node-hnapi.herokuapp.com/news?page=0');
+      store.data = await response.json();
+    }
   });
 
   return (

@@ -1,4 +1,4 @@
-import { createContext } from '@builder.io/qwik';
+import { createContext, Signal } from '@builder.io/qwik';
 import type {
   ContentState,
   ContentStateInternal,
@@ -11,7 +11,8 @@ import type {
 export const RouteStateContext = /*#__PURE__*/ createContext<Record<string, any>>('qc-s');
 
 export const ContentContext = /*#__PURE__*/ createContext<ContentState>('qc-c');
-export const ContentInternalContext = /*#__PURE__*/ createContext<ContentStateInternal>('qc-ic');
+export const ContentInternalContext =
+  /*#__PURE__*/ createContext<Signal<ContentStateInternal>>('qc-ic');
 
 export const DocumentHeadContext =
   /*#__PURE__*/ createContext<Required<ResolvedDocumentHead>>('qc-h');

@@ -12,11 +12,11 @@ const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
 (async () => {
   const finishQwik = await prepare({
     buildRepo: 'qwik-build',
-    artifactsDir: join(root, 'package', 'qwik', 'dist'),
+    artifactsDir: join(root, 'packages', 'qwik', 'dist'),
   });
   const finishQwikCity = await prepare({
     buildRepo: 'qwik-city-build',
-    artifactsDir: join(root, 'package', 'qwik-city', 'lib'),
+    artifactsDir: join(root, 'packages', 'qwik-city', 'lib'),
   });
   await finishQwik();
   await finishQwikCity();
@@ -72,10 +72,14 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
   const dstSHA = await $('git', 'rev-parse', 'HEAD');
   console.log('##############################################################');
   console.log('##############################################################');
+  console.log(`### ${artifactsDir} => BuilderIO/${buildRepo}`);
   console.log(`### ${srcRepoRef}/${dstSHA}`);
   console.log('##############################################################');
   console.log('##############################################################');
+  const cwd = process.cwd();
   return async () => {
+    process.chdir(cwd);
+    console.log('PUSHING:', repo, `HEAD:${branch}`, 'in', cwd);
     await $('git', 'push', repo, `HEAD:${branch}`);
     await $('rm', '-rf', buildRepoDir);
   };

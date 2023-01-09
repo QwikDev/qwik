@@ -3,6 +3,7 @@ title: Qwikloader
 contributors:
   - manucorporat
   - adamdbradley
+  - literalpie
 ---
 
 # Qwikloader
@@ -11,22 +12,22 @@ Qwik is designed for fine-grained lazy loading of your application. To achieve l
 
 Qwikloader is:
 
-- small: about 1 kb minified.
-- fast: it executes in less than 5ms even on mobile devices. (Initial cost, not per event cost.)
+- Small: about 1 kb minified.
+- Fast: it executes in less than 5ms even on mobile devices. (Initial cost, not per event cost.)
 
-How is it delivered:
+How it is delivered:
 
-- Because of its size, we recommend delivering Qwikloader as inlined `<script>` tag. This way, the browser does not have to pay for the cost of creating another connection to the server.
+- Because of its size, we recommend delivering Qwikloader in an inlined `<script>` tag. This way, the browser does not have to pay the cost of creating another connection to the server.
 
-What is the purpose of Qwikloader:
+Qwikloader's Purpose:
 
-- register global browser events.
-- if an event occurs, search the DOM for the corresponding event attribute pointing to the QRL to lazy-load.
+- Register global browser events.
+- If an event occurs, search the DOM for the corresponding event attribute pointing to the QRL that should be lazy-loaded.
 - Lazy-load the event handler and execute it.
 
 ## How does it work
 
-Below you can find a simple HTML with Qwikloader and a button with associated behavior.
+Below you can find simple HTML with Qwikloader and a button with associated behavior.
 
 ```html
 <html>
@@ -47,14 +48,14 @@ Below you can find a simple HTML with Qwikloader and a button with associated be
 
 ## Events and qwikloader
 
-The registration of the listener creates two problems in the context of the SSR/SSG that Qwik needs to solve. (For context, remember that Qwik is resumable, that is, it can continue executing the application from where the server paused without being forced to download and execute code eagerly.)
+The registration of the listener creates two problems in the context of SSR/SSG that Qwik needs to solve. (For context, remember that Qwik is resumable, that is, it can continue executing the application from where the server paused without being forced to download and execute code eagerly.)
 
 1. **listener location**: Qwik needs to know where the events are in the HTML which came from the SSR/SSG.
 2. **listener code**: Qwik needs to know what code should run if the event is triggered.
 
 Without the above information, Qwik would be forced to download the component template and execute it so that the listener location and closure can be recovered. This process is known as hydration, and Qwik explicitly tries to avoid hydration.
 
-Qwik serializes the event listeners into DOM in the form of [QRLs](../qrl/index.mdx). For example:
+Qwik serializes the event listeners into the DOM in the form of [QRLs](../qrl/index.mdx). For example:
 
 ```html
 <div>
@@ -62,4 +63,4 @@ Qwik serializes the event listeners into DOM in the form of [QRLs](../qrl/index.
 </div>
 ```
 
-The critical thing to notice is that Qwik generated an `on:click` attribute, containing the value `./chunk-a.js#Counter_button_onClick[0]`. In the above example the `on:click` attribute solves the listener location problem, and the attribute value solves the listener code location problem. By serializing the listeners into the HTML Qwik-applications do not need to perform hydration on startup.
+The critical thing to notice is that Qwik generated an `on:click` attribute, containing the value `./chunk-a.js#Counter_button_onClick[0]`. In the above example the `on:click` attribute solves the listener location problem, and the attribute value solves the listener code location problem. By serializing the listeners into the HTML Qwik applications do not need to perform hydration on startup.

@@ -12,6 +12,21 @@ import { GlobalStore, SiteStore } from './context';
 import styles from './global.css?inline';
 import { BUILDER_PUBLIC_API_KEY } from './constants';
 
+declare global {
+  interface ImportMeta {
+    env: {
+      VITE_ALGOLIA_APP_ID: string;
+      VITE_ALGOLIA_SEARCH_KEY: string;
+      VITE_ALGOLIA_INDEX: string;
+      BASE_URL: '/';
+      MODE: 'ssr';
+      DEV: boolean;
+      PROD: boolean;
+      SSR: boolean;
+    };
+  }
+}
+
 export default component$(() => {
   useStyles$(styles);
 

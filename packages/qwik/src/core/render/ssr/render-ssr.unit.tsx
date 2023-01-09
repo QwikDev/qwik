@@ -1182,6 +1182,39 @@ renderSSRSuite('containerAttributes', async () => {
   );
 });
 
+renderSSRSuite('custom q:render', async () => {
+  await testSSR(
+    <>
+      <body></body>
+    </>,
+    `
+    <html q:render="static-ssr-dev" q:container="paused" q:version="dev">
+     <body></body>
+    </html>
+    `,
+    {
+      containerAttributes: {
+        'q:render': 'static',
+      },
+    }
+  );
+  await testSSR(
+    <>
+      <body></body>
+    </>,
+    `
+    <html q:render="ssr-dev" q:container="paused" q:version="dev">
+     <body></body>
+    </html>
+    `,
+    {
+      containerAttributes: {
+        'q:render': '',
+      },
+    }
+  );
+});
+
 renderSSRSuite('ssr marks', async () => {
   await testSSR(
     <body>

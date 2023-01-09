@@ -9,7 +9,6 @@ import type {
   ServerLoaderInternal,
 } from '../../runtime/src/server-functions';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
-import type { RenderOptions } from '@builder.io/qwik';
 import type { RequestHandler } from './types';
 import {
   getRequestAction,
@@ -149,7 +148,7 @@ export function isLastModulePageRoute(routeModules: RouteModule[]) {
   return lastRouteModule && typeof (lastRouteModule as PageModule).default === 'function';
 }
 
-export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
+export function renderQwikMiddleware(render: Render) {
   return async (requestEv: RequestEvent) => {
     if (requestEv.headersSent) {
       return;
@@ -172,10 +171,13 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
     const stream = writable.getWriter();
     const status = requestEv.status();
     try {
+      const isStatic = getRequestMode(requestEv) === 'static';
       const result = await render({
         stream: stream,
         envData: getQwikCityEnvData(requestEv),
-        ...opts,
+        containerAttributes: {
+          ['q:render']: isStatic ? 'static' : '',
+        },
       });
       const qData: ClientPageData = {
         loaders: getRequestLoaders(requestEv),

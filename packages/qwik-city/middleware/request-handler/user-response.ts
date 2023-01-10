@@ -43,6 +43,15 @@ async function runNext(
   try {
     const { pathname, url } = requestEv;
 
+    // const forbidden =
+    //   requestEv.method === 'POST' &&
+    //   requestEv.headers.get('origin') !== url.origin &&
+    //   isFormContentType(requestEv.request.headers);
+
+    // if (forbidden) {
+    //   throw requestEv.error(403, `Cross-site ${requestEv.method} form submissions are forbidden`);
+    // }
+
     // Handle trailing slash redirect
     if (
       isPage &&
@@ -110,3 +119,12 @@ export const isQDataJson = (pathname: string) => {
 
 export const QDATA_JSON = '/q-data.json';
 const QDATA_JSON_LEN = QDATA_JSON.length;
+
+export function isFormContentType(headers: Headers) {
+  return isContentType(headers, 'application/x-www-form-urlencoded', 'multipart/form-data');
+}
+
+export function isContentType(headers: Headers, ...types: string[]) {
+  const type = headers.get('content-type')?.split(';', 1)[0].trim() ?? '';
+  return types.includes(type);
+}

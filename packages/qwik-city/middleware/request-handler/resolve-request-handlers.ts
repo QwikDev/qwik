@@ -42,8 +42,8 @@ export const resolveRequestHandlers = (
   }
 
   if (route) {
-    requestHandlers.push(fixTrailingSlash);
     if (isPageRoute) {
+      requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(renderQData);
     }
     _resolveRequestHandlers(

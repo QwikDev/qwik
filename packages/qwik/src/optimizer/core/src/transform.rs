@@ -1061,7 +1061,10 @@ impl<'a> QwikTransform<'a> {
 
     fn should_emit_hook(&self, hook_data: &HookData) -> bool {
         if let Some(strip_ctx_name) = self.options.strip_ctx_name {
-            if strip_ctx_name.iter().any(|v| v == &hook_data.ctx_name) {
+            if strip_ctx_name
+                .iter()
+                .any(|v| hook_data.ctx_name.starts_with(v.as_ref()))
+            {
                 return false;
             }
         }

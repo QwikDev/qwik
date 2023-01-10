@@ -1436,7 +1436,7 @@ export default component$(()=> {
 fn example_strip_server_code() {
     test_input!(TestInput {
         code: r#"
-import { component$, useServerMount$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, useServerMount$, serverStuff$, useStore, useTask$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
 
@@ -1450,6 +1450,10 @@ export const Parent = component$(() => {
         state.text = await mongo.users();
         redis.set(state.text);
     });
+
+    serverStuff$(async () => {
+        // should be removed too
+    })
 
     useTask$(() => {
         // Code
@@ -1466,7 +1470,58 @@ export const Parent = component$(() => {
         transpile_ts: true,
         transpile_jsx: true,
         entry_strategy: EntryStrategy::Hook,
-        strip_ctx_name: Some(vec!["useServerMount$".into(),]),
+        strip_ctx_name: Some(vec!["useServerMount$".into(), "server".into()]),
+        ..TestInput::default()
+    });
+}
+
+#[test]
+fn example_server_auth() {
+    test_input!(TestInput {
+        code: r#"
+import GitHub from '@auth/core/providers/github'
+import Facebook from 'next-auth/providers/facebook'
+import Google from 'next-auth/providers/google'
+import {serverAuth$, auth$} from '@auth/qwik';
+
+export const { onRequest, logout, getSession, signup } = serverAuth$({
+    providers: [
+    GitHub({
+        clientId: process.env.GITHUB_ID,
+        clientSecret: process.env.GITHUB_SECRET
+    }),
+    Facebook({
+        clientId: import.meta.env.FACEBOOK_ID,
+        clientSecret: import.meta.env.FACEBOOK_SECRET
+    }),
+    Google({
+        clientId: process.env.GOOGLE_ID,
+        clientSecret: process.env.GOOGLE_SECRET
+    })
+    ]
+});
+
+export const { onRequest, logout, getSession, signup } = auth$({
+    providers: [
+    GitHub({
+        clientId: process.env.GITHUB_ID,
+        clientSecret: process.env.GITHUB_SECRET
+    }),
+    Facebook({
+        clientId: process.env.FACEBOOK_ID,
+        clientSecret: process.env.FACEBOOK_SECRET
+    }),
+    Google({
+        clientId: process.env.GOOGLE_ID,
+        clientSecret: process.env.GOOGLE_SECRET
+    })
+    ]
+});
+"#
+        .to_string(),
+        transpile_ts: true,
+        transpile_jsx: true,
+        entry_strategy: EntryStrategy::Hook,
         ..TestInput::default()
     });
 }

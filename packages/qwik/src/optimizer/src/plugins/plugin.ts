@@ -30,7 +30,7 @@ const SERVER_STRIP_EXPORTS = [
   'onStaticGenerate',
 ];
 
-const SERVER_STRIP_CTX_NAME = ['useServerMount$', 'action$', 'loader$'];
+const SERVER_STRIP_CTX_NAME = ['server', 'useServer', 'action$', 'loader$'];
 
 export interface QwikPackages {
   id: string;

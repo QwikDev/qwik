@@ -1,7 +1,14 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
 import type { BuildServerPlugin, NormalizedPluginOptions } from '../types';
-import { createFileId, getExtension, isModuleExt, normalizePath } from '../../utils/fs';
+import {
+  createFileId,
+  getExtension,
+  isModuleExt,
+  isPluginModule,
+  normalizePath,
+  removeExtension,
+} from '../../utils/fs';
 
 export async function walkServerPlugins(opts: NormalizedPluginOptions) {
   const dirPath = opts.serverPluginsDir;
@@ -11,7 +18,9 @@ export async function walkServerPlugins(opts: NormalizedPluginOptions) {
     dirItemNames.map(async (itemName) => {
       const itemPath = normalizePath(join(dirPath, itemName));
       const ext = getExtension(itemName);
-      if (isModuleExt(ext)) {
+      const extlessName = removeExtension(itemName);
+
+      if (isModuleExt(ext) && isPluginModule(extlessName)) {
         sourceFiles.push({
           id: createFileId(opts.serverPluginsDir, itemPath),
           filePath: itemPath,

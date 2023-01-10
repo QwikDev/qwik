@@ -5,7 +5,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useServerMount$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, useServerMount$, serverStuff$, useStore, useTask$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
 
@@ -19,6 +19,10 @@ export const Parent = component$(() => {
         state.text = await mongo.users();
         redis.set(state.text);
     });
+
+    serverStuff$(async () => {
+        // should be removed too
+    })
 
     useTask$(() => {
         // Code
@@ -39,7 +43,7 @@ export const Parent_component_useTask_gDH1EtUWqBU = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAgBa,IAAM;AACX,OAAO;AACX\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAoBa,IAAM;AACX,OAAO;AACX\"}")
 /*
 {
   "origin": "test.tsx",
@@ -54,8 +58,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useTask$",
   "captures": false,
   "loc": [
-    394,
-    423
+    480,
+    509
   ]
 }
 */
@@ -66,13 +70,14 @@ import { qrl } from "@builder.io/qwik";
 export const Parent = /*#__PURE__*/ componentQrl(qrl(()=>import("./parent_component_0taidayhrlo"), "Parent_component_0TaiDayHrlo"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAIA,OAAO,MAAM,uBAAS,gGAoBnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAIA,OAAO,MAAM,uBAAS,gGAwBnB\"}")
 ============================= parent_component_0taidayhrlo.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { _noopQrl } from "@builder.io/qwik";
 import { _wrapSignal } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
+import { serverStuffQrl } from "@builder.io/qwik";
 import { useServerMountQrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
 import { useTaskQrl } from "@builder.io/qwik";
@@ -84,6 +89,7 @@ export const Parent_component_0TaiDayHrlo = ()=>{
     useServerMountQrl(_noopQrl("Parent_component_useServerMount_cQrQm0HrrM8", [
         state
     ]));
+    serverStuffQrl(_noopQrl("Parent_component_serverStuff_r1qAHX7Opp0"));
     useTaskQrl(qrl(()=>import("./parent_component_usetask_gdh1etuwqbu"), "Parent_component_useTask_gDH1EtUWqBU"));
     return /*#__PURE__*/ _jsx("div", {
         onClick$: qrl(()=>import("./parent_component_div_onclick_c5xe49nqd3a"), "Parent_component_div_onClick_C5XE49Nqd3A"),
@@ -92,7 +98,7 @@ export const Parent_component_0TaiDayHrlo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;4CAKiC,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA;IAIA,qBACI,KAAC;QAAI,QAAQ;8BACR;;AAGb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;4CAKiC,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA;IAIA;IAIA,qBACI,KAAC;QAAI,QAAQ;8BACR;;AAGb\"}")
 /*
 {
   "origin": "test.tsx",
@@ -107,8 +113,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    176,
-    541
+    190,
+    627
   ]
 }
 */
@@ -117,7 +123,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const Parent_component_div_onClick_C5XE49Nqd3A = ()=>console.log('parent');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAqBuB,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAyBuB,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -132,8 +138,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    463,
-    490
+    549,
+    576
   ]
 }
 */

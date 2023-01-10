@@ -6,10 +6,9 @@ Thank you for coming this far, below you will find the guidelines to be able to 
 
 Before creating a new issue, it is good practice to search using the appropriate [GitHub issue search bar](https://docs.github.com/en/issues/tracking-your-work-with-issues/filtering-and-searching-issues-and-pull-requests) because maybe you could already find the solution to your problem or you could verify that it is an already known problem.
 
-We want a bug-free and best-performing design, that's why we take all reported issues to heart, but if we can't reproduce the issue, we won't have a way of locating and properly fixing it.
-Therefore, to solve the problem in the best possible way, it is a good idea to create a minimum repository that reproduces the problem itself, without superstructures, but with the least possible code explaining the error.
-
-
+We want a bug-free and best-performing project, that's why we take all reported issues to heart, but if we can't reproduce the issue, we won't have a way of locating and properly fixing it.
+Therefore, to solve the problem in the best possible way, it's mandatory to create a minimum repository that reproduces the problem itself, without superstructures, but with the least possible code explaining the error.
+Without enough information to reproduce the issue, we will close it because we can't recreate and solve it.
 
 # CONTRIBUTING
 

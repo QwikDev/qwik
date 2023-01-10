@@ -1,3 +1,16 @@
+## Guidelines
+
+Thank you for coming this far, below you will find the guidelines to be able to contribute to the project in the best possible way.
+
+### Submitting an Issue
+
+Before creating a new issue, it is good practice to search using the appropriate [GitHub issue search bar](https://docs.github.com/en/issues/tracking-your-work-with-issues/filtering-and-searching-issues-and-pull-requests) because maybe you could already find the solution to your problem or you could verify that it is an already known problem.
+
+We want a bug-free and best-performing design, that's why we take all reported issues to heart, but if we can't reproduce the issue, we won't have a way of locating and properly fixing it.
+Therefore, to solve the problem in the best possible way, it is a good idea to create a minimum repository that reproduces the problem itself, without superstructures, but with the least possible code explaining the error.
+
+
+
 # CONTRIBUTING
 
 If you are using VSCode, you can install the [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension. Once installed you will be prompted to reopen the folder in a container. All required dependencies will be installed in the container for you. If you're not prompted, you can run the `Remote-Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).

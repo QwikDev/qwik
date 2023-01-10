@@ -17,7 +17,7 @@ export async function runNewCommand(app: AppCommand) {
     const args = app.args.filter((a) => !a.startsWith('--'));
     const templates = app.args.filter((a) => a.startsWith('--')).map((t) => t.replace('--', ''));
 
-    let typeArg = args[1] as typeof POSSIBLE_TYPES[number];
+    let typeArg = args[1] as (typeof POSSIBLE_TYPES)[number];
     let nameArg = args.slice(2).join(' ');
 
     if (!typeArg) {
@@ -81,7 +81,7 @@ async function selectType() {
     }
   );
 
-  return answer.type as typeof POSSIBLE_TYPES[number];
+  return answer.type as (typeof POSSIBLE_TYPES)[number];
 }
 
 async function selectName(type: string) {

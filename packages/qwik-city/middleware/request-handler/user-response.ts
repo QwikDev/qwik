@@ -43,14 +43,14 @@ async function runNext(
   try {
     const { pathname, url } = requestEv;
 
-    const forbidden =
-      requestEv.method === 'POST' &&
-      requestEv.headers.get('origin') !== url.origin &&
-      isFormContentType(requestEv.request.headers);
+    // const forbidden =
+    //   requestEv.method === 'POST' &&
+    //   requestEv.headers.get('origin') !== url.origin &&
+    //   isFormContentType(requestEv.request.headers);
 
-    if (forbidden) {
-      throw requestEv.error(403, `Cross-site ${requestEv.method} form submissions are forbidden`);
-    }
+    // if (forbidden) {
+    //   throw requestEv.error(403, `Cross-site ${requestEv.method} form submissions are forbidden`);
+    // }
 
     // Handle trailing slash redirect
     if (

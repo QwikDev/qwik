@@ -7,8 +7,22 @@ Thank you for coming this far, below you will find the guidelines to be able to 
 Before creating a new issue, it is good practice to search using the appropriate [GitHub issue search bar](https://docs.github.com/en/issues/tracking-your-work-with-issues/filtering-and-searching-issues-and-pull-requests) because maybe you could already find the solution to your problem or you could verify that it is an already known problem.
 
 We want a bug-free and best-performing project, that's why we take all reported issues to heart, but if we can't reproduce the issue, we won't have a way of locating and properly fixing it.
+
 Therefore, to solve the problem in the best possible way, it's mandatory to create a minimum repository that reproduces the problem itself, without superstructures, but with the least possible code explaining the error.
+
 Without enough information to reproduce the issue, we will close it because we can't recreate and solve it.
+
+### Submitting a Pull Request (PR)
+
+#### Branch Organization
+
+We adopt trunk-based development therefore all Pull Requests are made to the main branch because we do not use separate branches for development or for the versions we release
+
+#### Good first issue
+
+The issues marked with [_Good first issue_](https://github.com/BuilderIO/qwik/issues?q=is:open+is:issue+label:%22good+first+issue%22) are a good starting point to familiarize yourself with the project.
+
+Before starting to solve the problem, please check with the maintainers that the issue is still to be solved and therefore your intervention will help.
 
 # CONTRIBUTING
 

@@ -1,12 +1,11 @@
 import type { RouteData } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 import type { ServerRenderOptions, ServerRequestEvent } from './types';
-import type { MenuData } from '../../runtime/src/types';
+import type { MenuData, RouteModule } from '../../runtime/src/types';
 import { getErrorHtml } from './error-handler';
 import { getRouteMatchPathname, QwikCityRun, runQwikCity } from './user-response';
-import { isLastModulePageRoute, resolveRequestHandlers } from './resolve-request-handlers';
+import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
 import { loadRoute } from '../../runtime/src/routing';
-import { renderQData, renderQwikMiddleware } from './render-middleware';
 
 /**
  * @alpha
@@ -16,10 +15,11 @@ export async function requestHandler<T = unknown>(
   opts: ServerRenderOptions
 ): Promise<QwikCityRun<T> | null> {
   const { render, qwikCityPlan } = opts;
-  const { routes, menus, cacheModules, trailingSlash, basePathname } = qwikCityPlan;
+  const { routes, serverPlugins, menus, cacheModules, trailingSlash, basePathname } = qwikCityPlan;
   const pathname = serverRequestEv.url.pathname;
   const matchPathname = getRouteMatchPathname(pathname, trailingSlash);
   const loadedRoute = await loadRequestHandlers(
+    serverPlugins,
     routes,
     menus,
     cacheModules,
@@ -29,20 +29,14 @@ export async function requestHandler<T = unknown>(
   );
   if (loadedRoute) {
     return handleErrors(
-      runQwikCity(
-        serverRequestEv,
-        loadedRoute[0],
-        loadedRoute[1],
-        loadedRoute[2],
-        trailingSlash,
-        basePathname
-      )
+      runQwikCity(serverRequestEv, loadedRoute[0], loadedRoute[1], trailingSlash, basePathname)
     );
   }
   return null;
 }
 
 async function loadRequestHandlers(
+  serverPlugins: RouteModule[] | undefined,
   routes: RouteData[] | undefined,
   menus: MenuData[] | undefined,
   cacheModules: boolean | undefined,
@@ -51,15 +45,14 @@ async function loadRequestHandlers(
   renderFn: Render
 ) {
   const route = await loadRoute(routes, menus, cacheModules, pathname);
-  if (route) {
-    let isPageRoute = false;
-    const requestHandlers = resolveRequestHandlers(route[1], method);
-    if (isLastModulePageRoute(route[1])) {
-      requestHandlers.unshift(renderQData);
-      requestHandlers.push(renderQwikMiddleware(renderFn));
-      isPageRoute = true;
-    }
-    return [route[0], requestHandlers, isPageRoute] as const;
+  const requestHandlers = resolveRequestHandlers(
+    serverPlugins,
+    route,
+    method,
+    renderQwikMiddleware(renderFn)
+  );
+  if (requestHandlers.length > 0) {
+    return [route?.[0] ?? {}, requestHandlers] as const;
   }
   return null;
 }

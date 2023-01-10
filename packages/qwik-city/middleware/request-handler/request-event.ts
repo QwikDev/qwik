@@ -25,11 +25,15 @@ const RequestEvLocale = Symbol('RequestEvLocale');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvStatus = Symbol('RequestEvStatus');
 export const RequestEvAction = Symbol('RequestEvAction');
+export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
+export const RequestEvBasePathname = Symbol('RequestEvBasePathname');
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   params: PathParams,
   requestHandlers: RequestHandler<unknown>[],
+  trailingSlash = true,
+  basePathname = '/',
   resolved: (response: any) => void
 ) {
   const { request, platform } = serverRequestEv;
@@ -79,6 +83,8 @@ export function createRequestEvent(
     [RequestEvMode]: serverRequestEv.mode,
     [RequestEvStatus]: 200,
     [RequestEvAction]: undefined,
+    [RequestEvTrailingSlash]: trailingSlash,
+    [RequestEvBasePathname]: basePathname,
     cookie,
     headers,
     method: request.method,
@@ -203,6 +209,8 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvMode]: ServerRequestMode;
   [RequestEvStatus]: number;
   [RequestEvAction]: string | undefined;
+  [RequestEvTrailingSlash]: boolean;
+  [RequestEvBasePathname]: string;
 }
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {

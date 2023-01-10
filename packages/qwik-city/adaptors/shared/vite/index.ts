@@ -11,6 +11,9 @@ import fs from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { postBuild } from './post-build';
 
+/**
+ * @alpha
+ */
 export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
   let qwikCityPlugin: QwikCityPlugin | null = null;
   let qwikVitePlugin: QwikVitePlugin | null = null;
@@ -219,6 +222,9 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
   return plugin;
 }
 
+/**
+ * @alpha
+ */
 export function getParentDir(startDir: string, dirName: string) {
   const root = resolve('/');
   let dir = startDir;
@@ -234,6 +240,9 @@ export function getParentDir(startDir: string, dirName: string) {
   throw new Error(`Unable to find "${dirName}" directory from "${startDir}"`);
 }
 
+/**
+ * @alpha
+ */
 interface ViteAdaptorPluginOptions {
   name: string;
   origin: string;
@@ -311,8 +320,22 @@ export interface AdaptorSSGOptions
   origin?: string;
 }
 
+/**
+ * @alpha
+ */
 export const STATIC_PATHS_ID = '@qwik-city-static-paths';
+
+/**
+ * @alpha
+ */
 export const RESOLVED_STATIC_PATHS_ID = `${STATIC_PATHS_ID}.js`;
 
+/**
+ * @alpha
+ */
 export const NOT_FOUND_PATHS_ID = '@qwik-city-not-found-paths';
+
+/**
+ * @alpha
+ */
 export const RESOLVED_NOT_FOUND_PATHS_ID = `${NOT_FOUND_PATHS_ID}.js`;

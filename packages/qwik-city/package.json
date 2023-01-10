@@ -12,6 +12,10 @@
       "import": "./lib/index.qwik.mjs",
       "require": "./lib/index.qwik.cjs"
     },
+    "./adaptors/azure-swa/vite": {
+      "import": "./lib/adaptors/azure-swa/vite/index.mjs",
+      "require": "./lib/adaptors/azure-swa/vite/index.cjs"
+    },
     "./adaptors/cloudflare-pages/vite": {
       "import": "./lib/adaptors/cloudflare-pages/vite/index.mjs",
       "require": "./lib/adaptors/cloudflare-pages/vite/index.cjs"
@@ -24,9 +28,9 @@
       "import": "./lib/adaptors/netlify-edge/vite/index.mjs",
       "require": "./lib/adaptors/netlify-edge/vite/index.cjs"
     },
-    "./adaptors/azure-swa/vite": {
-      "import": "./lib/adaptors/azure-swa/vite/index.mjs",
-      "require": "./lib/adaptors/azure-swa/vite/index.cjs"
+    "./adaptors/shared/vite": {
+      "import": "./lib/adaptors/shared/vite/index.mjs",
+      "require": "./lib/adaptors/shared/vite/index.cjs"
     },
     "./adaptors/static/vite": {
       "import": "./lib/adaptors/static/vite/index.mjs",

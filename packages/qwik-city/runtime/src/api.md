@@ -224,6 +224,8 @@ export interface QwikCityPlan {
     // (undocumented)
     routes: RouteData[];
     // (undocumented)
+    serverPlugins?: RouteModule[];
+    // (undocumented)
     trailingSlash?: boolean;
 }
 

@@ -2,13 +2,6 @@ import { component$, Slot } from '@builder.io/qwik';
 import { RequestHandler, loader$ } from '@builder.io/qwik-city';
 import { isUserAuthenticated } from '../auth/auth';
 
-export const rootLoader = loader$(() => {
-  return {
-    serverTime: new Date().toISOString(),
-    nodeVersion: process.version,
-  };
-});
-
 export const userLoader = loader$(async ({ cookie }) => {
   return {
     isAuthenticated: await isUserAuthenticated(cookie),

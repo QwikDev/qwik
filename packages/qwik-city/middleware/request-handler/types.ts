@@ -52,6 +52,14 @@ export type RequestHandler<PLATFORM = unknown> = (
 /**
  * @alpha
  */
+export interface SendMethod {
+  (statusCode: number, data: any): AbortMessage;
+  (response: Response): AbortMessage;
+}
+
+/**
+ * @alpha
+ */
 export interface RequestEventCommon<PLATFORM = unknown> {
   /**
    * HTTP response status code. Sets the status code when called with an
@@ -111,7 +119,7 @@ export interface RequestEventCommon<PLATFORM = unknown> {
    * Send a body response. The `Content-Type` response header is not automatically set
    * when using `send()` and must be set manually. A `send()` response can only be called once.
    */
-  readonly send: (statusCode: number, data: any) => AbortMessage;
+  readonly send: SendMethod;
 
   readonly exit: () => AbortMessage;
 

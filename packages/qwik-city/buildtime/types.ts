@@ -2,6 +2,7 @@ export interface BuildContext {
   rootDir: string;
   opts: NormalizedPluginOptions;
   routes: BuildRoute[];
+  serverPlugins: BuildServerPlugin[];
   layouts: BuildLayout[];
   entries: BuildEntry[];
   serviceWorkers: BuildEntry[];
@@ -64,6 +65,18 @@ export interface BuildRoute extends ParsedPathname {
   layouts: BuildLayout[];
 }
 
+export interface BuildServerPlugin {
+  /**
+   * Unique id built from its relative file system path
+   */
+  id: string;
+  /**
+   * Local file system path
+   */
+  filePath: string;
+  ext: string;
+}
+
 export interface ParsedPathname {
   pattern: RegExp;
   paramNames: string[];
@@ -111,6 +124,12 @@ export interface PluginOptions {
    * Directory of the `routes`. Defaults to `src/routes`.
    */
   routesDir?: string;
+
+  /**
+   * Directory of the `server plugins`. Defaults to `src/server-plugins`.
+   */
+  serverPluginsDir?: string;
+
   /**
    * The base pathname is used to create absolute URL paths up to
    * the `hostname`, and must always start and end with a

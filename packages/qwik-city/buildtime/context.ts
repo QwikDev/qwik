@@ -11,6 +11,7 @@ export function createBuildContext(
     rootDir: normalizePath(rootDir),
     opts: normalizeOptions(rootDir, userOpts),
     routes: [],
+    serverPlugins: [],
     layouts: [],
     entries: [],
     serviceWorkers: [],
@@ -47,6 +48,13 @@ function normalizeOptions(rootDir: string, userOpts: PluginOptions | undefined) 
     opts.routesDir = resolve(rootDir, opts.routesDir);
   }
   opts.routesDir = normalizePath(opts.routesDir);
+
+  if (typeof opts.serverPluginsDir !== 'string') {
+    opts.serverPluginsDir = resolve(rootDir, 'src', 'routes');
+  } else if (!isAbsolute(opts.serverPluginsDir)) {
+    opts.serverPluginsDir = resolve(rootDir, opts.serverPluginsDir);
+  }
+  opts.serverPluginsDir = normalizePath(opts.serverPluginsDir);
 
   if (typeof opts.baseUrl === 'string') {
     // baseUrl deprecated

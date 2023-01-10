@@ -1,7 +1,7 @@
 import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'node:http';
 import type { BuildContext } from '../types';
-import type { RouteModule } from '../../runtime/src/types';
+import type { PathParams, RequestEvent, RouteModule } from '../../runtime/src/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -20,11 +20,7 @@ import {
   findLocation,
   generateCodeFrame,
 } from '../../../qwik/src/optimizer/src/plugins/vite-utils';
-import {
-  isLastModulePageRoute,
-  resolveRequestHandlers,
-} from '../../middleware/request-handler/resolve-request-handlers';
-import { renderQData } from '../../middleware/request-handler/render-middleware';
+import { resolveRequestHandlers } from '../../middleware/request-handler/resolve-request-handlers';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
@@ -73,17 +69,27 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         }
       }
 
-      const matchPathname = getRouteMatchPathname(url.pathname, ctx.opts.trailingSlash);
-      const routeResult = matchRouteRequest(matchPathname);
-      if (routeResult) {
-        // found a matching route
-        const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
-        const { route, params } = routeResult;
-
+      const routeModulePaths = new WeakMap<RouteModule, string>();
+      try {
         // use vite to dynamically load each layout/page module in this route's hierarchy
-        const routeModulePaths = new WeakMap<RouteModule, string>();
+
+        const serverPlugins: RouteModule[] = [];
+        for (const file of ctx.serverPlugins) {
+          const layoutModule = await server.ssrLoadModule(file.filePath);
+          serverPlugins.push(layoutModule);
+          routeModulePaths.set(layoutModule, file.filePath);
+        }
+
+        const matchPathname = getRouteMatchPathname(url.pathname, ctx.opts.trailingSlash);
+        const routeResult = matchRouteRequest(matchPathname);
         const routeModules: RouteModule[] = [];
-        try {
+
+        let params: PathParams = {};
+        if (routeResult) {
+          const route = routeResult.route;
+          params = routeResult.params;
+
+          // found a matching route
           for (const layout of route.layouts) {
             const layoutModule = await server.ssrLoadModule(layout.filePath);
             routeModules.push(layoutModule);
@@ -92,63 +98,60 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           const endpointModule = await server.ssrLoadModule(route.filePath);
           routeModules.push(endpointModule);
           routeModulePaths.set(endpointModule, route.filePath);
+        }
 
-          const requestHandlers = resolveRequestHandlers(
-            routeModules,
-            serverRequestEv.request.method
-          );
+        const renderFn = (requestEv: RequestEvent) => {
+          const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
+          if (!isPageDataReq) {
+            const envData = getQwikCityEnvData(requestEv);
 
-          const isPage = isLastModulePageRoute(routeModules);
+            (res as QwikViteDevResponse)._qwikEnvData = {
+              ...(res as QwikViteDevResponse)._qwikEnvData,
+              ...envData,
+            };
 
-          // Create a fake last request middleware
-          if (isPage) {
-            requestHandlers.unshift(renderQData);
-            requestHandlers.push((requestEv) => {
-              const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
-              if (!isPageDataReq) {
-                const envData = getQwikCityEnvData(requestEv);
-
-                (res as QwikViteDevResponse)._qwikEnvData = {
-                  ...(res as QwikViteDevResponse)._qwikEnvData,
-                  ...envData,
-                };
-
-                return next();
-              }
-            });
+            return next();
           }
+        };
+        const requestHandlers = resolveRequestHandlers(
+          serverPlugins,
+          [{}, routeModules, undefined, undefined],
+          req.method ?? 'GET',
+          renderFn
+        );
+        if (requestHandlers.length > 0) {
+          const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
 
           const { completion } = runQwikCity(
             serverRequestEv,
             params,
             requestHandlers,
-            isPage,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname
           );
           await completion;
-        } catch (e: any) {
-          server.ssrFixStacktrace(e);
-          formatError(e);
+          return;
+        } else {
+          // no matching route
 
-          if (e instanceof Error && (e as any).id === 'DEV_SERIALIZE') {
-            next(formatDevSerializeError(e, routeModulePaths));
-          } else {
-            next(e);
+          // test if this is a dev service-worker.js request
+          for (const sw of ctx.serviceWorkers) {
+            const match = sw.pattern.exec(req.originalUrl!);
+            if (match) {
+              res.setHeader('Content-Type', 'text/javascript');
+              res.end(DEV_SERVICE_WORKER);
+              return;
+            }
           }
         }
-        return;
-      } else {
-        // no matching route
+      } catch (e: any) {
+        server.ssrFixStacktrace(e);
+        formatError(e);
 
-        // test if this is a dev service-worker.js request
-        for (const sw of ctx.serviceWorkers) {
-          const match = sw.pattern.exec(req.originalUrl!);
-          if (match) {
-            res.setHeader('Content-Type', 'text/javascript');
-            res.end(DEV_SERVICE_WORKER);
-            return;
-          }
+        if (e instanceof Error && (e as any).id === 'DEV_SERIALIZE') {
+          next(formatDevSerializeError(e, routeModulePaths));
+        } else {
+          next(e);
         }
       }
 

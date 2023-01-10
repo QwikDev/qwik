@@ -15,7 +15,6 @@ export function runQwikCity<T>(
   serverRequestEv: ServerRequestEvent<T>,
   params: PathParams,
   requestHandlers: RequestHandler<unknown>[],
-  isPage: boolean,
   trailingSlash = true,
   basePathname = '/'
 ): QwikCityRun<T> {
@@ -25,58 +24,23 @@ export function runQwikCity<T>(
 
   let resolve: (value: T) => void;
   const responsePromise = new Promise<T>((r) => (resolve = r));
-  const requestEv = createRequestEvent(serverRequestEv, params, requestHandlers, resolve!);
+  const requestEv = createRequestEvent(
+    serverRequestEv,
+    params,
+    requestHandlers,
+    trailingSlash,
+    basePathname,
+    resolve!
+  );
   return {
     response: responsePromise,
     requestEv,
-    completion: runNext(requestEv, isPage, trailingSlash, basePathname, resolve!),
+    completion: runNext(requestEv, resolve!),
   };
 }
 
-async function runNext(
-  requestEv: RequestEvent,
-  isPage: boolean,
-  trailingSlash: boolean,
-  basePathname: string,
-  resolve: (value: any) => void
-) {
+async function runNext(requestEv: RequestEvent, resolve: (value: any) => void) {
   try {
-    const { pathname, url } = requestEv;
-
-    // const forbidden =
-    //   requestEv.method === 'POST' &&
-    //   requestEv.headers.get('origin') !== url.origin &&
-    //   isFormContentType(requestEv.request.headers);
-
-    // if (forbidden) {
-    //   throw requestEv.error(403, `Cross-site ${requestEv.method} form submissions are forbidden`);
-    // }
-
-    // Handle trailing slash redirect
-    if (
-      isPage &&
-      !isQDataJson(pathname) &&
-      pathname !== basePathname &&
-      !pathname.endsWith('.html')
-    ) {
-      // only check for slash redirect on pages
-      if (trailingSlash) {
-        // must have a trailing slash
-        if (!pathname.endsWith('/')) {
-          // add slash to existing pathname
-          throw requestEv.redirect(HttpStatus.Found, pathname + '/' + url.search);
-        }
-      } else {
-        // should not have a trailing slash
-        if (pathname.endsWith('/')) {
-          // remove slash from existing pathname
-          throw requestEv.redirect(
-            HttpStatus.Found,
-            pathname.slice(0, pathname.length - 1) + url.search
-          );
-        }
-      }
-    }
     await requestEv.next();
   } catch (e) {
     if (e instanceof RedirectMessage) {

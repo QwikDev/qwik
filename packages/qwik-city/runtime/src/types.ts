@@ -214,6 +214,7 @@ export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
  */
 export interface QwikCityPlan {
   routes: RouteData[];
+  serverPlugins?: RouteModule[];
   basePathname?: string;
   menus?: MenuData[];
   trailingSlash?: boolean;

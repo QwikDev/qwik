@@ -39,6 +39,7 @@ test('resolveLayout', () => {
   t.forEach((c) => {
     const opts: NormalizedPluginOptions = {
       routesDir: '',
+      serverPluginsDir: '',
       basePathname: '/',
       trailingSlash: false,
       mdxPlugins: {

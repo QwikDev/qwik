@@ -64,14 +64,24 @@ export function createRequestEvent(
     }
   };
 
-  const send = (statusCode: number, body: string | Uint8Array) => {
+  const send = (statusOrResponse: number | Response, body: string | Uint8Array) => {
     check();
-
-    requestEv[RequestEvStatus] = statusCode;
-    const writableStream = requestEv.getWritableStream();
-    const writer = writableStream.getWriter();
-    writer.write(typeof body === 'string' ? encoder.encode(body) : body);
-    writer.close();
+    if (typeof statusOrResponse === 'number') {
+      requestEv[RequestEvStatus] = statusOrResponse;
+      const writableStream = requestEv.getWritableStream();
+      const writer = writableStream.getWriter();
+      writer.write(typeof body === 'string' ? encoder.encode(body) : body);
+      writer.close();
+    } else {
+      requestEv[RequestEvStatus] = statusOrResponse.status;
+      statusOrResponse.headers.forEach((value, key) => {
+        headers.append(key, value);
+      });
+      const writableStream = requestEv.getWritableStream();
+      if (statusOrResponse.body) {
+        statusOrResponse.body.pipeTo(writableStream);
+      }
+    }
     return new AbortMessage();
   };
 
@@ -184,7 +194,7 @@ export function createRequestEvent(
       return send(statusCode, JSON.stringify(data));
     },
 
-    send,
+    send: send as any,
 
     getWritableStream: () => {
       if (writableStream === null) {

@@ -51,6 +51,11 @@ export async function buildQwikCity(config: BuildConfig) {
         import: './index.qwik.mjs',
         require: './index.qwik.cjs',
       },
+      './adaptors/azure-swa/vite': {
+        types: './adaptors/azure-swa/vite/index.d.ts',
+        import: './adaptors/azure-swa/vite/index.mjs',
+        require: './adaptors/azure-swa/vite/index.cjs',
+      },
       './adaptors/cloudflare-pages/vite': {
         types: './adaptors/cloudflare-pages/vite/index.d.ts',
         import: './adaptors/cloudflare-pages/vite/index.mjs',
@@ -66,10 +71,10 @@ export async function buildQwikCity(config: BuildConfig) {
         import: './adaptors/netlify-edge/vite/index.mjs',
         require: './adaptors/netlify-edge/vite/index.cjs',
       },
-      './adaptors/azure-swa/vite': {
-        types: './adaptors/azure-swa/vite/index.d.ts',
-        import: './adaptors/azure-swa/vite/index.mjs',
-        require: './adaptors/azure-swa/vite/index.cjs',
+      './adaptors/shared/vite': {
+        types: './adaptors/shared/vite/index.d.ts',
+        import: './adaptors/shared/vite/index.mjs',
+        require: './adaptors/shared/vite/index.cjs',
       },
       './adaptors/static/vite': {
         types: './adaptors/static/vite/index.d.ts',

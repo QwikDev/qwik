@@ -2,64 +2,104 @@
 import color from 'kleur';
 import fs from 'node:fs';
 import { join } from 'path';
-import { runEnableTemplates } from '../enable/run-enable-command';
-import type { Template, TemplateSet } from '../types';
+import prompts from 'prompts';
+import type { Template } from '../types';
 import type { AppCommand } from '../utils/app-command';
 import { loadTemplates } from '../utils/templates';
-import { readPackageJson } from '../utils/utils';
 import { printNewHelp } from './print-new-help';
 
-const TYPES = [
-  ['component', 'c'],
-  ['route', 'r'],
-];
-
+const POSSIBLE_TYPES = ['component', 'route'] as const;
 const SLUG_KEY = '[slug]';
 const NAME_KEY = '[name]';
 
 export async function runNewCommand(app: AppCommand) {
   try {
-    const type = getType(app.args[1]) as keyof TemplateSet;
-    const id = app.args.slice(2);
+    const args = app.args.filter((a) => !a.startsWith('--'));
+    const templates = app.args.filter((a) => a.startsWith('--')).map((t) => t.replace('--', ''));
 
-    if (!type || !id.length) {
-      throw new Error(`Invalid type: ${type}`);
+    let typeArg = args[1] as typeof POSSIBLE_TYPES[number];
+    let nameArg = args.slice(2).join(' ');
+
+    if (!typeArg) {
+      typeArg = await selectType();
     }
 
-    if (!id) {
-      throw new Error(`Missing ${type} name`);
+    if (!POSSIBLE_TYPES.includes(typeArg)) {
+      throw new Error(`Invalid type: ${typeArg}`);
     }
 
-    const { name, slug } = parseInputName(id);
-
-    const packageJson = await readPackageJson(app.rootDir);
-    let enabledTemplates = packageJson.qwikTemplates;
-
-    if (!enabledTemplates) {
-      enabledTemplates = await runEnableTemplates(app);
+    if (!nameArg) {
+      nameArg = await selectName(typeArg);
     }
+
+    const { name, slug } = parseInputName(nameArg);
 
     const allTemplates = await loadTemplates();
 
     const templateSets = allTemplates
-      .filter((i) => enabledTemplates!.includes(i.id) || i.id === 'qwik')
-      .filter((i) => i[type] && i[type].length);
+      .filter((i) => templates.includes(i.id) || i.id === 'qwik')
+      .filter((i) => i[typeArg] && i[typeArg].length);
 
     const writers: Promise<void>[] = [];
 
     for (const templateSet of templateSets) {
-      for (const template of templateSet[type]) {
-        const outDir = join(app.rootDir, 'src', `${type}s`);
+      for (const template of templateSet[typeArg]) {
+        const outDir = join(app.rootDir, 'src', `${typeArg}s`);
         writers.push(writeToFile(name, slug, template as unknown as Template, outDir));
       }
     }
 
     await Promise.all(writers);
+
+    console.log(``);
+    console.log(`${color.green(`${toPascal([typeArg])} ${name} created!`)}`);
+    console.log(``);
   } catch (e) {
     console.error(`\n❌ ${color.red(String(e))}\n`);
     await printNewHelp();
     process.exit(1);
   }
+}
+
+async function selectType() {
+  const answer = await prompts(
+    {
+      type: 'select',
+      name: 'type',
+      message: `What would you like to create?`,
+      choices: [
+        { title: 'Component', value: 'component' },
+        { title: 'Route', value: 'route' },
+      ],
+      hint: '(use ↓↑ arrows, hit enter)',
+    },
+    {
+      onCancel: () => {
+        console.log(``);
+        process.exit(0);
+      },
+    }
+  );
+
+  return answer.type as typeof POSSIBLE_TYPES[number];
+}
+
+async function selectName(type: string) {
+  const answer = await prompts(
+    {
+      type: 'text',
+      name: 'name',
+      message: `Name your ${type}`,
+    },
+    {
+      onCancel: () => {
+        console.log(``);
+        process.exit(0);
+      },
+    }
+  );
+
+  return answer.name as string;
 }
 
 async function writeToFile(name: string, slug: string, template: Template, outDir: string) {
@@ -107,8 +147,8 @@ function inject(raw: string, vars: string[][]) {
   return output;
 }
 
-function parseInputName(id: string[]) {
-  const parts = id.map((i) => i.split(/[-_\s]/g)).flat();
+function parseInputName(input: string) {
+  const parts = input.split(/[-_\s]/g);
 
   return {
     slug: toSlug(parts),
@@ -122,11 +162,6 @@ function toSlug(list: string[]) {
 
 function toPascal(list: string[]) {
   return list.map((p) => p[0].toUpperCase() + p.substring(1).toLowerCase()).join('');
-}
-
-function getType(input: string) {
-  const group = TYPES.find((t) => t.includes(input));
-  return group ? group[0] : null;
 }
 
 function escapeRegExp(val: string) {

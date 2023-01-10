@@ -2,7 +2,6 @@
 import color from 'kleur';
 import { runAddCommand } from './add/run-add-command';
 import { runBuildCommand } from './build/run-build-command';
-import { runEnableCommand } from './enable/run-enable-command';
 import { runNewCommand } from './new/run-new-command';
 import { AppCommand } from './utils/app-command';
 import { panic, pmRunCmd } from './utils/utils';
@@ -28,10 +27,6 @@ async function runCommand(app: AppCommand) {
     }
     case 'build': {
       await runBuildCommand(app);
-      return;
-    }
-    case 'enable': {
-      await runEnableCommand(app);
       return;
     }
     case 'help': {
@@ -72,6 +67,11 @@ async function printHelp() {
   console.log(
     `  ${pmRun} qwik ${color.cyan(`build preview`)}  ${color.dim(
       `Same as "build", but for preview server`
+    )}`
+  );
+  console.log(
+    `  ${pmRun} qwik ${color.cyan(`new`)}            ${color.dim(
+      `Create a new route or component`
     )}`
   );
   console.log(``);

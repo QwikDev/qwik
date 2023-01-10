@@ -3,6 +3,7 @@ import type { BuildContext } from '../types';
 import { createEntries } from './generate-entries';
 import { createMenus } from './generate-menus';
 import { createRoutes } from './generate-routes';
+import { createServerPlugins } from './generate-server-plugins';
 
 /**
  * Generates the Qwik City Plan runtime code
@@ -12,6 +13,8 @@ export function generateQwikCityPlan(ctx: BuildContext, qwikPlugin: QwikVitePlug
   const c: string[] = [];
 
   c.push(`\n/** Qwik City Plan */`);
+
+  createServerPlugins(ctx, qwikPlugin, c, esmImports);
 
   createRoutes(ctx, qwikPlugin, c, esmImports);
 
@@ -25,7 +28,9 @@ export function generateQwikCityPlan(ctx: BuildContext, qwikPlugin: QwikVitePlug
 
   c.push(`export const cacheModules = ${JSON.stringify(!ctx.isDevServer)};`);
 
-  c.push(`export default { routes, menus, trailingSlash, basePathname, cacheModules };`);
+  c.push(
+    `export default { routes, serverPlugins, menus, trailingSlash, basePathname, cacheModules };`
+  );
 
   return esmImports.join('\n') + c.join('\n');
 }

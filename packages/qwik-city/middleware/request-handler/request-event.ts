@@ -25,11 +25,15 @@ const RequestEvLocale = Symbol('RequestEvLocale');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvStatus = Symbol('RequestEvStatus');
 export const RequestEvAction = Symbol('RequestEvAction');
+export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
+export const RequestEvBasePathname = Symbol('RequestEvBasePathname');
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   params: PathParams,
   requestHandlers: RequestHandler<unknown>[],
+  trailingSlash = true,
+  basePathname = '/',
   resolved: (response: any) => void
 ) {
   const { request, platform } = serverRequestEv;
@@ -60,14 +64,24 @@ export function createRequestEvent(
     }
   };
 
-  const send = (statusCode: number, body: string | Uint8Array) => {
+  const send = (statusOrResponse: number | Response, body: string | Uint8Array) => {
     check();
-
-    requestEv[RequestEvStatus] = statusCode;
-    const writableStream = requestEv.getWritableStream();
-    const writer = writableStream.getWriter();
-    writer.write(typeof body === 'string' ? encoder.encode(body) : body);
-    writer.close();
+    if (typeof statusOrResponse === 'number') {
+      requestEv[RequestEvStatus] = statusOrResponse;
+      const writableStream = requestEv.getWritableStream();
+      const writer = writableStream.getWriter();
+      writer.write(typeof body === 'string' ? encoder.encode(body) : body);
+      writer.close();
+    } else {
+      requestEv[RequestEvStatus] = statusOrResponse.status;
+      statusOrResponse.headers.forEach((value, key) => {
+        headers.append(key, value);
+      });
+      const writableStream = requestEv.getWritableStream();
+      if (statusOrResponse.body) {
+        statusOrResponse.body.pipeTo(writableStream);
+      }
+    }
     return new AbortMessage();
   };
 
@@ -79,6 +93,8 @@ export function createRequestEvent(
     [RequestEvMode]: serverRequestEv.mode,
     [RequestEvStatus]: 200,
     [RequestEvAction]: undefined,
+    [RequestEvTrailingSlash]: trailingSlash,
+    [RequestEvBasePathname]: basePathname,
     cookie,
     headers,
     method: request.method,
@@ -178,7 +194,7 @@ export function createRequestEvent(
       return send(statusCode, JSON.stringify(data));
     },
 
-    send,
+    send: send as any,
 
     getWritableStream: () => {
       if (writableStream === null) {
@@ -203,6 +219,8 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvMode]: ServerRequestMode;
   [RequestEvStatus]: number;
   [RequestEvAction]: string | undefined;
+  [RequestEvTrailingSlash]: boolean;
+  [RequestEvBasePathname]: string;
 }
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {

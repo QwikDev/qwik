@@ -57,6 +57,7 @@ async function workerRender(
     ok: false,
     error: null,
     isStatic: true,
+    filePath: null,
   };
 
   const htmlFilePath = sys.getPageFilePath(staticRoute.pathname);
@@ -78,20 +79,10 @@ async function workerRender(
       url,
       request,
       getWritableStream: (status, headers, _, _r, requestEv) => {
-        // if (err) {
-        //   if (err.stack) {
-        //     result.error = String(err.stack);
-        //   } else if (err.message) {
-        //     result.error = String(err.message);
-        //   } else {
-        //     result.error = String(err);
-        //   }
-        // } else {
         result.ok =
           status >= 200 &&
           status <= 299 &&
           (headers.get('Content-Type') || '').includes('text/html');
-        // }
 
         if (!result.ok) {
           return noopWriter;
@@ -122,20 +113,8 @@ async function workerRender(
             if (data) {
               if (htmlWriter) {
                 return new Promise<void>((resolve) => {
-                  htmlWriter.end(() => {
-                    if (typeof opts.filter === 'function') {
-                      const shouldRetain = opts.filter({
-                        pathname: staticRoute.pathname,
-                        params: staticRoute.params,
-                        isStatic: data.isStatic,
-                      });
-
-                      if (shouldRetain === false) {
-                        sys.removeFile(htmlFilePath);
-                      }
-                    }
-                    resolve();
-                  });
+                  result.filePath = htmlFilePath;
+                  htmlWriter.end(resolve);
                 });
               }
             }

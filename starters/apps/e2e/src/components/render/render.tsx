@@ -25,6 +25,7 @@ export const Render = component$(() => {
       </button>
       <Child counter={state.counter}></Child>
       <Issue1475 />
+      <Issue2563 />
       <CounterToggle />
 
       <PropsDestructuring
@@ -201,3 +202,15 @@ export const PropsDestructuringNo = component$(
     );
   }
 );
+
+export const Issue2563 = component$(() => {
+  const html = `hola`;
+  const obj = { length: 4 };
+  return (
+    <ul>
+      <li id="issue-2563-string">4={html.length}</li>
+      <li id="issue-2563-obj">4={obj.length}</li>
+      <li id="issue-2563-operation">4+1={html.length + 1}</li>
+    </ul>
+  );
+});

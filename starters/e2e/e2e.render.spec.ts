@@ -118,4 +118,14 @@ test.describe('render', () => {
     await expect(message3).toHaveAttribute('aria-count', '2');
     await expect(renders3).toHaveText('3');
   });
+
+  test('issue2563', async ({ page }) => {
+    const string = await page.locator('#issue-2563-string');
+    const obj = await page.locator('#issue-2563-obj');
+    const operation = await page.locator('#issue-2563-operation');
+
+    await expect(string).toHaveText('4=4');
+    await expect(obj).toHaveText('4=4');
+    await expect(operation).toHaveText('4+1=5');
+  });
 });

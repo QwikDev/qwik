@@ -10,7 +10,7 @@ Before creating a new issue, please search through open issues using the [GitHub
 
 We want a bug-free and best-performing project, that's why we take all reported issues to heart, but if we can't reproduce the issue, we won't have a way of locating and properly fixing it.
 
-Therefore, to solve the problem in the best possible way, please create a minimum repository that reproduces the problem itself, without any extra cruft, and with the least possible code explaining the error.
+Therefore, to solve the problem in the best possible way, please create a minimal repository that reproduces the problem itself with the least possible code explaining and demonstrating the error.
 
 Without enough information to reproduce the issue, we will close it because we can't recreate and solve it.
 

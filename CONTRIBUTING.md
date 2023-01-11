@@ -34,7 +34,7 @@ Before submitting a pull request, please consider the following guidelines:
 - in your forked repository, create a new branch: `git checkout -b my-branch main`
 - make your changes/fixes
 - run `fmt` script to lint the code
-- commit your code with a good commit message: `git commit -m "<my-message>"`
+- commit your code with a good commit message using [using "Commitizen"](#committing-using-commitizen)
 - push your branch to GitHub: `git push origin my-branch`
 - in GitHub, send a pull request to `BuilderIO:main`
 

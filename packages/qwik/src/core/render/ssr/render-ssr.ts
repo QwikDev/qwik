@@ -67,7 +67,7 @@ export interface RenderSSROptions {
   containerAttributes: Record<string, string>;
   stream: StreamWriter;
   base?: string;
-  envData?: Record<string, any>;
+  serverProps?: Record<string, any>;
   url?: string;
   beforeContent?: JSXNode<string>[];
   beforeClose?: (
@@ -112,7 +112,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const root = opts.containerTagName;
   const containerEl = createSSRContext(1).$element$;
   const containerState = createContainerState(containerEl as Element, opts.base ?? '/');
-  containerState.$serverProps$.locale = opts.envData?.locale;
+  containerState.$serverProps$.locale = opts.serverProps?.locale;
   const doc = createDocument();
   const rCtx = createRenderContext(doc as any, containerState);
   const headNodes = opts.beforeContent ?? [];
@@ -121,7 +121,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
       $contexts$: [],
       $dynamic$: false,
       $headNodes$: root === 'html' ? headNodes : [],
-      $locale$: opts.envData?.locale,
+      $locale$: opts.serverProps?.locale,
     },
     $projectedChildren$: undefined,
     $projectedCtxs$: undefined,
@@ -139,7 +139,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
     'q:version': version ?? 'dev',
     'q:render': qRender,
     'q:base': opts.base,
-    'q:locale': opts.envData?.locale,
+    'q:locale': opts.serverProps?.locale,
     children: root === 'html' ? [node] : [headNodes, node],
   };
   if (root !== 'html') {
@@ -148,7 +148,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   }
   containerState.$serverProps$ = {
     url: opts.url,
-    ...opts.envData,
+    ...opts.serverProps,
   };
 
   node = jsx(root, containerAttributes);

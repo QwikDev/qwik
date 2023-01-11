@@ -652,7 +652,7 @@ export const RenderOnce: FunctionComponent<{
 // @alpha (undocumented)
 export interface RenderOptions {
     // (undocumented)
-    envData?: Record<string, any>;
+    serverProps?: Record<string, any>;
 }
 
 // @alpha (undocumented)
@@ -671,7 +671,7 @@ export interface RenderSSROptions {
     // (undocumented)
     containerTagName: string;
     // (undocumented)
-    envData?: Record<string, any>;
+    serverProps?: Record<string, any>;
     // (undocumented)
     stream: StreamWriter;
     // (undocumented)

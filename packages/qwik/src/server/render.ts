@@ -146,7 +146,7 @@ export async function renderToStream(
     stream,
     containerTagName,
     containerAttributes,
-    envData: opts.envData,
+    serverProps: opts.serverProps ?? opts.envData,
     base: buildBase,
     beforeContent,
     beforeClose: async (contexts, containerState, dynamic) => {

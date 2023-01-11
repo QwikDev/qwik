@@ -24,7 +24,7 @@ The issues marked with [_Good first issue_](https://github.com/BuilderIO/qwik/is
 
 Before starting to solve the problem, please check with the maintainers that the issue is still to be solved and therefore your intervention will help. You can leave a comment in the issue to show that you intend to work on it and prevent other people from accidentally duplicating your effort.
 
-### Sending a Pull Request
+#### Sending a Pull Request
 
 Before submitting a pull request, please consider the following guidelines:
 

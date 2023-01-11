@@ -33,12 +33,12 @@ Before submitting a pull request, please consider the following guidelines:
 - fork the repository into your own account
 - in your forked repository, create a new branch: `git checkout -b my-branch main`
 - make your changes/fixes
-- run `fmt` script to lint the code
+- run `pnpm fmt` to lint the code
 - commit your code with a good commit message using [using "Commitizen"](#committing-using-commitizen)
 - push your branch to GitHub: `git push origin my-branch`
 - in GitHub, send a pull request to `BuilderIO:main`
 
-# CONTRIBUTING
+# Getting started 
 
 If you are using VSCode, you can install the [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension. Once installed you will be prompted to reopen the folder in a container. All required dependencies will be installed in the container for you. If you're not prompted, you can run the `Remote-Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
 

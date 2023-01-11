@@ -1,7 +1,7 @@
 ## Guidelines
 
 Thank you for taking an interest in contributing to Qwik! 
-We appreciate you 🫶🏽  
+We appreciate you! 🫶🏽  
 Below are the guidelines how to help in the best possible way.
 
 ### Submitting an Issue

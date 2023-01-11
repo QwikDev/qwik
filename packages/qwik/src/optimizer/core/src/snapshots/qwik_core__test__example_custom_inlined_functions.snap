@@ -148,7 +148,7 @@ export const App_component_1_w0t0o3QMovU = ()=>{
     const [state] = useLexicalScope();
     return /*#__PURE__*/ _jsx("div", {
         children: _wrapSignal(state, "count")
-    });
+    }, "u6_0");
 };
 export { _hW } from "@builder.io/qwik";
 

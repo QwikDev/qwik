@@ -137,6 +137,10 @@ test.describe('render', () => {
     await input.fill('some text');
     await expect(input).toHaveValue('some text');
     await toggle.click();
+    await page.waitForTimeout(100);
+    await expect(input).toHaveValue('some text');
+    await toggle.click();
+    await page.waitForTimeout(100);
     await expect(input).toHaveValue('some text');
   });
 });

@@ -216,16 +216,16 @@ export const Issue2563 = component$(() => {
   );
 });
 
-
-
 export const Issue2608 = component$(() => {
   const show = useSignal(false);
   return (
     <>
-      <button id='issue-2608-btn' onClick$={() => (show.value = !show.value)}>Toggle</button>
+      <button id="issue-2608-btn" onClick$={() => (show.value = !show.value)}>
+        Toggle
+      </button>
       {show.value && <div>Content</div>}
       <div>
-        <input id='issue-2608-input' type={'text'} />
+        <input id="issue-2608-input" type="text" />
       </div>
     </>
   );

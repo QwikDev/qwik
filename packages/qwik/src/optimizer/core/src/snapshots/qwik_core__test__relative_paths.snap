@@ -58,7 +58,7 @@ export const App_component_AkbU84a8zes = ()=>{
                 })
             })
         ]
-    });
+    }, "70_0");
 };
 
 
@@ -103,7 +103,7 @@ import { state } from "./components/sibling";
 export const Local_component_jJ0v28bs0p8 = ()=>{
     return /*#__PURE__*/ _jsx("div", {
         children: state
-    });
+    }, "zp_0");
 };
 
 

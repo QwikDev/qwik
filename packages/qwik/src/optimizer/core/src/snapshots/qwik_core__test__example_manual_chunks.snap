@@ -133,7 +133,7 @@ export const Parent_component_0TaiDayHrlo = ()=>{
     return /*#__PURE__*/ _jsx("div", {
         onClick$: qrl(()=>import("./chunk_clicks"), "Parent_component_div_onClick_C5XE49Nqd3A"),
         children: _wrapSignal(state, "text")
-    });
+    }, "u6_0");
 };
 
 
@@ -200,7 +200,7 @@ export const Child_component_9GyF01GDKqw = ()=>{
     return /*#__PURE__*/ _jsx("div", {
         onClick$: qrl(()=>import("./chunk_clicks"), "Child_component_div_onClick_elliVSnAiOQ"),
         children: _wrapSignal(state, "text")
-    });
+    }, "u6_1");
 };
 
 

@@ -25,7 +25,7 @@ export const App = component$((props)=>{
     useStyles$('hola');
     return $(()=>/*#__PURE__*/ _jsx("div", {
             children: _wrapSignal(state, "thing")
-        }));
+        }, "u6_0"));
 });
 
 

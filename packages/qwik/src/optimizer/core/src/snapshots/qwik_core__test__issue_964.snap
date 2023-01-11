@@ -32,7 +32,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
     });
     return /*#__PURE__*/ _jsx("p", {
         children: "Hello Qwik"
-    });
+    }, "u6_0");
 };
 
 

@@ -68,7 +68,7 @@ export default function (opts: RenderToStreamOptions) {
     '/e2e/resuming': () => <Resuming1 />,
   };
 
-  const url = new URL(opts.envData!.url);
+  const url = new URL(opts.serverData!.url);
   const Test = tests[url.pathname];
 
   // Render segment instead

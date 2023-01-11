@@ -18,7 +18,7 @@ Without enough information to reproduce the issue, we will close it because we c
 
 #### Branch Organization
 
-We adopt trunk-based development therefore all Pull Requests are made to the main branch because we do not use separate branches for development or for the versions we release
+We adopt [trunk-based development](https://trunkbaseddevelopment.com/) therefore all Pull Requests are made to the main branch because we do not use separate branches for development or for the versions we release.
 
 #### Good first issue
 

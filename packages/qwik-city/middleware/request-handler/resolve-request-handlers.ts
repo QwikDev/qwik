@@ -17,7 +17,7 @@ import { validateSerializable } from '../../utils/format';
 import { HttpStatus } from './http-status-codes';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik';
-import { getQwikCityEnvData } from './response-page';
+import { getQwikCityServerData } from './response-page';
 import { RedirectMessage } from './redirect-handler';
 
 export const resolveRequestHandlers = (
@@ -244,7 +244,7 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
       const isStatic = getRequestMode(requestEv) === 'static';
       const result = await render({
         stream: stream,
-        envData: getQwikCityEnvData(requestEv),
+        serverData: getQwikCityServerData(requestEv),
         containerAttributes: {
           ['q:render']: isStatic ? 'static' : '',
         },

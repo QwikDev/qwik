@@ -3,23 +3,29 @@ import { useInvokeContext } from './use-core';
 /**
  * @alpha
  */
-export function useEnvData<T>(key: string): T | undefined;
+export function useServerData<T>(key: string): T | undefined;
 
 /**
  * @alpha
  */
-export function useEnvData<T, B = T>(key: string, defaultValue: B): T | B;
+export function useServerData<T, B = T>(key: string, defaultValue: B): T | B;
 
 /**
  * @alpha
  */
-export function useEnvData(key: string, defaultValue?: any) {
+export function useServerData(key: string, defaultValue?: any) {
   const ctx = useInvokeContext();
-  return ctx.$renderCtx$.$static$.$containerState$.$envData$[key] ?? defaultValue;
+  return ctx.$renderCtx$.$static$.$containerState$.$serverData$[key] ?? defaultValue;
 }
 
 /**
  * @alpha
- * @deprecated Please use `useEnvData` instead.
+ * @deprecated Please use `useServerData` instead.
  */
-export const useUserContext = useEnvData;
+export const useUserContext = useServerData;
+
+/**
+ * @alpha
+ * @deprecated Please use `useServerData` instead.
+ */
+export const useEnvData = useServerData;

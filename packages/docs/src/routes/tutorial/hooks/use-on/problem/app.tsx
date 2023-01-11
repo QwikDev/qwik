@@ -7,7 +7,7 @@ export default component$(() => {
       window: { x: 0, y: 0 },
       document: { x: 0, y: 0 },
     },
-    { recursive: true }
+    { deep: true }
   );
   useOn(
     'mousemove',

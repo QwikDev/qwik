@@ -59,7 +59,7 @@ export const render = async (
   const containerState = getContainerState(containerEl);
   const envData = opts?.envData;
   if (envData) {
-    Object.assign(containerState.$envData$, envData);
+    Object.assign(containerState.$serverProps$, envData);
   }
   containerState.$hostsRendering$ = new Set();
   containerState.$renderPromise$ = renderRoot(

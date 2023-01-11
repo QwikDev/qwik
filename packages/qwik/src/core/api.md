@@ -906,11 +906,8 @@ export interface UseEffectOptions {
     eagerness?: EagernessOptions;
 }
 
-// @alpha (undocumented)
-export function useEnvData<T>(key: string): T | undefined;
-
-// @alpha (undocumented)
-export function useEnvData<T, B = T>(key: string, defaultValue: B): T | B;
+// @alpha @deprecated (undocumented)
+export const useEnvData: typeof useServerProps;
 
 // Warning: (ae-forgotten-export) The symbol "ErrorBoundaryStore" needs to be exported by the entry point index.d.ts
 //
@@ -957,6 +954,12 @@ export const useServerMount$: <T>(first: MountFn<T>) => void;
 
 // @public @deprecated
 export const useServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
+
+// @alpha (undocumented)
+export function useServerProps<T>(key: string): T | undefined;
+
+// @alpha (undocumented)
+export function useServerProps<T, B = T>(key: string, defaultValue: B): T | B;
 
 // @alpha (undocumented)
 export interface UseSignal {
@@ -1008,9 +1011,6 @@ export interface UseTaskOptions {
 
 // @public
 export const useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
-
-// @alpha @deprecated (undocumented)
-export const useUserContext: typeof useEnvData;
 
 // @beta @deprecated (undocumented)
 export const useWatch$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void;

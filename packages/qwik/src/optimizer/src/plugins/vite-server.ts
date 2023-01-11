@@ -41,7 +41,7 @@ export async function configureDevServer(
       const url = new URL(req.originalUrl!, domain);
 
       if (shouldSsrRender(req, url)) {
-        const envData: Record<string, any> = {
+        const serverProps: Record<string, any> = {
           ...(res as QwikViteDevResponse)._qwikEnvData,
           url: url.href,
         };
@@ -51,7 +51,7 @@ export async function configureDevServer(
           const relPath = path.relative(opts.rootDir, clientDevInput!);
           const entryUrl = '/' + relPath.replace(/\\/g, '/');
 
-          let html = getViteDevIndexHtml(entryUrl, envData);
+          let html = getViteDevIndexHtml(entryUrl, serverProps);
           html = await server.transformIndexHtml(url.pathname, html);
 
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -106,7 +106,7 @@ export async function configureDevServer(
 
           const renderOpts: RenderToStreamOptions = {
             debug: true,
-            locale: envData.locale,
+            locale: serverProps.locale,
             stream: res,
             snapshot: !isClientDevOnly,
             manifest: isClientDevOnly ? undefined : manifest,
@@ -119,7 +119,7 @@ export async function configureDevServer(
                   }
                 },
             prefetchStrategy: null,
-            envData: envData,
+            serverProps: serverProps,
           };
 
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -458,7 +458,7 @@ ${PERF_WARNING}
 ${DEV_QWIK_INSPECTOR(opts.devTools)}
 `;
 
-function getViteDevIndexHtml(entryUrl: string, envData: Record<string, any>) {
+function getViteDevIndexHtml(entryUrl: string, serverProps: Record<string, any>) {
   return `<!DOCTYPE html>
 <html>
   <head>
@@ -468,9 +468,9 @@ function getViteDevIndexHtml(entryUrl: string, envData: Record<string, any>) {
     async function main() {
       const mod = await import("${entryUrl}?${VITE_DEV_CLIENT_QS}=");
       if (mod.default) {
-        const envData = JSON.parse(${JSON.stringify(JSON.stringify(envData))})
+        const serverProps = JSON.parse(${JSON.stringify(JSON.stringify(serverProps))})
         mod.default({
-          envData,
+          serverProps,
         });
       }
     }

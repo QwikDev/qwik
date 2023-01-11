@@ -102,7 +102,7 @@ export const createRenderContext = (
   const ctx: RenderContext = {
     $static$: {
       $doc$: doc,
-      $locale$: containerState.$envData$.locale,
+      $locale$: containerState.$serverProps$.locale,
       $containerState$: containerState,
       $hostElements$: new Set(),
       $operations$: [],

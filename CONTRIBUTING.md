@@ -28,7 +28,7 @@ Before solving the problem, please check with the maintainers that the issue is 
 
 #### Sending a Pull Request
 
-Before submitting a pull request, please consider the following guidelines:
+Before submitting a pull request, consider the following guidelines:
 
 - fork the repository into your own account
 - in your forked repository, create a new branch: `git checkout -b my-branch main`

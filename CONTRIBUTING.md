@@ -1,6 +1,6 @@
 ## Guidelines
 
-Thank you for taking an interest in contributing to Qwik! 
+Thank you for taking an interest in contributing to Qwik!
 We appreciate you! 🫶🏽  
 Below are the guidelines how to help in the best possible way.
 
@@ -30,15 +30,15 @@ Before solving the problem, please check with the maintainers that the issue is 
 
 Before submitting a pull request, consider the following guidelines:
 
-- fork the repository into your own account
-- in your forked repository, create a new branch: `git checkout -b my-branch main`
-- make your changes/fixes
-- run `pnpm fmt` to lint the code
-- commit your code with a good commit message using [using "Commitizen"](#committing-using-commitizen)
-- push your branch to GitHub: `git push origin my-branch`
-- in GitHub, send a pull request to `BuilderIO:main`
+- Fork the repository into your own account.
+- In your forked repository, create a new branch: `git checkout -b my-branch main`
+- Make your changes/fixes.
+- Run `pnpm fmt` to lint the code.
+- Commit your code with a good commit message using [using "Commitizen"](#committing-using-commitizen).
+- Push your branch to GitHub: `git push origin my-branch`
+- In GitHub, send a pull request to `BuilderIO:main`.
 
-# Getting started 
+# Getting started
 
 If you are using VSCode, you can install the [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension. Once installed you will be prompted to reopen the folder in a container. All required dependencies will be installed in the container for you. If you're not prompted, you can run the `Remote-Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
 

@@ -977,9 +977,9 @@ export const useStore: <STATE extends object>(initialState: STATE | (() => STATE
 
 // @public (undocumented)
 export interface UseStoreOptions {
-    // (undocumented)
+    deep?: boolean;
     reactive?: boolean;
-    // (undocumented)
+    // @deprecated (undocumented)
     recursive?: boolean;
 }
 

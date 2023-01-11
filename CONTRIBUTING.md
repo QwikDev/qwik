@@ -1,6 +1,8 @@
 ## Guidelines
 
-Thank you for coming this far, below you will find the guidelines to be able to contribute to the project in the best possible way.
+Thank you for taking an interest in contributing to Qwik! 
+We appreciate you 🫶🏽  
+Below are the guidelines how to help in the best possible way.
 
 ### Submitting an Issue
 

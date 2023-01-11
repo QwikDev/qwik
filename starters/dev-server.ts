@@ -254,7 +254,7 @@ async function ssrApp(
     manifest,
     debug: true,
     base,
-    serverProps: {
+    serverData: {
       url,
     },
   };

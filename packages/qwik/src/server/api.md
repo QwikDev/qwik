@@ -89,7 +89,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
     prefetchStrategy?: PrefetchStrategy | null;
     qwikLoader?: QwikLoaderOptions;
     // (undocumented)
-    serverProps?: Record<string, any>;
+    serverData?: Record<string, any>;
     snapshot?: boolean;
 }
 

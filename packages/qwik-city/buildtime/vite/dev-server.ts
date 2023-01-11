@@ -10,7 +10,7 @@ import {
   QDATA_JSON,
   runQwikCity,
 } from '../../middleware/request-handler/user-response';
-import { getQwikCityServerProps } from '../../middleware/request-handler/response-page';
+import { getQwikCityServerData } from '../../middleware/request-handler/response-page';
 import { updateBuildContext } from '../build';
 import { getErrorHtml } from '../../middleware/request-handler/error-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
@@ -103,7 +103,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         const renderFn = (requestEv: RequestEvent) => {
           const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
           if (!isPageDataReq) {
-            const envData = getQwikCityServerProps(requestEv);
+            const envData = getQwikCityServerData(requestEv);
 
             (res as QwikViteDevResponse)._qwikEnvData = {
               ...(res as QwikViteDevResponse)._qwikEnvData,

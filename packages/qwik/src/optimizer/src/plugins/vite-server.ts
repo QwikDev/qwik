@@ -41,7 +41,7 @@ export async function configureDevServer(
       const url = new URL(req.originalUrl!, domain);
 
       if (shouldSsrRender(req, url)) {
-        const serverProps: Record<string, any> = {
+        const serverData: Record<string, any> = {
           ...(res as QwikViteDevResponse)._qwikEnvData,
           url: url.href,
         };
@@ -51,7 +51,7 @@ export async function configureDevServer(
           const relPath = path.relative(opts.rootDir, clientDevInput!);
           const entryUrl = '/' + relPath.replace(/\\/g, '/');
 
-          let html = getViteDevIndexHtml(entryUrl, serverProps);
+          let html = getViteDevIndexHtml(entryUrl, serverData);
           html = await server.transformIndexHtml(url.pathname, html);
 
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -106,7 +106,7 @@ export async function configureDevServer(
 
           const renderOpts: RenderToStreamOptions = {
             debug: true,
-            locale: serverProps.locale,
+            locale: serverData.locale,
             stream: res,
             snapshot: !isClientDevOnly,
             manifest: isClientDevOnly ? undefined : manifest,
@@ -119,7 +119,7 @@ export async function configureDevServer(
                   }
                 },
             prefetchStrategy: null,
-            serverProps: serverProps,
+            serverData,
           };
 
           res.setHeader('Content-Type', 'text/html; charset=utf-8');

@@ -112,7 +112,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const root = opts.containerTagName;
   const containerEl = createSSRContext(1).$element$;
   const containerState = createContainerState(containerEl as Element, opts.base ?? '/');
-  containerState.$serverProps$.locale = opts.serverProps?.locale;
+  containerState.$serverData$.locale = opts.serverProps?.locale;
   const doc = createDocument();
   const rCtx = createRenderContext(doc as any, containerState);
   const headNodes = opts.beforeContent ?? [];
@@ -146,7 +146,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
     containerAttributes.class =
       'qc📦' + (containerAttributes.class ? ' ' + containerAttributes.class : '');
   }
-  containerState.$serverProps$ = {
+  containerState.$serverData$ = {
     url: opts.url,
     ...opts.serverProps,
   };

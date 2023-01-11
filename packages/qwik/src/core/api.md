@@ -907,7 +907,7 @@ export interface UseEffectOptions {
 }
 
 // @alpha @deprecated (undocumented)
-export const useEnvData: typeof useServerProps;
+export const useEnvData: typeof useServerData;
 
 // Warning: (ae-forgotten-export) The symbol "ErrorBoundaryStore" needs to be exported by the entry point index.d.ts
 //
@@ -949,17 +949,17 @@ export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOption
 // @public
 export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) => ResourceReturn<T>;
 
+// @alpha (undocumented)
+export function useServerData<T>(key: string): T | undefined;
+
+// @alpha (undocumented)
+export function useServerData<T, B = T>(key: string, defaultValue: B): T | B;
+
 // @public @deprecated
 export const useServerMount$: <T>(first: MountFn<T>) => void;
 
 // @public @deprecated
 export const useServerMountQrl: <T>(mountQrl: QRL<MountFn<T>>) => void;
-
-// @alpha (undocumented)
-export function useServerProps<T>(key: string): T | undefined;
-
-// @alpha (undocumented)
-export function useServerProps<T, B = T>(key: string, defaultValue: B): T | B;
 
 // @alpha (undocumented)
 export interface UseSignal {
@@ -1011,6 +1011,9 @@ export interface UseTaskOptions {
 
 // @public
 export const useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
+
+// @alpha @deprecated (undocumented)
+export const useUserContext: typeof useServerData;
 
 // @beta @deprecated (undocumented)
 export const useWatch$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void;

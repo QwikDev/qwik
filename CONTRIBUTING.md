@@ -24,7 +24,7 @@ We adopt [trunk-based development](https://trunkbaseddevelopment.com/) therefore
 
 The issues marked with [_Good first issue_](https://github.com/BuilderIO/qwik/issues?q=is:open+is:issue+label:%22good+first+issue%22) are a good starting point to familiarize yourself with the project.
 
-Before solving the problem, please check with the maintainers that the issue is still relevant. Please feel free to leave a comment on the issue to show your intention to work on it and prevent other people from accidentally duplicating your effort.
+Before solving the problem, please check with the maintainers that the issue is still relevant. Feel free to leave a comment on the issue to show your intention to work on it and prevent other people from unintentionally duplicating your effort.
 
 #### Sending a Pull Request
 

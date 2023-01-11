@@ -1,7 +1,7 @@
-import { BuildConfig, panic } from './util';
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
-import { join } from 'node:path';
 import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { BuildConfig, panic } from './util';
 
 /**
  * Create each submodule's bundled dts file, and ensure
@@ -81,6 +81,11 @@ export function apiExtractor(config: BuildConfig) {
       'vite',
       'index.d.ts'
     )
+  );
+  createTypesApi(
+    config,
+    join(config.packagesDir, 'qwik-city', 'adaptors', 'cloud-run', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'cloud-run', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,

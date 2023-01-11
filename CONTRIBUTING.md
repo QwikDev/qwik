@@ -22,7 +22,19 @@ We adopt trunk-based development therefore all Pull Requests are made to the mai
 
 The issues marked with [_Good first issue_](https://github.com/BuilderIO/qwik/issues?q=is:open+is:issue+label:%22good+first+issue%22) are a good starting point to familiarize yourself with the project.
 
-Before starting to solve the problem, please check with the maintainers that the issue is still to be solved and therefore your intervention will help.
+Before starting to solve the problem, please check with the maintainers that the issue is still to be solved and therefore your intervention will help. You can leave a comment in the issue to show that you intend to work on it and prevent other people from accidentally duplicating your effort.
+
+### Sending a Pull Request
+
+Before submitting a pull request, please consider the following guidelines:
+
+- fork the repository into your own account
+- in your forked repository, create a new branch: `git checkout -b my-branch main`
+- make your changes/fixes
+- run `fmt` script to lint the code
+- commit your code with a good commit message: `git commit -m "<my-message>"`
+- push your branch to GitHub: `git push origin my-branch`
+- in GitHub, send a pull request to `BuilderIO:main`
 
 # CONTRIBUTING
 

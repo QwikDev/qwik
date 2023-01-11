@@ -103,11 +103,11 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         const renderFn = (requestEv: RequestEvent) => {
           const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
           if (!isPageDataReq) {
-            const envData = getQwikCityServerData(requestEv);
+            const serverData = getQwikCityServerData(requestEv);
 
             (res as QwikViteDevResponse)._qwikEnvData = {
               ...(res as QwikViteDevResponse)._qwikEnvData,
-              ...envData,
+              ...serverData,
             };
 
             return next();

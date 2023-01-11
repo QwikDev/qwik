@@ -141,9 +141,9 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                         thing
                     ]),
                     children: _wrapSignal(btn, "name")
-                }))
+                }, "u6_0"))
         ]
-    });
+    }, "u6_1");
 };
 
 

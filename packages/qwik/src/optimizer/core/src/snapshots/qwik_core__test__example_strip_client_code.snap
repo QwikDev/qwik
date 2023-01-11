@@ -58,7 +58,7 @@ export const Parent = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
             state
         ]),
         children: _wrapSignal(state, "text")
-    });
+    }, "u6_0");
 }, "Parent_component_0TaiDayHrlo"));
 
 

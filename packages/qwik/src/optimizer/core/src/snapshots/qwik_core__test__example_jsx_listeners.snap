@@ -145,7 +145,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
         "onDocument:keyup$": handler,
         "onWindow:keyup$": handler,
         custom$: qrl(()=>import("./foo_component_div_custom_pyhnxab17ms"), "Foo_component_div_custom_pyHnxab17ms")
-    });
+    }, "u6_0");
 };
 export { _hW } from "@builder.io/qwik";
 

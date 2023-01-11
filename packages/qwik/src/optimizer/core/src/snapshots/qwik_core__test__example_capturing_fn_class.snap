@@ -65,7 +65,7 @@ import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const App_component_1_w0t0o3QMovU = ()=>{
     hola();
     new Thing();
-    return /*#__PURE__*/ _jsx("div", {});
+    return /*#__PURE__*/ _jsx("div", {}, "u6_0");
 };
 export { _hW } from "@builder.io/qwik";
 

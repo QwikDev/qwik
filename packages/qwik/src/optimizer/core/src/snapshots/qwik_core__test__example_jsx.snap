@@ -60,7 +60,7 @@ export const Lightweight = (props)=>{
                 })
             ]
         }, "u6_0")
-    });
+    }, "u6_1");
 };
 export const Foo = /*#__PURE__*/ componentQrl(qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
@@ -122,12 +122,12 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
                         children: "12"
                     })
                 ]
-            }, "u6_1"),
+            }, "u6_2"),
             /*#__PURE__*/ _jsx("div", {
                 class: "class",
                 children: /*#__PURE__*/ _jsx(Lightweight, {
                     ...props
-                }, "u6_2")
+                }, "u6_3")
             }),
             /*#__PURE__*/ _jsxs("div", {
                 class: "class",
@@ -142,7 +142,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
                 children: children
             })
         ]
-    });
+    }, "u6_4");
 };
 export { _hW } from "@builder.io/qwik";
 

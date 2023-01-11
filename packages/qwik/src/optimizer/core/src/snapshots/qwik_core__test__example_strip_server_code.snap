@@ -94,7 +94,7 @@ export const Parent_component_0TaiDayHrlo = ()=>{
     return /*#__PURE__*/ _jsx("div", {
         onClick$: qrl(()=>import("./parent_component_div_onclick_c5xe49nqd3a"), "Parent_component_div_onClick_C5XE49Nqd3A"),
         children: _wrapSignal(state, "text")
-    });
+    }, "u6_0");
 };
 
 

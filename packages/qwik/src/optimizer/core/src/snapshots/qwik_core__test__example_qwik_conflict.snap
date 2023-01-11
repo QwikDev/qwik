@@ -70,7 +70,7 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
         onClick$: qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw", [
             qrl1
         ])
-    });
+    }, "u6_0");
 };
 
 
@@ -154,7 +154,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 export const Root_component_1_cBpQNYDUHI4 = ()=>{
-    return /*#__PURE__*/ _jsx("div", {});
+    return /*#__PURE__*/ _jsx("div", {}, "u6_1");
 };
 export { _hW } from "@builder.io/qwik";
 

@@ -32,7 +32,7 @@ export const App_Component_1_A08tXHb9pEk = ()=>{
     const [state] = useLexicalScope();
     return /*#__PURE__*/ _jsx("div", {
         children: _wrapSignal(state, "thing")
-    });
+    }, "u6_0");
 };
 export { _hW } from "@builder.io/qwik";
 

@@ -128,4 +128,19 @@ test.describe('render', () => {
     await expect(obj).toHaveText('4=4');
     await expect(operation).toHaveText('4+1=5');
   });
+
+  test('issue2608', async ({ page }) => {
+    const toggle = await page.locator('#issue-2608-btn');
+    const input = await page.locator('#issue-2608-input');
+
+    await expect(input).toHaveValue('');
+    await input.fill('some text');
+    await expect(input).toHaveValue('some text');
+    await toggle.click();
+    await page.waitForTimeout(100);
+    await expect(input).toHaveValue('some text');
+    await toggle.click();
+    await page.waitForTimeout(100);
+    await expect(input).toHaveValue('some text');
+  });
 });

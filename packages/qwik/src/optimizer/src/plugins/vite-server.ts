@@ -458,7 +458,7 @@ ${PERF_WARNING}
 ${DEV_QWIK_INSPECTOR(opts.devTools)}
 `;
 
-function getViteDevIndexHtml(entryUrl: string, serverProps: Record<string, any>) {
+function getViteDevIndexHtml(entryUrl: string, serverData: Record<string, any>) {
   return `<!DOCTYPE html>
 <html>
   <head>
@@ -468,9 +468,9 @@ function getViteDevIndexHtml(entryUrl: string, serverProps: Record<string, any>)
     async function main() {
       const mod = await import("${entryUrl}?${VITE_DEV_CLIENT_QS}=");
       if (mod.default) {
-        const serverProps = JSON.parse(${JSON.stringify(JSON.stringify(serverProps))})
+        const serverData = JSON.parse(${JSON.stringify(JSON.stringify(serverData))})
         mod.default({
-          serverProps,
+          serverData,
         });
       }
     }

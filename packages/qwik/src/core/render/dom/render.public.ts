@@ -20,7 +20,7 @@ import { appendQwikDevTools } from '../../container/resume';
  * @alpha
  */
 export interface RenderOptions {
-  serverProps?: Record<string, any>;
+  serverData?: Record<string, any>;
 }
 
 /**
@@ -57,9 +57,9 @@ export const render = async (
   injectQContainer(containerEl);
 
   const containerState = getContainerState(containerEl);
-  const serverProps = opts?.serverProps;
-  if (serverProps) {
-    Object.assign(containerState.$serverData$, serverProps);
+  const serverData = opts?.serverData;
+  if (serverData) {
+    Object.assign(containerState.$serverData$, serverData);
   }
   containerState.$hostsRendering$ = new Set();
   containerState.$renderPromise$ = renderRoot(

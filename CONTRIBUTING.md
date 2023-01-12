@@ -1,4 +1,4 @@
-## Guidelines
+## Contributing to Qwik
 
 Thank you for taking an interest in contributing to Qwik!
 We appreciate you! 🫶🏽  

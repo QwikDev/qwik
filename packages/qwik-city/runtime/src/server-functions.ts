@@ -25,7 +25,10 @@ export type ServerActionExecute<RETURN> = QRL<
   ) => Promise<RETURN>
 >;
 
-export interface ServerActionUtils<RETURN> {
+/**
+ * @alpha
+ */
+export interface ServerActionUse<RETURN> {
   readonly id: string;
   readonly actionPath: string;
   readonly isPending: boolean;
@@ -34,15 +37,18 @@ export interface ServerActionUtils<RETURN> {
   readonly execute: ServerActionExecute<RETURN>;
 }
 
+/**
+ * @alpha
+ */
 export interface ServerAction<RETURN> {
   readonly [isServerLoader]?: true;
-  use(): ServerActionUtils<RETURN>;
+  use(): ServerActionUse<RETURN>;
 }
 
 export interface ServerActionInternal extends ServerAction<any> {
   readonly __brand: 'server_action';
   __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>;
-  use(): ServerActionUtils<any>;
+  use(): ServerActionUse<any>;
 }
 
 type Editable<T> = {
@@ -54,15 +60,15 @@ export class ServerActionImpl implements ServerActionInternal {
   constructor(
     public __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>
   ) {}
-  use(): ServerActionUtils<any> {
+  use(): ServerActionUse<any> {
     const loc = useLocation() as Editable<RouteLocation>;
     const currentAction = useAction();
-    const initialState: Editable<Partial<ServerActionUtils<any>>> = {
+    const initialState: Editable<Partial<ServerActionUse<any>>> = {
       status: undefined,
       isPending: false,
     };
 
-    const state = useStore<Editable<ServerActionUtils<any>>>(() => {
+    const state = useStore<Editable<ServerActionUse<any>>>(() => {
       return untrack(() => {
         const id = this.__qrl.getHash();
         if (currentAction.value?.output) {
@@ -76,7 +82,7 @@ export class ServerActionImpl implements ServerActionInternal {
         initialState.id = id;
         initialState.actionPath = `${loc.pathname}?${QACTION_KEY}=${id}`;
         initialState.isPending = false;
-        return initialState as ServerActionUtils<any>;
+        return initialState as ServerActionUse<any>;
       });
     });
 
@@ -121,10 +127,16 @@ export const actionQrl = <B>(
  */
 export const action$ = implicit$FirstArg(actionQrl);
 
+/**
+ * @alpha
+ */
 export type ServerLoaderUse<T> = Awaited<T> extends () => ValueOrPromise<infer B>
   ? Signal<ValueOrPromise<B>>
   : Signal<Awaited<T>>;
 
+/**
+ * @alpha
+ */
 export interface ServerLoader<RETURN> {
   readonly [isServerLoader]?: true;
   use(): ServerLoaderUse<RETURN>;

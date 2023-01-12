@@ -9,6 +9,7 @@ export type {
   GetData,
   GetSyncData,
   RequestEvent,
+  RequestEventLoader,
   RequestHandler,
   ServerRequestMode,
   ServerRenderOptions,

@@ -97,6 +97,14 @@ export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLA
 }
 
 // @alpha (undocumented)
+export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
+    // (undocumented)
+    fail: <T>(status: number, returnData: T) => T;
+    // (undocumented)
+    getData: GetData;
+}
+
+// @alpha (undocumented)
 export type RequestHandler<PLATFORM = unknown> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityRun" needs to be exported by the entry point index.d.ts

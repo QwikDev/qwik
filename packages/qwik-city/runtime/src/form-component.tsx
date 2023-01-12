@@ -1,11 +1,11 @@
-import type { ServerActionUtils } from './server-functions';
+import type { ServerActionUse } from './server-functions';
 import { jsx, _wrapSignal, QwikJSX } from '@builder.io/qwik';
 
 /**
  * @alpha
  */
 export interface FormProps<T> extends Omit<QwikJSX.IntrinsicElements['form'], 'action'> {
-  action: ServerActionUtils<T>;
+  action: ServerActionUse<T>;
   method?: 'post';
 }
 

@@ -56,9 +56,6 @@ export interface CookieValue {
 }
 
 // @alpha (undocumented)
-export function createHeaders(): Headers;
-
-// @alpha (undocumented)
 export interface GetData {
     // Warning: (ae-forgotten-export) The symbol "ServerLoader" needs to be exported by the entry point index.d.ts
     //
@@ -83,16 +80,6 @@ export interface GetSyncData {
 
 // @alpha (undocumented)
 export const mergeHeadersCookies: (headers: Headers, cookies: Cookie) => Headers;
-
-// @alpha (undocumented)
-export interface RequestContext {
-    formData(): Promise<FormData>;
-    readonly headers: Headers;
-    json(): Promise<any>;
-    readonly method: string;
-    text(): Promise<string>;
-    readonly url: string;
-}
 
 // Warning: (ae-forgotten-export) The symbol "RequestEventCommon" needs to be exported by the entry point index.d.ts
 //
@@ -136,7 +123,7 @@ export interface ServerRequestEvent<T = any> {
     // (undocumented)
     platform: any;
     // (undocumented)
-    request: RequestContext;
+    request: Request;
     // (undocumented)
     url: URL;
 }

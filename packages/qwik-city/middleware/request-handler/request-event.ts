@@ -14,7 +14,6 @@ import type {
   ServerLoaderInternal,
 } from '../../runtime/src/server-functions';
 import { Cookie } from './cookie';
-import { createHeaders } from './headers';
 import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
@@ -39,7 +38,7 @@ export function createRequestEvent(
   const { request, platform } = serverRequestEv;
 
   const cookie = new Cookie(request.headers.get('cookie'));
-  const headers = createHeaders();
+  const headers = new Headers();
   const url = new URL(request.url);
 
   let routeModuleIndex = -1;

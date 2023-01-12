@@ -38,6 +38,8 @@ Before submitting a pull request, consider the following guidelines:
 - Push your branch to GitHub: `git push origin my-branch`
 - In GitHub, send a pull request to `BuilderIO:main`.
 
+> If you aren't sure your PR is ready open it as a [draft](https://github.blog/2019-02-14-introducing-draft-pull-requests/) to make it clear to the maintainer.
+
 # Getting started
 
 If you are using VSCode, you can install the [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension. Once installed you will be prompted to reopen the folder in a container. All required dependencies will be installed in the container for you. If you're not prompted, you can run the `Remote-Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).

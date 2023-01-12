@@ -49,7 +49,7 @@
   text-decoration: none;
 }
 
-@media (max-width: 996px) {
+@media (max-width: 1023px) {
   .docsearch {
     display: none;
   }

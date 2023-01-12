@@ -57,7 +57,7 @@ export const Header = component$(() => {
             <CloseIcon width={30} height={30} />
           </span>
         </button>
-        <ul class="md:grow md:flex md:justify-end md:p-4 menu-toolkit">
+        <ul class="lg:grow lg:flex lg:justify-end lg:p-4 menu-toolkit">
           <li>
             <a href="/docs/overview/" class={{ active: pathname.startsWith('/docs') }}>
               <span>Docs</span>
@@ -114,24 +114,24 @@ export const Header = component$(() => {
           </li>
           <li>
             <a href="https://github.com/BuilderIO/qwik" target="_blank" title="GitHub">
-              <span class="md:hidden">GitHub</span>
-              <span class="hidden md:block">
+              <span class="lg:hidden">GitHub</span>
+              <span class="hidden lg:block">
                 <GithubLogo width={22} height={22} />
               </span>
             </a>
           </li>
           <li>
             <a href="https://twitter.com/QwikDev" target="_blank" title="Twitter">
-              <span class="md:hidden">@QwikDev</span>
-              <span class="hidden md:block">
+              <span class="lg:hidden">@QwikDev</span>
+              <span class="hidden lg:block">
                 <TwitterLogo width={22} height={22} />
               </span>
             </a>
           </li>
           <li>
             <a href="https://qwik.builder.io/chat" target="_blank" title="Discord">
-              <span class="md:hidden">Discord</span>
-              <span class="hidden md:block">
+              <span class="lg:hidden">Discord</span>
+              <span class="hidden lg:block">
                 <DiscordLogo width={22} height={22} />
               </span>
             </a>

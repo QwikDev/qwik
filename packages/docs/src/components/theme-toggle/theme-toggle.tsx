@@ -46,10 +46,10 @@ export const ThemeToggle = component$(() => {
 
   return (
     <>
-      <span class="md:hidden">
+      <span class="lg:hidden">
         <button onClick$={onClick$}>{state.theme === 'light' ? 'Dark' : 'Light'} theme</button>
       </span>
-      <span class="hidden md:block">
+      <span class="hidden lg:block">
         <button
           type="button"
           class="theme-toggle"

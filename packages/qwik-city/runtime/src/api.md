@@ -14,18 +14,18 @@ import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
 import { RequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
+import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { Signal } from '@builder.io/qwik';
 import { ValueOrPromise } from '@builder.io/qwik';
 
-// Warning: (ae-forgotten-export) The symbol "RequestEventLoader" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ServerAction" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "RequestEventLoader_2" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export const action$: <B>(first: (form: FormData, event: RequestEventLoader) => ValueOrPromise<B>) => ServerAction<B>;
+export const action$: <B>(first: (form: FormData, event: RequestEventLoader_2) => ValueOrPromise<B>) => ServerAction<B>;
 
 // @alpha (undocumented)
-export const actionQrl: <B>(actionQrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<B>>) => ServerAction<B>;
+export const actionQrl: <B>(actionQrl: QRL<(form: FormData, event: RequestEventLoader_2) => ValueOrPromise<B>>) => ServerAction<B>;
 
 // @alpha @deprecated (undocumented)
 export const Content: Component<    {}>;
@@ -152,10 +152,8 @@ export const Form: <T>({ action, ...rest }: FormProps<T>) => JSXNode<"form">;
 
 // @alpha (undocumented)
 export interface FormProps<T> extends Omit<QwikJSX.IntrinsicElements['form'], 'action'> {
-    // Warning: (ae-forgotten-export) The symbol "ServerActionUtils" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    action: ServerActionUtils<T>;
+    action: ServerActionUse<T>;
     // (undocumented)
     method?: 'post';
 }
@@ -176,13 +174,11 @@ export interface LinkProps extends AnchorAttributes {
     prefetch?: boolean;
 }
 
-// Warning: (ae-forgotten-export) The symbol "ServerLoader" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
-export const loader$: <PLATFORM, B>(first: (event: RequestEventLoader<PLATFORM>) => B) => ServerLoader<B>;
+export const loader$: <PLATFORM, B>(first: (event: RequestEventLoader_2<PLATFORM>) => B) => ServerLoader<B>;
 
 // @alpha (undocumented)
-export const loaderQrl: <PLATFORM, B>(loaderQrl: QRL<(event: RequestEventLoader<PLATFORM>) => B>) => ServerLoader<B>;
+export const loaderQrl: <PLATFORM, B>(loaderQrl: QRL<(event: RequestEventLoader_2<PLATFORM>) => B>) => ServerLoader<B>;
 
 // Warning: (ae-forgotten-export) The symbol "RouteModule" needs to be exported by the entry point index.d.ts
 //
@@ -234,6 +230,8 @@ export const QwikCityProvider: Component<QwikCityProps>;
 
 export { RequestEvent }
 
+export { RequestEventLoader }
+
 export { RequestHandler }
 
 // @alpha (undocumented)
@@ -269,6 +267,43 @@ export type RouteParams = Record<string, string>;
 
 // @alpha (undocumented)
 export const RouterOutlet: Component<    {}>;
+
+// @alpha (undocumented)
+export interface ServerAction<RETURN> {
+    // (undocumented)
+    readonly [isServerLoader]?: true;
+    // (undocumented)
+    use(): ServerActionUse<RETURN>;
+}
+
+// @alpha (undocumented)
+export interface ServerActionUse<RETURN> {
+    // (undocumented)
+    readonly actionPath: string;
+    // Warning: (ae-forgotten-export) The symbol "ServerActionExecute" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly execute: ServerActionExecute<RETURN>;
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    readonly isPending: boolean;
+    // (undocumented)
+    readonly status?: number;
+    // (undocumented)
+    readonly value: RETURN | undefined;
+}
+
+// @alpha (undocumented)
+export interface ServerLoader<RETURN> {
+    // (undocumented)
+    readonly [isServerLoader]?: true;
+    // (undocumented)
+    use(): ServerLoaderUse<RETURN>;
+}
+
+// @alpha (undocumented)
+export type ServerLoaderUse<T> = Awaited<T> extends () => ValueOrPromise<infer B> ? Signal<ValueOrPromise<B>> : Signal<Awaited<T>>;
 
 // @alpha (undocumented)
 export const ServiceWorkerRegister: () => JSXNode<"script">;

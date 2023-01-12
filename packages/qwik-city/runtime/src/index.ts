@@ -14,6 +14,7 @@ export type {
   PathParams,
   RequestHandler,
   RequestEvent,
+  RequestEventLoader,
   RouteParams,
   QwikCityPlan,
   ResolvedDocumentHead,
@@ -32,6 +33,12 @@ export { action$, actionQrl } from './server-functions';
 export { loader$, loaderQrl } from './server-functions';
 export { Form } from './form-component';
 export type { FormProps } from './form-component';
+export type {
+  ServerAction,
+  ServerLoader,
+  ServerActionUse,
+  ServerLoaderUse,
+} from './server-functions';
 
 // @deprecated
 export type { EndpointHandler } from './types';

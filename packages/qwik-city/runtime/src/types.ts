@@ -9,6 +9,7 @@ export type {
   GetSyncData,
   RequestEvent,
   RequestHandler,
+  RequestEventLoader,
 } from '@builder.io/qwik-city/middleware/request-handler';
 
 export interface RouteModule<BODY = unknown> {

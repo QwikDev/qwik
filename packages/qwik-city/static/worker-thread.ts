@@ -4,11 +4,8 @@ import type {
   StaticWorkerRenderResult,
   System,
 } from './types';
-import type {
-  ServerRequestEvent,
-  RequestContext,
-} from '@builder.io/qwik-city/middleware/request-handler';
-import { createHeaders, requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
+import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
+import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { pathToFileURL } from 'node:url';
 import { WritableStream } from 'node:stream/web';
 import type { ClientPageData } from '../runtime/src/types';
@@ -71,7 +68,7 @@ async function workerRender(
   }
 
   try {
-    const request = new SsgRequestContext(url);
+    const request = new Request(url);
 
     const requestCtx: ServerRequestEvent<void> = {
       mode: 'static',
@@ -170,34 +167,3 @@ const noopWriter = /*#__PURE__*/ new WritableStream({
   write() {},
   close() {},
 });
-
-class SsgRequestContext implements RequestContext {
-  url: string;
-  headers: Headers;
-
-  constructor(url: URL) {
-    this.url = url.href;
-
-    const headers = createHeaders();
-    headers.set('Host', url.host);
-    headers.set('Accept', 'text/html,application/json');
-    headers.set('User-Agent', 'Qwik City SSG');
-    this.headers = headers;
-  }
-
-  get method() {
-    return 'GET';
-  }
-
-  async json() {
-    return {};
-  }
-
-  async text() {
-    return '';
-  }
-
-  async formData() {
-    return new URLSearchParams();
-  }
-}

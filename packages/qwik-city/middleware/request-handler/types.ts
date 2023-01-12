@@ -14,7 +14,7 @@ export interface ServerRequestEvent<T = any> {
   url: URL;
   locale: string | undefined;
   platform: any;
-  request: RequestContext;
+  request: Request;
   getWritableStream: ServerResponseHandler<T>;
 }
 
@@ -170,7 +170,7 @@ export interface RequestEventCommon<PLATFORM = unknown> {
   /**
    * HTTP request information.
    */
-  readonly request: RequestContext;
+  readonly request: Request;
 
   /**
    * Platform specific data and functions
@@ -275,55 +275,6 @@ export interface GetSyncData {
   <T>(loader: ServerLoader<T>): T;
   <T>(loader: ServerAction<T>): T | undefined;
 }
-
-/**
- * @alpha
- */
-export interface RequestContext {
-  /**
-   * HTTP request headers.
-   *
-   * https://developer.mozilla.org/en-US/docs/Glossary/Request_header
-   */
-  readonly headers: Headers;
-
-  /**
-   * HTTP request method.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
-   */
-  readonly method: string;
-
-  /**
-   * HTTP request URL.
-   */
-  readonly url: string;
-
-  /**
-   * HTTP request form data.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/API/FormData
-   */
-  formData(): Promise<FormData>;
-
-  /**
-   * HTTP request json data.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/API/Request/json
-   */
-  json(): Promise<any>;
-
-  /**
-   * HTTP request text data.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/API/Request/text
-   */
-  text(): Promise<string>;
-}
-
-// export interface QwikCityDevRequestContext extends QwikCityRequestContext {
-//   routesDir: string;
-// }
 
 /**
  * @alpha

@@ -105,6 +105,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           if (!isPageDataReq) {
             const serverData = getQwikCityServerData(requestEv);
 
+            res.statusCode = requestEv.status();
             requestEv.headers.forEach((value, key) => {
               res.setHeader(key, value);
             });

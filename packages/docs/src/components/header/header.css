@@ -22,7 +22,7 @@
 
 header li {
   @apply px-2 text-right;
-  @apply py-4 md:py-0;
+  @apply py-4 lg:py-0;
 
   font-size: 14px;
   font-weight: 500;
@@ -41,14 +41,15 @@ header li a:hover svg {
 }
 
 header .mobile-menu {
+  height: var(--header-height);
   position: absolute;
   right: 0;
-  @apply p-5 md:hidden;
+  @apply p-5 lg:hidden;
 }
 
 header ul {
-  @apply hidden md:block;
-  @apply pt-0 pb-6 md:pt-0;
+  @apply hidden lg:block;
+  @apply pt-0 pb-6 lg:pt-0;
   height: 100%;
   align-items: center;
 }
@@ -61,7 +62,7 @@ header .close-icon {
   display: none;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .header-open header ul {
     position: absolute;
     z-index: 10;

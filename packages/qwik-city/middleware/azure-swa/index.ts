@@ -2,32 +2,13 @@ import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import type { RenderOptions } from '@builder.io/qwik';
 import type { Render } from '@builder.io/qwik/server';
 import qwikCityPlan from '@qwik-city-plan';
-import { createHeaders, requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
+import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type {
-  RequestContext,
   ServerRenderOptions,
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
 
 // @builder.io/qwik-city/middleware/azure-swa
-
-function createQwikRequest(req: HttpRequest): RequestContext {
-  const url = req.headers['x-ms-original-url']!;
-
-  const headers = createHeaders();
-  for (const header in req.headers) {
-    headers.set(header, req.headers[header]);
-  }
-
-  return {
-    method: req.method || 'GET',
-    url: url,
-    headers,
-    formData: () => Promise.resolve(new URLSearchParams(req.params)),
-    json: req.body,
-    text: req.rawBody,
-  };
-}
 
 interface AzureResponse {
   status: number;
@@ -46,13 +27,24 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
     });
     const decoder = new TextDecoder();
     try {
-      const qwikRequest = createQwikRequest(req);
+      const getRequestBody = async function* () {
+        for await (const chunk of req as any) {
+          yield chunk;
+        }
+      };
+      const body = req.method === 'HEAD' || req.method === 'GET' ? undefined : getRequestBody();
+      const options = {
+        method: req.method,
+        headers: req.headers,
+        body: body as any,
+        duplex: 'half' as any,
+      };
       const serverRequestEv: ServerRequestEvent<AzureResponse> = {
         mode: 'server',
         locale: undefined,
-        url: new URL(qwikRequest.url),
+        url: new URL(req.url),
         platform: context,
-        request: qwikRequest,
+        request: new Request(req.url, options as any),
         getWritableStream: (status, headers, _cookies) => {
           res.status = status;
           headers.forEach((value, key) => (res.headers[key] = value));

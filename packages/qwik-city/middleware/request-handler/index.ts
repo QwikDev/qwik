@@ -1,4 +1,3 @@
-export { createHeaders } from './headers';
 export { getErrorHtml } from './error-handler';
 export { mergeHeadersCookies } from './cookie';
 export { requestHandler } from './request-handler';
@@ -9,7 +8,6 @@ export type {
   CookieValue,
   GetData,
   GetSyncData,
-  RequestContext,
   RequestEvent,
   RequestHandler,
   ServerRequestMode,

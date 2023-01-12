@@ -45,7 +45,9 @@ export const loadClientData = async (
           if (clearCache) {
             CLIENT_DATA_CACHE.delete(clientDataPath);
           }
-          if (action) {
+          if (clientData.redirect) {
+            location.href = clientData.redirect;
+          } else if (action) {
             const actionData = clientData.loaders[action.id];
             action.resolve!({ status: rsp.status, result: actionData });
           }

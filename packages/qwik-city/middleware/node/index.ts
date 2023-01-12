@@ -10,13 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import { fromNodeHttp, getUrl } from './http';
-import { patchGlobalFetch } from './node-fetch';
-import {
-  TextEncoderStream,
-  TextDecoderStream,
-  WritableStream,
-  ReadableStream,
-} from 'node:stream/web';
+import { patchGlobalThis } from './node-fetch';
 
 // @builder.io/qwik-city/middleware/node
 
@@ -25,14 +19,8 @@ import {
  */
 export function createQwikCity(opts: QwikCityNodeRequestOptions) {
   // Patch Stream APIs
-  if (typeof globalThis.TextEncoderStream === 'undefined') {
-    globalThis.TextEncoderStream = TextEncoderStream;
-    globalThis.TextDecoderStream = TextDecoderStream;
-  }
-  if (typeof globalThis.WritableStream === 'undefined') {
-    globalThis.WritableStream = WritableStream as any;
-    globalThis.ReadableStream = ReadableStream as any;
-  }
+  patchGlobalThis();
+
   const staticFolder =
     opts.static?.root ?? join(fileURLToPath(import.meta.url), '..', '..', 'dist');
 
@@ -42,7 +30,6 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
     next: NodeRequestNextFunction
   ) => {
     try {
-      await patchGlobalFetch();
       const serverRequestEv = await fromNodeHttp(getUrl(req), req, res, 'server');
       const handled = await requestHandler(serverRequestEv, opts);
       if (handled) {

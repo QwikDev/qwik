@@ -17,7 +17,7 @@ import { build } from '../build';
 import { dev404Middleware, ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
-import { patchGlobalFetch } from '../../middleware/node/node-fetch';
+import { patchGlobalThis } from '../../middleware/node/node-fetch';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import {
@@ -33,12 +33,6 @@ import {
   STATIC_PATHS_ID,
 } from '../../adaptors/shared/vite';
 import { postBuild } from '../../adaptors/shared/vite/post-build';
-import {
-  TextEncoderStream,
-  TextDecoderStream,
-  WritableStream,
-  ReadableStream,
-} from 'node:stream/web';
 
 /**
  * @alpha
@@ -52,14 +46,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
   let outDir: string | null = null;
 
   // Patch Stream APIs
-  if (typeof globalThis.TextEncoderStream === 'undefined') {
-    globalThis.TextEncoderStream = TextEncoderStream;
-    globalThis.TextDecoderStream = TextDecoderStream;
-  }
-  if (typeof globalThis.WritableStream === 'undefined') {
-    globalThis.WritableStream = WritableStream as any;
-    globalThis.ReadableStream = ReadableStream as any;
-  }
+  patchGlobalThis();
 
   const api: QwikCityPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
@@ -77,8 +64,6 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     api,
 
     async config() {
-      await patchGlobalFetch();
-
       const updatedViteConfig: UserConfig = {
         appType: 'custom',
         base: userOpts?.basePathname,

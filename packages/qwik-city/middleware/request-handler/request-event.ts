@@ -73,13 +73,20 @@ export function createRequestEvent(
       writer.write(typeof body === 'string' ? encoder.encode(body) : body);
       writer.close();
     } else {
-      requestEv[RequestEvStatus] = statusOrResponse.status;
+      const status = statusOrResponse.status;
+      requestEv[RequestEvStatus] = status;
       statusOrResponse.headers.forEach((value, key) => {
         headers.append(key, value);
       });
-      const writableStream = requestEv.getWritableStream();
       if (statusOrResponse.body) {
+        const writableStream = requestEv.getWritableStream();
         statusOrResponse.body.pipeTo(writableStream);
+      } else {
+        if (status >= 300 && status < 400) {
+          return new RedirectMessage();
+        } else {
+          requestEv.getWritableStream().getWriter().close();
+        }
       }
     }
     return new AbortMessage();

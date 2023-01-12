@@ -288,9 +288,15 @@ export async function renderQData(requestEv: RequestEvent) {
     const location = requestEv.headers.get('Location');
     const isRedirect = status >= 301 && status <= 308 && location;
     if (isRedirect) {
-      requestEv.headers.set('Location', makeQDataPath(location));
-      requestEv.getWritableStream().close();
-      return;
+      const adaptedLocation = makeQDataPath(location);
+      if (adaptedLocation) {
+        requestEv.headers.set('Location', adaptedLocation);
+        requestEv.getWritableStream().close();
+        return;
+      } else {
+        requestEv.status(200);
+        requestEv.headers.delete('Location');
+      }
     }
 
     const requestHeaders: Record<string, string> = {};
@@ -302,6 +308,7 @@ export async function renderQData(requestEv: RequestEvent) {
       action: getRequestAction(requestEv),
       status: status !== 200 ? status : 200,
       href: getPathname(requestEv.url, true), // todo
+      redirect: location ?? undefined,
     };
     const writer = requestEv.getWritableStream().getWriter();
 
@@ -338,9 +345,13 @@ function formDataToArray(formData: FormData) {
 }
 
 function makeQDataPath(href: string) {
-  const append = QDATA_JSON;
-  const url = new URL(href, 'http://localhost');
+  if (href.startsWith('/')) {
+    const append = QDATA_JSON;
+    const url = new URL(href, 'http://localhost');
 
-  const pathname = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname;
-  return pathname + (append.startsWith('/') ? '' : '/') + append + url.search;
+    const pathname = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname;
+    return pathname + (append.startsWith('/') ? '' : '/') + append + url.search;
+  } else {
+    return undefined;
+  }
 }

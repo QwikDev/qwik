@@ -9,6 +9,7 @@ export type {
   GetSyncData,
   RequestEvent,
   RequestHandler,
+  RequestEventLoader,
 } from '@builder.io/qwik-city/middleware/request-handler';
 
 export interface RouteModule<BODY = unknown> {
@@ -214,6 +215,7 @@ export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
  */
 export interface QwikCityPlan {
   routes: RouteData[];
+  serverPlugins?: RouteModule[];
   basePathname?: string;
   menus?: MenuData[];
   trailingSlash?: boolean;
@@ -268,6 +270,7 @@ export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
   status: number;
   href: string;
   isStatic?: boolean;
+  redirect?: string;
 }
 
 /**

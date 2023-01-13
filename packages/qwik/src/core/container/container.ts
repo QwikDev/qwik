@@ -97,7 +97,7 @@ export interface ContainerState {
   $hostsRendering$: Set<QwikElement> | undefined;
   $renderPromise$: Promise<RenderContext> | undefined;
 
-  $envData$: Record<string, any>;
+  $serverData$: Record<string, any>;
   $elementIndex$: number;
 
   $pauseCtx$: PauseContext | undefined;
@@ -138,7 +138,7 @@ export const createContainerState = (containerEl: Element, base: string) => {
     $styleIds$: new Set(),
     $events$: new Set(),
 
-    $envData$: {},
+    $serverData$: {},
     $base$: base,
     $renderPromise$: undefined,
     $hostsRendering$: undefined,

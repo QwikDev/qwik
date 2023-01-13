@@ -11,7 +11,7 @@ export const Render = component$(() => {
   };
   parent.children.push(parent);
 
-  const state = useStore(parent, { recursive: true });
+  const state = useStore(parent, { deep: true });
   return (
     <>
       <button
@@ -25,6 +25,8 @@ export const Render = component$(() => {
       </button>
       <Child counter={state.counter}></Child>
       <Issue1475 />
+      <Issue2563 />
+      <Issue2608 />
       <CounterToggle />
 
       <PropsDestructuring
@@ -201,3 +203,30 @@ export const PropsDestructuringNo = component$(
     );
   }
 );
+
+export const Issue2563 = component$(() => {
+  const html = `hola`;
+  const obj = { length: 4 };
+  return (
+    <ul>
+      <li id="issue-2563-string">4={html.length}</li>
+      <li id="issue-2563-obj">4={obj.length}</li>
+      <li id="issue-2563-operation">4+1={html.length + 1}</li>
+    </ul>
+  );
+});
+
+export const Issue2608 = component$(() => {
+  const show = useSignal(false);
+  return (
+    <>
+      <button id="issue-2608-btn" onClick$={() => (show.value = !show.value)}>
+        Toggle
+      </button>
+      {show.value && <div>Content</div>}
+      <div>
+        <input id="issue-2608-input" type="text" />
+      </div>
+    </>
+  );
+});

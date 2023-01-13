@@ -1,4 +1,46 @@
-# CONTRIBUTING
+## Contributing to Qwik
+
+Thank you for taking an interest in contributing to Qwik!
+We appreciate you! 🫶🏽  
+Below are the guidelines how to help in the best possible way.
+
+### Submitting an Issue
+
+Before creating a new issue, please search through open issues using the [GitHub issue search bar](https://docs.github.com/en/issues/tracking-your-work-with-issues/filtering-and-searching-issues-and-pull-requests). You might find the solution to your problem or you could verify that it is an already known problem.
+
+We want a bug-free and best-performing project, that's why we take all reported issues to heart, but if we can't reproduce the issue, we won't have a way of locating and properly fixing it.
+
+Therefore, to solve the problem in the best possible way, please create a minimal repository that reproduces the problem itself with the least possible code explaining and demonstrating the error.
+
+Without enough information to reproduce the issue, we will close it because we can't recreate and solve it.
+
+### Submitting a Pull Request (PR)
+
+#### Branch Organization
+
+We adopt [trunk-based development](https://trunkbaseddevelopment.com/) therefore all Pull Requests are made to the main branch because we do not use separate branches for development or for the versions we release.
+
+#### Good first issue
+
+The issues marked with [_Good first issue_](https://github.com/BuilderIO/qwik/issues?q=is:open+is:issue+label:%22good+first+issue%22) are a good starting point to familiarize yourself with the project.
+
+Before solving the problem, please check with the maintainers that the issue is still relevant. Feel free to leave a comment on the issue to show your intention to work on it and prevent other people from unintentionally duplicating your effort.
+
+#### Sending a Pull Request
+
+Before submitting a pull request, consider the following guidelines:
+
+- Fork the repository into your own account.
+- In your forked repository, create a new branch: `git checkout -b my-branch main`
+- Make your changes/fixes.
+- Run `pnpm fmt` to lint the code.
+- Commit your code with a good commit message using [using "Commitizen"](#committing-using-commitizen).
+- Push your branch to GitHub: `git push origin my-branch`
+- In GitHub, send a pull request to `BuilderIO:main`.
+
+> If you aren't sure your PR is ready open it as a [draft](https://github.blog/2019-02-14-introducing-draft-pull-requests/) to make it clear to the maintainer.
+
+# Getting started
 
 If you are using VSCode, you can install the [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension. Once installed you will be prompted to reopen the folder in a container. All required dependencies will be installed in the container for you. If you're not prompted, you can run the `Remote-Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
 

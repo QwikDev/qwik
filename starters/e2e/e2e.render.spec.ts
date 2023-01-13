@@ -118,4 +118,29 @@ test.describe('render', () => {
     await expect(message3).toHaveAttribute('aria-count', '2');
     await expect(renders3).toHaveText('3');
   });
+
+  test('issue2563', async ({ page }) => {
+    const string = await page.locator('#issue-2563-string');
+    const obj = await page.locator('#issue-2563-obj');
+    const operation = await page.locator('#issue-2563-operation');
+
+    await expect(string).toHaveText('4=4');
+    await expect(obj).toHaveText('4=4');
+    await expect(operation).toHaveText('4+1=5');
+  });
+
+  test('issue2608', async ({ page }) => {
+    const toggle = await page.locator('#issue-2608-btn');
+    const input = await page.locator('#issue-2608-input');
+
+    await expect(input).toHaveValue('');
+    await input.fill('some text');
+    await expect(input).toHaveValue('some text');
+    await toggle.click();
+    await page.waitForTimeout(100);
+    await expect(input).toHaveValue('some text');
+    await toggle.click();
+    await page.waitForTimeout(100);
+    await expect(input).toHaveValue('some text');
+  });
 });

@@ -19,10 +19,11 @@ export async function buildQwikCity(config: BuildConfig) {
   await Promise.all([
     buildServiceWorker(config, inputDir, outputDir),
     buildVite(config, inputDir, outputDir),
+    buildAdaptorAzureSwaVite(config, inputDir, outputDir),
     buildAdaptorCloudflarePagesVite(config, inputDir, outputDir),
     buildAdaptorExpressVite(config, inputDir, outputDir),
     buildAdaptorNetlifyEdgeVite(config, inputDir, outputDir),
-    buildAdaptorAzureSwaVite(config, inputDir, outputDir),
+    buildAdaptorSharedVite(config, inputDir, outputDir),
     buildAdaptorStaticVite(config, inputDir, outputDir),
     buildAdaptorVercelEdgeVite(config, inputDir, outputDir),
     buildMiddlewareCloudflarePages(config, inputDir, outputDir),
@@ -50,6 +51,11 @@ export async function buildQwikCity(config: BuildConfig) {
         import: './index.qwik.mjs',
         require: './index.qwik.cjs',
       },
+      './adaptors/azure-swa/vite': {
+        types: './adaptors/azure-swa/vite/index.d.ts',
+        import: './adaptors/azure-swa/vite/index.mjs',
+        require: './adaptors/azure-swa/vite/index.cjs',
+      },
       './adaptors/cloudflare-pages/vite': {
         types: './adaptors/cloudflare-pages/vite/index.d.ts',
         import: './adaptors/cloudflare-pages/vite/index.mjs',
@@ -65,10 +71,10 @@ export async function buildQwikCity(config: BuildConfig) {
         import: './adaptors/netlify-edge/vite/index.mjs',
         require: './adaptors/netlify-edge/vite/index.cjs',
       },
-      './adaptors/azure-swa/vite': {
-        types: './adaptors/azure-swa/vite/index.d.ts',
-        import: './adaptors/azure-swa/vite/index.mjs',
-        require: './adaptors/azure-swa/vite/index.cjs',
+      './adaptors/shared/vite': {
+        types: './adaptors/shared/vite/index.d.ts',
+        import: './adaptors/shared/vite/index.mjs',
+        require: './adaptors/shared/vite/index.cjs',
       },
       './adaptors/static/vite': {
         types: './adaptors/static/vite/index.d.ts',
@@ -268,10 +274,7 @@ async function buildAdaptorAzureSwaVite(config: BuildConfig, inputDir: string, o
     format: 'esm',
     watch: watcher(config),
     external,
-    plugins: [
-      resolveStatic('../../../static/index.mjs'),
-      resolveRequestHandler('../../../middleware/request-handler/index.mjs'),
-    ],
+    plugins: [resolveAdaptorShared('../../shared/vite/index.mjs')],
   });
 
   await build({
@@ -283,10 +286,7 @@ async function buildAdaptorAzureSwaVite(config: BuildConfig, inputDir: string, o
     format: 'cjs',
     watch: watcher(config),
     external,
-    plugins: [
-      resolveStatic('../../../static/index.cjs'),
-      resolveRequestHandler('../../../middleware/request-handler/index.cjs'),
-    ],
+    plugins: [resolveAdaptorShared('../../shared/vite/index.cjs')],
   });
 }
 
@@ -306,10 +306,7 @@ async function buildAdaptorCloudflarePagesVite(
     format: 'esm',
     watch: watcher(config),
     external: ADAPTOR_EXTERNALS,
-    plugins: [
-      resolveStatic('../../../static/index.mjs'),
-      resolveRequestHandler('../../../middleware/request-handler/index.mjs'),
-    ],
+    plugins: [resolveAdaptorShared('../../shared/vite/index.mjs')],
   });
 
   await build({
@@ -321,10 +318,7 @@ async function buildAdaptorCloudflarePagesVite(
     format: 'cjs',
     watch: watcher(config),
     external: ADAPTOR_EXTERNALS,
-    plugins: [
-      resolveStatic('../../../static/index.cjs'),
-      resolveRequestHandler('../../../middleware/request-handler/index.cjs'),
-    ],
+    plugins: [resolveAdaptorShared('../../shared/vite/index.cjs')],
   });
 }
 
@@ -340,10 +334,7 @@ async function buildAdaptorExpressVite(config: BuildConfig, inputDir: string, ou
     format: 'esm',
     watch: watcher(config),
     external: ADAPTOR_EXTERNALS,
-    plugins: [
-      resolveStatic('../../../static/index.mjs'),
-      resolveRequestHandler('../../../middleware/request-handler/index.mjs'),
-    ],
+    plugins: [resolveAdaptorShared('../../shared/vite/index.mjs')],
   });
 
   await build({
@@ -355,10 +346,7 @@ async function buildAdaptorExpressVite(config: BuildConfig, inputDir: string, ou
     format: 'cjs',
     watch: watcher(config),
     external: ADAPTOR_EXTERNALS,
-    plugins: [
-      resolveStatic('../../../static/index.cjs'),
-      resolveRequestHandler('../../../middleware/request-handler/index.cjs'),
-    ],
+    plugins: [resolveAdaptorShared('../../shared/vite/index.cjs')],
   });
 }
 
@@ -378,6 +366,37 @@ async function buildAdaptorNetlifyEdgeVite(
     format: 'esm',
     watch: watcher(config),
     external: ADAPTOR_EXTERNALS,
+    plugins: [resolveAdaptorShared('../../shared/vite/index.mjs')],
+  });
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'adaptors', 'netlify-edge', 'vite', 'index.cjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'cjs',
+    watch: watcher(config),
+    external: ADAPTOR_EXTERNALS,
+    plugins: [
+      resolveAdaptorShared('../../shared/vite/index.cjs'),
+      resolveRequestHandler('../../../middleware/request-handler/index.cjs'),
+    ],
+  });
+}
+
+async function buildAdaptorSharedVite(config: BuildConfig, inputDir: string, outputDir: string) {
+  const entryPoints = [join(inputDir, 'adaptors', 'shared', 'vite', 'index.ts')];
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'adaptors', 'shared', 'vite', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    watch: watcher(config),
+    external: ADAPTOR_EXTERNALS,
     plugins: [
       resolveStatic('../../../static/index.mjs'),
       resolveRequestHandler('../../../middleware/request-handler/index.mjs'),
@@ -386,7 +405,7 @@ async function buildAdaptorNetlifyEdgeVite(
 
   await build({
     entryPoints,
-    outfile: join(outputDir, 'adaptors', 'netlify-edge', 'vite', 'index.cjs'),
+    outfile: join(outputDir, 'adaptors', 'shared', 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -444,10 +463,7 @@ async function buildAdaptorVercelEdgeVite(
     format: 'esm',
     watch: watcher(config),
     external: ADAPTOR_EXTERNALS,
-    plugins: [
-      resolveStatic('../../../static/index.mjs'),
-      resolveRequestHandler('../../../middleware/request-handler/index.mjs'),
-    ],
+    plugins: [resolveAdaptorShared('../../shared/vite/index.mjs')],
   });
 
   await build({
@@ -459,10 +475,7 @@ async function buildAdaptorVercelEdgeVite(
     format: 'cjs',
     watch: watcher(config),
     external: ADAPTOR_EXTERNALS,
-    plugins: [
-      resolveStatic('../../../static/index.cjs'),
-      resolveRequestHandler('../../../middleware/request-handler/index.cjs'),
-    ],
+    plugins: [resolveAdaptorShared('../../shared/vite/index.cjs')],
   });
 }
 
@@ -682,6 +695,10 @@ function resolveRequestHandler(path: string) {
 
 function resolveStatic(path: string) {
   return importPath(/static$/, path);
+}
+
+function resolveAdaptorShared(path: string) {
+  return importPath(/shared\/vite$/, path);
 }
 
 const ADAPTOR_EXTERNALS = [

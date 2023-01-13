@@ -131,7 +131,7 @@ export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
   prop: P
 ): any => {
   if (!isObject(obj)) {
-    return undefined;
+    return obj[prop];
   }
   if (obj instanceof SignalImpl) {
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');

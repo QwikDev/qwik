@@ -30,7 +30,7 @@ const SERVER_STRIP_EXPORTS = [
   'onStaticGenerate',
 ];
 
-const SERVER_STRIP_CTX_NAME = ['useServerMount$', 'action$', 'loader$'];
+const SERVER_STRIP_CTX_NAME = ['server', 'useServer', 'action$', 'loader$'];
 
 export interface QwikPackages {
   id: string;
@@ -343,7 +343,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transformOpts.stripExports = SERVER_STRIP_EXPORTS;
         transformOpts.isServer = false;
       } else if (opts.target === 'ssr') {
-        transformOpts.stripCtxName = ['useClientMount$', 'useClientEffect$'];
+        transformOpts.stripCtxName = ['useClient', 'client'];
         transformOpts.stripCtxKind = 'event';
         transformOpts.isServer = true;
       }

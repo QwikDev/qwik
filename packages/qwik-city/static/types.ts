@@ -160,6 +160,7 @@ export interface StaticWorkerRenderResult {
   ok: boolean;
   error: string | null;
   isStatic: boolean;
+  filePath: string | null;
 }
 
 /**

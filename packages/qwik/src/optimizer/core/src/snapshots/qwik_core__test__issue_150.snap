@@ -73,7 +73,7 @@ export const Greeter_component_1_krCndSwhX4U = ()=>{
             'bar': stuff.condition,
             'baz': hola ? 'true' : 'false'
         }
-    });
+    }, "u6_0");
 };
 export { _hW } from "@builder.io/qwik";
 

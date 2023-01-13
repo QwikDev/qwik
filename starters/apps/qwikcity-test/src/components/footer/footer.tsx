@@ -1,6 +1,7 @@
 import { component$, useStyles$, useTask$ } from '@builder.io/qwik';
 import { Link } from '@builder.io/qwik-city';
-import { rootLoader, userLoader } from '../../routes/layout';
+import { userLoader } from '../../routes/layout';
+import { rootLoader } from '../../routes/plugin@header';
 import styles from './footer.css?inline';
 
 export default component$(() => {

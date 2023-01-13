@@ -115,6 +115,16 @@ export async function mainThread(sys: System) {
             }
           }
 
+          if (typeof opts.filter === 'function' && result.filePath != null) {
+            const keepStaticFile = opts.filter({
+              ...staticRoute,
+              isStatic: result.isStatic,
+            });
+            if (keepStaticFile === false) {
+              sys.removeFile(result.filePath);
+            }
+          }
+
           flushQueue();
         } catch (e) {
           isCompleted = true;

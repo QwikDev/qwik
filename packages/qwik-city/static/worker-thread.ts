@@ -78,7 +78,7 @@ async function workerRender(
       env: {
         get(key) {
           return process.env[key];
-        }
+        },
       },
       getWritableStream: (status, headers, _, _r, requestEv) => {
         result.ok =

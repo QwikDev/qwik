@@ -11,6 +11,7 @@ export type {
   RequestEvent,
   RequestEventLoader,
   RequestHandler,
+  RequestEventCommon,
   ServerRequestMode,
   ServerRenderOptions,
   ServerRequestEvent,

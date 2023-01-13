@@ -10,6 +10,7 @@ export type {
   RequestEvent,
   RequestHandler,
   RequestEventLoader,
+  RequestEventCommon,
 } from '@builder.io/qwik-city/middleware/request-handler';
 
 export interface RouteModule<BODY = unknown> {

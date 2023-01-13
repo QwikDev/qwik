@@ -33,6 +33,11 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
         locale: undefined,
         url,
         request,
+        env: {
+          get(key) {
+            return process.env[key];
+          },
+        },
         getWritableStream: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream();
           const response = new Response(readable, {

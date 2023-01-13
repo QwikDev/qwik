@@ -44,6 +44,11 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
         locale: undefined,
         url: new URL(req.url),
         platform: context,
+        env: {
+          get(key) {
+            return process.env[key];
+          },
+        },
         request: new Request(req.url, options as any),
         getWritableStream: (status, headers, _cookies) => {
           res.status = status;

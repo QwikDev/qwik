@@ -81,8 +81,6 @@ export interface GetSyncData {
 // @alpha (undocumented)
 export const mergeHeadersCookies: (headers: Headers, cookies: Cookie) => Headers;
 
-// Warning: (ae-forgotten-export) The symbol "RequestEventCommon" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
 export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
     // (undocumented)
@@ -94,6 +92,36 @@ export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLA
     readonly headersSent: boolean;
     // (undocumented)
     readonly next: () => Promise<void>;
+}
+
+// @alpha (undocumented)
+export interface RequestEventCommon<PLATFORM = unknown> {
+    readonly cookie: Cookie;
+    // Warning: (ae-forgotten-export) The symbol "EnvGetter" needs to be exported by the entry point index.d.ts
+    readonly env: EnvGetter;
+    // Warning: (ae-forgotten-export) The symbol "ErrorResponse" needs to be exported by the entry point index.d.ts
+    readonly error: (statusCode: number, message: string) => ErrorResponse;
+    // (undocumented)
+    readonly exit: () => AbortMessage;
+    readonly headers: Headers;
+    readonly html: (statusCode: number, html: string) => AbortMessage;
+    readonly json: (statusCode: number, data: any) => AbortMessage;
+    readonly locale: (local?: string) => string;
+    readonly method: string;
+    readonly params: Record<string, string>;
+    readonly pathname: string;
+    readonly platform: PLATFORM;
+    readonly query: URLSearchParams;
+    // Warning: (ae-forgotten-export) The symbol "RedirectMessage" needs to be exported by the entry point index.d.ts
+    readonly redirect: (statusCode: number, url: string) => RedirectMessage;
+    readonly request: Request;
+    // Warning: (ae-forgotten-export) The symbol "SendMethod" needs to be exported by the entry point index.d.ts
+    readonly send: SendMethod;
+    readonly sharedMap: Map<string, any>;
+    readonly status: (statusCode?: number) => number;
+    // Warning: (ae-forgotten-export) The symbol "AbortMessage" needs to be exported by the entry point index.d.ts
+    readonly text: (statusCode: number, text: string) => AbortMessage;
+    readonly url: URL;
 }
 
 // @alpha (undocumented)
@@ -122,6 +150,8 @@ export interface ServerRenderOptions extends RenderOptions {
 
 // @alpha
 export interface ServerRequestEvent<T = any> {
+    // (undocumented)
+    env: EnvGetter;
     // (undocumented)
     getWritableStream: ServerResponseHandler<T>;
     // (undocumented)

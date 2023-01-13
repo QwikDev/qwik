@@ -35,7 +35,7 @@ export function createRequestEvent(
   basePathname = '/',
   resolved: (response: any) => void
 ) {
-  const { request, platform } = serverRequestEv;
+  const { request, platform, env } = serverRequestEv;
 
   const cookie = new Cookie(request.headers.get('cookie'));
   const headers = new Headers();
@@ -103,6 +103,7 @@ export function createRequestEvent(
     [RequestEvBasePathname]: basePathname,
     cookie,
     headers,
+    env,
     method: request.method,
     params,
     pathname: url.pathname,
@@ -215,7 +216,6 @@ export function createRequestEvent(
       return writableStream;
     },
   };
-
   return requestEv;
 }
 

@@ -14,6 +14,7 @@ import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
 import { RequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
+import { RequestEventCommon } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { Signal } from '@builder.io/qwik';
@@ -229,6 +230,8 @@ export interface QwikCityPlan {
 export const QwikCityProvider: Component<QwikCityProps>;
 
 export { RequestEvent }
+
+export { RequestEventCommon }
 
 export { RequestEventLoader }
 

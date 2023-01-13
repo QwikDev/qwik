@@ -75,6 +75,11 @@ async function workerRender(
       locale: undefined,
       url,
       request,
+      env: {
+        get(key) {
+          return process.env[key];
+        },
+      },
       getWritableStream: (status, headers, _, _r, requestEv) => {
         result.ok =
           status >= 200 &&

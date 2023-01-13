@@ -5,6 +5,10 @@ import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
 
+export interface EnvGetter {
+  get(key: string): string | undefined;
+}
+
 /**
  * @alpha
  * Request event created by the server.
@@ -15,6 +19,7 @@ export interface ServerRequestEvent<T = any> {
   locale: string | undefined;
   platform: any;
   request: Request;
+  env: EnvGetter;
   getWritableStream: ServerResponseHandler<T>;
 }
 
@@ -176,6 +181,11 @@ export interface RequestEventCommon<PLATFORM = unknown> {
    * Platform specific data and functions
    */
   readonly platform: PLATFORM;
+
+  /**
+   * Platform provided environment variables.
+   */
+  readonly env: EnvGetter;
 
   /**
    * Shared Map across all the request handlers. Every HTTP request will get a new instance of

@@ -216,8 +216,6 @@ export function createRequestEvent(
       return writableStream;
     },
   };
-  Object.freeze(requestEv);
-
   return requestEv;
 }
 

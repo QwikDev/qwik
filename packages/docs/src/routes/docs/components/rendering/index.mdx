@@ -118,14 +118,12 @@ Qwik provides a Component called `<RenderOnce>`. It prevents re-renderings of ne
 import { component$, useStore, RenderOnce } from '@builder.io/qwik';
 
 export const App = component$(() => {
-  const store = useStore({ count: 0 });
-
   return (
     <div>
       <RenderOnce>
-        <p>Count: {store.count}</p>
+        <span>i'll be just rendered once</span>
       </RenderOnce>
-      <button onClick$={() => store.count++}>Click</button>
+      <span>i can re-render if i need to</span>
     </div>
   );
 });

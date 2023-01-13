@@ -115,7 +115,7 @@ The asynchronous nature of `render()` means that users may see an intermediate r
 Qwik provides a Component called `<RenderOnce>`. It prevents re-renderings of nested children. Values which are connected to a state will always get updated.
 
 ```
-import { component$, useStore, RenderOnce } from '@builder.io/qwik';
+import { component$, RenderOnce } from '@builder.io/qwik';
 
 export const App = component$(() => {
   return (

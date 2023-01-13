@@ -254,10 +254,3 @@ h6 a:hover .icon {
     margin-right: 6rem;
   }
 }
-
-@media (max-width: 768px) {
-  .docs article h2 {
-    font-size: 1.2rem;
-    margin-top: 2rem;
-  }
-}

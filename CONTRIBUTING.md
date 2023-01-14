@@ -1,16 +1,16 @@
 ## Contributing to Qwik
 
-Thank you for taking an interest in contributing to Qwik!
-We appreciate you! 🫶🏽  
-Below are the guidelines how to help in the best possible way.
+Thank you for taking an interest in contributing to Qwik! We appreciate you! 🫶🏽
+
+Below are the guidelines on how to help in the best possible way.
 
 ### Submitting an Issue
 
-Before creating a new issue, please search through open issues using the [GitHub issue search bar](https://docs.github.com/en/issues/tracking-your-work-with-issues/filtering-and-searching-issues-and-pull-requests). You might find the solution to your problem or you could verify that it is an already known problem.
+Before creating a new issue, please search through open issues using the [GitHub issue search bar](https://docs.github.com/en/issues/tracking-your-work-with-issues/filtering-and-searching-issues-and-pull-requests). You might find the solution to your problem, or can verify that it is an already known issue.
 
-We want a bug-free and best-performing project, that's why we take all reported issues to heart, but if we can't reproduce the issue, we won't have a way of locating and properly fixing it.
+We want a bug-free and best-performing project. That's why we take all reported issues to heart. But please be aware that if we can't reproduce the problem, we won't have a way of locating and adequately fixing it.
 
-Therefore, to solve the problem in the best possible way, please create a minimal repository that reproduces the problem itself with the least possible code explaining and demonstrating the error.
+Therefore, to solve the problem in the best possible way, please create a minimal repository that reproduces the problem with the least possible code explaining and demonstrating the error.
 
 Without enough information to reproduce the issue, we will close it because we can't recreate and solve it.
 
@@ -18,7 +18,7 @@ Without enough information to reproduce the issue, we will close it because we c
 
 #### Branch Organization
 
-We adopt [trunk-based development](https://trunkbaseddevelopment.com/) therefore all Pull Requests are made to the main branch because we do not use separate branches for development or for the versions we release.
+We adopt [trunk-based development](https://trunkbaseddevelopment.com/) therefore all Pull Requests are made against the main branch because we do not use separate branches for development or for the versions we release.
 
 #### Good first issue
 
@@ -34,11 +34,11 @@ Before submitting a pull request, consider the following guidelines:
 - In your forked repository, create a new branch: `git checkout -b my-branch main`
 - Make your changes/fixes.
 - Run `pnpm fmt` to lint the code.
-- Commit your code with a good commit message using [using "Commitizen"](#committing-using-commitizen).
+- Commit your code with a good commit message [using "Commitizen"](#committing-using-commitizen).
 - Push your branch to GitHub: `git push origin my-branch`
 - In GitHub, send a pull request to `BuilderIO:main`.
 
-> If you aren't sure your PR is ready open it as a [draft](https://github.blog/2019-02-14-introducing-draft-pull-requests/) to make it clear to the maintainer.
+> If you aren't sure your PR is ready, open it as a [draft](https://github.blog/2019-02-14-introducing-draft-pull-requests/) to make it clear to the maintainer.
 
 # Getting started
 

@@ -706,7 +706,7 @@ const RESOLVE_EXTS: { [ext: string]: boolean } = {
   '.cjs': true,
 };
 
-const TRANSFORM_REGEX = /\.qwik\.(m|c)?js$/;
+const TRANSFORM_REGEX = /\.qwik\.[mc]?js$/;
 
 export const QWIK_CORE_ID = '@builder.io/qwik';
 

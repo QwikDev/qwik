@@ -577,7 +577,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 }
 
 function updateEntryDev(code: string) {
-  code = code.replace(/("|')@builder.io\/qwik("|')/g, `'${VITE_CLIENT_MODULE}'`);
+  code = code.replace(/["']@builder.io\/qwik["']/g, `'${VITE_CLIENT_MODULE}'`);
   return code;
 }
 

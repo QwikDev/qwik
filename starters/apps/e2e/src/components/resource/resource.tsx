@@ -9,7 +9,7 @@ import {
   useContextProvider,
   useContext,
   useStyles$,
-  ResourceReturn,
+  type ResourceReturn,
 } from '@builder.io/qwik';
 
 export interface WeatherData {

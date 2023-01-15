@@ -4,9 +4,9 @@ export function useDocumentMouse() {
   const mousePosition = useStore({ x: 0, y: 0, inside: 'false' });
   useOnDocument(
     'mousemove',
-    $((event: Event) => {
-      mousePosition.x = (event as MouseEvent).clientX;
-      mousePosition.y = (event as MouseEvent).clientY;
+    $((event) => {
+      mousePosition.x = event.clientX;
+      mousePosition.y = event.clientY;
     })
   );
   useOnDocument(
@@ -28,9 +28,9 @@ export function useWindowMouse() {
   const mousePosition = useStore({ x: 0, y: 0, inside: 'false' });
   useOnWindow(
     'mousemove',
-    $((event: Event) => {
-      mousePosition.x = (event as MouseEvent).clientX;
-      mousePosition.y = (event as MouseEvent).clientY;
+    $((event) => {
+      mousePosition.x = event.clientX;
+      mousePosition.y = event.clientY;
     })
   );
   useOnWindow(
@@ -52,9 +52,9 @@ export function useSelfMouse() {
   const mousePosition = useStore({ x: 0, y: 0, inside: 'false' });
   useOn(
     'mousemove',
-    $((event: Event) => {
-      mousePosition.x = (event as MouseEvent).clientX;
-      mousePosition.y = (event as MouseEvent).clientY;
+    $((event) => {
+      mousePosition.x = event.clientX;
+      mousePosition.y = event.clientY;
     })
   );
   useOn(

@@ -928,14 +928,17 @@ export const useMount$: (first: TaskFn, opts?: UseTaskOptions | undefined) => vo
 // @beta @deprecated (undocumented)
 export const useMountQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions | undefined) => void;
 
+// Warning: (ae-forgotten-export) The symbol "EventNameOrString" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "EventType" needs to be exported by the entry point index.d.ts
+//
 // @alpha
-export const useOn: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOn: <T extends EventNameOrString<Element>>(event: T | T[], eventQrl: QRL<(ev: EventType<Element, T>) => void>) => void;
 
 // @alpha
-export const useOnDocument: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOnDocument: <T extends EventNameOrString<Element>>(event: T | T[], eventQrl: QRL<(ev: EventType<Element, T>) => void>) => void;
 
 // @alpha
-export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) => void>) => void;
+export const useOnWindow: <T extends EventNameOrString<Element>>(event: T | T[], eventQrl: QRL<(ev: EventType<Element, T>) => void>) => void;
 
 // @alpha @deprecated
 export const useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;

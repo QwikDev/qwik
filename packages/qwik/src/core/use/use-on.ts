@@ -1,11 +1,27 @@
 import { assertQrl } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
+import type { QwikEventMap } from '../render/jsx/types/jsx-qwik-attributes';
 import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
 import { Listener, normalizeOnProp } from '../state/listeners';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { useInvokeContext } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 import { Task, WatchFlagsIsCleanup } from './use-task';
+
+// Converts the QwikEventMap to have lowercase keys
+type LowerCaseEvent<TElement> = {
+  [K in keyof QwikEventMap<TElement> as Lowercase<K>]: QwikEventMap<TElement>[K];
+};
+
+// Allows for an event name or string while retaining autocomplete
+type EventNameOrString<TElement> =
+  | Omit<string, keyof LowerCaseEvent<TElement>>
+  | keyof LowerCaseEvent<TElement>;
+
+// Looks up event based on lowercase event name or falls back to event
+type EventType<TElement, T extends EventNameOrString<Element>> = T extends keyof LowerCaseEvent<T>
+  ? LowerCaseEvent<TElement>[T]
+  : Event;
 
 // <docs markdown="../readme.md#useCleanup">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -58,8 +74,10 @@ export const useCleanup$ = /*#__PURE__*/ implicit$FirstArg(useCleanupQrl);
  * @alpha
  */
 // </docs>
-export const useOn = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
-  _useOn(`on-${event}`, eventQrl);
+export const useOn = <T extends EventNameOrString<Element>>(
+  event: T | T[],
+  eventQrl: QRL<(ev: EventType<Element, T>) => void>
+) => _useOn(`on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnDocument">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -91,8 +109,10 @@ export const useOn = (event: string | string[], eventQrl: QRL<(ev: Event) => voi
  * @alpha
  */
 // </docs>
-export const useOnDocument = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
-  _useOn(`document:on-${event}`, eventQrl);
+export const useOnDocument = <T extends EventNameOrString<Element>>(
+  event: T | T[],
+  eventQrl: QRL<(ev: EventType<Element, T>) => void>
+) => _useOn(`document:on-${event}`, eventQrl);
 
 // <docs markdown="../readme.md#useOnWindow">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -125,10 +145,13 @@ export const useOnDocument = (event: string | string[], eventQrl: QRL<(ev: Event
  * @alpha
  */
 // </docs>
-export const useOnWindow = (event: string | string[], eventQrl: QRL<(ev: Event) => void>) =>
-  _useOn(`window:on-${event}`, eventQrl);
 
-const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: Event) => void>) => {
+export const useOnWindow = <T extends EventNameOrString<Element>>(
+  event: T | T[],
+  eventQrl: QRL<(ev: EventType<Element, T>) => void>
+) => _useOn(`window:on-${event as string}`, eventQrl);
+
+const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: any) => void>) => {
   const invokeCtx = useInvokeContext();
   const elCtx = getContext(
     invokeCtx.$hostElement$,

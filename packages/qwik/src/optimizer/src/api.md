@@ -302,6 +302,10 @@ export interface QwikVitePluginOptions {
         manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
     };
     debug?: boolean;
+    // (undocumented)
+    devTools?: {
+        clickToSource: string[] | false;
+    };
     entryStrategy?: EntryStrategy;
     // (undocumented)
     optimizerOptions?: OptimizerOptions;
@@ -401,6 +405,8 @@ export interface TransformOptions {
     entryStrategy?: EntryStrategy;
     // (undocumented)
     explicitExtensions?: boolean;
+    // (undocumented)
+    isServer?: boolean;
     // (undocumented)
     minify?: MinifyMode;
     // Warning: (ae-forgotten-export) The symbol "EmitMode" needs to be exported by the entry point index.d.ts

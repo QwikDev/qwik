@@ -20,7 +20,7 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
-  "waitFor": "onCreateCommand",
+  "waitFor": "updateContentCommand",
   "updateContentCommand": "corepack prepare & pnpm install",
   "forwardPorts": [3300, 9229],
   "customizations": {

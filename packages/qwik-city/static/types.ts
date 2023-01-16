@@ -1,7 +1,6 @@
 import type { StreamWriter } from '@builder.io/qwik';
-import type { RouteParams } from '../runtime/src';
-import type { RenderOptions } from '../../qwik/src/server';
-import type { QwikCityHandlerOptions } from '../middleware/request-handler/types';
+import type { RenderOptions } from '@builder.io/qwik/server';
+import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
 export interface System {
   createMainProcess: () => Promise<MainContext>;
@@ -11,6 +10,7 @@ export interface System {
   createLogger: () => Promise<Logger>;
   getOptions: () => StaticGenerateOptions;
   ensureDir: (filePath: string) => Promise<void>;
+  removeFile: (filePath: string) => Promise<void>;
   access: (path: string) => Promise<boolean>;
   createWriteStream: (filePath: string) => StaticStreamWriter;
   createTimer: () => () => number;
@@ -20,7 +20,8 @@ export interface System {
 }
 
 export interface StaticStreamWriter extends StreamWriter {
-  close(callback?: () => void): void;
+  write: (chunk: string | Buffer) => void;
+  end(callback?: () => void): void;
 }
 
 export interface MainContext {
@@ -93,7 +94,24 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
    * Defaults to `true`.
    */
   emit404Pages?: boolean;
+  /**
+   * The `filter` callback function can be used to determine if a page should be statically
+   * generated or not. The filter function is passed the `pathname` and `params` data,
+   * and should return `true` if the page should be statically generated. Returning `false`
+   * will prevent the page from being statically generated. If a `filter` function is not
+   * provided then all pages will be statically generated.
+   */
+  filter?: StaticGeneratePathFilter;
 }
+
+/**
+ * @alpha
+ */
+export type StaticGeneratePathFilter = (filterOpts: {
+  pathname: string;
+  params: Record<string, string> | undefined;
+  isStatic: boolean | undefined;
+}) => boolean;
 
 /**
  * @alpha
@@ -116,7 +134,7 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
 
 export interface StaticGenerateHandlerOptions
   extends StaticGenerateRenderOptions,
-    QwikCityHandlerOptions {}
+    ServerRenderOptions {}
 
 export type WorkerInputMessage = StaticRenderInput | WorkerCloseMessage;
 
@@ -128,7 +146,7 @@ export interface StaticRenderInput extends StaticRoute {
 
 export interface StaticRoute {
   pathname: string;
-  params: RouteParams | undefined;
+  params: Record<string, string> | undefined;
 }
 
 export interface WorkerCloseMessage {
@@ -142,6 +160,7 @@ export interface StaticWorkerRenderResult {
   ok: boolean;
   error: string | null;
   isStatic: boolean;
+  filePath: string | null;
 }
 
 /**

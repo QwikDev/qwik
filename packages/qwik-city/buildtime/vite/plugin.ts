@@ -17,7 +17,7 @@ import { build } from '../build';
 import { dev404Middleware, ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
-import { patchGlobalFetch } from '../../middleware/node/node-fetch';
+import { patchGlobalThis } from '../../middleware/node/node-fetch';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import {
@@ -38,14 +38,15 @@ import { postBuild } from '../../adaptors/shared/vite/post-build';
  * @alpha
  */
 export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
-  patchGlobalFetch();
-
   let ctx: BuildContext | null = null;
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;
   let qwikPlugin: QwikVitePlugin | null;
   let ssrFormat = 'esm';
   let outDir: string | null = null;
+
+  // Patch Stream APIs
+  patchGlobalThis();
 
   const api: QwikCityPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
@@ -62,7 +63,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     enforce: 'pre',
     api,
 
-    config() {
+    async config() {
       const updatedViteConfig: UserConfig = {
         appType: 'custom',
         base: userOpts?.basePathname,
@@ -274,10 +275,23 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
 
           if (outDir) {
             await fs.promises.mkdir(outDir, { recursive: true });
-
-            // create server package.json to ensure mjs is used
             const serverPackageJsonPath = join(outDir, 'package.json');
-            const serverPackageJsonCode = `{"type":"module"}`;
+
+            let packageJson = {};
+
+            // we want to keep the content of an existing file:
+            const packageJsonExists = fs.existsSync(serverPackageJsonPath);
+            if (packageJsonExists) {
+              const content = await (await fs.promises.readFile(serverPackageJsonPath))?.toString();
+              const contentAsJson = JSON.parse(content);
+              packageJson = {
+                ...contentAsJson,
+              };
+            }
+
+            // set to type module to ensure mjs is used
+            packageJson = { ...packageJson, type: 'module' };
+            const serverPackageJsonCode = JSON.stringify(packageJson, null, 2);
 
             await Promise.all([
               fs.promises.writeFile(join(outDir, RESOLVED_STATIC_PATHS_ID), staticPathsCode),

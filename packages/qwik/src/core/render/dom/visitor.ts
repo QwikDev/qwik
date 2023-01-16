@@ -11,7 +11,7 @@ import type { ValueOrPromise } from '../../util/types';
 import { isPromise, promiseAll, promiseAllLazy, then } from '../../util/promises';
 import { assertDefined, assertEqual, assertTrue } from '../../error/assert';
 import { logWarn } from '../../util/log';
-import { qDev, qSerialize } from '../../util/qdev';
+import { qDev, qInspector, qSerialize, qTest } from '../../util/qdev';
 import type { OnRenderFn } from '../../component/component.public';
 import { directGetAttribute, directSetAttribute } from '../fast-calls';
 import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
@@ -436,7 +436,7 @@ export const patchVnode = (
       pendingListeners.length = 0;
     }
 
-    if (isSvg && newVnode.$type$ === 'foreignObject') {
+    if (isSvg && tag === 'foreignObject') {
       flags &= ~IS_SVG;
       isSvg = false;
     }
@@ -456,6 +456,9 @@ export const patchVnode = (
     }
     const isRenderOnce = isVirtual && QOnce in props;
     if (isRenderOnce) {
+      return;
+    }
+    if (tag === 'textarea') {
       return;
     }
     return smartUpdateChildren(rCtx, oldVnode, newVnode, 'root', flags);
@@ -635,6 +638,16 @@ const createElm = (
     elm = createElement(doc, tag, isSvg);
     flags &= ~IS_HEAD;
   }
+  if (qDev && qInspector) {
+    const dev = vnode.$dev$;
+    if (dev) {
+      directSetAttribute(
+        elm,
+        'data-qwik-inspector',
+        `${encodeURIComponent(dev.fileName)}:${dev.lineNumber}:${dev.columnNumber}`
+      );
+    }
+  }
 
   vnode.$elm$ = elm;
   if (isSvg && tag === 'foreignObject') {
@@ -651,6 +664,13 @@ const createElm = (
     assertQrl<OnRenderFn<any>>(renderQRL);
     setComponentProps(elCtx, rCtx, props.props);
     setQId(rCtx, elCtx);
+
+    if (qDev && !qTest) {
+      const symbol = renderQRL.$symbol$;
+      if (symbol) {
+        directSetAttribute(elm, 'data-qrl', symbol);
+      }
+    }
 
     // Run mount hook
     elCtx.$componentQrl$ = renderQRL;

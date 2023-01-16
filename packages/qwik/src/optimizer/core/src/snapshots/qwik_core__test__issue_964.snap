@@ -32,11 +32,11 @@ export const App_component_ckEPmXZlub0 = ()=>{
     });
     return /*#__PURE__*/ _jsx("p", {
         children: "Hello Qwik"
-    });
+    }, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IAChC,QAAQ,GAAG,CAAC,UAAU,EAAO,EAAE,CAAM,EAAE;QACvC,QAAQ,GAAG,CAAC,CAAA,MAAM,CAAC,MAAM,EAAE,EAAE,EAAE,IAAI,EAAE,IAAI,CAAC,CAAC,IAAM,EAAE,IAAI,GAAE;IACzD;IAEA,qBAAO,KAAC;kBAAE;;AACd\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IAChC,QAAQ,GAAG,CAAC,UAAU,EAAO,EAAE,CAAM,EAAE;QACvC,QAAQ,GAAG,CAAC,CAAA,MAAM,AAAC,CAAA,MAAM,EAAC,EAAG,EAAE,IAAI,EAAE,IAAI,CAAC,CAAC,IAAM,EAAE,IAAI,GAAE;IACzD;IAEA,qBAAO,KAAC;kBAAE;;AACd\"}")
 /*
 {
   "origin": "test.tsx",

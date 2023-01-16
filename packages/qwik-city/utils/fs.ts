@@ -132,6 +132,10 @@ export function isIndexModule(extlessName: string) {
   return /^index(|!|@.+)$/.test(extlessName);
 }
 
+export function isPluginModule(extlessName: string) {
+  return /^plugin(|@.+)$/.test(extlessName);
+}
+
 export function isLayoutModule(extlessName: string) {
   return /^layout(|!|-.+)$/.test(extlessName);
 }

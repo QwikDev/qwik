@@ -4,7 +4,7 @@ import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../qrl/qrl';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
-import { useClientEffect$, useWatch$ } from '../../use/use-watch';
+import { useClientEffect$, useTask$ } from '../../use/use-task';
 import { useCleanup$, useOn } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';
@@ -167,12 +167,17 @@ renderSuite('should render style css variables correctly', async () => {
     fixture.host,
     <div
       style={{
+        top: 0,
+        '--stuff-nu': -1,
         '--stuff-hey': 'hey',
         '--stuffCase': 'foo',
       }}
     />
   );
-  await expectRendered(fixture, `<div style="--stuff-hey: hey; --stuffCase: foo"></div>`);
+  await expectRendered(
+    fixture,
+    `<div style="top: 0; --stuff-nu: -1; --stuff-hey: hey; --stuffCase: foo"></div>`
+  );
 });
 
 renderSuite('should render children', async () => {
@@ -617,7 +622,7 @@ renderSuite('should render class array correctly', async () => {
 
   await render(
     fixture.host,
-    <div class={['stuff', '', 'm-0 p-2', null, 'active', undefined, 'container'] as any}></div>
+    <div class={['stuff', '', 'm-0 p-2', null, 'active', undefined, 'container']}></div>
   );
   await expectRendered(fixture, `<div class="stuff m-0 p-2 active container"></div>`);
 });
@@ -732,8 +737,8 @@ renderSuite('should render foreignObject properly', async () => {
           </svg>
           <feGaussianBlur class="is-html">bye</feGaussianBlur>
         </foreignObject>
-        <text className="is-svg">Hello</text>
-        <text className="is-svg">Bye</text>
+        <text class="is-svg">Hello</text>
+        <text class="is-svg">Bye</text>
       </svg>
       <text class="is-html">end</text>
     </div>
@@ -841,7 +846,7 @@ export const RenderClasses = component$(() => {
   return (
     <>
       <button
-        className="increment"
+        class="increment"
         onClick$={inlinedQrl(Counter_add, 'Counteradd', [state, { value: 1 }])}
       >
         +
@@ -856,17 +861,15 @@ export const RenderClasses = component$(() => {
         Div 1
       </div>
       <div
-        class={
-          [
-            'stuff',
-            '',
-            'm-0 p-2',
-            state.count % 2 === 0 ? null : 'almost-null',
-            'active',
-            undefined,
-            'container',
-          ] as any
-        }
+        class={[
+          'stuff',
+          '',
+          'm-0 p-2',
+          state.count % 2 === 0 ? null : 'almost-null',
+          'active',
+          undefined,
+          'container',
+        ]}
       >
         Div 2
       </div>
@@ -891,7 +894,7 @@ export const Counter = component$((props: { step?: number }) => {
       </button>
       <span>{state.count}</span>
       <button
-        className="increment"
+        class="increment"
         onClick$={inlinedQrl(Counter_add, 'Counteradd', [state, { value: step }])}
       >
         +
@@ -1003,7 +1006,7 @@ export const Hooks = component$(() => {
     cleanupDiv.current!.textContent = 'true';
   });
 
-  useWatch$(() => {
+  useTask$(() => {
     state.watch = 'true';
     return () => {
       watchDestroyDiv.current!.textContent = 'true';

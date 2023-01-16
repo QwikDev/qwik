@@ -14,7 +14,7 @@
     "priority": 20,
     "displayName": "Adaptor: Nodejs Express Server",
     "docs": [
-      "https://qwik.builder.io/qwikcity/adaptors/node/",
+      "https://qwik.builder.io/integrations/deployments/node/",
       "https://expressjs.com/"
     ]
   }

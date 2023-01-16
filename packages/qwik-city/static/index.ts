@@ -3,6 +3,7 @@ import type {
   StaticGenerateRenderOptions,
   StaticGenerateOptions,
   StaticGenerateResult,
+  StaticGeneratePathFilter,
 } from './types';
 
 // @builder.io/qwik-city/static
@@ -18,7 +19,12 @@ export async function generate(opts: StaticGenerateOptions) {
   return result;
 }
 
-export { StaticGenerateOptions, StaticGenerateRenderOptions, StaticGenerateResult };
+export {
+  StaticGenerateOptions,
+  StaticGenerateRenderOptions,
+  StaticGenerateResult,
+  StaticGeneratePathFilter,
+};
 
 function getEntryModulePath() {
   if (isDeno()) {

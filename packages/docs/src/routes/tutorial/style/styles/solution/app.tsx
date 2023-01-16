@@ -2,7 +2,7 @@ import { component$, useStyles$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
   useStyles$(AppCSS);
-  const store = useStore({ open: false, siblings: [0] }, { recursive: true });
+  const store = useStore({ open: false, siblings: [0] }, { deep: true });
 
   return (
     <div class="parent">

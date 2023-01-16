@@ -76,6 +76,10 @@ A cookie value is a simple record with three fields:
 2. `json()`: Runs `JSON.parse()` on the value and returns the result
 3. `number()`: Runs `Number()` on the value and returns the result
 
+**getAll**
+
+Returns an object with all cookies, if any. *This is sometimes required if the names of cookies are unknown and must be parsed through.*
+
 **set**
 
 Takes a key and value and creates a header that will be appended to the response. Value can be a `string | number | Record<string, any>`

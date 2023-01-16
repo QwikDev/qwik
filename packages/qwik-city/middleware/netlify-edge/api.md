@@ -5,9 +5,8 @@
 ```ts
 
 import type { Context } from '@netlify/edge-functions';
-import type { Render } from '@builder.io/qwik/server';
-import type { RenderOptions } from '@builder.io/qwik/server';
-import type { RequestHandler as RequestHandler_2 } from '@builder.io/qwik-city';
+import type { RequestHandler } from '@builder.io/qwik-city';
+import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
 // @alpha (undocumented)
 export function createQwikCity(opts: QwikCityNetlifyOptions): (request: Request, context: Context) => Promise<Response>;
@@ -16,14 +15,12 @@ export function createQwikCity(opts: QwikCityNetlifyOptions): (request: Request,
 export interface EventPluginContext extends Context {
 }
 
-// Warning: (ae-forgotten-export) The symbol "QwikCityHandlerOptions" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
-export interface QwikCityNetlifyOptions extends QwikCityHandlerOptions {
+export interface QwikCityNetlifyOptions extends ServerRenderOptions {
 }
 
 // @alpha (undocumented)
-export type RequestHandlerNetlify<T = unknown> = RequestHandler_2<T, Omit<Context, 'next' | 'cookies'>>;
+export type RequestHandlerNetlify = RequestHandler<Omit<Context, 'next' | 'cookies'>>;
 
 // (No @packageDocumentation comment for this package)
 

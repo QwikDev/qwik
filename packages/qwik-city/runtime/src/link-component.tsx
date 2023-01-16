@@ -48,11 +48,12 @@ export const Link = component$<LinkProps>((props) => {
       {...linkProps}
       onClick$={() => {
         if (clientNavPath) {
-          nav.path = linkProps.href as any;
+          nav(linkProps.href);
         }
       }}
       data-prefetch={prefetchDataset}
       onMouseOver$={(_, elm) => prefetchLinkResources(elm as HTMLAnchorElement)}
+      onFocus$={(_, elm) => prefetchLinkResources(elm as HTMLAnchorElement)}
       onQVisible$={(_, elm) => prefetchLinkResources(elm as HTMLAnchorElement, true)}
     >
       <Slot />

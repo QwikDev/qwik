@@ -3,12 +3,11 @@ import { qError, QError_immutableProps } from '../error/error';
 import { isQrl } from '../qrl/qrl-class';
 import { tryGetInvokeContext } from '../use/use-core';
 import { isNode } from '../util/element';
-import { logWarn } from '../util/log';
 import { qDev } from '../util/qdev';
 import { RenderEvent } from '../util/markers';
 import { isArray, isObject, isSerializableObject } from '../util/types';
 import type { ContainerState } from '../container/container';
-import type { SubscriberEffect, SubscriberHost } from '../use/use-watch';
+import type { SubscriberEffect, SubscriberHost } from '../use/use-task';
 import {
   LocalSubscriptionManager,
   shouldSerialize,
@@ -26,6 +25,7 @@ import {
   _IMMUTABLE,
   _IMMUTABLE_PREFIX,
 } from './constants';
+import { logError } from '../util/log';
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
@@ -78,6 +78,19 @@ export const setObjectFlags = (obj: object, flags: number) => {
 
 export type TargetType = Record<string | symbol, any>;
 
+/**
+ * @internal
+ */
+export const _restProps = (props: Record<string, any>, omit: string[]) => {
+  const rest: Record<string, any> = {};
+  for (const key in props) {
+    if (!omit.includes(key)) {
+      rest[key] = props[key];
+    }
+  }
+  return rest;
+};
+
 class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   constructor(
     private $containerState$: ContainerState,
@@ -102,7 +115,13 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     }
     if (immutable) {
       const hiddenSignal = target[_IMMUTABLE_PREFIX + prop];
-      if (!(prop in target) || !!hiddenSignal || isSignal(target[_IMMUTABLE]?.[prop])) {
+      const immutableMeta = target[_IMMUTABLE]?.[prop];
+      if (
+        !(prop in target) ||
+        !!hiddenSignal ||
+        isSignal(immutableMeta) ||
+        immutableMeta === _IMMUTABLE
+      ) {
         subscriber = null;
       }
       if (hiddenSignal) {
@@ -134,9 +153,8 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       verifySerializable(unwrappedNewValue);
       const invokeCtx = tryGetInvokeContext();
       if (invokeCtx && invokeCtx.$event$ === RenderEvent) {
-        logWarn(
+        logError(
           'State mutation inside render function. Move mutation to useWatch(), useClientEffect() or useServerMount()',
-          invokeCtx.$hostElement$,
           prop
         );
       }
@@ -169,14 +187,6 @@ class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   ownKeys(target: TargetType): ArrayLike<string | symbol> {
-    let subscriber: SubscriberHost | SubscriberEffect | null | undefined = null;
-    const invokeCtx = tryGetInvokeContext();
-    if (invokeCtx) {
-      subscriber = invokeCtx.$subscriber$;
-    }
-    if (subscriber) {
-      this.$manager$.$addSub$([0, subscriber, undefined]);
-    }
     if (isArray(target)) {
       return Reflect.ownKeys(target);
     }

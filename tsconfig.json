@@ -15,6 +15,7 @@
     "importsNotUsedAsValues": "error",
     "moduleResolution": "node",
     "baseUrl": ".",
+    "assumeChangesOnlyAffectDirectDependencies": true,
     "noUnusedLocals": true,
     "paths": {
       "@builder.io/qwik": ["packages/qwik/src/core/index.ts"],
@@ -29,6 +30,9 @@
       "@builder.io/qwik-city/service-worker": [
         "packages/qwik-city/runtime/src/service-worker/index.ts"
       ],
+      "@builder.io/qwik-city/adaptors/azure-swa/vite": [
+        "packages/qwik-city/adaptors/azure-swa/vite/index.ts"
+      ],
       "@builder.io/qwik-city/adaptors/cloudflare-pages/vite": [
         "packages/qwik-city/adaptors/cloudflare-pages/vite/index.ts"
       ],
@@ -38,8 +42,15 @@
       "@builder.io/qwik-city/adaptors/netlify-edge/vite": [
         "packages/qwik-city/adaptors/netlify-edge/vite/index.ts"
       ],
+      "@builder.io/qwik-city/adaptors/shared/vite": [
+        "packages/qwik-city/adaptors/shared/vite/index.ts"
+      ],
       "@builder.io/qwik-city/adaptors/static/vite": [
         "packages/qwik-city/adaptors/static/vite/index.ts"
+      ],
+      "@builder.io/qwik-city/middleware/azure-swa": ["packages/qwik-city/middleware/azure-swa"],
+      "@builder.io/qwik-city/middleware/request-handler": [
+        "packages/qwik-city/middleware/request-handler"
       ],
       "@builder.io/qwik-city/middleware/node": ["packages/qwik-city/middleware/node"],
       "@builder.io/qwik-city/middleware/netlify-edge": [

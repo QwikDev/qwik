@@ -70,8 +70,10 @@ export { _hW } from './render/dom/notify-render';
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { useStore } from './use/use-store.public';
 export { useRef } from './use/use-ref';
+export { untrack } from './use/use-core';
+export { useId } from './use/use-id';
 export { useContext, useContextProvider, createContext } from './use/use-context';
-export { useEnvData, useUserContext } from './use/use-env-data';
+export { useServerData, useEnvData, useUserContext } from './use/use-env-data';
 export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
 export { useOn, useOnDocument, useOnWindow, useCleanupQrl, useCleanup$ } from './use/use-on';
 export { useSignal } from './use/use-signal';
@@ -84,7 +86,7 @@ export type { Ref } from './use/use-ref';
 export type { UseStoreOptions } from './use/use-store.public';
 export type {
   Tracker,
-  WatchFn,
+  TaskFn,
   UseEffectOptions,
   EagernessOptions,
   ResourceReturn,
@@ -92,19 +94,21 @@ export type {
   ResourcePending,
   ResourceRejected,
   ResourceResolved,
-  WatchCtx,
-  UseWatchOptions,
+  TaskCtx,
+  UseTaskOptions,
   ResourceFn,
-} from './use/use-watch';
+} from './use/use-task';
 export type { MountFn } from './use/use-mount';
-export { useWatch$, useWatchQrl } from './use/use-watch';
+export { useWatch$, useWatchQrl } from './use/use-task';
 export type { ResourceProps, ResourceOptions } from './use/use-resource';
 export { useResource$, useResourceQrl, Resource } from './use/use-resource';
-export { useClientEffect$, useClientEffectQrl } from './use/use-watch';
-export { useServerMount$, useServerMountQrl } from './use/use-mount';
+export { useTask$, useTaskQrl } from './use/use-task';
+export { useClientEffect$, useClientEffectQrl } from './use/use-task';
 export { useMount$, useMountQrl } from './use/use-mount';
+export { useServerMount$, useServerMountQrl } from './use/use-mount';
 export { useClientMount$, useClientMountQrl } from './use/use-mount';
 export { useErrorBoundary } from './use/use-error-boundary';
+export { useRender } from './use/use-render';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API
@@ -113,6 +117,7 @@ export type { ValueOrPromise } from './util/types';
 export type { Signal } from './state/signal';
 export type { NoSerialize } from './state/common';
 export { _wrapSignal } from './state/signal';
+export { _restProps } from './state/store';
 export { noSerialize, mutable } from './state/common';
 export { _IMMUTABLE } from './state/constants';
 

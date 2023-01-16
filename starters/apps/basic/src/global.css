@@ -104,7 +104,7 @@ footer a:hover {
 a.mindblow {
   margin: 0 auto;
   display: block;
-  background: var(--qwik-light-purple);
+  background: var(--qwik-dark-purple);
   padding: 10px 20px;
   border-radius: 10px;
   border: 0;

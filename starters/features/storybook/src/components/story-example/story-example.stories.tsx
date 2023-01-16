@@ -1,10 +1,10 @@
-import { Meta } from '@storybook/html';
+import { Meta, StoryObj } from 'storybook-framework-qwik';
 import { StoryExample, StoryExampleProps } from './story-example';
 
 export default {
   title: 'Story Example',
+  component: StoryExample,
   args: {
-    label: 'Example label',
     color: 'red',
   },
   argTypes: {
@@ -15,10 +15,6 @@ export default {
       },
     },
   },
-} as Meta;
+} as Meta<StoryExampleProps>;
 
-type Options = StoryExampleProps & { label: string };
-
-const Template = ({ label, color }: Options) => <StoryExample color={color}>{label}</StoryExample>;
-
-export const Default = Template.bind({});
+export const Default: StoryObj<StoryExampleProps> = {};

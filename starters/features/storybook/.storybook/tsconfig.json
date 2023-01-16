@@ -3,6 +3,8 @@
   "compilerOptions": {
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
     "rootDir": "../"
   },
   "exclude": ["../**/*.spec.ts", "../**/*.test.ts", "../**/*.spec.tsx", "../**/*.test.tsx"],
@@ -11,6 +13,7 @@
     "../src/**/*.stories.tsx",
     "../src/**/*.stories.mdx",
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    "../vite.config.ts"
   ]
 }

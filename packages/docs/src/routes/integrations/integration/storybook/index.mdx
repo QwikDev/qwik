@@ -58,3 +58,32 @@ export default {
 
 export const Default: StoryObj<StoryExampleProps> = {}
 ```
+
+## With tailwindcss
+
+When using tailwindcss with storybook, avoid adding uneccessary bloat to your
+production builds by ignoring tailwind classes that are only used in stories.
+
+Update your `tailwind.config.js` file to ignore stories when building for
+production.
+
+```JavaScript
+module.exports = {
+  content: [
+    './src/**/*.{js,ts,jsx,tsx,mdx}',
+    process.env.NODE_ENV === 'production' && '!./src/**/*.stories.{js,ts,jsx,tsx,mdx}',
+  ],
+  ...
+}
+```
+
+If you are building a static version of your storybook, you'll want to keep
+any tailwindcss classes found in your `.stories` files. Try adding an
+environment variable to your build script and check if it exists when including
+your files.
+
+```JavaScript
+process.env.NODE_ENV === 'production' &&
+  !process.env.STORYBOOK_BUILD &&
+  '!./src/**/*.stories.{js,ts,jsx,tsx,mdx}'
+```

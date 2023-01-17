@@ -1,15 +1,16 @@
 import type { RenderOptions } from '@builder.io/qwik';
+import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
+import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type { Render } from '@builder.io/qwik/server';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import qwikCityPlan from '@qwik-city-plan';
 import { isStaticPath } from '@qwik-city-static-paths';
 import { createReadStream } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { join } from 'node:path';
+import { extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
-import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import { fromNodeHttp, getUrl } from './http';
+import { MIME_TYPES } from './mime-types';
 import { patchGlobalThis } from './node-fetch';
 
 // @builder.io/qwik-city/middleware/node
@@ -67,6 +68,13 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
       if (isStaticPath(req.method || 'GET', url)) {
         const target = join(staticFolder, url.pathname);
         const stream = createReadStream(target);
+        const ext = extname(url.pathname).replace(/^\./, '');
+
+        const contentType = MIME_TYPES[ext];
+
+        if (contentType) {
+          res.setHeader('Content-Type', contentType);
+        }
 
         if (opts.static?.cacheControl) {
           res.setHeader('Cache-Control', opts.static.cacheControl);

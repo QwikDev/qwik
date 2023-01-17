@@ -166,7 +166,12 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         const [params, mods, menu] = loadedRoute;
         const contentModules = mods as ContentModule[];
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
-        const resolvedHead = await resolveHead(clientPageData, routeLocation, contentModules, locale);
+        const resolvedHead = await resolveHead(
+          clientPageData,
+          routeLocation,
+          contentModules,
+          locale
+        );
 
         // Update route location
         routeLocation.href = url.href;

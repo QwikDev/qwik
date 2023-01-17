@@ -4,15 +4,13 @@
 
 ```ts
 
-import type { StaticGenerateRenderOptions } from '../../../static';
+import { ServerAdaptorOptions } from '../../shared/vite';
 
 // @alpha (undocumented)
-export function expressAdaptor(opts?: CloudRunAdaptorOptions): any;
+export function cloudRunAdaptor(opts?: CloudRunAdaptorOptions): any;
 
 // @alpha (undocumented)
-export interface CloudRunAdaptorOptions {
-    // (undocumented)
-    staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
+export interface CloudRunAdaptorOptions extends ServerAdaptorOptions {
 }
 
 // (No @packageDocumentation comment for this package)

@@ -20,6 +20,10 @@
       "import": "./lib/adaptors/cloudflare-pages/vite/index.mjs",
       "require": "./lib/adaptors/cloudflare-pages/vite/index.cjs"
     },
+    "./adaptors/cloud-run/vite": {
+      "import": "./lib/adaptors/cloud-run/vite/index.mjs",
+      "require": "./lib/adaptors/cloud-run/vite/index.cjs"
+    },
     "./adaptors/express/vite": {
       "import": "./lib/adaptors/express/vite/index.mjs",
       "require": "./lib/adaptors/express/vite/index.cjs"

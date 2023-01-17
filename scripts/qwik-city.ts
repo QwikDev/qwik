@@ -1,10 +1,10 @@
-import { BuildConfig, nodeTarget, panic, watcher, importPath, emptyDir } from './util';
 import { build, Plugin, transform } from 'esbuild';
-import { join } from 'node:path';
-import { readPackageJson, writePackageJson } from './package-json';
 import { execa } from 'execa';
-import { readFile, copyFile } from 'node:fs/promises';
+import { copyFile, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { rollup } from 'rollup';
+import { readPackageJson, writePackageJson } from './package-json';
+import { BuildConfig, emptyDir, importPath, nodeTarget, panic, watcher } from './util';
 
 const PACKAGE = 'qwik-city';
 
@@ -21,6 +21,7 @@ export async function buildQwikCity(config: BuildConfig) {
     buildVite(config, inputDir, outputDir),
     buildAdaptorAzureSwaVite(config, inputDir, outputDir),
     buildAdaptorCloudflarePagesVite(config, inputDir, outputDir),
+    buildAdaptorCloudRunVite(config, inputDir, outputDir),
     buildAdaptorExpressVite(config, inputDir, outputDir),
     buildAdaptorNetlifyEdgeVite(config, inputDir, outputDir),
     buildAdaptorSharedVite(config, inputDir, outputDir),
@@ -60,6 +61,11 @@ export async function buildQwikCity(config: BuildConfig) {
         types: './adaptors/cloudflare-pages/vite/index.d.ts',
         import: './adaptors/cloudflare-pages/vite/index.mjs',
         require: './adaptors/cloudflare-pages/vite/index.cjs',
+      },
+      './adaptors/cloud-run/vite': {
+        types: './adaptors/cloud-run/vite/index.d.ts',
+        import: './adaptors/cloud-run/vite/index.mjs',
+        require: './adaptors/cloud-run/vite/index.cjs',
       },
       './adaptors/express/vite': {
         types: './adaptors/express/vite/index.d.ts',
@@ -312,6 +318,34 @@ async function buildAdaptorCloudflarePagesVite(
   await build({
     entryPoints,
     outfile: join(outputDir, 'adaptors', 'cloudflare-pages', 'vite', 'index.cjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'cjs',
+    watch: watcher(config),
+    external: ADAPTOR_EXTERNALS,
+    plugins: [resolveAdaptorShared('../../shared/vite/index.cjs')],
+  });
+}
+
+async function buildAdaptorCloudRunVite(config: BuildConfig, inputDir: string, outputDir: string) {
+  const entryPoints = [join(inputDir, 'adaptors', 'cloud-run', 'vite', 'index.ts')];
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'adaptors', 'cloud-run', 'vite', 'index.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    watch: watcher(config),
+    external: ADAPTOR_EXTERNALS,
+    plugins: [resolveAdaptorShared('../../shared/vite/index.mjs')],
+  });
+
+  await build({
+    entryPoints,
+    outfile: join(outputDir, 'adaptors', 'cloud-run', 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,

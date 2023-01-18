@@ -89,7 +89,11 @@ export class ServerActionImpl implements ServerActionInternal {
     initialState.run = $((input) => {
       let data: FormData;
       if (input instanceof SubmitEvent) {
-        data = new FormData(input.target as HTMLFormElement);
+        const form = input.target as HTMLFormElement;
+        data = new FormData(form);
+        if (form.getAttribute('data-spa-reset') === 'true') {
+          form.reset();
+        }
       } else if (input instanceof FormData) {
         data = input;
       } else {

@@ -5,6 +5,10 @@ test.describe('Qwik City Catchall', () => {
     test.use({ javaScriptEnabled: false });
     tests();
   });
+  test.describe('spa', () => {
+    test.use({ javaScriptEnabled: true });
+    tests();
+  });
 });
 
 function tests() {

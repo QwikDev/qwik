@@ -454,10 +454,6 @@ export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFoc
     target: EventTarget & T;
 }
 
-// @beta (undocumented)
-export interface QwikFormEvent<T = Element> extends SyntheticEvent<T> {
-}
-
 // Warning: (ae-forgotten-export) The symbol "IntrinsicHTMLElements" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -582,6 +578,10 @@ export interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativeP
     tiltY: number;
     // (undocumented)
     width: number;
+}
+
+// @beta (undocumented)
+export interface QwikSubmitEvent<T = Element> extends SyntheticEvent<T> {
 }
 
 // @beta (undocumented)

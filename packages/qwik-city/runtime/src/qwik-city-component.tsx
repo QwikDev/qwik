@@ -179,6 +179,8 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         routeLocation.params = { ...params };
         routeLocation.query = url.searchParams;
 
+        (navPath as any).untrackedValue = pathname;
+
         // Update content
         content.headings = pageModule.headings;
         content.menu = menu;

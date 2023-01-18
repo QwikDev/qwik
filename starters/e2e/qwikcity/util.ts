@@ -90,7 +90,7 @@ export async function linkNavigate(ctx: TestContext, linkSelector: string, respo
   if (ctx.javaScriptEnabled) {
     // SPA
     await link.click();
-    await page.waitForTimeout(250);
+    await page.waitForTimeout(500);
   } else {
     // MPA
     const [rsp] = await Promise.all([page.waitForNavigation(), link.click()]);

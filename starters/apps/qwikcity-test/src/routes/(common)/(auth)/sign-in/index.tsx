@@ -36,7 +36,7 @@ export default component$(() => {
     <div>
       <h1>Sign In</h1>
 
-      <Form action={signIn}>
+      <Form action={signIn} spaReset>
         {signIn.value?.message && <p style="color:red">{signIn.value.message}</p>}
         <label>
           <span>Username</span>

@@ -10,7 +10,7 @@ export const TwoListeners = component$(() => {
       href="/"
       preventdefault:click
       class="two-listeners"
-      onClick$={[$(() => store1.count++), update, update]}
+      onClick$={[$(() => store1.count++), update, undefined, [null, update]]}
     >
       {store1.count} / {store2.count}
     </a>

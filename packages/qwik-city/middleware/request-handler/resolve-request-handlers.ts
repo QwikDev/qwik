@@ -121,18 +121,22 @@ const _resolveRequestHandlers = (
     }
 
     if (collectActions) {
-      const loaders = Object.values(routeModule).filter(
-        (e) => e.__brand === 'server_loader'
+      const loaders = Object.values(routeModule).filter((e) =>
+        checkBrand(e, 'server_loader')
       ) as any[];
 
-      const actions = Object.values(routeModule).filter(
-        (e) => e.__brand === 'server_action'
+      const actions = Object.values(routeModule).filter((e) =>
+        checkBrand(e, 'server_action')
       ) as any[];
 
       serverLoaders.push(...loaders);
       serverActions.push(...actions);
     }
   }
+};
+
+export const checkBrand = (obj: any, brand: string) => {
+  return obj && typeof obj === 'object' && obj.__brand === brand;
 };
 
 export function actionsMiddleware(

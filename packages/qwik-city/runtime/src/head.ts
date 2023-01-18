@@ -11,7 +11,7 @@ import type {
   ClientPageData,
 } from './types';
 
-export const resolveHead = async (
+export const resolveHead = (
   endpoint: EndpointResponse | ClientPageData | undefined | null,
   routeLocation: RouteLocation,
   contentModules: ContentModule[],

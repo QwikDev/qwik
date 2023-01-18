@@ -97,7 +97,7 @@ export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFoc
 /**
  * @beta
  */
-export interface QwikFormEvent<T = Element> extends SyntheticEvent<T> {}
+export interface QwikSubmitEvent<T = Element> extends SyntheticEvent<T> {}
 
 /**
  * @beta

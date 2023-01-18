@@ -10,6 +10,7 @@ import { CookieOptions } from '@builder.io/qwik-city/middleware/request-handler'
 import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
 import type { GetSyncData } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
+import { PropFunction } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
@@ -149,7 +150,7 @@ export interface DocumentStyle {
 export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
 
 // @alpha (undocumented)
-export const Form: <T>({ action, ...rest }: FormProps<T>) => JSXNode<"form">;
+export const Form: <T>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<T>) => JSXNode<"form">;
 
 // @alpha (undocumented)
 export interface FormProps<T> extends Omit<QwikJSX.IntrinsicElements['form'], 'action'> {
@@ -157,6 +158,12 @@ export interface FormProps<T> extends Omit<QwikJSX.IntrinsicElements['form'], 'a
     action: ServerActionUse<T>;
     // (undocumented)
     method?: 'post';
+    // (undocumented)
+    onSubmit$?: PropFunction<(event: Event) => void>;
+    // (undocumented)
+    reloadDocument?: boolean;
+    // (undocumented)
+    spaReset?: boolean;
 }
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityProps" needs to be exported by the entry point index.d.ts

@@ -13,6 +13,7 @@ import type {
   QwikKeyboardEvent,
   QwikMouseEvent,
   QwikPointerEvent,
+  QwikSubmitEvent,
   QwikTouchEvent,
   QwikTransitionEvent,
   QwikUIEvent,
@@ -47,7 +48,7 @@ export type QwikEventMap<T> = {
   InputCapture: Event;
   Reset: Event;
   ResetCapture: Event;
-  Submit: Event;
+  Submit: QwikSubmitEvent<T>;
   SubmitCapture: Event;
   Invalid: QwikInvalidEvent<T>;
   InvalidCapture: QwikInvalidEvent<T>;
@@ -215,7 +216,7 @@ export interface QwikCustomEvents {
     | SingleOrArray<undefined>;
 }
 
-type SingleOrArray<T> = T | T[];
+type SingleOrArray<T> = T | (SingleOrArray<T> | undefined | null)[];
 
 export type QwikKnownEvents<T> = {
   [K in keyof QwikEventMap<T> as `${'document:' | 'window:' | ''}on${K}$`]?: SingleOrArray<

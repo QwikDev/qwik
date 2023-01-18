@@ -5,6 +5,10 @@ test.describe('Qwik City URL params', () => {
     test.use({ javaScriptEnabled: false });
     tests();
   });
+  test.describe('spa', () => {
+    test.use({ javaScriptEnabled: false });
+    tests();
+  });
 });
 
 function tests() {

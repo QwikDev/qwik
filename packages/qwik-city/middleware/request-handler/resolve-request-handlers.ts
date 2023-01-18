@@ -61,6 +61,9 @@ export const resolveRequestHandlers = (
       requestHandlers.push(renderHandler);
     }
   }
+  if (requestHandlers.length > 0) {
+    requestHandlers.unshift(securityMiddleware);
+  }
   return requestHandlers;
 };
 
@@ -218,6 +221,15 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
 
 export const encoder = /*@__PURE__*/ new TextEncoder();
 
+export function securityMiddleware({ method, url, request, error }: RequestEvent) {
+  const forbidden =
+    method === 'POST' &&
+    request.headers.get('origin') !== url.origin &&
+    isFormContentType(request.headers);
+  if (forbidden) {
+    throw error(403, `Cross-site ${request.method} form submissions are forbidden`);
+  }
+}
 export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
   return async (requestEv: RequestEvent) => {
     if (requestEv.headersSent) {
@@ -354,4 +366,13 @@ function makeQDataPath(href: string) {
   } else {
     return undefined;
   }
+}
+
+export function isContentType(headers: Headers, ...types: string[]) {
+  const type = headers.get('content-type')?.split(';', 1)[0].trim() ?? '';
+  return types.includes(type);
+}
+
+export function isFormContentType(headers: Headers) {
+  return isContentType(headers, 'application/x-www-form-urlencoded', 'multipart/form-data');
 }

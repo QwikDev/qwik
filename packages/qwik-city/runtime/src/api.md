@@ -256,7 +256,7 @@ export interface RouteLocation {
     // (undocumented)
     readonly href: string;
     // (undocumented)
-    readonly isPending: boolean;
+    readonly isNavigating: boolean;
     // (undocumented)
     readonly params: Record<string, string>;
     // (undocumented)
@@ -283,14 +283,14 @@ export interface ServerAction<RETURN> {
 export interface ServerActionUse<RETURN> {
     // (undocumented)
     readonly actionPath: string;
-    // Warning: (ae-forgotten-export) The symbol "ServerActionExecute" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    readonly execute: ServerActionExecute<RETURN>;
     // (undocumented)
     readonly id: string;
     // (undocumented)
-    readonly isPending: boolean;
+    readonly isRunning: boolean;
+    // Warning: (ae-forgotten-export) The symbol "ServerActionExecute" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly run: ServerActionExecute<RETURN>;
     // (undocumented)
     readonly status?: number;
     // (undocumented)

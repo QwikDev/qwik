@@ -7,10 +7,10 @@ test.describe('Qwik City Auth', () => {
     tests();
   });
 
-  // test.describe('spa', () => {
-  //   test.use({javaScriptEnabled: true});
-  //   tests();
-  // });
+  test.describe('spa', () => {
+    test.use({ javaScriptEnabled: true });
+    tests();
+  });
 });
 
 function tests() {
@@ -34,8 +34,7 @@ function tests() {
     await page.keyboard.type('dev');
 
     /***********  Unsuccessful Sign In  ***********/
-    const [try1] = await Promise.all([page.waitForNavigation(), page.click('[data-test-sign-in]')]);
-    expect(try1!.status()).toBe(403);
+    await linkNavigate(ctx, '[data-test-sign-in]', 403);
 
     page = getPage(ctx);
     await page.focus('input[name="username"]');
@@ -45,8 +44,7 @@ function tests() {
     await page.keyboard.type('dev');
 
     /***********  Successful Sign In, Dashboard  ***********/
-    const [try2] = await Promise.all([page.waitForNavigation(), page.click('[data-test-sign-in]')]);
-    expect(try2!.status()).toBe(200);
+    await linkNavigate(ctx, '[data-test-sign-in]', 200);
 
     await assertPage(ctx, {
       pathname: '/qwikcity-test/dashboard/',

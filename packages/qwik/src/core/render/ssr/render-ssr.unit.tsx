@@ -329,6 +329,14 @@ renderSSRSuite('events', async () => {
     '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body on:click="/runtimeQRL#_">hola</body></html>'
   );
   await testSSR(
+    <body onClick$={[undefined, $(() => console.warn('hol'))]}>hola</body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body on:click="/runtimeQRL#_">hola</body></html>'
+  );
+  await testSSR(
+    <body onClick$={[undefined, [$(() => console.warn('hol'))]]}>hola</body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body on:click="/runtimeQRL#_">hola</body></html>'
+  );
+  await testSSR(
     <body document:onClick$={() => console.warn('hol')}>hola</body>,
     '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body on-document:click="/runtimeQRL#_">hola</body></html>'
   );

@@ -145,7 +145,7 @@ export type {
   QwikDragEvent,
   QwikPointerEvent,
   QwikFocusEvent,
-  QwikFormEvent,
+  QwikSubmitEvent,
   QwikInvalidEvent,
   QwikChangeEvent,
   QwikKeyboardEvent,

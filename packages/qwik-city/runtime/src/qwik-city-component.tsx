@@ -166,12 +166,6 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         const [params, mods, menu] = loadedRoute;
         const contentModules = mods as ContentModule[];
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
-        const resolvedHead = await resolveHead(
-          clientPageData,
-          routeLocation,
-          contentModules,
-          locale
-        );
 
         // Update route location
         routeLocation.href = url.href;
@@ -180,6 +174,9 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         routeLocation.query = url.searchParams;
 
         (navPath as any).untrackedValue = pathname;
+
+        // Needs to be done after routeLocation is updated
+        const resolvedHead = resolveHead(clientPageData, routeLocation, contentModules, locale);
 
         // Update content
         content.headings = pageModule.headings;

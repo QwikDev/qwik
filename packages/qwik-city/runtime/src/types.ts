@@ -51,7 +51,7 @@ export interface RouteLocation {
   readonly href: string;
   readonly pathname: string;
   readonly query: URLSearchParams;
-  readonly isPending: boolean;
+  readonly isNavigating: boolean;
 }
 
 export type RouteNavigate = QRL<(path?: string) => Promise<void>>;

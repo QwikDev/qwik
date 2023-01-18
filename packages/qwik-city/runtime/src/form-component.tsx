@@ -16,7 +16,7 @@ export const Form = <T,>({ action, ...rest }: FormProps<T>) => {
   return jsx('form', {
     action: action.actionPath,
     'preventdefault:submit': true,
-    onSubmit$: action.execute,
+    onSubmit$: action.run,
     ...rest,
     method: 'post',
   });

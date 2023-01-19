@@ -194,7 +194,7 @@ The context API is a way to pass state to components without having to pass it t
 Check the [context API](../context/index.mdx) for more information.
 
 ```tsx
-const CTX = createContext('stuff');
+export const CTX = createContext('stuff');
 
 export const Stores = component$(() => {
   const userData = useStore({

@@ -280,6 +280,9 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
           throw resource._error;
         }
       }
+      if (resource._resolved !== undefined) {
+        return props.onResolved(resource._resolved);
+      }
     }
     promise = resource.value;
   } else if (resource instanceof Promise) {

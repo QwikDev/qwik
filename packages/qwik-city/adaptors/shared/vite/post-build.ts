@@ -110,7 +110,8 @@ function createStaticPathsModule(basePathname: string, staticPaths: Set<string>,
     )});`
   );
 
-  c.push(`function isStaticPath(url) {`);
+  c.push(`function isStaticPath(method, url) {`);
+  c.push(`  if (method.toUpperCase() !== 'GET') return false;`);
   c.push(`  const p = url.pathname;`);
   c.push(`  if (p.startsWith(${JSON.stringify(baseBuildPath)})) {`);
   c.push(`    return true;`);
@@ -118,7 +119,7 @@ function createStaticPathsModule(basePathname: string, staticPaths: Set<string>,
   c.push(`  if (p.startsWith(${JSON.stringify(assetsPath)})) {`);
   c.push(`    return true;`);
   c.push(`  }`);
-  c.push(`  if (url.searchParams.get('qwikcity.static') === "false") {`);
+  c.push(`  if (url.search !== "") {`);
   c.push(`    return false;`);
   c.push(`  }`);
   c.push(`  if (staticPaths.has(p)) {`);

@@ -67,7 +67,7 @@ export interface RenderSSROptions {
   containerAttributes: Record<string, string>;
   stream: StreamWriter;
   base?: string;
-  envData?: Record<string, any>;
+  serverData?: Record<string, any>;
   url?: string;
   beforeContent?: JSXNode<string>[];
   beforeClose?: (
@@ -112,7 +112,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const root = opts.containerTagName;
   const containerEl = createSSRContext(1).$element$;
   const containerState = createContainerState(containerEl as Element, opts.base ?? '/');
-  containerState.$envData$.locale = opts.envData?.locale;
+  containerState.$serverData$.locale = opts.serverData?.locale;
   const doc = createDocument();
   const rCtx = createRenderContext(doc as any, containerState);
   const headNodes = opts.beforeContent ?? [];
@@ -121,7 +121,7 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
       $contexts$: [],
       $dynamic$: false,
       $headNodes$: root === 'html' ? headNodes : [],
-      $locale$: opts.envData?.locale,
+      $locale$: opts.serverData?.locale,
     },
     $projectedChildren$: undefined,
     $projectedCtxs$: undefined,
@@ -129,22 +129,26 @@ export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   };
   seal(ssrCtx);
 
+  let qRender = qDev ? 'ssr-dev' : 'ssr';
+  if (opts.containerAttributes['q:render']) {
+    qRender = `${opts.containerAttributes['q:render']}-${qRender}`;
+  }
   const containerAttributes: Record<string, any> = {
     ...opts.containerAttributes,
     'q:container': 'paused',
     'q:version': version ?? 'dev',
-    'q:render': qDev ? 'ssr-dev' : 'ssr',
+    'q:render': qRender,
     'q:base': opts.base,
-    'q:locale': opts.envData?.locale,
+    'q:locale': opts.serverData?.locale,
     children: root === 'html' ? [node] : [headNodes, node],
   };
   if (root !== 'html') {
     containerAttributes.class =
       'qc📦' + (containerAttributes.class ? ' ' + containerAttributes.class : '');
   }
-  containerState.$envData$ = {
+  containerState.$serverData$ = {
     url: opts.url,
-    ...opts.envData,
+    ...opts.serverData,
   };
 
   node = jsx(root, containerAttributes);
@@ -738,7 +742,6 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
   if (tagName === InternalSSRStream) {
     return renderGenerator(node as JSXNode<typeof InternalSSRStream>, rCtx, ssrCtx, stream, flags);
   }
-
   if (tagName === SSRHint && (node as JSXNode<typeof SSRHint>).props.dynamic === true) {
     ssrCtx.$static$.$dynamic$ = true;
   }

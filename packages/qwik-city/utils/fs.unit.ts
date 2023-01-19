@@ -20,6 +20,7 @@ import {
 } from './fs';
 
 const routesDir = normalizePath(join(tmpdir(), 'src', 'routes'));
+const serverPluginsDir = normalizePath(join(tmpdir(), 'src', 'routes'));
 
 test('isGroupedLayoutName', () => {
   const t = [
@@ -247,7 +248,8 @@ test('createFileId, Layout', () => {
     t.basePathname
   }`, () => {
     const opts: NormalizedPluginOptions = {
-      routesDir: routesDir,
+      routesDir,
+      serverPluginsDir,
       basePathname: t.basePathname,
       trailingSlash: t.trailingSlash,
       mdxPlugins: {
@@ -346,7 +348,8 @@ test('parseRouteIndexName', () => {
 ].forEach((t) => {
   test(``, () => {
     const opts: NormalizedPluginOptions = {
-      routesDir: routesDir,
+      routesDir,
+      serverPluginsDir,
       basePathname: t.basePathname,
       trailingSlash: t.trailingSlash,
       mdxPlugins: {

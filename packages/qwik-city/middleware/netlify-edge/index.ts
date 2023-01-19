@@ -13,6 +13,7 @@ import { isStaticPath } from '@qwik-city-static-paths';
 
 // @builder.io/qwik-city/middleware/netlify-edge
 
+declare const Deno: any;
 /**
  * @alpha
  */
@@ -21,7 +22,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
     try {
       const url = new URL(request.url);
 
-      if (isStaticPath(url) || url.pathname.startsWith('/.netlify')) {
+      if (isStaticPath(request.method, url) || url.pathname.startsWith('/.netlify')) {
         // known static path, let netlify handle it
         return context.next();
       }
@@ -30,6 +31,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
         mode: 'server',
         locale: undefined,
         url,
+        env: Deno.env,
         request,
         getWritableStream: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream<Uint8Array>();

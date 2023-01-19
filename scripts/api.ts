@@ -1,7 +1,7 @@
-import { BuildConfig, panic } from './util';
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
-import { join } from 'node:path';
 import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { BuildConfig, panic } from './util';
 
 /**
  * Create each submodule's bundled dts file, and ensure
@@ -66,6 +66,11 @@ export function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.packagesDir, 'qwik-city', 'adaptors', 'azure-swa', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'azure-swa', 'vite', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.packagesDir, 'qwik-city', 'adaptors', 'cloudflare-pages', 'vite'),
     join(
       config.packagesDir,
@@ -79,6 +84,11 @@ export function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.packagesDir, 'qwik-city', 'adaptors', 'cloud-run', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'cloud-run', 'vite', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.packagesDir, 'qwik-city', 'adaptors', 'express', 'vite'),
     join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'express', 'vite', 'index.d.ts')
   );
@@ -89,8 +99,8 @@ export function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adaptors', 'azure-swa', 'vite'),
-    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'azure-swa', 'vite', 'index.d.ts')
+    join(config.packagesDir, 'qwik-city', 'adaptors', 'shared', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'adaptors', 'shared', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,

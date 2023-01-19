@@ -329,6 +329,14 @@ renderSSRSuite('events', async () => {
     '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body on:click="/runtimeQRL#_">hola</body></html>'
   );
   await testSSR(
+    <body onClick$={[undefined, $(() => console.warn('hol'))]}>hola</body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body on:click="/runtimeQRL#_">hola</body></html>'
+  );
+  await testSSR(
+    <body onClick$={[undefined, [$(() => console.warn('hol'))]]}>hola</body>,
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body on:click="/runtimeQRL#_">hola</body></html>'
+  );
+  await testSSR(
     <body document:onClick$={() => console.warn('hol')}>hola</body>,
     '<html q:container="paused" q:version="dev" q:render="ssr-dev"><body on-document:click="/runtimeQRL#_">hola</body></html>'
   );
@@ -1177,6 +1185,39 @@ renderSSRSuite('containerAttributes', async () => {
       containerAttributes: {
         prefix: 'something',
         class: 'thing',
+      },
+    }
+  );
+});
+
+renderSSRSuite('custom q:render', async () => {
+  await testSSR(
+    <>
+      <body></body>
+    </>,
+    `
+    <html q:render="static-ssr-dev" q:container="paused" q:version="dev">
+     <body></body>
+    </html>
+    `,
+    {
+      containerAttributes: {
+        'q:render': 'static',
+      },
+    }
+  );
+  await testSSR(
+    <>
+      <body></body>
+    </>,
+    `
+    <html q:render="ssr-dev" q:container="paused" q:version="dev">
+     <body></body>
+    </html>
+    `,
+    {
+      containerAttributes: {
+        'q:render': '',
       },
     }
   );

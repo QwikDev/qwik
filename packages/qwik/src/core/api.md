@@ -4,6 +4,8 @@
 
 ```ts
 
+import type { JSXNode as JSXNode_2 } from '@builder.io/qwik/jsx-runtime';
+
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 
@@ -452,10 +454,6 @@ export interface QwikFocusEvent<T = Element> extends SyntheticEvent<T, NativeFoc
     target: EventTarget & T;
 }
 
-// @beta (undocumented)
-export interface QwikFormEvent<T = Element> extends SyntheticEvent<T> {
-}
-
 // Warning: (ae-forgotten-export) The symbol "IntrinsicHTMLElements" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -583,6 +581,10 @@ export interface QwikPointerEvent<T = Element> extends QwikMouseEvent<T, NativeP
 }
 
 // @beta (undocumented)
+export interface QwikSubmitEvent<T = Element> extends SyntheticEvent<T> {
+}
+
+// @beta (undocumented)
 export interface QwikTouchEvent<T = Element> extends SyntheticEvent<T, NativeTouchEvent> {
     // (undocumented)
     altKey: boolean;
@@ -650,7 +652,7 @@ export const RenderOnce: FunctionComponent<{
 // @alpha (undocumented)
 export interface RenderOptions {
     // (undocumented)
-    envData?: Record<string, any>;
+    serverData?: Record<string, any>;
 }
 
 // @alpha (undocumented)
@@ -669,7 +671,7 @@ export interface RenderSSROptions {
     // (undocumented)
     containerTagName: string;
     // (undocumented)
-    envData?: Record<string, any>;
+    serverData?: Record<string, any>;
     // (undocumented)
     stream: StreamWriter;
     // (undocumented)
@@ -739,6 +741,9 @@ export interface ResourceResolved<T> {
 
 // @public (undocumented)
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
+
+// @internal (undocumented)
+export const _restProps: (props: Record<string, any>, omit: string[]) => Record<string, any>;
 
 // @alpha
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
@@ -901,11 +906,8 @@ export interface UseEffectOptions {
     eagerness?: EagernessOptions;
 }
 
-// @alpha (undocumented)
-export function useEnvData<T>(key: string): T | undefined;
-
-// @alpha (undocumented)
-export function useEnvData<T, B = T>(key: string, defaultValue: B): T | B;
+// @alpha @deprecated (undocumented)
+export const useEnvData: typeof useServerData;
 
 // Warning: (ae-forgotten-export) The symbol "ErrorBoundaryStore" needs to be exported by the entry point index.d.ts
 //
@@ -938,11 +940,20 @@ export const useOnWindow: (event: string | string[], eventQrl: QRL<(ev: Event) =
 // @alpha @deprecated
 export const useRef: <T extends Element = Element>(current?: T | undefined) => Ref<T>;
 
+// @alpha (undocumented)
+export const useRender: (jsx: JSXNode_2) => void;
+
 // @public
 export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;
 
 // @public
 export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) => ResourceReturn<T>;
+
+// @alpha (undocumented)
+export function useServerData<T>(key: string): T | undefined;
+
+// @alpha (undocumented)
+export function useServerData<T, B = T>(key: string, defaultValue: B): T | B;
 
 // @public @deprecated
 export const useServerMount$: <T>(first: MountFn<T>) => void;
@@ -966,9 +977,9 @@ export const useStore: <STATE extends object>(initialState: STATE | (() => STATE
 
 // @public (undocumented)
 export interface UseStoreOptions {
-    // (undocumented)
+    deep?: boolean;
     reactive?: boolean;
-    // (undocumented)
+    // @deprecated (undocumented)
     recursive?: boolean;
 }
 
@@ -1002,7 +1013,7 @@ export interface UseTaskOptions {
 export const useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
 
 // @alpha @deprecated (undocumented)
-export const useUserContext: typeof useEnvData;
+export const useUserContext: typeof useServerData;
 
 // @beta @deprecated (undocumented)
 export const useWatch$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void;

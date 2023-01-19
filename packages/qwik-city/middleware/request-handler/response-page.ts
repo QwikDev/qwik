@@ -2,7 +2,7 @@ import type { QwikCityEnvData } from '../../runtime/src/types';
 import type { RequestEvent } from './types';
 import { getRequestAction, getRequestLoaders } from './request-event';
 
-export function getQwikCityEnvData(requestEv: RequestEvent<unknown>): {
+export function getQwikCityServerData(requestEv: RequestEvent<unknown>): {
   url: string;
   requestHeaders: Record<string, string>;
   locale: string | undefined;

@@ -30,7 +30,7 @@ const SERVER_STRIP_EXPORTS = [
   'onStaticGenerate',
 ];
 
-const SERVER_STRIP_CTX_NAME = ['useServerMount$', 'action$', 'loader$'];
+const SERVER_STRIP_CTX_NAME = ['server', 'useServer', 'action$', 'loader$'];
 
 export interface QwikPackages {
   id: string;
@@ -341,9 +341,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       if (opts.target === 'client') {
         transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
         transformOpts.stripExports = SERVER_STRIP_EXPORTS;
+        transformOpts.isServer = false;
       } else if (opts.target === 'ssr') {
-        transformOpts.stripCtxName = ['useClientMount$', 'useClientEffect$'];
+        transformOpts.stripCtxName = ['useClient', 'client'];
         transformOpts.stripCtxKind = 'event';
+        transformOpts.isServer = true;
       }
 
       const result = await optimizer.transformFs(transformOpts);
@@ -704,7 +706,7 @@ const RESOLVE_EXTS: { [ext: string]: boolean } = {
   '.cjs': true,
 };
 
-const TRANSFORM_REGEX = /\.qwik\.(m|c)?js$/;
+const TRANSFORM_REGEX = /\.qwik\.[mc]?js$/;
 
 export const QWIK_CORE_ID = '@builder.io/qwik';
 

@@ -17,7 +17,7 @@ import { build } from '../build';
 import { dev404Middleware, ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
-import { patchGlobalFetch } from '../../middleware/node/node-fetch';
+import { patchGlobalThis } from '../../middleware/node/node-fetch';
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import {
@@ -45,6 +45,9 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
   let ssrFormat = 'esm';
   let outDir: string | null = null;
 
+  // Patch Stream APIs
+  patchGlobalThis();
+
   const api: QwikCityPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
     getRoutes: () => {
@@ -61,8 +64,6 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     api,
 
     async config() {
-      await patchGlobalFetch();
-
       const updatedViteConfig: UserConfig = {
         appType: 'custom',
         base: userOpts?.basePathname,

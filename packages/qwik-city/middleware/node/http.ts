@@ -16,8 +16,6 @@ export async function fromNodeHttp(
   res: ServerResponse,
   mode: ServerRequestMode
 ) {
-  const { Request, Headers } = await import('undici');
-
   const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
   for (const key in nodeRequestHeaders) {
@@ -38,15 +36,21 @@ export async function fromNodeHttp(
   };
 
   const body = req.method === 'HEAD' || req.method === 'GET' ? undefined : getRequestBody();
+  const options = {
+    method: req.method,
+    headers: requestHeaders,
+    body: body as any,
+    duplex: 'half' as any,
+  };
   const serverRequestEv: ServerRequestEvent<boolean> = {
     mode,
     url,
-    request: new Request(url.href, {
-      method: req.method,
-      headers: requestHeaders,
-      body,
-      duplex: 'half',
-    }) as any,
+    request: new Request(url.href, options as any),
+    env: {
+      get(key) {
+        return process.env[key];
+      },
+    },
     getWritableStream: (status, headers, cookies) => {
       res.statusCode = status;
       headers.forEach((value, key) => res.setHeader(key, value));

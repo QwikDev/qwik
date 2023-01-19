@@ -12,6 +12,13 @@ export function delay(nu: number) {
   });
 }
 
+export const slowAction = action$(async (form) => {
+  await delay(3000);
+  return {
+    success: true,
+  };
+});
+
 export const toppingsAction = action$((form) => {
   const newToppings = form.getAll('toppings');
   console.warn('Selected toppings:', newToppings);
@@ -38,11 +45,17 @@ export default component$(() => {
 
   const toppings = toppingsLoader.use();
   const toppingAction = toppingsAction.use();
+  const slow = slowAction.use();
 
   return (
     <div class="actions">
       <section class="input">
         <h1>Qwik Pizza</h1>
+
+        <Form action={slow} data-test-slow>
+          {slow.isRunning && <p>Slow action is running...</p>}
+          <button disabled={slow.isRunning}>Send</button>
+        </Form>
 
         <Form action={toppingAction} data-test-toppings>
           <h2>Toppings</h2>
@@ -63,7 +76,7 @@ export default component$(() => {
             </label>
           ))}
           <p>
-            <button disabled={toppingAction.isPending}>Set Toppings</button>
+            <button disabled={toppingAction.isRunning}>Set Toppings</button>
           </p>
         </Form>
 

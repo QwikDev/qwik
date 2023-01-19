@@ -4,6 +4,10 @@
     "tags": "saas"
   },
   {
+    "href": "https://shaunchander.me",
+    "tags": "portfolio"
+  },
+  {
     "href": "https://img-models.vercel.app/",
     "tags": "ecommerce"
   },
@@ -20,6 +24,10 @@
   {
     "href": "https://soundy.cloud/",
     "tags": "saas"
+  },
+  {
+    "href": "https://bot-whatsapp.netlify.app/",
+    "tags": "site"
   },
   {
     "href": "https://usaibis.com/",
@@ -74,5 +82,17 @@
   {
     "href": "https://www.stockideashq.com/",
     "tags": "investing"
+  },
+  {
+    "href": "https://abdhashem.com",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://amirhbeigi.ir",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://puzzledbycsharp.com/",
+    "tags": "site"
   }
 ]

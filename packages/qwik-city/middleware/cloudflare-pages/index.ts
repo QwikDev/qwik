@@ -22,7 +22,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
     try {
       const url = new URL(request.url);
 
-      if (isStaticPath(url)) {
+      if (isStaticPath(request.method, url)) {
         // known static path, let cloudflare handle it
         return next();
       }
@@ -47,6 +47,11 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
         locale: undefined,
         url,
         request,
+        env: {
+          get(key) {
+            return env[key];
+          },
+        },
         getWritableStream: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream<Uint8Array>();
           const response = new Response(readable, {

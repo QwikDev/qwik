@@ -1,21 +1,22 @@
 import { execa } from 'execa';
 import { existsSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const token = process.env.API_TOKEN_GITHUB;
-const root = __dirname + '/..';
+const root = join(__dirname, '..');
 const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
 
 (async () => {
   const finishQwik = await prepare({
     buildRepo: 'qwik-build',
-    artifactsDir: root + '/packages/qwik/dist',
+    artifactsDir: join(root, 'packages', 'qwik', 'dist'),
   });
   const finishQwikCity = await prepare({
     buildRepo: 'qwik-city-build',
-    artifactsDir: root + '/packages/qwik-city/lib',
+    artifactsDir: join(root, 'packages', 'qwik-city', 'lib'),
   });
   await finishQwik();
   await finishQwikCity();
@@ -24,19 +25,23 @@ const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
 async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifactsDir: string }) {
   if (!existsSync(artifactsDir)) {
     // if no artifacts, then nothing to do.
+    console.log('No artifacts to save. (no artifacts found at ' + artifactsDir);
     return () => null;
   }
-  const buildRepoDir = root + '/dist-dev/' + buildRepo;
+  console.log(
+    'preparing to save artifacts to ' + artifactsDir + ' into BuilderIO/' + buildRepo + ' repo.'
+  );
+  const buildRepoDir = join(root, 'dist-dev', buildRepo);
   const repo = token
     ? `https://${token}:x-oauth-basic@github.com/BuilderIO/${buildRepo}.git`
     : `git@github.com:BuilderIO/${buildRepo}.git`;
 
   await $('rm', '-rf', buildRepoDir);
   const SHA = await $('git', 'rev-parse', 'HEAD');
-  await mkdir(`${root}/dist-dev`, {
+  await mkdir(join(root, 'dist-dev'), {
     recursive: true,
   });
-  process.chdir(`${root}/dist-dev`);
+  process.chdir(join(root, 'dist-dev'));
   await $('git', 'clone', repo);
   const branch = await $('git', 'branch', '--show-current');
   const msg = await $('git', 'log', '--oneline', '-1', '--no-decorate');
@@ -67,10 +72,14 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
   const dstSHA = await $('git', 'rev-parse', 'HEAD');
   console.log('##############################################################');
   console.log('##############################################################');
+  console.log(`### ${artifactsDir} => BuilderIO/${buildRepo}`);
   console.log(`### ${srcRepoRef}/${dstSHA}`);
   console.log('##############################################################');
   console.log('##############################################################');
+  const cwd = process.cwd();
   return async () => {
+    process.chdir(cwd);
+    console.log('PUSHING:', repo, `HEAD:${branch}`, 'in', cwd);
     await $('git', 'push', repo, `HEAD:${branch}`);
     await $('rm', '-rf', buildRepoDir);
   };

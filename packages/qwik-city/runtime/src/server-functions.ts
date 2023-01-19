@@ -9,6 +9,9 @@ import {
   _wrapSignal,
   useStore,
   untrack,
+  SSRHint,
+  useRender,
+  jsx,
 } from '@builder.io/qwik';
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
 import { QACTION_KEY } from './constants';
@@ -22,24 +25,30 @@ export type ServerActionExecute<RETURN> = QRL<
   ) => Promise<RETURN>
 >;
 
-export interface ServerActionUtils<RETURN> {
+/**
+ * @alpha
+ */
+export interface ServerActionUse<RETURN> {
   readonly id: string;
   readonly actionPath: string;
-  readonly isPending: boolean;
+  readonly isRunning: boolean;
   readonly status?: number;
   readonly value: RETURN | undefined;
-  readonly execute: ServerActionExecute<RETURN>;
+  readonly run: ServerActionExecute<RETURN>;
 }
 
+/**
+ * @alpha
+ */
 export interface ServerAction<RETURN> {
   readonly [isServerLoader]?: true;
-  use(): ServerActionUtils<RETURN>;
+  use(): ServerActionUse<RETURN>;
 }
 
 export interface ServerActionInternal extends ServerAction<any> {
   readonly __brand: 'server_action';
   __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>;
-  use(): ServerActionUtils<any>;
+  use(): ServerActionUse<any>;
 }
 
 type Editable<T> = {
@@ -51,15 +60,15 @@ export class ServerActionImpl implements ServerActionInternal {
   constructor(
     public __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>
   ) {}
-  use(): ServerActionUtils<any> {
+  use(): ServerActionUse<any> {
     const loc = useLocation() as Editable<RouteLocation>;
     const currentAction = useAction();
-    const initialState: Editable<Partial<ServerActionUtils<any>>> = {
+    const initialState: Editable<Partial<ServerActionUse<any>>> = {
       status: undefined,
-      isPending: false,
+      isRunning: false,
     };
 
-    const state = useStore<Editable<ServerActionUtils<any>>>(() => {
+    const state = useStore<Editable<ServerActionUse<any>>>(() => {
       return untrack(() => {
         const id = this.__qrl.getHash();
         if (currentAction.value?.output) {
@@ -72,30 +81,34 @@ export class ServerActionImpl implements ServerActionInternal {
         }
         initialState.id = id;
         initialState.actionPath = `${loc.pathname}?${QACTION_KEY}=${id}`;
-        initialState.isPending = false;
-        return initialState as ServerActionUtils<any>;
+        initialState.isRunning = false;
+        return initialState as ServerActionUse<any>;
       });
     });
 
-    initialState.execute = $((input) => {
+    initialState.run = $((input) => {
       let data: FormData;
       if (input instanceof SubmitEvent) {
-        data = new FormData(input.target as HTMLFormElement);
+        const form = input.target as HTMLFormElement;
+        data = new FormData(form);
+        if (form.getAttribute('data-spa-reset') === 'true') {
+          form.reset();
+        }
       } else if (input instanceof FormData) {
         data = input;
       } else {
         data = formDataFromObject(input);
       }
       return new Promise<RouteActionResolver>((resolve) => {
-        state.isPending = true;
-        loc.isPending = true;
+        state.isRunning = true;
+        loc.isNavigating = true;
         currentAction.value = {
           data,
           id: state.id,
           resolve: noSerialize(resolve),
         };
       }).then((value) => {
-        state.isPending = false;
+        state.isRunning = false;
         state.status = value.status;
         state.value = value.result;
       });
@@ -118,10 +131,16 @@ export const actionQrl = <B>(
  */
 export const action$ = implicit$FirstArg(actionQrl);
 
+/**
+ * @alpha
+ */
 export type ServerLoaderUse<T> = Awaited<T> extends () => ValueOrPromise<infer B>
   ? Signal<ValueOrPromise<B>>
   : Signal<Awaited<T>>;
 
+/**
+ * @alpha
+ */
 export interface ServerLoader<RETURN> {
   readonly [isServerLoader]?: true;
   use(): ServerLoaderUse<RETURN>;
@@ -139,6 +158,8 @@ export class ServerLoaderImpl implements ServerLoaderInternal {
   readonly __brand = 'server_loader';
   constructor(public __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>) {}
   use(): Signal<any> {
+    useRender(jsx(SSRHint, { dynamic: true }));
+
     const state = useContext(RouteStateContext);
     const hash = this.__qrl.getHash();
     untrack(() => {

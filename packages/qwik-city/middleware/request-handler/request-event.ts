@@ -14,7 +14,6 @@ import type {
   ServerLoaderInternal,
 } from '../../runtime/src/server-functions';
 import { Cookie } from './cookie';
-import { createHeaders } from './headers';
 import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
@@ -25,17 +24,21 @@ const RequestEvLocale = Symbol('RequestEvLocale');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvStatus = Symbol('RequestEvStatus');
 export const RequestEvAction = Symbol('RequestEvAction');
+export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
+export const RequestEvBasePathname = Symbol('RequestEvBasePathname');
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   params: PathParams,
   requestHandlers: RequestHandler<unknown>[],
+  trailingSlash = true,
+  basePathname = '/',
   resolved: (response: any) => void
 ) {
-  const { request, platform } = serverRequestEv;
+  const { request, platform, env } = serverRequestEv;
 
   const cookie = new Cookie(request.headers.get('cookie'));
-  const headers = createHeaders();
+  const headers = new Headers();
   const url = new URL(request.url);
 
   let routeModuleIndex = -1;
@@ -60,14 +63,31 @@ export function createRequestEvent(
     }
   };
 
-  const send = (statusCode: number, body: string | Uint8Array) => {
+  const send = (statusOrResponse: number | Response, body: string | Uint8Array) => {
     check();
-
-    requestEv[RequestEvStatus] = statusCode;
-    const writableStream = requestEv.getWritableStream();
-    const writer = writableStream.getWriter();
-    writer.write(typeof body === 'string' ? encoder.encode(body) : body);
-    writer.close();
+    if (typeof statusOrResponse === 'number') {
+      requestEv[RequestEvStatus] = statusOrResponse;
+      const writableStream = requestEv.getWritableStream();
+      const writer = writableStream.getWriter();
+      writer.write(typeof body === 'string' ? encoder.encode(body) : body);
+      writer.close();
+    } else {
+      const status = statusOrResponse.status;
+      requestEv[RequestEvStatus] = status;
+      statusOrResponse.headers.forEach((value, key) => {
+        headers.append(key, value);
+      });
+      if (statusOrResponse.body) {
+        const writableStream = requestEv.getWritableStream();
+        statusOrResponse.body.pipeTo(writableStream);
+      } else {
+        if (status >= 300 && status < 400) {
+          return new RedirectMessage();
+        } else {
+          requestEv.getWritableStream().getWriter().close();
+        }
+      }
+    }
     return new AbortMessage();
   };
 
@@ -79,8 +99,11 @@ export function createRequestEvent(
     [RequestEvMode]: serverRequestEv.mode,
     [RequestEvStatus]: 200,
     [RequestEvAction]: undefined,
+    [RequestEvTrailingSlash]: trailingSlash,
+    [RequestEvBasePathname]: basePathname,
     cookie,
     headers,
+    env,
     method: request.method,
     params,
     pathname: url.pathname,
@@ -178,7 +201,7 @@ export function createRequestEvent(
       return send(statusCode, JSON.stringify(data));
     },
 
-    send,
+    send: send as any,
 
     getWritableStream: () => {
       if (writableStream === null) {
@@ -193,7 +216,6 @@ export function createRequestEvent(
       return writableStream;
     },
   };
-
   return requestEv;
 }
 
@@ -203,6 +225,8 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvMode]: ServerRequestMode;
   [RequestEvStatus]: number;
   [RequestEvAction]: string | undefined;
+  [RequestEvTrailingSlash]: boolean;
+  [RequestEvBasePathname]: string;
 }
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {

@@ -4,6 +4,7 @@ import type {
   BuildEntry,
   BuildLayout,
   BuildRoute,
+  BuildServerPlugin,
   NormalizedPluginOptions,
   RouteSourceFile,
 } from '../types';
@@ -163,6 +164,16 @@ export function resolveRoute(
     ...parseRoutePathname(opts.basePathname, pathname),
   };
 
+  return buildRoute;
+}
+
+export function resolveServerPlugin(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {
+  const filePath = sourceFile.filePath;
+  const buildRoute: BuildServerPlugin = {
+    id: createFileId(opts.serverPluginsDir, filePath),
+    filePath,
+    ext: sourceFile.ext,
+  };
   return buildRoute;
 }
 

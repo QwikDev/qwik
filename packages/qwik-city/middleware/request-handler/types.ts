@@ -5,6 +5,10 @@ import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
 
+export interface EnvGetter {
+  get(key: string): string | undefined;
+}
+
 /**
  * @alpha
  * Request event created by the server.
@@ -14,7 +18,8 @@ export interface ServerRequestEvent<T = any> {
   url: URL;
   locale: string | undefined;
   platform: any;
-  request: RequestContext;
+  request: Request;
+  env: EnvGetter;
   getWritableStream: ServerResponseHandler<T>;
 }
 
@@ -48,6 +53,14 @@ export interface ServerRenderOptions extends RenderOptions {
 export type RequestHandler<PLATFORM = unknown> = (
   ev: RequestEvent<PLATFORM>
 ) => Promise<void> | void;
+
+/**
+ * @alpha
+ */
+export interface SendMethod {
+  (statusCode: number, data: any): AbortMessage;
+  (response: Response): AbortMessage;
+}
 
 /**
  * @alpha
@@ -111,7 +124,7 @@ export interface RequestEventCommon<PLATFORM = unknown> {
    * Send a body response. The `Content-Type` response header is not automatically set
    * when using `send()` and must be set manually. A `send()` response can only be called once.
    */
-  readonly send: (statusCode: number, data: any) => AbortMessage;
+  readonly send: SendMethod;
 
   readonly exit: () => AbortMessage;
 
@@ -162,12 +175,17 @@ export interface RequestEventCommon<PLATFORM = unknown> {
   /**
    * HTTP request information.
    */
-  readonly request: RequestContext;
+  readonly request: Request;
 
   /**
    * Platform specific data and functions
    */
   readonly platform: PLATFORM;
+
+  /**
+   * Platform provided environment variables.
+   */
+  readonly env: EnvGetter;
 
   /**
    * Shared Map across all the request handlers. Every HTTP request will get a new instance of
@@ -267,55 +285,6 @@ export interface GetSyncData {
   <T>(loader: ServerLoader<T>): T;
   <T>(loader: ServerAction<T>): T | undefined;
 }
-
-/**
- * @alpha
- */
-export interface RequestContext {
-  /**
-   * HTTP request headers.
-   *
-   * https://developer.mozilla.org/en-US/docs/Glossary/Request_header
-   */
-  readonly headers: Headers;
-
-  /**
-   * HTTP request method.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
-   */
-  readonly method: string;
-
-  /**
-   * HTTP request URL.
-   */
-  readonly url: string;
-
-  /**
-   * HTTP request form data.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/API/FormData
-   */
-  formData(): Promise<FormData>;
-
-  /**
-   * HTTP request json data.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/API/Request/json
-   */
-  json(): Promise<any>;
-
-  /**
-   * HTTP request text data.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/API/Request/text
-   */
-  text(): Promise<string>;
-}
-
-// export interface QwikCityDevRequestContext extends QwikCityRequestContext {
-//   routesDir: string;
-// }
 
 /**
  * @alpha

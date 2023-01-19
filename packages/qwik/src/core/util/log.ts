@@ -15,7 +15,7 @@ export const logError = (message?: any, ...optionalParams: any[]) => {
   return err;
 };
 
-const createError = (message?: string) => {
+export const createError = (message?: string) => {
   const err = new Error(message);
   if (err.stack) {
     err.stack = filterStack(err.stack);

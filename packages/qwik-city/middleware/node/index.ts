@@ -1,22 +1,17 @@
 import type { RenderOptions } from '@builder.io/qwik';
+import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
+import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type { Render } from '@builder.io/qwik/server';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import qwikCityPlan from '@qwik-city-plan';
 import { isStaticPath } from '@qwik-city-static-paths';
 import { createReadStream } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { join } from 'node:path';
+import { extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
-import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import { fromNodeHttp, getUrl } from './http';
-import { patchGlobalFetch } from './node-fetch';
-import {
-  TextEncoderStream,
-  TextDecoderStream,
-  WritableStream,
-  ReadableStream,
-} from 'node:stream/web';
+import { MIME_TYPES } from './mime-types';
+import { patchGlobalThis } from './node-fetch';
 
 // @builder.io/qwik-city/middleware/node
 
@@ -25,10 +20,7 @@ import {
  */
 export function createQwikCity(opts: QwikCityNodeRequestOptions) {
   // Patch Stream APIs
-  globalThis.TextEncoderStream = TextEncoderStream;
-  globalThis.TextDecoderStream = TextDecoderStream;
-  globalThis.WritableStream = WritableStream as any;
-  globalThis.ReadableStream = ReadableStream as any;
+  patchGlobalThis();
 
   const staticFolder =
     opts.static?.root ?? join(fileURLToPath(import.meta.url), '..', '..', 'dist');
@@ -39,7 +31,6 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
     next: NodeRequestNextFunction
   ) => {
     try {
-      await patchGlobalFetch();
       const serverRequestEv = await fromNodeHttp(getUrl(req), req, res, 'server');
       const handled = await requestHandler(serverRequestEv, opts);
       if (handled) {
@@ -74,9 +65,16 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
     try {
       const url = getUrl(req);
 
-      if (isStaticPath(url)) {
+      if (isStaticPath(req.method || 'GET', url)) {
         const target = join(staticFolder, url.pathname);
         const stream = createReadStream(target);
+        const ext = extname(url.pathname).replace(/^\./, '');
+
+        const contentType = MIME_TYPES[ext];
+
+        if (contentType) {
+          res.setHeader('Content-Type', contentType);
+        }
 
         if (opts.static?.cacheControl) {
           res.setHeader('Cache-Control', opts.static.cacheControl);

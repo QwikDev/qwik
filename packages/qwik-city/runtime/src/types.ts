@@ -9,6 +9,8 @@ export type {
   GetSyncData,
   RequestEvent,
   RequestHandler,
+  RequestEventLoader,
+  RequestEventCommon,
 } from '@builder.io/qwik-city/middleware/request-handler';
 
 export interface RouteModule<BODY = unknown> {
@@ -49,7 +51,7 @@ export interface RouteLocation {
   readonly href: string;
   readonly pathname: string;
   readonly query: URLSearchParams;
-  readonly isPending: boolean;
+  readonly isNavigating: boolean;
 }
 
 export type RouteNavigate = QRL<(path?: string) => Promise<void>>;
@@ -163,9 +165,7 @@ export interface DocumentHeadProps extends RouteLocation {
  */
 export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);
 
-export interface ContentStateInternal {
-  contents: NoSerialize<ContentModule[]>;
-}
+export type ContentStateInternal = NoSerialize<ContentModule[]>;
 
 export interface ContentState {
   headings: ContentHeading[] | undefined;
@@ -216,6 +216,7 @@ export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
  */
 export interface QwikCityPlan {
   routes: RouteData[];
+  serverPlugins?: RouteModule[];
   basePathname?: string;
   menus?: MenuData[];
   trailingSlash?: boolean;
@@ -270,6 +271,7 @@ export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
   status: number;
   href: string;
   isStatic?: boolean;
+  redirect?: string;
 }
 
 /**

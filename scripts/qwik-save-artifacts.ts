@@ -41,7 +41,7 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
   await mkdir(join(root, 'dist-dev'), {
     recursive: true,
   });
-  process.chdir(join(root, 'dist-dev'));
+  $chdir(join(root, 'dist-dev'));
   const branch = await $('git', 'branch', '--show-current');
   const msg = await $('git', 'log', '--oneline', '-1', '--no-decorate');
   const userName = await $('git', 'log', '-1', "--pretty=format:'%an'");
@@ -49,16 +49,18 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
   try {
     // first try to get the specific branch only
     await $('git', 'clone', '--depth=1', '--branch=' + branch, repo);
+    $chdir(buildRepoDir);
+    await $('rm', '-rf', ...(await expand(buildRepoDir)));
   } catch (e) {
-    // Specific branch not found, so clone default branch and then create new branch.
-    await $('git', 'clone', '--depth=1', repo);
+    // Specific branch not found, so create empty repository.
+    await $('mkdir', buildRepoDir);
+    $chdir(buildRepoDir);
+    await $('git', 'init');
+    await $('git', 'remote', 'add', 'origin', repo);
     await $('git', 'checkout', '-b', branch);
   }
 
-  process.chdir(`${buildRepoDir}`);
-  await $('rm', '-rf', ...(await expand(buildRepoDir)));
   await $('cp', '-r', ...(await expand(artifactsDir)), buildRepoDir);
-  process.chdir(`${buildRepoDir}`);
   await $('git', 'add', '--all');
   await $(
     'git',
@@ -85,6 +87,11 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
     await $('git', 'push', repo, `HEAD:${branch}`);
     await $('rm', '-rf', buildRepoDir);
   };
+}
+
+function $chdir(path: string) {
+  console.log('CHDIR:', path);
+  process.chdir(path);
 }
 
 async function $(cmd: string, ...args: string[]): Promise<string> {

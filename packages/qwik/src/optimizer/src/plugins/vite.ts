@@ -779,4 +779,5 @@ export interface QwikVitePlugin {
 
 export interface QwikViteDevResponse {
   _qwikEnvData?: Record<string, any>;
+  _qwikRenderResolve?: () => void;
 }

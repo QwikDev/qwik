@@ -788,6 +788,7 @@ const processData = (
     return node.then((node) => processData(node, rCtx, ssrCtx, stream, flags, beforeClose));
   } else {
     logWarn('A unsupported value was passed to the JSX, skipping render. Value:', node);
+    return;
   }
 };
 

@@ -8,6 +8,9 @@ import { isQrl } from '../../qrl/qrl-class';
 import { invoke } from '../../use/use-core';
 import { verifySerializable } from '../../state/common';
 import { isQwikComponent } from '../../component/component.public';
+import { isSignal } from '../../state/signal';
+import { isPromise } from '../../util/promises';
+import { SkipRender } from './utils.public';
 
 let warnClassname = false;
 
@@ -36,12 +39,38 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
   ) {
     if (qDev) {
       invoke(undefined, () => {
+        const isQwikC = isQwikComponent(type);
         if (!isString(type) && !isFunction(type)) {
           throw qError(QError_invalidJsxNodeType, type);
         }
         if (isArray((props as any).children)) {
+          const flatChildren = (props as any).children.flat();
+          if (isString(type) || isQwikC) {
+            flatChildren.forEach((child: any) => {
+              if (!isValidJSXChild(child)) {
+                const typeObj = typeof child;
+                let explanation = '';
+                if (typeObj === 'object') {
+                  if (child?.constructor) {
+                    explanation = `it's an instance of "${child?.constructor.name}".`;
+                  } else {
+                    explanation = `it's a object literal: ${printObjectLiteral(child)} `;
+                  }
+                } else if (typeObj === 'function') {
+                  explanation += `it's a function named "${(child as Function).name}".`;
+                } else {
+                  explanation = `it's a "${typeObj}": ${String(child)}.`;
+                }
+
+                throw createJSXError(
+                  `One of the children of <${type} /> is not an accepted value. JSX children must be either: string, boolean, number, <element>, Array, undefined/null, or a Promise/Signal that resolves to one of those types. Instead, ${explanation}`,
+                  this as any
+                );
+              }
+            });
+          }
           const keys: Record<string, boolean> = {};
-          (props as any).children.flat().forEach((child: any) => {
+          flatChildren.forEach((child: any) => {
             if (isJSXNode(child) && child.key != null) {
               if (keys[child.key]) {
                 const err = createJSXError(
@@ -65,7 +94,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
                 throw qError(QError_invalidJsxNodeType, type);
               }
             }
-            if (prop !== 'children' && isQwikComponent(type) && value) {
+            if (prop !== 'children' && isQwikC && value) {
               verifySerializable(
                 value,
                 `The value of the JSX property "${prop}" can not be serialized`
@@ -73,18 +102,41 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
             }
           }
         }
+        if (isString(type)) {
+          if (type === 'style') {
+            if ((props as any).children) {
+              logWarn(`jsx: Using <style>{content}</style> will escape the content, effectively breaking the CSS.
+In order to disable content escaping use '<style dangerouslySetInnerHTML={content}/>'
+
+However, if the use case is to inject component styleContent, use 'useStyles$()' instead, it will be a lot more efficient.
+See https://qwik.builder.io/docs/components/styles/#usestyles for more information.`);
+            }
+          }
+          if (type === 'script') {
+            if ((props as any).children) {
+              logWarn(`jsx: Using <script>{content}</script> will escape the content, effectively breaking the inlined JS.
+In order to disable content escaping use '<script dangerouslySetInnerHTML={content}/>'`);
+            }
+          }
+          if ('className' in (props as any)) {
+            (props as any)['class'] = (props as any)['className'];
+            delete (props as any)['className'];
+            if (qDev && !warnClassname) {
+              warnClassname = true;
+              logWarn('jsx: `className` is deprecated. Use `class` instead.');
+            }
+          }
+        }
       });
-    }
-    if (typeof type === 'string' && 'className' in (props as any)) {
-      (props as any)['class'] = (props as any)['className'];
-      delete (props as any)['className'];
-      if (qDev && !warnClassname) {
-        warnClassname = true;
-        logWarn('jsx: `className` is deprecated. Use `class` instead.');
-      }
     }
   }
 }
+
+const printObjectLiteral = (obj: Record<string, any>) => {
+  return `{ ${Object.keys(obj)
+    .map((key) => `"${key}"`)
+    .join(', ')} }`;
+};
 
 export const isJSXNode = (n: any): n is JSXNode => {
   if (qDev) {
@@ -99,6 +151,24 @@ export const isJSXNode = (n: any): n is JSXNode => {
   } else {
     return n instanceof JSXNodeImpl;
   }
+};
+
+export const isValidJSXChild = (node: any): boolean => {
+  if (!node) {
+    return true;
+  } else if (node === SkipRender) {
+    return true;
+  } else if (isString(node) || typeof node === 'number' || typeof node === 'boolean') {
+    return true;
+  } else if (isJSXNode(node)) {
+    return true;
+  }
+  if (isSignal(node)) {
+    return isValidJSXChild(node.value);
+  } else if (isPromise(node)) {
+    return true;
+  }
+  return false;
 };
 
 /**

@@ -1,4 +1,8 @@
-import type { GetSyncData, RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
+import type {
+  GetSyncData,
+  RequestHandler,
+  ServerRequestMode,
+} from '@builder.io/qwik-city/middleware/request-handler';
 import type { NoSerialize, QRL, Signal } from '@builder.io/qwik';
 
 export type {
@@ -291,6 +295,7 @@ export interface QwikCityRenderDocument extends Document {}
 export interface QwikCityEnvData {
   params: PathParams;
   response: EndpointResponse;
+  serverRequestMode: ServerRequestMode;
 }
 
 export interface SimpleURL {

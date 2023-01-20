@@ -63,7 +63,7 @@ export async function fromNodeHttp(
           res.write(chunk);
         },
         close() {
-          return new Promise((resolve) => res.end(resolve));
+          res.end();
         },
       });
       return stream;

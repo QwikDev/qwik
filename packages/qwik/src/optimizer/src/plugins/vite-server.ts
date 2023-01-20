@@ -146,6 +146,10 @@ export async function configureDevServer(
       server.ssrFixStacktrace(e);
       await formatError(sys, e);
       next(e);
+    } finally {
+      if (typeof (res as QwikViteDevResponse)._qwikRenderResolve === 'function') {
+        (res as QwikViteDevResponse)._qwikRenderResolve!();
+      }
     }
   });
 }

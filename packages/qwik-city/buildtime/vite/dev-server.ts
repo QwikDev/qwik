@@ -115,7 +115,13 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
               ...serverData,
             };
 
-            return next();
+            const qwikRenderPromise = new Promise<void>((resolve) => {
+              (res as QwikViteDevResponse)._qwikRenderResolve = resolve;
+            });
+
+            next();
+
+            return qwikRenderPromise;
           }
         };
         const requestHandlers = resolveRequestHandlers(
@@ -134,8 +140,10 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             ctx.opts.trailingSlash,
             ctx.opts.basePathname
           );
-          await completion;
-          return;
+          const requestEv = await completion;
+          if (requestEv.headersSent || res.headersSent) {
+            return;
+          }
         } else {
           // no matching route
 
@@ -180,7 +188,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         const html = getErrorHtml(404, new Error('not found'));
         res.statusCode = 404;
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        res.write(html);
+        res.end(html);
         return;
       }
 

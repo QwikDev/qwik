@@ -38,7 +38,6 @@ renderSuite('should only render string/number', async () => {
       {null}
       {undefined}
       {[]}
-      {function () {}}
     </div>
   );
   await expectRendered(fixture, '<div>string123</div>');

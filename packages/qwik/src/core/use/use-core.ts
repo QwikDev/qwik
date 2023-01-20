@@ -71,8 +71,8 @@ export const getInvokeContext = (): InvokeContext => {
 };
 
 export const useInvokeContext = (): RenderInvokeContext => {
-  const ctx = getInvokeContext();
-  if (ctx.$event$ !== RenderEvent) {
+  const ctx = tryGetInvokeContext();
+  if (!ctx || ctx.$event$ !== RenderEvent) {
     throw qError(QError_useInvokeContext);
   }
   assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`, ctx);

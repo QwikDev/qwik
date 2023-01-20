@@ -1,4 +1,4 @@
-import { styleContent, styleKey } from '../style/qrl-styles';
+import { styleContent, styleKey, StylesArg } from '../style/qrl-styles';
 import type { QRL } from '../qrl/qrl.public';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { getScopedStyles } from '../style/scoped-stylesheet';
@@ -40,7 +40,7 @@ export interface UseStylesScoped {
  * @public
  */
 // </docs>
-export const useStylesQrl = (styles: QRL<string>): void => {
+export const useStylesQrl = (styles: QRL<StylesArg>): void => {
   _useStyles(styles, (str) => str, false);
 };
 
@@ -94,7 +94,7 @@ export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
  * @alpha
  */
 // </docs>
-export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
+export const useStylesScopedQrl = (styles: QRL<StylesArg>): UseStylesScoped => {
   return {
     scopeId: ComponentStylesPrefixContent + _useStyles(styles, getScopedStyles, true),
   };
@@ -126,8 +126,12 @@ export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
 // </docs>
 export const useStylesScoped$ = /*#__PURE__*/ implicit$FirstArg(useStylesScopedQrl);
 
+const processStyleArg = (styleArg: StylesArg): string => {
+  return typeof styleArg === 'string' ? styleArg : styleArg();
+};
+
 const _useStyles = (
-  styleQrl: QRL<string>,
+  styleQrl: QRL<StylesArg>,
   transform: (str: string, styleId: string) => string,
   scoped: boolean
 ): string => {
@@ -163,9 +167,9 @@ const _useStyles = (
     });
   };
   if (isPromise(value)) {
-    iCtx.$waitOn$.push(value.then(appendStyle));
+    iCtx.$waitOn$.push(value.then(processStyleArg).then(appendStyle));
   } else {
-    appendStyle(value);
+    appendStyle(processStyleArg(value));
   }
   return styleId;
 };

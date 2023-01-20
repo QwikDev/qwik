@@ -3,7 +3,9 @@ import { hashCode } from '../util/hash_code';
 import type { QRL } from '../qrl/qrl.public';
 import { assertQrl } from '../qrl/qrl-class';
 
-export const styleKey = (qStyles: QRL<string>, index: number): string => {
+export type StylesArg = string | (() => string);
+
+export const styleKey = (qStyles: QRL<StylesArg>, index: number): string => {
   assertQrl(qStyles);
   return `${hashCode(qStyles.$hash$)}-${index}`;
 };

@@ -983,14 +983,16 @@ export interface UseStoreOptions {
     recursive?: boolean;
 }
 
+// Warning: (ae-forgotten-export) The symbol "StylesArg" needs to be exported by the entry point index.d.ts
+//
 // @public
-export const useStyles$: (first: string) => void;
+export const useStyles$: (first: StylesArg) => void;
 
 // @public
-export const useStylesQrl: (styles: QRL<string>) => void;
+export const useStylesQrl: (styles: QRL<StylesArg>) => void;
 
 // @alpha
-export const useStylesScoped$: (first: string) => UseStylesScoped;
+export const useStylesScoped$: (first: StylesArg) => UseStylesScoped;
 
 // @alpha (undocumented)
 export interface UseStylesScoped {
@@ -999,7 +1001,7 @@ export interface UseStylesScoped {
 }
 
 // @alpha
-export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
+export const useStylesScopedQrl: (styles: QRL<StylesArg>) => UseStylesScoped;
 
 // @public
 export const useTask$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void;

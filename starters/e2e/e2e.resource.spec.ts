@@ -105,6 +105,28 @@ test.describe('resource serialization', () => {
     await button1.click();
     await expect(button1).toHaveText('4(count is here: 2)');
   });
+
+  test('race condition', async ({ page }) => {
+    const btn = page.locator('#resource-race-btn');
+    const result = page.locator('#resource-race-result');
+
+    await expect(btn).toHaveText('0');
+    await expect(result).toHaveText('0');
+    await btn.click();
+    await expect(btn).toHaveText('1');
+    await expect(result).toHaveText('0');
+    await btn.click();
+    await expect(btn).toHaveText('2');
+    await expect(result).toHaveText('2');
+    await page.waitForTimeout(1000);
+
+    await expect(btn).toHaveText('2');
+    await expect(result).toHaveText('2');
+    await btn.click();
+
+    await expect(btn).toHaveText('3');
+    await expect(result).toHaveText('3');
+  });
 });
 
 test.describe('resource fn', () => {

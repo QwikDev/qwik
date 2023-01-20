@@ -33,6 +33,7 @@ export const ResourceSerialization = component$(() => {
   return (
     <>
       <Issue2014 />
+      <IssueRaceCondition />
       <Resource
         value={resourceSuccess}
         onResolved={(data) => (
@@ -94,5 +95,29 @@ export const Issue2014 = component$(() => {
         (count is here: {count.value})
       </button>
     </div>
+  );
+});
+
+export const IssueRaceCondition = component$(() => {
+  const count = useSignal(0);
+  const resource = useResource$<number>(async ({ track }) => {
+    track(count);
+    const value = count.value;
+    if (count.value === 1) {
+      await delay(500);
+    }
+    return value;
+  });
+
+  return (
+    <>
+      <button id="resource-race-btn" onClick$={() => count.value++}>
+        {count.value}
+      </button>
+      <Resource
+        value={resource}
+        onResolved={(data) => <div id="resource-race-result">{data}</div>}
+      />
+    </>
   );
 });

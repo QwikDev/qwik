@@ -13,7 +13,7 @@ import {
 import { Fragment, jsx } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 import { isServer } from '../platform/platform';
-import { useBindInvokeContext } from './use-core';
+import { untrack, useBindInvokeContext } from './use-core';
 
 import type { ContainerState, GetObjID } from '../container/container';
 import { useSequentialScope } from './use-sequential-scope';
@@ -279,6 +279,9 @@ export const Resource = <T>(props: ResourceProps<T>): JSXNode => {
         } else if (state === 'rejected') {
           throw resource._error;
         }
+      }
+      if (untrack(() => resource._resolved) !== undefined) {
+        return props.onResolved(resource._resolved!);
       }
     }
     promise = resource.value;

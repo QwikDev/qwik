@@ -473,7 +473,7 @@ export const runResource = <T>(
   const el = watch.$el$;
   const invocationContext = newInvokeContext(rCtx.$static$.$locale$, el, undefined, 'WatchEvent');
   const { $subsManager$: subsManager } = containerState;
-  watch.$qrl$.$captureRef$;
+
   const watchFn = watch.$qrl$.getFn(invocationContext, () => {
     subsManager.$clearSub$(watch);
   });
@@ -543,7 +543,6 @@ export const runResource = <T>(
         done = true;
         resource.loading = false;
         resource._state = 'rejected';
-        resource._resolved = undefined;
         resource._error = value;
         reject(value);
       }
@@ -556,7 +555,6 @@ export const runResource = <T>(
   invoke(invocationContext, () => {
     resource._state = 'pending';
     resource.loading = !isServer();
-    resource._resolved = undefined as any;
     resource.value = new Promise((r, re) => {
       resolve = r;
       reject = re;
@@ -564,6 +562,7 @@ export const runResource = <T>(
   });
 
   watch.$destroy$ = noSerialize(() => {
+    done = true;
     cleanups.forEach((fn) => fn());
   });
 

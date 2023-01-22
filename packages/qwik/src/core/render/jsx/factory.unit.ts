@@ -113,6 +113,11 @@ jsxSuite('Fragment', () => {
   const v = h(Fragment, null, h('div', null));
   equal(v.type, Fragment);
 });
+jsxSuite('Fragment with Key', () => {
+  // <><div/></>
+  const v = h(Fragment, { key: 'randomKey' }, h('div', null));
+  equal(v.type, Fragment);
+});
 jsxSuite('valid JSXNode', () => {
   // <div/>
   const v = h('div', null);

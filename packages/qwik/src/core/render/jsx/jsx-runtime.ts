@@ -174,7 +174,12 @@ export const isValidJSXChild = (node: any): boolean => {
 /**
  * @public
  */
-export const Fragment: FunctionComponent<{ children?: any }> = (props) => props.children as any;
+export const Fragment: FunctionComponent<{ children?: any; key?: string }> = (props) => {
+  if (props.key) {
+    return jsx(Fragment, { children: props.children }, props.key);
+  }
+  return props.children;
+};
 
 interface JsxDevOpts {
   fileName: string;

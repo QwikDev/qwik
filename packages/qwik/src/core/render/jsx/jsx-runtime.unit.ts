@@ -97,6 +97,10 @@ jsxSuite('Fragment', () => {
   const v = jsx(Fragment, {});
   equal(v.type, Fragment);
 });
+jsxSuite('Fragment with key', () => {
+  const v = jsx(Fragment, { key: 'randomKey' });
+  equal(v.type, Fragment);
+});
 jsxSuite('valid JSXNode', () => {
   const v = jsx('div', {});
   equal(isJSXNode(v), true);

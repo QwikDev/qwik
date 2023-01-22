@@ -119,6 +119,7 @@ export type EagernessOptions = 'visible' | 'load' | 'idle';
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
     children?: any;
+    key?: string;
 }>;
 
 // @public (undocumented)

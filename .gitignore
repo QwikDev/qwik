@@ -24,3 +24,4 @@ qwik-app/
 # Yarn
 .yarn/*
 !.yarn/releases
+.pnpm-store/*

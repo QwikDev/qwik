@@ -15,6 +15,18 @@ import { patchGlobalThis } from './node-fetch';
 
 // @builder.io/qwik-city/middleware/node
 
+type NodeMiddleware = (
+  req: IncomingMessage,
+  res: ServerResponse<IncomingMessage>,
+  next: (err: any) => void
+) => void;
+
+type OnErrorHandler = (
+  err: any,
+  req: IncomingMessage,
+  res: ServerResponse<IncomingMessage>
+) => void;
+
 /**
  * @alpha
  */
@@ -93,10 +105,47 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
     }
   };
 
+  const middleware: NodeMiddleware[] = [];
+
+  let onError: OnErrorHandler = (e) => {
+    console.error(e);
+  };
+
+  /** set an error handler to call when any added middleware returns an error */
+  const setOnError = (callback: OnErrorHandler) => {
+    onError = callback;
+  };
+
+  /** add a middleware function to the end of the chain */
+  const use = (fn: NodeMiddleware | NodeMiddleware[]) => {
+    if (Array.isArray(fn)) {
+      middleware.push(...fn);
+    } else {
+      middleware.push(fn);
+    }
+  };
+
+  /** run all middleware functions against the request */
+  const run = (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => {
+    let i = 0;
+    const len = middleware.length;
+
+    // create a next function that moves to the next middleware or calls the
+    // onError handler if an error is returned
+    const next = (err: any) => (err ? onError(err, req, res) : loop());
+
+    // runs the next middleware function
+    const loop = () => res.writableEnded || (i < len && middleware[i++](req, res, next));
+
+    // start running the first middleware function
+    loop();
+  };
+
   return {
     router,
     notFound,
     staticFile,
+    app: { use, run, onError: setOnError },
   };
 }
 

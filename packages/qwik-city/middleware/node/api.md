@@ -17,6 +17,11 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions): {
     router: (req: IncomingMessage, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
     notFound: (req: IncomingMessage, res: ServerResponse, next: (e: any) => void) => Promise<void>;
     staticFile: (req: IncomingMessage, res: ServerResponse, next: (e?: any) => void) => Promise<void>;
+    app: {
+        use: (fn: NodeMiddleware) => void;
+        run: (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => void;
+        onError: (callback: OnErrorHandler) => void;
+    };
 };
 
 // @alpha (undocumented)
@@ -30,6 +35,11 @@ export function qwikCity(render: Render, opts?: RenderOptions): {
     router: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: NodeRequestNextFunction) => Promise<void>;
     notFound: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: (e: any) => void) => Promise<void>;
     staticFile: (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: (e?: any) => void) => Promise<void>;
+    app: {
+        use: (fn: NodeMiddleware) => void;
+        run: (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => void;
+        onError: (callback: OnErrorHandler) => void;
+    };
 };
 
 // @alpha (undocumented)
@@ -39,6 +49,11 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
         cacheControl?: string;
     };
 }
+
+// Warnings were encountered during analysis:
+//
+// /Users/dustinjsilk/Sites/qwik/dist-dev/dts-out/packages/qwik-city/middleware/node/index.d.ts:16:9 - (ae-forgotten-export) The symbol "NodeMiddleware" needs to be exported by the entry point index.d.ts
+// /Users/dustinjsilk/Sites/qwik/dist-dev/dts-out/packages/qwik-city/middleware/node/index.d.ts:18:9 - (ae-forgotten-export) The symbol "OnErrorHandler" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

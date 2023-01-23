@@ -15,13 +15,19 @@ import { patchGlobalThis } from './node-fetch';
 
 // @builder.io/qwik-city/middleware/node
 
-type NodeMiddleware = (
+/**
+ * @alpha
+ */
+export type NodeMiddleware = (
   req: IncomingMessage,
   res: ServerResponse<IncomingMessage>,
   next: (err: any) => void
 ) => void;
 
-type OnErrorHandler = (
+/**
+ * @alpha
+ */
+export type OnErrorHandler = (
   err: any,
   req: IncomingMessage,
   res: ServerResponse<IncomingMessage>

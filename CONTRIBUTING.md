@@ -51,6 +51,7 @@ This is the best approach because all required dependencies will be installed in
 #### Prerequisites
 
 You need to have these tools up and running in your local machine
+
 - [VSCode](https://code.visualstudio.com/)
 - [Docker](https://www.docker.com/)
 
@@ -62,6 +63,7 @@ You need to have these tools up and running in your local machine
 ## Alternative way
 
 If you're not able to use the dev container, follow these instructions:
+
 ## Installation
 
 > These are for a full build that includes Rust binaries.

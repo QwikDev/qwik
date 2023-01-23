@@ -87,3 +87,14 @@ process.env.NODE_ENV === 'production' &&
   !process.env.STORYBOOK_BUILD &&
   '!./src/**/*.stories.{js,ts,jsx,tsx,mdx}'
 ```
+
+## With i18n
+
+When using multiple locales with `$localize` from [qwik-i18n](https://github.com/mhevery/qwik-i18n),
+you will need to initiate your translations in your `.storybook/preview.ts` file:
+
+```tsx
+import { initTranslations } from '../src/i18n'
+
+initTranslations()
+```

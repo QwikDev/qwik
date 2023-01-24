@@ -126,12 +126,12 @@
       "url": "https://twitter.com/manucorporat"
     }
   ],
-  "packageManager": "pnpm@7.15.0",
+  "packageManager": "pnpm@7.25.1",
   "engines": {
     "node": ">=16",
     "npm": "please-use-pnpm",
     "yarn": "please-use-pnpm",
-    "pnpm": ">=7"
+    "pnpm": ">=7.18.0"
   },
   "config": {
     "commitizen": {

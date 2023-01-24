@@ -50,7 +50,7 @@ This is the best approach because all required dependencies will be installed in
 
 #### Prerequisites
 
-You need to have these tools up and running in your local machine
+You need to have these tools up and running in your local machine:
 
 - [VSCode](https://code.visualstudio.com/)
 - [Docker](https://www.docker.com/)

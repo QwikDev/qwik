@@ -86,7 +86,7 @@
   "devDependencies": {
     "@azure/functions": "^3.5.0",
     "@builder.io/qwik": "workspace:*",
-    "@microsoft/api-extractor": "7.33.7",
+    "@microsoft/api-extractor": "7.33.8",
     "@netlify/edge-functions": "^2.0.0",
     "@types/marked": "4.0.8",
     "@types/mdast": "^3.0.10",
@@ -96,7 +96,7 @@
     "github-slugger": "2.0.0",
     "hast-util-heading-rank": "2.1.0",
     "hast-util-to-string": "2.0.0",
-    "marked": "4.2.5",
+    "marked": "4.2.12",
     "mdast-util-mdx": "^2.0.0",
     "refractor": "4.8.0",
     "rehype-autolink-headings": "6.1.1",

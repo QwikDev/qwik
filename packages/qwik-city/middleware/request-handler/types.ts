@@ -197,7 +197,21 @@ export interface RequestEventCommon<PLATFORM = unknown> {
 /**
  * @alpha
  */
-export interface CacheControl {
+export type CacheControl =
+  | CacheControlOptions
+  | number
+  | 'day'
+  | 'week'
+  | 'month'
+  | 'year'
+  | 'no-cache'
+  | 'immutable'
+  | 'private';
+
+/**
+ * @alpha
+ */
+export interface CacheControlOptions {
   /**
    * The max-age=N response directive indicates that the response remains fresh until N seconds after the response is generated.
    * Note that max-age is not the elapsed time since the response was received; it is the elapsed time since the response was generated on the origin server. So if the other cache(s) — on the network route taken by the response — store the response for 100 seconds (indicated using the Age response header field), the browser cache would deduct 100 seconds from its freshness lifetime.

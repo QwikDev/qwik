@@ -218,66 +218,20 @@ declare module '@qwik-city-plan' {
 function generateServerReferenceModules(config: BuildConfig) {
   // server-modules.d.ts
   const referenceDts = `/// <reference types="./server" />
+/// <reference types="./core" />
 declare module '@qwik-client-manifest' {
   const manifest: QwikManifest;
   export { manifest };
 }
-// CSS
-declare module '*.css' {
-  /**
-   * @deprecated Use \`import style from './style.css?inline'\` instead.
-   */
-  const css: unknown
-  export default css
+// MD
+declare module '*.md' {
+  const node: FunctionComponent;
+  export default node;
 }
-declare module '*.scss' {
-  /**
-   * @deprecated Use \`import style from './style.scss?inline'\` instead.
-   */
-  const css: unknown
-  export default css
-}
-declare module '*.sass' {
-  /**
-   * @deprecated Use \`import style from './style.sass?inline'\` instead.
-   */
-  const css: unknown
-  export default css
-}
-declare module '*.less' {
-  /**
-   * @deprecated Use \`import style from './style.less?inline'\` instead.
-   */
-  const css: unknown
-  export default css
-}
-declare module '*.styl' {
-  /**
-   * @deprecated Use \`import style from './style.styl?inline'\` instead.
-   */
-  const css: unknown
-  export default css
-}
-declare module '*.stylus' {
-  /**
-   * @deprecated Use \`import style from './style.stylus?inline'\` instead.
-   */
-  const css: unknown
-  export default css
-}
-declare module '*.pcss' {
-  /**
-   * @deprecated Use \`import style from './style.pcss?inline'\` instead.
-   */
-  const css: unknown
-  export default css
-}
-declare module '*.sss' {
-  /**
-   * @deprecated Use \`import style from './style.sss?inline'\` instead.
-   */
-  const css: unknown
-  export default css
+// MDX
+declare module '*.mdx' {
+  const node: FunctionComponent;
+  export default node;
 }
 `;
 

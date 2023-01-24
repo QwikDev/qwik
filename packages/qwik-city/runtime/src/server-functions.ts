@@ -16,6 +16,7 @@ import {
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
 import { QACTION_KEY } from './constants';
 import { RouteStateContext } from './contexts';
+import type { FormSubmitCompletedDetail } from './form-component';
 import type { RouteActionResolver, RouteLocation } from './types';
 import { useAction, useLocation } from './use-functions';
 
@@ -88,12 +89,10 @@ export class ServerActionImpl implements ServerActionInternal {
 
     initialState.run = $((input) => {
       let data: FormData;
+      let form: HTMLFormElement | undefined;
       if (input instanceof SubmitEvent) {
-        const form = input.target as HTMLFormElement;
+        form = input.target as HTMLFormElement;
         data = new FormData(form);
-        if (form.getAttribute('data-spa-reset') === 'true') {
-          form.reset();
-        }
       } else if (input instanceof FormData) {
         data = input;
       } else {
@@ -111,6 +110,22 @@ export class ServerActionImpl implements ServerActionInternal {
         state.isRunning = false;
         state.status = value.status;
         state.value = value.result;
+        if (form) {
+          if (form.getAttribute('data-spa-reset') === 'true') {
+            form.reset();
+          }
+          form.dispatchEvent(
+            new CustomEvent<FormSubmitCompletedDetail<any>>('submitcompleted', {
+              bubbles: false,
+              cancelable: false,
+              composed: false,
+              detail: {
+                status: value.status,
+                value: value.result,
+              },
+            })
+          );
+        }
       });
     });
     return state;

@@ -143,6 +143,9 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         clientPageData = env!.response;
       } else {
         const pageData = (clientPageData = await loadClientData(url.href, true, action));
+        if (!pageData) {
+          return;
+        }
         const newHref = pageData?.href;
         if (newHref) {
           const newURL = new URL(newHref, url.href);

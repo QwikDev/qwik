@@ -50,6 +50,9 @@ export function createRoutes(
       // include endpoints, and this is a module
       const importPath = getImportPath(route.filePath);
       esmImports.push(`import * as ${route.id} from ${JSON.stringify(importPath)};`);
+      for (const layout of route.layouts) {
+        loaders.push(layout.id);
+      }
       loaders.push(`()=>${route.id}`);
     }
 

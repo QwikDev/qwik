@@ -8,6 +8,7 @@ export const onRequest: RequestHandler = ({
   request,
   headers,
   query,
+  sharedMap,
   json,
   html,
   send,
@@ -70,6 +71,7 @@ export const onRequest: RequestHandler = ({
   }
 
   json(200, {
+    shared: sharedMap.get('root') ?? 'not set',
     timestamp: new Date().toISOString(),
     method: request.method,
     url: request.url,

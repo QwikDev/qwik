@@ -9,6 +9,7 @@ test.describe('Qwik City API', () => {
     const data = await rsp.json();
     expect(data.method).toBe('GET');
     expect(data.node).toBe(process.versions.node);
+    expect(data.shared).toBe('from root');
   });
 
   test('Qwik City API, params', async ({ page: api }) => {

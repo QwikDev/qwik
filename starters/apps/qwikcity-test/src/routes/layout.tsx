@@ -8,9 +8,10 @@ export const userLoader = loader$(async ({ cookie }) => {
   };
 });
 
-export const onGet: RequestHandler = ({ headers }) => {
+export const onGet: RequestHandler = ({ headers, sharedMap }) => {
   // cache for a super long time of 10 seconds for pages using this layout
   headers.set('Cache-Control', 'max-age=10');
+  sharedMap.set('root', 'from root');
 };
 
 export default component$(() => {

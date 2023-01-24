@@ -266,6 +266,7 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
         },
       });
       const qData: ClientPageData = {
+        __brand: 'qdata',
         loaders: getRequestLoaders(requestEv),
         action: getRequestAction(requestEv),
         status: status !== 200 ? status : 200,
@@ -320,6 +321,7 @@ export async function renderQData(requestEv: RequestEvent) {
     requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
 
     const qData: ClientPageData = {
+      __brand: 'qdata',
       loaders: getRequestLoaders(requestEv),
       action: getRequestAction(requestEv),
       status: status !== 200 ? status : 200,

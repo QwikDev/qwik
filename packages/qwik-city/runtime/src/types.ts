@@ -268,6 +268,7 @@ export interface EndpointResponse {
 }
 
 export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
+  __brand: 'qdata';
   status: number;
   href: string;
   isStatic?: boolean;

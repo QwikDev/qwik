@@ -41,7 +41,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
       invoke(undefined, () => {
         const isQwikC = isQwikComponent(type);
         if (!isString(type) && !isFunction(type)) {
-          throw qError(QError_invalidJsxNodeType, type);
+          throw qError(QError_invalidJsxNodeType, String(type));
         }
         if (isArray((props as any).children)) {
           const flatChildren = (props as any).children.flat();
@@ -91,7 +91,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
             const value = (props as any)[prop];
             if (prop.endsWith('$') && value) {
               if (!isQrl(value) && !Array.isArray(value)) {
-                throw qError(QError_invalidJsxNodeType, type);
+                throw qError(QError_invalidJsxNodeType, String(value));
               }
             }
             if (prop !== 'children' && isQwikC && value) {

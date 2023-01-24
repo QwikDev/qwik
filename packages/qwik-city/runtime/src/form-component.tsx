@@ -1,15 +1,26 @@
 import type { ServerActionUse } from './server-functions';
-import { jsx, _wrapSignal, QwikJSX, PropFunction } from '@builder.io/qwik';
+import { jsx, _wrapSignal, QwikJSX, ValueOrPromise } from '@builder.io/qwik';
 
 /**
  * @alpha
  */
-export interface FormProps<T> extends Omit<QwikJSX.IntrinsicElements['form'], 'action'> {
+export interface FormSubmitCompletedDetail<T> {
+  status: number;
+  value: T;
+}
+
+/**
+ * @alpha
+ */
+export interface FormProps<T> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
   action: ServerActionUse<T>;
-  method?: 'post';
-  onSubmit$?: PropFunction<(event: Event) => void>;
   reloadDocument?: boolean;
   spaReset?: boolean;
+  onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
+  onSubmitCompleted$?: (
+    event: CustomEvent<FormSubmitCompletedDetail<T>>,
+    form: HTMLFormElement
+  ) => ValueOrPromise<void>;
 }
 
 /**

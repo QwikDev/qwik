@@ -218,19 +218,20 @@ declare module '@qwik-city-plan' {
 function generateServerReferenceModules(config: BuildConfig) {
   // server-modules.d.ts
   const referenceDts = `/// <reference types="./server" />
+/// <reference types="./core" />
 declare module '@qwik-client-manifest' {
   const manifest: QwikManifest;
   export { manifest };
 }
 // MD
 declare module '*.md' {
-  const node: import("@builder.io/qwik").FunctionComponent;
-  export default node
+  const node: FunctionComponent;
+  export default node;
 }
 // MDX
 declare module '*.mdx' {
-  const node: import("@builder.io/qwik").FunctionComponent;
-  export default node
+  const node: FunctionComponent;
+  export default node;
 }
 `;
 

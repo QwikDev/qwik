@@ -12,17 +12,10 @@ import type { RequestEvent as RequestEvent_2 } from '@builder.io/qwik-city';
 import { Signal } from '@builder.io/qwik';
 import { ValueOrPromise } from '@builder.io/qwik';
 
+// Warning: (ae-forgotten-export) The symbol "CacheControlOptions" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export interface CacheControl {
-    immutable?: boolean;
-    maxAge?: number;
-    noCache?: boolean;
-    noStore?: boolean;
-    private?: boolean;
-    public?: boolean;
-    sMaxAge?: number;
-    staleWhileRevalidate?: number;
-}
+export type CacheControl = CacheControlOptions | number | 'day' | 'week' | 'month' | 'year' | 'no-cache' | 'immutable' | 'private';
 
 // @alpha (undocumented)
 export interface Cookie {

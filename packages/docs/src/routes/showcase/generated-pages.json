@@ -324,6 +324,22 @@
     "tags": "investing"
   },
   {
+    "title": "Promptle - Can you Guess the AI prompt?",
+    "imgSrc": "/showcases/promptle_art_.webp",
+    "perf": {
+      "score": 1,
+      "fcpDisplay": "0.8 s",
+      "fcpScore": 1,
+      "lcpDisplay": "1.5 s",
+      "lcpScore": 1,
+      "ttiDisplay": "0.8 s",
+      "ttiScore": 1,
+      "ttiTime": 837
+    },
+    "href": "https://promptle.art/",
+    "tags": "game"
+  },
+  {
     "title": "Abdulrahman Hashem | Full Stack & Front End Enthusiast",
     "imgSrc": "/showcases/abdhashem_com.webp",
     "perf": {
@@ -354,5 +370,21 @@
     },
     "href": "https://amirhbeigi.ir",
     "tags": "portfolio"
+  },
+  {
+    "title": "Home Page | Puzzled By CSharp",
+    "imgSrc": "/showcases/puzzledbycsharp_com_.webp",
+    "perf": {
+      "score": 1,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "lcpDisplay": "1.2 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.0 s",
+      "ttiScore": 1,
+      "ttiTime": 992.305
+    },
+    "href": "https://puzzledbycsharp.com/",
+    "tags": "site"
   }
 ]

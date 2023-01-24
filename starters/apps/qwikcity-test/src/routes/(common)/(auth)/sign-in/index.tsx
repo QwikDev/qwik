@@ -46,7 +46,7 @@ export default component$(() => {
       <h1>Sign In</h1>
 
       <Form action={signIn} spaReset>
-        {signIn.fail?.dfsf && <p style="color:red">{signIn.fail.message}</p>}
+        {signIn.fail?.message && <p style="color:red">{signIn.fail.message}</p>}
         <label>
           <span>Username</span>
           <input name="username" type="text" autoComplete="username" required />

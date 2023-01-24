@@ -193,25 +193,25 @@ export interface QwikProps<T> extends PreventDefault<T> {
 
 // Allows for Event Handlers to by typed as QwikEventMap[Key] or Event
 // https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
-export type BivariantEventHandler<T extends SyntheticEvent<any> | Event> = {
-  bivarianceHack(event: T, element: Element): any;
+export type BivariantEventHandler<T extends SyntheticEvent<any> | Event, EL> = {
+  bivarianceHack(event: T, element: EL): any;
 }['bivarianceHack'];
 
 /**
  * @public
  */
-export type NativeEventHandler<T extends Event = Event> =
-  | BivariantEventHandler<T>
-  | QRL<BivariantEventHandler<T>>[];
+export type NativeEventHandler<T extends Event = Event, EL = Element> =
+  | BivariantEventHandler<T, EL>
+  | QRL<BivariantEventHandler<T, EL>>[];
 
 /**
  * @public
  */
-export type QrlEvent<Type extends Event = Event> = QRL<NativeEventHandler<Type>>;
+export type QrlEvent<Type extends Event = Event> = QRL<NativeEventHandler<Type, Element>>;
 
-export interface QwikCustomEvents {
+export interface QwikCustomEvents<El> {
   [key: `${'document:' | 'window:' | ''}on${string}$`]:
-    | SingleOrArray<NativeEventHandler<Event>>
+    | SingleOrArray<NativeEventHandler<Event, El>>
     | SingleOrArray<Function>
     | SingleOrArray<undefined>;
 }
@@ -220,17 +220,17 @@ type SingleOrArray<T> = T | (SingleOrArray<T> | undefined | null)[];
 
 export type QwikKnownEvents<T> = {
   [K in keyof QwikEventMap<T> as `${'document:' | 'window:' | ''}on${K}$`]?: SingleOrArray<
-    BivariantEventHandler<QwikEventMap<T>[K]>
+    BivariantEventHandler<QwikEventMap<T>[K], T>
   >;
 };
 /**
  * @public
  */
-export interface QwikEvents<T> extends QwikKnownEvents<T>, QwikCustomEvents {
-  'document:onLoad$'?: BivariantEventHandler<Event>;
-  'document:onScroll$'?: BivariantEventHandler<QwikUIEvent<T>>;
-  'document:onVisible$'?: BivariantEventHandler<Event>;
-  'document:onVisibilityChange$'?: BivariantEventHandler<Event>;
+export interface QwikEvents<T> extends QwikKnownEvents<T>, QwikCustomEvents<T> {
+  'document:onLoad$'?: BivariantEventHandler<Event, T>;
+  'document:onScroll$'?: BivariantEventHandler<QwikUIEvent<T>, T>;
+  'document:onVisible$'?: BivariantEventHandler<Event, T>;
+  'document:onVisibilityChange$'?: BivariantEventHandler<Event, T>;
 }
 
 /**

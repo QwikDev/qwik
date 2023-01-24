@@ -79,6 +79,7 @@ export async function configureDevServer(
             version: '1',
           };
 
+          const added = new Set();
           Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
             entry[1].forEach((v) => {
               const hook = v.info?.meta?.hook;
@@ -92,6 +93,7 @@ export async function configureDevServer(
 
               const { pathId, query } = parseId(v.url);
               if (query === '' && ['.css', '.scss', '.sass'].some((ext) => pathId.endsWith(ext))) {
+                added.add(url);
                 manifest.injections!.push({
                   tag: 'link',
                   location: 'head',
@@ -129,13 +131,27 @@ export async function configureDevServer(
           res.writeHead(status);
 
           const result = await render(renderOpts);
+
+          // Sometimes new CSS files are added after the initial render
+          Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
+            entry[1].forEach((v) => {
+              const { pathId, query } = parseId(v.url);
+              if (
+                !added.has(v.url) &&
+                query === '' &&
+                ['.css', '.scss', '.sass'].some((ext) => pathId.endsWith(ext))
+              ) {
+                res.write(`<link rel="stylesheet" href="${v.url}">`);
+              }
+            });
+          });
+
+          // End stream
           if ('html' in result) {
-            res.write(END_SSR_SCRIPT(opts));
-            res.end((result as any).html);
-          } else {
-            res.write(END_SSR_SCRIPT(opts));
-            res.end();
+            res.write((result as any).html);
           }
+          res.write(END_SSR_SCRIPT(opts));
+          res.end();
         } else {
           next();
         }

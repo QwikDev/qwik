@@ -71,7 +71,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
           }
           const keys: Record<string, boolean> = {};
           flatChildren.forEach((child: any) => {
-            if (isJSXNode(child) && child.key != null) {
+            if (isJSXNode(child) && !isString(child.type) && child.key != null) {
               if (keys[child.key]) {
                 const err = createJSXError(
                   `Multiple JSX sibling nodes with the same key.\nThis is likely caused by missing a custom key in a for loop`,

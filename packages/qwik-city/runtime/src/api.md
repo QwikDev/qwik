@@ -10,7 +10,6 @@ import { CookieOptions } from '@builder.io/qwik-city/middleware/request-handler'
 import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
 import type { GetSyncData } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
-import { PropFunction } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
@@ -153,13 +152,15 @@ export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
 export const Form: <T>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<T>) => JSXNode<"form">;
 
 // @alpha (undocumented)
-export interface FormProps<T> extends Omit<QwikJSX.IntrinsicElements['form'], 'action'> {
+export interface FormProps<T> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
     // (undocumented)
     action: ServerActionUse<T>;
     // (undocumented)
-    method?: 'post';
+    onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
+    // Warning: (ae-forgotten-export) The symbol "FormSubmitCompletedDetail" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    onSubmit$?: PropFunction<(event: Event) => void>;
+    onSubmitCompleted$?: (event: CustomEvent<FormSubmitCompletedDetail<T>>, form: HTMLFormElement) => ValueOrPromise<void>;
     // (undocumented)
     reloadDocument?: boolean;
     // (undocumented)

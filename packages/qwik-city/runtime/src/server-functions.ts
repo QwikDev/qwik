@@ -45,7 +45,9 @@ export type FailReturn<T> = T & {
 };
 
 export type GetValueReturn<T> = T extends FailReturn<{}> ? never : T;
-export type GetFailReturn<T> = T extends FailReturn<infer I> ? I & {[key: string]: undefined}: never;
+export type GetFailReturn<T> = T extends FailReturn<infer I>
+  ? I & { [key: string]: undefined }
+  : never;
 
 /**
  * @alpha

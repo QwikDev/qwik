@@ -50,10 +50,16 @@ export default component$(() => {
         <label>
           <span>Username</span>
           <input name="username" type="text" autoComplete="username" required />
+          {signIn.fail?.fieldErrors?.username && (
+            <p style="color:red">{signIn.fail?.fieldErrors?.username}</p>
+          )}
         </label>
         <label>
           <span>Password</span>
           <input name="password" type="password" autoComplete="current-password" required />
+          {signIn.fail?.fieldErrors?.password && (
+            <p style="color:red">{signIn.fail?.fieldErrors?.password}</p>
+          )}
         </label>
         <button data-test-sign-in>Sign In</button>
         <p>(Username: qwik, Password: dev)</p>

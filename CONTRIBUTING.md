@@ -46,7 +46,7 @@ There are several ways to set up your local environment so that you are ready to
 
 ## The recommended way
 
-This is the best approach because all required dependencies will be installed in the docker container for you and without affect your personal configuration in any way.
+This is the best approach because all required dependencies will be installed in the docker container for you and won't affect your personal configuration in any way.
 
 #### Prerequisites
 

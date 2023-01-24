@@ -119,8 +119,10 @@ export interface RequestEventCommon<PLATFORM = unknown> {
 
 // @alpha (undocumented)
 export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
+    // Warning: (ae-forgotten-export) The symbol "FailReturn" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    fail: <T>(status: number, returnData: T) => T;
+    fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
     // (undocumented)
     getData: GetData;
 }

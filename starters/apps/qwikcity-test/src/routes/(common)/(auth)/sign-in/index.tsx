@@ -5,6 +5,7 @@
 import { component$ } from '@builder.io/qwik';
 import { DocumentHead, Form, RequestHandler, action$ } from '@builder.io/qwik-city';
 import { isUserAuthenticated, signIn } from '../../../../auth/auth';
+import { z } from 'zod';
 
 export const onGet: RequestHandler = async ({ redirect, cookie }) => {
   if (await isUserAuthenticated(cookie)) {
@@ -12,17 +13,25 @@ export const onGet: RequestHandler = async ({ redirect, cookie }) => {
   }
 };
 
-export const signinAction = action$(async (formData, { cookie, redirect, status, fail }) => {
-  const result = await signIn(formData, cookie);
+export const signinAction = action$(
+  async (data, { cookie, redirect, status, fail }) => {
+    const result = await signIn(data, cookie);
 
-  if (result.status === 'signed-in') {
-    throw redirect(302, '/qwikcity-test/dashboard/');
+    if (result.status === 'signed-in') {
+      throw redirect(302, '/qwikcity-test/dashboard/');
+    }
+
+    return fail(403, {
+      message: ['Invalid username or password'],
+    });
+  },
+  {
+    validator: z.object({
+      username: z.string().email(),
+      password: z.string(),
+    }),
   }
-
-  return fail(403, {
-    message: 'Invalid username or password',
-  });
-});
+);
 
 export const resetPasswordAction = action$(async (formData) => {
   console.warn('resetPasswordAction', formData.get('email'));
@@ -37,7 +46,7 @@ export default component$(() => {
       <h1>Sign In</h1>
 
       <Form action={signIn} spaReset>
-        {signIn.value?.message && <p style="color:red">{signIn.value.message}</p>}
+        {signIn.fail?.dfsf && <p style="color:red">{signIn.fail.message}</p>}
         <label>
           <span>Username</span>
           <input name="username" type="text" autoComplete="username" required />

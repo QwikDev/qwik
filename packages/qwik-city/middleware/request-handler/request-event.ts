@@ -179,11 +179,14 @@ export function createRequestEvent(
       return new RedirectMessage();
     },
 
-    fail: (statusCode: number, data: any) => {
+    fail: <T extends Record<string, any>>(statusCode: number, data: T) => {
       check();
       requestEv[RequestEvStatus] = statusCode;
       headers.delete('Cache-Control');
-      return data;
+      return {
+        __brand: 'fail',
+        ...data,
+      };
     },
 
     text: (statusCode: number, text: string) => {

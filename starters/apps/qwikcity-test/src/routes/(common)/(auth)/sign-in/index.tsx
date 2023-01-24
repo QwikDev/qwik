@@ -25,12 +25,10 @@ export const signinAction = action$(
       message: ['Invalid username or password'],
     });
   },
-  {
-    validator: z.object({
-      username: z.string().email(),
-      password: z.string(),
-    }),
-  }
+  z.object({
+    username: z.string().email(),
+    password: z.string(),
+  })
 );
 
 export const resetPasswordAction = action$(async (formData) => {

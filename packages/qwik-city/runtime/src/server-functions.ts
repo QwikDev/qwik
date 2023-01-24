@@ -60,7 +60,7 @@ export interface ServerAction<RETURN, INPUT = Record<string, any>> {
 export interface ServerActionInternal extends ServerAction<any, any> {
   readonly __brand: 'server_action';
   __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>;
-  __opts: ActionOptions<any> | undefined;
+  __schema: ActionOptions<any> | undefined;
 
   use(): ServerActionUse<any, any>;
 }
@@ -73,7 +73,7 @@ export class ServerActionImpl implements ServerActionInternal {
   readonly __brand = 'server_action';
   constructor(
     public __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>,
-    public __opts: ActionOptions<any> | undefined
+    public __schema: ActionOptions<any> | undefined
   ) {}
   use(): ServerActionUse<any, any> {
     const loc = useLocation() as Editable<RouteLocation>;
@@ -160,9 +160,7 @@ export class ServerActionImpl implements ServerActionInternal {
   }
 }
 
-interface ActionOptions<T> {
-  readonly validator: z.ZodObject<any, any, any, T>;
-}
+type ActionOptions<T> = z.ZodObject<any, any, any, T>;
 
 type GetValidatorType<B> = B extends ActionOptions<infer I> ? I : never;
 

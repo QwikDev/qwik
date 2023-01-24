@@ -163,8 +163,8 @@ export function actionsMiddleware(
             : await requestEv.request.json();
 
           let failed = false;
-          if (action.__opts?.validator) {
-            const result = await action.__opts?.validator.safeParseAsync(data);
+          if (action.__schema) {
+            const result = await action.__schema.safeParseAsync(data);
             if (!result.success) {
               failed = true;
               loaders[selectedAction] = {

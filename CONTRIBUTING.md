@@ -42,7 +42,25 @@ Before submitting a pull request, consider the following guidelines:
 
 # Getting started
 
-If you are using VSCode, you can install the [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension. Once installed you will be prompted to reopen the folder in a container. All required dependencies will be installed in the container for you. If you're not prompted, you can run the `Remote-Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
+There are several ways to set up your local environment so that you are ready to build, test and contribute to the Qwik project.
+
+## The recommended way
+
+This is the best approach because all required dependencies will be installed in the docker container for you and won't affect your personal configuration in any way.
+
+#### Prerequisites
+
+You need to have these tools up and running in your local machine:
+
+- [VSCode](https://code.visualstudio.com/)
+- [Docker](https://www.docker.com/)
+
+#### Steps
+
+- Install the [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension in your VSCode.
+- Once installed you will be prompted to reopen the folder in a container. If you're not prompted, you can run the `Remote-Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
+
+## Alternative way
 
 If you're not able to use the dev container, follow these instructions:
 

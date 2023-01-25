@@ -47,7 +47,7 @@ function routeToRegExp(rule: string) {
   }
 
   // /foo* => /foo.* => ^/foo.*$
-  transformedRule = `^${transformedRule.replace('*', '.*')}$`;
+  transformedRule = `^${transformedRule.replace(/\*/g, '.*')}$`;
 
   // ^/foo.*$ => /^\/foo.*$/
   return new RegExp(transformedRule);

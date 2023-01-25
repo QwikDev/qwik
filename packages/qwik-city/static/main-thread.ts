@@ -1,8 +1,9 @@
 import type { PageModule, QwikCityPlan, RouteData, PathParams } from '@builder.io/qwik-city';
 import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from './types';
-import { msToString } from '../utils/format';
+import { createRouteTester } from './routes';
 import { generateNotFoundPages } from './not-found';
 import { getPathnameForDynamicRoute } from '../utils/pathname';
+import { msToString } from '../utils/format';
 import { pathToFileURL } from 'node:url';
 
 export async function mainThread(sys: System) {
@@ -18,6 +19,7 @@ export async function mainThread(sys: System) {
   const active = new Set<string>();
   const routes = qwikCityPlan.routes || [];
   const trailingSlash = !!qwikCityPlan.trailingSlash;
+  const includeRoute = createRouteTester(opts.include, opts.exclude);
 
   return new Promise<StaticGenerateResult>((resolve, reject) => {
     try {
@@ -115,16 +117,6 @@ export async function mainThread(sys: System) {
             }
           }
 
-          if (typeof opts.filter === 'function' && result.filePath != null) {
-            const keepStaticFile = opts.filter({
-              ...staticRoute,
-              isStatic: result.isStatic,
-            });
-            if (keepStaticFile === false) {
-              sys.removeFile(result.filePath);
-            }
-          }
-
           flushQueue();
         } catch (e) {
           isCompleted = true;
@@ -153,7 +145,7 @@ export async function mainThread(sys: System) {
             }
           }
 
-          if (!queue.some((s) => s.pathname === pathname)) {
+          if (includeRoute(pathname) && !queue.some((s) => s.pathname === pathname)) {
             queue.push({
               pathname,
               params,

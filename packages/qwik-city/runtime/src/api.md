@@ -162,10 +162,14 @@ export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'],
     action: ServerActionUse<O, I>;
     // (undocumented)
     onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
-    // Warning: (ae-forgotten-export) The symbol "FormSubmitCompletedDetail" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "FormSubmitFailDetail" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    onSubmitCompleted$?: (event: CustomEvent<FormSubmitCompletedDetail<O>>, form: HTMLFormElement) => ValueOrPromise<void>;
+    onSubmitFail$?: (event: CustomEvent<FormSubmitFailDetail<O>>, form: HTMLFormElement) => ValueOrPromise<void>;
+    // Warning: (ae-forgotten-export) The symbol "FormSubmitSuccessDetail" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    onSubmitSuccess$?: (event: CustomEvent<FormSubmitSuccessDetail<O>>, form: HTMLFormElement) => ValueOrPromise<void>;
     // (undocumented)
     reloadDocument?: boolean;
     // (undocumented)
@@ -352,6 +356,8 @@ export const useLocation: () => RouteLocation;
 //
 // @alpha (undocumented)
 export const useNavigate: () => RouteNavigate;
+
+export { z }
 
 // Warning: (ae-forgotten-export) The symbol "Zod" needs to be exported by the entry point index.d.ts
 //

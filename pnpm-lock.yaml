@@ -234,6 +234,7 @@ importers:
       '@types/mdx': 2.0.3
       source-map: 0.7.4
       vfile: 5.3.6
+      zod: 3.20.2
     devDependencies:
       '@azure/functions': 3.5.0
       '@builder.io/qwik': link:../qwik
@@ -260,7 +261,6 @@ importers:
       uvu: 0.5.6
       vite: 4.0.4_@types+node@18.11.18
       yaml: 2.2.1
-      zod: 3.20.2
 
   packages/qwik-dom:
     specifiers: {}
@@ -7193,7 +7193,6 @@ packages:
 
   /zod/3.20.2:
     resolution: {integrity: sha512-1MzNQdAvO+54H+EaK5YpyEy0T+Ejo/7YLHS93G3RnYWh5gaotGHwGeN/ZO687qEDU2y4CdStQYXVHIgrUl5UVQ==}
-    dev: true
 
   /zwitch/2.0.2:
     resolution: {integrity: sha512-JZxotl7SxAJH0j7dN4pxsTV6ZLXoLdGME+PsjkL/DaBrVryK9kTGq06GfKrwcSOqypP+fdXGoCHE36b99fWVoA==}

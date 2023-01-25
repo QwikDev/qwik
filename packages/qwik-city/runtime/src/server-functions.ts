@@ -17,11 +17,11 @@ import {
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
 import { QACTION_KEY } from './constants';
 import { RouteStateContext } from './contexts';
-import type { FormSubmitCompletedDetail } from './form-component';
 import type { RouteActionResolver, RouteLocation } from './types';
 import { useAction, useLocation } from './use-functions';
 import { z } from 'zod';
 import { isServer } from '@builder.io/qwik/build';
+import type { FormSubmitFailDetail, FormSubmitSuccessDetail } from './form-component';
 
 export type ServerActionExecute<RETURN, INPUT> = QRL<
   (form: FormData | INPUT | SubmitEvent) => Promise<RETURN>
@@ -132,7 +132,8 @@ export class ServerActionImpl implements ServerActionInternal {
       }).then(({ result, status }) => {
         state.isRunning = false;
         state.status = status;
-        if (isFail(result)) {
+        const didFail = isFail(result);
+        if (didFail) {
           initialState.value = undefined;
           initialState.fail = result;
         } else {
@@ -143,15 +144,16 @@ export class ServerActionImpl implements ServerActionInternal {
           if (form.getAttribute('data-spa-reset') === 'true') {
             form.reset();
           }
+          const eventName = didFail ? 'submitfail' : 'submitsuccess';
+          const detail = didFail
+            ? { status, fail: result } satisfies FormSubmitFailDetail<any>
+            : { status, value: result } satisfies FormSubmitSuccessDetail<any>;
           form.dispatchEvent(
-            new CustomEvent<FormSubmitCompletedDetail<any>>('submitcompleted', {
+            new CustomEvent(eventName, {
               bubbles: false,
               cancelable: false,
               composed: false,
-              detail: {
-                status: status,
-                value: result,
-              },
+              detail: detail,
             })
           );
         }

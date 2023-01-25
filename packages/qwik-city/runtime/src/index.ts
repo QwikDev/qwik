@@ -33,6 +33,7 @@ export { useDocumentHead, useLocation, useContent, useNavigate } from './use-fun
 export { action$, actionQrl } from './server-functions';
 export { loader$, loaderQrl } from './server-functions';
 export { zod$, zodQrl } from './server-functions';
+export { z } from 'zod';
 
 export { Form } from './form-component';
 export type { FormProps } from './form-component';

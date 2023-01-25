@@ -1,12 +1,20 @@
-import type { ServerActionUse } from './server-functions';
+import type { GetFailReturn, GetValueReturn, ServerActionUse } from './server-functions';
 import { jsx, _wrapSignal, QwikJSX, ValueOrPromise } from '@builder.io/qwik';
 
 /**
  * @alpha
  */
-export interface FormSubmitCompletedDetail<T> {
+export interface FormSubmitSuccessDetail<T> {
   status: number;
-  value: T;
+  value: GetValueReturn<T>;
+}
+
+/**
+ * @alpha
+ */
+export interface FormSubmitFailDetail<T> {
+  status: number;
+  fail: GetFailReturn<T>;
 }
 
 /**
@@ -18,8 +26,12 @@ export interface FormProps<O, I>
   reloadDocument?: boolean;
   spaReset?: boolean;
   onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
-  onSubmitCompleted$?: (
-    event: CustomEvent<FormSubmitCompletedDetail<O>>,
+  onSubmitSuccess$?: (
+    event: CustomEvent<FormSubmitSuccessDetail<O>>,
+    form: HTMLFormElement
+  ) => ValueOrPromise<void>;
+  onSubmitFail$?: (
+    event: CustomEvent<FormSubmitFailDetail<O>>,
     form: HTMLFormElement
   ) => ValueOrPromise<void>;
 }

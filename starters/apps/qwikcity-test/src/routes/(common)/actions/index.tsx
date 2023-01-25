@@ -20,12 +20,11 @@ export const slowAction = action$(async (form) => {
 });
 
 export const toppingsAction = action$((form) => {
-  const newToppings = form.getAll('toppings');
+  const newToppings = form.toppings;
   console.warn('Selected toppings:', newToppings);
   // await delay(1000);
   return {
     success: true,
-    form,
   };
 });
 
@@ -61,16 +60,16 @@ export default component$(() => {
           <h2>Toppings</h2>
           <p>
             {toppings.value
-              .filter((s) => toppingAction.value?.form.getAll('toppings').includes(s))
+              .filter((s) => toppingAction.formData?.getAll('toppings[]').includes(s))
               .join(', ')}
           </p>
           {toppings.value.map((topping) => (
             <label>
               <input
                 type="checkbox"
-                name="toppings"
+                name="toppings[]"
                 value={topping}
-                checked={toppingAction.value?.form.getAll('toppings').includes(topping)}
+                checked={toppingAction.formData?.getAll('toppings[]').includes(topping)}
               />
               <span>{topping}</span>
             </label>
@@ -84,7 +83,7 @@ export default component$(() => {
           <h2>Crust</h2>
           {crusts.value.map((crust) => (
             <label>
-              <input type="radio" name="crust" value={crust} />
+              <input type="radio" name="crust[]" value={crust} />
               <span>{crust}</span>
             </label>
           ))}
@@ -96,7 +95,7 @@ export default component$(() => {
         <form method="post" data-test-size>
           <h2>Size</h2>
           <label>
-            <select name="size">
+            <select name="size[]">
               {sizes.value.map((size) => (
                 <option value={size}>{size}</option>
               ))}

@@ -107,7 +107,8 @@
     "vite": "4.0.4",
     "vite-tsconfig-paths": "4.0.5",
     "watchlist": "0.3.1",
-    "which-pm-runs": "1.1.0"
+    "which-pm-runs": "1.1.0",
+    "zod": "^3.20.2"
   },
   "contributors": [
     {

@@ -1,5 +1,5 @@
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
-import type { ServerAction, ServerLoader } from '../../runtime/src/server-functions';
+import type { FailReturn, ServerAction, ServerLoader } from '../../runtime/src/server-functions';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
@@ -281,7 +281,7 @@ export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLA
  */
 export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
   getData: GetData;
-  fail: <T>(status: number, returnData: T) => T;
+  fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
 }
 
 /**

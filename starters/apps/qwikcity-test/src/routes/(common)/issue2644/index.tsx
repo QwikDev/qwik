@@ -3,8 +3,8 @@ import { action$, Form } from '@builder.io/qwik-city';
 import { data } from './data';
 
 export const rootAction = action$((form, { redirect }) => {
-  const name = form.get('name');
-  data.push(name as string);
+  const name = form.name as string;
+  data.push(name);
   throw redirect(303, '/qwikcity-test/issue2644/other/');
 });
 

@@ -59,6 +59,7 @@ importers:
       vite-tsconfig-paths: 4.0.5
       watchlist: 0.3.1
       which-pm-runs: 1.1.0
+      zod: ^3.20.2
     devDependencies:
       '@builder.io/partytown': 0.7.5
       '@microsoft/api-extractor': 7.33.8
@@ -115,6 +116,7 @@ importers:
       vite-tsconfig-paths: 4.0.5_typescript@4.9.4
       watchlist: 0.3.1
       which-pm-runs: 1.1.0
+      zod: 3.20.2
 
   packages/create-qwik:
     specifiers:
@@ -226,11 +228,13 @@ importers:
       vfile: 5.3.6
       vite: 4.0.4
       yaml: 2.2.1
+      zod: ^3.20.2
     dependencies:
       '@mdx-js/mdx': 2.2.1
       '@types/mdx': 2.0.3
       source-map: 0.7.4
       vfile: 5.3.6
+      zod: 3.20.2
     devDependencies:
       '@azure/functions': 3.5.0
       '@builder.io/qwik': link:../qwik
@@ -7186,6 +7190,9 @@ packages:
     optionalDependencies:
       commander: 9.5.0
     dev: true
+
+  /zod/3.20.2:
+    resolution: {integrity: sha512-1MzNQdAvO+54H+EaK5YpyEy0T+Ejo/7YLHS93G3RnYWh5gaotGHwGeN/ZO687qEDU2y4CdStQYXVHIgrUl5UVQ==}
 
   /zwitch/2.0.2:
     resolution: {integrity: sha512-JZxotl7SxAJH0j7dN4pxsTV6ZLXoLdGME+PsjkL/DaBrVryK9kTGq06GfKrwcSOqypP+fdXGoCHE36b99fWVoA==}

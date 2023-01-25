@@ -157,9 +157,29 @@ export function actionsMiddleware(
         const action = serverActions.find((a) => a.__qrl.getHash() === selectedAction);
         if (action) {
           setRequestAction(requestEv, selectedAction);
-          const formData = await requestEv.request.formData();
-          const actionResolved = await action.__qrl(formData, requestEv);
-          loaders[selectedAction] = actionResolved;
+          const isForm = isFormContentType(requestEv.request.headers);
+          let data = isForm
+            ? formToObj(await requestEv.request.formData())
+            : await requestEv.request.json();
+
+          let failed = false;
+          if (action.__schema) {
+            const validator = await action.__schema;
+            const result = await validator.safeParseAsync(data);
+            if (!result.success) {
+              failed = true;
+              loaders[selectedAction] = {
+                __brand: 'fail',
+                ...result.error.flatten(),
+              } as any;
+            } else {
+              data = result.data;
+            }
+          }
+          if (!failed) {
+            const actionResolved = await action.__qrl(data, requestEv);
+            loaders[selectedAction] = actionResolved;
+          }
         }
       }
     }
@@ -189,6 +209,33 @@ export function actionsMiddleware(
     }
   };
 }
+
+const formToObj = (formData: FormData): Record<string, any> => {
+  // Convert FormData to object
+  // Handle nested form input using dot notation
+  // Handle array input using square bracket notation
+  const obj: any = {};
+  formData.forEach((value, key) => {
+    const keys = key.split('.').filter((k) => k);
+    let current = obj;
+    for (let i = 0; i < keys.length; i++) {
+      let k = keys[i];
+      // Last key
+      if (i === keys.length - 1) {
+        if (k.endsWith('[]')) {
+          k = k.slice(0, -2);
+          current[k] = current[k] || [];
+          current[k].push(value);
+        } else {
+          current[k] = value;
+        }
+      } else {
+        current = current[k] = {};
+      }
+    }
+  });
+  return obj;
+};
 
 function fixTrailingSlash({ pathname, url, redirect }: RequestEvent) {
   const trailingSlash = true;

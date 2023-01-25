@@ -1,24 +1,37 @@
-import type { ServerActionUse } from './server-functions';
+import type { GetFailReturn, GetValueReturn, ServerActionUse } from './server-functions';
 import { jsx, _wrapSignal, QwikJSX, ValueOrPromise } from '@builder.io/qwik';
 
 /**
  * @alpha
  */
-export interface FormSubmitCompletedDetail<T> {
+export interface FormSubmitSuccessDetail<T> {
   status: number;
-  value: T;
+  value: GetValueReturn<T>;
 }
 
 /**
  * @alpha
  */
-export interface FormProps<T> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
-  action: ServerActionUse<T>;
+export interface FormSubmitFailDetail<T> {
+  status: number;
+  fail: GetFailReturn<T>;
+}
+
+/**
+ * @alpha
+ */
+export interface FormProps<O, I>
+  extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
+  action: ServerActionUse<O, I>;
   reloadDocument?: boolean;
   spaReset?: boolean;
   onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
-  onSubmitCompleted$?: (
-    event: CustomEvent<FormSubmitCompletedDetail<T>>,
+  onSubmitSuccess$?: (
+    event: CustomEvent<FormSubmitSuccessDetail<O>>,
+    form: HTMLFormElement
+  ) => ValueOrPromise<void>;
+  onSubmitFail$?: (
+    event: CustomEvent<FormSubmitFailDetail<O>>,
     form: HTMLFormElement
   ) => ValueOrPromise<void>;
 }
@@ -26,13 +39,13 @@ export interface FormProps<T> extends Omit<QwikJSX.IntrinsicElements['form'], 'a
 /**
  * @alpha
  */
-export const Form = <T,>({
+export const Form = <O, I>({
   action,
   spaReset,
   reloadDocument,
   onSubmit$,
   ...rest
-}: FormProps<T>) => {
+}: FormProps<O, I>) => {
   return jsx('form', {
     ...rest,
     action: action.actionPath,

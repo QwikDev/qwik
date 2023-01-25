@@ -13,7 +13,7 @@ export default defineConfig(() => {
       },
       minify: false,
       rollupOptions: {
-        external: ['@qwik-city-sw-register', '@qwik-city-plan'],
+        external: ['zod', '@qwik-city-sw-register', '@qwik-city-plan'],
       },
     },
     plugins: [qwikVite()],

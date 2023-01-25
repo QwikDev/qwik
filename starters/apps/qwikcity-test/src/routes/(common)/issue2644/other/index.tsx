@@ -7,8 +7,8 @@ export const getData = loader$(() => {
 });
 
 export const otherAction = action$((form) => {
-  const name = form.get('name');
-  data.push(name as string);
+  const name = form.name as string;
+  data.push(name);
   return { success: true };
 });
 

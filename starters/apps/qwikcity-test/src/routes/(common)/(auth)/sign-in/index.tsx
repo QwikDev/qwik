@@ -3,10 +3,9 @@
  */
 
 import { component$ } from '@builder.io/qwik';
-import { DocumentHead, Form, RequestHandler, action$ } from '@builder.io/qwik-city';
+import { DocumentHead, Form, RequestHandler, action$, zod$ } from '@builder.io/qwik-city';
 import { isUserAuthenticated, signIn } from '../../../../auth/auth';
 import { z } from 'zod';
-
 export const onGet: RequestHandler = async ({ redirect, cookie }) => {
   if (await isUserAuthenticated(cookie)) {
     throw redirect(302, '/qwikcity-test/dashboard/');
@@ -25,15 +24,20 @@ export const signinAction = action$(
       message: ['Invalid username or password'],
     });
   },
-  z.object({
-    username: z.string().email(),
+  zod$({
+    username: z.string(),
     password: z.string(),
   })
 );
 
-export const resetPasswordAction = action$(async (formData) => {
-  console.warn('resetPasswordAction', formData.get('email'));
-});
+export const resetPasswordAction = action$(
+  ({ email }) => {
+    console.warn('resetPasswordAction', email);
+  },
+  zod$({
+    email: z.string().email(),
+  })
+);
 
 export default component$(() => {
   const signIn = signinAction.use();

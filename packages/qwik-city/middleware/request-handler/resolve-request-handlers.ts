@@ -164,7 +164,8 @@ export function actionsMiddleware(
 
           let failed = false;
           if (action.__schema) {
-            const result = await action.__schema.safeParseAsync(data);
+            const validator = await action.__schema;
+            const result = await validator.safeParseAsync(data);
             if (!result.success) {
               failed = true;
               loaders[selectedAction] = {

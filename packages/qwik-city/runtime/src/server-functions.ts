@@ -20,7 +20,8 @@ import { RouteStateContext } from './contexts';
 import type { FormSubmitCompletedDetail } from './form-component';
 import type { RouteActionResolver, RouteLocation } from './types';
 import { useAction, useLocation } from './use-functions';
-import type { z } from 'zod';
+import { z } from 'zod';
+import { isServer } from '@builder.io/qwik/build';
 
 export type ServerActionExecute<RETURN, INPUT> = QRL<
   (form: FormData | INPUT | SubmitEvent) => Promise<RETURN>
@@ -60,7 +61,7 @@ export interface ServerAction<RETURN, INPUT = Record<string, any>> {
 export interface ServerActionInternal extends ServerAction<any, any> {
   readonly __brand: 'server_action';
   __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>;
-  __schema: ActionOptions<any> | undefined;
+  __schema: ZodReturn | undefined;
 
   use(): ServerActionUse<any, any>;
 }
@@ -73,7 +74,7 @@ export class ServerActionImpl implements ServerActionInternal {
   readonly __brand = 'server_action';
   constructor(
     public __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>,
-    public __schema: ActionOptions<any> | undefined
+    public __schema: ZodReturn | undefined
   ) {}
   use(): ServerActionUse<any, any> {
     const loc = useLocation() as Editable<RouteLocation>;
@@ -160,15 +161,19 @@ export class ServerActionImpl implements ServerActionInternal {
   }
 }
 
-type ActionOptions<T> = z.ZodObject<any, any, any, T>;
+type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;
 
-type GetValidatorType<B> = B extends ActionOptions<infer I> ? I : never;
+type DefaultActionType = { [x: string]: JSONValue };
+
+type GetValidatorType<B extends ZodReturn<any>> = B extends ZodReturn<infer TYPE>
+  ? z.infer<z.ZodObject<TYPE>>
+  : never;
 
 interface Action {
   <O>(
-    actionQrl: (form: Record<string, any>, event: RequestEventLoader) => ValueOrPromise<O>
+    actionQrl: (form: DefaultActionType, event: RequestEventLoader) => ValueOrPromise<O>
   ): ServerAction<O>;
-  <O, B extends ActionOptions<any>>(
+  <O, B extends ZodReturn>(
     actionQrl: (data: GetValidatorType<B>, event: RequestEventLoader) => ValueOrPromise<O>,
     options: B
   ): ServerAction<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>>;
@@ -177,8 +182,8 @@ interface Action {
  * @alpha
  */
 export const actionQrl = <B, A>(
-  actionQrl: QRL<(form: Record<string, any>, event: RequestEventLoader) => ValueOrPromise<B>>,
-  options?: ActionOptions<any>
+  actionQrl: QRL<(form: DefaultActionType, event: RequestEventLoader) => ValueOrPromise<B>>,
+  options?: ZodReturn
 ): ServerAction<B, A> => {
   return new ServerActionImpl(actionQrl as any, options) as any;
 };
@@ -187,6 +192,36 @@ export const actionQrl = <B, A>(
  * @alpha
  */
 export const action$: Action = implicit$FirstArg(actionQrl) as any;
+
+type ActionOptions = z.ZodRawShape;
+
+type ZodReturn<T extends ActionOptions = any> = Promise<z.ZodObject<T>>;
+
+interface Zod {
+  <T extends ActionOptions>(schema: T): ZodReturn<T>;
+  <T extends ActionOptions>(schema: (z: typeof import('zod').z) => T): ZodReturn<T>;
+}
+
+/**
+ * @alpha
+ */
+export const zodQrl = async (
+  qrl: QRL<ActionOptions | ((z: typeof import('zod').z) => ActionOptions)>
+) => {
+  if (isServer) {
+    let obj = await qrl.resolve();
+    if (typeof obj === 'function') {
+      obj = obj(z);
+    }
+    return z.object(obj);
+  }
+  return undefined;
+};
+
+/**
+ * @alpha
+ */
+export const zod$: Zod = implicit$FirstArg(zodQrl) as any;
 
 /**
  * @alpha
@@ -243,7 +278,7 @@ export const loaderQrl = <PLATFORM, B>(
 export const loader$ = implicit$FirstArg(loaderQrl);
 
 export const isFail = <T>(value: any): value is FailReturn<any> => {
-  return value.__brand === 'fail';
+  return value && typeof value === 'object' && value.__brand === 'fail';
 };
 export function formDataFromObject(obj: Record<string, string | string[] | Blob | Blob[]>) {
   const formData = new FormData();

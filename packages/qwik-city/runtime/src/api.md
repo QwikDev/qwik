@@ -19,18 +19,19 @@ import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-han
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { Signal } from '@builder.io/qwik';
 import { ValueOrPromise } from '@builder.io/qwik';
-import type { z } from 'zod';
+import { z } from 'zod';
 
 // Warning: (ae-forgotten-export) The symbol "Action" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
 export const action$: Action;
 
+// Warning: (ae-forgotten-export) The symbol "DefaultActionType" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "RequestEventLoader_2" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ActionOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ZodReturn" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export const actionQrl: <B, A>(actionQrl: QRL<(form: Record<string, any>, event: RequestEventLoader_2) => ValueOrPromise<B>>, options?: ActionOptions<any>) => ServerAction<B, A>;
+export const actionQrl: <B, A>(actionQrl: QRL<(form: DefaultActionType, event: RequestEventLoader_2) => ValueOrPromise<B>>, options?: ZodReturn) => ServerAction<B, A>;
 
 // @alpha @deprecated (undocumented)
 export const Content: Component<    {}>;
@@ -351,6 +352,20 @@ export const useLocation: () => RouteLocation;
 //
 // @alpha (undocumented)
 export const useNavigate: () => RouteNavigate;
+
+// Warning: (ae-forgotten-export) The symbol "Zod" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const zod$: Zod;
+
+// Warning: (ae-forgotten-export) The symbol "ActionOptions" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const zodQrl: (qrl: QRL<z.ZodRawShape | ((z: z) => ActionOptions)>) => Promise<z.ZodObject<z.ZodRawShape, "strip", z.ZodTypeAny, {
+    [x: string]: any;
+}, {
+    [x: string]: any;
+}> | undefined>;
 
 // (No @packageDocumentation comment for this package)
 

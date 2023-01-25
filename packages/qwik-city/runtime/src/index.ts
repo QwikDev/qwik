@@ -32,6 +32,8 @@ export { ServiceWorkerRegister } from './sw-component';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './use-functions';
 export { action$, actionQrl } from './server-functions';
 export { loader$, loaderQrl } from './server-functions';
+export { zod$, zodQrl } from './server-functions';
+
 export { Form } from './form-component';
 export type { FormProps } from './form-component';
 export type {

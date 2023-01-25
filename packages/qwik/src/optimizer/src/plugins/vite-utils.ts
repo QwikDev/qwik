@@ -38,11 +38,11 @@ export const findLocation = (e: Error): Loc | undefined => {
   if (typeof stack === 'string') {
     const lines = stack.split('\n');
     for (let i = 1; i < lines.length; i++) {
-      const line = lines[i];
+      const line = lines[i].replace('file:///', '/');
       if (/^\s+at/.test(line)) {
-        const start = line.indexOf('(/') + 1;
+        const start = line.indexOf('/');
         const end = line.indexOf(')', start);
-        if (start > 0 && end > start) {
+        if (start > 0) {
           const path = line.slice(start, end);
           const parts = path.split(':');
           const nu0 = safeParseInt(parts[parts.length - 1]);

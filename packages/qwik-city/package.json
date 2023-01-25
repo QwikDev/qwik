@@ -97,6 +97,7 @@
     "github-slugger": "2.0.0",
     "hast-util-heading-rank": "2.1.0",
     "hast-util-to-string": "2.0.0",
+    "kleur": "4.1.5",
     "marked": "4.2.12",
     "mdast-util-mdx": "^2.0.0",
     "refractor": "4.8.0",

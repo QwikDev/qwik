@@ -146,8 +146,8 @@ export class ServerActionImpl implements ServerActionInternal {
           }
           const eventName = didFail ? 'submitfail' : 'submitsuccess';
           const detail = didFail
-            ? { status, fail: result } satisfies FormSubmitFailDetail<any>
-            : { status, value: result } satisfies FormSubmitSuccessDetail<any>;
+            ? ({ status, fail: result } satisfies FormSubmitFailDetail<any>)
+            : ({ status, value: result } satisfies FormSubmitSuccessDetail<any>);
           form.dispatchEvent(
             new CustomEvent(eventName, {
               bubbles: false,

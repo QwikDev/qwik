@@ -105,7 +105,7 @@ export default component$(() => {
       <button
         onClick$={() => {
           // this assigment causes SPA navigation
-          nav.path = '/dashboard';
+          nav('/dashboard');
         }}
       >
         Go to dashboard

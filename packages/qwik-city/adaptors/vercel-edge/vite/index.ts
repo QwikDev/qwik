@@ -18,10 +18,14 @@ export function vercelEdgeAdaptor(opts: VercelEdgeAdaptorOptions = {}): any {
     config(config) {
       const outDir = config.build?.outDir || '.vercel/output/functions/_qwik-city.func';
       return {
-        // ssr: {
-        //   target: 'webworker',
-        //   noExternal: true,
-        // },
+        resolve: {
+          conditions: ['webworker', 'worker'],
+        },
+        ssr: {
+          target: 'node',
+          format: 'esm',
+          noExternal: true,
+        },
         build: {
           ssr: true,
           outDir,

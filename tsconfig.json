@@ -88,6 +88,7 @@
     // "packages/docs",
     "packages/qwik/src",
     "packages/qwik-city",
+    "packages/qwik-auth",
     "packages/qwik-react/src",
     "scripts",
     "starters/apps/e2e",

@@ -1,0 +1,14 @@
+{
+  "description": "Zero-cost CSS-in-JS for Qwik",
+  "devDependencies": {
+    "auth-qwik": "^1.9.3",
+    "@auth/core": "^0.5.4"
+  },
+  "__qwik__": {
+    "displayName": "Integration: Auth.js (authentication)",
+    "priority": -10,
+    "docs": [
+      "https://authjs.dev/"
+    ]
+  }
+}

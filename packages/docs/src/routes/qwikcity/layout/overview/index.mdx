@@ -1,5 +1,5 @@
 ---
-title: Qwik City - Layout
+title: Qwik City - Layout & Middleware
 contributors:
   - manucorporat
   - adamdbradley
@@ -8,15 +8,80 @@ contributors:
   - nnelgxorz
 ---
 
-# Layout
+# Layout & middlewares
 
-When implementing routes, different routes usually share a common header, footer, and menu system. We call the common parts a layout.
+> Layouts are created by adding a new `layout.tsx` file in the `src/routes` directory.
 
-The developer could extract all of these into `<Header>`, `<Footer>`, and `<Menu>` components and manually add them to each page component, but that is repetitive and error-prone. Instead, we can use layouts to automatically reuse common parts.
+Layouts provide **shared UI and request handling (middleware)** to a set of routes:
+
+- **Shared request handling**: Accomplished by adding an `onRequest` method.
+- **Shared UI**: Accomplished by `export default` a Qwik component.
 
 ### Example
 
-Let's say we would like our site to look like this:
+Usually different pages need some common request handling, and share some UI. For example, picture a dashboard site where all the pages under the `/admin/*` directory:
+
+- **Shared request handling:** The request cookies need to be validated before even rendering the page, otherwise render a blank 401 page.
+- **Shared UI:** All pages share a common header showing the user's name and profile picture.
+
+Instead of repeating the same code in each route, we can use layouts to automatically reuse common parts, and also to add middleware to the route.
+
+
+**File: `src/routes/admin/layout.tsx`**
+```tsx
+export const onRequest = ({cookies, text}) => {
+  if (!validateCookies(cookies)) {
+    throw text(401, 'Unauthorized');
+  }
+}
+
+export default component$(async () => {
+  return (
+    <>
+      <HeaderWithUser />
+      <Slot />
+    </>
+  );
+});
+```
+
+> By creating a `layout.tsx` file in the `src/routes/admin` directory, Qwik will automatically call the `onRequest` method for all routes under the `admin` directory, and when rendering the page, it will wrap the route's component with the `HeaderWithUser` component.
+
+## Middleware execution order
+
+
+In the example above, we added a `onRequest` method to the layout. This method is called as soon as the request is received, before the route component is rendered. This is useful for validating the request, or for adding common request handling.
+
+When an application has multiple layouts, **the order is determined by the directory structure**. For example, if we have the following directory structure:
+
+```
+src/
+├── routes/
+│   ├── admin/
+│   │   ├── layout.tsx
+│   │   └── index.tsx
+│   └── layout.tsx
+└── index.tsx
+```
+
+For the route `https://example.com/admin`, the `onRequest` methods will be executed in the following order:
+
+1. `src/routes/layout.tsx`'s `onRequest`
+2. `src/routes/admin/layout.tsx`'s `onRequest`
+3. `src/routes/admin/index.tsx`'s component
+
+> Since the **execution order is serial**, the root layout can add common request handling, and the admin layout can add more specific request handling in a organized and deterministic way.
+
+
+## Shared UI using layouts
+
+Right after all the `onRequest` methods from the layouts are executed, the route component is rendered.
+
+Layouts also **provide a way to add common UI to the rendered page**. For example, if we want to add a common header to all the routes, we can add a `Header` component to the root layout.
+
+### Example
+
+In this example, we have a site with 2 pages: `https://example.com` and `https://example.com/about`, and we want to add a common header and footer to all the pages, the only difference between the pages is the content in the middle.
 
 ```
 ┌───────────────────────────────────────────────────┐
@@ -31,7 +96,12 @@ Let's say we would like our site to look like this:
 └───────────────────────────────────────────────────┘
 ```
 
-We can define the above with these files.
+First, we create three components: `<Header>`, `<Footer>`, and `<Menu>`.
+
+> The developer could copy-paste these components manually into each page component, but that is repetitive and error-prone, **instead, we can use layouts to automatically reuse common parts.**
+
+
+#### Routes directory
 
 ```
 src/
@@ -46,33 +116,9 @@ src/
     └── index.tsx          # https://example.com
 ```
 
-### Component implementations
+#### Implementation `src/routes/layout.tsx`
 
-```tsx
-// File: src/components/header.tsx
-export default component$(() => {
-  return <>Header</>;
-});
-```
-
-```tsx
-// File: src/components/footer.tsx
-export default component$(() => {
-  return <>Footer</>;
-});
-```
-
-```tsx
-// File: src/components/menu.tsx
-export default component$(() => {
-  return (
-    <ul>
-      <li>home</li>
-      <li>about</li>
-    </ul>
-  );
-});
-```
+It will be used for all routes under the `src/routes` directory. It will render the `Header`, `Menu`, and `Footer` components, and also render the nested routes under the `Slot` component.
 
 ```tsx
 // File: src/routes/layout.tsx
@@ -88,12 +134,21 @@ export default component$(() => {
 });
 ```
 
+#### Implementation `src/routes/index.tsx`
+
+This is the main route for the site. It will be rendered under the `Slot` component in the `src/routes/layout.tsx` file, so even though it doesn't have any of the `Header`, `Menu`, or `Footer` components, it will still be rendered with them.
+
 ```tsx
 // File: src/routes/index.tsx
 export default component$(() => {
   return <>Home</>;
 });
 ```
+
+
+#### Implementation `src/routes/about/index.tsx`
+
+Same as the `src/routes/index.tsx` file, but for the `about` route, similary it will be rendered under the `Slot` component in the `src/routes/layout.tsx` file, so even though it doesn't have any of the `Header`, `Menu`, or `Footer` components, it will still be rendered with them.
 
 ```tsx
 // File: src/routes/about/index.tsx

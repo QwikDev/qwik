@@ -9,11 +9,119 @@ contributors:
 
 Qwik City is able to create a RESTful API for your application using Endpoints. Endpoint routes are created the same as how you would create a "page", except the filename should end with `.ts` instead of `.tsx`. An `index.ts` in the `src/routes` directory is only for data, such as a `json` response, while an `index.tsx` is for an HTML page. There is no need to put the "endpoint" routes into a specific `api` directory within `src/routes`.
 
-Both "page" and "endpoints" are the same except for one difference: a page exports a `default component$()` to render HTML, whereas an endpoint exports only HTTP request and response handlers. To learn about defining a page component, you can [read more here](../../content/component/index.mdx). An endpoint route however, is used only for the purpose of responding with data.
+Both "page" and "endpoints" are the same except for one difference: a page contains a `export default component$()` to render HTML, whereas an endpoint exports only HTTP request and response handlers. To learn about defining a page component, you can [read more here](../../content/component/index.mdx). An endpoint route however, is used only for the purpose of responding with data.
 
-To consume the data fetched on an endpoint you can use the provided [`useResource$()`](/docs/components/resource/index.mdx) hook or the `<Resource />` component as described [here](../../../../routes/docs/components/resource/index.mdx).
+```ts
+// Called with every HTTP request (regardless of method)
+export const onRequest: RequestHandler = async (ev) => { ... }
 
-## Example API endpoint route
+// Called when the HTTP method is POST
+export const onPost: RequestHandler = async (ev) => { ... }
+
+// Called when the HTTP method is PUT
+export const onPut: RequestHandler = async (ev) => { ... }
+
+// Called when the HTTP method is PATCH
+export const onPatch: RequestHandler = async (ev) => { ... }
+
+// Called when the HTTP method is DELETE
+export const onDelete: RequestHandler = async (ev) => { ... }
+```
+
+These functions are executed according to the [HTTP method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) used for this route.
+
+## Raw Response Control
+
+Endpoints are routes that will not render any Qwik page, instead they allow you to have full control over the HTTP response. From changing the status code to adding headers, and even sending a raw response body.
+
+### Changing the status code
+```tsx
+export const onGet: RequestHandler = async ({ status }) => {
+  throw status(404);
+};
+```
+
+### Adding response headers
+```tsx
+export const onPost: RequestHandler = async ({ headers }) => {
+  headers.set('X-My-Custom-Header': 'Hello World');
+};
+```
+
+### Setting a cookie
+```tsx
+export const onGet: RequestHandler = async ({ cookies }) => {
+  cookies.set('my-cookie', 'Hello World');
+};
+```
+
+### Changing the cache-control header
+```tsx
+export const onGet: RequestHandler = async ({ cacheControl }) => {
+  cacheControl({
+    maxAge: 31536e3,
+    public: true,
+    immutable: true,
+    staleWhileRevalidate: 31536e3
+  });
+};
+```
+
+### Sending a JSON body
+```tsx
+export const onGet: RequestHandler = async ({ json }) => {
+  throw json(200, { hello: 'world' });
+};
+```
+
+### Sending a Text body
+```tsx
+export const onGet: RequestHandler = async ({ text }) => {
+  throw text(200, 'Hello World');
+};
+```
+
+### Sending a RAW response
+```tsx
+export const onGet: RequestHandler = async ({ send }) => {
+  const response = new Response('Hello World', {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/plain'
+    }
+  });
+  throw send(response);
+};
+```
+
+### Create a reverse proxy using a fetch
+```tsx
+export const onGet: RequestHandler = async ({ send }) => {
+  const response = await fetch('https://example.com');
+  throw send(response);
+};
+```
+
+### Create a stream response manually
+
+```tsx
+export const onGet: RequestHandler = async ({ getWritableStream }) => {
+  const writableStream = getWritableStream();
+  const writer = writableStream.getWriter();
+  writer.write('Hello World');
+  await wait(100);
+  writer.write('After 100ms');
+  await wait(100);
+  writer.write('After 200ms');
+  await wait(100);
+  writer.write('END');
+  writer.close();
+};
+```
+
+## Examples
+
+### JSON GET Endpoint
 
 ```ts
 // File: src/routes/product/[skuId]/index.ts
@@ -25,17 +133,12 @@ interface ProductData {
   description: string;
 }
 
-export const onGet: RequestHandler<ProductData> = async ({ params }) => {
+export const onGet: RequestHandler = async ({ json, params }) => {
   // put your DB access here, we are hard coding a response for simplicity.
-  return {
+  throw json(200, {
     skuId: params.skuId,
     price: 123.45,
     description: `Description for ${params.skuId}`,
-  };
+  });
 };
-
-export const onPost: RequestHandler<ProductData> = async ({ params }) => { ... }
-export const onPut: RequestHandler<ProductData> = async ({ params }) => { ... }
-export const onPatch: RequestHandler<ProductData> = async ({ params }) => { ... }
-export const onDelete: RequestHandler<ProductData> = async ({ params }) => { ... }
 ```

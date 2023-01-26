@@ -1,0 +1,100 @@
+---
+title: Qwik City - action$()
+contributors:
+  - manucorporat
+---
+
+# `action$()`
+
+Server actions are used to run some code exclusivelly in the server, which returned data is used in the client with a Qwik Component.
+
+
+## Action context
+
+Just like endpoints such as `onGet()`, actions receive a context object with information about the current request. This information comes handly when the loaders needs to conditionally return data based on the request, or it needs to override the response status, headers or body manually.
+
+```tsx
+export const getServerTime = loader$((ev) => {
+  console.log('Request headers:', ev.headers);
+  console.log('Request cookies:', ev.cookies);
+  console.log('Request url:', ev.url);
+  console.log('Request method:', ev.method);
+  console.log('Request params:', ev.params);
+
+  return {
+    time: Date.now();
+  }
+});
+```
+
+It's also possible to manually return some HTTP body instead of Qwik render, this happens when the loader writes directly to the body using the methods: `redirect()`, `json()`, `text()`, `html()`, `send()`.
+
+When this happens, QwikCity will not render the Qwik Component.
+
+```ts
+export const getServerTime = loader$((ev) => {
+  // If URL query contains `format=json`, return a JSON response
+  if (query.get('format') === 'json') {
+    throw ev.json(200, {
+      time: Date.now();
+    });
+  }
+  // If URL query contains `format=text`, return a text response
+  if (query.get('format') === 'text') {
+    throw ev.text(200, `The time is: ${Date.now()}`);
+  }
+
+  // Otherwise returns data to be used in the Qwik Component
+  return {
+    time: Date.now();
+  }
+});
+```
+
+
+## Rules
+
+Loaders can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported in the same module.
+
+- `loader$()` can only be used inside the `layout` and `index` files, inside the `src/routes` folder.
+- `loader$()` function must return a JSON serializable value.
+
+```tsx
+// File: src/routes/layout.tsx
+import { loader$ } from '@builder.io/qwik';
+
+// ❌, Date is not JSON serializable
+const getTime = loader$(() => {
+  return {
+    time: new Date()
+  }
+});
+
+// ✅, the getTime loader is exported
+export const getTime = loader$(() => {
+  return {
+    time: (new Date()).toISOString()
+});
+```
+
+- `loader$()` MUST be exported in the same module.
+```tsx
+// File: src/routes/layout.tsx
+import { loader$ } from '@builder.io/qwik';
+
+// ❌, it needs to be exported
+const getTime = loader$(() => {
+  return Date.now();
+});
+
+// ✅, the getTime loader is exported
+export const getTime = loader$(() => {
+  return Date.now();
+});
+```
+
+## When to use an action?
+
+An action should be used when your Qwik App needs to communicate back to the server, for example, when an user fills a form and you need to send the data to the server.
+
+You should not use a action to create a REST API, for that you better use a [Endpoint](/qwik-city/), which allows you to have tight control over the response headers and body.

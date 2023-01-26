@@ -13,18 +13,19 @@
 - [Route Parameters](routing/route-parameters/index.mdx)
 - [Error Responses](routing/error-responses/index.mdx)
 
-## Layout
+## Layouts
 
 - [Overview](layout/overview/index.mdx)
 - [Nested](layout/nested/index.mdx)
 - [Grouped](layout/grouped/index.mdx)
 - [Named](layout/named/index.mdx)
 
-## Data fetching
+## Server Functions
 
 - [Overview](data/overview/index.mdx)
-- [Retrieving Data](data/retrieve/index.mdx)
-- [Modifying Data](data/modify/index.mdx)
+- [loader$](data/loader/index.mdx)
+- [action$](data/action/index.mdx)
+- [Forms](data/forms/index.mdx)
 - [Endpoints](data/endpoints/index.mdx)
 - [Redirects](data/redirects/index.mdx)
 

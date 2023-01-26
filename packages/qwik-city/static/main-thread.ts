@@ -1,11 +1,11 @@
 import type { PageModule, QwikCityPlan, RouteData, PathParams } from '@builder.io/qwik-city';
 import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from './types';
-import { msToString } from '../utils/format';
+import { createRouteTester } from './routes';
 import { generateNotFoundPages } from './not-found';
 import { getPathnameForDynamicRoute } from '../utils/pathname';
+import { msToString } from '../utils/format';
 import { pathToFileURL } from 'node:url';
 import { relative } from 'node:path';
-
 import color from 'kleur';
 import { formatError } from '../buildtime/vite/format-error';
 import { buildErrorMessage } from 'vite';
@@ -25,6 +25,7 @@ export async function mainThread(sys: System) {
   const active = new Set<string>();
   const routes = qwikCityPlan.routes || [];
   const trailingSlash = !!qwikCityPlan.trailingSlash;
+  const includeRoute = createRouteTester(opts.include, opts.exclude);
 
   return new Promise<StaticGenerateResult>((resolve, reject) => {
     try {
@@ -103,7 +104,6 @@ export async function mainThread(sys: System) {
         try {
           active.add(staticRoute.pathname);
 
-          let shouldRemove = false;
           const result = await main.render({ type: 'render', ...staticRoute });
 
           active.delete(staticRoute.pathname);
@@ -120,32 +120,17 @@ export async function mainThread(sys: System) {
             log.error(buildErrorMessage(err));
 
             generatorResult.errors++;
-            shouldRemove = true;
-          } else if (result.ok) {
-            if (typeof opts.filter === 'function' && result.filePath != null) {
-              const keepStaticFile = opts.filter({
-                ...staticRoute,
-                isStatic: result.isStatic,
-              });
-              if (keepStaticFile === false) {
-                shouldRemove = true;
-              }
-            }
           }
 
           if (result.filePath != null) {
-            if (shouldRemove) {
-              sys.removeFile(result.filePath);
-            } else {
-              generatorResult.rendered++;
-              if (result.isStatic) {
-                generatorResult.staticPaths.push(result.pathname);
-              }
-              const base = opts.rootDir ?? opts.outDir;
-              const path = relative(base, result.filePath);
-              const lastSlash = path.lastIndexOf('/');
-              log.info(`${color.dim(path.slice(0, lastSlash + 1))}${path.slice(lastSlash + 1)}`);
+            generatorResult.rendered++;
+            if (result.isStatic) {
+              generatorResult.staticPaths.push(result.pathname);
             }
+            const base = opts.rootDir ?? opts.outDir;
+            const path = relative(base, result.filePath);
+            const lastSlash = path.lastIndexOf('/');
+            log.info(`${color.dim(path.slice(0, lastSlash + 1))}${path.slice(lastSlash + 1)}`);
           }
 
           flushQueue();
@@ -176,7 +161,7 @@ export async function mainThread(sys: System) {
             }
           }
 
-          if (!queue.some((s) => s.pathname === pathname)) {
+          if (includeRoute(pathname) && !queue.some((s) => s.pathname === pathname)) {
             queue.push({
               pathname,
               params,

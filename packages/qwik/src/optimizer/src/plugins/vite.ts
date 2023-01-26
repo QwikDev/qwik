@@ -237,7 +237,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             ? false
             : {
                 logLevel: 'error',
-                jsx: 'preserve',
+                jsx: 'automatic',
               },
         optimizeDeps: {
           exclude: [

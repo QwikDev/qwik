@@ -33,15 +33,18 @@ export const loadClientData = async (
         }
       : undefined;
     qData = fetch(clientDataPath, options).then((rsp) => {
+      const redirectedURL = new URL(rsp.url);
+      if (redirectedURL.origin !== location.origin || !isQDataJson(redirectedURL.pathname)) {
+        location.href = redirectedURL.href;
+        return;
+      }
       if ((rsp.headers.get('content-type') || '').includes('json')) {
-        const redirectedURL = new URL(rsp.url);
-        if (redirectedURL.origin !== location.origin || !isQDataJson(redirectedURL.pathname)) {
-          location.href = redirectedURL.href;
-          return;
-        }
         // we are safe we are reading a q-data.json
         return rsp.text().then((text) => {
           const clientData = parseData(text) as ClientPageData;
+          if (clientData.__brand !== 'qdata') {
+            return;
+          }
           if (clearCache) {
             CLIENT_DATA_CACHE.delete(clientDataPath);
           }

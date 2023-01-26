@@ -12,17 +12,10 @@ import type { RequestEvent as RequestEvent_2 } from '@builder.io/qwik-city';
 import { Signal } from '@builder.io/qwik';
 import { ValueOrPromise } from '@builder.io/qwik';
 
+// Warning: (ae-forgotten-export) The symbol "CacheControlOptions" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export interface CacheControl {
-    immutable?: boolean;
-    maxAge?: number;
-    noCache?: boolean;
-    noStore?: boolean;
-    private?: boolean;
-    public?: boolean;
-    sMaxAge?: number;
-    staleWhileRevalidate?: number;
-}
+export type CacheControl = CacheControlOptions | number | 'day' | 'week' | 'month' | 'year' | 'no-cache' | 'immutable' | 'private';
 
 // @alpha (undocumented)
 export interface Cookie {
@@ -126,8 +119,10 @@ export interface RequestEventCommon<PLATFORM = unknown> {
 
 // @alpha (undocumented)
 export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
+    // Warning: (ae-forgotten-export) The symbol "FailReturn" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    fail: <T>(status: number, returnData: T) => T;
+    fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
     // (undocumented)
     getData: GetData;
 }

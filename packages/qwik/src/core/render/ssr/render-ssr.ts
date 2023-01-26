@@ -665,7 +665,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     if (flags & IS_HEAD) {
       openingElement += ' q:head';
     }
-    if (qDev && qInspector && node.dev) {
+    if (qDev && qInspector && node.dev && !(flags & IS_HEAD)) {
       const sanitizedFileName = node?.dev?.fileName?.replace(/\\/g, '/');
       if (sanitizedFileName) {
         openingElement += ` data-qwik-inspector="${encodeURIComponent(sanitizedFileName)}:${

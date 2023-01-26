@@ -13,6 +13,9 @@ export function expressAdaptor(opts: ExpressAdaptorOptions = {}): any {
 
     config() {
       return {
+        ssr: {
+          target: 'node',
+        },
         build: {
           ssr: true,
         },

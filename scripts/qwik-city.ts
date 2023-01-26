@@ -696,6 +696,7 @@ async function buildStaticNode(config: BuildConfig, inputDir: string, outputDir:
     'stream/web',
     'url',
     'worker_threads',
+    'vite',
   ];
 
   await build({

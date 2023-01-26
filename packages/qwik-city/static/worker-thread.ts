@@ -133,17 +133,19 @@ async function workerRender(
           return rsp.completion;
         }
       })
-      .catch((e) => {
-        if (e) {
-          if (e.stack) {
-            result.error = String(e.stack);
-          } else if (e.message) {
-            result.error = String(e.message);
+      .then((e) => {
+        if (e !== undefined) {
+          if (e instanceof Error) {
+            result.error = {
+              message: e.message,
+              stack: e.stack,
+            };
           } else {
-            result.error = String(e);
+            result.error = {
+              message: String(e),
+              stack: undefined,
+            };
           }
-        } else {
-          result.error = `Error`;
         }
       })
       .finally(() => {
@@ -153,16 +155,16 @@ async function workerRender(
 
     pendingPromises.add(promise);
   } catch (e: any) {
-    if (e) {
-      if (e.stack) {
-        result.error = String(e.stack);
-      } else if (e.message) {
-        result.error = String(e.message);
-      } else {
-        result.error = String(e);
-      }
+    if (e instanceof Error) {
+      result.error = {
+        message: e.message,
+        stack: e.stack,
+      };
     } else {
-      result.error = `Error`;
+      result.error = {
+        message: String(e),
+        stack: undefined,
+      };
     }
     callback(result);
   }

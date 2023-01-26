@@ -41,7 +41,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
       invoke(undefined, () => {
         const isQwikC = isQwikComponent(type);
         if (!isString(type) && !isFunction(type)) {
-          throw qError(QError_invalidJsxNodeType, type);
+          throw qError(QError_invalidJsxNodeType, String(type));
         }
         if (isArray((props as any).children)) {
           const flatChildren = (props as any).children.flat();
@@ -71,7 +71,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
           }
           const keys: Record<string, boolean> = {};
           flatChildren.forEach((child: any) => {
-            if (isJSXNode(child) && child.key != null) {
+            if (isJSXNode(child) && !isString(child.type) && child.key != null) {
               if (keys[child.key]) {
                 const err = createJSXError(
                   `Multiple JSX sibling nodes with the same key.\nThis is likely caused by missing a custom key in a for loop`,
@@ -91,7 +91,7 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
             const value = (props as any)[prop];
             if (prop.endsWith('$') && value) {
               if (!isQrl(value) && !Array.isArray(value)) {
-                throw qError(QError_invalidJsxNodeType, type);
+                throw qError(QError_invalidJsxNodeType, String(value));
               }
             }
             if (prop !== 'children' && isQwikC && value) {

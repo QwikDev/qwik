@@ -16,11 +16,8 @@ import { getErrorHtml } from '../../middleware/request-handler/error-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
 import { getPathParams } from '../../runtime/src/routing';
 import { fromNodeHttp } from '../../middleware/node/http';
-import {
-  findLocation,
-  generateCodeFrame,
-} from '../../../qwik/src/optimizer/src/plugins/vite-utils';
 import { resolveRequestHandlers } from '../../middleware/request-handler/resolve-request-handlers';
+import { formatError } from './format-error';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
@@ -133,14 +130,14 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         if (requestHandlers.length > 0) {
           const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
 
-          const { completion } = runQwikCity(
+          const { completion, requestEv } = runQwikCity(
             serverRequestEv,
             params,
             requestHandlers,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname
           );
-          const requestEv = await completion;
+          await completion;
           if (requestEv.headersSent || res.headersSent) {
             return;
           }
@@ -360,28 +357,3 @@ const DEV_SERVICE_WORKER = `/* Qwik City Dev Service Worker */
 addEventListener('install', () => self.skipWaiting());
 addEventListener('activate', () => self.clients.claim());
 `;
-
-export function formatError(e: any) {
-  if (e instanceof Error) {
-    const err = e as any;
-    let loc = err.loc;
-    if (!err.frame && !err.plugin) {
-      if (!loc) {
-        loc = findLocation(err);
-      }
-      if (loc) {
-        err.loc = loc;
-        if (loc.file) {
-          err.id = normalizePath(err.loc.file);
-          try {
-            const code = fs.readFileSync(err.loc.file, 'utf-8');
-            err.frame = generateCodeFrame(code, err.loc);
-          } catch {
-            // nothing
-          }
-        }
-      }
-    }
-  }
-  return e;
-}

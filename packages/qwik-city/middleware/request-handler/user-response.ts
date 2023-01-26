@@ -8,7 +8,7 @@ import { AbortMessage, RedirectMessage } from './redirect-handler';
 export interface QwikCityRun<T> {
   response: Promise<T | null>;
   requestEv: RequestEvent;
-  completion: Promise<RequestEvent>;
+  completion: Promise<unknown>;
 }
 
 export function runQwikCity<T>(
@@ -46,20 +46,18 @@ async function runNext(requestEv: RequestEvent, resolve: (value: any) => void) {
     if (e instanceof RedirectMessage) {
       requestEv.getWritableStream().close();
     } else if (e instanceof ErrorResponse) {
+      console.error(e);
       if (!requestEv.headersSent) {
         const html = getErrorHtml(e.status, e);
         requestEv.html(e.status, html);
       }
-      console.error(e);
     } else if (!(e instanceof AbortMessage)) {
-      if (!requestEv.headersSent) {
-        requestEv.status(HttpStatus.InternalServerError);
-      }
-      throw e;
+      return e;
     }
+  } finally {
+    resolve(null);
   }
-  resolve(null);
-  return requestEv;
+  return undefined;
 }
 
 /**

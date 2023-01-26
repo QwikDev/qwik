@@ -16,6 +16,8 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
     basePathname?: string;
     qwikCityPlanModulePath: string;
     renderModulePath: string;
+    // (undocumented)
+    rootDir?: string;
 }
 
 // @alpha (undocumented)

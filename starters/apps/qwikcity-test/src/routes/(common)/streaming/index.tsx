@@ -41,6 +41,10 @@ export default component$(() => {
   );
 });
 
+// export const onGet: RequestHandler = async ({cacheControl}) => {
+//   cacheControl('static');
+// };
+
 export const head: DocumentHead = {
   title: 'About Us',
 };

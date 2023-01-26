@@ -19,8 +19,12 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
     config(config) {
       const outDir = config.build?.outDir || '.netlify/edge-functions/entry.netlify-edge';
       return {
+        resolve: {
+          conditions: ['webworker', 'worker'],
+        },
         ssr: {
-          target: 'webworker',
+          target: 'node',
+          format: 'esm',
           noExternal: true,
         },
         build: {

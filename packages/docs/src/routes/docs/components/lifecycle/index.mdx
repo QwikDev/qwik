@@ -46,10 +46,10 @@ Sometimes a component will be first mounted/rendered in the browser, for example
 Additionally, this task can be reactive and re-execute when some **tracked** [signal or store](/docs/components/state/index.mdx) changes, like this:
 
 ```tsx
-useTask$(({track}) => {
+useTask$(({ track }) => {
   track(() => store.count);
   // will run when the component mounts and every time "store.count" changes
-})
+});
 ```
 
 **Notice that any subsequent execution will always happen in the browser**, because reactivity is a client-only thing.

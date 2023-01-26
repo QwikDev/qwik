@@ -8,7 +8,7 @@ export function staticAdaptor(opts: StaticGenerateAdaptorOptions): any {
   return viteAdaptor({
     name: 'static-generate',
     ssg: {
-      filter: 'all',
+      include: ['/*'],
     },
     ...opts,
   });

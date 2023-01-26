@@ -95,3 +95,5 @@ test('creates correct headers', () => {
     equal(actual, expected);
   }
 });
+
+test.run();

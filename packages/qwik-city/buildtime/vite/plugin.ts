@@ -265,24 +265,23 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
             }
           }
 
-          const { staticPathsCode, notFoundPathsCode } = await postBuild(
-            clientOutDir,
-            api.getBasePathname(),
-            [],
-            ssrFormat,
-            false
-          );
-
           if (outDir) {
+            const { staticPathsCode, notFoundPathsCode } = await postBuild(
+              clientOutDir,
+              api.getBasePathname(),
+              [],
+              ssrFormat,
+              false
+            );
+
             await fs.promises.mkdir(outDir, { recursive: true });
             const serverPackageJsonPath = join(outDir, 'package.json');
 
             let packageJson = {};
 
             // we want to keep the content of an existing file:
-            const packageJsonExists = fs.existsSync(serverPackageJsonPath);
-            if (packageJsonExists) {
-              const content = await (await fs.promises.readFile(serverPackageJsonPath))?.toString();
+            if (fs.existsSync(serverPackageJsonPath)) {
+              const content = await fs.promises.readFile(serverPackageJsonPath, 'utf-8');
               const contentAsJson = JSON.parse(content);
               packageJson = {
                 ...contentAsJson,

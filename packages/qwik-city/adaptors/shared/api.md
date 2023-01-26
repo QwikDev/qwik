@@ -5,13 +5,13 @@
 ```ts
 
 import type { Plugin as Plugin_2 } from 'vite';
-import type { StaticGeneratePathFilter } from '@builder.io/qwik-city/static';
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 import type { UserConfig } from 'vite';
 
 // @alpha (undocumented)
-export interface AdaptorSSGOptions extends Omit<StaticGenerateRenderOptions, 'outDir' | 'origin' | 'filter'> {
-    filter?: 'auto' | 'all' | StaticGeneratePathFilter;
+export interface AdaptorSSGOptions extends Omit<StaticGenerateRenderOptions, 'outDir' | 'origin'> {
+    exclude?: string[];
+    include: string[];
     origin?: string;
 }
 

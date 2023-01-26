@@ -168,6 +168,15 @@ export function actionsMiddleware(
             const result = await validator.safeParseAsync(data);
             if (!result.success) {
               failed = true;
+              if ((globalThis as any).qDev) {
+                console.error(
+                  '\nVALIDATION ERROR\naction$() zod validated failed',
+                  '\n\n  - Received:',
+                  data,
+                  '\n  - Issues:',
+                  result.error.issues
+                );
+              }
               loaders[selectedAction] = {
                 __brand: 'fail',
                 ...result.error.flatten(),

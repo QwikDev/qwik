@@ -130,6 +130,8 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
    * Defaults to `/`
    */
   basePathname?: string;
+
+  rootDir?: string;
 }
 
 export interface StaticGenerateHandlerOptions
@@ -158,7 +160,7 @@ export interface StaticWorkerRenderResult {
   pathname: string;
   url: string;
   ok: boolean;
-  error: string | null;
+  error: { message: string; stack: string | undefined } | null;
   isStatic: boolean;
   filePath: string | null;
 }

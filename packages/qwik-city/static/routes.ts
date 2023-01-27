@@ -6,6 +6,11 @@ export function createRouteTester(
   const excludes = routesToRegExps(excludeRoutes);
 
   return (pathname: string) => {
+    if (pathname.endsWith('404.html')) {
+      // always static render 404.html routes
+      return true;
+    }
+
     for (const exclude of excludes) {
       if (exclude.test(pathname)) {
         return false;

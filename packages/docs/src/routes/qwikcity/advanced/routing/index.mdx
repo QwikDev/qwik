@@ -1,4 +1,6 @@
-# Non-200 Response
+# Advanced Routing
+
+## Non-200 Response
 
 At times it is necessary to respond with HTTP status codes other than 200. In such cases, response handler is the place to determine what status code should be returned.
 
@@ -66,7 +68,7 @@ export default component$(() => {
 });
 ```
 
-# Grouped Layouts
+## Grouped Layouts
 
 Common purpose routes are often placed into directories so they can share layouts, and so related source files are logically grouped next to each other. However, it may be desirable that the directory, which was used to group similar files and share layouts, is excluded from the public-facing URL. This is where "grouped" layouts come in (also referred to as a "pathless" layout route).
 
@@ -85,7 +87,7 @@ src/
             └── index.tsx      # https://example.com/settings
 ```
 
-# Named Layout
+## Named Layout
 
 At times related routes need to have drastically different layouts from their siblings. It is possible to define multiple layouts for different sibling routes. A single default layout and any number of named layouts. The child route can then request a specific named-layout.
 
@@ -124,7 +126,7 @@ src/
   └──────────────────────────────────────────────────┘
   ```
 
-# Nested Layout
+## Nested Layout
 
 Most times it is desirable to nest layouts into each other. A page's content can be nested in numerous wrapping layouts, which is determined by the directory structure.
 

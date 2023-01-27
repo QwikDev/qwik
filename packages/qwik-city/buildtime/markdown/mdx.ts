@@ -13,6 +13,9 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
   const { default: remarkFrontmatter } = await import('remark-frontmatter');
   const { default: remarkGfm } = await import('remark-gfm');
   const { default: rehypeAutolinkHeadings } = await import('rehype-autolink-headings');
+  const { default: rehypeRaw } = await import('rehype-raw');
+  const { nodeTypes } = await import('@mdx-js/mdx')
+
   const { VFile } = await import('vfile');
 
   const userMdxOpts = ctx.opts.mdx;
@@ -28,7 +31,9 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
     coreRemarkPlugins.push(remarkGfm);
   }
 
-  const coreRehypePlugins = [];
+  const coreRehypePlugins: any[] = [
+    [rehypeRaw, {passThrough: nodeTypes}],
+  ];
 
   if (
     typeof coreMdxPlugins?.rehypeSyntaxHighlight === 'undefined' ||

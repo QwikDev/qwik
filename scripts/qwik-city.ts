@@ -183,6 +183,7 @@ async function buildVite(config: BuildConfig, inputDir: string, outputDir: strin
     'vite',
     'source-map',
     'vfile',
+    'rehype-raw',
     '@mdx-js/mdx',
     'node-fetch',
     'undici',

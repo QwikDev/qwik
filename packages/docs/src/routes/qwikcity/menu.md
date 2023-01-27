@@ -2,17 +2,18 @@
 
 ## Qwik City
 
-- [Intro](intro/index.md)
-- [Project structure](project-structure/index.md)
+- [Intro](overview/index.mdx)
+- [Project structure](project-structure/index.mdx)
+- [API reference](api/index.mdx)
 
 ## Basics
 
-- [Routing](routing/index.md)
-- [Data loaders](loader/index.md)
-- [Form actions](action/index.md)
-- [Layouts](layout/index.md)
-- [Pages](pages/index.md)
-- [Endpoints](endpoints/index.md)
+- [Routing](routing/index.mdx)
+- [Data loaders](loader/index.mdx)
+- [Form actions](action/index.mdx)
+- [Layouts](layout/index.mdx)
+- [Pages](pages/index.mdx)
+- [Endpoints](endpoints/index.mdx)
 
 ## Guides
 
@@ -26,5 +27,4 @@
 - [Menus](advanced/menu/index.mdx)
 - [Env Variables](advanced/environment-variables/index.mdx)
 - [Prefetching](advanced/prefetching/index.mdx)
-- [Static Assets](advanced/static-asserts/index.mdx)
-- [404 Page](advanced/404/index.mdx)
+- [Static Assets](advanced/static-assets/index.mdx)

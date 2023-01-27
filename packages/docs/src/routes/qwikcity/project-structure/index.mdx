@@ -8,13 +8,20 @@ contributors:
 
 ## Create a new project
 
-The easiest way to start building a Qwik app is to run npm create:
+To follow along with this guide, run the Qwik CLI in your command line:
 
-```
-npm create qwik
+```shell
+npm create qwik@latest
 ```
 
 > Notice that you can also use the package manager of your choice, `yarn create qwik` or `pnpm create qwik`.
+
+When prompted, choose a name for your project and Basic as your starter.
+
+> Note: the `start` script attempts to launch the site in system’s browser,
+> which in headless environments (e.g., within a container)
+> could cause the command to fail with an error.
+> Edit `package.json` to remove the `--open` flag.
 
 The command will ask you a few questions and create a new project for you.
 

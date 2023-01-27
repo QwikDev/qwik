@@ -4,7 +4,9 @@ contributors:
   - adamdbradley
   - manucorporat
   - Oyemade
+  - the-r3aper7
   - mhevery
+  - nnelgxorz
 ---
 
 # Pages
@@ -13,13 +15,80 @@ Both pages and endpoints in Qwik City are created by adding a new `index.tsx` fi
 
 The only difference is that a page exports a `default` Qwik component, which will be rendered as the content of the page, while an endpoint only exports a `onRequest`, `onGet`, `onPost`, `onPut`, `onDelete`, `onPatch`, `onHead` function, which will be used to handle the incoming request.
 
-```tsx
-// src/routes/index.tsx
+## Components
 
+Page content can be created using Qwik components. The component representing the content should be exported as a `default` export.
+
+Let's assume you have your routes set up like this:
+
+```
+src/
+└── routes/
+    └── some/
+        └── path/
+            └── index.tsx              # https://example.com/some/path
+```
+
+```tsx
+// File: src/routes/some/path/index.tsx
+import { component$ } from '@builder.io/qwik';
+
+// Notice the default export
+export default component$(() => {
+  return <h1>Hello World!</h1>;
+});
+```
+
+### Importing other components
+
+You can build complex views by composing multiple components within each other. To do that import other components into your `index.tsx` file.
+
+```
+src/
+├── components/
+│   └── heading.tsx
+└── routes/
+    └── some/
+        └── path/
+            ├── index.tsx              # https://example.com/some/path
+            └── sub_component.tsx
+```
+
+Inside `index.tsx` you can create a component that is exported as `default` export. Content is created by writing a template with [JSX](https://reactjs.org/docs/introducing-jsx.html)-Syntax. Every component-function returns the template that should be rendered on the screen. If you want to learn more about the component anatomy, please see [components documentation](/docs/components/overview/index.mdx).
+The following component will be rendered at `https://example.com/some/path` according to the directory-structure, we have set up above.
+
+```tsx
+// File: src/routes/some/path/index.tsx
+import { component$ } from '@builder.io/qwik';
+import Heading from '../../../components/heading';
+import SubComponent from './sub_component';
+
+export default component$(() => {
+  return (
+    <>
+      <Heading />
+      <h2>Hello World!</h2>
+      <SubComponent />
+    </>
+  );
+});
+```
+
+```tsx
+// File: src/components/heading.tsx
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
-  return <h1>Hello World</h1>;
+  return <h1>Site Heading</h1>;
+});
+```
+
+```tsx
+// File: src/routes/some/path/sub_component.tsx
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+  return <div>Other component content.</div>;
 });
 ```
 
@@ -92,11 +161,9 @@ export const head: DocumentHead = ({ params, getData }) => {
 };
 ```
 
-The second case is a bit more complicated but it showcases how we can set the title of the page with the value that is retrieved from the `loader$`. (See [data documentation](../../data/overview/index.mdx) for retrieving data.) The Qwik City invokes `onGet` to retrieve the data for the route and then passes the data to the `head` function allowing it to create a custom title.
-
 ### Nested layouts and head
 
-An advanced case is that a [layout](../../layout/overview/index.mdx) may want to modify the document title of an already resolved document head. In the example below, the page component returns the title of `Foo`. Next, the containing layout component can read the value of the page's document head and modify it. In this example, the layout component is adding `Bar` to the title, so that when rendered, the title will be `Foo Bar`. Every layout in the stack has the opportunity to return a new value.
+An advanced case is that a [layout](/qwikcity/layout/index.mdx) may want to modify the document title of an already resolved document head. In the example below, the page component returns the title of `Foo`. Next, the containing layout component can read the value of the page's document head and modify it. In this example, the layout component is adding `Bar` to the title, so that when rendered, the title will be `Foo Bar`. Every layout in the stack has the opportunity to return a new value.
 
 ```
 ──src/

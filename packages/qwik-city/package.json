@@ -81,6 +81,7 @@
     "@mdx-js/mdx": "2.2.1",
     "@types/mdx": "2.0.3",
     "source-map": "0.7.4",
+    "rehype-raw": "^6.1.1",
     "vfile": "5.3.6",
     "zod": "^3.20.2"
   },

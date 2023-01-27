@@ -143,7 +143,7 @@ interface ProductData {
 
 export const onGet: RequestHandler = async ({ json, params }) => {
   // put your DB access here, we are hard coding a response for simplicity.
-  throw json(200, {
+  json(200, {
     skuId: params.skuId,
     price: 123.45,
     description: `Description for ${params.skuId}`,

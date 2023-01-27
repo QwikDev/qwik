@@ -17,6 +17,9 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
 
     config() {
       return {
+        resolve: {
+          conditions: ['webworker', 'worker'],
+        },
         ssr: {
           target: 'node',
           format: 'esm',

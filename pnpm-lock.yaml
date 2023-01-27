@@ -136,8 +136,8 @@ importers:
       '@algolia/autocomplete-shared': 1.7.3
       '@algolia/client-search': 4.14.2
       '@builder.io/partytown': 0.7.5
-      '@builder.io/qwik': 0.16.2
-      '@builder.io/qwik-city': 0.1.0-beta8
+      '@builder.io/qwik': BuilderIO/qwik-build#bf3416f2e3edba5e9946a444e33bb17cef0cf613
+      '@builder.io/qwik-city': BuilderIO/qwik-city-build#b924dedfb25d7d4e484d29322fcd460734449617
       '@builder.io/sdk-qwik': 0.0.37
       '@docsearch/css': 3.3.0
       '@types/node-fetch': 2.6.2
@@ -163,9 +163,9 @@ importers:
       '@algolia/autocomplete-shared': 1.7.3
       '@algolia/client-search': 4.14.2
       '@builder.io/partytown': 0.7.5
-      '@builder.io/qwik': link:../qwik
-      '@builder.io/qwik-city': 0.1.0-beta8_57atdkqjbkulndxrlkskqpl6yi
-      '@builder.io/sdk-qwik': 0.0.37_57atdkqjbkulndxrlkskqpl6yi
+      '@builder.io/qwik': github.com/BuilderIO/qwik-build/bf3416f2e3edba5e9946a444e33bb17cef0cf613_undici@5.16.0
+      '@builder.io/qwik-city': github.com/BuilderIO/qwik-city-build/b924dedfb25d7d4e484d29322fcd460734449617_@builder.io+qwik@0.16.2
+      '@builder.io/sdk-qwik': 0.0.37_@builder.io+qwik@0.16.2
       '@docsearch/css': 3.3.0
       '@types/node-fetch': 2.6.2
       '@types/prismjs': 1.26.0
@@ -428,26 +428,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@builder.io/qwik-city/0.1.0-beta8_57atdkqjbkulndxrlkskqpl6yi:
-    resolution: {integrity: sha512-yDazkJ5wj5Fxl5FiYVopRkDABScZS83m7JWC2Z3MgrzaYn/PNr8V0D6kUTT18pLrQBSXMcAPug6qyapDEUWSgw==}
-    peerDependencies:
-      '@builder.io/qwik': '>=0.16.2'
-    dependencies:
-      '@builder.io/qwik': link:packages/qwik
-      '@mdx-js/mdx': 2.2.1
-      '@types/mdx': 2.0.3
-      source-map: 0.7.4
-      vfile: 5.3.6
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
-  /@builder.io/sdk-qwik/0.0.37_57atdkqjbkulndxrlkskqpl6yi:
+  /@builder.io/sdk-qwik/0.0.37_@builder.io+qwik@0.16.2:
     resolution: {integrity: sha512-LIl/t7DK//zjjqbm2pTqLBik+sjZg13ISmpFCJoiCWsndsTGWIeFxAQPNDpWlGBqOMZC7GSFhr8JV+8TWhnymw==}
     peerDependencies:
       '@builder.io/qwik': '>=0.0.108'
     dependencies:
-      '@builder.io/qwik': link:packages/qwik
+      '@builder.io/qwik': github.com/BuilderIO/qwik-build/bf3416f2e3edba5e9946a444e33bb17cef0cf613_undici@5.16.0
     dev: true
 
   /@cloudflare/kv-asset-handler/0.2.0:
@@ -7201,3 +7187,34 @@ packages:
 
   /zwitch/2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
+
+  github.com/BuilderIO/qwik-build/bf3416f2e3edba5e9946a444e33bb17cef0cf613_undici@5.16.0:
+    resolution: {tarball: https://codeload.github.com/BuilderIO/qwik-build/tar.gz/bf3416f2e3edba5e9946a444e33bb17cef0cf613}
+    id: github.com/BuilderIO/qwik-build/bf3416f2e3edba5e9946a444e33bb17cef0cf613
+    name: '@builder.io/qwik'
+    version: 0.16.2
+    engines: {node: '>=16.8.0'}
+    hasBin: true
+    peerDependencies:
+      undici: ^5.14.0
+    dependencies:
+      undici: 5.16.0
+    dev: true
+
+  github.com/BuilderIO/qwik-city-build/b924dedfb25d7d4e484d29322fcd460734449617_@builder.io+qwik@0.16.2:
+    resolution: {tarball: https://codeload.github.com/BuilderIO/qwik-city-build/tar.gz/b924dedfb25d7d4e484d29322fcd460734449617}
+    id: github.com/BuilderIO/qwik-city-build/b924dedfb25d7d4e484d29322fcd460734449617
+    name: '@builder.io/qwik-city'
+    version: 0.1.0-beta9
+    peerDependencies:
+      '@builder.io/qwik': '>=0.16.2'
+    dependencies:
+      '@builder.io/qwik': github.com/BuilderIO/qwik-build/bf3416f2e3edba5e9946a444e33bb17cef0cf613_undici@5.16.0
+      '@mdx-js/mdx': 2.2.1
+      '@types/mdx': 2.0.3
+      source-map: 0.7.4
+      vfile: 5.3.6
+      zod: 3.20.2
+    transitivePeerDependencies:
+      - supports-color
+    dev: true

@@ -16,7 +16,7 @@ import { isQDataJson, QDATA_JSON } from './user-response';
 import { validateSerializable } from '../../utils/format';
 import { HttpStatus } from './http-status-codes';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
-import type { RenderOptions } from '@builder.io/qwik';
+import { RenderOptions, _serializeData } from '@builder.io/qwik';
 import { getQwikCityServerData } from './response-page';
 import { RedirectMessage } from './redirect-handler';
 
@@ -387,35 +387,11 @@ export async function renderQData(requestEv: RequestEvent) {
     const writer = requestEv.getWritableStream().getWriter();
 
     // write just the page json data to the response body
-    writer.write(encoder.encode(serializeData(qData)));
+    writer.write(encoder.encode(_serializeData(qData)));
     requestEv.sharedMap.set('qData', qData);
 
     writer.close();
   }
-}
-
-function serializeData(data: any) {
-  return JSON.stringify(data, (_, value) => {
-    if (value instanceof FormData) {
-      return {
-        __brand: 'formdata',
-        value: formDataToArray(value),
-      };
-    }
-    return value;
-  });
-}
-
-function formDataToArray(formData: FormData) {
-  const array: [string, string][] = [];
-  formData.forEach((value, key) => {
-    if (typeof value === 'string') {
-      array.push([key, value]);
-    } else {
-      array.push([key, value.name]);
-    }
-  });
-  return array;
 }
 
 function makeQDataPath(href: string) {

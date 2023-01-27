@@ -148,6 +148,9 @@ const _useStyles = (
     elCtx.$scopeIds$ = [];
   }
   if (scoped) {
+    if (elCtx.$parent$ && elCtx.$componentQrlOptions$?.styleScope === 'inherit') {
+      elCtx.$scopeIds$.push(...(elCtx.$parent$.$scopeIds$ || []));
+    }
     elCtx.$scopeIds$.push(styleContent(styleId));
   }
   if (hasStyle(containerState, styleId)) {

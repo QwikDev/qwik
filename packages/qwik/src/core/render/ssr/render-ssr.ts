@@ -238,8 +238,12 @@ const renderNodeVirtual = (
   beforeClose?: (stream: StreamWriter) => ValueOrPromise<void>
 ) => {
   const props = node.props;
+
   const renderQrl = props[OnRenderProp];
   if (renderQrl) {
+    if (props['q:cmpOption']) {
+      elCtx.$componentQrlOptions$ = props['q:cmpOption'];
+    }
     elCtx.$componentQrl$ = renderQrl;
     return renderSSRComponent(rCtx, ssrCtx, stream, elCtx, node, flags, beforeClose);
   }

@@ -7,7 +7,7 @@ import { jsx } from '../render/jsx/jsx-runtime';
 import { SERIALIZABLE_STATE } from '../container/serializers';
 import { qTest } from '../util/qdev';
 import { Virtual } from '../render/jsx/utils.public';
-import { assertQrl } from '../qrl/qrl-class';
+import { ComponentQRLOption, assertQrl } from '../qrl/qrl-class';
 import type { ValueOrPromise } from '../util/types';
 import { _IMMUTABLE } from '../state/constants';
 
@@ -133,7 +133,8 @@ export type EventHandler<T> = QRL<(value: T) => any>;
  */
 // </docs>
 export const componentQrl = <PROPS extends {}>(
-  componentQrl: QRL<OnRenderFn<PROPS>>
+  componentQrl: QRL<OnRenderFn<PROPS>>,
+  options?: ComponentQRLOption
 ): Component<PROPS> => {
   // Return a QComponent Factory function.
   function QwikComponent(props: PublicProps<PROPS>, key: string | null): JSXNode {
@@ -143,6 +144,7 @@ export const componentQrl = <PROPS extends {}>(
     return jsx(
       Virtual,
       {
+        ['q:cmpOption']: options,
         [OnRenderProp]: componentQrl,
         [QSlot]: props[QSlot],
         [_IMMUTABLE]: (props as any)[_IMMUTABLE],
@@ -214,8 +216,11 @@ export const isQwikComponent = (component: any): component is Component<any> => 
  * @public
  */
 // </docs>
-export const component$ = <PROPS extends {}>(onMount: OnRenderFn<PROPS>): Component<PROPS> => {
-  return componentQrl<PROPS>($(onMount));
+export const component$ = <PROPS extends {}>(
+  onMount: OnRenderFn<PROPS>,
+  options?: ComponentQRLOption
+): Component<PROPS> => {
+  return componentQrl<PROPS>($(onMount), options);
 };
 
 /**

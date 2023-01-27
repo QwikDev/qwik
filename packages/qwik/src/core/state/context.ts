@@ -1,6 +1,6 @@
 import type { OnRenderFn } from '../component/component.public';
 import { destroyWatch, SubscriberEffect } from '../use/use-task';
-import type { QRLInternal } from '../qrl/qrl-class';
+import type { ComponentQRLOption, QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import type { StyleAppend } from '../use/use-core';
 import type { ProcessedJSXNode } from '../render/dom/render-dom';
@@ -35,6 +35,7 @@ export interface QContext {
   $id$: string;
   $props$: Record<string, any> | null;
   $componentQrl$: QRLInternal<OnRenderFn<any>> | null;
+  $componentQrlOptions$: ComponentQRLOption | null;
   li: Listener[];
   $seq$: any[] | null;
   $watches$: SubscriberEffect[] | null;
@@ -132,6 +133,7 @@ export const createContext = (element: Element | VirtualElement): QContext => {
     $props$: null,
     $vdom$: null,
     $componentQrl$: null,
+    $componentQrlOptions$: null,
     $contexts$: null,
     $dynamicSlots$: null,
     $parent$: null,
@@ -153,6 +155,7 @@ export const cleanupContext = (elCtx: QContext, subsManager: SubscriptionManager
     subsManager.$clearSub$(el);
   }
   elCtx.$componentQrl$ = null;
+  elCtx.$componentQrlOptions$ = null;
   elCtx.$seq$ = null;
   elCtx.$watches$ = null;
   elCtx.$flags$ = 0;

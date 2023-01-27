@@ -47,6 +47,10 @@ export interface QRLInternalMethods<TYPE> {
   $resolveLazy$(containerEl?: Element): ValueOrPromise<TYPE>;
 }
 
+export type ComponentQRLOption = {
+  styleScope: 'inherit' | undefined;
+};
+
 export interface QRLInternal<TYPE = any> extends QRL<TYPE>, QRLInternalMethods<TYPE> {}
 
 export const createQRL = <TYPE>(

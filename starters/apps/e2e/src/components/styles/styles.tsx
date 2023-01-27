@@ -28,7 +28,7 @@ export const StylesChildren = component$(() => {
         <button id="add-child" type="button" onClick$={() => store.count++}>
           Add Child
         </button>
-        <ComponentC class={style.className('cmp-b')}>Component C</ComponentC>
+        <ComponentC class={style.scopedClass('cmp-b')}>Component C</ComponentC>
         {Array.from({ length: store.count }).map((_, i) => (
           <>
             <Child index={i} />

@@ -14,7 +14,7 @@ import { ComponentStylesPrefixContent } from '../util/markers';
  */
 export interface UseStylesScoped {
   scopeId: string;
-  className: (str: string) => string;
+  scopedClass: (str: string) => string;
 }
 
 // <docs markdown="../readme.md#useStyles">
@@ -99,7 +99,7 @@ export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
   const scopeId = ComponentStylesPrefixContent + _useStyles(styles, getScopedStyles, true);
   return {
     scopeId,
-    className: (className: string) => `${scopeId} ${className}`,
+    scopedClass: (className: string) => `${scopeId} ${className}`,
   };
 };
 

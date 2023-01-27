@@ -995,7 +995,7 @@ export const useStylesScoped$: (first: string) => UseStylesScoped;
 // @alpha (undocumented)
 export interface UseStylesScoped {
     // (undocumented)
-    className: (str: string) => string;
+    scopedClass: (str: string) => string;
     // (undocumented)
     scopeId: string;
 }

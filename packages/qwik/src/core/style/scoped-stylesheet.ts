@@ -109,7 +109,7 @@ export const scopeStylesheet = (css: string, scopeId: string): string => {
                 lastIdx = idx; // skip over ":global("
               } else if (newMode === pseudoElement) {
                 // We are entering pseudoElement `::foo`; insert scoping in front of it.
-                insertScopingSelector(idx - 2);
+                insertScopingSelector(findStart(idx - 1));
               }
               mode = newMode;
               ch == SPACE; // Pretend not an identifier so that we don't flush again on elementClassIdSelector
@@ -123,6 +123,19 @@ export const scopeStylesheet = (css: string, scopeId: string): string => {
   }
   flush(idx);
   return out.join('');
+
+  function findStart(idx: number) {
+    let isIdentCh = isIdent(css.charCodeAt(idx));
+    let isPrevIdentCh = idx > 0 ? isIdent(css.charCodeAt(idx - 1)) : true;
+
+    while (idx > 0) {
+      if (isPrevIdentCh && !isIdentCh) break;
+      idx--;
+      isIdentCh = isPrevIdentCh;
+      isPrevIdentCh = idx > 0 ? isIdent(css.charCodeAt(idx - 1)) : true;
+    }
+    return idx;
+  }
 
   function flush(idx: number) {
     out.push(css.substring(lastIdx, idx));
@@ -304,7 +317,7 @@ const STATE_MACHINE: StateArc[][] = /*__PURE__*/ (() => [
     /// rule
     [ANY, STAR, starSelector],
     [ANY, OPEN_BRACKET, attrSelector],
-    [ANY, COLON, pseudoElement, ':'],
+    [ANY, COLON, pseudoElement, ':', 'before', 'after', 'first-letter', 'first-line'],
     [ANY, COLON, pseudoGlobal, 'global'],
     [
       ANY,

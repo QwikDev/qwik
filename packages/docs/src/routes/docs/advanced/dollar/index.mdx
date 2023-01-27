@@ -266,7 +266,7 @@ Notice:
 However, wrapping code in `$()` is a bit inconvenient. For this reason, one can use `implicit$FirstArg()` to automatically perform the wrapping and type matching of the function taking the `QRL`. The function passed into `implicit$FirstArg()` should have a suffix of `Qrl`, and the result of that function should be set to a value with a suffix of `$`;
 
 ```tsx
-const onScroll$ = implicit$FirstArg(onScrollQrl); 
+const onScroll$ = implicit$FirstArg(onScrollQrl);
 
 onScroll$(() => alert('scroll'));
 ```

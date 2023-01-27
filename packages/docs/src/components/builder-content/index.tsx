@@ -3,7 +3,6 @@ import { useLocation } from '@builder.io/qwik-city';
 import { getBuilderSearchParams, getContent, RenderContent } from '@builder.io/sdk-qwik';
 
 export default component$<{
-  html?: any;
   apiKey: string;
   model: string;
   tag: 'main' | 'div';
@@ -27,8 +26,6 @@ export default component$<{
         },
         getContent
       );
-    } else if (props.html) {
-      return { html: props.html };
     } else {
       return getCachedValue(
         {

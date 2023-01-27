@@ -1,8 +1,8 @@
 import { component$, useStylesScoped$, useStore, Slot, useSignal } from '@builder.io/qwik';
-import parent from './parent.css';
-import child from './child.css';
-import child2 from './child2.css';
-import empty from './empty.css';
+import parent from './parent.css?inline';
+import child from './child.css?inline';
+import child2 from './child2.css?inline';
+import empty from './empty.css?inline';
 
 export const Styles = component$(() => {
   const reload = useSignal(0);
@@ -17,7 +17,7 @@ export const Styles = component$(() => {
 });
 
 export const StylesChildren = component$(() => {
-  useStylesScoped$(parent);
+  const style = useStylesScoped$(parent);
   const store = useStore({
     count: 10,
   });
@@ -28,6 +28,7 @@ export const StylesChildren = component$(() => {
         <button id="add-child" type="button" onClick$={() => store.count++}>
           Add Child
         </button>
+        <ComponentC class={style.className('cmp-b')}>Component C</ComponentC>
         {Array.from({ length: store.count }).map((_, i) => (
           <>
             <Child index={i} />
@@ -115,6 +116,14 @@ export const ComponentB = component$(() => {
   `);
   return (
     <div>
+      <Slot />
+    </div>
+  );
+});
+
+export const ComponentC = component$((props: { class: string }) => {
+  return (
+    <div id="cmp-c" class={props.class}>
       <Slot />
     </div>
   );

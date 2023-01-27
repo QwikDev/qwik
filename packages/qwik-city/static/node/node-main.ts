@@ -20,9 +20,6 @@ export async function createNodeMainProcess(opts: StaticGenerateOptions) {
 
   opts = { ...opts };
 
-  // filter function cannot be passed to the worker
-  delete opts.filter;
-
   let outDir = opts.outDir;
   if (typeof outDir !== 'string') {
     throw new Error(`Missing "outDir" option`);

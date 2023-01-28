@@ -57,7 +57,7 @@ pre[class*='language-'] {
   --header-height: 118px;
   --builder-bar-height: 56px;
   --panel-toggle-height: 0px;
-  --scroll-margin-top: 120px;
+  --scroll-margin-top: calc(var(--header-height) + var(--builder-bar-height) + 10px);
 
   --qwik-blue: #0093ee;
   --qwik-dark-blue: #006ce9;
@@ -123,9 +123,9 @@ pre[class*='language-'] {
   color-scheme: dark;
   --qwik-blue: #009dfd;
 
-  --bg-color: #2a2a2a;
+  --bg-color: #101010;
   --bg-secondary-color: #232323;
-  --bg-header-color: #ffffff06;
+  --bg-header-color: #00000006;
   --text-color: #e3e2e9;
   --secondary-text-color: #ffffffc3;
   --interactive-text-color: var(--qwik-blue);

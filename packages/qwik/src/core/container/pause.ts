@@ -62,6 +62,76 @@ import { HOST_FLAG_DYNAMIC, QContext, tryGetContext } from '../state/context';
 import { SignalImpl } from '../state/signal';
 import type { QRL } from '../qrl/qrl.public';
 
+/**
+ * @internal
+ */
+export const _serializeData = (data: any) => {
+  const containerState = {} as any;
+  const collector = createCollector(containerState);
+  collectValue(data, collector, false);
+
+  const objs = Array.from(collector.$objSet$.keys());
+  let count = 0;
+  const objToId = new Map<any, string>();
+  for (const obj of objs) {
+    objToId.set(obj, intToStr(count));
+    count++;
+  }
+  if (collector.$noSerialize$.length > 0) {
+    const undefinedID = objToId.get(undefined);
+    assertDefined(undefinedID, 'undefined ID must be defined');
+    for (const obj of collector.$noSerialize$) {
+      objToId.set(obj, undefinedID);
+    }
+  }
+
+  const mustGetObjId = (obj: any): string => {
+    const key = objToId.get(obj);
+    if (key === undefined) {
+      throw qError(QError_missingObjectId, obj);
+    }
+    return key;
+  };
+
+  const convertedObjs = objs.map((obj) => {
+    if (obj === null) {
+      return null;
+    }
+    const typeObj = typeof obj;
+    switch (typeObj) {
+      case 'undefined':
+        return UNDEFINED_PREFIX;
+      case 'number':
+        if (!Number.isFinite(obj)) {
+          break;
+        }
+        return obj;
+      case 'string':
+      case 'boolean':
+        return obj;
+    }
+    const value = serializeValue(obj, mustGetObjId, containerState);
+    if (value !== undefined) {
+      return value;
+    }
+    if (typeObj === 'object') {
+      if (isArray(obj)) {
+        return obj.map(mustGetObjId);
+      }
+      if (isSerializableObject(obj)) {
+        const output: Record<string, any> = {};
+        for (const key of Object.keys(obj)) {
+          output[key] = mustGetObjId(obj[key]);
+        }
+        return output;
+      }
+    }
+    throw qError(QError_verifySerializable, obj);
+  });
+
+  return JSON.stringify([mustGetObjId(data), convertedObjs]);
+};
+
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#pauseContainer instead)

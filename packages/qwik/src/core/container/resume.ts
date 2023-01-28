@@ -11,7 +11,7 @@ import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { createParser, OBJECT_TRANSFORMS, Parser, UNDEFINED_PREFIX } from './serializers';
 import {
   ContainerState,
-  getContainerState,
+  _getContainerState,
   GetObject,
   isContainer,
   SHOW_COMMENT,
@@ -48,6 +48,20 @@ export const getPauseState = (containerEl: Element): SnapshotState | undefined =
   }
 };
 
+/**
+ * @internal
+ */
+export const _deserializeData = (data: string) => {
+  const [mainID, convertedObjs] = JSON.parse(data);
+  const parser = createParser({} as any, {} as any);
+  reviveValues(convertedObjs, parser);
+  const getObject: GetObject = (id) => convertedObjs[strToInt(id)];
+  for (const obj of convertedObjs) {
+    reviveNestedObjects(obj, getObject, parser);
+  }
+  return getObject(mainID);
+};
+
 export const resumeContainer = (containerEl: Element) => {
   if (!isContainer(containerEl)) {
     logWarn('Skipping hydration because parent element is not q:container');
@@ -71,7 +85,7 @@ export const resumeContainer = (containerEl: Element) => {
     logWarn('Skipping hydration qwik/json metadata was not found.');
     return;
   }
-  const containerState = getContainerState(containerEl);
+  const containerState = _getContainerState(containerEl);
   moveStyles(containerEl, containerState);
 
   // Collect all elements
@@ -296,7 +310,7 @@ const getTextNode = (mark: Comment) => {
 export const appendQwikDevTools = (containerEl: Element) => {
   (containerEl as any)['qwik'] = {
     pause: () => pauseContainer(containerEl),
-    state: getContainerState(containerEl),
+    state: _getContainerState(containerEl),
   };
 };
 

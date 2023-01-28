@@ -2,7 +2,9 @@ import { loader$, RequestHandler } from '@builder.io/qwik-city';
 
 export const rootLoader = loader$(() => {
   return {
-    serverTime: new Date().toISOString(),
+    serverTime: new Date(),
+    reg: new RegExp(''),
+    nu: Infinity,
     nodeVersion: process.version,
   };
 });

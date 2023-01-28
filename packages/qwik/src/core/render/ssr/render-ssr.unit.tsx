@@ -17,7 +17,7 @@ import { delay } from '../../util/promises';
 import { SSRComment } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
 import { jsx } from '../jsx/jsx-runtime';
-import { renderSSR, RenderSSROptions } from './render-ssr';
+import { _renderSSR, RenderSSROptions } from './render-ssr';
 import { useStore } from '../../use/use-store.public';
 import { useSignal } from '../../use/use-signal';
 
@@ -1608,7 +1608,7 @@ async function testSSR(
       chunks.push(chunk);
     },
   };
-  await renderSSR(node, {
+  await _renderSSR(node, {
     stream,
     containerTagName: 'html',
     containerAttributes: {},

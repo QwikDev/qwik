@@ -23,11 +23,10 @@
     "@algolia/autocomplete-shared": "1.7.3",
     "@algolia/client-search": "4.14.2",
     "@builder.io/partytown": "0.7.5",
-    "@builder.io/qwik": "BuilderIO/qwik-build#423cd6a5f308d2e54a4cc255c5849c3ea60392b3",
-    "@builder.io/qwik-city": "BuilderIO/qwik-city-build#e48d26f087400c3f38489eb05c41bae039c05b6e",
-    "@builder.io/sdk-qwik": "0.0.37",
-    "@docsearch/css": "3.3.0",
-    "@types/mdast": "^3.0.10",
+    "@builder.io/qwik": "BuilderIO/qwik-build#bf3416f2e3edba5e9946a444e33bb17cef0cf613",
+    "@builder.io/qwik-city": "BuilderIO/qwik-city-build#b924dedfb25d7d4e484d29322fcd460734449617",
+    "@builder.io/sdk-qwik": "0.1.4",
+    "@docsearch/css": "3.3.2",
     "@types/node-fetch": "2.6.2",
     "@types/prismjs": "^1.26.0",
     "algoliasearch": "4.14.2",
@@ -39,7 +38,7 @@
     "postcss": "8.4.21",
     "prism-themes": "1.9.0",
     "prismjs": "1.29.0",
-    "puppeteer": "^19.5.2",
+    "puppeteer": "^19.6.2",
     "tailwindcss": "3.2.4",
     "tsm": "2.3.0",
     "typescript": "4.9.4",
@@ -49,7 +48,7 @@
     "uvu": "0.5.6",
     "vfile": "5.3.6",
     "vite": "4.0.4",
-    "wrangler": "^2.8.0"
+    "wrangler": "^2.8.1"
   },
   "author": "Builder.io Team",
   "bugs": {

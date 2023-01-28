@@ -102,6 +102,15 @@ export interface CorePlatform {
 // @public
 export const createContext: <STATE extends object>(name: string) => Context<STATE>;
 
+// Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "Subscriptions" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _createSignal: <T>(value: T, containerState: ContainerState, subcriptions?: Subscriptions[]) => Signal<T>;
+
+// @internal (undocumented)
+export const _deserializeData: (data: string) => any;
+
 // Warning: (ae-forgotten-export) The symbol "QwikProps" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
 //
@@ -126,6 +135,9 @@ export interface FunctionComponent<P = Record<string, any>> {
     // (undocumented)
     (props: P, key: string | null): JSXNode | null;
 }
+
+// @internal (undocumented)
+export const _getContainerState: (containerEl: Element) => ContainerState;
 
 // Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -362,7 +374,6 @@ export const noSerialize: <T extends object | undefined>(input: T) => NoSerializ
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
 
 // Warning: (ae-forgotten-export) The symbol "QContext" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "GetObjID" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
@@ -655,8 +666,8 @@ export interface RenderOptions {
     serverData?: Record<string, any>;
 }
 
-// @alpha (undocumented)
-export const renderSSR: (node: JSXNode, opts: RenderSSROptions) => Promise<void>;
+// @internal (undocumented)
+export const _renderSSR: (node: JSXNode, opts: RenderSSROptions) => Promise<void>;
 
 // @alpha (undocumented)
 export interface RenderSSROptions {
@@ -744,6 +755,9 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 
 // @internal (undocumented)
 export const _restProps: (props: Record<string, any>, omit: string[]) => Record<string, any>;
+
+// @internal (undocumented)
+export const _serializeData: (data: any) => string;
 
 // @alpha
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
@@ -1026,6 +1040,9 @@ export type ValueOrPromise<T> = T | Promise<T>;
 
 // @public
 export const version: string;
+
+// @internal (undocumented)
+export const _weakSerialize: <T extends Record<string, any>>(input: T) => Partial<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "withLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //

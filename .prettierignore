@@ -28,3 +28,4 @@ starters/**/*.js
 
 # TODO: Figure out why this doesn't pass in CI
 packages/qwik/src/core/props/props.ts
+packages/docs/src/routes/docs/overview/index.mdx

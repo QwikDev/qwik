@@ -155,9 +155,10 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           }
         }
       } catch (e: any) {
-        server.ssrFixStacktrace(e);
-        formatError(e);
-
+        if (e instanceof Error) {
+          server.ssrFixStacktrace(e);
+          formatError(e);
+        }
         if (e instanceof Error && (e as any).id === 'DEV_SERIALIZE') {
           next(formatDevSerializeError(e, routeModulePaths));
         } else {

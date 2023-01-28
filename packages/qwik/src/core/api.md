@@ -102,6 +102,15 @@ export interface CorePlatform {
 // @public
 export const createContext: <STATE extends object>(name: string) => Context<STATE>;
 
+// Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "Subscriptions" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _createSignal: <T>(value: T, containerState: ContainerState, subcriptions?: Subscriptions[]) => Signal<T>;
+
+// @internal (undocumented)
+export const _deserializeData: (data: string) => any;
+
 // Warning: (ae-forgotten-export) The symbol "QwikProps" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
 //

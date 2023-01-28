@@ -4,13 +4,13 @@
 
 ```ts
 
-import { QRL } from '@builder.io/qwik';
+import type { FailReturn } from '@builder.io/qwik-city';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RequestEvent as RequestEvent_2 } from '@builder.io/qwik-city';
-import { Signal } from '@builder.io/qwik';
-import { ValueOrPromise } from '@builder.io/qwik';
+import type { ServerAction } from '@builder.io/qwik-city';
+import type { ServerLoader } from '@builder.io/qwik-city';
 
 // Warning: (ae-forgotten-export) The symbol "CacheControlOptions" needs to be exported by the entry point index.d.ts
 //
@@ -50,12 +50,8 @@ export interface CookieValue {
 
 // @alpha (undocumented)
 export interface GetData {
-    // Warning: (ae-forgotten-export) The symbol "ServerLoader" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     <T>(loader: ServerLoader<T>): Promise<T>;
-    // Warning: (ae-forgotten-export) The symbol "ServerAction" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     <T>(loader: ServerAction<T>): Promise<T | undefined>;
 }
@@ -119,8 +115,6 @@ export interface RequestEventCommon<PLATFORM = unknown> {
 
 // @alpha (undocumented)
 export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
-    // Warning: (ae-forgotten-export) The symbol "FailReturn" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
     // (undocumented)

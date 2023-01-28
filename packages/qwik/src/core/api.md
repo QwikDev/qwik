@@ -102,12 +102,6 @@ export interface CorePlatform {
 // @public
 export const createContext: <STATE extends object>(name: string) => Context<STATE>;
 
-// Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "Subscriptions" needs to be exported by the entry point index.d.ts
-//
-// @internal (undocumented)
-export const _createSignal: <T>(value: T, containerState: ContainerState, subcriptions?: Subscriptions[]) => Signal<T>;
-
 // @internal (undocumented)
 export const _deserializeData: (data: string) => any;
 
@@ -125,6 +119,12 @@ export interface DOMAttributes<T> extends QwikProps<T>, QwikEvents<T> {
 // @public (undocumented)
 export type EagernessOptions = 'visible' | 'load' | 'idle';
 
+// @alpha (undocumented)
+export interface ErrorBoundaryStore {
+    // (undocumented)
+    error: any | undefined;
+}
+
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
     children?: any;
@@ -135,9 +135,6 @@ export interface FunctionComponent<P = Record<string, any>> {
     // (undocumented)
     (props: P, key: string | null): JSXNode | null;
 }
-
-// @internal (undocumented)
-export const _getContainerState: (containerEl: Element) => ContainerState;
 
 // Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -374,6 +371,7 @@ export const noSerialize: <T extends object | undefined>(input: T) => NoSerializ
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXNode<any> | null;
 
 // Warning: (ae-forgotten-export) The symbol "QContext" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "GetObjID" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
@@ -923,8 +921,6 @@ export interface UseEffectOptions {
 // @alpha @deprecated (undocumented)
 export const useEnvData: typeof useServerData;
 
-// Warning: (ae-forgotten-export) The symbol "ErrorBoundaryStore" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
 export const useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
 

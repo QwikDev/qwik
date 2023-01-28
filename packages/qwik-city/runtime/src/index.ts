@@ -1,4 +1,7 @@
+export type { FormSubmitFailDetail, FormSubmitSuccessDetail } from './form-component';
+
 export type {
+  MenuData,
   ContentHeading,
   ContentMenu,
   Cookie,
@@ -22,6 +25,18 @@ export type {
   RouteData,
   RouteLocation,
   StaticGenerateHandler,
+  ServerAction,
+  ServerLoader,
+  ServerActionUse,
+  ServerLoaderUse,
+  Action,
+  ActionOptions,
+  FailReturn,
+  Zod,
+  ZodReturn,
+  StaticGenerate,
+  RouteNavigate,
+  GetFailReturn,
 } from './types';
 
 export { RouterOutlet, Content } from './router-outlet-component';
@@ -37,12 +52,6 @@ export { z } from 'zod';
 
 export { Form } from './form-component';
 export type { FormProps } from './form-component';
-export type {
-  ServerAction,
-  ServerLoader,
-  ServerActionUse,
-  ServerLoaderUse,
-} from './server-functions';
 
 // @deprecated
 export type { EndpointHandler } from './types';

@@ -12,7 +12,7 @@ import type {
   ServerActionInternal,
   ServerLoader,
   ServerLoaderInternal,
-} from '../../runtime/src/server-functions';
+} from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';

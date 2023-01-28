@@ -1,6 +1,5 @@
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
-import type { FailReturn, ServerAction, ServerLoader } from '../../runtime/src/server-functions';
-import type { QwikCityPlan } from '@builder.io/qwik-city';
+import type { QwikCityPlan, FailReturn, ServerAction, ServerLoader } from '@builder.io/qwik-city';
 import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';

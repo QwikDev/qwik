@@ -6,5 +6,3 @@ export { _wrapSignal } from './state/signal';
 export { _restProps } from './state/store';
 export { _IMMUTABLE } from './state/constants';
 export { _weakSerialize } from './state/common';
-export { _createSignal } from './state/signal';
-export { _getContainerState } from './container/container';

@@ -2,12 +2,12 @@ import { component$, useSignal } from '@builder.io/qwik';
 import { loader$ } from '@builder.io/qwik-city';
 
 export const neverUsed = loader$(() => {
-  console.log('neverUsed');
+  // console.log('neverUsed');
   return ['SHOULD NOT BE SERIALIZED'];
 });
 
 export const used = loader$(() => {
-  console.log('used');
+  // console.log('used');
 
   return ['USED, but not serialized'];
 });

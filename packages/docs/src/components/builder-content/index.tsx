@@ -32,7 +32,6 @@ export default component$<{
           apiKey: props.apiKey,
           model: props.model,
           urlPath: location.pathname,
-          cacheBust: true,
         },
         getBuilderContent
       );

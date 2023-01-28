@@ -11,7 +11,7 @@ import { directGetAttribute, directSetAttribute } from '../render/fast-calls';
 import { createParser, OBJECT_TRANSFORMS, Parser, UNDEFINED_PREFIX } from './serializers';
 import {
   ContainerState,
-  getContainerState,
+  _getContainerState,
   GetObject,
   isContainer,
   SHOW_COMMENT,
@@ -71,7 +71,7 @@ export const resumeContainer = (containerEl: Element) => {
     logWarn('Skipping hydration qwik/json metadata was not found.');
     return;
   }
-  const containerState = getContainerState(containerEl);
+  const containerState = _getContainerState(containerEl);
   moveStyles(containerEl, containerState);
 
   // Collect all elements
@@ -296,7 +296,7 @@ const getTextNode = (mark: Comment) => {
 export const appendQwikDevTools = (containerEl: Element) => {
   (containerEl as any)['qwik'] = {
     pause: () => pauseContainer(containerEl),
-    state: getContainerState(containerEl),
+    state: _getContainerState(containerEl),
   };
 };
 

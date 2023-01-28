@@ -10,6 +10,7 @@ import {
   useSignal,
   $,
   useTask$,
+  _weakSerialize,
 } from '@builder.io/qwik';
 import { loadRoute } from './routing';
 import type {
@@ -82,7 +83,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     isNavigating: false,
   });
 
-  const loaderState = useStore(env.response.loaders);
+  const loaderState = _weakSerialize(useStore(env.response.loaders));
   const navPath = useSignal(toPath(url));
   const documentHead = useStore(createDocumentHead);
   const content = useStore<ContentState>({

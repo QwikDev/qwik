@@ -9,7 +9,7 @@ import { QContainerAttr } from '../../util/markers';
 import { qError, QError_cannotRenderOverExistingContainer } from '../../error/error';
 import { directSetAttribute } from '../fast-calls';
 import { processData, wrapJSX } from './render-dom';
-import { ContainerState, getContainerState } from '../../container/container';
+import { ContainerState, _getContainerState } from '../../container/container';
 import { postRendering } from './notify-render';
 import { createRenderContext } from '../execute-component';
 import { executeDOMRender, printRenderStats } from './operations';
@@ -56,7 +56,7 @@ export const render = async (
   // }
   injectQContainer(containerEl);
 
-  const containerState = getContainerState(containerEl);
+  const containerState = _getContainerState(containerEl);
   const serverData = opts?.serverData;
   if (serverData) {
     Object.assign(containerState.$serverData$, serverData);

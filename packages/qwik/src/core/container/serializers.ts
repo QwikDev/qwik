@@ -14,7 +14,7 @@ import {
 import { isDocument } from '../util/element';
 import { SignalImpl, SignalWrapper } from '../state/signal';
 import { Collector, collectSubscriptions, collectValue } from './pause';
-import type { Subscriptions } from '../state/common';
+import { fastWeakSerialize, getProxyManager, Subscriptions } from '../state/common';
 import { getOrCreateProxy } from '../state/store';
 import { QObjectManagerSymbol } from '../state/constants';
 
@@ -262,6 +262,13 @@ const SignalWrapperSerializer: Serializer<SignalWrapper<any, any>> = {
   test: (v) => v instanceof SignalWrapper,
   collect(obj, collector, leaks) {
     collectValue(obj.ref, collector, leaks);
+    if (fastWeakSerialize(obj.ref)) {
+      const manager = getProxyManager(obj.ref)!;
+      if (!manager.$isTreeshakeable$(obj.prop)) {
+        collectValue(obj.ref[obj.prop], collector, leaks);
+      }
+      collectSubscriptions(manager, collector);
+    }
     return obj;
   },
   serialize: (obj, getObjId) => {

@@ -16,7 +16,7 @@ import type { ValueOrPromise } from '../../util/types';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { renderComponent } from './render-dom';
 import type { RenderContext } from '../types';
-import { ContainerState, getContainerState } from '../../container/container';
+import { ContainerState, _getContainerState } from '../../container/container';
 import { createRenderContext } from '../execute-component';
 import { getRootNode, QwikElement } from './virtual-element';
 import { printRenderStats } from './operations';
@@ -139,7 +139,7 @@ const scheduleFrame = (containerState: ContainerState): Promise<RenderContext> =
  */
 export const _hW = () => {
   const [watch] = useLexicalScope<[SubscriberEffect]>();
-  notifyWatch(watch, getContainerState(getWrappingContainer(watch.$el$)!));
+  notifyWatch(watch, _getContainerState(getWrappingContainer(watch.$el$)!));
 };
 
 const renderMarked = async (containerState: ContainerState): Promise<void> => {

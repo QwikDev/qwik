@@ -1,5 +1,10 @@
-import type { GetSyncData, RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
-import type { NoSerialize, QRL, Signal } from '@builder.io/qwik';
+import type {
+  GetSyncData,
+  RequestEventLoader,
+  RequestHandler,
+} from '@builder.io/qwik-city/middleware/request-handler';
+import type { NoSerialize, QRL, Signal, ValueOrPromise } from '@builder.io/qwik';
+import type { z } from 'zod';
 
 export type {
   Cookie,
@@ -54,8 +59,37 @@ export interface RouteLocation {
   readonly isNavigating: boolean;
 }
 
+/**
+ * @alpha
+ */
+export type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;
+
+/**
+ * @alpha
+ */
+export type DefaultActionType = { [x: string]: JSONValue };
+
+export type GetValidatorType<B extends ZodReturn<any>> = B extends ZodReturn<infer TYPE>
+  ? z.infer<z.ZodObject<TYPE>>
+  : never;
+
+/**
+ * @alpha
+ */
+export interface Action {
+  <O>(
+    actionQrl: (form: DefaultActionType, event: RequestEventLoader) => ValueOrPromise<O>
+  ): ServerAction<O>;
+  <O, B extends ZodReturn>(
+    actionQrl: (data: GetValidatorType<B>, event: RequestEventLoader) => ValueOrPromise<O>,
+    options: B
+  ): ServerAction<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>>;
+}
 export type LoaderStateHolder = Record<string, Signal<any>>;
 
+/**
+ * @alpha
+ */
 export type RouteNavigate = QRL<(path?: string) => Promise<void>>;
 
 export type RouteAction = Signal<RouteActionValue>;
@@ -72,7 +106,7 @@ export type RouteActionValue =
 
 export type MutableRouteLocation = Mutable<RouteLocation>;
 
-type Mutable<T> = { -readonly [K in keyof T]: T[K] };
+export type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
 /**
  * @alpha
@@ -211,6 +245,9 @@ export type RouteData =
       routeBundleNames: string[]
     ];
 
+/**
+ * @alpha
+ */
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 
 /**
@@ -302,4 +339,101 @@ export interface SimpleURL {
   pathname: string;
   search: string;
   hash: string;
+}
+
+export type ServerActionExecute<RETURN, INPUT> = QRL<
+  (form: FormData | INPUT | SubmitEvent) => Promise<RETURN>
+>;
+
+/**
+ * @alpha
+ */
+export interface ServerActionUse<RETURN, INPUT> {
+  readonly id: string;
+  readonly actionPath: string;
+  readonly isRunning: boolean;
+  readonly status?: number;
+  readonly formData: FormData | undefined;
+  readonly value: GetValueReturn<RETURN> | undefined;
+  readonly fail: GetFailReturn<RETURN> | undefined;
+  readonly run: ServerActionExecute<RETURN, INPUT>;
+}
+
+/**
+ * @alpha
+ */
+export type FailReturn<T> = T & {
+  __brand: 'fail';
+};
+
+/**
+ * @alpha
+ */
+export type GetValueReturn<T> = T extends FailReturn<{}> ? never : T;
+
+/**
+ * @alpha
+ */
+export type GetFailReturn<T> = T extends FailReturn<infer I>
+  ? I & { [key: string]: undefined }
+  : never;
+
+/**
+ * @alpha
+ */
+export type ServerLoaderUse<T> = Awaited<T> extends () => ValueOrPromise<infer B>
+  ? Signal<ValueOrPromise<B>>
+  : Signal<Awaited<T>>;
+
+/**
+ * @alpha
+ */
+export interface ServerLoader<RETURN> {
+  readonly [isServerLoader]?: true;
+  use(): ServerLoaderUse<RETURN>;
+}
+
+declare const isServerLoader: unique symbol;
+
+export interface ServerLoaderInternal extends ServerLoader<any> {
+  readonly __brand?: 'server_loader';
+  __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>;
+  use(): Signal<any>;
+}
+/**
+ * @alpha
+ */
+export interface ServerAction<RETURN, INPUT = Record<string, any>> {
+  readonly [isServerLoader]?: true;
+  use(): ServerActionUse<RETURN, INPUT>;
+}
+
+export interface ServerActionInternal extends ServerAction<any, any> {
+  readonly __brand: 'server_action';
+  __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>;
+  __schema: ZodReturn | undefined;
+
+  use(): ServerActionUse<any, any>;
+}
+
+export type Editable<T> = {
+  -readonly [P in keyof T]: T[P];
+};
+
+/**
+ * @alpha
+ */
+export type ActionOptions = z.ZodRawShape;
+
+/**
+ * @alpha
+ */
+export type ZodReturn<T extends ActionOptions = any> = Promise<z.ZodObject<T>>;
+
+/**
+ * @alpha
+ */
+export interface Zod {
+  <T extends ActionOptions>(schema: T): ZodReturn<T>;
+  <T extends ActionOptions>(schema: (z: typeof import('zod').z) => T): ZodReturn<T>;
 }

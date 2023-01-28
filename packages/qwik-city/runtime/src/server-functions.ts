@@ -9,9 +9,6 @@ import {
   _wrapSignal,
   useStore,
   untrack,
-  SSRHint,
-  useRender,
-  jsx,
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
@@ -252,16 +249,13 @@ export class ServerLoaderImpl implements ServerLoaderInternal {
   readonly __brand = 'server_loader';
   constructor(public __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>) {}
   use(): Signal<any> {
-    useRender(jsx(SSRHint, { dynamic: true }));
-
-    const state = useContext(RouteStateContext);
-    const hash = this.__qrl.getHash();
-    untrack(() => {
+    return useContext(RouteStateContext, (state) => {
+      const hash = this.__qrl.getHash();
       if (!(hash in state)) {
         throw new Error(`Loader not found: ${hash}`);
       }
+      return _wrapSignal(state, hash);
     });
-    return _wrapSignal(state, hash);
   }
 }
 

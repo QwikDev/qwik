@@ -34,7 +34,7 @@ import {
   ContainerState,
   FILTER_REJECT,
   FILTER_SKIP,
-  getContainerState,
+  _getContainerState,
   GetObjID,
   intToStr,
   SHOW_COMMENT,
@@ -48,7 +48,8 @@ import { groupListeners } from '../state/listeners';
 import { serializeSStyle } from '../style/qrl-styles';
 import { serializeQRLs } from '../qrl/qrl';
 import {
-  fastShouldSerialize,
+  fastSkipSerialize,
+  fastWeakSerialize,
   getProxyFlags,
   getProxyManager,
   getProxyTarget,
@@ -80,7 +81,7 @@ export const pauseContainer = async (
   const parentJSON =
     defaultParentJSON ?? (containerEl === doc.documentElement ? doc.body : containerEl);
 
-  const containerState = getContainerState(containerEl);
+  const containerState = _getContainerState(containerEl);
   const contexts = getNodesInScope(containerEl, hasContext);
 
   // Set container to paused
@@ -378,7 +379,10 @@ export const _pauseFromContexts = async (
       if (isSerializableObject(obj)) {
         const output: Record<string, any> = {};
         for (const key of Object.keys(obj)) {
-          output[key] = mustGetObjId(obj[key]);
+          const id = getObjId(obj[key]);
+          if (id !== null) {
+            output[key] = id;
+          }
         }
         return output;
       }
@@ -691,7 +695,7 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean) => 
           return;
         }
         seen.add(obj);
-        if (!fastShouldSerialize(obj)) {
+        if (fastSkipSerialize(obj)) {
           collector.$objSet$.add(undefined);
           collector.$noSerialize$.push(obj);
           return;
@@ -705,6 +709,10 @@ export const collectValue = (obj: any, collector: Collector, leaks: boolean) => 
             return;
           }
           seen.add(obj);
+          if (fastWeakSerialize(input)) {
+            collector.$objSet$.add(obj);
+            return;
+          }
           if (leaks) {
             collectSubscriptions(getProxyManager(input)!, collector);
           }

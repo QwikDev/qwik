@@ -54,6 +54,8 @@ export interface RouteLocation {
   readonly isNavigating: boolean;
 }
 
+export type LoaderStateHolder = Record<string, Signal<any>>;
+
 export type RouteNavigate = QRL<(path?: string) => Promise<void>>;
 
 export type RouteAction = Signal<RouteActionValue>;

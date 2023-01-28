@@ -106,9 +106,9 @@ const createDocument = () => {
 };
 
 /**
- * @alpha
+ * @internal
  */
-export const renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
+export const _renderSSR = async (node: JSXNode, opts: RenderSSROptions) => {
   const root = opts.containerTagName;
   const containerEl = createSSRContext(1).$element$;
   const containerState = createContainerState(containerEl as Element, opts.base ?? '/');

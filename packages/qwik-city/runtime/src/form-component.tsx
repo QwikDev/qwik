@@ -1,5 +1,5 @@
-import type { GetFailReturn, GetValueReturn, ServerActionUse } from './server-functions';
 import { jsx, _wrapSignal, QwikJSX, ValueOrPromise } from '@builder.io/qwik';
+import type { GetFailReturn, GetValueReturn, ServerActionUse } from './types';
 
 /**
  * @alpha

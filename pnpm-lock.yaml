@@ -267,6 +267,20 @@ importers:
   packages/qwik-dom:
     specifiers: {}
 
+  packages/qwik-preact:
+    specifiers:
+      '@builder.io/qwik': workspace:*
+      preact: ^10.11.3
+      preact-render-to-string: ^5.2.6
+      typescript: 4.9.4
+      vite: 4.0.4
+    devDependencies:
+      '@builder.io/qwik': link:../qwik
+      preact: 10.11.3
+      preact-render-to-string: 5.2.6_preact@10.11.3
+      typescript: 4.9.4
+      vite: 4.0.4
+
   packages/qwik-react:
     specifiers:
       '@builder.io/qwik': workspace:*
@@ -5624,6 +5638,19 @@ packages:
       source-map-js: 1.0.2
     dev: true
 
+  /preact-render-to-string/5.2.6_preact@10.11.3:
+    resolution: {integrity: sha512-JyhErpYOvBV1hEPwIxc/fHWXPfnEGdRKxc8gFdAZ7XV4tlzyzG847XAyEZqoDnynP88akM4eaHcSOzNcLWFguw==}
+    peerDependencies:
+      preact: '>=10'
+    dependencies:
+      preact: 10.11.3
+      pretty-format: 3.8.0
+    dev: true
+
+  /preact/10.11.3:
+    resolution: {integrity: sha512-eY93IVpod/zG3uMF22Unl8h9KkrcKIRs2EGar8hwLZZDU1lkjph303V9HZBwufh2s736U6VXuhD109LYqPoffg==}
+    dev: true
+
   /prelude-ls/1.1.2:
     resolution: {integrity: sha512-ESF23V4SKG6lVSGZgYNpbsiaAkdab6ZgOxe52p7+Kid3W3u3bxR4Vfd/o21dmN7jSt0IwgZ4v5MUd26FEtXE9w==}
     engines: {node: '>= 0.8.0'}
@@ -5638,6 +5665,10 @@ packages:
     resolution: {integrity: sha512-tJ/oJ4amDihPoufT5sM0Z1SKEuKay8LfVAMlbbhnnkvt6BUserZylqo2PN+p9KeljLr0OHa2rXHU1T8reeoTrw==}
     engines: {node: '>=10.13.0'}
     hasBin: true
+    dev: true
+
+  /pretty-format/3.8.0:
+    resolution: {integrity: sha512-WuxUnVtlWL1OfZFQFuqvnvs6MiAGk9UNsBostyBOB0Is9wb5uRESevA6rnl/rkksXaGX3GzZhPup5d6Vp1nFew==}
     dev: true
 
   /pretty-quick/3.1.3_prettier@2.8.3:

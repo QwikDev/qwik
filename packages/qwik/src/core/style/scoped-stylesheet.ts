@@ -31,6 +31,7 @@ export const scopeStylesheet = (css: string, scopeId: string): string => {
     DEBUG && console.log(css);
     DEBUG && console.log(new Array(idx).fill(' ').join('') + '^');
     DEBUG && console.log('MODE', ...stack.map(modeToString), modeToString(mode));
+    const chIdx = idx;
     let ch = css.charCodeAt(idx++);
     if (ch === BACKSLASH) {
       idx++;
@@ -109,7 +110,7 @@ export const scopeStylesheet = (css: string, scopeId: string): string => {
                 lastIdx = idx; // skip over ":global("
               } else if (newMode === pseudoElement) {
                 // We are entering pseudoElement `::foo`; insert scoping in front of it.
-                insertScopingSelector(findStart(idx - 1));
+                insertScopingSelector(chIdx);
               }
               mode = newMode;
               ch == SPACE; // Pretend not an identifier so that we don't flush again on elementClassIdSelector
@@ -123,19 +124,6 @@ export const scopeStylesheet = (css: string, scopeId: string): string => {
   }
   flush(idx);
   return out.join('');
-
-  function findStart(idx: number) {
-    let isIdentCh = isIdent(css.charCodeAt(idx));
-    let isPrevIdentCh = idx > 0 ? isIdent(css.charCodeAt(idx - 1)) : true;
-
-    while (idx > 0) {
-      if (isPrevIdentCh && !isIdentCh) break;
-      idx--;
-      isIdentCh = isPrevIdentCh;
-      isPrevIdentCh = idx > 0 ? isIdent(css.charCodeAt(idx - 1)) : true;
-    }
-    return idx;
-  }
 
   function flush(idx: number) {
     out.push(css.substring(lastIdx, idx));

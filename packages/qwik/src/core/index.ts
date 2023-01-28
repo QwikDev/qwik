@@ -8,7 +8,7 @@ export type { PropsOf, OnRenderFn, Component, PublicProps } from './component/co
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { _pauseFromContexts } from './container/pause';
+export { _pauseFromContexts, _serializeData } from './container/pause';
 export type {
   SnapshotState,
   SnapshotResult,
@@ -16,6 +16,8 @@ export type {
   SnapshotMetaValue,
   SnapshotListener,
 } from './container/container';
+
+export { _deserializeData } from './container/resume';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime

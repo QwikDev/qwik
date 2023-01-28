@@ -51,7 +51,7 @@ export default component$(() => {
         </li>
       </ul>
       <ul>
-        <li>{serverData.value.serverTime}</li>
+        <li>{serverData.value.serverTime.toISOString()}</li>
         <li>Node {serverData.value.nodeVersion}</li>
       </ul>
     </footer>

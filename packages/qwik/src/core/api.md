@@ -108,6 +108,9 @@ export const createContext: <STATE extends object>(name: string) => Context<STAT
 // @internal (undocumented)
 export const _createSignal: <T>(value: T, containerState: ContainerState, subcriptions?: Subscriptions[]) => Signal<T>;
 
+// @internal (undocumented)
+export const _deserializeData: (data: string) => any;
+
 // Warning: (ae-forgotten-export) The symbol "QwikProps" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikEvents" needs to be exported by the entry point index.d.ts
 //
@@ -752,6 +755,9 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 
 // @internal (undocumented)
 export const _restProps: (props: Record<string, any>, omit: string[]) => Record<string, any>;
+
+// @internal (undocumented)
+export const _serializeData: (data: any) => string;
 
 // @alpha
 export const setPlatform: (plt: CorePlatform) => CorePlatform;

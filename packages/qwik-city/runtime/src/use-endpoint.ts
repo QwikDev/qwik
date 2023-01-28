@@ -2,6 +2,7 @@ import { getClientDataPath } from './utils';
 import { dispatchPrefetchEvent } from './client-navigate';
 import { CLIENT_DATA_CACHE } from './constants';
 import type { ClientPageData, RouteActionValue } from './types';
+import { _deserializeData } from '@builder.io/qwik';
 
 export const loadClientData = async (
   href: string,
@@ -41,7 +42,7 @@ export const loadClientData = async (
       if ((rsp.headers.get('content-type') || '').includes('json')) {
         // we are safe we are reading a q-data.json
         return rsp.text().then((text) => {
-          const clientData = parseData(text) as ClientPageData;
+          const clientData = _deserializeData(text) as ClientPageData;
           if (clientData.__brand !== 'qdata') {
             return;
           }
@@ -68,23 +69,6 @@ export const loadClientData = async (
 
   return qData;
 };
-
-function parseData(str: string) {
-  return JSON.parse(str, (_, value) => {
-    if (value && typeof value === 'object' && value.__brand === 'formdata') {
-      return formDataFromArray(value.value);
-    }
-    return value;
-  });
-}
-
-function formDataFromArray(array: [string, string][]): FormData {
-  const formData = new FormData();
-  for (const [key, value] of array) {
-    formData.append(key, value);
-  }
-  return formData;
-}
 
 export const isQDataJson = (pathname: string) => {
   return pathname.endsWith(QDATA_JSON);

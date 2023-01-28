@@ -5,9 +5,10 @@ expression: output
 ==INPUT==
 
 
-import { component$, useServerMount$, serverStuff$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, useServerMount$, serverLoader$, serverStuff$, useStore, useTask$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
+import { handler } from 'serverless';
 
 export const Parent = component$(() => {
     const state = useStore({
@@ -23,6 +24,8 @@ export const Parent = component$(() => {
     serverStuff$(async () => {
         // should be removed too
     })
+
+    serverLoader$(handler);
 
     useTask$(() => {
         // Code
@@ -43,7 +46,7 @@ export const Parent_component_useTask_gDH1EtUWqBU = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAoBa,IAAM;AACX,OAAO;AACX\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAuBa,IAAM;AACX,OAAO;AACX\"}")
 /*
 {
   "origin": "test.tsx",
@@ -58,8 +61,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useTask$",
   "captures": false,
   "loc": [
-    480,
-    509
+    562,
+    591
   ]
 }
 */
@@ -70,13 +73,14 @@ import { qrl } from "@builder.io/qwik";
 export const Parent = /*#__PURE__*/ componentQrl(qrl(()=>import("./parent_component_0taidayhrlo"), "Parent_component_0TaiDayHrlo"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAIA,OAAO,MAAM,uBAAS,gGAwBnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA;;AAKA,OAAO,MAAM,uBAAS,gGA0BnB\"}")
 ============================= parent_component_0taidayhrlo.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "@builder.io/qwik/jsx-runtime";
 import { _noopQrl } from "@builder.io/qwik";
 import { _wrapSignal } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
+import { serverLoaderQrl } from "@builder.io/qwik";
 import { serverStuffQrl } from "@builder.io/qwik";
 import { useServerMountQrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
@@ -90,6 +94,7 @@ export const Parent_component_0TaiDayHrlo = ()=>{
         state
     ]));
     serverStuffQrl(_noopQrl("Parent_component_serverStuff_r1qAHX7Opp0"));
+    serverLoaderQrl(_noopQrl("Parent_component_serverLoader_k1L0DiPQV1I"));
     useTaskQrl(qrl(()=>import("./parent_component_usetask_gdh1etuwqbu"), "Parent_component_useTask_gDH1EtUWqBU"));
     return /*#__PURE__*/ _jsx("div", {
         onClick$: qrl(()=>import("./parent_component_div_onclick_c5xe49nqd3a"), "Parent_component_div_onClick_C5XE49Nqd3A"),
@@ -98,7 +103,7 @@ export const Parent_component_0TaiDayHrlo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;4CAKiC,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA;IAIA;IAIA,qBACI,KAAC;QAAI,QAAQ;8BACR;;AAGb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;4CAMiC,IAAM;IACnC,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA;IAIA;IAEA;IAIA,qBACI,KAAC;QAAI,QAAQ;8BACR;;AAGb\"}")
 /*
 {
   "origin": "test.tsx",
@@ -113,8 +118,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    190,
-    627
+    243,
+    709
   ]
 }
 */
@@ -123,7 +128,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const Parent_component_div_onClick_C5XE49Nqd3A = ()=>console.log('parent');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAyBuB,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDA4BuB,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -138,8 +143,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    549,
-    576
+    631,
+    658
   ]
 }
 */

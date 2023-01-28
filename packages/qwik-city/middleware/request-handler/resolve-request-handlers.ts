@@ -1,8 +1,12 @@
-import type { ClientPageData, LoadedRoute, PageModule, RouteModule } from '../../runtime/src/types';
 import type {
+  ClientPageData,
+  LoadedRoute,
+  PageModule,
+  RouteModule,
   ServerActionInternal,
   ServerLoaderInternal,
-} from '../../runtime/src/server-functions';
+} from '../../runtime/src/types';
+
 import type { RequestEvent, RequestHandler } from './types';
 import {
   getRequestAction,

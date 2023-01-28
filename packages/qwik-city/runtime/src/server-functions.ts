@@ -14,58 +14,26 @@ import {
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
 import { QACTION_KEY } from './constants';
 import { RouteStateContext } from './contexts';
-import type { RouteActionResolver, RouteLocation } from './types';
+import type {
+  Action,
+  ActionOptions,
+  Zod,
+  DefaultActionType,
+  FailReturn,
+  RouteActionResolver,
+  RouteLocation,
+  ServerAction,
+  ServerActionInternal,
+  ServerLoader,
+  ServerLoaderInternal,
+  ZodReturn,
+  ServerActionUse,
+  Editable,
+} from './types';
 import { useAction, useLocation } from './use-functions';
 import { z } from 'zod';
 import { isServer } from '@builder.io/qwik/build';
 import type { FormSubmitFailDetail, FormSubmitSuccessDetail } from './form-component';
-
-export type ServerActionExecute<RETURN, INPUT> = QRL<
-  (form: FormData | INPUT | SubmitEvent) => Promise<RETURN>
->;
-
-/**
- * @alpha
- */
-export interface ServerActionUse<RETURN, INPUT> {
-  readonly id: string;
-  readonly actionPath: string;
-  readonly isRunning: boolean;
-  readonly status?: number;
-  readonly formData: FormData | undefined;
-  readonly value: GetValueReturn<RETURN> | undefined;
-  readonly fail: GetFailReturn<RETURN> | undefined;
-  readonly run: ServerActionExecute<RETURN, INPUT>;
-}
-
-export type FailReturn<T> = T & {
-  __brand: 'fail';
-};
-
-export type GetValueReturn<T> = T extends FailReturn<{}> ? never : T;
-export type GetFailReturn<T> = T extends FailReturn<infer I>
-  ? I & { [key: string]: undefined }
-  : never;
-
-/**
- * @alpha
- */
-export interface ServerAction<RETURN, INPUT = Record<string, any>> {
-  readonly [isServerLoader]?: true;
-  use(): ServerActionUse<RETURN, INPUT>;
-}
-
-export interface ServerActionInternal extends ServerAction<any, any> {
-  readonly __brand: 'server_action';
-  __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>;
-  __schema: ZodReturn | undefined;
-
-  use(): ServerActionUse<any, any>;
-}
-
-type Editable<T> = {
-  -readonly [P in keyof T]: T[P];
-};
 
 export class ServerActionImpl implements ServerActionInternal {
   readonly __brand = 'server_action';
@@ -160,23 +128,6 @@ export class ServerActionImpl implements ServerActionInternal {
   }
 }
 
-type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;
-
-type DefaultActionType = { [x: string]: JSONValue };
-
-type GetValidatorType<B extends ZodReturn<any>> = B extends ZodReturn<infer TYPE>
-  ? z.infer<z.ZodObject<TYPE>>
-  : never;
-
-interface Action {
-  <O>(
-    actionQrl: (form: DefaultActionType, event: RequestEventLoader) => ValueOrPromise<O>
-  ): ServerAction<O>;
-  <O, B extends ZodReturn>(
-    actionQrl: (data: GetValidatorType<B>, event: RequestEventLoader) => ValueOrPromise<O>,
-    options: B
-  ): ServerAction<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>>;
-}
 /**
  * @alpha
  */
@@ -191,15 +142,6 @@ export const actionQrl = <B, A>(
  * @alpha
  */
 export const action$: Action = implicit$FirstArg(actionQrl) as any;
-
-type ActionOptions = z.ZodRawShape;
-
-type ZodReturn<T extends ActionOptions = any> = Promise<z.ZodObject<T>>;
-
-interface Zod {
-  <T extends ActionOptions>(schema: T): ZodReturn<T>;
-  <T extends ActionOptions>(schema: (z: typeof import('zod').z) => T): ZodReturn<T>;
-}
 
 /**
  * @alpha
@@ -221,29 +163,6 @@ export const zodQrl = async (
  * @alpha
  */
 export const zod$: Zod = implicit$FirstArg(zodQrl) as any;
-
-/**
- * @alpha
- */
-export type ServerLoaderUse<T> = Awaited<T> extends () => ValueOrPromise<infer B>
-  ? Signal<ValueOrPromise<B>>
-  : Signal<Awaited<T>>;
-
-/**
- * @alpha
- */
-export interface ServerLoader<RETURN> {
-  readonly [isServerLoader]?: true;
-  use(): ServerLoaderUse<RETURN>;
-}
-
-declare const isServerLoader: unique symbol;
-
-export interface ServerLoaderInternal extends ServerLoader<any> {
-  readonly __brand?: 'server_loader';
-  __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>;
-  use(): Signal<any>;
-}
 
 export class ServerLoaderImpl implements ServerLoaderInternal {
   readonly __brand = 'server_loader';
@@ -276,6 +195,7 @@ export const loader$ = implicit$FirstArg(loaderQrl);
 export const isFail = <T>(value: any): value is FailReturn<any> => {
   return value && typeof value === 'object' && value.__brand === 'fail';
 };
+
 export function formDataFromObject(obj: Record<string, string | string[] | Blob | Blob[]>) {
   const formData = new FormData();
   for (const key in obj) {

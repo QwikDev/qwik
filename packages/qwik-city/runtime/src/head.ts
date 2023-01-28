@@ -1,5 +1,4 @@
 import { withLocale } from '@builder.io/qwik';
-import type { ServerLoaderInternal } from './server-functions';
 import type {
   ContentModule,
   GetData,
@@ -9,6 +8,7 @@ import type {
   DocumentHeadProps,
   DocumentHeadValue,
   ClientPageData,
+  ServerLoaderInternal,
 } from './types';
 
 export const resolveHead = (

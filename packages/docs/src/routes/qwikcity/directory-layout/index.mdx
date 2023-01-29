@@ -3,6 +3,7 @@ title: Qwik City - file layout
 contributors:
   - manucorporat
   - mhevery
+  - Raiondesu
 ---
 
 # File Layout
@@ -40,4 +41,40 @@ import { component$ } from '@builder.io/qwik';
 export default component$(() => {
   return <>Hello World!</>;
 });
+```
+
+## Structure options
+
+You can customize how the directory and file strcture works by using the `structure` option in `vite.config`:
+
+```ts
+import { defineConfig } from 'vite';
+import { qwikVite } from '@builder.io/qwik/optimizer';
+import { qwikCity } from '@builder.io/qwik-city/vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
+
+export default defineConfig(() => {
+  return {
+    plugins: [
+      qwikCity({
+        structure: {
+          // structure options here
+        }
+      }),
+      qwikVite(),
+      tsconfigPaths()
+    ],
+  };
+});
+```
+
+```ts
+interface StructureOptions {
+  /**
+   * Marker for the layout name to be applied to the component.
+   * 
+   * Default is `'@'`
+   */
+  layoutNameMarker?: string;
+}
 ```

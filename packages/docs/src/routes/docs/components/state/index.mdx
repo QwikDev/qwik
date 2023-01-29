@@ -112,7 +112,7 @@ export default component$(() => {
     {
       nested: { fields: { are: 'not tracked' } },
     },
-    { deep: true }
+    { recursive: true }
   );
 
   return (
@@ -134,7 +134,7 @@ export default component$(() => {
     {
       letters: ['A', 'B', 'C'],
     },
-    { deep: true }
+    { recursive: true }
   );
 
   return (

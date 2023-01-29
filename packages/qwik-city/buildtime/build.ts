@@ -27,7 +27,7 @@ export async function updateBuildContext(ctx: BuildContext) {
       walkServerPlugins(ctx.opts)
         .then((serverPlugins) => {
           ctx.serverPlugins = serverPlugins;
-          return walkRoutes(ctx.opts.routesDir);
+          return walkRoutes(ctx.opts.routesDir, ctx.opts.structure);
         })
         .then((sourceFiles) => {
           const resolved = resolveSourceFiles(ctx.opts, sourceFiles);

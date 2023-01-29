@@ -116,6 +116,15 @@ export interface ParsedMenuItem {
   items?: ParsedMenuItem[];
 }
 
+export interface StructureOptions {
+  /**
+   * Marker for the layout name to be applied to the component.
+   *
+   * Default is `'@'`
+   */
+  layoutNameMarker?: string;
+}
+
 /**
  * @alpha
  */
@@ -149,6 +158,12 @@ export interface PluginOptions {
    * MDX Options https://mdxjs.com/
    */
   mdx?: any;
+
+  /**
+   * Settings for the routes diretory structure
+   */
+  structure?: StructureOptions;
+
   /**
    * @deprecated Please use "basePathname" instead.
    */
@@ -161,7 +176,9 @@ export interface MdxPlugins {
   rehypeAutolinkHeadings: boolean;
 }
 
-export interface NormalizedPluginOptions extends Required<PluginOptions> {}
+export interface NormalizedPluginOptions extends Required<PluginOptions> {
+  structure: Required<StructureOptions>;
+}
 
 export interface MarkdownAttributes {
   [name: string]: string;

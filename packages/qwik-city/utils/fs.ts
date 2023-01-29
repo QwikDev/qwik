@@ -3,7 +3,7 @@ import type { NormalizedPluginOptions } from '../buildtime/types';
 import { toTitleCase } from './format';
 import { normalizePathname } from './pathname';
 
-export function parseRouteIndexName(extlessName: string) {
+export function parseRouteIndexName(extlessName: string, layoutNameMarker: string) {
   let layoutName = '';
   const layoutStop = extlessName.endsWith('!');
 
@@ -11,10 +11,12 @@ export function parseRouteIndexName(extlessName: string) {
     extlessName = extlessName.slice(0, extlessName.length - 1);
   }
 
-  const namedLayoutParts = extlessName.split('@');
+  const namedLayoutParts =
+    layoutNameMarker === '' ? ['', extlessName.slice(5)] : extlessName.split(layoutNameMarker);
+
   if (namedLayoutParts.length > 1) {
     namedLayoutParts.shift();
-    layoutName = namedLayoutParts.join('@');
+    layoutName = namedLayoutParts.join(layoutNameMarker);
   }
 
   return { layoutName, layoutStop };
@@ -128,8 +130,8 @@ const MARKDOWN_EXTS: { [type: string]: boolean } = {
   '.mdx': true,
 };
 
-export function isIndexModule(extlessName: string) {
-  return /^index(|!|@.+)$/.test(extlessName);
+export function isIndexModule(extlessName: string, layoutNameMarker: string) {
+  return new RegExp(`^index(|!|${layoutNameMarker}.+)$`).test(extlessName);
 }
 
 export function isPluginModule(extlessName: string) {

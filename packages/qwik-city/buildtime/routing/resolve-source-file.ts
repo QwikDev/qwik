@@ -116,7 +116,10 @@ export function resolveRoute(
   const filePath = sourceFile.filePath;
   const layouts: BuildLayout[] = [];
   const routesDir = opts.routesDir;
-  const { layoutName, layoutStop } = parseRouteIndexName(sourceFile.extlessName);
+  const { layoutName, layoutStop } = parseRouteIndexName(
+    sourceFile.extlessName,
+    opts.structure.layoutNameMarker
+  );
   let pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
 
   if (sourceFile.extlessName === '404') {

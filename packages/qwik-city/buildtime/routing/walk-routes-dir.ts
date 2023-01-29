@@ -1,24 +1,32 @@
 import fs from 'node:fs';
 import { basename, join } from 'node:path';
-import type { RouteSourceFile } from '../types';
+import type { NormalizedPluginOptions, RouteSourceFile } from '../types';
 import { normalizePath } from '../../utils/fs';
 import { getSourceFile } from './source-file';
 
-export async function walkRoutes(routesDir: string) {
+export async function walkRoutes(
+  routesDir: string,
+  structureOpts: NormalizedPluginOptions['structure']
+) {
   const sourceFiles: RouteSourceFile[] = [];
-  await walkRouteDir(sourceFiles, normalizePath(routesDir), basename(routesDir));
+  await walkRouteDir(sourceFiles, normalizePath(routesDir), basename(routesDir), structureOpts);
   return sourceFiles;
 }
 
-async function walkRouteDir(sourceFiles: RouteSourceFile[], dirPath: string, dirName: string) {
+async function walkRouteDir(
+  sourceFiles: RouteSourceFile[],
+  dirPath: string,
+  dirName: string,
+  structureOpts: NormalizedPluginOptions['structure']
+) {
   try {
     const dirItemNames = await fs.promises.readdir(dirPath);
 
     await Promise.all(
-      dirItemNames.map(async (itemName) => {
+      dirItemNames.map(async (itemName: string) => {
         const itemPath = normalizePath(join(dirPath, itemName));
 
-        const sourceFileName = getSourceFile(itemName);
+        const sourceFileName = getSourceFile(itemName, structureOpts);
         if (sourceFileName !== null) {
           sourceFiles.push({
             ...sourceFileName,
@@ -28,7 +36,7 @@ async function walkRouteDir(sourceFiles: RouteSourceFile[], dirPath: string, dir
             dirPath,
           });
         } else {
-          await walkRouteDir(sourceFiles, itemPath, itemName);
+          await walkRouteDir(sourceFiles, itemPath, itemName, structureOpts);
         }
       })
     );

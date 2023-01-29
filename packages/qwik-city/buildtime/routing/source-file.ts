@@ -1,4 +1,4 @@
-import type { RouteSourceFileName, RouteSourceType } from '../types';
+import type { NormalizedPluginOptions, RouteSourceFileName, RouteSourceType } from '../types';
 import {
   isModuleExt,
   isEntryName,
@@ -13,7 +13,7 @@ import {
   isLayoutModule,
 } from '../../utils/fs';
 
-export function getSourceFile(fileName: string) {
+export function getSourceFile(fileName: string, opts: NormalizedPluginOptions['structure']) {
   const ext = getExtension(fileName);
   const extlessName = removeExtension(fileName);
   const isPageModule = isPageModuleExt(ext);
@@ -22,7 +22,7 @@ export function getSourceFile(fileName: string) {
   let type: RouteSourceType | null = null;
 
   if (
-    (isIndexModule(extlessName) || isErrorName(extlessName)) &&
+    (isIndexModule(extlessName, opts.layoutNameMarker) || isErrorName(extlessName)) &&
     (isPageModule || isModule || isMarkdown)
   ) {
     // route page or endpoint

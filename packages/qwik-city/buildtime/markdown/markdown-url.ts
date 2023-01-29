@@ -36,7 +36,7 @@ export function getMarkdownRelativeUrl(
     }
 
     const fileName = basename(filePath);
-    const sourceFileName = getSourceFile(fileName);
+    const sourceFileName = getSourceFile(fileName, opts.structure);
     if (sourceFileName) {
       const mdDirPath = dirname(filePath);
       let pathname = getPathnameFromDirPath(opts, mdDirPath);

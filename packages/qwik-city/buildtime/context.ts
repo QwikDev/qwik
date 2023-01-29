@@ -1,4 +1,9 @@
-import type { NormalizedPluginOptions, BuildContext, PluginOptions } from './types';
+import type {
+  NormalizedPluginOptions,
+  BuildContext,
+  PluginOptions,
+  StructureOptions,
+} from './types';
 import { isAbsolute, resolve } from 'node:path';
 import { normalizePath } from '../utils/fs';
 
@@ -40,7 +45,12 @@ export function resetBuildContext(ctx: BuildContext | null) {
 }
 
 function normalizeOptions(rootDir: string, userOpts: PluginOptions | undefined) {
+  // TODO: maybe employ a merge-strategy here instead of all the checks?
+
   const opts: NormalizedPluginOptions = { ...userOpts } as any;
+  const defaultStructureOptions: Required<StructureOptions> = {
+    layoutNameMarker: '@',
+  };
 
   if (typeof opts.routesDir !== 'string') {
     opts.routesDir = resolve(rootDir, 'src', 'routes');
@@ -76,6 +86,11 @@ function normalizeOptions(rootDir: string, userOpts: PluginOptions | undefined) 
   }
 
   opts.mdx = opts.mdx || {};
+
+  opts.structure = {
+    ...defaultStructureOptions,
+    ...opts.structure,
+  };
 
   return opts;
 }

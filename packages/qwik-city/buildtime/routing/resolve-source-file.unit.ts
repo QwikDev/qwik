@@ -47,11 +47,14 @@ test('resolveLayout', () => {
         rehypeSyntaxHighlight: true,
         rehypeAutolinkHeadings: true,
       },
+      structure: {
+        layoutNameMarker: '@',
+      },
       mdx: {},
       baseUrl: '/',
     };
     const sourceFile: RouteSourceFile = {
-      ...getSourceFile(c.fileName)!,
+      ...getSourceFile(c.fileName, opts.structure)!,
       dirPath: '',
       dirName: '',
       filePath: '',

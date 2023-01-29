@@ -257,6 +257,9 @@ test('createFileId, Layout', () => {
         rehypeSyntaxHighlight: true,
         rehypeAutolinkHeadings: true,
       },
+      structure: {
+        layoutNameMarker: '@',
+      },
       mdx: {},
       baseUrl: t.basePathname,
     };
@@ -265,34 +268,36 @@ test('createFileId, Layout', () => {
   });
 });
 
-test('parseRouteIndexName', () => {
-  const t = [
-    {
-      extlessName: 'index@layout@name',
-      expect: { layoutName: 'layout@name', layoutStop: false },
-    },
-    {
-      extlessName: 'index@layoutname!',
-      expect: { layoutName: 'layoutname', layoutStop: true },
-    },
-    {
-      extlessName: 'index@layoutname',
-      expect: { layoutName: 'layoutname', layoutStop: false },
-    },
-    {
-      extlessName: 'index!',
-      expect: { layoutName: '', layoutStop: true },
-    },
-    {
-      extlessName: 'index',
-      expect: { layoutName: '', layoutStop: false },
-    },
-  ];
+['@', '', '-', ':', '!'].forEach((layoutNameMarker) => {
+  test(`parseRouteIndexName with "${layoutNameMarker}" marker`, () => {
+    const t = [
+      {
+        extlessName: `index${layoutNameMarker}layout${layoutNameMarker}name`,
+        expect: { layoutName: `layout${layoutNameMarker}name`, layoutStop: false },
+      },
+      {
+        extlessName: `index${layoutNameMarker}layoutname!`,
+        expect: { layoutName: 'layoutname', layoutStop: true },
+      },
+      {
+        extlessName: `index${layoutNameMarker}layoutname`,
+        expect: { layoutName: 'layoutname', layoutStop: false },
+      },
+      {
+        extlessName: 'index!',
+        expect: { layoutName: '', layoutStop: true },
+      },
+      {
+        extlessName: 'index',
+        expect: { layoutName: '', layoutStop: false },
+      },
+    ];
 
-  t.forEach((c) => {
-    const r = parseRouteIndexName(c.extlessName);
-    equal(r.layoutName, c.expect.layoutName, `${c.extlessName} layoutName`);
-    equal(r.layoutStop, c.expect.layoutStop, `${c.extlessName} layoutStop`);
+    t.forEach((c) => {
+      const r = parseRouteIndexName(c.extlessName, layoutNameMarker);
+      equal(r.layoutName, c.expect.layoutName, `${c.extlessName} layoutName`);
+      equal(r.layoutStop, c.expect.layoutStop, `${c.extlessName} layoutStop`);
+    });
   });
 });
 
@@ -356,6 +361,9 @@ test('parseRouteIndexName', () => {
         remarkGfm: true,
         rehypeSyntaxHighlight: true,
         rehypeAutolinkHeadings: true,
+      },
+      structure: {
+        layoutNameMarker: '@',
       },
       mdx: {},
       baseUrl: t.basePathname,

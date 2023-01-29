@@ -209,7 +209,7 @@ import { getSourceFile } from './source-file';
   },
 ].forEach((t) => {
   test(`getSourceFile ${t.fileName}`, () => {
-    const s = getSourceFile(t.fileName);
+    const s = getSourceFile(t.fileName, { layoutNameMarker: '@' });
     if (s == null || t.expect == null) {
       equal(s, t.expect, t.fileName);
     } else {

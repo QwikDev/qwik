@@ -78,6 +78,9 @@ const menuFilePath = join(routesDir, 'docs', 'menu.md');
         rehypeSyntaxHighlight: true,
         rehypeAutolinkHeadings: true,
       },
+      structure: {
+        layoutNameMarker: '@',
+      },
       mdx: {},
       baseUrl: '/',
     };

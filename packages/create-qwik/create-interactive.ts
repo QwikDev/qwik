@@ -48,8 +48,6 @@ export async function runCreateInteractiveCli() {
 
   const outDir: string = getOutDir(projectNameAnswer.outDir.trim());
 
-  let removeExistingOutDirPromise: Promise<void> | null = null;
-
   if (fs.existsSync(outDir)) {
     const existingOutDirAnswer = await prompts(
       {
@@ -61,7 +59,7 @@ export async function runCreateInteractiveCli() {
         )}" already exists. What would you like to do?`,
         choices: [
           { title: 'Do not overwrite this directory and exit', value: 'exit' },
-          { title: 'Overwrite and replace this directory', value: 'replace' },
+          { title: 'Overwrite this directory', value: 'overwrite' },
         ],
         hint: '(use ↓↑ arrows, hit enter)',
       },
@@ -74,9 +72,7 @@ export async function runCreateInteractiveCli() {
       }
     );
     console.log(``);
-    if (existingOutDirAnswer.outDirChoice === 'replace') {
-      removeExistingOutDirPromise = fs.promises.rm(outDir, { recursive: true });
-    } else {
+    if (existingOutDirAnswer.outDirChoice === 'exit') {
       console.log(color.dim(` - Exited without modifying "${outDir}"`) + '\n');
       await backgroundInstall.abort();
       process.exit(1);
@@ -120,10 +116,6 @@ export async function runCreateInteractiveCli() {
     }
   );
   console.log(``);
-
-  if (removeExistingOutDirPromise) {
-    await removeExistingOutDirPromise;
-  }
 
   const runInstall: boolean = runInstallAnswer.runInstall;
 

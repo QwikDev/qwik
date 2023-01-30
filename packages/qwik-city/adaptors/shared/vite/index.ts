@@ -30,8 +30,13 @@ export function viteAdaptor(opts: ViteAdaptorPluginOptions) {
 
     config(config) {
       if (typeof opts.config === 'function') {
-        return opts.config(config);
+        config = opts.config(config);
       }
+      config.define = {
+        'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+        ...config.define,
+      };
+      return config;
     },
 
     configResolved(config) {

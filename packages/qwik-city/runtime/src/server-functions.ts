@@ -188,9 +188,9 @@ export class ServerLoaderImpl implements ServerLoaderInternal {
 /**
  * @alpha
  */
-export const loaderQrl = <PLATFORM, B>(
-  loaderQrl: QRL<(event: RequestEventLoader<PLATFORM>) => B>
-): ServerLoader<B> => {
+export const loaderQrl = <RETURN, PLATFORM = unknown>(
+  loaderQrl: QRL<(event: RequestEventLoader<PLATFORM>) => RETURN>
+): ServerLoader<RETURN> => {
   return new ServerLoaderImpl(loaderQrl as any) as any;
 };
 

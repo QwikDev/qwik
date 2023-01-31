@@ -231,10 +231,10 @@ export interface LinkProps extends AnchorAttributes {
 }
 
 // @alpha (undocumented)
-export const loader$: <PLATFORM, B>(first: (event: RequestEventLoader_2<PLATFORM>) => B) => ServerLoader<B>;
+export const loader$: <RETURN, PLATFORM = unknown>(first: (event: RequestEventLoader_2<PLATFORM>) => RETURN) => ServerLoader<RETURN>;
 
 // @alpha (undocumented)
-export const loaderQrl: <PLATFORM, B>(loaderQrl: QRL<(event: RequestEventLoader_2<PLATFORM>) => B>) => ServerLoader<B>;
+export const loaderQrl: <RETURN, PLATFORM = unknown>(loaderQrl: QRL<(event: RequestEventLoader_2<PLATFORM>) => RETURN>) => ServerLoader<RETURN>;
 
 // Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
 //

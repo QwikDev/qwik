@@ -135,7 +135,7 @@ export const onGet: RequestHandler<number> = async ({ params }) => {
 };
 
 export default component$(() => {
-  const piResource = useEndpoint<ProductData>();
+  const piResource = useEndpoint<number>();
   return (
     <Resource
       value={piResource}

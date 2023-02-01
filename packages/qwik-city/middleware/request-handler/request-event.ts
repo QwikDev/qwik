@@ -94,7 +94,6 @@ export function createRequestEvent(
 
   const loaders: Record<string, Promise<any>> = {};
 
-
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
     [RequestEvLocale]: serverRequestEv.locale,

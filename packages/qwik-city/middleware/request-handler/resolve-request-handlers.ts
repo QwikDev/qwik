@@ -16,7 +16,7 @@ import {
   setRequestAction,
 } from './request-event';
 import { QACTION_KEY } from '../../runtime/src/constants';
-import { isQDataJson, QDATA_JSON } from './user-response';
+import { isFormContentType, isQDataJson, QDATA_JSON } from './user-response';
 import { validateSerializable } from '../../utils/format';
 import { HttpStatus } from './http-status-codes';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
@@ -139,9 +139,15 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
         if (action) {
           setRequestAction(requestEv, selectedAction);
           const isForm = isFormContentType(requestEv.request.headers);
-          let data = isForm
-            ? formToObj(await requestEv.request.formData())
-            : await requestEv.request.json();
+          const req = requestEv.request.clone();
+          let data: any;
+          if (isForm) {
+            const formData = await req.formData();
+            requestEv.sharedMap.set('actionFormData', formData);
+            data = formToObj(formData);
+          } else {
+            data = await req.json();
+          }
 
           let failed = false;
           if (action.__schema) {
@@ -385,13 +391,4 @@ function makeQDataPath(href: string) {
   } else {
     return undefined;
   }
-}
-
-export function isContentType(headers: Headers, ...types: string[]) {
-  const type = headers.get('content-type')?.split(';', 1)[0].trim() ?? '';
-  return types.includes(type);
-}
-
-export function isFormContentType(headers: Headers) {
-  return isContentType(headers, 'application/x-www-form-urlencoded', 'multipart/form-data');
 }

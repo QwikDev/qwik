@@ -150,27 +150,6 @@ export const actionQrl = <B, A>(
  */
 export const action$: Action = implicit$FirstArg(actionQrl) as any;
 
-/**
- * @alpha
- */
-export const zodQrl = async (
-  qrl: QRL<ActionOptions | ((z: typeof import('zod').z) => ActionOptions)>
-) => {
-  if (isServer) {
-    let obj = await qrl.resolve();
-    if (typeof obj === 'function') {
-      obj = obj(z);
-    }
-    return z.object(obj);
-  }
-  return undefined;
-};
-
-/**
- * @alpha
- */
-export const zod$: Zod = implicit$FirstArg(zodQrl) as any;
-
 export class ServerLoaderImpl implements ServerLoaderInternal {
   readonly __brand = 'server_loader';
   constructor(public __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>) {}
@@ -178,7 +157,9 @@ export class ServerLoaderImpl implements ServerLoaderInternal {
     return useContext(RouteStateContext, (state) => {
       const hash = this.__qrl.getHash();
       if (!(hash in state)) {
-        throw new Error(`Loader not found: ${hash}`);
+        throw new Error(`Loader was used in a path where the 'loader$' was not declared.
+This is likely because the used loader was not exported in a layout.tsx or index.tsx file of the existing route.
+For more information check: https://qwik.builder.io/qwikcity/loader`);
       }
       return _wrapSignal(state, hash);
     });
@@ -199,21 +180,27 @@ export const loaderQrl = <RETURN, PLATFORM = unknown>(
  */
 export const loader$ = implicit$FirstArg(loaderQrl);
 
-export const isFail = <T>(value: any): value is FailReturn<any> => {
+export const isFail = (value: any): value is FailReturn<any> => {
   return value && typeof value === 'object' && value.__brand === 'fail';
 };
 
-export function formDataFromObject(obj: Record<string, string | string[] | Blob | Blob[]>) {
-  const formData = new FormData();
-  for (const key in obj) {
-    const value = obj[key];
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        formData.append(key, item);
-      }
-    } else {
-      formData.append(key, value);
+/**
+ * @alpha
+ */
+export const zodQrl = async (
+  qrl: QRL<ActionOptions | ((z: typeof import('zod').z) => ActionOptions)>
+) => {
+  if (isServer) {
+    let obj = await qrl.resolve();
+    if (typeof obj === 'function') {
+      obj = obj(z);
     }
+    return z.object(obj);
   }
-  return formData;
-}
+  return undefined;
+};
+
+/**
+ * @alpha
+ */
+export const zod$: Zod = implicit$FirstArg(zodQrl) as any;

@@ -7,10 +7,10 @@ test.describe('loaders', () => {
     tests();
   });
 
-  // test.describe('spa', () => {
-  //   test.use({ javaScriptEnabled: true });
-  //   tests();
-  // });
+  test.describe('spa', () => {
+    test.use({ javaScriptEnabled: true });
+    tests();
+  });
 
   function tests() {
     test.describe('login form', () => {

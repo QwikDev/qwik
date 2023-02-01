@@ -101,8 +101,9 @@ export interface RequestEventCommon<PLATFORM = unknown> {
     readonly pathname: string;
     readonly platform: PLATFORM;
     readonly query: URLSearchParams;
+    // Warning: (ae-forgotten-export) The symbol "RedirectCode" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "RedirectMessage" needs to be exported by the entry point index.d.ts
-    readonly redirect: (statusCode: number, url: string) => RedirectMessage;
+    readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
     readonly request: Request;
     // Warning: (ae-forgotten-export) The symbol "SendMethod" needs to be exported by the entry point index.d.ts
     readonly send: SendMethod;

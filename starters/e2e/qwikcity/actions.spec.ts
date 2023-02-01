@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { pathToFileURL } from 'url';
 
 test.describe('loaders', () => {
   test.describe('mpa', () => {
@@ -16,8 +17,8 @@ test.describe('loaders', () => {
       test.beforeEach(async ({ page }) => {
         await page.goto('/qwikcity-test/actions/');
       });
-      test('should run actions', async ({ page }) => {
-        // const running = page.locator('#running');
+      test('should run actions', async ({ page, javaScriptEnabled }) => {
+        const running = page.locator('#running');
         const errorMessage = page.locator('#form-error');
         const successMessage = page.locator('#form-success');
         const username = page.locator('#label-username > input');
@@ -60,6 +61,12 @@ test.describe('loaders', () => {
         await username.clear();
         await username.fill('admin');
         await submit.click();
+
+        if (javaScriptEnabled) {
+          await expect(running).toHaveText('Running...');
+        }
+        await page.waitForTimeout(2500);
+        await expect(running).toBeHidden();
         await expect(errorMessage).toBeHidden();
         await expect(successMessage).toHaveText('this is the secret');
 
@@ -67,7 +74,7 @@ test.describe('loaders', () => {
         await username.fill('redirect');
         await submit.click();
         await page.waitForTimeout(200);
-        expect(page.url()).toEqual('/qwikcity-test/');
+        expect(new URL(page.url()).pathname).toEqual('/qwikcity-test/');
       });
     });
 

@@ -15,7 +15,6 @@ export function getQwikCityServerData(requestEv: RequestEvent<unknown>) {
     locale: locale(),
     qwikcity: {
       // mode: getRequestMode(requestEv),
-      qwikCityPlan,
       params: { ...params },
       response: {
         status: status(),

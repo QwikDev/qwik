@@ -17,7 +17,7 @@ export const secretAction = action$(
         date: new Date(),
       };
     } else if (payload.username === 'redirect' && payload.code === 123) {
-      throw redirect(400, '/qwikcity-test/');
+      throw redirect(302, '/qwikcity-test/');
     }
     return fail(400, {
       message: 'Invalid username or code',

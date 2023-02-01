@@ -17,7 +17,7 @@ export async function requestHandler<T = unknown>(
   const { routes, serverPlugins, menus, cacheModules, trailingSlash, basePathname } = qwikCityPlan;
   const pathname = serverRequestEv.url.pathname;
   const matchPathname = getRouteMatchPathname(pathname, trailingSlash);
-  const loadedRoute = await loadRequestHandlers(
+  const route = await loadRequestHandlers(
     serverPlugins,
     routes,
     menus,
@@ -26,11 +26,11 @@ export async function requestHandler<T = unknown>(
     serverRequestEv.request.method,
     render
   );
-  if (loadedRoute) {
+  if (route) {
     return runQwikCity(
       serverRequestEv,
-      loadedRoute[0],
-      loadedRoute[1],
+      route[0],
+      route[1],
       trailingSlash,
       basePathname
     );
@@ -55,7 +55,7 @@ async function loadRequestHandlers(
     renderQwikMiddleware(renderFn)
   );
   if (requestHandlers.length > 0) {
-    return [route?.[0] ?? {}, requestHandlers] as const;
+    return [route, requestHandlers] as const;
   }
   return null;
 }

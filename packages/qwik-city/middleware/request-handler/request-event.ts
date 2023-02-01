@@ -1,4 +1,3 @@
-import type { PathParams } from '@builder.io/qwik-city';
 import type {
   RequestEvent,
   RequestEventLoader,
@@ -8,6 +7,7 @@ import type {
   RequestEventCommon,
 } from './types';
 import type {
+  LoadedRoute,
   ServerAction,
   ServerActionInternal,
   ServerLoader,
@@ -23,13 +23,14 @@ const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvLocale = Symbol('RequestEvLocale');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvStatus = Symbol('RequestEvStatus');
+const RequestEvRoute = Symbol('RequestEvRoute');
 export const RequestEvAction = Symbol('RequestEvAction');
 export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
 export const RequestEvBasePathname = Symbol('RequestEvBasePathname');
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
-  params: PathParams,
+  loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<unknown>[],
   trailingSlash = true,
   basePathname = '/',
@@ -93,6 +94,7 @@ export function createRequestEvent(
 
   const loaders: Record<string, Promise<any>> = {};
 
+
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
     [RequestEvLocale]: serverRequestEv.locale,
@@ -101,11 +103,12 @@ export function createRequestEvent(
     [RequestEvAction]: undefined,
     [RequestEvTrailingSlash]: trailingSlash,
     [RequestEvBasePathname]: basePathname,
+    [RequestEvRoute]: loadedRoute,
     cookie,
     headers,
     env,
     method: request.method,
-    params,
+    params: loadedRoute?.[0] ?? {},
     pathname: url.pathname,
     platform,
     query: url.searchParams,
@@ -230,12 +233,16 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvAction]: string | undefined;
   [RequestEvTrailingSlash]: boolean;
   [RequestEvBasePathname]: string;
+  [RequestEvRoute]: LoadedRoute | null;
 }
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvLoaders];
 }
 
+export function getRequestRoute(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvRoute];
+}
 export function getRequestAction(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvAction];
 }

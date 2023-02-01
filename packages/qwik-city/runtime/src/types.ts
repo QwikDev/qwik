@@ -331,6 +331,7 @@ export interface QwikCityRenderDocument extends Document {}
 export interface QwikCityEnvData {
   params: PathParams;
   response: EndpointResponse;
+  loadedRoute: LoadedRoute | null;
 }
 
 export interface SimpleURL {

@@ -1,6 +1,6 @@
 import type { QwikCityEnvData } from '../../runtime/src/types';
 import type { RequestEvent } from './types';
-import { getRequestAction, getRequestLoaders } from './request-event';
+import { getRequestAction, getRequestLoaders, getRequestRoute } from './request-event';
 
 export function getQwikCityServerData(requestEv: RequestEvent<unknown>): {
   url: string;
@@ -19,6 +19,7 @@ export function getQwikCityServerData(requestEv: RequestEvent<unknown>): {
     qwikcity: {
       // mode: getRequestMode(requestEv),
       params: { ...params },
+      loadedRoute: getRequestRoute(requestEv),
       response: {
         status: status(),
         loaders: getRequestLoaders(requestEv),

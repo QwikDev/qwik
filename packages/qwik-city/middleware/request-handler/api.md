@@ -4,13 +4,13 @@
 
 ```ts
 
+import type { Action } from '@builder.io/qwik-city';
 import type { FailReturn } from '@builder.io/qwik-city';
+import type { Loader } from '@builder.io/qwik-city';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RequestEvent as RequestEvent_2 } from '@builder.io/qwik-city';
-import type { ServerAction } from '@builder.io/qwik-city';
-import type { ServerLoader } from '@builder.io/qwik-city';
 
 // Warning: (ae-forgotten-export) The symbol "CacheControlOptions" needs to be exported by the entry point index.d.ts
 //
@@ -51,9 +51,9 @@ export interface CookieValue {
 // @alpha (undocumented)
 export interface GetData {
     // (undocumented)
-    <T>(loader: ServerLoader<T>): Promise<T>;
+    <T>(loader: Loader<T>): Promise<T>;
     // (undocumented)
-    <T>(loader: ServerAction<T>): Promise<T | undefined>;
+    <T>(loader: Action<T>): Promise<T | undefined>;
 }
 
 // @alpha (undocumented)
@@ -62,9 +62,9 @@ export function getErrorHtml(status: number, e: any): string;
 // @alpha (undocumented)
 export interface GetSyncData {
     // (undocumented)
-    <T>(loader: ServerLoader<T>): T;
+    <T>(loader: Loader<T>): T;
     // (undocumented)
-    <T>(loader: ServerAction<T>): T | undefined;
+    <T>(loader: Action<T>): T | undefined;
 }
 
 // @alpha (undocumented)

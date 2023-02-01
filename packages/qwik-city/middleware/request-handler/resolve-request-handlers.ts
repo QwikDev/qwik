@@ -3,8 +3,8 @@ import type {
   LoadedRoute,
   PageModule,
   RouteModule,
-  ServerActionInternal,
-  ServerLoaderInternal,
+  ActionInternal,
+  LoaderInternal,
 } from '../../runtime/src/types';
 
 import type { RequestEvent, RequestHandler } from './types';
@@ -30,7 +30,7 @@ export const resolveRequestHandlers = (
   method: string,
   renderHandler: RequestHandler
 ) => {
-  const serverLoaders: ServerLoaderInternal[] = [];
+  const serverLoaders: LoaderInternal[] = [];
   const requestHandlers: RequestHandler[] = [];
   const isPageRoute = !!(route && isLastModulePageRoute(route[1]));
   if (serverPlugins) {
@@ -57,7 +57,7 @@ export const resolveRequestHandlers = (
 };
 
 const _resolveRequestHandlers = (
-  serverLoaders: ServerLoaderInternal[],
+  serverLoaders: LoaderInternal[],
   requestHandlers: RequestHandler[],
   routeModules: RouteModule[],
   collectActions: boolean,
@@ -122,7 +122,7 @@ export const checkBrand = (obj: any, brand: string) => {
   return obj && typeof obj === 'object' && obj.__brand === brand;
 };
 
-export function actionsMiddleware(serverLoaders: ServerLoaderInternal[]) {
+export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
   return async (requestEv: RequestEventInternal) => {
     if (requestEv.headersSent) {
       requestEv.exit();
@@ -133,10 +133,7 @@ export function actionsMiddleware(serverLoaders: ServerLoaderInternal[]) {
 
     if (method === 'POST') {
       const selectedAction = requestEv.query.get(QACTION_KEY);
-      const serverActionsMap = (globalThis as any)._qwikActionsMap as Map<
-        string,
-        ServerActionInternal
-      >;
+      const serverActionsMap = (globalThis as any)._qwikActionsMap as Map<string, ActionInternal>;
       if (selectedAction && serverActionsMap) {
         const action = serverActionsMap.get(selectedAction);
         if (action) {

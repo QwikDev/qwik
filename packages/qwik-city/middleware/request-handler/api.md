@@ -6,11 +6,13 @@
 
 import type { Action } from '@builder.io/qwik-city';
 import type { FailReturn } from '@builder.io/qwik-city';
+import type { GetSyncData as GetSyncData_2 } from '@builder.io/qwik-city/middleware/request-handler';
 import type { Loader } from '@builder.io/qwik-city';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RequestEvent as RequestEvent_2 } from '@builder.io/qwik-city';
+import type { RequestHandler as RequestHandler_2 } from '@builder.io/qwik-city/middleware/request-handler';
 
 // Warning: (ae-forgotten-export) The symbol "CacheControlOptions" needs to be exported by the entry point index.d.ts
 //

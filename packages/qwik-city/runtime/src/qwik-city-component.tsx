@@ -19,6 +19,7 @@ import type {
   ContentState,
   ContentStateInternal,
   EndpointResponse,
+  LoadedRoute,
   MutableRouteLocation,
   PageModule,
   RouteActionValue,
@@ -136,13 +137,15 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     async function run() {
       const [path, action] = track(() => [navPath.value, actionState.value]);
       const locale = getLocale('');
-      const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
       let url = new URL(path, routeLocation.href);
-      let loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
       let clientPageData: EndpointResponse | ClientPageData | undefined;
+      let loadedRoute: LoadedRoute | null = null;
       if (isServer) {
+        loadedRoute = env!.loadedRoute;
         clientPageData = env!.response;
       } else {
+        const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
+        let loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
         const pageData = (clientPageData = await loadClientData(url.href, true, action));
         if (!pageData) {
           return;
@@ -155,19 +158,19 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
             loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
           }
         }
-      }
-      // ensure correct trailing slash
-      if (url.pathname.endsWith('/')) {
-        if (!trailingSlash) {
-          url.pathname = url.pathname.slice(0, -1);
+        // ensure correct trailing slash
+        if (url.pathname.endsWith('/')) {
+          if (!trailingSlash) {
+            url.pathname = url.pathname.slice(0, -1);
+          }
+        } else if (trailingSlash) {
+          url.pathname += '/';
         }
-      } else if (trailingSlash) {
-        url.pathname += '/';
+        loadedRoute = await loadRoutePromise;
       }
-      const pathname = url.pathname;
-      const loadedRoute = await loadRoutePromise;
       if (loadedRoute) {
         const [params, mods, menu] = loadedRoute;
+        const pathname = url.pathname;
         const contentModules = mods as ContentModule[];
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 

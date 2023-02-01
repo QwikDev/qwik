@@ -8,7 +8,7 @@ import type {
   DocumentHeadProps,
   DocumentHeadValue,
   ClientPageData,
-  ServerLoaderInternal,
+  LoaderInternal,
 } from './types';
 
 export const resolveHead = (
@@ -18,7 +18,7 @@ export const resolveHead = (
   locale: string
 ) => {
   const head = createDocumentHead();
-  const getData = ((loader: ServerLoaderInternal) =>
+  const getData = ((loader: LoaderInternal) =>
     endpoint?.loaders[loader.__qrl.getHash()]) as any as GetData;
   const headProps: DocumentHeadProps = {
     head,

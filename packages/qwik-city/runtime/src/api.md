@@ -4,6 +4,7 @@
 
 ```ts
 
+import type { Action as Action_2 } from '@builder.io/qwik-city';
 import { Component } from '@builder.io/qwik';
 import { Cookie } from '@builder.io/qwik-city/middleware/request-handler';
 import { CookieOptions } from '@builder.io/qwik-city/middleware/request-handler';
@@ -11,6 +12,7 @@ import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
 import type { FailReturn as FailReturn_2 } from '@builder.io/qwik-city';
 import type { GetSyncData } from '@builder.io/qwik-city/middleware/request-handler';
 import { JSXNode } from '@builder.io/qwik';
+import type { Loader as Loader_2 } from '@builder.io/qwik-city';
 import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
@@ -18,25 +20,30 @@ import { RequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestEventCommon } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
-import type { ServerAction as ServerAction_2 } from '@builder.io/qwik-city';
-import type { ServerLoader as ServerLoader_2 } from '@builder.io/qwik-city';
 import type { Signal } from '@builder.io/qwik';
 import { ValueOrPromise } from '@builder.io/qwik';
 import { z } from 'zod';
 
 // @alpha (undocumented)
-export const action$: Action;
+export const action$: ActionConstructor;
 
 // @alpha (undocumented)
-export interface Action {
-    // Warning: (ae-forgotten-export) The symbol "DefaultActionType" needs to be exported by the entry point index.d.ts
+export interface Action<RETURN, INPUT = Record<string, any>> {
+    // (undocumented)
+    readonly [isServerLoader]?: true;
+    use(): ActionStore<RETURN, INPUT>;
+}
+
+// @alpha (undocumented)
+export interface ActionConstructor {
+    // Warning: (ae-forgotten-export) The symbol "JSONObject" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    <O>(actionQrl: (form: DefaultActionType, event: RequestEventLoader) => ValueOrPromise<O>): ServerAction<O>;
+    <O>(actionQrl: (form: JSONObject, event: RequestEventLoader) => ValueOrPromise<O>): Action<O>;
     // Warning: (ae-forgotten-export) The symbol "GetValidatorType" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    <O, B extends ZodReturn>(actionQrl: (data: GetValidatorType<B>, event: RequestEventLoader) => ValueOrPromise<O>, options: B): ServerAction<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>>;
+    <O, B extends ZodReturn>(actionQrl: (data: GetValidatorType<B>, event: RequestEventLoader) => ValueOrPromise<O>, options: B): Action<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>>;
 }
 
 // @alpha (undocumented)
@@ -45,7 +52,19 @@ export type ActionOptions = z.ZodRawShape;
 // Warning: (ae-forgotten-export) The symbol "RequestEventLoader_2" needs to be exported by the entry point index.d.ts
 //
 // @alpha (undocumented)
-export const actionQrl: <B, A>(actionQrl: QRL<(form: DefaultActionType, event: RequestEventLoader_2) => ValueOrPromise<B>>, options?: ZodReturn) => ServerAction<B, A>;
+export const actionQrl: <B, A>(actionQrl: QRL<(form: JSONObject, event: RequestEventLoader_2) => ValueOrPromise<B>>, options?: ZodReturn) => Action<B, A>;
+
+// @alpha (undocumented)
+export interface ActionStore<RETURN, INPUT> {
+    readonly actionPath: string;
+    readonly fail: GetFailReturn<RETURN> | undefined;
+    readonly formData: FormData | undefined;
+    readonly isRunning: boolean;
+    readonly run: (form: INPUT | FormData | SubmitEvent) => Promise<RETURN>;
+    readonly status?: number;
+    // Warning: (ae-forgotten-export) The symbol "GetValueReturn" needs to be exported by the entry point index.d.ts
+    readonly value: GetValueReturn<RETURN> | undefined;
+}
 
 // @alpha @deprecated (undocumented)
 export const Content: Component<    {}>;
@@ -177,17 +196,11 @@ export const Form: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest
 
 // @alpha (undocumented)
 export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
-    // (undocumented)
-    action: ServerActionUse<O, I>;
-    // (undocumented)
+    action: ActionStore<O, I>;
     onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
-    // (undocumented)
     onSubmitFail$?: (event: CustomEvent<FormSubmitFailDetail<O>>, form: HTMLFormElement) => ValueOrPromise<void>;
-    // (undocumented)
     onSubmitSuccess$?: (event: CustomEvent<FormSubmitSuccessDetail<O>>, form: HTMLFormElement) => ValueOrPromise<void>;
-    // (undocumented)
     reloadDocument?: boolean;
-    // (undocumented)
     spaReset?: boolean;
 }
 
@@ -203,8 +216,6 @@ export interface FormSubmitFailDetail<T> {
 export interface FormSubmitSuccessDetail<T> {
     // (undocumented)
     status: number;
-    // Warning: (ae-forgotten-export) The symbol "GetValueReturn" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     value: GetValueReturn<T>;
 }
@@ -231,10 +242,20 @@ export interface LinkProps extends AnchorAttributes {
 }
 
 // @alpha (undocumented)
-export const loader$: <RETURN, PLATFORM = unknown>(first: (event: RequestEventLoader_2<PLATFORM>) => RETURN) => ServerLoader<RETURN>;
+export const loader$: <RETURN, PLATFORM = unknown>(first: (event: RequestEventLoader_2<PLATFORM>) => RETURN) => Loader<RETURN>;
 
 // @alpha (undocumented)
-export const loaderQrl: <RETURN, PLATFORM = unknown>(loaderQrl: QRL<(event: RequestEventLoader_2<PLATFORM>) => RETURN>) => ServerLoader<RETURN>;
+export interface Loader<RETURN> {
+    // (undocumented)
+    readonly [isServerLoader]?: true;
+    use(): LoaderSignal<RETURN>;
+}
+
+// @alpha (undocumented)
+export const loaderQrl: <RETURN, PLATFORM = unknown>(loaderQrl: QRL<(event: RequestEventLoader_2<PLATFORM>) => RETURN>) => Loader<RETURN>;
+
+// @alpha (undocumented)
+export type LoaderSignal<T> = Awaited<T> extends () => ValueOrPromise<infer B> ? Signal<ValueOrPromise<B>> : Signal<Awaited<T>>;
 
 // Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
 //
@@ -331,47 +352,6 @@ export type RouteParams = Record<string, string>;
 
 // @alpha (undocumented)
 export const RouterOutlet: Component<    {}>;
-
-// @alpha (undocumented)
-export interface ServerAction<RETURN, INPUT = Record<string, any>> {
-    // (undocumented)
-    readonly [isServerLoader]?: true;
-    // (undocumented)
-    use(): ServerActionUse<RETURN, INPUT>;
-}
-
-// @alpha (undocumented)
-export interface ServerActionUse<RETURN, INPUT> {
-    // (undocumented)
-    readonly actionPath: string;
-    // (undocumented)
-    readonly fail: GetFailReturn<RETURN> | undefined;
-    // (undocumented)
-    readonly formData: FormData | undefined;
-    // (undocumented)
-    readonly id: string;
-    // (undocumented)
-    readonly isRunning: boolean;
-    // Warning: (ae-forgotten-export) The symbol "ServerActionExecute" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    readonly run: ServerActionExecute<RETURN, INPUT>;
-    // (undocumented)
-    readonly status?: number;
-    // (undocumented)
-    readonly value: GetValueReturn<RETURN> | undefined;
-}
-
-// @alpha (undocumented)
-export interface ServerLoader<RETURN> {
-    // (undocumented)
-    readonly [isServerLoader]?: true;
-    // (undocumented)
-    use(): ServerLoaderUse<RETURN>;
-}
-
-// @alpha (undocumented)
-export type ServerLoaderUse<T> = Awaited<T> extends () => ValueOrPromise<infer B> ? Signal<ValueOrPromise<B>> : Signal<Awaited<T>>;
 
 // @alpha (undocumented)
 export const ServiceWorkerRegister: () => JSXNode<"script">;

@@ -7,11 +7,11 @@ import type {
   RequestEventCommon,
 } from './types';
 import type {
+  Action,
+  ActionInternal,
   LoadedRoute,
-  ServerAction,
-  ServerActionInternal,
-  ServerLoader,
-  ServerLoaderInternal,
+  Loader,
+  LoaderInternal,
 } from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { ErrorResponse } from './error-handler';
@@ -133,13 +133,11 @@ export function createRequestEvent(
       headers.set('Cache-Control', createCacheControl(cacheControl));
     },
 
-    getData: (loaderOrAction: ServerAction<any> | ServerLoader<any>) => {
+    getData: (loaderOrAction: Action<any> | Loader<any>) => {
       // create user request event, which is a narrowed down request context
-      const id = (loaderOrAction as ServerLoaderInternal | ServerActionInternal).__qrl.getHash();
+      const id = (loaderOrAction as LoaderInternal | ActionInternal).__qrl.getHash();
 
-      if (
-        (loaderOrAction as ServerLoaderInternal | ServerActionInternal).__brand === 'server_loader'
-      ) {
+      if ((loaderOrAction as LoaderInternal | ActionInternal).__brand === 'server_loader') {
         if (id in loaders) {
           throw new Error('Loader data does not exist');
         }

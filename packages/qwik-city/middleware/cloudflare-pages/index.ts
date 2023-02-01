@@ -67,6 +67,9 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
       // send request to qwik city request handler
       const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
+        handledResponse.completion.then((v) => {
+          console.error(v);
+        });
         const response = await handledResponse.response;
         if (response) {
           if (response.ok && cache && response.headers.has('Cache-Control')) {

@@ -15,8 +15,10 @@ When an SSR/SSG application boots up on a client, it requires that the framework
 1. Listeners - locate event listeners and install them on the DOM nodes to make the application interactive.
 2. Component tree - build up an internal data structure representing the application component tree.
 3. Application state - restore the application state.
+[//]: # (What state are we talking about ? Is there an application-wise state in Qwik ?)
 
 Collectively, this is known as hydration. All current generations of frameworks require this step to make the application interactive.
+[//]: # (What kind of framework are talking about ? It looks like we are talking about SSR/SSG frameworks.)
 
 [Hydration is expensive](https://www.builder.io/blog/hydration-is-pure-overhead) for two reasons:
 
@@ -27,13 +29,15 @@ Collectively, this is known as hydration. All current generations of frameworks 
 
 Qwik is different because it does not require hydration to resume an application on the client. Not requiring hydration is what makes the Qwik application startup instantaneous.
 
-All other frameworks' hydration **replays** all the application logic in the client. Qwik instead pauses execution in the server, and resumes execution in the client.
+All other frameworks' hydration **replays** all the application logic in the client. Qwik instead pauses execution in the server , and resumes execution in the client.
+[//]: # (The very consept of pausing the application is huge, a schema or a quick explaination could help making a mental model.)
 
 ## Introducing Resumability
 
 Resumability is about pausing execution in the server and resuming execution in the client without having to replay and download all of the application logic.
 
 A good mental model is that Qwik applications at any point in their lifecycle can be serialized and moved to a different VM instance (server to browser). There, the application simply resumes where the serialization stopped. No hydration is required. This is why we say that Qwik applications don't hydrate; they resume.
+[//]: # (This is confusing, why speak about another VM, which makes think about some server instance, when right after it says (server to browser). Can we not simply say that apps are anyway serialized and sent to the browser ? Also why would serialization stop ?)
 
 In order to achieve this, Qwik needs to solve the 3 problems (listeners, component tree, application state) in a way that is compatible with a no-code startup.
 

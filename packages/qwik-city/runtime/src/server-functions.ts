@@ -135,7 +135,14 @@ export const actionQrl = <B, A>(
   actionQrl: QRL<(form: DefaultActionType, event: RequestEventLoader) => ValueOrPromise<B>>,
   options?: ZodReturn
 ): ServerAction<B, A> => {
-  return new ServerActionImpl(actionQrl as any, options) as any;
+  const action = new ServerActionImpl(actionQrl as any, options) as any;
+  if (isServer) {
+    if (typeof (globalThis as any)._qwikActionsMap === 'undefined') {
+      (globalThis as any)._qwikActionsMap = new Map();
+    }
+    (globalThis as any)._qwikActionsMap.set(actionQrl.getHash(), action);
+  }
+  return action;
 };
 
 /**
@@ -181,9 +188,9 @@ export class ServerLoaderImpl implements ServerLoaderInternal {
 /**
  * @alpha
  */
-export const loaderQrl = <PLATFORM, B>(
-  loaderQrl: QRL<(event: RequestEventLoader<PLATFORM>) => B>
-): ServerLoader<B> => {
+export const loaderQrl = <RETURN, PLATFORM = unknown>(
+  loaderQrl: QRL<(event: RequestEventLoader<PLATFORM>) => RETURN>
+): ServerLoader<RETURN> => {
   return new ServerLoaderImpl(loaderQrl as any) as any;
 };
 

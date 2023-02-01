@@ -31,18 +31,10 @@ export const resolveRequestHandlers = (
   renderHandler: RequestHandler
 ) => {
   const serverLoaders: ServerLoaderInternal[] = [];
-  const serverActions: ServerActionInternal[] = [];
   const requestHandlers: RequestHandler[] = [];
   const isPageRoute = !!(route && isLastModulePageRoute(route[1]));
   if (serverPlugins) {
-    _resolveRequestHandlers(
-      serverLoaders,
-      serverActions,
-      requestHandlers,
-      serverPlugins,
-      isPageRoute,
-      method
-    );
+    _resolveRequestHandlers(serverLoaders, requestHandlers, serverPlugins, isPageRoute, method);
   }
 
   if (route) {
@@ -50,17 +42,10 @@ export const resolveRequestHandlers = (
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(renderQData);
     }
-    _resolveRequestHandlers(
-      serverLoaders,
-      serverActions,
-      requestHandlers,
-      route[1],
-      isPageRoute,
-      method
-    );
+    _resolveRequestHandlers(serverLoaders, requestHandlers, route[1], isPageRoute, method);
     if (isPageRoute) {
       if (serverLoaders.length + actionsMiddleware.length > 0) {
-        requestHandlers.push(actionsMiddleware(serverLoaders, serverActions) as any);
+        requestHandlers.push(actionsMiddleware(serverLoaders) as any);
       }
       requestHandlers.push(renderHandler);
     }
@@ -73,7 +58,6 @@ export const resolveRequestHandlers = (
 
 const _resolveRequestHandlers = (
   serverLoaders: ServerLoaderInternal[],
-  serverActions: ServerActionInternal[],
   requestHandlers: RequestHandler[],
   routeModules: RouteModule[],
   collectActions: boolean,
@@ -129,12 +113,7 @@ const _resolveRequestHandlers = (
         checkBrand(e, 'server_loader')
       ) as any[];
 
-      const actions = Object.values(routeModule).filter((e) =>
-        checkBrand(e, 'server_action')
-      ) as any[];
-
       serverLoaders.push(...loaders);
-      serverActions.push(...actions);
     }
   }
 };
@@ -143,10 +122,7 @@ export const checkBrand = (obj: any, brand: string) => {
   return obj && typeof obj === 'object' && obj.__brand === brand;
 };
 
-export function actionsMiddleware(
-  serverLoaders: ServerLoaderInternal[],
-  serverActions: ServerActionInternal[]
-) {
+export function actionsMiddleware(serverLoaders: ServerLoaderInternal[]) {
   return async (requestEv: RequestEventInternal) => {
     if (requestEv.headersSent) {
       requestEv.exit();
@@ -157,8 +133,12 @@ export function actionsMiddleware(
 
     if (method === 'POST') {
       const selectedAction = requestEv.query.get(QACTION_KEY);
-      if (selectedAction) {
-        const action = serverActions.find((a) => a.__qrl.getHash() === selectedAction);
+      const serverActionsMap = (globalThis as any)._qwikActionsMap as Map<
+        string,
+        ServerActionInternal
+      >;
+      if (selectedAction && serverActionsMap) {
+        const action = serverActionsMap.get(selectedAction);
         if (action) {
           setRequestAction(requestEv, selectedAction);
           const isForm = isFormContentType(requestEv.request.headers);

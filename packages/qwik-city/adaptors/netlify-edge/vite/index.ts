@@ -1,6 +1,6 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 import { getParentDir, ServerAdaptorOptions, viteAdaptor } from '../../shared/vite';
-import fs from 'node:fs';
+import fs, { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { basePathname } from '@qwik-city-plan';
 
@@ -53,6 +53,19 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
           ],
           version: 1,
         };
+
+        const jsPath = join(serverOutDir, 'entry.netlify-edge.js');
+        const mjsPath = join(serverOutDir, 'entry.netlify-edge.mjs');
+
+        if (existsSync(mjsPath)) {
+          await fs.promises.writeFile(
+            jsPath,
+            [
+              `import entry_netlifyEdge from './entry.netlify-edge.mjs';`,
+              `export default entry_netlifyEdge;`,
+            ].join('\n')
+          );
+        }
 
         const netlifyEdgeFnsDir = getParentDir(serverOutDir, 'edge-functions');
         await fs.promises.writeFile(

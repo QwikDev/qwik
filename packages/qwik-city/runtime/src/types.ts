@@ -67,7 +67,7 @@ export type JSONValue = string | number | boolean | { [x: string]: JSONValue } |
 /**
  * @alpha
  */
-export type DefaultActionType = { [x: string]: JSONValue };
+export type JSONObject = { [x: string]: JSONValue };
 
 export type GetValidatorType<B extends ZodReturn<any>> = B extends ZodReturn<infer TYPE>
   ? z.infer<z.ZodObject<TYPE>>
@@ -76,14 +76,12 @@ export type GetValidatorType<B extends ZodReturn<any>> = B extends ZodReturn<inf
 /**
  * @alpha
  */
-export interface Action {
-  <O>(
-    actionQrl: (form: DefaultActionType, event: RequestEventLoader) => ValueOrPromise<O>
-  ): ServerAction<O>;
+export interface ActionConstructor {
+  <O>(actionQrl: (form: JSONObject, event: RequestEventLoader) => ValueOrPromise<O>): Action<O>;
   <O, B extends ZodReturn>(
     actionQrl: (data: GetValidatorType<B>, event: RequestEventLoader) => ValueOrPromise<O>,
     options: B
-  ): ServerAction<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>>;
+  ): Action<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>>;
 }
 export type LoaderStateHolder = Record<string, Signal<any>>;
 
@@ -341,22 +339,80 @@ export interface SimpleURL {
   hash: string;
 }
 
-export type ServerActionExecute<RETURN, INPUT> = QRL<
-  (form: FormData | INPUT | SubmitEvent) => Promise<RETURN>
->;
-
 /**
  * @alpha
  */
-export interface ServerActionUse<RETURN, INPUT> {
-  readonly id: string;
+export interface ActionStore<RETURN, INPUT> {
+  /**
+   * It's the "action" path that a native `<form>` should have in order to call the action.
+   *
+   * ```tsx
+   *  <form action={action.actionPath} />
+   * ```
+   *
+   * Most of the time this property should not be used directly, instead use the `Form` component:
+   *
+   * ```tsx
+   * import {action$, Form} from '@builder.io/qwik-city';
+   *
+   * export const addUser = action$(() => { ... });
+   *
+   * export default component$(() => {
+   *   const action = addUser.use()l
+   *   return (
+   *     <Form action={action}/>
+   *   );
+   * });
+   * ```
+   */
   readonly actionPath: string;
+
+  /**
+   * Reactive property that becomes `true` only in the browser, when a form is submited and switched back to false when the action finish, ie, it describes if the action is actively running.
+   *
+   * This property is specially useful to disable the submit button while the action is processing, to prevent multiple submissions, and to inform visually to the user that the action is actively running.
+   *
+   * It will be always `false` in the server, and only becomes `true` briefly while the action is running.
+   */
   readonly isRunning: boolean;
+
+  /**
+   * Returned HTTP status code of the action after its last execution.
+   *
+   * It's `undefined` before the action is first called.
+   */
   readonly status?: number;
+
+  /**
+   * When calling an action through a `<form>`, this property contains the previously submitted `FormData`.
+   *
+   * This is useful to keep the filled form data even after a full page reload.
+   *
+   * It's `undefined` before the action is first called.
+   */
   readonly formData: FormData | undefined;
+
+  /**
+   * Returned succesful data of the action. This reactive property will contain the data returned inside the `action$` function.
+   *
+   * It's `undefined` before the action is first called.
+   */
   readonly value: GetValueReturn<RETURN> | undefined;
+
+  /**
+   * Returned failed data of the action. This reactive property will contain the data returned inside the `action$` function using the `fail()` function.
+   *
+   * If `zod$()` is used, this property might contain also the validation errors.
+   *
+   * It's `undefined` before the action is first called.
+   */
   readonly fail: GetFailReturn<RETURN> | undefined;
-  readonly run: ServerActionExecute<RETURN, INPUT>;
+
+  /**
+   * Method to execute the action programatically from the browser. Ie, instead of using a `<form>`, a 'click' handle can call the `run()` method of the action
+   * in order to execute the action in the server.
+   */
+  readonly run: (form: INPUT | FormData | SubmitEvent) => Promise<RETURN>;
 }
 
 /**
@@ -381,21 +437,26 @@ export type GetFailReturn<T> = T extends FailReturn<infer I>
 /**
  * @alpha
  */
-export type ServerLoaderUse<T> = Awaited<T> extends () => ValueOrPromise<infer B>
+export type LoaderSignal<T> = Awaited<T> extends () => ValueOrPromise<infer B>
   ? Signal<ValueOrPromise<B>>
   : Signal<Awaited<T>>;
 
 /**
  * @alpha
  */
-export interface ServerLoader<RETURN> {
+export interface Loader<RETURN> {
   readonly [isServerLoader]?: true;
-  use(): ServerLoaderUse<RETURN>;
+
+  /**
+   * Returns the `Signal` containing the data returned by the `loader$` function.
+   * Like all `use-` functions and methods, it can only be invokated within a `component$()`.
+   */
+  use(): LoaderSignal<RETURN>;
 }
 
 declare const isServerLoader: unique symbol;
 
-export interface ServerLoaderInternal extends ServerLoader<any> {
+export interface LoaderInternal extends Loader<any> {
   readonly __brand?: 'server_loader';
   __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>;
   use(): Signal<any>;
@@ -403,17 +464,22 @@ export interface ServerLoaderInternal extends ServerLoader<any> {
 /**
  * @alpha
  */
-export interface ServerAction<RETURN, INPUT = Record<string, any>> {
+export interface Action<RETURN, INPUT = Record<string, any>> {
   readonly [isServerLoader]?: true;
-  use(): ServerActionUse<RETURN, INPUT>;
+
+  /**
+   * Returns the `ActionStore` containing the current action state and methods to invoke it from a component$().
+   * Like all `use-` functions and methods, it can only be invokated within a `component$()`.
+   */
+  use(): ActionStore<RETURN, INPUT>;
 }
 
-export interface ServerActionInternal extends ServerAction<any, any> {
+export interface ActionInternal extends Action<any, any> {
   readonly __brand: 'server_action';
   __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>;
   __schema: ZodReturn | undefined;
 
-  use(): ServerActionUse<any, any>;
+  use(): ActionStore<any, any>;
 }
 
 export type Editable<T> = {

@@ -1,5 +1,5 @@
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
-import type { QwikCityPlan, FailReturn, ServerAction, ServerLoader } from '@builder.io/qwik-city';
+import type { QwikCityPlan, FailReturn, Action, Loader } from '@builder.io/qwik-city';
 import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
@@ -287,16 +287,16 @@ export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventComm
  * @alpha
  */
 export interface GetData {
-  <T>(loader: ServerLoader<T>): Promise<T>;
-  <T>(loader: ServerAction<T>): Promise<T | undefined>;
+  <T>(loader: Loader<T>): Promise<T>;
+  <T>(loader: Action<T>): Promise<T | undefined>;
 }
 
 /**
  * @alpha
  */
 export interface GetSyncData {
-  <T>(loader: ServerLoader<T>): T;
-  <T>(loader: ServerAction<T>): T | undefined;
+  <T>(loader: Loader<T>): T;
+  <T>(loader: Action<T>): T | undefined;
 }
 
 /**

@@ -44,6 +44,10 @@
 - [Custom Build Directory](advanced/custom-build-dir/index.mdx)
 - [Internationalization](advanced/i18n/index.mdx)
 
+## API Reference
+
+- [Ref](reference/ref/index.mdx)
+
 ## Community
 
 - [GitHub](https://github.com/BuilderIO/qwik)

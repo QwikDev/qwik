@@ -46,50 +46,7 @@ export const MyCmp = component$((props: MyCmpProps) => {
 
 The above example shows how the `MyApp` component can use the `Counter` component. The second example shows how one can use binding to pass values to the `Counter` component's props.
 
-## Re-rendering on Reactivity
 
-Qwik components are reactive on the component level. Component props, as well as stores, are proxies. These proxies track reads as well as writes.
-
-- A proxy-read during OnRender method execution lets Qwik know that the OnRender method depends on a given property. A read creates a subscription on that property. In our [example](../../concepts/reactivity/#counter-example), OnRender reads`{store.count}`, which creates a subscription that tells Qwik that whenever the `store.count` changes, the component should be invalidated.
-- A proxy-write notifies Qwik that all associated subscriptions should be invalidated.
-
-When components get invalidated, they are added to the invalidation queue, which is flushed (rendered) on the next `requestAnimationFrame`. This acts as a form of coalescing for component rendering.
-
-For a detailed discussion of reactivity, see related discussion.
-
-## Storing a reference
-
-Qwik provides the ability to store a reference to any component. To do so, you have to create a signal and pass the signal as `ref` attribute to the component. After the component was mounted, the reference has been stored on the signal. Have a look at the example below:
-
-```tsx
-import { component$, useClientEffect$, useSignal, useStore } from '@builder.io/qwik';
-
-export default component$(() => {
-  const store = useStore({
-    width: 0,
-    height: 0,
-  });
-  const outputRef = useSignal<Element>();
-  useClientEffect$(() => {
-    if (outputRef.value) {
-      const rect = outputRef.value.getBoundingClientRect();
-      store.width = Math.round(rect.width);
-      store.height = Math.round(rect.height);
-    }
-  });
-
-  return (
-    <div>
-      <div style={{ border: '1px solid red', width: '100px' }} ref={outputRef}>
-        Change text value here to stretch the box.
-      </div>
-      <div>
-        The above red box is {store.height} pixels high and {store.width} pixels wide.
-      </div>
-    </div>
-  );
-});
-```
 
 ## Lazy Loading
 

@@ -8,7 +8,6 @@ import {
   ValueOrPromise,
   _wrapSignal,
   useStore,
-  untrack,
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
@@ -27,8 +26,8 @@ import type {
   Loader,
   LoaderInternal,
   ZodReturn,
-  ActionStore,
   Editable,
+  ActionStore,
 } from './types';
 import { useAction, useLocation } from './use-functions';
 import { z } from 'zod';
@@ -47,30 +46,30 @@ class ActionImpl implements ActionInternal {
     const initialState: Editable<Partial<ActionStore<any, any>>> = {
       status: undefined,
       isRunning: false,
-      formData: currentAction.value?.data,
     };
     const id = this.__qrl.getHash();
     const state = useStore<Editable<ActionStore<any, any>>>(() => {
-      return untrack(() => {
-        if (currentAction.value?.output) {
-          const { status, result } = currentAction.value.output;
-          initialState.status = status;
-          if (isFail(result)) {
-            initialState.value = undefined;
-            initialState.fail = result;
-          } else {
-            initialState.value = result;
-            initialState.fail = undefined;
-          }
-        } else {
-          initialState.status = undefined;
+      const value = currentAction.value;
+      const data = value?.data;
+      initialState.formData = data instanceof FormData ? data : undefined;
+      if (value?.output) {
+        const { status, result } = value.output;
+        initialState.status = status;
+        if (isFail(result)) {
           initialState.value = undefined;
+          initialState.fail = result;
+        } else {
+          initialState.value = result;
           initialState.fail = undefined;
         }
-        initialState.actionPath = `${loc.pathname}?${QACTION_KEY}=${id}`;
-        initialState.isRunning = false;
-        return initialState as ActionStore<any, any>;
-      });
+      } else {
+        initialState.status = undefined;
+        initialState.value = undefined;
+        initialState.fail = undefined;
+      }
+      initialState.actionPath = `${loc.pathname}?${QACTION_KEY}=${id}`;
+      initialState.isRunning = false;
+      return initialState as ActionStore<any, any>;
     });
 
     initialState.run = $((input: any | FormData | SubmitEvent) => {
@@ -98,11 +97,11 @@ class ActionImpl implements ActionInternal {
         state.status = status;
         const didFail = isFail(result);
         if (didFail) {
-          initialState.value = undefined;
-          initialState.fail = result;
+          state.value = undefined;
+          state.fail = result;
         } else {
-          initialState.value = result;
-          initialState.fail = undefined;
+          state.value = result;
+          state.fail = undefined;
         }
         if (form) {
           if (form.getAttribute('data-spa-reset') === 'true') {
@@ -121,6 +120,11 @@ class ActionImpl implements ActionInternal {
             })
           );
         }
+        return {
+          status: status,
+          value: !didFail ? result : undefined,
+          fail: didFail ? result : undefined,
+        };
       });
     });
     return state;

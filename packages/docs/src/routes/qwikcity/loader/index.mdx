@@ -49,7 +49,7 @@ export const getServerTime = loader$(() => {
 
 export default component$(() => {
   // Retrieve a reactive signal of the loader data
-  const signal = getServerTime.use();
+  const signal = getServerTime.use(); // Signal<{time: number}>
   return (
     <div>
       Server time: {signal.value.time}

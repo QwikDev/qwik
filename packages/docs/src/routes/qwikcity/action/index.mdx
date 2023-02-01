@@ -46,6 +46,13 @@ export const addUser = action$((user) => {
 
 export default component$(() => {
   const action = addUser.use();
+  // action.actionPath: string;
+  // action.isRunning: boolean;
+  // action.status?: number;
+  // action.formData: FormData | undefined;
+  // action.value: {success: boolean, userID: string} | undefined;
+  // action.fail: {} | undefined;
+  // action.run: (data: any) => Promise<{success: boolean, userID: string}>;
   return (
     <div>
       <button onClick={() => action.run({ name: 'John' })}>Add user</button>

@@ -132,6 +132,19 @@ This component will have a button then when clicked, QwikCity will navigate to `
 
 The `loader$()` function is used to declare a new Server Loader in the given page/endpoint or layout. QwikCity will execute all the declared loaders for the given route match. Qwik Components can later reference the loaders, by importing them and calling the `.use()` method in order to retrieve the data.
 
+```tsx
+export const getTime = loader$(() => {
+  return { time: new Date() }
+});
+export default component$(() => {
+  const signal = getTime.use(); // Signal<{time: Date}>
+  console.log('Date': signal.value.time);
+  return (
+    <div>{signal.value.time.toISOString()}</div>
+  )
+});
+```
+
 Please refer to the [Server Loaders](/qwikcity/loader/index.mdx) section for more information.
 
 ## `action$()`

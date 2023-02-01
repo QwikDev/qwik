@@ -60,7 +60,8 @@ export interface ActionStore<RETURN, INPUT> {
     readonly fail: GetFailReturn<RETURN> | undefined;
     readonly formData: FormData | undefined;
     readonly isRunning: boolean;
-    readonly run: (form: INPUT | FormData | SubmitEvent) => Promise<RETURN>;
+    // Warning: (ae-forgotten-export) The symbol "ActionReturn" needs to be exported by the entry point index.d.ts
+    readonly run: (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>;
     readonly status?: number;
     // Warning: (ae-forgotten-export) The symbol "GetValueReturn" needs to be exported by the entry point index.d.ts
     readonly value: GetValueReturn<RETURN> | undefined;

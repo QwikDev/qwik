@@ -99,7 +99,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     currentAction
       ? {
           id: currentActionId!,
-          data: undefined,
+          data: env.response.formData,
           output: {
             result: currentAction,
             status: env.response.status,

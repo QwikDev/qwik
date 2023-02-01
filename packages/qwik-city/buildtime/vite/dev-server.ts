@@ -97,7 +97,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           routeModulePaths.set(endpointModule, route.filePath);
         }
 
-        const renderFn = (requestEv: RequestEvent) => {
+        const renderFn = async (requestEv: RequestEvent) => {
           const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
           if (!isPageDataReq) {
             const serverData = getQwikCityServerData(requestEv);

@@ -1,6 +1,7 @@
 import { QObjectRecursive } from '../state/constants';
 import { getOrCreateProxy } from '../state/store';
 import { isFunction } from '../util/types';
+import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 
 /**
@@ -96,7 +97,7 @@ export const useStore = <STATE extends object>(
   if (get != null) {
     return get;
   }
-  const value = isFunction(initialState) ? (initialState as Function)() : initialState;
+  const value = isFunction(initialState) ? invoke(undefined, initialState) : initialState;
   if (opts?.reactive === false) {
     set(value);
     return value;

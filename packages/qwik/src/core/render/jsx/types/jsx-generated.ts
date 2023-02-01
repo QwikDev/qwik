@@ -638,7 +638,7 @@ export interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
   src?: string | undefined;
   step?: number | string | undefined;
   type?: HTMLInputTypeAttribute | undefined;
-  value?: string | ReadonlyArray<string> | number | undefined;
+  value?: string | ReadonlyArray<string> | number | undefined | null | FormDataEntryValue;
   width?: number | string | undefined;
   children?: undefined;
 }

@@ -1,6 +1,6 @@
 import { component$, Resource } from '@builder.io/qwik';
 import { DocumentHead, loader$ } from '@builder.io/qwik-city';
-import { delay } from '../actions';
+import { delay } from '../actions/login';
 
 export const thing = loader$(() => {
   return async () => {

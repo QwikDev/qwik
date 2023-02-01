@@ -96,7 +96,7 @@ export type RouteActionResolver = { status: number; result: any };
 export type RouteActionValue =
   | {
       id: string;
-      data: FormData | undefined;
+      data: FormData | Record<string, any> | undefined;
       output?: RouteActionResolver;
       resolve?: NoSerialize<(data: RouteActionResolver) => void>;
     }
@@ -301,6 +301,7 @@ export type RequestHandlerBodyFunction<BODY> = () =>
 export interface EndpointResponse {
   status: number;
   loaders: Record<string, Promise<any>>;
+  formData?: FormData;
   action?: string;
 }
 
@@ -337,6 +338,15 @@ export interface SimpleURL {
   pathname: string;
   search: string;
   hash: string;
+}
+
+/**
+ * @alpha
+ */
+export interface ActionReturn<RETURN> {
+  readonly status?: number;
+  readonly value: GetValueReturn<RETURN> | undefined;
+  readonly fail: GetFailReturn<RETURN> | undefined;
 }
 
 /**
@@ -412,7 +422,7 @@ export interface ActionStore<RETURN, INPUT> {
    * Method to execute the action programatically from the browser. Ie, instead of using a `<form>`, a 'click' handle can call the `run()` method of the action
    * in order to execute the action in the server.
    */
-  readonly run: (form: INPUT | FormData | SubmitEvent) => Promise<RETURN>;
+  readonly run: (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>;
 }
 
 /**

@@ -61,6 +61,8 @@ export interface SendMethod {
   (response: Response): AbortMessage;
 }
 
+export type RedirectCode = 301 | 302 | 303 | 307 | 308;
+
 /**
  * @alpha
  */
@@ -87,7 +89,7 @@ export interface RequestEventCommon<PLATFORM = unknown> {
    *
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
    */
-  readonly redirect: (statusCode: number, url: string) => RedirectMessage;
+  readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
 
   /**
    * When called, the response will immediately end with the given

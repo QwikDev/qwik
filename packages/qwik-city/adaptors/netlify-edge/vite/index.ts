@@ -49,6 +49,7 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
             {
               path: basePathname + '*',
               function: 'entry.netlify-edge',
+              cache: 'manual',
             },
           ],
           version: 1,

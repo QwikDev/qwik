@@ -69,12 +69,14 @@ export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
 
       // send request to qwik city request handler
       const handledResponse = await requestHandler(serverRequestEv, opts);
-      if (handledResponse !== null) {
+      if (handledResponse) {
+        handledResponse.completion.then((v) => {
+          console.error(v);
+        });
         const response = await handledResponse.response;
         if (response) {
           return response;
         }
-        await handledResponse.requestEv;
       }
 
       // qwik city did not have a route for this request

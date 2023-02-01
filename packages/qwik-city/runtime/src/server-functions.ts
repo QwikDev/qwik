@@ -8,7 +8,6 @@ import {
   ValueOrPromise,
   _wrapSignal,
   useStore,
-  untrack,
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
@@ -47,31 +46,31 @@ export class ServerActionImpl implements ServerActionInternal {
     const initialState: Editable<Partial<ServerActionUse<any, any>>> = {
       status: undefined,
       isRunning: false,
-      formData: currentAction.value?.data,
     };
     const state = useStore<Editable<ServerActionUse<any, any>>>(() => {
-      return untrack(() => {
-        const id = this.__qrl.getHash();
-        if (currentAction.value?.output) {
-          const { status, result } = currentAction.value.output;
-          initialState.status = status;
-          if (isFail(result)) {
-            initialState.value = undefined;
-            initialState.fail = result;
-          } else {
-            initialState.value = result;
-            initialState.fail = undefined;
-          }
-        } else {
-          initialState.status = undefined;
+      const value = currentAction.value;
+      const data = value?.data;
+      const id = this.__qrl.getHash();
+      initialState.formData = data instanceof FormData ? data : undefined;
+      if (value?.output) {
+        const { status, result } = value.output;
+        initialState.status = status;
+        if (isFail(result)) {
           initialState.value = undefined;
+          initialState.fail = result;
+        } else {
+          initialState.value = result;
           initialState.fail = undefined;
         }
-        initialState.id = id;
-        initialState.actionPath = `${loc.pathname}?${QACTION_KEY}=${id}`;
-        initialState.isRunning = false;
-        return initialState as ServerActionUse<any, any>;
-      });
+      } else {
+        initialState.status = undefined;
+        initialState.value = undefined;
+        initialState.fail = undefined;
+      }
+      initialState.id = id;
+      initialState.actionPath = `${loc.pathname}?${QACTION_KEY}=${id}`;
+      initialState.isRunning = false;
+      return initialState as ServerActionUse<any, any>;
     });
 
     initialState.run = $((input) => {
@@ -99,11 +98,11 @@ export class ServerActionImpl implements ServerActionInternal {
         state.status = status;
         const didFail = isFail(result);
         if (didFail) {
-          initialState.value = undefined;
-          initialState.fail = result;
+          state.value = undefined;
+          state.fail = result;
         } else {
-          initialState.value = result;
-          initialState.fail = undefined;
+          state.value = result;
+          state.fail = undefined;
         }
         if (form) {
           if (form.getAttribute('data-spa-reset') === 'true') {
@@ -122,6 +121,11 @@ export class ServerActionImpl implements ServerActionInternal {
             })
           );
         }
+        return {
+          status: status,
+          value: !didFail ? result : undefined,
+          fail: didFail ? result : undefined,
+        };
       });
     });
     return state;

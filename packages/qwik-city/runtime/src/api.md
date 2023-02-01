@@ -340,12 +340,12 @@ export interface ServerAction<RETURN, INPUT = Record<string, any>> {
     use(): ServerActionUse<RETURN, INPUT>;
 }
 
+// Warning: (ae-forgotten-export) The symbol "ServerActionReturn" needs to be exported by the entry point index.d.ts
+//
 // @alpha (undocumented)
-export interface ServerActionUse<RETURN, INPUT> {
+export interface ServerActionUse<RETURN, INPUT> extends ServerActionReturn<RETURN> {
     // (undocumented)
     readonly actionPath: string;
-    // (undocumented)
-    readonly fail: GetFailReturn<RETURN> | undefined;
     // (undocumented)
     readonly formData: FormData | undefined;
     // (undocumented)
@@ -356,10 +356,6 @@ export interface ServerActionUse<RETURN, INPUT> {
     //
     // (undocumented)
     readonly run: ServerActionExecute<RETURN, INPUT>;
-    // (undocumented)
-    readonly status?: number;
-    // (undocumented)
-    readonly value: GetValueReturn<RETURN> | undefined;
 }
 
 // @alpha (undocumented)

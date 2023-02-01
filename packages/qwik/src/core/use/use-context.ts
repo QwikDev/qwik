@@ -9,6 +9,7 @@ import { assertTrue } from '../error/assert';
 import { verifySerializable } from '../state/common';
 import { getContext, QContext } from '../state/context';
 import type { ContainerState } from '../container/container';
+import { invoke } from './use-core';
 
 // <docs markdown="../readme.md#Context">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -299,7 +300,7 @@ export const useContext: UseContext = <STATE extends object>(
 
   const value = resolveContext(context, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
   if (typeof defaultValue === 'function') {
-    return set(defaultValue(value));
+    return set(invoke(undefined, defaultValue, value));
   }
   if (value !== undefined) {
     return set(value);

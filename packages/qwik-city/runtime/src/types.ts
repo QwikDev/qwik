@@ -98,7 +98,7 @@ export type RouteActionResolver = { status: number; result: any };
 export type RouteActionValue =
   | {
       id: string;
-      data: FormData | undefined;
+      data: FormData | Record<string, any> | undefined;
       output?: RouteActionResolver;
       resolve?: NoSerialize<(data: RouteActionResolver) => void>;
     }
@@ -303,6 +303,7 @@ export type RequestHandlerBodyFunction<BODY> = () =>
 export interface EndpointResponse {
   status: number;
   loaders: Record<string, Promise<any>>;
+  formData?: FormData;
   action?: string;
 }
 
@@ -342,20 +343,23 @@ export interface SimpleURL {
 }
 
 export type ServerActionExecute<RETURN, INPUT> = QRL<
-  (form: FormData | INPUT | SubmitEvent) => Promise<RETURN>
+  (form: FormData | INPUT | SubmitEvent) => Promise<ServerActionReturn<RETURN>>
 >;
+
+export interface ServerActionReturn<RETURN> {
+  readonly status?: number;
+  readonly value: GetValueReturn<RETURN> | undefined;
+  readonly fail: GetFailReturn<RETURN> | undefined;
+}
 
 /**
  * @alpha
  */
-export interface ServerActionUse<RETURN, INPUT> {
+export interface ServerActionUse<RETURN, INPUT> extends ServerActionReturn<RETURN> {
   readonly id: string;
   readonly actionPath: string;
   readonly isRunning: boolean;
-  readonly status?: number;
   readonly formData: FormData | undefined;
-  readonly value: GetValueReturn<RETURN> | undefined;
-  readonly fail: GetFailReturn<RETURN> | undefined;
   readonly run: ServerActionExecute<RETURN, INPUT>;
 }
 

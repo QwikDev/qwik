@@ -176,7 +176,7 @@ No. Partial hydration (or island architecture), popularized by [Astro](https://a
 
 For this to work, developers need to manually define the islands, and then manually describe in which situations they should be hydrated. The islands also cannot communicate with each other.
 
-Instead, Qwik components do not hydrate at all. Qwik achieves this through a powerful serialization system that serializes only the necessary state in the reactivity graph. This way, the app can resume without eagarly running any JS.
+Instead, Qwik components do not hydrate at all. Qwik achieves this through a powerful serialization system that serializes only the necessary state in the reactivity graph. This way, the app can resume without eagerly running any JS.
 
 We think resumability scales without the negative trade-offs of partial hydration.
 

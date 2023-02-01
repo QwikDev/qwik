@@ -9,7 +9,7 @@ import { QContainerAttr } from '../../util/markers';
 import { qError, QError_cannotRenderOverExistingContainer } from '../../error/error';
 import { directSetAttribute } from '../fast-calls';
 import { processData, wrapJSX } from './render-dom';
-import { ContainerState, getContainerState } from '../../container/container';
+import { ContainerState, _getContainerState } from '../../container/container';
 import { postRendering } from './notify-render';
 import { createRenderContext } from '../execute-component';
 import { executeDOMRender, printRenderStats } from './operations';
@@ -20,7 +20,7 @@ import { appendQwikDevTools } from '../../container/resume';
  * @alpha
  */
 export interface RenderOptions {
-  envData?: Record<string, any>;
+  serverData?: Record<string, any>;
 }
 
 /**
@@ -56,10 +56,10 @@ export const render = async (
   // }
   injectQContainer(containerEl);
 
-  const containerState = getContainerState(containerEl);
-  const envData = opts?.envData;
-  if (envData) {
-    Object.assign(containerState.$envData$, envData);
+  const containerState = _getContainerState(containerEl);
+  const serverData = opts?.serverData;
+  if (serverData) {
+    Object.assign(containerState.$serverData$, serverData);
   }
   containerState.$hostsRendering$ = new Set();
   containerState.$renderPromise$ = renderRoot(
@@ -81,14 +81,13 @@ const renderRoot = async (
   containerState: ContainerState,
   containerEl: Element
 ) => {
-  const ctx = createRenderContext(doc, containerState);
-  const staticCtx = ctx.$static$;
-  // staticCtx.$roots$.push(parent as Element);
+  const rCtx = createRenderContext(doc, containerState);
+  const staticCtx = rCtx.$static$;
 
   try {
     const processedNodes = await processData(jsxNode);
     const rootJsx = domToVnode(parent);
-    await visitJsxNode(ctx, rootJsx, wrapJSX(parent, processedNodes), 0);
+    await visitJsxNode(rCtx, rootJsx, wrapJSX(parent, processedNodes), 0);
   } catch (err) {
     logError(err);
   }
@@ -100,7 +99,7 @@ const renderRoot = async (
     appendQwikDevTools(containerEl);
     printRenderStats(staticCtx);
   }
-  return staticCtx;
+  return rCtx;
 };
 
 export const getElement = (docOrElm: Document | Element): Element => {

@@ -11,7 +11,6 @@ import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
 import type { PackageJSON } from '../scripts/util';
 import { fileURLToPath } from 'node:url';
-import nodeFetch, { Headers, Request as R, Response as RE } from 'node-fetch';
 import { getErrorHtml } from '../packages/qwik-city/middleware/request-handler/error-handler';
 
 const app = express();
@@ -167,6 +166,7 @@ export {
       define: {
         'globalThis.qSerialize': true,
         'globalThis.qDev': !isProd,
+        'globalThis.qInspector': false,
         'globalThis.PORT': port,
       },
       plugins: [
@@ -196,6 +196,7 @@ export {
       plugins: [...plugins, optimizer.qwikVite()],
       define: {
         'globalThis.qDev': !isProd,
+        'globalThis.qInspector': false,
         'globalThis.PORT': port,
       },
     })
@@ -253,7 +254,7 @@ async function ssrApp(
     manifest,
     debug: true,
     base,
-    envData: {
+    serverData: {
       url,
     },
   };
@@ -286,40 +287,66 @@ function startersHomepage(_: Request, res: Response) {
   `);
 }
 
-(global as any).fetch = nodeFetch;
-(global as any).Headers = Headers;
-(global as any).Request = R;
-(global as any).Response = RE;
-
 function favicon(_: Request, res: Response) {
-  const path = join(startersAppsDir, 'base', 'public', 'favicon.ico');
+  const path = join(startersAppsDir, 'base', 'public', 'favicon.svg');
   res.sendFile(path);
 }
 
-const partytownPath = resolve(startersDir, '..', 'node_modules', '@builder.io', 'partytown', 'lib');
-app.use(`/~partytown`, express.static(partytownPath));
+async function main() {
+  await patchGlobalFetch();
 
-appNames.forEach((appName) => {
-  const buildPath = join(startersAppsDir, appName, 'dist', 'build');
-  app.use(`/${appName}/build`, express.static(buildPath));
+  const partytownPath = resolve(
+    startersDir,
+    '..',
+    'node_modules',
+    '@builder.io',
+    'partytown',
+    'lib'
+  );
+  app.use(`/~partytown`, express.static(partytownPath));
 
-  const publicPath = join(startersAppsDir, appName, 'public');
-  app.use(`/${appName}`, express.static(publicPath));
-});
-
-app.get('/', startersHomepage);
-app.get('/favicon.ico', favicon);
-app.all('/*', handleApp);
-
-const server = app.listen(port, () => {
-  console.log(`Starter Dir: ${startersDir}`);
-  console.log(`Dev Server: ${address}\n`);
-
-  console.log(`Starters:`);
   appNames.forEach((appName) => {
-    console.log(`  ${address}${appName}/`);
-  });
-  console.log(``);
-});
+    const buildPath = join(startersAppsDir, appName, 'dist', 'build');
+    app.use(`/${appName}/build`, express.static(buildPath));
 
-process.on('SIGTERM', () => server.close());
+    const publicPath = join(startersAppsDir, appName, 'public');
+    app.use(`/${appName}`, express.static(publicPath));
+  });
+
+  app.get('/', startersHomepage);
+  app.get('/favicon*', favicon);
+  app.all('/*', handleApp);
+
+  const server = app.listen(port, () => {
+    console.log(`Starter Dir: ${startersDir}`);
+    console.log(`Dev Server: ${address}\n`);
+
+    console.log(`Starters:`);
+    appNames.forEach((appName) => {
+      console.log(`  ${address}${appName}/`);
+    });
+    console.log(``);
+  });
+
+  process.on('SIGTERM', () => server.close());
+}
+
+main();
+
+async function patchGlobalFetch() {
+  if (
+    typeof global !== 'undefined' &&
+    typeof globalThis.fetch !== 'function' &&
+    typeof process !== 'undefined' &&
+    process.versions.node
+  ) {
+    if (!globalThis.fetch) {
+      const { fetch, Headers, Request, Response, FormData } = await import('undici');
+      globalThis.fetch = fetch as any;
+      globalThis.Headers = Headers as any;
+      globalThis.Request = Request as any;
+      globalThis.Response = Response as any;
+      globalThis.FormData = FormData as any;
+    }
+  }
+}

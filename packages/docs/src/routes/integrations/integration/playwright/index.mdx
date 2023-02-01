@@ -1,0 +1,24 @@
+---
+title: Qwik City and Playwright
+keywords: e2e, testing
+contributors:
+  - manucorporat
+  - zanettin
+---
+
+# Playwright
+
+Playwright enables reliable end-to-end testing for modern web apps supporting all modern rendering engines and works cross-platform. [Playwright Website](https://playwright.dev/).
+
+## Usage
+
+You can add Playwright easily by using the following Qwik starter script:
+
+```shell
+npm run qwik add playwright
+```
+
+The previous command adds playwright to your dependencies, appends a `test.e2e` command in your `package.json` scripts section and creates a default configuration within the `playwright.config.ts` file on the application root level.
+It also adds a new file within a newly created `tests` folder called `example.spec.ts` which contains some simple test cases.
+
+For further reference, please check the [Playwright documentation](https://playwright.dev/docs/intro).

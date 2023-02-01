@@ -1,19 +1,37 @@
-import type { Cookie, CookieOptions, CookieValue } from '../../middleware/request-handler/types';
-import type { ErrorResponse } from '../../middleware/request-handler/error-handler';
-import type { RedirectResponse } from '../../middleware/request-handler/redirect-handler';
-import type { NoSerialize } from '@builder.io/qwik';
+import type {
+  GetSyncData,
+  RequestEventLoader,
+  RequestHandler,
+} from '@builder.io/qwik-city/middleware/request-handler';
+import type { NoSerialize, QRL, Signal, ValueOrPromise } from '@builder.io/qwik';
+import type { z } from 'zod';
+
+export type {
+  Cookie,
+  CookieOptions,
+  CookieValue,
+  GetData,
+  GetSyncData,
+  RequestEvent,
+  RequestHandler,
+  RequestEventLoader,
+  RequestEventCommon,
+} from '@builder.io/qwik-city/middleware/request-handler';
 
 export interface RouteModule<BODY = unknown> {
-  onDelete?: RequestHandler<BODY>;
-  onGet?: RequestHandler<BODY>;
-  onHead?: RequestHandler<BODY>;
-  onOptions?: RequestHandler<BODY>;
-  onPatch?: RequestHandler<BODY>;
-  onPost?: RequestHandler<BODY>;
-  onPut?: RequestHandler<BODY>;
-  onRequest?: RequestHandler<BODY>;
+  onDelete?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onGet?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onHead?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onOptions?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onPatch?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onPost?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onPut?: RequestHandler<BODY> | RequestHandler<BODY>[];
+  onRequest?: RequestHandler<BODY> | RequestHandler<BODY>[];
 }
 
+/**
+ * @alpha
+ */
 export interface PageModule extends RouteModule {
   readonly default: any;
   readonly head?: ContentModuleHead;
@@ -34,19 +52,61 @@ export interface MenuModule {
  * @alpha
  */
 export interface RouteLocation {
-  readonly params: RouteParams;
+  readonly params: Record<string, string>;
   readonly href: string;
   readonly pathname: string;
-  readonly query: Record<string, string>;
+  readonly query: URLSearchParams;
+  readonly isNavigating: boolean;
 }
 
-export interface RouteNavigate {
-  path: string;
+/**
+ * @alpha
+ */
+export type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;
+
+/**
+ * @alpha
+ */
+export type DefaultActionType = { [x: string]: JSONValue };
+
+export type GetValidatorType<B extends ZodReturn<any>> = B extends ZodReturn<infer TYPE>
+  ? z.infer<z.ZodObject<TYPE>>
+  : never;
+
+/**
+ * @alpha
+ */
+export interface Action {
+  <O>(
+    actionQrl: (form: DefaultActionType, event: RequestEventLoader) => ValueOrPromise<O>
+  ): ServerAction<O>;
+  <O, B extends ZodReturn>(
+    actionQrl: (data: GetValidatorType<B>, event: RequestEventLoader) => ValueOrPromise<O>,
+    options: B
+  ): ServerAction<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>>;
 }
+export type LoaderStateHolder = Record<string, Signal<any>>;
+
+/**
+ * @alpha
+ */
+export type RouteNavigate = QRL<(path?: string) => Promise<void>>;
+
+export type RouteAction = Signal<RouteActionValue>;
+
+export type RouteActionResolver = { status: number; result: any };
+export type RouteActionValue =
+  | {
+      id: string;
+      data: FormData | undefined;
+      output?: RouteActionResolver;
+      resolve?: NoSerialize<(data: RouteActionResolver) => void>;
+    }
+  | undefined;
 
 export type MutableRouteLocation = Mutable<RouteLocation>;
 
-type Mutable<T> = { -readonly [K in keyof T]: T[K] };
+export type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
 /**
  * @alpha
@@ -130,22 +190,18 @@ export interface DocumentStyle {
 /**
  * @alpha
  */
-export interface DocumentHeadProps<T = unknown> extends RouteLocation {
-  data: T;
-  head: ResolvedDocumentHead;
-  withLocale: <T>(fn: () => T) => T;
+export interface DocumentHeadProps extends RouteLocation {
+  readonly head: ResolvedDocumentHead;
+  readonly withLocale: <T>(fn: () => T) => T;
+  readonly getData: GetSyncData;
 }
 
 /**
  * @alpha
  */
-export type DocumentHead<T = unknown> =
-  | DocumentHeadValue
-  | ((props: DocumentHeadProps<GetEndpointData<T>>) => DocumentHeadValue);
+export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);
 
-export interface ContentStateInternal {
-  contents: NoSerialize<ContentModule[]>;
-}
+export type ContentStateInternal = NoSerialize<ContentModule[]>;
 
 export interface ContentState {
   headings: ContentHeading[] | undefined;
@@ -189,6 +245,9 @@ export type RouteData =
       routeBundleNames: string[]
     ];
 
+/**
+ * @alpha
+ */
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 
 /**
@@ -196,6 +255,7 @@ export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
  */
 export interface QwikCityPlan {
   routes: RouteData[];
+  serverPlugins?: RouteModule[];
   basePathname?: string;
   menus?: MenuData[];
   trailingSlash?: boolean;
@@ -204,15 +264,21 @@ export interface QwikCityPlan {
 
 /**
  * @alpha
+ * @deprecated Please update to `PathParams` instead
  */
-export type RouteParams = Record<string, string>;
+export declare type RouteParams = Record<string, string>;
+
+/**
+ * @alpha
+ */
+export declare type PathParams = Record<string, string>;
 
 export type ContentModule = PageModule | LayoutModule;
 
 export type ContentModuleHead = DocumentHead | ResolvedDocumentHead;
 
 export type LoadedRoute = [
-  params: RouteParams,
+  params: PathParams,
   mods: (RouteModule | ContentModule)[],
   menu: ContentMenu | undefined,
   routeBundleNames: string[] | undefined
@@ -221,95 +287,6 @@ export type LoadedRoute = [
 export interface LoadedContent extends LoadedRoute {
   pageModule: PageModule;
 }
-
-/**
- * @alpha
- */
-export interface RequestContext {
-  formData(): Promise<FormData>;
-  headers: Headers;
-  json(): Promise<any>;
-  method: string;
-  text(): Promise<string>;
-  url: string;
-}
-
-/**
- * @alpha
- */
-export interface ResponseContext {
-  /**
-   * HTTP response status code.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-   */
-  status: number;
-
-  /**
-   * Which locale the content is in.
-   *
-   * The locale value can be retrieved from selected methods using `getLocale()`:
-   */
-  locale: string | undefined;
-
-  /**
-   * HTTP response headers.
-   *
-   * https://developer.mozilla.org/en-US/docs/Glossary/Response_header
-   */
-  readonly headers: Headers;
-
-  /**
-   * URL to redirect to. When called, the response will immediately
-   * end with the correct redirect status and headers.
-   * Defaults to use the `307` response status code, but can be
-   * overridden by setting the `status` argument.
-   *
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
-   */
-  readonly redirect: (url: string, status?: number) => RedirectResponse;
-
-  /**
-   * When called, the response will immediately end with the given
-   * status code. This could be useful to end a response with `404`,
-   * and use the 404 handler in the routes directory.
-   * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-   * for which status code should be used.
-   */
-  readonly error: (status: number) => ErrorResponse;
-}
-
-/**
- * @alpha
- */
-export interface RequestEvent<PLATFORM = unknown> {
-  request: RequestContext;
-  response: ResponseContext;
-  url: URL;
-
-  /** URL Route params which have been parsed from the current url pathname. */
-  params: RouteParams;
-
-  /** Platform specific data and functions */
-  platform: PLATFORM;
-
-  cookie: Cookie;
-
-  next: () => Promise<void>;
-  abort: () => void;
-}
-
-/**
- * @alpha
- */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
-
-/**
- * @alpha
- */
-export type RequestHandler<BODY = unknown, PLATFORM = unknown> = (
-  ev: RequestEvent<PLATFORM>
-) => RequestHandlerResult<BODY>;
 
 /**
  * @alpha
@@ -323,20 +300,18 @@ export type RequestHandlerBodyFunction<BODY> = () =>
   | RequestHandlerBody<BODY>
   | Promise<RequestHandlerBody<BODY>>;
 
-export type RequestHandlerResult<BODY> =
-  | (RequestHandlerBody<BODY> | RequestHandlerBodyFunction<BODY>)
-  | Promise<RequestHandlerBody<BODY> | RequestHandlerBodyFunction<BODY>>;
-
 export interface EndpointResponse {
-  body: any;
   status: number;
+  loaders: Record<string, Promise<any>>;
+  action?: string;
 }
 
 export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
-  status?: number;
-  prefetch?: string[];
+  __brand: 'qdata';
+  status: number;
+  href: string;
+  isStatic?: boolean;
   redirect?: string;
-  isStatic: boolean;
 }
 
 /**
@@ -348,20 +323,15 @@ export type StaticGenerateHandler = () => Promise<StaticGenerate> | StaticGenera
  * @alpha
  */
 export interface StaticGenerate {
-  params?: RouteParams[];
+  params?: PathParams[];
 }
 
 export interface QwikCityRenderDocument extends Document {}
 
 export interface QwikCityEnvData {
-  mode: QwikCityMode;
-  params: RouteParams;
+  params: PathParams;
   response: EndpointResponse;
 }
-
-export type QwikCityMode = 'dev' | 'static' | 'server';
-
-export type GetEndpointData<T> = T extends RequestHandler<infer U> ? U : T;
 
 export interface SimpleURL {
   origin: string;
@@ -371,4 +341,99 @@ export interface SimpleURL {
   hash: string;
 }
 
-export { Cookie, CookieOptions, CookieValue };
+export type ServerActionExecute<RETURN, INPUT> = QRL<
+  (form: FormData | INPUT | SubmitEvent) => Promise<RETURN>
+>;
+
+/**
+ * @alpha
+ */
+export interface ServerActionUse<RETURN, INPUT> {
+  readonly id: string;
+  readonly actionPath: string;
+  readonly isRunning: boolean;
+  readonly status?: number;
+  readonly formData: FormData | undefined;
+  readonly value: GetValueReturn<RETURN> | undefined;
+  readonly fail: GetFailReturn<RETURN> | undefined;
+  readonly run: ServerActionExecute<RETURN, INPUT>;
+}
+
+/**
+ * @alpha
+ */
+export type FailReturn<T> = T & {
+  __brand: 'fail';
+};
+
+/**
+ * @alpha
+ */
+export type GetValueReturn<T> = T extends FailReturn<{}> ? never : T;
+
+/**
+ * @alpha
+ */
+export type GetFailReturn<T> = T extends FailReturn<infer I>
+  ? I & { [key: string]: undefined }
+  : never;
+
+/**
+ * @alpha
+ */
+export type ServerLoaderUse<T> = Awaited<T> extends () => ValueOrPromise<infer B>
+  ? Signal<ValueOrPromise<B>>
+  : Signal<Awaited<T>>;
+
+/**
+ * @alpha
+ */
+export interface ServerLoader<RETURN> {
+  readonly [isServerLoader]?: true;
+  use(): ServerLoaderUse<RETURN>;
+}
+
+declare const isServerLoader: unique symbol;
+
+export interface ServerLoaderInternal extends ServerLoader<any> {
+  readonly __brand?: 'server_loader';
+  __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>;
+  use(): Signal<any>;
+}
+/**
+ * @alpha
+ */
+export interface ServerAction<RETURN, INPUT = Record<string, any>> {
+  readonly [isServerLoader]?: true;
+  use(): ServerActionUse<RETURN, INPUT>;
+}
+
+export interface ServerActionInternal extends ServerAction<any, any> {
+  readonly __brand: 'server_action';
+  __qrl: QRL<(form: FormData, event: RequestEventLoader) => ValueOrPromise<any>>;
+  __schema: ZodReturn | undefined;
+
+  use(): ServerActionUse<any, any>;
+}
+
+export type Editable<T> = {
+  -readonly [P in keyof T]: T[P];
+};
+
+/**
+ * @alpha
+ */
+export type ActionOptions = z.ZodRawShape;
+
+/**
+ * @alpha
+ */
+export type ZodReturn<T extends ActionOptions = any> = Promise<z.ZodObject<T>>;
+
+/**
+ * @alpha
+ */
+export interface Zod {
+  <T extends ActionOptions>(schema: T): ZodReturn<T>;
+  <T extends ActionOptions>(schema: (z: typeof import('zod').z) => T): ZodReturn<T>;
+}

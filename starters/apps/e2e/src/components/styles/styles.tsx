@@ -47,7 +47,7 @@ export const Child = component$((props: { index: number }) => {
 
   return (
     <div class="child-container">
-      <div className="child">Child {props.index}</div>
+      <div class="child">Child {props.index}</div>
     </div>
   );
 });

@@ -39,7 +39,7 @@ export const App = component$((props)=>{
     });
     return $(()=>/*#__PURE__*/ _jsx("div", {
             children: _wrapSignal(state, "count")
-        }));
+        }, "u6_0"));
 });
 
 

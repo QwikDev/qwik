@@ -1,7 +1,6 @@
 import type { StreamWriter } from '@builder.io/qwik';
-import type { RouteParams } from '../runtime/src';
-import type { RenderOptions } from '../../qwik/src/server';
-import type { QwikCityHandlerOptions } from '../middleware/request-handler/types';
+import type { RenderOptions } from '@builder.io/qwik/server';
+import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
 export interface System {
   createMainProcess: () => Promise<MainContext>;
@@ -20,7 +19,8 @@ export interface System {
 }
 
 export interface StaticStreamWriter extends StreamWriter {
-  close(callback?: () => void): void;
+  write: (chunk: string | Buffer) => void;
+  end(callback?: () => void): void;
 }
 
 export interface MainContext {
@@ -93,6 +93,16 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
    * Defaults to `true`.
    */
   emit404Pages?: boolean;
+  /**
+   * Defines routes that should be static generated. Accepts wildcard behavior.
+   * If not provided, all routes will be static generated.
+   */
+  include?: string[];
+  /**
+   * Defines routes that should not be static generated. Accepts wildcard behavior. `exclude` always
+   * take priority over include.
+   */
+  exclude?: string[];
 }
 
 /**
@@ -112,11 +122,13 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
    * Defaults to `/`
    */
   basePathname?: string;
+
+  rootDir?: string;
 }
 
 export interface StaticGenerateHandlerOptions
   extends StaticGenerateRenderOptions,
-    QwikCityHandlerOptions {}
+    ServerRenderOptions {}
 
 export type WorkerInputMessage = StaticRenderInput | WorkerCloseMessage;
 
@@ -128,7 +140,7 @@ export interface StaticRenderInput extends StaticRoute {
 
 export interface StaticRoute {
   pathname: string;
-  params: RouteParams | undefined;
+  params: Record<string, string> | undefined;
 }
 
 export interface WorkerCloseMessage {
@@ -140,8 +152,9 @@ export interface StaticWorkerRenderResult {
   pathname: string;
   url: string;
   ok: boolean;
-  error: string | null;
+  error: { message: string; stack: string | undefined } | null;
   isStatic: boolean;
+  filePath: string | null;
 }
 
 /**

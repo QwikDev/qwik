@@ -1,13 +1,17 @@
 import type { OptimizerSystem } from '../types';
 
-export async function formatError(sys: OptimizerSystem, err: any) {
-  if (!err.loc && !err.frame) {
-    const loc = findLocation(err);
+export async function formatError(sys: OptimizerSystem, e: Error) {
+  const err = e as any;
+  let loc = err.loc;
+  if (!err.frame && !err.plugin) {
+    if (!loc) {
+      loc = findLocation(err);
+    }
     if (loc) {
       err.loc = loc;
       if (loc.file) {
         const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-        const { normalizePath }: typeof import('vite') = await sys.strictDynamicImport('vite');
+        const { normalizePath }: typeof import('vite') = await sys.dynamicImport('vite');
         err.id = normalizePath(err.loc.file);
         try {
           const code = fs.readFileSync(err.loc.file, 'utf-8');
@@ -18,7 +22,7 @@ export async function formatError(sys: OptimizerSystem, err: any) {
       }
     }
   }
-  return err;
+  return e;
 }
 
 export interface Loc {
@@ -32,11 +36,11 @@ export const findLocation = (e: Error): Loc | undefined => {
   if (typeof stack === 'string') {
     const lines = stack.split('\n');
     for (let i = 1; i < lines.length; i++) {
-      const line = lines[i];
+      const line = lines[i].replace('file:///', '/');
       if (/^\s+at/.test(line)) {
-        const start = line.indexOf('(/') + 1;
+        const start = line.indexOf('/');
         const end = line.indexOf(')', start);
-        if (start > 0 && end > start) {
+        if (start > 0) {
           const path = line.slice(start, end);
           const parts = path.split(':');
           const nu0 = safeParseInt(parts[parts.length - 1]);
@@ -80,10 +84,7 @@ const safeParseInt = (nu: string) => {
 const splitRE = /\r?\n/;
 const range: number = 2;
 
-export function posToNumber(
-  source: string,
-  pos: number | { line: number; column: number }
-): number {
+function posToNumber(source: string, pos: number | { line: number; column: number }): number {
   if (typeof pos === 'number') return pos;
   const lines = source.split(splitRE);
   const { line, column } = pos;

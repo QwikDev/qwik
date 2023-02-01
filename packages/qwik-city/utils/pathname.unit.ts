@@ -1,7 +1,7 @@
+import type { PathParams } from '../runtime/src/types';
 import { test } from 'uvu';
 import { equal } from 'uvu/assert';
 import { getPathnameForDynamicRoute, isSameOriginUrl, normalizePathname } from './pathname';
-import type { RouteParams } from '../runtime/src/types';
 import { parseRoutePathname } from '../buildtime/routing/parse-pathname';
 
 test('isSameOriginUrl', () => {
@@ -177,7 +177,7 @@ test('dynamic pathname', () => {
   equal(p, '/docs/introduction/basics');
 });
 
-function getPathname(t: { originalPathname: string; basePathname: string; params?: RouteParams }) {
+function getPathname(t: { originalPathname: string; basePathname: string; params?: PathParams }) {
   const p = parseRoutePathname(t.basePathname, t.originalPathname);
   const d = getPathnameForDynamicRoute(t.originalPathname, p.paramNames, t.params);
   return normalizePathname(d, '/', false);

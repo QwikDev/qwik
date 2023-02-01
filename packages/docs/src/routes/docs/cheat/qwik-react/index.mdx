@@ -5,6 +5,7 @@ contributors:
   - zahash
   - manucorporat
 ---
+
 # Cheat sheet
 
 ### Hello world component
@@ -22,7 +23,7 @@ export const HelloWorld = component$(() => {
 ```tsx
 export function HelloWorld() {
   return <div>Hello world</div>;
-};
+}
 ```
 
 ### Button with a click handler
@@ -40,7 +41,7 @@ export const Button = component$(() => {
 ```tsx
 export function Button() {
   return <button onClick={() => console.log('click')}>Click me</button>;
-};
+}
 ```
 
 ### Declare local state
@@ -62,7 +63,7 @@ export const LocalStateExample = component$(() => {
 export function UseStateExample() {
   const [value, setValue] = useState(0);
   return <div>Value is: {value}</div>;
-};
+}
 ```
 
 ### Create a counter component
@@ -94,7 +95,7 @@ export function Counter() {
       <button onClick={() => setCount(count + 1)}>Increment</button>
     </>
   );
-};
+}
 ```
 
 ### Create a clock that increments every second
@@ -129,7 +130,7 @@ export function Clock() {
     return () => clearInterval(interval);
   });
   return <div>Seconds: {seconds}</div>;
-};
+}
 ```
 
 ### Perform a fetch request every time the state changes
@@ -143,7 +144,7 @@ export const Fetch = component$(() => {
     responseJson: undefined,
   });
 
-  useWatch$(async ({ track }) => {
+  useTask$(async ({ track }) => {
     track(() => state.url);
     const res = await fetch(state.url);
     const json = await res.json();
@@ -153,7 +154,7 @@ export const Fetch = component$(() => {
   return (
     <>
       <div>{state.responseJson?.name}</div>
-      <input name="url" onInput$={(ev) => (state.url = ev.target.value)} />
+      <input name="url" onInput$={(ev) => (state.url = (ev.target as HTMLInputElement).value))} />
     </>
   );
 });
@@ -173,10 +174,10 @@ export function Fetch() {
   return (
     <>
       <div>{responseJson?.name}</div>
-      <input name="url" onInput={(ev) => setUrl(ev.target.value)} />
+      <input name="url" onInput={(ev) => setUrl((ev.target as HTMLInputElement).value))} />
     </>
   );
-};
+}
 ```
 
 ### Declare some context and consume it
@@ -207,11 +208,11 @@ export const Child = component$(() => {
 #### ⚛️ React
 
 ```tsx
-export const MyContext = createContext({ message: "some example value" });
+export const MyContext = createContext({ message: 'some example value' });
 
 export default function Parent() {
   return (
-    <MyContext.Provider value={{ message: "updated example value" }}>
+    <MyContext.Provider value={{ message: 'updated example value' }}>
       <Child />
     </MyContext.Provider>
   );
@@ -229,13 +230,12 @@ export const Child = () => {
 
 ```tsx
 export const DebouncedInput = component$(() => {
-
   const state = useStore({
     value: '',
     debouncedValue: '',
   });
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     track(() => state.value);
     const debounced = setTimeout(() => {
       state.debouncedValue = state.value;
@@ -245,7 +245,7 @@ export const DebouncedInput = component$(() => {
 
   return (
     <>
-      <input value={state.value} onInput$={(e) => (state.value = e.target.value)} />
+      <input value={state.value} onInput$={(ev) => (state.value = (ev.target as HTMLInputElement).value))} />
       <span>{state.debouncedValue}</span>
     </>
   );
@@ -256,7 +256,7 @@ export const DebouncedInput = component$(() => {
 
 ```tsx
 export const DebouncedInput = () => {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState('');
   const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
@@ -269,7 +269,7 @@ export const DebouncedInput = () => {
 
   return (
     <>
-      <input value={value} onChange={(e) => setValue(e.target.value)} />
+      <input value={value} onChange={(ev) => setValue((ev.target as HTMLInputElement).value))} />
       <span>{debouncedValue}</span>
     </>
   );
@@ -282,7 +282,6 @@ export const DebouncedInput = () => {
 
 ```tsx
 export const DynamicBackground = component$(() => {
-
   const state = useStore({
     red: 0,
     green: 0,
@@ -290,14 +289,18 @@ export const DynamicBackground = component$(() => {
   });
 
   return (
-    <div style={{
-      background: `rgb(${state.red}, ${state.green}, ${state.blue})`
-    }}>
-      <button onClick$={() => {
-        state.red = Math.random() * 256;
-        state.green = Math.random() * 256;
-        state.blue = Math.random() * 256;
-      }}>
+    <div
+      style={{
+        background: `rgb(${state.red}, ${state.green}, ${state.blue})`,
+      }}
+    >
+      <button
+        onClick$={() => {
+          state.red = Math.random() * 256;
+          state.green = Math.random() * 256;
+          state.blue = Math.random() * 256;
+        }}
+      >
         Change background
       </button>
     </div>
@@ -313,19 +316,23 @@ export function DynamicBackground() {
   const [green, setGreen] = useState(0);
   const [blue, setBlue] = useState(0);
   return (
-    <div style={{
-      background: `rgb(${red}, ${green}, ${blue})`
-    }}>
-      <button onClick={() => {
-        setRed(Math.random() * 256);
-        setGreen(Math.random() * 256);
-        setBlue(Math.random() * 256);
-      }}>
+    <div
+      style={{
+        background: `rgb(${red}, ${green}, ${blue})`,
+      }}
+    >
+      <button
+        onClick={() => {
+          setRed(Math.random() * 256);
+          setGreen(Math.random() * 256);
+          setBlue(Math.random() * 256);
+        }}
+      >
         Change background
       </button>
     </div>
   );
-};
+}
 ```
 
 ### Create a component that renders a list of the presidents
@@ -361,7 +368,7 @@ export const Presidents = component$(() => {
   return (
     <ul>
       {presidents.map((president) => (
-        <li>
+        <li key={president.name + president.years}>
           {president.name} ({president.years})
         </li>
       ))}
@@ -407,5 +414,5 @@ export function Presidents() {
       ))}
     </ul>
   );
-};
+}
 ```

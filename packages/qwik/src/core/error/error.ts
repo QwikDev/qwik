@@ -44,7 +44,7 @@ export const codeToText = (code: number): string => {
     const MAP = [
       'Error while serializing class attribute', // 0
       'Can not serialize a HTML Node that is not an Element', // 1
-      'Rruntime but no instance found on element.', // 2
+      'Runtime but no instance found on element.', // 2
       'Only primitive and object literals can be serialized', // 3
       'Crash while rendering', // 4
       'You can render over a existing q:container. Skipping render().', // 5
@@ -59,10 +59,11 @@ export const codeToText = (code: number): string => {
       "Invoking 'use*()' method outside of invocation context.", // 14
       'Cant access renderCtx for existing context', // 15
       'Cant access document for existing context', // 16
-      'props are inmutable', // 17
+      'props are immutable', // 17
       '<div> component can only be used at the root of a Qwik component$()', // 18
       'Props are immutable by default.', // 19
-      'use- method must be called only at the root level of a component$()', // 20
+      `Calling a 'use*()' method outside 'component$(() => { HERE })' is not allowed. 'use*()' methods provide hooks to the 'component$' state and lifecycle, ie 'use' hooks can only be called syncronously within the 'component$' function or another 'use' method.
+For more information see: https://qwik.builder.io/docs/components/lifecycle/#use-method-rules`, // 20
       'Container is already paused. Skipping', // 21
       'Components using useServerMount() can only be mounted in the server, if you need your component to be mounted in the client, use "useMount$()" instead', // 22
       'When rendering directly on top of Document, the root node must be a <html>', // 23

@@ -12,7 +12,7 @@
     "viteConfig": {},
     "docs": [
       "https://vitest.dev/guide/",
-      "https://qwik.builder.io/qwikcity/integrations/vitest/"
+      "https://qwik.builder.io/integrations/integration/vitest/"
     ]
   }
 }

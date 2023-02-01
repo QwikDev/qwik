@@ -1,5 +1,5 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { viteAdaptor } from '../../shared/vite';
+import { ServerAdaptorOptions, viteAdaptor } from '../../shared/vite';
 import fs from 'node:fs';
 import { join } from 'node:path';
 
@@ -11,13 +11,18 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
     name: 'cloudflare-pages',
     origin: process?.env?.CF_PAGES_URL || 'https://your.cloudflare.pages.dev',
     staticGenerate: opts.staticGenerate,
+    ssg: opts.ssg,
     staticPaths: opts.staticPaths,
     cleanStaticGenerated: true,
 
     config() {
       return {
+        resolve: {
+          conditions: ['webworker', 'worker'],
+        },
         ssr: {
-          target: 'webworker',
+          target: 'node',
+          format: 'esm',
           noExternal: true,
         },
         build: {
@@ -40,11 +45,7 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
         const routesJson = {
           version: 1,
           include: [basePathname + '*'],
-          exclude: [
-            basePathname + 'build/*',
-            basePathname + 'assets/*',
-            basePathname + '*/q-data.json',
-          ],
+          exclude: [basePathname + 'build/*', basePathname + 'assets/*'],
         };
         await fs.promises.writeFile(routesJsonPath, JSON.stringify(routesJson, undefined, 2));
       }
@@ -55,7 +56,7 @@ export function cloudflarePagesAdaptor(opts: CloudflarePagesAdaptorOptions = {})
 /**
  * @alpha
  */
-export interface CloudflarePagesAdaptorOptions {
+export interface CloudflarePagesAdaptorOptions extends ServerAdaptorOptions {
   /**
    * Determines if the build should generate the function invocation routes `_routes.json` file.
    *
@@ -64,10 +65,6 @@ export interface CloudflarePagesAdaptorOptions {
    * Defaults to `true`.
    */
   functionRoutes?: boolean;
-  /**
-   * Determines if the adaptor should also run Static Site Generation (SSG).
-   */
-  staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
   /**
    * Manually add pathnames that should be treated as static paths and not SSR.
    * For example, when these pathnames are requested, their response should

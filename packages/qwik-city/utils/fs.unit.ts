@@ -7,6 +7,7 @@ import {
   createFileId,
   getExtension,
   getPathnameFromDirPath,
+  getMenuPathname,
   isGroupedLayoutName,
   isMarkdownExt,
   isMenuFileName,
@@ -19,6 +20,7 @@ import {
 } from './fs';
 
 const routesDir = normalizePath(join(tmpdir(), 'src', 'routes'));
+const serverPluginsDir = normalizePath(join(tmpdir(), 'src', 'routes'));
 
 test('isGroupedLayoutName', () => {
   const t = [
@@ -246,7 +248,8 @@ test('createFileId, Layout', () => {
     t.basePathname
   }`, () => {
     const opts: NormalizedPluginOptions = {
-      routesDir: routesDir,
+      routesDir,
+      serverPluginsDir,
       basePathname: t.basePathname,
       trailingSlash: t.trailingSlash,
       mdxPlugins: {
@@ -290,6 +293,75 @@ test('parseRouteIndexName', () => {
     const r = parseRouteIndexName(c.extlessName);
     equal(r.layoutName, c.expect.layoutName, `${c.extlessName} layoutName`);
     equal(r.layoutStop, c.expect.layoutStop, `${c.extlessName} layoutStop`);
+  });
+});
+
+[
+  {
+    filePath: join(routesDir, 'dir', 'menu.md'),
+    basePathname: '/basepath/',
+    trailingSlash: true,
+    expect: '/basepath/dir/',
+  },
+  {
+    filePath: join(routesDir, 'dir', 'menu.md'),
+    basePathname: '/basepath/',
+    trailingSlash: false,
+    expect: '/basepath/dir/',
+  },
+  {
+    filePath: join(routesDir, 'menu.md'),
+    basePathname: '/basepath/',
+    trailingSlash: true,
+    expect: '/basepath/',
+  },
+  {
+    filePath: join(routesDir, 'menu.md'),
+    basePathname: '/basepath/',
+    trailingSlash: false,
+    expect: '/basepath/',
+  },
+  {
+    filePath: join(routesDir, 'dir', 'menu.md'),
+    basePathname: '/',
+    trailingSlash: true,
+    expect: '/dir/',
+  },
+  {
+    filePath: join(routesDir, 'dir', 'menu.md'),
+    basePathname: '/',
+    trailingSlash: false,
+    expect: '/dir/',
+  },
+  {
+    filePath: join(routesDir, 'menu.md'),
+    basePathname: '/',
+    trailingSlash: true,
+    expect: '/',
+  },
+  {
+    filePath: join(routesDir, 'menu.md'),
+    basePathname: '/',
+    trailingSlash: false,
+    expect: '/',
+  },
+].forEach((t) => {
+  test(``, () => {
+    const opts: NormalizedPluginOptions = {
+      routesDir,
+      serverPluginsDir,
+      basePathname: t.basePathname,
+      trailingSlash: t.trailingSlash,
+      mdxPlugins: {
+        remarkGfm: true,
+        rehypeSyntaxHighlight: true,
+        rehypeAutolinkHeadings: true,
+      },
+      mdx: {},
+      baseUrl: t.basePathname,
+    };
+    const pathname = getMenuPathname(opts, t.filePath);
+    equal(pathname, t.expect);
   });
 });
 

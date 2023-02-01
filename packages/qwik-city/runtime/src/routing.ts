@@ -7,9 +7,13 @@ import type {
   ModuleLoader,
   RouteData,
   RouteModule,
-  RouteParams,
+  PathParams,
 } from './types';
 
+export const CACHE = new Map<RouteData, Promise<any>>();
+/**
+ * loadRoute() runs in both client and server.
+ */
 export const loadRoute = async (
   routes: RouteData[] | undefined,
   menus: MenuData[] | undefined,
@@ -21,7 +25,7 @@ export const loadRoute = async (
       const match = route[0].exec(pathname);
       if (match) {
         const loaders = route[1];
-        const params = getRouteParams(route[2], match);
+        const params = getPathParams(route[2], match);
         const routeBundleNames = route[4];
         const mods: RouteModule[] = new Array(loaders.length);
         const pendingLoads: Promise<any>[] = [];
@@ -83,8 +87,9 @@ const loadModule = <T>(
   }
 };
 
-const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) => {
+export const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) => {
   if (menus) {
+    pathname = pathname.endsWith('/') ? pathname : pathname + '/';
     const menu = menus.find(
       (m) => m[0] === pathname || pathname.startsWith(m[0] + (pathname.endsWith('/') ? '' : '/'))
     );
@@ -92,15 +97,17 @@ const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) => {
       return menu[1];
     }
   }
-  return undefined;
 };
 
-export const getRouteParams = (paramNames: string[] | undefined, match: RegExpExecArray | null) => {
-  const params: RouteParams = {};
+export const getPathParams = (paramNames: string[] | undefined, match: RegExpExecArray | null) => {
+  const params: PathParams = {};
+  let i: number;
+  let param: string;
 
   if (paramNames) {
-    for (let i = 0; i < paramNames.length; i++) {
-      params[paramNames[i]] = match ? match[i + 1] : '';
+    for (i = 0; i < paramNames.length; i++) {
+      param = match ? match[i + 1] : '';
+      params[paramNames[i]] = param.endsWith('/') ? param.slice(0, -1) : param;
     }
   }
 

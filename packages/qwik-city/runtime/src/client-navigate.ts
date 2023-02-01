@@ -1,10 +1,16 @@
 import type { QPrefetchData } from './service-worker/types';
-import type { RouteNavigate, SimpleURL } from './types';
+import type { SimpleURL } from './types';
+import { CLIENT_HISTORY_INITIALIZED, POPSTATE_FALLBACK_INITIALIZED } from './constants';
 import { isSameOriginDifferentPathname, isSamePath, toPath, toUrl } from './utils';
+import type { Signal } from '@builder.io/qwik';
 
-export const clientNavigate = (win: ClientHistoryWindow, routeNavigate: RouteNavigate) => {
+export const clientNavigate = (
+  win: ClientHistoryWindow,
+  pathname: string,
+  routeNavigate: Signal<string>
+) => {
   const currentUrl = win.location;
-  const newUrl = toUrl(routeNavigate.path, currentUrl)!;
+  const newUrl = toUrl(pathname, currentUrl)!;
 
   if (isSameOriginDifferentPathname(currentUrl, newUrl)) {
     // current browser url and route path are different
@@ -22,15 +28,17 @@ export const clientNavigate = (win: ClientHistoryWindow, routeNavigate: RouteNav
     win.addEventListener('popstate', () => {
       // history pop event has happened
       const currentUrl = win.location;
-      const previousUrl = toUrl(routeNavigate.path, currentUrl)!;
+      const previousUrl = toUrl(routeNavigate.value, currentUrl)!;
 
       if (isSameOriginDifferentPathname(currentUrl, previousUrl)) {
         handleScroll(win, previousUrl, currentUrl);
         // current browser url and route path are different
         // update the route path
-        routeNavigate.path = toPath(currentUrl);
+        routeNavigate.value = toPath(currentUrl);
       }
     });
+
+    win.removeEventListener('popstate', win[POPSTATE_FALLBACK_INITIALIZED]!);
   }
 };
 
@@ -95,8 +103,7 @@ export const dispatchPrefetchEvent = (prefetchData: QPrefetchData) => {
   }
 };
 
-export const CLIENT_HISTORY_INITIALIZED = /* @__PURE__ */ Symbol();
-
 export interface ClientHistoryWindow extends Window {
   [CLIENT_HISTORY_INITIALIZED]?: 1;
+  [POPSTATE_FALLBACK_INITIALIZED]?: () => void;
 }

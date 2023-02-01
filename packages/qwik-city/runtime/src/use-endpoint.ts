@@ -1,49 +1,77 @@
-import { useResource$ } from '@builder.io/qwik';
-import { useLocation, useQwikCityEnv } from './use-functions';
-import { isServer } from '@builder.io/qwik/build';
-import type { ClientPageData, GetEndpointData } from './types';
-import { getClientEndpointPath } from './utils';
+import { getClientDataPath } from './utils';
 import { dispatchPrefetchEvent } from './client-navigate';
+import { CLIENT_DATA_CACHE } from './constants';
+import type { ClientPageData, RouteActionValue } from './types';
+import { _deserializeData } from '@builder.io/qwik';
 
-/**
- * @alpha
- */
-export const useEndpoint = <T = unknown>() => {
-  const loc = useLocation();
-  const env = useQwikCityEnv();
-
-  return useResource$<GetEndpointData<T>>(async ({ track }) => {
-    const href = track(loc, 'href');
-
-    if (isServer) {
-      if (!env) {
-        throw new Error('Endpoint response body is missing');
-      }
-      return env.response.body;
-    } else {
-      // fetch() for new data when the pathname has changed
-      const clientData = await loadClientData(href);
-      return clientData && clientData.body;
-    }
-  });
-};
-
-export const loadClientData = async (href: string) => {
-  const pagePathname = new URL(href).pathname;
-  const endpointUrl = getClientEndpointPath(pagePathname);
+export const loadClientData = async (
+  href: string,
+  clearCache?: boolean,
+  action?: RouteActionValue
+) => {
+  const url = new URL(href);
+  const pagePathname = url.pathname;
+  const pageSearch = url.search;
+  const clientDataPath = getClientDataPath(pagePathname, pageSearch, action);
+  let qData = undefined;
+  if (!action) {
+    qData = CLIENT_DATA_CACHE.get(clientDataPath);
+  }
 
   dispatchPrefetchEvent({
     links: [pagePathname],
   });
 
-  const clientResponse = await fetch(endpointUrl);
-  const contentType = clientResponse.headers.get('content-type') || '';
-  if (clientResponse.ok && contentType.includes('json')) {
-    const clientData: ClientPageData = await clientResponse.json();
-    dispatchPrefetchEvent({
-      bundles: clientData.prefetch,
-      links: [pagePathname],
+  if (!qData) {
+    const actionData = action?.data;
+    if (action) {
+      action.data = undefined;
+    }
+    const options: RequestInit | undefined = actionData
+      ? {
+          method: 'POST',
+          body: actionData,
+        }
+      : undefined;
+    qData = fetch(clientDataPath, options).then((rsp) => {
+      const redirectedURL = new URL(rsp.url);
+      if (redirectedURL.origin !== location.origin || !isQDataJson(redirectedURL.pathname)) {
+        location.href = redirectedURL.href;
+        return;
+      }
+      if ((rsp.headers.get('content-type') || '').includes('json')) {
+        // we are safe we are reading a q-data.json
+        return rsp.text().then((text) => {
+          const clientData = _deserializeData(text) as ClientPageData;
+          if (clientData.__brand !== 'qdata') {
+            return;
+          }
+          if (clearCache) {
+            CLIENT_DATA_CACHE.delete(clientDataPath);
+          }
+          if (clientData.redirect) {
+            location.href = clientData.redirect;
+          } else if (action) {
+            const actionData = clientData.loaders[action.id];
+            action.resolve!({ status: rsp.status, result: actionData });
+          }
+          return clientData;
+        });
+      } else {
+        CLIENT_DATA_CACHE.delete(clientDataPath);
+      }
     });
-    return clientData;
+
+    if (!action) {
+      CLIENT_DATA_CACHE.set(clientDataPath, qData);
+    }
   }
+
+  return qData;
 };
+
+export const isQDataJson = (pathname: string) => {
+  return pathname.endsWith(QDATA_JSON);
+};
+
+export const QDATA_JSON = '/q-data.json';

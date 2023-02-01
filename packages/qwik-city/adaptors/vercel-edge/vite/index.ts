@@ -1,5 +1,5 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { getParentDir, viteAdaptor } from '../../shared/vite';
+import { getParentDir, ServerAdaptorOptions, viteAdaptor } from '../../shared/vite';
 import fs from 'node:fs';
 import { join } from 'node:path';
 
@@ -11,14 +11,19 @@ export function vercelEdgeAdaptor(opts: VercelEdgeAdaptorOptions = {}): any {
     name: 'vercel-edge',
     origin: process?.env?.VERCEL_URL || 'https://yoursitename.vercel.app',
     staticGenerate: opts.staticGenerate,
+    ssg: opts.ssg,
     staticPaths: opts.staticPaths,
     cleanStaticGenerated: true,
 
     config(config) {
       const outDir = config.build?.outDir || '.vercel/output/functions/_qwik-city.func';
       return {
+        resolve: {
+          conditions: ['webworker', 'worker'],
+        },
         ssr: {
-          target: 'webworker',
+          target: 'node',
+          format: 'esm',
           noExternal: true,
         },
         build: {
@@ -35,7 +40,7 @@ export function vercelEdgeAdaptor(opts: VercelEdgeAdaptorOptions = {}): any {
       };
     },
 
-    async generate({ clientOutDir, serverOutDir, basePathname }) {
+    async generate({ clientOutDir, serverOutDir, basePathname, outputEntries }) {
       const vercelOutputDir = getParentDir(serverOutDir, 'output');
 
       if (opts.outputConfig !== false) {
@@ -44,8 +49,8 @@ export function vercelEdgeAdaptor(opts: VercelEdgeAdaptorOptions = {}): any {
           routes: [
             { handle: 'filesystem' },
             {
-              src: basePathname + '(.*)',
-              middlewarePath: '_qwik-city',
+              src: basePathname + '.*',
+              dest: '/_qwik-city',
             },
           ],
           version: 3,
@@ -58,9 +63,19 @@ export function vercelEdgeAdaptor(opts: VercelEdgeAdaptorOptions = {}): any {
       }
 
       const vcConfigPath = join(serverOutDir, '.vc-config.json');
+
+      let entrypoint = opts.vcConfigEntryPoint;
+      if (!entrypoint) {
+        if (outputEntries.some((n) => n === 'entry.vercel-edge.mjs')) {
+          entrypoint = 'entry.vercel-edge.mjs';
+        } else {
+          entrypoint = 'entry.vercel-edge.js';
+        }
+      }
+
       const vcConfig = {
         runtime: 'edge',
-        entrypoint: opts.vcConfigEntryPoint || 'entry.vercel-edge.js',
+        entrypoint,
         envVarsInUse: opts.vcConfigEnvVarsInUse,
       };
       await fs.promises.writeFile(vcConfigPath, JSON.stringify(vcConfig, null, 2));
@@ -79,7 +94,7 @@ export function vercelEdgeAdaptor(opts: VercelEdgeAdaptorOptions = {}): any {
 /**
  * @alpha
  */
-export interface VercelEdgeAdaptorOptions {
+export interface VercelEdgeAdaptorOptions extends ServerAdaptorOptions {
   /**
    * Determines if the build should auto-generate the `.vercel/output/config.json` config.
    *
@@ -100,10 +115,6 @@ export interface VercelEdgeAdaptorOptions {
    * Defaults to `undefined`.
    */
   vcConfigEnvVarsInUse?: string[];
-  /**
-   * Determines if the adaptor should also run Static Site Generation (SSG).
-   */
-  staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
   /**
    * Manually add pathnames that should be treated as static paths and not SSR.
    * For example, when these pathnames are requested, their response should

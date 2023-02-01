@@ -15,6 +15,8 @@ import {
   setPreference,
   ThemeToggle,
 } from '../theme-toggle/theme-toggle';
+import BuilderContentComp from '../../components/builder-content';
+import { BUILDER_MODEL, BUILDER_PUBLIC_API_KEY } from '../../constants';
 
 export const Header = component$(() => {
   useStyles$(styles);
@@ -31,10 +33,11 @@ export const Header = component$(() => {
 
   return (
     <header class="header-container">
+      <BuilderContentComp apiKey={BUILDER_PUBLIC_API_KEY} model={BUILDER_MODEL} tag="div" />
       <div class="header-inner">
         <div class="header-logo">
           <a href="/">
-            <span className="sr-only">Qwik Homepage</span>
+            <span class="sr-only">Qwik Homepage</span>
             <QwikLogo width={180} height={50} />
           </a>
         </div>
@@ -54,7 +57,7 @@ export const Header = component$(() => {
             <CloseIcon width={30} height={30} />
           </span>
         </button>
-        <ul className="md:grow md:flex md:justify-end md:p-4 menu-toolkit">
+        <ul class="lg:grow lg:flex lg:justify-end lg:p-4 menu-toolkit">
           <li>
             <a href="/docs/overview/" class={{ active: pathname.startsWith('/docs') }}>
               <span>Docs</span>
@@ -63,6 +66,14 @@ export const Header = component$(() => {
           <li>
             <a href="/qwikcity/overview/" class={{ active: pathname.startsWith('/qwikcity') }}>
               <span>Qwik City</span>
+            </a>
+          </li>
+          <li>
+            <a
+              href="/integrations/integration/overview/"
+              class={{ active: pathname.startsWith('/integrations') }}
+            >
+              <span>Integrations</span>
             </a>
           </li>
           <li>
@@ -103,24 +114,24 @@ export const Header = component$(() => {
           </li>
           <li>
             <a href="https://github.com/BuilderIO/qwik" target="_blank" title="GitHub">
-              <span class="md:hidden">GitHub</span>
-              <span class="hidden md:block">
+              <span class="lg:hidden">GitHub</span>
+              <span class="hidden lg:block">
                 <GithubLogo width={22} height={22} />
               </span>
             </a>
           </li>
           <li>
             <a href="https://twitter.com/QwikDev" target="_blank" title="Twitter">
-              <span class="md:hidden">@QwikDev</span>
-              <span class="hidden md:block">
+              <span class="lg:hidden">@QwikDev</span>
+              <span class="hidden lg:block">
                 <TwitterLogo width={22} height={22} />
               </span>
             </a>
           </li>
           <li>
             <a href="https://qwik.builder.io/chat" target="_blank" title="Discord">
-              <span class="md:hidden">Discord</span>
-              <span class="hidden md:block">
+              <span class="lg:hidden">Discord</span>
+              <span class="hidden lg:block">
                 <DiscordLogo width={22} height={22} />
               </span>
             </a>

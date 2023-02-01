@@ -1,12 +1,14 @@
 import { withLocale } from '@builder.io/qwik';
 import type {
   ContentModule,
+  GetData,
   RouteLocation,
   EndpointResponse,
   ResolvedDocumentHead,
   DocumentHeadProps,
   DocumentHeadValue,
   ClientPageData,
+  ServerLoaderInternal,
 } from './types';
 
 export const resolveHead = (
@@ -16,10 +18,12 @@ export const resolveHead = (
   locale: string
 ) => {
   const head = createDocumentHead();
+  const getData = ((loader: ServerLoaderInternal) =>
+    endpoint?.loaders[loader.__qrl.getHash()]) as any as GetData;
   const headProps: DocumentHeadProps = {
-    data: endpoint ? endpoint.body : null,
     head,
     withLocale: (fn) => withLocale(locale, fn),
+    getData,
     ...routeLocation,
   };
 

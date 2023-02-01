@@ -7,8 +7,22 @@ import { useSequentialScope } from './use-sequential-scope';
  * @public
  */
 export interface UseStoreOptions {
-  recursive?: boolean;
+  /**
+   * If `true` then all nested objects and arrays will be tracked as well.
+   * Default is `false`.
+   */
+  deep?: boolean;
+
+  /**
+   * If `false` then the object will not be tracked for changes.
+   * Default is `true`.
+   */
   reactive?: boolean;
+
+  /**
+   * @deprecated - use `deep` instead
+   */
+  recursive?: boolean;
 }
 
 // <docs markdown="../readme.md#useStore">
@@ -78,7 +92,7 @@ export const useStore = <STATE extends object>(
   initialState: STATE | (() => STATE),
   opts?: UseStoreOptions
 ): STATE => {
-  const { get, set, rCtx: ctx } = useSequentialScope<STATE>();
+  const { get, set, iCtx } = useSequentialScope<STATE>();
   if (get != null) {
     return get;
   }
@@ -87,8 +101,8 @@ export const useStore = <STATE extends object>(
     set(value);
     return value;
   } else {
-    const containerState = ctx.$renderCtx$.$static$.$containerState$;
-    const recursive = opts?.recursive ?? false;
+    const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+    const recursive = opts?.deep ?? opts?.recursive ?? false;
     const flags = recursive ? QObjectRecursive : 0;
     const newStore = getOrCreateProxy(value, containerState, flags);
     set(newStore);

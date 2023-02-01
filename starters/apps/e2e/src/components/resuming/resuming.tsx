@@ -5,7 +5,7 @@ import {
   createContext,
   Signal,
   useContext,
-  useWatch$,
+  useTask$,
 } from '@builder.io/qwik';
 
 export const CTXCount = createContext<Signal<number>>('resuming-count');
@@ -49,7 +49,7 @@ export const ResumingCounterShow = component$(() => {
   const count = useContext(CTXCount);
   const copy = useContext(CTXCounterCopy);
 
-  useWatch$(({ track }) => {
+  useTask$(({ track }) => {
     const value = track(() => count.value);
     copy.value = value;
   });

@@ -30,7 +30,7 @@ export const ReplOutputSymbols = ({ outputs }: ReplOutputSymbolsProps) => {
             <div class="file-info">
               <span>{o.hook?.canonicalFilename}</span>
             </div>
-            <div className="file-text">
+            <div class="file-text">
               <CodeBlock path={o.path} code={o.code} />
             </div>
           </div>

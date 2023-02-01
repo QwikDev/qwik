@@ -1,5 +1,5 @@
 import { createTimer, getBuildBase } from './utils';
-import { renderSSR, Fragment, jsx, _pauseFromContexts, JSXNode } from '@builder.io/qwik';
+import { _renderSSR, Fragment, jsx, _pauseFromContexts, JSXNode } from '@builder.io/qwik';
 import type { SnapshotResult } from '@builder.io/qwik';
 import { getSymbolHash, setServerPlatform } from './platform';
 import type {
@@ -142,11 +142,11 @@ export async function renderToStream(
   let snapshotTime = 0;
   let containsDynamic = false;
 
-  await renderSSR(rootNode, {
+  await _renderSSR(rootNode, {
     stream,
     containerTagName,
     containerAttributes,
-    envData: opts.envData,
+    serverData: opts.serverData ?? opts.envData,
     base: buildBase,
     beforeContent,
     beforeClose: async (contexts, containerState, dynamic) => {
@@ -223,14 +223,14 @@ export async function renderToStream(
 
   assertDefined(snapshotResult, 'snapshotResult must be defined');
 
-  const isStatic = !containsDynamic && !snapshotResult.resources.some((r) => r._cache !== Infinity);
+  const isDynamic = containsDynamic || snapshotResult.resources.some((r) => r._cache !== Infinity);
   const result: RenderToStreamResult = {
     prefetchResources: undefined as any,
     snapshotResult,
     flushes: networkFlushes,
     manifest: resolvedManifest?.manifest,
     size: totalSize,
-    isStatic,
+    isStatic: !isDynamic,
     timing: {
       render: renderTime,
       snapshot: snapshotTime,

@@ -9,9 +9,7 @@ import styles from './docs.css?inline';
 
 export default component$(() => {
   const loc = useLocation();
-  const noRightMenu = ['/docs/getting-started/', '/docs/overview/', '/docs/think-qwik/'].includes(
-    loc.pathname
-  );
+  const noRightMenu = ['/docs/overview/'].includes(loc.pathname);
   useStyles$(styles);
 
   return (
@@ -36,10 +34,11 @@ export default component$(() => {
   );
 });
 
-export const onGet: RequestHandler = ({ response }) => {
-  // cache for pages using this layout
-  response.headers.set(
-    'Cache-Control',
-    'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
-  );
+export const onGet: RequestHandler = ({ cacheControl }) => {
+  cacheControl({
+    public: true,
+    maxAge: 3600,
+    sMaxAge: 3600,
+    staleWhileRevalidate: 86400,
+  });
 };

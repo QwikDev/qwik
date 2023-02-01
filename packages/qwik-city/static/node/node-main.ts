@@ -18,6 +18,8 @@ export async function createNodeMainProcess(opts: StaticGenerateOptions) {
   const sitemapBuffer: string[] = [];
   let sitemapPromise: Promise<any> | null = null;
 
+  opts = { ...opts };
+
   let outDir = opts.outDir;
   if (typeof outDir !== 'string') {
     throw new Error(`Missing "outDir" option`);

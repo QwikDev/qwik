@@ -212,7 +212,7 @@ export const useContextProvider = <STATE extends object>(
  * @alpha
  */
 export const useContextBoundary = (...ids: Context<any>[]) => {
-  const { get, set, elCtx, rCtx } = useSequentialScope<boolean>();
+  const { get, set, elCtx, iCtx } = useSequentialScope<boolean>();
   if (get !== undefined) {
     return;
   }
@@ -221,7 +221,7 @@ export const useContextBoundary = (...ids: Context<any>[]) => {
     elCtx.$contexts$ = contexts = new Map();
   }
   for (const c of ids) {
-    const value = resolveContext(c, elCtx, rCtx.$renderCtx$.$static$.$containerState$);
+    const value = resolveContext(c, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
     if (value !== undefined) {
       contexts.set(c.id, value);
     }
@@ -231,6 +231,7 @@ export const useContextBoundary = (...ids: Context<any>[]) => {
 };
 
 export interface UseContext {
+  <STATE extends object, T>(context: Context<STATE>, transformer: (value: STATE) => T): T;
   <STATE extends object, T>(context: Context<STATE>, defaultValue: T): STATE | T;
   <STATE extends object>(context: Context<STATE>): STATE;
 }
@@ -288,7 +289,7 @@ export const useContext: UseContext = <STATE extends object>(
   context: Context<STATE>,
   defaultValue?: any
 ) => {
-  const { get, set, rCtx, elCtx } = useSequentialScope<STATE>();
+  const { get, set, iCtx, elCtx } = useSequentialScope<STATE>();
   if (get !== undefined) {
     return get;
   }
@@ -296,7 +297,10 @@ export const useContext: UseContext = <STATE extends object>(
     validateContext(context);
   }
 
-  const value = resolveContext(context, elCtx, rCtx.$renderCtx$.$static$.$containerState$);
+  const value = resolveContext(context, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
+  if (typeof defaultValue === 'function') {
+    return set(defaultValue(value));
+  }
   if (value !== undefined) {
     return set(value);
   }

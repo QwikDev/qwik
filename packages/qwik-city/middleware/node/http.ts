@@ -1,7 +1,8 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import type { QwikCityMode } from '../../runtime/src/types';
-import type { QwikCityRequestContext } from '../request-handler/types';
-import { createHeaders } from '../request-handler/headers';
+import type {
+  ServerRequestMode,
+  ServerRequestEvent,
+} from '@builder.io/qwik-city/middleware/request-handler';
 
 export function getUrl(req: IncomingMessage) {
   const protocol =
@@ -9,13 +10,13 @@ export function getUrl(req: IncomingMessage) {
   return new URL(req.url || '/', `${protocol}://${req.headers.host}`);
 }
 
-export function fromNodeHttp(
+export async function fromNodeHttp(
   url: URL,
   req: IncomingMessage,
   res: ServerResponse,
-  mode: QwikCityMode
+  mode: ServerRequestMode
 ) {
-  const requestHeaders = createHeaders();
+  const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
   for (const key in nodeRequestHeaders) {
     const value = nodeRequestHeaders[key];
@@ -28,45 +29,45 @@ export function fromNodeHttp(
     }
   }
 
-  const getRequestBody = async () => {
-    const buffers = [];
+  const getRequestBody = async function* () {
     for await (const chunk of req as any) {
-      buffers.push(chunk);
+      yield chunk;
     }
-    return Buffer.concat(buffers).toString();
   };
 
-  const requestCtx: QwikCityRequestContext = {
+  const body = req.method === 'HEAD' || req.method === 'GET' ? undefined : getRequestBody();
+  const options = {
+    method: req.method,
+    headers: requestHeaders,
+    body: body as any,
+    duplex: 'half' as any,
+  };
+  const serverRequestEv: ServerRequestEvent<boolean> = {
     mode,
-    request: {
-      headers: requestHeaders,
-      formData: async () => {
-        return new URLSearchParams(await getRequestBody());
+    url,
+    request: new Request(url.href, options as any),
+    env: {
+      get(key) {
+        return process.env[key];
       },
-      json: async () => {
-        return JSON.parse(await getRequestBody()!);
-      },
-      method: req.method || 'GET',
-      text: getRequestBody,
-      url: url.href,
     },
-    response: async (status, headers, cookies, body) => {
+    getWritableStream: (status, headers, cookies) => {
       res.statusCode = status;
       headers.forEach((value, key) => res.setHeader(key, value));
       const cookieHeaders = cookies.headers();
       if (cookieHeaders.length > 0) {
         res.setHeader('Set-Cookie', cookieHeaders);
       }
-      body({
-        write: (chunk) => {
+      const stream = new WritableStream<Uint8Array>({
+        write(chunk) {
           res.write(chunk);
         },
-      }).finally(() => {
-        res.end();
+        close() {
+          res.end();
+        },
       });
-      return res;
+      return stream;
     },
-    url,
     platform: {
       ssr: true,
       node: process.versions.node,
@@ -74,5 +75,5 @@ export function fromNodeHttp(
     locale: undefined,
   };
 
-  return requestCtx;
+  return serverRequestEv;
 }

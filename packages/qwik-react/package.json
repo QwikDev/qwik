@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-react",
-  "version": "0.1.1",
+  "version": "0.2.1",
   "description": "QwikReact allows adding React components into existing Qwik application",
   "scripts": {
     "build": "npm run build.lib",
@@ -19,12 +19,12 @@
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:*",
-    "@types/react": "18.0.25",
-    "@types/react-dom": "18.0.9",
+    "@types/react": "18.0.27",
+    "@types/react-dom": "18.0.10",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "typescript": "4.9.3",
-    "vite": "3.2.4"
+    "typescript": "4.9.4",
+    "vite": "4.0.4"
   },
   "peerDependencies": {
     "@builder.io/qwik": ">=0.1.11",
@@ -40,11 +40,17 @@
     ".": {
       "import": "./lib/index.qwik.mjs",
       "require": "./lib/index.qwik.cjs",
-      "types": "./lib/types/index.d.ts"
+      "types": "./lib/types/index.qwik.d.ts"
+    },
+    "./vite": {
+      "import": "./lib/vite.mjs",
+      "require": "./lib/vite.cjs",
+      "types": "./lib/types/vite.d.ts"
     }
   },
   "files": [
-    "lib"
+    "lib",
+    "vite"
   ],
   "license": "MIT",
   "homepage": "https://qwik.builder.io/",
@@ -59,5 +65,5 @@
   "type": "module",
   "main": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
-  "types": "./lib/types/index.d.ts"
+  "types": "./lib/types/index.qwik.d.ts"
 }

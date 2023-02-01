@@ -7,8 +7,10 @@ use std::str;
 
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
+use crate::const_replace::ConstReplacerVisitor;
 use crate::entry_strategy::EntryPolicy;
 use crate::filter_exports::StripExportsVisitor;
+use crate::props_destructuring::transform_props_destructuring;
 use crate::transform::{HookKind, QwikTransform, QwikTransformOptions};
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
 use path_slash::PathExt;
@@ -80,6 +82,9 @@ pub struct TransformCodeOptions<'a> {
     pub is_inline: bool,
 
     pub strip_exports: Option<&'a [JsWord]>,
+    pub strip_ctx_name: Option<&'a [JsWord]>,
+    pub strip_ctx_kind: Option<HookKind>,
+    pub is_server: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -279,7 +284,15 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                     ));
 
                     // Collect import/export metadata
-                    let collect = global_collect(&main_module);
+                    let mut collect = global_collect(&main_module);
+
+                    transform_props_destructuring(&mut main_module, &mut collect);
+
+                    // Replace const values
+                    if let Some(is_server) = config.is_server {
+                        let mut const_replacer = ConstReplacerVisitor::new(is_server, &collect);
+                        main_module.visit_mut_with(&mut const_replacer);
+                    }
                     let mut qwik_transform = QwikTransform::new(QwikTransformOptions {
                         path_data: &path_data,
                         entry_policy: config.entry_policy,
@@ -290,6 +303,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                         scope: config.scope,
                         mode: config.mode,
                         is_inline: config.is_inline,
+                        strip_ctx_name: config.strip_ctx_name,
+                        strip_ctx_kind: config.strip_ctx_kind,
                     });
 
                     // Run main transform
@@ -328,6 +343,12 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
                             leading_comments: comments_maps.0.clone(),
                             trailing_comments: comments_maps.1.clone(),
                         })?;
+                        if config.minify != MinifyMode::None {
+                            hook_module = hook_module.fold_with(&mut simplify::simplifier(
+                                unresolved_mark,
+                                Default::default(),
+                            ));
+                        }
                         hook_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
                         hook_module.visit_mut_with(&mut fixer(None));
 
@@ -654,5 +675,5 @@ pub fn might_need_handle_watch(ctx_kind: &HookKind, ctx_name: &str) -> bool {
     if matches!(ctx_kind, HookKind::Event) {
         return false;
     }
-    matches!(ctx_name, "useWatch$" | "useClientEffect$" | "$")
+    matches!(ctx_name, "useTask$" | "useClientEffect$" | "$")
 }

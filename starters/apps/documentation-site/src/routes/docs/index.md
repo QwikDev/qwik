@@ -18,5 +18,5 @@ The left menu ordering is created with the `src/routes/docs/menu.md` markdown fi
 - [Layouts](https://qwik.builder.io/qwikcity/layout/overview/)
 - [Routing](https://qwik.builder.io/qwikcity/routing/overview/)
 - [Authoring Content](https://qwik.builder.io/qwikcity/content/component/)
-- [Deployment](https://qwik.builder.io/qwikcity/adaptors/overview/)
+- [Deployment](https://qwik.builder.io/integrations/deployments/overview/)
 - [Static Site Generation (SSG)](https://qwik.builder.io/qwikcity/static-site-generation/overview/)

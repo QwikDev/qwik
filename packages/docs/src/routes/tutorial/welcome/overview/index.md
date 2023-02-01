@@ -18,8 +18,8 @@ The tutorials are broken up into these sections:
 - [Stores](../../store/basic/index.mdx): Declaring stores, data-binding, reactivity, and serialization.
 - [Props](../../props/basic/index.mdx): A deep dive into declaring and working with props and components and serialization constraints.
 - [Reactivity](../../reactivity/template/index.mdx): A deep dive into how reactivity works and how it can be used to build a more complex application.
-- [Context](../../context/basic/index.mdx): Making data globaly available to your application through context.
-- [Lifecycle Hooks](../../hooks/use-mount/index.mdx): Component life-cycle hooks.
+- [Context](../../context/basic/index.mdx): Making data globally available to your application through context.
+- [Lifecycle Hooks](../../hooks/use-task/index.mdx): Component life-cycle hooks.
 - [Projection](../../projection/basic/index.mdx): A deep dive into how projection works and how to use it in more complex scenarios.
 - [Styling](../../style/styles/index.mdx): Styling your application with CSS.
 - [Optimizer](../../qrl/optimizer/index.mdx): Understanding the Optimizer constraints.

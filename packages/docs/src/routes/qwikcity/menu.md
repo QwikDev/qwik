@@ -19,7 +19,6 @@
 - [Nested](layout/nested/index.mdx)
 - [Grouped](layout/grouped/index.mdx)
 - [Named](layout/named/index.mdx)
-- [Top](layout/top/index.mdx)
 
 ## Data fetching
 
@@ -35,23 +34,6 @@
 - [MDX](content/mdx/index.mdx)
 - [Menu](content/menu/index.mdx)
 - [<head>](content/head/index.mdx)
-
-## Deployments
-
-- [Overview](adaptors/overview/index.mdx)
-- [Netlify Edge](adaptors/netlify-edge/index.mdx)
-- [Cloudflare Pages](adaptors/cloudflare-pages/index.mdx)
-- [Node](adaptors/node/index.mdx)
-
-## Integrations
-
-- [Overview](integrations/overview/index.mdx)
-- [React](integrations/react/index.mdx)
-- [Partytown](integrations/partytown/index.mdx)
-- [Tailwind](integrations/tailwind/index.mdx)
-- [tRPC-Prisma](integrations/trpc-prisma/index.mdx)
-- [Vitest](integrations/vitest/index.mdx)
-- [Servers](adaptors/overview/index.mdx)
 
 ## Static Site Generation
 

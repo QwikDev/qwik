@@ -18,7 +18,7 @@ export default component$(() => {
   parent.children = [
     // insert few items here
   ];
-  const parentStore = useStore<ParentStore>(parent, { recursive: true });
+  const parentStore = useStore<ParentStore>(parent, { deep: true });
   return (
     <>
       {parentStore.name}

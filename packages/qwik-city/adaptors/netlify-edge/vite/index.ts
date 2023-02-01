@@ -1,6 +1,6 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { getParentDir, viteAdaptor } from '../../shared/vite';
-import fs from 'node:fs';
+import { getParentDir, ServerAdaptorOptions, viteAdaptor } from '../../shared/vite';
+import fs, { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { basePathname } from '@qwik-city-plan';
 
@@ -12,14 +12,19 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
     name: 'netlify-edge',
     origin: process?.env?.URL || 'https://yoursitename.netlify.app',
     staticGenerate: opts.staticGenerate,
+    ssg: opts.ssg,
     staticPaths: opts.staticPaths,
     cleanStaticGenerated: true,
 
     config(config) {
       const outDir = config.build?.outDir || '.netlify/edge-functions/entry.netlify-edge';
       return {
+        resolve: {
+          conditions: ['webworker', 'worker'],
+        },
         ssr: {
-          target: 'webworker',
+          target: 'node',
+          format: 'esm',
           noExternal: true,
         },
         build: {
@@ -49,6 +54,19 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
           version: 1,
         };
 
+        const jsPath = join(serverOutDir, 'entry.netlify-edge.js');
+        const mjsPath = join(serverOutDir, 'entry.netlify-edge.mjs');
+
+        if (existsSync(mjsPath)) {
+          await fs.promises.writeFile(
+            jsPath,
+            [
+              `import entry_netlifyEdge from './entry.netlify-edge.mjs';`,
+              `export default entry_netlifyEdge;`,
+            ].join('\n')
+          );
+        }
+
         const netlifyEdgeFnsDir = getParentDir(serverOutDir, 'edge-functions');
         await fs.promises.writeFile(
           join(netlifyEdgeFnsDir, 'manifest.json'),
@@ -62,7 +80,7 @@ export function netifyEdgeAdaptor(opts: NetlifyEdgeAdaptorOptions = {}): any {
 /**
  * @alpha
  */
-export interface NetlifyEdgeAdaptorOptions {
+export interface NetlifyEdgeAdaptorOptions extends ServerAdaptorOptions {
   /**
    * Determines if the build should generate the edge functions declarations `manifest.json` file.
    *
@@ -71,10 +89,6 @@ export interface NetlifyEdgeAdaptorOptions {
    * Defaults to `true`.
    */
   functionRoutes?: boolean;
-  /**
-   * Determines if the adaptor should also run Static Site Generation (SSG).
-   */
-  staticGenerate?: Omit<StaticGenerateRenderOptions, 'outDir'> | true;
   /**
    * Manually add pathnames that should be treated as static paths and not SSR.
    * For example, when these pathnames are requested, their response should

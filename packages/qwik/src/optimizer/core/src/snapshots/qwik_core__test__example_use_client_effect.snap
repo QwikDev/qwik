@@ -55,7 +55,7 @@ export const Child_component_9GyF01GDKqw = ()=>{
     ]));
     return /*#__PURE__*/ _jsx("div", {
         children: _wrapSignal(state, "count")
-    });
+    }, "u6_0");
 };
 
 

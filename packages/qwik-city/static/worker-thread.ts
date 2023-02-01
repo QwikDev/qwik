@@ -4,11 +4,11 @@ import type {
   StaticWorkerRenderResult,
   System,
 } from './types';
-import type { QwikCityRequestContext } from '../middleware/request-handler/types';
-import type { RequestContext } from '../runtime/src/types';
-import { createHeaders } from '../middleware/request-handler/headers';
-import { requestHandler } from '../middleware/request-handler';
+import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
+import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { pathToFileURL } from 'node:url';
+import { WritableStream } from 'node:stream/web';
+import type { ClientPageData } from '../runtime/src/types';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
@@ -53,150 +53,124 @@ async function workerRender(
     url: url.href,
     ok: false,
     error: null,
-    isStatic: false,
+    isStatic: true,
+    filePath: null,
   };
 
-  try {
-    const request = new SsgRequestContext(url);
+  const htmlFilePath = sys.getPageFilePath(staticRoute.pathname);
+  const dataFilePath = sys.getDataFilePath(staticRoute.pathname);
 
-    const requestCtx: QwikCityRequestContext<void> = {
+  const writeHtmlEnabled = opts.emitHtml !== false;
+  const writeDataEnabled = opts.emitData !== false && !!dataFilePath;
+
+  if (writeHtmlEnabled || writeDataEnabled) {
+    await sys.ensureDir(htmlFilePath);
+  }
+
+  try {
+    const request = new Request(url);
+
+    const requestCtx: ServerRequestEvent<void> = {
       mode: 'static',
       locale: undefined,
       url,
       request,
-      response: async (status, headers, _, body, err) => {
-        if (err) {
-          if (err.stack) {
-            result.error = String(err.stack);
-          } else if (err.message) {
-            result.error = String(err.message);
-          } else {
-            result.error = String(err);
-          }
-        } else {
-          result.ok =
-            status >= 200 &&
-            status <= 299 &&
-            (headers.get('Content-Type') || '').includes('text/html');
+      env: {
+        get(key) {
+          return process.env[key];
+        },
+      },
+      getWritableStream: (status, headers, _, _r, requestEv) => {
+        result.ok =
+          status >= 200 &&
+          status <= 299 &&
+          (headers.get('Content-Type') || '').includes('text/html');
+
+        if (!result.ok) {
+          return noopWriter;
         }
 
-        if (result.ok) {
-          const htmlFilePath = sys.getPageFilePath(staticRoute.pathname);
-          const dataFilePath = sys.getDataFilePath(staticRoute.pathname);
+        const htmlWriter = writeHtmlEnabled ? sys.createWriteStream(htmlFilePath) : null;
+        const stream = new WritableStream<Uint8Array>({
+          write(chunk) {
+            // page html writer
+            if (htmlWriter) {
+              htmlWriter.write(Buffer.from(chunk.buffer));
+            }
+          },
+          close() {
+            const data: ClientPageData = requestEv.sharedMap.get('qData');
 
-          const writeHtmlEnabled = opts.emitHtml !== false;
-          const writeDataEnabled = opts.emitData !== false && !!dataFilePath;
-
-          if (writeHtmlEnabled || writeDataEnabled) {
-            await sys.ensureDir(htmlFilePath);
-          }
-
-          return new Promise((resolve) => {
-            const htmlWriter = writeHtmlEnabled ? sys.createWriteStream(htmlFilePath) : null;
-            const dataWriter = writeDataEnabled ? sys.createWriteStream(dataFilePath) : null;
-
-            body({
-              write: (chunk) => {
-                // page html writer
-                if (htmlWriter) {
-                  htmlWriter.write(chunk);
-                }
-              },
-              clientData: (data) => {
-                // page data writer
-                if (dataWriter) {
-                  dataWriter.write(JSON.stringify(data));
-                }
+            if (writeDataEnabled) {
+              if (data) {
                 if (typeof data.isStatic === 'boolean') {
                   result.isStatic = data.isStatic;
                 }
-              },
-            }).finally(() => {
-              if (htmlWriter) {
-                if (dataWriter) {
-                  dataWriter.close();
-                }
-                htmlWriter.close(resolve);
-              } else if (dataWriter) {
-                dataWriter.close(resolve);
-              } else {
-                resolve();
+                const dataWriter = sys.createWriteStream(dataFilePath);
+                dataWriter.write(JSON.stringify(data));
+                dataWriter.end();
               }
-            });
-          });
-        }
+            }
+
+            if (data) {
+              if (htmlWriter) {
+                return new Promise<void>((resolve) => {
+                  result.filePath = htmlFilePath;
+                  htmlWriter.end(resolve);
+                });
+              }
+            }
+          },
+        });
+        return stream;
       },
       platform: sys.platform,
     };
 
     const promise = requestHandler(requestCtx, opts)
       .then((rsp) => {
-        if (rsp == null) {
-          callback(result);
+        if (rsp != null) {
+          return rsp.completion;
         }
       })
-      .catch((e) => {
-        if (e) {
-          if (e.stack) {
-            result.error = String(e.stack);
-          } else if (e.message) {
-            result.error = String(e.message);
+      .then((e) => {
+        if (e !== undefined) {
+          if (e instanceof Error) {
+            result.error = {
+              message: e.message,
+              stack: e.stack,
+            };
           } else {
-            result.error = String(e);
+            result.error = {
+              message: String(e),
+              stack: undefined,
+            };
           }
-        } else {
-          result.error = `Error`;
         }
-        callback(result);
       })
       .finally(() => {
         pendingPromises.delete(promise);
+        callback(result);
       });
 
     pendingPromises.add(promise);
   } catch (e: any) {
-    if (e) {
-      if (e.stack) {
-        result.error = String(e.stack);
-      } else if (e.message) {
-        result.error = String(e.message);
-      } else {
-        result.error = String(e);
-      }
+    if (e instanceof Error) {
+      result.error = {
+        message: e.message,
+        stack: e.stack,
+      };
     } else {
-      result.error = `Error`;
+      result.error = {
+        message: String(e),
+        stack: undefined,
+      };
     }
     callback(result);
   }
 }
 
-class SsgRequestContext implements RequestContext {
-  url: string;
-  headers: Headers;
-
-  constructor(url: URL) {
-    this.url = url.href;
-
-    const headers = createHeaders();
-    headers.set('Host', url.host);
-    headers.set('Accept', 'text/html,application/json');
-    headers.set('User-Agent', 'Qwik City SSG');
-    this.headers = headers;
-  }
-
-  get method() {
-    return 'GET';
-  }
-
-  async json() {
-    return {};
-  }
-
-  async text() {
-    return '';
-  }
-
-  async formData() {
-    return new URLSearchParams();
-  }
-}
+const noopWriter = /*#__PURE__*/ new WritableStream({
+  write() {},
+  close() {},
+});

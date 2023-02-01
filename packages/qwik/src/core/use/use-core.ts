@@ -9,7 +9,7 @@ import { isPromise } from '../util/promises';
 import { seal } from '../util/qdev';
 import { isArray } from '../util/types';
 import { setLocale } from './use-locale';
-import type { SubscriberEffect, SubscriberHost } from './use-watch';
+import type { SubscriberEffect, SubscriberHost } from './use-task';
 
 declare const document: QwikDocument;
 
@@ -71,8 +71,8 @@ export const getInvokeContext = (): InvokeContext => {
 };
 
 export const useInvokeContext = (): RenderInvokeContext => {
-  const ctx = getInvokeContext();
-  if (ctx.$event$ !== RenderEvent) {
+  const ctx = tryGetInvokeContext();
+  if (!ctx || ctx.$event$ !== RenderEvent) {
     throw qError(QError_useInvokeContext);
   }
   assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`, ctx);
@@ -156,4 +156,11 @@ export const newInvokeContext = (
 
 export const getWrappingContainer = (el: QwikElement): Element | null => {
   return el.closest(QContainerSelector);
+};
+
+/**
+ * @alpha
+ */
+export const untrack = <T>(fn: () => T): T => {
+  return invoke(undefined, fn);
 };

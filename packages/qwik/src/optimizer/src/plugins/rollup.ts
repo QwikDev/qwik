@@ -65,11 +65,6 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         inputOpts.input = opts.input;
       }
 
-      if (opts.target === 'ssr') {
-        // Server input
-        inputOpts.treeshake = false;
-      }
-
       return inputOpts;
     },
 

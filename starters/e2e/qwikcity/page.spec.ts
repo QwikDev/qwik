@@ -6,6 +6,10 @@ test.describe('Qwik City Page', () => {
     test.use({ javaScriptEnabled: false });
     tests();
   });
+  test.describe('spa', () => {
+    test.use({ javaScriptEnabled: true });
+    tests();
+  });
 });
 
 function tests() {
@@ -35,9 +39,9 @@ function tests() {
     await linkNavigate(ctx, '[data-test-link="blog-resumability"]');
     await assertPage(ctx, {
       pathname: '/qwikcity-test/blog/what-is-resumability/',
-      title: 'Blog: what-is-resumability/ - Qwik',
+      title: 'Blog: what-is-resumability - Qwik',
       layoutHierarchy: ['root', 'blog'],
-      h1: 'Blog: what-is-resumability/',
+      h1: 'Blog: what-is-resumability',
       activeHeaderLink: 'Blog',
     });
 
@@ -45,9 +49,9 @@ function tests() {
     await linkNavigate(ctx, '[data-test-link="blog-serializing-props"]');
     await assertPage(ctx, {
       pathname: '/qwikcity-test/blog/serializing-props/',
-      title: 'Blog: serializing-props/ - Qwik',
+      title: 'Blog: serializing-props - Qwik',
       layoutHierarchy: ['root', 'blog'],
-      h1: 'Blog: serializing-props/',
+      h1: 'Blog: serializing-props',
       activeHeaderLink: 'Blog',
     });
 

@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
-import { getErrorHtml } from '../../../middleware/request-handler';
+import { getErrorHtml } from '@builder.io/qwik-city/middleware/request-handler';
 
 export async function postBuild(
   clientOutDir: string,
@@ -49,7 +49,9 @@ export async function postBuild(
     await Promise.all(itemNames.map((i) => loadItem(fsDir, i, pathname)));
   };
 
-  await loadDir(clientOutDir, basePathname);
+  if (fs.existsSync(clientOutDir)) {
+    await loadDir(clientOutDir, basePathname);
+  }
 
   const notFoundPathsCode = createNotFoundPathsModule(basePathname, notFounds, format);
   const staticPathsCode = createStaticPathsModule(basePathname, staticPaths, format);
@@ -108,7 +110,11 @@ function createStaticPathsModule(basePathname: string, staticPaths: Set<string>,
     )});`
   );
 
-  c.push(`function isStaticPath(p) {`);
+  c.push(`function isStaticPath(method, url) {`);
+  c.push(`  if (method.toUpperCase() !== 'GET') {`);
+  c.push(`    return false;`);
+  c.push(`  }`);
+  c.push(`  const p = url.pathname;`);
   c.push(`  if (p.startsWith(${JSON.stringify(baseBuildPath)})) {`);
   c.push(`    return true;`);
   c.push(`  }`);
@@ -117,6 +123,15 @@ function createStaticPathsModule(basePathname: string, staticPaths: Set<string>,
   c.push(`  }`);
   c.push(`  if (staticPaths.has(p)) {`);
   c.push(`    return true;`);
+  c.push(`  }`);
+  c.push(`  if (p.endsWith('/q-data.json')) {`);
+  c.push(`    const pWithoutQdata = p.replace(/\\/q-data.json$/, '');`);
+  c.push(`    if (staticPaths.has(pWithoutQdata + '/')) {`);
+  c.push(`      return true;`);
+  c.push(`    }`);
+  c.push(`    if (staticPaths.has(pWithoutQdata)) {`);
+  c.push(`      return true;`);
+  c.push(`    }`);
   c.push(`  }`);
   c.push(`  return false;`);
   c.push(`}`);

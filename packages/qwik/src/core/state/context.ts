@@ -1,5 +1,5 @@
 import type { OnRenderFn } from '../component/component.public';
-import { destroyWatch, SubscriberEffect } from '../use/use-watch';
+import { destroyWatch, SubscriberEffect } from '../use/use-task';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import type { StyleAppend } from '../use/use-core';
@@ -14,8 +14,8 @@ import { isElement } from '../../testing/html';
 import { assertQwikElement } from '../util/element';
 import { assertTrue } from '../error/assert';
 import { QScopedStyle } from '../util/markers';
-import { createProxy } from './store';
-import { QObjectFlagsSymbol, QObjectImmutable } from './constants';
+import { createPropsState, createProxy } from './store';
+import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 
 export const Q_CTX = '_qc_';
 
@@ -46,6 +46,7 @@ export interface QContext {
   $dynamicSlots$: QContext[] | null;
   $parent$: QContext | null;
   $slotParent$: QContext | null;
+  $extraRender$: JSXNode[] | null;
 }
 
 export const tryGetContext = (element: QwikElement): QContext | undefined => {
@@ -105,12 +106,7 @@ export const getContext = (el: QwikElement, containerState: ContainerState): QCo
             if (props) {
               elCtx.$props$ = getObject(props);
             } else {
-              elCtx.$props$ = createProxy(
-                {
-                  [QObjectFlagsSymbol]: QObjectImmutable,
-                },
-                containerState
-              );
+              elCtx.$props$ = createProxy(createPropsState(), containerState);
             }
           }
         }
@@ -140,6 +136,7 @@ export const createContext = (element: Element | VirtualElement): QContext => {
     $dynamicSlots$: null,
     $parent$: null,
     $slotParent$: null,
+    $extraRender$: null,
   };
   seal(ctx);
   (element as any)[Q_CTX] = ctx;

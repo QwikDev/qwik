@@ -1,7 +1,7 @@
 import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'node:http';
 import type { BuildContext } from '../types';
-import type { PathParams, RequestEvent, RouteModule } from '../../runtime/src/types';
+import type { LoadedRoute, PathParams, RequestEvent, RouteModule } from '../../runtime/src/types';
 import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -121,9 +121,10 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             return qwikRenderPromise;
           }
         };
+        const loadedRoute = [params, routeModules, undefined, undefined] satisfies LoadedRoute;
         const requestHandlers = resolveRequestHandlers(
           serverPlugins,
-          [{}, routeModules, undefined, undefined],
+          loadedRoute,
           req.method ?? 'GET',
           renderFn
         );
@@ -132,7 +133,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
           const { completion, requestEv } = runQwikCity(
             serverRequestEv,
-            params,
+            loadedRoute,
             requestHandlers,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname

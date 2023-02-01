@@ -1,9 +1,10 @@
 import type { ServerRequestEvent } from './types';
-import type { PathParams, RequestEvent, RequestHandler } from '@builder.io/qwik-city';
+import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
 import { createRequestEvent } from './request-event';
 import { ErrorResponse, getErrorHtml } from './error-handler';
 import { HttpStatus } from './http-status-codes';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
+import type { LoadedRoute } from '../../runtime/src/types';
 
 export interface QwikCityRun<T> {
   response: Promise<T | null>;
@@ -13,7 +14,7 @@ export interface QwikCityRun<T> {
 
 export function runQwikCity<T>(
   serverRequestEv: ServerRequestEvent<T>,
-  params: PathParams,
+  loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<unknown>[],
   trailingSlash = true,
   basePathname = '/'
@@ -26,7 +27,7 @@ export function runQwikCity<T>(
   const responsePromise = new Promise<T>((r) => (resolve = r));
   const requestEv = createRequestEvent(
     serverRequestEv,
-    params,
+    loadedRoute,
     requestHandlers,
     trailingSlash,
     basePathname,

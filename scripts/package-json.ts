@@ -42,13 +42,27 @@ export async function generatePackageJson(config: BuildConfig) {
       },
       './jsx-runtime': {
         types: './jsx-runtime.d.ts',
-        import: './jsx-runtime.mjs',
-        require: './jsx-runtime.cjs',
+        import: {
+          min: './core.min.mjs',
+          production: './core.prod.mjs',
+          default: './core.mjs',
+        },
+        require: {
+          production: './core.prod.cjs',
+          default: './core.cjs',
+        },
       },
       './jsx-dev-runtime': {
         types: './jsx-runtime.d.ts',
-        import: './jsx-runtime.mjs',
-        require: './jsx-runtime.cjs',
+        import: {
+          min: './core.min.mjs',
+          production: './core.prod.mjs',
+          default: './core.mjs',
+        },
+        require: {
+          production: './core.prod.cjs',
+          default: './core.cjs',
+        },
       },
       './build': {
         types: './build/index.d.ts',

@@ -36,6 +36,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       target,
       external: [
         /* no nodejs built-in externals allowed! */
+        'espree',
       ],
       incremental: config.watch,
     };

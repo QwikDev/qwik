@@ -42,33 +42,35 @@ class ActionImpl implements ActionInternal {
   ) {}
   use(): ActionStore<any, any> {
     const loc = useLocation() as Editable<RouteLocation>;
+    const id = this.__qrl.getHash();
     const currentAction = useAction();
     const initialState: Editable<Partial<ActionStore<any, any>>> = {
-      status: undefined,
+      actionPath: `?${QACTION_KEY}=${id}`,
       isRunning: false,
+      status: undefined,
+      value: undefined,
+      fail: undefined,
+      formData: undefined,
     };
-    const id = this.__qrl.getHash();
     const state = useStore<Editable<ActionStore<any, any>>>(() => {
       const value = currentAction.value;
-      const data = value?.data;
-      initialState.formData = data instanceof FormData ? data : undefined;
-      if (value?.output) {
-        const { status, result } = value.output;
-        initialState.status = status;
-        if (isFail(result)) {
-          initialState.value = undefined;
-          initialState.fail = result;
-        } else {
-          initialState.value = result;
-          initialState.fail = undefined;
+      if (value && value?.id === id) {
+        const data = value.data;
+        if (data instanceof FormData) {
+          initialState.formData = data;
         }
-      } else {
-        initialState.status = undefined;
-        initialState.value = undefined;
-        initialState.fail = undefined;
+        if (value.output) {
+          const { status, result } = value.output;
+          initialState.status = status;
+          if (isFail(result)) {
+            initialState.value = undefined;
+            initialState.fail = result;
+          } else {
+            initialState.value = result;
+            initialState.fail = undefined;
+          }
+        }
       }
-      initialState.actionPath = `${loc.pathname}?${QACTION_KEY}=${id}`;
-      initialState.isRunning = false;
       return initialState as ActionStore<any, any>;
     });
 

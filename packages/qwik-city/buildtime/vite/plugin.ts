@@ -18,14 +18,13 @@ import { dev404Middleware, ssrDevMiddleware, staticDistMiddleware } from './dev-
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
 import { patchGlobalThis } from '../../middleware/node/node-fetch';
-import type { QwikManifest } from '@builder.io/qwik/optimizer';
+import type { QwikManifest, QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import {
   generateServiceWorkerRegister,
   prependManifestToServiceWorker,
 } from '../runtime-generation/generate-service-worker';
 import type { RollupError } from 'rollup';
-import type { QwikVitePlugin } from '../../../qwik/src/optimizer/src';
 import {
   NOT_FOUND_PATHS_ID,
   RESOLVED_NOT_FOUND_PATHS_ID,

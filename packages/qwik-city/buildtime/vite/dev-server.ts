@@ -2,7 +2,7 @@ import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'node:http';
 import type { BuildContext } from '../types';
 import type { LoadedRoute, PathParams, RequestEvent, RouteModule } from '../../runtime/src/types';
-import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
+import type { QwikViteDevResponse } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import {

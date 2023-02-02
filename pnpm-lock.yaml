@@ -55,7 +55,7 @@ importers:
       typescript: 4.9.5
       undici: 5.16.0
       uvu: 0.5.6
-      vite: 4.1.1
+      vite: 4.0.4
       vite-tsconfig-paths: 4.0.5
       watchlist: 0.3.1
       which-pm-runs: 1.1.0
@@ -112,7 +112,7 @@ importers:
       typescript: 4.9.5
       undici: 5.16.0
       uvu: 0.5.6
-      vite: 4.1.1_ndrtoknlsrlxoi7jhrc2iwbpca
+      vite: 4.0.4_ndrtoknlsrlxoi7jhrc2iwbpca
       vite-tsconfig-paths: 4.0.5_typescript@4.9.5
       watchlist: 0.3.1
       which-pm-runs: 1.1.0
@@ -156,7 +156,7 @@ importers:
       typescript: 4.9.5
       undici: 5.16.0
       uvu: 0.5.6
-      vite: 4.1.1
+      vite: 4.0.4
       wrangler: ^2.9.0
     devDependencies:
       '@algolia/autocomplete-core': 1.7.3
@@ -183,7 +183,7 @@ importers:
       typescript: 4.9.5
       undici: 5.16.0
       uvu: 0.5.6
-      vite: 4.1.1
+      vite: 4.0.4
       wrangler: 2.9.0
 
   packages/eslint-plugin-qwik:
@@ -232,7 +232,7 @@ importers:
       unist-util-visit: 4.1.2
       uvu: 0.5.6
       vfile: 5.3.6
-      vite: 4.1.1
+      vite: 4.0.4
       yaml: 2.2.1
       zod: ^3.20.2
     dependencies:
@@ -266,7 +266,7 @@ importers:
       unified: 10.1.2
       unist-util-visit: 4.1.2
       uvu: 0.5.6
-      vite: 4.1.1_@types+node@18.11.18
+      vite: 4.0.4_@types+node@18.11.18
       yaml: 2.2.1
 
   packages/qwik-dom:
@@ -280,7 +280,7 @@ importers:
       react: 18.2.0
       react-dom: 18.2.0
       typescript: 4.9.5
-      vite: 4.1.1
+      vite: 4.0.4
     devDependencies:
       '@builder.io/qwik': link:../qwik
       '@types/react': 18.0.27
@@ -288,7 +288,7 @@ importers:
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       typescript: 4.9.5
-      vite: 4.1.1
+      vite: 4.0.4
 
 packages:
 
@@ -7048,8 +7048,8 @@ packages:
       - typescript
     dev: true
 
-  /vite/4.1.1:
-    resolution: {integrity: sha512-LM9WWea8vsxhr782r9ntg+bhSFS06FJgCvvB0+8hf8UWtvaiDagKYWXndjfX6kGl74keHJUcpzrQliDXZlF5yg==}
+  /vite/4.0.4:
+    resolution: {integrity: sha512-xevPU7M8FU0i/80DMR+YhgrzR5KS2ORy1B4xcX/cXLsvnUWvfHuqMmVU6N0YiJ4JWGRJJsLCgjEzKjG9/GKoSw==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
@@ -7081,8 +7081,8 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /vite/4.1.1_@types+node@18.11.18:
-    resolution: {integrity: sha512-LM9WWea8vsxhr782r9ntg+bhSFS06FJgCvvB0+8hf8UWtvaiDagKYWXndjfX6kGl74keHJUcpzrQliDXZlF5yg==}
+  /vite/4.0.4_@types+node@18.11.18:
+    resolution: {integrity: sha512-xevPU7M8FU0i/80DMR+YhgrzR5KS2ORy1B4xcX/cXLsvnUWvfHuqMmVU6N0YiJ4JWGRJJsLCgjEzKjG9/GKoSw==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
@@ -7115,8 +7115,8 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /vite/4.1.1_ndrtoknlsrlxoi7jhrc2iwbpca:
-    resolution: {integrity: sha512-LM9WWea8vsxhr782r9ntg+bhSFS06FJgCvvB0+8hf8UWtvaiDagKYWXndjfX6kGl74keHJUcpzrQliDXZlF5yg==}
+  /vite/4.0.4_ndrtoknlsrlxoi7jhrc2iwbpca:
+    resolution: {integrity: sha512-xevPU7M8FU0i/80DMR+YhgrzR5KS2ORy1B4xcX/cXLsvnUWvfHuqMmVU6N0YiJ4JWGRJJsLCgjEzKjG9/GKoSw==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:

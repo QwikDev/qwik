@@ -153,7 +153,6 @@ export interface StaticWorkerRenderResult {
   url: string;
   ok: boolean;
   error: { message: string; stack: string | undefined } | null;
-  isStatic: boolean;
   filePath: string | null;
 }
 

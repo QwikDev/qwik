@@ -108,7 +108,6 @@ export { useServerMount$, useServerMountQrl } from './use/use-mount';
 export { useClientMount$, useClientMountQrl } from './use/use-mount';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './render/error-handling';
-export { useRender } from './use/use-render';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

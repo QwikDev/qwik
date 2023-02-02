@@ -309,12 +309,10 @@ export function renderQwikMiddleware(render: Render, opts?: RenderOptions) {
         },
       });
       const qData: ClientPageData = {
-        __brand: 'qdata',
         loaders: getRequestLoaders(requestEv),
         action: getRequestAction(requestEv),
         status: status !== 200 ? status : 200,
         href: getPathname(requestEv.url, true), // todo
-        isStatic: result.isStatic,
       };
       if ((typeof result as any as RenderToStringResult).html === 'string') {
         // render result used renderToString(), so none of it was streamed
@@ -364,7 +362,6 @@ export async function renderQData(requestEv: RequestEvent) {
     requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
 
     const qData: ClientPageData = {
-      __brand: 'qdata',
       loaders: getRequestLoaders(requestEv),
       action: getRequestAction(requestEv),
       status: status !== 200 ? status : 200,

@@ -187,7 +187,12 @@ importers:
       wrangler: 2.8.1
 
   packages/eslint-plugin-qwik:
-    specifiers: {}
+    specifiers:
+      '@types/eslint': 8.4.10
+      '@types/estree': ^1.0.0
+    devDependencies:
+      '@types/eslint': 8.4.10
+      '@types/estree': 1.0.0
 
   packages/qwik:
     specifiers:

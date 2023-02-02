@@ -17,12 +17,18 @@ export const loaderLocation: Rule.RuleModule = {
   },
   create(context) {
     const path = context.getFilename();
-    const isLayout = /^layout(|!|-.+)\.tsx?$/.test(path);
-    const isIndex = /^index(|!|-.+)\.tsx?$/.test(path);
-    const canContainLoader = isIndex || isLayout;
+    const isLayout = /\/layout(|!|-.+)\.tsx?$/.test(path);
+    const isIndex = /\/index(|!|@.+)\.tsx?$/.test(path);
+    const isInsideRoutes = /\/src\/routes\//.test(path);
+
+    const canContainLoader = isInsideRoutes && (isIndex || isLayout);
     return {
-      'CallExpression[callee.name=/^loader\\$$/]'(node: CallExpression) {
-        if (!canContainLoader) {
+      CallExpression(node: CallExpression) {
+        if (
+          !canContainLoader &&
+          node.callee.type === 'Identifier' &&
+          node.callee.name === 'loader$'
+        ) {
           context.report({
             node: node.callee,
             messageId: 'invalidLoaderLocation',

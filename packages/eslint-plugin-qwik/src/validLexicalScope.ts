@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { AST_NODE_TYPES, ESLintUtils } from '@typescript-eslint/utils';
+import { ESLintUtils } from '@typescript-eslint/utils';
 import type { Scope } from '@typescript-eslint/utils/dist/ts-eslint-scope';
 import ts from 'typescript';
 import type { Identifier } from 'estree';
@@ -119,10 +119,7 @@ export const validLexicalScope = createRule({
             }
 
             if (ownerDeclared !== dollarScope) {
-              if (
-                identifier.parent &&
-                identifier.parent.type === AST_NODE_TYPES.AssignmentExpression
-              ) {
+              if (identifier.parent && identifier.parent.type === 'AssignmentExpression') {
                 if (identifier.parent.left === identifier) {
                   context.report({
                     messageId: 'mutableIdentifier',
@@ -155,10 +152,10 @@ export const validLexicalScope = createRule({
 
     return {
       CallExpression(node) {
-        if (node.callee.type === AST_NODE_TYPES.Identifier) {
+        if (node.callee.type === 'Identifier') {
           if (node.callee.name.endsWith('$')) {
             const firstArg = node.arguments.at(0);
-            if (firstArg && firstArg.type === AST_NODE_TYPES.ArrowFunctionExpression) {
+            if (firstArg && firstArg.type === 'ArrowFunctionExpression') {
               const scope = scopeManager.acquire(firstArg);
               if (scope) {
                 relevantScopes.set(scope, node.callee.name);
@@ -169,16 +166,15 @@ export const validLexicalScope = createRule({
       },
       JSXAttribute(node) {
         const jsxName = node.name;
-        const name =
-          jsxName.type === AST_NODE_TYPES.JSXIdentifier ? jsxName.name : jsxName.name.name;
+        const name = jsxName.type === 'JSXIdentifier' ? jsxName.name : jsxName.name.name;
 
         if (name.endsWith('$')) {
           const firstArg = node.value;
-          if (firstArg && firstArg.type === AST_NODE_TYPES.JSXExpressionContainer) {
+          if (firstArg && firstArg.type === 'JSXExpressionContainer') {
             const scope = scopeManager.acquire(firstArg.expression);
             if (scope) {
               relevantScopes.set(scope, name);
-            } else if (firstArg.expression.type === AST_NODE_TYPES.Identifier) {
+            } else if (firstArg.expression.type === 'Identifier') {
               const tsNode = esTreeNodeToTSNodeMap.get(firstArg.expression);
               const type = typeChecker.getTypeAtLocation(tsNode);
               if (!isTypeQRL(type)) {

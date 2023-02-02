@@ -24,5 +24,9 @@
   ],
   "engines": {
     "node": ">=16"
+  },
+  "devDependencies": {
+    "@types/eslint": "8.4.10",
+    "@types/estree": "^1.0.0"
   }
 }

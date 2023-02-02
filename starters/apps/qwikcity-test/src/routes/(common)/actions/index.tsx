@@ -1,43 +1,31 @@
 import { component$ } from '@builder.io/qwik';
-import type { DocumentHead } from '@builder.io/qwik-city';
+import { action$, DocumentHead } from '@builder.io/qwik-city';
 import { SecretForm } from './login';
 
-// export const slowAction = action$(async (form) => {
-//   await delay(3000);
-//   return {
-//     success: true,
-//   };
-// });
-
-// export const toppingsAction = action$((form) => {
-//   const newToppings = form.toppings;
-//   console.warn('Selected toppings:', newToppings);
-//   // await delay(1000);
-//   return {
-//     success: true,
-//   };
-// });
-
-// export const crustLoader = loader$(() => {
-//   return ['Thin', 'Deep Dish'];
-// });
-
-// export const sizeLoader = loader$(() => {
-//   return ['Small', 'Medium', 'Large'];
-// });
+export const otherAction = action$((_, { fail }) => {
+  if (Math.random() > 0.5) {
+    return {
+      secret: 'this is the secret',
+      date: new Date(),
+    };
+  }
+  return fail(400, {
+    message: 'Invalid username or code',
+  });
+});
 
 export default component$(() => {
-  // const crusts = crustLoader.use();
-  // const sizes = sizeLoader.use();
-
-  // const toppings = toppingsLoader.use();
-  // const toppingAction = toppingsAction.use();
-  // const slow = slowAction.use();
-
+  const other = otherAction.use();
   return (
     <div class="actions">
       <section class="input">
         <SecretForm />
+      </section>
+      <section>
+        <div id="other-store">
+          {String(other.isRunning)}:{other.formData?.get('username')}:{other.formData?.get('code')}:
+          {JSON.stringify(other.fail)}:{JSON.stringify(other.value)}
+        </div>
       </section>
     </div>
   );

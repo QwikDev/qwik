@@ -129,7 +129,10 @@ export const _serializeData = (data: any) => {
     throw qError(QError_verifySerializable, obj);
   });
 
-  return JSON.stringify([mustGetObjId(data), convertedObjs]);
+  return JSON.stringify({
+    _entry: mustGetObjId(data),
+    _objs: convertedObjs,
+  });
 };
 
 // <docs markdown="../readme.md#pauseContainer">

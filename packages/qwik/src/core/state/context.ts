@@ -15,7 +15,6 @@ import { assertQwikElement } from '../util/element';
 import { assertTrue } from '../error/assert';
 import { QScopedStyle } from '../util/markers';
 import { createPropsState, createProxy } from './store';
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 
 export const Q_CTX = '_qc_';
 
@@ -46,7 +45,6 @@ export interface QContext {
   $dynamicSlots$: QContext[] | null;
   $parent$: QContext | null;
   $slotParent$: QContext | null;
-  $extraRender$: JSXNode[] | null;
 }
 
 export const tryGetContext = (element: QwikElement): QContext | undefined => {
@@ -136,7 +134,6 @@ export const createContext = (element: Element | VirtualElement): QContext => {
     $dynamicSlots$: null,
     $parent$: null,
     $slotParent$: null,
-    $extraRender$: null,
   };
   seal(ctx);
   (element as any)[Q_CTX] = ctx;

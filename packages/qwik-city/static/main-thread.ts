@@ -124,9 +124,7 @@ export async function mainThread(sys: System) {
 
           if (result.filePath != null) {
             generatorResult.rendered++;
-            if (result.isStatic) {
-              generatorResult.staticPaths.push(result.pathname);
-            }
+            generatorResult.staticPaths.push(result.pathname);
             const base = opts.rootDir ?? opts.outDir;
             const path = relative(base, result.filePath);
             const lastSlash = path.lastIndexOf('/');

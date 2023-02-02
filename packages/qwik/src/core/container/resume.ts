@@ -52,14 +52,21 @@ export const getPauseState = (containerEl: Element): SnapshotState | undefined =
  * @internal
  */
 export const _deserializeData = (data: string) => {
-  const [mainID, convertedObjs] = JSON.parse(data);
+  const obj = JSON.parse(data);
+  if (typeof obj !== 'object') {
+    return null;
+  }
+  const { _objs, _entry } = obj;
+  if (typeof _objs === 'undefined' || typeof _entry === 'undefined') {
+    return null;
+  }
   const parser = createParser({} as any, {} as any);
-  reviveValues(convertedObjs, parser);
-  const getObject: GetObject = (id) => convertedObjs[strToInt(id)];
-  for (const obj of convertedObjs) {
+  reviveValues(_objs, parser);
+  const getObject: GetObject = (id) => _objs[strToInt(id)];
+  for (const obj of _objs) {
     reviveNestedObjects(obj, getObject, parser);
   }
-  return getObject(mainID);
+  return getObject(_entry);
 };
 
 export const resumeContainer = (containerEl: Element) => {

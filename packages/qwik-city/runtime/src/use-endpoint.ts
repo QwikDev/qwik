@@ -36,8 +36,9 @@ export const loadClientData = async (
       if ((rsp.headers.get('content-type') || '').includes('json')) {
         // we are safe we are reading a q-data.json
         return rsp.text().then((text) => {
-          const clientData = _deserializeData(text) as ClientPageData;
-          if (clientData.__brand !== 'qdata') {
+          const clientData = _deserializeData(text) as ClientPageData | null;
+          if (!clientData) {
+            location.href = href;
             return;
           }
           if (clearCache) {
@@ -52,6 +53,7 @@ export const loadClientData = async (
           return clientData;
         });
       } else {
+        location.href = href;
         CLIENT_DATA_CACHE.delete(clientDataPath);
       }
     });

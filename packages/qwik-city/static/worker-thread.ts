@@ -8,7 +8,7 @@ import type { ServerRequestEvent } from '@builder.io/qwik-city/middleware/reques
 import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import { pathToFileURL } from 'node:url';
 import { WritableStream } from 'node:stream/web';
-import type { ClientPageData } from '../runtime/src/types';
+import { _serializeData } from '@builder.io/qwik';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
@@ -53,7 +53,6 @@ async function workerRender(
     url: url.href,
     ok: false,
     error: null,
-    isStatic: true,
     filePath: null,
   };
 
@@ -99,15 +98,12 @@ async function workerRender(
             }
           },
           close() {
-            const data: ClientPageData = requestEv.sharedMap.get('qData');
+            const data: string = requestEv.sharedMap.get('qData');
 
             if (writeDataEnabled) {
               if (data) {
-                if (typeof data.isStatic === 'boolean') {
-                  result.isStatic = data.isStatic;
-                }
                 const dataWriter = sys.createWriteStream(dataFilePath);
-                dataWriter.write(JSON.stringify(data));
+                dataWriter.write(_serializeData(data));
                 dataWriter.end();
               }
             }

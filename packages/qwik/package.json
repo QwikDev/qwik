@@ -23,12 +23,26 @@
       "require": "./dist/cli.cjs"
     },
     "./jsx-runtime": {
-      "import": "./dist/jsx-runtime.mjs",
-      "require": "./dist/jsx-runtime.cjs"
+      "import": {
+        "min": "./dist/core.min.mjs",
+        "production": "./dist/core.prod.mjs",
+        "default": "./dist/core.mjs"
+      },
+      "require": {
+        "production": "./dist/core.prod.cjs",
+        "default": "./dist/core.cjs"
+      }
     },
     "./jsx-dev-runtime": {
-      "import": "./dist/jsx-runtime.mjs",
-      "require": "./dist/jsx-runtime.cjs"
+      "import": {
+        "min": "./dist/core.min.mjs",
+        "production": "./dist/core.prod.mjs",
+        "default": "./dist/core.mjs"
+      },
+      "require": {
+        "production": "./dist/core.prod.cjs",
+        "default": "./dist/core.cjs"
+      }
     },
     "./build": {
       "import": "./dist/build/index.mjs",

@@ -269,6 +269,14 @@ export interface QwikSymbol {
 export function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;
 
 // @alpha (undocumented)
+export interface QwikViteDevResponse {
+    // (undocumented)
+    _qwikEnvData?: Record<string, any>;
+    // (undocumented)
+    _qwikRenderResolve?: () => void;
+}
+
+// @alpha (undocumented)
 export interface QwikVitePlugin {
     // (undocumented)
     api: QwikVitePluginApi;

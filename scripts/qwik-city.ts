@@ -187,6 +187,8 @@ async function buildVite(config: BuildConfig, inputDir: string, outputDir: strin
     'node-fetch',
     'undici',
     'typescript',
+    '@builder.io/qwik',
+    '@builder.io/qwik/optimizer',
   ];
 
   const swRegisterPath = join(inputDir, 'runtime', 'src', 'sw-register.ts');
@@ -686,6 +688,9 @@ async function buildStaticNode(config: BuildConfig, inputDir: string, outputDir:
   const entryPoints = [join(inputDir, 'static', 'node', 'index.ts')];
 
   const external = [
+    '@builder.io/qwik',
+    '@builder.io/qwik/optimizer',
+    '@builder.io/qwik-city',
     'fs',
     'http',
     'https',
@@ -740,11 +745,18 @@ const ADAPTOR_EXTERNALS = [
   'vite',
   'fs',
   'path',
+  '@builder.io/qwik',
+  '@builder.io/qwik/optimizer',
+  '@builder.io/qwik-city',
   '@builder.io/qwik-city/static',
   '@builder.io/qwik-city/middleware/request-handler',
 ];
 
 const MIDDLEWARE_EXTERNALS = [
+  '@builder.io/qwik',
+  '@builder.io/qwik/optimizer',
+  '@builder.io/qwik-city',
+  '@builder.io/qwik-city/static',
   '@qwik-city-plan',
   '@qwik-city-not-found-paths',
   '@qwik-city-static-paths',

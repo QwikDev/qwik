@@ -1029,6 +1029,9 @@ export const useWatchQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;
 
+// @internal (undocumented)
+export const _verifySerializable: <T>(value: T, preMessage?: string) => T;
+
 // @public
 export const version: string;
 

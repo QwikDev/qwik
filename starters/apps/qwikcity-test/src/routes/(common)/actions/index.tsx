@@ -1,6 +1,8 @@
 import { component$ } from '@builder.io/qwik';
-import { action$, DocumentHead } from '@builder.io/qwik-city';
+import { action$, DocumentHead, loader$ } from '@builder.io/qwik-city';
 import { SecretForm } from './login';
+
+export const dateLoader = loader$(() => new Date());
 
 export const otherAction = action$((_, { fail }) => {
   if (Math.random() > 0.5) {
@@ -16,6 +18,9 @@ export const otherAction = action$((_, { fail }) => {
 
 export default component$(() => {
   const other = otherAction.use();
+  // const date = dateLoader.use();
+  // console.log(date.value.toISOString());
+
   return (
     <div class="actions">
       <section class="input">

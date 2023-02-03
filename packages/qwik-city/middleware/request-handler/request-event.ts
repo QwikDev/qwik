@@ -237,6 +237,14 @@ export function getRequestLoaders(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvLoaders];
 }
 
+export function getRequestTrailingSlash(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvTrailingSlash];
+}
+
+export function getRequestBasePathname(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvBasePathname];
+}
+
 export function getRequestRoute(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvRoute];
 }

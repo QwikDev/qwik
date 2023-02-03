@@ -54,7 +54,7 @@ export const loadClientData = async (
         });
       } else {
         location.href = href;
-        CLIENT_DATA_CACHE.delete(clientDataPath);
+        return undefined;
       }
     });
 
@@ -63,7 +63,12 @@ export const loadClientData = async (
     }
   }
 
-  return qData;
+  return qData.then((v) => {
+    if (!v) {
+      CLIENT_DATA_CACHE.delete(clientDataPath);
+    }
+    return v;
+  });
 };
 
 const getFetchOptions = (action: RouteActionValue | undefined): RequestInit | undefined => {

@@ -102,7 +102,6 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     },
 
     configureServer(server) {
-
       return () => {
         // handles static files physically found in the dist directory
         server.middlewares.use(staticDistMiddleware(server));

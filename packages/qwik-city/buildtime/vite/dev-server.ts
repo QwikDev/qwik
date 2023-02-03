@@ -202,7 +202,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   };
 }
 
-
 /**
  * Static file server for files written directly to the 'dist' dir.
  * Only handles the simplest cases.

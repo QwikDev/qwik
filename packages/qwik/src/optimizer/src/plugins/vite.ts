@@ -538,7 +538,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         const sys = qwikPlugin.getSys();
         const path = qwikPlugin.getPath();
         await configureDevServer(server, opts, sys, path, isClientDevOnly, clientDevInput);
-      }
+      };
     },
 
     configurePreviewServer(server) {

@@ -150,6 +150,8 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         let loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
         const pageData = (clientPageData = await loadClientData(url.href, true, action));
         if (!pageData) {
+          // Reset the path to the current path
+          (navPath as any).untrackedValue = routeLocation.pathname;
           return;
         }
         const newHref = pageData?.href;

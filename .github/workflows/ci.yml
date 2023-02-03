@@ -1,7 +1,11 @@
 name: Qwik CI
 
 on:
+  pull_request:
   push:
+    branches:
+      - main
+      - next
   workflow_dispatch:
     inputs:
       disttag:

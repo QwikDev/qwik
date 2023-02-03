@@ -386,5 +386,21 @@
     },
     "href": "https://puzzledbycsharp.com/",
     "tags": "site"
+  },
+  {
+    "title": "Necati Koçlu - Front-end Developer",
+    "imgSrc": "/showcases/necatikcl_dev_.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "0.8 s",
+      "fcpScore": 1,
+      "lcpDisplay": "2.1 s",
+      "lcpScore": 0.95,
+      "ttiDisplay": "1.0 s",
+      "ttiScore": 1,
+      "ttiTime": 1046
+    },
+    "href": "https://necatikcl.dev/",
+    "tags": "personal"
   }
 ]

@@ -58,7 +58,10 @@ const resolveDocumentHead = (
   Object.assign(resolvedHead.frontmatter, updatedHead.frontmatter);
 };
 
-const mergeArray = (existingArr: { key?: string }[], newArr: readonly { key?: string }[] | undefined) => {
+const mergeArray = (
+  existingArr: { key?: string }[],
+  newArr: readonly { key?: string }[] | undefined
+) => {
   if (Array.isArray(newArr)) {
     for (const newItem of newArr) {
       if (typeof newItem.key === 'string') {

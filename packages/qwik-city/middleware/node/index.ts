@@ -35,11 +35,11 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
       const handled = await requestHandler(serverRequestEv, opts);
       if (handled) {
         const err = await handled.completion;
+        if (err) {
+          throw err;
+        }
         if (handled.requestEv.headersSent) {
           return;
-        }
-        if (err) {
-          return next(err);
         }
       }
       next();

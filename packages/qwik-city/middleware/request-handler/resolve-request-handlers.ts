@@ -19,7 +19,6 @@ import {
 } from './request-event';
 import { QACTION_KEY } from '../../runtime/src/constants';
 import { isFormContentType, isQDataJson, QDATA_JSON } from './user-response';
-import { validateSerializable } from '../../utils/format';
 import { HttpStatus } from './http-status-codes';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import { RenderOptions, _serializeData } from '@builder.io/qwik';
@@ -183,25 +182,12 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
     }
 
     if (serverLoaders.length > 0) {
-      const isDevMode = getRequestMode(requestEv) === 'dev';
-
       await Promise.all(
         serverLoaders.map(async (loader) => {
           const loaderId = loader.__qrl.getHash();
           const loaderResolved = await loader.__qrl(requestEv as any);
           loaders[loaderId] =
             typeof loaderResolved === 'function' ? loaderResolved() : loaderResolved;
-
-          if (isDevMode) {
-            try {
-              validateSerializable(loaderResolved);
-            } catch (e: any) {
-              throw Object.assign(e, {
-                id: 'DEV_SERIALIZE',
-                method,
-              });
-            }
-          }
         })
       );
     }

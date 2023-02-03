@@ -16,7 +16,7 @@ export const loaderLocation: Rule.RuleModule = {
     },
   },
   create(context) {
-    const path = context.getFilename();
+    const path = normalizePath(context.getFilename());
     const isLayout = /\/layout(|!|-.+)\.tsx?$/.test(path);
     const isIndex = /\/index(|!|@.+)\.tsx?$/.test(path);
     const isInsideRoutes = /\/src\/routes\//.test(path);
@@ -41,3 +41,20 @@ export const loaderLocation: Rule.RuleModule = {
     };
   },
 };
+
+export function normalizePath(path: string) {
+  // MIT https://github.com/sindresorhus/slash/blob/main/license
+  // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
+  const isExtendedLengthPath = /^\\\\\?\\/.test(path);
+  const hasNonAscii = /[^\u0000-\u0080]+/.test(path); // eslint-disable-line no-control-regex
+
+  if (isExtendedLengthPath || hasNonAscii) {
+    return path;
+  }
+
+  path = path.replace(/\\/g, '/');
+  if (path.endsWith('/')) {
+    path = path.slice(0, path.length - 1);
+  }
+  return path;
+}

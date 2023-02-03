@@ -4,10 +4,21 @@ import type {
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
 
-export function getUrl(req: IncomingMessage) {
+const { ORIGIN, PROTOCOL_HEADER, HOST_HEADER = 'host' } = process.env;
+
+function getOrigin(req: IncomingMessage) {
+  const headers = req.headers;
   const protocol =
-    (req.socket as any).encrypted || (req.connection as any).encrypted ? 'https' : 'http';
-  return new URL(req.url || '/', `${protocol}://${req.headers.host}`);
+    (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) ||
+    ((req.socket as any).encrypted || (req.connection as any).encrypted ? 'https' : 'http');
+  const host = headers[HOST_HEADER];
+
+  return `${protocol}://${host}`;
+}
+
+export function getUrl(req: IncomingMessage) {
+  const origin = ORIGIN ?? getOrigin(req);
+  return new URL(req.url || '/', origin);
 }
 
 export async function fromNodeHttp(

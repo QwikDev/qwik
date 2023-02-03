@@ -1,4 +1,3 @@
-import type { PathParams } from '@builder.io/qwik-city';
 import type {
   RequestEvent,
   RequestEventLoader,
@@ -8,10 +7,11 @@ import type {
   RequestEventCommon,
 } from './types';
 import type {
-  ServerAction,
-  ServerActionInternal,
-  ServerLoader,
-  ServerLoaderInternal,
+  Action,
+  ActionInternal,
+  LoadedRoute,
+  Loader,
+  LoaderInternal,
 } from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { ErrorResponse } from './error-handler';
@@ -23,13 +23,14 @@ const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvLocale = Symbol('RequestEvLocale');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvStatus = Symbol('RequestEvStatus');
+const RequestEvRoute = Symbol('RequestEvRoute');
 export const RequestEvAction = Symbol('RequestEvAction');
 export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
 export const RequestEvBasePathname = Symbol('RequestEvBasePathname');
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
-  params: PathParams,
+  loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<unknown>[],
   trailingSlash = true,
   basePathname = '/',
@@ -101,11 +102,12 @@ export function createRequestEvent(
     [RequestEvAction]: undefined,
     [RequestEvTrailingSlash]: trailingSlash,
     [RequestEvBasePathname]: basePathname,
+    [RequestEvRoute]: loadedRoute,
     cookie,
     headers,
     env,
     method: request.method,
-    params,
+    params: loadedRoute?.[0] ?? {},
     pathname: url.pathname,
     platform,
     query: url.searchParams,
@@ -131,13 +133,11 @@ export function createRequestEvent(
       headers.set('Cache-Control', createCacheControl(cacheControl));
     },
 
-    getData: (loaderOrAction: ServerAction<any> | ServerLoader<any>) => {
+    getData: (loaderOrAction: Action<any> | Loader<any>) => {
       // create user request event, which is a narrowed down request context
-      const id = (loaderOrAction as ServerLoaderInternal | ServerActionInternal).__qrl.getHash();
+      const id = (loaderOrAction as LoaderInternal | ActionInternal).__qrl.getHash();
 
-      if (
-        (loaderOrAction as ServerLoaderInternal | ServerActionInternal).__brand === 'server_loader'
-      ) {
+      if ((loaderOrAction as LoaderInternal | ActionInternal).__brand === 'server_loader') {
         if (id in loaders) {
           throw new Error('Loader data does not exist');
         }
@@ -230,12 +230,24 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvAction]: string | undefined;
   [RequestEvTrailingSlash]: boolean;
   [RequestEvBasePathname]: string;
+  [RequestEvRoute]: LoadedRoute | null;
 }
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvLoaders];
 }
 
+export function getRequestTrailingSlash(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvTrailingSlash];
+}
+
+export function getRequestBasePathname(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvBasePathname];
+}
+
+export function getRequestRoute(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvRoute];
+}
 export function getRequestAction(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvAction];
 }

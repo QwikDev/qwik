@@ -18,9 +18,12 @@ import type {
   ContentModule,
   ContentState,
   ContentStateInternal,
+  Editable,
   EndpointResponse,
+  LoadedRoute,
   MutableRouteLocation,
   PageModule,
+  ResolvedDocumentHead,
   RouteActionValue,
   RouteNavigate,
 } from './types';
@@ -85,8 +88,8 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
 
   const loaderState = _weakSerialize(useStore(env.response.loaders));
   const navPath = useSignal(toPath(url));
-  const documentHead = useStore(createDocumentHead);
-  const content = useStore<ContentState>({
+  const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
+  const content = useStore<Editable<ContentState>>({
     headings: undefined,
     menu: undefined,
   });
@@ -99,7 +102,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     currentAction
       ? {
           id: currentActionId!,
-          data: undefined,
+          data: env.response.formData,
           output: {
             result: currentAction,
             status: env.response.status,
@@ -136,15 +139,19 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     async function run() {
       const [path, action] = track(() => [navPath.value, actionState.value]);
       const locale = getLocale('');
-      const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
       let url = new URL(path, routeLocation.href);
-      let loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
       let clientPageData: EndpointResponse | ClientPageData | undefined;
+      let loadedRoute: LoadedRoute | null = null;
       if (isServer) {
+        loadedRoute = env!.loadedRoute;
         clientPageData = env!.response;
       } else {
+        const { routes, menus, cacheModules, trailingSlash } = await import('@qwik-city-plan');
+        let loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
         const pageData = (clientPageData = await loadClientData(url.href, true, action));
         if (!pageData) {
+          // Reset the path to the current path
+          (navPath as any).untrackedValue = routeLocation.pathname;
           return;
         }
         const newHref = pageData?.href;
@@ -155,19 +162,19 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
             loadRoutePromise = loadRoute(routes, menus, cacheModules, url.pathname);
           }
         }
-      }
-      // ensure correct trailing slash
-      if (url.pathname.endsWith('/')) {
-        if (!trailingSlash) {
-          url.pathname = url.pathname.slice(0, -1);
+        // ensure correct trailing slash
+        if (url.pathname.endsWith('/')) {
+          if (!trailingSlash) {
+            url.pathname = url.pathname.slice(0, -1);
+          }
+        } else if (trailingSlash) {
+          url.pathname += '/';
         }
-      } else if (trailingSlash) {
-        url.pathname += '/';
+        loadedRoute = await loadRoutePromise;
       }
-      const pathname = url.pathname;
-      const loadedRoute = await loadRoutePromise;
       if (loadedRoute) {
         const [params, mods, menu] = loadedRoute;
+        const pathname = url.pathname;
         const contentModules = mods as ContentModule[];
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 

@@ -14,18 +14,17 @@ import {
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityPluginApi, QwikCityVitePluginOptions } from './types';
 import { build } from '../build';
-import { dev404Middleware, ssrDevMiddleware, staticDistMiddleware } from './dev-server';
+import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
 import { patchGlobalThis } from '../../middleware/node/node-fetch';
-import type { QwikManifest } from '@builder.io/qwik/optimizer';
+import type { QwikManifest, QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import {
   generateServiceWorkerRegister,
   prependManifestToServiceWorker,
 } from '../runtime-generation/generate-service-worker';
 import type { RollupError } from 'rollup';
-import type { QwikVitePlugin } from '../../../qwik/src/optimizer/src';
 import {
   NOT_FOUND_PATHS_ID,
   RESOLVED_NOT_FOUND_PATHS_ID,
@@ -103,20 +102,15 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
     },
 
     configureServer(server) {
-      if (ctx) {
+      return () => {
         // handles static files physically found in the dist directory
         server.middlewares.use(staticDistMiddleware(server));
-
-        // qwik city middleware injected BEFORE vite internal middlewares
-        // and BEFORE @builder.io/qwik/optimizer/vite middlewares
-        // handles only known user defined routes
-        server.middlewares.use(ssrDevMiddleware(ctx, server));
-      }
-
-      return () => {
-        // qwik city 404 middleware injected AFTER vite internal middlewares
-        // and no other middlewares have handled this request
-        server.middlewares.use(dev404Middleware());
+        if (ctx) {
+          // qwik city middleware injected BEFORE vite internal middlewares
+          // and BEFORE @builder.io/qwik/optimizer/vite middlewares
+          // handles only known user defined routes
+          server.middlewares.use(ssrDevMiddleware(ctx, server));
+        }
       };
     },
 

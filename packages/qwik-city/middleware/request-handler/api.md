@@ -4,13 +4,15 @@
 
 ```ts
 
+import type { Action } from '@builder.io/qwik-city';
 import type { FailReturn } from '@builder.io/qwik-city';
+import type { GetSyncData as GetSyncData_2 } from '@builder.io/qwik-city/middleware/request-handler';
+import type { Loader } from '@builder.io/qwik-city';
 import type { QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render } from '@builder.io/qwik/server';
 import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RequestEvent as RequestEvent_2 } from '@builder.io/qwik-city';
-import type { ServerAction } from '@builder.io/qwik-city';
-import type { ServerLoader } from '@builder.io/qwik-city';
+import type { RequestHandler as RequestHandler_2 } from '@builder.io/qwik-city/middleware/request-handler';
 
 // Warning: (ae-forgotten-export) The symbol "CacheControlOptions" needs to be exported by the entry point index.d.ts
 //
@@ -51,9 +53,9 @@ export interface CookieValue {
 // @alpha (undocumented)
 export interface GetData {
     // (undocumented)
-    <T>(loader: ServerLoader<T>): Promise<T>;
+    <T>(loader: Loader<T>): Promise<T>;
     // (undocumented)
-    <T>(loader: ServerAction<T>): Promise<T | undefined>;
+    <T>(loader: Action<T>): Promise<T | undefined>;
 }
 
 // @alpha (undocumented)
@@ -62,9 +64,9 @@ export function getErrorHtml(status: number, e: any): string;
 // @alpha (undocumented)
 export interface GetSyncData {
     // (undocumented)
-    <T>(loader: ServerLoader<T>): T;
+    <T>(loader: Loader<T>): T;
     // (undocumented)
-    <T>(loader: ServerAction<T>): T | undefined;
+    <T>(loader: Action<T>): T | undefined;
 }
 
 // @alpha (undocumented)
@@ -101,8 +103,9 @@ export interface RequestEventCommon<PLATFORM = unknown> {
     readonly pathname: string;
     readonly platform: PLATFORM;
     readonly query: URLSearchParams;
+    // Warning: (ae-forgotten-export) The symbol "RedirectCode" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "RedirectMessage" needs to be exported by the entry point index.d.ts
-    readonly redirect: (statusCode: number, url: string) => RedirectMessage;
+    readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
     readonly request: Request;
     // Warning: (ae-forgotten-export) The symbol "SendMethod" needs to be exported by the entry point index.d.ts
     readonly send: SendMethod;

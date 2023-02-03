@@ -23,16 +23,10 @@ export const loadClientData = async (
   });
 
   if (!qData) {
-    const actionData = action?.data;
+    const options = getFetchOptions(action);
     if (action) {
       action.data = undefined;
     }
-    const options: RequestInit | undefined = actionData
-      ? {
-          method: 'POST',
-          body: actionData,
-        }
-      : undefined;
     qData = fetch(clientDataPath, options).then((rsp) => {
       const redirectedURL = new URL(rsp.url);
       if (redirectedURL.origin !== location.origin || !isQDataJson(redirectedURL.pathname)) {
@@ -42,8 +36,9 @@ export const loadClientData = async (
       if ((rsp.headers.get('content-type') || '').includes('json')) {
         // we are safe we are reading a q-data.json
         return rsp.text().then((text) => {
-          const clientData = _deserializeData(text) as ClientPageData;
-          if (clientData.__brand !== 'qdata') {
+          const clientData = _deserializeData(text) as ClientPageData | null;
+          if (!clientData) {
+            location.href = href;
             return;
           }
           if (clearCache) {
@@ -58,7 +53,8 @@ export const loadClientData = async (
           return clientData;
         });
       } else {
-        CLIENT_DATA_CACHE.delete(clientDataPath);
+        location.href = href;
+        return undefined;
       }
     });
 
@@ -67,7 +63,33 @@ export const loadClientData = async (
     }
   }
 
-  return qData;
+  return qData.then((v) => {
+    if (!v) {
+      CLIENT_DATA_CACHE.delete(clientDataPath);
+    }
+    return v;
+  });
+};
+
+const getFetchOptions = (action: RouteActionValue | undefined): RequestInit | undefined => {
+  const actionData = action?.data;
+  if (!actionData) {
+    return undefined;
+  }
+  if (actionData instanceof FormData) {
+    return {
+      method: 'POST',
+      body: actionData,
+    };
+  } else {
+    return {
+      method: 'POST',
+      body: JSON.stringify(actionData),
+      headers: {
+        'Content-Type': 'application/json, charset=UTF-8',
+      },
+    };
+  }
 };
 
 export const isQDataJson = (pathname: string) => {

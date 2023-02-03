@@ -22,6 +22,9 @@ export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
 export type TargetType = Record<string | symbol, any>;
 
+/**
+ * @internal
+ */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
   const seen = new Set();
   return _verifySerializable(value, seen, '_', preMessage);

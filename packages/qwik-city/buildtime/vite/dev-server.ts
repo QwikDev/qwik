@@ -1,8 +1,8 @@
 import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'node:http';
 import type { BuildContext } from '../types';
-import type { PathParams, RequestEvent, RouteModule } from '../../runtime/src/types';
-import type { QwikViteDevResponse } from '../../../qwik/src/optimizer/src/plugins/vite';
+import type { LoadedRoute, PathParams, RequestEvent, RouteModule } from '../../runtime/src/types';
+import type { QwikViteDevResponse } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
@@ -97,7 +97,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           routeModulePaths.set(endpointModule, route.filePath);
         }
 
-        const renderFn = (requestEv: RequestEvent) => {
+        const renderFn = async (requestEv: RequestEvent) => {
           const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
           if (!isPageDataReq) {
             const serverData = getQwikCityServerData(requestEv);
@@ -121,9 +121,10 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             return qwikRenderPromise;
           }
         };
+        const loadedRoute = [params, routeModules, undefined, undefined] satisfies LoadedRoute;
         const requestHandlers = resolveRequestHandlers(
           serverPlugins,
-          [{}, routeModules, undefined, undefined],
+          loadedRoute,
           req.method ?? 'GET',
           renderFn
         );
@@ -132,7 +133,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
           const { completion, requestEv } = runQwikCity(
             serverRequestEv,
-            params,
+            loadedRoute,
             requestHandlers,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname
@@ -195,19 +196,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
       }
 
       next();
-    } catch (e) {
-      next(e);
-    }
-  };
-}
-
-export function dev404Middleware() {
-  return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
-    try {
-      const html = getErrorHtml(404, new Error('not found'));
-      res.statusCode = 404;
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.write(html);
     } catch (e) {
       next(e);
     }

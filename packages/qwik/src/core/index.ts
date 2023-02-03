@@ -8,7 +8,6 @@ export type { PropsOf, OnRenderFn, Component, PublicProps } from './component/co
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { _pauseFromContexts, _serializeData } from './container/pause';
 export type {
   SnapshotState,
   SnapshotResult,
@@ -16,8 +15,6 @@ export type {
   SnapshotMetaValue,
   SnapshotListener,
 } from './container/container';
-
-export { _deserializeData } from './container/resume';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
@@ -108,7 +105,6 @@ export { useServerMount$, useServerMountQrl } from './use/use-mount';
 export { useClientMount$, useClientMountQrl } from './use/use-mount';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './render/error-handling';
-export { useRender } from './use/use-render';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

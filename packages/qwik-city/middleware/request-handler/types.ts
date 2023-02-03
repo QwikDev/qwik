@@ -1,5 +1,5 @@
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
-import type { QwikCityPlan, FailReturn, ServerAction, ServerLoader } from '@builder.io/qwik-city';
+import type { QwikCityPlan, FailReturn, Action, Loader } from '@builder.io/qwik-city';
 import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
@@ -61,6 +61,8 @@ export interface SendMethod {
   (response: Response): AbortMessage;
 }
 
+export type RedirectCode = 301 | 302 | 303 | 307 | 308;
+
 /**
  * @alpha
  */
@@ -87,7 +89,7 @@ export interface RequestEventCommon<PLATFORM = unknown> {
    *
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
    */
-  readonly redirect: (statusCode: number, url: string) => RedirectMessage;
+  readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
 
   /**
    * When called, the response will immediately end with the given
@@ -287,16 +289,16 @@ export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventComm
  * @alpha
  */
 export interface GetData {
-  <T>(loader: ServerLoader<T>): Promise<T>;
-  <T>(loader: ServerAction<T>): Promise<T | undefined>;
+  <T>(loader: Loader<T>): Promise<T>;
+  <T>(loader: Action<T>): Promise<T | undefined>;
 }
 
 /**
  * @alpha
  */
 export interface GetSyncData {
-  <T>(loader: ServerLoader<T>): T;
-  <T>(loader: ServerAction<T>): T | undefined;
+  <T>(loader: Loader<T>): T;
+  <T>(loader: Action<T>): T | undefined;
 }
 
 /**

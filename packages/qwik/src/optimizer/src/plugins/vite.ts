@@ -532,11 +532,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
     },
 
-    async configureServer(server: ViteDevServer) {
-      const opts = qwikPlugin.getOptions();
-      const sys = qwikPlugin.getSys();
-      const path = qwikPlugin.getPath();
-      await configureDevServer(server, opts, sys, path, isClientDevOnly, clientDevInput);
+    configureServer(server: ViteDevServer) {
+      return async () => {
+        const opts = qwikPlugin.getOptions();
+        const sys = qwikPlugin.getSys();
+        const path = qwikPlugin.getPath();
+        await configureDevServer(server, opts, sys, path, isClientDevOnly, clientDevInput);
+      };
     },
 
     configurePreviewServer(server) {
@@ -777,6 +779,9 @@ export interface QwikVitePlugin {
   api: QwikVitePluginApi;
 }
 
+/**
+ * @alpha
+ */
 export interface QwikViteDevResponse {
   _qwikEnvData?: Record<string, any>;
   _qwikRenderResolve?: () => void;

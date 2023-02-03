@@ -4,6 +4,7 @@ import { normalizePath } from '../../utils/fs';
 import { visit } from 'unist-util-visit';
 import { parse as parseYaml } from 'yaml';
 import type { ResolvedDocumentHead } from '../../runtime/src';
+import type { DocumentMeta, Editable } from 'packages/qwik-city/runtime/src/types';
 
 export function parseFrontmatter(ctx: BuildContext): Transformer {
   return (mdast, vfile) => {
@@ -51,7 +52,7 @@ export function frontmatterAttrsToDocumentHead(attrs: FrontmatterAttrs | undefin
   if (attrs != null && typeof attrs === 'object') {
     const attrNames = Object.keys(attrs);
     if (attrNames.length > 0) {
-      const head: Required<ResolvedDocumentHead> = {
+      const head: Editable<Required<ResolvedDocumentHead>> = {
         title: '',
         meta: [],
         styles: [],
@@ -65,12 +66,12 @@ export function frontmatterAttrsToDocumentHead(attrs: FrontmatterAttrs | undefin
           if (attrName === 'title') {
             head.title = attrValue.toString();
           } else if (metaNames[attrName]) {
-            head.meta.push({
+            (head.meta as DocumentMeta[]).push({
               name: attrName,
               content: attrValue.toString(),
             });
           } else {
-            head.frontmatter[attrName] = attrValue;
+            (head.frontmatter as Record<string, any>)[attrName] = attrValue;
           }
         }
       }

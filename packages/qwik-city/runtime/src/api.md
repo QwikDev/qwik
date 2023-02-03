@@ -73,21 +73,21 @@ export const Content: Component<    {}>;
 // @alpha (undocumented)
 export interface ContentHeading {
     // (undocumented)
-    id: string;
+    readonly id: string;
     // (undocumented)
-    level: number;
+    readonly level: number;
     // (undocumented)
-    text: string;
+    readonly text: string;
 }
 
 // @alpha (undocumented)
 export interface ContentMenu {
     // (undocumented)
-    href?: string;
+    readonly href?: string;
     // (undocumented)
-    items?: ContentMenu[];
+    readonly items?: ContentMenu[];
     // (undocumented)
-    text: string;
+    readonly text: string;
 }
 
 export { Cookie }
@@ -111,11 +111,11 @@ export interface DocumentHeadProps extends RouteLocation {
 
 // @alpha (undocumented)
 export interface DocumentHeadValue {
-    frontmatter?: Record<string, any>;
-    links?: DocumentLink[];
-    meta?: DocumentMeta[];
-    styles?: DocumentStyle[];
-    title?: string;
+    readonly frontmatter?: Readonly<Record<string, any>>;
+    readonly links?: readonly DocumentLink[];
+    readonly meta?: readonly DocumentMeta[];
+    readonly styles?: readonly DocumentStyle[];
+    readonly title?: string;
 }
 
 // @alpha (undocumented)
@@ -159,29 +159,29 @@ export interface DocumentLink {
 // @alpha (undocumented)
 export interface DocumentMeta {
     // (undocumented)
-    content?: string;
+    readonly content?: string;
     // (undocumented)
-    httpEquiv?: string;
+    readonly httpEquiv?: string;
     // (undocumented)
-    itemprop?: string;
+    readonly itemprop?: string;
     // (undocumented)
-    key?: string;
+    readonly key?: string;
     // (undocumented)
-    name?: string;
+    readonly name?: string;
     // (undocumented)
-    property?: string;
+    readonly property?: string;
 }
 
 // @alpha (undocumented)
 export interface DocumentStyle {
     // (undocumented)
-    key?: string;
+    readonly key?: string;
     // (undocumented)
-    props?: {
+    readonly props?: Readonly<{
         [propName: string]: string;
-    };
+    }>;
     // (undocumented)
-    style: string;
+    readonly style: string;
 }
 
 // @alpha @deprecated (undocumented)
@@ -293,17 +293,17 @@ export const QwikCityMockProvider: Component<QwikCityMockProps>;
 // @alpha (undocumented)
 export interface QwikCityPlan {
     // (undocumented)
-    basePathname?: string;
+    readonly basePathname?: string;
     // (undocumented)
-    cacheModules?: boolean;
+    readonly cacheModules?: boolean;
     // (undocumented)
-    menus?: MenuData[];
+    readonly menus?: MenuData[];
     // (undocumented)
-    routes: RouteData[];
+    readonly routes: RouteData[];
     // (undocumented)
-    serverPlugins?: RouteModule[];
+    readonly serverPlugins?: RouteModule[];
     // (undocumented)
-    trailingSlash?: boolean;
+    readonly trailingSlash?: boolean;
 }
 
 // @alpha (undocumented)
@@ -338,7 +338,7 @@ export interface RouteLocation {
     // (undocumented)
     readonly isNavigating: boolean;
     // (undocumented)
-    readonly params: Record<string, string>;
+    readonly params: Readonly<Record<string, string>>;
     // (undocumented)
     readonly pathname: string;
     // (undocumented)

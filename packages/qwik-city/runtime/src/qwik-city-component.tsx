@@ -18,10 +18,12 @@ import type {
   ContentModule,
   ContentState,
   ContentStateInternal,
+  Editable,
   EndpointResponse,
   LoadedRoute,
   MutableRouteLocation,
   PageModule,
+  ResolvedDocumentHead,
   RouteActionValue,
   RouteNavigate,
 } from './types';
@@ -86,8 +88,8 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
 
   const loaderState = _weakSerialize(useStore(env.response.loaders));
   const navPath = useSignal(toPath(url));
-  const documentHead = useStore(createDocumentHead);
-  const content = useStore<ContentState>({
+  const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
+  const content = useStore<Editable<ContentState>>({
     headings: undefined,
     menu: undefined,
   });

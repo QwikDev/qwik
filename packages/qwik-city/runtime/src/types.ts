@@ -52,7 +52,7 @@ export interface MenuModule {
  * @alpha
  */
 export interface RouteLocation {
-  readonly params: Record<string, string>;
+  readonly params: Readonly<Record<string, string>>;
   readonly href: string;
   readonly pathname: string;
   readonly query: URLSearchParams;
@@ -113,27 +113,27 @@ export interface DocumentHeadValue {
   /**
    * Sets `document.title`.
    */
-  title?: string;
+  readonly title?: string;
   /**
    * Used to manually set meta tags in the head. Additionally, the `data`
    * property could be used to set arbitrary data which the `<head>` component
    * could later use to generate `<meta>` tags.
    */
-  meta?: DocumentMeta[];
+  readonly meta?: readonly DocumentMeta[];
   /**
    * Used to manually append `<link>` elements to the `<head>`.
    */
-  links?: DocumentLink[];
+  readonly links?: readonly DocumentLink[];
   /**
    * Used to manually append `<style>` elements to the `<head>`.
    */
-  styles?: DocumentStyle[];
+  readonly styles?: readonly DocumentStyle[];
   /**
    * Arbitrary object containing custom data. When the document head is created from
    * markdown files, the frontmatter attributes that are not recognized as a well-known
    * meta names (such as title, description, author, etc...), are stored in this property.
    */
-  frontmatter?: Record<string, any>;
+  readonly frontmatter?: Readonly<Record<string, any>>;
 }
 
 /**
@@ -145,12 +145,12 @@ export type ResolvedDocumentHead = Required<DocumentHeadValue>;
  * @alpha
  */
 export interface DocumentMeta {
-  content?: string;
-  httpEquiv?: string;
-  name?: string;
-  property?: string;
-  key?: string;
-  itemprop?: string;
+  readonly content?: string;
+  readonly httpEquiv?: string;
+  readonly name?: string;
+  readonly property?: string;
+  readonly key?: string;
+  readonly itemprop?: string;
 }
 
 /**
@@ -180,9 +180,9 @@ export interface DocumentLink {
  * @alpha
  */
 export interface DocumentStyle {
-  style: string;
-  props?: { [propName: string]: string };
-  key?: string;
+  readonly style: string;
+  readonly props?: Readonly<{ [propName: string]: string }>;
+  readonly key?: string;
 }
 
 /**
@@ -201,27 +201,30 @@ export type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => Do
 
 export type ContentStateInternal = NoSerialize<ContentModule[]>;
 
+/**
+ * @alpha
+ */
 export interface ContentState {
-  headings: ContentHeading[] | undefined;
-  menu: ContentMenu | undefined;
+  readonly headings: ContentHeading[] | undefined;
+  readonly menu: ContentMenu | undefined;
 }
 
 /**
  * @alpha
  */
 export interface ContentMenu {
-  text: string;
-  href?: string;
-  items?: ContentMenu[];
+  readonly text: string;
+  readonly href?: string;
+  readonly items?: ContentMenu[];
 }
 
 /**
  * @alpha
  */
 export interface ContentHeading {
-  text: string;
-  id: string;
-  level: number;
+  readonly text: string;
+  readonly id: string;
+  readonly level: number;
 }
 
 export type ContentModuleLoader = () => Promise<ContentModule>;
@@ -252,12 +255,12 @@ export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
  * @alpha
  */
 export interface QwikCityPlan {
-  routes: RouteData[];
-  serverPlugins?: RouteModule[];
-  basePathname?: string;
-  menus?: MenuData[];
-  trailingSlash?: boolean;
-  cacheModules?: boolean;
+  readonly routes: RouteData[];
+  readonly serverPlugins?: RouteModule[];
+  readonly basePathname?: string;
+  readonly menus?: MenuData[];
+  readonly trailingSlash?: boolean;
+  readonly cacheModules?: boolean;
 }
 
 /**

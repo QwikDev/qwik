@@ -10,8 +10,10 @@ import type {
 import type { RequestEvent, RequestHandler } from './types';
 import {
   getRequestAction,
+  getRequestBasePathname,
   getRequestLoaders,
   getRequestMode,
+  getRequestTrailingSlash,
   RequestEventInternal,
   setRequestAction,
 } from './request-event';
@@ -233,22 +235,23 @@ const formToObj = (formData: FormData): Record<string, any> => {
   return obj;
 };
 
-function fixTrailingSlash({ pathname, url, redirect }: RequestEvent) {
-  const trailingSlash = true;
-  const basePathname = '/';
+function fixTrailingSlash(ev: RequestEvent) {
+  const trailingSlash = getRequestTrailingSlash(ev);
+  const basePathname = getRequestBasePathname(ev);
+  const { pathname, url } = ev;
   if (!isQDataJson(pathname) && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (trailingSlash) {
       // must have a trailing slash
       if (!pathname.endsWith('/')) {
         // add slash to existing pathname
-        throw redirect(HttpStatus.Found, pathname + '/' + url.search);
+        throw ev.redirect(HttpStatus.Found, pathname + '/' + url.search);
       }
     } else {
       // should not have a trailing slash
       if (pathname.endsWith('/')) {
         // remove slash from existing pathname
-        throw redirect(HttpStatus.Found, pathname.slice(0, pathname.length - 1) + url.search);
+        throw ev.redirect(HttpStatus.Found, pathname.slice(0, pathname.length - 1) + url.search);
       }
     }
   }

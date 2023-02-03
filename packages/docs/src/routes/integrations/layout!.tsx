@@ -5,7 +5,7 @@ import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
 import { OnThisPage } from '../../components/on-this-page/on-this-page';
 import { SideBar } from '../../components/sidebar/sidebar';
-import styles from '../docs/docs.css?inline';
+import styles from '../docs.css?inline';
 
 export default component$(() => {
   useStyles$(styles);

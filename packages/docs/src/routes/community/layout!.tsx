@@ -1,26 +1,22 @@
 import { component$, Slot, useStyles$ } from '@builder.io/qwik';
-import { RequestHandler, useLocation } from '@builder.io/qwik-city';
-import { ContentNav } from '../../components/content-nav/content-nav';
+import { SideBar } from '../../components/sidebar/sidebar';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
 import { OnThisPage } from '../../components/on-this-page/on-this-page';
-import { SideBar } from '../../components/sidebar/sidebar';
+import { ContentNav } from '../../components/content-nav/content-nav';
+import type { RequestHandler } from '@builder.io/qwik-city';
+import { CommunityNavbar } from './components/community-navbar/community-navbar';
 import styles from '../docs.css?inline';
 
 export default component$(() => {
-  const loc = useLocation();
-  const noRightMenu = ['/docs/overview/'].includes(loc.pathname);
   useStyles$(styles);
 
   return (
     <div class="docs fixed-header">
       <Header />
       <SideBar />
-      <main
-        class={{
-          'no-right-menu': noRightMenu,
-        }}
-      >
+      {/* <CommunityNavbar/> */}
+      <main>
         <div class="docs-container">
           <article>
             <Slot />

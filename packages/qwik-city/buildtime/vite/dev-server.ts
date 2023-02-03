@@ -194,6 +194,9 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
       next();
     } catch (e) {
+      if (res.writableEnded) {
+        return;
+      }
       next(e);
     }
   };

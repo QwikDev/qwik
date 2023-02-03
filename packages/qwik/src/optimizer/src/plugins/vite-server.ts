@@ -7,6 +7,8 @@ import { ERROR_HOST } from './errored-host';
 import { NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
+import { getErrorMarkdown, logError, VITE_ERROR_OVERLAY_STYLES } from './vite-error';
+import type { RollupError } from 'rollup';
 
 export async function configureDevServer(
   server: ViteDevServer,
@@ -35,7 +37,15 @@ export async function configureDevServer(
   }
 
   // qwik middleware injected BEFORE vite internal middlewares
-  server.middlewares.use(async (req, res, next) => {
+  // note the 4 args must be kept for connect to treat this as error middleware
+  server.middlewares.use(async (err: RollupError, req: any, res: any, next: any) => {
+    if (err) {
+      logError(server, err);
+      res.statusCode = 500;
+      res.end(getErrorMarkdown(err));
+      return;
+    }
+
     try {
       const domain = 'http://' + (req.headers.host ?? 'localhost');
       const url = new URL(req.originalUrl!, domain);
@@ -279,6 +289,10 @@ document.addEventListener('qerror', ev => {
   }
   const err = ev.detail.error;
   const overlay = new ErrorOverlay(err);
+  const style = document.createElement('style');
+  style.textContent = ${VITE_ERROR_OVERLAY_STYLES};
+  
+  document.head.appendChild(style);
   document.body.appendChild(overlay);
 });
 </script>`;

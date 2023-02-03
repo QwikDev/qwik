@@ -202,19 +202,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   };
 }
 
-export function dev404Middleware() {
-  return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
-    try {
-      const html = getErrorHtml(404, new Error('not found'));
-      res.statusCode = 404;
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.write(html);
-    } catch (e) {
-      next(e);
-    }
-  };
-}
-
 /**
  * Static file server for files written directly to the 'dist' dir.
  * Only handles the simplest cases.

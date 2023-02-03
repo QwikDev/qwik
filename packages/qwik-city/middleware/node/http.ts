@@ -4,12 +4,6 @@ import type {
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
 
-export function getUrl(req: IncomingMessage) {
-  const protocol =
-    (req.socket as any).encrypted || (req.connection as any).encrypted ? 'https' : 'http';
-  return new URL(req.url || '/', `${protocol}://${req.headers.host}`);
-}
-
 export async function fromNodeHttp(
   url: URL,
   req: IncomingMessage,

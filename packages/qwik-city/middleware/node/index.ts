@@ -9,26 +9,11 @@ import { createReadStream } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fromNodeHttp } from './http';
+import { fromNodeHttp, getUrl } from './http';
 import { MIME_TYPES } from './mime-types';
 import { patchGlobalThis } from './node-fetch';
 
 // @builder.io/qwik-city/middleware/node
-
-const { ORIGIN, PROTOCOL_HEADER, HOST_HEADER = 'host' } = process.env;
-
-export function getOrigin(req: IncomingMessage) {
-  const headers = req.headers;
-  const protocol = (PROTOCOL_HEADER && headers[PROTOCOL_HEADER]) || 'https';
-  const host = headers[HOST_HEADER];
-
-  return `${protocol}://${host}`;
-}
-
-export function getUrl(req: IncomingMessage) {
-  const origin = ORIGIN ?? getOrigin(req);
-  return new URL(req.url || '/', origin);
-}
 
 /**
  * @alpha

@@ -9,6 +9,7 @@ import type {
   DocumentHeadValue,
   ClientPageData,
   LoaderInternal,
+  Editable,
 } from './types';
 
 export const resolveHead = (
@@ -45,19 +46,22 @@ export const resolveHead = (
 };
 
 const resolveDocumentHead = (
-  resolvedHead: ResolvedDocumentHead,
+  resolvedHead: Editable<ResolvedDocumentHead>,
   updatedHead: DocumentHeadValue
 ) => {
   if (typeof updatedHead.title === 'string') {
     resolvedHead.title = updatedHead.title;
   }
-  mergeArray(resolvedHead.meta, updatedHead.meta);
-  mergeArray(resolvedHead.links, updatedHead.links);
-  mergeArray(resolvedHead.styles, updatedHead.styles);
+  mergeArray(resolvedHead.meta as any, updatedHead.meta);
+  mergeArray(resolvedHead.links as any, updatedHead.links);
+  mergeArray(resolvedHead.styles as any, updatedHead.styles);
   Object.assign(resolvedHead.frontmatter, updatedHead.frontmatter);
 };
 
-const mergeArray = (existingArr: { key?: string }[], newArr: { key?: string }[] | undefined) => {
+const mergeArray = (
+  existingArr: { key?: string }[],
+  newArr: readonly { key?: string }[] | undefined
+) => {
   if (Array.isArray(newArr)) {
     for (const newItem of newArr) {
       if (typeof newItem.key === 'string') {

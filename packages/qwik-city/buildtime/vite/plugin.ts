@@ -47,6 +47,8 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
   // Patch Stream APIs
   patchGlobalThis();
 
+  (globalThis as any).__qwikCityNew = true;
+
   const api: QwikCityPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
     getRoutes: () => {

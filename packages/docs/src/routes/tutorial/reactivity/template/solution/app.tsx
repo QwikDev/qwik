@@ -13,10 +13,10 @@ export default component$(() => {
   console.log('Render: <App>');
   return (
     <>
-      <button onClick$={() => store.countA++}>a++</button>
+      <button onClick$={() => { store.countA++ }}>a++</button>
       <DisplayA store={store} />
       <hr />
-      <button onClick$={() => store.countB++}>b++</button>
+      <button onClick$={() => { store.countB++ }}>b++</button>
       <DisplayB store={store} />
     </>
   );

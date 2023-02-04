@@ -41,7 +41,7 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;
   let qwikPlugin: QwikVitePlugin | null;
-  let ssrFormat: 'esm'|'cjs' = 'esm';
+  let ssrFormat: 'esm' | 'cjs' = 'esm';
   let outDir: string | null = null;
 
   // Patch Stream APIs
@@ -285,8 +285,8 @@ export function qwikCity(userOpts?: QwikCityVitePluginOptions): any {
             }
 
             const ssrFormat2pkgTypeMap = {
-              'cjs': 'commonjs',
-              'esm': 'module'
+              cjs: 'commonjs',
+              esm: 'module',
             };
             packageJson = { ...packageJson, type: ssrFormat2pkgTypeMap[ssrFormat] || 'module' };
             const serverPackageJsonCode = JSON.stringify(packageJson, null, 2);

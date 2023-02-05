@@ -147,7 +147,7 @@ If you can't use package linking (npm link) just copy the contents of `package/q
 
    ```diff
 
-   -- "@builder.io/qwik": "0.17.2",
+   -- "@builder.io/qwik": "0.17.4",
    -- "@builder.io/qwik-city": "0.1.0-beta13",
 
    ++ "@builder.io/qwik": "workspace:*",

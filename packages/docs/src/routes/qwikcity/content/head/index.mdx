@@ -65,9 +65,7 @@ The above case works for simple situations where we just want to set the documen
 ```tsx
 // File: src/routes/product/[skuId]/index.tsx
 import { component$ } from '@builder.io/qwik';
-import type { DocumentHead } from '@builder.io/qwik-city';
-
-type EndpointData = ProductData | null;
+import { loader$, type DocumentHead } from '@builder.io/qwik-city';
 
 interface ProductData {
   skuId: string;
@@ -75,18 +73,19 @@ interface ProductData {
   description: string;
 }
 
-export const onGet: RequestHandler<EndpointData> = async ({ params }) => { ... };
+export const Product: ProductData = $loader(() => { ... })
 
 export default component$(() => {...});
 
-export const head: DocumentHead<EndpointData> = ({ data }) => {
+export const head: DocumentHead = ({ getData }) => {
+  const product = getData(Product);
   return {
-    title: `Product - ` + data.description
+    title: `Product - ` + product.description
   };
 };
 ```
 
-The second case is a bit more complicated but it showcases how we can set the title of the page with the value that is retrieved from the `onGet` endpoint. (See [data documentation](../../data/overview/index.mdx) for retrieving data.) The Qwik City invokes `onGet` to retrieve the data for the route and then passes the data to the `head` function allowing it to create a custom title.
+The second case is a bit more complicated but it showcases how we can set the title of the page with the value that is retrieved from the `loader$`. (See [data documentation](../../data/overview/index.mdx) for retrieving data.) The Qwik City passes `getData` function to the `head` function allowing it to get the data and create a custom title.
 
 ## Resolved Document Head
 

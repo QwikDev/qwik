@@ -134,6 +134,13 @@ To use your build in your project, follow these steps:
    npm link @builder.io/qwik @builder.io/qwik-city
    ```
 
+   or
+
+   ```shell
+    pnpm install
+    pnpm link --global @builder.io/qwik @builder.io/qwik-city
+   ```
+
 If you can't use package linking (npm link) just copy the contents of `package/qwik/dist` into your projects' `node_modules/@builder.io/qwik` folder.
 
 ### Test against the docs site:
@@ -142,8 +149,8 @@ If you can't use package linking (npm link) just copy the contents of `package/q
 
    ```diff
 
-   -- "@builder.io/qwik": "0.16.2",
-   -- "@builder.io/qwik-city": "0.1.0-beta8",
+   -- "@builder.io/qwik": "0.17.4",
+   -- "@builder.io/qwik-city": "0.1.0-beta13",
 
    ++ "@builder.io/qwik": "workspace:*",
    ++ "@builder.io/qwik-city": "workspace:*",

@@ -133,7 +133,9 @@ To use your build in your project, follow these steps:
    npm install
    npm link @builder.io/qwik @builder.io/qwik-city
    ```
+
    or
+
    ```shell
     pnpm install
     pnpm link --global @builder.io/qwik @builder.io/qwik-city

@@ -115,6 +115,10 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             requestEv.headers.forEach((value, key) => {
               res.setHeader(key, value);
             });
+            const cookieHeaders = requestEv.cookie.headers();
+            if (cookieHeaders.length > 0) {
+              res.setHeader('Set-Cookie', cookieHeaders);
+            }
 
             (res as QwikViteDevResponse)._qwikEnvData = {
               ...(res as QwikViteDevResponse)._qwikEnvData,

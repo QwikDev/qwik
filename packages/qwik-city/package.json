@@ -1,6 +1,6 @@
 {
   "name": "@builder.io/qwik-city",
-  "version": "0.1.0-beta13",
+  "version": "0.1.0-beta14",
   "description": "The meta-framework for Qwik.",
   "main": "./lib/index.qwik.mjs",
   "qwik": "./lib/index.qwik.mjs",
@@ -91,7 +91,7 @@
     "@netlify/edge-functions": "^2.0.0",
     "@types/marked": "4.0.8",
     "@types/mdast": "^3.0.10",
-    "@types/node": "^18.11.18",
+    "@types/node": "^18.11.19",
     "@types/refractor": "3.0.2",
     "estree-util-value-to-estree": "2.1.0",
     "github-slugger": "2.0.0",
@@ -109,7 +109,7 @@
     "unified": "10.1.2",
     "unist-util-visit": "4.1.2",
     "uvu": "0.5.6",
-    "vite": "4.0.4",
+    "vite": "4.1.1",
     "yaml": "2.2.1"
   },
   "peerDependencies": {

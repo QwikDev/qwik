@@ -17,6 +17,19 @@ test.describe('actions', () => {
       test.beforeEach(async ({ page }) => {
         await page.goto('/qwikcity-test/actions/');
       });
+
+      test('should run actions programatically', async ({ page, javaScriptEnabled }) => {
+        if (javaScriptEnabled) {
+          const success = page.locator('#other-success');
+          const btn = page.locator('#other-button');
+
+          await expect(success).toBeHidden();
+          await btn.click();
+          await expect(success).toHaveText('Success');
+          await expect(page.locator('#other-store')).toHaveText('false:::{"success":true}');
+        }
+      });
+
       test('should run actions', async ({ page, javaScriptEnabled }) => {
         const other = page.locator('#other-store');
         const running = page.locator('#running');
@@ -28,11 +41,11 @@ test.describe('actions', () => {
         const codeError = page.locator('#label-code > p');
         const submit = page.locator('#submit');
 
-        await expect(other).toHaveText('false::::');
+        await expect(other).toHaveText('false:::');
         await submit.click();
         await expect(usernameError).toHaveText('String must contain at least 3 character(s)');
         await expect(codeError).toBeHidden();
-        await expect(other).toHaveText('false::::');
+        await expect(other).toHaveText('false:::');
 
         await username.fill('Manuel');
         await code.fill('text');
@@ -41,7 +54,7 @@ test.describe('actions', () => {
         await expect(codeError).toHaveText('Expected number, received nan');
         await expect(username).toHaveValue('Manuel');
         await expect(code).toHaveValue('text');
-        await expect(other).toHaveText('false::::');
+        await expect(other).toHaveText('false:::');
 
         await username.clear();
         await username.fill('Ma');
@@ -50,7 +63,7 @@ test.describe('actions', () => {
         await expect(codeError).toHaveText('Expected number, received nan');
         await expect(username).toHaveValue('Ma');
         await expect(code).toHaveValue('text');
-        await expect(other).toHaveText('false::::');
+        await expect(other).toHaveText('false:::');
 
         await username.clear();
         await username.fill('Test');
@@ -62,7 +75,7 @@ test.describe('actions', () => {
         await expect(username).toHaveValue('Test');
         await expect(code).toHaveValue('123');
         await expect(errorMessage).toHaveText('Invalid username or code');
-        await expect(other).toHaveText('false::::');
+        await expect(other).toHaveText('false:::');
 
         await username.clear();
         await username.fill('admin');
@@ -74,7 +87,7 @@ test.describe('actions', () => {
         await expect(running).toBeHidden();
         await expect(errorMessage).toBeHidden();
         await expect(successMessage).toHaveText('this is the secret');
-        await expect(other).toHaveText('false::::');
+        await expect(other).toHaveText('false:::');
 
         await username.clear();
         await username.fill('redirect');

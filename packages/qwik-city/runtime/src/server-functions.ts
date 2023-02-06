@@ -69,7 +69,7 @@ class ActionImpl implements ActionInternal {
       return initialState as ActionStore<any, any>;
     });
 
-    initialState.run = $((input: any | FormData | SubmitEvent) => {
+    initialState.run = $((input: any | FormData | SubmitEvent = {}) => {
       if (isServer) {
         throw new Error(`Actions can not be invoked within the server during SSR.
 Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);

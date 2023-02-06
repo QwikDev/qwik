@@ -17,7 +17,7 @@ export interface FormProps<O, I>
   /**
    * Reference to the action returned by `action.use()`.
    */
-  action: ActionStore<O, I>;
+  action: ActionStore<O, I, true | false>;
 
   /**
    * When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.

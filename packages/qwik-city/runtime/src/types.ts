@@ -82,7 +82,11 @@ export interface ActionConstructor {
   <O, B extends ZodReturn>(
     actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>,
     options: B
-  ): Action<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>>;
+  ): Action<
+    O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>,
+    GetValidatorType<B>,
+    false
+  >;
 }
 export type LoaderStateHolder = Record<string, Signal<any>>;
 
@@ -354,7 +358,7 @@ export interface ActionReturn<RETURN> {
 /**
  * @alpha
  */
-export interface ActionStore<RETURN, INPUT> {
+export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
   /**
    * It's the "action" path that a native `<form>` should have in order to call the action.
    *
@@ -415,7 +419,11 @@ export interface ActionStore<RETURN, INPUT> {
    * Method to execute the action programatically from the browser. Ie, instead of using a `<form>`, a 'click' handle can call the `run()` method of the action
    * in order to execute the action in the server.
    */
-  readonly run: QRL<(form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;
+  readonly run: QRL<
+    OPTIONAL extends true
+      ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
+      : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
+  >;
 }
 
 /**
@@ -464,14 +472,14 @@ export interface LoaderInternal extends Loader<any> {
 /**
  * @alpha
  */
-export interface Action<RETURN, INPUT = Record<string, any>> {
+export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> {
   readonly [isServerLoader]?: true;
 
   /**
    * Returns the `ActionStore` containing the current action state and methods to invoke it from a component$().
    * Like all `use-` functions and methods, it can only be invokated within a `component$()`.
    */
-  use(): ActionStore<RETURN, INPUT>;
+  use(): ActionStore<RETURN, INPUT, OPTIONAL>;
 }
 
 export interface ActionInternal extends Action<any, any> {

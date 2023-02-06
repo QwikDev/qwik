@@ -31,6 +31,7 @@ export default component$(() => {
           {String(other.isRunning)}:{other.formData?.get('username')}:{other.formData?.get('code')}:
           {JSON.stringify(other.value)}:{JSON.stringify(other.value)}
         </div>
+        <button onClick$={() => other.run()}>Run other</button>
       </section>
     </div>
   );

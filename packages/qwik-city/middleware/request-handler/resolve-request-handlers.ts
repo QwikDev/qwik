@@ -131,7 +131,6 @@ export function actionsMiddleware(serverLoaders: LoaderInternal[]) {
     }
     const { method } = requestEv;
     const loaders = getRequestLoaders(requestEv);
-
     if (method === 'POST') {
       const selectedAction = requestEv.query.get(QACTION_KEY);
       const serverActionsMap = (globalThis as any)._qwikActionsMap as Map<string, ActionInternal>;

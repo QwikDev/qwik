@@ -57,7 +57,6 @@ export const realDateLoader = loader$(() => {
 
 export const DateCmp = component$(() => {
   const date = realDateLoader.use();
-  console.log(date);
   return <p id="real-date">real-date: {date.value[0]}</p>;
 });
 

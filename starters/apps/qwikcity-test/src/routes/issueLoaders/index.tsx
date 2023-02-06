@@ -7,7 +7,6 @@ export const realDateLoader = loader$(() => {
 
 export default component$(() => {
   const date = realDateLoader.use();
-  console.log(date);
   return (
     <div>
       <p id="real-date">real-date: {date.value[0]}</p>

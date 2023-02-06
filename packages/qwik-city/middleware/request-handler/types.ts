@@ -160,7 +160,7 @@ export interface RequestEventCommon<PLATFORM = unknown> {
    * URL path params which have been parsed from the current url pathname segments.
    * Use `query` to instead retrieve the query string search params.
    */
-  readonly params: Record<string, string>;
+  readonly params: Readonly<Record<string, string>>;
 
   /**
    * URL Query Strings (URL Search Params).

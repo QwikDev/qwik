@@ -1,15 +1,15 @@
 import {
   component$,
+  getLocale,
   JSXNode,
   noSerialize,
   Slot,
   useContextProvider,
-  useEnvData,
-  getLocale,
+  useServerData,
   useStore,
   useSignal,
-  $,
   useTask$,
+  $,
   _weakSerialize,
 } from '@builder.io/qwik';
 import { loadRoute } from './routing';
@@ -72,7 +72,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
     throw new Error(`Missing Qwik City Env Data`);
   }
 
-  const urlEnv = useEnvData<string>('url');
+  const urlEnv = useServerData<string>('url');
   if (!urlEnv) {
     throw new Error(`Missing Qwik URL Env Data`);
   }
@@ -171,6 +171,7 @@ export const QwikCityProvider = component$<QwikCityProps>(() => {
         }
         loadedRoute = await loadRoutePromise;
       }
+
       if (loadedRoute) {
         const [params, mods, menu] = loadedRoute;
         const pathname = url.pathname;

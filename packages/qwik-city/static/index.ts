@@ -3,7 +3,7 @@ import type {
   StaticGenerateRenderOptions,
   StaticGenerateOptions,
   StaticGenerateResult,
-  Deno
+  Deno,
 } from './types';
 
 // @builder.io/qwik-city/static
@@ -54,4 +54,3 @@ function isCjs() {
   const req = 'require';
   return isNode() && typeof globalThis[req] === 'function';
 }
-

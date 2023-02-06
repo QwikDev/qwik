@@ -4,4 +4,3 @@ export async function generate(_opts: StaticGenerateOptions) {
   console.error(`Deno not implemented`);
   Deno.exit(1);
 }
-

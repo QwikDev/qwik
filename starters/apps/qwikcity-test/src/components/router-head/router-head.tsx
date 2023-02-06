@@ -7,9 +7,10 @@ export const RouterHead = component$(() => {
   const head = useDocumentHead();
   const loc = useLocation();
 
+  const title = head.title ? `${head.title} - Qwik` : `Qwik`;
   return (
     <>
-      <title>{head.title ? `${head.title} - Qwik` : `Qwik`}</title>
+      <title>{title}</title>
       <link rel="canonical" href={loc.href} />
       <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
       <meta name="viewport" content="width=device-width" />

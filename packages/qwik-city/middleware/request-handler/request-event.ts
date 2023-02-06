@@ -5,14 +5,9 @@ import type {
   ServerRequestMode,
   RequestHandler,
   RequestEventCommon,
+  GetData,
 } from './types';
-import type {
-  Action,
-  ActionInternal,
-  LoadedRoute,
-  Loader,
-  LoaderInternal,
-} from '../../runtime/src/types';
+import type { ActionInternal, LoadedRoute, LoaderInternal } from '../../runtime/src/types';
 import { Cookie } from './cookie';
 import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
@@ -133,18 +128,19 @@ export function createRequestEvent(
       headers.set('Cache-Control', createCacheControl(cacheControl));
     },
 
-    getData: (loaderOrAction: Action<any> | Loader<any>) => {
+    getData: (async (loaderOrAction: LoaderInternal | ActionInternal) => {
       // create user request event, which is a narrowed down request context
-      const id = (loaderOrAction as LoaderInternal | ActionInternal).__qrl.getHash();
-
-      if ((loaderOrAction as LoaderInternal | ActionInternal).__brand === 'server_loader') {
-        if (id in loaders) {
-          throw new Error('Loader data does not exist');
+      const id = loaderOrAction.__qrl.getHash();
+      if (loaderOrAction.__brand === 'server_loader') {
+        if (!(id in loaders)) {
+          throw new Error(
+            'You can not get the returned data of a loader that has not been executed for this request.'
+          );
         }
       }
 
       return loaders[id];
-    },
+    }) as GetData,
 
     status: (statusCode?: number) => {
       if (typeof statusCode === 'number') {
@@ -184,7 +180,7 @@ export function createRequestEvent(
       requestEv[RequestEvStatus] = statusCode;
       headers.delete('Cache-Control');
       return {
-        __brand: 'fail',
+        failed: true,
         ...data,
       };
     },

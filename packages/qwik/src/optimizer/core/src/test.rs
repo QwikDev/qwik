@@ -519,7 +519,7 @@ export const Works = component$(({
         console.log(count, rest, hey, some);
     });
     return (
-        <div some={some} class={count} {...rest}>{count}</div>
+        <div some={some} params={{ some }} class={count} {...rest}>{count}</div>
     );
 });
 

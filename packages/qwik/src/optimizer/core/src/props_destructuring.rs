@@ -69,6 +69,18 @@ impl<'a> VisitMut for PropsDestructuing<'a> {
             }
         }
     }
+
+    fn visit_mut_prop(&mut self, node: &mut ast::Prop) {
+        if let ast::Prop::Shorthand(short) = node {
+            if let Some(expr) = self.identifiers.get(&id!(short)) {
+                *node = ast::Prop::KeyValue(ast::KeyValueProp {
+                    key: ast::PropName::Ident(short.clone()),
+                    value: Box::new(expr.clone()),
+                });
+            }
+        }
+        node.visit_mut_children_with(self);
+    }
 }
 
 fn transform_component_props(arrow: &mut ast::ArrowExpr, props_transform: &mut PropsDestructuing) {

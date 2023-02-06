@@ -91,7 +91,7 @@ export const MyComp = component$(() => {
   const store = useStore({
     person: { first: null, last: null },
     location: null
-  }, { deep: true });
+  }, { recursive: true });
 
   store.location = {street: 'main st'};
 

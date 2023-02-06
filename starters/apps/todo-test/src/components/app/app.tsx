@@ -25,7 +25,7 @@ export const App = component$(() => {
       ],
       nextItemId: 3,
     },
-    { deep: true }
+    { recursive: true }
   );
   useContextProvider(TODOS, todos);
 

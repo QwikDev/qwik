@@ -35,7 +35,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
       stuff: 'foo',
     },
     {
-      deep: true,
+      recursive: true,
     }
   );
   Object.freeze(immutable);

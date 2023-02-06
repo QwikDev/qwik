@@ -11,7 +11,7 @@ export const Render = component$(() => {
   };
   parent.children.push(parent);
 
-  const state = useStore(parent, { deep: true });
+  const state = useStore(parent, { recursive: true });
   return (
     <>
       <button

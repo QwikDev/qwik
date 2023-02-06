@@ -105,7 +105,7 @@ export interface RequestEventCommon<PLATFORM = unknown> {
     readonly json: (statusCode: number, data: any) => AbortMessage;
     readonly locale: (local?: string) => string;
     readonly method: string;
-    readonly params: Record<string, string>;
+    readonly params: Readonly<Record<string, string>>;
     readonly pathname: string;
     readonly platform: PLATFORM;
     readonly query: URLSearchParams;

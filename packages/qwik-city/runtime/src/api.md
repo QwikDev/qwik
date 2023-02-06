@@ -17,6 +17,7 @@ import { QRL } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
 import { RequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
+import type { RequestEventAction } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestEventCommon } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
@@ -39,11 +40,11 @@ export interface ActionConstructor {
     // Warning: (ae-forgotten-export) The symbol "JSONObject" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    <O>(actionQrl: (form: JSONObject, event: RequestEventLoader) => ValueOrPromise<O>): Action<O>;
+    <O>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<O>): Action<O>;
     // Warning: (ae-forgotten-export) The symbol "GetValidatorType" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    <O, B extends ZodReturn>(actionQrl: (data: GetValidatorType<B>, event: RequestEventLoader) => ValueOrPromise<O>, options: B): Action<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>>;
+    <O, B extends ZodReturn>(actionQrl: (data: GetValidatorType<B>, event: RequestEventAction) => ValueOrPromise<O>, options: B): Action<O | FailReturn<z.typeToFlattenedError<GetValidatorType<B>>>, GetValidatorType<B>>;
 }
 
 // @alpha (undocumented)
@@ -57,7 +58,6 @@ export const actionQrl: <B, A>(actionQrl: QRL<(form: JSONObject, event: RequestE
 // @alpha (undocumented)
 export interface ActionStore<RETURN, INPUT> {
     readonly actionPath: string;
-    readonly fail: GetFailReturn<RETURN> | undefined;
     readonly formData: FormData | undefined;
     readonly isRunning: boolean;
     // Warning: (ae-forgotten-export) The symbol "ActionReturn" needs to be exported by the entry point index.d.ts
@@ -189,7 +189,7 @@ export type EndpointHandler<BODY = unknown> = RequestHandler<BODY>;
 
 // @alpha (undocumented)
 export type FailReturn<T> = T & {
-    __brand: 'fail';
+    failed: true;
 };
 
 // @alpha (undocumented)
@@ -199,18 +199,9 @@ export const Form: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest
 export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
     action: ActionStore<O, I>;
     onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
-    onSubmitFail$?: (event: CustomEvent<FormSubmitFailDetail<O>>, form: HTMLFormElement) => ValueOrPromise<void>;
-    onSubmitSuccess$?: (event: CustomEvent<FormSubmitSuccessDetail<O>>, form: HTMLFormElement) => ValueOrPromise<void>;
+    onSubmitCompleted$?: (event: CustomEvent<FormSubmitSuccessDetail<O>>, form: HTMLFormElement) => ValueOrPromise<void>;
     reloadDocument?: boolean;
     spaReset?: boolean;
-}
-
-// @alpha (undocumented)
-export interface FormSubmitFailDetail<T> {
-    // (undocumented)
-    fail: GetFailReturn<T>;
-    // (undocumented)
-    status: number;
 }
 
 // @alpha (undocumented)
@@ -218,13 +209,8 @@ export interface FormSubmitSuccessDetail<T> {
     // (undocumented)
     status: number;
     // (undocumented)
-    value: GetValueReturn<T>;
+    value: T;
 }
-
-// @alpha (undocumented)
-export type GetFailReturn<T> = T extends FailReturn<infer I> ? I & {
-    [key: string]: undefined;
-} : never;
 
 // Warning: (ae-forgotten-export) The symbol "QwikCityProps" needs to be exported by the entry point index.d.ts
 //

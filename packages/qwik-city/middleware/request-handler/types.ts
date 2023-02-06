@@ -280,16 +280,22 @@ export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLA
 /**
  * @alpha
  */
-export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
-  getData: GetData;
+export interface RequestEventAction<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
   fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
 }
 
 /**
  * @alpha
  */
+export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventAction<PLATFORM> {
+  getData: GetData;
+}
+
+/**
+ * @alpha
+ */
 export interface GetData {
-  <T>(loader: Loader<T>): Promise<T>;
+  <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
   <T>(loader: Action<T>): Promise<T | undefined>;
 }
 
@@ -297,8 +303,8 @@ export interface GetData {
  * @alpha
  */
 export interface GetSyncData {
-  <T>(loader: Loader<T>): T;
-  <T>(loader: Action<T>): T | undefined;
+  <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
+  <T>(action: Action<T>): Awaited<T> | undefined;
 }
 
 /**

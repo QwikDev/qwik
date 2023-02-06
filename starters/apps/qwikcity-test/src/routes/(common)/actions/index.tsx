@@ -18,18 +18,18 @@ export const otherAction = action$((_, { fail }) => {
 
 export default component$(() => {
   const other = otherAction.use();
-  // const date = dateLoader.use();
-  // console.log(date.value.toISOString());
+  const date = dateLoader.use();
 
   return (
     <div class="actions">
       <section class="input">
         <SecretForm />
       </section>
+      <div>{date.value.toISOString()}</div>
       <section>
         <div id="other-store">
           {String(other.isRunning)}:{other.formData?.get('username')}:{other.formData?.get('code')}:
-          {JSON.stringify(other.fail)}:{JSON.stringify(other.value)}
+          {JSON.stringify(other.value)}:{JSON.stringify(other.value)}
         </div>
       </section>
     </div>

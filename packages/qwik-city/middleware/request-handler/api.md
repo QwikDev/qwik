@@ -53,7 +53,7 @@ export interface CookieValue {
 // @alpha (undocumented)
 export interface GetData {
     // (undocumented)
-    <T>(loader: Loader<T>): Promise<T>;
+    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
     // (undocumented)
     <T>(loader: Action<T>): Promise<T | undefined>;
 }
@@ -64,9 +64,9 @@ export function getErrorHtml(status: number, e: any): string;
 // @alpha (undocumented)
 export interface GetSyncData {
     // (undocumented)
-    <T>(loader: Loader<T>): T;
+    <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
     // (undocumented)
-    <T>(loader: Action<T>): T | undefined;
+    <T>(action: Action<T>): Awaited<T> | undefined;
 }
 
 // @alpha (undocumented)
@@ -83,6 +83,12 @@ export interface RequestEvent<PLATFORM = unknown> extends RequestEventCommon<PLA
     readonly headersSent: boolean;
     // (undocumented)
     readonly next: () => Promise<void>;
+}
+
+// @alpha (undocumented)
+export interface RequestEventAction<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
+    // (undocumented)
+    fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
 }
 
 // @alpha (undocumented)
@@ -117,9 +123,7 @@ export interface RequestEventCommon<PLATFORM = unknown> {
 }
 
 // @alpha (undocumented)
-export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventCommon<PLATFORM> {
-    // (undocumented)
-    fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
+export interface RequestEventLoader<PLATFORM = unknown> extends RequestEventAction<PLATFORM> {
     // (undocumented)
     getData: GetData;
 }

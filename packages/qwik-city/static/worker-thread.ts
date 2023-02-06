@@ -97,13 +97,14 @@ async function workerRender(
               htmlWriter.write(Buffer.from(chunk.buffer));
             }
           },
-          close() {
+          async close() {
             const data: string = requestEv.sharedMap.get('qData');
 
             if (writeDataEnabled) {
               if (data) {
+                const serialized = await _serializeData(data);
                 const dataWriter = sys.createWriteStream(dataFilePath);
-                dataWriter.write(_serializeData(data));
+                dataWriter.write(serialized);
                 dataWriter.end();
               }
             }

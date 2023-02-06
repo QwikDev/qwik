@@ -1,4 +1,4 @@
-import { component$, jsx, JSXNode, SkipRender, useContext } from '@builder.io/qwik';
+import { component$, jsx, JSXNode, SkipRender, useContext, _IMMUTABLE } from '@builder.io/qwik';
 import { ContentInternalContext } from './contexts';
 
 /**
@@ -12,6 +12,9 @@ export const RouterOutlet = component$(() => {
     for (let i = contentsLen - 1; i >= 0; i--) {
       cmp = jsx(value[i].default, {
         children: cmp,
+        [_IMMUTABLE]: {
+          children: false,
+        },
       });
     }
     return cmp;

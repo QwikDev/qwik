@@ -1,4 +1,5 @@
-import type { StaticGenerateOptions, Deno } from '../types';
+import type { StaticGenerateOptions } from '../types';
+import { Deno } from '../types';
 
 export async function generate(_opts: StaticGenerateOptions) {
   console.error(`Deno not implemented`);

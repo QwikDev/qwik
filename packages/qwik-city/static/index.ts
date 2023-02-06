@@ -3,8 +3,8 @@ import type {
   StaticGenerateRenderOptions,
   StaticGenerateOptions,
   StaticGenerateResult,
-  Deno,
 } from './types';
+import { Deno } from './types';
 
 // @builder.io/qwik-city/static
 

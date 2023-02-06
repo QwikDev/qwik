@@ -1,17 +1,20 @@
 import { QwikCityProvider, RouterOutlet } from '@builder.io/qwik-city';
+import { SomeProvider } from './components/provider/provider';
 import { RouterHead } from './components/router-head/router-head';
 import './global.css';
 
 export default function Root() {
   return (
-    <QwikCityProvider>
-      <head>
-        <meta charSet="utf-8" />
-        <RouterHead />
-      </head>
-      <body>
-        <RouterOutlet />
-      </body>
-    </QwikCityProvider>
+    <SomeProvider>
+      <QwikCityProvider>
+        <head>
+          <meta charSet="utf-8" />
+          <RouterHead />
+        </head>
+        <body>
+          <RouterOutlet />
+        </body>
+      </QwikCityProvider>
+    </SomeProvider>
   );
 }

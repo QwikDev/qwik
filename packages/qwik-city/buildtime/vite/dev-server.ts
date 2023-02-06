@@ -1,7 +1,16 @@
 import type { ViteDevServer, Connect } from 'vite';
 import type { ServerResponse } from 'node:http';
 import type { BuildContext } from '../types';
-import type { LoadedRoute, PathParams, RequestEvent, RouteModule } from '../../runtime/src/types';
+import type {
+  ContentMenu,
+  LoadedRoute,
+  MenuData,
+  MenuModule,
+  MenuModuleLoader,
+  PathParams,
+  RequestEvent,
+  RouteModule,
+} from '../../runtime/src/types';
 import type { QwikViteDevResponse } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -14,7 +23,7 @@ import { getQwikCityServerData } from '../../middleware/request-handler/response
 import { updateBuildContext } from '../build';
 import { getErrorHtml } from '../../middleware/request-handler/error-handler';
 import { getExtension, normalizePath } from '../../utils/fs';
-import { getPathParams } from '../../runtime/src/routing';
+import { getMenuLoader, getPathParams } from '../../runtime/src/routing';
 import { fromNodeHttp } from '../../middleware/node/http';
 import { resolveRequestHandlers } from '../../middleware/request-handler/resolve-request-handlers';
 import { formatError } from './format-error';
@@ -121,13 +130,34 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             return qwikRenderPromise;
           }
         };
-        const loadedRoute = [params, routeModules, undefined, undefined] satisfies LoadedRoute;
+
+        let menu: ContentMenu | undefined = undefined;
+        const menus = ctx.menus.map((buildMenu) => {
+          const menuLoader: MenuModuleLoader = async () => {
+            const m = await server.ssrLoadModule(buildMenu.filePath);
+            const menuModule: MenuModule = {
+              default: m.default,
+            };
+            return menuModule;
+          };
+          const menuData: MenuData = [buildMenu.pathname, menuLoader];
+          return menuData;
+        });
+
+        const menuLoader = getMenuLoader(menus, url.pathname);
+        if (menuLoader) {
+          const menuModule = await menuLoader();
+          menu = menuModule?.default;
+        }
+
+        const loadedRoute = [params, routeModules, menu, undefined] satisfies LoadedRoute;
         const requestHandlers = resolveRequestHandlers(
           serverPlugins,
           loadedRoute,
           req.method ?? 'GET',
           renderFn
         );
+
         if (requestHandlers.length > 0) {
           const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
 
